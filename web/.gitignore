@@ -5,3 +5,5 @@ out/
 .vercel
 *.log
 *.tsbuildinfo
+scripts/arkhe-it-snapshot.json
+scripts/it-source/

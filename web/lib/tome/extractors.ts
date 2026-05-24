@@ -121,7 +121,13 @@ export function rawStamps(d: D): number | null {
   for (let i = 0; i < sl.length; i++) {
     const row = obj(sl[i]);
     if (!row) continue;
-    for (const k of Object.keys(row)) t += num(row[k]);
+    // StampLv rows are plain objects that carry a `"length"` own property
+    // holding the count of stamps in that category. Skipping it matches IT's
+    // `calcStampLevels` behavior.
+    for (const k of Object.keys(row)) {
+      if (k === "length") continue;
+      t += num(row[k]);
+    }
   }
   return t;
 }
@@ -355,6 +361,12 @@ export function rawSummoningStones(d: D): number | null {
 // ---------------------------------------------------------------- farming / boats / sail
 
 export function rawFarmingStickers(d: D): number | null {
+  // IT (parsers/world-7/research.ts) computes totalStickers = sum(Research[9])
+  // where Research[9] is the per-sticker-type level array. OptLacc[140] is a
+  // related but slightly stale value — use Research[9] to match IT.
+  if (Array.isArray(d.Research) && Array.isArray((d.Research as unknown[])[9])) {
+    return arrSum((d.Research as unknown[])[9]);
+  }
   const opt = arr(d.OptLacc);
   const v = opt[140];
   if (v !== undefined && v !== null) return Math.floor(Number(v));
@@ -584,11 +596,16 @@ export function rawGambitTime(d: D): number | null {
 }
 
 export function rawCareerSummWins(d: D): number | null {
+  // IT iterates a fixed list of summonable enemies and counts each as won at
+  // most once if it appears in Summon[1]. That's equivalent to counting
+  // unique entries (the wonBattles array can repeat enemies). Then it adds
+  // highestEndlessLevel = OptLacc[319].
   if (!d.Summon || !Array.isArray((d.Summon as unknown[])[1])) return null;
-  const wins = ((d.Summon as unknown[])[1] as unknown[]).length;
+  const wonBattles = (d.Summon as unknown[])[1] as unknown[];
+  const uniqueWins = new Set(wonBattles.map((x) => String(x))).size;
   const opt = arr(d.OptLacc);
   const endless = num(opt[319]);
-  return wins + endless;
+  return uniqueWins + endless;
 }
 
 export function rawBreedability(d: D): number | null {
@@ -604,6 +621,10 @@ export function rawShinyLevels(d: D): number | null {
 // ---------------------------------------------------------------- v7.9 W7 / breeding / spelunk extras
 
 export function rawHighestPowerMob(d: D): number | null {
+  // IT's calcHighestPower (parsers/world-4/breeding.ts) aggregates:
+  //  - PetsStored[*][2]              (stored pets)
+  //  - Pets[*][2]                    (fence pets + territory teams)
+  // NOT Breeding[3] — that's genetics/material counts, not pet power.
   const powers: number[] = [];
   if (Array.isArray(d.PetsStored)) {
     for (const p of d.PetsStored) {
@@ -613,10 +634,12 @@ export function rawHighestPowerMob(d: D): number | null {
       }
     }
   }
-  if (Array.isArray(d.Breeding) && Array.isArray((d.Breeding as unknown[])[3])) {
-    for (const v of (d.Breeding as unknown[])[3] as unknown[]) {
-      const n = Number(v);
-      if (!Number.isNaN(n) && n > 0) powers.push(n);
+  if (Array.isArray(d.Pets)) {
+    for (const p of d.Pets) {
+      if (Array.isArray(p) && p[2] !== undefined) {
+        const v = Number(p[2]);
+        if (!Number.isNaN(v) && v > 0) powers.push(v);
+      }
     }
   }
   return powers.length > 0 ? Math.max(...powers) : null;
@@ -752,6 +775,12 @@ export function rawShinyLevelsProper(d: D): number | null {
 }
 
 // Star Talents (compute 15): max char (level-1 + sum_skills_1_9 - 3) across all chars.
+// KNOWN LIMITATION: IT's full calcTotalStarTalent adds ~15 bonus sources
+// (STAR_PLAYER/STONKS!/SUPERNOVA_PLAYER talents, family bonus, stamps,
+// guild, flurbo, cards, sigils, achievements 212/289/305, shiny pets,
+// bribes, fractal island, vault upgrade 53, companion 20). Porting all of
+// those would require ~15 other parser modules. We accept a small per-player
+// undershoot here (typically 5-10 tome points) as a documented divergence.
 export function rawStarTalentsProper(d: D): number | null {
   let maxPts = 0;
   for (let c = 0; c < 10; c++) {
