@@ -4,10 +4,9 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import type { LeaderboardsResponse } from "@/app/api/leaderboards/route";
 import LeaderboardsTable from "@/components/LeaderboardsTable";
 import Dashboard from "@/components/Dashboard";
-import TomeRawPanel from "@/components/tome/TomeRawPanel";
 import { formatRelativeTime } from "@/lib/format";
 
-type Tab = "leaderboards" | "dashboard" | "tome";
+type Tab = "leaderboards" | "dashboard";
 
 const STORAGE_KEY = "idleon-leaderboards.player";
 
@@ -73,7 +72,7 @@ export default function Home() {
         <div className="flex items-center gap-3 mb-2">
           <span className="text-3xl">🏆</span>
           <h1 className="text-2xl font-bold text-gold">
-            Idleon Leaderboards Tracker
+            IdleonToolbox Leaderboards Tracker
           </h1>
         </div>
         <p className="text-zinc-400 text-sm">
@@ -151,9 +150,6 @@ export default function Home() {
         <TabButton active={tab === "dashboard"} onClick={() => setTab("dashboard")}>
           📊 Dashboard
         </TabButton>
-        <TabButton active={tab === "tome"} onClick={() => setTab("tome")}>
-          📖 Tome
-        </TabButton>
       </div>
 
       {tab === "leaderboards" &&
@@ -168,7 +164,6 @@ export default function Home() {
         ) : (
           <EmptyHint>Enter a player name above and click Load to see the dashboard.</EmptyHint>
         ))}
-      {tab === "tome" && <TomeRawPanel />}
 
       <footer className="mt-12 text-xs text-zinc-600 text-center border-t border-zinc-900 pt-4">
         Source:{" "}
