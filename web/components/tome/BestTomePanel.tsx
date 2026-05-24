@@ -77,7 +77,6 @@ export default function BestTomePanel() {
   // restores this view.
   const [sortKey, setSortKey] = useState<SortKey>("default");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
-  const [showTopPlayer, setShowTopPlayer] = useState(false);
   // Per-task user classification map (taskName → classification ID). Saved in
   // localStorage so each player keeps their own categorization across sessions.
   const [userClass, setUserClass] = useState<Record<string, number>>({});
@@ -372,15 +371,6 @@ export default function BestTomePanel() {
           />
           Hide maxed
         </label>
-        <label className="flex items-center gap-2 text-sm text-zinc-400">
-          <input
-            type="checkbox"
-            checked={showTopPlayer}
-            onChange={(e) => setShowTopPlayer(e.target.checked)}
-            className="accent-gold"
-          />
-          Show top player
-        </label>
         <button
           onClick={() => {
             setSortKey("default");
@@ -438,7 +428,10 @@ export default function BestTomePanel() {
               >
                 Task{sortArrow("task")}
               </th>
-              <th className="px-3 py-2 text-right hidden md:table-cell w-32">
+              <th
+                className="px-3 py-2 text-right hidden md:table-cell w-40"
+                title="Your raw value / top observed player's raw value"
+              >
                 Your QTY
               </th>
               <th className="px-3 py-2 text-right hidden lg:table-cell w-32">
@@ -463,13 +456,9 @@ export default function BestTomePanel() {
               >
                 Gap vs top{sortArrow("gap")}
               </th>
-              {showTopPlayer && (
-                <>
-                  <th className="px-3 py-2 text-left bg-blue-950/20">Top player</th>
-                  <th className="px-3 py-2 text-right bg-blue-950/20">Top QTY</th>
-                  <th className="px-3 py-2 text-right bg-blue-950/20">Top Points</th>
-                </>
-              )}
+              <th className="px-3 py-2 text-left bg-blue-950/20 w-40 hidden md:table-cell">
+                Top player
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -477,7 +466,6 @@ export default function BestTomePanel() {
               <BestTomeRow
                 key={r.idx}
                 row={r}
-                showTopPlayer={showTopPlayer}
                 onClassChange={setClassFor}
               />
             ))}
@@ -485,13 +473,11 @@ export default function BestTomePanel() {
         </table>
       </div>
 
-      {showTopPlayer && (
-        <p className="text-xs text-zinc-500">
-          Top-player snapshot from the &ldquo;Antho and Arkh&rsquo;s Tome Sheet&rdquo;
-          BEST TOME tab, captured 2026-05-20. A live IT-scraper that refreshes
-          this nightly is planned next.
-        </p>
-      )}
+      <p className="text-xs text-zinc-500">
+        Top-player snapshot from the &ldquo;Antho and Arkh&rsquo;s Tome Sheet&rdquo;
+        BEST TOME tab, captured 2026-05-20. A live IT-scraper that refreshes
+        this nightly is planned next.
+      </p>
     </div>
   );
 }
@@ -666,11 +652,9 @@ function KpiCard({
 
 function BestTomeRow({
   row: r,
-  showTopPlayer,
   onClassChange,
 }: {
   row: EnrichedRow;
-  showTopPlayer: boolean;
   onClassChange: (taskName: string, value: number | null) => void;
 }) {
   const meta = TIER_META[r.tier];
@@ -690,7 +674,19 @@ function BestTomeRow({
       </td>
       <td className="px-3 py-2 font-medium">{displayTaskName(r.task)}</td>
       <td className="px-3 py-2 text-right tabular-nums text-zinc-300 hidden md:table-cell">
-        {r.rawValue === null ? <span className="text-zinc-600">—</span> : formatIdleon(r.rawValue)}
+        {r.rawValue === null ? (
+          <span className="text-zinc-600">—</span>
+        ) : (
+          <>
+            {formatIdleon(r.rawValue)}
+            <span className="text-zinc-500 text-xs">
+              {" / "}
+              {r.top?.raw !== null && r.top?.raw !== undefined
+                ? formatIdleon(r.top.raw)
+                : "—"}
+            </span>
+          </>
+        )}
       </td>
       <td className="px-3 py-2 text-right tabular-nums text-zinc-400 hidden lg:table-cell">
         {r.cappedByMax ? (
@@ -754,30 +750,23 @@ function BestTomeRow({
           <span className="text-zinc-300">−{r.ptsGapToTop}</span>
         )}
       </td>
-      {showTopPlayer && (
-        <>
-          <td className="px-3 py-2 bg-blue-950/10 text-zinc-300">
-            {r.top?.player ? (
-              <div>
-                <div>{r.top.player}</div>
-                {r.top.date && (
-                  <div className="text-[10px] text-zinc-500" title="Date this datapoint was captured">
-                    {r.top.date}
-                  </div>
-                )}
+      <td className="px-3 py-2 bg-blue-950/10 text-zinc-300 hidden md:table-cell">
+        {r.top?.player ? (
+          <div>
+            <div className="text-sm">{r.top.player}</div>
+            {r.top.date && (
+              <div
+                className="text-[10px] text-zinc-500"
+                title="Date this datapoint was captured"
+              >
+                {r.top.date}
               </div>
-            ) : (
-              <span className="text-zinc-600 italic text-xs">—</span>
             )}
-          </td>
-          <td className="px-3 py-2 text-right tabular-nums bg-blue-950/10 text-zinc-300">
-            {r.top?.raw !== null && r.top?.raw !== undefined ? formatIdleon(r.top.raw) : <span className="text-zinc-600 italic text-xs">—</span>}
-          </td>
-          <td className="px-3 py-2 text-right tabular-nums bg-blue-950/10 text-zinc-300">
-            {r.top?.pts !== null && r.top?.pts !== undefined ? r.top.pts : <span className="text-zinc-600 italic text-xs">—</span>}
-          </td>
-        </>
-      )}
+          </div>
+        ) : (
+          <span className="text-zinc-600 italic text-xs">no data</span>
+        )}
+      </td>
     </tr>
   );
 }
