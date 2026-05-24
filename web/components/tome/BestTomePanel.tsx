@@ -47,7 +47,6 @@ type SortKey =
   | "pts"
   | "gap"
   | "next"
-  | "max"
   | "pctRemaining";
 type SortDir = "asc" | "desc";
 
@@ -279,10 +278,6 @@ export default function BestTomePanel() {
           av = nextPtCost(a) ?? Number.MAX_SAFE_INTEGER;
           bv = nextPtCost(b) ?? Number.MAX_SAFE_INTEGER;
           break;
-        case "max":
-          av = a.maxPts;
-          bv = b.maxPts;
-          break;
         case "pctRemaining":
           av = (a.maxPts - (a.pts ?? 0)) / Math.max(1, a.maxPts);
           bv = (b.maxPts - (b.pts ?? 0)) / Math.max(1, b.maxPts);
@@ -453,12 +448,6 @@ export default function BestTomePanel() {
                 title="Your pts / top player's pts / theoretical max"
               >
                 Points{sortArrow("pts")}
-              </th>
-              <th
-                className="px-3 py-2 text-right cursor-pointer hover:bg-zinc-800 w-24"
-                onClick={() => toggleSort("max")}
-              >
-                Max{sortArrow("max")}
               </th>
               <th
                 className="px-3 py-2 text-right cursor-pointer hover:bg-zinc-800 w-28"
@@ -754,7 +743,6 @@ function BestTomeRow({
           );
         })()}
       </td>
-      <td className="px-3 py-2 text-right tabular-nums text-zinc-400">{r.maxPts}</td>
       <td className="px-3 py-2 text-right tabular-nums">
         {r.top === null || r.top.pts === null ? (
           <span className="text-zinc-600 text-xs">no data</span>
