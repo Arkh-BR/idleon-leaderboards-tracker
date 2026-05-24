@@ -500,41 +500,37 @@ export default function BestTomePanel() {
           <thead className="text-zinc-300">
             <tr className="[&>th]:bg-zinc-900 [&>th]:sticky [&>th]:top-0 [&>th]:z-20 [&>th]:border-b [&>th]:border-zinc-800">
               <th
-                className="px-3 py-2 text-center align-top cursor-pointer hover:bg-zinc-800/80 sticky left-0 !z-30 border-r border-zinc-800 min-w-[220px]"
+                className="px-3 py-2 text-center align-middle cursor-pointer hover:bg-zinc-800/80 sticky left-0 !z-30 border-r border-zinc-800 min-w-[220px]"
                 onClick={() => toggleSort("task")}
               >
                 <HeaderTitle>Task{sortArrow("task")}</HeaderTitle>
-                <HeaderSub>name</HeaderSub>
               </th>
               <th
-                className="px-3 py-2 text-center align-top cursor-pointer hover:bg-zinc-800/80 w-24"
+                className="px-3 py-2 text-center align-middle cursor-pointer hover:bg-zinc-800/80 w-24"
                 onClick={() => toggleSort("tier")}
                 title="Achievement progress vs the curve max (bronze < 40% < silver < 75% < gold < 99.9% ≤ maxed)"
               >
                 <HeaderTitle>Tier{sortArrow("tier")}</HeaderTitle>
-                <HeaderSub>progress</HeaderSub>
               </th>
               <th
-                className="px-3 py-2 text-center align-top cursor-pointer hover:bg-zinc-800/80 w-32"
+                className="px-3 py-2 text-center align-middle cursor-pointer hover:bg-zinc-800/80 w-32"
                 onClick={() => toggleSort("class")}
                 title="User-defined classification (auto-Capped when pts hit theoretical max)"
               >
                 <HeaderTitle>Classification{sortArrow("class")}</HeaderTitle>
-                <HeaderSub>priority tag</HeaderSub>
               </th>
               <th
-                className="px-3 py-2 text-center align-top w-40"
+                className="px-3 py-2 text-center align-middle w-40"
                 title="Your raw value / top observed player's raw value"
               >
                 <HeaderTitle>Your QTY</HeaderTitle>
                 <HeaderSub>you / top</HeaderSub>
               </th>
-              <th className="px-3 py-2 text-center align-top w-36">
+              <th className="px-3 py-2 text-center align-middle w-36">
                 <HeaderTitle>+1 Tome pt at</HeaderTitle>
-                <HeaderSub>to gain</HeaderSub>
               </th>
               <th
-                className="px-3 py-2 text-center align-top cursor-pointer hover:bg-zinc-800/80 w-48"
+                className="px-3 py-2 text-center align-middle cursor-pointer hover:bg-zinc-800/80 w-48"
                 onClick={() => toggleSort("pts")}
                 title="Your pts / top player's pts / theoretical max"
               >
@@ -542,7 +538,7 @@ export default function BestTomePanel() {
                 <HeaderSub>you / top / max</HeaderSub>
               </th>
               <th
-                className="px-3 py-2 text-center align-top cursor-pointer hover:bg-zinc-800/80 w-28"
+                className="px-3 py-2 text-center align-middle cursor-pointer hover:bg-zinc-800/80 w-28"
                 onClick={() => toggleSort("delta")}
                 title={
                   snapshot
@@ -554,19 +550,17 @@ export default function BestTomePanel() {
                 <HeaderSub>since save</HeaderSub>
               </th>
               <th
-                className="px-3 py-2 text-center align-top cursor-pointer hover:bg-zinc-800/80 w-32"
+                className="px-3 py-2 text-center align-middle cursor-pointer hover:bg-zinc-800/80 w-32"
                 onClick={() => toggleSort("gap")}
                 title="Pts gap to the top observed player on this task"
               >
                 <HeaderTitle>Gap vs top{sortArrow("gap")}</HeaderTitle>
-                <HeaderSub>to #1</HeaderSub>
               </th>
               <th
-                className="px-3 py-2 text-center align-top w-44 border-l border-zinc-800/60"
+                className="px-3 py-2 text-center align-middle w-44 border-l border-zinc-800/60"
                 title="Top observed player per task — snapshot from the &ldquo;Antho and Arkh&rsquo;s Tome Sheet&rdquo; BEST TOME tab, captured 2026-05-20"
               >
                 <HeaderTitle>Top player</HeaderTitle>
-                <HeaderSub>name &amp; date</HeaderSub>
               </th>
             </tr>
           </thead>
