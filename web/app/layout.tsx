@@ -4,7 +4,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "Idleon Leaderboards Tracker",
   description:
-    "Rastreie sua posição em todos os 153 leaderboards do IdleonToolbox.",
+    "Track your position across all 153 IdleonToolbox leaderboards.",
 };
 
 export default function RootLayout({
@@ -13,7 +13,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="pt-BR">
+    <html lang="en">
       <body className="min-h-screen">{children}</body>
     </html>
   );

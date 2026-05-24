@@ -95,7 +95,7 @@ export default function Dashboard({ boards, player }: Props) {
   return (
     <div className="space-y-8">
       {/* Tier summary */}
-      <Section title="1. Resumo por tier">
+      <Section title="1. Tier summary">
         <div className="grid grid-cols-2 md:grid-cols-6 gap-2">
           {TIERS.map((t) => (
             <div key={t} className={`rounded p-3 text-center ${TIER_COLORS[t]}`}>
@@ -117,12 +117,12 @@ export default function Dashboard({ boards, player }: Props) {
       </Section>
 
       {/* Heatmap */}
-      <Section title="2. Heatmap por categoria">
+      <Section title="2. Heatmap by category">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-zinc-900 text-zinc-300">
               <tr>
-                <th className="text-left px-3 py-2">Categoria</th>
+                <th className="text-left px-3 py-2">Category</th>
                 <th className="text-center px-3 py-2">Total</th>
                 {TIERS.map((t) => (
                   <th key={t} className="text-center px-3 py-2 text-xs">
@@ -158,7 +158,7 @@ export default function Dashboard({ boards, player }: Props) {
       </Section>
 
       {/* Worst positions */}
-      <Section title="3. Top 40 piores posições (foco em melhorar)">
+      <Section title="3. Top 40 worst positions (focus on improving)">
         <RankedTable
           rows={worst.map((b) => {
             const top = b.top10[0]?.score;
@@ -182,12 +182,12 @@ export default function Dashboard({ boards, player }: Props) {
             };
           })}
           headers={[
-            "Categoria",
+            "Category",
             "Leaderboard",
             "Rank",
             "Score",
             "#1 Score",
-            "% de #1",
+            "% of #1",
             "Gap vs #1",
             "Gap vs #10",
           ]}
@@ -195,7 +195,7 @@ export default function Dashboard({ boards, player }: Props) {
       </Section>
 
       {/* Quick wins */}
-      <Section title="4. Quick wins: mais perto do Top 10 (rank 11-50)">
+      <Section title="4. Quick wins: closest to Top 10 (rank 11-50)">
         <RankedTable
           rows={quickWins.map((b) => {
             const score10 = b.top10[9]?.score ?? null;
@@ -217,20 +217,20 @@ export default function Dashboard({ boards, player }: Props) {
             };
           })}
           headers={[
-            "Categoria",
+            "Category",
             "Leaderboard",
             "Rank",
             "Score",
             "#10 Score",
-            "Gap p/ top 10",
-            "% de #10",
+            "Gap to top 10",
+            "% of #10",
           ]}
-          emptyMsg="Nenhum leaderboard entre rank 11 e 50."
+          emptyMsg="No leaderboards between rank 11 and 50."
         />
       </Section>
 
       {/* Best */}
-      <Section title="5. Suas melhores 30 posições">
+      <Section title="5. Your best 30 positions">
         <RankedTable
           rows={best.map((b) => {
             const top = b.top10[0]?.score;
@@ -247,19 +247,20 @@ export default function Dashboard({ boards, player }: Props) {
             };
           })}
           headers={[
-            "Categoria",
+            "Category",
             "Leaderboard",
             "Rank",
             "Score",
             "#1 Score",
-            "% de #1",
+            "% of #1",
           ]}
         />
       </Section>
 
       <div className="text-xs text-zinc-600 text-center">
-        Análise gerada a partir dos leaderboards de{" "}
-        <span className="font-mono text-zinc-500">{player}</span>.
+        Analysis generated from{" "}
+        <span className="font-mono text-zinc-500">{player}</span>&rsquo;s
+        leaderboards.
       </div>
     </div>
   );
@@ -331,7 +332,7 @@ function HeatCell({ tier, value }: { tier: Tier; value: number }) {
 function RankedTable({
   headers,
   rows,
-  emptyMsg = "Sem dados para mostrar.",
+  emptyMsg = "No data to show.",
 }: {
   headers: string[];
   rows: { key: string; cells: React.ReactNode[] }[];

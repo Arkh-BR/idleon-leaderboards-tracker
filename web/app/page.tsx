@@ -76,8 +76,8 @@ export default function Home() {
           </h1>
         </div>
         <p className="text-zinc-400 text-sm">
-          Sua posição em todos os 153 leaderboards do IdleonToolbox — atualiza
-          automaticamente, sem precisar de planilha.
+          Your position across all 153 IdleonToolbox leaderboards — updates
+          automatically, no spreadsheet required.
         </p>
       </header>
 
@@ -86,13 +86,13 @@ export default function Home() {
         className="flex flex-wrap gap-2 mb-6 items-center bg-zinc-900/50 border border-zinc-800 rounded-lg p-3"
       >
         <label className="text-sm text-zinc-400 font-medium">
-          Nome do jogador
+          Player name
         </label>
         <input
           type="text"
           value={playerInput}
           onChange={(e) => setPlayerInput(e.target.value)}
-          placeholder="ex: ARKHE"
+          placeholder="e.g. ARKHE"
           className="bg-zinc-950 border border-zinc-700 rounded px-3 py-2 text-sm flex-1 min-w-[200px] font-mono"
         />
         <button
@@ -100,7 +100,7 @@ export default function Home() {
           disabled={loading || !playerInput.trim()}
           className="bg-gold text-ink font-bold rounded px-4 py-2 text-sm disabled:opacity-50"
         >
-          {loading ? "Carregando…" : "Carregar"}
+          {loading ? "Loading…" : "Load"}
         </button>
         {activePlayer && (
           <button
@@ -108,7 +108,7 @@ export default function Home() {
             onClick={() => load(activePlayer, true)}
             disabled={loading}
             className="border border-zinc-700 rounded px-3 py-2 text-sm disabled:opacity-50"
-            title="Força refresh (ignora cache de 15min)"
+            title="Force refresh (skip 15min cache)"
           >
             🔄
           </button>
@@ -117,28 +117,28 @@ export default function Home() {
 
       {error && (
         <div className="bg-red-950/50 border border-red-800 rounded p-3 mb-4 text-sm">
-          <strong className="text-red-400">Erro:</strong> {error}
+          <strong className="text-red-400">Error:</strong> {error}
         </div>
       )}
 
       {hasData && (
         <>
           <div className="flex flex-wrap gap-3 items-baseline mb-4 text-sm">
-            <span className="text-zinc-400">Mostrando</span>
+            <span className="text-zinc-400">Showing</span>
             <strong className="text-gold font-mono">{data!.player}</strong>
             <span className="text-zinc-500">·</span>
             <span className="text-zinc-400">
-              atualizado {formatRelativeTime(data!.fetchedAt)}
+              updated {formatRelativeTime(data!.fetchedAt)}
             </span>
             {!playerFound && (
               <span className="ml-auto text-yellow-400 text-xs">
-                ⚠ jogador não encontrado em nenhum leaderboard — confira o
-                nome (case-insensitive) e se o perfil é Public/Anonymous no IT.
+                ⚠ player not found on any leaderboard — check the name
+                (case-insensitive) and that the profile is Public/Anonymous in IT.
               </span>
             )}
             {data!.errors.length > 0 && (
               <span className="text-orange-400 text-xs">
-                ⚠ {data!.errors.length} categoria(s) com erro
+                ⚠ {data!.errors.length} categor{data!.errors.length === 1 ? "y" : "ies"} failed
               </span>
             )}
           </div>
@@ -159,12 +159,12 @@ export default function Home() {
 
       {!hasData && !loading && !error && (
         <div className="text-zinc-500 text-sm">
-          Digite o nome do jogador acima e clique em Carregar.
+          Enter a player name above and click Load.
         </div>
       )}
 
       <footer className="mt-12 text-xs text-zinc-600 text-center border-t border-zinc-900 pt-4">
-        Fonte:{" "}
+        Source:{" "}
         <a
           href="https://idleontoolbox.com"
           className="text-zinc-400 hover:text-gold"
@@ -173,7 +173,7 @@ export default function Home() {
         >
           idleontoolbox.com
         </a>{" "}
-        · Código original:{" "}
+        · Original code:{" "}
         <a
           href="https://github.com/Morta1/IdleonToolbox"
           className="text-zinc-400 hover:text-gold"

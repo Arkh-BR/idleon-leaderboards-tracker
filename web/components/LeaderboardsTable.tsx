@@ -113,7 +113,7 @@ export default function LeaderboardsTable({ boards }: Props) {
         </select>
         <input
           type="text"
-          placeholder="Buscar leaderboard…"
+          placeholder="Search leaderboard…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="bg-zinc-900 border border-zinc-700 rounded px-3 py-2 text-sm flex-1 min-w-[200px]"
@@ -131,7 +131,7 @@ export default function LeaderboardsTable({ boards }: Props) {
                 className="text-left px-3 py-2 cursor-pointer hover:bg-zinc-800"
                 onClick={() => toggleSort("category")}
               >
-                Categoria{sortIndicator("category")}
+                Category{sortIndicator("category")}
               </th>
               <th
                 className="text-left px-3 py-2 cursor-pointer hover:bg-zinc-800"
@@ -158,7 +158,7 @@ export default function LeaderboardsTable({ boards }: Props) {
                 className="text-right px-3 py-2 cursor-pointer hover:bg-zinc-800 hidden md:table-cell w-24"
                 onClick={() => toggleSort("pct")}
               >
-                % de #1{sortIndicator("pct")}
+                % of #1{sortIndicator("pct")}
               </th>
               <th className="text-left px-3 py-2 hidden lg:table-cell">
                 Top 1
@@ -240,7 +240,7 @@ function FragmentRow({
           <button
             onClick={onToggle}
             className="text-zinc-500 hover:text-zinc-200 text-xs"
-            aria-label={isOpen ? "Recolher" : "Expandir top 10"}
+            aria-label={isOpen ? "Collapse" : "Expand top 10"}
           >
             {isOpen ? "▲" : "▼"}
           </button>

@@ -33,7 +33,7 @@ export const TIER_LABELS: Record<Tier, string> = {
   top51_100: "Top 51-100",
   top101_200: "Top 101-200",
   rank200plus: "Rank 200+",
-  unranked: "Sem rank",
+  unranked: "Unranked",
 };
 
 export const TIER_COLORS: Record<Tier, string> = {
