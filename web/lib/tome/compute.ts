@@ -498,20 +498,25 @@ export function computeTome(input: string | RawObj): TomeResult {
     throw new Error("Input is not an object.");
   }
 
-  // Unwrap common envelopes
+  // Unwrap common envelopes. Some extractors need fields that live OUTSIDE
+  // .data (companion, guildData) — preserve them onto the inner save so the
+  // extractors don't have to know about the envelope shape.
   if (Object.keys(data).length < 50) {
     if (
       data.data &&
       typeof data.data === "object" &&
       Object.keys(data.data as RawObj).length > 100
     ) {
-      if (
-        data.parsedData &&
-        typeof data.parsedData === "object"
-      ) {
+      if (data.parsedData && typeof data.parsedData === "object") {
         pd = data.parsedData as ParsedData;
       }
-      data = data.data as RawObj;
+      const envelope = data;
+      data = envelope.data as RawObj;
+      for (const sideKey of ["companion", "guildData", "tournament", "serverVars", "charNames"]) {
+        if (envelope[sideKey] !== undefined && data[sideKey] === undefined) {
+          data[sideKey] = envelope[sideKey];
+        }
+      }
     } else if (data.profileData && typeof data.profileData === "object") {
       data = data.profileData as RawObj;
     }

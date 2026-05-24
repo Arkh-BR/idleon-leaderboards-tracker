@@ -21,13 +21,25 @@ if (!blob.data || !blob.parsedData?.tomePoints) {
 }
 
 const itPoints = blob.parsedData.tomePoints;
-// Default: feed raw `data` only — exercise local compute path.
-// Pass MODE=hybrid env var to feed the full envelope (data + parsedData).
-const ours =
-  process.env.MODE === "hybrid"
-    ? computeTome(blob as unknown as Record<string, unknown>)
-    : computeTome(blob.data as Record<string, unknown>);
-console.log("Mode:", process.env.MODE === "hybrid" ? "hybrid (parsedData override)" : "raw-only");
+// MODE=hybrid → pass full envelope so parsedData.tomePoints overrides ours.
+// MODE=envelope → pass envelope WITHOUT parsedData (mimics "copy for support" paste).
+// default (raw-only) → just data.data (mimics "copy raw data" button paste).
+let input: Record<string, unknown>;
+let mode: string;
+if (process.env.MODE === "hybrid") {
+  input = blob as unknown as Record<string, unknown>;
+  mode = "hybrid (parsedData override)";
+} else if (process.env.MODE === "envelope") {
+  const { parsedData: _omit, ...rest } = blob as Record<string, unknown>;
+  void _omit;
+  input = rest;
+  mode = "envelope (companion + guildData available)";
+} else {
+  input = blob.data as Record<string, unknown>;
+  mode = "raw-only (Copy raw data button)";
+}
+const ours = computeTome(input);
+console.log("Mode:", mode);
 
 console.log("=".repeat(80));
 const itTotal = itPoints.reduce((a, b) => a + (Number(b) || 0), 0);

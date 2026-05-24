@@ -802,7 +802,19 @@ export function rawShinyLevelsProper(d: D): number | null {
 const SKILL_STAR_PLAYER = 8;
 const SKILL_SUPERNOVA = 17;
 const SKILL_STONKS = 622;
+const SKILL_THE_FAMILY_GUY = 144;
 const CLASS_ELEMENTAL_SORC = 22;
+const BRIBE_STAR_SCRAPER_IDX = 32;
+const VAULT_UPG_SPECIAL_TALENT = 53;
+const FAMILY_STAR_TAB_THRESHOLD = 29; // x3 of classFamilyBonuses STAR_TAB_TALENT_POINTS
+
+// Star-talent-passive cards (IT website-data). Effect: Star_Talent_Pts_(Passive).
+// [rawName, base bonus, perTier threshold]
+const STAR_TALENT_CARDS: readonly [string, number, number][] = [
+  ["w4b2", 5, 20],
+  ["Boss2C", 15, 11],
+  ["fallEvent1", 4, 3],
+];
 
 function talentLevel(d: D, charIdx: number, skillIndex: number): number {
   const sl = d["SL_" + charIdx];
@@ -813,9 +825,7 @@ function talentLevel(d: D, charIdx: number, skillIndex: number): number {
 }
 
 function sigilTwoStarzBonus(d: D): number {
-  // CauldronP2W[4] is the sigil array; each sigil i occupies slots [2i, 2i+1]
-  // = [progress, unlocked]. Sigil index 9 = TWO_STARZ.
-  // unlocked stage → bonus: 0=10, 1=25, 2=45, 3=100, 4=125.
+  // CauldronP2W[4] sigil index 9 (slot 19) = unlocked stage → bonus.
   if (!Array.isArray(d.CauldronP2W)) return 0;
   const sigilsData = (d.CauldronP2W as unknown[])[4];
   if (!Array.isArray(sigilsData)) return 0;
@@ -829,30 +839,175 @@ function sigilTwoStarzBonus(d: D): number {
 }
 
 function stampTalentSBonus(d: D): number {
-  // misc stamp index 17 (Talent_S Stamp), effect "Talent_Points_for_Star_Tab",
-  // func=add x1=1 x2=0 → bonus = stamp_level.
+  // misc stamp 17 (Talent_S Stamp), func=add x1=1 x2=0 → level.
   if (!Array.isArray(d.StampLv)) return 0;
   const miscStamps = obj((d.StampLv as unknown[])[2]);
   if (!miscStamps) return 0;
   return num(miscStamps["17"]);
 }
 
-function familyEsStarBonus(d: D): number {
-  // classFamilyBonuses[32] (STAR_TAB_TALENT_POINTS) is intervalAdd(1, 6, 29).
-  // Active when any char is Elemental Sorcerer; uses the highest ES level.
-  // intervalAdd(level) ≈ min(x3, x1 * floor(level / x2)) on IT's growth.
-  let highestEsLv = 0;
+function bribeStarScraperBonus(d: D): number {
+  // BribeStatus[32] = Star_Scraper. Done flag = 1 → +33 Star Talent Points.
+  if (!Array.isArray(d.BribeStatus)) return 0;
+  return num((d.BribeStatus as unknown[])[BRIBE_STAR_SCRAPER_IDX]) === 1 ? 33 : 0;
+}
+
+function vaultSpecialTalentBonus(d: D): number {
+  // UpgVault[53] level. Vault upg 53 ("Special_Talent", x5=1) is in IT's
+  // isSimple list → bonus = level * x5. IT doesn't cap by maxLevel in the
+  // bonus calc, just multiplies.
+  if (!Array.isArray(d.UpgVault)) return 0;
+  return num((d.UpgVault as unknown[])[VAULT_UPG_SPECIAL_TALENT]);
+}
+
+function dungeonFlurboTalentPts(d: D): number {
+  // DungUpg[5] is the flurbo upgrade levels array. Index 1 = Talent_Pts
+  // (func=add, x1=1, x2=0 → bonus = level).
+  if (!Array.isArray(d.DungUpg)) return 0;
+  const flurbo = (d.DungUpg as unknown[])[5];
+  if (!Array.isArray(flurbo)) return 0;
+  return num((flurbo as unknown[])[1]);
+}
+
+function guildStarDazzleBonus(d: D): number {
+  // Guild bonus 11 (Star_Dazzle): decay(level, 120, 50). ARKHE-style data
+  // lives in blob.guildData.stats[0][11] — the IT serializer attaches this
+  // to account.guild.guildBonuses[11].level. In raw paste mode we read it
+  // from the same path if present.
+  // NOTE: when the user pastes only the .data field, this is unreachable.
+  // We fall back to 0 in that case.
+  const gd = (d as { guildData?: { stats?: unknown[] } }).guildData;
+  if (!gd?.stats) return 0;
+  const lvls = (gd.stats as unknown[])[0];
+  if (!Array.isArray(lvls)) return 0;
+  const level = num((lvls as unknown[])[11]);
+  if (level <= 0) return 0;
+  return (120 * level) / (level + 50);
+}
+
+function flyingWormCompanionBonus(d: D): number {
+  // Companion index 20 (Flying_Worm) gives +30 Talent Points if acquired.
+  // Companion data in blob.companion.l (list of "id,tradable,?,?,?" strings).
+  // Acquired = any entry in list has id === "20".
+  const c = (d as { companion?: { l?: string[] } }).companion;
+  if (!c?.l || !Array.isArray(c.l)) return 0;
+  const acquired = c.l.some((entry) => {
+    if (typeof entry !== "string") return false;
+    return entry.split(",")[0] === "20";
+  });
+  return acquired ? 30 : 0;
+}
+
+function shinyStarTalentPetBonus(d: D): number {
+  // Only W2 pet 11 (Cryosnake/snakeB) has passive "+{_Star_Talent_Pts" with
+  // baseValue=2. Shiny level comes from Breeding[23][11] progress, via the
+  // getShinyLevelFromProgress curve. Bonus = round(baseValue * shinyLevel).
+  if (!Array.isArray(d.Breeding)) return 0;
+  const w2Progress = (d.Breeding as unknown[])[23];
+  if (!Array.isArray(w2Progress)) return 0;
+  const progress = num((w2Progress as unknown[])[11]);
+  if (progress <= 0) return 0;
+  let shinyLv = 0;
+  for (let i = 0; i < 19; i++) {
+    if (progress > Math.floor((1 + Math.pow(i + 1, 1.6)) * Math.pow(1.7, i + 1))) {
+      shinyLv = i + 2;
+    }
+  }
+  if (shinyLv === 0) shinyLv = 1;
+  return Math.round(2 * shinyLv);
+}
+
+function calcCardStars(
+  tierReq: number,
+  amount: number,
+  name: string,
+  maxStars: number,
+  isInFiveStarList: boolean
+): number {
+  let lvl = 0;
+  for (let i = 0; i < maxStars; i++) {
+    if (name === "Boss3B") {
+      if (amount > 1.5 * Math.pow(i + 1 + Math.floor(i / 3), 2)) lvl = i + 2;
+    } else {
+      if (
+        amount >
+        tierReq *
+          Math.pow(
+            i +
+              1 +
+              (Math.floor(i / 3) +
+                (16 * Math.floor(i / 4) + 100 * Math.floor(i / 5))),
+            2
+          )
+      ) {
+        lvl = i + 2;
+      }
+    }
+  }
+  if (isInFiveStarList && lvl < 6) return 5;
+  return lvl > 0 ? lvl - 1 : lvl;
+}
+
+function cardPassiveStarBonus(d: D): number {
+  const cards = obj(d.Cards0);
+  if (!cards) return 0;
+  const rift =
+    Array.isArray(d.Rift) && (d.Rift as unknown[])[0] !== undefined
+      ? num((d.Rift as unknown[])[0])
+      : 0;
+  const maxStars = Math.round(4 + (rift >= 45 ? 1 : 0));
+  const opt = arr(d.OptLacc);
+  const fiveStarRaw = String(opt[155] || "");
+  const fiveStarList = fiveStarRaw ? fiveStarRaw.split(",") : [];
+  let total = 0;
+  for (const [name, baseBonus, perTier] of STAR_TALENT_CARDS) {
+    const amount = num(cards[name]);
+    if (amount <= 0) continue;
+    const isFive = fiveStarList.indexOf(name) !== -1;
+    const stars = calcCardStars(perTier, amount, name, maxStars, isFive);
+    total += baseBonus * (stars + 1);
+  }
+  return total;
+}
+
+function familyStarBaseBonus(highestEsLv: number): number {
+  // classFamilyBonuses[32] = STAR_TAB_TALENT_POINTS, func=intervalAdd,
+  // x1=1 x2=6 x3=29 (threshold). IT's getFamilyBonusBonus:
+  //   if level < x3 return 0; else growth(intervalAdd, level-x3, x1, x2)
+  // intervalAdd(L, x1, x2) = x1 + floor(L / x2).
+  if (highestEsLv < FAMILY_STAR_TAB_THRESHOLD) return 0;
+  return 1 + Math.floor((highestEsLv - FAMILY_STAR_TAB_THRESHOLD) / 6);
+}
+
+function familyValueRound(
+  e: number,
+  func: string,
+  _x1: number,
+  a: number
+): number {
+  // Port of getFamilyBonusValue rounding rules.
+  if (e < 10 && func.indexOf("decay") !== -1) return Math.round(100 * e) / 100;
+  if (
+    e < 1 ||
+    (func === "add" && a < 1 && e < 100) ||
+    (e < 25 && func === "decay")
+  ) {
+    return Math.round(10 * e) / 10;
+  }
+  return Math.round(e);
+}
+
+function highestElementalSorcLevel(d: D): number {
+  let max = 0;
   for (let c = 0; c < 10; c++) {
-    const cls = num(d["CharacterClass_" + c]);
-    if (cls !== CLASS_ELEMENTAL_SORC) continue;
+    if (num(d["CharacterClass_" + c]) !== CLASS_ELEMENTAL_SORC) continue;
     const lv = d["Lv0_" + c];
     if (Array.isArray(lv)) {
       const v = num(lv[0]);
-      if (v > highestEsLv) highestEsLv = v;
+      if (v > max) max = v;
     }
   }
-  if (highestEsLv === 0) return 0;
-  return Math.min(29, Math.floor(highestEsLv / 6));
+  return max;
 }
 
 export function rawStarTalentsProper(d: D): number | null {
@@ -865,8 +1020,30 @@ export function rawStarTalentsProper(d: D): number | null {
     (num(ach[305]) === -1 ? 20 : 0);
   const sigil = sigilTwoStarzBonus(d);
   const stamp = stampTalentSBonus(d);
-  const familyEs = familyEsStarBonus(d);
-  const constantBonus = talentPointsStar + achBonus + sigil + stamp + familyEs;
+  const bribe = bribeStarScraperBonus(d);
+  const vault = vaultSpecialTalentBonus(d);
+  const cardsBonus = cardPassiveStarBonus(d);
+  const flurbo = dungeonFlurboTalentPts(d);
+  const guild = guildStarDazzleBonus(d);
+  const companion = flyingWormCompanionBonus(d);
+  const shiny = shinyStarTalentPetBonus(d);
+
+  // Family bonus is per-char (ES chars get a multiplier from THE_FAMILY_GUY).
+  const highestEsLv = highestElementalSorcLevel(d);
+  const familyBase = familyStarBaseBonus(highestEsLv);
+
+  const accountConstant =
+    talentPointsStar +
+    achBonus +
+    sigil +
+    stamp +
+    bribe +
+    vault +
+    cardsBonus +
+    flurbo +
+    Math.floor(guild) +
+    companion +
+    shiny;
 
   let maxPts = 0;
   for (let c = 0; c < 10; c++) {
@@ -876,13 +1053,43 @@ export function rawStarTalentsProper(d: D): number | null {
     let base = -3;
     for (let i = 1; i <= 9 && i < lv.length; i++) base += num(lv[i]);
 
-    const starPlayer = talentLevel(d, c, SKILL_STAR_PLAYER);
-    const supernova = talentLevel(d, c, SKILL_SUPERNOVA);
+    const starPlayerRaw = talentLevel(d, c, SKILL_STAR_PLAYER);
+    const supernovaRaw = talentLevel(d, c, SKILL_SUPERNOVA);
     const stonksLv = talentLevel(d, c, SKILL_STONKS);
     const stonks = stonksLv > 0 ? (130 * stonksLv) / (stonksLv + 50) : 0;
 
+    // Family bonus: per char. ES chars apply (1 + TFG%) and re-round.
+    let familyEff = familyBase;
+    const isEs = num(d["CharacterClass_" + c]) === CLASS_ELEMENTAL_SORC;
+    if (isEs && familyEff > 0) {
+      const tfgLv = talentLevel(d, c, SKILL_THE_FAMILY_GUY);
+      const tfgPct = tfgLv > 0 ? (40 * tfgLv) / (tfgLv + 100) : 0;
+      familyEff *= 1 + tfgPct / 100;
+      familyEff = familyValueRound(familyEff, "intervalAdd", 1, 6);
+    }
+
+    // IT's applyTalentAddedLevels boosts each non-excluded talent's level by
+    // `addedLevels` if the base level >= 1. STAR_PLAYER (8) and SUPERNOVA
+    // (17) qualify; STONKS! (skillIndex 622) is excluded (skillIndex > 614).
+    //
+    // addedLevels is the SUM of: family bonus, symbol-of-beyond talent,
+    // achievement 291 (+1), companion 1, ninja mastery [232]>=3 (+5),
+    // god/divinity bonus, equinox 'Equinox_Symbols', grimoire 39,
+    // Kattlekruk set, tesseract 57 (cap 5), superbit 'Timmy_Talented',
+    // super-talent (per talent). We port the cheap account-wide ones.
+    //
+    // Missing here (typically <100 total for non-maxed accounts): symbol
+    // talent, god bonus, equinox, grimoire, kattlekruk, tesseract, superbit,
+    // companion 1, super-talent boost.
+    const isNinjaMastery = num(arr(d.OptLacc)[232]) >= 3;
+    const ach291 = num((Array.isArray(d.AchieveReg) ? d.AchieveReg : [])[291]) === -1 ? 1 : 0;
+    const addedLevels = Math.floor(familyEff) + ach291 + (isNinjaMastery ? 5 : 0);
+
+    const starPlayer = starPlayerRaw >= 1 ? starPlayerRaw + addedLevels : 0;
+    const supernova = supernovaRaw >= 1 ? supernovaRaw + addedLevels : 0;
+
     const pts = Math.floor(
-      charLv - 1 + base + starPlayer + supernova + stonks + constantBonus
+      charLv - 1 + base + starPlayer + supernova + stonks + familyEff + accountConstant
     );
     if (pts > maxPts) maxPts = pts;
   }
