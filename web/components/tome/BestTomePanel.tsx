@@ -10,6 +10,7 @@ import {
 } from "@/lib/tome/math";
 import { TIER_META, tierForPct, type TomeTier } from "@/lib/tome/tier";
 import { TOP_PLAYERS, type TopPlayerEntry } from "@/lib/tome/topPlayers";
+import { DEFAULT_CLASSIFICATIONS } from "@/lib/tome/defaultClassifications";
 import { formatIdleon } from "@/lib/format";
 
 const STORAGE_KEY = "idleon-leaderboards.tome.rawJson";
@@ -152,13 +153,19 @@ export default function BestTomePanel() {
       // The blue tier (99.9% of asymptote) is NOT enough.
       const cappedByMax = currentPts > 0 && maxPts > 0 && currentPts >= maxPts;
 
-      // Default classification: the snapshot value from the sheet, EXCEPT we
-      // never use 12 (Capped) as a default — Capped is reserved for the
-      // auto-rule above. User can still pick any non-Capped value.
+      // Default classification: prefer the hand-curated DEFAULT_CLASSIFICATIONS
+      // override (web/lib/tome/defaultClassifications.ts) when present, fall
+      // back to the snapshot value from the sheet. We never use 12 (Capped) as
+      // a default — Capped is reserved for the auto-rule above.
+      const overridePick = DEFAULT_CLASSIFICATIONS[r.task];
       const snapshotDefault =
-        top && top.classification !== null && top.classification !== CAPPED_ID
-          ? top.classification
-          : null;
+        overridePick !== undefined
+          ? overridePick === CAPPED_ID
+            ? null
+            : overridePick
+          : top && top.classification !== null && top.classification !== CAPPED_ID
+            ? top.classification
+            : null;
 
       const rawUserPick = userClass[r.task]; // undefined | 0 | 1/3/4/5/9
       // userPick semantics:
