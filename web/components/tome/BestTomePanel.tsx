@@ -217,7 +217,10 @@ export default function BestTomePanel() {
       } else if (classFilter !== "all") {
         if (r.classification !== classFilter) return false;
       }
-      if (hideMaxed && r.tier === "blue") return false;
+      // Strict capped rule (same as Auto-Capped + "+1 pt at maxed"): only hide
+      // when the player literally reached the theoretical curve max. Blue tier
+      // (99.9% of asymptote) is NOT enough to count as maxed.
+      if (hideMaxed && r.cappedByMax) return false;
       if (q && !r.task.toLowerCase().includes(q)) return false;
       return true;
     });
