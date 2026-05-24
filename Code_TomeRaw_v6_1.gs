@@ -1,5 +1,5 @@
 /**
- * Tome Raw Values Extractor (v7.7)
+ * Tome Raw Values Extractor (v7.9)
  *
  * Now with Pts column populated via tomeData + calcPointsPercent, plus
  * extractors for 7 more previously-MISSING tasks (worship waves, opals,
@@ -85,7 +85,7 @@ function rawRefineryRank(d){if(!Array.isArray(d.Refinery)||!Array.isArray(d.Refi
 function rawGodRank(d){if(!Array.isArray(d.Divinity)||d.Divinity[25]===undefined)return null;var v=Number(d.Divinity[25])-10;return Math.max(0,v);}
 function rawItemsFound(d){return Array.isArray(d.Cards1)?d.Cards1.length:null;}
 
-// v7.7 NEW extractors
+// v7.9 NEW extractors
 function rawWorshipWaves(d){if(!Array.isArray(d.TotemInfo)||!Array.isArray(d.TotemInfo[0]))return null;return arrSum(d.TotemInfo[0]);}
 function rawHoleOpals(d){if(!Array.isArray(d.Holes)||!Array.isArray(d.Holes[7]))return null;return arrSum(d.Holes[7]);}
 function rawHoleLayers(d){if(!Array.isArray(d.Holes)||!Array.isArray(d.Holes[11]))return null;var ec=d.Holes[11];var s=0;[1,3,5,7].forEach(function(i){s+=Math.round(Math.max(0,Number(ec[i])||0));});return s;}
@@ -95,7 +95,7 @@ function rawBreedability(d){if(!d.Breeding||!Array.isArray(d.Breeding[7]))return
 function rawShinyLevels(d){if(!d.Breeding||!Array.isArray(d.Breeding[1]))return null;return arrSum(d.Breeding[1]);}
 function rawCardsTotalLv(d){if(!d.Cards0||typeof d.Cards0!=="object")return null;var k=Object.keys(d.Cards0);return k.length>0?k.length:null;}
 
-// v7.7 W7 + breeding extractors
+// v7.9 W7 + breeding extractors
 function rawHighestPowerMob(d){var powers=[];if(Array.isArray(d.PetsStored))d.PetsStored.forEach(function(p){if(Array.isArray(p)&&p[2]!==undefined){var v=Number(p[2]);if(!isNaN(v)&&v>0)powers.push(v);}});if(Array.isArray(d.Breeding)&&Array.isArray(d.Breeding[3]))d.Breeding[3].forEach(function(v){var n=Number(v);if(!isNaN(n)&&n>0)powers.push(n);});return powers.length>0?Math.max.apply(null,powers):null;}
 function rawCoralReefSum(d){if(!Array.isArray(d.Spelunk)||!Array.isArray(d.Spelunk[13]))return null;return arrSum(d.Spelunk[13]);}
 function rawBiggestHaul(d){if(!Array.isArray(d.Spelunk)||!Array.isArray(d.Spelunk[2]))return null;var mx=0,i,v;for(i=0;i<d.Spelunk[2].length;i++){v=Number(d.Spelunk[2][i]);if(!isNaN(v)&&v>mx)mx=v;}return mx>0?mx:null;}
@@ -163,10 +163,71 @@ function rawShinyLevelsProper(d) {
   return total > 0 ? total : null;
 }
 
+// Star Talents (compute 15) - simplified: max char (level-1 + sum_skills_1_9 - 3) across all chars
+function rawStarTalentsProper(d) {
+  var maxPts = 0;
+  for (var c = 0; c < 10; c++) {
+    var lv = d["Lv0_" + c];
+    if (!Array.isArray(lv)) continue;
+    var charLv = Number(lv[0]) || 0;
+    var base = -3;
+    for (var i = 1; i <= 9 && i < lv.length; i++) base += Number(lv[i]) || 0;
+    var pts = (charLv - 1) + base;
+    if (pts > maxPts) maxPts = pts;
+  }
+  return maxPts > 0 ? maxPts : null;
+}
+
+// Summoning Boss Stone victories (compute 96) - sum KRbest keys starting with "SummzTrz"
+function rawSummonStones(d) {
+  if (!d.KRbest || typeof d.KRbest !== "object") return null;
+  var total = 0, keys = Object.keys(d.KRbest), i, k;
+  for (i = 0; i < keys.length; i++) {
+    k = keys[i];
+    if (k.indexOf("SummzTrz") === 0) total += Number(d.KRbest[k]) || 0;
+  }
+  return total > 0 ? total : null;
+}
+
+// DeathNote mob indices (mapEnemies values for the 99 deathNote rawNames from IT website-data)
+var DEATHNOTE_MOB_IDX = [1,17,2,14,16,19,24,26,27,28,8,15,13,18,31,51,52,53,57,58,59,60,62,63,64,65,101,103,104,105,106,107,108,109,110,111,112,113,116,117,151,152,153,154,155,156,157,158,159,160,161,162,163,201,202,203,204,205,206,207,208,209,210,211,212,213,251,252,253,254,255,256,257,258,259,260,261,262,263,264,301,302,303,304,305,306,307,308,309,310,311,312,315,316,317,318,319,320,321];
+
+function rawDeathNoteDigitsProper(d) {
+  // Sum kills per mob index across all chars
+  var all = {}, c, i, k, v, kills;
+  for (c = 0; c < 10; c++) {
+    k = d["KLA_" + c];
+    if (!Array.isArray(k)) continue;
+    for (i = 0; i < k.length; i++) {
+      v = k[i];
+      kills = 0;
+      if (Array.isArray(v) && v.length > 0) kills = Math.abs(Number(v[0]) || 0);
+      else if (typeof v === "number") kills = Math.abs(v);
+      if (kills > 0) all[i] = (all[i] || 0) + kills;
+    }
+  }
+  // Sum digits only for deathNote mob indices
+  var dg = 0;
+  for (i = 0; i < DEATHNOTE_MOB_IDX.length; i++) {
+    var mobIdx = DEATHNOTE_MOB_IDX[i];
+    var kk = all[mobIdx] || 0;
+    if (kk > 0) dg += Math.ceil(lavaLog(kk));
+  }
+  // Add miniBoss digits from Ninja[105]
+  var mb = d.Ninja && d.Ninja[105];
+  if (Array.isArray(mb)) {
+    for (i = 0; i < mb.length; i++) {
+      var mk = Number(mb[i]) || 0;
+      if (mk > 0) dg += Math.ceil(lavaLog(mk));
+    }
+  }
+  return dg > 0 ? dg : null;
+}
+
 function preparseLavaStrings(o){if(!o||typeof o!=="object")return o;var ks=Object.keys(o),i,k,v,c;for(i=0;i<ks.length;i++){k=ks[i];v=o[k];if(typeof v==="string"&&v.length>0){c=v.charAt(0);if(c==="["||c==="{"){try{o[k]=JSON.parse(v);}catch(e){}}}}return o;}
 
 function onOpen(){SpreadsheetApp.getUi().createMenu("Tome Raw").addItem("Paste data from IT (live)","pasteJsonAndBuildTomeRaw").addItem("Build from public API (stale)","buildTomeRaw").addSeparator().addItem("About","showAbout").addToUi();}
-function showAbout(){SpreadsheetApp.getUi().alert("Tome Raw Extractor v7.7","118/118 covered for paste flow (with Pts).",SpreadsheetApp.getUi().ButtonSet.OK);}
+function showAbout(){SpreadsheetApp.getUi().alert("Tome Raw Extractor v7.9","118/118 covered for paste flow (with Pts).",SpreadsheetApp.getUi().ButtonSet.OK);}
 
 function pasteJsonAndBuildTomeRaw(){
   var html=HtmlService.createHtmlOutput(
@@ -259,7 +320,7 @@ function computeRawValue(idx,data,pd,lbAll,playerName,srcOut){
     case 12: return O(201);
     case 13: var t=data.TaskZZ0;return t&&t[0]&&t[0][2]!==undefined?R("raw.TaskZZ0[0][2]",Number(t[0][2])):null;
     case 14: return O(172);
-    case 15: var st=rawStarTalents(data);return st!==null?R("OptLacc[61] ceil",st):fallback();
+    case 15: var st=rawStarTalentsProper(data);return st!==null?R("max(charLv-1+skillSum1-9-3)",st):fallback();
     case 16: var s16=O(202);return s16?R("1/OptLacc[202]",1/s16):null;
     case 17: var dr=rawDungeonRank(data);return dr!==null?R("OptLacc[71] vs dungeonLevels",dr):fallback();
     case 18: return O(200);
@@ -277,7 +338,7 @@ function computeRawValue(idx,data,pd,lbAll,playerName,srcOut){
     case 34: return O(214); case 35: return O(215);
     case 36: return O(209);
     case 37: var ww=rawWorshipWaves(data);return ww!==null?R("sum TotemInfo[0]",ww):fallback();
-    case 38: var dn=rawDeathNoteDigits(data);return dn!==null?R("KLA_X log10 sum",dn):fallback();
+    case 38: var dn=rawDeathNoteDigitsProper(data);return dn!==null?R("deathNote99 + miniBoss digits",dn):fallback();
     case 39: var eq=rawEquinoxClouds(data);return eq!==null?R("WeeklyBoss d_*==-1",eq):fallback();
     case 40: var rr=rawRefineryRank(data);return rr!==null?R("Refinery salts[0..5].rank sum",rr):fallback();
     case 41: return R("raw.Atoms",arrSum(data.Atoms));
@@ -333,7 +394,7 @@ function computeRawValue(idx,data,pd,lbAll,playerName,srcOut){
     case 93: var ho=rawHoleOpals(data);return ho!==null?R("Holes[7] sum",ho):fallback();
     case 94: var sdv=O(353);return sdv!==null?R("round(min(12,OptLacc[353])+1)",Math.round(Math.min(12,sdv)+1)):null;
     case 95: var em=O(369);return em!==null?R("round(OptLacc[369])",Math.round(em)):null;
-    case 96: var ss96=rawSummoningStones(data);return ss96!==null?R("Summon[3] sum",ss96):null;
+    case 96: var ss96=rawSummonStones(data);return ss96!==null?R("sum KRbest[SummzTrz*]",ss96):null;
     case 97: var cr=rawCoralReefSum(data);return cr!==null?R("Spelunk[13] sum",cr):fallback();
     case 98: var bc=rawBestCave(data);return bc!==null?R("max Spelunk[1]",bc):null;
     case 99: var nu=rawNinjaUpgrades(data);return nu!==null?R("Ninja[103] sum",nu):null;

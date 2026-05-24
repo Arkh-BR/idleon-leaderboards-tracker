@@ -1,24 +1,27 @@
-# Idleon Leaderboards — Versão Web
+# Idleon Leaderboards — Web version
 
-Versão site da planilha `Idleon_Leaderboards.xlsx`. Mostra sua posição em todos
-os 153 leaderboards do [IdleonToolbox](https://idleontoolbox.com), com:
+Web app counterpart to the `Idleon_Leaderboards.xlsx` spreadsheet. Shows any
+player's position across all 153 [IdleonToolbox](https://idleontoolbox.com)
+leaderboards, with:
 
-- Busca, filtro por categoria e ordenação por coluna
-- Top 10 expansível por leaderboard
-- Dashboard com tier summary, heatmap por categoria, top piores, quick wins e melhores 30
-- Funciona para qualquer jogador (campo de input)
-- Cache server-side de 15min por jogador (a API do IT atualiza ~1x por dia)
+- Search, category filter, and column sorting
+- Expandable top 10 per leaderboard
+- Dashboard with tier summary, heatmap by category, worst positions,
+  quick wins, and your best 30
+- Works for any player (input field)
+- Server-side cache (15 minutes per player; the IT API only updates ~once a
+  day anyway)
 
 ## Stack
 
-- **Next.js 15** (App Router) + **React 19** + **TypeScript**
-- **Tailwind CSS** para estilo
-- API route `/api/leaderboards` atua como proxy server-side
-  (necessário porque o IT bloqueia chamadas CORS direto do navegador)
+- **Next.js 16** (App Router) + **React 19** + **TypeScript**
+- **Tailwind CSS** for styling
+- The `/api/leaderboards` route acts as a server-side proxy
+  (required because IT blocks direct cross-origin CORS calls from the browser)
 
-## Rodar local
+## Run locally
 
-Pré-requisito: Node.js 20+ (testado com Node 24).
+Requires Node.js 20+ (tested on Node 24).
 
 ```bash
 cd web
@@ -26,59 +29,60 @@ npm install
 npm run dev
 ```
 
-Abre em [http://localhost:3000](http://localhost:3000).
+Opens at [http://localhost:3000](http://localhost:3000).
 
-## Build de produção
+## Production build
 
 ```bash
 npm run build
 npm start
 ```
 
-## Deploy no Vercel (recomendado, grátis)
+## Deploy on Vercel (recommended, free)
 
-1. Suba o repositório no GitHub
-2. Em [vercel.com/new](https://vercel.com/new), importe o repo
+1. Push the repo to GitHub
+2. At [vercel.com/new](https://vercel.com/new), import the repo
 3. **Root Directory:** `web`
-4. Framework Preset: Next.js (auto-detectado)
-5. Deploy → pronto, URL `https://seu-projeto.vercel.app`
+4. Framework Preset: Next.js (auto-detected)
+5. Deploy → done, URL is `https://your-project.vercel.app`
 
-Sem variáveis de ambiente. Sem banco. Sem nada além de Node.
+No env vars. No database. Nothing besides Node.
 
-## Arquitetura
+## Architecture
 
 ```
 web/
 ├── app/
-│   ├── api/leaderboards/route.ts   # Proxy server-side para a API do IT
+│   ├── api/leaderboards/route.ts   # Server-side proxy for the IT API
 │   ├── layout.tsx
-│   ├── page.tsx                    # UI principal (tabs + input do jogador)
+│   ├── page.tsx                    # Main UI (tabs + player input)
 │   └── globals.css
 ├── components/
-│   ├── LeaderboardsTable.tsx       # Tabela filtrável dos 153 leaderboards
-│   └── Dashboard.tsx               # 5 seções analíticas
+│   ├── LeaderboardsTable.tsx       # Filterable table of all 153 leaderboards
+│   └── Dashboard.tsx               # 5 analytical sections
 └── lib/
-    ├── registry.ts                 # Os 153 leaderboards (porta do Code.gs)
-    ├── format.ts                   # Notação Idleon (M/B/T/Q/QQ/QQQ)
-    └── rank.ts                     # Cores e tiers do rank
+    ├── registry.ts                 # The 153 leaderboards (ported from Code.gs)
+    ├── format.ts                   # Idleon notation (M/B/T/Q/QQ/QQQ)
+    └── rank.ts                     # Rank colors and tiers
 ```
 
-### Por que o proxy server-side?
+### Why the server-side proxy?
 
-A API `profiles.idleontoolbox.workers.dev` responde 200 server-side, mas o
-preflight OPTIONS **não retorna `Access-Control-Allow-Origin`**, então o
-navegador bloqueia chamadas diretas (`net::ERR_FAILED`). A API route do Next
-faz a chamada server-side, monta um payload combinado de top10 + rank/score do
-jogador, e devolve pro frontend com CORS implícito (mesma origem).
+The `profiles.idleontoolbox.workers.dev` API responds 200 server-side, but
+the OPTIONS preflight **does not return `Access-Control-Allow-Origin`**, so
+the browser blocks direct calls (`net::ERR_FAILED`). The Next.js API route
+makes the call server-side, builds a combined payload of top10 + the
+player's rank/score, and returns it to the frontend with implicit CORS
+(same origin).
 
-O cache em memória dura 15min por jogador (a API do IT só atualiza ~1x por
-dia, então não faz sentido refetchar com mais frequência).
+The in-memory cache lasts 15 minutes per player (the IT API only updates
+~once a day, so refetching more often is pointless).
 
-## Limitações conhecidas
+## Known limitations
 
-- Mesmas da planilha: se o perfil do jogador no IT estiver "Private", a API
-  não retorna nada — peça pra mudar pra Public ou Anonymous em IT → Account →
-  Profile Access
-- Nomes anônimos (`Anon#xxxxxx`) precisam ser digitados com esse formato exato
-- O cache é por instância serverless; em deploys com várias regiões cada uma
-  tem seu próprio cache (não é problema na prática)
+- Same as the spreadsheet: if the player's IT profile is "Private", the API
+  returns nothing — ask them to switch to Public or Anonymous in IT → Account
+  → Profile Access
+- Anonymous names (`Anon#xxxxxx`) must be typed in that exact format
+- The cache is per serverless instance; on multi-region deploys each region
+  has its own cache (not a problem in practice)

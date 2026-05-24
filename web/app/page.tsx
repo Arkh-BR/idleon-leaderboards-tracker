@@ -92,7 +92,7 @@ export default function Home() {
           type="text"
           value={playerInput}
           onChange={(e) => setPlayerInput(e.target.value)}
-          placeholder="e.g. ARKHE"
+          placeholder="Enter player name"
           className="bg-zinc-950 border border-zinc-700 rounded px-3 py-2 text-sm flex-1 min-w-[200px] font-mono"
         />
         <button

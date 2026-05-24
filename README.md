@@ -1,20 +1,20 @@
 # Idleon Leaderboards Tracker
 
-Rastreia a posição de qualquer jogador em todos os 153 leaderboards do
-[IdleonToolbox](https://idleontoolbox.com), tudo automaticamente.
+Tracks any player's position across all 153
+[IdleonToolbox](https://idleontoolbox.com) leaderboards, fully automatic.
 
-Tem dois sabores:
+Comes in two flavors:
 
-## 1. Versão Web (recomendada)
+## 1. Web version (recommended)
 
-Site Next.js em [`web/`](web/) — interface rica com filtros, busca, ordenação,
-top 10 expansível por leaderboard, e um dashboard com tier summary, heatmap por
-categoria, top piores, quick wins e melhores posições. Funciona pra qualquer
-jogador (campo de input).
+Next.js site under [`web/`](web/) — rich UI with filters, search, sortable
+columns, expandable top 10 per leaderboard, and a dashboard with tier summary,
+heatmap by category, worst positions, quick wins, and best positions. Works
+for any player (input field).
 
-**Deploy num clique no Vercel:** [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/Arkh-BR/idleon-leaderboards-tracker&root-directory=web)
+**One-click deploy on Vercel:** [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/Arkh-BR/idleon-leaderboards-tracker&root-directory=web)
 
-Pra rodar local:
+To run locally:
 
 ```bash
 cd web
@@ -22,21 +22,23 @@ npm install
 npm run dev   # http://localhost:3000
 ```
 
-Mais detalhes em [`web/README.md`](web/README.md).
+More details in [`web/README.md`](web/README.md).
 
-## 2. Versão Planilha (Google Sheets)
+## 2. Spreadsheet version (Google Sheets)
 
-Versão original — `Idleon_Leaderboards.xlsx` + `Code.gs` (Apps Script).
-Instruções completas em [`INSTRUCOES.md`](INSTRUCOES.md).
+The original version — `Idleon_Leaderboards.xlsx` + `Code.gs` (Apps Script).
+Full instructions in [`INSTRUCTIONS.md`](INSTRUCTIONS.md).
 
-Útil se você prefere mexer em planilha ao invés de site.
+Handy if you'd rather work in a spreadsheet than in a website.
 
-## Tome Tracker (bônus)
+## Tome Tracker (bonus)
 
-`Idleon_Tome_Tracker.xlsx` + os `Code_Tome*.gs` são uma planilha separada que
-mostra o seu Best Tome — instruções em [`INSTRUCOES_TOME.md`](INSTRUCOES_TOME.md).
+`Idleon_Tome_Tracker.xlsx` + the `Code_Tome*.gs` files are a separate
+spreadsheet that surfaces your Best Tome — instructions in
+[`INSTRUCTIONS_TOME.md`](INSTRUCTIONS_TOME.md).
 
 ---
 
-Fonte dos dados: [idleontoolbox.com](https://idleontoolbox.com) (API pública,
-sem autenticação). Código do IT: [Morta1/IdleonToolbox](https://github.com/Morta1/IdleonToolbox).
+Data source: [idleontoolbox.com](https://idleontoolbox.com) (public API, no
+authentication required). IT's code:
+[Morta1/IdleonToolbox](https://github.com/Morta1/IdleonToolbox).
