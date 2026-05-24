@@ -460,16 +460,7 @@ export default function BestTomePanel() {
             🎯 Smart sort
           </button>
           <button
-            onClick={() => {
-              if (
-                !snapshot ||
-                confirm(
-                  "Overwrite the existing pts snapshot? The Δ column will reset to 0 for every task."
-                )
-              ) {
-                saveSnapshot();
-              }
-            }}
+            onClick={saveSnapshot}
             disabled={!result}
             className="text-xs font-medium px-3 py-1.5 rounded-md border border-emerald-700/40 text-emerald-300 bg-emerald-900/20 hover:bg-emerald-900/40 disabled:opacity-40"
             title={
