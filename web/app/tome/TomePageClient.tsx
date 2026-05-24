@@ -25,7 +25,10 @@ export default function TomePageClient() {
         </p>
       </header>
 
-      <div className="flex gap-1 mb-4 border-b border-zinc-800">
+      <div
+        role="tablist"
+        className="inline-flex gap-1 mb-6 p-1 rounded-lg bg-zinc-900/60 border border-zinc-800"
+      >
         <TabButton active={tab === "best"} onClick={() => setTab("best")}>
           🏆 Best Tome
         </TabButton>
@@ -64,11 +67,13 @@ function TabButton({
 }) {
   return (
     <button
+      role="tab"
+      aria-selected={active}
       onClick={onClick}
-      className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+      className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all ${
         active
-          ? "border-gold text-gold"
-          : "border-transparent text-zinc-400 hover:text-zinc-200"
+          ? "bg-gold/15 text-gold shadow-[inset_0_0_0_1px_rgba(255,215,0,0.35)]"
+          : "text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800/60"
       }`}
     >
       {children}

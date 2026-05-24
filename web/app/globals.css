@@ -10,7 +10,7 @@ html,
 body {
   background: #0d0d18;
   color: #e6e6f0;
-  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-family: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
 
 /* Make focused inputs glow gold */

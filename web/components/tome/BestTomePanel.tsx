@@ -328,135 +328,146 @@ export default function BestTomePanel() {
     <div className="space-y-4">
       <HeroKPIs totals={totals} />
 
-      <div className="flex flex-wrap gap-2 items-center">
-        <input
-          type="text"
-          placeholder="Search task…"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="bg-zinc-900 border border-zinc-700 rounded px-3 py-2 text-sm flex-1 min-w-[200px]"
-        />
-        <select
-          value={tierFilter}
-          onChange={(e) => setTierFilter(e.target.value as TomeTier | "all")}
-          className="bg-zinc-900 border border-zinc-700 rounded px-3 py-2 text-sm"
-        >
-          <option value="all">All tiers</option>
-          {TIER_ORDER.map((t) => (
-            <option key={t} value={t}>
-              {TIER_META[t].label}
-            </option>
-          ))}
-        </select>
-        <select
-          value={String(classFilter)}
-          onChange={(e) => {
-            const v = e.target.value;
-            if (v === "all") setClassFilter("all");
-            else if (v === "none") setClassFilter("none");
-            else setClassFilter(Number(v));
-          }}
-          className="bg-zinc-900 border border-zinc-700 rounded px-3 py-2 text-sm"
-          title="Filter by classification — your personal categorization"
-        >
-          <option value="all">All classes</option>
-          <option value="none">Unclassified</option>
-          {CLASSIFICATION_IDS.map((id) => (
-            <option key={id} value={id}>
-              {CLASSIFICATION_STYLE[id].label}
-            </option>
-          ))}
-        </select>
-        <label className="flex items-center gap-2 text-sm text-zinc-400">
+      <div className="flex flex-wrap gap-3 items-center p-3 rounded-lg bg-zinc-900/40 border border-zinc-800/80">
+        {/* Left group: search + filters */}
+        <div className="flex flex-wrap gap-2 items-center flex-1 min-w-[260px]">
           <input
-            type="checkbox"
-            checked={hideMaxed}
-            onChange={(e) => setHideMaxed(e.target.checked)}
-            className="accent-gold"
+            type="text"
+            placeholder="Search task…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="bg-zinc-950/80 border border-zinc-700 rounded-md px-3 py-2 text-sm flex-1 min-w-[180px] focus:border-gold/50"
           />
-          Hide maxed
-        </label>
-        <button
-          onClick={() => {
-            setSortKey("default");
-            setSortDir("desc");
-          }}
-          disabled={sortKey === "default"}
-          className={`text-xs px-2 py-1 rounded border transition-colors ${
-            sortKey === "default"
-              ? "border-gold/50 text-gold bg-gold/10 cursor-default"
-              : "border-zinc-700 text-zinc-300 hover:border-gold hover:text-gold"
-          }`}
-          title="Group by class (Priority → Doable → Time Gated → Lucky Gated → Update Gated → Capped → Unclassified), then by Gap vs top descending within each group"
-        >
-          🎯 Smart sort
-        </button>
-        {Object.keys(userClass).length > 0 && (
+          <select
+            value={tierFilter}
+            onChange={(e) => setTierFilter(e.target.value as TomeTier | "all")}
+            className="bg-zinc-950/80 border border-zinc-700 rounded-md px-3 py-2 text-sm"
+          >
+            <option value="all">All tiers</option>
+            {TIER_ORDER.map((t) => (
+              <option key={t} value={t}>
+                {TIER_META[t].label}
+              </option>
+            ))}
+          </select>
+          <select
+            value={String(classFilter)}
+            onChange={(e) => {
+              const v = e.target.value;
+              if (v === "all") setClassFilter("all");
+              else if (v === "none") setClassFilter("none");
+              else setClassFilter(Number(v));
+            }}
+            className="bg-zinc-950/80 border border-zinc-700 rounded-md px-3 py-2 text-sm"
+            title="Filter by classification — your personal categorization"
+          >
+            <option value="all">All classes</option>
+            <option value="none">Unclassified</option>
+            {CLASSIFICATION_IDS.map((id) => (
+              <option key={id} value={id}>
+                {CLASSIFICATION_STYLE[id].label}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Right group: toggles + actions */}
+        <div className="flex flex-wrap gap-2 items-center ml-auto">
+          <label className="flex items-center gap-2 text-sm text-zinc-300 px-2.5 py-1.5 rounded-md border border-zinc-700/60 hover:border-zinc-600 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={hideMaxed}
+              onChange={(e) => setHideMaxed(e.target.checked)}
+              className="accent-gold"
+            />
+            Hide maxed
+          </label>
           <button
             onClick={() => {
-              if (confirm("Clear all your classifications? This can't be undone.")) {
-                resetAllClassifications();
-              }
+              setSortKey("default");
+              setSortDir("desc");
             }}
-            className="text-xs text-zinc-500 hover:text-red-400 underline"
-            title={`${Object.keys(userClass).length} task(s) classified`}
+            disabled={sortKey === "default"}
+            className={`text-xs font-medium px-3 py-1.5 rounded-md border transition-colors ${
+              sortKey === "default"
+                ? "border-gold/50 text-gold bg-gold/10 cursor-default"
+                : "border-zinc-700 text-zinc-300 hover:border-gold hover:text-gold"
+            }`}
+            title="Group by class (Priority → Doable → Time Gated → Lucky Gated → Update Gated → Capped → Unclassified), then by Gap vs top descending within each group"
           >
-            Reset classifications
+            🎯 Smart sort
           </button>
-        )}
-        <span className="text-xs text-zinc-500 ml-auto">
-          {sorted.length} / {enriched.length} tasks
-        </span>
+          {Object.keys(userClass).length > 0 && (
+            <button
+              onClick={() => {
+                if (confirm("Clear all your classifications? This can't be undone.")) {
+                  resetAllClassifications();
+                }
+              }}
+              className="text-xs font-medium px-3 py-1.5 rounded-md border border-zinc-700/60 text-zinc-400 hover:text-red-400 hover:border-red-700/60"
+              title={`${Object.keys(userClass).length} task(s) classified`}
+            >
+              Reset classes
+            </button>
+          )}
+          <span className="text-xs text-zinc-500 tabular-nums pl-1">
+            {sorted.length} / {enriched.length}
+          </span>
+        </div>
       </div>
 
-      <div className="overflow-x-auto rounded-lg border border-zinc-800">
-        <table className="w-full text-sm">
-          <thead className="bg-zinc-900 text-zinc-300">
-            <tr>
+      <div className="overflow-x-auto rounded-lg border border-zinc-800 relative">
+        <table className="w-full text-sm border-separate border-spacing-0">
+          {/* sticky offset = top-nav (52px) + page header padding */}
+          <thead className="text-zinc-300">
+            <tr className="[&>th]:bg-zinc-900 [&>th]:sticky [&>th]:top-[52px] [&>th]:z-10 [&>th]:border-b [&>th]:border-zinc-800">
               <th
-                className="px-2 py-2 text-left cursor-pointer hover:bg-zinc-800 w-20"
+                className="px-3 py-2.5 text-left cursor-pointer hover:bg-zinc-800/80 w-20 sticky left-0 z-20 text-[11px] uppercase tracking-wider font-semibold border-r border-zinc-800"
                 onClick={() => toggleSort("tier")}
                 title="Achievement progress vs the curve max (bronze < 40% < silver < 75% < gold < 99.9% ≤ maxed)"
               >
                 Tier{sortArrow("tier")}
               </th>
               <th
-                className="px-2 py-2 text-left cursor-pointer hover:bg-zinc-800 w-32"
+                className="px-3 py-2.5 text-left cursor-pointer hover:bg-zinc-800/80 w-32 text-[11px] uppercase tracking-wider font-semibold"
                 onClick={() => toggleSort("class")}
                 title="User-defined classification (auto-Capped when pts hit theoretical max)"
               >
                 Classification{sortArrow("class")}
               </th>
               <th
-                className="px-3 py-2 text-left cursor-pointer hover:bg-zinc-800"
+                className="px-3 py-2.5 text-left cursor-pointer hover:bg-zinc-800/80 text-[11px] uppercase tracking-wider font-semibold"
                 onClick={() => toggleSort("task")}
               >
                 Task{sortArrow("task")}
               </th>
               <th
-                className="px-3 py-2 text-right w-40"
+                className="px-3 py-2.5 text-right w-40 text-[11px] uppercase tracking-wider font-semibold"
                 title="Your raw value / top observed player's raw value"
               >
                 Your QTY
               </th>
-              <th className="px-3 py-2 text-right w-32">
+              <th className="px-3 py-2.5 text-right w-32 text-[11px] uppercase tracking-wider font-semibold">
                 +1 pt at
               </th>
               <th
-                className="px-3 py-2 text-right cursor-pointer hover:bg-zinc-800 w-32"
+                className="px-3 py-2.5 text-right cursor-pointer hover:bg-zinc-800/80 w-32 text-[11px] uppercase tracking-wider font-semibold"
                 onClick={() => toggleSort("pts")}
                 title="Your pts / top player's pts / theoretical max"
               >
                 Points{sortArrow("pts")}
               </th>
               <th
-                className="px-3 py-2 text-right cursor-pointer hover:bg-zinc-800 w-28"
+                className="px-3 py-2.5 text-right cursor-pointer hover:bg-zinc-800/80 w-28 text-[11px] uppercase tracking-wider font-semibold"
                 onClick={() => toggleSort("gap")}
                 title="Pts gap to the top observed player on this task"
               >
                 Gap vs top{sortArrow("gap")}
               </th>
-              <th className="px-3 py-2 text-left bg-blue-950/20 w-40">
+              <th
+                className="px-3 py-2.5 text-left w-40 border-l border-zinc-800/60 text-[11px] uppercase tracking-wider font-semibold"
+                title="Top observed player per task — snapshot from the &ldquo;Antho and Arkh&rsquo;s Tome Sheet&rdquo; BEST TOME tab, captured 2026-05-20"
+              >
                 Top player
               </th>
             </tr>
@@ -473,10 +484,9 @@ export default function BestTomePanel() {
         </table>
       </div>
 
-      <p className="text-xs text-zinc-500">
-        Top-player snapshot from the &ldquo;Antho and Arkh&rsquo;s Tome Sheet&rdquo;
-        BEST TOME tab, captured 2026-05-20. A live IT-scraper that refreshes
-        this nightly is planned next.
+      <p className="text-[11px] text-zinc-600 text-center">
+        Top-player snapshot captured 2026-05-20 • a live IT-scraper that
+        refreshes nightly is planned next.
       </p>
     </div>
   );
@@ -516,7 +526,7 @@ function ClassificationSelect({
   if (r.cappedByMax) {
     return (
       <span
-        className={`inline-block text-[10px] font-semibold uppercase tracking-wide rounded px-1.5 py-0.5 border ${CLASSIFICATION_STYLE[CAPPED_ID].chip}`}
+        className={`inline-block text-[11px] font-semibold uppercase tracking-wide rounded-md px-2.5 py-1 border ${CLASSIFICATION_STYLE[CAPPED_ID].chip}`}
         title="Auto-classified as Capped because pts have reached the theoretical max"
       >
         Capped
@@ -540,7 +550,7 @@ function ClassificationSelect({
         // numeric → store the user's pick
         onChange(r.task, v === "" ? 0 : Number(v));
       }}
-      className={`text-[10px] font-semibold uppercase tracking-wide rounded px-1.5 py-0.5 border cursor-pointer outline-none ${chipClass}`}
+      className={`text-[11px] font-semibold uppercase tracking-wide rounded-md px-2.5 py-1 border cursor-pointer outline-none transition-colors ${chipClass}`}
       title="Click to classify — saved locally on your device. Default comes from the BEST TOME sheet."
     >
       <option
@@ -586,40 +596,60 @@ function HeroKPIs({
   const pctTheoretical =
     totals.theoretical > 0 ? (totals.total / totals.theoretical) * 100 : 0;
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-      <div className="rounded-lg border border-gold/40 bg-zinc-900/50 p-4 col-span-2 sm:col-span-1">
-        <div className="text-xs text-zinc-400 mb-1">Your total pts</div>
-        <div className="text-3xl font-bold text-gold tabular-nums">
-          {totals.total.toLocaleString()}
-        </div>
-        <div className="mt-2 h-1.5 bg-zinc-800 rounded overflow-hidden">
-          <div
-            className="h-full bg-gold"
-            style={{ width: `${Math.min(100, pctObserved)}%` }}
-          />
-        </div>
-        <div className="text-xs text-zinc-500 mt-1 tabular-nums">
-          {pctObserved.toFixed(1)}% of observed top
+    <div className="space-y-3">
+      {/* Hero: total + progress bar spans the full width so it dominates the page */}
+      <div className="rounded-xl border border-gold/40 bg-gradient-to-br from-zinc-900/80 to-zinc-900/40 p-5 shadow-lg shadow-gold/5">
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          <div>
+            <div className="text-xs uppercase tracking-wider text-zinc-400 mb-1">
+              Your total tome pts
+            </div>
+            <div className="text-5xl font-bold text-gold tabular-nums leading-none">
+              {totals.total.toLocaleString()}
+            </div>
+            <div className="text-xs text-zinc-500 mt-2 tabular-nums">
+              {totals.covered} / {totals.count} tasks computed
+            </div>
+          </div>
+          <div className="flex-1 min-w-[200px] max-w-md">
+            <div className="flex justify-between text-xs text-zinc-400 mb-1.5">
+              <span>{pctObserved.toFixed(1)}% of observed top</span>
+              <span className="text-zinc-600 tabular-nums">
+                {totals.observed.toLocaleString()}
+              </span>
+            </div>
+            <div className="h-3 bg-zinc-800 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-r from-gold to-amber-300 rounded-full transition-all"
+                style={{ width: `${Math.min(100, pctObserved)}%` }}
+              />
+            </div>
+          </div>
         </div>
       </div>
-      <KpiCard
-        label="Observed top max"
-        sub="sum of top players per task"
-        value={totals.observed.toLocaleString()}
-        accent="zinc"
-      />
-      <KpiCard
-        label="Behind top players"
-        sub="realistic gap to close"
-        value={totals.behind > 0 ? `−${totals.behind.toLocaleString()}` : "0"}
-        accent={totals.behind > 0 ? "red" : "green"}
-      />
-      <KpiCard
-        label="Theoretical max"
-        sub={`${pctTheoretical.toFixed(1)}% reached`}
-        value={totals.theoretical.toLocaleString()}
-        accent="blue"
-      />
+
+      {/* Secondary stats: more compact row */}
+      <div className="grid grid-cols-3 gap-3">
+        <KpiCard
+          label="Behind top players"
+          sub="realistic gap to close"
+          value={totals.behind > 0 ? `−${totals.behind.toLocaleString()}` : "0"}
+          accent={totals.behind > 0 ? "red" : "green"}
+          emphasis
+        />
+        <KpiCard
+          label="Observed top max"
+          sub="sum of top players"
+          value={totals.observed.toLocaleString()}
+          accent="zinc"
+        />
+        <KpiCard
+          label="Theoretical max"
+          sub={`${pctTheoretical.toFixed(1)}% reached`}
+          value={totals.theoretical.toLocaleString()}
+          accent="blue"
+        />
+      </div>
     </div>
   );
 }
@@ -629,23 +659,42 @@ function KpiCard({
   value,
   sub,
   accent,
+  emphasis = false,
 }: {
   label: string;
   value: string;
   sub?: string;
   accent: "zinc" | "red" | "green" | "blue";
+  /** When true, gives the card a stronger border + ring so it pops as actionable. */
+  emphasis?: boolean;
 }) {
   const colors: Record<typeof accent, string> = {
-    zinc: "text-zinc-200 border-zinc-700",
-    red: "text-red-400 border-red-800/50",
-    green: "text-green-400 border-green-800/50",
-    blue: "text-sky-400 border-sky-800/50",
+    zinc: "text-zinc-200 border-zinc-700/80",
+    red: "text-red-400 border-red-800/60",
+    green: "text-green-400 border-green-800/60",
+    blue: "text-sky-400 border-sky-800/60",
+  };
+  const emphasisRing: Record<typeof accent, string> = {
+    zinc: "",
+    red: "ring-1 ring-red-700/40 shadow-md shadow-red-900/20",
+    green: "ring-1 ring-emerald-700/40 shadow-md shadow-emerald-900/20",
+    blue: "",
   };
   return (
-    <div className={`rounded-lg border bg-zinc-900/40 p-4 ${colors[accent]}`}>
-      <div className="text-xs text-zinc-400 mb-1">{label}</div>
-      <div className="text-2xl font-bold tabular-nums">{value}</div>
-      {sub && <div className="text-xs text-zinc-500 mt-1">{sub}</div>}
+    <div
+      className={`rounded-lg border bg-zinc-900/40 p-3 sm:p-4 ${colors[accent]} ${
+        emphasis ? emphasisRing[accent] : ""
+      }`}
+    >
+      <div className="text-[11px] uppercase tracking-wider text-zinc-400 mb-1">
+        {label}
+      </div>
+      <div className="text-2xl sm:text-3xl font-bold tabular-nums leading-none">
+        {value}
+      </div>
+      {sub && (
+        <div className="text-xs text-zinc-500 mt-1.5 tabular-nums">{sub}</div>
+      )}
     </div>
   );
 }
@@ -661,19 +710,19 @@ function BestTomeRow({
   const pts = r.pts ?? 0;
   const cost = nextPtCost(r);
   return (
-    <tr className="border-t border-zinc-800 hover:bg-zinc-900/40">
-      <td className="px-2 py-2">
+    <tr className="group hover:bg-zinc-900/40 [&>td]:border-b [&>td]:border-zinc-800/60 transition-colors">
+      <td className="px-3 py-3 sticky left-0 z-[1] bg-[#0d0d18] group-hover:bg-[#16161e] border-r border-zinc-800">
         <span
-          className={`inline-block text-xs font-semibold rounded px-2 py-0.5 border ${meta.bgClass} ${meta.textClass} ${meta.borderClass}`}
+          className={`inline-block text-[11px] font-semibold uppercase tracking-wide rounded-md px-2.5 py-1 border ${meta.bgClass} ${meta.textClass} ${meta.borderClass}`}
         >
           {meta.label}
         </span>
       </td>
-      <td className="px-2 py-2">
+      <td className="px-3 py-3">
         <ClassificationSelect row={r} onChange={onClassChange} />
       </td>
-      <td className="px-3 py-2 font-medium">{displayTaskName(r.task)}</td>
-      <td className="px-3 py-2 text-right tabular-nums text-zinc-300">
+      <td className="px-3 py-3 font-medium text-zinc-100">{displayTaskName(r.task)}</td>
+      <td className="px-3 py-3 text-right tabular-nums text-zinc-300">
         {r.rawValue === null ? (
           <span className="text-zinc-600">—</span>
         ) : (
@@ -688,7 +737,7 @@ function BestTomeRow({
           </>
         )}
       </td>
-      <td className="px-3 py-2 text-right tabular-nums text-zinc-400">
+      <td className="px-3 py-3 text-right tabular-nums text-zinc-400">
         {r.cappedByMax ? (
           // Only "maxed" when literally at the theoretical curve ceiling
           // (same strict rule as auto-Capped).
@@ -699,21 +748,21 @@ function BestTomeRow({
           // Fastest-Time tasks (x2=3): lower raw = more pts. Show how many
           // units the player needs to DROP for +1 pt.
           <>
-            <div>{formatIdleon(r.rawForNextPt)}</div>
-            <div className="text-xs text-zinc-500">
-              −{formatIdleon(cost)} to gain 1
+            <div className="text-zinc-200">{formatIdleon(r.rawForNextPt)}</div>
+            <div className="text-[10px] text-zinc-500 mt-0.5">
+              −{formatIdleon(cost)} to gain
             </div>
           </>
         ) : (
           <>
-            <div>{formatIdleon(r.rawForNextPt)}</div>
-            <div className="text-xs text-zinc-500">
-              +{formatIdleon(cost)} to gain 1
+            <div className="text-zinc-200">{formatIdleon(r.rawForNextPt)}</div>
+            <div className="text-[10px] text-zinc-500 mt-0.5">
+              +{formatIdleon(cost)} to gain
             </div>
           </>
         )}
       </td>
-      <td className="px-3 py-2 text-right tabular-nums">
+      <td className="px-3 py-3 text-right tabular-nums">
         {(() => {
           // Show three checkpoints: your pts / top player's pts / theoretical max.
           // Progress bar denominator stays on the top player's pts (realistic
@@ -726,16 +775,16 @@ function BestTomeRow({
             <>
               <div className="font-semibold" style={{ color: meta.hex }}>
                 {pts}
-                <span className="text-zinc-500 text-xs">
+                <span className="text-zinc-500 text-xs font-normal">
                   {" / "}
                   {topPts !== null && topPts > 0 ? topPts : "—"}
                   {" / "}
                   {r.maxPts}
                 </span>
               </div>
-              <div className="mt-1 h-1 bg-zinc-800 rounded overflow-hidden">
+              <div className="mt-1.5 h-2 bg-zinc-800 rounded-full overflow-hidden">
                 <div
-                  className="h-full"
+                  className="h-full rounded-full transition-all"
                   style={{ width: `${Math.min(100, pctOfDenom)}%`, background: meta.hex }}
                 />
               </div>
@@ -743,7 +792,7 @@ function BestTomeRow({
           );
         })()}
       </td>
-      <td className="px-3 py-2 text-right tabular-nums">
+      <td className="px-3 py-3 text-right tabular-nums">
         {r.top === null || r.top.pts === null ? (
           <span className="text-zinc-600 text-xs">no data</span>
         ) : r.ptsGapToTop === 0 ? (
@@ -752,7 +801,7 @@ function BestTomeRow({
           <span className="text-zinc-300">−{r.ptsGapToTop}</span>
         )}
       </td>
-      <td className="px-3 py-2 bg-blue-950/10 text-zinc-300">
+      <td className="px-3 py-3 text-zinc-300 border-l border-zinc-800/60">
         {r.top?.player ? (
           <div>
             <div className="text-sm">{r.top.player}</div>
