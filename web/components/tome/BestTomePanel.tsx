@@ -8,6 +8,7 @@ import {
   quantityForPts,
 } from "@/lib/tome/math";
 import { TIER_META, tierForPct, type TomeTier } from "@/lib/tome/tier";
+import { TOP_PLAYERS, type TopPlayerEntry } from "@/lib/tome/topPlayers";
 import { formatIdleon } from "@/lib/format";
 
 const STORAGE_KEY = "idleon-leaderboards.tome.rawJson";
@@ -19,10 +20,12 @@ type SortDir = "asc" | "desc";
 type EnrichedRow = TomeRow & {
   pct: number | null;
   tier: TomeTier;
-  maxPts: number;
-  rawForNextPt: number | null; // raw value needed to reach pts+1
-  rawForMaxPts: number | null; // raw value needed to reach maxPts
-  ptsGapToMax: number;
+  maxPts: number;                    // theoretical curve ceiling
+  rawForNextPt: number | null;       // raw value needed to reach pts+1
+  rawForMaxPts: number | null;       // raw value needed to reach maxPts
+  ptsGapToMax: number;               // gap to theoretical max
+  top: TopPlayerEntry | null;        // best observed player snapshot
+  ptsGapToTop: number;               // gap to top player's pts (>=0)
 };
 
 export default function BestTomePanel() {
@@ -63,23 +66,38 @@ export default function BestTomePanel() {
       const rawForNextPt = quantityForPts(r.bonus, currentPts + 1);
       const rawForMaxPts = quantityForPts(r.bonus, maxPts);
       const ptsGapToMax = Math.max(0, maxPts - currentPts);
-      return { ...r, pct, tier, maxPts, rawForNextPt, rawForMaxPts, ptsGapToMax };
+      const top = TOP_PLAYERS[r.task] ?? null;
+      const ptsGapToTop =
+        top && top.pts !== null ? Math.max(0, top.pts - currentPts) : 0;
+      return {
+        ...r, pct, tier, maxPts, rawForNextPt, rawForMaxPts, ptsGapToMax,
+        top, ptsGapToTop,
+      };
     });
   }, [result]);
 
   const totals = useMemo(() => {
     if (enriched.length === 0) {
-      return { total: 0, max: 0, behind: 0, covered: 0, count: 0 };
+      return { total: 0, theoretical: 0, observed: 0, behind: 0, covered: 0, count: 0 };
     }
     let total = 0;
-    let max = 0;
+    let theoretical = 0;
+    let observed = 0;
     let covered = 0;
     for (const r of enriched) {
       total += r.pts ?? 0;
-      max += r.maxPts;
+      theoretical += r.maxPts;
+      observed += r.top?.pts ?? r.maxPts; // fall back to theoretical if no snapshot
       if (r.pts !== null) covered++;
     }
-    return { total, max, behind: max - total, covered, count: enriched.length };
+    return {
+      total,
+      theoretical,
+      observed,
+      behind: observed - total,
+      covered,
+      count: enriched.length,
+    };
   }, [enriched]);
 
   const filtered = useMemo(() => {
@@ -112,8 +130,9 @@ export default function BestTomePanel() {
           bv = b.pts ?? -1;
           break;
         case "gap":
-          av = a.ptsGapToMax;
-          bv = b.ptsGapToMax;
+          // Sort by gap to top player (more actionable than theoretical max).
+          av = a.ptsGapToTop;
+          bv = b.ptsGapToTop;
           break;
         case "next":
           // "next" = absolute raw delta to reach +1 pt (lower = easier win).
@@ -252,16 +271,17 @@ export default function BestTomePanel() {
                 Max{sortArrow("max")}
               </th>
               <th
-                className="px-3 py-2 text-right cursor-pointer hover:bg-zinc-800 w-24"
+                className="px-3 py-2 text-right cursor-pointer hover:bg-zinc-800 w-28"
                 onClick={() => toggleSort("gap")}
+                title="Pts gap to the top observed player on this task"
               >
-                Gap{sortArrow("gap")}
+                Gap vs top{sortArrow("gap")}
               </th>
               {showTopPlayer && (
                 <>
-                  <th className="px-3 py-2 text-left bg-blue-950/30">Top player</th>
-                  <th className="px-3 py-2 text-right bg-blue-950/30">Top raw</th>
-                  <th className="px-3 py-2 text-right bg-blue-950/30">Top pts</th>
+                  <th className="px-3 py-2 text-left bg-blue-950/20">Top player</th>
+                  <th className="px-3 py-2 text-right bg-blue-950/20">Top raw</th>
+                  <th className="px-3 py-2 text-right bg-blue-950/20">Top pts</th>
                 </>
               )}
             </tr>
@@ -276,8 +296,9 @@ export default function BestTomePanel() {
 
       {showTopPlayer && (
         <p className="text-xs text-zinc-500">
-          Top-player data not yet wired — the 3 right columns are placeholders.
-          Scraping the IT top-10 tome and per-leaderboard #1 is planned next.
+          Top-player snapshot from the &ldquo;Antho and Arkh&rsquo;s Tome Sheet&rdquo;
+          BEST TOME tab, captured 2026-05-20. A live IT-scraper that refreshes
+          this nightly is planned next.
         </p>
       )}
     </div>
@@ -292,32 +313,54 @@ function nextPtCost(r: EnrichedRow): number | null {
 function HeroKPIs({
   totals,
 }: {
-  totals: { total: number; max: number; behind: number; covered: number; count: number };
+  totals: {
+    total: number;
+    theoretical: number;
+    observed: number;
+    behind: number;
+    covered: number;
+    count: number;
+  };
 }) {
-  const pct = totals.max > 0 ? (totals.total / totals.max) * 100 : 0;
+  // Primary % progress is against what top players have actually achieved —
+  // that's the realistic ceiling, not the formula asymptote.
+  const pctObserved =
+    totals.observed > 0 ? (totals.total / totals.observed) * 100 : 0;
+  const pctTheoretical =
+    totals.theoretical > 0 ? (totals.total / totals.theoretical) * 100 : 0;
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
-      <div className="rounded-lg border border-gold/40 bg-zinc-900/50 p-4">
+    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="rounded-lg border border-gold/40 bg-zinc-900/50 p-4 col-span-2 sm:col-span-1">
         <div className="text-xs text-zinc-400 mb-1">Your total pts</div>
         <div className="text-3xl font-bold text-gold tabular-nums">
           {totals.total.toLocaleString()}
         </div>
         <div className="mt-2 h-1.5 bg-zinc-800 rounded overflow-hidden">
-          <div className="h-full bg-gold" style={{ width: `${Math.min(100, pct)}%` }} />
+          <div
+            className="h-full bg-gold"
+            style={{ width: `${Math.min(100, pctObserved)}%` }}
+          />
         </div>
         <div className="text-xs text-zinc-500 mt-1 tabular-nums">
-          {pct.toFixed(1)}% of max
+          {pctObserved.toFixed(1)}% of observed top
         </div>
       </div>
-      <KpiCard label="Max possible" value={totals.max.toLocaleString()} accent="zinc" />
       <KpiCard
-        label="Behind max"
-        value={totals.behind.toLocaleString()}
+        label="Observed top max"
+        sub="sum of top players per task"
+        value={totals.observed.toLocaleString()}
+        accent="zinc"
+      />
+      <KpiCard
+        label="Behind top players"
+        sub="realistic gap to close"
+        value={totals.behind > 0 ? `−${totals.behind.toLocaleString()}` : "0"}
         accent={totals.behind > 0 ? "red" : "green"}
       />
       <KpiCard
-        label="Coverage"
-        value={`${totals.covered} / ${totals.count}`}
+        label="Theoretical max"
+        sub={`${pctTheoretical.toFixed(1)}% reached`}
+        value={totals.theoretical.toLocaleString()}
         accent="blue"
       />
     </div>
@@ -327,10 +370,12 @@ function HeroKPIs({
 function KpiCard({
   label,
   value,
+  sub,
   accent,
 }: {
   label: string;
   value: string;
+  sub?: string;
   accent: "zinc" | "red" | "green" | "blue";
 }) {
   const colors: Record<typeof accent, string> = {
@@ -343,6 +388,7 @@ function KpiCard({
     <div className={`rounded-lg border bg-zinc-900/40 p-4 ${colors[accent]}`}>
       <div className="text-xs text-zinc-400 mb-1">{label}</div>
       <div className="text-2xl font-bold tabular-nums">{value}</div>
+      {sub && <div className="text-xs text-zinc-500 mt-1">{sub}</div>}
     </div>
   );
 }
@@ -401,17 +447,25 @@ function BestTomeRow({
       </td>
       <td className="px-3 py-2 text-right tabular-nums text-zinc-400">{r.maxPts}</td>
       <td className="px-3 py-2 text-right tabular-nums">
-        {r.ptsGapToMax === 0 ? (
-          <span className="text-sky-400 text-xs">—</span>
+        {r.top === null || r.top.pts === null ? (
+          <span className="text-zinc-600 text-xs">no data</span>
+        ) : r.ptsGapToTop === 0 ? (
+          <span className="text-sky-400 text-xs">tied / ahead</span>
         ) : (
-          <span className="text-zinc-300">-{r.ptsGapToMax}</span>
+          <span className="text-zinc-300">−{r.ptsGapToTop}</span>
         )}
       </td>
       {showTopPlayer && (
         <>
-          <td className="px-3 py-2 text-zinc-500 italic text-xs">—</td>
-          <td className="px-3 py-2 text-right text-zinc-500 italic text-xs">—</td>
-          <td className="px-3 py-2 text-right text-zinc-500 italic text-xs">—</td>
+          <td className="px-3 py-2 bg-blue-950/10 text-zinc-300">
+            {r.top?.player || <span className="text-zinc-600 italic text-xs">—</span>}
+          </td>
+          <td className="px-3 py-2 text-right tabular-nums bg-blue-950/10 text-zinc-300">
+            {r.top?.raw !== null && r.top?.raw !== undefined ? formatIdleon(r.top.raw) : <span className="text-zinc-600 italic text-xs">—</span>}
+          </td>
+          <td className="px-3 py-2 text-right tabular-nums bg-blue-950/10 text-zinc-300">
+            {r.top?.pts !== null && r.top?.pts !== undefined ? r.top.pts : <span className="text-zinc-600 italic text-xs">—</span>}
+          </td>
         </>
       )}
     </tr>
