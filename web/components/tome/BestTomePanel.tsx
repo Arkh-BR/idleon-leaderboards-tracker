@@ -538,6 +538,13 @@ export default function BestTomePanel() {
                 <HeaderSub>you / top / max</HeaderSub>
               </th>
               <th
+                className="px-3 py-2 text-center align-middle cursor-pointer hover:bg-zinc-800/80 w-32"
+                onClick={() => toggleSort("gap")}
+                title="Pts gap to the top observed player on this task"
+              >
+                <HeaderTitle>Gap vs top{sortArrow("gap")}</HeaderTitle>
+              </th>
+              <th
                 className="px-3 py-2 text-center align-middle cursor-pointer hover:bg-zinc-800/80 w-28"
                 onClick={() => toggleSort("delta")}
                 title={
@@ -548,13 +555,6 @@ export default function BestTomePanel() {
               >
                 <HeaderTitle>Δ Pts{sortArrow("delta")}</HeaderTitle>
                 <HeaderSub>since save</HeaderSub>
-              </th>
-              <th
-                className="px-3 py-2 text-center align-middle cursor-pointer hover:bg-zinc-800/80 w-32"
-                onClick={() => toggleSort("gap")}
-                title="Pts gap to the top observed player on this task"
-              >
-                <HeaderTitle>Gap vs top{sortArrow("gap")}</HeaderTitle>
               </th>
               <th
                 className="px-3 py-2 text-center align-middle w-44 border-l border-zinc-800/60"
@@ -933,6 +933,15 @@ function BestTomeRow({
         })()}
       </td>
       <td className="px-3 py-3 text-right tabular-nums">
+        {r.top === null || r.top.pts === null ? (
+          <span className="text-zinc-600 text-xs">no data</span>
+        ) : r.ptsGapToTop === 0 ? (
+          <span className="text-sky-400 text-xs">tied / ahead</span>
+        ) : (
+          <span className="text-zinc-300">−{r.ptsGapToTop}</span>
+        )}
+      </td>
+      <td className="px-3 py-3 text-right tabular-nums">
         {r.ptsDelta === null ? (
           <span className="text-zinc-700 text-xs">—</span>
         ) : r.ptsDelta === 0 ? (
@@ -943,15 +952,6 @@ function BestTomeRow({
           </span>
         ) : (
           <span className="text-red-400 font-semibold">{r.ptsDelta}</span>
-        )}
-      </td>
-      <td className="px-3 py-3 text-right tabular-nums">
-        {r.top === null || r.top.pts === null ? (
-          <span className="text-zinc-600 text-xs">no data</span>
-        ) : r.ptsGapToTop === 0 ? (
-          <span className="text-sky-400 text-xs">tied / ahead</span>
-        ) : (
-          <span className="text-zinc-300">−{r.ptsGapToTop}</span>
         )}
       </td>
       <td className="px-3 py-3 text-zinc-300 border-l border-zinc-800/60">
