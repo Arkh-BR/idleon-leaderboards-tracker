@@ -426,7 +426,13 @@ export default function BestTomePanel() {
           <thead className="text-zinc-300">
             <tr className="[&>th]:bg-zinc-900 [&>th]:sticky [&>th]:top-0 [&>th]:z-20 [&>th]:border-b [&>th]:border-zinc-800">
               <th
-                className="px-3 py-2.5 text-left cursor-pointer hover:bg-zinc-800/80 w-20 sticky left-0 !z-30 text-[11px] uppercase tracking-wider font-semibold border-r border-zinc-800"
+                className="px-3 py-2.5 text-left cursor-pointer hover:bg-zinc-800/80 sticky left-0 !z-30 text-[11px] uppercase tracking-wider font-semibold border-r border-zinc-800 min-w-[220px]"
+                onClick={() => toggleSort("task")}
+              >
+                Task{sortArrow("task")}
+              </th>
+              <th
+                className="px-3 py-2.5 text-left cursor-pointer hover:bg-zinc-800/80 w-20 text-[11px] uppercase tracking-wider font-semibold"
                 onClick={() => toggleSort("tier")}
                 title="Achievement progress vs the curve max (bronze < 40% < silver < 75% < gold < 99.9% ≤ maxed)"
               >
@@ -438,12 +444,6 @@ export default function BestTomePanel() {
                 title="User-defined classification (auto-Capped when pts hit theoretical max)"
               >
                 Classification{sortArrow("class")}
-              </th>
-              <th
-                className="px-3 py-2.5 text-left cursor-pointer hover:bg-zinc-800/80 text-[11px] uppercase tracking-wider font-semibold"
-                onClick={() => toggleSort("task")}
-              >
-                Task{sortArrow("task")}
               </th>
               <th
                 className="px-3 py-2.5 text-right w-40 text-[11px] uppercase tracking-wider font-semibold"
@@ -720,7 +720,10 @@ function BestTomeRow({
   const cost = nextPtCost(r);
   return (
     <tr className="group hover:bg-zinc-900/40 [&>td]:border-b [&>td]:border-zinc-800/60 transition-colors">
-      <td className="px-3 py-3 sticky left-0 z-[1] bg-[#0d0d18] group-hover:bg-[#16161e] border-r border-zinc-800">
+      <td className="px-3 py-3 font-medium text-zinc-100 sticky left-0 z-[1] bg-[#0d0d18] group-hover:bg-[#16161e] border-r border-zinc-800">
+        {displayTaskName(r.task)}
+      </td>
+      <td className="px-3 py-3">
         <span
           className={`inline-block text-[11px] font-semibold uppercase tracking-wide rounded-md px-2.5 py-1 border ${meta.bgClass} ${meta.textClass} ${meta.borderClass}`}
         >
@@ -730,7 +733,6 @@ function BestTomeRow({
       <td className="px-3 py-3">
         <ClassificationSelect row={r} onChange={onClassChange} />
       </td>
-      <td className="px-3 py-3 font-medium text-zinc-100">{displayTaskName(r.task)}</td>
       <td className="px-3 py-3 text-right tabular-nums text-zinc-300">
         {r.rawValue === null ? (
           <span className="text-zinc-600">—</span>
