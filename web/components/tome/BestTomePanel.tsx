@@ -34,7 +34,7 @@ const CLASSIFICATION_STYLE: Record<
   3: { label: "Doable",      chip: "bg-emerald-900/40 text-emerald-300 border-emerald-700/50", bg: "#022c22", fg: "#6ee7b7", sortRank: 1 },
   4: { label: "Time Gated",  chip: "bg-amber-900/40 text-amber-300 border-amber-700/50",   bg: "#451a03", fg: "#fcd34d", sortRank: 2 },
   5: { label: "Lucky Gated", chip: "bg-purple-900/40 text-purple-300 border-purple-700/50", bg: "#2e1065", fg: "#d8b4fe", sortRank: 3 },
-  9: { label: "Event Gated", chip: "bg-orange-900/40 text-orange-300 border-orange-700/50", bg: "#431407", fg: "#fdba74", sortRank: 4 },
+  9: { label: "Update Gated", chip: "bg-orange-900/40 text-orange-300 border-orange-700/50", bg: "#431407", fg: "#fdba74", sortRank: 4 },
   12: { label: "Capped",     chip: "bg-sky-900/40 text-sky-300 border-sky-700/50",          bg: "#082f49", fg: "#7dd3fc", sortRank: 5 },
 };
 const CLASSIFICATION_IDS = [1, 3, 4, 5, 9, 12] as const;
@@ -389,7 +389,7 @@ export default function BestTomePanel() {
               ? "border-gold/50 text-gold bg-gold/10 cursor-default"
               : "border-zinc-700 text-zinc-300 hover:border-gold hover:text-gold"
           }`}
-          title="Group by class (Priority → Doable → Time Gated → Lucky Gated → Event Gated → Capped → Unclassified), then by Gap vs top descending within each group"
+          title="Group by class (Priority → Doable → Time Gated → Lucky Gated → Update Gated → Capped → Unclassified), then by Gap vs top descending within each group"
         >
           🎯 Smart sort
         </button>

@@ -123,7 +123,7 @@ const out = [
   "  3: \"Doable\",",
   "  4: \"Time Gated\",",
   "  5: \"Lucky Gated\",",
-  "  9: \"Event/Update Gated\",",
+  "  9: \"Update Gated\",",
   "  12: \"Capped\",",
   "};",
   "",

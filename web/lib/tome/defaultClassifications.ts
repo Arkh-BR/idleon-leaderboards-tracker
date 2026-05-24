@@ -9,7 +9,7 @@
 //   3  → Doable           (green)
 //   4  → Time Gated       (amber)
 //   5  → Lucky Gated      (purple)
-//   9  → Event/Update Gated (orange)
+//   9  → Update Gated      (orange)
 //   null → no default (leave the chip blank so the user decides)
 //
 // Do NOT use 12 (Capped) here — Capped is auto-applied by the UI when the
