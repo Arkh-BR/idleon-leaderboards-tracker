@@ -450,6 +450,7 @@ export default function BestTomePanel() {
               <th
                 className="px-3 py-2 text-right cursor-pointer hover:bg-zinc-800 w-32"
                 onClick={() => toggleSort("pts")}
+                title="Your pts / top player's pts / theoretical max"
               >
                 Points{sortArrow("pts")}
               </th>
@@ -725,9 +726,10 @@ function BestTomeRow({
       </td>
       <td className="px-3 py-2 text-right tabular-nums">
         {(() => {
-          // Use the top player's pts as the realistic denominator. Theoretical
-          // max is unreachable for most asymptotic curves, so showing pts/top
-          // is a more actionable indicator of "how close to actual top am I".
+          // Show three checkpoints: your pts / top player's pts / theoretical max.
+          // Progress bar denominator stays on the top player's pts (realistic
+          // ceiling) so the visual stays actionable — theoretical max is mostly
+          // unreachable on asymptotic curves and would flatten every bar.
           const topPts = r.top?.pts ?? null;
           const denom = topPts !== null && topPts > 0 ? topPts : r.maxPts;
           const pctOfDenom = denom > 0 ? (pts / denom) * 100 : 0;
@@ -737,7 +739,9 @@ function BestTomeRow({
                 {pts}
                 <span className="text-zinc-500 text-xs">
                   {" / "}
-                  {topPts !== null && topPts > 0 ? topPts : r.maxPts}
+                  {topPts !== null && topPts > 0 ? topPts : "—"}
+                  {" / "}
+                  {r.maxPts}
                 </span>
               </div>
               <div className="mt-1 h-1 bg-zinc-800 rounded overflow-hidden">
