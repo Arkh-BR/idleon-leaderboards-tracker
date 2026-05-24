@@ -9,7 +9,6 @@ import { formatRelativeTime } from "@/lib/format";
 type Tab = "leaderboards" | "dashboard";
 
 const STORAGE_KEY = "idleon-leaderboards.player";
-const DEFAULT_PLAYER = "ARKHE";
 
 export default function Home() {
   const [playerInput, setPlayerInput] = useState("");
@@ -46,12 +45,14 @@ export default function Home() {
   useEffect(() => {
     if (initialized.current) return;
     initialized.current = true;
-    let saved = DEFAULT_PLAYER;
+    let saved = "";
     try {
-      saved = localStorage.getItem(STORAGE_KEY) || DEFAULT_PLAYER;
+      saved = localStorage.getItem(STORAGE_KEY) || "";
     } catch {}
-    setPlayerInput(saved);
-    load(saved);
+    if (saved) {
+      setPlayerInput(saved);
+      load(saved);
+    }
   }, [load]);
 
   function onSubmit(e: React.FormEvent) {
