@@ -236,10 +236,8 @@ export default function BestTomePanel() {
     arr.sort((a, b) => {
       let av: number | string;
       let bv: number | string;
+      // "default" is handled in the early-return above; TS narrows it out.
       switch (sortKey) {
-        case "default":
-          // Handled above with compound sort; this branch is unreachable.
-          return 0;
         case "tier":
           av = TIER_ORDER.indexOf(a.tier);
           bv = TIER_ORDER.indexOf(b.tier);
