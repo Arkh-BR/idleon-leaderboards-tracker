@@ -803,7 +803,16 @@ const SKILL_STAR_PLAYER = 8;
 const SKILL_SUPERNOVA = 17;
 const SKILL_STONKS = 622;
 const SKILL_THE_FAMILY_GUY = 144;
+const SKILL_DIVINITY = 14;
 const CLASS_ELEMENTAL_SORC = 22;
+const DEITIES_START_INDEX = 12;
+// Arctis (god 1) minorBonus = "+{_Talent_LV_for_all_talents_above_Lv_1".
+// Multiplier 150 from wd.gods[1].minorBonusMultiplier.
+const ARCTIS_GOD_INDEX = 1;
+const ARCTIS_MULTIPLIER = 150;
+// BIG_P bubble at kazam[21]: decayMulti(level, 0.5, 60) → 1 + (0.5·lv)/(lv+60).
+const BIG_P_X1 = 0.5;
+const BIG_P_X2 = 60;
 const BRIBE_STAR_SCRAPER_IDX = 32;
 const VAULT_UPG_SPECIAL_TALENT = 53;
 const FAMILY_STAR_TAB_THRESHOLD = 29; // x3 of classFamilyBonuses STAR_TAB_TALENT_POINTS
@@ -1088,18 +1097,63 @@ export function rawStarTalentsProper(d: D): number | null {
     if (Array.isArray(d.Grimoire) && (d.Grimoire as unknown[])[39] !== undefined) {
       grimoire = num((d.Grimoire as unknown[])[39]);
     }
-    // Companion 1 (Rift_Slug) acquired → +25 added levels.
+    // Companion 1 (Rift_Slug) acquired → +25 added levels (envelope-only).
     let companion1 = 0;
     const cList = (d as { companion?: { l?: string[] } }).companion?.l;
     if (Array.isArray(cList) && cList.some((e) => typeof e === "string" && e.split(",")[0] === "1")) {
       companion1 = 25;
+    }
+    // Superbit 'Timmy_Talented' check (best-effort): looking for it in gaming
+    // sprout data is complex. Approximate using char level: per IT formula
+    // `superbit ? Math.max(0, floor((charLv - 500) / 100) * superbit) : 0`.
+    // Without the actual unlock check we skip — slight under-count.
+    // God bonus (divinity): IT's calcTotalStarTalent does:
+    //   if companion 0 acquired OR pocketLinked (godsLinks index === 1):
+    //     ALL chars get ceil(getMinorDivinityBonus(char, account, 1))
+    //   else if char's linkedDeity === 1: that char gets the bonus
+    //
+    // Formula: max(1, bigPBubble) * (1 + coralKid/100) * (divLv/(60+divLv)) * mult
+    //   bigPBubble = decayMulti(kazam[21] level, 0.5, 60) = 1 + 0.5·lv/(lv+60)
+    //   coralKid = upgrade 3 (we approximate 0, source data not present in raw)
+    //   mult = wd.gods[1].minorBonusMultiplier = 150 (Arctis)
+    let godBonus = 0;
+    const div = Array.isArray(d.Divinity) ? (d.Divinity as unknown[]) : [];
+    const linkedDeity = num(div[DEITIES_START_INDEX + c]);
+    const companion0Acquired =
+      cList !== undefined &&
+      Array.isArray(cList) &&
+      cList.some((e) => typeof e === "string" && e.split(",")[0] === "0");
+    const useArctisBonus = companion0Acquired || linkedDeity === ARCTIS_GOD_INDEX;
+    if (useArctisBonus) {
+      const divLv = num(lv[SKILL_DIVINITY]);
+      if (divLv > 0) {
+        // bigPBubble = decayMulti(kazam[21] level, 0.5, 60)
+        let bigPLv = 0;
+        const ci = Array.isArray(d.CauldronInfo) ? (d.CauldronInfo as unknown[]) : [];
+        const kazam = ci[3];
+        const kazamObj =
+          kazam && typeof kazam === "object" && !Array.isArray(kazam)
+            ? (kazam as Record<string, unknown>)
+            : null;
+        if (kazamObj) bigPLv = num(kazamObj["21"]);
+        const bigPBubble = bigPLv > 0 ? 1 + (BIG_P_X1 * bigPLv) / (bigPLv + BIG_P_X2) : 1;
+        // coralKidUpgBonus(account, 3) = round(OptLacc[430])
+        const coralKid = Math.round(num(arr(d.OptLacc)[430]));
+        godBonus = Math.ceil(
+          Math.max(1, bigPBubble) *
+            (1 + coralKid / 100) *
+            (divLv / (60 + divLv)) *
+            ARCTIS_MULTIPLIER
+        );
+      }
     }
     const addedLevels =
       Math.floor(familyEff) +
       ach291 +
       (isNinjaMastery ? 5 : 0) +
       grimoire +
-      companion1;
+      companion1 +
+      godBonus;
 
     const starPlayer = starPlayerRaw >= 1 ? starPlayerRaw + addedLevels : 0;
     const supernova = supernovaRaw >= 1 ? supernovaRaw + addedLevels : 0;
