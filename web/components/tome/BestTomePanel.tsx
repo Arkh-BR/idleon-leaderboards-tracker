@@ -530,7 +530,7 @@ export default function BestTomePanel() {
                 <HeaderTitle>+1 Tome pt at</HeaderTitle>
               </th>
               <th
-                className="px-3 py-2 text-center align-middle cursor-pointer hover:bg-zinc-800/80 w-48"
+                className="px-3 py-2 text-center align-middle cursor-pointer hover:bg-zinc-800/80 w-56"
                 onClick={() => toggleSort("pts")}
                 title="Your pts / top player's pts / theoretical max"
               >
@@ -910,7 +910,7 @@ function BestTomeRow({
           const pctOfDenom = denom > 0 ? (pts / denom) * 100 : 0;
           return (
             <>
-              <div className="flex items-baseline justify-end gap-1.5">
+              <div className="flex items-baseline justify-end gap-1.5 whitespace-nowrap">
                 <span className="text-base font-bold tabular-nums" style={{ color: meta.hex }}>
                   {pts}
                 </span>
