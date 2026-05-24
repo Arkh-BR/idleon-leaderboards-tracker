@@ -90,6 +90,10 @@ export default function BestTomePanel() {
     } catch {}
   }, []);
 
+  // value semantics:
+  //   number 1/3/4/5/9 → user picked a classification
+  //   0                → user explicitly cleared (overrides snapshot default)
+  //   null             → wipe entry (revert to snapshot default if any)
   function setClassFor(taskName: string, value: number | null) {
     setUserClass((prev) => {
       const next = { ...prev };
@@ -128,13 +132,32 @@ export default function BestTomePanel() {
       const top = TOP_PLAYERS[r.task] ?? null;
       const ptsGapToTop =
         top && top.pts !== null ? Math.max(0, top.pts - currentPts) : 0;
-      const cappedByMax = tier === "blue";
-      const userPick = userClass[r.task] ?? null;
-      const classification = cappedByMax ? CAPPED_ID : userPick;
+      // Auto-Capped ONLY when the user is at (or above) the theoretical
+      // maximum points for the task's curve — i.e., literally maxed out.
+      // The blue tier (99.9% of asymptote) is NOT enough.
+      const cappedByMax = currentPts > 0 && maxPts > 0 && currentPts >= maxPts;
+
+      // Default classification: the snapshot value from the sheet, EXCEPT we
+      // never use 12 (Capped) as a default — Capped is reserved for the
+      // auto-rule above. User can still pick any non-Capped value.
+      const snapshotDefault =
+        top && top.classification !== null && top.classification !== CAPPED_ID
+          ? top.classification
+          : null;
+
+      const rawUserPick = userClass[r.task]; // undefined | 0 | 1/3/4/5/9
+      // userPick semantics:
+      //   undefined → user never touched → use snapshot default
+      //   0         → user explicitly cleared → no chip
+      //   1/3/4/5/9 → user's pick
+      const effectiveUserPick =
+        rawUserPick === undefined ? snapshotDefault : rawUserPick === 0 ? null : rawUserPick;
+
+      const classification = cappedByMax ? CAPPED_ID : effectiveUserPick;
       return {
         ...r, pct, tier, maxPts, rawForNextPt, rawForMaxPts, ptsGapToMax,
         top, ptsGapToTop,
-        classification, userClassification: userPick, cappedByMax,
+        classification, userClassification: effectiveUserPick, cappedByMax,
       };
     });
   }, [result, userClass]);
@@ -431,9 +454,12 @@ function nextPtCost(r: EnrichedRow): number | null {
 }
 
 // Editable per-task classification chip. Renders a styled <select> that looks
-// like the chip badge — user picks their preferred label, persisted via the
-// onChange callback (which writes to localStorage). Forced to "Capped" and
-// disabled when the task is fully maxed (tier === "blue").
+// like the chip badge. The first-time default comes from the snapshot in the
+// BEST TOME sheet; once the user picks anything (including "— none —") their
+// choice is persisted and overrides the snapshot for that task.
+//
+// When the task is at the theoretical curve maximum (cappedByMax === true),
+// the chip is LOCKED to "Capped" and the picker is hidden.
 function ClassificationSelect({
   row: r,
   onChange,
@@ -441,32 +467,35 @@ function ClassificationSelect({
   row: EnrichedRow;
   onChange: (taskName: string, value: number | null) => void;
 }) {
-  const effective = r.classification; // null OR a valid ID (already auto-capped)
-  const meta = effective !== null ? CLASSIFICATION_STYLE[effective] : null;
-  const chipClass = meta?.chip ?? "bg-zinc-900 text-zinc-500 border-zinc-800";
-  const selectValue = r.userClassification === null ? "" : String(r.userClassification);
-
   if (r.cappedByMax) {
-    // Locked badge — user can't override Capped when the task is genuinely maxed.
     return (
       <span
         className={`inline-block text-[10px] font-semibold uppercase tracking-wide rounded px-1.5 py-0.5 border ${CLASSIFICATION_STYLE[CAPPED_ID].chip}`}
-        title="Auto-classified as Capped because pts == max"
+        title="Auto-classified as Capped because pts have reached the theoretical max"
       >
         Capped
       </span>
     );
   }
 
+  // Currently-shown value = the user's effective classification (snapshot OR
+  // user pick, with explicit none = null).
+  const effective = r.userClassification;
+  const meta = effective !== null ? CLASSIFICATION_STYLE[effective] : null;
+  const chipClass = meta?.chip ?? "bg-zinc-900 text-zinc-500 border-zinc-800";
+  const selectValue = effective === null ? "" : String(effective);
+
   return (
     <select
       value={selectValue}
       onChange={(e) => {
         const v = e.target.value;
-        onChange(r.task, v === "" ? null : Number(v));
+        // "" → store 0 (explicit clear, even if snapshot has a default)
+        // numeric → store the user's pick
+        onChange(r.task, v === "" ? 0 : Number(v));
       }}
       className={`text-[10px] font-semibold uppercase tracking-wide rounded px-1.5 py-0.5 border cursor-pointer outline-none ${chipClass}`}
-      title="Click to classify this task — saved locally on your device"
+      title="Click to classify — saved locally on your device. Default comes from the BEST TOME sheet."
     >
       <option value="" className="bg-zinc-900 normal-case text-zinc-400">
         — none —
