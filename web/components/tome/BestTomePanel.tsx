@@ -418,9 +418,13 @@ export default function BestTomePanel() {
 
       <div className="overflow-x-auto rounded-lg border border-zinc-800 relative">
         <table className="w-full text-sm border-separate border-spacing-0">
-          {/* sticky offset = top-nav (52px) + page header padding */}
+          {/* Note: sticky thead doesn't work here because the wrapping div has
+              overflow-x-auto, which per CSS spec implicitly creates a scroll
+              container on both axes — that breaks vertical sticky. Column
+              headers stay legible because the table is dense, and Tier
+              (sticky left) anchors the row identity on horizontal scroll. */}
           <thead className="text-zinc-300">
-            <tr className="[&>th]:bg-zinc-900 [&>th]:sticky [&>th]:top-[52px] [&>th]:z-10 [&>th]:border-b [&>th]:border-zinc-800">
+            <tr className="[&>th]:bg-zinc-900 [&>th]:border-b [&>th]:border-zinc-800">
               <th
                 className="px-3 py-2.5 text-left cursor-pointer hover:bg-zinc-800/80 w-20 sticky left-0 z-20 text-[11px] uppercase tracking-wider font-semibold border-r border-zinc-800"
                 onClick={() => toggleSort("tier")}
@@ -451,11 +455,16 @@ export default function BestTomePanel() {
                 +1 pt at
               </th>
               <th
-                className="px-3 py-2.5 text-right cursor-pointer hover:bg-zinc-800/80 w-32 text-[11px] uppercase tracking-wider font-semibold"
+                className="px-3 py-2 text-right cursor-pointer hover:bg-zinc-800/80 w-48 font-semibold"
                 onClick={() => toggleSort("pts")}
                 title="Your pts / top player's pts / theoretical max"
               >
-                Points{sortArrow("pts")}
+                <div className="text-[11px] uppercase tracking-wider">
+                  Points{sortArrow("pts")}
+                </div>
+                <div className="text-[10px] font-normal normal-case tracking-normal text-zinc-500 mt-0.5">
+                  you / top / max
+                </div>
               </th>
               <th
                 className="px-3 py-2.5 text-right cursor-pointer hover:bg-zinc-800/80 w-28 text-[11px] uppercase tracking-wider font-semibold"
@@ -773,13 +782,16 @@ function BestTomeRow({
           const pctOfDenom = denom > 0 ? (pts / denom) * 100 : 0;
           return (
             <>
-              <div className="font-semibold" style={{ color: meta.hex }}>
-                {pts}
-                <span className="text-zinc-500 text-xs font-normal">
-                  {" / "}
+              <div className="flex items-baseline justify-end gap-1.5">
+                <span className="text-base font-bold tabular-nums" style={{ color: meta.hex }}>
+                  {pts}
+                </span>
+                <span className="text-zinc-500 text-xs tabular-nums">
+                  /{" "}
                   {topPts !== null && topPts > 0 ? topPts : "—"}
-                  {" / "}
-                  {r.maxPts}
+                </span>
+                <span className="text-zinc-600 text-xs tabular-nums">
+                  / {r.maxPts}
                 </span>
               </div>
               <div className="mt-1.5 h-2 bg-zinc-800 rounded-full overflow-hidden">
