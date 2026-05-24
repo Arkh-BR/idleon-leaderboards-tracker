@@ -21,17 +21,19 @@ const TIER_ORDER: TomeTier[] = ["blue", "gold", "silver", "bronze", "missing"];
 const CAPPED_ID = 12;
 
 // Visual style + display order for the user-defined classification tags
-// from the BEST TOME sheet (column D).
+// from the BEST TOME sheet (column D). Hex pair is for the <option> styling
+// inside the chip-shaped <select> (browsers don't apply Tailwind classes to
+// dropdown items, so we inline the colors).
 const CLASSIFICATION_STYLE: Record<
   number,
-  { label: string; chip: string; sortRank: number }
+  { label: string; chip: string; bg: string; fg: string; sortRank: number }
 > = {
-  1: { label: "Priority", chip: "bg-red-900/40 text-red-300 border-red-700/50", sortRank: 0 },
-  3: { label: "Doable", chip: "bg-emerald-900/40 text-emerald-300 border-emerald-700/50", sortRank: 1 },
-  4: { label: "Time Gated", chip: "bg-amber-900/40 text-amber-300 border-amber-700/50", sortRank: 2 },
-  5: { label: "Lucky Gated", chip: "bg-purple-900/40 text-purple-300 border-purple-700/50", sortRank: 3 },
-  9: { label: "Event Gated", chip: "bg-orange-900/40 text-orange-300 border-orange-700/50", sortRank: 4 },
-  12: { label: "Capped", chip: "bg-sky-900/40 text-sky-300 border-sky-700/50", sortRank: 5 },
+  1: { label: "Priority",    chip: "bg-red-900/40 text-red-300 border-red-700/50",         bg: "#450a0a", fg: "#fca5a5", sortRank: 0 },
+  3: { label: "Doable",      chip: "bg-emerald-900/40 text-emerald-300 border-emerald-700/50", bg: "#022c22", fg: "#6ee7b7", sortRank: 1 },
+  4: { label: "Time Gated",  chip: "bg-amber-900/40 text-amber-300 border-amber-700/50",   bg: "#451a03", fg: "#fcd34d", sortRank: 2 },
+  5: { label: "Lucky Gated", chip: "bg-purple-900/40 text-purple-300 border-purple-700/50", bg: "#2e1065", fg: "#d8b4fe", sortRank: 3 },
+  9: { label: "Event Gated", chip: "bg-orange-900/40 text-orange-300 border-orange-700/50", bg: "#431407", fg: "#fdba74", sortRank: 4 },
+  12: { label: "Capped",     chip: "bg-sky-900/40 text-sky-300 border-sky-700/50",          bg: "#082f49", fg: "#7dd3fc", sortRank: 5 },
 };
 const CLASSIFICATION_IDS = [1, 3, 4, 5, 9, 12] as const;
 
@@ -423,11 +425,11 @@ export default function BestTomePanel() {
                 Tier{sortArrow("tier")}
               </th>
               <th
-                className="px-2 py-2 text-left cursor-pointer hover:bg-zinc-800 w-28 hidden md:table-cell"
+                className="px-2 py-2 text-left cursor-pointer hover:bg-zinc-800 w-32 hidden md:table-cell"
                 onClick={() => toggleSort("class")}
-                title="User-defined classification from the BEST TOME sheet"
+                title="User-defined classification (auto-Capped when pts hit theoretical max)"
               >
-                Class{sortArrow("class")}
+                Classification{sortArrow("class")}
               </th>
               <th
                 className="px-3 py-2 text-left cursor-pointer hover:bg-zinc-800"
@@ -542,14 +544,26 @@ function ClassificationSelect({
       className={`text-[10px] font-semibold uppercase tracking-wide rounded px-1.5 py-0.5 border cursor-pointer outline-none ${chipClass}`}
       title="Click to classify — saved locally on your device. Default comes from the BEST TOME sheet."
     >
-      <option value="" className="bg-zinc-900 normal-case text-zinc-400">
+      <option
+        value=""
+        className="normal-case"
+        style={{ background: "#18181b", color: "#a1a1aa" }}
+      >
         — none —
       </option>
-      {CLASSIFICATION_IDS.filter((id) => id !== CAPPED_ID).map((id) => (
-        <option key={id} value={id} className="bg-zinc-900 normal-case text-zinc-200">
-          {CLASSIFICATION_STYLE[id].label}
-        </option>
-      ))}
+      {CLASSIFICATION_IDS.filter((id) => id !== CAPPED_ID).map((id) => {
+        const s = CLASSIFICATION_STYLE[id];
+        return (
+          <option
+            key={id}
+            value={id}
+            className="normal-case font-semibold"
+            style={{ background: s.bg, color: s.fg }}
+          >
+            {s.label}
+          </option>
+        );
+      })}
     </select>
   );
 }
@@ -648,7 +662,6 @@ function BestTomeRow({
 }) {
   const meta = TIER_META[r.tier];
   const pts = r.pts ?? 0;
-  const pctOfMax = r.maxPts > 0 ? (pts / r.maxPts) * 100 : 0;
   const cost = nextPtCost(r);
   return (
     <tr className="border-t border-zinc-800 hover:bg-zinc-900/40">
@@ -683,16 +696,31 @@ function BestTomeRow({
         )}
       </td>
       <td className="px-3 py-2 text-right tabular-nums">
-        <div className="font-semibold" style={{ color: meta.hex }}>
-          {pts}
-          <span className="text-zinc-500 text-xs"> / {r.maxPts}</span>
-        </div>
-        <div className="mt-1 h-1 bg-zinc-800 rounded overflow-hidden">
-          <div
-            className="h-full"
-            style={{ width: `${Math.min(100, pctOfMax)}%`, background: meta.hex }}
-          />
-        </div>
+        {(() => {
+          // Use the top player's pts as the realistic denominator. Theoretical
+          // max is unreachable for most asymptotic curves, so showing pts/top
+          // is a more actionable indicator of "how close to actual top am I".
+          const topPts = r.top?.pts ?? null;
+          const denom = topPts !== null && topPts > 0 ? topPts : r.maxPts;
+          const pctOfDenom = denom > 0 ? (pts / denom) * 100 : 0;
+          return (
+            <>
+              <div className="font-semibold" style={{ color: meta.hex }}>
+                {pts}
+                <span className="text-zinc-500 text-xs">
+                  {" / "}
+                  {topPts !== null && topPts > 0 ? topPts : r.maxPts}
+                </span>
+              </div>
+              <div className="mt-1 h-1 bg-zinc-800 rounded overflow-hidden">
+                <div
+                  className="h-full"
+                  style={{ width: `${Math.min(100, pctOfDenom)}%`, background: meta.hex }}
+                />
+              </div>
+            </>
+          );
+        })()}
       </td>
       <td className="px-3 py-2 text-right tabular-nums text-zinc-400">{r.maxPts}</td>
       <td className="px-3 py-2 text-right tabular-nums">
