@@ -35,7 +35,16 @@ const CLASSIFICATION_STYLE: Record<
 };
 const CLASSIFICATION_IDS = [1, 3, 4, 5, 9, 12] as const;
 
-type SortKey = "tier" | "class" | "task" | "pts" | "gap" | "next" | "max" | "pctRemaining";
+type SortKey =
+  | "default" // class asc (Priority → Capped → Unclassified), tie-break: gap desc
+  | "tier"
+  | "class"
+  | "task"
+  | "pts"
+  | "gap"
+  | "next"
+  | "max"
+  | "pctRemaining";
 type SortDir = "asc" | "desc";
 
 type EnrichedRow = TomeRow & {
@@ -59,7 +68,11 @@ export default function BestTomePanel() {
   const [tierFilter, setTierFilter] = useState<TomeTier | "all">("all");
   const [classFilter, setClassFilter] = useState<number | "all" | "none">("all");
   const [hideMaxed, setHideMaxed] = useState(false);
-  const [sortKey, setSortKey] = useState<SortKey>("gap");
+  // Default sort: compound — group by classification (Priority first), then
+  // within each group order by Gap vs top descending (biggest opportunities
+  // first). User can switch via column headers; "Smart sort" button below
+  // restores this view.
+  const [sortKey, setSortKey] = useState<SortKey>("default");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
   const [showTopPlayer, setShowTopPlayer] = useState(false);
   // Per-task user classification map (taskName → classification ID). Saved in
@@ -203,11 +216,30 @@ export default function BestTomePanel() {
 
   const sorted = useMemo(() => {
     const arr = [...filtered];
+
+    // Compound default: classification rank asc → ptsGapToTop desc.
+    if (sortKey === "default") {
+      const rank = (r: EnrichedRow) =>
+        r.classification !== null && CLASSIFICATION_STYLE[r.classification]
+          ? CLASSIFICATION_STYLE[r.classification].sortRank
+          : 999;
+      arr.sort((a, b) => {
+        const ra = rank(a);
+        const rb = rank(b);
+        if (ra !== rb) return ra - rb;
+        return b.ptsGapToTop - a.ptsGapToTop;
+      });
+      return arr;
+    }
+
     const dir = sortDir === "asc" ? 1 : -1;
     arr.sort((a, b) => {
       let av: number | string;
       let bv: number | string;
       switch (sortKey) {
+        case "default":
+          // Handled above with compound sort; this branch is unreachable.
+          return 0;
         case "tier":
           av = TIER_ORDER.indexOf(a.tier);
           bv = TIER_ORDER.indexOf(b.tier);
@@ -348,6 +380,21 @@ export default function BestTomePanel() {
           />
           Show top player
         </label>
+        <button
+          onClick={() => {
+            setSortKey("default");
+            setSortDir("desc");
+          }}
+          disabled={sortKey === "default"}
+          className={`text-xs px-2 py-1 rounded border transition-colors ${
+            sortKey === "default"
+              ? "border-gold/50 text-gold bg-gold/10 cursor-default"
+              : "border-zinc-700 text-zinc-300 hover:border-gold hover:text-gold"
+          }`}
+          title="Group by class (Priority → Doable → Time Gated → Lucky Gated → Event Gated → Capped → Unclassified), then by Gap vs top descending within each group"
+        >
+          🎯 Smart sort
+        </button>
         {Object.keys(userClass).length > 0 && (
           <button
             onClick={() => {
