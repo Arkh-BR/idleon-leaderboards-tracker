@@ -15,6 +15,15 @@ import { formatIdleon } from "@/lib/format";
 
 const STORAGE_KEY = "idleon-leaderboards.tome.rawJson";
 const CLASSIFICATIONS_KEY = "idleon-leaderboards.tome.userClassifications";
+const SNAPSHOT_KEY = "idleon-leaderboards.tome.ptsSnapshot";
+
+// Shape stored under SNAPSHOT_KEY — a baseline of {taskName → pts} captured
+// at savedAt. The Δ column shows currentPts - snapshotPts so the user can
+// track how their tome score moved since the last save.
+type PtsSnapshot = {
+  savedAt: string; // ISO timestamp
+  pts: Record<string, number>;
+};
 const TIER_ORDER: TomeTier[] = ["blue", "gold", "silver", "bronze", "missing"];
 
 // Classification ID auto-assigned when the task is fully maxed (tier === "blue").
@@ -45,6 +54,7 @@ type SortKey =
   | "class"
   | "task"
   | "pts"
+  | "delta"
   | "gap"
   | "next"
   | "pctRemaining";
@@ -62,6 +72,8 @@ type EnrichedRow = TomeRow & {
   classification: number | null;     // effective classification (user choice OR auto-Capped)
   userClassification: number | null; // raw user pick (no auto-override)
   cappedByMax: boolean;              // true when forced to Capped by tier === "blue"
+  snapshotPts: number | null;        // saved baseline pts for this task (null if no snapshot)
+  ptsDelta: number | null;           // current pts - snapshot pts (null if no baseline)
 };
 
 export default function BestTomePanel() {
@@ -80,6 +92,9 @@ export default function BestTomePanel() {
   // Per-task user classification map (taskName → classification ID). Saved in
   // localStorage so each player keeps their own categorization across sessions.
   const [userClass, setUserClass] = useState<Record<string, number>>({});
+  // Baseline pts snapshot (taskName → pts captured at savedAt). Drives the Δ
+  // column so the user can see how their pts moved since they last saved.
+  const [snapshot, setSnapshot] = useState<PtsSnapshot | null>(null);
 
   // Hydrate from the same localStorage key the Raw analysis writes to, so
   // pasting in either sub-tab feeds both views.
@@ -103,7 +118,40 @@ export default function BestTomePanel() {
         if (parsed && typeof parsed === "object") setUserClass(parsed);
       }
     } catch {}
+    // Pts snapshot — separate localStorage entry.
+    try {
+      const raw = localStorage.getItem(SNAPSHOT_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw) as PtsSnapshot;
+        if (parsed && typeof parsed === "object" && parsed.pts) {
+          setSnapshot(parsed);
+        }
+      }
+    } catch {}
   }, []);
+
+  // Capture every task's current pts as the new baseline. Tasks without
+  // a current pts value are still recorded as 0 so future comparisons treat
+  // them as "started from zero".
+  function saveSnapshot() {
+    if (!result) return;
+    const pts: Record<string, number> = {};
+    for (const r of result.rows) {
+      pts[r.task] = r.pts ?? 0;
+    }
+    const next: PtsSnapshot = { savedAt: new Date().toISOString(), pts };
+    setSnapshot(next);
+    try {
+      localStorage.setItem(SNAPSHOT_KEY, JSON.stringify(next));
+    } catch {}
+  }
+
+  function clearSnapshot() {
+    setSnapshot(null);
+    try {
+      localStorage.removeItem(SNAPSHOT_KEY);
+    } catch {}
+  }
 
   // value semantics:
   //   number 1/3/4/5/9 → user picked a classification
@@ -175,27 +223,41 @@ export default function BestTomePanel() {
         rawUserPick === undefined ? snapshotDefault : rawUserPick === 0 ? null : rawUserPick;
 
       const classification = cappedByMax ? CAPPED_ID : effectiveUserPick;
+      const snapshotPts =
+        snapshot && r.task in snapshot.pts ? snapshot.pts[r.task] : null;
+      const ptsDelta =
+        snapshotPts !== null && r.pts !== null ? r.pts - snapshotPts : null;
       return {
         ...r, pct, tier, maxPts, rawForNextPt, rawForMaxPts, ptsGapToMax,
         top, ptsGapToTop,
         classification, userClassification: effectiveUserPick, cappedByMax,
+        snapshotPts, ptsDelta,
       };
     });
-  }, [result, userClass]);
+  }, [result, userClass, snapshot]);
 
   const totals = useMemo(() => {
     if (enriched.length === 0) {
-      return { total: 0, theoretical: 0, observed: 0, behind: 0, covered: 0, count: 0 };
+      return {
+        total: 0, theoretical: 0, observed: 0, behind: 0, covered: 0,
+        count: 0, deltaTotal: null as number | null,
+      };
     }
     let total = 0;
     let theoretical = 0;
     let observed = 0;
     let covered = 0;
+    let deltaSum = 0;
+    let hasAnyDelta = false;
     for (const r of enriched) {
       total += r.pts ?? 0;
       theoretical += r.maxPts;
       observed += r.top?.pts ?? r.maxPts; // fall back to theoretical if no snapshot
       if (r.pts !== null) covered++;
+      if (r.ptsDelta !== null) {
+        deltaSum += r.ptsDelta;
+        hasAnyDelta = true;
+      }
     }
     return {
       total,
@@ -204,6 +266,7 @@ export default function BestTomePanel() {
       behind: observed - total,
       covered,
       count: enriched.length,
+      deltaTotal: hasAnyDelta ? deltaSum : null,
     };
   }, [enriched]);
 
@@ -268,6 +331,11 @@ export default function BestTomePanel() {
           av = a.pts ?? -1;
           bv = b.pts ?? -1;
           break;
+        case "delta":
+          // Tasks without a snapshot baseline sort as -Infinity so they sink.
+          av = a.ptsDelta ?? Number.NEGATIVE_INFINITY;
+          bv = b.ptsDelta ?? Number.NEGATIVE_INFINITY;
+          break;
         case "gap":
           // Sort by gap to top player (more actionable than theoretical max).
           av = a.ptsGapToTop;
@@ -326,7 +394,7 @@ export default function BestTomePanel() {
 
   return (
     <div className="space-y-4">
-      <HeroKPIs totals={totals} />
+      <HeroKPIs totals={totals} snapshotAt={snapshot?.savedAt ?? null} />
 
       <div className="flex flex-wrap gap-3 items-center p-3 rounded-lg bg-zinc-900/40 border border-zinc-800/80">
         {/* Left group: search + filters */}
@@ -397,6 +465,40 @@ export default function BestTomePanel() {
           >
             🎯 Smart sort
           </button>
+          <button
+            onClick={() => {
+              if (
+                !snapshot ||
+                confirm(
+                  "Overwrite the existing pts snapshot? The Δ column will reset to 0 for every task."
+                )
+              ) {
+                saveSnapshot();
+              }
+            }}
+            disabled={!result}
+            className="text-xs font-medium px-3 py-1.5 rounded-md border border-emerald-700/40 text-emerald-300 bg-emerald-900/20 hover:bg-emerald-900/40 disabled:opacity-40"
+            title={
+              snapshot
+                ? `Saved on ${new Date(snapshot.savedAt).toLocaleDateString()} — click to overwrite with current pts`
+                : "Save current pts as a baseline. The Δ column will show how each task's pts moved since this save."
+            }
+          >
+            💾 {snapshot ? "Update snapshot" : "Save snapshot"}
+          </button>
+          {snapshot && (
+            <button
+              onClick={() => {
+                if (confirm("Clear the saved pts snapshot? The Δ column will go blank.")) {
+                  clearSnapshot();
+                }
+              }}
+              className="text-xs font-medium px-3 py-1.5 rounded-md border border-zinc-700/60 text-zinc-400 hover:text-red-400 hover:border-red-700/60"
+              title={`Snapshot from ${new Date(snapshot.savedAt).toLocaleString()}`}
+            >
+              Clear snap
+            </button>
+          )}
           {Object.keys(userClass).length > 0 && (
             <button
               onClick={() => {
@@ -464,6 +566,22 @@ export default function BestTomePanel() {
                 </div>
                 <div className="text-[10px] font-normal normal-case tracking-normal text-zinc-500 mt-0.5">
                   you / top / max
+                </div>
+              </th>
+              <th
+                className="px-3 py-2 text-right cursor-pointer hover:bg-zinc-800/80 w-24 font-semibold"
+                onClick={() => toggleSort("delta")}
+                title={
+                  snapshot
+                    ? `Pts gained since the snapshot saved on ${new Date(snapshot.savedAt).toLocaleString()}`
+                    : "Save a snapshot to start tracking pts gained over time."
+                }
+              >
+                <div className="text-[11px] uppercase tracking-wider">
+                  Δ Pts{sortArrow("delta")}
+                </div>
+                <div className="text-[10px] font-normal normal-case tracking-normal text-zinc-500 mt-0.5">
+                  since save
                 </div>
               </th>
               <th
@@ -588,6 +706,7 @@ function ClassificationSelect({
 
 function HeroKPIs({
   totals,
+  snapshotAt,
 }: {
   totals: {
     total: number;
@@ -596,7 +715,9 @@ function HeroKPIs({
     behind: number;
     covered: number;
     count: number;
+    deltaTotal: number | null;
   };
+  snapshotAt: string | null;
 }) {
   // Primary % progress is against what top players have actually achieved —
   // that's the realistic ceiling, not the formula asymptote.
@@ -613,11 +734,33 @@ function HeroKPIs({
             <div className="text-xs uppercase tracking-wider text-zinc-400 mb-1">
               Your total tome pts
             </div>
-            <div className="text-5xl font-bold text-gold tabular-nums leading-none">
-              {totals.total.toLocaleString()}
+            <div className="flex items-baseline gap-3">
+              <div className="text-5xl font-bold text-gold tabular-nums leading-none">
+                {totals.total.toLocaleString()}
+              </div>
+              {totals.deltaTotal !== null && totals.deltaTotal !== 0 && (
+                <div
+                  className={`text-lg font-semibold tabular-nums ${
+                    totals.deltaTotal > 0 ? "text-emerald-400" : "text-red-400"
+                  }`}
+                  title={
+                    snapshotAt
+                      ? `Net change since snapshot saved on ${new Date(snapshotAt).toLocaleString()}`
+                      : undefined
+                  }
+                >
+                  {totals.deltaTotal > 0 ? "+" : ""}
+                  {totals.deltaTotal.toLocaleString()}
+                </div>
+              )}
             </div>
             <div className="text-xs text-zinc-500 mt-2 tabular-nums">
               {totals.covered} / {totals.count} tasks computed
+              {snapshotAt && (
+                <span className="ml-2 text-zinc-600">
+                  · snap {new Date(snapshotAt).toLocaleDateString()}
+                </span>
+              )}
             </div>
           </div>
           <div className="flex-1 min-w-[200px] max-w-md">
@@ -805,6 +948,19 @@ function BestTomeRow({
             </>
           );
         })()}
+      </td>
+      <td className="px-3 py-3 text-right tabular-nums">
+        {r.ptsDelta === null ? (
+          <span className="text-zinc-700 text-xs">—</span>
+        ) : r.ptsDelta === 0 ? (
+          <span className="text-zinc-500 text-xs">=</span>
+        ) : r.ptsDelta > 0 ? (
+          <span className="text-emerald-400 font-semibold">
+            +{r.ptsDelta}
+          </span>
+        ) : (
+          <span className="text-red-400 font-semibold">{r.ptsDelta}</span>
+        )}
       </td>
       <td className="px-3 py-3 text-right tabular-nums">
         {r.top === null || r.top.pts === null ? (
