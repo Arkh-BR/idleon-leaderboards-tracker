@@ -391,46 +391,49 @@ export default function BestTomePanel() {
       <HeroKPIs totals={totals} snapshotAt={snapshot?.savedAt ?? null} />
 
       <div className="flex flex-wrap gap-3 items-center p-3 rounded-lg bg-zinc-900/40 border border-zinc-800/80">
-        {/* Left group: search + filters */}
-        <div className="flex flex-wrap gap-2 items-center flex-1 min-w-[260px]">
+        {/* Left group: search on top of paired filter selects on mobile,
+            all inline on sm+. */}
+        <div className="flex flex-col sm:flex-row sm:flex-wrap gap-2 items-stretch sm:items-center flex-1 min-w-[260px]">
           <input
             type="text"
             placeholder="Search task…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="bg-zinc-950/80 border border-zinc-700 rounded-md px-3 py-2 text-sm flex-1 min-w-[180px] focus:border-gold/50"
+            className="bg-zinc-950/80 border border-zinc-700 rounded-md px-3 py-2 text-sm w-full sm:flex-1 sm:min-w-[180px] focus:border-gold/50"
           />
-          <select
-            value={tierFilter}
-            onChange={(e) => setTierFilter(e.target.value as TomeTier | "all")}
-            className="bg-zinc-950/80 border border-zinc-700 rounded-md px-3 py-2 text-sm"
-          >
-            <option value="all">All tiers</option>
-            {TIER_ORDER.map((t) => (
-              <option key={t} value={t}>
-                {TIER_META[t].label}
-              </option>
-            ))}
-          </select>
-          <select
-            value={String(classFilter)}
-            onChange={(e) => {
-              const v = e.target.value;
-              if (v === "all") setClassFilter("all");
-              else if (v === "none") setClassFilter("none");
-              else setClassFilter(Number(v));
-            }}
-            className="bg-zinc-950/80 border border-zinc-700 rounded-md px-3 py-2 text-sm"
-            title="Filter by classification — your personal categorization"
-          >
-            <option value="all">All classes</option>
-            <option value="none">Unclassified</option>
-            {CLASSIFICATION_IDS.map((id) => (
-              <option key={id} value={id}>
-                {CLASSIFICATION_STYLE[id].label}
-              </option>
-            ))}
-          </select>
+          <div className="flex gap-2">
+            <select
+              value={tierFilter}
+              onChange={(e) => setTierFilter(e.target.value as TomeTier | "all")}
+              className="bg-zinc-950/80 border border-zinc-700 rounded-md px-3 py-2 text-sm flex-1 sm:flex-none"
+            >
+              <option value="all">All tiers</option>
+              {TIER_ORDER.map((t) => (
+                <option key={t} value={t}>
+                  {TIER_META[t].label}
+                </option>
+              ))}
+            </select>
+            <select
+              value={String(classFilter)}
+              onChange={(e) => {
+                const v = e.target.value;
+                if (v === "all") setClassFilter("all");
+                else if (v === "none") setClassFilter("none");
+                else setClassFilter(Number(v));
+              }}
+              className="bg-zinc-950/80 border border-zinc-700 rounded-md px-3 py-2 text-sm flex-1 sm:flex-none"
+              title="Filter by classification — your personal categorization"
+            >
+              <option value="all">All classes</option>
+              <option value="none">Unclassified</option>
+              {CLASSIFICATION_IDS.map((id) => (
+                <option key={id} value={id}>
+                  {CLASSIFICATION_STYLE[id].label}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
 
         {/* Right group: toggles + actions */}
