@@ -416,7 +416,7 @@ export default function BestTomePanel() {
                 Tier{sortArrow("tier")}
               </th>
               <th
-                className="px-2 py-2 text-left cursor-pointer hover:bg-zinc-800 w-32 hidden md:table-cell"
+                className="px-2 py-2 text-left cursor-pointer hover:bg-zinc-800 w-32"
                 onClick={() => toggleSort("class")}
                 title="User-defined classification (auto-Capped when pts hit theoretical max)"
               >
@@ -429,12 +429,12 @@ export default function BestTomePanel() {
                 Task{sortArrow("task")}
               </th>
               <th
-                className="px-3 py-2 text-right hidden md:table-cell w-40"
+                className="px-3 py-2 text-right w-40"
                 title="Your raw value / top observed player's raw value"
               >
                 Your QTY
               </th>
-              <th className="px-3 py-2 text-right hidden lg:table-cell w-32">
+              <th className="px-3 py-2 text-right w-32">
                 +1 pt at
               </th>
               <th
@@ -456,7 +456,7 @@ export default function BestTomePanel() {
               >
                 Gap vs top{sortArrow("gap")}
               </th>
-              <th className="px-3 py-2 text-left bg-blue-950/20 w-40 hidden md:table-cell">
+              <th className="px-3 py-2 text-left bg-blue-950/20 w-40">
                 Top player
               </th>
             </tr>
@@ -669,11 +669,11 @@ function BestTomeRow({
           {meta.label}
         </span>
       </td>
-      <td className="px-2 py-2 hidden md:table-cell">
+      <td className="px-2 py-2">
         <ClassificationSelect row={r} onChange={onClassChange} />
       </td>
       <td className="px-3 py-2 font-medium">{displayTaskName(r.task)}</td>
-      <td className="px-3 py-2 text-right tabular-nums text-zinc-300 hidden md:table-cell">
+      <td className="px-3 py-2 text-right tabular-nums text-zinc-300">
         {r.rawValue === null ? (
           <span className="text-zinc-600">—</span>
         ) : (
@@ -688,7 +688,7 @@ function BestTomeRow({
           </>
         )}
       </td>
-      <td className="px-3 py-2 text-right tabular-nums text-zinc-400 hidden lg:table-cell">
+      <td className="px-3 py-2 text-right tabular-nums text-zinc-400">
         {r.cappedByMax ? (
           // Only "maxed" when literally at the theoretical curve ceiling
           // (same strict rule as auto-Capped).
@@ -750,7 +750,7 @@ function BestTomeRow({
           <span className="text-zinc-300">−{r.ptsGapToTop}</span>
         )}
       </td>
-      <td className="px-3 py-2 bg-blue-950/10 text-zinc-300 hidden md:table-cell">
+      <td className="px-3 py-2 bg-blue-950/10 text-zinc-300">
         {r.top?.player ? (
           <div>
             <div className="text-sm">{r.top.player}</div>
