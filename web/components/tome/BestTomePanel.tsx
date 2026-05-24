@@ -391,7 +391,7 @@ export default function BestTomePanel() {
                 Task{sortArrow("task")}
               </th>
               <th className="px-3 py-2 text-right hidden md:table-cell w-32">
-                Your raw
+                Your QTY
               </th>
               <th className="px-3 py-2 text-right hidden lg:table-cell w-32">
                 +1 pt at
@@ -400,7 +400,7 @@ export default function BestTomePanel() {
                 className="px-3 py-2 text-right cursor-pointer hover:bg-zinc-800 w-32"
                 onClick={() => toggleSort("pts")}
               >
-                Pts{sortArrow("pts")}
+                Points{sortArrow("pts")}
               </th>
               <th
                 className="px-3 py-2 text-right cursor-pointer hover:bg-zinc-800 w-24"
@@ -418,8 +418,8 @@ export default function BestTomePanel() {
               {showTopPlayer && (
                 <>
                   <th className="px-3 py-2 text-left bg-blue-950/20">Top player</th>
-                  <th className="px-3 py-2 text-right bg-blue-950/20">Top raw</th>
-                  <th className="px-3 py-2 text-right bg-blue-950/20">Top pts</th>
+                  <th className="px-3 py-2 text-right bg-blue-950/20">Top QTY</th>
+                  <th className="px-3 py-2 text-right bg-blue-950/20">Top Points</th>
                 </>
               )}
             </tr>

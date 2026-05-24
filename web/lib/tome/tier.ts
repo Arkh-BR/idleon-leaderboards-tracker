@@ -41,7 +41,7 @@ export const TIER_META: Record<TomeTier, TomeTierMeta> = {
     hex: "#FFD700",
   },
   blue: {
-    label: "Maxed",
+    label: "Blue",
     textClass: "text-sky-300",
     bgClass: "bg-sky-900/30",
     borderClass: "border-sky-700/50",
