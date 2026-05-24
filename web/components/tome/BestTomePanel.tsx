@@ -680,18 +680,22 @@ function BestTomeRow({
         {r.rawValue === null ? <span className="text-zinc-600">—</span> : formatIdleon(r.rawValue)}
       </td>
       <td className="px-3 py-2 text-right tabular-nums text-zinc-400 hidden lg:table-cell">
-        {r.tier === "blue" ? (
+        {r.cappedByMax ? (
+          // Only "maxed" when literally at the theoretical curve ceiling
+          // (same strict rule as auto-Capped). Blue tier (>= 99.9% of the
+          // asymptote) is NOT enough — the user can still gain pts there.
           <span className="text-sky-400 text-xs">maxed</span>
-        ) : r.rawForNextPt === null ? (
-          <span className="text-zinc-600 text-xs">unreachable</span>
+        ) : r.rawForNextPt === null || cost === null || cost <= 0 ? (
+          // quantityForPts returned null → next-pt target is past the
+          // asymptote and unreachable on this curve. Or cost ≤ 0 which means
+          // your raw already crosses the +1 threshold (rounding edge).
+          <span className="text-zinc-600 text-xs">—</span>
         ) : (
           <>
             <div>{formatIdleon(r.rawForNextPt)}</div>
-            {cost !== null && cost > 0 && (
-              <div className="text-xs text-zinc-500">
-                +{formatIdleon(cost)} to gain 1
-              </div>
-            )}
+            <div className="text-xs text-zinc-500">
+              +{formatIdleon(cost)} to gain 1
+            </div>
           </>
         )}
       </td>
