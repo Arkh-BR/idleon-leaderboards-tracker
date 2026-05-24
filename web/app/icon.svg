@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <rect width="64" height="64" rx="10" fill="#1a1a2e"/>
+  <g transform="translate(0 2)">
+    <!-- Left handle -->
+    <path d="M16 18 Q8 18 8 26 Q8 34 18 34" stroke="#FFD700" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <!-- Right handle -->
+    <path d="M48 18 Q56 18 56 26 Q56 34 46 34" stroke="#FFD700" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <!-- Cup -->
+    <path d="M16 12 H48 V26 Q48 40 32 40 Q16 40 16 26 Z" fill="#FFD700"/>
+    <!-- Cup highlight -->
+    <path d="M20 16 H24 V24 Q24 30 22 32" stroke="#FFF7B3" stroke-width="2" stroke-linecap="round" fill="none"/>
+    <!-- Stem -->
+    <rect x="28" y="40" width="8" height="8" fill="#E6B800"/>
+    <!-- Base top -->
+    <rect x="22" y="48" width="20" height="4" fill="#FFD700"/>
+    <!-- Base bottom -->
+    <rect x="18" y="52" width="28" height="6" rx="1" fill="#E6B800"/>
+  </g>
+</svg>
