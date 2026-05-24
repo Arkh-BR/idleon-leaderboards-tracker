@@ -13,7 +13,7 @@ const ITEMS: NavItem[] = [
 export default function TopNav() {
   const pathname = usePathname();
   return (
-    <nav className="border-b border-zinc-800 bg-zinc-950">
+    <nav className="sticky top-0 z-30 border-b border-zinc-800 bg-zinc-950/95 backdrop-blur supports-[backdrop-filter]:bg-zinc-950/75">
       <div className="max-w-7xl mx-auto px-4 flex items-center gap-1">
         {ITEMS.map((item) => {
           const active =
