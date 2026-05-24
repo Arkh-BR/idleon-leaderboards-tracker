@@ -500,48 +500,49 @@ export default function BestTomePanel() {
           <thead className="text-zinc-300">
             <tr className="[&>th]:bg-zinc-900 [&>th]:sticky [&>th]:top-0 [&>th]:z-20 [&>th]:border-b [&>th]:border-zinc-800">
               <th
-                className="px-3 py-2.5 text-left cursor-pointer hover:bg-zinc-800/80 sticky left-0 !z-30 text-[11px] uppercase tracking-wider font-semibold border-r border-zinc-800 min-w-[220px]"
+                className="px-3 py-2 text-center align-top cursor-pointer hover:bg-zinc-800/80 sticky left-0 !z-30 border-r border-zinc-800 min-w-[220px]"
                 onClick={() => toggleSort("task")}
               >
-                Task{sortArrow("task")}
+                <HeaderTitle>Task{sortArrow("task")}</HeaderTitle>
+                <HeaderSub>name</HeaderSub>
               </th>
               <th
-                className="px-3 py-2.5 text-left cursor-pointer hover:bg-zinc-800/80 w-20 text-[11px] uppercase tracking-wider font-semibold"
+                className="px-3 py-2 text-center align-top cursor-pointer hover:bg-zinc-800/80 w-24"
                 onClick={() => toggleSort("tier")}
                 title="Achievement progress vs the curve max (bronze < 40% < silver < 75% < gold < 99.9% ≤ maxed)"
               >
-                Tier{sortArrow("tier")}
+                <HeaderTitle>Tier{sortArrow("tier")}</HeaderTitle>
+                <HeaderSub>progress</HeaderSub>
               </th>
               <th
-                className="px-3 py-2.5 text-left cursor-pointer hover:bg-zinc-800/80 w-32 text-[11px] uppercase tracking-wider font-semibold"
+                className="px-3 py-2 text-center align-top cursor-pointer hover:bg-zinc-800/80 w-32"
                 onClick={() => toggleSort("class")}
                 title="User-defined classification (auto-Capped when pts hit theoretical max)"
               >
-                Classification{sortArrow("class")}
+                <HeaderTitle>Classification{sortArrow("class")}</HeaderTitle>
+                <HeaderSub>priority tag</HeaderSub>
               </th>
               <th
-                className="px-3 py-2.5 text-right w-40 text-[11px] uppercase tracking-wider font-semibold"
+                className="px-3 py-2 text-center align-top w-40"
                 title="Your raw value / top observed player's raw value"
               >
-                Your QTY
+                <HeaderTitle>Your QTY</HeaderTitle>
+                <HeaderSub>you / top</HeaderSub>
               </th>
-              <th className="px-3 py-2.5 text-right w-32 text-[11px] uppercase tracking-wider font-semibold">
-                +1 pt at
+              <th className="px-3 py-2 text-center align-top w-36">
+                <HeaderTitle>+1 Tome pt at</HeaderTitle>
+                <HeaderSub>to gain</HeaderSub>
               </th>
               <th
-                className="px-3 py-2 text-right cursor-pointer hover:bg-zinc-800/80 w-48 font-semibold"
+                className="px-3 py-2 text-center align-top cursor-pointer hover:bg-zinc-800/80 w-48"
                 onClick={() => toggleSort("pts")}
                 title="Your pts / top player's pts / theoretical max"
               >
-                <div className="text-[11px] uppercase tracking-wider">
-                  Points{sortArrow("pts")}
-                </div>
-                <div className="text-[10px] font-normal normal-case tracking-normal text-zinc-500 mt-0.5">
-                  you / top / max
-                </div>
+                <HeaderTitle>Points{sortArrow("pts")}</HeaderTitle>
+                <HeaderSub>you / top / max</HeaderSub>
               </th>
               <th
-                className="px-3 py-2 text-right cursor-pointer hover:bg-zinc-800/80 w-24 font-semibold"
+                className="px-3 py-2 text-center align-top cursor-pointer hover:bg-zinc-800/80 w-28"
                 onClick={() => toggleSort("delta")}
                 title={
                   snapshot
@@ -549,25 +550,23 @@ export default function BestTomePanel() {
                     : "Save a snapshot to start tracking pts gained over time."
                 }
               >
-                <div className="text-[11px] uppercase tracking-wider">
-                  Δ Pts{sortArrow("delta")}
-                </div>
-                <div className="text-[10px] font-normal normal-case tracking-normal text-zinc-500 mt-0.5">
-                  since save
-                </div>
+                <HeaderTitle>Δ Pts{sortArrow("delta")}</HeaderTitle>
+                <HeaderSub>since save</HeaderSub>
               </th>
               <th
-                className="px-3 py-2.5 text-right cursor-pointer hover:bg-zinc-800/80 w-28 text-[11px] uppercase tracking-wider font-semibold"
+                className="px-3 py-2 text-center align-top cursor-pointer hover:bg-zinc-800/80 w-32"
                 onClick={() => toggleSort("gap")}
                 title="Pts gap to the top observed player on this task"
               >
-                Gap vs top{sortArrow("gap")}
+                <HeaderTitle>Gap vs top{sortArrow("gap")}</HeaderTitle>
+                <HeaderSub>to #1</HeaderSub>
               </th>
               <th
-                className="px-3 py-2.5 text-left w-40 border-l border-zinc-800/60 text-[11px] uppercase tracking-wider font-semibold"
+                className="px-3 py-2 text-center align-top w-44 border-l border-zinc-800/60"
                 title="Top observed player per task — snapshot from the &ldquo;Antho and Arkh&rsquo;s Tome Sheet&rdquo; BEST TOME tab, captured 2026-05-20"
               >
-                Top player
+                <HeaderTitle>Top player</HeaderTitle>
+                <HeaderSub>name &amp; date</HeaderSub>
               </th>
             </tr>
           </thead>
@@ -587,6 +586,24 @@ export default function BestTomePanel() {
         Top-player snapshot captured 2026-05-20 • a live IT-scraper that
         refreshes nightly is planned next.
       </p>
+    </div>
+  );
+}
+
+// Small wrappers used by every <th> so the header strip looks uniform:
+// row 1 = uppercase label, row 2 = lowercase subtitle in muted color. Both
+// rows render even when the subtitle is empty so all headers line up.
+function HeaderTitle({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="text-[11px] uppercase tracking-wider font-semibold text-zinc-200 whitespace-nowrap">
+      {children}
+    </div>
+  );
+}
+function HeaderSub({ children }: { children?: React.ReactNode }) {
+  return (
+    <div className="text-[10px] font-normal normal-case tracking-normal text-zinc-500 mt-0.5 leading-tight whitespace-nowrap">
+      {children ?? " "}
     </div>
   );
 }
