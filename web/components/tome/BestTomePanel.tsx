@@ -416,17 +416,17 @@ export default function BestTomePanel() {
         </div>
       </div>
 
-      <div className="overflow-x-auto rounded-lg border border-zinc-800 relative">
+      {/* Wrapper IS the scroll container (both axes) with a max-height. That
+          makes thead's `sticky top-0` and Tier's `sticky left-0` work
+          inside the same overflow context — the classic frozen-header table
+          pattern. The page itself doesn't scroll the table; users scroll
+          inside this pane. */}
+      <div className="overflow-auto max-h-[calc(100vh-180px)] min-h-[400px] rounded-lg border border-zinc-800 relative">
         <table className="w-full text-sm border-separate border-spacing-0">
-          {/* Note: sticky thead doesn't work here because the wrapping div has
-              overflow-x-auto, which per CSS spec implicitly creates a scroll
-              container on both axes — that breaks vertical sticky. Column
-              headers stay legible because the table is dense, and Tier
-              (sticky left) anchors the row identity on horizontal scroll. */}
           <thead className="text-zinc-300">
-            <tr className="[&>th]:bg-zinc-900 [&>th]:border-b [&>th]:border-zinc-800">
+            <tr className="[&>th]:bg-zinc-900 [&>th]:sticky [&>th]:top-0 [&>th]:z-20 [&>th]:border-b [&>th]:border-zinc-800">
               <th
-                className="px-3 py-2.5 text-left cursor-pointer hover:bg-zinc-800/80 w-20 sticky left-0 z-20 text-[11px] uppercase tracking-wider font-semibold border-r border-zinc-800"
+                className="px-3 py-2.5 text-left cursor-pointer hover:bg-zinc-800/80 w-20 sticky left-0 !z-30 text-[11px] uppercase tracking-wider font-semibold border-r border-zinc-800"
                 onClick={() => toggleSort("tier")}
                 title="Achievement progress vs the curve max (bronze < 40% < silver < 75% < gold < 99.9% ≤ maxed)"
               >
