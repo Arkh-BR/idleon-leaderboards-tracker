@@ -33,7 +33,7 @@ export default function TomePageClient() {
           🏆 Best Tome
         </TabButton>
         <TabButton active={tab === "raw"} onClick={() => setTab("raw")}>
-          🔬 Raw analysis
+          📋 Paste your data here
         </TabButton>
       </div>
 

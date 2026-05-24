@@ -379,7 +379,7 @@ export default function BestTomePanel() {
     return (
       <div className="bg-zinc-900/40 border border-zinc-800 rounded p-6 text-center text-sm text-zinc-400">
         Paste your raw JSON in the{" "}
-        <span className="text-zinc-200 font-medium">Raw analysis</span> tab
+        <span className="text-zinc-200 font-medium">Paste your data here</span> tab
         first. Once you click <em>Calculate Tome</em>, this view auto-populates
         with the same data.
       </div>
