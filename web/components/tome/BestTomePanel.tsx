@@ -146,12 +146,6 @@ export default function BestTomePanel() {
     } catch {}
   }
 
-  function clearSnapshot() {
-    setSnapshot(null);
-    try {
-      localStorage.removeItem(SNAPSHOT_KEY);
-    } catch {}
-  }
 
   // value semantics:
   //   number 1/3/4/5/9 → user picked a classification
@@ -486,19 +480,6 @@ export default function BestTomePanel() {
           >
             💾 {snapshot ? "Update snapshot" : "Save snapshot"}
           </button>
-          {snapshot && (
-            <button
-              onClick={() => {
-                if (confirm("Clear the saved pts snapshot? The Δ column will go blank.")) {
-                  clearSnapshot();
-                }
-              }}
-              className="text-xs font-medium px-3 py-1.5 rounded-md border border-zinc-700/60 text-zinc-400 hover:text-red-400 hover:border-red-700/60"
-              title={`Snapshot from ${new Date(snapshot.savedAt).toLocaleString()}`}
-            >
-              Clear snap
-            </button>
-          )}
           {Object.keys(userClass).length > 0 && (
             <button
               onClick={() => {
