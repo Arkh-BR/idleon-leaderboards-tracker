@@ -12,7 +12,13 @@ import { TOP_PLAYERS, type TopPlayerEntry } from "@/lib/tome/topPlayers";
 import { formatIdleon } from "@/lib/format";
 
 const STORAGE_KEY = "idleon-leaderboards.tome.rawJson";
+const CLASSIFICATIONS_KEY = "idleon-leaderboards.tome.userClassifications";
 const TIER_ORDER: TomeTier[] = ["blue", "gold", "silver", "bronze", "missing"];
+
+// Classification ID auto-assigned when the task is fully maxed (tier === "blue").
+// The user can still pick a different label if they want, but the panel always
+// renders "Capped" for these tasks.
+const CAPPED_ID = 12;
 
 // Visual style + display order for the user-defined classification tags
 // from the BEST TOME sheet (column D).
@@ -41,6 +47,9 @@ type EnrichedRow = TomeRow & {
   ptsGapToMax: number;               // gap to theoretical max
   top: TopPlayerEntry | null;        // best observed player snapshot
   ptsGapToTop: number;               // gap to top player's pts (>=0)
+  classification: number | null;     // effective classification (user choice OR auto-Capped)
+  userClassification: number | null; // raw user pick (no auto-override)
+  cappedByMax: boolean;              // true when forced to Capped by tier === "blue"
 };
 
 export default function BestTomePanel() {
@@ -48,11 +57,14 @@ export default function BestTomePanel() {
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [tierFilter, setTierFilter] = useState<TomeTier | "all">("all");
-  const [classFilter, setClassFilter] = useState<number | "all">("all");
+  const [classFilter, setClassFilter] = useState<number | "all" | "none">("all");
   const [hideMaxed, setHideMaxed] = useState(false);
   const [sortKey, setSortKey] = useState<SortKey>("gap");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
   const [showTopPlayer, setShowTopPlayer] = useState(false);
+  // Per-task user classification map (taskName → classification ID). Saved in
+  // localStorage so each player keeps their own categorization across sessions.
+  const [userClass, setUserClass] = useState<Record<string, number>>({});
 
   // Hydrate from the same localStorage key the Raw analysis writes to, so
   // pasting in either sub-tab feeds both views.
@@ -61,13 +73,44 @@ export default function BestTomePanel() {
     try {
       saved = localStorage.getItem(STORAGE_KEY) || "";
     } catch {}
-    if (!saved) return;
-    try {
-      setResult(computeTome(saved));
-    } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+    if (saved) {
+      try {
+        setResult(computeTome(saved));
+      } catch (e) {
+        setError(e instanceof Error ? e.message : String(e));
+      }
     }
+    // User classifications — separate localStorage entry.
+    try {
+      const raw = localStorage.getItem(CLASSIFICATIONS_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw) as Record<string, number>;
+        if (parsed && typeof parsed === "object") setUserClass(parsed);
+      }
+    } catch {}
   }, []);
+
+  function setClassFor(taskName: string, value: number | null) {
+    setUserClass((prev) => {
+      const next = { ...prev };
+      if (value === null) {
+        delete next[taskName];
+      } else {
+        next[taskName] = value;
+      }
+      try {
+        localStorage.setItem(CLASSIFICATIONS_KEY, JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+  }
+
+  function resetAllClassifications() {
+    setUserClass({});
+    try {
+      localStorage.removeItem(CLASSIFICATIONS_KEY);
+    } catch {}
+  }
 
   const enriched: EnrichedRow[] = useMemo(() => {
     if (!result) return [];
@@ -85,12 +128,16 @@ export default function BestTomePanel() {
       const top = TOP_PLAYERS[r.task] ?? null;
       const ptsGapToTop =
         top && top.pts !== null ? Math.max(0, top.pts - currentPts) : 0;
+      const cappedByMax = tier === "blue";
+      const userPick = userClass[r.task] ?? null;
+      const classification = cappedByMax ? CAPPED_ID : userPick;
       return {
         ...r, pct, tier, maxPts, rawForNextPt, rawForMaxPts, ptsGapToMax,
         top, ptsGapToTop,
+        classification, userClassification: userPick, cappedByMax,
       };
     });
-  }, [result]);
+  }, [result, userClass]);
 
   const totals = useMemo(() => {
     if (enriched.length === 0) {
@@ -120,7 +167,11 @@ export default function BestTomePanel() {
     const q = search.trim().toLowerCase();
     return enriched.filter((r) => {
       if (tierFilter !== "all" && r.tier !== tierFilter) return false;
-      if (classFilter !== "all" && r.top?.classification !== classFilter) return false;
+      if (classFilter === "none") {
+        if (r.classification !== null) return false;
+      } else if (classFilter !== "all") {
+        if (r.classification !== classFilter) return false;
+      }
       if (hideMaxed && r.tier === "blue") return false;
       if (q && !r.task.toLowerCase().includes(q)) return false;
       return true;
@@ -139,10 +190,10 @@ export default function BestTomePanel() {
           bv = TIER_ORDER.indexOf(b.tier);
           break;
         case "class": {
-          const ac = a.top?.classification;
-          const bc = b.top?.classification;
-          av = ac && CLASSIFICATION_STYLE[ac] ? CLASSIFICATION_STYLE[ac].sortRank : 999;
-          bv = bc && CLASSIFICATION_STYLE[bc] ? CLASSIFICATION_STYLE[bc].sortRank : 999;
+          const ac = a.classification;
+          const bc = b.classification;
+          av = ac !== null && CLASSIFICATION_STYLE[ac] ? CLASSIFICATION_STYLE[ac].sortRank : 999;
+          bv = bc !== null && CLASSIFICATION_STYLE[bc] ? CLASSIFICATION_STYLE[bc].sortRank : 999;
           break;
         }
         case "task":
@@ -238,14 +289,18 @@ export default function BestTomePanel() {
           ))}
         </select>
         <select
-          value={classFilter}
-          onChange={(e) =>
-            setClassFilter(e.target.value === "all" ? "all" : Number(e.target.value))
-          }
+          value={String(classFilter)}
+          onChange={(e) => {
+            const v = e.target.value;
+            if (v === "all") setClassFilter("all");
+            else if (v === "none") setClassFilter("none");
+            else setClassFilter(Number(v));
+          }}
           className="bg-zinc-900 border border-zinc-700 rounded px-3 py-2 text-sm"
-          title="Classification (from BEST TOME sheet column D)"
+          title="Filter by classification — your personal categorization"
         >
           <option value="all">All classes</option>
+          <option value="none">Unclassified</option>
           {CLASSIFICATION_IDS.map((id) => (
             <option key={id} value={id}>
               {CLASSIFICATION_STYLE[id].label}
@@ -270,6 +325,19 @@ export default function BestTomePanel() {
           />
           Show top player
         </label>
+        {Object.keys(userClass).length > 0 && (
+          <button
+            onClick={() => {
+              if (confirm("Clear all your classifications? This can't be undone.")) {
+                resetAllClassifications();
+              }
+            }}
+            className="text-xs text-zinc-500 hover:text-red-400 underline"
+            title={`${Object.keys(userClass).length} task(s) classified`}
+          >
+            Reset classifications
+          </button>
+        )}
         <span className="text-xs text-zinc-500 ml-auto">
           {sorted.length} / {enriched.length} tasks
         </span>
@@ -335,7 +403,12 @@ export default function BestTomePanel() {
           </thead>
           <tbody>
             {sorted.map((r) => (
-              <BestTomeRow key={r.idx} row={r} showTopPlayer={showTopPlayer} />
+              <BestTomeRow
+                key={r.idx}
+                row={r}
+                showTopPlayer={showTopPlayer}
+                onClassChange={setClassFor}
+              />
             ))}
           </tbody>
         </table>
@@ -355,6 +428,56 @@ export default function BestTomePanel() {
 function nextPtCost(r: EnrichedRow): number | null {
   if (r.rawValue === null || r.rawForNextPt === null) return null;
   return r.rawForNextPt - Number(r.rawValue);
+}
+
+// Editable per-task classification chip. Renders a styled <select> that looks
+// like the chip badge — user picks their preferred label, persisted via the
+// onChange callback (which writes to localStorage). Forced to "Capped" and
+// disabled when the task is fully maxed (tier === "blue").
+function ClassificationSelect({
+  row: r,
+  onChange,
+}: {
+  row: EnrichedRow;
+  onChange: (taskName: string, value: number | null) => void;
+}) {
+  const effective = r.classification; // null OR a valid ID (already auto-capped)
+  const meta = effective !== null ? CLASSIFICATION_STYLE[effective] : null;
+  const chipClass = meta?.chip ?? "bg-zinc-900 text-zinc-500 border-zinc-800";
+  const selectValue = r.userClassification === null ? "" : String(r.userClassification);
+
+  if (r.cappedByMax) {
+    // Locked badge — user can't override Capped when the task is genuinely maxed.
+    return (
+      <span
+        className={`inline-block text-[10px] font-semibold uppercase tracking-wide rounded px-1.5 py-0.5 border ${CLASSIFICATION_STYLE[CAPPED_ID].chip}`}
+        title="Auto-classified as Capped because pts == max"
+      >
+        Capped
+      </span>
+    );
+  }
+
+  return (
+    <select
+      value={selectValue}
+      onChange={(e) => {
+        const v = e.target.value;
+        onChange(r.task, v === "" ? null : Number(v));
+      }}
+      className={`text-[10px] font-semibold uppercase tracking-wide rounded px-1.5 py-0.5 border cursor-pointer outline-none ${chipClass}`}
+      title="Click to classify this task — saved locally on your device"
+    >
+      <option value="" className="bg-zinc-900 normal-case text-zinc-400">
+        — none —
+      </option>
+      {CLASSIFICATION_IDS.filter((id) => id !== CAPPED_ID).map((id) => (
+        <option key={id} value={id} className="bg-zinc-900 normal-case text-zinc-200">
+          {CLASSIFICATION_STYLE[id].label}
+        </option>
+      ))}
+    </select>
+  );
 }
 
 function HeroKPIs({
@@ -443,9 +566,11 @@ function KpiCard({
 function BestTomeRow({
   row: r,
   showTopPlayer,
+  onClassChange,
 }: {
   row: EnrichedRow;
   showTopPlayer: boolean;
+  onClassChange: (taskName: string, value: number | null) => void;
 }) {
   const meta = TIER_META[r.tier];
   const pts = r.pts ?? 0;
@@ -461,15 +586,7 @@ function BestTomeRow({
         </span>
       </td>
       <td className="px-2 py-2 hidden md:table-cell">
-        {r.top?.classification != null && CLASSIFICATION_STYLE[r.top.classification] ? (
-          <span
-            className={`inline-block text-[10px] font-semibold uppercase tracking-wide rounded px-1.5 py-0.5 border ${CLASSIFICATION_STYLE[r.top.classification].chip}`}
-          >
-            {CLASSIFICATION_STYLE[r.top.classification].label}
-          </span>
-        ) : (
-          <span className="text-zinc-600 text-xs">—</span>
-        )}
+        <ClassificationSelect row={r} onChange={onClassChange} />
       </td>
       <td className="px-3 py-2 font-medium">{r.task}</td>
       <td className="px-3 py-2 text-right tabular-nums text-zinc-300 hidden md:table-cell">
