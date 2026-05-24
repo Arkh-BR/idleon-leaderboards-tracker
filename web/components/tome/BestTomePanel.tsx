@@ -14,7 +14,22 @@ import { formatIdleon } from "@/lib/format";
 const STORAGE_KEY = "idleon-leaderboards.tome.rawJson";
 const TIER_ORDER: TomeTier[] = ["blue", "gold", "silver", "bronze", "missing"];
 
-type SortKey = "tier" | "task" | "pts" | "gap" | "next" | "max" | "pctRemaining";
+// Visual style + display order for the user-defined classification tags
+// from the BEST TOME sheet (column D).
+const CLASSIFICATION_STYLE: Record<
+  number,
+  { label: string; chip: string; sortRank: number }
+> = {
+  1: { label: "Priority", chip: "bg-red-900/40 text-red-300 border-red-700/50", sortRank: 0 },
+  3: { label: "Doable", chip: "bg-emerald-900/40 text-emerald-300 border-emerald-700/50", sortRank: 1 },
+  4: { label: "Time Gated", chip: "bg-amber-900/40 text-amber-300 border-amber-700/50", sortRank: 2 },
+  5: { label: "Lucky Gated", chip: "bg-purple-900/40 text-purple-300 border-purple-700/50", sortRank: 3 },
+  9: { label: "Event Gated", chip: "bg-orange-900/40 text-orange-300 border-orange-700/50", sortRank: 4 },
+  12: { label: "Capped", chip: "bg-sky-900/40 text-sky-300 border-sky-700/50", sortRank: 5 },
+};
+const CLASSIFICATION_IDS = [1, 3, 4, 5, 9, 12] as const;
+
+type SortKey = "tier" | "class" | "task" | "pts" | "gap" | "next" | "max" | "pctRemaining";
 type SortDir = "asc" | "desc";
 
 type EnrichedRow = TomeRow & {
@@ -33,6 +48,7 @@ export default function BestTomePanel() {
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [tierFilter, setTierFilter] = useState<TomeTier | "all">("all");
+  const [classFilter, setClassFilter] = useState<number | "all">("all");
   const [hideMaxed, setHideMaxed] = useState(false);
   const [sortKey, setSortKey] = useState<SortKey>("gap");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
@@ -104,11 +120,12 @@ export default function BestTomePanel() {
     const q = search.trim().toLowerCase();
     return enriched.filter((r) => {
       if (tierFilter !== "all" && r.tier !== tierFilter) return false;
+      if (classFilter !== "all" && r.top?.classification !== classFilter) return false;
       if (hideMaxed && r.tier === "blue") return false;
       if (q && !r.task.toLowerCase().includes(q)) return false;
       return true;
     });
-  }, [enriched, search, tierFilter, hideMaxed]);
+  }, [enriched, search, tierFilter, classFilter, hideMaxed]);
 
   const sorted = useMemo(() => {
     const arr = [...filtered];
@@ -121,6 +138,13 @@ export default function BestTomePanel() {
           av = TIER_ORDER.indexOf(a.tier);
           bv = TIER_ORDER.indexOf(b.tier);
           break;
+        case "class": {
+          const ac = a.top?.classification;
+          const bc = b.top?.classification;
+          av = ac && CLASSIFICATION_STYLE[ac] ? CLASSIFICATION_STYLE[ac].sortRank : 999;
+          bv = bc && CLASSIFICATION_STYLE[bc] ? CLASSIFICATION_STYLE[bc].sortRank : 999;
+          break;
+        }
         case "task":
           av = a.task;
           bv = b.task;
@@ -213,6 +237,21 @@ export default function BestTomePanel() {
             </option>
           ))}
         </select>
+        <select
+          value={classFilter}
+          onChange={(e) =>
+            setClassFilter(e.target.value === "all" ? "all" : Number(e.target.value))
+          }
+          className="bg-zinc-900 border border-zinc-700 rounded px-3 py-2 text-sm"
+          title="Classification (from BEST TOME sheet column D)"
+        >
+          <option value="all">All classes</option>
+          {CLASSIFICATION_IDS.map((id) => (
+            <option key={id} value={id}>
+              {CLASSIFICATION_STYLE[id].label}
+            </option>
+          ))}
+        </select>
         <label className="flex items-center gap-2 text-sm text-zinc-400">
           <input
             type="checkbox"
@@ -243,8 +282,16 @@ export default function BestTomePanel() {
               <th
                 className="px-2 py-2 text-left cursor-pointer hover:bg-zinc-800 w-20"
                 onClick={() => toggleSort("tier")}
+                title="Achievement progress vs the curve max (bronze < 40% < silver < 75% < gold < 99.9% ≤ maxed)"
               >
                 Tier{sortArrow("tier")}
+              </th>
+              <th
+                className="px-2 py-2 text-left cursor-pointer hover:bg-zinc-800 w-28 hidden md:table-cell"
+                onClick={() => toggleSort("class")}
+                title="User-defined classification from the BEST TOME sheet"
+              >
+                Class{sortArrow("class")}
               </th>
               <th
                 className="px-3 py-2 text-left cursor-pointer hover:bg-zinc-800"
@@ -413,6 +460,17 @@ function BestTomeRow({
           {meta.label}
         </span>
       </td>
+      <td className="px-2 py-2 hidden md:table-cell">
+        {r.top?.classification != null && CLASSIFICATION_STYLE[r.top.classification] ? (
+          <span
+            className={`inline-block text-[10px] font-semibold uppercase tracking-wide rounded px-1.5 py-0.5 border ${CLASSIFICATION_STYLE[r.top.classification].chip}`}
+          >
+            {CLASSIFICATION_STYLE[r.top.classification].label}
+          </span>
+        ) : (
+          <span className="text-zinc-600 text-xs">—</span>
+        )}
+      </td>
       <td className="px-3 py-2 font-medium">{r.task}</td>
       <td className="px-3 py-2 text-right tabular-nums text-zinc-300 hidden md:table-cell">
         {r.rawValue === null ? <span className="text-zinc-600">—</span> : formatIdleon(r.rawValue)}
@@ -458,7 +516,18 @@ function BestTomeRow({
       {showTopPlayer && (
         <>
           <td className="px-3 py-2 bg-blue-950/10 text-zinc-300">
-            {r.top?.player || <span className="text-zinc-600 italic text-xs">—</span>}
+            {r.top?.player ? (
+              <div>
+                <div>{r.top.player}</div>
+                {r.top.date && (
+                  <div className="text-[10px] text-zinc-500" title="Date this datapoint was captured">
+                    {r.top.date}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <span className="text-zinc-600 italic text-xs">—</span>
+            )}
           </td>
           <td className="px-3 py-2 text-right tabular-nums bg-blue-950/10 text-zinc-300">
             {r.top?.raw !== null && r.top?.raw !== undefined ? formatIdleon(r.top.raw) : <span className="text-zinc-600 italic text-xs">—</span>}
