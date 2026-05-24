@@ -1083,7 +1083,23 @@ export function rawStarTalentsProper(d: D): number | null {
     // companion 1, super-talent boost.
     const isNinjaMastery = num(arr(d.OptLacc)[232]) >= 3;
     const ach291 = num((Array.isArray(d.AchieveReg) ? d.AchieveReg : [])[291]) === -1 ? 1 : 0;
-    const addedLevels = Math.floor(familyEff) + ach291 + (isNinjaMastery ? 5 : 0);
+    // Grimoire upgrade 39 (Skull_of_Major_Talent): isSimple → level * x5 = level.
+    let grimoire = 0;
+    if (Array.isArray(d.Grimoire) && (d.Grimoire as unknown[])[39] !== undefined) {
+      grimoire = num((d.Grimoire as unknown[])[39]);
+    }
+    // Companion 1 (Rift_Slug) acquired → +25 added levels.
+    let companion1 = 0;
+    const cList = (d as { companion?: { l?: string[] } }).companion?.l;
+    if (Array.isArray(cList) && cList.some((e) => typeof e === "string" && e.split(",")[0] === "1")) {
+      companion1 = 25;
+    }
+    const addedLevels =
+      Math.floor(familyEff) +
+      ach291 +
+      (isNinjaMastery ? 5 : 0) +
+      grimoire +
+      companion1;
 
     const starPlayer = starPlayerRaw >= 1 ? starPlayerRaw + addedLevels : 0;
     const supernova = supernovaRaw >= 1 ? supernovaRaw + addedLevels : 0;
