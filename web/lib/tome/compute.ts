@@ -37,6 +37,9 @@ export type TomeResult = {
   totalPts: number;
   coveredCount: number;
   missingCount: number;
+  // True when we overrode our locally-computed pts with the authoritative
+  // values from the input's parsedData.tomePoints (IT API response).
+  usedParsedTomePoints: boolean;
 };
 
 function R<T>(out: SrcOut, label: string, value: T): T {
@@ -516,6 +519,13 @@ export function computeTome(input: string | RawObj): TomeResult {
 
   preparseLavaStrings(data);
 
+  // If the input came with parsedData.tomePoints (IT API response), the
+  // server-side computation is authoritative — use those values directly for
+  // a guaranteed match to what idleontoolbox.com shows. We still run our
+  // local computation so the Source / Raw Value columns stay informative.
+  const itPts = Array.isArray(pd.tomePoints) ? (pd.tomePoints as unknown[]) : null;
+  const usedParsedTomePoints = itPts !== null && itPts.length === TOME_TASKS.length;
+
   const rows: TomeRow[] = [];
   let totalPts = 0;
   let covered = 0;
@@ -541,8 +551,19 @@ export function computeTome(input: string | RawObj): TomeResult {
     } else {
       covered++;
       pts = calcTomePts(ci, raw);
-      if (typeof pts === "number") totalPts += pts;
     }
+
+    // Override with IT's value when available — but keep our raw/source/pts
+    // visible by overwriting pts only and tagging the source.
+    if (usedParsedTomePoints) {
+      const itVal = Number(itPts![i]);
+      if (Number.isFinite(itVal)) {
+        pts = itVal;
+        source = source + " [IT]";
+      }
+    }
+    if (typeof pts === "number") totalPts += pts;
+
     rows.push({
       idx: i + 1,
       task: TOME_TASKS[i],
@@ -554,5 +575,11 @@ export function computeTome(input: string | RawObj): TomeResult {
     });
   }
 
-  return { rows, totalPts, coveredCount: covered, missingCount: missing };
+  return {
+    rows,
+    totalPts,
+    coveredCount: covered,
+    missingCount: missing,
+    usedParsedTomePoints,
+  };
 }

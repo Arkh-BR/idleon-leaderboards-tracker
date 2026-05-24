@@ -113,6 +113,14 @@ export default function TomeRawPanel() {
         </div>
       )}
 
+      {result?.usedParsedTomePoints && (
+        <div className="bg-blue-950/40 border border-blue-800/50 rounded p-2 text-xs text-blue-300">
+          ✓ Input includes <code className="font-mono">parsedData.tomePoints</code> from
+          the IT API — pts column shows IT&rsquo;s authoritative values (marked
+          <span className="font-mono"> [IT]</span> in Source).
+        </div>
+      )}
+
       {result && <ResultView result={result} filteredRows={filteredRows} search={search} setSearch={setSearch} />}
     </div>
   );

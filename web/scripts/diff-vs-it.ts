@@ -21,7 +21,13 @@ if (!blob.data || !blob.parsedData?.tomePoints) {
 }
 
 const itPoints = blob.parsedData.tomePoints;
-const ours = computeTome(blob.data as Record<string, unknown>);
+// Default: feed raw `data` only — exercise local compute path.
+// Pass MODE=hybrid env var to feed the full envelope (data + parsedData).
+const ours =
+  process.env.MODE === "hybrid"
+    ? computeTome(blob as unknown as Record<string, unknown>)
+    : computeTome(blob.data as Record<string, unknown>);
+console.log("Mode:", process.env.MODE === "hybrid" ? "hybrid (parsedData override)" : "raw-only");
 
 console.log("=".repeat(80));
 const itTotal = itPoints.reduce((a, b) => a + (Number(b) || 0), 0);

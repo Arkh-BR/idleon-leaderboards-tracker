@@ -4,6 +4,7 @@
 
 import { arrSum, arrMax, lavaLog, type RawObj } from "./math";
 import { CARDS_PER_TIER, DEATHNOTE_MOB_IDX, DUNGEON_LEVELS } from "./tasks";
+import { SUMMONING_ENEMY_IDS } from "./summoningEnemies";
 
 type D = RawObj;
 
@@ -596,16 +597,21 @@ export function rawGambitTime(d: D): number | null {
 }
 
 export function rawCareerSummWins(d: D): number | null {
-  // IT iterates a fixed list of summonable enemies and counts each as won at
-  // most once if it appears in Summon[1]. That's equivalent to counting
-  // unique entries (the wonBattles array can repeat enemies). Then it adds
-  // highestEndlessLevel = OptLacc[319].
+  // IT's parseSummoning iterates a hardcoded list of 108 valid enemies
+  // (9 white battles + 99 deathNote) and counts each as won if its ID is in
+  // Summon[1]. Then adds highestEndlessLevel = OptLacc[319]. Rift/mini-boss
+  // entries that may appear in Summon[1] are NOT counted because they're
+  // not in IT's enemy list.
   if (!d.Summon || !Array.isArray((d.Summon as unknown[])[1])) return null;
   const wonBattles = (d.Summon as unknown[])[1] as unknown[];
-  const uniqueWins = new Set(wonBattles.map((x) => String(x))).size;
+  const wonSet = new Set(wonBattles.map((x) => String(x)));
+  let validWins = 0;
+  for (const id of SUMMONING_ENEMY_IDS) {
+    if (wonSet.has(id)) validWins++;
+  }
   const opt = arr(d.OptLacc);
   const endless = num(opt[319]);
-  return uniqueWins + endless;
+  return validWins + endless;
 }
 
 export function rawBreedability(d: D): number | null {
@@ -774,14 +780,94 @@ export function rawShinyLevelsProper(d: D): number | null {
   return total > 0 ? total : null;
 }
 
-// Star Talents (compute 15): max char (level-1 + sum_skills_1_9 - 3) across all chars.
-// KNOWN LIMITATION: IT's full calcTotalStarTalent adds ~15 bonus sources
-// (STAR_PLAYER/STONKS!/SUPERNOVA_PLAYER talents, family bonus, stamps,
-// guild, flurbo, cards, sigils, achievements 212/289/305, shiny pets,
-// bribes, fractal island, vault upgrade 53, companion 20). Porting all of
-// those would require ~15 other parser modules. We accept a small per-player
-// undershoot here (typically 5-10 tome points) as a documented divergence.
+// Star Talents (compute 15): max-across-chars of (level-1 + sum_skills_1_9 - 3
+// + per-char talent bonuses + account-wide bonuses).
+//
+// We port the high-impact pieces of IT's calcTotalStarTalent:
+//   - STAR_PLAYER talent (skillIndex 8): funcX=add x1=1 x2=0 → bonus = level
+//   - SUPERNOVA_PLAYER (skillIndex 17): funcX=add x1=1 x2=0 → bonus = level
+//   - STONKS! star talent (skillIndex 622): funcX=decay x1=130 x2=50
+//     → bonus = 130·level / (level + 50)
+//   - account.talentPoints[5] (CYTalentPoints[5])
+//   - Achievements 212/289/305 → 10/20/20 flat pts when unlocked
+//
+// Remaining IT bonuses we don't port (typically <100 pts combined on most
+// accounts): family ES bonus, Talent_Points_for_Star_Tab stamp, guild bonus
+// 11, dungeon flurbo 'Talent_Pts', card 'Star_Talent_Pts_(Passive)', sigil
+// TWO_STARZ, shiny pet 'Star_Talent_Pts', bribe 'Star_Scraper', fractal
+// island shop, vault upgrade 53, companion 20.
+//
+// When the input is an IT API response with parsedData.tomePoints (e.g. from
+// our /api proxy), computeTome overrides our value with IT's exact number.
+const SKILL_STAR_PLAYER = 8;
+const SKILL_SUPERNOVA = 17;
+const SKILL_STONKS = 622;
+const CLASS_ELEMENTAL_SORC = 22;
+
+function talentLevel(d: D, charIdx: number, skillIndex: number): number {
+  const sl = d["SL_" + charIdx];
+  const slObj = obj(sl);
+  if (!slObj) return 0;
+  const v = slObj[String(skillIndex)] ?? slObj[skillIndex as unknown as string];
+  return num(v);
+}
+
+function sigilTwoStarzBonus(d: D): number {
+  // CauldronP2W[4] is the sigil array; each sigil i occupies slots [2i, 2i+1]
+  // = [progress, unlocked]. Sigil index 9 = TWO_STARZ.
+  // unlocked stage → bonus: 0=10, 1=25, 2=45, 3=100, 4=125.
+  if (!Array.isArray(d.CauldronP2W)) return 0;
+  const sigilsData = (d.CauldronP2W as unknown[])[4];
+  if (!Array.isArray(sigilsData)) return 0;
+  const unlocked = num((sigilsData as unknown[])[19]);
+  if (unlocked === 4) return 125;
+  if (unlocked === 3) return 100;
+  if (unlocked === 2) return 45;
+  if (unlocked === 1) return 25;
+  if (unlocked === 0) return 10;
+  return 0;
+}
+
+function stampTalentSBonus(d: D): number {
+  // misc stamp index 17 (Talent_S Stamp), effect "Talent_Points_for_Star_Tab",
+  // func=add x1=1 x2=0 → bonus = stamp_level.
+  if (!Array.isArray(d.StampLv)) return 0;
+  const miscStamps = obj((d.StampLv as unknown[])[2]);
+  if (!miscStamps) return 0;
+  return num(miscStamps["17"]);
+}
+
+function familyEsStarBonus(d: D): number {
+  // classFamilyBonuses[32] (STAR_TAB_TALENT_POINTS) is intervalAdd(1, 6, 29).
+  // Active when any char is Elemental Sorcerer; uses the highest ES level.
+  // intervalAdd(level) ≈ min(x3, x1 * floor(level / x2)) on IT's growth.
+  let highestEsLv = 0;
+  for (let c = 0; c < 10; c++) {
+    const cls = num(d["CharacterClass_" + c]);
+    if (cls !== CLASS_ELEMENTAL_SORC) continue;
+    const lv = d["Lv0_" + c];
+    if (Array.isArray(lv)) {
+      const v = num(lv[0]);
+      if (v > highestEsLv) highestEsLv = v;
+    }
+  }
+  if (highestEsLv === 0) return 0;
+  return Math.min(29, Math.floor(highestEsLv / 6));
+}
+
 export function rawStarTalentsProper(d: D): number | null {
+  const ach = Array.isArray(d.AchieveReg) ? d.AchieveReg : [];
+  const cyTp = Array.isArray(d.CYTalentPoints) ? (d.CYTalentPoints as unknown[]) : [];
+  const talentPointsStar = num(cyTp[5]);
+  const achBonus =
+    (num(ach[212]) === -1 ? 10 : 0) +
+    (num(ach[289]) === -1 ? 20 : 0) +
+    (num(ach[305]) === -1 ? 20 : 0);
+  const sigil = sigilTwoStarzBonus(d);
+  const stamp = stampTalentSBonus(d);
+  const familyEs = familyEsStarBonus(d);
+  const constantBonus = talentPointsStar + achBonus + sigil + stamp + familyEs;
+
   let maxPts = 0;
   for (let c = 0; c < 10; c++) {
     const lv = d["Lv0_" + c];
@@ -789,7 +875,15 @@ export function rawStarTalentsProper(d: D): number | null {
     const charLv = num(lv[0]);
     let base = -3;
     for (let i = 1; i <= 9 && i < lv.length; i++) base += num(lv[i]);
-    const pts = charLv - 1 + base;
+
+    const starPlayer = talentLevel(d, c, SKILL_STAR_PLAYER);
+    const supernova = talentLevel(d, c, SKILL_SUPERNOVA);
+    const stonksLv = talentLevel(d, c, SKILL_STONKS);
+    const stonks = stonksLv > 0 ? (130 * stonksLv) / (stonksLv + 50) : 0;
+
+    const pts = Math.floor(
+      charLv - 1 + base + starPlayer + supernova + stonks + constantBonus
+    );
     if (pts > maxPts) maxPts = pts;
   }
   return maxPts > 0 ? maxPts : null;
