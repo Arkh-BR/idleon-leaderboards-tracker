@@ -4,9 +4,10 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import type { LeaderboardsResponse } from "@/app/api/leaderboards/route";
 import LeaderboardsTable from "@/components/LeaderboardsTable";
 import Dashboard from "@/components/Dashboard";
+import TomeRawPanel from "@/components/tome/TomeRawPanel";
 import { formatRelativeTime } from "@/lib/format";
 
-type Tab = "leaderboards" | "dashboard";
+type Tab = "leaderboards" | "dashboard" | "tome";
 
 const STORAGE_KEY = "idleon-leaderboards.player";
 
@@ -122,46 +123,52 @@ export default function Home() {
       )}
 
       {hasData && (
-        <>
-          <div className="flex flex-wrap gap-3 items-baseline mb-4 text-sm">
-            <span className="text-zinc-400">Showing</span>
-            <strong className="text-gold font-mono">{data!.player}</strong>
-            <span className="text-zinc-500">·</span>
-            <span className="text-zinc-400">
-              updated {formatRelativeTime(data!.fetchedAt)}
+        <div className="flex flex-wrap gap-3 items-baseline mb-4 text-sm">
+          <span className="text-zinc-400">Showing</span>
+          <strong className="text-gold font-mono">{data!.player}</strong>
+          <span className="text-zinc-500">·</span>
+          <span className="text-zinc-400">
+            updated {formatRelativeTime(data!.fetchedAt)}
+          </span>
+          {!playerFound && (
+            <span className="ml-auto text-yellow-400 text-xs">
+              ⚠ player not found on any leaderboard — check the name
+              (case-insensitive) and that the profile is Public/Anonymous in IT.
             </span>
-            {!playerFound && (
-              <span className="ml-auto text-yellow-400 text-xs">
-                ⚠ player not found on any leaderboard — check the name
-                (case-insensitive) and that the profile is Public/Anonymous in IT.
-              </span>
-            )}
-            {data!.errors.length > 0 && (
-              <span className="text-orange-400 text-xs">
-                ⚠ {data!.errors.length} categor{data!.errors.length === 1 ? "y" : "ies"} failed
-              </span>
-            )}
-          </div>
-
-          <div className="flex gap-1 mb-4 border-b border-zinc-800">
-            <TabButton active={tab === "leaderboards"} onClick={() => setTab("leaderboards")}>
-              📋 Leaderboards
-            </TabButton>
-            <TabButton active={tab === "dashboard"} onClick={() => setTab("dashboard")}>
-              📊 Dashboard
-            </TabButton>
-          </div>
-
-          {tab === "leaderboards" && <LeaderboardsTable boards={data!.boards} />}
-          {tab === "dashboard" && <Dashboard boards={data!.boards} player={data!.player} />}
-        </>
-      )}
-
-      {!hasData && !loading && !error && (
-        <div className="text-zinc-500 text-sm">
-          Enter a player name above and click Load.
+          )}
+          {data!.errors.length > 0 && (
+            <span className="text-orange-400 text-xs">
+              ⚠ {data!.errors.length} categor{data!.errors.length === 1 ? "y" : "ies"} failed
+            </span>
+          )}
         </div>
       )}
+
+      <div className="flex gap-1 mb-4 border-b border-zinc-800">
+        <TabButton active={tab === "leaderboards"} onClick={() => setTab("leaderboards")}>
+          📋 Leaderboards
+        </TabButton>
+        <TabButton active={tab === "dashboard"} onClick={() => setTab("dashboard")}>
+          📊 Dashboard
+        </TabButton>
+        <TabButton active={tab === "tome"} onClick={() => setTab("tome")}>
+          📖 Tome
+        </TabButton>
+      </div>
+
+      {tab === "leaderboards" &&
+        (hasData ? (
+          <LeaderboardsTable boards={data!.boards} />
+        ) : (
+          <EmptyHint>Enter a player name above and click Load to see leaderboards.</EmptyHint>
+        ))}
+      {tab === "dashboard" &&
+        (hasData ? (
+          <Dashboard boards={data!.boards} player={data!.player} />
+        ) : (
+          <EmptyHint>Enter a player name above and click Load to see the dashboard.</EmptyHint>
+        ))}
+      {tab === "tome" && <TomeRawPanel />}
 
       <footer className="mt-12 text-xs text-zinc-600 text-center border-t border-zinc-900 pt-4">
         Source:{" "}
@@ -185,6 +192,10 @@ export default function Home() {
       </footer>
     </main>
   );
+}
+
+function EmptyHint({ children }: { children: React.ReactNode }) {
+  return <div className="text-zinc-500 text-sm py-6">{children}</div>;
 }
 
 function TabButton({
