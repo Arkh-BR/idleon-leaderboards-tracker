@@ -81,7 +81,7 @@ export default function TomeRawPanel() {
         <textarea
           value={json}
           onChange={(e) => setJson(e.target.value)}
-          placeholder='Open idleontoolbox.com logged in → user menu (top-right) → "Copy raw data" → paste here (Ctrl+V)'
+          placeholder='Open idleontoolbox.com logged in → user menu → "Copy raw data" (or "Copy for Support" for guaranteed exact match) → paste here (Ctrl+V)'
           className="w-full h-32 bg-zinc-950 border border-zinc-700 rounded p-2 text-xs font-mono text-zinc-300"
           spellCheck={false}
         />
@@ -103,7 +103,14 @@ export default function TomeRawPanel() {
           )}
         </div>
         <p className="text-xs text-zinc-600 mt-2">
-          JSON stays in your browser (localStorage). Nothing is sent to any server.
+          JSON stays in your browser (localStorage). Nothing is sent to any
+          server.{" "}
+          <span className="text-zinc-500">
+            Tip: &ldquo;Copy for Support&rdquo; from IT&rsquo;s menu includes
+            the parsed tome values → guaranteed 118/118 exact match. The
+            regular &ldquo;Copy raw data&rdquo; gives us ~99.99% accuracy
+            (small gap on Star Talents Owned only).
+          </span>
         </p>
       </div>
 
