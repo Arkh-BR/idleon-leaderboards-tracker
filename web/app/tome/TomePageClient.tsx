@@ -2,13 +2,15 @@
 
 import { useState } from "react";
 import TomeRawPanel from "@/components/tome/TomeRawPanel";
+import BestTomePanel from "@/components/tome/BestTomePanel";
 
-type Tab = "raw";
+type Tab = "best" | "raw";
 
 export default function TomePageClient() {
-  // Only one tab for now ("Raw analysis"). When the polished views land
-  // (My Tome, Compare Tome, etc.) they'll be added here.
-  const [tab, setTab] = useState<Tab>("raw");
+  // Best Tome is the default view (polished UI). Raw analysis is the debug
+  // view where the user pastes the JSON — both read from the same
+  // localStorage key, so pasting in either tab updates the other.
+  const [tab, setTab] = useState<Tab>("best");
 
   return (
     <main className="max-w-7xl mx-auto px-4 py-6">
@@ -24,11 +26,15 @@ export default function TomePageClient() {
       </header>
 
       <div className="flex gap-1 mb-4 border-b border-zinc-800">
+        <TabButton active={tab === "best"} onClick={() => setTab("best")}>
+          🏆 Best Tome
+        </TabButton>
         <TabButton active={tab === "raw"} onClick={() => setTab("raw")}>
           🔬 Raw analysis
         </TabButton>
       </div>
 
+      {tab === "best" && <BestTomePanel />}
       {tab === "raw" && <TomeRawPanel />}
 
       <footer className="mt-12 text-xs text-zinc-600 text-center border-t border-zinc-900 pt-4">
