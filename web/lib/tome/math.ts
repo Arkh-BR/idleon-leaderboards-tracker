@@ -130,8 +130,16 @@ export function quantityForPct(
   return null;
 }
 
-// Convenience: given current pts, returns the minimum raw quantity that lands
+// Convenience: given current pts, returns the raw quantity threshold to land
 // at `pts + N`. Returns null when unreachable (already capped, etc.).
+//
+// For ascending curves (x2 = 0/1/2/4): higher q → more pts. The minimum q
+// that gives targetPts is what we want; Math.ceil so we don't round past
+// the boundary.
+//
+// For inverted curves (x2 = 3, used by "Fastest Time" tasks): lower q →
+// more pts. The MAXIMUM q that still gives targetPts is what we want;
+// Math.floor for the same boundary reason.
 export function quantityForPts(
   bonus: readonly [number, number, number] | undefined,
   targetPts: number
@@ -140,9 +148,15 @@ export function quantityForPts(
   const targetPct = targetPts / bonus[2];
   const q = quantityForPct(bonus, targetPct);
   if (q === null || !isFinite(q) || q < 0) return null;
-  // calcTomePts uses Math.ceil(pct·x3), so the threshold for ceil(x) is the
-  // smallest q where pct·x3 > (targetPts - 1). Round up to integer for display.
-  return Math.ceil(q);
+  return bonus[1] === 3 ? Math.floor(q) : Math.ceil(q);
+}
+
+// True for the inverted "fewer is better" curve (x2 = 3). Used by the UI to
+// flip the +1-pt direction (need raw to DROP, not increase).
+export function isInvertedCurve(
+  bonus: readonly [number, number, number] | undefined
+): boolean {
+  return bonus?.[1] === 3;
 }
 
 // Theoretical maximum pts for this curve, derived from the asymptote of

@@ -196,6 +196,13 @@ function ResultView({
   );
 }
 
+// Strips the trailing "(in Seconds)" annotation that the IT data carries on
+// fastest-time tasks. Same helper as BestTomePanel — kept inline to avoid a
+// shared module for a one-liner.
+function displayTaskName(name: string): string {
+  return name.replace(/\s*\(in Seconds\)$/i, "");
+}
+
 function TomeRowView({ row: r }: { row: TomeRow }) {
   const isMissing = r.pts === null;
   const isLbFallback = r.source.startsWith("MISSING (LB:");
@@ -208,7 +215,7 @@ function TomeRowView({ row: r }: { row: TomeRow }) {
   return (
     <tr className="border-t border-zinc-800 hover:bg-zinc-900/40">
       <td className="px-2 py-1.5 text-center text-zinc-500 tabular-nums">{r.idx}</td>
-      <td className="px-3 py-1.5 font-medium">{r.task}</td>
+      <td className="px-3 py-1.5 font-medium">{displayTaskName(r.task)}</td>
       <td className="px-3 py-1.5 text-right tabular-nums text-zinc-300">
         {r.rawValue === null ? <span className="text-zinc-600">—</span> : formatIdleon(r.rawValue)}
       </td>

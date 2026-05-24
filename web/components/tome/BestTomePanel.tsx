@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { computeTome, type TomeResult, type TomeRow } from "@/lib/tome/compute";
 import {
   calcPointsPercent,
+  isInvertedCurve,
   maxPtsForBonus,
   quantityForPts,
 } from "@/lib/tome/math";
@@ -495,9 +496,21 @@ export default function BestTomePanel() {
   );
 }
 
+// Absolute raw delta to gain +1 pt. For inverted "Fastest Time" curves the
+// player needs to DROP raw (improve time); for everything else they need to
+// INCREASE raw. Sign is always positive — the caller decides how to label it.
 function nextPtCost(r: EnrichedRow): number | null {
   if (r.rawValue === null || r.rawForNextPt === null) return null;
-  return r.rawForNextPt - Number(r.rawValue);
+  return isInvertedCurve(r.bonus)
+    ? Number(r.rawValue) - r.rawForNextPt
+    : r.rawForNextPt - Number(r.rawValue);
+}
+
+// Strips the trailing "(in Seconds)" annotation that the IT data carries on
+// fastest-time tasks. It's redundant in the UI (the inverted-curve hint
+// already explains the direction).
+function displayTaskName(name: string): string {
+  return name.replace(/\s*\(in Seconds\)$/i, "");
 }
 
 // Editable per-task classification chip. Renders a styled <select> that looks
@@ -675,21 +688,26 @@ function BestTomeRow({
       <td className="px-2 py-2 hidden md:table-cell">
         <ClassificationSelect row={r} onChange={onClassChange} />
       </td>
-      <td className="px-3 py-2 font-medium">{r.task}</td>
+      <td className="px-3 py-2 font-medium">{displayTaskName(r.task)}</td>
       <td className="px-3 py-2 text-right tabular-nums text-zinc-300 hidden md:table-cell">
         {r.rawValue === null ? <span className="text-zinc-600">—</span> : formatIdleon(r.rawValue)}
       </td>
       <td className="px-3 py-2 text-right tabular-nums text-zinc-400 hidden lg:table-cell">
         {r.cappedByMax ? (
           // Only "maxed" when literally at the theoretical curve ceiling
-          // (same strict rule as auto-Capped). Blue tier (>= 99.9% of the
-          // asymptote) is NOT enough — the user can still gain pts there.
+          // (same strict rule as auto-Capped).
           <span className="text-sky-400 text-xs">maxed</span>
         ) : r.rawForNextPt === null || cost === null || cost <= 0 ? (
-          // quantityForPts returned null → next-pt target is past the
-          // asymptote and unreachable on this curve. Or cost ≤ 0 which means
-          // your raw already crosses the +1 threshold (rounding edge).
           <span className="text-zinc-600 text-xs">—</span>
+        ) : isInvertedCurve(r.bonus) ? (
+          // Fastest-Time tasks (x2=3): lower raw = more pts. Show how many
+          // units the player needs to DROP for +1 pt.
+          <>
+            <div>{formatIdleon(r.rawForNextPt)}</div>
+            <div className="text-xs text-zinc-500">
+              −{formatIdleon(cost)} to gain 1
+            </div>
+          </>
         ) : (
           <>
             <div>{formatIdleon(r.rawForNextPt)}</div>
