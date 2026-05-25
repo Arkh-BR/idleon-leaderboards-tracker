@@ -3,10 +3,13 @@ name: Refresh top players
 # Cron uses "*/3" on day-of-month, which fires on the 3rd/6th/9th/.../30th —
 # approximately every 3 days, with a slight skew at month boundaries. Good
 # enough; precise periodicity isn't needed for this snapshot.
-on:
+#
+# "on" is quoted because YAML 1.1 treats it as a boolean alias and some
+# parsers (including older GitHub Actions builds) choke on the bare form.
+"on":
   schedule:
     - cron: "0 3 */3 * *"
-  workflow_dispatch: # manual trigger from the Actions tab
+  workflow_dispatch:
 
 permissions:
   contents: write # so the bot can push the refreshed snapshot back to main
