@@ -11,11 +11,11 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: "IdleonToolbox Leaderboards Tracker",
-    template: "%s | IdleonToolbox Tracker",
+    default: "Idleon Trackers",
+    template: "%s | Idleon Trackers",
   },
   description:
-    "Track your position across all 153 IdleonToolbox leaderboards.",
+    "Community trackers for Legends of Idleon — leaderboards rank monitor and a local Tome Score calculator.",
 };
 
 export default function RootLayout({
