@@ -74,6 +74,37 @@ export default function TomeRawPanel() {
 
   return (
     <div className="space-y-4">
+      <div className="rounded-lg border border-gold/50 bg-gold/10 p-4 text-sm">
+        <div className="flex items-start gap-3">
+          <span className="text-2xl leading-none">📋</span>
+          <div className="flex-1 space-y-2">
+            <div className="font-semibold text-gold uppercase tracking-wide text-[13px]">
+              Use the &ldquo;Copy for Support&rdquo; button
+            </div>
+            <p className="text-zinc-200 leading-relaxed">
+              On{" "}
+              <a
+                href="https://idleontoolbox.com"
+                target="_blank"
+                rel="noreferrer"
+                className="text-gold hover:underline font-medium"
+              >
+                idleontoolbox.com
+              </a>
+              , open your account menu (top-right) and click{" "}
+              <strong className="text-gold">&ldquo;Copy for Support&rdquo;</strong>.
+              That option includes the parsed tome values, giving us a{" "}
+              <strong>guaranteed 118/118 exact match</strong> with IT&rsquo;s
+              numbers. Then paste below.
+            </p>
+            <p className="text-xs text-zinc-400">
+              The plain &ldquo;Copy raw data&rdquo; works too (~99.99%
+              accuracy), but Star Talents Owned may drift by a few points.
+            </p>
+          </div>
+        </div>
+      </div>
+
       <div className="bg-zinc-900/50 border border-zinc-800 rounded-lg p-3">
         <div className="flex items-baseline justify-between mb-2">
           <label className="text-sm text-zinc-400 font-medium">
@@ -86,7 +117,7 @@ export default function TomeRawPanel() {
         <textarea
           value={json}
           onChange={(e) => setJson(e.target.value)}
-          placeholder='Open idleontoolbox.com logged in → user menu → "Copy raw data" (or "Copy for Support" for guaranteed exact match) → paste here (Ctrl+V)'
+          placeholder='Paste the output of "Copy for Support" here (Ctrl+V)…'
           className="w-full h-32 bg-zinc-950 border border-zinc-700 rounded p-2 text-xs font-mono text-zinc-300"
           spellCheck={false}
         />
@@ -109,13 +140,7 @@ export default function TomeRawPanel() {
         </div>
         <p className="text-xs text-zinc-600 mt-2">
           JSON stays in your browser (localStorage). Nothing is sent to any
-          server.{" "}
-          <span className="text-zinc-500">
-            Tip: &ldquo;Copy for Support&rdquo; from IT&rsquo;s menu includes
-            the parsed tome values → guaranteed 118/118 exact match. The
-            regular &ldquo;Copy raw data&rdquo; gives us ~99.99% accuracy
-            (small gap on Star Talents Owned only).
-          </span>
+          server.
         </p>
       </div>
 
