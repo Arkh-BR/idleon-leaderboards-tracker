@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import TopNav from "@/components/TopNav";
 
@@ -28,6 +29,7 @@ export default function RootLayout({
       <body className="min-h-screen font-sans antialiased">
         <TopNav />
         {children}
+        <Analytics />
       </body>
     </html>
   );
