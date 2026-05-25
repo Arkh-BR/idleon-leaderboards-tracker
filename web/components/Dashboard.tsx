@@ -4,10 +4,14 @@ import { useMemo } from "react";
 import type { BoardResult } from "@/app/api/leaderboards/route";
 import { formatIdleon, formatPct } from "@/lib/format";
 import { rankBgClass, tierOf, TIER_LABELS, TIER_COLORS, type Tier } from "@/lib/rank";
+import { netRankMovement, type BoardDelta } from "@/lib/lbSnapshot";
 
 type Props = {
   boards: BoardResult[];
   player: string;
+  // Optional snapshot inputs — when absent, the snapshot card is hidden.
+  deltas?: Record<string, BoardDelta>;
+  snapshotAt?: string | null;
 };
 
 const TIERS: Tier[] = [
@@ -29,7 +33,18 @@ const CATEGORIES_ORDER = [
   "Caverns",
 ];
 
-export default function Dashboard({ boards, player }: Props) {
+export default function Dashboard({
+  boards,
+  player,
+  deltas,
+  snapshotAt,
+}: Props) {
+  // Aggregate net rank movement across the whole account. Only used when
+  // there's actually a snapshot to compare against.
+  const movement = useMemo(() => {
+    if (!deltas || !snapshotAt) return null;
+    return netRankMovement(Object.values(deltas));
+  }, [deltas, snapshotAt]);
   const tierCounts = useMemo(() => {
     const c: Record<Tier, number> = {
       top10: 0,
@@ -94,8 +109,45 @@ export default function Dashboard({ boards, player }: Props) {
 
   return (
     <div className="space-y-8">
+      {/* Snapshot movement — only when there's a baseline to compare against */}
+      {movement && snapshotAt && (
+        <Section
+          title={`📸 Progress since ${new Date(snapshotAt).toLocaleDateString()}`}
+        >
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <NetKpi
+              label="Net rank movement"
+              value={movement.total}
+              hint={
+                movement.total > 0
+                  ? "Total ranks climbed across all boards"
+                  : movement.total < 0
+                    ? "Total ranks dropped across all boards"
+                    : "No net change"
+              }
+            />
+            <SmallKpi
+              label="Boards climbed"
+              value={movement.gained}
+              color="emerald"
+            />
+            <SmallKpi
+              label="Boards dropped"
+              value={movement.lost}
+              color="red"
+            />
+            <SmallKpi
+              label="Joined / Fell off"
+              value={`${movement.joined} / ${movement.fellOff}`}
+              color="sky"
+              hint={`${movement.joined} new boards, ${movement.fellOff} lost`}
+            />
+          </div>
+        </Section>
+      )}
+
       {/* Tier summary */}
-      <Section title="1. Tier summary">
+      <Section title={movement && snapshotAt ? "1. Tier summary (current)" : "1. Tier summary"}>
         <div className="grid grid-cols-2 md:grid-cols-6 gap-2">
           {TIERS.map((t) => (
             <div key={t} className={`rounded p-3 text-center ${TIER_COLORS[t]}`}>
@@ -280,6 +332,71 @@ function Section({
       </h2>
       {children}
     </section>
+  );
+}
+
+// Big "net rank movement" card. Sign convention: positive = climbed
+// (rank numbers went DOWN, which is good). Green for improvement, red for
+// regression, zinc for no change.
+function NetKpi({
+  label,
+  value,
+  hint,
+}: {
+  label: string;
+  value: number;
+  hint?: string;
+}) {
+  const sign = value > 0 ? "+" : "";
+  const color =
+    value > 0
+      ? "text-emerald-400 border-emerald-700/50 bg-emerald-950/20"
+      : value < 0
+        ? "text-red-400 border-red-800/50 bg-red-950/20"
+        : "text-zinc-300 border-zinc-700/60 bg-zinc-900/30";
+  return (
+    <div
+      className={`col-span-2 md:col-span-2 rounded-lg border p-4 ${color}`}
+    >
+      <div className="text-xs uppercase tracking-wider opacity-80 mb-1">
+        {label}
+      </div>
+      <div className="text-4xl font-bold tabular-nums leading-none">
+        {sign}
+        {value.toLocaleString()}
+      </div>
+      {hint && (
+        <div className="text-xs opacity-70 mt-2">{hint}</div>
+      )}
+    </div>
+  );
+}
+
+function SmallKpi({
+  label,
+  value,
+  color,
+  hint,
+}: {
+  label: string;
+  value: number | string;
+  color: "emerald" | "red" | "sky";
+  hint?: string;
+}) {
+  const cls =
+    color === "emerald"
+      ? "text-emerald-400 border-emerald-800/40"
+      : color === "red"
+        ? "text-red-400 border-red-800/40"
+        : "text-sky-400 border-sky-800/40";
+  return (
+    <div className={`rounded-lg border bg-zinc-900/40 p-3 ${cls}`}>
+      <div className="text-xs text-zinc-400 mb-1">{label}</div>
+      <div className="text-2xl font-bold tabular-nums leading-none">
+        {typeof value === "number" ? value.toLocaleString() : value}
+      </div>
+      {hint && <div className="text-xs text-zinc-500 mt-1.5">{hint}</div>}
+    </div>
   );
 }
 

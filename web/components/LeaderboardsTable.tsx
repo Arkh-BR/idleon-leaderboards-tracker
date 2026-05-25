@@ -4,12 +4,22 @@ import { useMemo, useState } from "react";
 import type { BoardResult } from "@/app/api/leaderboards/route";
 import { formatIdleon, formatPct } from "@/lib/format";
 import { rankBgClass } from "@/lib/rank";
+import type { BoardDelta } from "@/lib/lbSnapshot";
 
-type SortKey = "category" | "label" | "rank" | "score" | "pct";
+type SortKey =
+  | "category"
+  | "label"
+  | "rank"
+  | "score"
+  | "pct"
+  | "rankDelta"
+  | "scoreDelta";
 type SortDir = "asc" | "desc";
 
 type Props = {
   boards: BoardResult[];
+  // Per-board delta vs the saved snapshot (empty object if no snapshot).
+  deltas?: Record<string, BoardDelta>;
 };
 
 const CATEGORY_OPTIONS = [
@@ -23,12 +33,17 @@ const CATEGORY_OPTIONS = [
   "Caverns",
 ];
 
-export default function LeaderboardsTable({ boards }: Props) {
+export default function LeaderboardsTable({ boards, deltas = {} }: Props) {
   const [category, setCategory] = useState("All");
   const [search, setSearch] = useState("");
   const [sortKey, setSortKey] = useState<SortKey>("rank");
   const [sortDir, setSortDir] = useState<SortDir>("asc");
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
+
+  const hasAnySnapshot = useMemo(
+    () => Object.values(deltas).some((d) => d.status !== "nodata"),
+    [deltas]
+  );
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -66,6 +81,22 @@ export default function LeaderboardsTable({ boards }: Props) {
           const bTop = b.top10[0]?.score;
           av = aTop && a.myScore != null ? a.myScore / aTop : -Infinity;
           bv = bTop && b.myScore != null ? b.myScore / bTop : -Infinity;
+          break;
+        }
+        case "rankDelta": {
+          // Bigger climb (positive delta) sorts first when desc. Boards
+          // without a snapshot sink to the bottom regardless of direction.
+          const da = deltas[a.apiKey]?.rankDelta ?? Number.NEGATIVE_INFINITY;
+          const db = deltas[b.apiKey]?.rankDelta ?? Number.NEGATIVE_INFINITY;
+          av = da;
+          bv = db;
+          break;
+        }
+        case "scoreDelta": {
+          const da = deltas[a.apiKey]?.scoreDelta ?? Number.NEGATIVE_INFINITY;
+          const db = deltas[b.apiKey]?.scoreDelta ?? Number.NEGATIVE_INFINITY;
+          av = da;
+          bv = db;
           break;
         }
       }
@@ -151,6 +182,24 @@ export default function LeaderboardsTable({ boards }: Props) {
               >
                 Score{sortIndicator("score")}
               </th>
+              {hasAnySnapshot && (
+                <>
+                  <th
+                    className="text-center px-3 py-2 cursor-pointer hover:bg-zinc-800 w-24"
+                    onClick={() => toggleSort("rankDelta")}
+                    title="Rank movement since snapshot. Green = climbed (lower rank number), red = dropped."
+                  >
+                    Δ Rank{sortIndicator("rankDelta")}
+                  </th>
+                  <th
+                    className="text-right px-3 py-2 cursor-pointer hover:bg-zinc-800 w-28 hidden sm:table-cell"
+                    onClick={() => toggleSort("scoreDelta")}
+                    title="Score change since snapshot"
+                  >
+                    Δ Score{sortIndicator("scoreDelta")}
+                  </th>
+                </>
+              )}
               <th className="text-right px-3 py-2 hidden md:table-cell">
                 Diff vs #1
               </th>
@@ -180,6 +229,8 @@ export default function LeaderboardsTable({ boards }: Props) {
                   diff={diff}
                   isOpen={isOpen}
                   onToggle={() => toggleExpand(b.apiKey)}
+                  delta={deltas[b.apiKey]}
+                  showDeltaCols={hasAnySnapshot}
                 />
               );
             })}
@@ -196,13 +247,19 @@ function FragmentRow({
   diff,
   isOpen,
   onToggle,
+  delta,
+  showDeltaCols,
 }: {
   board: BoardResult;
   top1: { name: string; score: number } | undefined;
   diff: number | null;
   isOpen: boolean;
   onToggle: () => void;
+  delta: BoardDelta | undefined;
+  showDeltaCols: boolean;
 }) {
+  // 8 base columns; +2 when snapshot is active
+  const colSpan = 8 + (showDeltaCols ? 2 : 0);
   return (
     <>
       <tr className="border-t border-zinc-800 hover:bg-zinc-900/40">
@@ -220,6 +277,16 @@ function FragmentRow({
         <td className="px-3 py-2 text-right tabular-nums">
           {formatIdleon(b.myScore)}
         </td>
+        {showDeltaCols && (
+          <>
+            <td className="px-3 py-2 text-center text-xs">
+              <RankDeltaBadge delta={delta} />
+            </td>
+            <td className="px-3 py-2 text-right text-xs tabular-nums hidden sm:table-cell">
+              <ScoreDeltaText delta={delta} />
+            </td>
+          </>
+        )}
         <td className="px-3 py-2 text-right tabular-nums hidden md:table-cell text-zinc-400">
           {diff !== null ? formatIdleon(diff) : "—"}
         </td>
@@ -248,7 +315,7 @@ function FragmentRow({
       </tr>
       {isOpen && (
         <tr className="bg-zinc-950/60 border-t border-zinc-800">
-          <td colSpan={8} className="px-3 py-3">
+          <td colSpan={colSpan} className="px-3 py-3">
             <div className="text-xs text-zinc-400 mb-2">Top 10</div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2">
               {b.top10.map((e, i) => (
@@ -272,5 +339,63 @@ function FragmentRow({
         </tr>
       )}
     </>
+  );
+}
+
+// Rank delta = oldRank - newRank, so positive = climbed (rank number went
+// DOWN, which is good). Green for improvement, red for regression, sky for
+// status pills (new/off) so they pop without competing with the gold accent.
+function RankDeltaBadge({ delta }: { delta: BoardDelta | undefined }) {
+  if (!delta || delta.status === "nodata") {
+    return <span className="text-zinc-700">—</span>;
+  }
+  if (delta.status === "same") {
+    return <span className="text-zinc-500">—</span>;
+  }
+  if (delta.status === "new") {
+    return (
+      <span
+        className="inline-block px-1.5 py-0.5 rounded bg-sky-900/40 text-sky-300 border border-sky-700/40"
+        title="Joined this leaderboard since the snapshot"
+      >
+        new
+      </span>
+    );
+  }
+  if (delta.status === "off") {
+    return (
+      <span
+        className="inline-block px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-400 border border-zinc-700"
+        title="Fell off this leaderboard since the snapshot"
+      >
+        off
+      </span>
+    );
+  }
+  // status === "changed"
+  const v = delta.rankDelta ?? 0;
+  if (v === 0) return <span className="text-zinc-500">=</span>;
+  if (v > 0) {
+    return (
+      <span className="text-emerald-400 font-semibold">▲ {v}</span>
+    );
+  }
+  return <span className="text-red-400 font-semibold">▼ {-v}</span>;
+}
+
+function ScoreDeltaText({ delta }: { delta: BoardDelta | undefined }) {
+  if (!delta || delta.status === "nodata") {
+    return <span className="text-zinc-700">—</span>;
+  }
+  if (delta.scoreDelta === null || delta.scoreDelta === 0) {
+    return <span className="text-zinc-500">—</span>;
+  }
+  if (delta.scoreDelta > 0) {
+    return (
+      <span className="text-emerald-400">+{formatIdleon(delta.scoreDelta)}</span>
+    );
+  }
+  return (
+    <span className="text-red-400">−{formatIdleon(-delta.scoreDelta)}</span>
   );
 }

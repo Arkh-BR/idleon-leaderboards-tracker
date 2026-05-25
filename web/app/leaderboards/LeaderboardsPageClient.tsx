@@ -1,10 +1,17 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import type { LeaderboardsResponse } from "@/app/api/leaderboards/route";
 import LeaderboardsTable from "@/components/LeaderboardsTable";
 import Dashboard from "@/components/Dashboard";
 import { formatRelativeTime } from "@/lib/format";
+import {
+  loadSnapshot,
+  saveSnapshot as persistSnapshot,
+  computeDelta,
+  type LbSnapshot,
+  type BoardDelta,
+} from "@/lib/lbSnapshot";
 
 type Tab = "leaderboards" | "dashboard";
 
@@ -17,6 +24,9 @@ export default function LeaderboardsPageClient() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>("leaderboards");
+  // Per-player baseline. Re-hydrated every time activePlayer changes so
+  // switching characters doesn't bleed snapshots across them.
+  const [snapshot, setSnapshot] = useState<LbSnapshot | null>(null);
   const initialized = useRef(false);
 
   const load = useCallback(async (name: string, force = false) => {
@@ -54,6 +64,34 @@ export default function LeaderboardsPageClient() {
       load(saved);
     }
   }, [load]);
+
+  // Rehydrate the snapshot whenever the active player changes (or first
+  // time data comes in). Resets to null cleanly if no snapshot exists.
+  useEffect(() => {
+    if (!activePlayer) {
+      setSnapshot(null);
+      return;
+    }
+    setSnapshot(loadSnapshot(activePlayer));
+  }, [activePlayer]);
+
+  function saveCurrentSnapshot() {
+    if (!data || !activePlayer) return;
+    setSnapshot(persistSnapshot(activePlayer, data.boards));
+  }
+
+  // Compute per-board deltas once and pass to both Table and Dashboard.
+  const deltas = useMemo(() => {
+    const m: Record<string, BoardDelta> = {};
+    if (!data) return m;
+    for (const b of data.boards) {
+      m[b.apiKey] = computeDelta(
+        { myRank: b.myRank, myScore: b.myScore },
+        snapshot?.boards[b.apiKey]
+      );
+    }
+    return m;
+  }, [data, snapshot]);
 
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -113,6 +151,20 @@ export default function LeaderboardsPageClient() {
             🔄
           </button>
         )}
+        {hasData && (
+          <button
+            type="button"
+            onClick={saveCurrentSnapshot}
+            className="text-sm font-medium px-3 py-2 rounded-md border border-emerald-700/40 text-emerald-300 bg-emerald-900/20 hover:bg-emerald-900/40 ml-auto"
+            title={
+              snapshot
+                ? `Last saved ${new Date(snapshot.savedAt).toLocaleString()} — click to overwrite with current standings`
+                : "Save current ranks + scores as a baseline. Δ columns then track how each one moves over time."
+            }
+          >
+            💾 {snapshot ? "Update snapshot" : "Save snapshot"}
+          </button>
+        )}
       </form>
 
       {error && (
@@ -129,6 +181,17 @@ export default function LeaderboardsPageClient() {
           <span className="text-zinc-400">
             updated {formatRelativeTime(data!.fetchedAt)}
           </span>
+          {snapshot && (
+            <>
+              <span className="text-zinc-500">·</span>
+              <span
+                className="text-emerald-400 text-xs"
+                title={`Snapshot saved on ${new Date(snapshot.savedAt).toLocaleString()}`}
+              >
+                💾 snap {new Date(snapshot.savedAt).toLocaleDateString()}
+              </span>
+            </>
+          )}
           {!playerFound && (
             <span className="ml-auto text-yellow-400 text-xs">
               ⚠ player not found on any leaderboard — check the name
@@ -154,13 +217,18 @@ export default function LeaderboardsPageClient() {
 
       {tab === "leaderboards" &&
         (hasData ? (
-          <LeaderboardsTable boards={data!.boards} />
+          <LeaderboardsTable boards={data!.boards} deltas={deltas} />
         ) : (
           <EmptyHint>Enter a player name above and click Load to see leaderboards.</EmptyHint>
         ))}
       {tab === "dashboard" &&
         (hasData ? (
-          <Dashboard boards={data!.boards} player={data!.player} />
+          <Dashboard
+            boards={data!.boards}
+            player={data!.player}
+            deltas={deltas}
+            snapshotAt={snapshot?.savedAt ?? null}
+          />
         ) : (
           <EmptyHint>Enter a player name above and click Load to see the dashboard.</EmptyHint>
         ))}
