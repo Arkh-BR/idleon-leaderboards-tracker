@@ -15,11 +15,13 @@ export type Tier =
   | "top11_50"
   | "top51_100"
   | "top101_200"
-  | "rank200plus"
-  | "unranked";
+  | "rank200plus";
 
+// IT leaderboards always rank a player somewhere — there's no "unranked"
+// tier. If rank is null for any reason (API hiccup, board missing), bucket
+// it with the worst tier so we don't silently lose the row.
 export function tierOf(rank: number | null): Tier {
-  if (rank === null) return "unranked";
+  if (rank === null) return "rank200plus";
   if (rank <= 10) return "top10";
   if (rank <= 50) return "top11_50";
   if (rank <= 100) return "top51_100";
@@ -33,7 +35,6 @@ export const TIER_LABELS: Record<Tier, string> = {
   top51_100: "Top 51-100",
   top101_200: "Top 101-200",
   rank200plus: "Rank 200+",
-  unranked: "Unranked",
 };
 
 export const TIER_COLORS: Record<Tier, string> = {
@@ -42,5 +43,4 @@ export const TIER_COLORS: Record<Tier, string> = {
   top51_100: "bg-yellow-300 text-ink",
   top101_200: "bg-orange-400 text-ink",
   rank200plus: "bg-red-500 text-white",
-  unranked: "bg-zinc-600 text-white",
 };

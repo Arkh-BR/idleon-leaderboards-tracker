@@ -14,13 +14,14 @@ type Props = {
   snapshotAt?: string | null;
 };
 
+// "unranked" is intentionally absent — every leaderboard has the player
+// somewhere, so an unranked column would always be empty noise.
 const TIERS: Tier[] = [
   "top10",
   "top11_50",
   "top51_100",
   "top101_200",
   "rank200plus",
-  "unranked",
 ];
 
 const CATEGORIES_ORDER = [
@@ -52,7 +53,6 @@ export default function Dashboard({
       top51_100: 0,
       top101_200: 0,
       rank200plus: 0,
-      unranked: 0,
     };
     for (const b of boards) c[tierOf(b.myRank)]++;
     return c;
@@ -67,7 +67,6 @@ export default function Dashboard({
         top51_100: 0,
         top101_200: 0,
         rank200plus: 0,
-        unranked: 0,
       };
       for (const b of catBoards) counts[tierOf(b.myRank)]++;
       return { cat, total: catBoards.length, counts };
