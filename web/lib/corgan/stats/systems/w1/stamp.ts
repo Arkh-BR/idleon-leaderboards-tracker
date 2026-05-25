@@ -47,7 +47,7 @@ export function computeStampDoublerSources(saveData: SaveData): { total: number;
       Number((saveData.compassData[0] as any)[76])) ||
     0;
   const compass76 = compassLv * compassUpgPerLevel(76);
-  const emperorSet = getSetBonus("EMPEROR_SET");
+  const emperorSet = getSetBonus("EMPEROR_SET").val;
   const evShop18 = 20 * eventShopOwned(18, saveData.cachedEventShopStr);
 
   const paletteLv =
