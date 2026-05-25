@@ -15,6 +15,11 @@ const SAVE_PATH =
 const raw = JSON.parse(readFileSync(SAVE_PATH, "utf8"));
 loadSaveData(raw);
 
+import { gfoodBonusMULTI } from "../lib/corgan/stats/systems/common/goldenFood";
+console.log("=== GFOOD MULTI ===");
+const gfm = gfoodBonusMULTI(2, null, saveData);
+console.log("gfoodBonusMULTI(zArkhe) =", gfm);
+
 console.log("=== GRID/RESEARCH STATE ===");
 console.log("gridLevels[168] =", (saveData.gridLevels as any[])[168]);
 console.log("gridLevels[173] =", (saveData.gridLevels as any[])[173]);
