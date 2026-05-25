@@ -2,7 +2,7 @@
 // auto-refreshed by scripts/update-top-players.ts. Run that script to
 // re-scrape the IT profile pages of the current top players.
 //
-// Snapshot generated: 2026-05-25T01:12:54.497Z
+// Snapshot generated: 2026-05-25T04:35:17.412Z
 // Source: scraped from https://idleontoolbox.com/account/world-4/tome?profile=<name>
 // Players scanned: 76
 
@@ -45,7 +45,7 @@ export const TOP_PLAYERS: Readonly<Record<string, TopPlayerEntry>> = {
   "Nametags Found": { date: "05/25/2026", player: "26515665165165", raw: 36, pts: 700, classification: 12 },
   "Premium Hats Found": { date: "05/25/2026", player: "Shironee", raw: 82, pts: 700, classification: 9 },
   "Best Spiketrap Surprise round": { date: "05/25/2026", player: "Yosh6400", raw: 127, pts: 100, classification: 12 },
-  "Tournaments Registrations": { date: "05/25/2026", player: "GreenMario27", raw: 93, pts: 93, classification: 4 },
+  "Tournaments Registrations": { date: "05/25/2026", player: "ARKHE", raw: 93, pts: 93, classification: 4 },
   "Lava Dev Streams watched": { date: "05/25/2026", player: "Yosh6400", raw: 17, pts: 213, classification: 9 },
   "Total Minigame Highscore": { date: "05/25/2026", player: "Dasvidanya", raw: 1828, pts: 100, classification: 12 },
   "Total AFK Hours claimed": { date: "05/25/2026", player: "Dragami", raw: 801567, pts: 212, classification: 4 },
