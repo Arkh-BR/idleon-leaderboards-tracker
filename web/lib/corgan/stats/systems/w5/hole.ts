@@ -16,11 +16,22 @@ import {
 } from "../../data/w5/hole";
 import { HolesInfo } from "../../data/game/customlists.js";
 import { HOLE_MULTIPLIERS } from "../../data/game-constants";
+import { fountainBonusTotal } from "../../data/w5/fountain";
 import type { SaveData } from "../../../state";
 
 type Ctx = { saveData: SaveData };
 
 const HOLE_DATA = HOLE_MULTIPLIERS;
+
+// applyMonumentFountain: IT-only extension (not in corgan-source).
+// The Fountain cavern's per-tier monument-boost upgrade multiplies
+// the corresponding monument's bonuses by `1 + fountainBonusTotal(t, 13)/100`,
+// clamped to ≥ 1. Applies for t = 0/1/2.
+function applyMonumentFountain(base: number, saveData: SaveData, t: number): number {
+  if (t !== 0 && t !== 1 && t !== 2) return base;
+  const fb = fountainBonusTotal(saveData, t, 13);
+  return Math.max(1, base * (1 + fb / 100));
+}
 
 export const holes = {
   resolve(id: string, ctx: Ctx): CorganNode {
@@ -124,11 +135,16 @@ export const holes = {
       const cosmoBonus = Math.floor(cosmo00Base * cosmo00Lv);
 
       const holeozDN = 1 + wisBonus / 100 + cosmoBonus / 100;
+      // IT extension: fountain Wisdom-monument boost (t=2, i=13) multiplies
+      // monument bonuses. Placeholder in current game data (perLv=0), but
+      // included so any future activation flows through automatically.
+      const finalMulti = applyMonumentFountain(holeozDN, ctx.saveData, t);
+      const fountainTier = fountainBonusTotal(ctx.saveData, t, 13);
 
       const val =
         0.1 *
         Math.ceil(
-          (monLv / (250 + monLv)) * 10 * bonusPerLv * Math.max(1, holeozDN)
+          (monLv / (250 + monLv)) * 10 * bonusPerLv * finalMulti
         );
 
       const multiCh: CorganNode[] = [];
@@ -151,6 +167,15 @@ export const holes = {
             cosmoBonus,
             [node("Cosmo Level", cosmo00Lv, null, { fmt: "raw" })],
             { fmt: "raw", note: "cosmo 0/0" }
+          )
+        );
+      if (fountainTier > 0)
+        multiCh.push(
+          node(
+            "Fountain Wisdom Boost",
+            1 + fountainTier / 100,
+            [node("fountainTotal(2,13)", fountainTier, null, { fmt: "+" })],
+            { fmt: "x", note: "fountain[2][13]" }
           )
         );
       return node(
