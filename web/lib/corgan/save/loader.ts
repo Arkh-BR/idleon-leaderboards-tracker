@@ -10,6 +10,9 @@
 import { saveData, assignState } from "../state";
 import { assignSaveData } from "./data";
 import { parseSaveKey } from "./helpers";
+import { computeUniqueSushi } from "../stats/systems/w7/sushi";
+import { LAB_BONUS_BASE, LAB_BONUS_DYNAMIC, JEWEL_DESC } from "../stats/data/w4/lab";
+import { emporiumBonus } from "../game-helpers";
 
 type RawEnvelope = {
   data?: Record<string, unknown>;
@@ -342,8 +345,22 @@ export function loadSaveData(raw: RawEnvelope): void {
   assignState({ cachedFailedRolls: Number(optionsRaw[514]) || 0 });
   assignState({ cachedComp0DivOk: (lv0All[0]?.[14] || 0) >= 2 });
 
-  // Tome score, sticker, magnifiers, etc. — deferred to Stage 4 with the
-  // descriptor chain. saveData.totalTomePoints stays at 0 for now.
+  // Tome score — Corgan re-derives this from save data via computeTomeScore
+  // (1467 lines). For now we shortcut to the value IT stamps on the envelope
+  // (`extraData.totalTomePoints`). Falls back to 0 for raw save.json.
+  const extraData = (raw as any).extraData;
+  if (extraData && extraData.totalTomePoints != null) {
+    assignState({ totalTomePoints: Number(extraData.totalTomePoints) || 0 });
+  }
+
+  // Cached unique sushi count (sushiRoG / prisma chain reads it)
+  assignState({ cachedUniqueSushi: computeUniqueSushi(saveData.sushiData) });
+
+  // Mainframe stays empty — Corgan's BFS connectivity isn't ported yet, and
+  // even populating labMainBonusFull with the "inactive" values overshoots
+  // because the certified stamp book entry's inactive value is 2 (doubler).
+  // mainframeBonus() returns 0 when labMainBonusFull is absent, which keeps
+  // labDouble at 1 and matches the IT-port more closely on Stage 5b.
 
   assignSaveData({ loadedSaveFormat: raw.data ? "it.json" : "save.json" });
 }

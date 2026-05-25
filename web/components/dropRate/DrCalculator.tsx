@@ -401,9 +401,14 @@ export default function DrCalculator({ onStateChange }: Props) {
             <span className="text-amber-300 font-mono">
               {corganTotal.toFixed(3)}x
             </span>{" "}
-            — diverges from IT-style above while Stage 4 stubs (mainframe BFS,
-            stamp doubler, tome score, lukScaling chain) aren&rsquo;t yet
-            fully ported. Tree <em>shape</em> matches Corgan 1:1.
+            — diverges from the IT-style total above on a few sources where
+            Corgan&rsquo;s formula differs from IT&rsquo;s (notably
+            grid&nbsp;168 / Glimbo&nbsp;DR which Corgan multiplies by trade
+            groups vs. IT&rsquo;s sub-field read). Stage&nbsp;5b closed
+            tome&nbsp;score, unique&nbsp;sushi cache, and meritoc; remaining
+            gap traces to the mainframe BFS, stamp doubler chain, and full{" "}
+            <code className="text-zinc-400">computeTotalStat</code> pipeline.
+            Tree <em>shape</em> matches Corgan 1:1.
           </div>
         )}
         {computing ? (
