@@ -22,7 +22,9 @@ import {
   skillLvData,
   charClassData,
   numCharacters,
+  optionsListData,
 } from "../../../save/data";
+import { ribbonBonusAt } from "../../../game-helpers";
 import { formulaEval, getLOG } from "../../../formulas";
 import { GOLD_FOOD_INFO, EMPORIUM_FOOD_SLOTS } from "../../data/common/goldenFood";
 import { sigilBonus } from "../w2/alchemy";
@@ -37,8 +39,10 @@ import { getSetBonus } from "../w3/setBonus";
 import { computeCardLv } from "./cards";
 import { companions } from "./companions";
 import { computeAllTalentLVz } from "./talent";
-import { talentParams, FAMILY_BONUS_33, CLASS_TREES } from "../../data/common/talent";
+import { talentParams, FAMILY_BONUS_33, CLASS_TREES, TALENT_144 } from "../../data/common/talent";
 import { cookingMealMulti } from "./cooking";
+import { isFightingMap, mapKillReq } from "../../data/common/maps";
+import { klaData } from "../../../save/data";
 import { bubbleParams } from "../../data/w2/alchemy";
 import { isBubblePrismad, getPrismaBonusMult } from "../w2/alchemy";
 import { starSignDropVal } from "../../data/common/starSign";
@@ -104,8 +108,25 @@ function getTalent99(charIdx: number, saveData: SaveData): number {
   return formulaEval(t99.formula, t99.x1, t99.x2, effectiveLv);
 }
 
-function famBonusQTYs66(saveData: SaveData): number {
+function famBonusQTYs66(charIdx: number, saveData: SaveData): number {
   if (!FAMILY_BONUS_33) return 0;
+  // theFamilyGuy (talent 144) multiplies family bonus when the active char
+  // is the best contributor for this family bonus.
+  let talent144Val = 0;
+  if (TALENT_144) {
+    const sl144 = (skillLvData as any)[charIdx] || {};
+    const rawLv144 = Number(sl144[144] || sl144["144"]) || 0;
+    if (rawLv144 > 0) {
+      const bonus144Lv = computeAllTalentLVz(144, charIdx, undefined, saveData);
+      const eff144 = rawLv144 + bonus144Lv;
+      talent144Val = formulaEval(
+        TALENT_144.formula,
+        TALENT_144.x1,
+        TALENT_144.x2,
+        eff144
+      );
+    }
+  }
   let maxBonus = 0;
   for (let ci = 0; ci < numCharacters; ci++) {
     const classId = (charClassData as any)[ci] || 0;
@@ -114,22 +135,67 @@ function famBonusQTYs66(saveData: SaveData): number {
     const charLevel =
       Number(((saveData.lv0AllData as any)?.[ci] || [])[0]) || 0;
     const effectiveLv = Math.max(0, charLevel - FAMILY_BONUS_33.lvOffset);
-    const bonus = formulaEval(
+    let bonus = formulaEval(
       FAMILY_BONUS_33.formula,
       FAMILY_BONUS_33.x1,
       FAMILY_BONUS_33.x2,
       effectiveLv
     );
+    // theFamilyGuy only applies when the active char IS this contributor.
+    if (ci === charIdx && talent144Val > 0) {
+      bonus = bonus * (1 + talent144Val / 100);
+    }
     if (bonus > maxBonus) maxBonus = bonus;
   }
   return maxBonus;
+}
+
+// apocalypseWow × apocalypses: DK class talent (skillIndex 209) × number
+// of fighting maps where DK has accumulated ≥ 1e9 kills.
+function apocalypseWowContrib(saveData: SaveData): number {
+  // Find a DK character. corgan-source uses tree[3] === 10 as the marker.
+  let dkIdx = -1;
+  for (let ci = 0; ci < numCharacters; ci++) {
+    const classId = (charClassData as any)[ci] || 0;
+    const tree = CLASS_TREES[classId];
+    if (tree && tree[3] === 10) dkIdx = ci;
+  }
+  if (dkIdx < 0) return 0;
+
+  // Talent 209 (APOCALYPSE_WOW) value for the DK character.
+  const sl = (skillLvData as any)[dkIdx] || {};
+  const rawLv = Number(sl[209]) || 0;
+  if (rawLv <= 0) return 0;
+  const bonusLv = computeAllTalentLVz(209, dkIdx, undefined, saveData);
+  const eff = rawLv + bonusLv;
+  const t209 = talentParams(209);
+  if (!t209) return 0;
+  const perPt = formulaEval(t209.formula, t209.x1, t209.x2, eff);
+
+  // Apocalypse count = number of fighting maps with ≥ 1e9 kills on DK.
+  let count = 0;
+  const kla = (klaData as any)[dkIdx] || [];
+  for (let m = 0; m < kla.length; m++) {
+    if (!isFightingMap(m)) continue;
+    const arr = kla[m];
+    if (!Array.isArray(arr)) continue;
+    const killsDone = mapKillReq(m) - Number(arr[0]);
+    if (killsDone >= 1e9) count++;
+  }
+  return perPt * count;
 }
 
 function mealBonusZGoldFood(saveData: SaveData): number {
   const mealLv = Number(((saveData.mealsData as any) || [])[0]?.[64]) || 0;
   if (mealLv <= 0) return 0;
   const cm = cookingMealMulti(saveData);
-  const ribbon = 1; // ribbonBonusAt(28+64, ...) — not yet ported
+  const ribbonIdx = 28 + 64;
+  const ribbon = ribbonBonusAt(
+    ribbonIdx,
+    saveData.ribbonData,
+    (optionsListData as any)[379],
+    saveData.weeklyBossData
+  );
   return cm.val * ribbon * mealLv * 2;
 }
 
@@ -140,7 +206,7 @@ export function gfoodBonusMULTI(
 ): number {
   const setBonus = getSetBonus("SECRET_SET");
   const setMul = 1 + (Number(setBonus?.val) || 0) / 100;
-  const famBonus = Math.max(famBonusQTYs66(saveData), 1);
+  const famBonus = Math.max(famBonusQTYs66(charIdx, saveData), 1);
 
   const etcG = etcBonusesGoldFood(charIdx, saveData);
   const talent99 = getTalent99(charIdx, saveData);
@@ -155,11 +221,15 @@ export function gfoodBonusMULTI(
   const ach380 = achieveStatusTiered(380, saveData);
   const ach383 = achieveStatusTiered(383, saveData);
   const voting26 = votingBonusz(26, undefined, saveData);
-  const talent209xMaps = 0; // DK 1B+ overkill maps — outside DR scope
+  const talent209xMaps = apocalypseWowContrib(saveData);
   const comp48 = companions(48, saveData);
   const legend25 = legendPTSbonus(25, saveData);
-  const cardCropfall = Math.min(
-    4 * computeCardLv("cropfallEvent1", saveData),
+  // IT diverges from corgan-source here: IT sums all Gold_Food_Effect_(Passive)
+  // cards (cropfallEvent1 + anni5Event1), capped at 50. Corgan-source only
+  // counts cropfallEvent1 — we follow IT.
+  const cardPassiveBonus = Math.min(
+    4 * computeCardLv("cropfallEvent1", saveData) +
+      5 * computeCardLv("anni5Event1", saveData),
     50
   );
   const comp155 = companions(155, saveData);
@@ -182,7 +252,7 @@ export function gfoodBonusMULTI(
     talent209xMaps +
     comp48 +
     legend25 +
-    cardCropfall +
+    cardPassiveBonus +
     comp155 +
     vault86;
   return setMul * (famBonus + rest / 100);
