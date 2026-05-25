@@ -17,6 +17,10 @@ Thumbs.db
 # git clone --depth 1 https://github.com/Morta1/IdleonToolbox.git web/scripts/it-source
 web/scripts/it-source/
 
+# Corgan source for reference during the Drop Rate port — re-clone with:
+# git clone --depth 1 https://github.com/Corgan/idleon-research-optimizer.git web/scripts/corgan-source
+web/scripts/corgan-source/
+
 # Reverse-engineering scratch files (e.g. raw N.js dump for grep work).
 # Don't commit — fetch fresh from https://www.legendsofidleon.com/ytGl5oc/N.js if needed.
 .Njs-investigation.js
