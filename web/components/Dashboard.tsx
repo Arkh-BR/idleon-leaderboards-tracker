@@ -4,19 +4,25 @@ import { useMemo } from "react";
 import type { BoardResult } from "@/app/api/leaderboards/route";
 import { formatIdleon, formatPct } from "@/lib/format";
 import { rankBgClass, tierOf, TIER_LABELS, TIER_COLORS, type Tier } from "@/lib/rank";
+import { netRankMovement, type BoardDelta } from "@/lib/lbSnapshot";
 
 type Props = {
   boards: BoardResult[];
   player: string;
+  // Optional snapshot inputs — when absent, the snapshot card is hidden.
+  deltas?: Record<string, BoardDelta>;
+  snapshotAt?: string | null;
 };
 
+// "unranked" is intentionally absent — every leaderboard has the player
+// somewhere, so an unranked column would always be empty noise.
 const TIERS: Tier[] = [
   "top10",
   "top11_50",
   "top51_100",
   "top101_200",
-  "rank200plus",
-  "unranked",
+  "rank201_500",
+  "rank500plus",
 ];
 
 const CATEGORIES_ORDER = [
@@ -29,15 +35,26 @@ const CATEGORIES_ORDER = [
   "Caverns",
 ];
 
-export default function Dashboard({ boards, player }: Props) {
+export default function Dashboard({
+  boards,
+  player,
+  deltas,
+  snapshotAt,
+}: Props) {
+  // Aggregate net rank movement across the whole account. Only used when
+  // there's actually a snapshot to compare against.
+  const movement = useMemo(() => {
+    if (!deltas || !snapshotAt) return null;
+    return netRankMovement(Object.values(deltas));
+  }, [deltas, snapshotAt]);
   const tierCounts = useMemo(() => {
     const c: Record<Tier, number> = {
       top10: 0,
       top11_50: 0,
       top51_100: 0,
       top101_200: 0,
-      rank200plus: 0,
-      unranked: 0,
+      rank201_500: 0,
+      rank500plus: 0,
     };
     for (const b of boards) c[tierOf(b.myRank)]++;
     return c;
@@ -51,8 +68,8 @@ export default function Dashboard({ boards, player }: Props) {
         top11_50: 0,
         top51_100: 0,
         top101_200: 0,
-        rank200plus: 0,
-        unranked: 0,
+        rank201_500: 0,
+        rank500plus: 0,
       };
       for (const b of catBoards) counts[tierOf(b.myRank)]++;
       return { cat, total: catBoards.length, counts };
@@ -94,8 +111,41 @@ export default function Dashboard({ boards, player }: Props) {
 
   return (
     <div className="space-y-8">
+      {/* Snapshot movement — only when there's a baseline to compare against */}
+      {movement && snapshotAt && (
+        <Section
+          title={`📸 Progress since ${new Date(snapshotAt).toLocaleDateString()}`}
+        >
+          <div className="space-y-3">
+            <NetKpi
+              label="Net rank movement"
+              value={movement.total}
+              hint={
+                movement.total > 0
+                  ? "Total ranks climbed across all boards"
+                  : movement.total < 0
+                    ? "Total ranks dropped across all boards"
+                    : "No net change"
+              }
+            />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <SmallKpi
+                label="Boards climbed"
+                value={movement.gained}
+                color="emerald"
+              />
+              <SmallKpi
+                label="Boards dropped"
+                value={movement.lost}
+                color="red"
+              />
+            </div>
+          </div>
+        </Section>
+      )}
+
       {/* Tier summary */}
-      <Section title="1. Tier summary">
+      <Section title={movement && snapshotAt ? "1. Tier summary (current)" : "1. Tier summary"}>
         <div className="grid grid-cols-2 md:grid-cols-6 gap-2">
           {TIERS.map((t) => (
             <div key={t} className={`rounded p-3 text-center ${TIER_COLORS[t]}`}>
@@ -283,6 +333,74 @@ function Section({
   );
 }
 
+// Full-width hero card. Sign convention: positive = climbed (rank numbers
+// went DOWN, which is good). Green for improvement, red for regression,
+// zinc for no change. Layout is horizontal so the giant number sits next
+// to its hint instead of stacking.
+function NetKpi({
+  label,
+  value,
+  hint,
+}: {
+  label: string;
+  value: number;
+  hint?: string;
+}) {
+  const sign = value > 0 ? "+" : "";
+  const color =
+    value > 0
+      ? "text-emerald-400 border-emerald-700/50 bg-gradient-to-br from-emerald-950/30 to-zinc-900/40"
+      : value < 0
+        ? "text-red-400 border-red-800/50 bg-gradient-to-br from-red-950/30 to-zinc-900/40"
+        : "text-zinc-300 border-zinc-700/60 bg-gradient-to-br from-zinc-900/60 to-zinc-900/30";
+  return (
+    <div className={`rounded-xl border p-5 ${color}`}>
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        <div className="flex items-baseline gap-4">
+          <div className="text-5xl font-bold tabular-nums leading-none">
+            {sign}
+            {value.toLocaleString()}
+          </div>
+          <div className="text-xs uppercase tracking-wider opacity-80 whitespace-nowrap">
+            {label}
+          </div>
+        </div>
+        {hint && (
+          <div className="text-xs opacity-70 max-w-md text-right">{hint}</div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function SmallKpi({
+  label,
+  value,
+  color,
+  hint,
+}: {
+  label: string;
+  value: number | string;
+  color: "emerald" | "red" | "sky";
+  hint?: string;
+}) {
+  const cls =
+    color === "emerald"
+      ? "text-emerald-400 border-emerald-800/40"
+      : color === "red"
+        ? "text-red-400 border-red-800/40"
+        : "text-sky-400 border-sky-800/40";
+  return (
+    <div className={`rounded-lg border bg-zinc-900/40 p-3 ${cls}`}>
+      <div className="text-xs text-zinc-400 mb-1">{label}</div>
+      <div className="text-2xl font-bold tabular-nums leading-none">
+        {typeof value === "number" ? value.toLocaleString() : value}
+      </div>
+      {hint && <div className="text-xs text-zinc-500 mt-1.5">{hint}</div>}
+    </div>
+  );
+}
+
 function Rank({ rank }: { rank: number | null }) {
   return (
     <span
@@ -315,10 +433,14 @@ function HeatCell({ tier, value }: { tier: Tier; value: number }) {
       ? value >= 8
         ? "bg-orange-500 text-white"
         : "bg-orange-300 text-ink"
-      : tier === "rank200plus"
+      : tier === "rank201_500"
       ? value >= 8
         ? "bg-red-600 text-white font-bold"
         : "bg-red-400 text-white"
+      : tier === "rank500plus"
+      ? value >= 8
+        ? "bg-red-900 text-red-100 font-bold"
+        : "bg-red-800 text-red-100"
       : "bg-zinc-700 text-zinc-300";
   return (
     <span
