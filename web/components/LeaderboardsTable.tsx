@@ -7,6 +7,7 @@ import { rankBgClass } from "@/lib/rank";
 import type { BoardDelta } from "@/lib/lbSnapshot";
 
 type SortKey =
+  | "default" // IT order — categories in tab order, boards in IT's curated order
   | "category"
   | "label"
   | "rank"
@@ -36,9 +37,20 @@ const CATEGORY_OPTIONS = [
 export default function LeaderboardsTable({ boards, deltas = {} }: Props) {
   const [category, setCategory] = useState("All");
   const [search, setSearch] = useState("");
-  const [sortKey, setSortKey] = useState<SortKey>("rank");
+  // Default is "Smart sort": preserve the order the API returned the boards
+  // in, which already matches IT's tab + within-tab curated order (our
+  // registry was authored against the same source).
+  const [sortKey, setSortKey] = useState<SortKey>("default");
   const [sortDir, setSortDir] = useState<SortDir>("asc");
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
+
+  // Snapshot of each board's index in the original response. Used as the
+  // tie-breaker for Smart sort and as the value when sortKey === "default".
+  const originalOrder = useMemo(() => {
+    const m = new Map<string, number>();
+    boards.forEach((b, i) => m.set(b.apiKey, i));
+    return m;
+  }, [boards]);
 
   const hasAnySnapshot = useMemo(
     () => Object.values(deltas).some((d) => d.status !== "nodata"),
@@ -56,6 +68,18 @@ export default function LeaderboardsTable({ boards, deltas = {} }: Props) {
 
   const sorted = useMemo(() => {
     const arr = [...filtered];
+
+    // Smart sort always returns boards in original (IT) order, ignoring the
+    // sortDir toggle — there's no "reverse IT order" use case.
+    if (sortKey === "default") {
+      arr.sort(
+        (a, b) =>
+          (originalOrder.get(a.apiKey) ?? 0) -
+          (originalOrder.get(b.apiKey) ?? 0)
+      );
+      return arr;
+    }
+
     arr.sort((a, b) => {
       let av: string | number;
       let bv: string | number;
@@ -99,13 +123,18 @@ export default function LeaderboardsTable({ boards, deltas = {} }: Props) {
           bv = db;
           break;
         }
+        case "default":
+          // handled in the early-return above; keeps the switch exhaustive
+          av = 0;
+          bv = 0;
+          break;
       }
       if (av < bv) return sortDir === "asc" ? -1 : 1;
       if (av > bv) return sortDir === "asc" ? 1 : -1;
       return 0;
     });
     return arr;
-  }, [filtered, sortKey, sortDir]);
+  }, [filtered, sortKey, sortDir, deltas, originalOrder]);
 
   function toggleSort(k: SortKey) {
     if (sortKey === k) {
@@ -149,6 +178,21 @@ export default function LeaderboardsTable({ boards, deltas = {} }: Props) {
           onChange={(e) => setSearch(e.target.value)}
           className="bg-zinc-900 border border-zinc-700 rounded px-3 py-2 text-sm flex-1 min-w-[200px]"
         />
+        <button
+          onClick={() => {
+            setSortKey("default");
+            setSortDir("asc");
+          }}
+          disabled={sortKey === "default"}
+          className={`text-xs font-medium px-3 py-1.5 rounded-md border transition-colors ${
+            sortKey === "default"
+              ? "border-gold/50 text-gold bg-gold/10 cursor-default"
+              : "border-zinc-700 text-zinc-300 hover:border-gold hover:text-gold"
+          }`}
+          title="Restore IT's curated order — tabs (Global → General → Tasks → Skills → Character → Misc → Caverns), boards in their canonical sequence within each."
+        >
+          🎯 Smart sort
+        </button>
         <span className="text-xs text-zinc-500">
           {sorted.length} / {boards.length} leaderboards
         </span>
