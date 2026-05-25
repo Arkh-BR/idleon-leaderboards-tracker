@@ -16,3 +16,8 @@ Thumbs.db
 # IT source for reference during debugging — re-clone with:
 # git clone --depth 1 https://github.com/Morta1/IdleonToolbox.git web/scripts/it-source
 web/scripts/it-source/
+
+# Reverse-engineering scratch files (e.g. raw N.js dump for grep work).
+# Don't commit — fetch fresh from https://www.legendsofidleon.com/ytGl5oc/N.js if needed.
+.Njs-investigation.js
+*.Njs*

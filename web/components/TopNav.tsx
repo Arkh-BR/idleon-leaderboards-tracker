@@ -8,6 +8,7 @@ type NavItem = { href: string; label: string; wip?: boolean };
 const ITEMS: NavItem[] = [
   { href: "/leaderboards", label: "🏆 IT Leaderboards" },
   { href: "/tome", label: "📖 Tome Score" },
+  { href: "/drop-rate", label: "🎯 Drop Rate", wip: true },
 ];
 
 export default function TopNav() {
