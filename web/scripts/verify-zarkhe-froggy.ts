@@ -6,6 +6,9 @@ import { computeCorganDropRate } from "../lib/corgan/computeDR";
 import { loadSaveData as itLoadStub } from "../lib/corgan/save/loader";
 import { saveData as corganSave } from "../lib/corgan/state";
 import { arcaneFactor, buildMapOptions } from "../lib/dropRate/arcaneBonus";
+import { ETC_STAT_NAMES, ITEMS_BY_UQ, itemUqMatch } from "../lib/corgan/stats/data/common/equipment";
+import { obolNamesData } from "../lib/corgan/save/data";
+import { obol } from "../lib/corgan/stats/systems/w2/obols";
 
 // Polyfill window for IT's getDropRate (uses window.gtag in error catch)
 const g = globalThis as any;
@@ -29,8 +32,18 @@ console.log(`arcaneFactor (IT impl) = ${arcaneFactor(fkills).toFixed(4)}x\n`);
 
 // === Corgan tree ===
 itLoadStub(raw);
-console.log(`[debug] saveData.mapBonData.length = ${corganSave.mapBonData?.length}`);
-console.log(`[debug] saveData.mapBonData[2] = ${JSON.stringify(corganSave.mapBonData?.[2])}`);
+console.log(`[debug] ETC_STAT_NAMES['2'] = ${JSON.stringify(ETC_STAT_NAMES["2"])}`);
+console.log(`[debug] ITEMS_BY_UQ keys with DROP: ${Object.keys(ITEMS_BY_UQ).filter((k) => k.includes("DROP")).join(", ")}`);
+const charObols = (obolNamesData as any)[charIdx] || [];
+const nonBlank = charObols.filter((n: string) => n && n !== "Blank" && n !== "Null");
+console.log(`[debug] zArkhe obols (total ${nonBlank.length}):`, JSON.stringify(nonBlank.slice(0, 6)));
+const sample = nonBlank[0];
+if (sample) {
+  const m = itemUqMatch(sample, ETC_STAT_NAMES["2"] || []);
+  console.log(`[debug] itemUqMatch('${sample}', ETC2) = ${JSON.stringify(m)}`);
+}
+const obolNode = obol.resolve(2, { saveData: corganSave, charIdx });
+console.log(`[debug] obol.resolve(2, zArkhe).val = ${obolNode.val}`);
 const { tree: corganTree, total: corganTotal } = computeCorganDropRate(raw, charIdx, mapIdx);
 
 console.log(`[corgan] zArkhe DR on map ${mapIdx} = ${corganTotal.toFixed(2)}x`);
