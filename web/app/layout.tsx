@@ -11,8 +11,8 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: "Idleon Trackers",
-    template: "%s | Idleon Trackers",
+    default: "Arkh's Idleon Trackers",
+    template: "%s | Arkh's Idleon Trackers",
   },
   description:
     "Community trackers for Legends of Idleon — leaderboards rank monitor and a local Tome Score calculator.",

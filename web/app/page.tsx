@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: {
-    absolute: "Idleon Trackers",
+    absolute: "Arkh's Idleon Trackers",
   },
   description:
     "Two community trackers for Legends of Idleon — an IT leaderboards rank monitor and a local Tome Score calculator.",
@@ -14,7 +14,7 @@ export default function HomePage() {
     <main className="max-w-5xl mx-auto px-4 py-12 sm:py-20">
       <header className="text-center mb-12 sm:mb-16">
         <h1 className="text-4xl sm:text-5xl font-bold text-gold mb-3 tracking-tight">
-          Idleon Trackers
+          Arkh&rsquo;s Idleon Trackers
         </h1>
         <p className="text-zinc-400 text-base sm:text-lg max-w-2xl mx-auto">
           Two community tools for Legends of Idleon. No accounts, no servers,

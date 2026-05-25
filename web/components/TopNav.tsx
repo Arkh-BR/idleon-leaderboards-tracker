@@ -6,7 +6,6 @@ import { usePathname } from "next/navigation";
 type NavItem = { href: string; label: string; wip?: boolean };
 
 const ITEMS: NavItem[] = [
-  { href: "/", label: "🏠 Home" },
   { href: "/leaderboards", label: "🏆 IT Leaderboards" },
   { href: "/tome", label: "📖 Tome Score" },
 ];
