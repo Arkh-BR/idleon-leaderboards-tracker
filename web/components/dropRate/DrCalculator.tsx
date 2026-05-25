@@ -10,6 +10,8 @@ import { buildDropRateTree, type TreeNode } from "@/lib/dropRate/treeBuilder";
 import { formatIdleon } from "@/lib/format";
 import { listCharacters, parseSave, type CharSummary } from "@/lib/dropRate/extract";
 import DrTree from "./DrTree";
+import CorganTree from "./CorganTree";
+import type { CorganNode } from "@/lib/corgan/node";
 
 const SAVE_KEY = "drop-rate-tracker.last-upload.v1";
 
@@ -46,6 +48,13 @@ export default function DrCalculator({ onStateChange }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState<string | null>(null);
   const [computing, setComputing] = useState(false);
+
+  // Which tree to display: the IT-style additive/multiplicative panel
+  // (validated against IT's live UI) or the Corgan-style pool tree
+  // (LUK Scaling → Main Additive → LUK2 Additive → Post-Processing).
+  const [tab, setTab] = useState<"it" | "corgan">("corgan");
+  const [corganTree, setCorganTree] = useState<CorganNode | null>(null);
+  const [corganTotal, setCorganTotal] = useState<number | null>(null);
 
   // Dynamic-imported compute function — keeps the IT pipeline + website-data
   // out of the initial bundle. Loaded on first compute call and cached.
@@ -147,6 +156,35 @@ export default function DrCalculator({ onStateChange }: Props) {
       cancelled = true;
     };
   }, [save, charIdx, mapIdx, chars, mapOptions, loadComputeFn]);
+
+  // Compute the Corgan-style tree whenever save/char changes. Loads the
+  // Corgan port lazily so the initial bundle stays small.
+  useEffect(() => {
+    if (!save || chars.length === 0) {
+      setCorganTree(null);
+      setCorganTotal(null);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const mod = await import("@/lib/corgan/computeDR");
+        if (cancelled) return;
+        const result = mod.computeCorganDropRate(save, charIdx, mapIdx);
+        setCorganTree(result.tree);
+        setCorganTotal(result.total);
+      } catch (e) {
+        if (!cancelled) {
+          setError(
+            "Corgan compute failed: " + (e instanceof Error ? e.message : String(e))
+          );
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [save, charIdx, mapIdx, chars.length]);
 
   // Bubble state up to parent (so snapshot section can access it)
   useEffect(() => {
@@ -317,13 +355,61 @@ export default function DrCalculator({ onStateChange }: Props) {
         )}
       </div>
 
-      {/* Formula breakdown tree */}
+      {/* Formula breakdown tree — IT-style (validated) or Corgan-style (pool tree) */}
       <div className="rounded-lg bg-zinc-900/60 border border-zinc-800 p-4 mb-4">
-        <h2 className="text-base font-semibold text-sky-300 mb-3">
-          Formula Breakdown
-        </h2>
+        <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+          <h2 className="text-base font-semibold text-sky-300">
+            Formula Breakdown
+          </h2>
+          <div
+            role="tablist"
+            className="inline-flex gap-1 p-1 rounded-md bg-zinc-950/60 border border-zinc-800"
+          >
+            <button
+              type="button"
+              role="tab"
+              aria-selected={tab === "corgan"}
+              onClick={() => setTab("corgan")}
+              className={`px-3 py-1 text-xs rounded ${
+                tab === "corgan"
+                  ? "bg-gold/15 text-gold border border-gold/40"
+                  : "text-zinc-400 hover:text-zinc-200"
+              }`}
+              title="Mirrors Corgan's drop-rate-calc pool structure: LUK Scaling → ×1.4 → Main Additive → LUK2 Additive → Sum/100+1 → Chip Cap-Break → Post-Processing"
+            >
+              🎲 Corgan-style
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={tab === "it"}
+              onClick={() => setTab("it")}
+              className={`px-3 py-1 text-xs rounded ${
+                tab === "it"
+                  ? "bg-gold/15 text-gold border border-gold/40"
+                  : "text-zinc-400 hover:text-zinc-200"
+              }`}
+              title="The IT-port breakdown — validated to match idleontoolbox.com exactly"
+            >
+              📊 IT-style
+            </button>
+          </div>
+        </div>
+        {tab === "corgan" && corganTotal !== null && (
+          <div className="mb-3 text-xs text-zinc-500">
+            Corgan total:{" "}
+            <span className="text-amber-300 font-mono">
+              {corganTotal.toFixed(3)}x
+            </span>{" "}
+            — diverges from IT-style above while Stage 4 stubs (mainframe BFS,
+            stamp doubler, tome score, lukScaling chain) aren&rsquo;t yet
+            fully ported. Tree <em>shape</em> matches Corgan 1:1.
+          </div>
+        )}
         {computing ? (
           <p className="text-sm text-zinc-500 italic">Computing…</p>
+        ) : tab === "corgan" ? (
+          <CorganTree tree={corganTree} />
         ) : (
           <DrTree tree={tree} />
         )}

@@ -28,18 +28,13 @@ export function lukCurve(luk: number): number {
 }
 
 function readRawLuk(saveData: SaveData, charIdx: number): number {
-  // Corgan reads computeTotalStat('LUK', ci, ctx) — we approximate with
-  // raw level from data.PVStatList_N (already loaded via raw data, but
-  // not yet pushed into state by Stage 1 loader). Read directly from
-  // saveData['data']?.[`PVStatList_${ci}`] if present, else fall back
-  // to lv0AllData. PersonalValuesMap.StatList[3] in IT == LUK.
-  const raw: any = (saveData as any).rawDataPVStatList;
-  if (Array.isArray(raw) && Array.isArray(raw[charIdx])) {
-    return Number(raw[charIdx][3]) || 0;
+  // Loader stashes PVStatList_N arrays (already populated with talent +
+  // card LUK bonuses) under saveData.statList. PersonalValuesMap.StatList
+  // index 3 == LUK in IT's parser and matches the game's StatList layout.
+  const sl: any = (saveData as any).statList;
+  if (Array.isArray(sl) && Array.isArray(sl[charIdx])) {
+    return Number(sl[charIdx][3]) || 0;
   }
-  // Fallback: lv0AllData[charIdx][7] is the per-char LUK in the save tab order.
-  const lv0 = (saveData.lv0AllData as any)?.[charIdx];
-  if (Array.isArray(lv0) && lv0.length > 7) return Number(lv0[7]) || 0;
   return 0;
 }
 

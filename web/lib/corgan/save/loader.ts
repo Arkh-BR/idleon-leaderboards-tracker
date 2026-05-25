@@ -164,6 +164,7 @@ export function loadSaveData(raw: RawEnvelope): void {
   const skillLvMax: any[] = [];
   const playerStuff: any[] = [];
   const statueLvAll: any[] = [];
+  const statList: number[][] = [];
   for (let ci = 0; ci < nChars; ci++) {
     lv0All.push((parseSaveKey(save, "Lv0_" + ci) as any[]) || []);
     exp0All.push((parseSaveKey(save, "Exp0_" + ci) as any[]) || []);
@@ -172,7 +173,11 @@ export function loadSaveData(raw: RawEnvelope): void {
     skillLvMax.push((parseSaveKey(save, "SM_" + ci) as any) || {});
     playerStuff.push((parseSaveKey(save, "PlayerStuff_" + ci) as any[]) || []);
     statueLvAll.push((parseSaveKey(save, "StatueLevels_" + ci) as any[]) || []);
+    // PVStatList_N = [STR, AGI, WIS, LUK, level] — corgan reads this for lukCurve
+    statList.push((parseSaveKey(save, "PVStatList_" + ci) as any[]) || []);
   }
+  // Stash on the singleton so corgan's lukScaling can read raw LUK by char idx.
+  assignState({ statList });
   const statueLevels = ((statueLvAll[0] || []) as any[]).map(
     (s) => Number(Array.isArray(s) ? s[0] : s) || 0
   );

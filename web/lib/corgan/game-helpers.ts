@@ -3,7 +3,7 @@
 // (event shop, super-bits, emporium, ribbon, cloud bonus).
 
 import { N2L } from "./stats/data/game/hardcoded.js";
-import { EMPEROR_SET_BONUS_VAL } from "./stats/data/common/emperor.js";
+import { EMPEROR_SET_BONUS_VAL } from "./stats/data/common/emperor";
 
 export function eventShopOwned(t: number, eventShopStr: string): number {
   if (t < 0 || t >= (N2L as string).length || !eventShopStr) return 0;
