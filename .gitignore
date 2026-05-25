@@ -12,3 +12,7 @@ out/
 # OS
 .DS_Store
 Thumbs.db
+
+# IT source for reference during debugging — re-clone with:
+# git clone --depth 1 https://github.com/Morta1/IdleonToolbox.git web/scripts/it-source
+web/scripts/it-source/

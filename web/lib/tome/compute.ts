@@ -218,7 +218,7 @@ function computeRawValue(
     }
     case 51: {
       const v = ex.rawBreedability(data);
-      if (v !== null) return R(out, "Breeding[7] sum", v);
+      if (v !== null) return R(out, "sum breedingLv per pet", v);
       if (pd && pd.totalBreedabilityLevels !== undefined) {
         return R(out, "parsedData.totalBreedabilityLevels", Number(pd.totalBreedabilityLevels));
       }
@@ -456,11 +456,21 @@ function computeRawValue(
       return v !== null ? R(out, "Research[12] sum", v) : null;
     }
     case 116: {
-      if (Array.isArray(data.Sushi) && Array.isArray((data.Sushi as unknown[])[0])) {
-        const sushi = (data.Sushi as unknown[])[0] as unknown[];
-        let c = 0;
-        for (let i = 0; i < sushi.length; i++) if (Number(sushi[i]) > 0) c++;
-        return R(out, "raw.Sushi[0] count>0", c);
+      // IT's logic (parsers/world-7/sushiStation.ts): the uniqueSushi count
+      // is the length of the CONSECUTIVE prefix of Sushi[5] where each entry
+      // is >= 0. The first -1 (or undefined) ends the chain. MAX_TIER = 58.
+      if (Array.isArray(data.Sushi) && Array.isArray((data.Sushi as unknown[])[5])) {
+        const tracking = (data.Sushi as unknown[])[5] as unknown[];
+        let uniqueSushi = 0;
+        for (let i = 0; i <= 58; i++) {
+          const v = tracking[i] ?? -1;
+          if (Number(v) >= 0) {
+            uniqueSushi = i + 1;
+          } else {
+            break;
+          }
+        }
+        return R(out, "Sushi[5] consecutive>=0", uniqueSushi);
       }
       return null;
     }

@@ -346,10 +346,16 @@ export function rawTowerSum(d: D): number | null {
 }
 
 export function rawMinigameScore(d: D): number | null {
+  // IT's calcMinigameTotalScore (parsers/highScores.ts) sums the first 5
+  // entries of a concatenated list: [chopping, fishing, catching, mining,
+  // pen-pals]. The first 4 come from FamValMinigameHiscores[0..3] (mapped
+  // via minigameIndexMapping) and pen-pals is accountOptions[99].
   const m = d.FamValMinigameHiscores;
   if (!Array.isArray(m)) return null;
   let s = 0;
-  for (let i = 0; i < Math.min(5, m.length); i++) s += num(m[i]);
+  for (let i = 0; i < Math.min(4, m.length); i++) s += num(m[i]);
+  const opt = d.OptLacc;
+  if (Array.isArray(opt)) s += num(opt[99]);
   return s;
 }
 
@@ -614,9 +620,44 @@ export function rawCareerSummWins(d: D): number | null {
   return validWins + endless;
 }
 
+// Fixed pet count per world from IT's website-data petStats. Only 4 worlds
+// have pets; Breeding[13 + worldIndex] may have extra trailing slots which
+// IT ignores (it iterates account.breeding.pets, derived from petStats).
+const PET_COUNTS_PER_WORLD: readonly number[] = [17, 17, 18, 16];
+
 export function rawBreedability(d: D): number | null {
-  if (!d.Breeding || !Array.isArray((d.Breeding as unknown[])[7])) return null;
-  return arrSum((d.Breeding as unknown[])[7]);
+  // Port of IT's `totalBreedabilityLv` (parsers/world-4/breeding.ts:189-209).
+  // For each pet across the 4 breeding worlds:
+  //
+  //   secondUnlocked = Breeding[2][2] > 0          // pet upgrade list index 2
+  //   second = secondUnlocked
+  //              ? 1 + log(max(1, pow(EXP+1, 0.725)))
+  //              : 1
+  //   breedingLevel = min(9, floor(pow(second-1, 0.8)) + 1)
+  //   totalBreedabilityLv = sum(breedingLevel) over every pet slot
+  //
+  // Per-world EXP arrays live at Breeding[13 + worldIndex]. Pet counts come
+  // from petStats — using the EXP array length directly would overshoot.
+  if (!Array.isArray(d.Breeding)) return null;
+  const breeding = d.Breeding as unknown[];
+  const upgrades = Array.isArray(breeding[2]) ? (breeding[2] as unknown[]) : [];
+  const secondUnlocked = Number(upgrades[2] ?? 0) > 0;
+
+  let total = 0;
+  for (let w = 0; w < PET_COUNTS_PER_WORLD.length; w++) {
+    const expArr = breeding[13 + w];
+    if (!Array.isArray(expArr)) continue;
+    const petCount = PET_COUNTS_PER_WORLD[w];
+    for (let p = 0; p < petCount; p++) {
+      const exp = Number((expArr as unknown[])[p]) || 0;
+      const second = secondUnlocked
+        ? 1 + Math.log(Math.max(1, Math.pow(exp + 1, 0.725)))
+        : 1;
+      const breedingLevel = Math.min(9, Math.floor(Math.pow(second - 1, 0.8)) + 1);
+      total += breedingLevel;
+    }
+  }
+  return total;
 }
 
 export function rawShinyLevels(d: D): number | null {
