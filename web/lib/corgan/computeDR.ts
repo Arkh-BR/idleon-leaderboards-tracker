@@ -6,6 +6,7 @@
 
 import { loadSaveData } from "./save/loader";
 import { saveData } from "./state";
+import * as data from "./save/data";
 import { buildTree } from "./stats/tree-builder";
 import { getCatalog } from "./stats/registry";
 import dropRateDesc from "./stats/defs/drop-rate";
@@ -22,7 +23,9 @@ export function computeCorganDropRate(
   mapIdx: number = 0
 ): CorganDRResult {
   loadSaveData(rawEnvelope);
-  const mapBon = (saveData as any).mapBonData || [];
+  // mapBonData is a module-level export in save/data.ts (matches Corgan's
+  // structure). Re-read after loadSaveData populates it.
+  const mapBon = data.mapBonData;
   const ctx = { saveData, charIdx, activeCharIdx: charIdx, mapBon, mapIdx };
   const tree = buildTree(dropRateDesc, getCatalog(), ctx);
   return { tree, total: tree.val };

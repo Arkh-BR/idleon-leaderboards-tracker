@@ -36,15 +36,34 @@ export type MapOption = {
 // Always prepends "Town (no AC)" at index 0 so the user can clear the bonus.
 export function buildMapOptions(save: unknown): MapOption[] {
   const data = (save as { data?: Record<string, unknown> })?.data ?? {};
-  let mapBonRaw: unknown = data.MapBon;
-  if (typeof mapBonRaw === "string") {
-    try {
-      mapBonRaw = JSON.parse(mapBonRaw);
-    } catch {
-      mapBonRaw = null;
+  const mapBonRaw: unknown = data.MapBon;
+  let mb: number[][] = [];
+  if (Array.isArray(mapBonRaw)) {
+    mb = (mapBonRaw as any[]).map((e) =>
+      Array.isArray(e) ? (e as any[]).map(Number) : [0]
+    );
+  } else if (typeof mapBonRaw === "string") {
+    // Raw save stores MapBon as a flat CSV string "kills,?,?,kills,?,?,...".
+    // Each map gets 3 consecutive values.
+    const tryJson = (() => {
+      try {
+        const j = JSON.parse(mapBonRaw);
+        return Array.isArray(j) ? j : null;
+      } catch {
+        return null;
+      }
+    })();
+    if (tryJson) {
+      mb = (tryJson as any[]).map((e) =>
+        Array.isArray(e) ? (e as any[]).map(Number) : [0]
+      );
+    } else {
+      const flat = mapBonRaw.split(",").map((s) => Number(s) || 0);
+      for (let i = 0; i + 2 < flat.length; i += 3) {
+        mb.push([flat[i], flat[i + 1], flat[i + 2]]);
+      }
     }
   }
-  const mb = Array.isArray(mapBonRaw) ? (mapBonRaw as unknown[]) : [];
 
   const opts: MapOption[] = [
     { index: 0, name: "Town (no AC)", kills: 0, factor: 1, label: "Town (no AC)" },

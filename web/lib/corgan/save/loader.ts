@@ -277,18 +277,23 @@ export function loadSaveData(raw: RawEnvelope): void {
   assignSaveData({ currentMapData: currentMap });
   assignSaveData({ buffsActiveData: buffsActive });
 
-  // MapBon — account-wide per-map kill counts (arcane map bonus)
-  let mapBonParsed: unknown = parseSaveKey(save, "MapBon");
-  if (typeof mapBonParsed === "string") {
-    try {
-      mapBonParsed = JSON.parse(mapBonParsed);
-    } catch {
-      mapBonParsed = [];
+  // MapBon — per-map kill counts. In a raw save it's a flat comma-separated
+  // string "kills,?,?,kills,?,?,..." (3 values per map). parseSaveKey tries
+  // JSON.parse first; for the CSV form we split + chunk manually. Final
+  // shape: number[][] where mapBonData[i] = [kills, x, y] for map i.
+  const mapBonParsed: unknown = parseSaveKey(save, "MapBon");
+  let mapBonArr: number[][] = [];
+  if (Array.isArray(mapBonParsed)) {
+    mapBonArr = (mapBonParsed as any[]).map((e) =>
+      Array.isArray(e) ? (e as any[]).map(Number) : [0]
+    );
+  } else if (typeof mapBonParsed === "string") {
+    const flat = mapBonParsed.split(",").map((s) => Number(s) || 0);
+    for (let i = 0; i + 2 < flat.length; i += 3) {
+      mapBonArr.push([flat[i], flat[i + 1], flat[i + 2]]);
     }
   }
-  assignSaveData({
-    mapBonData: Array.isArray(mapBonParsed) ? (mapBonParsed as any[]) : [],
-  });
+  assignSaveData({ mapBonData: mapBonArr });
 
   // Companion ownership from it.json envelope
   if (companionRaw && Array.isArray(companionRaw.l)) {
