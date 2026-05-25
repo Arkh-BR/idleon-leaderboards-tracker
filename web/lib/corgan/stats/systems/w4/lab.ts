@@ -1,33 +1,215 @@
-// ===== LAB STUB (Stage 4 will port the real impl) =====
-// Stub for the symbols that Stage 2 systems consume. Returns safe no-op
-// defaults so the dependent systems compile and run.
+// ===== LAB SYSTEM (W4) =====
+// Pragmatic port: covers what the DR descriptor reads — chip, grid,
+// charHasChip, mainframeBonus. The full computeLabConnectivity BFS
+// (250+ lines of pixel-distance pathfinding through 12 player pads,
+// jewel positions, dynamic emporium-bonus pads) is omitted; saveData
+// keeps the loader's empty defaults for labMainBonusFull/labBonusConnected/
+// labJewelConnected, so mainframeBonus reports inactive values everywhere.
+// That underestimates a few DR terms (e.g. Certified Stamp Book ×2). Stage 5
+// will swap in the real BFS once the descriptor lands.
 
 import { node, type CorganNode } from "../../../node";
 import { label } from "../../entity-names";
+import { labData, numCharacters } from "../../../save/data";
+import { JEWEL_DESC } from "../../data/w4/lab";
+import { chipBonusValue } from "../../data/w4/chips";
+import { gridBonusPerLv, SHAPE_BONUS_PCT } from "../../data/w7/research";
+import { cloudBonus } from "../../../game-helpers";
+import { companionBonus } from "../../data/common/companions";
+import { ChipDesc } from "../../data/game/customlists.js";
 import type { SaveData } from "../../../state";
 
-export function mainframeBonus(_idx: number, _saveData: SaveData): number {
-  return 0;
-}
+type Ctx = { saveData: SaveData; charIdx: number };
 
-export function charHasChip(_charIdx: number, _slot: string): boolean {
-  return false;
+function gridAllMulti(saveData: SaveData) {
+  const comp55 =
+    saveData.companionIds && saveData.companionIds.has(55) ? companionBonus(55) : 0;
+  const comp0 =
+    saveData.companionIds && saveData.companionIds.has(0) ? companionBonus(0) : 0;
+  const grid173Lv = Number((saveData.gridLevels as any)?.[173]) || 0;
+  const cb71 = cloudBonus(71, saveData.weeklyBossData);
+  const cb72 = cloudBonus(72, saveData.weeklyBossData);
+  const cb76 = cloudBonus(76, saveData.weeklyBossData);
+  const sum =
+    comp55 + 5 * Math.min(1, grid173Lv * comp0) + cb71 + cb72 + cb76;
+  return {
+    val: 1 + sum / 100,
+    comp55,
+    comp0,
+    grid173Lv,
+    cb71,
+    cb72,
+    cb76,
+  };
 }
 
 export const grid = {
-  resolve(id: number, _ctx: { saveData: SaveData }): CorganNode {
-    return node(label("Grid", id), 0, null, { fmt: "+", note: "stage4 stub" });
+  resolve(id: number, ctx: Ctx, _args?: unknown): CorganNode {
+    const saveData = ctx.saveData;
+    const gridLv = Number((saveData.gridLevels as any)?.[id]) || 0;
+    if (gridLv < 1) return node(label("Grid", id), 0, null, { note: "grid " + id });
+
+    const si = Number((saveData.shapeOverlay as any)?.[id]);
+    const shapePct =
+      si >= 0 && si < SHAPE_BONUS_PCT.length ? SHAPE_BONUS_PCT[si] : 0;
+    const shapeMult = 1 + shapePct / 100;
+    const am = gridAllMulti(saveData);
+    const allMulti = am.val;
+
+    const bonusPerLv = gridBonusPerLv(id) || 25;
+    const rawVal = bonusPerLv * gridLv;
+    const val = rawVal * shapeMult * Math.max(1, allMulti);
+
+    const allMultiChildren: CorganNode[] = [];
+    if (am.comp55 > 0)
+      allMultiChildren.push(
+        node(label("Companion", 55), am.comp55, null, {
+          fmt: "raw",
+          note: "companion 55",
+        })
+      );
+    if (am.comp0 > 0)
+      allMultiChildren.push(
+        node(
+          label("Companion", 0),
+          5 * Math.min(1, am.grid173Lv * am.comp0),
+          [node(label("Grid", 173, " Lv"), am.grid173Lv, null, { fmt: "raw" })],
+          { fmt: "raw", note: "companion 0" }
+        )
+      );
+
+    if (id === 168) {
+      const trades = ((saveData.research as any)?.[12] as any[]) || [];
+      let totalTrades = 0;
+      for (let i = 0; i < trades.length; i++)
+        totalTrades += Number(trades[i]) || 0;
+      const tradeGroups = Math.floor(totalTrades / 100);
+      const glimboVal = 1 + (val * tradeGroups) / 100;
+      return node(
+        "Glimbo DR Multi",
+        glimboVal,
+        [
+          node(label("Grid", 168, " Level"), gridLv, null, { fmt: "raw" }),
+          node("Shape Bonus", shapeMult, null, { fmt: "x", note: "shape=" + si }),
+          node(
+            "All Multi",
+            allMulti,
+            allMultiChildren.length ? allMultiChildren : null,
+            { fmt: "x" }
+          ),
+          node("Total Trades", totalTrades, null, {
+            fmt: "raw",
+            note: tradeGroups + " groups",
+          }),
+        ],
+        { fmt: "x", note: "grid 168" }
+      );
+    }
+
+    return node(
+      label("Grid", id),
+      val,
+      [
+        node("Grid Level", gridLv, null, { fmt: "raw" }),
+        node("Base per Level", rawVal, null, {
+          fmt: "raw",
+          note: bonusPerLv + "/level",
+        }),
+        node("Shape Bonus", shapeMult, null, { fmt: "x", note: "shape=" + si }),
+        node(
+          "All Multi",
+          Math.max(1, allMulti),
+          allMultiChildren.length ? allMultiChildren : null,
+          { fmt: "x" }
+        ),
+      ],
+      { fmt: "+", note: "grid " + id }
+    );
   },
 };
 
 export const chip = {
-  resolve(id: number | string, _ctx: { saveData: SaveData }): CorganNode {
-    return node(label("Chip", id), 0, null, { fmt: "+", note: "stage4 stub" });
+  resolve(id: string | number, ctx: Ctx): CorganNode {
+    const chipSlots = (labData as any)[1 + ctx.charIdx];
+    if (!chipSlots) return node("Lab Chip DR", 0, null, { note: "chip " + id });
+    let total = 0;
+    const children: CorganNode[] = [];
+    for (let i = 0; i < 7; i++) {
+      if (id === "dr" && Number(chipSlots[i]) === 3) {
+        const _chipVal = chipBonusValue(3);
+        total += _chipVal;
+        children.push(
+          node("Slot " + i + " Grounded Processor", _chipVal, null, {
+            fmt: "+",
+            note: "chip 3",
+          })
+        );
+      }
+    }
+    return node("Lab Chip DR", total, children, { fmt: "+", note: "chip " + id });
   },
 };
 
+// ===== MAINFRAME BONUS (simplified — no BFS connectivity) =====
+// Returns the active value if labBonusConnected/labJewelConnected indicate
+// the node is reachable, else the inactive value. Until Stage 5's BFS
+// lands, both arrays default to empty so this returns 0 for most calls.
+
+export function mainframeBonus(e: number, saveData: SaveData): number {
+  const lmbFull = (saveData as any).labMainBonusFull as any[] | undefined;
+  if (!lmbFull) return 0;
+  const lmbLen = lmbFull.length;
+  if (e < 100) {
+    if (e >= lmbLen) return 0;
+    const labBonusConnected = (saveData as any).labBonusConnected as any[];
+    if (!labBonusConnected || !labBonusConnected[e]) return lmbFull[e][3];
+    return lmbFull[e][4];
+  }
+  const ji = e - 100;
+  if (ji < 0 || ji >= JEWEL_DESC.length) return 0;
+  const labJewelConnected = (saveData as any).labJewelConnected as any[];
+  if (!labJewelConnected || !labJewelConnected[ji]) return 0;
+  return JEWEL_DESC[ji][2];
+}
+
 export function computeLabConnectivity(_saveData: SaveData): Record<string, unknown> {
-  // Stage 4 will compute lab BFS for mainframe bonuses. Stage 2 returns
-  // empty so the loader can assignState() without error.
-  return { labBonusConnected: [], labJewelConnected: [], labMainBonusFull: [] };
+  // Stage 5 TODO: port the 100+ line BFS over 12 players + LabMainBonus +
+  // JEWEL_DESC pads. Returning empties keeps loader assignState() valid.
+  return {
+    labMainBonusFull: [],
+    labBonusConnected: [],
+    labJewelConnected: [],
+  };
+}
+
+// ===== CHIP BY KEY =====
+export function computeChipBonus(effectKey: string): number {
+  if (!labData) return 0;
+  let total = 0;
+  for (let ci = 0; ci < numCharacters; ci++) {
+    const chips = (labData as any)[1 + ci];
+    if (!chips) continue;
+    for (let slot = 0; slot < chips.length; slot++) {
+      const chipType = Number(chips[slot]) || 0;
+      if (chipType <= 0) continue;
+      if (!(ChipDesc as any)[chipType]) continue;
+      const chipKey = (ChipDesc as any)[chipType][10];
+      if (chipKey !== effectKey) continue;
+      total += Number((ChipDesc as any)[chipType][11]) || 0;
+    }
+  }
+  return total;
+}
+
+export function charHasChip(charIdx: number, effectKey: string): boolean {
+  if (!labData) return false;
+  const chips = (labData as any)[1 + charIdx];
+  if (!chips) return false;
+  for (let slot = 0; slot < chips.length; slot++) {
+    const chipType = Number(chips[slot]) || 0;
+    if (chipType <= 0) continue;
+    if (!(ChipDesc as any)[chipType]) continue;
+    if ((ChipDesc as any)[chipType][10] === effectKey) return true;
+  }
+  return false;
 }
