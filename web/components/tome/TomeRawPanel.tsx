@@ -15,14 +15,16 @@ export default function TomeRawPanel() {
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
 
-  // Hydrate from localStorage on mount + auto-calculate if data exists.
+  // Hydrate the COMPUTED result from localStorage on mount, but leave the
+  // textarea empty so the user can paste new data without first clearing
+  // the old paste. The previous JSON is still in storage (so Best Tome can
+  // also hydrate) — it just doesn't get rehydrated into the input.
   useEffect(() => {
     let saved = "";
     try {
       saved = localStorage.getItem(STORAGE_KEY) || "";
     } catch {}
     if (saved) {
-      setJson(saved);
       try {
         setResult(computeTome(saved));
       } catch (e) {
@@ -39,6 +41,9 @@ export default function TomeRawPanel() {
       try {
         localStorage.setItem(STORAGE_KEY, json);
       } catch {}
+      // Clear the textarea after a successful calc so the next paste lands
+      // on an empty input — no manual select-all/delete required.
+      setJson("");
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
       setResult(null);
