@@ -7,7 +7,8 @@ export function rankBgClass(rank: number | null): string {
   if (rank <= 50) return "bg-green-700/40 text-green-200";
   if (rank <= 100) return "bg-yellow-700/40 text-yellow-200";
   if (rank <= 200) return "bg-orange-700/40 text-orange-200";
-  return "bg-red-700/40 text-red-200";
+  if (rank <= 500) return "bg-red-700/40 text-red-200";
+  return "bg-red-900/60 text-red-300";
 }
 
 export type Tier =
@@ -15,18 +16,20 @@ export type Tier =
   | "top11_50"
   | "top51_100"
   | "top101_200"
-  | "rank200plus";
+  | "rank201_500"
+  | "rank500plus";
 
 // IT leaderboards always rank a player somewhere — there's no "unranked"
 // tier. If rank is null for any reason (API hiccup, board missing), bucket
 // it with the worst tier so we don't silently lose the row.
 export function tierOf(rank: number | null): Tier {
-  if (rank === null) return "rank200plus";
+  if (rank === null) return "rank500plus";
   if (rank <= 10) return "top10";
   if (rank <= 50) return "top11_50";
   if (rank <= 100) return "top51_100";
   if (rank <= 200) return "top101_200";
-  return "rank200plus";
+  if (rank <= 500) return "rank201_500";
+  return "rank500plus";
 }
 
 export const TIER_LABELS: Record<Tier, string> = {
@@ -34,7 +37,8 @@ export const TIER_LABELS: Record<Tier, string> = {
   top11_50: "Top 11-50",
   top51_100: "Top 51-100",
   top101_200: "Top 101-200",
-  rank200plus: "Rank 200+",
+  rank201_500: "Rank 201-500",
+  rank500plus: "Rank 500+",
 };
 
 export const TIER_COLORS: Record<Tier, string> = {
@@ -42,5 +46,6 @@ export const TIER_COLORS: Record<Tier, string> = {
   top11_50: "bg-green-400 text-ink",
   top51_100: "bg-yellow-300 text-ink",
   top101_200: "bg-orange-400 text-ink",
-  rank200plus: "bg-red-500 text-white",
+  rank201_500: "bg-red-500 text-white",
+  rank500plus: "bg-red-900 text-red-100",
 };

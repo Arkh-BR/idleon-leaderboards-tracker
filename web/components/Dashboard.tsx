@@ -21,7 +21,8 @@ const TIERS: Tier[] = [
   "top11_50",
   "top51_100",
   "top101_200",
-  "rank200plus",
+  "rank201_500",
+  "rank500plus",
 ];
 
 const CATEGORIES_ORDER = [
@@ -52,7 +53,8 @@ export default function Dashboard({
       top11_50: 0,
       top51_100: 0,
       top101_200: 0,
-      rank200plus: 0,
+      rank201_500: 0,
+      rank500plus: 0,
     };
     for (const b of boards) c[tierOf(b.myRank)]++;
     return c;
@@ -66,7 +68,8 @@ export default function Dashboard({
         top11_50: 0,
         top51_100: 0,
         top101_200: 0,
-        rank200plus: 0,
+        rank201_500: 0,
+        rank500plus: 0,
       };
       for (const b of catBoards) counts[tierOf(b.myRank)]++;
       return { cat, total: catBoards.length, counts };
@@ -430,10 +433,14 @@ function HeatCell({ tier, value }: { tier: Tier; value: number }) {
       ? value >= 8
         ? "bg-orange-500 text-white"
         : "bg-orange-300 text-ink"
-      : tier === "rank200plus"
+      : tier === "rank201_500"
       ? value >= 8
         ? "bg-red-600 text-white font-bold"
         : "bg-red-400 text-white"
+      : tier === "rank500plus"
+      ? value >= 8
+        ? "bg-red-900 text-red-100 font-bold"
+        : "bg-red-800 text-red-100"
       : "bg-zinc-700 text-zinc-300";
   return (
     <span
