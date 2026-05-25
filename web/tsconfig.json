@@ -6,7 +6,7 @@
       "dom.iterable",
       "esnext"
     ],
-    "allowJs": false,
+    "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
     "noEmit": true,
@@ -23,20 +23,27 @@
       }
     ],
     "paths": {
-      "@/*": [
-        "./*"
-      ]
+      "@/*": ["./*"],
+      "@parsers/*": ["./lib/it/parsers/*"],
+      "@utility/*": ["./lib/it/utility/*"],
+      "@website-data": ["./lib/it/data/website-data.json"],
+      "@components/*": ["./lib/it/_stubs/components/*"],
+      "@hooks/*": ["./lib/it/_stubs/hooks/*"]
     }
   },
   "include": [
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
+    "**/*.js",
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts"
   ],
   "exclude": [
     "node_modules",
-    "scripts"
+    "scripts",
+    "lib/it/utility/generate-sitemap.mjs",
+    "lib/it/utility/createEmotionCache.js",
+    "lib/it/utility/builds"
   ]
 }

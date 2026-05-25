@@ -1,0 +1,1292 @@
+import { getPrinterExclusions } from '@parsers/world-3/printer';
+import { getCrystalCountdownSkills } from '@parsers/talents';
+import { getRawShopItems } from '@parsers/shops';
+import { getRawRefinerySalts } from '@parsers/misc';
+
+export const migrateToVersion2 = (config = {}) => {
+  let dashboardConfig = { ...config };
+  if (!dashboardConfig) {
+    dashboardConfig = {};
+  }
+
+  if (dashboardConfig?.account?.['World 2']?.alchemy) {
+    let alchemyOptions = dashboardConfig.account['World 2'].alchemy.options.map((option) => {
+      const { name, category } = option;
+      if (name === 'bargainTag' && !category) {
+        return { ...option, category: 'liquidShop' };
+      }
+      if (name === 'sigils' && !category) {
+        return { ...option, category: 'sigils' };
+      }
+      return option;
+    });
+    const alchemyGemsExist = alchemyOptions.find(({ name }) => name === 'gems');
+    if (!alchemyGemsExist) {
+      alchemyOptions = alchemyOptions.toSpliced(1, 0, { name: 'gems', checked: true });
+    }
+    dashboardConfig.account['World 2'].alchemy.options = alchemyOptions;
+  }
+  dashboardConfig.version = 2;
+  return dashboardConfig;
+}
+export const migrateToVersion3 = (config) => {
+  let dashboardConfig = { ...config };
+  if (!dashboardConfig) {
+    dashboardConfig = {};
+  }
+  if (dashboardConfig?.account?.['World 5']?.hole?.options?.length === 7) {
+    dashboardConfig.account['World 5'].hole.options = [
+      ...dashboardConfig?.account?.['World 5']?.hole?.options,
+      {
+        name: 'justice',
+        checked: true,
+        type: 'input',
+        props: { label: 'Reward multi threshold', value: 1, minValue: 1, helperText: '' }
+      }
+    ]
+  }
+
+  if (dashboardConfig?.timers?.['World 5'] && !dashboardConfig?.timers?.['World 5']?.justice) {
+    dashboardConfig.timers['World 5'] = {
+      ...dashboardConfig.timers['World 5'],
+      justice: { checked: true, options: [] }
+    }
+  }
+  dashboardConfig.version = 3;
+  return dashboardConfig
+}
+
+export const migrateToVersion4 = (config) => {
+  let dashboardConfig = { ...config };
+  if (!dashboardConfig) {
+    dashboardConfig = {};
+  }
+  if (dashboardConfig?.account?.General?.etc?.options?.length === 6) {
+    dashboardConfig.account.General.etc.options = [
+      ...dashboardConfig.account.General.etc.options,
+      { name: 'familyObols', checked: true }
+    ]
+  }
+
+  dashboardConfig.version = 4;
+  return dashboardConfig
+}
+
+export const migrateToVersion5 = (config) => {
+  let dashboardConfig = { ...config };
+  if (!dashboardConfig) {
+    dashboardConfig = {};
+  }
+  if (dashboardConfig?.timers?.['World 3'] && !dashboardConfig?.timers?.['World 3']?.equinox) {
+    dashboardConfig.timers['World 3'] = {
+      ...dashboardConfig?.timers?.['World 3'],
+      equinox: { checked: true, options: [] }
+    }
+  }
+
+  dashboardConfig.version = 5;
+  return dashboardConfig
+}
+
+export const migrateToVersion6 = (config) => {
+  let dashboardConfig = { ...config };
+  if (!dashboardConfig) {
+    dashboardConfig = {};
+  }
+  if (dashboardConfig?.account?.['World 1'] && dashboardConfig?.account?.['World 1']?.stamps?.options?.length === 1) {
+    dashboardConfig.account['World 1'].stamps.options = [
+      ...dashboardConfig.account['World 1'].stamps.options,
+      { name: 'showGildedWhenNoAtomDiscount', checked: false }
+    ]
+  }
+
+  dashboardConfig.version = 6;
+  return dashboardConfig
+}
+
+export const migrateToVersion7 = (config) => {
+  let dashboardConfig = { ...config };
+  if (!dashboardConfig) {
+    dashboardConfig = {};
+  }
+  if (dashboardConfig?.account?.['World 3'] && !dashboardConfig?.account?.['World 3']?.traps) {
+    dashboardConfig.account['World 3'].traps = {
+      checked: true,
+      options: [{ name: 'trapsOverdue', checked: true }]
+    }
+  }
+
+  dashboardConfig.version = 7;
+  return dashboardConfig
+}
+
+export const migrateToVersion8 = (config) => {
+  let dashboardConfig = { ...config };
+  if (!dashboardConfig) {
+    dashboardConfig = {};
+  }
+
+  if (dashboardConfig?.account?.['World 1'] && !dashboardConfig?.account?.['World 1']?.forge) {
+    dashboardConfig.account['World 1'].forge = {
+      checked: true,
+      options: [{ name: 'emptySlots', checked: true }]
+    }
+  }
+  if (dashboardConfig?.account?.['World 4'] && dashboardConfig?.account?.['World 4']?.cooking?.options?.length === 1) {
+    dashboardConfig.account['World 4'].cooking.options = [
+      ...dashboardConfig.account['World 4'].cooking.options,
+      {
+        name: 'ribbons',
+        type: 'input',
+        props: { label: 'Ribbons threshold', value: 0, maxValue: 28, minValue: 0, helperText: 'Empty ribbon slots' },
+        checked: true
+      }
+    ]
+  }
+
+  dashboardConfig.version = 8;
+  return dashboardConfig
+}
+export const migrateToVersion9 = (config) => {
+  let dashboardConfig = { ...config };
+  if (!dashboardConfig) {
+    dashboardConfig = {};
+  }
+
+  if (dashboardConfig?.account?.['World 6'] && dashboardConfig?.account?.['World 6']?.summoning?.options?.length === 1) {
+    dashboardConfig.account['World 6'].summoning.options = [
+      ...dashboardConfig.account['World 6'].summoning.options,
+      { name: 'battleAttempts', checked: true }
+    ]
+  }
+
+  dashboardConfig.version = 9;
+  return dashboardConfig
+}
+export const migrateToVersion10 = (config) => {
+  let dashboardConfig = { ...config };
+  if (!dashboardConfig) {
+    dashboardConfig = {};
+  }
+
+  const anvilOptions = dashboardConfig?.characters?.anvil?.options?.filter(({ name }) => name !== 'anvilOverdue' && name !== 'showAlertBeforeFull');
+  if (dashboardConfig?.characters?.anvil) {
+    dashboardConfig.characters.anvil.options = [
+      ...anvilOptions,
+      {
+        name: 'anvilOverdue',
+        type: 'input',
+        props: { label: 'Minutes', value: 30, minValue: 1, helperText: 'alert X minutes before full' },
+        checked: true
+      }
+    ]
+  }
+
+  const printerOptions = dashboardConfig?.account?.['World 3']?.printer?.options?.filter(({ name }) => name !== 'includeOakAndCopper');
+  if (dashboardConfig?.account?.['World 3']?.printer?.options?.length === 2) {
+    dashboardConfig.account['World 3'].printer.options = [
+      { name: 'includeOakTree', category: 'atoms', checked: false },
+      { name: 'includeCopper', checked: false },
+      { name: 'includeSporeCap', checked: true },
+      ...printerOptions
+    ]
+  }
+
+  dashboardConfig.version = 10;
+  return dashboardConfig
+}
+
+export const migrateToVersion11 = (config, baseTrackers) => {
+  let dashboardConfig = { ...config };
+  if (!dashboardConfig) {
+    dashboardConfig = {};
+  }
+
+  if (dashboardConfig?.characters?.anvil) {
+    dashboardConfig.characters.anvil.options = baseTrackers?.characters?.anvil?.options;
+  }
+
+  if (dashboardConfig?.account?.['World 3']?.printer) {
+    dashboardConfig.account['World 3'].printer.options = baseTrackers?.account['World 3']?.printer?.options
+  }
+
+  dashboardConfig.version = 11;
+  return dashboardConfig
+}
+
+export const migrateToVersion12 = (config) => {
+  let dashboardConfig = { ...config };
+  if (!dashboardConfig) {
+    dashboardConfig = {};
+  }
+
+  if (dashboardConfig?.account?.etc?.options?.length === 6) {
+    dashboardConfig.account.etc.options = [
+      ...dashboardConfig?.account?.etc?.options,
+      { name: 'freeCompanion', checked: true }
+    ];
+  }
+
+  if (dashboardConfig?.account?.['World 4']?.cooking?.options?.length === 2) {
+    dashboardConfig.account['World 4'].cooking.options = [
+      ...dashboardConfig.account['World 4'].cooking.options,
+      { name: 'meals', checked: true }
+    ];
+  }
+
+  const unspentPointsField = dashboardConfig?.characters?.anvil?.options?.find(({ name }) => name === 'unspentPoints');
+  if (unspentPointsField?.type !== 'input') {
+    dashboardConfig.characters.anvil.options = dashboardConfig.characters.anvil.options?.map((option) => {
+      if (option?.name === 'unspentPoints') {
+        return {
+          name: 'unspentPoints',
+          type: 'input',
+          props: { label: 'Points Threshold', value: 1, minValue: 1, helperText: '' },
+          checked: true
+        }
+      }
+      return option;
+    });
+  }
+
+  dashboardConfig.version = 12;
+  return dashboardConfig
+}
+
+export const migrateToVersion13 = (config) => {
+  let dashboardConfig = { ...config };
+  if (!dashboardConfig) {
+    dashboardConfig = {};
+  }
+
+  const updatedPrinter = dashboardConfig?.account?.['World 3']?.printer?.options?.filter(({ name }) => name === 'showAlertWhenFull');
+  if (dashboardConfig?.account?.['World 3']?.printer?.options?.length > 2) {
+    dashboardConfig.account['World 3'].printer.options = [
+      {
+        name: 'includeResource',
+        type: 'array',
+        props: { value: getPrinterExclusions(), type: 'img' },
+        checked: true,
+        category: 'atoms'
+      },
+      ...updatedPrinter
+    ]
+  }
+
+  dashboardConfig.version = 13;
+  return dashboardConfig
+}
+
+export const migrateToVersion14 = (config, baseTrackers) => {
+  let dashboardConfig = { ...config };
+  if (!dashboardConfig) {
+    dashboardConfig = {};
+  }
+
+  if (!dashboardConfig.timers) {
+    dashboardConfig.timers = {};
+    if (!dashboardConfig?.timers?.['World 5']) {
+      dashboardConfig.timers['World 5'] = baseTrackers?.timers?.['World 5'];
+    }
+  }
+
+  const cookingOptions = dashboardConfig.account['World 4'].cooking.options.map((meal) => {
+    if (meal?.name === 'meals') return { name: 'meals', checked: true, category: 'meals' };
+    return meal;
+  })
+  if (dashboardConfig?.account?.['World 4'] && dashboardConfig?.account?.['World 4']?.cooking?.options) {
+    dashboardConfig.account['World 4'].cooking.options = [
+      ...cookingOptions,
+      { name: 'alertOnlyCookedMeal', checked: false }
+    ]
+  }
+
+  dashboardConfig.version = 14;
+  return dashboardConfig
+}
+
+export const migrateToVersion15 = (config) => {
+  let dashboardConfig = { ...config };
+  if (!dashboardConfig) {
+    dashboardConfig = {};
+  }
+
+  if (dashboardConfig?.account?.['World 5']?.hole?.options?.length === 8) {
+    dashboardConfig.account['World 5'].hole.options = [
+      ...dashboardConfig?.account?.['World 5']?.hole?.options,
+      { name: 'villagersLevelUp', checked: true }
+    ]
+  }
+
+  if (!dashboardConfig?.timers?.['World 5']?.wisdom) {
+    dashboardConfig.timers['World 5'] = {
+      ...dashboardConfig.timers['World 5'],
+      wisdom: { checked: true, options: [] }
+    }
+  }
+
+  dashboardConfig.version = 15;
+  return dashboardConfig
+}
+
+export const migrateToVersion16 = (config) => {
+  let dashboardConfig = { ...config };
+  if (!dashboardConfig) {
+    dashboardConfig = {};
+  }
+
+  if (dashboardConfig?.account?.['World 5']?.hole?.options?.length === 9) {
+    dashboardConfig.account['World 5'].hole.options = [
+      ...dashboardConfig?.account?.['World 5']?.hole?.options,
+      {
+        name: 'wisdom',
+        checked: true,
+        type: 'input',
+        props: { label: 'Reward multi threshold', value: 1, minValue: 1, helperText: '' }
+      }
+    ]
+  }
+
+  dashboardConfig.version = 16;
+  return dashboardConfig
+}
+
+export const migrateToVersion17 = (config) => {
+  let dashboardConfig = { ...config };
+  if (!dashboardConfig) {
+    dashboardConfig = {};
+  }
+
+  if (dashboardConfig?.account?.['World 6']?.farming?.options?.length === 3) {
+    dashboardConfig.account['World 6'].farming.options = [
+      ...dashboardConfig?.account?.['World 6']?.farming?.options,
+      {
+        name: 'beanTrade',
+        type: 'input',
+        props: { label: 'Bean trade value', value: 1, minValue: 1, helperText: '' },
+        checked: false
+      }
+    ]
+  }
+
+  dashboardConfig.version = 17;
+  return dashboardConfig
+}
+
+export const migrateToVersion18 = (config) => {
+  let dashboardConfig = { ...config };
+  if (!dashboardConfig) {
+    dashboardConfig = {};
+  }
+
+  if (dashboardConfig?.account?.['World 5']?.hole?.options?.length === 10) {
+    dashboardConfig.account['World 5'].hole.options = [
+      ...dashboardConfig.account['World 5'].hole.options,
+      {
+        name: 'jars',
+        checked: true,
+        type: 'input',
+        props: { label: 'Jars threshold', value: 120, minValue: 1, maxValue: 120, helperText: 'Max of 120 jars' }
+      }
+    ]
+  }
+
+  if (dashboardConfig?.account?.['World 4']?.breeding?.options?.length === 3) {
+    dashboardConfig.account['World 4'].breeding.options = [
+      ...dashboardConfig.account['World 4'].breeding.options,
+      { name: 'breedability', type: 'input', props: { label: 'Level threshold', value: 5 }, checked: true }
+    ]
+  }
+
+  dashboardConfig.version = 18;
+  return dashboardConfig
+}
+export const migrateToVersion19 = (config) => {
+  let dashboardConfig = { ...config };
+  if (!dashboardConfig) {
+    dashboardConfig = {};
+  }
+
+  if (dashboardConfig?.account?.['World 2']?.islands?.options?.length === 2) {
+    dashboardConfig.account['World 2'].islands.options = [
+      ...dashboardConfig.account['World 2'].islands.options,
+      { name: 'garbageUpgrade', checked: true }
+    ]
+  }
+
+  dashboardConfig.version = 19;
+  return dashboardConfig
+}
+
+export const migrateToVersion20 = (config) => {
+  let dashboardConfig = { ...config };
+  if (!dashboardConfig) {
+    dashboardConfig = {};
+  }
+
+  if (dashboardConfig?.account?.['World 5']?.hole?.options?.length === 11) {
+    dashboardConfig.account['World 5'].hole.options = [
+      ...dashboardConfig?.account?.['World 5']?.hole?.options,
+      { name: 'studyLevelUp', checked: true }
+    ]
+  }
+
+  dashboardConfig.version = 20;
+  return dashboardConfig
+}
+
+export const migrateToVersion21 = (config) => {
+  let dashboardConfig = { ...config };
+  if (!dashboardConfig) {
+    dashboardConfig = {};
+  }
+
+  if (dashboardConfig?.characters?.crystalCountdown?.options?.length === 2) {
+    dashboardConfig.characters.crystalCountdown.options = [
+      ...dashboardConfig.characters.crystalCountdown.options,
+      {
+        category: 'skills',
+        name: 'skills',
+        type: 'array',
+        props: { value: getCrystalCountdownSkills(), type: 'img' },
+        checked: true
+      }
+    ]
+  }
+
+  dashboardConfig.version = 21;
+  return dashboardConfig
+}
+export const migrateToVersion22 = (config) => {
+  let dashboardConfig = { ...config };
+  if (!dashboardConfig) {
+    dashboardConfig = {};
+  }
+
+  if (dashboardConfig?.characters?.crystalCountdown?.options?.length === 3) {
+    dashboardConfig.characters.crystalCountdown.options = dashboardConfig.characters.crystalCountdown.options.map((item, index) => {
+      if (index === 1) {
+        return { name: 'showNonMaxed', checked: true }
+      }
+      return item;
+    })
+  }
+
+  dashboardConfig.version = 22;
+  return dashboardConfig
+}
+export const migrateToVersion23 = (config) => {
+  let dashboardConfig = { ...config };
+  if (!dashboardConfig) {
+    dashboardConfig = {};
+  }
+
+  if (!dashboardConfig?.account?.['World 6']?.etc) {
+    dashboardConfig.account['World 6'].etc = {
+      checked: true,
+      options: [
+        {
+          name: 'emperor',
+          type: 'input',
+          props: { label: 'Attempts', value: 20 },
+          checked: true
+        }
+      ]
+    }
+  }
+
+  dashboardConfig.version = 23;
+  return dashboardConfig
+}
+export const migrateToVersion24 = (config) => {
+  let dashboardConfig = { ...config };
+  if (!dashboardConfig) {
+    dashboardConfig = {};
+  }
+
+  if (!dashboardConfig?.characters?.classSpecific) {
+    dashboardConfig.characters.classSpecific = {
+      checked: true, options: [
+        { name: 'wrongItems', checked: true, helperText: 'Alert when using class-specific form items while outside form' },
+        {
+          name: 'betterWeapon',
+          checked: true,
+          helperText: 'Alert when there\'s a better form class-specific weapon in your inventory'
+        }
+      ]
+    }
+  }
+
+  dashboardConfig.version = 24;
+  return dashboardConfig
+}
+
+export const migrateToVersion25 = (config) => {
+  let dashboardConfig = { ...config };
+  if (!dashboardConfig) {
+    dashboardConfig = {};
+  }
+
+  const options = dashboardConfig?.account?.['World 2']?.killRoy?.options;
+  if (Array.isArray(options)) {
+    if (options.length === 0) {
+      dashboardConfig.account['World 2'].killRoy.options = [
+        { name: 'general', checked: true, helperText: 'Alert when Killroy is available' },
+        { name: 'underHundredKills', checked: true, helperText: 'Alert when current Killroy has monsters below 100 kills (for equinox)' }
+      ]
+    }
+  }
+
+  dashboardConfig.version = 25;
+  return dashboardConfig
+}
+
+export const migrateToVersion26 = (config) => {
+  let dashboardConfig = { ...config };
+  if (!dashboardConfig) {
+    dashboardConfig = {};
+  }
+
+  if (!dashboardConfig?.account) {
+    dashboardConfig.account = {};
+  }
+  if (!dashboardConfig?.account?.['World 7']) {
+    dashboardConfig.account['World 7'] = {};
+  }
+
+  dashboardConfig.version = 26;
+  return dashboardConfig
+}
+
+export const migrateToVersion27 = (config) => {
+  let dashboardConfig = { ...config };
+  if (!dashboardConfig) {
+    dashboardConfig = {};
+  }
+
+  if (!dashboardConfig?.account?.['World 7']?.gallery) {
+    if (!dashboardConfig?.account) {
+      dashboardConfig.account = {};
+    }
+    if (!dashboardConfig?.account?.['World 7']) {
+      dashboardConfig.account['World 7'] = {};
+    }
+    dashboardConfig.account['World 7'].gallery = {
+      checked: true,
+      options: [{ name: 'trophiesMissing', checked: true }, { name: 'nametagsMissing', checked: true }]
+    };
+  }
+
+  dashboardConfig.version = 27;
+  return dashboardConfig
+}
+
+export const migrateToVersion28 = (config) => {
+  let dashboardConfig = { ...config };
+  if (!dashboardConfig) {
+    dashboardConfig = {};
+  }
+
+  if (!dashboardConfig?.account) {
+    dashboardConfig.account = {};
+  }
+  if (!dashboardConfig?.account?.['World 7']) {
+    dashboardConfig.account['World 7'] = {};
+  }
+
+  if (!dashboardConfig?.account?.['World 7']?.spelunking) {
+    dashboardConfig.account['World 7'].spelunking = {
+      checked: true,
+      options: [{ name: 'pageReads', checked: true }]
+    };
+  }
+
+  if (!dashboardConfig?.account?.['World 7']?.legendTalents) {
+    dashboardConfig.account['World 7'].legendTalents = {
+      checked: true,
+      options: [{ name: 'pointsLeftToSpend', checked: true }]
+    };
+  }
+
+  const superTalentOptionExists = dashboardConfig?.characters?.talents?.options?.find(({ name }) => name === 'superTalentLeftToSpend');
+  if (dashboardConfig?.characters?.talents && !superTalentOptionExists) {
+    dashboardConfig.characters.talents.options = [
+      ...(dashboardConfig.characters.talents.options || []),
+      { name: 'superTalentLeftToSpend', checked: true }
+    ];
+  }
+
+  dashboardConfig.version = 28;
+  return dashboardConfig
+}
+
+export const migrateToVersion29 = (config) => {
+  let dashboardConfig = { ...config };
+  if (!dashboardConfig) {
+    dashboardConfig = {};
+  }
+
+  if (!dashboardConfig?.account) {
+    dashboardConfig.account = {};
+  }
+  if (!dashboardConfig?.account?.['World 7']) {
+    dashboardConfig.account['World 7'] = {};
+  }
+
+  if (!dashboardConfig?.account?.['World 7']?.zenithMarket) {
+    dashboardConfig.account['World 7'].zenithMarket = {
+      checked: true,
+      options: [{ name: 'doubleCluster', checked: true }]
+    };
+  }
+
+  if (!dashboardConfig?.account?.['World 7']?.spelunking) {
+    dashboardConfig.account['World 7'].spelunking = {
+      checked: true,
+      options: [{ name: 'pageReads', checked: true }]
+    };
+  }
+
+  if (dashboardConfig?.account?.['World 7']?.spelunking?.options?.length === 1) {
+    dashboardConfig.account['World 7'].spelunking.options = [
+      ...dashboardConfig.account['World 7'].spelunking.options,
+      {
+        name: 'fullStaminaCharacters',
+        type: 'input',
+        props: { label: 'Characters threshold', value: 1, minValue: 1 },
+        checked: true
+      },
+      {
+        name: 'overstimLevel',
+        type: 'input',
+        props: { label: 'Overstim level threshold', value: 1, minValue: 1 },
+        checked: true
+      }
+    ];
+  }
+
+  if (!dashboardConfig?.account) {
+    dashboardConfig.account = {};
+  }
+  if (!dashboardConfig?.account?.['World 7']) {
+    dashboardConfig.account['World 7'] = {};
+  }
+  if (!dashboardConfig?.account?.['World 7']?.construction) {
+    dashboardConfig.account['World 7'].construction = {
+      checked: true,
+      options: []
+    };
+  }
+
+  const jeweledCogsOptionExists = dashboardConfig?.account?.['World 7']?.construction?.options?.find(({ name }) => name === 'jeweledCogs');
+  if (!jeweledCogsOptionExists) {
+    dashboardConfig.account['World 7'].construction.options = [
+      ...(dashboardConfig.account['World 7'].construction.options || []),
+      { name: 'jeweledCogs', checked: true }
+    ];
+  }
+
+  dashboardConfig.version = 29;
+  return dashboardConfig
+}
+
+export const migrateToVersion30 = (config) => {
+  let dashboardConfig = { ...config };
+  if (!dashboardConfig) {
+    dashboardConfig = {};
+  }
+
+  if (dashboardConfig?.account?.General?.shops?.options) {
+    dashboardConfig.account.General.shops.options = dashboardConfig.account.General.shops.options.map((option) => {
+      if (option?.name === 'shops' && option?.type === 'array') {
+        return {
+          ...option,
+          props: { value: getRawShopItems(), type: 'img' }
+        };
+      }
+      return option;
+    });
+  }
+
+  dashboardConfig.version = 30;
+  return dashboardConfig
+}
+
+export const migrateToVersion31 = (config) => {
+  let dashboardConfig = { ...config };
+  if (!dashboardConfig) {
+    dashboardConfig = {};
+  }
+
+  if (dashboardConfig?.account?.['World 6']?.farming?.options?.length === 4) {
+    dashboardConfig.account['World 6'].farming.options = [
+      ...dashboardConfig.account['World 6'].farming.options,
+      { name: 'exoticPurchases', checked: true }
+    ];
+  }
+
+  if (dashboardConfig?.account?.['World 7']?.legendTalents?.options?.length === 1) {
+    dashboardConfig.account['World 7'].legendTalents.options = [
+      ...dashboardConfig.account['World 7'].legendTalents.options,
+      { name: 'cheaperMasterclassUpgrades', checked: true }
+    ];
+  }
+
+  dashboardConfig.version = 31;
+  return dashboardConfig
+}
+
+export const migrateToVersion32 = (config) => {
+  let dashboardConfig = { ...config };
+  if (!dashboardConfig) {
+    dashboardConfig = {};
+  }
+
+  // Migrate individual villager timers to grouped "villagers" timer
+  if (dashboardConfig?.timers?.['World 5']) {
+    const world5Timers = dashboardConfig.timers['World 5'];
+    const villagerTimerNames = ['villagerExplore', 'villagerEngineer', 'villagerBonuses', 'villagerMeasure', 'villagerStudies'];
+
+    // Check if any individual villager timers exist
+    const hasIndividualTimers = villagerTimerNames.some(name => world5Timers[name]);
+
+    if (hasIndividualTimers) {
+      // Determine if any were checked (preserve user preference)
+      const anyChecked = villagerTimerNames.some(name => world5Timers[name]?.checked);
+
+      // Remove individual villager timers
+      const { villagerExplore, villagerEngineer, villagerBonuses, villagerMeasure, villagerStudies, ...restTimers } = world5Timers;
+
+      // Add grouped villagers timer
+      dashboardConfig.timers['World 5'] = {
+        ...restTimers,
+        villagers: { checked: anyChecked, options: [] }
+      };
+    } else if (!world5Timers?.villagers) {
+      // If no individual timers exist and villagers doesn't exist, add it with default checked
+      dashboardConfig.timers['World 5'] = {
+        ...world5Timers,
+        villagers: { checked: true, options: [] }
+      };
+    }
+  }
+
+  dashboardConfig.version = 32;
+  return dashboardConfig
+}
+
+export const migrateToVersion33 = (config) => {
+  let dashboardConfig = { ...config };
+  if (!dashboardConfig) {
+    dashboardConfig = {};
+  }
+
+  // Add hatRack alert configuration to World 3
+  if (dashboardConfig?.account?.['World 3'] && !dashboardConfig.account['World 3'].hatRack) {
+    dashboardConfig.account['World 3'].hatRack = {
+      checked: true,
+      options: [{ name: 'hatsMissing', checked: true }]
+    };
+  }
+
+  dashboardConfig.version = 33;
+  return dashboardConfig;
+}
+
+export const migrateToVersion34 = (config) => {
+  let dashboardConfig = { ...config };
+  if (!dashboardConfig) {
+    dashboardConfig = {};
+  }
+
+  // Migrate construction options in all worlds
+  Object.keys(dashboardConfig?.account || {}).forEach((worldKey) => {
+    const world = dashboardConfig.account[worldKey];
+
+    if (world?.construction?.options) {
+      const options = world.construction.options;
+
+      // Find and migrate 'materials' option
+      const materialsIndex = options.findIndex(opt => opt.name === 'materials');
+      if (materialsIndex !== -1 && options[materialsIndex].category === 'refinery') {
+        options[materialsIndex] = {
+          name: 'materials',
+          type: 'array',
+          props: { value: getRawRefinerySalts(), type: 'img' },
+          checked: options[materialsIndex].checked,
+          category: 'Materials'
+        };
+      }
+
+      // Find and migrate 'rankUp' option
+      const rankUpIndex = options.findIndex(opt => opt.name === 'rankUp');
+      if (rankUpIndex !== -1) {
+        options[rankUpIndex] = {
+          name: 'rankUp',
+          type: 'array',
+          props: { value: getRawRefinerySalts(), type: 'img' },
+          checked: options[rankUpIndex].checked,
+          category: 'Refinery Rank up'
+        };
+      }
+    }
+  });
+
+  dashboardConfig.version = 34;
+  return dashboardConfig;
+};
+
+export const migrateToVersion35 = (config) => {
+  let dashboardConfig = { ...config };
+  if (!dashboardConfig) {
+    dashboardConfig = {};
+  }
+
+  const timers = dashboardConfig.timers || {};
+  const clickersDefaults = {
+    featherRestart: { checked: true, options: [], category: 'Orion' },
+    megaFeatherRestart: { checked: true, options: [] },
+    fisherooReset: { checked: true, options: [], category: 'Poppy' },
+    greatestCatch: { checked: true, options: [] },
+    megaFleshRestart: { checked: true, options: [], category: 'Bubba' }
+  };
+
+  const clickers = { ...(timers.Clickers || {}) };
+  if (timers['World 1']) {
+    if (timers['World 1'].featherRestart) {
+      clickers.featherRestart = { ...timers['World 1'].featherRestart, options: [], category: 'Orion' };
+    }
+    if (timers['World 1'].megaFeatherRestart) {
+      clickers.megaFeatherRestart = { ...timers['World 1'].megaFeatherRestart, options: [] };
+    }
+  }
+  if (timers['World 2']) {
+    if (timers['World 2'].fisherooReset) {
+      clickers.fisherooReset = { ...timers['World 2'].fisherooReset, options: [], category: 'Poppy' };
+    }
+    if (timers['World 2'].greatestCatch) {
+      clickers.greatestCatch = { ...timers['World 2'].greatestCatch, options: [] };
+    }
+  }
+  Object.keys(clickersDefaults).forEach((key) => {
+    if (!clickers[key]) clickers[key] = clickersDefaults[key];
+  });
+
+  const { 'World 1': _w1, 'World 2': _w2, ...restTimers } = timers;
+
+  dashboardConfig.timers = {
+    ...restTimers,
+    Clickers: clickers
+  };
+
+  dashboardConfig.version = 35;
+  return dashboardConfig;
+};
+
+export const migrateToVersion36 = (config) => {
+  let dashboardConfig = { ...config };
+  if (!dashboardConfig) {
+    dashboardConfig = {};
+  }
+
+  // Add skulls to World 2 killRoy options
+  const killRoyOptions = dashboardConfig?.account?.['World 2']?.killRoy?.options;
+  if (Array.isArray(killRoyOptions) && !killRoyOptions.some((opt) => opt?.name === 'skulls')) {
+    dashboardConfig.account['World 2'].killRoy.options = [
+      ...killRoyOptions,
+      { name: 'skulls', checked: true, helperText: 'Alert when you have unspent killroy skulls' }
+    ];
+  }
+
+  dashboardConfig.version = 36;
+  return dashboardConfig;
+};
+
+export const migrateToVersion37 = (config) => {
+  let dashboardConfig = { ...config };
+  if (!dashboardConfig) {
+    dashboardConfig = {};
+  }
+
+  if (dashboardConfig?.timers?.Etc) {
+    if (!dashboardConfig.timers.Etc.bonusTimeLeft) {
+      dashboardConfig.timers.Etc = {
+        ...dashboardConfig.timers.Etc,
+        bonusTimeLeft: { checked: true, options: [] }
+      };
+    }
+    if (!dashboardConfig.timers.Etc.meritocracyTimeLeft) {
+      dashboardConfig.timers.Etc = {
+        ...dashboardConfig.timers.Etc,
+        meritocracyTimeLeft: { checked: true, options: [] }
+      };
+    }
+  }
+
+  dashboardConfig.version = 37;
+  return dashboardConfig;
+};
+
+export const migrateToVersion38 = (config) => {
+  let dashboardConfig = { ...config };
+  if (!dashboardConfig) {
+    dashboardConfig = {};
+  }
+
+  // Re-apply salt list to construction trackers now that we have 9 salts instead of 6
+  Object.keys(dashboardConfig?.account || {}).forEach((worldKey) => {
+    const world = dashboardConfig.account[worldKey];
+
+    if (world?.construction?.options) {
+      const options = world.construction.options;
+      const salts = getRawRefinerySalts();
+
+      const materialsIndex = options.findIndex(opt => opt.name === 'materials');
+      if (materialsIndex !== -1) {
+        options[materialsIndex] = {
+          ...options[materialsIndex],
+          props: { value: salts, type: 'img' }
+        };
+      }
+
+      const rankUpIndex = options.findIndex(opt => opt.name === 'rankUp');
+      if (rankUpIndex !== -1) {
+        options[rankUpIndex] = {
+          ...options[rankUpIndex],
+          props: { value: salts, type: 'img' }
+        };
+      }
+    }
+  });
+
+  dashboardConfig.version = 38;
+  return dashboardConfig;
+};
+
+export const migrateToVersion39 = (config) => {
+  let dashboardConfig = { ...config };
+  if (!dashboardConfig) {
+    dashboardConfig = {};
+  }
+
+  if (!dashboardConfig?.account?.['World 7']?.minehead) {
+    if (!dashboardConfig?.account) dashboardConfig.account = {};
+    if (!dashboardConfig?.account?.['World 7']) dashboardConfig.account['World 7'] = {};
+    dashboardConfig.account['World 7'].minehead = {
+      checked: true,
+      options: [{ name: 'dailyTries', checked: true }]
+    };
+  }
+
+  dashboardConfig.version = 39;
+  return dashboardConfig;
+};
+
+export const migrateToVersion40 = (config) => {
+  let dashboardConfig = { ...config };
+  if (!dashboardConfig) {
+    dashboardConfig = {};
+  }
+
+  const etcOptions = dashboardConfig?.account?.General?.etc?.options;
+  if (etcOptions && !etcOptions.some(opt => opt.name === 'petMartGems')) {
+    etcOptions.push({ name: 'petMartGems', checked: true });
+  }
+
+  dashboardConfig.version = 40;
+  return dashboardConfig;
+};
+
+export const migrateToVersion41 = (config) => {
+  let dashboardConfig = { ...config };
+  if (!dashboardConfig) {
+    dashboardConfig = {};
+  }
+
+  if (!dashboardConfig?.account?.['World 7']?.research) {
+    if (!dashboardConfig.account) dashboardConfig.account = {};
+    if (!dashboardConfig.account['World 7']) dashboardConfig.account['World 7'] = {};
+    dashboardConfig.account['World 7'].research = {
+      checked: true,
+      options: [
+        {
+          name: 'insightLevel',
+          type: 'input',
+          props: { label: 'Insight level threshold', value: 3, minValue: 1 },
+          checked: true
+        }
+      ]
+    };
+  }
+
+  if (!dashboardConfig?.timers?.['World 7']) {
+    if (!dashboardConfig.timers) dashboardConfig.timers = {};
+    dashboardConfig.timers['World 7'] = {
+      researchLevelUp: { checked: true, options: [] }
+    };
+  }
+
+  dashboardConfig.version = 41;
+  return dashboardConfig;
+};
+
+export const migrateToVersion42 = (config) => {
+  let dashboardConfig = { ...config };
+  if (!dashboardConfig) {
+    dashboardConfig = {};
+  }
+
+  const libraryOptions = dashboardConfig?.account?.['World 3']?.library?.options;
+  if (libraryOptions) {
+    dashboardConfig.account['World 3'].library.options = libraryOptions.map((option) => {
+      if (option.name === 'books' && !option.type) {
+        return {
+          ...option,
+          type: 'input',
+          props: { label: 'Book threshold', value: 20, minValue: 1 }
+        };
+      }
+      return option;
+    });
+  }
+
+  dashboardConfig.version = 42;
+  return dashboardConfig;
+};
+
+export const migrateToVersion43 = (config) => {
+  let dashboardConfig = { ...config };
+  if (!dashboardConfig) {
+    dashboardConfig = {};
+  }
+
+  if (!dashboardConfig?.account?.['World 7']?.sushiStation) {
+    if (!dashboardConfig.account) dashboardConfig.account = {};
+    if (!dashboardConfig.account['World 7']) dashboardConfig.account['World 7'] = {};
+    dashboardConfig.account['World 7'].sushiStation = {
+      checked: true,
+      options: [
+        { name: 'fuelFull', checked: true },
+        { name: 'shakerUses', checked: true },
+        { name: 'knowledgeLevelUp', checked: true },
+      ]
+    };
+  }
+
+  dashboardConfig.version = 43;
+  return dashboardConfig;
+};
+
+const migration44 = (dashboardConfig) => {
+  const sushi = dashboardConfig?.account?.['World 7']?.sushiStation;
+  if (sushi) {
+    const oldOpts = sushi.options ?? [];
+    const shakerIdx = oldOpts.findIndex(o => o.name === 'shakerUses');
+    if (shakerIdx !== -1 && oldOpts[shakerIdx].type !== 'array') {
+      const wasChecked = oldOpts[shakerIdx].checked;
+      oldOpts[shakerIdx] = {
+        name: 'shakerUses',
+        type: 'array',
+        props: { value: { SushiUpg17: wasChecked, SushiUpg18: wasChecked, SushiUpg19: wasChecked }, type: 'img' },
+        checked: wasChecked
+      };
+    }
+  }
+  dashboardConfig.version = 44;
+  return dashboardConfig;
+};
+
+const migration45 = (dashboardConfig) => {
+  const research = dashboardConfig?.account?.['World 7']?.research;
+  if (research) {
+    const opts = research.options ?? [];
+    if (!opts.find(o => o.name === 'observationRollsLeft')) {
+      opts.push({ name: 'observationRollsLeft', checked: true });
+    }
+  }
+  dashboardConfig.version = 45;
+  return dashboardConfig;
+};
+
+const migration46 = (dashboardConfig) => {
+  if (!dashboardConfig.account) dashboardConfig.account = {};
+  if (!dashboardConfig.account['World 7']) dashboardConfig.account['World 7'] = {};
+  const existing = dashboardConfig.account['World 7'].theButton;
+  if (!existing) {
+    dashboardConfig.account['World 7'].theButton = {
+      checked: true,
+      options: [
+        { name: 'instaSkipAvailable', checked: true },
+        { name: 'taskReady', checked: true }
+      ]
+    };
+  } else {
+    const opts = existing.options ?? [];
+    if (!opts.find(o => o.name === 'taskReady')) {
+      opts.push({ name: 'taskReady', checked: true });
+    }
+    existing.options = opts;
+  }
+  dashboardConfig.version = 46;
+  return dashboardConfig;
+};
+
+const migration47 = (dashboardConfig) => {
+  const sneaking = dashboardConfig?.account?.['World 6']?.sneaking;
+  if (sneaking) {
+    const opts = sneaking.options ?? [];
+    if (!opts.find(o => o.name === 'remainingCharmRolls')) {
+      opts.push({ name: 'remainingCharmRolls', checked: true });
+    }
+    sneaking.options = opts;
+  }
+  dashboardConfig.version = 47;
+  return dashboardConfig;
+};
+
+const migration48 = (dashboardConfig) => {
+  const sneaking = dashboardConfig?.account?.['World 6']?.sneaking;
+  if (sneaking) {
+    const opts = sneaking.options ?? [];
+    const charmRollIndex = opts.findIndex(o => o.name === 'remainingCharmRolls');
+    if (charmRollIndex !== -1) {
+      opts.splice(charmRollIndex, 1);
+    }
+    if (!opts.find(o => o.name === 'remainingPristineRolls')) {
+      opts.push({ name: 'remainingPristineRolls', checked: true });
+    }
+    if (!opts.find(o => o.name === 'remainingSymbolRolls')) {
+      opts.push({ name: 'remainingSymbolRolls', checked: true });
+    }
+    sneaking.options = opts;
+  }
+  dashboardConfig.version = 48;
+  return dashboardConfig;
+};
+
+const migration49 = (dashboardConfig) => {
+  if (!dashboardConfig.timers) dashboardConfig.timers = {};
+  if (!dashboardConfig.timers['World 7']) dashboardConfig.timers['World 7'] = {};
+  if (!dashboardConfig.timers['World 7'].sushiFuelFull) {
+    dashboardConfig.timers['World 7'].sushiFuelFull = { checked: true, options: [] };
+  }
+  dashboardConfig.version = 49;
+  return dashboardConfig;
+};
+
+const migration50 = (dashboardConfig) => {
+  const etcOptions = dashboardConfig?.account?.General?.etc?.options;
+  if (etcOptions && !etcOptions.some((opt) => opt.name === 'dailyCrystals')) {
+    etcOptions.push({
+      name: 'dailyCrystals',
+      checked: true,
+      helperText: 'Alert when daily guaranteed crystal kills remain'
+    });
+  }
+  dashboardConfig.version = 50;
+  return dashboardConfig;
+};
+
+const migration51 = (dashboardConfig) => {
+  if (!dashboardConfig.timers) dashboardConfig.timers = {};
+  if (!dashboardConfig.timers['World 5']) dashboardConfig.timers['World 5'] = {};
+  if (!dashboardConfig.timers['World 5'].coinFill) {
+    dashboardConfig.timers['World 5'].coinFill = { checked: true, options: [] };
+  }
+  if (!dashboardConfig.timers['World 5'].marbleFill) {
+    dashboardConfig.timers['World 5'].marbleFill = { checked: true, options: [] };
+  }
+  dashboardConfig.version = 51;
+  return dashboardConfig;
+};
+
+const migration52 = (dashboardConfig) => {
+  const holeOptions = dashboardConfig?.account?.['World 5']?.hole?.options;
+  if (Array.isArray(holeOptions)) {
+    const motherlodeIndex = holeOptions.findIndex(o => o?.name === 'motherlode');
+    const insertAt = motherlodeIndex !== -1 ? motherlodeIndex + 1 : holeOptions.length;
+    const toInsert = [];
+    if (!holeOptions.some(o => o?.name === 'evertree')) {
+      toInsert.push({ name: 'evertree', checked: true });
+    }
+    if (!holeOptions.some(o => o?.name === 'bottomlessTrench')) {
+      toInsert.push({ name: 'bottomlessTrench', checked: true });
+    }
+    if (toInsert.length) {
+      holeOptions.splice(insertAt, 0, ...toInsert);
+    }
+  }
+  dashboardConfig.version = 52;
+  return dashboardConfig;
+};
+
+// Registry of migration functions indexed by target version.
+// Each migration receives (config, baseTrackers) — baseTrackers is only used by some.
+const migrations = {
+  2: migrateToVersion2,
+  3: migrateToVersion3,
+  4: migrateToVersion4,
+  5: migrateToVersion5,
+  6: migrateToVersion6,
+  7: migrateToVersion7,
+  8: migrateToVersion8,
+  9: migrateToVersion9,
+  10: migrateToVersion10,
+  11: migrateToVersion11,
+  12: migrateToVersion12,
+  13: migrateToVersion13,
+  14: migrateToVersion14,
+  15: migrateToVersion15,
+  16: migrateToVersion16,
+  17: migrateToVersion17,
+  18: migrateToVersion18,
+  19: migrateToVersion19,
+  20: migrateToVersion20,
+  21: migrateToVersion21,
+  22: migrateToVersion22,
+  23: migrateToVersion23,
+  24: migrateToVersion24,
+  25: migrateToVersion25,
+  26: migrateToVersion26,
+  27: migrateToVersion27,
+  28: migrateToVersion28,
+  29: migrateToVersion29,
+  30: migrateToVersion30,
+  31: migrateToVersion31,
+  32: migrateToVersion32,
+  33: migrateToVersion33,
+  34: migrateToVersion34,
+  35: migrateToVersion35,
+  36: migrateToVersion36,
+  37: migrateToVersion37,
+  38: migrateToVersion38,
+  39: migrateToVersion39,
+  40: migrateToVersion40,
+  41: migrateToVersion41,
+  42: migrateToVersion42,
+  43: migrateToVersion43,
+  44: migration44,
+  45: migration45,
+  46: migration46,
+  47: migration47,
+  48: migration48,
+  49: migration49,
+  50: migration50,
+  51: migration51,
+  52: migration52,
+};
+
+export const migrateConfig = (baseTrackers, userConfig) => {
+  if (baseTrackers?.version === userConfig?.version) return userConfig;
+  if (!Object.keys(userConfig || {}).length) return baseTrackers;
+
+  let migratedConfig = userConfig;
+  const startVersion = migratedConfig?.version || 1;
+  for (let v = startVersion + 1; v <= baseTrackers.version; v++) {
+    const migrate = migrations[v];
+    if (migrate) {
+      migratedConfig = migrate(migratedConfig, baseTrackers);
+    }
+  }
+  return migratedConfig;
+}

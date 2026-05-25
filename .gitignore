@@ -21,3 +21,8 @@ web/scripts/it-source/
 # Don't commit — fetch fresh from https://www.legendsofidleon.com/ytGl5oc/N.js if needed.
 .Njs-investigation.js
 *.Njs*
+
+# Personal "Copy for Support" dumps used as one-shot validation against IT's
+# live numbers. They contain account-identifying data — keep out of the repo.
+data from suport*.json
+data_from_suport*.json

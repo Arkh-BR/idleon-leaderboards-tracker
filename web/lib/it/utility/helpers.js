@@ -1,0 +1,1128 @@
+import { format, getDaysInMonth, getDaysInYear, intervalToDuration, isValid } from 'date-fns';
+import { drawerPages } from '@components/constants';
+import merge from 'lodash.merge';
+import { mapEnemiesArray, mapNames, monsters } from '@website-data'
+
+export const getTabs = (array, label, tabName, nestedTabName) => {
+  const navItem = array.find((item) => item.label === label);
+
+  if (!navItem) return [];
+
+  // If we're looking for a specific tab's nested tabs
+  if (tabName) {
+    const nestedItems = navItem.nestedTabs?.filter((item) => item.tab === tabName);
+
+    // If we're looking for a specific nested tab's nested tabs
+    if (nestedTabName) {
+      const deepNestedItem = nestedItems?.find((item) => item.nestedTab === nestedTabName);
+      return deepNestedItem?.nestedTabs || [];
+    }
+
+    // Just return the nested tab names for the specified tab
+    return nestedItems?.map(({ nestedTab }) => nestedTab) || [];
+  }
+
+  // Return top-level tabs
+  return navItem.tabs?.map((item) => item?.tab || item) || [];
+};
+
+export const downloadFile = (data, filename) => {
+  const blob = new Blob([data], { type: 'text/json' });
+  const link = document.createElement('a');
+
+  link.download = filename;
+  link.href = window.URL.createObjectURL(blob);
+  link.dataset.downloadurl = ['text/json', link.download, link.href].join(':');
+
+  const evt = new MouseEvent('click', {
+    view: window,
+    bubbles: true,
+    cancelable: true
+  });
+
+  link.dispatchEvent(evt);
+  link.remove()
+}
+
+export const sortKeys = (obj) => {
+  if (obj === null || typeof obj !== 'object') return obj;
+  if (Array.isArray(obj)) return obj.map(sortKeys);
+  return Object.keys(obj).sort().reduce((sorted, key) => {
+    sorted[key] = sortKeys(obj[key]);
+    return sorted;
+  }, {});
+};
+
+// Calculating days manually because of JS limitation for dates https://262.ecma-international.org/5.1/#sec-15.9.1.1
+const msPerDay = 8.64e+7;
+export const getTimeAsDays = (time) => {
+  return Math.ceil(time * 3600 * 1000 / msPerDay);
+}
+export const eventsColors = {
+  'Meteorite': '#f8e8b7',
+  'Mega_Grumblo': '#e6b471',
+  'Glacial_Guild': '#65b8d6',
+  'Snake_Swarm': '#3f9c61',
+  'Angry_Frogs': '#f6b5f8'
+}
+
+export const
+  number2letter = [
+    "_",
+    "a",
+    "b",
+    "c",
+    "d",
+    "e",
+    "f",
+    "g",
+    "h",
+    "i",
+    "j",
+    "k",
+    "l",
+    "m",
+    "n",
+    "o",
+    "p",
+    "q",
+    "r",
+    "s",
+    "t",
+    "u",
+    "v",
+    "w",
+    "x",
+    "y",
+    "z",
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "H",
+    "I",
+    "J",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "R",
+    "S",
+    "T",
+    "U",
+    "V",
+    "W",
+    "X",
+    "Y",
+    "Z",
+    "肥",
+    "肢",
+    "肖",
+    "肋",
+    "肉",
+    "職",
+    "耐",
+    "者",
+    "箱",
+    "管",
+    "算",
+    "箔",
+    "策",
+    "答",
+    "筒",
+    "筍",
+    "白",
+    "発",
+    "癒",
+    "痛",
+    "痕",
+    "病",
+    "疾",
+    "疲",
+    "潤",
+    "潜",
+    "漬",
+    "漠",
+    "演",
+    "漏",
+    "漁",
+    "滞",
+    "毎",
+    "殻",
+    "殺",
+    "段",
+    "殖",
+    "残",
+    "歳",
+    "歯",
+    "歩",
+    "武",
+    "歓",
+    "欲",
+    "次",
+    "欠",
+    "櫛",
+    "機",
+    "色",
+    "村",
+    "材",
+    "杉",
+    "本",
+    "末",
+    "未",
+    "木",
+    "授",
+    "掃",
+    "捧",
+    "彼",
+    "役",
+    "影",
+    "彫",
+    "彩",
+    "胃",
+    "堪",
+    "城",
+    "坑",
+    "努",
+    "助",
+    "加",
+    "功",
+    "力",
+    "創",
+    "割",
+    "借",
+    "候",
+    "倒",
+    "老",
+    "個",
+    "景",
+    "是",
+    "明",
+    "昇",
+    "早",
+    "既",
+    "掴",
+    "担",
+    "想",
+    "扉",
+    "戻",
+    "懸",
+    "懲",
+    "憩",
+    "態",
+    "感",
+    "蛮",
+    "蛍",
+    "虫",
+    "虚",
+    "蘇",
+    "薬",
+    "薄",
+    "蔵"
+];
+
+/** @returns {any} */
+export const tryToParse = (str) => {
+  try {
+    return JSON.parse(str);
+  } catch (err) {
+    return str;
+  }
+};
+
+export const findNameCombination = (arr, str) => {
+  if (!arr) return [];
+  let result = [];
+
+  function find(str, combination) {
+    if (str === '') {
+      result.push(combination);
+      return;
+    }
+
+    for (let i = 0; i < arr.length; i++) {
+      if (str?.startsWith(arr[i]?.name)) {
+        find(str.slice(arr[i]?.name?.length), [...combination, arr[i]]);
+      }
+    }
+  }
+
+  find(str, []);
+
+  return result.flat();
+}
+
+export const createArrayOfArrays = (array) => {
+  return array?.map((object) => {
+    if (!Array.isArray(object)) {
+      delete object?.length;
+    }
+    return Object.values(object);
+  });
+};
+
+export const createIndexedArray = (object) => {
+  const keys = Object.keys(object).map(Number).filter(k => !isNaN(k));
+  if (!keys.length) return Object.values(object);
+  const highest = Math.max(...keys);
+  let result = [];
+  for (let i = 0; i <= highest; i++) {
+    if (i in object) {
+      result[i] = object[i];
+    }
+    else {
+      result[i] = {};
+    }
+  }
+  return result;
+};
+
+// _customBlock_ArbitraryCode5Inputs
+export const growth = (func, level, x1, x2, shouldRound = true, _unused5) => {
+  let result;
+  switch (func) {
+    case 'add':
+      if (x2 !== 0) {
+        result = (((x1 + x2) / x2 + 0.5 * (level - 1)) / (x1 / x2)) * level * x1;
+      }
+      else {
+        result = x1 * level;
+      }
+      break;
+    case 'addLower':
+      result = x1 + x2 * (level + 1);
+      break;
+    case 'addDECAY':
+      if (level < 50001) {
+        result = x1 * level;
+      }
+      else {
+        result = x1 * Math.min(50000, level) + ((level - 50000) / (level - 50000 + 150000)) * x1 * 50000;
+      }
+      break;
+    case 'decay':
+      result = (x1 * level) / (level + x2);
+      break;
+    case 'decayLower':
+      result = (x1 * (level + 1)) / (level + 1 + x2) - (x1 * level) / (level + x2);
+      break;
+    case 'decayMulti':
+      result = 1 + (x1 * level) / (level + x2);
+      break;
+    case 'decayMultiLower':
+      result = (x1 * (level + 1)) / (level + 1 + x2) - (x1 * level) / (level + x2);
+      break;
+    case 'bigBase':
+      result = x1 + x2 * level;
+      break;
+    case 'bigBaseLower':
+      result = x2;
+      break;
+    case 'intervalAdd':
+      result = x1 + Math.floor(level / x2);
+      break;
+    case 'intervalAddLower':
+      result = Math.max(Math.floor((level + 1) / x2), 0) - Math.max(Math.floor(level / x2), 0);
+      break;
+    case 'reduce':
+      result = x1 - x2 * level;
+      break;
+    case 'reduceLower':
+      result = x1 - x2 * (level + 1);
+      break;
+    case 'PtsSpentOnGuildBonus':
+      result = (((x1 + x2) / x2 + 0.5 * (level - 1)) / (x1 / x2)) * level * x1 - x2 * level;
+      break;
+    case 'special1':
+      result = 100 - (level * x1) / (level + x2);
+      break;
+    default:
+      result = 0;
+  }
+  return shouldRound ? round(result) : result;
+};
+
+export const lavaLog = (num) => {
+  return Math.log(Math.max(num, 1)) / 2.30259;
+};
+
+export const lavaLog2 = (num) => {
+  return Math.log(Math.max(num, 1)) / Math.log(2);
+};
+
+export const round = (num) => {
+  return Math.round((num + Number.EPSILON) * 100) / 100;
+};
+
+export const createRange = (start, end) => {
+  const result = [];
+  for (let i = start; i <= end; i++) {
+    result.push(i);
+  }
+  return result;
+}
+export const cloneObject = (data) => {
+  try {
+    return structuredClone(data);
+  } catch (err) {
+    return data;
+  }
+};
+
+export const cleanUnderscore = (str) => {
+  try {
+    if (!str) return '';
+    return String(str)?.replace(/_/g, ' ');
+  } catch (err) {
+    console.log(`Error in cleanUnderscore for ${str}`, err);
+  }
+};
+
+export const getActivityIcon = (character) => {
+  const { afkTarget, targetMonster, monsterFace } = character || {};
+  if (!afkTarget || afkTarget === '_' || afkTarget === 'Nothing') return 'data/Afkz5';
+  if (monsterFace != null && monsterFace !== 0) return `data/Mface${monsterFace}`;
+  if (targetMonster) return `data/${targetMonster}_x1`;
+  return `afk_targets/${afkTarget}`;
+};
+
+export const getNumberWithOrdinal = (n) => {
+  const s = ['th', 'st', 'nd', 'rd'], v = n % 100;
+  return n + (s[(v - 20) % 10] || s[v] || s[0]);
+}
+
+export const kFormatter = (num, digits = 1) => {
+  if (num === undefined) return null;
+  const si = [
+    { value: 1, symbol: '' },
+    { value: 1e3, symbol: 'k' },
+    { value: 1e6, symbol: 'M' },
+    { value: 1e9, symbol: 'B' },
+    { value: 1e12, symbol: 'T' },
+    { value: 1e15, symbol: 'Q' },
+    { value: 1e18, symbol: 'QQ' }
+  ];
+  const rx = /\.0+$|(\.[0-9]*[1-9])0+$/;
+  let i;
+  for (i = si.length - 1; i > 0; i--) {
+    if (num >= si[i].value) {
+      break;
+    }
+  }
+  return (num / si[i].value).toFixed(digits).replace(rx, '$1') + si[i].symbol;
+};
+
+export const cashFormatter = (value) => {
+  if (value >= 1e22) return Math.ceil(value / 1e21) + 'QQQ';
+  if (value >= 1e19) return Math.ceil(value / 1e18) + 'QQ';
+  if (value >= 1e16) return Math.ceil(value / 1e15) + 'Q';
+  if (value >= 1e13) return Math.ceil(value / 1e12) + 'T';
+  if (value >= 1e10) return Math.ceil(value / 1e6) + 'M';
+  if (value >= 1e7) return (Math.floor(value / 1e5) / 10) + 'M';
+  return notateNumber(value, 'MultiplierInfo');
+}
+
+function splitDecimal(numStr, allowNegative = true) {
+  const hasNegation = numStr[0] === '-';
+  const addNegation = hasNegation && allowNegative;
+  numStr = numStr.replace('-', '');
+
+  const parts = numStr.split('.');
+  const beforeDecimal = parts[0];
+  const afterDecimal = parts[1] || '';
+
+  return {
+    beforeDecimal,
+    afterDecimal,
+    hasNegation,
+    addNegation
+  };
+}
+
+function applyThousandSeparator(
+  str,
+  thousandSeparator
+) {
+  const thousandsGroupRegex = /(\d)(?=(\d{3})+(?!\d))/g;
+  let index = str.search(/[1-9]/);
+  index = index === -1 ? str.length : index;
+  return (
+    str.substring(0, index) +
+    str.substring(index, str.length).replace(thousandsGroupRegex, '$1' + thousandSeparator)
+  );
+}
+
+export const numberWithCommas = (numStr, isFloat = true) => {
+  numStr = String(numStr);
+  const hasDecimalSeparator = numStr.indexOf('.') !== -1;
+  let { beforeDecimal, afterDecimal } = splitDecimal(numStr); // eslint-disable-line prefer-const
+  beforeDecimal = applyThousandSeparator(beforeDecimal, ',');
+  numStr = beforeDecimal + ((isFloat && hasDecimalSeparator && '.') || '') + (isFloat ? afterDecimal : '');
+  return numStr;
+}
+
+export const pascalCase = (str) => {
+  return str
+    ?.split(/_/g)
+    .map((word) => word.toLowerCase().charAt(0).toUpperCase() + word.substr(1).toLowerCase())
+    .join('_');
+};
+
+export const getCoinsArray = (coins) => {
+  if (!Number.isFinite(coins)) return [];
+  const highestCoinIndex = 25;
+  let n = BigInt(Math.floor(coins)).toString();
+
+  let ret = new Map();
+  let i = 1;
+  while (n.length > 0 && i < highestCoinIndex) {
+    if (n.length < 2) {
+      ret.set(i, Number(n));
+      n = '';
+      break;
+    }
+    const quantity = Number(n.slice(-2));
+    ret.set(i, quantity);
+    n = n.slice(0, -2);
+    i += 1
+  }
+
+  if (n.length > 0) {
+    ret.set(highestCoinIndex, Number(n));
+  }
+
+  if (ret.size === 0) {
+    ret.set(1, 0);
+  }
+
+  ret = new Map([...ret].sort((a, b) => a[0] - b[0]).reverse())
+  return Array.from(ret);
+};
+
+export const getBitIndex = (e) => {
+  let bits = e, num = 0;
+  for (let i = 0; i < 5; i++) {
+    if (bits > 1e18) {
+      bits /= 1e18;
+      num++;
+    }
+  }
+  return num;
+}
+export const notateNumber = (e, s) => {
+  if (s === 'bits') {
+    let bits = e, t = 0;
+    for (let i = 0; i < 5; i++) {
+      if (bits > 1e18) {
+        bits /= 1e18;
+        t++;
+      }
+    }
+    return 1e4 > bits
+      ? Math.floor(bits)
+      : 1e5 > bits
+        ? Math.floor(bits / 100) / 10 + 'K'
+        : 1e6 > bits
+          ? Math.floor(bits / 1e3) + 'K'
+          : 1e7 > bits
+            ? Math.floor(bits / 1e4) / 100 + 'M'
+            : 1e8 > bits
+              ? Math.floor(bits / 1e5) / 10 + 'M'
+              : 1e9 > bits
+                ? Math.floor(bits / 1e6) + 'M'
+                : 1e10 > bits
+                  ? Math.floor(bits / 1e7) / 100 + 'B'
+                  : 1e11 > bits
+                    ? Math.floor(bits / 1e8) / 10 + 'B'
+                    : 1e12 > bits
+                      ? Math.floor(bits / 1e9) + 'B'
+                      : 1e13 > bits
+                        ? Math.floor(bits / 1e10) / 100 + 'T'
+                        : 1e14 > bits
+                          ? Math.floor(bits / 1e11) / 10 + 'T'
+                          : 1e15 > bits
+                            ? Math.floor(bits / 1e12) + 'T'
+                            : 1e16 > bits
+                              ? Math.floor(bits / 1e13) / 100 + 'Q'
+                              : 1e17 > bits
+                                ? Math.floor(bits / 1e14) / 10 + 'Q'
+                                : 1e18 > bits
+                                  ? Math.floor(bits / 1e15) + 'Q'
+                                  : Math.floor(bits /
+                                    Math.pow(10, Math.floor(lavaLog(bits))) * 100)
+                                  / 100 + 'E' + Math.floor(lavaLog(bits))
+  }
+  return 'Whole' === s ? (1e4 > e ? '' + Math.floor(e)
+    : 1e6 > e ? Math.floor(e / 1e3) + 'K'
+      : 1e7 > e ? Math.floor(e / 1e5) / 10 + 'M'
+        : 1e9 > e ? Math.floor(e / 1e6) + 'M'
+          : 1e10 > e ? Math.floor(e / 1e8) / 10 + 'B'
+            : Math.floor(e / 1e9) + 'B')
+    : 'MultiplierInfo' === s ? (0 === (10 * e) % 10 ? Math.round(e) + '.00'
+      : 0 === (100 * e) % 10 ? Math.round(10 * e) / 10 + '0'
+        : Math.round(100 * e) / 100 + '')
+      : 'ThreeDecimals' === s ? '' + parseFloat((Math.round(1000 * e) / 1000).toFixed(3))
+        : 'Micro' === s ? (10 < e ? '' + Math.round(e)
+          : 0.1 < e ? '' + Math.round(10 * e) / 10
+            : 0.01 < e ? '' + Math.round(100 * e) / 100
+              : '' + Math.round(1e3 * e) / 1e3)
+          : 100 > e ? ('Small' === s ? (1 > e ? '' + Math.round(100 * e) / 100
+            : '' + Math.round(10 * e) / 10)
+            : 'Smallish' === s ? (10 > e ? '' + Math.round(10 * e) / 10
+              : '' + Math.round(e))
+              : 'Smaller' === s ? (10 > e ? '' + Math.round(100 * e) / 100
+                : '' + Math.round(10 * e) / 10)
+                : '' + Math.floor(e))
+            : 1e3 > e ? '' + Math.floor(e)
+              : 1e4 > e ? ('Bigish' === s ? '' + Math.floor(e)
+                : Math.ceil(e / 10) / 100 + 'K')
+                : 1e5 > e ? Math.ceil(e / 100) / 10 + 'K'
+                  : 1e6 > e ? Math.ceil(e / 1e3) + 'K'
+                    : 1e7 > e ? Math.ceil(e / 1e4) / 100 + 'M'
+                      : 1e8 > e ? Math.ceil(e / 1e5) / 10 + 'M'
+                        : 1e10 > e ? Math.ceil(e / 1e6) + 'M'
+                          : 1e13 > e ? Math.ceil(e / 1e9) + 'B'
+                            : 1e16 > e ? Math.ceil(e / 1e12) + 'T'
+                              : 1e19 > e ? Math.ceil(e / 1e15) + 'Q'
+                                : 1e22 > e ? Math.ceil(e / 1e18) + 'QQ'
+                                  : 1e24 > e ? Math.ceil(e / 1e21) + 'QQQ'
+                                    : 'TinyE' === s
+                                      ? '' + Math.floor(e / Math.pow(10, Math.floor(lavaLog(e))) * 10) / 10 + ('e' + Math.floor(lavaLog(e)))
+                                      : '' + Math.floor(e / Math.pow(10, Math.floor(lavaLog(e))) * 100) / 100 + ('E' + Math.floor(lavaLog(e)))
+}
+export const commaNotation = (number) => {
+  // Initialize variables
+  let formattedNumber = '';
+  const roundedNumberAsString = '' + Math.round(number);
+
+  // Initialize CommaDT1 and CommaDT2
+
+  // Calculate number of commas needed
+  const numberOfCommas = Math.floor((roundedNumberAsString.length - 1) / 3) + 1;
+
+  // Calculate number of digits after last comma
+  const digitsAfterLastComma = roundedNumberAsString.length - 3 * Math.floor((roundedNumberAsString.length - 1) / 3);
+
+  // Iterate over the number of commas and format the number
+  for (let i = 0; i < numberOfCommas; i++) {
+    if (i === 0) {
+      formattedNumber = roundedNumberAsString.substring(0, digitsAfterLastComma);
+    }
+    else {
+      formattedNumber += ',' + roundedNumberAsString.substring(digitsAfterLastComma + 3 * (i - 1), digitsAfterLastComma + 3 * i);
+    }
+  }
+
+  // Return formatted number
+  return formattedNumber;
+}
+
+
+export const constellationIndexes = (str) => {
+  const indexes = { _: 0, a: 1, b: 2, c: 3, d: 4, e: 5, f: 6, g: 7, h: 8, i: 9 };
+  return str
+    ?.split('')
+    ?.map((char) => indexes?.[char])
+    .sort((a, b) => a - b)
+    .map((ind) => ind + 1)
+    .join(',');
+};
+
+export const worlds = {
+  0: 'Blunder Hills',
+  1: 'Yum Yum Desert',
+  2: 'Frostbite Tundra',
+  3: 'Hyperion Nebula',
+  4: 'Smolderin\' Plateau',
+  5: 'Spirited Valley',
+  6: 'World 7'
+};
+
+const maxTimeValue = 9.007199254740992e+15;
+export const getDuration = (start, end) => {
+  if (!isValid(start) || !isValid(end)) {
+    return 0;
+  }
+  if (start > maxTimeValue || end > maxTimeValue) {
+    return {};
+  }
+  try {
+    const parsedStartTime = new Date(start);
+    const parsedEndTime = new Date(end);
+    let duration = intervalToDuration({ start: parsedStartTime, end: parsedEndTime });
+    if (duration?.years) {
+      const daysInYear = getDaysInYear(new Date());
+      duration.days = duration.days + daysInYear * duration?.years;
+      duration.years = 0;
+    }
+    if (duration?.months) {
+      const daysInMonth = getDaysInMonth(new Date());
+      duration.days = duration.days + daysInMonth * duration?.months;
+      duration.months = 0;
+    }
+    return duration;
+  } catch (err) {
+    console.error('getDuration -> Error occurred when trying to format date', start, end);
+    return {};
+  }
+};
+
+export const totalHoursBetweenDates = (start, end) => {
+  try {
+    const duration = intervalToDuration({ start, end });
+
+    // Convert years, months, and days into hours
+    const yearsToHours = duration.years * 365.25 * 24; // considering leap years
+    const monthsToHours = duration.months * 30.44 * 24; // average month length
+    const daysToHours = duration.days * 24;
+
+    // Calculate the total hours
+    return yearsToHours + monthsToHours + daysToHours + duration.hours;
+  } catch (e) {
+    console.error('totalHoursBetweenDates -> Error occurred when trying to format date', start, end);
+    return {};
+  }
+}
+
+export const fillArrayToLength = (length, array, defaultValue = {}) => {
+  return [...new Array(length)].map((item, index) => {
+    return array !== undefined ? array?.[index] ?? defaultValue : defaultValue;
+  });
+};
+
+export const splitTime = (numberOfHours) => {
+  const days = Math.floor(numberOfHours / 24);
+  const remainder = numberOfHours % 24;
+  const hours = Math.floor(remainder);
+  const minutes = Math.floor(60 * (remainder - hours));
+  return `${days}d:${hours}h:${minutes}m`;
+};
+
+export const randomFloatBetween = function (e, t) {
+  return e <= t ? e + Math.random() * (t - e) : t + Math.random() * (e - t)
+}
+
+export const flatten = (obj, out) => {
+  Object.keys(obj).forEach(key => {
+    if (typeof obj[key] == 'object') {
+      out = flatten(obj[key], out) //recursively call for nested
+    }
+    else {
+      out[key] = obj[key] //direct assign for values
+    }
+  });
+  return out;
+}
+
+export const sections = [
+  { name: 'Stats' },
+  { name: 'Talents' },
+  { name: 'Cards' },
+  { name: 'Prayers' },
+  { name: 'Equipment' },
+  { name: 'Inventory' },
+  { name: 'Bags' },
+  { name: 'Obols' },
+  { name: 'Obols Stats' },
+  { name: 'Skills' },
+  { name: 'Star Signs' },
+  { name: 'Post Office' },
+  { name: 'Anvil Details' },
+  { name: 'Chips' },
+  { name: 'Equipped Bubbles' }
+];
+
+export const isProd = process.env.NODE_ENV === 'production';
+
+export const getRandomNumbersArray = (length, max) => {
+  const arr = [];
+  while (arr.length < length) {
+    const r = Math.floor(Math.random() * max);
+    if (arr.indexOf(r) === -1) arr.push(r);
+  }
+  return arr;
+}
+export const shouldDisplayDrawer = (pathname = '') => {
+  return drawerPages.includes(pathname?.split('/').at(1))
+}
+
+export const getRealDateInMs = (ms, shouldFormat = true, formatString = 'dd/MM/yyyy HH:mm:ss') => {
+  const dateInMs = ms;
+  if (shouldFormat) {
+    return isValid(new Date(dateInMs))
+      ? format(dateInMs, formatString)
+      : `${notateNumber(getTimeAsDays(dateInMs))} days`;
+  }
+  return dateInMs;
+}
+
+export const msToDate = (ms) => {
+  // Calculate the number of hours, minutes, and seconds
+  const hours = Math.floor(ms / (1000 * 60 * 60));
+  const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
+  const seconds = Math.floor((ms % (1000 * 60)) / 1000);
+  const milliseconds = Math.floor(ms % 1000);
+
+  // Format each component to be two digits
+  const formattedHours = String(hours).padStart(2, '0');
+  const formattedMinutes = String(minutes).padStart(2, '0');
+  const formattedSeconds = String(seconds).padStart(2, '0');
+  const formattedMilliseconds = String(milliseconds).padStart(3, '0');
+
+  // Determine the formatted string based on the time
+  if (ms < 60000) {
+    // Include milliseconds if the time is under one minute
+    return `${formattedSeconds}s:${formattedMilliseconds}ms`;
+  }
+  else {
+    // Regular format for time above one minute
+    return `${formattedHours}h:${formattedMinutes}m:${formattedSeconds}s`;
+  }
+}
+
+export const fillMissingTalents = (arr) => {
+  const talentIds = arr.map(obj => obj.talentId);
+  const minTalentId = Math.min(...talentIds);
+  const maxTalentId = Math.max(...talentIds);
+
+  const missingNumbers = Array.from({ length: maxTalentId - minTalentId + 1 }, (_, i) => i + minTalentId)
+    .filter(num => !talentIds.includes(num))
+    .map(talentId => ({ talentId }));
+
+  return arr.concat(missingNumbers)
+}
+
+export const removeDuplicatesByKey = (array, key) => {
+  const uniqueKeys = new Set();
+  return array.filter(obj => {
+    const keyValue = obj[key];
+    if (!uniqueKeys.has(keyValue)) {
+      uniqueKeys.add(keyValue);
+      return true;
+    }
+    return false;
+  });
+}
+
+export const groupByKey = (array, callback) => {
+  return array.reduce(function (groups, item) {
+    const key = callback(item);
+
+    if (!groups[key]) {
+      groups[key] = [];
+    }
+
+    groups[key].push(item);
+    return groups;
+  }, {})
+}
+
+export const migrateConfig = (type, baseConfig, userConfig, baseVersion, userVersion) => {
+  if (baseVersion !== userVersion) {
+    if (type === 'account') {
+      return merge(baseConfig, renameSettingInPostOffice(userConfig));
+    }
+    else {
+      return merge(baseConfig, userConfig);
+    }
+  }
+  return merge(baseConfig, userConfig);
+}
+
+function renameSettingInPostOffice(obj) {
+  if (obj?.['World 2']?.postOffice && obj?.['World 2']?.postOffice.options) {
+    obj['World 2'].postOffice.options = obj?.['World 2']?.postOffice.options.map(option => {
+      if (option.name === 'shields') {
+        return { ...option, name: 'dailyShipments', category: 'dailyShipments' };
+      }
+      return option;
+    }).filter((option) => option.name !== 'postOffice');
+  }
+  return obj;
+}
+
+export const handleCopyToClipboard = async (data, beautify = true) => {
+  try {
+    const text = beautify ? JSON.stringify(data, null, 2) : data;
+    await navigator.clipboard.writeText(text);
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+export const handleDownload = (jsonData, fileName) => {
+  const blob = new Blob([JSON.stringify(jsonData, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${fileName}.json`;
+  document.body.appendChild(a);
+  a.click();
+
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+};
+
+const sanitizeRawData = (data) => {
+  if (!data?.MapBon) return data;
+  const mapBon = typeof data.MapBon === 'string' ? tryToParse(data.MapBon) : data.MapBon;
+  if (!Array.isArray(mapBon)) return data;
+  return {
+    ...data,
+    MapBon: mapBon.map((entry) => Array.isArray(entry) ? entry.slice(0, 3) : entry)
+  };
+};
+
+export const copyForSupport = async (account, characters) => {
+  const { expandLeaderboardInfo } = await import('../services/profiles');
+  const data = JSON.parse(sessionStorage.getItem('rawJson'));
+  const extraData = expandLeaderboardInfo(account, characters);
+  const sanitized = { ...data, data: sanitizeRawData(data?.data) };
+  await navigator.clipboard.writeText(JSON.stringify(sortKeys({ ...sanitized, extraData }), null, 2));
+};
+
+export const copyRawData = async () => {
+  const data = JSON.parse(sessionStorage.getItem('rawJson'));
+  await navigator.clipboard.writeText(JSON.stringify(sortKeys(sanitizeRawData(data?.data)), null, 2));
+};
+
+export const handleLoadJson = async (dispatch) => {
+  try {
+    const content = JSON.parse(await navigator.clipboard.readText());
+    let { data = content, charNames, companion, guildData, serverVars = {}, accountCreateTime, tournament } = content;
+    const { parseData } = await import('@parsers/index');
+    const parsedData = parseData(data, charNames, companion, guildData, serverVars, accountCreateTime, tournament);
+    const lastUpdated = new Date().getTime();
+    localStorage.setItem('lastUpdated', JSON.stringify(lastUpdated));
+    // console.log('Manual Import', { ...parsedData, lastUpdated, manualImport: true });
+    sessionStorage.setItem('rawJson', JSON.stringify({
+      data,
+      charNames,
+      companion,
+      guildData,
+      serverVars,
+      tournament,
+      lastUpdated
+    }))
+    dispatch({ type: 'data', data: { ...parsedData, lastUpdated, manualImport: true } });
+
+    if (typeof window.gtag !== 'undefined') {
+      window.gtag('event', 'save_imported', {
+        event_category: 'engagement',
+        event_label: 'manual',
+        value: parsedData?.characters?.length ?? 0
+      });
+    }
+  } catch (e) {
+    console.error('Error while trying to manual import', e);
+  }
+}
+
+export const isValidUrl = (url) => {
+  try {
+    new URL(url)
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+
+export const worldsArray = ['World 1', 'World 2', 'World 3', 'World 4', 'World 5', 'World 6', 'World 7'];
+export const prefix = isProd ? '/' : '/';
+
+export const excludedPortals = {
+  0: [0],
+  9: [0],
+  17: [0],
+  24: [1],
+  27: [0],
+  28: [0],
+  30: [0],
+  31: [0],
+  38: [0],
+  60: [1],
+  65: [0],
+  69: [0],
+  113: [0],
+  117: [0],
+  120: [0],
+  166: [0],
+  213: [0],
+  264: [0]
+}
+export const getFilteredPortals = () => {
+  const excludedMaps = [
+    'Nothing', 'Z', 'Copper',
+    'Iron', 'Starfire', 'Plat', 'Void',
+    'Filler', 'JungleZ', 'Grandfrog\'s_Gazebo',
+    'Grandfrog\'s_Backyard', 'Gravel_Tomb', 'Heaty_Hole',
+    'Igloo\'s_Basement', 'Inside_the_Igloo', 'End_Of_The_Road',
+    'Efaunt\'s_Tomb', 'Eycicles\'s_Nest', 'Enclave_a_la_Troll',
+    'Chizoar\'s_Cavern', 'KattleKruk\'s_Volcano', 'Castle_Interior', 'Emperor\'s_Castle'].toSimpleObject();
+  return Object.entries(mapNames).map(([mapIndex, mapName], index) => {
+    const rawName = mapEnemiesArray?.[index];
+    const { AFKtype } = monsters?.[rawName] || {};
+    return {
+      mapName,
+      mapIndex,
+      afkType: AFKtype
+    }
+  }).filter(({
+    mapName,
+    afkType
+  }) => afkType === 'FIGHTING' &&
+  !excludedMaps[mapName]
+  && !afkType.includes('Fish') && !afkType.includes('Bug') && !mapName.includes('Colosseum'));
+}
+
+// Parses shorthand notations like '12B', '2QQ', '3.2QQQ' into numbers
+// Also handles locale-specific thousands separators like '12.000.000' (German) or '12,000,000' (US)
+// Supports various international formats:
+// - US: '12,000.5' or '12,000'
+// - German/European: '12.000,5' or '12.000'
+// - French: '12 000,5' or '12 000'
+// - Decimal with comma: '12,5' (12.5)
+// - Decimal with period: '12.5' (12.5)
+export function parseShorthandNumber(input) {
+  if (typeof input !== 'string') return NaN;
+
+  const multipliers = {
+    '': 1,
+    k: 1e3,
+    m: 1e6,
+    b: 1e9,
+    t: 1e12,
+    q: 1e15
+  };
+
+  // First, extract any suffix and convert to lowercase
+  const lowerInput = input.trim().toLowerCase();
+
+  // Extract suffix (k, m, b, t, q, etc.) before cleaning
+  const suffixMatch = lowerInput.match(/([kmbtq]+)$/);
+  const suffix = suffixMatch ? suffixMatch[1] : '';
+  const withoutSuffix = suffixMatch ? lowerInput.slice(0, -suffix.length) : lowerInput;
+
+  // Now remove everything except digits, commas, and periods
+  // This is more robust than trying to list all possible separator characters
+  const cleaned = withoutSuffix.replace(/[^\d.,]/g, '');
+
+  const numberPart = cleaned;
+
+  // Validate that numberPart contains only digits, commas, and periods
+  if (!/^[\d.,]+$/.test(numberPart)) return NaN;
+
+  // Count occurrences of comma and period
+  const commaCount = (numberPart.match(/,/g) || []).length;
+  const periodCount = (numberPart.match(/\./g) || []).length;
+  const hasComma = commaCount > 0;
+  const hasPeriod = periodCount > 0;
+
+  let normalizedNumber = numberPart;
+
+  // Strategy: Determine which character is the decimal separator
+  if (hasComma && hasPeriod) {
+    // Both present: the last one is typically the decimal separator
+    const lastCommaIndex = numberPart.lastIndexOf(',');
+    const lastPeriodIndex = numberPart.lastIndexOf('.');
+
+    if (lastCommaIndex > lastPeriodIndex) {
+      // Comma is decimal separator (e.g., '12.000,5')
+      normalizedNumber = numberPart.replace(/\./g, '').replace(',', '.');
+    }
+    else {
+      // Period is decimal separator (e.g., '12,000.5')
+      normalizedNumber = numberPart.replace(/,/g, '');
+    }
+  }
+  else if (hasComma && !hasPeriod) {
+    // Only comma: determine if it's decimal or thousands separator
+    if (commaCount === 1) {
+      // Single comma: check context
+      const commaIndex = numberPart.indexOf(',');
+      const digitsAfterComma = numberPart.length - commaIndex - 1;
+      const digitsBeforeComma = commaIndex;
+
+      // Heuristic for determining separator type:
+      // 1. Exactly 3 digits after + 1-3 digits before = proper thousands separator
+      // 2. 1-2 digits after = decimal separator
+      // 3. 4+ digits after = likely misplaced thousands separator from editing (e.g., '131,3133' when typing '1313133')
+      //    Remove separator and treat as whole number
+      // 4. 3 digits after + 4+ digits before = decimal separator
+
+      const isProperThousandsSeparator = digitsAfterComma === 3 && digitsBeforeComma >= 1 && digitsBeforeComma <= 3;
+      const isMisplacedSeparator = digitsAfterComma >= 4;
+
+      if (isProperThousandsSeparator) {
+        // Thousands separator (e.g., '1,234', '12,345', '123,456')
+        normalizedNumber = numberPart.replace(',', '');
+      }
+      else if (isMisplacedSeparator) {
+        // Misplaced thousands separator from editing (e.g., '131,3133' → '1313133')
+        normalizedNumber = numberPart.replace(',', '');
+      }
+      else {
+        // Decimal separator (e.g., '12,5' or '123,45' or '1234,567')
+        normalizedNumber = numberPart.replace(',', '.');
+      }
+    }
+    else {
+      // Multiple commas: all are thousands separators (e.g., '1,234,567')
+      normalizedNumber = numberPart.replace(/,/g, '');
+    }
+  }
+  else if (hasPeriod && !hasComma) {
+    // Only period: determine if it's decimal or thousands separator
+    if (periodCount === 1) {
+      // Single period: check context
+      const periodIndex = numberPart.indexOf('.');
+      const digitsAfterPeriod = numberPart.length - periodIndex - 1;
+      const digitsBeforePeriod = periodIndex;
+
+      // Same heuristic as comma
+      const isProperThousandsSeparator = digitsAfterPeriod === 3 && digitsBeforePeriod >= 1 && digitsBeforePeriod <= 3;
+      const isMisplacedSeparator = digitsAfterPeriod >= 4;
+
+      if (isProperThousandsSeparator) {
+        // Thousands separator (e.g., '1.234', '12.345', '123.456')
+        normalizedNumber = numberPart.replace('.', '');
+      }
+      else if (isMisplacedSeparator) {
+        // Misplaced thousands separator from editing (e.g., '131.3133' → '1313133')
+        normalizedNumber = numberPart.replace('.', '');
+      }
+      else {
+        // Decimal separator (e.g., '12.5' or '123.45' or '1234.567')
+        normalizedNumber = numberPart; // Already correct
+      }
+    }
+    else {
+      // Multiple periods: all are thousands separators (e.g., '1.234.567')
+      normalizedNumber = numberPart.replace(/\./g, '');
+    }
+  }
+  // else: no comma or period, numberPart is already normalized
+
+  const num = parseFloat(normalizedNumber);
+  if (isNaN(num)) return NaN;
+
+  // Handle repeated Qs (QQ = 1e18, etc.)
+  if (suffix.startsWith('q') && suffix.length > 1) {
+    let base = 1e15;
+    for (let i = 1; i < suffix.length; i++) {
+      base *= 1e3;
+    }
+    return num * base;
+  }
+
+  return num * (multipliers[suffix] || 1);
+}
+
+export const worldColor = ['#64b564', '#f1ac45', '#00bcd4', '#864ede', '#de4e4e', '#5FF1B4FF', '#40e0d0'];
