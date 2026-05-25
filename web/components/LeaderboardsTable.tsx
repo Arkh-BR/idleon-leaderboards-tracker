@@ -343,42 +343,15 @@ function FragmentRow({
 }
 
 // Rank delta = oldRank - newRank, so positive = climbed (rank number went
-// DOWN, which is good). Green for improvement, red for regression, sky for
-// status pills (new/off) so they pop without competing with the gold accent.
+// DOWN, which is good). Green for improvement, red for regression.
 function RankDeltaBadge({ delta }: { delta: BoardDelta | undefined }) {
   if (!delta || delta.status === "nodata") {
     return <span className="text-zinc-700">—</span>;
   }
-  if (delta.status === "same") {
-    return <span className="text-zinc-500">—</span>;
-  }
-  if (delta.status === "new") {
-    return (
-      <span
-        className="inline-block px-1.5 py-0.5 rounded bg-sky-900/40 text-sky-300 border border-sky-700/40"
-        title="Joined this leaderboard since the snapshot"
-      >
-        new
-      </span>
-    );
-  }
-  if (delta.status === "off") {
-    return (
-      <span
-        className="inline-block px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-400 border border-zinc-700"
-        title="Fell off this leaderboard since the snapshot"
-      >
-        off
-      </span>
-    );
-  }
-  // status === "changed"
   const v = delta.rankDelta ?? 0;
   if (v === 0) return <span className="text-zinc-500">=</span>;
   if (v > 0) {
-    return (
-      <span className="text-emerald-400 font-semibold">▲ {v}</span>
-    );
+    return <span className="text-emerald-400 font-semibold">▲ {v}</span>;
   }
   return <span className="text-red-400 font-semibold">▼ {-v}</span>;
 }

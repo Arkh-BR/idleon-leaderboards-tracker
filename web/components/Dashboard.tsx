@@ -126,7 +126,7 @@ export default function Dashboard({
                     : "No net change"
               }
             />
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <SmallKpi
                 label="Boards climbed"
                 value={movement.gained}
@@ -136,12 +136,6 @@ export default function Dashboard({
                 label="Boards dropped"
                 value={movement.lost}
                 color="red"
-              />
-              <SmallKpi
-                label="Joined / Fell off"
-                value={`${movement.joined} / ${movement.fellOff}`}
-                color="sky"
-                hint={`${movement.joined} new boards, ${movement.fellOff} lost`}
               />
             </div>
           </div>

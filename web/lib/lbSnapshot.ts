@@ -53,17 +53,13 @@ export function saveSnapshot(player: string, boards: BoardResult[]): LbSnapshot 
 //   rankDelta > 0  → climbed (rank went DOWN numerically, e.g. 50 → 30 = +20)
 //   rankDelta < 0  → dropped
 //   rankDelta === 0 → unchanged
-//   null           → status not "changed" (new / off / nodata)
 //
 //   scoreDelta is just (currentScore - snapshotScore).
 //
 //   status:
-//     "changed" → both present, deltas valid
-//     "new"     → wasn't on board at snapshot, is now
-//     "off"     → was on board at snapshot, not now
-//     "same"    → both null (was and is unranked) — show "—"
-//     "nodata"  → no snapshot for this board at all
-export type BoardDeltaStatus = "changed" | "new" | "off" | "same" | "nodata";
+//     "changed" → both ranks present, deltas valid
+//     "nodata"  → no snapshot for this board (or missing rank on either side)
+export type BoardDeltaStatus = "changed" | "nodata";
 
 export type BoardDelta = {
   status: BoardDeltaStatus;
@@ -75,22 +71,10 @@ export function computeDelta(
   current: { myRank: number | null; myScore: number | null },
   snap: { rank: number | null; score: number | null } | undefined
 ): BoardDelta {
-  if (!snap) return { status: "nodata", rankDelta: null, scoreDelta: null };
-
-  const wasRanked = snap.rank !== null;
-  const isRanked = current.myRank !== null;
-
-  if (!wasRanked && !isRanked) {
-    return { status: "same", rankDelta: null, scoreDelta: null };
+  if (!snap || snap.rank === null || current.myRank === null) {
+    return { status: "nodata", rankDelta: null, scoreDelta: null };
   }
-  if (!wasRanked && isRanked) {
-    return { status: "new", rankDelta: null, scoreDelta: null };
-  }
-  if (wasRanked && !isRanked) {
-    return { status: "off", rankDelta: null, scoreDelta: null };
-  }
-  // Both ranked → compute deltas. Sign convention: positive = improvement.
-  const rankDelta = (snap.rank as number) - (current.myRank as number);
+  const rankDelta = snap.rank - current.myRank;
   const scoreDelta =
     current.myScore !== null && snap.score !== null
       ? current.myScore - snap.score
@@ -105,24 +89,18 @@ export function netRankMovement(deltas: BoardDelta[]): {
   gained: number;
   lost: number;
   unchanged: number;
-  joined: number;
-  fellOff: number;
 } {
   let total = 0;
   let gained = 0;
   let lost = 0;
   let unchanged = 0;
-  let joined = 0;
-  let fellOff = 0;
   for (const d of deltas) {
-    if (d.status === "new") joined++;
-    else if (d.status === "off") fellOff++;
-    else if (d.status === "changed" && d.rankDelta !== null) {
+    if (d.status === "changed" && d.rankDelta !== null) {
       total += d.rankDelta;
       if (d.rankDelta > 0) gained++;
       else if (d.rankDelta < 0) lost++;
       else unchanged++;
     }
   }
-  return { total, gained, lost, unchanged, joined, fellOff };
+  return { total, gained, lost, unchanged };
 }
