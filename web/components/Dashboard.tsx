@@ -114,7 +114,7 @@ export default function Dashboard({
         <Section
           title={`📸 Progress since ${new Date(snapshotAt).toLocaleDateString()}`}
         >
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="space-y-3">
             <NetKpi
               label="Net rank movement"
               value={movement.total}
@@ -126,22 +126,24 @@ export default function Dashboard({
                     : "No net change"
               }
             />
-            <SmallKpi
-              label="Boards climbed"
-              value={movement.gained}
-              color="emerald"
-            />
-            <SmallKpi
-              label="Boards dropped"
-              value={movement.lost}
-              color="red"
-            />
-            <SmallKpi
-              label="Joined / Fell off"
-              value={`${movement.joined} / ${movement.fellOff}`}
-              color="sky"
-              hint={`${movement.joined} new boards, ${movement.fellOff} lost`}
-            />
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <SmallKpi
+                label="Boards climbed"
+                value={movement.gained}
+                color="emerald"
+              />
+              <SmallKpi
+                label="Boards dropped"
+                value={movement.lost}
+                color="red"
+              />
+              <SmallKpi
+                label="Joined / Fell off"
+                value={`${movement.joined} / ${movement.fellOff}`}
+                color="sky"
+                hint={`${movement.joined} new boards, ${movement.fellOff} lost`}
+              />
+            </div>
           </div>
         </Section>
       )}
@@ -335,9 +337,10 @@ function Section({
   );
 }
 
-// Big "net rank movement" card. Sign convention: positive = climbed
-// (rank numbers went DOWN, which is good). Green for improvement, red for
-// regression, zinc for no change.
+// Full-width hero card. Sign convention: positive = climbed (rank numbers
+// went DOWN, which is good). Green for improvement, red for regression,
+// zinc for no change. Layout is horizontal so the giant number sits next
+// to its hint instead of stacking.
 function NetKpi({
   label,
   value,
@@ -350,24 +353,26 @@ function NetKpi({
   const sign = value > 0 ? "+" : "";
   const color =
     value > 0
-      ? "text-emerald-400 border-emerald-700/50 bg-emerald-950/20"
+      ? "text-emerald-400 border-emerald-700/50 bg-gradient-to-br from-emerald-950/30 to-zinc-900/40"
       : value < 0
-        ? "text-red-400 border-red-800/50 bg-red-950/20"
-        : "text-zinc-300 border-zinc-700/60 bg-zinc-900/30";
+        ? "text-red-400 border-red-800/50 bg-gradient-to-br from-red-950/30 to-zinc-900/40"
+        : "text-zinc-300 border-zinc-700/60 bg-gradient-to-br from-zinc-900/60 to-zinc-900/30";
   return (
-    <div
-      className={`col-span-2 md:col-span-2 rounded-lg border p-4 ${color}`}
-    >
-      <div className="text-xs uppercase tracking-wider opacity-80 mb-1">
-        {label}
+    <div className={`rounded-xl border p-5 ${color}`}>
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        <div className="flex items-baseline gap-4">
+          <div className="text-5xl font-bold tabular-nums leading-none">
+            {sign}
+            {value.toLocaleString()}
+          </div>
+          <div className="text-xs uppercase tracking-wider opacity-80 whitespace-nowrap">
+            {label}
+          </div>
+        </div>
+        {hint && (
+          <div className="text-xs opacity-70 max-w-md text-right">{hint}</div>
+        )}
       </div>
-      <div className="text-4xl font-bold tabular-nums leading-none">
-        {sign}
-        {value.toLocaleString()}
-      </div>
-      {hint && (
-        <div className="text-xs opacity-70 mt-2">{hint}</div>
-      )}
     </div>
   );
 }
