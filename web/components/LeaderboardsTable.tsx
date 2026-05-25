@@ -123,11 +123,8 @@ export default function LeaderboardsTable({ boards, deltas = {} }: Props) {
           bv = db;
           break;
         }
-        case "default":
-          // handled in the early-return above; keeps the switch exhaustive
-          av = 0;
-          bv = 0;
-          break;
+        // "default" is handled in the early-return above; TS narrows it
+        // out of the union so we don't need a case for it here.
       }
       if (av < bv) return sortDir === "asc" ? -1 : 1;
       if (av > bv) return sortDir === "asc" ? 1 : -1;
