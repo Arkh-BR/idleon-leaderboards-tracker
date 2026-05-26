@@ -2,22 +2,16 @@
 
 import { useCallback, useEffect, useState } from "react";
 import {
-  arcaneFactor,
   buildMapOptions,
   type MapOption,
 } from "@/lib/dropRate/arcaneBonus";
-import { buildDropRateTree, type TreeNode } from "@/lib/dropRate/treeBuilder";
 import { formatIdleon } from "@/lib/format";
 import { listCharacters, parseSave, type CharSummary } from "@/lib/dropRate/extract";
-import DrTree from "./DrTree";
-import CorganTree from "./CorganTree";
 import DeepView from "./DeepView";
 import type { CorganNode as DrNode } from "@/lib/corgan/node";
 import type { FlatTree } from "@/lib/dropRate/treeFlatten";
 
 const SAVE_KEY = "drop-rate-tracker.last-upload.v1";
-
-type ComputeFn = typeof import("@/lib/dropRate/breakdown").computeDropRateBreakdown;
 
 export type CalculatorState = {
   charIndex: number | null;
@@ -63,18 +57,18 @@ export default function DrCalculator({
   const [mapOptions, setMapOptions] = useState<MapOption[]>([
     { index: 0, name: "Town (no AC)", kills: 0, factor: 1, label: "Town (no AC)" },
   ]);
-  const [tree, setTree] = useState<TreeNode | null>(null);
-  const [baseDr, setBaseDr] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [status, setStatus] = useState<string | null>(null);
-  const [computing, setComputing] = useState(false);
 
-  // Which breakdown view to display: the detailed pool tree
-  // (LUK Scaling → Main Additive → LUK2 Additive → Post-Processing) used as
-  // the canonical DR, or the simpler additive/multiplicative panel.
-  const [tab, setTab] = useState<"it" | "detailed" | "deep">("detailed");
+  // Deep View is now the only renderer — the previous Detailed/Summary tabs
+  // were collapsed in favor of the full-depth view since it strictly
+  // supersedes both (every source from Detailed plus the sub-source layers
+  // that Summary couldn't reach). drTree comes from the Corgan-style compute
+  // (computeCorganDropRate) which matches the in-game value to within ~1%.
   const [drTree, setDrTree] = useState<DrNode | null>(null);
   const [drTotal, setDrTotal] = useState<number | null>(null);
+  // Loading flag: only true between the moment compute starts and when the
+  // tree lands. Used to gate the "Computing…" indicator under the tree pane.
+  const [computing, setComputing] = useState(false);
 
   // Chip Gallery: invisible +0.10 Gallery Bonus Multi when Lab chip 16
   // (Silkrode Motherboard) was active at the moment the gallery refreshed.
@@ -86,17 +80,6 @@ export default function DrCalculator({
     slot: number;
     labSlots?: number[][];
   } | null>(null);
-
-  // Dynamic-imported compute function — keeps the IT pipeline + website-data
-  // out of the initial bundle. Loaded on first compute call and cached.
-  const [computeFn, setComputeFn] = useState<ComputeFn | null>(null);
-
-  const loadComputeFn = useCallback(async (): Promise<ComputeFn> => {
-    if (computeFn) return computeFn;
-    const mod = await import("@/lib/dropRate/breakdown");
-    setComputeFn(() => mod.computeDropRateBreakdown);
-    return mod.computeDropRateBreakdown;
-  }, [computeFn]);
 
   const stageSave = useCallback((text: string, opts: { silent?: boolean } = {}) => {
     try {
@@ -142,51 +125,6 @@ export default function DrCalculator({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  // Recompute whenever save/char/map changes
-  useEffect(() => {
-    if (!save || chars.length === 0) {
-      setTree(null);
-      setBaseDr(null);
-      return;
-    }
-    let cancelled = false;
-    setComputing(true);
-    setStatus("Computing breakdown…");
-    loadComputeFn()
-      .then((compute) => {
-        if (cancelled) return;
-        const result = compute(save, charIdx);
-        const ch = chars.find((c) => c.charIndex === charIdx);
-        const charLabel = ch?.charName ?? `Char ${charIdx}`;
-        const map = mapOptions.find((m) => m.index === mapIdx);
-        const factor = map ? map.factor : arcaneFactor(0);
-        const mapLabel = map?.name ?? "Town";
-        const base = Number(result.breakdown?.dropRate ?? 0);
-        const t = buildDropRateTree(
-          result.breakdown?.breakdown as any,
-          base,
-          factor,
-          charLabel,
-          mapLabel
-        );
-        setTree(t);
-        setBaseDr(base);
-        setStatus(null);
-        setError(null);
-      })
-      .catch((e) => {
-        if (cancelled) return;
-        setError(e instanceof Error ? e.message : String(e));
-        setStatus(null);
-      })
-      .finally(() => {
-        if (!cancelled) setComputing(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [save, charIdx, mapIdx, chars, mapOptions, loadComputeFn]);
 
   // When the character selection changes, auto-jump to whatever map that
   // character was on at save time (CurrentMap_{ci}). Falls back to Town (0)
@@ -250,9 +188,11 @@ export default function DrCalculator({
     if (!save || chars.length === 0) {
       setDrTree(null);
       setDrTotal(null);
+      setComputing(false);
       return;
     }
     let cancelled = false;
+    setComputing(true);
     (async () => {
       try {
         const mod = await import("@/lib/corgan/computeDR");
@@ -262,12 +202,15 @@ export default function DrCalculator({
         });
         setDrTree(result.tree);
         setDrTotal(result.total);
+        setError(null);
       } catch (e) {
         if (!cancelled) {
           setError(
             "Drop rate compute failed: " + (e instanceof Error ? e.message : String(e))
           );
         }
+      } finally {
+        if (!cancelled) setComputing(false);
       }
     })();
     return () => {
@@ -275,24 +218,20 @@ export default function DrCalculator({
     };
   }, [save, charIdx, mapIdx, chars.length, chipGalleryActive]);
 
-  // Bubble state up to parent (so snapshot section can access it). The
-  // detailed compute (drTotal) already includes the arcaneMap node, so it's
-  // the FINAL value. The IT-style baseDr is pre-arcane, so we apply the
-  // factor manually in the fallback path.
+  // Bubble state up to parent (so snapshot section can access it). drTotal is
+  // the post-arcane FINAL value, so base = drTotal / arcaneFactor.
   useEffect(() => {
     if (!onStateChange) return;
     const ch = chars.find((c) => c.charIndex === charIdx);
     const map = mapOptions.find((m) => m.index === mapIdx);
     const factor = map ? map.factor : 1;
-    let bubbledTotal: number | null = null;
-    let bubbledBase: number | null = null;
-    if (drTotal !== null) {
-      bubbledTotal = drTotal;
-      bubbledBase = factor > 0 ? drTotal / factor : drTotal;
-    } else if (baseDr !== null) {
-      bubbledTotal = baseDr * factor;
-      bubbledBase = baseDr;
-    }
+    const bubbledTotal = drTotal;
+    const bubbledBase =
+      drTotal !== null
+        ? factor > 0
+          ? drTotal / factor
+          : drTotal
+        : null;
     onStateChange({
       charIndex: ch ? ch.charIndex : null,
       charName: ch?.charName ?? "",
@@ -309,10 +248,9 @@ export default function DrCalculator({
         : null,
       drTree,
     });
-  }, [charIdx, mapIdx, baseDr, drTotal, drTree, chars, mapOptions, save, onStateChange]);
+  }, [charIdx, mapIdx, drTotal, drTree, chars, mapOptions, save, onStateChange]);
 
   const onLoad = () => {
-    setStatus(null);
     if (!jsonText.trim()) {
       setError("Paste a raw save JSON first.");
       return;
@@ -321,19 +259,15 @@ export default function DrCalculator({
   };
 
   const factor = mapOptions.find((m) => m.index === mapIdx)?.factor ?? 1;
-  // Primary displayed DR uses the detailed pool-tree compute (matches in-game
-  // to within ~1%). The detailed tree already includes the arcaneMap node,
-  // so drTotal is the post-arcane FINAL value — don't multiply by factor
-  // again. The IT-style baseDr is pre-arcane, so it does need the factor.
-  let totalDr: number | null = null;
-  let displayBase: number | null = null;
-  if (drTotal !== null) {
-    totalDr = drTotal;
-    displayBase = factor > 0 ? drTotal / factor : drTotal;
-  } else if (baseDr !== null) {
-    totalDr = baseDr * factor;
-    displayBase = baseDr;
-  }
+  // drTotal is the post-arcane FINAL value; displayBase strips the map factor
+  // back out so we can show "(base X × Y map)" under the big DR number.
+  const totalDr = drTotal;
+  const displayBase =
+    drTotal !== null
+      ? factor > 0
+        ? drTotal / factor
+        : drTotal
+      : null;
 
   return (
     <div>
@@ -401,9 +335,6 @@ export default function DrCalculator({
         {error && (
           <p className="mt-2 text-xs text-red-300">{error}</p>
         )}
-        {status && (
-          <p className="mt-2 text-xs text-emerald-300">{status}</p>
-        )}
       </details>
 
       {/* Big DR card centralizado */}
@@ -446,70 +377,22 @@ export default function DrCalculator({
 
       {middleSlot && <div className="mb-4">{middleSlot}</div>}
 
-      {/* Formula breakdown tree */}
+      {/* Deep View — full-depth tree of every DR source + sub-source */}
       <div className="rounded-lg bg-zinc-900/60 border border-zinc-800 p-4 mb-4">
         <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
           <h2 className="text-base font-semibold text-sky-300">
-            Formula Breakdown
+            🔬 Deep View — Full Source Breakdown
           </h2>
-          <div
-            role="tablist"
-            className="inline-flex gap-1 p-1 rounded-md bg-zinc-950/60 border border-zinc-800"
-          >
-            <button
-              type="button"
-              role="tab"
-              aria-selected={tab === "detailed"}
-              onClick={() => setTab("detailed")}
-              className={`px-3 py-1 text-xs rounded ${
-                tab === "detailed"
-                  ? "bg-gold/15 text-gold border border-gold/40"
-                  : "text-zinc-400 hover:text-zinc-200"
-              }`}
-              title="Detailed pool tree: LUK Scaling → ×1.4 → Main Additive → LUK2 Additive → Sum/100+1 → Chip Cap-Break → Post-Processing"
-            >
-              🎲 Detailed
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={tab === "deep"}
-              onClick={() => setTab("deep")}
-              className={`px-3 py-1 text-xs rounded ${
-                tab === "deep"
-                  ? "bg-gold/15 text-gold border border-gold/40"
-                  : "text-zinc-400 hover:text-zinc-200"
-              }`}
-              title="Full-depth view: every source AND its sub-sources, fully populated. Search, filter, group by game system."
-            >
-              🔬 Deep View
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={tab === "it"}
-              onClick={() => setTab("it")}
-              className={`px-3 py-1 text-xs rounded ${
-                tab === "it"
-                  ? "bg-gold/15 text-gold border border-gold/40"
-                  : "text-zinc-400 hover:text-zinc-200"
-              }`}
-              title="Additive/multiplicative summary panel"
-            >
-              📊 Summary
-            </button>
-          </div>
         </div>
-        {(tab === "detailed" || tab === "deep") && drTotal !== null && (
+        {drTotal !== null && (
           <>
             <div className="mb-3 text-xs text-zinc-500">
-              {tab === "deep" ? "Deep view total" : "Detailed total"}:{" "}
+              Deep view total:{" "}
               <span className="text-amber-300 font-mono">
                 {drTotal.toFixed(3)}x
               </span>{" "}
-              {tab === "deep"
-                ? "— every source and sub-source populated, full formula depth, classifiable by game system."
-                : "— full pool tree, matches in-game values to within ~1% (includes the sushi 54 +1% Gallery Bonus Multi that older compute sites miss)."}
+              — every source and sub-source populated, full formula depth,
+              classifiable by game system.
             </div>
 
             {/* Chip Gallery toggle */}
@@ -560,31 +443,10 @@ export default function DrCalculator({
             </div>
           </>
         )}
-        {tab === "detailed" && compareBaseline && (
-          <div className="mb-3 text-xs text-sky-300 flex items-center gap-2 flex-wrap">
-            <span className="px-2 py-0.5 rounded bg-sky-500/15 border border-sky-500/40">
-              📐 Comparing vs snapshot
-            </span>
-            <span className="text-zinc-500">
-              {compareBaseline.charName} @{" "}
-              {new Date(compareBaseline.capturedAt).toLocaleString()}
-            </span>
-            <span className="text-zinc-600">
-              (delta column appears on every node)
-            </span>
-          </div>
-        )}
         {computing ? (
           <p className="text-sm text-zinc-500 italic">Computing…</p>
-        ) : tab === "detailed" ? (
-          <CorganTree
-            tree={drTree}
-            baseline={compareBaseline?.flatTree ?? null}
-          />
-        ) : tab === "deep" ? (
-          <DeepView tree={drTree} />
         ) : (
-          <DrTree tree={tree} />
+          <DeepView tree={drTree} />
         )}
       </div>
     </div>

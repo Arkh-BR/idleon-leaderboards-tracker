@@ -23,8 +23,80 @@
 // at-a-glance which sources are pulling the most weight.
 // ============================================================================
 
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { CorganNode } from "@/lib/corgan/node";
+
+// -----------------------------------------------------------------------------
+// Persisted expand state — survives reloads so the user's drilling stays put.
+//
+// `overrides` keys are node paths (parent / name / name ...). The default is
+// "open if depth < 2", so the user only sees rows in their map after they
+// click. `globalForce` is set by the Expand all / Collapse all buttons and
+// shifts the default for un-overridden paths; clicking a node clears that
+// node's override-to-default-flip but leaves the global force alone.
+// -----------------------------------------------------------------------------
+
+const EXPAND_STORAGE_KEY = "drop-rate.deep-view.expand-state.v1";
+const DEFAULT_OPEN_MAX_DEPTH = 2;
+
+type ExpandState = {
+  globalForce: "open" | "closed" | null;
+  overrides: Record<string, boolean>;
+};
+
+const DEFAULT_EXPAND_STATE: ExpandState = {
+  globalForce: null,
+  overrides: {},
+};
+
+function loadExpandState(): ExpandState {
+  if (typeof window === "undefined") return DEFAULT_EXPAND_STATE;
+  try {
+    const raw = window.localStorage.getItem(EXPAND_STORAGE_KEY);
+    if (!raw) return DEFAULT_EXPAND_STATE;
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed === "object" && parsed.overrides) {
+      return {
+        globalForce:
+          parsed.globalForce === "open" || parsed.globalForce === "closed"
+            ? parsed.globalForce
+            : null,
+        overrides:
+          typeof parsed.overrides === "object" && parsed.overrides !== null
+            ? parsed.overrides
+            : {},
+      };
+    }
+    return DEFAULT_EXPAND_STATE;
+  } catch {
+    return DEFAULT_EXPAND_STATE;
+  }
+}
+
+function saveExpandState(state: ExpandState) {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(EXPAND_STORAGE_KEY, JSON.stringify(state));
+  } catch {
+    // localStorage may be unavailable or full — silently degrade to memory-only
+  }
+}
+
+function joinPath(segments: string[]): string {
+  return segments.join(" / ");
+}
+
+function isPathOpen(
+  path: string,
+  depth: number,
+  state: ExpandState
+): boolean {
+  const override = state.overrides[path];
+  if (override !== undefined) return override;
+  if (state.globalForce === "open") return true;
+  if (state.globalForce === "closed") return false;
+  return depth < DEFAULT_OPEN_MAX_DEPTH;
+}
 
 // -----------------------------------------------------------------------------
 // Formatting helpers — same conventions as CorganTree so values look familiar
@@ -247,31 +319,32 @@ type TreeRowProps = {
   node: CorganNode;
   depth: number;
   parentPath: string[];
-  globalOpen: boolean;
+  expandState: ExpandState;
+  onToggle: (path: string, nextOpen: boolean) => void;
   searchTerm: string;
   hideZero: boolean;
   root: CorganNode;
   stats: TreeStats;
-  expandToken: number; // bumping this forces a re-mount → resets local open
 };
 
 function TreeRow({
   node,
   depth,
   parentPath,
-  globalOpen,
+  expandState,
+  onToggle,
   searchTerm,
   hideZero,
   root,
   stats,
-  expandToken,
 }: TreeRowProps) {
-  // Local override of the global open/closed state. Reset whenever expand-all
-  // is toggled (via the expandToken key) so the user can still drill in/out.
-  const [openOverride, setOpenOverride] = useState<boolean | null>(null);
-  void expandToken;
   const hasChildren = !!(node.children && node.children.length);
-  const open = openOverride !== null ? openOverride : globalOpen;
+  // Pool-weight badge — computed below (we need `path` first). Path itself
+  // doubles as the localStorage key, so it must be derived BEFORE the
+  // `open` lookup.
+  const pathSegments = [...parentPath, node.name];
+  const path = joinPath(pathSegments);
+  const open = isPathOpen(path, depth, expandState);
   const arrow = hasChildren ? (open ? "▾" : "▸") : "·";
 
   // Hide-zero: drop the node entirely if val is ~0 AND no descendant is
@@ -311,10 +384,9 @@ function TreeRow({
 
   // Pool-weight badge — for leaves under one of the additive pools, compute
   // their % of the pool sum so the user sees "this source = 32% of LUK2 pool".
-  const path = [...parentPath, node.name];
   let weightBadge: { label: string; tone: "weak" | "med" | "strong" } | null = null;
   if (!hasChildren && (node.fmt === "+" || node.fmt === "x")) {
-    const pool = findPoolForPath(root, path);
+    const pool = findPoolForPath(root, pathSegments);
     if (pool && stats.poolSums[pool]) {
       const sum = stats.poolSums[pool];
       if (sum !== 0) {
@@ -357,7 +429,7 @@ function TreeRow({
           hasChildren ? "cursor-pointer hover:bg-white/5" : ""
         }`}
         style={{ paddingLeft: `${0.5 + depth * 1.1}rem` }}
-        onClick={() => hasChildren && setOpenOverride(!open)}
+        onClick={() => hasChildren && onToggle(path, !open)}
         title={node.note}
       >
         <span className="w-4 text-zinc-500 select-none flex-shrink-0">
@@ -398,16 +470,16 @@ function TreeRow({
         <div className="bg-black/20 border-l-2 border-white/5">
           {node.children!.map((c, i) => (
             <TreeRow
-              key={`${depth}-${i}-${c.name}-${expandToken}`}
+              key={`${depth}-${i}-${c.name}`}
               node={c}
               depth={depth + 1}
-              parentPath={path}
-              globalOpen={globalOpen}
+              parentPath={pathSegments}
+              expandState={expandState}
+              onToggle={onToggle}
               searchTerm={searchTerm}
               hideZero={hideZero}
               root={root}
               stats={stats}
-              expandToken={expandToken}
             />
           ))}
         </div>
@@ -699,8 +771,46 @@ export default function DeepView({ tree }: { tree: CorganNode | null }) {
   const [layout, setLayout] = useState<"tree" | "system">("tree");
   const [searchTerm, setSearchTerm] = useState("");
   const [hideZero, setHideZero] = useState(false);
-  const [globalOpen, setGlobalOpen] = useState(true);
-  const [expandToken, setExpandToken] = useState(0);
+
+  // Persisted expand state: defaults to "depth < 2 open" until the user has
+  // clicked something. Loaded from localStorage on mount so toggles survive
+  // refreshes. We hydrate from a default in SSR/initial-render to avoid a
+  // mismatch, then sync from storage in an effect.
+  const [expandState, setExpandState] = useState<ExpandState>(
+    DEFAULT_EXPAND_STATE
+  );
+  useEffect(() => {
+    setExpandState(loadExpandState());
+  }, []);
+
+  const toggleNode = useCallback((path: string, nextOpen: boolean) => {
+    setExpandState((prev) => {
+      const next: ExpandState = {
+        globalForce: prev.globalForce,
+        overrides: { ...prev.overrides, [path]: nextOpen },
+      };
+      saveExpandState(next);
+      return next;
+    });
+  }, []);
+
+  const expandAll = useCallback(() => {
+    const next: ExpandState = { globalForce: "open", overrides: {} };
+    setExpandState(next);
+    saveExpandState(next);
+  }, []);
+
+  const collapseAll = useCallback(() => {
+    const next: ExpandState = { globalForce: "closed", overrides: {} };
+    setExpandState(next);
+    saveExpandState(next);
+  }, []);
+
+  const resetExpandState = useCallback(() => {
+    const next: ExpandState = { globalForce: null, overrides: {} };
+    setExpandState(next);
+    saveExpandState(next);
+  }, []);
 
   const stats = useMemo(() => computeStats(tree), [tree]);
 
@@ -767,15 +877,13 @@ export default function DeepView({ tree }: { tree: CorganNode | null }) {
           Hide zero
         </label>
 
-        {/* Expand/collapse all — only meaningful in tree layout */}
+        {/* Expand/collapse all — only meaningful in tree layout. Both
+            buttons persist to localStorage, so a reload keeps the state. */}
         {layout === "tree" && (
           <div className="inline-flex gap-1">
             <button
               type="button"
-              onClick={() => {
-                setGlobalOpen(true);
-                setExpandToken((v) => v + 1);
-              }}
+              onClick={expandAll}
               className="px-2 py-1 text-xs rounded border border-zinc-700 bg-zinc-900 text-zinc-300 hover:bg-zinc-800"
               title="Open every node"
             >
@@ -783,14 +891,19 @@ export default function DeepView({ tree }: { tree: CorganNode | null }) {
             </button>
             <button
               type="button"
-              onClick={() => {
-                setGlobalOpen(false);
-                setExpandToken((v) => v + 1);
-              }}
+              onClick={collapseAll}
               className="px-2 py-1 text-xs rounded border border-zinc-700 bg-zinc-900 text-zinc-300 hover:bg-zinc-800"
               title="Close every node"
             >
               Collapse all
+            </button>
+            <button
+              type="button"
+              onClick={resetExpandState}
+              className="px-2 py-1 text-xs rounded border border-zinc-800 bg-zinc-950 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800"
+              title="Reset to default: depth < 2 open, everything else closed"
+            >
+              Reset
             </button>
           </div>
         )}
@@ -823,12 +936,12 @@ export default function DeepView({ tree }: { tree: CorganNode | null }) {
             node={tree}
             depth={0}
             parentPath={[]}
-            globalOpen={globalOpen}
+            expandState={expandState}
+            onToggle={toggleNode}
             searchTerm={searchTerm}
             hideZero={hideZero}
             root={tree}
             stats={stats}
-            expandToken={expandToken}
           />
         </div>
       ) : (
