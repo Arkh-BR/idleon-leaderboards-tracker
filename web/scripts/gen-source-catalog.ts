@@ -271,6 +271,9 @@ function buildHtml(cat: typeof catalog): string {
     font-family: monospace; text-align: right; color: var(--ink);
     font-size: 12px;
   }
+  td.input {
+    white-space: nowrap;
+  }
   td.input input[type="number"] {
     width: 100px; padding: 4px 6px; font-size: 12px; font-family: monospace;
     background: #09090b; border: 1px solid var(--border); border-radius: 3px;
@@ -278,6 +281,18 @@ function buildHtml(cat: typeof catalog): string {
   }
   td.input input[type="number"]:focus { outline: none; border-color: var(--accent); }
   td.input input.filled { border-color: rgba(52, 211, 153, 0.4); background: rgba(52, 211, 153, 0.04); }
+  td.input .eq-ref {
+    margin-left: 4px;
+    background: #18181b; color: var(--ink-dim); border: 1px solid var(--border-strong);
+    border-radius: 3px; padding: 3px 6px; font-size: 10px; cursor: pointer;
+    font-family: monospace;
+  }
+  td.input .eq-ref:hover { color: var(--accent); border-color: var(--accent); }
+  td.input .eq-ref:disabled { opacity: 0.3; cursor: not-allowed; }
+  td.ref.has-override {
+    color: var(--gold);
+    font-weight: 600;
+  }
   td.notes input { width: 100%; }
   td.notes input, td.observed input {
     background: #09090b; border: 1px solid var(--border); border-radius: 3px;
@@ -360,10 +375,25 @@ function buildHtml(cat: typeof catalog): string {
     <button id="apply-seed" class="seed-btn" hidden title="Apply the IT-leaderboard-derived seed values">
       🌱 Apply IT seed
     </button>
+    <button id="set-all-ref"
+      title="For every BLANK row, copy its reference value into Max. Existing maxes are left alone."
+    >
+      = Fill blanks with ref
+    </button>
+    <label title="Load a snapshot JSON exported from the main app's Snapshot History. Refreshes the Ref column for every source.">
+      💾 Load save snapshot
+      <input type="file" id="snap-import" accept="application/json,.json" />
+    </label>
+    <button id="clear-ref-override" hidden
+      title="Discard the loaded save snapshot — revert Ref column to the catalog default (zArkhe)."
+    >
+      ✕ Clear save
+    </button>
     <span class="stats" id="stats"></span>
   </div>
 
   <div id="seed-banner" class="seed-banner" hidden></div>
+  <div id="ref-banner" class="seed-banner" hidden></div>
 
   <div id="content"></div>
 
@@ -380,6 +410,11 @@ function buildHtml(cat: typeof catalog): string {
   "use strict";
   const STORAGE_KEY = "dr-max-values.v1";
   const COLLAPSE_KEY = "dr-max-values.world-collapsed.v1";
+  // Override map: { [sourceId]: number } from a user-loaded save snapshot.
+  // Lives in localStorage so the loaded save persists across reloads.
+  const REF_OVERRIDE_KEY = "dr-max-values.ref-override.v1";
+  // Meta about the loaded snapshot: { charName, capturedAt }
+  const REF_META_KEY = "dr-max-values.ref-meta.v1";
 
   const catalog = JSON.parse(document.getElementById("catalog").textContent);
   document.getElementById("genstamp").textContent =
@@ -432,10 +467,52 @@ function buildHtml(cat: typeof catalog): string {
     catch (e) { /* quota */ }
   }
 
+  function loadRefOverride() {
+    try {
+      const raw = localStorage.getItem(REF_OVERRIDE_KEY);
+      if (!raw) return {};
+      const parsed = JSON.parse(raw);
+      return parsed && typeof parsed === "object" ? parsed : {};
+    } catch (e) { return {}; }
+  }
+  function saveRefOverride(v) {
+    try { localStorage.setItem(REF_OVERRIDE_KEY, JSON.stringify(v)); }
+    catch (e) { /* quota */ }
+  }
+  function loadRefMeta() {
+    try {
+      const raw = localStorage.getItem(REF_META_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      return parsed && typeof parsed === "object" ? parsed : null;
+    } catch (e) { return null; }
+  }
+  function saveRefMeta(m) {
+    try {
+      if (m) localStorage.setItem(REF_META_KEY, JSON.stringify(m));
+      else localStorage.removeItem(REF_META_KEY);
+    } catch (e) { /* quota */ }
+  }
+
   let values = loadValues();
   let collapsedWorlds = loadCollapsedWorlds();
+  let refOverride = loadRefOverride();
+  let refMeta = loadRefMeta();
   let filterText = "";
   let filterMode = "all"; // "all" | "blank" | "filled"
+
+  /** Effective reference value for a source — uses the loaded snapshot's
+   *  value when one is present, else falls back to the catalog default
+   *  (zArkhe baseline). */
+  function getRefValue(src) {
+    if (Object.prototype.hasOwnProperty.call(refOverride, src.id)) {
+      return Number(refOverride[src.id]) || 0;
+    }
+    return src.refValue;
+  }
+  function hasRefOverride(id) {
+    return Object.prototype.hasOwnProperty.call(refOverride, id);
+  }
 
   // Group catalog sources by world, then by bucket.
   function group() {
@@ -478,7 +555,29 @@ function buildHtml(cat: typeof catalog): string {
     return v.toFixed(2);
   }
 
+  function updateRefBanner() {
+    const banner = document.getElementById("ref-banner");
+    const clearBtn = document.getElementById("clear-ref-override");
+    if (refMeta) {
+      banner.hidden = false;
+      clearBtn.hidden = false;
+      const matched = refMeta.matchedCount || 0;
+      const total = refMeta.totalCount || catalog.sources.length;
+      banner.innerHTML =
+        '<span>💾 Reference loaded from <b>' + escapeHtml(refMeta.charName) + '</b> ' +
+        'snapshot taken ' +
+        new Date(refMeta.capturedAt).toLocaleString() + '. ' +
+        'Resolved <b>' + matched + '/' + total + '</b> sources. ' +
+        'Ref column shows your save\\'s values — use <b>= ref</b> per row or ' +
+        '<b>Fill blanks with ref</b> to bulk-apply.</span>';
+    } else {
+      banner.hidden = true;
+      clearBtn.hidden = true;
+    }
+  }
+
   function render() {
+    updateRefBanner();
     const content = document.getElementById("content");
     content.innerHTML = "";
     const byWorld = group();
@@ -591,9 +690,12 @@ function buildHtml(cat: typeof catalog): string {
       : '<span class="add">Additive</span>';
     tr.appendChild(tdPool);
 
+    const refVal = getRefValue(src);
     const tdRef = document.createElement("td");
-    tdRef.className = "ref";
-    tdRef.textContent = formatRef(src.refValue, src.fmt);
+    tdRef.className = "ref" + (hasRefOverride(src.id) ? " has-override" : "");
+    tdRef.textContent = formatRef(refVal, src.fmt);
+    if (hasRefOverride(src.id))
+      tdRef.title = "Loaded from " + (refMeta?.charName || "save snapshot");
     tr.appendChild(tdRef);
 
     const tdInput = document.createElement("td");
@@ -622,6 +724,27 @@ function buildHtml(cat: typeof catalog): string {
       updateStats();
     };
     tdInput.appendChild(maxInput);
+
+    // "= ref" — one-click copy of the current Ref into Max for this row.
+    const eqBtn = document.createElement("button");
+    eqBtn.type = "button";
+    eqBtn.className = "eq-ref";
+    eqBtn.textContent = "= ref";
+    eqBtn.title = "Set Max to the current reference value (" +
+      formatRef(refVal, src.fmt) + ")";
+    eqBtn.onclick = () => {
+      const v = Number(refVal) || 0;
+      maxInput.value = String(v);
+      const next = { ...(values[src.id] || {}) };
+      next.maxValue = v;
+      values[src.id] = next;
+      saveValues(values);
+      maxInput.classList.add("filled");
+      tr.classList.add("has-max");
+      tr.classList.remove("no-data");
+      updateStats();
+    };
+    tdInput.appendChild(eqBtn);
     tr.appendChild(tdInput);
 
     const tdObs = document.createElement("td");
@@ -767,6 +890,115 @@ function buildHtml(cat: typeof catalog): string {
       render();
     };
   }
+
+  // Bulk: fill every BLANK row's Max with its current Ref value. Filled
+  // rows are preserved — this is for fast onboarding, not bulk overwrite.
+  document.getElementById("set-all-ref").onclick = () => {
+    let filled = 0;
+    for (const src of catalog.sources) {
+      const cur = values[src.id];
+      if (cur && typeof cur.maxValue === "number") continue;
+      const refVal = Number(getRefValue(src)) || 0;
+      if (refVal === 0) continue; // skip empty refs — adds no info
+      const next = { ...(cur || {}) };
+      next.maxValue = refVal;
+      values[src.id] = next;
+      filled++;
+    }
+    saveValues(values);
+    alert(
+      "Set Max = Ref on " + filled + " blank rows. " +
+      "Already-filled rows kept their values."
+    );
+    render();
+  };
+
+  // Load a save snapshot JSON — the same format the main app's Snapshot
+  // History exports. We pull the most-recent snapshot's flatTree and use
+  // it to override the Ref column for every catalog source whose id
+  // matches a path in the flat tree.
+  document.getElementById("snap-import").onchange = (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const parsed = JSON.parse(String(reader.result || ""));
+        // Two shapes accepted:
+        //   1. The full storage export: { snapshotsByChar: { [char]: [...] } }
+        //   2. A single flatTree dump (unlikely but supported): { flatTree: {...} }
+        let latest = null;
+        let mostRecent = -Infinity;
+        if (parsed.snapshotsByChar && typeof parsed.snapshotsByChar === "object") {
+          for (const charName of Object.keys(parsed.snapshotsByChar)) {
+            const list = parsed.snapshotsByChar[charName];
+            if (!Array.isArray(list)) continue;
+            for (const snap of list) {
+              if (!snap || !snap.flatTree) continue;
+              const ts = Number(snap.capturedAt) || 0;
+              if (ts > mostRecent) {
+                mostRecent = ts;
+                latest = { charName: snap.charName || charName, flatTree: snap.flatTree, capturedAt: ts };
+              }
+            }
+          }
+        } else if (parsed.flatTree && typeof parsed.flatTree === "object") {
+          latest = {
+            charName: parsed.charName || "unknown",
+            flatTree: parsed.flatTree,
+            capturedAt: Number(parsed.capturedAt) || Date.now(),
+          };
+        }
+        if (!latest) {
+          alert(
+            "Couldn't find a snapshot with a flatTree in that file. " +
+            "Use the main app's Snapshot History → 💾 Save snapshot " +
+            "(captures the tree) → ↑ Export."
+          );
+          return;
+        }
+        // Build the override map — only keys present in the flatTree get
+        // overridden. Sources missing from the snapshot fall back to the
+        // catalog default (zArkhe).
+        const overrides = {};
+        let matched = 0;
+        for (const src of catalog.sources) {
+          if (Object.prototype.hasOwnProperty.call(latest.flatTree, src.id)) {
+            overrides[src.id] = Number(latest.flatTree[src.id]) || 0;
+            matched++;
+          }
+        }
+        refOverride = overrides;
+        refMeta = {
+          charName: latest.charName,
+          capturedAt: latest.capturedAt,
+          matchedCount: matched,
+          totalCount: catalog.sources.length,
+        };
+        saveRefOverride(refOverride);
+        saveRefMeta(refMeta);
+        alert(
+          "Loaded snapshot for " + latest.charName + " from " +
+          new Date(latest.capturedAt).toLocaleString() + ".\\n" +
+          matched + "/" + catalog.sources.length + " sources resolved."
+        );
+        render();
+      } catch (err) {
+        alert("Load failed: " + err.message);
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = "";
+  };
+
+  // Clear the loaded snapshot → revert Ref to the catalog default.
+  document.getElementById("clear-ref-override").onclick = () => {
+    refOverride = {};
+    refMeta = null;
+    saveRefOverride(refOverride);
+    saveRefMeta(null);
+    render();
+  };
 
   // Export → JSON download
   document.getElementById("export").onclick = () => {
