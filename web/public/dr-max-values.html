@@ -1,0 +1,607 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>DR Source Max Values — Research Tool</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<style>
+  :root {
+    color-scheme: dark;
+    --bg: #09090b;
+    --panel: rgba(24, 24, 27, 0.6);
+    --border: #27272a;
+    --border-strong: #3f3f46;
+    --ink: #e4e4e7;
+    --ink-dim: #71717a;
+    --ink-mute: #52525b;
+    --accent: #38bdf8;
+    --gold: #facc15;
+    --green: #34d399;
+    --red: #f87171;
+    --amber: #fbbf24;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    font-size: 14px;
+    line-height: 1.4;
+  }
+  .wrap { max-width: 1200px; margin: 0 auto; padding: 16px 20px 48px; }
+  header h1 { margin: 0 0 4px; font-size: 22px; color: var(--gold); font-weight: 700; }
+  header .sub { color: var(--ink-dim); font-size: 12px; margin-bottom: 18px; }
+  .toolbar {
+    display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+    padding: 10px; margin-bottom: 14px;
+    background: var(--panel); border: 1px solid var(--border); border-radius: 8px;
+  }
+  .toolbar input[type="search"] {
+    flex: 1; min-width: 200px;
+    background: #09090b; color: var(--ink);
+    border: 1px solid var(--border); border-radius: 4px;
+    padding: 6px 10px; font-size: 13px;
+  }
+  .toolbar input[type="search"]:focus { outline: none; border-color: var(--accent); }
+  .toolbar button, .toolbar label {
+    background: #18181b; color: var(--ink); border: 1px solid var(--border-strong);
+    border-radius: 4px; padding: 5px 10px; font-size: 12px; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 4px;
+  }
+  .toolbar button:hover, .toolbar label:hover { background: #27272a; }
+  .toolbar input[type="file"] { display: none; }
+  .toolbar select {
+    background: #18181b; color: var(--ink); border: 1px solid var(--border-strong);
+    border-radius: 4px; padding: 5px 8px; font-size: 12px;
+  }
+  .stats {
+    font-size: 12px; color: var(--ink-dim);
+    margin-left: auto;
+  }
+  .stats b { color: var(--ink); }
+  .world-section {
+    border: 1px solid var(--border); border-radius: 8px;
+    background: rgba(24, 24, 27, 0.4);
+    margin-bottom: 12px; overflow: hidden;
+  }
+  .world-header {
+    width: 100%; text-align: left;
+    background: none; color: var(--accent); border: none;
+    padding: 10px 14px; font-size: 16px; font-weight: 600;
+    display: flex; align-items: center; gap: 10px;
+    cursor: pointer; border-bottom: 1px solid transparent;
+  }
+  .world-header.open { border-bottom-color: var(--border); }
+  .world-header .arrow { color: var(--ink-mute); font-size: 12px; width: 14px; }
+  .world-header .count {
+    margin-left: auto; font-size: 11px; color: var(--ink-mute); font-weight: 400;
+  }
+  .world-header .progress {
+    font-size: 11px; color: var(--ink-mute); font-weight: 400;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .world-header .progress .bar {
+    width: 80px; height: 6px; background: #27272a; border-radius: 3px; overflow: hidden;
+  }
+  .world-header .progress .bar > i {
+    display: block; height: 100%; background: var(--green);
+  }
+  .bucket-group { padding: 2px 0 6px; }
+  .bucket-title {
+    color: var(--ink-dim); font-size: 11px; text-transform: uppercase;
+    letter-spacing: 0.08em; padding: 10px 14px 4px;
+  }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { padding: 6px 8px; text-align: left; vertical-align: top; }
+  th {
+    font-size: 10px; color: var(--ink-mute); text-transform: uppercase;
+    letter-spacing: 0.08em; border-bottom: 1px solid var(--border);
+    font-weight: 500;
+  }
+  td { font-size: 13px; border-bottom: 1px solid rgba(39, 39, 42, 0.4); }
+  tr:last-child td { border-bottom: none; }
+  td.name { color: var(--ink); font-weight: 500; }
+  td.system {
+    color: var(--ink-dim); font-size: 11px;
+  }
+  td.poolbadge { font-size: 10px; }
+  td.poolbadge span.add {
+    color: #93c5fd; background: rgba(59, 130, 246, 0.1);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    padding: 1px 6px; border-radius: 3px; font-family: monospace;
+  }
+  td.poolbadge span.mul {
+    color: var(--amber); background: rgba(251, 191, 36, 0.1);
+    border: 1px solid rgba(251, 191, 36, 0.3);
+    padding: 1px 6px; border-radius: 3px; font-family: monospace;
+  }
+  td.ref {
+    font-family: monospace; text-align: right; color: var(--ink);
+    font-size: 12px;
+  }
+  td.input input[type="number"] {
+    width: 100px; padding: 4px 6px; font-size: 12px; font-family: monospace;
+    background: #09090b; border: 1px solid var(--border); border-radius: 3px;
+    color: var(--ink); text-align: right;
+  }
+  td.input input[type="number"]:focus { outline: none; border-color: var(--accent); }
+  td.input input.filled { border-color: rgba(52, 211, 153, 0.4); background: rgba(52, 211, 153, 0.04); }
+  td.notes input { width: 100%; }
+  td.notes input, td.observed input {
+    background: #09090b; border: 1px solid var(--border); border-radius: 3px;
+    color: var(--ink); padding: 4px 6px; font-size: 12px;
+  }
+  td.observed input { width: 140px; }
+  td.verified select {
+    background: #09090b; border: 1px solid var(--border); border-radius: 3px;
+    color: var(--ink); padding: 4px 6px; font-size: 11px;
+  }
+  tr.no-data { opacity: 0.65; }
+  tr.has-max { background: rgba(52, 211, 153, 0.04); }
+  .filter-pill {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 11px; padding: 3px 8px;
+    border: 1px solid var(--border-strong); border-radius: 999px;
+    color: var(--ink-dim); cursor: pointer; background: #18181b;
+  }
+  .filter-pill.active {
+    color: var(--gold); border-color: rgba(250, 204, 21, 0.4);
+    background: rgba(250, 204, 21, 0.1);
+  }
+  footer {
+    margin-top: 30px; font-size: 11px; color: var(--ink-mute);
+    text-align: center; border-top: 1px solid var(--border); padding-top: 12px;
+  }
+  footer code { color: var(--ink-dim); }
+  .pulse { animation: pulse 1.2s ease-out; }
+  @keyframes pulse {
+    0% { background-color: rgba(56, 189, 248, 0.3); }
+    100% { background-color: transparent; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>🎯 DR Source Max Values — Research Tool</h1>
+    <div class="sub">
+      Stipulate the theoretical / observed maximum for every DR source.
+      Values persist in localStorage (browser-local). Use
+      <b>↑ Export</b> to ship a JSON for collaboration, <b>↓ Import</b>
+      to merge a teammate's.
+    </div>
+  </header>
+
+  <div class="toolbar">
+    <input type="search" id="search" placeholder="🔍 filter by source name, system, or world…" />
+    <button id="filter-blank" class="filter-pill" title="Show only sources without a max value yet">
+      Show only blanks
+    </button>
+    <button id="filter-mine" class="filter-pill" title="Show only sources I've filled in">
+      Show only filled
+    </button>
+    <button id="expand-all" title="Expand every world section">↓ Expand</button>
+    <button id="collapse-all" title="Collapse every world section">↑ Collapse</button>
+    <button id="export" title="Download a JSON of current max-value entries">↑ Export</button>
+    <label title="Import a teammate's JSON — merges, blanks don't overwrite filled values">
+      ↓ Import
+      <input type="file" id="import" accept="application/json,.json" />
+    </label>
+    <span class="stats" id="stats"></span>
+  </div>
+
+  <div id="content"></div>
+
+  <footer>
+    Catalog generated <code id="genstamp"></code> from reference save
+    <code id="refsave"></code>. Regenerate with
+    <code>npx tsx web/scripts/gen-source-catalog.ts</code>.
+  </footer>
+</div>
+
+<script type="application/json" id="catalog">{"generatedAt":"2026-05-26T15:37:31.211Z","refTotal":43093.43816941274,"refSave":"zArkhe (save 25-21-16.json) — Froggy Fields","sourceCount":75,"worldEmoji":{"Global":"🌐","Character":"👤","World 1":"1️⃣","World 2":"2️⃣","World 3":"3️⃣","World 4":"4️⃣","World 5":"5️⃣","World 6":"6️⃣","World 7":"7️⃣","Other":"❓"},"systemEmoji":{"LUK / Stats":"🍀","Talents":"🎯","Cards":"🃏","Star Signs":"⭐","Achievements":"🏆","Companions":"🐾","Friends":"🤝","Stamps":"📜","Alchemy":"⚗️","Sigils":"🔮","Prayers":"🙏","Shrines":"⛩️","Guild":"🛡️","Arcade":"🎮","Voting":"🗳️","Post Office":"📮","Shiny Pets":"🐉","Tome":"📖","Researching":"🔬","Chips":"💎","Dreams":"💭","Cloud Bonus":"☁️","Owl":"🦉","Grimoire":"📕","Vault":"🏦","Farming":"🌾","Holes":"🕳️","Emperor":"👑","Legend Talents":"⚔️","Spelunk Shop":"🪨","Sushi":"🍣","Minehead":"⛏️","Button":"🔘","Arcane Map":"🗺️","Glimbo":"🎲","Workshop":"🛠️","Gear":"🎽","Gallery":"🖼️","Hatrack":"🎩","Golden Food":"🍔","Set Bonuses":"🧰","Bundles":"🎁","Pristine Charms":"🌟","Sneaking Mastery":"🥷","Event Shop":"🛍️","Summoning":"🐲","Other":"🔹"},"worldOrder":["Global","Character","World 1","World 2","World 3","World 4","World 5","World 6","World 7","Other"],"sources":[{"id":"Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279)","name":"Robbing Hood (Talent 279)","system":"Talents","world":"Character","pool":"Additive","fmt":"raw","refValue":0,"bucket":"🎯 Talents"},{"id":"Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24)","name":"Curse Of Mr Looty Booty (Talent 24)","system":"Talents","world":"Character","pool":"Additive","fmt":"raw","refValue":0,"bucket":"🎯 Talents"},{"id":"Drop Rate / Additive Pool / 🎯 Talents / Boss Battle Spillover (Talent 655)","name":"Boss Battle Spillover (Talent 655)","system":"Talents","world":"Character","pool":"Additive","fmt":"+","refValue":58.51063829787235,"bucket":"🎯 Talents"},{"id":"Drop Rate / Additive Pool / 🃏 Cards / Drop Rate Cards (Card Type 10)","name":"Drop Rate Cards (Card Type 10)","system":"Cards","world":"Character","pool":"Additive","fmt":"+","refValue":371,"bucket":"🃏 Cards"},{"id":"Drop Rate / Additive Pool / 🃏 Cards / Damage / Drop / EXP Set Bonus (Card Set 5)","name":"Damage / Drop / EXP Set Bonus (Card Set 5)","system":"Cards","world":"Character","pool":"Additive","fmt":"+","refValue":36,"bucket":"🃏 Cards"},{"id":"Drop Rate / Additive Pool / 🃏 Cards / Drop Rate Set Bonus (Card Set 6)","name":"Drop Rate Set Bonus (Card Set 6)","system":"Cards","world":"Character","pool":"Additive","fmt":"+","refValue":0,"bucket":"🃏 Cards"},{"id":"Drop Rate / Additive Pool / 🃏 Cards / Domeo Magmus (Card mini5a)","name":"Domeo Magmus (Card mini5a)","system":"Cards","world":"Character","pool":"Additive","fmt":"+","refValue":10,"bucket":"🃏 Cards"},{"id":"Drop Rate / Additive Pool / 🃏 Cards / Ancient Golem (Card caveC)","name":"Ancient Golem (Card caveC)","system":"Cards","world":"Character","pool":"Additive","fmt":"+","refValue":28,"bucket":"🃏 Cards"},{"id":"Drop Rate / Additive Pool / 🃏 Cards / Idleon 4th Anniversary (Card anni4Event1)","name":"Idleon 4th Anniversary (Card anni4Event1)","system":"Cards","world":"Character","pool":"Additive","fmt":"+","refValue":6,"bucket":"🃏 Cards"},{"id":"Drop Rate / Additive Pool / 🃏 Cards / Luckulyte (Card luckEvent1)","name":"Luckulyte (Card luckEvent1)","system":"Cards","world":"Character","pool":"Additive","fmt":"+","refValue":9,"bucket":"🃏 Cards"},{"id":"Drop Rate / Additive Pool / ⭐ Star Signs / Star Signs","name":"Star Signs","system":"Star Signs","world":"Character","pool":"Additive","fmt":"+","refValue":170,"bucket":"⭐ Star Signs"},{"id":"Drop Rate / Additive Pool / 🏆 Achievements / Summoning GM (Achievement 377)","name":"Summoning GM (Achievement 377)","system":"Achievements","world":"Global","pool":"Additive","fmt":"+","refValue":6,"bucket":"🏆 Achievements"},{"id":"Drop Rate / Additive Pool / 🏆 Achievements / Big Big Hampter (Achievement 381)","name":"Big Big Hampter (Achievement 381)","system":"Achievements","world":"Global","pool":"Additive","fmt":"+","refValue":4,"bucket":"🏆 Achievements"},{"id":"Drop Rate / Additive Pool / 🐾 Companions / Crystal Custard (Companion 3)","name":"Crystal Custard (Companion 3)","system":"Companions","world":"World 1","pool":"Additive","fmt":"+","refValue":100,"bucket":"🐾 Companions"},{"id":"Drop Rate / Additive Pool / 🐾 Companions / Santa Snake (Companion 50)","name":"Santa Snake (Companion 50)","system":"Companions","world":"World 1","pool":"Additive","fmt":"+","refValue":25,"bucket":"🐾 Companions"},{"id":"Drop Rate / Additive Pool / 🐾 Companions / Quenchie (Companion 22)","name":"Quenchie (Companion 22)","system":"Companions","world":"World 1","pool":"Additive","fmt":"+","refValue":15,"bucket":"🐾 Companions"},{"id":"Drop Rate / Additive Pool / 🐾 Companions / Lucky Slug (Companion 158)","name":"Lucky Slug (Companion 158)","system":"Companions","world":"World 1","pool":"Additive","fmt":"+","refValue":15,"bucket":"🐾 Companions"},{"id":"Drop Rate / Additive Pool / 🐾 Companions / Clammie (Companion 111)","name":"Clammie (Companion 111)","system":"Companions","world":"World 1","pool":"Additive","fmt":"+","refValue":100,"bucket":"🐾 Companions"},{"id":"Drop Rate / Additive Pool / 🐾 Companions / Mama Troll (Companion 132)","name":"Mama Troll (Companion 132)","system":"Companions","world":"World 1","pool":"Additive","fmt":"+","refValue":100,"bucket":"🐾 Companions"},{"id":"Drop Rate / Additive Pool / 🤝 Friends / Friend Bonus","name":"Friend Bonus","system":"Friends","world":"Global","pool":"Additive","fmt":"+","refValue":50,"bucket":"🤝 Friends"},{"id":"Drop Rate / Additive Pool / 📜 Stamps / Golden Sixes Stamp (Stamp A38)","name":"Golden Sixes Stamp (Stamp A38)","system":"Stamps","world":"World 1","pool":"Additive","fmt":"+","refValue":139.40675913776363,"bucket":"📜 Stamps"},{"id":"Drop Rate / Additive Pool / ⚗️ Alchemy / Droppin Loads (Bubble 3,1)","name":"Droppin Loads (Bubble 3,1)","system":"Alchemy","world":"World 2","pool":"Additive","fmt":"+","refValue":39.673469387755105,"bucket":"⚗️ Alchemy"},{"id":"Drop Rate / Additive Pool / 🔮 Sigils / Trove Sigil (Sigil 11)","name":"Trove Sigil (Sigil 11)","system":"Sigils","world":"World 2","pool":"Additive","fmt":"+","refValue":1050,"bucket":"🔮 Sigils"},{"id":"Drop Rate / Additive Pool / 🙏 Prayers / Midas Minded (Prayer 7)","name":"Midas Minded (Prayer 7)","system":"Prayers","world":"World 3","pool":"Additive","fmt":"raw","refValue":0,"bucket":"🙏 Prayers"},{"id":"Drop Rate / Additive Pool / ⛩️ Shrines / Clover Shrine (Shrine 4)","name":"Clover Shrine (Shrine 4)","system":"Shrines","world":"World 3","pool":"Additive","fmt":"+","refValue":149.85000000000002,"bucket":"⛩️ Shrines"},{"id":"Drop Rate / Additive Pool / 🛡️ Guild / Gold Charm (Guild 10)","name":"Gold Charm (Guild 10)","system":"Guild","world":"Global","pool":"Additive","fmt":"+","refValue":20,"bucket":"🛡️ Guild"},{"id":"Drop Rate / Additive Pool / 🎮 Arcade / Drop Rate Arcade Bonus (Arcade 27)","name":"Drop Rate Arcade Bonus (Arcade 27)","system":"Arcade","world":"World 2","pool":"Additive","fmt":"+","refValue":60.298507462686565,"bucket":"🎮 Arcade"},{"id":"Drop Rate / Additive Pool / 🗳️ Voting / Voting Bonus (DR)","name":"Voting Bonus (DR)","system":"Voting","world":"World 2","pool":"Additive","fmt":"raw","refValue":0,"bucket":"🗳️ Voting"},{"id":"Drop Rate / Additive Pool / 📮 Post Office / Non Predatory Loot Box (Post Office 11)","name":"Non Predatory Loot Box (Post Office 11)","system":"Post Office","world":"World 2","pool":"Additive","fmt":"+","refValue":33.333333333333336,"bucket":"📮 Post Office"},{"id":"Drop Rate / Additive Pool / 🐉 Shiny Pets / Drop Rate Shiny Pet (Breeding 0)","name":"Drop Rate Shiny Pet (Breeding 0)","system":"Shiny Pets","world":"World 4","pool":"Additive","fmt":"+","refValue":60,"bucket":"🐉 Shiny Pets"},{"id":"Drop Rate / Additive Pool / 📖 Tome / Drop Rate Additive (Tome 2)","name":"Drop Rate Additive (Tome 2)","system":"Tome","world":"World 4","pool":"Additive","fmt":"+","refValue":379.1411706183201,"bucket":"📖 Tome"},{"id":"Drop Rate / Additive Pool / 🔬 Researching / Divine Design (Grid 173)","name":"Divine Design (Grid 173)","system":"Researching","world":"World 7","pool":"Additive","fmt":"+","refValue":30.5,"bucket":"🔬 Researching"},{"id":"Drop Rate / Additive Pool / 💭 Dreams / Equinox Symbols (Dream 10)","name":"Equinox Symbols (Dream 10)","system":"Dreams","world":"World 3","pool":"Additive","fmt":"+","refValue":350,"bucket":"💭 Dreams"},{"id":"Drop Rate / Additive Pool / 🦉 Owl / Summoning Owl","name":"Summoning Owl","system":"Owl","world":"World 1","pool":"Additive","fmt":"+","refValue":3663,"bucket":"🦉 Owl"},{"id":"Drop Rate / Additive Pool / 📕 Grimoire / Skull of Major Droprate (Grimoire 44)","name":"Skull of Major Droprate (Grimoire 44)","system":"Grimoire","world":"Character","pool":"Additive","fmt":"+","refValue":549,"bucket":"📕 Grimoire"},{"id":"Drop Rate / Additive Pool / 🏦 Vault / Drops for Days (Vault 18)","name":"Drops for Days (Vault 18)","system":"Vault","world":"Global","pool":"Additive","fmt":"+","refValue":109.19999999999999,"bucket":"🏦 Vault"},{"id":"Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9)","name":"Crop Drop Rate Rank (Farming rank9)","system":"Farming","world":"World 6","pool":"Additive","fmt":"+","refValue":2792.067179678233,"bucket":"🌾 Farming"},{"id":"Drop Rate / Additive Pool / 🌾 Farming / Crop Depot Bonus 7 (Farming cropSC7)","name":"Crop Depot Bonus 7 (Farming cropSC7)","system":"Farming","world":"World 6","pool":"Additive","fmt":"+","refValue":1234.1323725392888,"bucket":"🌾 Farming"},{"id":"Drop Rate / Additive Pool / 🌾 Farming / Pommelion Seed (Exotic 59)","name":"Pommelion Seed (Exotic 59)","system":"Farming","world":"World 6","pool":"Additive","fmt":"+","refValue":2.293369663941871,"bucket":"🌾 Farming"},{"id":"Drop Rate / Additive Pool / 🕳️ Holes / Gloomie Lootie (Cavern upg46)","name":"Gloomie Lootie (Cavern upg46)","system":"Holes","world":"World 5","pool":"Additive","fmt":"+","refValue":85,"bucket":"🕳️ Holes"},{"id":"Drop Rate / Additive Pool / 🕳️ Holes / Sanctum of LOOT (Cavern upg82)","name":"Sanctum of LOOT (Cavern upg82)","system":"Holes","world":"World 5","pool":"Additive","fmt":"+","refValue":860,"bucket":"🕳️ Holes"},{"id":"Drop Rate / Additive Pool / 🕳️ Holes / Drop Rate Measurement (Measurement 15)","name":"Drop Rate Measurement (Measurement 15)","system":"Holes","world":"World 5","pool":"Additive","fmt":"+","refValue":269.07332033176755,"bucket":"🕳️ Holes"},{"id":"Drop Rate / Additive Pool / 🕳️ Holes / Monument Drop Rate","name":"Monument Drop Rate","system":"Holes","world":"World 5","pool":"Additive","fmt":"+","refValue":443.20000000000005,"bucket":"🕳️ Holes"},{"id":"Drop Rate / Additive Pool / 👑 Emperor / Drop Rate Emperor Bonus (Emperor 11)","name":"Drop Rate Emperor Bonus (Emperor 11)","system":"Emperor","world":"World 6","pool":"Additive","fmt":"+","refValue":121,"bucket":"👑 Emperor"},{"id":"Drop Rate / Additive Pool / ⚔️ Legend Talents / Greatest Drop Party Ever (Legend 1)","name":"Greatest Drop Party Ever (Legend 1)","system":"Legend Talents","world":"World 7","pool":"Additive","fmt":"+","refValue":3500,"bucket":"⚔️ Legend Talents"},{"id":"Drop Rate / Additive Pool / 🪨 Spelunk Shop / Golden Hardhat (Spelunking 50)","name":"Golden Hardhat (Spelunking 50)","system":"Spelunk Shop","world":"World 7","pool":"Additive","fmt":"+","refValue":219,"bucket":"🪨 Spelunk Shop"},{"id":"Drop Rate / Additive Pool / 🎽 Gear / Equipment (etcBonus 2)","name":"Equipment (etcBonus 2)","system":"Gear","world":"Character","pool":"Additive","fmt":"+","refValue":0,"bucket":"🎽 Gear"},{"id":"Drop Rate / Additive Pool / 🎽 Gear / Obols (etcBonus 2)","name":"Obols (etcBonus 2)","system":"Gear","world":"Character","pool":"Additive","fmt":"+","refValue":265,"bucket":"🎽 Gear"},{"id":"Drop Rate / Additive Pool / 🖼️ Gallery / Nametags (etcBonus 2)","name":"Nametags (etcBonus 2)","system":"Gallery","world":"World 7","pool":"Additive","fmt":"+","refValue":312.46712165030243,"bucket":"🖼️ Gallery"},{"id":"Drop Rate / Additive Pool / 🖼️ Gallery / Trophies (etcBonus 2)","name":"Trophies (etcBonus 2)","system":"Gallery","world":"World 7","pool":"Additive","fmt":"+","refValue":4149.214033392433,"bucket":"🖼️ Gallery"},{"id":"Drop Rate / Additive Pool / 🎩 Hatrack / Hatrack (etcBonus 2)","name":"Hatrack (etcBonus 2)","system":"Hatrack","world":"World 3","pool":"Additive","fmt":"+","refValue":255.21000000000004,"bucket":"🎩 Hatrack"},{"id":"Drop Rate / Additive Pool / 🍔 Golden Food / Golden Food: DropRatez","name":"Golden Food: DropRatez","system":"Golden Food","world":"Character","pool":"Additive","fmt":"+","refValue":11244.048024695325,"bucket":"🍔 Golden Food"},{"id":"Drop Rate / Additive Pool / 🧰 Set Bonuses / Efaunt Set Bonus (Smithing efaunt)","name":"Efaunt Set Bonus (Smithing efaunt)","system":"Set Bonuses","world":"Global","pool":"Additive","fmt":"+","refValue":25,"bucket":"🧰 Set Bonuses"},{"id":"Drop Rate / Additive Pool / 🐲 Summoning / Drop Rate Summoning Win (Summoning 9)","name":"Drop Rate Summoning Win (Summoning 9)","system":"Summoning","world":"World 6","pool":"Additive","fmt":"+","refValue":575.00625,"bucket":"🐲 Summoning"},{"id":"Drop Rate / Post-Processing / 🎁 Bundles / Death Bringer Bundle (Bundle bun_v)","name":"Death Bringer Bundle (Bundle bun_v)","system":"Bundles","world":"Global","pool":"Additive","fmt":"+","refValue":2,"bucket":"🎁 Bundles"},{"id":"Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328)","name":"Archlord Of The Pirates (Talent 328)","system":"Talents","world":"Character","pool":"Multi","fmt":"x","refValue":1.2690808951104937,"bucket":"🎯 Talents"},{"id":"Drop Rate / Post-Processing / 🥷 Sneaking Mastery / Sneaking Completions (Sneaking Mastery)","name":"Sneaking Completions (Sneaking Mastery)","system":"Sneaking Mastery","world":"World 6","pool":"Additive","fmt":"+","refValue":0.3,"bucket":"🥷 Sneaking Mastery"},{"id":"Drop Rate / Post-Processing / 🃏 Cards / Drop Rate Multi Cards (Card Type 101)","name":"Drop Rate Multi Cards (Card Type 101)","system":"Cards","world":"Character","pool":"Multi","fmt":"+","refValue":21,"bucket":"🃏 Cards"},{"id":"Drop Rate / Post-Processing / 🐾 Companions / Mama Troll (Companion 132)","name":"Mama Troll (Companion 132)","system":"Companions","world":"World 1","pool":"Multi","fmt":"x","refValue":1.5,"bucket":"🐾 Companions"},{"id":"Drop Rate / Post-Processing / 🐾 Companions / Mallay (Companion 26)","name":"Mallay (Companion 26)","system":"Companions","world":"World 1","pool":"Multi","fmt":"x","refValue":1.3,"bucket":"🐾 Companions"},{"id":"Drop Rate / Post-Processing / 🐾 Companions / Glunko The Massive (Companion 160)","name":"Glunko The Massive (Companion 160)","system":"Companions","world":"World 1","pool":"Multi","fmt":"x","refValue":1.5,"bucket":"🐾 Companions"},{"id":"Drop Rate / Post-Processing / 🐾 Companions / Santa Snake (Companion 50)","name":"Santa Snake (Companion 50)","system":"Companions","world":"World 1","pool":"Multi","fmt":"x","refValue":1.01,"bucket":"🐾 Companions"},{"id":"Drop Rate / Post-Processing / 📖 Tome / Drop Rate Multi (Tome 7)","name":"Drop Rate Multi (Tome 7)","system":"Tome","world":"World 4","pool":"Multi","fmt":"+","refValue":26.677489021315992,"bucket":"📖 Tome"},{"id":"Drop Rate / Post-Processing / 💭 Dreams / Megaflesh Collector (Dream Challenge 69)","name":"Megaflesh Collector (Dream Challenge 69)","system":"Dreams","world":"World 3","pool":"Multi","fmt":"+","refValue":5,"bucket":"💭 Dreams"},{"id":"Drop Rate / Post-Processing / 🍣 Sushi / Unagi Nigiri (Sushi Tier 49) — Drop Rate (RoG Bonus 48)","name":"Unagi Nigiri (Sushi Tier 49) — Drop Rate (RoG Bonus 48)","system":"Sushi","world":"World 7","pool":"Multi","fmt":"+","refValue":10,"bucket":"🍣 Sushi"},{"id":"Drop Rate / Post-Processing / ⛏️ Minehead / Minehead Floor 0","name":"Minehead Floor 0","system":"Minehead","world":"World 7","pool":"Multi","fmt":"+","refValue":10,"bucket":"⛏️ Minehead"},{"id":"Drop Rate / Post-Processing / 🗺️ Arcane Map / Arcane Map Bonus","name":"Arcane Map Bonus","system":"Arcane Map","world":"Global","pool":"Multi","fmt":"+","refValue":0,"bucket":"🗺️ Arcane Map"},{"id":"Drop Rate / Post-Processing / 🎲 Glimbo / Glimbo DR Multi","name":"Glimbo DR Multi","system":"Glimbo","world":"World 7","pool":"Multi","fmt":"x","refValue":1.244,"bucket":"🎲 Glimbo"},{"id":"Drop Rate / Post-Processing / 🎽 Gear / Equipment (etcBonus 99)","name":"Equipment (etcBonus 99)","system":"Gear","world":"Character","pool":"Multi","fmt":"+","refValue":86.6,"bucket":"🎽 Gear"},{"id":"Drop Rate / Post-Processing / 🎽 Gear / Equipment (etcBonus 91)","name":"Equipment (etcBonus 91)","system":"Gear","world":"Character","pool":"Multi","fmt":"+","refValue":40,"bucket":"🎽 Gear"},{"id":"Drop Rate / Post-Processing / 🖼️ Gallery / Nametags (etcBonus 91)","name":"Nametags (etcBonus 91)","system":"Gallery","world":"World 7","pool":"Multi","fmt":"+","refValue":344.49014964551975,"bucket":"🖼️ Gallery"},{"id":"Drop Rate / Post-Processing / 🖼️ Gallery / Trophies (etcBonus 91)","name":"Trophies (etcBonus 91)","system":"Gallery","world":"World 7","pool":"Multi","fmt":"+","refValue":43.66776544802363,"bucket":"🖼️ Gallery"},{"id":"Drop Rate / Post-Processing / 🎩 Hatrack / Hatrack (etcBonus 91)","name":"Hatrack (etcBonus 91)","system":"Hatrack","world":"World 3","pool":"Multi","fmt":"+","refValue":7.24,"bucket":"🎩 Hatrack"},{"id":"Drop Rate / Post-Processing / 🎁 Bundles#1 / Explorer Bundle (Bundle bun_p)","name":"Explorer Bundle (Bundle bun_p)","system":"Bundles","world":"Global","pool":"Multi","fmt":"x","refValue":1.2,"bucket":"🎁 Bundles"},{"id":"Drop Rate / Post-Processing / 🌟 Pristine Charms / Cotton Candy (Pristine 3)","name":"Cotton Candy (Pristine 3)","system":"Pristine Charms","world":"World 6","pool":"Multi","fmt":"+","refValue":15,"bucket":"🌟 Pristine Charms"}]}</script>
+<script>
+(function () {
+  "use strict";
+  const STORAGE_KEY = "dr-max-values.v1";
+  const COLLAPSE_KEY = "dr-max-values.world-collapsed.v1";
+
+  const catalog = JSON.parse(document.getElementById("catalog").textContent);
+  document.getElementById("genstamp").textContent =
+    new Date(catalog.generatedAt).toLocaleString();
+  document.getElementById("refsave").textContent = catalog.refSave;
+
+  /** Per-source user data:
+   *    { [sourceId]: { maxValue?:number, observedOn?:string,
+   *                    notes?:string, verified?:string } }
+   *  verified ∈ "" | "observed" | "researched" | "theorized" */
+  function loadValues() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return {};
+      const parsed = JSON.parse(raw);
+      return parsed && typeof parsed === "object" ? parsed : {};
+    } catch (e) { return {}; }
+  }
+  function saveValues(v) {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(v)); }
+    catch (e) { /* quota */ }
+  }
+  function loadCollapsedWorlds() {
+    try {
+      const raw = localStorage.getItem(COLLAPSE_KEY);
+      if (!raw) return {};
+      const parsed = JSON.parse(raw);
+      return parsed && typeof parsed === "object" ? parsed : {};
+    } catch (e) { return {}; }
+  }
+  function saveCollapsedWorlds(v) {
+    try { localStorage.setItem(COLLAPSE_KEY, JSON.stringify(v)); }
+    catch (e) { /* quota */ }
+  }
+
+  let values = loadValues();
+  let collapsedWorlds = loadCollapsedWorlds();
+  let filterText = "";
+  let filterMode = "all"; // "all" | "blank" | "filled"
+
+  // Group catalog sources by world, then by bucket.
+  function group() {
+    const byWorld = new Map();
+    for (const src of catalog.sources) {
+      const w = src.world;
+      if (!byWorld.has(w)) byWorld.set(w, new Map());
+      const byBucket = byWorld.get(w);
+      if (!byBucket.has(src.bucket)) byBucket.set(src.bucket, []);
+      byBucket.get(src.bucket).push(src);
+    }
+    return byWorld;
+  }
+
+  function passFilter(src) {
+    const entry = values[src.id];
+    const hasMax = entry && typeof entry.maxValue === "number";
+    if (filterMode === "blank" && hasMax) return false;
+    if (filterMode === "filled" && !hasMax) return false;
+    if (filterText) {
+      const q = filterText.toLowerCase();
+      if (
+        !src.name.toLowerCase().includes(q) &&
+        !src.system.toLowerCase().includes(q) &&
+        !src.world.toLowerCase().includes(q) &&
+        !src.bucket.toLowerCase().includes(q) &&
+        !(entry && (entry.notes || "").toLowerCase().includes(q)) &&
+        !(entry && (entry.observedOn || "").toLowerCase().includes(q))
+      ) return false;
+    }
+    return true;
+  }
+
+  function formatRef(v, fmt) {
+    if (typeof v !== "number" || !isFinite(v)) return "—";
+    if (fmt === "x") return v.toFixed(3) + "x";
+    if (fmt === "+") return (v >= 0 ? "+" : "") + v.toFixed(3);
+    if (Math.abs(v) >= 1e6) return (v / 1e6).toFixed(2) + "M";
+    if (Math.abs(v) >= 1e3) return (v / 1e3).toFixed(2) + "K";
+    return v.toFixed(2);
+  }
+
+  function render() {
+    const content = document.getElementById("content");
+    content.innerHTML = "";
+    const byWorld = group();
+    let visibleSources = 0;
+    let filledSources = 0;
+    let totalSources = 0;
+    for (const src of catalog.sources) {
+      totalSources++;
+      if (values[src.id] && typeof values[src.id].maxValue === "number")
+        filledSources++;
+    }
+
+    for (const world of catalog.worldOrder) {
+      const buckets = byWorld.get(world);
+      if (!buckets || buckets.size === 0) continue;
+      // Filter at the source level to get a visible-count for this world
+      let worldVisible = 0;
+      let worldFilled = 0;
+      let worldTotal = 0;
+      for (const [, list] of buckets) {
+        for (const src of list) {
+          worldTotal++;
+          if (values[src.id] && typeof values[src.id].maxValue === "number")
+            worldFilled++;
+          if (passFilter(src)) worldVisible++;
+        }
+      }
+      if (worldVisible === 0) continue;
+      visibleSources += worldVisible;
+
+      const isCollapsed = !!collapsedWorlds[world];
+      const section = document.createElement("section");
+      section.className = "world-section";
+
+      const header = document.createElement("button");
+      header.className = "world-header" + (isCollapsed ? "" : " open");
+      header.type = "button";
+      const pct = worldTotal > 0 ? Math.round((worldFilled / worldTotal) * 100) : 0;
+      header.innerHTML =
+        '<span class="arrow">' + (isCollapsed ? "▸" : "▾") + '</span>' +
+        '<span>' + (catalog.worldEmoji[world] || "") + ' ' + escapeHtml(world) + '</span>' +
+        '<span class="progress">' +
+          '<span class="bar"><i style="width:' + pct + '%"></i></span>' +
+          worldFilled + '/' + worldTotal + ' filled' +
+        '</span>' +
+        '<span class="count">' + worldVisible + ' visible</span>';
+      header.onclick = () => {
+        collapsedWorlds[world] = !collapsedWorlds[world];
+        saveCollapsedWorlds(collapsedWorlds);
+        render();
+      };
+      section.appendChild(header);
+
+      if (!isCollapsed) {
+        for (const [bucketName, sources] of buckets) {
+          const visibleSrc = sources.filter(passFilter);
+          if (visibleSrc.length === 0) continue;
+          const group = document.createElement("div");
+          group.className = "bucket-group";
+          group.innerHTML = '<div class="bucket-title">' + escapeHtml(bucketName) + '</div>';
+          const table = document.createElement("table");
+          table.innerHTML =
+            '<thead><tr>' +
+              '<th>Source</th>' +
+              '<th>System</th>' +
+              '<th>Pool</th>' +
+              '<th style="text-align:right">Ref (zArkhe)</th>' +
+              '<th style="text-align:right">Max value</th>' +
+              '<th>Observed on</th>' +
+              '<th>Notes</th>' +
+              '<th>Status</th>' +
+            '</tr></thead>';
+          const tbody = document.createElement("tbody");
+          for (const src of visibleSrc) {
+            tbody.appendChild(renderRow(src));
+          }
+          table.appendChild(tbody);
+          group.appendChild(table);
+          section.appendChild(group);
+        }
+      }
+      content.appendChild(section);
+    }
+
+    document.getElementById("stats").innerHTML =
+      '<b>' + filledSources + '</b>/' + totalSources +
+      ' filled · <b>' + visibleSources + '</b> visible';
+  }
+
+  function renderRow(src) {
+    const entry = values[src.id] || {};
+    const hasMax = typeof entry.maxValue === "number";
+    const tr = document.createElement("tr");
+    tr.className = hasMax ? "has-max" : "no-data";
+
+    const tdName = document.createElement("td");
+    tdName.className = "name";
+    tdName.textContent = src.name;
+    tr.appendChild(tdName);
+
+    const tdSys = document.createElement("td");
+    tdSys.className = "system";
+    tdSys.textContent = (catalog.systemEmoji[src.system] || "") + " " + src.system;
+    tr.appendChild(tdSys);
+
+    const tdPool = document.createElement("td");
+    tdPool.className = "poolbadge";
+    tdPool.innerHTML = src.pool === "Multi"
+      ? '<span class="mul">Multi</span>'
+      : '<span class="add">Additive</span>';
+    tr.appendChild(tdPool);
+
+    const tdRef = document.createElement("td");
+    tdRef.className = "ref";
+    tdRef.textContent = formatRef(src.refValue, src.fmt);
+    tr.appendChild(tdRef);
+
+    const tdInput = document.createElement("td");
+    tdInput.className = "input";
+    const maxInput = document.createElement("input");
+    maxInput.type = "number";
+    maxInput.step = "any";
+    maxInput.placeholder = "—";
+    maxInput.value = hasMax ? String(entry.maxValue) : "";
+    if (hasMax) maxInput.classList.add("filled");
+    maxInput.oninput = () => {
+      const v = maxInput.value === "" ? undefined : Number(maxInput.value);
+      const next = { ...(values[src.id] || {}) };
+      if (v === undefined || isNaN(v)) {
+        delete next.maxValue;
+      } else {
+        next.maxValue = v;
+      }
+      if (Object.keys(next).length === 0) delete values[src.id];
+      else values[src.id] = next;
+      saveValues(values);
+      // Light-touch UI sync (no full re-render — keep focus + scroll)
+      maxInput.classList.toggle("filled", typeof next.maxValue === "number");
+      tr.classList.toggle("has-max", typeof next.maxValue === "number");
+      tr.classList.toggle("no-data", typeof next.maxValue !== "number");
+      updateStats();
+    };
+    tdInput.appendChild(maxInput);
+    tr.appendChild(tdInput);
+
+    const tdObs = document.createElement("td");
+    tdObs.className = "observed";
+    const obsInput = document.createElement("input");
+    obsInput.type = "text";
+    obsInput.placeholder = "player / save";
+    obsInput.value = entry.observedOn || "";
+    obsInput.oninput = () => {
+      const next = { ...(values[src.id] || {}) };
+      if (obsInput.value) next.observedOn = obsInput.value;
+      else delete next.observedOn;
+      if (Object.keys(next).length === 0) delete values[src.id];
+      else values[src.id] = next;
+      saveValues(values);
+    };
+    tdObs.appendChild(obsInput);
+    tr.appendChild(tdObs);
+
+    const tdNotes = document.createElement("td");
+    tdNotes.className = "notes";
+    const notesInput = document.createElement("input");
+    notesInput.type = "text";
+    notesInput.placeholder = "source / link / context";
+    notesInput.value = entry.notes || "";
+    notesInput.oninput = () => {
+      const next = { ...(values[src.id] || {}) };
+      if (notesInput.value) next.notes = notesInput.value;
+      else delete next.notes;
+      if (Object.keys(next).length === 0) delete values[src.id];
+      else values[src.id] = next;
+      saveValues(values);
+    };
+    tdNotes.appendChild(notesInput);
+    tr.appendChild(tdNotes);
+
+    const tdVer = document.createElement("td");
+    tdVer.className = "verified";
+    const sel = document.createElement("select");
+    sel.innerHTML =
+      '<option value="">—</option>' +
+      '<option value="observed">observed</option>' +
+      '<option value="researched">researched</option>' +
+      '<option value="theorized">theorized</option>';
+    sel.value = entry.verified || "";
+    sel.onchange = () => {
+      const next = { ...(values[src.id] || {}) };
+      if (sel.value) next.verified = sel.value;
+      else delete next.verified;
+      if (Object.keys(next).length === 0) delete values[src.id];
+      else values[src.id] = next;
+      saveValues(values);
+    };
+    tdVer.appendChild(sel);
+    tr.appendChild(tdVer);
+
+    return tr;
+  }
+
+  function updateStats() {
+    let filled = 0;
+    for (const id in values) {
+      if (typeof values[id].maxValue === "number") filled++;
+    }
+    let visible = 0;
+    for (const src of catalog.sources) if (passFilter(src)) visible++;
+    document.getElementById("stats").innerHTML =
+      '<b>' + filled + '</b>/' + catalog.sources.length +
+      ' filled · <b>' + visible + '</b> visible';
+  }
+
+  function escapeHtml(s) {
+    return String(s)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  // Search + filter wiring
+  document.getElementById("search").addEventListener("input", (e) => {
+    filterText = e.target.value || "";
+    render();
+  });
+  const blankBtn = document.getElementById("filter-blank");
+  const mineBtn = document.getElementById("filter-mine");
+  blankBtn.onclick = () => {
+    filterMode = filterMode === "blank" ? "all" : "blank";
+    blankBtn.classList.toggle("active", filterMode === "blank");
+    mineBtn.classList.toggle("active", filterMode === "filled");
+    render();
+  };
+  mineBtn.onclick = () => {
+    filterMode = filterMode === "filled" ? "all" : "filled";
+    blankBtn.classList.toggle("active", filterMode === "blank");
+    mineBtn.classList.toggle("active", filterMode === "filled");
+    render();
+  };
+  document.getElementById("expand-all").onclick = () => {
+    collapsedWorlds = {};
+    saveCollapsedWorlds(collapsedWorlds);
+    render();
+  };
+  document.getElementById("collapse-all").onclick = () => {
+    for (const w of catalog.worldOrder) collapsedWorlds[w] = true;
+    saveCollapsedWorlds(collapsedWorlds);
+    render();
+  };
+
+  // Export → JSON download
+  document.getElementById("export").onclick = () => {
+    const payload = {
+      schema: "dr-max-values",
+      version: 1,
+      generatedAt: new Date().toISOString(),
+      catalogGeneratedAt: catalog.generatedAt,
+      values,
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "dr-max-values-" + new Date().toISOString().slice(0, 10) + ".json";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  // Import → merge (keep existing filled entries if incoming is blank)
+  document.getElementById("import").onchange = (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const parsed = JSON.parse(String(reader.result || ""));
+        if (!parsed || typeof parsed !== "object" || !parsed.values) {
+          alert("Import failed — file doesn't look like a dr-max-values export.");
+          return;
+        }
+        const incoming = parsed.values;
+        let added = 0, updated = 0;
+        for (const id in incoming) {
+          const cur = values[id];
+          const inc = incoming[id];
+          if (!cur) {
+            values[id] = inc;
+            added++;
+          } else {
+            // Merge field-by-field; prefer incoming when present
+            const merged = { ...cur };
+            for (const k of Object.keys(inc)) {
+              if (inc[k] !== undefined && inc[k] !== null && inc[k] !== "")
+                merged[k] = inc[k];
+            }
+            values[id] = merged;
+            updated++;
+          }
+        }
+        saveValues(values);
+        alert("Imported " + added + " new + " + updated + " merged entries.");
+        render();
+      } catch (err) {
+        alert("Import failed: " + err.message);
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = "";
+  };
+
+  render();
+})();
+</script>
+</body>
+</html>
