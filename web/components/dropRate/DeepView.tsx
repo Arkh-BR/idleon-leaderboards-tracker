@@ -1026,10 +1026,10 @@ export default function DeepView({ tree }: { tree: CorganNode | null }) {
 
   return (
     <div className="font-sans">
-      {/* Controls bar — sticky so the user can scroll the tree while keeping
-          the layout toggle, search, and expand/collapse buttons in reach. */}
-      <div className="sticky top-0 z-10 -mx-1 mb-3 backdrop-blur-md bg-zinc-950/85">
-        <div className="flex flex-wrap items-center gap-2 px-1 py-2 rounded-lg border border-zinc-800 bg-zinc-900/60 shadow-sm">
+      {/* Controls bar — slightly raised so it visually separates from the
+          tree below; not sticky to avoid stacking with the page TopNav. */}
+      <div className="mb-3">
+        <div className="flex flex-wrap items-center gap-2 p-2 rounded-lg border border-zinc-800 bg-zinc-900/60">
           {/* Layout toggle */}
           <div
             role="tablist"
