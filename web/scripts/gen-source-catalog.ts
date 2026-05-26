@@ -835,9 +835,13 @@ const APP_JS = `
       return 25 * Math.min(1, 0.2 + c / (c + 3000));
     },
     "achievementContribution": function (_p, kids) {
-      // bonus × completed (completed = 0/1 toggle, or a stack counter)
+      // bonus × completed (completed = 0/1 toggle, or a stack counter).
+      // NOTE: the regex MUST NOT use \\b — this string lives in a
+      // template literal at gen time, so \\b would evaluate to the
+      // backspace char (0x08) before reaching the browser. Use a
+      // plain $ anchor instead.
       var completed = kid(kids, /^Completed$/);
-      var bonus = kid(kids, /^Bonus\b/);
+      var bonus = kid(kids, /^Bonus$/);
       if (completed === null || bonus === null) return null;
       return bonus * completed;
     },
