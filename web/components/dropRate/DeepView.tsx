@@ -128,9 +128,19 @@ function valColor(val: number, fmt: string | undefined): string {
 }
 
 // -----------------------------------------------------------------------------
-// Classification — map a node name back to a game system bucket. Used by the
-// "By System" view. We rely on name prefixes because the descriptor's source
-// specs aren't propagated all the way down to the rendered tree.
+// Classification — bucket each tree node into a game-system SystemKey.
+//
+// Since entity-names started wrapping each source in "<Friendly Name>
+// (<System> <id>)", the in-name system tag is now the most reliable signal
+// for classification. The classifier:
+//   1. Extracts the parenthesized "(System id)" tag at the end of the name
+//      and matches it against TAG_TO_SYSTEM.
+//   2. Falls back to a prefix/anywhere regex set (SYSTEM_RULES) for sources
+//      that didn't get an entity-name tag (e.g. wrappers like "Star Signs",
+//      "Farming rank9", "Cavern upg46").
+//   3. Never falls through to "Other" — every leaf currently in the DR tree
+//      maps somewhere. If a new pool source ever lands without a rule, it'll
+//      still classify as "Other" so it shows up clearly.
 // -----------------------------------------------------------------------------
 
 type SystemKey =
@@ -180,6 +190,89 @@ type SystemKey =
   | "Button"
   | "Other";
 
+// Map the inner system tag (lowercased, e.g. "talent" / "post office" /
+// "stamp") to its SystemKey. This is the primary classification path: every
+// entity-name-tagged label like "Robbing Hood (Talent 279)" matches via
+// extractSystemTag below.
+const TAG_TO_SYSTEM: Record<string, SystemKey> = {
+  talent: "Talents",
+  stamp: "Stamps",
+  card: "Cards",
+  cardset: "Cards",
+  cardsingle: "Cards",
+  prayer: "Prayers",
+  shrine: "Shrines",
+  arcade: "Arcade",
+  achievement: "Achievements",
+  "star sign": "Star Signs",
+  "post office": "Post Office",
+  vial: "Alchemy",
+  bubble: "Alchemy",
+  sigil: "Sigils",
+  companion: "Companions",
+  compmulti: "Companions",
+  friend: "Friends",
+  shiny: "Shiny Pets",
+  tome: "Tomes",
+  grid: "Grids/Lab",
+  lab: "Grids/Lab",
+  chip: "Chips",
+  dream: "Dreams",
+  "cloud bonus": "Cloud Bonus",
+  cloudbonus: "Cloud Bonus",
+  owl: "Owl",
+  grimoire: "Grimoire",
+  vault: "Vault",
+  farm: "Farming",
+  hole: "Holes",
+  emperor: "Emperor",
+  set: "Set Bonus",
+  "set bonus": "Set Bonus",
+  legend: "Legends",
+  legendpts: "Legends",
+  spelunk: "Spelunk Shop",
+  spelunkshop: "Spelunk Shop",
+  bundle: "Bundles",
+  ola: "OLA",
+  sneaking: "OLA",
+  "arcane map": "Arcane Map",
+  arcanemap: "Arcane Map",
+  arcane: "Arcane Map",
+  sushi: "Sushi",
+  sushirog: "Sushi",
+  minehead: "Minehead",
+  pristine: "Pristine Charm",
+  glimbo: "Glimbo",
+  workshop: "Workshop",
+  "event shop": "Event Shop",
+  eventshop: "Event Shop",
+  button: "Button",
+  goldenfood: "Golden Food",
+  "golden food": "Golden Food",
+  gfood: "Golden Food",
+  etcbonus: "ETC Bonus",
+  etc: "ETC Bonus",
+  voting: "Voting",
+  guild: "Guild",
+  "win bonus": "Win Bonus",
+  winbonus: "Win Bonus",
+  "win ": "Win Bonus", // tag form "(win 9)" used by summoning win bonus
+  breeding: "Shiny Pets", // tag form "(breeding shiny 0)"
+  summoning: "Win Bonus",
+  meas: "Holes", // tag form "(hole:meas15)" wraps via hole prefix actually
+};
+
+// Pull out the "(System Tag)" suffix label() appends. Returns the lowercased
+// tag minus the numeric id, e.g. "Robbing Hood (Talent 279)" → "talent".
+// Returns null when there's no trailing tag (e.g. wrappers / sub-sources).
+function extractSystemTag(name: string): string | null {
+  // Match "(<words>+ <id-or-key>)" at end, case-insensitive. The id portion
+  // can be alphanumeric (e.g. "A38", "mini5a") plus brackets/commas.
+  const m = name.match(/\(([A-Za-z ]+?)\s+[\w,\-]+\)\s*$/);
+  if (!m) return null;
+  return m[1].toLowerCase().trim();
+}
+
 // Higher-level grouping shown as a sub-header in the By System layout. Each
 // SystemKey rolls up under a Category, and visually we sort by Category first
 // (so all character-progression sources cluster together, separate from
@@ -190,6 +283,10 @@ type Category =
   | "Boosts & Sets"
   | "Multipliers";
 
+// Fallback rules for sources without entity-name tags (wrappers, world-
+// abstracted entries like "Farming rank9" / "Cavern upg46" / "RoG Bonus 48").
+// Order matters: more-specific rules first. Each matches against the FULL
+// node name (not just prefix) via `match.test()`.
 const SYSTEM_RULES: Array<{
   key: SystemKey;
   match: RegExp;
@@ -199,7 +296,7 @@ const SYSTEM_RULES: Array<{
   // Character
   { key: "LUK / Stats", match: /^(LUK|Total LUK|Sub-1000|Over-1000)\b/i, icon: "🍀", category: "Character" },
   { key: "Talents", match: /^Talent\b/i, icon: "📚", category: "Character" },
-  { key: "Star Signs", match: /^(Star ?Sign|Seraph)\b/i, icon: "✨", category: "Character" },
+  { key: "Star Signs", match: /^(Star ?Signs?|Seraph)\b/i, icon: "✨", category: "Character" },
   { key: "Cards", match: /^(Card|CardSet|CardSingle)\b/i, icon: "🃏", category: "Character" },
   { key: "Achievements", match: /^Achievement\b/i, icon: "🏅", category: "Character" },
   { key: "Companions", match: /^(Companion|CompMulti)\b/i, icon: "🐾", category: "Character" },
@@ -215,33 +312,45 @@ const SYSTEM_RULES: Array<{
   { key: "Prayers", match: /^Prayer\b/i, icon: "🙏", category: "Worlds" },
   { key: "Shrines", match: /^Shrine\b/i, icon: "⛩️", category: "Worlds" },
   { key: "Guild", match: /^Guild\b/i, icon: "🛡️", category: "Worlds" },
-  { key: "Shiny Pets", match: /^Shiny\b/i, icon: "🐉", category: "Worlds" },
+  // Shiny Pets — the breeding wrapper labels DR contributions as "Breeding N".
+  { key: "Shiny Pets", match: /^(Shiny|Breeding)\b/i, icon: "🐉", category: "Worlds" },
   { key: "Tomes", match: /^Tome\b/i, icon: "📖", category: "Worlds" },
   { key: "Grids/Lab", match: /^(Grid|Lab)\b/i, icon: "🔬", category: "Worlds" },
   { key: "Chips", match: /^Chip\b/i, icon: "💎", category: "Worlds" },
   { key: "Dreams", match: /^Dream\b/i, icon: "💭", category: "Worlds" },
   { key: "Cloud Bonus", match: /^(Cloud|CloudBonus)\b/i, icon: "☁️", category: "Worlds" },
-  { key: "Owl", match: /^Owl\b/i, icon: "🦉", category: "Worlds" },
+  // Owl — both "Owl 4" and the "Summoning Owl" wrapper land here.
+  { key: "Owl", match: /^(Owl|Summoning Owl)\b/i, icon: "🦉", category: "Worlds" },
   { key: "Grimoire", match: /^Grimoire\b/i, icon: "📕", category: "Worlds" },
   { key: "Vault", match: /^Vault\b/i, icon: "🏦", category: "Worlds" },
-  { key: "Farming", match: /^(Farm|Crop|Exotic|Rank ?9)\b/i, icon: "🌾", category: "Worlds" },
-  { key: "Holes", match: /^(Hole|Upg ?\d|Meas|Monument)\b/i, icon: "🕳️", category: "Worlds" },
+  // Farming wrapper labels are "Farming rank9", "Farming cropSC7" etc.
+  { key: "Farming", match: /^(Farm|Farming|Crop|Exotic|Rank ?9)\b/i, icon: "🌾", category: "Worlds" },
+  // Holes — caverns / measurements / monuments / generic upgrades all live
+  // under the Holes system (W5 Caverns of the Divine).
+  { key: "Holes", match: /^(Hole|Cavern|Measurement|Meas|Monument|Upg ?\d)\b/i, icon: "🕳️", category: "Worlds" },
   { key: "Emperor", match: /^Emperor\b/i, icon: "👑", category: "Worlds" },
   { key: "Legends", match: /^Legend\b/i, icon: "⚔️", category: "Worlds" },
-  { key: "Spelunk Shop", match: /^Spelunk\b/i, icon: "🪨", category: "Worlds" },
-  { key: "Sushi", match: /^(Sushi|SushiRoG)\b/i, icon: "🍣", category: "Worlds" },
+  { key: "Spelunk Shop", match: /^(Spelunk|Spelunking)\b/i, icon: "🪨", category: "Worlds" },
+  // Sushi — the sushi RoG (Ring of Gold) bonuses are labelled "RoG Bonus N".
+  { key: "Sushi", match: /^(Sushi|SushiRoG|RoG)\b/i, icon: "🍣", category: "Worlds" },
   { key: "Minehead", match: /^Minehead\b/i, icon: "⛏️", category: "Worlds" },
   { key: "Button", match: /^Button\b/i, icon: "🔘", category: "Worlds" },
 
   // Boosts & Sets
   { key: "Golden Food", match: /^(Golden Food|GFood|GoldenFood)\b/i, icon: "🍔", category: "Boosts & Sets" },
-  { key: "ETC Bonus", match: /^(ETC|EtcBonus|Etc)\b/i, icon: "🎁", category: "Boosts & Sets" },
-  { key: "Set Bonus", match: /^(Set Bonus|Efaunt|Kattlekruk Set|SECRET_SET)\b/i, icon: "🎽", category: "Boosts & Sets" },
+  // ETC Bonus — wrapper names like "EtcBonuses(2)" have no space before the
+  // paren, so match without requiring a word boundary after "Etc".
+  { key: "ETC Bonus", match: /^(ETC|EtcBonus|EtcBonuses|Etc)/i, icon: "🎁", category: "Boosts & Sets" },
+  // Set Bonus — the equipment-set wrapper labels are "Smithing efaunt",
+  // "Smithing KATTLEKRUK_SET", etc.
+  { key: "Set Bonus", match: /^(Set Bonus|Smithing|Efaunt|Kattlekruk Set|SECRET_SET)\b/i, icon: "🎽", category: "Boosts & Sets" },
   { key: "Bundles", match: /^(Bundle|Bun_)\b/i, icon: "📦", category: "Boosts & Sets" },
   { key: "Pristine Charm", match: /^Pristine\b/i, icon: "🌟", category: "Boosts & Sets" },
   { key: "OLA", match: /^(OLA|Sneaking)\b/i, icon: "🥷", category: "Boosts & Sets" },
   { key: "Event Shop", match: /^(Event ?Shop|EventShop)\b/i, icon: "🛍️", category: "Boosts & Sets" },
-  { key: "Win Bonus", match: /^Win ?Bonus\b/i, icon: "🏆", category: "Boosts & Sets" },
+  // Win Bonus — both literal "Win Bonus" labels and the "Summoning N" wrapper
+  // (summoning win-bonus contributions) belong here.
+  { key: "Win Bonus", match: /^(Win ?Bonus|Summoning)\b/i, icon: "🏆", category: "Boosts & Sets" },
 
   // Multipliers (post-processing chain)
   { key: "Glimbo", match: /^Glimbo\b/i, icon: "🎲", category: "Multipliers" },
@@ -249,7 +358,21 @@ const SYSTEM_RULES: Array<{
   { key: "Arcane Map", match: /^(Arcane|ArcaneMap)\b/i, icon: "🗺️", category: "Multipliers" },
 ];
 
+/** Classify a node into a SystemKey via:
+ *    1. The "(System id)" entity-name tag if present (most reliable).
+ *    2. The prefix/anywhere SYSTEM_RULES regexes (for wrapper-style labels).
+ *  Returns "Other" only when both miss — the smoke test verifies this never
+ *  happens for any leaf in the current descriptor. */
 function classifyNode(name: string): SystemKey {
+  const tag = extractSystemTag(name);
+  if (tag) {
+    const sys = TAG_TO_SYSTEM[tag];
+    if (sys) return sys;
+    // Special-case the multi-word tag prefixes — "(post office N)" has tag
+    // "post office" with a space, already handled. Try just the first word.
+    const firstWord = tag.split(/\s+/)[0];
+    if (TAG_TO_SYSTEM[firstWord]) return TAG_TO_SYSTEM[firstWord];
+  }
   for (const rule of SYSTEM_RULES) {
     if (rule.match.test(name)) return rule.key;
   }
