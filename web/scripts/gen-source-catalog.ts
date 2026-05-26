@@ -180,6 +180,13 @@ function detectStructuralFormula(
       return "achievementContribution";
     }
   }
+  // Talent "Bonus Levels" row: Σ of all contributing sources. The
+  // children are emitted as fmt:"raw" (Symbols of Beyond, family
+  // bonus, etc) but the parent is fmt:"+", so the generic sum detector
+  // misses it. Tag specifically so the runtime sums every kid.
+  if (sys === "Talents" && node.name === "Bonus Levels") {
+    return "talentBonusSum";
+  }
   // Vault Mastery: a multiplier row of the form (1 + masteryLv/100)
   // with a single "Mastery Lv" child. Tag so the runtime recomputes
   // the multi live when the user bumps the level.
@@ -1147,6 +1154,20 @@ const APP_JS = `
       var bn = p && Number(p.bonusConst);
       if (!Number.isFinite(bn)) return null;
       return idle + owned * (bn - idle);
+    },
+    "talentBonusSum": function (_p, kids) {
+      // Sum of every contributor to a talent's bonus levels — kids
+      // are emitted as fmt:"raw" (Symbols of Beyond, family bonus,
+      // divinity, etc.) so the generic Σ rule (matching parent fmt)
+      // would skip them. Empty bonus levels are 0, not null — an
+      // inactive talent with no contributors is meaningful state.
+      var total = 0;
+      for (var i = 0; i < kids.length; i++) {
+        var v = effectiveValue(kids[i]);
+        if (v === null) return null;
+        total += Number(v) || 0;
+      }
+      return total;
     },
     "vaultMastery": function (_p, kids) {
       // Vault upgrade mastery multiplier: 1 + masteryLv / 100. Each

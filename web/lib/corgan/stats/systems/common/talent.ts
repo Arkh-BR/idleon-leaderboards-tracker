@@ -548,24 +548,23 @@ function getTalentNumber(
 ) {
   const sl = (skillLvData as any)[charIdx] || {};
   const rawLv = Number(sl[talentIdx] || sl[String(talentIdx)]) || 0;
-  if (rawLv <= 0) {
-    return {
-      val: 0,
-      rawLv: 0,
-      bonus: 0,
-      effectiveLv: 0,
-      bonusDetail: { total: 0, children: [] } as TalentBonusDetail,
-    };
-  }
   // Game's getbonus2 passes raw talent LEVEL (atlIdx) to AllTalentLVz instead
   // of the talent index. The ctxChar param decides which char's skill levels/
   // divinity/spelunk is queried for the ATL chain.
+  // NOTE: we compute bonusDetail even when rawLv === 0 so the max-values
+  // tool can surface "what would the bonus levels be if I picked up this
+  // talent" for inactive (level-0) talents. The contribution sources
+  // (Symbols of Beyond, family bonus, divinity etc.) exist independently
+  // of whether the user has the talent themselves.
   const ctxChar = activeCharIdx != null ? activeCharIdx : charIdx;
   const atlInput = atlIdx !== undefined ? atlIdx : talentIdx;
   const bonusDetail = resolveAllTalentLVz(atlInput, ctxChar, undefined, saveData);
   const bonus = bonusDetail.total;
   const effectiveLv = rawLv + bonus;
-  const val = formulaEval(data.formula, data.x1, data.x2, effectiveLv);
+  // Stay strict about val = 0 at rawLv 0 — the talent contributes
+  // nothing if you don't have it, even if the bonus chain would have
+  // boosted it. The Active toggle is the explicit "as-if" override.
+  const val = rawLv > 0 ? formulaEval(data.formula, data.x1, data.x2, effectiveLv) : 0;
   return {
     val,
     rawLv,

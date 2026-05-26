@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-26T18:43:51.570Z",
+  "generatedAt": "2026-05-26T18:47:14.062Z",
   "refTotal": 43093.43816941274,
   "refSave": "zArkhe (save 25-21-16.json) — Town, no AC",
   "sourceCount": 75,
@@ -116,8 +116,190 @@
           "world": "Character",
           "pool": "Additive",
           "fmt": "+",
-          "refValue": 0,
-          "bucket": "🎯 Talents"
+          "refValue": 241,
+          "bucket": "🎯 Talents",
+          "children": [
+            {
+              "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Symbols of Beyond ~R (Talent 149)",
+              "name": "Symbols of Beyond ~R (Talent 149)",
+              "system": "Talents",
+              "world": "Character",
+              "pool": "Additive",
+              "fmt": "raw",
+              "refValue": 20,
+              "bucket": "🎯 Talents",
+              "children": [
+                {
+                  "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Char 2 Lv 396",
+                  "name": "Char 2 Lv 396",
+                  "system": "Talents",
+                  "world": "Character",
+                  "pool": "Additive",
+                  "fmt": "raw",
+                  "refValue": 396,
+                  "bucket": "🎯 Talents"
+                },
+                {
+                  "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Symbols of Beyond ~R (Talent 149) / 1 + floor(396/20)",
+                  "name": "1 + floor(396/20)",
+                  "system": "Talents",
+                  "world": "Character",
+                  "pool": "Additive",
+                  "fmt": "raw",
+                  "refValue": 20,
+                  "bucket": "🎯 Talents"
+                }
+              ]
+            },
+            {
+              "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Maroon Warship (Achievement 291)",
+              "name": "Maroon Warship (Achievement 291)",
+              "system": "Talents",
+              "world": "Character",
+              "pool": "Additive",
+              "fmt": "raw",
+              "refValue": 1,
+              "bucket": "🎯 Talents"
+            },
+            {
+              "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Family Bonus 68 (Mage)",
+              "name": "Family Bonus 68 (Mage)",
+              "system": "Talents",
+              "world": "Character",
+              "pool": "Additive",
+              "fmt": "raw",
+              "refValue": 16,
+              "bucket": "🎯 Talents",
+              "children": [
+                {
+                  "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Family Bonus 68 (Mage) / Best Mage Lv",
+                  "name": "Best Mage Lv",
+                  "system": "Talents",
+                  "world": "Character",
+                  "pool": "Additive",
+                  "fmt": "raw",
+                  "refValue": 1701,
+                  "bucket": "🎯 Talents"
+                },
+                {
+                  "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Family Bonus 68 (Mage) / N = max(0, 1701 - 69)",
+                  "name": "N = max(0, 1701 - 69)",
+                  "system": "Talents",
+                  "world": "Character",
+                  "pool": "Additive",
+                  "fmt": "raw",
+                  "refValue": 1632,
+                  "bucket": "🎯 Talents"
+                }
+              ]
+            },
+            {
+              "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Rift Slug (Companion 1)",
+              "name": "Rift Slug (Companion 1)",
+              "system": "Talents",
+              "world": "Character",
+              "pool": "Additive",
+              "fmt": "raw",
+              "refValue": 25,
+              "bucket": "🎯 Talents"
+            },
+            {
+              "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Divinity Minor 2 (Arctis)",
+              "name": "Divinity Minor 2 (Arctis)",
+              "system": "Talents",
+              "world": "Character",
+              "pool": "Additive",
+              "fmt": "raw",
+              "refValue": 58,
+              "bucket": "🎯 Talents"
+            },
+            {
+              "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Nonstop Studies (Dream 12)",
+              "name": "Nonstop Studies (Dream 12)",
+              "system": "Talents",
+              "world": "Character",
+              "pool": "Additive",
+              "fmt": "raw",
+              "refValue": 64,
+              "bucket": "🎯 Talents"
+            },
+            {
+              "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Sneaking Completions",
+              "name": "Sneaking Completions",
+              "system": "Talents",
+              "world": "Character",
+              "pool": "Additive",
+              "fmt": "raw",
+              "refValue": 5,
+              "bucket": "🎯 Talents",
+              "note": "raw=7"
+            },
+            {
+              "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Skull of Major Talent (Grimoire 39)",
+              "name": "Skull of Major Talent (Grimoire 39)",
+              "system": "Talents",
+              "world": "Character",
+              "pool": "Additive",
+              "fmt": "raw",
+              "refValue": 30,
+              "bucket": "🎯 Talents"
+            },
+            {
+              "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Kattlekruk Set",
+              "name": "Kattlekruk Set",
+              "system": "Talents",
+              "world": "Character",
+              "pool": "Additive",
+              "fmt": "raw",
+              "refValue": 5,
+              "bucket": "🎯 Talents"
+            },
+            {
+              "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Arcane Map 57",
+              "name": "Arcane Map 57",
+              "system": "Talents",
+              "world": "Character",
+              "pool": "Additive",
+              "fmt": "raw",
+              "refValue": 5,
+              "bucket": "🎯 Talents",
+              "note": "cap 5"
+            },
+            {
+              "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Super Bit 47 Lv Bonus",
+              "name": "Super Bit 47 Lv Bonus",
+              "system": "Talents",
+              "world": "Character",
+              "pool": "Additive",
+              "fmt": "raw",
+              "refValue": 12,
+              "bucket": "🎯 Talents",
+              "children": [
+                {
+                  "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Super Bit 47 Lv Bonus / Player Level",
+                  "name": "Player Level",
+                  "system": "Talents",
+                  "world": "Character",
+                  "pool": "Additive",
+                  "fmt": "raw",
+                  "refValue": 1739,
+                  "bucket": "🎯 Talents"
+                },
+                {
+                  "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Super Bit 47 Lv Bonus / floor((1739 - 500) / 100)",
+                  "name": "floor((1739 - 500) / 100)",
+                  "system": "Talents",
+                  "world": "Character",
+                  "pool": "Additive",
+                  "fmt": "raw",
+                  "refValue": 12,
+                  "bucket": "🎯 Talents"
+                }
+              ]
+            }
+          ],
+          "formulaKey": "talentBonusSum",
+          "agg": "custom"
         },
         {
           "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level",
@@ -126,7 +308,7 @@
           "world": "Character",
           "pool": "Additive",
           "fmt": "raw",
-          "refValue": 0,
+          "refValue": 241,
           "bucket": "🎯 Talents"
         }
       ],
@@ -176,8 +358,190 @@
           "world": "Character",
           "pool": "Additive",
           "fmt": "+",
-          "refValue": 0,
-          "bucket": "🎯 Talents"
+          "refValue": 241,
+          "bucket": "🎯 Talents",
+          "children": [
+            {
+              "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Symbols of Beyond ~R (Talent 149)",
+              "name": "Symbols of Beyond ~R (Talent 149)",
+              "system": "Talents",
+              "world": "Character",
+              "pool": "Additive",
+              "fmt": "raw",
+              "refValue": 20,
+              "bucket": "🎯 Talents",
+              "children": [
+                {
+                  "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Char 2 Lv 396",
+                  "name": "Char 2 Lv 396",
+                  "system": "Talents",
+                  "world": "Character",
+                  "pool": "Additive",
+                  "fmt": "raw",
+                  "refValue": 396,
+                  "bucket": "🎯 Talents"
+                },
+                {
+                  "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Symbols of Beyond ~R (Talent 149) / 1 + floor(396/20)",
+                  "name": "1 + floor(396/20)",
+                  "system": "Talents",
+                  "world": "Character",
+                  "pool": "Additive",
+                  "fmt": "raw",
+                  "refValue": 20,
+                  "bucket": "🎯 Talents"
+                }
+              ]
+            },
+            {
+              "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Maroon Warship (Achievement 291)",
+              "name": "Maroon Warship (Achievement 291)",
+              "system": "Talents",
+              "world": "Character",
+              "pool": "Additive",
+              "fmt": "raw",
+              "refValue": 1,
+              "bucket": "🎯 Talents"
+            },
+            {
+              "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Family Bonus 68 (Mage)",
+              "name": "Family Bonus 68 (Mage)",
+              "system": "Talents",
+              "world": "Character",
+              "pool": "Additive",
+              "fmt": "raw",
+              "refValue": 16,
+              "bucket": "🎯 Talents",
+              "children": [
+                {
+                  "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Family Bonus 68 (Mage) / Best Mage Lv",
+                  "name": "Best Mage Lv",
+                  "system": "Talents",
+                  "world": "Character",
+                  "pool": "Additive",
+                  "fmt": "raw",
+                  "refValue": 1701,
+                  "bucket": "🎯 Talents"
+                },
+                {
+                  "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Family Bonus 68 (Mage) / N = max(0, 1701 - 69)",
+                  "name": "N = max(0, 1701 - 69)",
+                  "system": "Talents",
+                  "world": "Character",
+                  "pool": "Additive",
+                  "fmt": "raw",
+                  "refValue": 1632,
+                  "bucket": "🎯 Talents"
+                }
+              ]
+            },
+            {
+              "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Rift Slug (Companion 1)",
+              "name": "Rift Slug (Companion 1)",
+              "system": "Talents",
+              "world": "Character",
+              "pool": "Additive",
+              "fmt": "raw",
+              "refValue": 25,
+              "bucket": "🎯 Talents"
+            },
+            {
+              "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Divinity Minor 2 (Arctis)",
+              "name": "Divinity Minor 2 (Arctis)",
+              "system": "Talents",
+              "world": "Character",
+              "pool": "Additive",
+              "fmt": "raw",
+              "refValue": 58,
+              "bucket": "🎯 Talents"
+            },
+            {
+              "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Nonstop Studies (Dream 12)",
+              "name": "Nonstop Studies (Dream 12)",
+              "system": "Talents",
+              "world": "Character",
+              "pool": "Additive",
+              "fmt": "raw",
+              "refValue": 64,
+              "bucket": "🎯 Talents"
+            },
+            {
+              "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Sneaking Completions",
+              "name": "Sneaking Completions",
+              "system": "Talents",
+              "world": "Character",
+              "pool": "Additive",
+              "fmt": "raw",
+              "refValue": 5,
+              "bucket": "🎯 Talents",
+              "note": "raw=7"
+            },
+            {
+              "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Skull of Major Talent (Grimoire 39)",
+              "name": "Skull of Major Talent (Grimoire 39)",
+              "system": "Talents",
+              "world": "Character",
+              "pool": "Additive",
+              "fmt": "raw",
+              "refValue": 30,
+              "bucket": "🎯 Talents"
+            },
+            {
+              "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Kattlekruk Set",
+              "name": "Kattlekruk Set",
+              "system": "Talents",
+              "world": "Character",
+              "pool": "Additive",
+              "fmt": "raw",
+              "refValue": 5,
+              "bucket": "🎯 Talents"
+            },
+            {
+              "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Arcane Map 57",
+              "name": "Arcane Map 57",
+              "system": "Talents",
+              "world": "Character",
+              "pool": "Additive",
+              "fmt": "raw",
+              "refValue": 5,
+              "bucket": "🎯 Talents",
+              "note": "cap 5"
+            },
+            {
+              "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Super Bit 47 Lv Bonus",
+              "name": "Super Bit 47 Lv Bonus",
+              "system": "Talents",
+              "world": "Character",
+              "pool": "Additive",
+              "fmt": "raw",
+              "refValue": 12,
+              "bucket": "🎯 Talents",
+              "children": [
+                {
+                  "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Super Bit 47 Lv Bonus / Player Level",
+                  "name": "Player Level",
+                  "system": "Talents",
+                  "world": "Character",
+                  "pool": "Additive",
+                  "fmt": "raw",
+                  "refValue": 1739,
+                  "bucket": "🎯 Talents"
+                },
+                {
+                  "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Super Bit 47 Lv Bonus / floor((1739 - 500) / 100)",
+                  "name": "floor((1739 - 500) / 100)",
+                  "system": "Talents",
+                  "world": "Character",
+                  "pool": "Additive",
+                  "fmt": "raw",
+                  "refValue": 12,
+                  "bucket": "🎯 Talents"
+                }
+              ]
+            }
+          ],
+          "formulaKey": "talentBonusSum",
+          "agg": "custom"
         },
         {
           "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level",
@@ -186,7 +550,7 @@
           "world": "Character",
           "pool": "Additive",
           "fmt": "raw",
-          "refValue": 0,
+          "refValue": 241,
           "bucket": "🎯 Talents"
         }
       ],
@@ -6011,7 +6375,9 @@
                     }
                   ]
                 }
-              ]
+              ],
+              "formulaKey": "talentBonusSum",
+              "agg": "custom"
             },
             {
               "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level",
