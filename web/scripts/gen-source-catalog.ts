@@ -753,7 +753,19 @@ const APP_JS = `
   function hasRefOverride(id) {
     return Object.prototype.hasOwnProperty.call(refOverride, id);
   }
+  /** Effective Max for a source. Formula rows are NEVER cached — they
+   *  always recompute on demand from their children, so the parent
+   *  stays "literally tied" to the current state of the leaves. Manual
+   *  rows fall back to the stored max, then to the (possibly snapshot-
+   *  overridden) Ref. The recursion: a formula parent calls computeAgg,
+   *  which calls effectiveValue on each child, which may recurse if the
+   *  child is itself a formula — natural depth-first eval. */
   function effectiveValue(src) {
+    if (src.agg) {
+      var v = computeAgg(src);
+      if (v !== null && Number.isFinite(v)) return v;
+      return getRefValue(src);
+    }
     var e = values[src.id];
     if (e && typeof e.maxValue === "number") return e.maxValue;
     return getRefValue(src);
@@ -1189,7 +1201,11 @@ const APP_JS = `
 
   function renderRow(src, depth) {
     var entry = values[src.id] || {};
-    var hasMax = typeof entry.maxValue === "number";
+    var isFormula = hasFormula(src);
+    // Formula rows: pull the displayed Max LIVE from the children via
+    // effectiveValue. Manual rows: read from the stored maxValue.
+    var liveMax = isFormula ? effectiveValue(src) : (typeof entry.maxValue === "number" ? entry.maxValue : null);
+    var hasMax = (typeof liveMax === "number") && Number.isFinite(liveMax);
     var hasChildren = !!(src.children && src.children.length);
     var isOpen = expandedIds.has(src.id);
     var row = document.createElement("div");
@@ -1275,8 +1291,13 @@ const APP_JS = `
     maxInput.className = "max-input";
     maxInput.setAttribute("data-source-id", src.id);
     maxInput.placeholder = "—";
-    maxInput.value = hasMax ? String(entry.maxValue) : "";
-    if (hasMax) maxInput.classList.add("filled");
+    // Formula rows: liveMax IS the formula result (recomputed every
+    // render from current children). Manual rows: the stored max.
+    maxInput.value = hasMax ? String(liveMax) : "";
+    if (hasMax) {
+      maxInput.classList.add("filled");
+      if (isFormula) maxInput.classList.add("agg-driven");
+    }
     // Index the live input so propagateUp can find it instantly,
     // regardless of how exotic the source id is (slashes / emojis /
     // spaces / parens all live in catalog ids).
