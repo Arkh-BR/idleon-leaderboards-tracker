@@ -142,48 +142,66 @@ const dropRateDesc: Descriptor = {
       }
     }
 
-    const postMult = base > 0 ? dr / base : 1;
+    // The N.js post-processing formula applies four order-sensitive ops to
+    // `base` BEFORE the pure-mult chain begins:
+    //
+    //   dr  = base
+    //   dr += pf[0]   // +bunV   (Death Bringer Bundle, +2 flat)
+    //   dr *= pm[0]   // ×Archlord Of The Pirates (Talent 328)
+    //   dr += pf[1]   // +ola232 (Sneaking — Pristine Charm, +0.3 flat)
+    //   dr *= pm[1]   // ×bunP   (Explorer Bundle, ×1.2)
+    //   for i in pm[2..]:
+    //     dr *= effective-multiplier(pm[i])
+    //
+    // Rather than burying those four into a "Post-Processing" wrapper,
+    // hoist them up to sibling level so the formula reads top-to-bottom:
+    //   Total Sum → + bunV → ×Talent → + Pristine → Multiplier Chain.
+    // The remaining pm[1..] all multiply, so they collapse into a single
+    // "Multiplier Chain" bucket where same-system items merge freely.
 
-    // Split Post-Processing into the two logically distinct phases the
-    // formula actually applies:
-    //   1. Initial Sequence (order-sensitive) — pf[0], pm[0], pf[1], pm[1]
-    //      interleave +flat with ×mult, so reordering would change the
-    //      result. Group only CONSECUTIVE same-system items (runs mode).
-    //   2. Multiplier Chain (commutative) — pm[2..end] are all pure
-    //      multipliers; order doesn't matter, so merge same-system items
-    //      into one bucket each (merge mode).
-    const initialItems: CorganNode[] = [];
-    if (pf[0]) initialItems.push(pf[0]);
-    if (pm[0]) initialItems.push(pm[0]);
-    if (pf[1]) initialItems.push(pf[1]);
-    if (pm[1]) initialItems.push(pm[1]);
-    const chainItems = pm.slice(2);
+    // Merged additive pool — the formula sums addMain.sum + addLUK2.sum
+    // before applying (lukC + addSum)/100, so the two pools are
+    // mathematically a single bucket. Combine them into one "Additive
+    // Pool" section.
+    const allAdditiveItems = [
+      ...pools.addMain.items,
+      ...pools.addLUK2.items,
+    ];
 
-    // Per-phase summary values (effective multiplier applied to base
-    // before the next phase begins). Initial-phase math mirrors the
-    // interleaved formula exactly; chain is a pure product of effective
-    // multipliers.
-    let drInitial = base;
-    drInitial += pf[0] ? pf[0].val : 0;
-    drInitial *= pm[0] ? pm[0].val : 1;
-    drInitial += pf[1] ? pf[1].val : 0;
-    drInitial *= pm[1] ? pm[1].val : 1;
-    const initialMulti = base > 0 ? drInitial / base : 1;
-
+    // Chain = pm[1] (Explorer Bundle) + pm[2..end]. Compute its effective
+    // product so the wrapper val matches the math.
+    const chainItems = pm.slice(1);
     let chainMulti = 1;
     for (const it of chainItems) {
       const v = Number(it.val) || 0;
       chainMulti *= it.fmt === "x" ? v || 1 : 1 + v / 100;
     }
 
-    // Merged additive pool — the formula sums addMain.sum + addLUK2.sum
-    // before applying (lukC + addSum)/100, so the two pools are
-    // mathematically a single bucket. Combine them into one "Additive
-    // Pool" section so the tree matches the N.js arithmetic.
-    const allAdditiveItems = [
-      ...pools.addMain.items,
-      ...pools.addLUK2.items,
-    ];
+    // The three hoisted pre-chain items — each rendered as a 1-item
+    // system bucket (Bundles / Talents / Pristine Charms) so the visual
+    // matches the additive-pool style.
+    const wrapInBucket = (
+      item: CorganNode | undefined,
+      bucketName: string,
+      bucketFmt: "+" | "x"
+    ): CorganNode | null => {
+      if (!item) return null;
+      // For the additive flats (bun_v +2, ola232 +0.3), bucket val = the
+      // flat add. For the multiplicative talent, bucket val = the factor.
+      const val =
+        bucketFmt === "x"
+          ? Number(item.val) || 1
+          : Number(item.val) || 0;
+      return {
+        name: bucketName,
+        val,
+        fmt: bucketFmt,
+        children: [item],
+      };
+    };
+    const bunVBucket = wrapInBucket(pf[0], "Bundles", "+");
+    const talentBucket = wrapInBucket(pm[0], "Talents", "x");
+    const olaBucket = wrapInBucket(pf[1], "Pristine Charms", "+");
 
     const children: CorganNode[] = [
       {
@@ -198,9 +216,6 @@ const dropRateDesc: Descriptor = {
       {
         name: "Additive Pool",
         val: addSum,
-        // Order doesn't matter for additive sums, so merge same-system
-        // items across both source pools (addMain + addLUK2). One bucket
-        // per system regardless of which legacy pool the item came from.
         children: categorizePoolItems(allAdditiveItems, "additive", "merge"),
         fmt: "+",
         note: "Σ all additive sources (formerly Main + LUK2 pools)",
@@ -226,39 +241,42 @@ const dropRateDesc: Descriptor = {
             ? "Applies when base < 5×"
             : "Inactive (base ≥ 5× or no chip)",
       },
+      // Post-Processing flow, top-to-bottom:
+      //   1) + Death Bringer Bundle (flat add)
+      //   2) × Archlord Of The Pirates (Talent 328)
+      //   3) + Sneaking Completions (Pristine Charm, flat add)
+      //   4) Multiplier Chain — Explorer Bundle + every remaining ×mult
+      ...(bunVBucket
+        ? [
+            {
+              ...bunVBucket,
+              note: "Added to Total Sum",
+            },
+          ]
+        : []),
+      ...(talentBucket
+        ? [
+            {
+              ...talentBucket,
+              note: "Multiplies the running total",
+            },
+          ]
+        : []),
+      ...(olaBucket
+        ? [
+            {
+              ...olaBucket,
+              note: "Added to the running total",
+            },
+          ]
+        : []),
       {
-        name: "Post-Processing",
-        val: postMult,
-        // Two phases — see split above. Initial section uses "runs" so the
-        // formula's interleaved +flat / ×mult sequence stays readable;
-        // chain section uses "merge" since pure multiplication is
-        // commutative.
-        children: [
-          {
-            name: "Initial Sequence",
-            val: initialMulti,
-            fmt: "x",
-            note:
-              "Order-sensitive: +flat / ×mult interleaved — base + bunV, ×talent328, +ola232, ×bunP",
-            children: categorizePoolItems(
-              initialItems,
-              "multiplicative",
-              "runs"
-            ),
-          },
-          {
-            name: "Multiplier Chain",
-            val: chainMulti,
-            fmt: "x",
-            note: "Pure × chain — order commutative, same-system items merged",
-            children: categorizePoolItems(
-              chainItems,
-              "multiplicative",
-              "merge"
-            ),
-          },
-        ],
+        name: "Multiplier Chain",
+        val: chainMulti,
         fmt: "x",
+        note:
+          "Pure × chain — starts with Explorer Bundle, order commutative, same-system items merged",
+        children: categorizePoolItems(chainItems, "multiplicative", "merge"),
       },
     ];
 
