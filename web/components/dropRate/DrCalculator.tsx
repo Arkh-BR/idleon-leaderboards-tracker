@@ -440,7 +440,7 @@ export default function DrCalculator({
         )}
       </div>
 
-      {middleSlot}
+      {middleSlot && <div className="mb-4">{middleSlot}</div>}
 
       {/* Formula breakdown tree */}
       <div className="rounded-lg bg-zinc-900/60 border border-zinc-800 p-4 mb-4">

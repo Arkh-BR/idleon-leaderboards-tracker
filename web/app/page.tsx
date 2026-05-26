@@ -6,7 +6,7 @@ export const metadata: Metadata = {
     absolute: "Arkh's Idleon Trackers",
   },
   description:
-    "Two community trackers for Legends of Idleon — an IT leaderboards rank monitor and a local Tome Score calculator.",
+    "Community trackers for Legends of Idleon — IT leaderboards rank monitor, local Tome Score calculator, and Drop Rate breakdown.",
 };
 
 export default function HomePage() {
@@ -17,12 +17,12 @@ export default function HomePage() {
           Arkh&rsquo;s Idleon Trackers
         </h1>
         <p className="text-zinc-400 text-base sm:text-lg max-w-2xl mx-auto">
-          Two community tools for Legends of Idleon. No accounts, no servers,
+          Community tools for Legends of Idleon. No accounts, no servers,
           your data stays in your browser.
         </p>
       </header>
 
-      <div className="grid sm:grid-cols-2 gap-5">
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
         <ShortcutCard
           href="/leaderboards"
           icon="🏆"
@@ -36,6 +36,13 @@ export default function HomePage() {
           title="Tome Score Tracker"
           description="Paste your raw IT save JSON and compute the full 118-task Tome Score offline. Compare vs top players, track gains over time."
           cta="Open Tome Score"
+        />
+        <ShortcutCard
+          href="/drop-rate"
+          icon="🎲"
+          title="Drop Rate Tracker"
+          description="N.js-faithful breakdown of every Drop Rate source on your save. Per-character, per-map, with snapshot diffing."
+          cta="Open Drop Rate"
         />
       </div>
 
