@@ -33,6 +33,15 @@ import {
   type SystemKey,
   type WorldKey,
 } from "@/lib/corgan/stats/categorize";
+import { nodePath, type FlatTree } from "@/lib/dropRate/treeFlatten";
+
+// Compare baseline plumbed from the SnapshotSection — when set, every row
+// in both layouts gets a "Δ vs snap" badge showing current − captured.
+type Baseline = {
+  flatTree: FlatTree;
+  capturedAt: number;
+  charName: string;
+} | null;
 
 // -----------------------------------------------------------------------------
 // Persisted expand state — survives reloads so the user's drilling stays put.
@@ -123,6 +132,63 @@ function formatVal(val: number, fmt: string | undefined): string {
   if (Math.abs(val) >= 1e6) return (val / 1e6).toFixed(2) + "M";
   if (Math.abs(val) >= 1e3) return (val / 1e3).toFixed(2) + "K";
   return val.toFixed(3);
+}
+
+/** Look up a path's previous value in the baseline flatTree. Returns
+ *  null if no baseline is selected or the path didn't exist in it
+ *  (new node since the snapshot). */
+function lookupDelta(
+  baseline: FlatTree | null | undefined,
+  path: string,
+  current: number
+): number | null {
+  if (!baseline) return null;
+  const prev = baseline[path];
+  if (typeof prev !== "number") return null;
+  return current - prev;
+}
+
+/** Small inline badge that renders a Δ (current − snapshot) next to a row's
+ *  value. Color codes increases green / decreases red / unchanged zinc.
+ *  Returns null when there's no baseline or the path is missing — so callers
+ *  can drop it into any row without a guard. */
+function DeltaBadge({
+  delta,
+  fmt,
+}: {
+  delta: number | null;
+  fmt: string | undefined;
+}) {
+  if (delta === null) return null;
+  const abs = Math.abs(delta);
+  if (abs < 1e-9) {
+    return (
+      <span
+        className="font-mono text-[10px] text-zinc-600 px-1.5 py-0.5 rounded border border-zinc-800 bg-zinc-900/40"
+        title="No change since snapshot"
+      >
+        Δ 0
+      </span>
+    );
+  }
+  const sign = delta > 0 ? "+" : "";
+  // Reuse formatVal for unit-aware formatting on the absolute delta, then
+  // splice the sign back in front so "+12.50K" / "-0.025" read naturally.
+  const formatted = formatVal(Math.abs(delta), fmt);
+  const label = delta > 0 ? `+${formatted}` : `-${formatted}`;
+  const tone =
+    delta > 0
+      ? "text-emerald-300 border-emerald-500/40 bg-emerald-500/10"
+      : "text-red-300 border-red-500/40 bg-red-500/10";
+  void sign;
+  return (
+    <span
+      className={`font-mono text-[10px] px-1.5 py-0.5 rounded border ${tone}`}
+      title="Δ vs selected snapshot"
+    >
+      Δ {label}
+    </span>
+  );
 }
 
 /** Split a node label like "Crystal Custard (Companion 3)" into its friendly
@@ -253,6 +319,18 @@ function findPoolForPath(
 type TreeRowProps = {
   node: CorganNode;
   depth: number;
+  /** Parent path as a single " / "-joined string in the same scheme
+   *  treeFlatten.nodePath() uses (dup-named siblings get "#i" suffix).
+   *  Empty string at the root. */
+  parentPathStr: string;
+  /** This node's sibling array (the parent's children) and its index in
+   *  that array, so we can dedupe same-named siblings with "#i" — matches
+   *  the path scheme used by snapshot flatTree storage. */
+  siblings: CorganNode[];
+  siblingIndex: number;
+  /** Same as parentPathStr but kept as an array for findPoolForPath() which
+   *  walks segments. The array form lets us tolerate "Foo / Bar" labels
+   *  that happen to contain " / " literally. */
   parentPath: string[];
   expandState: ExpandState;
   onToggle: (path: string, nextOpen: boolean) => void;
@@ -265,11 +343,16 @@ type TreeRowProps = {
   searchMatchMap: WeakMap<CorganNode, boolean> | null;
   root: CorganNode;
   stats: TreeStats;
+  /** Snapshot flatTree for Δ lookups. null = no baseline selected. */
+  baseline: FlatTree | null;
 };
 
 function TreeRow({
   node,
   depth,
+  parentPathStr,
+  siblings,
+  siblingIndex,
   parentPath,
   expandState,
   onToggle,
@@ -278,6 +361,7 @@ function TreeRow({
   searchMatchMap,
   root,
   stats,
+  baseline,
 }: TreeRowProps) {
   // Filter checks come first so a hidden node short-circuits before doing
   // any work for the row that won't be drawn.
@@ -285,12 +369,15 @@ function TreeRow({
   if (searchMatchMap && searchMatchMap.get(node) === false) return null;
 
   const hasChildren = !!(node.children && node.children.length);
-  // Path is the stable identity used as both the localStorage key and the
-  // child-row pass-through. Must be derived before the `open` lookup.
+  // Path computed the same way treeFlatten.nodePath does so a snapshot
+  // saved before this render will line up exactly. Used both as the
+  // localStorage expand-state key and as the baseline lookup key.
+  const path = nodePath(parentPathStr, node, siblings, siblingIndex);
+  // Keep an array form for findPoolForPath() which walks segments.
   const pathSegments = [...parentPath, node.name];
-  const path = joinPath(pathSegments);
   const open = isPathOpen(path, depth, expandState, node);
   const arrow = hasChildren ? (open ? "▾" : "▸") : "·";
+  const delta = lookupDelta(baseline, path, Number(node.val) || 0);
 
   // Pool-weight badge — for leaves under one of the additive pools, compute
   // their % of the pool sum so the user sees "this source = 32% of LUK2 pool".
@@ -403,6 +490,7 @@ function TreeRow({
             {weightBadge.label}
           </span>
         )}
+        <DeltaBadge delta={delta} fmt={node.fmt} />
         <span
           className={`font-mono tabular-nums text-right w-24 ${valColor(
             node.val,
@@ -419,12 +507,16 @@ function TreeRow({
               key={`${depth}-${i}-${c.name}`}
               node={c}
               depth={depth + 1}
+              parentPathStr={path}
+              siblings={node.children!}
+              siblingIndex={i}
               parentPath={pathSegments}
               expandState={expandState}
               onToggle={onToggle}
               searchTerm={searchTerm}
               hideZeroMap={hideZeroMap}
               searchMatchMap={searchMatchMap}
+              baseline={baseline}
               root={root}
               stats={stats}
             />
@@ -495,10 +587,20 @@ function buildSearchMatchMap(
 
 type ViewMode = "tree" | "world";
 
-export default function DeepView({ tree }: { tree: CorganNode | null }) {
+export default function DeepView({
+  tree,
+  baseline,
+}: {
+  tree: CorganNode | null;
+  /** Optional snapshot baseline. When set, every row gains a "Δ vs snap"
+   *  badge showing current − captured. Lookup is keyed by the same
+   *  nodePath() scheme treeFlatten uses to serialize the snapshot. */
+  baseline?: Baseline;
+}) {
   const [view, setView] = useState<ViewMode>("tree");
   const [searchTerm, setSearchTerm] = useState("");
   const [hideZero, setHideZero] = useState(false);
+  const baselineFlat = baseline?.flatTree ?? null;
 
   // Persisted expand state: defaults to "depth < 2 open" until the user has
   // clicked something. Loaded from localStorage on mount so toggles survive
@@ -652,17 +754,39 @@ export default function DeepView({ tree }: { tree: CorganNode | null }) {
 
       {/* View content. The world view doesn't need the expand-state machinery
           — its rows track their own open/closed state locally. */}
+      {/* If a snapshot baseline is selected, surface a small banner so the
+          user knows which snapshot is currently driving the Δ badges. */}
+      {baseline && (
+        <div className="mb-3 px-3 py-2 rounded-md border border-sky-500/30 bg-sky-500/5 flex items-center justify-between gap-2 text-xs">
+          <span className="text-sky-200">
+            Comparing against{" "}
+            <span className="font-semibold">{baseline.charName}</span>{" "}
+            snapshot from{" "}
+            <span className="font-mono">
+              {new Date(baseline.capturedAt).toLocaleString()}
+            </span>
+          </span>
+          <span className="text-zinc-500 italic">
+            Pick another snapshot to switch — toggle off in Snapshot History
+          </span>
+        </div>
+      )}
+
       {view === "world" ? (
         <PerWorldView
           tree={tree}
           searchTerm={searchTerm}
           hideZero={hideZero}
+          baseline={baselineFlat}
         />
       ) : (
       <div className="rounded border border-zinc-800 bg-zinc-950/40">
         <TreeRow
           node={tree}
           depth={0}
+          parentPathStr=""
+          siblings={[tree]}
+          siblingIndex={0}
           parentPath={[]}
           expandState={expandState}
           onToggle={toggleNode}
@@ -671,6 +795,7 @@ export default function DeepView({ tree }: { tree: CorganNode | null }) {
           searchMatchMap={searchMatchMap}
           root={tree}
           stats={stats}
+          baseline={baselineFlat}
         />
       </div>
       )}
@@ -696,6 +821,9 @@ type WorldBucket = {
   system: SystemKey;
   poolBadge: "Additive" | "Multi";
   node: CorganNode;
+  /** Canonical path under the root tree — same scheme treeFlatten uses
+   *  so we can look up snapshot values for the Δ badge. */
+  path: string;
 };
 
 function collectWorldBuckets(root: CorganNode): WorldBucket[] {
@@ -706,27 +834,27 @@ function collectWorldBuckets(root: CorganNode): WorldBucket[] {
   // walk — the Post-Processing prefix buckets (Bundles, Talents,
   // Sneaking Mastery) are direct categorize-style children too and
   // belong in the per-world view.
-  for (const child of root.children || []) {
-    if (child.name === "Additive Pool") {
-      for (const bucket of child.children || []) {
+  const rootSiblings = [root];
+  const rootPath = nodePath("", root, rootSiblings, 0); // "Drop Rate"
+  const parentChildren = root.children || [];
+  for (let pi = 0; pi < parentChildren.length; pi++) {
+    const child = parentChildren[pi];
+    const childPath = nodePath(rootPath, child, parentChildren, pi);
+    if (child.name === "Additive Pool" || child.name === "Post-Processing") {
+      const buckets = child.children || [];
+      for (let bi = 0; bi < buckets.length; bi++) {
+        const bucket = buckets[bi];
         const sys = parseSystemFromBucketName(bucket.name);
         if (!sys) continue;
+        const bucketPath = nodePath(childPath, bucket, buckets, bi);
+        const badge: "Additive" | "Multi" =
+          child.name === "Additive Pool" ? "Additive" : "Multi";
         out.push({
-          id: `additive::${sys}::${bucket.name}::${out.length}`,
+          id: `${badge}::${sys}::${bucketPath}::${out.length}`,
           system: sys,
-          poolBadge: "Additive",
+          poolBadge: badge,
           node: bucket,
-        });
-      }
-    } else if (child.name === "Post-Processing") {
-      for (const bucket of child.children || []) {
-        const sys = parseSystemFromBucketName(bucket.name);
-        if (!sys) continue;
-        out.push({
-          id: `mult::${sys}::${bucket.name}::${out.length}`,
-          system: sys,
-          poolBadge: "Multi",
-          node: bucket,
+          path: bucketPath,
         });
       }
     }
@@ -751,10 +879,12 @@ function PerWorldView({
   tree,
   searchTerm,
   hideZero,
+  baseline,
 }: {
   tree: CorganNode;
   searchTerm: string;
   hideZero: boolean;
+  baseline: FlatTree | null;
 }) {
   const buckets = useMemo(() => collectWorldBuckets(tree), [tree]);
 
@@ -802,7 +932,7 @@ function PerWorldView({
             </h3>
             <div>
               {list.map((b) => (
-                <WorldBucketRow key={b.id} bucket={b} />
+                <WorldBucketRow key={b.id} bucket={b} baseline={baseline} />
               ))}
             </div>
           </section>
@@ -812,7 +942,13 @@ function PerWorldView({
   );
 }
 
-function WorldBucketRow({ bucket }: { bucket: WorldBucket }) {
+function WorldBucketRow({
+  bucket,
+  baseline,
+}: {
+  bucket: WorldBucket;
+  baseline: FlatTree | null;
+}) {
   const [open, setOpen] = useState(false);
   const hasChildren = !!(bucket.node.children && bucket.node.children.length);
   const badgeClass =
@@ -820,6 +956,7 @@ function WorldBucketRow({ bucket }: { bucket: WorldBucket }) {
       ? "bg-blue-500/10 text-blue-300 border-blue-500/30"
       : "bg-amber-500/10 text-amber-300 border-amber-500/30";
   const isZero = Math.abs(Number(bucket.node.val) || 0) < 1e-9;
+  const delta = lookupDelta(baseline, bucket.path, Number(bucket.node.val) || 0);
   return (
     <div className="border-b border-zinc-800/60 last:border-b-0">
       <div
@@ -845,6 +982,7 @@ function WorldBucketRow({ bucket }: { bucket: WorldBucket }) {
         >
           {bucket.poolBadge}
         </span>
+        <DeltaBadge delta={delta} fmt={bucket.node.fmt} />
         <span
           className={`font-mono tabular-nums w-24 text-right ${valColor(
             bucket.node.val,
@@ -856,7 +994,12 @@ function WorldBucketRow({ bucket }: { bucket: WorldBucket }) {
       </div>
       {open && hasChildren && (
         <div className="bg-black/20 border-t border-zinc-800/60 px-3 py-2">
-          <WorldBucketChildren nodes={bucket.node.children!} depth={0} />
+          <WorldBucketChildren
+            nodes={bucket.node.children!}
+            depth={0}
+            parentPathStr={bucket.path}
+            baseline={baseline}
+          />
         </div>
       )}
     </div>
@@ -866,9 +1009,13 @@ function WorldBucketRow({ bucket }: { bucket: WorldBucket }) {
 function WorldBucketChildren({
   nodes,
   depth,
+  parentPathStr,
+  baseline,
 }: {
   nodes: CorganNode[];
   depth: number;
+  parentPathStr: string;
+  baseline: FlatTree | null;
 }) {
   return (
     <div>
@@ -877,6 +1024,10 @@ function WorldBucketChildren({
           key={`${depth}-${i}-${c.name}`}
           node={c}
           depth={depth}
+          siblings={nodes}
+          siblingIndex={i}
+          parentPathStr={parentPathStr}
+          baseline={baseline}
         />
       ))}
     </div>
@@ -886,12 +1037,22 @@ function WorldBucketChildren({
 function WorldBucketChildRow({
   node,
   depth,
+  siblings,
+  siblingIndex,
+  parentPathStr,
+  baseline,
 }: {
   node: CorganNode;
   depth: number;
+  siblings: CorganNode[];
+  siblingIndex: number;
+  parentPathStr: string;
+  baseline: FlatTree | null;
 }) {
   const [open, setOpen] = useState(false);
   const hasChildren = !!(node.children && node.children.length);
+  const path = nodePath(parentPathStr, node, siblings, siblingIndex);
+  const delta = lookupDelta(baseline, path, Number(node.val) || 0);
   return (
     <div style={{ paddingLeft: `${depth * 0.75}rem` }}>
       <div
@@ -912,6 +1073,7 @@ function WorldBucketChildRow({
             </span>
           )}
         </span>
+        <DeltaBadge delta={delta} fmt={node.fmt} />
         <span
           className={`font-mono tabular-nums text-xs ${valColor(
             node.val,
@@ -922,7 +1084,12 @@ function WorldBucketChildRow({
         </span>
       </div>
       {open && hasChildren && (
-        <WorldBucketChildren nodes={node.children!} depth={depth + 1} />
+        <WorldBucketChildren
+          nodes={node.children!}
+          depth={depth + 1}
+          parentPathStr={path}
+          baseline={baseline}
+        />
       )}
     </div>
   );

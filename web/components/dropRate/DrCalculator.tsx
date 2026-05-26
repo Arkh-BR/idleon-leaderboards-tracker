@@ -453,7 +453,7 @@ export default function DrCalculator({
         {computing ? (
           <p className="text-sm text-zinc-500 italic">Computing…</p>
         ) : (
-          <DeepView tree={drTree} />
+          <DeepView tree={drTree} baseline={compareBaseline ?? null} />
         )}
       </div>
     </div>
