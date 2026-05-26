@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-26T16:18:05.724Z",
+  "generatedAt": "2026-05-26T16:21:29.913Z",
   "refTotal": 43093.43816941274,
   "refSave": "zArkhe (save 25-21-16.json) — Froggy Fields",
   "sourceCount": 75,
@@ -5661,6 +5661,7 @@
       "refValue": 2,
       "bucket": "🎁 Bundles",
       "note": "bundle bun_v",
+      "p2w": true,
       "children": [
         {
           "id": "Drop Rate / Post-Processing / 🎁 Bundles / Death Bringer Bundle (Bundle bun_v) / Owned",
@@ -5670,7 +5671,8 @@
           "pool": "Additive",
           "fmt": "raw",
           "refValue": 1,
-          "bucket": "🎁 Bundles"
+          "bucket": "🎁 Bundles",
+          "p2w": true
         }
       ]
     },
@@ -7586,6 +7588,7 @@
       "refValue": 1.2,
       "bucket": "🎁 Bundles",
       "note": "bundle bun_p",
+      "p2w": true,
       "children": [
         {
           "id": "Drop Rate / Post-Processing / 🎁 Bundles#1 / Explorer Bundle (Bundle bun_p) / Owned",
@@ -7595,7 +7598,8 @@
           "pool": "Multi",
           "fmt": "raw",
           "refValue": 1,
-          "bucket": "🎁 Bundles"
+          "bucket": "🎁 Bundles",
+          "p2w": true
         }
       ]
     },

@@ -53,7 +53,22 @@ type SourceEntry = {
   /** Recursive descendants. Empty/undefined when the node has no
    *  drill-down (e.g. a leaf talent without sub-source breakdown). */
   children?: SourceEntry[];
+  /** True for paid-only sources (real-money DLC bundles, gem-shop
+   *  exclusives). The UI exposes a "Hide P2W" toggle that filters
+   *  these out so the user can see a free-to-play ceiling. */
+  p2w?: boolean;
 };
+
+/** Heuristic-flag for P2W sources. The criterion right now:
+ *    - Anything classified under the Bundles system, OR
+ *    - Any node whose name contains "(Bundle " (covers Death Bringer +
+ *      Explorer Bundle children)
+ *  We can expand this list as more clearly P2W items surface. */
+function looksP2W(name: string, system: SystemKey): boolean {
+  if (system === "Bundles") return true;
+  if (/\(Bundle\s/.test(name)) return true;
+  return false;
+}
 
 // Names that mark catalog-only placeholder rows (un-equipped items,
 // safety net rows). They have no per-character DR value and would
@@ -99,6 +114,7 @@ function collectChildren(
       bucket: bucket.name,
     };
     if (child.note) entry.note = child.note;
+    if (looksP2W(child.name, sys)) entry.p2w = true;
     const grandKids = collectChildren(
       child,
       childPath,
@@ -151,6 +167,7 @@ for (let pi = 0; pi < tops.length; pi++) {
         bucket: bucket.name,
       };
       if (src.note) entry.note = src.note;
+      if (looksP2W(src.name, sys)) entry.p2w = true;
       const subs = collectChildren(src, id, rows, si, bucket, sys, world, badge);
       if (subs.length > 0) entry.children = subs;
       sources.push(entry);
@@ -396,6 +413,21 @@ function buildHtml(cat: typeof catalog): string {
   }
   tr.no-data { opacity: 0.65; }
   tr.has-max { background: rgba(52, 211, 153, 0.04); }
+  /* "maxed" status outshines plain has-max — gold tint signals
+     "this source is at its theoretical ceiling, no more to gain". */
+  tr.maxed { background: rgba(250, 204, 21, 0.08); }
+  tr.maxed.has-max { background: rgba(250, 204, 21, 0.10); }
+  tr.maxed td.input input.filled { border-color: rgba(250, 204, 21, 0.6); }
+  /* P2W flag pill — sits at the end of the Source name to mark the row */
+  td.name .p2w-badge {
+    display: inline-block; margin-left: 6px;
+    background: rgba(244, 114, 182, 0.12);
+    color: #f9a8d4;
+    border: 1px solid rgba(244, 114, 182, 0.4);
+    border-radius: 3px; padding: 0px 5px;
+    font-size: 9px; font-family: monospace;
+    vertical-align: middle;
+  }
   .filter-pill {
     display: inline-flex; align-items: center; gap: 4px;
     font-size: 11px; padding: 3px 8px;
@@ -455,6 +487,9 @@ function buildHtml(cat: typeof catalog): string {
     </button>
     <button id="filter-mine" class="filter-pill" title="Show only sources I've filled in">
       Show only filled
+    </button>
+    <button id="filter-p2w" class="filter-pill" title="Hide paid-only sources (Bundles, real-money DLC)">
+      💰 Hide P2W
     </button>
     <button id="expand-all" title="Expand every world section">↓ Expand</button>
     <button id="collapse-all" title="Collapse every world section">↑ Collapse</button>
@@ -536,7 +571,7 @@ function buildHtml(cat: typeof catalog): string {
   /** Per-source user data:
    *    { [sourceId]: { maxValue?:number, observedOn?:string,
    *                    notes?:string, verified?:string } }
-   *  verified ∈ "" | "observed" | "researched" | "theorized" */
+   *  verified ∈ "" | "observed" | "researched" | "theorized" | "maxed" */
   function loadValues() {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
@@ -609,6 +644,13 @@ function buildHtml(cat: typeof catalog): string {
   let expandedIds = loadExpanded();
   let filterText = "";
   let filterMode = "all"; // "all" | "blank" | "filled"
+  // P2W filter — persists in localStorage so the user's preference
+  // (typically "hide P2W" for F2P planning) survives reloads.
+  const P2W_KEY = "dr-max-values.hide-p2w.v1";
+  let hideP2W = false;
+  try {
+    hideP2W = localStorage.getItem(P2W_KEY) === "1";
+  } catch (e) { /* ignore */ }
 
   /** Effective reference value for a source — uses the loaded snapshot's
    *  value when one is present, else falls back to the catalog default
@@ -662,6 +704,7 @@ function buildHtml(cat: typeof catalog): string {
     const hasMax = entry && typeof entry.maxValue === "number";
     if (filterMode === "blank" && hasMax) return false;
     if (filterMode === "filled" && !hasMax) return false;
+    if (hideP2W && src.p2w) return false;
     if (filterText) {
       const q = filterText.toLowerCase();
       if (
@@ -817,6 +860,7 @@ function buildHtml(cat: typeof catalog): string {
     const isOpen = expandedIds.has(src.id);
     const tr = document.createElement("tr");
     tr.className = hasMax ? "has-max" : "no-data";
+    if (entry.verified === "maxed") tr.classList.add("maxed");
     if (depth > 0) tr.classList.add("subrow", "depth-" + depth);
 
     const tdName = document.createElement("td");
@@ -842,6 +886,13 @@ function buildHtml(cat: typeof catalog): string {
     nameText.className = "name-text";
     nameText.textContent = src.name;
     tdName.appendChild(nameText);
+    if (src.p2w) {
+      const badge = document.createElement("span");
+      badge.className = "p2w-badge";
+      badge.textContent = "P2W";
+      badge.title = "Real-money DLC / Bundle — gated by purchase.";
+      tdName.appendChild(badge);
+    }
     tr.appendChild(tdName);
 
     const tdSys = document.createElement("td");
@@ -954,7 +1005,8 @@ function buildHtml(cat: typeof catalog): string {
       '<option value="">—</option>' +
       '<option value="observed">observed</option>' +
       '<option value="researched">researched</option>' +
-      '<option value="theorized">theorized</option>';
+      '<option value="theorized">theorized</option>' +
+      '<option value="maxed">maxed</option>';
     sel.value = entry.verified || "";
     sel.onchange = () => {
       const next = { ...(values[src.id] || {}) };
@@ -963,6 +1015,9 @@ function buildHtml(cat: typeof catalog): string {
       if (Object.keys(next).length === 0) delete values[src.id];
       else values[src.id] = next;
       saveValues(values);
+      // Light-touch row sync — toggle the gold "maxed" tint without a
+      // full re-render so the user keeps their focus / scroll position.
+      tr.classList.toggle("maxed", next.verified === "maxed");
     };
     tdVer.appendChild(sel);
     tr.appendChild(tdVer);
@@ -995,6 +1050,7 @@ function buildHtml(cat: typeof catalog): string {
   });
   const blankBtn = document.getElementById("filter-blank");
   const mineBtn = document.getElementById("filter-mine");
+  const p2wBtn = document.getElementById("filter-p2w");
   blankBtn.onclick = () => {
     filterMode = filterMode === "blank" ? "all" : "blank";
     blankBtn.classList.toggle("active", filterMode === "blank");
@@ -1005,6 +1061,15 @@ function buildHtml(cat: typeof catalog): string {
     filterMode = filterMode === "filled" ? "all" : "filled";
     blankBtn.classList.toggle("active", filterMode === "blank");
     mineBtn.classList.toggle("active", filterMode === "filled");
+    render();
+  };
+  // Initial paint of the P2W pill if it was active last session.
+  if (hideP2W) p2wBtn.classList.add("active");
+  p2wBtn.onclick = () => {
+    hideP2W = !hideP2W;
+    try { localStorage.setItem(P2W_KEY, hideP2W ? "1" : "0"); }
+    catch (e) { /* ignore */ }
+    p2wBtn.classList.toggle("active", hideP2W);
     render();
   };
   document.getElementById("expand-all").onclick = () => {
