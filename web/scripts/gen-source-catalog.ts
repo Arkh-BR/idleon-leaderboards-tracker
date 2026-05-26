@@ -1514,10 +1514,16 @@ const APP_JS = `
       var s = formulaSrcs[i];
       var v = computeAgg(s);
       if (v !== null && Number.isFinite(v)) {
-        // Only write a value when the recomputation produces something
-        // — if the formula relies on a hidden P2W child and bails to
-        // null, we leave the previous max alone.
         patchEntry(s.id, { maxValue: v });
+      } else {
+        // Formula explicitly returned null (cap-research gate failed
+        // because no active kid, or strict-null short-circuited).
+        // Clear any stale maxValue from a previous recompute so the
+        // UI reflects "no result", not the cached value.
+        var e = values[s.id];
+        if (e && typeof e.maxValue === "number") {
+          patchEntry(s.id, { maxValue: undefined });
+        }
       }
     }
   }
