@@ -456,6 +456,13 @@ header .sub { color: var(--ink-dim); font-size: 12px; margin-bottom: 14px; }
 .row .max-input:focus { outline: none; border-color: var(--accent); }
 .row .max-input.filled { border-color: rgba(52, 211, 153, 0.4); background: rgba(52, 211, 153, 0.04); }
 .row .max-input.agg-driven { border-color: rgba(56, 189, 248, 0.4); background: rgba(56, 189, 248, 0.04); }
+.row .max-input.readonly {
+  background: rgba(56, 189, 248, 0.05);
+  border-style: dashed;
+  color: var(--accent);
+  cursor: not-allowed;
+}
+.row .max-input.readonly:focus { outline: none; }
 .row .agg-badge {
   background: rgba(56, 189, 248, 0.1); color: var(--accent);
   border: 1px solid rgba(56, 189, 248, 0.35);
@@ -628,9 +635,12 @@ const APP_JS = `
     if (e && typeof e.maxValue === "number") return e.maxValue;
     return getRefValue(src);
   }
+  // The display name is ALWAYS the catalog default — the per-row text
+  // input next to the name only captures a free-text tag/note (stored
+  // under values[id].tag) so the user can jot down research context
+  // without changing the source's display name or triggering anything
+  // that touches the agg formulas.
   function effectiveName(src) {
-    var e = values[src.id];
-    if (e && typeof e.nameOverride === "string" && e.nameOverride) return e.nameOverride;
     return src.name;
   }
   function effectiveP2W(src) {
@@ -872,18 +882,24 @@ const APP_JS = `
     nameText.title = src.name;
     nameWrap.appendChild(nameText);
 
-    var renameInput = document.createElement("input");
-    renameInput.type = "text";
-    renameInput.className = "rename";
-    renameInput.placeholder = "rename…";
-    renameInput.value = entry.nameOverride || "";
-    renameInput.title = "Override the display name. Empty to revert.";
-    renameInput.oninput = function () {
-      var v = renameInput.value.trim();
-      patchEntry(src.id, { nameOverride: v ? v : undefined });
-      nameText.textContent = effectiveName(src);
+    // Free-text TAG input — captures a research note next to the row's
+    // name. Decoupled from the actual display name on purpose (an
+    // earlier version of this field was a rename override, but typing
+    // in it raised concerns about silently triggering formula
+    // recomputes). This input never touches the source's name or value
+    // logic, just stores the string under values[src.id].tag.
+    var tagInput = document.createElement("input");
+    tagInput.type = "text";
+    tagInput.className = "rename";
+    tagInput.placeholder = "tag / note…";
+    tagInput.value = entry.tag || "";
+    tagInput.title =
+      "Free-text label next to the row name. Stored in your local " +
+      "notes — does NOT rename the source or affect formulas.";
+    tagInput.oninput = function () {
+      patchEntry(src.id, { tag: tagInput.value || undefined });
     };
-    nameWrap.appendChild(renameInput);
+    nameWrap.appendChild(tagInput);
 
     var p2wBtn = document.createElement("button");
     p2wBtn.type = "button";
@@ -922,6 +938,17 @@ const APP_JS = `
     maxInput.placeholder = "—";
     maxInput.value = hasMax ? String(entry.maxValue) : "";
     if (hasMax) maxInput.classList.add("filled");
+    // Rows with an aggregation rule (Σ / Π) get a read-only Max — the
+    // value is purely a function of children, so manual edits would
+    // create false data and immediately get overwritten on the next
+    // child change. The user can still pull a ref (← ref) or click the
+    // Σ/Π badge to refresh from descendants.
+    if (src.agg) {
+      maxInput.readOnly = true;
+      maxInput.classList.add("readonly");
+      maxInput.title =
+        "Auto-computed from children — read-only. Edit a leaf below to update.";
+    }
     maxInput.oninput = function () {
       var v = maxInput.value === "" ? undefined : Number(maxInput.value);
       patchEntry(src.id, { maxValue: (v === undefined || isNaN(v)) ? undefined : v });
