@@ -1316,11 +1316,25 @@ const APP_JS = `
       return Math.round(base + summ + cloud);
     },
     "Divinity Minor 2 (Arctis)": function (_p, kids) {
-      // ceil(max(1, Y2) × (1 + Coral/100) × Lv/(60+Lv) × God)
-      var lv = kid(kids, /^Divinity Lv$/);
-      var y2 = kid(kids, /^Bubble Y2 Active$/);
-      var coral = kid(kids, /^Coral Kid 3$/);
-      var god = kid(kids, /^God Minor X1\(2\)$/);
+      // ceil(max(1, Y2) × (1 + Coral/100) × Lv/(60+Lv) × God).
+      // NOTE: the "God Minor X1(2)" kid name has literal parens, which
+      // a regex would need to escape via \\(\\) — but template literal
+      // strips a single backslash, so the emitted regex would be
+      // /^God Minor X1(2)$/ (capture group "2" — never matches). Look
+      // it up by exact-string equality instead to dodge the escape.
+      function kidByName(kids, name) {
+        for (var i = 0; i < kids.length; i++) {
+          if (kids[i].name === name) {
+            var v = effectiveValue(kids[i]);
+            return v === null ? null : (Number(v) || 0);
+          }
+        }
+        return null;
+      }
+      var lv = kidByName(kids, "Divinity Lv");
+      var y2 = kidByName(kids, "Bubble Y2 Active");
+      var coral = kidByName(kids, "Coral Kid 3");
+      var god = kidByName(kids, "God Minor X1(2)");
       if (lv === null || y2 === null || coral === null || god === null) return null;
       if (lv <= 0) return 0;
       return Math.ceil(
