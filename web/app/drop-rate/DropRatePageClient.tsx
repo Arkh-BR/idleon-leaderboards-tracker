@@ -24,16 +24,23 @@ export default function DropRatePageClient() {
   // the tree) can share it.
   const [baseline, setBaseline] = useState<Baseline | null>(null);
 
+  // Render the snapshot section right under the Big DR card (above the
+  // detailed tree) via DrCalculator's middleSlot prop, so the "Save
+  // snapshot" button is one scroll away from the headline value.
+  const snapshotBlock = (
+    <SnapshotSection
+      state={calcState}
+      onSelectBaseline={setBaseline}
+      selectedBaselineAt={baseline?.capturedAt ?? null}
+    />
+  );
+
   return (
     <main className="max-w-3xl mx-auto px-3 pb-12">
       <DrCalculator
         onStateChange={setCalcState}
         compareBaseline={baseline}
-      />
-      <SnapshotSection
-        state={calcState}
-        onSelectBaseline={setBaseline}
-        selectedBaselineAt={baseline?.capturedAt ?? null}
+        middleSlot={snapshotBlock}
       />
       <footer className="mt-8 text-[11px] text-zinc-600 text-center border-t border-zinc-900 pt-3">
         Drop rate is computed locally from your save JSON — pool tree

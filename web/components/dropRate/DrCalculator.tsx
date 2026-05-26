@@ -43,9 +43,17 @@ type Props = {
     capturedAt: number;
     charName: string;
   } | null;
+  // Optional render slot injected between the Big DR card and the Formula
+  // Breakdown — used by the page to render the snapshot section there so it
+  // sits near the headline value instead of buried at the bottom.
+  middleSlot?: React.ReactNode;
 };
 
-export default function DrCalculator({ onStateChange, compareBaseline }: Props) {
+export default function DrCalculator({
+  onStateChange,
+  compareBaseline,
+  middleSlot,
+}: Props) {
   const [jsonText, setJsonText] = useState("");
   const [save, setSave] = useState<any | null>(null);
   const [chars, setChars] = useState<CharSummary[]>([]);
@@ -179,6 +187,17 @@ export default function DrCalculator({ onStateChange, compareBaseline }: Props) 
     };
   }, [save, charIdx, mapIdx, chars, mapOptions, loadComputeFn]);
 
+  // When the character selection changes, auto-jump to whatever map that
+  // character was on at save time (CurrentMap_{ci}). Falls back to Town (0)
+  // if the map isn't in the list (e.g. removed event map).
+  useEffect(() => {
+    if (!save || chars.length === 0) return;
+    const data = (save as any)?.data ?? {};
+    const currentMap = Number(data[`CurrentMap_${charIdx}`]) || 0;
+    const inOptions = mapOptions.some((m) => m.index === currentMap);
+    setMapIdx(inOptions ? currentMap : 0);
+  }, [charIdx, save, chars.length, mapOptions]);
+
   // Detect Lab chip 16 (Silkrode Motherboard) on save load. Reads
   // Lab[1+ci][s] for every character; if any slot has chip 16 the gallery
   // chip toggle auto-flips ON since the in-game gallery refresh likely
@@ -300,15 +319,6 @@ export default function DrCalculator({ onStateChange, compareBaseline }: Props) 
     if (stageSave(jsonText)) setJsonText("");
   };
 
-  const onFile = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const f = e.target.files?.[0];
-    if (!f) return;
-    const reader = new FileReader();
-    reader.onload = () => stageSave(String(reader.result ?? ""));
-    reader.onerror = () => setError("Failed to read file");
-    reader.readAsText(f);
-  };
-
   const factor = mapOptions.find((m) => m.index === mapIdx)?.factor ?? 1;
   // Primary displayed DR uses the detailed pool-tree compute (matches in-game
   // to within ~1%). The detailed tree already includes the arcaneMap node,
@@ -355,15 +365,6 @@ export default function DrCalculator({ onStateChange, compareBaseline }: Props) 
           >
             Load Save
           </button>
-          <label className="px-4 py-1.5 text-sm rounded bg-zinc-800 text-zinc-200 border border-zinc-700 hover:bg-zinc-700 cursor-pointer">
-            …or upload file
-            <input
-              type="file"
-              accept="application/json,.json,.txt"
-              onChange={onFile}
-              className="hidden"
-            />
-          </label>
           <select
             value={charIdx}
             disabled={chars.length === 0}
@@ -438,6 +439,8 @@ export default function DrCalculator({ onStateChange, compareBaseline }: Props) 
           </div>
         )}
       </div>
+
+      {middleSlot}
 
       {/* Formula breakdown tree */}
       <div className="rounded-lg bg-zinc-900/60 border border-zinc-800 p-4 mb-4">
