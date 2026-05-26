@@ -548,62 +548,59 @@ export default function DeepView({ tree }: { tree: CorganNode | null }) {
 
   return (
     <div className="font-sans">
-      {/* Controls bar — Expand/Collapse/Reset on top, Search on the bottom
-          so the most-used action (looking for a specific source) gets a
-          dedicated full-width row, and the tree-wide controls + filter
-          toggle sit prominently above it. */}
-      <div className="mb-3 flex flex-col gap-2 p-2 rounded-lg border border-zinc-800 bg-zinc-900/60">
-        {/* Top row: Expand / Collapse / Reset + Hide-inactive toggle. */}
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="inline-flex gap-1">
-            <button
-              type="button"
-              onClick={expandAll}
-              className="px-2 py-1 text-xs rounded border border-zinc-700 bg-zinc-900 text-zinc-300 hover:bg-zinc-800"
-              title="Open every node"
-            >
-              ↓ Expand
-            </button>
-            <button
-              type="button"
-              onClick={collapseAll}
-              className="px-2 py-1 text-xs rounded border border-zinc-700 bg-zinc-900 text-zinc-300 hover:bg-zinc-800"
-              title="Close every node"
-            >
-              ↑ Collapse
-            </button>
-            <button
-              type="button"
-              onClick={resetExpandState}
-              className="px-2 py-1 text-xs rounded border border-zinc-800 bg-zinc-950 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800"
-              title="Reset to default: depth < 2 open, everything else closed"
-            >
-              ↺ Reset
-            </button>
-          </div>
-
-          {/* Hide-inactive toggle — some leaves carry val=0 but still feel
-              "active" (e.g. catalog rows). "Inactive" reads more naturally
-              than "Hide zero". */}
-          <label className="ml-auto flex items-center gap-1.5 text-xs text-zinc-400 cursor-pointer select-none px-1">
-            <input
-              type="checkbox"
-              checked={hideZero}
-              onChange={(e) => setHideZero(e.target.checked)}
-              className="accent-sky-500"
-            />
-            Hide inactive
-          </label>
-        </div>
-
-        {/* Bottom row: full-width search input. */}
+      {/* Controls bar — single row. Search goes first (it's the most-used
+          control and benefits from a flex-grow input), followed by the
+          expand-state buttons and the Hide-inactive toggle. */}
+      <div className="mb-3 flex flex-wrap items-center gap-2 p-2 rounded-lg border border-zinc-800 bg-zinc-900/60">
+        {/* Search — flex-grow so it claims most of the bar width. */}
         <input
           type="text"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           placeholder="🔍 Search source name or note…"
-          className="w-full px-2 py-1 text-xs bg-zinc-950 border border-zinc-800 rounded text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-sky-500/60"
+          className="flex-1 min-w-[200px] px-2 py-1 text-xs bg-zinc-950 border border-zinc-800 rounded text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-sky-500/60"
         />
+
+        {/* Expand / Collapse / Reset. */}
+        <div className="inline-flex gap-1">
+          <button
+            type="button"
+            onClick={expandAll}
+            className="px-2 py-1 text-xs rounded border border-zinc-700 bg-zinc-900 text-zinc-300 hover:bg-zinc-800"
+            title="Open every node"
+          >
+            ↓ Expand
+          </button>
+          <button
+            type="button"
+            onClick={collapseAll}
+            className="px-2 py-1 text-xs rounded border border-zinc-700 bg-zinc-900 text-zinc-300 hover:bg-zinc-800"
+            title="Close every node"
+          >
+            ↑ Collapse
+          </button>
+          <button
+            type="button"
+            onClick={resetExpandState}
+            className="px-2 py-1 text-xs rounded border border-zinc-800 bg-zinc-950 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800"
+            title="Reset to default: depth < 2 open, everything else closed"
+          >
+            ↺ Reset
+          </button>
+        </div>
+
+        {/* Hide-inactive toggle — some leaves carry val=0 but still feel
+            "active" (e.g. catalog rows). "Inactive" reads more naturally
+            than "Hide zero". */}
+        <label className="flex items-center gap-1.5 text-xs text-zinc-400 cursor-pointer select-none px-1">
+          <input
+            type="checkbox"
+            checked={hideZero}
+            onChange={(e) => setHideZero(e.target.checked)}
+            className="accent-sky-500"
+          />
+          Hide inactive
+        </label>
       </div>
 
       {/* Tree content */}

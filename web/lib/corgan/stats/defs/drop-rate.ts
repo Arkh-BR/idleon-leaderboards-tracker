@@ -208,14 +208,14 @@ const dropRateDesc: Descriptor = {
 
     const children: CorganNode[] = [
       {
-        name: "🍀 LUK Scaling",
+        name: "LUK Scaling",
         val: lukVal,
         children: pools.base.items[0]
           ? pools.base.items[0].children
           : undefined,
         fmt: "raw",
       },
-      { name: "🍀 × 1.4", val: lukC, fmt: "raw", note: "1.4 × lukScaling" },
+      { name: "× 1.4", val: lukC, fmt: "raw", note: "1.4 × lukScaling" },
       {
         name: "Additive Pool",
         val: addSum,
