@@ -994,24 +994,31 @@ const APP_JS = `
     }
   }
   function propagateUp(childId) {
-    var curId = parentByChildId.get(childId);
-    while (curId) {
-      var parent = sourceById.get(curId);
-      if (parent && hasFormula(parent)) {
-        var newVal = computeAgg(parent);
-        if (newVal !== null && Number.isFinite(newVal)) {
-          patchEntry(curId, { maxValue: newVal });
-          var input = inputBySourceId.get(curId);
-          if (input) {
-            input.value = String(newVal);
-            input.classList.add("filled", "agg-driven");
-            var row = input.closest(".row");
-            if (row) { row.classList.add("has-max"); row.classList.remove("no-data"); }
-          }
-        }
+    // Strategy: deepest-first walk over EVERY formula-tagged source.
+    // Cheaper than threading through the ancestor chain and avoids any
+    // subtle "I missed a parent" bugs. ~58 evaluations × O(children)
+    // each, all native math, runs in single-digit ms even on the heavy
+    // tree-flatten subtrees.
+    void childId;
+    recomputeAllFormulas();
+    // Push every patched value into its rendered input (if any).
+    eachSource(function (s) {
+      if (!hasFormula(s)) return;
+      var input = inputBySourceId.get(s.id);
+      if (!input) return;
+      var e = values[s.id];
+      if (e && typeof e.maxValue === "number") {
+        input.value = String(e.maxValue);
+        input.classList.add("filled", "agg-driven");
+        var r = input.closest(".row");
+        if (r) { r.classList.add("has-max"); r.classList.remove("no-data"); }
+      } else {
+        input.value = "";
+        input.classList.remove("filled", "agg-driven");
+        var r2 = input.closest(".row");
+        if (r2) { r2.classList.remove("has-max"); r2.classList.add("no-data"); }
       }
-      curId = parentByChildId.get(curId);
-    }
+    });
   }
 
   // ===== FORMAT =====
@@ -1071,6 +1078,11 @@ const APP_JS = `
   }
 
   function render() {
+    // Belt-and-braces: re-run every formula before we paint. The
+    // various action handlers already do this through propagateUp,
+    // but doing it here too guarantees the DOM always reflects the
+    // current state of children — no "stale parent value" possible.
+    recomputeAllFormulas();
     // Wipe the input-element index — every render() rebuilds the DOM,
     // so old references would point to detached nodes.
     inputBySourceId.clear();
