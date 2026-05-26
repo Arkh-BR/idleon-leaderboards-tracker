@@ -227,6 +227,11 @@ const dropRateDesc: Descriptor = {
         val: lukC,
         children: lukScalingChildren,
         fmt: "raw",
+        // Closed by default — the headline value already tells the user
+        // what LUK contributes (lukC ≈ 1.115 for a fully geared char);
+        // the curve breakdown inside is reference material, not what they
+        // scan for. Matches the categorize-bucket pattern.
+        defaultClosed: true,
         note: "Total LUK → curve → × 1.4 = contribution to additive sum",
       },
       {

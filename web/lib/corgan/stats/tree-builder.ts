@@ -69,6 +69,11 @@ export function buildTree(
   return {
     name: desc.name,
     val: result.val,
+    // Drop Rate (and any other descriptor headline that ends as a
+    // multiplier) renders with the "x" formatter so the value reads
+    // "43093.438x" instead of getting auto-truncated to "43.09K" by
+    // formatVal's default thousands collapse.
+    fmt: "x",
     children: result.children,
   };
 }
