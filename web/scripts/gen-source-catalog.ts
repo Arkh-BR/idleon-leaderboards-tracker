@@ -930,15 +930,33 @@ header .sub { color: var(--ink-dim); font-size: 12px; margin-bottom: 14px; }
   color: var(--ink); padding: 2px 4px; font-size: 11px;
 }
 
-/* Sub-row indentation */
-.row.depth-1 { padding-left: 36px; font-size: 11px; }
-.row.depth-2 { padding-left: 58px; font-size: 11px; }
-.row.depth-3 { padding-left: 80px; font-size: 11px; }
-.row.depth-4 { padding-left: 102px; font-size: 11px; }
-.row.depth-5 { padding-left: 124px; font-size: 11px; }
-.row.depth-6 { padding-left: 146px; font-size: 11px; }
+/* Sub-row indentation — fixed step (24px / level) plus a subtle
+   left-border guide so deeper nests stay readable. Each depth class
+   adds a left border whose color fades with depth, giving the tree a
+   visual rail without going full ASCII tree art. */
+.row.depth-1, .row.depth-2, .row.depth-3,
+.row.depth-4, .row.depth-5, .row.depth-6,
+.row.depth-7, .row.depth-8 {
+  font-size: 11px;
+  background-image: linear-gradient(
+    to right,
+    rgba(56, 189, 248, 0.18) 0,
+    rgba(56, 189, 248, 0.18) 1px,
+    transparent 1px
+  );
+  background-repeat: no-repeat;
+}
+.row.depth-1 { padding-left: 24px;  background-position: 12px 0; }
+.row.depth-2 { padding-left: 48px;  background-position: 36px 0; }
+.row.depth-3 { padding-left: 72px;  background-position: 60px 0; }
+.row.depth-4 { padding-left: 96px;  background-position: 84px 0; }
+.row.depth-5 { padding-left: 120px; background-position: 108px 0; }
+.row.depth-6 { padding-left: 144px; background-position: 132px 0; }
+.row.depth-7 { padding-left: 168px; background-position: 156px 0; }
+.row.depth-8 { padding-left: 192px; background-position: 180px 0; }
 .row.depth-1 .name, .row.depth-2 .name, .row.depth-3 .name,
-.row.depth-4 .name, .row.depth-5 .name, .row.depth-6 .name {
+.row.depth-4 .name, .row.depth-5 .name, .row.depth-6 .name,
+.row.depth-7 .name, .row.depth-8 .name {
   color: var(--ink-dim);
 }
 
