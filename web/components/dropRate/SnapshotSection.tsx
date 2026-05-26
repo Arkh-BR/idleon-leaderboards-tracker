@@ -230,22 +230,23 @@ export default function SnapshotSection({
           >
             💾 Save snapshot
           </button>
-          {/* Arrows match the inbox / outbox mental model:
-              ⬆ Export → data is being sent OUT of the app (uploaded to your disk),
-              ⬇ Import → data is coming IN to the app (downloaded from a file). */}
+          {/* Use the same thin arrows the DeepView Expand/Collapse buttons use
+              so the iconography is consistent across the page. Convention:
+              ↑ Export — data going OUT of the app (up/out to a file)
+              ↓ Import — data coming IN to the app (down/in from a file) */}
           <button
             type="button"
             onClick={onExport}
             className="px-3 py-1 text-xs rounded bg-zinc-800 text-zinc-200 border border-zinc-700 hover:bg-zinc-700"
             title="Export all snapshots to a JSON file"
           >
-            ⬆ Export
+            ↑ Export
           </button>
           <label
             className="px-3 py-1 text-xs rounded bg-zinc-800 text-zinc-200 border border-zinc-700 hover:bg-zinc-700 cursor-pointer"
             title="Import snapshots from a previously-exported JSON file"
           >
-            ⬇ Import
+            ↓ Import
             <input
               type="file"
               accept="application/json,.json"

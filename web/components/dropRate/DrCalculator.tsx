@@ -284,9 +284,15 @@ export default function DrCalculator({
         JSON. Select character &amp; map. All processing local in your browser.
       </p>
 
-      {/* Import box */}
-      <details open className="rounded-lg bg-zinc-900/60 p-4 mb-4 border border-zinc-800">
-        <summary className="cursor-pointer select-none flex items-baseline gap-2 flex-wrap">
+      {/* Import box — use a flex-col body with uniform gap so every inner
+          row sits at the same vertical rhythm (was a grab-bag of mt-2 /
+          mt-3 / no-margin which made the textarea + buttons look cramped
+          while the Chip Gallery row floated further away). */}
+      <details
+        open
+        className="rounded-lg bg-zinc-900/60 p-4 mb-4 border border-zinc-800"
+      >
+        <summary className="cursor-pointer select-none flex items-center gap-x-2 gap-y-1 flex-wrap mb-3">
           <span className="font-semibold text-gold">📋 Import Save JSON</span>
           <span className="text-xs text-zinc-500 font-normal">
             Use the &ldquo;Copy for Support&rdquo; button on{" "}
@@ -301,57 +307,56 @@ export default function DrCalculator({
             </a>
           </span>
         </summary>
-        <textarea
-          value={jsonText}
-          onChange={(e) => setJsonText(e.target.value)}
-          placeholder='Paste the output of "Copy for Support" here (Ctrl+V)…'
-          className="w-full h-20 mt-2 bg-zinc-950 border border-zinc-800 rounded p-2 text-xs font-mono text-zinc-200 focus:outline-none focus:border-gold"
-        />
-        <div className="flex flex-wrap items-center gap-2 mt-2">
-          <button
-            type="button"
-            onClick={onLoad}
-            className="px-4 py-1.5 text-sm font-semibold rounded bg-sky-500/20 text-sky-300 border border-sky-500/40 hover:bg-sky-500/30"
-          >
-            Load Save
-          </button>
-          <select
-            value={charIdx}
-            disabled={chars.length === 0}
-            onChange={(e) => setCharIdx(Number(e.target.value))}
-            className="px-2 py-1.5 text-sm bg-zinc-900 border border-zinc-700 rounded text-sky-300 disabled:opacity-40"
-          >
-            {chars.length === 0 ? (
-              <option value={0}>-- load save first --</option>
-            ) : (
-              chars.map((c) => (
-                <option key={c.charIndex} value={c.charIndex}>
-                  {c.charName} (Lv {c.level})
+        <div className="flex flex-col gap-3">
+          <textarea
+            value={jsonText}
+            onChange={(e) => setJsonText(e.target.value)}
+            placeholder='Paste the output of "Copy for Support" here (Ctrl+V)…'
+            className="w-full h-20 bg-zinc-950 border border-zinc-800 rounded p-2 text-xs font-mono text-zinc-200 focus:outline-none focus:border-gold"
+          />
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={onLoad}
+              className="px-4 py-1.5 text-sm font-semibold rounded bg-sky-500/20 text-sky-300 border border-sky-500/40 hover:bg-sky-500/30"
+            >
+              Load Save
+            </button>
+            <select
+              value={charIdx}
+              disabled={chars.length === 0}
+              onChange={(e) => setCharIdx(Number(e.target.value))}
+              className="px-2 py-1.5 text-sm bg-zinc-900 border border-zinc-700 rounded text-sky-300 disabled:opacity-40"
+            >
+              {chars.length === 0 ? (
+                <option value={0}>-- load save first --</option>
+              ) : (
+                chars.map((c) => (
+                  <option key={c.charIndex} value={c.charIndex}>
+                    {c.charName} (Lv {c.level})
+                  </option>
+                ))
+              )}
+            </select>
+            <select
+              value={mapIdx}
+              disabled={chars.length === 0}
+              onChange={(e) => setMapIdx(Number(e.target.value))}
+              className="px-2 py-1.5 text-sm bg-zinc-900 border border-zinc-700 rounded text-sky-300 disabled:opacity-40"
+            >
+              {mapOptions.map((m) => (
+                <option key={m.index} value={m.index}>
+                  {m.label}
                 </option>
-              ))
-            )}
-          </select>
-          <select
-            value={mapIdx}
-            disabled={chars.length === 0}
-            onChange={(e) => setMapIdx(Number(e.target.value))}
-            className="px-2 py-1.5 text-sm bg-zinc-900 border border-zinc-700 rounded text-sky-300 disabled:opacity-40"
-          >
-            {mapOptions.map((m) => (
-              <option key={m.index} value={m.index}>
-                {m.label}
-              </option>
-            ))}
-          </select>
-        </div>
-        {error && (
-          <p className="mt-2 text-xs text-red-300">{error}</p>
-        )}
+              ))}
+            </select>
+          </div>
+          {error && <p className="text-xs text-red-300">{error}</p>}
 
-        {/* Chip Gallery toggle — sits under the Load Save row because it's a
-            save-level setting (the +0.10 Gallery Bonus Multi boost is
-            account-wide, not per-character / per-map). */}
-        <div className="mt-3 p-2 rounded border border-zinc-800 bg-zinc-950/60 flex items-center gap-3 flex-wrap">
+          {/* Chip Gallery toggle — sits under the Load Save row because it's a
+              save-level setting (the +0.10 Gallery Bonus Multi boost is
+              account-wide, not per-character / per-map). */}
+          <div className="p-2 rounded border border-zinc-800 bg-zinc-950/60 flex items-center gap-3 flex-wrap">
           <button
             type="button"
             onClick={() => setChipGalleryActive((v) => !v)}
@@ -395,6 +400,7 @@ export default function DrCalculator({
               </>
             )}
           </div>
+        </div>
         </div>
       </details>
 
