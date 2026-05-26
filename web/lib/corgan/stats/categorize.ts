@@ -56,7 +56,7 @@ export type SystemKey =
   | "Emperor"
   | "Legend Talents"
   | "Spelunk Shop"
-  | "Sushi RoG"
+  | "Sushi"
   | "Minehead"
   | "Button"
   | "Arcane Map"
@@ -105,7 +105,7 @@ export const SYSTEM_ORDER: SystemKey[] = [
   "Emperor",
   "Legend Talents",
   "Spelunk Shop",
-  "Sushi RoG",
+  "Sushi",
   "Minehead",
   "Button",
   "Arcane Map",
@@ -172,7 +172,7 @@ const RULES: Rule[] = [
   { match: /\(Emperor\s/, system: "Emperor" },
   { match: /\(Legend\s/, system: "Legend Talents" },
   { match: /\(Spelunking\s|^Spelunking\b/i, system: "Spelunk Shop" },
-  { match: /\(RoG Bonus\s|\(Sushi\s/, system: "Sushi RoG" },
+  { match: /\(RoG Bonus\s|\(Sushi\s/, system: "Sushi" },
   { match: /\(Minehead\s|^Minehead\b/i, system: "Minehead" },
   { match: /\(Button\s/, system: "Button" },
   { match: /^Arcane Map|^Arcane\b/i, system: "Arcane Map" },
