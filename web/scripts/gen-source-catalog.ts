@@ -221,11 +221,14 @@ function detectStructuralFormula(
   if (node.name === "Best Mage Lv" && (node.children || []).length > 0) {
     return "maxOfKids";
   }
-  // Sad Souls Multi (×) = 1 + Talent 144 Value × Applied / 100.
-  // Talent 144 is the active char's "Family Guy" / "Sad Souls" /
-  // "Pirate Underling" — same slot 144 across classes with different
-  // names. It buffs the family bonus contribution.
-  if (node.name === "Sad Souls Multi (×)" && (node.children || []).length > 0) {
+  // Sad Souls Multi (× — potential buff) = 1 + Talent 144 Value / 100.
+  // Whether the buff applies is decided dynamically by the family
+  // bonus handler based on Lava's iteration order — this row just
+  // exposes the potential value.
+  if (
+    node.name === "Sad Souls Multi (×) — potential buff" &&
+    (node.children || []).length > 0
+  ) {
     return "sadSoulsMulti";
   }
   // Endless Wins Bonus = floor(count / 40) × perCycle + partial.
@@ -1241,10 +1244,9 @@ const APP_JS = `
       return idle + owned * (bn - idle);
     },
     "sadSoulsMulti": function (_p, kids) {
-      // 1 + Talent 144 Value × Applied / 100. Talent Value comes from
-      // a closedFormFormula sub-row (decay 40, 100 — the game's tal 144
-      // formula). Applied is 0/1 — whether the buff actually wins the
-      // slot in the game's family-bonus loop.
+      // 1 + Talent 144 Value / 100 — the active char's POTENTIAL
+      // buff. Whether it actually applies is decided by the family
+      // bonus 68 handler (Lava's iteration order).
       function kidOrRef(name) {
         for (var i = 0; i < kids.length; i++) {
           if (kids[i].name === name) {
@@ -1256,9 +1258,8 @@ const APP_JS = `
         return null;
       }
       var tv = kidOrRef("Talent 144 Value (Family Guy / Sad Souls)");
-      var applied = kidOrRef("Applied");
-      if (tv === null || applied === null) return null;
-      return 1 + (tv * applied) / 100;
+      if (tv === null) return null;
+      return 1 + tv / 100;
     },
     "maxOfKids": function (_p, kids) {
       // max over every kid's effective value (ref-fallback). Used by
@@ -1274,11 +1275,14 @@ const APP_JS = `
       return best === -Infinity ? null : best;
     },
     "familyBonus68Mage": function (_p, kids) {
-      // floor(decay(x1, x2, max(0, Best Mage Lv − Lv Offset)) ×
-      // Sad Souls Multi). All four constants are exposed as kids so
-      // the user can research alternate game data values (e.g. what
-      // would Family Bonus 68 be if the formula coefficient was 50
-      // instead of 20).
+      // Replicates Lava's N.js single-pass algorithm — iterates each
+      // Elemental Sorcerer (cls 34) char in account order. For each:
+      //   v = decay(x1, x2, max(0, char.lv - lvOffset))
+      //   if v > best: best = v   ← store UNBUFFED first
+      //     if char is ACTIVE: best = v × sadSoulsMulti   ← buffed
+      // Iteration ORDER matters: an active char whose unbuffed value
+      // doesn't beat the running best can still WIN if their buffed
+      // value does — but only if they iterate AFTER the current best.
       function kidOrRef(name) {
         for (var i = 0; i < kids.length; i++) {
           if (kids[i].name === name) {
@@ -1289,15 +1293,42 @@ const APP_JS = `
         }
         return null;
       }
-      var lv = kidOrRef("Best Mage Lv");
-      var multi = kidOrRef("Sad Souls Multi (×)");
       var x1 = kidOrRef("Formula x1");
       var x2 = kidOrRef("Formula x2");
       var lvOffset = kidOrRef("Lv Offset");
-      if (lv === null || multi === null || x1 === null || x2 === null || lvOffset === null) return null;
-      var n = Math.max(0, lv - lvOffset);
-      var base = (x1 * n) / (n + x2);
-      return Math.floor(base * multi);
+      var sadSoulsMulti = kidOrRef("Sad Souls Multi (×) — potential buff");
+      if (x1 === null || x2 === null || lvOffset === null || sadSoulsMulti === null) return null;
+      // Locate the Best Mage Lv kid and iterate its char sub-kids.
+      var bestMageLvKid = null;
+      for (var i = 0; i < kids.length; i++) {
+        if (kids[i].name === "Best Mage Lv") {
+          bestMageLvKid = kids[i];
+          break;
+        }
+      }
+      if (!bestMageLvKid || !bestMageLvKid.children || !bestMageLvKid.children.length) {
+        return null;
+      }
+      var best = 0;
+      for (var j = 0; j < bestMageLvKid.children.length; j++) {
+        var charKid = bestMageLvKid.children[j];
+        var charLv = effectiveValue(charKid);
+        if (charLv === null) charLv = Number(charKid.refValue) || 0;
+        var n = Math.max(0, charLv - lvOffset);
+        if (n <= 0) continue;
+        var v = (x1 * n) / (n + x2);
+        if (v > best) {
+          // Step 1: store unbuffed first (Lava's order)
+          best = v;
+          // Step 2: if this iteration is the active char, apply buff
+          var isActive =
+            charKid.note && charKid.note.indexOf("ACTIVE") >= 0;
+          if (isActive && sadSoulsMulti > 1) {
+            best = v * sadSoulsMulti;
+          }
+        }
+      }
+      return Math.floor(best);
     },
     "summoningWinBonus24": function (_p, kids) {
       // Slot 24 = Normal + Endless. Only compute when the user has

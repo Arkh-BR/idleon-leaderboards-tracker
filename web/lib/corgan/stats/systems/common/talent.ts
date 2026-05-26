@@ -385,35 +385,61 @@ function resolveAllTalentLVz(
       tal144Mult = 1 + tal144Val / 100;
     }
   }
+  // Replicate Lava's N.js algorithm EXACTLY (line 4401089 area). Not
+  // a fixed-point convergence and not a stale frame cache — it's a
+  // single-pass with store-then-buff in iteration order:
+  //
+  //   FamBonusQTYs["68"] = 0  (fresh map each rebuild)
+  //   for each player in PlayerDATABASE (iteration order):
+  //     for each class in player's chain:
+  //       if class === 34 (Elemental Sorcerer):
+  //         v = formulaEval(decay, 20, 350, max(0, lv - 69))
+  //         if v > FamBonusQTYs["68"]:
+  //           FamBonusQTYs["68"] = v                    ← store UNBUFFED
+  //           if (active char && tal144 > 0):
+  //             FamBonusQTYs["68"] = v × (1 + tal144Val/100)  ← overwrite BUFFED
+  //
+  // tal144Val internally reads AllTalentLV(144) which reads
+  // FamBonusQTYs["68"] — which was just set to v (unbuffed) at the
+  // previous line. So tal144 always sees the unbuffed family bonus
+  // contribution; the buff is applied AFTER tal144 reads, breaking
+  // the visual circular dependency.
+  //
+  // Filter: class 34 only (Elemental Sorcerer). The "Mage" naming
+  // in our label is a holdover — the actual class index is 34 = ES.
   let famBonus68 = 0;
   let maxMageCharLv = 0;
   let bestContribCharIdx = -1;
   let bestUsedTal144 = false;
-  // Per-char level kids — one row per mage char so the user can see
-  // every contributor and edit any of them for research. The "Best
-  // Mage Lv" parent is then a maxOfKids formula over this set.
   const charLvKids: CorganNode[] = [];
   for (let ci = 0; ci < numCharacters; ci++) {
     const cls = (charClassData as any)[ci];
-    if (cls !== 34 && cls !== 38) continue;
+    if (cls !== 34) continue;
     const lv =
       ((saveData as any).lv0AllData?.[ci] && (saveData as any).lv0AllData[ci][0]) ||
       0;
     const n = Math.max(0, Math.round(lv - (fb34 as any).lvOffset));
     if (n <= 0) continue;
-    let contrib = formulaEval(
+    const unbuffed = formulaEval(
       (fb34 as any).formula,
       (fb34 as any).x1,
       (fb34 as any).x2,
       n
     );
-    const usedBuff = ci === slotIdx && tal144Mult > 1;
-    if (usedBuff) contrib *= tal144Mult;
-    if (contrib > famBonus68) {
-      famBonus68 = contrib;
+    if (unbuffed > famBonus68) {
+      // Step 1: store unbuffed first (matches Lava's single-pass order)
+      famBonus68 = unbuffed;
       maxMageCharLv = lv;
       bestContribCharIdx = ci;
-      bestUsedTal144 = usedBuff;
+      // Step 2: if this iteration is the active char AND has tal144,
+      // apply the buff. tal144Mult was computed earlier using the
+      // unbuffed family bonus value (via the skipTal144FamMult flag).
+      if (ci === slotIdx && tal144Mult > 1) {
+        famBonus68 = unbuffed * tal144Mult;
+        bestUsedTal144 = true;
+      } else {
+        bestUsedTal144 = false;
+      }
     }
     const charName =
       (saveData.charNames && saveData.charNames[ci]) || `Char ${ci}`;
@@ -426,8 +452,8 @@ function resolveAllTalentLVz(
         {
           fmt: "raw",
           note:
-            `class ${cls}` +
-            (isActive ? " — ACTIVE char (gets Sad Souls buff)" : ""),
+            `Elemental Sorcerer (cls 34)` +
+            (isActive ? " — ACTIVE char (gets Sad Souls buff if it wins the slot)" : ""),
         }
       )
     );
@@ -465,8 +491,15 @@ function resolveAllTalentLVz(
             }
           ),
           node(
-            "Sad Souls Multi (×)",
-            bestUsedTal144 ? tal144Mult : 1,
+            // The POTENTIAL buff for the active char (always 1 +
+            // tal144Val/100). Whether it actually applies depends on
+            // family-bonus-68 iteration outcome (active char must
+            // win the slot). The familyBonus68Mage handler decides.
+            "Sad Souls Multi (×) — potential buff",
+            // emit the potential multi (not just 1.0 if buff didn't
+            // win) so the user can see what's "in play" — the handler
+            // gates application based on Lava's algorithm.
+            tal144Mult,
             [
               node(
                 "Talent 144 Value (Family Guy / Sad Souls)",
@@ -511,16 +544,10 @@ function resolveAllTalentLVz(
                       : "talent 144",
                 }
               ),
-              node("Applied", bestUsedTal144 ? 1 : 0, null, {
-                fmt: "raw",
-                note: bestUsedTal144
-                  ? "1 — active char's contribution won the slot"
-                  : "0 — buff didn't win the slot (active char isn't the winning mage)",
-              }),
             ],
             {
               fmt: "raw",
-              note: "1 + Talent 144 Value × Applied / 100",
+              note: "1 + Talent 144 Value / 100 — active char's potential buff",
             }
           ),
           node("Formula x1", (fb34 as any).x1, null, {
@@ -539,7 +566,7 @@ function resolveAllTalentLVz(
         {
           fmt: "raw",
           note:
-            "floor(decay(x1, x2, max(0, Best Mage Lv − Lv Offset)) × Sad Souls Multi)" +
+            "Lava single-pass: iterate ES chars in order; for each, store unbuffed; if ACTIVE char wins, overwrite with × Sad Souls Multi" +
             buffNote,
         }
       )
