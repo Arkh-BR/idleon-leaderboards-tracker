@@ -559,6 +559,7 @@ header .sub { color: var(--ink-dim); font-size: 12px; margin-bottom: 14px; }
   flex-shrink: 0;
 }
 .row .pull-ref:hover { color: var(--accent); border-color: var(--accent); }
+.row .pull-ref.clean-btn:hover { color: var(--red); border-color: var(--red); }
 
 .row .max-col {
   width: 110px;
@@ -847,7 +848,44 @@ const APP_JS = `
     },
   };
 
-  function effectiveChildren(parent) { return parent.children || []; }
+  /** Children visible to the aggregation. When the Hide P2W filter is
+   *  on, P2W rows are removed from the agg entirely — matches the
+   *  visual filter so the parent's computed Max reflects "what would
+   *  the DR be without paying?". The custom-formula handlers also call
+   *  this via the kid() helper indirectly: the kid() lookup walks
+   *  effectiveChildren so a hidden P2W input just isn't there. */
+  function effectiveChildren(parent) {
+    var kids = parent.children || [];
+    if (!hideP2W) return kids;
+    return kids.filter(function (c) { return !effectiveP2W(c); });
+  }
+  /** Walk every formula-tagged parent and recompute its Max. Used when
+   *  the user flips Hide P2W (since the filter changes what each agg
+   *  sees) and after a fresh save load. */
+  function recomputeAllFormulas() {
+    // Topo order: descend, then on the way back up assign. eachSource
+    // already walks in pre-order which means we'd compute parents
+    // BEFORE their children. Instead, collect all formula parents and
+    // sort by depth descending so leaves' formulas resolve first.
+    var formulaSrcs = [];
+    eachSource(function (s) { if (hasFormula(s)) formulaSrcs.push(s); });
+    function depthOf(id) {
+      var d = 0, cur = parentByChildId.get(id);
+      while (cur) { d++; cur = parentByChildId.get(cur); }
+      return d;
+    }
+    formulaSrcs.sort(function (a, b) { return depthOf(b.id) - depthOf(a.id); });
+    for (var i = 0; i < formulaSrcs.length; i++) {
+      var s = formulaSrcs[i];
+      var v = computeAgg(s);
+      if (v !== null && Number.isFinite(v)) {
+        // Only write a value when the recomputation produces something
+        // — if the formula relies on a hidden P2W child and bails to
+        // null, we leave the previous max alone.
+        patchEntry(s.id, { maxValue: v });
+      }
+    }
+  }
 
   function computeAgg(parent) {
     var rule = parent.agg;
@@ -1087,6 +1125,10 @@ const APP_JS = `
   }
 
   function renderRowAndChildren(parent, src, depth) {
+    // P2W skip at EVERY depth — top-level passFilter only catches the
+    // bucket entry point, but the user wants the row gone entirely
+    // (and its value excluded from agg, see computeAgg).
+    if (hideP2W && effectiveP2W(src)) return;
     parent.appendChild(renderRow(src, depth));
     if (expandedIds.has(src.id) && src.children) {
       for (var i = 0; i < src.children.length; i++) {
@@ -1209,23 +1251,46 @@ const APP_JS = `
       updateStats(null);
     };
     maxWrap.appendChild(maxInput);
-    var pull = document.createElement("button");
-    pull.type = "button";
-    pull.className = "pull-ref";
-    pull.textContent = "← ref";
-    pull.title = "Copy the Ref value into Max for this row (" + formatRef(refVal, src.fmt) + ")";
-    pull.onclick = function () {
-      var v = Number(refVal) || 0;
-      maxInput.value = String(v);
-      patchEntry(src.id, { maxValue: v });
-      maxInput.classList.add("filled");
-      maxInput.classList.remove("agg-driven");
-      row.classList.add("has-max");
-      row.classList.remove("no-data");
-      propagateUp(src.id);
-      updateStats(null);
-    };
-    maxWrap.appendChild(pull);
+
+    // ← ref / ✕ clean — only on MANUAL rows. Formula rows are auto-
+    // driven by their children so adding manual seed/clear buttons
+    // would just confuse the recompute path.
+    if (!hasFormula(src)) {
+      var pull = document.createElement("button");
+      pull.type = "button";
+      pull.className = "pull-ref";
+      pull.textContent = "← ref";
+      pull.title = "Copy the Ref value into Max for this row (" + formatRef(refVal, src.fmt) + ")";
+      pull.onclick = function () {
+        var v = Number(refVal) || 0;
+        maxInput.value = String(v);
+        patchEntry(src.id, { maxValue: v });
+        maxInput.classList.add("filled");
+        maxInput.classList.remove("agg-driven");
+        row.classList.add("has-max");
+        row.classList.remove("no-data");
+        propagateUp(src.id);
+        updateStats(null);
+      };
+      maxWrap.appendChild(pull);
+
+      var cleanBtn = document.createElement("button");
+      cleanBtn.type = "button";
+      cleanBtn.className = "pull-ref clean-btn";
+      cleanBtn.textContent = "✕";
+      cleanBtn.title = "Clear this row's Max (parent formulas recompute)";
+      cleanBtn.onclick = function () {
+        maxInput.value = "";
+        patchEntry(src.id, { maxValue: undefined });
+        maxInput.classList.remove("filled");
+        maxInput.classList.remove("agg-driven");
+        row.classList.remove("has-max");
+        row.classList.add("no-data");
+        propagateUp(src.id);
+        updateStats(null);
+      };
+      maxWrap.appendChild(cleanBtn);
+    }
     if (hasFormula(src)) {
       var agg = document.createElement("button");
       agg.type = "button";
@@ -1331,6 +1396,9 @@ const APP_JS = `
     hideP2W = !hideP2W;
     saveStr(STORAGE.hideP2W, hideP2W ? "1" : "0");
     p2wBtn.classList.toggle("active", hideP2W);
+    // Every formula-tagged parent has to recompute: P2W children are
+    // now in/out of its effectiveChildren() depending on the new state.
+    recomputeAllFormulas();
     render();
   };
   var hideZeroChk = document.getElementById("hide-zero");
@@ -1462,6 +1530,10 @@ const APP_JS = `
       bigDr.textContent = r.total.toFixed(2) + "x";
       clearBtn.hidden = false;
       setStatus("✓ DR computed: " + r.total.toFixed(3) + "x · " + matched + "/" + countAll() + " sources matched", "ok");
+      // New refs landed — push every formula parent's Max forward so
+      // the agg chain stays consistent with the freshly-overridden
+      // child reference values.
+      recomputeAllFormulas();
       render();
     } catch (e) {
       setStatus("Compute failed: " + e.message, "err");
