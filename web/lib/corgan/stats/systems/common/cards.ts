@@ -163,7 +163,7 @@ export const card = {
       const legend21raw = legendPTSbonus(21, saveData);
       children.push(
         node(
-          label("Legend", 21, " ×"),
+          "Legendary Cardholder (Legend 21) ×",
           legendMulti,
           [node("Legend PTS", legend21raw, null, { fmt: "raw" })],
           { fmt: "x" }

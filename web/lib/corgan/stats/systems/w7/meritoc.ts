@@ -80,7 +80,12 @@ export const meritoc = {
     const multiCh: CorganNode[] = [];
     if (p.clamWork3)
       multiCh.push(
-        node(label("ClamWork", 3), 5 * (p.clamWork3 || 0), null, { fmt: "raw" })
+        node(
+          "Coffee Brain (Clam Work 3)",
+          5 * (p.clamWork3 || 0),
+          null,
+          { fmt: "raw" }
+        )
       );
     if ((p.comp39 || 0) > 0)
       multiCh.push(
@@ -88,7 +93,7 @@ export const meritoc = {
       );
     if ((p.legend24 || 0) > 0)
       multiCh.push(
-        node(label("Legend", 24), p.legend24 || 0, null, { fmt: "raw" })
+        node("Voter's Right (Legend 24)", p.legend24 || 0, null, { fmt: "raw" })
       );
     if ((p.arcade59 || 0) > 0)
       multiCh.push(

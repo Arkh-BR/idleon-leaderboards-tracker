@@ -93,14 +93,28 @@ export function computeStampDoublerSources(saveData: SaveData): { total: number;
     atom12 + prist20 + compass76 + emperorSet + evShop18 + palette23 + exotic49 + spelunk43;
   const total = 100 + innerSum + legend36 + sushiRoG17;
 
+  // Sub-source names mirror IT's website-data:
+  //   atomsInfo[12]      → Aluminium - Stamp Supercharger
+  //   pristineCharms[20] → Jellypick
+  //   compass[76]        → Abomination Slayer XVII
+  //   exoticMarketInfo[49] → EXALTED ELDOU
+  //   legendTalents[36]  → Wowa Woowa
+  //   research[36][17]   → Exalted Bonus +0.01x (sushi RoG slot 17)
   const children: CorganNode[] = [
     node("Base Doubler", 100, null, { fmt: "raw" }),
-    node(label("Atom", 12), atom12, null, { fmt: "+" }),
-    node(label("Pristine", 20), prist20, null, { fmt: "+" }),
     node(
-      label("Compass", 76),
+      "Aluminium — Stamp Supercharger (Atom 12)",
+      atom12,
+      null,
+      { fmt: "+" }
+    ),
+    node("Jellypick (Pristine 20)", prist20, null, { fmt: "+" }),
+    node(
+      "Abomination Slayer XVII (Compass 76)",
       compass76,
-      compass76 > 0 ? [node("Compass Level", compassLv, null, { fmt: "raw" })] : null,
+      compass76 > 0
+        ? [node("Compass Level", compassLv, null, { fmt: "raw" })]
+        : null,
       { fmt: "+" }
     ),
     node("Emperor Set", emperorSet, null, { fmt: "+" }),
@@ -108,18 +122,27 @@ export function computeStampDoublerSources(saveData: SaveData): { total: number;
     node(
       label("Palette", 23),
       palette23,
-      paletteLv > 0 ? [node("Palette Level", paletteLv, null, { fmt: "raw" })] : null,
+      paletteLv > 0
+        ? [node("Palette Level", paletteLv, null, { fmt: "raw" })]
+        : null,
       { fmt: "+" }
     ),
     node(
-      label("Exotic", 49),
+      "EXALTED ELDOU (Exotic 49)",
       exotic49,
-      exoticLv > 0 ? [node("Exotic Level", exoticLv, null, { fmt: "raw" })] : null,
+      exoticLv > 0
+        ? [node("Exotic Level", exoticLv, null, { fmt: "raw" })]
+        : null,
       { fmt: "+" }
     ),
-    node("Spelunk[4][3]", spelunk43, null, { fmt: "+" }),
-    node(label("Legend", 36), legend36, null, { fmt: "+" }),
-    node(label("Sushi", 17), sushiRoG17, null, { fmt: "+" }),
+    node(
+      "Spelunk Legend Talent Slot (Spelunk 4,3)",
+      spelunk43,
+      null,
+      { fmt: "+" }
+    ),
+    node("Wowa Woowa (Legend 36)", legend36, null, { fmt: "+" }),
+    node("Exalted Bonus RoG (Sushi 17)", sushiRoG17, null, { fmt: "+" }),
   ];
 
   return { total, children };

@@ -116,9 +116,13 @@ export function galleryBonusMulti(
       })
     );
   if (clamWork7)
-    ch.push(node(label("ClamWork", 7), 3, null, { fmt: "raw" }));
+    ch.push(
+      node("Glasstic Brain (Clam Work 7)", 3, null, { fmt: "raw" })
+    );
   if (killroy3 > 0)
-    ch.push(node(label("Killroy", 3), killroy3, null, { fmt: "raw" }));
+    ch.push(
+      node("Skull Shop Tier 3 (Killroy 3)", killroy3, null, { fmt: "raw" })
+    );
   if (y13capped > 0)
     ch.push(
       node("Codfrey Rulz OK (Bubble Y13, capped 20)", y13capped, null, {
@@ -168,7 +172,7 @@ export function hatrackBonusMulti(saveData: SaveData): MultiResult {
     );
   if (sushiRoG36 > 0)
     ch.push(
-      node(label("Sushi", 36), sushiRoG36, null, {
+      node("Hat Rack Multi RoG (Sushi 36)", sushiRoG36, null, {
         fmt: "raw",
         note: "RoG_BonusQTY(36)",
       })

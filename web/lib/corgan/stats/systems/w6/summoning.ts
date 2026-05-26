@@ -210,7 +210,7 @@ export const winBonus = {
       [
         node("Win Bonus Raw", p.raw, null, { fmt: "raw" }),
         node("Base Multiplier", p.baseMult || 1, null, { fmt: "x" }),
-        node(label("Pristine", 8), p.pristineMult || 1, null, {
+        node("Crystal Comb (Pristine 8)", p.pristineMult || 1, null, {
           fmt: "x",
           note: (p.pristine8 || 0) > 0 ? "Equipped" : "Not equipped",
         }),

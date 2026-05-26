@@ -8,6 +8,13 @@ import type { SaveData } from "../../../state";
 
 type Ctx = { saveData: SaveData };
 
+// OptionsListAccount is a flat array of account-wide flags / counters with
+// no IT-side naming table. The descriptor entries we currently use here:
+//   232 → Sneaking Completions (W7 Ninja sneaking, drives a flat +0.3 DR)
+const OLA_NAMES: Record<number, string> = {
+  232: "Sneaking Completions",
+};
+
 export const ola = {
   resolve(id: number, _ctx: Ctx, args?: number[]): CorganNode {
     const threshold = (args && args[0]) ?? 1;
@@ -15,8 +22,10 @@ export const ola = {
     const raw = Number((optionsListData as any)?.[id]) || 0;
     const meets = raw >= threshold;
     const val = meets ? bonus : 0;
+    const friendly = OLA_NAMES[id];
+    const olaName = friendly ? `${friendly} (Ola ${id})` : label("Ola", id);
     return node(
-      label("Ola", id),
+      olaName,
       val,
       [
         node("OLA[" + id + "]", raw, null, { fmt: "raw" }),

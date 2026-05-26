@@ -301,7 +301,7 @@ function resolveAllTalentLVz(
           spelunkBonus,
           [
             node("Base", base, null, { fmt: "raw" }),
-            node(label("Legend", 7), legend7, null, {
+            node("Spelunky Super Talent (Legend 7)", legend7, null, {
               fmt: "raw",
               note: "Spelunk[18][7] × 10",
             }),
@@ -458,7 +458,11 @@ function resolveAllTalentLVz(
 
   const grimoire39 = Number((saveData as any).grimoireData?.[39]) || 0;
   if (grimoire39 > 0) {
-    children.push(node(label("Grimoire", 39), grimoire39, null, { fmt: "raw" }));
+    children.push(
+    node("Skull of Major Talent (Grimoire 39)", grimoire39, null, {
+      fmt: "raw",
+    })
+  );
   }
 
   const kattlekrukSet = String((optionsListData as any)?.[379] || "")

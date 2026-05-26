@@ -104,7 +104,7 @@ export const farm = {
               note: "decayMulti(2,200," + d207.effLv + ")",
             }
           ),
-          node(label("Exotic", 14, " Bonus"), 1 + exotic14 / 100, null, {
+          node("Pommelyon Seed (Exotic 14) Bonus", 1 + exotic14 / 100, null, {
             fmt: "x",
             note: "Level " + exotic14Lv,
           }),
@@ -153,13 +153,25 @@ export const farm = {
             "Multi",
             multi,
             [
-              node(label("Mainframe", 17), mf17, null, { fmt: "raw" }),
-              node(label("Grimoire", 22), grim22, null, { fmt: "raw" }),
-              node(label("Exotic", 40), exotic40, null, {
-                fmt: "raw",
-                note: "Level " + exotic40Lv,
-              }),
-              node(label("Vault", 79), vault79, null, { fmt: "raw" }),
+              node("Depot Studies PhD (Mainframe 17)", mf17, null, { fmt: "raw" }),
+              node(
+                "Superior Crop Research (Grimoire 22)",
+                grim22,
+                null,
+                { fmt: "raw" }
+              ),
+              node(
+                "SCIENTERRIFIC (Exotic 40)",
+                exotic40,
+                null,
+                { fmt: "raw", note: "Level " + exotic40Lv }
+              ),
+              node(
+                "Properly Funded Research (Vault 79)",
+                vault79,
+                null,
+                { fmt: "raw" }
+              ),
             ],
             { fmt: "x" }
           ),
@@ -171,10 +183,10 @@ export const farm = {
     if (id === "exotic59") {
       const lv = Number((saveData.farmUpgData as any)?.[79]) || 0;
       if (lv <= 0)
-        return node(label("Exotic", 59), 0, null, { note: "farm exotic59" });
+        return node("POMMELION SEED (Exotic 59)", 0, null, { note: "farm exotic59" });
       const val = (25 * lv) / (1000 + lv);
       return node(
-        label("Exotic", 59),
+        "POMMELION SEED (Exotic 59)",
         val,
         [
           node("Level", lv, null, { fmt: "raw" }),

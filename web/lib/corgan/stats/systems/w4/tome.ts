@@ -65,7 +65,7 @@ export const tome = {
           "Tome Multi",
           multi,
           [
-            node(label("Grimoire", 17), grim17, null, { fmt: "raw" }),
+            node("Grey Tome Book (Grimoire 17)", grim17, null, { fmt: "raw" }),
             node("Troll Set", trollSet, null, { fmt: "raw" }),
           ],
           { fmt: "x" }
