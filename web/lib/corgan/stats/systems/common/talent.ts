@@ -686,10 +686,12 @@ export const talent = {
         );
         talCh.push(node("Effective Level", gb.detail.effectiveLv, null, { fmt: "raw" }));
       }
+      const active328 = gb.detail && gb.detail.rawLv > 0 ? 1 : 0;
       return node(
         name,
         total328,
         [
+          node("Active", active328, null, { fmt: "raw" }),
           node("Talent Value", gb.val, talCh, {
             fmt: "raw",
             note:
@@ -708,10 +710,18 @@ export const talent = {
     }
 
     const r = getTalentNumber(ctx.charIdx, id, data, ctx.activeCharIdx, undefined, saveData);
-    if (r.val === 0) return node(name, 0, null, { note: "talent " + id });
-
+    // Emit the full talent breakdown even for level-0 talents so the
+    // max-values tool can show what the talent would contribute if
+    // the user levelled it. The Active toggle (0 = current state,
+    // 1 = "as if active") lets them research that without zero-out
+    // hacks.
     const bonusChildren =
       r.bonusDetail && r.bonusDetail.children.length ? r.bonusDetail.children : null;
+    const activeFlag = r.rawLv > 0 ? 1 : 0;
+    // Canonical formula note matches the gen-time detectFormulaSpec
+    // shape — "type(x1,x2,lvAtGenTime)". The runtime closedFormFormula
+    // handler uses Base + Bonus internally to derive effLv live.
+    const formulaNote = `${data.formula}(${data.x1},${data.x2},${r.effectiveLv})`;
 
     // Talent 655 (Boss Battle Spillover): multiply by OLA[189] skulls beaten
     if (id === 655) {
@@ -722,13 +732,17 @@ export const talent = {
         name,
         total,
         [
+          node("Active", activeFlag, null, { fmt: "raw" }),
           node("Base Level", r.rawLv, null, { fmt: "raw" }),
           node("Bonus Levels", r.bonus || 0, bonusChildren, { fmt: "+" }),
           node("Effective Level", r.effectiveLv, null, { fmt: "raw" }),
-          node("Per Skull", perSkull, null, { fmt: "raw" }),
+          node("Per Skull", perSkull, null, {
+            fmt: "raw",
+            note: formulaNote,
+          }),
           node("Skulls Beaten", skulls, null, { fmt: "raw", note: "OLA[189]" }),
         ],
-        { fmt: "+" }
+        { fmt: "+", note: "talent " + id }
       );
     }
 
@@ -736,11 +750,12 @@ export const talent = {
       name,
       r.val,
       [
+        node("Active", activeFlag, null, { fmt: "raw" }),
         node("Base Level", r.rawLv, null, { fmt: "raw" }),
         node("Bonus Levels", r.bonus || 0, bonusChildren, { fmt: "+" }),
         node("Effective Level", r.effectiveLv, null, { fmt: "raw" }),
       ],
-      { fmt: "+" }
+      { fmt: "+", note: formulaNote }
     );
   },
 };

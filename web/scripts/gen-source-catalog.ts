@@ -98,7 +98,29 @@ const SKIP_NAMES = new Set([
   // as editable inputs and the parent auto-recomputes.
   "Raw Bonus",
   "Capped Bonus",
+  // Talent 655 intermediate: Per Skull = decay(25, 100, effLv). The
+  // parent's CUSTOM_FORMULAS["Boss Battle Spillover (Talent 655)"]
+  // handler folds this into total = perSkull × Skulls × Active using
+  // Base + Bonus from siblings, so the standalone row was dead weight.
+  "Per Skull",
 ]);
+
+// Patterns matched by name — used alongside SKIP_NAMES for synthetic
+// info rows whose name is dynamic (carries live save values inline).
+const SKIP_PATTERNS: RegExp[] = [
+  // "log₁₀(356841)" intermediate on Talent 328 — the parent's
+  // CUSTOM_FORMULAS["Archlord Of The Pirates (Talent 328)"] handler
+  // already computes log10 internally from Plunderous Kills.
+  /^log₁₀\(/,
+];
+
+function isSkipped(name: string): boolean {
+  if (SKIP_NAMES.has(name)) return true;
+  for (let i = 0; i < SKIP_PATTERNS.length; i++) {
+    if (SKIP_PATTERNS[i].test(name)) return true;
+  }
+  return false;
+}
 
 /** Aggregation detection — tag a parent with the closed-form rule its
  *  reference value satisfies. Order matters: more specific matches first
@@ -214,12 +236,21 @@ function detectPerLevelConst(node: CorganNode): number | null {
  *  off (level is read live from the level kid at runtime) — null if
  *  no Formula Result child or note doesn't match the expected shape. */
 function detectFormulaSpec(node: CorganNode): FormulaSpec | null {
+  const rx =
+    /^([a-zA-Z]+)\(\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*,\s*-?\d+(?:\.\d+)?\s*\)/;
+  // Talents and any other parents emit the canonical spec on their own
+  // note as "type(x1,x2,lvAtGenTime)". Check that first so we don't
+  // miss it when there isn't a Formula Result child.
+  if (node.note) {
+    const m = rx.exec(node.note);
+    if (m) return { type: m[1], x1: Number(m[2]), x2: Number(m[3]) };
+  }
+  // Legacy shape: spec lives on a "Formula Result" leaf (Guild, Stamp,
+  // Post Office, Exotic 59).
   const kids = node.children || [];
   const fr = kids.find((c) => c.name === "Formula Result");
   if (!fr || !fr.note) return null;
-  const m =
-    /^([a-zA-Z]+)\(\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*,\s*-?\d+(?:\.\d+)?\s*\)/
-      .exec(fr.note);
+  const m = rx.exec(fr.note);
   if (!m) return null;
   return { type: m[1], x1: Number(m[2]), x2: Number(m[3]) };
 }
@@ -234,6 +265,7 @@ const CUSTOM_FORMULA_NAMES = new Set<string>([
   "Drop Rate Multi (Tome 7)",
   "Archlord Of The Pirates (Talent 328)",
   "Glimbo DR Multi",
+  "Boss Battle Spillover (Talent 655)",
 ]);
 
 /** Human-readable formula descriptions appended to the row's note for
@@ -248,6 +280,8 @@ const CUSTOM_FORMULA_NOTES: Record<string, string> = {
     "1 + (Talent Value × log10(Plunderous Kills)) / 100",
   "Glimbo DR Multi":
     "1 + (gridVal × floor(Total Trades / 100)) / 100 where gridVal = lv × shape × max(1, allMulti)",
+  "Boss Battle Spillover (Talent 655)":
+    "decay(25, 100, Base + Bonus) × Skulls Beaten × Active",
 };
 
 function detectAgg(
@@ -326,7 +360,7 @@ function collectChildren(
   const out: SourceEntry[] = [];
   for (let i = 0; i < kids.length; i++) {
     const child = kids[i];
-    if (SKIP_NAMES.has(child.name)) continue;
+    if (isSkipped(child.name)) continue;
     if (/— \d+ item/.test(child.name)) continue;
     const childPath = nodePath(parentPath, child, kids, i);
     const entry: SourceEntry = {
@@ -354,9 +388,16 @@ function collectChildren(
         entry.formulaKey = "closedFormFormula";
         entry.agg = "custom";
         // Surface the game constants on the row so the user sees what's
-        // being computed (e.g. "decay(40, 50)" on Gold Charm).
+        // being computed (e.g. "decay(40, 50)" on Gold Charm). If the
+        // note ALREADY contains the matching "type(x1,x2,lv)" pattern
+        // (corgan emits it for talents), strip that — the lv at gen
+        // time is misleading once the user starts editing.
         const formulaNote = `${spec.type}(${spec.x1}, ${spec.x2})`;
-        entry.note = entry.note ? `${entry.note} — ${formulaNote}` : formulaNote;
+        const stripRx = new RegExp(
+          `^${spec.type}\\(\\s*${spec.x1}\\s*,\\s*${spec.x2}\\s*,\\s*-?\\d+(?:\\.\\d+)?\\s*\\)\\s*—?\\s*`
+        );
+        const cleaned = entry.note ? entry.note.replace(stripRx, "").trim() : "";
+        entry.note = cleaned ? `${cleaned} — ${formulaNote}` : formulaNote;
       } else if (perLv !== null) {
         // Game-constant per-level rate row (Equinox Symbols=5,
         // Vault/Grimoire/Spelunk=1). Formula: level × perLv × any
@@ -421,7 +462,7 @@ for (let pi = 0; pi < tops.length; pi++) {
     const rows = bucket.children || [];
     for (let si = 0; si < rows.length; si++) {
       const src = rows[si];
-      if (SKIP_NAMES.has(src.name)) continue;
+      if (isSkipped(src.name)) continue;
       const id = nodePath(bucketPath, src, rows, si);
       const badge: "Additive" | "Multi" = bucket.fmt === "x" ? "Multi" : "Additive";
       const entry: SourceEntry = {
@@ -446,7 +487,14 @@ for (let pi = 0; pi < tops.length; pi++) {
           entry.formulaKey = "closedFormFormula";
           entry.agg = "custom";
           const formulaNote = `${spec.type}(${spec.x1}, ${spec.x2})`;
-          entry.note = entry.note ? `${entry.note} — ${formulaNote}` : formulaNote;
+          // Strip the gen-time "type(x1,x2,lv)" if it's already on the
+          // note (corgan emits this for talents); we don't want the
+          // stale lv showing once the user starts editing.
+          const stripRx = new RegExp(
+            `^${spec.type}\\(\\s*${spec.x1}\\s*,\\s*${spec.x2}\\s*,\\s*-?\\d+(?:\\.\\d+)?\\s*\\)\\s*—?\\s*`
+          );
+          const cleaned = entry.note ? entry.note.replace(stripRx, "").trim() : "";
+          entry.note = cleaned ? `${cleaned} — ${formulaNote}` : formulaNote;
         } else if (perLv !== null) {
           entry.perLevelConst = perLv;
           entry.formulaKey = "levelPerLevelProduct";
@@ -1110,36 +1158,51 @@ const APP_JS = `
       return 1 + lv / 100;
     },
     "closedFormFormula": function (p, kids) {
-      // p.formulaSpec = { type, x1, x2 } captured from the corgan
-      // tree's "Formula Result" child note (e.g. Gold Charm → decay(40,50)).
-      // The third input (lv) comes from the row's level kid — Guild Points
-      // for guild bonuses, Stamp Level for stamps, Points Invested for
-      // post office, Level for exotic 59. Falls back to the first
-      // raw-fmt kid if none of the known names match.
+      // p.formulaSpec = { type, x1, x2 } captured from the parent's own
+      // note OR a "Formula Result" child note. The third input (lv)
+      // comes from a named "level" kid (Guild Points / Stamp Level /
+      // Points Invested / Level / Effective Level), or — talent-shape
+      // — from Base Level + Bonus Levels when Effective Level isn't
+      // filled in by the user.
       var spec = p && p.formulaSpec;
       if (!spec) return null;
       var lv = null;
-      var levelNames = ["Guild Points", "Stamp Level", "Points Invested", "Level"];
+      var levelNames = [
+        "Guild Points",
+        "Stamp Level",
+        "Points Invested",
+        "Level",
+        "Effective Level",
+      ];
       for (var i = 0; i < kids.length && lv === null; i++) {
         if (levelNames.indexOf(kids[i].name) >= 0) {
           var vv = effectiveValue(kids[i]);
           if (vv !== null) lv = Number(vv) || 0;
         }
       }
+      // Talent-shape fallback: derive effLv from Base Level + Bonus
+      // Levels so the user only has to fill those two to drive the
+      // whole chain.
+      if (lv === null) {
+        var base = kid(kids, /^Base Level$/);
+        var bonus = kid(kids, /^Bonus Levels$/);
+        if (base !== null && bonus !== null) lv = base + bonus;
+      }
       if (lv === null) {
         for (var j = 0; j < kids.length && lv === null; j++) {
-          if (kids[j].fmt === "raw") {
+          if (
+            kids[j].fmt === "raw" &&
+            kids[j].name !== "Active"
+          ) {
             var vv2 = effectiveValue(kids[j]);
             if (vv2 !== null) lv = Number(vv2) || 0;
           }
         }
       }
       if (lv === null) return null;
-      var base = formulaEval(spec.type, spec.x1, spec.x2, lv);
-      // Multiply in any x-fmt children (Exalted ×, Certified Stamp Book ×,
-      // Liquorice Rolle ×, etc.) — strict null mode: if a multiplier is
-      // present but unfilled, bail. If it's just not in the tree we
-      // skip it (the original game formula would have multiplied by 1).
+      var raw = formulaEval(spec.type, spec.x1, spec.x2, lv);
+      // Multiply in any x-fmt children (Exalted ×, Certified Stamp
+      // Book ×, etc.). Strict null mode.
       var multi = 1;
       for (var k = 0; k < kids.length; k++) {
         if (kids[k].fmt === "x") {
@@ -1149,7 +1212,15 @@ const APP_JS = `
           if (mn > 0) multi *= mn;
         }
       }
-      return base * multi;
+      var result = raw * multi;
+      // Optional Active 0/1 toggle gates the whole contribution.
+      // fmt-aware: x-fmt rows idle to 1, +-fmt to 0.
+      var act = kid(kids, /^Active$/);
+      if (act !== null) {
+        var idle = p.fmt === "x" ? 1 : 0;
+        result = idle + act * (result - idle);
+      }
+      return result;
     },
     "achievementContribution": function (_p, kids) {
       // bonus × completed (completed = 0/1 toggle, or a stack counter).
@@ -1190,13 +1261,38 @@ const APP_JS = `
       if (base === null || multi === null) return null;
       return base * multi;
     },
+    "Boss Battle Spillover (Talent 655)": function (_p, kids) {
+      // Game formula: perSkull = decay(25, 100, effLv); total =
+      // perSkull × Skulls Beaten × Active. effLv from Base + Bonus
+      // (or Effective Level kid if the user filled it). Per Skull
+      // itself is hidden via SKIP_NAMES.
+      var skulls = kid(kids, /^Skulls Beaten$/);
+      if (skulls === null) return null;
+      var effLv = kid(kids, /^Effective Level$/);
+      if (effLv === null) {
+        var base = kid(kids, /^Base Level$/);
+        var bonus = kid(kids, /^Bonus Levels$/);
+        if (base === null || bonus === null) return null;
+        effLv = base + bonus;
+      }
+      var perSkull = (25 * effLv) / (effLv + 100);
+      var result = perSkull * skulls;
+      var act = kid(kids, /^Active$/);
+      if (act !== null) result *= act;
+      return result;
+    },
     "Archlord Of The Pirates (Talent 328)": function (_p, kids) {
-      // total = 1 + (talVal × log10(plunder)) / 100
+      // total = 1 + (talVal × log10(plunder)) / 100, gated by Active.
       var talVal = kid(kids, /^Talent Value$/);
       var plunder = kid(kids, /^Plunderous Kills$/);
       if (talVal === null || plunder === null) return null;
+      var act = kid(kids, /^Active$/);
+      // Inactive talent contributes ×1 (x-fmt idle).
+      if (act === 0) return 1;
       if (plunder < 1) return 1;
-      return 1 + (talVal * (Math.log(Math.max(plunder, 1)) / Math.LN10)) / 100;
+      var raw = 1 + (talVal * (Math.log(Math.max(plunder, 1)) / Math.LN10)) / 100;
+      // act === null means no Active kid — treat as active.
+      return act === null || act === 1 ? raw : 1 + (act * (raw - 1));
     },
     "Glimbo DR Multi": function (_p, kids) {
       // 1 + (gridVal × tradeGroups) / 100 where gridVal already lives

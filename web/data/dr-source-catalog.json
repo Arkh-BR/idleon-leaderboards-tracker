@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-26T18:24:02.380Z",
+  "generatedAt": "2026-05-26T18:38:02.416Z",
   "refTotal": 43093.43816941274,
   "refSave": "zArkhe (save 25-21-16.json) — Town, no AC",
   "sourceCount": 75,
@@ -84,10 +84,59 @@
       "system": "Talents",
       "world": "Character",
       "pool": "Additive",
-      "fmt": "raw",
+      "fmt": "+",
       "refValue": 0,
       "bucket": "🎯 Talents",
-      "note": "talent 279"
+      "note": "decay(40, 65)",
+      "children": [
+        {
+          "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Active",
+          "name": "Active",
+          "system": "Talents",
+          "world": "Character",
+          "pool": "Additive",
+          "fmt": "raw",
+          "refValue": 0,
+          "bucket": "🎯 Talents"
+        },
+        {
+          "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Base Level",
+          "name": "Base Level",
+          "system": "Talents",
+          "world": "Character",
+          "pool": "Additive",
+          "fmt": "raw",
+          "refValue": 0,
+          "bucket": "🎯 Talents"
+        },
+        {
+          "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels",
+          "name": "Bonus Levels",
+          "system": "Talents",
+          "world": "Character",
+          "pool": "Additive",
+          "fmt": "+",
+          "refValue": 0,
+          "bucket": "🎯 Talents"
+        },
+        {
+          "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level",
+          "name": "Effective Level",
+          "system": "Talents",
+          "world": "Character",
+          "pool": "Additive",
+          "fmt": "raw",
+          "refValue": 0,
+          "bucket": "🎯 Talents"
+        }
+      ],
+      "formulaSpec": {
+        "type": "decay",
+        "x1": 40,
+        "x2": 65
+      },
+      "formulaKey": "closedFormFormula",
+      "agg": "custom"
     },
     {
       "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24)",
@@ -95,10 +144,59 @@
       "system": "Talents",
       "world": "Character",
       "pool": "Additive",
-      "fmt": "raw",
+      "fmt": "+",
       "refValue": 0,
       "bucket": "🎯 Talents",
-      "note": "talent 24"
+      "note": "decay(70, 100)",
+      "children": [
+        {
+          "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Active",
+          "name": "Active",
+          "system": "Talents",
+          "world": "Character",
+          "pool": "Additive",
+          "fmt": "raw",
+          "refValue": 0,
+          "bucket": "🎯 Talents"
+        },
+        {
+          "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Base Level",
+          "name": "Base Level",
+          "system": "Talents",
+          "world": "Character",
+          "pool": "Additive",
+          "fmt": "raw",
+          "refValue": 0,
+          "bucket": "🎯 Talents"
+        },
+        {
+          "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels",
+          "name": "Bonus Levels",
+          "system": "Talents",
+          "world": "Character",
+          "pool": "Additive",
+          "fmt": "+",
+          "refValue": 0,
+          "bucket": "🎯 Talents"
+        },
+        {
+          "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level",
+          "name": "Effective Level",
+          "system": "Talents",
+          "world": "Character",
+          "pool": "Additive",
+          "fmt": "raw",
+          "refValue": 0,
+          "bucket": "🎯 Talents"
+        }
+      ],
+      "formulaSpec": {
+        "type": "decay",
+        "x1": 70,
+        "x2": 100
+      },
+      "formulaKey": "closedFormFormula",
+      "agg": "custom"
     },
     {
       "id": "Drop Rate / Additive Pool / 🎯 Talents / Boss Battle Spillover (Talent 655)",
@@ -109,7 +207,18 @@
       "fmt": "+",
       "refValue": 58.51063829787235,
       "bucket": "🎯 Talents",
+      "note": "talent 655 — decay(25, 100, Base + Bonus) × Skulls Beaten × Active",
       "children": [
+        {
+          "id": "Drop Rate / Additive Pool / 🎯 Talents / Boss Battle Spillover (Talent 655) / Active",
+          "name": "Active",
+          "system": "Talents",
+          "world": "Character",
+          "pool": "Additive",
+          "fmt": "raw",
+          "refValue": 1,
+          "bucket": "🎯 Talents"
+        },
         {
           "id": "Drop Rate / Additive Pool / 🎯 Talents / Boss Battle Spillover (Talent 655) / Base Level",
           "name": "Base Level",
@@ -141,16 +250,6 @@
           "bucket": "🎯 Talents"
         },
         {
-          "id": "Drop Rate / Additive Pool / 🎯 Talents / Boss Battle Spillover (Talent 655) / Per Skull",
-          "name": "Per Skull",
-          "system": "Talents",
-          "world": "Character",
-          "pool": "Additive",
-          "fmt": "raw",
-          "refValue": 11.702127659574469,
-          "bucket": "🎯 Talents"
-        },
-        {
           "id": "Drop Rate / Additive Pool / 🎯 Talents / Boss Battle Spillover (Talent 655) / Skulls Beaten",
           "name": "Skulls Beaten",
           "system": "Talents",
@@ -161,7 +260,8 @@
           "bucket": "🎯 Talents",
           "note": "OLA[189]"
         }
-      ]
+      ],
+      "agg": "custom"
     },
     {
       "id": "Drop Rate / Additive Pool / 🃏 Cards / Drop Rate Cards (Card Type 10)",
@@ -2234,7 +2334,7 @@
           "fmt": "x",
           "refValue": 2.5221027479091997,
           "bucket": "🌾 Farming",
-          "note": "decayMulti(2,200,637)",
+          "note": "decayMulti(2, 200)",
           "children": [
             {
               "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) Bonus / Best Character",
@@ -2276,7 +2376,14 @@
               "refValue": 637,
               "bucket": "🌾 Farming"
             }
-          ]
+          ],
+          "formulaSpec": {
+            "type": "decayMulti",
+            "x1": 2,
+            "x2": 200
+          },
+          "formulaKey": "closedFormFormula",
+          "agg": "custom"
         },
         {
           "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Pommelyon Seed (Exotic 14) Bonus",
@@ -5716,6 +5823,16 @@
       "bucket": "🎯 Talents",
       "children": [
         {
+          "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Active",
+          "name": "Active",
+          "system": "Talents",
+          "world": "Character",
+          "pool": "Multi",
+          "fmt": "raw",
+          "refValue": 1,
+          "bucket": "🎯 Talents"
+        },
+        {
           "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value",
           "name": "Talent Value",
           "system": "Talents",
@@ -5724,7 +5841,7 @@
           "fmt": "raw",
           "refValue": 4.846153846153846,
           "bucket": "🎯 Talents",
-          "note": "decay(6,150,630)",
+          "note": "decay(6, 150)",
           "children": [
             {
               "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Base Level",
@@ -5936,7 +6053,14 @@
               "refValue": 630,
               "bucket": "🎯 Talents"
             }
-          ]
+          ],
+          "formulaSpec": {
+            "type": "decay",
+            "x1": 6,
+            "x2": 150
+          },
+          "formulaKey": "closedFormFormula",
+          "agg": "custom"
         },
         {
           "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Plunderous Kills",
@@ -5948,16 +6072,6 @@
           "refValue": 356841,
           "bucket": "🎯 Talents",
           "note": "OLA[139]"
-        },
-        {
-          "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / log₁₀(356841)",
-          "name": "log₁₀(356841)",
-          "system": "Talents",
-          "world": "Character",
-          "pool": "Multi",
-          "fmt": "raw",
-          "refValue": 5.552462914978441,
-          "bucket": "🎯 Talents"
         }
       ],
       "agg": "custom",
