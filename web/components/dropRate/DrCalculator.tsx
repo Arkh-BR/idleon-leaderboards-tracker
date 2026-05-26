@@ -445,13 +445,11 @@ export default function DrCalculator({
 
       {middleSlot && <div className="mb-4">{middleSlot}</div>}
 
-      {/* Deep View — full-depth tree of every DR source + sub-source */}
+      {/* Deep View — full-depth tree of every DR source + sub-source.
+          The tab strip lives inside DeepView itself (where the old "Deep
+          View" h2 used to sit) so the user can switch between the
+          formula-Tree layout and the Per-World grouping. */}
       <div className="rounded-lg bg-zinc-900/60 border border-zinc-800 p-4 mb-4">
-        <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
-          <h2 className="text-base font-semibold text-sky-300">
-            🔬 Deep View — Full Source Breakdown
-          </h2>
-        </div>
         {computing ? (
           <p className="text-sm text-zinc-500 italic">Computing…</p>
         ) : (

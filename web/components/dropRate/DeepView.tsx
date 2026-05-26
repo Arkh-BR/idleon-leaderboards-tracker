@@ -25,6 +25,14 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { CorganNode } from "@/lib/corgan/node";
+import {
+  parseSystemFromBucketName,
+  systemWorld,
+  WORLD_ORDER,
+  WORLD_EMOJI,
+  type SystemKey,
+  type WorldKey,
+} from "@/lib/corgan/stats/categorize";
 
 // -----------------------------------------------------------------------------
 // Persisted expand state — survives reloads so the user's drilling stays put.
@@ -485,7 +493,10 @@ function buildSearchMatchMap(
 // Main component
 // -----------------------------------------------------------------------------
 
+type ViewMode = "tree" | "world";
+
 export default function DeepView({ tree }: { tree: CorganNode | null }) {
+  const [view, setView] = useState<ViewMode>("tree");
   const [searchTerm, setSearchTerm] = useState("");
   const [hideZero, setHideZero] = useState(false);
 
@@ -552,9 +563,39 @@ export default function DeepView({ tree }: { tree: CorganNode | null }) {
 
   return (
     <div className="font-sans">
+      {/* View tabs — sit where the "Deep View" title used to be. Two layouts:
+          🌳 Tree (formula hierarchy) and 🌍 Per World (sources grouped by
+          where they come from in the game). */}
+      <div className="mb-3 flex items-center gap-1 border-b border-zinc-800">
+        <button
+          type="button"
+          onClick={() => setView("tree")}
+          className={`px-3 py-1.5 text-sm font-medium rounded-t -mb-px border ${
+            view === "tree"
+              ? "bg-sky-500/15 text-sky-300 border-sky-500/40 border-b-transparent"
+              : "text-zinc-400 hover:text-zinc-200 border-transparent"
+          }`}
+          title="Formula hierarchy — pool → source → sub-source"
+        >
+          🌳 Tree
+        </button>
+        <button
+          type="button"
+          onClick={() => setView("world")}
+          className={`px-3 py-1.5 text-sm font-medium rounded-t -mb-px border ${
+            view === "world"
+              ? "bg-sky-500/15 text-sky-300 border-sky-500/40 border-b-transparent"
+              : "text-zinc-400 hover:text-zinc-200 border-transparent"
+          }`}
+          title="Sources grouped by world (Global / Character / W1 … W7)"
+        >
+          🌍 Per World
+        </button>
+      </div>
+
       {/* Controls bar — single row. Search goes first (it's the most-used
           control and benefits from a flex-grow input), followed by the
-          expand-state buttons and the Hide-inactive toggle. */}
+          expand-state buttons (tree-only) and the Hide-inactive toggle. */}
       <div className="mb-3 flex flex-wrap items-center gap-2 p-2 rounded-lg border border-zinc-800 bg-zinc-900/60">
         {/* Search — flex-grow so it claims most of the bar width. */}
         <input
@@ -565,33 +606,35 @@ export default function DeepView({ tree }: { tree: CorganNode | null }) {
           className="flex-1 min-w-[200px] px-2 py-1 text-xs bg-zinc-950 border border-zinc-800 rounded text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-sky-500/60"
         />
 
-        {/* Expand / Collapse / Reset. */}
-        <div className="inline-flex gap-1">
-          <button
-            type="button"
-            onClick={expandAll}
-            className="px-2 py-1 text-xs rounded border border-zinc-700 bg-zinc-900 text-zinc-300 hover:bg-zinc-800"
-            title="Open every node"
-          >
-            ↓ Expand
-          </button>
-          <button
-            type="button"
-            onClick={collapseAll}
-            className="px-2 py-1 text-xs rounded border border-zinc-700 bg-zinc-900 text-zinc-300 hover:bg-zinc-800"
-            title="Close every node"
-          >
-            ↑ Collapse
-          </button>
-          <button
-            type="button"
-            onClick={resetExpandState}
-            className="px-2 py-1 text-xs rounded border border-zinc-800 bg-zinc-950 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800"
-            title="Reset to default: depth < 2 open, everything else closed"
-          >
-            ↺ Reset
-          </button>
-        </div>
+        {/* Expand / Collapse / Reset — only relevant in tree view. */}
+        {view === "tree" && (
+          <div className="inline-flex gap-1">
+            <button
+              type="button"
+              onClick={expandAll}
+              className="px-2 py-1 text-xs rounded border border-zinc-700 bg-zinc-900 text-zinc-300 hover:bg-zinc-800"
+              title="Open every node"
+            >
+              ↓ Expand
+            </button>
+            <button
+              type="button"
+              onClick={collapseAll}
+              className="px-2 py-1 text-xs rounded border border-zinc-700 bg-zinc-900 text-zinc-300 hover:bg-zinc-800"
+              title="Close every node"
+            >
+              ↑ Collapse
+            </button>
+            <button
+              type="button"
+              onClick={resetExpandState}
+              className="px-2 py-1 text-xs rounded border border-zinc-800 bg-zinc-950 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800"
+              title="Reset to default: depth < 2 open, everything else closed"
+            >
+              ↺ Reset
+            </button>
+          </div>
+        )}
 
         {/* Hide-inactive toggle — some leaves carry val=0 but still feel
             "active" (e.g. catalog rows). "Inactive" reads more naturally
@@ -607,7 +650,15 @@ export default function DeepView({ tree }: { tree: CorganNode | null }) {
         </label>
       </div>
 
-      {/* Tree content */}
+      {/* View content. The world view doesn't need the expand-state machinery
+          — its rows track their own open/closed state locally. */}
+      {view === "world" ? (
+        <PerWorldView
+          tree={tree}
+          searchTerm={searchTerm}
+          hideZero={hideZero}
+        />
+      ) : (
       <div className="rounded border border-zinc-800 bg-zinc-950/40">
         <TreeRow
           node={tree}
@@ -622,6 +673,257 @@ export default function DeepView({ tree }: { tree: CorganNode | null }) {
           stats={stats}
         />
       </div>
+      )}
+    </div>
+  );
+}
+
+// -----------------------------------------------------------------------------
+// Per World view — flatten the tree's category buckets (depth-2 children of
+// Additive Pool and Post-Processing) into groups by WorldKey. Each row
+// displays a single bucket; expanding it reveals the same source rows the
+// Tree view shows. A bucket can appear in BOTH pools (e.g. Talents adds
+// 58 to the additive sum AND multiplies by 1.27x via Talent 328) — when
+// that happens we show both rows with a pool badge so the user can see
+// each contribution separately.
+// -----------------------------------------------------------------------------
+
+type WorldBucket = {
+  /** Display key for React + sort tiebreak. Includes both the SystemKey
+   *  and the pool name so two buckets with the same system but different
+   *  pools each get a unique key. */
+  id: string;
+  system: SystemKey;
+  poolBadge: "Additive" | "Multi";
+  node: CorganNode;
+};
+
+function collectWorldBuckets(root: CorganNode): WorldBucket[] {
+  const out: WorldBucket[] = [];
+  // The categorize-pass emits bucket nodes as direct children of these
+  // two parents. Anything else (LUK Scaling, Total Sum, Chip Cap-Break,
+  // Post-Processing's "Sneaking Mastery" prefix bucket, etc.) we also
+  // walk — the Post-Processing prefix buckets (Bundles, Talents,
+  // Sneaking Mastery) are direct categorize-style children too and
+  // belong in the per-world view.
+  for (const child of root.children || []) {
+    if (child.name === "Additive Pool") {
+      for (const bucket of child.children || []) {
+        const sys = parseSystemFromBucketName(bucket.name);
+        if (!sys) continue;
+        out.push({
+          id: `additive::${sys}::${bucket.name}::${out.length}`,
+          system: sys,
+          poolBadge: "Additive",
+          node: bucket,
+        });
+      }
+    } else if (child.name === "Post-Processing") {
+      for (const bucket of child.children || []) {
+        const sys = parseSystemFromBucketName(bucket.name);
+        if (!sys) continue;
+        out.push({
+          id: `mult::${sys}::${bucket.name}::${out.length}`,
+          system: sys,
+          poolBadge: "Multi",
+          node: bucket,
+        });
+      }
+    }
+  }
+  return out;
+}
+
+function bucketMatchesSearch(bucket: WorldBucket, term: string): boolean {
+  if (!term) return true;
+  const q = term.toLowerCase();
+  if (bucket.system.toLowerCase().includes(q)) return true;
+  if (bucket.node.name.toLowerCase().includes(q)) return true;
+  // Look one level deep so searching "archlord" finds Talents → Archlord.
+  for (const c of bucket.node.children || []) {
+    if (c.name.toLowerCase().includes(q)) return true;
+    if ((c.note ?? "").toLowerCase().includes(q)) return true;
+  }
+  return false;
+}
+
+function PerWorldView({
+  tree,
+  searchTerm,
+  hideZero,
+}: {
+  tree: CorganNode;
+  searchTerm: string;
+  hideZero: boolean;
+}) {
+  const buckets = useMemo(() => collectWorldBuckets(tree), [tree]);
+
+  // Group by WorldKey, applying search + hide-inactive filters.
+  const byWorld = useMemo(() => {
+    const map = new Map<WorldKey, WorldBucket[]>();
+    for (const b of buckets) {
+      if (hideZero && Math.abs(Number(b.node.val) || 0) < 1e-9) continue;
+      if (!bucketMatchesSearch(b, searchTerm)) continue;
+      const world = systemWorld(b.system);
+      if (!map.has(world)) map.set(world, []);
+      map.get(world)!.push(b);
+    }
+    return map;
+  }, [buckets, hideZero, searchTerm]);
+
+  const totalVisible = Array.from(byWorld.values()).reduce(
+    (a, arr) => a + arr.length,
+    0
+  );
+
+  if (totalVisible === 0) {
+    return (
+      <p className="text-sm text-zinc-500 italic px-2 py-4">
+        No buckets match the current filter.
+      </p>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-3">
+      {WORLD_ORDER.filter((w) => byWorld.has(w)).map((world) => {
+        const list = byWorld.get(world)!;
+        return (
+          <section
+            key={world}
+            className="rounded-lg border border-zinc-800 bg-zinc-950/40"
+          >
+            <h3 className="px-3 py-2 text-sm font-semibold text-sky-300 border-b border-zinc-800 flex items-center gap-2">
+              <span aria-hidden="true">{WORLD_EMOJI[world]}</span>
+              <span>{world}</span>
+              <span className="ml-auto text-[11px] text-zinc-500 font-normal">
+                {list.length} bucket{list.length === 1 ? "" : "s"}
+              </span>
+            </h3>
+            <div>
+              {list.map((b) => (
+                <WorldBucketRow key={b.id} bucket={b} />
+              ))}
+            </div>
+          </section>
+        );
+      })}
+    </div>
+  );
+}
+
+function WorldBucketRow({ bucket }: { bucket: WorldBucket }) {
+  const [open, setOpen] = useState(false);
+  const hasChildren = !!(bucket.node.children && bucket.node.children.length);
+  const badgeClass =
+    bucket.poolBadge === "Additive"
+      ? "bg-blue-500/10 text-blue-300 border-blue-500/30"
+      : "bg-amber-500/10 text-amber-300 border-amber-500/30";
+  const isZero = Math.abs(Number(bucket.node.val) || 0) < 1e-9;
+  return (
+    <div className="border-b border-zinc-800/60 last:border-b-0">
+      <div
+        className={`flex items-center gap-2 px-3 py-2 text-sm ${
+          hasChildren ? "cursor-pointer hover:bg-white/5" : ""
+        } ${isZero ? "opacity-50" : ""}`}
+        onClick={() => hasChildren && setOpen((v) => !v)}
+        title={bucket.node.note}
+      >
+        <span className="w-3 text-zinc-600 select-none flex-shrink-0">
+          {hasChildren ? (open ? "▾" : "▸") : "•"}
+        </span>
+        <span className="flex-1 text-zinc-200 truncate font-medium">
+          {bucket.node.name}
+        </span>
+        <span
+          className={`text-[9px] font-mono px-1.5 py-0.5 rounded border whitespace-nowrap ${badgeClass}`}
+          title={
+            bucket.poolBadge === "Additive"
+              ? 'Adds to the additive pool (the "/100" sum)'
+              : "Multiplies the post-processing chain"
+          }
+        >
+          {bucket.poolBadge}
+        </span>
+        <span
+          className={`font-mono tabular-nums w-24 text-right ${valColor(
+            bucket.node.val,
+            bucket.node.fmt
+          )}`}
+        >
+          {formatVal(bucket.node.val, bucket.node.fmt)}
+        </span>
+      </div>
+      {open && hasChildren && (
+        <div className="bg-black/20 border-t border-zinc-800/60 px-3 py-2">
+          <WorldBucketChildren nodes={bucket.node.children!} depth={0} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function WorldBucketChildren({
+  nodes,
+  depth,
+}: {
+  nodes: CorganNode[];
+  depth: number;
+}) {
+  return (
+    <div>
+      {nodes.map((c, i) => (
+        <WorldBucketChildRow
+          key={`${depth}-${i}-${c.name}`}
+          node={c}
+          depth={depth}
+        />
+      ))}
+    </div>
+  );
+}
+
+function WorldBucketChildRow({
+  node,
+  depth,
+}: {
+  node: CorganNode;
+  depth: number;
+}) {
+  const [open, setOpen] = useState(false);
+  const hasChildren = !!(node.children && node.children.length);
+  return (
+    <div style={{ paddingLeft: `${depth * 0.75}rem` }}>
+      <div
+        className={`flex items-center gap-2 py-0.5 text-xs ${
+          hasChildren ? "cursor-pointer hover:bg-white/5 rounded" : ""
+        }`}
+        onClick={() => hasChildren && setOpen((v) => !v)}
+        title={node.note}
+      >
+        <span className="w-3 text-zinc-700 select-none">
+          {hasChildren ? (open ? "▾" : "▸") : "•"}
+        </span>
+        <span className="flex-1 text-zinc-300 truncate">
+          {node.name}
+          {node.note && (
+            <span className="ml-1.5 text-zinc-600 italic text-[10px]">
+              {node.note}
+            </span>
+          )}
+        </span>
+        <span
+          className={`font-mono tabular-nums text-xs ${valColor(
+            node.val,
+            node.fmt
+          )}`}
+        >
+          {formatVal(node.val, node.fmt)}
+        </span>
+      </div>
+      {open && hasChildren && (
+        <WorldBucketChildren nodes={node.children!} depth={depth + 1} />
+      )}
     </div>
   );
 }

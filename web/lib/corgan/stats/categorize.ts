@@ -70,7 +70,7 @@ export type SystemKey =
   | "Set Bonuses"
   | "Bundles"
   | "Pristine Charms"
-  | "Sneaking / OLA"
+  | "Sneaking Mastery"
   | "Event Shop"
   | "Summoning"
   | "Other";
@@ -123,7 +123,7 @@ export const SYSTEM_EMOJI: Record<SystemKey, string> = {
   "Set Bonuses": "🧰",
   Bundles: "🎁",
   "Pristine Charms": "🌟",
-  "Sneaking / OLA": "🥷",
+  "Sneaking Mastery": "🥷",
   "Event Shop": "🛍️",
   Summoning: "🐲",
   Other: "🔹",
@@ -133,6 +133,132 @@ export const SYSTEM_EMOJI: Record<SystemKey, string> = {
 export function decorateSystem(key: SystemKey): string {
   const e = SYSTEM_EMOJI[key];
   return e ? `${e} ${key}` : key;
+}
+
+/** Reverse of decorateSystem(): strip the emoji prefix from a bucket
+ *  display name ("🃏 Cards" → "Cards"). Returns the SystemKey if the
+ *  stripped string matches a known one, otherwise null. */
+export function parseSystemFromBucketName(name: string): SystemKey | null {
+  // Remove a leading emoji + space if present, then trim.
+  const stripped = name.replace(/^\p{Extended_Pictographic}+️?\s+/u, "").trim();
+  if (stripped in SYSTEM_EMOJI) return stripped as SystemKey;
+  return null;
+}
+
+// -----------------------------------------------------------------------------
+// World grouping — used by the Per World view in DeepView.
+// Each system maps to a single "where it comes from" label. Unspecified
+// systems fall back to "Other".
+// -----------------------------------------------------------------------------
+
+export type WorldKey =
+  | "Global"
+  | "Character"
+  | "World 1"
+  | "World 2"
+  | "World 3"
+  | "World 4"
+  | "World 5"
+  | "World 6"
+  | "World 7"
+  | "Other";
+
+export const WORLD_ORDER: WorldKey[] = [
+  "Global",
+  "Character",
+  "World 1",
+  "World 2",
+  "World 3",
+  "World 4",
+  "World 5",
+  "World 6",
+  "World 7",
+  "Other",
+];
+
+export const WORLD_EMOJI: Record<WorldKey, string> = {
+  Global: "🌐",
+  Character: "👤",
+  "World 1": "1️⃣",
+  "World 2": "2️⃣",
+  "World 3": "3️⃣",
+  "World 4": "4️⃣",
+  "World 5": "5️⃣",
+  "World 6": "6️⃣",
+  "World 7": "7️⃣",
+  Other: "❓",
+};
+
+export const SYSTEM_WORLD: Record<SystemKey, WorldKey> = {
+  // Global — account-wide systems
+  Achievements: "Global",
+  Friends: "Global",
+  Guild: "Global",
+  Vault: "Global",
+  "Set Bonuses": "Global",
+  Bundles: "Global",
+  "Arcane Map": "Global",
+  "Cloud Bonus": "Global",
+  "Event Shop": "Global",
+
+  // Character — class progression / character-bound bonuses
+  "LUK / Stats": "Character",
+  Talents: "Character",
+  Cards: "Character",
+  Gear: "Character",
+  "Star Signs": "Character",
+  Grimoire: "Character",
+  "Golden Food": "Character",
+  Workshop: "Character",
+
+  // World 1
+  Companions: "World 1",
+  Stamps: "World 1",
+  Owl: "World 1",
+
+  // World 2
+  Alchemy: "World 2",
+  Sigils: "World 2",
+  Arcade: "World 2",
+  Voting: "World 2",
+  "Post Office": "World 2",
+
+  // World 3
+  Prayers: "World 3",
+  Shrines: "World 3",
+  Dreams: "World 3",
+  Hatrack: "World 3",
+
+  // World 4
+  "Shiny Pets": "World 4",
+  Tome: "World 4",
+  Chips: "World 4",
+
+  // World 5
+  Holes: "World 5",
+
+  // World 6
+  Farming: "World 6",
+  Emperor: "World 6",
+  Summoning: "World 6",
+  "Sneaking Mastery": "World 6",
+  "Pristine Charms": "World 6",
+
+  // World 7
+  Researching: "World 7",
+  "Legend Talents": "World 7",
+  "Spelunk Shop": "World 7",
+  Gallery: "World 7",
+  Sushi: "World 7",
+  Minehead: "World 7",
+  Glimbo: "World 7",
+  Button: "World 7",
+
+  Other: "Other",
+};
+
+export function systemWorld(key: SystemKey): WorldKey {
+  return SYSTEM_WORLD[key] ?? "Other";
 }
 
 // Display order used by the "merge" mode (additive pools).
@@ -180,7 +306,7 @@ export const SYSTEM_ORDER: SystemKey[] = [
   "Set Bonuses",
   "Bundles",
   "Pristine Charms",
-  "Sneaking / OLA",
+  "Sneaking Mastery",
   "Event Shop",
   "Summoning",
   "Other",
@@ -272,7 +398,7 @@ const RULES: Rule[] = [
   },
   { match: /\(Bundle\s/, system: "Bundles" },
   { match: /\(Pristine\s|\(Pristine Charm\)/, system: "Pristine Charms" },
-  { match: /\(Ola\s|^Sneaking\b/i, system: "Sneaking / OLA" },
+  { match: /\(Ola\s|^Sneaking\b/i, system: "Sneaking Mastery" },
   { match: /\(Event ?Shop\s/i, system: "Event Shop" },
   // Win Bonus is the Summoning sub-system — keep them together as Summoning.
   { match: /\(Summoning\s|^Summoning\b|Summoning Win/i, system: "Summoning" },
