@@ -11,6 +11,7 @@ import { formatIdleon } from "@/lib/format";
 import { listCharacters, parseSave, type CharSummary } from "@/lib/dropRate/extract";
 import DrTree from "./DrTree";
 import CorganTree from "./CorganTree";
+import DeepView from "./DeepView";
 import type { CorganNode as DrNode } from "@/lib/corgan/node";
 import type { FlatTree } from "@/lib/dropRate/treeFlatten";
 
@@ -71,7 +72,7 @@ export default function DrCalculator({
   // Which breakdown view to display: the detailed pool tree
   // (LUK Scaling → Main Additive → LUK2 Additive → Post-Processing) used as
   // the canonical DR, or the simpler additive/multiplicative panel.
-  const [tab, setTab] = useState<"it" | "detailed">("detailed");
+  const [tab, setTab] = useState<"it" | "detailed" | "deep">("detailed");
   const [drTree, setDrTree] = useState<DrNode | null>(null);
   const [drTotal, setDrTotal] = useState<number | null>(null);
 
@@ -338,7 +339,10 @@ export default function DrCalculator({
     <div>
       <h1 className="flex items-baseline gap-3 mb-1 mt-2">
         <span className="text-3xl font-extrabold text-gold">
-          🎲 Drop Rate Calculator
+          🎲 Drop Rate Calculator{" "}
+          <span className="text-sm font-semibold align-middle text-amber-400/80 bg-amber-500/10 border border-amber-500/40 rounded px-1.5 py-0.5 ml-1">
+            WIP
+          </span>
         </span>
       </h1>
       <p className="text-center text-xs text-zinc-500 mb-4">
@@ -469,6 +473,20 @@ export default function DrCalculator({
             <button
               type="button"
               role="tab"
+              aria-selected={tab === "deep"}
+              onClick={() => setTab("deep")}
+              className={`px-3 py-1 text-xs rounded ${
+                tab === "deep"
+                  ? "bg-gold/15 text-gold border border-gold/40"
+                  : "text-zinc-400 hover:text-zinc-200"
+              }`}
+              title="Full-depth view: every source AND its sub-sources, fully populated. Search, filter, group by game system."
+            >
+              🔬 Deep View
+            </button>
+            <button
+              type="button"
+              role="tab"
               aria-selected={tab === "it"}
               onClick={() => setTab("it")}
               className={`px-3 py-1 text-xs rounded ${
@@ -482,16 +500,16 @@ export default function DrCalculator({
             </button>
           </div>
         </div>
-        {tab === "detailed" && drTotal !== null && (
+        {(tab === "detailed" || tab === "deep") && drTotal !== null && (
           <>
             <div className="mb-3 text-xs text-zinc-500">
-              Detailed total:{" "}
+              {tab === "deep" ? "Deep view total" : "Detailed total"}:{" "}
               <span className="text-amber-300 font-mono">
                 {drTotal.toFixed(3)}x
               </span>{" "}
-              — full pool tree, matches in-game values to within ~1%
-              (includes the sushi&nbsp;54 +1% Gallery Bonus Multi that older
-              compute sites miss).
+              {tab === "deep"
+                ? "— every source and sub-source populated, full formula depth, classifiable by game system."
+                : "— full pool tree, matches in-game values to within ~1% (includes the sushi 54 +1% Gallery Bonus Multi that older compute sites miss)."}
             </div>
 
             {/* Chip Gallery toggle */}
@@ -563,6 +581,8 @@ export default function DrCalculator({
             tree={drTree}
             baseline={compareBaseline?.flatTree ?? null}
           />
+        ) : tab === "deep" ? (
+          <DeepView tree={drTree} />
         ) : (
           <DrTree tree={tree} />
         )}
