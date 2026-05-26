@@ -36,12 +36,14 @@ export function sigilBonus(sigilIdx: number, saveData: SaveData): number {
   if (level < -0.1) return 0;
   const tiers = sigilTiers(sigilIdx);
   if (!tiers) return 0;
+  // N.js linha 7744288 — tier select by sigil level:
+  //   <0.5 → tier 0, <1.5 → tier 1, <2.5 → tier 2, <3.5 → tier 3, else tier 4 (Eclectic).
   let base: number;
   if (level < 0.5) base = tiers[0];
   else if (level < 1.5) base = tiers[1];
   else if (level < 2.5) base = tiers[2];
   else if (level < 3.5) base = tiers[3];
-  else base = (tiers as any)[4] || tiers[3];
+  else base = tiers[4];
   const tier16 = Number((saveData.sailingData as any)?.[3]?.[16]) || 0;
   const artifactMulti = 1 + (tier16 === 0 ? 0 : Math.max(1, tier16));
   const meritocMulti = 1 + computeMeritocBonusz(21, saveData) / 100;
@@ -167,12 +169,14 @@ export const sigil = {
     if (level < -0.1) return node(name, 0, null, { note: "sigil " + id });
     const tiers = sigilTiers(id);
     if (!tiers) return node(name, 0, null, { note: "sigil " + id });
+    // N.js linha 7744288 — tier select by sigil level:
+    //   <0.5 → tier 0, <1.5 → tier 1, <2.5 → tier 2, <3.5 → tier 3, else tier 4 (Eclectic).
     let base: number;
     if (level < 0.5) base = tiers[0];
     else if (level < 1.5) base = tiers[1];
     else if (level < 2.5) base = tiers[2];
     else if (level < 3.5) base = tiers[3];
-    else base = (tiers as any)[4] || tiers[3];
+    else base = tiers[4];
     const tier16 = Number((saveData.sailingData as any)?.[3]?.[16]) || 0;
     const artifactMulti = 1 + (tier16 ? Math.max(1, tier16) : 0);
     const meritocMulti = 1 + (computeMeritocBonusz(21, saveData) || 0) / 100;
