@@ -4,8 +4,21 @@
 // is left for a later iteration since drop-rate doesn't query it.
 
 import { node, type CorganNode } from "../../../node";
-import { ROG_BONUS_QTY } from "../../data/w7/sushi";
+import { ROG_BONUS_QTY, ROG_DESC } from "../../data/w7/sushi";
 import type { SaveData } from "../../../state";
+
+/** Strip the "}x_" / "{%_" placeholders the IT data uses and return a clean
+ *  human label for the i-th RoG bonus, e.g. ROG_DESC[48] = "}x Drop Rate"
+ *  → "Drop Rate RoG Bonus". */
+function rogFriendlyName(idx: number): string {
+  const raw = ROG_DESC[idx] || "";
+  const stripped = raw
+    .replace(/[\{\}]/g, "")
+    .replace(/[xX]\s+/, "")
+    .replace(/^\s*[+%]+\s*/, "")
+    .trim();
+  return stripped ? `${stripped} RoG Bonus` : "";
+}
 
 type Ctx = { saveData: SaveData };
 
@@ -27,8 +40,10 @@ export const sushiRoG = {
     const saveData = ctx.saveData;
     const us = saveData.cachedUniqueSushi || 0;
     const val = rogBonusQTY(id, us);
+    const friendly = rogFriendlyName(id);
+    const label = friendly ? `${friendly} (RoG Bonus ${id})` : `RoG Bonus ${id}`;
     return node(
-      "RoG Bonus " + id,
+      label,
       val,
       [
         node("Unique Sushi", us, null, { fmt: "raw" }),

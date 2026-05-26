@@ -121,7 +121,7 @@ export function galleryBonusMulti(
     ch.push(node(label("Killroy", 3), killroy3, null, { fmt: "raw" }));
   if (y13capped > 0)
     ch.push(
-      node("Bubble Y13 (capped 20)", y13capped, null, {
+      node("Codfrey Rulz OK (Bubble Y13, capped 20)", y13capped, null, {
         fmt: "raw",
         note: "kazam bubble 13",
       })

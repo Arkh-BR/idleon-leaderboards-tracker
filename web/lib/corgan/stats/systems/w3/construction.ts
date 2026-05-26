@@ -52,9 +52,9 @@ export const shrine = {
           fmt: "+",
           note: data.base + " base + " + data.perLevel + "/level",
         }),
-        node("Boss3B Card Bonus", cardMulti, cardChildren, {
+        node("Chaotic Chizoar (Card Boss3B)", cardMulti, cardChildren, {
           fmt: "x",
-          note: BOSS3B_CARD_PCT + "% per level",
+          note: `+${BOSS3B_CARD_PCT}% shrine effect per card level`,
         }),
       ],
       { fmt: "+", note: "shrine " + id }
