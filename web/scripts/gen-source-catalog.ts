@@ -534,7 +534,9 @@ function buildHtml(cat: typeof catalog): string {
   tr.maxed { background: rgba(250, 204, 21, 0.08); }
   tr.maxed.has-max { background: rgba(250, 204, 21, 0.10); }
   tr.maxed td.input input.filled { border-color: rgba(250, 204, 21, 0.6); }
-  /* P2W flag pill — sits at the end of the Source name to mark the row */
+  /* P2W flag pill — sits at the end of the Source name to mark the row.
+     Clickable: click to toggle the per-source P2W override off (revealing
+     the muted "+P2W" stub the user can click again to re-flag). */
   td.name .p2w-badge {
     display: inline-block; margin-left: 6px;
     background: rgba(244, 114, 182, 0.12);
@@ -543,7 +545,58 @@ function buildHtml(cat: typeof catalog): string {
     border-radius: 3px; padding: 0px 5px;
     font-size: 9px; font-family: monospace;
     vertical-align: middle;
+    cursor: pointer;
+    transition: background 100ms, color 100ms;
   }
+  td.name .p2w-badge:hover {
+    background: rgba(244, 114, 182, 0.25);
+  }
+  td.name .p2w-stub {
+    display: inline-block; margin-left: 6px;
+    background: transparent;
+    color: var(--ink-mute);
+    border: 1px dashed var(--border-strong);
+    border-radius: 3px; padding: 0px 5px;
+    font-size: 9px; font-family: monospace;
+    vertical-align: middle;
+    cursor: pointer;
+    opacity: 0.4;
+  }
+  tr:hover td.name .p2w-stub { opacity: 0.9; }
+  td.name .p2w-stub:hover {
+    color: #f9a8d4;
+    border-color: rgba(244, 114, 182, 0.4);
+    opacity: 1;
+  }
+  /* Editable name text — looks like normal text, but a hint on hover */
+  td.name .name-text {
+    cursor: text;
+    border-bottom: 1px dotted transparent;
+    transition: border-color 100ms;
+  }
+  tr:hover td.name .name-text:not(.editing) {
+    border-bottom-color: rgba(56, 189, 248, 0.4);
+  }
+  td.name input.name-edit {
+    background: #09090b;
+    border: 1px solid var(--accent);
+    border-radius: 3px;
+    color: var(--ink);
+    padding: 2px 6px;
+    font-size: 13px;
+    font-family: inherit;
+    min-width: 200px;
+  }
+  td.name .name-reset {
+    margin-left: 4px;
+    background: transparent;
+    color: var(--ink-mute);
+    border: none;
+    cursor: pointer;
+    font-size: 11px;
+    padding: 0 4px;
+  }
+  td.name .name-reset:hover { color: var(--accent); }
   .filter-pill {
     display: inline-flex; align-items: center; gap: 4px;
     font-size: 11px; padding: 3px 8px;
@@ -824,6 +877,21 @@ function buildHtml(cat: typeof catalog): string {
     if (entry && typeof entry.maxValue === "number") return entry.maxValue;
     return getRefValue(src);
   }
+  /** Display name — user override (if set), else catalog default. */
+  function effectiveName(src) {
+    const entry = values[src.id];
+    if (entry && typeof entry.nameOverride === "string" && entry.nameOverride)
+      return entry.nameOverride;
+    return src.name;
+  }
+  /** Whether to treat the row as P2W after merging the user's per-row
+   *  override on top of the catalog's auto-detected flag. */
+  function effectiveP2W(src) {
+    const entry = values[src.id];
+    if (entry && typeof entry.p2wOverride === "boolean")
+      return entry.p2wOverride;
+    return !!src.p2w;
+  }
 
   /** Compute the aggregated value for an agg-tagged parent from its
    *  matching-fmt descendants' effective values. */
@@ -894,10 +962,12 @@ function buildHtml(cat: typeof catalog): string {
     const hasMax = entry && typeof entry.maxValue === "number";
     if (filterMode === "blank" && hasMax) return false;
     if (filterMode === "filled" && !hasMax) return false;
-    if (hideP2W && src.p2w) return false;
+    if (hideP2W && effectiveP2W(src)) return false;
     if (filterText) {
       const q = filterText.toLowerCase();
+      const displayName = effectiveName(src);
       if (
+        !displayName.toLowerCase().includes(q) &&
         !src.name.toLowerCase().includes(q) &&
         !src.system.toLowerCase().includes(q) &&
         !src.world.toLowerCase().includes(q) &&
@@ -1072,17 +1142,128 @@ function buildHtml(cat: typeof catalog): string {
       };
     }
     tdName.appendChild(chev);
+
+    // ── Inline-editable name span ──
+    // Click on the span swaps it for an <input>; blur/Enter commits the
+    // override, Escape cancels. The user can rename ANY source (top-level
+    // or sub) to whatever helps them research it — stored as
+    // values[src.id].nameOverride. A small "↺" reset button appears next
+    // to overridden names.
+    const isOverridden =
+      !!(entry.nameOverride && typeof entry.nameOverride === "string");
+    const displayName = effectiveName(src);
     const nameText = document.createElement("span");
     nameText.className = "name-text";
-    nameText.textContent = src.name;
+    nameText.textContent = displayName;
+    nameText.title = isOverridden
+      ? "Renamed from: " + src.name + "  ·  Click to edit"
+      : "Click to rename";
+    nameText.onclick = (ev) => {
+      ev.stopPropagation();
+      const input = document.createElement("input");
+      input.type = "text";
+      input.className = "name-edit";
+      input.value = effectiveName(src);
+      nameText.classList.add("editing");
+      nameText.replaceWith(input);
+      input.focus();
+      input.select();
+      let committed = false;
+      function commit() {
+        if (committed) return;
+        committed = true;
+        const next = { ...(values[src.id] || {}) };
+        const trimmed = input.value.trim();
+        if (!trimmed || trimmed === src.name) {
+          delete next.nameOverride;
+        } else {
+          next.nameOverride = trimmed;
+        }
+        if (Object.keys(next).length === 0) delete values[src.id];
+        else values[src.id] = next;
+        saveValues(values);
+        render(); // simplest way to refresh chevron + reset button state
+      }
+      input.onblur = commit;
+      input.onkeydown = (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          input.blur();
+        } else if (e.key === "Escape") {
+          committed = true;
+          render();
+        }
+      };
+    };
     tdName.appendChild(nameText);
-    if (src.p2w) {
-      const badge = document.createElement("span");
+    if (isOverridden) {
+      const resetBtn = document.createElement("button");
+      resetBtn.type = "button";
+      resetBtn.className = "name-reset";
+      resetBtn.textContent = "↺";
+      resetBtn.title = "Reset name to catalog default: " + src.name;
+      resetBtn.onclick = (ev) => {
+        ev.stopPropagation();
+        const next = { ...(values[src.id] || {}) };
+        delete next.nameOverride;
+        if (Object.keys(next).length === 0) delete values[src.id];
+        else values[src.id] = next;
+        saveValues(values);
+        render();
+      };
+      tdName.appendChild(resetBtn);
+    }
+
+    // ── P2W toggle ──
+    // Show a filled pink "P2W" pill when effective P2W is true; clicking
+    // it toggles OFF (sets p2wOverride: false). When P2W is off, show a
+    // muted dashed "💰 P2W?" stub that, when clicked, sets the override
+    // to true. The auto-detected flag from the catalog (src.p2w) acts as
+    // the default if no override is set.
+    const isP2W = effectiveP2W(src);
+    if (isP2W) {
+      const badge = document.createElement("button");
+      badge.type = "button";
       badge.className = "p2w-badge";
       badge.textContent = "P2W";
-      badge.title = "Real-money DLC / Bundle — gated by purchase.";
+      badge.title = src.p2w
+        ? "Real-money DLC / Bundle — gated by purchase.\\nClick to mark this source as NOT P2W."
+        : "Manually flagged as P2W.\\nClick to remove the flag.";
+      badge.onclick = (ev) => {
+        ev.stopPropagation();
+        const next = { ...(values[src.id] || {}) };
+        next.p2wOverride = false;
+        values[src.id] = next;
+        saveValues(values);
+        render();
+      };
       tdName.appendChild(badge);
+    } else {
+      const stub = document.createElement("button");
+      stub.type = "button";
+      stub.className = "p2w-stub";
+      stub.textContent = "💰 ?";
+      stub.title = src.p2w
+        ? "Catalog flagged this as P2W; you cleared it.\\nClick to re-flag."
+        : "Mark this source as P2W (paid-only / locked behind a real-money purchase).";
+      stub.onclick = (ev) => {
+        ev.stopPropagation();
+        const next = { ...(values[src.id] || {}) };
+        if (src.p2w) {
+          // Catalog says P2W but user cleared it — re-flagging just
+          // removes the override so we fall back to the catalog default.
+          delete next.p2wOverride;
+        } else {
+          next.p2wOverride = true;
+        }
+        if (Object.keys(next).length === 0) delete values[src.id];
+        else values[src.id] = next;
+        saveValues(values);
+        render();
+      };
+      tdName.appendChild(stub);
     }
+
     tr.appendChild(tdName);
 
     const tdSys = document.createElement("td");
