@@ -280,8 +280,8 @@ export default function DrCalculator({
         </span>
       </h1>
       <p className="text-center text-xs text-zinc-500 mb-4">
-        Auto-computes from save JSON. Select character &amp; map. All processing
-        local in your browser.
+        Auto-computes from your IdleonToolbox &ldquo;Copy for Support&rdquo;
+        JSON. Select character &amp; map. All processing local in your browser.
       </p>
 
       {/* Import box */}
@@ -289,10 +289,40 @@ export default function DrCalculator({
         <summary className="cursor-pointer font-semibold text-gold select-none">
           📋 Import Save JSON
         </summary>
+        {/* "Copy for Support" guidance — the parser only accepts the envelope
+            shape that button produces; the plain "Copy raw data" output is
+            missing some of the parsed extras we use. */}
+        <div className="mt-3 mb-3 rounded-md border border-gold/40 bg-gold/5 p-3 text-xs">
+          <div className="flex items-start gap-2.5">
+            <span className="text-base leading-none">📋</span>
+            <div className="flex-1 leading-relaxed text-zinc-300">
+              <span className="text-gold font-semibold">
+                Use the &ldquo;Copy for Support&rdquo; button
+              </span>{" "}
+              on{" "}
+              <a
+                href="https://idleontoolbox.com"
+                target="_blank"
+                rel="noreferrer"
+                className="text-gold hover:underline font-medium"
+              >
+                idleontoolbox.com
+              </a>{" "}
+              — open your account menu (top-right) and click{" "}
+              <strong className="text-gold">
+                &ldquo;Copy for Support&rdquo;
+              </strong>
+              . That envelope carries the parsed extras the calculator reads
+              (companion data, guild data, etc.) — the plain
+              &ldquo;Copy raw data&rdquo; option leaves some of those fields
+              out.
+            </div>
+          </div>
+        </div>
         <textarea
           value={jsonText}
           onChange={(e) => setJsonText(e.target.value)}
-          placeholder="Paste your raw IdleonToolbox &lsquo;Copy for Support&rsquo; JSON here..."
+          placeholder='Paste the output of "Copy for Support" here (Ctrl+V)…'
           className="w-full h-20 mt-2 bg-zinc-950 border border-zinc-800 rounded p-2 text-xs font-mono text-zinc-200 focus:outline-none focus:border-gold"
         />
         <div className="flex flex-wrap items-center gap-2 mt-2">
