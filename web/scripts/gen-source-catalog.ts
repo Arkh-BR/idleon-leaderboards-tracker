@@ -209,6 +209,12 @@ function detectStructuralFormula(
   if (node.name === "Family Bonus 68 (Mage)") {
     return "familyBonus68Mage";
   }
+  // Best Mage Lv (inside Family Bonus 68) = max of per-char Lv kids.
+  // Lets the user edit any single char's level and see Best Mage Lv
+  // bump automatically.
+  if (node.name === "Best Mage Lv" && (node.children || []).length > 0) {
+    return "maxOfKids";
+  }
   // Endless Wins Bonus = floor(count / 40) × perCycle + partial.
   if (node.name === "Endless Wins Bonus") {
     return "endlessWinsBonus";
@@ -1220,6 +1226,19 @@ const APP_JS = `
       var bn = p && Number(p.bonusConst);
       if (!Number.isFinite(bn)) return null;
       return idle + owned * (bn - idle);
+    },
+    "maxOfKids": function (_p, kids) {
+      // max over every kid's effective value (ref-fallback). Used by
+      // Best Mage Lv inside Family Bonus 68 so editing any single
+      // mage char's lv bumps the parent automatically.
+      if (!kids.length) return null;
+      var best = -Infinity;
+      for (var i = 0; i < kids.length; i++) {
+        var v = effectiveValue(kids[i]);
+        if (v === null) v = Number(kids[i].refValue) || 0;
+        if (v > best) best = v;
+      }
+      return best === -Infinity ? null : best;
     },
     "familyBonus68Mage": function (_p, kids) {
       // floor(decay(20, 350, max(0, lv − 69)) × Sad Souls Multi).

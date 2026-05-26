@@ -382,6 +382,10 @@ function resolveAllTalentLVz(
   let maxMageCharLv = 0;
   let bestContribCharIdx = -1;
   let bestUsedTal144 = false;
+  // Per-char level kids — one row per mage char so the user can see
+  // every contributor and edit any of them for research. The "Best
+  // Mage Lv" parent is then a maxOfKids formula over this set.
+  const charLvKids: CorganNode[] = [];
   for (let ci = 0; ci < numCharacters; ci++) {
     const cls = (charClassData as any)[ci];
     if (cls !== 34 && cls !== 38) continue;
@@ -396,8 +400,6 @@ function resolveAllTalentLVz(
       (fb34 as any).x2,
       n
     );
-    // Sad Souls (Talent 144) buff — only on the iteration where this
-    // char IS the active char.
     const usedBuff = ci === slotIdx && tal144Mult > 1;
     if (usedBuff) contrib *= tal144Mult;
     if (contrib > famBonus68) {
@@ -406,6 +408,22 @@ function resolveAllTalentLVz(
       bestContribCharIdx = ci;
       bestUsedTal144 = usedBuff;
     }
+    const charName =
+      (saveData.charNames && saveData.charNames[ci]) || `Char ${ci}`;
+    const isActive = ci === slotIdx;
+    charLvKids.push(
+      node(
+        `${charName} (Char ${ci}) Lv`,
+        lv,
+        null,
+        {
+          fmt: "raw",
+          note:
+            `class ${cls}` +
+            (isActive ? " — ACTIVE char (gets Sad Souls buff)" : ""),
+        }
+      )
+    );
   }
   // Kept for downstream code paths that still reference these (the
   // original computeAllTalentLVz block at line ~180 uses these names).
@@ -422,16 +440,25 @@ function resolveAllTalentLVz(
         "Family Bonus 68 (Mage)",
         famFloor,
         [
-          node("Best Mage Lv", maxMageCharLv, null, {
-            fmt: "raw",
-            note: "highest mage class lv across account",
-          }),
+          node(
+            "Best Mage Lv",
+            maxMageCharLv,
+            // Each mage char's level lives here as an editable kid.
+            // The "Best Mage Lv" parent recomputes via maxOfKids on
+            // every edit so the user can research "what if Char X
+            // had lv N" by tweaking that one row.
+            charLvKids.length ? charLvKids : null,
+            {
+              fmt: "raw",
+              note:
+                "max across account — " +
+                charLvKids.length +
+                " mage char" +
+                (charLvKids.length === 1 ? "" : "s"),
+            }
+          ),
           node(
             "Sad Souls Multi (×)",
-            // Emit 1.0 unless the buff actually won the slot (active
-            // char IS the contributing mage). Otherwise the runtime
-            // handler would multiply by a buff that the game didn't
-            // apply.
             bestUsedTal144 ? tal144Mult : 1,
             null,
             {

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-26T20:33:51.110Z",
+  "generatedAt": "2026-05-26T20:37:50.853Z",
   "refTotal": 43093.43816941274,
   "refSave": "zArkhe (save 25-21-16.json) — Town, no AC",
   "sourceCount": 75,
@@ -179,7 +179,33 @@
                   "fmt": "raw",
                   "refValue": 1701,
                   "bucket": "🎯 Talents",
-                  "note": "highest mage class lv across account"
+                  "note": "max across account — 2 mage chars",
+                  "children": [
+                    {
+                      "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Family Bonus 68 (Mage) / Best Mage Lv / Parkhe (Char 5) Lv",
+                      "name": "Parkhe (Char 5) Lv",
+                      "system": "Talents",
+                      "world": "Character",
+                      "pool": "Additive",
+                      "fmt": "raw",
+                      "refValue": 1701,
+                      "bucket": "🎯 Talents",
+                      "note": "class 34"
+                    },
+                    {
+                      "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Family Bonus 68 (Mage) / Best Mage Lv / Sarkhe (Char 7) Lv",
+                      "name": "Sarkhe (Char 7) Lv",
+                      "system": "Talents",
+                      "world": "Character",
+                      "pool": "Additive",
+                      "fmt": "raw",
+                      "refValue": 1700,
+                      "bucket": "🎯 Talents",
+                      "note": "class 34"
+                    }
+                  ],
+                  "formulaKey": "maxOfKids",
+                  "agg": "custom"
                 },
                 {
                   "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Family Bonus 68 (Mage) / Sad Souls Multi (×)",
@@ -587,7 +613,33 @@
                   "fmt": "raw",
                   "refValue": 1701,
                   "bucket": "🎯 Talents",
-                  "note": "highest mage class lv across account"
+                  "note": "max across account — 2 mage chars",
+                  "children": [
+                    {
+                      "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Family Bonus 68 (Mage) / Best Mage Lv / Parkhe (Char 5) Lv",
+                      "name": "Parkhe (Char 5) Lv",
+                      "system": "Talents",
+                      "world": "Character",
+                      "pool": "Additive",
+                      "fmt": "raw",
+                      "refValue": 1701,
+                      "bucket": "🎯 Talents",
+                      "note": "class 34"
+                    },
+                    {
+                      "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Family Bonus 68 (Mage) / Best Mage Lv / Sarkhe (Char 7) Lv",
+                      "name": "Sarkhe (Char 7) Lv",
+                      "system": "Talents",
+                      "world": "Character",
+                      "pool": "Additive",
+                      "fmt": "raw",
+                      "refValue": 1700,
+                      "bucket": "🎯 Talents",
+                      "note": "class 34"
+                    }
+                  ],
+                  "formulaKey": "maxOfKids",
+                  "agg": "custom"
                 },
                 {
                   "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Family Bonus 68 (Mage) / Sad Souls Multi (×)",
@@ -6951,7 +7003,33 @@
                       "fmt": "raw",
                       "refValue": 1701,
                       "bucket": "🎯 Talents",
-                      "note": "highest mage class lv across account"
+                      "note": "max across account — 2 mage chars",
+                      "children": [
+                        {
+                          "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Bonus Levels / Family Bonus 68 (Mage) / Best Mage Lv / Parkhe (Char 5) Lv",
+                          "name": "Parkhe (Char 5) Lv",
+                          "system": "Talents",
+                          "world": "Character",
+                          "pool": "Multi",
+                          "fmt": "raw",
+                          "refValue": 1701,
+                          "bucket": "🎯 Talents",
+                          "note": "class 34"
+                        },
+                        {
+                          "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Bonus Levels / Family Bonus 68 (Mage) / Best Mage Lv / Sarkhe (Char 7) Lv",
+                          "name": "Sarkhe (Char 7) Lv",
+                          "system": "Talents",
+                          "world": "Character",
+                          "pool": "Multi",
+                          "fmt": "raw",
+                          "refValue": 1700,
+                          "bucket": "🎯 Talents",
+                          "note": "class 34"
+                        }
+                      ],
+                      "formulaKey": "maxOfKids",
+                      "agg": "custom"
                     },
                     {
                       "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Bonus Levels / Family Bonus 68 (Mage) / Sad Souls Multi (×)",
