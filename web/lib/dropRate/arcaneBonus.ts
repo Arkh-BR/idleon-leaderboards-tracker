@@ -82,6 +82,33 @@ export function buildMapOptions(save: unknown): MapOption[] {
     opts.push({ index: i, name, kills, factor, label });
     added.add(i);
   }
+
+  // Also include every character's CurrentMap_N so we can auto-jump to it
+  // when the user selects that char, even if the map has no AFK kills (in
+  // which case the arcane factor is 1×). Without this the dropdown would
+  // silently fall back to Town for chars sitting on a no-kill map.
+  for (const k in data) {
+    if (!k.startsWith("CurrentMap_")) continue;
+    const idx = Number(data[k]);
+    if (!Number.isFinite(idx) || added.has(idx)) continue;
+    const killsRaw = Array.isArray(mb[idx]) ? Number(mb[idx][0]) || 0 : 0;
+    const factor = killsRaw >= 1 ? arcaneFactor(killsRaw) : 1;
+    const name = (MAP_NAMES[idx] || `Map ${idx}`).replace(/_/g, " ");
+    const label =
+      factor > 1
+        ? `${name} (kills ${formatKills(killsRaw)} → ${factor.toFixed(2)}x)`
+        : `${name} (no AC)`;
+    opts.push({ index: idx, name, kills: killsRaw, factor, label });
+    added.add(idx);
+  }
+
+  // Sort: Town first, then by index for stable ordering.
+  opts.sort((a, b) => {
+    if (a.index === 0) return -1;
+    if (b.index === 0) return 1;
+    return a.index - b.index;
+  });
+
   return opts;
 }
 
