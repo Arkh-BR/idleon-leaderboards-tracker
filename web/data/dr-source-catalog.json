@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-26T17:48:18.206Z",
+  "generatedAt": "2026-05-26T17:52:38.343Z",
   "refTotal": 43093.43816941274,
   "refSave": "zArkhe (save 25-21-16.json) — Town, no AC",
   "sourceCount": 75,
@@ -1097,17 +1097,6 @@
           "bucket": "📜 Stamps"
         },
         {
-          "id": "Drop Rate / Additive Pool / 📜 Stamps / Golden Sixes Stamp (Stamp A38) / Formula Result",
-          "name": "Formula Result",
-          "system": "Stamps",
-          "world": "World 1",
-          "pool": "Additive",
-          "fmt": "raw",
-          "refValue": 14.666666666666666,
-          "bucket": "📜 Stamps",
-          "note": "decay(20,80,220)"
-        },
-        {
           "id": "Drop Rate / Additive Pool / 📜 Stamps / Golden Sixes Stamp (Stamp A38) / Exalted ×",
           "name": "Exalted ×",
           "system": "Stamps",
@@ -1509,17 +1498,6 @@
           "fmt": "raw",
           "refValue": 50,
           "bucket": "🛡️ Guild"
-        },
-        {
-          "id": "Drop Rate / Additive Pool / 🛡️ Guild / Gold Charm (Guild 10) / Formula Result",
-          "name": "Formula Result",
-          "system": "Guild",
-          "world": "Global",
-          "pool": "Additive",
-          "fmt": "raw",
-          "refValue": 20,
-          "bucket": "🛡️ Guild",
-          "note": "decay(40,50,50)"
         }
       ]
     },
@@ -1622,17 +1600,6 @@
           "fmt": "raw",
           "refValue": 400,
           "bucket": "📮 Post Office"
-        },
-        {
-          "id": "Drop Rate / Additive Pool / 📮 Post Office / Non Predatory Loot Box (Post Office 11) / Formula Result",
-          "name": "Formula Result",
-          "system": "Post Office",
-          "world": "World 2",
-          "pool": "Additive",
-          "fmt": "raw",
-          "refValue": 33.333333333333336,
-          "bucket": "📮 Post Office",
-          "note": "decay(50,200,400)"
         }
       ]
     },
@@ -2413,17 +2380,6 @@
           "fmt": "raw",
           "refValue": 101,
           "bucket": "🌾 Farming"
-        },
-        {
-          "id": "Drop Rate / Additive Pool / 🌾 Farming / Pommelion Seed (Exotic 59) / Formula Result",
-          "name": "Formula Result",
-          "system": "Farming",
-          "world": "World 6",
-          "pool": "Additive",
-          "fmt": "raw",
-          "refValue": 2.293369663941871,
-          "bucket": "🌾 Farming",
-          "note": "25 × lv / (1000 + lv)"
         }
       ]
     },

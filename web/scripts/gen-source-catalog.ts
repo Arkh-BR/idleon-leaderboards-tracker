@@ -56,11 +56,16 @@ type SourceEntry = {
 };
 
 // Catalog-only placeholders / safety nets — never trackable sources.
+// Also drops synthetic "Formula Result" rows the Corgan lib surfaces
+// under Guild/Stamp/Post Office/Exotic-59 bonuses: the parent's value
+// IS the formula result, so the child just duplicates the number with
+// no editable input — pure noise in the max-values tool.
 const SKIP_NAMES = new Set([
   "No active sources",
   "Available DR Items (not equipped)",
   "Available DR Obols (not equipped)",
   "Not Unlocked",
+  "Formula Result",
 ]);
 
 /** Aggregation detection — tag a parent with the closed-form rule its
