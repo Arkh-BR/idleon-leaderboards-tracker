@@ -322,11 +322,11 @@ function resolveAllTalentLVz(
         node(
           lbl,
           val,
-          [
-            node("Char " + slotIdx + " Lv " + lv, lv, null, { fmt: "raw" }),
-            node("1 + floor(" + lv + "/20)", val, null, { fmt: "raw" }),
-          ],
-          { fmt: "raw" }
+          // Canonical formulaEval shape: intervalAdd(x1=1, x2=20, lv).
+          // The Char Lv kid is the one editable input; the parent
+          // recomputes 1 + floor(lv / 20) live via closedFormFormula.
+          [node("Char Lv", lv, null, { fmt: "raw" })],
+          { fmt: "raw", note: "intervalAdd(1,20," + lv + ")" }
         )
       );
     }
@@ -419,15 +419,20 @@ function resolveAllTalentLVz(
     saveData.companionIds && saveData.companionIds.has(4);
   let divMinor = 0;
   const coralKid3 = Number((optionsListData as any)?.[430]) || 0;
+  const godX1_2 = godMinorX1(2);
+  let divLvCaptured = 0;
+  let y2ActiveCaptured = 0;
   if (slotIdx >= 0 && hasBonusMajor(slotIdx, 2, saveData)) {
     const divLv =
       ((saveData as any).lv0AllData?.[slotIdx] && (saveData as any).lv0AllData[slotIdx][14]) ||
       0;
+    divLvCaptured = divLv;
     if (divLv > 0) {
       const includesY2 =
         (cauldronBubblesData as any)[slotIdx] &&
         (cauldronBubblesData as any)[slotIdx].includes("d21");
       const y2Active = allBubblesActive || includesY2 ? y2Value : 0;
+      y2ActiveCaptured = y2Active;
       divMinor =
         Math.max(1, y2Active) *
         (1 + coralKid3 / 100) *
@@ -437,7 +442,27 @@ function resolveAllTalentLVz(
   }
   const divCeil = Math.ceil(divMinor);
   if (divCeil > 0) {
-    children.push(node("Divinity Minor 2 (Arctis)", divCeil, null, { fmt: "raw" }));
+    // Surface the four inputs the formula reads so the max-values
+    // tool can recompute live. Handler key matches the parent name.
+    children.push(
+      node(
+        "Divinity Minor 2 (Arctis)",
+        divCeil,
+        [
+          node("Divinity Lv", divLvCaptured, null, { fmt: "raw" }),
+          node("Bubble Y2 Active", y2ActiveCaptured, null, {
+            fmt: "raw",
+            note: "0 if Y2 bubble not equipped & no all-bubbles flag",
+          }),
+          node("Coral Kid 3", coralKid3, null, { fmt: "raw", note: "OLA[430]" }),
+          node("God Minor X1(2)", godX1_2, null, {
+            fmt: "raw",
+            note: "GodsInfo[2][3] constant",
+          }),
+        ],
+        { fmt: "raw" } // gen-source-catalog appends the formula text
+      )
+    );
   }
 
   const dream12 = Number((dreamData as any)?.[12]) || 0;

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-26T18:47:14.062Z",
+  "generatedAt": "2026-05-26T18:54:02.627Z",
   "refTotal": 43093.43816941274,
   "refSave": "zArkhe (save 25-21-16.json) — Town, no AC",
   "sourceCount": 75,
@@ -128,28 +128,26 @@
               "fmt": "raw",
               "refValue": 20,
               "bucket": "🎯 Talents",
+              "note": "intervalAdd(1, 20)",
               "children": [
                 {
-                  "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Char 2 Lv 396",
-                  "name": "Char 2 Lv 396",
+                  "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Char Lv",
+                  "name": "Char Lv",
                   "system": "Talents",
                   "world": "Character",
                   "pool": "Additive",
                   "fmt": "raw",
                   "refValue": 396,
                   "bucket": "🎯 Talents"
-                },
-                {
-                  "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Symbols of Beyond ~R (Talent 149) / 1 + floor(396/20)",
-                  "name": "1 + floor(396/20)",
-                  "system": "Talents",
-                  "world": "Character",
-                  "pool": "Additive",
-                  "fmt": "raw",
-                  "refValue": 20,
-                  "bucket": "🎯 Talents"
                 }
-              ]
+              ],
+              "formulaSpec": {
+                "type": "intervalAdd",
+                "x1": 1,
+                "x2": 20
+              },
+              "formulaKey": "closedFormFormula",
+              "agg": "custom"
             },
             {
               "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Maroon Warship (Achievement 291)",
@@ -211,7 +209,54 @@
               "pool": "Additive",
               "fmt": "raw",
               "refValue": 58,
-              "bucket": "🎯 Talents"
+              "bucket": "🎯 Talents",
+              "children": [
+                {
+                  "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Divinity Minor 2 (Arctis) / Divinity Lv",
+                  "name": "Divinity Lv",
+                  "system": "Talents",
+                  "world": "Character",
+                  "pool": "Additive",
+                  "fmt": "raw",
+                  "refValue": 608,
+                  "bucket": "🎯 Talents"
+                },
+                {
+                  "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Divinity Minor 2 (Arctis) / Bubble Y2 Active",
+                  "name": "Bubble Y2 Active",
+                  "system": "Talents",
+                  "world": "Character",
+                  "pool": "Additive",
+                  "fmt": "raw",
+                  "refValue": 1.4980838017373532,
+                  "bucket": "🎯 Talents",
+                  "note": "0 if Y2 bubble not equipped & no all-bubbles flag"
+                },
+                {
+                  "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Divinity Minor 2 (Arctis) / Coral Kid 3",
+                  "name": "Coral Kid 3",
+                  "system": "Talents",
+                  "world": "Character",
+                  "pool": "Additive",
+                  "fmt": "raw",
+                  "refValue": 182,
+                  "bucket": "🎯 Talents",
+                  "note": "OLA[430]"
+                },
+                {
+                  "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Divinity Minor 2 (Arctis) / God Minor X1(2)",
+                  "name": "God Minor X1(2)",
+                  "system": "Talents",
+                  "world": "Character",
+                  "pool": "Additive",
+                  "fmt": "raw",
+                  "refValue": 15,
+                  "bucket": "🎯 Talents",
+                  "note": "GodsInfo[2][3] constant"
+                }
+              ],
+              "agg": "custom",
+              "note": "ceil(max(1, Y2) × (1 + Coral/100) × Lv/(60+Lv) × God)"
             },
             {
               "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Nonstop Studies (Dream 12)",
@@ -370,28 +415,26 @@
               "fmt": "raw",
               "refValue": 20,
               "bucket": "🎯 Talents",
+              "note": "intervalAdd(1, 20)",
               "children": [
                 {
-                  "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Char 2 Lv 396",
-                  "name": "Char 2 Lv 396",
+                  "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Char Lv",
+                  "name": "Char Lv",
                   "system": "Talents",
                   "world": "Character",
                   "pool": "Additive",
                   "fmt": "raw",
                   "refValue": 396,
                   "bucket": "🎯 Talents"
-                },
-                {
-                  "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Symbols of Beyond ~R (Talent 149) / 1 + floor(396/20)",
-                  "name": "1 + floor(396/20)",
-                  "system": "Talents",
-                  "world": "Character",
-                  "pool": "Additive",
-                  "fmt": "raw",
-                  "refValue": 20,
-                  "bucket": "🎯 Talents"
                 }
-              ]
+              ],
+              "formulaSpec": {
+                "type": "intervalAdd",
+                "x1": 1,
+                "x2": 20
+              },
+              "formulaKey": "closedFormFormula",
+              "agg": "custom"
             },
             {
               "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Maroon Warship (Achievement 291)",
@@ -453,7 +496,54 @@
               "pool": "Additive",
               "fmt": "raw",
               "refValue": 58,
-              "bucket": "🎯 Talents"
+              "bucket": "🎯 Talents",
+              "children": [
+                {
+                  "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Divinity Minor 2 (Arctis) / Divinity Lv",
+                  "name": "Divinity Lv",
+                  "system": "Talents",
+                  "world": "Character",
+                  "pool": "Additive",
+                  "fmt": "raw",
+                  "refValue": 608,
+                  "bucket": "🎯 Talents"
+                },
+                {
+                  "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Divinity Minor 2 (Arctis) / Bubble Y2 Active",
+                  "name": "Bubble Y2 Active",
+                  "system": "Talents",
+                  "world": "Character",
+                  "pool": "Additive",
+                  "fmt": "raw",
+                  "refValue": 1.4980838017373532,
+                  "bucket": "🎯 Talents",
+                  "note": "0 if Y2 bubble not equipped & no all-bubbles flag"
+                },
+                {
+                  "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Divinity Minor 2 (Arctis) / Coral Kid 3",
+                  "name": "Coral Kid 3",
+                  "system": "Talents",
+                  "world": "Character",
+                  "pool": "Additive",
+                  "fmt": "raw",
+                  "refValue": 182,
+                  "bucket": "🎯 Talents",
+                  "note": "OLA[430]"
+                },
+                {
+                  "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Divinity Minor 2 (Arctis) / God Minor X1(2)",
+                  "name": "God Minor X1(2)",
+                  "system": "Talents",
+                  "world": "Character",
+                  "pool": "Additive",
+                  "fmt": "raw",
+                  "refValue": 15,
+                  "bucket": "🎯 Talents",
+                  "note": "GodsInfo[2][3] constant"
+                }
+              ],
+              "agg": "custom",
+              "note": "ceil(max(1, Y2) × (1 + Coral/100) × Lv/(60+Lv) × God)"
             },
             {
               "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Nonstop Studies (Dream 12)",
@@ -6206,28 +6296,26 @@
                   "fmt": "raw",
                   "refValue": 20,
                   "bucket": "🎯 Talents",
+                  "note": "intervalAdd(1, 20)",
                   "children": [
                     {
-                      "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Char 2 Lv 396",
-                      "name": "Char 2 Lv 396",
+                      "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Char Lv",
+                      "name": "Char Lv",
                       "system": "Talents",
                       "world": "Character",
                       "pool": "Multi",
                       "fmt": "raw",
                       "refValue": 396,
                       "bucket": "🎯 Talents"
-                    },
-                    {
-                      "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Bonus Levels / Symbols of Beyond ~R (Talent 149) / 1 + floor(396/20)",
-                      "name": "1 + floor(396/20)",
-                      "system": "Talents",
-                      "world": "Character",
-                      "pool": "Multi",
-                      "fmt": "raw",
-                      "refValue": 20,
-                      "bucket": "🎯 Talents"
                     }
-                  ]
+                  ],
+                  "formulaSpec": {
+                    "type": "intervalAdd",
+                    "x1": 1,
+                    "x2": 20
+                  },
+                  "formulaKey": "closedFormFormula",
+                  "agg": "custom"
                 },
                 {
                   "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Bonus Levels / Maroon Warship (Achievement 291)",
@@ -6289,7 +6377,54 @@
                   "pool": "Multi",
                   "fmt": "raw",
                   "refValue": 58,
-                  "bucket": "🎯 Talents"
+                  "bucket": "🎯 Talents",
+                  "children": [
+                    {
+                      "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Bonus Levels / Divinity Minor 2 (Arctis) / Divinity Lv",
+                      "name": "Divinity Lv",
+                      "system": "Talents",
+                      "world": "Character",
+                      "pool": "Multi",
+                      "fmt": "raw",
+                      "refValue": 608,
+                      "bucket": "🎯 Talents"
+                    },
+                    {
+                      "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Bonus Levels / Divinity Minor 2 (Arctis) / Bubble Y2 Active",
+                      "name": "Bubble Y2 Active",
+                      "system": "Talents",
+                      "world": "Character",
+                      "pool": "Multi",
+                      "fmt": "raw",
+                      "refValue": 1.4980838017373532,
+                      "bucket": "🎯 Talents",
+                      "note": "0 if Y2 bubble not equipped & no all-bubbles flag"
+                    },
+                    {
+                      "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Bonus Levels / Divinity Minor 2 (Arctis) / Coral Kid 3",
+                      "name": "Coral Kid 3",
+                      "system": "Talents",
+                      "world": "Character",
+                      "pool": "Multi",
+                      "fmt": "raw",
+                      "refValue": 182,
+                      "bucket": "🎯 Talents",
+                      "note": "OLA[430]"
+                    },
+                    {
+                      "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Bonus Levels / Divinity Minor 2 (Arctis) / God Minor X1(2)",
+                      "name": "God Minor X1(2)",
+                      "system": "Talents",
+                      "world": "Character",
+                      "pool": "Multi",
+                      "fmt": "raw",
+                      "refValue": 15,
+                      "bucket": "🎯 Talents",
+                      "note": "GodsInfo[2][3] constant"
+                    }
+                  ],
+                  "agg": "custom",
+                  "note": "ceil(max(1, Y2) × (1 + Coral/100) × Lv/(60+Lv) × God)"
                 },
                 {
                   "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Bonus Levels / Nonstop Studies (Dream 12)",

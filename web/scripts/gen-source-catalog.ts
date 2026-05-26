@@ -273,6 +273,7 @@ const CUSTOM_FORMULA_NAMES = new Set<string>([
   "Archlord Of The Pirates (Talent 328)",
   "Glimbo DR Multi",
   "Boss Battle Spillover (Talent 655)",
+  "Divinity Minor 2 (Arctis)",
 ]);
 
 /** Human-readable formula descriptions appended to the row's note for
@@ -289,6 +290,8 @@ const CUSTOM_FORMULA_NOTES: Record<string, string> = {
     "1 + (gridVal × floor(Total Trades / 100)) / 100 where gridVal = lv × shape × max(1, allMulti)",
   "Boss Battle Spillover (Talent 655)":
     "decay(25, 100, Base Level) × Skulls Beaten  (star talent — no external bonus levels, Base gates the bonus)",
+  "Divinity Minor 2 (Arctis)":
+    "ceil(max(1, Y2) × (1 + Coral/100) × Lv/(60+Lv) × God)",
 };
 
 function detectAgg(
@@ -1281,6 +1284,18 @@ const APP_JS = `
       var multi = kid(kids, /^Tome Multi$/);
       if (base === null || multi === null) return null;
       return base * multi;
+    },
+    "Divinity Minor 2 (Arctis)": function (_p, kids) {
+      // ceil(max(1, Y2) × (1 + Coral/100) × Lv/(60+Lv) × God)
+      var lv = kid(kids, /^Divinity Lv$/);
+      var y2 = kid(kids, /^Bubble Y2 Active$/);
+      var coral = kid(kids, /^Coral Kid 3$/);
+      var god = kid(kids, /^God Minor X1\(2\)$/);
+      if (lv === null || y2 === null || coral === null || god === null) return null;
+      if (lv <= 0) return 0;
+      return Math.ceil(
+        Math.max(1, y2) * (1 + coral / 100) * (lv / (60 + lv)) * god
+      );
     },
     "Boss Battle Spillover (Talent 655)": function (_p, kids) {
       // Star talent — Base Level alone gates the contribution
