@@ -753,22 +753,22 @@ const APP_JS = `
   function hasRefOverride(id) {
     return Object.prototype.hasOwnProperty.call(refOverride, id);
   }
-  /** Effective Max for a source. Formula rows are NEVER cached — they
-   *  always recompute on demand from their children, so the parent
-   *  stays "literally tied" to the current state of the leaves. Manual
-   *  rows fall back to the stored max, then to the (possibly snapshot-
-   *  overridden) Ref. The recursion: a formula parent calls computeAgg,
-   *  which calls effectiveValue on each child, which may recurse if the
-   *  child is itself a formula — natural depth-first eval. */
+  /** Effective Max for a source. STRICT MODE: empty leaves return null
+   *  so any formula that depends on them also yields null. The point
+   *  is that formula rows should only display a value once their
+   *  research inputs are stipulated — otherwise they'd be silently
+   *  filling in catalog refs and pretending those are user-confirmed
+   *  ceilings. Use ← ref or = Fill blanks with ref to seed leaves with
+   *  the current save's values. */
   function effectiveValue(src) {
     if (src.agg) {
       var v = computeAgg(src);
-      if (v !== null && Number.isFinite(v)) return v;
-      return getRefValue(src);
+      if (v === null || !Number.isFinite(v)) return null;
+      return v;
     }
     var e = values[src.id];
     if (e && typeof e.maxValue === "number") return e.maxValue;
-    return getRefValue(src);
+    return null;
   }
   // The display name is ALWAYS the catalog default — the per-row text
   // input next to the name only captures a free-text tag/note (stored
@@ -797,51 +797,62 @@ const APP_JS = `
   // SourceEntry and an array of its children; returns the recomputed
   // parent value from the children's effective values (or null to opt
   // out). The agg-rule "custom" in the catalog routes to this dict.
+  /** Resolve a named child's effective value for custom formula handlers.
+   *  Returns null when the child is missing OR unfilled, so handlers
+   *  can early-return null to keep the strict-mode propagation. */
   function kid(kids, namePattern) {
     var rx = namePattern instanceof RegExp ? namePattern : new RegExp("^" + namePattern + "$");
     for (var i = 0; i < kids.length; i++) {
-      if (rx.test(kids[i].name)) return Number(effectiveValue(kids[i])) || 0;
+      if (rx.test(kids[i].name)) {
+        var v = effectiveValue(kids[i]);
+        return v === null ? null : (Number(v) || 0);
+      }
     }
     return null;
   }
   var CUSTOM_FORMULAS = {
     // ── Structural keys (catalog tags rows via formulaKey) ──────────
     "friendContribution": function (_p, kids) {
-      // contrib = 25 × min(1, 0.2 + c/(c + 3000))  where c = clamp(score, 0, 12000)
+      // STRICT: contrib = 25 × min(1, 0.2 + c/(c + 3000)) where c = clamp(score, 0, 12000)
       var score = kid(kids, /^Score$/);
-      if (score == null) return null;
+      if (score === null) return null;
       var c = Math.min(12000, Math.max(0, score));
       return 25 * Math.min(1, 0.2 + c / (c + 3000));
     },
     // ── Per-name keys ───────────────────────────────────────────────
     "Arcane Map Bonus": function (_p, kids) {
+      // STRICT: needs Map Kills filled. Cap is optional — formula
+      // without a cap caps internally based on talent 589 etc., but
+      // that's not a leaf here so we just skip the cap when absent.
       var kills = kid(kids, /^Map Kills$/);
+      if (kills === null) return null;
+      if (kills < 1) return 0;
       var cap = kid(kids, /^Cap$/);
-      if (kills == null || kills < 1) return 0;
       var lg = Math.log(Math.max(kills, 1)) / Math.LN10;
       var lg2 = Math.log(Math.max(kills, 1)) / Math.LN2;
       var raw = (2 * Math.max(0, lg - 3.5) + Math.max(0, lg2 - 12)) * (lg / 2.5) +
                 Math.min(2, kills / 1000) +
                 Math.max(5 * (lg - 5), 0);
-      return cap == null ? raw : Math.min(cap, raw);
+      return cap === null ? raw : Math.min(cap, raw);
     },
     "Drop Rate Additive (Tome 2)": function (_p, kids) {
       var base = kid(kids, /^Base$/);
       var multi = kid(kids, /^Tome Multi$/);
-      if (base == null || multi == null) return 0;
+      if (base === null || multi === null) return null;
       return base * multi;
     },
     "Drop Rate Multi (Tome 7)": function (_p, kids) {
       var base = kid(kids, /^Base$/);
       var multi = kid(kids, /^Tome Multi$/);
-      if (base == null || multi == null) return 0;
+      if (base === null || multi === null) return null;
       return base * multi;
     },
     "Archlord Of The Pirates (Talent 328)": function (_p, kids) {
       // total = 1 + (talVal × log10(plunder)) / 100
       var talVal = kid(kids, /^Talent Value$/);
       var plunder = kid(kids, /^Plunderous Kills$/);
-      if (talVal == null || plunder == null || plunder < 1) return 1;
+      if (talVal === null || plunder === null) return null;
+      if (plunder < 1) return 1;
       return 1 + (talVal * (Math.log(Math.max(plunder, 1)) / Math.LN10)) / 100;
     },
     "Glimbo DR Multi": function (_p, kids) {
@@ -854,11 +865,9 @@ const APP_JS = `
       var lv = kid(kids, /^.*Grid 168.*Level$/);
       var shape = kid(kids, /^Shape Bonus$/);
       var am = kid(kids, /^All Multi$/);
-      if (trades == null) return null;
+      if (trades === null || lv === null || shape === null || am === null) return null;
       var perLv = 1; // per-level bonus on grid 168
-      var gridVal = (lv != null ? lv : 1) * perLv *
-                    (shape != null ? shape : 1) *
-                    Math.max(1, am != null ? am : 1);
+      var gridVal = lv * perLv * shape * Math.max(1, am);
       var groups = Math.floor(Math.max(0, trades) / 100);
       return 1 + (gridVal * groups) / 100;
     },
@@ -919,31 +928,51 @@ const APP_JS = `
       try { return fn(parent, kids); } catch (e) { return null; }
     }
 
-    // 2. Copy from a specific child
+    // 2. Copy from a specific child (strict: null if the source is null)
     if (typeof rule === "string" && rule.indexOf("copy:") === 0) {
       var target = rule.slice(5);
       for (var i = 0; i < kids.length; i++) {
-        if (kids[i].name === target) return Number(effectiveValue(kids[i])) || 0;
+        if (kids[i].name === target) {
+          var cv = effectiveValue(kids[i]);
+          return cv === null ? null : (Number(cv) || 0);
+        }
       }
       return null;
     }
 
     var matching = kids.filter(function (c) { return c.fmt === parent.fmt; });
+    // STRICT MODE: if ANY contributing child is null (unfilled), the
+    // whole aggregation is null — bubble that up so formula rows only
+    // display once their inputs are stipulated.
     if (rule === "sum") {
+      if (matching.length === 0) return null;
       var s = 0;
-      for (var a = 0; a < matching.length; a++) s += Number(effectiveValue(matching[a])) || 0;
+      for (var a = 0; a < matching.length; a++) {
+        var sv = effectiveValue(matching[a]);
+        if (sv === null) return null;
+        s += Number(sv) || 0;
+      }
       return s;
     }
     if (rule === "product") {
+      if (matching.length === 0) return null;
       var p = 1;
-      for (var b = 0; b < matching.length; b++) p *= Number(effectiveValue(matching[b])) || 1;
+      for (var b = 0; b < matching.length; b++) {
+        var pv = effectiveValue(matching[b]);
+        if (pv === null) return null;
+        p *= Number(pv) || 1;
+      }
       return p;
     }
     if (rule === "additiveMulti") {
-      // Π (1 + c.val/100) over "+" children
       var adds = kids.filter(function (c) { return c.fmt === "+"; });
+      if (adds.length === 0) return null;
       var am = 1;
-      for (var x = 0; x < adds.length; x++) am *= 1 + (Number(effectiveValue(adds[x])) || 0) / 100;
+      for (var x = 0; x < adds.length; x++) {
+        var av = effectiveValue(adds[x]);
+        if (av === null) return null;
+        am *= 1 + (Number(av) || 0) / 100;
+      }
       return am;
     }
     if (rule === "productAB") {
@@ -953,11 +982,12 @@ const APP_JS = `
       var multis = kids.filter(function (c) { return c.fmt === "x"; });
       var bases = kids.filter(function (c) { return c.fmt !== "x"; });
       if (multis.length !== 1 || bases.length === 0) return null;
-      var m = Number(effectiveValue(multis[0])) || 1;
-      // We need to determine WHICH base child is the canonical one.
-      // Strategy: pick the one whose (ref × multi ref) matches the
-      // catalog refValue. That selection is deterministic per source
-      // and lets the runtime pin to it once and forever.
+      // Strictly require BOTH the multi and the canonical base to be
+      // filled before publishing a product. The canonical base picks
+      // by ref-product match, same as before.
+      var mVal = effectiveValue(multis[0]);
+      if (mVal === null) return null;
+      var m = Number(mVal) || 1;
       var canon = null;
       var bestErr = Infinity;
       var pVal = Number(parent.refValue) || 0;
@@ -968,8 +998,9 @@ const APP_JS = `
         if (err < bestErr) { bestErr = err; canon = bases[y]; }
       }
       if (!canon) return null;
-      var bv = Number(effectiveValue(canon)) || 0;
-      return bv * m;
+      var bvAB = effectiveValue(canon);
+      if (bvAB === null) return null;
+      return (Number(bvAB) || 0) * m;
     }
     return null;
   }
