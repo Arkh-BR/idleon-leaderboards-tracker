@@ -772,8 +772,11 @@ export default function DeepView({
       {/* If a snapshot baseline is selected, surface a small banner so the
           user knows which snapshot is currently driving the Δ badges. */}
       {baseline && (
-        <div className="mb-3 px-3 py-2 rounded-md border border-sky-500/30 bg-sky-500/5 flex items-center justify-between gap-2 text-xs">
-          <span className="text-sky-200">
+        // Single-line banner — left side states the active comparison,
+        // right side gives a hint that truncates with ellipsis on narrow
+        // viewports (full text stays accessible via the title tooltip).
+        <div className="mb-3 px-3 py-2 rounded-md border border-sky-500/30 bg-sky-500/5 flex items-center gap-3 text-xs overflow-hidden">
+          <span className="text-sky-200 whitespace-nowrap flex-shrink-0">
             Comparing against{" "}
             <span className="font-semibold">{baseline.charName}</span>{" "}
             snapshot from{" "}
@@ -781,7 +784,10 @@ export default function DeepView({
               {new Date(baseline.capturedAt).toLocaleString()}
             </span>
           </span>
-          <span className="text-zinc-500 italic">
+          <span
+            className="text-zinc-500 italic truncate min-w-0 ml-auto"
+            title="Pick another snapshot to switch — toggle off in Snapshot History"
+          >
             Pick another snapshot to switch — toggle off in Snapshot History
           </span>
         </div>
