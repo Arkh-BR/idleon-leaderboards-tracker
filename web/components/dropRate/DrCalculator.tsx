@@ -450,10 +450,10 @@ export default function DrCalculator({
           </div>
         )}
         {totalDr !== null && (
-          <div className="text-[11px] text-zinc-500 mt-2 italic">
-            ⚠︎ Display value may read ~1% lower than the in-game number due
-            to floating-point rounding in the formula chain — the in-game
-            engine carries extra precision through each multiplicative step.
+          <div className="text-[10px] text-zinc-600 mt-2 italic leading-snug">
+            ⚠︎ May read ~1% lower than in-game (floating-point rounding through
+            the multiplicative chain). If you spot something missing or wrong,
+            DM me on Discord.
           </div>
         )}
       </div>

@@ -3,6 +3,7 @@
 
 import type { Descriptor, Pool } from "../tree-builder";
 import type { CorganNode } from "../../node";
+import { categorizePoolItems } from "../categorize";
 
 const dropRateDesc: Descriptor = {
   id: "drop-rate",
@@ -157,21 +158,24 @@ const dropRateDesc: Descriptor = {
       {
         name: "Main Additive Pool",
         val: pools.addMain.sum,
-        children: pools.addMain.items,
+        // Pool items are grouped by game-system category (Character /
+        // Worlds / Boosts & Sets) so the user can scan by where the
+        // bonus comes from, not just by descriptor order.
+        children: categorizePoolItems(pools.addMain.items),
         fmt: "+",
       },
       {
         name: "LUK2 Additive Pool",
         val: pools.addLUK2.sum,
-        children: pools.addLUK2.items,
+        children: categorizePoolItems(pools.addLUK2.items),
         fmt: "+",
       },
       {
-        name: "1 + (1.4·LUK + addSum) / 100",
+        name: "Total Sum",
         val: base - chipApplied,
         fmt: "raw",
         note:
-          "1 + (" +
+          "1 + (1.4·LUK + addSum)/100  =  1 + (" +
           lukC.toFixed(2) +
           " + " +
           addSum.toFixed(1) +
