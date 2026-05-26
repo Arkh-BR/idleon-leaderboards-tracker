@@ -472,9 +472,32 @@ function resolveAllTalentLVz(
                 "Talent 144 Value (Family Guy / Sad Souls)",
                 tal144Val,
                 [
+                  node("Formula x1", t144 ? (t144 as any).x1 : 40, null, {
+                    fmt: "raw",
+                    note: "decay formula x1 — game constant",
+                  }),
+                  node("Formula x2", t144 ? (t144 as any).x2 : 100, null, {
+                    fmt: "raw",
+                    note: "decay formula x2 — game constant",
+                  }),
+                  node("Base Level", tal144RawLv, null, {
+                    fmt: "raw",
+                    note: "active char's raw skill lv 144",
+                  }),
+                  node(
+                    "Bonus Levels",
+                    tal144EffLv - tal144RawLv,
+                    null,
+                    {
+                      fmt: "+",
+                      note:
+                        "Σ contributors to tal 144's ATL chain " +
+                        "(Symbols of Beyond, Family Bonus 68, etc.)",
+                    }
+                  ),
                   node("Effective Level", tal144EffLv, null, {
                     fmt: "raw",
-                    note: "active char's tal 144 raw lv + bonus chain",
+                    note: "Base + Bonus (used by the decay formula above)",
                   }),
                 ],
                 {
@@ -500,17 +523,23 @@ function resolveAllTalentLVz(
               note: "1 + Talent 144 Value × Applied / 100",
             }
           ),
+          node("Formula x1", (fb34 as any).x1, null, {
+            fmt: "raw",
+            note: "decay formula x1 — Mage family bonus game constant",
+          }),
+          node("Formula x2", (fb34 as any).x2, null, {
+            fmt: "raw",
+            note: "decay formula x2 — Mage family bonus game constant",
+          }),
+          node("Lv Offset", lvOffset, null, {
+            fmt: "raw",
+            note: "ClassAccountBonus[34][1] — game constant",
+          }),
         ],
         {
           fmt: "raw",
           note:
-            "floor(decay(" +
-            (fb34 as any).x1 +
-            ", " +
-            (fb34 as any).x2 +
-            ", max(0, Best Mage Lv − " +
-            lvOffset +
-            ")) × Sad Souls Multi)" +
+            "floor(decay(x1, x2, max(0, Best Mage Lv − Lv Offset)) × Sad Souls Multi)" +
             buffNote,
         }
       )

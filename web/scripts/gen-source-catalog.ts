@@ -192,7 +192,13 @@ function detectStructuralFormula(
   // children are emitted as fmt:"raw" (Symbols of Beyond, family
   // bonus, etc) but the parent is fmt:"+", so the generic sum detector
   // misses it. Tag specifically so the runtime sums every kid.
-  if (sys === "Talents" && node.name === "Bonus Levels") {
+  // Requires children — otherwise the row is a leaf and the user
+  // edits it directly (e.g. Bonus Levels inside Talent 144 Value).
+  if (
+    sys === "Talents" &&
+    node.name === "Bonus Levels" &&
+    (node.children || []).length > 0
+  ) {
     return "talentBonusSum";
   }
   // Cloud Bonuses Sum (inside Nonstop Studies): same pattern — sum
@@ -1268,11 +1274,11 @@ const APP_JS = `
       return best === -Infinity ? null : best;
     },
     "familyBonus68Mage": function (_p, kids) {
-      // floor(decay(20, 350, max(0, lv − 69)) × Sad Souls Multi).
-      // Always computes (no active-kid gate) — this is a passive
-      // contributor to talent bonus chains, not a cap-research row.
-      // Falls back to refValue for unfilled kids so it shows the at-
-      // save value by default and any single edit propagates.
+      // floor(decay(x1, x2, max(0, Best Mage Lv − Lv Offset)) ×
+      // Sad Souls Multi). All four constants are exposed as kids so
+      // the user can research alternate game data values (e.g. what
+      // would Family Bonus 68 be if the formula coefficient was 50
+      // instead of 20).
       function kidOrRef(name) {
         for (var i = 0; i < kids.length; i++) {
           if (kids[i].name === name) {
@@ -1285,9 +1291,12 @@ const APP_JS = `
       }
       var lv = kidOrRef("Best Mage Lv");
       var multi = kidOrRef("Sad Souls Multi (×)");
-      if (lv === null || multi === null) return null;
-      var n = Math.max(0, lv - 69);
-      var base = (20 * n) / (n + 350);
+      var x1 = kidOrRef("Formula x1");
+      var x2 = kidOrRef("Formula x2");
+      var lvOffset = kidOrRef("Lv Offset");
+      if (lv === null || multi === null || x1 === null || x2 === null || lvOffset === null) return null;
+      var n = Math.max(0, lv - lvOffset);
+      var base = (x1 * n) / (n + x2);
       return Math.floor(base * multi);
     },
     "summoningWinBonus24": function (_p, kids) {
@@ -1364,8 +1373,16 @@ const APP_JS = `
       // Points Invested / Level / Effective Level), or — talent-shape
       // — from Base Level + Bonus Levels when Effective Level isn't
       // filled in by the user.
+      //
+      // x1 and x2 can ALSO be exposed as editable kids ("Formula x1",
+      // "Formula x2") — when present they override the spec, letting
+      // the user research alternate constants.
       var spec = p && p.formulaSpec;
       if (!spec) return null;
+      var x1Kid = kid(kids, /^Formula x1$/);
+      var x2Kid = kid(kids, /^Formula x2$/);
+      var x1 = x1Kid !== null ? x1Kid : spec.x1;
+      var x2 = x2Kid !== null ? x2Kid : spec.x2;
       var lv = null;
       var levelNames = [
         "Guild Points",
@@ -1410,7 +1427,7 @@ const APP_JS = `
         }
       }
       if (lv === null) return null;
-      var raw = formulaEval(spec.type, spec.x1, spec.x2, lv);
+      var raw = formulaEval(spec.type, x1, x2, lv);
       // Multiply in any x-fmt children (Exalted ×, Certified Stamp
       // Book ×, etc.). Strict null mode.
       var multi = 1;
