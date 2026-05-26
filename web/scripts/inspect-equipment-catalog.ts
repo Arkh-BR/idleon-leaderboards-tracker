@@ -18,7 +18,7 @@ function find(n: CorganNode, predicate: (x: CorganNode) => boolean, out: CorganN
 }
 
 const etcNodes: CorganNode[] = [];
-find(result.tree, (n) => /^EtcBonuses\(/.test(n.name), etcNodes);
+find(result.tree, (n) => /etcBonus \d+\)/.test(n.name), etcNodes);
 
 for (const e of etcNodes) {
   console.log(`\n=== ${e.name} (val=${e.val.toFixed(2)}) ===`);

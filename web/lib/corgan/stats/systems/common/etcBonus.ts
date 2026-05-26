@@ -13,6 +13,23 @@ import type { SaveData } from "../../../state";
 
 type Ctx = { saveData: SaveData; charIdx: number };
 
+// Friendly labels for the etcBonus stat IDs that feed the DR descriptor.
+// These mirror the stat strings in custommaps.IDforETCbonus — id 2 maps to
+// %_DROP_RATE, 99 to %_BONUS_DROP_RATE, etc. — and turn the bare
+// "EtcBonuses(99)" wrapper into "Bonus Drop Rate (Gear)" so the user sees
+// at a glance what the multiplier is for.
+const ETCBONUS_LABELS: Record<string, string> = {
+  "2": "Drop Rate (Gear)",
+  "99": "Bonus Drop Rate (Gear)",
+  "102": "Drop Chance (Gear)",
+  "91": "Drop Rate Multi (Gear)",
+};
+
+function etcBonusLabel(id: number | (number | string)[]): string {
+  const key = Array.isArray(id) ? id.join(",") : String(id);
+  return ETCBONUS_LABELS[key] || "EtcBonuses(" + key + ")";
+}
+
 export const etcBonus = {
   resolve(id: number | (number | string)[], ctx: Ctx): CorganNode {
     const eqNode = equipment.resolve(id, ctx);
@@ -38,9 +55,15 @@ export const etcBonus = {
     if (ntNode.val || hasChildren(ntNode)) children.push(ntNode);
     if (trNode.val || hasChildren(trNode)) children.push(trNode);
     if (phNode.val) children.push(phNode);
-    return node("EtcBonuses(" + id + ")", total, children, {
-      fmt: "+",
-      note: "etcBonus " + id,
-    });
+    // Keep the canonical id tag in the name so the existing entity-tag
+    // splitter in DeepView mutes it (label() does the same thing for
+    // talents / stamps / cards). Result: "Drop Rate (Gear)  (etcBonus 2)".
+    const idStr = Array.isArray(id) ? id.join(",") : String(id);
+    return node(
+      `${etcBonusLabel(id)} (etcBonus ${idStr})`,
+      total,
+      children,
+      { fmt: "+" }
+    );
   },
 };
