@@ -3,7 +3,7 @@
 
 import type { Descriptor, Pool } from "../tree-builder";
 import type { CorganNode } from "../../node";
-import { categorizePoolItems } from "../categorize";
+import { categorizePoolItems, decorateSystem } from "../categorize";
 
 const dropRateDesc: Descriptor = {
   id: "drop-rate",
@@ -196,22 +196,26 @@ const dropRateDesc: Descriptor = {
         children: [item],
       };
     };
-    const bunVBucket = wrapInBucket(pf[0], "Bundles", "+");
-    const talentBucket = wrapInBucket(pm[0], "Talents", "x");
+    // Bucket names use the SYSTEM_EMOJI decoration so they line up with the
+    // categorized buckets in the Additive Pool / chain output. "Sneaking
+    // Mastery" gets the ninja emoji since the category itself is keyed as
+    // "Sneaking / OLA".
+    const bunVBucket = wrapInBucket(pf[0], decorateSystem("Bundles"), "+");
+    const talentBucket = wrapInBucket(pm[0], decorateSystem("Talents"), "x");
     // ola 232 is the Sneaking Mastery completion bonus (not a Pristine
     // Charm — earlier label was wrong).
-    const olaBucket = wrapInBucket(pf[1], "Sneaking Mastery", "+");
+    const olaBucket = wrapInBucket(pf[1], "🥷 Sneaking Mastery", "+");
 
     const children: CorganNode[] = [
       {
-        name: "LUK Scaling",
+        name: "🍀 LUK Scaling",
         val: lukVal,
         children: pools.base.items[0]
           ? pools.base.items[0].children
           : undefined,
         fmt: "raw",
       },
-      { name: "× 1.4", val: lukC, fmt: "raw", note: "1.4 × lukScaling" },
+      { name: "🍀 × 1.4", val: lukC, fmt: "raw", note: "1.4 × lukScaling" },
       {
         name: "Additive Pool",
         val: addSum,

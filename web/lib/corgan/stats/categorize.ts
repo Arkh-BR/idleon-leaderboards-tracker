@@ -75,6 +75,66 @@ export type SystemKey =
   | "Summoning"
   | "Other";
 
+// Emoji prefix per category — used to decorate bucket headers in both
+// the Additive Pool and the Post-Processing chain. Keeping the lookup
+// here (not in DeepView) so the descriptor / categorizer is the single
+// source of truth for category presentation.
+export const SYSTEM_EMOJI: Record<SystemKey, string> = {
+  "LUK / Stats": "🍀",
+  Talents: "🎯",
+  Cards: "🃏",
+  "Star Signs": "⭐",
+  Achievements: "🏆",
+  Companions: "🐾",
+  Friends: "🤝",
+  Stamps: "📜",
+  Alchemy: "⚗️",
+  Sigils: "🔮",
+  Prayers: "🙏",
+  Shrines: "⛩️",
+  Guild: "🛡️",
+  Arcade: "🎮",
+  Voting: "🗳️",
+  "Post Office": "📮",
+  "Shiny Pets": "🐉",
+  Tome: "📖",
+  Researching: "🔬",
+  Chips: "💎",
+  Dreams: "💭",
+  "Cloud Bonus": "☁️",
+  Owl: "🦉",
+  Grimoire: "📕",
+  Vault: "🏦",
+  Farming: "🌾",
+  Holes: "🕳️",
+  Emperor: "👑",
+  "Legend Talents": "⚔️",
+  "Spelunk Shop": "🪨",
+  Sushi: "🍣",
+  Minehead: "⛏️",
+  Button: "🔘",
+  "Arcane Map": "🗺️",
+  Glimbo: "🎲",
+  Workshop: "🛠️",
+  Gear: "🎽",
+  Gallery: "🖼️",
+  Hatrack: "🎩",
+  "Golden Food": "🍔",
+  "Set Bonuses": "🧰",
+  Bundles: "🎁",
+  "Pristine Charms": "🌟",
+  "Sneaking / OLA": "🥷",
+  "Event Shop": "🛍️",
+  Summoning: "🐲",
+  Other: "🔹",
+};
+
+/** Prefix a SystemKey label with its category emoji ("🃏 Cards"). */
+export function decorateSystem(key: SystemKey): string {
+  const e = SYSTEM_EMOJI[key];
+  return e ? `${e} ${key}` : key;
+}
+
 // Display order used by the "merge" mode (additive pools).
 export const SYSTEM_ORDER: SystemKey[] = [
   "LUK / Stats",
@@ -266,7 +326,7 @@ function categorizeMerged(
     const list = buckets.get(sys);
     if (!list || list.length === 0) continue;
     const { val, fmt } = summariseBucket(list, mode);
-    ordered.push({ name: sys, val, fmt, children: list });
+    ordered.push({ name: decorateSystem(sys), val, fmt, children: list });
   }
   return ordered;
 }
@@ -288,7 +348,7 @@ function categorizeRuns(
   const flushRun = () => {
     if (!currentSys || run.length === 0) return;
     const { val, fmt } = summariseBucket(run, mode);
-    out.push({ name: currentSys, val, fmt, children: run });
+    out.push({ name: decorateSystem(currentSys), val, fmt, children: run });
     run = [];
   };
   for (const it of items) {
