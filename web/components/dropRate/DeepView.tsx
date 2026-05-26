@@ -322,7 +322,12 @@ type TreeRowProps = {
   expandState: ExpandState;
   onToggle: (path: string, nextOpen: boolean) => void;
   searchTerm: string;
-  hideZero: boolean;
+  // Pre-computed visibility maps (built once per tree change in DeepView).
+  // Lookup is O(1) so toggling hide-zero / typing in search doesn't trigger
+  // an O(N²) re-walk inside every row's render. Either map being null means
+  // "filter is off, everything passes". See computeFilterMaps() below.
+  hideZeroMap: WeakMap<CorganNode, boolean> | null;
+  searchMatchMap: WeakMap<CorganNode, boolean> | null;
   root: CorganNode;
   stats: TreeStats;
 };
@@ -334,53 +339,23 @@ function TreeRow({
   expandState,
   onToggle,
   searchTerm,
-  hideZero,
+  hideZeroMap,
+  searchMatchMap,
   root,
   stats,
 }: TreeRowProps) {
+  // Filter checks come first so a hidden node short-circuits before doing
+  // any work for the row that won't be drawn.
+  if (hideZeroMap && hideZeroMap.get(node) === false) return null;
+  if (searchMatchMap && searchMatchMap.get(node) === false) return null;
+
   const hasChildren = !!(node.children && node.children.length);
-  // Pool-weight badge — computed below (we need `path` first). Path itself
-  // doubles as the localStorage key, so it must be derived BEFORE the
-  // `open` lookup.
+  // Path is the stable identity used as both the localStorage key and the
+  // child-row pass-through. Must be derived before the `open` lookup.
   const pathSegments = [...parentPath, node.name];
   const path = joinPath(pathSegments);
   const open = isPathOpen(path, depth, expandState);
   const arrow = hasChildren ? (open ? "▾" : "▸") : "·";
-
-  // Hide-zero: drop the node entirely if val is ~0 AND no descendant is
-  // non-zero. We need to check descendants because pool containers have
-  // val=sum which can be huge while individual zero leaves are inside.
-  // Skipping the recursive walk when hideZero is off is critical for perf —
-  // otherwise every TreeRow walks its whole subtree on each render, which
-  // becomes O(N²) over the full ~700-node tree and freezes the page when
-  // the user expands everything.
-  const hasNonZeroDescendant = useMemo(() => {
-    if (!hideZero) return true;
-    if (Math.abs(node.val) > 1e-9) return true;
-    if (!hasChildren) return false;
-    function walk(n: CorganNode): boolean {
-      if (Math.abs(n.val) > 1e-9) return true;
-      for (const c of n.children || []) if (walk(c)) return true;
-      return false;
-    }
-    return (node.children || []).some(walk);
-  }, [node, hasChildren, hideZero]);
-  if (hideZero && !hasNonZeroDescendant) return null;
-
-  // Search filter — only filter on LEAVES; containers stay if any descendant
-  // matches. Empty search disables filtering entirely.
-  const matchesSearch = useMemo(() => {
-    if (!searchTerm) return true;
-    const q = searchTerm.toLowerCase();
-    function walk(n: CorganNode): boolean {
-      if (n.name.toLowerCase().includes(q)) return true;
-      if (n.note && n.note.toLowerCase().includes(q)) return true;
-      for (const c of n.children || []) if (walk(c)) return true;
-      return false;
-    }
-    return walk(node);
-  }, [node, searchTerm]);
-  if (!matchesSearch) return null;
 
   // Pool-weight badge — for leaves under one of the additive pools, compute
   // their % of the pool sum so the user sees "this source = 32% of LUK2 pool".
@@ -477,7 +452,8 @@ function TreeRow({
               expandState={expandState}
               onToggle={onToggle}
               searchTerm={searchTerm}
-              hideZero={hideZero}
+              hideZeroMap={hideZeroMap}
+              searchMatchMap={searchMatchMap}
               root={root}
               stats={stats}
             />
@@ -486,6 +462,59 @@ function TreeRow({
       )}
     </div>
   );
+}
+
+// -----------------------------------------------------------------------------
+// Filter maps — pre-walked ONCE per filter-state change so hide-zero and
+// search filtering are O(1) per row instead of O(subtree) per row.
+//
+// The hide-zero map: WeakMap<node, true|false>. `true` means "keep this node"
+// (either it has a non-zero val directly, or some descendant does). The pool
+// containers always pass because their val is the pool sum.
+//
+// The search map: `true` if this node's name/note matches OR any descendant
+// does. Containers pass through so the user can drill into a matching leaf.
+// -----------------------------------------------------------------------------
+
+function buildHideZeroMap(root: CorganNode): WeakMap<CorganNode, boolean> {
+  const map = new WeakMap<CorganNode, boolean>();
+  function walk(n: CorganNode): boolean {
+    const directNonZero = Math.abs(Number(n.val) || 0) > 1e-9;
+    let any = directNonZero;
+    const kids = n.children || [];
+    for (const c of kids) {
+      // Walk every child regardless so the map covers the whole tree, but OR
+      // the result into `any` so containers light up if any descendant does.
+      if (walk(c)) any = true;
+    }
+    map.set(n, any);
+    return any;
+  }
+  walk(root);
+  return map;
+}
+
+function buildSearchMatchMap(
+  root: CorganNode,
+  searchTerm: string
+): WeakMap<CorganNode, boolean> {
+  const map = new WeakMap<CorganNode, boolean>();
+  const q = searchTerm.toLowerCase();
+  function matchesSelf(n: CorganNode): boolean {
+    if (n.name.toLowerCase().includes(q)) return true;
+    if (n.note && n.note.toLowerCase().includes(q)) return true;
+    return false;
+  }
+  function walk(n: CorganNode): boolean {
+    let any = matchesSelf(n);
+    for (const c of n.children || []) {
+      if (walk(c)) any = true;
+    }
+    map.set(n, any);
+    return any;
+  }
+  walk(root);
+  return map;
 }
 
 // -----------------------------------------------------------------------------
@@ -814,6 +843,17 @@ export default function DeepView({ tree }: { tree: CorganNode | null }) {
 
   const stats = useMemo(() => computeStats(tree), [tree]);
 
+  // Pre-compute filter visibility maps. Each is null when the corresponding
+  // filter is off — TreeRow short-circuits in that case.
+  const hideZeroMap = useMemo(() => {
+    if (!hideZero || !tree) return null;
+    return buildHideZeroMap(tree);
+  }, [hideZero, tree]);
+  const searchMatchMap = useMemo(() => {
+    if (!searchTerm || !tree) return null;
+    return buildSearchMatchMap(tree, searchTerm);
+  }, [searchTerm, tree]);
+
   if (!tree) {
     return (
       <p className="text-sm text-zinc-500 italic">
@@ -939,7 +979,8 @@ export default function DeepView({ tree }: { tree: CorganNode | null }) {
             expandState={expandState}
             onToggle={toggleNode}
             searchTerm={searchTerm}
-            hideZero={hideZero}
+            hideZeroMap={hideZeroMap}
+            searchMatchMap={searchMatchMap}
             root={tree}
             stats={stats}
           />
