@@ -153,9 +153,9 @@ const dropRateDesc: Descriptor = {
     //   for i in pm[2..]:
     //     dr *= effective-multiplier(pm[i])
     //
-    // Rather than burying those four into a "Post-Processing" wrapper,
-    // hoist them up to sibling level so the formula reads top-to-bottom:
-    //   Total Sum → + bunV → ×Talent → + Pristine → Multiplier Chain.
+    // Group those four into a "Post-Processing" wrapper whose children
+    // read in formula order:
+    //   + bunV  →  ×Talent  →  + Pristine  →  Multiplier Chain.
     // The remaining pm[1..] all multiply, so they collapse into a single
     // "Multiplier Chain" bucket where same-system items merge freely.
 
@@ -246,37 +246,49 @@ const dropRateDesc: Descriptor = {
       //   2) × Archlord Of The Pirates (Talent 328)
       //   3) + Sneaking Completions (Pristine Charm, flat add)
       //   4) Multiplier Chain — Explorer Bundle + every remaining ×mult
-      ...(bunVBucket
-        ? [
-            {
-              ...bunVBucket,
-              note: "Added to Total Sum",
-            },
-          ]
-        : []),
-      ...(talentBucket
-        ? [
-            {
-              ...talentBucket,
-              note: "Multiplies the running total",
-            },
-          ]
-        : []),
-      ...(olaBucket
-        ? [
-            {
-              ...olaBucket,
-              note: "Added to the running total",
-            },
-          ]
-        : []),
       {
-        name: "Multiplier Chain",
-        val: chainMulti,
+        // Headline = effective multiplier the Post-Processing block applies
+        // to (Total Sum + Chip Cap-Break) to reach the final DR. `base` at
+        // this point already includes chipApplied, so dr / base is the right
+        // ratio.
+        name: "Post-Processing",
+        val: base > 0 ? dr / base : 1,
         fmt: "x",
-        note:
-          "Pure × chain — starts with Explorer Bundle, order commutative, same-system items merged",
-        children: categorizePoolItems(chainItems, "multiplicative", "merge"),
+        note: "Applied to Total Sum (and Chip Cap-Break if active)",
+        children: [
+          ...(bunVBucket
+            ? [
+                {
+                  ...bunVBucket,
+                  note: "Added to Total Sum",
+                },
+              ]
+            : []),
+          ...(talentBucket
+            ? [
+                {
+                  ...talentBucket,
+                  note: "Multiplies the running total",
+                },
+              ]
+            : []),
+          ...(olaBucket
+            ? [
+                {
+                  ...olaBucket,
+                  note: "Added to the running total",
+                },
+              ]
+            : []),
+          {
+            name: "Multiplier Chain",
+            val: chainMulti,
+            fmt: "x",
+            note:
+              "Pure × chain — starts with Explorer Bundle, order commutative, same-system items merged",
+            children: categorizePoolItems(chainItems, "multiplicative", "merge"),
+          },
+        ],
       },
     ];
 

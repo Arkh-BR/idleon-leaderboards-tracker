@@ -64,6 +64,8 @@ export type SystemKey =
   | "Workshop"
   // Gear / Boosts / Meta
   | "Gear"
+  | "Gallery"
+  | "Hatrack"
   | "Golden Food"
   | "Set Bonuses"
   | "Bundles"
@@ -112,6 +114,8 @@ export const SYSTEM_ORDER: SystemKey[] = [
   "Glimbo",
   "Workshop",
   "Gear",
+  "Gallery",
+  "Hatrack",
   "Golden Food",
   "Set Bonuses",
   "Bundles",
@@ -180,13 +184,27 @@ const RULES: Rule[] = [
   { match: /^Workshop\b/i, system: "Workshop" },
 
   // ----- Gear / Boosts / Meta -----
-  // EtcBonuses(N) gear wrappers — equipment + obol + nametag + trophy.
+  // EtcBonuses(N) wrappers historically merged equipment + obol + nametag +
+  // trophy + premhat into one Gear bucket. We now split those sub-sources
+  // out (see explodeEtcBonus below) so the categorizer sees the renamed
+  // synthesized items directly — Nametag/Trophy land in Gallery, Hatrack
+  // in its own bucket, Equipment/Obol stay in Gear. The wrapper names
+  // below are kept as fallback for any path that still hands the categorizer
+  // an un-exploded etcBonus item.
+  { match: /^Equipment\b/, system: "Gear" },
+  { match: /^Obols?\b/, system: "Gear" },
   {
     match:
       /^Drop Rate \(Gear\)|^Bonus Drop Rate \(Gear\)|^Drop Rate Multi \(Gear\)|^Drop Chance \(Gear\)/i,
     system: "Gear",
   },
   { match: /\(EtcBonuses?\s|\(Etc\s|^EtcBonuses/, system: "Gear" },
+  // Gallery sub-sources (nametags + trophies — driven by Spelunk[16/17]
+  // and gallery bonus multi).
+  { match: /^Nametags?\b/i, system: "Gallery" },
+  { match: /^Trophies\b|^Trophy\b/i, system: "Gallery" },
+  // Hatrack (PremHat) sub-source.
+  { match: /^Hatrack\b/i, system: "Hatrack" },
   { match: /\(Golden Food\s|\(GFood\s|^Golden Food/i, system: "Golden Food" },
   {
     match: /\(Smithing\s|\(Set Bonus\s|^Smithing\b/i,
@@ -285,6 +303,48 @@ function categorizeRuns(
   return out;
 }
 
+/** EtcBonuses(N) wrappers from defs/drop-rate.ts come in as a single
+ *  composite item that merges equipment + obol + nametag + trophy +
+ *  premhat children. For categorization we want those sub-sources to
+ *  land in DIFFERENT buckets (Equipment/Obols → Gear, Nametag/Trophy
+ *  → Gallery, Hatrack → Hatrack). Detect those wrappers and replace
+ *  them with renamed per-source items so the classifier sees each
+ *  branch independently.
+ *
+ *  Math note: the actual chain math in defs/drop-rate.ts uses the
+ *  ORIGINAL wrapper.val (sum across all 5 sub-sources) so exploding
+ *  here is display-only — it doesn't break the formula. The bucket
+ *  summaries computed by summariseBucket() will treat each exploded
+ *  piece as its own (1+v/100) factor, which is an illustrative
+ *  per-category figure rather than the chain factor itself. */
+function isEtcBonusWrapper(n: CorganNode): boolean {
+  return /\(etcBonus\s+\d+(?:,\d+)*\)/.test(n.name);
+}
+function explodeEtcBonus(items: CorganNode[]): CorganNode[] {
+  const out: CorganNode[] = [];
+  for (const it of items) {
+    if (!isEtcBonusWrapper(it) || !it.children || it.children.length === 0) {
+      out.push(it);
+      continue;
+    }
+    const idMatch = it.name.match(/\(etcBonus\s+(\d+(?:,\d+)*)\)/);
+    const idTag = idMatch ? `(etcBonus ${idMatch[1]})` : "(etcBonus ?)";
+    for (const child of it.children) {
+      const cname = child.name;
+      // Drop the safety-net placeholder — it doesn't carry any DR.
+      if (cname === "No active sources") continue;
+      let newName = cname;
+      if (/^Equipment Bonuses/.test(cname)) newName = `Equipment ${idTag}`;
+      else if (/^Obol Bonuses/.test(cname)) newName = `Obols ${idTag}`;
+      else if (/^Nametag Bonuses/.test(cname)) newName = `Nametags ${idTag}`;
+      else if (/^Trophy Bonuses/.test(cname)) newName = `Trophies ${idTag}`;
+      else if (/^Hatrack Bonuses/.test(cname)) newName = `Hatrack ${idTag}`;
+      out.push({ ...child, name: newName });
+    }
+  }
+  return out;
+}
+
 /** Wrap pool items into per-system sub-nodes. The strategy decides
  *  whether items with the same system are merged or only grouped when
  *  consecutive (formula order preserved). */
@@ -293,7 +353,8 @@ export function categorizePoolItems(
   mode: AggregateMode = "additive",
   strategy: "merge" | "runs" = "merge"
 ): CorganNode[] {
+  const prepared = explodeEtcBonus(items);
   return strategy === "runs"
-    ? categorizeRuns(items, mode)
-    : categorizeMerged(items, mode);
+    ? categorizeRuns(prepared, mode)
+    : categorizeMerged(prepared, mode);
 }

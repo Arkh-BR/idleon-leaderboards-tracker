@@ -286,36 +286,21 @@ export default function DrCalculator({
 
       {/* Import box */}
       <details open className="rounded-lg bg-zinc-900/60 p-4 mb-4 border border-zinc-800">
-        <summary className="cursor-pointer font-semibold text-gold select-none">
-          📋 Import Save JSON
+        <summary className="cursor-pointer select-none flex items-baseline gap-2 flex-wrap">
+          <span className="font-semibold text-gold">📋 Import Save JSON</span>
+          <span className="text-xs text-zinc-500 font-normal">
+            Use the &ldquo;Copy for Support&rdquo; button on{" "}
+            <a
+              href="https://idleontoolbox.com"
+              target="_blank"
+              rel="noreferrer"
+              className="text-gold hover:underline"
+              onClick={(e) => e.stopPropagation()}
+            >
+              idleontoolbox.com
+            </a>
+          </span>
         </summary>
-        {/* "Copy for Support" guidance — instructions only; the rounding
-            disclaimer sits in its own card below the big DR number where
-            the user is already looking at the value. */}
-        <div className="mt-3 mb-3 rounded-md border border-gold/40 bg-gold/5 p-3 text-xs">
-          <div className="flex items-start gap-2.5">
-            <span className="text-base leading-none">📋</span>
-            <div className="flex-1 leading-relaxed text-zinc-300">
-              <span className="text-gold font-semibold">
-                Use the &ldquo;Copy for Support&rdquo; button
-              </span>{" "}
-              on{" "}
-              <a
-                href="https://idleontoolbox.com"
-                target="_blank"
-                rel="noreferrer"
-                className="text-gold hover:underline font-medium"
-              >
-                idleontoolbox.com
-              </a>{" "}
-              — open your account menu (top-right) and click{" "}
-              <strong className="text-gold">
-                &ldquo;Copy for Support&rdquo;
-              </strong>
-              .
-            </div>
-          </div>
-        </div>
         <textarea
           value={jsonText}
           onChange={(e) => setJsonText(e.target.value)}

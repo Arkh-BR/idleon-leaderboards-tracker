@@ -53,6 +53,10 @@ type SlotResult = {
   rawVal: number;
   val: number;
   itemName: string;
+  // Multipliers actually applied — used to render a per-slot breakdown
+  // child showing the user where the post-raw value came from.
+  chipDoubled: boolean; // pendant/keychain/trophy chip ×2
+  wellDressedMulti: number; // grid 172 multi for Attire slot 15 (1 when N/A)
 };
 
 function scanSlots(
@@ -91,9 +95,20 @@ function scanSlots(
     }
     if (val <= 0) continue;
     const rawVal = val;
-    if (row === 0 && chipDoubles && chipDoubles[slot]) val *= 2;
-    if (row === 0 && slot === 15) val *= grid172Multi;
-    results.push({ row, slot, rawVal, val, itemName });
+    const chipDoubled = row === 0 && !!(chipDoubles && chipDoubles[slot]);
+    if (chipDoubled) val *= 2;
+    const wellDressedMulti =
+      row === 0 && slot === 15 && grid172Multi !== 1 ? grid172Multi : 1;
+    if (wellDressedMulti !== 1) val *= wellDressedMulti;
+    results.push({
+      row,
+      slot,
+      rawVal,
+      val,
+      itemName,
+      chipDoubled,
+      wellDressedMulti,
+    });
   }
   return results;
 }
@@ -166,8 +181,56 @@ export const equipment = {
         catalogHit?.name ||
         s.itemName.replace(/_/g, " ") ||
         "Row " + s.row + " Slot " + s.slot;
+      // Build per-slot breakdown if Well Dressed (grid 172) or a chip
+      // doubler actually changed the value. Surface the raw item bonus
+      // first, then each multiplier so the user sees exactly where the
+      // final number came from. No transformations → no children (keeps
+      // the tree compact for the 90% of rows that don't have either).
+      let slotChildren: CorganNode[] | null = null;
+      if (s.chipDoubled || s.wellDressedMulti !== 1) {
+        slotChildren = [
+          node("Item Bonus (raw)", s.rawVal, null, {
+            fmt: "+",
+            note: "Stat value built into the item before any boosters",
+          }),
+        ];
+        if (s.chipDoubled) {
+          // Pendant (slot 3), Keychain (slot 9), Trophy (slot 10) each
+          // get ×2 from their dedicated chip. Naming the chip explicitly
+          // so the user knows which chip is doing the doubling.
+          const chipLabel =
+            s.slot === 3
+              ? "Pendant Doubler (Lab Chip)"
+              : s.slot === 9
+              ? "Keychain Doubler (Lab Chip)"
+              : "Trophy Doubler (Lab Chip)";
+          slotChildren.push(
+            node(chipLabel, 2, null, {
+              fmt: "x",
+              note: "Lab chip in this character's slot doubles this stat",
+            })
+          );
+        }
+        if (s.wellDressedMulti !== 1) {
+          // grid172Multi = 1 + gridBonusValue(172, …) / 100. The bonus
+          // value itself is computed in lab.ts gridBonusValue() — we
+          // re-derive it here for the display note so the user knows
+          // which grid is responsible.
+          const grid172Pct = (s.wellDressedMulti - 1) * 100;
+          slotChildren.push(
+            node("Well Dressed (Grid 172)", s.wellDressedMulti, null, {
+              fmt: "x",
+              note:
+                "Grid M4 — multiplies the first MISC bonus on Attire by " +
+                "1 + " +
+                grid172Pct.toFixed(2) +
+                "/100",
+            })
+          );
+        }
+      }
       children.push(
-        node(displayName, s.val, null, {
+        node(displayName, s.val, slotChildren, {
           fmt: "+",
           note: "Equipped — R" + s.row + " S" + s.slot,
         })
