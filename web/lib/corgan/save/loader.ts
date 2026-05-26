@@ -12,6 +12,7 @@ import { assignSaveData } from "./data";
 import { parseSaveKey } from "./helpers";
 import { computeUniqueSushi } from "../stats/systems/w7/sushi";
 import { LAB_BONUS_BASE, LAB_BONUS_DYNAMIC, JEWEL_DESC } from "../stats/data/w4/lab";
+import { computeLabConnectivity } from "../stats/systems/w4/lab";
 import { emporiumBonus } from "../game-helpers";
 
 type RawEnvelope = {
@@ -361,11 +362,16 @@ export function loadSaveData(raw: RawEnvelope): void {
   // Cached unique sushi count (sushiRoG / prisma chain reads it)
   assignState({ cachedUniqueSushi: computeUniqueSushi(saveData.sushiData) });
 
-  // Mainframe stays empty — Corgan's BFS connectivity isn't ported yet, and
-  // even populating labMainBonusFull with the "inactive" values overshoots
-  // because the certified stamp book entry's inactive value is 2 (doubler).
-  // mainframeBonus() returns 0 when labMainBonusFull is absent, which keeps
-  // labDouble at 1 and matches the IT-port more closely on Stage 5b.
+  // Lab Mainframe connectivity. Uses simplified port (assumes full lab
+  // connectivity for end-game chars) — unblocks Stamp Doubler's Certified
+  // Stamp Book ×2, Cook Multi's Mainframe contribution, and other downstream
+  // mainframeBonus() reads.
+  const labCon = computeLabConnectivity(saveData);
+  assignState({
+    labMainBonusFull: labCon.labMainBonusFull as any,
+    labBonusConnected: labCon.labBonusConnected as any,
+    labJewelConnected: labCon.labJewelConnected as any,
+  });
 
   assignSaveData({ loadedSaveFormat: raw.data ? "it.json" : "save.json" });
 }

@@ -56,6 +56,16 @@ export default function DrCalculator({ onStateChange }: Props) {
   const [corganTree, setCorganTree] = useState<CorganNode | null>(null);
   const [corganTotal, setCorganTotal] = useState<number | null>(null);
 
+  // Chip Gallery: invisible +0.10 Gallery Bonus Multi when Lab chip 16
+  // (Silkrode Motherboard) was active at the moment the gallery refreshed.
+  // Auto-detected from Lab[1+ci][s] on save load; user can toggle manually.
+  const [chipGalleryActive, setChipGalleryActive] = useState(false);
+  const [chipDetected, setChipDetected] = useState<{
+    detected: boolean;
+    charIdx: number;
+    slot: number;
+  } | null>(null);
+
   // Dynamic-imported compute function — keeps the IT pipeline + website-data
   // out of the initial bundle. Loaded on first compute call and cached.
   const [computeFn, setComputeFn] = useState<ComputeFn | null>(null);
@@ -157,7 +167,44 @@ export default function DrCalculator({ onStateChange }: Props) {
     };
   }, [save, charIdx, mapIdx, chars, mapOptions, loadComputeFn]);
 
-  // Compute the Corgan-style tree whenever save/char changes. Loads the
+  // Detect Lab chip 16 (Silkrode Motherboard) on save load. Reads
+  // Lab[1+ci][s] for every character; if any slot has chip 16 the gallery
+  // chip toggle auto-flips ON since the in-game gallery refresh likely
+  // captured the +0.10 multi already.
+  useEffect(() => {
+    if (!save) {
+      setChipDetected(null);
+      setChipGalleryActive(false);
+      return;
+    }
+    const data = (save as any)?.data ?? save;
+    let lab: any = data.Lab;
+    if (typeof lab === "string") {
+      try {
+        lab = JSON.parse(lab);
+      } catch {
+        lab = null;
+      }
+    }
+    let found = { detected: false, charIdx: -1, slot: -1 };
+    if (Array.isArray(lab)) {
+      for (let ci = 0; ci < 10; ci++) {
+        const slots = lab[1 + ci];
+        if (!Array.isArray(slots)) continue;
+        for (let s = 0; s < 7; s++) {
+          if (Number(slots[s]) === 16) {
+            found = { detected: true, charIdx: ci, slot: s };
+            break;
+          }
+        }
+        if (found.detected) break;
+      }
+    }
+    setChipDetected(found);
+    setChipGalleryActive(found.detected);
+  }, [save]);
+
+  // Compute the Corgan-style tree whenever save/char/chip changes. Loads the
   // Corgan port lazily so the initial bundle stays small.
   useEffect(() => {
     if (!save || chars.length === 0) {
@@ -170,7 +217,9 @@ export default function DrCalculator({ onStateChange }: Props) {
       try {
         const mod = await import("@/lib/corgan/computeDR");
         if (cancelled) return;
-        const result = mod.computeCorganDropRate(save, charIdx, mapIdx);
+        const result = mod.computeCorganDropRate(save, charIdx, mapIdx, {
+          chipGalleryActive,
+        });
         setCorganTree(result.tree);
         setCorganTotal(result.total);
       } catch (e) {
@@ -184,7 +233,7 @@ export default function DrCalculator({ onStateChange }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [save, charIdx, mapIdx, chars.length]);
+  }, [save, charIdx, mapIdx, chars.length, chipGalleryActive]);
 
   // Bubble state up to parent (so snapshot section can access it)
   useEffect(() => {
@@ -396,20 +445,50 @@ export default function DrCalculator({ onStateChange }: Props) {
           </div>
         </div>
         {tab === "corgan" && corganTotal !== null && (
-          <div className="mb-3 text-xs text-zinc-500">
-            Corgan total:{" "}
-            <span className="text-amber-300 font-mono">
-              {corganTotal.toFixed(3)}x
-            </span>{" "}
-            — diverges from the IT-style total above on a few sources where
-            Corgan&rsquo;s formula differs from IT&rsquo;s (notably
-            grid&nbsp;168 / Glimbo&nbsp;DR which Corgan multiplies by trade
-            groups vs. IT&rsquo;s sub-field read). Stage&nbsp;5b closed
-            tome&nbsp;score, unique&nbsp;sushi cache, and meritoc; remaining
-            gap traces to the mainframe BFS, stamp doubler chain, and full{" "}
-            <code className="text-zinc-400">computeTotalStat</code> pipeline.
-            Tree <em>shape</em> matches Corgan 1:1.
-          </div>
+          <>
+            <div className="mb-3 text-xs text-zinc-500">
+              Corgan total:{" "}
+              <span className="text-amber-300 font-mono">
+                {corganTotal.toFixed(3)}x
+              </span>{" "}
+              — Corgan&rsquo;s site is missing the sushi&nbsp;54 (+1% Gallery
+              Bonus Multi) bonus that IT applies; this port fixes it, so the
+              tree above already includes the in-game value.
+            </div>
+
+            {/* Chip Gallery toggle — mirrors the HTML chip button */}
+            <div className="mb-3 p-2 rounded border border-zinc-800 bg-zinc-950/60 flex items-center gap-3 flex-wrap">
+              <button
+                type="button"
+                onClick={() => setChipGalleryActive((v) => !v)}
+                className={`px-3 py-1.5 text-xs font-semibold rounded border transition-colors ${
+                  chipGalleryActive
+                    ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/40 hover:bg-emerald-500/30"
+                    : "bg-zinc-800 text-zinc-400 border-zinc-700 hover:bg-zinc-700"
+                }`}
+                title="Adds +0.10 to Gallery Bonus Multi (invisible boost from Silkrode Motherboard chip being active when gallery last refreshed)"
+              >
+                {chipGalleryActive ? "🔌 Chip Gallery ON" : "⚪ Chip Gallery OFF"}
+              </button>
+              <div className="text-[11px] text-zinc-500 leading-tight">
+                {chipDetected?.detected ? (
+                  <>
+                    <span className="text-emerald-400">●</span> Chip 16 detected on
+                    char {chipDetected.charIdx} slot {chipDetected.slot}{" "}
+                    <span className="text-zinc-600">
+                      (auto-enabled — toggle off to compare baseline)
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <span className="text-zinc-600">○</span> Chip 16 not detected
+                    in save — toggle on if it was active when the gallery last
+                    refreshed
+                  </>
+                )}
+              </div>
+            </div>
+          </>
         )}
         {computing ? (
           <p className="text-sm text-zinc-500 italic">Computing…</p>

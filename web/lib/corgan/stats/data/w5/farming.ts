@@ -11,12 +11,16 @@ export type ExoticParams = {
 };
 
 export function exoticParams(idx: number): ExoticParams {
+  // Matches corgan-source exoticParams(): base from field[3] (not field[2]),
+  // farmSlot computed as idx + 20 (FarmUpg layout: bean, beans, market[0..19],
+  // exoticMarket[0..N] starting at index 20), denom hardcoded to 1000 for the
+  // game's diminishing-returns formula `base * lv / (1000 + lv)`.
   const ex = (MarketExoticInfo as any)[idx];
-  if (!ex) return { base: 0, denom: 1, farmSlot: 0 };
+  if (!ex) return { base: 0, denom: 1000, farmSlot: idx + 20 };
   return {
-    base: Number(ex[2]) || 0,
-    denom: Number(ex[3]) || 1,
-    farmSlot: Number(ex[4]) || 0,
+    base: Number(ex[3]) || 0,
+    denom: 1000,
+    farmSlot: idx + 20,
   };
 }
 

@@ -42,6 +42,7 @@ import { minehead } from "./systems/w7/minehead";
 import { pristine } from "./systems/w5/pristine";
 import { glimbo, workshop, eventShop } from "./systems/common/wrappers";
 import { lukScaling } from "./systems/common/stats";
+import { button } from "./systems/w7/button";
 
 // Loose ctx type — each system narrows what it actually reads
 export type SystemCtx = {
@@ -51,6 +52,10 @@ export type SystemCtx = {
   mapBon?: any[];
   mapIdx?: number;
   resolve?: (descId: string) => unknown;
+  // Manual flag: when true, gallery resolvers (nametag/trophy) add +0.10 to
+  // Gallery Bonus Multi to model the invisible "chip-active-at-refresh" bonus.
+  // Off by default; toggled by UI.
+  chipGalleryActive?: boolean;
 };
 
 export type SystemResolver = {
@@ -104,6 +109,7 @@ const _systems: Record<string, SystemResolver> = {
   workshop: workshop as unknown as SystemResolver,
   eventShop: eventShop as unknown as SystemResolver,
   lukScaling: lukScaling as unknown as SystemResolver,
+  button: button as unknown as SystemResolver,
 };
 
 export function getSystem(name: string): SystemResolver | null {

@@ -2,15 +2,15 @@
 // Sums equipment UQ stat bonuses across all gear slots, applying chip
 // doubling (pendant/keychain/trophy) and grid 172 multiplier on attire.
 //
-// The grid172 multiplier reads sim-math gbWith() in Corgan. Stage 3 stubs
-// gbWith to 0, so grid172Multi defaults to 1 — slot scan + UQ matching +
-// chip doubling are all real. Stage 4's grid port will replace the stub.
+// grid172Multi mirrors the Corgan source: `1 + gbWith(gl, so, 172, ctx) / 100`,
+// where gbWith returns perLv × lv × shapeMult × allBonusMulti for Grid M4
+// "Well Dressed". For Corsair Uniform (slot 15) at Lv 2 this is ~×1.738.
 
 import { node, type CorganNode } from "../../../node";
 import { label, entityName } from "../../entity-names";
 import { emmData, equipOrderData } from "../../../save/data";
 import { ETC_STAT_NAMES, itemUqMatch } from "../../data/common/equipment";
-import { charHasChip } from "../w4/lab";
+import { charHasChip, gridBonusValue } from "../w4/lab";
 import type { SaveData } from "../../../state";
 
 type Ctx = { saveData: SaveData; charIdx: number };
@@ -81,9 +81,9 @@ export const equipment = {
     if (!emm)
       return node("Equipment Bonuses", 0, null, { note: "equipment " + id });
 
-    // Stage 3 stub: grid172 multiplier defaults to 1. Stage 4 will plug in
-    // gbWith(saveData.gridLevels, saveData.shapeOverlay, 172, ...).
-    const grid172Multi = 1;
+    // Grid M4 "Well Dressed" — multiplies the first MISC bonus on Attire (slot 15).
+    // Now wired through gridBonusValue() instead of the previous Stage 3 stub.
+    const grid172Multi = 1 + gridBonusValue(172, saveData) / 100;
 
     const sp = saveData.spelunkData || [];
     const galleryOn =

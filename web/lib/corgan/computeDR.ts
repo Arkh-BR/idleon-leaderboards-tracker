@@ -17,16 +17,31 @@ export type CorganDRResult = {
   total: number;
 };
 
+export type ComputeDROpts = {
+  /** Toggle the invisible +0.10 Gallery Bonus Multi from Lab chip being
+   *  active at the moment the gallery refreshed. Cannot be detected from
+   *  save state; users opt in via UI. */
+  chipGalleryActive?: boolean;
+};
+
 export function computeCorganDropRate(
   rawEnvelope: any,
   charIdx: number,
-  mapIdx: number = 0
+  mapIdx: number = 0,
+  opts?: ComputeDROpts
 ): CorganDRResult {
   loadSaveData(rawEnvelope);
   // mapBonData is a module-level export in save/data.ts (matches Corgan's
   // structure). Re-read after loadSaveData populates it.
   const mapBon = data.mapBonData;
-  const ctx = { saveData, charIdx, activeCharIdx: charIdx, mapBon, mapIdx };
+  const ctx = {
+    saveData,
+    charIdx,
+    activeCharIdx: charIdx,
+    mapBon,
+    mapIdx,
+    chipGalleryActive: !!opts?.chipGalleryActive,
+  };
   const tree = buildTree(dropRateDesc, getCatalog(), ctx);
   return { tree, total: tree.val };
 }

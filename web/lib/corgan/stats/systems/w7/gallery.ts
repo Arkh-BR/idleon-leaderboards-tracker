@@ -19,6 +19,7 @@ import {
 } from "../../data/w7/gallery";
 import { mineheadBonusQTY } from "./minehead";
 import { rogBonusQTY } from "./sushi";
+import { ROG_DESC } from "../../data/w7/sushi";
 import { legendPTSbonus } from "./spelunking";
 import { eventShopOwned, emporiumBonus } from "../../../game-helpers";
 import { companionBonus } from "../../data/common/companions";
@@ -26,10 +27,23 @@ import { GALLERY_TROPH_CHIP_MULTI } from "../../data/game-constants";
 import { bubbleBonusY13 } from "../w2/alchemy";
 import type { SaveData } from "../../../state";
 
-type Ctx = { saveData: SaveData };
+type GalleryOpts = {
+  // Manual flag: in-game there's an invisible +0.10 boost to the Gallery
+  // Bonus Multi when a specific Lab chip was active at the moment the gallery
+  // refreshed. The chip's current state in the save doesn't reflect the
+  // state at refresh time, so this can't be detected — callers opt in.
+  chipGalleryActive?: boolean;
+};
+
+type Ctx = { saveData: SaveData; chipGalleryActive?: boolean };
 type MultiResult = { val: number; children: CorganNode[] };
 
-export function galleryBonusMulti(saveData: SaveData): MultiResult {
+export const CHIP_GALLERY_BOOST = 10; // +10 to additive sum (=> +0.10 to multi)
+
+export function galleryBonusMulti(
+  saveData: SaveData,
+  opts?: GalleryOpts
+): MultiResult {
   const sp = saveData.spelunkData || [];
   const galleryLv = Number((sp[13] && sp[13][4]) || 0);
   let trophChip = 0;
@@ -55,6 +69,11 @@ export function galleryBonusMulti(saveData: SaveData): MultiResult {
   const clamWork7 = (Number((optionsListData as any)[464]) || 0) > 7 ? 1 : 0;
   const ola467 = Number((optionsListData as any)[467]) || 0;
   const killroy3 = (ola467 / (200 + ola467)) * 10;
+  const chipBoost = opts?.chipGalleryActive ? CHIP_GALLERY_BOOST : 0;
+  // IT source: sushiBonus54 — "+{% Gallery Bonus Multi" (RoG_BonusQTY at index 54).
+  // Corgan compute is missing this, which causes ~+1 to sum (=> +0.01 multi) when
+  // uniqueSushi > 54. Affects every nametag/trophy proportionally.
+  const sushi54 = rogBonusQTY(54, saveData.cachedUniqueSushi || 0);
   const sum =
     3 * galleryLv +
     GALLERY_TROPH_CHIP_MULTI * trophChip +
@@ -62,7 +81,9 @@ export function galleryBonusMulti(saveData: SaveData): MultiResult {
     killroy3 +
     y13capped +
     cardLv +
-    comp49;
+    comp49 +
+    sushi54 +
+    chipBoost;
   const val = 1 + sum / 100;
   const ch: CorganNode[] = [];
   if (galleryLv > 0)
@@ -99,6 +120,20 @@ export function galleryBonusMulti(saveData: SaveData): MultiResult {
       node(label("Companion", 49), comp49, null, {
         fmt: "raw",
         note: "companion 49",
+      })
+    );
+  if (sushi54 > 0)
+    ch.push(
+      node(ROG_DESC[54] || "Sushi RoG 54", sushi54, null, {
+        fmt: "raw",
+        note: "RoG_BonusQTY(54) — Gallery Bonus Multi",
+      })
+    );
+  if (chipBoost > 0)
+    ch.push(
+      node("Chip Active (gallery update)", chipBoost, null, {
+        fmt: "raw",
+        note: "+0.10 multi when chip was active at refresh",
       })
     );
   return { val, children: ch };
@@ -222,7 +257,9 @@ export const nametag = {
     const saveData = ctx.saveData;
     const sp = saveData.spelunkData || [];
     const levels = (sp[17] || []) as any[];
-    const gbmObj = galleryBonusMulti(saveData);
+    const gbmObj = galleryBonusMulti(saveData, {
+      chipGalleryActive: !!ctx.chipGalleryActive,
+    });
     const gbm = gbmObj.val;
     let total = 0;
     const children: CorganNode[] = [];
@@ -266,7 +303,9 @@ export const trophy = {
     const saveData = ctx.saveData;
     const sp = saveData.spelunkData || [];
     const trophySlots = (sp[16] || []) as any[];
-    const gbmObj = galleryBonusMulti(saveData);
+    const gbmObj = galleryBonusMulti(saveData, {
+      chipGalleryActive: !!ctx.chipGalleryActive,
+    });
     const gbm = gbmObj.val;
     let total = 0;
     const children: CorganNode[] = [];

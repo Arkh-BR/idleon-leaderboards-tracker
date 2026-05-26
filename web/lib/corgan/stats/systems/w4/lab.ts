@@ -11,15 +11,31 @@
 import { node, type CorganNode } from "../../../node";
 import { label } from "../../entity-names";
 import { labData, numCharacters } from "../../../save/data";
-import { JEWEL_DESC } from "../../data/w4/lab";
+import { JEWEL_DESC, LAB_BONUS_BASE, LAB_BONUS_DYNAMIC } from "../../data/w4/lab";
 import { chipBonusValue } from "../../data/w4/chips";
 import { gridBonusPerLv, SHAPE_BONUS_PCT } from "../../data/w7/research";
-import { cloudBonus } from "../../../game-helpers";
+import { cloudBonus, emporiumBonus } from "../../../game-helpers";
 import { companionBonus } from "../../data/common/companions";
 import { ChipDesc } from "../../data/game/customlists.js";
+import { labJewelUnlocked } from "../../../save/helpers";
 import type { SaveData } from "../../../state";
 
 type Ctx = { saveData: SaveData; charIdx: number };
+
+// Compute the raw grid bonus value (additive %, e.g. 73.8 for Grid 172 Lv 2).
+// Mirrors corgan-source gbWith(): perLv × lv × (1 + shape%/100) × allBonusMulti.
+// Returns 0 if grid is unleveled.
+export function gridBonusValue(id: number, saveData: SaveData): number {
+  const gridLv = Number((saveData.gridLevels as any)?.[id]) || 0;
+  if (gridLv < 1) return 0;
+  const si = Number((saveData.shapeOverlay as any)?.[id]);
+  const shapePct =
+    si >= 0 && si < SHAPE_BONUS_PCT.length ? SHAPE_BONUS_PCT[si] : 0;
+  const shapeMult = 1 + shapePct / 100;
+  const am = gridAllMulti(saveData);
+  const bonusPerLv = gridBonusPerLv(id) || 25;
+  return bonusPerLv * gridLv * shapeMult * Math.max(1, am.val);
+}
 
 function gridAllMulti(saveData: SaveData) {
   const comp55 =
@@ -155,6 +171,8 @@ export const chip = {
 // the node is reachable, else the inactive value. Until Stage 5's BFS
 // lands, both arrays default to empty so this returns 0 for most calls.
 
+// 1:1 port of corgan-source mainframeBonus. Recursive (e=8 reads e=119, e=9
+// reads e=113, jewels multiply by mfb(8) etc.).
 export function mainframeBonus(e: number, saveData: SaveData): number {
   const lmbFull = (saveData as any).labMainBonusFull as any[] | undefined;
   if (!lmbFull) return 0;
@@ -163,22 +181,101 @@ export function mainframeBonus(e: number, saveData: SaveData): number {
     if (e >= lmbLen) return 0;
     const labBonusConnected = (saveData as any).labBonusConnected as any[];
     if (!labBonusConnected || !labBonusConnected[e]) return lmbFull[e][3];
-    return lmbFull[e][4];
+    const active = lmbFull[e][4];
+    if (e === 9) {
+      const base9 = active + mainframeBonus(113, saveData);
+      // Total green mushroom kills feeds mainframeBonus(9); not implemented here.
+      // Returning base9 underestimates slightly when this is queried but no DR
+      // path uses mfb(9) directly.
+      return base9;
+    }
+    if (e === 0) {
+      // Breeding pet count multi — not ported (not in DR path)
+      return active;
+    }
+    if (e === 3) return active + mainframeBonus(107, saveData);
+    if (e === 11) return active + mainframeBonus(117, saveData);
+    if (e === 13) return active;
+    if (e === 15) return active + mainframeBonus(118, saveData);
+    if (e === 17) return active + mainframeBonus(120, saveData);
+    if (e === 8) return active + mainframeBonus(119, saveData) / 100;
+    return active;
   }
   const ji = e - 100;
   if (ji < 0 || ji >= JEWEL_DESC.length) return 0;
   const labJewelConnected = (saveData as any).labJewelConnected as any[];
   if (!labJewelConnected || !labJewelConnected[ji]) return 0;
-  return JEWEL_DESC[ji][2];
+  const base = JEWEL_DESC[ji][2];
+  if (e === 119) return base;
+  // Jewel doubling: certain jewels get ×2 if all adjacent jewels are active
+  let doubler = 1;
+  if (
+    e === 100 &&
+    mainframeBonus(101, saveData) > 0 &&
+    mainframeBonus(102, saveData) > 0
+  )
+    doubler = 2;
+  else if (
+    e === 103 &&
+    mainframeBonus(104, saveData) > 0 &&
+    mainframeBonus(105, saveData) > 0 &&
+    mainframeBonus(106, saveData) > 0
+  )
+    doubler = 2;
+  else if (
+    e === 110 &&
+    mainframeBonus(107, saveData) > 0 &&
+    mainframeBonus(108, saveData) > 0 &&
+    mainframeBonus(109, saveData) > 0
+  )
+    doubler = 2;
+  else if (
+    e === 112 &&
+    mainframeBonus(111, saveData) > 0 &&
+    mainframeBonus(113, saveData) > 0 &&
+    mainframeBonus(114, saveData) > 0 &&
+    mainframeBonus(115, saveData) > 0
+  )
+    doubler = 2;
+  return doubler * base * mainframeBonus(8, saveData);
 }
 
-export function computeLabConnectivity(_saveData: SaveData): Record<string, unknown> {
-  // Stage 5 TODO: port the 100+ line BFS over 12 players + LabMainBonus +
-  // JEWEL_DESC pads. Returning empties keeps loader assignState() valid.
+// Builds labMainBonusFull = base entries + active emporium-unlocked dynamic entries.
+// Matches corgan-source buildLabMainBonus().
+function buildLabMainBonus(saveData: SaveData): any[][] {
+  const lmb: any[][] = LAB_BONUS_BASE.map((e) => e.slice());
+  for (let i = 0; i < LAB_BONUS_DYNAMIC.length; i++) {
+    const dyn = LAB_BONUS_DYNAMIC[i];
+    const empKey = (dyn as any)[6] as number;
+    const ninjaArr =
+      (saveData as any).ninjaData &&
+      (saveData as any).ninjaData[102] &&
+      (saveData as any).ninjaData[102][9];
+    if (emporiumBonus(empKey, ninjaArr)) {
+      lmb.push([dyn[0], dyn[1], dyn[2], dyn[3], dyn[4], dyn[5]]);
+    }
+  }
+  return lmb;
+}
+
+// Simplified port of corgan-source computeLabConnectivity(): we skip the full
+// player-position / euclidDist BFS and assume max-level lab connectivity for
+// end-game characters (all main bonuses connected, all unlocked jewels active).
+// Trade-off: over-estimates for characters who haven't built lab connectivity yet,
+// but unblocks Stamp Doubler (Certified Stamp Book ×2), Cook Multi (Mainframe 116),
+// and other downstream calcs that depend on mainframeBonus().
+export function computeLabConnectivity(saveData: SaveData): Record<string, unknown> {
+  const lmb = buildLabMainBonus(saveData);
+  // Assume all main bonuses are connected (max-level lab approximation)
+  const labBonusConnected = new Array(lmb.length).fill(1);
+  // Jewels: only count as connected if they're actually unlocked in saveData
+  const labJewelConnected = new Array(JEWEL_DESC.length)
+    .fill(0)
+    .map((_, ji) => (labJewelUnlocked(ji) ? 1 : 0));
   return {
-    labMainBonusFull: [],
-    labBonusConnected: [],
-    labJewelConnected: [],
+    labMainBonusFull: lmb,
+    labBonusConnected,
+    labJewelConnected,
   };
 }
 
