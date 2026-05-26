@@ -277,7 +277,12 @@ function TreeRow({
   // Hide-zero: drop the node entirely if val is ~0 AND no descendant is
   // non-zero. We need to check descendants because pool containers have
   // val=sum which can be huge while individual zero leaves are inside.
+  // Skipping the recursive walk when hideZero is off is critical for perf —
+  // otherwise every TreeRow walks its whole subtree on each render, which
+  // becomes O(N²) over the full ~700-node tree and freezes the page when
+  // the user expands everything.
   const hasNonZeroDescendant = useMemo(() => {
+    if (!hideZero) return true;
     if (Math.abs(node.val) > 1e-9) return true;
     if (!hasChildren) return false;
     function walk(n: CorganNode): boolean {
@@ -286,7 +291,7 @@ function TreeRow({
       return false;
     }
     return (node.children || []).some(walk);
-  }, [node, hasChildren]);
+  }, [node, hasChildren, hideZero]);
   if (hideZero && !hasNonZeroDescendant) return null;
 
   // Search filter — only filter on LEAVES; containers stay if any descendant
@@ -693,7 +698,7 @@ function DeepChildren({
 export default function DeepView({ tree }: { tree: CorganNode | null }) {
   const [layout, setLayout] = useState<"tree" | "system">("tree");
   const [searchTerm, setSearchTerm] = useState("");
-  const [hideZero, setHideZero] = useState(true);
+  const [hideZero, setHideZero] = useState(false);
   const [globalOpen, setGlobalOpen] = useState(true);
   const [expandToken, setExpandToken] = useState(0);
 
