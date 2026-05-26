@@ -282,7 +282,11 @@ export function gfoodBonusMULTI(
     cardPassiveBonus +
     comp155 +
     vault86;
-  return setMul * (famBonus + rest / 100);
+  // N.js literal (line 4954740): e = (1 + SECRET_SET/100) × (max(famBonus,1) + rest) / 100
+  // The whole (famBonus + rest) is summed first, THEN divided by 100. Previous
+  // form `setMul × (famBonus + rest/100)` over-counted famBonus by factor 100.
+  // For typical zArkhe, this nudges gfoodBonusMULTI down by ~0.34% (1.7 units).
+  return (setMul * (famBonus + rest)) / 100;
 }
 
 // Debug helper: returns each sub-component of gfoodBonusMULTI by name.
