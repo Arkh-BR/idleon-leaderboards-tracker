@@ -27,16 +27,16 @@ export const etcBonus = {
       (trNode.val || 0) +
       (phNode.val || 0);
     const children: CorganNode[] = [];
-    // Include sub-nodes even when val=0: the equipment resolver now appends
-    // a catalog of all DR-capable items that aren't currently equipped, so
-    // the user sees "what they could equip" alongside what they have. Hide
-    // the zero rows for nametag/trophy/premhat (no catalog there yet) to
-    // keep the tree focused.
+    // Include sub-nodes even when val=0: the equipment / obol / nametag /
+    // trophy resolvers each now append a catalog of DR-capable entries the
+    // user hasn't acquired yet, so the visible-or-not decision needs to look
+    // at the subtree rather than the wrapper's total alone. Premhat doesn't
+    // carry a catalog yet so we still gate it on val.
     const hasChildren = (n: CorganNode) => !!(n.children && n.children.length);
     if (eqNode.val || hasChildren(eqNode)) children.push(eqNode);
     if (obNode.val || hasChildren(obNode)) children.push(obNode);
-    if (ntNode.val) children.push(ntNode);
-    if (trNode.val) children.push(trNode);
+    if (ntNode.val || hasChildren(ntNode)) children.push(ntNode);
+    if (trNode.val || hasChildren(trNode)) children.push(trNode);
     if (phNode.val) children.push(phNode);
     return node("EtcBonuses(" + id + ")", total, children, {
       fmt: "+",

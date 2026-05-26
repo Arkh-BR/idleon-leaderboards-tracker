@@ -269,11 +269,13 @@ export const nametag = {
     const gbm = gbmObj.val;
     let total = 0;
     const children: CorganNode[] = [];
+    const ownedIds = new Set<number>();
     for (let i = 0; i < levels.length; i++) {
       const lv = Number(levels[i]) || 0;
       if (lv < 1) continue;
       const drEntries = NAMETAG_DR[i];
       if (!drEntries) continue;
+      ownedIds.add(i);
       const tier = NAMETAG_TIER_SCALE[Math.min(4, lv - 1)];
       for (let j = 0; j < drEntries.length; j++) {
         if (!map[drEntries[j].stat]) continue;
@@ -294,6 +296,47 @@ export const nametag = {
         );
       }
     }
+
+    // Catalog of nametags not yet placed in the gallery (Spelunk[17] level
+    // either missing or 0). Every DR-relevant nametag in the game shows up
+    // as a zero-val row so the user sees the upgrade path. Filtered by the
+    // stat type requested (etcBonus 2 / 99 / 91 each pull their own subset).
+    const unowned: { id: number; name: string; baseVal: number }[] = [];
+    for (const idxStr of Object.keys(NAMETAG_DR)) {
+      const idx = Number(idxStr);
+      if (ownedIds.has(idx)) continue;
+      const drEntries = NAMETAG_DR[idx];
+      if (!drEntries) continue;
+      for (const entry of drEntries) {
+        if (!map[entry.stat]) continue;
+        unowned.push({
+          id: idx,
+          name: NAMETAG_NAMES[idx] || "Tag #" + idx,
+          baseVal: entry.val,
+        });
+      }
+    }
+    if (unowned.length > 0) {
+      unowned.sort((a, b) => b.baseVal - a.baseVal);
+      const catalogChildren = unowned.map((u) =>
+        node(u.name, 0, null, {
+          fmt: "+",
+          note: `Not in gallery — base +${u.baseVal}, scales with Tier × Gallery Bonus Multi`,
+        })
+      );
+      children.push(
+        node(
+          `Available Nametags (not in gallery) — ${unowned.length}`,
+          0,
+          catalogChildren,
+          {
+            fmt: "+",
+            note: "Place any of these in the Gallery to add their bonus",
+          }
+        )
+      );
+    }
+
     return node("Nametag Bonuses", total, children, {
       fmt: "+",
       note: "nametag " + id,
@@ -315,11 +358,13 @@ export const trophy = {
     const gbm = gbmObj.val;
     let total = 0;
     const children: CorganNode[] = [];
+    const ownedTrophyIds = new Set<number>();
     for (let i = 0; i < trophySlots.length; i++) {
       const trophyId = Number(trophySlots[i]) || 0;
       if (trophyId < 1) continue;
       const drEntries = TROPHY_DR[trophyId];
       if (!drEntries) continue;
+      ownedTrophyIds.add(trophyId);
       const tier = trophyTier(i, saveData);
       for (let j = 0; j < drEntries.length; j++) {
         if (!map[drEntries[j].stat]) continue;
@@ -340,6 +385,47 @@ export const trophy = {
         );
       }
     }
+
+    // Catalog of trophies the user hasn't placed yet — every DR-relevant
+    // trophy in the game emits a zero-val row so the user sees what they
+    // could earn. Skip TROPHY_DR entries whose stats don't match the
+    // requested etcBonus id (e.g. etcBonus 91 only lists DR Multi trophies).
+    const unowned: { id: number; name: string; baseVal: number }[] = [];
+    for (const idStr of Object.keys(TROPHY_DR)) {
+      const idx = Number(idStr);
+      if (ownedTrophyIds.has(idx)) continue;
+      const drEntries = TROPHY_DR[idx];
+      if (!drEntries) continue;
+      for (const entry of drEntries) {
+        if (!map[entry.stat]) continue;
+        unowned.push({
+          id: idx,
+          name: TROPHY_NAMES[idx] || "Trophy" + idx,
+          baseVal: entry.val,
+        });
+      }
+    }
+    if (unowned.length > 0) {
+      unowned.sort((a, b) => b.baseVal - a.baseVal);
+      const catalogChildren = unowned.map((u) =>
+        node(u.name, 0, null, {
+          fmt: "+",
+          note: `Not in gallery — base +${u.baseVal}, scales with Tier × Gallery Bonus Multi`,
+        })
+      );
+      children.push(
+        node(
+          `Available Trophies (not in gallery) — ${unowned.length}`,
+          0,
+          catalogChildren,
+          {
+            fmt: "+",
+            note: "Place any of these in the Gallery to add their bonus",
+          }
+        )
+      );
+    }
+
     return node("Trophy Bonuses", total, children, {
       fmt: "+",
       note: "trophy " + id,

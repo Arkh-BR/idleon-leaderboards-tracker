@@ -113,6 +113,16 @@ function formatVal(val: number, fmt: string | undefined): string {
   return val.toFixed(3);
 }
 
+/** Split a node label like "Crystal Custard (Companion 3)" into its friendly
+ *  name and the trailing system+id tag so the renderer can style them
+ *  differently — the name reads in normal text, the tag in muted grey.
+ *  Returns { main, tag } where tag includes its parens (or null if absent). */
+function splitEntityTag(name: string): { main: string; tag: string | null } {
+  const m = name.match(/^(.*?)\s*(\([A-Za-z][A-Za-z ]*?\s+[\w,\-]+\))\s*$/);
+  if (!m) return { main: name, tag: null };
+  return { main: m[1].trim(), tag: m[2] };
+}
+
 function valColor(val: number, fmt: string | undefined): string {
   if (fmt === "+") {
     if (val > 0) return "text-emerald-300";
@@ -538,20 +548,34 @@ function TreeRow({
     }
   }
 
-  // Search highlighting on the node label itself
+  // Split into friendly name + system-tag suffix so we can mute the tag
+  // visually (it's metadata for users who want to cross-reference, not the
+  // primary label). Then apply search highlight on top.
   const nameSpan = useMemo(() => {
-    if (!searchTerm) return node.name;
-    const q = searchTerm.toLowerCase();
-    const lower = node.name.toLowerCase();
-    const idx = lower.indexOf(q);
-    if (idx < 0) return node.name;
+    const { main, tag } = splitEntityTag(node.name);
+    function highlight(text: string) {
+      if (!searchTerm) return text;
+      const q = searchTerm.toLowerCase();
+      const lower = text.toLowerCase();
+      const idx = lower.indexOf(q);
+      if (idx < 0) return text;
+      return (
+        <>
+          {text.slice(0, idx)}
+          <mark className="bg-amber-500/30 text-amber-200 rounded px-0.5">
+            {text.slice(idx, idx + q.length)}
+          </mark>
+          {text.slice(idx + q.length)}
+        </>
+      );
+    }
+    if (!tag) return highlight(main);
     return (
       <>
-        {node.name.slice(0, idx)}
-        <mark className="bg-amber-500/30 text-amber-200 rounded px-0.5">
-          {node.name.slice(idx, idx + q.length)}
-        </mark>
-        {node.name.slice(idx + q.length)}
+        {highlight(main)}
+        <span className="ml-1.5 text-zinc-500 font-normal text-[0.85em]">
+          {tag}
+        </span>
       </>
     );
   }, [node.name, searchTerm]);
@@ -998,7 +1022,19 @@ function SystemRow({ entry }: { entry: LeafEntry }) {
           {hasChildren ? (open ? "▾" : "▸") : "•"}
         </span>
         <span className="flex-1 text-zinc-200 min-w-0">
-          <span className="truncate">{entry.node.name}</span>
+          {(() => {
+            const { main, tag } = splitEntityTag(entry.node.name);
+            return (
+              <span className="truncate">
+                {main}
+                {tag && (
+                  <span className="ml-1.5 text-zinc-500 font-normal text-[0.85em]">
+                    {tag}
+                  </span>
+                )}
+              </span>
+            );
+          })()}
           {entry.node.note && (
             <span className="block text-[10px] text-zinc-500 italic mt-0.5 truncate">
               {entry.node.note}
@@ -1052,7 +1088,17 @@ function DeepChildren({
           >
             <span className="w-3 text-zinc-700">•</span>
             <span className="flex-1 text-zinc-400 truncate">
-              {c.name}
+              {(() => {
+                const { main, tag } = splitEntityTag(c.name);
+                return tag ? (
+                  <>
+                    {main}
+                    <span className="ml-1 text-zinc-600 text-[0.85em]">{tag}</span>
+                  </>
+                ) : (
+                  c.name
+                );
+              })()}
               {c.note && (
                 <span className="ml-1 text-[10px] text-zinc-600 italic">
                   {c.note}

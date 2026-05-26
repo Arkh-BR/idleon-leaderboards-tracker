@@ -182,14 +182,22 @@ export const equipment = {
     // contribution; we de-dup by `equippedKeys` to avoid double-listing.
     const statSet = new Set(statNames);
     const catalogByType = new Map<string, DrItem[]>();
+    // Equipment-types that belong to OTHER resolvers (obol, nametag, trophy,
+    // premhat). Each has its own dedicated catalog rendered as a sibling
+    // under etcBonus, so including them here would double-list.
+    const SKIP_TYPES_IN_EQUIPMENT_CATALOG = new Set([
+      "CIRCLE_OBOL",
+      "SQUARE_OBOL",
+      "HEXAGON_OBOL",
+      "SPARKLE_OBOL",
+      "NAMETAG",
+      "TROPHY",
+      "PREMIUM_HELMET", // covered by the premhat (Hatrack) resolver
+    ]);
     for (const it of DR_ITEMS) {
       if (!statSet.has(it.stat)) continue;
       if (equippedKeys.has(it.key)) continue;
-      // Skip obols — they're rendered (with their own catalog) by the
-      // dedicated `obol` resolver, which sits as a sibling of this
-      // equipment node under etcBonus. Including them here would double-
-      // list every unequipped DR obol in the tree.
-      if (it.type.endsWith("_OBOL")) continue;
+      if (SKIP_TYPES_IN_EQUIPMENT_CATALOG.has(it.type)) continue;
       const bucket = TYPE_LABELS[it.type] || it.type;
       if (!catalogByType.has(bucket)) catalogByType.set(bucket, []);
       catalogByType.get(bucket)!.push(it);
