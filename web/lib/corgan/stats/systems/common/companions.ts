@@ -25,8 +25,14 @@ export const companion = {
       return node(
         name,
         0,
-        [node("Not owned", 0, null, { fmt: "raw" })],
-        { note: "companion " + id }
+        [
+          node("Not owned", 0, null, { fmt: "raw" }),
+          node("Would grant", bonusVal, null, {
+            fmt: "+",
+            note: "if owned",
+          }),
+        ],
+        { note: "Not owned — would grant +" + bonusVal }
       );
     }
     return node(
@@ -36,7 +42,7 @@ export const companion = {
         node("Owned", 1, null, { fmt: "raw" }),
         node("Bonus", bonusVal, null, { fmt: "+" }),
       ],
-      { fmt: "+", note: "companion " + id }
+      { fmt: "+" }
     );
   },
 };
@@ -61,7 +67,7 @@ export const compMulti = {
         node("Cap", cap, null, { fmt: "x" }),
         node("Result", val, null, { fmt: "x" }),
       ],
-      { fmt: "x", note: "compMulti " + id }
+      { fmt: "x" }
     );
   },
 };

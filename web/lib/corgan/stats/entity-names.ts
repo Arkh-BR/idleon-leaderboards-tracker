@@ -16,9 +16,12 @@ import { ENTITY_NAMES } from "./data/entity-names.gen";
 // the ones we generated in ENTITY_NAMES (the generator picks the closest IT
 // data section but the descriptor may use a near-synonym).
 const SYSTEM_ALIASES: Record<string, string[]> = {
-  cardset: ["card"],
+  cardset: ["cardSet", "card"],
   cardsingle: ["card"],
-  compmulti: [], // companions aren't in IT website-data
+  "card set": ["cardSet"],
+  "card type": ["cardType"],
+  cardtype: ["cardType"],
+  compmulti: ["compMulti", "companion"],
   sushirog: [],
   spelunkshop: [],
   legendpts: [],

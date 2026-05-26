@@ -285,6 +285,34 @@ if (data.owlData && Array.isArray(data.owlData.bonuses)) {
 }
 
 // ----------------------------------------------------------------------------
+// Companions — array { name: "King_Doot", rawName: "babaMummy", effect: ... }
+// Our descriptor uses numeric ids that index into this array.
+// ----------------------------------------------------------------------------
+const companions: Record<number, string> = {};
+if (Array.isArray(data.companions)) {
+  data.companions.forEach((c: Json, i: number) => {
+    if (c && c.name) companions[i] = humanize(c.name);
+  });
+}
+
+// ----------------------------------------------------------------------------
+// Card Types (bonus-table-id → display name) and Card Sets — these are the
+// abstracted card-system entries the descriptor refers to via "card 10" /
+// "card 101" / "cardSet 5" / "cardSet 6". They're not first-class entities
+// in website-data, so we hand-curate the four DR-relevant ones.
+// ----------------------------------------------------------------------------
+const cardType: Record<number, string> = {
+  10: "Drop Rate Cards",
+  101: "Drop Rate Multi Cards",
+};
+const cardSet: Record<number, string> = {
+  // Hardcoded card-set ID → effect mapping that mirrors cards.ts's
+  // CARD_SET_KEYS. Numeric ID is what the descriptor uses.
+  5: "Damage / Drop / EXP Set Bonus",
+  6: "Drop Rate Set Bonus",
+};
+
+// ----------------------------------------------------------------------------
 // Compose output
 // ----------------------------------------------------------------------------
 const out: Record<string, Record<string, string>> = {
@@ -316,6 +344,18 @@ const out: Record<string, Record<string, string>> = {
   bubble: bubbles,
   owl: Object.fromEntries(
     Object.entries(owl).map(([k, v]) => [k, v])
+  ),
+  companion: Object.fromEntries(
+    Object.entries(companions).map(([k, v]) => [k, v])
+  ),
+  compMulti: Object.fromEntries(
+    Object.entries(companions).map(([k, v]) => [k, v])
+  ),
+  cardType: Object.fromEntries(
+    Object.entries(cardType).map(([k, v]) => [k, v])
+  ),
+  cardSet: Object.fromEntries(
+    Object.entries(cardSet).map(([k, v]) => [k, v])
   ),
 };
 
