@@ -10,19 +10,26 @@ export type CorganNode = {
   children?: CorganNode[];
   fmt?: NodeFmt;
   note?: string;
+  /** When true, this node starts collapsed in the deep-view regardless of
+   *  the default "depth < N open" heuristic. Used for low-signal branches
+   *  (e.g. Chip Cap-Break when inactive) that would otherwise grab
+   *  vertical space alongside the heavyweight Additive Pool /
+   *  Post-Processing sections. */
+  defaultClosed?: boolean;
 };
 
 export function node(
   name: string,
   val: number | null | undefined,
   children?: CorganNode[] | null,
-  opts?: { fmt?: NodeFmt; note?: string }
+  opts?: { fmt?: NodeFmt; note?: string; defaultClosed?: boolean }
 ): CorganNode {
   const r: CorganNode = { name, val: val || 0 };
   if (children && children.length) r.children = children;
   if (opts) {
     if (opts.fmt) r.fmt = opts.fmt;
     if (opts.note) r.note = opts.note;
+    if (opts.defaultClosed) r.defaultClosed = true;
   }
   return r;
 }

@@ -89,12 +89,16 @@ function joinPath(segments: string[]): string {
 function isPathOpen(
   path: string,
   depth: number,
-  state: ExpandState
+  state: ExpandState,
+  node?: CorganNode
 ): boolean {
   const override = state.overrides[path];
   if (override !== undefined) return override;
   if (state.globalForce === "open") return true;
   if (state.globalForce === "closed") return false;
+  // Nodes marked defaultClosed override the depth heuristic — start closed
+  // (categorize-bucket pattern) until the user clicks.
+  if (node?.defaultClosed) return false;
   return depth < DEFAULT_OPEN_MAX_DEPTH;
 }
 
@@ -277,7 +281,7 @@ function TreeRow({
   // child-row pass-through. Must be derived before the `open` lookup.
   const pathSegments = [...parentPath, node.name];
   const path = joinPath(pathSegments);
-  const open = isPathOpen(path, depth, expandState);
+  const open = isPathOpen(path, depth, expandState, node);
   const arrow = hasChildren ? (open ? "▾" : "▸") : "·";
 
   // Pool-weight badge — for leaves under one of the additive pools, compute

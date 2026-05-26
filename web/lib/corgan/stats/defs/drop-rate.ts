@@ -206,16 +206,29 @@ const dropRateDesc: Descriptor = {
     // Charm — earlier label was wrong).
     const olaBucket = wrapInBucket(pf[1], "🥷 Sneaking Mastery", "+");
 
+    // LUK Scaling — collapse the previous standalone "× 1.4" sibling INTO
+    // this wrapper so the section reads top-to-bottom as the math chain:
+    //   🍀 Total LUK  →  curve  →  × 1.4  =  lukC (contribution to addSum).
+    // Parent val = lukC so the headline matches what actually feeds the
+    // Additive Pool, not the pre-×1.4 luk curve.
+    const lukScalingChildren: CorganNode[] = pools.base.items[0]?.children
+      ? [...pools.base.items[0].children]
+      : [];
+    lukScalingChildren.push({
+      name: "× 1.4",
+      val: lukC,
+      fmt: "raw",
+      note: "1.4 × lukScaling",
+    });
+
     const children: CorganNode[] = [
       {
         name: "LUK Scaling",
-        val: lukVal,
-        children: pools.base.items[0]
-          ? pools.base.items[0].children
-          : undefined,
+        val: lukC,
+        children: lukScalingChildren,
         fmt: "raw",
+        note: "Total LUK → curve → × 1.4 = contribution to additive sum",
       },
-      { name: "× 1.4", val: lukC, fmt: "raw", note: "1.4 × lukScaling" },
       {
         name: "Additive Pool",
         val: addSum,
@@ -239,6 +252,12 @@ const dropRateDesc: Descriptor = {
         val: chipApplied,
         children: pools.chipDR.items,
         fmt: "+",
+        // Collapse by default — most characters have base ≥ 5× so this row
+        // sits inactive and would just take vertical space next to the
+        // Additive Pool / Post-Processing sections that the user actually
+        // wants to scan. Matches the categorize-bucket pattern (Talents /
+        // Cards / etc. all default-closed).
+        defaultClosed: true,
         note:
           chipApplied > 0
             ? "Applies when base < 5×"
