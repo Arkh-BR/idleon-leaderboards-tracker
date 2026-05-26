@@ -298,9 +298,9 @@ export const nametag = {
     }
 
     // Catalog of nametags not yet placed in the gallery (Spelunk[17] level
-    // either missing or 0). Every DR-relevant nametag in the game shows up
-    // as a zero-val row so the user sees the upgrade path. Filtered by the
-    // stat type requested (etcBonus 2 / 99 / 91 each pull their own subset).
+    // either missing or 0). Every DR-relevant nametag shows up directly
+    // alongside the equipped ones as a zero-val row — no extra grouping —
+    // so the user sees the upgrade path in line with what they already have.
     const unowned: { id: number; name: string; baseVal: number }[] = [];
     for (const idxStr of Object.keys(NAMETAG_DR)) {
       const idx = Number(idxStr);
@@ -316,24 +316,13 @@ export const nametag = {
         });
       }
     }
-    if (unowned.length > 0) {
-      unowned.sort((a, b) => b.baseVal - a.baseVal);
-      const catalogChildren = unowned.map((u) =>
+    unowned.sort((a, b) => b.baseVal - a.baseVal);
+    for (const u of unowned) {
+      children.push(
         node(u.name, 0, null, {
           fmt: "+",
           note: `Not in gallery — base +${u.baseVal}, scales with Tier × Gallery Bonus Multi`,
         })
-      );
-      children.push(
-        node(
-          `Available Nametags (not in gallery) — ${unowned.length}`,
-          0,
-          catalogChildren,
-          {
-            fmt: "+",
-            note: "Place any of these in the Gallery to add their bonus",
-          }
-        )
       );
     }
 
@@ -386,10 +375,10 @@ export const trophy = {
       }
     }
 
-    // Catalog of trophies the user hasn't placed yet — every DR-relevant
-    // trophy in the game emits a zero-val row so the user sees what they
-    // could earn. Skip TROPHY_DR entries whose stats don't match the
-    // requested etcBonus id (e.g. etcBonus 91 only lists DR Multi trophies).
+    // Catalog of trophies the user hasn't earned + placed — every DR-
+    // relevant trophy emits a zero-val row directly under the equipped
+    // ones (no extra grouping). Stats are filtered against the requested
+    // etcBonus id so DR-Multi trophies only show under stat 91, etc.
     const unowned: { id: number; name: string; baseVal: number }[] = [];
     for (const idStr of Object.keys(TROPHY_DR)) {
       const idx = Number(idStr);
@@ -405,24 +394,13 @@ export const trophy = {
         });
       }
     }
-    if (unowned.length > 0) {
-      unowned.sort((a, b) => b.baseVal - a.baseVal);
-      const catalogChildren = unowned.map((u) =>
+    unowned.sort((a, b) => b.baseVal - a.baseVal);
+    for (const u of unowned) {
+      children.push(
         node(u.name, 0, null, {
           fmt: "+",
           note: `Not in gallery — base +${u.baseVal}, scales with Tier × Gallery Bonus Multi`,
         })
-      );
-      children.push(
-        node(
-          `Available Trophies (not in gallery) — ${unowned.length}`,
-          0,
-          catalogChildren,
-          {
-            fmt: "+",
-            note: "Place any of these in the Gallery to add their bonus",
-          }
-        )
       );
     }
 
