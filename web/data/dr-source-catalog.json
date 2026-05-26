@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-26T20:17:06.318Z",
+  "generatedAt": "2026-05-26T20:27:14.136Z",
   "refTotal": 43093.43816941274,
   "refSave": "zArkhe (save 25-21-16.json) — Town, no AC",
   "sourceCount": 75,
@@ -168,6 +168,7 @@
               "fmt": "raw",
               "refValue": 16,
               "bucket": "🎯 Talents",
+              "note": "family 34",
               "children": [
                 {
                   "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Family Bonus 68 (Mage) / Best Mage Lv",
@@ -571,6 +572,7 @@
               "fmt": "raw",
               "refValue": 16,
               "bucket": "🎯 Talents",
+              "note": "family 34",
               "children": [
                 {
                   "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Family Bonus 68 (Mage) / Best Mage Lv",
@@ -6930,6 +6932,7 @@
                   "fmt": "raw",
                   "refValue": 16,
                   "bucket": "🎯 Talents",
+                  "note": "family 34",
                   "children": [
                     {
                       "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Bonus Levels / Family Bonus 68 (Mage) / Best Mage Lv",

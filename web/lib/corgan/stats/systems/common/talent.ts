@@ -345,28 +345,19 @@ function resolveAllTalentLVz(
     children.push(node(label("Achievement", 291), achieve291, null, { fmt: "raw" }));
   }
 
-  // Family bonus 68 (Mage)
+  // Family bonus 68 (Mage). N.js iterates every player × class chain ×
+  // formula slot, then KEEPS THE MAX. The active char's contribution
+  // ALSO gets multiplied by (1 + GetTalentNumber(1, 144) / 100) — Sad
+  // Souls for Wizards. Previously we shortcut "if maxMageCharIdx ===
+  // slotIdx, apply the buff" which misses an edge case: if the active
+  // char is a different mage AND their Sad Souls buff is big enough,
+  // their buffed contribution might exceed the unbuffed best mage's
+  // — in which case the active char becomes the slot's owner. Fixed by
+  // looping all mages, applying the buff per-char (only the slotIdx
+  // one), and picking the actual max.
   const fb34 = familyBonusParams(34);
-  let maxMageCharLv = 0;
-  let maxMageCharIdx = -1;
-  for (let ci = 0; ci < numCharacters; ci++) {
-    const cls = (charClassData as any)[ci];
-    if (cls === 34 || cls === 38) {
-      const lv =
-        ((saveData as any).lv0AllData?.[ci] && (saveData as any).lv0AllData[ci][0]) ||
-        0;
-      if (lv > maxMageCharLv) {
-        maxMageCharLv = lv;
-        maxMageCharIdx = ci;
-      }
-    }
-  }
-  const famN = Math.max(0, Math.round(maxMageCharLv - (fb34 as any).lvOffset));
-  let famBonus68 =
-    famN > 0
-      ? formulaEval((fb34 as any).formula, (fb34 as any).x1, (fb34 as any).x2, famN)
-      : 0;
-  if (famBonus68 > 0 && maxMageCharIdx === slotIdx) {
+  let tal144Mult = 1;
+  {
     const rawLv144 =
       Number((skillLvData as any)[slotIdx] && (skillLvData as any)[slotIdx][144]) || 0;
     if (rawLv144 > 0) {
@@ -384,11 +375,48 @@ function resolveAllTalentLVz(
         (t144 as any).x2,
         effLv144
       );
-      famBonus68 = famBonus68 * (1 + tal144Val / 100);
+      tal144Mult = 1 + tal144Val / 100;
     }
   }
+  let famBonus68 = 0;
+  let maxMageCharLv = 0;
+  let bestContribCharIdx = -1;
+  let bestUsedTal144 = false;
+  for (let ci = 0; ci < numCharacters; ci++) {
+    const cls = (charClassData as any)[ci];
+    if (cls !== 34 && cls !== 38) continue;
+    const lv =
+      ((saveData as any).lv0AllData?.[ci] && (saveData as any).lv0AllData[ci][0]) ||
+      0;
+    const n = Math.max(0, Math.round(lv - (fb34 as any).lvOffset));
+    if (n <= 0) continue;
+    let contrib = formulaEval(
+      (fb34 as any).formula,
+      (fb34 as any).x1,
+      (fb34 as any).x2,
+      n
+    );
+    // Sad Souls (Talent 144) buff — only on the iteration where this
+    // char IS the active char.
+    const usedBuff = ci === slotIdx && tal144Mult > 1;
+    if (usedBuff) contrib *= tal144Mult;
+    if (contrib > famBonus68) {
+      famBonus68 = contrib;
+      maxMageCharLv = lv;
+      bestContribCharIdx = ci;
+      bestUsedTal144 = usedBuff;
+    }
+  }
+  // Kept for downstream code paths that still reference these (the
+  // original computeAllTalentLVz block at line ~180 uses these names).
+  const maxMageCharIdx = bestContribCharIdx;
+  // Surface whether the Sad Souls buff actually won this slot — useful
+  // when researching edge cases.
+  void maxMageCharIdx;
+  const famN = Math.max(0, Math.round(maxMageCharLv - (fb34 as any).lvOffset));
   const famFloor = Math.floor(famBonus68);
   if (famFloor > 0) {
+    const buffNote = bestUsedTal144 ? " — buffed by Sad Souls (Talent 144)" : "";
     children.push(
       node(
         "Family Bonus 68 (Mage)",
@@ -397,7 +425,7 @@ function resolveAllTalentLVz(
           node("Best Mage Lv", maxMageCharLv, null, { fmt: "raw" }),
           node("N = max(0, " + maxMageCharLv + " - 69)", famN, null, { fmt: "raw" }),
         ],
-        { fmt: "raw" }
+        { fmt: "raw", note: "family 34" + buffNote }
       )
     );
   }
