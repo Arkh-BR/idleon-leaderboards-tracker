@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-26T15:51:00.577Z",
+  "generatedAt": "2026-05-26T16:05:22.195Z",
   "refTotal": 43093.43816941274,
   "refSave": "zArkhe (save 25-21-16.json) — Froggy Fields",
   "sourceCount": 75,
@@ -52,7 +52,8 @@
     "Arcane Map": "🗺️",
     "Glimbo": "🎲",
     "Workshop": "🛠️",
-    "Gear": "🎽",
+    "Equipment": "🎽",
+    "Obols": "🪙",
     "Gallery": "🖼️",
     "Hatrack": "🎩",
     "Golden Food": "🍔",
@@ -538,24 +539,24 @@
       "bucket": "🪨 Spelunk Shop"
     },
     {
-      "id": "Drop Rate / Additive Pool / 🎽 Gear / Equipment (etcBonus 2)",
+      "id": "Drop Rate / Additive Pool / 🎽 Equipment / Equipment (etcBonus 2)",
       "name": "Equipment (etcBonus 2)",
-      "system": "Gear",
+      "system": "Equipment",
       "world": "Character",
       "pool": "Additive",
       "fmt": "+",
       "refValue": 0,
-      "bucket": "🎽 Gear"
+      "bucket": "🎽 Equipment"
     },
     {
-      "id": "Drop Rate / Additive Pool / 🎽 Gear / Obols (etcBonus 2)",
+      "id": "Drop Rate / Additive Pool / 🪙 Obols / Obols (etcBonus 2)",
       "name": "Obols (etcBonus 2)",
-      "system": "Gear",
+      "system": "Obols",
       "world": "Character",
       "pool": "Additive",
       "fmt": "+",
       "refValue": 265,
-      "bucket": "🎽 Gear"
+      "bucket": "🪙 Obols"
     },
     {
       "id": "Drop Rate / Additive Pool / 🖼️ Gallery / Nametags (etcBonus 2)",
@@ -758,24 +759,24 @@
       "bucket": "🎲 Glimbo"
     },
     {
-      "id": "Drop Rate / Post-Processing / 🎽 Gear / Equipment (etcBonus 99)",
+      "id": "Drop Rate / Post-Processing / 🎽 Equipment / Equipment (etcBonus 99)",
       "name": "Equipment (etcBonus 99)",
-      "system": "Gear",
+      "system": "Equipment",
       "world": "Character",
       "pool": "Multi",
       "fmt": "+",
       "refValue": 86.6,
-      "bucket": "🎽 Gear"
+      "bucket": "🎽 Equipment"
     },
     {
-      "id": "Drop Rate / Post-Processing / 🎽 Gear / Equipment (etcBonus 91)",
+      "id": "Drop Rate / Post-Processing / 🎽 Equipment / Equipment (etcBonus 91)",
       "name": "Equipment (etcBonus 91)",
-      "system": "Gear",
+      "system": "Equipment",
       "world": "Character",
       "pool": "Multi",
       "fmt": "+",
       "refValue": 40,
-      "bucket": "🎽 Gear"
+      "bucket": "🎽 Equipment"
     },
     {
       "id": "Drop Rate / Post-Processing / 🖼️ Gallery / Nametags (etcBonus 91)",
@@ -831,8 +832,8 @@
   "itSeed": {
     "schema": "dr-max-values",
     "version": 1,
-    "generatedAt": "2026-05-26T15:47:39.275Z",
-    "catalogGeneratedAt": "2026-05-26T15:37:31.211Z",
+    "generatedAt": "2026-05-26T16:05:20.853Z",
+    "catalogGeneratedAt": "2026-05-26T16:05:19.655Z",
     "source": "Seeded from IT leaderboards top-1 (fetch-it-leaderboards.ts).",
     "drTopReference": "IT top character/dropRate: BopeBrancis = 72660.674x",
     "values": {

@@ -1,8 +1,8 @@
 {
   "schema": "dr-max-values",
   "version": 1,
-  "generatedAt": "2026-05-26T15:47:39.275Z",
-  "catalogGeneratedAt": "2026-05-26T15:37:31.211Z",
+  "generatedAt": "2026-05-26T16:05:20.853Z",
+  "catalogGeneratedAt": "2026-05-26T16:05:19.655Z",
   "source": "Seeded from IT leaderboards top-1 (fetch-it-leaderboards.ts).",
   "drTopReference": "IT top character/dropRate: BopeBrancis = 72660.674x",
   "values": {
