@@ -180,51 +180,73 @@ type SystemKey =
   | "Button"
   | "Other";
 
-const SYSTEM_RULES: Array<{ key: SystemKey; match: RegExp }> = [
-  { key: "Talents", match: /^Talent\b/i },
-  { key: "Stamps", match: /^Stamp\b/i },
-  { key: "Sigils", match: /^Sigil\b/i },
-  { key: "Alchemy", match: /^(Bubble|Vial|Alchemy|DROPPIN|Cauldron|Atom)\b/i },
-  { key: "Prayers", match: /^Prayer\b/i },
-  { key: "Shrines", match: /^Shrine\b/i },
-  { key: "Arcade", match: /^Arcade\b/i },
-  { key: "Voting", match: /^Voting\b/i },
-  { key: "Cards", match: /^(Card|CardSet|CardSingle)\b/i },
-  { key: "Guild", match: /^Guild\b/i },
-  { key: "Star Signs", match: /^(Star ?Sign|Seraph)\b/i },
-  { key: "Post Office", match: /^(Post ?Office|PO )\b/i },
-  { key: "ETC Bonus", match: /^(ETC|EtcBonus|Etc)\b/i },
-  { key: "Shiny Pets", match: /^Shiny\b/i },
-  { key: "Companions", match: /^(Companion|CompMulti)\b/i },
-  { key: "Win Bonus", match: /^Win ?Bonus\b/i },
-  { key: "Tomes", match: /^Tome\b/i },
-  { key: "Grids/Lab", match: /^(Grid|Lab)\b/i },
-  { key: "Chips", match: /^Chip\b/i },
-  { key: "Dreams", match: /^Dream\b/i },
-  { key: "Cloud Bonus", match: /^(Cloud|CloudBonus)\b/i },
-  { key: "Golden Food", match: /^(Golden Food|GFood|GoldenFood)\b/i },
-  { key: "Achievements", match: /^Achievement\b/i },
-  { key: "Owl", match: /^Owl\b/i },
-  { key: "Grimoire", match: /^Grimoire\b/i },
-  { key: "Vault", match: /^Vault\b/i },
-  { key: "Farming", match: /^(Farm|Crop|Exotic|Rank ?9)\b/i },
-  { key: "Holes", match: /^(Hole|Upg ?\d|Meas|Monument)\b/i },
-  { key: "Emperor", match: /^Emperor\b/i },
-  { key: "Set Bonus", match: /^(Set Bonus|Efaunt|Kattlekruk Set|SECRET_SET)\b/i },
-  { key: "Friends", match: /^Friend\b/i },
-  { key: "Legends", match: /^Legend\b/i },
-  { key: "Spelunk Shop", match: /^Spelunk\b/i },
-  { key: "Bundles", match: /^(Bundle|Bun_)\b/i },
-  { key: "OLA", match: /^(OLA|Sneaking)\b/i },
-  { key: "Arcane Map", match: /^(Arcane|ArcaneMap)\b/i },
-  { key: "Sushi", match: /^(Sushi|SushiRoG)\b/i },
-  { key: "Minehead", match: /^Minehead\b/i },
-  { key: "Pristine Charm", match: /^Pristine\b/i },
-  { key: "Glimbo", match: /^Glimbo\b/i },
-  { key: "Workshop", match: /^Workshop\b/i },
-  { key: "Event Shop", match: /^(Event ?Shop|EventShop)\b/i },
-  { key: "LUK / Stats", match: /^(LUK|Total LUK|Sub-1000|Over-1000)\b/i },
-  { key: "Button", match: /^Button\b/i },
+// Higher-level grouping shown as a sub-header in the By System layout. Each
+// SystemKey rolls up under a Category, and visually we sort by Category first
+// (so all character-progression sources cluster together, separate from
+// world-specific bonuses, multipliers, etc.).
+type Category =
+  | "Character"
+  | "Worlds"
+  | "Boosts & Sets"
+  | "Multipliers";
+
+const SYSTEM_RULES: Array<{
+  key: SystemKey;
+  match: RegExp;
+  icon: string;
+  category: Category;
+}> = [
+  // Character
+  { key: "LUK / Stats", match: /^(LUK|Total LUK|Sub-1000|Over-1000)\b/i, icon: "🍀", category: "Character" },
+  { key: "Talents", match: /^Talent\b/i, icon: "📚", category: "Character" },
+  { key: "Star Signs", match: /^(Star ?Sign|Seraph)\b/i, icon: "✨", category: "Character" },
+  { key: "Cards", match: /^(Card|CardSet|CardSingle)\b/i, icon: "🃏", category: "Character" },
+  { key: "Achievements", match: /^Achievement\b/i, icon: "🏅", category: "Character" },
+  { key: "Companions", match: /^(Companion|CompMulti)\b/i, icon: "🐾", category: "Character" },
+  { key: "Friends", match: /^Friend\b/i, icon: "🤝", category: "Character" },
+
+  // World systems
+  { key: "Stamps", match: /^Stamp\b/i, icon: "📜", category: "Worlds" },
+  { key: "Alchemy", match: /^(Bubble|Vial|Alchemy|DROPPIN|Cauldron|Atom)\b/i, icon: "⚗️", category: "Worlds" },
+  { key: "Post Office", match: /^(Post ?Office|PO )\b/i, icon: "📮", category: "Worlds" },
+  { key: "Arcade", match: /^Arcade\b/i, icon: "🎮", category: "Worlds" },
+  { key: "Voting", match: /^Voting\b/i, icon: "🗳️", category: "Worlds" },
+  { key: "Sigils", match: /^Sigil\b/i, icon: "🔮", category: "Worlds" },
+  { key: "Prayers", match: /^Prayer\b/i, icon: "🙏", category: "Worlds" },
+  { key: "Shrines", match: /^Shrine\b/i, icon: "⛩️", category: "Worlds" },
+  { key: "Guild", match: /^Guild\b/i, icon: "🛡️", category: "Worlds" },
+  { key: "Shiny Pets", match: /^Shiny\b/i, icon: "🐉", category: "Worlds" },
+  { key: "Tomes", match: /^Tome\b/i, icon: "📖", category: "Worlds" },
+  { key: "Grids/Lab", match: /^(Grid|Lab)\b/i, icon: "🔬", category: "Worlds" },
+  { key: "Chips", match: /^Chip\b/i, icon: "💎", category: "Worlds" },
+  { key: "Dreams", match: /^Dream\b/i, icon: "💭", category: "Worlds" },
+  { key: "Cloud Bonus", match: /^(Cloud|CloudBonus)\b/i, icon: "☁️", category: "Worlds" },
+  { key: "Owl", match: /^Owl\b/i, icon: "🦉", category: "Worlds" },
+  { key: "Grimoire", match: /^Grimoire\b/i, icon: "📕", category: "Worlds" },
+  { key: "Vault", match: /^Vault\b/i, icon: "🏦", category: "Worlds" },
+  { key: "Farming", match: /^(Farm|Crop|Exotic|Rank ?9)\b/i, icon: "🌾", category: "Worlds" },
+  { key: "Holes", match: /^(Hole|Upg ?\d|Meas|Monument)\b/i, icon: "🕳️", category: "Worlds" },
+  { key: "Emperor", match: /^Emperor\b/i, icon: "👑", category: "Worlds" },
+  { key: "Legends", match: /^Legend\b/i, icon: "⚔️", category: "Worlds" },
+  { key: "Spelunk Shop", match: /^Spelunk\b/i, icon: "🪨", category: "Worlds" },
+  { key: "Sushi", match: /^(Sushi|SushiRoG)\b/i, icon: "🍣", category: "Worlds" },
+  { key: "Minehead", match: /^Minehead\b/i, icon: "⛏️", category: "Worlds" },
+  { key: "Button", match: /^Button\b/i, icon: "🔘", category: "Worlds" },
+
+  // Boosts & Sets
+  { key: "Golden Food", match: /^(Golden Food|GFood|GoldenFood)\b/i, icon: "🍔", category: "Boosts & Sets" },
+  { key: "ETC Bonus", match: /^(ETC|EtcBonus|Etc)\b/i, icon: "🎁", category: "Boosts & Sets" },
+  { key: "Set Bonus", match: /^(Set Bonus|Efaunt|Kattlekruk Set|SECRET_SET)\b/i, icon: "🎽", category: "Boosts & Sets" },
+  { key: "Bundles", match: /^(Bundle|Bun_)\b/i, icon: "📦", category: "Boosts & Sets" },
+  { key: "Pristine Charm", match: /^Pristine\b/i, icon: "🌟", category: "Boosts & Sets" },
+  { key: "OLA", match: /^(OLA|Sneaking)\b/i, icon: "🥷", category: "Boosts & Sets" },
+  { key: "Event Shop", match: /^(Event ?Shop|EventShop)\b/i, icon: "🛍️", category: "Boosts & Sets" },
+  { key: "Win Bonus", match: /^Win ?Bonus\b/i, icon: "🏆", category: "Boosts & Sets" },
+
+  // Multipliers (post-processing chain)
+  { key: "Glimbo", match: /^Glimbo\b/i, icon: "🎲", category: "Multipliers" },
+  { key: "Workshop", match: /^Workshop\b/i, icon: "🛠️", category: "Multipliers" },
+  { key: "Arcane Map", match: /^(Arcane|ArcaneMap)\b/i, icon: "🗺️", category: "Multipliers" },
 ];
 
 function classifyNode(name: string): SystemKey {
@@ -233,6 +255,20 @@ function classifyNode(name: string): SystemKey {
   }
   return "Other";
 }
+
+function systemMeta(key: SystemKey): { icon: string; category: Category } {
+  for (const rule of SYSTEM_RULES) {
+    if (rule.key === key) return { icon: rule.icon, category: rule.category };
+  }
+  return { icon: "•", category: "Multipliers" };
+}
+
+const CATEGORY_ORDER: Category[] = [
+  "Character",
+  "Worlds",
+  "Boosts & Sets",
+  "Multipliers",
+];
 
 // -----------------------------------------------------------------------------
 // Tree introspection helpers
@@ -397,23 +433,45 @@ function TreeRow({
     );
   }, [node.name, searchTerm]);
 
+  // Depth-based visual styling: top-level pools get heavier weight, deeper
+  // nodes get progressively lighter so the eye can skim categories quickly.
+  const isPoolHeader = depth === 1; // pools sit at depth 1 under root
+  const isSubSource = depth >= 3; // sub-source breakdown (formula inputs)
+  const isZero = Math.abs(Number(node.val) || 0) < 1e-9;
+
   return (
     <div>
       <div
-        className={`flex items-center gap-2 px-2 py-1 border-b border-white/5 text-sm ${
-          hasChildren ? "cursor-pointer hover:bg-white/5" : ""
-        }`}
-        style={{ paddingLeft: `${0.5 + depth * 1.1}rem` }}
+        className={`group flex items-center gap-2 px-2 border-b border-white/5 transition-colors ${
+          hasChildren ? "cursor-pointer hover:bg-sky-500/5" : ""
+        } ${
+          isPoolHeader
+            ? "py-2 bg-zinc-900/40 font-semibold text-sm"
+            : isSubSource
+            ? "py-0.5 text-xs"
+            : "py-1.5 text-sm"
+        } ${isZero && !hasChildren ? "opacity-40" : ""}`}
+        style={{ paddingLeft: `${0.5 + depth * 1.0}rem` }}
         onClick={() => hasChildren && onToggle(path, !open)}
         title={node.note}
       >
-        <span className="w-4 text-zinc-500 select-none flex-shrink-0">
+        <span
+          className={`w-4 select-none flex-shrink-0 ${
+            hasChildren ? "text-zinc-400 group-hover:text-sky-400" : "text-zinc-700"
+          }`}
+        >
           {arrow}
         </span>
-        <span className="flex-1 whitespace-nowrap overflow-hidden text-ellipsis text-zinc-200">
-          {nameSpan}
+        <span
+          className={`flex-1 min-w-0 ${
+            isPoolHeader ? "text-zinc-100" : isSubSource ? "text-zinc-400" : "text-zinc-200"
+          }`}
+        >
+          <span className="truncate inline-block max-w-full align-middle">
+            {nameSpan}
+          </span>
           {node.note && (
-            <span className="ml-2 text-[10px] text-zinc-500 italic">
+            <span className="ml-2 text-[10px] text-zinc-500 italic font-normal">
               {node.note}
             </span>
           )}
@@ -566,6 +624,9 @@ function SystemView({
   hideZero: boolean;
 }) {
   const leaves = useMemo(() => collectLeaves(root), [root]);
+
+  // Group leaves by SystemKey; entries within each system sorted by absolute
+  // val descending so the heaviest hitters appear first.
   const grouped = useMemo(() => {
     const map = new Map<SystemKey, LeafEntry[]>();
     for (const l of leaves) {
@@ -573,73 +634,106 @@ function SystemView({
       if (!map.has(key)) map.set(key, []);
       map.get(key)!.push(l);
     }
-    // Sort entries inside each group by absolute val desc (biggest first)
     for (const [, arr] of map) {
       arr.sort((a, b) => Math.abs(b.node.val) - Math.abs(a.node.val));
     }
     return map;
   }, [leaves]);
 
-  const orderedKeys = useMemo(() => {
-    // Sort groups by total absolute val desc so heaviest hitters are on top
+  // Within each category, order systems by total absolute val descending —
+  // so "Talents" surfaces before "Friends" in Character, etc.
+  const orderedByCategory = useMemo(() => {
     const totals = new Map<SystemKey, number>();
     for (const [k, arr] of grouped) {
-      const t = arr.reduce((a, e) => a + Math.abs(e.node.val), 0);
-      totals.set(k, t);
+      totals.set(k, arr.reduce((a, e) => a + Math.abs(e.node.val), 0));
     }
-    return Array.from(grouped.keys()).sort(
-      (a, b) => (totals.get(b) ?? 0) - (totals.get(a) ?? 0)
-    );
+    const byCategory = new Map<Category, SystemKey[]>();
+    for (const k of grouped.keys()) {
+      const cat = systemMeta(k).category;
+      if (!byCategory.has(cat)) byCategory.set(cat, []);
+      byCategory.get(cat)!.push(k);
+    }
+    for (const [, arr] of byCategory) {
+      arr.sort((a, b) => (totals.get(b) ?? 0) - (totals.get(a) ?? 0));
+    }
+    return byCategory;
   }, [grouped]);
 
   const q = searchTerm.toLowerCase();
+
+  // Compute the visible-entry set per system once (search + hide-zero), then
+  // render category-by-category.
+  type VisibleSystem = {
+    key: SystemKey;
+    entries: LeafEntry[];
+    total: number;
+    activeCount: number;
+    totalCount: number;
+    groupTotal: number | null;
+    groupFmt: string | undefined;
+  };
+  const visibleByCategory = new Map<Category, VisibleSystem[]>();
   let visibleCount = 0;
-  const rendered = orderedKeys.map((key) => {
-    const entries = grouped.get(key) ?? [];
-    const visibleEntries = entries.filter((e) => {
-      if (hideZero && Math.abs(e.node.val) < 1e-9) return false;
-      if (searchTerm) {
-        const matchesName =
-          e.node.name.toLowerCase().includes(q) ||
-          (e.node.note ?? "").toLowerCase().includes(q) ||
-          key.toLowerCase().includes(q);
-        if (!matchesName) return false;
+  for (const cat of CATEGORY_ORDER) {
+    const keys = orderedByCategory.get(cat) ?? [];
+    for (const key of keys) {
+      const entries = grouped.get(key) ?? [];
+      const filteredEntries = entries.filter((e) => {
+        if (hideZero && Math.abs(e.node.val) < 1e-9) return false;
+        if (searchTerm) {
+          const matches =
+            e.node.name.toLowerCase().includes(q) ||
+            (e.node.note ?? "").toLowerCase().includes(q) ||
+            key.toLowerCase().includes(q);
+          if (!matches) return false;
+        }
+        return true;
+      });
+      if (filteredEntries.length === 0) continue;
+      visibleCount += filteredEntries.length;
+
+      // Active count: entries with non-zero val within the unfiltered group
+      const activeCount = entries.filter(
+        (e) => Math.abs(Number(e.node.val) || 0) > 1e-9
+      ).length;
+
+      // Group total: sum for all-additive, product for all-multiplicative, or
+      // null when entries mix formats (showing a single total is misleading).
+      const fmts = new Set(filteredEntries.map((e) => e.node.fmt));
+      let groupTotal: number | null = null;
+      let groupFmt: string | undefined;
+      if (fmts.size === 1) {
+        const fmt = filteredEntries[0].node.fmt;
+        if (fmt === "+") {
+          groupTotal = filteredEntries.reduce(
+            (a, e) => a + (Number(e.node.val) || 0),
+            0
+          );
+          groupFmt = "+";
+        } else if (fmt === "x") {
+          groupTotal = filteredEntries.reduce(
+            (a, e) => a * (Number(e.node.val) || 1),
+            1
+          );
+          groupFmt = "x";
+        }
       }
-      return true;
-    });
-    if (visibleEntries.length === 0) return null;
-    visibleCount += visibleEntries.length;
-    // Group total: sum for all-additive groups, product for all-multiplicative,
-    // null when mixed (showing it would be misleading).
-    const fmts = new Set(visibleEntries.map((e) => e.node.fmt));
-    let groupTotal: number | null = null;
-    let groupFmt: string | undefined;
-    if (fmts.size === 1) {
-      const fmt = visibleEntries[0].node.fmt;
-      if (fmt === "+") {
-        groupTotal = visibleEntries.reduce(
-          (a, e) => a + (Number(e.node.val) || 0),
-          0
-        );
-        groupFmt = "+";
-      } else if (fmt === "x") {
-        groupTotal = visibleEntries.reduce(
-          (a, e) => a * (Number(e.node.val) || 1),
-          1
-        );
-        groupFmt = "x";
-      }
+      const totalAbs = filteredEntries.reduce(
+        (a, e) => a + Math.abs(e.node.val),
+        0
+      );
+      if (!visibleByCategory.has(cat)) visibleByCategory.set(cat, []);
+      visibleByCategory.get(cat)!.push({
+        key,
+        entries: filteredEntries,
+        total: totalAbs,
+        activeCount,
+        totalCount: entries.length,
+        groupTotal,
+        groupFmt,
+      });
     }
-    return (
-      <SystemGroup
-        key={key}
-        title={key}
-        entries={visibleEntries}
-        total={groupTotal}
-        totalFmt={groupFmt}
-      />
-    );
-  });
+  }
 
   if (visibleCount === 0) {
     return (
@@ -648,7 +742,31 @@ function SystemView({
       </p>
     );
   }
-  return <div className="flex flex-col gap-3">{rendered}</div>;
+
+  return (
+    <div className="flex flex-col gap-5">
+      {CATEGORY_ORDER.filter((c) => visibleByCategory.has(c)).map((cat) => (
+        <section key={cat} aria-label={cat}>
+          <h3 className="text-[10px] uppercase tracking-[0.15em] text-zinc-500 mb-2 px-1 font-semibold">
+            {cat}
+          </h3>
+          <div className="flex flex-col gap-2">
+            {visibleByCategory.get(cat)!.map((sys) => (
+              <SystemGroup
+                key={sys.key}
+                title={sys.key}
+                entries={sys.entries}
+                total={sys.groupTotal}
+                totalFmt={sys.groupFmt}
+                activeCount={sys.activeCount}
+                totalCount={sys.totalCount}
+              />
+            ))}
+          </div>
+        </section>
+      ))}
+    </div>
+  );
 }
 
 function SystemGroup({
@@ -656,25 +774,48 @@ function SystemGroup({
   entries,
   total,
   totalFmt,
+  activeCount,
+  totalCount,
 }: {
   title: SystemKey;
   entries: LeafEntry[];
   total: number | null;
   totalFmt: string | undefined;
+  /** Sources with val !== 0 BEFORE the hide-zero filter is applied. Lets us
+   *  show "12 / 18 active" so users see what fraction of the system they've
+   *  actually unlocked vs is available. */
+  activeCount: number;
+  totalCount: number;
 }) {
   const [open, setOpen] = useState(true);
+  const meta = systemMeta(title);
+  const hasActivity = activeCount > 0;
   return (
-    <div className="rounded border border-zinc-800 bg-zinc-950/40">
+    <div
+      className={`rounded-lg border bg-zinc-950/40 transition-colors ${
+        hasActivity
+          ? "border-zinc-800 hover:border-zinc-700"
+          : "border-zinc-900 opacity-70"
+      }`}
+    >
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-white/5"
+        className="w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-white/5 rounded-t-lg"
       >
-        <span className="w-4 text-zinc-500">{open ? "▾" : "▸"}</span>
-        <span className="font-semibold text-sky-300 text-sm flex-1">
+        <span className="w-4 text-zinc-500 flex-shrink-0">{open ? "▾" : "▸"}</span>
+        <span className="text-lg flex-shrink-0" aria-hidden="true">
+          {meta.icon}
+        </span>
+        <span className="font-semibold text-sky-300 text-sm flex-1 truncate">
           {title}
           <span className="ml-2 text-[10px] text-zinc-500 font-normal">
-            {entries.length} source{entries.length === 1 ? "" : "s"}
+            <span className={hasActivity ? "text-emerald-400" : "text-zinc-600"}>
+              {activeCount}
+            </span>
+            <span className="text-zinc-700"> / </span>
+            <span>{totalCount}</span>{" "}
+            <span className="text-zinc-600">active</span>
           </span>
         </span>
         {total !== null ? (
@@ -705,29 +846,50 @@ function SystemRow({ entry }: { entry: LeafEntry }) {
   // e.g. ["Drop Rate","Main Additive Pool","Talent 279","Bonus Levels"]
   //   → "Main Additive Pool"
   const poolName = entry.path.length >= 2 ? entry.path[entry.path.length - 2] : "";
+  const isZero = Math.abs(Number(entry.node.val) || 0) < 1e-9;
+  const POOL_BADGES: Record<string, string> = {
+    "Main Additive Pool": "bg-blue-500/10 text-blue-300 border-blue-500/30",
+    "LUK2 Additive Pool": "bg-emerald-500/10 text-emerald-300 border-emerald-500/30",
+    "Post-Processing": "bg-amber-500/10 text-amber-300 border-amber-500/30",
+    "Chip Cap-Break": "bg-fuchsia-500/10 text-fuchsia-300 border-fuchsia-500/30",
+    "LUK Scaling": "bg-sky-500/10 text-sky-300 border-sky-500/30",
+  };
+  const poolBadgeClass =
+    POOL_BADGES[poolName] || "bg-zinc-800/40 text-zinc-500 border-zinc-700/60";
+  // Short label for the pool badge — strip "Pool" suffix to save space.
+  const poolShort = poolName
+    .replace(/\s*Pool$/, "")
+    .replace(/-Processing$/, " Mult")
+    .replace(/^LUK Scaling$/, "LUK")
+    .replace(/^Chip Cap-Break$/, "Chip");
   return (
     <div className="border-b border-zinc-800/50 last:border-b-0">
       <div
-        className={`flex items-center gap-2 px-4 py-1.5 text-sm ${
+        className={`flex items-center gap-2 px-4 py-2 text-sm ${
           hasChildren ? "cursor-pointer hover:bg-white/5" : ""
-        }`}
+        } ${isZero ? "opacity-50" : ""}`}
         onClick={() => hasChildren && setOpen((v) => !v)}
         title={entry.node.note}
       >
         <span className="w-3 text-zinc-600 select-none flex-shrink-0">
-          {hasChildren ? (open ? "▾" : "▸") : ""}
+          {hasChildren ? (open ? "▾" : "▸") : "•"}
         </span>
-        <span className="flex-1 text-zinc-200 truncate">
-          {entry.node.name}
+        <span className="flex-1 text-zinc-200 min-w-0">
+          <span className="truncate">{entry.node.name}</span>
           {entry.node.note && (
-            <span className="ml-2 text-[10px] text-zinc-500 italic">
+            <span className="block text-[10px] text-zinc-500 italic mt-0.5 truncate">
               {entry.node.note}
             </span>
           )}
         </span>
-        <span className="text-[10px] text-zinc-600 font-mono whitespace-nowrap">
-          {poolName}
-        </span>
+        {poolName && (
+          <span
+            className={`text-[9px] font-mono px-1.5 py-0.5 rounded border whitespace-nowrap ${poolBadgeClass}`}
+            title={`Lives under "${poolName}" in the formula tree`}
+          >
+            {poolShort}
+          </span>
+        )}
         <span
           className={`font-mono tabular-nums w-24 text-right ${valColor(
             entry.node.val,
@@ -864,105 +1026,113 @@ export default function DeepView({ tree }: { tree: CorganNode | null }) {
 
   return (
     <div className="font-sans">
-      {/* Controls bar */}
-      <div className="flex flex-wrap items-center gap-2 mb-3 p-2 rounded border border-zinc-800 bg-zinc-950/60">
-        {/* Layout toggle */}
-        <div
-          role="tablist"
-          className="inline-flex gap-1 p-0.5 rounded bg-zinc-950 border border-zinc-800"
-        >
-          <button
-            type="button"
-            onClick={() => setLayout("tree")}
-            className={`px-2 py-1 text-xs rounded ${
-              layout === "tree"
-                ? "bg-sky-500/15 text-sky-300 border border-sky-500/40"
-                : "text-zinc-400 hover:text-zinc-200"
-            }`}
-            title="Hierarchical view — pool → source → sub-source"
+      {/* Controls bar — sticky so the user can scroll the tree while keeping
+          the layout toggle, search, and expand/collapse buttons in reach. */}
+      <div className="sticky top-0 z-10 -mx-1 mb-3 backdrop-blur-md bg-zinc-950/85">
+        <div className="flex flex-wrap items-center gap-2 px-1 py-2 rounded-lg border border-zinc-800 bg-zinc-900/60 shadow-sm">
+          {/* Layout toggle */}
+          <div
+            role="tablist"
+            className="inline-flex gap-0.5 p-0.5 rounded-md bg-zinc-950 border border-zinc-800"
           >
-            🌳 Tree
-          </button>
-          <button
-            type="button"
-            onClick={() => setLayout("system")}
-            className={`px-2 py-1 text-xs rounded ${
-              layout === "system"
-                ? "bg-sky-500/15 text-sky-300 border border-sky-500/40"
-                : "text-zinc-400 hover:text-zinc-200"
-            }`}
-            title="Flat grouping by game system (Talents, Stamps, Cards…)"
-          >
-            📚 By System
-          </button>
-        </div>
-
-        {/* Search */}
-        <input
-          type="text"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          placeholder="🔍 Search source name or note…"
-          className="flex-1 min-w-[180px] px-2 py-1 text-xs bg-zinc-900 border border-zinc-800 rounded text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-sky-500"
-        />
-
-        {/* Hide-zero toggle */}
-        <label className="flex items-center gap-1.5 text-xs text-zinc-400 cursor-pointer select-none">
-          <input
-            type="checkbox"
-            checked={hideZero}
-            onChange={(e) => setHideZero(e.target.checked)}
-            className="accent-sky-500"
-          />
-          Hide zero
-        </label>
-
-        {/* Expand/collapse all — only meaningful in tree layout. Both
-            buttons persist to localStorage, so a reload keeps the state. */}
-        {layout === "tree" && (
-          <div className="inline-flex gap-1">
             <button
               type="button"
-              onClick={expandAll}
-              className="px-2 py-1 text-xs rounded border border-zinc-700 bg-zinc-900 text-zinc-300 hover:bg-zinc-800"
-              title="Open every node"
+              onClick={() => setLayout("tree")}
+              className={`px-2.5 py-1 text-xs font-medium rounded transition-colors ${
+                layout === "tree"
+                  ? "bg-sky-500/20 text-sky-300 border border-sky-500/40"
+                  : "text-zinc-400 hover:text-zinc-200 border border-transparent"
+              }`}
+              title="Hierarchical view — pool → source → sub-source"
             >
-              Expand all
+              🌳 Tree
             </button>
             <button
               type="button"
-              onClick={collapseAll}
-              className="px-2 py-1 text-xs rounded border border-zinc-700 bg-zinc-900 text-zinc-300 hover:bg-zinc-800"
-              title="Close every node"
+              onClick={() => setLayout("system")}
+              className={`px-2.5 py-1 text-xs font-medium rounded transition-colors ${
+                layout === "system"
+                  ? "bg-sky-500/20 text-sky-300 border border-sky-500/40"
+                  : "text-zinc-400 hover:text-zinc-200 border border-transparent"
+              }`}
+              title="Flat grouping by game system (Talents, Stamps, Cards…)"
             >
-              Collapse all
-            </button>
-            <button
-              type="button"
-              onClick={resetExpandState}
-              className="px-2 py-1 text-xs rounded border border-zinc-800 bg-zinc-950 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800"
-              title="Reset to default: depth < 2 open, everything else closed"
-            >
-              Reset
+              📚 By System
             </button>
           </div>
-        )}
+
+          {/* Search */}
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="🔍 Search source name or note…"
+            className="flex-1 min-w-[180px] px-2 py-1 text-xs bg-zinc-950 border border-zinc-800 rounded text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-sky-500/60"
+          />
+
+          {/* Hide-zero toggle */}
+          <label className="flex items-center gap-1.5 text-xs text-zinc-400 cursor-pointer select-none px-1">
+            <input
+              type="checkbox"
+              checked={hideZero}
+              onChange={(e) => setHideZero(e.target.checked)}
+              className="accent-sky-500"
+            />
+            Hide zero
+          </label>
+
+          {/* Expand/collapse all — only meaningful in tree layout. Both
+              buttons persist to localStorage, so a reload keeps the state. */}
+          {layout === "tree" && (
+            <div className="inline-flex gap-1">
+              <button
+                type="button"
+                onClick={expandAll}
+                className="px-2 py-1 text-xs rounded border border-zinc-700 bg-zinc-900 text-zinc-300 hover:bg-zinc-800"
+                title="Open every node"
+              >
+                ⤢ All
+              </button>
+              <button
+                type="button"
+                onClick={collapseAll}
+                className="px-2 py-1 text-xs rounded border border-zinc-700 bg-zinc-900 text-zinc-300 hover:bg-zinc-800"
+                title="Close every node"
+              >
+                ⤡ None
+              </button>
+              <button
+                type="button"
+                onClick={resetExpandState}
+                className="px-2 py-1 text-xs rounded border border-zinc-800 bg-zinc-950 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800"
+                title="Reset to default: depth < 2 open, everything else closed"
+              >
+                ↺ Reset
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Summary stats line */}
       <div className="text-[11px] text-zinc-500 mb-3 px-1 flex flex-wrap gap-x-4 gap-y-1">
         <span>
-          <span className="text-zinc-300">{stats.nodeCount}</span> total nodes
+          <span className="text-zinc-300 font-mono">{stats.nodeCount}</span>{" "}
+          total nodes
         </span>
         <span>
-          <span className="text-zinc-300">{stats.leafCount}</span> leaf sources
+          <span className="text-zinc-300 font-mono">{stats.leafCount}</span>{" "}
+          leaf sources
         </span>
         <span>
-          <span className="text-emerald-400">{stats.nonZeroLeafCount}</span>{" "}
+          <span className="text-emerald-400 font-mono">
+            {stats.nonZeroLeafCount}
+          </span>{" "}
           non-zero
         </span>
         <span>
-          max depth <span className="text-zinc-300">{stats.maxDepth}</span>
+          max depth{" "}
+          <span className="text-zinc-300 font-mono">{stats.maxDepth}</span>
         </span>
         <span className="text-zinc-600 italic">
           Every source down to its formula inputs, including sub-source layers.
