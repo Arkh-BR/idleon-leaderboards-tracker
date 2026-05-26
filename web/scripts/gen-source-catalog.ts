@@ -281,7 +281,7 @@ const CUSTOM_FORMULA_NOTES: Record<string, string> = {
   "Glimbo DR Multi":
     "1 + (gridVal × floor(Total Trades / 100)) / 100 where gridVal = lv × shape × max(1, allMulti)",
   "Boss Battle Spillover (Talent 655)":
-    "decay(25, 100, Base + Bonus) × Skulls Beaten × Active",
+    "decay(25, 100, Base Level) × Skulls Beaten × Active  (star talent — no external bonus levels)",
 };
 
 function detectAgg(
@@ -1262,20 +1262,14 @@ const APP_JS = `
       return base * multi;
     },
     "Boss Battle Spillover (Talent 655)": function (_p, kids) {
-      // Game formula: perSkull = decay(25, 100, effLv); total =
-      // perSkull × Skulls Beaten × Active. effLv from Base + Bonus
-      // (or Effective Level kid if the user filled it). Per Skull
-      // itself is hidden via SKIP_NAMES.
+      // Game formula: perSkull = decay(25, 100, lv); total =
+      // perSkull × Skulls Beaten × Active. Star talent — universal,
+      // no external bonus levels stack, so lv = Base Level. Per
+      // Skull itself is hidden via SKIP_NAMES.
       var skulls = kid(kids, /^Skulls Beaten$/);
-      if (skulls === null) return null;
-      var effLv = kid(kids, /^Effective Level$/);
-      if (effLv === null) {
-        var base = kid(kids, /^Base Level$/);
-        var bonus = kid(kids, /^Bonus Levels$/);
-        if (base === null || bonus === null) return null;
-        effLv = base + bonus;
-      }
-      var perSkull = (25 * effLv) / (effLv + 100);
+      var base = kid(kids, /^Base Level$/);
+      if (skulls === null || base === null) return null;
+      var perSkull = (25 * base) / (base + 100);
       var result = perSkull * skulls;
       var act = kid(kids, /^Active$/);
       if (act !== null) result *= act;

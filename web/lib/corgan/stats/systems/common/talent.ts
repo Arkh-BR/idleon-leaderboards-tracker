@@ -723,7 +723,10 @@ export const talent = {
     // handler uses Base + Bonus internally to derive effLv live.
     const formulaNote = `${data.formula}(${data.x1},${data.x2},${r.effectiveLv})`;
 
-    // Talent 655 (Boss Battle Spillover): multiply by OLA[189] skulls beaten
+    // Talent 655 (Boss Battle Spillover): star talent — universal,
+    // no external bonus levels stack with it (rawLv IS effLv). Skip
+    // the Bonus / Effective rows so the UI only shows the inputs
+    // that actually drive the formula.
     if (id === 655) {
       const skulls = Number((optionsListData as any)[189]) || 0;
       const perSkull = r.val;
@@ -734,8 +737,6 @@ export const talent = {
         [
           node("Active", activeFlag, null, { fmt: "raw" }),
           node("Base Level", r.rawLv, null, { fmt: "raw" }),
-          node("Bonus Levels", r.bonus || 0, bonusChildren, { fmt: "+" }),
-          node("Effective Level", r.effectiveLv, null, { fmt: "raw" }),
           node("Per Skull", perSkull, null, {
             fmt: "raw",
             note: formulaNote,

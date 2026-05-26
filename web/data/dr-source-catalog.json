@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-26T18:38:02.416Z",
+  "generatedAt": "2026-05-26T18:41:36.248Z",
   "refTotal": 43093.43816941274,
   "refSave": "zArkhe (save 25-21-16.json) — Town, no AC",
   "sourceCount": 75,
@@ -207,7 +207,7 @@
       "fmt": "+",
       "refValue": 58.51063829787235,
       "bucket": "🎯 Talents",
-      "note": "talent 655 — decay(25, 100, Base + Bonus) × Skulls Beaten × Active",
+      "note": "talent 655 — decay(25, 100, Base Level) × Skulls Beaten × Active  (star talent — no external bonus levels)",
       "children": [
         {
           "id": "Drop Rate / Additive Pool / 🎯 Talents / Boss Battle Spillover (Talent 655) / Active",
@@ -222,26 +222,6 @@
         {
           "id": "Drop Rate / Additive Pool / 🎯 Talents / Boss Battle Spillover (Talent 655) / Base Level",
           "name": "Base Level",
-          "system": "Talents",
-          "world": "Character",
-          "pool": "Additive",
-          "fmt": "raw",
-          "refValue": 88,
-          "bucket": "🎯 Talents"
-        },
-        {
-          "id": "Drop Rate / Additive Pool / 🎯 Talents / Boss Battle Spillover (Talent 655) / Bonus Levels",
-          "name": "Bonus Levels",
-          "system": "Talents",
-          "world": "Character",
-          "pool": "Additive",
-          "fmt": "+",
-          "refValue": 0,
-          "bucket": "🎯 Talents"
-        },
-        {
-          "id": "Drop Rate / Additive Pool / 🎯 Talents / Boss Battle Spillover (Talent 655) / Effective Level",
-          "name": "Effective Level",
           "system": "Talents",
           "world": "Character",
           "pool": "Additive",
