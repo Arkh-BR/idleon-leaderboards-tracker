@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-26T18:13:51.918Z",
+  "generatedAt": "2026-05-26T18:18:30.007Z",
   "refTotal": 43093.43816941274,
   "refSave": "zArkhe (save 25-21-16.json) — Town, no AC",
   "sourceCount": 75,
@@ -860,7 +860,10 @@
           "bucket": "🐾 Companions"
         }
       ],
-      "agg": "sum"
+      "formulaKey": "ownershipToggle",
+      "agg": "custom",
+      "bonusConst": 100,
+      "note": "bonus: 100"
     },
     {
       "id": "Drop Rate / Additive Pool / 🐾 Companions / Santa Snake (Companion 50)",
@@ -893,7 +896,10 @@
           "bucket": "🐾 Companions"
         }
       ],
-      "agg": "sum"
+      "formulaKey": "ownershipToggle",
+      "agg": "custom",
+      "bonusConst": 25,
+      "note": "bonus: 25"
     },
     {
       "id": "Drop Rate / Additive Pool / 🐾 Companions / Quenchie (Companion 22)",
@@ -926,7 +932,10 @@
           "bucket": "🐾 Companions"
         }
       ],
-      "agg": "sum"
+      "formulaKey": "ownershipToggle",
+      "agg": "custom",
+      "bonusConst": 15,
+      "note": "bonus: 15"
     },
     {
       "id": "Drop Rate / Additive Pool / 🐾 Companions / Lucky Slug (Companion 158)",
@@ -959,7 +968,10 @@
           "bucket": "🐾 Companions"
         }
       ],
-      "agg": "sum"
+      "formulaKey": "ownershipToggle",
+      "agg": "custom",
+      "bonusConst": 15,
+      "note": "bonus: 15"
     },
     {
       "id": "Drop Rate / Additive Pool / 🐾 Companions / Clammie (Companion 111)",
@@ -992,7 +1004,10 @@
           "bucket": "🐾 Companions"
         }
       ],
-      "agg": "sum"
+      "formulaKey": "ownershipToggle",
+      "agg": "custom",
+      "bonusConst": 100,
+      "note": "bonus: 100"
     },
     {
       "id": "Drop Rate / Additive Pool / 🐾 Companions / Mama Troll (Companion 132)",
@@ -1025,7 +1040,10 @@
           "bucket": "🐾 Companions"
         }
       ],
-      "agg": "sum"
+      "formulaKey": "ownershipToggle",
+      "agg": "custom",
+      "bonusConst": 100,
+      "note": "bonus: 100"
     },
     {
       "id": "Drop Rate / Additive Pool / 🤝 Friends / Friend Bonus",
@@ -5517,7 +5535,7 @@
           "bucket": "🧰 Set Bonuses"
         }
       ],
-      "formulaKey": "setBonusToggle",
+      "formulaKey": "ownershipToggle",
       "agg": "custom",
       "bonusConst": 25
     },
@@ -5668,7 +5686,7 @@
       "fmt": "+",
       "refValue": 2,
       "bucket": "🎁 Bundles",
-      "note": "bundle bun_v",
+      "note": "bundle bun_v — bonus: 2",
       "p2w": true,
       "children": [
         {
@@ -5682,7 +5700,10 @@
           "bucket": "🎁 Bundles",
           "p2w": true
         }
-      ]
+      ],
+      "formulaKey": "ownershipToggle",
+      "agg": "custom",
+      "bonusConst": 2
     },
     {
       "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328)",
@@ -7609,7 +7630,7 @@
       "fmt": "x",
       "refValue": 1.2,
       "bucket": "🎁 Bundles",
-      "note": "bundle bun_p",
+      "note": "bundle bun_p — bonus: 1.2",
       "p2w": true,
       "children": [
         {
@@ -7623,7 +7644,10 @@
           "bucket": "🎁 Bundles",
           "p2w": true
         }
-      ]
+      ],
+      "formulaKey": "ownershipToggle",
+      "agg": "custom",
+      "bonusConst": 1.2
     },
     {
       "id": "Drop Rate / Post-Processing / 🌟 Pristine Charms / Cotton Candy (Pristine 3)",

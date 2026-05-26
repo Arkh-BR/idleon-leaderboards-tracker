@@ -69,7 +69,9 @@ type SourceEntry = {
    *  formulaKey to compute parent = level × perLevelConst × Π(x-fmt). */
   perLevelConst?: number;
   /** Game-constant set-bonus value (e.g. Efaunt Set = 25). Consumed
-   *  by setBonusToggle: parent = bonusConst × Unlocked-kid (0 or 1). */
+   *  by ownershipToggle: parent = idle + Owned/Unlocked-kid × delta,
+   *  where idle = (fmt === "x" ? 1 : 0) and delta = bonusConst − idle.
+   *  Covers set bonuses (Unlocked), bundles + companions (Owned). */
   bonusConst?: number;
 };
 
@@ -159,14 +161,28 @@ function detectStructuralFormula(
       }
     }
   }
-  // Set-bonus rows: parent value = bonusConst × Unlocked-toggle. The
-  // bonusConst is the game's set-bonus number (e.g. Efaunt = 25). We
-  // detect by sys + a single "Unlocked" kid; the bonusConst is wired
-  // separately in the caller from the parent's val.
-  if (sys === "Set Bonuses") {
+  // Ownership-gated bonus rows: a 0/1 toggle gates a game-constant
+  // bonus. Three shapes:
+  //   1. [Unlocked]            — set bonuses (bonusConst lifted from parent)
+  //   2. [Owned]                — bundles (bonusConst lifted from parent)
+  //   3. [Owned, Bonus]         — companions (Bonus child carries the
+  //                               value; auto-sum would false-positive
+  //                               to "stuck at Bonus" when Owned=0)
+  // All three go through ownershipToggle; the handler picks where to
+  // read the constant from based on which kids are present.
+  {
     const kids = node.children || [];
-    if (kids.length === 1 && kids[0].name === "Unlocked") {
-      return "setBonusToggle";
+    if (kids.length === 1) {
+      const childName = kids[0].name;
+      if (childName === "Unlocked" || childName === "Owned") {
+        return "ownershipToggle";
+      }
+    }
+    if (kids.length === 2) {
+      const names = kids.map((k) => k.name).sort();
+      if (names[0] === "Bonus" && names[1] === "Owned") {
+        return "ownershipToggle";
+      }
     }
   }
   return null;
@@ -338,7 +354,7 @@ function collectChildren(
           // the parent's val (when unlocked at gen time). Surface it
           // as bonusConst so the runtime can compute parent = const ×
           // unlocked-kid regardless of save state.
-          if (fkey === "setBonusToggle") {
+          if (fkey === "ownershipToggle") {
             entry.bonusConst = Number(child.val) || 0;
             const bn = `bonus: ${entry.bonusConst}`;
             entry.note = entry.note ? `${entry.note} — ${bn}` : bn;
@@ -414,7 +430,7 @@ for (let pi = 0; pi < tops.length; pi++) {
           if (fkey) {
             entry.formulaKey = fkey;
             entry.agg = "custom";
-            if (fkey === "setBonusToggle") {
+            if (fkey === "ownershipToggle") {
               entry.bonusConst = Number(src.val) || 0;
               const bn = `bonus: ${entry.bonusConst}`;
               entry.note = entry.note ? `${entry.note} — ${bn}` : bn;
@@ -1026,15 +1042,31 @@ const APP_JS = `
       }
       return lvl * per * multi;
     },
-    "setBonusToggle": function (p, kids) {
-      // Set-bonus row: parent = bonusConst × Unlocked-kid (0 or 1).
-      // The bonusConst is the game's set-bonus value captured at
-      // gen time from the parent's val (e.g. Efaunt Set = 25).
+    "ownershipToggle": function (p, kids) {
+      // Generic 0/1 toggle gating a bonus. Two shapes:
+      //   A. bonusConst on the parent (set bonuses, bundles) — single
+      //      Owned/Unlocked kid, fmt determines the idle value.
+      //   B. Bonus kid alongside Owned (companions) — bonus value is
+      //      live-editable as a child. Prefer the kid over the cached
+      //      const so editing it propagates.
+      // Formula: parent = idle + owned × delta where
+      //   idle  = 1 for x-fmt rows, 0 for +-fmt rows
+      //   delta = bonusKid (when present) or bonusConst − idle
+      var owned = kid(kids, /^Owned$/);
+      if (owned === null) owned = kid(kids, /^Unlocked$/);
+      if (owned === null) return null;
+      var idle = p.fmt === "x" ? 1 : 0;
+      // Prefer the live "Bonus" kid — its value IS the delta (game
+      // emits Bonus = N where N is the additive contribution).
+      var bk = kid(kids, /^Bonus$/);
+      if (bk !== null) {
+        return idle + owned * bk;
+      }
+      // Fall back to the gen-time const for rows without a Bonus kid
+      // (set bonuses, bundles — the parent's val is the full bonus).
       var bn = p && Number(p.bonusConst);
       if (!Number.isFinite(bn)) return null;
-      var unlocked = kid(kids, /^Unlocked$/);
-      if (unlocked === null) return null;
-      return bn * unlocked;
+      return idle + owned * (bn - idle);
     },
     "vaultMastery": function (_p, kids) {
       // Vault upgrade mastery multiplier: 1 + masteryLv / 100. Each
