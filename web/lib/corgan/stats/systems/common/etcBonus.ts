@@ -27,8 +27,14 @@ export const etcBonus = {
       (trNode.val || 0) +
       (phNode.val || 0);
     const children: CorganNode[] = [];
-    if (eqNode.val) children.push(eqNode);
-    if (obNode.val) children.push(obNode);
+    // Include sub-nodes even when val=0: the equipment resolver now appends
+    // a catalog of all DR-capable items that aren't currently equipped, so
+    // the user sees "what they could equip" alongside what they have. Hide
+    // the zero rows for nametag/trophy/premhat (no catalog there yet) to
+    // keep the tree focused.
+    const hasChildren = (n: CorganNode) => !!(n.children && n.children.length);
+    if (eqNode.val || hasChildren(eqNode)) children.push(eqNode);
+    if (obNode.val || hasChildren(obNode)) children.push(obNode);
     if (ntNode.val) children.push(ntNode);
     if (trNode.val) children.push(trNode);
     if (phNode.val) children.push(phNode);

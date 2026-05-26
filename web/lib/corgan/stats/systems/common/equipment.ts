@@ -11,7 +11,39 @@ import { label, entityName } from "../../entity-names";
 import { emmData, equipOrderData } from "../../../save/data";
 import { ETC_STAT_NAMES, itemUqMatch } from "../../data/common/equipment";
 import { charHasChip, gridBonusValue } from "../w4/lab";
+import { DR_ITEMS, type DrItem } from "../../data/dr-items.gen";
 import type { SaveData } from "../../../state";
+
+// Equipment "Type" buckets used to group catalog rows (Helmet, Shirt, …).
+// Keys mirror the IT website-data `Type` field exactly; values are the
+// display labels the catalog rows roll up under.
+const TYPE_LABELS: Record<string, string> = {
+  HELMET: "Helmets",
+  PREMIUM_HELMET: "Premium Helmets",
+  SHIRT: "Shirts",
+  ATTIRE: "Attire",
+  PANTS: "Pants",
+  SHOES: "Shoes",
+  CAPE: "Capes",
+  PENDANT: "Pendants",
+  TROPHY: "Trophies",
+  NAMETAG: "Nametags",
+  KEYCHAIN: "Keychains",
+  SPEAR: "Weapons (Spears)",
+  BOW: "Weapons (Bows)",
+  WAND: "Weapons (Wands)",
+  FISTICUFF: "Weapons (Fists)",
+  PICKAXE: "Mining Tools",
+  HATCHET: "Chopping Tools",
+  FISHING_ROD: "Fishing Tools",
+  BUG_CATCHING_NET: "Catching Tools",
+  TRAP_BOX_SET: "Trapping Tools",
+  WORSHIP_SKULL: "Worship Skulls",
+  CIRCLE_OBOL: "Obols (Circle)",
+  SQUARE_OBOL: "Obols (Square)",
+  HEXAGON_OBOL: "Obols (Hexagon)",
+  SPARKLE_OBOL: "Obols (Sparkle)",
+};
 
 type Ctx = { saveData: SaveData; charIdx: number };
 
@@ -118,21 +150,87 @@ export const equipment = {
     const allSlots = slots0.concat(slots1);
 
     let total = 0;
+    const equippedKeys = new Set<string>();
     const children: CorganNode[] = [];
+    // Build a key → catalog entry lookup so equipped items get the same
+    // friendly names the unequipped catalog shows below.
+    const catalogByKey = new Map<string, DrItem>();
+    for (const it of DR_ITEMS) catalogByKey.set(it.key, it);
     for (let i = 0; i < allSlots.length; i++) {
       const s = allSlots[i];
       total += s.val;
+      if (s.itemName) equippedKeys.add(s.itemName);
+      const catalogHit = catalogByKey.get(s.itemName);
+      const displayName =
+        entityName("Item", s.itemName) ||
+        catalogHit?.name ||
+        s.itemName.replace(/_/g, " ") ||
+        "Row " + s.row + " Slot " + s.slot;
+      children.push(
+        node(displayName, s.val, null, {
+          fmt: "+",
+          note: "Equipped — R" + s.row + " S" + s.slot,
+        })
+      );
+    }
+
+    // Catalog: list every item in DR_ITEMS matching one of the requested
+    // stats AND not already equipped on this char, as zero-val rows. The
+    // user explicitly wants to see "what could give DR if I wore it" — so
+    // unequipped hats / attire / accessories appear here at 0 with a note.
+    // Items already equipped show under the section above with their real
+    // contribution; we de-dup by `equippedKeys` to avoid double-listing.
+    const statSet = new Set(statNames);
+    const catalogByType = new Map<string, DrItem[]>();
+    for (const it of DR_ITEMS) {
+      if (!statSet.has(it.stat)) continue;
+      if (equippedKeys.has(it.key)) continue;
+      const bucket = TYPE_LABELS[it.type] || it.type;
+      if (!catalogByType.has(bucket)) catalogByType.set(bucket, []);
+      catalogByType.get(bucket)!.push(it);
+    }
+    if (catalogByType.size > 0) {
+      // Each bucket renders as its own subgroup so 16 premium helmets don't
+      // drown out the actually-equipped row above.
+      const catalogChildren: CorganNode[] = [];
+      // Stable bucket order: alphabetical so the user can scan deterministic.
+      const bucketKeys = Array.from(catalogByType.keys()).sort();
+      for (const bucket of bucketKeys) {
+        const items = catalogByType.get(bucket)!.sort(
+          (a, b) => b.val - a.val
+        );
+        const bucketChildren = items.map((it) =>
+          node(it.name, 0, null, {
+            fmt: "+",
+            note: `Not equipped — would grant +${it.val} ${it.stat
+              .replace(/^%_/, "")
+              .replace(/_/g, " ")
+              .toLowerCase()}`,
+          })
+        );
+        catalogChildren.push(
+          node(
+            `${bucket} — ${items.length} item${items.length === 1 ? "" : "s"}`,
+            0,
+            bucketChildren,
+            { fmt: "+", note: "All carry +DR built-in; none currently worn" }
+          )
+        );
+      }
       children.push(
         node(
-          entityName("Item", s.itemName) ||
-            s.itemName ||
-            "Row " + s.row + " Slot " + s.slot,
-          s.val,
-          null,
-          { fmt: "+", note: "R" + s.row + " S" + s.slot }
+          "Available DR Items (not equipped)",
+          0,
+          catalogChildren,
+          {
+            fmt: "+",
+            note:
+              "Every item in the game with this DR stat type; equip any to add its bonus",
+          }
         )
       );
     }
+
     return node("Equipment Bonuses", total, children, {
       fmt: "+",
       note: "equipment " + id,
