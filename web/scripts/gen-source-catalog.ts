@@ -562,9 +562,13 @@ header .sub { color: var(--ink-dim); font-size: 12px; margin-bottom: 14px; }
 .row .pull-ref.clean-btn:hover { color: var(--red); border-color: var(--red); }
 
 .row .max-col {
-  width: 110px;
+  /* Auto-sized so it shrink-wraps around its contents (input + ← ref +
+     ✕ clean / OR input + Σ badge). The previous fixed 110px was
+     narrower than the three-button manual layout, which made the
+     notes-input column overlap the buttons. */
   display: inline-flex; align-items: center; gap: 4px;
   flex-shrink: 0;
+  min-width: 110px;
 }
 .row .max-input {
   width: 90px;
