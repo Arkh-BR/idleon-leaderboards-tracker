@@ -9,10 +9,22 @@ import type { SaveData } from "../../../state";
 
 type Ctx = { saveData: SaveData };
 
+// Friendly tome names sourced from tomeData[i].name in IT website-data.
+// Each Tome slot is a different "Career Achievement" that grants a DR
+// scaling bonus. The descriptor uses ids 2 and 7 today.
+const TOME_NAMES: Record<number, string> = {
+  2: "Cards Total LV",
+  7: "Total Achievements Completed",
+};
+function tomeLabel(id: number): string {
+  const n = TOME_NAMES[id];
+  return n ? `${n} (Tome ${id})` : label("Tome", id);
+}
+
 export const tome = {
   resolve(id: number, ctx: Ctx): CorganNode {
     const data = TOME_DATA[id];
-    if (!data) return node(label("Tome", id), 0, null, { note: "tome " + id });
+    if (!data) return node(tomeLabel(id), 0, null, { note: "tome " + id });
     const saveData = ctx.saveData;
 
     let unlocked: boolean;
@@ -26,7 +38,7 @@ export const tome = {
     }
     if (!unlocked) {
       return node(
-        label("Tome", id),
+        tomeLabel(id),
         0,
         [node("Not Unlocked", 0, null, { fmt: "raw" })],
         { note: "tome " + id }
@@ -47,7 +59,7 @@ export const tome = {
 
     const val = base <= 0 ? 0 : base * multi;
     return node(
-      label("Tome", id),
+      tomeLabel(id),
       val,
       [
         node("Tome Score", tomeScore, null, { fmt: "raw" }),

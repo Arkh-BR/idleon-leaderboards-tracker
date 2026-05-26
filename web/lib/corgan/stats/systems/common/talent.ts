@@ -442,7 +442,9 @@ function resolveAllTalentLVz(
 
   const dream12 = Number((dreamData as any)?.[12]) || 0;
   if (dream12 > 0) {
-    children.push(node(label("Dream", 12), dream12, null, { fmt: "raw" }));
+    children.push(
+      node("Nonstop Studies (Dream 12)", dream12, null, { fmt: "raw" })
+    );
   }
 
   const ola232 = Number((optionsListData as any)?.[232]) || 0;

@@ -7,17 +7,18 @@ import { node, type CorganNode } from "../../../node";
 import { ROG_BONUS_QTY, ROG_DESC } from "../../data/w7/sushi";
 import type { SaveData } from "../../../state";
 
-/** Strip the "}x_" / "{%_" placeholders the IT data uses and return a clean
- *  human label for the i-th RoG bonus, e.g. ROG_DESC[48] = "}x Drop Rate"
- *  → "Drop Rate RoG Bonus". */
-function rogFriendlyName(idx: number): string {
+/** Strip the "}x_" / "{%_" placeholders the IT data uses to produce the
+ *  effect text for a RoG slot, e.g. ROG_DESC[48] = "}x_Drop_Rate" → "Drop
+ *  Rate". The label format is "Sushi <id> — <effect>" since each RoG slot
+ *  is unlocked by reaching N unique sushi types, not by a specific named
+ *  sushi (SushiUPG only goes to 45). */
+function rogEffectText(idx: number): string {
   const raw = ROG_DESC[idx] || "";
-  const stripped = raw
+  return raw
     .replace(/[\{\}]/g, "")
-    .replace(/[xX]\s+/, "")
+    .replace(/^\s*[}x]\s*/, "") // strip leading "}x " placeholder
     .replace(/^\s*[+%]+\s*/, "")
     .trim();
-  return stripped ? `${stripped} RoG Bonus` : "";
 }
 
 type Ctx = { saveData: SaveData };
@@ -40,8 +41,14 @@ export const sushiRoG = {
     const saveData = ctx.saveData;
     const us = saveData.cachedUniqueSushi || 0;
     const val = rogBonusQTY(id, us);
-    const friendly = rogFriendlyName(id);
-    const label = friendly ? `${friendly} (RoG Bonus ${id})` : `RoG Bonus ${id}`;
+    const effect = rogEffectText(id);
+    // Label as "Sushi <id> — <effect> (RoG Bonus <id>)" — RoG slot N is
+    // unlocked when you've created N unique sushi types, so the prefix is
+    // really a sushi-count threshold. Keep the canonical RoG tag so
+    // splitEntityTag mutes it in the UI.
+    const label = effect
+      ? `Sushi ${id} — ${effect} (RoG Bonus ${id})`
+      : `Sushi ${id} (RoG Bonus ${id})`;
     return node(
       label,
       val,

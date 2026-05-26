@@ -97,7 +97,7 @@ export function computeStampDoublerSources(saveData: SaveData): { total: number;
   //   atomsInfo[12]      → Aluminium - Stamp Supercharger
   //   pristineCharms[20] → Jellypick
   //   compass[76]        → Abomination Slayer XVII
-  //   exoticMarketInfo[49] → EXALTED ELDOU
+  //   exoticMarketInfo[49] → Exalted Eldou
   //   legendTalents[36]  → Wowa Woowa
   //   research[36][17]   → Exalted Bonus +0.01x (sushi RoG slot 17)
   const children: CorganNode[] = [
@@ -128,7 +128,7 @@ export function computeStampDoublerSources(saveData: SaveData): { total: number;
       { fmt: "+" }
     ),
     node(
-      "EXALTED ELDOU (Exotic 49)",
+      "Exalted Eldou (Exotic 49)",
       exotic49,
       exoticLv > 0
         ? [node("Exotic Level", exoticLv, null, { fmt: "raw" })]

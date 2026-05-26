@@ -161,7 +161,7 @@ export const farm = {
                 { fmt: "raw" }
               ),
               node(
-                "SCIENTERRIFIC (Exotic 40)",
+                "Scienterrific (Exotic 40)",
                 exotic40,
                 null,
                 { fmt: "raw", note: "Level " + exotic40Lv }
@@ -183,10 +183,10 @@ export const farm = {
     if (id === "exotic59") {
       const lv = Number((saveData.farmUpgData as any)?.[79]) || 0;
       if (lv <= 0)
-        return node("POMMELION SEED (Exotic 59)", 0, null, { note: "farm exotic59" });
+        return node("Pommelion Seed (Exotic 59)", 0, null, { note: "farm exotic59" });
       const val = (25 * lv) / (1000 + lv);
       return node(
-        "POMMELION SEED (Exotic 59)",
+        "Pommelion Seed (Exotic 59)",
         val,
         [
           node("Level", lv, null, { fmt: "raw" }),
