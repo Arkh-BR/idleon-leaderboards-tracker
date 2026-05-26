@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-26T19:56:37.741Z",
+  "generatedAt": "2026-05-26T20:02:16.799Z",
   "refTotal": 43093.43816941274,
   "refSave": "zArkhe (save 25-21-16.json) — Town, no AC",
   "sourceCount": 75,
@@ -312,7 +312,60 @@
                   "pool": "Additive",
                   "fmt": "raw",
                   "refValue": 45,
-                  "bucket": "🎯 Talents"
+                  "bucket": "🎯 Talents",
+                  "note": "slot 24 is RAW (no multiplicative chain)",
+                  "children": [
+                    {
+                      "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Nonstop Studies (Dream 12) / Summoning WinBonus 24 / Normal Wins Bonus",
+                      "name": "Normal Wins Bonus",
+                      "system": "Talents",
+                      "world": "Character",
+                      "pool": "Additive",
+                      "fmt": "raw",
+                      "refValue": 0,
+                      "bucket": "🎯 Talents",
+                      "note": "Σ slot-24 contributions from owned summoning units"
+                    },
+                    {
+                      "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Nonstop Studies (Dream 12) / Summoning WinBonus 24 / Endless Wins Bonus",
+                      "name": "Endless Wins Bonus",
+                      "system": "Talents",
+                      "world": "Character",
+                      "pool": "Additive",
+                      "fmt": "raw",
+                      "refValue": 45,
+                      "bucket": "🎯 Talents",
+                      "note": "floor(wins/40) × perCycle + partial cycle",
+                      "children": [
+                        {
+                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Nonstop Studies (Dream 12) / Summoning WinBonus 24 / Endless Wins Bonus / Endless Wins Count",
+                          "name": "Endless Wins Count",
+                          "system": "Talents",
+                          "world": "Character",
+                          "pool": "Additive",
+                          "fmt": "raw",
+                          "refValue": 363,
+                          "bucket": "🎯 Talents",
+                          "note": "OLA[319] — total endless summoning victories"
+                        },
+                        {
+                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Nonstop Studies (Dream 12) / Summoning WinBonus 24 / Endless Wins Bonus / Per 40-Cycle Bonus",
+                          "name": "Per 40-Cycle Bonus",
+                          "system": "Talents",
+                          "world": "Character",
+                          "pool": "Additive",
+                          "fmt": "raw",
+                          "refValue": 5,
+                          "bucket": "🎯 Talents",
+                          "note": "slot-24 contribution per 40-win cycle (game constant)"
+                        }
+                      ],
+                      "formulaKey": "endlessWinsBonus",
+                      "agg": "custom"
+                    }
+                  ],
+                  "formulaKey": "summoningWinBonus24",
+                  "agg": "custom"
                 },
                 {
                   "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Nonstop Studies (Dream 12) / Cloud Bonuses Sum",
@@ -763,7 +816,60 @@
                   "pool": "Additive",
                   "fmt": "raw",
                   "refValue": 45,
-                  "bucket": "🎯 Talents"
+                  "bucket": "🎯 Talents",
+                  "note": "slot 24 is RAW (no multiplicative chain)",
+                  "children": [
+                    {
+                      "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Nonstop Studies (Dream 12) / Summoning WinBonus 24 / Normal Wins Bonus",
+                      "name": "Normal Wins Bonus",
+                      "system": "Talents",
+                      "world": "Character",
+                      "pool": "Additive",
+                      "fmt": "raw",
+                      "refValue": 0,
+                      "bucket": "🎯 Talents",
+                      "note": "Σ slot-24 contributions from owned summoning units"
+                    },
+                    {
+                      "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Nonstop Studies (Dream 12) / Summoning WinBonus 24 / Endless Wins Bonus",
+                      "name": "Endless Wins Bonus",
+                      "system": "Talents",
+                      "world": "Character",
+                      "pool": "Additive",
+                      "fmt": "raw",
+                      "refValue": 45,
+                      "bucket": "🎯 Talents",
+                      "note": "floor(wins/40) × perCycle + partial cycle",
+                      "children": [
+                        {
+                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Nonstop Studies (Dream 12) / Summoning WinBonus 24 / Endless Wins Bonus / Endless Wins Count",
+                          "name": "Endless Wins Count",
+                          "system": "Talents",
+                          "world": "Character",
+                          "pool": "Additive",
+                          "fmt": "raw",
+                          "refValue": 363,
+                          "bucket": "🎯 Talents",
+                          "note": "OLA[319] — total endless summoning victories"
+                        },
+                        {
+                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Nonstop Studies (Dream 12) / Summoning WinBonus 24 / Endless Wins Bonus / Per 40-Cycle Bonus",
+                          "name": "Per 40-Cycle Bonus",
+                          "system": "Talents",
+                          "world": "Character",
+                          "pool": "Additive",
+                          "fmt": "raw",
+                          "refValue": 5,
+                          "bucket": "🎯 Talents",
+                          "note": "slot-24 contribution per 40-win cycle (game constant)"
+                        }
+                      ],
+                      "formulaKey": "endlessWinsBonus",
+                      "agg": "custom"
+                    }
+                  ],
+                  "formulaKey": "summoningWinBonus24",
+                  "agg": "custom"
                 },
                 {
                   "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Nonstop Studies (Dream 12) / Cloud Bonuses Sum",
@@ -7170,7 +7276,60 @@
                       "pool": "Multi",
                       "fmt": "raw",
                       "refValue": 45,
-                      "bucket": "🎯 Talents"
+                      "bucket": "🎯 Talents",
+                      "note": "slot 24 is RAW (no multiplicative chain)",
+                      "children": [
+                        {
+                          "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Bonus Levels / Nonstop Studies (Dream 12) / Summoning WinBonus 24 / Normal Wins Bonus",
+                          "name": "Normal Wins Bonus",
+                          "system": "Talents",
+                          "world": "Character",
+                          "pool": "Multi",
+                          "fmt": "raw",
+                          "refValue": 0,
+                          "bucket": "🎯 Talents",
+                          "note": "Σ slot-24 contributions from owned summoning units"
+                        },
+                        {
+                          "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Bonus Levels / Nonstop Studies (Dream 12) / Summoning WinBonus 24 / Endless Wins Bonus",
+                          "name": "Endless Wins Bonus",
+                          "system": "Talents",
+                          "world": "Character",
+                          "pool": "Multi",
+                          "fmt": "raw",
+                          "refValue": 45,
+                          "bucket": "🎯 Talents",
+                          "note": "floor(wins/40) × perCycle + partial cycle",
+                          "children": [
+                            {
+                              "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Bonus Levels / Nonstop Studies (Dream 12) / Summoning WinBonus 24 / Endless Wins Bonus / Endless Wins Count",
+                              "name": "Endless Wins Count",
+                              "system": "Talents",
+                              "world": "Character",
+                              "pool": "Multi",
+                              "fmt": "raw",
+                              "refValue": 363,
+                              "bucket": "🎯 Talents",
+                              "note": "OLA[319] — total endless summoning victories"
+                            },
+                            {
+                              "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Bonus Levels / Nonstop Studies (Dream 12) / Summoning WinBonus 24 / Endless Wins Bonus / Per 40-Cycle Bonus",
+                              "name": "Per 40-Cycle Bonus",
+                              "system": "Talents",
+                              "world": "Character",
+                              "pool": "Multi",
+                              "fmt": "raw",
+                              "refValue": 5,
+                              "bucket": "🎯 Talents",
+                              "note": "slot-24 contribution per 40-win cycle (game constant)"
+                            }
+                          ],
+                          "formulaKey": "endlessWinsBonus",
+                          "agg": "custom"
+                        }
+                      ],
+                      "formulaKey": "summoningWinBonus24",
+                      "agg": "custom"
                     },
                     {
                       "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Bonus Levels / Nonstop Studies (Dream 12) / Cloud Bonuses Sum",

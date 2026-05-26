@@ -192,6 +192,14 @@ function detectStructuralFormula(
   if (node.name === "Cloud Bonuses Sum") {
     return "talentBonusSum";
   }
+  // Summoning WinBonus 24 = Normal Wins Bonus + Endless Wins Bonus.
+  if (node.name === "Summoning WinBonus 24") {
+    return "summoningWinBonus24";
+  }
+  // Endless Wins Bonus = floor(count / 40) × perCycle + partial.
+  if (node.name === "Endless Wins Bonus") {
+    return "endlessWinsBonus";
+  }
   // Vault Mastery: a multiplier row of the form (1 + masteryLv/100)
   // with a single "Mastery Lv" child. Tag so the runtime recomputes
   // the multi live when the user bumps the level.
@@ -1165,6 +1173,47 @@ const APP_JS = `
       var bn = p && Number(p.bonusConst);
       if (!Number.isFinite(bn)) return null;
       return idle + owned * (bn - idle);
+    },
+    "summoningWinBonus24": function (_p, kids) {
+      // Slot 24 of SummWinBonus — Normal + Endless. fall back to
+      // refValue when a kid is empty (same cap-research semantic as
+      // Nonstop Studies parent).
+      function kidOrRef(name) {
+        for (var i = 0; i < kids.length; i++) {
+          if (kids[i].name === name) {
+            var v = effectiveValue(kids[i]);
+            if (v !== null) return Number(v) || 0;
+            return Number(kids[i].refValue) || 0;
+          }
+        }
+        return null;
+      }
+      var n = kidOrRef("Normal Wins Bonus");
+      var e = kidOrRef("Endless Wins Bonus");
+      if (n === null || e === null) return null;
+      return n + e;
+    },
+    "endlessWinsBonus": function (_p, kids) {
+      // floor(count / 40) × perCycle + partial cycle. Partial isn't
+      // exposable as a sub-input (depends on the exact ring positions
+      // hit), so we approximate when the user adjusts count: assume
+      // perCycle is evenly distributed → contribution = count × (perCycle / 40).
+      // At the at-save state, this exactly matches the gen-time value
+      // when count is a multiple of 40; otherwise it's a close approx.
+      function kidOrRef(name) {
+        for (var i = 0; i < kids.length; i++) {
+          if (kids[i].name === name) {
+            var v = effectiveValue(kids[i]);
+            if (v !== null) return Number(v) || 0;
+            return Number(kids[i].refValue) || 0;
+          }
+        }
+        return null;
+      }
+      var count = kidOrRef("Endless Wins Count");
+      var per = kidOrRef("Per 40-Cycle Bonus");
+      if (count === null || per === null) return null;
+      return count * (per / 40);
     },
     "talentBonusSum": function (_p, kids) {
       // Sum of every contributor to a talent's bonus levels — kids

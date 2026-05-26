@@ -22,7 +22,7 @@ import {
 } from "../../../save/data";
 import { formulaEval, getLOG } from "../../../formulas";
 import { superBitType, cloudBonus } from "../../../game-helpers";
-import { computeWinBonus } from "../w6/summoning";
+import { computeWinBonus, computeSummWinBonus24Parts } from "../w6/summoning";
 import { DreamUpg } from "../../data/game/customlists.js";
 import { hasBonusMajor } from "../w5/divinity";
 import { label, entityName } from "../../entity-names";
@@ -477,7 +477,8 @@ function resolveAllTalentLVz(
     //   + 6·CloudBonus[58] + 6·CloudBonus[61]
     //   + 7·CloudBonus[64] + 8·CloudBonus[75])
     const baseMax = Number((DreamUpg as any)[12]?.[2]) || 10;
-    const summWB24 = computeWinBonus(24, null, saveData);
+    const summWB24Parts = computeSummWinBonus24Parts(saveData);
+    const summWB24 = summWB24Parts.normal + summWB24Parts.endless;
     const cloudSpec: Array<[number, number]> = [
       [37, 5], [42, 5], [43, 5], [47, 5], [50, 5], [55, 5],
       [58, 6], [61, 6], [64, 7], [75, 8],
@@ -497,7 +498,35 @@ function resolveAllTalentLVz(
         dream12,
         [
           node("Base Max", baseMax, null, { fmt: "raw" }),
-          node("Summoning WinBonus 24", summWB24, null, { fmt: "raw" }),
+          node(
+            "Summoning WinBonus 24",
+            summWB24,
+            [
+              node("Normal Wins Bonus", summWB24Parts.normal, null, {
+                fmt: "raw",
+                note: "Σ slot-24 contributions from owned summoning units",
+              }),
+              node(
+                "Endless Wins Bonus",
+                summWB24Parts.endless,
+                [
+                  node("Endless Wins Count", summWB24Parts.endlessWins, null, {
+                    fmt: "raw",
+                    note: "OLA[319] — total endless summoning victories",
+                  }),
+                  node("Per 40-Cycle Bonus", summWB24Parts.perCycle24, null, {
+                    fmt: "raw",
+                    note: "slot-24 contribution per 40-win cycle (game constant)",
+                  }),
+                ],
+                {
+                  fmt: "raw",
+                  note: "floor(wins/40) × perCycle + partial cycle",
+                }
+              ),
+            ],
+            { fmt: "raw", note: "slot 24 is RAW (no multiplicative chain)" }
+          ),
           node("Cloud Bonuses Sum", cloudSum, cloudKids, { fmt: "raw" }),
         ],
         { fmt: "raw" }

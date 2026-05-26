@@ -19,6 +19,53 @@ import type { SaveData } from "../../../state";
 
 type Ctx = { saveData: SaveData };
 
+/** Decompose the slot-24 SummWinBonus into its two sources — normal
+ *  summoning unit ownership and endless summoning victories — so the
+ *  max-values tool can expose each as an editable input. The endless
+ *  side ALSO returns its raw OLA[319] win count and the per-40-cycle
+ *  contribution for slot 24, so the user can research "what if I had
+ *  N more endless wins". Slot 24 is one of the four (20/22/24/31)
+ *  that skip the multiplicative chain — output is the raw sum. */
+export function computeSummWinBonus24Parts(saveData: SaveData): {
+  normal: number;
+  endless: number;
+  endlessWins: number;
+  perCycle24: number;
+} {
+  const SLOT = 24; // matches bonusIdx after the -1 offset
+  let normal = 0;
+  if (saveData?.summonData) {
+    const wins = (saveData.summonData[1] || []) as any[];
+    for (let i = 0; i < wins.length; i++) {
+      const name = wins[i];
+      if (typeof name !== "string" || name.startsWith("rift")) continue;
+      const entry = SUMMON_NORMAL_BONUS[name];
+      if (!entry) continue;
+      const bonusIdx = Math.round(entry[0] - 1);
+      if (bonusIdx === SLOT) normal += entry[1];
+    }
+  }
+  // Per-cycle contribution: sum over the 40-slot ring of values that
+  // target slot 24.
+  let perCycle24 = 0;
+  for (let i = 0; i < 40; i++) {
+    const type = (SUMMON_ENDLESS_TYPE[i] || 0) - 1;
+    if (type === SLOT) perCycle24 += SUMMON_ENDLESS_VAL[i] || 0;
+  }
+  // Total endless contribution: full cycles × per cycle, plus the
+  // partial cycle for any leftover wins.
+  const endlessWins = Number((saveData?.olaData as any)?.[319]) || 0;
+  const fullCycles = Math.floor(endlessWins / 40);
+  const remainder = endlessWins % 40;
+  let partial = 0;
+  for (let i = 0; i < remainder; i++) {
+    const type = (SUMMON_ENDLESS_TYPE[i] || 0) - 1;
+    if (type === SLOT) partial += SUMMON_ENDLESS_VAL[i] || 0;
+  }
+  const endless = fullCycles * perCycle24 + partial;
+  return { normal, endless, endlessWins, perCycle24 };
+}
+
 export function computeSummWinBonus(saveData: SaveData): number[] {
   const bonus = new Array(32).fill(0);
   if (!saveData || !saveData.summonData) return bonus;
