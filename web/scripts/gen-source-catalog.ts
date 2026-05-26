@@ -215,6 +215,13 @@ function detectStructuralFormula(
   if (node.name === "Best Mage Lv" && (node.children || []).length > 0) {
     return "maxOfKids";
   }
+  // Sad Souls Multi (×) = 1 + Talent 144 Value × Applied / 100.
+  // Talent 144 is the active char's "Family Guy" / "Sad Souls" /
+  // "Pirate Underling" — same slot 144 across classes with different
+  // names. It buffs the family bonus contribution.
+  if (node.name === "Sad Souls Multi (×)" && (node.children || []).length > 0) {
+    return "sadSoulsMulti";
+  }
   // Endless Wins Bonus = floor(count / 40) × perCycle + partial.
   if (node.name === "Endless Wins Bonus") {
     return "endlessWinsBonus";
@@ -1226,6 +1233,26 @@ const APP_JS = `
       var bn = p && Number(p.bonusConst);
       if (!Number.isFinite(bn)) return null;
       return idle + owned * (bn - idle);
+    },
+    "sadSoulsMulti": function (_p, kids) {
+      // 1 + Talent 144 Value × Applied / 100. Talent Value comes from
+      // a closedFormFormula sub-row (decay 40, 100 — the game's tal 144
+      // formula). Applied is 0/1 — whether the buff actually wins the
+      // slot in the game's family-bonus loop.
+      function kidOrRef(name) {
+        for (var i = 0; i < kids.length; i++) {
+          if (kids[i].name === name) {
+            var v = effectiveValue(kids[i]);
+            if (v !== null) return Number(v) || 0;
+            return Number(kids[i].refValue) || 0;
+          }
+        }
+        return null;
+      }
+      var tv = kidOrRef("Talent 144 Value (Family Guy / Sad Souls)");
+      var applied = kidOrRef("Applied");
+      if (tv === null || applied === null) return null;
+      return 1 + (tv * applied) / 100;
     },
     "maxOfKids": function (_p, kids) {
       // max over every kid's effective value (ref-fallback). Used by

@@ -356,24 +356,31 @@ function resolveAllTalentLVz(
   // looping all mages, applying the buff per-char (only the slotIdx
   // one), and picking the actual max.
   const fb34 = familyBonusParams(34);
+  // Talent 144 (Family Guy / Sad Souls / Pirate Underling — varies by
+  // class) buffs the active char's family bonus contribution by
+  // (1 + tal144Val/100). We expose the full sub-tree so the user can
+  // research what would change at higher tal144 levels.
+  const t144 = talentParams(144);
   let tal144Mult = 1;
+  let tal144EffLv = 0;
+  let tal144RawLv = 0;
+  let tal144Val = 0;
   {
-    const rawLv144 =
+    tal144RawLv =
       Number((skillLvData as any)[slotIdx] && (skillLvData as any)[slotIdx][144]) || 0;
-    if (rawLv144 > 0) {
+    if (tal144RawLv > 0 && t144) {
       const atlFor144 = computeAllTalentLVz(
         144,
         slotIdx,
         { skipTal144FamMult: true },
         saveData
       );
-      const effLv144 = rawLv144 + atlFor144;
-      const t144 = talentParams(144);
-      const tal144Val = formulaEval(
+      tal144EffLv = tal144RawLv + atlFor144;
+      tal144Val = formulaEval(
         (t144 as any).formula,
         (t144 as any).x1,
         (t144 as any).x2,
-        effLv144
+        tal144EffLv
       );
       tal144Mult = 1 + tal144Val / 100;
     }
@@ -460,12 +467,37 @@ function resolveAllTalentLVz(
           node(
             "Sad Souls Multi (×)",
             bestUsedTal144 ? tal144Mult : 1,
-            null,
+            [
+              node(
+                "Talent 144 Value (Family Guy / Sad Souls)",
+                tal144Val,
+                [
+                  node("Effective Level", tal144EffLv, null, {
+                    fmt: "raw",
+                    note: "active char's tal 144 raw lv + bonus chain",
+                  }),
+                ],
+                {
+                  fmt: "raw",
+                  // Canonical formulaEval note shape so the catalog
+                  // walker auto-tags this row with closedFormFormula
+                  // and recomputes via formulaEval(t144) on edit.
+                  note:
+                    t144
+                      ? `${(t144 as any).formula}(${(t144 as any).x1},${(t144 as any).x2},${tal144EffLv})`
+                      : "talent 144",
+                }
+              ),
+              node("Applied", bestUsedTal144 ? 1 : 0, null, {
+                fmt: "raw",
+                note: bestUsedTal144
+                  ? "1 — active char's contribution won the slot"
+                  : "0 — buff didn't win the slot (active char isn't the winning mage)",
+              }),
+            ],
             {
               fmt: "raw",
-              note: bestUsedTal144
-                ? "active char's Talent 144 buff applied (1 + tal144Val/100)"
-                : "1.0 — buff not applied (active char isn't the winning mage)",
+              note: "1 + Talent 144 Value × Applied / 100",
             }
           ),
         ],

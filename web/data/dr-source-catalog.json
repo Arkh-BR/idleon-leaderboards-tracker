@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-26T20:37:50.853Z",
+  "generatedAt": "2026-05-26T20:41:59.602Z",
   "refTotal": 43093.43816941274,
   "refSave": "zArkhe (save 25-21-16.json) — Town, no AC",
   "sourceCount": 75,
@@ -216,7 +216,53 @@
                   "fmt": "raw",
                   "refValue": 1,
                   "bucket": "🎯 Talents",
-                  "note": "1.0 — buff not applied (active char isn't the winning mage)"
+                  "note": "1 + Talent 144 Value × Applied / 100",
+                  "children": [
+                    {
+                      "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Family Bonus 68 (Mage) / Sad Souls Multi (×) / Talent 144 Value (Family Guy / Sad Souls)",
+                      "name": "Talent 144 Value (Family Guy / Sad Souls)",
+                      "system": "Talents",
+                      "world": "Character",
+                      "pool": "Additive",
+                      "fmt": "raw",
+                      "refValue": 34.57259158751696,
+                      "bucket": "🎯 Talents",
+                      "note": "decay(40, 100)",
+                      "children": [
+                        {
+                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Family Bonus 68 (Mage) / Sad Souls Multi (×) / Talent 144 Value (Family Guy / Sad Souls) / Effective Level",
+                          "name": "Effective Level",
+                          "system": "Talents",
+                          "world": "Character",
+                          "pool": "Additive",
+                          "fmt": "raw",
+                          "refValue": 637,
+                          "bucket": "🎯 Talents",
+                          "note": "active char's tal 144 raw lv + bonus chain"
+                        }
+                      ],
+                      "formulaSpec": {
+                        "type": "decay",
+                        "x1": 40,
+                        "x2": 100
+                      },
+                      "formulaKey": "closedFormFormula",
+                      "agg": "custom"
+                    },
+                    {
+                      "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Family Bonus 68 (Mage) / Sad Souls Multi (×) / Applied",
+                      "name": "Applied",
+                      "system": "Talents",
+                      "world": "Character",
+                      "pool": "Additive",
+                      "fmt": "raw",
+                      "refValue": 0,
+                      "bucket": "🎯 Talents",
+                      "note": "0 — buff didn't win the slot (active char isn't the winning mage)"
+                    }
+                  ],
+                  "formulaKey": "sadSoulsMulti",
+                  "agg": "custom"
                 }
               ],
               "formulaKey": "familyBonus68Mage",
@@ -650,7 +696,53 @@
                   "fmt": "raw",
                   "refValue": 1,
                   "bucket": "🎯 Talents",
-                  "note": "1.0 — buff not applied (active char isn't the winning mage)"
+                  "note": "1 + Talent 144 Value × Applied / 100",
+                  "children": [
+                    {
+                      "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Family Bonus 68 (Mage) / Sad Souls Multi (×) / Talent 144 Value (Family Guy / Sad Souls)",
+                      "name": "Talent 144 Value (Family Guy / Sad Souls)",
+                      "system": "Talents",
+                      "world": "Character",
+                      "pool": "Additive",
+                      "fmt": "raw",
+                      "refValue": 34.57259158751696,
+                      "bucket": "🎯 Talents",
+                      "note": "decay(40, 100)",
+                      "children": [
+                        {
+                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Family Bonus 68 (Mage) / Sad Souls Multi (×) / Talent 144 Value (Family Guy / Sad Souls) / Effective Level",
+                          "name": "Effective Level",
+                          "system": "Talents",
+                          "world": "Character",
+                          "pool": "Additive",
+                          "fmt": "raw",
+                          "refValue": 637,
+                          "bucket": "🎯 Talents",
+                          "note": "active char's tal 144 raw lv + bonus chain"
+                        }
+                      ],
+                      "formulaSpec": {
+                        "type": "decay",
+                        "x1": 40,
+                        "x2": 100
+                      },
+                      "formulaKey": "closedFormFormula",
+                      "agg": "custom"
+                    },
+                    {
+                      "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Family Bonus 68 (Mage) / Sad Souls Multi (×) / Applied",
+                      "name": "Applied",
+                      "system": "Talents",
+                      "world": "Character",
+                      "pool": "Additive",
+                      "fmt": "raw",
+                      "refValue": 0,
+                      "bucket": "🎯 Talents",
+                      "note": "0 — buff didn't win the slot (active char isn't the winning mage)"
+                    }
+                  ],
+                  "formulaKey": "sadSoulsMulti",
+                  "agg": "custom"
                 }
               ],
               "formulaKey": "familyBonus68Mage",
@@ -7040,7 +7132,53 @@
                       "fmt": "raw",
                       "refValue": 1,
                       "bucket": "🎯 Talents",
-                      "note": "1.0 — buff not applied (active char isn't the winning mage)"
+                      "note": "1 + Talent 144 Value × Applied / 100",
+                      "children": [
+                        {
+                          "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Bonus Levels / Family Bonus 68 (Mage) / Sad Souls Multi (×) / Talent 144 Value (Family Guy / Sad Souls)",
+                          "name": "Talent 144 Value (Family Guy / Sad Souls)",
+                          "system": "Talents",
+                          "world": "Character",
+                          "pool": "Multi",
+                          "fmt": "raw",
+                          "refValue": 34.57259158751696,
+                          "bucket": "🎯 Talents",
+                          "note": "decay(40, 100)",
+                          "children": [
+                            {
+                              "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Bonus Levels / Family Bonus 68 (Mage) / Sad Souls Multi (×) / Talent 144 Value (Family Guy / Sad Souls) / Effective Level",
+                              "name": "Effective Level",
+                              "system": "Talents",
+                              "world": "Character",
+                              "pool": "Multi",
+                              "fmt": "raw",
+                              "refValue": 637,
+                              "bucket": "🎯 Talents",
+                              "note": "active char's tal 144 raw lv + bonus chain"
+                            }
+                          ],
+                          "formulaSpec": {
+                            "type": "decay",
+                            "x1": 40,
+                            "x2": 100
+                          },
+                          "formulaKey": "closedFormFormula",
+                          "agg": "custom"
+                        },
+                        {
+                          "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Bonus Levels / Family Bonus 68 (Mage) / Sad Souls Multi (×) / Applied",
+                          "name": "Applied",
+                          "system": "Talents",
+                          "world": "Character",
+                          "pool": "Multi",
+                          "fmt": "raw",
+                          "refValue": 0,
+                          "bucket": "🎯 Talents",
+                          "note": "0 — buff didn't win the slot (active char isn't the winning mage)"
+                        }
+                      ],
+                      "formulaKey": "sadSoulsMulti",
+                      "agg": "custom"
                     }
                   ],
                   "formulaKey": "familyBonus68Mage",
