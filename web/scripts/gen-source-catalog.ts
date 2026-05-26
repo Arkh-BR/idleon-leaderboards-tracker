@@ -47,6 +47,12 @@ type SourceEntry = {
    *  detectAgg() for the full vocabulary. The HTML maps each to a
    *  recomputer in computeAgg(). */
   agg?: AggRule;
+  /** Optional structural formula key — when the formula depends on the
+   *  ROW SHAPE (children pattern) rather than the parent's exact name,
+   *  we tag it with a key here and the runtime looks up CUSTOM_FORMULAS
+   *  by formulaKey first. Used e.g. for friend contributions where the
+   *  parent's name is the friend's chosen display string. */
+  formulaKey?: string;
 };
 
 // Catalog-only placeholders / safety nets — never trackable sources.
@@ -83,6 +89,24 @@ type AggRule =
 
 function looksCustomNamed(name: string): boolean {
   return CUSTOM_FORMULA_NAMES.has(name);
+}
+
+/** Structural detection — keyed by row SHAPE not name. Returns a
+ *  formula key that the runtime CUSTOM_FORMULAS table looks up.
+ *  Lets us encode formulas for rows whose name varies per save (e.g.
+ *  the friend's display name on a Friend Bonus contribution row). */
+function detectStructuralFormula(
+  node: CorganNode,
+  sys: SystemKey
+): string | null {
+  // Friends system, row carries exactly one "Score" leaf as a child →
+  // this is the friend's bonus contribution. Formula:
+  //   contrib = 25 × min(1, 0.2 + clamp(score, 0, 12000)/(c + 3000))
+  if (sys === "Friends") {
+    const kids = node.children || [];
+    if (kids.some((c) => c.name === "Score")) return "friendContribution";
+  }
+  return null;
 }
 
 // Source names we provide explicit formulas for in the HTML. Catalog
@@ -191,8 +215,14 @@ function collectChildren(
     const grandKids = collectChildren(child, childPath, bucket, sys, world, poolBadge);
     if (grandKids.length > 0) {
       entry.children = grandKids;
-      const agg = detectAgg(child, child.children || []);
-      if (agg) entry.agg = agg;
+      const fkey = detectStructuralFormula(child, sys);
+      if (fkey) {
+        entry.formulaKey = fkey;
+        entry.agg = "custom";
+      } else {
+        const agg = detectAgg(child, child.children || []);
+        if (agg) entry.agg = agg;
+      }
     }
     out.push(entry);
   }
@@ -240,8 +270,14 @@ for (let pi = 0; pi < tops.length; pi++) {
       const subs = collectChildren(src, id, bucket, sys, world, badge);
       if (subs.length > 0) {
         entry.children = subs;
-        const agg = detectAgg(src, src.children || []);
-        if (agg) entry.agg = agg;
+        const fkey = detectStructuralFormula(src, sys);
+        if (fkey) {
+          entry.formulaKey = fkey;
+          entry.agg = "custom";
+        } else {
+          const agg = detectAgg(src, src.children || []);
+          if (agg) entry.agg = agg;
+        }
       }
       sources.push(entry);
     }
@@ -752,6 +788,15 @@ const APP_JS = `
     return null;
   }
   var CUSTOM_FORMULAS = {
+    // ── Structural keys (catalog tags rows via formulaKey) ──────────
+    "friendContribution": function (_p, kids) {
+      // contrib = 25 × min(1, 0.2 + c/(c + 3000))  where c = clamp(score, 0, 12000)
+      var score = kid(kids, /^Score$/);
+      if (score == null) return null;
+      var c = Math.min(12000, Math.max(0, score));
+      return 25 * Math.min(1, 0.2 + c / (c + 3000));
+    },
+    // ── Per-name keys ───────────────────────────────────────────────
     "Arcane Map Bonus": function (_p, kids) {
       var kills = kid(kids, /^Map Kills$/);
       var cap = kid(kids, /^Cap$/);
@@ -809,9 +854,13 @@ const APP_JS = `
     if (!rule || !parent.children) return null;
     var kids = effectiveChildren(parent);
 
-    // 1. Custom — registered per-name handler
+    // 1. Custom — registered per-formulaKey first, then per-name. The
+    //    formulaKey path is used by structurally-tagged rows (e.g. each
+    //    friend's bonus contribution, whose 'name' is the friend's
+    //    chosen display string, not stable across saves).
     if (rule === "custom") {
-      var fn = CUSTOM_FORMULAS[parent.name];
+      var fn = (parent.formulaKey && CUSTOM_FORMULAS[parent.formulaKey]) ||
+               CUSTOM_FORMULAS[parent.name];
       if (!fn) return null;
       try { return fn(parent, kids); } catch (e) { return null; }
     }

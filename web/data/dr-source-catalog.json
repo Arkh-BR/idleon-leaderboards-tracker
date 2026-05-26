@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-26T17:08:11.649Z",
+  "generatedAt": "2026-05-26T17:12:12.966Z",
   "refTotal": 43093.43816941274,
   "refSave": "zArkhe (save 25-21-16.json) — Town, no AC",
   "sourceCount": 75,
@@ -1056,7 +1056,9 @@
               "refValue": 12000,
               "bucket": "🤝 Friends"
             }
-          ]
+          ],
+          "formulaKey": "friendContribution",
+          "agg": "custom"
         },
         {
           "id": "Drop Rate / Additive Pool / 🤝 Friends / Friend Bonus / Mr Pig (Companion 30)",
