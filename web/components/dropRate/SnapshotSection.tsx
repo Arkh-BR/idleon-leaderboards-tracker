@@ -12,20 +12,43 @@ import {
   listTrackedChars,
 } from "@/lib/dropRate/storage";
 import { formatIdleon, formatRelativeTime } from "@/lib/format";
+import { flattenTree, type FlatTree } from "@/lib/dropRate/treeFlatten";
 import type { CalculatorState } from "./DrCalculator";
 
 // Augment the legacy DropRateSnapshot with the freshly-computed total DR
 // from the calculator section so the history reflects the real getDropRate
-// number (not the misleading extraData.dropRate captured by Phase 1).
+// number (not the misleading extraData.dropRate captured by Phase 1). Also
+// includes the flattened detailed tree so we can show a per-node delta
+// column against any prior snapshot.
 type EnrichedSnapshot = DropRateSnapshot & {
   computedDropRate?: number;
   arcaneFactor?: number;
   mapName?: string;
+  /** Path → value for every node in the detailed pool tree (since v2). */
+  flatTree?: FlatTree;
 };
 
 const STORAGE_KEY = "drop-rate-tracker.v1"; // matches storage.ts
 
-export default function SnapshotSection({ state }: { state: CalculatorState | null }) {
+type Props = {
+  state: CalculatorState | null;
+  /** Tells the parent which snapshot's flatTree to use as the delta
+   *  baseline in the detailed tree's third column. Null = no comparison. */
+  onSelectBaseline?: (baseline: {
+    flatTree: FlatTree;
+    capturedAt: number;
+    charName: string;
+  } | null) => void;
+  /** Which snapshot's `capturedAt` is currently selected as the baseline.
+   *  Used so the row that's been picked stays visually highlighted. */
+  selectedBaselineAt?: number | null;
+};
+
+export default function SnapshotSection({
+  state,
+  onSelectBaseline,
+  selectedBaselineAt,
+}: Props) {
   const [trackedChars, setTrackedChars] = useState<string[]>([]);
   const [viewChar, setViewChar] = useState<string | null>(null);
   const [history, setHistory] = useState<EnrichedSnapshot[]>([]);
@@ -60,23 +83,49 @@ export default function SnapshotSection({ state }: { state: CalculatorState | nu
     try {
       const save = parseSave(state.rawSaveText);
       const baseSnap = buildSnapshot(save, state.charIndex!);
+      const flat = flattenTree(state.drTree);
+      const nodeCount = Object.keys(flat).length;
       const enriched: EnrichedSnapshot = {
         ...baseSnap,
         computedDropRate: state.totalDr ?? undefined,
         arcaneFactor: state.arcane,
         mapName: state.mapLabel,
+        flatTree: nodeCount > 0 ? flat : undefined,
       };
       addSnapshot(enriched);
       setNotice(
         `Snapshot saved for ${baseSnap.charName} — DR ${formatIdleon(
           state.totalDr ?? 0
-        )}x on ${state.mapLabel}`
+        )}x on ${state.mapLabel}${
+          nodeCount > 0 ? ` (${nodeCount} tree nodes captured)` : ""
+        }`
       );
       refresh();
       setViewChar(baseSnap.charName);
     } catch (e) {
       setNotice(e instanceof Error ? e.message : String(e));
     }
+  }
+
+  /** Toggle this snapshot as the delta baseline for the detailed tree.
+   *  Click again to clear. Re-selecting a different snap swaps the baseline. */
+  function onPickBaseline(snap: EnrichedSnapshot) {
+    if (!onSelectBaseline) return;
+    if (selectedBaselineAt === snap.capturedAt) {
+      onSelectBaseline(null);
+      return;
+    }
+    if (!snap.flatTree) {
+      setNotice(
+        "This snapshot doesn't have a tree captured (saved before v2). Save a new one to compare against."
+      );
+      return;
+    }
+    onSelectBaseline({
+      flatTree: snap.flatTree,
+      capturedAt: snap.capturedAt,
+      charName: snap.charName,
+    });
   }
 
   function onClear(charName: string) {
@@ -188,7 +237,12 @@ export default function SnapshotSection({ state }: { state: CalculatorState | nu
           </div>
 
           {viewChar && history.length > 0 ? (
-            <HistoryTable history={history} onDelete={(t) => onDel(viewChar, t)} />
+            <HistoryTable
+              history={history}
+              onDelete={(t) => onDel(viewChar, t)}
+              onPickBaseline={onPickBaseline}
+              selectedBaselineAt={selectedBaselineAt ?? null}
+            />
           ) : (
             <p className="text-sm text-zinc-500 italic">
               No snapshots for {viewChar} yet.
@@ -203,9 +257,13 @@ export default function SnapshotSection({ state }: { state: CalculatorState | nu
 function HistoryTable({
   history,
   onDelete,
+  onPickBaseline,
+  selectedBaselineAt,
 }: {
   history: EnrichedSnapshot[];
   onDelete: (ts: number) => void;
+  onPickBaseline: (snap: EnrichedSnapshot) => void;
+  selectedBaselineAt: number | null;
 }) {
   const rows = [...history].reverse();
   return (
@@ -218,6 +276,7 @@ function HistoryTable({
             <th className="px-2 py-2 text-right">Δ</th>
             <th className="px-2 py-2 text-right">Luck</th>
             <th className="px-2 py-2 text-right">Map</th>
+            <th className="px-2 py-2 text-center">Compare</th>
             <th className="px-2 py-2 w-8"></th>
           </tr>
         </thead>
@@ -227,8 +286,15 @@ function HistoryTable({
             const dr = s.computedDropRate ?? null;
             const prevDr = prev?.computedDropRate ?? null;
             const delta = dr !== null && prevDr !== null ? dr - prevDr : null;
+            const isSelected = selectedBaselineAt === s.capturedAt;
+            const hasTree = !!s.flatTree;
             return (
-              <tr key={s.capturedAt} className="border-b border-zinc-900">
+              <tr
+                key={s.capturedAt}
+                className={`border-b border-zinc-900 ${
+                  isSelected ? "bg-sky-500/10" : ""
+                }`}
+              >
                 <td className="px-2 py-2 text-zinc-300">
                   <div>{new Date(s.capturedAt).toLocaleString()}</div>
                   <div className="text-[10px] text-zinc-500">
@@ -256,6 +322,26 @@ function HistoryTable({
                 </td>
                 <td className="px-2 py-2 text-right text-zinc-400 text-xs">
                   {s.mapName ?? "—"}
+                </td>
+                <td className="px-2 py-2 text-center">
+                  <button
+                    onClick={() => onPickBaseline(s)}
+                    disabled={!hasTree}
+                    title={
+                      hasTree
+                        ? "Compare current load vs this snapshot in the detailed tree"
+                        : "Saved before tree-snapshot support — re-save to compare"
+                    }
+                    className={`px-2 py-0.5 text-[10px] rounded border ${
+                      isSelected
+                        ? "bg-sky-500/30 text-sky-200 border-sky-400"
+                        : hasTree
+                        ? "bg-zinc-800 text-zinc-400 border-zinc-700 hover:bg-zinc-700"
+                        : "bg-zinc-900 text-zinc-700 border-zinc-800 cursor-not-allowed"
+                    }`}
+                  >
+                    {isSelected ? "✓ Active" : "▶ Compare"}
+                  </button>
                 </td>
                 <td className="px-2 py-2 text-right">
                   <button

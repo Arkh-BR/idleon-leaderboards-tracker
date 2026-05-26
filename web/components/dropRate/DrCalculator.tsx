@@ -12,6 +12,7 @@ import { listCharacters, parseSave, type CharSummary } from "@/lib/dropRate/extr
 import DrTree from "./DrTree";
 import CorganTree from "./CorganTree";
 import type { CorganNode as DrNode } from "@/lib/corgan/node";
+import type { FlatTree } from "@/lib/dropRate/treeFlatten";
 
 const SAVE_KEY = "drop-rate-tracker.last-upload.v1";
 
@@ -27,14 +28,24 @@ export type CalculatorState = {
   mapIndex: number;
   mapLabel: string;
   rawSaveText: string | null;
+  // Full detailed tree so snapshots can capture per-node values for delta
+  // comparisons against future saves.
+  drTree: DrNode | null;
 };
 
 type Props = {
   // Parent passes the latest state back so the snapshot button can grab it.
   onStateChange?: (s: CalculatorState) => void;
+  // Optional baseline (from a saved snapshot) — when set, the detailed tree
+  // renders a "Δ vs snap" column for every node.
+  compareBaseline?: {
+    flatTree: FlatTree;
+    capturedAt: number;
+    charName: string;
+  } | null;
 };
 
-export default function DrCalculator({ onStateChange }: Props) {
+export default function DrCalculator({ onStateChange, compareBaseline }: Props) {
   const [jsonText, setJsonText] = useState("");
   const [save, setSave] = useState<any | null>(null);
   const [chars, setChars] = useState<CharSummary[]>([]);
@@ -267,8 +278,9 @@ export default function DrCalculator({ onStateChange }: Props) {
             ? window.localStorage.getItem(SAVE_KEY)
             : null)
         : null,
+      drTree,
     });
-  }, [charIdx, mapIdx, baseDr, drTotal, chars, mapOptions, save, onStateChange]);
+  }, [charIdx, mapIdx, baseDr, drTotal, drTree, chars, mapOptions, save, onStateChange]);
 
   const onLoad = () => {
     setStatus(null);
@@ -510,10 +522,27 @@ export default function DrCalculator({ onStateChange }: Props) {
             </div>
           </>
         )}
+        {tab === "detailed" && compareBaseline && (
+          <div className="mb-3 text-xs text-sky-300 flex items-center gap-2 flex-wrap">
+            <span className="px-2 py-0.5 rounded bg-sky-500/15 border border-sky-500/40">
+              📐 Comparing vs snapshot
+            </span>
+            <span className="text-zinc-500">
+              {compareBaseline.charName} @{" "}
+              {new Date(compareBaseline.capturedAt).toLocaleString()}
+            </span>
+            <span className="text-zinc-600">
+              (delta column appears on every node)
+            </span>
+          </div>
+        )}
         {computing ? (
           <p className="text-sm text-zinc-500 italic">Computing…</p>
         ) : tab === "detailed" ? (
-          <CorganTree tree={drTree} />
+          <CorganTree
+            tree={drTree}
+            baseline={compareBaseline?.flatTree ?? null}
+          />
         ) : (
           <DrTree tree={tree} />
         )}

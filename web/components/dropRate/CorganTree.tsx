@@ -2,6 +2,10 @@
 
 import { useState } from "react";
 import type { CorganNode } from "@/lib/corgan/node";
+import {
+  nodePath,
+  type FlatTree,
+} from "@/lib/dropRate/treeFlatten";
 
 function formatVal(val: number, fmt: string | undefined): string {
   if (!Number.isFinite(val)) return "—";
@@ -13,6 +17,18 @@ function formatVal(val: number, fmt: string | undefined): string {
   if (Math.abs(val) >= 1e6) return (val / 1e6).toFixed(2) + "M";
   if (Math.abs(val) >= 1e3) return (val / 1e3).toFixed(2) + "K";
   return val.toFixed(3);
+}
+
+/** Format the delta column. For multiplicative fmt 'x' we show the delta in
+ *  absolute multi units (e.g. +0.012x). For raw/+/% we show the raw delta. */
+function formatDelta(delta: number, fmt: string | undefined): string {
+  if (!Number.isFinite(delta)) return "—";
+  if (Math.abs(delta) < 1e-6) return "0";
+  const sign = delta > 0 ? "+" : "";
+  if (fmt === "x") return sign + delta.toFixed(3) + "x";
+  if (Math.abs(delta) >= 1e6) return sign + (delta / 1e6).toFixed(2) + "M";
+  if (Math.abs(delta) >= 1e3) return sign + (delta / 1e3).toFixed(2) + "K";
+  return sign + delta.toFixed(3);
 }
 
 function valColor(val: number, fmt: string | undefined): string {
@@ -29,16 +45,43 @@ function valColor(val: number, fmt: string | undefined): string {
   return "text-zinc-200";
 }
 
+function deltaColor(delta: number | null): string {
+  if (delta === null) return "text-zinc-600";
+  if (Math.abs(delta) < 1e-6) return "text-zinc-600";
+  if (delta > 0) return "text-emerald-400";
+  return "text-red-400";
+}
+
 type RowProps = {
   node: CorganNode;
   depth: number;
   isRoot?: boolean;
+  parentPath: string;
+  siblings: CorganNode[];
+  index: number;
+  baseline: FlatTree | null;
 };
 
-function TreeRow({ node, depth, isRoot }: RowProps) {
+function TreeRow({
+  node,
+  depth,
+  isRoot,
+  parentPath,
+  siblings,
+  index,
+  baseline,
+}: RowProps) {
   const [open, setOpen] = useState(depth < 2);
   const hasChildren = !!(node.children && node.children.length);
   const arrow = hasChildren ? (open ? "▾" : "▸") : "";
+
+  // Compute the path + delta for this node (if baseline provided)
+  const path = nodePath(parentPath, node, siblings, index);
+  const baselineVal = baseline ? baseline[path] : undefined;
+  const delta =
+    baseline && typeof baselineVal === "number"
+      ? Number(node.val) - baselineVal
+      : null;
 
   return (
     <div>
@@ -68,6 +111,22 @@ function TreeRow({ node, depth, isRoot }: RowProps) {
         >
           {formatVal(node.val, node.fmt)}
         </span>
+        {baseline && (
+          <span
+            className={`font-mono tabular-nums text-right text-xs w-24 ${deltaColor(
+              delta
+            )}`}
+            title={
+              delta !== null
+                ? `baseline = ${formatVal(baselineVal as number, node.fmt)}`
+                : "node not present in baseline snapshot"
+            }
+          >
+            {delta === null
+              ? <span className="text-zinc-700">—</span>
+              : formatDelta(delta, node.fmt)}
+          </span>
+        )}
       </div>
       {open && hasChildren && (
         <div className="bg-black/20 border-l-2 border-white/5">
@@ -76,6 +135,10 @@ function TreeRow({ node, depth, isRoot }: RowProps) {
               key={`${depth}-${i}-${c.name}`}
               node={c}
               depth={depth + 1}
+              parentPath={path}
+              siblings={node.children!}
+              index={i}
+              baseline={baseline}
             />
           ))}
         </div>
@@ -84,7 +147,13 @@ function TreeRow({ node, depth, isRoot }: RowProps) {
   );
 }
 
-export default function CorganTree({ tree }: { tree: CorganNode | null }) {
+export default function CorganTree({
+  tree,
+  baseline,
+}: {
+  tree: CorganNode | null;
+  baseline?: FlatTree | null;
+}) {
   if (!tree) {
     return (
       <p className="text-sm text-zinc-500 italic">
@@ -94,7 +163,23 @@ export default function CorganTree({ tree }: { tree: CorganNode | null }) {
   }
   return (
     <div className="font-sans">
-      <TreeRow node={tree} depth={0} isRoot />
+      {baseline && (
+        <div className="flex items-center gap-2 px-2 py-1 text-[10px] uppercase tracking-wider text-zinc-500 border-b border-zinc-800">
+          <span className="w-4" />
+          <span className="flex-1">Node</span>
+          <span className="text-right">Current</span>
+          <span className="text-right w-24">Δ vs snap</span>
+        </div>
+      )}
+      <TreeRow
+        node={tree}
+        depth={0}
+        isRoot
+        parentPath=""
+        siblings={[tree]}
+        index={0}
+        baseline={baseline ?? null}
+      />
     </div>
   );
 }
