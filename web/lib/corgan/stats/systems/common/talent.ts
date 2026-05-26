@@ -21,7 +21,9 @@ import {
   dreamData,
 } from "../../../save/data";
 import { formulaEval, getLOG } from "../../../formulas";
-import { superBitType } from "../../../game-helpers";
+import { superBitType, cloudBonus } from "../../../game-helpers";
+import { computeWinBonus } from "../w6/summoning";
+import { DreamUpg } from "../../data/game/customlists.js";
 import { hasBonusMajor } from "../w5/divinity";
 import { label, entityName } from "../../entity-names";
 import { talentParams, familyBonusParams } from "../../data/common/talent";
@@ -467,8 +469,38 @@ function resolveAllTalentLVz(
 
   const dream12 = Number((dreamData as any)?.[12]) || 0;
   if (dream12 > 0) {
+    // Game N.js formula for Dream upgrade 12 max LV:
+    //   round(DreamUpg[12][2] + Summoning("WinBonus", 24, 0)
+    //   + 5·CloudBonus[37] + 5·CloudBonus[42] + 5·CloudBonus[43]
+    //   + 5·CloudBonus[47] + 5·CloudBonus[50] + 5·CloudBonus[55]
+    //   + 6·CloudBonus[58] + 6·CloudBonus[61]
+    //   + 7·CloudBonus[64] + 8·CloudBonus[75])
+    const baseMax = Number((DreamUpg as any)[12]?.[2]) || 10;
+    const summWB24 = computeWinBonus(24, null, saveData);
+    const cloudSpec: Array<[number, number]> = [
+      [37, 5], [42, 5], [43, 5], [47, 5], [50, 5], [55, 5],
+      [58, 6], [61, 6], [64, 7], [75, 8],
+    ];
+    let cloudSum = 0;
+    const cloudKids: CorganNode[] = [];
+    for (const [n, mult] of cloudSpec) {
+      const contrib = cloudBonus(n, saveData.weeklyBossData) * mult;
+      cloudSum += contrib;
+      cloudKids.push(
+        node("Cloud " + n + " (×" + mult + ")", contrib, null, { fmt: "raw" })
+      );
+    }
     children.push(
-      node("Nonstop Studies (Dream 12)", dream12, null, { fmt: "raw" })
+      node(
+        "Nonstop Studies (Dream 12)",
+        dream12,
+        [
+          node("Base Max", baseMax, null, { fmt: "raw" }),
+          node("Summoning WinBonus 24", summWB24, null, { fmt: "raw" }),
+          node("Cloud Bonuses Sum", cloudSum, cloudKids, { fmt: "raw" }),
+        ],
+        { fmt: "raw" }
+      )
     );
   }
 

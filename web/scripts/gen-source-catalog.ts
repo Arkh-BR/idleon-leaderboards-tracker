@@ -187,6 +187,11 @@ function detectStructuralFormula(
   if (sys === "Talents" && node.name === "Bonus Levels") {
     return "talentBonusSum";
   }
+  // Cloud Bonuses Sum (inside Nonstop Studies): same pattern — sum
+  // every kid regardless of fmt.
+  if (node.name === "Cloud Bonuses Sum") {
+    return "talentBonusSum";
+  }
   // Vault Mastery: a multiplier row of the form (1 + masteryLv/100)
   // with a single "Mastery Lv" child. Tag so the runtime recomputes
   // the multi live when the user bumps the level.
@@ -274,6 +279,7 @@ const CUSTOM_FORMULA_NAMES = new Set<string>([
   "Glimbo DR Multi",
   "Boss Battle Spillover (Talent 655)",
   "Divinity Minor 2 (Arctis)",
+  "Nonstop Studies (Dream 12)",
 ]);
 
 /** Human-readable formula descriptions appended to the row's note for
@@ -292,6 +298,8 @@ const CUSTOM_FORMULA_NOTES: Record<string, string> = {
     "decay(25, 100, Base Level) × Skulls Beaten  (star talent — no external bonus levels, Base gates the bonus)",
   "Divinity Minor 2 (Arctis)":
     "ceil(max(1, Y2) × (1 + Coral/100) × Lv/(60+Lv) × God)",
+  "Nonstop Studies (Dream 12)":
+    "round(Base Max + Summoning WinBonus 24 + Cloud Bonuses Sum)",
 };
 
 function detectAgg(
@@ -1284,6 +1292,18 @@ const APP_JS = `
       var multi = kid(kids, /^Tome Multi$/);
       if (base === null || multi === null) return null;
       return base * multi;
+    },
+    "Nonstop Studies (Dream 12)": function (_p, kids) {
+      // Game N.js formula (Dreamstuff UpgMaxLV for b=12):
+      //   round(DreamUpg[12][2] + Summoning("WinBonus", 24, 0)
+      //   + 5·CloudBonus[37] + ... + 8·CloudBonus[75])
+      // All cloud × multiplier contributions are pre-summed into the
+      // "Cloud Bonuses Sum" kid (auto-summed via talentBonusSum).
+      var base = kid(kids, /^Base Max$/);
+      var summ = kid(kids, /^Summoning WinBonus 24$/);
+      var cloud = kid(kids, /^Cloud Bonuses Sum$/);
+      if (base === null || summ === null || cloud === null) return null;
+      return Math.round(base + summ + cloud);
     },
     "Divinity Minor 2 (Arctis)": function (_p, kids) {
       // ceil(max(1, Y2) × (1 + Coral/100) × Lv/(60+Lv) × God)
