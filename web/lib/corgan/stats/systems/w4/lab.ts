@@ -22,6 +22,18 @@ import type { SaveData } from "../../../state";
 
 type Ctx = { saveData: SaveData; charIdx: number };
 
+// Friendly grid (Research Square) names sourced from
+// researchGridSquares[i].name in IT website-data.
+const GRID_NAMES: Record<number, string> = {
+  168: "Glimbo Insider Trading Secrets",
+  172: "Well Dressed",
+  173: "Divine Design",
+};
+function gridLabel(id: number): string {
+  const n = GRID_NAMES[id];
+  return n ? `${n} (Grid ${id})` : label("Grid", id);
+}
+
 // Compute the raw grid bonus value (additive %, e.g. 73.8 for Grid 172 Lv 2).
 // Mirrors corgan-source gbWith(): perLv × lv × (1 + shape%/100) × allBonusMulti.
 // Returns 0 if grid is unleveled.
@@ -63,7 +75,7 @@ export const grid = {
   resolve(id: number, ctx: Ctx, _args?: unknown): CorganNode {
     const saveData = ctx.saveData;
     const gridLv = Number((saveData.gridLevels as any)?.[id]) || 0;
-    if (gridLv < 1) return node(label("Grid", id), 0, null, { note: "grid " + id });
+    if (gridLv < 1) return node(gridLabel(id), 0, null, { note: "grid " + id });
 
     const si = Number((saveData.shapeOverlay as any)?.[id]);
     const shapePct =
@@ -89,7 +101,7 @@ export const grid = {
         node(
           label("Companion", 0),
           5 * Math.min(1, am.grid173Lv * am.comp0),
-          [node(label("Grid", 173, " Lv"), am.grid173Lv, null, { fmt: "raw" })],
+          [node(`${gridLabel(173)} Lv`, am.grid173Lv, null, { fmt: "raw" })],
           { fmt: "raw", note: "companion 0" }
         )
       );
@@ -105,7 +117,7 @@ export const grid = {
         "Glimbo DR Multi",
         glimboVal,
         [
-          node(label("Grid", 168, " Level"), gridLv, null, { fmt: "raw" }),
+          node(`${gridLabel(168)} Level`, gridLv, null, { fmt: "raw" }),
           node("Shape Bonus", shapeMult, null, { fmt: "x", note: "shape=" + si }),
           node(
             "All Multi",
@@ -123,7 +135,7 @@ export const grid = {
     }
 
     return node(
-      label("Grid", id),
+      gridLabel(id),
       val,
       [
         node("Grid Level", gridLv, null, { fmt: "raw" }),

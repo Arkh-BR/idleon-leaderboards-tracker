@@ -58,6 +58,12 @@ export const farm = {
 
     if (id === "rank9" || id === "rank19") {
       const rankIdx = id === "rank9" ? 9 : 19;
+      // Rank 9 = the Drop Rate crop rank; 19 doesn't appear in the DR pool
+      // today but keep symmetric naming if it ever lands there.
+      const friendlyName =
+        id === "rank9"
+          ? `Crop Drop Rate Rank (Farming rank9)`
+          : `Farming Rank 19 (Farming rank19)`;
       const ninjaArr = ninjaInfo(36);
       const ninjaVal = Number(ninjaArr[rankIdx]) || 0;
       const rankLv = Number(
@@ -71,7 +77,7 @@ export const farm = {
       const exotic14 =
         exotic14Lv > 0 ? (60 * exotic14Lv) / (1000 + exotic14Lv) : 0;
       if (ninjaVal <= 0 || rankLv <= 0)
-        return node(label("Farming", id), 0, null, { note: "farm " + id });
+        return node(friendlyName, 0, null, { note: "farm " + id });
       const val =
         Math.max(1, tal207) * (1 + exotic14 / 100) * ninjaVal * rankLv;
       const talChildren =
@@ -84,7 +90,7 @@ export const farm = {
             ]
           : null;
       return node(
-        label("Farming", id),
+        friendlyName,
         val,
         [
           node("Rank Level", rankLv, null, { fmt: "raw" }),
@@ -98,7 +104,7 @@ export const farm = {
               note: "decayMulti(2,200," + d207.effLv + ")",
             }
           ),
-          node(label("Exotic", 14, " Bonus"), 1 + exotic14 / 100, null, {
+          node("Pommelyon Seed (Exotic 14) Bonus", 1 + exotic14 / 100, null, {
             fmt: "x",
             note: "Level " + exotic14Lv,
           }),
@@ -108,13 +114,17 @@ export const farm = {
     }
 
     if (id === "cropSC7") {
+      // cropSC7 = the W6 Crop Depot bonus tier 7 (drop rate from excess crops
+      // past the first 100). Friendly name surfaces what it is, the
+      // technical id stays as the splitEntityTag-recognised suffix.
+      const cropSC7Name = `Crop Depot Bonus 7 (Farming cropSC7)`;
       const empUnlocked = emporiumBonus(
         38,
         saveData.ninjaData && (saveData.ninjaData[102] as any)?.[9]
       );
       if (!empUnlocked) {
         return node(
-          label("Farming", "cropSC7"),
+          cropSC7Name,
           0,
           [node("Emporium not unlocked", 0, null, { fmt: "raw" })],
           { note: "farm cropSC7" }
@@ -131,10 +141,10 @@ export const farm = {
       const multi =
         (1 + mf17 / 100) * (1 + (grim22 + exotic40 + vault79) / 100);
       if (excess <= 0)
-        return node(label("Farming", "cropSC7"), 0, null, { note: "farm cropSC7" });
+        return node(cropSC7Name, 0, null, { note: "farm cropSC7" });
       const val = excess * multi;
       return node(
-        label("Farming", "cropSC7"),
+        cropSC7Name,
         val,
         [
           node("Crop Count", cropCount, null, { fmt: "raw" }),
@@ -143,13 +153,25 @@ export const farm = {
             "Multi",
             multi,
             [
-              node(label("Mainframe", 17), mf17, null, { fmt: "raw" }),
-              node(label("Grimoire", 22), grim22, null, { fmt: "raw" }),
-              node(label("Exotic", 40), exotic40, null, {
-                fmt: "raw",
-                note: "Level " + exotic40Lv,
-              }),
-              node(label("Vault", 79), vault79, null, { fmt: "raw" }),
+              node("Depot Studies PhD (Mainframe 17)", mf17, null, { fmt: "raw" }),
+              node(
+                "Superior Crop Research (Grimoire 22)",
+                grim22,
+                null,
+                { fmt: "raw" }
+              ),
+              node(
+                "Scienterrific (Exotic 40)",
+                exotic40,
+                null,
+                { fmt: "raw", note: "Level " + exotic40Lv }
+              ),
+              node(
+                "Properly Funded Research (Vault 79)",
+                vault79,
+                null,
+                { fmt: "raw" }
+              ),
             ],
             { fmt: "x" }
           ),
@@ -161,10 +183,10 @@ export const farm = {
     if (id === "exotic59") {
       const lv = Number((saveData.farmUpgData as any)?.[79]) || 0;
       if (lv <= 0)
-        return node(label("Exotic", 59), 0, null, { note: "farm exotic59" });
+        return node("Pommelion Seed (Exotic 59)", 0, null, { note: "farm exotic59" });
       const val = (25 * lv) / (1000 + lv);
       return node(
-        label("Exotic", 59),
+        "Pommelion Seed (Exotic 59)",
         val,
         [
           node("Level", lv, null, { fmt: "raw" }),

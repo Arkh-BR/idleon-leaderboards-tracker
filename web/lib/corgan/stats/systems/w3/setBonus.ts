@@ -54,11 +54,23 @@ function checkSetEquipped(setName: string, charIdx: number): boolean {
   return partsOn >= partsReq;
 }
 
+// Map a SET_DATA id ("efaunt", "godshard", etc.) to its display name.
+// IT website-data labels equipmentSets by SETNAME_SET — we humanise that
+// into "Efaunt Set" / "Godshard Set" etc. so the descriptor row reads as
+// the set the user can equip, not as "Smithing efaunt".
+const SET_FRIENDLY_NAMES: Record<string, string> = {
+  efaunt: "Efaunt Set Bonus",
+  godshard: "Godshard Set Bonus",
+  emperor: "Emperor Set Bonus",
+};
+
 export const setBonus = {
   resolve(id: string, ctx: Ctx): CorganNode {
     const data = SET_DATA[id];
-    if (!data) return node(label("Smithing", id), 0, null, { note: "set " + id });
-    const name = label("Smithing", id);
+    const friendly = SET_FRIENDLY_NAMES[id];
+    const tag = `Smithing ${id}`;
+    const name = friendly ? `${friendly} (${tag})` : label("Smithing", id);
+    if (!data) return node(name, 0, null, { note: "set " + id });
     const perma = String((optionsListData as any)?.[379] ?? "");
     let unlocked = perma.includes(data.key);
     if (!unlocked) {

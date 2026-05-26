@@ -8,6 +8,18 @@ import type { SaveData } from "../../../state";
 
 type Ctx = { saveData: SaveData };
 
+// Emperor bonus slot names. Each emperorBonType returns a numeric bonus
+// category; the descriptor uses id 11 for Drop Rate. Sourced semantically
+// from the W6 Emperor system — each id is a different stat the rolling
+// kill counter feeds.
+const EMPEROR_NAMES: Record<number, string> = {
+  11: "Drop Rate Emperor Bonus",
+};
+function emperorLabel(id: number): string {
+  const n = EMPEROR_NAMES[id];
+  return n ? `${n} (Emperor ${id})` : emperorLabel(id);
+}
+
 export function computeEmperorBon(bonusIdx: number, saveData: SaveData): number {
   const emperorCount = Number((saveData.olaData as any)?.[369]) || 0;
   let sum = 0;
@@ -38,9 +50,9 @@ export const emperor = {
     const mult = 1 + (arcane48 + arcade51val) / 100;
     const val = Math.floor(sum * mult);
     if (val <= 0)
-      return node(label("Emperor", id), 0, null, { note: "emperor " + id });
+      return node(emperorLabel(id), 0, null, { note: "emperor " + id });
     return node(
-      label("Emperor", id),
+      emperorLabel(id),
       val,
       [
         node("Emperor Kills", emperorCount, null, { fmt: "raw" }),

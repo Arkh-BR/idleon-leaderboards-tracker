@@ -28,10 +28,23 @@ export function grimoireUpgBonus22(saveData: SaveData): number {
   return g22 * (1 + g36 / 100);
 }
 
+// Friendly names sourced from grimoire[i].name in IT website-data.
+const GRIMOIRE_NAMES: Record<number, string> = {
+  17: "Grey Tome Book",
+  22: "Superior Crop Research",
+  36: "Writhing Grimoire",
+  39: "Skull of Major Talent",
+  44: "Skull of Major Droprate",
+};
+function grimoireLabel(id: number): string {
+  const n = GRIMOIRE_NAMES[id];
+  return n ? `${n} (Grimoire ${id})` : label("Grimoire", id);
+}
+
 const GRIMOIRE_DATA: Record<number, { perLevel: number; name: string }> = {
   44: {
     perLevel: grimoireUpgPerLevel(44),
-    name: label("Grimoire", 44),
+    name: grimoireLabel(44),
   },
 };
 
@@ -39,7 +52,7 @@ export const grimoire = {
   resolve(id: number, ctx: Ctx): CorganNode {
     const data = GRIMOIRE_DATA[id];
     if (!data)
-      return node(label("Grimoire", id), 0, null, { note: "grimoire " + id });
+      return node(grimoireLabel(id), 0, null, { note: "grimoire " + id });
     const saveData = ctx.saveData;
     const lv = Number((saveData.grimoireData as any)?.[id]) || 0;
     if (lv <= 0) return node(data.name, 0, null, { note: "grimoire " + id });
@@ -54,7 +67,7 @@ export const grimoire = {
       [
         node("Level", lv, null, { fmt: "raw" }),
         node("Per Level", data.perLevel, null, { fmt: "raw" }),
-        node(label("Grimoire", 36), 1 + multi36 / 100, null, {
+        node(grimoireLabel(36), 1 + multi36 / 100, null, {
           fmt: "x",
           note: "Level " + lv36,
         }),
@@ -63,3 +76,5 @@ export const grimoire = {
     );
   },
 };
+// Expose so other resolvers (talent / farming / tome) can use the same names.
+export { grimoireLabel };

@@ -55,7 +55,7 @@ export const owl = {
           fmt: "raw",
           note: "OLA[255]=" + ola255,
         }),
-        node(label("Legend", 26), legendMulti, null, {
+        node("Furry Friends Forever (Legend 26)", legendMulti, null, {
           fmt: "x",
           note: "legend 26",
         }),

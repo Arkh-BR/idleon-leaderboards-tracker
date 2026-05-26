@@ -8,9 +8,28 @@ import type { SaveData } from "../../../state";
 
 type Ctx = { saveData: SaveData };
 
+// Friendly Dream Upgrade names sourced from equinoxUpgrades[i].name and
+// Dream Challenge names from equinoxChallenges[i].label.
+const DREAM_NAMES: Record<number, string> = {
+  10: "Equinox Symbols",
+  12: "Nonstop Studies",
+};
+const DREAM_CHALLENGE_NAMES: Record<number, string> = {
+  69: "Megaflesh Collector",
+};
+function dreamLabel(id: number): string {
+  const n = DREAM_NAMES[id];
+  return n ? `${n} (Dream ${id})` : label("Dream", id);
+}
+function dreamChallengeLabel(id: number): string {
+  const n = DREAM_CHALLENGE_NAMES[id];
+  return n ? `${n} (Dream Challenge ${id})` : `Dream Challenge ${id}`;
+}
+export { dreamLabel };
+
 export const dream = {
   resolve(id: number, _ctx: Ctx, args?: number[]): CorganNode {
-    const name = label("Dream", id);
+    const name = dreamLabel(id);
     const lv = Number((dreamData as any)?.[id]) || 0;
     const coeff = args && args[0] != null ? args[0] : DR_DREAM_COEFF;
     const val = coeff * lv;
@@ -32,7 +51,7 @@ export const cloudBonusSys = {
     const completed = _cb(id, ctx.saveData.weeklyBossData);
     const val = coeff * completed;
     return node(
-      "Dream Challenge " + id,
+      dreamChallengeLabel(id),
       val,
       [
         node("Completed", completed, null, { fmt: "raw" }),

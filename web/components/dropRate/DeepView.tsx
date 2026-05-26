@@ -25,6 +25,23 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { CorganNode } from "@/lib/corgan/node";
+import {
+  parseSystemFromBucketName,
+  systemWorld,
+  WORLD_ORDER,
+  WORLD_EMOJI,
+  type SystemKey,
+  type WorldKey,
+} from "@/lib/corgan/stats/categorize";
+import { nodePath, type FlatTree } from "@/lib/dropRate/treeFlatten";
+
+// Compare baseline plumbed from the SnapshotSection — when set, every row
+// in both layouts gets a "Δ vs snap" badge showing current − captured.
+type Baseline = {
+  flatTree: FlatTree;
+  capturedAt: number;
+  charName: string;
+} | null;
 
 // -----------------------------------------------------------------------------
 // Persisted expand state — survives reloads so the user's drilling stays put.
@@ -89,12 +106,16 @@ function joinPath(segments: string[]): string {
 function isPathOpen(
   path: string,
   depth: number,
-  state: ExpandState
+  state: ExpandState,
+  node?: CorganNode
 ): boolean {
   const override = state.overrides[path];
   if (override !== undefined) return override;
   if (state.globalForce === "open") return true;
   if (state.globalForce === "closed") return false;
+  // Nodes marked defaultClosed override the depth heuristic — start closed
+  // (categorize-bucket pattern) until the user clicks.
+  if (node?.defaultClosed) return false;
   return depth < DEFAULT_OPEN_MAX_DEPTH;
 }
 
@@ -113,6 +134,84 @@ function formatVal(val: number, fmt: string | undefined): string {
   return val.toFixed(3);
 }
 
+/** Look up a path's previous value in the baseline flatTree. Returns
+ *  null if no baseline is selected or the path didn't exist in it
+ *  (new node since the snapshot). */
+function lookupDelta(
+  baseline: FlatTree | null | undefined,
+  path: string,
+  current: number
+): number | null {
+  if (!baseline) return null;
+  const prev = baseline[path];
+  if (typeof prev !== "number") return null;
+  return current - prev;
+}
+
+/** Small inline badge that renders a Δ (current − snapshot) next to a row's
+ *  value. Color codes increases green / decreases red / unchanged zinc.
+ *  Returns null when there's no baseline or the path is missing — so callers
+ *  can drop it into any row without a guard. */
+function DeltaBadge({
+  delta,
+  fmt,
+}: {
+  delta: number | null;
+  fmt: string | undefined;
+}) {
+  if (delta === null) return null;
+  const abs = Math.abs(delta);
+  if (abs < 1e-9) {
+    return (
+      <span
+        className="font-mono text-[10px] text-zinc-600 px-1.5 py-0.5 rounded border border-zinc-800 bg-zinc-900/40"
+        title="No change since snapshot"
+      >
+        Δ 0
+      </span>
+    );
+  }
+  const sign = delta > 0 ? "+" : "";
+  // Reuse formatVal for unit-aware formatting on the absolute delta, then
+  // splice the sign back in front so "+12.50K" / "-0.025" read naturally.
+  const formatted = formatVal(Math.abs(delta), fmt);
+  const label = delta > 0 ? `+${formatted}` : `-${formatted}`;
+  const tone =
+    delta > 0
+      ? "text-emerald-300 border-emerald-500/40 bg-emerald-500/10"
+      : "text-red-300 border-red-500/40 bg-red-500/10";
+  void sign;
+  return (
+    <span
+      className={`font-mono text-[10px] px-1.5 py-0.5 rounded border ${tone}`}
+      title="Δ vs selected snapshot"
+    >
+      Δ {label}
+    </span>
+  );
+}
+
+/** Split a node label like "Crystal Custard (Companion 3)" into its friendly
+ *  name and the trailing system+id tag so the renderer can style them
+ *  differently — the name reads in normal text, the tag in muted grey.
+ *  Returns { main, tag } where tag includes its parens (or null if absent).
+ *
+ *  Two tag shapes are accepted:
+ *    1. "(System id)"      — e.g. "(Talent 279)", "(Stamp A38)"
+ *    2. "(System Words)"   — e.g. "(Pristine Charm)" for sources whose
+ *                            origin is descriptive rather than id-indexed.
+ *  Both render the same way (muted grey), so the user reads the friendly
+ *  name first and the category in soft text after. */
+function splitEntityTag(name: string): { main: string; tag: string | null } {
+  // Try id-bearing tag first ("(Talent 279)"); fall back to words-only
+  // tag ("(Pristine Charm)").
+  const idMatch = name.match(/^(.*?)\s*(\([A-Za-z][A-Za-z ]*?\s+[\w,\-]+\))\s*$/);
+  if (idMatch) return { main: idMatch[1].trim(), tag: idMatch[2] };
+  const wordsMatch = name.match(/^(.*?)\s+(\([A-Za-z][A-Za-z ]{2,}\))\s*$/);
+  if (wordsMatch) return { main: wordsMatch[1].trim(), tag: wordsMatch[2] };
+  return { main: name, tag: null };
+}
+
 function valColor(val: number, fmt: string | undefined): string {
   if (fmt === "+") {
     if (val > 0) return "text-emerald-300";
@@ -128,111 +227,13 @@ function valColor(val: number, fmt: string | undefined): string {
 }
 
 // -----------------------------------------------------------------------------
-// Classification — map a node name back to a game system bucket. Used by the
-// "By System" view. We rely on name prefixes because the descriptor's source
-// specs aren't propagated all the way down to the rendered tree.
+// Classification used to live here as a flat "By System" view. That layout
+// was removed — the tree's buckets (built by lib/corgan/stats/categorize.ts)
+// already group every source by its game system, so the parallel
+// classifier was redundant and out-of-date relative to the descriptor
+// renames. Search across the tree handles the "find a source quickly"
+// use case the By System view originally targeted.
 // -----------------------------------------------------------------------------
-
-type SystemKey =
-  | "Talents"
-  | "Stamps"
-  | "Alchemy"
-  | "Sigils"
-  | "Prayers"
-  | "Shrines"
-  | "Arcade"
-  | "Voting"
-  | "Cards"
-  | "Guild"
-  | "Star Signs"
-  | "Post Office"
-  | "ETC Bonus"
-  | "Shiny Pets"
-  | "Companions"
-  | "Win Bonus"
-  | "Tomes"
-  | "Grids/Lab"
-  | "Chips"
-  | "Dreams"
-  | "Cloud Bonus"
-  | "Golden Food"
-  | "Achievements"
-  | "Owl"
-  | "Grimoire"
-  | "Vault"
-  | "Farming"
-  | "Holes"
-  | "Emperor"
-  | "Set Bonus"
-  | "Friends"
-  | "Legends"
-  | "Spelunk Shop"
-  | "Bundles"
-  | "OLA"
-  | "Arcane Map"
-  | "Sushi"
-  | "Minehead"
-  | "Pristine Charm"
-  | "Glimbo"
-  | "Workshop"
-  | "Event Shop"
-  | "LUK / Stats"
-  | "Button"
-  | "Other";
-
-const SYSTEM_RULES: Array<{ key: SystemKey; match: RegExp }> = [
-  { key: "Talents", match: /^Talent\b/i },
-  { key: "Stamps", match: /^Stamp\b/i },
-  { key: "Sigils", match: /^Sigil\b/i },
-  { key: "Alchemy", match: /^(Bubble|Vial|Alchemy|DROPPIN|Cauldron|Atom)\b/i },
-  { key: "Prayers", match: /^Prayer\b/i },
-  { key: "Shrines", match: /^Shrine\b/i },
-  { key: "Arcade", match: /^Arcade\b/i },
-  { key: "Voting", match: /^Voting\b/i },
-  { key: "Cards", match: /^(Card|CardSet|CardSingle)\b/i },
-  { key: "Guild", match: /^Guild\b/i },
-  { key: "Star Signs", match: /^(Star ?Sign|Seraph)\b/i },
-  { key: "Post Office", match: /^(Post ?Office|PO )\b/i },
-  { key: "ETC Bonus", match: /^(ETC|EtcBonus|Etc)\b/i },
-  { key: "Shiny Pets", match: /^Shiny\b/i },
-  { key: "Companions", match: /^(Companion|CompMulti)\b/i },
-  { key: "Win Bonus", match: /^Win ?Bonus\b/i },
-  { key: "Tomes", match: /^Tome\b/i },
-  { key: "Grids/Lab", match: /^(Grid|Lab)\b/i },
-  { key: "Chips", match: /^Chip\b/i },
-  { key: "Dreams", match: /^Dream\b/i },
-  { key: "Cloud Bonus", match: /^(Cloud|CloudBonus)\b/i },
-  { key: "Golden Food", match: /^(Golden Food|GFood|GoldenFood)\b/i },
-  { key: "Achievements", match: /^Achievement\b/i },
-  { key: "Owl", match: /^Owl\b/i },
-  { key: "Grimoire", match: /^Grimoire\b/i },
-  { key: "Vault", match: /^Vault\b/i },
-  { key: "Farming", match: /^(Farm|Crop|Exotic|Rank ?9)\b/i },
-  { key: "Holes", match: /^(Hole|Upg ?\d|Meas|Monument)\b/i },
-  { key: "Emperor", match: /^Emperor\b/i },
-  { key: "Set Bonus", match: /^(Set Bonus|Efaunt|Kattlekruk Set|SECRET_SET)\b/i },
-  { key: "Friends", match: /^Friend\b/i },
-  { key: "Legends", match: /^Legend\b/i },
-  { key: "Spelunk Shop", match: /^Spelunk\b/i },
-  { key: "Bundles", match: /^(Bundle|Bun_)\b/i },
-  { key: "OLA", match: /^(OLA|Sneaking)\b/i },
-  { key: "Arcane Map", match: /^(Arcane|ArcaneMap)\b/i },
-  { key: "Sushi", match: /^(Sushi|SushiRoG)\b/i },
-  { key: "Minehead", match: /^Minehead\b/i },
-  { key: "Pristine Charm", match: /^Pristine\b/i },
-  { key: "Glimbo", match: /^Glimbo\b/i },
-  { key: "Workshop", match: /^Workshop\b/i },
-  { key: "Event Shop", match: /^(Event ?Shop|EventShop)\b/i },
-  { key: "LUK / Stats", match: /^(LUK|Total LUK|Sub-1000|Over-1000)\b/i },
-  { key: "Button", match: /^Button\b/i },
-];
-
-function classifyNode(name: string): SystemKey {
-  for (const rule of SYSTEM_RULES) {
-    if (rule.match.test(name)) return rule.key;
-  }
-  return "Other";
-}
 
 // -----------------------------------------------------------------------------
 // Tree introspection helpers
@@ -318,69 +319,65 @@ function findPoolForPath(
 type TreeRowProps = {
   node: CorganNode;
   depth: number;
+  /** Parent path as a single " / "-joined string in the same scheme
+   *  treeFlatten.nodePath() uses (dup-named siblings get "#i" suffix).
+   *  Empty string at the root. */
+  parentPathStr: string;
+  /** This node's sibling array (the parent's children) and its index in
+   *  that array, so we can dedupe same-named siblings with "#i" — matches
+   *  the path scheme used by snapshot flatTree storage. */
+  siblings: CorganNode[];
+  siblingIndex: number;
+  /** Same as parentPathStr but kept as an array for findPoolForPath() which
+   *  walks segments. The array form lets us tolerate "Foo / Bar" labels
+   *  that happen to contain " / " literally. */
   parentPath: string[];
   expandState: ExpandState;
   onToggle: (path: string, nextOpen: boolean) => void;
   searchTerm: string;
-  hideZero: boolean;
+  // Pre-computed visibility maps (built once per tree change in DeepView).
+  // Lookup is O(1) so toggling hide-zero / typing in search doesn't trigger
+  // an O(N²) re-walk inside every row's render. Either map being null means
+  // "filter is off, everything passes". See computeFilterMaps() below.
+  hideZeroMap: WeakMap<CorganNode, boolean> | null;
+  searchMatchMap: WeakMap<CorganNode, boolean> | null;
   root: CorganNode;
   stats: TreeStats;
+  /** Snapshot flatTree for Δ lookups. null = no baseline selected. */
+  baseline: FlatTree | null;
 };
 
 function TreeRow({
   node,
   depth,
+  parentPathStr,
+  siblings,
+  siblingIndex,
   parentPath,
   expandState,
   onToggle,
   searchTerm,
-  hideZero,
+  hideZeroMap,
+  searchMatchMap,
   root,
   stats,
+  baseline,
 }: TreeRowProps) {
+  // Filter checks come first so a hidden node short-circuits before doing
+  // any work for the row that won't be drawn.
+  if (hideZeroMap && hideZeroMap.get(node) === false) return null;
+  if (searchMatchMap && searchMatchMap.get(node) === false) return null;
+
   const hasChildren = !!(node.children && node.children.length);
-  // Pool-weight badge — computed below (we need `path` first). Path itself
-  // doubles as the localStorage key, so it must be derived BEFORE the
-  // `open` lookup.
+  // Path computed the same way treeFlatten.nodePath does so a snapshot
+  // saved before this render will line up exactly. Used both as the
+  // localStorage expand-state key and as the baseline lookup key.
+  const path = nodePath(parentPathStr, node, siblings, siblingIndex);
+  // Keep an array form for findPoolForPath() which walks segments.
   const pathSegments = [...parentPath, node.name];
-  const path = joinPath(pathSegments);
-  const open = isPathOpen(path, depth, expandState);
+  const open = isPathOpen(path, depth, expandState, node);
   const arrow = hasChildren ? (open ? "▾" : "▸") : "·";
-
-  // Hide-zero: drop the node entirely if val is ~0 AND no descendant is
-  // non-zero. We need to check descendants because pool containers have
-  // val=sum which can be huge while individual zero leaves are inside.
-  // Skipping the recursive walk when hideZero is off is critical for perf —
-  // otherwise every TreeRow walks its whole subtree on each render, which
-  // becomes O(N²) over the full ~700-node tree and freezes the page when
-  // the user expands everything.
-  const hasNonZeroDescendant = useMemo(() => {
-    if (!hideZero) return true;
-    if (Math.abs(node.val) > 1e-9) return true;
-    if (!hasChildren) return false;
-    function walk(n: CorganNode): boolean {
-      if (Math.abs(n.val) > 1e-9) return true;
-      for (const c of n.children || []) if (walk(c)) return true;
-      return false;
-    }
-    return (node.children || []).some(walk);
-  }, [node, hasChildren, hideZero]);
-  if (hideZero && !hasNonZeroDescendant) return null;
-
-  // Search filter — only filter on LEAVES; containers stay if any descendant
-  // matches. Empty search disables filtering entirely.
-  const matchesSearch = useMemo(() => {
-    if (!searchTerm) return true;
-    const q = searchTerm.toLowerCase();
-    function walk(n: CorganNode): boolean {
-      if (n.name.toLowerCase().includes(q)) return true;
-      if (n.note && n.note.toLowerCase().includes(q)) return true;
-      for (const c of n.children || []) if (walk(c)) return true;
-      return false;
-    }
-    return walk(node);
-  }, [node, searchTerm]);
-  if (!matchesSearch) return null;
+  const delta = lookupDelta(baseline, path, Number(node.val) || 0);
 
   // Pool-weight badge — for leaves under one of the additive pools, compute
   // their % of the pool sum so the user sees "this source = 32% of LUK2 pool".
@@ -404,41 +401,77 @@ function TreeRow({
     }
   }
 
-  // Search highlighting on the node label itself
+  // Split into friendly name + system-tag suffix so we can mute the tag
+  // visually (it's metadata for users who want to cross-reference, not the
+  // primary label). Then apply search highlight on top.
   const nameSpan = useMemo(() => {
-    if (!searchTerm) return node.name;
-    const q = searchTerm.toLowerCase();
-    const lower = node.name.toLowerCase();
-    const idx = lower.indexOf(q);
-    if (idx < 0) return node.name;
+    const { main, tag } = splitEntityTag(node.name);
+    function highlight(text: string) {
+      if (!searchTerm) return text;
+      const q = searchTerm.toLowerCase();
+      const lower = text.toLowerCase();
+      const idx = lower.indexOf(q);
+      if (idx < 0) return text;
+      return (
+        <>
+          {text.slice(0, idx)}
+          <mark className="bg-amber-500/30 text-amber-200 rounded px-0.5">
+            {text.slice(idx, idx + q.length)}
+          </mark>
+          {text.slice(idx + q.length)}
+        </>
+      );
+    }
+    if (!tag) return highlight(main);
     return (
       <>
-        {node.name.slice(0, idx)}
-        <mark className="bg-amber-500/30 text-amber-200 rounded px-0.5">
-          {node.name.slice(idx, idx + q.length)}
-        </mark>
-        {node.name.slice(idx + q.length)}
+        {highlight(main)}
+        <span className="ml-1.5 text-zinc-500 font-normal text-[0.85em]">
+          {tag}
+        </span>
       </>
     );
   }, [node.name, searchTerm]);
 
+  // Depth-based visual styling: top-level pools get heavier weight, deeper
+  // nodes get progressively lighter so the eye can skim categories quickly.
+  const isPoolHeader = depth === 1; // pools sit at depth 1 under root
+  const isSubSource = depth >= 3; // sub-source breakdown (formula inputs)
+  const isZero = Math.abs(Number(node.val) || 0) < 1e-9;
+
   return (
     <div>
       <div
-        className={`flex items-center gap-2 px-2 py-1 border-b border-white/5 text-sm ${
-          hasChildren ? "cursor-pointer hover:bg-white/5" : ""
-        }`}
-        style={{ paddingLeft: `${0.5 + depth * 1.1}rem` }}
+        className={`group flex items-center gap-2 px-2 border-b border-white/5 transition-colors ${
+          hasChildren ? "cursor-pointer hover:bg-sky-500/5" : ""
+        } ${
+          isPoolHeader
+            ? "py-2 bg-zinc-900/40 font-semibold text-sm"
+            : isSubSource
+            ? "py-0.5 text-xs"
+            : "py-1.5 text-sm"
+        } ${isZero && !hasChildren ? "opacity-40" : ""}`}
+        style={{ paddingLeft: `${0.5 + depth * 1.0}rem` }}
         onClick={() => hasChildren && onToggle(path, !open)}
         title={node.note}
       >
-        <span className="w-4 text-zinc-500 select-none flex-shrink-0">
+        <span
+          className={`w-4 select-none flex-shrink-0 ${
+            hasChildren ? "text-zinc-400 group-hover:text-sky-400" : "text-zinc-700"
+          }`}
+        >
           {arrow}
         </span>
-        <span className="flex-1 whitespace-nowrap overflow-hidden text-ellipsis text-zinc-200">
-          {nameSpan}
+        <span
+          className={`flex-1 min-w-0 ${
+            isPoolHeader ? "text-zinc-100" : isSubSource ? "text-zinc-400" : "text-zinc-200"
+          }`}
+        >
+          <span className="truncate inline-block max-w-full align-middle">
+            {nameSpan}
+          </span>
           {node.note && (
-            <span className="ml-2 text-[10px] text-zinc-500 italic">
+            <span className="ml-2 text-[10px] text-zinc-500 italic font-normal">
               {node.note}
             </span>
           )}
@@ -457,6 +490,7 @@ function TreeRow({
             {weightBadge.label}
           </span>
         )}
+        <DeltaBadge delta={delta} fmt={node.fmt} />
         <span
           className={`font-mono tabular-nums text-right w-24 ${valColor(
             node.val,
@@ -473,11 +507,16 @@ function TreeRow({
               key={`${depth}-${i}-${c.name}`}
               node={c}
               depth={depth + 1}
+              parentPathStr={path}
+              siblings={node.children!}
+              siblingIndex={i}
               parentPath={pathSegments}
               expandState={expandState}
               onToggle={onToggle}
               searchTerm={searchTerm}
-              hideZero={hideZero}
+              hideZeroMap={hideZeroMap}
+              searchMatchMap={searchMatchMap}
+              baseline={baseline}
               root={root}
               stats={stats}
             />
@@ -489,288 +528,79 @@ function TreeRow({
 }
 
 // -----------------------------------------------------------------------------
-// "By System" rendering — flatten all leaves, bucket by classifyNode(), render
-// each bucket as a collapsible group with each source as a row showing value,
-// path (where it lives in the formula tree), and any sub-detail children.
+// Filter maps — pre-walked ONCE per filter-state change so hide-zero and
+// search filtering are O(1) per row instead of O(subtree) per row.
+//
+// The hide-zero map: WeakMap<node, true|false>. `true` means "keep this node"
+// (either it has a non-zero val directly, or some descendant does). The pool
+// containers always pass because their val is the pool sum.
+//
+// The search map: `true` if this node's name/note matches OR any descendant
+// does. Containers pass through so the user can drill into a matching leaf.
 // -----------------------------------------------------------------------------
 
-type LeafEntry = {
-  node: CorganNode;
-  path: string[]; // full path from root, excluding root itself
-};
-
-function collectLeaves(root: CorganNode): LeafEntry[] {
-  // We pick "interesting" levels: any node directly under one of the pools.
-  // Going deeper would duplicate source breakdown (e.g. base level, bonus
-  // levels) outside its natural context — those belong in Tree view.
-  const POOL_NAMES = new Set([
-    "Main Additive Pool",
-    "LUK2 Additive Pool",
-    "Post-Processing",
-    "Chip Cap-Break",
-    "LUK Scaling",
-  ]);
-  const out: LeafEntry[] = [];
-  function walk(n: CorganNode, path: string[]) {
-    const here = [...path, n.name];
+function buildHideZeroMap(root: CorganNode): WeakMap<CorganNode, boolean> {
+  const map = new WeakMap<CorganNode, boolean>();
+  function walk(n: CorganNode): boolean {
+    const directNonZero = Math.abs(Number(n.val) || 0) > 1e-9;
+    let any = directNonZero;
     const kids = n.children || [];
-    // If this node's parent is a pool, treat THIS as the "source" entry and
-    // stop recursing — its children are sub-computations belonging to it.
-    const parentIsPool = path.length > 0 && POOL_NAMES.has(path[path.length - 1]);
-    if (parentIsPool) {
-      out.push({ node: n, path: here });
-      return;
+    for (const c of kids) {
+      // Walk every child regardless so the map covers the whole tree, but OR
+      // the result into `any` so containers light up if any descendant does.
+      if (walk(c)) any = true;
     }
-    for (const c of kids) walk(c, here);
+    map.set(n, any);
+    return any;
   }
-  walk(root, []);
-  return out;
+  walk(root);
+  return map;
 }
 
-function SystemView({
-  root,
-  searchTerm,
-  hideZero,
-}: {
-  root: CorganNode;
-  searchTerm: string;
-  hideZero: boolean;
-}) {
-  const leaves = useMemo(() => collectLeaves(root), [root]);
-  const grouped = useMemo(() => {
-    const map = new Map<SystemKey, LeafEntry[]>();
-    for (const l of leaves) {
-      const key = classifyNode(l.node.name);
-      if (!map.has(key)) map.set(key, []);
-      map.get(key)!.push(l);
-    }
-    // Sort entries inside each group by absolute val desc (biggest first)
-    for (const [, arr] of map) {
-      arr.sort((a, b) => Math.abs(b.node.val) - Math.abs(a.node.val));
-    }
-    return map;
-  }, [leaves]);
-
-  const orderedKeys = useMemo(() => {
-    // Sort groups by total absolute val desc so heaviest hitters are on top
-    const totals = new Map<SystemKey, number>();
-    for (const [k, arr] of grouped) {
-      const t = arr.reduce((a, e) => a + Math.abs(e.node.val), 0);
-      totals.set(k, t);
-    }
-    return Array.from(grouped.keys()).sort(
-      (a, b) => (totals.get(b) ?? 0) - (totals.get(a) ?? 0)
-    );
-  }, [grouped]);
-
+function buildSearchMatchMap(
+  root: CorganNode,
+  searchTerm: string
+): WeakMap<CorganNode, boolean> {
+  const map = new WeakMap<CorganNode, boolean>();
   const q = searchTerm.toLowerCase();
-  let visibleCount = 0;
-  const rendered = orderedKeys.map((key) => {
-    const entries = grouped.get(key) ?? [];
-    const visibleEntries = entries.filter((e) => {
-      if (hideZero && Math.abs(e.node.val) < 1e-9) return false;
-      if (searchTerm) {
-        const matchesName =
-          e.node.name.toLowerCase().includes(q) ||
-          (e.node.note ?? "").toLowerCase().includes(q) ||
-          key.toLowerCase().includes(q);
-        if (!matchesName) return false;
-      }
-      return true;
-    });
-    if (visibleEntries.length === 0) return null;
-    visibleCount += visibleEntries.length;
-    // Group total: sum for all-additive groups, product for all-multiplicative,
-    // null when mixed (showing it would be misleading).
-    const fmts = new Set(visibleEntries.map((e) => e.node.fmt));
-    let groupTotal: number | null = null;
-    let groupFmt: string | undefined;
-    if (fmts.size === 1) {
-      const fmt = visibleEntries[0].node.fmt;
-      if (fmt === "+") {
-        groupTotal = visibleEntries.reduce(
-          (a, e) => a + (Number(e.node.val) || 0),
-          0
-        );
-        groupFmt = "+";
-      } else if (fmt === "x") {
-        groupTotal = visibleEntries.reduce(
-          (a, e) => a * (Number(e.node.val) || 1),
-          1
-        );
-        groupFmt = "x";
-      }
-    }
-    return (
-      <SystemGroup
-        key={key}
-        title={key}
-        entries={visibleEntries}
-        total={groupTotal}
-        totalFmt={groupFmt}
-      />
-    );
-  });
-
-  if (visibleCount === 0) {
-    return (
-      <p className="text-sm text-zinc-500 italic px-2 py-4">
-        No sources match the current filter.
-      </p>
-    );
+  function matchesSelf(n: CorganNode): boolean {
+    if (n.name.toLowerCase().includes(q)) return true;
+    if (n.note && n.note.toLowerCase().includes(q)) return true;
+    return false;
   }
-  return <div className="flex flex-col gap-3">{rendered}</div>;
+  function walk(n: CorganNode): boolean {
+    let any = matchesSelf(n);
+    for (const c of n.children || []) {
+      if (walk(c)) any = true;
+    }
+    map.set(n, any);
+    return any;
+  }
+  walk(root);
+  return map;
 }
 
-function SystemGroup({
-  title,
-  entries,
-  total,
-  totalFmt,
-}: {
-  title: SystemKey;
-  entries: LeafEntry[];
-  total: number | null;
-  totalFmt: string | undefined;
-}) {
-  const [open, setOpen] = useState(true);
-  return (
-    <div className="rounded border border-zinc-800 bg-zinc-950/40">
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        className="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-white/5"
-      >
-        <span className="w-4 text-zinc-500">{open ? "▾" : "▸"}</span>
-        <span className="font-semibold text-sky-300 text-sm flex-1">
-          {title}
-          <span className="ml-2 text-[10px] text-zinc-500 font-normal">
-            {entries.length} source{entries.length === 1 ? "" : "s"}
-          </span>
-        </span>
-        {total !== null ? (
-          <span
-            className={`font-mono tabular-nums text-sm ${valColor(total, totalFmt)}`}
-          >
-            {formatVal(total, totalFmt)}
-          </span>
-        ) : (
-          <span className="text-[10px] text-zinc-600 italic">mixed fmt</span>
-        )}
-      </button>
-      {open && (
-        <div className="border-t border-zinc-800">
-          {entries.map((e, i) => (
-            <SystemRow key={`${title}-${i}-${e.node.name}`} entry={e} />
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function SystemRow({ entry }: { entry: LeafEntry }) {
-  const [open, setOpen] = useState(false);
-  const hasChildren = !!(entry.node.children && entry.node.children.length);
-  // Path label: strip root + immediate pool, keep mid context
-  // e.g. ["Drop Rate","Main Additive Pool","Talent 279","Bonus Levels"]
-  //   → "Main Additive Pool"
-  const poolName = entry.path.length >= 2 ? entry.path[entry.path.length - 2] : "";
-  return (
-    <div className="border-b border-zinc-800/50 last:border-b-0">
-      <div
-        className={`flex items-center gap-2 px-4 py-1.5 text-sm ${
-          hasChildren ? "cursor-pointer hover:bg-white/5" : ""
-        }`}
-        onClick={() => hasChildren && setOpen((v) => !v)}
-        title={entry.node.note}
-      >
-        <span className="w-3 text-zinc-600 select-none flex-shrink-0">
-          {hasChildren ? (open ? "▾" : "▸") : ""}
-        </span>
-        <span className="flex-1 text-zinc-200 truncate">
-          {entry.node.name}
-          {entry.node.note && (
-            <span className="ml-2 text-[10px] text-zinc-500 italic">
-              {entry.node.note}
-            </span>
-          )}
-        </span>
-        <span className="text-[10px] text-zinc-600 font-mono whitespace-nowrap">
-          {poolName}
-        </span>
-        <span
-          className={`font-mono tabular-nums w-24 text-right ${valColor(
-            entry.node.val,
-            entry.node.fmt
-          )}`}
-        >
-          {formatVal(entry.node.val, entry.node.fmt)}
-        </span>
-      </div>
-      {open && hasChildren && (
-        <div className="pl-8 pr-3 pb-2 bg-black/30 border-t border-zinc-800/50">
-          <DeepChildren nodes={entry.node.children!} depth={0} />
-        </div>
-      )}
-    </div>
-  );
-}
-
-// Render sub-children fully expanded (depth-unlimited) for SystemRow drill-in
-function DeepChildren({
-  nodes,
-  depth,
-}: {
-  nodes: CorganNode[];
-  depth: number;
-}) {
-  return (
-    <div>
-      {nodes.map((c, i) => (
-        <div
-          key={`${depth}-${i}-${c.name}`}
-          style={{ paddingLeft: `${depth * 0.75}rem` }}
-        >
-          <div
-            className="flex items-center gap-2 py-0.5 text-xs"
-            title={c.note}
-          >
-            <span className="w-3 text-zinc-700">•</span>
-            <span className="flex-1 text-zinc-400 truncate">
-              {c.name}
-              {c.note && (
-                <span className="ml-1 text-[10px] text-zinc-600 italic">
-                  {c.note}
-                </span>
-              )}
-            </span>
-            <span
-              className={`font-mono tabular-nums text-xs ${valColor(
-                c.val,
-                c.fmt
-              )}`}
-            >
-              {formatVal(c.val, c.fmt)}
-            </span>
-          </div>
-          {c.children && c.children.length > 0 && (
-            <DeepChildren nodes={c.children} depth={depth + 1} />
-          )}
-        </div>
-      ))}
-    </div>
-  );
-}
 
 // -----------------------------------------------------------------------------
 // Main component
 // -----------------------------------------------------------------------------
 
-export default function DeepView({ tree }: { tree: CorganNode | null }) {
-  const [layout, setLayout] = useState<"tree" | "system">("tree");
+type ViewMode = "tree" | "world";
+
+export default function DeepView({
+  tree,
+  baseline,
+}: {
+  tree: CorganNode | null;
+  /** Optional snapshot baseline. When set, every row gains a "Δ vs snap"
+   *  badge showing current − captured. Lookup is keyed by the same
+   *  nodePath() scheme treeFlatten uses to serialize the snapshot. */
+  baseline?: Baseline;
+}) {
+  const [view, setView] = useState<ViewMode>("tree");
   const [searchTerm, setSearchTerm] = useState("");
   const [hideZero, setHideZero] = useState(false);
+  const baselineFlat = baseline?.flatTree ?? null;
 
   // Persisted expand state: defaults to "depth < 2 open" until the user has
   // clicked something. Loaded from localStorage on mount so toggles survive
@@ -814,6 +644,17 @@ export default function DeepView({ tree }: { tree: CorganNode | null }) {
 
   const stats = useMemo(() => computeStats(tree), [tree]);
 
+  // Pre-compute filter visibility maps. Each is null when the corresponding
+  // filter is off — TreeRow short-circuits in that case.
+  const hideZeroMap = useMemo(() => {
+    if (!hideZero || !tree) return null;
+    return buildHideZeroMap(tree);
+  }, [hideZero, tree]);
+  const searchMatchMap = useMemo(() => {
+    if (!searchTerm || !tree) return null;
+    return buildSearchMatchMap(tree, searchTerm);
+  }, [searchTerm, tree]);
+
   if (!tree) {
     return (
       <p className="text-sm text-zinc-500 italic">
@@ -824,128 +665,509 @@ export default function DeepView({ tree }: { tree: CorganNode | null }) {
 
   return (
     <div className="font-sans">
-      {/* Controls bar */}
-      <div className="flex flex-wrap items-center gap-2 mb-3 p-2 rounded border border-zinc-800 bg-zinc-950/60">
-        {/* Layout toggle */}
-        <div
-          role="tablist"
-          className="inline-flex gap-1 p-0.5 rounded bg-zinc-950 border border-zinc-800"
+      {/* View tabs — sit where the "Deep View" title used to be. Two layouts:
+          🌳 Tree (formula hierarchy) and 🌍 Per World (sources grouped by
+          where they come from in the game). */}
+      <div className="mb-3 flex items-center gap-1 border-b border-zinc-800">
+        <button
+          type="button"
+          onClick={() => setView("tree")}
+          className={`px-3 py-1.5 text-sm font-medium rounded-t -mb-px border ${
+            view === "tree"
+              ? "bg-sky-500/15 text-sky-300 border-sky-500/40 border-b-transparent"
+              : "text-zinc-400 hover:text-zinc-200 border-transparent"
+          }`}
+          title="Formula hierarchy — pool → source → sub-source"
         >
-          <button
-            type="button"
-            onClick={() => setLayout("tree")}
-            className={`px-2 py-1 text-xs rounded ${
-              layout === "tree"
-                ? "bg-sky-500/15 text-sky-300 border border-sky-500/40"
-                : "text-zinc-400 hover:text-zinc-200"
-            }`}
-            title="Hierarchical view — pool → source → sub-source"
-          >
-            🌳 Tree
-          </button>
-          <button
-            type="button"
-            onClick={() => setLayout("system")}
-            className={`px-2 py-1 text-xs rounded ${
-              layout === "system"
-                ? "bg-sky-500/15 text-sky-300 border border-sky-500/40"
-                : "text-zinc-400 hover:text-zinc-200"
-            }`}
-            title="Flat grouping by game system (Talents, Stamps, Cards…)"
-          >
-            📚 By System
-          </button>
-        </div>
+          🌳 Tree
+        </button>
+        <button
+          type="button"
+          onClick={() => setView("world")}
+          className={`px-3 py-1.5 text-sm font-medium rounded-t -mb-px border ${
+            view === "world"
+              ? "bg-sky-500/15 text-sky-300 border-sky-500/40 border-b-transparent"
+              : "text-zinc-400 hover:text-zinc-200 border-transparent"
+          }`}
+          title="Sources grouped by world (Global / Character / W1 … W7)"
+        >
+          🌍 Per World
+        </button>
+      </div>
 
-        {/* Search */}
+      {/* Controls bar — single row. Search goes first (it's the most-used
+          control and benefits from a flex-grow input), followed by the
+          expand-state buttons (tree-only) and the Hide-inactive toggle. */}
+      <div className="mb-3 flex flex-wrap items-center gap-2 p-2 rounded-lg border border-zinc-800 bg-zinc-900/60">
+        {/* Search — flex-grow so it claims most of the bar width. */}
         <input
           type="text"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           placeholder="🔍 Search source name or note…"
-          className="flex-1 min-w-[180px] px-2 py-1 text-xs bg-zinc-900 border border-zinc-800 rounded text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-sky-500"
+          className="flex-1 min-w-[200px] px-2 py-1 text-xs bg-zinc-950 border border-zinc-800 rounded text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-sky-500/60"
         />
 
-        {/* Hide-zero toggle */}
-        <label className="flex items-center gap-1.5 text-xs text-zinc-400 cursor-pointer select-none">
+        {/* Expand / Collapse / Reset — works in both views. In Tree it
+            mutates the path-based expand state; in Per World it broadcasts
+            to every WorldSection so all of them flip together. Reset in
+            Per World restores the default (all open). */}
+        <div className="inline-flex gap-1">
+          <button
+            type="button"
+            onClick={() => {
+              if (view === "tree") expandAll();
+              else broadcastWorldAll("open");
+            }}
+            className="px-2 py-1 text-xs rounded border border-zinc-700 bg-zinc-900 text-zinc-300 hover:bg-zinc-800"
+            title={view === "tree" ? "Open every node" : "Expand every world section"}
+          >
+            ↓ Expand
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              if (view === "tree") collapseAll();
+              else broadcastWorldAll("closed");
+            }}
+            className="px-2 py-1 text-xs rounded border border-zinc-700 bg-zinc-900 text-zinc-300 hover:bg-zinc-800"
+            title={view === "tree" ? "Close every node" : "Collapse every world section"}
+          >
+            ↑ Collapse
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              if (view === "tree") resetExpandState();
+              // Per World default: every section open.
+              else broadcastWorldAll("open");
+            }}
+            className="px-2 py-1 text-xs rounded border border-zinc-800 bg-zinc-950 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800"
+            title={
+              view === "tree"
+                ? "Reset to default: depth < 2 open, everything else closed"
+                : "Reset to default: every world section open"
+            }
+          >
+            ↺ Reset
+          </button>
+        </div>
+
+        {/* Hide-inactive toggle — some leaves carry val=0 but still feel
+            "active" (e.g. catalog rows). "Inactive" reads more naturally
+            than "Hide zero". */}
+        <label className="flex items-center gap-1.5 text-xs text-zinc-400 cursor-pointer select-none px-1">
           <input
             type="checkbox"
             checked={hideZero}
             onChange={(e) => setHideZero(e.target.checked)}
             className="accent-sky-500"
           />
-          Hide zero
+          Hide inactive
         </label>
-
-        {/* Expand/collapse all — only meaningful in tree layout. Both
-            buttons persist to localStorage, so a reload keeps the state. */}
-        {layout === "tree" && (
-          <div className="inline-flex gap-1">
-            <button
-              type="button"
-              onClick={expandAll}
-              className="px-2 py-1 text-xs rounded border border-zinc-700 bg-zinc-900 text-zinc-300 hover:bg-zinc-800"
-              title="Open every node"
-            >
-              Expand all
-            </button>
-            <button
-              type="button"
-              onClick={collapseAll}
-              className="px-2 py-1 text-xs rounded border border-zinc-700 bg-zinc-900 text-zinc-300 hover:bg-zinc-800"
-              title="Close every node"
-            >
-              Collapse all
-            </button>
-            <button
-              type="button"
-              onClick={resetExpandState}
-              className="px-2 py-1 text-xs rounded border border-zinc-800 bg-zinc-950 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800"
-              title="Reset to default: depth < 2 open, everything else closed"
-            >
-              Reset
-            </button>
-          </div>
-        )}
       </div>
 
-      {/* Summary stats line */}
-      <div className="text-[11px] text-zinc-500 mb-3 px-1 flex flex-wrap gap-x-4 gap-y-1">
-        <span>
-          <span className="text-zinc-300">{stats.nodeCount}</span> total nodes
+      {/* View content. The world view doesn't need the expand-state machinery
+          — its rows track their own open/closed state locally. */}
+      {/* If a snapshot baseline is selected, surface a small banner so the
+          user knows which snapshot is currently driving the Δ badges. */}
+      {baseline && (
+        // Single-line banner — left side states the active comparison,
+        // right side gives a hint that truncates with ellipsis on narrow
+        // viewports (full text stays accessible via the title tooltip).
+        <div className="mb-3 px-3 py-2 rounded-md border border-sky-500/30 bg-sky-500/5 flex items-center gap-3 text-xs overflow-hidden">
+          <span className="text-sky-200 whitespace-nowrap flex-shrink-0">
+            Comparing against{" "}
+            <span className="font-semibold">{baseline.charName}</span>{" "}
+            snapshot from{" "}
+            <span className="font-mono">
+              {new Date(baseline.capturedAt).toLocaleString()}
+            </span>
+          </span>
+          <span
+            className="text-zinc-500 italic truncate min-w-0 ml-auto"
+            title="Pick another snapshot to switch — toggle off in Snapshot History"
+          >
+            Pick another snapshot to switch — toggle off in Snapshot History
+          </span>
+        </div>
+      )}
+
+      {view === "world" ? (
+        <PerWorldView
+          tree={tree}
+          searchTerm={searchTerm}
+          hideZero={hideZero}
+          baseline={baselineFlat}
+        />
+      ) : (
+      <div className="rounded border border-zinc-800 bg-zinc-950/40">
+        <TreeRow
+          node={tree}
+          depth={0}
+          parentPathStr=""
+          siblings={[tree]}
+          siblingIndex={0}
+          parentPath={[]}
+          expandState={expandState}
+          onToggle={toggleNode}
+          searchTerm={searchTerm}
+          hideZeroMap={hideZeroMap}
+          searchMatchMap={searchMatchMap}
+          root={tree}
+          stats={stats}
+          baseline={baselineFlat}
+        />
+      </div>
+      )}
+    </div>
+  );
+}
+
+// -----------------------------------------------------------------------------
+// Per World view — flatten the tree's category buckets (depth-2 children of
+// Additive Pool and Post-Processing) into groups by WorldKey. Each row
+// displays a single bucket; expanding it reveals the same source rows the
+// Tree view shows. A bucket can appear in BOTH pools (e.g. Talents adds
+// 58 to the additive sum AND multiplies by 1.27x via Talent 328) — when
+// that happens we show both rows with a pool badge so the user can see
+// each contribution separately.
+// -----------------------------------------------------------------------------
+
+type WorldBucket = {
+  /** Display key for React + sort tiebreak. Includes both the SystemKey
+   *  and the pool name so two buckets with the same system but different
+   *  pools each get a unique key. */
+  id: string;
+  system: SystemKey;
+  poolBadge: "Additive" | "Multi";
+  node: CorganNode;
+  /** Canonical path under the root tree — same scheme treeFlatten uses
+   *  so we can look up snapshot values for the Δ badge. */
+  path: string;
+};
+
+function collectWorldBuckets(root: CorganNode): WorldBucket[] {
+  const out: WorldBucket[] = [];
+  // The categorize-pass emits bucket nodes as direct children of these
+  // two parents. Anything else (LUK Scaling, Total Sum, Chip Cap-Break,
+  // Post-Processing's "Sneaking Mastery" prefix bucket, etc.) we also
+  // walk — the Post-Processing prefix buckets (Bundles, Talents,
+  // Sneaking Mastery) are direct categorize-style children too and
+  // belong in the per-world view.
+  const rootSiblings = [root];
+  const rootPath = nodePath("", root, rootSiblings, 0); // "Drop Rate"
+  const parentChildren = root.children || [];
+  for (let pi = 0; pi < parentChildren.length; pi++) {
+    const child = parentChildren[pi];
+    const childPath = nodePath(rootPath, child, parentChildren, pi);
+    if (child.name === "Additive Pool" || child.name === "Post-Processing") {
+      const buckets = child.children || [];
+      for (let bi = 0; bi < buckets.length; bi++) {
+        const bucket = buckets[bi];
+        const sys = parseSystemFromBucketName(bucket.name);
+        if (!sys) continue;
+        const bucketPath = nodePath(childPath, bucket, buckets, bi);
+        // Badge is driven by the BUCKET's own fmt, not by which parent
+        // pool it sits under. Death Bringer Bundle (+2) and Sneaking
+        // Mastery (+0.3) both live in Post-Processing for formula-order
+        // reasons but they're additive ops — fmt:"+" so they get the
+        // Additive badge.
+        const badge: "Additive" | "Multi" =
+          bucket.fmt === "x" ? "Multi" : "Additive";
+        out.push({
+          id: `${badge}::${sys}::${bucketPath}::${out.length}`,
+          system: sys,
+          poolBadge: badge,
+          node: bucket,
+          path: bucketPath,
+        });
+      }
+    }
+  }
+  return out;
+}
+
+function bucketMatchesSearch(bucket: WorldBucket, term: string): boolean {
+  if (!term) return true;
+  const q = term.toLowerCase();
+  if (bucket.system.toLowerCase().includes(q)) return true;
+  if (bucket.node.name.toLowerCase().includes(q)) return true;
+  // Look one level deep so searching "archlord" finds Talents → Archlord.
+  for (const c of bucket.node.children || []) {
+    if (c.name.toLowerCase().includes(q)) return true;
+    if ((c.note ?? "").toLowerCase().includes(q)) return true;
+  }
+  return false;
+}
+
+function PerWorldView({
+  tree,
+  searchTerm,
+  hideZero,
+  baseline,
+}: {
+  tree: CorganNode;
+  searchTerm: string;
+  hideZero: boolean;
+  baseline: FlatTree | null;
+}) {
+  const buckets = useMemo(() => collectWorldBuckets(tree), [tree]);
+
+  // Group by WorldKey, applying search + hide-inactive filters.
+  const byWorld = useMemo(() => {
+    const map = new Map<WorldKey, WorldBucket[]>();
+    for (const b of buckets) {
+      if (hideZero && Math.abs(Number(b.node.val) || 0) < 1e-9) continue;
+      if (!bucketMatchesSearch(b, searchTerm)) continue;
+      const world = systemWorld(b.system);
+      if (!map.has(world)) map.set(world, []);
+      map.get(world)!.push(b);
+    }
+    return map;
+  }, [buckets, hideZero, searchTerm]);
+
+  const totalVisible = Array.from(byWorld.values()).reduce(
+    (a, arr) => a + arr.length,
+    0
+  );
+
+  if (totalVisible === 0) {
+    return (
+      <p className="text-sm text-zinc-500 italic px-2 py-4">
+        No buckets match the current filter.
+      </p>
+    );
+  }
+
+  const visibleWorlds = WORLD_ORDER.filter((w) => byWorld.has(w));
+
+  return (
+    <div className="flex flex-col gap-3">
+      {visibleWorlds.map((world) => (
+        <WorldSection
+          key={world}
+          world={world}
+          buckets={byWorld.get(world)!}
+          baseline={baseline}
+        />
+      ))}
+    </div>
+  );
+}
+
+// Shared event channel for the world-section expand/collapse buttons. Each
+// section subscribes; firing a value here flips every section. Cheap pub/sub
+// keeps the components decoupled from the main toolbar (which lives in
+// DeepView) and avoids prop-drilling a "force-state" enum down through
+// every section.
+type WorldAllSignal = { kind: "open" | "closed"; ts: number };
+const worldAllListeners = new Set<(s: WorldAllSignal) => void>();
+function broadcastWorldAll(kind: "open" | "closed") {
+  const sig: WorldAllSignal = { kind, ts: Date.now() };
+  for (const fn of worldAllListeners) fn(sig);
+}
+
+function WorldSection({
+  world,
+  buckets,
+  baseline,
+}: {
+  world: WorldKey;
+  buckets: WorldBucket[];
+  baseline: FlatTree | null;
+}) {
+  const [open, setOpen] = useState(true);
+  // Listen for the broadcast from WorldSectionControls so "Expand all" /
+  // "Collapse all" flip every section at once.
+  useEffect(() => {
+    const listener = (s: WorldAllSignal) => setOpen(s.kind === "open");
+    worldAllListeners.add(listener);
+    return () => {
+      worldAllListeners.delete(listener);
+    };
+  }, []);
+
+  return (
+    <section className="rounded-lg border border-zinc-800 bg-zinc-950/40">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className={`w-full px-3 py-2.5 text-base font-semibold text-sky-300 flex items-center gap-2.5 hover:bg-white/5 rounded-t-lg ${
+          open ? "border-b border-zinc-800" : ""
+        }`}
+        title={open ? "Collapse this world" : "Expand this world"}
+      >
+        <span className="w-3 text-zinc-500 select-none text-sm">
+          {open ? "▾" : "▸"}
         </span>
-        <span>
-          <span className="text-zinc-300">{stats.leafCount}</span> leaf sources
+        <span aria-hidden="true" className="text-lg">
+          {WORLD_EMOJI[world]}
         </span>
-        <span>
-          <span className="text-emerald-400">{stats.nonZeroLeafCount}</span>{" "}
-          non-zero
+        <span>{world}</span>
+        <span className="ml-auto text-[11px] text-zinc-500 font-normal">
+          {buckets.length} bucket{buckets.length === 1 ? "" : "s"}
         </span>
-        <span>
-          max depth <span className="text-zinc-300">{stats.maxDepth}</span>
+      </button>
+      {open && (
+        <div>
+          {buckets.map((b) => (
+            <WorldBucketRow key={b.id} bucket={b} baseline={baseline} />
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
+function WorldBucketRow({
+  bucket,
+  baseline,
+}: {
+  bucket: WorldBucket;
+  baseline: FlatTree | null;
+}) {
+  const [open, setOpen] = useState(false);
+  const hasChildren = !!(bucket.node.children && bucket.node.children.length);
+  const badgeClass =
+    bucket.poolBadge === "Additive"
+      ? "bg-blue-500/10 text-blue-300 border-blue-500/30"
+      : "bg-amber-500/10 text-amber-300 border-amber-500/30";
+  const isZero = Math.abs(Number(bucket.node.val) || 0) < 1e-9;
+  const delta = lookupDelta(baseline, bucket.path, Number(bucket.node.val) || 0);
+  return (
+    <div className="border-b border-zinc-800/60 last:border-b-0">
+      <div
+        className={`flex items-center gap-2 px-3 py-2 text-sm ${
+          hasChildren ? "cursor-pointer hover:bg-white/5" : ""
+        } ${isZero ? "opacity-50" : ""}`}
+        onClick={() => hasChildren && setOpen((v) => !v)}
+        title={bucket.node.note}
+      >
+        <span className="w-3 text-zinc-600 select-none flex-shrink-0">
+          {hasChildren ? (open ? "▾" : "▸") : "•"}
         </span>
-        <span className="text-zinc-600 italic">
-          Every source down to its formula inputs, including sub-source layers.
+        <span className="flex-1 text-zinc-200 truncate font-medium">
+          {bucket.node.name}
+        </span>
+        <span
+          className={`text-[9px] font-mono px-1.5 py-0.5 rounded border whitespace-nowrap ${badgeClass}`}
+          title={
+            bucket.poolBadge === "Additive"
+              ? 'Adds to the additive pool (the "/100" sum)'
+              : "Multiplies the post-processing chain"
+          }
+        >
+          {bucket.poolBadge}
+        </span>
+        <DeltaBadge delta={delta} fmt={bucket.node.fmt} />
+        <span
+          className={`font-mono tabular-nums w-24 text-right ${valColor(
+            bucket.node.val,
+            bucket.node.fmt
+          )}`}
+        >
+          {formatVal(bucket.node.val, bucket.node.fmt)}
         </span>
       </div>
-
-      {/* Content */}
-      {layout === "tree" ? (
-        <div className="rounded border border-zinc-800 bg-zinc-950/40">
-          <TreeRow
-            node={tree}
+      {open && hasChildren && (
+        <div className="bg-black/20 border-t border-zinc-800/60 px-3 py-2">
+          <WorldBucketChildren
+            nodes={bucket.node.children!}
             depth={0}
-            parentPath={[]}
-            expandState={expandState}
-            onToggle={toggleNode}
-            searchTerm={searchTerm}
-            hideZero={hideZero}
-            root={tree}
-            stats={stats}
+            parentPathStr={bucket.path}
+            baseline={baseline}
           />
         </div>
-      ) : (
-        <SystemView root={tree} searchTerm={searchTerm} hideZero={hideZero} />
+      )}
+    </div>
+  );
+}
+
+function WorldBucketChildren({
+  nodes,
+  depth,
+  parentPathStr,
+  baseline,
+}: {
+  nodes: CorganNode[];
+  depth: number;
+  parentPathStr: string;
+  baseline: FlatTree | null;
+}) {
+  return (
+    <div>
+      {nodes.map((c, i) => (
+        <WorldBucketChildRow
+          key={`${depth}-${i}-${c.name}`}
+          node={c}
+          depth={depth}
+          siblings={nodes}
+          siblingIndex={i}
+          parentPathStr={parentPathStr}
+          baseline={baseline}
+        />
+      ))}
+    </div>
+  );
+}
+
+function WorldBucketChildRow({
+  node,
+  depth,
+  siblings,
+  siblingIndex,
+  parentPathStr,
+  baseline,
+}: {
+  node: CorganNode;
+  depth: number;
+  siblings: CorganNode[];
+  siblingIndex: number;
+  parentPathStr: string;
+  baseline: FlatTree | null;
+}) {
+  const [open, setOpen] = useState(false);
+  const hasChildren = !!(node.children && node.children.length);
+  const path = nodePath(parentPathStr, node, siblings, siblingIndex);
+  const delta = lookupDelta(baseline, path, Number(node.val) || 0);
+  return (
+    <div style={{ paddingLeft: `${depth * 0.75}rem` }}>
+      <div
+        className={`flex items-center gap-2 py-0.5 text-xs ${
+          hasChildren ? "cursor-pointer hover:bg-white/5 rounded" : ""
+        }`}
+        onClick={() => hasChildren && setOpen((v) => !v)}
+        title={node.note}
+      >
+        <span className="w-3 text-zinc-700 select-none">
+          {hasChildren ? (open ? "▾" : "▸") : "•"}
+        </span>
+        <span className="flex-1 text-zinc-300 truncate">
+          {node.name}
+          {node.note && (
+            <span className="ml-1.5 text-zinc-600 italic text-[10px]">
+              {node.note}
+            </span>
+          )}
+        </span>
+        <DeltaBadge delta={delta} fmt={node.fmt} />
+        <span
+          className={`font-mono tabular-nums text-xs ${valColor(
+            node.val,
+            node.fmt
+          )}`}
+        >
+          {formatVal(node.val, node.fmt)}
+        </span>
+      </div>
+      {open && hasChildren && (
+        <WorldBucketChildren
+          nodes={node.children!}
+          depth={depth + 1}
+          parentPathStr={path}
+          baseline={baseline}
+        />
       )}
     </div>
   );

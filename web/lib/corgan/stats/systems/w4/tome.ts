@@ -9,10 +9,24 @@ import type { SaveData } from "../../../state";
 
 type Ctx = { saveData: SaveData };
 
+// Tome slot labels — the DR descriptor uses ids 2 and 7. Despite their
+// tomeData[i].name (Cards Total LV / Total Achievements Completed)
+// pointing at the score source, the actual DR effect is what matters
+// for this view: Tome 2 contributes to the additive pool, Tome 7 enters
+// the post-mult chain as a multiplier.
+const TOME_NAMES: Record<number, string> = {
+  2: "Drop Rate Additive",
+  7: "Drop Rate Multi",
+};
+function tomeLabel(id: number): string {
+  const n = TOME_NAMES[id];
+  return n ? `${n} (Tome ${id})` : label("Tome", id);
+}
+
 export const tome = {
   resolve(id: number, ctx: Ctx): CorganNode {
     const data = TOME_DATA[id];
-    if (!data) return node(label("Tome", id), 0, null, { note: "tome " + id });
+    if (!data) return node(tomeLabel(id), 0, null, { note: "tome " + id });
     const saveData = ctx.saveData;
 
     let unlocked: boolean;
@@ -26,7 +40,7 @@ export const tome = {
     }
     if (!unlocked) {
       return node(
-        label("Tome", id),
+        tomeLabel(id),
         0,
         [node("Not Unlocked", 0, null, { fmt: "raw" })],
         { note: "tome " + id }
@@ -47,7 +61,7 @@ export const tome = {
 
     const val = base <= 0 ? 0 : base * multi;
     return node(
-      label("Tome", id),
+      tomeLabel(id),
       val,
       [
         node("Tome Score", tomeScore, null, { fmt: "raw" }),
@@ -65,7 +79,7 @@ export const tome = {
           "Tome Multi",
           multi,
           [
-            node(label("Grimoire", 17), grim17, null, { fmt: "raw" }),
+            node("Grey Tome Book (Grimoire 17)", grim17, null, { fmt: "raw" }),
             node("Troll Set", trollSet, null, { fmt: "raw" }),
           ],
           { fmt: "x" }

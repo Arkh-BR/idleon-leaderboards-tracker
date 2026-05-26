@@ -3,6 +3,7 @@
 
 import type { Descriptor, Pool } from "../tree-builder";
 import type { CorganNode } from "../../node";
+import { categorizePoolItems, decorateSystem } from "../categorize";
 
 const dropRateDesc: Descriptor = {
   id: "drop-rate",
@@ -28,7 +29,12 @@ const dropRateDesc: Descriptor = {
       { system: "starSign", id: "drop" },
       { system: "postOffice", id: [11, 0] },
       { system: "etcBonus", id: 2 },
-      { system: "etcBonus", id: 102 },
+      // etcBonus 102 (%_DROP_CHANCE) is dropped from the pool: no item in
+      // IT website-data carries it as a built-in, so the only way for it
+      // to contribute is a random UQ-stone roll of that exact stat onto
+      // an item or obol — extremely rare in practice and worth zero for
+      // every observed save. Keeping the entry showed an empty wrapper
+      // with no children, which read as broken UX.
       { system: "sigil", id: 11 },
       { system: "shiny", id: 0 },
       { system: "companion", id: 3 },
@@ -136,37 +142,111 @@ const dropRateDesc: Descriptor = {
       }
     }
 
-    const postMult = base > 0 ? dr / base : 1;
-    const allPostItems = pf.concat(pm);
+    // The N.js post-processing formula applies four order-sensitive ops to
+    // `base` BEFORE the pure-mult chain begins:
+    //
+    //   dr  = base
+    //   dr += pf[0]   // +bunV   (Death Bringer Bundle, +2 flat)
+    //   dr *= pm[0]   // ×Archlord Of The Pirates (Talent 328)
+    //   dr += pf[1]   // +ola232 (Sneaking — Pristine Charm, +0.3 flat)
+    //   dr *= pm[1]   // ×bunP   (Explorer Bundle, ×1.2)
+    //   for i in pm[2..]:
+    //     dr *= effective-multiplier(pm[i])
+    //
+    // Group those four into a "Post-Processing" wrapper whose children
+    // read in formula order:
+    //   + bunV  →  ×Talent  →  + Pristine  →  Multiplier Chain.
+    // The remaining pm[1..] all multiply, so they collapse into a single
+    // "Multiplier Chain" bucket where same-system items merge freely.
+
+    // Merged additive pool — the formula sums addMain.sum + addLUK2.sum
+    // before applying (lukC + addSum)/100, so the two pools are
+    // mathematically a single bucket. Combine them into one "Additive
+    // Pool" section.
+    const allAdditiveItems = [
+      ...pools.addMain.items,
+      ...pools.addLUK2.items,
+    ];
+
+    // Chain items = pm[1] (Explorer Bundle) + pm[2..end]. Now hoisted to
+    // Post-Processing siblings by game system (no more "Multiplier Chain"
+    // wrapper) — Post-Processing's headline val (dr / base) carries the
+    // overall chain multiplier, so no need to precompute the product.
+    const chainItems = pm.slice(1);
+
+    // The three hoisted pre-chain items — each rendered as a 1-item
+    // system bucket (Bundles / Talents / Sneaking Mastery) so the visual
+    // matches the additive-pool style.
+    const wrapInBucket = (
+      item: CorganNode | undefined,
+      bucketName: string,
+      bucketFmt: "+" | "x"
+    ): CorganNode | null => {
+      if (!item) return null;
+      // For the additive flats (bun_v +2, ola232 +0.3), bucket val = the
+      // flat add. For the multiplicative talent, bucket val = the factor.
+      const val =
+        bucketFmt === "x"
+          ? Number(item.val) || 1
+          : Number(item.val) || 0;
+      return {
+        name: bucketName,
+        val,
+        fmt: bucketFmt,
+        children: [item],
+      };
+    };
+    // Bucket names use the SYSTEM_EMOJI decoration so they line up with the
+    // categorized buckets in the Additive Pool / chain output. "Sneaking
+    // Mastery" gets the ninja emoji since the category itself is keyed as
+    // "Sneaking / OLA".
+    const bunVBucket = wrapInBucket(pf[0], decorateSystem("Bundles"), "+");
+    const talentBucket = wrapInBucket(pm[0], decorateSystem("Talents"), "x");
+    // ola 232 is the Sneaking Mastery completion bonus (not a Pristine
+    // Charm — earlier label was wrong).
+    const olaBucket = wrapInBucket(pf[1], "🥷 Sneaking Mastery", "+");
+
+    // LUK Scaling — collapse the previous standalone "× 1.4" sibling INTO
+    // this wrapper so the section reads top-to-bottom as the math chain:
+    //   🍀 Total LUK  →  curve  →  × 1.4  =  lukC (contribution to addSum).
+    // Parent val = lukC so the headline matches what actually feeds the
+    // Additive Pool, not the pre-×1.4 luk curve.
+    const lukScalingChildren: CorganNode[] = pools.base.items[0]?.children
+      ? [...pools.base.items[0].children]
+      : [];
+    lukScalingChildren.push({
+      name: "× 1.4",
+      val: lukC,
+      fmt: "raw",
+      note: "1.4 × lukScaling",
+    });
 
     const children: CorganNode[] = [
       {
         name: "LUK Scaling",
-        val: lukVal,
-        children: pools.base.items[0]
-          ? pools.base.items[0].children
-          : undefined,
+        val: lukC,
+        children: lukScalingChildren,
         fmt: "raw",
+        // Closed by default — the headline value already tells the user
+        // what LUK contributes (lukC ≈ 1.115 for a fully geared char);
+        // the curve breakdown inside is reference material, not what they
+        // scan for. Matches the categorize-bucket pattern.
+        defaultClosed: true,
+        note: "Total LUK → curve → × 1.4 = contribution to additive sum",
       },
-      { name: "× 1.4", val: lukC, fmt: "raw", note: "1.4 × lukScaling" },
       {
-        name: "Main Additive Pool",
-        val: pools.addMain.sum,
-        children: pools.addMain.items,
+        name: "Additive Pool",
+        val: addSum,
+        children: categorizePoolItems(allAdditiveItems, "additive", "merge"),
         fmt: "+",
+        note: "Σ all additive sources (formerly Main + LUK2 pools)",
       },
       {
-        name: "LUK2 Additive Pool",
-        val: pools.addLUK2.sum,
-        children: pools.addLUK2.items,
-        fmt: "+",
-      },
-      {
-        name: "1 + (1.4·LUK + addSum) / 100",
+        name: "Total Sum",
         val: base - chipApplied,
         fmt: "raw",
         note:
-          "1 + (" +
+          "1 + (1.4·LUK + addSum)/100  =  1 + (" +
           lukC.toFixed(2) +
           " + " +
           addSum.toFixed(1) +
@@ -177,16 +257,62 @@ const dropRateDesc: Descriptor = {
         val: chipApplied,
         children: pools.chipDR.items,
         fmt: "+",
+        // Collapse by default — most characters have base ≥ 5× so this row
+        // sits inactive and would just take vertical space next to the
+        // Additive Pool / Post-Processing sections that the user actually
+        // wants to scan. Matches the categorize-bucket pattern (Talents /
+        // Cards / etc. all default-closed).
+        defaultClosed: true,
         note:
           chipApplied > 0
             ? "Applies when base < 5×"
             : "Inactive (base ≥ 5× or no chip)",
       },
+      // Post-Processing flow, top-to-bottom:
+      //   1) + Death Bringer Bundle (flat add)
+      //   2) × Archlord Of The Pirates (Talent 328)
+      //   3) + Sneaking Completions (Sneaking Mastery, flat add)
+      //   4+) Every remaining ×mult — Explorer Bundle through the rest of
+      //       pm[], collapsed by game system. These are pure × operations,
+      //       commutative within the chain, so each category bucket lands
+      //       directly under Post-Processing instead of being nested in a
+      //       "Multiplier Chain" wrapper.
       {
+        // Headline = effective multiplier the Post-Processing block applies
+        // to (Total Sum + Chip Cap-Break) to reach the final DR. `base` at
+        // this point already includes chipApplied, so dr / base is the right
+        // ratio.
         name: "Post-Processing",
-        val: postMult,
-        children: allPostItems,
+        val: base > 0 ? dr / base : 1,
         fmt: "x",
+        note: "Applied to Total Sum (and Chip Cap-Break if active)",
+        children: [
+          ...(bunVBucket
+            ? [
+                {
+                  ...bunVBucket,
+                  note: "Added to Total Sum",
+                },
+              ]
+            : []),
+          ...(talentBucket
+            ? [
+                {
+                  ...talentBucket,
+                  note: "Multiplies the running total",
+                },
+              ]
+            : []),
+          ...(olaBucket
+            ? [
+                {
+                  ...olaBucket,
+                  note: "Added to the running total",
+                },
+              ]
+            : []),
+          ...categorizePoolItems(chainItems, "multiplicative", "merge"),
+        ],
       },
     ];
 

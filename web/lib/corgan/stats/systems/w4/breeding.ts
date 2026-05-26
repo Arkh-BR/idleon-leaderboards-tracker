@@ -64,7 +64,17 @@ export function computeShinyBonusS(catKey: number, saveData: SaveData): number {
 
 export const shiny = {
   resolve(id: number, ctx: Ctx): CorganNode {
-    const _catName = SHINY_CAT_NAMES[id] || "#" + id;
+    // The shiny-cat name is the in-game label for the pet category (id 0 is
+    // "Drop Rate", etc.) — gives the row a meaningful header instead of the
+    // bare "Breeding 0". Some entries in SHINY_CAT_NAMES still carry the
+    // "+{%_" template marker (e.g. "+{% Drop Rate") — strip it so the label
+    // reads as just the bonus type.
+    const rawCatName = SHINY_CAT_NAMES[id] || "#" + id;
+    const catName = rawCatName
+      .replace(/^\+?\{%\s*/, "")
+      .replace(/^[+\-]?\{[\d.]*\}\s*/, "")
+      .trim();
+    const shinyLabel = `${catName} Shiny Pet (Breeding ${id})`;
     const r = _shinyBonusParts(id, ctx.saveData);
     const children: CorganNode[] = [];
     for (let i = 0; i < r.parts.length; i++) {
@@ -86,7 +96,7 @@ export const shiny = {
       );
     }
     return node(
-      label("Breeding", id),
+      shinyLabel,
       r.total,
       children.length ? children : null,
       { fmt: "+", note: "breeding shiny " + id }

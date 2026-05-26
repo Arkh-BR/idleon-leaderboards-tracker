@@ -44,6 +44,8 @@ type Props = {
   selectedBaselineAt?: number | null;
 };
 
+const COLLAPSE_KEY = "drop-rate.snapshot-section.collapsed.v1";
+
 export default function SnapshotSection({
   state,
   onSelectBaseline,
@@ -53,6 +55,29 @@ export default function SnapshotSection({
   const [viewChar, setViewChar] = useState<string | null>(null);
   const [history, setHistory] = useState<EnrichedSnapshot[]>([]);
   const [notice, setNotice] = useState<string | null>(null);
+  // Whole-section collapse — defaults to expanded for first-time users and
+  // is persisted to localStorage so the choice survives reloads.
+  const [collapsed, setCollapsed] = useState(false);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const v = window.localStorage.getItem(COLLAPSE_KEY);
+      if (v === "1") setCollapsed(true);
+    } catch {
+      // localStorage unavailable — keep default
+    }
+  }, []);
+  function toggleCollapsed() {
+    setCollapsed((prev) => {
+      const next = !prev;
+      try {
+        window.localStorage.setItem(COLLAPSE_KEY, next ? "1" : "0");
+      } catch {
+        // ignore
+      }
+      return next;
+    });
+  }
 
   const refresh = useCallback(() => {
     const list = listTrackedChars();
@@ -167,12 +192,35 @@ export default function SnapshotSection({
     reader.readAsText(f);
   }
 
+  // Aggregate count across all tracked chars so the collapsed header can
+  // surface "47 snapshots across 3 chars" without expanding.
+  const totalSnaps = trackedChars.reduce(
+    (a, n) => a + listSnapshots(n).length,
+    0
+  );
+
   return (
     <section className="rounded-lg bg-zinc-900/60 border border-zinc-800 p-4">
-      <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
-        <h2 className="text-base font-semibold text-sky-300">
-          📈 Snapshot History
-        </h2>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        {/* Header doubles as the collapse toggle so the user can hide the
+            whole capture history when they don't need it. */}
+        <button
+          type="button"
+          onClick={toggleCollapsed}
+          className="flex items-center gap-2 text-base font-semibold text-sky-300 hover:text-sky-200 select-none"
+          title={collapsed ? "Expand snapshot history" : "Collapse snapshot history"}
+        >
+          <span className="w-3 text-zinc-500 select-none">
+            {collapsed ? "▸" : "▾"}
+          </span>
+          <span>📈 Snapshot History</span>
+          {collapsed && totalSnaps > 0 && (
+            <span className="text-xs text-zinc-500 font-normal">
+              ({totalSnaps} capture{totalSnaps === 1 ? "" : "s"} across{" "}
+              {trackedChars.length} char{trackedChars.length === 1 ? "" : "s"})
+            </span>
+          )}
+        </button>
         <div className="flex gap-2 items-center">
           <button
             type="button"
@@ -182,15 +230,23 @@ export default function SnapshotSection({
           >
             💾 Save snapshot
           </button>
+          {/* Use the same thin arrows the DeepView Expand/Collapse buttons use
+              so the iconography is consistent across the page. Convention:
+              ↑ Export — data going OUT of the app (up/out to a file)
+              ↓ Import — data coming IN to the app (down/in from a file) */}
           <button
             type="button"
             onClick={onExport}
             className="px-3 py-1 text-xs rounded bg-zinc-800 text-zinc-200 border border-zinc-700 hover:bg-zinc-700"
+            title="Export all snapshots to a JSON file"
           >
-            ⬇ Export
+            ↑ Export
           </button>
-          <label className="px-3 py-1 text-xs rounded bg-zinc-800 text-zinc-200 border border-zinc-700 hover:bg-zinc-700 cursor-pointer">
-            ⬆ Import
+          <label
+            className="px-3 py-1 text-xs rounded bg-zinc-800 text-zinc-200 border border-zinc-700 hover:bg-zinc-700 cursor-pointer"
+            title="Import snapshots from a previously-exported JSON file"
+          >
+            ↓ Import
             <input
               type="file"
               accept="application/json,.json"
@@ -200,55 +256,61 @@ export default function SnapshotSection({
           </label>
         </div>
       </div>
-      {notice && (
-        <p className="mb-3 text-xs text-emerald-300">{notice}</p>
-      )}
-
-      {trackedChars.length === 0 ? (
-        <p className="text-sm text-zinc-500 italic">
-          No snapshots yet. Click &ldquo;Save snapshot&rdquo; above after loading a
-          save.
-        </p>
-      ) : (
-        <>
-          <div className="flex flex-wrap gap-1 mb-3">
-            {trackedChars.map((n) => (
-              <button
-                key={n}
-                onClick={() => setViewChar(n)}
-                className={`px-3 py-1 text-xs rounded border ${
-                  viewChar === n
-                    ? "bg-gold/15 text-gold border-gold/40"
-                    : "bg-zinc-800/40 text-zinc-400 border-zinc-700 hover:bg-zinc-800"
-                }`}
-              >
-                {n}{" "}
-                <span className="opacity-60">({listSnapshots(n).length})</span>
-              </button>
-            ))}
-            {viewChar && (
-              <button
-                onClick={() => onClear(viewChar)}
-                className="ml-auto px-3 py-1 text-xs rounded bg-red-500/10 text-red-300 border border-red-500/40 hover:bg-red-500/20"
-              >
-                🗑 Clear {viewChar}
-              </button>
-            )}
-          </div>
-
-          {viewChar && history.length > 0 ? (
-            <HistoryTable
-              history={history}
-              onDelete={(t) => onDel(viewChar, t)}
-              onPickBaseline={onPickBaseline}
-              selectedBaselineAt={selectedBaselineAt ?? null}
-            />
-          ) : (
-            <p className="text-sm text-zinc-500 italic">
-              No snapshots for {viewChar} yet.
-            </p>
+      {!collapsed && (
+        <div className="mt-3">
+          {notice && (
+            <p className="mb-3 text-xs text-emerald-300">{notice}</p>
           )}
-        </>
+
+          {trackedChars.length === 0 ? (
+            <p className="text-sm text-zinc-500 italic">
+              No snapshots yet. Click &ldquo;Save snapshot&rdquo; above after loading a
+              save.
+            </p>
+          ) : (
+            <>
+              <div className="flex flex-wrap gap-1 mb-3">
+                {trackedChars.map((n) => (
+                  <button
+                    key={n}
+                    onClick={() => setViewChar(n)}
+                    className={`px-3 py-1 text-xs rounded border ${
+                      viewChar === n
+                        ? "bg-gold/15 text-gold border-gold/40"
+                        : "bg-zinc-800/40 text-zinc-400 border-zinc-700 hover:bg-zinc-800"
+                    }`}
+                  >
+                    {n}{" "}
+                    <span className="opacity-60">
+                      ({listSnapshots(n).length})
+                    </span>
+                  </button>
+                ))}
+                {viewChar && (
+                  <button
+                    onClick={() => onClear(viewChar)}
+                    className="ml-auto px-3 py-1 text-xs rounded bg-red-500/10 text-red-300 border border-red-500/40 hover:bg-red-500/20"
+                  >
+                    🗑 Clear {viewChar}
+                  </button>
+                )}
+              </div>
+
+              {viewChar && history.length > 0 ? (
+                <HistoryTable
+                  history={history}
+                  onDelete={(t) => onDel(viewChar, t)}
+                  onPickBaseline={onPickBaseline}
+                  selectedBaselineAt={selectedBaselineAt ?? null}
+                />
+              ) : (
+                <p className="text-sm text-zinc-500 italic">
+                  No snapshots for {viewChar} yet.
+                </p>
+              )}
+            </>
+          )}
+        </div>
       )}
     </section>
   );

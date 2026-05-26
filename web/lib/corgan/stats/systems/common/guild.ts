@@ -7,11 +7,21 @@ import type { SaveData } from "../../../state";
 
 type Ctx = { saveData: SaveData };
 
+// Friendly guild-bonus names sourced from guildBonuses[i].name in IT
+// website-data. The DR descriptor references id 10 (Gold Charm).
+const GUILD_NAMES: Record<number, string> = {
+  10: "Gold Charm",
+};
+function guildLabel(id: number): string {
+  const n = GUILD_NAMES[id];
+  return n ? `${n} (Guild ${id})` : label("Guild", id);
+}
+
 export const guild = {
   resolve(id: number, ctx: Ctx): CorganNode {
     const data = guildBonusParams(id);
-    if (!data) return node(label("Guild", id), 0, null, { note: "guild " + id });
-    const name = label("Guild", id);
+    if (!data) return node(guildLabel(id), 0, null, { note: "guild " + id });
+    const name = guildLabel(id);
     const gd = ctx.saveData.guildData as any[];
     const lv = gd ? Number((gd[0] || {})[id]) || 0 : 0;
     if (lv <= 0) return node(name, 0, null, { note: "guild " + id });

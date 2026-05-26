@@ -39,12 +39,23 @@ export const holes = {
     const hd = saveData.holesData as any[];
     if (!hd) return node("Hole: " + id, 0);
 
-    // Standard upgrades: multi × Holes[11][dataIdx] if building constructed
+    // Standard upgrades: multi × Holes[11][dataIdx] if building constructed.
+    // Cavern upgrades have friendly names baked into holesBuildings (IT data):
+    //   upg46 → "Gloomie Lootie" (+5% DR per Gloomie Mushroom colony cleared)
+    //   upg82 → "Sanctum of LOOT" (+20% DR per Sanctum cleared)
+    // Use those as the primary label and keep the cavern id as the tag.
+    const CAVERN_UPGRADE_NAMES: Record<string, string> = {
+      upg46: "Gloomie Lootie",
+      upg82: "Sanctum of LOOT",
+    };
     const data = HOLE_DATA[id];
     if (data) {
       const built = ((hd[13] && (hd[13] as any)[data.buildIdx]) || 0) >= 1;
       const lv = Number((hd[11] && (hd[11] as any)[data.dataIdx]) || 0);
-      const name = label("Cavern", id);
+      const friendly = CAVERN_UPGRADE_NAMES[id];
+      const name = friendly
+        ? `${friendly} (Cavern ${id})`
+        : label("Cavern", id);
       if (!built)
         return node(
           name,
@@ -67,7 +78,7 @@ export const holes = {
     if (id === "meas15") {
       const measLv = Number((hd[22] && (hd[22] as any)[15]) || 0);
       if (measLv <= 0)
-        return node(label("Measurement", 15), 0, null, { note: "hole:meas15" });
+        return node("Drop Rate Measurement (Measurement 15)", 0, null, { note: "hole:meas15" });
       const parsedVal = parseFloat(holesMeasBase(15) || "50") || 50;
       const cosmoRaw = Number((hd[5] && (hd[5] as any)[3]) || 0);
       const cosmoBonus = Math.floor(cosmoRaw * 25);
@@ -81,7 +92,7 @@ export const holes = {
 
       const val = baseBonus * measMulti;
       return node(
-        label("Measurement", 15),
+        "Drop Rate Measurement (Measurement 15)",
         val,
         [
           node("Measurement Level", measLv, null, { fmt: "raw" }),

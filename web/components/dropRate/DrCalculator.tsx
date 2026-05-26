@@ -280,61 +280,128 @@ export default function DrCalculator({
         </span>
       </h1>
       <p className="text-center text-xs text-zinc-500 mb-4">
-        Auto-computes from save JSON. Select character &amp; map. All processing
-        local in your browser.
+        Auto-computes from your IdleonToolbox &ldquo;Copy for Support&rdquo;
+        JSON. Select character &amp; map. All processing local in your browser.
       </p>
 
-      {/* Import box */}
-      <details open className="rounded-lg bg-zinc-900/60 p-4 mb-4 border border-zinc-800">
-        <summary className="cursor-pointer font-semibold text-gold select-none">
-          📋 Import Save JSON
+      {/* Import box — use a flex-col body with uniform gap so every inner
+          row sits at the same vertical rhythm (was a grab-bag of mt-2 /
+          mt-3 / no-margin which made the textarea + buttons look cramped
+          while the Chip Gallery row floated further away). */}
+      <details
+        open
+        className="rounded-lg bg-zinc-900/60 p-4 mb-4 border border-zinc-800"
+      >
+        <summary className="cursor-pointer select-none flex items-center gap-x-2 gap-y-1 flex-wrap mb-3">
+          <span className="font-semibold text-gold">📋 Import Save JSON</span>
+          <span className="text-xs text-zinc-500 font-normal">
+            Use the &ldquo;Copy for Support&rdquo; button on{" "}
+            <a
+              href="https://idleontoolbox.com"
+              target="_blank"
+              rel="noreferrer"
+              className="text-gold hover:underline"
+              onClick={(e) => e.stopPropagation()}
+            >
+              idleontoolbox.com
+            </a>
+          </span>
         </summary>
-        <textarea
-          value={jsonText}
-          onChange={(e) => setJsonText(e.target.value)}
-          placeholder="Paste your raw IdleonToolbox &lsquo;Copy for Support&rsquo; JSON here..."
-          className="w-full h-20 mt-2 bg-zinc-950 border border-zinc-800 rounded p-2 text-xs font-mono text-zinc-200 focus:outline-none focus:border-gold"
-        />
-        <div className="flex flex-wrap items-center gap-2 mt-2">
+        <div className="flex flex-col gap-3">
+          <textarea
+            value={jsonText}
+            onChange={(e) => setJsonText(e.target.value)}
+            placeholder='Paste the output of "Copy for Support" here (Ctrl+V)…'
+            className="w-full h-20 bg-zinc-950 border border-zinc-800 rounded p-2 text-xs font-mono text-zinc-200 focus:outline-none focus:border-gold"
+          />
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={onLoad}
+              className="px-4 py-1.5 text-sm font-semibold rounded bg-sky-500/20 text-sky-300 border border-sky-500/40 hover:bg-sky-500/30"
+            >
+              Load Save
+            </button>
+            <select
+              value={charIdx}
+              disabled={chars.length === 0}
+              onChange={(e) => setCharIdx(Number(e.target.value))}
+              className="px-2 py-1.5 text-sm bg-zinc-900 border border-zinc-700 rounded text-sky-300 disabled:opacity-40"
+            >
+              {chars.length === 0 ? (
+                <option value={0}>-- load save first --</option>
+              ) : (
+                chars.map((c) => (
+                  <option key={c.charIndex} value={c.charIndex}>
+                    {c.charName} (Lv {c.level})
+                  </option>
+                ))
+              )}
+            </select>
+            <select
+              value={mapIdx}
+              disabled={chars.length === 0}
+              onChange={(e) => setMapIdx(Number(e.target.value))}
+              className="px-2 py-1.5 text-sm bg-zinc-900 border border-zinc-700 rounded text-sky-300 disabled:opacity-40"
+            >
+              {mapOptions.map((m) => (
+                <option key={m.index} value={m.index}>
+                  {m.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          {error && <p className="text-xs text-red-300">{error}</p>}
+
+          {/* Chip Gallery toggle — sits under the Load Save row because it's a
+              save-level setting (the +0.10 Gallery Bonus Multi boost is
+              account-wide, not per-character / per-map). */}
+          <div className="p-2 rounded border border-zinc-800 bg-zinc-950/60 flex items-center gap-3 flex-wrap">
           <button
             type="button"
-            onClick={onLoad}
-            className="px-4 py-1.5 text-sm font-semibold rounded bg-sky-500/20 text-sky-300 border border-sky-500/40 hover:bg-sky-500/30"
+            onClick={() => setChipGalleryActive((v) => !v)}
+            className={`px-3 py-1.5 text-xs font-semibold rounded border transition-colors ${
+              chipGalleryActive
+                ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/40 hover:bg-emerald-500/30"
+                : "bg-zinc-800 text-zinc-400 border-zinc-700 hover:bg-zinc-700"
+            }`}
+            title="Adds +0.10 to Gallery Bonus Multi (invisible boost from Silkrode Motherboard chip being active when gallery last refreshed)"
           >
-            Load Save
+            {chipGalleryActive ? "🔌 Chip Gallery ON" : "⚪ Chip Gallery OFF"}
           </button>
-          <select
-            value={charIdx}
-            disabled={chars.length === 0}
-            onChange={(e) => setCharIdx(Number(e.target.value))}
-            className="px-2 py-1.5 text-sm bg-zinc-900 border border-zinc-700 rounded text-sky-300 disabled:opacity-40"
-          >
-            {chars.length === 0 ? (
-              <option value={0}>-- load save first --</option>
+          <div className="text-[11px] text-zinc-500 leading-tight">
+            {chipDetected?.detected ? (
+              <>
+                <span className="text-emerald-400">●</span> Chip 16 detected on
+                char {chipDetected.charIdx} slot {chipDetected.slot}{" "}
+                <span className="text-zinc-600">
+                  (auto-enabled — toggle off to compare baseline)
+                </span>
+              </>
             ) : (
-              chars.map((c) => (
-                <option key={c.charIndex} value={c.charIndex}>
-                  {c.charName} (Lv {c.level})
-                </option>
-              ))
+              <>
+                <span className="text-zinc-600">○</span> Chip 16 not detected
+                in save — toggle on if it was active when the gallery last
+                refreshed
+                {chipDetected?.labSlots && chipDetected.labSlots.length > 0 && (
+                  <details className="mt-1">
+                    <summary className="cursor-pointer text-zinc-600 hover:text-zinc-400">
+                      show lab chip slots ({chipDetected.labSlots.length} chars)
+                    </summary>
+                    <div className="mt-1 font-mono text-[10px] text-zinc-500 max-h-32 overflow-auto">
+                      {chipDetected.labSlots.map((slots, ci) => (
+                        <div key={ci}>
+                          char {ci}: [{slots.join(", ")}]
+                        </div>
+                      ))}
+                    </div>
+                  </details>
+                )}
+              </>
             )}
-          </select>
-          <select
-            value={mapIdx}
-            disabled={chars.length === 0}
-            onChange={(e) => setMapIdx(Number(e.target.value))}
-            className="px-2 py-1.5 text-sm bg-zinc-900 border border-zinc-700 rounded text-sky-300 disabled:opacity-40"
-          >
-            {mapOptions.map((m) => (
-              <option key={m.index} value={m.index}>
-                {m.label}
-              </option>
-            ))}
-          </select>
+          </div>
         </div>
-        {error && (
-          <p className="mt-2 text-xs text-red-300">{error}</p>
-        )}
+        </div>
       </details>
 
       {/* Big DR card centralizado */}
@@ -373,80 +440,26 @@ export default function DrCalculator({
             (base {formatIdleon(displayBase)}x × {factor.toFixed(2)}x map)
           </div>
         )}
+        {totalDr !== null && (
+          <div className="text-[10px] text-zinc-600 mt-2 italic leading-snug">
+            ⚠︎ May read ~1% lower than in-game (floating-point rounding through
+            the multiplicative chain). If you spot something missing or wrong,
+            DM me on Discord.
+          </div>
+        )}
       </div>
 
       {middleSlot && <div className="mb-4">{middleSlot}</div>}
 
-      {/* Deep View — full-depth tree of every DR source + sub-source */}
+      {/* Deep View — full-depth tree of every DR source + sub-source.
+          The tab strip lives inside DeepView itself (where the old "Deep
+          View" h2 used to sit) so the user can switch between the
+          formula-Tree layout and the Per-World grouping. */}
       <div className="rounded-lg bg-zinc-900/60 border border-zinc-800 p-4 mb-4">
-        <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
-          <h2 className="text-base font-semibold text-sky-300">
-            🔬 Deep View — Full Source Breakdown
-          </h2>
-        </div>
-        {drTotal !== null && (
-          <>
-            <div className="mb-3 text-xs text-zinc-500">
-              Deep view total:{" "}
-              <span className="text-amber-300 font-mono">
-                {drTotal.toFixed(3)}x
-              </span>{" "}
-              — every source and sub-source populated, full formula depth,
-              classifiable by game system.
-            </div>
-
-            {/* Chip Gallery toggle */}
-            <div className="mb-3 p-2 rounded border border-zinc-800 bg-zinc-950/60 flex items-center gap-3 flex-wrap">
-              <button
-                type="button"
-                onClick={() => setChipGalleryActive((v) => !v)}
-                className={`px-3 py-1.5 text-xs font-semibold rounded border transition-colors ${
-                  chipGalleryActive
-                    ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/40 hover:bg-emerald-500/30"
-                    : "bg-zinc-800 text-zinc-400 border-zinc-700 hover:bg-zinc-700"
-                }`}
-                title="Adds +0.10 to Gallery Bonus Multi (invisible boost from Silkrode Motherboard chip being active when gallery last refreshed)"
-              >
-                {chipGalleryActive ? "🔌 Chip Gallery ON" : "⚪ Chip Gallery OFF"}
-              </button>
-              <div className="text-[11px] text-zinc-500 leading-tight">
-                {chipDetected?.detected ? (
-                  <>
-                    <span className="text-emerald-400">●</span> Chip 16 detected on
-                    char {chipDetected.charIdx} slot {chipDetected.slot}{" "}
-                    <span className="text-zinc-600">
-                      (auto-enabled — toggle off to compare baseline)
-                    </span>
-                  </>
-                ) : (
-                  <>
-                    <span className="text-zinc-600">○</span> Chip 16 not detected
-                    in save — toggle on if it was active when the gallery last
-                    refreshed
-                    {chipDetected?.labSlots && chipDetected.labSlots.length > 0 && (
-                      <details className="mt-1">
-                        <summary className="cursor-pointer text-zinc-600 hover:text-zinc-400">
-                          show lab chip slots ({chipDetected.labSlots.length} chars)
-                        </summary>
-                        <div className="mt-1 font-mono text-[10px] text-zinc-500 max-h-32 overflow-auto">
-                          {chipDetected.labSlots.map((slots, ci) => (
-                            <div key={ci}>
-                              char {ci}: [{slots.join(", ")}]
-                            </div>
-                          ))}
-                        </div>
-                      </details>
-                    )}
-                  </>
-                )}
-              </div>
-            </div>
-          </>
-        )}
         {computing ? (
           <p className="text-sm text-zinc-500 italic">Computing…</p>
         ) : (
-          <DeepView tree={drTree} />
+          <DeepView tree={drTree} baseline={compareBaseline ?? null} />
         )}
       </div>
     </div>

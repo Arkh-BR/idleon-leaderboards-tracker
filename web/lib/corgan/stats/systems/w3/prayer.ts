@@ -41,7 +41,7 @@ export const prayer = {
         node("Base Bonus", data.baseBonus, null, { fmt: "raw" }),
         node("Level Scaling", scaling, null, { fmt: "x" }),
       ],
-      { fmt: "+", note: "prayer " + id }
+      { fmt: "+" }
     );
   },
 };

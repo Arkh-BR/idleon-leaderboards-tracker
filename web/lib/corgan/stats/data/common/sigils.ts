@@ -28,3 +28,11 @@ export function pristineCharmBonus(idx: number): number {
   const key = "NjTrP" + idx;
   return (NjEQ as any)[key] ? Number((NjEQ as any)[key][3]) || 0 : 0;
 }
+
+/** Return the SCREAMING_SNAKE codename for a sigil (e.g. "TROVE" for id 11),
+ *  read from SigilDesc[idx][0]. Used by the sigil resolver to render
+ *  friendly labels like "Trove Sigil (Sigil 11)". */
+export function sigilCodename(idx: number): string {
+  const s = (SigilDesc as any)[idx];
+  return s && typeof s[0] === "string" ? s[0] : "";
+}

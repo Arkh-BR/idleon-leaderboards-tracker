@@ -41,9 +41,23 @@ export function vaultUpgBonus(idx: number, saveData: SaveData): number {
   return base;
 }
 
+// Friendly names for the vault upgrades the DR descriptor + sub-resolvers
+// reach for. Sourced from upgradeVault[i].name in IT website-data.
+const VAULT_NAMES: Record<number, string> = {
+  18: "Drops for Days",
+  79: "Properly Funded Research",
+  32: "Stamp Studies",
+  60: "Gilded Stamp Bonuses",
+  61: "Gilded Stamps",
+  86: "Golden Food Bonuses",
+  88: "Vault Bonus Mastery",
+  89: "Vault Mastery",
+};
+
 export const vault = {
   resolve(id: number, ctx: Ctx): CorganNode {
-    const name = label("Vault", id);
+    const friendly = VAULT_NAMES[id];
+    const name = friendly ? `${friendly} (Vault ${id})` : label("Vault", id);
     const vd = ctx.saveData.vaultData as any;
     const lv = vd ? Number(vd[id]) || 0 : 0;
     const perLevel = vaultUpgPerLevel(id);

@@ -7,6 +7,20 @@ import { label } from "../../entity-names";
 import { pristineCharmBonus } from "../../data/common/sigils";
 import type { SaveData } from "../../../state";
 
+// Friendly charm names sourced from pristineCharms[i].name in IT website-data.
+export const PRISTINE_NAMES: Record<number, string> = {
+  3: "Cotton Candy",
+  8: "Crystal Comb",
+  14: "Liquorice Roll",
+  17: "Liquorice Rolle",
+  20: "Jellypick",
+};
+
+export function pristineLabel(id: number): string {
+  const n = PRISTINE_NAMES[id];
+  return n ? `${n} (Pristine ${id})` : label("Pristine", id);
+}
+
 export function pristineBon(idx: number, saveData: SaveData): number {
   if (
     !saveData ||
@@ -23,7 +37,7 @@ export const pristine = {
     const val = pristineBon(id, ctx.saveData);
     const unlocked = val > 0;
     return node(
-      label("Pristine", id),
+      pristineLabel(id),
       val,
       [
         node(unlocked ? "Unlocked" : "Locked", unlocked ? 1 : 0, null, { fmt: "raw" }),

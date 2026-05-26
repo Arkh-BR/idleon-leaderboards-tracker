@@ -162,17 +162,28 @@ export function computeSummUpgBonus(t: number, saveData: SaveData): TreeResult {
   ]);
 }
 
+// Friendly labels for the Summoning win-bonus tiers that feed the DR pool.
+// Sourced from summoningBonuses[i].bonus in IT website-data, scrubbed of the
+// "+{%_" placeholder syntax.
+const SUMM_WIN_NAMES: Record<number, string> = {
+  9: "Drop Rate Summoning Win",
+};
+function summoningWinName(id: number): string {
+  const friendly = SUMM_WIN_NAMES[id];
+  return friendly ? `${friendly} (Summoning ${id})` : label("Summoning", id);
+}
+
 export const winBonus = {
   resolve(id: number, ctx: Ctx): CorganNode {
     const saveData = ctx.saveData;
     const swb = computeSummWinBonus(saveData);
     const p = _winBonusParts(id, swb, saveData);
     if (p.val <= 0)
-      return node(label("Summoning", id), 0, null, { note: "summoning win " + id });
+      return node(summoningWinName(id), 0, null, { note: "summoning win " + id });
 
     if (p.simple) {
       return node(
-        label("Summoning", id),
+        summoningWinName(id),
         p.val,
         [node("Win Bonus Raw", p.raw, null, { fmt: "raw" })],
         { fmt: "+", note: "summoning win " + id }
@@ -194,12 +205,12 @@ export const winBonus = {
     }
     winnerSumParts.push(node("Godshard Set", p.godshardSet || 0, null, { fmt: "raw" }));
     return node(
-      label("Summoning", id),
+      summoningWinName(id),
       p.val,
       [
         node("Win Bonus Raw", p.raw, null, { fmt: "raw" }),
         node("Base Multiplier", p.baseMult || 1, null, { fmt: "x" }),
-        node(label("Pristine", 8), p.pristineMult || 1, null, {
+        node("Crystal Comb (Pristine 8)", p.pristineMult || 1, null, {
           fmt: "x",
           note: (p.pristine8 || 0) > 0 ? "Equipped" : "Not equipped",
         }),

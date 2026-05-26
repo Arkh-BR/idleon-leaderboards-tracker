@@ -110,37 +110,46 @@ export function galleryBonusMulti(
     );
   if (trophChip)
     ch.push(
-      node(label("Chip", 16), GALLERY_TROPH_CHIP_MULTI, null, {
-        fmt: "raw",
-        note: "chip 16",
-      })
+      node(
+        "Silkrode Motherboard (Chip 16)",
+        GALLERY_TROPH_CHIP_MULTI,
+        null,
+        { fmt: "raw" }
+      )
     );
   if (clamWork7)
-    ch.push(node(label("ClamWork", 7), 3, null, { fmt: "raw" }));
+    ch.push(
+      node("Glasstic Brain (Clam Work 7)", 3, null, { fmt: "raw" })
+    );
   if (killroy3 > 0)
-    ch.push(node(label("Killroy", 3), killroy3, null, { fmt: "raw" }));
+    ch.push(
+      node("Skull Shop Tier 3 (Killroy 3)", killroy3, null, { fmt: "raw" })
+    );
   if (y13capped > 0)
     ch.push(
-      node("Bubble Y13 (capped 20)", y13capped, null, {
+      node("Codfrey Rulz OK (Bubble Y13, capped 20)", y13capped, null, {
         fmt: "raw",
         note: "kazam bubble 13",
       })
     );
   if (cardLv > 0)
-    ch.push(node("Card w7a11 (capped 10)", cardLv, null, { fmt: "raw" }));
+    ch.push(
+      node("Coralcave Crab (Card w7a11, capped 10)", cardLv, null, {
+        fmt: "raw",
+      })
+    );
   if (comp49 > 0)
     ch.push(
-      node(label("Companion", 49), comp49, null, {
-        fmt: "raw",
-        note: "companion 49",
-      })
+      node(label("Companion", 49), comp49, null, { fmt: "raw" })
     );
   if (sushi54 > 0)
     ch.push(
-      node(ROG_DESC[54] || "Sushi RoG 54", sushi54, null, {
-        fmt: "raw",
-        note: "RoG_BonusQTY(54) — Gallery Bonus Multi",
-      })
+      node(
+        "Dulce Vitiri (Sushi Tier 55) — Gallery Bonus Multi (RoG Bonus 54)",
+        sushi54,
+        null,
+        { fmt: "raw" }
+      )
     );
   return { val, children: ch };
 }
@@ -158,20 +167,23 @@ export function hatrackBonusMulti(saveData: SaveData): MultiResult {
   const ch: CorganNode[] = [];
   if (hatCount > 0) ch.push(node("Hats Owned", hatCount, null, { fmt: "raw" }));
   if (evShop30 > 0)
-    ch.push(node(label("Event", 30), 10 * evShop30, null, { fmt: "raw" }));
+    ch.push(
+      node("Hatrack Boutique Bonus (Event Shop 30)", 10 * evShop30, null, {
+        fmt: "raw",
+      })
+    );
   if (mhq21 > 0)
     ch.push(
-      node(label("Minehead Floor", 21), mhq21, null, {
-        fmt: "raw",
-        note: "minehead 21",
-      })
+      node("Hatrack Floor Bonus (Minehead 21)", mhq21, null, { fmt: "raw" })
     );
   if (sushiRoG36 > 0)
     ch.push(
-      node(label("Sushi", 36), sushiRoG36, null, {
-        fmt: "raw",
-        note: "RoG_BonusQTY(36)",
-      })
+      node(
+        "Abalone Sashimi (Sushi Tier 37) — Hat Rack Multi (RoG Bonus 36)",
+        sushiRoG36,
+        null,
+        { fmt: "raw" }
+      )
     );
   return { val, children: ch };
 }
@@ -269,11 +281,13 @@ export const nametag = {
     const gbm = gbmObj.val;
     let total = 0;
     const children: CorganNode[] = [];
+    const ownedIds = new Set<number>();
     for (let i = 0; i < levels.length; i++) {
       const lv = Number(levels[i]) || 0;
       if (lv < 1) continue;
       const drEntries = NAMETAG_DR[i];
       if (!drEntries) continue;
+      ownedIds.add(i);
       const tier = NAMETAG_TIER_SCALE[Math.min(4, lv - 1)];
       for (let j = 0; j < drEntries.length; j++) {
         if (!map[drEntries[j].stat]) continue;
@@ -294,6 +308,36 @@ export const nametag = {
         );
       }
     }
+
+    // Catalog of nametags not yet placed in the gallery (Spelunk[17] level
+    // either missing or 0). Every DR-relevant nametag shows up directly
+    // alongside the equipped ones as a zero-val row — no extra grouping —
+    // so the user sees the upgrade path in line with what they already have.
+    const unowned: { id: number; name: string; baseVal: number }[] = [];
+    for (const idxStr of Object.keys(NAMETAG_DR)) {
+      const idx = Number(idxStr);
+      if (ownedIds.has(idx)) continue;
+      const drEntries = NAMETAG_DR[idx];
+      if (!drEntries) continue;
+      for (const entry of drEntries) {
+        if (!map[entry.stat]) continue;
+        unowned.push({
+          id: idx,
+          name: NAMETAG_NAMES[idx] || "Tag #" + idx,
+          baseVal: entry.val,
+        });
+      }
+    }
+    unowned.sort((a, b) => b.baseVal - a.baseVal);
+    for (const u of unowned) {
+      children.push(
+        node(u.name, 0, null, {
+          fmt: "+",
+          note: `Not in gallery — base +${u.baseVal}, scales with Tier × Gallery Bonus Multi`,
+        })
+      );
+    }
+
     return node("Nametag Bonuses", total, children, {
       fmt: "+",
       note: "nametag " + id,
@@ -315,11 +359,13 @@ export const trophy = {
     const gbm = gbmObj.val;
     let total = 0;
     const children: CorganNode[] = [];
+    const ownedTrophyIds = new Set<number>();
     for (let i = 0; i < trophySlots.length; i++) {
       const trophyId = Number(trophySlots[i]) || 0;
       if (trophyId < 1) continue;
       const drEntries = TROPHY_DR[trophyId];
       if (!drEntries) continue;
+      ownedTrophyIds.add(trophyId);
       const tier = trophyTier(i, saveData);
       for (let j = 0; j < drEntries.length; j++) {
         if (!map[drEntries[j].stat]) continue;
@@ -340,6 +386,36 @@ export const trophy = {
         );
       }
     }
+
+    // Catalog of trophies the user hasn't earned + placed — every DR-
+    // relevant trophy emits a zero-val row directly under the equipped
+    // ones (no extra grouping). Stats are filtered against the requested
+    // etcBonus id so DR-Multi trophies only show under stat 91, etc.
+    const unowned: { id: number; name: string; baseVal: number }[] = [];
+    for (const idStr of Object.keys(TROPHY_DR)) {
+      const idx = Number(idStr);
+      if (ownedTrophyIds.has(idx)) continue;
+      const drEntries = TROPHY_DR[idx];
+      if (!drEntries) continue;
+      for (const entry of drEntries) {
+        if (!map[entry.stat]) continue;
+        unowned.push({
+          id: idx,
+          name: TROPHY_NAMES[idx] || "Trophy" + idx,
+          baseVal: entry.val,
+        });
+      }
+    }
+    unowned.sort((a, b) => b.baseVal - a.baseVal);
+    for (const u of unowned) {
+      children.push(
+        node(u.name, 0, null, {
+          fmt: "+",
+          note: `Not in gallery — base +${u.baseVal}, scales with Tier × Gallery Bonus Multi`,
+        })
+      );
+    }
+
     return node("Trophy Bonuses", total, children, {
       fmt: "+",
       note: "trophy " + id,

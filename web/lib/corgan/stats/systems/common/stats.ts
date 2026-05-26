@@ -44,7 +44,9 @@ export const lukScaling = {
     const totalLUK = readRawLuk(ctx.saveData, charIdx);
     const drLUK = lukCurve(totalLUK);
     return node("LUK Scaling", drLUK, [
-      node("Total LUK", totalLUK, null, { fmt: "raw" }),
+      // 🍀 sits on the actual character stat — the parent LUK Scaling wrapper
+      // and the sibling × 1.4 row are math glue, not the stat itself.
+      node("🍀 Total LUK", totalLUK, null, { fmt: "raw" }),
       node(
         totalLUK < 1000 ? "Sub-1000 curve" : "Over-1000 curve",
         drLUK,

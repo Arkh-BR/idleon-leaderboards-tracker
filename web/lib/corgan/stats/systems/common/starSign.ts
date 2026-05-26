@@ -23,8 +23,14 @@ const SIGN_TABLES: Record<
 const STAR_CHIP_ID = 15;
 
 export function computeSeraphMulti(charIdx: number, saveData: SaveData): number {
-  if (!saveData.starSignsUnlocked || !("Seraph_Cosmos" in saveData.starSignsUnlocked))
+  // Defensive: starSignsUnlocked is supposed to be a Record<string, unknown>,
+  // but some loader paths historically produced a Number (a regression we
+  // hit on at least one save where StarSg was already parsed by IT). The
+  // `in` operator throws on non-objects, so explicitly check shape first.
+  const unlocked = saveData.starSignsUnlocked;
+  if (!unlocked || typeof unlocked !== "object" || Array.isArray(unlocked))
     return 1;
+  if (!("Seraph_Cosmos" in unlocked)) return 1;
 
   const arcane40 = Number((saveData.arcaneData as any)?.[40]) || 0;
   const lv0 = saveData.lv0AllData && (saveData.lv0AllData[charIdx] as any[]);
@@ -77,11 +83,15 @@ export const starSign = {
     const totalMulti = computeSeraphMulti(ctx.charIdx, saveData);
     const total = baseTotal * totalMulti;
 
+    // Flatten: skip the "Base Sum" wrapper and just hang the individual sign
+    // rows directly under "Star Signs", followed by the Seraph multiplier as
+    // its own sibling row. The base sum is implicit from the sum of sign
+    // children + the multiplier shows its own factor.
     return node(
       "Star Signs",
       total,
       [
-        node("Base Sum", baseTotal, signChildren, { fmt: "raw" }),
+        ...signChildren,
         node("Seraph Multiplier", totalMulti, null, { fmt: "x" }),
       ],
       { fmt: "+", note: "starSign:" + id }

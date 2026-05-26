@@ -18,7 +18,7 @@ import { arcadeBonus } from "./arcade";
 import { legendPTSbonus } from "../w7/spelunking";
 import { paletteParams } from "../../data/w4/gaming";
 import { exoticParams } from "../../data/w5/farming";
-import { sigilTiers } from "../../data/common/sigils";
+import { sigilTiers, sigilCodename } from "../../data/common/sigils";
 import { rogBonusQTY } from "../w7/sushi";
 import { bubbleParams } from "../../data/w2/alchemy";
 import { AlchemyDescription } from "../../data/game/customlists.js";
@@ -160,10 +160,23 @@ export const alchemy = {
   },
 };
 
+// Title-case SCREAMING_SNAKE codenames (TROVE → "Trove", PUMPED_KICKS →
+// "Pumped Kicks") so sigil labels read as game-natural text.
+function titleCaseFromSnake(raw: string): string {
+  return (raw || "")
+    .replace(/_/g, " ")
+    .toLowerCase()
+    .replace(/(^|\s)\w/g, (c) => c.toUpperCase());
+}
+
 export const sigil = {
   resolve(id: number, ctx: Ctx): CorganNode {
     const saveData = ctx.saveData;
-    const name = label("Sigil", id);
+    const codename = sigilCodename(id);
+    const friendly = codename ? titleCaseFromSnake(codename) : "";
+    const name = friendly
+      ? `${friendly} Sigil (Sigil ${id})`
+      : label("Sigil", id);
     const level =
       Number(((saveData.cauldronP2WData as any)?.[4] || [])[1 + 2 * id]) || 0;
     if (level < -0.1) return node(name, 0, null, { note: "sigil " + id });
