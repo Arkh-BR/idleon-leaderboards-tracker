@@ -969,6 +969,30 @@ const APP_JS = `
   // particular: clearing it wasn't waking up the friend contribution
   // formula).
   var inputBySourceId = new Map();
+
+  /** Full re-render with focus + selection preserved. Used by the
+   *  typing path so each keystroke can refresh every formula ancestor
+   *  even if some live outside the currently-rendered tree, without
+   *  yanking the caret away mid-edit. */
+  function renderKeepFocus() {
+    var active = document.activeElement;
+    var activeId = active && active.getAttribute &&
+      active.getAttribute("data-source-id");
+    var selS = null, selE = null;
+    if (activeId) {
+      try { selS = active.selectionStart; selE = active.selectionEnd; }
+      catch (e) { /* type=number throws — ignore */ }
+    }
+    render();
+    if (activeId) {
+      var el = inputBySourceId.get(activeId);
+      if (el) {
+        el.focus();
+        try { if (selS !== null) el.setSelectionRange(selS, selE); }
+        catch (e) { /* same — type=number; that's fine */ }
+      }
+    }
+  }
   function propagateUp(childId) {
     var curId = parentByChildId.get(childId);
     while (curId) {
@@ -1266,7 +1290,11 @@ const APP_JS = `
       row.classList.toggle("has-max", nowFilled);
       row.classList.toggle("no-data", !nowFilled);
       propagateUp(src.id);
-      updateStats(null);
+      // Hard re-render with focus + caret preserved — guarantees every
+      // formula ancestor reflects the new value even if the Map-based
+      // direct update missed it for some reason (collapsed branch,
+      // stale element reference, etc.).
+      renderKeepFocus();
     };
     maxWrap.appendChild(maxInput);
 
@@ -1288,7 +1316,7 @@ const APP_JS = `
         row.classList.add("has-max");
         row.classList.remove("no-data");
         propagateUp(src.id);
-        updateStats(null);
+        render();
       };
       maxWrap.appendChild(pull);
 
@@ -1305,7 +1333,13 @@ const APP_JS = `
         row.classList.remove("has-max");
         row.classList.add("no-data");
         propagateUp(src.id);
-        updateStats(null);
+        // Full re-render as the safety net — propagateUp's Map lookup
+        // covers the common case, but a hard render guarantees every
+        // ancestor (including ones not currently in the visible tree)
+        // refreshes from storage. The user explicitly reported the
+        // propagation wasn't firing for Clean, so we err on the side
+        // of correctness for this click path.
+        render();
       };
       maxWrap.appendChild(cleanBtn);
     }
@@ -1341,7 +1375,7 @@ const APP_JS = `
         maxInput.classList.add("filled", "agg-driven");
         row.classList.add("has-max"); row.classList.remove("no-data");
         propagateUp(src.id);
-        updateStats(null);
+        render();
       };
       maxWrap.appendChild(agg);
       var computed = computeAgg(src);
