@@ -21,18 +21,7 @@ type Ctx = { saveData: SaveData; charIdx: number };
 const ETCBONUS_LABELS: Record<string, string> = {
   "2": "Drop Rate (Gear)",
   "99": "Bonus Drop Rate (Gear)",
-  "102": "Drop Chance (Gear)",
   "91": "Drop Rate Multi (Gear)",
-};
-
-// Long-form descriptions for the empty-state placeholder. id 102's stat
-// (%_DROP_CHANCE) has no items in IT website-data that carry it as a
-// built-in — players can only get it by rolling that stat as a UQ on a
-// random-stone — so the wrapper sits empty unless the save has such a
-// roll. Spelling that out beats showing a silent zero row.
-const EMPTY_NOTES: Record<string, string> = {
-  "102":
-    "No items carry +Drop Chance as a built-in stat — only granted by random UQ rolls on items / obols",
 };
 
 function etcBonusLabel(id: number | (number | string)[]): string {
@@ -71,15 +60,18 @@ export const etcBonus = {
     // talents / stamps / cards). Result: "Drop Rate (Gear)  (etcBonus 2)".
     const idStr = Array.isArray(id) ? id.join(",") : String(id);
 
-    // If every sub-resolver returned empty, emit a single placeholder child
-    // explaining WHY the wrapper is empty rather than leaving the user to
-    // wonder. This is currently the etcBonus(102) case — DROP_CHANCE has no
-    // built-in carriers anywhere in IT website-data.
+    // Safety net for any future etcBonus id that lands every sub-resolver
+    // empty — emit a single placeholder child so the wrapper never reads
+    // as silently broken. (No active descriptor entry trips this branch
+    // today: etcBonus 102 was dropped from the pool because DROP_CHANCE
+    // has no item carriers.)
     if (children.length === 0) {
-      const note =
-        EMPTY_NOTES[idStr] ||
-        "No active sources for this stat on the current character";
-      children.push(node("No active sources", 0, null, { fmt: "+", note }));
+      children.push(
+        node("No active sources", 0, null, {
+          fmt: "+",
+          note: "No items on the current character grant this stat",
+        })
+      );
     }
 
     return node(
