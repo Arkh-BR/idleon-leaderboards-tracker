@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-26T18:18:30.007Z",
+  "generatedAt": "2026-05-26T18:24:02.380Z",
   "refTotal": 43093.43816941274,
   "refSave": "zArkhe (save 25-21-16.json) — Town, no AC",
   "sourceCount": 75,
@@ -1792,7 +1792,7 @@
       "fmt": "+",
       "refValue": 379.1411706183201,
       "bucket": "📖 Tome",
-      "note": "tome 2",
+      "note": "tome 2 — Base × Tome Multi",
       "children": [
         {
           "id": "Drop Rate / Additive Pool / 📖 Tome / Drop Rate Additive (Tome 2) / Tome Score",
@@ -5960,7 +5960,8 @@
           "bucket": "🎯 Talents"
         }
       ],
-      "agg": "custom"
+      "agg": "custom",
+      "note": "1 + (Talent Value × log10(Plunderous Kills)) / 100"
     },
     {
       "id": "Drop Rate / Post-Processing / 🥷 Sneaking Mastery / Sneaking Completions (Sneaking Mastery)",
@@ -6344,7 +6345,7 @@
       "fmt": "+",
       "refValue": 26.677489021315992,
       "bucket": "📖 Tome",
-      "note": "tome 7",
+      "note": "tome 7 — Base × Tome Multi",
       "children": [
         {
           "id": "Drop Rate / Post-Processing / 📖 Tome / Drop Rate Multi (Tome 7) / Tome Score",
@@ -6521,7 +6522,7 @@
       "fmt": "+",
       "refValue": 0,
       "bucket": "🗺️ Arcane Map",
-      "note": "arcane map",
+      "note": "arcane map — min(Cap, raw) where raw = (2·max(0,lg10−3.5) + max(0,lg2−12))·(lg10/2.5) + min(2, kills/1000) + max(0, 5·(lg10−5))",
       "children": [
         {
           "id": "Drop Rate / Post-Processing / 🗺️ Arcane Map / Arcane Map Bonus / Map Kills",
@@ -6534,16 +6535,6 @@
           "bucket": "🗺️ Arcane Map"
         },
         {
-          "id": "Drop Rate / Post-Processing / 🗺️ Arcane Map / Arcane Map Bonus / Raw Bonus",
-          "name": "Raw Bonus",
-          "system": "Arcane Map",
-          "world": "Global",
-          "pool": "Multi",
-          "fmt": "+",
-          "refValue": 0,
-          "bucket": "🗺️ Arcane Map"
-        },
-        {
           "id": "Drop Rate / Post-Processing / 🗺️ Arcane Map / Arcane Map Bonus / Cap",
           "name": "Cap",
           "system": "Arcane Map",
@@ -6551,16 +6542,6 @@
           "pool": "Multi",
           "fmt": "raw",
           "refValue": 61.02462620932278,
-          "bucket": "🗺️ Arcane Map"
-        },
-        {
-          "id": "Drop Rate / Post-Processing / 🗺️ Arcane Map / Arcane Map Bonus / Capped Bonus",
-          "name": "Capped Bonus",
-          "system": "Arcane Map",
-          "world": "Global",
-          "pool": "Multi",
-          "fmt": "+",
-          "refValue": 0,
           "bucket": "🗺️ Arcane Map"
         }
       ],
@@ -6575,7 +6556,7 @@
       "fmt": "x",
       "refValue": 1.244,
       "bucket": "🎲 Glimbo",
-      "note": "grid 168",
+      "note": "grid 168 — 1 + (gridVal × floor(Total Trades / 100)) / 100 where gridVal = lv × shape × max(1, allMulti)",
       "children": [
         {
           "id": "Drop Rate / Post-Processing / 🎲 Glimbo / Glimbo DR Multi / Glimbo Insider Trading Secrets (Grid 168) Level",

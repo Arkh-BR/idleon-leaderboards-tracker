@@ -90,6 +90,14 @@ const SKIP_NAMES = new Set([
   // others=1). Captured as perLevelConst on the parent and consumed by
   // the levelPerLevelProduct formula; not editable on its own.
   "Per Level",
+  // Arcane Map intermediates: Raw Bonus is the uncapped log-formula
+  // output, Capped Bonus is min(Raw, Cap). The parent IS the capped
+  // value — its CUSTOM_FORMULAS["Arcane Map Bonus"] already reads
+  // Map Kills + Cap and applies the cap, so the intermediates were
+  // duplicate noise. After the skip the row has just Map Kills + Cap
+  // as editable inputs and the parent auto-recomputes.
+  "Raw Bonus",
+  "Capped Bonus",
 ]);
 
 /** Aggregation detection — tag a parent with the closed-form rule its
@@ -228,6 +236,20 @@ const CUSTOM_FORMULA_NAMES = new Set<string>([
   "Glimbo DR Multi",
 ]);
 
+/** Human-readable formula descriptions appended to the row's note for
+ *  per-name CUSTOM_FORMULAS rows. Gives the user a clue what's being
+ *  computed without having to read the JS handler. */
+const CUSTOM_FORMULA_NOTES: Record<string, string> = {
+  "Arcane Map Bonus":
+    "min(Cap, raw) where raw = (2·max(0,lg10−3.5) + max(0,lg2−12))·(lg10/2.5) + min(2, kills/1000) + max(0, 5·(lg10−5))",
+  "Drop Rate Additive (Tome 2)": "Base × Tome Multi",
+  "Drop Rate Multi (Tome 7)": "Base × Tome Multi",
+  "Archlord Of The Pirates (Talent 328)":
+    "1 + (Talent Value × log10(Plunderous Kills)) / 100",
+  "Glimbo DR Multi":
+    "1 + (gridVal × floor(Total Trades / 100)) / 100 where gridVal = lv × shape × max(1, allMulti)",
+};
+
 function detectAgg(
   parent: CorganNode,
   children: CorganNode[]
@@ -362,6 +384,12 @@ function collectChildren(
         } else {
           const agg = detectAgg(child, child.children || []);
           if (agg) entry.agg = agg;
+          // Append a friendly formula description for per-name custom
+          // handlers so the user sees what's being computed.
+          if (agg === "custom" && CUSTOM_FORMULA_NOTES[child.name]) {
+            const fn = CUSTOM_FORMULA_NOTES[child.name];
+            entry.note = entry.note ? `${entry.note} — ${fn}` : fn;
+          }
         }
       }
     }
@@ -438,6 +466,10 @@ for (let pi = 0; pi < tops.length; pi++) {
           } else {
             const agg = detectAgg(src, src.children || []);
             if (agg) entry.agg = agg;
+            if (agg === "custom" && CUSTOM_FORMULA_NOTES[src.name]) {
+              const fn = CUSTOM_FORMULA_NOTES[src.name];
+              entry.note = entry.note ? `${entry.note} — ${fn}` : fn;
+            }
           }
         }
       }
