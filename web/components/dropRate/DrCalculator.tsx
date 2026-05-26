@@ -255,21 +255,30 @@ export default function DrCalculator({ onStateChange, compareBaseline }: Props) 
     };
   }, [save, charIdx, mapIdx, chars.length, chipGalleryActive]);
 
-  // Bubble state up to parent (so snapshot section can access it). Uses the
-  // detailed compute as the primary base when available; falls back to the
-  // IT-style baseDr.
+  // Bubble state up to parent (so snapshot section can access it). The
+  // detailed compute (drTotal) already includes the arcaneMap node, so it's
+  // the FINAL value. The IT-style baseDr is pre-arcane, so we apply the
+  // factor manually in the fallback path.
   useEffect(() => {
     if (!onStateChange) return;
     const ch = chars.find((c) => c.charIndex === charIdx);
     const map = mapOptions.find((m) => m.index === mapIdx);
     const factor = map ? map.factor : 1;
-    const base = drTotal !== null ? drTotal : baseDr;
+    let bubbledTotal: number | null = null;
+    let bubbledBase: number | null = null;
+    if (drTotal !== null) {
+      bubbledTotal = drTotal;
+      bubbledBase = factor > 0 ? drTotal / factor : drTotal;
+    } else if (baseDr !== null) {
+      bubbledTotal = baseDr * factor;
+      bubbledBase = baseDr;
+    }
     onStateChange({
       charIndex: ch ? ch.charIndex : null,
       charName: ch?.charName ?? "",
       charSummary: ch ?? null,
-      totalDr: base !== null ? base * factor : null,
-      baseDr: base,
+      totalDr: bubbledTotal,
+      baseDr: bubbledBase,
       arcane: factor,
       mapIndex: mapIdx,
       mapLabel: map?.name ?? "Town",
@@ -302,10 +311,18 @@ export default function DrCalculator({ onStateChange, compareBaseline }: Props) 
 
   const factor = mapOptions.find((m) => m.index === mapIdx)?.factor ?? 1;
   // Primary displayed DR uses the detailed pool-tree compute (matches in-game
-  // to within ~1%). Falls back to the simpler IT-style baseDr if the
-  // detailed compute hasn't finished or failed.
-  const primaryBase = drTotal !== null ? drTotal : baseDr;
-  const totalDr = primaryBase !== null ? primaryBase * factor : null;
+  // to within ~1%). The detailed tree already includes the arcaneMap node,
+  // so drTotal is the post-arcane FINAL value — don't multiply by factor
+  // again. The IT-style baseDr is pre-arcane, so it does need the factor.
+  let totalDr: number | null = null;
+  let displayBase: number | null = null;
+  if (drTotal !== null) {
+    totalDr = drTotal;
+    displayBase = factor > 0 ? drTotal / factor : drTotal;
+  } else if (baseDr !== null) {
+    totalDr = baseDr * factor;
+    displayBase = baseDr;
+  }
 
   return (
     <div>
@@ -415,9 +432,9 @@ export default function DrCalculator({ onStateChange, compareBaseline }: Props) 
             "load a save to begin"
           )}
         </div>
-        {primaryBase !== null && factor > 1.001 && (
+        {displayBase !== null && factor > 1.001 && (
           <div className="text-xs text-zinc-600 mt-1">
-            (base {formatIdleon(primaryBase)}x × {factor.toFixed(2)}x map)
+            (base {formatIdleon(displayBase)}x × {factor.toFixed(2)}x map)
           </div>
         )}
       </div>
