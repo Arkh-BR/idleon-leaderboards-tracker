@@ -11,7 +11,7 @@
 //                                         inlined as a <script> literal so
 //                                         it works at file:// too
 
-import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
+import { readFileSync, writeFileSync, mkdirSync, existsSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { computeCorganDropRate } from "../lib/corgan/computeDR";
 import type { CorganNode } from "../lib/corgan/node";
@@ -103,6 +103,19 @@ const htmlPath = resolve(repoRoot, "web/public/dr-max-values.html");
 mkdirSync(dirname(catalogPath), { recursive: true });
 mkdirSync(dirname(htmlPath), { recursive: true });
 
+// Pick up the IT seed if it's been generated (populate-max-from-it.ts).
+// Embedding it means the HTML can ship with a one-click "Apply IT seed"
+// button so the user doesn't have to find + Import a file every refresh.
+const seedPath = resolve(repoRoot, "web/data/dr-max-values-it-seed.json");
+let itSeed: any = null;
+if (existsSync(seedPath)) {
+  try {
+    itSeed = JSON.parse(readFileSync(seedPath, "utf8"));
+  } catch {
+    itSeed = null;
+  }
+}
+
 const catalog = {
   generatedAt: new Date().toISOString(),
   refTotal: r.total,
@@ -112,6 +125,9 @@ const catalog = {
   systemEmoji: SYSTEM_EMOJI,
   worldOrder: WORLD_ORDER,
   sources,
+  /** Optional pre-baked seed (from populate-max-from-it.ts). The HTML
+   *  exposes a button to apply it without leaving the page. */
+  itSeed,
 };
 writeFileSync(catalogPath, JSON.stringify(catalog, null, 2));
 
@@ -122,6 +138,10 @@ writeFileSync(htmlPath, html);
 console.log(`✓ Catalog:  ${catalogPath}  (${sources.length} sources)`);
 console.log(`✓ Tool:     ${htmlPath}`);
 console.log(`✓ Ref save: ${catalog.refSave}  →  DR ${r.total.toFixed(3)}x`);
+if (itSeed)
+  console.log(
+    `✓ IT seed:  ${Object.keys(itSeed.values || {}).length} entries embedded`
+  );
 
 // ===== HTML BUILDER =====
 function buildHtml(cat: typeof catalog): string {
@@ -290,6 +310,24 @@ function buildHtml(cat: typeof catalog): string {
     0% { background-color: rgba(56, 189, 248, 0.3); }
     100% { background-color: transparent; }
   }
+  .seed-btn {
+    background: rgba(52, 211, 153, 0.1) !important;
+    color: var(--green) !important;
+    border-color: rgba(52, 211, 153, 0.4) !important;
+  }
+  .seed-btn:hover { background: rgba(52, 211, 153, 0.2) !important; }
+  .seed-banner {
+    margin-bottom: 14px; padding: 10px 14px;
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    background: rgba(56, 189, 248, 0.05);
+    border-radius: 8px;
+    color: var(--ink-dim); font-size: 12px;
+    display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+  }
+  .seed-banner b { color: var(--ink); }
+  .seed-banner .top {
+    margin-left: auto; font-family: monospace; color: var(--gold);
+  }
 </style>
 </head>
 <body>
@@ -319,8 +357,13 @@ function buildHtml(cat: typeof catalog): string {
       ↓ Import
       <input type="file" id="import" accept="application/json,.json" />
     </label>
+    <button id="apply-seed" class="seed-btn" hidden title="Apply the IT-leaderboard-derived seed values">
+      🌱 Apply IT seed
+    </button>
     <span class="stats" id="stats"></span>
   </div>
+
+  <div id="seed-banner" class="seed-banner" hidden></div>
 
   <div id="content"></div>
 
@@ -342,6 +385,23 @@ function buildHtml(cat: typeof catalog): string {
   document.getElementById("genstamp").textContent =
     new Date(catalog.generatedAt).toLocaleString();
   document.getElementById("refsave").textContent = catalog.refSave;
+
+  // Surface the IT-seed banner + Apply button when the generator was
+  // able to embed a seed (populate-max-from-it.ts ran beforehand).
+  const seed = catalog.itSeed;
+  if (seed && seed.values) {
+    const btn = document.getElementById("apply-seed");
+    btn.hidden = false;
+    const banner = document.getElementById("seed-banner");
+    banner.hidden = false;
+    const drTop = seed.drTopReference || "";
+    const entryCount = Object.keys(seed.values).length;
+    banner.innerHTML =
+      '<span>🌱 <b>' + entryCount + '</b> entries pre-seeded from IT leaderboards' +
+      ' (top-1 per board). Click <b>Apply IT seed</b> to merge them into your local ' +
+      'values — manual edits keep their extra fields.</span>' +
+      (drTop ? '<span class="top">' + escapeHtml(drTop) + '</span>' : '');
+  }
 
   /** Per-source user data:
    *    { [sourceId]: { maxValue?:number, observedOn?:string,
@@ -671,6 +731,43 @@ function buildHtml(cat: typeof catalog): string {
     render();
   };
 
+  // Reusable merge so Import (file) and Apply seed (embedded) share semantics.
+  function mergeValues(incoming) {
+    let added = 0, updated = 0;
+    for (const id in incoming) {
+      const cur = values[id];
+      const inc = incoming[id];
+      if (!cur) {
+        values[id] = inc;
+        added++;
+      } else {
+        const merged = { ...cur };
+        for (const k of Object.keys(inc)) {
+          if (inc[k] !== undefined && inc[k] !== null && inc[k] !== "")
+            merged[k] = inc[k];
+        }
+        values[id] = merged;
+        updated++;
+      }
+    }
+    saveValues(values);
+    return { added, updated };
+  }
+
+  // Apply embedded IT seed → merge into localStorage, same semantics as Import.
+  const applySeedBtn = document.getElementById("apply-seed");
+  if (applySeedBtn) {
+    applySeedBtn.onclick = () => {
+      if (!seed || !seed.values) return;
+      const { added, updated } = mergeValues(seed.values);
+      alert(
+        "Applied IT seed: " + added + " new + " + updated + " merged entries. " +
+        "Inspect 'IT seed' in the notes column to refine."
+      );
+      render();
+    };
+  }
+
   // Export → JSON download
   document.getElementById("export").onclick = () => {
     const payload = {
@@ -701,26 +798,7 @@ function buildHtml(cat: typeof catalog): string {
           alert("Import failed — file doesn't look like a dr-max-values export.");
           return;
         }
-        const incoming = parsed.values;
-        let added = 0, updated = 0;
-        for (const id in incoming) {
-          const cur = values[id];
-          const inc = incoming[id];
-          if (!cur) {
-            values[id] = inc;
-            added++;
-          } else {
-            // Merge field-by-field; prefer incoming when present
-            const merged = { ...cur };
-            for (const k of Object.keys(inc)) {
-              if (inc[k] !== undefined && inc[k] !== null && inc[k] !== "")
-                merged[k] = inc[k];
-            }
-            values[id] = merged;
-            updated++;
-          }
-        }
-        saveValues(values);
+        const { added, updated } = mergeValues(parsed.values);
         alert("Imported " + added + " new + " + updated + " merged entries.");
         render();
       } catch (err) {
