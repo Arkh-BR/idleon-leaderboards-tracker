@@ -31,6 +31,12 @@ import { nodePath } from "../lib/dropRate/treeFlatten";
 const SAVE_PATH =
   "C:\\Users\\Vinicius\\ClaudeCowork\\Leaderboard Ranking Sheet - Idleon\\save 25-21-16.json";
 
+// Closed-form formula spec captured from the corgan tree's "Formula
+// Result" child note (e.g. "decay(40,50,50)"). x1/x2 are the game
+// constants; the third number (lv at gen time) is the level — we don't
+// store it because the runtime reads the live level kid value.
+type FormulaSpec = { type: string; x1: number; x2: number };
+
 type SourceEntry = {
   id: string;
   name: string;
@@ -53,6 +59,11 @@ type SourceEntry = {
    *  by formulaKey first. Used e.g. for friend contributions where the
    *  parent's name is the friend's chosen display string. */
   formulaKey?: string;
+  /** Closed-form formula spec — when set, the runtime computes the
+   *  parent as formulaEval(type, x1, x2, levelKid) × any x-fmt kids.
+   *  Captured by detectFormulaSpec() from the corgan tree's "Formula
+   *  Result" child note. */
+  formulaSpec?: FormulaSpec;
 };
 
 // Catalog-only placeholders / safety nets — never trackable sources.
@@ -127,6 +138,22 @@ function detectStructuralFormula(
     }
   }
   return null;
+}
+
+/** Look at a corgan node's children for a "Formula Result" leaf whose
+ *  note encodes the closed-form spec used to compute the parent's value
+ *  (e.g. "decay(40,50,50)"). Returns the spec with the level stripped
+ *  off (level is read live from the level kid at runtime) — null if
+ *  no Formula Result child or note doesn't match the expected shape. */
+function detectFormulaSpec(node: CorganNode): FormulaSpec | null {
+  const kids = node.children || [];
+  const fr = kids.find((c) => c.name === "Formula Result");
+  if (!fr || !fr.note) return null;
+  const m =
+    /^([a-zA-Z]+)\(\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*,\s*-?\d+(?:\.\d+)?\s*\)/
+      .exec(fr.note);
+  if (!m) return null;
+  return { type: m[1], x1: Number(m[2]), x2: Number(m[3]) };
 }
 
 // Source names we provide explicit formulas for in the HTML. Catalog
@@ -235,13 +262,27 @@ function collectChildren(
     const grandKids = collectChildren(child, childPath, bucket, sys, world, poolBadge);
     if (grandKids.length > 0) {
       entry.children = grandKids;
-      const fkey = detectStructuralFormula(child, sys);
-      if (fkey) {
-        entry.formulaKey = fkey;
+      // Closed-form spec (decay/add/bigBase/...) wins — it carries the
+      // exact game formula, so we don't want a generic Σ/Π detector
+      // overriding it with a false-positive structural match.
+      const spec = detectFormulaSpec(child);
+      if (spec) {
+        entry.formulaSpec = spec;
+        entry.formulaKey = "closedFormFormula";
         entry.agg = "custom";
+        // Surface the game constants on the row so the user sees what's
+        // being computed (e.g. "decay(40, 50)" on Gold Charm).
+        const formulaNote = `${spec.type}(${spec.x1}, ${spec.x2})`;
+        entry.note = entry.note ? `${entry.note} — ${formulaNote}` : formulaNote;
       } else {
-        const agg = detectAgg(child, child.children || []);
-        if (agg) entry.agg = agg;
+        const fkey = detectStructuralFormula(child, sys);
+        if (fkey) {
+          entry.formulaKey = fkey;
+          entry.agg = "custom";
+        } else {
+          const agg = detectAgg(child, child.children || []);
+          if (agg) entry.agg = agg;
+        }
       }
     }
     out.push(entry);
@@ -290,13 +331,22 @@ for (let pi = 0; pi < tops.length; pi++) {
       const subs = collectChildren(src, id, bucket, sys, world, badge);
       if (subs.length > 0) {
         entry.children = subs;
-        const fkey = detectStructuralFormula(src, sys);
-        if (fkey) {
-          entry.formulaKey = fkey;
+        const spec = detectFormulaSpec(src);
+        if (spec) {
+          entry.formulaSpec = spec;
+          entry.formulaKey = "closedFormFormula";
           entry.agg = "custom";
+          const formulaNote = `${spec.type}(${spec.x1}, ${spec.x2})`;
+          entry.note = entry.note ? `${entry.note} — ${formulaNote}` : formulaNote;
         } else {
-          const agg = detectAgg(src, src.children || []);
-          if (agg) entry.agg = agg;
+          const fkey = detectStructuralFormula(src, sys);
+          if (fkey) {
+            entry.formulaKey = fkey;
+            entry.agg = "custom";
+          } else {
+            const agg = detectAgg(src, src.children || []);
+            if (agg) entry.agg = agg;
+          }
         }
       }
       sources.push(entry);
@@ -817,6 +867,40 @@ const APP_JS = `
   // SourceEntry and an array of its children; returns the recomputed
   // parent value from the children's effective values (or null to opt
   // out). The agg-rule "custom" in the catalog routes to this dict.
+  /** Closed-form formula evaluator — 1:1 port of formulas.ts
+   *  formulaEval. The game's universal ArbitraryCode5Inputs helper used
+   *  by stamps, guild bonuses, post office, talents, bubbles, etc. */
+  function formulaEval(type, x1, x2, lv) {
+    switch (type) {
+      case "add":
+        return x2 !== 0
+          ? ((x1 + x2) / x2 + 0.5 * (lv - 1)) / (x1 / x2) * lv * x1
+          : x1 * lv;
+      case "addLower": return x1 + x2 * (lv + 1);
+      case "addDECAY":
+        return lv < 50001
+          ? x1 * lv
+          : x1 * Math.min(50000, lv) +
+              ((lv - 50000) / (lv - 50000 + 150000)) * x1 * 50000;
+      case "decay": return (x1 * lv) / (lv + x2);
+      case "decayLower":
+        return (x1 * (lv + 1)) / (lv + 1 + x2) - (x1 * lv) / (lv + x2);
+      case "decayMulti": return 1 + (x1 * lv) / (lv + x2);
+      case "decayMultiLower":
+        return (x1 * (lv + 1)) / (lv + 1 + x2) - (x1 * lv) / (lv + x2);
+      case "bigBase": return x1 + x2 * lv;
+      case "bigBaseLower": return x2;
+      case "intervalAdd": return x1 + Math.floor(lv / x2);
+      case "intervalAddLower":
+        return Math.max(Math.floor((lv + 1) / x2), 0) - Math.max(Math.floor(lv / x2), 0);
+      case "reduce": return x1 - x2 * lv;
+      case "reduceLower": return x1 - x2 * (lv + 1);
+      case "PtsSpentOnGuildBonus":
+        return ((x1 + x2) / x2 + 0.5 * (lv - 1)) / (x1 / x2) * lv * x1 - x2 * lv;
+      default: return 0;
+    }
+  }
+
   /** Resolve a named child's effective value for custom formula handlers.
    *  Returns null when the child is missing OR unfilled, so handlers
    *  can early-return null to keep the strict-mode propagation. */
@@ -838,6 +922,48 @@ const APP_JS = `
       if (score === null) return null;
       var c = Math.min(12000, Math.max(0, score));
       return 25 * Math.min(1, 0.2 + c / (c + 3000));
+    },
+    "closedFormFormula": function (p, kids) {
+      // p.formulaSpec = { type, x1, x2 } captured from the corgan
+      // tree's "Formula Result" child note (e.g. Gold Charm → decay(40,50)).
+      // The third input (lv) comes from the row's level kid — Guild Points
+      // for guild bonuses, Stamp Level for stamps, Points Invested for
+      // post office, Level for exotic 59. Falls back to the first
+      // raw-fmt kid if none of the known names match.
+      var spec = p && p.formulaSpec;
+      if (!spec) return null;
+      var lv = null;
+      var levelNames = ["Guild Points", "Stamp Level", "Points Invested", "Level"];
+      for (var i = 0; i < kids.length && lv === null; i++) {
+        if (levelNames.indexOf(kids[i].name) >= 0) {
+          var vv = effectiveValue(kids[i]);
+          if (vv !== null) lv = Number(vv) || 0;
+        }
+      }
+      if (lv === null) {
+        for (var j = 0; j < kids.length && lv === null; j++) {
+          if (kids[j].fmt === "raw") {
+            var vv2 = effectiveValue(kids[j]);
+            if (vv2 !== null) lv = Number(vv2) || 0;
+          }
+        }
+      }
+      if (lv === null) return null;
+      var base = formulaEval(spec.type, spec.x1, spec.x2, lv);
+      // Multiply in any x-fmt children (Exalted ×, Certified Stamp Book ×,
+      // Liquorice Rolle ×, etc.) — strict null mode: if a multiplier is
+      // present but unfilled, bail. If it's just not in the tree we
+      // skip it (the original game formula would have multiplied by 1).
+      var multi = 1;
+      for (var k = 0; k < kids.length; k++) {
+        if (kids[k].fmt === "x") {
+          var mv = effectiveValue(kids[k]);
+          if (mv === null) return null;
+          var mn = Number(mv);
+          if (mn > 0) multi *= mn;
+        }
+      }
+      return base * multi;
     },
     "achievementContribution": function (_p, kids) {
       // bonus × completed (completed = 0/1 toggle, or a stack counter).

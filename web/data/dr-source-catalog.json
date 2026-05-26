@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-26T17:52:38.343Z",
+  "generatedAt": "2026-05-26T18:00:17.267Z",
   "refTotal": 43093.43816941274,
   "refSave": "zArkhe (save 25-21-16.json) — Town, no AC",
   "sourceCount": 75,
@@ -1288,7 +1288,15 @@
           "bucket": "📜 Stamps",
           "note": "Pristine 17"
         }
-      ]
+      ],
+      "formulaSpec": {
+        "type": "decay",
+        "x1": 20,
+        "x2": 80
+      },
+      "formulaKey": "closedFormFormula",
+      "agg": "custom",
+      "note": "decay(20, 80)"
     },
     {
       "id": "Drop Rate / Additive Pool / ⚗️ Alchemy / Droppin Loads (Bubble 3,1)",
@@ -1487,7 +1495,7 @@
       "fmt": "+",
       "refValue": 20,
       "bucket": "🛡️ Guild",
-      "note": "guild 10",
+      "note": "guild 10 — decay(40, 50)",
       "children": [
         {
           "id": "Drop Rate / Additive Pool / 🛡️ Guild / Gold Charm (Guild 10) / Guild Points",
@@ -1499,7 +1507,14 @@
           "refValue": 50,
           "bucket": "🛡️ Guild"
         }
-      ]
+      ],
+      "formulaSpec": {
+        "type": "decay",
+        "x1": 40,
+        "x2": 50
+      },
+      "formulaKey": "closedFormFormula",
+      "agg": "custom"
     },
     {
       "id": "Drop Rate / Additive Pool / 🎮 Arcade / Drop Rate Arcade Bonus (Arcade 27)",
@@ -1589,7 +1604,7 @@
       "fmt": "+",
       "refValue": 33.333333333333336,
       "bucket": "📮 Post Office",
-      "note": "post office 11,0",
+      "note": "post office 11,0 — decay(50, 200)",
       "children": [
         {
           "id": "Drop Rate / Additive Pool / 📮 Post Office / Non Predatory Loot Box (Post Office 11) / Points Invested",
@@ -1601,7 +1616,14 @@
           "refValue": 400,
           "bucket": "📮 Post Office"
         }
-      ]
+      ],
+      "formulaSpec": {
+        "type": "decay",
+        "x1": 50,
+        "x2": 200
+      },
+      "formulaKey": "closedFormFormula",
+      "agg": "custom"
     },
     {
       "id": "Drop Rate / Additive Pool / 🐉 Shiny Pets / Drop Rate Shiny Pet (Breeding 0)",
@@ -2369,7 +2391,7 @@
       "fmt": "+",
       "refValue": 2.293369663941871,
       "bucket": "🌾 Farming",
-      "note": "farm exotic59",
+      "note": "farm exotic59 — decay(25, 1000)",
       "children": [
         {
           "id": "Drop Rate / Additive Pool / 🌾 Farming / Pommelion Seed (Exotic 59) / Level",
@@ -2381,7 +2403,14 @@
           "refValue": 101,
           "bucket": "🌾 Farming"
         }
-      ]
+      ],
+      "formulaSpec": {
+        "type": "decay",
+        "x1": 25,
+        "x2": 1000
+      },
+      "formulaKey": "closedFormFormula",
+      "agg": "custom"
     },
     {
       "id": "Drop Rate / Additive Pool / 🕳️ Holes / Gloomie Lootie (Cavern upg46)",

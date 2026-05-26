@@ -192,7 +192,10 @@ export const farm = {
           node("Level", lv, null, { fmt: "raw" }),
           node("Formula Result", val, null, {
             fmt: "raw",
-            note: "25 × lv / (1000 + lv)",
+            // Canonical "type(x1,x2,lv)" shape — matches the format the
+            // catalog generator's detectFormulaSpec() parses to lift the
+            // formula into the max-values tool's runtime evaluator.
+            note: "decay(25," + 1000 + "," + lv + ")",
           }),
         ],
         { fmt: "+", note: "farm exotic59" }
