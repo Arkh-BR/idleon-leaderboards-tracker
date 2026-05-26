@@ -137,6 +137,17 @@ function detectStructuralFormula(
       return "achievementContribution";
     }
   }
+  // Vault Mastery: a multiplier row of the form (1 + masteryLv/100)
+  // with a single "Mastery Lv" child. Tag so the runtime recomputes
+  // the multi live when the user bumps the level.
+  if (sys === "Vault") {
+    if (node.name === "Mastery") {
+      const kids = node.children || [];
+      if (kids.length === 1 && kids[0].name === "Mastery Lv") {
+        return "vaultMastery";
+      }
+    }
+  }
   return null;
 }
 
@@ -922,6 +933,15 @@ const APP_JS = `
       if (score === null) return null;
       var c = Math.min(12000, Math.max(0, score));
       return 25 * Math.min(1, 0.2 + c / (c + 3000));
+    },
+    "vaultMastery": function (_p, kids) {
+      // Vault upgrade mastery multiplier: 1 + masteryLv / 100. Each
+      // mastery node mirrors the corresponding vd[32/61/89] level in
+      // the save — bumping the level here lets us research what the
+      // upgrade tops out at without the corgan pipeline.
+      var lv = kid(kids, /^Mastery Lv$/);
+      if (lv === null) return null;
+      return 1 + lv / 100;
     },
     "closedFormFormula": function (p, kids) {
       // p.formulaSpec = { type, x1, x2 } captured from the corgan

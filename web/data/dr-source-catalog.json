@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-26T18:00:17.267Z",
+  "generatedAt": "2026-05-26T18:04:48.417Z",
   "refTotal": 43093.43816941274,
   "refSave": "zArkhe (save 25-21-16.json) — Town, no AC",
   "sourceCount": 75,
@@ -2192,7 +2192,9 @@
               "refValue": 82,
               "bucket": "🏦 Vault"
             }
-          ]
+          ],
+          "formulaKey": "vaultMastery",
+          "agg": "custom"
         }
       ],
       "agg": "productAB"
