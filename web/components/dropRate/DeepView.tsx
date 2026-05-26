@@ -847,8 +847,13 @@ function collectWorldBuckets(root: CorganNode): WorldBucket[] {
         const sys = parseSystemFromBucketName(bucket.name);
         if (!sys) continue;
         const bucketPath = nodePath(childPath, bucket, buckets, bi);
+        // Badge is driven by the BUCKET's own fmt, not by which parent
+        // pool it sits under. Death Bringer Bundle (+2) and Sneaking
+        // Mastery (+0.3) both live in Post-Processing for formula-order
+        // reasons but they're additive ops — fmt:"+" so they get the
+        // Additive badge.
         const badge: "Additive" | "Multi" =
-          child.name === "Additive Pool" ? "Additive" : "Multi";
+          bucket.fmt === "x" ? "Multi" : "Additive";
         out.push({
           id: `${badge}::${sys}::${bucketPath}::${out.length}`,
           system: sys,
@@ -914,31 +919,108 @@ function PerWorldView({
     );
   }
 
+  const visibleWorlds = WORLD_ORDER.filter((w) => byWorld.has(w));
+
   return (
     <div className="flex flex-col gap-3">
-      {WORLD_ORDER.filter((w) => byWorld.has(w)).map((world) => {
-        const list = byWorld.get(world)!;
-        return (
-          <section
-            key={world}
-            className="rounded-lg border border-zinc-800 bg-zinc-950/40"
-          >
-            <h3 className="px-3 py-2 text-sm font-semibold text-sky-300 border-b border-zinc-800 flex items-center gap-2">
-              <span aria-hidden="true">{WORLD_EMOJI[world]}</span>
-              <span>{world}</span>
-              <span className="ml-auto text-[11px] text-zinc-500 font-normal">
-                {list.length} bucket{list.length === 1 ? "" : "s"}
-              </span>
-            </h3>
-            <div>
-              {list.map((b) => (
-                <WorldBucketRow key={b.id} bucket={b} baseline={baseline} />
-              ))}
-            </div>
-          </section>
-        );
-      })}
+      {/* Expand-all / Collapse-all helpers for the world sections. The
+          actual open/closed state lives inside each section component via
+          local state; these buttons broadcast a tick into a sequence the
+          children listen to. */}
+      <WorldSectionControls />
+      {visibleWorlds.map((world) => (
+        <WorldSection
+          key={world}
+          world={world}
+          buckets={byWorld.get(world)!}
+          baseline={baseline}
+        />
+      ))}
     </div>
+  );
+}
+
+// Shared event channel for the world-section expand/collapse buttons. Each
+// section subscribes; firing a value here flips every section. Cheap pub/sub
+// keeps the components decoupled from the controls bar and avoids prop-
+// drilling a "force-state" enum down through every section.
+type WorldAllSignal = { kind: "open" | "closed"; ts: number };
+const worldAllListeners = new Set<(s: WorldAllSignal) => void>();
+function broadcastWorldAll(kind: "open" | "closed") {
+  const sig: WorldAllSignal = { kind, ts: Date.now() };
+  for (const fn of worldAllListeners) fn(sig);
+}
+
+function WorldSectionControls() {
+  return (
+    <div className="flex items-center gap-2 -mb-1">
+      <button
+        type="button"
+        onClick={() => broadcastWorldAll("open")}
+        className="px-2 py-1 text-[11px] rounded border border-zinc-700 bg-zinc-900 text-zinc-300 hover:bg-zinc-800"
+        title="Expand every world section"
+      >
+        ↓ Expand all
+      </button>
+      <button
+        type="button"
+        onClick={() => broadcastWorldAll("closed")}
+        className="px-2 py-1 text-[11px] rounded border border-zinc-700 bg-zinc-900 text-zinc-300 hover:bg-zinc-800"
+        title="Collapse every world section"
+      >
+        ↑ Collapse all
+      </button>
+    </div>
+  );
+}
+
+function WorldSection({
+  world,
+  buckets,
+  baseline,
+}: {
+  world: WorldKey;
+  buckets: WorldBucket[];
+  baseline: FlatTree | null;
+}) {
+  const [open, setOpen] = useState(true);
+  // Listen for the broadcast from WorldSectionControls so "Expand all" /
+  // "Collapse all" flip every section at once.
+  useEffect(() => {
+    const listener = (s: WorldAllSignal) => setOpen(s.kind === "open");
+    worldAllListeners.add(listener);
+    return () => {
+      worldAllListeners.delete(listener);
+    };
+  }, []);
+
+  return (
+    <section className="rounded-lg border border-zinc-800 bg-zinc-950/40">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className={`w-full px-3 py-2 text-sm font-semibold text-sky-300 flex items-center gap-2 hover:bg-white/5 rounded-t-lg ${
+          open ? "border-b border-zinc-800" : ""
+        }`}
+        title={open ? "Collapse this world" : "Expand this world"}
+      >
+        <span className="w-3 text-zinc-500 select-none">
+          {open ? "▾" : "▸"}
+        </span>
+        <span aria-hidden="true">{WORLD_EMOJI[world]}</span>
+        <span>{world}</span>
+        <span className="ml-auto text-[11px] text-zinc-500 font-normal">
+          {buckets.length} bucket{buckets.length === 1 ? "" : "s"}
+        </span>
+      </button>
+      {open && (
+        <div>
+          {buckets.map((b) => (
+            <WorldBucketRow key={b.id} bucket={b} baseline={baseline} />
+          ))}
+        </div>
+      )}
+    </section>
   );
 }
 

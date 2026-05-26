@@ -28,17 +28,18 @@ type Row = {
 
 const rows: Row[] = [];
 for (const child of r.tree.children || []) {
-  if (child.name === "Additive Pool") {
-    for (const bucket of child.children || []) {
-      const sys = parseSystemFromBucketName(bucket.name);
-      if (sys)
-        rows.push({ system: sys, poolBadge: "Additive", node: bucket });
-    }
-  } else if (child.name === "Post-Processing") {
-    for (const bucket of child.children || []) {
-      const sys = parseSystemFromBucketName(bucket.name);
-      if (sys) rows.push({ system: sys, poolBadge: "Multi", node: bucket });
-    }
+  if (child.name !== "Additive Pool" && child.name !== "Post-Processing")
+    continue;
+  for (const bucket of child.children || []) {
+    const sys = parseSystemFromBucketName(bucket.name);
+    if (!sys) continue;
+    // Match DeepView's logic: the badge tracks the bucket's own format,
+    // not which parent pool it lives under. Death Bringer Bundle (+2) and
+    // Sneaking Mastery (+0.3) sit inside Post-Processing for formula-
+    // order reasons but they're additive ops (fmt:"+").
+    const badge: "Additive" | "Multi" =
+      bucket.fmt === "x" ? "Multi" : "Additive";
+    rows.push({ system: sys, poolBadge: badge, node: bucket });
   }
 }
 
