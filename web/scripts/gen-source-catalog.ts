@@ -106,6 +106,21 @@ function detectStructuralFormula(
     const kids = node.children || [];
     if (kids.some((c) => c.name === "Score")) return "friendContribution";
   }
+  // Achievement contribution: bonus × completed (completed is 0/1, or
+  // a counter for stacking achievements). The auto-sum detector tags
+  // these as "sum" because Σ("+" kids) happens to equal the parent
+  // when completed = 1 — but that's a false positive: when completed
+  // becomes 0 (or anything other than 1) the parent should DROP to
+  // bonus × completed, not stay at bonus.
+  if (sys === "Achievements") {
+    const kids = node.children || [];
+    if (
+      kids.some((c) => c.name === "Completed") &&
+      kids.some((c) => c.name === "Bonus" || /^Bonus\b/.test(c.name))
+    ) {
+      return "achievementContribution";
+    }
+  }
   return null;
 }
 
@@ -818,6 +833,13 @@ const APP_JS = `
       if (score === null) return null;
       var c = Math.min(12000, Math.max(0, score));
       return 25 * Math.min(1, 0.2 + c / (c + 3000));
+    },
+    "achievementContribution": function (_p, kids) {
+      // bonus × completed (completed = 0/1 toggle, or a stack counter)
+      var completed = kid(kids, /^Completed$/);
+      var bonus = kid(kids, /^Bonus\b/);
+      if (completed === null || bonus === null) return null;
+      return bonus * completed;
     },
     // ── Per-name keys ───────────────────────────────────────────────
     "Arcane Map Bonus": function (_p, kids) {

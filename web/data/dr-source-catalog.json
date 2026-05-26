@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-26T17:12:12.966Z",
+  "generatedAt": "2026-05-26T17:43:41.521Z",
   "refTotal": 43093.43816941274,
   "refSave": "zArkhe (save 25-21-16.json) — Town, no AC",
   "sourceCount": 75,
@@ -792,7 +792,8 @@
           "bucket": "🏆 Achievements"
         }
       ],
-      "agg": "sum"
+      "formulaKey": "achievementContribution",
+      "agg": "custom"
     },
     {
       "id": "Drop Rate / Additive Pool / 🏆 Achievements / Big Big Hampter (Achievement 381)",
@@ -825,7 +826,8 @@
           "bucket": "🏆 Achievements"
         }
       ],
-      "agg": "sum"
+      "formulaKey": "achievementContribution",
+      "agg": "custom"
     },
     {
       "id": "Drop Rate / Additive Pool / 🐾 Companions / Crystal Custard (Companion 3)",
