@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-26T21:11:23.050Z",
+  "generatedAt": "2026-05-26T22:26:56.360Z",
   "refTotal": 43093.43816941274,
   "refSave": "zArkhe (save 25-21-16.json) — Town, no AC",
   "sourceCount": 75,
@@ -182,26 +182,26 @@
                   "note": "max across account — 2 mage chars",
                   "children": [
                     {
-                      "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Family Bonus 68 (Mage) / Best Mage Lv / Parkhe (Char 5) Lv",
-                      "name": "Parkhe (Char 5) Lv",
+                      "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Family Bonus 68 (Mage) / Best Mage Lv / Char 5 Lv",
+                      "name": "Char 5 Lv",
                       "system": "Talents",
                       "world": "Character",
                       "pool": "Additive",
                       "fmt": "raw",
                       "refValue": 1701,
                       "bucket": "🎯 Talents",
-                      "note": "Elemental Sorcerer (cls 34)"
+                      "note": "Parkhe — elemental sorcerer (cls 34)"
                     },
                     {
-                      "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Family Bonus 68 (Mage) / Best Mage Lv / Sarkhe (Char 7) Lv",
-                      "name": "Sarkhe (Char 7) Lv",
+                      "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Family Bonus 68 (Mage) / Best Mage Lv / Char 7 Lv",
+                      "name": "Char 7 Lv",
                       "system": "Talents",
                       "world": "Character",
                       "pool": "Additive",
                       "fmt": "raw",
                       "refValue": 1700,
                       "bucket": "🎯 Talents",
-                      "note": "Elemental Sorcerer (cls 34)"
+                      "note": "Sarkhe — elemental sorcerer (cls 34)"
                     }
                   ],
                   "formulaKey": "maxOfKids",
@@ -728,26 +728,26 @@
                   "note": "max across account — 2 mage chars",
                   "children": [
                     {
-                      "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Family Bonus 68 (Mage) / Best Mage Lv / Parkhe (Char 5) Lv",
-                      "name": "Parkhe (Char 5) Lv",
+                      "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Family Bonus 68 (Mage) / Best Mage Lv / Char 5 Lv",
+                      "name": "Char 5 Lv",
                       "system": "Talents",
                       "world": "Character",
                       "pool": "Additive",
                       "fmt": "raw",
                       "refValue": 1701,
                       "bucket": "🎯 Talents",
-                      "note": "Elemental Sorcerer (cls 34)"
+                      "note": "Parkhe — elemental sorcerer (cls 34)"
                     },
                     {
-                      "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Family Bonus 68 (Mage) / Best Mage Lv / Sarkhe (Char 7) Lv",
-                      "name": "Sarkhe (Char 7) Lv",
+                      "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Family Bonus 68 (Mage) / Best Mage Lv / Char 7 Lv",
+                      "name": "Char 7 Lv",
                       "system": "Talents",
                       "world": "Character",
                       "pool": "Additive",
                       "fmt": "raw",
                       "refValue": 1700,
                       "bucket": "🎯 Talents",
-                      "note": "Elemental Sorcerer (cls 34)"
+                      "note": "Sarkhe — elemental sorcerer (cls 34)"
                     }
                   ],
                   "formulaKey": "maxOfKids",
@@ -7230,26 +7230,26 @@
                       "note": "max across account — 2 mage chars",
                       "children": [
                         {
-                          "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Bonus Levels / Family Bonus 68 (Mage) / Best Mage Lv / Parkhe (Char 5) Lv",
-                          "name": "Parkhe (Char 5) Lv",
+                          "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Bonus Levels / Family Bonus 68 (Mage) / Best Mage Lv / Char 5 Lv",
+                          "name": "Char 5 Lv",
                           "system": "Talents",
                           "world": "Character",
                           "pool": "Multi",
                           "fmt": "raw",
                           "refValue": 1701,
                           "bucket": "🎯 Talents",
-                          "note": "Elemental Sorcerer (cls 34)"
+                          "note": "Parkhe — elemental sorcerer (cls 34)"
                         },
                         {
-                          "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Bonus Levels / Family Bonus 68 (Mage) / Best Mage Lv / Sarkhe (Char 7) Lv",
-                          "name": "Sarkhe (Char 7) Lv",
+                          "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Bonus Levels / Family Bonus 68 (Mage) / Best Mage Lv / Char 7 Lv",
+                          "name": "Char 7 Lv",
                           "system": "Talents",
                           "world": "Character",
                           "pool": "Multi",
                           "fmt": "raw",
                           "refValue": 1700,
                           "bucket": "🎯 Talents",
-                          "note": "Elemental Sorcerer (cls 34)"
+                          "note": "Sarkhe — elemental sorcerer (cls 34)"
                         }
                       ],
                       "formulaKey": "maxOfKids",

@@ -26,7 +26,8 @@ import { computeWinBonus, computeSummWinBonus24Parts } from "../w6/summoning";
 import { DreamUpg } from "../../data/game/customlists.js";
 import { hasBonusMajor } from "../w5/divinity";
 import { label, entityName } from "../../entity-names";
-import { talentParams, familyBonusParams } from "../../data/common/talent";
+import { talentParams, familyBonusParams, CLASS_TREES } from "../../data/common/talent";
+import { ClassNames } from "../../data/game/customlists.js";
 import { companionBonus } from "../../data/common/companions";
 import { companionChild } from "./companions";
 import { bubbleParams } from "../../data/w2/alchemy";
@@ -413,8 +414,15 @@ function resolveAllTalentLVz(
   let bestUsedTal144 = false;
   const charLvKids: CorganNode[] = [];
   for (let ci = 0; ci < numCharacters; ci++) {
-    const cls = (charClassData as any)[ci];
-    if (cls !== 34) continue;
+    const cls = Number((charClassData as any)[ci]) || 0;
+    // ANY class whose chain includes 34 (Elemental Sorcerer)
+    // contributes to Family Bonus 68. Currently 34 (ES), 35
+    // (Spiritual Monk), 37 (placeholder for ES master class — "NOPE"
+    // in ClassNames), and 41 (FILLER — another future master slot).
+    // Using CLASS_TREES auto-detects future master classes once
+    // Lava names them in ClassNames; no code change needed.
+    const chain = CLASS_TREES[cls];
+    if (!chain || !chain.includes(34)) continue;
     const lv =
       ((saveData as any).lv0AllData?.[ci] && (saveData as any).lv0AllData[ci][0]) ||
       0;
@@ -427,13 +435,9 @@ function resolveAllTalentLVz(
       n
     );
     if (unbuffed > famBonus68) {
-      // Step 1: store unbuffed first (matches Lava's single-pass order)
       famBonus68 = unbuffed;
       maxMageCharLv = lv;
       bestContribCharIdx = ci;
-      // Step 2: if this iteration is the active char AND has tal144,
-      // apply the buff. tal144Mult was computed earlier using the
-      // unbuffed family bonus value (via the skipTal144FamMult flag).
       if (ci === slotIdx && tal144Mult > 1) {
         famBonus68 = unbuffed * tal144Mult;
         bestUsedTal144 = true;
@@ -441,18 +445,26 @@ function resolveAllTalentLVz(
         bestUsedTal144 = false;
       }
     }
+    // Resolve the friendly class name (e.g. "ELEMENTAL_SORCERER")
+    // dynamically from ClassNames — empty for placeholder slots.
+    const className =
+      (ClassNames as Record<number, string>)[cls] || `cls ${cls}`;
     const charName =
       (saveData.charNames && saveData.charNames[ci]) || `Char ${ci}`;
     const isActive = ci === slotIdx;
+    // STABLE catalog id — uses "Char N Lv" without baking the friendly
+    // name into the path, so other accounts loading their save can
+    // override these refs (their flat tree emits the same "Char N Lv"
+    // keys). The friendly name lives in the note.
     charLvKids.push(
       node(
-        `${charName} (Char ${ci}) Lv`,
+        `Char ${ci} Lv`,
         lv,
         null,
         {
           fmt: "raw",
           note:
-            `Elemental Sorcerer (cls 34)` +
+            `${charName} — ${className.replace(/_/g, " ").toLowerCase()} (cls ${cls})` +
             (isActive ? " — ACTIVE char (gets Sad Souls buff if it wins the slot)" : ""),
         }
       )
