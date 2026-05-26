@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-26T16:55:46.979Z",
+  "generatedAt": "2026-05-26T17:08:11.649Z",
   "refTotal": 43093.43816941274,
   "refSave": "zArkhe (save 25-21-16.json) — Town, no AC",
   "sourceCount": 75,
@@ -1069,7 +1069,8 @@
           "bucket": "🤝 Friends",
           "note": "companion 30"
         }
-      ]
+      ],
+      "agg": "productAB"
     },
     {
       "id": "Drop Rate / Additive Pool / 📜 Stamps / Golden Sixes Stamp (Stamp A38)",
@@ -1481,7 +1482,8 @@
             }
           ]
         }
-      ]
+      ],
+      "agg": "productAB"
     },
     {
       "id": "Drop Rate / Additive Pool / 🛡️ Guild / Gold Charm (Guild 10)",
@@ -1844,7 +1846,8 @@
             }
           ]
         }
-      ]
+      ],
+      "agg": "custom"
     },
     {
       "id": "Drop Rate / Additive Pool / 🔬 Researching / Divine Design (Grid 173)",
@@ -2142,7 +2145,8 @@
           "bucket": "📕 Grimoire",
           "note": "Level 50"
         }
-      ]
+      ],
+      "agg": "productAB"
     },
     {
       "id": "Drop Rate / Additive Pool / 🏦 Vault / Drops for Days (Vault 18)",
@@ -2197,7 +2201,8 @@
             }
           ]
         }
-      ]
+      ],
+      "agg": "productAB"
     },
     {
       "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9)",
@@ -2381,7 +2386,8 @@
             }
           ]
         }
-      ]
+      ],
+      "agg": "productAB"
     },
     {
       "id": "Drop Rate / Additive Pool / 🌾 Farming / Pommelion Seed (Exotic 59)",
@@ -2448,7 +2454,8 @@
           "refValue": 5,
           "bucket": "🕳️ Holes"
         }
-      ]
+      ],
+      "agg": "productAB"
     },
     {
       "id": "Drop Rate / Additive Pool / 🕳️ Holes / Sanctum of LOOT (Cavern upg82)",
@@ -2481,7 +2488,8 @@
           "refValue": 20,
           "bucket": "🕳️ Holes"
         }
-      ]
+      ],
+      "agg": "productAB"
     },
     {
       "id": "Drop Rate / Additive Pool / 🕳️ Holes / Drop Rate Measurement (Measurement 15)",
@@ -4763,7 +4771,8 @@
               "refValue": 5,
               "bucket": "🎩 Hatrack"
             }
-          ]
+          ],
+          "agg": "productAB"
         },
         {
           "id": "Drop Rate / Additive Pool / 🎩 Hatrack / Hatrack (etcBonus 2) / Pardoned Turkey",
@@ -4827,7 +4836,8 @@
               "refValue": 2,
               "bucket": "🎩 Hatrack"
             }
-          ]
+          ],
+          "agg": "productAB"
         },
         {
           "id": "Drop Rate / Additive Pool / 🎩 Hatrack / Hatrack (etcBonus 2) / Siege Captain Cap",
@@ -4891,7 +4901,8 @@
               "refValue": 10,
               "bucket": "🎩 Hatrack"
             }
-          ]
+          ],
+          "agg": "productAB"
         },
         {
           "id": "Drop Rate / Additive Pool / 🎩 Hatrack / Hatrack (etcBonus 2) / Seal Team Skipper Hat",
@@ -4955,7 +4966,8 @@
               "refValue": 100,
               "bucket": "🎩 Hatrack"
             }
-          ]
+          ],
+          "agg": "productAB"
         },
         {
           "id": "Drop Rate / Additive Pool / 🎩 Hatrack / Hatrack (etcBonus 2) / Strawbiggy",
@@ -5019,7 +5031,8 @@
               "refValue": 4,
               "bucket": "🎩 Hatrack"
             }
-          ]
+          ],
+          "agg": "productAB"
         },
         {
           "id": "Drop Rate / Additive Pool / 🎩 Hatrack / Hatrack (etcBonus 2) / Polkadot Beanie",
@@ -5083,7 +5096,8 @@
               "refValue": 1,
               "bucket": "🎩 Hatrack"
             }
-          ]
+          ],
+          "agg": "productAB"
         },
         {
           "id": "Drop Rate / Additive Pool / 🎩 Hatrack / Hatrack (etcBonus 2) / Leprechaun Hat",
@@ -5147,7 +5161,8 @@
               "refValue": 2,
               "bucket": "🎩 Hatrack"
             }
-          ]
+          ],
+          "agg": "productAB"
         },
         {
           "id": "Drop Rate / Additive Pool / 🎩 Hatrack / Hatrack (etcBonus 2) / Green Beanie",
@@ -5211,7 +5226,8 @@
               "refValue": 3,
               "bucket": "🎩 Hatrack"
             }
-          ]
+          ],
+          "agg": "productAB"
         },
         {
           "id": "Drop Rate / Additive Pool / 🎩 Hatrack / Hatrack (etcBonus 2) / Starry Hairpins",
@@ -5275,7 +5291,8 @@
               "refValue": 1,
               "bucket": "🎩 Hatrack"
             }
-          ]
+          ],
+          "agg": "productAB"
         },
         {
           "id": "Drop Rate / Additive Pool / 🎩 Hatrack / Hatrack (etcBonus 2) / 3rd Anniversary Ice Cream Topper",
@@ -5339,7 +5356,8 @@
               "refValue": 3,
               "bucket": "🎩 Hatrack"
             }
-          ]
+          ],
+          "agg": "productAB"
         },
         {
           "id": "Drop Rate / Additive Pool / 🎩 Hatrack / Hatrack (etcBonus 2) / Goldberry",
@@ -5403,7 +5421,8 @@
               "refValue": 10,
               "bucket": "🎩 Hatrack"
             }
-          ]
+          ],
+          "agg": "productAB"
         }
       ],
       "agg": "sum"
@@ -5955,7 +5974,8 @@
           "refValue": 5.552462914978441,
           "bucket": "🎯 Talents"
         }
-      ]
+      ],
+      "agg": "custom"
     },
     {
       "id": "Drop Rate / Post-Processing / 🥷 Sneaking Mastery / Sneaking Completions (Sneaking Mastery)",
@@ -6404,7 +6424,8 @@
             }
           ]
         }
-      ]
+      ],
+      "agg": "custom"
     },
     {
       "id": "Drop Rate / Post-Processing / 💭 Dreams / Megaflesh Collector (Dream Challenge 69)",
@@ -6558,7 +6579,7 @@
           "bucket": "🗺️ Arcane Map"
         }
       ],
-      "agg": "sum"
+      "agg": "custom"
     },
     {
       "id": "Drop Rate / Post-Processing / 🎲 Glimbo / Glimbo DR Multi",
@@ -6649,7 +6670,8 @@
           "bucket": "🎲 Glimbo",
           "note": "16 groups"
         }
-      ]
+      ],
+      "agg": "custom"
     },
     {
       "id": "Drop Rate / Post-Processing / 🎽 Equipment / Equipment (etcBonus 99)",
@@ -6695,7 +6717,8 @@
               "bucket": "🎽 Equipment",
               "note": "Grid M4 — multiplies the first MISC bonus on Attire by 1 + 73.20/100"
             }
-          ]
+          ],
+          "agg": "productAB"
         }
       ],
       "agg": "sum"
@@ -7477,7 +7500,8 @@
               "refValue": 1,
               "bucket": "🎩 Hatrack"
             }
-          ]
+          ],
+          "agg": "productAB"
         },
         {
           "id": "Drop Rate / Post-Processing / 🎩 Hatrack / Hatrack (etcBonus 91) / Bamboo Hat",
@@ -7541,7 +7565,8 @@
               "refValue": 1,
               "bucket": "🎩 Hatrack"
             }
-          ]
+          ],
+          "agg": "productAB"
         },
         {
           "id": "Drop Rate / Post-Processing / 🎩 Hatrack / Hatrack (etcBonus 91) / Fanned Blossomage",
@@ -7605,7 +7630,8 @@
               "refValue": 2,
               "bucket": "🎩 Hatrack"
             }
-          ]
+          ],
+          "agg": "productAB"
         }
       ],
       "agg": "sum"

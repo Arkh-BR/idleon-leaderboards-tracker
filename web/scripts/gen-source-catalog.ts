@@ -43,7 +43,10 @@ type SourceEntry = {
   note?: string;
   children?: SourceEntry[];
   p2w?: boolean;
-  agg?: "sum" | "product";
+  /** Closed-form rule the parent's reference value satisfies. See
+   *  detectAgg() for the full vocabulary. The HTML maps each to a
+   *  recomputer in computeAgg(). */
+  agg?: AggRule;
 };
 
 // Catalog-only placeholders / safety nets — never trackable sources.
@@ -54,21 +57,100 @@ const SKIP_NAMES = new Set([
   "Not Unlocked",
 ]);
 
+/** Aggregation detection — tag a parent with the closed-form rule its
+ *  reference value satisfies. Order matters: more specific matches first
+ *  so we never tag a richer pattern as "sum" by accident.
+ *
+ *  Currently detects:
+ *    - "custom"        — handled by a per-name function in CUSTOM_FORMULAS
+ *                        (Arcane Map, Tome 2 / 7, Talent 328, Glimbo, etc.)
+ *    - "copy:<name>"   — parent.val matches a "Capped" / "Net" / "Total"
+ *                        child verbatim. Common for capped formulas where
+ *                        the parent surfaces the post-cap value
+ *    - "sum"           — parent fmt:"+", Σ matching-fmt children
+ *    - "additiveMulti" — parent fmt:"x", Π (1 + c.val/100) for "+" children
+ *    - "product"       — parent fmt:"x", Π matching-fmt children
+ *    - "productAB"     — parent fmt:"+", val ≈ childA × childB for some pair
+ *                        (one "x" multiplier × one "+" / "raw" base). Covers
+ *                        the base × multi pattern */
+type AggRule =
+  | "sum"
+  | "product"
+  | "additiveMulti"
+  | "productAB"
+  | "custom"
+  | `copy:${string}`;
+
+function looksCustomNamed(name: string): boolean {
+  return CUSTOM_FORMULA_NAMES.has(name);
+}
+
+// Source names we provide explicit formulas for in the HTML. Catalog
+// generation just records the marker — the actual formula lives in
+// CUSTOM_FORMULAS inside the embedded APP_JS (so we can use the bundled
+// Math helpers without re-implementing them server-side).
+const CUSTOM_FORMULA_NAMES = new Set<string>([
+  "Arcane Map Bonus",
+  "Drop Rate Additive (Tome 2)",
+  "Drop Rate Multi (Tome 7)",
+  "Archlord Of The Pirates (Talent 328)",
+  "Glimbo DR Multi",
+]);
+
 function detectAgg(
   parent: CorganNode,
   children: CorganNode[]
-): "sum" | "product" | null {
+): AggRule | null {
   if (!children.length) return null;
+  // 1. Custom formula trumps everything
+  if (looksCustomNamed(parent.name)) return "custom";
+
+  const parentVal = Number(parent.val) || 0;
+  // 2. "copy" — when a single child carries the post-cap / post-formula
+  //    value verbatim. Common in arcane/spelunk patterns where the
+  //    parent surfaces "Capped Bonus" / "Net" / "Total" as one of its
+  //    own children.
+  for (const c of children) {
+    if (
+      /^(Capped|Net|Total|Effective)\b/i.test(c.name) &&
+      c.fmt === parent.fmt &&
+      Math.abs((Number(c.val) || 0) - parentVal) < 0.005
+    ) {
+      return `copy:${c.name}` as const;
+    }
+  }
+
   if (parent.fmt === "+") {
     const matching = children.filter((c) => c.fmt === "+");
-    if (matching.length === 0) return null;
-    const sum = matching.reduce((a, c) => a + (Number(c.val) || 0), 0);
-    if (Math.abs(sum - (Number(parent.val) || 0)) < 0.1) return "sum";
+    if (matching.length > 0) {
+      const sum = matching.reduce((a, c) => a + (Number(c.val) || 0), 0);
+      if (Math.abs(sum - parentVal) < 0.1) return "sum";
+    }
+    // 3b. base × multi: parent (fmt:"+") = (matching-fmt or "raw" child A)
+    //     × (single fmt:"x" multiplier B). Tries every (A, B) pair.
+    const multis = children.filter((c) => c.fmt === "x");
+    const bases = children.filter((c) => c.fmt === "+" || c.fmt === "raw");
+    if (multis.length === 1 && bases.length >= 1) {
+      const m = Number(multis[0].val) || 1;
+      for (const b of bases) {
+        const bv = Number(b.val) || 0;
+        if (Math.abs(bv * m - parentVal) < 0.1) return "productAB";
+      }
+    }
   } else if (parent.fmt === "x") {
-    const matching = children.filter((c) => c.fmt === "x");
-    if (matching.length === 0) return null;
-    const prod = matching.reduce((a, c) => a * (Number(c.val) || 1), 1);
-    if (Math.abs(prod - (Number(parent.val) || 1)) < 0.005) return "product";
+    const xs = children.filter((c) => c.fmt === "x");
+    if (xs.length > 0) {
+      const prod = xs.reduce((a, c) => a * (Number(c.val) || 1), 1);
+      if (Math.abs(prod - (parentVal || 1)) < 0.005) return "product";
+    }
+    const adds = children.filter((c) => c.fmt === "+");
+    if (adds.length > 0) {
+      const am = adds.reduce(
+        (a, c) => a * (1 + (Number(c.val) || 0) / 100),
+        1
+      );
+      if (Math.abs(am - (parentVal || 1)) < 0.005) return "additiveMulti";
+    }
   }
   return null;
 }
@@ -657,27 +739,143 @@ const APP_JS = `
     saveJson(STORAGE.values, values);
   }
 
-  // ===== AGG =====
-  function computeAgg(parent) {
-    if (!parent.children || !parent.agg) return null;
-    var matching = parent.children.filter(function (c) { return c.fmt === parent.fmt; });
-    if (matching.length === 0) return null;
-    if (parent.agg === "sum") {
-      var s = 0;
-      for (var i = 0; i < matching.length; i++) s += Number(effectiveValue(matching[i])) || 0;
-      return s;
-    } else if (parent.agg === "product") {
-      var p = 1;
-      for (var j = 0; j < matching.length; j++) p *= Number(effectiveValue(matching[j])) || 1;
-      return p;
+  // ===== AGG / FORMULAS =====
+  // Per-source closed-form formulas. Each handler gets the parent
+  // SourceEntry and an array of its children; returns the recomputed
+  // parent value from the children's effective values (or null to opt
+  // out). The agg-rule "custom" in the catalog routes to this dict.
+  function kid(kids, namePattern) {
+    var rx = namePattern instanceof RegExp ? namePattern : new RegExp("^" + namePattern + "$");
+    for (var i = 0; i < kids.length; i++) {
+      if (rx.test(kids[i].name)) return Number(effectiveValue(kids[i])) || 0;
     }
     return null;
   }
+  var CUSTOM_FORMULAS = {
+    "Arcane Map Bonus": function (_p, kids) {
+      var kills = kid(kids, /^Map Kills$/);
+      var cap = kid(kids, /^Cap$/);
+      if (kills == null || kills < 1) return 0;
+      var lg = Math.log(Math.max(kills, 1)) / Math.LN10;
+      var lg2 = Math.log(Math.max(kills, 1)) / Math.LN2;
+      var raw = (2 * Math.max(0, lg - 3.5) + Math.max(0, lg2 - 12)) * (lg / 2.5) +
+                Math.min(2, kills / 1000) +
+                Math.max(5 * (lg - 5), 0);
+      return cap == null ? raw : Math.min(cap, raw);
+    },
+    "Drop Rate Additive (Tome 2)": function (_p, kids) {
+      var base = kid(kids, /^Base$/);
+      var multi = kid(kids, /^Tome Multi$/);
+      if (base == null || multi == null) return 0;
+      return base * multi;
+    },
+    "Drop Rate Multi (Tome 7)": function (_p, kids) {
+      var base = kid(kids, /^Base$/);
+      var multi = kid(kids, /^Tome Multi$/);
+      if (base == null || multi == null) return 0;
+      return base * multi;
+    },
+    "Archlord Of The Pirates (Talent 328)": function (_p, kids) {
+      // total = 1 + (talVal × log10(plunder)) / 100
+      var talVal = kid(kids, /^Talent Value$/);
+      var plunder = kid(kids, /^Plunderous Kills$/);
+      if (talVal == null || plunder == null || plunder < 1) return 1;
+      return 1 + (talVal * (Math.log(Math.max(plunder, 1)) / Math.LN10)) / 100;
+    },
+    "Glimbo DR Multi": function (_p, kids) {
+      // 1 + (gridVal × tradeGroups) / 100 where gridVal already lives
+      // on one of the children (typically "Glimbo Insider Trading
+      // Secrets (Grid 168) Level" mediated through the parent structure).
+      // We look for an explicit "Total Trades" child if present and a
+      // per-level / shape stack. Fallback: just preserve the parent.
+      var trades = kid(kids, /^Total Trades$/);
+      var lv = kid(kids, /^.*Grid 168.*Level$/);
+      var shape = kid(kids, /^Shape Bonus$/);
+      var am = kid(kids, /^All Multi$/);
+      if (trades == null) return null;
+      var perLv = 1; // per-level bonus on grid 168
+      var gridVal = (lv != null ? lv : 1) * perLv *
+                    (shape != null ? shape : 1) *
+                    Math.max(1, am != null ? am : 1);
+      var groups = Math.floor(Math.max(0, trades) / 100);
+      return 1 + (gridVal * groups) / 100;
+    },
+  };
+
+  function effectiveChildren(parent) { return parent.children || []; }
+
+  function computeAgg(parent) {
+    var rule = parent.agg;
+    if (!rule || !parent.children) return null;
+    var kids = effectiveChildren(parent);
+
+    // 1. Custom — registered per-name handler
+    if (rule === "custom") {
+      var fn = CUSTOM_FORMULAS[parent.name];
+      if (!fn) return null;
+      try { return fn(parent, kids); } catch (e) { return null; }
+    }
+
+    // 2. Copy from a specific child
+    if (typeof rule === "string" && rule.indexOf("copy:") === 0) {
+      var target = rule.slice(5);
+      for (var i = 0; i < kids.length; i++) {
+        if (kids[i].name === target) return Number(effectiveValue(kids[i])) || 0;
+      }
+      return null;
+    }
+
+    var matching = kids.filter(function (c) { return c.fmt === parent.fmt; });
+    if (rule === "sum") {
+      var s = 0;
+      for (var a = 0; a < matching.length; a++) s += Number(effectiveValue(matching[a])) || 0;
+      return s;
+    }
+    if (rule === "product") {
+      var p = 1;
+      for (var b = 0; b < matching.length; b++) p *= Number(effectiveValue(matching[b])) || 1;
+      return p;
+    }
+    if (rule === "additiveMulti") {
+      // Π (1 + c.val/100) over "+" children
+      var adds = kids.filter(function (c) { return c.fmt === "+"; });
+      var am = 1;
+      for (var x = 0; x < adds.length; x++) am *= 1 + (Number(effectiveValue(adds[x])) || 0) / 100;
+      return am;
+    }
+    if (rule === "productAB") {
+      // base × multi: pick the single "x" child and ONE non-"x" child
+      // whose product (currently) matches the parent — that pair stays
+      // the canonical formula even as values change.
+      var multis = kids.filter(function (c) { return c.fmt === "x"; });
+      var bases = kids.filter(function (c) { return c.fmt !== "x"; });
+      if (multis.length !== 1 || bases.length === 0) return null;
+      var m = Number(effectiveValue(multis[0])) || 1;
+      // We need to determine WHICH base child is the canonical one.
+      // Strategy: pick the one whose (ref × multi ref) matches the
+      // catalog refValue. That selection is deterministic per source
+      // and lets the runtime pin to it once and forever.
+      var canon = null;
+      var bestErr = Infinity;
+      var pVal = Number(parent.refValue) || 0;
+      for (var y = 0; y < bases.length; y++) {
+        var br = Number(bases[y].refValue) || 0;
+        var mr = Number(multis[0].refValue) || 1;
+        var err = Math.abs(br * mr - pVal);
+        if (err < bestErr) { bestErr = err; canon = bases[y]; }
+      }
+      if (!canon) return null;
+      var bv = Number(effectiveValue(canon)) || 0;
+      return bv * m;
+    }
+    return null;
+  }
+  function hasFormula(src) { return !!src.agg; }
   function propagateUp(childId) {
     var curId = parentByChildId.get(childId);
     while (curId) {
       var parent = sourceById.get(curId);
-      if (parent && parent.agg) {
+      if (parent && hasFormula(parent)) {
         var newVal = computeAgg(parent);
         if (newVal !== null && Number.isFinite(newVal)) {
           patchEntry(curId, { maxValue: newVal });
@@ -938,12 +1136,13 @@ const APP_JS = `
     maxInput.placeholder = "—";
     maxInput.value = hasMax ? String(entry.maxValue) : "";
     if (hasMax) maxInput.classList.add("filled");
-    // Rows with an aggregation rule (Σ / Π) get a read-only Max — the
-    // value is purely a function of children, so manual edits would
-    // create false data and immediately get overwritten on the next
-    // child change. The user can still pull a ref (← ref) or click the
-    // Σ/Π badge to refresh from descendants.
-    if (src.agg) {
+    // Rows with ANY formula rule (sum / product / additive-multi /
+    // productAB / copy / custom) get a read-only Max — the value is
+    // purely a function of children, so manual edits would create
+    // false data and immediately get overwritten on the next child
+    // change. The user can still pull a ref (← ref) or click the
+    // formula badge to refresh from descendants.
+    if (hasFormula(src)) {
       maxInput.readOnly = true;
       maxInput.classList.add("readonly");
       maxInput.title =
@@ -978,12 +1177,29 @@ const APP_JS = `
       updateStats(null);
     };
     maxWrap.appendChild(pull);
-    if (src.agg) {
+    if (hasFormula(src)) {
       var agg = document.createElement("button");
       agg.type = "button";
       agg.className = "agg-badge";
-      agg.textContent = src.agg === "sum" ? "Σ" : "Π";
-      agg.title = (src.agg === "sum" ? "Σ — sum of matching-fmt children. " : "Π — product of matching-fmt children. ") +
+      // Glyph by rule:
+      //   Σ  sum             Π  product          ⋅×  productAB (a×b)
+      //   Π+ additiveMulti   ↑  copy:<child>     ƒ  custom
+      var rule = src.agg;
+      var glyph = "ƒ";
+      if (rule === "sum") glyph = "Σ";
+      else if (rule === "product") glyph = "Π";
+      else if (rule === "additiveMulti") glyph = "%×";
+      else if (rule === "productAB") glyph = "·×";
+      else if (typeof rule === "string" && rule.indexOf("copy:") === 0) glyph = "=";
+      agg.textContent = glyph;
+      agg.title =
+        (rule === "sum" ? "Σ — sum of matching-fmt children. " :
+         rule === "product" ? "Π — product of matching-fmt children. " :
+         rule === "additiveMulti" ? "Π(1+c/100) — multiplicative chain of '+' children. " :
+         rule === "productAB" ? "base × multi — one child times one × multiplier. " :
+         (typeof rule === "string" && rule.indexOf("copy:") === 0)
+            ? "Copies the value from child '" + rule.slice(5) + "'. " :
+         "Custom formula — see notes. ") +
         "Click to re-pull from current children.";
       agg.onclick = function () {
         var nv = computeAgg(src);
