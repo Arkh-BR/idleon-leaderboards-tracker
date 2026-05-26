@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-26T18:04:48.417Z",
+  "generatedAt": "2026-05-26T18:07:27.428Z",
   "refTotal": 43093.43816941274,
   "refSave": "zArkhe (save 25-21-16.json) — Town, no AC",
   "sourceCount": 75,
@@ -1942,7 +1942,7 @@
       "fmt": "+",
       "refValue": 350,
       "bucket": "💭 Dreams",
-      "note": "dream 10",
+      "note": "dream 10 — per level: 5",
       "children": [
         {
           "id": "Drop Rate / Additive Pool / 💭 Dreams / Equinox Symbols (Dream 10) / Dream Upgrade Level",
@@ -1953,18 +1953,11 @@
           "fmt": "raw",
           "refValue": 70,
           "bucket": "💭 Dreams"
-        },
-        {
-          "id": "Drop Rate / Additive Pool / 💭 Dreams / Equinox Symbols (Dream 10) / Per Level",
-          "name": "Per Level",
-          "system": "Dreams",
-          "world": "World 3",
-          "pool": "Additive",
-          "fmt": "raw",
-          "refValue": 5,
-          "bucket": "💭 Dreams"
         }
-      ]
+      ],
+      "perLevelConst": 5,
+      "formulaKey": "levelPerLevelProduct",
+      "agg": "custom"
     },
     {
       "id": "Drop Rate / Additive Pool / 🦉 Owl / Summoning Owl",
@@ -2105,7 +2098,7 @@
       "fmt": "+",
       "refValue": 549,
       "bucket": "📕 Grimoire",
-      "note": "grimoire 44",
+      "note": "grimoire 44 — per level: 1",
       "children": [
         {
           "id": "Drop Rate / Additive Pool / 📕 Grimoire / Skull of Major Droprate (Grimoire 44) / Level",
@@ -2115,16 +2108,6 @@
           "pool": "Additive",
           "fmt": "raw",
           "refValue": 366,
-          "bucket": "📕 Grimoire"
-        },
-        {
-          "id": "Drop Rate / Additive Pool / 📕 Grimoire / Skull of Major Droprate (Grimoire 44) / Per Level",
-          "name": "Per Level",
-          "system": "Grimoire",
-          "world": "Character",
-          "pool": "Additive",
-          "fmt": "raw",
-          "refValue": 1,
           "bucket": "📕 Grimoire"
         },
         {
@@ -2139,7 +2122,9 @@
           "note": "Level 50"
         }
       ],
-      "agg": "productAB"
+      "perLevelConst": 1,
+      "formulaKey": "levelPerLevelProduct",
+      "agg": "custom"
     },
     {
       "id": "Drop Rate / Additive Pool / 🏦 Vault / Drops for Days (Vault 18)",
@@ -2150,7 +2135,7 @@
       "fmt": "+",
       "refValue": 109.19999999999999,
       "bucket": "🏦 Vault",
-      "note": "vault 18",
+      "note": "vault 18 — per level: 1",
       "children": [
         {
           "id": "Drop Rate / Additive Pool / 🏦 Vault / Drops for Days (Vault 18) / Level",
@@ -2160,16 +2145,6 @@
           "pool": "Additive",
           "fmt": "raw",
           "refValue": 60,
-          "bucket": "🏦 Vault"
-        },
-        {
-          "id": "Drop Rate / Additive Pool / 🏦 Vault / Drops for Days (Vault 18) / Per Level",
-          "name": "Per Level",
-          "system": "Vault",
-          "world": "Global",
-          "pool": "Additive",
-          "fmt": "raw",
-          "refValue": 1,
           "bucket": "🏦 Vault"
         },
         {
@@ -2197,7 +2172,9 @@
           "agg": "custom"
         }
       ],
-      "agg": "productAB"
+      "perLevelConst": 1,
+      "formulaKey": "levelPerLevelProduct",
+      "agg": "custom"
     },
     {
       "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9)",
@@ -2787,7 +2764,7 @@
       "fmt": "+",
       "refValue": 219,
       "bucket": "🪨 Spelunk Shop",
-      "note": "spelunk 50",
+      "note": "spelunk 50 — per level: 1",
       "children": [
         {
           "id": "Drop Rate / Additive Pool / 🪨 Spelunk Shop / Golden Hardhat (Spelunking 50) / Shop Level",
@@ -2798,18 +2775,11 @@
           "fmt": "raw",
           "refValue": 219,
           "bucket": "🪨 Spelunk Shop"
-        },
-        {
-          "id": "Drop Rate / Additive Pool / 🪨 Spelunk Shop / Golden Hardhat (Spelunking 50) / Per Level",
-          "name": "Per Level",
-          "system": "Spelunk Shop",
-          "world": "World 7",
-          "pool": "Additive",
-          "fmt": "raw",
-          "refValue": 1,
-          "bucket": "🪨 Spelunk Shop"
         }
-      ]
+      ],
+      "perLevelConst": 1,
+      "formulaKey": "levelPerLevelProduct",
+      "agg": "custom"
     },
     {
       "id": "Drop Rate / Additive Pool / 🎽 Equipment / Equipment (etcBonus 2)",

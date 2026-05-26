@@ -64,6 +64,10 @@ type SourceEntry = {
    *  Captured by detectFormulaSpec() from the corgan tree's "Formula
    *  Result" child note. */
   formulaSpec?: FormulaSpec;
+  /** Game-constant per-level rate captured from a hidden "Per Level"
+   *  child (skipped from the UI). Consumed by the levelPerLevelProduct
+   *  formulaKey to compute parent = level × perLevelConst × Π(x-fmt). */
+  perLevelConst?: number;
 };
 
 // Catalog-only placeholders / safety nets — never trackable sources.
@@ -77,6 +81,10 @@ const SKIP_NAMES = new Set([
   "Available DR Obols (not equipped)",
   "Not Unlocked",
   "Formula Result",
+  // Per-level rate (game constant per upgrade — Equinox Symbols=5, all
+  // others=1). Captured as perLevelConst on the parent and consumed by
+  // the levelPerLevelProduct formula; not editable on its own.
+  "Per Level",
 ]);
 
 /** Aggregation detection — tag a parent with the closed-form rule its
@@ -149,6 +157,18 @@ function detectStructuralFormula(
     }
   }
   return null;
+}
+
+/** Look at a corgan node's children for a "Per Level" leaf — the game
+ *  constant rate (e.g. Dream 10 = 5 DR / level, all others = 1). When
+ *  present, returns the rate so we can lift it onto the parent entry
+ *  and drive a formula even though we hide the row from the UI. */
+function detectPerLevelConst(node: CorganNode): number | null {
+  const kids = node.children || [];
+  const pl = kids.find((c) => c.name === "Per Level");
+  if (!pl) return null;
+  const v = Number(pl.val);
+  return Number.isFinite(v) ? v : null;
 }
 
 /** Look at a corgan node's children for a "Formula Result" leaf whose
@@ -277,6 +297,7 @@ function collectChildren(
       // exact game formula, so we don't want a generic Σ/Π detector
       // overriding it with a false-positive structural match.
       const spec = detectFormulaSpec(child);
+      const perLv = detectPerLevelConst(child);
       if (spec) {
         entry.formulaSpec = spec;
         entry.formulaKey = "closedFormFormula";
@@ -285,6 +306,16 @@ function collectChildren(
         // being computed (e.g. "decay(40, 50)" on Gold Charm).
         const formulaNote = `${spec.type}(${spec.x1}, ${spec.x2})`;
         entry.note = entry.note ? `${entry.note} — ${formulaNote}` : formulaNote;
+      } else if (perLv !== null) {
+        // Game-constant per-level rate row (Equinox Symbols=5,
+        // Vault/Grimoire/Spelunk=1). Formula: level × perLv × any
+        // x-fmt multipliers. The "Per Level" child itself is hidden
+        // by SKIP_NAMES — we lifted the constant up here.
+        entry.perLevelConst = perLv;
+        entry.formulaKey = "levelPerLevelProduct";
+        entry.agg = "custom";
+        const rateNote = `per level: ${perLv}`;
+        entry.note = entry.note ? `${entry.note} — ${rateNote}` : rateNote;
       } else {
         const fkey = detectStructuralFormula(child, sys);
         if (fkey) {
@@ -343,12 +374,19 @@ for (let pi = 0; pi < tops.length; pi++) {
       if (subs.length > 0) {
         entry.children = subs;
         const spec = detectFormulaSpec(src);
+        const perLv = detectPerLevelConst(src);
         if (spec) {
           entry.formulaSpec = spec;
           entry.formulaKey = "closedFormFormula";
           entry.agg = "custom";
           const formulaNote = `${spec.type}(${spec.x1}, ${spec.x2})`;
           entry.note = entry.note ? `${entry.note} — ${formulaNote}` : formulaNote;
+        } else if (perLv !== null) {
+          entry.perLevelConst = perLv;
+          entry.formulaKey = "levelPerLevelProduct";
+          entry.agg = "custom";
+          const rateNote = `per level: ${perLv}`;
+          entry.note = entry.note ? `${entry.note} — ${rateNote}` : rateNote;
         } else {
           const fkey = detectStructuralFormula(src, sys);
           if (fkey) {
@@ -933,6 +971,33 @@ const APP_JS = `
       if (score === null) return null;
       var c = Math.min(12000, Math.max(0, score));
       return 25 * Math.min(1, 0.2 + c / (c + 3000));
+    },
+    "levelPerLevelProduct": function (p, kids) {
+      // parent = levelKid × perLevelConst × Π(x-fmt kids). The
+      // perLevelConst is a game constant (Equinox 5, all others 1)
+      // captured at gen time; "Per Level" itself is skipped from the
+      // UI. The level kid is the first non-x-fmt remaining child
+      // (Level / Dream Upgrade Level / Shop Level / etc.).
+      var per = p && Number(p.perLevelConst);
+      if (!per && per !== 0) return null;
+      var lvl = null;
+      for (var i = 0; i < kids.length && lvl === null; i++) {
+        if (kids[i].fmt !== "x") {
+          var v = effectiveValue(kids[i]);
+          if (v !== null) lvl = Number(v) || 0;
+        }
+      }
+      if (lvl === null) return null;
+      var multi = 1;
+      for (var j = 0; j < kids.length; j++) {
+        if (kids[j].fmt === "x") {
+          var mv = effectiveValue(kids[j]);
+          if (mv === null) return null;
+          var mn = Number(mv);
+          if (mn > 0) multi *= mn;
+        }
+      }
+      return lvl * per * multi;
     },
     "vaultMastery": function (_p, kids) {
       // Vault upgrade mastery multiplier: 1 + masteryLv / 100. Each
