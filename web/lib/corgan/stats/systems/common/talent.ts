@@ -413,19 +413,47 @@ function resolveAllTalentLVz(
   // Surface whether the Sad Souls buff actually won this slot — useful
   // when researching edge cases.
   void maxMageCharIdx;
-  const famN = Math.max(0, Math.round(maxMageCharLv - (fb34 as any).lvOffset));
   const famFloor = Math.floor(famBonus68);
   if (famFloor > 0) {
     const buffNote = bestUsedTal144 ? " — buffed by Sad Souls (Talent 144)" : "";
+    const lvOffset = (fb34 as any).lvOffset;
     children.push(
       node(
         "Family Bonus 68 (Mage)",
         famFloor,
         [
-          node("Best Mage Lv", maxMageCharLv, null, { fmt: "raw" }),
-          node("N = max(0, " + maxMageCharLv + " - 69)", famN, null, { fmt: "raw" }),
+          node("Best Mage Lv", maxMageCharLv, null, {
+            fmt: "raw",
+            note: "highest mage class lv across account",
+          }),
+          node(
+            "Sad Souls Multi (×)",
+            // Emit 1.0 unless the buff actually won the slot (active
+            // char IS the contributing mage). Otherwise the runtime
+            // handler would multiply by a buff that the game didn't
+            // apply.
+            bestUsedTal144 ? tal144Mult : 1,
+            null,
+            {
+              fmt: "raw",
+              note: bestUsedTal144
+                ? "active char's Talent 144 buff applied (1 + tal144Val/100)"
+                : "1.0 — buff not applied (active char isn't the winning mage)",
+            }
+          ),
         ],
-        { fmt: "raw", note: "family 34" + buffNote }
+        {
+          fmt: "raw",
+          note:
+            "floor(decay(" +
+            (fb34 as any).x1 +
+            ", " +
+            (fb34 as any).x2 +
+            ", max(0, Best Mage Lv − " +
+            lvOffset +
+            ")) × Sad Souls Multi)" +
+            buffNote,
+        }
       )
     );
   }

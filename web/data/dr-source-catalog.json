@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-26T20:27:14.136Z",
+  "generatedAt": "2026-05-26T20:33:51.110Z",
   "refTotal": 43093.43816941274,
   "refSave": "zArkhe (save 25-21-16.json) — Town, no AC",
   "sourceCount": 75,
@@ -168,7 +168,7 @@
               "fmt": "raw",
               "refValue": 16,
               "bucket": "🎯 Talents",
-              "note": "family 34",
+              "note": "floor(decay(20, 350, max(0, Best Mage Lv − 69)) × Sad Souls Multi)",
               "children": [
                 {
                   "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Family Bonus 68 (Mage) / Best Mage Lv",
@@ -178,19 +178,23 @@
                   "pool": "Additive",
                   "fmt": "raw",
                   "refValue": 1701,
-                  "bucket": "🎯 Talents"
+                  "bucket": "🎯 Talents",
+                  "note": "highest mage class lv across account"
                 },
                 {
-                  "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Family Bonus 68 (Mage) / N = max(0, 1701 - 69)",
-                  "name": "N = max(0, 1701 - 69)",
+                  "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Family Bonus 68 (Mage) / Sad Souls Multi (×)",
+                  "name": "Sad Souls Multi (×)",
                   "system": "Talents",
                   "world": "Character",
                   "pool": "Additive",
                   "fmt": "raw",
-                  "refValue": 1632,
-                  "bucket": "🎯 Talents"
+                  "refValue": 1,
+                  "bucket": "🎯 Talents",
+                  "note": "1.0 — buff not applied (active char isn't the winning mage)"
                 }
-              ]
+              ],
+              "formulaKey": "familyBonus68Mage",
+              "agg": "custom"
             },
             {
               "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Rift Slug (Companion 1)",
@@ -572,7 +576,7 @@
               "fmt": "raw",
               "refValue": 16,
               "bucket": "🎯 Talents",
-              "note": "family 34",
+              "note": "floor(decay(20, 350, max(0, Best Mage Lv − 69)) × Sad Souls Multi)",
               "children": [
                 {
                   "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Family Bonus 68 (Mage) / Best Mage Lv",
@@ -582,19 +586,23 @@
                   "pool": "Additive",
                   "fmt": "raw",
                   "refValue": 1701,
-                  "bucket": "🎯 Talents"
+                  "bucket": "🎯 Talents",
+                  "note": "highest mage class lv across account"
                 },
                 {
-                  "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Family Bonus 68 (Mage) / N = max(0, 1701 - 69)",
-                  "name": "N = max(0, 1701 - 69)",
+                  "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Family Bonus 68 (Mage) / Sad Souls Multi (×)",
+                  "name": "Sad Souls Multi (×)",
                   "system": "Talents",
                   "world": "Character",
                   "pool": "Additive",
                   "fmt": "raw",
-                  "refValue": 1632,
-                  "bucket": "🎯 Talents"
+                  "refValue": 1,
+                  "bucket": "🎯 Talents",
+                  "note": "1.0 — buff not applied (active char isn't the winning mage)"
                 }
-              ]
+              ],
+              "formulaKey": "familyBonus68Mage",
+              "agg": "custom"
             },
             {
               "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Rift Slug (Companion 1)",
@@ -6932,7 +6940,7 @@
                   "fmt": "raw",
                   "refValue": 16,
                   "bucket": "🎯 Talents",
-                  "note": "family 34",
+                  "note": "floor(decay(20, 350, max(0, Best Mage Lv − 69)) × Sad Souls Multi)",
                   "children": [
                     {
                       "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Bonus Levels / Family Bonus 68 (Mage) / Best Mage Lv",
@@ -6942,19 +6950,23 @@
                       "pool": "Multi",
                       "fmt": "raw",
                       "refValue": 1701,
-                      "bucket": "🎯 Talents"
+                      "bucket": "🎯 Talents",
+                      "note": "highest mage class lv across account"
                     },
                     {
-                      "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Bonus Levels / Family Bonus 68 (Mage) / N = max(0, 1701 - 69)",
-                      "name": "N = max(0, 1701 - 69)",
+                      "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Bonus Levels / Family Bonus 68 (Mage) / Sad Souls Multi (×)",
+                      "name": "Sad Souls Multi (×)",
                       "system": "Talents",
                       "world": "Character",
                       "pool": "Multi",
                       "fmt": "raw",
-                      "refValue": 1632,
-                      "bucket": "🎯 Talents"
+                      "refValue": 1,
+                      "bucket": "🎯 Talents",
+                      "note": "1.0 — buff not applied (active char isn't the winning mage)"
                     }
-                  ]
+                  ],
+                  "formulaKey": "familyBonus68Mage",
+                  "agg": "custom"
                 },
                 {
                   "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Bonus Levels / Rift Slug (Companion 1)",

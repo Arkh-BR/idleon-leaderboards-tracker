@@ -204,6 +204,11 @@ function detectStructuralFormula(
   if (node.name === "Summoning WinBonus 24") {
     return "summoningWinBonus24";
   }
+  // Family Bonus 68 (Mage) = floor(decay(20, 350, max(0, lv − 69)) × multi).
+  // The Sad Souls multi (Talent 144) is the active char's buff.
+  if (node.name === "Family Bonus 68 (Mage)") {
+    return "familyBonus68Mage";
+  }
   // Endless Wins Bonus = floor(count / 40) × perCycle + partial.
   if (node.name === "Endless Wins Bonus") {
     return "endlessWinsBonus";
@@ -803,6 +808,15 @@ header .sub { color: var(--ink-dim); font-size: 12px; margin-bottom: 14px; }
   color: var(--ink); font-weight: 500;
 }
 .row .name .name-text { overflow: hidden; text-overflow: ellipsis; }
+.row .name .name-with-note {
+  display: flex; flex-direction: column; gap: 2px;
+  overflow: hidden; min-width: 0;
+}
+.row .name .formula-note {
+  font-size: 10px; color: var(--ink-mute);
+  font-style: italic;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
 .row .rename {
   width: 160px;
   background: #09090b; border: 1px solid var(--border); border-radius: 3px;
@@ -1206,6 +1220,29 @@ const APP_JS = `
       var bn = p && Number(p.bonusConst);
       if (!Number.isFinite(bn)) return null;
       return idle + owned * (bn - idle);
+    },
+    "familyBonus68Mage": function (_p, kids) {
+      // floor(decay(20, 350, max(0, lv − 69)) × Sad Souls Multi).
+      // Always computes (no active-kid gate) — this is a passive
+      // contributor to talent bonus chains, not a cap-research row.
+      // Falls back to refValue for unfilled kids so it shows the at-
+      // save value by default and any single edit propagates.
+      function kidOrRef(name) {
+        for (var i = 0; i < kids.length; i++) {
+          if (kids[i].name === name) {
+            var v = effectiveValue(kids[i]);
+            if (v !== null) return Number(v) || 0;
+            return Number(kids[i].refValue) || 0;
+          }
+        }
+        return null;
+      }
+      var lv = kidOrRef("Best Mage Lv");
+      var multi = kidOrRef("Sad Souls Multi (×)");
+      if (lv === null || multi === null) return null;
+      var n = Math.max(0, lv - 69);
+      var base = (20 * n) / (n + 350);
+      return Math.floor(base * multi);
     },
     "summoningWinBonus24": function (_p, kids) {
       // Slot 24 = Normal + Endless. Only compute when the user has
@@ -1878,11 +1915,23 @@ const APP_JS = `
     // Name (always-visible rename input + P2W toggle)
     var nameWrap = document.createElement("div");
     nameWrap.className = "name";
+    // Wrap name + formula-info subtitle so they stack vertically when
+    // the row has a note (formula description, owner char, etc.).
+    var nameBox = document.createElement("div");
+    nameBox.className = "name-with-note";
     var nameText = document.createElement("span");
     nameText.className = "name-text";
     nameText.textContent = effectiveName(src);
     nameText.title = src.name;
-    nameWrap.appendChild(nameText);
+    nameBox.appendChild(nameText);
+    if (src.note) {
+      var noteEl = document.createElement("span");
+      noteEl.className = "formula-note";
+      noteEl.textContent = src.note;
+      noteEl.title = src.note;
+      nameBox.appendChild(noteEl);
+    }
+    nameWrap.appendChild(nameBox);
 
     // Free-text TAG input — captures a research note next to the row's
     // name. Decoupled from the actual display name on purpose (an
