@@ -962,6 +962,13 @@ const APP_JS = `
     return null;
   }
   function hasFormula(src) { return !!src.agg; }
+  // Direct lookup table for the rendered max inputs — populated during
+  // renderRow, cleared at the start of every render(). Replaces the
+  // CSS.escape-based querySelector which was silently missing parents
+  // whose canonical IDs contain spaces / slashes / emojis (Score, in
+  // particular: clearing it wasn't waking up the friend contribution
+  // formula).
+  var inputBySourceId = new Map();
   function propagateUp(childId) {
     var curId = parentByChildId.get(childId);
     while (curId) {
@@ -970,7 +977,7 @@ const APP_JS = `
         var newVal = computeAgg(parent);
         if (newVal !== null && Number.isFinite(newVal)) {
           patchEntry(curId, { maxValue: newVal });
-          var input = document.querySelector('input.max-input[data-source-id="' + CSS.escape(curId) + '"]');
+          var input = inputBySourceId.get(curId);
           if (input) {
             input.value = String(newVal);
             input.classList.add("filled", "agg-driven");
@@ -1040,6 +1047,9 @@ const APP_JS = `
   }
 
   function render() {
+    // Wipe the input-element index — every render() rebuilds the DOM,
+    // so old references would point to detached nodes.
+    inputBySourceId.clear();
     var content = document.getElementById("content");
     content.innerHTML = "";
 
@@ -1231,6 +1241,10 @@ const APP_JS = `
     maxInput.placeholder = "—";
     maxInput.value = hasMax ? String(entry.maxValue) : "";
     if (hasMax) maxInput.classList.add("filled");
+    // Index the live input so propagateUp can find it instantly,
+    // regardless of how exotic the source id is (slashes / emojis /
+    // spaces / parens all live in catalog ids).
+    inputBySourceId.set(src.id, maxInput);
     // Rows with ANY formula rule (sum / product / additive-multi /
     // productAB / copy / custom) get a read-only Max — the value is
     // purely a function of children, so manual edits would create
