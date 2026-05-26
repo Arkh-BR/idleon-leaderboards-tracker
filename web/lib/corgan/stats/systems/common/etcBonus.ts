@@ -25,6 +25,16 @@ const ETCBONUS_LABELS: Record<string, string> = {
   "91": "Drop Rate Multi (Gear)",
 };
 
+// Long-form descriptions for the empty-state placeholder. id 102's stat
+// (%_DROP_CHANCE) has no items in IT website-data that carry it as a
+// built-in — players can only get it by rolling that stat as a UQ on a
+// random-stone — so the wrapper sits empty unless the save has such a
+// roll. Spelling that out beats showing a silent zero row.
+const EMPTY_NOTES: Record<string, string> = {
+  "102":
+    "No items carry +Drop Chance as a built-in stat — only granted by random UQ rolls on items / obols",
+};
+
 function etcBonusLabel(id: number | (number | string)[]): string {
   const key = Array.isArray(id) ? id.join(",") : String(id);
   return ETCBONUS_LABELS[key] || "EtcBonuses(" + key + ")";
@@ -55,10 +65,23 @@ export const etcBonus = {
     if (ntNode.val || hasChildren(ntNode)) children.push(ntNode);
     if (trNode.val || hasChildren(trNode)) children.push(trNode);
     if (phNode.val) children.push(phNode);
+
     // Keep the canonical id tag in the name so the existing entity-tag
     // splitter in DeepView mutes it (label() does the same thing for
     // talents / stamps / cards). Result: "Drop Rate (Gear)  (etcBonus 2)".
     const idStr = Array.isArray(id) ? id.join(",") : String(id);
+
+    // If every sub-resolver returned empty, emit a single placeholder child
+    // explaining WHY the wrapper is empty rather than leaving the user to
+    // wonder. This is currently the etcBonus(102) case — DROP_CHANCE has no
+    // built-in carriers anywhere in IT website-data.
+    if (children.length === 0) {
+      const note =
+        EMPTY_NOTES[idStr] ||
+        "No active sources for this stat on the current character";
+      children.push(node("No active sources", 0, null, { fmt: "+", note }));
+    }
+
     return node(
       `${etcBonusLabel(id)} (etcBonus ${idStr})`,
       total,
