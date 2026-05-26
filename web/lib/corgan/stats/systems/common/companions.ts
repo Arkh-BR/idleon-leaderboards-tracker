@@ -58,16 +58,21 @@ export const compMulti = {
     const bonusVal = owned ? companionBonus(id) : 0;
     const raw = divisor > 1 ? bonusVal / divisor : bonusVal;
     const val = Math.max(1, Math.min(cap, 1 + raw));
-    return node(
-      name,
-      val,
-      [
-        node(owned ? "Owned" : "Not owned", 0, null, { fmt: "raw" }),
-        node("Raw bonus", bonusVal, null, { fmt: "+" }),
-        node("Cap", cap, null, { fmt: "x" }),
-        node("Result", val, null, { fmt: "x" }),
-      ],
-      { fmt: "x" }
-    );
+    // Owned/Not-owned status is reflected by `val` itself (1× when not
+    // owned, > 1× when owned), so don't add a redundant zero-val "Owned"
+    // row. When not owned, swap in a single explanatory row instead.
+    const children: CorganNode[] = owned
+      ? [
+          node("Raw bonus", bonusVal, null, { fmt: "+" }),
+          node("Cap", cap, null, { fmt: "x" }),
+          node("Result", val, null, { fmt: "x" }),
+        ]
+      : [
+          node("Not owned — no contribution", 0, null, {
+            fmt: "raw",
+            note: `Would grant +${bonusVal} raw if owned`,
+          }),
+        ];
+    return node(name, val, children, { fmt: "x" });
   },
 };

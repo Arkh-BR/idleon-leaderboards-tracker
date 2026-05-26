@@ -110,10 +110,12 @@ export function galleryBonusMulti(
     );
   if (trophChip)
     ch.push(
-      node(label("Chip", 16), GALLERY_TROPH_CHIP_MULTI, null, {
-        fmt: "raw",
-        note: "chip 16",
-      })
+      node(
+        "Silkrode Motherboard (Chip 16)",
+        GALLERY_TROPH_CHIP_MULTI,
+        null,
+        { fmt: "raw" }
+      )
     );
   if (clamWork7)
     ch.push(
@@ -131,20 +133,23 @@ export function galleryBonusMulti(
       })
     );
   if (cardLv > 0)
-    ch.push(node("Card w7a11 (capped 10)", cardLv, null, { fmt: "raw" }));
+    ch.push(
+      node("Coralcave Crab (Card w7a11, capped 10)", cardLv, null, {
+        fmt: "raw",
+      })
+    );
   if (comp49 > 0)
     ch.push(
-      node(label("Companion", 49), comp49, null, {
-        fmt: "raw",
-        note: "companion 49",
-      })
+      node(label("Companion", 49), comp49, null, { fmt: "raw" })
     );
   if (sushi54 > 0)
     ch.push(
-      node(ROG_DESC[54] || "Sushi RoG 54", sushi54, null, {
-        fmt: "raw",
-        note: "RoG_BonusQTY(54) — Gallery Bonus Multi",
-      })
+      node(
+        "Dulce Vitiri (Sushi Tier 55) — Gallery Bonus Multi (RoG Bonus 54)",
+        sushi54,
+        null,
+        { fmt: "raw" }
+      )
     );
   return { val, children: ch };
 }
@@ -162,13 +167,14 @@ export function hatrackBonusMulti(saveData: SaveData): MultiResult {
   const ch: CorganNode[] = [];
   if (hatCount > 0) ch.push(node("Hats Owned", hatCount, null, { fmt: "raw" }));
   if (evShop30 > 0)
-    ch.push(node(label("Event", 30), 10 * evShop30, null, { fmt: "raw" }));
+    ch.push(
+      node("Hatrack Boutique Bonus (Event Shop 30)", 10 * evShop30, null, {
+        fmt: "raw",
+      })
+    );
   if (mhq21 > 0)
     ch.push(
-      node(label("Minehead Floor", 21), mhq21, null, {
-        fmt: "raw",
-        note: "minehead 21",
-      })
+      node("Hatrack Floor Bonus (Minehead 21)", mhq21, null, { fmt: "raw" })
     );
   if (sushiRoG36 > 0)
     ch.push(
@@ -176,10 +182,8 @@ export function hatrackBonusMulti(saveData: SaveData): MultiResult {
         "Abalone Sashimi (Sushi Tier 37) — Hat Rack Multi (RoG Bonus 36)",
         sushiRoG36,
         null,
-        {
-        fmt: "raw",
-        note: "RoG_BonusQTY(36)",
-      })
+        { fmt: "raw" }
+      )
     );
   return { val, children: ch };
 }
