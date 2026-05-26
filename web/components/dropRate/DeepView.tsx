@@ -708,35 +708,50 @@ export default function DeepView({
           className="flex-1 min-w-[200px] px-2 py-1 text-xs bg-zinc-950 border border-zinc-800 rounded text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-sky-500/60"
         />
 
-        {/* Expand / Collapse / Reset — only relevant in tree view. */}
-        {view === "tree" && (
-          <div className="inline-flex gap-1">
-            <button
-              type="button"
-              onClick={expandAll}
-              className="px-2 py-1 text-xs rounded border border-zinc-700 bg-zinc-900 text-zinc-300 hover:bg-zinc-800"
-              title="Open every node"
-            >
-              ↓ Expand
-            </button>
-            <button
-              type="button"
-              onClick={collapseAll}
-              className="px-2 py-1 text-xs rounded border border-zinc-700 bg-zinc-900 text-zinc-300 hover:bg-zinc-800"
-              title="Close every node"
-            >
-              ↑ Collapse
-            </button>
-            <button
-              type="button"
-              onClick={resetExpandState}
-              className="px-2 py-1 text-xs rounded border border-zinc-800 bg-zinc-950 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800"
-              title="Reset to default: depth < 2 open, everything else closed"
-            >
-              ↺ Reset
-            </button>
-          </div>
-        )}
+        {/* Expand / Collapse / Reset — works in both views. In Tree it
+            mutates the path-based expand state; in Per World it broadcasts
+            to every WorldSection so all of them flip together. Reset in
+            Per World restores the default (all open). */}
+        <div className="inline-flex gap-1">
+          <button
+            type="button"
+            onClick={() => {
+              if (view === "tree") expandAll();
+              else broadcastWorldAll("open");
+            }}
+            className="px-2 py-1 text-xs rounded border border-zinc-700 bg-zinc-900 text-zinc-300 hover:bg-zinc-800"
+            title={view === "tree" ? "Open every node" : "Expand every world section"}
+          >
+            ↓ Expand
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              if (view === "tree") collapseAll();
+              else broadcastWorldAll("closed");
+            }}
+            className="px-2 py-1 text-xs rounded border border-zinc-700 bg-zinc-900 text-zinc-300 hover:bg-zinc-800"
+            title={view === "tree" ? "Close every node" : "Collapse every world section"}
+          >
+            ↑ Collapse
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              if (view === "tree") resetExpandState();
+              // Per World default: every section open.
+              else broadcastWorldAll("open");
+            }}
+            className="px-2 py-1 text-xs rounded border border-zinc-800 bg-zinc-950 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800"
+            title={
+              view === "tree"
+                ? "Reset to default: depth < 2 open, everything else closed"
+                : "Reset to default: every world section open"
+            }
+          >
+            ↺ Reset
+          </button>
+        </div>
 
         {/* Hide-inactive toggle — some leaves carry val=0 but still feel
             "active" (e.g. catalog rows). "Inactive" reads more naturally
@@ -923,11 +938,6 @@ function PerWorldView({
 
   return (
     <div className="flex flex-col gap-3">
-      {/* Expand-all / Collapse-all helpers for the world sections. The
-          actual open/closed state lives inside each section component via
-          local state; these buttons broadcast a tick into a sequence the
-          children listen to. */}
-      <WorldSectionControls />
       {visibleWorlds.map((world) => (
         <WorldSection
           key={world}
@@ -942,36 +952,14 @@ function PerWorldView({
 
 // Shared event channel for the world-section expand/collapse buttons. Each
 // section subscribes; firing a value here flips every section. Cheap pub/sub
-// keeps the components decoupled from the controls bar and avoids prop-
-// drilling a "force-state" enum down through every section.
+// keeps the components decoupled from the main toolbar (which lives in
+// DeepView) and avoids prop-drilling a "force-state" enum down through
+// every section.
 type WorldAllSignal = { kind: "open" | "closed"; ts: number };
 const worldAllListeners = new Set<(s: WorldAllSignal) => void>();
 function broadcastWorldAll(kind: "open" | "closed") {
   const sig: WorldAllSignal = { kind, ts: Date.now() };
   for (const fn of worldAllListeners) fn(sig);
-}
-
-function WorldSectionControls() {
-  return (
-    <div className="flex items-center gap-2 -mb-1">
-      <button
-        type="button"
-        onClick={() => broadcastWorldAll("open")}
-        className="px-2 py-1 text-[11px] rounded border border-zinc-700 bg-zinc-900 text-zinc-300 hover:bg-zinc-800"
-        title="Expand every world section"
-      >
-        ↓ Expand all
-      </button>
-      <button
-        type="button"
-        onClick={() => broadcastWorldAll("closed")}
-        className="px-2 py-1 text-[11px] rounded border border-zinc-700 bg-zinc-900 text-zinc-300 hover:bg-zinc-800"
-        title="Collapse every world section"
-      >
-        ↑ Collapse all
-      </button>
-    </div>
-  );
 }
 
 function WorldSection({
@@ -999,15 +987,17 @@ function WorldSection({
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className={`w-full px-3 py-2 text-sm font-semibold text-sky-300 flex items-center gap-2 hover:bg-white/5 rounded-t-lg ${
+        className={`w-full px-3 py-2.5 text-base font-semibold text-sky-300 flex items-center gap-2.5 hover:bg-white/5 rounded-t-lg ${
           open ? "border-b border-zinc-800" : ""
         }`}
         title={open ? "Collapse this world" : "Expand this world"}
       >
-        <span className="w-3 text-zinc-500 select-none">
+        <span className="w-3 text-zinc-500 select-none text-sm">
           {open ? "▾" : "▸"}
         </span>
-        <span aria-hidden="true">{WORLD_EMOJI[world]}</span>
+        <span aria-hidden="true" className="text-lg">
+          {WORLD_EMOJI[world]}
+        </span>
         <span>{world}</span>
         <span className="ml-auto text-[11px] text-zinc-500 font-normal">
           {buckets.length} bucket{buckets.length === 1 ? "" : "s"}
