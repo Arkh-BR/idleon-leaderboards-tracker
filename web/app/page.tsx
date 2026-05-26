@@ -40,8 +40,8 @@ export default function HomePage() {
         <ShortcutCard
           href="/drop-rate"
           icon="🎲"
-          title="Drop Rate Tracker"
-          description="N.js-faithful breakdown of every Drop Rate source on your save. Per-character, per-map, with snapshot diffing."
+          title="Drop Rate Tracker (WIP)"
+          description="Game Code Faithful breakdown of every Drop Rate source on your save. Per-character, per-map, with snapshot diffing."
           cta="Open Drop Rate"
         />
       </div>
