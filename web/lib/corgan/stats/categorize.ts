@@ -1,6 +1,6 @@
 // ===== POOL CATEGORIZATION =====
 // Group DR source rows by game system (Talents, Cards, Stamps, Alchemy,
-// Farming, Gear, …) so additive pools render as
+// Farming, Equipment, …) so additive pools render as
 //
 //   Main Additive Pool
 //     ▾ Talents              (sum)
@@ -62,8 +62,9 @@ export type SystemKey =
   | "Arcane Map"
   | "Glimbo"
   | "Workshop"
-  // Gear / Boosts / Meta
-  | "Gear"
+  // Equipment / Boosts / Meta
+  | "Equipment"
+  | "Obols"
   | "Gallery"
   | "Hatrack"
   | "Golden Food"
@@ -116,7 +117,8 @@ export const SYSTEM_EMOJI: Record<SystemKey, string> = {
   "Arcane Map": "🗺️",
   Glimbo: "🎲",
   Workshop: "🛠️",
-  Gear: "🎽",
+  Equipment: "🎽",
+  Obols: "🪙",
   Gallery: "🖼️",
   Hatrack: "🎩",
   "Golden Food": "🍔",
@@ -205,7 +207,8 @@ export const SYSTEM_WORLD: Record<SystemKey, WorldKey> = {
   "LUK / Stats": "Character",
   Talents: "Character",
   Cards: "Character",
-  Gear: "Character",
+  Equipment: "Character",
+  Obols: "Character",
   "Star Signs": "Character",
   Grimoire: "Character",
   "Golden Food": "Character",
@@ -299,7 +302,8 @@ export const SYSTEM_ORDER: SystemKey[] = [
   "Arcane Map",
   "Glimbo",
   "Workshop",
-  "Gear",
+  "Equipment",
+  "Obols",
   "Gallery",
   "Hatrack",
   "Golden Food",
@@ -369,22 +373,23 @@ const RULES: Rule[] = [
   { match: /^Glimbo\b/i, system: "Glimbo" },
   { match: /^Workshop\b/i, system: "Workshop" },
 
-  // ----- Gear / Boosts / Meta -----
+  // ----- Equipment / Obols / Boosts / Meta -----
   // EtcBonuses(N) wrappers historically merged equipment + obol + nametag +
-  // trophy + premhat into one Gear bucket. We now split those sub-sources
-  // out (see explodeEtcBonus below) so the categorizer sees the renamed
-  // synthesized items directly — Nametag/Trophy land in Gallery, Hatrack
-  // in its own bucket, Equipment/Obol stay in Gear. The wrapper names
-  // below are kept as fallback for any path that still hands the categorizer
-  // an un-exploded etcBonus item.
-  { match: /^Equipment\b/, system: "Gear" },
-  { match: /^Obols?\b/, system: "Gear" },
+  // trophy + premhat into one bucket. We now split those sub-sources out
+  // (see explodeEtcBonus below) so the categorizer sees the renamed
+  // synthesized items directly — Equipment stays in its own bucket, Obols
+  // lands in a sibling Obols bucket, Nametag/Trophy land in Gallery,
+  // Hatrack gets its own. The wrapper-labelled rules below stay as
+  // fallback for any path that still hands the categorizer an un-exploded
+  // etcBonus item (they all route to Equipment as the legacy default).
+  { match: /^Equipment\b/, system: "Equipment" },
+  { match: /^Obols?\b/, system: "Obols" },
   {
     match:
-      /^Drop Rate \(Gear\)|^Bonus Drop Rate \(Gear\)|^Drop Rate Multi \(Gear\)|^Drop Chance \(Gear\)/i,
-    system: "Gear",
+      /^Drop Rate \(Equipment\)|^Bonus Drop Rate \(Equipment\)|^Drop Rate Multi \(Equipment\)|^Drop Chance \(Equipment\)/i,
+    system: "Equipment",
   },
-  { match: /\(EtcBonuses?\s|\(Etc\s|^EtcBonuses/, system: "Gear" },
+  { match: /\(EtcBonuses?\s|\(Etc\s|^EtcBonuses/, system: "Equipment" },
   // Gallery sub-sources (nametags + trophies — driven by Spelunk[16/17]
   // and gallery bonus multi).
   { match: /^Nametags?\b/i, system: "Gallery" },
@@ -492,7 +497,7 @@ function categorizeRuns(
 /** EtcBonuses(N) wrappers from defs/drop-rate.ts come in as a single
  *  composite item that merges equipment + obol + nametag + trophy +
  *  premhat children. For categorization we want those sub-sources to
- *  land in DIFFERENT buckets (Equipment/Obols → Gear, Nametag/Trophy
+ *  land in DIFFERENT buckets (Equipment → Equipment, Obols → Obols, Nametag/Trophy
  *  → Gallery, Hatrack → Hatrack). Detect those wrappers and replace
  *  them with renamed per-source items so the classifier sees each
  *  branch independently.
