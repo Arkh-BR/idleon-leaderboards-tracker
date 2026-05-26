@@ -79,7 +79,11 @@ export const setBonus = {
     return node(
       name,
       unlocked ? data.bonus : 0,
-      [node(unlocked ? "Unlocked" : "Not unlocked", 0, null, { fmt: "raw" })],
+      // Toggle child: name stays "Unlocked", val mirrors the boolean
+      // (was previously hardcoded to 0, which confused the max-values
+      // tool — child val=0 looks like "set is locked" even when the
+      // parent reflects the unlocked bonus).
+      [node("Unlocked", unlocked ? 1 : 0, null, { fmt: "raw" })],
       { fmt: "+", note: "set " + id }
     );
   },

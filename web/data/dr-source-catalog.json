@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-26T18:07:27.428Z",
+  "generatedAt": "2026-05-26T18:13:51.918Z",
   "refTotal": 43093.43816941274,
   "refSave": "zArkhe (save 25-21-16.json) — Town, no AC",
   "sourceCount": 75,
@@ -5504,7 +5504,7 @@
       "fmt": "+",
       "refValue": 25,
       "bucket": "🧰 Set Bonuses",
-      "note": "set efaunt",
+      "note": "set efaunt — bonus: 25",
       "children": [
         {
           "id": "Drop Rate / Additive Pool / 🧰 Set Bonuses / Efaunt Set Bonus (Smithing efaunt) / Unlocked",
@@ -5513,10 +5513,13 @@
           "world": "Global",
           "pool": "Additive",
           "fmt": "raw",
-          "refValue": 0,
+          "refValue": 1,
           "bucket": "🧰 Set Bonuses"
         }
-      ]
+      ],
+      "formulaKey": "setBonusToggle",
+      "agg": "custom",
+      "bonusConst": 25
     },
     {
       "id": "Drop Rate / Additive Pool / 🐲 Summoning / Drop Rate Summoning Win (Summoning 9)",

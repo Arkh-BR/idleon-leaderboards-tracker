@@ -68,6 +68,9 @@ type SourceEntry = {
    *  child (skipped from the UI). Consumed by the levelPerLevelProduct
    *  formulaKey to compute parent = level × perLevelConst × Π(x-fmt). */
   perLevelConst?: number;
+  /** Game-constant set-bonus value (e.g. Efaunt Set = 25). Consumed
+   *  by setBonusToggle: parent = bonusConst × Unlocked-kid (0 or 1). */
+  bonusConst?: number;
 };
 
 // Catalog-only placeholders / safety nets — never trackable sources.
@@ -154,6 +157,16 @@ function detectStructuralFormula(
       if (kids.length === 1 && kids[0].name === "Mastery Lv") {
         return "vaultMastery";
       }
+    }
+  }
+  // Set-bonus rows: parent value = bonusConst × Unlocked-toggle. The
+  // bonusConst is the game's set-bonus number (e.g. Efaunt = 25). We
+  // detect by sys + a single "Unlocked" kid; the bonusConst is wired
+  // separately in the caller from the parent's val.
+  if (sys === "Set Bonuses") {
+    const kids = node.children || [];
+    if (kids.length === 1 && kids[0].name === "Unlocked") {
+      return "setBonusToggle";
     }
   }
   return null;
@@ -321,6 +334,15 @@ function collectChildren(
         if (fkey) {
           entry.formulaKey = fkey;
           entry.agg = "custom";
+          // Set-bonus rows carry their game-constant bonus value as
+          // the parent's val (when unlocked at gen time). Surface it
+          // as bonusConst so the runtime can compute parent = const ×
+          // unlocked-kid regardless of save state.
+          if (fkey === "setBonusToggle") {
+            entry.bonusConst = Number(child.val) || 0;
+            const bn = `bonus: ${entry.bonusConst}`;
+            entry.note = entry.note ? `${entry.note} — ${bn}` : bn;
+          }
         } else {
           const agg = detectAgg(child, child.children || []);
           if (agg) entry.agg = agg;
@@ -392,6 +414,11 @@ for (let pi = 0; pi < tops.length; pi++) {
           if (fkey) {
             entry.formulaKey = fkey;
             entry.agg = "custom";
+            if (fkey === "setBonusToggle") {
+              entry.bonusConst = Number(src.val) || 0;
+              const bn = `bonus: ${entry.bonusConst}`;
+              entry.note = entry.note ? `${entry.note} — ${bn}` : bn;
+            }
           } else {
             const agg = detectAgg(src, src.children || []);
             if (agg) entry.agg = agg;
@@ -998,6 +1025,16 @@ const APP_JS = `
         }
       }
       return lvl * per * multi;
+    },
+    "setBonusToggle": function (p, kids) {
+      // Set-bonus row: parent = bonusConst × Unlocked-kid (0 or 1).
+      // The bonusConst is the game's set-bonus value captured at
+      // gen time from the parent's val (e.g. Efaunt Set = 25).
+      var bn = p && Number(p.bonusConst);
+      if (!Number.isFinite(bn)) return null;
+      var unlocked = kid(kids, /^Unlocked$/);
+      if (unlocked === null) return null;
+      return bn * unlocked;
     },
     "vaultMastery": function (_p, kids) {
       // Vault upgrade mastery multiplier: 1 + masteryLv / 100. Each
