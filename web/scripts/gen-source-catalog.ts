@@ -287,7 +287,7 @@ const CUSTOM_FORMULA_NAMES = new Set<string>([
   "Glimbo DR Multi",
   "Boss Battle Spillover (Talent 655)",
   "Divinity Minor 2 (Arctis)",
-  "Nonstop Studies (Dream 12)",
+  "Equinox Symbols (Dream 10)",
 ]);
 
 /** Human-readable formula descriptions appended to the row's note for
@@ -306,8 +306,8 @@ const CUSTOM_FORMULA_NOTES: Record<string, string> = {
     "decay(25, 100, Base Level) × Skulls Beaten  (star talent — no external bonus levels, Base gates the bonus)",
   "Divinity Minor 2 (Arctis)":
     "ceil(max(1, Y2) × (1 + Coral/100) × Lv/(60+Lv) × God)",
-  "Nonstop Studies (Dream 12)":
-    "round(Base Max + Summoning WinBonus 24 + Cloud Bonuses Sum)",
+  "Equinox Symbols (Dream 10)":
+    "round(Base Max + Summoning WinBonus 24 + 10·SuperBit35 + 4·CloudBonus[30])",
 };
 
 function detectAgg(
@@ -880,7 +880,10 @@ header .sub { color: var(--ink-dim); font-size: 12px; margin-bottom: 14px; }
 .row.depth-2 { padding-left: 58px; font-size: 11px; }
 .row.depth-3 { padding-left: 80px; font-size: 11px; }
 .row.depth-4 { padding-left: 102px; font-size: 11px; }
-.row.depth-1 .name, .row.depth-2 .name, .row.depth-3 .name, .row.depth-4 .name {
+.row.depth-5 { padding-left: 124px; font-size: 11px; }
+.row.depth-6 { padding-left: 146px; font-size: 11px; }
+.row.depth-1 .name, .row.depth-2 .name, .row.depth-3 .name,
+.row.depth-4 .name, .row.depth-5 .name, .row.depth-6 .name {
   color: var(--ink-dim);
 }
 
@@ -1352,16 +1355,14 @@ const APP_JS = `
       if (base === null || multi === null) return null;
       return base * multi;
     },
-    "Nonstop Studies (Dream 12)": function (_p, kids) {
-      // Game N.js formula (Dreamstuff UpgMaxLV for b=12):
-      //   round(DreamUpg[12][2] + Summoning("WinBonus", 24, 0)
-      //   + 5·CloudBonus[37] + ... + 8·CloudBonus[75])
-      // Cloud × multiplier contributions are pre-summed into the
-      // "Cloud Bonuses Sum" kid (talentBonusSum). Since this is a
-      // cap-research formula (not a "what if I had nothing" toggle
-      // like Achievement contribution), fall back to refValue for
-      // any kid the user hasn't filled — that way editing one input
-      // doesn't black-hole the whole formula on the other 11.
+    "Equinox Symbols (Dream 10)": function (_p, kids) {
+      // Game N.js formula (Dreamstuff UpgMaxLV for b=10):
+      //   round(DreamUpg[10][2] + Summoning("WinBonus", 24, 0)
+      //   + 10·GamingStatType("SuperBitType", 35, 0)
+      //   + 4·CloudBonus[30])
+      // Cap-research semantic — fall back to refValue for any kid
+      // the user hasn't filled so editing one input doesn't blank
+      // the rest.
       function kidOrRef(name) {
         for (var i = 0; i < kids.length; i++) {
           if (kids[i].name === name) {
@@ -1374,9 +1375,10 @@ const APP_JS = `
       }
       var base = kidOrRef("Base Max");
       var summ = kidOrRef("Summoning WinBonus 24");
-      var cloud = kidOrRef("Cloud Bonuses Sum");
-      if (base === null || summ === null || cloud === null) return null;
-      return Math.round(base + summ + cloud);
+      var sb35 = kidOrRef("SuperBit 35 (×10)");
+      var c30 = kidOrRef("Cloud 30 (×4)");
+      if (base === null || summ === null || sb35 === null || c30 === null) return null;
+      return Math.round(base + summ + sb35 + c30);
     },
     "Divinity Minor 2 (Arctis)": function (_p, kids) {
       // ceil(max(1, Y2) × (1 + Coral/100) × Lv/(60+Lv) × God).

@@ -468,36 +468,32 @@ function resolveAllTalentLVz(
     );
   }
 
-  const dream12 = Number((dreamData as any)?.[12]) || 0;
-  if (dream12 > 0) {
-    // Game N.js formula for Dream upgrade 12 max LV:
-    //   round(DreamUpg[12][2] + Summoning("WinBonus", 24, 0)
-    //   + 5·CloudBonus[37] + 5·CloudBonus[42] + 5·CloudBonus[43]
-    //   + 5·CloudBonus[47] + 5·CloudBonus[50] + 5·CloudBonus[55]
-    //   + 6·CloudBonus[58] + 6·CloudBonus[61]
-    //   + 7·CloudBonus[64] + 8·CloudBonus[75])
-    const baseMax = Number((DreamUpg as any)[12]?.[2]) || 10;
+  // dreamData[12] is the user's CURRENT LV of DreamUpg[10] (Equinox
+  // Symbols) — DreamUpg → Dream save indices have a +2 offset. Old
+  // labels said "Nonstop Studies (Dream 12)" but the actual upgrade
+  // is Equinox Symbols, which is the one that adds "+1 all talent LVs"
+  // (DreamUpg[10] description). Nonstop Studies is DreamUpg[12] /
+  // Dream[14] — gives Research EXP, not talent levels.
+  const equinoxSymbolsLv = Number((dreamData as any)?.[12]) || 0;
+  if (equinoxSymbolsLv > 0) {
+    // Game N.js formula for Dream upgrade 10 max LV:
+    //   round(DreamUpg[10][2] + Summoning("WinBonus", 24, 0)
+    //   + 10·GamingStatType("SuperBitType", 35, 0)
+    //   + 4·CloudBonus[30])
+    const baseMax = Number((DreamUpg as any)[10]?.[2]) || 5;
     const summWB24Parts = computeSummWinBonus24Parts(saveData);
     const summWB24 = summWB24Parts.normal + summWB24Parts.endless;
-    const cloudSpec: Array<[number, number]> = [
-      [37, 5], [42, 5], [43, 5], [47, 5], [50, 5], [55, 5],
-      [58, 6], [61, 6], [64, 7], [75, 8],
-    ];
-    let cloudSum = 0;
-    const cloudKids: CorganNode[] = [];
-    for (const [n, mult] of cloudSpec) {
-      const contrib = cloudBonus(n, saveData.weeklyBossData) * mult;
-      cloudSum += contrib;
-      cloudKids.push(
-        node("Cloud " + n + " (×" + mult + ")", contrib, null, { fmt: "raw" })
-      );
-    }
+    const superBit35 = superBitType(35, saveData.gamingData?.[12]);
+    const cloudBonus30 = cloudBonus(30, saveData.weeklyBossData);
     children.push(
       node(
-        "Nonstop Studies (Dream 12)",
-        dream12,
+        "Equinox Symbols (Dream 10)",
+        equinoxSymbolsLv,
         [
-          node("Base Max", baseMax, null, { fmt: "raw" }),
+          node("Base Max", baseMax, null, {
+            fmt: "raw",
+            note: "DreamUpg[10][2] game constant",
+          }),
           node(
             "Summoning WinBonus 24",
             summWB24,
@@ -527,7 +523,14 @@ function resolveAllTalentLVz(
             ],
             { fmt: "raw", note: "slot 24 is RAW (no multiplicative chain)" }
           ),
-          node("Cloud Bonuses Sum", cloudSum, cloudKids, { fmt: "raw" }),
+          node("SuperBit 35 (×10)", 10 * superBit35, null, {
+            fmt: "raw",
+            note: "Gaming SuperBitType 35 unlocked? × 10",
+          }),
+          node("Cloud 30 (×4)", 4 * cloudBonus30, null, {
+            fmt: "raw",
+            note: "Dream Challenge 30 completed? × 4",
+          }),
         ],
         { fmt: "raw" }
       )
@@ -608,7 +611,7 @@ function resolveAllTalentLVz(
       famFloor +
       comp1v +
       divCeil +
-      dream12 +
+      equinoxSymbolsLv +
       ola232bonus +
       grimoire39 +
       kattlekrukSet +

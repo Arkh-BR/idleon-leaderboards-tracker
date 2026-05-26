@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-26T20:02:16.799Z",
+  "generatedAt": "2026-05-26T20:08:31.013Z",
   "refTotal": 43093.43816941274,
   "refSave": "zArkhe (save 25-21-16.json) — Town, no AC",
   "sourceCount": 75,
@@ -285,8 +285,8 @@
               "note": "ceil(max(1, Y2) × (1 + Coral/100) × Lv/(60+Lv) × God)"
             },
             {
-              "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Nonstop Studies (Dream 12)",
-              "name": "Nonstop Studies (Dream 12)",
+              "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Equinox Symbols (Dream 10)",
+              "name": "Equinox Symbols (Dream 10)",
               "system": "Talents",
               "world": "Character",
               "pool": "Additive",
@@ -295,17 +295,18 @@
               "bucket": "🎯 Talents",
               "children": [
                 {
-                  "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Nonstop Studies (Dream 12) / Base Max",
+                  "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Equinox Symbols (Dream 10) / Base Max",
                   "name": "Base Max",
                   "system": "Talents",
                   "world": "Character",
                   "pool": "Additive",
                   "fmt": "raw",
-                  "refValue": 10,
-                  "bucket": "🎯 Talents"
+                  "refValue": 5,
+                  "bucket": "🎯 Talents",
+                  "note": "DreamUpg[10][2] game constant"
                 },
                 {
-                  "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Nonstop Studies (Dream 12) / Summoning WinBonus 24",
+                  "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Equinox Symbols (Dream 10) / Summoning WinBonus 24",
                   "name": "Summoning WinBonus 24",
                   "system": "Talents",
                   "world": "Character",
@@ -316,7 +317,7 @@
                   "note": "slot 24 is RAW (no multiplicative chain)",
                   "children": [
                     {
-                      "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Nonstop Studies (Dream 12) / Summoning WinBonus 24 / Normal Wins Bonus",
+                      "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Equinox Symbols (Dream 10) / Summoning WinBonus 24 / Normal Wins Bonus",
                       "name": "Normal Wins Bonus",
                       "system": "Talents",
                       "world": "Character",
@@ -327,7 +328,7 @@
                       "note": "Σ slot-24 contributions from owned summoning units"
                     },
                     {
-                      "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Nonstop Studies (Dream 12) / Summoning WinBonus 24 / Endless Wins Bonus",
+                      "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Equinox Symbols (Dream 10) / Summoning WinBonus 24 / Endless Wins Bonus",
                       "name": "Endless Wins Bonus",
                       "system": "Talents",
                       "world": "Character",
@@ -338,7 +339,7 @@
                       "note": "floor(wins/40) × perCycle + partial cycle",
                       "children": [
                         {
-                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Nonstop Studies (Dream 12) / Summoning WinBonus 24 / Endless Wins Bonus / Endless Wins Count",
+                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Equinox Symbols (Dream 10) / Summoning WinBonus 24 / Endless Wins Bonus / Endless Wins Count",
                           "name": "Endless Wins Count",
                           "system": "Talents",
                           "world": "Character",
@@ -349,7 +350,7 @@
                           "note": "OLA[319] — total endless summoning victories"
                         },
                         {
-                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Nonstop Studies (Dream 12) / Summoning WinBonus 24 / Endless Wins Bonus / Per 40-Cycle Bonus",
+                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Equinox Symbols (Dream 10) / Summoning WinBonus 24 / Endless Wins Bonus / Per 40-Cycle Bonus",
                           "name": "Per 40-Cycle Bonus",
                           "system": "Talents",
                           "world": "Character",
@@ -368,122 +369,30 @@
                   "agg": "custom"
                 },
                 {
-                  "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Nonstop Studies (Dream 12) / Cloud Bonuses Sum",
-                  "name": "Cloud Bonuses Sum",
+                  "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Equinox Symbols (Dream 10) / SuperBit 35 (×10)",
+                  "name": "SuperBit 35 (×10)",
                   "system": "Talents",
                   "world": "Character",
                   "pool": "Additive",
                   "fmt": "raw",
-                  "refValue": 57,
+                  "refValue": 10,
                   "bucket": "🎯 Talents",
-                  "children": [
-                    {
-                      "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Nonstop Studies (Dream 12) / Cloud Bonuses Sum / Cloud 37 (×5)",
-                      "name": "Cloud 37 (×5)",
-                      "system": "Talents",
-                      "world": "Character",
-                      "pool": "Additive",
-                      "fmt": "raw",
-                      "refValue": 5,
-                      "bucket": "🎯 Talents"
-                    },
-                    {
-                      "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Nonstop Studies (Dream 12) / Cloud Bonuses Sum / Cloud 42 (×5)",
-                      "name": "Cloud 42 (×5)",
-                      "system": "Talents",
-                      "world": "Character",
-                      "pool": "Additive",
-                      "fmt": "raw",
-                      "refValue": 5,
-                      "bucket": "🎯 Talents"
-                    },
-                    {
-                      "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Nonstop Studies (Dream 12) / Cloud Bonuses Sum / Cloud 43 (×5)",
-                      "name": "Cloud 43 (×5)",
-                      "system": "Talents",
-                      "world": "Character",
-                      "pool": "Additive",
-                      "fmt": "raw",
-                      "refValue": 5,
-                      "bucket": "🎯 Talents"
-                    },
-                    {
-                      "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Nonstop Studies (Dream 12) / Cloud Bonuses Sum / Cloud 47 (×5)",
-                      "name": "Cloud 47 (×5)",
-                      "system": "Talents",
-                      "world": "Character",
-                      "pool": "Additive",
-                      "fmt": "raw",
-                      "refValue": 5,
-                      "bucket": "🎯 Talents"
-                    },
-                    {
-                      "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Nonstop Studies (Dream 12) / Cloud Bonuses Sum / Cloud 50 (×5)",
-                      "name": "Cloud 50 (×5)",
-                      "system": "Talents",
-                      "world": "Character",
-                      "pool": "Additive",
-                      "fmt": "raw",
-                      "refValue": 5,
-                      "bucket": "🎯 Talents"
-                    },
-                    {
-                      "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Nonstop Studies (Dream 12) / Cloud Bonuses Sum / Cloud 55 (×5)",
-                      "name": "Cloud 55 (×5)",
-                      "system": "Talents",
-                      "world": "Character",
-                      "pool": "Additive",
-                      "fmt": "raw",
-                      "refValue": 5,
-                      "bucket": "🎯 Talents"
-                    },
-                    {
-                      "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Nonstop Studies (Dream 12) / Cloud Bonuses Sum / Cloud 58 (×6)",
-                      "name": "Cloud 58 (×6)",
-                      "system": "Talents",
-                      "world": "Character",
-                      "pool": "Additive",
-                      "fmt": "raw",
-                      "refValue": 6,
-                      "bucket": "🎯 Talents"
-                    },
-                    {
-                      "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Nonstop Studies (Dream 12) / Cloud Bonuses Sum / Cloud 61 (×6)",
-                      "name": "Cloud 61 (×6)",
-                      "system": "Talents",
-                      "world": "Character",
-                      "pool": "Additive",
-                      "fmt": "raw",
-                      "refValue": 6,
-                      "bucket": "🎯 Talents"
-                    },
-                    {
-                      "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Nonstop Studies (Dream 12) / Cloud Bonuses Sum / Cloud 64 (×7)",
-                      "name": "Cloud 64 (×7)",
-                      "system": "Talents",
-                      "world": "Character",
-                      "pool": "Additive",
-                      "fmt": "raw",
-                      "refValue": 7,
-                      "bucket": "🎯 Talents"
-                    },
-                    {
-                      "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Nonstop Studies (Dream 12) / Cloud Bonuses Sum / Cloud 75 (×8)",
-                      "name": "Cloud 75 (×8)",
-                      "system": "Talents",
-                      "world": "Character",
-                      "pool": "Additive",
-                      "fmt": "raw",
-                      "refValue": 8,
-                      "bucket": "🎯 Talents"
-                    }
-                  ],
-                  "formulaKey": "talentBonusSum",
-                  "agg": "custom"
+                  "note": "Gaming SuperBitType 35 unlocked? × 10"
+                },
+                {
+                  "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Equinox Symbols (Dream 10) / Cloud 30 (×4)",
+                  "name": "Cloud 30 (×4)",
+                  "system": "Talents",
+                  "world": "Character",
+                  "pool": "Additive",
+                  "fmt": "raw",
+                  "refValue": 4,
+                  "bucket": "🎯 Talents",
+                  "note": "Dream Challenge 30 completed? × 4"
                 }
               ],
               "agg": "custom",
-              "note": "round(Base Max + Summoning WinBonus 24 + Cloud Bonuses Sum)"
+              "note": "round(Base Max + Summoning WinBonus 24 + 10·SuperBit35 + 4·CloudBonus[30])"
             },
             {
               "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Sneaking Completions",
@@ -789,8 +698,8 @@
               "note": "ceil(max(1, Y2) × (1 + Coral/100) × Lv/(60+Lv) × God)"
             },
             {
-              "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Nonstop Studies (Dream 12)",
-              "name": "Nonstop Studies (Dream 12)",
+              "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Equinox Symbols (Dream 10)",
+              "name": "Equinox Symbols (Dream 10)",
               "system": "Talents",
               "world": "Character",
               "pool": "Additive",
@@ -799,17 +708,18 @@
               "bucket": "🎯 Talents",
               "children": [
                 {
-                  "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Nonstop Studies (Dream 12) / Base Max",
+                  "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Equinox Symbols (Dream 10) / Base Max",
                   "name": "Base Max",
                   "system": "Talents",
                   "world": "Character",
                   "pool": "Additive",
                   "fmt": "raw",
-                  "refValue": 10,
-                  "bucket": "🎯 Talents"
+                  "refValue": 5,
+                  "bucket": "🎯 Talents",
+                  "note": "DreamUpg[10][2] game constant"
                 },
                 {
-                  "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Nonstop Studies (Dream 12) / Summoning WinBonus 24",
+                  "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Equinox Symbols (Dream 10) / Summoning WinBonus 24",
                   "name": "Summoning WinBonus 24",
                   "system": "Talents",
                   "world": "Character",
@@ -820,7 +730,7 @@
                   "note": "slot 24 is RAW (no multiplicative chain)",
                   "children": [
                     {
-                      "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Nonstop Studies (Dream 12) / Summoning WinBonus 24 / Normal Wins Bonus",
+                      "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Equinox Symbols (Dream 10) / Summoning WinBonus 24 / Normal Wins Bonus",
                       "name": "Normal Wins Bonus",
                       "system": "Talents",
                       "world": "Character",
@@ -831,7 +741,7 @@
                       "note": "Σ slot-24 contributions from owned summoning units"
                     },
                     {
-                      "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Nonstop Studies (Dream 12) / Summoning WinBonus 24 / Endless Wins Bonus",
+                      "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Equinox Symbols (Dream 10) / Summoning WinBonus 24 / Endless Wins Bonus",
                       "name": "Endless Wins Bonus",
                       "system": "Talents",
                       "world": "Character",
@@ -842,7 +752,7 @@
                       "note": "floor(wins/40) × perCycle + partial cycle",
                       "children": [
                         {
-                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Nonstop Studies (Dream 12) / Summoning WinBonus 24 / Endless Wins Bonus / Endless Wins Count",
+                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Equinox Symbols (Dream 10) / Summoning WinBonus 24 / Endless Wins Bonus / Endless Wins Count",
                           "name": "Endless Wins Count",
                           "system": "Talents",
                           "world": "Character",
@@ -853,7 +763,7 @@
                           "note": "OLA[319] — total endless summoning victories"
                         },
                         {
-                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Nonstop Studies (Dream 12) / Summoning WinBonus 24 / Endless Wins Bonus / Per 40-Cycle Bonus",
+                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Equinox Symbols (Dream 10) / Summoning WinBonus 24 / Endless Wins Bonus / Per 40-Cycle Bonus",
                           "name": "Per 40-Cycle Bonus",
                           "system": "Talents",
                           "world": "Character",
@@ -872,122 +782,30 @@
                   "agg": "custom"
                 },
                 {
-                  "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Nonstop Studies (Dream 12) / Cloud Bonuses Sum",
-                  "name": "Cloud Bonuses Sum",
+                  "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Equinox Symbols (Dream 10) / SuperBit 35 (×10)",
+                  "name": "SuperBit 35 (×10)",
                   "system": "Talents",
                   "world": "Character",
                   "pool": "Additive",
                   "fmt": "raw",
-                  "refValue": 57,
+                  "refValue": 10,
                   "bucket": "🎯 Talents",
-                  "children": [
-                    {
-                      "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Nonstop Studies (Dream 12) / Cloud Bonuses Sum / Cloud 37 (×5)",
-                      "name": "Cloud 37 (×5)",
-                      "system": "Talents",
-                      "world": "Character",
-                      "pool": "Additive",
-                      "fmt": "raw",
-                      "refValue": 5,
-                      "bucket": "🎯 Talents"
-                    },
-                    {
-                      "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Nonstop Studies (Dream 12) / Cloud Bonuses Sum / Cloud 42 (×5)",
-                      "name": "Cloud 42 (×5)",
-                      "system": "Talents",
-                      "world": "Character",
-                      "pool": "Additive",
-                      "fmt": "raw",
-                      "refValue": 5,
-                      "bucket": "🎯 Talents"
-                    },
-                    {
-                      "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Nonstop Studies (Dream 12) / Cloud Bonuses Sum / Cloud 43 (×5)",
-                      "name": "Cloud 43 (×5)",
-                      "system": "Talents",
-                      "world": "Character",
-                      "pool": "Additive",
-                      "fmt": "raw",
-                      "refValue": 5,
-                      "bucket": "🎯 Talents"
-                    },
-                    {
-                      "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Nonstop Studies (Dream 12) / Cloud Bonuses Sum / Cloud 47 (×5)",
-                      "name": "Cloud 47 (×5)",
-                      "system": "Talents",
-                      "world": "Character",
-                      "pool": "Additive",
-                      "fmt": "raw",
-                      "refValue": 5,
-                      "bucket": "🎯 Talents"
-                    },
-                    {
-                      "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Nonstop Studies (Dream 12) / Cloud Bonuses Sum / Cloud 50 (×5)",
-                      "name": "Cloud 50 (×5)",
-                      "system": "Talents",
-                      "world": "Character",
-                      "pool": "Additive",
-                      "fmt": "raw",
-                      "refValue": 5,
-                      "bucket": "🎯 Talents"
-                    },
-                    {
-                      "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Nonstop Studies (Dream 12) / Cloud Bonuses Sum / Cloud 55 (×5)",
-                      "name": "Cloud 55 (×5)",
-                      "system": "Talents",
-                      "world": "Character",
-                      "pool": "Additive",
-                      "fmt": "raw",
-                      "refValue": 5,
-                      "bucket": "🎯 Talents"
-                    },
-                    {
-                      "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Nonstop Studies (Dream 12) / Cloud Bonuses Sum / Cloud 58 (×6)",
-                      "name": "Cloud 58 (×6)",
-                      "system": "Talents",
-                      "world": "Character",
-                      "pool": "Additive",
-                      "fmt": "raw",
-                      "refValue": 6,
-                      "bucket": "🎯 Talents"
-                    },
-                    {
-                      "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Nonstop Studies (Dream 12) / Cloud Bonuses Sum / Cloud 61 (×6)",
-                      "name": "Cloud 61 (×6)",
-                      "system": "Talents",
-                      "world": "Character",
-                      "pool": "Additive",
-                      "fmt": "raw",
-                      "refValue": 6,
-                      "bucket": "🎯 Talents"
-                    },
-                    {
-                      "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Nonstop Studies (Dream 12) / Cloud Bonuses Sum / Cloud 64 (×7)",
-                      "name": "Cloud 64 (×7)",
-                      "system": "Talents",
-                      "world": "Character",
-                      "pool": "Additive",
-                      "fmt": "raw",
-                      "refValue": 7,
-                      "bucket": "🎯 Talents"
-                    },
-                    {
-                      "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Nonstop Studies (Dream 12) / Cloud Bonuses Sum / Cloud 75 (×8)",
-                      "name": "Cloud 75 (×8)",
-                      "system": "Talents",
-                      "world": "Character",
-                      "pool": "Additive",
-                      "fmt": "raw",
-                      "refValue": 8,
-                      "bucket": "🎯 Talents"
-                    }
-                  ],
-                  "formulaKey": "talentBonusSum",
-                  "agg": "custom"
+                  "note": "Gaming SuperBitType 35 unlocked? × 10"
+                },
+                {
+                  "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Equinox Symbols (Dream 10) / Cloud 30 (×4)",
+                  "name": "Cloud 30 (×4)",
+                  "system": "Talents",
+                  "world": "Character",
+                  "pool": "Additive",
+                  "fmt": "raw",
+                  "refValue": 4,
+                  "bucket": "🎯 Talents",
+                  "note": "Dream Challenge 30 completed? × 4"
                 }
               ],
               "agg": "custom",
-              "note": "round(Base Max + Summoning WinBonus 24 + Cloud Bonuses Sum)"
+              "note": "round(Base Max + Summoning WinBonus 24 + 10·SuperBit35 + 4·CloudBonus[30])"
             },
             {
               "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Sneaking Completions",
@@ -7249,8 +7067,8 @@
                   "note": "ceil(max(1, Y2) × (1 + Coral/100) × Lv/(60+Lv) × God)"
                 },
                 {
-                  "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Bonus Levels / Nonstop Studies (Dream 12)",
-                  "name": "Nonstop Studies (Dream 12)",
+                  "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Bonus Levels / Equinox Symbols (Dream 10)",
+                  "name": "Equinox Symbols (Dream 10)",
                   "system": "Talents",
                   "world": "Character",
                   "pool": "Multi",
@@ -7259,17 +7077,18 @@
                   "bucket": "🎯 Talents",
                   "children": [
                     {
-                      "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Bonus Levels / Nonstop Studies (Dream 12) / Base Max",
+                      "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Bonus Levels / Equinox Symbols (Dream 10) / Base Max",
                       "name": "Base Max",
                       "system": "Talents",
                       "world": "Character",
                       "pool": "Multi",
                       "fmt": "raw",
-                      "refValue": 10,
-                      "bucket": "🎯 Talents"
+                      "refValue": 5,
+                      "bucket": "🎯 Talents",
+                      "note": "DreamUpg[10][2] game constant"
                     },
                     {
-                      "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Bonus Levels / Nonstop Studies (Dream 12) / Summoning WinBonus 24",
+                      "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Bonus Levels / Equinox Symbols (Dream 10) / Summoning WinBonus 24",
                       "name": "Summoning WinBonus 24",
                       "system": "Talents",
                       "world": "Character",
@@ -7280,7 +7099,7 @@
                       "note": "slot 24 is RAW (no multiplicative chain)",
                       "children": [
                         {
-                          "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Bonus Levels / Nonstop Studies (Dream 12) / Summoning WinBonus 24 / Normal Wins Bonus",
+                          "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Bonus Levels / Equinox Symbols (Dream 10) / Summoning WinBonus 24 / Normal Wins Bonus",
                           "name": "Normal Wins Bonus",
                           "system": "Talents",
                           "world": "Character",
@@ -7291,7 +7110,7 @@
                           "note": "Σ slot-24 contributions from owned summoning units"
                         },
                         {
-                          "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Bonus Levels / Nonstop Studies (Dream 12) / Summoning WinBonus 24 / Endless Wins Bonus",
+                          "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Bonus Levels / Equinox Symbols (Dream 10) / Summoning WinBonus 24 / Endless Wins Bonus",
                           "name": "Endless Wins Bonus",
                           "system": "Talents",
                           "world": "Character",
@@ -7302,7 +7121,7 @@
                           "note": "floor(wins/40) × perCycle + partial cycle",
                           "children": [
                             {
-                              "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Bonus Levels / Nonstop Studies (Dream 12) / Summoning WinBonus 24 / Endless Wins Bonus / Endless Wins Count",
+                              "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Bonus Levels / Equinox Symbols (Dream 10) / Summoning WinBonus 24 / Endless Wins Bonus / Endless Wins Count",
                               "name": "Endless Wins Count",
                               "system": "Talents",
                               "world": "Character",
@@ -7313,7 +7132,7 @@
                               "note": "OLA[319] — total endless summoning victories"
                             },
                             {
-                              "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Bonus Levels / Nonstop Studies (Dream 12) / Summoning WinBonus 24 / Endless Wins Bonus / Per 40-Cycle Bonus",
+                              "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Bonus Levels / Equinox Symbols (Dream 10) / Summoning WinBonus 24 / Endless Wins Bonus / Per 40-Cycle Bonus",
                               "name": "Per 40-Cycle Bonus",
                               "system": "Talents",
                               "world": "Character",
@@ -7332,122 +7151,30 @@
                       "agg": "custom"
                     },
                     {
-                      "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Bonus Levels / Nonstop Studies (Dream 12) / Cloud Bonuses Sum",
-                      "name": "Cloud Bonuses Sum",
+                      "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Bonus Levels / Equinox Symbols (Dream 10) / SuperBit 35 (×10)",
+                      "name": "SuperBit 35 (×10)",
                       "system": "Talents",
                       "world": "Character",
                       "pool": "Multi",
                       "fmt": "raw",
-                      "refValue": 57,
+                      "refValue": 10,
                       "bucket": "🎯 Talents",
-                      "children": [
-                        {
-                          "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Bonus Levels / Nonstop Studies (Dream 12) / Cloud Bonuses Sum / Cloud 37 (×5)",
-                          "name": "Cloud 37 (×5)",
-                          "system": "Talents",
-                          "world": "Character",
-                          "pool": "Multi",
-                          "fmt": "raw",
-                          "refValue": 5,
-                          "bucket": "🎯 Talents"
-                        },
-                        {
-                          "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Bonus Levels / Nonstop Studies (Dream 12) / Cloud Bonuses Sum / Cloud 42 (×5)",
-                          "name": "Cloud 42 (×5)",
-                          "system": "Talents",
-                          "world": "Character",
-                          "pool": "Multi",
-                          "fmt": "raw",
-                          "refValue": 5,
-                          "bucket": "🎯 Talents"
-                        },
-                        {
-                          "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Bonus Levels / Nonstop Studies (Dream 12) / Cloud Bonuses Sum / Cloud 43 (×5)",
-                          "name": "Cloud 43 (×5)",
-                          "system": "Talents",
-                          "world": "Character",
-                          "pool": "Multi",
-                          "fmt": "raw",
-                          "refValue": 5,
-                          "bucket": "🎯 Talents"
-                        },
-                        {
-                          "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Bonus Levels / Nonstop Studies (Dream 12) / Cloud Bonuses Sum / Cloud 47 (×5)",
-                          "name": "Cloud 47 (×5)",
-                          "system": "Talents",
-                          "world": "Character",
-                          "pool": "Multi",
-                          "fmt": "raw",
-                          "refValue": 5,
-                          "bucket": "🎯 Talents"
-                        },
-                        {
-                          "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Bonus Levels / Nonstop Studies (Dream 12) / Cloud Bonuses Sum / Cloud 50 (×5)",
-                          "name": "Cloud 50 (×5)",
-                          "system": "Talents",
-                          "world": "Character",
-                          "pool": "Multi",
-                          "fmt": "raw",
-                          "refValue": 5,
-                          "bucket": "🎯 Talents"
-                        },
-                        {
-                          "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Bonus Levels / Nonstop Studies (Dream 12) / Cloud Bonuses Sum / Cloud 55 (×5)",
-                          "name": "Cloud 55 (×5)",
-                          "system": "Talents",
-                          "world": "Character",
-                          "pool": "Multi",
-                          "fmt": "raw",
-                          "refValue": 5,
-                          "bucket": "🎯 Talents"
-                        },
-                        {
-                          "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Bonus Levels / Nonstop Studies (Dream 12) / Cloud Bonuses Sum / Cloud 58 (×6)",
-                          "name": "Cloud 58 (×6)",
-                          "system": "Talents",
-                          "world": "Character",
-                          "pool": "Multi",
-                          "fmt": "raw",
-                          "refValue": 6,
-                          "bucket": "🎯 Talents"
-                        },
-                        {
-                          "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Bonus Levels / Nonstop Studies (Dream 12) / Cloud Bonuses Sum / Cloud 61 (×6)",
-                          "name": "Cloud 61 (×6)",
-                          "system": "Talents",
-                          "world": "Character",
-                          "pool": "Multi",
-                          "fmt": "raw",
-                          "refValue": 6,
-                          "bucket": "🎯 Talents"
-                        },
-                        {
-                          "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Bonus Levels / Nonstop Studies (Dream 12) / Cloud Bonuses Sum / Cloud 64 (×7)",
-                          "name": "Cloud 64 (×7)",
-                          "system": "Talents",
-                          "world": "Character",
-                          "pool": "Multi",
-                          "fmt": "raw",
-                          "refValue": 7,
-                          "bucket": "🎯 Talents"
-                        },
-                        {
-                          "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Bonus Levels / Nonstop Studies (Dream 12) / Cloud Bonuses Sum / Cloud 75 (×8)",
-                          "name": "Cloud 75 (×8)",
-                          "system": "Talents",
-                          "world": "Character",
-                          "pool": "Multi",
-                          "fmt": "raw",
-                          "refValue": 8,
-                          "bucket": "🎯 Talents"
-                        }
-                      ],
-                      "formulaKey": "talentBonusSum",
-                      "agg": "custom"
+                      "note": "Gaming SuperBitType 35 unlocked? × 10"
+                    },
+                    {
+                      "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Bonus Levels / Equinox Symbols (Dream 10) / Cloud 30 (×4)",
+                      "name": "Cloud 30 (×4)",
+                      "system": "Talents",
+                      "world": "Character",
+                      "pool": "Multi",
+                      "fmt": "raw",
+                      "refValue": 4,
+                      "bucket": "🎯 Talents",
+                      "note": "Dream Challenge 30 completed? × 4"
                     }
                   ],
                   "agg": "custom",
-                  "note": "round(Base Max + Summoning WinBonus 24 + Cloud Bonuses Sum)"
+                  "note": "round(Base Max + Summoning WinBonus 24 + 10·SuperBit35 + 4·CloudBonus[30])"
                 },
                 {
                   "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Bonus Levels / Sneaking Completions",
