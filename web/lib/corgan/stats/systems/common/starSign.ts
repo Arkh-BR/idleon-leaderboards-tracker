@@ -77,11 +77,15 @@ export const starSign = {
     const totalMulti = computeSeraphMulti(ctx.charIdx, saveData);
     const total = baseTotal * totalMulti;
 
+    // Flatten: skip the "Base Sum" wrapper and just hang the individual sign
+    // rows directly under "Star Signs", followed by the Seraph multiplier as
+    // its own sibling row. The base sum is implicit from the sum of sign
+    // children + the multiplier shows its own factor.
     return node(
       "Star Signs",
       total,
       [
-        node("Base Sum", baseTotal, signChildren, { fmt: "raw" }),
+        ...signChildren,
         node("Seraph Multiplier", totalMulti, null, { fmt: "x" }),
       ],
       { fmt: "+", note: "starSign:" + id }
