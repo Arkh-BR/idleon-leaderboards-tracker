@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-26T22:26:56.360Z",
+  "generatedAt": "2026-05-26T22:35:31.182Z",
   "refTotal": 43093.43816941274,
   "refSave": "zArkhe (save 25-21-16.json) — Town, no AC",
   "sourceCount": 75,
@@ -168,7 +168,7 @@
               "fmt": "raw",
               "refValue": 16,
               "bucket": "🎯 Talents",
-              "note": "Lava single-pass: iterate ES chars in order; for each, store unbuffed; if ACTIVE char wins, overwrite with × Sad Souls Multi",
+              "note": "Lava single-pass: iterate ES chars in order; for each, store unbuffed; if ACTIVE char wins, overwrite with × Family Guy Multi",
               "children": [
                 {
                   "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Family Bonus 68 (Mage) / Best Mage Lv",
@@ -208,8 +208,8 @@
                   "agg": "custom"
                 },
                 {
-                  "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Family Bonus 68 (Mage) / Sad Souls Multi (×) — potential buff",
-                  "name": "Sad Souls Multi (×) — potential buff",
+                  "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff",
+                  "name": "Family Guy Multi (×) — potential buff",
                   "system": "Talents",
                   "world": "Character",
                   "pool": "Additive",
@@ -219,8 +219,8 @@
                   "note": "1 + Talent 144 Value / 100 — active char's potential buff",
                   "children": [
                     {
-                      "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Family Bonus 68 (Mage) / Sad Souls Multi (×) — potential buff / Talent 144 Value (Family Guy / Sad Souls)",
-                      "name": "Talent 144 Value (Family Guy / Sad Souls)",
+                      "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Talent 144 Value (The Family Guy)",
+                      "name": "Talent 144 Value (The Family Guy)",
                       "system": "Talents",
                       "world": "Character",
                       "pool": "Additive",
@@ -230,7 +230,7 @@
                       "note": "decay(40, 100)",
                       "children": [
                         {
-                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Family Bonus 68 (Mage) / Sad Souls Multi (×) — potential buff / Talent 144 Value (Family Guy / Sad Souls) / Formula x1",
+                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Talent 144 Value (The Family Guy) / Formula x1",
                           "name": "Formula x1",
                           "system": "Talents",
                           "world": "Character",
@@ -241,7 +241,7 @@
                           "note": "decay formula x1 — game constant"
                         },
                         {
-                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Family Bonus 68 (Mage) / Sad Souls Multi (×) — potential buff / Talent 144 Value (Family Guy / Sad Souls) / Formula x2",
+                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Talent 144 Value (The Family Guy) / Formula x2",
                           "name": "Formula x2",
                           "system": "Talents",
                           "world": "Character",
@@ -252,7 +252,7 @@
                           "note": "decay formula x2 — game constant"
                         },
                         {
-                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Family Bonus 68 (Mage) / Sad Souls Multi (×) — potential buff / Talent 144 Value (Family Guy / Sad Souls) / Base Level",
+                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Talent 144 Value (The Family Guy) / Base Level",
                           "name": "Base Level",
                           "system": "Talents",
                           "world": "Character",
@@ -263,7 +263,7 @@
                           "note": "active char's raw skill lv 144"
                         },
                         {
-                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Family Bonus 68 (Mage) / Sad Souls Multi (×) — potential buff / Talent 144 Value (Family Guy / Sad Souls) / Bonus Levels",
+                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Talent 144 Value (The Family Guy) / Bonus Levels",
                           "name": "Bonus Levels",
                           "system": "Talents",
                           "world": "Character",
@@ -274,7 +274,7 @@
                           "note": "Σ contributors to tal 144's ATL chain (Symbols of Beyond, Family Bonus 68, etc.)"
                         },
                         {
-                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Family Bonus 68 (Mage) / Sad Souls Multi (×) — potential buff / Talent 144 Value (Family Guy / Sad Souls) / Effective Level",
+                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Talent 144 Value (The Family Guy) / Effective Level",
                           "name": "Effective Level",
                           "system": "Talents",
                           "world": "Character",
@@ -294,7 +294,7 @@
                       "agg": "custom"
                     }
                   ],
-                  "formulaKey": "sadSoulsMulti",
+                  "formulaKey": "familyGuyMulti",
                   "agg": "custom"
                 },
                 {
@@ -714,7 +714,7 @@
               "fmt": "raw",
               "refValue": 16,
               "bucket": "🎯 Talents",
-              "note": "Lava single-pass: iterate ES chars in order; for each, store unbuffed; if ACTIVE char wins, overwrite with × Sad Souls Multi",
+              "note": "Lava single-pass: iterate ES chars in order; for each, store unbuffed; if ACTIVE char wins, overwrite with × Family Guy Multi",
               "children": [
                 {
                   "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Family Bonus 68 (Mage) / Best Mage Lv",
@@ -754,8 +754,8 @@
                   "agg": "custom"
                 },
                 {
-                  "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Family Bonus 68 (Mage) / Sad Souls Multi (×) — potential buff",
-                  "name": "Sad Souls Multi (×) — potential buff",
+                  "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff",
+                  "name": "Family Guy Multi (×) — potential buff",
                   "system": "Talents",
                   "world": "Character",
                   "pool": "Additive",
@@ -765,8 +765,8 @@
                   "note": "1 + Talent 144 Value / 100 — active char's potential buff",
                   "children": [
                     {
-                      "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Family Bonus 68 (Mage) / Sad Souls Multi (×) — potential buff / Talent 144 Value (Family Guy / Sad Souls)",
-                      "name": "Talent 144 Value (Family Guy / Sad Souls)",
+                      "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Talent 144 Value (The Family Guy)",
+                      "name": "Talent 144 Value (The Family Guy)",
                       "system": "Talents",
                       "world": "Character",
                       "pool": "Additive",
@@ -776,7 +776,7 @@
                       "note": "decay(40, 100)",
                       "children": [
                         {
-                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Family Bonus 68 (Mage) / Sad Souls Multi (×) — potential buff / Talent 144 Value (Family Guy / Sad Souls) / Formula x1",
+                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Talent 144 Value (The Family Guy) / Formula x1",
                           "name": "Formula x1",
                           "system": "Talents",
                           "world": "Character",
@@ -787,7 +787,7 @@
                           "note": "decay formula x1 — game constant"
                         },
                         {
-                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Family Bonus 68 (Mage) / Sad Souls Multi (×) — potential buff / Talent 144 Value (Family Guy / Sad Souls) / Formula x2",
+                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Talent 144 Value (The Family Guy) / Formula x2",
                           "name": "Formula x2",
                           "system": "Talents",
                           "world": "Character",
@@ -798,7 +798,7 @@
                           "note": "decay formula x2 — game constant"
                         },
                         {
-                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Family Bonus 68 (Mage) / Sad Souls Multi (×) — potential buff / Talent 144 Value (Family Guy / Sad Souls) / Base Level",
+                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Talent 144 Value (The Family Guy) / Base Level",
                           "name": "Base Level",
                           "system": "Talents",
                           "world": "Character",
@@ -809,7 +809,7 @@
                           "note": "active char's raw skill lv 144"
                         },
                         {
-                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Family Bonus 68 (Mage) / Sad Souls Multi (×) — potential buff / Talent 144 Value (Family Guy / Sad Souls) / Bonus Levels",
+                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Talent 144 Value (The Family Guy) / Bonus Levels",
                           "name": "Bonus Levels",
                           "system": "Talents",
                           "world": "Character",
@@ -820,7 +820,7 @@
                           "note": "Σ contributors to tal 144's ATL chain (Symbols of Beyond, Family Bonus 68, etc.)"
                         },
                         {
-                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Family Bonus 68 (Mage) / Sad Souls Multi (×) — potential buff / Talent 144 Value (Family Guy / Sad Souls) / Effective Level",
+                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Talent 144 Value (The Family Guy) / Effective Level",
                           "name": "Effective Level",
                           "system": "Talents",
                           "world": "Character",
@@ -840,7 +840,7 @@
                       "agg": "custom"
                     }
                   ],
-                  "formulaKey": "sadSoulsMulti",
+                  "formulaKey": "familyGuyMulti",
                   "agg": "custom"
                 },
                 {
@@ -7216,7 +7216,7 @@
                   "fmt": "raw",
                   "refValue": 16,
                   "bucket": "🎯 Talents",
-                  "note": "Lava single-pass: iterate ES chars in order; for each, store unbuffed; if ACTIVE char wins, overwrite with × Sad Souls Multi",
+                  "note": "Lava single-pass: iterate ES chars in order; for each, store unbuffed; if ACTIVE char wins, overwrite with × Family Guy Multi",
                   "children": [
                     {
                       "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Bonus Levels / Family Bonus 68 (Mage) / Best Mage Lv",
@@ -7256,8 +7256,8 @@
                       "agg": "custom"
                     },
                     {
-                      "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Bonus Levels / Family Bonus 68 (Mage) / Sad Souls Multi (×) — potential buff",
-                      "name": "Sad Souls Multi (×) — potential buff",
+                      "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff",
+                      "name": "Family Guy Multi (×) — potential buff",
                       "system": "Talents",
                       "world": "Character",
                       "pool": "Multi",
@@ -7267,8 +7267,8 @@
                       "note": "1 + Talent 144 Value / 100 — active char's potential buff",
                       "children": [
                         {
-                          "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Bonus Levels / Family Bonus 68 (Mage) / Sad Souls Multi (×) — potential buff / Talent 144 Value (Family Guy / Sad Souls)",
-                          "name": "Talent 144 Value (Family Guy / Sad Souls)",
+                          "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Talent 144 Value (The Family Guy)",
+                          "name": "Talent 144 Value (The Family Guy)",
                           "system": "Talents",
                           "world": "Character",
                           "pool": "Multi",
@@ -7278,7 +7278,7 @@
                           "note": "decay(40, 100)",
                           "children": [
                             {
-                              "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Bonus Levels / Family Bonus 68 (Mage) / Sad Souls Multi (×) — potential buff / Talent 144 Value (Family Guy / Sad Souls) / Formula x1",
+                              "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Talent 144 Value (The Family Guy) / Formula x1",
                               "name": "Formula x1",
                               "system": "Talents",
                               "world": "Character",
@@ -7289,7 +7289,7 @@
                               "note": "decay formula x1 — game constant"
                             },
                             {
-                              "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Bonus Levels / Family Bonus 68 (Mage) / Sad Souls Multi (×) — potential buff / Talent 144 Value (Family Guy / Sad Souls) / Formula x2",
+                              "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Talent 144 Value (The Family Guy) / Formula x2",
                               "name": "Formula x2",
                               "system": "Talents",
                               "world": "Character",
@@ -7300,7 +7300,7 @@
                               "note": "decay formula x2 — game constant"
                             },
                             {
-                              "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Bonus Levels / Family Bonus 68 (Mage) / Sad Souls Multi (×) — potential buff / Talent 144 Value (Family Guy / Sad Souls) / Base Level",
+                              "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Talent 144 Value (The Family Guy) / Base Level",
                               "name": "Base Level",
                               "system": "Talents",
                               "world": "Character",
@@ -7311,7 +7311,7 @@
                               "note": "active char's raw skill lv 144"
                             },
                             {
-                              "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Bonus Levels / Family Bonus 68 (Mage) / Sad Souls Multi (×) — potential buff / Talent 144 Value (Family Guy / Sad Souls) / Bonus Levels",
+                              "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Talent 144 Value (The Family Guy) / Bonus Levels",
                               "name": "Bonus Levels",
                               "system": "Talents",
                               "world": "Character",
@@ -7322,7 +7322,7 @@
                               "note": "Σ contributors to tal 144's ATL chain (Symbols of Beyond, Family Bonus 68, etc.)"
                             },
                             {
-                              "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Bonus Levels / Family Bonus 68 (Mage) / Sad Souls Multi (×) — potential buff / Talent 144 Value (Family Guy / Sad Souls) / Effective Level",
+                              "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Talent 144 Value (The Family Guy) / Effective Level",
                               "name": "Effective Level",
                               "system": "Talents",
                               "world": "Character",
@@ -7342,7 +7342,7 @@
                           "agg": "custom"
                         }
                       ],
-                      "formulaKey": "sadSoulsMulti",
+                      "formulaKey": "familyGuyMulti",
                       "agg": "custom"
                     },
                     {

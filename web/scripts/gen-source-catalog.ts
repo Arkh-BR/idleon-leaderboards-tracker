@@ -211,7 +211,7 @@ function detectStructuralFormula(
     return "summoningWinBonus24";
   }
   // Family Bonus 68 (Mage) = floor(decay(20, 350, max(0, lv − 69)) × multi).
-  // The Sad Souls multi (Talent 144) is the active char's buff.
+  // The Family Guy multi (Talent 144) is the active char's buff.
   if (node.name === "Family Bonus 68 (Mage)") {
     return "familyBonus68Mage";
   }
@@ -221,15 +221,15 @@ function detectStructuralFormula(
   if (node.name === "Best Mage Lv" && (node.children || []).length > 0) {
     return "maxOfKids";
   }
-  // Sad Souls Multi (× — potential buff) = 1 + Talent 144 Value / 100.
+  // Family Guy Multi (× — potential buff) = 1 + Talent 144 Value / 100.
   // Whether the buff applies is decided dynamically by the family
   // bonus handler based on Lava's iteration order — this row just
   // exposes the potential value.
   if (
-    node.name === "Sad Souls Multi (×) — potential buff" &&
+    node.name === "Family Guy Multi (×) — potential buff" &&
     (node.children || []).length > 0
   ) {
-    return "sadSoulsMulti";
+    return "familyGuyMulti";
   }
   // Endless Wins Bonus = floor(count / 40) × perCycle + partial.
   if (node.name === "Endless Wins Bonus") {
@@ -1261,7 +1261,7 @@ const APP_JS = `
       if (!Number.isFinite(bn)) return null;
       return idle + owned * (bn - idle);
     },
-    "sadSoulsMulti": function (_p, kids) {
+    "familyGuyMulti": function (_p, kids) {
       // 1 + Talent 144 Value / 100 — the active char's POTENTIAL
       // buff. Whether it actually applies is decided by the family
       // bonus 68 handler (Lava's iteration order).
@@ -1275,7 +1275,7 @@ const APP_JS = `
         }
         return null;
       }
-      var tv = kidOrRef("Talent 144 Value (Family Guy / Sad Souls)");
+      var tv = kidOrRef("Talent 144 Value (The Family Guy)");
       if (tv === null) return null;
       return 1 + tv / 100;
     },
@@ -1297,7 +1297,7 @@ const APP_JS = `
       // Elemental Sorcerer (cls 34) char in account order. For each:
       //   v = decay(x1, x2, max(0, char.lv - lvOffset))
       //   if v > best: best = v   ← store UNBUFFED first
-      //     if char is ACTIVE: best = v × sadSoulsMulti   ← buffed
+      //     if char is ACTIVE: best = v × familyGuyMulti   ← buffed
       // Iteration ORDER matters: an active char whose unbuffed value
       // doesn't beat the running best can still WIN if their buffed
       // value does — but only if they iterate AFTER the current best.
@@ -1314,8 +1314,8 @@ const APP_JS = `
       var x1 = kidOrRef("Formula x1");
       var x2 = kidOrRef("Formula x2");
       var lvOffset = kidOrRef("Lv Offset");
-      var sadSoulsMulti = kidOrRef("Sad Souls Multi (×) — potential buff");
-      if (x1 === null || x2 === null || lvOffset === null || sadSoulsMulti === null) return null;
+      var familyGuyMulti = kidOrRef("Family Guy Multi (×) — potential buff");
+      if (x1 === null || x2 === null || lvOffset === null || familyGuyMulti === null) return null;
       // Locate the Best Mage Lv kid and iterate its char sub-kids.
       var bestMageLvKid = null;
       for (var i = 0; i < kids.length; i++) {
@@ -1341,8 +1341,8 @@ const APP_JS = `
           // Step 2: if this iteration is the active char, apply buff
           var isActive =
             charKid.note && charKid.note.indexOf("ACTIVE") >= 0;
-          if (isActive && sadSoulsMulti > 1) {
-            best = v * sadSoulsMulti;
+          if (isActive && familyGuyMulti > 1) {
+            best = v * familyGuyMulti;
           }
         }
       }

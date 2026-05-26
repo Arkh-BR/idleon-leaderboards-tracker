@@ -351,13 +351,13 @@ function resolveAllTalentLVz(
   // ALSO gets multiplied by (1 + GetTalentNumber(1, 144) / 100) — Sad
   // Souls for Wizards. Previously we shortcut "if maxMageCharIdx ===
   // slotIdx, apply the buff" which misses an edge case: if the active
-  // char is a different mage AND their Sad Souls buff is big enough,
+  // char is a different mage AND their Family Guy buff is big enough,
   // their buffed contribution might exceed the unbuffed best mage's
   // — in which case the active char becomes the slot's owner. Fixed by
   // looping all mages, applying the buff per-char (only the slotIdx
   // one), and picking the actual max.
   const fb34 = familyBonusParams(34);
-  // Talent 144 (Family Guy / Sad Souls / Pirate Underling — varies by
+  // Talent 144 ("The Family Guy" — same name across all classes' tabs,
   // class) buffs the active char's family bonus contribution by
   // (1 + tal144Val/100). We expose the full sub-tree so the user can
   // research what would change at higher tal144 levels.
@@ -465,7 +465,7 @@ function resolveAllTalentLVz(
           fmt: "raw",
           note:
             `${charName} — ${className.replace(/_/g, " ").toLowerCase()} (cls ${cls})` +
-            (isActive ? " — ACTIVE char (gets Sad Souls buff if it wins the slot)" : ""),
+            (isActive ? " — ACTIVE char (gets Family Guy buff if it wins the slot)" : ""),
         }
       )
     );
@@ -473,12 +473,12 @@ function resolveAllTalentLVz(
   // Kept for downstream code paths that still reference these (the
   // original computeAllTalentLVz block at line ~180 uses these names).
   const maxMageCharIdx = bestContribCharIdx;
-  // Surface whether the Sad Souls buff actually won this slot — useful
+  // Surface whether the Family Guy buff actually won this slot — useful
   // when researching edge cases.
   void maxMageCharIdx;
   const famFloor = Math.floor(famBonus68);
   if (famFloor > 0) {
-    const buffNote = bestUsedTal144 ? " — buffed by Sad Souls (Talent 144)" : "";
+    const buffNote = bestUsedTal144 ? " — buffed by The Family Guy (Talent 144)" : "";
     const lvOffset = (fb34 as any).lvOffset;
     children.push(
       node(
@@ -507,14 +507,14 @@ function resolveAllTalentLVz(
             // tal144Val/100). Whether it actually applies depends on
             // family-bonus-68 iteration outcome (active char must
             // win the slot). The familyBonus68Mage handler decides.
-            "Sad Souls Multi (×) — potential buff",
+            "Family Guy Multi (×) — potential buff",
             // emit the potential multi (not just 1.0 if buff didn't
             // win) so the user can see what's "in play" — the handler
             // gates application based on Lava's algorithm.
             tal144Mult,
             [
               node(
-                "Talent 144 Value (Family Guy / Sad Souls)",
+                "Talent 144 Value (The Family Guy)",
                 tal144Val,
                 [
                   node("Formula x1", t144 ? (t144 as any).x1 : 40, null, {
@@ -578,7 +578,7 @@ function resolveAllTalentLVz(
         {
           fmt: "raw",
           note:
-            "Lava single-pass: iterate ES chars in order; for each, store unbuffed; if ACTIVE char wins, overwrite with × Sad Souls Multi" +
+            "Lava single-pass: iterate ES chars in order; for each, store unbuffed; if ACTIVE char wins, overwrite with × Family Guy Multi" +
             buffNote,
         }
       )
