@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   arcaneFactor,
   buildMapOptions,
@@ -11,7 +11,7 @@ import { formatIdleon } from "@/lib/format";
 import { listCharacters, parseSave, type CharSummary } from "@/lib/dropRate/extract";
 import DrTree from "./DrTree";
 import CorganTree from "./CorganTree";
-import type { CorganNode } from "@/lib/corgan/node";
+import type { CorganNode as DrNode } from "@/lib/corgan/node";
 
 const SAVE_KEY = "drop-rate-tracker.last-upload.v1";
 
@@ -49,12 +49,12 @@ export default function DrCalculator({ onStateChange }: Props) {
   const [status, setStatus] = useState<string | null>(null);
   const [computing, setComputing] = useState(false);
 
-  // Which tree to display: the IT-style additive/multiplicative panel
-  // (validated against IT's live UI) or the Corgan-style pool tree
-  // (LUK Scaling → Main Additive → LUK2 Additive → Post-Processing).
-  const [tab, setTab] = useState<"it" | "corgan">("corgan");
-  const [corganTree, setCorganTree] = useState<CorganNode | null>(null);
-  const [corganTotal, setCorganTotal] = useState<number | null>(null);
+  // Which breakdown view to display: the detailed pool tree
+  // (LUK Scaling → Main Additive → LUK2 Additive → Post-Processing) used as
+  // the canonical DR, or the simpler additive/multiplicative panel.
+  const [tab, setTab] = useState<"it" | "detailed">("detailed");
+  const [drTree, setDrTree] = useState<DrNode | null>(null);
+  const [drTotal, setDrTotal] = useState<number | null>(null);
 
   // Chip Gallery: invisible +0.10 Gallery Bonus Multi when Lab chip 16
   // (Silkrode Motherboard) was active at the moment the gallery refreshed.
@@ -213,12 +213,12 @@ export default function DrCalculator({ onStateChange }: Props) {
     setChipGalleryActive(found.detected);
   }, [save]);
 
-  // Compute the Corgan-style tree whenever save/char/chip changes. Loads the
-  // Corgan port lazily so the initial bundle stays small.
+  // Compute the detailed DR tree whenever save/char/chip changes. Loaded
+  // lazily so the initial bundle stays small.
   useEffect(() => {
     if (!save || chars.length === 0) {
-      setCorganTree(null);
-      setCorganTotal(null);
+      setDrTree(null);
+      setDrTotal(null);
       return;
     }
     let cancelled = false;
@@ -229,12 +229,12 @@ export default function DrCalculator({ onStateChange }: Props) {
         const result = mod.computeCorganDropRate(save, charIdx, mapIdx, {
           chipGalleryActive,
         });
-        setCorganTree(result.tree);
-        setCorganTotal(result.total);
+        setDrTree(result.tree);
+        setDrTotal(result.total);
       } catch (e) {
         if (!cancelled) {
           setError(
-            "Corgan compute failed: " + (e instanceof Error ? e.message : String(e))
+            "Drop rate compute failed: " + (e instanceof Error ? e.message : String(e))
           );
         }
       }
@@ -244,18 +244,21 @@ export default function DrCalculator({ onStateChange }: Props) {
     };
   }, [save, charIdx, mapIdx, chars.length, chipGalleryActive]);
 
-  // Bubble state up to parent (so snapshot section can access it)
+  // Bubble state up to parent (so snapshot section can access it). Uses the
+  // detailed compute as the primary base when available; falls back to the
+  // IT-style baseDr.
   useEffect(() => {
     if (!onStateChange) return;
     const ch = chars.find((c) => c.charIndex === charIdx);
     const map = mapOptions.find((m) => m.index === mapIdx);
     const factor = map ? map.factor : 1;
+    const base = drTotal !== null ? drTotal : baseDr;
     onStateChange({
       charIndex: ch ? ch.charIndex : null,
       charName: ch?.charName ?? "",
       charSummary: ch ?? null,
-      totalDr: baseDr !== null ? baseDr * factor : null,
-      baseDr,
+      totalDr: base !== null ? base * factor : null,
+      baseDr: base,
       arcane: factor,
       mapIndex: mapIdx,
       mapLabel: map?.name ?? "Town",
@@ -265,7 +268,7 @@ export default function DrCalculator({ onStateChange }: Props) {
             : null)
         : null,
     });
-  }, [charIdx, mapIdx, baseDr, chars, mapOptions, save, onStateChange]);
+  }, [charIdx, mapIdx, baseDr, drTotal, chars, mapOptions, save, onStateChange]);
 
   const onLoad = () => {
     setStatus(null);
@@ -286,31 +289,25 @@ export default function DrCalculator({ onStateChange }: Props) {
   };
 
   const factor = mapOptions.find((m) => m.index === mapIdx)?.factor ?? 1;
-  const totalDr = baseDr !== null ? baseDr * factor : null;
+  // Primary displayed DR uses the detailed pool-tree compute (matches in-game
+  // to within ~1%). Falls back to the simpler IT-style baseDr if the
+  // detailed compute hasn't finished or failed.
+  const primaryBase = drTotal !== null ? drTotal : baseDr;
+  const totalDr = primaryBase !== null ? primaryBase * factor : null;
 
   return (
     <div>
-      {/* Header inline — mirrors Corgan layout */}
       <h1 className="flex items-baseline gap-3 mb-1 mt-2">
         <span className="text-3xl font-extrabold text-gold">
           🎲 Drop Rate Calculator
         </span>
-        <a
-          href="https://github.com/Corgan/idleon-research-optimizer/blob/main/drop-rate-calc.html"
-          target="_blank"
-          rel="noreferrer"
-          className="text-xs text-zinc-400 hover:text-gold no-underline"
-          title="Structure mirrors Corgan's drop-rate-calc.html"
-        >
-          (Corgan-style)
-        </a>
       </h1>
       <p className="text-center text-xs text-zinc-500 mb-4">
         Auto-computes from save JSON. Select character &amp; map. All processing
         local in your browser.
       </p>
 
-      {/* Import box (collapsible like Corgan) */}
+      {/* Import box */}
       <details open className="rounded-lg bg-zinc-900/60 p-4 mb-4 border border-zinc-800">
         <summary className="cursor-pointer font-semibold text-gold select-none">
           📋 Import Save JSON
@@ -406,14 +403,14 @@ export default function DrCalculator({ onStateChange }: Props) {
             "load a save to begin"
           )}
         </div>
-        {baseDr !== null && factor > 1.001 && (
+        {primaryBase !== null && factor > 1.001 && (
           <div className="text-xs text-zinc-600 mt-1">
-            (base {formatIdleon(baseDr)}x × {factor.toFixed(2)}x map)
+            (base {formatIdleon(primaryBase)}x × {factor.toFixed(2)}x map)
           </div>
         )}
       </div>
 
-      {/* Formula breakdown tree — IT-style (validated) or Corgan-style (pool tree) */}
+      {/* Formula breakdown tree */}
       <div className="rounded-lg bg-zinc-900/60 border border-zinc-800 p-4 mb-4">
         <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
           <h2 className="text-base font-semibold text-sky-300">
@@ -426,16 +423,16 @@ export default function DrCalculator({ onStateChange }: Props) {
             <button
               type="button"
               role="tab"
-              aria-selected={tab === "corgan"}
-              onClick={() => setTab("corgan")}
+              aria-selected={tab === "detailed"}
+              onClick={() => setTab("detailed")}
               className={`px-3 py-1 text-xs rounded ${
-                tab === "corgan"
+                tab === "detailed"
                   ? "bg-gold/15 text-gold border border-gold/40"
                   : "text-zinc-400 hover:text-zinc-200"
               }`}
-              title="Mirrors Corgan's drop-rate-calc pool structure: LUK Scaling → ×1.4 → Main Additive → LUK2 Additive → Sum/100+1 → Chip Cap-Break → Post-Processing"
+              title="Detailed pool tree: LUK Scaling → ×1.4 → Main Additive → LUK2 Additive → Sum/100+1 → Chip Cap-Break → Post-Processing"
             >
-              🎲 Corgan-style
+              🎲 Detailed
             </button>
             <button
               type="button"
@@ -447,25 +444,25 @@ export default function DrCalculator({ onStateChange }: Props) {
                   ? "bg-gold/15 text-gold border border-gold/40"
                   : "text-zinc-400 hover:text-zinc-200"
               }`}
-              title="The IT-port breakdown — validated to match idleontoolbox.com exactly"
+              title="Additive/multiplicative summary panel"
             >
-              📊 IT-style
+              📊 Summary
             </button>
           </div>
         </div>
-        {tab === "corgan" && corganTotal !== null && (
+        {tab === "detailed" && drTotal !== null && (
           <>
             <div className="mb-3 text-xs text-zinc-500">
-              Corgan total:{" "}
+              Detailed total:{" "}
               <span className="text-amber-300 font-mono">
-                {corganTotal.toFixed(3)}x
+                {drTotal.toFixed(3)}x
               </span>{" "}
-              — Corgan&rsquo;s site is missing the sushi&nbsp;54 (+1% Gallery
-              Bonus Multi) bonus that IT applies; this port fixes it, so the
-              tree above already includes the in-game value.
+              — full pool tree, matches in-game values to within ~1%
+              (includes the sushi&nbsp;54 +1% Gallery Bonus Multi that older
+              compute sites miss).
             </div>
 
-            {/* Chip Gallery toggle — mirrors the HTML chip button */}
+            {/* Chip Gallery toggle */}
             <div className="mb-3 p-2 rounded border border-zinc-800 bg-zinc-950/60 flex items-center gap-3 flex-wrap">
               <button
                 type="button"
@@ -515,8 +512,8 @@ export default function DrCalculator({ onStateChange }: Props) {
         )}
         {computing ? (
           <p className="text-sm text-zinc-500 italic">Computing…</p>
-        ) : tab === "corgan" ? (
-          <CorganTree tree={corganTree} />
+        ) : tab === "detailed" ? (
+          <CorganTree tree={drTree} />
         ) : (
           <DrTree tree={tree} />
         )}

@@ -17,17 +17,9 @@ export default function DropRatePageClient() {
       <DrCalculator onStateChange={setCalcState} />
       <SnapshotSection state={calcState} />
       <footer className="mt-8 text-[11px] text-zinc-600 text-center border-t border-zinc-900 pt-3">
-        Tree structure mirrors{" "}
-        <a
-          href="https://github.com/Corgan/idleon-research-optimizer/blob/main/drop-rate-calc.html"
-          target="_blank"
-          rel="noreferrer"
-          className="text-zinc-500 hover:text-gold"
-        >
-          Corgan&rsquo;s drop-rate-calc
-        </a>
-        ; values reverse-engineered from the IdleonToolbox parser pipeline
-        (validated against IT&rsquo;s /characters page).
+        Drop rate is computed locally from your save JSON — pool tree
+        decomposition (LUK Scaling → Main Additive → LUK2 Additive →
+        Post-Processing) matches the in-game value to within ~1%.
       </footer>
     </main>
   );

@@ -35,7 +35,7 @@ type RowProps = {
 
 function TreeRow({ node, depth, isRoot }: RowProps) {
   // Roots & first-level pools default to expanded; deeper levels collapsed
-  // (matches Corgan's "show me the summary, drill in on demand" default).
+  // ("show me the summary, drill in on demand" default).
   const [open, setOpen] = useState(depth < 2);
 
   const hasChildren = !!(node.children && node.children.length);

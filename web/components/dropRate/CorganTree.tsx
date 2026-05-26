@@ -88,7 +88,7 @@ export default function CorganTree({ tree }: { tree: CorganNode | null }) {
   if (!tree) {
     return (
       <p className="text-sm text-zinc-500 italic">
-        Load a save above to compute the Corgan breakdown.
+        Load a save above to compute the drop rate breakdown.
       </p>
     );
   }
