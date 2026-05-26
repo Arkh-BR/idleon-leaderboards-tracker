@@ -195,6 +195,59 @@ if (existsSync(seedPath)) {
   }
 }
 
+// Pick up a per-character reference snapshot if one's been generated
+// (gen-dragami-snapshot.ts and friends — one file per high-end player
+// whose save we have on disk). Embed inline so the HTML can offer a
+// one-click "Load <player>" button per snapshot.
+type RefSnap = {
+  label: string;
+  emoji: string;
+  charName: string;
+  capturedAt: number;
+  computedDropRate: number;
+  flatTree: Record<string, number>;
+};
+const refSnapshots: RefSnap[] = [];
+function loadRefSnapshot(filePath: string, label: string, emoji: string) {
+  if (!existsSync(filePath)) return;
+  try {
+    const raw = JSON.parse(readFileSync(filePath, "utf8"));
+    // Extract the latest snapshot across all chars in this file.
+    let best: any = null;
+    let bestTs = -Infinity;
+    if (raw.snapshotsByChar) {
+      for (const charName of Object.keys(raw.snapshotsByChar)) {
+        const list = raw.snapshotsByChar[charName];
+        if (!Array.isArray(list)) continue;
+        for (const snap of list) {
+          if (!snap || !snap.flatTree) continue;
+          const ts = Number(snap.capturedAt) || 0;
+          if (ts > bestTs) {
+            bestTs = ts;
+            best = { ...snap, charName: snap.charName || charName };
+          }
+        }
+      }
+    }
+    if (!best) return;
+    refSnapshots.push({
+      label,
+      emoji,
+      charName: best.charName,
+      capturedAt: best.capturedAt || Date.now(),
+      computedDropRate: Number(best.computedDropRate) || 0,
+      flatTree: best.flatTree,
+    });
+  } catch {
+    /* skip broken snapshot files */
+  }
+}
+loadRefSnapshot(
+  resolve(repoRoot, "web/data/dragami-snapshot.json"),
+  "Load Dragami",
+  "🐉"
+);
+
 const catalog = {
   generatedAt: new Date().toISOString(),
   refTotal: r.total,
@@ -207,6 +260,10 @@ const catalog = {
   /** Optional pre-baked seed (from populate-max-from-it.ts). The HTML
    *  exposes a button to apply it without leaving the page. */
   itSeed,
+  /** Per-character reference snapshots — embedded so the HTML can offer
+   *  one-click "Load <player>" buttons. Each carries the full flatTree
+   *  so the Ref column updates per-source. */
+  refSnapshots,
 };
 writeFileSync(catalogPath, JSON.stringify(catalog, null, 2));
 
@@ -501,6 +558,7 @@ function buildHtml(cat: typeof catalog): string {
     <button id="apply-seed" class="seed-btn" hidden title="Apply the IT-leaderboard-derived seed values">
       🌱 Apply IT seed
     </button>
+    <span id="ref-snap-btns"></span>
     <button id="set-all-ref"
       title="For every BLANK row, copy its reference value into Max. Existing maxes are left alone."
     >
@@ -1228,6 +1286,50 @@ function buildHtml(cat: typeof catalog): string {
     saveRefMeta(null);
     render();
   };
+
+  // Apply a single embedded reference snapshot — same code path as the
+  // file picker import, just with the data inlined at generation time.
+  function applyEmbeddedSnap(snap) {
+    const overrides = {};
+    let matched = 0;
+    for (const src of catalog.sources) {
+      function walk(s) {
+        if (Object.prototype.hasOwnProperty.call(snap.flatTree, s.id)) {
+          overrides[s.id] = Number(snap.flatTree[s.id]) || 0;
+          matched++;
+        }
+        if (s.children) for (const c of s.children) walk(c);
+      }
+      walk(src);
+    }
+    refOverride = overrides;
+    refMeta = {
+      charName: snap.charName,
+      capturedAt: snap.capturedAt,
+      matchedCount: matched,
+      totalCount: countAllSources(),
+    };
+    saveRefOverride(refOverride);
+    saveRefMeta(refMeta);
+    render();
+  }
+
+  // Inject one button per embedded snapshot (e.g. Dragami).
+  const snapBtnsHost = document.getElementById("ref-snap-btns");
+  if (snapBtnsHost && Array.isArray(catalog.refSnapshots)) {
+    for (const snap of catalog.refSnapshots) {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "seed-btn";
+      btn.title =
+        snap.emoji + " Load " + snap.charName + " — DR " +
+        (snap.computedDropRate ? snap.computedDropRate.toFixed(0) + "x" : "?") +
+        ". Overrides the Ref column with this character's values.";
+      btn.textContent = snap.emoji + " " + (snap.label || "Load " + snap.charName);
+      btn.onclick = () => applyEmbeddedSnap(snap);
+      snapBtnsHost.appendChild(btn);
+    }
+  }
 
   // Export → JSON download
   document.getElementById("export").onclick = () => {
