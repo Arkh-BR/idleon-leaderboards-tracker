@@ -48,7 +48,72 @@ type SourceEntry = {
   refValue: number;
   /** Parent bucket display name (with emoji), for grouping in the UI. */
   bucket: string;
+  /** Optional informational footer the renderer mutes after the name. */
+  note?: string;
+  /** Recursive descendants. Empty/undefined when the node has no
+   *  drill-down (e.g. a leaf talent without sub-source breakdown). */
+  children?: SourceEntry[];
 };
+
+// Names that mark catalog-only placeholder rows (un-equipped items,
+// safety net rows). They have no per-character DR value and would
+// drown out the real entries, so we skip them entirely.
+const SKIP_NAMES = new Set([
+  "No active sources",
+  "Available DR Items (not equipped)",
+  "Available DR Obols (not equipped)",
+  "Not Unlocked",
+]);
+
+function collectChildren(
+  parent: CorganNode,
+  parentPath: string,
+  parentSiblings: CorganNode[],
+  parentIdx: number,
+  bucket: CorganNode,
+  sys: SystemKey,
+  world: WorldKey,
+  poolBadge: "Additive" | "Multi"
+): SourceEntry[] {
+  void parentSiblings;
+  void parentIdx;
+  const kids = parent.children || [];
+  const out: SourceEntry[] = [];
+  for (let i = 0; i < kids.length; i++) {
+    const child = kids[i];
+    if (SKIP_NAMES.has(child.name)) continue;
+    // Drop placeholder rows the loader emits to signpost catalog content
+    // (e.g. "Helmets — 6 items" inside the catalog tree). They're
+    // navigational, not actual DR sources, so keep them collapsed but
+    // skip including them as trackable entries.
+    if (/— \d+ item/.test(child.name)) continue;
+    const childPath = nodePath(parentPath, child, kids, i);
+    const entry: SourceEntry = {
+      id: childPath,
+      name: child.name,
+      system: sys,
+      world,
+      pool: poolBadge,
+      fmt: (child.fmt as "+" | "x" | "raw") ?? "raw",
+      refValue: Number(child.val) || 0,
+      bucket: bucket.name,
+    };
+    if (child.note) entry.note = child.note;
+    const grandKids = collectChildren(
+      child,
+      childPath,
+      kids,
+      i,
+      bucket,
+      sys,
+      world,
+      poolBadge
+    );
+    if (grandKids.length > 0) entry.children = grandKids;
+    out.push(entry);
+  }
+  return out;
+}
 
 const raw = JSON.parse(readFileSync(SAVE_PATH, "utf8"));
 const r = computeCorganDropRate(raw, 2, 0);
@@ -71,18 +136,11 @@ for (let pi = 0; pi < tops.length; pi++) {
     const rows = bucket.children || [];
     for (let si = 0; si < rows.length; si++) {
       const src = rows[si];
-      // Skip pure placeholder rows ("No active sources", "Available DR
-      // Items (not equipped)") that exist for catalog UX but aren't real
-      // source rows we'd track a max for.
-      if (
-        src.name === "No active sources" ||
-        src.name === "Available DR Items (not equipped)"
-      )
-        continue;
+      if (SKIP_NAMES.has(src.name)) continue;
       const id = nodePath(bucketPath, src, rows, si);
       const badge: "Additive" | "Multi" =
         bucket.fmt === "x" ? "Multi" : "Additive";
-      sources.push({
+      const entry: SourceEntry = {
         id,
         name: src.name,
         system: sys,
@@ -91,7 +149,11 @@ for (let pi = 0; pi < tops.length; pi++) {
         fmt: (src.fmt as "+" | "x" | "raw") ?? "raw",
         refValue: Number(src.val) || 0,
         bucket: bucket.name,
-      });
+      };
+      if (src.note) entry.note = src.note;
+      const subs = collectChildren(src, id, rows, si, bucket, sys, world, badge);
+      if (subs.length > 0) entry.children = subs;
+      sources.push(entry);
     }
   }
 }
@@ -271,6 +333,35 @@ function buildHtml(cat: typeof catalog): string {
     font-family: monospace; text-align: right; color: var(--ink);
     font-size: 12px;
   }
+  /* Expand chevron for rows with sub-sources */
+  td.name {
+    white-space: nowrap;
+  }
+  td.name .chev {
+    display: inline-block; width: 14px; text-align: center;
+    color: var(--ink-mute); font-size: 11px;
+    cursor: pointer; margin-right: 4px; user-select: none;
+  }
+  td.name .chev.no-children { cursor: default; opacity: 0.25; }
+  td.name .chev:not(.no-children):hover { color: var(--accent); }
+  td.name .name-text { white-space: normal; }
+  /* Sub-source rows — indented + slightly faded */
+  tr.subrow td { font-size: 11px; padding: 4px 8px; }
+  tr.subrow.depth-1 td.name { padding-left: 28px; }
+  tr.subrow.depth-2 td.name { padding-left: 48px; }
+  tr.subrow.depth-3 td.name { padding-left: 68px; }
+  tr.subrow.depth-4 td.name { padding-left: 88px; }
+  tr.subrow td.name { color: var(--ink-dim); }
+  tr.subrow td.system, tr.subrow td.poolbadge {
+    /* Children share the parent's system + pool — leave columns empty
+       so the eye reads them as continuation of the row above. */
+    opacity: 0;
+  }
+  tr.subrow td.input input[type="number"] { width: 80px; }
+  tr.subrow td.observed input { width: 110px; }
+  tr.subrow td.verified select { font-size: 10px; }
+  tr.hidden { display: none; }
+
   td.input {
     white-space: nowrap;
   }
@@ -415,6 +506,10 @@ function buildHtml(cat: typeof catalog): string {
   const REF_OVERRIDE_KEY = "dr-max-values.ref-override.v1";
   // Meta about the loaded snapshot: { charName, capturedAt }
   const REF_META_KEY = "dr-max-values.ref-meta.v1";
+  // Expanded source rows (the chevron has been clicked open). Stored as
+  // a Set<string> of source ids; persisted to localStorage so the
+  // drill-down state survives reloads.
+  const EXPANDED_KEY = "dr-max-values.expanded.v1";
 
   const catalog = JSON.parse(document.getElementById("catalog").textContent);
   document.getElementById("genstamp").textContent =
@@ -494,10 +589,24 @@ function buildHtml(cat: typeof catalog): string {
     } catch (e) { /* quota */ }
   }
 
+  function loadExpanded() {
+    try {
+      const raw = localStorage.getItem(EXPANDED_KEY);
+      if (!raw) return new Set();
+      const parsed = JSON.parse(raw);
+      return new Set(Array.isArray(parsed) ? parsed : []);
+    } catch (e) { return new Set(); }
+  }
+  function saveExpanded(s) {
+    try { localStorage.setItem(EXPANDED_KEY, JSON.stringify([...s])); }
+    catch (e) { /* quota */ }
+  }
+
   let values = loadValues();
   let collapsedWorlds = loadCollapsedWorlds();
   let refOverride = loadRefOverride();
   let refMeta = loadRefMeta();
+  let expandedIds = loadExpanded();
   let filterText = "";
   let filterMode = "all"; // "all" | "blank" | "filled"
 
@@ -525,6 +634,27 @@ function buildHtml(cat: typeof catalog): string {
       byBucket.get(src.bucket).push(src);
     }
     return byWorld;
+  }
+
+  /** Walk every source AND every descendant, calling cb on each. */
+  function eachSource(cb) {
+    function walk(s) {
+      cb(s);
+      if (s.children) for (const c of s.children) walk(c);
+    }
+    for (const top of catalog.sources) walk(top);
+  }
+  function countAllSources() {
+    let n = 0;
+    eachSource(() => n++);
+    return n;
+  }
+  function countFilledAll() {
+    let n = 0;
+    eachSource((s) => {
+      if (values[s.id] && typeof values[s.id].maxValue === "number") n++;
+    });
+    return n;
   }
 
   function passFilter(src) {
@@ -582,26 +712,27 @@ function buildHtml(cat: typeof catalog): string {
     content.innerHTML = "";
     const byWorld = group();
     let visibleSources = 0;
-    let filledSources = 0;
-    let totalSources = 0;
-    for (const src of catalog.sources) {
-      totalSources++;
-      if (values[src.id] && typeof values[src.id].maxValue === "number")
-        filledSources++;
-    }
+    const totalSources = countAllSources();
+    const filledSources = countFilledAll();
 
     for (const world of catalog.worldOrder) {
       const buckets = byWorld.get(world);
       if (!buckets || buckets.size === 0) continue;
-      // Filter at the source level to get a visible-count for this world
+      // Filter at the source level to get a visible-count for this world.
+      // Filled / Total count descendants recursively so the progress bar
+      // reflects the deepest catalog level.
       let worldVisible = 0;
       let worldFilled = 0;
       let worldTotal = 0;
+      function walkCount(s) {
+        worldTotal++;
+        if (values[s.id] && typeof values[s.id].maxValue === "number")
+          worldFilled++;
+        if (s.children) for (const c of s.children) walkCount(c);
+      }
       for (const [, list] of buckets) {
         for (const src of list) {
-          worldTotal++;
-          if (values[src.id] && typeof values[src.id].maxValue === "number")
-            worldFilled++;
+          walkCount(src);
           if (passFilter(src)) worldVisible++;
         }
       }
@@ -652,7 +783,8 @@ function buildHtml(cat: typeof catalog): string {
             '</tr></thead>';
           const tbody = document.createElement("tbody");
           for (const src of visibleSrc) {
-            tbody.appendChild(renderRow(src));
+            // Recursively emit the source row and any expanded descendants.
+            appendRowAndChildren(tbody, src, 0);
           }
           table.appendChild(tbody);
           group.appendChild(table);
@@ -667,15 +799,49 @@ function buildHtml(cat: typeof catalog): string {
       ' filled · <b>' + visibleSources + '</b> visible';
   }
 
-  function renderRow(src) {
+  /** Append src and (if expanded) its descendants to tbody. The
+   *  caller passes depth=0 for top-level rows; recursion increments. */
+  function appendRowAndChildren(tbody, src, depth) {
+    tbody.appendChild(renderRow(src, depth));
+    if (expandedIds.has(src.id) && src.children) {
+      for (const c of src.children) {
+        appendRowAndChildren(tbody, c, depth + 1);
+      }
+    }
+  }
+
+  function renderRow(src, depth) {
     const entry = values[src.id] || {};
     const hasMax = typeof entry.maxValue === "number";
+    const hasChildren = !!(src.children && src.children.length);
+    const isOpen = expandedIds.has(src.id);
     const tr = document.createElement("tr");
     tr.className = hasMax ? "has-max" : "no-data";
+    if (depth > 0) tr.classList.add("subrow", "depth-" + depth);
 
     const tdName = document.createElement("td");
     tdName.className = "name";
-    tdName.textContent = src.name;
+    // Chevron button — clickable when the source has children, dead-space
+    // dot otherwise (so columns line up).
+    const chev = document.createElement("span");
+    chev.className = "chev" + (hasChildren ? "" : " no-children");
+    chev.textContent = hasChildren ? (isOpen ? "▾" : "▸") : "·";
+    if (hasChildren) {
+      chev.title = isOpen
+        ? "Collapse — hide " + src.children.length + " sub-source(s)"
+        : "Expand — show " + src.children.length + " sub-source(s)";
+      chev.onclick = () => {
+        if (expandedIds.has(src.id)) expandedIds.delete(src.id);
+        else expandedIds.add(src.id);
+        saveExpanded(expandedIds);
+        render();
+      };
+    }
+    tdName.appendChild(chev);
+    const nameText = document.createElement("span");
+    nameText.className = "name-text";
+    nameText.textContent = src.name;
+    tdName.appendChild(nameText);
     tr.appendChild(tdName);
 
     const tdSys = document.createElement("td");
@@ -805,15 +971,13 @@ function buildHtml(cat: typeof catalog): string {
   }
 
   function updateStats() {
-    let filled = 0;
-    for (const id in values) {
-      if (typeof values[id].maxValue === "number") filled++;
-    }
+    const filled = countFilledAll();
+    const total = countAllSources();
     let visible = 0;
     for (const src of catalog.sources) if (passFilter(src)) visible++;
     document.getElementById("stats").innerHTML =
-      '<b>' + filled + '</b>/' + catalog.sources.length +
-      ' filled · <b>' + visible + '</b> visible';
+      '<b>' + filled + '</b>/' + total +
+      ' filled · <b>' + visible + '</b> top-level visible';
   }
 
   function escapeHtml(s) {
