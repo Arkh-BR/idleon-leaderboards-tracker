@@ -168,17 +168,14 @@ const dropRateDesc: Descriptor = {
       ...pools.addLUK2.items,
     ];
 
-    // Chain = pm[1] (Explorer Bundle) + pm[2..end]. Compute its effective
-    // product so the wrapper val matches the math.
+    // Chain items = pm[1] (Explorer Bundle) + pm[2..end]. Now hoisted to
+    // Post-Processing siblings by game system (no more "Multiplier Chain"
+    // wrapper) — Post-Processing's headline val (dr / base) carries the
+    // overall chain multiplier, so no need to precompute the product.
     const chainItems = pm.slice(1);
-    let chainMulti = 1;
-    for (const it of chainItems) {
-      const v = Number(it.val) || 0;
-      chainMulti *= it.fmt === "x" ? v || 1 : 1 + v / 100;
-    }
 
     // The three hoisted pre-chain items — each rendered as a 1-item
-    // system bucket (Bundles / Talents / Pristine Charms) so the visual
+    // system bucket (Bundles / Talents / Sneaking Mastery) so the visual
     // matches the additive-pool style.
     const wrapInBucket = (
       item: CorganNode | undefined,
@@ -201,7 +198,9 @@ const dropRateDesc: Descriptor = {
     };
     const bunVBucket = wrapInBucket(pf[0], "Bundles", "+");
     const talentBucket = wrapInBucket(pm[0], "Talents", "x");
-    const olaBucket = wrapInBucket(pf[1], "Pristine Charms", "+");
+    // ola 232 is the Sneaking Mastery completion bonus (not a Pristine
+    // Charm — earlier label was wrong).
+    const olaBucket = wrapInBucket(pf[1], "Sneaking Mastery", "+");
 
     const children: CorganNode[] = [
       {
@@ -244,8 +243,12 @@ const dropRateDesc: Descriptor = {
       // Post-Processing flow, top-to-bottom:
       //   1) + Death Bringer Bundle (flat add)
       //   2) × Archlord Of The Pirates (Talent 328)
-      //   3) + Sneaking Completions (Pristine Charm, flat add)
-      //   4) Multiplier Chain — Explorer Bundle + every remaining ×mult
+      //   3) + Sneaking Completions (Sneaking Mastery, flat add)
+      //   4+) Every remaining ×mult — Explorer Bundle through the rest of
+      //       pm[], collapsed by game system. These are pure × operations,
+      //       commutative within the chain, so each category bucket lands
+      //       directly under Post-Processing instead of being nested in a
+      //       "Multiplier Chain" wrapper.
       {
         // Headline = effective multiplier the Post-Processing block applies
         // to (Total Sum + Chip Cap-Break) to reach the final DR. `base` at
@@ -280,14 +283,7 @@ const dropRateDesc: Descriptor = {
                 },
               ]
             : []),
-          {
-            name: "Multiplier Chain",
-            val: chainMulti,
-            fmt: "x",
-            note:
-              "Pure × chain — starts with Explorer Bundle, order commutative, same-system items merged",
-            children: categorizePoolItems(chainItems, "multiplicative", "merge"),
-          },
+          ...categorizePoolItems(chainItems, "multiplicative", "merge"),
         ],
       },
     ];

@@ -12,11 +12,11 @@ type Ctx = { saveData: SaveData };
 // Most don't have an IT naming table, so the descriptor entries we care
 // about get explicit overrides — both for the main name and for the
 // "system category" tag that DeepView mutes after the friendly name.
-//   232 → +0.3 flat DR once you've finished any W7 Sneaking task. In-game
-//          the bonus surfaces as a Pristine Charm tooltip, so we render
-//          it as such.
+//   232 → +0.3 flat DR once you've completed a W7 Sneaking Mastery task.
+//          The bonus is granted by the Sneaking Mastery system (NOT a
+//          Pristine Charm — the earlier "Pristine Charm" tag was wrong).
 const OLA_LABELS: Record<number, { name: string; tag: string }> = {
-  232: { name: "Sneaking Completions", tag: "Pristine Charm" },
+  232: { name: "Sneaking Completions", tag: "Sneaking Mastery" },
 };
 
 export const ola = {
