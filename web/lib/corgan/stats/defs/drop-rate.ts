@@ -192,14 +192,14 @@ const dropRateDesc: Descriptor = {
             : "Inactive (base ≥ 5× or no chip)",
       },
       {
-        // Post-Processing is multiplicative + order-sensitive on the maths
-        // side (handled above by computing `dr` directly from `pf`/`pm`),
-        // but the children array here is purely cosmetic — the result
-        // `postMult` is already finalised. Safe to group children by system
-        // for readability without affecting the calculation.
+        // Post-Processing categorises in "runs" mode: same-system items
+        // only collapse when they're CONSECUTIVE in the formula order.
+        // The same bucket can appear twice (e.g. Bundles before and
+        // after Talents) so the visual reading order matches the actual
+        // multiplicative chain in combine() above.
         name: "Post-Processing",
         val: postMult,
-        children: categorizePoolItems(allPostItems, "multiplicative"),
+        children: categorizePoolItems(allPostItems, "multiplicative", "runs"),
         fmt: "x",
       },
     ];

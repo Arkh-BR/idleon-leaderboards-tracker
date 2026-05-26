@@ -6,21 +6,20 @@
 //     ▾ Talents              (sum)
 //        • Robbing Hood (Talent 279)
 //        • Curse of Mr Looty Booty (Talent 24)
-//        • …
 //     ▾ Stamps               (sum)
 //        • Golden Sixes Stamp (Stamp A38)
-//     ▾ Cards                (sum)
-//        • Drop Rate Cards (Card Type 10)
-//        • …
+//     …
 //
-// One bucket per game system gives the user finer granularity than the
-// previous Character / Worlds / Boosts & Sets tri-split. Display order is
-// the canonical SYSTEM_ORDER below — character progression first, then
-// world systems, then gear / meta / multipliers.
-//
-// Post-Processing is OUT OF SCOPE: its items multiply in a fixed order and
-// inserting wrappers would change the resulting product. Only Main Additive
-// and LUK2 Additive pools are categorized.
+// Two grouping strategies:
+//   • "merge"  — collect ALL items of the same system into one bucket,
+//                regardless of where they appeared in the source array.
+//                Used by the additive pools where order doesn't matter.
+//   • "runs"   — group only CONSECUTIVE same-system items. If the formula
+//                order interleaves systems, the same bucket can appear
+//                more than once. Used by Post-Processing because the
+//                multiplicative chain in defs/drop-rate.ts is order-
+//                sensitive — preserving the visual reading order matches
+//                the formula's actual application order.
 
 import type { CorganNode } from "../node";
 
@@ -44,8 +43,8 @@ export type SystemKey =
   | "Shrines"
   | "Guild"
   | "Shiny Pets"
-  | "Tomes"
-  | "Lab / Grids"
+  | "Tome"
+  | "Researching"
   | "Chips"
   | "Dreams"
   | "Cloud Bonus"
@@ -55,7 +54,7 @@ export type SystemKey =
   | "Farming"
   | "Holes"
   | "Emperor"
-  | "Legends"
+  | "Legend Talents"
   | "Spelunk Shop"
   | "Sushi RoG"
   | "Minehead"
@@ -71,12 +70,10 @@ export type SystemKey =
   | "Pristine Charms"
   | "Sneaking / OLA"
   | "Event Shop"
-  | "Win Bonus"
-  | "Exotic Crops"
+  | "Summoning"
   | "Other";
 
-// Order = how the systems render top-to-bottom in each pool. Tweaked so
-// progression-y stuff lives first, world systems middle, gear / meta last.
+// Display order used by the "merge" mode (additive pools).
 export const SYSTEM_ORDER: SystemKey[] = [
   "LUK / Stats",
   "Talents",
@@ -95,8 +92,8 @@ export const SYSTEM_ORDER: SystemKey[] = [
   "Voting",
   "Post Office",
   "Shiny Pets",
-  "Tomes",
-  "Lab / Grids",
+  "Tome",
+  "Researching",
   "Chips",
   "Dreams",
   "Cloud Bonus",
@@ -104,10 +101,9 @@ export const SYSTEM_ORDER: SystemKey[] = [
   "Grimoire",
   "Vault",
   "Farming",
-  "Exotic Crops",
   "Holes",
   "Emperor",
-  "Legends",
+  "Legend Talents",
   "Spelunk Shop",
   "Sushi RoG",
   "Minehead",
@@ -122,14 +118,12 @@ export const SYSTEM_ORDER: SystemKey[] = [
   "Pristine Charms",
   "Sneaking / OLA",
   "Event Shop",
-  "Win Bonus",
+  "Summoning",
   "Other",
 ];
 
 // Match against the full node name (after entity-names resolution the
 // system tag sits at the end as "(Talent 279)" / "(Pristine Charm)" / etc.).
-// We classify by the inner system token first, falling back to a prefix
-// scan for the remaining wrappers (Farming rank9, Cavern upg82, etc.).
 type Rule = { match: RegExp; system: SystemKey };
 const RULES: Rule[] = [
   // ----- Character progression (entity-name-tagged) -----
@@ -159,23 +153,24 @@ const RULES: Rule[] = [
     match: /\(Shiny\s|\(Breeding\s|^Breeding\b|Shiny Pet/i,
     system: "Shiny Pets",
   },
-  { match: /\(Tome\s/, system: "Tomes" },
-  { match: /\(Grid\s|\(Lab\s/, system: "Lab / Grids" },
+  { match: /\(Tome\s/, system: "Tome" },
+  { match: /\(Grid\s|\(Lab\s/, system: "Researching" },
   { match: /\(Chip\s/, system: "Chips" },
   { match: /\(Dream\s|\(Dream Challenge\s/, system: "Dreams" },
   { match: /\(Cloud Bonus\s/i, system: "Cloud Bonus" },
   { match: /\(Owl\s|^Summoning Owl/i, system: "Owl" },
   { match: /\(Grimoire\s/, system: "Grimoire" },
   { match: /\(Vault\s/, system: "Vault" },
-  { match: /\(Farming\s|^Farming\b/i, system: "Farming" },
-  { match: /\(Exotic\s/i, system: "Exotic Crops" },
+  // Exotic crops are part of the Farming system — collapse the bucket so
+  // Pommelion Seed (Exotic 59), Crop Drop Rate Rank etc. all land here.
+  { match: /\(Farming\s|^Farming\b|\(Exotic\s/i, system: "Farming" },
   {
     match:
       /\(Cavern\s|\(Measurement\s|\(Hole\s|\(Monument\s|^Monument\b|^Cavern\b|^Measurement\b/i,
     system: "Holes",
   },
   { match: /\(Emperor\s/, system: "Emperor" },
-  { match: /\(Legend\s/, system: "Legends" },
+  { match: /\(Legend\s/, system: "Legend Talents" },
   { match: /\(Spelunking\s|^Spelunking\b/i, system: "Spelunk Shop" },
   { match: /\(RoG Bonus\s|\(Sushi\s/, system: "Sushi RoG" },
   { match: /\(Minehead\s|^Minehead\b/i, system: "Minehead" },
@@ -185,8 +180,7 @@ const RULES: Rule[] = [
   { match: /^Workshop\b/i, system: "Workshop" },
 
   // ----- Gear / Boosts / Meta -----
-  // EtcBonuses(N) wrappers are the equipment+obol+nametag+trophy gear
-  // bucket. Classify the entire tagged label so the row reads as "Gear".
+  // EtcBonuses(N) gear wrappers — equipment + obol + nametag + trophy.
   {
     match:
       /^Drop Rate \(Gear\)|^Bonus Drop Rate \(Gear\)|^Drop Rate Multi \(Gear\)|^Drop Chance \(Gear\)/i,
@@ -202,8 +196,8 @@ const RULES: Rule[] = [
   { match: /\(Pristine\s|\(Pristine Charm\)/, system: "Pristine Charms" },
   { match: /\(Ola\s|^Sneaking\b/i, system: "Sneaking / OLA" },
   { match: /\(Event ?Shop\s/i, system: "Event Shop" },
-  // Summoning win bonus — a meta progression bucket, distinct from Owl.
-  { match: /\(Summoning\s|^Summoning\b/i, system: "Win Bonus" },
+  // Win Bonus is the Summoning sub-system — keep them together as Summoning.
+  { match: /\(Summoning\s|^Summoning\b|Summoning Win/i, system: "Summoning" },
 ];
 
 export function classifySystem(name: string): SystemKey {
@@ -213,12 +207,11 @@ export function classifySystem(name: string): SystemKey {
 
 export type AggregateMode = "additive" | "multiplicative";
 
-/** Roll a single bucket's children into a summary value matching their
- *  semantic. For additive buckets we sum the raw vals (sources contribute
- *  +X to the additive pool). For multiplicative buckets we PRODUCT each
- *  item's effective multiplier — fmt='x' items pass their val through,
- *  fmt='+' items become 1 + val/100 (mirroring the post-mult chain's
- *  arithmetic in defs/drop-rate.ts). */
+/** Roll a single bucket's children into a summary value matching its
+ *  aggregation mode. Additive: simple Σ. Multiplicative: PRODUCT of each
+ *  item's effective multiplier — fmt='x' items pass through, fmt='+'
+ *  items become 1 + val/100 (mirroring the post-mult chain arithmetic
+ *  in defs/drop-rate.ts combine()). */
 function summariseBucket(
   items: CorganNode[],
   mode: AggregateMode
@@ -227,7 +220,6 @@ function summariseBucket(
     const sum = items.reduce((a, n) => a + (Number(n.val) || 0), 0);
     return { val: sum, fmt: "+" };
   }
-  // multiplicative
   let product = 1;
   for (const n of items) {
     const v = Number(n.val) || 0;
@@ -237,15 +229,13 @@ function summariseBucket(
   return { val: product, fmt: "x" };
 }
 
-/** Wrap pool items into per-system sub-nodes. The aggregation mode tells
- *  us how to compute each bucket's summary value — additive for the
- *  Main / LUK2 pools, multiplicative for Post-Processing where each
- *  bucket represents a combined multiplier. The Post-Processing math
- *  itself is computed elsewhere (defs/drop-rate.ts combine()); this is
- *  purely a display rollup. */
-export function categorizePoolItems(
+/** "merge" mode — combine ALL items of the same system into one bucket,
+ *  reordering them by SYSTEM_ORDER. Used by Main Additive Pool and LUK2
+ *  Additive Pool where the source order is descriptor-only and reordering
+ *  doesn't change the math (additive sums are commutative). */
+function categorizeMerged(
   items: CorganNode[],
-  mode: AggregateMode = "additive"
+  mode: AggregateMode
 ): CorganNode[] {
   const buckets = new Map<SystemKey, CorganNode[]>();
   for (const it of items) {
@@ -258,12 +248,52 @@ export function categorizePoolItems(
     const list = buckets.get(sys);
     if (!list || list.length === 0) continue;
     const { val, fmt } = summariseBucket(list, mode);
-    ordered.push({
-      name: sys,
-      val,
-      fmt,
-      children: list,
-    });
+    ordered.push({ name: sys, val, fmt, children: list });
   }
   return ordered;
+}
+
+/** "runs" mode — group only CONSECUTIVE same-system items, preserving
+ *  the original sequence. The same system can appear more than once if
+ *  the source order interleaves it with others. Used by Post-Processing
+ *  because the multiplicative chain in combine() applies items in this
+ *  exact sequence (e.g. bunV → talent328 → ola232 → bunP → …) — the
+ *  display order has to match the formula's reading order even if that
+ *  means showing "Bundles" twice. */
+function categorizeRuns(
+  items: CorganNode[],
+  mode: AggregateMode
+): CorganNode[] {
+  const out: CorganNode[] = [];
+  let currentSys: SystemKey | null = null;
+  let run: CorganNode[] = [];
+  const flushRun = () => {
+    if (!currentSys || run.length === 0) return;
+    const { val, fmt } = summariseBucket(run, mode);
+    out.push({ name: currentSys, val, fmt, children: run });
+    run = [];
+  };
+  for (const it of items) {
+    const sys = classifySystem(it.name);
+    if (sys !== currentSys) {
+      flushRun();
+      currentSys = sys;
+    }
+    run.push(it);
+  }
+  flushRun();
+  return out;
+}
+
+/** Wrap pool items into per-system sub-nodes. The strategy decides
+ *  whether items with the same system are merged or only grouped when
+ *  consecutive (formula order preserved). */
+export function categorizePoolItems(
+  items: CorganNode[],
+  mode: AggregateMode = "additive",
+  strategy: "merge" | "runs" = "merge"
+): CorganNode[] {
+  return strategy === "runs"
+    ? categorizeRuns(items, mode)
+    : categorizeMerged(items, mode);
 }
