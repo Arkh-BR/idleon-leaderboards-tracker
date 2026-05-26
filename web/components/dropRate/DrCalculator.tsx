@@ -64,6 +64,7 @@ export default function DrCalculator({ onStateChange }: Props) {
     detected: boolean;
     charIdx: number;
     slot: number;
+    labSlots?: number[][];
   } | null>(null);
 
   // Dynamic-imported compute function — keeps the IT pipeline + website-data
@@ -186,18 +187,26 @@ export default function DrCalculator({ onStateChange }: Props) {
         lab = null;
       }
     }
-    let found = { detected: false, charIdx: -1, slot: -1 };
+    const found: {
+      detected: boolean;
+      charIdx: number;
+      slot: number;
+      labSlots: number[][];
+    } = { detected: false, charIdx: -1, slot: -1, labSlots: [] };
     if (Array.isArray(lab)) {
       for (let ci = 0; ci < 10; ci++) {
         const slots = lab[1 + ci];
         if (!Array.isArray(slots)) continue;
+        found.labSlots.push(slots.map((v) => Number(v) || 0));
+        if (found.detected) continue;
         for (let s = 0; s < 7; s++) {
           if (Number(slots[s]) === 16) {
-            found = { detected: true, charIdx: ci, slot: s };
+            found.detected = true;
+            found.charIdx = ci;
+            found.slot = s;
             break;
           }
         }
-        if (found.detected) break;
       }
     }
     setChipDetected(found);
@@ -484,6 +493,20 @@ export default function DrCalculator({ onStateChange }: Props) {
                     <span className="text-zinc-600">○</span> Chip 16 not detected
                     in save — toggle on if it was active when the gallery last
                     refreshed
+                    {chipDetected?.labSlots && chipDetected.labSlots.length > 0 && (
+                      <details className="mt-1">
+                        <summary className="cursor-pointer text-zinc-600 hover:text-zinc-400">
+                          show lab chip slots ({chipDetected.labSlots.length} chars)
+                        </summary>
+                        <div className="mt-1 font-mono text-[10px] text-zinc-500 max-h-32 overflow-auto">
+                          {chipDetected.labSlots.map((slots, ci) => (
+                            <div key={ci}>
+                              char {ci}: [{slots.join(", ")}]
+                            </div>
+                          ))}
+                        </div>
+                      </details>
+                    )}
                   </>
                 )}
               </div>
