@@ -9,12 +9,14 @@ import type { SaveData } from "../../../state";
 
 type Ctx = { saveData: SaveData };
 
-// Friendly tome names sourced from tomeData[i].name in IT website-data.
-// Each Tome slot is a different "Career Achievement" that grants a DR
-// scaling bonus. The descriptor uses ids 2 and 7 today.
+// Tome slot labels — the DR descriptor uses ids 2 and 7. Despite their
+// tomeData[i].name (Cards Total LV / Total Achievements Completed)
+// pointing at the score source, the actual DR effect is what matters
+// for this view: Tome 2 contributes to the additive pool, Tome 7 enters
+// the post-mult chain as a multiplier.
 const TOME_NAMES: Record<number, string> = {
-  2: "Cards Total LV",
-  7: "Total Achievements Completed",
+  2: "Drop Rate Additive",
+  7: "Drop Rate Multi",
 };
 function tomeLabel(id: number): string {
   const n = TOME_NAMES[id];

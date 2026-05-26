@@ -60,6 +60,9 @@ export type SystemKey =
   | "Sushi RoG"
   | "Minehead"
   | "Button"
+  | "Arcane Map"
+  | "Glimbo"
+  | "Workshop"
   // Gear / Boosts / Meta
   | "Gear"
   | "Golden Food"
@@ -109,6 +112,9 @@ export const SYSTEM_ORDER: SystemKey[] = [
   "Sushi RoG",
   "Minehead",
   "Button",
+  "Arcane Map",
+  "Glimbo",
+  "Workshop",
   "Gear",
   "Golden Food",
   "Set Bonuses",
@@ -172,8 +178,11 @@ const RULES: Rule[] = [
   { match: /\(Legend\s/, system: "Legends" },
   { match: /\(Spelunking\s|^Spelunking\b/i, system: "Spelunk Shop" },
   { match: /\(RoG Bonus\s|\(Sushi\s/, system: "Sushi RoG" },
-  { match: /\(Minehead\s/, system: "Minehead" },
+  { match: /\(Minehead\s|^Minehead\b/i, system: "Minehead" },
   { match: /\(Button\s/, system: "Button" },
+  { match: /^Arcane Map|^Arcane\b/i, system: "Arcane Map" },
+  { match: /^Glimbo\b/i, system: "Glimbo" },
+  { match: /^Workshop\b/i, system: "Workshop" },
 
   // ----- Gear / Boosts / Meta -----
   // EtcBonuses(N) wrappers are the equipment+obol+nametag+trophy gear
@@ -202,11 +211,42 @@ export function classifySystem(name: string): SystemKey {
   return "Other";
 }
 
-/** Wrap pool items into per-system sub-nodes. Each system node sums its
- *  members (for additive '+' fmt) and renders them as children. Used for
- *  the Main Additive Pool and LUK2 Additive Pool — NOT Post-Processing
- *  (which is order-sensitive). */
-export function categorizePoolItems(items: CorganNode[]): CorganNode[] {
+export type AggregateMode = "additive" | "multiplicative";
+
+/** Roll a single bucket's children into a summary value matching their
+ *  semantic. For additive buckets we sum the raw vals (sources contribute
+ *  +X to the additive pool). For multiplicative buckets we PRODUCT each
+ *  item's effective multiplier — fmt='x' items pass their val through,
+ *  fmt='+' items become 1 + val/100 (mirroring the post-mult chain's
+ *  arithmetic in defs/drop-rate.ts). */
+function summariseBucket(
+  items: CorganNode[],
+  mode: AggregateMode
+): { val: number; fmt: "+" | "x" } {
+  if (mode === "additive") {
+    const sum = items.reduce((a, n) => a + (Number(n.val) || 0), 0);
+    return { val: sum, fmt: "+" };
+  }
+  // multiplicative
+  let product = 1;
+  for (const n of items) {
+    const v = Number(n.val) || 0;
+    if (n.fmt === "x") product *= v || 1;
+    else product *= 1 + v / 100;
+  }
+  return { val: product, fmt: "x" };
+}
+
+/** Wrap pool items into per-system sub-nodes. The aggregation mode tells
+ *  us how to compute each bucket's summary value — additive for the
+ *  Main / LUK2 pools, multiplicative for Post-Processing where each
+ *  bucket represents a combined multiplier. The Post-Processing math
+ *  itself is computed elsewhere (defs/drop-rate.ts combine()); this is
+ *  purely a display rollup. */
+export function categorizePoolItems(
+  items: CorganNode[],
+  mode: AggregateMode = "additive"
+): CorganNode[] {
   const buckets = new Map<SystemKey, CorganNode[]>();
   for (const it of items) {
     const sys = classifySystem(it.name);
@@ -217,11 +257,11 @@ export function categorizePoolItems(items: CorganNode[]): CorganNode[] {
   for (const sys of SYSTEM_ORDER) {
     const list = buckets.get(sys);
     if (!list || list.length === 0) continue;
-    const sum = list.reduce((a, n) => a + (Number(n.val) || 0), 0);
+    const { val, fmt } = summariseBucket(list, mode);
     ordered.push({
       name: sys,
-      val: sum,
-      fmt: "+",
+      val,
+      fmt,
       children: list,
     });
   }

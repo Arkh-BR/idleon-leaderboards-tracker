@@ -192,9 +192,14 @@ const dropRateDesc: Descriptor = {
             : "Inactive (base ≥ 5× or no chip)",
       },
       {
+        // Post-Processing is multiplicative + order-sensitive on the maths
+        // side (handled above by computing `dr` directly from `pf`/`pm`),
+        // but the children array here is purely cosmetic — the result
+        // `postMult` is already finalised. Safe to group children by system
+        // for readability without affecting the calculation.
         name: "Post-Processing",
         val: postMult,
-        children: allPostItems,
+        children: categorizePoolItems(allPostItems, "multiplicative"),
         fmt: "x",
       },
     ];
