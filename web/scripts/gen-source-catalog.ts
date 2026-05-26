@@ -73,6 +73,10 @@ type SourceEntry = {
    *  where idle = (fmt === "x" ? 1 : 0) and delta = bonusConst − idle.
    *  Covers set bonuses (Unlocked), bundles + companions (Owned). */
   bonusConst?: number;
+  /** Game-constant slot-24 contribution per 40-win endless cycle.
+   *  Consumed by endlessWinsBonus: parent ≈ count × perCycleConst/40.
+   *  Captured from the (hidden) "Per 40-Cycle Bonus" child at gen time. */
+  perCycleConst?: number;
 };
 
 // Catalog-only placeholders / safety nets — never trackable sources.
@@ -103,6 +107,10 @@ const SKIP_NAMES = new Set([
   // handler folds this into total = perSkull × Skulls × Active using
   // Base + Bonus from siblings, so the standalone row was dead weight.
   "Per Skull",
+  // Endless summoning per-cycle slot-24 contribution — game constant
+  // for the SummonEnemies registry, lifted onto Endless Wins Bonus's
+  // perCycleConst at gen time and consumed by endlessWinsBonus.
+  "Per 40-Cycle Bonus",
 ]);
 
 // Patterns matched by name — used alongside SKIP_NAMES for synthetic
@@ -447,6 +455,17 @@ function collectChildren(
             entry.bonusConst = Number(child.val) || 0;
             const bn = `bonus: ${entry.bonusConst}`;
             entry.note = entry.note ? `${entry.note} — ${bn}` : bn;
+          }
+          // Endless Wins Bonus: lift the per-cycle game constant from
+          // the (now hidden) "Per 40-Cycle Bonus" child onto the parent
+          // entry so the runtime handler can compute count × const / 40.
+          if (fkey === "endlessWinsBonus") {
+            const perKid = (child.children || []).find(
+              (k) => k.name === "Per 40-Cycle Bonus"
+            );
+            entry.perCycleConst = perKid ? Number(perKid.val) || 0 : 0;
+            const pn = `per cycle: ${entry.perCycleConst}`;
+            entry.note = entry.note ? `${entry.note} — ${pn}` : pn;
           }
         } else {
           const agg = detectAgg(child, child.children || []);
@@ -1102,6 +1121,17 @@ const APP_JS = `
     }
   }
 
+  /** "Has any kid been explicitly filled" — checks effectiveValue
+   *  (which is null when the user hasn't typed a max AND there's no
+   *  formula). Cap-research handlers use this to gate computation:
+   *  no active input → return null → no auto-echo of refValue. */
+  function _hasAnyActive(kids) {
+    for (var i = 0; i < kids.length; i++) {
+      if (effectiveValue(kids[i]) !== null) return true;
+    }
+    return false;
+  }
+
   /** Resolve a named child's effective value for custom formula handlers.
    *  Returns null when the child is missing OR unfilled, so handlers
    *  can early-return null to keep the strict-mode propagation. */
@@ -1178,9 +1208,11 @@ const APP_JS = `
       return idle + owned * (bn - idle);
     },
     "summoningWinBonus24": function (_p, kids) {
-      // Slot 24 of SummWinBonus — Normal + Endless. fall back to
-      // refValue when a kid is empty (same cap-research semantic as
-      // Nonstop Studies parent).
+      // Slot 24 = Normal + Endless. Only compute when the user has
+      // actively filled at least one kid (deep) — otherwise we'd just
+      // echo the gen-time refValue and look "auto-updated" with no
+      // user intent. Once active, fill the other kid from refValue.
+      if (!_hasAnyActive(kids)) return null;
       function kidOrRef(name) {
         for (var i = 0; i < kids.length; i++) {
           if (kids[i].name === name) {
@@ -1196,13 +1228,15 @@ const APP_JS = `
       if (n === null || e === null) return null;
       return n + e;
     },
-    "endlessWinsBonus": function (_p, kids) {
-      // floor(count / 40) × perCycle + partial cycle. Partial isn't
-      // exposable as a sub-input (depends on the exact ring positions
-      // hit), so we approximate when the user adjusts count: assume
-      // perCycle is evenly distributed → contribution = count × (perCycle / 40).
-      // At the at-save state, this exactly matches the gen-time value
-      // when count is a multiple of 40; otherwise it's a close approx.
+    "endlessWinsBonus": function (p, kids) {
+      // floor(count/40) × perCycle + partial. Partial isn't exposable
+      // as a sub-input (depends on exact ring positions), so we
+      // approximate: contribution = count × (perCycleConst / 40).
+      // perCycleConst is a game constant captured at gen time from
+      // the now-hidden "Per 40-Cycle Bonus" child.
+      if (!_hasAnyActive(kids)) return null;
+      var per = p && Number(p.perCycleConst);
+      if (!Number.isFinite(per)) return null;
       function kidOrRef(name) {
         for (var i = 0; i < kids.length; i++) {
           if (kids[i].name === name) {
@@ -1214,8 +1248,7 @@ const APP_JS = `
         return null;
       }
       var count = kidOrRef("Endless Wins Count");
-      var per = kidOrRef("Per 40-Cycle Bonus");
-      if (count === null || per === null) return null;
+      if (count === null) return null;
       return count * (per / 40);
     },
     "talentBonusSum": function (_p, kids) {
@@ -1362,7 +1395,9 @@ const APP_JS = `
       //   + 4·CloudBonus[30])
       // Cap-research semantic — fall back to refValue for any kid
       // the user hasn't filled so editing one input doesn't blank
-      // the rest.
+      // the rest. But require at least ONE active kid first so we
+      // don't show an "auto-computed" max without user intent.
+      if (!_hasAnyActive(kids)) return null;
       function kidOrRef(name) {
         for (var i = 0; i < kids.length; i++) {
           if (kids[i].name === name) {
@@ -1382,9 +1417,10 @@ const APP_JS = `
     },
     "Divinity Minor 2 (Arctis)": function (_p, kids) {
       // ceil(max(1, Y2) × (1 + Coral/100) × Lv/(60+Lv) × God).
-      // Like Nonstop Studies, this is a save-state max-research
-      // formula — fall back to refValue for any unfilled input so the
-      // user can edit one slider without blanking the rest.
+      // Cap-research formula — needs an active kid before auto-
+      // computing. Once any input is filled, fall back to refValue
+      // for the others.
+      if (!_hasAnyActive(kids)) return null;
       function kidOrRef(name) {
         for (var i = 0; i < kids.length; i++) {
           if (kids[i].name === name) {

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-26T20:08:31.013Z",
+  "generatedAt": "2026-05-26T20:14:16.116Z",
   "refTotal": 43093.43816941274,
   "refSave": "zArkhe (save 25-21-16.json) — Town, no AC",
   "sourceCount": 75,
@@ -336,7 +336,7 @@
                       "fmt": "raw",
                       "refValue": 45,
                       "bucket": "🎯 Talents",
-                      "note": "floor(wins/40) × perCycle + partial cycle",
+                      "note": "floor(wins/40) × perCycle + partial cycle — per cycle: 5",
                       "children": [
                         {
                           "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Equinox Symbols (Dream 10) / Summoning WinBonus 24 / Endless Wins Bonus / Endless Wins Count",
@@ -348,21 +348,11 @@
                           "refValue": 363,
                           "bucket": "🎯 Talents",
                           "note": "OLA[319] — total endless summoning victories"
-                        },
-                        {
-                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Equinox Symbols (Dream 10) / Summoning WinBonus 24 / Endless Wins Bonus / Per 40-Cycle Bonus",
-                          "name": "Per 40-Cycle Bonus",
-                          "system": "Talents",
-                          "world": "Character",
-                          "pool": "Additive",
-                          "fmt": "raw",
-                          "refValue": 5,
-                          "bucket": "🎯 Talents",
-                          "note": "slot-24 contribution per 40-win cycle (game constant)"
                         }
                       ],
                       "formulaKey": "endlessWinsBonus",
-                      "agg": "custom"
+                      "agg": "custom",
+                      "perCycleConst": 5
                     }
                   ],
                   "formulaKey": "summoningWinBonus24",
@@ -749,7 +739,7 @@
                       "fmt": "raw",
                       "refValue": 45,
                       "bucket": "🎯 Talents",
-                      "note": "floor(wins/40) × perCycle + partial cycle",
+                      "note": "floor(wins/40) × perCycle + partial cycle — per cycle: 5",
                       "children": [
                         {
                           "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Equinox Symbols (Dream 10) / Summoning WinBonus 24 / Endless Wins Bonus / Endless Wins Count",
@@ -761,21 +751,11 @@
                           "refValue": 363,
                           "bucket": "🎯 Talents",
                           "note": "OLA[319] — total endless summoning victories"
-                        },
-                        {
-                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Equinox Symbols (Dream 10) / Summoning WinBonus 24 / Endless Wins Bonus / Per 40-Cycle Bonus",
-                          "name": "Per 40-Cycle Bonus",
-                          "system": "Talents",
-                          "world": "Character",
-                          "pool": "Additive",
-                          "fmt": "raw",
-                          "refValue": 5,
-                          "bucket": "🎯 Talents",
-                          "note": "slot-24 contribution per 40-win cycle (game constant)"
                         }
                       ],
                       "formulaKey": "endlessWinsBonus",
-                      "agg": "custom"
+                      "agg": "custom",
+                      "perCycleConst": 5
                     }
                   ],
                   "formulaKey": "summoningWinBonus24",
@@ -7118,7 +7098,7 @@
                           "fmt": "raw",
                           "refValue": 45,
                           "bucket": "🎯 Talents",
-                          "note": "floor(wins/40) × perCycle + partial cycle",
+                          "note": "floor(wins/40) × perCycle + partial cycle — per cycle: 5",
                           "children": [
                             {
                               "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Bonus Levels / Equinox Symbols (Dream 10) / Summoning WinBonus 24 / Endless Wins Bonus / Endless Wins Count",
@@ -7130,21 +7110,11 @@
                               "refValue": 363,
                               "bucket": "🎯 Talents",
                               "note": "OLA[319] — total endless summoning victories"
-                            },
-                            {
-                              "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Bonus Levels / Equinox Symbols (Dream 10) / Summoning WinBonus 24 / Endless Wins Bonus / Per 40-Cycle Bonus",
-                              "name": "Per 40-Cycle Bonus",
-                              "system": "Talents",
-                              "world": "Character",
-                              "pool": "Multi",
-                              "fmt": "raw",
-                              "refValue": 5,
-                              "bucket": "🎯 Talents",
-                              "note": "slot-24 contribution per 40-win cycle (game constant)"
                             }
                           ],
                           "formulaKey": "endlessWinsBonus",
-                          "agg": "custom"
+                          "agg": "custom",
+                          "perCycleConst": 5
                         }
                       ],
                       "formulaKey": "summoningWinBonus24",
