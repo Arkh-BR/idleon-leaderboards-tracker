@@ -97,9 +97,16 @@ const dropRateDesc: Descriptor = {
     const lukVal = pools.base.items[0] ? pools.base.items[0].val : 0;
     const lukC = 1.4 * lukVal;
 
-    // Step 2+3: additive pools
+    // Step 2+3: additive pools.
+    // N.js source (the in-game ground truth) at line 5611-5614 has:
+    //   e = 1 + (1.4 * DropRateLUK + (talent279 + ... )) / 100
+    // i.e. the 1.4*LUK term is INSIDE the /100 division alongside the
+    // additives, not outside. Corgan and IdleonToolbox both use the
+    // outside-the-/100 form (1.4*LUK + add/100 + 1), which is off from the
+    // game by ~(1.4 * lukVal) units of base — about 0.3% on a fully geared
+    // character. Matching N.js literally.
     const addSum = pools.addMain.sum + pools.addLUK2.sum;
-    let base = lukC + addSum / 100 + 1;
+    let base = 1 + (lukC + addSum) / 100;
 
     // Chip cap-break (only if base < 5)
     const chipPct = pools.chipDR.items[0] ? pools.chipDR.items[0].val : 0;
@@ -155,11 +162,15 @@ const dropRateDesc: Descriptor = {
         fmt: "+",
       },
       {
-        name: "Sum / 100 + 1",
+        name: "1 + (1.4·LUK + addSum) / 100",
         val: base - chipApplied,
         fmt: "raw",
         note:
-          "(" + lukC.toFixed(2) + " + " + addSum.toFixed(1) + "/100 + 1)",
+          "1 + (" +
+          lukC.toFixed(2) +
+          " + " +
+          addSum.toFixed(1) +
+          ") / 100  — N.js formula",
       },
       {
         name: "Chip Cap-Break",
