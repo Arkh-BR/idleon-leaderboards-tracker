@@ -57,7 +57,37 @@ type SourceEntry = {
    *  exclusives). The UI exposes a "Hide P2W" toggle that filters
    *  these out so the user can see a free-to-play ceiling. */
   p2w?: boolean;
+  /** Aggregation rule — set when this source's reference value is
+   *  recoverable from its children (sum for "+" parents, product for
+   *  "x" parents). The HTML uses it to live-recompute the parent's Max
+   *  whenever a descendant's Max changes, so the user can stipulate
+   *  per-leaf maxes and watch totals roll up automatically. */
+  agg?: "sum" | "product";
 };
+
+/** Detect whether `parent.val` is recoverable from `children.val` via a
+ *  trivial aggregation (sum for fmt:"+" parents, product for fmt:"x").
+ *  Only children whose fmt matches the parent contribute — siblings
+ *  with mismatched fmts are informational (e.g. an "x" Legendary
+ *  Cardholder row inside a "+" card-sum bucket). */
+function detectAgg(
+  parent: CorganNode,
+  children: CorganNode[]
+): "sum" | "product" | null {
+  if (!children.length) return null;
+  if (parent.fmt === "+") {
+    const matching = children.filter((c) => c.fmt === "+");
+    if (matching.length === 0) return null;
+    const sum = matching.reduce((a, c) => a + (Number(c.val) || 0), 0);
+    if (Math.abs(sum - (Number(parent.val) || 0)) < 0.1) return "sum";
+  } else if (parent.fmt === "x") {
+    const matching = children.filter((c) => c.fmt === "x");
+    if (matching.length === 0) return null;
+    const prod = matching.reduce((a, c) => a * (Number(c.val) || 1), 1);
+    if (Math.abs(prod - (Number(parent.val) || 1)) < 0.005) return "product";
+  }
+  return null;
+}
 
 /** Heuristic-flag for P2W sources. The criterion right now:
  *    - Anything classified under the Bundles system, OR
@@ -125,7 +155,11 @@ function collectChildren(
       world,
       poolBadge
     );
-    if (grandKids.length > 0) entry.children = grandKids;
+    if (grandKids.length > 0) {
+      entry.children = grandKids;
+      const agg = detectAgg(child, child.children || []);
+      if (agg) entry.agg = agg;
+    }
     out.push(entry);
   }
   return out;
@@ -169,7 +203,11 @@ for (let pi = 0; pi < tops.length; pi++) {
       if (src.note) entry.note = src.note;
       if (looksP2W(src.name, sys)) entry.p2w = true;
       const subs = collectChildren(src, id, rows, si, bucket, sys, world, badge);
-      if (subs.length > 0) entry.children = subs;
+      if (subs.length > 0) {
+        entry.children = subs;
+        const agg = detectAgg(src, src.children || []);
+        if (agg) entry.agg = agg;
+      }
       sources.push(entry);
     }
   }
@@ -454,6 +492,27 @@ function buildHtml(cat: typeof catalog): string {
   }
   td.input .eq-ref:hover { color: var(--accent); border-color: var(--accent); }
   td.input .eq-ref:disabled { opacity: 0.3; cursor: not-allowed; }
+  /* Aggregation badge — appears on parent rows whose Max is derivable
+     from children (Σ for sum, Π for product). Clicking re-pulls from
+     descendants in case the parent's Max drifted out of sync. */
+  td.input .agg-badge {
+    margin-left: 4px;
+    background: rgba(56, 189, 248, 0.1);
+    color: var(--accent);
+    border: 1px solid rgba(56, 189, 248, 0.35);
+    border-radius: 3px;
+    padding: 3px 5px;
+    font-size: 10px;
+    font-family: monospace;
+    cursor: pointer;
+  }
+  td.input .agg-badge:hover {
+    background: rgba(56, 189, 248, 0.2);
+  }
+  td.input input[type="number"].agg-driven {
+    border-color: rgba(56, 189, 248, 0.4);
+    background: rgba(56, 189, 248, 0.04);
+  }
   td.ref.has-override {
     color: var(--gold);
     font-weight: 600;
@@ -744,6 +803,79 @@ function buildHtml(cat: typeof catalog): string {
     }
     for (const top of catalog.sources) walk(top);
   }
+
+  // -- Source index + parent map. Built once at startup so the
+  //    auto-aggregation pass can walk up from a leaf to its ancestors
+  //    in O(depth) instead of re-walking the whole catalog. --
+  const sourceById = new Map();
+  const parentByChildId = new Map();
+  (function indexSources(arr, parentId) {
+    for (const s of arr) {
+      sourceById.set(s.id, s);
+      if (parentId) parentByChildId.set(s.id, parentId);
+      if (s.children) indexSources(s.children, s.id);
+    }
+  })(catalog.sources, null);
+
+  /** Current effective Max for a source — uses the user's manual value
+   *  when filled, falls back to the (possibly snapshot-overridden) Ref. */
+  function effectiveValue(src) {
+    const entry = values[src.id];
+    if (entry && typeof entry.maxValue === "number") return entry.maxValue;
+    return getRefValue(src);
+  }
+
+  /** Compute the aggregated value for an agg-tagged parent from its
+   *  matching-fmt descendants' effective values. */
+  function computeAgg(parent) {
+    if (!parent.children || !parent.agg) return null;
+    const matching = parent.children.filter((c) => c.fmt === parent.fmt);
+    if (matching.length === 0) return null;
+    if (parent.agg === "sum") {
+      let s = 0;
+      for (const c of matching) s += Number(effectiveValue(c)) || 0;
+      return s;
+    } else if (parent.agg === "product") {
+      let p = 1;
+      for (const c of matching) p *= Number(effectiveValue(c)) || 1;
+      return p;
+    }
+    return null;
+  }
+
+  /** Walk up from childId; for each ancestor with an agg rule,
+   *  recompute and persist its Max. Also updates the visible input
+   *  in-place (no full re-render) so the user's focus + scroll stay
+   *  where they were. */
+  function propagateUp(childId) {
+    let curId = parentByChildId.get(childId);
+    while (curId) {
+      const parent = sourceById.get(curId);
+      if (parent && parent.agg) {
+        const newVal = computeAgg(parent);
+        if (newVal !== null && Number.isFinite(newVal)) {
+          const next = { ...(values[curId] || {}) };
+          next.maxValue = newVal;
+          values[curId] = next;
+          saveValues(values);
+          // Sync the rendered input if it's currently in the DOM.
+          const input = document.querySelector(
+            'input.max-input[data-source-id="' + CSS.escape(curId) + '"]'
+          );
+          if (input) {
+            input.value = String(newVal);
+            input.classList.add("filled", "agg-driven");
+            const tr = input.closest("tr");
+            if (tr) {
+              tr.classList.add("has-max");
+              tr.classList.remove("no-data");
+            }
+          }
+        }
+      }
+      curId = parentByChildId.get(curId);
+    }
+  }
   function countAllSources() {
     let n = 0;
     eachSource(() => n++);
@@ -979,6 +1111,8 @@ function buildHtml(cat: typeof catalog): string {
     maxInput.type = "number";
     maxInput.step = "any";
     maxInput.placeholder = "—";
+    maxInput.className = "max-input";
+    maxInput.setAttribute("data-source-id", src.id);
     maxInput.value = hasMax ? String(entry.maxValue) : "";
     if (hasMax) maxInput.classList.add("filled");
     maxInput.oninput = () => {
@@ -994,9 +1128,15 @@ function buildHtml(cat: typeof catalog): string {
       saveValues(values);
       // Light-touch UI sync (no full re-render — keep focus + scroll)
       maxInput.classList.toggle("filled", typeof next.maxValue === "number");
+      // The user just MANUALLY edited this row — drop the agg-driven
+      // tint since the value is no longer auto-computed.
+      maxInput.classList.remove("agg-driven");
       tr.classList.toggle("has-max", typeof next.maxValue === "number");
       tr.classList.toggle("no-data", typeof next.maxValue !== "number");
       updateStats();
+      // Roll the change UP the ancestor chain — any agg-tagged parent
+      // recomputes from its (now-updated) children's effective values.
+      propagateUp(src.id);
     };
     tdInput.appendChild(maxInput);
 
@@ -1015,11 +1155,56 @@ function buildHtml(cat: typeof catalog): string {
       values[src.id] = next;
       saveValues(values);
       maxInput.classList.add("filled");
+      maxInput.classList.remove("agg-driven");
       tr.classList.add("has-max");
       tr.classList.remove("no-data");
       updateStats();
+      // Same propagation as a manual edit — parents recompute.
+      propagateUp(src.id);
     };
     tdInput.appendChild(eqBtn);
+
+    // Aggregation badge — present only on parents whose Max can be
+    // derived from children. Clicking force-recomputes from current
+    // children (useful if the parent's Max drifted out of sync, e.g.
+    // after a manual override). The input also paints itself with
+    // the agg-driven tint whenever the value matches the computed one.
+    if (src.agg) {
+      const agg = document.createElement("button");
+      agg.type = "button";
+      agg.className = "agg-badge";
+      agg.textContent = src.agg === "sum" ? "Σ" : "Π";
+      agg.title =
+        (src.agg === "sum"
+          ? "Σ — Max auto-computed as the SUM of matching-fmt children. "
+          : "Π — Max auto-computed as the PRODUCT of matching-fmt children. ") +
+        "Click to re-pull from current children.";
+      agg.onclick = () => {
+        const newVal = computeAgg(src);
+        if (newVal === null) return;
+        maxInput.value = String(newVal);
+        const next = { ...(values[src.id] || {}) };
+        next.maxValue = newVal;
+        values[src.id] = next;
+        saveValues(values);
+        maxInput.classList.add("filled", "agg-driven");
+        tr.classList.add("has-max");
+        tr.classList.remove("no-data");
+        updateStats();
+        propagateUp(src.id);
+      };
+      tdInput.appendChild(agg);
+      // If the stored Max matches what we'd auto-compute, paint the
+      // input with the agg-driven tint so the user knows it's synced.
+      const computed = computeAgg(src);
+      if (
+        computed !== null &&
+        typeof entry.maxValue === "number" &&
+        Math.abs(entry.maxValue - computed) < 1e-6
+      ) {
+        maxInput.classList.add("agg-driven");
+      }
+    }
     tr.appendChild(tdInput);
 
     const tdObs = document.createElement("td");

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-26T16:32:30.852Z",
+  "generatedAt": "2026-05-26T16:37:35.996Z",
   "refTotal": 43093.43816941274,
   "refSave": "zArkhe (save 25-21-16.json) — Froggy Fields",
   "sourceCount": 75,
@@ -447,7 +447,8 @@
             }
           ]
         }
-      ]
+      ],
+      "agg": "sum"
     },
     {
       "id": "Drop Rate / Additive Pool / 🃏 Cards / Damage / Drop / EXP Set Bonus (Card Set 5)",
@@ -790,7 +791,8 @@
           "refValue": 6,
           "bucket": "🏆 Achievements"
         }
-      ]
+      ],
+      "agg": "sum"
     },
     {
       "id": "Drop Rate / Additive Pool / 🏆 Achievements / Big Big Hampter (Achievement 381)",
@@ -822,7 +824,8 @@
           "refValue": 4,
           "bucket": "🏆 Achievements"
         }
-      ]
+      ],
+      "agg": "sum"
     },
     {
       "id": "Drop Rate / Additive Pool / 🐾 Companions / Crystal Custard (Companion 3)",
@@ -854,7 +857,8 @@
           "refValue": 100,
           "bucket": "🐾 Companions"
         }
-      ]
+      ],
+      "agg": "sum"
     },
     {
       "id": "Drop Rate / Additive Pool / 🐾 Companions / Santa Snake (Companion 50)",
@@ -886,7 +890,8 @@
           "refValue": 25,
           "bucket": "🐾 Companions"
         }
-      ]
+      ],
+      "agg": "sum"
     },
     {
       "id": "Drop Rate / Additive Pool / 🐾 Companions / Quenchie (Companion 22)",
@@ -918,7 +923,8 @@
           "refValue": 15,
           "bucket": "🐾 Companions"
         }
-      ]
+      ],
+      "agg": "sum"
     },
     {
       "id": "Drop Rate / Additive Pool / 🐾 Companions / Lucky Slug (Companion 158)",
@@ -950,7 +956,8 @@
           "refValue": 15,
           "bucket": "🐾 Companions"
         }
-      ]
+      ],
+      "agg": "sum"
     },
     {
       "id": "Drop Rate / Additive Pool / 🐾 Companions / Clammie (Companion 111)",
@@ -982,7 +989,8 @@
           "refValue": 100,
           "bucket": "🐾 Companions"
         }
-      ]
+      ],
+      "agg": "sum"
     },
     {
       "id": "Drop Rate / Additive Pool / 🐾 Companions / Mama Troll (Companion 132)",
@@ -1014,7 +1022,8 @@
           "refValue": 100,
           "bucket": "🐾 Companions"
         }
-      ]
+      ],
+      "agg": "sum"
     },
     {
       "id": "Drop Rate / Additive Pool / 🤝 Friends / Friend Bonus",
@@ -1758,7 +1767,8 @@
             }
           ]
         }
-      ]
+      ],
+      "agg": "sum"
     },
     {
       "id": "Drop Rate / Additive Pool / 📖 Tome / Drop Rate Additive (Tome 2)",
@@ -2964,7 +2974,8 @@
                   "refValue": 3,
                   "bucket": "🪙 Obols"
                 }
-              ]
+              ],
+              "agg": "sum"
             },
             {
               "id": "Drop Rate / Additive Pool / 🪙 Obols / Obols (etcBonus 2) / Personal / Magma Obol of Big Time Domeo (Hexagon) × 2",
@@ -2996,7 +3007,8 @@
                   "refValue": 14,
                   "bucket": "🪙 Obols"
                 }
-              ]
+              ],
+              "agg": "sum"
             },
             {
               "id": "Drop Rate / Additive Pool / 🪙 Obols / Obols (etcBonus 2) / Personal / Grumpy Obol of the Grandfrogger (Square)",
@@ -3018,9 +3030,11 @@
                   "refValue": 2,
                   "bucket": "🪙 Obols"
                 }
-              ]
+              ],
+              "agg": "sum"
             }
-          ]
+          ],
+          "agg": "sum"
         },
         {
           "id": "Drop Rate / Additive Pool / 🪙 Obols / Obols (etcBonus 2) / Family",
@@ -3082,7 +3096,8 @@
                   "refValue": 16,
                   "bucket": "🪙 Obols"
                 }
-              ]
+              ],
+              "agg": "sum"
             },
             {
               "id": "Drop Rate / Additive Pool / 🪙 Obols / Obols (etcBonus 2) / Family / Magma Obol of Big Time Domeo (Hexagon) × 4",
@@ -3134,7 +3149,8 @@
                   "refValue": 15,
                   "bucket": "🪙 Obols"
                 }
-              ]
+              ],
+              "agg": "sum"
             },
             {
               "id": "Drop Rate / Additive Pool / 🪙 Obols / Obols (etcBonus 2) / Family / Silver Obol of Pop Pop (Circle) × 10",
@@ -3246,7 +3262,8 @@
                   "refValue": 4,
                   "bucket": "🪙 Obols"
                 }
-              ]
+              ],
+              "agg": "sum"
             },
             {
               "id": "Drop Rate / Additive Pool / 🪙 Obols / Obols (etcBonus 2) / Family / Golden Obol of Triple Sixes (Square) × 2",
@@ -3278,7 +3295,8 @@
                   "refValue": 8,
                   "bucket": "🪙 Obols"
                 }
-              ]
+              ],
+              "agg": "sum"
             },
             {
               "id": "Drop Rate / Additive Pool / 🪙 Obols / Obols (etcBonus 2) / Family / Hyper Obol of Lucky Rolls (Circle) × 2",
@@ -3310,7 +3328,8 @@
                   "refValue": 5,
                   "bucket": "🪙 Obols"
                 }
-              ]
+              ],
+              "agg": "sum"
             },
             {
               "id": "Drop Rate / Additive Pool / 🪙 Obols / Obols (etcBonus 2) / Family / Vigilant Obol of Ice Guard (Square)",
@@ -3332,11 +3351,14 @@
                   "refValue": 9,
                   "bucket": "🪙 Obols"
                 }
-              ]
+              ],
+              "agg": "sum"
             }
-          ]
+          ],
+          "agg": "sum"
         }
-      ]
+      ],
+      "agg": "sum"
     },
     {
       "id": "Drop Rate / Additive Pool / 🖼️ Gallery / Nametags (etcBonus 2)",
@@ -4011,7 +4033,8 @@
           "bucket": "🖼️ Gallery",
           "note": "Not in gallery — base +25, scales with Tier × Gallery Bonus Multi"
         }
-      ]
+      ],
+      "agg": "sum"
     },
     {
       "id": "Drop Rate / Additive Pool / 🖼️ Gallery / Trophies (etcBonus 2)",
@@ -4664,7 +4687,8 @@
             }
           ]
         }
-      ]
+      ],
+      "agg": "sum"
     },
     {
       "id": "Drop Rate / Additive Pool / 🎩 Hatrack / Hatrack (etcBonus 2)",
@@ -5381,7 +5405,8 @@
             }
           ]
         }
-      ]
+      ],
+      "agg": "sum"
     },
     {
       "id": "Drop Rate / Additive Pool / 🍔 Golden Food / Golden Food: DropRatez",
@@ -6134,7 +6159,8 @@
             }
           ]
         }
-      ]
+      ],
+      "agg": "sum"
     },
     {
       "id": "Drop Rate / Post-Processing / 🐾 Companions / Mama Troll (Companion 132)",
@@ -6531,7 +6557,8 @@
           "refValue": 0,
           "bucket": "🗺️ Arcane Map"
         }
-      ]
+      ],
+      "agg": "sum"
     },
     {
       "id": "Drop Rate / Post-Processing / 🎲 Glimbo / Glimbo DR Multi",
@@ -6670,7 +6697,8 @@
             }
           ]
         }
-      ]
+      ],
+      "agg": "sum"
     },
     {
       "id": "Drop Rate / Post-Processing / 🎽 Equipment / Equipment (etcBonus 91)",
@@ -6694,7 +6722,8 @@
           "bucket": "🎽 Equipment",
           "note": "Equipped — R0 S12"
         }
-      ]
+      ],
+      "agg": "sum"
     },
     {
       "id": "Drop Rate / Post-Processing / 🖼️ Gallery / Nametags (etcBonus 91)",
@@ -7230,7 +7259,8 @@
           "bucket": "🖼️ Gallery",
           "note": "Not in gallery — base +25, scales with Tier × Gallery Bonus Multi"
         }
-      ]
+      ],
+      "agg": "sum"
     },
     {
       "id": "Drop Rate / Post-Processing / 🖼️ Gallery / Trophies (etcBonus 91)",
@@ -7371,7 +7401,8 @@
             }
           ]
         }
-      ]
+      ],
+      "agg": "sum"
     },
     {
       "id": "Drop Rate / Post-Processing / 🎩 Hatrack / Hatrack (etcBonus 91)",
@@ -7576,7 +7607,8 @@
             }
           ]
         }
-      ]
+      ],
+      "agg": "sum"
     },
     {
       "id": "Drop Rate / Post-Processing / 🎁 Bundles#1 / Explorer Bundle (Bundle bun_p)",
