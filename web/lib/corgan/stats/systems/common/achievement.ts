@@ -21,8 +21,16 @@ export const achievement = {
       return node(
         label("Achievement", id),
         0,
-        [node("Not completed", 0, null, { fmt: "raw" })],
-        { note: "achievement " + id }
+        [
+          node("Not completed", 0, null, { fmt: "raw" }),
+          node(
+            "Would grant",
+            bonus,
+            null,
+            { fmt: "+", note: "once completed" }
+          ),
+        ],
+        { note: "Not completed — would grant +" + bonus }
       );
     }
     return node(
@@ -32,7 +40,7 @@ export const achievement = {
         node("Completed", 1, null, { fmt: "raw" }),
         node("Bonus", bonus, null, { fmt: "+" }),
       ],
-      { fmt: "+", note: "achievement " + id }
+      { fmt: "+" }
     );
   },
 };

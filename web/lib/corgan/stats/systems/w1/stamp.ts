@@ -128,11 +128,11 @@ export function computeStampDoublerSources(saveData: SaveData): { total: number;
 export const stamp = {
   resolve(id: string, ctx: Ctx): CorganNode {
     const data = STAMP_DATA[id];
-    if (!data) return node(label("Stamp", id), 0, null, { note: "stamp " + id });
+    if (!data) return node(label("Stamp", id), 0, null, { note: "no formula data" });
     const lv = Number(
       (stampLvData && (stampLvData as any)[data.cat] && (stampLvData as any)[data.cat][data.idx]) || 0
     );
-    if (lv <= 0) return node(label("Stamp", id), 0, null, { note: "stamp " + id });
+    if (lv <= 0) return node(label("Stamp", id), 0, null, { note: "Level 0 — not collected" });
     const baseVal = formulaEval(data.formula, data.x1, data.x2, lv);
 
     const exalted = isExalted(data.cat, data.idx, ctx.saveData);
@@ -213,7 +213,6 @@ export const stamp = {
 
     return node(label("Stamp", id), val, stampChildren, {
       fmt: "+",
-      note: "stamp " + id,
     });
   },
 };

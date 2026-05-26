@@ -630,7 +630,7 @@ export const talent = {
     const tab = args && args.tab;
     const data = getTalentData(id, tab);
     if (!data) {
-      return node(label("Talent", id), 0, null, { note: "talent " + id + " no data" });
+      return node(label("Talent", id), 0, null, { note: "no formula data" });
     }
     const name = label("Talent", id);
     const mode = args && args.mode;
@@ -653,7 +653,7 @@ export const talent = {
           node("Best Character " + r.bestChar, r.val, null, { fmt: "raw" }),
         ];
       }
-      return node(name, r.val, maxChildren, { fmt: "+", note: "talent " + id });
+      return node(name, r.val, maxChildren, { fmt: "+" });
     }
 
     // Talent 328 (Archlord of the Pirates): multiplicative DR factor
@@ -662,7 +662,7 @@ export const talent = {
       const plunderKills = Number((optionsListData as any)[139]) || 0;
       const logVal = plunderKills > 0 ? getLOG(plunderKills) : 0;
       if (gb.val <= 0 || plunderKills <= 0) {
-        return node(name, 1, null, { fmt: "x", note: "talent 328" });
+        return node(name, 1, null, { fmt: "x" });
       }
       const total328 = 1 + (gb.val * logVal) / 100;
       const talCh: CorganNode[] = [];
@@ -697,7 +697,7 @@ export const talent = {
           }),
           node("log₁₀(" + plunderKills + ")", logVal, null, { fmt: "raw" }),
         ],
-        { fmt: "x", note: "talent 328" }
+        { fmt: "x" }
       );
     }
 
@@ -722,7 +722,7 @@ export const talent = {
           node("Per Skull", perSkull, null, { fmt: "raw" }),
           node("Skulls Beaten", skulls, null, { fmt: "raw", note: "OLA[189]" }),
         ],
-        { fmt: "+", note: "talent 655" }
+        { fmt: "+" }
       );
     }
 
@@ -734,7 +734,7 @@ export const talent = {
         node("Bonus Levels", r.bonus || 0, bonusChildren, { fmt: "+" }),
         node("Effective Level", r.effectiveLv, null, { fmt: "raw" }),
       ],
-      { fmt: "+", note: "talent " + id }
+      { fmt: "+" }
     );
   },
 };
