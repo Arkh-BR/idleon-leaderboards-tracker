@@ -725,8 +725,9 @@ export const talent = {
 
     // Talent 655 (Boss Battle Spillover): star talent — universal,
     // no external bonus levels stack with it (rawLv IS effLv). Skip
-    // the Bonus / Effective rows so the UI only shows the inputs
-    // that actually drive the formula.
+    // the Bonus / Effective rows. Also skip Active — for a star
+    // talent the bonus is gated entirely by Base Level (lv 0 → 0
+    // contribution), so the toggle would be redundant.
     if (id === 655) {
       const skulls = Number((optionsListData as any)[189]) || 0;
       const perSkull = r.val;
@@ -735,7 +736,6 @@ export const talent = {
         name,
         total,
         [
-          node("Active", activeFlag, null, { fmt: "raw" }),
           node("Base Level", r.rawLv, null, { fmt: "raw" }),
           node("Per Skull", perSkull, null, {
             fmt: "raw",

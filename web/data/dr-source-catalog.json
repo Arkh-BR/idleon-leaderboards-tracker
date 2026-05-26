@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-26T18:41:36.248Z",
+  "generatedAt": "2026-05-26T18:43:51.570Z",
   "refTotal": 43093.43816941274,
   "refSave": "zArkhe (save 25-21-16.json) — Town, no AC",
   "sourceCount": 75,
@@ -207,18 +207,8 @@
       "fmt": "+",
       "refValue": 58.51063829787235,
       "bucket": "🎯 Talents",
-      "note": "talent 655 — decay(25, 100, Base Level) × Skulls Beaten × Active  (star talent — no external bonus levels)",
+      "note": "talent 655 — decay(25, 100, Base Level) × Skulls Beaten  (star talent — no external bonus levels, Base gates the bonus)",
       "children": [
-        {
-          "id": "Drop Rate / Additive Pool / 🎯 Talents / Boss Battle Spillover (Talent 655) / Active",
-          "name": "Active",
-          "system": "Talents",
-          "world": "Character",
-          "pool": "Additive",
-          "fmt": "raw",
-          "refValue": 1,
-          "bucket": "🎯 Talents"
-        },
         {
           "id": "Drop Rate / Additive Pool / 🎯 Talents / Boss Battle Spillover (Talent 655) / Base Level",
           "name": "Base Level",
