@@ -142,7 +142,12 @@ export function computeStampDoublerSources(saveData: SaveData): { total: number;
       { fmt: "+" }
     ),
     node("Wowa Woowa (Legend 36)", legend36, null, { fmt: "+" }),
-    node("Exalted Bonus RoG (Sushi 17)", sushiRoG17, null, { fmt: "+" }),
+    node(
+      "Tobo Sardine (Sushi Tier 18) — Exalted Bonus (RoG Bonus 17)",
+      sushiRoG17,
+      null,
+      { fmt: "+" }
+    ),
   ];
 
   return { total, children };

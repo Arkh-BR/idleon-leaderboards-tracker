@@ -4,7 +4,7 @@
 // is left for a later iteration since drop-rate doesn't query it.
 
 import { node, type CorganNode } from "../../../node";
-import { ROG_BONUS_QTY, ROG_DESC } from "../../data/w7/sushi";
+import { ROG_BONUS_QTY, ROG_DESC, SUSHI_NAMES } from "../../data/w7/sushi";
 import type { SaveData } from "../../../state";
 
 /** Strip the "}x_" / "{%_" placeholders the IT data uses to produce the
@@ -42,13 +42,15 @@ export const sushiRoG = {
     const us = saveData.cachedUniqueSushi || 0;
     const val = rogBonusQTY(id, us);
     const effect = rogEffectText(id);
-    // Label as "Sushi <id> — <effect> (RoG Bonus <id>)" — RoG slot N is
-    // unlocked when you've created N unique sushi types, so the prefix is
-    // really a sushi-count threshold. Keep the canonical RoG tag so
-    // splitEntityTag mutes it in the UI.
+    // Label as "<Sushi Name> Tier <N> — <effect> (RoG Bonus <id>)". RoG slot
+    // index i is unlocked by creating the (i+1)-th unique sushi, so the
+    // friendly tier is one-indexed. SUSHI_NAMES is indexed by RoG slot too.
+    const sushiName = SUSHI_NAMES[id] || "";
+    const tier = id + 1;
+    const prefix = sushiName ? `${sushiName} (Sushi Tier ${tier})` : `Sushi Tier ${tier}`;
     const label = effect
-      ? `Sushi ${id} — ${effect} (RoG Bonus ${id})`
-      : `Sushi ${id} (RoG Bonus ${id})`;
+      ? `${prefix} — ${effect} (RoG Bonus ${id})`
+      : `${prefix} (RoG Bonus ${id})`;
     return node(
       label,
       val,

@@ -28,6 +28,13 @@ export const ROG_DESC: string[] = _research[36].map((s: string) =>
   s.replace(/_/g, " ")
 );
 
+// Sushi name per RoG-slot index. The in-game "Tier N" sushi shown in the
+// UI corresponds to RoG slot N-1, so research[30][48] = "Unagi_Nigiri" is
+// the Tier-49 sushi whose unlock activates RoG bonus index 48.
+export const SUSHI_NAMES: string[] = _research[30].map((s: string) =>
+  s.replace(/_/g, " ")
+);
+
 export const CURRENCY_PER_TIER: readonly number[] = [
   1, 3, 8, 20, 50, 115, 250, 560, 1220, 2650,
 ] as const;

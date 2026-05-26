@@ -116,11 +116,22 @@ function formatVal(val: number, fmt: string | undefined): string {
 /** Split a node label like "Crystal Custard (Companion 3)" into its friendly
  *  name and the trailing system+id tag so the renderer can style them
  *  differently — the name reads in normal text, the tag in muted grey.
- *  Returns { main, tag } where tag includes its parens (or null if absent). */
+ *  Returns { main, tag } where tag includes its parens (or null if absent).
+ *
+ *  Two tag shapes are accepted:
+ *    1. "(System id)"      — e.g. "(Talent 279)", "(Stamp A38)"
+ *    2. "(System Words)"   — e.g. "(Pristine Charm)" for sources whose
+ *                            origin is descriptive rather than id-indexed.
+ *  Both render the same way (muted grey), so the user reads the friendly
+ *  name first and the category in soft text after. */
 function splitEntityTag(name: string): { main: string; tag: string | null } {
-  const m = name.match(/^(.*?)\s*(\([A-Za-z][A-Za-z ]*?\s+[\w,\-]+\))\s*$/);
-  if (!m) return { main: name, tag: null };
-  return { main: m[1].trim(), tag: m[2] };
+  // Try id-bearing tag first ("(Talent 279)"); fall back to words-only
+  // tag ("(Pristine Charm)").
+  const idMatch = name.match(/^(.*?)\s*(\([A-Za-z][A-Za-z ]*?\s+[\w,\-]+\))\s*$/);
+  if (idMatch) return { main: idMatch[1].trim(), tag: idMatch[2] };
+  const wordsMatch = name.match(/^(.*?)\s+(\([A-Za-z][A-Za-z ]{2,}\))\s*$/);
+  if (wordsMatch) return { main: wordsMatch[1].trim(), tag: wordsMatch[2] };
+  return { main: name, tag: null };
 }
 
 function valColor(val: number, fmt: string | undefined): string {
@@ -1239,7 +1250,10 @@ export default function DeepView({ tree }: { tree: CorganNode | null }) {
             className="flex-1 min-w-[180px] px-2 py-1 text-xs bg-zinc-950 border border-zinc-800 rounded text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-sky-500/60"
           />
 
-          {/* Hide-zero toggle */}
+          {/* Hide-inactive toggle — same meaning as the previous "Hide
+              zero", renamed because some leaves carry val=0 but still feel
+              "active" (e.g. catalog rows). "Inactive" reads more
+              naturally. */}
           <label className="flex items-center gap-1.5 text-xs text-zinc-400 cursor-pointer select-none px-1">
             <input
               type="checkbox"
@@ -1247,11 +1261,12 @@ export default function DeepView({ tree }: { tree: CorganNode | null }) {
               onChange={(e) => setHideZero(e.target.checked)}
               className="accent-sky-500"
             />
-            Hide zero
+            Hide inactive
           </label>
 
-          {/* Expand/collapse all — only meaningful in tree layout. Both
-              buttons persist to localStorage, so a reload keeps the state. */}
+          {/* Expand/collapse all — only meaningful in tree layout. Arrows
+              hint at the direction visually. Both buttons persist to
+              localStorage, so a reload keeps the state. */}
           {layout === "tree" && (
             <div className="inline-flex gap-1">
               <button
@@ -1260,7 +1275,7 @@ export default function DeepView({ tree }: { tree: CorganNode | null }) {
                 className="px-2 py-1 text-xs rounded border border-zinc-700 bg-zinc-900 text-zinc-300 hover:bg-zinc-800"
                 title="Open every node"
               >
-                ⤢ All
+                ↓ Expand
               </button>
               <button
                 type="button"
@@ -1268,7 +1283,7 @@ export default function DeepView({ tree }: { tree: CorganNode | null }) {
                 className="px-2 py-1 text-xs rounded border border-zinc-700 bg-zinc-900 text-zinc-300 hover:bg-zinc-800"
                 title="Close every node"
               >
-                ⤡ None
+                ↑ Collapse
               </button>
               <button
                 type="button"
@@ -1281,31 +1296,6 @@ export default function DeepView({ tree }: { tree: CorganNode | null }) {
             </div>
           )}
         </div>
-      </div>
-
-      {/* Summary stats line */}
-      <div className="text-[11px] text-zinc-500 mb-3 px-1 flex flex-wrap gap-x-4 gap-y-1">
-        <span>
-          <span className="text-zinc-300 font-mono">{stats.nodeCount}</span>{" "}
-          total nodes
-        </span>
-        <span>
-          <span className="text-zinc-300 font-mono">{stats.leafCount}</span>{" "}
-          leaf sources
-        </span>
-        <span>
-          <span className="text-emerald-400 font-mono">
-            {stats.nonZeroLeafCount}
-          </span>{" "}
-          non-zero
-        </span>
-        <span>
-          max depth{" "}
-          <span className="text-zinc-300 font-mono">{stats.maxDepth}</span>
-        </span>
-        <span className="text-zinc-600 italic">
-          Every source down to its formula inputs, including sub-source layers.
-        </span>
       </div>
 
       {/* Content */}

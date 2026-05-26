@@ -8,11 +8,15 @@ import type { SaveData } from "../../../state";
 
 type Ctx = { saveData: SaveData };
 
-// OptionsListAccount is a flat array of account-wide flags / counters with
-// no IT-side naming table. The descriptor entries we currently use here:
-//   232 → Sneaking Completions (W7 Ninja sneaking, drives a flat +0.3 DR)
-const OLA_NAMES: Record<number, string> = {
-  232: "Sneaking Completions",
+// OptionsListAccount is a flat array of account-wide flags / counters.
+// Most don't have an IT naming table, so the descriptor entries we care
+// about get explicit overrides — both for the main name and for the
+// "system category" tag that DeepView mutes after the friendly name.
+//   232 → +0.3 flat DR once you've finished any W7 Sneaking task. In-game
+//          the bonus surfaces as a Pristine Charm tooltip, so we render
+//          it as such.
+const OLA_LABELS: Record<number, { name: string; tag: string }> = {
+  232: { name: "Sneaking Completions", tag: "Pristine Charm" },
 };
 
 export const ola = {
@@ -22,8 +26,10 @@ export const ola = {
     const raw = Number((optionsListData as any)?.[id]) || 0;
     const meets = raw >= threshold;
     const val = meets ? bonus : 0;
-    const friendly = OLA_NAMES[id];
-    const olaName = friendly ? `${friendly} (Ola ${id})` : label("Ola", id);
+    const friendly = OLA_LABELS[id];
+    const olaName = friendly
+      ? `${friendly.name} (${friendly.tag})`
+      : label("Ola", id);
     return node(
       olaName,
       val,

@@ -172,7 +172,11 @@ export function hatrackBonusMulti(saveData: SaveData): MultiResult {
     );
   if (sushiRoG36 > 0)
     ch.push(
-      node("Hat Rack Multi RoG (Sushi 36)", sushiRoG36, null, {
+      node(
+        "Abalone Sashimi (Sushi Tier 37) — Hat Rack Multi (RoG Bonus 36)",
+        sushiRoG36,
+        null,
+        {
         fmt: "raw",
         note: "RoG_BonusQTY(36)",
       })
