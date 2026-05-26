@@ -23,8 +23,14 @@ const SIGN_TABLES: Record<
 const STAR_CHIP_ID = 15;
 
 export function computeSeraphMulti(charIdx: number, saveData: SaveData): number {
-  if (!saveData.starSignsUnlocked || !("Seraph_Cosmos" in saveData.starSignsUnlocked))
+  // Defensive: starSignsUnlocked is supposed to be a Record<string, unknown>,
+  // but some loader paths historically produced a Number (a regression we
+  // hit on at least one save where StarSg was already parsed by IT). The
+  // `in` operator throws on non-objects, so explicitly check shape first.
+  const unlocked = saveData.starSignsUnlocked;
+  if (!unlocked || typeof unlocked !== "object" || Array.isArray(unlocked))
     return 1;
+  if (!("Seraph_Cosmos" in unlocked)) return 1;
 
   const arcane40 = Number((saveData.arcaneData as any)?.[40]) || 0;
   const lv0 = saveData.lv0AllData && (saveData.lv0AllData[charIdx] as any[]);

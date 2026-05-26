@@ -289,9 +289,9 @@ export default function DrCalculator({
         <summary className="cursor-pointer font-semibold text-gold select-none">
           📋 Import Save JSON
         </summary>
-        {/* "Copy for Support" guidance — the parser only accepts the envelope
-            shape that button produces; the plain "Copy raw data" output is
-            missing some of the parsed extras we use. */}
+        {/* "Copy for Support" guidance — instructions only; the rounding
+            disclaimer sits in its own card below the big DR number where
+            the user is already looking at the value. */}
         <div className="mt-3 mb-3 rounded-md border border-gold/40 bg-gold/5 p-3 text-xs">
           <div className="flex items-start gap-2.5">
             <span className="text-base leading-none">📋</span>
@@ -312,10 +312,7 @@ export default function DrCalculator({
               <strong className="text-gold">
                 &ldquo;Copy for Support&rdquo;
               </strong>
-              . That envelope carries the parsed extras the calculator reads
-              (companion data, guild data, etc.) — the plain
-              &ldquo;Copy raw data&rdquo; option leaves some of those fields
-              out.
+              .
             </div>
           </div>
         </div>
@@ -401,6 +398,13 @@ export default function DrCalculator({
         {displayBase !== null && factor > 1.001 && (
           <div className="text-xs text-zinc-600 mt-1">
             (base {formatIdleon(displayBase)}x × {factor.toFixed(2)}x map)
+          </div>
+        )}
+        {totalDr !== null && (
+          <div className="text-[11px] text-zinc-500 mt-2 italic">
+            ⚠︎ Display value may read ~1% lower than the in-game number due
+            to floating-point rounding in the formula chain — the in-game
+            engine carries extra precision through each multiplicative step.
           </div>
         )}
       </div>

@@ -110,22 +110,54 @@ export function loadSaveData(raw: RawEnvelope): void {
   assignState({ chestQuantityData: (parseSaveKey(save, "ChestQuantity") as any[]) || [] });
   assignState({ krBestData: parseSaveKey(save, "KRbest") || {} });
 
-  // StarSg: stored as a char-by-char object {0:'{',1:'"',...} — reconstruct + parse
+  // StarSg can arrive in three shapes depending on which "Copy" button the
+  // user pressed and which IT version produced the dump:
+  //   1. {"0":"{","1":"\"",...}  — char-by-char string envelope; reconstruct
+  //      then JSON.parse.
+  //   2. "{...json...}"          — raw stringified JSON; parse directly.
+  //   3. {Activelius:1, ...}     — already parsed by IT into the
+  //      sign-name → 1 map. Adopt as-is.
+  // The previous code missed (3) and fell into branch (1), which joined the
+  // numeric `1` values together into "111111..." → JSON.parse returns the
+  // number 1.1111e79, then `starSignsUnlocked` is a Number and the `in`
+  // operator throws when computeSeraphMulti probes it. Detect the parsed-
+  // object case by looking at the first key — char-by-char keys are numeric
+  // strings ("0", "1", ...), parsed-object keys are sign names.
   const starSgRaw = save.StarSg;
   if (starSgRaw && typeof starSgRaw === "object" && !Array.isArray(starSgRaw)) {
-    const o = starSgRaw as Record<string, string>;
-    const starSgStr = Object.keys(o)
-      .sort((a, b) => Number(a) - Number(b))
-      .map((k) => o[k])
-      .join("");
-    try {
-      assignState({ starSignsUnlocked: JSON.parse(starSgStr) });
-    } catch {
-      assignState({ starSignsUnlocked: {} });
+    const o = starSgRaw as Record<string, unknown>;
+    const keys = Object.keys(o);
+    const looksLikeCharByChar =
+      keys.length > 0 && keys.every((k) => /^\d+$/.test(k));
+    if (looksLikeCharByChar) {
+      const starSgStr = keys
+        .sort((a, b) => Number(a) - Number(b))
+        .map((k) => String(o[k]))
+        .join("");
+      try {
+        const parsed = JSON.parse(starSgStr);
+        // Guard against the same pitfall: only adopt when it parses to a
+        // plain object, never a number / array.
+        if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+          assignState({ starSignsUnlocked: parsed });
+        } else {
+          assignState({ starSignsUnlocked: {} });
+        }
+      } catch {
+        assignState({ starSignsUnlocked: {} });
+      }
+    } else {
+      // Already the sign-name → flag map; use it directly.
+      assignState({ starSignsUnlocked: o });
     }
   } else if (typeof starSgRaw === "string") {
     try {
-      assignState({ starSignsUnlocked: JSON.parse(starSgRaw) });
+      const parsed = JSON.parse(starSgRaw);
+      if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+        assignState({ starSignsUnlocked: parsed });
+      } else {
+        assignState({ starSignsUnlocked: {} });
+      }
     } catch {
       assignState({ starSignsUnlocked: {} });
     }
