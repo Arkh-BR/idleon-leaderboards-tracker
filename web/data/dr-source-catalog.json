@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-26T19:35:42.035Z",
+  "generatedAt": "2026-05-26T19:47:55.598Z",
   "refTotal": 43093.43816941274,
   "refSave": "zArkhe (save 25-21-16.json) — Town, no AC",
   "sourceCount": 75,
@@ -199,7 +199,33 @@
               "pool": "Additive",
               "fmt": "raw",
               "refValue": 25,
-              "bucket": "🎯 Talents"
+              "bucket": "🎯 Talents",
+              "children": [
+                {
+                  "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Rift Slug (Companion 1) / Owned",
+                  "name": "Owned",
+                  "system": "Talents",
+                  "world": "Character",
+                  "pool": "Additive",
+                  "fmt": "raw",
+                  "refValue": 1,
+                  "bucket": "🎯 Talents"
+                },
+                {
+                  "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Rift Slug (Companion 1) / Bonus",
+                  "name": "Bonus",
+                  "system": "Talents",
+                  "world": "Character",
+                  "pool": "Additive",
+                  "fmt": "raw",
+                  "refValue": 25,
+                  "bucket": "🎯 Talents"
+                }
+              ],
+              "formulaKey": "ownershipToggle",
+              "agg": "custom",
+              "bonusConst": 25,
+              "note": "bonus: 25"
             },
             {
               "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Bonus Levels / Divinity Minor 2 (Arctis)",
@@ -624,7 +650,33 @@
               "pool": "Additive",
               "fmt": "raw",
               "refValue": 25,
-              "bucket": "🎯 Talents"
+              "bucket": "🎯 Talents",
+              "children": [
+                {
+                  "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Rift Slug (Companion 1) / Owned",
+                  "name": "Owned",
+                  "system": "Talents",
+                  "world": "Character",
+                  "pool": "Additive",
+                  "fmt": "raw",
+                  "refValue": 1,
+                  "bucket": "🎯 Talents"
+                },
+                {
+                  "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Rift Slug (Companion 1) / Bonus",
+                  "name": "Bonus",
+                  "system": "Talents",
+                  "world": "Character",
+                  "pool": "Additive",
+                  "fmt": "raw",
+                  "refValue": 25,
+                  "bucket": "🎯 Talents"
+                }
+              ],
+              "formulaKey": "ownershipToggle",
+              "agg": "custom",
+              "bonusConst": 25,
+              "note": "bonus: 25"
             },
             {
               "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Bonus Levels / Divinity Minor 2 (Arctis)",
@@ -1889,7 +1941,32 @@
           "fmt": "x",
           "refValue": 2,
           "bucket": "🤝 Friends",
-          "note": "companion 30"
+          "note": "companion 30 — bonus: 2",
+          "children": [
+            {
+              "id": "Drop Rate / Additive Pool / 🤝 Friends / Friend Bonus / Mr Pig (Companion 30) / Owned",
+              "name": "Owned",
+              "system": "Friends",
+              "world": "Global",
+              "pool": "Additive",
+              "fmt": "raw",
+              "refValue": 1,
+              "bucket": "🤝 Friends"
+            },
+            {
+              "id": "Drop Rate / Additive Pool / 🤝 Friends / Friend Bonus / Mr Pig (Companion 30) / Bonus",
+              "name": "Bonus",
+              "system": "Friends",
+              "world": "Global",
+              "pool": "Additive",
+              "fmt": "raw",
+              "refValue": 1,
+              "bucket": "🤝 Friends"
+            }
+          ],
+          "formulaKey": "ownershipToggle",
+          "agg": "custom",
+          "bonusConst": 2
         }
       ],
       "agg": "productAB"
@@ -2385,7 +2462,32 @@
           "fmt": "x",
           "refValue": 2,
           "bucket": "🎮 Arcade",
-          "note": "companion 27"
+          "note": "companion 27 — bonus: 2",
+          "children": [
+            {
+              "id": "Drop Rate / Additive Pool / 🎮 Arcade / Drop Rate Arcade Bonus (Arcade 27) / Spirit Reindeer (Companion 27) / Owned",
+              "name": "Owned",
+              "system": "Arcade",
+              "world": "World 2",
+              "pool": "Additive",
+              "fmt": "raw",
+              "refValue": 1,
+              "bucket": "🎮 Arcade"
+            },
+            {
+              "id": "Drop Rate / Additive Pool / 🎮 Arcade / Drop Rate Arcade Bonus (Arcade 27) / Spirit Reindeer (Companion 27) / Bonus",
+              "name": "Bonus",
+              "system": "Arcade",
+              "world": "World 2",
+              "pool": "Additive",
+              "fmt": "raw",
+              "refValue": 1,
+              "bucket": "🎮 Arcade"
+            }
+          ],
+          "formulaKey": "ownershipToggle",
+          "agg": "custom",
+          "bonusConst": 2
         }
       ]
     },
@@ -2722,7 +2824,32 @@
               "fmt": "raw",
               "refValue": 15,
               "bucket": "🔬 Researching",
-              "note": "companion 55"
+              "note": "companion 55 — bonus: 15",
+              "children": [
+                {
+                  "id": "Drop Rate / Additive Pool / 🔬 Researching / Divine Design (Grid 173) / All Multi / Pirate Deckhand (Companion 55) / Owned",
+                  "name": "Owned",
+                  "system": "Researching",
+                  "world": "World 7",
+                  "pool": "Additive",
+                  "fmt": "raw",
+                  "refValue": 1,
+                  "bucket": "🔬 Researching"
+                },
+                {
+                  "id": "Drop Rate / Additive Pool / 🔬 Researching / Divine Design (Grid 173) / All Multi / Pirate Deckhand (Companion 55) / Bonus",
+                  "name": "Bonus",
+                  "system": "Researching",
+                  "world": "World 7",
+                  "pool": "Additive",
+                  "fmt": "raw",
+                  "refValue": 15,
+                  "bucket": "🔬 Researching"
+                }
+              ],
+              "formulaKey": "ownershipToggle",
+              "agg": "custom",
+              "bonusConst": 15
             },
             {
               "id": "Drop Rate / Additive Pool / 🔬 Researching / Divine Design (Grid 173) / All Multi / King Doot (Companion 0)",
@@ -2830,7 +2957,32 @@
           "fmt": "x",
           "refValue": 3,
           "bucket": "🦉 Owl",
-          "note": "companion 51"
+          "note": "companion 51 — bonus: 3",
+          "children": [
+            {
+              "id": "Drop Rate / Additive Pool / 🦉 Owl / Summoning Owl / Santas Little Helper (Companion 51) / Owned",
+              "name": "Owned",
+              "system": "Owl",
+              "world": "World 1",
+              "pool": "Additive",
+              "fmt": "raw",
+              "refValue": 1,
+              "bucket": "🦉 Owl"
+            },
+            {
+              "id": "Drop Rate / Additive Pool / 🦉 Owl / Summoning Owl / Santas Little Helper (Companion 51) / Bonus",
+              "name": "Bonus",
+              "system": "Owl",
+              "world": "World 1",
+              "pool": "Additive",
+              "fmt": "raw",
+              "refValue": 2,
+              "bucket": "🦉 Owl"
+            }
+          ],
+          "formulaKey": "ownershipToggle",
+          "agg": "custom",
+          "bonusConst": 3
         },
         {
           "id": "Drop Rate / Additive Pool / 🦉 Owl / Summoning Owl / Megafeather Bonus",
@@ -4267,7 +4419,33 @@
                   "pool": "Additive",
                   "fmt": "raw",
                   "refValue": 30,
-                  "bucket": "🖼️ Gallery"
+                  "bucket": "🖼️ Gallery",
+                  "children": [
+                    {
+                      "id": "Drop Rate / Additive Pool / 🖼️ Gallery / Nametags (etcBonus 2) / Balling Nametag Level 6 / Gallery Bonus Multi / Bubba The Seal (Companion 49) / Owned",
+                      "name": "Owned",
+                      "system": "Gallery",
+                      "world": "World 7",
+                      "pool": "Additive",
+                      "fmt": "raw",
+                      "refValue": 1,
+                      "bucket": "🖼️ Gallery"
+                    },
+                    {
+                      "id": "Drop Rate / Additive Pool / 🖼️ Gallery / Nametags (etcBonus 2) / Balling Nametag Level 6 / Gallery Bonus Multi / Bubba The Seal (Companion 49) / Bonus",
+                      "name": "Bonus",
+                      "system": "Gallery",
+                      "world": "World 7",
+                      "pool": "Additive",
+                      "fmt": "raw",
+                      "refValue": 30,
+                      "bucket": "🖼️ Gallery"
+                    }
+                  ],
+                  "formulaKey": "ownershipToggle",
+                  "agg": "custom",
+                  "bonusConst": 30,
+                  "note": "bonus: 30"
                 },
                 {
                   "id": "Drop Rate / Additive Pool / 🖼️ Gallery / Nametags (etcBonus 2) / Balling Nametag Level 6 / Gallery Bonus Multi / Dulce Vitiri (Sushi Tier 55) — Gallery Bonus Multi (RoG Bonus 54)",
@@ -4395,7 +4573,33 @@
                   "pool": "Additive",
                   "fmt": "raw",
                   "refValue": 30,
-                  "bucket": "🖼️ Gallery"
+                  "bucket": "🖼️ Gallery",
+                  "children": [
+                    {
+                      "id": "Drop Rate / Additive Pool / 🖼️ Gallery / Nametags (etcBonus 2) / 3rd Anniversary IdleOn Nametag Level 50 / Gallery Bonus Multi / Bubba The Seal (Companion 49) / Owned",
+                      "name": "Owned",
+                      "system": "Gallery",
+                      "world": "World 7",
+                      "pool": "Additive",
+                      "fmt": "raw",
+                      "refValue": 1,
+                      "bucket": "🖼️ Gallery"
+                    },
+                    {
+                      "id": "Drop Rate / Additive Pool / 🖼️ Gallery / Nametags (etcBonus 2) / 3rd Anniversary IdleOn Nametag Level 50 / Gallery Bonus Multi / Bubba The Seal (Companion 49) / Bonus",
+                      "name": "Bonus",
+                      "system": "Gallery",
+                      "world": "World 7",
+                      "pool": "Additive",
+                      "fmt": "raw",
+                      "refValue": 30,
+                      "bucket": "🖼️ Gallery"
+                    }
+                  ],
+                  "formulaKey": "ownershipToggle",
+                  "agg": "custom",
+                  "bonusConst": 30,
+                  "note": "bonus: 30"
                 },
                 {
                   "id": "Drop Rate / Additive Pool / 🖼️ Gallery / Nametags (etcBonus 2) / 3rd Anniversary IdleOn Nametag Level 50 / Gallery Bonus Multi / Dulce Vitiri (Sushi Tier 55) — Gallery Bonus Multi (RoG Bonus 54)",
@@ -4523,7 +4727,33 @@
                   "pool": "Additive",
                   "fmt": "raw",
                   "refValue": 30,
-                  "bucket": "🖼️ Gallery"
+                  "bucket": "🖼️ Gallery",
+                  "children": [
+                    {
+                      "id": "Drop Rate / Additive Pool / 🖼️ Gallery / Nametags (etcBonus 2) / Aethermoon Nametag Level 2 / Gallery Bonus Multi / Bubba The Seal (Companion 49) / Owned",
+                      "name": "Owned",
+                      "system": "Gallery",
+                      "world": "World 7",
+                      "pool": "Additive",
+                      "fmt": "raw",
+                      "refValue": 1,
+                      "bucket": "🖼️ Gallery"
+                    },
+                    {
+                      "id": "Drop Rate / Additive Pool / 🖼️ Gallery / Nametags (etcBonus 2) / Aethermoon Nametag Level 2 / Gallery Bonus Multi / Bubba The Seal (Companion 49) / Bonus",
+                      "name": "Bonus",
+                      "system": "Gallery",
+                      "world": "World 7",
+                      "pool": "Additive",
+                      "fmt": "raw",
+                      "refValue": 30,
+                      "bucket": "🖼️ Gallery"
+                    }
+                  ],
+                  "formulaKey": "ownershipToggle",
+                  "agg": "custom",
+                  "bonusConst": 30,
+                  "note": "bonus: 30"
                 },
                 {
                   "id": "Drop Rate / Additive Pool / 🖼️ Gallery / Nametags (etcBonus 2) / Aethermoon Nametag Level 2 / Gallery Bonus Multi / Dulce Vitiri (Sushi Tier 55) — Gallery Bonus Multi (RoG Bonus 54)",
@@ -4651,7 +4881,33 @@
                   "pool": "Additive",
                   "fmt": "raw",
                   "refValue": 30,
-                  "bucket": "🖼️ Gallery"
+                  "bucket": "🖼️ Gallery",
+                  "children": [
+                    {
+                      "id": "Drop Rate / Additive Pool / 🖼️ Gallery / Nametags (etcBonus 2) / Tome Apprentice Nametag Level 8 / Gallery Bonus Multi / Bubba The Seal (Companion 49) / Owned",
+                      "name": "Owned",
+                      "system": "Gallery",
+                      "world": "World 7",
+                      "pool": "Additive",
+                      "fmt": "raw",
+                      "refValue": 1,
+                      "bucket": "🖼️ Gallery"
+                    },
+                    {
+                      "id": "Drop Rate / Additive Pool / 🖼️ Gallery / Nametags (etcBonus 2) / Tome Apprentice Nametag Level 8 / Gallery Bonus Multi / Bubba The Seal (Companion 49) / Bonus",
+                      "name": "Bonus",
+                      "system": "Gallery",
+                      "world": "World 7",
+                      "pool": "Additive",
+                      "fmt": "raw",
+                      "refValue": 30,
+                      "bucket": "🖼️ Gallery"
+                    }
+                  ],
+                  "formulaKey": "ownershipToggle",
+                  "agg": "custom",
+                  "bonusConst": 30,
+                  "note": "bonus: 30"
                 },
                 {
                   "id": "Drop Rate / Additive Pool / 🖼️ Gallery / Nametags (etcBonus 2) / Tome Apprentice Nametag Level 8 / Gallery Bonus Multi / Dulce Vitiri (Sushi Tier 55) — Gallery Bonus Multi (RoG Bonus 54)",
@@ -4779,7 +5035,33 @@
                   "pool": "Additive",
                   "fmt": "raw",
                   "refValue": 30,
-                  "bucket": "🖼️ Gallery"
+                  "bucket": "🖼️ Gallery",
+                  "children": [
+                    {
+                      "id": "Drop Rate / Additive Pool / 🖼️ Gallery / Nametags (etcBonus 2) / Sweet Chocolate Nametag Level 7 / Gallery Bonus Multi / Bubba The Seal (Companion 49) / Owned",
+                      "name": "Owned",
+                      "system": "Gallery",
+                      "world": "World 7",
+                      "pool": "Additive",
+                      "fmt": "raw",
+                      "refValue": 1,
+                      "bucket": "🖼️ Gallery"
+                    },
+                    {
+                      "id": "Drop Rate / Additive Pool / 🖼️ Gallery / Nametags (etcBonus 2) / Sweet Chocolate Nametag Level 7 / Gallery Bonus Multi / Bubba The Seal (Companion 49) / Bonus",
+                      "name": "Bonus",
+                      "system": "Gallery",
+                      "world": "World 7",
+                      "pool": "Additive",
+                      "fmt": "raw",
+                      "refValue": 30,
+                      "bucket": "🖼️ Gallery"
+                    }
+                  ],
+                  "formulaKey": "ownershipToggle",
+                  "agg": "custom",
+                  "bonusConst": 30,
+                  "note": "bonus: 30"
                 },
                 {
                   "id": "Drop Rate / Additive Pool / 🖼️ Gallery / Nametags (etcBonus 2) / Sweet Chocolate Nametag Level 7 / Gallery Bonus Multi / Dulce Vitiri (Sushi Tier 55) — Gallery Bonus Multi (RoG Bonus 54)",
@@ -4943,7 +5225,33 @@
                   "pool": "Additive",
                   "fmt": "raw",
                   "refValue": 30,
-                  "bucket": "🖼️ Gallery"
+                  "bucket": "🖼️ Gallery",
+                  "children": [
+                    {
+                      "id": "Drop Rate / Additive Pool / 🖼️ Gallery / Trophies (etcBonus 2) / Ultra Unboxer slot 42 / Gallery Bonus Multi / Bubba The Seal (Companion 49) / Owned",
+                      "name": "Owned",
+                      "system": "Gallery",
+                      "world": "World 7",
+                      "pool": "Additive",
+                      "fmt": "raw",
+                      "refValue": 1,
+                      "bucket": "🖼️ Gallery"
+                    },
+                    {
+                      "id": "Drop Rate / Additive Pool / 🖼️ Gallery / Trophies (etcBonus 2) / Ultra Unboxer slot 42 / Gallery Bonus Multi / Bubba The Seal (Companion 49) / Bonus",
+                      "name": "Bonus",
+                      "system": "Gallery",
+                      "world": "World 7",
+                      "pool": "Additive",
+                      "fmt": "raw",
+                      "refValue": 30,
+                      "bucket": "🖼️ Gallery"
+                    }
+                  ],
+                  "formulaKey": "ownershipToggle",
+                  "agg": "custom",
+                  "bonusConst": 30,
+                  "note": "bonus: 30"
                 },
                 {
                   "id": "Drop Rate / Additive Pool / 🖼️ Gallery / Trophies (etcBonus 2) / Ultra Unboxer slot 42 / Gallery Bonus Multi / Dulce Vitiri (Sushi Tier 55) — Gallery Bonus Multi (RoG Bonus 54)",
@@ -5071,7 +5379,33 @@
                   "pool": "Additive",
                   "fmt": "raw",
                   "refValue": 30,
-                  "bucket": "🖼️ Gallery"
+                  "bucket": "🖼️ Gallery",
+                  "children": [
+                    {
+                      "id": "Drop Rate / Additive Pool / 🖼️ Gallery / Trophies (etcBonus 2) / Luckiest Lad slot 50 / Gallery Bonus Multi / Bubba The Seal (Companion 49) / Owned",
+                      "name": "Owned",
+                      "system": "Gallery",
+                      "world": "World 7",
+                      "pool": "Additive",
+                      "fmt": "raw",
+                      "refValue": 1,
+                      "bucket": "🖼️ Gallery"
+                    },
+                    {
+                      "id": "Drop Rate / Additive Pool / 🖼️ Gallery / Trophies (etcBonus 2) / Luckiest Lad slot 50 / Gallery Bonus Multi / Bubba The Seal (Companion 49) / Bonus",
+                      "name": "Bonus",
+                      "system": "Gallery",
+                      "world": "World 7",
+                      "pool": "Additive",
+                      "fmt": "raw",
+                      "refValue": 30,
+                      "bucket": "🖼️ Gallery"
+                    }
+                  ],
+                  "formulaKey": "ownershipToggle",
+                  "agg": "custom",
+                  "bonusConst": 30,
+                  "note": "bonus: 30"
                 },
                 {
                   "id": "Drop Rate / Additive Pool / 🖼️ Gallery / Trophies (etcBonus 2) / Luckiest Lad slot 50 / Gallery Bonus Multi / Dulce Vitiri (Sushi Tier 55) — Gallery Bonus Multi (RoG Bonus 54)",
@@ -5199,7 +5533,33 @@
                   "pool": "Additive",
                   "fmt": "raw",
                   "refValue": 30,
-                  "bucket": "🖼️ Gallery"
+                  "bucket": "🖼️ Gallery",
+                  "children": [
+                    {
+                      "id": "Drop Rate / Additive Pool / 🖼️ Gallery / Trophies (etcBonus 2) / One of the Divine slot 52 / Gallery Bonus Multi / Bubba The Seal (Companion 49) / Owned",
+                      "name": "Owned",
+                      "system": "Gallery",
+                      "world": "World 7",
+                      "pool": "Additive",
+                      "fmt": "raw",
+                      "refValue": 1,
+                      "bucket": "🖼️ Gallery"
+                    },
+                    {
+                      "id": "Drop Rate / Additive Pool / 🖼️ Gallery / Trophies (etcBonus 2) / One of the Divine slot 52 / Gallery Bonus Multi / Bubba The Seal (Companion 49) / Bonus",
+                      "name": "Bonus",
+                      "system": "Gallery",
+                      "world": "World 7",
+                      "pool": "Additive",
+                      "fmt": "raw",
+                      "refValue": 30,
+                      "bucket": "🖼️ Gallery"
+                    }
+                  ],
+                  "formulaKey": "ownershipToggle",
+                  "agg": "custom",
+                  "bonusConst": 30,
+                  "note": "bonus: 30"
                 },
                 {
                   "id": "Drop Rate / Additive Pool / 🖼️ Gallery / Trophies (etcBonus 2) / One of the Divine slot 52 / Gallery Bonus Multi / Dulce Vitiri (Sushi Tier 55) — Gallery Bonus Multi (RoG Bonus 54)",
@@ -5327,7 +5687,33 @@
                   "pool": "Additive",
                   "fmt": "raw",
                   "refValue": 30,
-                  "bucket": "🖼️ Gallery"
+                  "bucket": "🖼️ Gallery",
+                  "children": [
+                    {
+                      "id": "Drop Rate / Additive Pool / 🖼️ Gallery / Trophies (etcBonus 2) / Luckier Lad slot 53 / Gallery Bonus Multi / Bubba The Seal (Companion 49) / Owned",
+                      "name": "Owned",
+                      "system": "Gallery",
+                      "world": "World 7",
+                      "pool": "Additive",
+                      "fmt": "raw",
+                      "refValue": 1,
+                      "bucket": "🖼️ Gallery"
+                    },
+                    {
+                      "id": "Drop Rate / Additive Pool / 🖼️ Gallery / Trophies (etcBonus 2) / Luckier Lad slot 53 / Gallery Bonus Multi / Bubba The Seal (Companion 49) / Bonus",
+                      "name": "Bonus",
+                      "system": "Gallery",
+                      "world": "World 7",
+                      "pool": "Additive",
+                      "fmt": "raw",
+                      "refValue": 30,
+                      "bucket": "🖼️ Gallery"
+                    }
+                  ],
+                  "formulaKey": "ownershipToggle",
+                  "agg": "custom",
+                  "bonusConst": 30,
+                  "note": "bonus: 30"
                 },
                 {
                   "id": "Drop Rate / Additive Pool / 🖼️ Gallery / Trophies (etcBonus 2) / Luckier Lad slot 53 / Gallery Bonus Multi / Dulce Vitiri (Sushi Tier 55) — Gallery Bonus Multi (RoG Bonus 54)",
@@ -5455,7 +5841,33 @@
                   "pool": "Additive",
                   "fmt": "raw",
                   "refValue": 30,
-                  "bucket": "🖼️ Gallery"
+                  "bucket": "🖼️ Gallery",
+                  "children": [
+                    {
+                      "id": "Drop Rate / Additive Pool / 🖼️ Gallery / Trophies (etcBonus 2) / Lucky Lad slot 62 / Gallery Bonus Multi / Bubba The Seal (Companion 49) / Owned",
+                      "name": "Owned",
+                      "system": "Gallery",
+                      "world": "World 7",
+                      "pool": "Additive",
+                      "fmt": "raw",
+                      "refValue": 1,
+                      "bucket": "🖼️ Gallery"
+                    },
+                    {
+                      "id": "Drop Rate / Additive Pool / 🖼️ Gallery / Trophies (etcBonus 2) / Lucky Lad slot 62 / Gallery Bonus Multi / Bubba The Seal (Companion 49) / Bonus",
+                      "name": "Bonus",
+                      "system": "Gallery",
+                      "world": "World 7",
+                      "pool": "Additive",
+                      "fmt": "raw",
+                      "refValue": 30,
+                      "bucket": "🖼️ Gallery"
+                    }
+                  ],
+                  "formulaKey": "ownershipToggle",
+                  "agg": "custom",
+                  "bonusConst": 30,
+                  "note": "bonus: 30"
                 },
                 {
                   "id": "Drop Rate / Additive Pool / 🖼️ Gallery / Trophies (etcBonus 2) / Lucky Lad slot 62 / Gallery Bonus Multi / Dulce Vitiri (Sushi Tier 55) — Gallery Bonus Multi (RoG Bonus 54)",
@@ -6544,14 +6956,15 @@
           "note": "decay(6, 150)",
           "children": [
             {
-              "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Base Level",
-              "name": "Base Level",
+              "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Base Level (owner: ARKHELUCK)",
+              "name": "Base Level (owner: ARKHELUCK)",
               "system": "Talents",
               "world": "Character",
               "pool": "Multi",
               "fmt": "raw",
               "refValue": 389,
-              "bucket": "🎯 Talents"
+              "bucket": "🎯 Talents",
+              "note": "skill levels of owner char"
             },
             {
               "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Bonus Levels",
@@ -6562,6 +6975,7 @@
               "fmt": "+",
               "refValue": 241,
               "bucket": "🎯 Talents",
+              "note": "computed for active char",
               "children": [
                 {
                   "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Bonus Levels / Symbols of Beyond ~R (Talent 149)",
@@ -6643,7 +7057,33 @@
                   "pool": "Multi",
                   "fmt": "raw",
                   "refValue": 25,
-                  "bucket": "🎯 Talents"
+                  "bucket": "🎯 Talents",
+                  "children": [
+                    {
+                      "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Bonus Levels / Rift Slug (Companion 1) / Owned",
+                      "name": "Owned",
+                      "system": "Talents",
+                      "world": "Character",
+                      "pool": "Multi",
+                      "fmt": "raw",
+                      "refValue": 1,
+                      "bucket": "🎯 Talents"
+                    },
+                    {
+                      "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Bonus Levels / Rift Slug (Companion 1) / Bonus",
+                      "name": "Bonus",
+                      "system": "Talents",
+                      "world": "Character",
+                      "pool": "Multi",
+                      "fmt": "raw",
+                      "refValue": 25,
+                      "bucket": "🎯 Talents"
+                    }
+                  ],
+                  "formulaKey": "ownershipToggle",
+                  "agg": "custom",
+                  "bonusConst": 25,
+                  "note": "bonus: 25"
                 },
                 {
                   "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Bonus Levels / Divinity Minor 2 (Arctis)",
@@ -7597,7 +8037,32 @@
               "fmt": "raw",
               "refValue": 15,
               "bucket": "🎲 Glimbo",
-              "note": "companion 55"
+              "note": "companion 55 — bonus: 15",
+              "children": [
+                {
+                  "id": "Drop Rate / Post-Processing / 🎲 Glimbo / Glimbo DR Multi / All Multi / Pirate Deckhand (Companion 55) / Owned",
+                  "name": "Owned",
+                  "system": "Glimbo",
+                  "world": "World 7",
+                  "pool": "Multi",
+                  "fmt": "raw",
+                  "refValue": 1,
+                  "bucket": "🎲 Glimbo"
+                },
+                {
+                  "id": "Drop Rate / Post-Processing / 🎲 Glimbo / Glimbo DR Multi / All Multi / Pirate Deckhand (Companion 55) / Bonus",
+                  "name": "Bonus",
+                  "system": "Glimbo",
+                  "world": "World 7",
+                  "pool": "Multi",
+                  "fmt": "raw",
+                  "refValue": 15,
+                  "bucket": "🎲 Glimbo"
+                }
+              ],
+              "formulaKey": "ownershipToggle",
+              "agg": "custom",
+              "bonusConst": 15
             },
             {
               "id": "Drop Rate / Post-Processing / 🎲 Glimbo / Glimbo DR Multi / All Multi / King Doot (Companion 0)",
@@ -7826,7 +8291,33 @@
                   "pool": "Multi",
                   "fmt": "raw",
                   "refValue": 30,
-                  "bucket": "🖼️ Gallery"
+                  "bucket": "🖼️ Gallery",
+                  "children": [
+                    {
+                      "id": "Drop Rate / Post-Processing / 🖼️ Gallery / Nametags (etcBonus 91) / Tome Legend Nametag Level 3 / Gallery Bonus Multi / Bubba The Seal (Companion 49) / Owned",
+                      "name": "Owned",
+                      "system": "Gallery",
+                      "world": "World 7",
+                      "pool": "Multi",
+                      "fmt": "raw",
+                      "refValue": 1,
+                      "bucket": "🖼️ Gallery"
+                    },
+                    {
+                      "id": "Drop Rate / Post-Processing / 🖼️ Gallery / Nametags (etcBonus 91) / Tome Legend Nametag Level 3 / Gallery Bonus Multi / Bubba The Seal (Companion 49) / Bonus",
+                      "name": "Bonus",
+                      "system": "Gallery",
+                      "world": "World 7",
+                      "pool": "Multi",
+                      "fmt": "raw",
+                      "refValue": 30,
+                      "bucket": "🖼️ Gallery"
+                    }
+                  ],
+                  "formulaKey": "ownershipToggle",
+                  "agg": "custom",
+                  "bonusConst": 30,
+                  "note": "bonus: 30"
                 },
                 {
                   "id": "Drop Rate / Post-Processing / 🖼️ Gallery / Nametags (etcBonus 91) / Tome Legend Nametag Level 3 / Gallery Bonus Multi / Dulce Vitiri (Sushi Tier 55) — Gallery Bonus Multi (RoG Bonus 54)",
@@ -7954,7 +8445,33 @@
                   "pool": "Multi",
                   "fmt": "raw",
                   "refValue": 30,
-                  "bucket": "🖼️ Gallery"
+                  "bucket": "🖼️ Gallery",
+                  "children": [
+                    {
+                      "id": "Drop Rate / Post-Processing / 🖼️ Gallery / Nametags (etcBonus 91) / Reliquarium Nametag Level 7 / Gallery Bonus Multi / Bubba The Seal (Companion 49) / Owned",
+                      "name": "Owned",
+                      "system": "Gallery",
+                      "world": "World 7",
+                      "pool": "Multi",
+                      "fmt": "raw",
+                      "refValue": 1,
+                      "bucket": "🖼️ Gallery"
+                    },
+                    {
+                      "id": "Drop Rate / Post-Processing / 🖼️ Gallery / Nametags (etcBonus 91) / Reliquarium Nametag Level 7 / Gallery Bonus Multi / Bubba The Seal (Companion 49) / Bonus",
+                      "name": "Bonus",
+                      "system": "Gallery",
+                      "world": "World 7",
+                      "pool": "Multi",
+                      "fmt": "raw",
+                      "refValue": 30,
+                      "bucket": "🖼️ Gallery"
+                    }
+                  ],
+                  "formulaKey": "ownershipToggle",
+                  "agg": "custom",
+                  "bonusConst": 30,
+                  "note": "bonus: 30"
                 },
                 {
                   "id": "Drop Rate / Post-Processing / 🖼️ Gallery / Nametags (etcBonus 91) / Reliquarium Nametag Level 7 / Gallery Bonus Multi / Dulce Vitiri (Sushi Tier 55) — Gallery Bonus Multi (RoG Bonus 54)",
@@ -8082,7 +8599,33 @@
                   "pool": "Multi",
                   "fmt": "raw",
                   "refValue": 30,
-                  "bucket": "🖼️ Gallery"
+                  "bucket": "🖼️ Gallery",
+                  "children": [
+                    {
+                      "id": "Drop Rate / Post-Processing / 🖼️ Gallery / Nametags (etcBonus 91) / Pot of Gold Nametag Level 7 / Gallery Bonus Multi / Bubba The Seal (Companion 49) / Owned",
+                      "name": "Owned",
+                      "system": "Gallery",
+                      "world": "World 7",
+                      "pool": "Multi",
+                      "fmt": "raw",
+                      "refValue": 1,
+                      "bucket": "🖼️ Gallery"
+                    },
+                    {
+                      "id": "Drop Rate / Post-Processing / 🖼️ Gallery / Nametags (etcBonus 91) / Pot of Gold Nametag Level 7 / Gallery Bonus Multi / Bubba The Seal (Companion 49) / Bonus",
+                      "name": "Bonus",
+                      "system": "Gallery",
+                      "world": "World 7",
+                      "pool": "Multi",
+                      "fmt": "raw",
+                      "refValue": 30,
+                      "bucket": "🖼️ Gallery"
+                    }
+                  ],
+                  "formulaKey": "ownershipToggle",
+                  "agg": "custom",
+                  "bonusConst": 30,
+                  "note": "bonus: 30"
                 },
                 {
                   "id": "Drop Rate / Post-Processing / 🖼️ Gallery / Nametags (etcBonus 91) / Pot of Gold Nametag Level 7 / Gallery Bonus Multi / Dulce Vitiri (Sushi Tier 55) — Gallery Bonus Multi (RoG Bonus 54)",
@@ -8210,7 +8753,33 @@
                   "pool": "Multi",
                   "fmt": "raw",
                   "refValue": 30,
-                  "bucket": "🖼️ Gallery"
+                  "bucket": "🖼️ Gallery",
+                  "children": [
+                    {
+                      "id": "Drop Rate / Post-Processing / 🖼️ Gallery / Nametags (etcBonus 91) / 5th Anniversary IdleOn Nametag Level 9 / Gallery Bonus Multi / Bubba The Seal (Companion 49) / Owned",
+                      "name": "Owned",
+                      "system": "Gallery",
+                      "world": "World 7",
+                      "pool": "Multi",
+                      "fmt": "raw",
+                      "refValue": 1,
+                      "bucket": "🖼️ Gallery"
+                    },
+                    {
+                      "id": "Drop Rate / Post-Processing / 🖼️ Gallery / Nametags (etcBonus 91) / 5th Anniversary IdleOn Nametag Level 9 / Gallery Bonus Multi / Bubba The Seal (Companion 49) / Bonus",
+                      "name": "Bonus",
+                      "system": "Gallery",
+                      "world": "World 7",
+                      "pool": "Multi",
+                      "fmt": "raw",
+                      "refValue": 30,
+                      "bucket": "🖼️ Gallery"
+                    }
+                  ],
+                  "formulaKey": "ownershipToggle",
+                  "agg": "custom",
+                  "bonusConst": 30,
+                  "note": "bonus: 30"
                 },
                 {
                   "id": "Drop Rate / Post-Processing / 🖼️ Gallery / Nametags (etcBonus 91) / 5th Anniversary IdleOn Nametag Level 9 / Gallery Bonus Multi / Dulce Vitiri (Sushi Tier 55) — Gallery Bonus Multi (RoG Bonus 54)",
@@ -8363,7 +8932,33 @@
                   "pool": "Multi",
                   "fmt": "raw",
                   "refValue": 30,
-                  "bucket": "🖼️ Gallery"
+                  "bucket": "🖼️ Gallery",
+                  "children": [
+                    {
+                      "id": "Drop Rate / Post-Processing / 🖼️ Gallery / Trophies (etcBonus 91) / Nine Dart Finish slot 48 / Gallery Bonus Multi / Bubba The Seal (Companion 49) / Owned",
+                      "name": "Owned",
+                      "system": "Gallery",
+                      "world": "World 7",
+                      "pool": "Multi",
+                      "fmt": "raw",
+                      "refValue": 1,
+                      "bucket": "🖼️ Gallery"
+                    },
+                    {
+                      "id": "Drop Rate / Post-Processing / 🖼️ Gallery / Trophies (etcBonus 91) / Nine Dart Finish slot 48 / Gallery Bonus Multi / Bubba The Seal (Companion 49) / Bonus",
+                      "name": "Bonus",
+                      "system": "Gallery",
+                      "world": "World 7",
+                      "pool": "Multi",
+                      "fmt": "raw",
+                      "refValue": 30,
+                      "bucket": "🖼️ Gallery"
+                    }
+                  ],
+                  "formulaKey": "ownershipToggle",
+                  "agg": "custom",
+                  "bonusConst": 30,
+                  "note": "bonus: 30"
                 },
                 {
                   "id": "Drop Rate / Post-Processing / 🖼️ Gallery / Trophies (etcBonus 91) / Nine Dart Finish slot 48 / Gallery Bonus Multi / Dulce Vitiri (Sushi Tier 55) — Gallery Bonus Multi (RoG Bonus 54)",

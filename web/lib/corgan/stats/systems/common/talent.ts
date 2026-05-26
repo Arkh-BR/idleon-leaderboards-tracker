@@ -28,6 +28,7 @@ import { hasBonusMajor } from "../w5/divinity";
 import { label, entityName } from "../../entity-names";
 import { talentParams, familyBonusParams } from "../../data/common/talent";
 import { companionBonus } from "../../data/common/companions";
+import { companionChild } from "./companions";
 import { bubbleParams } from "../../data/w2/alchemy";
 import { equipSetBonus } from "../../data/common/equipment";
 import { godMinorX1 } from "../../data/w5/divinity";
@@ -404,7 +405,7 @@ function resolveAllTalentLVz(
   const comp1v = saveData.companionIds && saveData.companionIds.has(1)
     ? companionBonus(1) : 0;
   if (comp1v > 0) {
-    children.push(node(label("Companion", 1), comp1v, null, { fmt: "raw" }));
+    children.push(companionChild(1, comp1v, saveData, { fmt: "raw" }));
   }
 
   // Divinity Minor 2
@@ -729,7 +730,19 @@ export const talent = {
       const total328 = 1 + (gb.val * logVal) / 100;
       const talCh: CorganNode[] = [];
       if (gb.detail) {
-        talCh.push(node("Base Level", gb.detail.rawLv, null, { fmt: "raw" }));
+        // Surface the owner char on Base Level — the game picks the
+        // best-rolled char for the talent, which is NOT necessarily
+        // the active char. Active char only drives the Bonus chain.
+        const ownerName = saveData.charNames && saveData.charNames[gb.bestChar];
+        const ownerLabel = ownerName
+          ? `Base Level (owner: ${ownerName})`
+          : `Base Level (owner: char ${gb.bestChar})`;
+        talCh.push(
+          node(ownerLabel, gb.detail.rawLv, null, {
+            fmt: "raw",
+            note: "skill levels of owner char",
+          })
+        );
         talCh.push(
           node(
             "Bonus Levels",
@@ -737,7 +750,7 @@ export const talent = {
             gb.detail.bonusDetail && gb.detail.bonusDetail.children.length
               ? gb.detail.bonusDetail.children
               : null,
-            { fmt: "+" }
+            { fmt: "+", note: "computed for active char" }
           )
         );
         talCh.push(node("Effective Level", gb.detail.effectiveLv, null, { fmt: "raw" }));

@@ -47,6 +47,45 @@ export const companion = {
   },
 };
 
+/**
+ * Standardized companion child node — [Owned, Bonus] structure that
+ * the gen catalog's ownershipToggle detector picks up automatically.
+ *
+ * fmt-aware: x-fmt companions idle to 1 (multiplicative identity), all
+ * others idle to 0. The "Bonus" kid carries the DELTA from idle, so
+ * the runtime handler computes  idle + owned × bonus  uniformly.
+ *
+ * Call sites: talent bonus chain (Rift Slug), arcade (Companion 27),
+ * friend bonus (Companion 30), owl (Companion 51), gallery (49),
+ * meritoc (39, 161), lab (55). Companion 0 in lab.ts is intentionally
+ * NOT converted — its emission already carries domain children (grid
+ * 173 lv) and uses a non-trivial formula, so the simple toggle shape
+ * would lose information.
+ */
+export function companionChild(
+  id: number,
+  val: number,
+  saveData: SaveData,
+  opts?: { fmt?: "raw" | "+" | "x"; note?: string; suffix?: string }
+): CorganNode {
+  const fmt = opts?.fmt ?? "raw";
+  const idle = fmt === "x" ? 1 : 0;
+  const delta = val - idle;
+  const owned = saveData.companionIds && saveData.companionIds.has(id) ? 1 : 0;
+  const name = opts?.suffix
+    ? label("Companion", id, opts.suffix)
+    : label("Companion", id);
+  return node(
+    name,
+    val,
+    [
+      node("Owned", owned, null, { fmt: "raw" }),
+      node("Bonus", delta, null, { fmt: "raw" }),
+    ],
+    { fmt, note: opts?.note }
+  );
+}
+
 export const compMulti = {
   resolve(id: number, ctx: Ctx, args?: number[]): CorganNode {
     const cap = args ? args[0] : 1;

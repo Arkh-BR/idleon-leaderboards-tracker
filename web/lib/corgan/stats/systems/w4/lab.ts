@@ -16,6 +16,7 @@ import { chipBonusValue } from "../../data/w4/chips";
 import { gridBonusPerLv, SHAPE_BONUS_PCT } from "../../data/w7/research";
 import { cloudBonus, emporiumBonus } from "../../../game-helpers";
 import { companionBonus } from "../../data/common/companions";
+import { companionChild } from "../common/companions";
 import { ChipDesc } from "../../data/game/customlists.js";
 import { labJewelUnlocked } from "../../../save/helpers";
 import type { SaveData } from "../../../state";
@@ -91,7 +92,7 @@ export const grid = {
     const allMultiChildren: CorganNode[] = [];
     if (am.comp55 > 0)
       allMultiChildren.push(
-        node(label("Companion", 55), am.comp55, null, {
+        companionChild(55, am.comp55, saveData, {
           fmt: "raw",
           note: "companion 55",
         })

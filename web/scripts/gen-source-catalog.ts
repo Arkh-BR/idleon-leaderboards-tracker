@@ -1214,10 +1214,20 @@ const APP_JS = `
       }
       // Talent-shape fallback: derive effLv from Base Level + Bonus
       // Levels so the user only has to fill those two to drive the
-      // whole chain.
+      // whole chain. "Base Level" may carry an owner suffix for
+      // best-char talents (e.g. "Base Level (owner: zArkhe)"). Use a
+      // .startsWith match via a single-line regex that the template
+      // literal can encode safely.
       if (lv === null) {
-        var base = kid(kids, /^Base Level$/);
+        var base = null;
         var bonus = kid(kids, /^Bonus Levels$/);
+        for (var bi = 0; bi < kids.length; bi++) {
+          if (kids[bi].name === "Base Level" ||
+              kids[bi].name.indexOf("Base Level (owner") === 0) {
+            var bv = effectiveValue(kids[bi]);
+            if (bv !== null) { base = Number(bv) || 0; break; }
+          }
+        }
         if (base !== null && bonus !== null) lv = base + bonus;
       }
       if (lv === null) {
