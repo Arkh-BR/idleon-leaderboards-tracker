@@ -185,6 +185,11 @@ export const equipment = {
     for (const it of DR_ITEMS) {
       if (!statSet.has(it.stat)) continue;
       if (equippedKeys.has(it.key)) continue;
+      // Skip obols — they're rendered (with their own catalog) by the
+      // dedicated `obol` resolver, which sits as a sibling of this
+      // equipment node under etcBonus. Including them here would double-
+      // list every unequipped DR obol in the tree.
+      if (it.type.endsWith("_OBOL")) continue;
       const bucket = TYPE_LABELS[it.type] || it.type;
       if (!catalogByType.has(bucket)) catalogByType.set(bucket, []);
       catalogByType.get(bucket)!.push(it);
