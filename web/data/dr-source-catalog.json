@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-27T16:36:26.555Z",
+  "generatedAt": "2026-05-27T16:49:49.136Z",
   "refTotal": 43093.43816941274,
   "refSave": "zArkhe (save 25-21-16.json) — Town, no AC",
   "sourceCount": 75,
@@ -333,8 +333,8 @@
                               "note": "Σ Cyan (W6) battles (post-Base Multi)",
                               "children": [
                                 {
-                                  "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Cyan / Battle d3",
-                                  "name": "Battle d3",
+                                  "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Cyan / Battle 14",
+                                  "name": "Battle 14",
                                   "system": "Talents",
                                   "world": "Character",
                                   "pool": "Additive",
@@ -357,8 +357,8 @@
                               "note": "Σ Teal (W7) battles (post-Base Multi)",
                               "children": [
                                 {
-                                  "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Teal / Battle a9",
-                                  "name": "Battle a9",
+                                  "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Teal / Battle 9",
+                                  "name": "Battle 9",
                                   "system": "Talents",
                                   "world": "Character",
                                   "pool": "Additive",
@@ -783,8 +783,8 @@
                                       "note": "Σ Cyan (W6) battles (post-Base Multi)",
                                       "children": [
                                         {
-                                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Cyan / Battle d3",
-                                          "name": "Battle d3",
+                                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Cyan / Battle 14",
+                                          "name": "Battle 14",
                                           "system": "Talents",
                                           "world": "Character",
                                           "pool": "Additive",
@@ -807,8 +807,8 @@
                                       "note": "Σ Teal (W7) battles (post-Base Multi)",
                                       "children": [
                                         {
-                                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Teal / Battle a9",
-                                          "name": "Battle a9",
+                                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Teal / Battle 9",
+                                          "name": "Battle 9",
                                           "system": "Talents",
                                           "world": "Character",
                                           "pool": "Additive",
@@ -1295,8 +1295,8 @@
                                           "note": "Σ Cyan (W6) battles (post-Base Multi)",
                                           "children": [
                                             {
-                                              "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Cyan / Battle d3",
-                                              "name": "Battle d3",
+                                              "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Cyan / Battle 14",
+                                              "name": "Battle 14",
                                               "system": "Talents",
                                               "world": "Character",
                                               "pool": "Additive",
@@ -1319,8 +1319,8 @@
                                           "note": "Σ Teal (W7) battles (post-Base Multi)",
                                           "children": [
                                             {
-                                              "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Teal / Battle a9",
-                                              "name": "Battle a9",
+                                              "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Teal / Battle 9",
+                                              "name": "Battle 9",
                                               "system": "Talents",
                                               "world": "Character",
                                               "pool": "Additive",
@@ -2062,8 +2062,8 @@
                               "note": "Σ Cyan (W6) battles (post-Base Multi)",
                               "children": [
                                 {
-                                  "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Cyan / Battle d3",
-                                  "name": "Battle d3",
+                                  "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Cyan / Battle 14",
+                                  "name": "Battle 14",
                                   "system": "Talents",
                                   "world": "Character",
                                   "pool": "Additive",
@@ -2086,8 +2086,8 @@
                               "note": "Σ Teal (W7) battles (post-Base Multi)",
                               "children": [
                                 {
-                                  "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Teal / Battle a9",
-                                  "name": "Battle a9",
+                                  "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Teal / Battle 9",
+                                  "name": "Battle 9",
                                   "system": "Talents",
                                   "world": "Character",
                                   "pool": "Additive",
@@ -2512,8 +2512,8 @@
                                       "note": "Σ Cyan (W6) battles (post-Base Multi)",
                                       "children": [
                                         {
-                                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Cyan / Battle d3",
-                                          "name": "Battle d3",
+                                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Cyan / Battle 14",
+                                          "name": "Battle 14",
                                           "system": "Talents",
                                           "world": "Character",
                                           "pool": "Additive",
@@ -2536,8 +2536,8 @@
                                       "note": "Σ Teal (W7) battles (post-Base Multi)",
                                       "children": [
                                         {
-                                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Teal / Battle a9",
-                                          "name": "Battle a9",
+                                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Teal / Battle 9",
+                                          "name": "Battle 9",
                                           "system": "Talents",
                                           "world": "Character",
                                           "pool": "Additive",
@@ -3024,8 +3024,8 @@
                                           "note": "Σ Cyan (W6) battles (post-Base Multi)",
                                           "children": [
                                             {
-                                              "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Cyan / Battle d3",
-                                              "name": "Battle d3",
+                                              "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Cyan / Battle 14",
+                                              "name": "Battle 14",
                                               "system": "Talents",
                                               "world": "Character",
                                               "pool": "Additive",
@@ -3048,8 +3048,8 @@
                                           "note": "Σ Teal (W7) battles (post-Base Multi)",
                                           "children": [
                                             {
-                                              "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Teal / Battle a9",
-                                              "name": "Battle a9",
+                                              "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Teal / Battle 9",
+                                              "name": "Battle 9",
                                               "system": "Talents",
                                               "world": "Character",
                                               "pool": "Additive",
@@ -9747,8 +9747,8 @@
                                   "note": "Σ Cyan (W6) battles (post-Base Multi)",
                                   "children": [
                                     {
-                                      "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Cyan / Battle d3",
-                                      "name": "Battle d3",
+                                      "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Cyan / Battle 14",
+                                      "name": "Battle 14",
                                       "system": "Talents",
                                       "world": "Character",
                                       "pool": "Multi",
@@ -9771,8 +9771,8 @@
                                   "note": "Σ Teal (W7) battles (post-Base Multi)",
                                   "children": [
                                     {
-                                      "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Teal / Battle a9",
-                                      "name": "Battle a9",
+                                      "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Teal / Battle 9",
+                                      "name": "Battle 9",
                                       "system": "Talents",
                                       "world": "Character",
                                       "pool": "Multi",
@@ -10198,8 +10198,8 @@
                                           "note": "Σ Cyan (W6) battles (post-Base Multi)",
                                           "children": [
                                             {
-                                              "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Cyan / Battle d3",
-                                              "name": "Battle d3",
+                                              "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Cyan / Battle 14",
+                                              "name": "Battle 14",
                                               "system": "Talents",
                                               "world": "Character",
                                               "pool": "Multi",
@@ -10222,8 +10222,8 @@
                                           "note": "Σ Teal (W7) battles (post-Base Multi)",
                                           "children": [
                                             {
-                                              "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Teal / Battle a9",
-                                              "name": "Battle a9",
+                                              "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Teal / Battle 9",
+                                              "name": "Battle 9",
                                               "system": "Talents",
                                               "world": "Character",
                                               "pool": "Multi",
@@ -10710,8 +10710,8 @@
                                               "note": "Σ Cyan (W6) battles (post-Base Multi)",
                                               "children": [
                                                 {
-                                                  "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Cyan / Battle d3",
-                                                  "name": "Battle d3",
+                                                  "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Cyan / Battle 14",
+                                                  "name": "Battle 14",
                                                   "system": "Talents",
                                                   "world": "Character",
                                                   "pool": "Multi",
@@ -10734,8 +10734,8 @@
                                               "note": "Σ Teal (W7) battles (post-Base Multi)",
                                               "children": [
                                                 {
-                                                  "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Teal / Battle a9",
-                                                  "name": "Battle a9",
+                                                  "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Teal / Battle 9",
+                                                  "name": "Battle 9",
                                                   "system": "Talents",
                                                   "world": "Character",
                                                   "pool": "Multi",

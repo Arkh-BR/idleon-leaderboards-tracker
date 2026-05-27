@@ -150,24 +150,66 @@ const WORLD_COLOR: Record<number, string> = {
   8: "Crimson",
 };
 
-function parseWorldFromMob(mob: string): { worldIdx: number; battleLabel: string } {
-  // Mobs with "wN<rest>" prefix (e.g. "w6d3", "w7a9") encode their world
-  // directly. Everything else gets bucketed into W1 ("Green") since the
-  // early-game mob roster (mushG/frogG/Copper/Iron/...) lives there.
-  const m = mob.match(/^w(\d+)(.*)$/);
+function parseWorldFromMob(mob: string): {
+  worldIdx: number;
+  section: string;
+  num: number;
+} | null {
+  // Mobs follow "w<world><section><num>" pattern (e.g. "w6d3" = W6,
+  // section "d", number 3). Returns null for mobs without this prefix
+  // (early-game mushG/frogG/Copper/Iron/Pet* — those don't get a
+  // "Battle N" label since they belong to W1's grid that uses unique
+  // mob names, not section-numbered slots).
+  const m = mob.match(/^w(\d+)([a-z]+)(\d+)$/);
   if (m) {
-    return { worldIdx: Number(m[1]), battleLabel: "Battle " + m[2] };
+    return { worldIdx: Number(m[1]), section: m[2], num: Number(m[3]) };
   }
-  return { worldIdx: 1, battleLabel: mob };
+  return null;
+}
+
+/** Stable sort key for "natural" ordering of W6/W7 battles: (section
+ *  letter, numeric position). This makes w6a1 < w6a2 < ... < w6a5 <
+ *  w6b1 < ... < w6d3 (matching the in-game grid order), and
+ *  w7a1 < w7a2 < ... < w7a9 < w7a10 < w7a11 (instead of lexicographic
+ *  which would put w7a10 before w7a2). */
+function battleSortKey(p: { section: string; num: number }): string {
+  return p.section + p.num.toString().padStart(4, "0");
 }
 
 export function decomposeWinBonusRaw(
   saveData: SaveData,
   bonusIdx: number
 ): WinBonusRawBreakdown {
-  // Step 1: figure out every mob that COULD target this slot, even ones
-  // the user hasn't killed yet — so we can show "Battle X = 0 (not yet
-  // defeated)" rows for what's still farmable.
+  // Step 0: compute a world → ordered-mob-list lookup. This is the
+  // "in-game grid position" — each mob's number within its world (e.g.
+  // w6d3 is the 14th Cyan battle in the natural section-letter +
+  // numeric-suffix order: a1..a5, b1..b4, c1..c2, d1..d3). The user
+  // expects "Battle 14" / "Battle 9" labels, not "Battle d3" / "Battle
+  // a9", so we have to enumerate ALL mobs that match the wN<section>
+  // pattern and sort naturally.
+  const worldPositions = new Map<string, number>();
+  const worldRosters = new Map<number, string[]>();
+  for (const mob in SUMMON_NORMAL_BONUS) {
+    const parsed = parseWorldFromMob(mob);
+    if (!parsed) continue;
+    let roster = worldRosters.get(parsed.worldIdx);
+    if (!roster) {
+      roster = [];
+      worldRosters.set(parsed.worldIdx, roster);
+    }
+    roster.push(mob);
+  }
+  for (const [w, mobs] of worldRosters) {
+    void w;
+    mobs.sort((a, b) => {
+      const pa = parseWorldFromMob(a)!;
+      const pb = parseWorldFromMob(b)!;
+      return battleSortKey(pa).localeCompare(battleSortKey(pb));
+    });
+    mobs.forEach((m, i) => worldPositions.set(m, i + 1));
+  }
+
+  // Step 1: figure out every mob that targets this slot.
   const eligible: Array<{ mob: string; perKill: number }> = [];
   for (const mob in SUMMON_NORMAL_BONUS) {
     const entry = SUMMON_NORMAL_BONUS[mob];
@@ -188,14 +230,18 @@ export function decomposeWinBonusRaw(
     }
   }
 
-  // Step 3: group eligible mobs by world.
+  // Step 3: group eligible mobs by world and label each with its
+  // grid-position number ("Battle 14", "Battle 9", …).
   const byWorld = new Map<number, WinBonusBattleEntry[]>();
   for (const { mob, perKill } of eligible) {
-    const { worldIdx, battleLabel } = parseWorldFromMob(mob);
+    const parsed = parseWorldFromMob(mob);
+    if (!parsed) continue; // shouldn't happen for slots > 1
+    const worldIdx = parsed.worldIdx;
+    const position = worldPositions.get(mob) ?? 0;
     const kills = killCount.get(mob) || 0;
     const battle: WinBonusBattleEntry = {
       mob,
-      label: battleLabel,
+      label: position > 0 ? `Battle ${position}` : mob,
       kills,
       perKill,
       contribution: kills * perKill,
@@ -208,7 +254,11 @@ export function decomposeWinBonusRaw(
     .map(([worldIdx, battles]) => ({
       worldIdx,
       color: WORLD_COLOR[worldIdx] || `World ${worldIdx}`,
-      battles: battles.sort((a, b) => a.mob.localeCompare(b.mob)),
+      battles: battles.sort((a, b) => {
+        const pa = parseWorldFromMob(a.mob)!;
+        const pb = parseWorldFromMob(b.mob)!;
+        return battleSortKey(pa).localeCompare(battleSortKey(pb));
+      }),
       total: battles.reduce((s, b) => s + b.contribution, 0),
     }))
     .sort((a, b) => a.worldIdx - b.worldIdx);
