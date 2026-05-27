@@ -205,7 +205,11 @@ export default function TalentsLevelPageClient() {
   }, [tabs, talentId]);
 
   return (
-    <main className="max-w-3xl mx-auto px-3 pb-12">
+    // Wider container than /drop-rate because the visual picker has to fit
+    // 9 tabs (5 chain + 4 star) on master-class chars without horizontal
+    // scrolling. max-w-3xl was too tight — Death Bringer / Wind Walker /
+    // Arcane Cultist were overflowing.
+    <main className="max-w-5xl mx-auto px-3 pb-12">
       <h1 className="flex items-baseline gap-3 mb-1 mt-2">
         <span className="text-3xl font-extrabold text-gold">
           🌟 Talents Level
