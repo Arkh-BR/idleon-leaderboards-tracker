@@ -109,7 +109,22 @@ function extractTalentSummary(tree: CorganNode | null): TalentSummary | null {
   // subtree (Tal 328 nests Effective Level inside Talent Value, for ex).
   const effective = findDescendant(tree, "Effective Level");
   const pointsKid = findDescendant(tree, "Points Invested");
-  const capKid = findDescendant(tree, "Max Book Lv Cap");
+  // Cap can be one of two shapes:
+  //   - "Max Book Lv Cap"           — default account-wide maxBookLv path
+  //   - "Talent Cap (base + boosters)" — per-talent override from
+  //     TALENT_CAP_BOOSTERS (e.g. Tal 10/11/12/23/75/79/86/87/266/267/
+  //     446/447). When present, this is THE cap for the target talent.
+  //
+  // We can't use findDescendant for the cap: it walks depth-first and
+  // would pick up the "Max Book Lv Cap" aninhado dentro de um booster's
+  // sub-tree (a booster is itself a talent and emits its own cap node).
+  // Instead, locate the target's "Base Level" and pull the cap from its
+  // DIRECT children — that's always the talent's own cap.
+  const baseLevelNode = findDescendant(tree, "Base Level");
+  const capKid = baseLevelNode
+    ? getChildByName(baseLevelNode, "Talent Cap (base + boosters)") ||
+      getChildByName(baseLevelNode, "Max Book Lv Cap")
+    : null;
   const bonusKid = findDescendant(tree, "Bonus Levels");
 
   const superKid = findDescendant(tree, "Super Levels");
