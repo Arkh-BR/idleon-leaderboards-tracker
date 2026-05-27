@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-27T18:01:42.075Z",
+  "generatedAt": "2026-05-27T18:10:53.689Z",
   "refTotal": 43093.43816941274,
   "refSave": "zArkhe (save 25-21-16.json) — Town, no AC",
   "sourceCount": 75,
@@ -9492,17 +9492,8 @@
       "fmt": "x",
       "refValue": 1.2690808951104937,
       "bucket": "🎯 Talents",
+      "note": "1 + (talent × log(kills)) / 100 — 1 + (Talent Value × log10(Plunderous Kills)) / 100",
       "children": [
-        {
-          "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Active",
-          "name": "Active",
-          "system": "Talents",
-          "world": "Character",
-          "pool": "Multi",
-          "fmt": "raw",
-          "refValue": 1,
-          "bucket": "🎯 Talents"
-        },
         {
           "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value",
           "name": "Talent Value",
@@ -9512,7 +9503,6 @@
           "fmt": "raw",
           "refValue": 4.846153846153846,
           "bucket": "🎯 Talents",
-          "note": "decay(6, 150)",
           "children": [
             {
               "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level",
@@ -9962,7 +9952,6 @@
                   "fmt": "+",
                   "refValue": 241,
                   "bucket": "🎯 Talents",
-                  "note": "computed for active char",
                   "children": [
                     {
                       "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149)",
@@ -11212,15 +11201,18 @@
               ],
               "formulaKey": "effectiveLevelSum",
               "agg": "custom"
+            },
+            {
+              "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Best Character 1",
+              "name": "Best Character 1",
+              "system": "Talents",
+              "world": "Character",
+              "pool": "Multi",
+              "fmt": "raw",
+              "refValue": 4.846153846153846,
+              "bucket": "🎯 Talents"
             }
-          ],
-          "formulaSpec": {
-            "type": "decay",
-            "x1": 6,
-            "x2": 150
-          },
-          "formulaKey": "closedFormFormula",
-          "agg": "custom"
+          ]
         },
         {
           "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Plunderous Kills",
@@ -11234,8 +11226,7 @@
           "note": "OLA[139]"
         }
       ],
-      "agg": "custom",
-      "note": "1 + (Talent Value × log10(Plunderous Kills)) / 100"
+      "agg": "custom"
     },
     {
       "id": "Drop Rate / Post-Processing / 🥷 Sneaking Mastery / Sneaking Completions (Sneaking Mastery)",

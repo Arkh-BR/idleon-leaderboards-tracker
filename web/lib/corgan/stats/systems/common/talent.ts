@@ -1555,59 +1555,14 @@ export const talent = {
       return node(name, r.val, maxChildren, { fmt: "+" });
     }
 
-    // Talent 328 (Archlord of the Pirates): multiplicative DR factor
-    if (id === 328) {
-      const gb = getbonus2(id, data, ctx.charIdx, saveData, atlOpts);
-      const plunderKills = Number((optionsListData as any)[139]) || 0;
-      const logVal = plunderKills > 0 ? getLOG(plunderKills) : 0;
-      if (gb.val <= 0 || plunderKills <= 0) {
-        return node(name, 1, null, { fmt: "x" });
-      }
-      const total328 = 1 + (gb.val * logVal) / 100;
-      const talCh: CorganNode[] = [];
-      if (gb.detail) {
-        // Surface the owner char in the Base Level note — for Tal 328
-        // (Bowman class), the owner is the best Bowman char in the
-        // account (NOT necessarily the active char zArkhe/DK).
-        const ownerName = saveData.charNames && saveData.charNames[gb.bestChar];
-        talCh.push(
-          node(
-            "Effective Level",
-            gb.detail.effectiveLv,
-            buildEffectiveChildren(
-              gb.detail.bonusDetail,
-              emitBaseLevelNode(gb.detail.rawLv, saveData, {
-                ownerCharIdx: gb.bestChar,
-                ownerName,
-                ...baseOpts,
-              }),
-              { note: "computed for active char" }
-            ),
-            { fmt: "raw" }
-          )
-        );
-      }
-      const active328 = gb.detail && gb.detail.rawLv > 0 ? 1 : 0;
-      return node(
-        name,
-        total328,
-        [
-          node("Active", active328, null, { fmt: "raw" }),
-          node("Talent Value", gb.val, talCh, {
-            fmt: "raw",
-            note:
-              "decay(6,150," +
-              (gb.detail ? gb.detail.effectiveLv : "?") +
-              ")",
-          }),
-          node("Plunderous Kills", plunderKills, null, {
-            fmt: "raw",
-            note: "OLA[139]",
-          }),
-        ],
-        { fmt: "x" }
-      );
-    }
+    // Tal 328's Plunderous Kills × multiplier used to live here as a
+    // dedicated branch, but it's a DR-specific application (Archlord
+    // shows up as a postMult in the DR descriptor), not an intrinsic
+    // part of viewing the talent itself. Moved into the `workshop`
+    // wrapper (lib/corgan/stats/systems/common/wrappers.ts), which is
+    // the only caller that needs it (/drop-rate). On /talents-level Tal
+    // 328 now goes through the standard account-wide auto-max emit
+    // above — same shape as every other cross-char talent.
 
     const r = getTalentNumber(ctx.charIdx, id, data, ctx.activeCharIdx, undefined, saveData, atlOpts);
     // Emit the full talent breakdown even for level-0 talents so the

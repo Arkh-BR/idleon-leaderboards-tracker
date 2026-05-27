@@ -69,14 +69,13 @@ export function isAccountWideTalent(talentId: number): boolean {
   return ACCOUNT_WIDE_TALENT_IDS.has(talentId);
 }
 
-/** Talents that ARE account-wide but have their own dedicated branch in
- *  talent.resolve (with multipliers / contextual data that the generic
- *  mode="max" emit would lose). These should NOT be auto-switched to
- *  max mode — let the special branch handle it (which already uses
- *  getbonus2 internally). Tal 655 is a star talent (no cross-char
- *  mechanism) but kept here for completeness so callers can short-
- *  circuit it the same way. */
-export const ACCOUNT_WIDE_SPECIAL_BRANCH_IDS = new Set<number>([
-  328, // Archlord — has Plunderous Kills multiplier branch
-  655, // Boss Battle Spillover — star talent, Per Skull × Skulls branch
-]);
+/** No talents currently need to skip the auto-max emit.
+ *  - Tal 328 (Archlord) used to have a Plunderous Kills × wrapper
+ *    branch here, but that's a DR-specific application and now lives
+ *    in the `workshop` wrapper (the only caller that needs it).
+ *  - Tal 655 is a star talent (id >= 615), handled by the dedicated
+ *    star-talent branch later in talent.resolve — it's not in
+ *    ACCOUNT_WIDE_TALENT_IDS so auto-max never fires for it anyway.
+ *  Left as an empty Set so future special-case talents can be added
+ *  without re-plumbing the gate. */
+export const ACCOUNT_WIDE_SPECIAL_BRANCH_IDS = new Set<number>([]);
