@@ -9,6 +9,7 @@ const ITEMS: NavItem[] = [
   { href: "/leaderboards", label: "🏆 IT Leaderboards" },
   { href: "/tome", label: "📖 Tome Score" },
   { href: "/drop-rate", label: "🎲 Drop Rate", wip: true },
+  { href: "/talents-level", label: "🌟 Talents Level", wip: true },
 ];
 
 export default function TopNav() {
