@@ -2042,11 +2042,12 @@ const APP_JS = `
       // talent.resolve(328) now wraps its own output with the Plunderous
       // Kills × multiplier (see common/talent.ts useMaxMode branch), so
       // /drop-rate and /talents-level both see the SAME final-bonus
-      // shape: [Effective Level, Best Character N, Plunderous Kills].
-      // The talent formula result lives in "Best Character N" (any
-      // digit). Tal 328 is account-wide so its activity is implicit
-      // (val > 0 means at least one owner-class char has it invested).
-      var talVal = kid(kids, /^Best Character /);
+      // shape: [Effective Level, Best Character: <name>, Plunderous Kills].
+      // The talent formula result lives in "Best Character: <name>"
+      // (the char-name suffix varies per save; we anchor on the prefix).
+      // Tal 328 is account-wide so its activity is implicit (val > 0
+      // means at least one owner-class char has it invested).
+      var talVal = kid(kids, /^Best Character/);
       var plunder = kid(kids, /^Plunderous Kills$/);
       if (talVal === null || plunder === null) return null;
       if (talVal <= 0 || plunder < 1) return 1;

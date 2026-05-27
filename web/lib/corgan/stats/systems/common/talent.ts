@@ -1531,8 +1531,16 @@ export const talent = {
       (isAccountWideTalent(id) && !ACCOUNT_WIDE_SPECIAL_BRANCH_IDS.has(id));
     if (useMaxMode) {
       const r = getbonus2(id, data, ctx.charIdx, saveData, atlOpts);
+      // Show the char NAME from the save rather than just the index — far
+      // more useful when the user is figuring out which character is
+      // currently sustaining an account-wide talent. Falls back to
+      // "Char N" if charNames is missing/empty (e.g. partial saves).
+      const bestName =
+        (saveData.charNames && saveData.charNames[r.bestChar]) ||
+        `Char ${r.bestChar}`;
+      const bestLabel = `Best Character: ${bestName}`;
       let maxChildren: CorganNode[] = [
-        node("Best Character " + r.bestChar, r.val, null, { fmt: "raw" }),
+        node(bestLabel, r.val, null, { fmt: "raw" }),
       ];
       if (r.detail) {
         maxChildren = [
@@ -1543,13 +1551,13 @@ export const talent = {
               r.detail.bonusDetail,
               emitBaseLevelNode(r.detail.rawLv, saveData, {
                 ownerCharIdx: r.bestChar,
-                ownerName: saveData.charNames && saveData.charNames[r.bestChar],
+                ownerName: bestName,
                 ...baseOpts,
               })
             ),
             { fmt: "raw" }
           ),
-          node("Best Character " + r.bestChar, r.val, null, { fmt: "raw" }),
+          node(bestLabel, r.val, null, { fmt: "raw" }),
         ];
       }
 

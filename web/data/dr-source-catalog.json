@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-27T18:19:38.623Z",
+  "generatedAt": "2026-05-27T18:38:30.913Z",
   "refTotal": 43093.43816941274,
   "refSave": "zArkhe (save 25-21-16.json) — Town, no AC",
   "sourceCount": 75,
@@ -11193,8 +11193,8 @@
           "agg": "custom"
         },
         {
-          "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Best Character 1",
-          "name": "Best Character 1",
+          "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Best Character: ARKHELUCK",
+          "name": "Best Character: ARKHELUCK",
           "system": "Talents",
           "world": "Character",
           "pool": "Multi",
@@ -11211,7 +11211,7 @@
           "fmt": "raw",
           "refValue": 356841,
           "bucket": "🎯 Talents",
-          "note": "OLA[139] — applied as × multiplier in DR postMult only"
+          "note": "OLA[139] — count of plunderous kills"
         }
       ],
       "agg": "custom"
