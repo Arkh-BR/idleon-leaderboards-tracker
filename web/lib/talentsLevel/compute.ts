@@ -44,6 +44,11 @@ export function computeTalentEffective(
     charIdx,
     activeCharIdx: charIdx,
     useMaxResearchBaseLevel: !!opts?.useMaxResearchBaseLevel,
+    // Always on for this page — the Spelunk Super Talent bonus is
+    // surfaced as its own "Super Levels" sibling under Effective Level
+    // (when the talent is super-active on the active char's preset).
+    // /drop-rate doesn't set this flag, so its pool tree stays unchanged.
+    splitSuperLevels: true,
   };
   const tree = talent.resolve(talentId, ctx);
   return {

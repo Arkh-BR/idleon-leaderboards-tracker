@@ -56,6 +56,16 @@ type Ctx = {
    *  = min(rawLv, cap) and Points Invested = the actual save value, so
    *  Base + Bonus = Effective Level for /drop-rate and /talents-level. */
   useMaxResearchBaseLevel?: boolean;
+  /** When true, the Spelunk Super Talent bonus is surfaced as a sibling
+   *  "Super Levels" node under Effective Level instead of staying inside
+   *  the Bonus Levels chain. Only meaningful for talents that pass the
+   *  resolveAllTalentLVz exclusion gate (idx < 615, not in
+   *  49-59/149/374/539/505) AND are listed in spelunkData[20+ci+12*preset]
+   *  for the active char/preset — any other talent emits no Super node.
+   *  Used by /talents-level so the user can see Base + Bonus + Super
+   *  decomposed; left false by /drop-rate to keep the existing pool tree
+   *  shape stable. */
+  splitSuperLevels?: boolean;
 };
 
 type TalentResolveArgs = {
@@ -63,7 +73,20 @@ type TalentResolveArgs = {
   mode?: "max";
 };
 
-export type TalentBonusDetail = { total: number; children: CorganNode[] };
+export type TalentBonusDetail = {
+  total: number;
+  children: CorganNode[];
+  /** Spelunk Super Talent contribution (50 + Legend7×10 + W7B5), set
+   *  only when ATLOpts.splitSuperLevels is true AND the talent is in
+   *  spelunkData[20+ci+12*preset] for the active char's active preset.
+   *  In every other case this stays 0 and the Spelunk node is left
+   *  inside `children` (current /drop-rate behavior, unchanged). */
+  superBonus?: number;
+  /** Breakdown of the superBonus value (Base 50 / Legend 7 / W7 Bonus 5).
+   *  Set alongside superBonus; used by talent.resolve to populate the
+   *  separate Super Levels node's children when emitting the split shape. */
+  superChildren?: CorganNode[];
+};
 
 /** Computes the N.js maxBookLv formula (line 12252) and emits the
  *  full breakdown as kids of a "Max Book Lv Cap" node. Account-wide
@@ -272,6 +295,10 @@ type ATLOpts = {
    *  closure so the Base Level kid it emits (for Tal 149/374/539 char rows)
    *  uses the same mode as the outer talent's Effective Level structure. */
   useMaxResearchBaseLevel?: boolean;
+  /** Threads ctx.splitSuperLevels into resolveAllTalentLVz so it can
+   *  decide whether to keep the Spelunk Super Talent node inside the Bonus
+   *  chain or pull it out into the separate superBonus return field. */
+  splitSuperLevels?: boolean;
 };
 
 /**
@@ -491,8 +518,15 @@ function resolveAllTalentLVz(
   }
   const children: CorganNode[] = [];
 
-  // Spelunk
+  // Spelunk Super Talent — only adds when the talent is in the active
+  // char's active preset's super-talent array. Many talents naturally
+  // can't be super (49-59/149/374/539/505/615+ skipped above, plus any
+  // talent the game's UI never allows in the Spelunking 4D slot, e.g.
+  // most Voidwalker talents). For those cases the array lookup just
+  // misses and spelunkBonus stays 0 — no special handling needed here.
+  const splitSuper = !!opts?.splitSuperLevels;
   let spelunkBonus = 0;
+  let superChildren: CorganNode[] | undefined;
   if (slotIdx >= 0) {
     const preset =
       Number(
@@ -516,21 +550,28 @@ function resolveAllTalentLVz(
             (saveData.spelunkData as any)[45][5]
         ) || 0;
       spelunkBonus = Math.round(base + legend7 + w7b5);
-      children.push(
-        node(
-          "Spelunk Super Talent",
-          spelunkBonus,
-          [
-            node("Base", base, null, { fmt: "raw" }),
-            node("Spelunky Super Talent (Legend 7)", legend7, null, {
-              fmt: "raw",
-              note: "Spelunk[18][7] × 10",
-            }),
-            node("W7 Bonus 5", w7b5, null, { fmt: "raw" }),
-          ],
-          { fmt: "raw" }
-        )
-      );
+      // Build the breakdown kids once — they're used either nested inside
+      // the Bonus chain (legacy) OR lifted up next to it (split mode).
+      const kids: CorganNode[] = [
+        node("Base", base, null, { fmt: "raw" }),
+        node("Spelunky Super Talent (Legend 7)", legend7, null, {
+          fmt: "raw",
+          note: "Spelunk[18][7] × 10",
+        }),
+        node("W7 Bonus 5", w7b5, null, { fmt: "raw" }),
+      ];
+      if (splitSuper) {
+        // Split mode — pull the breakdown into the return so talent.resolve
+        // can emit a separate "Super Levels" sibling. The Bonus chain
+        // children list intentionally does NOT include this node.
+        superChildren = kids;
+      } else {
+        // Legacy /drop-rate mode — keep Spelunk Super Talent inside the
+        // Bonus chain (same shape the gen-source-catalog tool snapshots).
+        children.push(
+          node("Spelunk Super Talent", spelunkBonus, kids, { fmt: "raw" })
+        );
+      }
     }
   }
 
@@ -1169,7 +1210,16 @@ function resolveAllTalentLVz(
       arcane57 +
       lvBonusTerm
   );
-  return { total, children };
+  // Effective Level = rawLv + total still holds regardless of split mode:
+  // when splitSuper is true, the Bonus row in talent.resolve reports
+  // (total - superBonus) and the Super row reports superBonus; sum is
+  // unchanged. Only the presentation moves.
+  return {
+    total,
+    children,
+    superBonus: splitSuper ? spelunkBonus : 0,
+    superChildren: splitSuper && superChildren ? superChildren : undefined,
+  };
 }
 
 function getTalentData(id: number, tab?: number) {
@@ -1287,8 +1337,47 @@ export const talent = {
     // emitBaseLevelNode).
     const atlOpts: ATLOpts = {
       useMaxResearchBaseLevel: !!ctx.useMaxResearchBaseLevel,
+      splitSuperLevels: !!ctx.splitSuperLevels,
     };
     const baseOpts = { useMaxResearch: !!ctx.useMaxResearchBaseLevel };
+
+    // Helper used by every Effective Level emit (mode="max", Tal 328
+    // special, default emit) — when ctx.splitSuperLevels is on AND the
+    // detail came back with a non-zero superBonus, append a "Super Levels"
+    // sibling so the row reads `Base + Bonus + Super` instead of folding
+    // the spelunk contribution into Bonus. Otherwise the second element
+    // of the returned array is undefined and the caller filters it out.
+    function buildEffectiveChildren(
+      detail: TalentBonusDetail,
+      baseLevelNode: CorganNode,
+      bonusOpts?: { note?: string }
+    ): CorganNode[] {
+      const isSplit = atlOpts.splitSuperLevels && (detail.superBonus || 0) > 0;
+      const bonusOnly = isSplit
+        ? detail.total - (detail.superBonus || 0)
+        : detail.total;
+      const bonusKidChildren = detail.children.length ? detail.children : null;
+      const out: CorganNode[] = [
+        baseLevelNode,
+        node("Bonus Levels", bonusOnly, bonusKidChildren, {
+          fmt: "+",
+          note: bonusOpts?.note,
+        }),
+      ];
+      if (isSplit) {
+        out.push(
+          node(
+            "Super Levels",
+            detail.superBonus || 0,
+            detail.superChildren && detail.superChildren.length
+              ? detail.superChildren
+              : null,
+            { fmt: "+", note: "Spelunk Super Talent — active on this preset" }
+          )
+        );
+      }
+      return out;
+    }
 
     if (mode === "max") {
       const r = getbonus2(id, data, ctx.charIdx, saveData, atlOpts);
@@ -1300,19 +1389,14 @@ export const talent = {
           node(
             "Effective Level",
             r.detail.effectiveLv,
-            [
+            buildEffectiveChildren(
+              r.detail.bonusDetail,
               emitBaseLevelNode(r.detail.rawLv, saveData, {
                 ownerCharIdx: r.bestChar,
                 ownerName: saveData.charNames && saveData.charNames[r.bestChar],
                 ...baseOpts,
-              }),
-              node(
-                "Bonus Levels",
-                r.detail.bonus,
-                r.detail.bonusDetail.children.length ? r.detail.bonusDetail.children : null,
-                { fmt: "+" }
-              ),
-            ],
+              })
+            ),
             { fmt: "raw" }
           ),
           node("Best Character " + r.bestChar, r.val, null, { fmt: "raw" }),
@@ -1340,21 +1424,15 @@ export const talent = {
           node(
             "Effective Level",
             gb.detail.effectiveLv,
-            [
+            buildEffectiveChildren(
+              gb.detail.bonusDetail,
               emitBaseLevelNode(gb.detail.rawLv, saveData, {
                 ownerCharIdx: gb.bestChar,
                 ownerName,
                 ...baseOpts,
               }),
-              node(
-                "Bonus Levels",
-                gb.detail.bonus || 0,
-                gb.detail.bonusDetail && gb.detail.bonusDetail.children.length
-                  ? gb.detail.bonusDetail.children
-                  : null,
-                { fmt: "+", note: "computed for active char" }
-              ),
-            ],
+              { note: "computed for active char" }
+            ),
             { fmt: "raw" }
           )
         );
@@ -1387,8 +1465,9 @@ export const talent = {
     // the user levelled it. The Active toggle (0 = current state,
     // 1 = "as if active") lets them research that without zero-out
     // hacks.
-    const bonusChildren =
-      r.bonusDetail && r.bonusDetail.children.length ? r.bonusDetail.children : null;
+    // bonusChildren is now built inside buildEffectiveChildren — the
+    // helper reads r.bonusDetail.children directly and slices out the
+    // Spelunk Super Talent node when split mode is on.
     const activeFlag = r.rawLv > 0 ? 1 : 0;
     // Canonical formula note matches the gen-time detectFormulaSpec
     // shape — "type(x1,x2,lvAtGenTime)". The runtime closedFormFormula
@@ -1448,21 +1527,27 @@ export const talent = {
         node(
           "Effective Level",
           r.effectiveLv,
-          [
+          buildEffectiveChildren(
+            r.bonusDetail,
             emitBaseLevelNode(r.rawLv, saveData, {
               ownerCharIdx: ctx.charIdx,
               ownerName: saveData.charNames && saveData.charNames[ctx.charIdx],
               ...baseOpts,
-            }),
-            node("Bonus Levels", r.bonus || 0, bonusChildren, { fmt: "+" }),
-          ],
-          { fmt: "raw", note: "Base + Bonus" }
+            })
+          ),
+          {
+            fmt: "raw",
+            note: atlOpts.splitSuperLevels
+              ? "Base + Bonus + Super"
+              : "Base + Bonus",
+          }
         ),
       ],
       { fmt: "+", note: formulaNote }
     );
   },
 };
+
 
 // Silence unused-import warnings — these symbols stay imported to keep
 // the source dependency map identical to Corgan's, so Stage 3+ can

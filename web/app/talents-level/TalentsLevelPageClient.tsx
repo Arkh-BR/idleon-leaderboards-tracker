@@ -60,8 +60,8 @@ function tabDisplayName(rawName: string): string {
 // star shape for everything else.
 
 type TalentSummary = {
-  /** Current effective level (rawLv invested + bonus chain). Null when the
-   *  tree doesn't expose a Bonus Levels node — e.g. star talents. */
+  /** Current effective level (rawLv invested + bonus chain + super). Null
+   *  when the tree doesn't expose a Bonus Levels node — e.g. star talents. */
   currentEffective: number | null;
   /** Max effective level if Points Invested were bumped to the cap. Null
    *  when no Max Book Lv Cap kid is in the tree. */
@@ -73,6 +73,12 @@ type TalentSummary = {
   /** ATL bonus chain total. Star talents have 0 here (cleared in talent.ts
    *  via computeAllTalentLVz returning 0 for idx > 614). */
   bonusLevels: number;
+  /** Spelunk Super Talent contribution, exposed as a separate row on
+   *  /talents-level (see ctx.splitSuperLevels in compute.ts). 0 when the
+   *  talent isn't super-active for the active char's preset OR when it
+   *  can't be super at all (49-59 / 149 / 374 / 539 / 505 / >614, plus
+   *  any talent the game's UI restricts from the Spelunking 4D slot). */
+  superLevels: number;
 };
 
 function getChildByName(node: CorganNode, name: string): CorganNode | null {
@@ -103,21 +109,25 @@ function extractTalentSummary(tree: CorganNode | null): TalentSummary | null {
   const capKid = findDescendant(tree, "Max Book Lv Cap");
   const bonusKid = findDescendant(tree, "Bonus Levels");
 
+  const superKid = findDescendant(tree, "Super Levels");
+
   if (effective || (pointsKid && capKid)) {
     // Normal-shape tree (or Tal 328 which still emits Base+Bonus inside).
     const points = pointsKid ? Number(pointsKid.val) : 0;
     const cap = capKid ? Number(capKid.val) : null;
     const bonus = bonusKid ? Number(bonusKid.val) : 0;
+    const sup = superKid ? Number(superKid.val) || 0 : 0;
     const current = effective
       ? Number(effective.val)
-      : points + bonus;
-    const max = cap != null ? cap + bonus : null;
+      : points + bonus + sup;
+    const max = cap != null ? cap + bonus + sup : null;
     return {
       currentEffective: current,
       maxEffective: max,
       pointsInvested: points,
       maxCap: cap,
       bonusLevels: bonus,
+      superLevels: sup,
     };
   }
 
@@ -131,6 +141,7 @@ function extractTalentSummary(tree: CorganNode | null): TalentSummary | null {
       pointsInvested: lv,
       maxCap: null,
       bonusLevels: 0,
+      superLevels: 0,
     };
   }
 
@@ -144,6 +155,7 @@ function extractTalentSummary(tree: CorganNode | null): TalentSummary | null {
       pointsInvested: lv,
       maxCap: null,
       bonusLevels: 0,
+      superLevels: 0,
     };
   }
 
@@ -581,6 +593,17 @@ function formatLevel(v: number | null): string {
   return Math.round(v).toString();
 }
 
+// Format the "invested + bonus + super" breakdown shared by both the
+// current and max panes. Omits zero-value parts so a talent with no bonus
+// chain and no super reads as just the leading number.
+function breakdownLine(parts: Array<{ label: string; value: number }>): string {
+  const nonZero = parts.filter((p) => p.value > 0);
+  if (nonZero.length === 0) return formatLevel(parts[0]?.value ?? 0) + " " + (parts[0]?.label ?? "");
+  return nonZero
+    .map((p) => `${formatLevel(p.value)} ${p.label}`)
+    .join(" + ");
+}
+
 function CurrentEffectivePane({
   summary,
 }: {
@@ -596,9 +619,11 @@ function CurrentEffectivePane({
       </div>
       <div className="text-[10px] text-zinc-600 mt-1 font-mono">
         {summary
-          ? summary.bonusLevels > 0
-            ? `${formatLevel(summary.pointsInvested)} invested + ${formatLevel(summary.bonusLevels)} bonus`
-            : `${formatLevel(summary.pointsInvested)} invested`
+          ? breakdownLine([
+              { label: "invested", value: summary.pointsInvested },
+              { label: "bonus", value: summary.bonusLevels },
+              { label: "super", value: summary.superLevels },
+            ])
           : "—"}
       </div>
     </div>
@@ -625,9 +650,11 @@ function MaxEffectivePane({
       </div>
       <div className="text-[10px] text-zinc-600 mt-1 font-mono">
         {hasCap
-          ? summary!.bonusLevels > 0
-            ? `${formatLevel(summary!.maxCap)} cap + ${formatLevel(summary!.bonusLevels)} bonus`
-            : `${formatLevel(summary!.maxCap)} cap`
+          ? breakdownLine([
+              { label: "cap", value: summary!.maxCap! },
+              { label: "bonus", value: summary!.bonusLevels },
+              { label: "super", value: summary!.superLevels },
+            ])
           : "star talent — no cap"}
       </div>
     </div>
