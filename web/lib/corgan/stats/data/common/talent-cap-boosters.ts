@@ -26,6 +26,19 @@
 
 export type CapBoosterScope = "account-wide" | "per-char";
 
+/** Optional alchemy-bubble clamp applied to a single booster's contribution.
+ *  Mirrors N.js `Math.min(GetTalentNumber(1, src), CauldronInfo[chap][slot])`
+ *  — the booster's effect is capped by the BUBBLE LEVEL (raw integer Lv),
+ *  not its computed % value. */
+export type BubbleCap = {
+  /** 0=W1, 1=W2, 2=W3, 3=W4 — index into CauldronInfo. */
+  chapter: number;
+  /** Bubble slot inside the chapter's cauldron. */
+  slot: number;
+  /** Friendly bubble name for the breakdown row note. */
+  bubbleLabel: string;
+};
+
 export type CapBoosterSpec = {
   /** Source talent whose bonus contributes max LV to the target. */
   sourceTalent: number;
@@ -36,6 +49,10 @@ export type CapBoosterSpec = {
   scope: CapBoosterScope;
   /** Display label for the breakdown row under "Max Book Lv Cap". */
   label: string;
+  /** When present, clamp this booster's value to the bubble's level
+   *  (CauldronInfo[chapter][slot]). Replicates the in-game "Each Lv of
+   *  '<bubble>' raises max Lv of '<talent>', up to +{" pattern. */
+  bubbleCap?: BubbleCap;
 };
 
 export type CapBoosterEntry = {
@@ -44,6 +61,12 @@ export type CapBoosterEntry = {
    *  when this entry is present. */
   baseCap: number;
   boosters: CapBoosterSpec[];
+  /** When true, the computed cap is taken as max(formula, savedSM[id]).
+   *  Mirrors N.js: SkillLevelsMAX ratchets UPWARD only — once a bubble
+   *  was leveled high, the cap stays even if the bubble is unleveled.
+   *  Used for the 7 bubble-capped targets (79, 86, 87, 266, 267, 446,
+   *  447); the stat targets (10/11/12/23/75) reassign without max(). */
+  ratchet?: boolean;
 };
 
 /** Targets that don't have a registry entry use maxBookLv (the standard
@@ -95,19 +118,112 @@ export const TALENT_CAP_BOOSTERS: Record<number, CapBoosterEntry> = {
     ],
   },
 
-  // TODO: bubble-capped boosters — these target talents are boosted by
-  // a source talent BUT the contribution is clamped by an alchemy bubble
-  // level (e.g. "Each Lv of 'Lotto Skills' Bubble raises max Lv of
-  // 'Sleepin On The Job', up to +{"). Adding them requires reading the
-  // bubble level from the save and applying a min() cap.
-  //
-  //   79  SLEEPIN_ON_THE_JOB ← 39 COLLOQUIAL_CONTAINERS (capped by Lotto Skills bubble)
-  //   86  MEAT_SHANK         ← 129 BLOCKY_BOTTLES        (capped by Warriors Rule bubble)
-  //   87  CRITIKILL          ← 114 BEEFY_BOTTLES         (capped by Warriors Rule bubble)
-  //   266 FEATHERWEIGHT      ← 294 VELOCITY_VESSELS      (capped by Archer or Bust bubble)
-  //   267 I_SEE_YOU          ← 309 VISIBILITY_VESSELS    (capped by Archer or Bust bubble)
-  //   446 OVERCLOCKED_ENERGY ← 474 FUSCIA_FLASKS         (capped by Mage is Best bubble)
-  //   447 FARSIGHT           ← 489 FANTASIA_FLASKS       (capped by Mage is Best bubble)
+  // ===== Bubble-capped targets (N.js Padrão B) =====
+  // Pattern: SM[K] = max(100 + min(GTN(1, src), CauldronInfo[chap][slot]), SM[K])
+  // The booster's contribution is hard-clamped by the alchemy bubble's
+  // LEVEL (not its % value). The outer max() with the saved SM means the
+  // cap never decreases — ratchet=true mirrors that.
+
+  // Tal 79 (SLEEPIN_ON_THE_JOB). N.js: max(100 + min(GTN(1,39), CauldronInfo[3][0]), 100).
+  // Inner max is 100, not the saved SM — but the outer SM[79] clamp on the
+  // assignment line means cap still ratchets if SM was previously higher.
+  79: {
+    baseCap: 100,
+    ratchet: true,
+    boosters: [
+      {
+        sourceTalent: 39,
+        kind: "x",
+        scope: "per-char",
+        label: "Colloquial Containers (Tal 39 x-bonus)",
+        bubbleCap: { chapter: 3, slot: 0, bubbleLabel: "Lotto Skills (W4 bubble [3][0])" },
+      },
+    ],
+  },
+  // Tal 86 (MEAT_SHANK).
+  86: {
+    baseCap: 100,
+    ratchet: true,
+    boosters: [
+      {
+        sourceTalent: 129,
+        kind: "x",
+        scope: "per-char",
+        label: "Blocky Bottles (Tal 129 x-bonus)",
+        bubbleCap: { chapter: 0, slot: 1, bubbleLabel: "Warriors Rule (W1 bubble [0][1])" },
+      },
+    ],
+  },
+  // Tal 87 (CRITIKILL).
+  87: {
+    baseCap: 100,
+    ratchet: true,
+    boosters: [
+      {
+        sourceTalent: 114,
+        kind: "x",
+        scope: "per-char",
+        label: "Beefy Bottles (Tal 114 x-bonus)",
+        bubbleCap: { chapter: 0, slot: 1, bubbleLabel: "Warriors Rule (W1 bubble [0][1])" },
+      },
+    ],
+  },
+  // Tal 266 (FEATHERWEIGHT).
+  266: {
+    baseCap: 100,
+    ratchet: true,
+    boosters: [
+      {
+        sourceTalent: 294,
+        kind: "x",
+        scope: "per-char",
+        label: "Velocity Vessels (Tal 294 x-bonus)",
+        bubbleCap: { chapter: 1, slot: 1, bubbleLabel: "Archer or Bust (W2 bubble [1][1])" },
+      },
+    ],
+  },
+  // Tal 267 (I_SEE_YOU).
+  267: {
+    baseCap: 100,
+    ratchet: true,
+    boosters: [
+      {
+        sourceTalent: 309,
+        kind: "x",
+        scope: "per-char",
+        label: "Visibility Vessels (Tal 309 x-bonus)",
+        bubbleCap: { chapter: 1, slot: 1, bubbleLabel: "Archer or Bust (W2 bubble [1][1])" },
+      },
+    ],
+  },
+  // Tal 446 (OVERCLOCKED_ENERGY).
+  446: {
+    baseCap: 100,
+    ratchet: true,
+    boosters: [
+      {
+        sourceTalent: 474,
+        kind: "x",
+        scope: "per-char",
+        label: "Fuscia Flasks (Tal 474 x-bonus)",
+        bubbleCap: { chapter: 2, slot: 1, bubbleLabel: "Mage is Best (W3 bubble [2][1])" },
+      },
+    ],
+  },
+  // Tal 447 (FARSIGHT).
+  447: {
+    baseCap: 100,
+    ratchet: true,
+    boosters: [
+      {
+        sourceTalent: 489,
+        kind: "x",
+        scope: "per-char",
+        label: "Fantasia Flasks (Tal 489 x-bonus)",
+        bubbleCap: { chapter: 2, slot: 1, bubbleLabel: "Mage is Best (W3 bubble [2][1])" },
+      },
+    ],
+  },
 };
 
 /** Convenience predicate. */

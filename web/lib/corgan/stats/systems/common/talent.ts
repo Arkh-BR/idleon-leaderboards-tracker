@@ -14,6 +14,7 @@
 import { node, type CorganNode } from "../../../node";
 import {
   skillLvData,
+  skillLvMaxData,
   cauldronInfoData,
   cauldronBubblesData,
   optionsListData,
@@ -428,23 +429,90 @@ function emitBaseLevelNode(
         activeCharIdx,
       };
       const tree = talent.resolve(b.sourceTalent, ctxForBooster, args);
-      const v = Number(tree.val) || 0;
+      const rawV = Number(tree.val) || 0;
+      let v = rawV;
+      const subKids: CorganNode[] = [];
+      // Bubble clamp — `Math.min(boosterValue, CauldronInfo[chap][slot])`
+      // mirrors N.js Padrão B (e.g. SM[86] = max(100 + min(GTN(1,129),
+      // CauldronInfo[0][1]), SM[86])). The bubble's RAW LEVEL (an int)
+      // is the hard ceiling, not its computed % bonus.
+      if (b.bubbleCap) {
+        const bubbleLv =
+          Number(
+            (cauldronInfoData as any)?.[b.bubbleCap.chapter]?.[
+              b.bubbleCap.slot
+            ]
+          ) || 0;
+        const clamped = Math.min(rawV, bubbleLv);
+        subKids.push(
+          node("Booster Raw", rawV, null, {
+            fmt: "raw",
+            note: "x-bonus from source talent before bubble clamp",
+          }),
+          node(b.bubbleCap.bubbleLabel + " Lv", bubbleLv, null, {
+            fmt: "raw",
+            note: `CauldronInfo[${b.bubbleCap.chapter}][${b.bubbleCap.slot}] — clamp ceiling`,
+          })
+        );
+        v = clamped;
+      }
       total += v;
       boosterKids.push(
-        node(b.label, v, null, {
+        node(b.label, v, subKids.length ? subKids : null, {
           fmt: "+",
-          note: b.scope === "account-wide" ? "account-wide" : "per-char",
+          note: b.bubbleCap
+            ? `min(raw, bubble Lv) — ${b.scope}`
+            : b.scope === "account-wide"
+              ? "account-wide"
+              : "per-char",
         })
       );
     }
-    return {
-      value: total,
-      kids: [
-        node("Talent Cap (base + boosters)", total, boosterKids, {
+    // Honor saved SkillLevelsMAX[id]. N.js writes SM[K] only when the
+    // talent's gate passes for that char (e.g. SM[11] gate is "5 < SM[11]"
+    // — only re-runs when the char actually has the talent), so saved=0
+    // means "talent not active for this char". In that case fall back to
+    // the computed formula (gives a potential/research value). When
+    // saved>0, use max(formula, saved): they always equal for active
+    // chars in our verified runs, but max() handles ratchet semantics
+    // (bubble-capped targets) where the bubble was unleveled and the
+    // game preserves the historical higher cap.
+    const ownerIdx = options.ownerCharIdx ?? activeCharIdx;
+    const savedSm =
+      Number(
+        (skillLvMaxData as any)?.[ownerIdx]?.[options.talentId] ??
+          (skillLvMaxData as any)?.[ownerIdx]?.[String(options.talentId)]
+      ) || 0;
+    const finalCap = savedSm > 0 ? Math.max(total, savedSm) : total;
+    if (savedSm > 0 && savedSm !== total) {
+      boosterKids.push(
+        node("Saved SkillLevelsMAX (override)", savedSm, null, {
           fmt: "raw",
           note:
-            "hardcoded base + cap boosters from talent descriptions " +
-            "(verified vs SkillLevelsMAX)",
+            "save's SM[id] differs from live formula — using max() to " +
+            "honor in-game ratcheting (N.js never decreases SM[id])",
+        })
+      );
+    } else if (savedSm > 0) {
+      boosterKids.push(
+        node("Saved SkillLevelsMAX (verified)", savedSm, null, {
+          fmt: "raw",
+          note: "save's SM[id] matches the live formula exactly",
+        })
+      );
+    }
+    void entry.ratchet;
+    return {
+      value: finalCap,
+      kids: [
+        node("Talent Cap (base + boosters)", finalCap, boosterKids, {
+          fmt: "raw",
+          note:
+            entry.ratchet
+              ? "max(base + boosters, savedSM[id]) — ratchets upward, " +
+                "verified vs SkillLevelsMAX"
+              : "hardcoded base + cap boosters from talent descriptions " +
+                "(verified vs SkillLevelsMAX)",
         }),
       ],
     };
