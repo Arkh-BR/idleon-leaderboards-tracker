@@ -308,13 +308,22 @@ function detectStructuralFormula(
   ) {
     return "summoningWB19Product";
   }
-  // Higher Bonus Multi groups Base × Pristine × Gem into one row that
-  // surfaces the "X× higher bonus" multiplier the in-game tooltip shows.
+  // Summoning Battles parent — (Σ Cyan + Σ Teal + ... + Endless) × Base
+  // Multi. Multiple raw-summing kids (one per world color) followed by a
+  // single Base Multi multiplier kid.
+  if (
+    node.name === "Summoning Battles" &&
+    (node.children || []).length > 0
+  ) {
+    return "summoningBattlesProduct";
+  }
+  // Higher Bonus Multi groups Pristine × Gem (the upgrade lane). Base
+  // Multi moved into Summoning Battles, so this is just 2 kids now.
   if (
     node.name === "Higher Bonus Multi" &&
     (node.children || []).length > 0
   ) {
-    return "higherBonusMulti"; // product of Base × Pristine × Gem
+    return "higherBonusMulti"; // product of Pristine × Gem
   }
   // Crystal Comb / Gem Shop / Winner Multi sub-formulas inside the
   // Summoning Winner Bonus 19 row.
@@ -1758,9 +1767,30 @@ const APP_JS = `
       }
       return raw * higher * winner;
     },
+    "summoningBattlesProduct": function (_p, kids) {
+      // STRICT: Summoning Battles = (Σ raw kids) × Base Multi.
+      // The raw kids are world-color groups (Cyan, Teal, …) plus the
+      // optional Endless Summoning row — anything that isn't "Base
+      // Multi" gets summed. Then × Base Multi gives the parent's value.
+      // Any null kid → null (cascade up).
+      var raw = 0;
+      var base = null;
+      for (var i = 0; i < kids.length; i++) {
+        var v = effectiveValue(kids[i]);
+        if (v === null) return null;
+        if (kids[i].name === "Base Multi") {
+          base = Number(v) || 0;
+        } else {
+          raw += Number(v) || 0;
+        }
+      }
+      if (base === null) return null;
+      return raw * base;
+    },
     "higherBonusMulti": function (_p, kids) {
-      // STRICT: Higher Bonus Multi = Base × Pristine × Gem. This is the
-      // multiplier the in-game tooltip displays as "X× higher bonus".
+      // STRICT: Higher Bonus Multi = Pristine × Gem (upgrade-lane multi).
+      // Base Multi moved into Summoning Battles, so it's no longer a kid
+      // here — the parent's value is now ~1.95× at max, not ~6.83×.
       function kidStrict(name) {
         for (var i = 0; i < kids.length; i++) {
           if (kids[i].name === name) {
@@ -1770,11 +1800,10 @@ const APP_JS = `
         }
         return null;
       }
-      var base = kidStrict("Base Multi");
       var pristine = kidStrict("Crystal Comb Pristine Charm");
       var gem = kidStrict("Gem Shop Multi");
-      if (base === null || pristine === null || gem === null) return null;
-      return base * pristine * gem;
+      if (pristine === null || gem === null) return null;
+      return pristine * gem;
     },
     "pristineMulti": function (_p, kids) {
       // STRICT: 1 + Pristine 8 Bonus / 100.

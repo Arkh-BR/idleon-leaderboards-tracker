@@ -105,17 +105,21 @@ export type TalentBonusDetail = {
 /** Build the Summoning Winner Bonus 19 ("Library Max") kids array.
  *  Groups the multiplicative chain into three nodes:
  *
- *  - Cyan 14 Winner Raw  : the raw points earned per mob (w6d3 +3 / w7a9 +1)
- *                          plus endless contribution. Now drilled down to
- *                          per-mob kill counts via decomposeWinBonusRaw.
- *  - Higher Bonus Multi  : Base × Pristine × Gem product — this is the
- *                          "X× higher bonus" multiplier the in-game tooltip
- *                          surfaces (~6.83× when all three are maxed)
- *  - Winner Multi        : additional 1 + Σ(artifact + tasks + achievements
- *                          + godshard set)/100 — shown separately because
- *                          the game treats this as a different upgrade lane
+ *  - Summoning Battles   : (Σ raw battle contributions) × Base Multi.
+ *                          Battles are sub-grouped by world color
+ *                          (Cyan=W6, Teal=W7, etc.) with each battle
+ *                          showing its kill count (0 if not yet
+ *                          defeated). Base Multi 3.5× lives here too
+ *                          since it acts directly on the raw — moving
+ *                          it out into "Higher Bonus" was confusing
+ *                          when the math doesn't care about order.
+ *  - Higher Bonus Multi  : Pristine × Gem (the upgrade lane). Smaller
+ *                          number now (~1.95× maxed) since Base 3.5×
+ *                          moved to Summoning Battles.
+ *  - Winner Multi        : 1 + Σ(artifact + tasks + achievements +
+ *                          godshard set)/100 — separate upgrade lane.
  *
- *  Final value = raw × Higher Bonus × Winner. */
+ *  Final value = Summoning Battles × Higher Bonus × Winner. */
 function buildSummWB19Kids(
   wb19Parts: ReturnType<typeof _winBonusParts>,
   saveData: SaveData
@@ -123,11 +127,13 @@ function buildSummWB19Kids(
   const baseMult = wb19Parts.baseMult ?? 3.5;
   const pristineMult = wb19Parts.pristineMult ?? 1;
   const gemMult = wb19Parts.gemMult ?? 1;
-  const higherBonus = baseMult * pristineMult * gemMult;
-  // Decompose the raw 4 (or whatever) into Summoning Battles, grouped
-  // by world/color. Each battle is a Cyan (W6) / Teal (W7) / etc. row
-  // showing how many times the user has beaten that specific mini-boss
-  // and its per-kill contribution to this slot.
+  const rawValue = wb19Parts.raw ?? 0;
+  const battlesValue = rawValue * baseMult;
+  const higherBonus = pristineMult * gemMult;
+  // Decompose the raw value (4 for zArkhe slot 19) into Summoning
+  // Battles, grouped by world color. Each battle is a Cyan (W6) / Teal
+  // (W7) / etc. row showing how many times the user has beaten that
+  // specific mini-boss and its per-kill contribution to this slot.
   const rawBreakdown = decomposeWinBonusRaw(saveData, 19);
   const battleKids: CorganNode[] = [];
   for (const group of rawBreakdown.groups) {
@@ -170,23 +176,34 @@ function buildSummWB19Kids(
       )
     );
   }
+  // Base Multi lives inside Summoning Battles now — multiplied by the
+  // sum of all battle contributions to produce the parent's value.
+  battleKids.push(
+    node("Base Multi", baseMult, null, {
+      fmt: "x",
+      note: "Hardcoded 3.5× for slots 0-19 / 1× for 20-33",
+    })
+  );
   return [
-    node("Summoning Battles", wb19Parts.raw ?? 0, battleKids.length ? battleKids : null, {
+    node("Summoning Battles", battlesValue, battleKids.length ? battleKids : null, {
       fmt: "raw",
       note:
-        "× " +
+        rawValue +
+        " raw × " +
+        baseMult +
+        "× Base = " +
+        battlesValue.toFixed(2) +
+        "  →  then × " +
         higherBonus.toFixed(2) +
         "× Higher Bonus × " +
         (wb19Parts.winnerMult ?? 1).toFixed(2) +
-        "× Winner Multi → " +
-        (wb19Parts.val ?? 0).toFixed(2) +
-        " effective",
+        "× Winner = " +
+        (wb19Parts.val ?? 0).toFixed(2),
     }),
     node(
       "Higher Bonus Multi",
       higherBonus,
       [
-        node("Base Multi", baseMult, null, { fmt: "x" }),
         node(
           "Crystal Comb Pristine Charm",
           pristineMult,
@@ -202,7 +219,7 @@ function buildSummWB19Kids(
       ],
       {
         fmt: "x",
-        note: "Base × Pristine × Gem — the in-game 'X× higher bonus'",
+        note: "Pristine × Gem — the upgrade-lane multi",
       }
     ),
     node(
