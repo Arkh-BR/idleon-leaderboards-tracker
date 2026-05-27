@@ -308,14 +308,15 @@ function detectStructuralFormula(
   ) {
     return "summoningWB19Product";
   }
-  // Summoning Battles parent — (Σ Cyan + Σ Teal + ... + Endless) × Base
-  // Multi. Multiple raw-summing kids (one per world color) followed by a
-  // single Base Multi multiplier kid.
+  // Summoning Battles parent — just a sum now. Base Multi (3.5×) was
+  // distributed into each battle's value (Battle X = perKill × base),
+  // so the parent value is the plain sum of world-color groups +
+  // optional Endless row. No multiplicative kid → use "sum".
   if (
     node.name === "Summoning Battles" &&
     (node.children || []).length > 0
   ) {
-    return "summoningBattlesProduct";
+    return "sum";
   }
   // Higher Bonus Multi groups Pristine × Gem (the upgrade lane). Base
   // Multi moved into Summoning Battles, so this is just 2 kids now.
@@ -1767,26 +1768,9 @@ const APP_JS = `
       }
       return raw * higher * winner;
     },
-    "summoningBattlesProduct": function (_p, kids) {
-      // STRICT: Summoning Battles = (Σ raw kids) × Base Multi.
-      // The raw kids are world-color groups (Cyan, Teal, …) plus the
-      // optional Endless Summoning row — anything that isn't "Base
-      // Multi" gets summed. Then × Base Multi gives the parent's value.
-      // Any null kid → null (cascade up).
-      var raw = 0;
-      var base = null;
-      for (var i = 0; i < kids.length; i++) {
-        var v = effectiveValue(kids[i]);
-        if (v === null) return null;
-        if (kids[i].name === "Base Multi") {
-          base = Number(v) || 0;
-        } else {
-          raw += Number(v) || 0;
-        }
-      }
-      if (base === null) return null;
-      return raw * base;
-    },
+    // (summoningBattlesProduct removed — Base Multi is now distributed
+    //  into each battle's value, so Summoning Battles is a plain sum
+    //  handled by the built-in "sum" handler.)
     "higherBonusMulti": function (_p, kids) {
       // STRICT: Higher Bonus Multi = Pristine × Gem (upgrade-lane multi).
       // Base Multi moved into Summoning Battles, so it's no longer a kid

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-27T15:32:12.360Z",
+  "generatedAt": "2026-05-27T16:36:26.555Z",
   "refTotal": 43093.43816941274,
   "refSave": "zArkhe (save 25-21-16.json) — Town, no AC",
   "sourceCount": 75,
@@ -328,9 +328,9 @@
                               "world": "Character",
                               "pool": "Additive",
                               "fmt": "+",
-                              "refValue": 3,
+                              "refValue": 10.5,
                               "bucket": "🎯 Talents",
-                              "note": "Σ Cyan (W6) battle contributions",
+                              "note": "Σ Cyan (W6) battles (post-Base Multi)",
                               "children": [
                                 {
                                   "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Cyan / Battle d3",
@@ -339,9 +339,9 @@
                                   "world": "Character",
                                   "pool": "Additive",
                                   "fmt": "raw",
-                                  "refValue": 1,
+                                  "refValue": 10.5,
                                   "bucket": "🎯 Talents",
-                                  "note": "killed × 3 per kill = +3"
+                                  "note": "1 kill × 3 per kill × 3.5 base = 10.5"
                                 }
                               ]
                             },
@@ -352,9 +352,9 @@
                               "world": "Character",
                               "pool": "Additive",
                               "fmt": "+",
-                              "refValue": 1,
+                              "refValue": 3.5,
                               "bucket": "🎯 Talents",
-                              "note": "Σ Teal (W7) battle contributions",
+                              "note": "Σ Teal (W7) battles (post-Base Multi)",
                               "children": [
                                 {
                                   "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Teal / Battle a9",
@@ -363,25 +363,14 @@
                                   "world": "Character",
                                   "pool": "Additive",
                                   "fmt": "raw",
-                                  "refValue": 1,
+                                  "refValue": 3.5,
                                   "bucket": "🎯 Talents",
-                                  "note": "killed × 1 per kill = +1"
+                                  "note": "1 kill × 1 per kill × 3.5 base = 3.5"
                                 }
                               ]
-                            },
-                            {
-                              "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Base Multi",
-                              "name": "Base Multi",
-                              "system": "Talents",
-                              "world": "Character",
-                              "pool": "Additive",
-                              "fmt": "x",
-                              "refValue": 3.5,
-                              "bucket": "🎯 Talents",
-                              "note": "Hardcoded 3.5× for slots 0-19 / 1× for 20-33"
                             }
                           ],
-                          "formulaKey": "summoningBattlesProduct",
+                          "formulaKey": "sum",
                           "agg": "custom"
                         },
                         {
@@ -789,9 +778,9 @@
                                       "world": "Character",
                                       "pool": "Additive",
                                       "fmt": "+",
-                                      "refValue": 3,
+                                      "refValue": 10.5,
                                       "bucket": "🎯 Talents",
-                                      "note": "Σ Cyan (W6) battle contributions",
+                                      "note": "Σ Cyan (W6) battles (post-Base Multi)",
                                       "children": [
                                         {
                                           "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Cyan / Battle d3",
@@ -800,9 +789,9 @@
                                           "world": "Character",
                                           "pool": "Additive",
                                           "fmt": "raw",
-                                          "refValue": 1,
+                                          "refValue": 10.5,
                                           "bucket": "🎯 Talents",
-                                          "note": "killed × 3 per kill = +3"
+                                          "note": "1 kill × 3 per kill × 3.5 base = 10.5"
                                         }
                                       ]
                                     },
@@ -813,9 +802,9 @@
                                       "world": "Character",
                                       "pool": "Additive",
                                       "fmt": "+",
-                                      "refValue": 1,
+                                      "refValue": 3.5,
                                       "bucket": "🎯 Talents",
-                                      "note": "Σ Teal (W7) battle contributions",
+                                      "note": "Σ Teal (W7) battles (post-Base Multi)",
                                       "children": [
                                         {
                                           "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Teal / Battle a9",
@@ -824,25 +813,14 @@
                                           "world": "Character",
                                           "pool": "Additive",
                                           "fmt": "raw",
-                                          "refValue": 1,
+                                          "refValue": 3.5,
                                           "bucket": "🎯 Talents",
-                                          "note": "killed × 1 per kill = +1"
+                                          "note": "1 kill × 1 per kill × 3.5 base = 3.5"
                                         }
                                       ]
-                                    },
-                                    {
-                                      "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Base Multi",
-                                      "name": "Base Multi",
-                                      "system": "Talents",
-                                      "world": "Character",
-                                      "pool": "Additive",
-                                      "fmt": "x",
-                                      "refValue": 3.5,
-                                      "bucket": "🎯 Talents",
-                                      "note": "Hardcoded 3.5× for slots 0-19 / 1× for 20-33"
                                     }
                                   ],
-                                  "formulaKey": "summoningBattlesProduct",
+                                  "formulaKey": "sum",
                                   "agg": "custom"
                                 },
                                 {
@@ -1312,9 +1290,9 @@
                                           "world": "Character",
                                           "pool": "Additive",
                                           "fmt": "+",
-                                          "refValue": 3,
+                                          "refValue": 10.5,
                                           "bucket": "🎯 Talents",
-                                          "note": "Σ Cyan (W6) battle contributions",
+                                          "note": "Σ Cyan (W6) battles (post-Base Multi)",
                                           "children": [
                                             {
                                               "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Cyan / Battle d3",
@@ -1323,9 +1301,9 @@
                                               "world": "Character",
                                               "pool": "Additive",
                                               "fmt": "raw",
-                                              "refValue": 1,
+                                              "refValue": 10.5,
                                               "bucket": "🎯 Talents",
-                                              "note": "killed × 3 per kill = +3"
+                                              "note": "1 kill × 3 per kill × 3.5 base = 10.5"
                                             }
                                           ]
                                         },
@@ -1336,9 +1314,9 @@
                                           "world": "Character",
                                           "pool": "Additive",
                                           "fmt": "+",
-                                          "refValue": 1,
+                                          "refValue": 3.5,
                                           "bucket": "🎯 Talents",
-                                          "note": "Σ Teal (W7) battle contributions",
+                                          "note": "Σ Teal (W7) battles (post-Base Multi)",
                                           "children": [
                                             {
                                               "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Teal / Battle a9",
@@ -1347,25 +1325,14 @@
                                               "world": "Character",
                                               "pool": "Additive",
                                               "fmt": "raw",
-                                              "refValue": 1,
+                                              "refValue": 3.5,
                                               "bucket": "🎯 Talents",
-                                              "note": "killed × 1 per kill = +1"
+                                              "note": "1 kill × 1 per kill × 3.5 base = 3.5"
                                             }
                                           ]
-                                        },
-                                        {
-                                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Base Multi",
-                                          "name": "Base Multi",
-                                          "system": "Talents",
-                                          "world": "Character",
-                                          "pool": "Additive",
-                                          "fmt": "x",
-                                          "refValue": 3.5,
-                                          "bucket": "🎯 Talents",
-                                          "note": "Hardcoded 3.5× for slots 0-19 / 1× for 20-33"
                                         }
                                       ],
-                                      "formulaKey": "summoningBattlesProduct",
+                                      "formulaKey": "sum",
                                       "agg": "custom"
                                     },
                                     {
@@ -2090,9 +2057,9 @@
                               "world": "Character",
                               "pool": "Additive",
                               "fmt": "+",
-                              "refValue": 3,
+                              "refValue": 10.5,
                               "bucket": "🎯 Talents",
-                              "note": "Σ Cyan (W6) battle contributions",
+                              "note": "Σ Cyan (W6) battles (post-Base Multi)",
                               "children": [
                                 {
                                   "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Cyan / Battle d3",
@@ -2101,9 +2068,9 @@
                                   "world": "Character",
                                   "pool": "Additive",
                                   "fmt": "raw",
-                                  "refValue": 1,
+                                  "refValue": 10.5,
                                   "bucket": "🎯 Talents",
-                                  "note": "killed × 3 per kill = +3"
+                                  "note": "1 kill × 3 per kill × 3.5 base = 10.5"
                                 }
                               ]
                             },
@@ -2114,9 +2081,9 @@
                               "world": "Character",
                               "pool": "Additive",
                               "fmt": "+",
-                              "refValue": 1,
+                              "refValue": 3.5,
                               "bucket": "🎯 Talents",
-                              "note": "Σ Teal (W7) battle contributions",
+                              "note": "Σ Teal (W7) battles (post-Base Multi)",
                               "children": [
                                 {
                                   "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Teal / Battle a9",
@@ -2125,25 +2092,14 @@
                                   "world": "Character",
                                   "pool": "Additive",
                                   "fmt": "raw",
-                                  "refValue": 1,
+                                  "refValue": 3.5,
                                   "bucket": "🎯 Talents",
-                                  "note": "killed × 1 per kill = +1"
+                                  "note": "1 kill × 1 per kill × 3.5 base = 3.5"
                                 }
                               ]
-                            },
-                            {
-                              "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Base Multi",
-                              "name": "Base Multi",
-                              "system": "Talents",
-                              "world": "Character",
-                              "pool": "Additive",
-                              "fmt": "x",
-                              "refValue": 3.5,
-                              "bucket": "🎯 Talents",
-                              "note": "Hardcoded 3.5× for slots 0-19 / 1× for 20-33"
                             }
                           ],
-                          "formulaKey": "summoningBattlesProduct",
+                          "formulaKey": "sum",
                           "agg": "custom"
                         },
                         {
@@ -2551,9 +2507,9 @@
                                       "world": "Character",
                                       "pool": "Additive",
                                       "fmt": "+",
-                                      "refValue": 3,
+                                      "refValue": 10.5,
                                       "bucket": "🎯 Talents",
-                                      "note": "Σ Cyan (W6) battle contributions",
+                                      "note": "Σ Cyan (W6) battles (post-Base Multi)",
                                       "children": [
                                         {
                                           "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Cyan / Battle d3",
@@ -2562,9 +2518,9 @@
                                           "world": "Character",
                                           "pool": "Additive",
                                           "fmt": "raw",
-                                          "refValue": 1,
+                                          "refValue": 10.5,
                                           "bucket": "🎯 Talents",
-                                          "note": "killed × 3 per kill = +3"
+                                          "note": "1 kill × 3 per kill × 3.5 base = 10.5"
                                         }
                                       ]
                                     },
@@ -2575,9 +2531,9 @@
                                       "world": "Character",
                                       "pool": "Additive",
                                       "fmt": "+",
-                                      "refValue": 1,
+                                      "refValue": 3.5,
                                       "bucket": "🎯 Talents",
-                                      "note": "Σ Teal (W7) battle contributions",
+                                      "note": "Σ Teal (W7) battles (post-Base Multi)",
                                       "children": [
                                         {
                                           "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Teal / Battle a9",
@@ -2586,25 +2542,14 @@
                                           "world": "Character",
                                           "pool": "Additive",
                                           "fmt": "raw",
-                                          "refValue": 1,
+                                          "refValue": 3.5,
                                           "bucket": "🎯 Talents",
-                                          "note": "killed × 1 per kill = +1"
+                                          "note": "1 kill × 1 per kill × 3.5 base = 3.5"
                                         }
                                       ]
-                                    },
-                                    {
-                                      "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Base Multi",
-                                      "name": "Base Multi",
-                                      "system": "Talents",
-                                      "world": "Character",
-                                      "pool": "Additive",
-                                      "fmt": "x",
-                                      "refValue": 3.5,
-                                      "bucket": "🎯 Talents",
-                                      "note": "Hardcoded 3.5× for slots 0-19 / 1× for 20-33"
                                     }
                                   ],
-                                  "formulaKey": "summoningBattlesProduct",
+                                  "formulaKey": "sum",
                                   "agg": "custom"
                                 },
                                 {
@@ -3074,9 +3019,9 @@
                                           "world": "Character",
                                           "pool": "Additive",
                                           "fmt": "+",
-                                          "refValue": 3,
+                                          "refValue": 10.5,
                                           "bucket": "🎯 Talents",
-                                          "note": "Σ Cyan (W6) battle contributions",
+                                          "note": "Σ Cyan (W6) battles (post-Base Multi)",
                                           "children": [
                                             {
                                               "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Cyan / Battle d3",
@@ -3085,9 +3030,9 @@
                                               "world": "Character",
                                               "pool": "Additive",
                                               "fmt": "raw",
-                                              "refValue": 1,
+                                              "refValue": 10.5,
                                               "bucket": "🎯 Talents",
-                                              "note": "killed × 3 per kill = +3"
+                                              "note": "1 kill × 3 per kill × 3.5 base = 10.5"
                                             }
                                           ]
                                         },
@@ -3098,9 +3043,9 @@
                                           "world": "Character",
                                           "pool": "Additive",
                                           "fmt": "+",
-                                          "refValue": 1,
+                                          "refValue": 3.5,
                                           "bucket": "🎯 Talents",
-                                          "note": "Σ Teal (W7) battle contributions",
+                                          "note": "Σ Teal (W7) battles (post-Base Multi)",
                                           "children": [
                                             {
                                               "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Teal / Battle a9",
@@ -3109,25 +3054,14 @@
                                               "world": "Character",
                                               "pool": "Additive",
                                               "fmt": "raw",
-                                              "refValue": 1,
+                                              "refValue": 3.5,
                                               "bucket": "🎯 Talents",
-                                              "note": "killed × 1 per kill = +1"
+                                              "note": "1 kill × 1 per kill × 3.5 base = 3.5"
                                             }
                                           ]
-                                        },
-                                        {
-                                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Base Multi",
-                                          "name": "Base Multi",
-                                          "system": "Talents",
-                                          "world": "Character",
-                                          "pool": "Additive",
-                                          "fmt": "x",
-                                          "refValue": 3.5,
-                                          "bucket": "🎯 Talents",
-                                          "note": "Hardcoded 3.5× for slots 0-19 / 1× for 20-33"
                                         }
                                       ],
-                                      "formulaKey": "summoningBattlesProduct",
+                                      "formulaKey": "sum",
                                       "agg": "custom"
                                     },
                                     {
@@ -9808,9 +9742,9 @@
                                   "world": "Character",
                                   "pool": "Multi",
                                   "fmt": "+",
-                                  "refValue": 3,
+                                  "refValue": 10.5,
                                   "bucket": "🎯 Talents",
-                                  "note": "Σ Cyan (W6) battle contributions",
+                                  "note": "Σ Cyan (W6) battles (post-Base Multi)",
                                   "children": [
                                     {
                                       "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Cyan / Battle d3",
@@ -9819,9 +9753,9 @@
                                       "world": "Character",
                                       "pool": "Multi",
                                       "fmt": "raw",
-                                      "refValue": 1,
+                                      "refValue": 10.5,
                                       "bucket": "🎯 Talents",
-                                      "note": "killed × 3 per kill = +3"
+                                      "note": "1 kill × 3 per kill × 3.5 base = 10.5"
                                     }
                                   ]
                                 },
@@ -9832,9 +9766,9 @@
                                   "world": "Character",
                                   "pool": "Multi",
                                   "fmt": "+",
-                                  "refValue": 1,
+                                  "refValue": 3.5,
                                   "bucket": "🎯 Talents",
-                                  "note": "Σ Teal (W7) battle contributions",
+                                  "note": "Σ Teal (W7) battles (post-Base Multi)",
                                   "children": [
                                     {
                                       "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Teal / Battle a9",
@@ -9843,25 +9777,14 @@
                                       "world": "Character",
                                       "pool": "Multi",
                                       "fmt": "raw",
-                                      "refValue": 1,
+                                      "refValue": 3.5,
                                       "bucket": "🎯 Talents",
-                                      "note": "killed × 1 per kill = +1"
+                                      "note": "1 kill × 1 per kill × 3.5 base = 3.5"
                                     }
                                   ]
-                                },
-                                {
-                                  "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Base Multi",
-                                  "name": "Base Multi",
-                                  "system": "Talents",
-                                  "world": "Character",
-                                  "pool": "Multi",
-                                  "fmt": "x",
-                                  "refValue": 3.5,
-                                  "bucket": "🎯 Talents",
-                                  "note": "Hardcoded 3.5× for slots 0-19 / 1× for 20-33"
                                 }
                               ],
-                              "formulaKey": "summoningBattlesProduct",
+                              "formulaKey": "sum",
                               "agg": "custom"
                             },
                             {
@@ -10270,9 +10193,9 @@
                                           "world": "Character",
                                           "pool": "Multi",
                                           "fmt": "+",
-                                          "refValue": 3,
+                                          "refValue": 10.5,
                                           "bucket": "🎯 Talents",
-                                          "note": "Σ Cyan (W6) battle contributions",
+                                          "note": "Σ Cyan (W6) battles (post-Base Multi)",
                                           "children": [
                                             {
                                               "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Cyan / Battle d3",
@@ -10281,9 +10204,9 @@
                                               "world": "Character",
                                               "pool": "Multi",
                                               "fmt": "raw",
-                                              "refValue": 1,
+                                              "refValue": 10.5,
                                               "bucket": "🎯 Talents",
-                                              "note": "killed × 3 per kill = +3"
+                                              "note": "1 kill × 3 per kill × 3.5 base = 10.5"
                                             }
                                           ]
                                         },
@@ -10294,9 +10217,9 @@
                                           "world": "Character",
                                           "pool": "Multi",
                                           "fmt": "+",
-                                          "refValue": 1,
+                                          "refValue": 3.5,
                                           "bucket": "🎯 Talents",
-                                          "note": "Σ Teal (W7) battle contributions",
+                                          "note": "Σ Teal (W7) battles (post-Base Multi)",
                                           "children": [
                                             {
                                               "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Teal / Battle a9",
@@ -10305,25 +10228,14 @@
                                               "world": "Character",
                                               "pool": "Multi",
                                               "fmt": "raw",
-                                              "refValue": 1,
+                                              "refValue": 3.5,
                                               "bucket": "🎯 Talents",
-                                              "note": "killed × 1 per kill = +1"
+                                              "note": "1 kill × 1 per kill × 3.5 base = 3.5"
                                             }
                                           ]
-                                        },
-                                        {
-                                          "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Base Multi",
-                                          "name": "Base Multi",
-                                          "system": "Talents",
-                                          "world": "Character",
-                                          "pool": "Multi",
-                                          "fmt": "x",
-                                          "refValue": 3.5,
-                                          "bucket": "🎯 Talents",
-                                          "note": "Hardcoded 3.5× for slots 0-19 / 1× for 20-33"
                                         }
                                       ],
-                                      "formulaKey": "summoningBattlesProduct",
+                                      "formulaKey": "sum",
                                       "agg": "custom"
                                     },
                                     {
@@ -10793,9 +10705,9 @@
                                               "world": "Character",
                                               "pool": "Multi",
                                               "fmt": "+",
-                                              "refValue": 3,
+                                              "refValue": 10.5,
                                               "bucket": "🎯 Talents",
-                                              "note": "Σ Cyan (W6) battle contributions",
+                                              "note": "Σ Cyan (W6) battles (post-Base Multi)",
                                               "children": [
                                                 {
                                                   "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Cyan / Battle d3",
@@ -10804,9 +10716,9 @@
                                                   "world": "Character",
                                                   "pool": "Multi",
                                                   "fmt": "raw",
-                                                  "refValue": 1,
+                                                  "refValue": 10.5,
                                                   "bucket": "🎯 Talents",
-                                                  "note": "killed × 3 per kill = +3"
+                                                  "note": "1 kill × 3 per kill × 3.5 base = 10.5"
                                                 }
                                               ]
                                             },
@@ -10817,9 +10729,9 @@
                                               "world": "Character",
                                               "pool": "Multi",
                                               "fmt": "+",
-                                              "refValue": 1,
+                                              "refValue": 3.5,
                                               "bucket": "🎯 Talents",
-                                              "note": "Σ Teal (W7) battle contributions",
+                                              "note": "Σ Teal (W7) battles (post-Base Multi)",
                                               "children": [
                                                 {
                                                   "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Teal / Battle a9",
@@ -10828,25 +10740,14 @@
                                                   "world": "Character",
                                                   "pool": "Multi",
                                                   "fmt": "raw",
-                                                  "refValue": 1,
+                                                  "refValue": 3.5,
                                                   "bucket": "🎯 Talents",
-                                                  "note": "killed × 1 per kill = +1"
+                                                  "note": "1 kill × 1 per kill × 3.5 base = 3.5"
                                                 }
                                               ]
-                                            },
-                                            {
-                                              "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Base Multi",
-                                              "name": "Base Multi",
-                                              "system": "Talents",
-                                              "world": "Character",
-                                              "pool": "Multi",
-                                              "fmt": "x",
-                                              "refValue": 3.5,
-                                              "bucket": "🎯 Talents",
-                                              "note": "Hardcoded 3.5× for slots 0-19 / 1× for 20-33"
                                             }
                                           ],
-                                          "formulaKey": "summoningBattlesProduct",
+                                          "formulaKey": "sum",
                                           "agg": "custom"
                                         },
                                         {

@@ -130,37 +130,44 @@ function buildSummWB19Kids(
   const rawValue = wb19Parts.raw ?? 0;
   const battlesValue = rawValue * baseMult;
   const higherBonus = pristineMult * gemMult;
-  // Decompose the raw value (4 for zArkhe slot 19) into Summoning
-  // Battles, grouped by world color. Each battle is a Cyan (W6) / Teal
-  // (W7) / etc. row showing how many times the user has beaten that
-  // specific mini-boss and its per-kill contribution to this slot.
+  // Decompose the raw value into Summoning Battles, grouped by world
+  // color. Base Multi (3.5× hardcoded for slots 0-19) is "distributed"
+  // into each battle's value: instead of showing
+  //   raw=4 (siblings) + Base Multi 3.5× (separate node)  → parent 14
+  // we render each battle as
+  //   Battle X = perKill × baseMult (= contribution after × base)
+  // and the group / parent totals just sum those. Net math identical;
+  // visually the user sees "Battle d3 = 3 × 3.5 = 10.5".
   const rawBreakdown = decomposeWinBonusRaw(saveData, 19);
   const battleKids: CorganNode[] = [];
   for (const group of rawBreakdown.groups) {
-    const groupKids: CorganNode[] = group.battles.map((b) =>
-      node(b.label, b.kills, null, {
+    let groupSum = 0;
+    const groupKids: CorganNode[] = group.battles.map((b) => {
+      const contribWithBase = b.kills > 0 ? b.kills * b.perKill * baseMult : 0;
+      const potentialWithBase = b.perKill * baseMult;
+      groupSum += contribWithBase;
+      return node(b.label, contribWithBase, null, {
         fmt: "raw",
         note:
           b.kills > 0
-            ? `killed × ${b.perKill} per kill = +${b.contribution}`
-            : `not yet defeated — would give +${b.perKill} per kill`,
-      })
-    );
+            ? `${b.kills} kill × ${b.perKill} per kill × ${baseMult} base = ${contribWithBase}`
+            : `not yet defeated — would give ${b.perKill} × ${baseMult} = ${potentialWithBase}`,
+      });
+    });
     battleKids.push(
-      node(group.color, group.total, groupKids, {
+      node(group.color, groupSum, groupKids, {
         fmt: "+",
-        note: `Σ ${group.color} (W${group.worldIdx}) battle contributions`,
+        note: `Σ ${group.color} (W${group.worldIdx}) battles (post-Base Multi)`,
       })
     );
   }
   // Endless row — only when the 40-cycle actually targets this slot.
-  // For Winner Bonus 19 ("Library Max") it never does, so this stays
-  // hidden on slot-19 trees but will appear for slots 20-31 etc.
   if (rawBreakdown.perCycle > 0 || rawBreakdown.endlessTotal > 0) {
+    const endlessWithBase = rawBreakdown.endlessTotal * baseMult;
     battleKids.push(
       node(
         "Endless Summoning",
-        rawBreakdown.endlessTotal,
+        endlessWithBase,
         [
           node("Endless Wins (OLA[319])", rawBreakdown.endlessWins, null, {
             fmt: "raw",
@@ -171,19 +178,11 @@ function buildSummWB19Kids(
         ],
         {
           fmt: "+",
-          note: `floor(${rawBreakdown.endlessWins}/40) × ${rawBreakdown.perCycle} + partial`,
+          note: `${rawBreakdown.endlessTotal} raw × ${baseMult} base = ${endlessWithBase}`,
         }
       )
     );
   }
-  // Base Multi lives inside Summoning Battles now — multiplied by the
-  // sum of all battle contributions to produce the parent's value.
-  battleKids.push(
-    node("Base Multi", baseMult, null, {
-      fmt: "x",
-      note: "Hardcoded 3.5× for slots 0-19 / 1× for 20-33",
-    })
-  );
   return [
     node("Summoning Battles", battlesValue, battleKids.length ? battleKids : null, {
       fmt: "raw",
