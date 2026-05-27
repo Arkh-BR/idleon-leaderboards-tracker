@@ -77,6 +77,22 @@ type SourceEntry = {
    *  Consumed by endlessWinsBonus: parent ≈ count × perCycleConst/40.
    *  Captured from the (hidden) "Per 40-Cycle Bonus" child at gen time. */
   perCycleConst?: number;
+  /** Mage Family Bonus 68 decay constants (ClassAccountBonus[34]).
+   *  Lifted from the (hidden) Formula x1 / Formula x2 / Lv Offset kids
+   *  at gen time so the data comes from the save's customlists.js
+   *  rather than being hardcoded into the runtime handler. */
+  familyBonusConsts?: { x1: number; x2: number; lvOffset: number };
+  /** The Family Guy (Talent 144) decay constants. Lifted from the
+   *  (hidden) Tal144 Formula x1 / Tal144 Formula x2 kids at gen time
+   *  for the same reason — data-driven, not hardcoded. */
+  familyGuyConsts?: { x1: number; x2: number };
+  /** Pre-fill the max input with refValue on first page load. Used
+   *  for "Points Invested" rows where the max-DR-research default IS
+   *  the refValue (= max book lv cap). Without this flag, the input
+   *  stays blank until the user types — leaving the parent's min()
+   *  cascade returning null. Marked rows get seeded via the page
+   *  load runtime hook. */
+  autoFill?: boolean;
 };
 
 // Catalog-only placeholders / safety nets — never trackable sources.
@@ -193,7 +209,8 @@ function detectStructuralFormula(
   // bonus, etc) but the parent is fmt:"+", so the generic sum detector
   // misses it. Tag specifically so the runtime sums every kid.
   // Requires children — otherwise the row is a leaf and the user
-  // edits it directly (e.g. Bonus Levels inside Talent 144 Value).
+  // edits it directly (e.g. "Tal144 Bonus Levels" inside Family Guy
+  // Multi, which is a leaf carrying the precomputed ATL sum).
   if (
     sys === "Talents" &&
     node.name === "Bonus Levels" &&
@@ -221,15 +238,101 @@ function detectStructuralFormula(
   if (node.name === "Best Mage Lv" && (node.children || []).length > 0) {
     return "maxOfKids";
   }
-  // Family Guy Multi (× — potential buff) = 1 + Talent 144 Value / 100.
-  // Whether the buff applies is decided dynamically by the family
-  // bonus handler based on Lava's iteration order — this row just
-  // exposes the potential value.
+  // Family Guy Multi (× — potential buff) = 1 + decay(x1, x2, Base +
+  // Bonus) / 100. Four editable kids ("Base Level", "Bonus Levels",
+  // "Tal144 Formula x1", "Tal144 Formula x2") — the formula is driven
+  // by data sourced from talentParams(144). Whether the buff applies
+  // is decided dynamically by the familyBonus68Mage handler based on
+  // Lava's iteration order — this row just exposes the POTENTIAL
+  // buff strength.
   if (
     node.name === "Family Guy Multi (×) — potential buff" &&
     (node.children || []).length > 0
   ) {
     return "familyGuyMulti";
+  }
+  // Base Level (inside Family Guy Multi) — gated by min(Points
+  // Invested, Max Book Lv Cap). The two-child structure means a row
+  // with EXACTLY 2 kids whose names are "Points Invested" and "Max
+  // Book Lv Cap". Editing either bubbles up: if the user lifts the
+  // cap (Library/Salt Lick) but hasn't invested points, Base Level
+  // still reflects what was actually spent.
+  if (node.name === "Base Level" && (node.children || []).length === 2) {
+    const kidNames = (node.children || []).map((c) => c.name).sort();
+    if (
+      kidNames[0] === "Max Book Lv Cap" &&
+      kidNames[1] === "Points Invested"
+    ) {
+      return "minOfChildren";
+    }
+  }
+  // Max Book Lv Cap — the N.js maxBookLv formula (round(100 + 25 +
+  // SaltLick + W3 Merit + Achievement 145 + Atom 7 + Fury Relic +
+  // Summoning WB 19)). Wrapped by the Base Level min() gate above.
+  if (node.name === "Max Book Lv Cap" && (node.children || []).length > 0) {
+    return "maxBookLvSum";
+  }
+  // Super Bit 47 Lv Bonus = max(0, floor((Player Lv − 500) / 100)).
+  // Single Player Lv kid drives the formula — handler recomputes live.
+  if (
+    node.name === "Super Bit 47 Lv Bonus" &&
+    (node.children || []).length === 1
+  ) {
+    return "superBit47LvBonus";
+  }
+  // NOTE: "Effective Level" is a LEAF and gets tagged via the
+  // tagEffectiveLevelLeaves() post-process pass (not here, since
+  // detectStructuralFormula only runs on entries with children).
+  // maxBookLv sub-rows that are computed as `kid1 × kid2` (level × per).
+  // Salt Lick 4 = Lv × Per Lv; W3 Merit Shop = Pts × Per Point;
+  // Sovereign Fury Relic = Base × Tier. All share the same shape.
+  if (
+    (node.name === "Salt Lick 4" ||
+      node.name === "W3 Merit Shop Unlock" ||
+      node.name === "Sovereign Fury Relic") &&
+    (node.children || []).length === 2
+  ) {
+    return "twoChildProduct";
+  }
+  // Lv 1 Oxygen Atom = 10 × min(Atom 7 Lv, 1). Boolean-style: flat 10
+  // if unlocked (Lv ≥ 1), 0 otherwise. Single Lv kid.
+  if (node.name === "Lv 1 Oxygen Atom" && (node.children || []).length === 1) {
+    return "atomLv1Bonus";
+  }
+  // Summoning Winner Bonus 19 — N.js multiplicative chain:
+  //   val = Raw × Base Multi × Crystal Comb × Gem Shop × Winner Multi
+  // Each multi has its own sub-tree breakdown.
+  if (
+    node.name === "Summoning Winner Bonus 19" &&
+    (node.children || []).length > 0
+  ) {
+    return "summoningWB19Product";
+  }
+  // Crystal Comb / Gem Shop / Winner Multi sub-formulas inside the
+  // Summoning Winner Bonus 19 row.
+  if (
+    node.name === "Crystal Comb Pristine Charm" &&
+    (node.children || []).length === 1
+  ) {
+    return "pristineMulti"; // 1 + Pristine 8 Bonus / 100
+  }
+  if (node.name === "Gem Shop Multi" && (node.children || []).length === 1) {
+    return "gemShopMulti"; // 1 + 10 × Gem Items 11 / 100
+  }
+  if (
+    node.name === "Winner Multi (combined)" &&
+    (node.children || []).length > 0
+  ) {
+    return "winnerMultiCombined"; // 1 + (Σ additive contributors) / 100
+  }
+  // Sovereign Winz Lantern (Artifact 32, inside Winner Multi) =
+  // Base × Tier — same shape as Sovereign Fury Relic (Artifact 21),
+  // reuses twoChildProduct.
+  if (
+    node.name === "Sovereign Winz Lantern" &&
+    (node.children || []).length === 2
+  ) {
+    return "twoChildProduct";
   }
   // Endless Wins Bonus = floor(count / 40) × perCycle + partial.
   if (node.name === "Endless Wins Bonus") {
@@ -598,6 +701,91 @@ for (let pi = 0; pi < tops.length; pi++) {
   }
 }
 
+/** Lift hidden formula-constant kids onto their parent entry.
+ *
+ *  Some agg parents (Family Bonus 68, Family Guy Multi) carry their
+ *  decay constants as kids at the corgan source level — so the values
+ *  are sourced from familyBonusParams(34) / talentParams(144) at gen
+ *  time, NOT hardcoded into the runtime handler. But those constants
+ *  shouldn't show up as visible rows in the max-values tool (they're
+ *  game-fixed, not user-research inputs), so this pass:
+ *    1. Detects the constant kids by name
+ *    2. Lifts their values onto entry.familyBonusConsts / .familyGuyConsts
+ *    3. Removes them from entry.children
+ *
+ *  Net effect: the runtime tree shows only the user-research inputs
+ *  (Best Mage Lv, Family Guy Multi, Base Level, Bonus Levels) while
+ *  the formula constants live as metadata that the handler reads. When
+ *  a different save is pasted, the bundle re-emits everything from
+ *  customlists.js — including the constants — so they automatically
+ *  stay in sync with whatever game version the save targets. */
+function liftFormulaConsts(entry: SourceEntry): void {
+  if (entry.children && entry.children.length) {
+    if (entry.formulaKey === "familyBonus68Mage") {
+      const consts: Partial<{ x1: number; x2: number; lvOffset: number }> = {};
+      const remaining: SourceEntry[] = [];
+      for (const k of entry.children) {
+        if (k.name === "Formula x1") consts.x1 = k.refValue;
+        else if (k.name === "Formula x2") consts.x2 = k.refValue;
+        else if (k.name === "Lv Offset") consts.lvOffset = k.refValue;
+        else remaining.push(k);
+      }
+      if (consts.x1 != null && consts.x2 != null && consts.lvOffset != null) {
+        entry.familyBonusConsts = consts as { x1: number; x2: number; lvOffset: number };
+        entry.children = remaining;
+      }
+    } else if (entry.formulaKey === "familyGuyMulti") {
+      const consts: Partial<{ x1: number; x2: number }> = {};
+      const remaining: SourceEntry[] = [];
+      for (const k of entry.children) {
+        if (k.name === "Tal144 Formula x1") consts.x1 = k.refValue;
+        else if (k.name === "Tal144 Formula x2") consts.x2 = k.refValue;
+        else remaining.push(k);
+      }
+      if (consts.x1 != null && consts.x2 != null) {
+        entry.familyGuyConsts = consts as { x1: number; x2: number };
+        entry.children = remaining;
+      }
+    }
+    // Recurse — Family Guy Multi lives inside Family Bonus 68's kids,
+    // both nested under a talent's Bonus Levels row.
+    for (const k of entry.children) liftFormulaConsts(k);
+  }
+}
+
+// Hide formula constants from the visible tree, lift them onto entry
+// metadata so handlers read from there (not from hardcoded literals).
+for (const s of sources) liftFormulaConsts(s);
+
+/** Mark "Points Invested" rows for pre-fill at page load. The max-DR-
+ *  research default for these rows IS the catalog refValue (= Max
+ *  Book Lv Cap), so seeding maxValue lets the min() cascade compute
+ *  Base Level on open without the user having to type. */
+function markAutoFill(entry: SourceEntry): void {
+  if (entry.name === "Points Invested") entry.autoFill = true;
+  if (entry.children) {
+    for (const k of entry.children) markAutoFill(k);
+  }
+}
+for (const s of sources) markAutoFill(s);
+
+/** Tag "Effective Level" rows with the kid-reading effectiveLevelSum
+ *  handler. Effective Level is now the PARENT of Base Level + Bonus
+ *  Levels (instead of being a sibling leaf), so the handler reads its
+ *  own kids and returns the sum. Post-process pass because the entry
+ *  may already be tagged or detected by other rules and we want to
+ *  override the formulaKey for these specific rows. */
+function tagEffectiveLevelRows(entry: SourceEntry): void {
+  if (entry.name === "Effective Level") {
+    entry.formulaKey = "effectiveLevelSum";
+    entry.agg = "custom";
+  }
+  if (entry.children) {
+    for (const k of entry.children) tagEffectiveLevelRows(k);
+  }
+}
+for (const s of sources) tagEffectiveLevelRows(s);
+
 const repoRoot = resolve(__dirname, "..", "..");
 const catalogPath = resolve(repoRoot, "web/data/dr-source-catalog.json");
 const bundlePath = resolve(repoRoot, "web/data/dr-compute-bundle.js");
@@ -936,7 +1124,7 @@ header .sub { color: var(--ink-dim); font-size: 12px; margin-bottom: 14px; }
    visual rail without going full ASCII tree art. */
 .row.depth-1, .row.depth-2, .row.depth-3,
 .row.depth-4, .row.depth-5, .row.depth-6,
-.row.depth-7, .row.depth-8 {
+.row.depth-7, .row.depth-8, .row.depth-9, .row.depth-10 {
   font-size: 11px;
   background-image: linear-gradient(
     to right,
@@ -946,17 +1134,20 @@ header .sub { color: var(--ink-dim); font-size: 12px; margin-bottom: 14px; }
   );
   background-repeat: no-repeat;
 }
-.row.depth-1 { padding-left: 24px;  background-position: 12px 0; }
-.row.depth-2 { padding-left: 48px;  background-position: 36px 0; }
-.row.depth-3 { padding-left: 72px;  background-position: 60px 0; }
-.row.depth-4 { padding-left: 96px;  background-position: 84px 0; }
-.row.depth-5 { padding-left: 120px; background-position: 108px 0; }
-.row.depth-6 { padding-left: 144px; background-position: 132px 0; }
-.row.depth-7 { padding-left: 168px; background-position: 156px 0; }
-.row.depth-8 { padding-left: 192px; background-position: 180px 0; }
+.row.depth-1  { padding-left: 24px;  background-position: 12px 0; }
+.row.depth-2  { padding-left: 48px;  background-position: 36px 0; }
+.row.depth-3  { padding-left: 72px;  background-position: 60px 0; }
+.row.depth-4  { padding-left: 96px;  background-position: 84px 0; }
+.row.depth-5  { padding-left: 120px; background-position: 108px 0; }
+.row.depth-6  { padding-left: 144px; background-position: 132px 0; }
+.row.depth-7  { padding-left: 168px; background-position: 156px 0; }
+.row.depth-8  { padding-left: 192px; background-position: 180px 0; }
+.row.depth-9  { padding-left: 216px; background-position: 204px 0; }
+.row.depth-10 { padding-left: 240px; background-position: 228px 0; }
 .row.depth-1 .name, .row.depth-2 .name, .row.depth-3 .name,
 .row.depth-4 .name, .row.depth-5 .name, .row.depth-6 .name,
-.row.depth-7 .name, .row.depth-8 .name {
+.row.depth-7 .name, .row.depth-8 .name,
+.row.depth-9 .name, .row.depth-10 .name {
   color: var(--ink-dim);
 }
 
@@ -1086,6 +1277,21 @@ const APP_JS = `
   function eachSource(cb) {
     function walk(s) { cb(s); if (s.children) for (var i = 0; i < s.children.length; i++) walk(s.children[i]); }
     for (var i = 0; i < catalog.sources.length; i++) walk(catalog.sources[i]);
+  }
+
+  /** Find a sibling SourceEntry of the given node by name. Used by
+   *  the effectiveLevelSum handler (and any other cross-sibling
+   *  formulas) since handlers normally only see their own kids.
+   *  Walks up via parentByChildId, then scans the parent's children. */
+  function findSibling(nodeId, siblingName) {
+    var parentId = parentByChildId.get(nodeId);
+    if (!parentId) return null;
+    var parent = sourceById.get(parentId);
+    if (!parent || !parent.children) return null;
+    for (var i = 0; i < parent.children.length; i++) {
+      if (parent.children[i].name === siblingName) return parent.children[i];
+    }
+    return null;
   }
 
   // ===== ACCESSORS =====
@@ -1236,63 +1442,152 @@ const APP_JS = `
       return lvl * per * multi;
     },
     "ownershipToggle": function (p, kids) {
-      // Generic 0/1 toggle gating a bonus. Two shapes:
-      //   A. bonusConst on the parent (set bonuses, bundles) — single
-      //      Owned/Unlocked kid, fmt determines the idle value.
-      //   B. Bonus kid alongside Owned (companions) — bonus value is
-      //      live-editable as a child. Prefer the kid over the cached
-      //      const so editing it propagates.
+      // STRICT MODE — same contract as the global "sum"/"product"
+      // handlers and the family-bonus handlers. Every VISIBLE kid in
+      // the row must be stipulated; if any is unfilled, the parent
+      // is null.
+      //
+      // Two row shapes:
+      //   A. Owned (or Unlocked) only — set bonuses, bundles. The bonus
+      //      value lives as HIDDEN metadata on the parent entry
+      //      (p.bonusConst, lifted from the gen-time corgan tree).
+      //   B. Owned + Bonus kids — companions. Bonus is the editable
+      //      delta (game emits Bonus=N where N is the additive
+      //      contribution); STRICT on it too.
+      //
       // Formula: parent = idle + owned × delta where
       //   idle  = 1 for x-fmt rows, 0 for +-fmt rows
-      //   delta = bonusKid (when present) or bonusConst − idle
-      var owned = kid(kids, /^Owned$/);
-      if (owned === null) owned = kid(kids, /^Unlocked$/);
-      if (owned === null) return null;
+      //   delta = bonusKid (shape B) or bonusConst − idle (shape A)
       var idle = p.fmt === "x" ? 1 : 0;
-      // Prefer the live "Bonus" kid — its value IS the delta (game
-      // emits Bonus = N where N is the additive contribution).
-      var bk = kid(kids, /^Bonus$/);
-      if (bk !== null) {
-        return idle + owned * bk;
+      // Detect shape by checking which kids exist by name. A row with
+      // a Bonus kid is shape B regardless of the user's input state —
+      // the structure determines the contract.
+      var hasOwned = false, hasUnlocked = false, hasBonus = false;
+      for (var i = 0; i < kids.length; i++) {
+        if (kids[i].name === "Owned") hasOwned = true;
+        else if (kids[i].name === "Unlocked") hasUnlocked = true;
+        else if (kids[i].name === "Bonus") hasBonus = true;
       }
-      // Fall back to the gen-time const for rows without a Bonus kid
-      // (set bonuses, bundles — the parent's val is the full bonus).
+      // STRICT: read Owned/Unlocked via effectiveValue (kid()). null
+      // means the user hasn't stipulated whether they own/unlocked it
+      // — propagate null instead of silently using the catalog refValue.
+      var owned = null;
+      if (hasOwned) owned = kid(kids, /^Owned$/);
+      else if (hasUnlocked) owned = kid(kids, /^Unlocked$/);
+      if (owned === null) return null;
+      if (hasBonus) {
+        // Shape B (companion): STRICT on Bonus. If the user hasn't
+        // committed to a bonus value, the contribution is null —
+        // matches familyGuyMulti requiring Base+Bonus both stipulated.
+        //
+        // The Bonus kid carries the REAL bonus value (e.g. Mr Pig
+        // bonus=2 for ×2 multi). Delta-from-idle is computed here so
+        // the formula remains uniform across +-fmt and x-fmt rows:
+        //   parent = idle + owned × (bonus − idle)
+        //   owned=1 → bonus; owned=0 → idle
+        var bk = kid(kids, /^Bonus$/);
+        if (bk === null) return null;
+        return idle + owned * (bk - idle);
+      }
+      // Shape A (set bonus / bundle): bonusConst is the hidden game
+      // constant (analogous to familyBonusConsts on FB68 — sourced from
+      // the corgan tree at gen time, not hardcoded in this handler).
       var bn = p && Number(p.bonusConst);
       if (!Number.isFinite(bn)) return null;
       return idle + owned * (bn - idle);
     },
-    "familyGuyMulti": function (_p, kids) {
-      // 1 + Talent 144 Value / 100 — the active char's POTENTIAL
-      // buff. Whether it actually applies is decided by the family
-      // bonus 68 handler (Lava's iteration order).
-      function kidOrRef(name) {
+    "familyGuyMulti": function (p, kids) {
+      // 1 + decay(x1, x2, Base + Bonus) / 100. LENIENT MODE: kids fall
+      // back to refValue when the user hasn't edited them, so the
+      // cascade from Base Level's sub-tree (Salt Lick, Fury Relic,
+      // etc.) flows up uninterrupted. Editing a leaf deep inside Base
+      // Level recomputes all the way up to Family Bonus 68 here.
+      //
+      // Decay constants live as HIDDEN metadata on the parent entry
+      // (p.familyGuyConsts) — lifted at gen time from talentParams(144)
+      // so the values come from the save's customlists.js.
+      //
+      // Lava's algorithm: the buff is applied AFTER FB68 stores its
+      // unbuffed value (familyBonus68Mage handler does the store-then
+      // -buff in iteration order). This row just exposes the POTENTIAL
+      // buff strength.
+      var consts = p && p.familyGuyConsts;
+      if (!consts || consts.x1 == null || consts.x2 == null) return null;
+      // STRICT: both Base Level and Bonus Levels must have an effective
+      // value (no refValue fallback). Mirrors global "sum"/"product"
+      // contract — clearing either nulls the multi → cascade up.
+      function kidStrict(name) {
         for (var i = 0; i < kids.length; i++) {
           if (kids[i].name === name) {
             var v = effectiveValue(kids[i]);
-            if (v !== null) return Number(v) || 0;
-            return Number(kids[i].refValue) || 0;
+            return v === null ? null : (Number(v) || 0);
           }
         }
         return null;
       }
-      var tv = kidOrRef("Talent 144 Value (The Family Guy)");
-      if (tv === null) return null;
-      return 1 + tv / 100;
+      var base = kidStrict("Base Level");
+      var bonus = kidStrict("Bonus Levels");
+      if (base === null || bonus === null) return null;
+      var effLv = base + bonus;
+      if (effLv <= 0) return 1;
+      // decay formula: (x1 * lv) / (lv + x2)
+      var tal144Val = (consts.x1 * effLv) / (effLv + consts.x2);
+      return 1 + tal144Val / 100;
     },
     "maxOfKids": function (_p, kids) {
-      // max over every kid's effective value (ref-fallback). Used by
-      // Best Mage Lv inside Family Bonus 68 so editing any single
-      // mage char's lv bumps the parent automatically.
+      // STRICT max across kids — null if ANY kid is unfilled. Mirrors
+      // global "sum"/"product" contract.
       if (!kids.length) return null;
       var best = -Infinity;
       for (var i = 0; i < kids.length; i++) {
         var v = effectiveValue(kids[i]);
-        if (v === null) v = Number(kids[i].refValue) || 0;
+        if (v === null) return null;
         if (v > best) best = v;
       }
       return best === -Infinity ? null : best;
     },
-    "familyBonus68Mage": function (_p, kids) {
+    "effectiveLevelSum": function (_p, kids) {
+      // STRICT: Effective Level = Base Level + Bonus Levels. Reads
+      // KIDS by name (Base + Bonus are now CHILDREN of Effective Level,
+      // not siblings). Lets the user edit either and see Effective
+      // Level recompute live.
+      var base = null, bonus = null;
+      for (var i = 0; i < kids.length; i++) {
+        if (kids[i].name === "Base Level") base = kids[i];
+        else if (kids[i].name === "Bonus Levels") bonus = kids[i];
+      }
+      if (!base || !bonus) return null;
+      var bv = effectiveValue(base);
+      var nv = effectiveValue(bonus);
+      if (bv === null || nv === null) return null;
+      return bv + nv;
+    },
+    "superBit47LvBonus": function (_p, kids) {
+      // STRICT: max(0, floor((Player Lv − 500) / 100)). Single kid
+      // (Player Lv) — if null, returns null. Mirrors the inline N.js
+      // computation used inside computeAllTalentLVz when SuperBit 47
+      // is unlocked.
+      if (kids.length < 1) return null;
+      var lv = effectiveValue(kids[0]);
+      if (lv === null) return null;
+      return Math.max(0, Math.floor((Number(lv) - 500) / 100));
+    },
+    "minOfChildren": function (_p, kids) {
+      // STRICT min across kids — null if ANY kid is unfilled. Used by
+      // the Talent 144 Base Level row to gate the value at min(Points
+      // Invested, Max Book Lv Cap): you only get the talent levels you
+      // ACTUALLY spent points on, capped at what the maxBookLv formula
+      // allows. Both kids must be stipulated for the result to compute.
+      if (!kids.length) return null;
+      var worst = Infinity;
+      for (var i = 0; i < kids.length; i++) {
+        var v = effectiveValue(kids[i]);
+        if (v === null) return null;
+        if (v < worst) worst = v;
+      }
+      return worst === Infinity ? null : worst;
+    },
+    "familyBonus68Mage": function (p, kids) {
       // Replicates Lava's N.js single-pass algorithm — iterates each
       // Elemental Sorcerer (cls 34) char in account order. For each:
       //   v = decay(x1, x2, max(0, char.lv - lvOffset))
@@ -1301,40 +1596,45 @@ const APP_JS = `
       // Iteration ORDER matters: an active char whose unbuffed value
       // doesn't beat the running best can still WIN if their buffed
       // value does — but only if they iterate AFTER the current best.
-      function kidOrRef(name) {
-        for (var i = 0; i < kids.length; i++) {
-          if (kids[i].name === name) {
-            var v = effectiveValue(kids[i]);
-            if (v !== null) return Number(v) || 0;
-            return Number(kids[i].refValue) || 0;
-          }
-        }
+      //
+      // LENIENT MODE: kids fall back to refValue when unedited so the
+      // cascade from deep sub-trees (Salt Lick → Base Level → Family
+      // Guy Multi → here) flows up. Editing any leaf cascades all the
+      // way to this final FB68 value.
+      //
+      // Decay constants live as HIDDEN metadata on the parent entry
+      // (p.familyBonusConsts) — lifted at gen time from
+      // familyBonusParams(34) so the values come from the save's
+      // customlists.js, not hardcoded.
+      var consts = p && p.familyBonusConsts;
+      if (!consts || consts.x1 == null || consts.x2 == null || consts.lvOffset == null) {
         return null;
       }
-      var x1 = kidOrRef("Formula x1");
-      var x2 = kidOrRef("Formula x2");
-      var lvOffset = kidOrRef("Lv Offset");
-      var familyGuyMulti = kidOrRef("Family Guy Multi (×) — potential buff");
-      if (x1 === null || x2 === null || lvOffset === null || familyGuyMulti === null) return null;
-      // Locate the Best Mage Lv kid and iterate its char sub-kids.
+      // Locate kids by name.
       var bestMageLvKid = null;
+      var familyGuyMultiKid = null;
       for (var i = 0; i < kids.length; i++) {
-        if (kids[i].name === "Best Mage Lv") {
-          bestMageLvKid = kids[i];
-          break;
-        }
+        if (kids[i].name === "Best Mage Lv") bestMageLvKid = kids[i];
+        else if (kids[i].name === "Family Guy Multi (×) — potential buff") familyGuyMultiKid = kids[i];
       }
       if (!bestMageLvKid || !bestMageLvKid.children || !bestMageLvKid.children.length) {
         return null;
       }
+      // STRICT: Family Guy Multi must have effectiveValue — no refValue
+      // fallback. Mirrors global "sum"/"product" contract.
+      var familyGuyMulti = familyGuyMultiKid
+        ? effectiveValue(familyGuyMultiKid)
+        : null;
+      if (familyGuyMulti === null) return null;
       var best = 0;
       for (var j = 0; j < bestMageLvKid.children.length; j++) {
         var charKid = bestMageLvKid.children[j];
         var charLv = effectiveValue(charKid);
-        if (charLv === null) charLv = Number(charKid.refValue) || 0;
-        var n = Math.max(0, charLv - lvOffset);
+        if (charLv === null) return null; // strict
+        var n = Math.max(0, charLv - consts.lvOffset);
         if (n <= 0) continue;
-        var v = (x1 * n) / (n + x2);
+        // decay(x1, x2, n) = (x1 * n) / (n + x2)
+        var v = (consts.x1 * n) / (n + consts.x2);
         if (v > best) {
           // Step 1: store unbuffed first (Lava's order)
           best = v;
@@ -1349,46 +1649,39 @@ const APP_JS = `
       return Math.floor(best);
     },
     "summoningWinBonus24": function (_p, kids) {
-      // Slot 24 = Normal + Endless. Only compute when the user has
-      // actively filled at least one kid (deep) — otherwise we'd just
-      // echo the gen-time refValue and look "auto-updated" with no
-      // user intent. Once active, fill the other kid from refValue.
-      if (!_hasAnyActive(kids)) return null;
-      function kidOrRef(name) {
+      // STRICT: slot 24 = Normal + Endless. Both kids must have
+      // effectiveValue. No refValue fallback — clearing either kid
+      // nulls the sum (cascade up).
+      function kidStrict(name) {
         for (var i = 0; i < kids.length; i++) {
           if (kids[i].name === name) {
             var v = effectiveValue(kids[i]);
-            if (v !== null) return Number(v) || 0;
-            return Number(kids[i].refValue) || 0;
+            return v === null ? null : (Number(v) || 0);
           }
         }
         return null;
       }
-      var n = kidOrRef("Normal Wins Bonus");
-      var e = kidOrRef("Endless Wins Bonus");
+      var n = kidStrict("Normal Wins Bonus");
+      var e = kidStrict("Endless Wins Bonus");
       if (n === null || e === null) return null;
       return n + e;
     },
     "endlessWinsBonus": function (p, kids) {
-      // floor(count/40) × perCycle + partial. Partial isn't exposable
-      // as a sub-input (depends on exact ring positions), so we
-      // approximate: contribution = count × (perCycleConst / 40).
-      // perCycleConst is a game constant captured at gen time from
-      // the now-hidden "Per 40-Cycle Bonus" child.
-      if (!_hasAnyActive(kids)) return null;
+      // STRICT: floor(count/40) × perCycle. The Endless Wins Count kid
+      // must have effectiveValue — no refValue fallback. perCycleConst
+      // is the hidden game constant from gen time.
       var per = p && Number(p.perCycleConst);
       if (!Number.isFinite(per)) return null;
-      function kidOrRef(name) {
+      function kidStrict(name) {
         for (var i = 0; i < kids.length; i++) {
           if (kids[i].name === name) {
             var v = effectiveValue(kids[i]);
-            if (v !== null) return Number(v) || 0;
-            return Number(kids[i].refValue) || 0;
+            return v === null ? null : (Number(v) || 0);
           }
         }
         return null;
       }
-      var count = kidOrRef("Endless Wins Count");
+      var count = kidStrict("Endless Wins Count");
       if (count === null) return null;
       return count * (per / 40);
     },
@@ -1405,6 +1698,95 @@ const APP_JS = `
         total += Number(v) || 0;
       }
       return total;
+    },
+    "twoChildProduct": function (_p, kids) {
+      // STRICT product of two kids — mirrors the global "sum" contract.
+      // If ANY kid is null (unedited OR cleared by user), returns null
+      // and the cascade nulls up to Base Level → Family Guy Multi → FB68.
+      // No refValue fallback: clearing a leaf actively nulls the result.
+      //
+      // Used by Salt Lick 4 / W3 Merit Shop / Sovereign Fury Relic.
+      // To seed every leaf with the gen-time refValue at once, use the
+      // page's "Fill Blanks with Ref" button (or per-row ← ref).
+      if (kids.length < 2) return null;
+      var v0 = effectiveValue(kids[0]);
+      if (v0 === null) return null;
+      var v1 = effectiveValue(kids[1]);
+      if (v1 === null) return null;
+      return v0 * v1;
+    },
+    "atomLv1Bonus": function (_p, kids) {
+      // STRICT 10 × min(Atom 7 Lv, 1) — null if the Lv kid is unfilled.
+      if (kids.length < 1) return null;
+      var lv = effectiveValue(kids[0]);
+      if (lv === null) return null;
+      return 10 * Math.min(Number(lv) || 0, 1);
+    },
+    "summoningWB19Product": function (_p, kids) {
+      // STRICT: Summoning Winner Bonus 19 = Raw × Base Multi × Crystal
+      // Comb × Gem Shop × Winner Multi. Reads each by name; any null
+      // kid → null (cascade up).
+      function kidStrict(name) {
+        for (var i = 0; i < kids.length; i++) {
+          if (kids[i].name === name) {
+            var v = effectiveValue(kids[i]);
+            return v === null ? null : (Number(v) || 0);
+          }
+        }
+        return null;
+      }
+      var raw = kidStrict("Cyan 14 Winner Raw");
+      var base = kidStrict("Base Multi");
+      var pristine = kidStrict("Crystal Comb Pristine Charm");
+      var gem = kidStrict("Gem Shop Multi");
+      var winner = kidStrict("Winner Multi (combined)");
+      if (raw === null || base === null || pristine === null || gem === null || winner === null) {
+        return null;
+      }
+      return raw * base * pristine * gem * winner;
+    },
+    "pristineMulti": function (_p, kids) {
+      // STRICT: 1 + Pristine 8 Bonus / 100.
+      if (kids.length < 1) return null;
+      var pristine8 = effectiveValue(kids[0]);
+      if (pristine8 === null) return null;
+      return 1 + (Number(pristine8) || 0) / 100;
+    },
+    "gemShopMulti": function (_p, kids) {
+      // STRICT: 1 + 10 × Gem Items 11 / 100.
+      if (kids.length < 1) return null;
+      var gemItems = effectiveValue(kids[0]);
+      if (gemItems === null) return null;
+      return 1 + (10 * (Number(gemItems) || 0)) / 100;
+    },
+    "winnerMultiCombined": function (_p, kids) {
+      // STRICT: 1 + (Σ additive contributors) / 100. Sums all kids
+      // (Sovereign Fury Lantern + W3 Merit + Regalis + Spectre Stars +
+      // Godshard Set) — any null kid → null.
+      var sum = 0;
+      for (var i = 0; i < kids.length; i++) {
+        var v = effectiveValue(kids[i]);
+        if (v === null) return null;
+        sum += Number(v) || 0;
+      }
+      return 1 + sum / 100;
+    },
+    "maxBookLvSum": function (_p, kids) {
+      // STRICT sum of every maxBookLv contributor wrapped in Math.round
+      // — exact port of N.js line 12252 (maxBookLv = Math.round(125 +
+      // SaltLick + W3 Merit + ...)). The summoning bonus comes in as a
+      // float (e.g. 75.62), so without rounding the Base Level shows
+      // decimal noise; Lava clamps to integer.
+      //
+      // STRICT: if ANY kid is null (unfilled or cleared), returns null
+      // — cascade nulls up to Family Guy Multi → FB68 → talent value.
+      var total = 0;
+      for (var i = 0; i < kids.length; i++) {
+        var v = effectiveValue(kids[i]);
+        if (v === null) return null;
+        total += Number(v) || 0;
+      }
+      return Math.round(total);
     },
     "vaultMastery": function (_p, kids) {
       // Vault upgrade mastery multiplier: 1 + masteryLv / 100. Each
@@ -1428,10 +1810,31 @@ const APP_JS = `
       // the user research alternate constants.
       var spec = p && p.formulaSpec;
       if (!spec) return null;
-      var x1Kid = kid(kids, /^Formula x1$/);
-      var x2Kid = kid(kids, /^Formula x2$/);
-      var x1 = x1Kid !== null ? x1Kid : spec.x1;
-      var x2 = x2Kid !== null ? x2Kid : spec.x2;
+      // STRICT on x1/x2 when the kids are PRESENT in the tree: if the
+      // user cleared Formula x1, the handler returns null instead of
+      // silently falling back to spec.x1. For rows WITHOUT Formula
+      // x1/x2 kids visible, the spec values are the canonical source.
+      var x1KidNode = null, x2KidNode = null;
+      for (var ki = 0; ki < kids.length; ki++) {
+        if (kids[ki].name === "Formula x1") x1KidNode = kids[ki];
+        else if (kids[ki].name === "Formula x2") x2KidNode = kids[ki];
+      }
+      var x1;
+      if (x1KidNode) {
+        var x1v = effectiveValue(x1KidNode);
+        if (x1v === null) return null;
+        x1 = Number(x1v) || 0;
+      } else {
+        x1 = spec.x1;
+      }
+      var x2;
+      if (x2KidNode) {
+        var x2v = effectiveValue(x2KidNode);
+        if (x2v === null) return null;
+        x2 = Number(x2v) || 0;
+      } else {
+        x2 = spec.x2;
+      }
       var lv = null;
       var levelNames = [
         "Guild Points",
@@ -1538,52 +1941,41 @@ const APP_JS = `
       return base * multi;
     },
     "Equinox Symbols (Dream 10)": function (_p, kids) {
-      // Game N.js formula (Dreamstuff UpgMaxLV for b=10):
-      //   round(DreamUpg[10][2] + Summoning("WinBonus", 24, 0)
-      //   + 10·GamingStatType("SuperBitType", 35, 0)
-      //   + 4·CloudBonus[30])
-      // Cap-research semantic — fall back to refValue for any kid
-      // the user hasn't filled so editing one input doesn't blank
-      // the rest. But require at least ONE active kid first so we
-      // don't show an "auto-computed" max without user intent.
-      if (!_hasAnyActive(kids)) return null;
-      function kidOrRef(name) {
+      // STRICT: round(Base Max + Summoning WB 24 + 10×SuperBit 35 +
+      // 4×Cloud 30). All four kids must have effectiveValue — no
+      // refValue fallback. Clearing any kid nulls the result.
+      function kidStrict(name) {
         for (var i = 0; i < kids.length; i++) {
           if (kids[i].name === name) {
             var v = effectiveValue(kids[i]);
-            if (v !== null) return Number(v) || 0;
-            return Number(kids[i].refValue) || 0;
+            return v === null ? null : (Number(v) || 0);
           }
         }
         return null;
       }
-      var base = kidOrRef("Base Max");
-      var summ = kidOrRef("Summoning WinBonus 24");
-      var sb35 = kidOrRef("SuperBit 35 (×10)");
-      var c30 = kidOrRef("Cloud 30 (×4)");
+      var base = kidStrict("Base Max");
+      var summ = kidStrict("Summoning WinBonus 24");
+      var sb35 = kidStrict("SuperBit 35 (×10)");
+      var c30 = kidStrict("Cloud 30 (×4)");
       if (base === null || summ === null || sb35 === null || c30 === null) return null;
       return Math.round(base + summ + sb35 + c30);
     },
     "Divinity Minor 2 (Arctis)": function (_p, kids) {
-      // ceil(max(1, Y2) × (1 + Coral/100) × Lv/(60+Lv) × God).
-      // Cap-research formula — needs an active kid before auto-
-      // computing. Once any input is filled, fall back to refValue
-      // for the others.
-      if (!_hasAnyActive(kids)) return null;
-      function kidOrRef(name) {
+      // STRICT: ceil(max(1, Y2) × (1 + Coral/100) × Lv/(60+Lv) × God).
+      // All four kids must have effectiveValue — no refValue fallback.
+      function kidStrict(name) {
         for (var i = 0; i < kids.length; i++) {
           if (kids[i].name === name) {
             var v = effectiveValue(kids[i]);
-            if (v !== null) return Number(v) || 0;
-            return Number(kids[i].refValue) || 0;
+            return v === null ? null : (Number(v) || 0);
           }
         }
         return null;
       }
-      var lv = kidOrRef("Divinity Lv");
-      var y2 = kidOrRef("Bubble Y2 Active");
-      var coral = kidOrRef("Coral Kid 3");
-      var god = kidOrRef("God Minor X1(2)");
+      var lv = kidStrict("Divinity Lv");
+      var y2 = kidStrict("Bubble Y2 Active");
+      var coral = kidStrict("Coral Kid 3");
+      var god = kidStrict("God Minor X1(2)");
       if (lv === null || y2 === null || coral === null || god === null) return null;
       if (lv <= 0) return 0;
       return Math.ceil(
@@ -2515,6 +2907,20 @@ const APP_JS = `
 
   // If we had a stored ref override and meta on load, show the clear button.
   if (refMeta) clearBtn.hidden = false;
+
+  // Pre-fill maxValue for autoFill entries (Points Invested rows) so
+  // the min() cascade in Base Level resolves on page open instead of
+  // staying null. Only seeds when no user value is stored yet — never
+  // overwrites a user edit.
+  function seedAutoFillEntries() {
+    eachSource(function (s) {
+      if (!s.autoFill) return;
+      var e = values[s.id];
+      if (e && typeof e.maxValue === "number") return; // user already set
+      patchEntry(s.id, { maxValue: Number(s.refValue) || 0 });
+    });
+  }
+  seedAutoFillEntries();
 
   render();
 })();

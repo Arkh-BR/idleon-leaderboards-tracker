@@ -109,7 +109,7 @@ type WinBonusParts = {
   idx?: number;
 };
 
-function _winBonusParts(idx: number, swb: number[], saveData: SaveData): WinBonusParts {
+export function _winBonusParts(idx: number, swb: number[], saveData: SaveData): WinBonusParts {
   const raw = swb[idx] || 0;
   if (raw <= 0) return { val: 0, raw: 0 };
   if (idx === 20 || idx === 22 || idx === 24 || idx === 31)

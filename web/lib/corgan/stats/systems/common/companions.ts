@@ -51,9 +51,15 @@ export const companion = {
  * Standardized companion child node — [Owned, Bonus] structure that
  * the gen catalog's ownershipToggle detector picks up automatically.
  *
- * fmt-aware: x-fmt companions idle to 1 (multiplicative identity), all
- * others idle to 0. The "Bonus" kid carries the DELTA from idle, so
- * the runtime handler computes  idle + owned × bonus  uniformly.
+ * The "Bonus" kid now carries the REAL bonus value (the same number
+ * the game shows in tooltips), not a delta-from-idle. Previously the
+ * kid carried `val - idle`, which for x-fmt companions like Mr Pig
+ * (val=2, idle=1, delta=1) hid the actual multiplier from the user.
+ * The runtime handler (ownershipToggle) now computes the delta
+ * internally so the math still works:
+ *   result = idle + owned × (bonusKid − idle)
+ *   x-fmt (idle=1): owned=1 → result = bonusKid; owned=0 → 1
+ *   +-fmt (idle=0): owned=1 → result = bonusKid; owned=0 → 0
  *
  * Call sites: talent bonus chain (Rift Slug), arcade (Companion 27),
  * friend bonus (Companion 30), owl (Companion 51), gallery (49),
@@ -69,8 +75,6 @@ export function companionChild(
   opts?: { fmt?: "raw" | "+" | "x"; note?: string; suffix?: string }
 ): CorganNode {
   const fmt = opts?.fmt ?? "raw";
-  const idle = fmt === "x" ? 1 : 0;
-  const delta = val - idle;
   const owned = saveData.companionIds && saveData.companionIds.has(id) ? 1 : 0;
   const name = opts?.suffix
     ? label("Companion", id, opts.suffix)
@@ -80,7 +84,9 @@ export function companionChild(
     val,
     [
       node("Owned", owned, null, { fmt: "raw" }),
-      node("Bonus", delta, null, { fmt: "raw" }),
+      // REAL bonus value (matches in-game tooltip). ownershipToggle
+      // handler reads this and computes the delta-from-idle internally.
+      node("Bonus", val, null, { fmt: "raw" }),
     ],
     { fmt, note: opts?.note }
   );

@@ -22,8 +22,15 @@ import {
 } from "../../../save/data";
 import { formulaEval, getLOG } from "../../../formulas";
 import { superBitType, cloudBonus } from "../../../game-helpers";
-import { computeWinBonus, computeSummWinBonus24Parts } from "../w6/summoning";
+import {
+  computeWinBonus,
+  computeSummWinBonus,
+  computeSummWinBonus24Parts,
+  _winBonusParts,
+} from "../w6/summoning";
 import { DreamUpg } from "../../data/game/customlists.js";
+import { SaltLicks, TaskShopDesc } from "../../data/game/customlists.js";
+import { artifactBase } from "../../data/w5/sailing";
 import { hasBonusMajor } from "../w5/divinity";
 import { label, entityName } from "../../entity-names";
 import { talentParams, familyBonusParams, CLASS_TREES } from "../../data/common/talent";
@@ -35,6 +42,8 @@ import { equipSetBonus } from "../../data/common/equipment";
 import { godMinorX1 } from "../../data/w5/divinity";
 import { DIVINITY_MINOR_DENOM } from "../../data/game-constants";
 import { numCharacters, charClassData } from "../../../save/data";
+import { skillLvMaxData } from "../../../save/data";
+import { achieveStatus } from "./achievement";
 import type { SaveData } from "../../../state";
 
 type Ctx = {
@@ -49,6 +58,186 @@ type TalentResolveArgs = {
 };
 
 export type TalentBonusDetail = { total: number; children: CorganNode[] };
+
+/** Computes the N.js maxBookLv formula (line 12252) and emits the
+ *  full breakdown as kids of a "Max Book Lv Cap" node. Account-wide
+ *  cap that clamps ALL regular talents (idx<615) per line 9508. Used
+ *  by emitBaseLevelNode() to attach the cap structure to every tab
+ *  1-5 talent's Base Level row. */
+function computeMaxBookLvParts(saveData: SaveData): {
+  value: number;
+  kids: CorganNode[];
+} {
+  const baseLvl = 100;
+  const talentBookLibBase = 25;
+  const saltLick4Lv = Number((saveData as any).saltLickData?.[4]) || 0;
+  const saltLick4PerLv = Number((SaltLicks as any)[4]?.[3]) || 2;
+  const saltLick4 = saltLick4Lv > 0 ? saltLick4Lv * saltLick4PerLv : 0;
+  const w3MeritPts =
+    Number((saveData as any).tasksGlobalData?.[2]?.[2]?.[2]) || 0;
+  const w3MeritShopPerPt =
+    Number((TaskShopDesc as any)?.[2]?.[2]?.[11]) || 0;
+  const w3MeritShop = w3MeritPts * w3MeritShopPerPt;
+  const ach145 = Math.min(
+    5,
+    Math.max(0, 5 * achieveStatus(145, saveData))
+  );
+  const atom7Lv = Number((saveData as any).atomsData?.[7]) || 0;
+  const atom7 = 10 * Math.min(atom7Lv, 1);
+  const artifact21Tier =
+    Number((saveData as any).sailingData?.[3]?.[21]) || 0;
+  const artifact21Base = artifactBase(21);
+  const furyRelic =
+    artifact21Tier > 0 ? artifact21Base * artifact21Tier : 0;
+  const summWB19 = computeWinBonus(19, null, saveData);
+  const value = Math.round(
+    baseLvl +
+      talentBookLibBase +
+      saltLick4 +
+      w3MeritShop +
+      ach145 +
+      atom7 +
+      furyRelic +
+      summWB19
+  );
+  // Build the Summoning Winner Bonus 19 breakdown (reuses logic from
+  // the original Tal144 implementation; each talent gets its own copy).
+  const swb = computeSummWinBonus(saveData);
+  const wb19Parts = _winBonusParts(19, swb, saveData);
+  const summKids: CorganNode[] = [
+    node("Cyan 14 Winner Raw", wb19Parts.raw ?? 0, null, { fmt: "raw" }),
+    node("Base Multi", wb19Parts.baseMult ?? 3.5, null, { fmt: "x" }),
+    node(
+      "Crystal Comb Pristine Charm",
+      wb19Parts.pristineMult ?? 1,
+      [node("Pristine 8 Bonus", wb19Parts.pristine8 ?? 0, null, { fmt: "raw" })],
+      { fmt: "x" }
+    ),
+    node(
+      "Gem Shop Multi",
+      wb19Parts.gemMult ?? 1,
+      [node("Gem Items 11", wb19Parts.gemItems11 ?? 0, null, { fmt: "raw" })],
+      { fmt: "x" }
+    ),
+    node(
+      "Winner Multi (combined)",
+      wb19Parts.winnerMult ?? 1,
+      [
+        node(
+          "Sovereign Winz Lantern",
+          wb19Parts.artBonus32 ?? 0,
+          [
+            node("Artifact 32 Base", 25, null, { fmt: "raw" }),
+            node("Artifact 32 Tier", wb19Parts.artRarity ?? 0, null, { fmt: "raw" }),
+          ],
+          { fmt: "+" }
+        ),
+        node("W3 Merit Shop (Task)", wb19Parts.taskVal ?? 0, null, { fmt: "+" }),
+        node("Regalis Achievement (379)", wb19Parts.ach379 ?? 0, null, { fmt: "+" }),
+        node("Spectre Stars Achievement (373)", wb19Parts.ach373 ?? 0, null, { fmt: "+" }),
+        node("Godshard Set", wb19Parts.godshardSet ?? 0, null, { fmt: "+" }),
+      ],
+      { fmt: "x" }
+    ),
+  ];
+  const kids: CorganNode[] = [
+    node("Base Level (N.js literal)", baseLvl, null, { fmt: "+" }),
+    node("Talent Book Library Base", talentBookLibBase, null, { fmt: "+" }),
+    node(
+      "Salt Lick 4",
+      saltLick4,
+      [
+        node("Salt Lick 4 Lv", saltLick4Lv, null, { fmt: "raw" }),
+        node("Per Lv", saltLick4PerLv, null, { fmt: "raw" }),
+      ],
+      { fmt: "+" }
+    ),
+    node(
+      "W3 Merit Shop Unlock",
+      w3MeritShop,
+      [
+        node("W3 Merit Points Spent", w3MeritPts, null, { fmt: "raw" }),
+        node("Per Point", w3MeritShopPerPt, null, { fmt: "raw" }),
+      ],
+      { fmt: "+" }
+    ),
+    node("Checkout Takeout Achievement", ach145, null, { fmt: "+" }),
+    node(
+      "Lv 1 Oxygen Atom",
+      atom7,
+      [node("Atom 7 Lv", atom7Lv, null, { fmt: "raw" })],
+      { fmt: "+" }
+    ),
+    node(
+      "Sovereign Fury Relic",
+      furyRelic,
+      [
+        node("Artifact 21 Base", artifact21Base, null, { fmt: "raw" }),
+        node("Artifact 21 Tier", artifact21Tier, null, { fmt: "raw" }),
+      ],
+      { fmt: "+" }
+    ),
+    node("Summoning Winner Bonus 19", summWB19, summKids, { fmt: "+" }),
+  ];
+  return { value, kids };
+}
+
+/** Wraps a raw skill lv in the Base Level structure for tab 1-5
+ *  talents — min(Points Invested, Max Book Lv Cap). The cap breakdown
+ *  is duplicated under each talent (account-wide value, but each
+ *  talent's tree is self-contained so the user can edit independently
+ *  per-talent for research scenarios). Skip for star talents (>=600). */
+function emitBaseLevelNode(
+  rawLv: number,
+  saveData: SaveData,
+  options?: { ownerName?: string; ownerCharIdx?: number }
+): CorganNode {
+  const cap = computeMaxBookLvParts(saveData);
+  // For max DR research: BOTH Points Invested and Base Level default
+  // to Max Book Lv Cap (assumes player has maxed the talent up to the
+  // cap). This works even for talents owned by other classes (e.g.,
+  // Tal 328 Archlord — Bowman class owner is NOT the active char, but
+  // we still default to the cap because we're researching the THEORY
+  // max). When a real save mode is added, Points Invested.refValue
+  // should be rawLv (owner char's actual invested level) and the
+  // min() gate will surface the actual investment cap.
+  const baseValue = cap.value;
+  const ownerSuffix = options?.ownerName
+    ? ` — owner: ${options.ownerName}`
+    : options?.ownerCharIdx != null
+      ? ` — owner: Char ${options.ownerCharIdx}`
+      : "";
+  return node(
+    "Base Level",
+    baseValue,
+    [
+      node("Points Invested", cap.value, null, {
+        fmt: "raw",
+        note:
+          "Defaults to Max Book Lv Cap for max DR research" +
+          ownerSuffix +
+          ". Save's actual invested = " +
+          rawLv +
+          ". Edit to research 'what if I'd only spent N points'.",
+      }),
+      node("Max Book Lv Cap", cap.value, cap.kids, {
+        fmt: "raw",
+        note:
+          "Max Book Lv Cap = round(100 + 25 + SaltLick(4) + W3 Merit + " +
+          "Achievement 145 + Lv1 Oxygen Atom + Fury Relic + Summoning WB 19). " +
+          "Account-wide cap per N.js line 12252; clamps ALL regular talents " +
+          "(idx<615) at line 9508.",
+      }),
+    ],
+    {
+      fmt: "raw",
+      note:
+        "Base Level = min(Points Invested, Max Book Lv Cap). Requires both " +
+        "the cap AND actual points spent." +
+        ownerSuffix,
+    }
+  );
+}
 
 type ATLOpts = {
   contextSlot?: number;
@@ -327,9 +516,17 @@ function resolveAllTalentLVz(
           lbl,
           val,
           // Canonical formulaEval shape: intervalAdd(x1=1, x2=20, lv).
-          // The Char Lv kid is the one editable input; the parent
-          // recomputes 1 + floor(lv / 20) live via closedFormFormula.
-          [node("Char Lv", lv, null, { fmt: "raw" })],
+          // The Base Level kid is the editable input (with Points
+          // Invested + Max Book Lv Cap min() structure, same as other
+          // tab 1-5 talents). closedFormFormula reads "Base Level" via
+          // its "any raw kid" fallback and applies intervalAdd.
+          [
+            emitBaseLevelNode(lv, saveData, {
+              ownerCharIdx: slotIdx,
+              ownerName:
+                saveData.charNames && saveData.charNames[slotIdx],
+            }),
+          ],
           { fmt: "raw", note: "intervalAdd(1,20," + lv + ")" }
         )
       );
@@ -502,82 +699,415 @@ function resolveAllTalentLVz(
                 (charLvKids.length === 1 ? "" : "s"),
             }
           ),
-          node(
-            // The POTENTIAL buff for the active char (always 1 +
-            // tal144Val/100). Whether it actually applies depends on
-            // family-bonus-68 iteration outcome (active char must
-            // win the slot). The familyBonus68Mage handler decides.
-            "Family Guy Multi (×) — potential buff",
-            // emit the potential multi (not just 1.0 if buff didn't
-            // win) so the user can see what's "in play" — the handler
-            // gates application based on Lava's algorithm.
-            tal144Mult,
-            [
-              node(
-                "Talent 144 Value (The Family Guy)",
-                tal144Val,
-                [
-                  node("Formula x1", t144 ? (t144 as any).x1 : 40, null, {
-                    fmt: "raw",
-                    note: "decay formula x1 — game constant",
-                  }),
-                  node("Formula x2", t144 ? (t144 as any).x2 : 100, null, {
-                    fmt: "raw",
-                    note: "decay formula x2 — game constant",
-                  }),
-                  node("Base Level", tal144RawLv, null, {
-                    fmt: "raw",
-                    note: "active char's raw skill lv 144",
-                  }),
-                  node(
-                    "Bonus Levels",
-                    tal144EffLv - tal144RawLv,
-                    null,
-                    {
-                      fmt: "+",
-                      note:
-                        "Σ contributors to tal 144's ATL chain " +
-                        "(Symbols of Beyond, Family Bonus 68, etc.)",
-                    }
-                  ),
-                  node("Effective Level", tal144EffLv, null, {
-                    fmt: "raw",
-                    note: "Base + Bonus (used by the decay formula above)",
-                  }),
-                ],
-                {
-                  fmt: "raw",
-                  // Canonical formulaEval note shape so the catalog
-                  // walker auto-tags this row with closedFormFormula
-                  // and recomputes via formulaEval(t144) on edit.
-                  note:
-                    t144
-                      ? `${(t144 as any).formula}(${(t144 as any).x1},${(t144 as any).x2},${tal144EffLv})`
-                      : "talent 144",
-                }
-              ),
-            ],
-            {
-              fmt: "raw",
-              note: "1 + Talent 144 Value / 100 — active char's potential buff",
-            }
-          ),
+          // FB68's decay constants — kids so the formula is driven by
+          // data (familyBonusParams(34) from customlists.js) rather
+          // than hardcoded into the runtime handler. Positioned
+          // BETWEEN Best Mage Lv and Family Guy Multi so they group
+          // visually with FB68's own inputs; Family Guy Multi sits
+          // LAST so its sub-tree expansion makes ownership obvious.
           node("Formula x1", (fb34 as any).x1, null, {
             fmt: "raw",
-            note: "decay formula x1 — Mage family bonus game constant",
+            note: "decay formula x1 — Mage family bonus constant (ClassAccountBonus[34])",
           }),
           node("Formula x2", (fb34 as any).x2, null, {
             fmt: "raw",
-            note: "decay formula x2 — Mage family bonus game constant",
+            note: "decay formula x2 — Mage family bonus constant (ClassAccountBonus[34])",
           }),
           node("Lv Offset", lvOffset, null, {
             fmt: "raw",
-            note: "ClassAccountBonus[34][1] — game constant",
+            note: "ClassAccountBonus[34][1] — Mage family bonus level offset",
           }),
+          // Family Guy Multi (× — potential buff). Placed LAST among
+          // FB68's children so the constants above clearly belong to
+          // FB68 (siblings, not children of Family Guy Multi). The
+          // Tal144 decay constants live as kids of THIS row, sourced
+          // from talentParams(144) — also data-driven, not hardcoded.
+          //
+          // Lava's resolution of the FB68 ↔ Tal144 visual loop: single-
+          // pass with store-then-buff (not fixed-point convergence).
+          // Tal144 in this row's ATL chain reads UNBUFFED FB68 from the
+          // cache; the buff is applied AFTER that read, breaking what
+          // would otherwise look like Family Guy affecting Family Guy.
+          (() => {
+            // CORRECT formula port from N.js line 12252-12253 (the
+            // _customBlock_WorkbenchStuff("maxBookLv", 0, 0) case):
+            //
+            //   maxBookLv = round(
+            //     125                              // 100 base + 25 Talent Book Library Base
+            //     + Sailing.ArtifactBonus(21)      // Sovereign Fury Relic
+            //     + Summoning.WinBonus(19)         // Summoning Winner Bonuses
+            //     + 10 × min(Atoms[7], 1)          // Lv 1 Oxygen Atom
+            //     + min(5, max(0, 5 × Achieve(145)))  // Checkout Takeout Achievement
+            //     + SaltLick(4)                    // Salt Lick 4 (Refinery3 — +X Max Talent Book Lv)
+            //     + Tasks[2][2][2] × TaskShopDesc[2][2][11]  // W3 Merit Shop Unlock
+            //   )
+            //
+            // Then at line 9508-9509 the engine clamps every regular
+            // talent (idx < 615) to this maxBookLv if their stored
+            // SkillLevelsMAX exceeds it. So for Tal144 (and ALL Tab 1-5
+            // talents), the cap = min(initialCap, maxBookLv).
+            //
+            // The 100 + 25 split matches the spreadsheet from the
+            // community wiki: "100 Base Level" + "25 Talent Book Library
+            // Base Level (Construction Building 2)". In N.js this is a
+            // single literal 125 — we split it visually for clarity.
+            // 100 + 25 = 125 (N.js literal, split for visual clarity)
+            const baseLvl = 100;
+            const talentBookLibBase = 25;
+            // Salt Lick 4 (Refinery3): saltLickData[4] × SaltLicks[4][3]
+            // SaltLicks[4] = ["Refinery3", "...Max level for talent
+            // books...", "5", "2", "10", "2.2"] → per-lv = 2
+            const saltLick4Lv =
+              Number((saveData as any).saltLickData?.[4]) || 0;
+            const saltLick4PerLv = Number((SaltLicks as any)[4]?.[3]) || 2;
+            const saltLick4 = saltLick4Lv > 0 ? saltLick4Lv * saltLick4PerLv : 0;
+            // W3 Merit Shop Unlock: Tasks[2][2][2] × TaskShopDesc[2][2][11]
+            // The per-lv bonus is TaskShopDesc[2][2][11] = "2" (read from
+            // customlists), giving 2 max book lv per purchased upgrade.
+            const w3MeritPts =
+              Number((saveData as any).tasksGlobalData?.[2]?.[2]?.[2]) || 0;
+            const w3MeritShopPerPt =
+              Number((TaskShopDesc as any)?.[2]?.[2]?.[11]) || 0;
+            const w3MeritShop = w3MeritPts * w3MeritShopPerPt;
+            // Achievement 145 — Checkout Takeout: 5 × status, capped at 5.
+            const ach145 = Math.min(
+              5,
+              Math.max(0, 5 * achieveStatus(145, saveData))
+            );
+            // Lv 1 Oxygen Atom: 10 × min(Atoms[7], 1).
+            // atomsData[7] is the Oxygen Atom's lv (>= 1 if unlocked).
+            const atom7Lv = Number((saveData as any).atomsData?.[7]) || 0;
+            const atom7 = 10 * Math.min(atom7Lv, 1);
+            // Sovereign Fury Relic: Sailing.ArtifactBonus(21).
+            // artifactBase(21) gives the base value (100 for Fury Relic),
+            // multiplied by the unlocked tier (Base=1, Ancient=2, Eldritch=
+            // 3, Sovereign=4, etc.).
+            const artifact21Tier =
+              Number((saveData as any).sailingData?.[3]?.[21]) || 0;
+            const artifact21Base = artifactBase(21);
+            const furyRelic =
+              artifact21Tier > 0 ? artifact21Base * artifact21Tier : 0;
+            // Summoning Winner Bonuses (slot 19): computeWinBonus(19).
+            // We compute the breakdown via _winBonusParts so the user
+            // can edit individual contributors (Cyan 14 Winner Raw,
+            // Crystal Comb Pristine Charm, Sovereign Fury Lantern,
+            // Regalis/Spectre achievements, W3 Merit Shop, Godshard
+            // Set) and the cascade flows up to Base Level → Family
+            // Guy Multi → FB68.
+            //
+            // Formula (N.js):
+            //   val = baseMult × raw × pristineMult × gemMult × winnerMult
+            // where baseMult=3.5 (slot 19), pristineMult = 1 + pristine8/100,
+            // gemMult = 1 + 10·gemItems11/100,
+            // winnerMult = 1 + (artBonus32 + taskVal + ach379 + ach373 +
+            //   godshardSet)/100   ← idx=19 skips wb31 + empBon8
+            const swb = computeSummWinBonus(saveData);
+            const wb19Parts = _winBonusParts(19, swb, saveData);
+            const summWB19 = wb19Parts.val;
+            // Total per N.js formula. The cap is min(initialCap, maxBookLv)
+            // (clamp at line 9508), where initialCap = save's saved value
+            // for talents that may have been set higher by class promotion
+            // historic events. For our zArkhe save Tal144 cap = 396 ≈
+            // maxBookLv, so the formula matches reality.
+            const maxBookLv = Math.round(
+              baseLvl +
+                talentBookLibBase +
+                saltLick4 +
+                w3MeritShop +
+                ach145 +
+                atom7 +
+                furyRelic +
+                summWB19
+            );
+            void maxBookLv;
+            return node(
+            "Family Guy Multi (×) — potential buff",
+            tal144Mult,
+            [
+              node(
+                "Base Level",
+                Math.min(tal144RawLv, maxBookLv),
+                [
+                  // For Max DR research the default assumption is that
+                  // the player has invested points up to the cap — so
+                  // Points Invested.refValue = Max Book Lv Cap, NOT the
+                  // current save's invested level. The actual saved
+                  // invested level (tal144RawLv) is what the player
+                  // CURRENTLY has, but the research question is "what
+                  // would the max DR be if I maxed this talent?". When
+                  // a real-time save is pasted (future flow), the live
+                  // pipeline can override Points Invested with the
+                  // actual save value.
+                  node("Points Invested", maxBookLv, null, {
+                    fmt: "raw",
+                    note:
+                      "Defaults to Max Book Lv Cap for max DR research (assumes " +
+                      "the player has invested up to the cap). Save's actual " +
+                      "invested level (skillLvData[slotIdx][144]) = " +
+                      tal144RawLv +
+                      ". Edit this row to research 'what if I'd only spent N points'.",
+                  }),
+                  node(
+                    "Max Book Lv Cap",
+                    maxBookLv,
+                    [
+                  node("Base Level (N.js literal)", baseLvl, null, {
+                    fmt: "+",
+                    note: "100 — hardcoded base in N.js maxBookLv formula",
+                  }),
+                  node("Talent Book Library Base", talentBookLibBase, null, {
+                    fmt: "+",
+                    note:
+                      "25 — Construction Building 2 (Talent Book Library) base " +
+                      "contribution. Part of N.js literal 125 split for clarity.",
+                  }),
+                  node("Salt Lick 4", saltLick4, [
+                    node("Salt Lick 4 Lv", saltLick4Lv, null, {
+                      fmt: "raw",
+                      note:
+                        "saltLickData[4] — Refinery3 upgrade lv (+X Max Talent Book Lv)",
+                    }),
+                    node("Per Lv", saltLick4PerLv, null, {
+                      fmt: "raw",
+                      note: "SaltLicks[4][3] — game constant (2 per upgrade lv)",
+                    }),
+                  ], {
+                    fmt: "+",
+                    note: "Formula: Salt Lick 4 Lv × Per Lv (Refinery3)",
+                  }),
+                  node("W3 Merit Shop Unlock", w3MeritShop, [
+                    node("W3 Merit Points Spent", w3MeritPts, null, {
+                      fmt: "raw",
+                      note: "Tasks[2][2][2] — W3 merit shop purchase qty",
+                    }),
+                    node("Per Point", w3MeritShopPerPt, null, {
+                      fmt: "raw",
+                      note:
+                        "TaskShopDesc[2][2][11] — per-point bonus (game " +
+                        "constant; W3 Talent Book Lv shop gives 2 per purchase)",
+                    }),
+                  ], {
+                    fmt: "+",
+                    note: "Formula: Merit Points × Per Point",
+                  }),
+                  node("Checkout Takeout Achievement", ach145, null, {
+                    fmt: "+",
+                    note:
+                      "min(5, max(0, 5 × achieveStatus(145))) — caps at 5 when " +
+                      "Achievement 145 is unlocked",
+                  }),
+                  node("Lv 1 Oxygen Atom", atom7, [
+                    node("Atom 7 Lv", atom7Lv, null, {
+                      fmt: "raw",
+                      note: "atomsData[7] — Oxygen Atom lv",
+                    }),
+                  ], {
+                    fmt: "+",
+                    note: "10 × min(Atom 7 Lv, 1) — flat 10 if unlocked, 0 if not",
+                  }),
+                  node("Sovereign Fury Relic", furyRelic, [
+                    node("Artifact 21 Base", artifact21Base, null, {
+                      fmt: "raw",
+                      note: "artifactBase(21) — Fury Relic base value (100)",
+                    }),
+                    node("Artifact 21 Tier", artifact21Tier, null, {
+                      fmt: "raw",
+                      note:
+                        "sailingData[3][21] — Fury Relic tier (1=Base, 2=Ancient, " +
+                        "3=Eldritch, 4=Sovereign, etc.)",
+                    }),
+                  ], {
+                    fmt: "+",
+                    note:
+                      "Sailing.ArtifactBonus(21) = artifactBase × tier. " +
+                      "Spreadsheet shows 100 = Sovereign (all 4 tiers unlocked).",
+                  }),
+                  node(
+                    "Summoning Winner Bonus 19",
+                    summWB19,
+                    [
+                      node(
+                        "Cyan 14 Winner Raw",
+                        wb19Parts.raw ?? 0,
+                        null,
+                        {
+                          fmt: "raw",
+                          note:
+                            "swb[19] — Σ unit bonuses contributing to slot 19 " +
+                            "(from owned summoning units + endless wins cycles)",
+                        }
+                      ),
+                      node("Base Multi", wb19Parts.baseMult ?? 3.5, null, {
+                        fmt: "x",
+                        note: "3.5 for slot 19 (idx < 20) — game constant",
+                      }),
+                      node(
+                        "Crystal Comb Pristine Charm",
+                        wb19Parts.pristineMult ?? 1,
+                        [
+                          node("Pristine 8 Bonus", wb19Parts.pristine8 ?? 0, null, {
+                            fmt: "raw",
+                            note:
+                              "ninjaData[107][8] — 30 if Crystal Comb Pristine " +
+                              "Charm equipped, 0 otherwise",
+                          }),
+                        ],
+                        {
+                          fmt: "x",
+                          note: "1 + Pristine 8 Bonus / 100",
+                        }
+                      ),
+                      node(
+                        "Gem Shop Multi",
+                        wb19Parts.gemMult ?? 1,
+                        [
+                          node(
+                            "Gem Items 11",
+                            wb19Parts.gemItems11 ?? 0,
+                            null,
+                            {
+                              fmt: "raw",
+                              note: "gemItemsData[11] — gem shop summoning bonus stacks",
+                            }
+                          ),
+                        ],
+                        {
+                          fmt: "x",
+                          note: "1 + 10 × Gem Items 11 / 100",
+                        }
+                      ),
+                      node(
+                        "Winner Multi (combined)",
+                        wb19Parts.winnerMult ?? 1,
+                        [
+                          node(
+                            "Sovereign Winz Lantern",
+                            wb19Parts.artBonus32 ?? 0,
+                            [
+                              node(
+                                "Artifact 32 Base",
+                                25,
+                                null,
+                                {
+                                  fmt: "raw",
+                                  note: "artifactBase(32) — The Winz Lantern base",
+                                }
+                              ),
+                              node(
+                                "Artifact 32 Tier",
+                                wb19Parts.artRarity ?? 0,
+                                null,
+                                {
+                                  fmt: "raw",
+                                  note:
+                                    "sailingData[3][32] — The Winz Lantern tier (1=Base, " +
+                                    "2=Ancient, 4=Sovereign, etc.)",
+                                }
+                              ),
+                            ],
+                            {
+                              fmt: "+",
+                              note: "artifactBase(32) × tier — The Winz Lantern",
+                            }
+                          ),
+                          node("W3 Merit Shop (Task)", wb19Parts.taskVal ?? 0, null, {
+                            fmt: "+",
+                            note:
+                              "min(10, tasksGlobalData[2][5][4]) — W3 task shop " +
+                              "purchases capped at 10",
+                          }),
+                          node("Regalis Achievement (379)", wb19Parts.ach379 ?? 0, null, {
+                            fmt: "+",
+                            note: "achieveStatus(379) — +1 if achieved",
+                          }),
+                          node("Spectre Stars Achievement (373)", wb19Parts.ach373 ?? 0, null, {
+                            fmt: "+",
+                            note: "achieveStatus(373) — +1 if achieved",
+                          }),
+                          node("Godshard Set", wb19Parts.godshardSet ?? 0, null, {
+                            fmt: "+",
+                            note:
+                              "equipSetBonus('GODSHARD_SET') if equipped (olaData[379])",
+                          }),
+                        ],
+                        {
+                          fmt: "x",
+                          note:
+                            "1 + (Sovereign Fury Lantern + W3 Merit + Regalis + " +
+                            "Spectre Stars + Godshard Set) / 100. Note: idx=19 " +
+                            "SKIPS wb31 and empBon8 from the global formula.",
+                        }
+                      ),
+                    ],
+                    {
+                      fmt: "+",
+                      note:
+                        "Summoning.WinBonus(19) = Cyan 14 Winner Raw × Base Multi × " +
+                        "Crystal Comb × Gem Shop × Winner Multi. Print shows " +
+                        "10.5 base × 1.30 × 1.10 × 2.27 ≈ 31; our save's value " +
+                        "differs because the contributors are larger.",
+                    }
+                  ),
+                    ],
+                    {
+                      fmt: "raw",
+                      note:
+                        "Max Book Lv Cap = round(100 + 25 + SaltLick(4) + W3MeritShop " +
+                        "+ Achievement 145 + Lv1 OxygenAtom + Fury Relic + " +
+                        "Summoning WinBonus 19). N.js line 12252. This is the " +
+                        "ceiling; Base Level is also gated by Points Invested.",
+                    }
+                  ),
+                ],
+                {
+                  fmt: "raw",
+                  note:
+                    "Base Level = min(Points Invested, Max Book Lv Cap). The " +
+                    "talent only contributes if you have BOTH (a) enough max " +
+                    "cap from Library/Salt Lick/etc AND (b) actually spent " +
+                    "points on it.",
+                }
+              ),
+              node(
+                "Bonus Levels",
+                tal144EffLv - tal144RawLv,
+                null,
+                {
+                  fmt: "+",
+                  note:
+                    "Σ ATL chain for talent 144 (Symbols of Beyond, " +
+                    "Family Bonus 68 UNBUFFED, etc.). Lava's single-pass " +
+                    "algorithm reads FB68 BEFORE the Family Guy buff " +
+                    "applies, so this sum uses the unbuffed FB68 — NOT a " +
+                    "feedback loop.",
+                }
+              ),
+              node("Tal144 Formula x1", t144 ? (t144 as any).x1 : 40, null, {
+                fmt: "raw",
+                note: "decay formula x1 — The Family Guy (TalentDescriptions[144])",
+              }),
+              node("Tal144 Formula x2", t144 ? (t144 as any).x2 : 100, null, {
+                fmt: "raw",
+                note: "decay formula x2 — The Family Guy (TalentDescriptions[144])",
+              }),
+            ],
+            {
+              fmt: "raw",
+              note:
+                "Formula: 1 + decay(Tal144 Formula x1, Tal144 Formula x2, " +
+                "Base+Bonus) / 100. Lava applies this AFTER Family Bonus 68 " +
+                "stores the unbuffed value in iteration order — store-then-" +
+                "buff (single pass, not fixed-point). Tal144 reads UNBUFFED " +
+                "FB68 in its ATL chain, so the apparent FB68 ↔ Tal144 cycle " +
+                "is broken by sequencing.",
+            }
+          );
+          })(),
         ],
         {
           fmt: "raw",
           note:
+            "Formula: floor(decay(Formula x1, Formula x2, BestMageLv − Lv Offset) × Family Guy Multi if active char wins). " +
             "Lava single-pass: iterate ES chars in order; for each, store unbuffed; if ACTIVE char wins, overwrite with × Family Guy Multi" +
             buffNote,
         }
@@ -772,15 +1302,17 @@ function resolveAllTalentLVz(
         label("Super Bit", 47) + " Lv Bonus",
         lvBonusTerm,
         [
-          node("Player Level", currentPlayerLv, null, { fmt: "raw" }),
-          node(
-            "floor((" + currentPlayerLv + " - 500) / 100)",
-            lvBonusTerm,
-            null,
-            { fmt: "raw" }
-          ),
+          node("Player Lv", currentPlayerLv, null, {
+            fmt: "raw",
+            note: "Lv0[0] — char's class lv. Editable for max DR research.",
+          }),
         ],
-        { fmt: "raw" }
+        {
+          fmt: "raw",
+          note:
+            "Formula: max(0, floor((Player Lv − 500) / 100)) — only active " +
+            "when SuperBit 47 is unlocked. Recomputes live from Player Lv kid.",
+        }
       )
     );
   }
@@ -920,14 +1452,23 @@ export const talent = {
       ];
       if (r.detail) {
         maxChildren = [
-          node("Base Level", r.detail.rawLv, null, { fmt: "raw" }),
           node(
-            "Bonus Levels",
-            r.detail.bonus,
-            r.detail.bonusDetail.children.length ? r.detail.bonusDetail.children : null,
-            { fmt: "+" }
+            "Effective Level",
+            r.detail.effectiveLv,
+            [
+              emitBaseLevelNode(r.detail.rawLv, saveData, {
+                ownerCharIdx: r.bestChar,
+                ownerName: saveData.charNames && saveData.charNames[r.bestChar],
+              }),
+              node(
+                "Bonus Levels",
+                r.detail.bonus,
+                r.detail.bonusDetail.children.length ? r.detail.bonusDetail.children : null,
+                { fmt: "+" }
+              ),
+            ],
+            { fmt: "raw" }
           ),
-          node("Effective Level", r.detail.effectiveLv, null, { fmt: "raw" }),
           node("Best Character " + r.bestChar, r.val, null, { fmt: "raw" }),
         ];
       }
@@ -945,30 +1486,31 @@ export const talent = {
       const total328 = 1 + (gb.val * logVal) / 100;
       const talCh: CorganNode[] = [];
       if (gb.detail) {
-        // Surface the owner char on Base Level — the game picks the
-        // best-rolled char for the talent, which is NOT necessarily
-        // the active char. Active char only drives the Bonus chain.
+        // Surface the owner char in the Base Level note — for Tal 328
+        // (Bowman class), the owner is the best Bowman char in the
+        // account (NOT necessarily the active char zArkhe/DK).
         const ownerName = saveData.charNames && saveData.charNames[gb.bestChar];
-        const ownerLabel = ownerName
-          ? `Base Level (owner: ${ownerName})`
-          : `Base Level (owner: char ${gb.bestChar})`;
-        talCh.push(
-          node(ownerLabel, gb.detail.rawLv, null, {
-            fmt: "raw",
-            note: "skill levels of owner char",
-          })
-        );
         talCh.push(
           node(
-            "Bonus Levels",
-            gb.detail.bonus || 0,
-            gb.detail.bonusDetail && gb.detail.bonusDetail.children.length
-              ? gb.detail.bonusDetail.children
-              : null,
-            { fmt: "+", note: "computed for active char" }
+            "Effective Level",
+            gb.detail.effectiveLv,
+            [
+              emitBaseLevelNode(gb.detail.rawLv, saveData, {
+                ownerCharIdx: gb.bestChar,
+                ownerName,
+              }),
+              node(
+                "Bonus Levels",
+                gb.detail.bonus || 0,
+                gb.detail.bonusDetail && gb.detail.bonusDetail.children.length
+                  ? gb.detail.bonusDetail.children
+                  : null,
+                { fmt: "+", note: "computed for active char" }
+              ),
+            ],
+            { fmt: "raw" }
           )
         );
-        talCh.push(node("Effective Level", gb.detail.effectiveLv, null, { fmt: "raw" }));
       }
       const active328 = gb.detail && gb.detail.rawLv > 0 ? 1 : 0;
       return node(
@@ -1036,9 +1578,23 @@ export const talent = {
       r.val,
       [
         node("Active", activeFlag, null, { fmt: "raw" }),
-        node("Base Level", r.rawLv, null, { fmt: "raw" }),
-        node("Bonus Levels", r.bonus || 0, bonusChildren, { fmt: "+" }),
-        node("Effective Level", r.effectiveLv, null, { fmt: "raw" }),
+        node(
+          "Effective Level",
+          r.effectiveLv,
+          [
+            emitBaseLevelNode(r.rawLv, saveData, {
+              ownerCharIdx: ctx.charIdx,
+              ownerName: saveData.charNames && saveData.charNames[ctx.charIdx],
+            }),
+            node("Bonus Levels", r.bonus || 0, bonusChildren, { fmt: "+" }),
+          ],
+          {
+            fmt: "raw",
+            note:
+              "Effective Level = Base Level + Bonus Levels. Recomputes live " +
+              "when either kid changes (sum of two children).",
+          }
+        ),
       ],
       { fmt: "+", note: formulaNote }
     );
