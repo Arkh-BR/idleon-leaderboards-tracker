@@ -20,7 +20,7 @@ import {
   playerStuffData,
   dreamData,
 } from "../../../save/data";
-import { formulaEval, getLOG } from "../../../formulas";
+import { formulaEval } from "../../../formulas";
 import { superBitType, cloudBonus } from "../../../game-helpers";
 import {
   computeWinBonus,
@@ -39,6 +39,10 @@ import {
   isAccountWideTalent,
   ACCOUNT_WIDE_SPECIAL_BRANCH_IDS,
 } from "../../data/common/account-wide-talents";
+import {
+  hasExternalContext,
+  applyExternalContext,
+} from "../../data/common/external-context-multipliers";
 import { ClassNames } from "../../data/game/customlists.js";
 import { companionBonus } from "../../data/common/companions";
 import { companionChild } from "./companions";
@@ -1613,65 +1617,13 @@ export const talent = {
         ];
       }
 
-      // External-context multipliers — applied AFTER the cross-char
-      // max emit so /talents-level and /drop-rate both surface the
-      // talent's FINAL bonus (not the raw talent value). Pattern: wrap
-      // r.val with the talent-specific multiplier, keep the
-      // [Effective Level, Best Character N] kids that drive the
-      // multiplier's inputs, and append the external-context source
-      // as a sibling kid so the user can drill into where the multiplier
-      // came from. The wrapped val is what the rest of the system sees
-      // (e.g. DR's postMult chain reads talent.val directly).
-      //
-      // Tal 328 (Archlord Of The Pirates): the talent value scales an
-      // EXP/DR multiplier of `1 + (talent × log(Plunderous Kills)) / 100`,
-      // capped at 1× when either input is zero. The Plunderous Kills
-      // count is stored in OLA[139].
-      if (id === 328) {
-        const talentVal = r.val;
-        const plunderKills = Number((optionsListData as any)[139]) || 0;
-        if (talentVal > 0 && plunderKills > 0) {
-          const logVal = getLOG(plunderKills);
-          const multiplier = 1 + (talentVal * logVal) / 100;
-          return node(
-            name,
-            multiplier,
-            [
-              ...maxChildren,
-              node("Plunderous Kills", plunderKills, null, {
-                fmt: "raw",
-                note: "OLA[139] — count of plunderous kills",
-              }),
-            ],
-            {
-              fmt: "x",
-              note: `1 + (${talentVal.toFixed(2)} talent × log(${plunderKills})) / 100`,
-            }
-          );
-        }
-        // Inactive — either talent contributes 0 or no Plunderous Kills.
-        // Still emit the same shape so the user can see why the bonus
-        // is 1× (vs. just a bare 1 with no context).
-        return node(
-          name,
-          1,
-          [
-            ...maxChildren,
-            node("Plunderous Kills", plunderKills, null, {
-              fmt: "raw",
-              note: "OLA[139] — count of plunderous kills",
-            }),
-          ],
-          {
-            fmt: "x",
-            note:
-              plunderKills <= 0
-                ? "Inactive — no Plunderous Kills (OLA[139])"
-                : "Inactive — Archlord talent contributes 0",
-          }
-        );
-      }
-
+      // External-context multipliers (e.g. Tal 328 × Plunderous Kills) —
+      // applied AFTER the cross-char max emit so /talents-level and
+      // /drop-rate both surface the talent's FINAL bonus. The registry
+      // in data/common/external-context-multipliers.ts owns the
+      // talent→counter mapping; here we just delegate.
+      const withCtx = applyExternalContext(id, r.val, maxChildren, name);
+      if (withCtx) return withCtx;
       return node(name, r.val, maxChildren, { fmt: "+" });
     }
 
@@ -1690,99 +1642,76 @@ export const talent = {
     // handler uses Base + Bonus internally to derive effLv live.
     const formulaNote = `${data.formula}(${data.x1},${data.x2},${r.effectiveLv})`;
 
-    // Talent 655 (Boss Battle Spillover): star talent — universal,
-    // no external bonus levels stack with it (rawLv IS effLv). Skip
-    // the Bonus / Effective rows. Also skip Active — for a star
-    // talent the bonus is gated entirely by Base Level (lv 0 → 0
-    // contribution), so the toggle would be redundant.
-    if (id === 655) {
-      const skulls = Number((optionsListData as any)[189]) || 0;
-      const perSkull = r.val;
-      const total = perSkull * skulls;
-      const tal655SM =
-        Number(
-          (skillLvMaxData as any)[ctx.charIdx]?.[655] ??
-            (skillLvMaxData as any)[ctx.charIdx]?.[String(655)]
-        ) || 0;
-      return node(
-        name,
-        total,
-        [
-          node("Base Level", r.rawLv, null, { fmt: "raw" }),
-          node("Star Talent Max (save)", tal655SM, null, {
-            fmt: "raw",
-            note: `SkillLevelsMAX[${ctx.charIdx}][655] — pool-capped per-talent cap`,
-          }),
-          node("Per Skull", perSkull, null, {
-            fmt: "raw",
-            note: formulaNote,
-          }),
-          node("Skulls Beaten", skulls, null, { fmt: "raw", note: "OLA[189]" }),
-        ],
-        { fmt: "+", note: "talent " + id }
-      );
-    }
-
-    // Star talents (id >= 615, minus 655 handled above). They're capped
-    // from a separate Star Talent Points pool — NOT subject to the
-    // book-lv cap (idx < 615 in N.js line 9508-9509 clamp) and they don't
-    // accept ATL bonus levels (computeAllTalentLVz returns 0 for idx > 614).
-    // Display: Active + Level + Star Talent Max (per-talent SM from save).
-    // Star talents have varying caps — most are 100, but some like
-    // BORED_TO_DEATH (615) are SM=52 in our ref save, BOSS_BATTLE_SPILLOVER
-    // (655) is SM=88, etc. Surfacing the per-talent cap matches what the
-    // in-game star-tab tooltip shows.
+    // Star talents (id >= 615). Capped from a separate Star Talent Points
+    // pool — NOT subject to the book-lv cap (idx < 615 in N.js line 9508-
+    // 9509 clamp) and they don't accept ATL bonus levels
+    // (computeAllTalentLVz returns 0 for idx > 614). Display:
+    // Active + Level + Star Talent Max (per-talent SM from save).
+    //
+    // Stars with external context (e.g. Tal 655 × Skulls Beaten) are
+    // handled by the same applyExternalContext path used for tab 1-5
+    // account-wide talents — the wrap is data-driven via the registry
+    // in data/common/external-context-multipliers.ts, no hardcoded
+    // branch needed here.
     if (id >= 615) {
       const starSM =
         Number(
           (skillLvMaxData as any)[ctx.charIdx]?.[id] ??
             (skillLvMaxData as any)[ctx.charIdx]?.[String(id)]
         ) || 0;
-      return node(
-        name,
-        r.val,
-        [
-          node("Active", activeFlag, null, { fmt: "raw" }),
-          node("Level", r.rawLv, null, {
-            fmt: "raw",
-            note: "star talent — pool capped, no book lv",
-          }),
-          node("Star Talent Max (save)", starSM, null, {
-            fmt: "raw",
-            note: `SkillLevelsMAX[${ctx.charIdx}][${id}] — pool-capped, varies per star talent`,
-          }),
-        ],
-        { fmt: "+", note: formulaNote }
-      );
+      const starKids: CorganNode[] = [
+        node("Active", activeFlag, null, { fmt: "raw" }),
+        node("Level", r.rawLv, null, {
+          fmt: "raw",
+          note: "star talent — pool capped, no book lv",
+        }),
+        node("Star Talent Max (save)", starSM, null, {
+          fmt: "raw",
+          note: `SkillLevelsMAX[${ctx.charIdx}][${id}] — pool-capped, varies per star talent`,
+        }),
+      ];
+      const withCtx = applyExternalContext(id, r.val, starKids, name);
+      if (withCtx) return withCtx;
+      return node(name, r.val, starKids, {
+        fmt: "+",
+        note: formulaNote,
+      });
     }
 
-    return node(
-      name,
-      r.val,
-      [
-        node("Active", activeFlag, null, { fmt: "raw" }),
-        node(
-          "Effective Level",
-          r.effectiveLv,
-          buildEffectiveChildren(
-            r.bonusDetail,
-            emitBaseLevelNode(r.rawLv, saveData, {
-              ownerCharIdx: ctx.charIdx,
-              ownerName: saveData.charNames && saveData.charNames[ctx.charIdx],
-              talentId: id,
-              ...baseOpts,
-            })
-          ),
-          {
-            fmt: "raw",
-            note: atlOpts.splitSuperLevels
-              ? "Base + Bonus + Super"
-              : "Base + Bonus",
-          }
+    const standardKids: CorganNode[] = [
+      node("Active", activeFlag, null, { fmt: "raw" }),
+      node(
+        "Effective Level",
+        r.effectiveLv,
+        buildEffectiveChildren(
+          r.bonusDetail,
+          emitBaseLevelNode(r.rawLv, saveData, {
+            ownerCharIdx: ctx.charIdx,
+            ownerName: saveData.charNames && saveData.charNames[ctx.charIdx],
+            talentId: id,
+            ...baseOpts,
+          })
         ),
-      ],
-      { fmt: "+", note: formulaNote }
-    );
+        {
+          fmt: "raw",
+          note: atlOpts.splitSuperLevels
+            ? "Base + Bonus + Super"
+            : "Base + Bonus",
+        }
+      ),
+    ];
+    // External-context wrap (data-driven via the registry) — fires for
+    // any non-account-wide, non-star talent that scales against an
+    // external counter. Currently the registry only contains 328 and
+    // 655, which route through the account-wide and star branches
+    // above, so this is a forward-compatibility hook for any future
+    // per-char talents added to the multipliers registry.
+    const withCtx = applyExternalContext(id, r.val, standardKids, name);
+    if (withCtx) return withCtx;
+    return node(name, r.val, standardKids, {
+      fmt: "+",
+      note: formulaNote,
+    });
   },
 };
 
