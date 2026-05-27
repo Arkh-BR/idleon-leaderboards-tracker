@@ -274,7 +274,11 @@ function computeMaxBookLvParts(saveData: SaveData): {
   const artifact21Base = artifactBase(21);
   const furyRelic =
     artifact21Tier > 0 ? artifact21Base * artifact21Tier : 0;
-  const summWB19 = computeWinBonus(19, null, saveData);
+  // Floor the Summoning Winner Bonus 19 contribution before adding to
+  // maxBookLv — matches the in-game rounding behavior the user observed
+  // (the game appears to apply floor on this term specifically, not on
+  // the whole sum).
+  const summWB19 = Math.floor(computeWinBonus(19, null, saveData));
   const value = Math.round(
     baseLvl +
       talentBookLibBase +
@@ -1000,7 +1004,8 @@ function resolveAllTalentLVz(
             //   godshardSet)/100   ← idx=19 skips wb31 + empBon8
             const swb = computeSummWinBonus(saveData);
             const wb19Parts = _winBonusParts(19, swb, saveData);
-            const summWB19 = wb19Parts.val;
+            // Floor — same rationale as computeMaxBookLvParts above.
+            const summWB19 = Math.floor(wb19Parts.val);
             // Total per N.js formula. The cap is min(initialCap, maxBookLv)
             // (clamp at line 9508), where initialCap = save's saved value
             // for talents that may have been set higher by class promotion
