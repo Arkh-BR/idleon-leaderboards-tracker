@@ -54,6 +54,7 @@ type Baseline = {
 // -----------------------------------------------------------------------------
 
 const EXPAND_STORAGE_KEY = "drop-rate.deep-view.expand-state.v1";
+const HIDE_NOTES_STORAGE_KEY = "drop-rate.deep-view.hide-notes.v1";
 const DEFAULT_OPEN_MAX_DEPTH = 2;
 
 type ExpandState = {
@@ -471,7 +472,7 @@ function TreeRow({
             {nameSpan}
           </span>
           {node.note && (
-            <span className="ml-2 text-[10px] text-zinc-500 italic font-normal">
+            <span className="dr-node-note ml-2 text-[10px] text-zinc-500 italic font-normal">
               {node.note}
             </span>
           )}
@@ -600,6 +601,9 @@ export default function DeepView({
   const [view, setView] = useState<ViewMode>("tree");
   const [searchTerm, setSearchTerm] = useState("");
   const [hideZero, setHideZero] = useState(false);
+  // Hide-notes hydrates from localStorage in a useEffect (below) to avoid
+  // SSR/initial-render hydration mismatches.
+  const [hideNotes, setHideNotes] = useState(false);
   const baselineFlat = baseline?.flatTree ?? null;
 
   // Persisted expand state: defaults to "depth < 2 open" until the user has
@@ -611,6 +615,29 @@ export default function DeepView({
   );
   useEffect(() => {
     setExpandState(loadExpandState());
+  }, []);
+
+  // Hydrate hide-notes from localStorage post-mount. We keep persistence in a
+  // tiny try/catch wrapper rather than going through a helper since the value
+  // is a single boolean.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      if (window.localStorage.getItem(HIDE_NOTES_STORAGE_KEY) === "1") {
+        setHideNotes(true);
+      }
+    } catch {
+      // localStorage unavailable — keep default.
+    }
+  }, []);
+  const toggleHideNotes = useCallback((next: boolean) => {
+    setHideNotes(next);
+    if (typeof window === "undefined") return;
+    try {
+      window.localStorage.setItem(HIDE_NOTES_STORAGE_KEY, next ? "1" : "0");
+    } catch {
+      // ignore
+    }
   }, []);
 
   const toggleNode = useCallback((path: string, nextOpen: boolean) => {
@@ -664,7 +691,7 @@ export default function DeepView({
   }
 
   return (
-    <div className="font-sans">
+    <div className="font-sans" data-hide-notes={hideNotes ? "1" : undefined}>
       {/* View tabs — sit where the "Deep View" title used to be. Two layouts:
           🌳 Tree (formula hierarchy) and 🌍 Per World (sources grouped by
           where they come from in the game). */}
@@ -764,6 +791,20 @@ export default function DeepView({
             className="accent-sky-500"
           />
           Hide inactive
+        </label>
+
+        {/* Hide-notes toggle — collapses every italic formula-note span
+            (the muted "{source} · {idx}" annotations next to source names).
+            CSS-driven via data-hide-notes on the outer wrapper so the tree
+            doesn't re-render when toggled. */}
+        <label className="flex items-center gap-1.5 text-xs text-zinc-400 cursor-pointer select-none px-1">
+          <input
+            type="checkbox"
+            checked={hideNotes}
+            onChange={(e) => toggleHideNotes(e.target.checked)}
+            className="accent-sky-500"
+          />
+          Hide notes
         </label>
       </div>
 
@@ -1146,7 +1187,7 @@ function WorldBucketChildRow({
         <span className="flex-1 text-zinc-300 truncate">
           {node.name}
           {node.note && (
-            <span className="ml-1.5 text-zinc-600 italic text-[10px]">
+            <span className="dr-node-note ml-1.5 text-zinc-600 italic text-[10px]">
               {node.note}
             </span>
           )}
