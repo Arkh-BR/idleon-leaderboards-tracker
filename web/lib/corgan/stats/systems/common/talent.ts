@@ -124,30 +124,34 @@ function buildSummWB19Kids(
   const pristineMult = wb19Parts.pristineMult ?? 1;
   const gemMult = wb19Parts.gemMult ?? 1;
   const higherBonus = baseMult * pristineMult * gemMult;
-  // Decompose the raw 4 (or whatever) into the actual mobs that
-  // contributed — w6d3 (W6 Cyan Stone mini-boss, +3 per kill),
-  // w7a9 (W7 mini-boss, +1 per kill) — plus the endless slice.
+  // Decompose the raw 4 (or whatever) into Summoning Battles, grouped
+  // by world/color. Each battle is a Cyan (W6) / Teal (W7) / etc. row
+  // showing how many times the user has beaten that specific mini-boss
+  // and its per-kill contribution to this slot.
   const rawBreakdown = decomposeWinBonusRaw(saveData, 19);
-  const rawKids: CorganNode[] = [];
-  for (const m of rawBreakdown.normalMobs) {
-    rawKids.push(
-      node(
-        `Mini-boss kills (${m.mob})`,
-        m.total,
-        [
-          node("Kills", m.kills, null, { fmt: "raw" }),
-          node("Per kill", m.perKill, null, { fmt: "raw" }),
-        ],
-        { fmt: "+", note: "Kills × Per kill" }
-      )
+  const battleKids: CorganNode[] = [];
+  for (const group of rawBreakdown.groups) {
+    const groupKids: CorganNode[] = group.battles.map((b) =>
+      node(b.label, b.kills, null, {
+        fmt: "raw",
+        note:
+          b.kills > 0
+            ? `killed × ${b.perKill} per kill = +${b.contribution}`
+            : `not yet defeated — would give +${b.perKill} per kill`,
+      })
+    );
+    battleKids.push(
+      node(group.color, group.total, groupKids, {
+        fmt: "+",
+        note: `Σ ${group.color} (W${group.worldIdx}) battle contributions`,
+      })
     );
   }
-  // Endless row — only emit when the 40-cycle has at least one slot
-  // targeting this bonusIdx (perCycle > 0). For Winner Bonus 19 ("Library
-  // Max") the cycle never touches the slot, so the row would just be a
-  // permanent zero and clutters the tree.
+  // Endless row — only when the 40-cycle actually targets this slot.
+  // For Winner Bonus 19 ("Library Max") it never does, so this stays
+  // hidden on slot-19 trees but will appear for slots 20-31 etc.
   if (rawBreakdown.perCycle > 0 || rawBreakdown.endlessTotal > 0) {
-    rawKids.push(
+    battleKids.push(
       node(
         "Endless Summoning",
         rawBreakdown.endlessTotal,
@@ -167,7 +171,7 @@ function buildSummWB19Kids(
     );
   }
   return [
-    node("Cyan 14 Winner Raw", wb19Parts.raw ?? 0, rawKids.length ? rawKids : null, {
+    node("Summoning Battles", wb19Parts.raw ?? 0, battleKids.length ? battleKids : null, {
       fmt: "raw",
       note:
         "× " +

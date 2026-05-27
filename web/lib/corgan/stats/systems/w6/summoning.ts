@@ -89,64 +89,131 @@ export function computeSummWinBonus(saveData: SaveData): number[] {
 
 /** Decompose where the raw Summoning Winner Bonus for a specific slot
  *  came from — used by talent.ts to surface per-mob kill counts under
- *  the "Cyan 14 Winner Raw" node so the user can see WHICH mobs are
- *  contributing the points. Endless wins fold into a single row since
- *  they cycle through 40 fixed slots that may or may not target this
- *  bonus index. */
-export type WinBonusRawBreakdown = {
-  /** Total raw value (= sum of normalMobs values + endlessTotal). */
+ *  the "Summoning Battles" node so the user can see WHICH battles are
+ *  contributing the points. Battles are grouped by world color: w6 →
+ *  Cyan, w7 → Teal, etc. Endless wins fold into a single row when
+ *  they contribute. */
+export type WinBonusBattleEntry = {
+  /** Raw mob id from the save (e.g. "w6d3", "w7a9"). */
+  mob: string;
+  /** Human-readable "Battle N" name parsed from the mob id. */
+  label: string;
+  /** Kill count from saveData.summonData[1]. 0 means the battle is
+   *  available but not yet defeated. */
+  kills: number;
+  /** Per-kill value for the target bonus slot. */
+  perKill: number;
+  /** kills × perKill — the actual contribution to the slot's raw. */
+  contribution: number;
+};
+
+export type WinBonusBattleGroup = {
+  /** "Cyan", "Teal", "World N" — the friendly color/world label. */
+  color: string;
+  /** Worlds parsed from mob name prefix: 6 → "w6", 7 → "w7", etc. 0
+   *  for mobs without a wN prefix (early-game mobs, treated as W1). */
+  worldIdx: number;
+  /** Battles in this world that target the requested bonus slot. */
+  battles: WinBonusBattleEntry[];
+  /** Σ contribution across the group (sum of battle contributions). */
   total: number;
-  /** Each normal-Summoning mob that contributes, grouped: kill count
-   *  multiplied by per-kill value for the target slot. Only mobs with
-   *  >0 kills AND positive contribution are included. */
-  normalMobs: Array<{ mob: string; kills: number; perKill: number; total: number }>;
-  /** Sum of all endless contributions to this slot across the user's
-   *  total endless wins. 0 when no slot in the 40-cycle targets this
-   *  bonus index. */
+};
+
+export type WinBonusRawBreakdown = {
+  /** Total raw value (= Σ groups + endlessTotal). */
+  total: number;
+  /** Battles grouped by world / color. Only worlds that have at least
+   *  one battle targeting this slot are included. */
+  groups: WinBonusBattleGroup[];
+  /** Sum of all endless contributions to this slot. 0 when no slot
+   *  in the 40-cycle targets this bonus index. */
   endlessTotal: number;
-  /** Endless wins count (OLA[319]) — surfaced for context, even when
-   *  endlessTotal is 0. */
+  /** Endless wins count (OLA[319]) — surfaced for context. */
   endlessWins: number;
   /** Per-40-cycle contribution to this slot (= constant). When 0, more
-   *  endless wins won't increase this raw — only the normal-Summoning
-   *  mobs in the list above will. */
+   *  endless wins won't grow this raw. */
   perCycle: number;
 };
+
+// World index → friendly color name shown in the tree. Cyan (w6) and
+// Teal (w7) are confirmed; the others are best-guesses based on the
+// in-game Summoning UI color palette and might need tweaking when a
+// save with W2-W5 contributions to a non-19 slot is inspected.
+const WORLD_COLOR: Record<number, string> = {
+  1: "Green",
+  2: "Blue",
+  3: "Pink",
+  4: "Yellow",
+  5: "Purple",
+  6: "Cyan",
+  7: "Teal",
+  8: "Crimson",
+};
+
+function parseWorldFromMob(mob: string): { worldIdx: number; battleLabel: string } {
+  // Mobs with "wN<rest>" prefix (e.g. "w6d3", "w7a9") encode their world
+  // directly. Everything else gets bucketed into W1 ("Green") since the
+  // early-game mob roster (mushG/frogG/Copper/Iron/...) lives there.
+  const m = mob.match(/^w(\d+)(.*)$/);
+  if (m) {
+    return { worldIdx: Number(m[1]), battleLabel: "Battle " + m[2] };
+  }
+  return { worldIdx: 1, battleLabel: mob };
+}
 
 export function decomposeWinBonusRaw(
   saveData: SaveData,
   bonusIdx: number
 ): WinBonusRawBreakdown {
-  const mobAcc = new Map<string, { kills: number; perKill: number }>();
-  if (saveData && saveData.summonData) {
-    const normalWins = (saveData.summonData[1] || []) as any[];
-    for (const name of normalWins) {
-      if (typeof name !== "string" || name.startsWith("rift")) continue;
-      const entry = SUMMON_NORMAL_BONUS[name];
-      if (!entry) continue;
-      const idx = Math.round(entry[0] - 1);
-      if (idx !== bonusIdx) continue;
-      const perKill = entry[1];
-      if (perKill <= 0) continue;
-      const existing = mobAcc.get(name);
-      if (existing) {
-        existing.kills += 1;
-      } else {
-        mobAcc.set(name, { kills: 1, perKill });
-      }
+  // Step 1: figure out every mob that COULD target this slot, even ones
+  // the user hasn't killed yet — so we can show "Battle X = 0 (not yet
+  // defeated)" rows for what's still farmable.
+  const eligible: Array<{ mob: string; perKill: number }> = [];
+  for (const mob in SUMMON_NORMAL_BONUS) {
+    const entry = SUMMON_NORMAL_BONUS[mob];
+    const idx = Math.round(entry[0] - 1);
+    const perKill = entry[1];
+    if (idx === bonusIdx && perKill > 0) {
+      eligible.push({ mob, perKill });
     }
   }
-  const normalMobs = Array.from(mobAcc.entries())
-    .map(([mob, { kills, perKill }]) => ({
+
+  // Step 2: count user's kills per eligible mob from saveData.summonData[1].
+  const killCount = new Map<string, number>();
+  if (saveData?.summonData) {
+    const normalWins = (saveData.summonData[1] || []) as any[];
+    for (const name of normalWins) {
+      if (typeof name !== "string") continue;
+      killCount.set(name, (killCount.get(name) || 0) + 1);
+    }
+  }
+
+  // Step 3: group eligible mobs by world.
+  const byWorld = new Map<number, WinBonusBattleEntry[]>();
+  for (const { mob, perKill } of eligible) {
+    const { worldIdx, battleLabel } = parseWorldFromMob(mob);
+    const kills = killCount.get(mob) || 0;
+    const battle: WinBonusBattleEntry = {
       mob,
+      label: battleLabel,
       kills,
       perKill,
-      total: kills * perKill,
+      contribution: kills * perKill,
+    };
+    const arr = byWorld.get(worldIdx);
+    if (arr) arr.push(battle);
+    else byWorld.set(worldIdx, [battle]);
+  }
+  const groups: WinBonusBattleGroup[] = Array.from(byWorld.entries())
+    .map(([worldIdx, battles]) => ({
+      worldIdx,
+      color: WORLD_COLOR[worldIdx] || `World ${worldIdx}`,
+      battles: battles.sort((a, b) => a.mob.localeCompare(b.mob)),
+      total: battles.reduce((s, b) => s + b.contribution, 0),
     }))
-    .sort((a, b) => b.total - a.total);
+    .sort((a, b) => a.worldIdx - b.worldIdx);
 
-  // Per-40-cycle contribution to this bonusIdx — sums the values where
-  // SUMMON_ENDLESS_TYPE[i] - 1 === bonusIdx across the 40-slot ring.
+  // Step 4: endless cycle math (unchanged from before).
   let perCycle = 0;
   for (let i = 0; i < 40; i++) {
     const type = (SUMMON_ENDLESS_TYPE[i] || 0) - 1;
@@ -161,9 +228,9 @@ export function decomposeWinBonusRaw(
     if (type === bonusIdx) partial += SUMMON_ENDLESS_VAL[i] || 0;
   }
   const endlessTotal = fullCycles * perCycle + partial;
-  const total =
-    normalMobs.reduce((s, m) => s + m.total, 0) + endlessTotal;
-  return { total, normalMobs, endlessTotal, endlessWins, perCycle };
+
+  const total = groups.reduce((s, g) => s + g.total, 0) + endlessTotal;
+  return { total, groups, endlessTotal, endlessWins, perCycle };
 }
 
 type WinBonusParts = {

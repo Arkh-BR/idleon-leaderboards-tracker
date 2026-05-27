@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-27T15:17:11.277Z",
+  "generatedAt": "2026-05-27T15:25:33.946Z",
   "refTotal": 43093.43816941274,
   "refSave": "zArkhe (save 25-21-16.json) — Town, no AC",
   "sourceCount": 75,
@@ -311,8 +311,8 @@
                       "bucket": "🎯 Talents",
                       "children": [
                         {
-                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Cyan 14 Winner Raw",
-                          "name": "Cyan 14 Winner Raw",
+                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles",
+                          "name": "Summoning Battles",
                           "system": "Talents",
                           "world": "Character",
                           "pool": "Additive",
@@ -322,68 +322,50 @@
                           "note": "× 6.82× Higher Bonus × 2.77× Winner Multi → 75.62 effective",
                           "children": [
                             {
-                              "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Cyan 14 Winner Raw / Mini-boss kills (w6d3)",
-                              "name": "Mini-boss kills (w6d3)",
+                              "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Cyan",
+                              "name": "Cyan",
                               "system": "Talents",
                               "world": "Character",
                               "pool": "Additive",
                               "fmt": "+",
                               "refValue": 3,
                               "bucket": "🎯 Talents",
-                              "note": "Kills × Per kill",
+                              "note": "Σ Cyan (W6) battle contributions",
                               "children": [
                                 {
-                                  "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Cyan 14 Winner Raw / Mini-boss kills (w6d3) / Kills",
-                                  "name": "Kills",
+                                  "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Cyan / Battle d3",
+                                  "name": "Battle d3",
                                   "system": "Talents",
                                   "world": "Character",
                                   "pool": "Additive",
                                   "fmt": "raw",
                                   "refValue": 1,
-                                  "bucket": "🎯 Talents"
-                                },
-                                {
-                                  "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Cyan 14 Winner Raw / Mini-boss kills (w6d3) / Per kill",
-                                  "name": "Per kill",
-                                  "system": "Talents",
-                                  "world": "Character",
-                                  "pool": "Additive",
-                                  "fmt": "raw",
-                                  "refValue": 3,
-                                  "bucket": "🎯 Talents"
+                                  "bucket": "🎯 Talents",
+                                  "note": "killed × 3 per kill = +3"
                                 }
                               ]
                             },
                             {
-                              "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Cyan 14 Winner Raw / Mini-boss kills (w7a9)",
-                              "name": "Mini-boss kills (w7a9)",
+                              "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Teal",
+                              "name": "Teal",
                               "system": "Talents",
                               "world": "Character",
                               "pool": "Additive",
                               "fmt": "+",
                               "refValue": 1,
                               "bucket": "🎯 Talents",
-                              "note": "Kills × Per kill",
+                              "note": "Σ Teal (W7) battle contributions",
                               "children": [
                                 {
-                                  "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Cyan 14 Winner Raw / Mini-boss kills (w7a9) / Kills",
-                                  "name": "Kills",
+                                  "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Teal / Battle a9",
+                                  "name": "Battle a9",
                                   "system": "Talents",
                                   "world": "Character",
                                   "pool": "Additive",
                                   "fmt": "raw",
                                   "refValue": 1,
-                                  "bucket": "🎯 Talents"
-                                },
-                                {
-                                  "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Cyan 14 Winner Raw / Mini-boss kills (w7a9) / Per kill",
-                                  "name": "Per kill",
-                                  "system": "Talents",
-                                  "world": "Character",
-                                  "pool": "Additive",
-                                  "fmt": "raw",
-                                  "refValue": 1,
-                                  "bucket": "🎯 Talents"
+                                  "bucket": "🎯 Talents",
+                                  "note": "killed × 1 per kill = +1"
                                 }
                               ]
                             }
@@ -787,8 +769,8 @@
                               "bucket": "🎯 Talents",
                               "children": [
                                 {
-                                  "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Cyan 14 Winner Raw",
-                                  "name": "Cyan 14 Winner Raw",
+                                  "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles",
+                                  "name": "Summoning Battles",
                                   "system": "Talents",
                                   "world": "Character",
                                   "pool": "Additive",
@@ -798,68 +780,50 @@
                                   "note": "× 6.82× Higher Bonus × 2.77× Winner Multi → 75.62 effective",
                                   "children": [
                                     {
-                                      "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Cyan 14 Winner Raw / Mini-boss kills (w6d3)",
-                                      "name": "Mini-boss kills (w6d3)",
+                                      "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Cyan",
+                                      "name": "Cyan",
                                       "system": "Talents",
                                       "world": "Character",
                                       "pool": "Additive",
                                       "fmt": "+",
                                       "refValue": 3,
                                       "bucket": "🎯 Talents",
-                                      "note": "Kills × Per kill",
+                                      "note": "Σ Cyan (W6) battle contributions",
                                       "children": [
                                         {
-                                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Cyan 14 Winner Raw / Mini-boss kills (w6d3) / Kills",
-                                          "name": "Kills",
+                                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Cyan / Battle d3",
+                                          "name": "Battle d3",
                                           "system": "Talents",
                                           "world": "Character",
                                           "pool": "Additive",
                                           "fmt": "raw",
                                           "refValue": 1,
-                                          "bucket": "🎯 Talents"
-                                        },
-                                        {
-                                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Cyan 14 Winner Raw / Mini-boss kills (w6d3) / Per kill",
-                                          "name": "Per kill",
-                                          "system": "Talents",
-                                          "world": "Character",
-                                          "pool": "Additive",
-                                          "fmt": "raw",
-                                          "refValue": 3,
-                                          "bucket": "🎯 Talents"
+                                          "bucket": "🎯 Talents",
+                                          "note": "killed × 3 per kill = +3"
                                         }
                                       ]
                                     },
                                     {
-                                      "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Cyan 14 Winner Raw / Mini-boss kills (w7a9)",
-                                      "name": "Mini-boss kills (w7a9)",
+                                      "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Teal",
+                                      "name": "Teal",
                                       "system": "Talents",
                                       "world": "Character",
                                       "pool": "Additive",
                                       "fmt": "+",
                                       "refValue": 1,
                                       "bucket": "🎯 Talents",
-                                      "note": "Kills × Per kill",
+                                      "note": "Σ Teal (W7) battle contributions",
                                       "children": [
                                         {
-                                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Cyan 14 Winner Raw / Mini-boss kills (w7a9) / Kills",
-                                          "name": "Kills",
+                                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Teal / Battle a9",
+                                          "name": "Battle a9",
                                           "system": "Talents",
                                           "world": "Character",
                                           "pool": "Additive",
                                           "fmt": "raw",
                                           "refValue": 1,
-                                          "bucket": "🎯 Talents"
-                                        },
-                                        {
-                                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Cyan 14 Winner Raw / Mini-boss kills (w7a9) / Per kill",
-                                          "name": "Per kill",
-                                          "system": "Talents",
-                                          "world": "Character",
-                                          "pool": "Additive",
-                                          "fmt": "raw",
-                                          "refValue": 1,
-                                          "bucket": "🎯 Talents"
+                                          "bucket": "🎯 Talents",
+                                          "note": "killed × 1 per kill = +1"
                                         }
                                       ]
                                     }
@@ -1325,8 +1289,8 @@
                                   "note": "Raw × Higher Bonus × Winner Multi",
                                   "children": [
                                     {
-                                      "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Cyan 14 Winner Raw",
-                                      "name": "Cyan 14 Winner Raw",
+                                      "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles",
+                                      "name": "Summoning Battles",
                                       "system": "Talents",
                                       "world": "Character",
                                       "pool": "Additive",
@@ -1336,68 +1300,50 @@
                                       "note": "× 6.82× Higher Bonus × 2.77× Winner Multi → 75.62 effective",
                                       "children": [
                                         {
-                                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Cyan 14 Winner Raw / Mini-boss kills (w6d3)",
-                                          "name": "Mini-boss kills (w6d3)",
+                                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Cyan",
+                                          "name": "Cyan",
                                           "system": "Talents",
                                           "world": "Character",
                                           "pool": "Additive",
                                           "fmt": "+",
                                           "refValue": 3,
                                           "bucket": "🎯 Talents",
-                                          "note": "Kills × Per kill",
+                                          "note": "Σ Cyan (W6) battle contributions",
                                           "children": [
                                             {
-                                              "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Cyan 14 Winner Raw / Mini-boss kills (w6d3) / Kills",
-                                              "name": "Kills",
+                                              "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Cyan / Battle d3",
+                                              "name": "Battle d3",
                                               "system": "Talents",
                                               "world": "Character",
                                               "pool": "Additive",
                                               "fmt": "raw",
                                               "refValue": 1,
-                                              "bucket": "🎯 Talents"
-                                            },
-                                            {
-                                              "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Cyan 14 Winner Raw / Mini-boss kills (w6d3) / Per kill",
-                                              "name": "Per kill",
-                                              "system": "Talents",
-                                              "world": "Character",
-                                              "pool": "Additive",
-                                              "fmt": "raw",
-                                              "refValue": 3,
-                                              "bucket": "🎯 Talents"
+                                              "bucket": "🎯 Talents",
+                                              "note": "killed × 3 per kill = +3"
                                             }
                                           ]
                                         },
                                         {
-                                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Cyan 14 Winner Raw / Mini-boss kills (w7a9)",
-                                          "name": "Mini-boss kills (w7a9)",
+                                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Teal",
+                                          "name": "Teal",
                                           "system": "Talents",
                                           "world": "Character",
                                           "pool": "Additive",
                                           "fmt": "+",
                                           "refValue": 1,
                                           "bucket": "🎯 Talents",
-                                          "note": "Kills × Per kill",
+                                          "note": "Σ Teal (W7) battle contributions",
                                           "children": [
                                             {
-                                              "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Cyan 14 Winner Raw / Mini-boss kills (w7a9) / Kills",
-                                              "name": "Kills",
+                                              "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Teal / Battle a9",
+                                              "name": "Battle a9",
                                               "system": "Talents",
                                               "world": "Character",
                                               "pool": "Additive",
                                               "fmt": "raw",
                                               "refValue": 1,
-                                              "bucket": "🎯 Talents"
-                                            },
-                                            {
-                                              "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Cyan 14 Winner Raw / Mini-boss kills (w7a9) / Per kill",
-                                              "name": "Per kill",
-                                              "system": "Talents",
-                                              "world": "Character",
-                                              "pool": "Additive",
-                                              "fmt": "raw",
-                                              "refValue": 1,
-                                              "bucket": "🎯 Talents"
+                                              "bucket": "🎯 Talents",
+                                              "note": "killed × 1 per kill = +1"
                                             }
                                           ]
                                         }
@@ -2118,8 +2064,8 @@
                       "bucket": "🎯 Talents",
                       "children": [
                         {
-                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Cyan 14 Winner Raw",
-                          "name": "Cyan 14 Winner Raw",
+                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles",
+                          "name": "Summoning Battles",
                           "system": "Talents",
                           "world": "Character",
                           "pool": "Additive",
@@ -2129,68 +2075,50 @@
                           "note": "× 6.82× Higher Bonus × 2.77× Winner Multi → 75.62 effective",
                           "children": [
                             {
-                              "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Cyan 14 Winner Raw / Mini-boss kills (w6d3)",
-                              "name": "Mini-boss kills (w6d3)",
+                              "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Cyan",
+                              "name": "Cyan",
                               "system": "Talents",
                               "world": "Character",
                               "pool": "Additive",
                               "fmt": "+",
                               "refValue": 3,
                               "bucket": "🎯 Talents",
-                              "note": "Kills × Per kill",
+                              "note": "Σ Cyan (W6) battle contributions",
                               "children": [
                                 {
-                                  "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Cyan 14 Winner Raw / Mini-boss kills (w6d3) / Kills",
-                                  "name": "Kills",
+                                  "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Cyan / Battle d3",
+                                  "name": "Battle d3",
                                   "system": "Talents",
                                   "world": "Character",
                                   "pool": "Additive",
                                   "fmt": "raw",
                                   "refValue": 1,
-                                  "bucket": "🎯 Talents"
-                                },
-                                {
-                                  "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Cyan 14 Winner Raw / Mini-boss kills (w6d3) / Per kill",
-                                  "name": "Per kill",
-                                  "system": "Talents",
-                                  "world": "Character",
-                                  "pool": "Additive",
-                                  "fmt": "raw",
-                                  "refValue": 3,
-                                  "bucket": "🎯 Talents"
+                                  "bucket": "🎯 Talents",
+                                  "note": "killed × 3 per kill = +3"
                                 }
                               ]
                             },
                             {
-                              "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Cyan 14 Winner Raw / Mini-boss kills (w7a9)",
-                              "name": "Mini-boss kills (w7a9)",
+                              "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Teal",
+                              "name": "Teal",
                               "system": "Talents",
                               "world": "Character",
                               "pool": "Additive",
                               "fmt": "+",
                               "refValue": 1,
                               "bucket": "🎯 Talents",
-                              "note": "Kills × Per kill",
+                              "note": "Σ Teal (W7) battle contributions",
                               "children": [
                                 {
-                                  "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Cyan 14 Winner Raw / Mini-boss kills (w7a9) / Kills",
-                                  "name": "Kills",
+                                  "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Teal / Battle a9",
+                                  "name": "Battle a9",
                                   "system": "Talents",
                                   "world": "Character",
                                   "pool": "Additive",
                                   "fmt": "raw",
                                   "refValue": 1,
-                                  "bucket": "🎯 Talents"
-                                },
-                                {
-                                  "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Cyan 14 Winner Raw / Mini-boss kills (w7a9) / Per kill",
-                                  "name": "Per kill",
-                                  "system": "Talents",
-                                  "world": "Character",
-                                  "pool": "Additive",
-                                  "fmt": "raw",
-                                  "refValue": 1,
-                                  "bucket": "🎯 Talents"
+                                  "bucket": "🎯 Talents",
+                                  "note": "killed × 1 per kill = +1"
                                 }
                               ]
                             }
@@ -2594,8 +2522,8 @@
                               "bucket": "🎯 Talents",
                               "children": [
                                 {
-                                  "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Cyan 14 Winner Raw",
-                                  "name": "Cyan 14 Winner Raw",
+                                  "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles",
+                                  "name": "Summoning Battles",
                                   "system": "Talents",
                                   "world": "Character",
                                   "pool": "Additive",
@@ -2605,68 +2533,50 @@
                                   "note": "× 6.82× Higher Bonus × 2.77× Winner Multi → 75.62 effective",
                                   "children": [
                                     {
-                                      "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Cyan 14 Winner Raw / Mini-boss kills (w6d3)",
-                                      "name": "Mini-boss kills (w6d3)",
+                                      "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Cyan",
+                                      "name": "Cyan",
                                       "system": "Talents",
                                       "world": "Character",
                                       "pool": "Additive",
                                       "fmt": "+",
                                       "refValue": 3,
                                       "bucket": "🎯 Talents",
-                                      "note": "Kills × Per kill",
+                                      "note": "Σ Cyan (W6) battle contributions",
                                       "children": [
                                         {
-                                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Cyan 14 Winner Raw / Mini-boss kills (w6d3) / Kills",
-                                          "name": "Kills",
+                                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Cyan / Battle d3",
+                                          "name": "Battle d3",
                                           "system": "Talents",
                                           "world": "Character",
                                           "pool": "Additive",
                                           "fmt": "raw",
                                           "refValue": 1,
-                                          "bucket": "🎯 Talents"
-                                        },
-                                        {
-                                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Cyan 14 Winner Raw / Mini-boss kills (w6d3) / Per kill",
-                                          "name": "Per kill",
-                                          "system": "Talents",
-                                          "world": "Character",
-                                          "pool": "Additive",
-                                          "fmt": "raw",
-                                          "refValue": 3,
-                                          "bucket": "🎯 Talents"
+                                          "bucket": "🎯 Talents",
+                                          "note": "killed × 3 per kill = +3"
                                         }
                                       ]
                                     },
                                     {
-                                      "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Cyan 14 Winner Raw / Mini-boss kills (w7a9)",
-                                      "name": "Mini-boss kills (w7a9)",
+                                      "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Teal",
+                                      "name": "Teal",
                                       "system": "Talents",
                                       "world": "Character",
                                       "pool": "Additive",
                                       "fmt": "+",
                                       "refValue": 1,
                                       "bucket": "🎯 Talents",
-                                      "note": "Kills × Per kill",
+                                      "note": "Σ Teal (W7) battle contributions",
                                       "children": [
                                         {
-                                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Cyan 14 Winner Raw / Mini-boss kills (w7a9) / Kills",
-                                          "name": "Kills",
+                                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Teal / Battle a9",
+                                          "name": "Battle a9",
                                           "system": "Talents",
                                           "world": "Character",
                                           "pool": "Additive",
                                           "fmt": "raw",
                                           "refValue": 1,
-                                          "bucket": "🎯 Talents"
-                                        },
-                                        {
-                                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Cyan 14 Winner Raw / Mini-boss kills (w7a9) / Per kill",
-                                          "name": "Per kill",
-                                          "system": "Talents",
-                                          "world": "Character",
-                                          "pool": "Additive",
-                                          "fmt": "raw",
-                                          "refValue": 1,
-                                          "bucket": "🎯 Talents"
+                                          "bucket": "🎯 Talents",
+                                          "note": "killed × 1 per kill = +1"
                                         }
                                       ]
                                     }
@@ -3132,8 +3042,8 @@
                                   "note": "Raw × Higher Bonus × Winner Multi",
                                   "children": [
                                     {
-                                      "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Cyan 14 Winner Raw",
-                                      "name": "Cyan 14 Winner Raw",
+                                      "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles",
+                                      "name": "Summoning Battles",
                                       "system": "Talents",
                                       "world": "Character",
                                       "pool": "Additive",
@@ -3143,68 +3053,50 @@
                                       "note": "× 6.82× Higher Bonus × 2.77× Winner Multi → 75.62 effective",
                                       "children": [
                                         {
-                                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Cyan 14 Winner Raw / Mini-boss kills (w6d3)",
-                                          "name": "Mini-boss kills (w6d3)",
+                                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Cyan",
+                                          "name": "Cyan",
                                           "system": "Talents",
                                           "world": "Character",
                                           "pool": "Additive",
                                           "fmt": "+",
                                           "refValue": 3,
                                           "bucket": "🎯 Talents",
-                                          "note": "Kills × Per kill",
+                                          "note": "Σ Cyan (W6) battle contributions",
                                           "children": [
                                             {
-                                              "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Cyan 14 Winner Raw / Mini-boss kills (w6d3) / Kills",
-                                              "name": "Kills",
+                                              "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Cyan / Battle d3",
+                                              "name": "Battle d3",
                                               "system": "Talents",
                                               "world": "Character",
                                               "pool": "Additive",
                                               "fmt": "raw",
                                               "refValue": 1,
-                                              "bucket": "🎯 Talents"
-                                            },
-                                            {
-                                              "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Cyan 14 Winner Raw / Mini-boss kills (w6d3) / Per kill",
-                                              "name": "Per kill",
-                                              "system": "Talents",
-                                              "world": "Character",
-                                              "pool": "Additive",
-                                              "fmt": "raw",
-                                              "refValue": 3,
-                                              "bucket": "🎯 Talents"
+                                              "bucket": "🎯 Talents",
+                                              "note": "killed × 3 per kill = +3"
                                             }
                                           ]
                                         },
                                         {
-                                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Cyan 14 Winner Raw / Mini-boss kills (w7a9)",
-                                          "name": "Mini-boss kills (w7a9)",
+                                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Teal",
+                                          "name": "Teal",
                                           "system": "Talents",
                                           "world": "Character",
                                           "pool": "Additive",
                                           "fmt": "+",
                                           "refValue": 1,
                                           "bucket": "🎯 Talents",
-                                          "note": "Kills × Per kill",
+                                          "note": "Σ Teal (W7) battle contributions",
                                           "children": [
                                             {
-                                              "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Cyan 14 Winner Raw / Mini-boss kills (w7a9) / Kills",
-                                              "name": "Kills",
+                                              "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Teal / Battle a9",
+                                              "name": "Battle a9",
                                               "system": "Talents",
                                               "world": "Character",
                                               "pool": "Additive",
                                               "fmt": "raw",
                                               "refValue": 1,
-                                              "bucket": "🎯 Talents"
-                                            },
-                                            {
-                                              "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Cyan 14 Winner Raw / Mini-boss kills (w7a9) / Per kill",
-                                              "name": "Per kill",
-                                              "system": "Talents",
-                                              "world": "Character",
-                                              "pool": "Additive",
-                                              "fmt": "raw",
-                                              "refValue": 1,
-                                              "bucket": "🎯 Talents"
+                                              "bucket": "🎯 Talents",
+                                              "note": "killed × 1 per kill = +1"
                                             }
                                           ]
                                         }
@@ -9881,8 +9773,8 @@
                           "bucket": "🎯 Talents",
                           "children": [
                             {
-                              "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Cyan 14 Winner Raw",
-                              "name": "Cyan 14 Winner Raw",
+                              "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles",
+                              "name": "Summoning Battles",
                               "system": "Talents",
                               "world": "Character",
                               "pool": "Multi",
@@ -9892,68 +9784,50 @@
                               "note": "× 6.82× Higher Bonus × 2.77× Winner Multi → 75.62 effective",
                               "children": [
                                 {
-                                  "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Cyan 14 Winner Raw / Mini-boss kills (w6d3)",
-                                  "name": "Mini-boss kills (w6d3)",
+                                  "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Cyan",
+                                  "name": "Cyan",
                                   "system": "Talents",
                                   "world": "Character",
                                   "pool": "Multi",
                                   "fmt": "+",
                                   "refValue": 3,
                                   "bucket": "🎯 Talents",
-                                  "note": "Kills × Per kill",
+                                  "note": "Σ Cyan (W6) battle contributions",
                                   "children": [
                                     {
-                                      "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Cyan 14 Winner Raw / Mini-boss kills (w6d3) / Kills",
-                                      "name": "Kills",
+                                      "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Cyan / Battle d3",
+                                      "name": "Battle d3",
                                       "system": "Talents",
                                       "world": "Character",
                                       "pool": "Multi",
                                       "fmt": "raw",
                                       "refValue": 1,
-                                      "bucket": "🎯 Talents"
-                                    },
-                                    {
-                                      "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Cyan 14 Winner Raw / Mini-boss kills (w6d3) / Per kill",
-                                      "name": "Per kill",
-                                      "system": "Talents",
-                                      "world": "Character",
-                                      "pool": "Multi",
-                                      "fmt": "raw",
-                                      "refValue": 3,
-                                      "bucket": "🎯 Talents"
+                                      "bucket": "🎯 Talents",
+                                      "note": "killed × 3 per kill = +3"
                                     }
                                   ]
                                 },
                                 {
-                                  "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Cyan 14 Winner Raw / Mini-boss kills (w7a9)",
-                                  "name": "Mini-boss kills (w7a9)",
+                                  "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Teal",
+                                  "name": "Teal",
                                   "system": "Talents",
                                   "world": "Character",
                                   "pool": "Multi",
                                   "fmt": "+",
                                   "refValue": 1,
                                   "bucket": "🎯 Talents",
-                                  "note": "Kills × Per kill",
+                                  "note": "Σ Teal (W7) battle contributions",
                                   "children": [
                                     {
-                                      "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Cyan 14 Winner Raw / Mini-boss kills (w7a9) / Kills",
-                                      "name": "Kills",
+                                      "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Teal / Battle a9",
+                                      "name": "Battle a9",
                                       "system": "Talents",
                                       "world": "Character",
                                       "pool": "Multi",
                                       "fmt": "raw",
                                       "refValue": 1,
-                                      "bucket": "🎯 Talents"
-                                    },
-                                    {
-                                      "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Cyan 14 Winner Raw / Mini-boss kills (w7a9) / Per kill",
-                                      "name": "Per kill",
-                                      "system": "Talents",
-                                      "world": "Character",
-                                      "pool": "Multi",
-                                      "fmt": "raw",
-                                      "refValue": 1,
-                                      "bucket": "🎯 Talents"
+                                      "bucket": "🎯 Talents",
+                                      "note": "killed × 1 per kill = +1"
                                     }
                                   ]
                                 }
@@ -10358,8 +10232,8 @@
                                   "bucket": "🎯 Talents",
                                   "children": [
                                     {
-                                      "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Cyan 14 Winner Raw",
-                                      "name": "Cyan 14 Winner Raw",
+                                      "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles",
+                                      "name": "Summoning Battles",
                                       "system": "Talents",
                                       "world": "Character",
                                       "pool": "Multi",
@@ -10369,68 +10243,50 @@
                                       "note": "× 6.82× Higher Bonus × 2.77× Winner Multi → 75.62 effective",
                                       "children": [
                                         {
-                                          "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Cyan 14 Winner Raw / Mini-boss kills (w6d3)",
-                                          "name": "Mini-boss kills (w6d3)",
+                                          "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Cyan",
+                                          "name": "Cyan",
                                           "system": "Talents",
                                           "world": "Character",
                                           "pool": "Multi",
                                           "fmt": "+",
                                           "refValue": 3,
                                           "bucket": "🎯 Talents",
-                                          "note": "Kills × Per kill",
+                                          "note": "Σ Cyan (W6) battle contributions",
                                           "children": [
                                             {
-                                              "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Cyan 14 Winner Raw / Mini-boss kills (w6d3) / Kills",
-                                              "name": "Kills",
+                                              "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Cyan / Battle d3",
+                                              "name": "Battle d3",
                                               "system": "Talents",
                                               "world": "Character",
                                               "pool": "Multi",
                                               "fmt": "raw",
                                               "refValue": 1,
-                                              "bucket": "🎯 Talents"
-                                            },
-                                            {
-                                              "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Cyan 14 Winner Raw / Mini-boss kills (w6d3) / Per kill",
-                                              "name": "Per kill",
-                                              "system": "Talents",
-                                              "world": "Character",
-                                              "pool": "Multi",
-                                              "fmt": "raw",
-                                              "refValue": 3,
-                                              "bucket": "🎯 Talents"
+                                              "bucket": "🎯 Talents",
+                                              "note": "killed × 3 per kill = +3"
                                             }
                                           ]
                                         },
                                         {
-                                          "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Cyan 14 Winner Raw / Mini-boss kills (w7a9)",
-                                          "name": "Mini-boss kills (w7a9)",
+                                          "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Teal",
+                                          "name": "Teal",
                                           "system": "Talents",
                                           "world": "Character",
                                           "pool": "Multi",
                                           "fmt": "+",
                                           "refValue": 1,
                                           "bucket": "🎯 Talents",
-                                          "note": "Kills × Per kill",
+                                          "note": "Σ Teal (W7) battle contributions",
                                           "children": [
                                             {
-                                              "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Cyan 14 Winner Raw / Mini-boss kills (w7a9) / Kills",
-                                              "name": "Kills",
+                                              "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Teal / Battle a9",
+                                              "name": "Battle a9",
                                               "system": "Talents",
                                               "world": "Character",
                                               "pool": "Multi",
                                               "fmt": "raw",
                                               "refValue": 1,
-                                              "bucket": "🎯 Talents"
-                                            },
-                                            {
-                                              "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Cyan 14 Winner Raw / Mini-boss kills (w7a9) / Per kill",
-                                              "name": "Per kill",
-                                              "system": "Talents",
-                                              "world": "Character",
-                                              "pool": "Multi",
-                                              "fmt": "raw",
-                                              "refValue": 1,
-                                              "bucket": "🎯 Talents"
+                                              "bucket": "🎯 Talents",
+                                              "note": "killed × 1 per kill = +1"
                                             }
                                           ]
                                         }
@@ -10896,8 +10752,8 @@
                                       "note": "Raw × Higher Bonus × Winner Multi",
                                       "children": [
                                         {
-                                          "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Cyan 14 Winner Raw",
-                                          "name": "Cyan 14 Winner Raw",
+                                          "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles",
+                                          "name": "Summoning Battles",
                                           "system": "Talents",
                                           "world": "Character",
                                           "pool": "Multi",
@@ -10907,68 +10763,50 @@
                                           "note": "× 6.82× Higher Bonus × 2.77× Winner Multi → 75.62 effective",
                                           "children": [
                                             {
-                                              "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Cyan 14 Winner Raw / Mini-boss kills (w6d3)",
-                                              "name": "Mini-boss kills (w6d3)",
+                                              "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Cyan",
+                                              "name": "Cyan",
                                               "system": "Talents",
                                               "world": "Character",
                                               "pool": "Multi",
                                               "fmt": "+",
                                               "refValue": 3,
                                               "bucket": "🎯 Talents",
-                                              "note": "Kills × Per kill",
+                                              "note": "Σ Cyan (W6) battle contributions",
                                               "children": [
                                                 {
-                                                  "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Cyan 14 Winner Raw / Mini-boss kills (w6d3) / Kills",
-                                                  "name": "Kills",
+                                                  "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Cyan / Battle d3",
+                                                  "name": "Battle d3",
                                                   "system": "Talents",
                                                   "world": "Character",
                                                   "pool": "Multi",
                                                   "fmt": "raw",
                                                   "refValue": 1,
-                                                  "bucket": "🎯 Talents"
-                                                },
-                                                {
-                                                  "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Cyan 14 Winner Raw / Mini-boss kills (w6d3) / Per kill",
-                                                  "name": "Per kill",
-                                                  "system": "Talents",
-                                                  "world": "Character",
-                                                  "pool": "Multi",
-                                                  "fmt": "raw",
-                                                  "refValue": 3,
-                                                  "bucket": "🎯 Talents"
+                                                  "bucket": "🎯 Talents",
+                                                  "note": "killed × 3 per kill = +3"
                                                 }
                                               ]
                                             },
                                             {
-                                              "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Cyan 14 Winner Raw / Mini-boss kills (w7a9)",
-                                              "name": "Mini-boss kills (w7a9)",
+                                              "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Teal",
+                                              "name": "Teal",
                                               "system": "Talents",
                                               "world": "Character",
                                               "pool": "Multi",
                                               "fmt": "+",
                                               "refValue": 1,
                                               "bucket": "🎯 Talents",
-                                              "note": "Kills × Per kill",
+                                              "note": "Σ Teal (W7) battle contributions",
                                               "children": [
                                                 {
-                                                  "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Cyan 14 Winner Raw / Mini-boss kills (w7a9) / Kills",
-                                                  "name": "Kills",
+                                                  "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Teal / Battle a9",
+                                                  "name": "Battle a9",
                                                   "system": "Talents",
                                                   "world": "Character",
                                                   "pool": "Multi",
                                                   "fmt": "raw",
                                                   "refValue": 1,
-                                                  "bucket": "🎯 Talents"
-                                                },
-                                                {
-                                                  "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Cyan 14 Winner Raw / Mini-boss kills (w7a9) / Per kill",
-                                                  "name": "Per kill",
-                                                  "system": "Talents",
-                                                  "world": "Character",
-                                                  "pool": "Multi",
-                                                  "fmt": "raw",
-                                                  "refValue": 1,
-                                                  "bucket": "🎯 Talents"
+                                                  "bucket": "🎯 Talents",
+                                                  "note": "killed × 1 per kill = +1"
                                                 }
                                               ]
                                             }

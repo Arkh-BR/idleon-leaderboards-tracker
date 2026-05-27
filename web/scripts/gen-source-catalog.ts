@@ -1750,7 +1750,7 @@ const APP_JS = `
         }
         return null;
       }
-      var raw = kidStrict("Cyan 14 Winner Raw");
+      var raw = kidStrict("Summoning Battles");
       var higher = kidStrict("Higher Bonus Multi");
       var winner = kidStrict("Winner Multi (combined)");
       if (raw === null || higher === null || winner === null) {
