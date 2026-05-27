@@ -27,6 +27,7 @@ import {
   computeSummWinBonus,
   computeSummWinBonus24Parts,
   _winBonusParts,
+  decomposeWinBonusRaw,
 } from "../w6/summoning";
 import { DreamUpg } from "../../data/game/customlists.js";
 import { SaltLicks, TaskShopDesc } from "../../data/game/customlists.js";
@@ -105,6 +106,8 @@ export type TalentBonusDetail = {
  *  Groups the multiplicative chain into three nodes:
  *
  *  - Cyan 14 Winner Raw  : the raw points earned per mob (w6d3 +3 / w7a9 +1)
+ *                          plus endless contribution. Now drilled down to
+ *                          per-mob kill counts via decomposeWinBonusRaw.
  *  - Higher Bonus Multi  : Base × Pristine × Gem product — this is the
  *                          "X× higher bonus" multiplier the in-game tooltip
  *                          surfaces (~6.83× when all three are maxed)
@@ -113,13 +116,57 @@ export type TalentBonusDetail = {
  *                          the game treats this as a different upgrade lane
  *
  *  Final value = raw × Higher Bonus × Winner. */
-function buildSummWB19Kids(wb19Parts: ReturnType<typeof _winBonusParts>): CorganNode[] {
+function buildSummWB19Kids(
+  wb19Parts: ReturnType<typeof _winBonusParts>,
+  saveData: SaveData
+): CorganNode[] {
   const baseMult = wb19Parts.baseMult ?? 3.5;
   const pristineMult = wb19Parts.pristineMult ?? 1;
   const gemMult = wb19Parts.gemMult ?? 1;
   const higherBonus = baseMult * pristineMult * gemMult;
+  // Decompose the raw 4 (or whatever) into the actual mobs that
+  // contributed — w6d3 (W6 Cyan Stone mini-boss, +3 per kill),
+  // w7a9 (W7 mini-boss, +1 per kill) — plus the endless slice.
+  const rawBreakdown = decomposeWinBonusRaw(saveData, 19);
+  const rawKids: CorganNode[] = [];
+  for (const m of rawBreakdown.normalMobs) {
+    rawKids.push(
+      node(
+        `Mini-boss kills (${m.mob})`,
+        m.total,
+        [
+          node("Kills", m.kills, null, { fmt: "raw" }),
+          node("Per kill", m.perKill, null, { fmt: "raw" }),
+        ],
+        { fmt: "+", note: "Kills × Per kill" }
+      )
+    );
+  }
+  // Endless row — surfaced whether or not it contributes, so the user
+  // can see "endless gives 0 to this slot" at a glance.
+  rawKids.push(
+    node(
+      "Endless Summoning",
+      rawBreakdown.endlessTotal,
+      [
+        node("Endless Wins (OLA[319])", rawBreakdown.endlessWins, null, {
+          fmt: "raw",
+        }),
+        node("Per 40-cycle to this slot", rawBreakdown.perCycle, null, {
+          fmt: "raw",
+        }),
+      ],
+      {
+        fmt: "+",
+        note:
+          rawBreakdown.perCycle > 0
+            ? `floor(${rawBreakdown.endlessWins}/40) × ${rawBreakdown.perCycle} + partial`
+            : "endless cycle doesn't target slot 19 — won't grow",
+      }
+    )
+  );
   return [
-    node("Cyan 14 Winner Raw", wb19Parts.raw ?? 0, null, {
+    node("Cyan 14 Winner Raw", wb19Parts.raw ?? 0, rawKids.length ? rawKids : null, {
       fmt: "raw",
       note:
         "× " +
@@ -221,7 +268,7 @@ function computeMaxBookLvParts(saveData: SaveData): {
   // the original Tal144 implementation; each talent gets its own copy).
   const swb = computeSummWinBonus(saveData);
   const wb19Parts = _winBonusParts(19, swb, saveData);
-  const summKids: CorganNode[] = buildSummWB19Kids(wb19Parts);
+  const summKids: CorganNode[] = buildSummWB19Kids(wb19Parts, saveData);
   const kids: CorganNode[] = [
     node("Base Level (N.js literal)", baseLvl, null, { fmt: "+" }),
     node("Talent Book Library Base", talentBookLibBase, null, { fmt: "+" }),
@@ -996,7 +1043,7 @@ function resolveAllTalentLVz(
                   node(
                     "Summoning Winner Bonus 19",
                     summWB19,
-                    buildSummWB19Kids(wb19Parts),
+                    buildSummWB19Kids(wb19Parts, saveData),
                     { fmt: "+", note: "Raw × Higher Bonus × Winner Multi" }
                   ),
                     ],

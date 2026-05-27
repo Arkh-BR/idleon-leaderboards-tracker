@@ -87,6 +87,85 @@ export function computeSummWinBonus(saveData: SaveData): number[] {
   return bonus;
 }
 
+/** Decompose where the raw Summoning Winner Bonus for a specific slot
+ *  came from — used by talent.ts to surface per-mob kill counts under
+ *  the "Cyan 14 Winner Raw" node so the user can see WHICH mobs are
+ *  contributing the points. Endless wins fold into a single row since
+ *  they cycle through 40 fixed slots that may or may not target this
+ *  bonus index. */
+export type WinBonusRawBreakdown = {
+  /** Total raw value (= sum of normalMobs values + endlessTotal). */
+  total: number;
+  /** Each normal-Summoning mob that contributes, grouped: kill count
+   *  multiplied by per-kill value for the target slot. Only mobs with
+   *  >0 kills AND positive contribution are included. */
+  normalMobs: Array<{ mob: string; kills: number; perKill: number; total: number }>;
+  /** Sum of all endless contributions to this slot across the user's
+   *  total endless wins. 0 when no slot in the 40-cycle targets this
+   *  bonus index. */
+  endlessTotal: number;
+  /** Endless wins count (OLA[319]) — surfaced for context, even when
+   *  endlessTotal is 0. */
+  endlessWins: number;
+  /** Per-40-cycle contribution to this slot (= constant). When 0, more
+   *  endless wins won't increase this raw — only the normal-Summoning
+   *  mobs in the list above will. */
+  perCycle: number;
+};
+
+export function decomposeWinBonusRaw(
+  saveData: SaveData,
+  bonusIdx: number
+): WinBonusRawBreakdown {
+  const mobAcc = new Map<string, { kills: number; perKill: number }>();
+  if (saveData && saveData.summonData) {
+    const normalWins = (saveData.summonData[1] || []) as any[];
+    for (const name of normalWins) {
+      if (typeof name !== "string" || name.startsWith("rift")) continue;
+      const entry = SUMMON_NORMAL_BONUS[name];
+      if (!entry) continue;
+      const idx = Math.round(entry[0] - 1);
+      if (idx !== bonusIdx) continue;
+      const perKill = entry[1];
+      if (perKill <= 0) continue;
+      const existing = mobAcc.get(name);
+      if (existing) {
+        existing.kills += 1;
+      } else {
+        mobAcc.set(name, { kills: 1, perKill });
+      }
+    }
+  }
+  const normalMobs = Array.from(mobAcc.entries())
+    .map(([mob, { kills, perKill }]) => ({
+      mob,
+      kills,
+      perKill,
+      total: kills * perKill,
+    }))
+    .sort((a, b) => b.total - a.total);
+
+  // Per-40-cycle contribution to this bonusIdx — sums the values where
+  // SUMMON_ENDLESS_TYPE[i] - 1 === bonusIdx across the 40-slot ring.
+  let perCycle = 0;
+  for (let i = 0; i < 40; i++) {
+    const type = (SUMMON_ENDLESS_TYPE[i] || 0) - 1;
+    if (type === bonusIdx) perCycle += SUMMON_ENDLESS_VAL[i] || 0;
+  }
+  const endlessWins = Number((saveData?.olaData as any)?.[319]) || 0;
+  const fullCycles = Math.floor(endlessWins / 40);
+  const remainder = endlessWins % 40;
+  let partial = 0;
+  for (let i = 0; i < remainder; i++) {
+    const type = (SUMMON_ENDLESS_TYPE[i] || 0) - 1;
+    if (type === bonusIdx) partial += SUMMON_ENDLESS_VAL[i] || 0;
+  }
+  const endlessTotal = fullCycles * perCycle + partial;
+  const total =
+    normalMobs.reduce((s, m) => s + m.total, 0) + endlessTotal;
+  return { total, normalMobs, endlessTotal, endlessWins, perCycle };
+}
+
 type WinBonusParts = {
   val: number;
   raw: number;
