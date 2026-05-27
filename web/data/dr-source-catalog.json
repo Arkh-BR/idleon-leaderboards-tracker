@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-27T03:24:45.885Z",
+  "generatedAt": "2026-05-27T02:54:40.095Z",
   "refTotal": 43093.43816941274,
   "refSave": "zArkhe (save 25-21-16.json) — Town, no AC",
   "sourceCount": 75,
@@ -108,7 +108,7 @@
           "fmt": "raw",
           "refValue": 241,
           "bucket": "🎯 Talents",
-          "note": "Base + Bonus",
+          "note": "Effective Level = Base Level + Bonus Levels. Recomputes live when either kid changes (sum of two children).",
           "children": [
             {
               "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Base Level",
@@ -119,7 +119,7 @@
               "fmt": "raw",
               "refValue": 396,
               "bucket": "🎯 Talents",
-              "note": "min(invested, cap) — owner: zArkhe",
+              "note": "Base Level = min(Points Invested, Max Book Lv Cap). Requires both the cap AND actual points spent. — owner: zArkhe",
               "children": [
                 {
                   "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Base Level / Points Invested",
@@ -130,7 +130,7 @@
                   "fmt": "raw",
                   "refValue": 396,
                   "bucket": "🎯 Talents",
-                  "note": "save=0 — owner: zArkhe",
+                  "note": "Defaults to Max Book Lv Cap for max DR research — owner: zArkhe. Save's actual invested = 0. Edit to research 'what if I'd only spent N points'.",
                   "autoFill": true
                 },
                 {
@@ -142,7 +142,7 @@
                   "fmt": "raw",
                   "refValue": 396,
                   "bucket": "🎯 Talents",
-                  "note": "N.js maxBookLv",
+                  "note": "Max Book Lv Cap = round(100 + 25 + SaltLick(4) + W3 Merit + Achievement 145 + Lv1 Oxygen Atom + Fury Relic + Summoning WB 19). Account-wide cap per N.js line 12252; clamps ALL regular talents (idx<615) at line 9508.",
                   "children": [
                     {
                       "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Base Level / Max Book Lv Cap / Base Level (N.js literal)",
@@ -508,7 +508,7 @@
                       "fmt": "raw",
                       "refValue": 396,
                       "bucket": "🎯 Talents",
-                      "note": "min(invested, cap) — owner: zArkhe",
+                      "note": "Base Level = min(Points Invested, Max Book Lv Cap). Requires both the cap AND actual points spent. — owner: zArkhe",
                       "children": [
                         {
                           "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Points Invested",
@@ -519,7 +519,7 @@
                           "fmt": "raw",
                           "refValue": 396,
                           "bucket": "🎯 Talents",
-                          "note": "save=396 — owner: zArkhe",
+                          "note": "Defaults to Max Book Lv Cap for max DR research — owner: zArkhe. Save's actual invested = 396. Edit to research 'what if I'd only spent N points'.",
                           "autoFill": true
                         },
                         {
@@ -531,7 +531,7 @@
                           "fmt": "raw",
                           "refValue": 396,
                           "bucket": "🎯 Talents",
-                          "note": "N.js maxBookLv",
+                          "note": "Max Book Lv Cap = round(100 + 25 + SaltLick(4) + W3 Merit + Achievement 145 + Lv1 Oxygen Atom + Fury Relic + Summoning WB 19). Account-wide cap per N.js line 12252; clamps ALL regular talents (idx<615) at line 9508.",
                           "children": [
                             {
                               "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Base Level (N.js literal)",
@@ -895,7 +895,7 @@
                   "fmt": "raw",
                   "refValue": 16,
                   "bucket": "🎯 Talents",
-                  "note": "floor(decay × Family Guy Multi if active)",
+                  "note": "Formula: floor(decay(Formula x1, Formula x2, BestMageLv − Lv Offset) × Family Guy Multi if active char wins). Lava single-pass: iterate ES chars in order; for each, store unbuffed; if ACTIVE char wins, overwrite with × Family Guy Multi",
                   "children": [
                     {
                       "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Best Mage Lv",
@@ -943,7 +943,7 @@
                       "fmt": "raw",
                       "refValue": 1.3457259158751695,
                       "bucket": "🎯 Talents",
-                      "note": "1 + decay(x1, x2, Base+Bonus)/100",
+                      "note": "Formula: 1 + decay(Tal144 Formula x1, Tal144 Formula x2, Base+Bonus) / 100. Lava applies this AFTER Family Bonus 68 stores the unbuffed value in iteration order — store-then-buff (single pass, not fixed-point). Tal144 reads UNBUFFED FB68 in its ATL chain, so the apparent FB68 ↔ Tal144 cycle is broken by sequencing.",
                       "children": [
                         {
                           "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level",
@@ -954,7 +954,7 @@
                           "fmt": "raw",
                           "refValue": 396,
                           "bucket": "🎯 Talents",
-                          "note": "min(invested, cap)",
+                          "note": "Base Level = min(Points Invested, Max Book Lv Cap). The talent only contributes if you have BOTH (a) enough max cap from Library/Salt Lick/etc AND (b) actually spent points on it.",
                           "children": [
                             {
                               "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Points Invested",
@@ -965,7 +965,7 @@
                               "fmt": "raw",
                               "refValue": 396,
                               "bucket": "🎯 Talents",
-                              "note": "save=396",
+                              "note": "Defaults to Max Book Lv Cap for max DR research (assumes the player has invested up to the cap). Save's actual invested level (skillLvData[slotIdx][144]) = 396. Edit this row to research 'what if I'd only spent N points'.",
                               "autoFill": true
                             },
                             {
@@ -977,7 +977,7 @@
                               "fmt": "raw",
                               "refValue": 396,
                               "bucket": "🎯 Talents",
-                              "note": "N.js maxBookLv",
+                              "note": "Max Book Lv Cap = round(100 + 25 + SaltLick(4) + W3MeritShop + Achievement 145 + Lv1 OxygenAtom + Fury Relic + Summoning WinBonus 19). N.js line 12252. This is the ceiling; Base Level is also gated by Points Invested.",
                               "children": [
                                 {
                                   "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Base Level (N.js literal)",
@@ -987,7 +987,8 @@
                                   "pool": "Additive",
                                   "fmt": "+",
                                   "refValue": 100,
-                                  "bucket": "🎯 Talents"
+                                  "bucket": "🎯 Talents",
+                                  "note": "100 — hardcoded base in N.js maxBookLv formula"
                                 },
                                 {
                                   "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Talent Book Library Base",
@@ -997,7 +998,8 @@
                                   "pool": "Additive",
                                   "fmt": "+",
                                   "refValue": 25,
-                                  "bucket": "🎯 Talents"
+                                  "bucket": "🎯 Talents",
+                                  "note": "25 — Construction Building 2 (Talent Book Library) base contribution. Part of N.js literal 125 split for clarity."
                                 },
                                 {
                                   "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Salt Lick 4",
@@ -1008,7 +1010,7 @@
                                   "fmt": "+",
                                   "refValue": 20,
                                   "bucket": "🎯 Talents",
-                                  "note": "Lv × Per Lv",
+                                  "note": "Formula: Salt Lick 4 Lv × Per Lv (Refinery3)",
                                   "children": [
                                     {
                                       "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Salt Lick 4 / Salt Lick 4 Lv",
@@ -1018,7 +1020,8 @@
                                       "pool": "Additive",
                                       "fmt": "raw",
                                       "refValue": 10,
-                                      "bucket": "🎯 Talents"
+                                      "bucket": "🎯 Talents",
+                                      "note": "saltLickData[4] — Refinery3 upgrade lv (+X Max Talent Book Lv)"
                                     },
                                     {
                                       "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Salt Lick 4 / Per Lv",
@@ -1028,7 +1031,8 @@
                                       "pool": "Additive",
                                       "fmt": "raw",
                                       "refValue": 2,
-                                      "bucket": "🎯 Talents"
+                                      "bucket": "🎯 Talents",
+                                      "note": "SaltLicks[4][3] — game constant (2 per upgrade lv)"
                                     }
                                   ],
                                   "formulaKey": "twoChildProduct",
@@ -1043,7 +1047,7 @@
                                   "fmt": "+",
                                   "refValue": 10,
                                   "bucket": "🎯 Talents",
-                                  "note": "Pts × Per Point",
+                                  "note": "Formula: Merit Points × Per Point",
                                   "children": [
                                     {
                                       "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / W3 Merit Shop Unlock / W3 Merit Points Spent",
@@ -1053,7 +1057,8 @@
                                       "pool": "Additive",
                                       "fmt": "raw",
                                       "refValue": 5,
-                                      "bucket": "🎯 Talents"
+                                      "bucket": "🎯 Talents",
+                                      "note": "Tasks[2][2][2] — W3 merit shop purchase qty"
                                     },
                                     {
                                       "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / W3 Merit Shop Unlock / Per Point",
@@ -1063,7 +1068,8 @@
                                       "pool": "Additive",
                                       "fmt": "raw",
                                       "refValue": 2,
-                                      "bucket": "🎯 Talents"
+                                      "bucket": "🎯 Talents",
+                                      "note": "TaskShopDesc[2][2][11] — per-point bonus (game constant; W3 Talent Book Lv shop gives 2 per purchase)"
                                     }
                                   ],
                                   "formulaKey": "twoChildProduct",
@@ -1077,7 +1083,8 @@
                                   "pool": "Additive",
                                   "fmt": "+",
                                   "refValue": 5,
-                                  "bucket": "🎯 Talents"
+                                  "bucket": "🎯 Talents",
+                                  "note": "min(5, max(0, 5 × achieveStatus(145))) — caps at 5 when Achievement 145 is unlocked"
                                 },
                                 {
                                   "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Lv 1 Oxygen Atom",
@@ -1088,7 +1095,7 @@
                                   "fmt": "+",
                                   "refValue": 10,
                                   "bucket": "🎯 Talents",
-                                  "note": "10 × min(Lv, 1)",
+                                  "note": "10 × min(Atom 7 Lv, 1) — flat 10 if unlocked, 0 if not",
                                   "children": [
                                     {
                                       "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Lv 1 Oxygen Atom / Atom 7 Lv",
@@ -1098,7 +1105,8 @@
                                       "pool": "Additive",
                                       "fmt": "raw",
                                       "refValue": 70,
-                                      "bucket": "🎯 Talents"
+                                      "bucket": "🎯 Talents",
+                                      "note": "atomsData[7] — Oxygen Atom lv"
                                     }
                                   ],
                                   "formulaKey": "atomLv1Bonus",
@@ -1113,7 +1121,7 @@
                                   "fmt": "+",
                                   "refValue": 150,
                                   "bucket": "🎯 Talents",
-                                  "note": "Base × Tier",
+                                  "note": "Sailing.ArtifactBonus(21) = artifactBase × tier. Spreadsheet shows 100 = Sovereign (all 4 tiers unlocked).",
                                   "children": [
                                     {
                                       "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Sovereign Fury Relic / Artifact 21 Base",
@@ -1123,7 +1131,8 @@
                                       "pool": "Additive",
                                       "fmt": "raw",
                                       "refValue": 25,
-                                      "bucket": "🎯 Talents"
+                                      "bucket": "🎯 Talents",
+                                      "note": "artifactBase(21) — Fury Relic base value (100)"
                                     },
                                     {
                                       "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Sovereign Fury Relic / Artifact 21 Tier",
@@ -1133,7 +1142,8 @@
                                       "pool": "Additive",
                                       "fmt": "raw",
                                       "refValue": 6,
-                                      "bucket": "🎯 Talents"
+                                      "bucket": "🎯 Talents",
+                                      "note": "sailingData[3][21] — Fury Relic tier (1=Base, 2=Ancient, 3=Eldritch, 4=Sovereign, etc.)"
                                     }
                                   ],
                                   "formulaKey": "twoChildProduct",
@@ -1148,7 +1158,7 @@
                                   "fmt": "+",
                                   "refValue": 75.621,
                                   "bucket": "🎯 Talents",
-                                  "note": "Raw × Base × Pristine × Gem × Winner",
+                                  "note": "Summoning.WinBonus(19) = Cyan 14 Winner Raw × Base Multi × Crystal Comb × Gem Shop × Winner Multi. Print shows 10.5 base × 1.30 × 1.10 × 2.27 ≈ 31; our save's value differs because the contributors are larger.",
                                   "children": [
                                     {
                                       "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Cyan 14 Winner Raw",
@@ -1158,7 +1168,8 @@
                                       "pool": "Additive",
                                       "fmt": "raw",
                                       "refValue": 4,
-                                      "bucket": "🎯 Talents"
+                                      "bucket": "🎯 Talents",
+                                      "note": "swb[19] — Σ unit bonuses contributing to slot 19 (from owned summoning units + endless wins cycles)"
                                     },
                                     {
                                       "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Base Multi",
@@ -1168,7 +1179,8 @@
                                       "pool": "Additive",
                                       "fmt": "x",
                                       "refValue": 3.5,
-                                      "bucket": "🎯 Talents"
+                                      "bucket": "🎯 Talents",
+                                      "note": "3.5 for slot 19 (idx < 20) — game constant"
                                     },
                                     {
                                       "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Crystal Comb Pristine Charm",
@@ -1179,7 +1191,7 @@
                                       "fmt": "x",
                                       "refValue": 1.3,
                                       "bucket": "🎯 Talents",
-                                      "note": "1 + lv/100",
+                                      "note": "1 + Pristine 8 Bonus / 100",
                                       "children": [
                                         {
                                           "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Crystal Comb Pristine Charm / Pristine 8 Bonus",
@@ -1189,7 +1201,8 @@
                                           "pool": "Additive",
                                           "fmt": "raw",
                                           "refValue": 30,
-                                          "bucket": "🎯 Talents"
+                                          "bucket": "🎯 Talents",
+                                          "note": "ninjaData[107][8] — 30 if Crystal Comb Pristine Charm equipped, 0 otherwise"
                                         }
                                       ],
                                       "formulaKey": "pristineMulti",
@@ -1204,7 +1217,7 @@
                                       "fmt": "x",
                                       "refValue": 1.5,
                                       "bucket": "🎯 Talents",
-                                      "note": "1 + 10×lv/100",
+                                      "note": "1 + 10 × Gem Items 11 / 100",
                                       "children": [
                                         {
                                           "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Gem Shop Multi / Gem Items 11",
@@ -1214,7 +1227,8 @@
                                           "pool": "Additive",
                                           "fmt": "raw",
                                           "refValue": 5,
-                                          "bucket": "🎯 Talents"
+                                          "bucket": "🎯 Talents",
+                                          "note": "gemItemsData[11] — gem shop summoning bonus stacks"
                                         }
                                       ],
                                       "formulaKey": "gemShopMulti",
@@ -1229,7 +1243,7 @@
                                       "fmt": "x",
                                       "refValue": 2.77,
                                       "bucket": "🎯 Talents",
-                                      "note": "1 + Σ/100",
+                                      "note": "1 + (Sovereign Fury Lantern + W3 Merit + Regalis + Spectre Stars + Godshard Set) / 100. Note: idx=19 SKIPS wb31 and empBon8 from the global formula.",
                                       "children": [
                                         {
                                           "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Winner Multi (combined) / Sovereign Winz Lantern",
@@ -1240,7 +1254,7 @@
                                           "fmt": "+",
                                           "refValue": 150,
                                           "bucket": "🎯 Talents",
-                                          "note": "Base × Tier",
+                                          "note": "artifactBase(32) × tier — The Winz Lantern",
                                           "children": [
                                             {
                                               "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Winner Multi (combined) / Sovereign Winz Lantern / Artifact 32 Base",
@@ -1250,7 +1264,8 @@
                                               "pool": "Additive",
                                               "fmt": "raw",
                                               "refValue": 25,
-                                              "bucket": "🎯 Talents"
+                                              "bucket": "🎯 Talents",
+                                              "note": "artifactBase(32) — The Winz Lantern base"
                                             },
                                             {
                                               "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Winner Multi (combined) / Sovereign Winz Lantern / Artifact 32 Tier",
@@ -1260,7 +1275,8 @@
                                               "pool": "Additive",
                                               "fmt": "raw",
                                               "refValue": 6,
-                                              "bucket": "🎯 Talents"
+                                              "bucket": "🎯 Talents",
+                                              "note": "sailingData[3][32] — The Winz Lantern tier (1=Base, 2=Ancient, 4=Sovereign, etc.)"
                                             }
                                           ],
                                           "formulaKey": "twoChildProduct",
@@ -1274,7 +1290,8 @@
                                           "pool": "Additive",
                                           "fmt": "+",
                                           "refValue": 10,
-                                          "bucket": "🎯 Talents"
+                                          "bucket": "🎯 Talents",
+                                          "note": "min(10, tasksGlobalData[2][5][4]) — W3 task shop purchases capped at 10"
                                         },
                                         {
                                           "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Winner Multi (combined) / Regalis Achievement (379)",
@@ -1284,7 +1301,8 @@
                                           "pool": "Additive",
                                           "fmt": "+",
                                           "refValue": 1,
-                                          "bucket": "🎯 Talents"
+                                          "bucket": "🎯 Talents",
+                                          "note": "achieveStatus(379) — +1 if achieved"
                                         },
                                         {
                                           "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Winner Multi (combined) / Spectre Stars Achievement (373)",
@@ -1294,7 +1312,8 @@
                                           "pool": "Additive",
                                           "fmt": "+",
                                           "refValue": 1,
-                                          "bucket": "🎯 Talents"
+                                          "bucket": "🎯 Talents",
+                                          "note": "achieveStatus(373) — +1 if achieved"
                                         },
                                         {
                                           "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Winner Multi (combined) / Godshard Set",
@@ -1304,7 +1323,8 @@
                                           "pool": "Additive",
                                           "fmt": "+",
                                           "refValue": 15,
-                                          "bucket": "🎯 Talents"
+                                          "bucket": "🎯 Talents",
+                                          "note": "equipSetBonus('GODSHARD_SET') if equipped (olaData[379])"
                                         }
                                       ],
                                       "formulaKey": "winnerMultiCombined",
@@ -1331,7 +1351,7 @@
                           "fmt": "+",
                           "refValue": 241,
                           "bucket": "🎯 Talents",
-                          "note": "Σ ATL (unbuffed FB68)"
+                          "note": "Σ ATL chain for talent 144 (Symbols of Beyond, Family Bonus 68 UNBUFFED, etc.). Lava's single-pass algorithm reads FB68 BEFORE the Family Guy buff applies, so this sum uses the unbuffed FB68 — NOT a feedback loop."
                         }
                       ],
                       "formulaKey": "familyGuyMulti",
@@ -1594,7 +1614,7 @@
                   "fmt": "raw",
                   "refValue": 12,
                   "bucket": "🎯 Talents",
-                  "note": "max(0, floor((Lv − 500)/100))",
+                  "note": "Formula: max(0, floor((Player Lv − 500) / 100)) — only active when SuperBit 47 is unlocked. Recomputes live from Player Lv kid.",
                   "children": [
                     {
                       "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Super Bit 47 Lv Bonus / Player Lv",
@@ -1605,7 +1625,7 @@
                       "fmt": "raw",
                       "refValue": 1739,
                       "bucket": "🎯 Talents",
-                      "note": "Lv0[0]"
+                      "note": "Lv0[0] — char's class lv. Editable for max DR research."
                     }
                   ],
                   "formulaKey": "superBit47LvBonus",
@@ -1658,7 +1678,7 @@
           "fmt": "raw",
           "refValue": 241,
           "bucket": "🎯 Talents",
-          "note": "Base + Bonus",
+          "note": "Effective Level = Base Level + Bonus Levels. Recomputes live when either kid changes (sum of two children).",
           "children": [
             {
               "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Base Level",
@@ -1669,7 +1689,7 @@
               "fmt": "raw",
               "refValue": 396,
               "bucket": "🎯 Talents",
-              "note": "min(invested, cap) — owner: zArkhe",
+              "note": "Base Level = min(Points Invested, Max Book Lv Cap). Requires both the cap AND actual points spent. — owner: zArkhe",
               "children": [
                 {
                   "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Base Level / Points Invested",
@@ -1680,7 +1700,7 @@
                   "fmt": "raw",
                   "refValue": 396,
                   "bucket": "🎯 Talents",
-                  "note": "save=0 — owner: zArkhe",
+                  "note": "Defaults to Max Book Lv Cap for max DR research — owner: zArkhe. Save's actual invested = 0. Edit to research 'what if I'd only spent N points'.",
                   "autoFill": true
                 },
                 {
@@ -1692,7 +1712,7 @@
                   "fmt": "raw",
                   "refValue": 396,
                   "bucket": "🎯 Talents",
-                  "note": "N.js maxBookLv",
+                  "note": "Max Book Lv Cap = round(100 + 25 + SaltLick(4) + W3 Merit + Achievement 145 + Lv1 Oxygen Atom + Fury Relic + Summoning WB 19). Account-wide cap per N.js line 12252; clamps ALL regular talents (idx<615) at line 9508.",
                   "children": [
                     {
                       "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Base Level / Max Book Lv Cap / Base Level (N.js literal)",
@@ -2058,7 +2078,7 @@
                       "fmt": "raw",
                       "refValue": 396,
                       "bucket": "🎯 Talents",
-                      "note": "min(invested, cap) — owner: zArkhe",
+                      "note": "Base Level = min(Points Invested, Max Book Lv Cap). Requires both the cap AND actual points spent. — owner: zArkhe",
                       "children": [
                         {
                           "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Points Invested",
@@ -2069,7 +2089,7 @@
                           "fmt": "raw",
                           "refValue": 396,
                           "bucket": "🎯 Talents",
-                          "note": "save=396 — owner: zArkhe",
+                          "note": "Defaults to Max Book Lv Cap for max DR research — owner: zArkhe. Save's actual invested = 396. Edit to research 'what if I'd only spent N points'.",
                           "autoFill": true
                         },
                         {
@@ -2081,7 +2101,7 @@
                           "fmt": "raw",
                           "refValue": 396,
                           "bucket": "🎯 Talents",
-                          "note": "N.js maxBookLv",
+                          "note": "Max Book Lv Cap = round(100 + 25 + SaltLick(4) + W3 Merit + Achievement 145 + Lv1 Oxygen Atom + Fury Relic + Summoning WB 19). Account-wide cap per N.js line 12252; clamps ALL regular talents (idx<615) at line 9508.",
                           "children": [
                             {
                               "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Base Level (N.js literal)",
@@ -2445,7 +2465,7 @@
                   "fmt": "raw",
                   "refValue": 16,
                   "bucket": "🎯 Talents",
-                  "note": "floor(decay × Family Guy Multi if active)",
+                  "note": "Formula: floor(decay(Formula x1, Formula x2, BestMageLv − Lv Offset) × Family Guy Multi if active char wins). Lava single-pass: iterate ES chars in order; for each, store unbuffed; if ACTIVE char wins, overwrite with × Family Guy Multi",
                   "children": [
                     {
                       "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Best Mage Lv",
@@ -2493,7 +2513,7 @@
                       "fmt": "raw",
                       "refValue": 1.3457259158751695,
                       "bucket": "🎯 Talents",
-                      "note": "1 + decay(x1, x2, Base+Bonus)/100",
+                      "note": "Formula: 1 + decay(Tal144 Formula x1, Tal144 Formula x2, Base+Bonus) / 100. Lava applies this AFTER Family Bonus 68 stores the unbuffed value in iteration order — store-then-buff (single pass, not fixed-point). Tal144 reads UNBUFFED FB68 in its ATL chain, so the apparent FB68 ↔ Tal144 cycle is broken by sequencing.",
                       "children": [
                         {
                           "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level",
@@ -2504,7 +2524,7 @@
                           "fmt": "raw",
                           "refValue": 396,
                           "bucket": "🎯 Talents",
-                          "note": "min(invested, cap)",
+                          "note": "Base Level = min(Points Invested, Max Book Lv Cap). The talent only contributes if you have BOTH (a) enough max cap from Library/Salt Lick/etc AND (b) actually spent points on it.",
                           "children": [
                             {
                               "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Points Invested",
@@ -2515,7 +2535,7 @@
                               "fmt": "raw",
                               "refValue": 396,
                               "bucket": "🎯 Talents",
-                              "note": "save=396",
+                              "note": "Defaults to Max Book Lv Cap for max DR research (assumes the player has invested up to the cap). Save's actual invested level (skillLvData[slotIdx][144]) = 396. Edit this row to research 'what if I'd only spent N points'.",
                               "autoFill": true
                             },
                             {
@@ -2527,7 +2547,7 @@
                               "fmt": "raw",
                               "refValue": 396,
                               "bucket": "🎯 Talents",
-                              "note": "N.js maxBookLv",
+                              "note": "Max Book Lv Cap = round(100 + 25 + SaltLick(4) + W3MeritShop + Achievement 145 + Lv1 OxygenAtom + Fury Relic + Summoning WinBonus 19). N.js line 12252. This is the ceiling; Base Level is also gated by Points Invested.",
                               "children": [
                                 {
                                   "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Base Level (N.js literal)",
@@ -2537,7 +2557,8 @@
                                   "pool": "Additive",
                                   "fmt": "+",
                                   "refValue": 100,
-                                  "bucket": "🎯 Talents"
+                                  "bucket": "🎯 Talents",
+                                  "note": "100 — hardcoded base in N.js maxBookLv formula"
                                 },
                                 {
                                   "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Talent Book Library Base",
@@ -2547,7 +2568,8 @@
                                   "pool": "Additive",
                                   "fmt": "+",
                                   "refValue": 25,
-                                  "bucket": "🎯 Talents"
+                                  "bucket": "🎯 Talents",
+                                  "note": "25 — Construction Building 2 (Talent Book Library) base contribution. Part of N.js literal 125 split for clarity."
                                 },
                                 {
                                   "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Salt Lick 4",
@@ -2558,7 +2580,7 @@
                                   "fmt": "+",
                                   "refValue": 20,
                                   "bucket": "🎯 Talents",
-                                  "note": "Lv × Per Lv",
+                                  "note": "Formula: Salt Lick 4 Lv × Per Lv (Refinery3)",
                                   "children": [
                                     {
                                       "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Salt Lick 4 / Salt Lick 4 Lv",
@@ -2568,7 +2590,8 @@
                                       "pool": "Additive",
                                       "fmt": "raw",
                                       "refValue": 10,
-                                      "bucket": "🎯 Talents"
+                                      "bucket": "🎯 Talents",
+                                      "note": "saltLickData[4] — Refinery3 upgrade lv (+X Max Talent Book Lv)"
                                     },
                                     {
                                       "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Salt Lick 4 / Per Lv",
@@ -2578,7 +2601,8 @@
                                       "pool": "Additive",
                                       "fmt": "raw",
                                       "refValue": 2,
-                                      "bucket": "🎯 Talents"
+                                      "bucket": "🎯 Talents",
+                                      "note": "SaltLicks[4][3] — game constant (2 per upgrade lv)"
                                     }
                                   ],
                                   "formulaKey": "twoChildProduct",
@@ -2593,7 +2617,7 @@
                                   "fmt": "+",
                                   "refValue": 10,
                                   "bucket": "🎯 Talents",
-                                  "note": "Pts × Per Point",
+                                  "note": "Formula: Merit Points × Per Point",
                                   "children": [
                                     {
                                       "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / W3 Merit Shop Unlock / W3 Merit Points Spent",
@@ -2603,7 +2627,8 @@
                                       "pool": "Additive",
                                       "fmt": "raw",
                                       "refValue": 5,
-                                      "bucket": "🎯 Talents"
+                                      "bucket": "🎯 Talents",
+                                      "note": "Tasks[2][2][2] — W3 merit shop purchase qty"
                                     },
                                     {
                                       "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / W3 Merit Shop Unlock / Per Point",
@@ -2613,7 +2638,8 @@
                                       "pool": "Additive",
                                       "fmt": "raw",
                                       "refValue": 2,
-                                      "bucket": "🎯 Talents"
+                                      "bucket": "🎯 Talents",
+                                      "note": "TaskShopDesc[2][2][11] — per-point bonus (game constant; W3 Talent Book Lv shop gives 2 per purchase)"
                                     }
                                   ],
                                   "formulaKey": "twoChildProduct",
@@ -2627,7 +2653,8 @@
                                   "pool": "Additive",
                                   "fmt": "+",
                                   "refValue": 5,
-                                  "bucket": "🎯 Talents"
+                                  "bucket": "🎯 Talents",
+                                  "note": "min(5, max(0, 5 × achieveStatus(145))) — caps at 5 when Achievement 145 is unlocked"
                                 },
                                 {
                                   "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Lv 1 Oxygen Atom",
@@ -2638,7 +2665,7 @@
                                   "fmt": "+",
                                   "refValue": 10,
                                   "bucket": "🎯 Talents",
-                                  "note": "10 × min(Lv, 1)",
+                                  "note": "10 × min(Atom 7 Lv, 1) — flat 10 if unlocked, 0 if not",
                                   "children": [
                                     {
                                       "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Lv 1 Oxygen Atom / Atom 7 Lv",
@@ -2648,7 +2675,8 @@
                                       "pool": "Additive",
                                       "fmt": "raw",
                                       "refValue": 70,
-                                      "bucket": "🎯 Talents"
+                                      "bucket": "🎯 Talents",
+                                      "note": "atomsData[7] — Oxygen Atom lv"
                                     }
                                   ],
                                   "formulaKey": "atomLv1Bonus",
@@ -2663,7 +2691,7 @@
                                   "fmt": "+",
                                   "refValue": 150,
                                   "bucket": "🎯 Talents",
-                                  "note": "Base × Tier",
+                                  "note": "Sailing.ArtifactBonus(21) = artifactBase × tier. Spreadsheet shows 100 = Sovereign (all 4 tiers unlocked).",
                                   "children": [
                                     {
                                       "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Sovereign Fury Relic / Artifact 21 Base",
@@ -2673,7 +2701,8 @@
                                       "pool": "Additive",
                                       "fmt": "raw",
                                       "refValue": 25,
-                                      "bucket": "🎯 Talents"
+                                      "bucket": "🎯 Talents",
+                                      "note": "artifactBase(21) — Fury Relic base value (100)"
                                     },
                                     {
                                       "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Sovereign Fury Relic / Artifact 21 Tier",
@@ -2683,7 +2712,8 @@
                                       "pool": "Additive",
                                       "fmt": "raw",
                                       "refValue": 6,
-                                      "bucket": "🎯 Talents"
+                                      "bucket": "🎯 Talents",
+                                      "note": "sailingData[3][21] — Fury Relic tier (1=Base, 2=Ancient, 3=Eldritch, 4=Sovereign, etc.)"
                                     }
                                   ],
                                   "formulaKey": "twoChildProduct",
@@ -2698,7 +2728,7 @@
                                   "fmt": "+",
                                   "refValue": 75.621,
                                   "bucket": "🎯 Talents",
-                                  "note": "Raw × Base × Pristine × Gem × Winner",
+                                  "note": "Summoning.WinBonus(19) = Cyan 14 Winner Raw × Base Multi × Crystal Comb × Gem Shop × Winner Multi. Print shows 10.5 base × 1.30 × 1.10 × 2.27 ≈ 31; our save's value differs because the contributors are larger.",
                                   "children": [
                                     {
                                       "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Cyan 14 Winner Raw",
@@ -2708,7 +2738,8 @@
                                       "pool": "Additive",
                                       "fmt": "raw",
                                       "refValue": 4,
-                                      "bucket": "🎯 Talents"
+                                      "bucket": "🎯 Talents",
+                                      "note": "swb[19] — Σ unit bonuses contributing to slot 19 (from owned summoning units + endless wins cycles)"
                                     },
                                     {
                                       "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Base Multi",
@@ -2718,7 +2749,8 @@
                                       "pool": "Additive",
                                       "fmt": "x",
                                       "refValue": 3.5,
-                                      "bucket": "🎯 Talents"
+                                      "bucket": "🎯 Talents",
+                                      "note": "3.5 for slot 19 (idx < 20) — game constant"
                                     },
                                     {
                                       "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Crystal Comb Pristine Charm",
@@ -2729,7 +2761,7 @@
                                       "fmt": "x",
                                       "refValue": 1.3,
                                       "bucket": "🎯 Talents",
-                                      "note": "1 + lv/100",
+                                      "note": "1 + Pristine 8 Bonus / 100",
                                       "children": [
                                         {
                                           "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Crystal Comb Pristine Charm / Pristine 8 Bonus",
@@ -2739,7 +2771,8 @@
                                           "pool": "Additive",
                                           "fmt": "raw",
                                           "refValue": 30,
-                                          "bucket": "🎯 Talents"
+                                          "bucket": "🎯 Talents",
+                                          "note": "ninjaData[107][8] — 30 if Crystal Comb Pristine Charm equipped, 0 otherwise"
                                         }
                                       ],
                                       "formulaKey": "pristineMulti",
@@ -2754,7 +2787,7 @@
                                       "fmt": "x",
                                       "refValue": 1.5,
                                       "bucket": "🎯 Talents",
-                                      "note": "1 + 10×lv/100",
+                                      "note": "1 + 10 × Gem Items 11 / 100",
                                       "children": [
                                         {
                                           "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Gem Shop Multi / Gem Items 11",
@@ -2764,7 +2797,8 @@
                                           "pool": "Additive",
                                           "fmt": "raw",
                                           "refValue": 5,
-                                          "bucket": "🎯 Talents"
+                                          "bucket": "🎯 Talents",
+                                          "note": "gemItemsData[11] — gem shop summoning bonus stacks"
                                         }
                                       ],
                                       "formulaKey": "gemShopMulti",
@@ -2779,7 +2813,7 @@
                                       "fmt": "x",
                                       "refValue": 2.77,
                                       "bucket": "🎯 Talents",
-                                      "note": "1 + Σ/100",
+                                      "note": "1 + (Sovereign Fury Lantern + W3 Merit + Regalis + Spectre Stars + Godshard Set) / 100. Note: idx=19 SKIPS wb31 and empBon8 from the global formula.",
                                       "children": [
                                         {
                                           "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Winner Multi (combined) / Sovereign Winz Lantern",
@@ -2790,7 +2824,7 @@
                                           "fmt": "+",
                                           "refValue": 150,
                                           "bucket": "🎯 Talents",
-                                          "note": "Base × Tier",
+                                          "note": "artifactBase(32) × tier — The Winz Lantern",
                                           "children": [
                                             {
                                               "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Winner Multi (combined) / Sovereign Winz Lantern / Artifact 32 Base",
@@ -2800,7 +2834,8 @@
                                               "pool": "Additive",
                                               "fmt": "raw",
                                               "refValue": 25,
-                                              "bucket": "🎯 Talents"
+                                              "bucket": "🎯 Talents",
+                                              "note": "artifactBase(32) — The Winz Lantern base"
                                             },
                                             {
                                               "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Winner Multi (combined) / Sovereign Winz Lantern / Artifact 32 Tier",
@@ -2810,7 +2845,8 @@
                                               "pool": "Additive",
                                               "fmt": "raw",
                                               "refValue": 6,
-                                              "bucket": "🎯 Talents"
+                                              "bucket": "🎯 Talents",
+                                              "note": "sailingData[3][32] — The Winz Lantern tier (1=Base, 2=Ancient, 4=Sovereign, etc.)"
                                             }
                                           ],
                                           "formulaKey": "twoChildProduct",
@@ -2824,7 +2860,8 @@
                                           "pool": "Additive",
                                           "fmt": "+",
                                           "refValue": 10,
-                                          "bucket": "🎯 Talents"
+                                          "bucket": "🎯 Talents",
+                                          "note": "min(10, tasksGlobalData[2][5][4]) — W3 task shop purchases capped at 10"
                                         },
                                         {
                                           "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Winner Multi (combined) / Regalis Achievement (379)",
@@ -2834,7 +2871,8 @@
                                           "pool": "Additive",
                                           "fmt": "+",
                                           "refValue": 1,
-                                          "bucket": "🎯 Talents"
+                                          "bucket": "🎯 Talents",
+                                          "note": "achieveStatus(379) — +1 if achieved"
                                         },
                                         {
                                           "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Winner Multi (combined) / Spectre Stars Achievement (373)",
@@ -2844,7 +2882,8 @@
                                           "pool": "Additive",
                                           "fmt": "+",
                                           "refValue": 1,
-                                          "bucket": "🎯 Talents"
+                                          "bucket": "🎯 Talents",
+                                          "note": "achieveStatus(373) — +1 if achieved"
                                         },
                                         {
                                           "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Winner Multi (combined) / Godshard Set",
@@ -2854,7 +2893,8 @@
                                           "pool": "Additive",
                                           "fmt": "+",
                                           "refValue": 15,
-                                          "bucket": "🎯 Talents"
+                                          "bucket": "🎯 Talents",
+                                          "note": "equipSetBonus('GODSHARD_SET') if equipped (olaData[379])"
                                         }
                                       ],
                                       "formulaKey": "winnerMultiCombined",
@@ -2881,7 +2921,7 @@
                           "fmt": "+",
                           "refValue": 241,
                           "bucket": "🎯 Talents",
-                          "note": "Σ ATL (unbuffed FB68)"
+                          "note": "Σ ATL chain for talent 144 (Symbols of Beyond, Family Bonus 68 UNBUFFED, etc.). Lava's single-pass algorithm reads FB68 BEFORE the Family Guy buff applies, so this sum uses the unbuffed FB68 — NOT a feedback loop."
                         }
                       ],
                       "formulaKey": "familyGuyMulti",
@@ -3144,7 +3184,7 @@
                   "fmt": "raw",
                   "refValue": 12,
                   "bucket": "🎯 Talents",
-                  "note": "max(0, floor((Lv − 500)/100))",
+                  "note": "Formula: max(0, floor((Player Lv − 500) / 100)) — only active when SuperBit 47 is unlocked. Recomputes live from Player Lv kid.",
                   "children": [
                     {
                       "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Super Bit 47 Lv Bonus / Player Lv",
@@ -3155,7 +3195,7 @@
                       "fmt": "raw",
                       "refValue": 1739,
                       "bucket": "🎯 Talents",
-                      "note": "Lv0[0]"
+                      "note": "Lv0[0] — char's class lv. Editable for max DR research."
                     }
                   ],
                   "formulaKey": "superBit47LvBonus",
@@ -9175,7 +9215,7 @@
                   "fmt": "raw",
                   "refValue": 396,
                   "bucket": "🎯 Talents",
-                  "note": "min(invested, cap) — owner: ARKHELUCK",
+                  "note": "Base Level = min(Points Invested, Max Book Lv Cap). Requires both the cap AND actual points spent. — owner: ARKHELUCK",
                   "children": [
                     {
                       "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Base Level / Points Invested",
@@ -9186,7 +9226,7 @@
                       "fmt": "raw",
                       "refValue": 396,
                       "bucket": "🎯 Talents",
-                      "note": "save=389 — owner: ARKHELUCK",
+                      "note": "Defaults to Max Book Lv Cap for max DR research — owner: ARKHELUCK. Save's actual invested = 389. Edit to research 'what if I'd only spent N points'.",
                       "autoFill": true
                     },
                     {
@@ -9198,7 +9238,7 @@
                       "fmt": "raw",
                       "refValue": 396,
                       "bucket": "🎯 Talents",
-                      "note": "N.js maxBookLv",
+                      "note": "Max Book Lv Cap = round(100 + 25 + SaltLick(4) + W3 Merit + Achievement 145 + Lv1 Oxygen Atom + Fury Relic + Summoning WB 19). Account-wide cap per N.js line 12252; clamps ALL regular talents (idx<615) at line 9508.",
                       "children": [
                         {
                           "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Base Level / Max Book Lv Cap / Base Level (N.js literal)",
@@ -9565,7 +9605,7 @@
                           "fmt": "raw",
                           "refValue": 396,
                           "bucket": "🎯 Talents",
-                          "note": "min(invested, cap) — owner: zArkhe",
+                          "note": "Base Level = min(Points Invested, Max Book Lv Cap). Requires both the cap AND actual points spent. — owner: zArkhe",
                           "children": [
                             {
                               "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Points Invested",
@@ -9576,7 +9616,7 @@
                               "fmt": "raw",
                               "refValue": 396,
                               "bucket": "🎯 Talents",
-                              "note": "save=396 — owner: zArkhe",
+                              "note": "Defaults to Max Book Lv Cap for max DR research — owner: zArkhe. Save's actual invested = 396. Edit to research 'what if I'd only spent N points'.",
                               "autoFill": true
                             },
                             {
@@ -9588,7 +9628,7 @@
                               "fmt": "raw",
                               "refValue": 396,
                               "bucket": "🎯 Talents",
-                              "note": "N.js maxBookLv",
+                              "note": "Max Book Lv Cap = round(100 + 25 + SaltLick(4) + W3 Merit + Achievement 145 + Lv1 Oxygen Atom + Fury Relic + Summoning WB 19). Account-wide cap per N.js line 12252; clamps ALL regular talents (idx<615) at line 9508.",
                               "children": [
                                 {
                                   "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Base Level (N.js literal)",
@@ -9952,7 +9992,7 @@
                       "fmt": "raw",
                       "refValue": 16,
                       "bucket": "🎯 Talents",
-                      "note": "floor(decay × Family Guy Multi if active)",
+                      "note": "Formula: floor(decay(Formula x1, Formula x2, BestMageLv − Lv Offset) × Family Guy Multi if active char wins). Lava single-pass: iterate ES chars in order; for each, store unbuffed; if ACTIVE char wins, overwrite with × Family Guy Multi",
                       "children": [
                         {
                           "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Best Mage Lv",
@@ -10000,7 +10040,7 @@
                           "fmt": "raw",
                           "refValue": 1.3457259158751695,
                           "bucket": "🎯 Talents",
-                          "note": "1 + decay(x1, x2, Base+Bonus)/100",
+                          "note": "Formula: 1 + decay(Tal144 Formula x1, Tal144 Formula x2, Base+Bonus) / 100. Lava applies this AFTER Family Bonus 68 stores the unbuffed value in iteration order — store-then-buff (single pass, not fixed-point). Tal144 reads UNBUFFED FB68 in its ATL chain, so the apparent FB68 ↔ Tal144 cycle is broken by sequencing.",
                           "children": [
                             {
                               "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level",
@@ -10011,7 +10051,7 @@
                               "fmt": "raw",
                               "refValue": 396,
                               "bucket": "🎯 Talents",
-                              "note": "min(invested, cap)",
+                              "note": "Base Level = min(Points Invested, Max Book Lv Cap). The talent only contributes if you have BOTH (a) enough max cap from Library/Salt Lick/etc AND (b) actually spent points on it.",
                               "children": [
                                 {
                                   "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Points Invested",
@@ -10022,7 +10062,7 @@
                                   "fmt": "raw",
                                   "refValue": 396,
                                   "bucket": "🎯 Talents",
-                                  "note": "save=396",
+                                  "note": "Defaults to Max Book Lv Cap for max DR research (assumes the player has invested up to the cap). Save's actual invested level (skillLvData[slotIdx][144]) = 396. Edit this row to research 'what if I'd only spent N points'.",
                                   "autoFill": true
                                 },
                                 {
@@ -10034,7 +10074,7 @@
                                   "fmt": "raw",
                                   "refValue": 396,
                                   "bucket": "🎯 Talents",
-                                  "note": "N.js maxBookLv",
+                                  "note": "Max Book Lv Cap = round(100 + 25 + SaltLick(4) + W3MeritShop + Achievement 145 + Lv1 OxygenAtom + Fury Relic + Summoning WinBonus 19). N.js line 12252. This is the ceiling; Base Level is also gated by Points Invested.",
                                   "children": [
                                     {
                                       "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Base Level (N.js literal)",
@@ -10044,7 +10084,8 @@
                                       "pool": "Multi",
                                       "fmt": "+",
                                       "refValue": 100,
-                                      "bucket": "🎯 Talents"
+                                      "bucket": "🎯 Talents",
+                                      "note": "100 — hardcoded base in N.js maxBookLv formula"
                                     },
                                     {
                                       "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Talent Book Library Base",
@@ -10054,7 +10095,8 @@
                                       "pool": "Multi",
                                       "fmt": "+",
                                       "refValue": 25,
-                                      "bucket": "🎯 Talents"
+                                      "bucket": "🎯 Talents",
+                                      "note": "25 — Construction Building 2 (Talent Book Library) base contribution. Part of N.js literal 125 split for clarity."
                                     },
                                     {
                                       "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Salt Lick 4",
@@ -10065,7 +10107,7 @@
                                       "fmt": "+",
                                       "refValue": 20,
                                       "bucket": "🎯 Talents",
-                                      "note": "Lv × Per Lv",
+                                      "note": "Formula: Salt Lick 4 Lv × Per Lv (Refinery3)",
                                       "children": [
                                         {
                                           "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Salt Lick 4 / Salt Lick 4 Lv",
@@ -10075,7 +10117,8 @@
                                           "pool": "Multi",
                                           "fmt": "raw",
                                           "refValue": 10,
-                                          "bucket": "🎯 Talents"
+                                          "bucket": "🎯 Talents",
+                                          "note": "saltLickData[4] — Refinery3 upgrade lv (+X Max Talent Book Lv)"
                                         },
                                         {
                                           "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Salt Lick 4 / Per Lv",
@@ -10085,7 +10128,8 @@
                                           "pool": "Multi",
                                           "fmt": "raw",
                                           "refValue": 2,
-                                          "bucket": "🎯 Talents"
+                                          "bucket": "🎯 Talents",
+                                          "note": "SaltLicks[4][3] — game constant (2 per upgrade lv)"
                                         }
                                       ],
                                       "formulaKey": "twoChildProduct",
@@ -10100,7 +10144,7 @@
                                       "fmt": "+",
                                       "refValue": 10,
                                       "bucket": "🎯 Talents",
-                                      "note": "Pts × Per Point",
+                                      "note": "Formula: Merit Points × Per Point",
                                       "children": [
                                         {
                                           "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / W3 Merit Shop Unlock / W3 Merit Points Spent",
@@ -10110,7 +10154,8 @@
                                           "pool": "Multi",
                                           "fmt": "raw",
                                           "refValue": 5,
-                                          "bucket": "🎯 Talents"
+                                          "bucket": "🎯 Talents",
+                                          "note": "Tasks[2][2][2] — W3 merit shop purchase qty"
                                         },
                                         {
                                           "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / W3 Merit Shop Unlock / Per Point",
@@ -10120,7 +10165,8 @@
                                           "pool": "Multi",
                                           "fmt": "raw",
                                           "refValue": 2,
-                                          "bucket": "🎯 Talents"
+                                          "bucket": "🎯 Talents",
+                                          "note": "TaskShopDesc[2][2][11] — per-point bonus (game constant; W3 Talent Book Lv shop gives 2 per purchase)"
                                         }
                                       ],
                                       "formulaKey": "twoChildProduct",
@@ -10134,7 +10180,8 @@
                                       "pool": "Multi",
                                       "fmt": "+",
                                       "refValue": 5,
-                                      "bucket": "🎯 Talents"
+                                      "bucket": "🎯 Talents",
+                                      "note": "min(5, max(0, 5 × achieveStatus(145))) — caps at 5 when Achievement 145 is unlocked"
                                     },
                                     {
                                       "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Lv 1 Oxygen Atom",
@@ -10145,7 +10192,7 @@
                                       "fmt": "+",
                                       "refValue": 10,
                                       "bucket": "🎯 Talents",
-                                      "note": "10 × min(Lv, 1)",
+                                      "note": "10 × min(Atom 7 Lv, 1) — flat 10 if unlocked, 0 if not",
                                       "children": [
                                         {
                                           "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Lv 1 Oxygen Atom / Atom 7 Lv",
@@ -10155,7 +10202,8 @@
                                           "pool": "Multi",
                                           "fmt": "raw",
                                           "refValue": 70,
-                                          "bucket": "🎯 Talents"
+                                          "bucket": "🎯 Talents",
+                                          "note": "atomsData[7] — Oxygen Atom lv"
                                         }
                                       ],
                                       "formulaKey": "atomLv1Bonus",
@@ -10170,7 +10218,7 @@
                                       "fmt": "+",
                                       "refValue": 150,
                                       "bucket": "🎯 Talents",
-                                      "note": "Base × Tier",
+                                      "note": "Sailing.ArtifactBonus(21) = artifactBase × tier. Spreadsheet shows 100 = Sovereign (all 4 tiers unlocked).",
                                       "children": [
                                         {
                                           "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Sovereign Fury Relic / Artifact 21 Base",
@@ -10180,7 +10228,8 @@
                                           "pool": "Multi",
                                           "fmt": "raw",
                                           "refValue": 25,
-                                          "bucket": "🎯 Talents"
+                                          "bucket": "🎯 Talents",
+                                          "note": "artifactBase(21) — Fury Relic base value (100)"
                                         },
                                         {
                                           "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Sovereign Fury Relic / Artifact 21 Tier",
@@ -10190,7 +10239,8 @@
                                           "pool": "Multi",
                                           "fmt": "raw",
                                           "refValue": 6,
-                                          "bucket": "🎯 Talents"
+                                          "bucket": "🎯 Talents",
+                                          "note": "sailingData[3][21] — Fury Relic tier (1=Base, 2=Ancient, 3=Eldritch, 4=Sovereign, etc.)"
                                         }
                                       ],
                                       "formulaKey": "twoChildProduct",
@@ -10205,7 +10255,7 @@
                                       "fmt": "+",
                                       "refValue": 75.621,
                                       "bucket": "🎯 Talents",
-                                      "note": "Raw × Base × Pristine × Gem × Winner",
+                                      "note": "Summoning.WinBonus(19) = Cyan 14 Winner Raw × Base Multi × Crystal Comb × Gem Shop × Winner Multi. Print shows 10.5 base × 1.30 × 1.10 × 2.27 ≈ 31; our save's value differs because the contributors are larger.",
                                       "children": [
                                         {
                                           "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Cyan 14 Winner Raw",
@@ -10215,7 +10265,8 @@
                                           "pool": "Multi",
                                           "fmt": "raw",
                                           "refValue": 4,
-                                          "bucket": "🎯 Talents"
+                                          "bucket": "🎯 Talents",
+                                          "note": "swb[19] — Σ unit bonuses contributing to slot 19 (from owned summoning units + endless wins cycles)"
                                         },
                                         {
                                           "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Base Multi",
@@ -10225,7 +10276,8 @@
                                           "pool": "Multi",
                                           "fmt": "x",
                                           "refValue": 3.5,
-                                          "bucket": "🎯 Talents"
+                                          "bucket": "🎯 Talents",
+                                          "note": "3.5 for slot 19 (idx < 20) — game constant"
                                         },
                                         {
                                           "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Crystal Comb Pristine Charm",
@@ -10236,7 +10288,7 @@
                                           "fmt": "x",
                                           "refValue": 1.3,
                                           "bucket": "🎯 Talents",
-                                          "note": "1 + lv/100",
+                                          "note": "1 + Pristine 8 Bonus / 100",
                                           "children": [
                                             {
                                               "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Crystal Comb Pristine Charm / Pristine 8 Bonus",
@@ -10246,7 +10298,8 @@
                                               "pool": "Multi",
                                               "fmt": "raw",
                                               "refValue": 30,
-                                              "bucket": "🎯 Talents"
+                                              "bucket": "🎯 Talents",
+                                              "note": "ninjaData[107][8] — 30 if Crystal Comb Pristine Charm equipped, 0 otherwise"
                                             }
                                           ],
                                           "formulaKey": "pristineMulti",
@@ -10261,7 +10314,7 @@
                                           "fmt": "x",
                                           "refValue": 1.5,
                                           "bucket": "🎯 Talents",
-                                          "note": "1 + 10×lv/100",
+                                          "note": "1 + 10 × Gem Items 11 / 100",
                                           "children": [
                                             {
                                               "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Gem Shop Multi / Gem Items 11",
@@ -10271,7 +10324,8 @@
                                               "pool": "Multi",
                                               "fmt": "raw",
                                               "refValue": 5,
-                                              "bucket": "🎯 Talents"
+                                              "bucket": "🎯 Talents",
+                                              "note": "gemItemsData[11] — gem shop summoning bonus stacks"
                                             }
                                           ],
                                           "formulaKey": "gemShopMulti",
@@ -10286,7 +10340,7 @@
                                           "fmt": "x",
                                           "refValue": 2.77,
                                           "bucket": "🎯 Talents",
-                                          "note": "1 + Σ/100",
+                                          "note": "1 + (Sovereign Fury Lantern + W3 Merit + Regalis + Spectre Stars + Godshard Set) / 100. Note: idx=19 SKIPS wb31 and empBon8 from the global formula.",
                                           "children": [
                                             {
                                               "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Winner Multi (combined) / Sovereign Winz Lantern",
@@ -10297,7 +10351,7 @@
                                               "fmt": "+",
                                               "refValue": 150,
                                               "bucket": "🎯 Talents",
-                                              "note": "Base × Tier",
+                                              "note": "artifactBase(32) × tier — The Winz Lantern",
                                               "children": [
                                                 {
                                                   "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Winner Multi (combined) / Sovereign Winz Lantern / Artifact 32 Base",
@@ -10307,7 +10361,8 @@
                                                   "pool": "Multi",
                                                   "fmt": "raw",
                                                   "refValue": 25,
-                                                  "bucket": "🎯 Talents"
+                                                  "bucket": "🎯 Talents",
+                                                  "note": "artifactBase(32) — The Winz Lantern base"
                                                 },
                                                 {
                                                   "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Winner Multi (combined) / Sovereign Winz Lantern / Artifact 32 Tier",
@@ -10317,7 +10372,8 @@
                                                   "pool": "Multi",
                                                   "fmt": "raw",
                                                   "refValue": 6,
-                                                  "bucket": "🎯 Talents"
+                                                  "bucket": "🎯 Talents",
+                                                  "note": "sailingData[3][32] — The Winz Lantern tier (1=Base, 2=Ancient, 4=Sovereign, etc.)"
                                                 }
                                               ],
                                               "formulaKey": "twoChildProduct",
@@ -10331,7 +10387,8 @@
                                               "pool": "Multi",
                                               "fmt": "+",
                                               "refValue": 10,
-                                              "bucket": "🎯 Talents"
+                                              "bucket": "🎯 Talents",
+                                              "note": "min(10, tasksGlobalData[2][5][4]) — W3 task shop purchases capped at 10"
                                             },
                                             {
                                               "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Winner Multi (combined) / Regalis Achievement (379)",
@@ -10341,7 +10398,8 @@
                                               "pool": "Multi",
                                               "fmt": "+",
                                               "refValue": 1,
-                                              "bucket": "🎯 Talents"
+                                              "bucket": "🎯 Talents",
+                                              "note": "achieveStatus(379) — +1 if achieved"
                                             },
                                             {
                                               "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Winner Multi (combined) / Spectre Stars Achievement (373)",
@@ -10351,7 +10409,8 @@
                                               "pool": "Multi",
                                               "fmt": "+",
                                               "refValue": 1,
-                                              "bucket": "🎯 Talents"
+                                              "bucket": "🎯 Talents",
+                                              "note": "achieveStatus(373) — +1 if achieved"
                                             },
                                             {
                                               "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Winner Multi (combined) / Godshard Set",
@@ -10361,7 +10420,8 @@
                                               "pool": "Multi",
                                               "fmt": "+",
                                               "refValue": 15,
-                                              "bucket": "🎯 Talents"
+                                              "bucket": "🎯 Talents",
+                                              "note": "equipSetBonus('GODSHARD_SET') if equipped (olaData[379])"
                                             }
                                           ],
                                           "formulaKey": "winnerMultiCombined",
@@ -10388,7 +10448,7 @@
                               "fmt": "+",
                               "refValue": 241,
                               "bucket": "🎯 Talents",
-                              "note": "Σ ATL (unbuffed FB68)"
+                              "note": "Σ ATL chain for talent 144 (Symbols of Beyond, Family Bonus 68 UNBUFFED, etc.). Lava's single-pass algorithm reads FB68 BEFORE the Family Guy buff applies, so this sum uses the unbuffed FB68 — NOT a feedback loop."
                             }
                           ],
                           "formulaKey": "familyGuyMulti",
@@ -10651,7 +10711,7 @@
                       "fmt": "raw",
                       "refValue": 12,
                       "bucket": "🎯 Talents",
-                      "note": "max(0, floor((Lv − 500)/100))",
+                      "note": "Formula: max(0, floor((Player Lv − 500) / 100)) — only active when SuperBit 47 is unlocked. Recomputes live from Player Lv kid.",
                       "children": [
                         {
                           "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Super Bit 47 Lv Bonus / Player Lv",
@@ -10662,7 +10722,7 @@
                           "fmt": "raw",
                           "refValue": 1739,
                           "bucket": "🎯 Talents",
-                          "note": "Lv0[0]"
+                          "note": "Lv0[0] — char's class lv. Editable for max DR research."
                         }
                       ],
                       "formulaKey": "superBit47LvBonus",
