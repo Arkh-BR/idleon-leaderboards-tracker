@@ -142,29 +142,30 @@ function buildSummWB19Kids(
       )
     );
   }
-  // Endless row — surfaced whether or not it contributes, so the user
-  // can see "endless gives 0 to this slot" at a glance.
-  rawKids.push(
-    node(
-      "Endless Summoning",
-      rawBreakdown.endlessTotal,
-      [
-        node("Endless Wins (OLA[319])", rawBreakdown.endlessWins, null, {
-          fmt: "raw",
-        }),
-        node("Per 40-cycle to this slot", rawBreakdown.perCycle, null, {
-          fmt: "raw",
-        }),
-      ],
-      {
-        fmt: "+",
-        note:
-          rawBreakdown.perCycle > 0
-            ? `floor(${rawBreakdown.endlessWins}/40) × ${rawBreakdown.perCycle} + partial`
-            : "endless cycle doesn't target slot 19 — won't grow",
-      }
-    )
-  );
+  // Endless row — only emit when the 40-cycle has at least one slot
+  // targeting this bonusIdx (perCycle > 0). For Winner Bonus 19 ("Library
+  // Max") the cycle never touches the slot, so the row would just be a
+  // permanent zero and clutters the tree.
+  if (rawBreakdown.perCycle > 0 || rawBreakdown.endlessTotal > 0) {
+    rawKids.push(
+      node(
+        "Endless Summoning",
+        rawBreakdown.endlessTotal,
+        [
+          node("Endless Wins (OLA[319])", rawBreakdown.endlessWins, null, {
+            fmt: "raw",
+          }),
+          node("Per 40-cycle to this slot", rawBreakdown.perCycle, null, {
+            fmt: "raw",
+          }),
+        ],
+        {
+          fmt: "+",
+          note: `floor(${rawBreakdown.endlessWins}/40) × ${rawBreakdown.perCycle} + partial`,
+        }
+      )
+    );
+  }
   return [
     node("Cyan 14 Winner Raw", wb19Parts.raw ?? 0, rawKids.length ? rawKids : null, {
       fmt: "raw",
