@@ -1419,6 +1419,27 @@ export const talent = {
       );
     }
 
+    // Star talents (id >= 615, minus 655 handled above). They're capped at
+    // ~100 lv from a separate Star Talent Points pool — NOT subject to the
+    // book-lv cap (idx < 615 in N.js line 9508-9509 clamp) and they don't
+    // accept ATL bonus levels (computeAllTalentLVz returns 0 for idx > 614).
+    // So the tree should be just Active + Level + formula — no Base Level
+    // wrapped in Max Book Lv Cap, no Bonus Levels chain.
+    if (id >= 615) {
+      return node(
+        name,
+        r.val,
+        [
+          node("Active", activeFlag, null, { fmt: "raw" }),
+          node("Level", r.rawLv, null, {
+            fmt: "raw",
+            note: "star talent — pool capped, no book lv",
+          }),
+        ],
+        { fmt: "+", note: formulaNote }
+      );
+    }
+
     return node(
       name,
       r.val,
