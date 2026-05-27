@@ -101,6 +101,81 @@ export type TalentBonusDetail = {
   potentialSuperBonus?: number;
 };
 
+/** Build the Summoning Winner Bonus 19 ("Library Max") kids array.
+ *  Groups the multiplicative chain into three nodes:
+ *
+ *  - Cyan 14 Winner Raw  : the raw points earned per mob (w6d3 +3 / w7a9 +1)
+ *  - Higher Bonus Multi  : Base × Pristine × Gem product — this is the
+ *                          "X× higher bonus" multiplier the in-game tooltip
+ *                          surfaces (~6.83× when all three are maxed)
+ *  - Winner Multi        : additional 1 + Σ(artifact + tasks + achievements
+ *                          + godshard set)/100 — shown separately because
+ *                          the game treats this as a different upgrade lane
+ *
+ *  Final value = raw × Higher Bonus × Winner. */
+function buildSummWB19Kids(wb19Parts: ReturnType<typeof _winBonusParts>): CorganNode[] {
+  const baseMult = wb19Parts.baseMult ?? 3.5;
+  const pristineMult = wb19Parts.pristineMult ?? 1;
+  const gemMult = wb19Parts.gemMult ?? 1;
+  const higherBonus = baseMult * pristineMult * gemMult;
+  return [
+    node("Cyan 14 Winner Raw", wb19Parts.raw ?? 0, null, {
+      fmt: "raw",
+      note:
+        "× " +
+        higherBonus.toFixed(2) +
+        "× Higher Bonus × " +
+        (wb19Parts.winnerMult ?? 1).toFixed(2) +
+        "× Winner Multi → " +
+        (wb19Parts.val ?? 0).toFixed(2) +
+        " effective",
+    }),
+    node(
+      "Higher Bonus Multi",
+      higherBonus,
+      [
+        node("Base Multi", baseMult, null, { fmt: "x" }),
+        node(
+          "Crystal Comb Pristine Charm",
+          pristineMult,
+          [node("Pristine 8 Bonus", wb19Parts.pristine8 ?? 0, null, { fmt: "raw" })],
+          { fmt: "x", note: "1 + lv/100" }
+        ),
+        node(
+          "Gem Shop Multi",
+          gemMult,
+          [node("Gem Items 11", wb19Parts.gemItems11 ?? 0, null, { fmt: "raw" })],
+          { fmt: "x", note: "1 + 10×lv/100" }
+        ),
+      ],
+      {
+        fmt: "x",
+        note: "Base × Pristine × Gem — the in-game 'X× higher bonus'",
+      }
+    ),
+    node(
+      "Winner Multi (combined)",
+      wb19Parts.winnerMult ?? 1,
+      [
+        node(
+          "Sovereign Winz Lantern",
+          wb19Parts.artBonus32 ?? 0,
+          [
+            node("Artifact 32 Base", 25, null, { fmt: "raw" }),
+            node("Artifact 32 Tier", wb19Parts.artRarity ?? 0, null, { fmt: "raw" }),
+          ],
+          { fmt: "+" }
+        ),
+        node("W3 Merit Shop (Task)", wb19Parts.taskVal ?? 0, null, { fmt: "+" }),
+        node("Regalis Achievement (379)", wb19Parts.ach379 ?? 0, null, { fmt: "+" }),
+        node("Spectre Stars Achievement (373)", wb19Parts.ach373 ?? 0, null, { fmt: "+" }),
+        node("Godshard Set", wb19Parts.godshardSet ?? 0, null, { fmt: "+" }),
+      ],
+      { fmt: "x", note: "1 + Σ winner sources / 100" }
+    ),
+  ];
+}
+
 /** Computes the N.js maxBookLv formula (line 12252) and emits the
  *  full breakdown as kids of a "Max Book Lv Cap" node. Account-wide
  *  cap that clamps ALL regular talents (idx<615) per line 9508. Used
@@ -146,42 +221,7 @@ function computeMaxBookLvParts(saveData: SaveData): {
   // the original Tal144 implementation; each talent gets its own copy).
   const swb = computeSummWinBonus(saveData);
   const wb19Parts = _winBonusParts(19, swb, saveData);
-  const summKids: CorganNode[] = [
-    node("Cyan 14 Winner Raw", wb19Parts.raw ?? 0, null, { fmt: "raw" }),
-    node("Base Multi", wb19Parts.baseMult ?? 3.5, null, { fmt: "x" }),
-    node(
-      "Crystal Comb Pristine Charm",
-      wb19Parts.pristineMult ?? 1,
-      [node("Pristine 8 Bonus", wb19Parts.pristine8 ?? 0, null, { fmt: "raw" })],
-      { fmt: "x" }
-    ),
-    node(
-      "Gem Shop Multi",
-      wb19Parts.gemMult ?? 1,
-      [node("Gem Items 11", wb19Parts.gemItems11 ?? 0, null, { fmt: "raw" })],
-      { fmt: "x" }
-    ),
-    node(
-      "Winner Multi (combined)",
-      wb19Parts.winnerMult ?? 1,
-      [
-        node(
-          "Sovereign Winz Lantern",
-          wb19Parts.artBonus32 ?? 0,
-          [
-            node("Artifact 32 Base", 25, null, { fmt: "raw" }),
-            node("Artifact 32 Tier", wb19Parts.artRarity ?? 0, null, { fmt: "raw" }),
-          ],
-          { fmt: "+" }
-        ),
-        node("W3 Merit Shop (Task)", wb19Parts.taskVal ?? 0, null, { fmt: "+" }),
-        node("Regalis Achievement (379)", wb19Parts.ach379 ?? 0, null, { fmt: "+" }),
-        node("Spectre Stars Achievement (373)", wb19Parts.ach373 ?? 0, null, { fmt: "+" }),
-        node("Godshard Set", wb19Parts.godshardSet ?? 0, null, { fmt: "+" }),
-      ],
-      { fmt: "x" }
-    ),
-  ];
+  const summKids: CorganNode[] = buildSummWB19Kids(wb19Parts);
   const kids: CorganNode[] = [
     node("Base Level (N.js literal)", baseLvl, null, { fmt: "+" }),
     node("Talent Book Library Base", talentBookLibBase, null, { fmt: "+" }),
@@ -956,47 +996,8 @@ function resolveAllTalentLVz(
                   node(
                     "Summoning Winner Bonus 19",
                     summWB19,
-                    [
-                      node("Cyan 14 Winner Raw", wb19Parts.raw ?? 0, null, { fmt: "raw" }),
-                      node("Base Multi", wb19Parts.baseMult ?? 3.5, null, { fmt: "x" }),
-                      node(
-                        "Crystal Comb Pristine Charm",
-                        wb19Parts.pristineMult ?? 1,
-                        [
-                          node("Pristine 8 Bonus", wb19Parts.pristine8 ?? 0, null, { fmt: "raw" }),
-                        ],
-                        { fmt: "x", note: "1 + lv/100" }
-                      ),
-                      node(
-                        "Gem Shop Multi",
-                        wb19Parts.gemMult ?? 1,
-                        [
-                          node("Gem Items 11", wb19Parts.gemItems11 ?? 0, null, { fmt: "raw" }),
-                        ],
-                        { fmt: "x", note: "1 + 10×lv/100" }
-                      ),
-                      node(
-                        "Winner Multi (combined)",
-                        wb19Parts.winnerMult ?? 1,
-                        [
-                          node(
-                            "Sovereign Winz Lantern",
-                            wb19Parts.artBonus32 ?? 0,
-                            [
-                              node("Artifact 32 Base", 25, null, { fmt: "raw" }),
-                              node("Artifact 32 Tier", wb19Parts.artRarity ?? 0, null, { fmt: "raw" }),
-                            ],
-                            { fmt: "+", note: "Base × Tier" }
-                          ),
-                          node("W3 Merit Shop (Task)", wb19Parts.taskVal ?? 0, null, { fmt: "+" }),
-                          node("Regalis Achievement (379)", wb19Parts.ach379 ?? 0, null, { fmt: "+" }),
-                          node("Spectre Stars Achievement (373)", wb19Parts.ach373 ?? 0, null, { fmt: "+" }),
-                          node("Godshard Set", wb19Parts.godshardSet ?? 0, null, { fmt: "+" }),
-                        ],
-                        { fmt: "x", note: "1 + Σ/100" }
-                      ),
-                    ],
-                    { fmt: "+", note: "Raw × Base × Pristine × Gem × Winner" }
+                    buildSummWB19Kids(wb19Parts),
+                    { fmt: "+", note: "Raw × Higher Bonus × Winner Multi" }
                   ),
                     ],
                     { fmt: "raw", note: "N.js maxBookLv" }

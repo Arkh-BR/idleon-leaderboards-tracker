@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-27T12:55:32.050Z",
+  "generatedAt": "2026-05-27T14:15:39.682Z",
   "refTotal": 43093.43816941274,
   "refSave": "zArkhe (save 25-21-16.json) — Town, no AC",
   "sourceCount": 75,
@@ -318,64 +318,82 @@
                           "pool": "Additive",
                           "fmt": "raw",
                           "refValue": 4,
-                          "bucket": "🎯 Talents"
-                        },
-                        {
-                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Base Multi",
-                          "name": "Base Multi",
-                          "system": "Talents",
-                          "world": "Character",
-                          "pool": "Additive",
-                          "fmt": "x",
-                          "refValue": 3.5,
-                          "bucket": "🎯 Talents"
-                        },
-                        {
-                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Crystal Comb Pristine Charm",
-                          "name": "Crystal Comb Pristine Charm",
-                          "system": "Talents",
-                          "world": "Character",
-                          "pool": "Additive",
-                          "fmt": "x",
-                          "refValue": 1.3,
                           "bucket": "🎯 Talents",
+                          "note": "× 6.82× Higher Bonus × 2.77× Winner Multi → 75.62 effective"
+                        },
+                        {
+                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Higher Bonus Multi",
+                          "name": "Higher Bonus Multi",
+                          "system": "Talents",
+                          "world": "Character",
+                          "pool": "Additive",
+                          "fmt": "x",
+                          "refValue": 6.824999999999999,
+                          "bucket": "🎯 Talents",
+                          "note": "Base × Pristine × Gem — the in-game 'X× higher bonus'",
                           "children": [
                             {
-                              "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Crystal Comb Pristine Charm / Pristine 8 Bonus",
-                              "name": "Pristine 8 Bonus",
+                              "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Higher Bonus Multi / Base Multi",
+                              "name": "Base Multi",
                               "system": "Talents",
                               "world": "Character",
                               "pool": "Additive",
-                              "fmt": "raw",
-                              "refValue": 30,
+                              "fmt": "x",
+                              "refValue": 3.5,
                               "bucket": "🎯 Talents"
-                            }
-                          ],
-                          "formulaKey": "pristineMulti",
-                          "agg": "custom"
-                        },
-                        {
-                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Gem Shop Multi",
-                          "name": "Gem Shop Multi",
-                          "system": "Talents",
-                          "world": "Character",
-                          "pool": "Additive",
-                          "fmt": "x",
-                          "refValue": 1.5,
-                          "bucket": "🎯 Talents",
-                          "children": [
+                            },
                             {
-                              "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Gem Shop Multi / Gem Items 11",
-                              "name": "Gem Items 11",
+                              "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Higher Bonus Multi / Crystal Comb Pristine Charm",
+                              "name": "Crystal Comb Pristine Charm",
                               "system": "Talents",
                               "world": "Character",
                               "pool": "Additive",
-                              "fmt": "raw",
-                              "refValue": 5,
-                              "bucket": "🎯 Talents"
+                              "fmt": "x",
+                              "refValue": 1.3,
+                              "bucket": "🎯 Talents",
+                              "note": "1 + lv/100",
+                              "children": [
+                                {
+                                  "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Higher Bonus Multi / Crystal Comb Pristine Charm / Pristine 8 Bonus",
+                                  "name": "Pristine 8 Bonus",
+                                  "system": "Talents",
+                                  "world": "Character",
+                                  "pool": "Additive",
+                                  "fmt": "raw",
+                                  "refValue": 30,
+                                  "bucket": "🎯 Talents"
+                                }
+                              ],
+                              "formulaKey": "pristineMulti",
+                              "agg": "custom"
+                            },
+                            {
+                              "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Higher Bonus Multi / Gem Shop Multi",
+                              "name": "Gem Shop Multi",
+                              "system": "Talents",
+                              "world": "Character",
+                              "pool": "Additive",
+                              "fmt": "x",
+                              "refValue": 1.5,
+                              "bucket": "🎯 Talents",
+                              "note": "1 + 10×lv/100",
+                              "children": [
+                                {
+                                  "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Higher Bonus Multi / Gem Shop Multi / Gem Items 11",
+                                  "name": "Gem Items 11",
+                                  "system": "Talents",
+                                  "world": "Character",
+                                  "pool": "Additive",
+                                  "fmt": "raw",
+                                  "refValue": 5,
+                                  "bucket": "🎯 Talents"
+                                }
+                              ],
+                              "formulaKey": "gemShopMulti",
+                              "agg": "custom"
                             }
                           ],
-                          "formulaKey": "gemShopMulti",
+                          "formulaKey": "higherBonusMulti",
                           "agg": "custom"
                         },
                         {
@@ -387,6 +405,7 @@
                           "fmt": "x",
                           "refValue": 2.77,
                           "bucket": "🎯 Talents",
+                          "note": "1 + Σ winner sources / 100",
                           "children": [
                             {
                               "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Winner Multi (combined) / Sovereign Winz Lantern",
@@ -707,64 +726,82 @@
                                   "pool": "Additive",
                                   "fmt": "raw",
                                   "refValue": 4,
-                                  "bucket": "🎯 Talents"
-                                },
-                                {
-                                  "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Base Multi",
-                                  "name": "Base Multi",
-                                  "system": "Talents",
-                                  "world": "Character",
-                                  "pool": "Additive",
-                                  "fmt": "x",
-                                  "refValue": 3.5,
-                                  "bucket": "🎯 Talents"
-                                },
-                                {
-                                  "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Crystal Comb Pristine Charm",
-                                  "name": "Crystal Comb Pristine Charm",
-                                  "system": "Talents",
-                                  "world": "Character",
-                                  "pool": "Additive",
-                                  "fmt": "x",
-                                  "refValue": 1.3,
                                   "bucket": "🎯 Talents",
+                                  "note": "× 6.82× Higher Bonus × 2.77× Winner Multi → 75.62 effective"
+                                },
+                                {
+                                  "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Higher Bonus Multi",
+                                  "name": "Higher Bonus Multi",
+                                  "system": "Talents",
+                                  "world": "Character",
+                                  "pool": "Additive",
+                                  "fmt": "x",
+                                  "refValue": 6.824999999999999,
+                                  "bucket": "🎯 Talents",
+                                  "note": "Base × Pristine × Gem — the in-game 'X× higher bonus'",
                                   "children": [
                                     {
-                                      "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Crystal Comb Pristine Charm / Pristine 8 Bonus",
-                                      "name": "Pristine 8 Bonus",
+                                      "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Higher Bonus Multi / Base Multi",
+                                      "name": "Base Multi",
                                       "system": "Talents",
                                       "world": "Character",
                                       "pool": "Additive",
-                                      "fmt": "raw",
-                                      "refValue": 30,
+                                      "fmt": "x",
+                                      "refValue": 3.5,
                                       "bucket": "🎯 Talents"
-                                    }
-                                  ],
-                                  "formulaKey": "pristineMulti",
-                                  "agg": "custom"
-                                },
-                                {
-                                  "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Gem Shop Multi",
-                                  "name": "Gem Shop Multi",
-                                  "system": "Talents",
-                                  "world": "Character",
-                                  "pool": "Additive",
-                                  "fmt": "x",
-                                  "refValue": 1.5,
-                                  "bucket": "🎯 Talents",
-                                  "children": [
+                                    },
                                     {
-                                      "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Gem Shop Multi / Gem Items 11",
-                                      "name": "Gem Items 11",
+                                      "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Higher Bonus Multi / Crystal Comb Pristine Charm",
+                                      "name": "Crystal Comb Pristine Charm",
                                       "system": "Talents",
                                       "world": "Character",
                                       "pool": "Additive",
-                                      "fmt": "raw",
-                                      "refValue": 5,
-                                      "bucket": "🎯 Talents"
+                                      "fmt": "x",
+                                      "refValue": 1.3,
+                                      "bucket": "🎯 Talents",
+                                      "note": "1 + lv/100",
+                                      "children": [
+                                        {
+                                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Higher Bonus Multi / Crystal Comb Pristine Charm / Pristine 8 Bonus",
+                                          "name": "Pristine 8 Bonus",
+                                          "system": "Talents",
+                                          "world": "Character",
+                                          "pool": "Additive",
+                                          "fmt": "raw",
+                                          "refValue": 30,
+                                          "bucket": "🎯 Talents"
+                                        }
+                                      ],
+                                      "formulaKey": "pristineMulti",
+                                      "agg": "custom"
+                                    },
+                                    {
+                                      "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Higher Bonus Multi / Gem Shop Multi",
+                                      "name": "Gem Shop Multi",
+                                      "system": "Talents",
+                                      "world": "Character",
+                                      "pool": "Additive",
+                                      "fmt": "x",
+                                      "refValue": 1.5,
+                                      "bucket": "🎯 Talents",
+                                      "note": "1 + 10×lv/100",
+                                      "children": [
+                                        {
+                                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Higher Bonus Multi / Gem Shop Multi / Gem Items 11",
+                                          "name": "Gem Items 11",
+                                          "system": "Talents",
+                                          "world": "Character",
+                                          "pool": "Additive",
+                                          "fmt": "raw",
+                                          "refValue": 5,
+                                          "bucket": "🎯 Talents"
+                                        }
+                                      ],
+                                      "formulaKey": "gemShopMulti",
+                                      "agg": "custom"
                                     }
                                   ],
-                                  "formulaKey": "gemShopMulti",
+                                  "formulaKey": "higherBonusMulti",
                                   "agg": "custom"
                                 },
                                 {
@@ -776,6 +813,7 @@
                                   "fmt": "x",
                                   "refValue": 2.77,
                                   "bucket": "🎯 Talents",
+                                  "note": "1 + Σ winner sources / 100",
                                   "children": [
                                     {
                                       "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Winner Multi (combined) / Sovereign Winz Lantern",
@@ -1148,7 +1186,7 @@
                                   "fmt": "+",
                                   "refValue": 75.621,
                                   "bucket": "🎯 Talents",
-                                  "note": "Raw × Base × Pristine × Gem × Winner",
+                                  "note": "Raw × Higher Bonus × Winner Multi",
                                   "children": [
                                     {
                                       "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Cyan 14 Winner Raw",
@@ -1158,66 +1196,82 @@
                                       "pool": "Additive",
                                       "fmt": "raw",
                                       "refValue": 4,
-                                      "bucket": "🎯 Talents"
-                                    },
-                                    {
-                                      "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Base Multi",
-                                      "name": "Base Multi",
-                                      "system": "Talents",
-                                      "world": "Character",
-                                      "pool": "Additive",
-                                      "fmt": "x",
-                                      "refValue": 3.5,
-                                      "bucket": "🎯 Talents"
-                                    },
-                                    {
-                                      "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Crystal Comb Pristine Charm",
-                                      "name": "Crystal Comb Pristine Charm",
-                                      "system": "Talents",
-                                      "world": "Character",
-                                      "pool": "Additive",
-                                      "fmt": "x",
-                                      "refValue": 1.3,
                                       "bucket": "🎯 Talents",
-                                      "note": "1 + lv/100",
+                                      "note": "× 6.82× Higher Bonus × 2.77× Winner Multi → 75.62 effective"
+                                    },
+                                    {
+                                      "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Higher Bonus Multi",
+                                      "name": "Higher Bonus Multi",
+                                      "system": "Talents",
+                                      "world": "Character",
+                                      "pool": "Additive",
+                                      "fmt": "x",
+                                      "refValue": 6.824999999999999,
+                                      "bucket": "🎯 Talents",
+                                      "note": "Base × Pristine × Gem — the in-game 'X× higher bonus'",
                                       "children": [
                                         {
-                                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Crystal Comb Pristine Charm / Pristine 8 Bonus",
-                                          "name": "Pristine 8 Bonus",
+                                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Higher Bonus Multi / Base Multi",
+                                          "name": "Base Multi",
                                           "system": "Talents",
                                           "world": "Character",
                                           "pool": "Additive",
-                                          "fmt": "raw",
-                                          "refValue": 30,
+                                          "fmt": "x",
+                                          "refValue": 3.5,
                                           "bucket": "🎯 Talents"
-                                        }
-                                      ],
-                                      "formulaKey": "pristineMulti",
-                                      "agg": "custom"
-                                    },
-                                    {
-                                      "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Gem Shop Multi",
-                                      "name": "Gem Shop Multi",
-                                      "system": "Talents",
-                                      "world": "Character",
-                                      "pool": "Additive",
-                                      "fmt": "x",
-                                      "refValue": 1.5,
-                                      "bucket": "🎯 Talents",
-                                      "note": "1 + 10×lv/100",
-                                      "children": [
+                                        },
                                         {
-                                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Gem Shop Multi / Gem Items 11",
-                                          "name": "Gem Items 11",
+                                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Higher Bonus Multi / Crystal Comb Pristine Charm",
+                                          "name": "Crystal Comb Pristine Charm",
                                           "system": "Talents",
                                           "world": "Character",
                                           "pool": "Additive",
-                                          "fmt": "raw",
-                                          "refValue": 5,
-                                          "bucket": "🎯 Talents"
+                                          "fmt": "x",
+                                          "refValue": 1.3,
+                                          "bucket": "🎯 Talents",
+                                          "note": "1 + lv/100",
+                                          "children": [
+                                            {
+                                              "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Higher Bonus Multi / Crystal Comb Pristine Charm / Pristine 8 Bonus",
+                                              "name": "Pristine 8 Bonus",
+                                              "system": "Talents",
+                                              "world": "Character",
+                                              "pool": "Additive",
+                                              "fmt": "raw",
+                                              "refValue": 30,
+                                              "bucket": "🎯 Talents"
+                                            }
+                                          ],
+                                          "formulaKey": "pristineMulti",
+                                          "agg": "custom"
+                                        },
+                                        {
+                                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Higher Bonus Multi / Gem Shop Multi",
+                                          "name": "Gem Shop Multi",
+                                          "system": "Talents",
+                                          "world": "Character",
+                                          "pool": "Additive",
+                                          "fmt": "x",
+                                          "refValue": 1.5,
+                                          "bucket": "🎯 Talents",
+                                          "note": "1 + 10×lv/100",
+                                          "children": [
+                                            {
+                                              "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Higher Bonus Multi / Gem Shop Multi / Gem Items 11",
+                                              "name": "Gem Items 11",
+                                              "system": "Talents",
+                                              "world": "Character",
+                                              "pool": "Additive",
+                                              "fmt": "raw",
+                                              "refValue": 5,
+                                              "bucket": "🎯 Talents"
+                                            }
+                                          ],
+                                          "formulaKey": "gemShopMulti",
+                                          "agg": "custom"
                                         }
                                       ],
-                                      "formulaKey": "gemShopMulti",
+                                      "formulaKey": "higherBonusMulti",
                                       "agg": "custom"
                                     },
                                     {
@@ -1229,7 +1283,7 @@
                                       "fmt": "x",
                                       "refValue": 2.77,
                                       "bucket": "🎯 Talents",
-                                      "note": "1 + Σ/100",
+                                      "note": "1 + Σ winner sources / 100",
                                       "children": [
                                         {
                                           "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Winner Multi (combined) / Sovereign Winz Lantern",
@@ -1240,7 +1294,6 @@
                                           "fmt": "+",
                                           "refValue": 150,
                                           "bucket": "🎯 Talents",
-                                          "note": "Base × Tier",
                                           "children": [
                                             {
                                               "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Winner Multi (combined) / Sovereign Winz Lantern / Artifact 32 Base",
@@ -1868,64 +1921,82 @@
                           "pool": "Additive",
                           "fmt": "raw",
                           "refValue": 4,
-                          "bucket": "🎯 Talents"
-                        },
-                        {
-                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Base Multi",
-                          "name": "Base Multi",
-                          "system": "Talents",
-                          "world": "Character",
-                          "pool": "Additive",
-                          "fmt": "x",
-                          "refValue": 3.5,
-                          "bucket": "🎯 Talents"
-                        },
-                        {
-                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Crystal Comb Pristine Charm",
-                          "name": "Crystal Comb Pristine Charm",
-                          "system": "Talents",
-                          "world": "Character",
-                          "pool": "Additive",
-                          "fmt": "x",
-                          "refValue": 1.3,
                           "bucket": "🎯 Talents",
+                          "note": "× 6.82× Higher Bonus × 2.77× Winner Multi → 75.62 effective"
+                        },
+                        {
+                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Higher Bonus Multi",
+                          "name": "Higher Bonus Multi",
+                          "system": "Talents",
+                          "world": "Character",
+                          "pool": "Additive",
+                          "fmt": "x",
+                          "refValue": 6.824999999999999,
+                          "bucket": "🎯 Talents",
+                          "note": "Base × Pristine × Gem — the in-game 'X× higher bonus'",
                           "children": [
                             {
-                              "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Crystal Comb Pristine Charm / Pristine 8 Bonus",
-                              "name": "Pristine 8 Bonus",
+                              "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Higher Bonus Multi / Base Multi",
+                              "name": "Base Multi",
                               "system": "Talents",
                               "world": "Character",
                               "pool": "Additive",
-                              "fmt": "raw",
-                              "refValue": 30,
+                              "fmt": "x",
+                              "refValue": 3.5,
                               "bucket": "🎯 Talents"
-                            }
-                          ],
-                          "formulaKey": "pristineMulti",
-                          "agg": "custom"
-                        },
-                        {
-                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Gem Shop Multi",
-                          "name": "Gem Shop Multi",
-                          "system": "Talents",
-                          "world": "Character",
-                          "pool": "Additive",
-                          "fmt": "x",
-                          "refValue": 1.5,
-                          "bucket": "🎯 Talents",
-                          "children": [
+                            },
                             {
-                              "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Gem Shop Multi / Gem Items 11",
-                              "name": "Gem Items 11",
+                              "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Higher Bonus Multi / Crystal Comb Pristine Charm",
+                              "name": "Crystal Comb Pristine Charm",
                               "system": "Talents",
                               "world": "Character",
                               "pool": "Additive",
-                              "fmt": "raw",
-                              "refValue": 5,
-                              "bucket": "🎯 Talents"
+                              "fmt": "x",
+                              "refValue": 1.3,
+                              "bucket": "🎯 Talents",
+                              "note": "1 + lv/100",
+                              "children": [
+                                {
+                                  "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Higher Bonus Multi / Crystal Comb Pristine Charm / Pristine 8 Bonus",
+                                  "name": "Pristine 8 Bonus",
+                                  "system": "Talents",
+                                  "world": "Character",
+                                  "pool": "Additive",
+                                  "fmt": "raw",
+                                  "refValue": 30,
+                                  "bucket": "🎯 Talents"
+                                }
+                              ],
+                              "formulaKey": "pristineMulti",
+                              "agg": "custom"
+                            },
+                            {
+                              "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Higher Bonus Multi / Gem Shop Multi",
+                              "name": "Gem Shop Multi",
+                              "system": "Talents",
+                              "world": "Character",
+                              "pool": "Additive",
+                              "fmt": "x",
+                              "refValue": 1.5,
+                              "bucket": "🎯 Talents",
+                              "note": "1 + 10×lv/100",
+                              "children": [
+                                {
+                                  "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Higher Bonus Multi / Gem Shop Multi / Gem Items 11",
+                                  "name": "Gem Items 11",
+                                  "system": "Talents",
+                                  "world": "Character",
+                                  "pool": "Additive",
+                                  "fmt": "raw",
+                                  "refValue": 5,
+                                  "bucket": "🎯 Talents"
+                                }
+                              ],
+                              "formulaKey": "gemShopMulti",
+                              "agg": "custom"
                             }
                           ],
-                          "formulaKey": "gemShopMulti",
+                          "formulaKey": "higherBonusMulti",
                           "agg": "custom"
                         },
                         {
@@ -1937,6 +2008,7 @@
                           "fmt": "x",
                           "refValue": 2.77,
                           "bucket": "🎯 Talents",
+                          "note": "1 + Σ winner sources / 100",
                           "children": [
                             {
                               "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Winner Multi (combined) / Sovereign Winz Lantern",
@@ -2257,64 +2329,82 @@
                                   "pool": "Additive",
                                   "fmt": "raw",
                                   "refValue": 4,
-                                  "bucket": "🎯 Talents"
-                                },
-                                {
-                                  "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Base Multi",
-                                  "name": "Base Multi",
-                                  "system": "Talents",
-                                  "world": "Character",
-                                  "pool": "Additive",
-                                  "fmt": "x",
-                                  "refValue": 3.5,
-                                  "bucket": "🎯 Talents"
-                                },
-                                {
-                                  "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Crystal Comb Pristine Charm",
-                                  "name": "Crystal Comb Pristine Charm",
-                                  "system": "Talents",
-                                  "world": "Character",
-                                  "pool": "Additive",
-                                  "fmt": "x",
-                                  "refValue": 1.3,
                                   "bucket": "🎯 Talents",
+                                  "note": "× 6.82× Higher Bonus × 2.77× Winner Multi → 75.62 effective"
+                                },
+                                {
+                                  "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Higher Bonus Multi",
+                                  "name": "Higher Bonus Multi",
+                                  "system": "Talents",
+                                  "world": "Character",
+                                  "pool": "Additive",
+                                  "fmt": "x",
+                                  "refValue": 6.824999999999999,
+                                  "bucket": "🎯 Talents",
+                                  "note": "Base × Pristine × Gem — the in-game 'X× higher bonus'",
                                   "children": [
                                     {
-                                      "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Crystal Comb Pristine Charm / Pristine 8 Bonus",
-                                      "name": "Pristine 8 Bonus",
+                                      "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Higher Bonus Multi / Base Multi",
+                                      "name": "Base Multi",
                                       "system": "Talents",
                                       "world": "Character",
                                       "pool": "Additive",
-                                      "fmt": "raw",
-                                      "refValue": 30,
+                                      "fmt": "x",
+                                      "refValue": 3.5,
                                       "bucket": "🎯 Talents"
-                                    }
-                                  ],
-                                  "formulaKey": "pristineMulti",
-                                  "agg": "custom"
-                                },
-                                {
-                                  "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Gem Shop Multi",
-                                  "name": "Gem Shop Multi",
-                                  "system": "Talents",
-                                  "world": "Character",
-                                  "pool": "Additive",
-                                  "fmt": "x",
-                                  "refValue": 1.5,
-                                  "bucket": "🎯 Talents",
-                                  "children": [
+                                    },
                                     {
-                                      "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Gem Shop Multi / Gem Items 11",
-                                      "name": "Gem Items 11",
+                                      "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Higher Bonus Multi / Crystal Comb Pristine Charm",
+                                      "name": "Crystal Comb Pristine Charm",
                                       "system": "Talents",
                                       "world": "Character",
                                       "pool": "Additive",
-                                      "fmt": "raw",
-                                      "refValue": 5,
-                                      "bucket": "🎯 Talents"
+                                      "fmt": "x",
+                                      "refValue": 1.3,
+                                      "bucket": "🎯 Talents",
+                                      "note": "1 + lv/100",
+                                      "children": [
+                                        {
+                                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Higher Bonus Multi / Crystal Comb Pristine Charm / Pristine 8 Bonus",
+                                          "name": "Pristine 8 Bonus",
+                                          "system": "Talents",
+                                          "world": "Character",
+                                          "pool": "Additive",
+                                          "fmt": "raw",
+                                          "refValue": 30,
+                                          "bucket": "🎯 Talents"
+                                        }
+                                      ],
+                                      "formulaKey": "pristineMulti",
+                                      "agg": "custom"
+                                    },
+                                    {
+                                      "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Higher Bonus Multi / Gem Shop Multi",
+                                      "name": "Gem Shop Multi",
+                                      "system": "Talents",
+                                      "world": "Character",
+                                      "pool": "Additive",
+                                      "fmt": "x",
+                                      "refValue": 1.5,
+                                      "bucket": "🎯 Talents",
+                                      "note": "1 + 10×lv/100",
+                                      "children": [
+                                        {
+                                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Higher Bonus Multi / Gem Shop Multi / Gem Items 11",
+                                          "name": "Gem Items 11",
+                                          "system": "Talents",
+                                          "world": "Character",
+                                          "pool": "Additive",
+                                          "fmt": "raw",
+                                          "refValue": 5,
+                                          "bucket": "🎯 Talents"
+                                        }
+                                      ],
+                                      "formulaKey": "gemShopMulti",
+                                      "agg": "custom"
                                     }
                                   ],
-                                  "formulaKey": "gemShopMulti",
+                                  "formulaKey": "higherBonusMulti",
                                   "agg": "custom"
                                 },
                                 {
@@ -2326,6 +2416,7 @@
                                   "fmt": "x",
                                   "refValue": 2.77,
                                   "bucket": "🎯 Talents",
+                                  "note": "1 + Σ winner sources / 100",
                                   "children": [
                                     {
                                       "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Winner Multi (combined) / Sovereign Winz Lantern",
@@ -2698,7 +2789,7 @@
                                   "fmt": "+",
                                   "refValue": 75.621,
                                   "bucket": "🎯 Talents",
-                                  "note": "Raw × Base × Pristine × Gem × Winner",
+                                  "note": "Raw × Higher Bonus × Winner Multi",
                                   "children": [
                                     {
                                       "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Cyan 14 Winner Raw",
@@ -2708,66 +2799,82 @@
                                       "pool": "Additive",
                                       "fmt": "raw",
                                       "refValue": 4,
-                                      "bucket": "🎯 Talents"
-                                    },
-                                    {
-                                      "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Base Multi",
-                                      "name": "Base Multi",
-                                      "system": "Talents",
-                                      "world": "Character",
-                                      "pool": "Additive",
-                                      "fmt": "x",
-                                      "refValue": 3.5,
-                                      "bucket": "🎯 Talents"
-                                    },
-                                    {
-                                      "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Crystal Comb Pristine Charm",
-                                      "name": "Crystal Comb Pristine Charm",
-                                      "system": "Talents",
-                                      "world": "Character",
-                                      "pool": "Additive",
-                                      "fmt": "x",
-                                      "refValue": 1.3,
                                       "bucket": "🎯 Talents",
-                                      "note": "1 + lv/100",
+                                      "note": "× 6.82× Higher Bonus × 2.77× Winner Multi → 75.62 effective"
+                                    },
+                                    {
+                                      "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Higher Bonus Multi",
+                                      "name": "Higher Bonus Multi",
+                                      "system": "Talents",
+                                      "world": "Character",
+                                      "pool": "Additive",
+                                      "fmt": "x",
+                                      "refValue": 6.824999999999999,
+                                      "bucket": "🎯 Talents",
+                                      "note": "Base × Pristine × Gem — the in-game 'X× higher bonus'",
                                       "children": [
                                         {
-                                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Crystal Comb Pristine Charm / Pristine 8 Bonus",
-                                          "name": "Pristine 8 Bonus",
+                                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Higher Bonus Multi / Base Multi",
+                                          "name": "Base Multi",
                                           "system": "Talents",
                                           "world": "Character",
                                           "pool": "Additive",
-                                          "fmt": "raw",
-                                          "refValue": 30,
+                                          "fmt": "x",
+                                          "refValue": 3.5,
                                           "bucket": "🎯 Talents"
-                                        }
-                                      ],
-                                      "formulaKey": "pristineMulti",
-                                      "agg": "custom"
-                                    },
-                                    {
-                                      "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Gem Shop Multi",
-                                      "name": "Gem Shop Multi",
-                                      "system": "Talents",
-                                      "world": "Character",
-                                      "pool": "Additive",
-                                      "fmt": "x",
-                                      "refValue": 1.5,
-                                      "bucket": "🎯 Talents",
-                                      "note": "1 + 10×lv/100",
-                                      "children": [
+                                        },
                                         {
-                                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Gem Shop Multi / Gem Items 11",
-                                          "name": "Gem Items 11",
+                                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Higher Bonus Multi / Crystal Comb Pristine Charm",
+                                          "name": "Crystal Comb Pristine Charm",
                                           "system": "Talents",
                                           "world": "Character",
                                           "pool": "Additive",
-                                          "fmt": "raw",
-                                          "refValue": 5,
-                                          "bucket": "🎯 Talents"
+                                          "fmt": "x",
+                                          "refValue": 1.3,
+                                          "bucket": "🎯 Talents",
+                                          "note": "1 + lv/100",
+                                          "children": [
+                                            {
+                                              "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Higher Bonus Multi / Crystal Comb Pristine Charm / Pristine 8 Bonus",
+                                              "name": "Pristine 8 Bonus",
+                                              "system": "Talents",
+                                              "world": "Character",
+                                              "pool": "Additive",
+                                              "fmt": "raw",
+                                              "refValue": 30,
+                                              "bucket": "🎯 Talents"
+                                            }
+                                          ],
+                                          "formulaKey": "pristineMulti",
+                                          "agg": "custom"
+                                        },
+                                        {
+                                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Higher Bonus Multi / Gem Shop Multi",
+                                          "name": "Gem Shop Multi",
+                                          "system": "Talents",
+                                          "world": "Character",
+                                          "pool": "Additive",
+                                          "fmt": "x",
+                                          "refValue": 1.5,
+                                          "bucket": "🎯 Talents",
+                                          "note": "1 + 10×lv/100",
+                                          "children": [
+                                            {
+                                              "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Higher Bonus Multi / Gem Shop Multi / Gem Items 11",
+                                              "name": "Gem Items 11",
+                                              "system": "Talents",
+                                              "world": "Character",
+                                              "pool": "Additive",
+                                              "fmt": "raw",
+                                              "refValue": 5,
+                                              "bucket": "🎯 Talents"
+                                            }
+                                          ],
+                                          "formulaKey": "gemShopMulti",
+                                          "agg": "custom"
                                         }
                                       ],
-                                      "formulaKey": "gemShopMulti",
+                                      "formulaKey": "higherBonusMulti",
                                       "agg": "custom"
                                     },
                                     {
@@ -2779,7 +2886,7 @@
                                       "fmt": "x",
                                       "refValue": 2.77,
                                       "bucket": "🎯 Talents",
-                                      "note": "1 + Σ/100",
+                                      "note": "1 + Σ winner sources / 100",
                                       "children": [
                                         {
                                           "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Winner Multi (combined) / Sovereign Winz Lantern",
@@ -2790,7 +2897,6 @@
                                           "fmt": "+",
                                           "refValue": 150,
                                           "bucket": "🎯 Talents",
-                                          "note": "Base × Tier",
                                           "children": [
                                             {
                                               "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Winner Multi (combined) / Sovereign Winz Lantern / Artifact 32 Base",
@@ -9374,64 +9480,82 @@
                               "pool": "Multi",
                               "fmt": "raw",
                               "refValue": 4,
-                              "bucket": "🎯 Talents"
-                            },
-                            {
-                              "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Base Multi",
-                              "name": "Base Multi",
-                              "system": "Talents",
-                              "world": "Character",
-                              "pool": "Multi",
-                              "fmt": "x",
-                              "refValue": 3.5,
-                              "bucket": "🎯 Talents"
-                            },
-                            {
-                              "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Crystal Comb Pristine Charm",
-                              "name": "Crystal Comb Pristine Charm",
-                              "system": "Talents",
-                              "world": "Character",
-                              "pool": "Multi",
-                              "fmt": "x",
-                              "refValue": 1.3,
                               "bucket": "🎯 Talents",
+                              "note": "× 6.82× Higher Bonus × 2.77× Winner Multi → 75.62 effective"
+                            },
+                            {
+                              "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Higher Bonus Multi",
+                              "name": "Higher Bonus Multi",
+                              "system": "Talents",
+                              "world": "Character",
+                              "pool": "Multi",
+                              "fmt": "x",
+                              "refValue": 6.824999999999999,
+                              "bucket": "🎯 Talents",
+                              "note": "Base × Pristine × Gem — the in-game 'X× higher bonus'",
                               "children": [
                                 {
-                                  "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Crystal Comb Pristine Charm / Pristine 8 Bonus",
-                                  "name": "Pristine 8 Bonus",
+                                  "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Higher Bonus Multi / Base Multi",
+                                  "name": "Base Multi",
                                   "system": "Talents",
                                   "world": "Character",
                                   "pool": "Multi",
-                                  "fmt": "raw",
-                                  "refValue": 30,
+                                  "fmt": "x",
+                                  "refValue": 3.5,
                                   "bucket": "🎯 Talents"
-                                }
-                              ],
-                              "formulaKey": "pristineMulti",
-                              "agg": "custom"
-                            },
-                            {
-                              "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Gem Shop Multi",
-                              "name": "Gem Shop Multi",
-                              "system": "Talents",
-                              "world": "Character",
-                              "pool": "Multi",
-                              "fmt": "x",
-                              "refValue": 1.5,
-                              "bucket": "🎯 Talents",
-                              "children": [
+                                },
                                 {
-                                  "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Gem Shop Multi / Gem Items 11",
-                                  "name": "Gem Items 11",
+                                  "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Higher Bonus Multi / Crystal Comb Pristine Charm",
+                                  "name": "Crystal Comb Pristine Charm",
                                   "system": "Talents",
                                   "world": "Character",
                                   "pool": "Multi",
-                                  "fmt": "raw",
-                                  "refValue": 5,
-                                  "bucket": "🎯 Talents"
+                                  "fmt": "x",
+                                  "refValue": 1.3,
+                                  "bucket": "🎯 Talents",
+                                  "note": "1 + lv/100",
+                                  "children": [
+                                    {
+                                      "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Higher Bonus Multi / Crystal Comb Pristine Charm / Pristine 8 Bonus",
+                                      "name": "Pristine 8 Bonus",
+                                      "system": "Talents",
+                                      "world": "Character",
+                                      "pool": "Multi",
+                                      "fmt": "raw",
+                                      "refValue": 30,
+                                      "bucket": "🎯 Talents"
+                                    }
+                                  ],
+                                  "formulaKey": "pristineMulti",
+                                  "agg": "custom"
+                                },
+                                {
+                                  "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Higher Bonus Multi / Gem Shop Multi",
+                                  "name": "Gem Shop Multi",
+                                  "system": "Talents",
+                                  "world": "Character",
+                                  "pool": "Multi",
+                                  "fmt": "x",
+                                  "refValue": 1.5,
+                                  "bucket": "🎯 Talents",
+                                  "note": "1 + 10×lv/100",
+                                  "children": [
+                                    {
+                                      "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Higher Bonus Multi / Gem Shop Multi / Gem Items 11",
+                                      "name": "Gem Items 11",
+                                      "system": "Talents",
+                                      "world": "Character",
+                                      "pool": "Multi",
+                                      "fmt": "raw",
+                                      "refValue": 5,
+                                      "bucket": "🎯 Talents"
+                                    }
+                                  ],
+                                  "formulaKey": "gemShopMulti",
+                                  "agg": "custom"
                                 }
                               ],
-                              "formulaKey": "gemShopMulti",
+                              "formulaKey": "higherBonusMulti",
                               "agg": "custom"
                             },
                             {
@@ -9443,6 +9567,7 @@
                               "fmt": "x",
                               "refValue": 2.77,
                               "bucket": "🎯 Talents",
+                              "note": "1 + Σ winner sources / 100",
                               "children": [
                                 {
                                   "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Winner Multi (combined) / Sovereign Winz Lantern",
@@ -9764,64 +9889,82 @@
                                       "pool": "Multi",
                                       "fmt": "raw",
                                       "refValue": 4,
-                                      "bucket": "🎯 Talents"
-                                    },
-                                    {
-                                      "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Base Multi",
-                                      "name": "Base Multi",
-                                      "system": "Talents",
-                                      "world": "Character",
-                                      "pool": "Multi",
-                                      "fmt": "x",
-                                      "refValue": 3.5,
-                                      "bucket": "🎯 Talents"
-                                    },
-                                    {
-                                      "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Crystal Comb Pristine Charm",
-                                      "name": "Crystal Comb Pristine Charm",
-                                      "system": "Talents",
-                                      "world": "Character",
-                                      "pool": "Multi",
-                                      "fmt": "x",
-                                      "refValue": 1.3,
                                       "bucket": "🎯 Talents",
+                                      "note": "× 6.82× Higher Bonus × 2.77× Winner Multi → 75.62 effective"
+                                    },
+                                    {
+                                      "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Higher Bonus Multi",
+                                      "name": "Higher Bonus Multi",
+                                      "system": "Talents",
+                                      "world": "Character",
+                                      "pool": "Multi",
+                                      "fmt": "x",
+                                      "refValue": 6.824999999999999,
+                                      "bucket": "🎯 Talents",
+                                      "note": "Base × Pristine × Gem — the in-game 'X× higher bonus'",
                                       "children": [
                                         {
-                                          "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Crystal Comb Pristine Charm / Pristine 8 Bonus",
-                                          "name": "Pristine 8 Bonus",
+                                          "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Higher Bonus Multi / Base Multi",
+                                          "name": "Base Multi",
                                           "system": "Talents",
                                           "world": "Character",
                                           "pool": "Multi",
-                                          "fmt": "raw",
-                                          "refValue": 30,
+                                          "fmt": "x",
+                                          "refValue": 3.5,
                                           "bucket": "🎯 Talents"
-                                        }
-                                      ],
-                                      "formulaKey": "pristineMulti",
-                                      "agg": "custom"
-                                    },
-                                    {
-                                      "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Gem Shop Multi",
-                                      "name": "Gem Shop Multi",
-                                      "system": "Talents",
-                                      "world": "Character",
-                                      "pool": "Multi",
-                                      "fmt": "x",
-                                      "refValue": 1.5,
-                                      "bucket": "🎯 Talents",
-                                      "children": [
+                                        },
                                         {
-                                          "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Gem Shop Multi / Gem Items 11",
-                                          "name": "Gem Items 11",
+                                          "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Higher Bonus Multi / Crystal Comb Pristine Charm",
+                                          "name": "Crystal Comb Pristine Charm",
                                           "system": "Talents",
                                           "world": "Character",
                                           "pool": "Multi",
-                                          "fmt": "raw",
-                                          "refValue": 5,
-                                          "bucket": "🎯 Talents"
+                                          "fmt": "x",
+                                          "refValue": 1.3,
+                                          "bucket": "🎯 Talents",
+                                          "note": "1 + lv/100",
+                                          "children": [
+                                            {
+                                              "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Higher Bonus Multi / Crystal Comb Pristine Charm / Pristine 8 Bonus",
+                                              "name": "Pristine 8 Bonus",
+                                              "system": "Talents",
+                                              "world": "Character",
+                                              "pool": "Multi",
+                                              "fmt": "raw",
+                                              "refValue": 30,
+                                              "bucket": "🎯 Talents"
+                                            }
+                                          ],
+                                          "formulaKey": "pristineMulti",
+                                          "agg": "custom"
+                                        },
+                                        {
+                                          "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Higher Bonus Multi / Gem Shop Multi",
+                                          "name": "Gem Shop Multi",
+                                          "system": "Talents",
+                                          "world": "Character",
+                                          "pool": "Multi",
+                                          "fmt": "x",
+                                          "refValue": 1.5,
+                                          "bucket": "🎯 Talents",
+                                          "note": "1 + 10×lv/100",
+                                          "children": [
+                                            {
+                                              "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Higher Bonus Multi / Gem Shop Multi / Gem Items 11",
+                                              "name": "Gem Items 11",
+                                              "system": "Talents",
+                                              "world": "Character",
+                                              "pool": "Multi",
+                                              "fmt": "raw",
+                                              "refValue": 5,
+                                              "bucket": "🎯 Talents"
+                                            }
+                                          ],
+                                          "formulaKey": "gemShopMulti",
+                                          "agg": "custom"
                                         }
                                       ],
-                                      "formulaKey": "gemShopMulti",
+                                      "formulaKey": "higherBonusMulti",
                                       "agg": "custom"
                                     },
                                     {
@@ -9833,6 +9976,7 @@
                                       "fmt": "x",
                                       "refValue": 2.77,
                                       "bucket": "🎯 Talents",
+                                      "note": "1 + Σ winner sources / 100",
                                       "children": [
                                         {
                                           "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Winner Multi (combined) / Sovereign Winz Lantern",
@@ -10205,7 +10349,7 @@
                                       "fmt": "+",
                                       "refValue": 75.621,
                                       "bucket": "🎯 Talents",
-                                      "note": "Raw × Base × Pristine × Gem × Winner",
+                                      "note": "Raw × Higher Bonus × Winner Multi",
                                       "children": [
                                         {
                                           "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Cyan 14 Winner Raw",
@@ -10215,66 +10359,82 @@
                                           "pool": "Multi",
                                           "fmt": "raw",
                                           "refValue": 4,
-                                          "bucket": "🎯 Talents"
-                                        },
-                                        {
-                                          "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Base Multi",
-                                          "name": "Base Multi",
-                                          "system": "Talents",
-                                          "world": "Character",
-                                          "pool": "Multi",
-                                          "fmt": "x",
-                                          "refValue": 3.5,
-                                          "bucket": "🎯 Talents"
-                                        },
-                                        {
-                                          "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Crystal Comb Pristine Charm",
-                                          "name": "Crystal Comb Pristine Charm",
-                                          "system": "Talents",
-                                          "world": "Character",
-                                          "pool": "Multi",
-                                          "fmt": "x",
-                                          "refValue": 1.3,
                                           "bucket": "🎯 Talents",
-                                          "note": "1 + lv/100",
+                                          "note": "× 6.82× Higher Bonus × 2.77× Winner Multi → 75.62 effective"
+                                        },
+                                        {
+                                          "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Higher Bonus Multi",
+                                          "name": "Higher Bonus Multi",
+                                          "system": "Talents",
+                                          "world": "Character",
+                                          "pool": "Multi",
+                                          "fmt": "x",
+                                          "refValue": 6.824999999999999,
+                                          "bucket": "🎯 Talents",
+                                          "note": "Base × Pristine × Gem — the in-game 'X× higher bonus'",
                                           "children": [
                                             {
-                                              "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Crystal Comb Pristine Charm / Pristine 8 Bonus",
-                                              "name": "Pristine 8 Bonus",
+                                              "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Higher Bonus Multi / Base Multi",
+                                              "name": "Base Multi",
                                               "system": "Talents",
                                               "world": "Character",
                                               "pool": "Multi",
-                                              "fmt": "raw",
-                                              "refValue": 30,
+                                              "fmt": "x",
+                                              "refValue": 3.5,
                                               "bucket": "🎯 Talents"
-                                            }
-                                          ],
-                                          "formulaKey": "pristineMulti",
-                                          "agg": "custom"
-                                        },
-                                        {
-                                          "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Gem Shop Multi",
-                                          "name": "Gem Shop Multi",
-                                          "system": "Talents",
-                                          "world": "Character",
-                                          "pool": "Multi",
-                                          "fmt": "x",
-                                          "refValue": 1.5,
-                                          "bucket": "🎯 Talents",
-                                          "note": "1 + 10×lv/100",
-                                          "children": [
+                                            },
                                             {
-                                              "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Gem Shop Multi / Gem Items 11",
-                                              "name": "Gem Items 11",
+                                              "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Higher Bonus Multi / Crystal Comb Pristine Charm",
+                                              "name": "Crystal Comb Pristine Charm",
                                               "system": "Talents",
                                               "world": "Character",
                                               "pool": "Multi",
-                                              "fmt": "raw",
-                                              "refValue": 5,
-                                              "bucket": "🎯 Talents"
+                                              "fmt": "x",
+                                              "refValue": 1.3,
+                                              "bucket": "🎯 Talents",
+                                              "note": "1 + lv/100",
+                                              "children": [
+                                                {
+                                                  "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Higher Bonus Multi / Crystal Comb Pristine Charm / Pristine 8 Bonus",
+                                                  "name": "Pristine 8 Bonus",
+                                                  "system": "Talents",
+                                                  "world": "Character",
+                                                  "pool": "Multi",
+                                                  "fmt": "raw",
+                                                  "refValue": 30,
+                                                  "bucket": "🎯 Talents"
+                                                }
+                                              ],
+                                              "formulaKey": "pristineMulti",
+                                              "agg": "custom"
+                                            },
+                                            {
+                                              "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Higher Bonus Multi / Gem Shop Multi",
+                                              "name": "Gem Shop Multi",
+                                              "system": "Talents",
+                                              "world": "Character",
+                                              "pool": "Multi",
+                                              "fmt": "x",
+                                              "refValue": 1.5,
+                                              "bucket": "🎯 Talents",
+                                              "note": "1 + 10×lv/100",
+                                              "children": [
+                                                {
+                                                  "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Higher Bonus Multi / Gem Shop Multi / Gem Items 11",
+                                                  "name": "Gem Items 11",
+                                                  "system": "Talents",
+                                                  "world": "Character",
+                                                  "pool": "Multi",
+                                                  "fmt": "raw",
+                                                  "refValue": 5,
+                                                  "bucket": "🎯 Talents"
+                                                }
+                                              ],
+                                              "formulaKey": "gemShopMulti",
+                                              "agg": "custom"
                                             }
                                           ],
-                                          "formulaKey": "gemShopMulti",
+                                          "formulaKey": "higherBonusMulti",
                                           "agg": "custom"
                                         },
                                         {
@@ -10286,7 +10446,7 @@
                                           "fmt": "x",
                                           "refValue": 2.77,
                                           "bucket": "🎯 Talents",
-                                          "note": "1 + Σ/100",
+                                          "note": "1 + Σ winner sources / 100",
                                           "children": [
                                             {
                                               "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Winner Multi (combined) / Sovereign Winz Lantern",
@@ -10297,7 +10457,6 @@
                                               "fmt": "+",
                                               "refValue": 150,
                                               "bucket": "🎯 Talents",
-                                              "note": "Base × Tier",
                                               "children": [
                                                 {
                                                   "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Winner Multi (combined) / Sovereign Winz Lantern / Artifact 32 Base",

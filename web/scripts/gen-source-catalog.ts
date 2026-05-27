@@ -300,13 +300,21 @@ function detectStructuralFormula(
     return "atomLv1Bonus";
   }
   // Summoning Winner Bonus 19 — N.js multiplicative chain:
-  //   val = Raw × Base Multi × Crystal Comb × Gem Shop × Winner Multi
-  // Each multi has its own sub-tree breakdown.
+  //   val = Raw × Higher Bonus Multi × Winner Multi
+  // Higher Bonus Multi (a sub-parent) is itself Base × Pristine × Gem.
   if (
     node.name === "Summoning Winner Bonus 19" &&
     (node.children || []).length > 0
   ) {
     return "summoningWB19Product";
+  }
+  // Higher Bonus Multi groups Base × Pristine × Gem into one row that
+  // surfaces the "X× higher bonus" multiplier the in-game tooltip shows.
+  if (
+    node.name === "Higher Bonus Multi" &&
+    (node.children || []).length > 0
+  ) {
+    return "higherBonusMulti"; // product of Base × Pristine × Gem
   }
   // Crystal Comb / Gem Shop / Winner Multi sub-formulas inside the
   // Summoning Winner Bonus 19 row.
@@ -1730,9 +1738,9 @@ const APP_JS = `
       return 10 * Math.min(Number(lv) || 0, 1);
     },
     "summoningWB19Product": function (_p, kids) {
-      // STRICT: Summoning Winner Bonus 19 = Raw × Base Multi × Crystal
-      // Comb × Gem Shop × Winner Multi. Reads each by name; any null
-      // kid → null (cascade up).
+      // STRICT: Summoning Winner Bonus 19 = Raw × Higher Bonus × Winner.
+      // (Higher Bonus Multi itself wraps Base × Pristine × Gem.) Reads
+      // each direct child by name; any null kid → null (cascade up).
       function kidStrict(name) {
         for (var i = 0; i < kids.length; i++) {
           if (kids[i].name === name) {
@@ -1743,14 +1751,30 @@ const APP_JS = `
         return null;
       }
       var raw = kidStrict("Cyan 14 Winner Raw");
+      var higher = kidStrict("Higher Bonus Multi");
+      var winner = kidStrict("Winner Multi (combined)");
+      if (raw === null || higher === null || winner === null) {
+        return null;
+      }
+      return raw * higher * winner;
+    },
+    "higherBonusMulti": function (_p, kids) {
+      // STRICT: Higher Bonus Multi = Base × Pristine × Gem. This is the
+      // multiplier the in-game tooltip displays as "X× higher bonus".
+      function kidStrict(name) {
+        for (var i = 0; i < kids.length; i++) {
+          if (kids[i].name === name) {
+            var v = effectiveValue(kids[i]);
+            return v === null ? null : (Number(v) || 0);
+          }
+        }
+        return null;
+      }
       var base = kidStrict("Base Multi");
       var pristine = kidStrict("Crystal Comb Pristine Charm");
       var gem = kidStrict("Gem Shop Multi");
-      var winner = kidStrict("Winner Multi (combined)");
-      if (raw === null || base === null || pristine === null || gem === null || winner === null) {
-        return null;
-      }
-      return raw * base * pristine * gem * winner;
+      if (base === null || pristine === null || gem === null) return null;
+      return base * pristine * gem;
     },
     "pristineMulti": function (_p, kids) {
       // STRICT: 1 + Pristine 8 Bonus / 100.
