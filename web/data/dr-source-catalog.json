@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-27T17:29:09.789Z",
+  "generatedAt": "2026-05-27T17:30:42.011Z",
   "refTotal": 43093.43816941274,
   "refSave": "zArkhe (save 25-21-16.json) — Town, no AC",
   "sourceCount": 75,
@@ -307,7 +307,7 @@
                       "world": "Character",
                       "pool": "Additive",
                       "fmt": "+",
-                      "refValue": 76,
+                      "refValue": 75.621,
                       "bucket": "🎯 Talents",
                       "children": [
                         {
@@ -757,7 +757,7 @@
                               "world": "Character",
                               "pool": "Additive",
                               "fmt": "+",
-                              "refValue": 76,
+                              "refValue": 75.621,
                               "bucket": "🎯 Talents",
                               "children": [
                                 {
@@ -1268,7 +1268,7 @@
                                   "world": "Character",
                                   "pool": "Additive",
                                   "fmt": "+",
-                                  "refValue": 76,
+                                  "refValue": 75.621,
                                   "bucket": "🎯 Talents",
                                   "note": "Raw × Higher Bonus × Winner Multi",
                                   "children": [
@@ -2036,7 +2036,7 @@
                       "world": "Character",
                       "pool": "Additive",
                       "fmt": "+",
-                      "refValue": 76,
+                      "refValue": 75.621,
                       "bucket": "🎯 Talents",
                       "children": [
                         {
@@ -2486,7 +2486,7 @@
                               "world": "Character",
                               "pool": "Additive",
                               "fmt": "+",
-                              "refValue": 76,
+                              "refValue": 75.621,
                               "bucket": "🎯 Talents",
                               "children": [
                                 {
@@ -2997,7 +2997,7 @@
                                   "world": "Character",
                                   "pool": "Additive",
                                   "fmt": "+",
-                                  "refValue": 76,
+                                  "refValue": 75.621,
                                   "bucket": "🎯 Talents",
                                   "note": "Raw × Higher Bonus × Winner Multi",
                                   "children": [
@@ -9721,7 +9721,7 @@
                           "world": "Character",
                           "pool": "Multi",
                           "fmt": "+",
-                          "refValue": 76,
+                          "refValue": 75.621,
                           "bucket": "🎯 Talents",
                           "children": [
                             {
@@ -10172,7 +10172,7 @@
                                   "world": "Character",
                                   "pool": "Multi",
                                   "fmt": "+",
-                                  "refValue": 76,
+                                  "refValue": 75.621,
                                   "bucket": "🎯 Talents",
                                   "children": [
                                     {
@@ -10683,7 +10683,7 @@
                                       "world": "Character",
                                       "pool": "Multi",
                                       "fmt": "+",
-                                      "refValue": 76,
+                                      "refValue": 75.621,
                                       "bucket": "🎯 Talents",
                                       "note": "Raw × Higher Bonus × Winner Multi",
                                       "children": [
