@@ -76,8 +76,8 @@ type TalentResolveArgs = {
 export type TalentBonusDetail = {
   total: number;
   children: CorganNode[];
-  /** Spelunk Super Talent contribution (50 + Legend7×10 + W7B5), set
-   *  only when ATLOpts.splitSuperLevels is true AND the talent is in
+  /** Spelunk Super Talent contribution (50 + Legend7×10 + W7B5). Non-zero
+   *  only when splitSuperLevels is on AND the talent is in
    *  spelunkData[20+ci+12*preset] for the active char's active preset.
    *  In every other case this stays 0 and the Spelunk node is left
    *  inside `children` (current /drop-rate behavior, unchanged). */
@@ -86,6 +86,19 @@ export type TalentBonusDetail = {
    *  Set alongside superBonus; used by talent.resolve to populate the
    *  separate Super Levels node's children when emitting the split shape. */
   superChildren?: CorganNode[];
+  /** Whether this talent CAN be Spelunk-Super-Talented at all — i.e.
+   *  passed the resolveAllTalentLVz exclusion check (idx < 615 and not
+   *  in 49-59 / 149 / 374 / 539 / 505). True doesn't mean active; the
+   *  active state is implied by superBonus > 0. talent.resolve uses
+   *  this to decide whether to emit the Super Levels row in inactive
+   *  (Active=0) state — when false, the row is omitted entirely. */
+  superEligible?: boolean;
+  /** The Spelunk Super Talent bonus the talent WOULD give if super-active
+   *  on the char's preset (Base 50 + Legend7×10 + W7B5). Doesn't depend
+   *  on which talent — it's an account-wide ceiling. Surfaced so
+   *  talent.resolve can render an informative note on inactive Super
+   *  Levels rows ("would give +60 if activated"). 0 when slotIdx < 0. */
+  potentialSuperBonus?: number;
 };
 
 /** Computes the N.js maxBookLv formula (line 12252) and emits the
@@ -518,40 +531,50 @@ function resolveAllTalentLVz(
   }
   const children: CorganNode[] = [];
 
-  // Spelunk Super Talent — only adds when the talent is in the active
-  // char's active preset's super-talent array. Many talents naturally
-  // can't be super (49-59/149/374/539/505/615+ skipped above, plus any
-  // talent the game's UI never allows in the Spelunking 4D slot, e.g.
-  // most Voidwalker talents). For those cases the array lookup just
-  // misses and spelunkBonus stays 0 — no special handling needed here.
+  // Spelunk Super Talent. Two factors:
+  //  - Is this talent ELIGIBLE? (passed the exclusion check above — set
+  //    on the return as superEligible)
+  //  - Is it ACTIVE for the active char's preset? (in spelunkData[20+ci+
+  //    12*preset]). When yes, spelunkBonus = 50 + Legend7×10 + W7B5 and
+  //    contributes to total. When no, spelunkBonus stays 0 BUT we still
+  //    surface a Super Levels row in split mode so the user knows the
+  //    bonus exists and is currently inactive (Active=0).
+  //  - The Legend7 / W7B5 multipliers are account-wide, so the potential
+  //    value can be computed even when the talent isn't yet super — we
+  //    expose it via a note so the user can see "+60 if activated".
   const splitSuper = !!opts?.splitSuperLevels;
   let spelunkBonus = 0;
   let superChildren: CorganNode[] | undefined;
+  let superActive = false;
+  let potentialSuperBonus = 0;
   if (slotIdx >= 0) {
     const preset =
       Number(
         (playerStuffData as any)?.[slotIdx] && (playerStuffData as any)[slotIdx][1]
       ) || 0;
+    // Compute the per-talent super bonus value regardless of array
+    // membership — Legend7/W7B5 don't depend on which talent is selected,
+    // only on account progress.
+    const base = 50;
+    const legend7 =
+      (Number(
+        saveData.spelunkData &&
+          (saveData.spelunkData as any)[18] &&
+          (saveData.spelunkData as any)[18][7]
+      ) || 0) * 10;
+    const w7b5 =
+      Number(
+        saveData.spelunkData &&
+          (saveData.spelunkData as any)[45] &&
+          (saveData.spelunkData as any)[45][5]
+      ) || 0;
+    potentialSuperBonus = Math.round(base + legend7 + w7b5);
     const superArr =
       saveData.spelunkData &&
       (saveData.spelunkData as any)[20 + slotIdx + 12 * preset];
-    if (Array.isArray(superArr) && superArr.indexOf(talentIdx) !== -1) {
-      const base = 50;
-      const legend7 =
-        (Number(
-          saveData.spelunkData &&
-            (saveData.spelunkData as any)[18] &&
-            (saveData.spelunkData as any)[18][7]
-        ) || 0) * 10;
-      const w7b5 =
-        Number(
-          saveData.spelunkData &&
-            (saveData.spelunkData as any)[45] &&
-            (saveData.spelunkData as any)[45][5]
-        ) || 0;
-      spelunkBonus = Math.round(base + legend7 + w7b5);
-      // Build the breakdown kids once — they're used either nested inside
-      // the Bonus chain (legacy) OR lifted up next to it (split mode).
+    superActive = Array.isArray(superArr) && superArr.indexOf(talentIdx) !== -1;
+    if (superActive) {
+      spelunkBonus = potentialSuperBonus;
       const kids: CorganNode[] = [
         node("Base", base, null, { fmt: "raw" }),
         node("Spelunky Super Talent (Legend 7)", legend7, null, {
@@ -1232,6 +1255,14 @@ function resolveAllTalentLVz(
     children,
     superBonus: splitSuper ? spelunkBonus : 0,
     superChildren: splitSuper && superChildren ? superChildren : undefined,
+    // Passed the exclusion check at line 510-518, so this talent is
+    // eligible for the Spelunking 4D super slot. talent.resolve uses
+    // this to keep the Super Levels row visible (with Active=0) even
+    // when the user hasn't put the talent in the array for the active
+    // char's preset. Only set when splitSuper is on so /drop-rate's
+    // tree shape stays unchanged.
+    superEligible: splitSuper ? true : undefined,
+    potentialSuperBonus: splitSuper ? potentialSuperBonus : undefined,
   };
 }
 
@@ -1355,20 +1386,32 @@ export const talent = {
     const baseOpts = { useMaxResearch: !!ctx.useMaxResearchBaseLevel };
 
     // Helper used by every Effective Level emit (mode="max", Tal 328
-    // special, default emit) — when ctx.splitSuperLevels is on AND the
-    // detail came back with a non-zero superBonus, append a "Super Levels"
-    // sibling so the row reads `Base + Bonus + Super` instead of folding
-    // the spelunk contribution into Bonus. Otherwise the second element
-    // of the returned array is undefined and the caller filters it out.
+    // special, default emit). Three modes:
+    //
+    //   - splitSuperLevels off (default — /drop-rate, research tool):
+    //       Effective Lv = [Base, Bonus]. Spelunk Super Talent stays
+    //       inside the Bonus chain via resolveAllTalentLVz's children.
+    //
+    //   - splitSuperLevels on + talent ELIGIBLE + super ACTIVE:
+    //       Effective Lv = [Base, Bonus (without spelunk), Super (with
+    //       Active=1 + Base 50/Legend 7/W7 Bonus 5 kids)].
+    //
+    //   - splitSuperLevels on + talent ELIGIBLE + super INACTIVE:
+    //       Effective Lv = [Base, Bonus, Super (val=0, with Active=0
+    //       kid + a "would give +X" note showing the potential)].
+    //
+    //   - splitSuperLevels on + talent NOT eligible (49-59 / 149 / 374 /
+    //     539 / 505 / >=615): no Super row emitted — those talents can't
+    //     receive the Spelunk bonus at all.
     function buildEffectiveChildren(
       detail: TalentBonusDetail,
       baseLevelNode: CorganNode,
       bonusOpts?: { note?: string }
     ): CorganNode[] {
-      const isSplit = atlOpts.splitSuperLevels && (detail.superBonus || 0) > 0;
-      const bonusOnly = isSplit
-        ? detail.total - (detail.superBonus || 0)
-        : detail.total;
+      const isSplit = !!atlOpts.splitSuperLevels && !!detail.superEligible;
+      const superBonus = detail.superBonus || 0;
+      const isSuperActive = superBonus > 0;
+      const bonusOnly = isSplit ? detail.total - superBonus : detail.total;
       const bonusKidChildren = detail.children.length ? detail.children : null;
       const out: CorganNode[] = [
         baseLevelNode,
@@ -1378,15 +1421,25 @@ export const talent = {
         }),
       ];
       if (isSplit) {
+        const potential = detail.potentialSuperBonus || 0;
+        const superKids: CorganNode[] = [
+          node("Active", isSuperActive ? 1 : 0, null, { fmt: "raw" }),
+        ];
+        if (isSuperActive && detail.superChildren) {
+          // Active — append the full Base 50 / Legend 7 / W7 Bonus 5
+          // breakdown so the user can drill into where +60 came from.
+          superKids.push(...detail.superChildren);
+        }
+        const superNote = isSuperActive
+          ? "Spelunk Super Talent — active on this preset"
+          : potential > 0
+            ? `Spelunk Super Talent — inactive (would give +${potential} if super-talented on this preset)`
+            : "Spelunk Super Talent — inactive on this preset";
         out.push(
-          node(
-            "Super Levels",
-            detail.superBonus || 0,
-            detail.superChildren && detail.superChildren.length
-              ? detail.superChildren
-              : null,
-            { fmt: "+", note: "Spelunk Super Talent — active on this preset" }
-          )
+          node("Super Levels", superBonus, superKids, {
+            fmt: "+",
+            note: superNote,
+          })
         );
       }
       return out;
