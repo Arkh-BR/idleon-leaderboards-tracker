@@ -213,29 +213,14 @@ function emitBaseLevelNode(
     [
       node("Points Invested", cap.value, null, {
         fmt: "raw",
-        note:
-          "Defaults to Max Book Lv Cap for max DR research" +
-          ownerSuffix +
-          ". Save's actual invested = " +
-          rawLv +
-          ". Edit to research 'what if I'd only spent N points'.",
+        note: "save=" + rawLv + ownerSuffix,
       }),
       node("Max Book Lv Cap", cap.value, cap.kids, {
         fmt: "raw",
-        note:
-          "Max Book Lv Cap = round(100 + 25 + SaltLick(4) + W3 Merit + " +
-          "Achievement 145 + Lv1 Oxygen Atom + Fury Relic + Summoning WB 19). " +
-          "Account-wide cap per N.js line 12252; clamps ALL regular talents " +
-          "(idx<615) at line 9508.",
+        note: "N.js maxBookLv",
       }),
     ],
-    {
-      fmt: "raw",
-      note:
-        "Base Level = min(Points Invested, Max Book Lv Cap). Requires both " +
-        "the cap AND actual points spent." +
-        ownerSuffix,
-    }
+    { fmt: "raw", note: "min(invested, cap)" + ownerSuffix }
   );
 }
 
@@ -705,18 +690,9 @@ function resolveAllTalentLVz(
           // BETWEEN Best Mage Lv and Family Guy Multi so they group
           // visually with FB68's own inputs; Family Guy Multi sits
           // LAST so its sub-tree expansion makes ownership obvious.
-          node("Formula x1", (fb34 as any).x1, null, {
-            fmt: "raw",
-            note: "decay formula x1 — Mage family bonus constant (ClassAccountBonus[34])",
-          }),
-          node("Formula x2", (fb34 as any).x2, null, {
-            fmt: "raw",
-            note: "decay formula x2 — Mage family bonus constant (ClassAccountBonus[34])",
-          }),
-          node("Lv Offset", lvOffset, null, {
-            fmt: "raw",
-            note: "ClassAccountBonus[34][1] — Mage family bonus level offset",
-          }),
+          node("Formula x1", (fb34 as any).x1, null, { fmt: "raw" }),
+          node("Formula x2", (fb34 as any).x2, null, { fmt: "raw" }),
+          node("Lv Offset", lvOffset, null, { fmt: "raw" }),
           // Family Guy Multi (× — potential buff). Placed LAST among
           // FB68's children so the constants above clearly belong to
           // FB68 (siblings, not children of Family Guy Multi). The
@@ -840,141 +816,51 @@ function resolveAllTalentLVz(
                   // actual save value.
                   node("Points Invested", maxBookLv, null, {
                     fmt: "raw",
-                    note:
-                      "Defaults to Max Book Lv Cap for max DR research (assumes " +
-                      "the player has invested up to the cap). Save's actual " +
-                      "invested level (skillLvData[slotIdx][144]) = " +
-                      tal144RawLv +
-                      ". Edit this row to research 'what if I'd only spent N points'.",
+                    note: "save=" + tal144RawLv,
                   }),
                   node(
                     "Max Book Lv Cap",
                     maxBookLv,
                     [
-                  node("Base Level (N.js literal)", baseLvl, null, {
-                    fmt: "+",
-                    note: "100 — hardcoded base in N.js maxBookLv formula",
-                  }),
-                  node("Talent Book Library Base", talentBookLibBase, null, {
-                    fmt: "+",
-                    note:
-                      "25 — Construction Building 2 (Talent Book Library) base " +
-                      "contribution. Part of N.js literal 125 split for clarity.",
-                  }),
+                  node("Base Level (N.js literal)", baseLvl, null, { fmt: "+" }),
+                  node("Talent Book Library Base", talentBookLibBase, null, { fmt: "+" }),
                   node("Salt Lick 4", saltLick4, [
-                    node("Salt Lick 4 Lv", saltLick4Lv, null, {
-                      fmt: "raw",
-                      note:
-                        "saltLickData[4] — Refinery3 upgrade lv (+X Max Talent Book Lv)",
-                    }),
-                    node("Per Lv", saltLick4PerLv, null, {
-                      fmt: "raw",
-                      note: "SaltLicks[4][3] — game constant (2 per upgrade lv)",
-                    }),
-                  ], {
-                    fmt: "+",
-                    note: "Formula: Salt Lick 4 Lv × Per Lv (Refinery3)",
-                  }),
+                    node("Salt Lick 4 Lv", saltLick4Lv, null, { fmt: "raw" }),
+                    node("Per Lv", saltLick4PerLv, null, { fmt: "raw" }),
+                  ], { fmt: "+", note: "Lv × Per Lv" }),
                   node("W3 Merit Shop Unlock", w3MeritShop, [
-                    node("W3 Merit Points Spent", w3MeritPts, null, {
-                      fmt: "raw",
-                      note: "Tasks[2][2][2] — W3 merit shop purchase qty",
-                    }),
-                    node("Per Point", w3MeritShopPerPt, null, {
-                      fmt: "raw",
-                      note:
-                        "TaskShopDesc[2][2][11] — per-point bonus (game " +
-                        "constant; W3 Talent Book Lv shop gives 2 per purchase)",
-                    }),
-                  ], {
-                    fmt: "+",
-                    note: "Formula: Merit Points × Per Point",
-                  }),
-                  node("Checkout Takeout Achievement", ach145, null, {
-                    fmt: "+",
-                    note:
-                      "min(5, max(0, 5 × achieveStatus(145))) — caps at 5 when " +
-                      "Achievement 145 is unlocked",
-                  }),
+                    node("W3 Merit Points Spent", w3MeritPts, null, { fmt: "raw" }),
+                    node("Per Point", w3MeritShopPerPt, null, { fmt: "raw" }),
+                  ], { fmt: "+", note: "Pts × Per Point" }),
+                  node("Checkout Takeout Achievement", ach145, null, { fmt: "+" }),
                   node("Lv 1 Oxygen Atom", atom7, [
-                    node("Atom 7 Lv", atom7Lv, null, {
-                      fmt: "raw",
-                      note: "atomsData[7] — Oxygen Atom lv",
-                    }),
-                  ], {
-                    fmt: "+",
-                    note: "10 × min(Atom 7 Lv, 1) — flat 10 if unlocked, 0 if not",
-                  }),
+                    node("Atom 7 Lv", atom7Lv, null, { fmt: "raw" }),
+                  ], { fmt: "+", note: "10 × min(Lv, 1)" }),
                   node("Sovereign Fury Relic", furyRelic, [
-                    node("Artifact 21 Base", artifact21Base, null, {
-                      fmt: "raw",
-                      note: "artifactBase(21) — Fury Relic base value (100)",
-                    }),
-                    node("Artifact 21 Tier", artifact21Tier, null, {
-                      fmt: "raw",
-                      note:
-                        "sailingData[3][21] — Fury Relic tier (1=Base, 2=Ancient, " +
-                        "3=Eldritch, 4=Sovereign, etc.)",
-                    }),
-                  ], {
-                    fmt: "+",
-                    note:
-                      "Sailing.ArtifactBonus(21) = artifactBase × tier. " +
-                      "Spreadsheet shows 100 = Sovereign (all 4 tiers unlocked).",
-                  }),
+                    node("Artifact 21 Base", artifact21Base, null, { fmt: "raw" }),
+                    node("Artifact 21 Tier", artifact21Tier, null, { fmt: "raw" }),
+                  ], { fmt: "+", note: "Base × Tier" }),
                   node(
                     "Summoning Winner Bonus 19",
                     summWB19,
                     [
-                      node(
-                        "Cyan 14 Winner Raw",
-                        wb19Parts.raw ?? 0,
-                        null,
-                        {
-                          fmt: "raw",
-                          note:
-                            "swb[19] — Σ unit bonuses contributing to slot 19 " +
-                            "(from owned summoning units + endless wins cycles)",
-                        }
-                      ),
-                      node("Base Multi", wb19Parts.baseMult ?? 3.5, null, {
-                        fmt: "x",
-                        note: "3.5 for slot 19 (idx < 20) — game constant",
-                      }),
+                      node("Cyan 14 Winner Raw", wb19Parts.raw ?? 0, null, { fmt: "raw" }),
+                      node("Base Multi", wb19Parts.baseMult ?? 3.5, null, { fmt: "x" }),
                       node(
                         "Crystal Comb Pristine Charm",
                         wb19Parts.pristineMult ?? 1,
                         [
-                          node("Pristine 8 Bonus", wb19Parts.pristine8 ?? 0, null, {
-                            fmt: "raw",
-                            note:
-                              "ninjaData[107][8] — 30 if Crystal Comb Pristine " +
-                              "Charm equipped, 0 otherwise",
-                          }),
+                          node("Pristine 8 Bonus", wb19Parts.pristine8 ?? 0, null, { fmt: "raw" }),
                         ],
-                        {
-                          fmt: "x",
-                          note: "1 + Pristine 8 Bonus / 100",
-                        }
+                        { fmt: "x", note: "1 + lv/100" }
                       ),
                       node(
                         "Gem Shop Multi",
                         wb19Parts.gemMult ?? 1,
                         [
-                          node(
-                            "Gem Items 11",
-                            wb19Parts.gemItems11 ?? 0,
-                            null,
-                            {
-                              fmt: "raw",
-                              note: "gemItemsData[11] — gem shop summoning bonus stacks",
-                            }
-                          ),
+                          node("Gem Items 11", wb19Parts.gemItems11 ?? 0, null, { fmt: "raw" }),
                         ],
-                        {
-                          fmt: "x",
-                          note: "1 + 10 × Gem Items 11 / 100",
-                        }
+                        { fmt: "x", note: "1 + 10×lv/100" }
                       ),
                       node(
                         "Winner Multi (combined)",
@@ -984,132 +870,43 @@ function resolveAllTalentLVz(
                             "Sovereign Winz Lantern",
                             wb19Parts.artBonus32 ?? 0,
                             [
-                              node(
-                                "Artifact 32 Base",
-                                25,
-                                null,
-                                {
-                                  fmt: "raw",
-                                  note: "artifactBase(32) — The Winz Lantern base",
-                                }
-                              ),
-                              node(
-                                "Artifact 32 Tier",
-                                wb19Parts.artRarity ?? 0,
-                                null,
-                                {
-                                  fmt: "raw",
-                                  note:
-                                    "sailingData[3][32] — The Winz Lantern tier (1=Base, " +
-                                    "2=Ancient, 4=Sovereign, etc.)",
-                                }
-                              ),
+                              node("Artifact 32 Base", 25, null, { fmt: "raw" }),
+                              node("Artifact 32 Tier", wb19Parts.artRarity ?? 0, null, { fmt: "raw" }),
                             ],
-                            {
-                              fmt: "+",
-                              note: "artifactBase(32) × tier — The Winz Lantern",
-                            }
+                            { fmt: "+", note: "Base × Tier" }
                           ),
-                          node("W3 Merit Shop (Task)", wb19Parts.taskVal ?? 0, null, {
-                            fmt: "+",
-                            note:
-                              "min(10, tasksGlobalData[2][5][4]) — W3 task shop " +
-                              "purchases capped at 10",
-                          }),
-                          node("Regalis Achievement (379)", wb19Parts.ach379 ?? 0, null, {
-                            fmt: "+",
-                            note: "achieveStatus(379) — +1 if achieved",
-                          }),
-                          node("Spectre Stars Achievement (373)", wb19Parts.ach373 ?? 0, null, {
-                            fmt: "+",
-                            note: "achieveStatus(373) — +1 if achieved",
-                          }),
-                          node("Godshard Set", wb19Parts.godshardSet ?? 0, null, {
-                            fmt: "+",
-                            note:
-                              "equipSetBonus('GODSHARD_SET') if equipped (olaData[379])",
-                          }),
+                          node("W3 Merit Shop (Task)", wb19Parts.taskVal ?? 0, null, { fmt: "+" }),
+                          node("Regalis Achievement (379)", wb19Parts.ach379 ?? 0, null, { fmt: "+" }),
+                          node("Spectre Stars Achievement (373)", wb19Parts.ach373 ?? 0, null, { fmt: "+" }),
+                          node("Godshard Set", wb19Parts.godshardSet ?? 0, null, { fmt: "+" }),
                         ],
-                        {
-                          fmt: "x",
-                          note:
-                            "1 + (Sovereign Fury Lantern + W3 Merit + Regalis + " +
-                            "Spectre Stars + Godshard Set) / 100. Note: idx=19 " +
-                            "SKIPS wb31 and empBon8 from the global formula.",
-                        }
+                        { fmt: "x", note: "1 + Σ/100" }
                       ),
                     ],
-                    {
-                      fmt: "+",
-                      note:
-                        "Summoning.WinBonus(19) = Cyan 14 Winner Raw × Base Multi × " +
-                        "Crystal Comb × Gem Shop × Winner Multi. Print shows " +
-                        "10.5 base × 1.30 × 1.10 × 2.27 ≈ 31; our save's value " +
-                        "differs because the contributors are larger.",
-                    }
+                    { fmt: "+", note: "Raw × Base × Pristine × Gem × Winner" }
                   ),
                     ],
-                    {
-                      fmt: "raw",
-                      note:
-                        "Max Book Lv Cap = round(100 + 25 + SaltLick(4) + W3MeritShop " +
-                        "+ Achievement 145 + Lv1 OxygenAtom + Fury Relic + " +
-                        "Summoning WinBonus 19). N.js line 12252. This is the " +
-                        "ceiling; Base Level is also gated by Points Invested.",
-                    }
+                    { fmt: "raw", note: "N.js maxBookLv" }
                   ),
                 ],
-                {
-                  fmt: "raw",
-                  note:
-                    "Base Level = min(Points Invested, Max Book Lv Cap). The " +
-                    "talent only contributes if you have BOTH (a) enough max " +
-                    "cap from Library/Salt Lick/etc AND (b) actually spent " +
-                    "points on it.",
-                }
+                { fmt: "raw", note: "min(invested, cap)" }
               ),
               node(
                 "Bonus Levels",
                 tal144EffLv - tal144RawLv,
                 null,
-                {
-                  fmt: "+",
-                  note:
-                    "Σ ATL chain for talent 144 (Symbols of Beyond, " +
-                    "Family Bonus 68 UNBUFFED, etc.). Lava's single-pass " +
-                    "algorithm reads FB68 BEFORE the Family Guy buff " +
-                    "applies, so this sum uses the unbuffed FB68 — NOT a " +
-                    "feedback loop.",
-                }
+                { fmt: "+", note: "Σ ATL (unbuffed FB68)" }
               ),
-              node("Tal144 Formula x1", t144 ? (t144 as any).x1 : 40, null, {
-                fmt: "raw",
-                note: "decay formula x1 — The Family Guy (TalentDescriptions[144])",
-              }),
-              node("Tal144 Formula x2", t144 ? (t144 as any).x2 : 100, null, {
-                fmt: "raw",
-                note: "decay formula x2 — The Family Guy (TalentDescriptions[144])",
-              }),
+              node("Tal144 Formula x1", t144 ? (t144 as any).x1 : 40, null, { fmt: "raw" }),
+              node("Tal144 Formula x2", t144 ? (t144 as any).x2 : 100, null, { fmt: "raw" }),
             ],
-            {
-              fmt: "raw",
-              note:
-                "Formula: 1 + decay(Tal144 Formula x1, Tal144 Formula x2, " +
-                "Base+Bonus) / 100. Lava applies this AFTER Family Bonus 68 " +
-                "stores the unbuffed value in iteration order — store-then-" +
-                "buff (single pass, not fixed-point). Tal144 reads UNBUFFED " +
-                "FB68 in its ATL chain, so the apparent FB68 ↔ Tal144 cycle " +
-                "is broken by sequencing.",
-            }
+            { fmt: "raw", note: "1 + decay(x1, x2, Base+Bonus)/100" }
           );
           })(),
         ],
         {
           fmt: "raw",
-          note:
-            "Formula: floor(decay(Formula x1, Formula x2, BestMageLv − Lv Offset) × Family Guy Multi if active char wins). " +
-            "Lava single-pass: iterate ES chars in order; for each, store unbuffed; if ACTIVE char wins, overwrite with × Family Guy Multi" +
-            buffNote,
+          note: "floor(decay × Family Guy Multi if active)" + buffNote,
         }
       )
     );
@@ -1304,15 +1101,10 @@ function resolveAllTalentLVz(
         [
           node("Player Lv", currentPlayerLv, null, {
             fmt: "raw",
-            note: "Lv0[0] — char's class lv. Editable for max DR research.",
+            note: "Lv0[0]",
           }),
         ],
-        {
-          fmt: "raw",
-          note:
-            "Formula: max(0, floor((Player Lv − 500) / 100)) — only active " +
-            "when SuperBit 47 is unlocked. Recomputes live from Player Lv kid.",
-        }
+        { fmt: "raw", note: "max(0, floor((Lv − 500)/100))" }
       )
     );
   }
@@ -1529,7 +1321,6 @@ export const talent = {
             fmt: "raw",
             note: "OLA[139]",
           }),
-          node("log₁₀(" + plunderKills + ")", logVal, null, { fmt: "raw" }),
         ],
         { fmt: "x" }
       );
@@ -1588,12 +1379,7 @@ export const talent = {
             }),
             node("Bonus Levels", r.bonus || 0, bonusChildren, { fmt: "+" }),
           ],
-          {
-            fmt: "raw",
-            note:
-              "Effective Level = Base Level + Bonus Levels. Recomputes live " +
-              "when either kid changes (sum of two children).",
-          }
+          { fmt: "raw", note: "Base + Bonus" }
         ),
       ],
       { fmt: "+", note: formulaNote }
