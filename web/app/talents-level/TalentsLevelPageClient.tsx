@@ -17,6 +17,7 @@ import {
   getCharClassLabel,
 } from "@/lib/talentsLevel/charClass";
 import { getActivePresetIdx } from "@/lib/talentsLevel/compute";
+import { isAccountWideTalent } from "@/lib/talentsLevel/accountWideTalents";
 import type { CorganNode } from "@/lib/corgan/node";
 
 const SAVE_KEY = "talents-level.last-upload.v1";
@@ -517,18 +518,32 @@ export default function TalentsLevelPageClient() {
           <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
             {currentTab.talents.map((t) => {
               const selected = t.id === talentId;
+              const accountWide = isAccountWideTalent(t.id);
               return (
                 <button
                   key={t.id}
                   type="button"
                   onClick={() => setTalentId(t.id)}
-                  className={`group flex flex-col items-center gap-1 rounded-lg border p-2 text-center transition-colors ${
+                  className={`group relative flex flex-col items-center gap-1 rounded-lg border p-2 text-center transition-colors ${
                     selected
                       ? "border-gold bg-amber-500/10 ring-1 ring-amber-500/40"
                       : "border-zinc-800 bg-zinc-950/50 hover:bg-zinc-900 hover:border-zinc-700"
                   }`}
-                  title={`${t.name} (Talent ${t.id})\n${cleanLvlUpText(t.description)}`}
+                  title={
+                    `${t.name} (Talent ${t.id})\n${cleanLvlUpText(t.description)}` +
+                    (accountWide
+                      ? "\n\n🌐 Account-wide: bonus applies to all chars via the highest owner-class char (super talent contribution does NOT propagate)."
+                      : "")
+                  }
                 >
+                  {accountWide && (
+                    <span
+                      className="absolute top-1 right-1 text-[9px] leading-none px-1 py-0.5 rounded bg-sky-500/20 text-sky-300 border border-sky-500/40 font-mono"
+                      aria-label="Account-wide talent"
+                    >
+                      🌐
+                    </span>
+                  )}
                   <img
                     src={`/talent-icons/UISkillIcon${t.id}.png`}
                     alt={t.name}
