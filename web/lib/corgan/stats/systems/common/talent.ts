@@ -769,15 +769,20 @@ function resolveAllTalentLVz(
                 (charLvKids.length === 1 ? "" : "s"),
             }
           ),
-          // FB68's decay constants — kids so the formula is driven by
-          // data (familyBonusParams(34) from customlists.js) rather
-          // than hardcoded into the runtime handler. Positioned
-          // BETWEEN Best Mage Lv and Family Guy Multi so they group
-          // visually with FB68's own inputs; Family Guy Multi sits
-          // LAST so its sub-tree expansion makes ownership obvious.
-          node("Formula x1", (fb34 as any).x1, null, { fmt: "raw" }),
-          node("Formula x2", (fb34 as any).x2, null, { fmt: "raw" }),
-          node("Lv Offset", lvOffset, null, { fmt: "raw" }),
+          // FB68's decay constants — emitted as kids ONLY when the
+          // research tool is reading the tree at gen time (so
+          // liftFormulaConsts in gen-source-catalog.ts can copy x1/x2/
+          // lvOffset onto entry.familyBonusConsts metadata). On
+          // /drop-rate and /talents-level these are noise — the formula
+          // is invariant across the chosen char and the user can't edit
+          // it from outside the research tool — so we omit them.
+          ...(opts?.useMaxResearchBaseLevel
+            ? [
+                node("Formula x1", (fb34 as any).x1, null, { fmt: "raw" }),
+                node("Formula x2", (fb34 as any).x2, null, { fmt: "raw" }),
+                node("Lv Offset", lvOffset, null, { fmt: "raw" }),
+              ]
+            : []),
           // Family Guy Multi (× — potential buff). Placed LAST among
           // FB68's children so the constants above clearly belong to
           // FB68 (siblings, not children of Family Guy Multi). The
@@ -982,8 +987,16 @@ function resolveAllTalentLVz(
                 null,
                 { fmt: "+", note: "Σ ATL (unbuffed FB68)" }
               ),
-              node("Tal144 Formula x1", t144 ? (t144 as any).x1 : 40, null, { fmt: "raw" }),
-              node("Tal144 Formula x2", t144 ? (t144 as any).x2 : 100, null, { fmt: "raw" }),
+              // Tal144 decay constants — same story as FB68 above: only
+              // emit when gen-source-catalog will lift them into
+              // entry.familyGuyConsts metadata. Hidden on /drop-rate and
+              // /talents-level since they're game-fixed.
+              ...(opts?.useMaxResearchBaseLevel
+                ? [
+                    node("Tal144 Formula x1", t144 ? (t144 as any).x1 : 40, null, { fmt: "raw" }),
+                    node("Tal144 Formula x2", t144 ? (t144 as any).x2 : 100, null, { fmt: "raw" }),
+                  ]
+                : []),
             ],
             { fmt: "raw", note: "1 + decay(x1, x2, Base+Bonus)/100" }
           );
