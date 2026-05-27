@@ -35,6 +35,10 @@ import { artifactBase } from "../../data/w5/sailing";
 import { hasBonusMajor } from "../w5/divinity";
 import { label, entityName } from "../../entity-names";
 import { talentParams, familyBonusParams, CLASS_TREES } from "../../data/common/talent";
+import {
+  isAccountWideTalent,
+  ACCOUNT_WIDE_SPECIAL_BRANCH_IDS,
+} from "../../data/common/account-wide-talents";
 import { ClassNames } from "../../data/game/customlists.js";
 import { companionBonus } from "../../data/common/companions";
 import { companionChild } from "./companions";
@@ -1514,7 +1518,18 @@ export const talent = {
       return out;
     }
 
-    if (mode === "max") {
+    // Account-wide talents: auto-switch to max-mode (cross-char) when
+    // the caller didn't pass an explicit mode. Talents with their own
+    // dedicated special branch (Tal 328 with Plunderous Kills, Tal 655
+    // star with Per-Skull × Skulls) are excluded — their branches
+    // already use getbonus2 internally and apply their multipliers on
+    // top, which the generic max emit would erase. Centralizing here
+    // means /talents-level AND /drop-rate get consistent cross-char
+    // values for the same talent without each caller having to opt in.
+    const useMaxMode =
+      mode === "max" ||
+      (isAccountWideTalent(id) && !ACCOUNT_WIDE_SPECIAL_BRANCH_IDS.has(id));
+    if (useMaxMode) {
       const r = getbonus2(id, data, ctx.charIdx, saveData, atlOpts);
       let maxChildren: CorganNode[] = [
         node("Best Character " + r.bestChar, r.val, null, { fmt: "raw" }),
