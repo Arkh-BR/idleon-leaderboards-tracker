@@ -1027,6 +1027,7 @@ header .sub { color: var(--ink-dim); font-size: 12px; margin-bottom: 14px; }
   font-style: italic;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
+body.notes-hidden .row .name .formula-note { display: none; }
 .row .rename {
   width: 160px;
   background: #09090b; border: 1px solid var(--border); border-radius: 3px;
@@ -1193,6 +1194,7 @@ const BODY = `
     <button id="filter-filled" class="pill">Show filled</button>
     <button id="filter-p2w" class="pill">💰 Hide P2W</button>
     <label><input type="checkbox" id="hide-zero" /> Hide inactive</label>
+    <label><input type="checkbox" id="hide-notes" /> Hide notes</label>
     <button id="expand-all">↓ Expand</button>
     <button id="collapse-all">↑ Collapse</button>
     <button id="reset-expand">↺ Reset</button>
@@ -1227,6 +1229,7 @@ const APP_JS = `
     pasteText: "dr-max-values.paste-text.v2",
     charIdx: "dr-max-values.char-idx.v2",
     mapIdx: "dr-max-values.map-idx.v2",
+    hideNotes: "dr-max-values.hide-notes.v2",
   };
 
   var catalog = JSON.parse(document.getElementById("catalog").textContent);
@@ -1258,9 +1261,11 @@ const APP_JS = `
   var refOverride = loadJson(STORAGE.refOverride, {});
   var refMeta = loadJson(STORAGE.refMeta, null);
   var hideP2W = localStorage.getItem(STORAGE.hideP2W) === "1";
+  var hideNotes = localStorage.getItem(STORAGE.hideNotes) === "1";
   var filterText = "";
   var filterMode = "all"; // "all" | "blank" | "filled"
   var hideZero = false;
+  if (hideNotes) document.body.classList.add("notes-hidden");
 
   // ===== INDEX =====
   var sourceById = new Map();
@@ -2688,6 +2693,13 @@ const APP_JS = `
   };
   var hideZeroChk = document.getElementById("hide-zero");
   hideZeroChk.onchange = function () { hideZero = hideZeroChk.checked; render(); };
+  var hideNotesChk = document.getElementById("hide-notes");
+  hideNotesChk.checked = hideNotes;
+  hideNotesChk.onchange = function () {
+    hideNotes = hideNotesChk.checked;
+    saveStr(STORAGE.hideNotes, hideNotes ? "1" : "0");
+    document.body.classList.toggle("notes-hidden", hideNotes);
+  };
   document.getElementById("expand-all").onclick = function () {
     eachSource(function (s) { if (s.children) expandedIds.add(s.id); });
     saveJson(STORAGE.expanded, Array.from(expandedIds));
