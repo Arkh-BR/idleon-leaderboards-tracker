@@ -43,7 +43,9 @@ export const ACCOUNT_WIDE_TALENT_IDS = new Set<number>([
   56,  // Voodoo Statufication — Voidwalker
   58,  // Master Of The System — Voidwalker
   59,  // Blood Marrow — Voidwalker
+  176, // 1000 Hours Played — Divine Knight (Gaming EXP "for all characters!")
   177, // Bitty Litty — Divine Knight
+  206, // Agricultural 'Preciation — Death Bringer (Farming + Land Rank EXP, "Works on all characters!")
   207, // Dank Ranks — Death Bringer
   208, // Wraith Overlord — Death Bringer
   209, // Apocalypse Wow — Death Bringer

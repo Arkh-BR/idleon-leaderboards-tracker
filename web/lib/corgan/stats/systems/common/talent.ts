@@ -359,19 +359,73 @@ function emitBaseLevelNode(
     ownerName?: string;
     ownerCharIdx?: number;
     useMaxResearch?: boolean;
+    /** Talent ID — used to read the per-talent SkillLevelsMAX (SM_{ci}) cap
+     *  from the save. When provided, the cap displayed alongside Base Level
+     *  reflects the ACTUAL in-game max for THIS talent on THIS char (which
+     *  may be lower than maxBookLv if the player never used books on this
+     *  talent, OR higher for star/special talents like FIST_OF_RAGE which
+     *  has SM=2166 in some saves). When omitted, falls back to the global
+     *  maxBookLv (legacy callers, e.g. Tal 144 inline emit). */
+    talentId?: number;
   }
 ): CorganNode {
   const cap = computeMaxBookLvParts(saveData);
+  // Per-talent SM from save (`SkillLevelsMAX[ownerCharIdx][talentId]`). This
+  // is the authoritative cap shown in-game — game line 9508 already clamps
+  // SM to maxBookLv when storing, and books bump SM further when used.
+  // We display BOTH so the user sees the per-talent cap (the real one) AND
+  // the account-wide maxBookLv (the ceiling SM can grow to). When talentId
+  // is absent we degrade to the legacy cap-only display.
+  const ownerCi = options?.ownerCharIdx;
+  const talentSM =
+    options?.talentId != null && ownerCi != null
+      ? Number(
+          (skillLvMaxData as any)[ownerCi]?.[options.talentId] ??
+            (skillLvMaxData as any)[ownerCi]?.[String(options.talentId)]
+        ) || 0
+      : null;
+  // The cap WE actually use to clamp Base Level. Prefer per-talent SM when
+  // available; fall back to global maxBookLv otherwise. The game's own
+  // clamp at line 9508 means rawLv ≤ SM always, so this min() typically
+  // resolves to rawLv on a real save — but keeps the structure honest.
+  const effectiveCap = talentSM != null ? talentSM : cap.value;
   const ownerSuffix = options?.ownerName
     ? ` — owner: ${options.ownerName}`
-    : options?.ownerCharIdx != null
-      ? ` — owner: Char ${options.ownerCharIdx}`
+    : ownerCi != null
+      ? ` — owner: Char ${ownerCi}`
       : "";
+
+  // Build the cap kids: when we know the per-talent SM, surface it as the
+  // primary cap row and nest the global maxBookLv breakdown underneath as
+  // context (so the user can still see how the account-wide ceiling is
+  // composed). When talentId is missing, fall back to the legacy shape so
+  // callers like the Tal 144 inline emit don't break.
+  function buildCapKids(): CorganNode[] {
+    if (talentSM == null) {
+      return [
+        node("Max Book Lv Cap", cap.value, cap.kids, {
+          fmt: "raw",
+          note: "N.js maxBookLv",
+        }),
+      ];
+    }
+    return [
+      node("Talent Max (save)", talentSM, null, {
+        fmt: "raw",
+        note: `SkillLevelsMAX[${ownerCi}][${options!.talentId}] — actual in-game max for this talent`,
+      }),
+      node("Max Book Lv Cap (account-wide)", cap.value, cap.kids, {
+        fmt: "raw",
+        note: "N.js maxBookLv — ceiling SM can grow to via books",
+      }),
+    ];
+  }
+
   if (options?.useMaxResearch) {
-    // Research mode: every leaf snaps to cap so the gen-source-catalog
-    // tool seeds the editable inputs at the ceiling. The "save=" suffix
-    // on the Points Invested note still carries the real rawLv so the
-    // user can see what they're actually at.
+    // Research mode: every leaf snaps to the THEORETICAL max (global
+    // maxBookLv, not per-talent SM) so the gen-source-catalog tool seeds
+    // editable inputs at the ceiling — the user is asking "what could the
+    // DR be if I maxed everything?". Per-talent SM is irrelevant here.
     return node(
       "Base Level",
       cap.value,
@@ -388,12 +442,11 @@ function emitBaseLevelNode(
       { fmt: "raw", note: "min(invested, cap)" + ownerSuffix }
     );
   }
-  // Actual-save mode (default). Base Level reflects what the talent is
-  // ACTUALLY at, capped by the account-wide max. This keeps the parent
-  // Effective Level node's val = Base + Bonus on /drop-rate and
-  // /talents-level — users were noticing the sum didn't add up before
-  // because Base was hardcoded to cap.
-  const capped = Math.min(rawLv, cap.value);
+  // Actual-save mode (default). Base Level = min(rawLv, effectiveCap),
+  // which reflects what the talent is actually at in-game. Cap kids
+  // display either the per-talent SM (preferred — matches the in-game
+  // tooltip) or the global maxBookLv (legacy fallback).
+  const capped = Math.min(rawLv, effectiveCap);
   return node(
     "Base Level",
     capped,
@@ -402,10 +455,7 @@ function emitBaseLevelNode(
         fmt: "raw",
         note: "actual save" + ownerSuffix,
       }),
-      node("Max Book Lv Cap", cap.value, cap.kids, {
-        fmt: "raw",
-        note: "N.js maxBookLv",
-      }),
+      ...buildCapKids(),
     ],
     { fmt: "raw", note: "min(invested, cap)" + ownerSuffix }
   );
@@ -730,6 +780,7 @@ function resolveAllTalentLVz(
               ownerName:
                 saveData.charNames && saveData.charNames[slotIdx],
               useMaxResearch: !!opts?.useMaxResearchBaseLevel,
+              talentId: 144,
             }),
           ],
           { fmt: "raw", note: "intervalAdd(1,20," + lv + ")" }
@@ -1552,6 +1603,7 @@ export const talent = {
               emitBaseLevelNode(r.detail.rawLv, saveData, {
                 ownerCharIdx: r.bestChar,
                 ownerName: bestName,
+                talentId: id,
                 ...baseOpts,
               })
             ),
@@ -1696,6 +1748,7 @@ export const talent = {
             emitBaseLevelNode(r.rawLv, saveData, {
               ownerCharIdx: ctx.charIdx,
               ownerName: saveData.charNames && saveData.charNames[ctx.charIdx],
+              talentId: id,
               ...baseOpts,
             })
           ),
