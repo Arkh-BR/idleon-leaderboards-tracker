@@ -1699,11 +1699,20 @@ export const talent = {
       const skulls = Number((optionsListData as any)[189]) || 0;
       const perSkull = r.val;
       const total = perSkull * skulls;
+      const tal655SM =
+        Number(
+          (skillLvMaxData as any)[ctx.charIdx]?.[655] ??
+            (skillLvMaxData as any)[ctx.charIdx]?.[String(655)]
+        ) || 0;
       return node(
         name,
         total,
         [
           node("Base Level", r.rawLv, null, { fmt: "raw" }),
+          node("Star Talent Max (save)", tal655SM, null, {
+            fmt: "raw",
+            note: `SkillLevelsMAX[${ctx.charIdx}][655] — pool-capped per-talent cap`,
+          }),
           node("Per Skull", perSkull, null, {
             fmt: "raw",
             note: formulaNote,
@@ -1714,13 +1723,21 @@ export const talent = {
       );
     }
 
-    // Star talents (id >= 615, minus 655 handled above). They're capped at
-    // ~100 lv from a separate Star Talent Points pool — NOT subject to the
+    // Star talents (id >= 615, minus 655 handled above). They're capped
+    // from a separate Star Talent Points pool — NOT subject to the
     // book-lv cap (idx < 615 in N.js line 9508-9509 clamp) and they don't
     // accept ATL bonus levels (computeAllTalentLVz returns 0 for idx > 614).
-    // So the tree should be just Active + Level + formula — no Base Level
-    // wrapped in Max Book Lv Cap, no Bonus Levels chain.
+    // Display: Active + Level + Star Talent Max (per-talent SM from save).
+    // Star talents have varying caps — most are 100, but some like
+    // BORED_TO_DEATH (615) are SM=52 in our ref save, BOSS_BATTLE_SPILLOVER
+    // (655) is SM=88, etc. Surfacing the per-talent cap matches what the
+    // in-game star-tab tooltip shows.
     if (id >= 615) {
+      const starSM =
+        Number(
+          (skillLvMaxData as any)[ctx.charIdx]?.[id] ??
+            (skillLvMaxData as any)[ctx.charIdx]?.[String(id)]
+        ) || 0;
       return node(
         name,
         r.val,
@@ -1729,6 +1746,10 @@ export const talent = {
           node("Level", r.rawLv, null, {
             fmt: "raw",
             note: "star talent — pool capped, no book lv",
+          }),
+          node("Star Talent Max (save)", starSM, null, {
+            fmt: "raw",
+            note: `SkillLevelsMAX[${ctx.charIdx}][${id}] — pool-capped, varies per star talent`,
           }),
         ],
         { fmt: "+", note: formulaNote }
