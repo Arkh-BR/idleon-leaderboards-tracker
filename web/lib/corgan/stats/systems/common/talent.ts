@@ -50,6 +50,12 @@ type Ctx = {
   saveData: SaveData;
   charIdx: number;
   activeCharIdx?: number;
+  /** When true, every emitted "Base Level" node defaults to the Max Book
+   *  Lv Cap (research mode — caller is interested in the theoretical max,
+   *  e.g. dr-max-values.html). When false/undefined (default), Base Level
+   *  = min(rawLv, cap) and Points Invested = the actual save value, so
+   *  Base + Bonus = Effective Level for /drop-rate and /talents-level. */
+  useMaxResearchBaseLevel?: boolean;
 };
 
 type TalentResolveArgs = {
@@ -186,34 +192,67 @@ function computeMaxBookLvParts(saveData: SaveData): {
  *  talents — min(Points Invested, Max Book Lv Cap). The cap breakdown
  *  is duplicated under each talent (account-wide value, but each
  *  talent's tree is self-contained so the user can edit independently
- *  per-talent for research scenarios). Skip for star talents (>=600). */
+ *  per-talent for research scenarios). Skip for star talents (>=600).
+ *
+ *  Two modes:
+ *  - Default ("actual save" — used by /drop-rate, /talents-level):
+ *      Points Invested = rawLv (real save value)
+ *      Base Level = min(rawLv, cap)
+ *    so Base + Bonus = Effective Level holds in the displayed tree.
+ *  - useMaxResearch=true (used by dr-max-values.html research tool):
+ *      Points Invested = cap.value (theoretical max)
+ *      Base Level = cap.value
+ *    so the catalog gen-time refValue starts at the ceiling and the
+ *    user only ever edits downward when researching scenarios. */
 function emitBaseLevelNode(
   rawLv: number,
   saveData: SaveData,
-  options?: { ownerName?: string; ownerCharIdx?: number }
+  options?: {
+    ownerName?: string;
+    ownerCharIdx?: number;
+    useMaxResearch?: boolean;
+  }
 ): CorganNode {
   const cap = computeMaxBookLvParts(saveData);
-  // For max DR research: BOTH Points Invested and Base Level default
-  // to Max Book Lv Cap (assumes player has maxed the talent up to the
-  // cap). This works even for talents owned by other classes (e.g.,
-  // Tal 328 Archlord — Bowman class owner is NOT the active char, but
-  // we still default to the cap because we're researching the THEORY
-  // max). When a real save mode is added, Points Invested.refValue
-  // should be rawLv (owner char's actual invested level) and the
-  // min() gate will surface the actual investment cap.
-  const baseValue = cap.value;
   const ownerSuffix = options?.ownerName
     ? ` — owner: ${options.ownerName}`
     : options?.ownerCharIdx != null
       ? ` — owner: Char ${options.ownerCharIdx}`
       : "";
+  if (options?.useMaxResearch) {
+    // Research mode: every leaf snaps to cap so the gen-source-catalog
+    // tool seeds the editable inputs at the ceiling. The "save=" suffix
+    // on the Points Invested note still carries the real rawLv so the
+    // user can see what they're actually at.
+    return node(
+      "Base Level",
+      cap.value,
+      [
+        node("Points Invested", cap.value, null, {
+          fmt: "raw",
+          note: "save=" + rawLv + ownerSuffix,
+        }),
+        node("Max Book Lv Cap", cap.value, cap.kids, {
+          fmt: "raw",
+          note: "N.js maxBookLv",
+        }),
+      ],
+      { fmt: "raw", note: "min(invested, cap)" + ownerSuffix }
+    );
+  }
+  // Actual-save mode (default). Base Level reflects what the talent is
+  // ACTUALLY at, capped by the account-wide max. This keeps the parent
+  // Effective Level node's val = Base + Bonus on /drop-rate and
+  // /talents-level — users were noticing the sum didn't add up before
+  // because Base was hardcoded to cap.
+  const capped = Math.min(rawLv, cap.value);
   return node(
     "Base Level",
-    baseValue,
+    capped,
     [
-      node("Points Invested", cap.value, null, {
+      node("Points Invested", rawLv, null, {
         fmt: "raw",
-        note: "save=" + rawLv + ownerSuffix,
+        note: "actual save" + ownerSuffix,
       }),
       node("Max Book Lv Cap", cap.value, cap.kids, {
         fmt: "raw",
@@ -229,6 +268,10 @@ type ATLOpts = {
   skipFamBonus68?: boolean;
   skipTal144FamMult?: boolean;
   partialFamBonusMap?: Record<number, number>;
+  /** Threads ctx.useMaxResearchBaseLevel into the inner intervalAddCharNode
+   *  closure so the Base Level kid it emits (for Tal 149/374/539 char rows)
+   *  uses the same mode as the outer talent's Effective Level structure. */
+  useMaxResearchBaseLevel?: boolean;
 };
 
 /**
@@ -433,7 +476,7 @@ export function computeAllTalentLVz(
 function resolveAllTalentLVz(
   talentIdx: number,
   slotIdx: number,
-  _opts: ATLOpts | undefined,
+  opts: ATLOpts | undefined,
   saveData: SaveData
 ): TalentBonusDetail {
   if (
@@ -510,6 +553,7 @@ function resolveAllTalentLVz(
               ownerCharIdx: slotIdx,
               ownerName:
                 saveData.charNames && saveData.charNames[slotIdx],
+              useMaxResearch: !!opts?.useMaxResearchBaseLevel,
             }),
           ],
           { fmt: "raw", note: "intervalAdd(1,20," + lv + ")" }
@@ -1141,7 +1185,8 @@ function getTalentNumber(
   data: { x1: number; x2: number; formula: string },
   activeCharIdx: number | undefined,
   atlIdx: number | undefined,
-  saveData: SaveData
+  saveData: SaveData,
+  atlOpts?: ATLOpts
 ) {
   const sl = (skillLvData as any)[charIdx] || {};
   const rawLv = Number(sl[talentIdx] || sl[String(talentIdx)]) || 0;
@@ -1155,7 +1200,7 @@ function getTalentNumber(
   // of whether the user has the talent themselves.
   const ctxChar = activeCharIdx != null ? activeCharIdx : charIdx;
   const atlInput = atlIdx !== undefined ? atlIdx : talentIdx;
-  const bonusDetail = resolveAllTalentLVz(atlInput, ctxChar, undefined, saveData);
+  const bonusDetail = resolveAllTalentLVz(atlInput, ctxChar, atlOpts, saveData);
   const bonus = bonusDetail.total;
   const effectiveLv = rawLv + bonus;
   // Stay strict about val = 0 at rawLv 0 — the talent contributes
@@ -1175,7 +1220,8 @@ function getbonus2(
   talentIdx: number,
   data: { x1: number; x2: number; formula: string },
   activeCharIdx: number | undefined,
-  saveData: SaveData
+  saveData: SaveData,
+  atlOpts?: ATLOpts
 ) {
   let best = 0;
   let bestChar = -1;
@@ -1188,7 +1234,7 @@ function getbonus2(
     let r: ReturnType<typeof getTalentNumber>;
     if (talentIdx >= 100) {
       const ctxForATL = activeCharIdx != null && activeCharIdx >= 0 ? activeCharIdx : ci;
-      r = getTalentNumber(ci, talentIdx, data, ctxForATL, rawLv, saveData);
+      r = getTalentNumber(ci, talentIdx, data, ctxForATL, rawLv, saveData, atlOpts);
     } else if (rawLv <= 0) {
       r = {
         val: 0,
@@ -1236,9 +1282,16 @@ export const talent = {
     }
     const name = label("Talent", id);
     const mode = args && args.mode;
+    // Convenience: ATL options carry the same flag as ctx so it reaches
+    // every nested resolver (resolveAllTalentLVz → intervalAddCharNode →
+    // emitBaseLevelNode).
+    const atlOpts: ATLOpts = {
+      useMaxResearchBaseLevel: !!ctx.useMaxResearchBaseLevel,
+    };
+    const baseOpts = { useMaxResearch: !!ctx.useMaxResearchBaseLevel };
 
     if (mode === "max") {
-      const r = getbonus2(id, data, ctx.charIdx, saveData);
+      const r = getbonus2(id, data, ctx.charIdx, saveData, atlOpts);
       let maxChildren: CorganNode[] = [
         node("Best Character " + r.bestChar, r.val, null, { fmt: "raw" }),
       ];
@@ -1251,6 +1304,7 @@ export const talent = {
               emitBaseLevelNode(r.detail.rawLv, saveData, {
                 ownerCharIdx: r.bestChar,
                 ownerName: saveData.charNames && saveData.charNames[r.bestChar],
+                ...baseOpts,
               }),
               node(
                 "Bonus Levels",
@@ -1269,7 +1323,7 @@ export const talent = {
 
     // Talent 328 (Archlord of the Pirates): multiplicative DR factor
     if (id === 328) {
-      const gb = getbonus2(id, data, ctx.charIdx, saveData);
+      const gb = getbonus2(id, data, ctx.charIdx, saveData, atlOpts);
       const plunderKills = Number((optionsListData as any)[139]) || 0;
       const logVal = plunderKills > 0 ? getLOG(plunderKills) : 0;
       if (gb.val <= 0 || plunderKills <= 0) {
@@ -1290,6 +1344,7 @@ export const talent = {
               emitBaseLevelNode(gb.detail.rawLv, saveData, {
                 ownerCharIdx: gb.bestChar,
                 ownerName,
+                ...baseOpts,
               }),
               node(
                 "Bonus Levels",
@@ -1326,7 +1381,7 @@ export const talent = {
       );
     }
 
-    const r = getTalentNumber(ctx.charIdx, id, data, ctx.activeCharIdx, undefined, saveData);
+    const r = getTalentNumber(ctx.charIdx, id, data, ctx.activeCharIdx, undefined, saveData, atlOpts);
     // Emit the full talent breakdown even for level-0 talents so the
     // max-values tool can show what the talent would contribute if
     // the user levelled it. The Active toggle (0 = current state,
@@ -1376,6 +1431,7 @@ export const talent = {
             emitBaseLevelNode(r.rawLv, saveData, {
               ownerCharIdx: ctx.charIdx,
               ownerName: saveData.charNames && saveData.charNames[ctx.charIdx],
+              ...baseOpts,
             }),
             node("Bonus Levels", r.bonus || 0, bonusChildren, { fmt: "+" }),
           ],

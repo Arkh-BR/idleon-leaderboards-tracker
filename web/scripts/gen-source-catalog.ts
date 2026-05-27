@@ -616,8 +616,10 @@ function collectChildren(
 
 const raw = JSON.parse(readFileSync(SAVE_PATH, "utf8"));
 // charIdx 2 (zArkhe), mapIdx 0 (Town, factor 1) — the same baseline the
-// rest of the tooling uses.
-const r = computeCorganDropRate(raw, 2, 0);
+// rest of the tooling uses. Research mode is on so every talent's Base
+// Level / Points Invested defaults to the Max Book Lv Cap (the catalog
+// snapshot becomes the ceiling, not the actual save state).
+const r = computeCorganDropRate(raw, 2, 0, { useMaxResearchBaseLevel: true });
 
 const sources: SourceEntry[] = [];
 const root = r.tree as CorganNode;
@@ -2796,7 +2798,10 @@ const APP_JS = `
     var DR = window.DRMax;
     if (!DR) { setStatus("Compute bundle missing.", "err"); return; }
     try {
-      var r = DR.computeCorganDropRate(saveCache, charIdx, mapIdx);
+      // Research mode: catalog overrides have to match the gen-time snapshot
+      // shape, where every talent's Base Level / Points Invested defaults
+      // to the Max Book Lv Cap.
+      var r = DR.computeCorganDropRate(saveCache, charIdx, mapIdx, { useMaxResearchBaseLevel: true });
       var flat = DR.flattenTree(r.tree);
       // Build the override map: keep only entries that match a catalog id
       var overrides = {};

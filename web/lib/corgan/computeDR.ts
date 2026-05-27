@@ -22,6 +22,16 @@ export type ComputeDROpts = {
    *  active at the moment the gallery refreshed. Cannot be detected from
    *  save state; users opt in via UI. */
   chipGalleryActive?: boolean;
+  /** Research mode for the Base Level node inside every talent's Effective
+   *  Level subtree. When true, both "Points Invested" and the parent "Base
+   *  Level" default to Max Book Lv Cap (we're researching the THEORY max,
+   *  so the user starts at the ceiling and only ever edits downward). When
+   *  false (default), Points Invested = actual rawLv from the save and
+   *  Base Level = min(rawLv, cap) — this is what /drop-rate and
+   *  /talents-level want, so Base + Bonus = Effective Level holds. Used by
+   *  the gen-source-catalog tool and the standalone dr-max-values.html
+   *  research tool. */
+  useMaxResearchBaseLevel?: boolean;
 };
 
 export function computeCorganDropRate(
@@ -41,6 +51,7 @@ export function computeCorganDropRate(
     mapBon,
     mapIdx,
     chipGalleryActive: !!opts?.chipGalleryActive,
+    useMaxResearchBaseLevel: !!opts?.useMaxResearchBaseLevel,
   };
   const tree = buildTree(dropRateDesc, getCatalog(), ctx);
   return { tree, total: tree.val };

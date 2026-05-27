@@ -43,16 +43,26 @@ function findEffectiveLevel(node: CorganNode): CorganNode | null {
   return null;
 }
 
+export type TalentEffectiveOpts = {
+  /** Mirrors ComputeDROpts.useMaxResearchBaseLevel — irrelevant to this
+   *  page in practice (we always want actual values here so Base + Bonus =
+   *  Effective Level), but exposed so future research scenarios can opt
+   *  in without re-plumbing the ctx. Default false. */
+  useMaxResearchBaseLevel?: boolean;
+};
+
 export function computeTalentEffective(
   rawEnvelope: any,
   charIdx: number,
-  talentId: number
+  talentId: number,
+  opts?: TalentEffectiveOpts
 ): TalentLevelResult {
   loadSaveData(rawEnvelope);
   const ctx = {
     saveData,
     charIdx,
     activeCharIdx: charIdx,
+    useMaxResearchBaseLevel: !!opts?.useMaxResearchBaseLevel,
   };
   const full = talent.resolve(talentId, ctx);
   const tree = findEffectiveLevel(full);
