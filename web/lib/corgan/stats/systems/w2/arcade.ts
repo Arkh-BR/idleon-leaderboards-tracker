@@ -2,6 +2,7 @@
 import { node, treeResult, type CorganNode, type TreeResult } from "../../../node";
 import { label } from "../../entity-names";
 import { arcadeShopParams } from "../../data/w2/arcade";
+import { companionChild } from "../common/companions";
 import type { SaveData } from "../../../state";
 
 type Ctx = { saveData: SaveData };
@@ -50,7 +51,7 @@ export const arcade = {
           fmt: "x",
           note: lv === 101 ? "Level 101" : "Not maxed",
         }),
-        node(label("Companion", 27), comp27M, null, {
+        companionChild(27, comp27M, saveData, {
           fmt: "x",
           note: "companion 27",
         }),
