@@ -25,7 +25,17 @@
 
 /** Talent ids that the game treats as account-wide via getbonus2. The
  *  bonus applies cross-character based on the best owner-class char.
- *  Source: IT's parsers/* calls to getHighestTalentByClass. */
+ *  Source: IT's parsers/* calls to getHighestTalentByClass.
+ *
+ *  EXCLUDED — talents that look like they could be account-wide but
+ *  aren't:
+ *  - 144 (The Family Guy): boosts Family Bonus FOR the char that has
+ *    it, not cross-account. Each char with the talent gets its own
+ *    boost to its own Family Bonus.
+ *  - 149/374/539 (Symbols of Beyond ~R/~L/~P): adds bonus levels to
+ *    the OWNER char's talents via the ATL chain — does NOT propagate
+ *    to other chars. The ATL chain reads Symbols off the ACTIVE char's
+ *    save, so each char sees only its own Symbols contribution. */
 export const ACCOUNT_WIDE_TALENT_IDS = new Set<number>([
   49,  // Enhancement Eclipse — Voidwalker
   50,  // Power Orb — Voidwalker
@@ -33,7 +43,6 @@ export const ACCOUNT_WIDE_TALENT_IDS = new Set<number>([
   56,  // Voodoo Statufication — Voidwalker
   58,  // Master Of The System — Voidwalker
   59,  // Blood Marrow — Voidwalker
-  144, // The Family Guy — Beast Master / Divine Knight / Siege Breaker
   177, // Bitty Litty — Divine Knight
   207, // Dank Ranks — Death Bringer
   208, // Wraith Overlord — Death Bringer
@@ -55,12 +64,6 @@ export const ACCOUNT_WIDE_TALENT_IDS = new Set<number>([
   589, // Overwhelming Energy — Arcane Cultist
   596, // Passion Of The Summon — Arcane Cultist
   598, // Tachyon Truth — Arcane Cultist
-  // Symbols of Beyond — add bonus levels to every talent via ATL chain,
-  // also propagates account-wide (different mechanism than getbonus2
-  // but still affects all chars).
-  149, // Symbols of Beyond ~R — Maestro
-  374, // Symbols of Beyond ~L — W5 variant
-  539, // Symbols of Beyond ~P — Bubonic Conjuror
 ]);
 
 /** Convenience predicate — true when the talent's bonus applies
