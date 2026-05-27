@@ -10,7 +10,6 @@ import { label } from "../../entity-names";
 import { optionsListData } from "../../../save/data";
 import { FRIEND_DR, COMPANION_BONUS } from "../../data/game-constants";
 import { eventShopOwned } from "../../../game-helpers";
-import { companionChild } from "./companions";
 import type { SaveData } from "../../../state";
 
 type Ctx = { saveData: SaveData };
@@ -73,7 +72,7 @@ export const friend = {
     if (comp30) {
       total *= COMPANION_BONUS[30];
       children.push(
-        companionChild(30, COMPANION_BONUS[30], ctx.saveData, {
+        node(label("Companion", 30), COMPANION_BONUS[30], null, {
           fmt: "x",
           note: "companion 30",
         })
