@@ -43,6 +43,10 @@ import {
   hasExternalContext,
   applyExternalContext,
 } from "../../data/common/external-context-multipliers";
+import {
+  TALENT_CAP_BOOSTERS,
+  hasTalentCapBoosters,
+} from "../../data/common/talent-cap-boosters";
 import { ClassNames } from "../../data/game/customlists.js";
 import { companionBonus } from "../../data/common/companions";
 import { companionChild } from "./companions";
@@ -362,14 +366,90 @@ function emitBaseLevelNode(
     ownerName?: string;
     ownerCharIdx?: number;
     useMaxResearch?: boolean;
+    /** Talent ID — when provided AND the talent has cap-booster entries in
+     *  TALENT_CAP_BOOSTERS, replaces the standard maxBookLv cap with
+     *  `baseCap + Σ booster contributions`. Without this option the cap
+     *  is the global maxBookLv (correct for the vast majority of talents
+     *  — only stat-style targets like FIST_OF_RAGE need the override). */
+    talentId?: number;
+    /** Active char index — required to compute cap booster contributions
+     *  (per-char boosters use the active char's own talent investment;
+     *  account-wide boosters use the active char as the ATL context). */
+    activeCharIdx?: number;
   }
 ): CorganNode {
-  const cap = computeMaxBookLvParts(saveData);
+  const baseCap = computeMaxBookLvParts(saveData);
   const ownerSuffix = options?.ownerName
     ? ` — owner: ${options.ownerName}`
     : options?.ownerCharIdx != null
       ? ` — owner: Char ${options.ownerCharIdx}`
       : "";
+
+  // Per-talent cap booster override. When the talent is registered in
+  // TALENT_CAP_BOOSTERS, swap the cap to `entry.baseCap + Σ boosters`
+  // and emit each booster as a kid under the cap row so the user can
+  // drill into the breakdown. Empirically verified to match the
+  // in-game cap (SkillLevelsMAX) for stat talents Tal 10/11/12/23/75.
+  const cap = (() => {
+    if (
+      options?.talentId == null ||
+      !hasTalentCapBoosters(options.talentId)
+    ) {
+      return {
+        value: baseCap.value,
+        kids: [
+          node("Max Book Lv Cap", baseCap.value, baseCap.kids, {
+            fmt: "raw",
+            note: "N.js maxBookLv",
+          }),
+        ],
+      };
+    }
+    const entry = TALENT_CAP_BOOSTERS[options.talentId];
+    const activeCharIdx =
+      options.activeCharIdx ?? options.ownerCharIdx ?? 0;
+    let total = entry.baseCap;
+    const boosterKids: CorganNode[] = [
+      node("Base Cap (hardcoded)", entry.baseCap, null, {
+        fmt: "raw",
+        note: "in-game hardcoded base for this talent",
+      }),
+    ];
+    for (const b of entry.boosters) {
+      const args: TalentResolveArgs = {};
+      if (b.kind === "y") args.tab = 2;
+      if (b.scope === "account-wide") args.mode = "max";
+      // Reuse talent.resolve directly — it routes through getbonus2
+      // (for account-wide scope) or getTalentNumber (per-char) with
+      // the right formula (x or y) under the hood.
+      const ctxForBooster: Ctx = {
+        saveData,
+        charIdx: activeCharIdx,
+        activeCharIdx,
+      };
+      const tree = talent.resolve(b.sourceTalent, ctxForBooster, args);
+      const v = Number(tree.val) || 0;
+      total += v;
+      boosterKids.push(
+        node(b.label, v, null, {
+          fmt: "+",
+          note: b.scope === "account-wide" ? "account-wide" : "per-char",
+        })
+      );
+    }
+    return {
+      value: total,
+      kids: [
+        node("Talent Cap (base + boosters)", total, boosterKids, {
+          fmt: "raw",
+          note:
+            "hardcoded base + cap boosters from talent descriptions " +
+            "(verified vs SkillLevelsMAX)",
+        }),
+      ],
+    };
+  })();
+
   if (options?.useMaxResearch) {
     // Research mode: every leaf snaps to cap so the gen-source-catalog
     // tool seeds the editable inputs at the ceiling. The "save=" suffix
@@ -383,21 +463,16 @@ function emitBaseLevelNode(
           fmt: "raw",
           note: "save=" + rawLv + ownerSuffix,
         }),
-        node("Max Book Lv Cap", cap.value, cap.kids, {
-          fmt: "raw",
-          note: "N.js maxBookLv",
-        }),
+        ...cap.kids,
       ],
       { fmt: "raw", note: "min(invested, cap)" + ownerSuffix }
     );
   }
-  // Actual-save mode (default). Base Level = min(rawLv, maxBookLv).
-  // The Max Book Lv Cap with full breakdown (Library Base + Salt Lick 4 +
-  // W3 Merit Shop + Achievement 145 + Atom 7 + Sovereign Fury Relic +
-  // Summoning Winner Bonus 19) is the authoritative cap for tab 1-5
-  // talents per N.js line 9508. Star talents (id >= 615) skip this
-  // helper entirely — they use the Star Talent Points pool, which is
-  // currently displayed as raw rawLv without a separate cap row.
+  // Actual-save mode (default). Base Level = min(rawLv, cap.value).
+  // For "target" talents in the cap-booster registry, cap.value =
+  // hardcoded base + Σ booster contributions (matches in-game SM).
+  // For everyone else cap.value = maxBookLv (the standard account-
+  // wide formula). Star talents (id >= 615) skip this helper entirely.
   const capped = Math.min(rawLv, cap.value);
   return node(
     "Base Level",
@@ -407,10 +482,7 @@ function emitBaseLevelNode(
         fmt: "raw",
         note: "actual save" + ownerSuffix,
       }),
-      node("Max Book Lv Cap", cap.value, cap.kids, {
-        fmt: "raw",
-        note: "N.js maxBookLv",
-      }),
+      ...cap.kids,
     ],
     { fmt: "raw", note: "min(invested, cap)" + ownerSuffix }
   );
@@ -735,6 +807,8 @@ function resolveAllTalentLVz(
               ownerName:
                 saveData.charNames && saveData.charNames[slotIdx],
               useMaxResearch: !!opts?.useMaxResearchBaseLevel,
+              talentId: 144,
+              activeCharIdx: slotIdx,
             }),
           ],
           { fmt: "raw", note: "intervalAdd(1,20," + lv + ")" }
@@ -1557,6 +1631,8 @@ export const talent = {
               emitBaseLevelNode(r.detail.rawLv, saveData, {
                 ownerCharIdx: r.bestChar,
                 ownerName: bestName,
+                talentId: id,
+                activeCharIdx: ctx.charIdx,
                 ...baseOpts,
               })
             ),
@@ -1634,6 +1710,8 @@ export const talent = {
           emitBaseLevelNode(r.rawLv, saveData, {
             ownerCharIdx: ctx.charIdx,
             ownerName: saveData.charNames && saveData.charNames[ctx.charIdx],
+            talentId: id,
+            activeCharIdx: ctx.charIdx,
             ...baseOpts,
           })
         ),
