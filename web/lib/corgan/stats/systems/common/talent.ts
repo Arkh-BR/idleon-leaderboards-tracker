@@ -1552,17 +1552,68 @@ export const talent = {
           node("Best Character " + r.bestChar, r.val, null, { fmt: "raw" }),
         ];
       }
+
+      // External-context multipliers — applied AFTER the cross-char
+      // max emit so /talents-level and /drop-rate both surface the
+      // talent's FINAL bonus (not the raw talent value). Pattern: wrap
+      // r.val with the talent-specific multiplier, keep the
+      // [Effective Level, Best Character N] kids that drive the
+      // multiplier's inputs, and append the external-context source
+      // as a sibling kid so the user can drill into where the multiplier
+      // came from. The wrapped val is what the rest of the system sees
+      // (e.g. DR's postMult chain reads talent.val directly).
+      //
+      // Tal 328 (Archlord Of The Pirates): the talent value scales an
+      // EXP/DR multiplier of `1 + (talent × log(Plunderous Kills)) / 100`,
+      // capped at 1× when either input is zero. The Plunderous Kills
+      // count is stored in OLA[139].
+      if (id === 328) {
+        const talentVal = r.val;
+        const plunderKills = Number((optionsListData as any)[139]) || 0;
+        if (talentVal > 0 && plunderKills > 0) {
+          const logVal = getLOG(plunderKills);
+          const multiplier = 1 + (talentVal * logVal) / 100;
+          return node(
+            name,
+            multiplier,
+            [
+              ...maxChildren,
+              node("Plunderous Kills", plunderKills, null, {
+                fmt: "raw",
+                note: "OLA[139] — count of plunderous kills",
+              }),
+            ],
+            {
+              fmt: "x",
+              note: `1 + (${talentVal.toFixed(2)} talent × log(${plunderKills})) / 100`,
+            }
+          );
+        }
+        // Inactive — either talent contributes 0 or no Plunderous Kills.
+        // Still emit the same shape so the user can see why the bonus
+        // is 1× (vs. just a bare 1 with no context).
+        return node(
+          name,
+          1,
+          [
+            ...maxChildren,
+            node("Plunderous Kills", plunderKills, null, {
+              fmt: "raw",
+              note: "OLA[139] — count of plunderous kills",
+            }),
+          ],
+          {
+            fmt: "x",
+            note:
+              plunderKills <= 0
+                ? "Inactive — no Plunderous Kills (OLA[139])"
+                : "Inactive — Archlord talent contributes 0",
+          }
+        );
+      }
+
       return node(name, r.val, maxChildren, { fmt: "+" });
     }
-
-    // Tal 328's Plunderous Kills × multiplier used to live here as a
-    // dedicated branch, but it's a DR-specific application (Archlord
-    // shows up as a postMult in the DR descriptor), not an intrinsic
-    // part of viewing the talent itself. Moved into the `workshop`
-    // wrapper (lib/corgan/stats/systems/common/wrappers.ts), which is
-    // the only caller that needs it (/drop-rate). On /talents-level Tal
-    // 328 now goes through the standard account-wide auto-max emit
-    // above — same shape as every other cross-char talent.
 
     const r = getTalentNumber(ctx.charIdx, id, data, ctx.activeCharIdx, undefined, saveData, atlOpts);
     // Emit the full talent breakdown even for level-0 talents so the

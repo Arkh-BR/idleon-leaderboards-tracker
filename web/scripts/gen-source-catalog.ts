@@ -2039,12 +2039,13 @@ const APP_JS = `
     },
     "Archlord Of The Pirates (Talent 328)": function (_p, kids) {
       // total = 1 + (talVal × log10(plunder)) / 100.
-      // Workshop wrapper now spreads talent.resolve(328)'s own children
-      // directly (Effective Level + Best Character N), so the talent
-      // formula result lives in "Best Character N" (any digit). The old
-      // "Talent Value" wrapper / "Active" kid are gone — Tal 328 is
-      // account-wide so its activity is implicit (val > 0 means at
-      // least one owner-class char has the talent invested).
+      // talent.resolve(328) now wraps its own output with the Plunderous
+      // Kills × multiplier (see common/talent.ts useMaxMode branch), so
+      // /drop-rate and /talents-level both see the SAME final-bonus
+      // shape: [Effective Level, Best Character N, Plunderous Kills].
+      // The talent formula result lives in "Best Character N" (any
+      // digit). Tal 328 is account-wide so its activity is implicit
+      // (val > 0 means at least one owner-class char has it invested).
       var talVal = kid(kids, /^Best Character /);
       var plunder = kid(kids, /^Plunderous Kills$/);
       if (talVal === null || plunder === null) return null;
