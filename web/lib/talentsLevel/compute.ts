@@ -13,6 +13,7 @@ import {
 } from "../corgan/save/data";
 import { talent } from "../corgan/stats/systems/common/talent";
 import { entityName } from "../corgan/stats/entity-names";
+import { isAccountWideTalent } from "./accountWideTalents";
 import type { CorganNode } from "../corgan/node";
 
 export type TalentLevelResult = {
@@ -118,7 +119,17 @@ export function computeTalentEffective(
     // /drop-rate doesn't set this flag, so its pool tree stays unchanged.
     splitSuperLevels: true,
   };
-  const tree = talent.resolve(talentId, ctx);
+  // Account-wide talents: bonus the active char receives is derived from
+  // the BEST owner-class char's raw level (cross-char scan), not the
+  // active char's own rawLv. Pass mode="max" to trigger talent.resolve's
+  // getbonus2 path. Tal 328 is excluded — it has its own special branch
+  // (mode="max" would skip the Plunderous-Kills multiplier).
+  // Tal 655 is also excluded (star talent, no cross-char mechanism).
+  const args =
+    isAccountWideTalent(talentId) && talentId !== 328 && talentId !== 655
+      ? ({ mode: "max" as const })
+      : undefined;
+  const tree = talent.resolve(talentId, ctx, args);
   return {
     tree,
     talentId,
