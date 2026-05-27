@@ -2038,17 +2038,18 @@ const APP_JS = `
       return perSkull * skulls;
     },
     "Archlord Of The Pirates (Talent 328)": function (_p, kids) {
-      // total = 1 + (talVal × log10(plunder)) / 100, gated by Active.
-      var talVal = kid(kids, /^Talent Value$/);
+      // total = 1 + (talVal × log10(plunder)) / 100.
+      // Workshop wrapper now spreads talent.resolve(328)'s own children
+      // directly (Effective Level + Best Character N), so the talent
+      // formula result lives in "Best Character N" (any digit). The old
+      // "Talent Value" wrapper / "Active" kid are gone — Tal 328 is
+      // account-wide so its activity is implicit (val > 0 means at
+      // least one owner-class char has the talent invested).
+      var talVal = kid(kids, /^Best Character /);
       var plunder = kid(kids, /^Plunderous Kills$/);
       if (talVal === null || plunder === null) return null;
-      var act = kid(kids, /^Active$/);
-      // Inactive talent contributes ×1 (x-fmt idle).
-      if (act === 0) return 1;
-      if (plunder < 1) return 1;
-      var raw = 1 + (talVal * (Math.log(Math.max(plunder, 1)) / Math.LN10)) / 100;
-      // act === null means no Active kid — treat as active.
-      return act === null || act === 1 ? raw : 1 + (act * (raw - 1));
+      if (talVal <= 0 || plunder < 1) return 1;
+      return 1 + (talVal * (Math.log(Math.max(plunder, 1)) / Math.LN10)) / 100;
     },
     "Glimbo DR Multi": function (_p, kids) {
       // 1 + (gridVal × tradeGroups) / 100 where gridVal already lives

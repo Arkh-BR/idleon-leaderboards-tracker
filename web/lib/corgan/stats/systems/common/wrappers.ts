@@ -20,15 +20,14 @@ export const glimbo = {
 /** Workshop = Tal 328 (Archlord of the Pirates) applied as a DR
  *  postMult factor: 1 + (talent_value × log(plunderousKills)) / 100.
  *
- *  talent.resolve(328) returns the cross-char Effective Level tree (via
- *  the account-wide auto-max emit) with val = the bonus value the
- *  Archlord owner contributes. We wrap that here with the Plunderous
- *  Kills × log factor that the DR formula expects. This used to live
- *  inside talent.resolve as a Tal 328 special branch, but the
- *  multiplier is purely a DR-application concern and doesn't belong on
- *  /talents-level. Co-locating it with the workshop entry keeps the
- *  talent system unified and the DR-specific logic isolated to the
- *  caller that actually needs it. */
+ *  The TALENT tree itself (Effective Level → Base / Bonus / Super +
+ *  Best Character N) is spread directly under this node — IDENTICAL
+ *  to what /talents-level shows when the user picks Tal 328. The only
+ *  difference is /drop-rate appends a Plunderous Kills sibling and the
+ *  parent val is the multiplicative DR factor instead of the raw
+ *  talent value. Net effect: when the user edits something inside the
+ *  Effective Level subtree (in the research tool), both pages
+ *  recompute from the same source. */
 export const workshop = {
   resolve(_id: number, ctx: Ctx, args?: any): CorganNode {
     const talentTree = talent.resolve(328, ctx, args);
@@ -49,19 +48,21 @@ export const workshop = {
       talentTree.name,
       total,
       [
-        // Wrap the talent's emit under "Talent Value" so the user sees
-        // the full Effective Level breakdown nested inside, mirroring
-        // the old special-branch shape.
-        node("Talent Value", talentVal, talentTree.children ?? null, {
-          fmt: "raw",
-          note: talentTree.note,
-        }),
+        // Spread the talent.resolve(328) children directly so the
+        // Effective Level subtree appears at the same nesting depth as
+        // /talents-level — no "Talent Value" wrapper this time.
+        ...(talentTree.children ?? []),
+        // DR-specific extra: the Plunderous Kills the multiplier scales
+        // against. Only present on /drop-rate.
         node("Plunderous Kills", plunderKills, null, {
           fmt: "raw",
-          note: "OLA[139]",
+          note: "OLA[139] — applied as × multiplier in DR postMult only",
         }),
       ],
-      { fmt: "x", note: "1 + (talent × log(kills)) / 100" }
+      {
+        fmt: "x",
+        note: `1 + (${talentVal.toFixed(2)} talent × log(${plunderKills})) / 100`,
+      }
     );
   },
 };
