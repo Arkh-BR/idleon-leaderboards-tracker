@@ -401,7 +401,13 @@ export default function TalentsLevelPageClient() {
       </details>
 
       {/* Talent picker — tab strip + grid of icon cards. Replaces the
-          previous search+select combo. */}
+          previous search+select combo.
+          Hidden when no save is loaded: without a char's class we'd
+          fall back to Beginner's tabs which is misleading filler. The
+          headline + tree below already show their own empty-state hint
+          ("load a save above to populate the tree"), so the page reads
+          as a clean "load a save first" prompt. */}
+      {save && (
       <div className="rounded-lg bg-zinc-900/60 border border-zinc-800 p-3 mb-4">
         {/* Tab strip — horizontal scroll on narrow viewports so 5-class
             chains + 4 star pages don't overflow the card. */}
@@ -478,6 +484,7 @@ export default function TalentsLevelPageClient() {
           </p>
         )}
       </div>
+      )}
 
       {/* Headline card — three-pane layout: the bonus the talent gives
           (left), the current effective level breakdown (middle), and the
