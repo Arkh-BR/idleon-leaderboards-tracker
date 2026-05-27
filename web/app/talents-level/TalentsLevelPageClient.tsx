@@ -45,6 +45,111 @@ function tabDisplayName(rawName: string): string {
   return rawName.replace(/_/g, " ");
 }
 
+// ── Headline summary extraction ──────────────────────────────────────────
+// The page surfaces "current effective level" vs "max effective level" so
+// the user can see at a glance how much room they have to grow. Pulling
+// those numbers means walking the talent tree the resolver emits, which
+// has different shapes depending on the talent:
+//   - Normal tab 1-5  : Active → Effective Level → Base Level (Points
+//                       Invested + Max Cap) + Bonus Levels
+//   - Star talents    : Active → Level (raw rawLv)
+//   - Tal 655 special : Base Level (raw) + Per Skull + Skulls Beaten
+//   - Tal 328 special : Active → Talent Value (with Effective Level inside)
+//                       + Plunderous Kills
+// We try the "normal" walk first because it's the most common; fall back to
+// star shape for everything else.
+
+type TalentSummary = {
+  /** Current effective level (rawLv invested + bonus chain). Null when the
+   *  tree doesn't expose a Bonus Levels node — e.g. star talents. */
+  currentEffective: number | null;
+  /** Max effective level if Points Invested were bumped to the cap. Null
+   *  when no Max Book Lv Cap kid is in the tree. */
+  maxEffective: number | null;
+  /** Actual investment (rawLv). For star talents this IS the Level. */
+  pointsInvested: number;
+  /** Max Book Lv Cap. Star talents have no such cap → null. */
+  maxCap: number | null;
+  /** ATL bonus chain total. Star talents have 0 here (cleared in talent.ts
+   *  via computeAllTalentLVz returning 0 for idx > 614). */
+  bonusLevels: number;
+};
+
+function getChildByName(node: CorganNode, name: string): CorganNode | null {
+  if (!node.children) return null;
+  for (const c of node.children) {
+    if (c.name === name) return c;
+  }
+  return null;
+}
+
+function findDescendant(node: CorganNode, name: string): CorganNode | null {
+  if (node.name === name) return node;
+  if (!node.children) return null;
+  for (const c of node.children) {
+    const r = findDescendant(c, name);
+    if (r) return r;
+  }
+  return null;
+}
+
+function extractTalentSummary(tree: CorganNode | null): TalentSummary | null {
+  if (!tree) return null;
+  // findDescendant handles all 3 normal/special shapes since the relevant
+  // nodes are uniquely named regardless of where they sit in the talent
+  // subtree (Tal 328 nests Effective Level inside Talent Value, for ex).
+  const effective = findDescendant(tree, "Effective Level");
+  const pointsKid = findDescendant(tree, "Points Invested");
+  const capKid = findDescendant(tree, "Max Book Lv Cap");
+  const bonusKid = findDescendant(tree, "Bonus Levels");
+
+  if (effective || (pointsKid && capKid)) {
+    // Normal-shape tree (or Tal 328 which still emits Base+Bonus inside).
+    const points = pointsKid ? Number(pointsKid.val) : 0;
+    const cap = capKid ? Number(capKid.val) : null;
+    const bonus = bonusKid ? Number(bonusKid.val) : 0;
+    const current = effective
+      ? Number(effective.val)
+      : points + bonus;
+    const max = cap != null ? cap + bonus : null;
+    return {
+      currentEffective: current,
+      maxEffective: max,
+      pointsInvested: points,
+      maxCap: cap,
+      bonusLevels: bonus,
+    };
+  }
+
+  // Star-talent shape — Active + Level kids, no Effective Level wrapper.
+  const levelKid = getChildByName(tree, "Level");
+  if (levelKid) {
+    const lv = Number(levelKid.val) || 0;
+    return {
+      currentEffective: lv,
+      maxEffective: null,
+      pointsInvested: lv,
+      maxCap: null,
+      bonusLevels: 0,
+    };
+  }
+
+  // Tal 655 shape — Base Level + Per Skull + Skulls Beaten kids.
+  const baseLevelDirect = getChildByName(tree, "Base Level");
+  if (baseLevelDirect) {
+    const lv = Number(baseLevelDirect.val) || 0;
+    return {
+      currentEffective: lv,
+      maxEffective: null,
+      pointsInvested: lv,
+      maxCap: null,
+      bonusLevels: 0,
+    };
+  }
+
+  return null;
+}
+
 export default function TalentsLevelPageClient() {
   const [jsonText, setJsonText] = useState("");
   const [save, setSave] = useState<any | null>(null);
@@ -362,17 +467,43 @@ export default function TalentsLevelPageClient() {
         )}
       </div>
 
-      {/* Headline card — surface the talent's total bonus value. The val
-          comes from `tree.val` which IS the bonus the talent contributes
-          (post-formula, post-multipliers). */}
-      <div className="rounded-lg bg-zinc-900/60 border border-zinc-800 p-5 mb-4 text-center">
-        <div className="text-xs uppercase tracking-wider text-zinc-500">
-          Talent Bonus
+      {/* Headline card — three-pane layout: the bonus the talent gives
+          (left), the current effective level breakdown (middle), and the
+          max effective level if the user maxed Points Invested up to the
+          Book Lv Cap (right). The middle/right panes degrade gracefully
+          for star talents (no cap → just show Level). */}
+      <div className="rounded-lg bg-zinc-900/60 border border-zinc-800 p-4 mb-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {/* Bonus pane. */}
+          <div className="text-center sm:border-r sm:border-zinc-800 sm:pr-3">
+            <div className="text-[10px] uppercase tracking-wider text-zinc-500">
+              Talent Bonus
+            </div>
+            <div className="text-4xl font-extrabold text-gold mt-1 tabular-nums leading-tight">
+              {tree ? formatTalentVal(tree.val, tree.fmt) : "—"}
+            </div>
+            <div className="text-[10px] text-zinc-600 mt-1">
+              {tree?.fmt === "x" ? "multiplier" : "additive"}
+            </div>
+          </div>
+
+          {/* Current effective level. The breakdown row shows Points
+              Invested + Bonus Levels = the green big number. */}
+          <CurrentEffectivePane
+            summary={tree ? extractTalentSummary(tree) : null}
+          />
+
+          {/* Max effective level — what the user could reach by pushing
+              Points Invested up to the cap. Empty for star talents which
+              don't have a separate cap. */}
+          <MaxEffectivePane
+            summary={tree ? extractTalentSummary(tree) : null}
+          />
         </div>
-        <div className="text-5xl font-extrabold text-gold mt-1 tabular-nums">
-          {tree ? formatTalentVal(tree.val, tree.fmt) : "—"}
-        </div>
-        <div className="text-xs text-zinc-500 mt-1">
+
+        {/* Identity row — talent name + char, plus the description tooltip
+            in italics for context. */}
+        <div className="text-xs text-zinc-500 mt-4 text-center">
           {selectedTalent ? (
             <>
               <span className="text-zinc-300">
@@ -395,7 +526,7 @@ export default function TalentsLevelPageClient() {
           )}
         </div>
         {selectedTalent && (
-          <div className="text-[11px] text-zinc-500 mt-2 italic leading-snug">
+          <div className="text-[11px] text-zinc-500 mt-1 italic leading-snug text-center">
             {cleanLvlUpText(selectedTalent.description)}
           </div>
         )}
@@ -440,4 +571,65 @@ function formatTalentVal(v: number, fmt: string | undefined): string {
   if (Math.abs(v) >= 100) return v.toFixed(0);
   if (Math.abs(v) >= 10) return v.toFixed(2).replace(/\.?0+$/, "");
   return v.toFixed(3).replace(/\.?0+$/, "");
+}
+
+// Integer-style formatter for the level numbers in the effective-level
+// panes. talents always level in whole numbers so the toFixed(0) gives a
+// clean read; we don't want "33.000" cluttering the headline.
+function formatLevel(v: number | null): string {
+  if (v == null || !Number.isFinite(v)) return "—";
+  return Math.round(v).toString();
+}
+
+function CurrentEffectivePane({
+  summary,
+}: {
+  summary: TalentSummary | null;
+}) {
+  return (
+    <div className="text-center sm:border-r sm:border-zinc-800 sm:pr-3">
+      <div className="text-[10px] uppercase tracking-wider text-zinc-500">
+        Current Effective Lv
+      </div>
+      <div className="text-4xl font-extrabold text-sky-300 mt-1 tabular-nums leading-tight">
+        {formatLevel(summary?.currentEffective ?? null)}
+      </div>
+      <div className="text-[10px] text-zinc-600 mt-1 font-mono">
+        {summary
+          ? summary.bonusLevels > 0
+            ? `${formatLevel(summary.pointsInvested)} invested + ${formatLevel(summary.bonusLevels)} bonus`
+            : `${formatLevel(summary.pointsInvested)} invested`
+          : "—"}
+      </div>
+    </div>
+  );
+}
+
+function MaxEffectivePane({
+  summary,
+}: {
+  summary: TalentSummary | null;
+}) {
+  const hasCap = summary && summary.maxCap != null;
+  return (
+    <div className="text-center">
+      <div className="text-[10px] uppercase tracking-wider text-zinc-500">
+        Max Effective Lv
+      </div>
+      <div
+        className={`text-4xl font-extrabold mt-1 tabular-nums leading-tight ${
+          hasCap ? "text-emerald-300" : "text-zinc-600"
+        }`}
+      >
+        {hasCap ? formatLevel(summary!.maxEffective) : "—"}
+      </div>
+      <div className="text-[10px] text-zinc-600 mt-1 font-mono">
+        {hasCap
+          ? summary!.bonusLevels > 0
+            ? `${formatLevel(summary!.maxCap)} cap + ${formatLevel(summary!.bonusLevels)} bonus`
+            : `${formatLevel(summary!.maxCap)} cap`
+          : "star talent — no cap"}
+      </div>
+    </div>
+  );
 }
