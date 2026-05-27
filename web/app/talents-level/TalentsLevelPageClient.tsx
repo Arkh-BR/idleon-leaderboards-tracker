@@ -16,11 +16,13 @@ import {
   getCharClassKey,
   getCharClassLabel,
 } from "@/lib/talentsLevel/charClass";
+import { getActivePresetIdx } from "@/lib/talentsLevel/compute";
 import type { CorganNode } from "@/lib/corgan/node";
 
 const SAVE_KEY = "talents-level.last-upload.v1";
 const TALENT_KEY = "talents-level.talent-id.v1";
 const TAB_KEY = "talents-level.tab-idx.v1";
+const PRESET_KEY = "talents-level.preset-idx.v1";
 
 // Fallback class key when the save doesn't have a parseable class (or
 // before save load). Beginner shows the entry-level tree which is the
@@ -169,6 +171,10 @@ export default function TalentsLevelPageClient() {
   const [charIdx, setCharIdx] = useState<number>(0);
   const [talentId, setTalentId] = useState<number>(279); // Robbing Hood default
   const [tabIdx, setTabIdx] = useState<number>(0);
+  // Preset 1 (0) vs Preset 2 (1). Defaults to the char's currently-active
+  // preset when a save loads (we read PlayerStuff_{ci}[1] for that). The
+  // user can flip to inspect the other preset's talent investments.
+  const [presetIdx, setPresetIdx] = useState<0 | 1>(0);
   const [tree, setTree] = useState<CorganNode | null>(null);
   const [computing, setComputing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -220,13 +226,17 @@ export default function TalentsLevelPageClient() {
         const n = Number(lastTab);
         if (Number.isFinite(n)) setTabIdx(n);
       }
+      const lastPreset = window.localStorage.getItem(PRESET_KEY);
+      if (lastPreset === "0" || lastPreset === "1") {
+        setPresetIdx(Number(lastPreset) as 0 | 1);
+      }
     } catch {
       // ignore
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Persist talent + tab selection.
+  // Persist talent + tab + preset selection.
   useEffect(() => {
     try {
       window.localStorage.setItem(TALENT_KEY, String(talentId));
@@ -241,6 +251,25 @@ export default function TalentsLevelPageClient() {
       // ignore
     }
   }, [tabIdx]);
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(PRESET_KEY, String(presetIdx));
+    } catch {
+      // ignore
+    }
+  }, [presetIdx]);
+
+  // When save loads or char changes, snap presetIdx to whatever's active
+  // in the save for that char. The user can then toggle to the other
+  // preset manually. Skip when no save is loaded.
+  const activePresetIdx = useMemo(() => {
+    if (!save || chars.length === 0) return 0;
+    return getActivePresetIdx(save, charIdx);
+  }, [save, charIdx, chars.length]);
+  useEffect(() => {
+    if (!save) return;
+    setPresetIdx(activePresetIdx);
+  }, [save, charIdx, activePresetIdx]);
 
   // Resolve the active char's class → talent tab list. Falls back to
   // Beginner when no save is loaded (so the picker still renders something
@@ -280,7 +309,9 @@ export default function TalentsLevelPageClient() {
       try {
         const mod = await import("@/lib/talentsLevel/compute");
         if (cancelled) return;
-        const result = mod.computeTalentEffective(save, charIdx, talentId);
+        const result = mod.computeTalentEffective(save, charIdx, talentId, {
+          presetIdx,
+        });
         setTree(result.tree);
         setError(null);
       } catch (e) {
@@ -297,7 +328,7 @@ export default function TalentsLevelPageClient() {
     return () => {
       cancelled = true;
     };
-  }, [save, charIdx, talentId, chars.length]);
+  }, [save, charIdx, talentId, chars.length, presetIdx]);
 
   const onLoad = () => {
     if (!jsonText.trim()) {
@@ -396,6 +427,47 @@ export default function TalentsLevelPageClient() {
               <span className="text-zinc-300 font-medium">{classLabel}</span>
             </span>
           </div>
+
+          {/* Preset selector — each char has two talent presets (in-game
+              you can swap between them with the talent UI's preset
+              tabs). SL_{ci} holds the active preset's levels, SLpre_{ci}
+              the other. We default to the active one but let the user
+              flip to inspect the other side. */}
+          {save && chars.length > 0 && (
+            <div className="flex items-center gap-2 text-xs">
+              <span className="text-zinc-500">Preset:</span>
+              <div className="inline-flex gap-1">
+                {[0, 1].map((idx) => {
+                  const isActive = idx === presetIdx;
+                  const isInGameActive = idx === activePresetIdx;
+                  return (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => setPresetIdx(idx as 0 | 1)}
+                      className={`px-2.5 py-1 text-xs rounded border transition-colors ${
+                        isActive
+                          ? "bg-amber-500/15 text-amber-300 border-amber-500/40"
+                          : "bg-zinc-900 text-zinc-400 border-zinc-800 hover:text-zinc-200 hover:bg-zinc-800"
+                      }`}
+                      title={
+                        isInGameActive
+                          ? `Preset ${idx + 1} — currently active in-game on this char`
+                          : `Preset ${idx + 1} — inactive on this char (data from SLpre_${charIdx})`
+                      }
+                    >
+                      Preset {idx + 1}
+                      {isInGameActive && (
+                        <span className="ml-1 text-[9px] text-emerald-400 font-mono">
+                          ●
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
           {error && <p className="text-xs text-red-300">{error}</p>}
         </div>
       </details>
