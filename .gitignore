@@ -30,6 +30,7 @@ web/scripts/corgan-source/
 # live numbers. They contain account-identifying data — keep out of the repo.
 data from suport*.json
 data_from_suport*.json
+idleon_raw_*.json
 
 # Corgan reference HTML used for layout matching
 .corgan-*.html
