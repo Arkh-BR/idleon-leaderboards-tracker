@@ -23,6 +23,7 @@ import { ROG_DESC } from "../../data/w7/sushi";
 import { legendPTSbonus } from "./spelunking";
 import { eventShopOwned, emporiumBonus } from "../../../game-helpers";
 import { companionBonus } from "../../data/common/companions";
+import { companionChild } from "../common/companions";
 import { GALLERY_TROPH_CHIP_MULTI } from "../../data/game-constants";
 import { bubbleBonusY13 } from "../w2/alchemy";
 import type { SaveData } from "../../../state";
@@ -139,9 +140,7 @@ export function galleryBonusMulti(
       })
     );
   if (comp49 > 0)
-    ch.push(
-      node(label("Companion", 49), comp49, null, { fmt: "raw" })
-    );
+    ch.push(companionChild(49, comp49, saveData, { fmt: "raw" }));
   if (sushi54 > 0)
     ch.push(
       node(

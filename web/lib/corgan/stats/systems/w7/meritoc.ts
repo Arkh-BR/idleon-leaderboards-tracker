@@ -9,6 +9,7 @@ import { eventShopOwned } from "../../../game-helpers";
 import { arcadeBonus } from "../w2/arcade";
 import { legendPTSbonus } from "./spelunking";
 import { companionBonus } from "../../data/common/companions";
+import { companionChild } from "../common/companions";
 import { rogBonusQTY } from "./sushi";
 import type { SaveData } from "../../../state";
 
@@ -89,7 +90,7 @@ export const meritoc = {
       );
     if ((p.comp39 || 0) > 0)
       multiCh.push(
-        node(label("Companion", 39), p.comp39 || 0, null, { fmt: "raw" })
+        companionChild(39, p.comp39 || 0, saveData, { fmt: "raw" })
       );
     if ((p.legend24 || 0) > 0)
       multiCh.push(
@@ -116,8 +117,9 @@ export const meritoc = {
     ];
     if ((p.comp161 || 0) > 0)
       ch.push(
-        node(label("Companion", 161, " ×"), 1 + (p.comp161 || 0) / 100, null, {
+        companionChild(161, 1 + (p.comp161 || 0) / 100, saveData, {
           fmt: "x",
+          suffix: " ×",
         })
       );
     return node(label("Meritoc", id), p.val, ch, {

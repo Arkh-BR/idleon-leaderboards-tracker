@@ -4,6 +4,7 @@ import { label } from "../../entity-names";
 import { optionsListData } from "../../../save/data";
 import { legendPTSbonus } from "../w7/spelunking";
 import { companionBonus } from "../../data/common/companions";
+import { companionChild } from "../common/companions";
 import { OWL_BASE } from "../../data/game-constants";
 import type { SaveData } from "../../../state";
 
@@ -59,7 +60,7 @@ export const owl = {
           fmt: "x",
           note: "legend 26",
         }),
-        node(label("Companion", 51), 1 + comp51, null, {
+        companionChild(51, 1 + comp51, ctx.saveData, {
           fmt: "x",
           note: "companion 51",
         }),
