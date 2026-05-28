@@ -2044,7 +2044,7 @@ const APP_JS = `
       // external-context-multipliers.ts spec). The talent formula
       // result is exposed as an explicit "Talent Value" kid via the
       // spec's extraBaseKids — we used to read it from the sibling
-      // "Best Character: <name>", but that node now lives inside
+      // "Reference Character: <name>", but that node now lives inside
       // Base Level (it only contributes the raw lv).
       // Tal 328 is account-wide so its activity is implicit (val > 0
       // means at least one owner-class char has it invested).

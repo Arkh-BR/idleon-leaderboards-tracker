@@ -1700,18 +1700,18 @@ export const talent = {
       const bestName =
         (saveData.charNames && saveData.charNames[r.bestChar]) ||
         `Char ${r.bestChar}`;
-      const bestLabel = `Best Character: ${bestName}`;
+      const bestLabel = `Reference Character: ${bestName}`;
       let maxChildren: CorganNode[] = [
         node(bestLabel, r.val, null, { fmt: "raw" }),
       ];
       if (r.detail) {
-        // Build the base level node first, then inject "Best Character"
+        // Build the base level node first, then inject "Reference Character"
         // as its FIRST child. This makes the visual link explicit: the
-        // best char only contributes to Base Level (it supplies the raw
-        // lv used as Points Invested). Bonus Levels and Super Levels are
-        // computed against the ACTIVE char's context, not the best char,
-        // so the sibling-of-Effective-Level placement we had before was
-        // misleading.
+        // reference char only contributes to Base Level (it supplies the
+        // raw lv used as Points Invested). Bonus Levels and Super Levels
+        // are computed against the ACTIVE char's context, not the
+        // reference char, so the sibling-of-Effective-Level placement we
+        // had before was misleading.
         const baseLvlNode = emitBaseLevelNode(r.detail.rawLv, saveData, {
           ownerCharIdx: r.bestChar,
           ownerName: bestName,

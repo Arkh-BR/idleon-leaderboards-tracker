@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-28T00:30:03.217Z",
+  "generatedAt": "2026-05-28T00:53:33.488Z",
   "refTotal": 43093.43816941274,
   "refSave": "zArkhe (save 25-21-16.json) — Town, no AC",
   "sourceCount": 75,
@@ -5757,8 +5757,8 @@
           "note": "decayMulti(2, 200)",
           "children": [
             {
-              "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) Bonus / Best Character",
-              "name": "Best Character",
+              "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) Bonus / Reference Character",
+              "name": "Reference Character",
               "system": "Farming",
               "world": "World 6",
               "pool": "Additive",
@@ -9527,8 +9527,8 @@
               "note": "min(invested, cap) — owner: ARKHELUCK",
               "children": [
                 {
-                  "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Effective Level / Base Level / Best Character: ARKHELUCK",
-                  "name": "Best Character: ARKHELUCK",
+                  "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Effective Level / Base Level / Reference Character: ARKHELUCK",
+                  "name": "Reference Character: ARKHELUCK",
                   "system": "Talents",
                   "world": "Character",
                   "pool": "Multi",

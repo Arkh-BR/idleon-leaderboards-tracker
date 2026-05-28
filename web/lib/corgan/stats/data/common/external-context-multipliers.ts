@@ -85,9 +85,10 @@ export const EXTERNAL_CONTEXT_MULTIPLIERS: Record<number, ExternalContextSpec> =
         : "Inactive — Archlord talent contributes 0",
     // Surface the talent formula result as an explicit kid so the
     // gen-source-catalog handler can pick it up by name. We used to
-    // anchor on the sibling "Best Character: <name>" node for this
-    // value, but that node moved inside Base Level (it only affects
-    // the raw lv used as Points Invested), breaking the depth=1 lookup.
+    // anchor on the sibling "Reference Character: <name>" node for
+    // this value, but that node moved inside Base Level (it only
+    // affects the raw lv used as Points Invested), breaking the
+    // depth=1 lookup.
     extraBaseKids: (talVal) => [
       node("Talent Value", talVal, null, {
         fmt: "raw",

@@ -83,7 +83,7 @@ export const farm = {
       const talChildren =
         tal207 > 0
           ? [
-              node("Best Character", d207.ci, null, { fmt: "raw" }),
+              node("Reference Character", d207.ci, null, { fmt: "raw" }),
               node("Base Level", d207.baseLv, null, { fmt: "raw" }),
               node("Bonus Level", d207.bonusLv, null, { fmt: "+" }),
               node("Effective Level", d207.effLv, null, { fmt: "raw" }),
