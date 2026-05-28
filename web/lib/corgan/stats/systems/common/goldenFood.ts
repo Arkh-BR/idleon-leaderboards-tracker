@@ -236,9 +236,12 @@ export function gfoodBonusMULTI(
 
 // Single source of truth for gfoodBonusMULTI: computes each sub-component by
 // name and folds them into the total. gfoodBonusMULTI() returns just .total;
-// dump-gfood-multi.ts uses .items to find divergences vs Corgan's tree.
-// N.js literal (line 4954740): e = (1 + SECRET_SET/100) × (max(famBonus,1) + rest) / 100
-// The whole (famBonus + rest) is summed first, THEN divided by 100.
+// dump-gfood-multi.ts uses .items to find divergences vs the game.
+// N.js (_customBlock_GoldFoodBonuses, L5609/L7230):
+//   e = (1 + SECRET_SET/100) × ( max(famBonus,1) + rest/100 )
+// The /100 applies ONLY to `rest` — famBonus (FamBonusQTYs["66"]) is added at
+// full scale, NOT divided. Earlier `(setMul×(famBonus+rest))/100` was wrong
+// (it divided famBonus too, undercounting the multiplier by ~setMul×famBonus).
 export function gfoodBonusMULTIBreakdown(
   charIdx: number,
   saveData: SaveData
@@ -294,14 +297,14 @@ export function gfoodBonusMULTIBreakdown(
     { name: "Vault 86", val: vault86 },
   ];
   const rest = items.slice(2).reduce((a, i) => a + i.val, 0);
-  return { items, total: (setMul * (famBonus + rest)) / 100 };
+  return { items, total: setMul * (famBonus + rest / 100) };
 }
 
-// Renders gfoodBonusMULTI as a tree mirroring its formula:
-//   total = (Family + Σ % Gold Food Effect sources) ÷ 100 × SECRET_SET multi
-// The Additive Pool's children sum exactly to its value; the ÷100 and the
-// SECRET_SET multi are explicit multiplier siblings. Zero-value sources are
-// dropped (the Deep View's "Hide inactive" toggle covers the rest).
+// Renders gfoodBonusMULTI as a tree mirroring its N.js formula:
+//   total = SECRET_SET × ( Family Bonus 66 + Σ % Gold Food Effect sources ÷ 100 )
+// Family Bonus is added at full scale; only the source sum is ÷100. The source
+// leaves are shown pre-÷100 (they sum to `rest`, parent shows rest/100). Zero-
+// value sources are dropped (Deep View's "Hide inactive" toggle covers the rest).
 function gfoodMultiTreeChildren(
   bd: ReturnType<typeof gfoodBonusMULTIBreakdown>
 ): CorganNode[] {
@@ -310,19 +313,16 @@ function gfoodMultiTreeChildren(
   const restItems = bd.items.slice(2);
   const rest = restItems.reduce((a, i) => a + i.val, 0);
 
-  const poolKids: CorganNode[] = [
-    node("Family Bonus 66", famBonus, null, { fmt: "raw" }),
-    ...restItems
-      .filter((i) => Math.abs(i.val) > 1e-9)
-      .map((i) => node(i.name, i.val, null, { fmt: "raw" })),
-  ];
+  const sourceKids: CorganNode[] = restItems
+    .filter((i) => Math.abs(i.val) > 1e-9)
+    .map((i) => node(i.name, i.val, null, { fmt: "raw" }));
 
   const kids: CorganNode[] = [
-    node("Additive Pool", famBonus + rest, poolKids, {
+    node("Family Bonus 66", famBonus, null, { fmt: "raw" }),
+    node("Sources ÷ 100", rest / 100, sourceKids, {
       fmt: "raw",
-      note: "Family Bonus + every % Gold Food Effect source",
+      note: "Σ every % Gold Food Effect source ÷ 100 (children shown pre-÷100)",
     }),
-    node("÷ 100", 0.01, null, { fmt: "x", note: "game constant" }),
   ];
   if (Math.abs(setMul - 1) > 1e-9) {
     kids.push(node("SECRET_SET multi", setMul, null, { fmt: "x" }));
@@ -422,7 +422,7 @@ export const goldenFood = {
       children.push(
         node("GFood Multi", realMulti, gfoodMultiTreeChildren(bd), {
           fmt: "x",
-          note: "(Family + Σ sources) ÷ 100 × SECRET_SET",
+          note: "SECRET_SET × (Family + Σ sources ÷ 100)",
         })
       );
     }
