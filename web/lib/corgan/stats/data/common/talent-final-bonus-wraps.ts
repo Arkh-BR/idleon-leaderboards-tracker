@@ -38,6 +38,7 @@ import {
   computeSkillEfficiency,
 } from "../../systems/common/derived-stats";
 import { computeTotalStat } from "../../systems/common/stats";
+import { computeCalcTalent } from "../../systems/common/calcTalent";
 import {
   grimoireUpgTotal,
   arcaneUpgTotal,
@@ -73,7 +74,12 @@ export type CounterSource =
   /** Count of unique Onyx statues owned. */
   | { kind: "StatueOnyx" }
   /** FamValMinigameHiscores[index] — minigame highscore points. */
-  | { kind: "MinigameHiscore"; index: number };
+  | { kind: "MinigameHiscore"; index: number }
+  /** CalcTalentMAP[talentId] — the in-game per-talent counter built by
+   *  N.js `_customBlock_TalentCalc`. Ported in systems/common/calcTalent.ts.
+   *  Some sub-sources are stubbed to 0 there (rift kill-trackers, overkill
+   *  tier, accuracy gate) — those wraps emit their inactive value. */
+  | { kind: "CalcTalent"; talentId: number };
 
 /** Spec for a talent whose final bonus = wrap(rawTalentVal, counter). */
 export type TalentWrapSpec = {
@@ -143,6 +149,8 @@ function readCounter(
       return (
         Number((saveData as any).minigameHiscores?.[src.index]) || 0
       );
+    case "CalcTalent":
+      return Number(computeCalcTalent(src.talentId, charIdx, saveData)) || 0;
   }
 }
 
@@ -724,6 +732,327 @@ export const TALENT_FINAL_BONUS_WRAPS: Record<number, TalentWrapSpec> = {
     inactiveVal: 0,
     inactiveNote: (_tv, c) =>
       c <= 0 ? "Inactive — no Arcane upgrades" : "Inactive — talent 0",
+    extraBaseKids: tvKid(),
+  },
+
+  // ===== Cat 3b — CalcTalentMAP-scaled talents =====
+  // Counter = CalcTalentMAP[id] (N.js _customBlock_TalentCalc MAP-build).
+  // The wrap shape (× / clamp / power / cost-multi) is per-talent, taken
+  // verbatim from the N.js `if(<id>==d)return ...` bonus-emission block
+  // (offset ~4420700-4425900). r.val passed to the wrap is what
+  // GetTalentNumber(1,id) returns (per-char) or getbonus2(1,id,-1)
+  // returns (account-wide) — talent.resolve auto-selects max mode for the
+  // account-wide ids (57, 59, 209, 430, 595), so r.val already matches.
+
+  // Tal 31 — Skillage Damage (Voidwalker, per-char).
+  // N.js: GetTalentNumber(1,31) × floor(CalcTalentMAP[31]/5).
+  // CalcTalentMAP[31] = lowest of the active char's 9 skill levels.
+  // NOTE: the wrap is × floor(counter/5), NOT a bare × counter.
+  31: {
+    counterLabel: "Lowest Skill LV",
+    counterSource: { kind: "CalcTalent", talentId: 31 },
+    counterNote: "CalcTalentMAP[31] — min(Lv0[1..9]) lowest skill level",
+    wrap: (tv, c) => tv * Math.floor(c / 5),
+    fmt: "+",
+    noteForActive: (tv, c) => `${tv.toFixed(2)} × floor(${c}/5) % dmg`,
+    inactiveVal: 0,
+    inactiveNote: (_tv, c) =>
+      c <= 0 ? "Inactive — lowest skill LV is 0" : "Inactive — talent 0",
+    extraBaseKids: tvKid(),
+  },
+
+  // Tal 57 — Species Epoch (Voidwalker, account-wide).
+  // N.js: getbonus2(1,57,-1) × CalcTalentMAP[57].
+  // CalcTalentMAP[57] = max(0, best(Trapping+Worship LV across chars) - 100).
+  57: {
+    counterLabel: "Trapping+Worship LV over 100",
+    counterSource: { kind: "CalcTalent", talentId: 57 },
+    counterNote:
+      "CalcTalentMAP[57] — max(0, best(Lv0[7]+Lv0[9]) - 100) across chars",
+    wrap: (tv, c) => tv * c,
+    fmt: "+",
+    noteForActive: (tv, c) =>
+      `${tv.toFixed(2)} × ${c} % critters & souls`,
+    inactiveVal: 0,
+    inactiveNote: (_tv, c) =>
+      c <= 0 ? "Inactive — combined Trapping+Worship <= 100" : "Inactive — talent 0",
+    extraBaseKids: tvKid(),
+  },
+
+  // Tal 59 — Blood Marrow (Voidwalker, account-wide). POWER form.
+  // N.js: pow(min(1.012, 1 + talVal/100), CalcTalentMAP[59]).
+  // CalcTalentMAP[59] = Σ Meals[0][*] (total LV of all upgraded meals).
+  59: {
+    counterLabel: "Total Meal LV",
+    counterSource: { kind: "CalcTalent", talentId: 59 },
+    counterNote: "CalcTalentMAP[59] — Σ Meals[0][*] (all meal upgrade levels)",
+    wrap: (tv, c) => Math.pow(Math.min(1.012, 1 + tv / 100), c),
+    fmt: "x",
+    noteForActive: (tv, c) =>
+      `pow(min(1.012, 1 + ${tv.toFixed(2)}/100), ${c}) meal spd`,
+    inactiveVal: 1,
+    inactiveNote: (_tv, c) =>
+      c <= 0 ? "Inactive — no Meal LV (Σ = 0) → pow(..,0) = 1" : "Inactive — talent 0",
+    extraBaseKids: tvKid(),
+  },
+
+  // Tal 110 — Apocalypse Zow (Death Bringer, per-char).
+  // N.js: GetTalentNumber(1,110) × CalcTalentMAP[110].
+  // [STUB COUNTER] CalcTalentMAP[110] = mob types killed >100k — needs the
+  // rift kill-tracker (unported), so the counter is 0 → emits inactive.
+  110: {
+    counterLabel: "Mob Types Killed >100k",
+    counterSource: { kind: "CalcTalent", talentId: 110 },
+    counterNote: "CalcTalentMAP[110] — [STUB] rift kill-tracker unported (0)",
+    wrap: (tv, c) => tv * c,
+    fmt: "+",
+    noteForActive: (tv, c) => `${tv.toFixed(2)} × ${c} % dmg`,
+    inactiveVal: 0,
+    inactiveNote: (_tv, c) =>
+      c <= 0 ? "Inactive — counter stubbed (rift kill-tracker unported)" : "Inactive — talent 0",
+    extraBaseKids: tvKid(),
+  },
+
+  // Tal 125 — Precision Power (per-char).
+  // N.js: GetTalentNumber(1,125) × CalcTalentMAP[125].
+  // CalcTalentMAP[125] = Σ Refinery ranks IF the active char's accuracy is
+  // >= 2.25× the AFK target's defence, else 0.
+  // [STUB COUNTER] the accuracy gate is unported → counter is 0 → inactive.
+  125: {
+    counterLabel: "Refinery Ranks (acc-gated)",
+    counterSource: { kind: "CalcTalent", talentId: 125 },
+    counterNote: "CalcTalentMAP[125] — [STUB] accuracy gate unported (0)",
+    wrap: (tv, c) => tv * c,
+    fmt: "+",
+    noteForActive: (tv, c) => `${tv.toFixed(2)} × ${c} % dmg`,
+    inactiveVal: 0,
+    inactiveNote: (_tv, c) =>
+      c <= 0 ? "Inactive — counter stubbed (accuracy gate unported)" : "Inactive — talent 0",
+    extraBaseKids: tvKid(),
+  },
+
+  // Tal 146 — Apocalypse Chow (Death Bringer, per-char).
+  // N.js: GetTalentNumber(1,146) × CalcTalentMAP[146].
+  // [STUB COUNTER] CalcTalentMAP[146] = mob types killed >1m — rift
+  // kill-tracker unported → counter 0 → inactive.
+  146: {
+    counterLabel: "Mob Types Killed >1m",
+    counterSource: { kind: "CalcTalent", talentId: 146 },
+    counterNote: "CalcTalentMAP[146] — [STUB] rift kill-tracker unported (0)",
+    wrap: (tv, c) => tv * c,
+    fmt: "+",
+    noteForActive: (tv, c) => `${tv.toFixed(2)} × ${c} % cooking exp & eff`,
+    inactiveVal: 0,
+    inactiveNote: (_tv, c) =>
+      c <= 0 ? "Inactive — counter stubbed (rift kill-tracker unported)" : "Inactive — talent 0",
+    extraBaseKids: tvKid(),
+  },
+
+  // Tal 209 — Apocalypse Wow (Death Bringer, account-wide).
+  // N.js: GetTalentNumber(1,209) × CalcTalentMAP[209] (account-wide via
+  // the DK char's kill tracker; talent.resolve emits max for id 209).
+  // [STUB COUNTER] mob types killed >1b — rift kill-tracker unported → 0.
+  209: {
+    counterLabel: "Mob Types Killed >1b",
+    counterSource: { kind: "CalcTalent", talentId: 209 },
+    counterNote: "CalcTalentMAP[209] — [STUB] rift kill-tracker unported (0)",
+    wrap: (tv, c) => tv * c,
+    fmt: "+",
+    noteForActive: (tv, c) => `${tv.toFixed(2)} × ${c} % gold food effect`,
+    inactiveVal: 0,
+    inactiveNote: (_tv, c) =>
+      c <= 0 ? "Inactive — counter stubbed (rift kill-tracker unported)" : "Inactive — talent 0",
+    extraBaseKids: tvKid(),
+  },
+
+  // Tal 305 — Looty Mc Shooty (per-char).
+  // N.js: GetTalentNumber(1,305) × CalcTalentMAP[305].
+  // CalcTalentMAP[305] = items ever found (Cards[1] minus Gem/Cards entries).
+  305: {
+    counterLabel: "Items Ever Found",
+    counterSource: { kind: "CalcTalent", talentId: 305 },
+    counterNote:
+      "CalcTalentMAP[305] — count of Cards[1] entries (excl. Gem*/Cards*)",
+    wrap: (tv, c) => tv * c,
+    fmt: "+",
+    noteForActive: (tv, c) => `${tv.toFixed(2)} × ${c} % damage`,
+    inactiveVal: 0,
+    inactiveNote: (_tv, c) =>
+      c <= 0 ? "Inactive — no items found" : "Inactive — talent 0",
+    extraBaseKids: tvKid(),
+  },
+
+  // Tal 430 — Price Recession (Wind Walker, account-wide). floor(/10) form.
+  // N.js: GetTalentNumber(1,430) × floor(CalcTalentMAP[430]/10)
+  //   (or getbonus2(1,430,-1) × floor(.../10) when GTN=0).
+  // CalcTalentMAP[430] = Σ Ninja[103][*] (total Ninja Knowledge upgrades).
+  430: {
+    counterLabel: "Total Ninja Upgrades",
+    counterSource: { kind: "CalcTalent", talentId: 430 },
+    counterNote: "CalcTalentMAP[430] — Σ Ninja[103][*] (Ninja Knowledge upg)",
+    wrap: (tv, c) => tv * Math.floor(c / 10),
+    fmt: "+",
+    noteForActive: (tv, c) => `${tv.toFixed(2)} × floor(${c}/10) % cheaper`,
+    inactiveVal: 0,
+    inactiveNote: (_tv, c) =>
+      c <= 0 ? "Inactive — no Ninja upgrades" : "Inactive — talent 0",
+    extraBaseKids: tvKid(),
+  },
+
+  // Tal 470 — Paperwork, Great... (per-char).
+  // N.js: GetTalentNumber(1,470) × CalcTalentMAP[470].
+  // CalcTalentMAP[470] = stamps in collection (StampLevelMAX>0.5).
+  // [PROXY COUNTER] we count StampLv>0 (raw save lacks StampLevelMAX).
+  470: {
+    counterLabel: "Stamps In Collection",
+    counterSource: { kind: "CalcTalent", talentId: 470 },
+    counterNote:
+      "CalcTalentMAP[470] — [PROXY] count StampLv>0 (StampLevelMAX unported)",
+    wrap: (tv, c) => tv * c,
+    fmt: "+",
+    noteForActive: (tv, c) => `${tv.toFixed(2)} × ${c} % damage`,
+    inactiveVal: 0,
+    inactiveNote: (_tv, c) =>
+      c <= 0 ? "Inactive — no stamps" : "Inactive — talent 0",
+    extraBaseKids: tvKid(),
+  },
+
+  // Tal 485 — Virile Vials (per-char).
+  // N.js: GetTalentNumber(1,485) × CalcTalentMAP[485].
+  // CalcTalentMAP[485] = count of CauldronInfo[4][*] > 3 (vials >= Green LV).
+  485: {
+    counterLabel: "Vials >= Green LV",
+    counterSource: { kind: "CalcTalent", talentId: 485 },
+    counterNote: "CalcTalentMAP[485] — count CauldronInfo[4][*] > 3",
+    wrap: (tv, c) => tv * c,
+    fmt: "+",
+    noteForActive: (tv, c) => `${tv.toFixed(2)} × ${c} % damage`,
+    inactiveVal: 0,
+    inactiveNote: (_tv, c) =>
+      c <= 0 ? "Inactive — no Green+ vials" : "Inactive — talent 0",
+    extraBaseKids: tvKid(),
+  },
+
+  // Tal 595 — Essential Essence (Arcane Cultist, account-wide). COST MULTI.
+  // N.js cost path: 1 / (1 + getbonus2(1,595,-1) × floor(MAP[595]/100)/100).
+  // N.js tooltip headline (the "x_Cheaper_Upgrades" display):
+  //   1 + 0.01 × GetTalentNumber(1,595) × floor(CalcTalentMAP[595]/100).
+  // We emit the tooltip/headline form (a cheapness multiplier).
+  // CalcTalentMAP[595] = Σ Summon[0][*] (total Summoning upgrades).
+  595: {
+    counterLabel: "Total Summoning Upgrades",
+    counterSource: { kind: "CalcTalent", talentId: 595 },
+    counterNote: "CalcTalentMAP[595] — Σ Summon[0][*] (summoning upgrades)",
+    wrap: (tv, c) => 1 + (0.01 * tv * Math.floor(c / 100)),
+    fmt: "x",
+    noteForActive: (tv, c) =>
+      `1 + 0.01 × ${tv.toFixed(2)} × floor(${c}/100) cheaper upgrades`,
+    inactiveVal: 1,
+    inactiveNote: (_tv, c) =>
+      c < 100 ? "Inactive — < 100 Summoning upgrades (floor = 0)" : "Inactive — talent 0",
+    extraBaseKids: tvKid(),
+  },
+
+  // Tal 616 — Beginner Best Class (per-char). CLAMP form.
+  // N.js: min(GetTalentNumber(1,616), floor(CalcTalentMAP[616]/10)).
+  // CalcTalentMAP[616] = best Beginner (class<6) char level (Lv0[0]).
+  616: {
+    counterLabel: "Best Beginner Lv",
+    counterSource: { kind: "CalcTalent", talentId: 616 },
+    counterNote: "CalcTalentMAP[616] — best Lv0[0] across class<6 chars",
+    wrap: (tv, c) => Math.min(tv, Math.floor(c / 10)),
+    fmt: "+",
+    noteForActive: (tv, c) =>
+      `min(${tv.toFixed(2)}, floor(${c}/10)) weapon power`,
+    inactiveVal: 0,
+    inactiveNote: (_tv, c) =>
+      c < 10 ? "Inactive — best Beginner < Lv 10 (floor = 0)" : "Inactive — talent 0",
+    extraBaseKids: tvKid("formula(effective_lv) — the +N cap coefficient"),
+  },
+
+  // Tal 620 — Will Of The Eldest (per-char). CLAMP form.
+  // N.js: min(GetTalentNumber(1,620), floor(CalcTalentMAP[620]/10)).
+  // CalcTalentMAP[620] = highest char level (Lv0[0]) across ALL chars.
+  620: {
+    counterLabel: "Highest Char Lv",
+    counterSource: { kind: "CalcTalent", talentId: 620 },
+    counterNote: "CalcTalentMAP[620] — best Lv0[0] across all chars",
+    wrap: (tv, c) => Math.min(tv, Math.floor(c / 10)),
+    fmt: "+",
+    noteForActive: (tv, c) =>
+      `min(${tv.toFixed(2)}, floor(${c}/10)) all stats`,
+    inactiveVal: 0,
+    inactiveNote: (_tv, c) =>
+      c < 10 ? "Inactive — highest char < Lv 10 (floor = 0)" : "Inactive — talent 0",
+    extraBaseKids: tvKid("formula(effective_lv) — the +N cap coefficient"),
+  },
+
+  // Tal 643 — Coins For Charon (per-char).
+  // N.js: GetTalentNumber(1,643) × CalcTalentMAP[643].
+  // CalcTalentMAP[643] = OverkillStuffs("2") = multikill damage tier.
+  // [STUB COUNTER] overkill-tier sim unported → counter 0 → inactive.
+  643: {
+    counterLabel: "Multikill Damage Tier",
+    counterSource: { kind: "CalcTalent", talentId: 643 },
+    counterNote: "CalcTalentMAP[643] — [STUB] OverkillStuffs(\"2\") unported (0)",
+    wrap: (tv, c) => tv * c,
+    fmt: "+",
+    noteForActive: (tv, c) => `${tv.toFixed(2)} × ${c} % cash per tier`,
+    inactiveVal: 0,
+    inactiveNote: (_tv, c) =>
+      c <= 0 ? "Inactive — counter stubbed (multikill tier unported)" : "Inactive — talent 0",
+    extraBaseKids: tvKid(),
+  },
+
+  // Tal 644 — American Tipper (per-char).
+  // N.js: GetTalentNumber(1,644) × CalcTalentMAP[644].
+  // CalcTalentMAP[644] = active char's Cooking LV / 10 (continuous, not floored).
+  644: {
+    counterLabel: "Cooking LV / 10",
+    counterSource: { kind: "CalcTalent", talentId: 644 },
+    counterNote: "CalcTalentMAP[644] — Lv0[10]/10 (active char cooking / 10)",
+    wrap: (tv, c) => tv * c,
+    fmt: "+",
+    noteForActive: (tv, c) => `${tv.toFixed(2)} × ${c} % cash`,
+    inactiveVal: 0,
+    inactiveNote: (_tv, c) =>
+      c <= 0 ? "Inactive — Cooking LV 0" : "Inactive — talent 0",
+    extraBaseKids: tvKid(),
+  },
+
+  // Tal 650 — Rando Event Looty (account-wide).
+  // N.js: GetTalentNumber(1,650) × CalcTalentMAP[650].
+  // CalcTalentMAP[650] = count of Random-Event rare items found
+  // (Cards[1] matching RANDOlist[82..86]).
+  650: {
+    counterLabel: "Random Event Rare Items",
+    counterSource: { kind: "CalcTalent", talentId: 650 },
+    counterNote:
+      "CalcTalentMAP[650] — Cards[1] matches of RANDOlist[82..86]",
+    wrap: (tv, c) => tv * c,
+    fmt: "+",
+    noteForActive: (tv, c) => `${tv.toFixed(2)} × ${c} % AFK gains rate`,
+    inactiveVal: 0,
+    inactiveNote: (_tv, c) =>
+      c <= 0 ? "Inactive — no Random Event rares found" : "Inactive — talent 0",
+    extraBaseKids: tvKid(),
+  },
+
+  // Tal 656 — Dreamer Damage (account-wide).
+  // N.js: GetTalentNumber(1,656) × CalcTalentMAP[656].
+  // CalcTalentMAP[656] = count of completed Equinox Dream clouds
+  // (DreamChallenge entries with WeeklyBoss["d_"+g] === -1).
+  656: {
+    counterLabel: "Dream Clouds Completed",
+    counterSource: { kind: "CalcTalent", talentId: 656 },
+    counterNote:
+      "CalcTalentMAP[656] — count DreamChallenge with WeeklyBoss[d_g]===-1",
+    wrap: (tv, c) => tv * c,
+    fmt: "+",
+    noteForActive: (tv, c) => `${tv.toFixed(2)} × ${c} % damage`,
+    inactiveVal: 0,
+    inactiveNote: (_tv, c) =>
+      c <= 0 ? "Inactive — no Dream clouds completed" : "Inactive — talent 0",
     extraBaseKids: tvKid(),
   },
 };
