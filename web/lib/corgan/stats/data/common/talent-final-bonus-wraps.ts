@@ -32,6 +32,11 @@ import { node } from "../../../node";
 import { optionsListData } from "../../../save/data";
 import { getLOG } from "../../../formulas";
 import type { SaveData } from "../../../state";
+import {
+  computePlayerHPmax,
+  computePlayerMPmax,
+  computeSkillEfficiency,
+} from "../../systems/common/derived-stats";
 
 /** Where a wrap's counter value comes from. Extend as new wrap counters
  *  are added (Cat 3a/3b/4 bring more kinds). */
@@ -84,24 +89,16 @@ function readCounter(
       return Number(row?.[src.col]) || 0;
     }
     case "PlayerHPmax":
+      return Number(computePlayerHPmax(charIdx, { saveData, charIdx }).val) || 0;
     case "PlayerMPmax":
+      return Number(computePlayerMPmax(charIdx, { saveData, charIdx }).val) || 0;
     case "SkillStats":
-      // TODO(onda-1b): port PlayerHPmax / PlayerMPmax / SkillStats.
-      // These derived stats aren't in the save and aren't ported yet.
-      // Until then the wrap emits its inactive value with a note.
-      void charIdx;
-      return 0;
+      return (
+        Number(
+          computeSkillEfficiency(src.stat, charIdx, { saveData, charIdx }).val
+        ) || 0
+      );
   }
-}
-
-/** True when src needs a derived stat we haven't ported yet — used to
- *  attach an explanatory note instead of silently showing 0. */
-function isUnportedCounter(src: CounterSource): boolean {
-  return (
-    src.kind === "PlayerHPmax" ||
-    src.kind === "PlayerMPmax" ||
-    src.kind === "SkillStats"
-  );
 }
 
 const logMul = (tv: number, c: number) => 1 + (tv * getLOG(c)) / 100;
@@ -286,19 +283,20 @@ export const TALENT_FINAL_BONUS_WRAPS: Record<number, TalentWrapSpec> = {
   },
 
   // ===== Cat 2 — log additive, DERIVED counter (per-char, fmt "+") =====
-  // Counter not in save / not yet ported → emits inactive (0) with a note.
+  // Counter computed from the ported stats engine (derived-stats.ts).
 
   // Tal 86 — Meat Shank (Barbarian).
   // "Damage dealt is increased by {% for every power of 10 Max HP you have".
   86: {
     counterLabel: "Max HP",
     counterSource: { kind: "PlayerHPmax" },
-    counterNote: "PlayerHPmax() — active char's computed max HP (TODO port)",
+    counterNote: "PlayerHPmax() — active char's computed max HP",
     wrap: logAdd,
     fmt: "+",
     noteForActive: (tv, c) => `${tv.toFixed(2)} × log10(${c}) % damage`,
     inactiveVal: 0,
-    inactiveNote: () => "Max HP not ported yet — final bonus needs PlayerHPmax()",
+    inactiveNote: (_tv, c) =>
+      c <= 0 ? "Inactive — Max HP is 0" : "Inactive — talent 0",
     extraBaseKids: (tv) => [
       node("Talent Value", tv, null, { fmt: "raw", note: "formula(effective_lv) — coefficient" }),
     ],
@@ -309,12 +307,13 @@ export const TALENT_FINAL_BONUS_WRAPS: Record<number, TalentWrapSpec> = {
   446: {
     counterLabel: "Max MP",
     counterSource: { kind: "PlayerMPmax" },
-    counterNote: "PlayerMPmax() — active char's computed max MP (TODO port)",
+    counterNote: "PlayerMPmax() — active char's computed max MP",
     wrap: logAdd,
     fmt: "+",
     noteForActive: (tv, c) => `${tv.toFixed(2)} × log10(${c}) % damage`,
     inactiveVal: 0,
-    inactiveNote: () => "Max MP not ported yet — final bonus needs PlayerMPmax()",
+    inactiveNote: (_tv, c) =>
+      c <= 0 ? "Inactive — Max MP is 0" : "Inactive — talent 0",
     extraBaseKids: (tv) => [
       node("Talent Value", tv, null, { fmt: "raw", note: "formula(effective_lv) — coefficient" }),
     ],
@@ -324,13 +323,14 @@ export const TALENT_FINAL_BONUS_WRAPS: Record<number, TalentWrapSpec> = {
   // "+% Wraith Crit Chance, +% Wraith Crit DMG per POW 10 Fishing Efficiency".
   202: {
     counterLabel: "Fishing Efficiency",
-    counterSource: { kind: "SkillStats", stat: "FishingEfficiency" },
-    counterNote: "SkillStats('FishingEfficiency') — active char (TODO port)",
+    counterSource: { kind: "SkillStats", stat: "Fishing" },
+    counterNote: "computeSkillEfficiency('Fishing') — active char",
     wrap: logAdd,
     fmt: "+",
     noteForActive: (tv, c) => `${tv.toFixed(2)} × log10(${c}) % wraith crit chance`,
     inactiveVal: 0,
-    inactiveNote: () => "Fishing Efficiency not ported yet — needs SkillStats()",
+    inactiveNote: (_tv, c) =>
+      c <= 0 ? "Inactive — Fishing Efficiency is 0" : "Inactive — talent 0",
     extraBaseKids: (tv) => [
       node("Talent Value", tv, null, { fmt: "raw", note: "formula(effective_lv) — coefficient (X bonus)" }),
     ],
@@ -381,12 +381,9 @@ export function applyTalentWrap(
   if (!spec) return null;
   const counter = readCounter(spec.counterSource, saveData, charIdx);
   const extraKids = spec.extraBaseKids ? spec.extraBaseKids(rawTalentVal) : [];
-  const unported = isUnportedCounter(spec.counterSource);
   const counterKid = node(spec.counterLabel, counter, null, {
     fmt: "raw",
-    note: unported
-      ? spec.counterNote + " — shows 0 until ported (wrap inactive)"
-      : spec.counterNote,
+    note: spec.counterNote,
   });
   const active = rawTalentVal > 0 && counter > 0;
   if (active) {
