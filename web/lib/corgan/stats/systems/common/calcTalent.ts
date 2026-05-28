@@ -36,6 +36,7 @@ import {
 import { apocalypseMapsOver, apocalypseMapsOverBest } from "../w6/upg-totals";
 import { talentParams } from "../../data/common/talent";
 import { formulaEval } from "../../../formulas";
+import { computeOverkillTier } from "./derived-damage";
 
 /** GetTalentNumber(2,id) approximated at the char's RAW talent level (no
  *  ATL chain) — the "Counts up to {" cap on the Apocalypse talents. The
@@ -258,10 +259,14 @@ export function computeCalcTalent(
     // ── 643 — Coins For Charon (per-char): Multikill Damage Tier ─────
     // N.js seeds MAP[643] = -11, then lazily replaces it with
     // RunCodeOfTypeXforThingY("OverkillStuffs","2") (the purple multikill
-    // damage tier shown in AFK Info) on first read.
-    // [STUB] The overkill-tier sim isn't ported. Returns 0.
+    // damage tier shown in AFK Info) on first read. We now port that:
+    // computeOverkillTier ports overkill.js, calling computeMaxDamage
+    // (derived-damage.ts, a port of damage.js) instead of corgan's
+    // buildTree/getCatalog. Returns the raw tier (1..50) for the char on
+    // their current AFK map; the wrap (talent-final-bonus-wraps.ts) applies
+    // tv × counter.
     case 643:
-      return 0; // [STUB] OverkillStuffs("2") multikill tier (Coins For Charon)
+      return computeOverkillTier(charIdx, { saveData, charIdx }).tier;
 
     // ── 644 — American Tipper (per-char): Cooking Lv / 10 ────────────
     // N.js: MAP[644] = Lv0[10] / 10 (active char's cooking level over 10,
