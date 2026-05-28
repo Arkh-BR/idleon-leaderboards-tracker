@@ -37,6 +37,7 @@ import {
   computePlayerMPmax,
   computeSkillEfficiency,
 } from "../../systems/common/derived-stats";
+import { computeTotalStat } from "../../systems/common/stats";
 
 /** Where a wrap's counter value comes from. Extend as new wrap counters
  *  are added (Cat 3a/3b/4 bring more kinds). */
@@ -50,7 +51,13 @@ export type CounterSource =
   /** Active char's computed max MP. PORTED IN: player-derived-stats.ts. */
   | { kind: "PlayerMPmax" }
   /** Active char's computed skill stat (e.g. "FishingEfficiency"). */
-  | { kind: "SkillStats"; stat: string };
+  | { kind: "SkillStats"; stat: string }
+  /** Active char's Lv0[index] — a skill/player level (mining=1, smith=2,
+   *  cooking=10, lab=12, sailing=13, divinity=14, gaming=15, etc). */
+  | { kind: "Lv0"; index: number }
+  /** Active char's computed primary stat (STR/AGI/WIS/LUK) via the
+   *  ported stats engine. */
+  | { kind: "TotalStat"; stat: string };
 
 /** Spec for a talent whose final bonus = wrap(rawTalentVal, counter). */
 export type TalentWrapSpec = {
@@ -98,12 +105,28 @@ function readCounter(
           computeSkillEfficiency(src.stat, charIdx, { saveData, charIdx }).val
         ) || 0
       );
+    case "Lv0":
+      return (
+        Number((saveData.lv0AllData as any)?.[charIdx]?.[src.index]) || 0
+      );
+    case "TotalStat":
+      return (
+        Number(computeTotalStat(src.stat, charIdx, { saveData, charIdx }).computed) || 0
+      );
   }
 }
 
 const logMul = (tv: number, c: number) => 1 + (tv * getLOG(c)) / 100;
 const logAdd = (tv: number, c: number) => tv * getLOG(c);
 const logChance = (tv: number, c: number) => (tv * getLOG(c)) / 100;
+
+/** Standard "Talent Value" coefficient kid emitted under a wrapped talent
+ *  so the user can see formula(effective_lv) before the counter is applied. */
+const tvKid =
+  (note = "formula(effective_lv) — per-step coefficient") =>
+  (tv: number): CorganNode[] => [
+    node("Talent Value", tv, null, { fmt: "raw", note }),
+  ];
 
 export const TALENT_FINAL_BONUS_WRAPS: Record<number, TalentWrapSpec> = {
   // ===== Cat 2 — log multiplier (account-wide, fmt "x") =====
@@ -357,6 +380,168 @@ export const TALENT_FINAL_BONUS_WRAPS: Record<number, TalentWrapSpec> = {
     extraBaseKids: (perSkull) => [
       node("Per Skull", perSkull, null, { fmt: "raw" }),
     ],
+  },
+
+  // Tal 58 — Master Of The System (Voidwalker, account-wide).
+  // "+% Multikill per tier per 5 maps of Speedrun highscore".
+  58: {
+    counterLabel: "Speedrun Highscore Maps",
+    counterSource: { kind: "OLA", index: 158 },
+    counterNote: "OLA[158] — speedrun highscore (maps cleared)",
+    wrap: (tv, c) => tv * Math.floor(c / 5),
+    fmt: "+",
+    noteForActive: (tv, c) => `${tv.toFixed(2)} × floor(${c}/5) % multikill`,
+    inactiveVal: 0,
+    inactiveNote: (_tv, c) =>
+      c <= 0 ? "Inactive — no Speedrun highscore (OLA[158])" : "Inactive — talent 0",
+    extraBaseKids: tvKid(),
+  },
+
+  // Tal 103 — Tool Proficiency (per-char). "+% more Mining Power per
+  // 10 Mining Lvs" — Lv0[1] = mining level.
+  103: {
+    counterLabel: "Mining Level",
+    counterSource: { kind: "Lv0", index: 1 },
+    counterNote: "Lv0[1] — mining skill level",
+    wrap: (tv, c) => (tv * (c / 10)) / 100,
+    fmt: "+",
+    noteForActive: (tv, c) => `${tv.toFixed(2)} × (${c}/10)/100 % mining power`,
+    inactiveVal: 0,
+    inactiveNote: (_tv, c) =>
+      c <= 0 ? "Inactive — Mining Lv 0" : "Inactive — talent 0",
+    extraBaseKids: tvKid(),
+  },
+
+  // Tal 140 — Tough Steaks (per-char). "+Weapon Power for every 10
+  // Cooking Lvs" — Lv0[10] = cooking level.
+  140: {
+    counterLabel: "Cooking Level",
+    counterSource: { kind: "Lv0", index: 10 },
+    counterNote: "Lv0[10] — cooking skill level",
+    wrap: (tv, c) => tv * Math.floor(c / 10),
+    fmt: "+",
+    noteForActive: (tv, c) => `${tv.toFixed(2)} × floor(${c}/10) weapon power`,
+    inactiveVal: 0,
+    inactiveNote: (_tv, c) =>
+      c <= 0 ? "Inactive — Cooking Lv 0" : "Inactive — talent 0",
+    extraBaseKids: tvKid(),
+  },
+
+  // Tal 141 — Charred Skulls (per-char). "+% Kill per Kill per 1000 STR".
+  141: {
+    counterLabel: "Total STR",
+    counterSource: { kind: "TotalStat", stat: "STR" },
+    counterNote: "computeTotalStat('STR') — active char",
+    wrap: (tv, c) => tv * (c / 1000),
+    fmt: "+",
+    noteForActive: (tv, c) => `${tv.toFixed(2)} × (${Math.round(c)}/1000) % kill`,
+    inactiveVal: 0,
+    inactiveNote: (_tv, c) =>
+      c <= 0 ? "Inactive — STR 0" : "Inactive — talent 0",
+    extraBaseKids: tvKid(),
+  },
+
+  // Tal 170 — Gamer Strength (per-char). "+Weapon Power for every 10
+  // Gaming Lvs" — Lv0[15] = gaming level.
+  170: {
+    counterLabel: "Gaming Level",
+    counterSource: { kind: "Lv0", index: 15 },
+    counterNote: "Lv0[15] — gaming skill level",
+    wrap: (tv, c) => tv * Math.floor(c / 10),
+    fmt: "+",
+    noteForActive: (tv, c) => `${tv.toFixed(2)} × floor(${c}/10) weapon power`,
+    inactiveVal: 0,
+    inactiveNote: (_tv, c) =>
+      c <= 0 ? "Inactive — Gaming Lv 0" : "Inactive — talent 0",
+    extraBaseKids: tvKid(),
+  },
+
+  // Tal 281 — Acme Anvil (per-char). "+extra Anvil Production Points per
+  // 10 Smithing Lvs" — Lv0[2] = smithing level.
+  281: {
+    counterLabel: "Smithing Level",
+    counterSource: { kind: "Lv0", index: 2 },
+    counterNote: "Lv0[2] — smithing skill level",
+    wrap: (tv, c) => tv * Math.floor(c / 10),
+    fmt: "+",
+    noteForActive: (tv, c) => `${tv.toFixed(2)} × floor(${c}/10) anvil pts`,
+    inactiveVal: 0,
+    inactiveNote: (_tv, c) =>
+      c <= 0 ? "Inactive — Smithing Lv 0" : "Inactive — talent 0",
+    extraBaseKids: tvKid(),
+  },
+
+  // Tal 320 — Crew Rowing Strength (per-char). "+Weapon Power for every
+  // 10 Sailing Lvs" — Lv0[13] = sailing level.
+  320: {
+    counterLabel: "Sailing Level",
+    counterSource: { kind: "Lv0", index: 13 },
+    counterNote: "Lv0[13] — sailing skill level",
+    wrap: (tv, c) => tv * Math.floor(c / 10),
+    fmt: "+",
+    noteForActive: (tv, c) => `${tv.toFixed(2)} × floor(${c}/10) weapon power`,
+    inactiveVal: 0,
+    inactiveNote: (_tv, c) =>
+      c <= 0 ? "Inactive — Sailing Lv 0" : "Inactive — talent 0",
+    extraBaseKids: tvKid(),
+  },
+
+  // Tal 366 — Stacked Skulls (per-char). "+% Kill per Kill per 1000 AGI".
+  366: {
+    counterLabel: "Total AGI",
+    counterSource: { kind: "TotalStat", stat: "AGI" },
+    counterNote: "computeTotalStat('AGI') — active char",
+    wrap: (tv, c) => tv * (c / 1000),
+    fmt: "+",
+    noteForActive: (tv, c) => `${tv.toFixed(2)} × (${Math.round(c)}/1000) % kill`,
+    inactiveVal: 0,
+    inactiveNote: (_tv, c) =>
+      c <= 0 ? "Inactive — AGI 0" : "Inactive — talent 0",
+    extraBaseKids: tvKid(),
+  },
+
+  // Tal 500 — Believer Strength (per-char). "+Weapon Power for every 10
+  // Divinity Lvs" — Lv0[14] = divinity level.
+  500: {
+    counterLabel: "Divinity Level",
+    counterSource: { kind: "Lv0", index: 14 },
+    counterNote: "Lv0[14] — divinity skill level",
+    wrap: (tv, c) => tv * Math.floor(c / 10),
+    fmt: "+",
+    noteForActive: (tv, c) => `${tv.toFixed(2)} × floor(${c}/10) weapon power`,
+    inactiveVal: 0,
+    inactiveNote: (_tv, c) =>
+      c <= 0 ? "Inactive — Divinity Lv 0" : "Inactive — talent 0",
+    extraBaseKids: tvKid(),
+  },
+
+  // Tal 530 — Wired In Power (per-char). "+Weapon Power for every 10
+  // Lab Lvs" — Lv0[12] = lab level.
+  530: {
+    counterLabel: "Lab Level",
+    counterSource: { kind: "Lv0", index: 12 },
+    counterNote: "Lv0[12] — lab skill level",
+    wrap: (tv, c) => tv * Math.floor(c / 10),
+    fmt: "+",
+    noteForActive: (tv, c) => `${tv.toFixed(2)} × floor(${c}/10) weapon power`,
+    inactiveVal: 0,
+    inactiveNote: (_tv, c) =>
+      c <= 0 ? "Inactive — Lab Lv 0" : "Inactive — talent 0",
+    extraBaseKids: tvKid(),
+  },
+
+  // Tal 531 — Memorial Skulls (per-char). "+% Kill per Kill per 1000 WIS".
+  531: {
+    counterLabel: "Total WIS",
+    counterSource: { kind: "TotalStat", stat: "WIS" },
+    counterNote: "computeTotalStat('WIS') — active char",
+    wrap: (tv, c) => tv * (c / 1000),
+    fmt: "+",
+    noteForActive: (tv, c) => `${tv.toFixed(2)} × (${Math.round(c)}/1000) % kill`,
+    inactiveVal: 0,
+    inactiveNote: (_tv, c) =>
+      c <= 0 ? "Inactive — WIS 0" : "Inactive — talent 0",
+    extraBaseKids: tvKid(),
   },
 };
 
