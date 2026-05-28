@@ -2039,15 +2039,16 @@ const APP_JS = `
     },
     "Archlord Of The Pirates (Talent 328)": function (_p, kids) {
       // total = 1 + (talVal × log10(plunder)) / 100.
-      // talent.resolve(328) now wraps its own output with the Plunderous
-      // Kills × multiplier (see common/talent.ts useMaxMode branch), so
-      // /drop-rate and /talents-level both see the SAME final-bonus
-      // shape: [Effective Level, Best Character: <name>, Plunderous Kills].
-      // The talent formula result lives in "Best Character: <name>"
-      // (the char-name suffix varies per save; we anchor on the prefix).
+      // talent.resolve(328) wraps its own output with the Plunderous
+      // Kills × multiplier (see common/talent.ts useMaxMode branch +
+      // external-context-multipliers.ts spec). The talent formula
+      // result is exposed as an explicit "Talent Value" kid via the
+      // spec's extraBaseKids — we used to read it from the sibling
+      // "Best Character: <name>", but that node now lives inside
+      // Base Level (it only contributes the raw lv).
       // Tal 328 is account-wide so its activity is implicit (val > 0
       // means at least one owner-class char has it invested).
-      var talVal = kid(kids, /^Best Character/);
+      var talVal = kid(kids, /^Talent Value$/);
       var plunder = kid(kids, /^Plunderous Kills$/);
       if (talVal === null || plunder === null) return null;
       if (talVal <= 0 || plunder < 1) return 1;

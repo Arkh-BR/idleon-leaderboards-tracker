@@ -1705,23 +1705,37 @@ export const talent = {
         node(bestLabel, r.val, null, { fmt: "raw" }),
       ];
       if (r.detail) {
+        // Build the base level node first, then inject "Best Character"
+        // as its FIRST child. This makes the visual link explicit: the
+        // best char only contributes to Base Level (it supplies the raw
+        // lv used as Points Invested). Bonus Levels and Super Levels are
+        // computed against the ACTIVE char's context, not the best char,
+        // so the sibling-of-Effective-Level placement we had before was
+        // misleading.
+        const baseLvlNode = emitBaseLevelNode(r.detail.rawLv, saveData, {
+          ownerCharIdx: r.bestChar,
+          ownerName: bestName,
+          talentId: id,
+          activeCharIdx: ctx.charIdx,
+          ...baseOpts,
+        });
+        baseLvlNode.children = [
+          node(bestLabel, r.detail.rawLv, null, {
+            fmt: "raw",
+            note:
+              "supplies the raw lv used as Points Invested — affects " +
+              "Base Level only; Bonus Levels and Super Levels are " +
+              "computed against the active char",
+          }),
+          ...(baseLvlNode.children || []),
+        ];
         maxChildren = [
           node(
             "Effective Level",
             r.detail.effectiveLv,
-            buildEffectiveChildren(
-              r.detail.bonusDetail,
-              emitBaseLevelNode(r.detail.rawLv, saveData, {
-                ownerCharIdx: r.bestChar,
-                ownerName: bestName,
-                talentId: id,
-                activeCharIdx: ctx.charIdx,
-                ...baseOpts,
-              })
-            ),
+            buildEffectiveChildren(r.detail.bonusDetail, baseLvlNode),
             { fmt: "raw" }
           ),
-          node(bestLabel, r.val, null, { fmt: "raw" }),
         ];
       }
 

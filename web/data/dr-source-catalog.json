@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-28T00:07:23.762Z",
+  "generatedAt": "2026-05-28T00:30:03.217Z",
   "refTotal": 43093.43816941274,
   "refSave": "zArkhe (save 25-21-16.json) — Town, no AC",
   "sourceCount": 75,
@@ -9527,6 +9527,17 @@
               "note": "min(invested, cap) — owner: ARKHELUCK",
               "children": [
                 {
+                  "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Effective Level / Base Level / Best Character: ARKHELUCK",
+                  "name": "Best Character: ARKHELUCK",
+                  "system": "Talents",
+                  "world": "Character",
+                  "pool": "Multi",
+                  "fmt": "raw",
+                  "refValue": 389,
+                  "bucket": "🎯 Talents",
+                  "note": "supplies the raw lv used as Points Invested — affects Base Level only; Bonus Levels and Super Levels are computed against the active char"
+                },
+                {
                   "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Effective Level / Base Level / Points Invested",
                   "name": "Points Invested",
                   "system": "Talents",
@@ -9940,9 +9951,7 @@
                   "formulaKey": "maxBookLvSum",
                   "agg": "custom"
                 }
-              ],
-              "formulaKey": "minOfChildren",
-              "agg": "custom"
+              ]
             },
             {
               "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Effective Level / Bonus Levels",
@@ -11204,14 +11213,15 @@
           "agg": "custom"
         },
         {
-          "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Best Character: ARKHELUCK",
-          "name": "Best Character: ARKHELUCK",
+          "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value",
+          "name": "Talent Value",
           "system": "Talents",
           "world": "Character",
           "pool": "Multi",
           "fmt": "raw",
           "refValue": 4.846153846153846,
-          "bucket": "🎯 Talents"
+          "bucket": "🎯 Talents",
+          "note": "talent.resolve(328) val — input to the Plunderous Kills wrap"
         },
         {
           "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Plunderous Kills",

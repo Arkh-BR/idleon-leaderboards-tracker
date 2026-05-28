@@ -83,6 +83,17 @@ export const EXTERNAL_CONTEXT_MULTIPLIERS: Record<number, ExternalContextSpec> =
       plunder <= 0
         ? "Inactive — no Plunderous Kills (OLA[139])"
         : "Inactive — Archlord talent contributes 0",
+    // Surface the talent formula result as an explicit kid so the
+    // gen-source-catalog handler can pick it up by name. We used to
+    // anchor on the sibling "Best Character: <name>" node for this
+    // value, but that node moved inside Base Level (it only affects
+    // the raw lv used as Points Invested), breaking the depth=1 lookup.
+    extraBaseKids: (talVal) => [
+      node("Talent Value", talVal, null, {
+        fmt: "raw",
+        note: "talent.resolve(328) val — input to the Plunderous Kills wrap",
+      }),
+    ],
   },
 
   // Tal 655 — Boss Battle Spillover (star talent).
