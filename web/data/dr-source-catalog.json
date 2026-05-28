@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-27T18:38:30.913Z",
+  "generatedAt": "2026-05-28T00:07:23.762Z",
   "refTotal": 43093.43816941274,
   "refSave": "zArkhe (save 25-21-16.json) — Town, no AC",
   "sourceCount": 75,
@@ -484,8 +484,8 @@
                               "agg": "custom"
                             },
                             {
-                              "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Winner Multi (combined) / W3 Merit Shop (Task)",
-                              "name": "W3 Merit Shop (Task)",
+                              "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Winner Multi (combined) / W6 Merit Shop (Task)",
+                              "name": "W6 Merit Shop (Task)",
                               "system": "Talents",
                               "world": "Character",
                               "pool": "Additive",
@@ -934,8 +934,8 @@
                                       "agg": "custom"
                                     },
                                     {
-                                      "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Winner Multi (combined) / W3 Merit Shop (Task)",
-                                      "name": "W3 Merit Shop (Task)",
+                                      "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Winner Multi (combined) / W6 Merit Shop (Task)",
+                                      "name": "W6 Merit Shop (Task)",
                                       "system": "Talents",
                                       "world": "Character",
                                       "pool": "Additive",
@@ -1446,8 +1446,8 @@
                                           "agg": "custom"
                                         },
                                         {
-                                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Winner Multi (combined) / W3 Merit Shop (Task)",
-                                          "name": "W3 Merit Shop (Task)",
+                                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Winner Multi (combined) / W6 Merit Shop (Task)",
+                                          "name": "W6 Merit Shop (Task)",
                                           "system": "Talents",
                                           "world": "Character",
                                           "pool": "Additive",
@@ -2213,8 +2213,8 @@
                               "agg": "custom"
                             },
                             {
-                              "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Winner Multi (combined) / W3 Merit Shop (Task)",
-                              "name": "W3 Merit Shop (Task)",
+                              "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Winner Multi (combined) / W6 Merit Shop (Task)",
+                              "name": "W6 Merit Shop (Task)",
                               "system": "Talents",
                               "world": "Character",
                               "pool": "Additive",
@@ -2663,8 +2663,8 @@
                                       "agg": "custom"
                                     },
                                     {
-                                      "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Winner Multi (combined) / W3 Merit Shop (Task)",
-                                      "name": "W3 Merit Shop (Task)",
+                                      "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Winner Multi (combined) / W6 Merit Shop (Task)",
+                                      "name": "W6 Merit Shop (Task)",
                                       "system": "Talents",
                                       "world": "Character",
                                       "pool": "Additive",
@@ -3175,8 +3175,8 @@
                                           "agg": "custom"
                                         },
                                         {
-                                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Winner Multi (combined) / W3 Merit Shop (Task)",
-                                          "name": "W3 Merit Shop (Task)",
+                                          "id": "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Winner Multi (combined) / W6 Merit Shop (Task)",
+                                          "name": "W6 Merit Shop (Task)",
                                           "system": "Talents",
                                           "world": "Character",
                                           "pool": "Additive",
@@ -3545,17 +3545,28 @@
       "fmt": "+",
       "refValue": 58.51063829787235,
       "bucket": "🎯 Talents",
-      "note": "talent 655 — decay(25, 100, Base Level) × Skulls Beaten  (star talent — no external bonus levels, Base gates the bonus)",
+      "note": "11.70 per skull × 5 skulls — decay(25, 100, Base Level) × Skulls Beaten  (star talent — no external bonus levels, Base gates the bonus)",
       "children": [
         {
-          "id": "Drop Rate / Additive Pool / 🎯 Talents / Boss Battle Spillover (Talent 655) / Base Level",
-          "name": "Base Level",
+          "id": "Drop Rate / Additive Pool / 🎯 Talents / Boss Battle Spillover (Talent 655) / Active",
+          "name": "Active",
+          "system": "Talents",
+          "world": "Character",
+          "pool": "Additive",
+          "fmt": "raw",
+          "refValue": 1,
+          "bucket": "🎯 Talents"
+        },
+        {
+          "id": "Drop Rate / Additive Pool / 🎯 Talents / Boss Battle Spillover (Talent 655) / Level",
+          "name": "Level",
           "system": "Talents",
           "world": "Character",
           "pool": "Additive",
           "fmt": "raw",
           "refValue": 88,
-          "bucket": "🎯 Talents"
+          "bucket": "🎯 Talents",
+          "note": "star talent — pool capped, no book lv"
         },
         {
           "id": "Drop Rate / Additive Pool / 🎯 Talents / Boss Battle Spillover (Talent 655) / Skulls Beaten",
@@ -3566,7 +3577,7 @@
           "fmt": "raw",
           "refValue": 5,
           "bucket": "🎯 Talents",
-          "note": "OLA[189]"
+          "note": "OLA[189] — count of skulls beaten"
         }
       ],
       "agg": "custom"
@@ -9878,8 +9889,8 @@
                               "agg": "custom"
                             },
                             {
-                              "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Winner Multi (combined) / W3 Merit Shop (Task)",
-                              "name": "W3 Merit Shop (Task)",
+                              "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Winner Multi (combined) / W6 Merit Shop (Task)",
+                              "name": "W6 Merit Shop (Task)",
                               "system": "Talents",
                               "world": "Character",
                               "pool": "Multi",
@@ -10328,8 +10339,8 @@
                                       "agg": "custom"
                                     },
                                     {
-                                      "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Winner Multi (combined) / W3 Merit Shop (Task)",
-                                      "name": "W3 Merit Shop (Task)",
+                                      "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Winner Multi (combined) / W6 Merit Shop (Task)",
+                                      "name": "W6 Merit Shop (Task)",
                                       "system": "Talents",
                                       "world": "Character",
                                       "pool": "Multi",
@@ -10840,8 +10851,8 @@
                                           "agg": "custom"
                                         },
                                         {
-                                          "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Winner Multi (combined) / W3 Merit Shop (Task)",
-                                          "name": "W3 Merit Shop (Task)",
+                                          "id": "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Winner Multi (combined) / W6 Merit Shop (Task)",
+                                          "name": "W6 Merit Shop (Task)",
                                           "system": "Talents",
                                           "world": "Character",
                                           "pool": "Multi",
