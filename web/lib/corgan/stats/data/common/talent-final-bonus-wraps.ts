@@ -45,7 +45,11 @@ import {
   compassUpgTotal,
   totBreedzWWz,
   statueOnyxOwned,
+  atomBonus1,
+  totalTitanKills,
 } from "../../systems/w6/upg-totals";
+import { talentParams } from "./talent";
+import { formulaEval } from "../../../formulas";
 
 /** Where a wrap's counter value comes from. Extend as new wrap counters
  *  are added (Cat 3a/3b/4 bring more kinds). */
@@ -79,7 +83,18 @@ export type CounterSource =
    *  N.js `_customBlock_TalentCalc`. Ported in systems/common/calcTalent.ts.
    *  Some sub-sources are stubbed to 0 there (rift kill-trackers, overkill
    *  tier, accuracy gate) — those wraps emit their inactive value. */
-  | { kind: "CalcTalent"; talentId: number };
+  | { kind: "CalcTalent"; talentId: number }
+  /** Count of titans killed = Σ Compass[1][l] === 1. Exponent of Tal 434. */
+  | { kind: "TotalTitanKills" }
+  /** [STUB] Total quantity of an item owned across inventory + storage
+   *  (N.js PixelHelperActor[5]._ItemsAndStorageOWNED.h.<key>). This is a
+   *  RUNTIME-computed rollup not present in the raw save (corgan ports no
+   *  inventory/storage arrays), so it always returns 0. The wrap emits its
+   *  inactive value; `item` is carried only for the counter label/note. */
+  | { kind: "InvStorageOwned"; item: string }
+  /** [STUB] Active char's movement-speed bonus (N.js PlayerSpeedBonus()) —
+   *  a derived combat stat not ported in corgan. Returns 0 → inactive. */
+  | { kind: "PlayerSpeedBonus" };
 
 /** Spec for a talent whose final bonus = wrap(rawTalentVal, counter). */
 export type TalentWrapSpec = {
@@ -89,8 +104,19 @@ export type TalentWrapSpec = {
   counterSource: CounterSource;
   /** Free-text note attached to the counter kid. */
   counterNote: string;
-  /** Applies the counter to the talent's raw value → the final bonus. */
+  /** Applies the counter to the talent's raw value → the final bonus.
+   *  When `wrapWithLv` is set, it takes precedence (for talents whose final
+   *  bonus also needs the talent's tab-2 formula value, e.g. a Lv-scaled
+   *  cap). The plain `wrap` is still required as the fallback/signature. */
   wrap: (rawTalentVal: number, counter: number) => number;
+  /** Optional Lv-aware wrap. Receives the talent's effective level so the
+   *  spec can compute its own tab-2 (`GetTalentNumber(2,id)`) value — used
+   *  by talents that clamp the linear term against a Lv-scaled cap (Tal 282). */
+  wrapWithLv?: (
+    rawTalentVal: number,
+    counter: number,
+    effectiveLv: number
+  ) => number;
   /** Format of the wrapped value: "x" (multiplier) or "+" (additive). */
   fmt: "x" | "+";
   /** Headline note for the wrapped node, given both inputs. */
@@ -98,9 +124,24 @@ export type TalentWrapSpec = {
   /** Value + note to emit when the wrap is inactive (raw<=0 or counter<=0). */
   inactiveVal: number;
   inactiveNote: (rawTalentVal: number, counter: number) => string;
-  /** Extra kids inserted alongside the base kids (e.g. a "Per Skull" row). */
-  extraBaseKids?: (rawTalentVal: number) => CorganNode[];
+  /** Extra kids inserted alongside the base kids (e.g. a "Per Skull" row).
+   *  Receives the save + active charIdx so data-derived rows (e.g. an Atom
+   *  bonus term) can be surfaced for transparency. */
+  extraBaseKids?: (
+    rawTalentVal: number,
+    saveData: SaveData,
+    charIdx: number
+  ) => CorganNode[];
 };
+
+/** Helper for cap-clamped talents: `GetTalentNumber(2,id)` at the given
+ *  effective level (the talent's tab-2 / x2 formula value). Returns 0 when
+ *  the talent has no tab-2 formula. Used by Tal 282's "Caps at }%" term. */
+function talentTab2(talentId: number, effectiveLv: number): number {
+  const p = talentParams(talentId, 2);
+  if (!p || !p.formula || p.formula === "txt" || p.formula === "_") return 0;
+  return Number(formulaEval(p.formula, p.x1, p.x2, effectiveLv)) || 0;
+}
 
 /** Reads a wrap counter from the save. Per-char counters (HPmax, etc.)
  *  use charIdx. Returns 0 for not-yet-ported derived stats (the wrap
@@ -151,6 +192,12 @@ function readCounter(
       );
     case "CalcTalent":
       return Number(computeCalcTalent(src.talentId, charIdx, saveData)) || 0;
+    case "TotalTitanKills":
+      return totalTitanKills(saveData);
+    case "InvStorageOwned":
+      return 0; // [STUB] inventory/storage rollup not ported (see CounterSource)
+    case "PlayerSpeedBonus":
+      return 0; // [STUB] movement-speed derived stat not ported
   }
 }
 
@@ -1055,6 +1102,140 @@ export const TALENT_FINAL_BONUS_WRAPS: Record<number, TalentWrapSpec> = {
       c <= 0 ? "Inactive — no Dream clouds completed" : "Inactive — talent 0",
     extraBaseKids: tvKid(),
   },
+
+  // ===== Cat 4 — inventory-log + Atom (per-char, fmt "+") =====
+  // N.js tooltip (TalentPow10Disp): final =
+  //   GetTalentNumber(1,id) × (getLOG(<itemCount>) + AtomCollider("AtomBonuses",1,0))
+  // where <itemCount> = PixelHelperActor[5]._ItemsAndStorageOWNED.h.<key>
+  // (total of an item across inventory + storage). That rollup is a RUNTIME
+  // value the raw save does NOT contain (corgan ports no inventory/storage),
+  // so the itemCount counter is STUBBED to 0 → the wrap emits its inactive
+  // value (+0). The Atom-1 ("Helium - Talent Power Stacker") term IS ported
+  // (Atoms[1] × AtomInfo[1][4]) and is surfaced as an info kid for context.
+  ...((): Record<number, TalentWrapSpec> => {
+    const invAtom = (
+      itemKey: string,
+      itemLabel: string,
+      effectWord: string
+    ): TalentWrapSpec => ({
+      counterLabel: `${itemLabel} Owned (inv+storage)`,
+      counterSource: { kind: "InvStorageOwned", item: itemKey },
+      counterNote: `[STUB] ItemsAndStorageOWNED.${itemKey} — inventory/storage rollup unported (0)`,
+      // Faithful headline shape (counter is stubbed 0 so this branch is
+      // never taken in practice — kept for correctness if a count is ever
+      // ported). final = tv × (log10(count) + AtomBonuses[1]).
+      wrap: (tv, c) => tv * (getLOG(c) + 0),
+      fmt: "+",
+      noteForActive: (tv, c) =>
+        `${tv.toFixed(2)} × (log10(${c}) + Atom1) % ${effectWord}`,
+      inactiveVal: 0,
+      inactiveNote: () =>
+        `Inactive — counter stubbed (inventory/storage rollup unported)`,
+      extraBaseKids: (tv, saveData) => [
+        node("Talent Value", tv, null, {
+          fmt: "raw",
+          note: "formula(effective_lv) — per-power-of-10 coefficient",
+        }),
+        node("Atom Bonus (Helium)", atomBonus1(saveData), null, {
+          fmt: "raw",
+          note: "AtomCollider('AtomBonuses',1,0) = Atoms[1] × AtomInfo[1][4] — extra powers of 10 added to log10(count)",
+        }),
+      ],
+    });
+    return {
+      // Tal 101 — Copper Collector (Mining): +% Mining Eff per POW10 Copper.
+      101: invAtom("Copper", "Copper Ore", "mining efficiency"),
+      // Tal 131 — Redox Rates (Refinery1): +% Build Speed per POW10 Redox Salts.
+      131: invAtom("Refinery1", "Redox Salts", "build speed"),
+      // Tal 295 — Teleki'net'ic Logs (OakTree): +% Catching Eff per POW10 Oak Logs.
+      295: invAtom("OakTree", "Oak Logs", "catching efficiency"),
+      // Tal 311 — Invasive Species (Critter1): +% Trapping Eff per POW10 Froge Critters.
+      311: invAtom("Critter1", "Froge Critters", "trapping efficiency"),
+      // Tal 461 — Leaf Thief (Leaf1): +% Choppin Eff per POW10 Grass Leaves.
+      461: invAtom("Leaf1", "Grass Leaves", "choppin efficiency"),
+      // Tal 476 — Sooouls (Soul1): +% Worship Eff per POW10 Forest Souls.
+      476: invAtom("Soul1", "Forest Souls", "worship efficiency"),
+    };
+  })(),
+
+  // ===== Cat 4 — power form (fmt "x") =====
+
+  // Tal 313 — Reflective Eyesight (Beast Master, per-char). POWER form.
+  // N.js (RareBonusOnOpenMULTI path): pow(max(1, GetTalentNumber(1,313)),
+  //   1 + floor(Lv0[7]/10)). Lv0[7] = Trapping level. "{x Shiny Critter
+  //   chance. Triggers again every 10 Trapping LVs."
+  313: {
+    counterLabel: "Trapping Level",
+    counterSource: { kind: "Lv0", index: 7 },
+    counterNote: "Lv0[7] — Trapping skill level (exponent = 1 + floor(LV/10))",
+    wrap: (tv, c) => Math.pow(Math.max(1, tv), 1 + Math.floor(c / 10)),
+    fmt: "x",
+    noteForActive: (tv, c) =>
+      `pow(max(1, ${tv.toFixed(2)}), 1 + floor(${c}/10)) shiny chance`,
+    inactiveVal: 1,
+    inactiveNote: (_tv, c) =>
+      c <= 0 ? "Inactive — Trapping LV 0 → pow(..,1)" : "Inactive — talent 0",
+    extraBaseKids: tvKid("formula(effective_lv) — base x-multiplier (per 10 Trapping LV)"),
+  },
+
+  // Tal 434 — Slayer Abominator (Wind Walker, account-wide). POWER form.
+  // N.js tooltip: pow(GetTalentNumber(1,434), TotalTitanKills).
+  //   TotalTitanKills = Σ Compass[1][l] === 1 (titans/abominations killed).
+  //   "{x Class EXP bonus for every abomination you kill, for all chars."
+  434: {
+    counterLabel: "Abominations Killed",
+    counterSource: { kind: "TotalTitanKills" },
+    counterNote: "Σ Compass[1][l] === 1 — titans/abominations killed (exponent)",
+    wrap: (tv, c) => Math.pow(tv, c),
+    fmt: "x",
+    noteForActive: (tv, c) => `pow(${tv.toFixed(4)}, ${c}) class EXP`,
+    inactiveVal: 1,
+    inactiveNote: (_tv, c) =>
+      c <= 0 ? "Inactive — no abominations killed → pow(..,0) = 1" : "Inactive — talent 0",
+    extraBaseKids: tvKid("formula(effective_lv) — per-kill x-multiplier base"),
+  },
+
+  // ===== Cat 4 — clamped linear w/ Lv-scaled cap (per-char, fmt "+") =====
+
+  // Tal 282 — Yea I Already Know (Maestro, per-char). CLAMP form.
+  // N.js: min(GetTalentNumber(1,282) × (TotalStats("AGI")/250),
+  //   GetTalentNumber(2,282)). "Start with {% exp per 250 AGI ... Caps at }%."
+  // The cap GTN(2,282) is the talent's tab-2 formula at the effective level.
+  282: {
+    counterLabel: "Total AGI",
+    counterSource: { kind: "TotalStat", stat: "AGI" },
+    counterNote: "computeTotalStat('AGI') — active char",
+    wrap: (tv, c) => tv * (c / 250), // fallback (uncapped) — see wrapWithLv
+    wrapWithLv: (tv, c, effLv) =>
+      Math.min(tv * (c / 250), talentTab2(282, effLv)),
+    fmt: "+",
+    noteForActive: (tv, c) =>
+      `min(${tv.toFixed(2)} × (${Math.round(c)}/250), cap) % skill exp`,
+    inactiveVal: 0,
+    inactiveNote: (_tv, c) =>
+      c <= 0 ? "Inactive — AGI 0" : "Inactive — talent 0",
+    extraBaseKids: tvKid("formula(effective_lv) — % exp per 250 AGI (capped by tab-2)"),
+  },
+
+  // ===== Cat 4 — derived counter, STUBBED (per-char, fmt "+") =====
+
+  // Tal 290 — Speedna (per-char). N.js: GetTalentNumber(1,290) ×
+  //   (min(1000, 100×(PlayerSpeedBonus()-1)) / 15). "+% Damage for every 15%
+  //   movement spd above 100% (capped at 1000% spd)."
+  // [STUB] PlayerSpeedBonus() is a derived combat stat not ported in corgan,
+  // so the movement-speed counter is 0 → the wrap emits inactive (+0).
+  290: {
+    counterLabel: "Movement Speed % over 100",
+    counterSource: { kind: "PlayerSpeedBonus" },
+    counterNote: "[STUB] min(1000, 100×(PlayerSpeedBonus-1)) — move-speed stat unported (0)",
+    wrap: (tv, c) => tv * (c / 15),
+    fmt: "+",
+    noteForActive: (tv, c) => `${tv.toFixed(2)} × (${c}/15) % damage`,
+    inactiveVal: 0,
+    inactiveNote: (_tv, c) =>
+      c <= 0 ? "Inactive — counter stubbed (movement-speed stat unported)" : "Inactive — talent 0",
+    extraBaseKids: tvKid("formula(effective_lv) — % dmg per 15% move spd"),
+  },
 };
 
 /** Convenience: true if the talent has a final-bonus wrap. */
@@ -1072,19 +1253,24 @@ export function applyTalentWrap(
   baseKids: CorganNode[],
   talentName: string,
   saveData: SaveData,
-  charIdx: number
+  charIdx: number,
+  effectiveLv = 0
 ): CorganNode | null {
   const spec = TALENT_FINAL_BONUS_WRAPS[talentId];
   if (!spec) return null;
   const counter = readCounter(spec.counterSource, saveData, charIdx);
-  const extraKids = spec.extraBaseKids ? spec.extraBaseKids(rawTalentVal) : [];
+  const extraKids = spec.extraBaseKids
+    ? spec.extraBaseKids(rawTalentVal, saveData, charIdx)
+    : [];
   const counterKid = node(spec.counterLabel, counter, null, {
     fmt: "raw",
     note: spec.counterNote,
   });
+  const applyWrap = (tv: number, c: number) =>
+    spec.wrapWithLv ? spec.wrapWithLv(tv, c, effectiveLv) : spec.wrap(tv, c);
   const active = rawTalentVal > 0 && counter > 0;
   if (active) {
-    return node(talentName, spec.wrap(rawTalentVal, counter), [...baseKids, ...extraKids, counterKid], {
+    return node(talentName, applyWrap(rawTalentVal, counter), [...baseKids, ...extraKids, counterKid], {
       fmt: spec.fmt,
       note: spec.noteForActive(rawTalentVal, counter),
     });

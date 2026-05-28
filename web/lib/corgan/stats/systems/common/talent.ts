@@ -1740,7 +1740,7 @@ export const talent = {
       // applied AFTER the cross-char max emit so the headline shows the
       // talent's FINAL bonus. The registry in talent-final-bonus-wraps.ts
       // owns the talent→counter mapping; here we just delegate.
-      const withCtx = applyTalentWrap(id, r.val, maxChildren, name, saveData, ctx.charIdx);
+      const withCtx = applyTalentWrap(id, r.val, maxChildren, name, saveData, ctx.charIdx, r.detail?.effectiveLv ?? 0);
       if (withCtx) return withCtx;
       return node(name, r.val, maxChildren, { fmt: "+" });
     }
@@ -1785,7 +1785,7 @@ export const talent = {
           note: "star talent — pool capped, no book lv",
         }),
       ];
-      const withCtx = applyTalentWrap(id, r.val, starKids, name, saveData, ctx.charIdx);
+      const withCtx = applyTalentWrap(id, r.val, starKids, name, saveData, ctx.charIdx, r.effectiveLv);
       if (withCtx) return withCtx;
       return node(name, r.val, starKids, {
         fmt: "+",
@@ -1819,7 +1819,7 @@ export const talent = {
     // Final-bonus wrap (data-driven via the registry) — fires for any
     // per-char talent that scales against an external/derived counter
     // (e.g. Tal 86 × log10(Max HP), Tal 638 × log10(Dungeon Credits)).
-    const withCtx = applyTalentWrap(id, r.val, standardKids, name, saveData, ctx.charIdx);
+    const withCtx = applyTalentWrap(id, r.val, standardKids, name, saveData, ctx.charIdx, r.effectiveLv);
     if (withCtx) return withCtx;
     return node(name, r.val, standardKids, {
       fmt: "+",

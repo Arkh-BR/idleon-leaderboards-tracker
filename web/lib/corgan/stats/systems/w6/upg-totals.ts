@@ -4,7 +4,7 @@
 // Ported 1:1 from N.js _customBlock_Summoning/Windwalker/ArcaneType
 // "...UpgTotal" branches.
 
-import { GrimoireUpg, ArcaneUpg, CompassUpg } from "../../data/game/customlists.js";
+import { GrimoireUpg, ArcaneUpg, CompassUpg, AtomInfo } from "../../data/game/customlists.js";
 import { optionsListData } from "../../../save/data";
 import type { SaveData } from "../../../state";
 
@@ -46,6 +46,29 @@ export function statueOnyxOwned(s: SaveData): number {
   const sg = (s as any).statueGData || [];
   let count = 0;
   for (let e = 0; e < sg.length; e++) if (Number(sg[e]) >= 2) count++;
+  return count;
+}
+
+/** AtomCollider("AtomBonuses", 1, 0) — the "Helium - Talent Power Stacker"
+ *  atom bonus. N.js: for b=1 (none of the b==0/5/8 special branches apply)
+ *  the value is simply Atoms[1] × AtomInfo[1][4] (atom level × per-level
+ *  coefficient). AtomInfo[1][4] == "1", so this is effectively the Atom 1
+ *  level — the "+N extra powers of 10" that several inventory-log talents
+ *  (101/131/295/311/461/476) add to their log10(count) term. */
+export function atomBonus1(s: SaveData): number {
+  const lvl = Number(((s as any).atomsData || [])[1]) || 0;
+  const coef = Number((AtomInfo as any[])?.[1]?.[4]) || 0;
+  return lvl * coef;
+}
+
+/** AtomCollider("TotalTitanKills") — count of Compass[1][l] === 1 (titans
+ *  killed). N.js: _customBlock_ArcaneType / Windwalker("TotalTitanKills")
+ *  loops Compass[1] and counts entries equal to 1. Used as the exponent of
+ *  Tal 434 (Slayer Abominator). */
+export function totalTitanKills(s: SaveData): number {
+  const row = ((s as any).compassData || [])[1] || [];
+  let count = 0;
+  for (let l = 0; l < row.length; l++) if (Number(row[l]) === 1) count++;
   return count;
 }
 
