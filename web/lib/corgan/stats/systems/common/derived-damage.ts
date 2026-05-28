@@ -77,6 +77,8 @@ import {
   computeFamBonusQTYs,
   computeGalleryBaseStat,
   computeStatueBonusGiven,
+  computeEquipBaseStat,
+  computeObolBaseStat,
   primaryStatForClass,
 } from "./stats";
 import { computePlayerHPmax, computePlayerMPmax } from "./derived-stats";
@@ -1156,6 +1158,145 @@ export function computePlayerSpeed(ci: number, ctx: Ctx): number {
     playerSpeed = Math.floor(100 * playerSpeed) / 100;
   } catch {}
   return playerSpeed;
+}
+
+// ==========================================================================
+// ACCURACY — port of corgan-source/js/stats/defs/accuracy.js (combine body),
+// which itself ports N.js `_customBlock_PlayerAccTot`. Returns the char's
+// total accuracy as a finite scalar (the descriptor tree is dropped — only
+// the value is needed for the talent-125 >= gate).
+//
+// N.js shape (PlayerAccTot, confirmed at offset 4061816):
+//   PlayerACCDN = TotalStats(secondaryStat)                          [Step 2]
+//               × (1 + AlchBubbles.AccPct/100)
+//               × (1 + Σpct/100)        // buff288, card17, starAccPct,
+//                                        // buff124, statue14, arcade2,
+//                                        // flurbo5, bribe21, comp23
+//   if PlayerSpeedBonus() > 1.99: PlayerACCDN *= (1 + GTN(2,641)/100) [Step 3]
+//   acc = (pow(PlayerACCDN/4, 1.4) + PlayerACCDN + TotalStats("Accuracy"))
+//       × (1 + (PlayerACCDN + 2·CardSet(0,"4"))/200)                  [Step 4]
+//       × max(.1, 1 + (prayer6 − prayer15 − prayer16)/100)
+//       × (1 + (chipAcc + mealTotAcc + roo3 + voting3 + amarokSet)/100)
+//       × (1 + DivinityMinor/100)
+//
+// ── Faithfulness / [STUB] notes ──────────────────────────────────────────
+// Star-sign AccPct is faithful to corgan-source (its SIGN_BONUSES table has
+// no AccPct key → contributes 0, matching computeStarSignBonus here). The
+// following sub-sources are genuinely unported in this codebase and STUB to
+// the neutral value (0 additive). Because accuracy only feeds a >= gate, a
+// few missing additive % almost never flips the result:
+//   getBuffBonus(288,2) / getBuffBonus(124,1)  — runtime buffs, never in
+//       the raw save → 0 (same treatment as derived-damage GetBuffBonuses).
+//   computeFlurboShop(5)   — W2 dungeon flurbo shop  [STUB, local =0]
+//   computeRooBonus(3)     — W7 sushi RoG acc        [STUB, local =0]
+//   computeDivinityMinor   — W5 divinity minor link  [STUB, local =0]
+// All other sub-sources reuse already-ported systems.
+// ==========================================================================
+
+/** ClassStatTypes secondary-stat lookup (N.js ClassStatTypes, offset
+ *  14190631): class root 1→LUK, 6→WIS, 18→STR, 30→AGI. Beginner (cls 0)
+ *  resolves through returnClasses(0)=[1] → LUK. */
+function secondaryStatForClass(ci: number): string {
+  const cls = Number((charClassData as any) && (charClassData as any)[ci]) || 0;
+  if (cls < 6) return "LUK"; // beginner + journeyman family
+  const root = 6 + 12 * Math.floor((cls - 6) / 12);
+  if (root === 18) return "STR"; // archer → STR
+  if (root === 30) return "AGI"; // mage → AGI
+  return "WIS"; // warrior → WIS
+}
+
+/**
+ * computeAccuracy(charIdx, ctx) → PlayerAccTot() for the char. `ctx.charIdx`
+ * is the active char (matches N.js, which evaluates against the active
+ * char's stats). Returns a finite scalar; never throws.
+ */
+export function computeAccuracy(charIdx: number, ctx: Ctx): number {
+  const s = ctx.saveData;
+  if (!s) return 0;
+  const ci = charIdx ?? ctx.charIdx ?? 0;
+
+  // ---- Step 1: TotalStats("Accuracy") = flat base accuracy ----
+  let equipAcc = 0;
+  try {
+    equipAcc = computeEquipBaseStat(ci, "Accuracy", s).val || 0;
+  } catch {}
+  let galleryAcc = 0;
+  try {
+    galleryAcc = computeGalleryBaseStat(ci, ctx as any, "Accuracy").val || 0;
+  } catch {}
+  let obolAcc = 0;
+  try {
+    obolAcc = computeObolBaseStat(ci, "Accuracy").val || 0;
+  } catch {}
+  const vialBaseACC = safe(computeVialByKey, "baseACC", s);
+  const boxAcc = safe(computeBoxReward, ci, "acc");
+  const cardBonus23 = safe(computeCardBonusByType, 23, ci, s);
+  const etc28 = rval(etcBonus, "28", ctx);
+  let gfBaseAcc = 0;
+  try {
+    const gf = goldFoodBonuses("BaseAcc", ci, undefined as any, s);
+    gfBaseAcc = gf && typeof gf === "object" ? Number((gf as any).total) || 0 : Number(gf) || 0;
+  } catch {}
+  const stampBaseAcc = safe(computeStampBonusOfTypeX, "BaseAcc", s);
+  const summVault4 = safe(computeSummUpgBonus, 4, s);
+
+  const totalStatsAcc =
+    2 + vialBaseACC + boxAcc + cardBonus23 + etc28 + gfBaseAcc + stampBaseAcc +
+    summVault4 + equipAcc + galleryAcc + obolAcc;
+
+  // ---- Step 2: secondary stat scaled by AccPct + pct sum ----
+  const secName = secondaryStatForClass(ci);
+  let secondaryStat = 0;
+  try {
+    secondaryStat = computeTotalStat(secName, ci, ctx).computed || 0;
+  } catch {}
+
+  const accPct = safe(bubbleValByKey, "AccPct", ci, s);
+  const cardBonus17 = safe(computeCardBonusByType, 17, ci, s);
+  const statue14 = safe(computeStatueBonusGiven, 14, ci, s);
+  const arcade2 = rval(arcade, 2, ctx);
+  const flurbo5 = safe(computeFlurboShop, 5, s); // [STUB] local =0
+  const bribe21 = safe(getBribeBonus, "21", s);
+  const comp23 = rval(companion, 23, ctx);
+  const starAccPct = computeStarSignBonus("AccPct", ci, s); // faithful-to-corgan =0
+  const buff288 = 0; // [STUB] GetBuffBonuses(288,2) — runtime buff, not in save
+  const buff124 = 0; // [STUB] GetBuffBonuses(124,1) — runtime buff, not in save
+
+  const pctSum =
+    cardBonus17 + starAccPct + statue14 + arcade2 + flurbo5 + bribe21 + comp23 +
+    buff288 + buff124;
+
+  let playerACCDN = secondaryStat * (1 + accPct / 100) * (1 + pctSum / 100);
+
+  // ---- Step 3: speed→accuracy talent 641 conditional (GTN(2,641)) ----
+  const playerSpeed = computePlayerSpeed(ci, ctx);
+  const talent641 = rval(talent, 641, ctx, { tab: 2 });
+  if (playerSpeed > 1.99 && talent641) {
+    playerACCDN *= 1 + talent641 / 100;
+  }
+
+  // ---- Step 4: final formula ----
+  const base = Math.pow(playerACCDN / 4, 1.4) + playerACCDN + totalStatsAcc;
+
+  const cardSet4 = safe(computeCardSetBonus, ci, "4");
+  const prayer6 = safe(computePrayerReal, 6, 0, ci, s);
+  const prayer15pen = safe(computePrayerReal, 15, 1, ci, s);
+  const prayer16pen = safe(computePrayerReal, 16, 1, ci, s);
+  const chipAcc = safe(computeChipBonus, "acc");
+  const mealTotAcc = safe(computeMealBonus, "TotAcc", s);
+  const rooBonus3 = safe(computeRooBonus, 3, s); // [STUB] local =0
+  const votingBonus3 = rval(winBonus, 3, ctx);
+  const amarokSet = safe(getSetBonus, "AMAROK_SET");
+  const divinityMinor = safe(computeDivinityMinor, ci, 0, s); // [STUB] local =0
+
+  const prayerMult = Math.max(0.1, 1 + (prayer6 - prayer15pen - prayer16pen) / 100);
+  const postMult1 = 1 + (playerACCDN + 2 * cardSet4) / 200;
+  const postMult2 = 1 + (chipAcc + mealTotAcc + rooBonus3 + votingBonus3 + amarokSet) / 100;
+  const postMult3 = 1 + divinityMinor / 100;
+
+  let acc = base * postMult1 * prayerMult * postMult2 * postMult3;
+  if (acc !== acc || acc == null) acc = 0;
+  return acc;
 }
 
 // ==========================================================================

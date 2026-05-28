@@ -16,10 +16,11 @@
 // own local helper — NOT here. This module only covers the scalar keys.
 //
 // ── Faithfulness notes ──────────────────────────────────────────────
-// Most keys read directly off ported save arrays. A few sub-sources are
-// genuinely not ported (rift kill-trackers, overkill-tier sim, accuracy
-// gate) and are STUBBED to 0 / a documented proxy — each is flagged
-// `[STUB]` / `[PROXY]` inline so the caller knows the value is partial.
+// Every key is now computed from ported systems: rift kill-trackers
+// (110/146/209 via apocalypseMapsOver), overkill tier (643 via
+// computeOverkillTier), and the accuracy gate (125 via computeAccuracy)
+// were all de-stubbed. Tal 470 still uses a documented `[PROXY]`
+// (StampLv>0 stands in for StampLevelMAX>0.5).
 
 import {
   numCharacters,
@@ -27,16 +28,19 @@ import {
   cauldronInfoData,
   stampLvData,
   skillLvData,
+  currentMapData,
 } from "../../../save/data";
 import type { SaveData } from "../../../state";
 import {
   RANDOlist,
   DreamChallenge,
+  MapAFKtarget,
 } from "../../data/game/customlists.js";
+import { MONSTERS } from "../../data/game/monsters.js";
 import { apocalypseMapsOver, apocalypseMapsOverBest } from "../w6/upg-totals";
 import { talentParams } from "../../data/common/talent";
 import { formulaEval } from "../../../formulas";
-import { computeOverkillTier } from "./derived-damage";
+import { computeOverkillTier, computeAccuracy } from "./derived-damage";
 
 /** GetTalentNumber(2,id) approximated at the char's RAW talent level (no
  *  ATL chain) — the "Counts up to {" cap on the Apocalypse talents. The
@@ -127,13 +131,34 @@ export function computeCalcTalent(
 
     // ── 125 — Precision Power (per-char): Σ Refinery ranks, IF the
     // active char's total accuracy >= 2.25× the AFK target's defence ──
-    // [STUB] The accuracy gate (PlayerAccTot vs AFKtarget defence) needs
-    // the accuracy engine + the char's current AFK map, neither ported.
-    // N.js returns the refinery-rank sum (Σ Refinery[3+g][1], g=0..5)
-    // only when the gate passes, else 0. We can't evaluate the gate, so
-    // we return 0 (conservative — matches the "gate failed" branch).
-    case 125:
-      return 0; // [STUB] accuracy gate unported (Precision Power)
+    // N.js `_customBlock_TalentCalc` case 125 (offset 4421512):
+    //   v = PlayerAccTot();  b = MonsterDefinitionsGET;  y = AFKtarget;
+    //   if (v >= 2.25 * asNumber(b.h[y].h.Defence)) {
+    //     for (g=0; g<6; g++) DN1 += asNumber(Refinery[3+g][1]);
+    //     return DN1;   // Σ Refinery[3+g][1], g=0..5  (rank-1 column)
+    //   } else return 0;
+    // AFKtarget (the live monster key) ≡ MapAFKtarget[CurrentMap] for the
+    // active char (same mapping computeOverkillTier uses). Defence comes
+    // from MONSTERS[key].Defence.
+    case 125: {
+      // Refinery-rank sum (always computed; only returned when gate passes).
+      let refSum = 0;
+      const refinery = (saveData as any).refineryData;
+      if (refinery)
+        for (let g = 0; g < 6; g++)
+          refSum += Number(refinery[3 + g] && refinery[3 + g][1]) || 0;
+      if (refSum <= 0) return 0;
+
+      // AFK-target monster defence for the active char's current map.
+      const mapIdx = Number((currentMapData as any)?.[charIdx]) || 0;
+      const monsterKey = (MapAFKtarget as any)[mapIdx];
+      const mon = monsterKey && (MONSTERS as any)[monsterKey];
+      const defence = Number(mon && mon.Defence) || 0;
+
+      // Gate: active char total accuracy >= 2.25 × defence.
+      const acc = computeAccuracy(charIdx, { saveData, charIdx });
+      return acc >= 2.25 * defence ? refSum : 0;
+    }
 
     // ── 146 — Apocalypse Chow (per-char): mob types killed >1m ───────
     // Same shape as 110, threshold 1e6, cap GTN(2,146).

@@ -876,19 +876,21 @@ export const TALENT_FINAL_BONUS_WRAPS: Record<number, TalentWrapSpec> = {
 
   // Tal 125 — Precision Power (per-char).
   // N.js: GetTalentNumber(1,125) × CalcTalentMAP[125].
-  // CalcTalentMAP[125] = Σ Refinery ranks IF the active char's accuracy is
-  // >= 2.25× the AFK target's defence, else 0.
-  // [STUB COUNTER] the accuracy gate is unported → counter is 0 → inactive.
+  // CalcTalentMAP[125] = Σ Refinery ranks (Σ Refinery[3+g][1], g=0..5) IF the
+  // active char's accuracy is >= 2.25× the AFK target's defence, else 0.
   125: {
     counterLabel: "Refinery Ranks (acc-gated)",
     counterSource: { kind: "CalcTalent", talentId: 125 },
-    counterNote: "CalcTalentMAP[125] — [STUB] accuracy gate unported (0)",
+    counterNote:
+      "CalcTalentMAP[125] — Σ Refinery ranks when accuracy >= 2.25× AFK-target defence, else 0",
     wrap: (tv, c) => tv * c,
     fmt: "+",
     noteForActive: (tv, c) => `${tv.toFixed(2)} × ${c} % dmg`,
     inactiveVal: 0,
     inactiveNote: (_tv, c) =>
-      c <= 0 ? "Inactive — counter stubbed (accuracy gate unported)" : "Inactive — talent 0",
+      c <= 0
+        ? "Inactive — accuracy below 2.25× AFK-target defence (or no refinery ranks)"
+        : "Inactive — talent 0",
     extraBaseKids: tvKid(),
   },
 
