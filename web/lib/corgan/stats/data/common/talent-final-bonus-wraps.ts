@@ -38,6 +38,12 @@ import {
   computeSkillEfficiency,
 } from "../../systems/common/derived-stats";
 import { computeTotalStat } from "../../systems/common/stats";
+import {
+  grimoireUpgTotal,
+  arcaneUpgTotal,
+  compassUpgTotal,
+  totBreedzWWz,
+} from "../../systems/w6/upg-totals";
 
 /** Where a wrap's counter value comes from. Extend as new wrap counters
  *  are added (Cat 3a/3b/4 bring more kinds). */
@@ -57,7 +63,12 @@ export type CounterSource =
   | { kind: "Lv0"; index: number }
   /** Active char's computed primary stat (STR/AGI/WIS/LUK) via the
    *  ported stats engine. */
-  | { kind: "TotalStat"; stat: string };
+  | { kind: "TotalStat"; stat: string }
+  /** Account-wide W6 upgrade-total counters (sum of save arrays). */
+  | { kind: "GrimoireUpgTotal" }
+  | { kind: "ArcaneUpgTotal" }
+  | { kind: "CompassUpgTotal" }
+  | { kind: "TotBreedzWWz" };
 
 /** Spec for a talent whose final bonus = wrap(rawTalentVal, counter). */
 export type TalentWrapSpec = {
@@ -113,6 +124,14 @@ function readCounter(
       return (
         Number(computeTotalStat(src.stat, charIdx, { saveData, charIdx }).computed) || 0
       );
+    case "GrimoireUpgTotal":
+      return grimoireUpgTotal(saveData);
+    case "ArcaneUpgTotal":
+      return arcaneUpgTotal(saveData);
+    case "CompassUpgTotal":
+      return compassUpgTotal(saveData);
+    case "TotBreedzWWz":
+      return totBreedzWWz(saveData);
   }
 }
 
@@ -541,6 +560,92 @@ export const TALENT_FINAL_BONUS_WRAPS: Record<number, TalentWrapSpec> = {
     inactiveVal: 0,
     inactiveNote: (_tv, c) =>
       c <= 0 ? "Inactive — WIS 0" : "Inactive — talent 0",
+    extraBaseKids: tvKid(),
+  },
+
+  // ===== Cat 3a — W6 system upgrade-total counters (fmt "+") =====
+
+  // Tal 200 — Marauder Style. "+% Wraith DMG & Accuracy per 100 Grimoire Upgrades".
+  200: {
+    counterLabel: "Grimoire Upgrade Total",
+    counterSource: { kind: "GrimoireUpgTotal" },
+    counterNote: "Σ Grimoire[] — total grimoire upgrade levels",
+    wrap: (tv, c) => tv * (c / 100),
+    fmt: "+",
+    noteForActive: (tv, c) => `${tv.toFixed(2)} × (${c}/100) % wraith dmg/acc`,
+    inactiveVal: 0,
+    inactiveNote: (_tv, c) =>
+      c <= 0 ? "Inactive — no Grimoire upgrades" : "Inactive — talent 0",
+    extraBaseKids: tvKid(),
+  },
+
+  // Tal 201 — Bulwark Style. "+% Wraith Defence & HP per 100 Grimoire Upgrades".
+  201: {
+    counterLabel: "Grimoire Upgrade Total",
+    counterSource: { kind: "GrimoireUpgTotal" },
+    counterNote: "Σ Grimoire[] — total grimoire upgrade levels",
+    wrap: (tv, c) => tv * (c / 100),
+    fmt: "+",
+    noteForActive: (tv, c) => `${tv.toFixed(2)} × (${c}/100) % wraith def/hp`,
+    inactiveVal: 0,
+    inactiveNote: (_tv, c) =>
+      c <= 0 ? "Inactive — no Grimoire upgrades" : "Inactive — talent 0",
+    extraBaseKids: tvKid(),
+  },
+
+  // Tal 425 — Windborne. "+% Tempest Defence & Accuracy per 100 Compass Upgrades".
+  425: {
+    counterLabel: "Compass Upgrade Total",
+    counterSource: { kind: "CompassUpgTotal" },
+    counterNote: "Σ Compass[] — total compass upgrade levels",
+    wrap: (tv, c) => tv * (c / 100),
+    fmt: "+",
+    noteForActive: (tv, c) => `${tv.toFixed(2)} × (${c}/100) % tempest def/acc`,
+    inactiveVal: 0,
+    inactiveNote: (_tv, c) =>
+      c <= 0 ? "Inactive — no Compass upgrades" : "Inactive — talent 0",
+    extraBaseKids: tvKid(),
+  },
+
+  // Tal 426 — Elemental Mayhem. "+% Tempest Elemental Damage per 100 Compass Upgrades".
+  426: {
+    counterLabel: "Compass Upgrade Total",
+    counterSource: { kind: "CompassUpgTotal" },
+    counterNote: "Σ Compass[] — total compass upgrade levels",
+    wrap: (tv, c) => tv * (c / 100),
+    fmt: "+",
+    noteForActive: (tv, c) => `${tv.toFixed(2)} × (${c}/100) % tempest elem dmg`,
+    inactiveVal: 0,
+    inactiveNote: (_tv, c) =>
+      c <= 0 ? "Inactive — no Compass upgrades" : "Inactive — talent 0",
+    extraBaseKids: tvKid(),
+  },
+
+  // Tal 427 — Pumpin' Power. "+% Tempest Crit Hit chance per 25 Breedability".
+  427: {
+    counterLabel: "Breeds Unlocked (WW)",
+    counterSource: { kind: "TotBreedzWWz" },
+    counterNote: "count of unlocked breeds across 4 W6 breeding worlds",
+    wrap: (tv, c) => tv * Math.floor(c / 25),
+    fmt: "+",
+    noteForActive: (tv, c) => `${tv.toFixed(2)} × floor(${c}/25) % tempest crit`,
+    inactiveVal: 0,
+    inactiveNote: (_tv, c) =>
+      c <= 0 ? "Inactive — no breeds unlocked" : "Inactive — talent 0",
+    extraBaseKids: tvKid(),
+  },
+
+  // Tal 591 — Ghoulish Power. "+% Arcanist Accuracy & Defence per 100 Tesseract Upgrades".
+  591: {
+    counterLabel: "Arcane Upgrade Total",
+    counterSource: { kind: "ArcaneUpgTotal" },
+    counterNote: "Σ Arcane[] — total arcane (tesseract) upgrade levels",
+    wrap: (tv, c) => tv * (c / 100),
+    fmt: "+",
+    noteForActive: (tv, c) => `${tv.toFixed(2)} × (${c}/100) % arcanist acc/def`,
+    inactiveVal: 0,
+    inactiveNote: (_tv, c) =>
+      c <= 0 ? "Inactive — no Arcane upgrades" : "Inactive — talent 0",
     extraBaseKids: tvKid(),
   },
 };
