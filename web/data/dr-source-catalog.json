@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-28T14:25:42.246Z",
+  "generatedAt": "2026-05-28T20:33:42.353Z",
   "refTotal": 43093.43816941274,
   "refSave": "zArkhe (save 25-21-16.json) — Town, no AC",
   "sourceCount": 75,
@@ -5746,48 +5746,17 @@
           "bucket": "🌾 Farming"
         },
         {
-          "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) Bonus",
-          "name": "Dank Ranks (Talent 207) Bonus",
+          "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207)",
+          "name": "Dank Ranks (Talent 207)",
           "system": "Farming",
           "world": "World 6",
           "pool": "Additive",
-          "fmt": "x",
+          "fmt": "+",
           "refValue": 2.5221027479091997,
           "bucket": "🌾 Farming",
-          "note": "decayMulti(2, 200)",
           "children": [
             {
-              "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) Bonus / Reference Character",
-              "name": "Reference Character",
-              "system": "Farming",
-              "world": "World 6",
-              "pool": "Additive",
-              "fmt": "raw",
-              "refValue": 0,
-              "bucket": "🌾 Farming"
-            },
-            {
-              "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) Bonus / Base Level",
-              "name": "Base Level",
-              "system": "Farming",
-              "world": "World 6",
-              "pool": "Additive",
-              "fmt": "raw",
-              "refValue": 396,
-              "bucket": "🌾 Farming"
-            },
-            {
-              "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) Bonus / Bonus Level",
-              "name": "Bonus Level",
-              "system": "Farming",
-              "world": "World 6",
-              "pool": "Additive",
-              "fmt": "+",
-              "refValue": 241,
-              "bucket": "🌾 Farming"
-            },
-            {
-              "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) Bonus / Effective Level",
+              "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level",
               "name": "Effective Level",
               "system": "Farming",
               "world": "World 6",
@@ -5795,17 +5764,1703 @@
               "fmt": "raw",
               "refValue": 637,
               "bucket": "🌾 Farming",
+              "children": [
+                {
+                  "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Base Level",
+                  "name": "Base Level",
+                  "system": "Farming",
+                  "world": "World 6",
+                  "pool": "Additive",
+                  "fmt": "raw",
+                  "refValue": 396,
+                  "bucket": "🌾 Farming",
+                  "note": "min(invested, cap) — owner: ARKHE",
+                  "children": [
+                    {
+                      "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Base Level / Reference Character: ARKHE",
+                      "name": "Reference Character: ARKHE",
+                      "system": "Farming",
+                      "world": "World 6",
+                      "pool": "Additive",
+                      "fmt": "raw",
+                      "refValue": 396,
+                      "bucket": "🌾 Farming",
+                      "note": "supplies the raw lv used as Points Invested — affects Base Level only; Bonus Levels and Super Levels are computed against the active char"
+                    },
+                    {
+                      "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Base Level / Points Invested",
+                      "name": "Points Invested",
+                      "system": "Farming",
+                      "world": "World 6",
+                      "pool": "Additive",
+                      "fmt": "raw",
+                      "refValue": 396,
+                      "bucket": "🌾 Farming",
+                      "note": "save=396 — owner: ARKHE",
+                      "autoFill": true
+                    },
+                    {
+                      "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Base Level / Max Book Lv Cap",
+                      "name": "Max Book Lv Cap",
+                      "system": "Farming",
+                      "world": "World 6",
+                      "pool": "Additive",
+                      "fmt": "raw",
+                      "refValue": 396,
+                      "bucket": "🌾 Farming",
+                      "note": "N.js maxBookLv",
+                      "children": [
+                        {
+                          "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Base Level / Max Book Lv Cap / Base Level (N.js literal)",
+                          "name": "Base Level (N.js literal)",
+                          "system": "Farming",
+                          "world": "World 6",
+                          "pool": "Additive",
+                          "fmt": "+",
+                          "refValue": 100,
+                          "bucket": "🌾 Farming"
+                        },
+                        {
+                          "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Base Level / Max Book Lv Cap / Talent Book Library Base",
+                          "name": "Talent Book Library Base",
+                          "system": "Farming",
+                          "world": "World 6",
+                          "pool": "Additive",
+                          "fmt": "+",
+                          "refValue": 25,
+                          "bucket": "🌾 Farming"
+                        },
+                        {
+                          "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Base Level / Max Book Lv Cap / Salt Lick 4",
+                          "name": "Salt Lick 4",
+                          "system": "Farming",
+                          "world": "World 6",
+                          "pool": "Additive",
+                          "fmt": "+",
+                          "refValue": 20,
+                          "bucket": "🌾 Farming",
+                          "children": [
+                            {
+                              "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Base Level / Max Book Lv Cap / Salt Lick 4 / Salt Lick 4 Lv",
+                              "name": "Salt Lick 4 Lv",
+                              "system": "Farming",
+                              "world": "World 6",
+                              "pool": "Additive",
+                              "fmt": "raw",
+                              "refValue": 10,
+                              "bucket": "🌾 Farming"
+                            },
+                            {
+                              "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Base Level / Max Book Lv Cap / Salt Lick 4 / Per Lv",
+                              "name": "Per Lv",
+                              "system": "Farming",
+                              "world": "World 6",
+                              "pool": "Additive",
+                              "fmt": "raw",
+                              "refValue": 2,
+                              "bucket": "🌾 Farming"
+                            }
+                          ],
+                          "formulaKey": "twoChildProduct",
+                          "agg": "custom"
+                        },
+                        {
+                          "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Base Level / Max Book Lv Cap / W3 Merit Shop Unlock",
+                          "name": "W3 Merit Shop Unlock",
+                          "system": "Farming",
+                          "world": "World 6",
+                          "pool": "Additive",
+                          "fmt": "+",
+                          "refValue": 10,
+                          "bucket": "🌾 Farming",
+                          "children": [
+                            {
+                              "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Base Level / Max Book Lv Cap / W3 Merit Shop Unlock / W3 Merit Points Spent",
+                              "name": "W3 Merit Points Spent",
+                              "system": "Farming",
+                              "world": "World 6",
+                              "pool": "Additive",
+                              "fmt": "raw",
+                              "refValue": 5,
+                              "bucket": "🌾 Farming"
+                            },
+                            {
+                              "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Base Level / Max Book Lv Cap / W3 Merit Shop Unlock / Per Point",
+                              "name": "Per Point",
+                              "system": "Farming",
+                              "world": "World 6",
+                              "pool": "Additive",
+                              "fmt": "raw",
+                              "refValue": 2,
+                              "bucket": "🌾 Farming"
+                            }
+                          ],
+                          "formulaKey": "twoChildProduct",
+                          "agg": "custom"
+                        },
+                        {
+                          "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Base Level / Max Book Lv Cap / Checkout Takeout Achievement",
+                          "name": "Checkout Takeout Achievement",
+                          "system": "Farming",
+                          "world": "World 6",
+                          "pool": "Additive",
+                          "fmt": "+",
+                          "refValue": 5,
+                          "bucket": "🌾 Farming"
+                        },
+                        {
+                          "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Base Level / Max Book Lv Cap / Lv 1 Oxygen Atom",
+                          "name": "Lv 1 Oxygen Atom",
+                          "system": "Farming",
+                          "world": "World 6",
+                          "pool": "Additive",
+                          "fmt": "+",
+                          "refValue": 10,
+                          "bucket": "🌾 Farming",
+                          "children": [
+                            {
+                              "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Base Level / Max Book Lv Cap / Lv 1 Oxygen Atom / Atom 7 Lv",
+                              "name": "Atom 7 Lv",
+                              "system": "Farming",
+                              "world": "World 6",
+                              "pool": "Additive",
+                              "fmt": "raw",
+                              "refValue": 70,
+                              "bucket": "🌾 Farming"
+                            }
+                          ],
+                          "formulaKey": "atomLv1Bonus",
+                          "agg": "custom"
+                        },
+                        {
+                          "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Base Level / Max Book Lv Cap / Sovereign Fury Relic",
+                          "name": "Sovereign Fury Relic",
+                          "system": "Farming",
+                          "world": "World 6",
+                          "pool": "Additive",
+                          "fmt": "+",
+                          "refValue": 150,
+                          "bucket": "🌾 Farming",
+                          "children": [
+                            {
+                              "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Base Level / Max Book Lv Cap / Sovereign Fury Relic / Artifact 21 Base",
+                              "name": "Artifact 21 Base",
+                              "system": "Farming",
+                              "world": "World 6",
+                              "pool": "Additive",
+                              "fmt": "raw",
+                              "refValue": 25,
+                              "bucket": "🌾 Farming"
+                            },
+                            {
+                              "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Base Level / Max Book Lv Cap / Sovereign Fury Relic / Artifact 21 Tier",
+                              "name": "Artifact 21 Tier",
+                              "system": "Farming",
+                              "world": "World 6",
+                              "pool": "Additive",
+                              "fmt": "raw",
+                              "refValue": 6,
+                              "bucket": "🌾 Farming"
+                            }
+                          ],
+                          "formulaKey": "twoChildProduct",
+                          "agg": "custom"
+                        },
+                        {
+                          "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19",
+                          "name": "Summoning Winner Bonus 19",
+                          "system": "Farming",
+                          "world": "World 6",
+                          "pool": "Additive",
+                          "fmt": "+",
+                          "refValue": 75.621,
+                          "bucket": "🌾 Farming",
+                          "children": [
+                            {
+                              "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles",
+                              "name": "Summoning Battles",
+                              "system": "Farming",
+                              "world": "World 6",
+                              "pool": "Additive",
+                              "fmt": "raw",
+                              "refValue": 14,
+                              "bucket": "🌾 Farming",
+                              "note": "4 raw × 3.5× Base = 14.00  →  then × 1.95× Higher Bonus × 2.77× Winner = 75.62",
+                              "children": [
+                                {
+                                  "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Cyan",
+                                  "name": "Cyan",
+                                  "system": "Farming",
+                                  "world": "World 6",
+                                  "pool": "Additive",
+                                  "fmt": "+",
+                                  "refValue": 10.5,
+                                  "bucket": "🌾 Farming",
+                                  "note": "Σ Cyan (W6) battles (post-Base Multi)",
+                                  "children": [
+                                    {
+                                      "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Cyan / Battle 14",
+                                      "name": "Battle 14",
+                                      "system": "Farming",
+                                      "world": "World 6",
+                                      "pool": "Additive",
+                                      "fmt": "raw",
+                                      "refValue": 10.5,
+                                      "bucket": "🌾 Farming",
+                                      "note": "1 kill × 3 per kill × 3.5 base = 10.5"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Teal",
+                                  "name": "Teal",
+                                  "system": "Farming",
+                                  "world": "World 6",
+                                  "pool": "Additive",
+                                  "fmt": "+",
+                                  "refValue": 3.5,
+                                  "bucket": "🌾 Farming",
+                                  "note": "Σ Teal (W7) battles (post-Base Multi)",
+                                  "children": [
+                                    {
+                                      "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Teal / Battle 9",
+                                      "name": "Battle 9",
+                                      "system": "Farming",
+                                      "world": "World 6",
+                                      "pool": "Additive",
+                                      "fmt": "raw",
+                                      "refValue": 3.5,
+                                      "bucket": "🌾 Farming",
+                                      "note": "1 kill × 1 per kill × 3.5 base = 3.5"
+                                    }
+                                  ]
+                                }
+                              ],
+                              "formulaKey": "sum",
+                              "agg": "custom"
+                            },
+                            {
+                              "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Higher Bonus Multi",
+                              "name": "Higher Bonus Multi",
+                              "system": "Farming",
+                              "world": "World 6",
+                              "pool": "Additive",
+                              "fmt": "x",
+                              "refValue": 1.9500000000000002,
+                              "bucket": "🌾 Farming",
+                              "note": "Pristine × Gem — the upgrade-lane multi",
+                              "children": [
+                                {
+                                  "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Higher Bonus Multi / Crystal Comb Pristine Charm",
+                                  "name": "Crystal Comb Pristine Charm",
+                                  "system": "Farming",
+                                  "world": "World 6",
+                                  "pool": "Additive",
+                                  "fmt": "x",
+                                  "refValue": 1.3,
+                                  "bucket": "🌾 Farming",
+                                  "note": "1 + lv/100",
+                                  "children": [
+                                    {
+                                      "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Higher Bonus Multi / Crystal Comb Pristine Charm / Pristine 8 Bonus",
+                                      "name": "Pristine 8 Bonus",
+                                      "system": "Farming",
+                                      "world": "World 6",
+                                      "pool": "Additive",
+                                      "fmt": "raw",
+                                      "refValue": 30,
+                                      "bucket": "🌾 Farming"
+                                    }
+                                  ],
+                                  "formulaKey": "pristineMulti",
+                                  "agg": "custom"
+                                },
+                                {
+                                  "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Higher Bonus Multi / Gem Shop Multi",
+                                  "name": "Gem Shop Multi",
+                                  "system": "Farming",
+                                  "world": "World 6",
+                                  "pool": "Additive",
+                                  "fmt": "x",
+                                  "refValue": 1.5,
+                                  "bucket": "🌾 Farming",
+                                  "note": "1 + 10×lv/100",
+                                  "children": [
+                                    {
+                                      "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Higher Bonus Multi / Gem Shop Multi / Gem Items 11",
+                                      "name": "Gem Items 11",
+                                      "system": "Farming",
+                                      "world": "World 6",
+                                      "pool": "Additive",
+                                      "fmt": "raw",
+                                      "refValue": 5,
+                                      "bucket": "🌾 Farming"
+                                    }
+                                  ],
+                                  "formulaKey": "gemShopMulti",
+                                  "agg": "custom"
+                                }
+                              ],
+                              "formulaKey": "higherBonusMulti",
+                              "agg": "custom"
+                            },
+                            {
+                              "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Winner Multi (combined)",
+                              "name": "Winner Multi (combined)",
+                              "system": "Farming",
+                              "world": "World 6",
+                              "pool": "Additive",
+                              "fmt": "x",
+                              "refValue": 2.77,
+                              "bucket": "🌾 Farming",
+                              "note": "1 + Σ winner sources / 100",
+                              "children": [
+                                {
+                                  "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Winner Multi (combined) / Sovereign Winz Lantern",
+                                  "name": "Sovereign Winz Lantern",
+                                  "system": "Farming",
+                                  "world": "World 6",
+                                  "pool": "Additive",
+                                  "fmt": "+",
+                                  "refValue": 150,
+                                  "bucket": "🌾 Farming",
+                                  "children": [
+                                    {
+                                      "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Winner Multi (combined) / Sovereign Winz Lantern / Artifact 32 Base",
+                                      "name": "Artifact 32 Base",
+                                      "system": "Farming",
+                                      "world": "World 6",
+                                      "pool": "Additive",
+                                      "fmt": "raw",
+                                      "refValue": 25,
+                                      "bucket": "🌾 Farming"
+                                    },
+                                    {
+                                      "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Winner Multi (combined) / Sovereign Winz Lantern / Artifact 32 Tier",
+                                      "name": "Artifact 32 Tier",
+                                      "system": "Farming",
+                                      "world": "World 6",
+                                      "pool": "Additive",
+                                      "fmt": "raw",
+                                      "refValue": 6,
+                                      "bucket": "🌾 Farming"
+                                    }
+                                  ],
+                                  "formulaKey": "twoChildProduct",
+                                  "agg": "custom"
+                                },
+                                {
+                                  "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Winner Multi (combined) / W6 Merit Shop (Task)",
+                                  "name": "W6 Merit Shop (Task)",
+                                  "system": "Farming",
+                                  "world": "World 6",
+                                  "pool": "Additive",
+                                  "fmt": "+",
+                                  "refValue": 10,
+                                  "bucket": "🌾 Farming"
+                                },
+                                {
+                                  "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Winner Multi (combined) / Regalis Achievement (379)",
+                                  "name": "Regalis Achievement (379)",
+                                  "system": "Farming",
+                                  "world": "World 6",
+                                  "pool": "Additive",
+                                  "fmt": "+",
+                                  "refValue": 1,
+                                  "bucket": "🌾 Farming"
+                                },
+                                {
+                                  "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Winner Multi (combined) / Spectre Stars Achievement (373)",
+                                  "name": "Spectre Stars Achievement (373)",
+                                  "system": "Farming",
+                                  "world": "World 6",
+                                  "pool": "Additive",
+                                  "fmt": "+",
+                                  "refValue": 1,
+                                  "bucket": "🌾 Farming"
+                                },
+                                {
+                                  "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Winner Multi (combined) / Godshard Set",
+                                  "name": "Godshard Set",
+                                  "system": "Farming",
+                                  "world": "World 6",
+                                  "pool": "Additive",
+                                  "fmt": "+",
+                                  "refValue": 15,
+                                  "bucket": "🌾 Farming"
+                                }
+                              ],
+                              "formulaKey": "winnerMultiCombined",
+                              "agg": "custom"
+                            }
+                          ],
+                          "formulaKey": "summoningWB19Product",
+                          "agg": "custom"
+                        }
+                      ],
+                      "formulaKey": "maxBookLvSum",
+                      "agg": "custom"
+                    }
+                  ]
+                },
+                {
+                  "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels",
+                  "name": "Bonus Levels",
+                  "system": "Farming",
+                  "world": "World 6",
+                  "pool": "Additive",
+                  "fmt": "+",
+                  "refValue": 241,
+                  "bucket": "🌾 Farming",
+                  "children": [
+                    {
+                      "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149)",
+                      "name": "Symbols of Beyond ~R (Talent 149)",
+                      "system": "Farming",
+                      "world": "World 6",
+                      "pool": "Additive",
+                      "fmt": "raw",
+                      "refValue": 20,
+                      "bucket": "🌾 Farming",
+                      "note": "intervalAdd(1, 20)",
+                      "children": [
+                        {
+                          "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level",
+                          "name": "Base Level",
+                          "system": "Farming",
+                          "world": "World 6",
+                          "pool": "Additive",
+                          "fmt": "raw",
+                          "refValue": 396,
+                          "bucket": "🌾 Farming",
+                          "note": "min(invested, cap) — owner: zArkhe",
+                          "children": [
+                            {
+                              "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Points Invested",
+                              "name": "Points Invested",
+                              "system": "Farming",
+                              "world": "World 6",
+                              "pool": "Additive",
+                              "fmt": "raw",
+                              "refValue": 396,
+                              "bucket": "🌾 Farming",
+                              "note": "save=396 — owner: zArkhe",
+                              "autoFill": true
+                            },
+                            {
+                              "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap",
+                              "name": "Max Book Lv Cap",
+                              "system": "Farming",
+                              "world": "World 6",
+                              "pool": "Additive",
+                              "fmt": "raw",
+                              "refValue": 396,
+                              "bucket": "🌾 Farming",
+                              "note": "N.js maxBookLv",
+                              "children": [
+                                {
+                                  "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Base Level (N.js literal)",
+                                  "name": "Base Level (N.js literal)",
+                                  "system": "Farming",
+                                  "world": "World 6",
+                                  "pool": "Additive",
+                                  "fmt": "+",
+                                  "refValue": 100,
+                                  "bucket": "🌾 Farming"
+                                },
+                                {
+                                  "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Talent Book Library Base",
+                                  "name": "Talent Book Library Base",
+                                  "system": "Farming",
+                                  "world": "World 6",
+                                  "pool": "Additive",
+                                  "fmt": "+",
+                                  "refValue": 25,
+                                  "bucket": "🌾 Farming"
+                                },
+                                {
+                                  "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Salt Lick 4",
+                                  "name": "Salt Lick 4",
+                                  "system": "Farming",
+                                  "world": "World 6",
+                                  "pool": "Additive",
+                                  "fmt": "+",
+                                  "refValue": 20,
+                                  "bucket": "🌾 Farming",
+                                  "children": [
+                                    {
+                                      "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Salt Lick 4 / Salt Lick 4 Lv",
+                                      "name": "Salt Lick 4 Lv",
+                                      "system": "Farming",
+                                      "world": "World 6",
+                                      "pool": "Additive",
+                                      "fmt": "raw",
+                                      "refValue": 10,
+                                      "bucket": "🌾 Farming"
+                                    },
+                                    {
+                                      "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Salt Lick 4 / Per Lv",
+                                      "name": "Per Lv",
+                                      "system": "Farming",
+                                      "world": "World 6",
+                                      "pool": "Additive",
+                                      "fmt": "raw",
+                                      "refValue": 2,
+                                      "bucket": "🌾 Farming"
+                                    }
+                                  ],
+                                  "formulaKey": "twoChildProduct",
+                                  "agg": "custom"
+                                },
+                                {
+                                  "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / W3 Merit Shop Unlock",
+                                  "name": "W3 Merit Shop Unlock",
+                                  "system": "Farming",
+                                  "world": "World 6",
+                                  "pool": "Additive",
+                                  "fmt": "+",
+                                  "refValue": 10,
+                                  "bucket": "🌾 Farming",
+                                  "children": [
+                                    {
+                                      "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / W3 Merit Shop Unlock / W3 Merit Points Spent",
+                                      "name": "W3 Merit Points Spent",
+                                      "system": "Farming",
+                                      "world": "World 6",
+                                      "pool": "Additive",
+                                      "fmt": "raw",
+                                      "refValue": 5,
+                                      "bucket": "🌾 Farming"
+                                    },
+                                    {
+                                      "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / W3 Merit Shop Unlock / Per Point",
+                                      "name": "Per Point",
+                                      "system": "Farming",
+                                      "world": "World 6",
+                                      "pool": "Additive",
+                                      "fmt": "raw",
+                                      "refValue": 2,
+                                      "bucket": "🌾 Farming"
+                                    }
+                                  ],
+                                  "formulaKey": "twoChildProduct",
+                                  "agg": "custom"
+                                },
+                                {
+                                  "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Checkout Takeout Achievement",
+                                  "name": "Checkout Takeout Achievement",
+                                  "system": "Farming",
+                                  "world": "World 6",
+                                  "pool": "Additive",
+                                  "fmt": "+",
+                                  "refValue": 5,
+                                  "bucket": "🌾 Farming"
+                                },
+                                {
+                                  "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Lv 1 Oxygen Atom",
+                                  "name": "Lv 1 Oxygen Atom",
+                                  "system": "Farming",
+                                  "world": "World 6",
+                                  "pool": "Additive",
+                                  "fmt": "+",
+                                  "refValue": 10,
+                                  "bucket": "🌾 Farming",
+                                  "children": [
+                                    {
+                                      "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Lv 1 Oxygen Atom / Atom 7 Lv",
+                                      "name": "Atom 7 Lv",
+                                      "system": "Farming",
+                                      "world": "World 6",
+                                      "pool": "Additive",
+                                      "fmt": "raw",
+                                      "refValue": 70,
+                                      "bucket": "🌾 Farming"
+                                    }
+                                  ],
+                                  "formulaKey": "atomLv1Bonus",
+                                  "agg": "custom"
+                                },
+                                {
+                                  "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Sovereign Fury Relic",
+                                  "name": "Sovereign Fury Relic",
+                                  "system": "Farming",
+                                  "world": "World 6",
+                                  "pool": "Additive",
+                                  "fmt": "+",
+                                  "refValue": 150,
+                                  "bucket": "🌾 Farming",
+                                  "children": [
+                                    {
+                                      "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Sovereign Fury Relic / Artifact 21 Base",
+                                      "name": "Artifact 21 Base",
+                                      "system": "Farming",
+                                      "world": "World 6",
+                                      "pool": "Additive",
+                                      "fmt": "raw",
+                                      "refValue": 25,
+                                      "bucket": "🌾 Farming"
+                                    },
+                                    {
+                                      "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Sovereign Fury Relic / Artifact 21 Tier",
+                                      "name": "Artifact 21 Tier",
+                                      "system": "Farming",
+                                      "world": "World 6",
+                                      "pool": "Additive",
+                                      "fmt": "raw",
+                                      "refValue": 6,
+                                      "bucket": "🌾 Farming"
+                                    }
+                                  ],
+                                  "formulaKey": "twoChildProduct",
+                                  "agg": "custom"
+                                },
+                                {
+                                  "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19",
+                                  "name": "Summoning Winner Bonus 19",
+                                  "system": "Farming",
+                                  "world": "World 6",
+                                  "pool": "Additive",
+                                  "fmt": "+",
+                                  "refValue": 75.621,
+                                  "bucket": "🌾 Farming",
+                                  "children": [
+                                    {
+                                      "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles",
+                                      "name": "Summoning Battles",
+                                      "system": "Farming",
+                                      "world": "World 6",
+                                      "pool": "Additive",
+                                      "fmt": "raw",
+                                      "refValue": 14,
+                                      "bucket": "🌾 Farming",
+                                      "note": "4 raw × 3.5× Base = 14.00  →  then × 1.95× Higher Bonus × 2.77× Winner = 75.62",
+                                      "children": [
+                                        {
+                                          "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Cyan",
+                                          "name": "Cyan",
+                                          "system": "Farming",
+                                          "world": "World 6",
+                                          "pool": "Additive",
+                                          "fmt": "+",
+                                          "refValue": 10.5,
+                                          "bucket": "🌾 Farming",
+                                          "note": "Σ Cyan (W6) battles (post-Base Multi)",
+                                          "children": [
+                                            {
+                                              "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Cyan / Battle 14",
+                                              "name": "Battle 14",
+                                              "system": "Farming",
+                                              "world": "World 6",
+                                              "pool": "Additive",
+                                              "fmt": "raw",
+                                              "refValue": 10.5,
+                                              "bucket": "🌾 Farming",
+                                              "note": "1 kill × 3 per kill × 3.5 base = 10.5"
+                                            }
+                                          ]
+                                        },
+                                        {
+                                          "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Teal",
+                                          "name": "Teal",
+                                          "system": "Farming",
+                                          "world": "World 6",
+                                          "pool": "Additive",
+                                          "fmt": "+",
+                                          "refValue": 3.5,
+                                          "bucket": "🌾 Farming",
+                                          "note": "Σ Teal (W7) battles (post-Base Multi)",
+                                          "children": [
+                                            {
+                                              "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Teal / Battle 9",
+                                              "name": "Battle 9",
+                                              "system": "Farming",
+                                              "world": "World 6",
+                                              "pool": "Additive",
+                                              "fmt": "raw",
+                                              "refValue": 3.5,
+                                              "bucket": "🌾 Farming",
+                                              "note": "1 kill × 1 per kill × 3.5 base = 3.5"
+                                            }
+                                          ]
+                                        }
+                                      ],
+                                      "formulaKey": "sum",
+                                      "agg": "custom"
+                                    },
+                                    {
+                                      "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Higher Bonus Multi",
+                                      "name": "Higher Bonus Multi",
+                                      "system": "Farming",
+                                      "world": "World 6",
+                                      "pool": "Additive",
+                                      "fmt": "x",
+                                      "refValue": 1.9500000000000002,
+                                      "bucket": "🌾 Farming",
+                                      "note": "Pristine × Gem — the upgrade-lane multi",
+                                      "children": [
+                                        {
+                                          "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Higher Bonus Multi / Crystal Comb Pristine Charm",
+                                          "name": "Crystal Comb Pristine Charm",
+                                          "system": "Farming",
+                                          "world": "World 6",
+                                          "pool": "Additive",
+                                          "fmt": "x",
+                                          "refValue": 1.3,
+                                          "bucket": "🌾 Farming",
+                                          "note": "1 + lv/100",
+                                          "children": [
+                                            {
+                                              "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Higher Bonus Multi / Crystal Comb Pristine Charm / Pristine 8 Bonus",
+                                              "name": "Pristine 8 Bonus",
+                                              "system": "Farming",
+                                              "world": "World 6",
+                                              "pool": "Additive",
+                                              "fmt": "raw",
+                                              "refValue": 30,
+                                              "bucket": "🌾 Farming"
+                                            }
+                                          ],
+                                          "formulaKey": "pristineMulti",
+                                          "agg": "custom"
+                                        },
+                                        {
+                                          "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Higher Bonus Multi / Gem Shop Multi",
+                                          "name": "Gem Shop Multi",
+                                          "system": "Farming",
+                                          "world": "World 6",
+                                          "pool": "Additive",
+                                          "fmt": "x",
+                                          "refValue": 1.5,
+                                          "bucket": "🌾 Farming",
+                                          "note": "1 + 10×lv/100",
+                                          "children": [
+                                            {
+                                              "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Higher Bonus Multi / Gem Shop Multi / Gem Items 11",
+                                              "name": "Gem Items 11",
+                                              "system": "Farming",
+                                              "world": "World 6",
+                                              "pool": "Additive",
+                                              "fmt": "raw",
+                                              "refValue": 5,
+                                              "bucket": "🌾 Farming"
+                                            }
+                                          ],
+                                          "formulaKey": "gemShopMulti",
+                                          "agg": "custom"
+                                        }
+                                      ],
+                                      "formulaKey": "higherBonusMulti",
+                                      "agg": "custom"
+                                    },
+                                    {
+                                      "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Winner Multi (combined)",
+                                      "name": "Winner Multi (combined)",
+                                      "system": "Farming",
+                                      "world": "World 6",
+                                      "pool": "Additive",
+                                      "fmt": "x",
+                                      "refValue": 2.77,
+                                      "bucket": "🌾 Farming",
+                                      "note": "1 + Σ winner sources / 100",
+                                      "children": [
+                                        {
+                                          "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Winner Multi (combined) / Sovereign Winz Lantern",
+                                          "name": "Sovereign Winz Lantern",
+                                          "system": "Farming",
+                                          "world": "World 6",
+                                          "pool": "Additive",
+                                          "fmt": "+",
+                                          "refValue": 150,
+                                          "bucket": "🌾 Farming",
+                                          "children": [
+                                            {
+                                              "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Winner Multi (combined) / Sovereign Winz Lantern / Artifact 32 Base",
+                                              "name": "Artifact 32 Base",
+                                              "system": "Farming",
+                                              "world": "World 6",
+                                              "pool": "Additive",
+                                              "fmt": "raw",
+                                              "refValue": 25,
+                                              "bucket": "🌾 Farming"
+                                            },
+                                            {
+                                              "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Winner Multi (combined) / Sovereign Winz Lantern / Artifact 32 Tier",
+                                              "name": "Artifact 32 Tier",
+                                              "system": "Farming",
+                                              "world": "World 6",
+                                              "pool": "Additive",
+                                              "fmt": "raw",
+                                              "refValue": 6,
+                                              "bucket": "🌾 Farming"
+                                            }
+                                          ],
+                                          "formulaKey": "twoChildProduct",
+                                          "agg": "custom"
+                                        },
+                                        {
+                                          "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Winner Multi (combined) / W6 Merit Shop (Task)",
+                                          "name": "W6 Merit Shop (Task)",
+                                          "system": "Farming",
+                                          "world": "World 6",
+                                          "pool": "Additive",
+                                          "fmt": "+",
+                                          "refValue": 10,
+                                          "bucket": "🌾 Farming"
+                                        },
+                                        {
+                                          "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Winner Multi (combined) / Regalis Achievement (379)",
+                                          "name": "Regalis Achievement (379)",
+                                          "system": "Farming",
+                                          "world": "World 6",
+                                          "pool": "Additive",
+                                          "fmt": "+",
+                                          "refValue": 1,
+                                          "bucket": "🌾 Farming"
+                                        },
+                                        {
+                                          "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Winner Multi (combined) / Spectre Stars Achievement (373)",
+                                          "name": "Spectre Stars Achievement (373)",
+                                          "system": "Farming",
+                                          "world": "World 6",
+                                          "pool": "Additive",
+                                          "fmt": "+",
+                                          "refValue": 1,
+                                          "bucket": "🌾 Farming"
+                                        },
+                                        {
+                                          "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Winner Multi (combined) / Godshard Set",
+                                          "name": "Godshard Set",
+                                          "system": "Farming",
+                                          "world": "World 6",
+                                          "pool": "Additive",
+                                          "fmt": "+",
+                                          "refValue": 15,
+                                          "bucket": "🌾 Farming"
+                                        }
+                                      ],
+                                      "formulaKey": "winnerMultiCombined",
+                                      "agg": "custom"
+                                    }
+                                  ],
+                                  "formulaKey": "summoningWB19Product",
+                                  "agg": "custom"
+                                }
+                              ],
+                              "formulaKey": "maxBookLvSum",
+                              "agg": "custom"
+                            }
+                          ],
+                          "formulaKey": "minOfChildren",
+                          "agg": "custom"
+                        }
+                      ],
+                      "formulaSpec": {
+                        "type": "intervalAdd",
+                        "x1": 1,
+                        "x2": 20
+                      },
+                      "formulaKey": "closedFormFormula",
+                      "agg": "custom"
+                    },
+                    {
+                      "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Maroon Warship (Achievement 291)",
+                      "name": "Maroon Warship (Achievement 291)",
+                      "system": "Farming",
+                      "world": "World 6",
+                      "pool": "Additive",
+                      "fmt": "raw",
+                      "refValue": 1,
+                      "bucket": "🌾 Farming"
+                    },
+                    {
+                      "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Family Bonus 68 (Mage)",
+                      "name": "Family Bonus 68 (Mage)",
+                      "system": "Farming",
+                      "world": "World 6",
+                      "pool": "Additive",
+                      "fmt": "raw",
+                      "refValue": 16,
+                      "bucket": "🌾 Farming",
+                      "note": "floor(decay × Family Guy Multi if active)",
+                      "children": [
+                        {
+                          "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Best Mage Lv",
+                          "name": "Best Mage Lv",
+                          "system": "Farming",
+                          "world": "World 6",
+                          "pool": "Additive",
+                          "fmt": "raw",
+                          "refValue": 1701,
+                          "bucket": "🌾 Farming",
+                          "note": "max across account — 2 mage chars",
+                          "children": [
+                            {
+                              "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Best Mage Lv / Char 5 Lv",
+                              "name": "Char 5 Lv",
+                              "system": "Farming",
+                              "world": "World 6",
+                              "pool": "Additive",
+                              "fmt": "raw",
+                              "refValue": 1701,
+                              "bucket": "🌾 Farming",
+                              "note": "Parkhe — elemental sorcerer (cls 34)"
+                            },
+                            {
+                              "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Best Mage Lv / Char 7 Lv",
+                              "name": "Char 7 Lv",
+                              "system": "Farming",
+                              "world": "World 6",
+                              "pool": "Additive",
+                              "fmt": "raw",
+                              "refValue": 1700,
+                              "bucket": "🌾 Farming",
+                              "note": "Sarkhe — elemental sorcerer (cls 34)"
+                            }
+                          ],
+                          "formulaKey": "maxOfKids",
+                          "agg": "custom"
+                        },
+                        {
+                          "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff",
+                          "name": "Family Guy Multi (×) — potential buff",
+                          "system": "Farming",
+                          "world": "World 6",
+                          "pool": "Additive",
+                          "fmt": "raw",
+                          "refValue": 1.3457259158751695,
+                          "bucket": "🌾 Farming",
+                          "note": "1 + decay(x1, x2, Base+Bonus)/100",
+                          "children": [
+                            {
+                              "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level",
+                              "name": "Base Level",
+                              "system": "Farming",
+                              "world": "World 6",
+                              "pool": "Additive",
+                              "fmt": "raw",
+                              "refValue": 396,
+                              "bucket": "🌾 Farming",
+                              "note": "min(invested, cap)",
+                              "children": [
+                                {
+                                  "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Points Invested",
+                                  "name": "Points Invested",
+                                  "system": "Farming",
+                                  "world": "World 6",
+                                  "pool": "Additive",
+                                  "fmt": "raw",
+                                  "refValue": 396,
+                                  "bucket": "🌾 Farming",
+                                  "note": "save=396",
+                                  "autoFill": true
+                                },
+                                {
+                                  "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap",
+                                  "name": "Max Book Lv Cap",
+                                  "system": "Farming",
+                                  "world": "World 6",
+                                  "pool": "Additive",
+                                  "fmt": "raw",
+                                  "refValue": 396,
+                                  "bucket": "🌾 Farming",
+                                  "note": "N.js maxBookLv",
+                                  "children": [
+                                    {
+                                      "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Base Level (N.js literal)",
+                                      "name": "Base Level (N.js literal)",
+                                      "system": "Farming",
+                                      "world": "World 6",
+                                      "pool": "Additive",
+                                      "fmt": "+",
+                                      "refValue": 100,
+                                      "bucket": "🌾 Farming"
+                                    },
+                                    {
+                                      "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Talent Book Library Base",
+                                      "name": "Talent Book Library Base",
+                                      "system": "Farming",
+                                      "world": "World 6",
+                                      "pool": "Additive",
+                                      "fmt": "+",
+                                      "refValue": 25,
+                                      "bucket": "🌾 Farming"
+                                    },
+                                    {
+                                      "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Salt Lick 4",
+                                      "name": "Salt Lick 4",
+                                      "system": "Farming",
+                                      "world": "World 6",
+                                      "pool": "Additive",
+                                      "fmt": "+",
+                                      "refValue": 20,
+                                      "bucket": "🌾 Farming",
+                                      "note": "Lv × Per Lv",
+                                      "children": [
+                                        {
+                                          "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Salt Lick 4 / Salt Lick 4 Lv",
+                                          "name": "Salt Lick 4 Lv",
+                                          "system": "Farming",
+                                          "world": "World 6",
+                                          "pool": "Additive",
+                                          "fmt": "raw",
+                                          "refValue": 10,
+                                          "bucket": "🌾 Farming"
+                                        },
+                                        {
+                                          "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Salt Lick 4 / Per Lv",
+                                          "name": "Per Lv",
+                                          "system": "Farming",
+                                          "world": "World 6",
+                                          "pool": "Additive",
+                                          "fmt": "raw",
+                                          "refValue": 2,
+                                          "bucket": "🌾 Farming"
+                                        }
+                                      ],
+                                      "formulaKey": "twoChildProduct",
+                                      "agg": "custom"
+                                    },
+                                    {
+                                      "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / W3 Merit Shop Unlock",
+                                      "name": "W3 Merit Shop Unlock",
+                                      "system": "Farming",
+                                      "world": "World 6",
+                                      "pool": "Additive",
+                                      "fmt": "+",
+                                      "refValue": 10,
+                                      "bucket": "🌾 Farming",
+                                      "note": "Pts × Per Point",
+                                      "children": [
+                                        {
+                                          "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / W3 Merit Shop Unlock / W3 Merit Points Spent",
+                                          "name": "W3 Merit Points Spent",
+                                          "system": "Farming",
+                                          "world": "World 6",
+                                          "pool": "Additive",
+                                          "fmt": "raw",
+                                          "refValue": 5,
+                                          "bucket": "🌾 Farming"
+                                        },
+                                        {
+                                          "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / W3 Merit Shop Unlock / Per Point",
+                                          "name": "Per Point",
+                                          "system": "Farming",
+                                          "world": "World 6",
+                                          "pool": "Additive",
+                                          "fmt": "raw",
+                                          "refValue": 2,
+                                          "bucket": "🌾 Farming"
+                                        }
+                                      ],
+                                      "formulaKey": "twoChildProduct",
+                                      "agg": "custom"
+                                    },
+                                    {
+                                      "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Checkout Takeout Achievement",
+                                      "name": "Checkout Takeout Achievement",
+                                      "system": "Farming",
+                                      "world": "World 6",
+                                      "pool": "Additive",
+                                      "fmt": "+",
+                                      "refValue": 5,
+                                      "bucket": "🌾 Farming"
+                                    },
+                                    {
+                                      "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Lv 1 Oxygen Atom",
+                                      "name": "Lv 1 Oxygen Atom",
+                                      "system": "Farming",
+                                      "world": "World 6",
+                                      "pool": "Additive",
+                                      "fmt": "+",
+                                      "refValue": 10,
+                                      "bucket": "🌾 Farming",
+                                      "note": "10 × min(Lv, 1)",
+                                      "children": [
+                                        {
+                                          "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Lv 1 Oxygen Atom / Atom 7 Lv",
+                                          "name": "Atom 7 Lv",
+                                          "system": "Farming",
+                                          "world": "World 6",
+                                          "pool": "Additive",
+                                          "fmt": "raw",
+                                          "refValue": 70,
+                                          "bucket": "🌾 Farming"
+                                        }
+                                      ],
+                                      "formulaKey": "atomLv1Bonus",
+                                      "agg": "custom"
+                                    },
+                                    {
+                                      "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Sovereign Fury Relic",
+                                      "name": "Sovereign Fury Relic",
+                                      "system": "Farming",
+                                      "world": "World 6",
+                                      "pool": "Additive",
+                                      "fmt": "+",
+                                      "refValue": 150,
+                                      "bucket": "🌾 Farming",
+                                      "note": "Base × Tier",
+                                      "children": [
+                                        {
+                                          "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Sovereign Fury Relic / Artifact 21 Base",
+                                          "name": "Artifact 21 Base",
+                                          "system": "Farming",
+                                          "world": "World 6",
+                                          "pool": "Additive",
+                                          "fmt": "raw",
+                                          "refValue": 25,
+                                          "bucket": "🌾 Farming"
+                                        },
+                                        {
+                                          "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Sovereign Fury Relic / Artifact 21 Tier",
+                                          "name": "Artifact 21 Tier",
+                                          "system": "Farming",
+                                          "world": "World 6",
+                                          "pool": "Additive",
+                                          "fmt": "raw",
+                                          "refValue": 6,
+                                          "bucket": "🌾 Farming"
+                                        }
+                                      ],
+                                      "formulaKey": "twoChildProduct",
+                                      "agg": "custom"
+                                    },
+                                    {
+                                      "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19",
+                                      "name": "Summoning Winner Bonus 19",
+                                      "system": "Farming",
+                                      "world": "World 6",
+                                      "pool": "Additive",
+                                      "fmt": "+",
+                                      "refValue": 75.621,
+                                      "bucket": "🌾 Farming",
+                                      "note": "Raw × Higher Bonus × Winner Multi",
+                                      "children": [
+                                        {
+                                          "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles",
+                                          "name": "Summoning Battles",
+                                          "system": "Farming",
+                                          "world": "World 6",
+                                          "pool": "Additive",
+                                          "fmt": "raw",
+                                          "refValue": 14,
+                                          "bucket": "🌾 Farming",
+                                          "note": "4 raw × 3.5× Base = 14.00  →  then × 1.95× Higher Bonus × 2.77× Winner = 75.62",
+                                          "children": [
+                                            {
+                                              "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Cyan",
+                                              "name": "Cyan",
+                                              "system": "Farming",
+                                              "world": "World 6",
+                                              "pool": "Additive",
+                                              "fmt": "+",
+                                              "refValue": 10.5,
+                                              "bucket": "🌾 Farming",
+                                              "note": "Σ Cyan (W6) battles (post-Base Multi)",
+                                              "children": [
+                                                {
+                                                  "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Cyan / Battle 14",
+                                                  "name": "Battle 14",
+                                                  "system": "Farming",
+                                                  "world": "World 6",
+                                                  "pool": "Additive",
+                                                  "fmt": "raw",
+                                                  "refValue": 10.5,
+                                                  "bucket": "🌾 Farming",
+                                                  "note": "1 kill × 3 per kill × 3.5 base = 10.5"
+                                                }
+                                              ]
+                                            },
+                                            {
+                                              "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Teal",
+                                              "name": "Teal",
+                                              "system": "Farming",
+                                              "world": "World 6",
+                                              "pool": "Additive",
+                                              "fmt": "+",
+                                              "refValue": 3.5,
+                                              "bucket": "🌾 Farming",
+                                              "note": "Σ Teal (W7) battles (post-Base Multi)",
+                                              "children": [
+                                                {
+                                                  "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Summoning Battles / Teal / Battle 9",
+                                                  "name": "Battle 9",
+                                                  "system": "Farming",
+                                                  "world": "World 6",
+                                                  "pool": "Additive",
+                                                  "fmt": "raw",
+                                                  "refValue": 3.5,
+                                                  "bucket": "🌾 Farming",
+                                                  "note": "1 kill × 1 per kill × 3.5 base = 3.5"
+                                                }
+                                              ]
+                                            }
+                                          ],
+                                          "formulaKey": "sum",
+                                          "agg": "custom"
+                                        },
+                                        {
+                                          "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Higher Bonus Multi",
+                                          "name": "Higher Bonus Multi",
+                                          "system": "Farming",
+                                          "world": "World 6",
+                                          "pool": "Additive",
+                                          "fmt": "x",
+                                          "refValue": 1.9500000000000002,
+                                          "bucket": "🌾 Farming",
+                                          "note": "Pristine × Gem — the upgrade-lane multi",
+                                          "children": [
+                                            {
+                                              "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Higher Bonus Multi / Crystal Comb Pristine Charm",
+                                              "name": "Crystal Comb Pristine Charm",
+                                              "system": "Farming",
+                                              "world": "World 6",
+                                              "pool": "Additive",
+                                              "fmt": "x",
+                                              "refValue": 1.3,
+                                              "bucket": "🌾 Farming",
+                                              "note": "1 + lv/100",
+                                              "children": [
+                                                {
+                                                  "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Higher Bonus Multi / Crystal Comb Pristine Charm / Pristine 8 Bonus",
+                                                  "name": "Pristine 8 Bonus",
+                                                  "system": "Farming",
+                                                  "world": "World 6",
+                                                  "pool": "Additive",
+                                                  "fmt": "raw",
+                                                  "refValue": 30,
+                                                  "bucket": "🌾 Farming"
+                                                }
+                                              ],
+                                              "formulaKey": "pristineMulti",
+                                              "agg": "custom"
+                                            },
+                                            {
+                                              "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Higher Bonus Multi / Gem Shop Multi",
+                                              "name": "Gem Shop Multi",
+                                              "system": "Farming",
+                                              "world": "World 6",
+                                              "pool": "Additive",
+                                              "fmt": "x",
+                                              "refValue": 1.5,
+                                              "bucket": "🌾 Farming",
+                                              "note": "1 + 10×lv/100",
+                                              "children": [
+                                                {
+                                                  "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Higher Bonus Multi / Gem Shop Multi / Gem Items 11",
+                                                  "name": "Gem Items 11",
+                                                  "system": "Farming",
+                                                  "world": "World 6",
+                                                  "pool": "Additive",
+                                                  "fmt": "raw",
+                                                  "refValue": 5,
+                                                  "bucket": "🌾 Farming"
+                                                }
+                                              ],
+                                              "formulaKey": "gemShopMulti",
+                                              "agg": "custom"
+                                            }
+                                          ],
+                                          "formulaKey": "higherBonusMulti",
+                                          "agg": "custom"
+                                        },
+                                        {
+                                          "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Winner Multi (combined)",
+                                          "name": "Winner Multi (combined)",
+                                          "system": "Farming",
+                                          "world": "World 6",
+                                          "pool": "Additive",
+                                          "fmt": "x",
+                                          "refValue": 2.77,
+                                          "bucket": "🌾 Farming",
+                                          "note": "1 + Σ winner sources / 100",
+                                          "children": [
+                                            {
+                                              "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Winner Multi (combined) / Sovereign Winz Lantern",
+                                              "name": "Sovereign Winz Lantern",
+                                              "system": "Farming",
+                                              "world": "World 6",
+                                              "pool": "Additive",
+                                              "fmt": "+",
+                                              "refValue": 150,
+                                              "bucket": "🌾 Farming",
+                                              "children": [
+                                                {
+                                                  "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Winner Multi (combined) / Sovereign Winz Lantern / Artifact 32 Base",
+                                                  "name": "Artifact 32 Base",
+                                                  "system": "Farming",
+                                                  "world": "World 6",
+                                                  "pool": "Additive",
+                                                  "fmt": "raw",
+                                                  "refValue": 25,
+                                                  "bucket": "🌾 Farming"
+                                                },
+                                                {
+                                                  "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Winner Multi (combined) / Sovereign Winz Lantern / Artifact 32 Tier",
+                                                  "name": "Artifact 32 Tier",
+                                                  "system": "Farming",
+                                                  "world": "World 6",
+                                                  "pool": "Additive",
+                                                  "fmt": "raw",
+                                                  "refValue": 6,
+                                                  "bucket": "🌾 Farming"
+                                                }
+                                              ],
+                                              "formulaKey": "twoChildProduct",
+                                              "agg": "custom"
+                                            },
+                                            {
+                                              "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Winner Multi (combined) / W6 Merit Shop (Task)",
+                                              "name": "W6 Merit Shop (Task)",
+                                              "system": "Farming",
+                                              "world": "World 6",
+                                              "pool": "Additive",
+                                              "fmt": "+",
+                                              "refValue": 10,
+                                              "bucket": "🌾 Farming"
+                                            },
+                                            {
+                                              "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Winner Multi (combined) / Regalis Achievement (379)",
+                                              "name": "Regalis Achievement (379)",
+                                              "system": "Farming",
+                                              "world": "World 6",
+                                              "pool": "Additive",
+                                              "fmt": "+",
+                                              "refValue": 1,
+                                              "bucket": "🌾 Farming"
+                                            },
+                                            {
+                                              "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Winner Multi (combined) / Spectre Stars Achievement (373)",
+                                              "name": "Spectre Stars Achievement (373)",
+                                              "system": "Farming",
+                                              "world": "World 6",
+                                              "pool": "Additive",
+                                              "fmt": "+",
+                                              "refValue": 1,
+                                              "bucket": "🌾 Farming"
+                                            },
+                                            {
+                                              "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level / Max Book Lv Cap / Summoning Winner Bonus 19 / Winner Multi (combined) / Godshard Set",
+                                              "name": "Godshard Set",
+                                              "system": "Farming",
+                                              "world": "World 6",
+                                              "pool": "Additive",
+                                              "fmt": "+",
+                                              "refValue": 15,
+                                              "bucket": "🌾 Farming"
+                                            }
+                                          ],
+                                          "formulaKey": "winnerMultiCombined",
+                                          "agg": "custom"
+                                        }
+                                      ],
+                                      "formulaKey": "summoningWB19Product",
+                                      "agg": "custom"
+                                    }
+                                  ],
+                                  "formulaKey": "maxBookLvSum",
+                                  "agg": "custom"
+                                }
+                              ],
+                              "formulaKey": "minOfChildren",
+                              "agg": "custom"
+                            },
+                            {
+                              "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Bonus Levels",
+                              "name": "Bonus Levels",
+                              "system": "Farming",
+                              "world": "World 6",
+                              "pool": "Additive",
+                              "fmt": "+",
+                              "refValue": 241,
+                              "bucket": "🌾 Farming",
+                              "note": "Σ ATL (unbuffed FB68)"
+                            }
+                          ],
+                          "formulaKey": "familyGuyMulti",
+                          "agg": "custom",
+                          "familyGuyConsts": {
+                            "x1": 40,
+                            "x2": 100
+                          }
+                        }
+                      ],
+                      "formulaKey": "familyBonus68Mage",
+                      "agg": "custom",
+                      "familyBonusConsts": {
+                        "x1": 20,
+                        "x2": 350,
+                        "lvOffset": 69
+                      }
+                    },
+                    {
+                      "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Rift Slug (Companion 1)",
+                      "name": "Rift Slug (Companion 1)",
+                      "system": "Farming",
+                      "world": "World 6",
+                      "pool": "Additive",
+                      "fmt": "raw",
+                      "refValue": 25,
+                      "bucket": "🌾 Farming",
+                      "children": [
+                        {
+                          "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Rift Slug (Companion 1) / Owned",
+                          "name": "Owned",
+                          "system": "Farming",
+                          "world": "World 6",
+                          "pool": "Additive",
+                          "fmt": "raw",
+                          "refValue": 1,
+                          "bucket": "🌾 Farming"
+                        },
+                        {
+                          "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Rift Slug (Companion 1) / Bonus",
+                          "name": "Bonus",
+                          "system": "Farming",
+                          "world": "World 6",
+                          "pool": "Additive",
+                          "fmt": "raw",
+                          "refValue": 25,
+                          "bucket": "🌾 Farming"
+                        }
+                      ],
+                      "formulaKey": "ownershipToggle",
+                      "agg": "custom",
+                      "bonusConst": 25,
+                      "note": "bonus: 25"
+                    },
+                    {
+                      "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Divinity Minor 2 (Arctis)",
+                      "name": "Divinity Minor 2 (Arctis)",
+                      "system": "Farming",
+                      "world": "World 6",
+                      "pool": "Additive",
+                      "fmt": "raw",
+                      "refValue": 58,
+                      "bucket": "🌾 Farming",
+                      "children": [
+                        {
+                          "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Divinity Minor 2 (Arctis) / Divinity Lv",
+                          "name": "Divinity Lv",
+                          "system": "Farming",
+                          "world": "World 6",
+                          "pool": "Additive",
+                          "fmt": "raw",
+                          "refValue": 608,
+                          "bucket": "🌾 Farming"
+                        },
+                        {
+                          "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Divinity Minor 2 (Arctis) / Bubble Y2 Active",
+                          "name": "Bubble Y2 Active",
+                          "system": "Farming",
+                          "world": "World 6",
+                          "pool": "Additive",
+                          "fmt": "raw",
+                          "refValue": 1.4980838017373532,
+                          "bucket": "🌾 Farming",
+                          "note": "0 if Y2 bubble not equipped & no all-bubbles flag"
+                        },
+                        {
+                          "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Divinity Minor 2 (Arctis) / Coral Kid 3",
+                          "name": "Coral Kid 3",
+                          "system": "Farming",
+                          "world": "World 6",
+                          "pool": "Additive",
+                          "fmt": "raw",
+                          "refValue": 182,
+                          "bucket": "🌾 Farming",
+                          "note": "OLA[430]"
+                        },
+                        {
+                          "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Divinity Minor 2 (Arctis) / God Minor X1(2)",
+                          "name": "God Minor X1(2)",
+                          "system": "Farming",
+                          "world": "World 6",
+                          "pool": "Additive",
+                          "fmt": "raw",
+                          "refValue": 15,
+                          "bucket": "🌾 Farming",
+                          "note": "GodsInfo[2][3] constant"
+                        }
+                      ],
+                      "agg": "custom",
+                      "note": "ceil(max(1, Y2) × (1 + Coral/100) × Lv/(60+Lv) × God)"
+                    },
+                    {
+                      "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Equinox Symbols (Dream 10)",
+                      "name": "Equinox Symbols (Dream 10)",
+                      "system": "Farming",
+                      "world": "World 6",
+                      "pool": "Additive",
+                      "fmt": "raw",
+                      "refValue": 64,
+                      "bucket": "🌾 Farming",
+                      "children": [
+                        {
+                          "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Equinox Symbols (Dream 10) / Base Max",
+                          "name": "Base Max",
+                          "system": "Farming",
+                          "world": "World 6",
+                          "pool": "Additive",
+                          "fmt": "raw",
+                          "refValue": 5,
+                          "bucket": "🌾 Farming",
+                          "note": "DreamUpg[10][2] game constant"
+                        },
+                        {
+                          "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Equinox Symbols (Dream 10) / Summoning WinBonus 24",
+                          "name": "Summoning WinBonus 24",
+                          "system": "Farming",
+                          "world": "World 6",
+                          "pool": "Additive",
+                          "fmt": "raw",
+                          "refValue": 45,
+                          "bucket": "🌾 Farming",
+                          "note": "slot 24 is RAW (no multiplicative chain)",
+                          "children": [
+                            {
+                              "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Equinox Symbols (Dream 10) / Summoning WinBonus 24 / Normal Wins Bonus",
+                              "name": "Normal Wins Bonus",
+                              "system": "Farming",
+                              "world": "World 6",
+                              "pool": "Additive",
+                              "fmt": "raw",
+                              "refValue": 0,
+                              "bucket": "🌾 Farming",
+                              "note": "Σ slot-24 contributions from owned summoning units"
+                            },
+                            {
+                              "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Equinox Symbols (Dream 10) / Summoning WinBonus 24 / Endless Wins Bonus",
+                              "name": "Endless Wins Bonus",
+                              "system": "Farming",
+                              "world": "World 6",
+                              "pool": "Additive",
+                              "fmt": "raw",
+                              "refValue": 45,
+                              "bucket": "🌾 Farming",
+                              "note": "floor(wins/40) × perCycle + partial cycle — per cycle: 5",
+                              "children": [
+                                {
+                                  "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Equinox Symbols (Dream 10) / Summoning WinBonus 24 / Endless Wins Bonus / Endless Wins Count",
+                                  "name": "Endless Wins Count",
+                                  "system": "Farming",
+                                  "world": "World 6",
+                                  "pool": "Additive",
+                                  "fmt": "raw",
+                                  "refValue": 363,
+                                  "bucket": "🌾 Farming",
+                                  "note": "OLA[319] — total endless summoning victories"
+                                }
+                              ],
+                              "formulaKey": "endlessWinsBonus",
+                              "agg": "custom",
+                              "perCycleConst": 5
+                            }
+                          ],
+                          "formulaKey": "summoningWinBonus24",
+                          "agg": "custom"
+                        },
+                        {
+                          "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Equinox Symbols (Dream 10) / SuperBit 35 (×10)",
+                          "name": "SuperBit 35 (×10)",
+                          "system": "Farming",
+                          "world": "World 6",
+                          "pool": "Additive",
+                          "fmt": "raw",
+                          "refValue": 10,
+                          "bucket": "🌾 Farming",
+                          "note": "Gaming SuperBitType 35 unlocked? × 10"
+                        },
+                        {
+                          "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Equinox Symbols (Dream 10) / Cloud 30 (×4)",
+                          "name": "Cloud 30 (×4)",
+                          "system": "Farming",
+                          "world": "World 6",
+                          "pool": "Additive",
+                          "fmt": "raw",
+                          "refValue": 4,
+                          "bucket": "🌾 Farming",
+                          "note": "Dream Challenge 30 completed? × 4"
+                        }
+                      ],
+                      "agg": "custom",
+                      "note": "round(Base Max + Summoning WinBonus 24 + 10·SuperBit35 + 4·CloudBonus[30])"
+                    },
+                    {
+                      "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Sneaking Completions",
+                      "name": "Sneaking Completions",
+                      "system": "Farming",
+                      "world": "World 6",
+                      "pool": "Additive",
+                      "fmt": "raw",
+                      "refValue": 5,
+                      "bucket": "🌾 Farming",
+                      "note": "raw=7"
+                    },
+                    {
+                      "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Skull of Major Talent (Grimoire 39)",
+                      "name": "Skull of Major Talent (Grimoire 39)",
+                      "system": "Farming",
+                      "world": "World 6",
+                      "pool": "Additive",
+                      "fmt": "raw",
+                      "refValue": 30,
+                      "bucket": "🌾 Farming"
+                    },
+                    {
+                      "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Kattlekruk Set",
+                      "name": "Kattlekruk Set",
+                      "system": "Farming",
+                      "world": "World 6",
+                      "pool": "Additive",
+                      "fmt": "raw",
+                      "refValue": 5,
+                      "bucket": "🌾 Farming"
+                    },
+                    {
+                      "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Arcane Map 57",
+                      "name": "Arcane Map 57",
+                      "system": "Farming",
+                      "world": "World 6",
+                      "pool": "Additive",
+                      "fmt": "raw",
+                      "refValue": 5,
+                      "bucket": "🌾 Farming",
+                      "note": "cap 5"
+                    },
+                    {
+                      "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Super Bit 47 Lv Bonus",
+                      "name": "Super Bit 47 Lv Bonus",
+                      "system": "Farming",
+                      "world": "World 6",
+                      "pool": "Additive",
+                      "fmt": "raw",
+                      "refValue": 12,
+                      "bucket": "🌾 Farming",
+                      "note": "max(0, floor((Lv − 500)/100))",
+                      "children": [
+                        {
+                          "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Super Bit 47 Lv Bonus / Player Lv",
+                          "name": "Player Lv",
+                          "system": "Farming",
+                          "world": "World 6",
+                          "pool": "Additive",
+                          "fmt": "raw",
+                          "refValue": 1739,
+                          "bucket": "🌾 Farming",
+                          "note": "Lv0[0]"
+                        }
+                      ],
+                      "formulaKey": "superBit47LvBonus",
+                      "agg": "custom"
+                    }
+                  ]
+                }
+              ],
               "formulaKey": "effectiveLevelSum",
               "agg": "custom"
             }
-          ],
-          "formulaSpec": {
-            "type": "decayMulti",
-            "x1": 2,
-            "x2": 200
-          },
-          "formulaKey": "closedFormFormula",
-          "agg": "custom"
+          ]
         },
         {
           "id": "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Pommelyon Seed (Exotic 14) Bonus",

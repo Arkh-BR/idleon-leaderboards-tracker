@@ -6,10 +6,7 @@ import { vaultUpgBonus } from "../common/vault";
 import { emporiumBonus } from "../../../game-helpers";
 import { grimoireUpgBonus22 } from "../mc/grimoire";
 import { exoticParams, ninjaInfo } from "../../data/w5/farming";
-import { skillLvData, numCharacters } from "../../../save/data";
-import { formulaEval } from "../../../formulas";
-import { computeAllTalentLVz } from "../common/talent";
-import { talentParams } from "../../data/common/talent";
+import { talent } from "../common/talent";
 import type { SaveData } from "../../../state";
 
 type Ctx = { saveData: SaveData; charIdx: number };
@@ -19,38 +16,6 @@ export function exoticBonusQTY40(saveData: SaveData): number {
   if (lv <= 0) return 0;
   return (20 * lv) / (1000 + lv);
 }
-
-function getbonus2Detail(
-  talentIdx: number,
-  data: { x1: number; x2: number; formula: string },
-  activeCharIdx: number | undefined,
-  saveData: SaveData
-) {
-  let best = 0;
-  let bestCi = -1;
-  let bestBase = 0;
-  let bestBonus = 0;
-  let bestEff = 0;
-  for (let ci = 0; ci < numCharacters; ci++) {
-    const sl = (skillLvData as any)[ci] || {};
-    const rawLv = Number(sl[talentIdx] || sl[String(talentIdx)]) || 0;
-    if (rawLv <= 0) continue;
-    const bonusChar = activeCharIdx != null ? activeCharIdx : ci;
-    const bonus = computeAllTalentLVz(rawLv, bonusChar, undefined, saveData);
-    const effLv = rawLv + bonus;
-    const val = formulaEval(data.formula, data.x1, data.x2, effLv);
-    if (val > best) {
-      best = val;
-      bestCi = ci;
-      bestBase = rawLv;
-      bestBonus = bonus;
-      bestEff = effLv;
-    }
-  }
-  return { val: best, ci: bestCi, baseLv: bestBase, bonusLv: bestBonus, effLv: bestEff };
-}
-
-const TAL207 = talentParams(207);
 
 export const farm = {
   resolve(id: string | number, ctx: Ctx): CorganNode {
@@ -69,10 +34,13 @@ export const farm = {
       const rankLv = Number(
         (saveData.farmRankData as any)?.["2"]?.[rankIdx]
       ) || 0;
-      const d207 = TAL207
-        ? getbonus2Detail(207, TAL207, ctx.charIdx, saveData)
-        : { val: 0, ci: -1, baseLv: 0, bonusLv: 0, effLv: 0 };
-      const tal207 = d207.val;
+      // Tal 207 (Dank Ranks) — use the canonical account-wide resolver so
+      // it renders identically to /talents-level (Active, Effective Level →
+      // Base + Bonus + Super, Reference Character with name, cap boosters)
+      // instead of the old ad-hoc [Reference Character/Base/Bonus/Effective]
+      // shape. Still consumed here as a × factor (with a max(1,..) floor).
+      const tal207Node = talent.resolve(207, ctx, { mode: "max" });
+      const tal207 = Number(tal207Node.val) || 0;
       const exotic14Lv = Number((saveData.farmUpgData as any)?.[34]) || 0;
       const exotic14 =
         exotic14Lv > 0 ? (60 * exotic14Lv) / (1000 + exotic14Lv) : 0;
@@ -80,30 +48,13 @@ export const farm = {
         return node(friendlyName, 0, null, { note: "farm " + id });
       const val =
         Math.max(1, tal207) * (1 + exotic14 / 100) * ninjaVal * rankLv;
-      const talChildren =
-        tal207 > 0
-          ? [
-              node("Reference Character", d207.ci, null, { fmt: "raw" }),
-              node("Base Level", d207.baseLv, null, { fmt: "raw" }),
-              node("Bonus Level", d207.bonusLv, null, { fmt: "+" }),
-              node("Effective Level", d207.effLv, null, { fmt: "raw" }),
-            ]
-          : null;
       return node(
         friendlyName,
         val,
         [
           node("Rank Level", rankLv, null, { fmt: "raw" }),
           node("Ninja Base", ninjaVal, null, { fmt: "raw" }),
-          node(
-            label("Talent", 207, " Bonus"),
-            Math.max(1, tal207),
-            talChildren,
-            {
-              fmt: "x",
-              note: "decayMulti(2,200," + d207.effLv + ")",
-            }
-          ),
+          tal207Node,
           node("Pommelyon Seed (Exotic 14) Bonus", 1 + exotic14 / 100, null, {
             fmt: "x",
             note: "Level " + exotic14Lv,
