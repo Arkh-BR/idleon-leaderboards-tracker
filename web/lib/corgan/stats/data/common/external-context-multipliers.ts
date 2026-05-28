@@ -65,11 +65,41 @@ function readCounter(spec: ExternalContextSpec): number {
 }
 
 export const EXTERNAL_CONTEXT_MULTIPLIERS: Record<number, ExternalContextSpec> = {
+  // Tal 178 — King Of The Remembered (Divine Knight).
+  // Same shape as Tal 328 (Archlord) — only the counter changes:
+  // OLA[138] counts kills with the rememberance orb. Talent desc:
+  // "+% printer output for every POW 10 kills ever done with the
+  // rememberance orb". The raw talent val is the % per log step;
+  // multiplying by log(kills) gives the actual % printer-output
+  // bonus, then "1 + x/100" turns the % into a multiplier.
+  178: {
+    counterLabel: "Rememberance Orb Kills",
+    counterSource: { kind: "OLA", index: 138 },
+    counterNote: "OLA[138] — count of kills with the rememberance orb",
+    wrap: (talVal, kills) => 1 + (talVal * getLOG(kills)) / 100,
+    fmt: "x",
+    noteForActive: (talVal, kills) =>
+      `1 + (${talVal.toFixed(2)} talent × log(${kills})) / 100`,
+    inactiveVal: 1,
+    inactiveNote: (talVal, kills) =>
+      kills <= 0
+        ? "Inactive — no Rememberance Orb Kills (OLA[138])"
+        : "Inactive — King talent contributes 0",
+    // Same trick as Tal 328: surface the talent formula result as an
+    // explicit "Talent Value" kid so gen-source-catalog can read it
+    // without depending on the (now-moved-into-Base-Level) Reference
+    // Character node.
+    extraBaseKids: (talVal) => [
+      node("Talent Value", talVal, null, {
+        fmt: "raw",
+        note: "talent.resolve(178) val — input to the Rememberance Orb wrap",
+      }),
+    ],
+  },
+
   // Tal 328 — Archlord Of The Pirates (Siege Breaker).
-  // Final bonus = 1 + (talent × log10(Plunderous Kills)) / 100.
-  // The raw talent val is the % per log step; multiplying by log(kills)
-  // gives the actual % EXP/DR bonus, then "1 + x/100" turns the %
-  // into a multiplier.
+  // Same shape as Tal 178 — multiplier = 1 + (talent × log10(counter)) / 100,
+  // counter is OLA[139] (Plunderous Kills) instead of OLA[138].
   328: {
     counterLabel: "Plunderous Kills",
     counterSource: { kind: "OLA", index: 139 },
