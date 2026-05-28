@@ -65,67 +65,25 @@ function readCounter(spec: ExternalContextSpec): number {
 }
 
 export const EXTERNAL_CONTEXT_MULTIPLIERS: Record<number, ExternalContextSpec> = {
-  // Tal 178 — King Of The Remembered (Divine Knight).
-  // Same shape as Tal 328 (Archlord) — only the counter changes:
-  // OLA[138] counts kills with the rememberance orb. Talent desc:
-  // "+% printer output for every POW 10 kills ever done with the
-  // rememberance orb". The raw talent val is the % per log step;
-  // multiplying by log(kills) gives the actual % printer-output
-  // bonus, then "1 + x/100" turns the % into a multiplier.
-  178: {
-    counterLabel: "Rememberance Orb Kills",
-    counterSource: { kind: "OLA", index: 138 },
-    counterNote: "OLA[138] — count of kills with the rememberance orb",
-    wrap: (talVal, kills) => 1 + (talVal * getLOG(kills)) / 100,
-    fmt: "x",
-    noteForActive: (talVal, kills) =>
-      `1 + (${talVal.toFixed(2)} talent × log(${kills})) / 100`,
-    inactiveVal: 1,
-    inactiveNote: (talVal, kills) =>
-      kills <= 0
-        ? "Inactive — no Rememberance Orb Kills (OLA[138])"
-        : "Inactive — King talent contributes 0",
-    // Same trick as Tal 328: surface the talent formula result as an
-    // explicit "Talent Value" kid so gen-source-catalog can read it
-    // without depending on the (now-moved-into-Base-Level) Reference
-    // Character node.
-    extraBaseKids: (talVal) => [
-      node("Talent Value", talVal, null, {
-        fmt: "raw",
-        note: "talent.resolve(178) val — input to the Rememberance Orb wrap",
-      }),
-    ],
-  },
-
-  // Tal 328 — Archlord Of The Pirates (Siege Breaker).
-  // Same shape as Tal 178 — multiplier = 1 + (talent × log10(counter)) / 100,
-  // counter is OLA[139] (Plunderous Kills) instead of OLA[138].
-  328: {
-    counterLabel: "Plunderous Kills",
-    counterSource: { kind: "OLA", index: 139 },
-    counterNote: "OLA[139] — count of plunderous kills",
-    wrap: (talVal, plunder) => 1 + (talVal * getLOG(plunder)) / 100,
-    fmt: "x",
-    noteForActive: (talVal, plunder) =>
-      `1 + (${talVal.toFixed(2)} talent × log(${plunder})) / 100`,
-    inactiveVal: 1,
-    inactiveNote: (talVal, plunder) =>
-      plunder <= 0
-        ? "Inactive — no Plunderous Kills (OLA[139])"
-        : "Inactive — Archlord talent contributes 0",
-    // Surface the talent formula result as an explicit kid so the
-    // gen-source-catalog handler can pick it up by name. We used to
-    // anchor on the sibling "Reference Character: <name>" node for
-    // this value, but that node moved inside Base Level (it only
-    // affects the raw lv used as Points Invested), breaking the
-    // depth=1 lookup.
-    extraBaseKids: (talVal) => [
-      node("Talent Value", talVal, null, {
-        fmt: "raw",
-        note: "talent.resolve(328) val — input to the Plunderous Kills wrap",
-      }),
-    ],
-  },
+  // (formerly Tal 178 and Tal 328) — moved out of this registry into
+  // their consumer-specific wrappers:
+  //   - Tal 328 (Archlord)              → workshop.resolve in
+  //     systems/common/wrappers.ts wraps with × log10(Plunderous Kills,
+  //     OLA[139]) inside the DR postMult flow.
+  //   - Tal 178 (King Of The Remembered) → not a DR source (the bonus
+  //     applies to printer output, not DR), so no wrapper needed.
+  //     /talents-level shows the talent's raw account-wide value;
+  //     callers that want the % printer-output multiplier apply the
+  //     log(OLA[138]) wrap themselves.
+  //
+  // Reasoning: this registry was making talent.resolve() return a
+  // pre-wrapped multiplier for these two talents — but every OTHER
+  // account-wide talent in ACCOUNT_WIDE_TALENT_IDS returns its raw
+  // formula value. Keeping 178/328 special here made /talents-level
+  // inconsistent ("Archlord = 1.27×" with no clear input vs. "Eternal
+  // STR = 792 STR"). Now both classes of talent emit the same shape;
+  // anything that needs the wrap applies it where it consumes the
+  // value.
 
   // Tal 655 — Boss Battle Spillover (star talent).
   // Final bonus = Per-Skull × Skulls Beaten.

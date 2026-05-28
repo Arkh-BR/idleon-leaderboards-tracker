@@ -2037,17 +2037,16 @@ const APP_JS = `
       var perSkull = (25 * base) / (base + 100);
       return perSkull * skulls;
     },
-    "Archlord Of The Pirates (Talent 328)": function (_p, kids) {
+    "Workshop DR — Archlord Of The Pirates (Talent 328) × Plunderous Kills": function (_p, kids) {
       // total = 1 + (talVal × log10(plunder)) / 100.
-      // talent.resolve(328) wraps its own output with the Plunderous
-      // Kills × multiplier (see common/talent.ts useMaxMode branch +
-      // external-context-multipliers.ts spec). The talent formula
-      // result is exposed as an explicit "Talent Value" kid via the
-      // spec's extraBaseKids — we used to read it from the sibling
-      // "Reference Character: <name>", but that node now lives inside
-      // Base Level (it only contributes the raw lv).
-      // Tal 328 is account-wide so its activity is implicit (val > 0
-      // means at least one owner-class char has it invested).
+      // workshop.resolve in wrappers.ts emits this wrap node — Tal 328
+      // itself is now a plain account-wide talent (no longer pre-
+      // wrapped by EXTERNAL_CONTEXT_MULTIPLIERS), so the DR-specific
+      // log × Plunderous Kills multiplier lives in the wrapper.
+      // The wrap exposes "Talent Value" + "Plunderous Kills" as direct
+      // kids so this handler can recompute live when the user edits
+      // either input. Activity is implicit (val > 0 ⇒ ≥1 owner-class
+      // char has invested + plunder > 0).
       var talVal = kid(kids, /^Talent Value$/);
       var plunder = kid(kids, /^Plunderous Kills$/);
       if (talVal === null || plunder === null) return null;
