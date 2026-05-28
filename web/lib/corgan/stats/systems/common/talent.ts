@@ -431,6 +431,19 @@ function emitBaseLevelNode(
       const tree = talent.resolve(b.sourceTalent, ctxForBooster, args);
       const rawV = Number(tree.val) || 0;
       let v = rawV;
+      // Embed the booster's FULL resolved sub-tree (Active → Effective
+      // Level → Base Level + Bonus Levels) under a "Source Talent Tree"
+      // wrapper so the user can drill into every contributing source. The
+      // wrapper preserves the booster talent's name as a kid label, while
+      // the parent row stays as the labeled booster row (b.label + value
+      // contribution to the cap).
+      const sourceTreeKid = node(tree.name, rawV, tree.children, {
+        fmt: "raw",
+        note:
+          b.scope === "account-wide"
+            ? "best-char emit (mode=max) — full breakdown"
+            : "per-char emit — full breakdown",
+      });
       const subKids: CorganNode[] = [];
       // Bubble clamp — `Math.min(boosterValue, CauldronInfo[chap][slot])`
       // mirrors N.js Padrão B (e.g. SM[86] = max(100 + min(GTN(1,129),
@@ -445,7 +458,7 @@ function emitBaseLevelNode(
           ) || 0;
         const clamped = Math.min(rawV, bubbleLv);
         subKids.push(
-          node("Booster Raw", rawV, null, {
+          node("Booster Raw", rawV, [sourceTreeKid], {
             fmt: "raw",
             note: "x-bonus from source talent before bubble clamp",
           }),
@@ -455,10 +468,12 @@ function emitBaseLevelNode(
           })
         );
         v = clamped;
+      } else {
+        subKids.push(sourceTreeKid);
       }
       total += v;
       boosterKids.push(
-        node(b.label, v, subKids.length ? subKids : null, {
+        node(b.label, v, subKids, {
           fmt: "+",
           note: b.bubbleCap
             ? `min(raw, bubble Lv) — ${b.scope}`
