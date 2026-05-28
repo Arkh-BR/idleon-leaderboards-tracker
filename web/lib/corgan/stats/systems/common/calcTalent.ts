@@ -26,12 +26,31 @@ import {
   charClassData,
   cauldronInfoData,
   stampLvData,
+  skillLvData,
 } from "../../../save/data";
 import type { SaveData } from "../../../state";
 import {
   RANDOlist,
   DreamChallenge,
 } from "../../data/game/customlists.js";
+import { apocalypseMapsOver, apocalypseMapsOverBest } from "../w6/upg-totals";
+import { talentParams } from "../../data/common/talent";
+import { formulaEval } from "../../../formulas";
+
+/** GetTalentNumber(2,id) approximated at the char's RAW talent level (no
+ *  ATL chain) — the "Counts up to {" cap on the Apocalypse talents. The
+ *  ATL bonus on the cap is small relative to the cap, so the raw-lv
+ *  approximation is close. Returns Infinity when the talent has no tab-2
+ *  formula (no cap). */
+function talentTab2Cap(talentId: number, charIdx: number, s: SaveData): number {
+  const p = talentParams(talentId, 2);
+  if (!p || !p.formula || p.formula === "txt" || p.formula === "_") return Infinity;
+  void s;
+  const sl = (skillLvData as any)?.[charIdx] || {};
+  const rawLv = Number(sl[talentId] ?? sl[String(talentId)]) || 0;
+  if (rawLv <= 0) return 0;
+  return Number(formulaEval(p.formula, p.x1, p.x2, rawLv)) || 0;
+}
 
 /** Active-char Lv0 array (skill levels + player level at [0]). */
 function lv0Of(saveData: SaveData, charIdx: number): any[] {
@@ -94,13 +113,16 @@ export function computeCalcTalent(
     }
 
     // ── 110 — Apocalypse Zow (per-char): mob types killed >100k ──────
-    // [STUB] Needs the rift/kill-tracker: per-map
-    // (MapDetails[g][0][0] - KillsLeft2Advance[g][0]) >= 1e5 count,
-    // then min(count, GetTalentNumber(2,110)). KillsLeft2Advance is
-    // loaded per-char (klaData) but MapDetails total-kills bookkeeping
-    // + the GTN(2,110) cap aren't ported. Returns 0.
+    // ── 110 — Apocalypse Zow (per-char): mob types killed >100k ──────
+    // N.js: count of fighting maps where killsDone(g) >= 1e5, then
+    // min(count, GetTalentNumber(2,110)). killsDone = MapDetails[g][0][0]
+    // − KLA[charIdx][g][0] (KLA goes negative on over-kill). The cap uses
+    // a raw-lv approximation of GTN(2,110) (ATL on the cap omitted).
     case 110:
-      return 0; // [STUB] w4/rift kill-tracker (Apocalypse Zow)
+      return Math.min(
+        apocalypseMapsOver(saveData, charIdx, 1e5),
+        talentTab2Cap(110, charIdx, saveData)
+      );
 
     // ── 125 — Precision Power (per-char): Σ Refinery ranks, IF the
     // active char's total accuracy >= 2.25× the AFK target's defence ──
@@ -113,17 +135,19 @@ export function computeCalcTalent(
       return 0; // [STUB] accuracy gate unported (Precision Power)
 
     // ── 146 — Apocalypse Chow (per-char): mob types killed >1m ───────
-    // [STUB] Same rift kill-tracker as 110, with the 1e6 threshold and
-    // the GTN(2,146) cap. Returns 0.
+    // Same shape as 110, threshold 1e6, cap GTN(2,146).
     case 146:
-      return 0; // [STUB] w4/rift kill-tracker (Apocalypse Chow)
+      return Math.min(
+        apocalypseMapsOver(saveData, charIdx, 1e6),
+        talentTab2Cap(146, charIdx, saveData)
+      );
 
     // ── 209 — Apocalypse Wow (account-wide): mob types killed >1b ────
-    // [STUB] Uses the cross-char rift kill-tracker (DN4: per-map
-    // 1e9 threshold against the Death Bringer char's KillsLeft2Advance).
-    // Not ported. Returns 0.
+    // N.js DN4: count over the best Death-Bringer char's kill tracker at
+    // the 1e9 threshold. We take the max count across all chars (no cap
+    // in the in-game MAP build for 209).
     case 209:
-      return 0; // [STUB] w4/rift kill-tracker (Apocalypse Wow)
+      return apocalypseMapsOverBest(saveData, 1e9);
 
     // ── 305 — Looty Mc Shooty (per-char): items ever found ───────────
     // N.js: deep-copies Cards[1] (the "items ever found" registry — a

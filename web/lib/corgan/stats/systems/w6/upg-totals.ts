@@ -4,9 +4,46 @@
 // Ported 1:1 from N.js _customBlock_Summoning/Windwalker/ArcaneType
 // "...UpgTotal" branches.
 
-import { GrimoireUpg, ArcaneUpg, CompassUpg, AtomInfo } from "../../data/game/customlists.js";
-import { optionsListData } from "../../../save/data";
+import { GrimoireUpg, ArcaneUpg, CompassUpg, AtomInfo, MapDetails } from "../../data/game/customlists.js";
+import { optionsListData, numCharacters } from "../../../save/data";
 import type { SaveData } from "../../../state";
+
+/** Count of fighting maps where total kills on that map's monster reach a
+ *  threshold. N.js (TalentCalc Apocalypse loop): killsDone(map g) =
+ *  MapDetails[g][0][0] − KLA[charIdx][g][0]. KLA[g][0] (kills-left-to-
+ *  advance) goes deeply negative once you over-kill a map, so killsDone
+ *  grows unbounded = lifetime kills. Skips maps with no kill target
+ *  (MapDetails[g][0][0] <= 0). Used by the Apocalypse talents (110/146/209).
+ *  NOTE: the in-game loop also gates on AFKtype==="FIGHTING"; we rely on the
+ *  threshold instead (non-fighting maps have ~0 killsDone), which matches in
+ *  practice. */
+export function apocalypseMapsOver(
+  s: SaveData,
+  charIdx: number,
+  threshold: number
+): number {
+  const kla = ((s as any).klaData || [])[charIdx] || [];
+  const md = MapDetails as any[];
+  let count = 0;
+  for (let g = 0; g < md.length; g++) {
+    const total = Number(md[g]?.[0]?.[0]) || 0;
+    if (total <= 0) continue;
+    const left = Number(kla[g]?.[0]) || 0;
+    if (total - left >= threshold) count++;
+  }
+  return count;
+}
+
+/** Best (max) apocalypseMapsOver across all chars — for the account-wide
+ *  Apocalypse Wow (209), which the game reads off the top DK char. */
+export function apocalypseMapsOverBest(s: SaveData, threshold: number): number {
+  let best = 0;
+  for (let ci = 0; ci < numCharacters; ci++) {
+    const v = apocalypseMapsOver(s, ci, threshold);
+    if (v > best) best = v;
+  }
+  return best;
+}
 
 /** Σ Grimoire[0 .. GrimoireUpg.length] — total grimoire upgrade levels.
  *  N.js: _customBlock_Summoning("GrimoireUpgTotal"). */

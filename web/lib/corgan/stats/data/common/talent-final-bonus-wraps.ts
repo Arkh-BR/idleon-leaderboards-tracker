@@ -861,13 +861,13 @@ export const TALENT_FINAL_BONUS_WRAPS: Record<number, TalentWrapSpec> = {
   110: {
     counterLabel: "Mob Types Killed >100k",
     counterSource: { kind: "CalcTalent", talentId: 110 },
-    counterNote: "CalcTalentMAP[110] — [STUB] rift kill-tracker unported (0)",
+    counterNote: "CalcTalentMAP[110] — fighting maps with >100k lifetime kills (capped by talent)",
     wrap: (tv, c) => tv * c,
     fmt: "+",
     noteForActive: (tv, c) => `${tv.toFixed(2)} × ${c} % dmg`,
     inactiveVal: 0,
     inactiveNote: (_tv, c) =>
-      c <= 0 ? "Inactive — counter stubbed (rift kill-tracker unported)" : "Inactive — talent 0",
+      c <= 0 ? "Inactive — no maps with >100k kills" : "Inactive — talent 0",
     extraBaseKids: tvKid(),
   },
 
@@ -896,13 +896,13 @@ export const TALENT_FINAL_BONUS_WRAPS: Record<number, TalentWrapSpec> = {
   146: {
     counterLabel: "Mob Types Killed >1m",
     counterSource: { kind: "CalcTalent", talentId: 146 },
-    counterNote: "CalcTalentMAP[146] — [STUB] rift kill-tracker unported (0)",
+    counterNote: "CalcTalentMAP[146] — fighting maps with >1m lifetime kills (capped by talent)",
     wrap: (tv, c) => tv * c,
     fmt: "+",
     noteForActive: (tv, c) => `${tv.toFixed(2)} × ${c} % cooking exp & eff`,
     inactiveVal: 0,
     inactiveNote: (_tv, c) =>
-      c <= 0 ? "Inactive — counter stubbed (rift kill-tracker unported)" : "Inactive — talent 0",
+      c <= 0 ? "Inactive — no maps with >1m kills" : "Inactive — talent 0",
     extraBaseKids: tvKid(),
   },
 
@@ -913,13 +913,13 @@ export const TALENT_FINAL_BONUS_WRAPS: Record<number, TalentWrapSpec> = {
   209: {
     counterLabel: "Mob Types Killed >1b",
     counterSource: { kind: "CalcTalent", talentId: 209 },
-    counterNote: "CalcTalentMAP[209] — [STUB] rift kill-tracker unported (0)",
+    counterNote: "CalcTalentMAP[209] — best char's fighting maps with >1b lifetime kills",
     wrap: (tv, c) => tv * c,
     fmt: "+",
     noteForActive: (tv, c) => `${tv.toFixed(2)} × ${c} % gold food effect`,
     inactiveVal: 0,
     inactiveNote: (_tv, c) =>
-      c <= 0 ? "Inactive — counter stubbed (rift kill-tracker unported)" : "Inactive — talent 0",
+      c <= 0 ? "Inactive — no maps with >1b kills" : "Inactive — talent 0",
     extraBaseKids: tvKid(),
   },
 
