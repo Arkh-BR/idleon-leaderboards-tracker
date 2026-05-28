@@ -140,12 +140,22 @@ function suffixed(val: number): string {
   return val.toFixed(3);
 }
 
+/** Drop trailing zeros (and a bare trailing dot) from a fixed string. */
+function trimZeros(s: string): string {
+  return s.indexOf(".") >= 0 ? s.replace(/\.?0+$/, "") : s;
+}
+
 function formatVal(val: number, fmt: string | undefined): string {
   if (!Number.isFinite(val)) return "—";
-  // Multiplier/additive/percent fmts keep their unit; fall back to
-  // exponential past 1e21 so they don't dump a 30-digit integer string.
-  if (fmt === "x")
-    return (Math.abs(val) >= 1e21 ? val.toExponential(2) : val.toFixed(3)) + "x";
+  // Multipliers compound into the final DR, so show real precision (6 dp,
+  // trimmed) for normal-range multis instead of rounding 1.26974 → 1.270.
+  // Big multis (>=1000) don't need decimals; past 1e21 use exponential.
+  if (fmt === "x") {
+    const a = Math.abs(val);
+    if (a >= 1e21) return val.toExponential(2) + "x";
+    return trimZeros(val.toFixed(a < 1000 ? 6 : 3)) + "x";
+  }
+  // Additive fmts keep their unit; fall back to exponential past 1e21.
   if (fmt === "+")
     return (
       (val >= 0 ? "+" : "") +
