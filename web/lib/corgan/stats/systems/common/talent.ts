@@ -40,10 +40,7 @@ import {
   isAccountWideTalent,
   ACCOUNT_WIDE_SPECIAL_BRANCH_IDS,
 } from "../../data/common/account-wide-talents";
-import {
-  hasExternalContext,
-  applyExternalContext,
-} from "../../data/common/external-context-multipliers";
+import { applyTalentWrap } from "../../data/common/talent-final-bonus-wraps";
 import {
   TALENT_CAP_BOOSTERS,
   hasTalentCapBoosters,
@@ -1739,12 +1736,11 @@ export const talent = {
         ];
       }
 
-      // External-context multipliers (e.g. Tal 328 × Plunderous Kills) —
-      // applied AFTER the cross-char max emit so /talents-level and
-      // /drop-rate both surface the talent's FINAL bonus. The registry
-      // in data/common/external-context-multipliers.ts owns the
-      // talent→counter mapping; here we just delegate.
-      const withCtx = applyExternalContext(id, r.val, maxChildren, name);
+      // Final-bonus wrap (e.g. Tal 328 × log10(Plunderous Kills)) —
+      // applied AFTER the cross-char max emit so the headline shows the
+      // talent's FINAL bonus. The registry in talent-final-bonus-wraps.ts
+      // owns the talent→counter mapping; here we just delegate.
+      const withCtx = applyTalentWrap(id, r.val, maxChildren, name, saveData, ctx.charIdx);
       if (withCtx) return withCtx;
       return node(name, r.val, maxChildren, { fmt: "+" });
     }
@@ -1776,11 +1772,11 @@ export const talent = {
     // branch shows just rawLv without a "max" row (SkillLevelsMAX[id]
     // alone isn't reliable as a cap source).
     //
-    // Stars with external context (e.g. Tal 655 × Skulls Beaten) are
-    // handled by the same applyExternalContext path used for tab 1-5
+    // Stars with a final-bonus wrap (e.g. Tal 655 × Skulls Beaten) are
+    // handled by the same applyTalentWrap path used for tab 1-5
     // account-wide talents — the wrap is data-driven via the registry
-    // in data/common/external-context-multipliers.ts, no hardcoded
-    // branch needed here.
+    // in data/common/talent-final-bonus-wraps.ts, no hardcoded branch
+    // needed here.
     if (id >= 615) {
       const starKids: CorganNode[] = [
         node("Active", activeFlag, null, { fmt: "raw" }),
@@ -1789,7 +1785,7 @@ export const talent = {
           note: "star talent — pool capped, no book lv",
         }),
       ];
-      const withCtx = applyExternalContext(id, r.val, starKids, name);
+      const withCtx = applyTalentWrap(id, r.val, starKids, name, saveData, ctx.charIdx);
       if (withCtx) return withCtx;
       return node(name, r.val, starKids, {
         fmt: "+",
@@ -1820,13 +1816,10 @@ export const talent = {
         }
       ),
     ];
-    // External-context wrap (data-driven via the registry) — fires for
-    // any non-account-wide, non-star talent that scales against an
-    // external counter. Currently the registry only contains 328 and
-    // 655, which route through the account-wide and star branches
-    // above, so this is a forward-compatibility hook for any future
-    // per-char talents added to the multipliers registry.
-    const withCtx = applyExternalContext(id, r.val, standardKids, name);
+    // Final-bonus wrap (data-driven via the registry) — fires for any
+    // per-char talent that scales against an external/derived counter
+    // (e.g. Tal 86 × log10(Max HP), Tal 638 × log10(Dungeon Credits)).
+    const withCtx = applyTalentWrap(id, r.val, standardKids, name, saveData, ctx.charIdx);
     if (withCtx) return withCtx;
     return node(name, r.val, standardKids, {
       fmt: "+",

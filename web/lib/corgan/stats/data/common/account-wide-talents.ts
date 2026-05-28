@@ -63,7 +63,7 @@ export const ACCOUNT_WIDE_TALENT_IDS = new Set<number>([
   59,  // Blood Marrow — Voidwalker
   176, // 1000 Hours Played — Divine Knight (Gaming EXP "for all characters!")
   177, // Bitty Litty — Divine Knight
-  178, // King Of The Remembered — Divine Knight (Printer Output × log(OLA[138]) wrap — see external-context-multipliers)
+  178, // King Of The Remembered — Divine Knight (Printer Output × log(OLA[138]) wrap — see talent-final-bonus-wraps)
   204, // Ribbon Winning — Death Bringer
   205, // Mass Irrigation — Death Bringer
   206, // Agricultural 'Preciation — Death Bringer (Farming + Land Rank EXP, "Works on all characters!")
