@@ -124,15 +124,35 @@ function isPathOpen(
 // Formatting helpers — same conventions as CorganTree so values look familiar
 // -----------------------------------------------------------------------------
 
+// Idleon-style suffixed number — M/B/T/Q/QQ/QQQ, then scientific past 1e24
+// (where toFixed itself starts emitting exponent strings, which produced the
+// "3.7e+34B" garbage when only B existed and bigger numbers got divided by 1e9).
+function suffixed(val: number): string {
+  const abs = Math.abs(val);
+  if (abs >= 1e24) return val.toExponential(2);
+  if (abs >= 1e21) return (val / 1e21).toFixed(2) + "QQQ";
+  if (abs >= 1e18) return (val / 1e18).toFixed(2) + "QQ";
+  if (abs >= 1e15) return (val / 1e15).toFixed(2) + "Q";
+  if (abs >= 1e12) return (val / 1e12).toFixed(2) + "T";
+  if (abs >= 1e9) return (val / 1e9).toFixed(2) + "B";
+  if (abs >= 1e6) return (val / 1e6).toFixed(2) + "M";
+  if (abs >= 1e3) return (val / 1e3).toFixed(2) + "K";
+  return val.toFixed(3);
+}
+
 function formatVal(val: number, fmt: string | undefined): string {
   if (!Number.isFinite(val)) return "—";
-  if (fmt === "x") return val.toFixed(3) + "x";
-  if (fmt === "+") return (val >= 0 ? "+" : "") + val.toFixed(3);
+  // Multiplier/additive/percent fmts keep their unit; fall back to
+  // exponential past 1e21 so they don't dump a 30-digit integer string.
+  if (fmt === "x")
+    return (Math.abs(val) >= 1e21 ? val.toExponential(2) : val.toFixed(3)) + "x";
+  if (fmt === "+")
+    return (
+      (val >= 0 ? "+" : "") +
+      (Math.abs(val) >= 1e21 ? val.toExponential(2) : val.toFixed(3))
+    );
   if (fmt === "%") return val.toFixed(2) + "%";
-  if (Math.abs(val) >= 1e9) return (val / 1e9).toFixed(2) + "B";
-  if (Math.abs(val) >= 1e6) return (val / 1e6).toFixed(2) + "M";
-  if (Math.abs(val) >= 1e3) return (val / 1e3).toFixed(2) + "K";
-  return val.toFixed(3);
+  return suffixed(val);
 }
 
 /** Look up a path's previous value in the baseline flatTree. Returns
