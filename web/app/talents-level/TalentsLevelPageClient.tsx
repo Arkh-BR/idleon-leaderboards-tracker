@@ -633,7 +633,10 @@ export default function TalentsLevelPageClient() {
           for star talents (no cap → just show Level). */}
       <div className="rounded-lg bg-zinc-900/60 border border-zinc-800 p-4 mb-4">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          {/* Bonus pane. */}
+          {/* Bonus pane. Carries the talent's lvlUpText description so the
+              user knows WHAT the bonus value (the gold number) actually
+              represents — previously a centered row under the whole card
+              that lost its visual link to the bonus. */}
           <div className="text-center sm:border-r sm:border-zinc-800 sm:pr-3">
             <div className="text-[10px] uppercase tracking-wider text-zinc-500">
               Talent Bonus
@@ -644,6 +647,11 @@ export default function TalentsLevelPageClient() {
             <div className="text-[10px] text-zinc-600 mt-1">
               {tree?.fmt === "x" ? "multiplier" : "additive"}
             </div>
+            {selectedTalent && (
+              <div className="text-[11px] text-zinc-500 mt-2 italic leading-snug">
+                {cleanLvlUpText(selectedTalent.description)}
+              </div>
+            )}
           </div>
 
           {/* Current effective level. The breakdown row shows Points
@@ -684,11 +692,6 @@ export default function TalentsLevelPageClient() {
             "load a save & pick a talent"
           )}
         </div>
-        {selectedTalent && (
-          <div className="text-[11px] text-zinc-500 mt-1 italic leading-snug text-center">
-            {cleanLvlUpText(selectedTalent.description)}
-          </div>
-        )}
       </div>
 
       {/* Tree pane — DeepView fed the FULL talent tree (Active flag,
