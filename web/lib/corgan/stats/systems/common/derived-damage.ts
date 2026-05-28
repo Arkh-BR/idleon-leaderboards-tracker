@@ -83,7 +83,13 @@ import {
 } from "./stats";
 import { computePlayerHPmax, computePlayerMPmax } from "./derived-stats";
 import { computeShinyBonusS } from "../w4/breeding";
-import { computeSeraphMulti } from "./starSign";
+import { computeStarSignBonus as computeStarSignBonusTree } from "./starSign";
+
+/** Scalar star-sign bonus (derived-damage only needs the number, not the
+ *  tree). Delegates to the shared ./starSign helper — no local copy. */
+function computeStarSignBonus(key: string, ci: number, s: SaveData): number {
+  return computeStarSignBonusTree(key, ci, s).val;
+}
 import { computeStampBonusOfTypeX } from "../w1/stamp";
 import { goldFoodBonuses } from "./goldenFood";
 import { talent } from "./talent";
@@ -154,43 +160,6 @@ function rval(
   } catch {
     return 0;
   }
-}
-
-// --------------------------------------------------------------------------
-// Star sign bonus (ported from starSign.js — the keyed effect map; our
-// systems/common/starSign.ts only exports the `drop` table on the resolver,
-// so we replicate the keyed bonus helper here, matching derived-stats.ts).
-// --------------------------------------------------------------------------
-const SIGN_BONUSES: Record<string, Record<number, number>> = {
-  PctDmg: { 0: 1, 32: 2, 51: 20, 53: 6, 54: 15, 70: 25 },
-  WepPow: { 12: 2 },
-  MoveSpd: { 1: 2, 8: 4, 13: 2, 32: -3, 51: -12 },
-  TotalHP: { 28: -80 },
-  FoodEffect: { 22: 15 },
-};
-
-function getEnabledStarSigns(saveData: SaveData): number {
-  const riftLv = Number(saveData.riftData && saveData.riftData[0]) || 0;
-  return riftLv >= 10 ? 5 + computeShinyBonusS(3, saveData) : 0;
-}
-
-function computeStarSignBonus(
-  key: string,
-  ci: number,
-  saveData: SaveData
-): number {
-  const bonusMap = SIGN_BONUSES[key];
-  if (!bonusMap) return 0;
-  const enabled = getEnabledStarSigns(saveData);
-  let total = 0;
-  for (const k of Object.keys(bonusMap)) {
-    const sigIdx = Number(k);
-    const val = bonusMap[sigIdx];
-    if (val < 0 && sigIdx < enabled) continue;
-    total += val;
-  }
-  if (total > 0) total *= computeSeraphMulti(ci, saveData);
-  return total;
 }
 
 // --------------------------------------------------------------------------

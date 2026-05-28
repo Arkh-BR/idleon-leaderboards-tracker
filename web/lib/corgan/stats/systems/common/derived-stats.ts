@@ -38,7 +38,7 @@ import { etcBonus } from "./etcBonus";
 import { bubbleValByKey, getPrismaBonusMult } from "../w2/alchemy";
 import { shrine } from "../w3/construction";
 import { computeStatueBonusGiven, computeMealBonus } from "./stats";
-import { computeSeraphMulti } from "./starSign";
+import { computeStarSignBonus } from "./starSign";
 import { computeShinyBonusS } from "../w4/breeding";
 import { votingBonusz } from "../w2/voting";
 import { getSetBonus } from "../w3/setBonus";
@@ -125,56 +125,8 @@ function getBuffBonus(
 
 // --------------------------------------------------------------------------
 // Star sign bonus (ported from starSign.js — not exported by our starSign.ts)
-// --------------------------------------------------------------------------
-// Game hardcodes per-sign bonuses by index (description strings don't match
-// keys). Map: effectKey → { signIndex: baseValue }.
-const SIGN_BONUSES: Record<string, Record<number, number>> = {
-  FightAFK: { 19: 2, 28: 6, 29: -6, 56: 4 },
-  SkillAFK: { 20: 2, 25: 1, 29: -6, 55: 4 },
-  SkillEXP: { 30: 3, 50: 6 },
-  MainXP: { 2: 1, 24: 3, 52: 6 },
-  WorshExp: { 46: 15 },
-  Drop: { 14: 5, 76: 12 },
-  PctDmg: { 0: 1, 32: 2, 51: 20, 53: 6, 54: 15, 70: 25 },
-  WepPow: { 12: 2 },
-  MoveSpd: { 1: 2, 8: 4, 13: 2, 32: -3, 51: -12 },
-  TotalHP: { 28: -80 },
-  FoodEffect: { 22: 15 },
-};
-
-function getEnabledStarSigns(saveData: SaveData): number {
-  const riftLv = Number(saveData.riftData && saveData.riftData[0]) || 0;
-  return riftLv >= 10 ? 5 + computeShinyBonusS(3, saveData) : 0;
-}
-
-function computeStarSignBonus(
-  key: string,
-  ci: number,
-  saveData: SaveData
-): Tree {
-  const bonusMap = SIGN_BONUSES[key];
-  if (!bonusMap) return { val: 0, children: null };
-  const enabled = getEnabledStarSigns(saveData);
-  let total = 0;
-  const children: CorganNode[] = [];
-  const signIndices = Object.keys(bonusMap);
-  for (let i = 0; i < signIndices.length; i++) {
-    const sigIdx = Number(signIndices[i]);
-    const val = bonusMap[sigIdx];
-    // Game: if (signIndex > enabledStarSigns - 1) → apply negatives; else skip
-    if (val < 0 && sigIdx < enabled) continue;
-    total += val;
-    children.push(node("Sign " + sigIdx, val, null, { fmt: "raw" }));
-  }
-  let seraphMulti = 1;
-  if (total > 0) {
-    seraphMulti = computeSeraphMulti(ci, saveData);
-    total *= seraphMulti;
-  }
-  if (seraphMulti !== 1 && children.length)
-    children.push(node("Seraph Multi", seraphMulti, null, { fmt: "x" }));
-  return { val: total, children };
-}
+// Star-sign keyed bonus + SIGN_BONUSES table now live in ./starSign
+// (computeStarSignBonus) — shared with derived-damage. Imported above.
 
 // ==========================================================================
 // MAX HP — _customBlock_PlayerHPmax: LIST[0] × LIST[1] × LIST[2]
