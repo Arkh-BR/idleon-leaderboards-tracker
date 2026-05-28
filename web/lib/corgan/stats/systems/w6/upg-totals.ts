@@ -49,6 +49,30 @@ export function statueOnyxOwned(s: SaveData): number {
   return count;
 }
 
+/** Total quantity of an item across every char's carried inventory plus
+ *  account storage (chests). Mirrors N.js `_ItemsAndStorageOWNED.h[item]`,
+ *  which the game builds from the inventory rollup + ChestOrder/ChestQuantity.
+ *  We sum InventoryOrder_N/ItemQTY_N (per char) + ChestOrder/ChestQuantity.
+ *  `item` is the item rawName (e.g. "Copper", "OakTree", "Soul1"). */
+export function invStorageOwned(s: SaveData, item: string): number {
+  let total = 0;
+  const invOrder = (s as any).inventoryOrderData || [];
+  const itemQty = (s as any).itemQtyData || [];
+  for (let ci = 0; ci < invOrder.length; ci++) {
+    const order = invOrder[ci] || [];
+    const qty = itemQty[ci] || [];
+    for (let i = 0; i < order.length; i++) {
+      if (order[i] === item) total += Number(qty[i]) || 0;
+    }
+  }
+  const chestOrder = (s as any).chestOrderData || [];
+  const chestQty = (s as any).chestQuantityData || [];
+  for (let i = 0; i < chestOrder.length; i++) {
+    if (chestOrder[i] === item) total += Number(chestQty[i]) || 0;
+  }
+  return total;
+}
+
 /** AtomCollider("AtomBonuses", 1, 0) — the "Helium - Talent Power Stacker"
  *  atom bonus. N.js: for b=1 (none of the b==0/5/8 special branches apply)
  *  the value is simply Atoms[1] × AtomInfo[1][4] (atom level × per-level

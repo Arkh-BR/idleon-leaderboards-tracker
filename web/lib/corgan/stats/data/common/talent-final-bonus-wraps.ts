@@ -47,6 +47,7 @@ import {
   statueOnyxOwned,
   atomBonus1,
   totalTitanKills,
+  invStorageOwned,
 } from "../../systems/w6/upg-totals";
 import { talentParams } from "./talent";
 import { formulaEval } from "../../../formulas";
@@ -116,6 +117,16 @@ export type TalentWrapSpec = {
     rawTalentVal: number,
     counter: number,
     effectiveLv: number
+  ) => number;
+  /** Optional save-aware wrap. Receives the save + active charIdx so the
+   *  spec can fold in a second save-derived term (e.g. the Atom-1 bonus
+   *  added to log10(itemCount) for the inventory-log talents). Takes
+   *  precedence over wrapWithLv/wrap when set. */
+  wrapWithSave?: (
+    rawTalentVal: number,
+    counter: number,
+    saveData: SaveData,
+    charIdx: number
   ) => number;
   /** Format of the wrapped value: "x" (multiplier) or "+" (additive). */
   fmt: "x" | "+";
@@ -195,7 +206,7 @@ function readCounter(
     case "TotalTitanKills":
       return totalTitanKills(saveData);
     case "InvStorageOwned":
-      return 0; // [STUB] inventory/storage rollup not ported (see CounterSource)
+      return invStorageOwned(saveData, src.item);
     case "PlayerSpeedBonus":
       return 0; // [STUB] movement-speed derived stat not ported
   }
@@ -1120,17 +1131,18 @@ export const TALENT_FINAL_BONUS_WRAPS: Record<number, TalentWrapSpec> = {
     ): TalentWrapSpec => ({
       counterLabel: `${itemLabel} Owned (inv+storage)`,
       counterSource: { kind: "InvStorageOwned", item: itemKey },
-      counterNote: `[STUB] ItemsAndStorageOWNED.${itemKey} — inventory/storage rollup unported (0)`,
-      // Faithful headline shape (counter is stubbed 0 so this branch is
-      // never taken in practice — kept for correctness if a count is ever
-      // ported). final = tv × (log10(count) + AtomBonuses[1]).
-      wrap: (tv, c) => tv * (getLOG(c) + 0),
+      counterNote: `ItemsAndStorageOWNED.${itemKey} — Σ qty across all chars' inventory + storage`,
+      // final = tv × (log10(count) + AtomBonuses[1]). The Atom-1 term
+      // needs the save, so the real math runs in wrapWithSave; `wrap` is
+      // the log-only fallback for the required signature.
+      wrap: (tv, c) => tv * getLOG(c),
+      wrapWithSave: (tv, c, sd) => tv * (getLOG(c) + atomBonus1(sd)),
       fmt: "+",
       noteForActive: (tv, c) =>
         `${tv.toFixed(2)} × (log10(${c}) + Atom1) % ${effectWord}`,
       inactiveVal: 0,
-      inactiveNote: () =>
-        `Inactive — counter stubbed (inventory/storage rollup unported)`,
+      inactiveNote: (_tv, c) =>
+        c <= 0 ? `Inactive — no ${itemLabel} owned` : "Inactive — talent 0",
       extraBaseKids: (tv, saveData) => [
         node("Talent Value", tv, null, {
           fmt: "raw",
@@ -1267,7 +1279,11 @@ export function applyTalentWrap(
     note: spec.counterNote,
   });
   const applyWrap = (tv: number, c: number) =>
-    spec.wrapWithLv ? spec.wrapWithLv(tv, c, effectiveLv) : spec.wrap(tv, c);
+    spec.wrapWithSave
+      ? spec.wrapWithSave(tv, c, saveData, charIdx)
+      : spec.wrapWithLv
+        ? spec.wrapWithLv(tv, c, effectiveLv)
+        : spec.wrap(tv, c);
   const active = rawTalentVal > 0 && counter > 0;
   if (active) {
     return node(talentName, applyWrap(rawTalentVal, counter), [...baseKids, ...extraKids, counterKid], {

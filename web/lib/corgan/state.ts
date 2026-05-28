@@ -129,6 +129,8 @@ export type SaveData = {
   minigameHiscores: any[];
   chestOrderData: any[];
   chestQuantityData: any[];
+  inventoryOrderData: any[];
+  itemQtyData: any[];
   krBestData: any;
   divinityAllData: any[];
   labChipData: any[];
@@ -249,6 +251,8 @@ export const saveData: SaveData = {
   minigameHiscores: [],
   chestOrderData: [],
   chestQuantityData: [],
+  inventoryOrderData: [],
+  itemQtyData: [],
   krBestData: {},
   divinityAllData: [],
   labChipData: [],

@@ -201,6 +201,8 @@ export function loadSaveData(raw: RawEnvelope): void {
   const playerStuff: any[] = [];
   const statueLvAll: any[] = [];
   const statList: number[][] = [];
+  const invOrder: any[] = [];
+  const itemQty: any[] = [];
   for (let ci = 0; ci < nChars; ci++) {
     lv0All.push((parseSaveKey(save, "Lv0_" + ci) as any[]) || []);
     exp0All.push((parseSaveKey(save, "Exp0_" + ci) as any[]) || []);
@@ -211,7 +213,13 @@ export function loadSaveData(raw: RawEnvelope): void {
     statueLvAll.push((parseSaveKey(save, "StatueLevels_" + ci) as any[]) || []);
     // PVStatList_N = [STR, AGI, WIS, LUK, level] — corgan reads this for lukCurve
     statList.push((parseSaveKey(save, "PVStatList_" + ci) as any[]) || []);
+    // Per-char carried inventory: InventoryOrder_N (item rawNames) +
+    // ItemQTY_N (quantities) — used by invStorageOwned for talents
+    // 101/131/295/311/461/476.
+    invOrder.push((parseSaveKey(save, "InventoryOrder_" + ci) as any[]) || []);
+    itemQty.push((parseSaveKey(save, "ItemQTY_" + ci) as any[]) || []);
   }
+  assignState({ inventoryOrderData: invOrder, itemQtyData: itemQty });
   // Stash on the singleton so corgan's lukScaling can read raw LUK by char idx.
   assignState({ statList });
   const statueLevels = ((statueLvAll[0] || []) as any[]).map(
