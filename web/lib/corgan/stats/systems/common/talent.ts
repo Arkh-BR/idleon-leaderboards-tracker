@@ -246,7 +246,7 @@ function buildSummWB19Kids(
           ],
           { fmt: "+" }
         ),
-        node("W3 Merit Shop (Task)", wb19Parts.taskVal ?? 0, null, { fmt: "+" }),
+        node("W6 Merit Shop (Task)", wb19Parts.taskVal ?? 0, null, { fmt: "+" }),
         node("Regalis Achievement (379)", wb19Parts.ach379 ?? 0, null, { fmt: "+" }),
         node("Spectre Stars Achievement (373)", wb19Parts.ach373 ?? 0, null, { fmt: "+" }),
         node("Godshard Set", wb19Parts.godshardSet ?? 0, null, { fmt: "+" }),
