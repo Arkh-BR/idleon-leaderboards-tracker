@@ -231,66 +231,17 @@ export function gfoodBonusMULTI(
   _opts: unknown,
   saveData: SaveData
 ): number {
-  const setBonus = getSetBonus("SECRET_SET");
-  const setMul = 1 + (Number(setBonus?.val) || 0) / 100;
-  const famBonus = Math.max(famBonusQTYs66(charIdx, saveData), 1);
-
-  const etcG = etcBonusesGoldFood(charIdx, saveData);
-  const talent99 = getTalent99(charIdx, saveData);
-  const stampG = stampBonusGFood(saveData);
-  const ach37 = achieveStatusTiered(37, saveData);
-  const alchG = alchBubblesGFoodz(charIdx, saveData);
-  const sigil14 = sigilBonus(14, saveData);
-  const mealG = mealBonusZGoldFood(saveData);
-  const starS69 = starSignDropVal(69) * computeSeraphMulti(charIdx, saveData);
-  const bribe36 = Number(getBribeBonus(36, saveData)?.val) || 0;
-  const pristine14 = pristineBon(14, saveData);
-  const ach380 = achieveStatusTiered(380, saveData);
-  const ach383 = achieveStatusTiered(383, saveData);
-  const voting26 = votingBonusz(26, undefined, saveData);
-  const talent209xMaps = apocalypseWowContrib(saveData);
-  const comp48 = companions(48, saveData);
-  const legend25 = legendPTSbonus(25, saveData);
-  // IT diverges from corgan-source here: IT sums all Gold_Food_Effect_(Passive)
-  // cards (cropfallEvent1 + anni5Event1), capped at 50. Corgan-source only
-  // counts cropfallEvent1 — we follow IT.
-  const cardPassiveBonus = Math.min(
-    4 * computeCardLv("cropfallEvent1", saveData) +
-      5 * computeCardLv("anni5Event1", saveData),
-    50
-  );
-  const comp155 = companions(155, saveData);
-  const vault86 = vaultUpgBonus(86, saveData);
-
-  const rest =
-    etcG +
-    talent99 +
-    stampG +
-    ach37 +
-    alchG +
-    sigil14 +
-    mealG +
-    starS69 +
-    bribe36 +
-    pristine14 +
-    2 * ach380 +
-    3 * ach383 +
-    voting26 +
-    talent209xMaps +
-    comp48 +
-    legend25 +
-    cardPassiveBonus +
-    comp155 +
-    vault86;
-  // N.js literal (line 4954740): e = (1 + SECRET_SET/100) × (max(famBonus,1) + rest) / 100
-  // The whole (famBonus + rest) is summed first, THEN divided by 100. Previous
-  // form `setMul × (famBonus + rest/100)` over-counted famBonus by factor 100.
-  // For typical zArkhe, this nudges gfoodBonusMULTI down by ~0.34% (1.7 units).
-  return (setMul * (famBonus + rest)) / 100;
+  return gfoodBonusMULTIBreakdown(charIdx, saveData).total;
 }
 
-// Debug helper: returns each sub-component of gfoodBonusMULTI by name.
-// Used by dump-gfood-multi.ts to find divergences vs Corgan's tree.
+// Single source of truth for gfoodBonusMULTI: computes each sub-component by
+// name and folds them into the total. gfoodBonusMULTI() returns just .total;
+// dump-gfood-multi.ts uses .items to find divergences vs the game.
+// N.js (_customBlock_GoldFoodBonuses, L5609/L7230):
+//   e = (1 + SECRET_SET/100) × ( max(famBonus,1) + rest/100 )
+// The /100 applies ONLY to `rest` — famBonus (FamBonusQTYs["66"]) is added at
+// full scale, NOT divided. Earlier `(setMul×(famBonus+rest))/100` was wrong
+// (it divided famBonus too, undercounting the multiplier by ~setMul×famBonus).
 export function gfoodBonusMULTIBreakdown(
   charIdx: number,
   saveData: SaveData
@@ -347,6 +298,36 @@ export function gfoodBonusMULTIBreakdown(
   ];
   const rest = items.slice(2).reduce((a, i) => a + i.val, 0);
   return { items, total: setMul * (famBonus + rest / 100) };
+}
+
+// Renders gfoodBonusMULTI as a tree mirroring its N.js formula:
+//   total = SECRET_SET × ( Family Bonus 66 + Σ % Gold Food Effect sources ÷ 100 )
+// Family Bonus is added at full scale; only the source sum is ÷100. The source
+// leaves are shown pre-÷100 (they sum to `rest`, parent shows rest/100). Zero-
+// value sources are dropped (Deep View's "Hide inactive" toggle covers the rest).
+function gfoodMultiTreeChildren(
+  bd: ReturnType<typeof gfoodBonusMULTIBreakdown>
+): CorganNode[] {
+  const setMul = bd.items[0].val;
+  const famBonus = bd.items[1].val;
+  const restItems = bd.items.slice(2);
+  const rest = restItems.reduce((a, i) => a + i.val, 0);
+
+  const sourceKids: CorganNode[] = restItems
+    .filter((i) => Math.abs(i.val) > 1e-9)
+    .map((i) => node(i.name, i.val, null, { fmt: "raw" }));
+
+  const kids: CorganNode[] = [
+    node("Family Bonus 66", famBonus, null, { fmt: "raw" }),
+    node("Sources ÷ 100", rest / 100, sourceKids, {
+      fmt: "raw",
+      note: "Σ every % Gold Food Effect source ÷ 100 (children shown pre-÷100)",
+    }),
+  ];
+  if (Math.abs(setMul - 1) > 1e-9) {
+    kids.push(node("SECRET_SET multi", setMul, null, { fmt: "x" }));
+  }
+  return kids;
 }
 
 type GoldFoodResult = {
@@ -426,7 +407,8 @@ export const goldenFood = {
     const gfm = ctx.resolve ? ctx.resolve("gfood-multi") : null;
     // Always compute the real gfoodBonusMULTI so display reflects the actual
     // multiplier (previously the display was the stage-2 stub value of 1).
-    const realMulti = gfoodBonusMULTI(ctx.charIdx, null, ctx.saveData);
+    const bd = gfoodBonusMULTIBreakdown(ctx.charIdx, ctx.saveData);
+    const realMulti = bd.total;
     const multi = gfm ? gfm.val : realMulti;
     const result = goldFoodBonuses(id, ctx.charIdx, multi, ctx.saveData);
     const total = result ? result.total : 0;
@@ -438,9 +420,9 @@ export const goldenFood = {
       children.push(node("GFood Multi", gfm.val, gfm.children, { fmt: "x" }));
     } else {
       children.push(
-        node("GFood Multi", realMulti, null, {
+        node("GFood Multi", realMulti, gfoodMultiTreeChildren(bd), {
           fmt: "x",
-          note: "gfoodBonusMULTI direct",
+          note: "SECRET_SET × (Family + Σ sources ÷ 100)",
         })
       );
     }

@@ -19,3 +19,8 @@ select:focus {
   outline: 2px solid #FFD700;
   outline-offset: 1px;
 }
+
+/* DeepView "Hide notes" toggle — when the wrapper carries data-hide-notes="1",
+   every inline formula-note span collapses. CSS-based instead of prop-threaded
+   so the toggle stays cheap (no re-renders of the tree). */
+[data-hide-notes="1"] .dr-node-note { display: none; }
