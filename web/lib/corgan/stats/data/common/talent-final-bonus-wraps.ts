@@ -43,6 +43,7 @@ import {
   arcaneUpgTotal,
   compassUpgTotal,
   totBreedzWWz,
+  statueOnyxOwned,
 } from "../../systems/w6/upg-totals";
 
 /** Where a wrap's counter value comes from. Extend as new wrap counters
@@ -68,7 +69,11 @@ export type CounterSource =
   | { kind: "GrimoireUpgTotal" }
   | { kind: "ArcaneUpgTotal" }
   | { kind: "CompassUpgTotal" }
-  | { kind: "TotBreedzWWz" };
+  | { kind: "TotBreedzWWz" }
+  /** Count of unique Onyx statues owned. */
+  | { kind: "StatueOnyx" }
+  /** FamValMinigameHiscores[index] — minigame highscore points. */
+  | { kind: "MinigameHiscore"; index: number };
 
 /** Spec for a talent whose final bonus = wrap(rawTalentVal, counter). */
 export type TalentWrapSpec = {
@@ -132,6 +137,12 @@ function readCounter(
       return compassUpgTotal(saveData);
     case "TotBreedzWWz":
       return totBreedzWWz(saveData);
+    case "StatueOnyx":
+      return statueOnyxOwned(saveData);
+    case "MinigameHiscore":
+      return (
+        Number((saveData as any).minigameHiscores?.[src.index]) || 0
+      );
   }
 }
 
@@ -643,6 +654,73 @@ export const TALENT_FINAL_BONUS_WRAPS: Record<number, TalentWrapSpec> = {
     wrap: (tv, c) => tv * (c / 100),
     fmt: "+",
     noteForActive: (tv, c) => `${tv.toFixed(2)} × (${c}/100) % arcanist acc/def`,
+    inactiveVal: 0,
+    inactiveNote: (_tv, c) =>
+      c <= 0 ? "Inactive — no Arcane upgrades" : "Inactive — talent 0",
+    extraBaseKids: tvKid(),
+  },
+
+  // Tal 463 — Choppin It Up EZ. "+% Minigame Rewards & +% Dmg per 25 Pts
+  // of Minigame highscore" — FamValMinigameHiscores[0] (chopping minigame).
+  463: {
+    counterLabel: "Minigame Highscore",
+    counterSource: { kind: "MinigameHiscore", index: 0 },
+    counterNote: "FamValMinigameHiscores[0] — chopping minigame highscore",
+    wrap: (tv, c) => tv * Math.floor(c / 25),
+    fmt: "+",
+    noteForActive: (tv, c) => `${tv.toFixed(2)} × floor(${c}/25) % dmg`,
+    inactiveVal: 0,
+    inactiveNote: (_tv, c) =>
+      c <= 0 ? "Inactive — no minigame highscore" : "Inactive — talent 0",
+    extraBaseKids: tvKid(),
+  },
+
+  // Tal 654 — Monolithialism. "+% MultiKill per unique Onyx Statue you have".
+  654: {
+    counterLabel: "Onyx Statues Owned",
+    counterSource: { kind: "StatueOnyx" },
+    counterNote: "count of unique Onyx statues (StatueG[e] >= 2, gated by OLA[69])",
+    wrap: (tv, c) => tv * c,
+    fmt: "+",
+    noteForActive: (tv, c) => `${tv.toFixed(2)} × ${c} onyx statues % multikill`,
+    inactiveVal: 0,
+    inactiveNote: (_tv, c) =>
+      c <= 0 ? "Inactive — no Onyx statues" : "Inactive — talent 0",
+    extraBaseKids: tvKid(),
+  },
+
+  // Tal 177 — Bitty Litty (account-wide). "+% Bits gained per Gaming LV,
+  // no matter which character". Counter = Lv0[15] (gaming level).
+  // NOTE: the in-game formula also multiplies by max(1, min(25,
+  // GamingPOINGmulti)) — a gaming-system multiplier we don't port here
+  // (it affects gaming Bits, not DR). The headline shows the main
+  // per-gaming-lv term; the gaming multiplier is omitted.
+  177: {
+    counterLabel: "Gaming Level",
+    counterSource: { kind: "Lv0", index: 15 },
+    counterNote: "Lv0[15] — gaming level (× GamingPOINGmulti omitted)",
+    wrap: (tv, c) => tv * (c / 100),
+    fmt: "+",
+    noteForActive: (tv, c) => `${tv.toFixed(2)} × (${c}/100) % bits (×gaming mult omitted)`,
+    inactiveVal: 0,
+    inactiveNote: (_tv, c) =>
+      c <= 0 ? "Inactive — Gaming Lv 0" : "Inactive — talent 0",
+    extraBaseKids: tvKid(),
+  },
+
+  // Tal 590 — Ghastly Power. "+% Arcanist DMG & Attack Speed per 100
+  // Tesseract Upgrades". Base = ArcaneUpgTotal/100/100.
+  // NOTE: the in-game formula also multiplies by pow(1.04, ACzWepAtk) ×
+  // (1 + tal585/100) × … — Arcanist-weapon/runtime multipliers we don't
+  // model here. The headline shows the base per-upgrade term only.
+  590: {
+    counterLabel: "Arcane Upgrade Total",
+    counterSource: { kind: "ArcaneUpgTotal" },
+    counterNote: "Σ Arcane[] — total arcane upgrade levels (×pow(1.04,ACzWepAtk) omitted)",
+    wrap: (tv, c) => (tv * (c / 100)) / 100,
+    fmt: "+",
+    noteForActive: (tv, c) =>
+      `${tv.toFixed(2)} × (${c}/100)/100 % arcanist dmg (×ACzWepAtk pow omitted)`,
     inactiveVal: 0,
     inactiveNote: (_tv, c) =>
       c <= 0 ? "Inactive — no Arcane upgrades" : "Inactive — talent 0",

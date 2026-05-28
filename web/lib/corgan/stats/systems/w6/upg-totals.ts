@@ -5,6 +5,7 @@
 // "...UpgTotal" branches.
 
 import { GrimoireUpg, ArcaneUpg, CompassUpg } from "../../data/game/customlists.js";
+import { optionsListData } from "../../../save/data";
 import type { SaveData } from "../../../state";
 
 /** Σ Grimoire[0 .. GrimoireUpg.length] — total grimoire upgrade levels.
@@ -36,6 +37,16 @@ export function compassUpgTotal(s: SaveData): number {
   let t = 0;
   for (let i = 0; i < n; i++) t += Number(arr[i]) || 0;
   return t;
+}
+
+/** Count of unique Onyx statues owned (StatueG[e] >= 2), gated by
+ *  OLA[69] >= 2 (Onyx tier unlocked). N.js: ArbitraryCode("StatueOnyxOwned"). */
+export function statueOnyxOwned(s: SaveData): number {
+  if ((Number((optionsListData as any)[69]) || 0) < 2) return 0;
+  const sg = (s as any).statueGData || [];
+  let count = 0;
+  for (let e = 0; e < sg.length; e++) if (Number(sg[e]) >= 2) count++;
+  return count;
 }
 
 /** Count of unlocked breeds (>0.5) across the 4 World-6 breeding worlds.
