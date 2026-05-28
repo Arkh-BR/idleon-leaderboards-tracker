@@ -297,6 +297,39 @@ export function gfoodBonusMULTIBreakdown(
   return { items, total: (setMul * (famBonus + rest)) / 100 };
 }
 
+// Renders gfoodBonusMULTI as a tree mirroring its formula:
+//   total = (Family + Σ % Gold Food Effect sources) ÷ 100 × SECRET_SET multi
+// The Additive Pool's children sum exactly to its value; the ÷100 and the
+// SECRET_SET multi are explicit multiplier siblings. Zero-value sources are
+// dropped (the Deep View's "Hide inactive" toggle covers the rest).
+function gfoodMultiTreeChildren(
+  bd: ReturnType<typeof gfoodBonusMULTIBreakdown>
+): CorganNode[] {
+  const setMul = bd.items[0].val;
+  const famBonus = bd.items[1].val;
+  const restItems = bd.items.slice(2);
+  const rest = restItems.reduce((a, i) => a + i.val, 0);
+
+  const poolKids: CorganNode[] = [
+    node("Family Bonus 66", famBonus, null, { fmt: "raw" }),
+    ...restItems
+      .filter((i) => Math.abs(i.val) > 1e-9)
+      .map((i) => node(i.name, i.val, null, { fmt: "raw" })),
+  ];
+
+  const kids: CorganNode[] = [
+    node("Additive Pool", famBonus + rest, poolKids, {
+      fmt: "raw",
+      note: "Family Bonus + every % Gold Food Effect source",
+    }),
+    node("÷ 100", 0.01, null, { fmt: "x", note: "game constant" }),
+  ];
+  if (Math.abs(setMul - 1) > 1e-9) {
+    kids.push(node("SECRET_SET multi", setMul, null, { fmt: "x" }));
+  }
+  return kids;
+}
+
 type GoldFoodResult = {
   total: number;
   equipped: {
@@ -374,7 +407,8 @@ export const goldenFood = {
     const gfm = ctx.resolve ? ctx.resolve("gfood-multi") : null;
     // Always compute the real gfoodBonusMULTI so display reflects the actual
     // multiplier (previously the display was the stage-2 stub value of 1).
-    const realMulti = gfoodBonusMULTI(ctx.charIdx, null, ctx.saveData);
+    const bd = gfoodBonusMULTIBreakdown(ctx.charIdx, ctx.saveData);
+    const realMulti = bd.total;
     const multi = gfm ? gfm.val : realMulti;
     const result = goldFoodBonuses(id, ctx.charIdx, multi, ctx.saveData);
     const total = result ? result.total : 0;
@@ -386,9 +420,9 @@ export const goldenFood = {
       children.push(node("GFood Multi", gfm.val, gfm.children, { fmt: "x" }));
     } else {
       children.push(
-        node("GFood Multi", realMulti, null, {
+        node("GFood Multi", realMulti, gfoodMultiTreeChildren(bd), {
           fmt: "x",
-          note: "gfoodBonusMULTI direct",
+          note: "(Family + Σ sources) ÷ 100 × SECRET_SET",
         })
       );
     }
