@@ -698,10 +698,20 @@ export function computeSkillEfficiency(
     statPowMult = 1 + Math.pow(totalStat / 100, 0.35) * (1 + effTalent / 100);
   }
 
+  // Golden food multiplier. goldFoodBonuses().total returns the raw %
+  // sum (e.g. 23004 for a maxed Fishing food at 1M qty). N.js's
+  // _customBlock_GoldFoodBonuses returns the RAW value only for a few
+  // keys (BaseDamage/Defence/SkillExp/BaseAcc/AllStatz/SailAFKz); for
+  // every OTHER key — including the "*Eff" skill-efficiency keys — its
+  // final return branch is `1 + GfoodBonus/100`. So the correct
+  // multiplier here is 1 + total/100 (= 231× for this save), NOT the raw
+  // 23004×. corgan-source's skill-efficiency.js used the raw % directly,
+  // over-inflating efficiency ~100×; this is the fix (verified vs N.js).
   let gfMult = 1;
   try {
     const gf = goldFoodBonuses(skillType + "Eff", ci, undefined, s);
-    gfMult = gf && typeof gf === "object" ? Number(gf.total) || 1 : Number(gf) || 1;
+    const gfPct = gf && typeof gf === "object" ? Number(gf.total) || 0 : Number(gf) || 0;
+    gfMult = 1 + gfPct / 100;
   } catch {
     /* missing */
   }
