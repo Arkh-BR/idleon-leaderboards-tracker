@@ -37,6 +37,7 @@ import {
   computePlayerMPmax,
   computeSkillEfficiency,
 } from "../../systems/common/derived-stats";
+import { computePlayerSpeed } from "../../systems/common/derived-damage";
 import { computeTotalStat } from "../../systems/common/stats";
 import { computeCalcTalent } from "../../systems/common/calcTalent";
 import {
@@ -207,8 +208,10 @@ function readCounter(
       return totalTitanKills(saveData);
     case "InvStorageOwned":
       return invStorageOwned(saveData, src.item);
-    case "PlayerSpeedBonus":
-      return 0; // [STUB] movement-speed derived stat not ported
+    case "PlayerSpeedBonus": {
+      const spd = computePlayerSpeed(charIdx, { saveData, charIdx });
+      return Math.min(1000, 100 * Math.max(0, spd - 1));
+    }
   }
 }
 
@@ -1233,19 +1236,18 @@ export const TALENT_FINAL_BONUS_WRAPS: Record<number, TalentWrapSpec> = {
 
   // Tal 290 — Speedna (per-char). N.js: GetTalentNumber(1,290) ×
   //   (min(1000, 100×(PlayerSpeedBonus()-1)) / 15). "+% Damage for every 15%
-  //   movement spd above 100% (capped at 1000% spd)."
-  // [STUB] PlayerSpeedBonus() is a derived combat stat not ported in corgan,
-  // so the movement-speed counter is 0 → the wrap emits inactive (+0).
+  //   movement spd above 100% (capped at 1000% spd)." Counter =
+  //   min(1000, 100×(speed-1)) via computePlayerSpeed (derived-damage).
   290: {
     counterLabel: "Movement Speed % over 100",
     counterSource: { kind: "PlayerSpeedBonus" },
-    counterNote: "[STUB] min(1000, 100×(PlayerSpeedBonus-1)) — move-speed stat unported (0)",
+    counterNote: "min(1000, 100×(PlayerSpeedBonus−1)) — move speed % above 100",
     wrap: (tv, c) => tv * (c / 15),
     fmt: "+",
     noteForActive: (tv, c) => `${tv.toFixed(2)} × (${c}/15) % damage`,
     inactiveVal: 0,
     inactiveNote: (_tv, c) =>
-      c <= 0 ? "Inactive — counter stubbed (movement-speed stat unported)" : "Inactive — talent 0",
+      c <= 0 ? "Inactive — move speed at/below 100%" : "Inactive — talent 0",
     extraBaseKids: tvKid("formula(effective_lv) — % dmg per 15% move spd"),
   },
 };

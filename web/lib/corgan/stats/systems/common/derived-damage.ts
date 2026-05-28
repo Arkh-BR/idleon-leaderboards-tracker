@@ -1074,8 +1074,9 @@ export function computeMaxDamage(charIdx: number, ctx: Ctx): number {
 // --------------------------------------------------------------------------
 // Player movement speed — ported inline from damage.js PlayerSpeedBonus.
 // Normal mode only (dungeon caps skipped — always offline for save calc).
+// Exported so Tal 290 (Speedna) can read the move-speed counter.
 // --------------------------------------------------------------------------
-function computePlayerSpeed(ci: number, ctx: Ctx): number {
+export function computePlayerSpeed(ci: number, ctx: Ctx): number {
   const s = ctx.saveData;
   let playerSpeed = 1;
   try {
