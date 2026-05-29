@@ -5,7 +5,7 @@
 // Hood 279 / Curse of Mr Looty Booty 24) appear only in the profiles of
 // classes that own them. Use topDrFlatForClass(classKey).
 // Large file: lazy-load it, don't import statically.
-// Generated 2026-05-29T17:25:41.018Z · 72 players. Refresh: scripts/update-top-dr.ts.
+// Generated 2026-05-29T17:41:13.347Z · 72 players. Refresh: scripts/update-top-dr.ts.
 
 type FlatMap = Readonly<Record<string, number>>;
 
@@ -2562,6 +2562,7 @@ export const TOP_DR_FLAT: FlatMap = {
 
 export const TOP_DR_PROFILE_OVERRIDES: Readonly<Record<string, FlatMap>> = {
   "ES": {
+    "Drop Rate": 135199.46747807902,
     "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level": 654,
     "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels": 258,
     "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Family Bonus 68 (Mage)": 22,

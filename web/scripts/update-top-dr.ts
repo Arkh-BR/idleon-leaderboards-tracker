@@ -344,12 +344,14 @@ async function main() {
   // Elemental Sorcerer profile — the non-ES base (correct LUK + account-wide
   // ceilings), with the BUFFED Family Bonus 68 grafted in (only the ES's own
   // Family Guy buffs it). Computing the ES over ES chars alone would
-  // undersample LUK (real ES chars aren't DR-built), so we keep base and just
+  // undersample LUK (real ES chars aren't DR-built), so we keep base and
   // overlay the buffed FB68 subtree + bump the containing Bonus/Effective
-  // Levels by the delta. The DR impact of the +levels is negligible, so the
-  // total stays the base ceiling.
+  // Levels. The total is recomputed by swapping the FB68-bearing account-wide
+  // talents (Archlord 328 / Dank Ranks 207) for their buffed ES versions, so
+  // the headline reflects the buff instead of reading identical to base.
   const FB68_NAME = "Family Bonus 68 (Mage)";
   const esFlat: Record<string, number> = { ...baseFlat };
+  const esTalentIds = new Set<number>();
   let fbGrafted = 0;
   for (const p of Object.keys(baseFlat)) {
     if (!p.endsWith(FB68_NAME)) continue;
@@ -369,9 +371,48 @@ async function main() {
     const effPath = bonusPath.slice(0, bonusPath.lastIndexOf(" / "));
     if (esFlat[bonusPath] != null) esFlat[bonusPath] += delta;
     if (esFlat[effPath] != null) esFlat[effPath] += delta;
+    // The talent that owns this FB68 (…/<talent (Talent N)>/Effective Level/
+    // Bonus Levels/Family Bonus 68) — its buffed contribution feeds the total.
+    const segs = p.split(" / ");
+    const m = segs[segs.length - 4]?.match(/\(Talent (\d+)\)/);
+    if (m) esTalentIds.add(Number(m[1]));
     fbGrafted++;
   }
   if (fbGrafted > 0) {
+    // Recompute the ES total: base pools (gated 279/24 zeroed) with the
+    // FB68-bearing talent items swapped to their buffed ES versions.
+    const esItemVal = new Map<number, number>();
+    for (const pn in es.bestPools!) {
+      for (const it of es.bestPools![pn].items) {
+        for (const id of esTalentIds) {
+          if (it.name.endsWith(`(Talent ${id})`)) esItemVal.set(id, Number(it.val) || 0);
+        }
+      }
+    }
+    const clone: Record<string, Pool> = {};
+    for (const pn in nonES.bestPools!) {
+      clone[pn] = {
+        items: nonES.bestPools![pn].items.map((it) => {
+          if (gated.some((g) => it.name.endsWith(`(Talent ${g.id})`)))
+            return { ...it, val: 0 };
+          for (const [id, v] of esItemVal)
+            if (it.name.endsWith(`(Talent ${id})`)) return { ...it, val: v };
+          return { ...it };
+        }),
+        sum: 0,
+        product: 0,
+      };
+      let sum = 0;
+      let product = 1;
+      for (const it of clone[pn].items) {
+        const v = Number(it.val) || 0;
+        sum += v;
+        product *= v !== 0 ? v : 1;
+      }
+      clone[pn].sum = sum;
+      clone[pn].product = product;
+    }
+    esFlat["Drop Rate"] = combineDRPools(clone).total;
     classProfile["Elemental_Sorcerer"] = "ES";
     addOverride("ES", esFlat);
   }
