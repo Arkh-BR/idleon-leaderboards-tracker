@@ -2,11 +2,14 @@
 // lib/dropRate/topDropRate.ts by fetching the raw save of each top player
 // from the IT profiles endpoint and running OUR corgan DR engine on it.
 //
-// For every character of every candidate we compute the DR tree (map 0 —
-// the base map, so the comparison focuses on the character's own sources,
-// not the map multiplier the user picks) and flatten it to path→value. The
-// reference is the BEST value seen per path across all of them (the
-// per-source ceiling), plus a headline of the single highest DR total.
+// For every character of every candidate we compute the DR tree at PEAK —
+// the map with the highest arcane factor (buildMapOptions) and chip gallery
+// ON — so the reference reflects the in-game drop-rate ceiling top players
+// actually chase, not a base-map figure. We flatten each tree to path→value
+// and keep the BEST value seen per path across all of them (the per-source
+// ceiling), plus a headline of the single highest DR total. (Note: combat-
+// only bonuses like Active Drop Rate / multikill aren't in the save, so this
+// is the reproducible static ceiling, not a live in-combat peak.)
 //
 // Run:  npx tsx web/scripts/update-top-dr.ts
 // Knobs: --limit N   cap candidate set (smoke test)
@@ -21,6 +24,7 @@ import { gatherCandidates, fetchProfileSave } from "./_shared/itProfiles";
 import { computeCorganDropRate } from "../lib/corgan/computeDR";
 import { flattenTree } from "../lib/dropRate/treeFlatten";
 import { listCharacters } from "../lib/dropRate/extract";
+import { buildMapOptions } from "../lib/dropRate/arcaneBonus";
 
 const argv = process.argv.slice(2);
 const SLOW = argv.includes("--slow");
@@ -67,11 +71,23 @@ async function main() {
       if (i < candidates.length - 1) await sleep(THROTTLE_MS);
       continue;
     }
+    // Peak setup for this save: the map with the highest arcane factor
+    // (account-wide AFK kills, same for every char) + chip gallery on.
+    const maps = buildMapOptions(save);
+    const bestMapIdx = maps.reduce(
+      (a, b) => (b.factor > a.factor ? b : a),
+      maps[0]
+    ).index;
     let playerBest = 0;
     let playerBestChar = "";
     for (const ch of chars) {
       try {
-        const { tree, total } = computeCorganDropRate(save, ch.charIndex, 0);
+        const { tree, total } = computeCorganDropRate(
+          save,
+          ch.charIndex,
+          bestMapIdx,
+          { chipGalleryActive: true }
+        );
         const flat = flattenTree(tree);
         for (const path in flat) {
           const v = flat[path];
