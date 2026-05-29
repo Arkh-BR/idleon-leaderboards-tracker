@@ -61,11 +61,21 @@ function stripNodesByName(node: CorganNode, name: string): CorganNode {
 // cap (SkillLevelsMAX), which for dungeon-unlockable talents lags the hard
 // ceiling (e.g. Dungeonic Damage reads 96/96 until you unlock more via the
 // dungeon, but its real cap is 100). STAR_TALENT_CEILING bundles the highest
-// cap any top player reached, so we surface the true ceiling. Skip 641–647 —
-// their ceiling is the account's own maxBookLv (already computed live by the
-// engine), not a global value.
+// cap any top player reached, so we surface the true ceiling.
+//
+// Excluded from the global-ceiling overlay (keep the engine's account value):
+//   • 641–647 — their ceiling is the account's own maxBookLv (computed live).
+//   • 625 (Toilet Paper Postage) — its "max" is the live cauldron-liquid
+//     count, a per-account value with NO fixed ceiling, so the global max
+//     across players (some huge cauldron) is meaningless here.
 function applyStarCeiling(tree: CorganNode, talentId: number): CorganNode {
-  if (talentId < 615 || (talentId >= 641 && talentId <= 647)) return tree;
+  if (
+    talentId < 615 ||
+    (talentId >= 641 && talentId <= 647) ||
+    talentId === 625
+  ) {
+    return tree;
+  }
   const ceiling = STAR_TALENT_CEILING[talentId];
   if (!ceiling) return tree;
   const maxNode = (tree.children ?? []).find((c) => c.name === "Max Level");

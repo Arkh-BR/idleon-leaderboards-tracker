@@ -1927,7 +1927,6 @@ export const STAR_TALENT_CEILING: Readonly<Record<number, number>> = {
   "622": 100,
   "623": 100,
   "624": 50,
-  "625": 89229,
   "626": 40,
   "627": 50,
   "628": 100,
