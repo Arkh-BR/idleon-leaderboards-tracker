@@ -235,6 +235,10 @@ async function main() {
       for (const cm of smAll) {
         if (!cm) continue;
         for (let id = STAR_MIN; id <= STAR_MAX; id++) {
+          // 625 (Toilet Paper Postage) is the live cauldron-liquid count — a
+          // per-account value with no fixed ceiling (ranges into the tens of
+          // thousands), so a global max is meaningless. Skip it.
+          if (id === 625) continue;
           const v = Number(cm[id] ?? cm[String(id)]) || 0;
           if (v > (starCeiling[id] || 0)) starCeiling[id] = v;
         }
