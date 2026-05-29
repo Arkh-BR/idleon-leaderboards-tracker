@@ -21,6 +21,8 @@ import { isAccountWideTalent } from "@/lib/talentsLevel/accountWideTalents";
 import type { CorganNode } from "@/lib/corgan/node";
 import TalentsToMaxView from "@/components/talentsLevel/TalentsToMaxView";
 import type { ToMaxCharGroup } from "@/lib/talentsLevel/toMax";
+import UnbookedView from "@/components/talentsLevel/UnbookedView";
+import type { UnbookedCharGroup } from "@/lib/talentsLevel/unbooked";
 
 const SAVE_KEY = "talents-level.last-upload.v1";
 const TALENT_KEY = "talents-level.talent-id.v1";
@@ -239,6 +241,12 @@ export default function TalentsLevelPageClient() {
   // when the save changes.
   const [toMaxGroups, setToMaxGroups] = useState<ToMaxCharGroup[] | null>(null);
   const [toMaxLoading, setToMaxLoading] = useState(false);
+  // "Unbooked" scan — talents whose cap (SM) is still below maxBookLv, i.e.
+  // can still be raised with books. Also save-driven, recomputed on change.
+  const [unbookedGroups, setUnbookedGroups] = useState<
+    UnbookedCharGroup[] | null
+  >(null);
+  const [unbookedLoading, setUnbookedLoading] = useState(false);
 
   const stageSave = useCallback(
     (text: string, opts: { silent?: boolean } = {}) => {
@@ -412,6 +420,32 @@ export default function TalentsLevelPageClient() {
         if (!cancelled) setToMaxGroups(null);
       } finally {
         if (!cancelled) setToMaxLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [save, chars.length]);
+
+  // Compute the "Unbooked" scan whenever the save changes. Same lazy-import
+  // + cheap-lookup approach as the "Points to Invest" scan above.
+  useEffect(() => {
+    if (!save || chars.length === 0) {
+      setUnbookedGroups(null);
+      setUnbookedLoading(false);
+      return;
+    }
+    let cancelled = false;
+    setUnbookedLoading(true);
+    (async () => {
+      try {
+        const mod = await import("@/lib/talentsLevel/unbooked");
+        if (cancelled) return;
+        setUnbookedGroups(mod.computeUnbooked(save));
+      } catch {
+        if (!cancelled) setUnbookedGroups(null);
+      } finally {
+        if (!cancelled) setUnbookedLoading(false);
       }
     })();
     return () => {
@@ -754,6 +788,18 @@ export default function TalentsLevelPageClient() {
                   <TalentsToMaxView
                     groups={toMaxGroups}
                     loading={toMaxLoading}
+                  />
+                ),
+              },
+              {
+                id: "unbooked",
+                label: "📕 Unbooked",
+                title:
+                  "Tab 1-5 talents whose cap is still below the Max Book Lv ceiling — can be raised with books",
+                render: () => (
+                  <UnbookedView
+                    groups={unbookedGroups}
+                    loading={unbookedLoading}
                   />
                 ),
               },
