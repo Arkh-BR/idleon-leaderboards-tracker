@@ -39,6 +39,17 @@ const HYPO_BASELINE = {
   charName: "Hypothetical max",
 };
 
+// Recursively drop every node with the given name from a tree (returns a
+// new tree, doesn't mutate). Used to hide "Points Invested" rows in the
+// Hypothetical tab — a hypothetical-max view doesn't care about the actual
+// investment, only the caps/bonuses.
+function stripNodesByName(node: CorganNode, name: string): CorganNode {
+  const kids = (node.children ?? [])
+    .filter((c) => c.name !== name)
+    .map((c) => stripNodesByName(c, name));
+  return kids.length ? { ...node, children: kids } : { ...node, children: undefined };
+}
+
 const SAVE_KEY = "talents-level.last-upload.v1";
 const TALENT_KEY = "talents-level.talent-id.v1";
 const TAB_KEY = "talents-level.tab-idx.v1";
@@ -439,7 +450,8 @@ export default function TalentsLevelPageClient() {
         const eff =
           result.tree.children?.find((c) => c.name === "Effective Level") ??
           null;
-        setHypoPlayerTree(eff);
+        // Hypothetical view hides "Points Invested" rows.
+        setHypoPlayerTree(eff ? stripNodesByName(eff, "Points Invested") : null);
       } catch {
         if (!cancelled) setHypoPlayerTree(null);
       }
