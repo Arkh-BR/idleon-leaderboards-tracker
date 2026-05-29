@@ -153,7 +153,13 @@ export const card = {
         );
       }
       children.push(
-        node(label("Card", cardKey) + " Lv" + lv, contrib, slotChildren, {
+        // Named by IDENTITY (no " LvN" suffix — the level is the "Star Lv"
+        // child) so the node path is stable across players. A level in the
+        // name would fragment the top-player reference per level: the same
+        // card owned at Lv4 and Lv6 by different players would land on two
+        // paths, double-counting in the card multi's frankenstein sum and
+        // leaving lower-tier rows comparing against the wrong max.
+        node(label("Card", cardKey), contrib, slotChildren, {
           fmt: "+",
         })
       );

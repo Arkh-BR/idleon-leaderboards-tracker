@@ -2,7 +2,7 @@
 // imported). The large path→value table lives in topDropRate.ts and is
 // lazy-loaded on demand. Both auto-refreshed by scripts/update-top-dr.ts.
 
-export const TOP_DR_GENERATED_AT = "2026-05-29T15:45:57.389Z";
+export const TOP_DR_GENERATED_AT = "2026-05-29T16:10:01.617Z";
 export const TOP_DR_PLAYERS_SCANNED = 72;
 // Recomputed DR of the 'best of every source' synthetic save (higher
 // than any single player). This is TOP_DR_FLAT['Drop Rate'].

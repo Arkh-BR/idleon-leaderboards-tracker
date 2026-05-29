@@ -34,6 +34,12 @@ import {
   sumMulti,
   type SharedMultiplier,
 } from "./_shared/reconcile";
+import {
+  accumulateOps,
+  chooseOps,
+  recomputeFrankenstein,
+} from "./_shared/frankenstein";
+import type { CorganNode } from "../lib/corgan/node";
 
 // Account-wide multipliers that are emitted under many owned items, so
 // best-per-path can leave them reading different values per row (each item
@@ -110,6 +116,13 @@ async function main() {
   // different values. Per-path max makes each shared node resolve to one
   // consistent value wherever it appears.
   const bestFlat: Record<string, number> = {};
+  // Per-path op detection for the frankenstein recompute of aggregate nodes
+  // (buckets/pools/multi-item sums). An op survives only if it reproduces the
+  // parent from its children for EVERY scanned (player, char). `structure` is
+  // the most complete tree seen — the shape we walk to recompute bottom-up.
+  const opSets = new Map<string, Set<string>>();
+  let structure: CorganNode | null = null;
+  let structPaths = -1;
   let scanned = 0;
   let skipped = 0;
 
@@ -162,6 +175,14 @@ async function main() {
           const v = f[p];
           if (bestFlat[p] === undefined || v > bestFlat[p]) bestFlat[p] = v;
         }
+        // Feed the aggregate-op detector and keep the most complete tree as
+        // the recompute structure.
+        accumulateOps(combined.tree, opSets);
+        const nPaths = Object.keys(f).length;
+        if (nPaths > structPaths) {
+          structPaths = nPaths;
+          structure = combined.tree;
+        }
         bestPools = mergeBest(bestPools, pools);
       } catch {
         // skip a char that fails to compute (e.g. no class)
@@ -195,24 +216,41 @@ async function main() {
     bestPools[pn].product = product;
   }
   const { total: hypoTotal } = combineDRPools(bestPools);
+
+  // Frankenstein recompute: every aggregate node with a cross-player-verified
+  // op (buckets = Σ items, pools = Σ buckets, Cards DR-Multi = Σ cards, …) is
+  // rebuilt from its INDEPENDENTLY-maxed children, so the ceiling reflects the
+  // best of each component combined rather than the best single player's
+  // aggregate. Bespoke per-source nodes keep their best-per-path value.
+  if (!structure) {
+    console.error("× no structure tree collected, aborting");
+    process.exit(1);
+  }
+  const opByPath = chooseOps(opSets);
+  const { flat, recomputed } = recomputeFrankenstein(
+    structure,
+    bestFlat,
+    opByPath
+  );
+
   // Unify account-wide shared multipliers (Gallery / Hatrack Bonus Multi) to
   // one frankenstein-max value everywhere, so a quantity that's logically
   // singular stops reading differently per owned item.
-  const reconciled = reconcileSharedMultipliers(bestFlat, DR_SHARED_MULTIPLIERS);
-  // The reference map is the granular best-per-path table; pin its "Drop
-  // Rate" root to the frankenstein ceiling so the overall 🎯 still reads as
-  // the best-of-everyone total (every other row is its own per-path max).
-  bestFlat["Drop Rate"] = hypoTotal;
+  const reconciled = reconcileSharedMultipliers(flat, DR_SHARED_MULTIPLIERS);
+  // Pin the "Drop Rate" root to the frankenstein ceiling (DR formula over the
+  // best-of-each-source pools) — the headline 🎯 for overall DR.
+  flat["Drop Rate"] = hypoTotal;
 
   console.log(`\n✓ Scanned ${scanned} players (${skipped} skipped)`);
+  console.log(`  · recomputed ${recomputed} aggregate paths (of ${opByPath.size} with a verified op)`);
   console.log(`  · reconciled ${reconciled} shared-multiplier paths`);
-  console.log(`  · ${Object.keys(bestFlat).length} reference paths`);
+  console.log(`  · ${Object.keys(flat).length} reference paths`);
   console.log(`  · hypothetical-max DR (frankenstein root): ${hypoTotal.toFixed(2)}x`);
   console.log(
     `  · best real player: ${bestTotal?.total.toFixed(2)}x by ${bestTotal?.player} (${bestTotal?.char})`
   );
 
-  emitFiles(bestFlat, bestTotal, hypoTotal, scanned);
+  emitFiles(flat, bestTotal, hypoTotal, scanned);
 }
 
 function emitFiles(
