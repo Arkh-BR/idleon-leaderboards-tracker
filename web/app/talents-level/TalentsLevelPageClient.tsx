@@ -747,9 +747,9 @@ export default function TalentsLevelPageClient() {
             extraTabs={[
               {
                 id: "tomax",
-                label: "📚 Faltando p/ Max",
+                label: "📚 To Max",
                 title:
-                  "Talentos (tab 1-5) ainda abaixo do Max Book Lv Cap, por personagem da conta",
+                  "Tab 1-5 talents still below the Max Book Lv Cap, per account character",
                 render: () => (
                   <TalentsToMaxView
                     groups={toMaxGroups}

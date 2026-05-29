@@ -1,7 +1,7 @@
 "use client";
 
 // ============================================================================
-// TalentsToMaxView — "Faltando p/ Max" tab for the Talents Level page.
+// TalentsToMaxView — "To Max" tab for the Talents Level page.
 //
 // Renders the account-wide scan from lib/talentsLevel/toMax.ts: one
 // collapsible section per character, listing the regular talents still
@@ -11,7 +11,7 @@
 //
 // Carries its own controls bar (mirrors DeepView's): search, expand /
 // collapse / reset of the char sections, a "hide notes" toggle (hides the
-// bonus subtitle) and a "só preset ativo" toggle (drops the inactive
+// bonus subtitle) and an "active preset only" toggle (drops the inactive
 // preset's column + the talents only-missing-there, to cut the noise of
 // untouched secondary presets). State is local — it resets when the user
 // switches tabs, same as DeepView's tree view.
@@ -37,7 +37,7 @@ export default function TalentsToMaxView({
 
   const q = search.trim().toLowerCase();
 
-  // Backlog = groups after the "só preset ativo" filter (independent of
+  // Backlog = groups after the "active preset only" filter (independent of
   // search). `visible` then narrows that by the search term. `complete` is
   // the set already fully at cap for the active filter.
   const { backlog, complete, totalMissing } = useMemo(() => {
@@ -88,12 +88,12 @@ export default function TalentsToMaxView({
     setOpenMap(Object.fromEntries(backlog.map((g) => [g.charIdx, open])));
 
   if (loading) {
-    return <p className="text-sm text-zinc-500 italic px-2 py-4">Computando…</p>;
+    return <p className="text-sm text-zinc-500 italic px-2 py-4">Computing…</p>;
   }
   if (!groups) {
     return (
       <p className="text-sm text-zinc-500 italic px-2 py-4">
-        Carregue um save acima para escanear os talentos da conta.
+        Load a save above to scan the account&apos;s talents.
       </p>
     );
   }
@@ -106,7 +106,7 @@ export default function TalentsToMaxView({
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="🔍 Buscar talento, char ou classe…"
+          placeholder="🔍 Search talent, character or class…"
           className="flex-1 min-w-[200px] px-2 py-1 text-xs bg-zinc-950 border border-zinc-800 rounded text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-sky-500/60"
         />
         <div className="inline-flex gap-1">
@@ -114,7 +114,7 @@ export default function TalentsToMaxView({
             type="button"
             onClick={() => setAll(true)}
             className="px-2 py-1 text-xs rounded border border-zinc-700 bg-zinc-900 text-zinc-300 hover:bg-zinc-800"
-            title="Expandir todos os personagens"
+            title="Expand every character"
           >
             ↓ Expand
           </button>
@@ -122,7 +122,7 @@ export default function TalentsToMaxView({
             type="button"
             onClick={() => setAll(false)}
             className="px-2 py-1 text-xs rounded border border-zinc-700 bg-zinc-900 text-zinc-300 hover:bg-zinc-800"
-            title="Recolher todos os personagens"
+            title="Collapse every character"
           >
             ↑ Collapse
           </button>
@@ -130,7 +130,7 @@ export default function TalentsToMaxView({
             type="button"
             onClick={() => setOpenMap({})}
             className="px-2 py-1 text-xs rounded border border-zinc-800 bg-zinc-950 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800"
-            title="Voltar ao padrão (todos abertos)"
+            title="Reset to default (all open)"
           >
             ↺ Reset
           </button>
@@ -142,7 +142,7 @@ export default function TalentsToMaxView({
             onChange={(e) => setActiveOnly(e.target.checked)}
             className="accent-sky-500"
           />
-          Só preset ativo
+          Active preset only
         </label>
         <label className="flex items-center gap-1.5 text-xs text-zinc-400 cursor-pointer select-none px-1">
           <input
@@ -157,33 +157,33 @@ export default function TalentsToMaxView({
 
       {totalMissing === 0 ? (
         <p className="text-sm text-emerald-300 px-2 py-2">
-          🎉 Todos os talentos (tab 1-5) estão no Max Book Lv Cap
-          {activeOnly ? " no preset ativo" : ", nos dois presets"}.
+          🎉 All talents (tab 1-5) are at the Max Book Lv Cap
+          {activeOnly ? " in the active preset" : ", in both presets"}.
         </p>
       ) : (
         <>
-          {/* Resumo geral (ignora o filtro de busca; reflete o backlog). */}
+          {/* Overall summary (ignores the search term; reflects the backlog). */}
           <div className="text-xs text-zinc-400 px-1 flex flex-wrap items-center gap-x-3 gap-y-1">
             <span>
               <span className="text-gold font-semibold">{totalMissing}</span>{" "}
-              talento{totalMissing === 1 ? "" : "s"} abaixo do cap em{" "}
+              talent{totalMissing === 1 ? "" : "s"} below cap across{" "}
               <span className="text-zinc-200 font-semibold">
                 {backlog.length}
               </span>{" "}
-              personagem{backlog.length === 1 ? "" : "s"}
-              {activeOnly ? " (preset ativo)" : " (em algum preset)"}.
+              character{backlog.length === 1 ? "" : "s"}
+              {activeOnly ? " (active preset)" : " (in some preset)"}.
             </span>
             {!activeOnly && (
               <span className="text-[11px] text-zinc-500">
                 P1/P2 = preset 1 / preset 2 ·{" "}
-                <span className="text-sky-300">●</span> = ativo in-game
+                <span className="text-sky-300">●</span> = active in-game
               </span>
             )}
           </div>
 
           {visible.length === 0 ? (
             <p className="text-sm text-zinc-500 italic px-2 py-2">
-              Nenhum talento corresponde à busca.
+              No talent matches the search.
             </p>
           ) : (
             visible.map((g) => (
@@ -205,9 +205,9 @@ export default function TalentsToMaxView({
 
           {complete.length > 0 && (
             <div className="text-[11px] text-zinc-500 px-1 pt-1 border-t border-zinc-900">
-              ✓ {complete.length} personagem
-              {complete.length === 1 ? "" : "s"} já no cap
-              {activeOnly ? " (preset ativo)" : " (ambos presets)"}:{" "}
+              ✓ {complete.length} character
+              {complete.length === 1 ? "" : "s"} already at cap
+              {activeOnly ? " (active preset)" : " (both presets)"}:{" "}
               <span className="text-zinc-400">
                 {complete.map((g) => g.charName).join(", ")}
               </span>
@@ -241,7 +241,7 @@ function CharSection({
         className={`w-full px-3 py-2.5 text-base font-semibold text-sky-300 flex items-center gap-2.5 hover:bg-white/5 rounded-t-lg ${
           open ? "border-b border-zinc-800" : ""
         }`}
-        title={open ? "Recolher" : "Expandir"}
+        title={open ? "Collapse" : "Expand"}
       >
         <span className="w-3 text-zinc-500 select-none text-sm">
           {open ? "▾" : "▸"}
@@ -249,13 +249,13 @@ function CharSection({
         <span className="truncate">{group.charName}</span>
         <span className="text-[11px] text-zinc-500 font-normal">
           {group.classLabel} · Lv {group.level} · Preset{" "}
-          {group.activePreset + 1} ativo
+          {group.activePreset + 1} active
         </span>
         <span className="ml-auto text-[11px] text-zinc-500 font-normal">
           <span className="text-amber-300 font-semibold">
             {group.items.length}
           </span>{" "}
-          faltando · {atCap}/{group.totalScanned} no cap
+          to go · {atCap}/{group.totalScanned} at cap
         </span>
       </button>
       {open && (
@@ -303,7 +303,7 @@ function TalentRow({
           {item.accountWide && (
             <span
               className="text-[9px] leading-none px-1 py-0.5 rounded bg-sky-500/20 text-sky-300 border border-sky-500/40 font-mono flex-shrink-0"
-              title="Talento account-wide (🌐): o bônus vem do char de maior nível da classe"
+              title="Account-wide talent (🌐): the bonus comes from the highest-level char of the class"
             >
               🌐
             </span>
@@ -319,7 +319,7 @@ function TalentRow({
         )}
       </div>
       {/* Per-preset invested vs cap. Active preset marked with ●. When
-          "só preset ativo" is on, only the active preset's column shows. */}
+          "active preset only" is on, only the active preset's column shows. */}
       <div className="flex-shrink-0 flex flex-col gap-0.5 items-end">
         {(!activeOnly || activePreset === 0) && (
           <PresetStat
@@ -359,8 +359,8 @@ function PresetStat({
     <div
       className="flex items-center gap-1.5 text-[11px] font-mono tabular-nums whitespace-nowrap"
       title={
-        (active ? "Preset ativo in-game · " : "") +
-        (atCap ? "no cap" : `faltam ${gap}`)
+        (active ? "Active preset in-game · " : "") +
+        (atCap ? "at cap" : `${gap} to go`)
       }
     >
       <span
@@ -378,7 +378,7 @@ function PresetStat({
       <span
         className={`w-14 text-right ${atCap ? "text-emerald-400" : "text-amber-300"}`}
       >
-        {atCap ? "✓ cap" : `faltam ${gap}`}
+        {atCap ? "✓ cap" : `${gap} to go`}
       </span>
     </div>
   );
