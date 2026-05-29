@@ -39,6 +39,13 @@ import {
   chooseOps,
   recomputeFrankenstein,
 } from "./_shared/frankenstein";
+import {
+  deriveGatedTalents,
+  allClassKeys,
+  profileKey,
+  findTalentNodePath,
+  subtreePaths,
+} from "./_shared/classGating";
 import type { CorganNode } from "../lib/corgan/node";
 
 // Account-wide multipliers that are emitted under many owned items, so
@@ -237,24 +244,113 @@ async function main() {
   // one frankenstein-max value everywhere, so a quantity that's logically
   // singular stops reading differently per owned item.
   const reconciled = reconcileSharedMultipliers(flat, DR_SHARED_MULTIPLIERS);
-  // Pin the "Drop Rate" root to the frankenstein ceiling (DR formula over the
-  // best-of-each-source pools) — the headline 🎯 for overall DR.
   flat["Drop Rate"] = hypoTotal;
+
+  // ── Per-class gating ────────────────────────────────────────────────
+  // Class-specific DR talents (Robbing Hood 279 / Curse of Mr Looty Booty 24)
+  // can't be had by every class. Build a BASE reference with none of them and
+  // per-profile OVERRIDES that add back only the talents a class owns, with
+  // the affected additive aggregates + the recomputed total. A class's map
+  // simply omits the talents it can't have, so their 🎯 vanishes.
+  const TALENTS_BUCKET = "Drop Rate / Additive Pool / 🎯 Talents";
+  const ADDITIVE_POOL = "Drop Rate / Additive Pool";
+  const TOTAL_SUM = "Drop Rate / Total Sum";
+  const gated = deriveGatedTalents();
+  const talPaths = new Map<number, { value: number; paths: string[] }>();
+  for (const g of gated) {
+    const np = findTalentNodePath(flat, g.id);
+    if (np) talPaths.set(g.id, { value: flat[np], paths: subtreePaths(flat, np) });
+  }
+
+  // Recompute the DR total with a set of talent items zeroed in the pools.
+  const totalWithout = (removeIds: number[]): number => {
+    const clone: Record<string, Pool> = {};
+    for (const pn in bestPools!) {
+      clone[pn] = {
+        items: bestPools![pn].items.map((it) => ({ ...it })),
+        sum: 0,
+        product: 0,
+      };
+    }
+    for (const pn in clone) {
+      for (const it of clone[pn].items) {
+        if (removeIds.some((id) => it.name.endsWith(`(Talent ${id})`))) it.val = 0;
+      }
+      let sum = 0;
+      let product = 1;
+      for (const it of clone[pn].items) {
+        const v = Number(it.val) || 0;
+        sum += v;
+        product *= v !== 0 ? v : 1;
+      }
+      clone[pn].sum = sum;
+      clone[pn].product = product;
+    }
+    return combineDRPools(clone).total;
+  };
+
+  const buildProfileFlat = (ownedIds: number[]): Record<string, number> => {
+    const m: Record<string, number> = { ...flat };
+    let removedSum = 0;
+    const removeIds: number[] = [];
+    for (const g of gated) {
+      if (ownedIds.includes(g.id)) continue;
+      removeIds.push(g.id);
+      const tp = talPaths.get(g.id);
+      if (!tp) continue;
+      removedSum += tp.value;
+      for (const p of tp.paths) delete m[p];
+    }
+    if (removedSum) {
+      if (m[TALENTS_BUCKET] != null) m[TALENTS_BUCKET] -= removedSum;
+      if (m[ADDITIVE_POOL] != null) m[ADDITIVE_POOL] -= removedSum;
+      if (m[TOTAL_SUM] != null) m[TOTAL_SUM] -= removedSum / 100;
+    }
+    m["Drop Rate"] = totalWithout(removeIds);
+    return m;
+  };
+
+  // class → profile key, and the owned-id set per distinct profile.
+  const classProfile: Record<string, string> = {};
+  const profileOwned = new Map<string, number[]>();
+  for (const c of allClassKeys()) {
+    const owned = gated.filter((g) => g.owners.has(c)).map((g) => g.id);
+    const key = profileKey(owned);
+    classProfile[c] = key;
+    if (!profileOwned.has(key)) profileOwned.set(key, owned);
+  }
+
+  const baseFlat = buildProfileFlat([]); // no class-specific talents
+  const overrides: Record<string, Record<string, number>> = {};
+  let maxProfileTotal = baseFlat["Drop Rate"] || 0;
+  for (const [key, owned] of profileOwned) {
+    if (key === "base") continue;
+    const pf = buildProfileFlat(owned);
+    const d: Record<string, number> = {};
+    for (const k in pf) if (baseFlat[k] !== pf[k]) d[k] = pf[k];
+    overrides[key] = d;
+    maxProfileTotal = Math.max(maxProfileTotal, pf["Drop Rate"] || 0);
+  }
 
   console.log(`\n✓ Scanned ${scanned} players (${skipped} skipped)`);
   console.log(`  · recomputed ${recomputed} aggregate paths (of ${opByPath.size} with a verified op)`);
   console.log(`  · reconciled ${reconciled} shared-multiplier paths`);
-  console.log(`  · ${Object.keys(flat).length} reference paths`);
-  console.log(`  · hypothetical-max DR (frankenstein root): ${hypoTotal.toFixed(2)}x`);
+  console.log(
+    `  · gated talents: ${gated.map((g) => g.id).join(", ") || "none"} → profiles: ${[...profileOwned.keys()].join(", ")}`
+  );
+  console.log(`  · ${Object.keys(baseFlat).length} base reference paths`);
+  console.log(`  · global ceiling (all talents): ${hypoTotal.toFixed(2)}x · best per-class: ${maxProfileTotal.toFixed(2)}x`);
   console.log(
     `  · best real player: ${bestTotal?.total.toFixed(2)}x by ${bestTotal?.player} (${bestTotal?.char})`
   );
 
-  emitFiles(flat, bestTotal, hypoTotal, scanned);
+  emitFiles(baseFlat, overrides, classProfile, bestTotal, maxProfileTotal, scanned);
 }
 
 function emitFiles(
-  flat: Record<string, number>,
+  baseFlat: Record<string, number>,
+  overrides: Record<string, Record<string, number>>,
+  classProfile: Record<string, string>,
   best: Best | null,
   hypotheticalTotal: number,
   scanned: number
@@ -270,8 +366,9 @@ function emitFiles(
     "",
     `export const TOP_DR_GENERATED_AT = ${JSON.stringify(now)};`,
     `export const TOP_DR_PLAYERS_SCANNED = ${scanned};`,
-    "// Recomputed DR of the 'best of every source' synthetic save (higher",
-    "// than any single player). This is TOP_DR_FLAT['Drop Rate'].",
+    "// Best DR achievable by a single CLASS's frankenstein save (the highest",
+    "// per-class ceiling — class-specific talents are gated by class, so this",
+    "// is reachable in principle, unlike the all-classes-combined number).",
     `export const TOP_DR_HYPOTHETICAL_TOTAL = ${hypotheticalTotal};`,
     "// Highest DR of a single real player, for context.",
     `export const TOP_DR_BEST = ${JSON.stringify(best ?? { player: "", char: "", total: 0 })};`,
@@ -282,26 +379,57 @@ function emitFiles(
 
   // Flat table — large, lazy-loaded only when the user opts into the
   // comparison. Keyed by the same nodePath() scheme treeFlatten uses so it
-  // drops straight into DeepView as a comparison baseline. Every value is
-  // the best-of-each-source hypothetical max (root = recomputed total).
-  const lines: string[] = [
-    "// Top-player Drop Rate reference — GRANULAR best-per-path: every value",
-    "// is the max ANY single scanned (player, char) reached for that exact",
-    "// node path, so a shared quantity (e.g. the Gallery Bonus Multi) stays",
-    "// consistent wherever it appears instead of inheriting a whole winning",
-    "// subtree per pool. The 'Drop Rate' root is pinned to the frankenstein",
-    "// ceiling (DR formula over the best-of-each-source pools, higher than",
-    "// any single player). Keyed by the nodePath() scheme treeFlatten uses.",
+  // drops straight into DeepView as a comparison baseline.
+  //
+  // PER CLASS: TOP_DR_FLAT is the BASE profile (no class-specific talents).
+  // TOP_DR_PROFILE_OVERRIDES adds, per profile, the class-specific talent(s)
+  // a class owns plus the recomputed additive aggregates + total. A class
+  // maps to a profile via TOP_DR_CLASS_PROFILE; topDrFlatForClass() merges
+  // base + override (classes the talent doesn't belong to simply lack its
+  // paths, so its 🎯 doesn't render).
+  const obj = (m: Record<string, number>) => {
+    const lines: string[] = ["{"];
+    for (const path of Object.keys(m).sort()) {
+      lines.push(`    ${JSON.stringify(path)}: ${m[path]},`);
+    }
+    lines.push("  }");
+    return lines.join("\n");
+  };
+  const overrideEntries = Object.keys(overrides)
+    .sort()
+    .map((k) => `  ${JSON.stringify(k)}: ${obj(overrides[k])},`)
+    .join("\n");
+
+  const out: string[] = [
+    "// Top-player Drop Rate reference — GRANULAR best-per-path, frankenstein-",
+    "// recomputed aggregates, gated PER CLASS. Every value is the max any",
+    "// single scanned (player, char) reached for that node path; aggregates",
+    "// are rebuilt from their maxed children; class-specific talents (Robbing",
+    "// Hood 279 / Curse of Mr Looty Booty 24) appear only in the profiles of",
+    "// classes that own them. Use topDrFlatForClass(classKey).",
     "// Large file: lazy-load it, don't import statically.",
     `// Generated ${now} · ${scanned} players. Refresh: scripts/update-top-dr.ts.`,
     "",
-    "export const TOP_DR_FLAT: Readonly<Record<string, number>> = {",
+    "type FlatMap = Readonly<Record<string, number>>;",
+    "",
+    `export const TOP_DR_FLAT: FlatMap = ${obj(baseFlat)};`,
+    "",
+    "export const TOP_DR_PROFILE_OVERRIDES: Readonly<Record<string, FlatMap>> = {",
+    overrideEntries,
+    "};",
+    "",
+    `export const TOP_DR_CLASS_PROFILE: Readonly<Record<string, string>> = ${JSON.stringify(classProfile, null, 2)};`,
+    "",
+    "/** The top-DR reference map for a class — the base profile merged with",
+    " *  the class's profile override (class-specific talents it can have). */",
+    "export function topDrFlatForClass(classKey: string | null | undefined): FlatMap {",
+    "  const profile = classKey ? TOP_DR_CLASS_PROFILE[classKey] : undefined;",
+    "  const override = profile ? TOP_DR_PROFILE_OVERRIDES[profile] : undefined;",
+    "  return override ? { ...TOP_DR_FLAT, ...override } : TOP_DR_FLAT;",
+    "}",
+    "",
   ];
-  for (const path of Object.keys(flat).sort()) {
-    lines.push(`  ${JSON.stringify(path)}: ${flat[path]},`);
-  }
-  lines.push("};", "");
-  writeFileSync(OUTPUT_FILE, lines.join("\n"));
+  writeFileSync(OUTPUT_FILE, out.join("\n"));
   console.log(`✓ Wrote ${OUTPUT_FILE}`);
 }
 
