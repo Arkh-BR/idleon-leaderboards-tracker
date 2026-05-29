@@ -13,11 +13,12 @@
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
-import { extractAll, type Snapshot } from "./extract";
+import { fileURLToPath, pathToFileURL } from "node:url";
+import { extractAll, type Item, type Snapshot } from "./extract";
 import { fetchNjs, sha256 } from "./fetch-njs";
 import { diffMaps, diffSets, isMapDiffEmpty, type MapDiff } from "./diff";
 import { fetchSteamNews, newsSince, type SteamNews } from "./steam";
+import { buildItemsFile, buildListsFile } from "./emit-game-data";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(__dirname, "../../..");
@@ -25,10 +26,39 @@ const SNAP_DIR = resolve(REPO_ROOT, "web/data/njs-snapshot");
 const REPORT_DIR = resolve(SNAP_DIR, "reports");
 const CACHE_DIR = resolve(__dirname, ".cache");
 const ROOT_NJS = resolve(REPO_ROOT, "N.js");
+const GAME_DIR = resolve(REPO_ROOT, "web/lib/corgan/stats/data/game");
 
 const args = new Set(process.argv.slice(2));
 const NO_FETCH = args.has("--no-fetch");
 const DRY = args.has("--dry");
+const WRITE_GAME_DATA = args.has("--write-game-data");
+
+/**
+ * Regenerates the corgan engine's committed game-data files from the live data
+ * by merging onto the existing files (never drops a committed key). This is
+ * what makes the detected changes actually reach the tools (Drop Rate etc.).
+ */
+async function writeGameData(
+  items: Record<string, Item>,
+  lists: Record<string, unknown>,
+): Promise<void> {
+  const itemsPath = resolve(GAME_DIR, "items.js");
+  const listsPath = resolve(GAME_DIR, "customlists.js");
+  const committedItems = (await import(pathToFileURL(itemsPath).href)).ITEMS as Record<string, Item>;
+  const listsMod = (await import(pathToFileURL(listsPath).href)) as Record<string, unknown>;
+  const committedListsText = readFileSync(listsPath, "utf8");
+
+  const it = buildItemsFile(items, committedItems);
+  const ls = buildListsFile(lists, committedListsText, listsMod);
+  if (DRY) {
+    console.log(`[updater] (--dry) game-data NÃO gravado. itens: +${it.added} ~${it.updated}; listas: ~${ls.updated}`);
+    return;
+  }
+  writeFileSync(itemsPath, it.text, "utf8");
+  writeFileSync(listsPath, ls.text, "utf8");
+  console.log(`[updater] 🛠️  game-data atualizado: items.js (+${it.added} novos, ~${it.updated} alterados, ${it.kept} preservados) · customlists.js (~${ls.updated} alteradas)`);
+  if (ls.missing.length) console.log(`[updater]    listas não reextraídas (mantidas do baseline): ${ls.missing.join(", ")}`);
+}
 
 type Meta = { sha256: string; byteLength: number; lastSteamCheck: number };
 
@@ -197,6 +227,9 @@ async function main(): Promise<void> {
   const newSteamCheck = allNews.length
     ? Math.max(sinceCheck, ...allNews.map((n) => n.date))
     : sinceCheck;
+
+  // 4b. Optionally regenerate the engine's committed game-data files.
+  if (WRITE_GAME_DATA) await writeGameData(cur.items, cur.lists);
 
   const today = todaySP();
   const reportPath = resolve(REPORT_DIR, `report-${today}.md`);

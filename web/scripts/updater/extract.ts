@@ -63,17 +63,26 @@ function readLiteral(src: string, start: number): { raw: string; end: number } {
   return { raw: src.slice(start, i), end: i };
 }
 
-/** Parse a literal as JSON when possible (clean structured diffs); else keep
- *  the raw text so nothing is ever silently dropped. */
+/** Resolve a literal to its real value: JSON when possible, else evaluate the JS
+ *  expression (the game stores data as `"a b".split(" ")` etc. — evaluating it
+ *  yields the expanded arrays the committed data files use). Falls back to the
+ *  raw text so nothing is ever silently dropped. The literals are pure data
+ *  (start with `[ { "`), so evaluation has no side effects. */
 function canonicalize(raw: string): unknown {
   try {
     return JSON.parse(raw);
+  } catch {
+    /* not strict JSON — try evaluating */
+  }
+  try {
+    return Function(`"use strict";return (${raw});`)();
   } catch {
     return raw;
   }
 }
 
-const LIST_RE = /\.([A-Za-z][A-Za-z0-9_]*)=function\(\)\{return/g;
+// Matches the `{` that opens a `<obj>.<Name>=function(){ … }` data getter.
+const LIST_RE = /\.([A-Za-z][A-Za-z0-9_]*)=function\(\)\{/g;
 
 export function extractLists(src: string): Record<string, unknown> {
   const out: Record<string, unknown> = {};
@@ -81,34 +90,54 @@ export function extractLists(src: string): Record<string, unknown> {
   LIST_RE.lastIndex = 0;
   while ((m = LIST_RE.exec(src))) {
     const name = m[1];
-    const litStart = LIST_RE.lastIndex;
-    const c = src[litStart];
-    if (c !== "[" && c !== "{" && c !== '"' && c !== "'") continue; // not a data literal
-    const { raw } = readLiteral(src, litStart);
-    out[name] = canonicalize(raw);
+    const bracePos = LIST_RE.lastIndex - 1; // the `{`
+    const { raw, end } = readLiteral(src, bracePos); // whole `{ … }` body
+    const body = raw.slice(1, -1).trimStart();
+    if (!body.startsWith("return")) continue; // only `return <literal>` getters
+    // The return expression may be more than a bare literal (e.g.
+    // `"a b".split(" ")`), so take it whole and evaluate — not just the literal.
+    let expr = body.slice(6).trim();
+    if (expr.endsWith(";")) expr = expr.slice(0, -1);
+    const c = expr[0];
+    if (c !== "[" && c !== "{" && c !== '"' && c !== "'") continue; // data only
+    out[name] = canonicalize(expr);
+    LIST_RE.lastIndex = end; // resume past this getter
   }
   return out;
 }
 
-const EQUIP_RE = /addNewEquip\("([^"]+)"/g;
-const FIELD_RE = /\.h\.([A-Za-z0-9_]+)=("(?:[^"\\]|\\.)*"|-?[0-9]+(?:\.[0-9]+)?)/g;
+// Items are registered imperatively by four functions; the suffix is the
+// item's `_type`. Every `.h.<field>=<value>` between two addNew* calls belongs
+// to the item the latter registers.
+const ITEM_TYPE: Record<string, string> = {
+  Equip: "equip",
+  Consumable: "consumable",
+  Item: "item",
+  Quest: "quest",
+};
+const ITEM_RE = /addNew(Equip|Consumable|Item|Quest)\("([^"]+)"/g;
+// Value is a string, or a JS number — including scientific (`2e3`) and
+// bare-decimal (`.1`) forms the Closure Compiler emits. Number() resolves them.
+const FIELD_RE =
+  /\.h\.([A-Za-z0-9_]+)=("(?:[^"\\]|\\.)*"|-?(?:[0-9]+(?:\.[0-9]+)?|\.[0-9]+)(?:[eE][+-]?[0-9]+)?)/g;
 
-export function extractItems(src: string): Record<string, Record<string, string | number>> {
-  const out: Record<string, Record<string, string | number>> = {};
-  const calls = [...src.matchAll(EQUIP_RE)];
+export type Item = Record<string, string | number>;
+
+export function extractItems(src: string): Record<string, Item> {
+  const out: Record<string, Item> = {};
+  const calls = [...src.matchAll(ITEM_RE)];
   for (let k = 0; k < calls.length; k++) {
     const m = calls[k];
-    const key = m[1];
+    const key = m[2];
     const blockStart =
-      k > 0 ? calls[k - 1].index! + calls[k - 1][0].length : Math.max(0, m.index! - 4000);
+      k > 0 ? calls[k - 1].index! + calls[k - 1][0].length : Math.max(0, m.index! - 6000);
     const block = src.slice(blockStart, m.index!);
-    const fields: Record<string, string | number> = {};
+    const fields: Item = { _type: ITEM_TYPE[m[1]] }; // _type first, like the committed files
     let fm: RegExpExecArray | null;
     FIELD_RE.lastIndex = 0;
     while ((fm = FIELD_RE.exec(block))) {
-      const fname = fm[1];
       const rawVal = fm[2];
-      fields[fname] = rawVal[0] === '"' ? (JSON.parse(rawVal) as string) : Number(rawVal);
+      fields[fm[1]] = rawVal[0] === '"' ? (JSON.parse(rawVal) as string) : Number(rawVal);
     }
     out[key] = fields;
   }
