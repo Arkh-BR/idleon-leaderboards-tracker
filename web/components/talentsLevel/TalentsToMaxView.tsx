@@ -232,7 +232,10 @@ function CharSection({
   hideNotes: boolean;
   activeOnly: boolean;
 }) {
-  const atCap = group.totalScanned - group.items.length;
+  // Count below-cap talents per preset (a talent in `items` may be missing
+  // in only one preset, so the two counts can differ).
+  const missingP1 = group.items.filter((it) => it.investedP1 < it.cap).length;
+  const missingP2 = group.items.filter((it) => it.investedP2 < it.cap).length;
   return (
     <section className="rounded-lg border border-zinc-800 bg-zinc-950/40">
       <button
@@ -251,11 +254,25 @@ function CharSection({
           {group.classLabel} · Lv {group.level} · Preset{" "}
           {group.activePreset + 1} active
         </span>
-        <span className="ml-auto text-[11px] text-zinc-500 font-normal">
-          <span className="text-amber-300 font-semibold">
-            {group.items.length}
-          </span>{" "}
-          to go · {atCap}/{group.totalScanned} at cap
+        {/* Per-preset backlog summary. Active preset marked with ●. Only the
+            active row shows when "active preset only" is on. */}
+        <span className="ml-auto flex flex-col gap-0.5 items-end">
+          {(!activeOnly || group.activePreset === 0) && (
+            <PresetCount
+              label="P1"
+              active={group.activePreset === 0}
+              missing={missingP1}
+              total={group.totalScanned}
+            />
+          )}
+          {(!activeOnly || group.activePreset === 1) && (
+            <PresetCount
+              label="P2"
+              active={group.activePreset === 1}
+              missing={missingP2}
+              total={group.totalScanned}
+            />
+          )}
         </span>
       </button>
       {open && (
@@ -339,6 +356,42 @@ function TalentRow({
         )}
       </div>
     </div>
+  );
+}
+
+// Per-preset backlog count shown in a char section header.
+function PresetCount({
+  label,
+  active,
+  missing,
+  total,
+}: {
+  label: string;
+  active: boolean;
+  missing: number;
+  total: number;
+}) {
+  const atCap = total - missing;
+  const done = missing === 0;
+  return (
+    <span className="flex items-center gap-1.5 text-[11px] font-normal whitespace-nowrap">
+      <span
+        className={`w-7 text-right ${
+          active ? "text-sky-300 font-semibold" : "text-zinc-500"
+        }`}
+      >
+        {label}
+        {active ? "●" : ""}
+      </span>
+      {done ? (
+        <span className="text-emerald-400">✓ all at cap</span>
+      ) : (
+        <span className="text-zinc-500">
+          <span className="text-amber-300 font-semibold">{missing}</span> to go ·{" "}
+          {atCap}/{total} at cap
+        </span>
+      )}
+    </span>
   );
 }
 
