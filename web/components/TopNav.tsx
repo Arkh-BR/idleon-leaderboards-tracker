@@ -3,13 +3,13 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-type NavItem = { href: string; label: string; wip?: boolean };
+type NavItem = { href: string; label: string };
 
 const ITEMS: NavItem[] = [
   { href: "/leaderboards", label: "🏆 IT Leaderboards" },
   { href: "/tome", label: "📖 Tome Score" },
-  { href: "/drop-rate", label: "🎲 Drop Rate", wip: true },
-  { href: "/talents-level", label: "🌟 Talents", wip: true },
+  { href: "/drop-rate", label: "🎲 Drop Rate" },
+  { href: "/talents-level", label: "🌟 Talents" },
 ];
 
 export default function TopNav() {
@@ -31,14 +31,6 @@ export default function TopNav() {
               }`}
             >
               <span>{item.label}</span>
-              {item.wip && (
-                <span
-                  className="text-[10px] font-bold uppercase tracking-wide bg-orange-500/20 text-orange-300 border border-orange-500/40 rounded px-1.5 py-0.5"
-                  title="Work in progress — algorithm validated, polished UI coming soon"
-                >
-                  WIP
-                </span>
-              )}
             </Link>
           );
         })}
