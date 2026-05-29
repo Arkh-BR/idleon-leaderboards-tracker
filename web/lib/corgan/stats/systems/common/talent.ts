@@ -645,13 +645,16 @@ export function computeAllTalentLVz(
             (saveData.spelunkData as any)[18] &&
             (saveData.spelunkData as any)[18][7]
         ) || 0) * 10;
-      const w7b5 =
+      // Zenith Market "Super Dupers": up to 25 levels, +1 super level each.
+      const zenithSuperDupers = Math.min(
+        25,
         Number(
           saveData.spelunkData &&
             (saveData.spelunkData as any)[45] &&
             (saveData.spelunkData as any)[45][5]
-        ) || 0;
-      spelunkBonus = Math.round(base + legend7 + w7b5);
+        ) || 0
+      );
+      spelunkBonus = Math.round(base + legend7 + zenithSuperDupers);
     }
   }
 
@@ -848,13 +851,19 @@ function resolveAllTalentLVz(
           (saveData.spelunkData as any)[18] &&
           (saveData.spelunkData as any)[18][7]
       ) || 0) * 10;
-    const w7b5 =
+    // Zenith Market "Super Dupers": up to 25 levels, each adding 1 super
+    // level (so the bonus equals the level count, capped at 25).
+    const zenithPerLv = 1;
+    const zenithLevel = Math.min(
+      25,
       Number(
         saveData.spelunkData &&
           (saveData.spelunkData as any)[45] &&
           (saveData.spelunkData as any)[45][5]
-      ) || 0;
-    potentialSuperBonus = Math.round(base + legend7 + w7b5);
+      ) || 0
+    );
+    const zenithSuperDupers = zenithLevel * zenithPerLv;
+    potentialSuperBonus = Math.round(base + legend7 + zenithSuperDupers);
     const superArr =
       saveData.spelunkData &&
       (saveData.spelunkData as any)[20 + slotIdx + 12 * preset];
@@ -869,7 +878,18 @@ function resolveAllTalentLVz(
           fmt: "raw",
           note: "Spelunk[18][7] × 10",
         }),
-        node("W7 Bonus 5", w7b5, null, { fmt: "raw" }),
+        node(
+          "Zenith Super Dupers",
+          zenithSuperDupers,
+          [
+            node("Level", zenithLevel, null, {
+              fmt: "raw",
+              note: "Zenith Market — Spelunk[45][5] (max 25)",
+            }),
+            node("Per Lv", zenithPerLv, null, { fmt: "raw" }),
+          ],
+          { fmt: "raw", note: "+1 super level per level" }
+        ),
       ];
       if (splitSuper) {
         // Split mode — pull the breakdown into the return so talent.resolve

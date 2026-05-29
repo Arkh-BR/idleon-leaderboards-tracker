@@ -5,12 +5,12 @@
 // bonus + super. Rendered as-is by the /talents Hypothetical tab.
 // Auto-refreshed by scripts/update-top-talents.ts.
 //
-// Snapshot generated: 2026-05-29T11:48:15.390Z
+// Snapshot generated: 2026-05-29T12:07:29.486Z
 // Players scanned: 70
 
 import type { CorganNode } from "../corgan/node";
 
-export const HYPO_TALENTS_GENERATED_AT = "2026-05-29T11:48:15.390Z";
+export const HYPO_TALENTS_GENERATED_AT = "2026-05-29T12:07:29.486Z";
 export const HYPO_TALENTS_PLAYERS_SCANNED = 70;
 
 export const HYPO_EFFECTIVE_TREE: CorganNode = {
@@ -907,9 +907,23 @@ export const HYPO_EFFECTIVE_TREE: CorganNode = {
           "note": "Spelunk[18][7] × 10"
         },
         {
-          "name": "W7 Bonus 5",
+          "name": "Zenith Super Dupers",
           "val": 25,
-          "fmt": "raw"
+          "children": [
+            {
+              "name": "Level",
+              "val": 25,
+              "fmt": "raw",
+              "note": "Zenith Market — Spelunk[45][5] (max 25)"
+            },
+            {
+              "name": "Per Lv",
+              "val": 1,
+              "fmt": "raw"
+            }
+          ],
+          "fmt": "raw",
+          "note": "+1 super level per level"
         }
       ],
       "fmt": "+",
