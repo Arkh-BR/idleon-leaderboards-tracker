@@ -635,6 +635,9 @@ export default function DeepView({
   baseline,
   showWorldView = true,
   extraTabs = [],
+  bare = false,
+  treeTabLabel = "🌳 Tree",
+  onViewChange,
 }: {
   tree: CorganNode | null;
   /** Optional snapshot baseline. When set, every row gains a "Δ vs snap"
@@ -647,8 +650,23 @@ export default function DeepView({
   showWorldView?: boolean;
   /** Extra caller-supplied tabs appended after the built-ins. */
   extraTabs?: DeepViewExtraTab[];
+  /** Hide the tab strip entirely — for rendering a single standalone tree
+   *  (e.g. the Talents "Hypothetical" tab embeds a bare DeepView). */
+  bare?: boolean;
+  /** Label for the built-in 🌳 Tree tab. The Talents page renames it to
+   *  "🌳 Talent Breakdown". */
+  treeTabLabel?: string;
+  /** Notified whenever the active tab changes (including initial mount), so
+   *  the caller can react — e.g. /talents-level hides the talent picker +
+   *  headline unless the Talent Breakdown tab is active. */
+  onViewChange?: (view: ViewMode) => void;
 }) {
   const [view, setView] = useState<ViewMode>("tree");
+  // Report the active tab to the caller (mount + every change). onViewChange
+  // is expected to be a stable callback; included in deps for correctness.
+  useEffect(() => {
+    onViewChange?.(view);
+  }, [view, onViewChange]);
   // The active extra tab (if `view` points at one). Built-in layouts win.
   const activeExtra =
     view !== "tree" && view !== "world"
@@ -752,7 +770,9 @@ export default function DeepView({
           layouts: 🌳 Tree (formula hierarchy) and 🌍 Per World (sources
           grouped by world). `showWorldView` hides Per World, and
           `extraTabs` appends caller-supplied tabs (e.g. /talents-level's
-          "Faltando p/ Max" account scan). */}
+          "Faltando p/ Max" account scan). Hidden when `bare` (standalone
+          single-tree render). */}
+      {!bare && (
       <div className="mb-3 flex items-center gap-1 border-b border-zinc-800">
         <button
           type="button"
@@ -764,7 +784,7 @@ export default function DeepView({
           }`}
           title="Formula hierarchy — pool → source → sub-source"
         >
-          🌳 Tree
+          {treeTabLabel}
         </button>
         {showWorldView && (
           <button
@@ -796,6 +816,7 @@ export default function DeepView({
           </button>
         ))}
       </div>
+      )}
 
       {/* Controls bar — single row. Search goes first (it's the most-used
           control and benefits from a flex-grow input), followed by the

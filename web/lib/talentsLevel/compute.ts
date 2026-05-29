@@ -41,6 +41,10 @@ export type TalentEffectiveOpts = {
    *  saveData.skillLvData[charIdx] and patches playerStuffData[charIdx][1]
    *  so the Spelunk Super Talent lookup also targets the right preset. */
   presetIdx?: 0 | 1;
+  /** Treat the talent as the active Spelunk Super Talent even when it isn't
+   *  in the super slot — used by the /talents Hypothetical tab so the Super
+   *  Levels row is always counted. Default false. */
+  forceSuperActive?: boolean;
 };
 
 /** Parse a save field that might be a raw JSON string or an already-
@@ -117,6 +121,7 @@ export function computeTalentEffective(
     // (when the talent is super-active on the active char's preset).
     // /drop-rate doesn't set this flag, so its pool tree stays unchanged.
     splitSuperLevels: true,
+    forceSuperActive: !!opts?.forceSuperActive,
   };
   // talent.resolve auto-detects account-wide talents internally (via
   // ACCOUNT_WIDE_TALENT_IDS) and switches to mode="max" cross-char
@@ -128,4 +133,40 @@ export function computeTalentEffective(
     talentId,
     talentName: entityName("talent", talentId),
   };
+}
+
+/**
+ * Resolve many talents across many chars with a SINGLE save load — used by
+ * the top-talents collector to scan every simple talent of every char
+ * without re-parsing the ~1.25 MB save per char (the dominant cost). Uses
+ * each char's active preset (SL_{ci}). Talents that fail to resolve are
+ * skipped.
+ */
+export function computeTalentTreesForChars(
+  rawEnvelope: any,
+  jobs: { charIdx: number; talentIds: number[] }[],
+  opts?: { forceSuperActive?: boolean }
+): { charIdx: number; trees: Map<number, CorganNode> }[] {
+  loadSaveData(rawEnvelope);
+  const out: { charIdx: number; trees: Map<number, CorganNode> }[] = [];
+  for (const job of jobs) {
+    const ctx = {
+      saveData,
+      charIdx: job.charIdx,
+      activeCharIdx: job.charIdx,
+      useMaxResearchBaseLevel: false,
+      splitSuperLevels: true,
+      forceSuperActive: !!opts?.forceSuperActive,
+    };
+    const trees = new Map<number, CorganNode>();
+    for (const id of job.talentIds) {
+      try {
+        trees.set(id, talent.resolve(id, ctx));
+      } catch {
+        // skip talents that error for this char's context
+      }
+    }
+    out.push({ charIdx: job.charIdx, trees });
+  }
+  return out;
 }

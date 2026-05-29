@@ -76,6 +76,12 @@ type Ctx = {
    *  decomposed; left false by /drop-rate to keep the existing pool tree
    *  shape stable. */
   splitSuperLevels?: boolean;
+  /** When true, treat every eligible talent as if it were the active
+   *  Spelunk Super Talent — the Super Levels row uses the potential bonus
+   *  (50 + Legend7×10 + W7B5) even when the talent isn't in the super slot.
+   *  Used by the /talents Hypothetical tab so the max reflects a fully
+   *  super-active Effective Level. */
+  forceSuperActive?: boolean;
 };
 
 type TalentResolveArgs = {
@@ -590,6 +596,12 @@ type ATLOpts = {
    *  decide whether to keep the Spelunk Super Talent node inside the Bonus
    *  chain or pull it out into the separate superBonus return field. */
   splitSuperLevels?: boolean;
+  /** Treat the talent as super-active regardless of the spelunk slot. */
+  forceSuperActive?: boolean;
+  /** Skip the Spelunk super-talent term entirely. Used to compute the
+   *  Family Guy (144) ATL bonus WITHOUT super, so the family-bonus node can
+   *  surface its super contribution as a separate row. */
+  excludeSuper?: boolean;
 };
 
 /**
@@ -629,21 +641,32 @@ export function computeAllTalentLVz(
     const superArr =
       saveData.spelunkData &&
       (saveData.spelunkData as any)[20 + slotIdx + 12 * preset];
-    if (Array.isArray(superArr) && superArr.indexOf(talentIdx) !== -1) {
+    const superActive =
+      (Array.isArray(superArr) && superArr.indexOf(talentIdx) !== -1) ||
+      !!opts?.forceSuperActive;
+    if (!opts?.excludeSuper && superActive) {
       const base = 50;
-      const legend7 =
-        (Number(
-          saveData.spelunkData &&
-            (saveData.spelunkData as any)[18] &&
-            (saveData.spelunkData as any)[18][7]
-        ) || 0) * 10;
-      const w7b5 =
+      // Zenith Market "Super Duper Talents (Yellow 2)": up to 5 levels, +10
+      // super talent levels each.
+      const yellow2 =
+        Math.min(
+          5,
+          Number(
+            saveData.spelunkData &&
+              (saveData.spelunkData as any)[18] &&
+              (saveData.spelunkData as any)[18][7]
+          ) || 0
+        ) * 10;
+      // Zenith Market "Super Dupers": up to 25 levels, +1 super level each.
+      const zenithSuperDupers = Math.min(
+        25,
         Number(
           saveData.spelunkData &&
             (saveData.spelunkData as any)[45] &&
             (saveData.spelunkData as any)[45][5]
-        ) || 0;
-      spelunkBonus = Math.round(base + legend7 + w7b5);
+        ) || 0
+      );
+      spelunkBonus = Math.round(base + yellow2 + zenithSuperDupers);
     }
   }
 
@@ -834,32 +857,65 @@ function resolveAllTalentLVz(
     // membership — Legend7/W7B5 don't depend on which talent is selected,
     // only on account progress.
     const base = 50;
-    const legend7 =
-      (Number(
+    // Zenith Market "Super Duper Talents (Yellow 2)": up to 5 levels, each
+    // giving +10 super talent levels (5 × 10 = 50 when maxed).
+    const yellow2PerLv = 10;
+    const yellow2Level = Math.min(
+      5,
+      Number(
         saveData.spelunkData &&
           (saveData.spelunkData as any)[18] &&
           (saveData.spelunkData as any)[18][7]
-      ) || 0) * 10;
-    const w7b5 =
+      ) || 0
+    );
+    const yellow2 = yellow2Level * yellow2PerLv;
+    // Zenith Market "Super Dupers": up to 25 levels, each adding 1 super
+    // level (so the bonus equals the level count, capped at 25).
+    const zenithPerLv = 1;
+    const zenithLevel = Math.min(
+      25,
       Number(
         saveData.spelunkData &&
           (saveData.spelunkData as any)[45] &&
           (saveData.spelunkData as any)[45][5]
-      ) || 0;
-    potentialSuperBonus = Math.round(base + legend7 + w7b5);
+      ) || 0
+    );
+    const zenithSuperDupers = zenithLevel * zenithPerLv;
+    potentialSuperBonus = Math.round(base + yellow2 + zenithSuperDupers);
     const superArr =
       saveData.spelunkData &&
       (saveData.spelunkData as any)[20 + slotIdx + 12 * preset];
-    superActive = Array.isArray(superArr) && superArr.indexOf(talentIdx) !== -1;
+    superActive =
+      (Array.isArray(superArr) && superArr.indexOf(talentIdx) !== -1) ||
+      !!opts?.forceSuperActive;
     if (superActive) {
       spelunkBonus = potentialSuperBonus;
       const kids: CorganNode[] = [
         node("Base", base, null, { fmt: "raw" }),
-        node("Spelunky Super Talent (Legend 7)", legend7, null, {
-          fmt: "raw",
-          note: "Spelunk[18][7] × 10",
-        }),
-        node("W7 Bonus 5", w7b5, null, { fmt: "raw" }),
+        node(
+          "Super Duper Talents (Yellow 2)",
+          yellow2,
+          [
+            node("Base", yellow2PerLv, null, { fmt: "raw" }),
+            node("Level", yellow2Level, null, {
+              fmt: "raw",
+              note: "Zenith Market — Spelunk[18][7] (max 5)",
+            }),
+          ],
+          { fmt: "raw", note: "+10 super levels per level" }
+        ),
+        node(
+          "Zenith Super Dupers",
+          zenithSuperDupers,
+          [
+            node("Level", zenithLevel, null, {
+              fmt: "raw",
+              note: "Zenith Market — Spelunk[45][5] (max 25)",
+            }),
+            node("Per Lv", zenithPerLv, null, { fmt: "raw" }),
+          ],
+          { fmt: "raw", note: "+1 super level per level" }
+        ),
       ];
       if (splitSuper) {
         // Split mode — pull the breakdown into the return so talent.resolve
@@ -936,16 +992,30 @@ function resolveAllTalentLVz(
   let tal144EffLv = 0;
   let tal144RawLv = 0;
   let tal144Val = 0;
+  // Spelunk super-talent portion of the Family Guy (144) ATL bonus, so the
+  // family-bonus node can show it as a separate "Super Levels" row instead
+  // of folding it into Bonus Levels.
+  let tal144Super = 0;
   {
     tal144RawLv =
       Number((skillLvData as any)[slotIdx] && (skillLvData as any)[slotIdx][144]) || 0;
     if (tal144RawLv > 0 && t144) {
+      // Count the Spelunk super talent as active for Family Guy too (it
+      // stays in the effective level / multiplier), but compute the no-super
+      // value so the node can show Bonus and Super on separate rows.
       const atlFor144 = computeAllTalentLVz(
         144,
         slotIdx,
-        { skipTal144FamMult: true },
+        { skipTal144FamMult: true, forceSuperActive: true },
         saveData
       );
+      const atlNoSuper = computeAllTalentLVz(
+        144,
+        slotIdx,
+        { skipTal144FamMult: true, excludeSuper: true },
+        saveData
+      );
+      tal144Super = Math.max(0, atlFor144 - atlNoSuper);
       tal144EffLv = tal144RawLv + atlFor144;
       tal144Val = formulaEval(
         (t144 as any).formula,
@@ -1247,10 +1317,20 @@ function resolveAllTalentLVz(
               ),
               node(
                 "Bonus Levels",
-                tal144EffLv - tal144RawLv,
+                tal144EffLv - tal144RawLv - tal144Super,
                 null,
-                { fmt: "+", note: "Σ ATL (unbuffed FB68)" }
+                { fmt: "+", note: "Σ ATL (unbuffed FB68, excl. super)" }
               ),
+              // Spelunk super-talent levels, separated from Bonus Levels so
+              // the Family Guy breakdown reads Base + Bonus + Super.
+              ...(tal144Super > 0
+                ? [
+                    node("Super Levels", tal144Super, null, {
+                      fmt: "+",
+                      note: "Spelunk super talent (separated)",
+                    }),
+                  ]
+                : []),
               // Tal144 decay constants — same story as FB68 above: only
               // emit when gen-source-catalog will lift them into
               // entry.familyGuyConsts metadata. Hidden on /drop-rate and
@@ -1443,7 +1523,12 @@ function resolveAllTalentLVz(
     Number((saveData as any).arcaneData?.[57]) || 0
   );
   if (arcane57 > 0) {
-    children.push(node("Arcane Map 57", arcane57, null, { fmt: "raw", note: "cap 5" }));
+    children.push(
+      node("Universe Talent", arcane57, null, {
+        fmt: "raw",
+        note: "Tesseract (Arcane Cultist) — +1 talent LV per level, cap 5",
+      })
+    );
   }
 
   const currentPlayerLv =
@@ -1623,6 +1708,7 @@ export const talent = {
     const atlOpts: ATLOpts = {
       useMaxResearchBaseLevel: !!ctx.useMaxResearchBaseLevel,
       splitSuperLevels: !!ctx.splitSuperLevels,
+      forceSuperActive: !!ctx.forceSuperActive,
     };
     const baseOpts = { useMaxResearch: !!ctx.useMaxResearchBaseLevel };
 
