@@ -289,9 +289,9 @@ function TalentRow({
         </div>
         <div
           className="text-[11px] font-mono text-amber-300"
-          title="Book levels still needed to reach the Max Book Lv ceiling"
+          title="Levels still needed to reach the Max Book Lv ceiling"
         >
-          {item.booksNeeded} book{item.booksNeeded === 1 ? "" : "s"}
+          {item.booksNeeded} level{item.booksNeeded === 1 ? "" : "s"}
         </div>
       </div>
     </div>
