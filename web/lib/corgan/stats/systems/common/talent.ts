@@ -1492,7 +1492,12 @@ function resolveAllTalentLVz(
     Number((saveData as any).arcaneData?.[57]) || 0
   );
   if (arcane57 > 0) {
-    children.push(node("Arcane Map 57", arcane57, null, { fmt: "raw", note: "cap 5" }));
+    children.push(
+      node("Universe Talent", arcane57, null, {
+        fmt: "raw",
+        note: "Tesseract (Arcane Cultist) — +1 talent LV per level, cap 5",
+      })
+    );
   }
 
   const currentPlayerLv =

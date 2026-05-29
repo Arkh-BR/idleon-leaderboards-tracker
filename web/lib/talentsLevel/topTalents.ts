@@ -5,12 +5,12 @@
 // bonus + super. Rendered as-is by the /talents Hypothetical tab.
 // Auto-refreshed by scripts/update-top-talents.ts.
 //
-// Snapshot generated: 2026-05-29T12:22:03.596Z
+// Snapshot generated: 2026-05-29T12:32:18.558Z
 // Players scanned: 70
 
 import type { CorganNode } from "../corgan/node";
 
-export const HYPO_TALENTS_GENERATED_AT = "2026-05-29T12:22:03.596Z";
+export const HYPO_TALENTS_GENERATED_AT = "2026-05-29T12:32:18.558Z";
 export const HYPO_TALENTS_PLAYERS_SCANNED = 70;
 
 export const HYPO_EFFECTIVE_TREE: CorganNode = {
@@ -864,10 +864,10 @@ export const HYPO_EFFECTIVE_TREE: CorganNode = {
           "fmt": "raw"
         },
         {
-          "name": "Arcane Map 57",
+          "name": "Universe Talent",
           "val": 5,
           "fmt": "raw",
-          "note": "cap 5"
+          "note": "Tesseract (Arcane Cultist) — +1 talent LV per level, cap 5"
         },
         {
           "name": "Super Bit 47 Lv Bonus",
