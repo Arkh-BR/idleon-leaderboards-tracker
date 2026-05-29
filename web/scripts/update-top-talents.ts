@@ -92,8 +92,15 @@ async function main() {
     }
     // Health Booster exists on every class's base tab, so compute it on
     // every char (single save load) and keep the best per path.
+    // Skip Elemental Sorcerer chars: computing on the ES applies the Family
+    // Guy self-buff to the Mage family bonus (the ES IS the family-bonus
+    // owner), which inflates the hypothetical artificially. Non-ES chars get
+    // the clean, unbuffed family bonus.
     const jobs = chars
-      .filter((ch) => getCharClassKey(save, ch.charIndex))
+      .filter((ch) => {
+        const k = getCharClassKey(save, ch.charIndex);
+        return k && k !== "Elemental_Sorcerer";
+      })
       .map((ch) => ({ charIdx: ch.charIndex, talentIds: [HEALTH_BOOSTER] }));
     // Hypothetical tab always counts the Spelunk Super Talent bonus, so
     // resolve the Health Booster as if it were the active super talent.

@@ -598,6 +598,10 @@ type ATLOpts = {
   splitSuperLevels?: boolean;
   /** Treat the talent as super-active regardless of the spelunk slot. */
   forceSuperActive?: boolean;
+  /** Skip the Spelunk super-talent term entirely. Used to compute the
+   *  Family Guy (144) ATL bonus WITHOUT super, so the family-bonus node can
+   *  surface its super contribution as a separate row. */
+  excludeSuper?: boolean;
 };
 
 /**
@@ -637,7 +641,11 @@ export function computeAllTalentLVz(
     const superArr =
       saveData.spelunkData &&
       (saveData.spelunkData as any)[20 + slotIdx + 12 * preset];
-    if (Array.isArray(superArr) && superArr.indexOf(talentIdx) !== -1) {
+    if (
+      !opts?.excludeSuper &&
+      Array.isArray(superArr) &&
+      superArr.indexOf(talentIdx) !== -1
+    ) {
       const base = 50;
       // Zenith Market "Super Duper Talents (Yellow 2)": up to 5 levels, +10
       // super talent levels each.
@@ -985,6 +993,10 @@ function resolveAllTalentLVz(
   let tal144EffLv = 0;
   let tal144RawLv = 0;
   let tal144Val = 0;
+  // Spelunk super-talent portion of the Family Guy (144) ATL bonus, so the
+  // family-bonus node can show it as a separate "Super Levels" row instead
+  // of folding it into Bonus Levels.
+  let tal144Super = 0;
   {
     tal144RawLv =
       Number((skillLvData as any)[slotIdx] && (skillLvData as any)[slotIdx][144]) || 0;
@@ -995,6 +1007,13 @@ function resolveAllTalentLVz(
         { skipTal144FamMult: true },
         saveData
       );
+      const atlNoSuper = computeAllTalentLVz(
+        144,
+        slotIdx,
+        { skipTal144FamMult: true, excludeSuper: true },
+        saveData
+      );
+      tal144Super = Math.max(0, atlFor144 - atlNoSuper);
       tal144EffLv = tal144RawLv + atlFor144;
       tal144Val = formulaEval(
         (t144 as any).formula,
@@ -1296,10 +1315,20 @@ function resolveAllTalentLVz(
               ),
               node(
                 "Bonus Levels",
-                tal144EffLv - tal144RawLv,
+                tal144EffLv - tal144RawLv - tal144Super,
                 null,
-                { fmt: "+", note: "Σ ATL (unbuffed FB68)" }
+                { fmt: "+", note: "Σ ATL (unbuffed FB68, excl. super)" }
               ),
+              // Spelunk super-talent levels, separated from Bonus Levels so
+              // the Family Guy breakdown reads Base + Bonus + Super.
+              ...(tal144Super > 0
+                ? [
+                    node("Super Levels", tal144Super, null, {
+                      fmt: "+",
+                      note: "Spelunk super talent (separated)",
+                    }),
+                  ]
+                : []),
               // Tal144 decay constants — same story as FB68 above: only
               // emit when gen-source-catalog will lift them into
               // entry.familyGuyConsts metadata. Hidden on /drop-rate and

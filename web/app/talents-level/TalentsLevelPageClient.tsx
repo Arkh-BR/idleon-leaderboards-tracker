@@ -443,7 +443,16 @@ export default function TalentsLevelPageClient() {
       try {
         const mod = await import("@/lib/talentsLevel/compute");
         if (cancelled) return;
-        const result = mod.computeTalentEffective(save, charIdx, 0, {
+        // Use a non-ES char: computing on an Elemental Sorcerer applies the
+        // Family Guy self-buff to the Mage family bonus, inflating it.
+        const isES = (ci: number) =>
+          getCharClassKey(save, ci) === "Elemental_Sorcerer";
+        let hypoCharIdx = charIdx;
+        if (isES(hypoCharIdx)) {
+          const alt = chars.find((c) => !isES(c.charIndex));
+          if (alt) hypoCharIdx = alt.charIndex;
+        }
+        const result = mod.computeTalentEffective(save, hypoCharIdx, 0, {
           presetIdx,
           forceSuperActive: true,
         });
