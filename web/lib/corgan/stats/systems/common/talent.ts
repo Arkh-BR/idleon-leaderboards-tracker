@@ -1861,11 +1861,12 @@ export const talent = {
     // (computeAllTalentLVz returns 0 for idx > 614). Display:
     // Active + Level + formula note.
     //
-    // TODO: most star talent caps are HARDCODED in the game source, not
-    // derivable from a formula like maxBookLv. Surfacing those caps
-    // requires a dedicated lookup table — until that's built, the star
-    // branch shows just rawLv without a "max" row (SkillLevelsMAX[id]
-    // alone isn't reliable as a cap source).
+    // Star talents are capped by the game's per-talent SkillLevelsMAX (SM),
+    // which the save carries directly — it's account-wide (the game writes
+    // the same cap to every char) and present even on chars that haven't
+    // levelled the talent. So the "max level" IS derivable from the save: we
+    // take the max of SM[id] across all chars to be robust to a char whose
+    // SM[id] wasn't populated. No hardcoded lookup table needed.
     //
     // Stars with a final-bonus wrap (e.g. Tal 655 × Skulls Beaten) are
     // handled by the same applyTalentWrap path used for tab 1-5
@@ -1873,6 +1874,15 @@ export const talent = {
     // in data/common/talent-final-bonus-wraps.ts, no hardcoded branch
     // needed here.
     if (id >= 615) {
+      // Account-wide star talent cap from SkillLevelsMAX[id].
+      let starCap = 0;
+      const smAll = skillLvMaxData as any[];
+      if (Array.isArray(smAll)) {
+        for (const cm of smAll) {
+          const v = Number(cm?.[id] ?? cm?.[String(id)]) || 0;
+          if (v > starCap) starCap = v;
+        }
+      }
       const starKids: CorganNode[] = [
         node("Active", activeFlag, null, { fmt: "raw" }),
         node("Level", r.rawLv, null, {
@@ -1880,6 +1890,14 @@ export const talent = {
           note: "star talent — pool capped, no book lv",
         }),
       ];
+      if (starCap > 0) {
+        starKids.push(
+          node("Max Level", starCap, null, {
+            fmt: "raw",
+            note: "star talent cap (account SkillLevelsMAX)",
+          })
+        );
+      }
       const withCtx = applyTalentWrap(id, r.val, starKids, name, saveData, ctx.charIdx, r.effectiveLv);
       if (withCtx) return withCtx;
       return node(name, r.val, starKids, {

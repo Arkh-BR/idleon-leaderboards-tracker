@@ -223,15 +223,20 @@ function extractTalentSummary(tree: CorganNode | null): TalentSummary | null {
     };
   }
 
-  // Star-talent shape — Active + Level kids, no Effective Level wrapper.
+  // Star-talent shape — Active + Level (+ optional Max Level) kids, no
+  // Effective Level wrapper. The "Max Level" node carries the account-wide
+  // star talent cap (SkillLevelsMAX), so the Max Effective Lv pane can show
+  // current vs max like a normal talent (stars have no bonus/super chain).
   const levelKid = getChildByName(tree, "Level");
   if (levelKid) {
     const lv = Number(levelKid.val) || 0;
+    const maxKid = getChildByName(tree, "Max Level");
+    const cap = maxKid ? Number(maxKid.val) || 0 : null;
     return {
       currentEffective: lv,
-      maxEffective: null,
+      maxEffective: cap,
       pointsInvested: lv,
-      maxCap: null,
+      maxCap: cap,
       bonusLevels: 0,
       superLevels: 0,
     };
