@@ -9,6 +9,7 @@ import type { FlatTree } from "@/lib/dropRate/treeFlatten";
 import {
   TOP_DR_GENERATED_AT,
   TOP_DR_BEST,
+  TOP_DR_HYPOTHETICAL_TOTAL,
   TOP_DR_PLAYERS_SCANNED,
 } from "@/lib/dropRate/topDropRate.meta";
 
@@ -47,7 +48,7 @@ export default function DropRatePageClient() {
         setTopBaseline({
           flatTree: mod.TOP_DR_FLAT as FlatTree,
           capturedAt: Date.parse(TOP_DR_GENERATED_AT),
-          charName: `Top players (${TOP_DR_PLAYERS_SCANNED} scanned)`,
+          charName: `Hypothetical max (${TOP_DR_PLAYERS_SCANNED} top players)`,
         });
       } finally {
         setTopLoading(false);
@@ -103,6 +104,7 @@ function TopCompareToggle({
   loading: boolean;
   onToggle: () => void;
 }) {
+  const hypo = Math.round(TOP_DR_HYPOTHETICAL_TOTAL).toLocaleString("en-US");
   const best = Math.round(TOP_DR_BEST.total).toLocaleString("en-US");
   return (
     <div className="rounded-lg border border-zinc-800 bg-zinc-900/60 p-3 flex flex-wrap items-center gap-2">
@@ -115,22 +117,26 @@ function TopCompareToggle({
             ? "bg-amber-500/15 text-amber-300 border-amber-500/40"
             : "bg-zinc-900 text-zinc-300 border-zinc-700 hover:bg-zinc-800"
         }`}
-        title="Compare every DR source against the best value seen across the top players"
+        title="Compare every DR source against the best value seen across the top players (the hypothetical-max save)"
       >
         🏅{" "}
         {loading
           ? "Loading…"
           : active
-          ? "Comparing vs top players"
-          : "Compare vs top players"}
+          ? "Comparing vs hypothetical max"
+          : "Compare vs hypothetical max"}
       </button>
       <span className="text-[11px] text-zinc-500">
-        Each source row gets a Δ vs the community ceiling
+        Each source row gets a Δ vs the best of every top player ·{" "}
+        <span title="The DR if a save had every player's best of each source — recomputed through the formula, so it's higher than any single player.">
+          theoretical max{" "}
+          <span className="text-amber-300 font-mono">{hypo}x</span>
+        </span>
         {TOP_DR_BEST.player ? (
           <>
             {" "}
-            · best total{" "}
-            <span className="text-amber-300 font-mono">{best}x</span> (
+            · best real player{" "}
+            <span className="text-zinc-400 font-mono">{best}x</span> (
             {TOP_DR_BEST.player})
           </>
         ) : null}

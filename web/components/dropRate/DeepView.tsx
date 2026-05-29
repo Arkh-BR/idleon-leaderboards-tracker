@@ -165,59 +165,50 @@ function formatVal(val: number, fmt: string | undefined): string {
   return suffixed(val);
 }
 
-/** Look up a path's previous value in the baseline flatTree. Returns
- *  null if no baseline is selected or the path didn't exist in it
- *  (new node since the snapshot). */
-function lookupDelta(
+/** Look up a path's reference value in the baseline flatTree. Returns null
+ *  if no baseline is selected or the path didn't exist in it (a source the
+ *  reference doesn't have). */
+function lookupRef(
   baseline: FlatTree | null | undefined,
-  path: string,
-  current: number
+  path: string
 ): number | null {
   if (!baseline) return null;
-  const prev = baseline[path];
-  if (typeof prev !== "number") return null;
-  return current - prev;
+  const v = baseline[path];
+  return typeof v === "number" ? v : null;
 }
 
-/** Small inline badge that renders a Δ (current − snapshot) next to a row's
- *  value. Color codes increases green / decreases red / unchanged zinc.
- *  Returns null when there's no baseline or the path is missing — so callers
- *  can drop it into any row without a guard. */
-function DeltaBadge({
-  delta,
+/** Small inline badge that renders the REFERENCE value (the baseline /
+ *  hypothetical-max value for this source) next to the row's own value.
+ *  Color codes the comparison: green when the user is at/above the
+ *  reference, red when below, zinc when equal. Returns null when there's no
+ *  baseline or the path is missing — so callers can drop it into any row
+ *  without a guard. */
+function RefBadge({
+  reference,
+  current,
   fmt,
 }: {
-  delta: number | null;
+  reference: number | null;
+  current: number;
   fmt: string | undefined;
 }) {
-  if (delta === null) return null;
-  const abs = Math.abs(delta);
-  if (abs < 1e-9) {
-    return (
-      <span
-        className="font-mono text-[10px] text-zinc-600 px-1.5 py-0.5 rounded border border-zinc-800 bg-zinc-900/40"
-        title="No change since snapshot"
-      >
-        Δ 0
-      </span>
-    );
-  }
-  const sign = delta > 0 ? "+" : "";
-  // Reuse formatVal for unit-aware formatting on the absolute delta, then
-  // splice the sign back in front so "+12.50K" / "-0.025" read naturally.
-  const formatted = formatVal(Math.abs(delta), fmt);
-  const label = delta > 0 ? `+${formatted}` : `-${formatted}`;
-  const tone =
-    delta > 0
+  if (reference === null) return null;
+  const diff = current - reference;
+  const eq = Math.abs(diff) < 1e-9;
+  const tone = eq
+    ? "text-zinc-500 border-zinc-700 bg-zinc-800/40"
+    : diff > 0
       ? "text-emerald-300 border-emerald-500/40 bg-emerald-500/10"
       : "text-red-300 border-red-500/40 bg-red-500/10";
-  void sign;
   return (
     <span
       className={`font-mono text-[10px] px-1.5 py-0.5 rounded border ${tone}`}
-      title="Δ vs selected snapshot"
+      title={`Reference (hypothetical max) for this source — you have ${formatVal(
+        current,
+        fmt
+      )}`}
     >
-      Δ {label}
+      🎯 {formatVal(reference, fmt)}
     </span>
   );
 }
@@ -408,7 +399,7 @@ function TreeRow({
   const pathSegments = [...parentPath, node.name];
   const open = isPathOpen(path, depth, expandState, node);
   const arrow = hasChildren ? (open ? "▾" : "▸") : "·";
-  const delta = lookupDelta(baseline, path, Number(node.val) || 0);
+  const ref = lookupRef(baseline, path);
 
   // Pool-weight badge — for leaves under one of the additive pools, compute
   // their % of the pool sum so the user sees "this source = 32% of LUK2 pool".
@@ -521,7 +512,11 @@ function TreeRow({
             {weightBadge.label}
           </span>
         )}
-        <DeltaBadge delta={delta} fmt={node.fmt} />
+        <RefBadge
+          reference={ref}
+          current={Number(node.val) || 0}
+          fmt={node.fmt}
+        />
         <span
           className={`font-mono tabular-nums text-right w-24 ${valColor(
             node.val,
@@ -1160,7 +1155,7 @@ function WorldBucketRow({
       ? "bg-blue-500/10 text-blue-300 border-blue-500/30"
       : "bg-amber-500/10 text-amber-300 border-amber-500/30";
   const isZero = Math.abs(Number(bucket.node.val) || 0) < 1e-9;
-  const delta = lookupDelta(baseline, bucket.path, Number(bucket.node.val) || 0);
+  const ref = lookupRef(baseline, bucket.path);
   return (
     <div className="border-b border-zinc-800/60 last:border-b-0">
       <div
@@ -1186,7 +1181,11 @@ function WorldBucketRow({
         >
           {bucket.poolBadge}
         </span>
-        <DeltaBadge delta={delta} fmt={bucket.node.fmt} />
+        <RefBadge
+          reference={ref}
+          current={Number(bucket.node.val) || 0}
+          fmt={bucket.node.fmt}
+        />
         <span
           className={`font-mono tabular-nums w-24 text-right ${valColor(
             bucket.node.val,
@@ -1256,7 +1255,7 @@ function WorldBucketChildRow({
   const [open, setOpen] = useState(false);
   const hasChildren = !!(node.children && node.children.length);
   const path = nodePath(parentPathStr, node, siblings, siblingIndex);
-  const delta = lookupDelta(baseline, path, Number(node.val) || 0);
+  const ref = lookupRef(baseline, path);
   return (
     <div style={{ paddingLeft: `${depth * 0.75}rem` }}>
       <div
@@ -1277,7 +1276,11 @@ function WorldBucketChildRow({
             </span>
           )}
         </span>
-        <DeltaBadge delta={delta} fmt={node.fmt} />
+        <RefBadge
+          reference={ref}
+          current={Number(node.val) || 0}
+          fmt={node.fmt}
+        />
         <span
           className={`font-mono tabular-nums text-xs ${valColor(
             node.val,

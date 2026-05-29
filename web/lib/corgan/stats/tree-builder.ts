@@ -30,11 +30,16 @@ export type Descriptor = {
   ): { val: number; children: CorganNode[] };
 };
 
-export function buildTree(
+/** Resolve every source in each pool and return the pools (items + sum +
+ *  product) WITHOUT running combine(). Exposed so callers can build a
+ *  synthetic "best of each source" pool set across multiple saves and then
+ *  feed it through desc.combine() to recompute the headline formula (the
+ *  top-player hypothetical-max DR uses this). */
+export function buildPools(
   desc: Descriptor,
   catalog: Record<string, SystemResolver>,
   ctx: SystemCtx
-): CorganNode {
+): Record<string, Pool> {
   const pools: Record<string, Pool> = {};
 
   for (const poolName in desc.pools) {
@@ -64,6 +69,16 @@ export function buildTree(
 
     pools[poolName] = { items, sum, product };
   }
+
+  return pools;
+}
+
+export function buildTree(
+  desc: Descriptor,
+  catalog: Record<string, SystemResolver>,
+  ctx: SystemCtx
+): CorganNode {
+  const pools = buildPools(desc, catalog, ctx);
 
   const result = desc.combine(pools, ctx);
   return {

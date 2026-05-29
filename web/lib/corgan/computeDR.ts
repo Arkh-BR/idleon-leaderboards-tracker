@@ -7,7 +7,7 @@
 import { loadSaveData } from "./save/loader";
 import { saveData } from "./state";
 import * as data from "./save/data";
-import { buildTree } from "./stats/tree-builder";
+import { buildTree, buildPools, type Pool } from "./stats/tree-builder";
 import { getCatalog } from "./stats/registry";
 import dropRateDesc from "./stats/defs/drop-rate";
 import type { CorganNode } from "./node";
@@ -64,4 +64,49 @@ export function computeCorganDropRate(
   };
   const tree = buildTree(dropRateDesc, getCatalog(), ctx);
   return { tree, total: tree.val };
+}
+
+/**
+ * Resolve the DR pools for a save WITHOUT running combine(). Used by the
+ * top-player collector to aggregate the best value per source across many
+ * saves before recomputing the headline formula.
+ */
+export function computeCorganDRPools(
+  rawEnvelope: any,
+  charIdx: number,
+  mapIdx: number = 0,
+  opts?: ComputeDROpts
+): Record<string, Pool> {
+  loadSaveData(rawEnvelope);
+  const mapBon = data.mapBonData;
+  const ctx = {
+    saveData,
+    charIdx,
+    activeCharIdx: charIdx,
+    mapBon,
+    mapIdx,
+    chipGalleryActive: !!opts?.chipGalleryActive,
+    useMaxResearchBaseLevel: !!opts?.useMaxResearchBaseLevel,
+    splitSuperLevels: !!opts?.splitSuperLevels,
+  };
+  return buildPools(dropRateDesc, getCatalog(), ctx);
+}
+
+/**
+ * Run the DR formula (dropRateDesc.combine) on a — possibly synthetic —
+ * pool set to produce the final tree + total. combine() ignores ctx for
+ * drop-rate, so a minimal ctx is fine. Lets the collector feed a "best of
+ * each source" pool set and get back the recomputed hypothetical-max DR.
+ */
+export function combineDRPools(pools: Record<string, Pool>): CorganDRResult {
+  const result = dropRateDesc.combine(pools, {} as never);
+  return {
+    tree: {
+      name: "Drop Rate",
+      val: result.val,
+      fmt: "x",
+      children: result.children,
+    },
+    total: result.val,
+  };
 }

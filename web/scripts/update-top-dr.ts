@@ -1,15 +1,18 @@
 // Refresh the bundled top-player Drop Rate reference in
-// lib/dropRate/topDropRate.ts by fetching the raw save of each top player
-// from the IT profiles endpoint and running OUR corgan DR engine on it.
+// lib/dropRate/topDropRate.ts by fetching each top player's raw save from
+// the IT profiles endpoint and running OUR corgan DR engine on it.
 //
-// For every character of every candidate we compute the DR tree at PEAK —
-// the map with the highest arcane factor (buildMapOptions) and chip gallery
-// ON — so the reference reflects the in-game drop-rate ceiling top players
-// actually chase, not a base-map figure. We flatten each tree to path→value
-// and keep the BEST value seen per path across all of them (the per-source
-// ceiling), plus a headline of the single highest DR total. (Note: combat-
-// only bonuses like Active Drop Rate / multikill aren't in the save, so this
-// is the reproducible static ceiling, not a live in-combat peak.)
+// HYPOTHETICAL-MAX model: for every char of every candidate we resolve the
+// DR pools at PEAK (highest-arcane map + chip gallery on), then keep the
+// BEST value seen per source (per pool item index — sources are emitted in
+// a fixed order, so item i is the same source for everyone). After scanning
+// everyone we recompute the DR formula (dropRateDesc.combine) on that
+// "best of each source" pool set. The result is a single coherent tree
+// whose total is HIGHER than any individual player — the theoretical
+// ceiling a save would hit if it had everyone's best of every source.
+// (It's a frankenstein: sources come from different players, so it's an
+// aspirational max, not necessarily reachable. Combat-only bonuses like
+// Active Drop Rate / multikill aren't in the save either.)
 //
 // Run:  npx tsx web/scripts/update-top-dr.ts
 // Knobs: --limit N   cap candidate set (smoke test)
@@ -21,7 +24,8 @@ const g = globalThis as any;
 if (!g.window) g.window = g;
 
 import { gatherCandidates, fetchProfileSave } from "./_shared/itProfiles";
-import { computeCorganDropRate } from "../lib/corgan/computeDR";
+import { computeCorganDRPools, combineDRPools } from "../lib/corgan/computeDR";
+import type { Pool } from "../lib/corgan/stats/tree-builder";
 import { flattenTree } from "../lib/dropRate/treeFlatten";
 import { listCharacters } from "../lib/dropRate/extract";
 import { buildMapOptions } from "../lib/dropRate/arcaneBonus";
@@ -41,6 +45,35 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 type Best = { player: string; char: string; total: number };
 
+// Merge an incoming pool set into the running best-per-source accumulator.
+function mergeBest(
+  acc: Record<string, Pool> | null,
+  incoming: Record<string, Pool>
+): Record<string, Pool> {
+  if (!acc) {
+    const init: Record<string, Pool> = {};
+    for (const pn in incoming) {
+      init[pn] = { items: [...incoming[pn].items], sum: 0, product: 0 };
+    }
+    return init;
+  }
+  for (const pn in incoming) {
+    const inc = incoming[pn];
+    if (!acc[pn]) {
+      acc[pn] = { items: [...inc.items], sum: 0, product: 0 };
+      continue;
+    }
+    const cur = acc[pn];
+    const n = Math.min(cur.items.length, inc.items.length);
+    for (let i = 0; i < n; i++) {
+      if ((Number(inc.items[i].val) || 0) > (Number(cur.items[i].val) || 0)) {
+        cur.items[i] = inc.items[i];
+      }
+    }
+  }
+  return acc;
+}
+
 async function main() {
   console.log("→ Gathering candidates from leaderboards…");
   // Same logic as the Tome collector, but the top-10 focus board is the
@@ -51,7 +84,7 @@ async function main() {
   });
   console.log(`  ✓ ${candidates.length} candidates`);
 
-  const bestFlat: Record<string, number> = {};
+  let bestPools: Record<string, Pool> | null = null;
   let bestTotal: Best | null = null;
   let scanned = 0;
   let skipped = 0;
@@ -87,23 +120,17 @@ async function main() {
     let playerBestChar = "";
     for (const ch of chars) {
       try {
-        const { tree, total } = computeCorganDropRate(
-          save,
-          ch.charIndex,
-          bestMapIdx,
-          { chipGalleryActive: true }
-        );
-        const flat = flattenTree(tree);
-        for (const path in flat) {
-          const v = flat[path];
-          if (bestFlat[path] === undefined || v > bestFlat[path]) {
-            bestFlat[path] = v;
-          }
-        }
+        const pools = computeCorganDRPools(save, ch.charIndex, bestMapIdx, {
+          chipGalleryActive: true,
+        });
+        // Individual total (context only — combine doesn't mutate the pool
+        // items, so the accumulator's references stay intact).
+        const total = combineDRPools(pools).total;
         if (total > playerBest) {
           playerBest = total;
           playerBestChar = ch.charName;
         }
+        bestPools = mergeBest(bestPools, pools);
       } catch {
         // skip a char that fails to compute (e.g. no class)
       }
@@ -116,18 +143,41 @@ async function main() {
     if (i < candidates.length - 1) await sleep(THROTTLE_MS);
   }
 
+  if (!bestPools) {
+    console.error("× no pools collected, aborting");
+    process.exit(1);
+  }
+
+  // Recompute sum/product over the best-per-source items, then run the DR
+  // formula to get the hypothetical-max tree.
+  for (const pn in bestPools) {
+    let sum = 0;
+    let product = 1;
+    for (const it of bestPools[pn].items) {
+      const v = Number(it.val) || 0;
+      sum += v;
+      product *= v !== 0 ? v : 1;
+    }
+    bestPools[pn].sum = sum;
+    bestPools[pn].product = product;
+  }
+  const { tree: hypoTree, total: hypoTotal } = combineDRPools(bestPools);
+  const flat = flattenTree(hypoTree);
+
   console.log(`\n✓ Scanned ${scanned} players (${skipped} skipped)`);
-  console.log(`  · ${Object.keys(bestFlat).length} reference paths`);
+  console.log(`  · ${Object.keys(flat).length} reference paths`);
+  console.log(`  · hypothetical-max DR: ${hypoTotal.toFixed(2)}x`);
   console.log(
-    `  · headline best: ${bestTotal?.total.toFixed(2)}x by ${bestTotal?.player} (${bestTotal?.char})`
+    `  · best real player: ${bestTotal?.total.toFixed(2)}x by ${bestTotal?.player} (${bestTotal?.char})`
   );
 
-  emitFiles(bestFlat, bestTotal, scanned);
+  emitFiles(flat, bestTotal, hypoTotal, scanned);
 }
 
 function emitFiles(
   flat: Record<string, number>,
   best: Best | null,
+  hypotheticalTotal: number,
   scanned: number
 ) {
   const now = new Date().toISOString();
@@ -141,6 +191,10 @@ function emitFiles(
     "",
     `export const TOP_DR_GENERATED_AT = ${JSON.stringify(now)};`,
     `export const TOP_DR_PLAYERS_SCANNED = ${scanned};`,
+    "// Recomputed DR of the 'best of every source' synthetic save (higher",
+    "// than any single player). This is TOP_DR_FLAT['Drop Rate'].",
+    `export const TOP_DR_HYPOTHETICAL_TOTAL = ${hypotheticalTotal};`,
+    "// Highest DR of a single real player, for context.",
     `export const TOP_DR_BEST = ${JSON.stringify(best ?? { player: "", char: "", total: 0 })};`,
     "",
   ].join("\n");
@@ -149,10 +203,12 @@ function emitFiles(
 
   // Flat table — large, lazy-loaded only when the user opts into the
   // comparison. Keyed by the same nodePath() scheme treeFlatten uses so it
-  // drops straight into DeepView as a comparison baseline.
+  // drops straight into DeepView as a comparison baseline. Every value is
+  // the best-of-each-source hypothetical max (root = recomputed total).
   const lines: string[] = [
-    "// Top-player Drop Rate reference — per-source ceiling (best value seen",
-    "// across the scanned top players), keyed by the nodePath() scheme",
+    "// Top-player Drop Rate reference — the 'best of every source' synthetic",
+    "// save: each source is the max across the scanned top players and the",
+    "// tree is recomputed via the DR formula. Keyed by the nodePath() scheme",
     "// treeFlatten uses. Large file: lazy-load it, don't import statically.",
     `// Generated ${now} · ${scanned} players. Refresh: scripts/update-top-dr.ts.`,
     "",
