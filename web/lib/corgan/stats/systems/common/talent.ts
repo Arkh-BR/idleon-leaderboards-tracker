@@ -356,6 +356,19 @@ export function computeMaxBookLv(saveData: SaveData): number {
   return computeMaxBookLvParts(saveData).value;
 }
 
+// Star talents whose max level = K·(Tasks[2][world][3] + 1) — the task-shop
+// merit level for that world (N.js: SkillLevelsMAX[id] = K*(Tasks[2][…][3]+1),
+// Tasks[2] = TaskZZ2). id → [multiplier K, world index]. The game only
+// re-writes these on a task-shop purchase, so the saved SM lags the live
+// task level; we recompute them in the star branch of talent.resolve.
+const STAR_TASK_MAX: Record<number, [number, number]> = {
+  627: [5, 0],
+  630: [5, 1],
+  634: [5, 2],
+  651: [20, 3],
+  652: [30, 4],
+};
+
 /** Wraps a raw skill lv in the Base Level structure for tab 1-5
  *  talents — min(Points Invested, Max Book Lv Cap). The cap breakdown
  *  is duplicated under each talent (account-wide value, but each
@@ -1890,10 +1903,21 @@ export const talent = {
           if (v > starCap) starCap = v;
         }
       }
-      // 641–647: cap = live maxBookLv (the saved SM lags as the cap grows).
-      if (id >= 641 && id <= 647) {
+      // 627/630/634/651/652: cap = K·(Tasks[2][world][3] + 1) — the task-shop
+      // merit level (N.js, verified). Only re-written on purchase, so the
+      // saved SM lags the live task level (saw saved 50 vs live 55). Recompute.
+      const taskMul = STAR_TASK_MAX[id];
+      if (taskMul) {
+        const lv =
+          Number((saveData as any).tasksGlobalData?.[2]?.[taskMul[1]]?.[3]) || 0;
+        starCap = Math.max(starCap, taskMul[0] * (lv + 1));
+      } else if (id >= 641 && id <= 647) {
+        // 641–647: cap = live maxBookLv (the saved SM lags as the cap grows).
         starCap = Math.max(starCap, computeMaxBookLv(saveData));
       }
+      // 625 (cauldron liquid), 656 (dream constant 200) and 658 (summoning
+      // vault) ARE re-written every TotalTalentPoints call, so their saved SM
+      // is already current (verified equal to the live formula) — left as-is.
       const starKids: CorganNode[] = [
         node("Active", activeFlag, null, { fmt: "raw" }),
         node("Level", r.rawLv, null, {
