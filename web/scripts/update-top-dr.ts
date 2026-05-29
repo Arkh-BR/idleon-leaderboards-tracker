@@ -28,6 +28,7 @@ import { computeCorganDRPools, combineDRPools } from "../lib/corgan/computeDR";
 import type { Pool } from "../lib/corgan/stats/tree-builder";
 import { flattenTree } from "../lib/dropRate/treeFlatten";
 import { listCharacters } from "../lib/dropRate/extract";
+import { getCharClassKey } from "../lib/talentsLevel/charClass";
 import { buildMapOptions } from "../lib/dropRate/arcaneBonus";
 import {
   reconcileSharedMultipliers,
@@ -112,24 +113,32 @@ async function main() {
   });
   console.log(`  ✓ ${candidates.length} candidates`);
 
-  let bestPools: Record<string, Pool> | null = null;
   let bestTotal: Best | null = null;
-  // GRANULAR best-per-path reference map: for every node path in the DR
-  // tree, the max value any single (player, char) reached. Replaces the old
-  // "copy the winning player's whole pool-item subtree" merge, which let a
-  // shared quantity (e.g. the Gallery Bonus Multi, computed once per save
-  // but emitted under both the additive Gallery and the multiplicative
-  // Gallery) inherit DIFFERENT players' subtrees in each pool and show two
-  // different values. Per-path max makes each shared node resolve to one
-  // consistent value wherever it appears.
-  const bestFlat: Record<string, number> = {};
-  // Per-path op detection for the frankenstein recompute of aggregate nodes
-  // (buckets/pools/multi-item sums). An op survives only if it reproduces the
-  // parent from its children for EVERY scanned (player, char). `structure` is
-  // the most complete tree seen — the shape we walk to recompute bottom-up.
-  const opSets = new Map<string, Set<string>>();
-  let structure: CorganNode | null = null;
-  let structPaths = -1;
+
+  // Two reference groups, split by the ACTIVE char's class — because the Mage
+  // family bonus (Talent 68) is buffed by the Family Guy talent only when the
+  // active char IS the Elemental Sorcerer. Computing over non-ES chars gives
+  // the unbuffed FB68 every other class actually has; the ES group keeps the
+  // buffed value. Each group is a granular best-per-path map (the max any
+  // single char reached per node path) + op detection for the frankenstein
+  // recompute + the most-complete structure tree + the best-of-each-source
+  // pool set for the headline total.
+  type GroupAcc = {
+    bestPools: Record<string, Pool> | null;
+    bestFlat: Record<string, number>;
+    opSets: Map<string, Set<string>>;
+    structure: CorganNode | null;
+    structPaths: number;
+  };
+  const newGroup = (): GroupAcc => ({
+    bestPools: null,
+    bestFlat: {},
+    opSets: new Map(),
+    structure: null,
+    structPaths: -1,
+  });
+  const nonES = newGroup();
+  const es = newGroup();
   let scanned = 0;
   let skipped = 0;
 
@@ -177,20 +186,24 @@ async function main() {
           playerBest = total;
           playerBestChar = ch.charName;
         }
+        // Route into the ES or non-ES group by the active char's class.
+        const grp =
+          getCharClassKey(save, ch.charIndex) === "Elemental_Sorcerer"
+            ? es
+            : nonES;
         const f = flattenTree(combined.tree);
         for (const p in f) {
           const v = f[p];
-          if (bestFlat[p] === undefined || v > bestFlat[p]) bestFlat[p] = v;
+          if (grp.bestFlat[p] === undefined || v > grp.bestFlat[p])
+            grp.bestFlat[p] = v;
         }
-        // Feed the aggregate-op detector and keep the most complete tree as
-        // the recompute structure.
-        accumulateOps(combined.tree, opSets);
+        accumulateOps(combined.tree, grp.opSets);
         const nPaths = Object.keys(f).length;
-        if (nPaths > structPaths) {
-          structPaths = nPaths;
-          structure = combined.tree;
+        if (nPaths > grp.structPaths) {
+          grp.structPaths = nPaths;
+          grp.structure = combined.tree;
         }
-        bestPools = mergeBest(bestPools, pools);
+        grp.bestPools = mergeBest(grp.bestPools, pools);
       } catch {
         // skip a char that fails to compute (e.g. no class)
       }
@@ -203,58 +216,49 @@ async function main() {
     if (i < candidates.length - 1) await sleep(THROTTLE_MS);
   }
 
-  if (!bestPools) {
-    console.error("× no pools collected, aborting");
+  if (!nonES.bestPools || !nonES.structure) {
+    console.error("× no non-ES pools collected, aborting");
     process.exit(1);
   }
 
-  // Frankenstein total for the headline: run the DR formula over the
-  // best-of-each-source pool set (one coherent recompute whose total is
-  // higher than any individual player). This drives the headline only.
-  for (const pn in bestPools) {
-    let sum = 0;
-    let product = 1;
-    for (const it of bestPools[pn].items) {
-      const v = Number(it.val) || 0;
-      sum += v;
-      product *= v !== 0 ? v : 1;
+  // Finalize a group: frankenstein-recompute its aggregates, reconcile shared
+  // multipliers, and pin the root to its best-of-each-source total.
+  const finalizeGroup = (grp: GroupAcc) => {
+    for (const pn in grp.bestPools!) {
+      let sum = 0;
+      let product = 1;
+      for (const it of grp.bestPools![pn].items) {
+        const v = Number(it.val) || 0;
+        sum += v;
+        product *= v !== 0 ? v : 1;
+      }
+      grp.bestPools![pn].sum = sum;
+      grp.bestPools![pn].product = product;
     }
-    bestPools[pn].sum = sum;
-    bestPools[pn].product = product;
-  }
-  const { total: hypoTotal } = combineDRPools(bestPools);
+    const total = combineDRPools(grp.bestPools!).total;
+    const { flat, recomputed } = recomputeFrankenstein(
+      grp.structure!,
+      grp.bestFlat,
+      chooseOps(grp.opSets)
+    );
+    reconcileSharedMultipliers(flat, DR_SHARED_MULTIPLIERS);
+    flat["Drop Rate"] = total;
+    return { flat, total, recomputed };
+  };
 
-  // Frankenstein recompute: every aggregate node with a cross-player-verified
-  // op (buckets = Σ items, pools = Σ buckets, Cards DR-Multi = Σ cards, …) is
-  // rebuilt from its INDEPENDENTLY-maxed children, so the ceiling reflects the
-  // best of each component combined rather than the best single player's
-  // aggregate. Bespoke per-source nodes keep their best-per-path value.
-  if (!structure) {
-    console.error("× no structure tree collected, aborting");
-    process.exit(1);
-  }
-  const opByPath = chooseOps(opSets);
-  const { flat, recomputed } = recomputeFrankenstein(
-    structure,
-    bestFlat,
-    opByPath
-  );
-
-  // Unify account-wide shared multipliers (Gallery / Hatrack Bonus Multi) to
-  // one frankenstein-max value everywhere, so a quantity that's logically
-  // singular stops reading differently per owned item.
-  const reconciled = reconcileSharedMultipliers(flat, DR_SHARED_MULTIPLIERS);
-  flat["Drop Rate"] = hypoTotal;
+  const nonRes = finalizeGroup(nonES);
 
   // ── Per-class gating ────────────────────────────────────────────────
   // Class-specific DR talents (Robbing Hood 279 / Curse of Mr Looty Booty 24)
-  // can't be had by every class. Build a BASE reference with none of them and
-  // per-profile OVERRIDES that add back only the talents a class owns, with
-  // the affected additive aggregates + the recomputed total. A class's map
-  // simply omits the talents it can't have, so their 🎯 vanishes.
+  // can't be had by every class. From the non-ES reference build a BASE with
+  // none of them + per-profile OVERRIDES that add back only the talents a
+  // class owns (with the affected additive aggregates + recomputed total).
+  // The Elemental Sorcerer gets its own profile from the ES reference (its
+  // Family Bonus 68 is buffed by Family Guy; every other class's is not).
   const TALENTS_BUCKET = "Drop Rate / Additive Pool / 🎯 Talents";
   const ADDITIVE_POOL = "Drop Rate / Additive Pool";
   const TOTAL_SUM = "Drop Rate / Total Sum";
+  const flat = nonRes.flat;
   const gated = deriveGatedTalents();
   const talPaths = new Map<number, { value: number; paths: string[] }>();
   for (const g of gated) {
@@ -262,12 +266,12 @@ async function main() {
     if (np) talPaths.set(g.id, { value: flat[np], paths: subtreePaths(flat, np) });
   }
 
-  // Recompute the DR total with a set of talent items zeroed in the pools.
+  // Recompute the DR total with a set of talent items zeroed (non-ES pools).
   const totalWithout = (removeIds: number[]): number => {
     const clone: Record<string, Pool> = {};
-    for (const pn in bestPools!) {
+    for (const pn in nonES.bestPools!) {
       clone[pn] = {
-        items: bestPools![pn].items.map((it) => ({ ...it })),
+        items: nonES.bestPools![pn].items.map((it) => ({ ...it })),
         sum: 0,
         product: 0,
       };
@@ -310,7 +314,7 @@ async function main() {
     return m;
   };
 
-  // class → profile key, and the owned-id set per distinct profile.
+  // class → profile key (talent gating), and the owned-id set per profile.
   const classProfile: Record<string, string> = {};
   const profileOwned = new Map<string, number[]>();
   for (const c of allClassKeys()) {
@@ -323,23 +327,62 @@ async function main() {
   const baseFlat = buildProfileFlat([]); // no class-specific talents
   const overrides: Record<string, Record<string, number>> = {};
   let maxProfileTotal = baseFlat["Drop Rate"] || 0;
-  for (const [key, owned] of profileOwned) {
-    if (key === "base") continue;
-    const pf = buildProfileFlat(owned);
+  // Override = the paths whose value differs from base. base and every
+  // profile share the same path set (account-wide sources + the same talent
+  // subtree shapes), so a plain {...base, ...override} merge on the page
+  // reconstructs each profile — no path deletions needed.
+  const addOverride = (key: string, pf: Record<string, number>) => {
     const d: Record<string, number> = {};
     for (const k in pf) if (baseFlat[k] !== pf[k]) d[k] = pf[k];
     overrides[key] = d;
     maxProfileTotal = Math.max(maxProfileTotal, pf["Drop Rate"] || 0);
+  };
+  for (const [key, owned] of profileOwned) {
+    if (key === "base") continue;
+    addOverride(key, buildProfileFlat(owned));
+  }
+  // Elemental Sorcerer profile — the non-ES base (correct LUK + account-wide
+  // ceilings), with the BUFFED Family Bonus 68 grafted in (only the ES's own
+  // Family Guy buffs it). Computing the ES over ES chars alone would
+  // undersample LUK (real ES chars aren't DR-built), so we keep base and just
+  // overlay the buffed FB68 subtree + bump the containing Bonus/Effective
+  // Levels by the delta. The DR impact of the +levels is negligible, so the
+  // total stays the base ceiling.
+  const FB68_NAME = "Family Bonus 68 (Mage)";
+  const esFlat: Record<string, number> = { ...baseFlat };
+  let fbGrafted = 0;
+  for (const p of Object.keys(baseFlat)) {
+    if (!p.endsWith(FB68_NAME)) continue;
+    const esVal = es.bestFlat[p];
+    if (esVal == null) continue;
+    const delta = esVal - baseFlat[p];
+    if (delta <= 0) continue;
+    // Overlay the buffed FB68 subtree from the ES computations.
+    const pre = p + " / ";
+    for (const q of Object.keys(baseFlat)) {
+      if ((q === p || q.startsWith(pre)) && es.bestFlat[q] != null) {
+        esFlat[q] = es.bestFlat[q];
+      }
+    }
+    // Bump the containing Bonus Levels + Effective Level by the FB68 delta.
+    const bonusPath = p.slice(0, p.lastIndexOf(" / "));
+    const effPath = bonusPath.slice(0, bonusPath.lastIndexOf(" / "));
+    if (esFlat[bonusPath] != null) esFlat[bonusPath] += delta;
+    if (esFlat[effPath] != null) esFlat[effPath] += delta;
+    fbGrafted++;
+  }
+  if (fbGrafted > 0) {
+    classProfile["Elemental_Sorcerer"] = "ES";
+    addOverride("ES", esFlat);
   }
 
   console.log(`\n✓ Scanned ${scanned} players (${skipped} skipped)`);
-  console.log(`  · recomputed ${recomputed} aggregate paths (of ${opByPath.size} with a verified op)`);
-  console.log(`  · reconciled ${reconciled} shared-multiplier paths`);
+  console.log(`  · non-ES recomputed ${nonRes.recomputed} aggregates · FB68 grafted onto ${fbGrafted} ES talent(s)`);
   console.log(
-    `  · gated talents: ${gated.map((g) => g.id).join(", ") || "none"} → profiles: ${[...profileOwned.keys()].join(", ")}`
+    `  · gated talents: ${gated.map((g) => g.id).join(", ") || "none"} → profiles: ${Object.keys(overrides).concat(["base"]).join(", ")}`
   );
   console.log(`  · ${Object.keys(baseFlat).length} base reference paths`);
-  console.log(`  · global ceiling (all talents): ${hypoTotal.toFixed(2)}x · best per-class: ${maxProfileTotal.toFixed(2)}x`);
+  console.log(`  · best per-class ceiling: ${maxProfileTotal.toFixed(2)}x`);
   console.log(
     `  · best real player: ${bestTotal?.total.toFixed(2)}x by ${bestTotal?.player} (${bestTotal?.char})`
   );
