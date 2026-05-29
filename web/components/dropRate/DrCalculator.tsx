@@ -7,6 +7,7 @@ import {
 } from "@/lib/dropRate/arcaneBonus";
 import { formatIdleon } from "@/lib/format";
 import { listCharacters, parseSave, type CharSummary } from "@/lib/dropRate/extract";
+import { getCharClassKey } from "@/lib/talentsLevel/charClass";
 import DeepView from "./DeepView";
 import type { CorganNode as DrNode } from "@/lib/corgan/node";
 import type { FlatTree } from "@/lib/dropRate/treeFlatten";
@@ -16,6 +17,10 @@ const SAVE_KEY = "drop-rate-tracker.last-upload.v1";
 export type CalculatorState = {
   charIndex: number | null;
   charName: string;
+  /** PascalCase class key of the selected char (e.g. "Hunter"), or null.
+   *  Used to pick the per-class top-DR reference (class-specific talents
+   *  are gated by class). */
+  classKey: string | null;
   charSummary: CharSummary | null;
   totalDr: number | null;
   baseDr: number | null;
@@ -235,6 +240,7 @@ export default function DrCalculator({
     onStateChange({
       charIndex: ch ? ch.charIndex : null,
       charName: ch?.charName ?? "",
+      classKey: save && ch ? getCharClassKey(save, ch.charIndex) : null,
       charSummary: ch ?? null,
       totalDr: bubbledTotal,
       baseDr: bubbledBase,

@@ -293,16 +293,22 @@ export const nametag = {
         const val = tier * gbm * drEntries[j].val;
         total += val;
         const tagName = NAMETAG_NAMES[i] || "Tag #" + i;
+        // Named by IDENTITY (no "Level N" suffix) so the node path is stable
+        // whether or not a given player owns it — the top-player reference
+        // collector keys by path, so a level-in-the-name would fragment the
+        // reference per level and leave unowned/lower-tier rows comparing
+        // against 0 instead of the max achievable. Level lives in a child.
         children.push(
           node(
-            tagName + " Level " + lv,
+            tagName,
             val,
             [
+              node("Level", lv, null, { fmt: "raw" }),
               node("Tier", tier, null, { fmt: "x" }),
               node("Gallery Bonus Multi", gbm, gbmObj.children, { fmt: "x" }),
               node("Base", drEntries[j].val, null, { fmt: "raw" }),
             ],
-            { fmt: "+" }
+            { fmt: "+", note: "gallery level " + lv }
           )
         );
       }
@@ -371,16 +377,21 @@ export const trophy = {
         const val = tier * gbm * drEntries[j].val;
         total += val;
         const tName = TROPHY_NAMES[trophyId] || "Trophy" + trophyId;
+        // Named by IDENTITY (no "slot N" suffix) — same reasoning as
+        // nametags: a stable path lets the top-player reference aggregate by
+        // trophy across players (and slots/tiers), so the 🎯 shows the max
+        // achievable even for trophies you don't own. Slot lives in a child.
         children.push(
           node(
-            tName + " slot " + i,
+            tName,
             val,
             [
+              node("Slot", i, null, { fmt: "raw" }),
               node("Tier", tier, null, { fmt: "x" }),
               node("Gallery Bonus Multi", gbm, gbmObj.children, { fmt: "x" }),
               node("Base", drEntries[j].val, null, { fmt: "raw" }),
             ],
-            { fmt: "+" }
+            { fmt: "+", note: "gallery slot " + i }
           )
         );
       }

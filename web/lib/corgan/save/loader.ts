@@ -392,11 +392,20 @@ export function loadSaveData(raw: RawEnvelope): void {
   assignState({ cachedComp0DivOk: (lv0All[0]?.[14] || 0) >= 2 });
 
   // Tome score — Corgan re-derives this from save data via computeTomeScore
-  // (1467 lines). For now we shortcut to the value IT stamps on the envelope
-  // (`extraData.totalTomePoints`). Falls back to 0 for raw save.json.
+  // (1467 lines). For now we shortcut to the value IT stamps on the envelope.
+  // The "Copy for Support" payload puts it on `extraData.totalTomePoints`;
+  // the public profiles endpoint (used by the top-player collectors) has no
+  // extraData block but carries the same computed score on
+  // `parsedData.totalTomePoints`. Read whichever is present so both the page
+  // upload AND the collectors get it — otherwise the collected saves report
+  // tome = 0 and every tome-driven bonus (DR tome 2/7, etc.) is missing.
+  // Falls back to 0 for a bare raw save.json.
   const extraData = (raw as any).extraData;
-  if (extraData && extraData.totalTomePoints != null) {
-    assignState({ totalTomePoints: Number(extraData.totalTomePoints) || 0 });
+  const parsedData = (raw as any).parsedData;
+  const envelopeTome =
+    extraData?.totalTomePoints ?? parsedData?.totalTomePoints;
+  if (envelopeTome != null) {
+    assignState({ totalTomePoints: Number(envelopeTome) || 0 });
   }
 
   // Cached unique sushi count (sushiRoG / prisma chain reads it)

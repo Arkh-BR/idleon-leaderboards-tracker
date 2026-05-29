@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import DrCalculator, {
   type CalculatorState,
 } from "@/components/dropRate/DrCalculator";
@@ -30,10 +30,11 @@ export default function DropRatePageClient() {
   // the tree) can share it.
   const [baseline, setBaseline] = useState<Baseline | null>(null);
   // Compare against the bundled top-player reference instead of a personal
-  // snapshot. The (large) flatTree is lazy-loaded the first time the toggle
-  // is turned on, so it stays out of the initial route bundle.
+  // snapshot. The (large) module is lazy-loaded the first time the toggle is
+  // turned on, so it stays out of the initial route bundle.
   const [compareTop, setCompareTop] = useState(false);
-  const [topBaseline, setTopBaseline] = useState<Baseline | null>(null);
+  const [topMod, setTopMod] =
+    useState<typeof import("@/lib/dropRate/topDropRate") | null>(null);
   const [topLoading, setTopLoading] = useState(false);
 
   const toggleTop = async () => {
@@ -41,21 +42,29 @@ export default function DropRatePageClient() {
       setCompareTop(false);
       return;
     }
-    if (!topBaseline) {
+    if (!topMod) {
       setTopLoading(true);
       try {
-        const mod = await import("@/lib/dropRate/topDropRate");
-        setTopBaseline({
-          flatTree: mod.TOP_DR_FLAT as FlatTree,
-          capturedAt: Date.parse(TOP_DR_GENERATED_AT),
-          charName: `Hypothetical max (${TOP_DR_PLAYERS_SCANNED} top players)`,
-        });
+        setTopMod(await import("@/lib/dropRate/topDropRate"));
       } finally {
         setTopLoading(false);
       }
     }
     setCompareTop(true);
   };
+
+  // The reference is gated to the SELECTED char's class — class-specific DR
+  // talents (Robbing Hood 279 / Curse of Mr Looty Booty 24) only appear for
+  // classes that can have them. Recomputes when the char (class) changes.
+  const classKey = calcState?.classKey ?? null;
+  const topBaseline = useMemo<Baseline | null>(() => {
+    if (!compareTop || !topMod) return null;
+    return {
+      flatTree: topMod.topDrFlatForClass(classKey) as FlatTree,
+      capturedAt: Date.parse(TOP_DR_GENERATED_AT),
+      charName: `Hypothetical max (${TOP_DR_PLAYERS_SCANNED} top players)`,
+    };
+  }, [compareTop, topMod, classKey]);
 
   const effectiveBaseline = compareTop ? topBaseline : baseline;
 
@@ -67,6 +76,12 @@ export default function DropRatePageClient() {
         active={compareTop}
         loading={topLoading}
         onToggle={toggleTop}
+        classTotal={
+          compareTop && topBaseline
+            ? topBaseline.flatTree["Drop Rate"] ?? null
+            : null
+        }
+        className={classKey ? classKey.replace(/_/g, " ") : null}
       />
       <SnapshotSection
         state={calcState}
@@ -99,13 +114,23 @@ function TopCompareToggle({
   active,
   loading,
   onToggle,
+  classTotal,
+  className,
 }: {
   active: boolean;
   loading: boolean;
   onToggle: () => void;
+  /** Per-class ceiling for the selected char (null until a save+class is
+   *  loaded and the comparison is on). Falls back to the best per-class
+   *  ceiling from the metadata. */
+  classTotal?: number | null;
+  /** Display class name of the selected char (e.g. "Hunter"). */
+  className?: string | null;
 }) {
-  const hypo = Math.round(TOP_DR_HYPOTHETICAL_TOTAL).toLocaleString("en-US");
+  const hypoVal = classTotal ?? TOP_DR_HYPOTHETICAL_TOTAL;
+  const hypo = Math.round(hypoVal).toLocaleString("en-US");
   const best = Math.round(TOP_DR_BEST.total).toLocaleString("en-US");
+  const perClass = classTotal != null && className;
   return (
     <div className="rounded-lg border border-zinc-800 bg-zinc-900/60 p-3 flex flex-wrap items-center gap-2">
       <button
@@ -128,8 +153,8 @@ function TopCompareToggle({
       </button>
       <span className="text-[11px] text-zinc-500">
         Each source row gets a Δ vs the best of every top player ·{" "}
-        <span title="The DR if a save had every player's best of each source — recomputed through the formula, so it's higher than any single player.">
-          theoretical max{" "}
+        <span title="Best-of-each-source recomputed through the DR formula. Class-specific talents (Robbing Hood / Curse of Mr Looty Booty) are gated to the selected char's class, so this ceiling is reachable by that class.">
+          {perClass ? `${className} max ` : "best class max "}
           <span className="text-amber-300 font-mono">{hypo}x</span>
         </span>
         {TOP_DR_BEST.player ? (
