@@ -341,6 +341,15 @@ function computeMaxBookLvParts(saveData: SaveData): {
   return { value, kids };
 }
 
+/** Account-wide Max Book Lv Cap value (the standard cap that clamps every
+ *  regular talent, idx<615). Thin wrapper over computeMaxBookLvParts for
+ *  callers that only need the number — e.g. the /talents-level "Faltando
+ *  p/ Max" list, which compares each talent's invested level against the
+ *  cap without building the full breakdown tree. */
+export function computeMaxBookLv(saveData: SaveData): number {
+  return computeMaxBookLvParts(saveData).value;
+}
+
 /** Wraps a raw skill lv in the Base Level structure for tab 1-5
  *  talents — min(Points Invested, Max Book Lv Cap). The cap breakdown
  *  is duplicated under each talent (account-wide value, but each

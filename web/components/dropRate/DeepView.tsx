@@ -23,7 +23,7 @@
 // at-a-glance which sources are pulling the most weight.
 // ============================================================================
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import type { CorganNode } from "@/lib/corgan/node";
 import {
   parseSystemFromBucketName,
@@ -616,19 +616,49 @@ function buildSearchMatchMap(
 // Main component
 // -----------------------------------------------------------------------------
 
-type ViewMode = "tree" | "world";
+// "tree" / "world" are the built-in layouts; any other string is the id of
+// a caller-supplied extra tab (see DeepViewExtraTab).
+type ViewMode = string;
+
+/** A caller-injected tab that renders its own content. Used by
+ *  /talents-level to add the "Faltando p/ Max" account scan in place of
+ *  the (irrelevant-for-a-single-talent) Per World layout. */
+export type DeepViewExtraTab = {
+  /** Unique id — becomes the active `view` value when selected. Avoid
+   *  "tree" / "world" which are reserved for the built-ins. */
+  id: string;
+  /** Tab button label (may include an emoji). */
+  label: string;
+  /** Optional tooltip for the tab button. */
+  title?: string;
+  /** Renders the tab's body. Called only while this tab is active. */
+  render: () => ReactNode;
+};
 
 export default function DeepView({
   tree,
   baseline,
+  showWorldView = true,
+  extraTabs = [],
 }: {
   tree: CorganNode | null;
   /** Optional snapshot baseline. When set, every row gains a "Δ vs snap"
    *  badge showing current − captured. Lookup is keyed by the same
    *  nodePath() scheme treeFlatten uses to serialize the snapshot. */
   baseline?: Baseline;
+  /** Show the built-in 🌍 Per World tab. Default true (Drop Rate). The
+   *  Talents Level page passes false because grouping a single talent's
+   *  tree by world is meaningless there. */
+  showWorldView?: boolean;
+  /** Extra caller-supplied tabs appended after the built-ins. */
+  extraTabs?: DeepViewExtraTab[];
 }) {
   const [view, setView] = useState<ViewMode>("tree");
+  // The active extra tab (if `view` points at one). Built-in layouts win.
+  const activeExtra =
+    view !== "tree" && view !== "world"
+      ? extraTabs.find((t) => t.id === view) ?? null
+      : null;
   const [searchTerm, setSearchTerm] = useState("");
   const [hideZero, setHideZero] = useState(false);
   // Hide-notes hydrates from localStorage in a useEffect (below) to avoid
@@ -722,9 +752,11 @@ export default function DeepView({
 
   return (
     <div className="font-sans" data-hide-notes={hideNotes ? "1" : undefined}>
-      {/* View tabs — sit where the "Deep View" title used to be. Two layouts:
-          🌳 Tree (formula hierarchy) and 🌍 Per World (sources grouped by
-          where they come from in the game). */}
+      {/* View tabs — sit where the "Deep View" title used to be. Built-in
+          layouts: 🌳 Tree (formula hierarchy) and 🌍 Per World (sources
+          grouped by world). `showWorldView` hides Per World, and
+          `extraTabs` appends caller-supplied tabs (e.g. /talents-level's
+          "Faltando p/ Max" account scan). */}
       <div className="mb-3 flex items-center gap-1 border-b border-zinc-800">
         <button
           type="button"
@@ -738,23 +770,42 @@ export default function DeepView({
         >
           🌳 Tree
         </button>
-        <button
-          type="button"
-          onClick={() => setView("world")}
-          className={`px-3 py-1.5 text-sm font-medium rounded-t -mb-px border ${
-            view === "world"
-              ? "bg-sky-500/15 text-sky-300 border-sky-500/40 border-b-transparent"
-              : "text-zinc-400 hover:text-zinc-200 border-transparent"
-          }`}
-          title="Sources grouped by world (Global / Character / W1 … W7)"
-        >
-          🌍 Per World
-        </button>
+        {showWorldView && (
+          <button
+            type="button"
+            onClick={() => setView("world")}
+            className={`px-3 py-1.5 text-sm font-medium rounded-t -mb-px border ${
+              view === "world"
+                ? "bg-sky-500/15 text-sky-300 border-sky-500/40 border-b-transparent"
+                : "text-zinc-400 hover:text-zinc-200 border-transparent"
+            }`}
+            title="Sources grouped by world (Global / Character / W1 … W7)"
+          >
+            🌍 Per World
+          </button>
+        )}
+        {extraTabs.map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            onClick={() => setView(t.id)}
+            className={`px-3 py-1.5 text-sm font-medium rounded-t -mb-px border ${
+              view === t.id
+                ? "bg-sky-500/15 text-sky-300 border-sky-500/40 border-b-transparent"
+                : "text-zinc-400 hover:text-zinc-200 border-transparent"
+            }`}
+            title={t.title}
+          >
+            {t.label}
+          </button>
+        ))}
       </div>
 
       {/* Controls bar — single row. Search goes first (it's the most-used
           control and benefits from a flex-grow input), followed by the
-          expand-state buttons (tree-only) and the Hide-inactive toggle. */}
+          expand-state buttons (tree-only) and the Hide-inactive toggle.
+          Hidden for extra tabs, which render their own (if any) controls. */}
+      {!activeExtra && (
       <div className="mb-3 flex flex-wrap items-center gap-2 p-2 rounded-lg border border-zinc-800 bg-zinc-900/60">
         {/* Search — flex-grow so it claims most of the bar width. */}
         <input
@@ -837,12 +888,13 @@ export default function DeepView({
           Hide notes
         </label>
       </div>
+      )}
 
       {/* View content. The world view doesn't need the expand-state machinery
           — its rows track their own open/closed state locally. */}
       {/* If a snapshot baseline is selected, surface a small banner so the
           user knows which snapshot is currently driving the Δ badges. */}
-      {baseline && (
+      {!activeExtra && baseline && (
         // Single-line banner — left side states the active comparison,
         // right side gives a hint that truncates with ellipsis on narrow
         // viewports (full text stays accessible via the title tooltip).
@@ -864,7 +916,9 @@ export default function DeepView({
         </div>
       )}
 
-      {view === "world" ? (
+      {activeExtra ? (
+        activeExtra.render()
+      ) : view === "world" ? (
         <PerWorldView
           tree={tree}
           searchTerm={searchTerm}

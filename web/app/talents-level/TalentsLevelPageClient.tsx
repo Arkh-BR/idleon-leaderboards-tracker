@@ -19,6 +19,8 @@ import {
 import { getActivePresetIdx } from "@/lib/talentsLevel/compute";
 import { isAccountWideTalent } from "@/lib/talentsLevel/accountWideTalents";
 import type { CorganNode } from "@/lib/corgan/node";
+import TalentsToMaxView from "@/components/talentsLevel/TalentsToMaxView";
+import type { ToMaxCharGroup } from "@/lib/talentsLevel/toMax";
 
 const SAVE_KEY = "talents-level.last-upload.v1";
 const TALENT_KEY = "talents-level.talent-id.v1";
@@ -232,6 +234,11 @@ export default function TalentsLevelPageClient() {
   const [tree, setTree] = useState<CorganNode | null>(null);
   const [computing, setComputing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Account-wide "Faltando p/ Max" scan — independent of the selected
+  // talent/preset (it reads each char's ACTIVE preset). Recomputed only
+  // when the save changes.
+  const [toMaxGroups, setToMaxGroups] = useState<ToMaxCharGroup[] | null>(null);
+  const [toMaxLoading, setToMaxLoading] = useState(false);
 
   const stageSave = useCallback(
     (text: string, opts: { silent?: boolean } = {}) => {
@@ -383,6 +390,34 @@ export default function TalentsLevelPageClient() {
       cancelled = true;
     };
   }, [save, charIdx, talentId, chars.length, presetIdx]);
+
+  // Compute the account-wide "Faltando p/ Max" scan whenever the save
+  // changes. Lazy-imported (keeps the corgan bundle off the initial load)
+  // and cheap — pure SL/SM lookups, no per-talent tree resolve.
+  useEffect(() => {
+    if (!save || chars.length === 0) {
+      setToMaxGroups(null);
+      setToMaxLoading(false);
+      return;
+    }
+    let cancelled = false;
+    setToMaxLoading(true);
+    (async () => {
+      try {
+        const mod = await import("@/lib/talentsLevel/toMax");
+        if (cancelled) return;
+        setToMaxGroups(mod.computeTalentsToMax(save));
+      } catch {
+        // Non-fatal: leave the list empty rather than blocking the page.
+        if (!cancelled) setToMaxGroups(null);
+      } finally {
+        if (!cancelled) setToMaxLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [save, chars.length]);
 
   const onLoad = () => {
     if (!jsonText.trim()) {
@@ -705,7 +740,25 @@ export default function TalentsLevelPageClient() {
         ) : computing ? (
           <p className="text-sm text-zinc-500 italic">Computing…</p>
         ) : tree ? (
-          <DeepView tree={tree} baseline={null} />
+          <DeepView
+            tree={tree}
+            baseline={null}
+            showWorldView={false}
+            extraTabs={[
+              {
+                id: "tomax",
+                label: "📚 Faltando p/ Max",
+                title:
+                  "Talentos (tab 1-5) ainda abaixo do Max Book Lv Cap, por personagem da conta",
+                render: () => (
+                  <TalentsToMaxView
+                    groups={toMaxGroups}
+                    loading={toMaxLoading}
+                  />
+                ),
+              },
+            ]}
+          />
         ) : (
           <p className="text-sm text-zinc-500 italic">
             Pick a talent from the grid above.

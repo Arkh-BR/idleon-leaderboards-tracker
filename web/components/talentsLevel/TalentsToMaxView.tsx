@@ -1,0 +1,169 @@
+"use client";
+
+// ============================================================================
+// TalentsToMaxView — "Faltando p/ Max" tab for the Talents Level page.
+//
+// Renders the account-wide scan from lib/talentsLevel/toMax.ts: one
+// collapsible section per character, listing the regular talents still
+// below their Max Book Lv Cap (sorted by largest gap). Chars already fully
+// at the cap are summarized in a small footer line instead of taking up a
+// section each.
+//
+// Pure presentation — all the math lives in computeTalentsToMax(); this
+// component just receives the precomputed groups + a loading flag.
+// ============================================================================
+
+import { useState } from "react";
+import type { ToMaxCharGroup, ToMaxItem } from "@/lib/talentsLevel/toMax";
+
+export default function TalentsToMaxView({
+  groups,
+  loading,
+}: {
+  groups: ToMaxCharGroup[] | null;
+  loading: boolean;
+}) {
+  if (loading) {
+    return <p className="text-sm text-zinc-500 italic px-2 py-4">Computando…</p>;
+  }
+  if (!groups) {
+    return (
+      <p className="text-sm text-zinc-500 italic px-2 py-4">
+        Carregue um save acima para escanear os talentos da conta.
+      </p>
+    );
+  }
+
+  const pending = groups.filter((g) => g.items.length > 0);
+  const complete = groups.filter((g) => g.items.length === 0);
+  const totalMissing = pending.reduce((a, g) => a + g.items.length, 0);
+
+  if (totalMissing === 0) {
+    return (
+      <p className="text-sm text-emerald-300 px-2 py-4">
+        🎉 Todos os talentos (tab 1-5) de todos os personagens estão no Max
+        Book Lv Cap.
+      </p>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-3">
+      {/* Resumo geral */}
+      <div className="text-xs text-zinc-400 px-1">
+        <span className="text-gold font-semibold">{totalMissing}</span> talento
+        {totalMissing === 1 ? "" : "s"} abaixo do cap em{" "}
+        <span className="text-zinc-200 font-semibold">{pending.length}</span>{" "}
+        personagem{pending.length === 1 ? "" : "s"}.
+      </div>
+
+      {pending.map((g) => (
+        <CharSection key={g.charIdx} group={g} />
+      ))}
+
+      {complete.length > 0 && (
+        <div className="text-[11px] text-zinc-500 px-1 pt-1 border-t border-zinc-900">
+          ✓ {complete.length} personagem{complete.length === 1 ? "" : "s"} já no
+          cap:{" "}
+          <span className="text-zinc-400">
+            {complete.map((g) => g.charName).join(", ")}
+          </span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CharSection({ group }: { group: ToMaxCharGroup }) {
+  const [open, setOpen] = useState(true);
+  const atCap = group.totalScanned - group.items.length;
+  return (
+    <section className="rounded-lg border border-zinc-800 bg-zinc-950/40">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className={`w-full px-3 py-2.5 text-base font-semibold text-sky-300 flex items-center gap-2.5 hover:bg-white/5 rounded-t-lg ${
+          open ? "border-b border-zinc-800" : ""
+        }`}
+        title={open ? "Recolher" : "Expandir"}
+      >
+        <span className="w-3 text-zinc-500 select-none text-sm">
+          {open ? "▾" : "▸"}
+        </span>
+        <span className="truncate">{group.charName}</span>
+        <span className="text-[11px] text-zinc-500 font-normal">
+          {group.classLabel} · Lv {group.level}
+        </span>
+        <span className="ml-auto text-[11px] text-zinc-500 font-normal">
+          <span className="text-amber-300 font-semibold">
+            {group.items.length}
+          </span>{" "}
+          faltando · {atCap}/{group.totalScanned} no cap
+        </span>
+      </button>
+      {open && (
+        <div>
+          {group.items.map((it) => (
+            <TalentRow key={it.talentId} item={it} />
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
+function TalentRow({ item }: { item: ToMaxItem }) {
+  const pct =
+    item.cap > 0 ? Math.max(0, Math.min(100, (item.invested / item.cap) * 100)) : 0;
+  return (
+    <div className="flex items-center gap-3 px-3 py-2 border-b border-zinc-800/60 last:border-b-0 hover:bg-white/5">
+      <img
+        src={`/talent-icons/UISkillIcon${item.talentId}.png`}
+        alt={item.name}
+        className="w-8 h-8 object-contain flex-shrink-0"
+        style={{ imageRendering: "pixelated" }}
+        loading="lazy"
+      />
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-1.5">
+          <span className="text-sm text-zinc-200 truncate font-medium">
+            {item.name}
+          </span>
+          {item.accountWide && (
+            <span
+              className="text-[9px] leading-none px-1 py-0.5 rounded bg-sky-500/20 text-sky-300 border border-sky-500/40 font-mono flex-shrink-0"
+              title="Talento account-wide (🌐): o bônus vem do char de maior nível da classe"
+            >
+              🌐
+            </span>
+          )}
+          <span className="text-[9px] text-zinc-600 font-mono flex-shrink-0">
+            #{item.talentId}
+          </span>
+        </div>
+        <div className="text-[11px] text-zinc-500 truncate">
+          {item.bonusText || item.tab}
+        </div>
+        {/* Mini progress bar invested/cap */}
+        <div className="mt-1 h-1 w-full max-w-[220px] rounded bg-zinc-800 overflow-hidden">
+          <div
+            className="h-full bg-sky-500/60"
+            style={{ width: `${pct}%` }}
+          />
+        </div>
+      </div>
+      <div className="text-right flex-shrink-0">
+        <div className="font-mono text-sm tabular-nums text-zinc-300">
+          {item.invested}
+          <span className="text-zinc-600"> / {item.cap}</span>
+        </div>
+        <div
+          className="text-[11px] font-mono text-amber-300"
+          title="Quanto falta para o Max Book Lv Cap"
+        >
+          faltam {item.gap}
+        </div>
+      </div>
+    </div>
+  );
+}
