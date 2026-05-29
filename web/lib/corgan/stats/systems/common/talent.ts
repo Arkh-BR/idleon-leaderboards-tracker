@@ -1861,12 +1861,18 @@ export const talent = {
     // (computeAllTalentLVz returns 0 for idx > 614). Display:
     // Active + Level + formula note.
     //
-    // Star talents are capped by the game's per-talent SkillLevelsMAX (SM),
-    // which the save carries directly — it's account-wide (the game writes
-    // the same cap to every char) and present even on chars that haven't
-    // levelled the talent. So the "max level" IS derivable from the save: we
-    // take the max of SM[id] across all chars to be robust to a char whose
-    // SM[id] wasn't populated. No hardcoded lookup table needed.
+    // Star talent max level. Per N.js (exhaustive SkillLevelsMAX audit):
+    //   • The game READS the panel max straight from SkillLevelsMAX[id] for
+    //     every talent, and ACCOUNT-SYNCS it (max of SM[id] across chars).
+    //   • For MOST stars there is NO formula — the stored SM is the truth, so
+    //     the max-across-chars below is faithful.
+    //   • Talents 641–647 are the exception: their cap IS the regular
+    //     maxBookLv (the same Max Book Lv Cap as tab 1-5 talents). The game
+    //     stores it, so the saved SM goes STALE as maxBookLv grows (e.g.
+    //     saved 364 while the live cap is 396). Recompute it live below.
+    //   • A handful (625/627/630/634/651/652/656/658) have dynamic caps tied
+    //     to cauldron/tasks/summoning/dream state; their stored SM is the
+    //     game's last-computed value (account-synced) — kept as-is for now.
     //
     // Stars with a final-bonus wrap (e.g. Tal 655 × Skulls Beaten) are
     // handled by the same applyTalentWrap path used for tab 1-5
@@ -1874,7 +1880,8 @@ export const talent = {
     // in data/common/talent-final-bonus-wraps.ts, no hardcoded branch
     // needed here.
     if (id >= 615) {
-      // Account-wide star talent cap from SkillLevelsMAX[id].
+      // Account-wide star talent cap from SkillLevelsMAX[id] (max across chars
+      // mirrors the game's _customEvent_AddNewStuff sync).
       let starCap = 0;
       const smAll = skillLvMaxData as any[];
       if (Array.isArray(smAll)) {
@@ -1882,6 +1889,10 @@ export const talent = {
           const v = Number(cm?.[id] ?? cm?.[String(id)]) || 0;
           if (v > starCap) starCap = v;
         }
+      }
+      // 641–647: cap = live maxBookLv (the saved SM lags as the cap grows).
+      if (id >= 641 && id <= 647) {
+        starCap = Math.max(starCap, computeMaxBookLv(saveData));
       }
       const starKids: CorganNode[] = [
         node("Active", activeFlag, null, { fmt: "raw" }),
