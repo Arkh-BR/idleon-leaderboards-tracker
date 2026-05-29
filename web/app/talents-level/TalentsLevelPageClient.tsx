@@ -23,7 +23,21 @@ import TalentsToMaxView from "@/components/talentsLevel/TalentsToMaxView";
 import type { ToMaxCharGroup } from "@/lib/talentsLevel/toMax";
 import UnbookedView from "@/components/talentsLevel/UnbookedView";
 import type { UnbookedCharGroup } from "@/lib/talentsLevel/unbooked";
-import { HYPO_EFFECTIVE_TREE } from "@/lib/talentsLevel/topTalents";
+import {
+  HYPO_EFFECTIVE_TREE,
+  HYPO_TALENTS_GENERATED_AT,
+} from "@/lib/talentsLevel/topTalents";
+import { flattenTree } from "@/lib/dropRate/treeFlatten";
+
+// The hypothetical-max Effective Level as a DeepView baseline (computed once
+// — the bundled tree is constant). Used as the 🎯 reference on the
+// Hypothetical tab: the player's own Effective Level shows the live value,
+// each row's chip the community max.
+const HYPO_BASELINE = {
+  flatTree: flattenTree(HYPO_EFFECTIVE_TREE),
+  capturedAt: Date.parse(HYPO_TALENTS_GENERATED_AT),
+  charName: "Hypothetical max",
+};
 
 const SAVE_KEY = "talents-level.last-upload.v1";
 const TALENT_KEY = "talents-level.talent-id.v1";
@@ -248,6 +262,10 @@ export default function TalentsLevelPageClient() {
     UnbookedCharGroup[] | null
   >(null);
   const [unbookedLoading, setUnbookedLoading] = useState(false);
+  // The active char's Health Booster (talent 0) Effective Level subtree —
+  // the generic per-talent breakdown rendered on the Hypothetical tab,
+  // compared against the bundled hypothetical max.
+  const [hypoPlayerTree, setHypoPlayerTree] = useState<CorganNode | null>(null);
 
   const stageSave = useCallback(
     (text: string, opts: { silent?: boolean } = {}) => {
@@ -399,6 +417,36 @@ export default function TalentsLevelPageClient() {
       cancelled = true;
     };
   }, [save, charIdx, talentId, chars.length, presetIdx]);
+
+  // Compute the active char's Health Booster (talent 0) Effective Level
+  // subtree for the Hypothetical tab — same generic template the bundled
+  // hypothetical-max tree is built from, so the paths line up and the 🎯
+  // reference lands on every row.
+  useEffect(() => {
+    if (!save || chars.length === 0) {
+      setHypoPlayerTree(null);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const mod = await import("@/lib/talentsLevel/compute");
+        if (cancelled) return;
+        const result = mod.computeTalentEffective(save, charIdx, 0, {
+          presetIdx,
+        });
+        const eff =
+          result.tree.children?.find((c) => c.name === "Effective Level") ??
+          null;
+        setHypoPlayerTree(eff);
+      } catch {
+        if (!cancelled) setHypoPlayerTree(null);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [save, charIdx, chars.length, presetIdx]);
 
   // Compute the account-wide "Faltando p/ Max" scan whenever the save
   // changes. Lazy-imported (keeps the corgan bundle off the initial load)
@@ -808,14 +856,20 @@ export default function TalentsLevelPageClient() {
                 id: "hypothetical",
                 label: "🧪 Hypothetical",
                 title:
-                  "Hypothetical-max Effective Level — best Base + Bonus across the top players, full breakdown",
-                render: () => (
-                  <DeepView
-                    tree={HYPO_EFFECTIVE_TREE}
-                    showWorldView={false}
-                    bare
-                  />
-                ),
+                  "Your Effective Level (Health Booster) with each row's hypothetical max in the 🎯 chip — best Base + Bonus across the top players",
+                render: () =>
+                  hypoPlayerTree ? (
+                    <DeepView
+                      tree={hypoPlayerTree}
+                      baseline={HYPO_BASELINE}
+                      showWorldView={false}
+                      bare
+                    />
+                  ) : (
+                    <p className="text-sm text-zinc-500 italic px-2 py-4">
+                      Computing…
+                    </p>
+                  ),
               },
             ]}
           />
