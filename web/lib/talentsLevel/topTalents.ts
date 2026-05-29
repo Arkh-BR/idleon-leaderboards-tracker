@@ -5,17 +5,17 @@
 // bonus + super. Rendered as-is by the /talents Hypothetical tab.
 // Auto-refreshed by scripts/update-top-talents.ts.
 //
-// Snapshot generated: 2026-05-29T11:26:24.082Z
+// Snapshot generated: 2026-05-29T11:48:15.390Z
 // Players scanned: 70
 
 import type { CorganNode } from "../corgan/node";
 
-export const HYPO_TALENTS_GENERATED_AT = "2026-05-29T11:26:24.082Z";
+export const HYPO_TALENTS_GENERATED_AT = "2026-05-29T11:48:15.390Z";
 export const HYPO_TALENTS_PLAYERS_SCANNED = 70;
 
 export const HYPO_EFFECTIVE_TREE: CorganNode = {
   "name": "Effective Level",
-  "val": 770,
+  "val": 775,
   "children": [
     {
       "name": "Base Level",
@@ -25,7 +25,7 @@ export const HYPO_EFFECTIVE_TREE: CorganNode = {
           "name": "Points Invested",
           "val": 396,
           "fmt": "raw",
-          "note": "actual save — owner: Labren"
+          "note": "actual save — owner: Ezua"
         },
         {
           "name": "Max Book Lv Cap",
@@ -237,14 +237,14 @@ export const HYPO_EFFECTIVE_TREE: CorganNode = {
         }
       ],
       "fmt": "raw",
-      "note": "min(invested, cap) — owner: Labren"
+      "note": "min(invested, cap) — owner: Ezua"
     },
     {
       "name": "Bonus Levels",
       "val": 254,
       "children": [
         {
-          "name": "Symbols of Beyond ~R (Talent 149)",
+          "name": "Symbols Of Beyond ~p (Talent 539)",
           "val": 20,
           "children": [
             {
@@ -255,7 +255,7 @@ export const HYPO_EFFECTIVE_TREE: CorganNode = {
                   "name": "Points Invested",
                   "val": 396,
                   "fmt": "raw",
-                  "note": "actual save — owner: Labren"
+                  "note": "actual save — owner: Ezua"
                 },
                 {
                   "name": "Max Book Lv Cap",
@@ -467,7 +467,7 @@ export const HYPO_EFFECTIVE_TREE: CorganNode = {
                 }
               ],
               "fmt": "raw",
-              "note": "min(invested, cap) — owner: Labren"
+              "note": "min(invested, cap) — owner: Ezua"
             }
           ],
           "fmt": "raw",
@@ -487,10 +487,10 @@ export const HYPO_EFFECTIVE_TREE: CorganNode = {
               "val": 1723,
               "children": [
                 {
-                  "name": "Char 3 Lv",
-                  "val": 1704,
+                  "name": "Char 8 Lv",
+                  "val": 1700,
                   "fmt": "raw",
-                  "note": "Blammree — elemental sorcerer (cls 34)"
+                  "note": "Ezua — elemental sorcerer (cls 34) — ACTIVE char (gets Family Guy buff if it wins the slot)"
                 }
               ],
               "fmt": "raw",
@@ -739,7 +739,7 @@ export const HYPO_EFFECTIVE_TREE: CorganNode = {
             }
           ],
           "fmt": "raw",
-          "note": "floor(decay × Family Guy Multi if active)"
+          "note": "floor(decay × Family Guy Multi if active) — buffed by The Family Guy (Talent 144)"
         },
         {
           "name": "Rift Slug (Companion 1)",
@@ -851,7 +851,7 @@ export const HYPO_EFFECTIVE_TREE: CorganNode = {
           "name": "Sneaking Completions",
           "val": 5,
           "fmt": "raw",
-          "note": "raw=5"
+          "note": "raw=8"
         },
         {
           "name": "Skull of Major Talent (Grimoire 39)",
@@ -888,7 +888,7 @@ export const HYPO_EFFECTIVE_TREE: CorganNode = {
     },
     {
       "name": "Super Levels",
-      "val": 120,
+      "val": 125,
       "children": [
         {
           "name": "Active",
@@ -908,7 +908,7 @@ export const HYPO_EFFECTIVE_TREE: CorganNode = {
         },
         {
           "name": "W7 Bonus 5",
-          "val": 20,
+          "val": 25,
           "fmt": "raw"
         }
       ],

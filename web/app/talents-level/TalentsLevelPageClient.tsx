@@ -434,6 +434,7 @@ export default function TalentsLevelPageClient() {
         if (cancelled) return;
         const result = mod.computeTalentEffective(save, charIdx, 0, {
           presetIdx,
+          forceSuperActive: true,
         });
         const eff =
           result.tree.children?.find((c) => c.name === "Effective Level") ??

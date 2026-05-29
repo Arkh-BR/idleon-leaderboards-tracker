@@ -95,7 +95,11 @@ async function main() {
     const jobs = chars
       .filter((ch) => getCharClassKey(save, ch.charIndex))
       .map((ch) => ({ charIdx: ch.charIndex, talentIds: [HEALTH_BOOSTER] }));
-    const results = computeTalentTreesForChars(save, jobs);
+    // Hypothetical tab always counts the Spelunk Super Talent bonus, so
+    // resolve the Health Booster as if it were the active super talent.
+    const results = computeTalentTreesForChars(save, jobs, {
+      forceSuperActive: true,
+    });
     let touched = 0;
     for (const { trees } of results) {
       const tree = trees.get(HEALTH_BOOSTER);

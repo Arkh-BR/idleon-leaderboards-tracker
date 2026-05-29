@@ -76,6 +76,12 @@ type Ctx = {
    *  decomposed; left false by /drop-rate to keep the existing pool tree
    *  shape stable. */
   splitSuperLevels?: boolean;
+  /** When true, treat every eligible talent as if it were the active
+   *  Spelunk Super Talent — the Super Levels row uses the potential bonus
+   *  (50 + Legend7×10 + W7B5) even when the talent isn't in the super slot.
+   *  Used by the /talents Hypothetical tab so the max reflects a fully
+   *  super-active Effective Level. */
+  forceSuperActive?: boolean;
 };
 
 type TalentResolveArgs = {
@@ -590,6 +596,8 @@ type ATLOpts = {
    *  decide whether to keep the Spelunk Super Talent node inside the Bonus
    *  chain or pull it out into the separate superBonus return field. */
   splitSuperLevels?: boolean;
+  /** Treat the talent as super-active regardless of the spelunk slot. */
+  forceSuperActive?: boolean;
 };
 
 /**
@@ -850,7 +858,9 @@ function resolveAllTalentLVz(
     const superArr =
       saveData.spelunkData &&
       (saveData.spelunkData as any)[20 + slotIdx + 12 * preset];
-    superActive = Array.isArray(superArr) && superArr.indexOf(talentIdx) !== -1;
+    superActive =
+      (Array.isArray(superArr) && superArr.indexOf(talentIdx) !== -1) ||
+      !!opts?.forceSuperActive;
     if (superActive) {
       spelunkBonus = potentialSuperBonus;
       const kids: CorganNode[] = [
@@ -1623,6 +1633,7 @@ export const talent = {
     const atlOpts: ATLOpts = {
       useMaxResearchBaseLevel: !!ctx.useMaxResearchBaseLevel,
       splitSuperLevels: !!ctx.splitSuperLevels,
+      forceSuperActive: !!ctx.forceSuperActive,
     };
     const baseOpts = { useMaxResearch: !!ctx.useMaxResearchBaseLevel };
 
