@@ -36,12 +36,18 @@ async function fetchCategoryTop(
 
 /**
  * Build the candidate player set: the #1 of every leaderboard plus the top
- * 10 of totalTomePoints. Anonymous players are excluded (their profiles
- * aren't publicly viewable). Optionally capped to `limit` names.
+ * 10 of one focus board. Mirrors the Tome collector's logic; `focusBoard`
+ * picks which ranking contributes its top 10 — "totalTomePoints" for the
+ * Tome scraper, "dropRate" for the DR collector, etc. Anonymous players are
+ * excluded (their profiles aren't publicly viewable). Optionally capped to
+ * `limit` names.
  */
-export async function gatherCandidates(limit?: number): Promise<string[]> {
+export async function gatherCandidates(
+  opts: { limit?: number; focusBoard?: string } = {}
+): Promise<string[]> {
+  const { limit, focusBoard = "totalTomePoints" } = opts;
   const candidates = new Set<string>();
-  const tomeBoard: TopEntry[] = [];
+  const focusList: TopEntry[] = [];
 
   for (const cat of CATEGORIES) {
     try {
@@ -50,13 +56,14 @@ export async function gatherCandidates(limit?: number): Promise<string[]> {
         const list = boards[board.apiKey] ?? [];
         const top1 = list[0]?.mainChar?.trim();
         if (top1 && !isAnonymous(top1)) candidates.add(top1);
-        if (board.apiKey === "totalTomePoints") tomeBoard.push(...list);
+        if (board.apiKey === focusBoard) focusList.push(...list);
       }
     } catch (e) {
       console.warn(`  × category ${cat.key} failed:`, (e as Error).message);
     }
   }
-  for (const entry of tomeBoard.slice(0, 10)) {
+  // Top 10 of the focus board specifically.
+  for (const entry of focusList.slice(0, 10)) {
     const name = entry.mainChar?.trim();
     if (name && !isAnonymous(name)) candidates.add(name);
   }

@@ -43,7 +43,12 @@ type Best = { player: string; char: string; total: number };
 
 async function main() {
   console.log("→ Gathering candidates from leaderboards…");
-  const candidates = await gatherCandidates(LIMIT ?? undefined);
+  // Same logic as the Tome collector, but the top-10 focus board is the
+  // Drop Rate ranking (the players that actually define the DR ceiling).
+  const candidates = await gatherCandidates({
+    limit: LIMIT ?? undefined,
+    focusBoard: "dropRate",
+  });
   console.log(`  ✓ ${candidates.length} candidates`);
 
   const bestFlat: Record<string, number> = {};
