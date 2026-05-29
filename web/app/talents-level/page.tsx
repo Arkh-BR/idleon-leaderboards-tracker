@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import TalentsLevelPageClient from "./TalentsLevelPageClient";
 
 export const metadata: Metadata = {
-  title: "Talents Level",
+  title: "Talents",
   description:
-    "Inspect a single talent's Effective Level breakdown — Base Level (points invested vs Max Book Lv Cap) plus the full chain of bonus levels. Paste a raw save JSON and pick the talent to observe.",
+    "Inspect a talent's Effective Level breakdown (points invested vs Max Book Lv Cap plus the full bonus chain), and scan the whole account for talents with points still to invest or caps that still need books.",
 };
 
 export default function TalentsLevelPage() {

@@ -483,7 +483,7 @@ export default function TalentsLevelPageClient() {
     <main className="max-w-5xl mx-auto px-3 pb-12">
       <h1 className="flex items-baseline gap-3 mb-1 mt-2">
         <span className="text-3xl font-extrabold text-gold">
-          🌟 Talents Level
+          🌟 Talents
         </span>
       </h1>
       <p className="text-center text-xs text-zinc-500 mb-4">

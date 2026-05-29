@@ -6,7 +6,7 @@ export const metadata: Metadata = {
     absolute: "Arkh's Idleon Trackers",
   },
   description:
-    "Community trackers for Legends of Idleon — IT leaderboards rank monitor, local Tome Score calculator, and Drop Rate breakdown.",
+    "Community trackers for Legends of Idleon — IT leaderboards rank monitor, local Tome Score calculator, Drop Rate breakdown, and a Talents tracker.",
 };
 
 export default function HomePage() {
@@ -43,6 +43,13 @@ export default function HomePage() {
           title="Drop Rate Tracker (WIP)"
           description="Game Code Faithful breakdown of every Drop Rate source on your save. Per-character, per-map, with snapshot diffing."
           cta="Open Drop Rate"
+        />
+        <ShortcutCard
+          href="/talents-level"
+          icon="🌟"
+          title="Talents Tracker (WIP)"
+          description="Per-talent Effective Level breakdown, plus account-wide scans: points still to invest and talents that still need books."
+          cta="Open Talents"
         />
       </div>
 
