@@ -26,6 +26,10 @@ web/scripts/corgan-source/
 .Njs-investigation.js
 *.Njs*
 
+# Updater downloads the live N.js (~25 MB) here. Only the extracted snapshots
+# under web/data/njs-snapshot/ are committed — never the raw bundle.
+web/scripts/updater/.cache/
+
 # Personal "Copy for Support" dumps used as one-shot validation against IT's
 # live numbers. They contain account-identifying data — keep out of the repo.
 data from suport*.json
