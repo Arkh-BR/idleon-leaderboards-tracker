@@ -283,6 +283,15 @@ export default function TalentsLevelPageClient() {
   // the generic per-talent breakdown rendered on the Hypothetical tab,
   // compared against the bundled hypothetical max.
   const [hypoPlayerTree, setHypoPlayerTree] = useState<CorganNode | null>(null);
+  // Which DeepView tab is active (reported by DeepView via onViewChange).
+  // The talent picker + headline summary only make sense for the Talent
+  // Breakdown ("tree") tab — the other tabs are account-wide scans /
+  // hypothetical that don't depend on the selected talent — so we hide
+  // them on those tabs.
+  const [deepViewTab, setDeepViewTab] = useState<string>("tree");
+  const handleDeepViewChange = useCallback((v: string) => {
+    setDeepViewTab(v);
+  }, []);
 
   const stageSave = useCallback(
     (text: string, opts: { silent?: boolean } = {}) => {
@@ -676,8 +685,11 @@ export default function TalentsLevelPageClient() {
           fall back to Beginner's tabs which is misleading filler. The
           headline + tree below already show their own empty-state hint
           ("load a save above to populate the tree"), so the page reads
-          as a clean "load a save first" prompt. */}
-      {save && (
+          as a clean "load a save first" prompt.
+          Only on the Talent Breakdown tab — the picker selects which talent
+          the breakdown shows, irrelevant to the other (account-wide /
+          hypothetical) tabs. */}
+      {save && deepViewTab === "tree" && (
       <div className="rounded-lg bg-zinc-900/60 border border-zinc-800 p-3 mb-4">
         {/* Tab strip — horizontal scroll on narrow viewports so 5-class
             chains + 4 star pages don't overflow the card. */}
@@ -774,7 +786,10 @@ export default function TalentsLevelPageClient() {
           (left), the current effective level breakdown (middle), and the
           max effective level if the user maxed Points Invested up to the
           Book Lv Cap (right). The middle/right panes degrade gracefully
-          for star talents (no cap → just show Level). */}
+          for star talents (no cap → just show Level).
+          Only on the Talent Breakdown tab — it summarizes the selected
+          talent, which the other tabs don't use. */}
+      {deepViewTab === "tree" && (
       <div className="rounded-lg bg-zinc-900/60 border border-zinc-800 p-4 mb-4">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {/* Bonus pane. Carries the talent's lvlUpText description so the
@@ -837,6 +852,7 @@ export default function TalentsLevelPageClient() {
           )}
         </div>
       </div>
+      )}
 
       {/* Tree pane — DeepView fed the FULL talent tree (Active flag,
           Effective Level breakdown / Level for star talents, multipliers
@@ -853,6 +869,8 @@ export default function TalentsLevelPageClient() {
             tree={tree}
             baseline={null}
             showWorldView={false}
+            treeTabLabel="🌳 Talent Breakdown"
+            onViewChange={handleDeepViewChange}
             extraTabs={[
               {
                 id: "tomax",
@@ -880,7 +898,7 @@ export default function TalentsLevelPageClient() {
               },
               {
                 id: "hypothetical",
-                label: "🧪 Hypothetical",
+                label: "🧪 Hypothetical Max Lv",
                 title:
                   "Your Effective Level (Health Booster) with each row's hypothetical max in the 🎯 chip — best Base + Bonus across the top players",
                 render: () =>
