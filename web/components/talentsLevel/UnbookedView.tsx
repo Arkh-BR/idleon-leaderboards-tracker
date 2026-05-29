@@ -10,7 +10,8 @@
 // "current cap → max cap" plus the number of book levels still needed.
 //
 // Carries its own controls bar (mirrors DeepView's): search, expand /
-// collapse / reset of the char sections and a "hide notes" toggle. No
+// collapse / reset of the char sections and a "show notes" toggle (off by
+// default). No
 // preset toggle — the cap (SM) is a single per-char value.
 //
 // Pure presentation — all the math lives in computeUnbooked().
@@ -27,7 +28,7 @@ export default function UnbookedView({
   loading: boolean;
 }) {
   const [search, setSearch] = useState("");
-  const [hideNotes, setHideNotes] = useState(false);
+  const [showNotes, setShowNotes] = useState(false);
   // charIdx → open. Missing key defaults to closed (collapsed by default).
   const [openMap, setOpenMap] = useState<Record<number, boolean>>({});
 
@@ -122,11 +123,11 @@ export default function UnbookedView({
         <label className="flex items-center gap-1.5 text-xs text-zinc-400 cursor-pointer select-none px-1">
           <input
             type="checkbox"
-            checked={hideNotes}
-            onChange={(e) => setHideNotes(e.target.checked)}
+            checked={showNotes}
+            onChange={(e) => setShowNotes(e.target.checked)}
             className="accent-sky-500"
           />
-          Hide notes
+          Show notes
         </label>
       </div>
 
@@ -168,7 +169,7 @@ export default function UnbookedView({
                     [g.charIdx]: !isOpen(g.charIdx),
                   }))
                 }
-                hideNotes={hideNotes}
+                showNotes={showNotes}
               />
             ))
           )}
@@ -192,12 +193,12 @@ function CharSection({
   group,
   open,
   onToggle,
-  hideNotes,
+  showNotes,
 }: {
   group: UnbookedCharGroup;
   open: boolean;
   onToggle: () => void;
-  hideNotes: boolean;
+  showNotes: boolean;
 }) {
   const booked = group.totalScanned - group.items.length;
   return (
@@ -227,7 +228,7 @@ function CharSection({
       {open && (
         <div>
           {group.items.map((it) => (
-            <TalentRow key={it.talentId} item={it} hideNotes={hideNotes} />
+            <TalentRow key={it.talentId} item={it} showNotes={showNotes} />
           ))}
         </div>
       )}
@@ -237,10 +238,10 @@ function CharSection({
 
 function TalentRow({
   item,
-  hideNotes,
+  showNotes,
 }: {
   item: UnbookedItem;
-  hideNotes: boolean;
+  showNotes: boolean;
 }) {
   const pct =
     item.maxCap > 0
@@ -272,7 +273,7 @@ function TalentRow({
             #{item.talentId}
           </span>
         </div>
-        {!hideNotes && (
+        {showNotes && (
           <div className="text-[11px] text-zinc-500 truncate">
             {item.bonusText || item.tab}
           </div>

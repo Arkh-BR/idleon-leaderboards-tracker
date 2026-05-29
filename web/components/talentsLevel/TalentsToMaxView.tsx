@@ -10,8 +10,8 @@
 // preset active in-game is flagged with a ● dot.
 //
 // Carries its own controls bar (mirrors DeepView's): search, expand /
-// collapse / reset of the char sections, a "hide notes" toggle (hides the
-// bonus subtitle) and an "active preset only" toggle (drops the inactive
+// collapse / reset of the char sections, a "show notes" toggle (reveals the
+// bonus subtitle, off by default) and an "active preset only" toggle (drops the inactive
 // preset's column + the talents only-missing-there, to cut the noise of
 // untouched secondary presets). State is local — it resets when the user
 // switches tabs, same as DeepView's tree view.
@@ -30,7 +30,7 @@ export default function TalentsToMaxView({
   loading: boolean;
 }) {
   const [search, setSearch] = useState("");
-  const [hideNotes, setHideNotes] = useState(false);
+  const [showNotes, setShowNotes] = useState(false);
   const [activeOnly, setActiveOnly] = useState(false);
   // charIdx → open. Missing key defaults to closed (collapsed by default).
   const [openMap, setOpenMap] = useState<Record<number, boolean>>({});
@@ -147,11 +147,11 @@ export default function TalentsToMaxView({
         <label className="flex items-center gap-1.5 text-xs text-zinc-400 cursor-pointer select-none px-1">
           <input
             type="checkbox"
-            checked={hideNotes}
-            onChange={(e) => setHideNotes(e.target.checked)}
+            checked={showNotes}
+            onChange={(e) => setShowNotes(e.target.checked)}
             className="accent-sky-500"
           />
-          Hide notes
+          Show notes
         </label>
       </div>
 
@@ -197,7 +197,7 @@ export default function TalentsToMaxView({
                     [g.charIdx]: !isOpen(g.charIdx),
                   }))
                 }
-                hideNotes={hideNotes}
+                showNotes={showNotes}
                 activeOnly={activeOnly}
               />
             ))
@@ -223,13 +223,13 @@ function CharSection({
   group,
   open,
   onToggle,
-  hideNotes,
+  showNotes,
   activeOnly,
 }: {
   group: ToMaxCharGroup;
   open: boolean;
   onToggle: () => void;
-  hideNotes: boolean;
+  showNotes: boolean;
   activeOnly: boolean;
 }) {
   // Count below-cap talents per preset (a talent in `items` may be missing
@@ -282,7 +282,7 @@ function CharSection({
               key={it.talentId}
               item={it}
               activePreset={group.activePreset}
-              hideNotes={hideNotes}
+              showNotes={showNotes}
               activeOnly={activeOnly}
             />
           ))}
@@ -295,12 +295,12 @@ function CharSection({
 function TalentRow({
   item,
   activePreset,
-  hideNotes,
+  showNotes,
   activeOnly,
 }: {
   item: ToMaxItem;
   activePreset: 0 | 1;
-  hideNotes: boolean;
+  showNotes: boolean;
   activeOnly: boolean;
 }) {
   return (
@@ -329,7 +329,7 @@ function TalentRow({
             #{item.talentId}
           </span>
         </div>
-        {!hideNotes && (
+        {showNotes && (
           <div className="text-[11px] text-zinc-500 truncate">
             {item.bonusText || item.tab}
           </div>

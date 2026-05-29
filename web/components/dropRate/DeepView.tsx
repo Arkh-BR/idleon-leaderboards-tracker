@@ -54,7 +54,7 @@ type Baseline = {
 // -----------------------------------------------------------------------------
 
 const EXPAND_STORAGE_KEY = "drop-rate.deep-view.expand-state.v1";
-const HIDE_NOTES_STORAGE_KEY = "drop-rate.deep-view.hide-notes.v1";
+const SHOW_NOTES_STORAGE_KEY = "drop-rate.deep-view.show-notes.v1";
 const DEFAULT_OPEN_MAX_DEPTH = 2;
 
 type ExpandState = {
@@ -661,9 +661,10 @@ export default function DeepView({
       : null;
   const [searchTerm, setSearchTerm] = useState("");
   const [hideZero, setHideZero] = useState(false);
-  // Hide-notes hydrates from localStorage in a useEffect (below) to avoid
-  // SSR/initial-render hydration mismatches.
-  const [hideNotes, setHideNotes] = useState(false);
+  // Show-notes hydrates from localStorage in a useEffect (below) to avoid
+  // SSR/initial-render hydration mismatches. Notes are hidden by default
+  // (showNotes=false); the user opts in to the formula annotations.
+  const [showNotes, setShowNotes] = useState(false);
   const baselineFlat = baseline?.flatTree ?? null;
 
   // Persisted expand state: defaults to "depth < 2 open" until the user has
@@ -677,24 +678,24 @@ export default function DeepView({
     setExpandState(loadExpandState());
   }, []);
 
-  // Hydrate hide-notes from localStorage post-mount. We keep persistence in a
+  // Hydrate show-notes from localStorage post-mount. We keep persistence in a
   // tiny try/catch wrapper rather than going through a helper since the value
   // is a single boolean.
   useEffect(() => {
     if (typeof window === "undefined") return;
     try {
-      if (window.localStorage.getItem(HIDE_NOTES_STORAGE_KEY) === "1") {
-        setHideNotes(true);
+      if (window.localStorage.getItem(SHOW_NOTES_STORAGE_KEY) === "1") {
+        setShowNotes(true);
       }
     } catch {
       // localStorage unavailable — keep default.
     }
   }, []);
-  const toggleHideNotes = useCallback((next: boolean) => {
-    setHideNotes(next);
+  const toggleShowNotes = useCallback((next: boolean) => {
+    setShowNotes(next);
     if (typeof window === "undefined") return;
     try {
-      window.localStorage.setItem(HIDE_NOTES_STORAGE_KEY, next ? "1" : "0");
+      window.localStorage.setItem(SHOW_NOTES_STORAGE_KEY, next ? "1" : "0");
     } catch {
       // ignore
     }
@@ -751,7 +752,7 @@ export default function DeepView({
   }
 
   return (
-    <div className="font-sans" data-hide-notes={hideNotes ? "1" : undefined}>
+    <div className="font-sans" data-hide-notes={!showNotes ? "1" : undefined}>
       {/* View tabs — sit where the "Deep View" title used to be. Built-in
           layouts: 🌳 Tree (formula hierarchy) and 🌍 Per World (sources
           grouped by world). `showWorldView` hides Per World, and
@@ -874,18 +875,18 @@ export default function DeepView({
           Hide inactive
         </label>
 
-        {/* Hide-notes toggle — collapses every italic formula-note span
+        {/* Show-notes toggle — reveals every italic formula-note span
             (the muted "{source} · {idx}" annotations next to source names).
-            CSS-driven via data-hide-notes on the outer wrapper so the tree
-            doesn't re-render when toggled. */}
+            Off by default. CSS-driven via data-hide-notes on the outer
+            wrapper so the tree doesn't re-render when toggled. */}
         <label className="flex items-center gap-1.5 text-xs text-zinc-400 cursor-pointer select-none px-1">
           <input
             type="checkbox"
-            checked={hideNotes}
-            onChange={(e) => toggleHideNotes(e.target.checked)}
+            checked={showNotes}
+            onChange={(e) => toggleShowNotes(e.target.checked)}
             className="accent-sky-500"
           />
-          Hide notes
+          Show notes
         </label>
       </div>
       )}
