@@ -29,6 +29,21 @@ import type { Pool } from "../lib/corgan/stats/tree-builder";
 import { flattenTree } from "../lib/dropRate/treeFlatten";
 import { listCharacters } from "../lib/dropRate/extract";
 import { buildMapOptions } from "../lib/dropRate/arcaneBonus";
+import {
+  reconcileSharedMultipliers,
+  sumMulti,
+  type SharedMultiplier,
+} from "./_shared/reconcile";
+
+// Account-wide multipliers that are emitted under many owned items, so
+// best-per-path can leave them reading different values per row (each item
+// is won by a different owner). Reconcile each to ONE frankenstein-max value
+// (1 + Σ best-of-each-sub-source / 100) shown consistently everywhere.
+// Extend this list if another shared "1 + Σ/100" multiplier surfaces.
+const DR_SHARED_MULTIPLIERS: SharedMultiplier[] = [
+  { name: "Gallery Bonus Multi", recompute: sumMulti },
+  { name: "Hatrack Bonus Multi", recompute: sumMulti },
+];
 
 const argv = process.argv.slice(2);
 const SLOW = argv.includes("--slow");
@@ -86,6 +101,15 @@ async function main() {
 
   let bestPools: Record<string, Pool> | null = null;
   let bestTotal: Best | null = null;
+  // GRANULAR best-per-path reference map: for every node path in the DR
+  // tree, the max value any single (player, char) reached. Replaces the old
+  // "copy the winning player's whole pool-item subtree" merge, which let a
+  // shared quantity (e.g. the Gallery Bonus Multi, computed once per save
+  // but emitted under both the additive Gallery and the multiplicative
+  // Gallery) inherit DIFFERENT players' subtrees in each pool and show two
+  // different values. Per-path max makes each shared node resolve to one
+  // consistent value wherever it appears.
+  const bestFlat: Record<string, number> = {};
   let scanned = 0;
   let skipped = 0;
 
@@ -123,12 +147,20 @@ async function main() {
         const pools = computeCorganDRPools(save, ch.charIndex, bestMapIdx, {
           chipGalleryActive: true,
         });
-        // Individual total (context only — combine doesn't mutate the pool
-        // items, so the accumulator's references stay intact).
-        const total = combineDRPools(pools).total;
+        // Per-char full tree: its total drives the "best real player"
+        // headline, and every node feeds the granular best-per-path map.
+        // combine doesn't mutate the pool items, so the bestPools references
+        // used for the frankenstein total below stay intact.
+        const combined = combineDRPools(pools);
+        const total = combined.total;
         if (total > playerBest) {
           playerBest = total;
           playerBestChar = ch.charName;
+        }
+        const f = flattenTree(combined.tree);
+        for (const p in f) {
+          const v = f[p];
+          if (bestFlat[p] === undefined || v > bestFlat[p]) bestFlat[p] = v;
         }
         bestPools = mergeBest(bestPools, pools);
       } catch {
@@ -148,8 +180,9 @@ async function main() {
     process.exit(1);
   }
 
-  // Recompute sum/product over the best-per-source items, then run the DR
-  // formula to get the hypothetical-max tree.
+  // Frankenstein total for the headline: run the DR formula over the
+  // best-of-each-source pool set (one coherent recompute whose total is
+  // higher than any individual player). This drives the headline only.
   for (const pn in bestPools) {
     let sum = 0;
     let product = 1;
@@ -161,17 +194,25 @@ async function main() {
     bestPools[pn].sum = sum;
     bestPools[pn].product = product;
   }
-  const { tree: hypoTree, total: hypoTotal } = combineDRPools(bestPools);
-  const flat = flattenTree(hypoTree);
+  const { total: hypoTotal } = combineDRPools(bestPools);
+  // Unify account-wide shared multipliers (Gallery / Hatrack Bonus Multi) to
+  // one frankenstein-max value everywhere, so a quantity that's logically
+  // singular stops reading differently per owned item.
+  const reconciled = reconcileSharedMultipliers(bestFlat, DR_SHARED_MULTIPLIERS);
+  // The reference map is the granular best-per-path table; pin its "Drop
+  // Rate" root to the frankenstein ceiling so the overall 🎯 still reads as
+  // the best-of-everyone total (every other row is its own per-path max).
+  bestFlat["Drop Rate"] = hypoTotal;
 
   console.log(`\n✓ Scanned ${scanned} players (${skipped} skipped)`);
-  console.log(`  · ${Object.keys(flat).length} reference paths`);
-  console.log(`  · hypothetical-max DR: ${hypoTotal.toFixed(2)}x`);
+  console.log(`  · reconciled ${reconciled} shared-multiplier paths`);
+  console.log(`  · ${Object.keys(bestFlat).length} reference paths`);
+  console.log(`  · hypothetical-max DR (frankenstein root): ${hypoTotal.toFixed(2)}x`);
   console.log(
     `  · best real player: ${bestTotal?.total.toFixed(2)}x by ${bestTotal?.player} (${bestTotal?.char})`
   );
 
-  emitFiles(flat, bestTotal, hypoTotal, scanned);
+  emitFiles(bestFlat, bestTotal, hypoTotal, scanned);
 }
 
 function emitFiles(
@@ -206,10 +247,14 @@ function emitFiles(
   // drops straight into DeepView as a comparison baseline. Every value is
   // the best-of-each-source hypothetical max (root = recomputed total).
   const lines: string[] = [
-    "// Top-player Drop Rate reference — the 'best of every source' synthetic",
-    "// save: each source is the max across the scanned top players and the",
-    "// tree is recomputed via the DR formula. Keyed by the nodePath() scheme",
-    "// treeFlatten uses. Large file: lazy-load it, don't import statically.",
+    "// Top-player Drop Rate reference — GRANULAR best-per-path: every value",
+    "// is the max ANY single scanned (player, char) reached for that exact",
+    "// node path, so a shared quantity (e.g. the Gallery Bonus Multi) stays",
+    "// consistent wherever it appears instead of inheriting a whole winning",
+    "// subtree per pool. The 'Drop Rate' root is pinned to the frankenstein",
+    "// ceiling (DR formula over the best-of-each-source pools, higher than",
+    "// any single player). Keyed by the nodePath() scheme treeFlatten uses.",
+    "// Large file: lazy-load it, don't import statically.",
     `// Generated ${now} · ${scanned} players. Refresh: scripts/update-top-dr.ts.`,
     "",
     "export const TOP_DR_FLAT: Readonly<Record<string, number>> = {",
