@@ -13,12 +13,12 @@
 // default tree (they would all resolve to identical numbers anyway).
 // Auto-refreshed by scripts/update-top-talents.ts.
 //
-// Snapshot generated: 2026-05-29T18:05:45.148Z
+// Snapshot generated: 2026-05-29T20:55:53.296Z
 // Players scanned: 70
 
 import type { CorganNode } from "../corgan/node";
 
-export const HYPO_TALENTS_GENERATED_AT = "2026-05-29T18:05:45.148Z";
+export const HYPO_TALENTS_GENERATED_AT = "2026-05-29T20:55:53.296Z";
 export const HYPO_TALENTS_PLAYERS_SCANNED = 70;
 
 export const HYPO_DEFAULT_TREE: CorganNode = {
@@ -1908,3 +1908,56 @@ export const HYPO_TREE_OVERRIDES: Record<string, CorganNode> = {
 export function hypoTreeForClass(classKey: string | null): CorganNode {
   return (classKey && HYPO_TREE_OVERRIDES[classKey]) || HYPO_DEFAULT_TREE;
 }
+
+// Absolute ceiling per STAR talent (skill index 615–658) = the highest
+// SkillLevelsMAX any scanned top player reached. The save's own SM is just
+// the CURRENT unlocked cap (e.g. a dungeon talent reads 96/96 until the
+// dungeon unlocks more); the most-progressed players have hit the hard
+// ceiling, so this is the true 'Max' the /talents page should show.
+// (641–647 are excluded by the page — their ceiling is the account's own
+// maxBookLv, not a global value.)
+export const STAR_TALENT_CEILING: Readonly<Record<number, number>> = {
+  "615": 100,
+  "616": 50,
+  "617": 150,
+  "618": 100,
+  "619": 100,
+  "620": 50,
+  "621": 204,
+  "622": 100,
+  "623": 100,
+  "624": 50,
+  "625": 89229,
+  "626": 40,
+  "627": 50,
+  "628": 100,
+  "629": 100,
+  "630": 50,
+  "631": 100,
+  "632": 100,
+  "633": 101,
+  "634": 50,
+  "635": 100,
+  "636": 101,
+  "637": 101,
+  "638": 101,
+  "639": 100,
+  "640": 101,
+  "641": 396,
+  "642": 396,
+  "643": 396,
+  "644": 396,
+  "645": 396,
+  "646": 396,
+  "647": 396,
+  "649": 200,
+  "650": 200,
+  "651": 100,
+  "652": 300,
+  "653": 200,
+  "654": 150,
+  "655": 100,
+  "656": 200,
+  "657": 100,
+  "658": 210
+};
