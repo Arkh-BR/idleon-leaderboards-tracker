@@ -747,7 +747,7 @@ export default function TalentsLevelPageClient() {
             extraTabs={[
               {
                 id: "tomax",
-                label: "📚 To Max",
+                label: "📚 Points to Invest",
                 title:
                   "Tab 1-5 talents still below the Max Book Lv Cap, per account character",
                 render: () => (

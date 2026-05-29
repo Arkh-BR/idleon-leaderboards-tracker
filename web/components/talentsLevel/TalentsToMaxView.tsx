@@ -1,7 +1,7 @@
 "use client";
 
 // ============================================================================
-// TalentsToMaxView — "To Max" tab for the Talents Level page.
+// TalentsToMaxView — "Points to Invest" tab for the Talents Level page.
 //
 // Renders the account-wide scan from lib/talentsLevel/toMax.ts: one
 // collapsible section per character, listing the regular talents still
