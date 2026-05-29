@@ -279,10 +279,7 @@ export default function DrCalculator({
     <div>
       <h1 className="flex items-baseline gap-3 mb-1 mt-2">
         <span className="text-3xl font-extrabold text-gold">
-          🎲 Drop Rate Calculator{" "}
-          <span className="text-sm font-semibold align-middle text-amber-400/80 bg-amber-500/10 border border-amber-500/40 rounded px-1.5 py-0.5 ml-1">
-            WIP
-          </span>
+          🎲 Drop Rate Calculator
         </span>
       </h1>
       <p className="text-center text-xs text-zinc-500 mb-4">

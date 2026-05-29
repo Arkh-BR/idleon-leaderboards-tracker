@@ -26,6 +26,7 @@ import type { UnbookedCharGroup } from "@/lib/talentsLevel/unbooked";
 import {
   hypoTreeForClass,
   HYPO_TALENTS_GENERATED_AT,
+  STAR_TALENT_CEILING,
 } from "@/lib/talentsLevel/topTalents";
 import { flattenTree } from "@/lib/dropRate/treeFlatten";
 
@@ -54,6 +55,30 @@ function stripNodesByName(node: CorganNode, name: string): CorganNode {
     .filter((c) => c.name !== name)
     .map((c) => stripNodesByName(c, name));
   return kids.length ? { ...node, children: kids } : { ...node, children: undefined };
+}
+
+// Star talents (id ≥ 615) carry a "Max Level" = the save's current unlocked
+// cap (SkillLevelsMAX), which for dungeon-unlockable talents lags the hard
+// ceiling (e.g. Dungeonic Damage reads 96/96 until you unlock more via the
+// dungeon, but its real cap is 100). STAR_TALENT_CEILING bundles the highest
+// cap any top player reached, so we surface the true ceiling. Skip 641–647 —
+// their ceiling is the account's own maxBookLv (already computed live by the
+// engine), not a global value.
+function applyStarCeiling(tree: CorganNode, talentId: number): CorganNode {
+  if (talentId < 615 || (talentId >= 641 && talentId <= 647)) return tree;
+  const ceiling = STAR_TALENT_CEILING[talentId];
+  if (!ceiling) return tree;
+  const maxNode = (tree.children ?? []).find((c) => c.name === "Max Level");
+  if (maxNode) {
+    if (ceiling > (Number(maxNode.val) || 0)) maxNode.val = ceiling;
+  } else {
+    // No "Max Level" node (e.g. the engine had no saved SM) — add one.
+    tree.children = [
+      ...(tree.children ?? []),
+      { name: "Max Level", val: ceiling, fmt: "raw" },
+    ];
+  }
+  return tree;
 }
 
 const SAVE_KEY = "talents-level.last-upload.v1";
@@ -223,15 +248,20 @@ function extractTalentSummary(tree: CorganNode | null): TalentSummary | null {
     };
   }
 
-  // Star-talent shape — Active + Level kids, no Effective Level wrapper.
+  // Star-talent shape — Active + Level (+ optional Max Level) kids, no
+  // Effective Level wrapper. The "Max Level" node carries the account-wide
+  // star talent cap (SkillLevelsMAX), so the Max Effective Lv pane can show
+  // current vs max like a normal talent (stars have no bonus/super chain).
   const levelKid = getChildByName(tree, "Level");
   if (levelKid) {
     const lv = Number(levelKid.val) || 0;
+    const maxKid = getChildByName(tree, "Max Level");
+    const cap = maxKid ? Number(maxKid.val) || 0 : null;
     return {
       currentEffective: lv,
-      maxEffective: null,
+      maxEffective: cap,
       pointsInvested: lv,
-      maxCap: null,
+      maxCap: cap,
       bonusLevels: 0,
       superLevels: 0,
     };
@@ -430,7 +460,9 @@ export default function TalentsLevelPageClient() {
         const result = mod.computeTalentEffective(save, charIdx, talentId, {
           presetIdx,
         });
-        setTree(result.tree);
+        // Star talents: surface the true ceiling (bundled from top players)
+        // instead of the save's current unlocked cap.
+        setTree(applyStarCeiling(result.tree, talentId));
         setError(null);
       } catch (e) {
         if (!cancelled) {

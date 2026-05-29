@@ -40,10 +40,14 @@ import { computeTalentTreesForChars } from "../lib/talentsLevel/compute";
 import { flattenTree, nodePath } from "../lib/dropRate/treeFlatten";
 import { listCharacters } from "../lib/dropRate/extract";
 import { getCharClassKey } from "../lib/talentsLevel/charClass";
+import { skillLvMaxData } from "../lib/corgan/save/data";
 import type { CorganNode } from "../lib/corgan/node";
 
 const HEALTH_BOOSTER = 0; // plain simple talent, no cap-booster
 const ES_CLASS_KEY = "Elemental_Sorcerer";
+// Star talent skill-index range (the "Special Talent" / Star tabs).
+const STAR_MIN = 615;
+const STAR_MAX = 658;
 
 const argv = process.argv.slice(2);
 const SLOW = argv.includes("--slow");
@@ -175,6 +179,12 @@ async function main() {
 
   const nonES = newPool(); // DEFAULT pool — every non-Elemental-Sorcerer class
   const es = newPool(); //    OVERRIDE pool — Elemental Sorcerer chars only
+  // Absolute ceiling per star talent (615–658) = the highest SkillLevelsMAX
+  // any scanned char reached. The save's SM is the CURRENT unlocked cap (e.g.
+  // a dungeon talent shows 96/96 until you unlock more via the dungeon); the
+  // most-progressed top players have unlocked the hard ceiling (e.g. 100), so
+  // the max across them is the true ceiling for the /talents "Max" pane.
+  const starCeiling: Record<number, number> = {};
   let scanned = 0;
   let skipped = 0;
 
@@ -218,6 +228,18 @@ async function main() {
       const isES = getCharClassKey(save, charIdx) === ES_CLASS_KEY;
       if (foldIntoPool(isES ? es : nonES, tree)) touched++;
     }
+    // Star talent ceilings — computeTalentTreesForChars loaded this save, so
+    // skillLvMaxData now holds its per-char SkillLevelsMAX. Keep the max.
+    const smAll = skillLvMaxData as any[];
+    if (Array.isArray(smAll)) {
+      for (const cm of smAll) {
+        if (!cm) continue;
+        for (let id = STAR_MIN; id <= STAR_MAX; id++) {
+          const v = Number(cm[id] ?? cm[String(id)]) || 0;
+          if (v > (starCeiling[id] || 0)) starCeiling[id] = v;
+        }
+      }
+    }
     scanned++;
     console.log(`  ✓ ${touched} chars`);
     if (i < candidates.length - 1) await sleep(THROTTLE_MS);
@@ -238,12 +260,15 @@ async function main() {
     console.log("  · ES chars:     0 (no ES override emitted)");
   }
 
-  emitFile(defaultEff, esEff, scanned);
+  const starCount = Object.keys(starCeiling).length;
+  console.log(`  · star talent ceilings collected: ${starCount} (615–658)`);
+  emitFile(defaultEff, esEff, starCeiling, scanned);
 }
 
 function emitFile(
   defaultTree: CorganNode,
   esTree: CorganNode | null,
+  starCeiling: Record<number, number>,
   scanned: number
 ) {
   const now = new Date().toISOString();
@@ -282,6 +307,15 @@ function emitFile(
     "export function hypoTreeForClass(classKey: string | null): CorganNode {",
     "  return (classKey && HYPO_TREE_OVERRIDES[classKey]) || HYPO_DEFAULT_TREE;",
     "}",
+    "",
+    "// Absolute ceiling per STAR talent (skill index 615–658) = the highest",
+    "// SkillLevelsMAX any scanned top player reached. The save's own SM is just",
+    "// the CURRENT unlocked cap (e.g. a dungeon talent reads 96/96 until the",
+    "// dungeon unlocks more); the most-progressed players have hit the hard",
+    "// ceiling, so this is the true 'Max' the /talents page should show.",
+    "// (641–647 are excluded by the page — their ceiling is the account's own",
+    "// maxBookLv, not a global value.)",
+    `export const STAR_TALENT_CEILING: Readonly<Record<number, number>> = ${JSON.stringify(starCeiling, null, 2)};`,
     "",
   ];
   writeFileSync(OUTPUT_FILE, lines.join("\n"));

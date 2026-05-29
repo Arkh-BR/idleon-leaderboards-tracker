@@ -356,6 +356,19 @@ export function computeMaxBookLv(saveData: SaveData): number {
   return computeMaxBookLvParts(saveData).value;
 }
 
+// Star talents whose max level = K·(Tasks[2][world][3] + 1) — the task-shop
+// merit level for that world (N.js: SkillLevelsMAX[id] = K*(Tasks[2][…][3]+1),
+// Tasks[2] = TaskZZ2). id → [multiplier K, world index]. The game only
+// re-writes these on a task-shop purchase, so the saved SM lags the live
+// task level; we recompute them in the star branch of talent.resolve.
+const STAR_TASK_MAX: Record<number, [number, number]> = {
+  627: [5, 0],
+  630: [5, 1],
+  634: [5, 2],
+  651: [20, 3],
+  652: [30, 4],
+};
+
 /** Wraps a raw skill lv in the Base Level structure for tab 1-5
  *  talents — min(Points Invested, Max Book Lv Cap). The cap breakdown
  *  is duplicated under each talent (account-wide value, but each
@@ -1861,11 +1874,18 @@ export const talent = {
     // (computeAllTalentLVz returns 0 for idx > 614). Display:
     // Active + Level + formula note.
     //
-    // TODO: most star talent caps are HARDCODED in the game source, not
-    // derivable from a formula like maxBookLv. Surfacing those caps
-    // requires a dedicated lookup table — until that's built, the star
-    // branch shows just rawLv without a "max" row (SkillLevelsMAX[id]
-    // alone isn't reliable as a cap source).
+    // Star talent max level. Per N.js (exhaustive SkillLevelsMAX audit):
+    //   • The game READS the panel max straight from SkillLevelsMAX[id] for
+    //     every talent, and ACCOUNT-SYNCS it (max of SM[id] across chars).
+    //   • For MOST stars there is NO formula — the stored SM is the truth, so
+    //     the max-across-chars below is faithful.
+    //   • Talents 641–647 are the exception: their cap IS the regular
+    //     maxBookLv (the same Max Book Lv Cap as tab 1-5 talents). The game
+    //     stores it, so the saved SM goes STALE as maxBookLv grows (e.g.
+    //     saved 364 while the live cap is 396). Recompute it live below.
+    //   • A handful (625/627/630/634/651/652/656/658) have dynamic caps tied
+    //     to cauldron/tasks/summoning/dream state; their stored SM is the
+    //     game's last-computed value (account-synced) — kept as-is for now.
     //
     // Stars with a final-bonus wrap (e.g. Tal 655 × Skulls Beaten) are
     // handled by the same applyTalentWrap path used for tab 1-5
@@ -1873,6 +1893,31 @@ export const talent = {
     // in data/common/talent-final-bonus-wraps.ts, no hardcoded branch
     // needed here.
     if (id >= 615) {
+      // Account-wide star talent cap from SkillLevelsMAX[id] (max across chars
+      // mirrors the game's _customEvent_AddNewStuff sync).
+      let starCap = 0;
+      const smAll = skillLvMaxData as any[];
+      if (Array.isArray(smAll)) {
+        for (const cm of smAll) {
+          const v = Number(cm?.[id] ?? cm?.[String(id)]) || 0;
+          if (v > starCap) starCap = v;
+        }
+      }
+      // 627/630/634/651/652: cap = K·(Tasks[2][world][3] + 1) — the task-shop
+      // merit level (N.js, verified). Only re-written on purchase, so the
+      // saved SM lags the live task level (saw saved 50 vs live 55). Recompute.
+      const taskMul = STAR_TASK_MAX[id];
+      if (taskMul) {
+        const lv =
+          Number((saveData as any).tasksGlobalData?.[2]?.[taskMul[1]]?.[3]) || 0;
+        starCap = Math.max(starCap, taskMul[0] * (lv + 1));
+      } else if (id >= 641 && id <= 647) {
+        // 641–647: cap = live maxBookLv (the saved SM lags as the cap grows).
+        starCap = Math.max(starCap, computeMaxBookLv(saveData));
+      }
+      // 625 (cauldron liquid), 656 (dream constant 200) and 658 (summoning
+      // vault) ARE re-written every TotalTalentPoints call, so their saved SM
+      // is already current (verified equal to the live formula) — left as-is.
       const starKids: CorganNode[] = [
         node("Active", activeFlag, null, { fmt: "raw" }),
         node("Level", r.rawLv, null, {
@@ -1880,6 +1925,14 @@ export const talent = {
           note: "star talent — pool capped, no book lv",
         }),
       ];
+      if (starCap > 0) {
+        starKids.push(
+          node("Max Level", starCap, null, {
+            fmt: "raw",
+            note: "star talent cap (account SkillLevelsMAX)",
+          })
+        );
+      }
       const withCtx = applyTalentWrap(id, r.val, starKids, name, saveData, ctx.charIdx, r.effectiveLv);
       if (withCtx) return withCtx;
       return node(name, r.val, starKids, {
