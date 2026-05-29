@@ -5,9 +5,10 @@
 //
 // Renders the account-wide scan from lib/talentsLevel/toMax.ts: one
 // collapsible section per character, listing the regular talents still
-// below their Max Book Lv Cap (sorted by largest gap). Chars already fully
-// at the cap are summarized in a small footer line instead of taking up a
-// section each.
+// below their Max Book Lv Cap (sorted by largest gap). Each row shows the
+// level invested in BOTH presets (P1 / P2) against the shared cap; the
+// preset active in-game is flagged with a ● dot. Chars already fully at the
+// cap (both presets) are summarized in a small footer line.
 //
 // Pure presentation — all the math lives in computeTalentsToMax(); this
 // component just receives the precomputed groups + a loading flag.
@@ -42,7 +43,7 @@ export default function TalentsToMaxView({
     return (
       <p className="text-sm text-emerald-300 px-2 py-4">
         🎉 Todos os talentos (tab 1-5) de todos os personagens estão no Max
-        Book Lv Cap.
+        Book Lv Cap, nos dois presets.
       </p>
     );
   }
@@ -50,11 +51,17 @@ export default function TalentsToMaxView({
   return (
     <div className="flex flex-col gap-3">
       {/* Resumo geral */}
-      <div className="text-xs text-zinc-400 px-1">
-        <span className="text-gold font-semibold">{totalMissing}</span> talento
-        {totalMissing === 1 ? "" : "s"} abaixo do cap em{" "}
-        <span className="text-zinc-200 font-semibold">{pending.length}</span>{" "}
-        personagem{pending.length === 1 ? "" : "s"}.
+      <div className="text-xs text-zinc-400 px-1 flex flex-wrap items-center gap-x-3 gap-y-1">
+        <span>
+          <span className="text-gold font-semibold">{totalMissing}</span>{" "}
+          talento{totalMissing === 1 ? "" : "s"} abaixo do cap em{" "}
+          <span className="text-zinc-200 font-semibold">{pending.length}</span>{" "}
+          personagem{pending.length === 1 ? "" : "s"} (em algum preset).
+        </span>
+        <span className="text-[11px] text-zinc-500">
+          P1/P2 = preset 1 / preset 2 · <span className="text-sky-300">●</span>{" "}
+          = ativo in-game
+        </span>
       </div>
 
       {pending.map((g) => (
@@ -64,7 +71,7 @@ export default function TalentsToMaxView({
       {complete.length > 0 && (
         <div className="text-[11px] text-zinc-500 px-1 pt-1 border-t border-zinc-900">
           ✓ {complete.length} personagem{complete.length === 1 ? "" : "s"} já no
-          cap:{" "}
+          cap (ambos presets):{" "}
           <span className="text-zinc-400">
             {complete.map((g) => g.charName).join(", ")}
           </span>
@@ -92,7 +99,8 @@ function CharSection({ group }: { group: ToMaxCharGroup }) {
         </span>
         <span className="truncate">{group.charName}</span>
         <span className="text-[11px] text-zinc-500 font-normal">
-          {group.classLabel} · Lv {group.level}
+          {group.classLabel} · Lv {group.level} · Preset{" "}
+          {group.activePreset + 1} ativo
         </span>
         <span className="ml-auto text-[11px] text-zinc-500 font-normal">
           <span className="text-amber-300 font-semibold">
@@ -104,7 +112,11 @@ function CharSection({ group }: { group: ToMaxCharGroup }) {
       {open && (
         <div>
           {group.items.map((it) => (
-            <TalentRow key={it.talentId} item={it} />
+            <TalentRow
+              key={it.talentId}
+              item={it}
+              activePreset={group.activePreset}
+            />
           ))}
         </div>
       )}
@@ -112,9 +124,13 @@ function CharSection({ group }: { group: ToMaxCharGroup }) {
   );
 }
 
-function TalentRow({ item }: { item: ToMaxItem }) {
-  const pct =
-    item.cap > 0 ? Math.max(0, Math.min(100, (item.invested / item.cap) * 100)) : 0;
+function TalentRow({
+  item,
+  activePreset,
+}: {
+  item: ToMaxItem;
+  activePreset: 0 | 1;
+}) {
   return (
     <div className="flex items-center gap-3 px-3 py-2 border-b border-zinc-800/60 last:border-b-0 hover:bg-white/5">
       <img
@@ -144,26 +160,62 @@ function TalentRow({ item }: { item: ToMaxItem }) {
         <div className="text-[11px] text-zinc-500 truncate">
           {item.bonusText || item.tab}
         </div>
-        {/* Mini progress bar invested/cap */}
-        <div className="mt-1 h-1 w-full max-w-[220px] rounded bg-zinc-800 overflow-hidden">
-          <div
-            className="h-full bg-sky-500/60"
-            style={{ width: `${pct}%` }}
-          />
-        </div>
       </div>
-      <div className="text-right flex-shrink-0">
-        <div className="font-mono text-sm tabular-nums text-zinc-300">
-          {item.invested}
-          <span className="text-zinc-600"> / {item.cap}</span>
-        </div>
-        <div
-          className="text-[11px] font-mono text-amber-300"
-          title="Quanto falta para o Max Book Lv Cap"
-        >
-          faltam {item.gap}
-        </div>
+      {/* Per-preset invested vs cap. Active preset marked with ●. */}
+      <div className="flex-shrink-0 flex flex-col gap-0.5 items-end">
+        <PresetStat
+          label="P1"
+          active={activePreset === 0}
+          invested={item.investedP1}
+          cap={item.cap}
+        />
+        <PresetStat
+          label="P2"
+          active={activePreset === 1}
+          invested={item.investedP2}
+          cap={item.cap}
+        />
       </div>
+    </div>
+  );
+}
+
+function PresetStat({
+  label,
+  active,
+  invested,
+  cap,
+}: {
+  label: string;
+  active: boolean;
+  invested: number;
+  cap: number;
+}) {
+  const gap = Math.max(0, cap - invested);
+  const atCap = gap === 0;
+  return (
+    <div
+      className="flex items-center gap-1.5 text-[11px] font-mono tabular-nums whitespace-nowrap"
+      title={
+        (active ? "Preset ativo in-game · " : "") +
+        (atCap ? "no cap" : `faltam ${gap}`)
+      }
+    >
+      <span
+        className={`w-7 text-right ${
+          active ? "text-sky-300 font-semibold" : "text-zinc-500"
+        }`}
+      >
+        {label}
+        {active ? "●" : ""}
+      </span>
+      <span className="text-zinc-300">
+        {invested}
+        <span className="text-zinc-600">/{cap}</span>
+      </span>
+      <span className={`w-14 text-right ${atCap ? "text-emerald-400" : "text-amber-300"}`}>
+        {atCap ? "✓ cap" : `faltam ${gap}`}
+      </span>
     </div>
   );
 }
