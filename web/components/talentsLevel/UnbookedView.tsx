@@ -28,7 +28,7 @@ export default function UnbookedView({
 }) {
   const [search, setSearch] = useState("");
   const [hideNotes, setHideNotes] = useState(false);
-  // charIdx → open. Missing key defaults to open.
+  // charIdx → open. Missing key defaults to closed (collapsed by default).
   const [openMap, setOpenMap] = useState<Record<number, boolean>>({});
 
   const q = search.trim().toLowerCase();
@@ -67,7 +67,7 @@ export default function UnbookedView({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pending, q]);
 
-  const isOpen = (charIdx: number) => openMap[charIdx] ?? true;
+  const isOpen = (charIdx: number) => openMap[charIdx] ?? false;
   const setAll = (open: boolean) =>
     setOpenMap(Object.fromEntries(pending.map((g) => [g.charIdx, open])));
 
