@@ -1,12 +1,14 @@
-// Refresh the bundled top-player Talents reference in
+// Refresh the bundled hypothetical Effective-Level tree in
 // lib/talentsLevel/topTalents.ts by fetching each top player's save and
-// running OUR talent engine on every simple (tab 1-5) talent.
+// running OUR talent engine on the Health Booster (talent 0 — a plain
+// simple talent, no cap-booster, so its Effective Level subtree is the
+// generic template every simple talent shares).
 //
-// HYPOTHETICAL-MAX model (same spirit as the DR collector): for each simple
-// talent we keep the best Base Level, Bonus Levels, Super Levels and Points
-// Invested seen across all top players, then the hypothetical Effective
-// Level is base + bonus + super (recomputed, higher than any single
-// player). The /talents Tree tab uses these as a per-row reference.
+// We compute that talent on every char of every top player, keep the BEST
+// value of EVERY node in its Effective Level subtree (best-per-path, full
+// depth), and emit a single CorganNode tree: the hypothetical-max Effective
+// Level with complete sub-trees. The /talents "Hypothetical" tab renders it
+// straight. Effective Level itself = best base + bonus + super.
 //
 // Run:  npx tsx web/scripts/update-top-talents.ts
 // Knobs: --limit N   cap candidate set (smoke test)
@@ -19,11 +21,12 @@ if (!g.window) g.window = g;
 
 import { gatherCandidates, fetchProfileSave } from "./_shared/itProfiles";
 import { computeTalentTreesForChars } from "../lib/talentsLevel/compute";
-import { entityName } from "../lib/corgan/stats/entity-names";
-import { TALENT_TABS_BY_CLASS } from "../lib/talentsLevel/talentTabs.gen";
-import { getCharClassKey } from "../lib/talentsLevel/charClass";
+import { flattenTree, nodePath } from "../lib/dropRate/treeFlatten";
 import { listCharacters } from "../lib/dropRate/extract";
+import { getCharClassKey } from "../lib/talentsLevel/charClass";
 import type { CorganNode } from "../lib/corgan/node";
+
+const HEALTH_BOOSTER = 0; // plain simple talent, no cap-booster
 
 const argv = process.argv.slice(2);
 const SLOW = argv.includes("--slow");
@@ -36,19 +39,34 @@ const LIMIT = (() => {
 const OUTPUT_FILE = join(__dirname, "..", "lib", "talentsLevel", "topTalents.ts");
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-function childByName(node: CorganNode | undefined, name: string): CorganNode | undefined {
-  return node?.children?.find((c) => c.name === name);
-}
-const num = (n: unknown) => Number(n) || 0;
+const childByName = (n: CorganNode | undefined, name: string) =>
+  n?.children?.find((c) => c.name === name);
 
-type Acc = { name: string; base: number; bonus: number; sup: number; invested: number };
+// Walk a tree and overwrite each node's val with the best value seen for
+// its path (same nodePath scheme flattenTree uses).
+function applyBestVals(
+  node: CorganNode,
+  best: Record<string, number>,
+  parentPath: string,
+  siblings: CorganNode[],
+  idx: number
+) {
+  const path = nodePath(parentPath, node, siblings, idx);
+  if (best[path] !== undefined) node.val = best[path];
+  const kids = node.children || [];
+  for (let i = 0; i < kids.length; i++) {
+    applyBestVals(kids[i], best, path, kids, i);
+  }
+}
 
 async function main() {
   console.log("→ Gathering candidates from leaderboards…");
   const candidates = await gatherCandidates({ limit: LIMIT ?? undefined });
   console.log(`  ✓ ${candidates.length} candidates`);
 
-  const acc = new Map<number, Acc>();
+  const best: Record<string, number> = {};
+  let structure: CorganNode | null = null; // tree with the highest effective
+  let structEff = -1;
   let scanned = 0;
   let skipped = 0;
 
@@ -72,102 +90,77 @@ async function main() {
       if (i < candidates.length - 1) await sleep(THROTTLE_MS);
       continue;
     }
-
-    // Build one job per char (simple talents = tab 1-5, skip the star
-    // "Special Talent" tabs), then resolve them all with a single save load.
-    const jobs: { charIdx: number; talentIds: number[] }[] = [];
-    for (const ch of chars) {
-      const classKey = getCharClassKey(save, ch.charIndex);
-      if (!classKey) continue;
-      const cls = TALENT_TABS_BY_CLASS[classKey];
-      if (!cls) continue;
-      const ids: number[] = [];
-      const seen = new Set<number>();
-      for (const tab of cls.tabs) {
-        if (tab.name.startsWith("Special Talent")) continue;
-        for (const t of tab.talents) {
-          if (!seen.has(t.id)) {
-            seen.add(t.id);
-            ids.push(t.id);
-          }
-        }
-      }
-      jobs.push({ charIdx: ch.charIndex, talentIds: ids });
-    }
-
-    let touched = 0;
+    // Health Booster exists on every class's base tab, so compute it on
+    // every char (single save load) and keep the best per path.
+    const jobs = chars
+      .filter((ch) => getCharClassKey(save, ch.charIndex))
+      .map((ch) => ({ charIdx: ch.charIndex, talentIds: [HEALTH_BOOSTER] }));
     const results = computeTalentTreesForChars(save, jobs);
+    let touched = 0;
     for (const { trees } of results) {
-      for (const [id, tree] of trees) {
-        const eff = childByName(tree, "Effective Level");
-        if (!eff) continue; // not a simple-talent shape
-        const baseNode = childByName(eff, "Base Level");
-        const base = num(baseNode?.val);
-        const bonus = num(childByName(eff, "Bonus Levels")?.val);
-        const sup = num(childByName(eff, "Super Levels")?.val);
-        const invested = num(childByName(baseNode, "Points Invested")?.val);
-        const cur =
-          acc.get(id) ??
-          ({
-            name: entityName("talent", id) || `Talent ${id}`,
-            base: 0,
-            bonus: 0,
-            sup: 0,
-            invested: 0,
-          } as Acc);
-        cur.base = Math.max(cur.base, base);
-        cur.bonus = Math.max(cur.bonus, bonus);
-        cur.sup = Math.max(cur.sup, sup);
-        cur.invested = Math.max(cur.invested, invested);
-        acc.set(id, cur);
-        touched++;
+      const tree = trees.get(HEALTH_BOOSTER);
+      if (!tree) continue;
+      if (!childByName(tree, "Effective Level")) continue;
+      const flat = flattenTree(tree);
+      for (const path in flat) {
+        const v = flat[path];
+        if (best[path] === undefined || v > best[path]) best[path] = v;
       }
+      const eff = Number(childByName(tree, "Effective Level")?.val) || 0;
+      if (eff > structEff) {
+        structEff = eff;
+        structure = tree;
+      }
+      touched++;
     }
     scanned++;
-    console.log(`  ✓ ${touched} talent rows`);
+    console.log(`  ✓ ${touched} chars`);
     if (i < candidates.length - 1) await sleep(THROTTLE_MS);
   }
 
-  console.log(`\n✓ Scanned ${scanned} players (${skipped} skipped)`);
-  console.log(`  · ${acc.size} simple talents referenced`);
+  if (!structure) {
+    console.error("× no Health Booster tree collected, aborting");
+    process.exit(1);
+  }
 
-  emitFile(acc, scanned);
+  // Stamp the best-per-path values onto the structure tree, then recompute
+  // Effective Level = base + bonus + super and isolate that subtree.
+  applyBestVals(structure, best, "", [structure], 0);
+  const eff = childByName(structure, "Effective Level");
+  if (!eff) {
+    console.error("× structure tree has no Effective Level, aborting");
+    process.exit(1);
+  }
+  const v = (n: string) => Number(childByName(eff, n)?.val) || 0;
+  eff.val = v("Base Level") + v("Bonus Levels") + v("Super Levels");
+
+  console.log(`\n✓ Scanned ${scanned} players (${skipped} skipped)`);
+  console.log(`  · hypothetical Effective Level: ${eff.val}`);
+
+  emitFile(eff, scanned);
 }
 
-function emitFile(acc: Map<number, Acc>, scanned: number) {
+function emitFile(tree: CorganNode, scanned: number) {
   const now = new Date().toISOString();
   const lines: string[] = [
-    "// Top-player Talents reference — hypothetical-max Base/Bonus/Super per",
-    "// simple talent (best seen across the scanned top players). Effective =",
-    "// base + bonus + super (recomputed, higher than any single player). The",
-    "// /talents Tree tab uses these as a per-row reference. Auto-refreshed by",
-    "// scripts/update-top-talents.ts.",
+    "// Hypothetical-max Effective Level tree (full depth) — the best value of",
+    "// every node across the scanned top players, computed on the Health",
+    "// Booster (a plain simple talent, so its Effective Level subtree is the",
+    "// template every simple talent shares). Effective Level = best base +",
+    "// bonus + super. Rendered as-is by the /talents Hypothetical tab.",
+    "// Auto-refreshed by scripts/update-top-talents.ts.",
     "//",
     `// Snapshot generated: ${now}`,
     `// Players scanned: ${scanned}`,
     "",
-    "export type TopTalentRef = {",
-    "  name: string;",
-    "  effective: number;",
-    "  base: number;",
-    "  bonus: number;",
-    "  super: number;",
-    "  invested: number;",
-    "};",
+    'import type { CorganNode } from "../corgan/node";',
     "",
-    `export const TOP_TALENTS_GENERATED_AT = ${JSON.stringify(now)};`,
-    `export const TOP_TALENTS_PLAYERS_SCANNED = ${scanned};`,
+    `export const HYPO_TALENTS_GENERATED_AT = ${JSON.stringify(now)};`,
+    `export const HYPO_TALENTS_PLAYERS_SCANNED = ${scanned};`,
     "",
-    "export const TOP_TALENTS: Readonly<Record<number, TopTalentRef>> = {",
+    `export const HYPO_EFFECTIVE_TREE: CorganNode = ${JSON.stringify(tree, null, 2)};`,
+    "",
   ];
-  for (const id of [...acc.keys()].sort((a, b) => a - b)) {
-    const a = acc.get(id)!;
-    const effective = a.base + a.bonus + a.sup;
-    lines.push(
-      `  ${id}: { name: ${JSON.stringify(a.name)}, effective: ${effective}, base: ${a.base}, bonus: ${a.bonus}, super: ${a.sup}, invested: ${a.invested} },`
-    );
-  }
-  lines.push("};", "");
   writeFileSync(OUTPUT_FILE, lines.join("\n"));
   console.log(`\n✓ Wrote ${OUTPUT_FILE}`);
 }
