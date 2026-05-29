@@ -134,14 +134,24 @@ async function main() {
     process.exit(1);
   }
 
-  // Stamp the best-per-path values onto the structure tree, then recompute
-  // Effective Level = base + bonus + super and isolate that subtree.
+  // Stamp the best-per-path values onto the structure tree. Each path holds
+  // the max across players, so additive parents no longer equal the sum of
+  // their (independently-maxed) children — recompute them.
   applyBestVals(structure, best, "", [structure], 0);
   const eff = childByName(structure, "Effective Level");
   if (!eff) {
     console.error("× structure tree has no Effective Level, aborting");
     process.exit(1);
   }
+  // Bonus Levels = sum of its direct sources (each maxed independently).
+  const bonusNode = childByName(eff, "Bonus Levels");
+  if (bonusNode?.children) {
+    bonusNode.val = bonusNode.children.reduce(
+      (s, c) => s + (Number(c.val) || 0),
+      0
+    );
+  }
+  // Effective Level = base + bonus + super.
   const v = (n: string) => Number(childByName(eff, n)?.val) || 0;
   eff.val = v("Base Level") + v("Bonus Levels") + v("Super Levels");
 

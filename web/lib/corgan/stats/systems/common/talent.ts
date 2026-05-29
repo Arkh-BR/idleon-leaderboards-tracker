@@ -641,11 +641,10 @@ export function computeAllTalentLVz(
     const superArr =
       saveData.spelunkData &&
       (saveData.spelunkData as any)[20 + slotIdx + 12 * preset];
-    if (
-      !opts?.excludeSuper &&
-      Array.isArray(superArr) &&
-      superArr.indexOf(talentIdx) !== -1
-    ) {
+    const superActive =
+      (Array.isArray(superArr) && superArr.indexOf(talentIdx) !== -1) ||
+      !!opts?.forceSuperActive;
+    if (!opts?.excludeSuper && superActive) {
       const base = 50;
       // Zenith Market "Super Duper Talents (Yellow 2)": up to 5 levels, +10
       // super talent levels each.
@@ -1001,10 +1000,13 @@ function resolveAllTalentLVz(
     tal144RawLv =
       Number((skillLvData as any)[slotIdx] && (skillLvData as any)[slotIdx][144]) || 0;
     if (tal144RawLv > 0 && t144) {
+      // Count the Spelunk super talent as active for Family Guy too (it
+      // stays in the effective level / multiplier), but compute the no-super
+      // value so the node can show Bonus and Super on separate rows.
       const atlFor144 = computeAllTalentLVz(
         144,
         slotIdx,
-        { skipTal144FamMult: true },
+        { skipTal144FamMult: true, forceSuperActive: true },
         saveData
       );
       const atlNoSuper = computeAllTalentLVz(

@@ -5,17 +5,17 @@
 // bonus + super. Rendered as-is by the /talents Hypothetical tab.
 // Auto-refreshed by scripts/update-top-talents.ts.
 //
-// Snapshot generated: 2026-05-29T12:51:12.043Z
+// Snapshot generated: 2026-05-29T13:13:00.872Z
 // Players scanned: 70
 
 import type { CorganNode } from "../corgan/node";
 
-export const HYPO_TALENTS_GENERATED_AT = "2026-05-29T12:51:12.043Z";
+export const HYPO_TALENTS_GENERATED_AT = "2026-05-29T13:13:00.872Z";
 export const HYPO_TALENTS_PLAYERS_SCANNED = 70;
 
 export const HYPO_EFFECTIVE_TREE: CorganNode = {
   "name": "Effective Level",
-  "val": 769,
+  "val": 773,
   "children": [
     {
       "name": "Base Level",
@@ -241,7 +241,7 @@ export const HYPO_EFFECTIVE_TREE: CorganNode = {
     },
     {
       "name": "Bonus Levels",
-      "val": 248,
+      "val": 252,
       "children": [
         {
           "name": "Symbols of Beyond ~R (Talent 149)",
@@ -498,7 +498,7 @@ export const HYPO_EFFECTIVE_TREE: CorganNode = {
             },
             {
               "name": "Family Guy Multi (×) — potential buff",
-              "val": 1.3539170506912444,
+              "val": 1.353970080552359,
               "children": [
                 {
                   "name": "Base Level",
@@ -732,6 +732,12 @@ export const HYPO_EFFECTIVE_TREE: CorganNode = {
                   "val": 248,
                   "fmt": "+",
                   "note": "Σ ATL (unbuffed FB68, excl. super)"
+                },
+                {
+                  "name": "Super Levels",
+                  "val": 125,
+                  "fmt": "+",
+                  "note": "Spelunk super talent (separated)"
                 }
               ],
               "fmt": "raw",
