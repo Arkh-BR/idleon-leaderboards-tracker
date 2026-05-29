@@ -24,20 +24,26 @@ import type { ToMaxCharGroup } from "@/lib/talentsLevel/toMax";
 import UnbookedView from "@/components/talentsLevel/UnbookedView";
 import type { UnbookedCharGroup } from "@/lib/talentsLevel/unbooked";
 import {
-  HYPO_EFFECTIVE_TREE,
+  hypoTreeForClass,
   HYPO_TALENTS_GENERATED_AT,
 } from "@/lib/talentsLevel/topTalents";
 import { flattenTree } from "@/lib/dropRate/treeFlatten";
 
-// The hypothetical-max Effective Level as a DeepView baseline (computed once
-// — the bundled tree is constant). Used as the 🎯 reference on the
-// Hypothetical tab: the player's own Effective Level shows the live value,
-// each row's chip the community max.
-const HYPO_BASELINE = {
-  flatTree: flattenTree(HYPO_EFFECTIVE_TREE),
-  capturedAt: Date.parse(HYPO_TALENTS_GENERATED_AT),
-  charName: "Hypothetical max",
-};
+const HYPO_CAPTURED_AT = Date.parse(HYPO_TALENTS_GENERATED_AT);
+
+// The hypothetical-max Effective Level as a DeepView baseline, picked for
+// the SELECTED char's class — an Elemental Sorcerer compares against the
+// ES max (Family Bonus 68 buffed by Family Guy), every other class against
+// the non-ES default. Used as the 🎯 reference on the Hypothetical tab:
+// the player's own Effective Level shows the live value, each row's chip
+// the community max for that class.
+function hypoBaselineForClass(classKey: string | null) {
+  return {
+    flatTree: flattenTree(hypoTreeForClass(classKey)),
+    capturedAt: HYPO_CAPTURED_AT,
+    charName: "Hypothetical max",
+  };
+}
 
 // Recursively drop every node with the given name from a tree (returns a
 // new tree, doesn't mutate). Used to hide "Points Invested" rows in the
@@ -385,6 +391,10 @@ export default function TalentsLevelPageClient() {
     return TALENT_TABS_BY_CLASS[classKey]?.tabs ?? [];
   }, [classKey]);
 
+  // Hypothetical-max baseline picked for the selected char's class (ES gets
+  // the buffed FB68 reference, every other class the non-ES default).
+  const hypoBaseline = useMemo(() => hypoBaselineForClass(classKey), [classKey]);
+
   // Clamp tab index whenever the available tabs change (switching from a
   // 5-tab class to a 3-tab class would leave the stored idx out of range).
   useEffect(() => {
@@ -443,16 +453,10 @@ export default function TalentsLevelPageClient() {
       try {
         const mod = await import("@/lib/talentsLevel/compute");
         if (cancelled) return;
-        // Use a non-ES char: computing on an Elemental Sorcerer applies the
-        // Family Guy self-buff to the Mage family bonus, inflating it.
-        const isES = (ci: number) =>
-          getCharClassKey(save, ci) === "Elemental_Sorcerer";
-        let hypoCharIdx = charIdx;
-        if (isES(hypoCharIdx)) {
-          const alt = chars.find((c) => !isES(c.charIndex));
-          if (alt) hypoCharIdx = alt.charIndex;
-        }
-        const result = mod.computeTalentEffective(save, hypoCharIdx, 0, {
+        // Compute on the SELECTED char with its real values. An Elemental
+        // Sorcerer keeps its Family Guy self-buff on Family Bonus 68 — the
+        // 🎯 reference is the matching per-class max, so both sides line up.
+        const result = mod.computeTalentEffective(save, charIdx, 0, {
           presetIdx,
           forceSuperActive: true,
         });
@@ -883,7 +887,7 @@ export default function TalentsLevelPageClient() {
                   hypoPlayerTree ? (
                     <DeepView
                       tree={hypoPlayerTree}
-                      baseline={HYPO_BASELINE}
+                      baseline={hypoBaseline}
                       showWorldView={false}
                       bare
                     />
