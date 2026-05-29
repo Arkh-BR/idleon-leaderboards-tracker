@@ -129,3 +129,37 @@ export function computeTalentEffective(
     talentName: entityName("talent", talentId),
   };
 }
+
+/**
+ * Resolve many talents across many chars with a SINGLE save load — used by
+ * the top-talents collector to scan every simple talent of every char
+ * without re-parsing the ~1.25 MB save per char (the dominant cost). Uses
+ * each char's active preset (SL_{ci}). Talents that fail to resolve are
+ * skipped.
+ */
+export function computeTalentTreesForChars(
+  rawEnvelope: any,
+  jobs: { charIdx: number; talentIds: number[] }[]
+): { charIdx: number; trees: Map<number, CorganNode> }[] {
+  loadSaveData(rawEnvelope);
+  const out: { charIdx: number; trees: Map<number, CorganNode> }[] = [];
+  for (const job of jobs) {
+    const ctx = {
+      saveData,
+      charIdx: job.charIdx,
+      activeCharIdx: job.charIdx,
+      useMaxResearchBaseLevel: false,
+      splitSuperLevels: true,
+    };
+    const trees = new Map<number, CorganNode>();
+    for (const id of job.talentIds) {
+      try {
+        trees.set(id, talent.resolve(id, ctx));
+      } catch {
+        // skip talents that error for this char's context
+      }
+    }
+    out.push({ charIdx: job.charIdx, trees });
+  }
+  return out;
+}

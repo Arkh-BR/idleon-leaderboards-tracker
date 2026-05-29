@@ -23,6 +23,12 @@ import TalentsToMaxView from "@/components/talentsLevel/TalentsToMaxView";
 import type { ToMaxCharGroup } from "@/lib/talentsLevel/toMax";
 import UnbookedView from "@/components/talentsLevel/UnbookedView";
 import type { UnbookedCharGroup } from "@/lib/talentsLevel/unbooked";
+import {
+  TOP_TALENTS,
+  TOP_TALENTS_GENERATED_AT,
+  type TopTalentRef,
+} from "@/lib/talentsLevel/topTalents";
+import type { FlatTree } from "@/lib/dropRate/treeFlatten";
 
 const SAVE_KEY = "talents-level.last-upload.v1";
 const TALENT_KEY = "talents-level.talent-id.v1";
@@ -222,6 +228,61 @@ function extractTalentSummary(tree: CorganNode | null): TalentSummary | null {
   return null;
 }
 
+// Build a DeepView baseline (path→value) from a talent's hypothetical-max
+// reference. Only the Effective / Base / Points Invested / Bonus (and Super
+// when present) nodes are seeded, so the RefBadge shows only on those rows —
+// exactly the "base lvl + bonus lvl that form the effective lvl" the
+// comparison targets. Paths use the same root scheme the talent tree emits
+// ("{name} (Talent {id})").
+function buildTalentRef(ref: TopTalentRef, talentId: number): FlatTree {
+  const root = `${ref.name} (Talent ${talentId})`;
+  const flat: FlatTree = {
+    [`${root} / Effective Level`]: ref.effective,
+    [`${root} / Effective Level / Base Level`]: ref.base,
+    [`${root} / Effective Level / Base Level / Points Invested`]: ref.invested,
+    [`${root} / Effective Level / Bonus Levels`]: ref.bonus,
+  };
+  if (ref.super > 0) {
+    flat[`${root} / Effective Level / Super Levels`] = ref.super;
+  }
+  return flat;
+}
+
+// Toggle that turns the hypothetical-max comparison on for the Tree tab.
+function TalentTopCompareToggle({
+  active,
+  onToggle,
+  hasRef,
+}: {
+  active: boolean;
+  onToggle: () => void;
+  hasRef: boolean;
+}) {
+  return (
+    <div className="mb-3 flex flex-wrap items-center gap-2">
+      <button
+        type="button"
+        onClick={onToggle}
+        disabled={!hasRef}
+        className={`px-3 py-1.5 text-sm font-semibold rounded border transition-colors disabled:opacity-40 ${
+          active
+            ? "bg-amber-500/15 text-amber-300 border-amber-500/40"
+            : "bg-zinc-900 text-zinc-300 border-zinc-700 hover:bg-zinc-800"
+        }`}
+        title="Show each row's value against the hypothetical-max talent (best Base + Bonus across the top players)"
+      >
+        🏅{" "}
+        {active ? "Comparing vs hypothetical max" : "Compare vs hypothetical max"}
+      </button>
+      <span className="text-[11px] text-zinc-500">
+        {hasRef
+          ? "Effective / Base / Bonus rows get a 🎯 reference (best of the top players)"
+          : "No top-player reference for this talent"}
+      </span>
+    </div>
+  );
+}
+
 export default function TalentsLevelPageClient() {
   const [jsonText, setJsonText] = useState("");
   const [save, setSave] = useState<any | null>(null);
@@ -247,6 +308,8 @@ export default function TalentsLevelPageClient() {
     UnbookedCharGroup[] | null
   >(null);
   const [unbookedLoading, setUnbookedLoading] = useState(false);
+  // Tree-tab comparison against the hypothetical-max talent (top players).
+  const [compareTop, setCompareTop] = useState(false);
 
   const stageSave = useCallback(
     (text: string, opts: { silent?: boolean } = {}) => {
@@ -474,6 +537,18 @@ export default function TalentsLevelPageClient() {
     }
     return null;
   }, [tabs, talentId]);
+
+  // Hypothetical-max reference for the selected talent, shaped as a DeepView
+  // baseline (only when the comparison toggle is on and we have a reference).
+  const talentRef = TOP_TALENTS[talentId];
+  const talentBaseline = useMemo(() => {
+    if (!compareTop || !talentRef) return null;
+    return {
+      flatTree: buildTalentRef(talentRef, talentId),
+      capturedAt: Date.parse(TOP_TALENTS_GENERATED_AT),
+      charName: "Hypothetical max",
+    };
+  }, [compareTop, talentRef, talentId]);
 
   return (
     // Wider container than /drop-rate because the visual picker has to fit
@@ -774,11 +849,17 @@ export default function TalentsLevelPageClient() {
         ) : computing ? (
           <p className="text-sm text-zinc-500 italic">Computing…</p>
         ) : tree ? (
-          <DeepView
-            tree={tree}
-            baseline={null}
-            showWorldView={false}
-            extraTabs={[
+          <>
+            <TalentTopCompareToggle
+              active={compareTop}
+              onToggle={() => setCompareTop((v) => !v)}
+              hasRef={!!talentRef}
+            />
+            <DeepView
+              tree={tree}
+              baseline={talentBaseline}
+              showWorldView={false}
+              extraTabs={[
               {
                 id: "tomax",
                 label: "📚 Points to Invest",
@@ -803,8 +884,9 @@ export default function TalentsLevelPageClient() {
                   />
                 ),
               },
-            ]}
-          />
+              ]}
+            />
+          </>
         ) : (
           <p className="text-sm text-zinc-500 italic">
             Pick a talent from the grid above.
