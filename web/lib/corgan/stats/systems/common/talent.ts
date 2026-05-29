@@ -639,12 +639,17 @@ export function computeAllTalentLVz(
       (saveData.spelunkData as any)[20 + slotIdx + 12 * preset];
     if (Array.isArray(superArr) && superArr.indexOf(talentIdx) !== -1) {
       const base = 50;
-      const legend7 =
-        (Number(
-          saveData.spelunkData &&
-            (saveData.spelunkData as any)[18] &&
-            (saveData.spelunkData as any)[18][7]
-        ) || 0) * 10;
+      // Zenith Market "Super Duper Talents (Yellow 2)": up to 5 levels, +10
+      // super talent levels each.
+      const yellow2 =
+        Math.min(
+          5,
+          Number(
+            saveData.spelunkData &&
+              (saveData.spelunkData as any)[18] &&
+              (saveData.spelunkData as any)[18][7]
+          ) || 0
+        ) * 10;
       // Zenith Market "Super Dupers": up to 25 levels, +1 super level each.
       const zenithSuperDupers = Math.min(
         25,
@@ -654,7 +659,7 @@ export function computeAllTalentLVz(
             (saveData.spelunkData as any)[45][5]
         ) || 0
       );
-      spelunkBonus = Math.round(base + legend7 + zenithSuperDupers);
+      spelunkBonus = Math.round(base + yellow2 + zenithSuperDupers);
     }
   }
 
@@ -845,12 +850,18 @@ function resolveAllTalentLVz(
     // membership — Legend7/W7B5 don't depend on which talent is selected,
     // only on account progress.
     const base = 50;
-    const legend7 =
-      (Number(
+    // Zenith Market "Super Duper Talents (Yellow 2)": up to 5 levels, each
+    // giving +10 super talent levels (5 × 10 = 50 when maxed).
+    const yellow2PerLv = 10;
+    const yellow2Level = Math.min(
+      5,
+      Number(
         saveData.spelunkData &&
           (saveData.spelunkData as any)[18] &&
           (saveData.spelunkData as any)[18][7]
-      ) || 0) * 10;
+      ) || 0
+    );
+    const yellow2 = yellow2Level * yellow2PerLv;
     // Zenith Market "Super Dupers": up to 25 levels, each adding 1 super
     // level (so the bonus equals the level count, capped at 25).
     const zenithPerLv = 1;
@@ -863,7 +874,7 @@ function resolveAllTalentLVz(
       ) || 0
     );
     const zenithSuperDupers = zenithLevel * zenithPerLv;
-    potentialSuperBonus = Math.round(base + legend7 + zenithSuperDupers);
+    potentialSuperBonus = Math.round(base + yellow2 + zenithSuperDupers);
     const superArr =
       saveData.spelunkData &&
       (saveData.spelunkData as any)[20 + slotIdx + 12 * preset];
@@ -874,10 +885,18 @@ function resolveAllTalentLVz(
       spelunkBonus = potentialSuperBonus;
       const kids: CorganNode[] = [
         node("Base", base, null, { fmt: "raw" }),
-        node("Spelunky Super Talent (Legend 7)", legend7, null, {
-          fmt: "raw",
-          note: "Spelunk[18][7] × 10",
-        }),
+        node(
+          "Super Duper Talents (Yellow 2)",
+          yellow2,
+          [
+            node("Base", yellow2PerLv, null, { fmt: "raw" }),
+            node("Level", yellow2Level, null, {
+              fmt: "raw",
+              note: "Zenith Market — Spelunk[18][7] (max 5)",
+            }),
+          ],
+          { fmt: "raw", note: "+10 super levels per level" }
+        ),
         node(
           "Zenith Super Dupers",
           zenithSuperDupers,
