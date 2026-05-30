@@ -171,4 +171,11 @@ export const communityTools: SheetLink[] = [
     url: "https://idleon-optimizer.vercel.app/",
     description: "A tool to optimize your Legends of Idleon progression.",
   },
+  {
+    name: "IE AutoReview Tool",
+    url: "https://beta-ieautoreview-scoli.pythonanywhere.com/",
+    description:
+      "Automated account review and progress tracking for your Idleon characters.",
+    author: "Scoli290",
+  },
 ];
