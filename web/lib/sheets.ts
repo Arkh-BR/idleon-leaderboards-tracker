@@ -167,7 +167,7 @@ export const communityTools: SheetLink[] = [
     author: "symbiotescorns",
   },
   {
-    name: "Idleon Optimizer",
+    name: "Idleon Clickers Optimizer",
     url: "https://idleon-optimizer.vercel.app/",
     description: "A tool to optimize your Legends of Idleon progression.",
   },
