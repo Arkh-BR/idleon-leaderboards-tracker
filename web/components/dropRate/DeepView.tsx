@@ -23,7 +23,14 @@
 // at-a-glance which sources are pulling the most weight.
 // ============================================================================
 
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+} from "react";
 import type { CorganNode } from "@/lib/corgan/node";
 import {
   parseSystemFromBucketName,
@@ -464,7 +471,7 @@ function TreeRow({
   return (
     <div>
       <div
-        className={`group flex items-center gap-2 px-2 border-b border-white/5 transition-colors ${
+        className={`dr-row-indent group flex items-center gap-2 px-2 border-b border-white/5 transition-colors ${
           hasChildren ? "cursor-pointer hover:bg-sky-500/5" : ""
         } ${
           isPoolHeader
@@ -473,7 +480,10 @@ function TreeRow({
             ? "py-0.5 text-xs"
             : "py-1.5 text-sm"
         } ${isZero && !hasChildren ? "opacity-40" : ""}`}
-        style={{ paddingLeft: `${0.5 + depth * 1.0}rem` }}
+        // Indentation is driven by --dr-depth so it can shrink on mobile (see
+        // .dr-row-indent in globals.css), giving the label room as children
+        // open without pushing the value column off-screen.
+        style={{ ["--dr-depth"]: depth } as CSSProperties}
         onClick={() => hasChildren && onToggle(path, !open)}
         title={node.note}
       >
@@ -943,30 +953,23 @@ export default function DeepView({
           baseline={baselineFlat}
         />
       ) : (
-      <div className="rounded border border-zinc-800 bg-zinc-950/40 overflow-x-auto">
-        {/* min-width keeps the breakdown legible on mobile: instead of the
-            rows squeezing (and the label shrinking) as children open and the
-            indentation grows, the tree keeps a readable width and the user
-            scrolls horizontally. On desktop the viewport is already wider, so
-            this has no visible effect. */}
-        <div className="min-w-[36rem]">
-          <TreeRow
-            node={tree}
-            depth={0}
-            parentPathStr=""
-            siblings={[tree]}
-            siblingIndex={0}
-            parentPath={[]}
-            expandState={expandState}
-            onToggle={toggleNode}
-            searchTerm={searchTerm}
-            hideZeroMap={hideZeroMap}
-            searchMatchMap={searchMatchMap}
-            root={tree}
-            stats={stats}
-            baseline={baselineFlat}
-          />
-        </div>
+      <div className="rounded border border-zinc-800 bg-zinc-950/40">
+        <TreeRow
+          node={tree}
+          depth={0}
+          parentPathStr=""
+          siblings={[tree]}
+          siblingIndex={0}
+          parentPath={[]}
+          expandState={expandState}
+          onToggle={toggleNode}
+          searchTerm={searchTerm}
+          hideZeroMap={hideZeroMap}
+          searchMatchMap={searchMatchMap}
+          root={tree}
+          stats={stats}
+          baseline={baselineFlat}
+        />
       </div>
       )}
     </div>

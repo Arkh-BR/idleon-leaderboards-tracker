@@ -33,3 +33,16 @@ select:focus {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* DeepView tree indentation, driven by the --dr-depth CSS var set per row.
+   Desktop keeps the original 1rem-per-level step. On narrow screens the step
+   shrinks so the label keeps room as children open — without pushing the
+   value column off-screen (which is what a horizontal scroll would do). */
+.dr-row-indent {
+  padding-left: calc(0.5rem + var(--dr-depth, 0) * 1rem);
+}
+@media (max-width: 640px) {
+  .dr-row-indent {
+    padding-left: calc(0.4rem + var(--dr-depth, 0) * 0.5rem);
+  }
+}
