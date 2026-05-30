@@ -201,10 +201,10 @@ function CharSection({
   showNotes: boolean;
 }) {
   const booked = group.totalScanned - group.items.length;
-  // tabIndex → open. Missing key defaults to open (show everything; the user
-  // collapses what they don't care about).
+  // tabIndex → open. Missing key defaults to closed — when a character is
+  // expanded its tabs start collapsed, and the user opens the ones they want.
   const [openTabs, setOpenTabs] = useState<Record<number, boolean>>({});
-  const isTabOpen = (tabIndex: number) => openTabs[tabIndex] ?? true;
+  const isTabOpen = (tabIndex: number) => openTabs[tabIndex] ?? false;
   const toggleTab = (tabIndex: number) =>
     setOpenTabs((m) => ({ ...m, [tabIndex]: !isTabOpen(tabIndex) }));
 
