@@ -943,23 +943,30 @@ export default function DeepView({
           baseline={baselineFlat}
         />
       ) : (
-      <div className="rounded border border-zinc-800 bg-zinc-950/40">
-        <TreeRow
-          node={tree}
-          depth={0}
-          parentPathStr=""
-          siblings={[tree]}
-          siblingIndex={0}
-          parentPath={[]}
-          expandState={expandState}
-          onToggle={toggleNode}
-          searchTerm={searchTerm}
-          hideZeroMap={hideZeroMap}
-          searchMatchMap={searchMatchMap}
-          root={tree}
-          stats={stats}
-          baseline={baselineFlat}
-        />
+      <div className="rounded border border-zinc-800 bg-zinc-950/40 overflow-x-auto">
+        {/* min-width keeps the breakdown legible on mobile: instead of the
+            rows squeezing (and the label shrinking) as children open and the
+            indentation grows, the tree keeps a readable width and the user
+            scrolls horizontally. On desktop the viewport is already wider, so
+            this has no visible effect. */}
+        <div className="min-w-[36rem]">
+          <TreeRow
+            node={tree}
+            depth={0}
+            parentPathStr=""
+            siblings={[tree]}
+            siblingIndex={0}
+            parentPath={[]}
+            expandState={expandState}
+            onToggle={toggleNode}
+            searchTerm={searchTerm}
+            hideZeroMap={hideZeroMap}
+            searchMatchMap={searchMatchMap}
+            root={tree}
+            stats={stats}
+            baseline={baselineFlat}
+          />
+        </div>
       </div>
       )}
     </div>
