@@ -322,3 +322,17 @@ export function computeVialByKey(
   }
   return treeResult(total, children);
 }
+
+// Resolver for drop-rate (and other) descriptors: a vial identified by its
+// effect key (AlchemyDescription[4][*][11], e.g. "7drMulto" = W7 Ship-in-a-Bottle,
+// the % Drop Rate MULTIPLIER vial). The game applies it as ×(1 + val/100), so we
+// return fmt "+" — the post-mult pool turns that into the multiplier.
+export const vial = {
+  resolve(id: string, ctx: Ctx): CorganNode {
+    const r = computeVialByKey(id, ctx.saveData);
+    return node("Drop Rate Vial", r.val, r.children, {
+      fmt: "+",
+      note: "vial " + id,
+    });
+  },
+};

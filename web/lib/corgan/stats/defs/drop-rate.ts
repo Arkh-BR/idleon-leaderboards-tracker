@@ -95,6 +95,9 @@ const dropRateDesc: Descriptor = {
       { system: "compMulti", id: 26, args: [1.3] },
       { system: "compMulti", id: 160, args: [1.5, 2] },
       { system: "compMulti", id: 50, args: [1.01, 2500] },
+      // W7 Ship-in-a-Bottle vial — % Drop Rate MULTIPLIER. Game applies it as
+      // ×(1 + val/100); a pure mult, so order within the chain doesn't matter.
+      { system: "vial", id: "7drMulto" },
     ],
   },
 
