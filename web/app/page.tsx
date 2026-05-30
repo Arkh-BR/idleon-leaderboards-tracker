@@ -51,6 +51,13 @@ export default function HomePage() {
           description="Per-talent Effective Level breakdown, plus account-wide scans: points still to invest and talents that still need books."
           cta="Open Talents"
         />
+        <ShortcutCard
+          href="/sheets"
+          icon="📊"
+          title="Sheets"
+          description="A curated hub of Idleon spreadsheets — the ones I maintain plus community sheets worth bookmarking."
+          cta="Open Sheets"
+        />
       </div>
 
       <footer className="mt-16 text-xs text-zinc-600 text-center border-t border-zinc-900 pt-4">
