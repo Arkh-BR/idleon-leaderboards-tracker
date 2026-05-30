@@ -32,7 +32,7 @@ export const mySheets: SheetLink[] = [
 // Community / third-party sheets.
 export const communitySheets: SheetLink[] = [
   {
-    name: "Sampling Sheet",
+    name: "AlmostPsycho's Sampling Sheet",
     url: "https://docs.google.com/spreadsheets/d/1at-y9t5ohYky33nOLoSxHYeyRX-3T91paj-nTSHrB3c/edit?gid=1826222324#gid=1826222324",
     description:
       "Comprehensive sampling guide — optimal gear, food, prayers and more. An updated take on Herus' classic sheet.",
