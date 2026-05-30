@@ -37,6 +37,9 @@ export type UnbookedItem = {
   bonusText: string;
   /** Tab the talent lives in (for context — e.g. "Death Bringer"). */
   tab: string;
+  /** Index of the tab within the class — used to order the grouped output
+   *  in the original in-game tab sequence (Rage Basics, Warrior, …). */
+  tabIndex: number;
   /** Current cap (SM_{ci}[id]). */
   currentCap: number;
   /** Ceiling cap a fully-booked talent reaches (account-wide maxBookLv). */
@@ -100,7 +103,8 @@ export function computeUnbooked(rawEnvelope: any): UnbookedCharGroup[] {
     const seen = new Set<number>();
     let totalScanned = 0;
 
-    for (const tab of cls.tabs) {
+    for (let ti = 0; ti < cls.tabs.length; ti++) {
+      const tab = cls.tabs[ti];
       // Star talents are pool-capped — no book cap to raise.
       if (tab.name.startsWith("Special Talent")) continue;
       const tabLabel = tab.name.replace(/_/g, " ");
@@ -122,6 +126,7 @@ export function computeUnbooked(rawEnvelope: any): UnbookedCharGroup[] {
           name: friendly,
           bonusText: cleanLvlUpText(t.lvlUpText),
           tab: tabLabel,
+          tabIndex: ti,
           currentCap,
           maxCap: maxBookLv,
           booksNeeded: maxBookLv - currentCap,
