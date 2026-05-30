@@ -24,3 +24,12 @@ select:focus {
    every inline formula-note span collapses. CSS-based instead of prop-threaded
    so the toggle stays cheap (no re-renders of the tree). */
 [data-hide-notes="1"] .dr-node-note { display: none; }
+
+/* Horizontally-scrollable nav on mobile, without a visible scrollbar.
+   The TopNav overflows on narrow screens; this lets the user swipe through
+   the tabs while keeping the bar a single clean line. */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

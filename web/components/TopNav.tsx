@@ -17,7 +17,7 @@ export default function TopNav() {
   const pathname = usePathname();
   return (
     <nav className="sticky top-0 z-30 border-b border-zinc-800 bg-zinc-950/95 backdrop-blur supports-[backdrop-filter]:bg-zinc-950/75">
-      <div className="max-w-7xl mx-auto px-4 flex items-center gap-1">
+      <div className="max-w-7xl mx-auto flex items-center gap-1 overflow-x-auto no-scrollbar px-2 sm:px-4">
         {ITEMS.map((item) => {
           const active =
             item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
@@ -25,13 +25,13 @@ export default function TopNav() {
             <Link
               key={item.href}
               href={item.href}
-              className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${
+              className={`shrink-0 whitespace-nowrap px-3 sm:px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
                 active
                   ? "border-gold text-gold"
                   : "border-transparent text-zinc-400 hover:text-zinc-200"
               }`}
             >
-              <span>{item.label}</span>
+              {item.label}
             </Link>
           );
         })}
