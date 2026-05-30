@@ -7,7 +7,7 @@ import {
 } from "@/lib/sheets";
 
 export const metadata: Metadata = {
-  title: "Sheets",
+  title: "Sheets & Tools",
   description:
     "A curated hub of Idleon spreadsheets and sites — the ones I maintain plus community sheets and tools worth bookmarking.",
 };
@@ -18,7 +18,7 @@ export default function SheetsPage() {
       <header className="mb-8">
         <div className="flex items-center gap-3 mb-2">
           <span className="text-3xl">📊</span>
-          <h1 className="text-2xl font-bold text-gold">Sheets</h1>
+          <h1 className="text-2xl font-bold text-gold">Sheets &amp; Tools</h1>
         </div>
         <p className="text-zinc-400 text-sm max-w-2xl">
           A hub of useful Idleon spreadsheets and sites — the ones I maintain,

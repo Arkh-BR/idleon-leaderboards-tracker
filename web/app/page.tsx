@@ -54,9 +54,9 @@ export default function HomePage() {
         <ShortcutCard
           href="/sheets"
           icon="📊"
-          title="Sheets"
+          title="Sheets & Tools"
           description="A curated hub of Idleon spreadsheets and community sites — the ones I maintain plus other tools worth bookmarking."
-          cta="Open Sheets"
+          cta="Open Sheets & Tools"
         />
       </div>
 
