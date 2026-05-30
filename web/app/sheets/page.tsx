@@ -1,10 +1,15 @@
 import type { Metadata } from "next";
-import { mySheets, communitySheets, type SheetLink } from "@/lib/sheets";
+import {
+  mySheets,
+  communitySheets,
+  communitySites,
+  type SheetLink,
+} from "@/lib/sheets";
 
 export const metadata: Metadata = {
   title: "Sheets",
   description:
-    "A curated hub of Idleon spreadsheets — the ones I maintain plus community sheets worth bookmarking.",
+    "A curated hub of Idleon spreadsheets and sites — the ones I maintain plus community sheets and tools worth bookmarking.",
 };
 
 export default function SheetsPage() {
@@ -16,8 +21,9 @@ export default function SheetsPage() {
           <h1 className="text-2xl font-bold text-gold">Sheets</h1>
         </div>
         <p className="text-zinc-400 text-sm max-w-2xl">
-          A hub of useful Idleon spreadsheets — the ones I maintain, plus
-          community sheets worth bookmarking. Links open in a new tab.
+          A hub of useful Idleon spreadsheets and sites — the ones I maintain,
+          plus community sheets and tools worth bookmarking. Links open in a new
+          tab.
         </p>
       </header>
 
@@ -33,6 +39,14 @@ export default function SheetsPage() {
         title="Community Sheets"
         subtitle="Great sheets made by other players. Full credit to their authors."
         sheets={communitySheets}
+      />
+
+      <SheetSection
+        icon="🔗"
+        title="Community Sites"
+        subtitle="Useful tools, wikis and dashboards from the wider Idleon community."
+        sheets={communitySites}
+        cta="Open site"
       />
 
       <footer className="mt-12 text-xs text-zinc-600 text-center border-t border-zinc-900 pt-4">
@@ -55,11 +69,13 @@ function SheetSection({
   title,
   subtitle,
   sheets,
+  cta = "Open sheet",
 }: {
   icon: string;
   title: string;
   subtitle: string;
   sheets: SheetLink[];
+  cta?: string;
 }) {
   return (
     <section className="mb-10">
@@ -77,7 +93,7 @@ function SheetSection({
       ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {sheets.map((sheet) => (
-            <SheetCard key={sheet.url} sheet={sheet} />
+            <SheetCard key={sheet.url} sheet={sheet} cta={cta} />
           ))}
         </div>
       )}
@@ -85,7 +101,7 @@ function SheetSection({
   );
 }
 
-function SheetCard({ sheet }: { sheet: SheetLink }) {
+function SheetCard({ sheet, cta }: { sheet: SheetLink; cta: string }) {
   return (
     <a
       href={sheet.url}
@@ -105,7 +121,7 @@ function SheetCard({ sheet }: { sheet: SheetLink }) {
         </p>
       )}
       <div className="text-sm font-semibold text-gold flex items-center gap-1">
-        Open sheet
+        {cta}
         <span className="transition-transform group-hover:translate-x-1">↗</span>
       </div>
     </a>
