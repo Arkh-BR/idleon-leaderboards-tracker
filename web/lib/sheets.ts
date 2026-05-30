@@ -135,9 +135,10 @@ export const communitySites: SheetLink[] = [
       "The community wiki — items, monsters, mechanics, drop tables and guides.",
   },
   {
-    name: "Arcane Drops",
+    name: "Arcanist Drops",
     url: "https://codepen.io/NotCorgan/pen/MYwLmPz",
-    description: "Corgan's Arcane drops calculator.",
+    description:
+      "Shows each item's drop status based on your Arcanist upgrade Quality %.",
     author: "Corgan",
   },
   {
