@@ -335,7 +335,7 @@ const RULES: Rule[] = [
 
   // ----- World systems (entity-name-tagged) -----
   { match: /\(Stamp\s/, system: "Stamps" },
-  { match: /\(Bubble\s|\(Vial\s|^Droppin Loads|^Shimmer/i, system: "Alchemy" },
+  { match: /\(Bubble\s|\(Vial\s|Vial$|^Droppin Loads|^Shimmer/i, system: "Alchemy" },
   { match: /\(Sigil\s|Sigil$/i, system: "Sigils" },
   { match: /\(Post Office\s/i, system: "Post Office" },
   { match: /\(Arcade\s/, system: "Arcade" },

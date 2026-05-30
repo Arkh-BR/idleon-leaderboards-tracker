@@ -43,5 +43,5 @@ export const MAP_NAMES: readonly string[] = [
   "Z", "Z", "Z", "Z", "Shimmerfin_Grove", "Refraction_Bend", "Doodle_Reef", "Seaweed_Street",
   "Barnacle_Curb", "Balloon_Bay", "The_Clamworks", "Plastic_Basin", "Puffpuff_Overpass", "Pinpoint_Summit", "Middle_of_Nowhere", "Coralcave_Outskirts",
   "Coralcave_Perimeter", "Unused", "Unused", "Deep_End_of_the_Koipond", "Minefield", "Pirate_Upper_Deck", "Sushi_Perimeter", "Jellofish_Fields",
-  "Where_the_Kelp_Meets_Trench", "Trench_Precipice", "fillername", "fillername", "fillername", "Pirate_Mess_Hall", "fillername",
+  "Where_the_Kelp_Meets_Trench", "Trench_Precipice", "fillername", "fillername", "fillername", "Pirate_Mess_Hall", "Dreadnaught_Chamber",
 ] as const;

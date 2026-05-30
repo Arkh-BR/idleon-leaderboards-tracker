@@ -6,7 +6,7 @@ import type { CorganNode } from "../node";
 
 import { talent } from "./systems/common/talent";
 import { stamp } from "./systems/w1/stamp";
-import { alchemy, sigil } from "./systems/w2/alchemy";
+import { alchemy, sigil, vial } from "./systems/w2/alchemy";
 import { prayer } from "./systems/w3/prayer";
 import { shrine } from "./systems/w3/construction";
 import { arcade } from "./systems/w2/arcade";
@@ -67,6 +67,7 @@ const _systems: Record<string, SystemResolver> = {
   stamp: stamp as unknown as SystemResolver,
   alchemy: alchemy as unknown as SystemResolver,
   sigil: sigil as unknown as SystemResolver,
+  vial: vial as unknown as SystemResolver,
   prayer: prayer as unknown as SystemResolver,
   shrine: shrine as unknown as SystemResolver,
   arcade: arcade as unknown as SystemResolver,
