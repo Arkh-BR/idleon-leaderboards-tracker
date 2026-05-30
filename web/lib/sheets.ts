@@ -135,9 +135,9 @@ export const communitySites: SheetLink[] = [
       "The community wiki — items, monsters, mechanics, drop tables and guides.",
   },
   {
-    name: "Corgan's CodePen",
+    name: "Arcane Drops",
     url: "https://codepen.io/NotCorgan/pen/MYwLmPz",
-    description: "Interactive Idleon calculators and references by Corgan.",
+    description: "Corgan's Arcane drops calculator.",
     author: "Corgan",
   },
   {
