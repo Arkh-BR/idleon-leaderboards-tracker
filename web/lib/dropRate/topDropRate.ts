@@ -2046,7 +2046,7 @@ export const TOP_DR_FLAT: FlatMap = {
     "Drop Rate / Post-Processing": 275.41267906550473,
     "Drop Rate / Post-Processing / ⚗️ Alchemy": 1.0156,
     "Drop Rate / Post-Processing / ⚗️ Alchemy / Drop Rate Vial": 1.56,
-    "Drop Rate / Post-Processing / ⚗️ Alchemy / Drop Rate Vial / Ship in a Bottle": 1.56,
+    "Drop Rate / Post-Processing / ⚗️ Alchemy / Drop Rate Vial / SHIPINABOTTLE": 1.56,
     "Drop Rate / Post-Processing / ⛏️ Minehead": 1.1,
     "Drop Rate / Post-Processing / ⛏️ Minehead / Minehead Floor 0": 10,
     "Drop Rate / Post-Processing / ⛏️ Minehead / Minehead Floor 0 / Bonus Value": 10,
