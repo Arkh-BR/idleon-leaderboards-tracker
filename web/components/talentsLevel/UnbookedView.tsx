@@ -201,18 +201,35 @@ function CharSection({
   showNotes: boolean;
 }) {
   const booked = group.totalScanned - group.items.length;
+  // tabIndex → open. Missing key defaults to open (show everything; the user
+  // collapses what they don't care about).
+  const [openTabs, setOpenTabs] = useState<Record<number, boolean>>({});
+  const isTabOpen = (tabIndex: number) => openTabs[tabIndex] ?? true;
+  const toggleTab = (tabIndex: number) =>
+    setOpenTabs((m) => ({ ...m, [tabIndex]: !isTabOpen(tabIndex) }));
+
   // Group the char's unbooked talents by their skill tab (Rage Basics,
   // Warrior, …), keeping the in-game tab order. Within a tab, items stay in
   // the incoming order (books-needed desc).
   const tabGroups = useMemo(() => {
     const map = new Map<
       string,
-      { tab: string; tabIndex: number; items: UnbookedItem[] }
+      {
+        tab: string;
+        tabIndex: number;
+        tabIconId: number;
+        items: UnbookedItem[];
+      }
     >();
     for (const it of group.items) {
       let entry = map.get(it.tab);
       if (!entry) {
-        entry = { tab: it.tab, tabIndex: it.tabIndex, items: [] };
+        entry = {
+          tab: it.tab,
+          tabIndex: it.tabIndex,
+          tabIconId: it.tabIconId,
+          items: [],
+        };
         map.set(it.tab, entry);
       }
       entry.items.push(it);
@@ -245,21 +262,46 @@ function CharSection({
       </button>
       {open && (
         <div>
-          {tabGroups.map((tg) => (
-            <div key={tg.tab}>
-              {/* Tab header — tells the user which class skill tab the
-                  talents below belong to (Rage Basics, Warrior, …). */}
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-zinc-900/60 border-b border-zinc-800/60 text-[11px] font-semibold uppercase tracking-wide text-sky-400/90">
-                <span className="truncate">{tg.tab}</span>
-                <span className="text-zinc-600 font-normal normal-case">
-                  {tg.items.length} unbooked
-                </span>
+          {tabGroups.map((tg) => {
+            const tabOpen = isTabOpen(tg.tabIndex);
+            return (
+              <div key={tg.tab}>
+                {/* Collapsible tab header — tells the user which class skill
+                    tab the talents below belong to (Rage Basics, Warrior, …)
+                    and lets them fold each tab away. */}
+                <button
+                  type="button"
+                  onClick={() => toggleTab(tg.tabIndex)}
+                  className="w-full flex items-center gap-2 px-3 py-1.5 bg-zinc-900/60 border-b border-zinc-800/60 text-[11px] font-semibold uppercase tracking-wide text-sky-400/90 hover:bg-white/5"
+                  title={tabOpen ? "Collapse tab" : "Expand tab"}
+                >
+                  <span className="w-3 text-zinc-500 select-none normal-case">
+                    {tabOpen ? "▾" : "▸"}
+                  </span>
+                  <img
+                    src={`/talent-icons/UISkillIcon${tg.tabIconId}.png`}
+                    alt=""
+                    aria-hidden
+                    className="w-5 h-5 object-contain flex-shrink-0"
+                    style={{ imageRendering: "pixelated" }}
+                    loading="lazy"
+                  />
+                  <span className="truncate">{tg.tab}</span>
+                  <span className="ml-auto text-zinc-600 font-normal normal-case">
+                    {tg.items.length} unbooked
+                  </span>
+                </button>
+                {tabOpen &&
+                  tg.items.map((it) => (
+                    <TalentRow
+                      key={it.talentId}
+                      item={it}
+                      showNotes={showNotes}
+                    />
+                  ))}
               </div>
-              {tg.items.map((it) => (
-                <TalentRow key={it.talentId} item={it} showNotes={showNotes} />
-              ))}
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </section>
