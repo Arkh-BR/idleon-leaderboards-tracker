@@ -55,7 +55,7 @@ export default function HomePage() {
           href="/sheets"
           icon="📊"
           title="Sheets & Tools"
-          description="A curated hub of Idleon spreadsheets and community sites — the ones I maintain plus other tools worth bookmarking."
+          description="A curated hub of Idleon spreadsheets and community tools — the ones I maintain plus others worth bookmarking."
           cta="Open Sheets & Tools"
         />
       </div>
