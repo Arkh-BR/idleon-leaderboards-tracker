@@ -273,16 +273,6 @@ export function bubbleValByKey(
   return treeResult(0, null);
 }
 
-// Vial display names: most codenames are SCREAMING_SNAKE (CRAB_JUICE →
-// "Crab Juice") and title-case cleanly; a few run-together codenames have no
-// separators (SHIPINABOTTLE) and need an explicit override.
-const VIAL_NAME_OVERRIDES: Record<string, string> = {
-  SHIPINABOTTLE: "Ship in a Bottle",
-};
-function vialDisplayName(code: string): string {
-  return VIAL_NAME_OVERRIDES[code] || titleCaseFromSnake(code);
-}
-
 export function computeVialByKey(
   effectKey: string,
   saveData: SaveData
@@ -318,7 +308,7 @@ export function computeVialByKey(
       labMult * (1 + dNzz / 100) * (1 + meritoc20 / 100) * rawVal;
     total += contrib;
     children.push(
-      node(vialDisplayName(vials[vi][0]) || "Vial " + vi, contrib, null, {
+      node(vials[vi][0] || "Vial " + vi, contrib, null, {
         fmt: "raw",
         note:
           "lab×" +
