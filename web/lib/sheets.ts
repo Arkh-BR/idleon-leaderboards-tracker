@@ -140,4 +140,18 @@ export const communitySites: SheetLink[] = [
     description: "Interactive Idleon calculators and references by Corgan.",
     author: "Corgan",
   },
+  {
+    name: "Idleon Research Optimizer",
+    url: "https://corgan.github.io/idleon-research-optimizer",
+    description:
+      "Plans and optimizes your research strategy — part of Corgan's Idleon Builds calculators.",
+    author: "Corgan",
+  },
+  {
+    name: "Idleon Daily Checklist",
+    url: "https://symbiotescorns.github.io/idleon-checklist/",
+    description:
+      "Daily and weekly reset checklist with built-in timers to track your tasks.",
+    author: "symbiotescorns",
+  },
 ];
