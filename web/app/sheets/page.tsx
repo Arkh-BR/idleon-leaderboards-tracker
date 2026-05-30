@@ -21,7 +21,7 @@ export default function SheetsPage() {
           <h1 className="text-2xl font-bold text-gold">Sheets &amp; Tools</h1>
         </div>
         <p className="text-zinc-400 text-sm max-w-2xl">
-          A hub of useful Idleon spreadsheets and sites — the ones I maintain,
+          A hub of useful Idleon spreadsheets and tools — the ones I maintain,
           plus community sheets and tools worth bookmarking. Links open in a new
           tab.
         </p>

@@ -107,6 +107,17 @@ export const communitySheets: SheetLink[] = [
       "Multiple helpers in one — tomes, drop rates, bubbles and more.",
     author: "Antho982 & Arkh",
   },
+  {
+    name: "Idleon Complete Guide",
+    url: "https://docs.google.com/spreadsheets/d/12_pmLmTwVz6RruBnt63WdvvhL4l0BDN4bh9i8iNGUWo/edit?gid=1880636113#gid=1880636113",
+    description:
+      "In-depth progression guide — lab, breeding, pets, bosses and more.",
+  },
+  {
+    name: "IdleOn Guide Sheet",
+    url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSCepYAs6sNDP4iq6MJNAG1pvFXzfC_3IQ7ttt5vfEEKAgQhIk4cQqnLRyeH6UyqDSuP4R-6WQeDmmP/pubhtml#gid=893917212",
+    description: "Comprehensive game reference and tracking resource.",
+  },
 ];
 
 // Community tools — non-spreadsheet tools, wikis and dashboards.
@@ -154,5 +165,10 @@ export const communityTools: SheetLink[] = [
     description:
       "Daily and weekly reset checklist with built-in timers to track your tasks.",
     author: "symbiotescorns",
+  },
+  {
+    name: "Idleon Optimizer",
+    url: "https://idleon-optimizer.vercel.app/",
+    description: "A tool to optimize your Legends of Idleon progression.",
   },
 ];
