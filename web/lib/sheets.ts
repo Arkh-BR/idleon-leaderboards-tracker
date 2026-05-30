@@ -109,8 +109,8 @@ export const communitySheets: SheetLink[] = [
   },
 ];
 
-// Community sites — non-spreadsheet tools, wikis and dashboards.
-export const communitySites: SheetLink[] = [
+// Community tools — non-spreadsheet tools, wikis and dashboards.
+export const communityTools: SheetLink[] = [
   {
     name: "IdleonToolbox",
     url: "https://idleontoolbox.com/",

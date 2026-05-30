@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import {
   mySheets,
   communitySheets,
-  communitySites,
+  communityTools,
   type SheetLink,
 } from "@/lib/sheets";
 
@@ -43,10 +43,10 @@ export default function SheetsPage() {
 
       <SheetSection
         icon="🔗"
-        title="Community Sites"
+        title="Community Tools"
         subtitle="Useful tools, wikis and dashboards from the wider Idleon community."
-        sheets={communitySites}
-        cta="Open site"
+        sheets={communityTools}
+        cta="Open tool"
       />
 
       <footer className="mt-12 text-xs text-zinc-600 text-center border-t border-zinc-900 pt-4">
