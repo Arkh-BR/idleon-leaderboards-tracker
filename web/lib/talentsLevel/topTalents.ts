@@ -13,13 +13,13 @@
 // default tree (they would all resolve to identical numbers anyway).
 // Auto-refreshed by scripts/update-top-talents.ts.
 //
-// Snapshot generated: 2026-05-29T20:55:53.296Z
-// Players scanned: 70
+// Snapshot generated: 2026-05-31T05:35:37.390Z
+// Players scanned: 66
 
 import type { CorganNode } from "../corgan/node";
 
-export const HYPO_TALENTS_GENERATED_AT = "2026-05-29T20:55:53.296Z";
-export const HYPO_TALENTS_PLAYERS_SCANNED = 70;
+export const HYPO_TALENTS_GENERATED_AT = "2026-05-31T05:35:37.390Z";
+export const HYPO_TALENTS_PLAYERS_SCANNED = 66;
 
 export const HYPO_DEFAULT_TREE: CorganNode = {
   "name": "Effective Level",
@@ -889,7 +889,7 @@ export const HYPO_DEFAULT_TREE: CorganNode = {
           "children": [
             {
               "name": "Player Lv",
-              "val": 1818,
+              "val": 1823,
               "fmt": "raw",
               "note": "Lv0[0]"
             }
@@ -1830,7 +1830,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, CorganNode> = {
             "children": [
               {
                 "name": "Player Lv",
-                "val": 1818,
+                "val": 1823,
                 "fmt": "raw",
                 "note": "Lv0[0]"
               }
