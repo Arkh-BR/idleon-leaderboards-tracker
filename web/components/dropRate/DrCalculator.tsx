@@ -51,6 +51,9 @@ type Props = {
   middleSlot?: React.ReactNode;
   // Optional render slot above the "Import Save JSON" box (below the header).
   topSlot?: React.ReactNode;
+  // Optional render slot right under the manual-paste box (above the controls)
+  // — used by the page for the Snapshot History section.
+  snapshotSlot?: React.ReactNode;
 };
 
 export default function DrCalculator({
@@ -58,6 +61,7 @@ export default function DrCalculator({
   compareBaseline,
   middleSlot,
   topSlot,
+  snapshotSlot,
 }: Props) {
   const [jsonText, setJsonText] = useState("");
   const [save, setSave] = useState<any | null>(null);
@@ -362,6 +366,8 @@ export default function DrCalculator({
           </button>
         </div>
       </details>
+
+      {snapshotSlot && <div className="mb-4">{snapshotSlot}</div>}
 
       {/* Analysis controls — character / map / chip gallery. Always visible
           (the save comes from the name loader above or the manual paste

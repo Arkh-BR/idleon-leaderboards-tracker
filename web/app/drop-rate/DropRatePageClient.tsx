@@ -97,32 +97,32 @@ export default function DropRatePageClient() {
 
   const effectiveBaseline = compareTop ? topBaseline : baseline;
 
-  // Render the snapshot section + the top-player toggle right under the Big
-  // DR card (above the detailed tree) via DrCalculator's middleSlot prop.
+  // The compare-vs-top toggle sits under the Big DR card (middleSlot). The
+  // snapshot history is moved up under the import box (snapshotSlot).
+  const compareBlock = (
+    <TopCompareToggle
+      active={compareTop}
+      loading={topLoading}
+      onToggle={toggleTop}
+      classTotal={
+        compareTop && topBaseline
+          ? topBaseline.flatTree["Drop Rate"] ?? null
+          : null
+      }
+      className={classKey ? classKey.replace(/_/g, " ") : null}
+      includeArcaneMap={includeArcaneMap}
+      onToggleArcaneMap={setIncludeArcaneMap}
+    />
+  );
   const snapshotBlock = (
-    <div className="flex flex-col gap-3">
-      <TopCompareToggle
-        active={compareTop}
-        loading={topLoading}
-        onToggle={toggleTop}
-        classTotal={
-          compareTop && topBaseline
-            ? topBaseline.flatTree["Drop Rate"] ?? null
-            : null
-        }
-        className={classKey ? classKey.replace(/_/g, " ") : null}
-        includeArcaneMap={includeArcaneMap}
-        onToggleArcaneMap={setIncludeArcaneMap}
-      />
-      <SnapshotSection
-        state={calcState}
-        onSelectBaseline={(b) => {
-          setBaseline(b);
-          if (b) setCompareTop(false);
-        }}
-        selectedBaselineAt={baseline?.capturedAt ?? null}
-      />
-    </div>
+    <SnapshotSection
+      state={calcState}
+      onSelectBaseline={(b) => {
+        setBaseline(b);
+        if (b) setCompareTop(false);
+      }}
+      selectedBaselineAt={baseline?.capturedAt ?? null}
+    />
   );
 
   return (
@@ -130,7 +130,8 @@ export default function DropRatePageClient() {
       <DrCalculator
         onStateChange={setCalcState}
         compareBaseline={effectiveBaseline}
-        middleSlot={snapshotBlock}
+        middleSlot={compareBlock}
+        snapshotSlot={snapshotBlock}
         topSlot={
           <AnonExcludedNote>
             Anonymous players are excluded from the top-player comparison —
