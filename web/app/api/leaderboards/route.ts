@@ -7,9 +7,16 @@ export const revalidate = 0;
 const API_BASE = "https://profiles.idleontoolbox.workers.dev/api/leaderboards";
 
 type TopEntry = { mainChar?: string; rank?: number; [k: string]: unknown };
-// Top-only response: { [category]: { public: { [boardKey]: TopEntry[] } } }
+// Top-only response: { [category]: { public: {...}, anonymous: {...} } }
+//   • `public`    — only opted-in public profiles (anonymous players omitted)
+//   • `anonymous` — the FULL ranking, with anonymous players ("Anon#xxxxxx")
+//                   included. This is what idleontoolbox.com actually shows.
 // User response:     { [boardKey]: TopEntry[] | TopEntry } — depends on category
-type TopResponse = Record<string, { public?: Record<string, TopEntry[]> } | undefined>;
+type CategoryViews = {
+  public?: Record<string, TopEntry[]>;
+  anonymous?: Record<string, TopEntry[]>;
+};
+type TopResponse = Record<string, CategoryViews | undefined>;
 type UserResponse = Record<string, TopEntry[] | TopEntry | undefined>;
 
 export type BoardResult = {
@@ -50,7 +57,11 @@ async function fetchCategoryTop(category: CategoryKey): Promise<Record<string, T
   });
   if (!r.ok) throw new Error(`top ${category}: HTTP ${r.status}`);
   const data = (await r.json()) as TopResponse;
-  return data[category]?.public ?? {};
+  // Use the full ranking (with anonymous players) so it matches IT; the
+  // client's "Hide anonymous" toggle filters them out on demand. Fall back to
+  // the public-only view if a category lacks the anonymous one.
+  const views = data[category];
+  return views?.anonymous ?? views?.public ?? {};
 }
 
 async function fetchCategoryUser(
