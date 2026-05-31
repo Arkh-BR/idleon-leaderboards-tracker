@@ -94,13 +94,20 @@ export default function ProfileNameLoader({
           {loading ? "Loading…" : "Load"}
         </button>
       </form>
-      <p className="text-[11px] text-zinc-500 mt-2">
-        Pulls your public save from IdleonToolbox automatically — no copy/paste.
-        Profile must be Public or Anonymous in IT.
-      </p>
-      {error && (
-        <p className="text-xs text-red-400 mt-2">⚠ {error}</p>
-      )}
+      <div className="mt-2 flex items-start gap-2 rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-200/90">
+        <span aria-hidden className="leading-tight text-sm">
+          ⚠️
+        </span>
+        <span className="leading-snug">
+          This loads the save the player last{" "}
+          <strong>uploaded to IdleonToolbox</strong> (the same data that feeds
+          the leaderboards) — it can be{" "}
+          <strong>older than your current in-game save</strong>. For the most
+          up-to-date numbers, paste your &ldquo;Copy for Support&rdquo; manually
+          below. The profile must be Public or Anonymous on IT.
+        </span>
+      </div>
+      {error && <p className="text-xs text-red-400 mt-2">⚠ {error}</p>}
     </div>
   );
 }
