@@ -16,6 +16,7 @@ import {
 type Tab = "leaderboards" | "dashboard";
 
 const STORAGE_KEY = "idleon-leaderboards.player";
+const HIDE_ANON_KEY = "idleon-leaderboards.hideAnon";
 
 export default function LeaderboardsPageClient() {
   const [playerInput, setPlayerInput] = useState("");
@@ -27,43 +28,73 @@ export default function LeaderboardsPageClient() {
   // Per-player baseline. Re-hydrated every time activePlayer changes so
   // switching characters doesn't bleed snapshots across them.
   const [snapshot, setSnapshot] = useState<LbSnapshot | null>(null);
+  // Whether to fetch the public-only ranking (anonymous players hidden).
+  // The toggle simply changes which dataset the proxy serves, so the table
+  // and dashboard need no special handling.
+  const [hideAnon, setHideAnon] = useState(false);
   const initialized = useRef(false);
 
-  const load = useCallback(async (name: string, force = false) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const url = `/api/leaderboards?player=${encodeURIComponent(name)}${force ? "&force=1" : ""}`;
-      const r = await fetch(url);
-      if (!r.ok) {
-        const body = await r.json().catch(() => ({}));
-        throw new Error(body.error || `HTTP ${r.status}`);
-      }
-      const json = (await r.json()) as LeaderboardsResponse;
-      setData(json);
-      setActivePlayer(name);
+  const load = useCallback(
+    async (name: string, force = false, hideAnonArg = false) => {
+      setLoading(true);
+      setError(null);
       try {
-        localStorage.setItem(STORAGE_KEY, name);
-      } catch {}
-    } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+        const url = `/api/leaderboards?player=${encodeURIComponent(name)}${
+          force ? "&force=1" : ""
+        }${hideAnonArg ? "&hideAnon=1" : ""}`;
+        const r = await fetch(url);
+        if (!r.ok) {
+          const body = await r.json().catch(() => ({}));
+          throw new Error(body.error || `HTTP ${r.status}`);
+        }
+        const json = (await r.json()) as LeaderboardsResponse;
+        setData(json);
+        setActivePlayer(name);
+        try {
+          localStorage.setItem(STORAGE_KEY, name);
+        } catch {}
+      } catch (e) {
+        setError(e instanceof Error ? e.message : String(e));
+      } finally {
+        setLoading(false);
+      }
+    },
+    []
+  );
 
   useEffect(() => {
     if (initialized.current) return;
     initialized.current = true;
     let saved = "";
+    let savedHideAnon = false;
     try {
       saved = localStorage.getItem(STORAGE_KEY) || "";
+      savedHideAnon = localStorage.getItem(HIDE_ANON_KEY) === "1";
     } catch {}
+    if (savedHideAnon) setHideAnon(true);
     if (saved) {
       setPlayerInput(saved);
-      load(saved);
+      load(saved, false, savedHideAnon);
     }
   }, [load]);
+
+  // Persist the hide-anonymous preference (independent of the player name).
+  useEffect(() => {
+    try {
+      localStorage.setItem(HIDE_ANON_KEY, hideAnon ? "1" : "0");
+    } catch {}
+  }, [hideAnon]);
+
+  // Flip the toggle and immediately re-fetch the active player with the new
+  // dataset (public vs full). Cache is keyed per player|flag, so toggling
+  // back is instant.
+  const toggleHideAnon = useCallback(
+    (next: boolean) => {
+      setHideAnon(next);
+      if (activePlayer) load(activePlayer, false, next);
+    },
+    [activePlayer, load]
+  );
 
   // Rehydrate the snapshot whenever the active player changes (or first
   // time data comes in). Resets to null cleanly if no snapshot exists.
@@ -97,7 +128,7 @@ export default function LeaderboardsPageClient() {
     e.preventDefault();
     const v = playerInput.trim();
     if (!v) return;
-    load(v);
+    load(v, false, hideAnon);
   }
 
   const hasData = data && data.boards.length > 0;
@@ -143,7 +174,7 @@ export default function LeaderboardsPageClient() {
         {activePlayer && (
           <button
             type="button"
-            onClick={() => load(activePlayer, true)}
+            onClick={() => load(activePlayer, true, hideAnon)}
             disabled={loading}
             className="border border-zinc-700 rounded px-3 py-2 text-sm disabled:opacity-50"
             title="Force refresh (skip 15min cache)"
@@ -151,6 +182,19 @@ export default function LeaderboardsPageClient() {
             🔄
           </button>
         )}
+        <label
+          className="flex items-center gap-1.5 text-sm text-zinc-400 cursor-pointer select-none px-1"
+          title="Hide anonymous (Anon#…) players from every leaderboard, matching IdleonToolbox's public view. Your own rank still counts anonymous players above you."
+        >
+          <input
+            type="checkbox"
+            checked={hideAnon}
+            onChange={(e) => toggleHideAnon(e.target.checked)}
+            disabled={loading}
+            className="accent-gold"
+          />
+          🕵️ Hide anonymous
+        </label>
         {hasData && (
           <button
             type="button"

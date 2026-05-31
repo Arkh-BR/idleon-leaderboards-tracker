@@ -7,9 +7,16 @@ export const revalidate = 0;
 const API_BASE = "https://profiles.idleontoolbox.workers.dev/api/leaderboards";
 
 type TopEntry = { mainChar?: string; rank?: number; [k: string]: unknown };
-// Top-only response: { [category]: { public: { [boardKey]: TopEntry[] } } }
+// Top-only response: { [category]: { public: {...}, anonymous: {...} } }
+//   • `public`    — only opted-in public profiles (anonymous players omitted)
+//   • `anonymous` — the FULL ranking, with anonymous players ("Anon#xxxxxx")
+//                   included; this is what idleontoolbox.com shows by default.
 // User response:     { [boardKey]: TopEntry[] | TopEntry } — depends on category
-type TopResponse = Record<string, { public?: Record<string, TopEntry[]> } | undefined>;
+type CategoryViews = {
+  public?: Record<string, TopEntry[]>;
+  anonymous?: Record<string, TopEntry[]>;
+};
+type TopResponse = Record<string, CategoryViews | undefined>;
 type UserResponse = Record<string, TopEntry[] | TopEntry | undefined>;
 
 export type BoardResult = {
@@ -40,7 +47,10 @@ function valueKeyOf(entry: TopEntry): string | null {
   return null;
 }
 
-async function fetchCategoryTop(category: CategoryKey): Promise<Record<string, TopEntry[]>> {
+async function fetchCategoryTop(
+  category: CategoryKey,
+  hideAnon: boolean
+): Promise<Record<string, TopEntry[]>> {
   const url = `${API_BASE}?leaderboard=${encodeURIComponent(category)}`;
   const r = await fetch(url, {
     headers: {
@@ -50,7 +60,11 @@ async function fetchCategoryTop(category: CategoryKey): Promise<Record<string, T
   });
   if (!r.ok) throw new Error(`top ${category}: HTTP ${r.status}`);
   const data = (await r.json()) as TopResponse;
-  return data[category]?.public ?? {};
+  const views = data[category];
+  // hideAnon → public (no anonymous players); otherwise the full ranking.
+  // Fall back to whichever view exists.
+  const primary = hideAnon ? views?.public : views?.anonymous;
+  return primary ?? views?.public ?? views?.anonymous ?? {};
 }
 
 async function fetchCategoryUser(
@@ -74,7 +88,9 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "missing ?player=" }, { status: 400 });
   }
   const force = req.nextUrl.searchParams.get("force") === "1";
-  const key = player.toLowerCase();
+  // hideAnon=1 → serve the public-only ranking; default → full ranking.
+  const hideAnon = req.nextUrl.searchParams.get("hideAnon") === "1";
+  const key = `${player.toLowerCase()}|${hideAnon ? "pub" : "all"}`;
   const cached = CACHE.get(key);
   if (!force && cached && Date.now() - cached.at < CACHE_TTL_MS) {
     return NextResponse.json(cached.data, {
@@ -89,7 +105,7 @@ export async function GET(req: NextRequest) {
     CATEGORIES.map(async (cat) => {
       try {
         const [top, user] = await Promise.all([
-          fetchCategoryTop(cat.key),
+          fetchCategoryTop(cat.key, hideAnon),
           fetchCategoryUser(cat.key, player),
         ]);
         return { cat, top, user };

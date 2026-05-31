@@ -126,6 +126,10 @@ export default function DropRatePageClient() {
 
   return (
     <main className="max-w-3xl mx-auto px-3 pb-12">
+      <p className="text-[11px] text-zinc-500 mb-3 text-center">
+        🕵️ Anonymous players are excluded from the top-player comparison —
+        anonymous profiles have no public save to compute from.
+      </p>
       <DrCalculator
         onStateChange={setCalcState}
         compareBaseline={effectiveBaseline}
