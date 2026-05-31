@@ -94,17 +94,13 @@ export default function ProfileNameLoader({
           {loading ? "Loading…" : "Load"}
         </button>
       </form>
-      <div className="mt-2 flex items-start gap-2 rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-200/90">
-        <span aria-hidden className="leading-tight text-sm">
+      <div className="mt-2 flex items-start gap-2 rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm text-amber-200/90">
+        <span aria-hidden className="leading-tight">
           ⚠️
         </span>
         <span className="leading-snug">
-          This loads the save the player last{" "}
-          <strong>uploaded to IdleonToolbox</strong> (the same data that feeds
-          the leaderboards) — it can be{" "}
-          <strong>older than your current in-game save</strong>. For the most
-          up-to-date numbers, paste your &ldquo;Copy for Support&rdquo; manually
-          below. The profile must be Public or Anonymous on IT.
+          This is the player&apos;s last upload to IdleonToolbox — it may be
+          older than your current in-game save. Paste manually for the latest.
         </span>
       </div>
       {error && <p className="text-xs text-red-400 mt-2">⚠ {error}</p>}
