@@ -127,16 +127,16 @@ export default function DropRatePageClient() {
 
   return (
     <main className="max-w-3xl mx-auto px-3 pb-12">
-      <div className="text-center mb-3">
-        <AnonExcludedNote>
-          Anonymous players are excluded from the top-player comparison —
-          anonymous profiles have no public save to compute from.
-        </AnonExcludedNote>
-      </div>
       <DrCalculator
         onStateChange={setCalcState}
         compareBaseline={effectiveBaseline}
         middleSlot={snapshotBlock}
+        topSlot={
+          <AnonExcludedNote>
+            Anonymous players are excluded from the top-player comparison —
+            anonymous profiles have no public save to compute from.
+          </AnonExcludedNote>
+        }
       />
       <footer className="mt-8 text-[11px] text-zinc-600 text-center border-t border-zinc-900 pt-3">
         Drop rate is computed locally from your save JSON — pool tree

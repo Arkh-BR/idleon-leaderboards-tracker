@@ -47,12 +47,15 @@ type Props = {
   // Breakdown — used by the page to render the snapshot section there so it
   // sits near the headline value instead of buried at the bottom.
   middleSlot?: React.ReactNode;
+  // Optional render slot above the "Import Save JSON" box (below the header).
+  topSlot?: React.ReactNode;
 };
 
 export default function DrCalculator({
   onStateChange,
   compareBaseline,
   middleSlot,
+  topSlot,
 }: Props) {
   const [jsonText, setJsonText] = useState("");
   const [save, setSave] = useState<any | null>(null);
@@ -286,6 +289,8 @@ export default function DrCalculator({
         Auto-computes from your IdleonToolbox &ldquo;Copy for Support&rdquo;
         JSON. Select character &amp; map. All processing local in your browser.
       </p>
+
+      {topSlot && <div className="text-center mb-4">{topSlot}</div>}
 
       {/* Import box — use a flex-col body with uniform gap so every inner
           row sits at the same vertical rhythm (was a grab-bag of mt-2 /
