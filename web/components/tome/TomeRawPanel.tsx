@@ -3,8 +3,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { computeTome, type TomeResult, type TomeRow } from "@/lib/tome/compute";
 import { formatIdleon } from "@/lib/format";
+import ProfileNameLoader from "@/components/ProfileNameLoader";
 
 const STORAGE_KEY = "idleon-leaderboards.tome.rawJson";
+const NAME_KEY = "idleon-leaderboards.tome.playerName";
 
 // Debug panel for validating the tome computation. Shows every task with
 // raw value, computed pts, source label, and the [x1, x2, x3] bonus tuple
@@ -20,18 +22,33 @@ export default function TomeRawPanel() {
   // the old paste. The previous JSON is still in storage (so Best Tome can
   // also hydrate) — it just doesn't get rehydrated into the input.
   useEffect(() => {
-    let saved = "";
     try {
-      saved = localStorage.getItem(STORAGE_KEY) || "";
-    } catch {}
-    if (saved) {
-      try {
-        setResult(computeTome(saved));
-      } catch (e) {
-        setError(e instanceof Error ? e.message : String(e));
-      }
+      // If a player name is remembered, ProfileNameLoader auto-fetches it.
+      if (localStorage.getItem(NAME_KEY)) return;
+      const saved = localStorage.getItem(STORAGE_KEY) || "";
+      if (saved) setResult(computeTome(saved));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
     }
   }, []);
+
+  // Load-by-name path: computeTome accepts the parsed object directly. Persist
+  // the JSON to STORAGE_KEY so the Best Tome panel (which reads the same key)
+  // sees it too; the player name is persisted by ProfileNameLoader.
+  function loadFromSave(save: any) {
+    setError(null);
+    try {
+      setResult(computeTome(save));
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(save));
+      } catch {
+        // quota exceeded — non-fatal
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+      setResult(null);
+    }
+  }
 
   function calculate() {
     setError(null);
@@ -74,6 +91,18 @@ export default function TomeRawPanel() {
 
   return (
     <div className="space-y-4">
+      {/* Primary: load by player name. */}
+      <ProfileNameLoader
+        storageKey={NAME_KEY}
+        onSave={loadFromSave}
+        onError={(msg) => setError(msg)}
+      />
+
+      {/* Manual paste — fallback for private profiles, collapsed by default. */}
+      <details className="rounded-lg bg-zinc-900/60 border border-zinc-800 p-3 space-y-4">
+        <summary className="cursor-pointer select-none font-semibold text-gold text-sm">
+          📋 Or paste the save manually
+        </summary>
       <div className="rounded-lg border border-gold/50 bg-gold/10 p-4 text-sm">
         <div className="flex items-start gap-3">
           <span className="text-2xl leading-none">📋</span>
@@ -143,6 +172,7 @@ export default function TomeRawPanel() {
           server.
         </p>
       </div>
+      </details>
 
       {error && (
         <div className="bg-red-950/50 border border-red-800 rounded p-3 text-sm">

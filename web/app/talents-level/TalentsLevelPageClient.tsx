@@ -24,6 +24,7 @@ import type { ToMaxCharGroup } from "@/lib/talentsLevel/toMax";
 import UnbookedView from "@/components/talentsLevel/UnbookedView";
 import type { UnbookedCharGroup } from "@/lib/talentsLevel/unbooked";
 import AnonExcludedNote from "@/components/AnonExcludedNote";
+import ProfileNameLoader from "@/components/ProfileNameLoader";
 import {
   hypoTreeForClass,
   HYPO_TALENTS_GENERATED_AT,
@@ -93,6 +94,7 @@ function applyStarCeiling(tree: CorganNode, talentId: number): CorganNode {
 }
 
 const SAVE_KEY = "talents-level.last-upload.v1";
+const NAME_KEY = "talents-level.playerName";
 const TALENT_KEY = "talents-level.talent-id.v1";
 const TAB_KEY = "talents-level.tab-idx.v1";
 const PRESET_KEY = "talents-level.preset-idx.v1";
@@ -334,10 +336,11 @@ export default function TalentsLevelPageClient() {
     setDeepViewTab(v);
   }, []);
 
-  const stageSave = useCallback(
-    (text: string, opts: { silent?: boolean } = {}) => {
+  // Apply an already-parsed save envelope. Shared by the paste path
+  // (stageSave) and the load-by-name path (ProfileNameLoader.onSave).
+  const applyParsedSave = useCallback(
+    (parsed: any, opts: { silent?: boolean } = {}) => {
       try {
-        const parsed = parseSave(text);
         const list = listCharacters(parsed);
         if (list.length === 0) {
           if (!opts.silent) setError("Save parsed but no characters found.");
@@ -348,29 +351,48 @@ export default function TalentsLevelPageClient() {
         setCharIdx((prev) =>
           list.some((c) => c.charIndex === prev) ? prev : list[0].charIndex
         );
-        try {
-          window.localStorage.setItem(SAVE_KEY, text);
-        } catch {
-          // quota exceeded — non-fatal
-        }
         setError(null);
         return true;
       } catch (e) {
-        if (!opts.silent) {
-          setError(e instanceof Error ? e.message : String(e));
-        }
+        if (!opts.silent) setError(e instanceof Error ? e.message : String(e));
         return false;
       }
     },
     []
   );
 
+  const stageSave = useCallback(
+    (text: string, opts: { silent?: boolean } = {}) => {
+      let parsed: unknown;
+      try {
+        parsed = parseSave(text);
+      } catch (e) {
+        if (!opts.silent) setError(e instanceof Error ? e.message : String(e));
+        return false;
+      }
+      const ok = applyParsedSave(parsed, opts);
+      if (ok) {
+        try {
+          window.localStorage.setItem(SAVE_KEY, text);
+        } catch {
+          // quota exceeded — non-fatal
+        }
+      }
+      return ok;
+    },
+    [applyParsedSave]
+  );
+
   // Hydrate save + last-picked talent + last-picked tab on mount so the
   // page survives reloads.
   useEffect(() => {
     try {
-      const raw = window.localStorage.getItem(SAVE_KEY);
-      if (raw) stageSave(raw, { silent: true });
+      // If a player name is remembered, ProfileNameLoader auto-fetches it —
+      // skip restoring a (possibly stale) pasted JSON in that case.
+      if (!window.localStorage.getItem(NAME_KEY)) {
+        const raw = window.localStorage.getItem(SAVE_KEY);
+        if (raw) stageSave(raw, { silent: true });
+      }
       const lastTalent = window.localStorage.getItem(TALENT_KEY);
       if (lastTalent) {
         const n = Number(lastTalent);
@@ -626,15 +648,26 @@ export default function TalentsLevelPageClient() {
         </AnonExcludedNote>
       </div>
 
-      {/* Import Save — same layout language as DrCalculator. */}
+      {/* Primary: load the save automatically by player name. */}
+      <ProfileNameLoader
+        storageKey={NAME_KEY}
+        onSave={(s) => applyParsedSave(s)}
+        onError={(msg) => setError(msg)}
+      />
+
+      {/* Import Save — the character selector lives here too, so it stays
+          open. The textarea is the manual fallback; the name loader above is
+          the primary path. */}
       <details
         open
         className="rounded-lg bg-zinc-900/60 p-4 mb-4 border border-zinc-800"
       >
         <summary className="cursor-pointer select-none flex items-center gap-x-2 gap-y-1 flex-wrap mb-3">
-          <span className="font-semibold text-gold">📋 Import Save JSON</span>
+          <span className="font-semibold text-gold">
+            📋 Character &middot; or paste a save manually
+          </span>
           <span className="text-xs text-zinc-500 font-normal">
-            Use the &ldquo;Copy for Support&rdquo; button on{" "}
+            Manual paste uses the &ldquo;Copy for Support&rdquo; button on{" "}
             <a
               href="https://idleontoolbox.com"
               target="_blank"

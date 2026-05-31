@@ -9,10 +9,12 @@ import { formatIdleon } from "@/lib/format";
 import { listCharacters, parseSave, type CharSummary } from "@/lib/dropRate/extract";
 import { getCharClassKey } from "@/lib/talentsLevel/charClass";
 import DeepView from "./DeepView";
+import ProfileNameLoader from "@/components/ProfileNameLoader";
 import type { CorganNode as DrNode } from "@/lib/corgan/node";
 import type { FlatTree } from "@/lib/dropRate/treeFlatten";
 
 const SAVE_KEY = "drop-rate-tracker.last-upload.v1";
+const NAME_KEY = "drop-rate-tracker.playerName";
 
 export type CalculatorState = {
   charIndex: number | null;
@@ -89,43 +91,68 @@ export default function DrCalculator({
     labSlots?: number[][];
   } | null>(null);
 
-  const stageSave = useCallback((text: string, opts: { silent?: boolean } = {}) => {
-    try {
-      const parsed = parseSave(text);
-      const list = listCharacters(parsed);
-      if (list.length === 0) {
-        if (!opts.silent) setError("Save parsed but no characters found.");
+  // Apply an already-parsed save envelope ({ data, charNames, … }) into state.
+  // Shared by the paste path (stageSave) and the load-by-name path.
+  const applyParsedSave = useCallback(
+    (parsed: any, opts: { silent?: boolean } = {}) => {
+      try {
+        const list = listCharacters(parsed);
+        if (list.length === 0) {
+          if (!opts.silent) setError("Save parsed but no characters found.");
+          return false;
+        }
+        setSave(parsed);
+        setChars(list);
+        setCharIdx((prev) =>
+          list.some((c) => c.charIndex === prev) ? prev : list[0].charIndex
+        );
+        const opts2 = buildMapOptions(parsed);
+        setMapOptions(opts2);
+        // Default to character's current map if available, else Town
+        const data = (parsed as any)?.data ?? {};
+        const currentMap = Number(data[`CurrentMap_${list[0].charIndex}`]) || 0;
+        setMapIdx(opts2.some((m) => m.index === currentMap) ? currentMap : 0);
+        setError(null);
+        return true;
+      } catch (e) {
+        if (!opts.silent) setError(e instanceof Error ? e.message : String(e));
         return false;
       }
-      setSave(parsed);
-      setChars(list);
-      setCharIdx((prev) =>
-        list.some((c) => c.charIndex === prev) ? prev : list[0].charIndex
-      );
-      const opts2 = buildMapOptions(parsed);
-      setMapOptions(opts2);
-      // Default to character's current map if available, else Town
-      const data = (parsed as any)?.data ?? {};
-      const currentMap = Number(data[`CurrentMap_${list[0].charIndex}`]) || 0;
-      setMapIdx(opts2.some((m) => m.index === currentMap) ? currentMap : 0);
-      try {
-        window.localStorage.setItem(SAVE_KEY, text);
-      } catch {
-        // quota exceeded
-      }
-      setError(null);
-      return true;
-    } catch (e) {
-      if (!opts.silent) {
-        setError(e instanceof Error ? e.message : String(e));
-      }
-      return false;
-    }
-  }, []);
+    },
+    []
+  );
 
-  // Hydrate on mount from localStorage so refresh doesn't blow away the upload
+  // Paste path: parse the raw text, apply it, and persist the JSON so a
+  // refresh keeps it (only used for manual paste; load-by-name persists the
+  // name instead).
+  const stageSave = useCallback(
+    (text: string, opts: { silent?: boolean } = {}) => {
+      let parsed: unknown;
+      try {
+        parsed = parseSave(text);
+      } catch (e) {
+        if (!opts.silent) setError(e instanceof Error ? e.message : String(e));
+        return false;
+      }
+      const ok = applyParsedSave(parsed, opts);
+      if (ok) {
+        try {
+          window.localStorage.setItem(SAVE_KEY, text);
+        } catch {
+          // quota exceeded
+        }
+      }
+      return ok;
+    },
+    [applyParsedSave]
+  );
+
+  // Hydrate on mount from localStorage so refresh doesn't blow away the upload.
+  // If a player name is remembered, the ProfileNameLoader auto-fetches it —
+  // skip restoring a (possibly stale) pasted JSON in that case.
   useEffect(() => {
     try {
+      if (window.localStorage.getItem(NAME_KEY)) return;
       const raw = window.localStorage.getItem(SAVE_KEY);
       if (raw) stageSave(raw, { silent: true });
     } catch {
@@ -292,18 +319,26 @@ export default function DrCalculator({
 
       {topSlot && <div className="text-center mb-4">{topSlot}</div>}
 
-      {/* Import box — use a flex-col body with uniform gap so every inner
-          row sits at the same vertical rhythm (was a grab-bag of mt-2 /
-          mt-3 / no-margin which made the textarea + buttons look cramped
-          while the Chip Gallery row floated further away). */}
+      {/* Primary: load the save automatically by player name. */}
+      <ProfileNameLoader
+        storageKey={NAME_KEY}
+        onSave={(s) => applyParsedSave(s)}
+        onError={(msg) => setError(msg)}
+      />
+
+      {/* Import box — character/map options live here too, so it stays open.
+          The textarea is the manual fallback for private profiles; the name
+          loader above is the primary path. */}
       <details
         open
         className="rounded-lg bg-zinc-900/60 p-4 mb-4 border border-zinc-800"
       >
         <summary className="cursor-pointer select-none flex items-center gap-x-2 gap-y-1 flex-wrap mb-3">
-          <span className="font-semibold text-gold">📋 Import Save JSON</span>
+          <span className="font-semibold text-gold">
+            📋 Character &amp; map · or paste a save manually
+          </span>
           <span className="text-xs text-zinc-500 font-normal">
-            Use the &ldquo;Copy for Support&rdquo; button on{" "}
+            Manual paste uses the &ldquo;Copy for Support&rdquo; button on{" "}
             <a
               href="https://idleontoolbox.com"
               target="_blank"
@@ -319,7 +354,7 @@ export default function DrCalculator({
           <textarea
             value={jsonText}
             onChange={(e) => setJsonText(e.target.value)}
-            placeholder='Paste the output of "Copy for Support" here (Ctrl+V)…'
+            placeholder='Or paste "Copy for Support" here (Ctrl+V)…'
             className="w-full h-20 bg-zinc-950 border border-zinc-800 rounded p-2 text-xs font-mono text-zinc-200 focus:outline-none focus:border-gold"
           />
           <div className="flex flex-wrap items-center gap-2">
