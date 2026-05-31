@@ -42,7 +42,7 @@ function hypoBaselineForClass(classKey: string | null) {
   return {
     flatTree: flattenTree(hypoTreeForClass(classKey)),
     capturedAt: HYPO_CAPTURED_AT,
-    charName: "Hypothetical max",
+    charName: "Observed max",
   };
 }
 
@@ -940,9 +940,9 @@ export default function TalentsLevelPageClient() {
               },
               {
                 id: "hypothetical",
-                label: "🧪 Hypothetical Max Lv",
+                label: "🧪 Observed Max Lv",
                 title:
-                  "Your Effective Level (Health Booster) with each row's hypothetical max in the 🎯 chip — best Base + Bonus across the top players",
+                  "Your Effective Level (Health Booster) with each row's observed max in the 🎯 chip — best Base + Bonus across the top players",
                 render: () =>
                   hypoPlayerTree ? (
                     <DeepView
