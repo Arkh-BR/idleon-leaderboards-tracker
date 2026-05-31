@@ -3,6 +3,7 @@
 import { useState } from "react";
 import TomeRawPanel from "@/components/tome/TomeRawPanel";
 import BestTomePanel from "@/components/tome/BestTomePanel";
+import AnonExcludedNote from "@/components/AnonExcludedNote";
 
 type Tab = "best" | "raw";
 
@@ -23,10 +24,10 @@ export default function TomePageClient() {
           Paste your raw save JSON from IdleonToolbox and compute the 118-task
           tome score locally. Nothing is sent to any server.
         </p>
-        <p className="text-[11px] text-zinc-500 mt-1">
-          🕵️ Anonymous players are excluded — anonymous profiles have no public
+        <AnonExcludedNote className="mt-3">
+          Anonymous players are excluded — anonymous profiles have no public
           save to compute a score from.
-        </p>
+        </AnonExcludedNote>
       </header>
 
       <div

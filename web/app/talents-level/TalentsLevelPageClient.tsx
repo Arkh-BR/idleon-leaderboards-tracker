@@ -23,6 +23,7 @@ import TalentsToMaxView from "@/components/talentsLevel/TalentsToMaxView";
 import type { ToMaxCharGroup } from "@/lib/talentsLevel/toMax";
 import UnbookedView from "@/components/talentsLevel/UnbookedView";
 import type { UnbookedCharGroup } from "@/lib/talentsLevel/unbooked";
+import AnonExcludedNote from "@/components/AnonExcludedNote";
 import {
   hypoTreeForClass,
   HYPO_TALENTS_GENERATED_AT,
@@ -618,10 +619,12 @@ export default function TalentsLevelPageClient() {
         talent. Tabs follow the character&apos;s class promotion chain plus
         the four Special Talent (star) pages.
       </p>
-      <p className="text-center text-[11px] text-zinc-500 -mt-2 mb-4">
-        🕵️ Anonymous players are excluded from the Observed Max — anonymous
-        profiles have no public save to compute from.
-      </p>
+      <div className="text-center mb-4">
+        <AnonExcludedNote>
+          Anonymous players are excluded from the Observed Max — anonymous
+          profiles have no public save to compute from.
+        </AnonExcludedNote>
+      </div>
 
       {/* Import Save — same layout language as DrCalculator. */}
       <details

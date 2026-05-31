@@ -5,6 +5,7 @@ import DrCalculator, {
   type CalculatorState,
 } from "@/components/dropRate/DrCalculator";
 import SnapshotSection from "@/components/dropRate/SnapshotSection";
+import AnonExcludedNote from "@/components/AnonExcludedNote";
 import type { FlatTree } from "@/lib/dropRate/treeFlatten";
 import {
   TOP_DR_GENERATED_AT,
@@ -126,10 +127,12 @@ export default function DropRatePageClient() {
 
   return (
     <main className="max-w-3xl mx-auto px-3 pb-12">
-      <p className="text-[11px] text-zinc-500 mb-3 text-center">
-        🕵️ Anonymous players are excluded from the top-player comparison —
-        anonymous profiles have no public save to compute from.
-      </p>
+      <div className="text-center mb-3">
+        <AnonExcludedNote>
+          Anonymous players are excluded from the top-player comparison —
+          anonymous profiles have no public save to compute from.
+        </AnonExcludedNote>
+      </div>
       <DrCalculator
         onStateChange={setCalcState}
         compareBaseline={effectiveBaseline}
