@@ -100,7 +100,8 @@ export default function TomeRawPanel() {
 
       {/* Manual paste — fallback for private profiles, collapsed by default. */}
       <details className="rounded-lg bg-zinc-900/60 border border-zinc-800 p-3 space-y-4">
-        <summary className="cursor-pointer select-none font-semibold text-gold text-sm">
+        <summary className="cursor-pointer select-none flex items-center gap-2 font-semibold text-gold text-sm">
+          <span className="dt-arrow text-zinc-500">▸</span>
           📋 Or paste the save manually
         </summary>
       <div className="rounded-lg border border-gold/50 bg-gold/10 p-4 text-sm">

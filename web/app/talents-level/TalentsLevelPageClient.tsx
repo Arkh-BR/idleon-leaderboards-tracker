@@ -655,6 +655,43 @@ export default function TalentsLevelPageClient() {
         onError={(msg) => setError(msg)}
       />
 
+      {/* Manual paste — fallback for private profiles, collapsed by default. */}
+      <details className="rounded-lg bg-zinc-900/60 p-4 mb-4 border border-zinc-800">
+        <summary className="cursor-pointer select-none flex items-center gap-2 flex-wrap">
+          <span className="dt-arrow text-zinc-500 text-sm">▸</span>
+          <span className="font-semibold text-gold">
+            📋 Or paste a save manually
+          </span>
+          <span className="text-xs text-zinc-500 font-normal">
+            Uses the &ldquo;Copy for Support&rdquo; button on{" "}
+            <a
+              href="https://idleontoolbox.com"
+              target="_blank"
+              rel="noreferrer"
+              className="text-gold hover:underline"
+              onClick={(e) => e.stopPropagation()}
+            >
+              idleontoolbox.com
+            </a>
+          </span>
+        </summary>
+        <div className="flex flex-col gap-3 mt-3">
+          <textarea
+            value={jsonText}
+            onChange={(e) => setJsonText(e.target.value)}
+            placeholder='Paste the output of "Copy for Support" here (Ctrl+V)…'
+            className="w-full h-20 bg-zinc-950 border border-zinc-800 rounded p-2 text-xs font-mono text-zinc-200 focus:outline-none focus:border-gold"
+          />
+          <button
+            type="button"
+            onClick={onLoad}
+            className="self-start px-4 py-1.5 text-sm font-semibold rounded bg-sky-500/20 text-sky-300 border border-sky-500/40 hover:bg-sky-500/30"
+          >
+            Load pasted save
+          </button>
+        </div>
+      </details>
+
       {/* Analysis controls — character / preset. Always visible (the save
           comes from the name loader above or the manual paste below). */}
       <div className="rounded-lg bg-zinc-900/60 p-4 mb-4 border border-zinc-800 flex flex-col gap-3">
@@ -725,42 +762,6 @@ export default function TalentsLevelPageClient() {
           )}
           {error && <p className="text-xs text-red-300">{error}</p>}
       </div>
-
-      {/* Manual paste — fallback for private profiles, collapsed by default. */}
-      <details className="rounded-lg bg-zinc-900/60 p-4 mb-4 border border-zinc-800">
-        <summary className="cursor-pointer select-none flex items-center gap-x-2 gap-y-1 flex-wrap">
-          <span className="font-semibold text-gold">
-            📋 Or paste a save manually
-          </span>
-          <span className="text-xs text-zinc-500 font-normal">
-            Uses the &ldquo;Copy for Support&rdquo; button on{" "}
-            <a
-              href="https://idleontoolbox.com"
-              target="_blank"
-              rel="noreferrer"
-              className="text-gold hover:underline"
-              onClick={(e) => e.stopPropagation()}
-            >
-              idleontoolbox.com
-            </a>
-          </span>
-        </summary>
-        <div className="flex flex-col gap-3 mt-3">
-          <textarea
-            value={jsonText}
-            onChange={(e) => setJsonText(e.target.value)}
-            placeholder='Paste the output of "Copy for Support" here (Ctrl+V)…'
-            className="w-full h-20 bg-zinc-950 border border-zinc-800 rounded p-2 text-xs font-mono text-zinc-200 focus:outline-none focus:border-gold"
-          />
-          <button
-            type="button"
-            onClick={onLoad}
-            className="self-start px-4 py-1.5 text-sm font-semibold rounded bg-sky-500/20 text-sky-300 border border-sky-500/40 hover:bg-sky-500/30"
-          >
-            Load pasted save
-          </button>
-        </div>
-      </details>
 
       {/* Talent picker — tab strip + grid of icon cards. Replaces the
           previous search+select combo.

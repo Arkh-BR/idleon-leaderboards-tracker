@@ -46,3 +46,13 @@ select:focus {
     padding-left: calc(0.4rem + var(--dr-depth, 0) * 0.5rem);
   }
 }
+
+/* Disclosure arrow for opt-in <details> summaries — rotates from ▸ to ▾ when
+   the section is open. Hides the default browser marker so only this shows. */
+.dt-arrow {
+  display: inline-block;
+  transition: transform 150ms ease;
+}
+details[open] > summary .dt-arrow {
+  transform: rotate(90deg);
+}
