@@ -4,6 +4,7 @@
 // — see memory/it-profiles-save-endpoint).
 
 import { CATEGORIES } from "../../lib/registry";
+import { isDenylistedPlayer, hackedSaveReason } from "./hackers";
 
 const IT_LEADERBOARDS = "https://profiles.idleontoolbox.workers.dev/api/leaderboards";
 const IT_PROFILES = "https://profiles.idleontoolbox.workers.dev/api/profiles/";
@@ -68,7 +69,8 @@ export async function gatherCandidates(
     if (name && !isAnonymous(name)) candidates.add(name);
   }
 
-  let names = [...candidates].sort();
+  // Drop known hacked/cheated profiles before they reach any collector.
+  let names = [...candidates].filter((n) => !isDenylistedPlayer(n)).sort();
   if (limit && limit > 0) names = names.slice(0, limit);
   return names;
 }
@@ -84,6 +86,14 @@ export async function fetchProfileSave(name: string): Promise<any | null> {
     if (!r.ok) return null;
     const j = await r.json();
     if (!j || typeof j !== "object" || !j.data || !Array.isArray(j.charNames)) {
+      return null;
+    }
+    // Sanity guard: discard saves that trip a cheat sentinel (e.g. impossible
+    // megafeather counts) so a single hacked profile can't poison the
+    // best-per-path snapshots.
+    const reason = hackedSaveReason(j);
+    if (reason) {
+      console.warn(`\n  · ${name}: hacked save skipped (${reason})`);
       return null;
     }
     return j;
