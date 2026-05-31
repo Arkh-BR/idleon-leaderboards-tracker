@@ -19,6 +19,29 @@ type Baseline = {
   charName: string;
 };
 
+// The Arcane Map contributes a single Post-Processing multiplier. Stripping
+// it lets the user see the hypothetical-max DR without the map's impact.
+const ARCANE_MAP_PATH = "Drop Rate / Post-Processing / 🗺️ Arcane Map";
+
+/** Copy of the top-DR flat map with the Arcane Map removed: its subtree is
+ *  dropped and the headline DR + Post-Processing totals are divided by the
+ *  map's multiplier (Post-Processing is purely multiplicative, so removing a
+ *  factor is an exact divide). */
+function stripArcaneMap(flat: FlatTree): FlatTree {
+  const m = flat[ARCANE_MAP_PATH];
+  if (!m) return { ...flat };
+  const out: FlatTree = {};
+  for (const path in flat) {
+    if (path === ARCANE_MAP_PATH || path.startsWith(`${ARCANE_MAP_PATH} / `))
+      continue;
+    out[path] = flat[path];
+  }
+  if (typeof out["Drop Rate"] === "number") out["Drop Rate"] /= m;
+  if (typeof out["Drop Rate / Post-Processing"] === "number")
+    out["Drop Rate / Post-Processing"] /= m;
+  return out;
+}
+
 export default function DropRatePageClient() {
   // The calculator owns the parse/compute state; the snapshot section
   // consumes it via this lifted state so the "Save snapshot" button always
@@ -36,6 +59,8 @@ export default function DropRatePageClient() {
   const [topMod, setTopMod] =
     useState<typeof import("@/lib/dropRate/topDropRate") | null>(null);
   const [topLoading, setTopLoading] = useState(false);
+  // Whether the hypothetical-max baseline includes the Arcane Map multiplier.
+  const [includeArcaneMap, setIncludeArcaneMap] = useState(true);
 
   const toggleTop = async () => {
     if (compareTop) {
@@ -59,12 +84,15 @@ export default function DropRatePageClient() {
   const classKey = calcState?.classKey ?? null;
   const topBaseline = useMemo<Baseline | null>(() => {
     if (!compareTop || !topMod) return null;
+    const raw = topMod.topDrFlatForClass(classKey) as FlatTree;
     return {
-      flatTree: topMod.topDrFlatForClass(classKey) as FlatTree,
+      flatTree: includeArcaneMap ? raw : stripArcaneMap(raw),
       capturedAt: Date.parse(TOP_DR_GENERATED_AT),
-      charName: `Hypothetical max (${TOP_DR_PLAYERS_SCANNED} top players)`,
+      charName: `Hypothetical max (${TOP_DR_PLAYERS_SCANNED} top players)${
+        includeArcaneMap ? "" : " · no Arcane Map"
+      }`,
     };
-  }, [compareTop, topMod, classKey]);
+  }, [compareTop, topMod, classKey, includeArcaneMap]);
 
   const effectiveBaseline = compareTop ? topBaseline : baseline;
 
@@ -82,6 +110,8 @@ export default function DropRatePageClient() {
             : null
         }
         className={classKey ? classKey.replace(/_/g, " ") : null}
+        includeArcaneMap={includeArcaneMap}
+        onToggleArcaneMap={setIncludeArcaneMap}
       />
       <SnapshotSection
         state={calcState}
@@ -116,6 +146,8 @@ function TopCompareToggle({
   onToggle,
   classTotal,
   className,
+  includeArcaneMap,
+  onToggleArcaneMap,
 }: {
   active: boolean;
   loading: boolean;
@@ -126,6 +158,9 @@ function TopCompareToggle({
   classTotal?: number | null;
   /** Display class name of the selected char (e.g. "Hunter"). */
   className?: string | null;
+  /** Whether the hypothetical-max baseline includes the Arcane Map multi. */
+  includeArcaneMap: boolean;
+  onToggleArcaneMap: (v: boolean) => void;
 }) {
   const hypoVal = classTotal ?? TOP_DR_HYPOTHETICAL_TOTAL;
   const hypo = Math.round(hypoVal).toLocaleString("en-US");
@@ -151,6 +186,18 @@ function TopCompareToggle({
           ? "Comparing vs hypothetical max"
           : "Compare vs hypothetical max"}
       </button>
+      <label
+        className="flex items-center gap-1.5 text-[11px] text-zinc-400 cursor-pointer select-none"
+        title="Include the Arcane Map's Post-Processing multiplier in the hypothetical-max DR. Uncheck to see the ceiling without the map."
+      >
+        <input
+          type="checkbox"
+          checked={includeArcaneMap}
+          onChange={(e) => onToggleArcaneMap(e.target.checked)}
+          className="accent-amber-500"
+        />
+        🗺️ Include Arcane Map
+      </label>
       <span className="text-[11px] text-zinc-500">
         Each source row gets a Δ vs the best of every top player ·{" "}
         <span title="Best-of-each-source recomputed through the DR formula. Class-specific talents (Robbing Hood / Curse of Mr Looty Booty) are gated to the selected char's class, so this ceiling is reachable by that class.">
