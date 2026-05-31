@@ -64,13 +64,13 @@ export const communitySheets: SheetLink[] = [
   },
   {
     name: "Opal Distribution Optimizer",
-    url: "https://docs.google.com/spreadsheets/d/1_Z0-mJKRMxjFb0CSmg9MlfxDgdtwNyeVDd-7Bb1wXzs/edit?gid=0#gid=0",
+    url: "https://docs.google.com/spreadsheets/d/1AFsA_eWCkcEoQk-oTR4YmrhZrLrpTqcGu52dtWdeIEk/edit?gid=1181979417#gid=1181979417",
     description:
       "Optimal Opal distribution among villagers to maximize EXP gains.",
   },
   {
     name: "Trialpears' Land Rank Optimizer",
-    url: "https://docs.google.com/spreadsheets/d/1AFsA_eWCkcEoQk-oTR4YmrhZrLrpTqcGu52dtWdeIEk/edit?gid=1181979417#gid=1181979417",
+    url: "https://docs.google.com/spreadsheets/d/1_Z0-mJKRMxjFb0CSmg9MlfxDgdtwNyeVDd-7Bb1wXzs/edit?gid=0#gid=0",
     description: "Maximizes your farming Land Rank allocation from your stats.",
     author: "Trialpears",
   },
