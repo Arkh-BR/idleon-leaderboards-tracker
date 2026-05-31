@@ -26,6 +26,7 @@ import { chromium, type Browser, type Page } from "playwright";
 import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { CATEGORIES } from "../lib/registry";
+import { isAnonymous } from "../lib/anon";
 import { TOP_PLAYERS } from "../lib/tome/topPlayers";
 
 const IT_API =
@@ -67,10 +68,6 @@ async function fetchCategoryTop(
   if (!r.ok) throw new Error(`top ${category}: HTTP ${r.status}`);
   const data = (await r.json()) as CategoryTopResponse;
   return data[category]?.public ?? {};
-}
-
-function isAnonymous(name: string): boolean {
-  return name.startsWith("Anon#") || name.startsWith("Anon ") || !name.trim();
 }
 
 async function gatherCandidates(): Promise<string[]> {

@@ -5,6 +5,7 @@ import type { BoardResult } from "@/app/api/leaderboards/route";
 import { formatIdleon, formatPct } from "@/lib/format";
 import { rankBgClass, tierOf, TIER_LABELS, TIER_COLORS, type Tier } from "@/lib/rank";
 import { netRankMovement, type BoardDelta } from "@/lib/lbSnapshot";
+import { effectiveTop } from "@/lib/anon";
 
 type Props = {
   boards: BoardResult[];
@@ -12,6 +13,10 @@ type Props = {
   // Optional snapshot inputs — when absent, the snapshot card is hidden.
   deltas?: Record<string, BoardDelta>;
   snapshotAt?: string | null;
+  // When true, the #1/#10-derived figures (#1 Score, % of #1, gaps) exclude
+  // anonymous players. Tier summary / heatmap / "Progress since" are
+  // myRank/delta based and stay unchanged.
+  hideAnon?: boolean;
 };
 
 // "unranked" is intentionally absent — every leaderboard has the player
@@ -40,6 +45,7 @@ export default function Dashboard({
   player,
   deltas,
   snapshotAt,
+  hideAnon = false,
 }: Props) {
   // Aggregate net rank movement across the whole account. Only used when
   // there's actually a snapshot to compare against.
@@ -94,10 +100,10 @@ export default function Dashboard({
             b.myRank > 10 &&
             b.myRank <= 50 &&
             b.myScore !== null &&
-            b.top10[9]?.score !== undefined
+            effectiveTop(b.top10, hideAnon).top10th?.score !== undefined
         )
         .sort((a, b) => (a.myRank ?? 0) - (b.myRank ?? 0)),
-    [boards]
+    [boards, hideAnon]
   );
 
   const best = useMemo(
@@ -211,11 +217,12 @@ export default function Dashboard({
       <Section title="3. Top 40 worst positions (focus on improving)">
         <RankedTable
           rows={worst.map((b) => {
-            const top = b.top10[0]?.score;
+            const eff = effectiveTop(b.top10, hideAnon);
+            const top = eff.top1?.score;
             const gap1 = top != null && b.myScore != null ? top - b.myScore : null;
             const gap10 =
-              b.top10[9] && b.myScore != null
-                ? b.top10[9].score - b.myScore
+              eff.top10th && b.myScore != null
+                ? eff.top10th.score - b.myScore
                 : null;
             return {
               key: b.apiKey,
@@ -248,7 +255,7 @@ export default function Dashboard({
       <Section title="4. Quick wins: closest to Top 10 (rank 11-50)">
         <RankedTable
           rows={quickWins.map((b) => {
-            const score10 = b.top10[9]?.score ?? null;
+            const score10 = effectiveTop(b.top10, hideAnon).top10th?.score ?? null;
             const gap =
               score10 !== null && b.myScore !== null
                 ? score10 - b.myScore
@@ -283,7 +290,7 @@ export default function Dashboard({
       <Section title="5. Your best 30 positions">
         <RankedTable
           rows={best.map((b) => {
-            const top = b.top10[0]?.score;
+            const top = effectiveTop(b.top10, hideAnon).top1?.score;
             return {
               key: b.apiKey,
               cells: [

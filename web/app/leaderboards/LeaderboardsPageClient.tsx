@@ -16,6 +16,7 @@ import {
 type Tab = "leaderboards" | "dashboard";
 
 const STORAGE_KEY = "idleon-leaderboards.player";
+const HIDE_ANON_KEY = "idleon-leaderboards.hideAnon";
 
 export default function LeaderboardsPageClient() {
   const [playerInput, setPlayerInput] = useState("");
@@ -27,6 +28,11 @@ export default function LeaderboardsPageClient() {
   // Per-player baseline. Re-hydrated every time activePlayer changes so
   // switching characters doesn't bleed snapshots across them.
   const [snapshot, setSnapshot] = useState<LbSnapshot | null>(null);
+  // Hide "Anon#…" players from each board's top list (and the metrics derived
+  // from it). Default OFF = current behavior. Persisted independently of the
+  // player name. NOTE: this never touches myRank/myScore or the snapshot/delta
+  // logic — those come straight from IT and are anon-independent.
+  const [hideAnon, setHideAnon] = useState(false);
   const initialized = useRef(false);
 
   const load = useCallback(async (name: string, force = false) => {
@@ -58,12 +64,20 @@ export default function LeaderboardsPageClient() {
     let saved = "";
     try {
       saved = localStorage.getItem(STORAGE_KEY) || "";
+      if (localStorage.getItem(HIDE_ANON_KEY) === "1") setHideAnon(true);
     } catch {}
     if (saved) {
       setPlayerInput(saved);
       load(saved);
     }
   }, [load]);
+
+  // Persist the hide-anonymous preference (separate from the player name).
+  useEffect(() => {
+    try {
+      localStorage.setItem(HIDE_ANON_KEY, hideAnon ? "1" : "0");
+    } catch {}
+  }, [hideAnon]);
 
   // Rehydrate the snapshot whenever the active player changes (or first
   // time data comes in). Resets to null cleanly if no snapshot exists.
@@ -151,6 +165,18 @@ export default function LeaderboardsPageClient() {
             🔄
           </button>
         )}
+        <label
+          className="flex items-center gap-1.5 text-sm text-zinc-400 cursor-pointer select-none px-1"
+          title="Hide Anon#… players from each board's top list and recompute #1, % of #1 and the dashboard gaps. Your official rank still counts anonymous players — the IT API only returns the top 10 plus your absolute rank, so it can't be recomputed."
+        >
+          <input
+            type="checkbox"
+            checked={hideAnon}
+            onChange={(e) => setHideAnon(e.target.checked)}
+            className="accent-gold"
+          />
+          🕵️ Hide anonymous
+        </label>
         {hasData && (
           <button
             type="button"
@@ -203,6 +229,14 @@ export default function LeaderboardsPageClient() {
               ⚠ {data!.errors.length} categor{data!.errors.length === 1 ? "y" : "ies"} failed
             </span>
           )}
+          {hideAnon && (
+            <span
+              className="text-zinc-500 text-xs"
+              title="Top lists are filtered. Your absolute rank/score still include anonymous players — the source API only returns the top 10 plus your absolute rank."
+            >
+              🕵️ anon hidden — your official rank still counts anons
+            </span>
+          )}
         </div>
       )}
 
@@ -217,7 +251,7 @@ export default function LeaderboardsPageClient() {
 
       {tab === "leaderboards" &&
         (hasData ? (
-          <LeaderboardsTable boards={data!.boards} deltas={deltas} />
+          <LeaderboardsTable boards={data!.boards} deltas={deltas} hideAnon={hideAnon} />
         ) : (
           <EmptyHint>Enter a player name above and click Load to see leaderboards.</EmptyHint>
         ))}
@@ -228,6 +262,7 @@ export default function LeaderboardsPageClient() {
             player={data!.player}
             deltas={deltas}
             snapshotAt={snapshot?.savedAt ?? null}
+            hideAnon={hideAnon}
           />
         ) : (
           <EmptyHint>Enter a player name above and click Load to see the dashboard.</EmptyHint>

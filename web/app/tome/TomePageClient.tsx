@@ -23,6 +23,10 @@ export default function TomePageClient() {
           Paste your raw save JSON from IdleonToolbox and compute the 118-task
           tome score locally. Nothing is sent to any server.
         </p>
+        <p className="text-[11px] text-zinc-500 mt-1">
+          🕵️ Anonymous players are excluded — anonymous profiles have no public
+          save to compute a score from.
+        </p>
       </header>
 
       <div

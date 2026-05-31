@@ -5,6 +5,7 @@ import type { BoardResult } from "@/app/api/leaderboards/route";
 import { formatIdleon, formatPct } from "@/lib/format";
 import { rankBgClass } from "@/lib/rank";
 import type { BoardDelta } from "@/lib/lbSnapshot";
+import { effectiveTop } from "@/lib/anon";
 
 type SortKey =
   | "default" // IT order — categories in tab order, boards in IT's curated order
@@ -21,6 +22,9 @@ type Props = {
   boards: BoardResult[];
   // Per-board delta vs the saved snapshot (empty object if no snapshot).
   deltas?: Record<string, BoardDelta>;
+  // When true, anonymous players are filtered from each board's top list and
+  // every top-derived metric (#1, Diff vs #1, % of #1).
+  hideAnon?: boolean;
 };
 
 const CATEGORY_OPTIONS = [
@@ -34,7 +38,11 @@ const CATEGORY_OPTIONS = [
   "Caverns",
 ];
 
-export default function LeaderboardsTable({ boards, deltas = {} }: Props) {
+export default function LeaderboardsTable({
+  boards,
+  deltas = {},
+  hideAnon = false,
+}: Props) {
   const [category, setCategory] = useState("All");
   const [search, setSearch] = useState("");
   // Default is "Smart sort": preserve the order the API returned the boards
@@ -101,8 +109,8 @@ export default function LeaderboardsTable({ boards, deltas = {} }: Props) {
           bv = b.myScore ?? -Infinity;
           break;
         case "pct": {
-          const aTop = a.top10[0]?.score;
-          const bTop = b.top10[0]?.score;
+          const aTop = effectiveTop(a.top10, hideAnon).top1?.score;
+          const bTop = effectiveTop(b.top10, hideAnon).top1?.score;
           av = aTop && a.myScore != null ? a.myScore / aTop : -Infinity;
           bv = bTop && b.myScore != null ? b.myScore / bTop : -Infinity;
           break;
@@ -131,7 +139,7 @@ export default function LeaderboardsTable({ boards, deltas = {} }: Props) {
       return 0;
     });
     return arr;
-  }, [filtered, sortKey, sortDir, deltas, originalOrder]);
+  }, [filtered, sortKey, sortDir, deltas, originalOrder, hideAnon]);
 
   function toggleSort(k: SortKey) {
     if (sortKey === k) {
@@ -258,7 +266,8 @@ export default function LeaderboardsTable({ boards, deltas = {} }: Props) {
           </thead>
           <tbody>
             {sorted.map((b) => {
-              const top1 = b.top10[0];
+              const eff = effectiveTop(b.top10, hideAnon);
+              const top1 = eff.top1;
               const diff =
                 top1 && b.myScore != null ? top1.score - b.myScore : null;
               const isOpen = expanded.has(b.apiKey);
@@ -268,6 +277,9 @@ export default function LeaderboardsTable({ boards, deltas = {} }: Props) {
                   board={b}
                   top1={top1}
                   diff={diff}
+                  effList={eff.list}
+                  removedCount={eff.removedCount}
+                  truncated={eff.truncated}
                   isOpen={isOpen}
                   onToggle={() => toggleExpand(b.apiKey)}
                   delta={deltas[b.apiKey]}
@@ -286,6 +298,9 @@ function FragmentRow({
   board: b,
   top1,
   diff,
+  effList,
+  removedCount,
+  truncated,
   isOpen,
   onToggle,
   delta,
@@ -294,6 +309,10 @@ function FragmentRow({
   board: BoardResult;
   top1: { name: string; score: number } | undefined;
   diff: number | null;
+  // The (possibly anon-filtered) top list and how much was removed.
+  effList: BoardResult["top10"];
+  removedCount: number;
+  truncated: boolean;
   isOpen: boolean;
   onToggle: () => void;
   delta: BoardDelta | undefined;
@@ -357,25 +376,39 @@ function FragmentRow({
       {isOpen && (
         <tr className="bg-zinc-950/60 border-t border-zinc-800">
           <td colSpan={colSpan} className="px-3 py-3">
-            <div className="text-xs text-zinc-400 mb-2">Top 10</div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2">
-              {b.top10.map((e, i) => (
-                <div
-                  key={i}
-                  className="flex items-center gap-2 bg-zinc-900 rounded px-2 py-1.5"
-                >
-                  <span
-                    className={`inline-block w-6 text-center text-xs rounded ${rankBgClass(i + 1)}`}
-                  >
-                    {i + 1}
-                  </span>
-                  <span className="truncate flex-1 text-sm">{e.name}</span>
-                  <span className="text-xs text-zinc-400 tabular-nums">
-                    {formatIdleon(e.score)}
-                  </span>
-                </div>
-              ))}
+            <div className="text-xs text-zinc-400 mb-2">
+              Top 10
+              {truncated && (
+                <span className="text-zinc-500">
+                  {" "}
+                  · {removedCount} anon hidden (showing {effList.length})
+                </span>
+              )}
             </div>
+            {effList.length === 0 ? (
+              <div className="text-xs text-zinc-600 italic">
+                Every top-10 entry on this board is anonymous.
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2">
+                {effList.map((e) => (
+                  <div
+                    key={e.rank}
+                    className="flex items-center gap-2 bg-zinc-900 rounded px-2 py-1.5"
+                  >
+                    <span
+                      className={`inline-block w-6 text-center text-xs rounded ${rankBgClass(e.rank)}`}
+                    >
+                      {e.rank}
+                    </span>
+                    <span className="truncate flex-1 text-sm">{e.name}</span>
+                    <span className="text-xs text-zinc-400 tabular-nums">
+                      {formatIdleon(e.score)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
           </td>
         </tr>
       )}

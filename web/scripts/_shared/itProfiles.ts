@@ -4,6 +4,7 @@
 // — see memory/it-profiles-save-endpoint).
 
 import { CATEGORIES } from "../../lib/registry";
+import { isAnonymous } from "../../lib/anon";
 import { isDenylistedPlayer, hackedSaveReason } from "./hackers";
 
 const IT_LEADERBOARDS = "https://profiles.idleontoolbox.workers.dev/api/leaderboards";
@@ -20,10 +21,6 @@ type CategoryTopResponse = Record<
   string,
   { public?: Record<string, TopEntry[]> } | undefined
 >;
-
-function isAnonymous(name: string): boolean {
-  return name.startsWith("Anon#") || name.startsWith("Anon ") || !name.trim();
-}
 
 async function fetchCategoryTop(
   category: string

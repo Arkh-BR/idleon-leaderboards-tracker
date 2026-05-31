@@ -618,6 +618,10 @@ export default function TalentsLevelPageClient() {
         talent. Tabs follow the character&apos;s class promotion chain plus
         the four Special Talent (star) pages.
       </p>
+      <p className="text-center text-[11px] text-zinc-500 -mt-2 mb-4">
+        🕵️ Anonymous players are excluded from the Observed Max — anonymous
+        profiles have no public save to compute from.
+      </p>
 
       {/* Import Save — same layout language as DrCalculator. */}
       <details
