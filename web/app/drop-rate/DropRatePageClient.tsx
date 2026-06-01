@@ -160,7 +160,7 @@ function TopCompareToggle({
         type="button"
         onClick={onToggle}
         disabled={loading}
-        className={`px-3 py-1.5 text-sm font-semibold rounded border transition-colors disabled:opacity-50 ${
+        className={`whitespace-nowrap px-2.5 py-1.5 text-xs font-semibold rounded border transition-colors disabled:opacity-50 ${
           active
             ? "bg-amber-500/15 text-amber-300 border-amber-500/40"
             : "bg-zinc-900 text-zinc-300 border-zinc-700 hover:bg-zinc-800"
