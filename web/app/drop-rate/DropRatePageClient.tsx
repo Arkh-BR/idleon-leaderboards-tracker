@@ -9,8 +9,6 @@ import AnonExcludedNote from "@/components/AnonExcludedNote";
 import type { FlatTree } from "@/lib/dropRate/treeFlatten";
 import {
   TOP_DR_GENERATED_AT,
-  TOP_DR_BEST,
-  TOP_DR_HYPOTHETICAL_TOTAL,
   TOP_DR_PLAYERS_SCANNED,
 } from "@/lib/dropRate/topDropRate.meta";
 
@@ -89,7 +87,7 @@ export default function DropRatePageClient() {
     return {
       flatTree: includeArcaneMap ? raw : stripArcaneMap(raw),
       capturedAt: Date.parse(TOP_DR_GENERATED_AT),
-      charName: `Hypothetical max (${TOP_DR_PLAYERS_SCANNED} top players)${
+      charName: `Observed Max (${TOP_DR_PLAYERS_SCANNED} top players)${
         includeArcaneMap ? "" : " · no Arcane Map"
       }`,
     };
@@ -97,23 +95,19 @@ export default function DropRatePageClient() {
 
   const effectiveBaseline = compareTop ? topBaseline : baseline;
 
-  // Render the snapshot section + the top-player toggle right under the Big
-  // DR card (above the detailed tree) via DrCalculator's middleSlot prop.
+  // The compare-vs-top toggle sits next to the Chip Gallery + DR value
+  // (compareSlot); the snapshot history is under the import box (snapshotSlot).
+  const compareBlock = (
+    <TopCompareToggle
+      active={compareTop}
+      loading={topLoading}
+      onToggle={toggleTop}
+      includeArcaneMap={includeArcaneMap}
+      onToggleArcaneMap={setIncludeArcaneMap}
+    />
+  );
   const snapshotBlock = (
     <div className="flex flex-col gap-3">
-      <TopCompareToggle
-        active={compareTop}
-        loading={topLoading}
-        onToggle={toggleTop}
-        classTotal={
-          compareTop && topBaseline
-            ? topBaseline.flatTree["Drop Rate"] ?? null
-            : null
-        }
-        className={classKey ? classKey.replace(/_/g, " ") : null}
-        includeArcaneMap={includeArcaneMap}
-        onToggleArcaneMap={setIncludeArcaneMap}
-      />
       <SnapshotSection
         state={calcState}
         onSelectBaseline={(b) => {
@@ -121,7 +115,14 @@ export default function DropRatePageClient() {
           if (b) setCompareTop(false);
         }}
         selectedBaselineAt={baseline?.capturedAt ?? null}
+        headerExtra={compareBlock}
       />
+      <div className="text-center">
+        <AnonExcludedNote>
+          Anonymous players are excluded from the top-player comparison —
+          anonymous profiles have no public save to compute from.
+        </AnonExcludedNote>
+      </div>
     </div>
   );
 
@@ -130,13 +131,7 @@ export default function DropRatePageClient() {
       <DrCalculator
         onStateChange={setCalcState}
         compareBaseline={effectiveBaseline}
-        middleSlot={snapshotBlock}
-        topSlot={
-          <AnonExcludedNote>
-            Anonymous players are excluded from the top-player comparison —
-            anonymous profiles have no public save to compute from.
-          </AnonExcludedNote>
-        }
+        snapshotSlot={snapshotBlock}
       />
       <footer className="mt-8 text-[11px] text-zinc-600 text-center border-t border-zinc-900 pt-3">
         Drop rate is computed locally from your save JSON — pool tree
@@ -151,51 +146,39 @@ function TopCompareToggle({
   active,
   loading,
   onToggle,
-  classTotal,
-  className,
   includeArcaneMap,
   onToggleArcaneMap,
 }: {
   active: boolean;
   loading: boolean;
   onToggle: () => void;
-  /** Per-class ceiling for the selected char (null until a save+class is
-   *  loaded and the comparison is on). Falls back to the best per-class
-   *  ceiling from the metadata. */
-  classTotal?: number | null;
-  /** Display class name of the selected char (e.g. "Hunter"). */
-  className?: string | null;
-  /** Whether the hypothetical-max baseline includes the Arcane Map multi. */
+  /** Whether the Observed-Max baseline includes the Arcane Map multiplier. */
   includeArcaneMap: boolean;
   onToggleArcaneMap: (v: boolean) => void;
 }) {
-  const hypoVal = classTotal ?? TOP_DR_HYPOTHETICAL_TOTAL;
-  const hypo = Math.round(hypoVal).toLocaleString("en-US");
-  const best = Math.round(TOP_DR_BEST.total).toLocaleString("en-US");
-  const perClass = classTotal != null && className;
   return (
-    <div className="rounded-lg border border-zinc-800 bg-zinc-900/60 p-3 flex flex-wrap items-center gap-2">
+    <div className="flex flex-col items-center gap-1.5">
       <button
         type="button"
         onClick={onToggle}
         disabled={loading}
-        className={`px-3 py-1.5 text-sm font-semibold rounded border transition-colors disabled:opacity-50 ${
+        className={`whitespace-nowrap px-2.5 py-1.5 text-xs font-semibold rounded border transition-colors disabled:opacity-50 ${
           active
             ? "bg-amber-500/15 text-amber-300 border-amber-500/40"
             : "bg-zinc-900 text-zinc-300 border-zinc-700 hover:bg-zinc-800"
         }`}
-        title="Compare every DR source against the best value seen across the top players (the hypothetical-max save)"
+        title="Compare every DR source against the best value observed across the top players"
       >
         🏅{" "}
         {loading
           ? "Loading…"
           : active
-          ? "Comparing vs hypothetical max"
-          : "Compare vs hypothetical max"}
+          ? "Comparing vs Observed Max"
+          : "Compare vs Observed Max"}
       </button>
       <label
         className="flex items-center gap-1.5 text-[11px] text-zinc-400 cursor-pointer select-none"
-        title="Include the Arcane Map's Post-Processing multiplier in the hypothetical-max DR. Uncheck to see the ceiling without the map."
+        title="Include the Arcane Map's Post-Processing multiplier in the Observed Max DR. Uncheck to see the ceiling without the map."
       >
         <input
           type="checkbox"
@@ -205,21 +188,6 @@ function TopCompareToggle({
         />
         🗺️ Include Arcane Map
       </label>
-      <span className="text-[11px] text-zinc-500">
-        Each source row gets a Δ vs the best of every top player ·{" "}
-        <span title="Best-of-each-source recomputed through the DR formula. Class-specific talents (Robbing Hood / Curse of Mr Looty Booty) are gated to the selected char's class, so this ceiling is reachable by that class.">
-          {perClass ? `${className} max ` : "best class max "}
-          <span className="text-amber-300 font-mono">{hypo}x</span>
-        </span>
-        {TOP_DR_BEST.player ? (
-          <>
-            {" "}
-            · best real player{" "}
-            <span className="text-zinc-400 font-mono">{best}x</span> (
-            {TOP_DR_BEST.player})
-          </>
-        ) : null}
-      </span>
     </div>
   );
 }

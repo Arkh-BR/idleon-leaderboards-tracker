@@ -24,6 +24,7 @@ import type { ToMaxCharGroup } from "@/lib/talentsLevel/toMax";
 import UnbookedView from "@/components/talentsLevel/UnbookedView";
 import type { UnbookedCharGroup } from "@/lib/talentsLevel/unbooked";
 import AnonExcludedNote from "@/components/AnonExcludedNote";
+import ProfileNameLoader from "@/components/ProfileNameLoader";
 import {
   hypoTreeForClass,
   HYPO_TALENTS_GENERATED_AT,
@@ -93,6 +94,7 @@ function applyStarCeiling(tree: CorganNode, talentId: number): CorganNode {
 }
 
 const SAVE_KEY = "talents-level.last-upload.v1";
+const NAME_KEY = "talents-level.playerName";
 const TALENT_KEY = "talents-level.talent-id.v1";
 const TAB_KEY = "talents-level.tab-idx.v1";
 const PRESET_KEY = "talents-level.preset-idx.v1";
@@ -334,10 +336,11 @@ export default function TalentsLevelPageClient() {
     setDeepViewTab(v);
   }, []);
 
-  const stageSave = useCallback(
-    (text: string, opts: { silent?: boolean } = {}) => {
+  // Apply an already-parsed save envelope. Shared by the paste path
+  // (stageSave) and the load-by-name path (ProfileNameLoader.onSave).
+  const applyParsedSave = useCallback(
+    (parsed: any, opts: { silent?: boolean } = {}) => {
       try {
-        const parsed = parseSave(text);
         const list = listCharacters(parsed);
         if (list.length === 0) {
           if (!opts.silent) setError("Save parsed but no characters found.");
@@ -348,29 +351,48 @@ export default function TalentsLevelPageClient() {
         setCharIdx((prev) =>
           list.some((c) => c.charIndex === prev) ? prev : list[0].charIndex
         );
-        try {
-          window.localStorage.setItem(SAVE_KEY, text);
-        } catch {
-          // quota exceeded — non-fatal
-        }
         setError(null);
         return true;
       } catch (e) {
-        if (!opts.silent) {
-          setError(e instanceof Error ? e.message : String(e));
-        }
+        if (!opts.silent) setError(e instanceof Error ? e.message : String(e));
         return false;
       }
     },
     []
   );
 
+  const stageSave = useCallback(
+    (text: string, opts: { silent?: boolean } = {}) => {
+      let parsed: unknown;
+      try {
+        parsed = parseSave(text);
+      } catch (e) {
+        if (!opts.silent) setError(e instanceof Error ? e.message : String(e));
+        return false;
+      }
+      const ok = applyParsedSave(parsed, opts);
+      if (ok) {
+        try {
+          window.localStorage.setItem(SAVE_KEY, text);
+        } catch {
+          // quota exceeded — non-fatal
+        }
+      }
+      return ok;
+    },
+    [applyParsedSave]
+  );
+
   // Hydrate save + last-picked talent + last-picked tab on mount so the
   // page survives reloads.
   useEffect(() => {
     try {
-      const raw = window.localStorage.getItem(SAVE_KEY);
-      if (raw) stageSave(raw, { silent: true });
+      // If a player name is remembered, ProfileNameLoader auto-fetches it —
+      // skip restoring a (possibly stale) pasted JSON in that case.
+      if (!window.localStorage.getItem(NAME_KEY)) {
+        const raw = window.localStorage.getItem(SAVE_KEY);
+        if (raw) stageSave(raw, { silent: true });
+      }
       const lastTalent = window.localStorage.getItem(TALENT_KEY);
       if (lastTalent) {
         const n = Number(lastTalent);
@@ -626,15 +648,21 @@ export default function TalentsLevelPageClient() {
         </AnonExcludedNote>
       </div>
 
-      {/* Import Save — same layout language as DrCalculator. */}
-      <details
-        open
-        className="rounded-lg bg-zinc-900/60 p-4 mb-4 border border-zinc-800"
+      {/* Primary: load the save automatically by player name. */}
+      <ProfileNameLoader
+        storageKey={NAME_KEY}
+        onSave={(s) => applyParsedSave(s)}
+        onError={(msg) => setError(msg)}
       >
-        <summary className="cursor-pointer select-none flex items-center gap-x-2 gap-y-1 flex-wrap mb-3">
-          <span className="font-semibold text-gold">📋 Import Save JSON</span>
+        {/* Manual paste — fallback for private profiles, inside the card. */}
+        <details className="rounded-lg bg-zinc-900/40 p-3 border border-zinc-800">
+        <summary className="cursor-pointer select-none flex items-center gap-2 flex-wrap">
+          <span className="dt-arrow text-zinc-500 text-sm">▸</span>
+          <span className="font-semibold text-gold">
+            📋 Or paste a save manually
+          </span>
           <span className="text-xs text-zinc-500 font-normal">
-            Use the &ldquo;Copy for Support&rdquo; button on{" "}
+            Uses the &ldquo;Copy for Support&rdquo; button on{" "}
             <a
               href="https://idleontoolbox.com"
               target="_blank"
@@ -646,21 +674,29 @@ export default function TalentsLevelPageClient() {
             </a>
           </span>
         </summary>
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-3 mt-3">
           <textarea
             value={jsonText}
             onChange={(e) => setJsonText(e.target.value)}
             placeholder='Paste the output of "Copy for Support" here (Ctrl+V)…'
             className="w-full h-20 bg-zinc-950 border border-zinc-800 rounded p-2 text-xs font-mono text-zinc-200 focus:outline-none focus:border-gold"
           />
+          <button
+            type="button"
+            onClick={onLoad}
+            className="self-start px-4 py-1.5 text-sm font-semibold rounded bg-sky-500/20 text-sky-300 border border-sky-500/40 hover:bg-sky-500/30"
+          >
+            Load pasted save
+          </button>
+        </div>
+        </details>
+      </ProfileNameLoader>
+
+      {/* Analysis controls — character / preset. Always visible (the save
+          comes from the name loader above or the manual paste below). */}
+      <div className="rounded-lg bg-zinc-900/60 p-4 mb-4 border border-zinc-800 flex flex-col gap-3">
           <div className="flex flex-wrap items-center gap-2">
-            <button
-              type="button"
-              onClick={onLoad}
-              className="px-4 py-1.5 text-sm font-semibold rounded bg-sky-500/20 text-sky-300 border border-sky-500/40 hover:bg-sky-500/30"
-            >
-              Load Save
-            </button>
+            <span className="text-sm text-zinc-400 font-medium">Character:</span>
             <select
               value={charIdx}
               disabled={chars.length === 0}
@@ -725,8 +761,7 @@ export default function TalentsLevelPageClient() {
             </div>
           )}
           {error && <p className="text-xs text-red-300">{error}</p>}
-        </div>
-      </details>
+      </div>
 
       {/* Talent picker — tab strip + grid of icon cards. Replaces the
           previous search+select combo.

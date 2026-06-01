@@ -78,7 +78,7 @@ export function buildMapOptions(save: unknown): MapOption[] {
     const factor = arcaneFactor(kills);
     if (factor <= 1) continue;
     const name = (MAP_NAMES[i] || `Map ${i}`).replace(/_/g, " ");
-    const label = `${name} (kills ${formatKills(kills)} → ${factor.toFixed(2)}x)`;
+    const label = `${name} (${factor.toFixed(2)}x)`;
     opts.push({ index: i, name, kills, factor, label });
     added.add(i);
   }
@@ -95,9 +95,7 @@ export function buildMapOptions(save: unknown): MapOption[] {
     const factor = killsRaw >= 1 ? arcaneFactor(killsRaw) : 1;
     const name = (MAP_NAMES[idx] || `Map ${idx}`).replace(/_/g, " ");
     const label =
-      factor > 1
-        ? `${name} (kills ${formatKills(killsRaw)} → ${factor.toFixed(2)}x)`
-        : `${name} (no AC)`;
+      factor > 1 ? `${name} (${factor.toFixed(2)}x)` : `${name} (no AC)`;
     opts.push({ index: idx, name, kills: killsRaw, factor, label });
     added.add(idx);
   }
@@ -110,11 +108,4 @@ export function buildMapOptions(save: unknown): MapOption[] {
   });
 
   return opts;
-}
-
-function formatKills(n: number): string {
-  if (n >= 1e9) return (n / 1e9).toFixed(1) + "B";
-  if (n >= 1e6) return (n / 1e6).toFixed(1) + "M";
-  if (n >= 1e3) return (n / 1e3).toFixed(1) + "K";
-  return String(Math.round(n));
 }

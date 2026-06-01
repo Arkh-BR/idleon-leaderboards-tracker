@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { buildSnapshot, parseSave, type DropRateSnapshot } from "@/lib/dropRate/extract";
+import { buildSnapshot, type DropRateSnapshot } from "@/lib/dropRate/extract";
 import {
   addSnapshot,
   clearChar,
@@ -42,6 +42,9 @@ type Props = {
   /** Which snapshot's `capturedAt` is currently selected as the baseline.
    *  Used so the row that's been picked stays visually highlighted. */
   selectedBaselineAt?: number | null;
+  /** Extra controls rendered in the header, between the title and the
+   *  Save/Export/Import buttons (used for the Compare-vs-Observed-Max block). */
+  headerExtra?: React.ReactNode;
 };
 
 const COLLAPSE_KEY = "drop-rate.snapshot-section.collapsed.v1";
@@ -50,6 +53,7 @@ export default function SnapshotSection({
   state,
   onSelectBaseline,
   selectedBaselineAt,
+  headerExtra,
 }: Props) {
   const [trackedChars, setTrackedChars] = useState<string[]>([]);
   const [viewChar, setViewChar] = useState<string | null>(null);
@@ -57,12 +61,14 @@ export default function SnapshotSection({
   const [notice, setNotice] = useState<string | null>(null);
   // Whole-section collapse — defaults to expanded for first-time users and
   // is persisted to localStorage so the choice survives reloads.
-  const [collapsed, setCollapsed] = useState(false);
+  // Starts collapsed by default; only expands if the user previously chose to
+  // expand it (COLLAPSE_KEY === "0").
+  const [collapsed, setCollapsed] = useState(true);
   useEffect(() => {
     if (typeof window === "undefined") return;
     try {
       const v = window.localStorage.getItem(COLLAPSE_KEY);
-      if (v === "1") setCollapsed(true);
+      if (v === "0") setCollapsed(false);
     } catch {
       // localStorage unavailable — keep default
     }
@@ -101,13 +107,12 @@ export default function SnapshotSection({
     !!state &&
     state.charIndex !== null &&
     state.totalDr !== null &&
-    state.rawSaveText !== null;
+    !!state.save;
 
   function onSave() {
-    if (!canSave || !state || !state.rawSaveText) return;
+    if (!canSave || !state || !state.save) return;
     try {
-      const save = parseSave(state.rawSaveText);
-      const baseSnap = buildSnapshot(save, state.charIndex!);
+      const baseSnap = buildSnapshot(state.save, state.charIndex!);
       const flat = flattenTree(state.drTree);
       const nodeCount = Object.keys(flat).length;
       const enriched: EnrichedSnapshot = {
@@ -201,7 +206,7 @@ export default function SnapshotSection({
 
   return (
     <section className="rounded-lg bg-zinc-900/60 border border-zinc-800 p-4">
-      <div className="flex flex-wrap items-center justify-between gap-2">
+      <div className="flex items-center justify-between gap-2">
         {/* Header doubles as the collapse toggle so the user can hide the
             whole capture history when they don't need it. */}
         <button
@@ -213,15 +218,18 @@ export default function SnapshotSection({
           <span className="w-3 text-zinc-500 select-none">
             {collapsed ? "▸" : "▾"}
           </span>
-          <span>📈 Snapshot History</span>
-          {collapsed && totalSnaps > 0 && (
-            <span className="text-xs text-zinc-500 font-normal">
-              ({totalSnaps} capture{totalSnaps === 1 ? "" : "s"} across{" "}
-              {trackedChars.length} char{trackedChars.length === 1 ? "" : "s"})
-            </span>
-          )}
+          <span className="flex flex-col items-center text-center">
+            <span>📈 Snapshot History</span>
+            {collapsed && totalSnaps > 0 && (
+              <span className="text-xs text-zinc-500 font-normal">
+                ({totalSnaps} capture{totalSnaps === 1 ? "" : "s"} across{" "}
+                {trackedChars.length} char{trackedChars.length === 1 ? "" : "s"})
+              </span>
+            )}
+          </span>
         </button>
-        <div className="flex gap-2 items-center">
+        <div className="flex gap-2 items-center justify-end">
+          {headerExtra}
           <button
             type="button"
             onClick={onSave}

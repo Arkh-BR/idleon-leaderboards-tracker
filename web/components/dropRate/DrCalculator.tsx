@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   buildMapOptions,
   type MapOption,
@@ -9,10 +9,12 @@ import { formatIdleon } from "@/lib/format";
 import { listCharacters, parseSave, type CharSummary } from "@/lib/dropRate/extract";
 import { getCharClassKey } from "@/lib/talentsLevel/charClass";
 import DeepView from "./DeepView";
+import ProfileNameLoader from "@/components/ProfileNameLoader";
 import type { CorganNode as DrNode } from "@/lib/corgan/node";
 import type { FlatTree } from "@/lib/dropRate/treeFlatten";
 
 const SAVE_KEY = "drop-rate-tracker.last-upload.v1";
+const NAME_KEY = "drop-rate-tracker.playerName";
 
 export type CalculatorState = {
   charIndex: number | null;
@@ -27,7 +29,11 @@ export type CalculatorState = {
   arcane: number;
   mapIndex: number;
   mapLabel: string;
-  rawSaveText: string | null;
+  /** The parsed save envelope ({ data, charNames, … }) so the Snapshot
+   *  section can build a snapshot directly. The load-by-name path never
+   *  writes the raw JSON to localStorage, so reading it back from there
+   *  (the old approach) was empty and silently disabled snapshot saving. */
+  save: any;
   // Full detailed tree so snapshots can capture per-node values for delta
   // comparisons against future saves.
   drTree: DrNode | null;
@@ -47,15 +53,16 @@ type Props = {
   // Breakdown — used by the page to render the snapshot section there so it
   // sits near the headline value instead of buried at the bottom.
   middleSlot?: React.ReactNode;
-  // Optional render slot above the "Import Save JSON" box (below the header).
-  topSlot?: React.ReactNode;
+  // Optional render slot right under the manual-paste box (above the controls)
+  // — used by the page for the Snapshot History section.
+  snapshotSlot?: React.ReactNode;
 };
 
 export default function DrCalculator({
   onStateChange,
   compareBaseline,
   middleSlot,
-  topSlot,
+  snapshotSlot,
 }: Props) {
   const [jsonText, setJsonText] = useState("");
   const [save, setSave] = useState<any | null>(null);
@@ -89,43 +96,68 @@ export default function DrCalculator({
     labSlots?: number[][];
   } | null>(null);
 
-  const stageSave = useCallback((text: string, opts: { silent?: boolean } = {}) => {
-    try {
-      const parsed = parseSave(text);
-      const list = listCharacters(parsed);
-      if (list.length === 0) {
-        if (!opts.silent) setError("Save parsed but no characters found.");
+  // Apply an already-parsed save envelope ({ data, charNames, … }) into state.
+  // Shared by the paste path (stageSave) and the load-by-name path.
+  const applyParsedSave = useCallback(
+    (parsed: any, opts: { silent?: boolean } = {}) => {
+      try {
+        const list = listCharacters(parsed);
+        if (list.length === 0) {
+          if (!opts.silent) setError("Save parsed but no characters found.");
+          return false;
+        }
+        setSave(parsed);
+        setChars(list);
+        setCharIdx((prev) =>
+          list.some((c) => c.charIndex === prev) ? prev : list[0].charIndex
+        );
+        const opts2 = buildMapOptions(parsed);
+        setMapOptions(opts2);
+        // Default to character's current map if available, else Town
+        const data = (parsed as any)?.data ?? {};
+        const currentMap = Number(data[`CurrentMap_${list[0].charIndex}`]) || 0;
+        setMapIdx(opts2.some((m) => m.index === currentMap) ? currentMap : 0);
+        setError(null);
+        return true;
+      } catch (e) {
+        if (!opts.silent) setError(e instanceof Error ? e.message : String(e));
         return false;
       }
-      setSave(parsed);
-      setChars(list);
-      setCharIdx((prev) =>
-        list.some((c) => c.charIndex === prev) ? prev : list[0].charIndex
-      );
-      const opts2 = buildMapOptions(parsed);
-      setMapOptions(opts2);
-      // Default to character's current map if available, else Town
-      const data = (parsed as any)?.data ?? {};
-      const currentMap = Number(data[`CurrentMap_${list[0].charIndex}`]) || 0;
-      setMapIdx(opts2.some((m) => m.index === currentMap) ? currentMap : 0);
-      try {
-        window.localStorage.setItem(SAVE_KEY, text);
-      } catch {
-        // quota exceeded
-      }
-      setError(null);
-      return true;
-    } catch (e) {
-      if (!opts.silent) {
-        setError(e instanceof Error ? e.message : String(e));
-      }
-      return false;
-    }
-  }, []);
+    },
+    []
+  );
 
-  // Hydrate on mount from localStorage so refresh doesn't blow away the upload
+  // Paste path: parse the raw text, apply it, and persist the JSON so a
+  // refresh keeps it (only used for manual paste; load-by-name persists the
+  // name instead).
+  const stageSave = useCallback(
+    (text: string, opts: { silent?: boolean } = {}) => {
+      let parsed: unknown;
+      try {
+        parsed = parseSave(text);
+      } catch (e) {
+        if (!opts.silent) setError(e instanceof Error ? e.message : String(e));
+        return false;
+      }
+      const ok = applyParsedSave(parsed, opts);
+      if (ok) {
+        try {
+          window.localStorage.setItem(SAVE_KEY, text);
+        } catch {
+          // quota exceeded
+        }
+      }
+      return ok;
+    },
+    [applyParsedSave]
+  );
+
+  // Hydrate on mount from localStorage so refresh doesn't blow away the upload.
+  // If a player name is remembered, the ProfileNameLoader auto-fetches it —
+  // skip restoring a (possibly stale) pasted JSON in that case.
   useEffect(() => {
     try {
+      if (window.localStorage.getItem(NAME_KEY)) return;
       const raw = window.localStorage.getItem(SAVE_KEY);
       if (raw) stageSave(raw, { silent: true });
     } catch {
@@ -250,11 +282,7 @@ export default function DrCalculator({
       arcane: factor,
       mapIndex: mapIdx,
       mapLabel: map?.name ?? "Town",
-      rawSaveText: save
-        ? (typeof window !== "undefined"
-            ? window.localStorage.getItem(SAVE_KEY)
-            : null)
-        : null,
+      save,
       drTree,
     });
   }, [charIdx, mapIdx, drTotal, drTree, chars, mapOptions, save, onStateChange]);
@@ -290,20 +318,21 @@ export default function DrCalculator({
         JSON. Select character &amp; map. All processing local in your browser.
       </p>
 
-      {topSlot && <div className="text-center mb-4">{topSlot}</div>}
-
-      {/* Import box — use a flex-col body with uniform gap so every inner
-          row sits at the same vertical rhythm (was a grab-bag of mt-2 /
-          mt-3 / no-margin which made the textarea + buttons look cramped
-          while the Chip Gallery row floated further away). */}
-      <details
-        open
-        className="rounded-lg bg-zinc-900/60 p-4 mb-4 border border-zinc-800"
+      {/* Primary: load the save automatically by player name. */}
+      <ProfileNameLoader
+        storageKey={NAME_KEY}
+        onSave={(s) => applyParsedSave(s)}
+        onError={(msg) => setError(msg)}
       >
-        <summary className="cursor-pointer select-none flex items-center gap-x-2 gap-y-1 flex-wrap mb-3">
-          <span className="font-semibold text-gold">📋 Import Save JSON</span>
+        {/* Manual paste — fallback for private profiles, inside the card. */}
+        <details className="rounded-lg bg-zinc-900/40 p-3 border border-zinc-800">
+        <summary className="cursor-pointer select-none flex items-center gap-2 flex-wrap">
+          <span className="dt-arrow text-zinc-500 text-sm">▸</span>
+          <span className="font-semibold text-gold">
+            📋 Or paste a save manually
+          </span>
           <span className="text-xs text-zinc-500 font-normal">
-            Use the &ldquo;Copy for Support&rdquo; button on{" "}
+            Uses the &ldquo;Copy for Support&rdquo; button on{" "}
             <a
               href="https://idleontoolbox.com"
               target="_blank"
@@ -315,147 +344,98 @@ export default function DrCalculator({
             </a>
           </span>
         </summary>
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-3 mt-3">
           <textarea
             value={jsonText}
             onChange={(e) => setJsonText(e.target.value)}
             placeholder='Paste the output of "Copy for Support" here (Ctrl+V)…'
             className="w-full h-20 bg-zinc-950 border border-zinc-800 rounded p-2 text-xs font-mono text-zinc-200 focus:outline-none focus:border-gold"
           />
-          <div className="flex flex-wrap items-center gap-2">
-            <button
-              type="button"
-              onClick={onLoad}
-              className="px-4 py-1.5 text-sm font-semibold rounded bg-sky-500/20 text-sky-300 border border-sky-500/40 hover:bg-sky-500/30"
-            >
-              Load Save
-            </button>
-            <select
+          <button
+            type="button"
+            onClick={onLoad}
+            className="self-start px-4 py-1.5 text-sm font-semibold rounded bg-sky-500/20 text-sky-300 border border-sky-500/40 hover:bg-sky-500/30"
+          >
+            Load pasted save
+          </button>
+        </div>
+        </details>
+      </ProfileNameLoader>
+
+      {snapshotSlot && <div className="mb-4">{snapshotSlot}</div>}
+
+      {/* Analysis controls — character / map / chip gallery. Always visible
+          (the save comes from the name loader above or the manual paste
+          fallback below). */}
+      <div className="rounded-lg bg-zinc-900/60 p-4 mb-4 border border-zinc-800 flex flex-col gap-3">
+          <div className="flex flex-nowrap items-center gap-2 overflow-x-auto">
+            <span className="shrink-0 text-sm text-zinc-400 font-medium">
+              Character &amp; map:
+            </span>
+            <AutoWidthSelect
               value={charIdx}
               disabled={chars.length === 0}
-              onChange={(e) => setCharIdx(Number(e.target.value))}
+              onChange={setCharIdx}
+              options={
+                chars.length === 0
+                  ? [{ value: 0, label: "-- load save first --" }]
+                  : chars.map((c) => ({
+                      value: c.charIndex,
+                      label: `${c.charName} (Lv ${c.level})`,
+                    }))
+              }
               className="px-2 py-1.5 text-sm bg-zinc-900 border border-zinc-700 rounded text-sky-300 disabled:opacity-40"
-            >
-              {chars.length === 0 ? (
-                <option value={0}>-- load save first --</option>
-              ) : (
-                chars.map((c) => (
-                  <option key={c.charIndex} value={c.charIndex}>
-                    {c.charName} (Lv {c.level})
-                  </option>
-                ))
-              )}
-            </select>
-            <select
+            />
+            <AutoWidthSelect
               value={mapIdx}
               disabled={chars.length === 0}
-              onChange={(e) => setMapIdx(Number(e.target.value))}
+              onChange={setMapIdx}
+              options={mapOptions.map((m) => ({
+                value: m.index,
+                label: m.label,
+              }))}
               className="px-2 py-1.5 text-sm bg-zinc-900 border border-zinc-700 rounded text-sky-300 disabled:opacity-40"
+            />
+            <button
+              type="button"
+              onClick={() => setChipGalleryActive((v) => !v)}
+              className={`shrink-0 whitespace-nowrap px-3 py-1.5 text-xs font-semibold rounded border transition-colors ${
+                chipGalleryActive
+                  ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/40 hover:bg-emerald-500/30"
+                  : "bg-zinc-800 text-zinc-400 border-zinc-700 hover:bg-zinc-700"
+              }`}
+              title="Adds +0.10 to Gallery Bonus Multi (invisible boost from Silkrode Motherboard chip being active when the gallery last refreshed)"
             >
-              {mapOptions.map((m) => (
-                <option key={m.index} value={m.index}>
-                  {m.label}
-                </option>
-              ))}
-            </select>
+              {chipGalleryActive ? "🔌 Chip Gallery ON" : "⚪ Chip Gallery OFF"}
+            </button>
           </div>
           {error && <p className="text-xs text-red-300">{error}</p>}
 
-          {/* Chip Gallery toggle — sits under the Load Save row because it's a
-              save-level setting (the +0.10 Gallery Bonus Multi boost is
-              account-wide, not per-character / per-map). */}
-          <div className="p-2 rounded border border-zinc-800 bg-zinc-950/60 flex items-center gap-3 flex-wrap">
-          <button
-            type="button"
-            onClick={() => setChipGalleryActive((v) => !v)}
-            className={`px-3 py-1.5 text-xs font-semibold rounded border transition-colors ${
-              chipGalleryActive
-                ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/40 hover:bg-emerald-500/30"
-                : "bg-zinc-800 text-zinc-400 border-zinc-700 hover:bg-zinc-700"
-            }`}
-            title="Adds +0.10 to Gallery Bonus Multi (invisible boost from Silkrode Motherboard chip being active when gallery last refreshed)"
-          >
-            {chipGalleryActive ? "🔌 Chip Gallery ON" : "⚪ Chip Gallery OFF"}
-          </button>
-          <div className="text-[11px] text-zinc-500 leading-tight">
-            {chipDetected?.detected ? (
-              <>
-                <span className="text-emerald-400">●</span> Chip 16 detected on
-                char {chipDetected.charIdx} slot {chipDetected.slot}{" "}
-                <span className="text-zinc-600">
-                  (auto-enabled — toggle off to compare baseline)
-                </span>
-              </>
-            ) : (
-              <>
-                <span className="text-zinc-600">○</span> Chip 16 not detected
-                in save — toggle on if it was active when the gallery last
-                refreshed
-                {chipDetected?.labSlots && chipDetected.labSlots.length > 0 && (
-                  <details className="mt-1">
-                    <summary className="cursor-pointer text-zinc-600 hover:text-zinc-400">
-                      show lab chip slots ({chipDetected.labSlots.length} chars)
-                    </summary>
-                    <div className="mt-1 font-mono text-[10px] text-zinc-500 max-h-32 overflow-auto">
-                      {chipDetected.labSlots.map((slots, ci) => (
-                        <div key={ci}>
-                          char {ci}: [{slots.join(", ")}]
-                        </div>
-                      ))}
-                    </div>
-                  </details>
-                )}
-              </>
+          {/* Total Drop Rate readout. */}
+          <div className="p-2 rounded border border-zinc-800 bg-zinc-950/60 flex items-center justify-center gap-2 flex-wrap">
+          <div className="flex items-baseline gap-2">
+            <span className="text-xs uppercase tracking-wider text-zinc-500">
+              Total Drop Rate
+            </span>
+            <span className="text-2xl font-extrabold text-gold tabular-nums">
+              {totalDr !== null ? totalDr.toFixed(2) + "x" : "—"}
+            </span>
+            {displayBase !== null && factor > 1.001 && (
+              <span className="text-[11px] text-zinc-600">
+                (base {formatIdleon(displayBase)}x × {factor.toFixed(2)}x map)
+              </span>
             )}
           </div>
         </div>
-        </div>
-      </details>
-
-      {/* Big DR card centralizado */}
-      <div className="rounded-lg bg-zinc-900/60 border border-zinc-800 p-5 mb-4 text-center">
-        <div className="text-xs uppercase tracking-wider text-zinc-500">
-          Total Drop Rate Multiplier
-        </div>
-        <div className="text-5xl font-extrabold text-gold mt-1 tabular-nums">
-          {totalDr !== null ? totalDr.toFixed(2) + "x" : "—"}
-        </div>
-        <div className="text-xs text-zinc-500 mt-1">
-          {chars.length > 0 ? (
-            <>
-              Character:{" "}
-              <span className="text-zinc-300">
-                {chars.find((c) => c.charIndex === charIdx)?.charName ?? "—"}
-              </span>{" "}
-              • Map:{" "}
-              <span className="text-zinc-300">
-                {mapOptions.find((m) => m.index === mapIdx)?.name ?? "—"}
-              </span>
-              {factor > 1.001 && (
-                <>
-                  {" "}
-                  • Arcane:{" "}
-                  <span className="text-amber-300">{factor.toFixed(2)}x</span>
-                </>
-              )}
-            </>
-          ) : (
-            "load a save to begin"
-          )}
-        </div>
-        {displayBase !== null && factor > 1.001 && (
-          <div className="text-xs text-zinc-600 mt-1">
-            (base {formatIdleon(displayBase)}x × {factor.toFixed(2)}x map)
-          </div>
-        )}
-        {totalDr !== null && (
-          <div className="text-[10px] text-zinc-600 mt-2 italic leading-snug">
-            ⚠︎ May read ~1% lower than in-game (floating-point rounding through
-            the multiplicative chain). If you spot something missing or wrong,
-            DM me on Discord.
-          </div>
-        )}
       </div>
+
+      {totalDr !== null && (
+        <p className="text-[11px] text-zinc-600 mb-4 text-center italic leading-snug">
+          ⚠︎ May read ~1% lower than in-game (floating-point rounding through
+          the multiplicative chain). If you spot something missing or wrong, DM
+          me on Discord.
+        </p>
+      )}
 
       {middleSlot && <div className="mb-4">{middleSlot}</div>}
 
@@ -471,5 +451,64 @@ export default function DrCalculator({
         )}
       </div>
     </div>
+  );
+}
+
+// A native <select> that sizes its width to the *currently-selected* option's
+// text instead of the widest option in the list. Without this, a single long
+// character/map name anywhere in the dropdown inflates the control and pushes
+// the Chip Gallery button onto a second line. A hidden sizer span mirrors the
+// selected label so we can measure its rendered width and apply it inline.
+function AutoWidthSelect({
+  value,
+  disabled,
+  onChange,
+  options,
+  className = "",
+}: {
+  value: number;
+  disabled?: boolean;
+  onChange: (v: number) => void;
+  options: { value: number; label: string }[];
+  className?: string;
+}) {
+  const sizerRef = useRef<HTMLSpanElement>(null);
+  const [width, setWidth] = useState<number | undefined>(undefined);
+  const selectedLabel =
+    options.find((o) => o.value === value)?.label ?? options[0]?.label ?? "";
+
+  useEffect(() => {
+    if (sizerRef.current) {
+      // box-sizing is border-box (Tailwind preflight): measured text width
+      // + L/R padding (16) + border (2) + room for the native arrow (~24).
+      setWidth(Math.ceil(sizerRef.current.offsetWidth) + 42);
+    }
+  }, [selectedLabel]);
+
+  return (
+    <span className="relative inline-flex shrink-0">
+      <select
+        value={value}
+        disabled={disabled}
+        onChange={(e) => onChange(Number(e.target.value))}
+        style={width ? { width } : undefined}
+        className={className}
+      >
+        {options.map((o) => (
+          <option key={o.value} value={o.value}>
+            {o.label}
+          </option>
+        ))}
+      </select>
+      {/* Off-layout sizer: identical typography (text-sm + inherited font),
+          no wrapping, invisible. Only used to measure the selected label. */}
+      <span
+        ref={sizerRef}
+        aria-hidden="true"
+        className="invisible absolute left-0 top-0 whitespace-pre text-sm"
+      >
+        {selectedLabel}
+      </span>
+    </span>
   );
 }

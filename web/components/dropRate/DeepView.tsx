@@ -210,7 +210,7 @@ function RefBadge({
   return (
     <span
       className={`font-mono text-[10px] px-1.5 py-0.5 rounded border ${tone}`}
-      title={`Reference (hypothetical max) for this source — you have ${formatVal(
+      title={`Reference (Observed Max) for this source — you have ${formatVal(
         current,
         fmt
       )}`}
