@@ -107,15 +107,23 @@ export default function DropRatePageClient() {
     />
   );
   const snapshotBlock = (
-    <SnapshotSection
-      state={calcState}
-      onSelectBaseline={(b) => {
-        setBaseline(b);
-        if (b) setCompareTop(false);
-      }}
-      selectedBaselineAt={baseline?.capturedAt ?? null}
-      headerExtra={compareBlock}
-    />
+    <div className="flex flex-col gap-3">
+      <SnapshotSection
+        state={calcState}
+        onSelectBaseline={(b) => {
+          setBaseline(b);
+          if (b) setCompareTop(false);
+        }}
+        selectedBaselineAt={baseline?.capturedAt ?? null}
+        headerExtra={compareBlock}
+      />
+      <div className="text-center">
+        <AnonExcludedNote>
+          Anonymous players are excluded from the top-player comparison —
+          anonymous profiles have no public save to compute from.
+        </AnonExcludedNote>
+      </div>
+    </div>
   );
 
   return (
@@ -124,12 +132,6 @@ export default function DropRatePageClient() {
         onStateChange={setCalcState}
         compareBaseline={effectiveBaseline}
         snapshotSlot={snapshotBlock}
-        topSlot={
-          <AnonExcludedNote>
-            Anonymous players are excluded from the top-player comparison —
-            anonymous profiles have no public save to compute from.
-          </AnonExcludedNote>
-        }
       />
       <footer className="mt-8 text-[11px] text-zinc-600 text-center border-t border-zinc-900 pt-3">
         Drop rate is computed locally from your save JSON — pool tree

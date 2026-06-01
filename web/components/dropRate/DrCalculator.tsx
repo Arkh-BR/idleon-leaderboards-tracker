@@ -49,8 +49,6 @@ type Props = {
   // Breakdown — used by the page to render the snapshot section there so it
   // sits near the headline value instead of buried at the bottom.
   middleSlot?: React.ReactNode;
-  // Optional render slot above the "Import Save JSON" box (below the header).
-  topSlot?: React.ReactNode;
   // Optional render slot right under the manual-paste box (above the controls)
   // — used by the page for the Snapshot History section.
   snapshotSlot?: React.ReactNode;
@@ -60,7 +58,6 @@ export default function DrCalculator({
   onStateChange,
   compareBaseline,
   middleSlot,
-  topSlot,
   snapshotSlot,
 }: Props) {
   const [jsonText, setJsonText] = useState("");
@@ -320,8 +317,6 @@ export default function DrCalculator({
         Auto-computes from your IdleonToolbox &ldquo;Copy for Support&rdquo;
         JSON. Select character &amp; map. All processing local in your browser.
       </p>
-
-      {topSlot && <div className="text-center mb-4">{topSlot}</div>}
 
       {/* Primary: load the save automatically by player name. */}
       <ProfileNameLoader
