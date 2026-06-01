@@ -489,7 +489,14 @@ function computeRawValue(
  *   - A wrapper { data: <save>, parsedData: ... } (IT API response)
  *   - A wrapper { profileData: <save> }
  */
-export function computeTome(input: string | RawObj): TomeResult {
+// Compute index of the "Dungeon Rank" tome line. Exposed via the
+// dungeonRankAsOne option so the UI can neutralize it.
+const DUNGEON_RANK_CI = 17;
+
+export function computeTome(
+  input: string | RawObj,
+  opts: { dungeonRankAsOne?: boolean } = {}
+): TomeResult {
   let data: RawObj;
   let pd: ParsedData = {};
 
@@ -556,6 +563,15 @@ export function computeTome(input: string | RawObj): TomeResult {
       out.label =
         "ERR:" + (e instanceof Error ? e.message : String(e));
     }
+
+    // Optional: neutralize the Dungeon Rank line by treating its quantity as
+    // 1 (for users who want their Tome score without dungeon progress). The
+    // force also suppresses the IT-points override below so the toggle takes
+    // effect even on Copy-for-Support saves that ship parsedData.tomePoints.
+    const forcedDungeon =
+      opts.dungeonRankAsOne === true && ci === DUNGEON_RANK_CI;
+    if (forcedDungeon) raw = 1;
+
     let source = out.label || "MISSING";
     let pts: number | null = null;
     if (raw === null || raw === undefined || Number.isNaN(raw)) {
@@ -569,14 +585,16 @@ export function computeTome(input: string | RawObj): TomeResult {
     }
 
     // Override with IT's value when available — but keep our raw/source/pts
-    // visible by overwriting pts only and tagging the source.
-    if (usedParsedTomePoints) {
+    // visible by overwriting pts only and tagging the source. Skipped for a
+    // forced row so the neutralized value isn't overwritten by IT's real one.
+    if (usedParsedTomePoints && !forcedDungeon) {
       const itVal = Number(itPts![i]);
       if (Number.isFinite(itVal)) {
         pts = itVal;
         source = source + " [IT]";
       }
     }
+    if (forcedDungeon) source = source + " [forced=1]";
     if (typeof pts === "number") totalPts += pts;
 
     rows.push({

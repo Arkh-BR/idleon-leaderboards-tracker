@@ -76,7 +76,18 @@ type EnrichedRow = TomeRow & {
   ptsDelta: number | null;           // current pts - snapshot pts (null if no baseline)
 };
 
-export default function BestTomePanel() {
+export default function BestTomePanel({
+  dungeonAsOne,
+  onToggleDungeon,
+}: {
+  /** Shared "count Dungeon Rank as 1" toggle, owned by the page so it
+   *  persists across tab switches / reloads. */
+  dungeonAsOne: boolean;
+  onToggleDungeon: () => void;
+}) {
+  // Raw saved JSON string; the result is derived from it + the Dungeon-as-1
+  // toggle so flipping the toggle re-scores without a reload.
+  const [source, setSource] = useState<string | null>(null);
   const [result, setResult] = useState<TomeResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
@@ -103,13 +114,7 @@ export default function BestTomePanel() {
     try {
       saved = localStorage.getItem(STORAGE_KEY) || "";
     } catch {}
-    if (saved) {
-      try {
-        setResult(computeTome(saved));
-      } catch (e) {
-        setError(e instanceof Error ? e.message : String(e));
-      }
-    }
+    if (saved) setSource(saved);
     // User classifications — separate localStorage entry.
     try {
       const raw = localStorage.getItem(CLASSIFICATIONS_KEY);
@@ -129,6 +134,22 @@ export default function BestTomePanel() {
       }
     } catch {}
   }, []);
+
+  // Re-score whenever the loaded save or the Dungeon-as-1 toggle changes, so
+  // the whole Best Tome view (total, gaps, per-row pts) honors the toggle.
+  useEffect(() => {
+    if (!source) {
+      setResult(null);
+      return;
+    }
+    try {
+      setResult(computeTome(source, { dungeonRankAsOne: dungeonAsOne }));
+      setError(null);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+      setResult(null);
+    }
+  }, [source, dungeonAsOne]);
 
   // Capture every task's current pts as the new baseline. Tasks without
   // a current pts value are still recorded as 0 so future comparisons treat
@@ -438,6 +459,19 @@ export default function BestTomePanel() {
 
         {/* Right group: toggles + actions */}
         <div className="flex flex-wrap gap-2 items-center ml-auto">
+          <button
+            type="button"
+            onClick={onToggleDungeon}
+            aria-pressed={dungeonAsOne}
+            title="Score the Dungeon Rank tome line as 1 — ignores dungeon progress in the total."
+            className={`text-xs font-semibold px-3 py-1.5 rounded-md border transition-colors ${
+              dungeonAsOne
+                ? "bg-amber-500/20 text-amber-300 border-amber-500/40 hover:bg-amber-500/30"
+                : "border-zinc-700 text-zinc-300 hover:border-amber-500/50 hover:text-amber-300"
+            }`}
+          >
+            🏰 Dungeon = 1{dungeonAsOne ? " ✓" : ""}
+          </button>
           <label className="flex items-center gap-2 text-sm text-zinc-300 px-2.5 py-1.5 rounded-md border border-zinc-700/60 hover:border-zinc-600 cursor-pointer">
             <input
               type="checkbox"
