@@ -373,15 +373,15 @@ export default function DrCalculator({
           (the save comes from the name loader above or the manual paste
           fallback below). */}
       <div className="rounded-lg bg-zinc-900/60 p-4 mb-4 border border-zinc-800 flex flex-col gap-3">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-sm text-zinc-400 font-medium">
+          <div className="flex items-center gap-2">
+            <span className="shrink-0 text-sm text-zinc-400 font-medium">
               Character &amp; map:
             </span>
             <select
               value={charIdx}
               disabled={chars.length === 0}
               onChange={(e) => setCharIdx(Number(e.target.value))}
-              className="px-2 py-1.5 text-sm bg-zinc-900 border border-zinc-700 rounded text-sky-300 disabled:opacity-40"
+              className="flex-1 min-w-0 px-2 py-1.5 text-sm bg-zinc-900 border border-zinc-700 rounded text-sky-300 disabled:opacity-40"
             >
               {chars.length === 0 ? (
                 <option value={0}>-- load save first --</option>
@@ -397,7 +397,7 @@ export default function DrCalculator({
               value={mapIdx}
               disabled={chars.length === 0}
               onChange={(e) => setMapIdx(Number(e.target.value))}
-              className="px-2 py-1.5 text-sm bg-zinc-900 border border-zinc-700 rounded text-sky-300 disabled:opacity-40"
+              className="flex-1 min-w-0 px-2 py-1.5 text-sm bg-zinc-900 border border-zinc-700 rounded text-sky-300 disabled:opacity-40"
             >
               {mapOptions.map((m) => (
                 <option key={m.index} value={m.index}>
@@ -408,7 +408,7 @@ export default function DrCalculator({
             <button
               type="button"
               onClick={() => setChipGalleryActive((v) => !v)}
-              className={`px-3 py-1.5 text-xs font-semibold rounded border transition-colors ${
+              className={`shrink-0 whitespace-nowrap px-3 py-1.5 text-xs font-semibold rounded border transition-colors ${
                 chipGalleryActive
                   ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/40 hover:bg-emerald-500/30"
                   : "bg-zinc-800 text-zinc-400 border-zinc-700 hover:bg-zinc-700"
