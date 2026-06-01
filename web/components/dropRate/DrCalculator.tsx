@@ -415,7 +415,7 @@ export default function DrCalculator({
           {/* Chip Gallery toggle — sits under the Load Save row because it's a
               save-level setting (the +0.10 Gallery Bonus Multi boost is
               account-wide, not per-character / per-map). */}
-          <div className="p-2 rounded border border-zinc-800 bg-zinc-950/60 flex items-center justify-center gap-5 flex-wrap">
+          <div className="p-2 rounded border border-zinc-800 bg-zinc-950/60 flex items-center justify-between gap-4 flex-wrap">
           <button
             type="button"
             onClick={() => setChipGalleryActive((v) => !v)}
