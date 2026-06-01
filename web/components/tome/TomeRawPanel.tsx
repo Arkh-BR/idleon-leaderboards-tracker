@@ -91,15 +91,14 @@ export default function TomeRawPanel() {
 
   return (
     <div className="space-y-4">
-      {/* Primary: load by player name. */}
+      {/* Primary: load by player name; manual paste lives inside the card. */}
       <ProfileNameLoader
         storageKey={NAME_KEY}
         onSave={loadFromSave}
         onError={(msg) => setError(msg)}
-      />
-
-      {/* Manual paste — fallback for private profiles, collapsed by default. */}
-      <details className="rounded-lg bg-zinc-900/60 border border-zinc-800 p-3 space-y-4">
+      >
+        {/* Manual paste — fallback for private profiles, inside the card. */}
+        <details className="rounded-lg bg-zinc-900/40 border border-zinc-800 p-3 space-y-4">
         <summary className="cursor-pointer select-none flex items-center gap-2 font-semibold text-gold text-sm">
           <span className="dt-arrow text-zinc-500">▸</span>
           📋 Or paste the save manually
@@ -174,6 +173,7 @@ export default function TomeRawPanel() {
         </p>
       </div>
       </details>
+      </ProfileNameLoader>
 
       {error && (
         <div className="bg-red-950/50 border border-red-800 rounded p-3 text-sm">

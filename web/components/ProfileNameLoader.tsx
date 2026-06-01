@@ -1,6 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 
 // Load a public IdleonToolbox save by player name (via the /api/profile proxy)
 // instead of pasting the ~1.3 MB JSON. Shared by the Tome / Drop Rate /
@@ -8,21 +14,25 @@ import { useCallback, useEffect, useRef, useState } from "react";
 // produces, so each page just feeds `onSave(save)` into its existing pipeline.
 //
 // The player name is persisted per page (storageKey) and auto-loaded on mount,
-// mirroring the Leaderboards page. Paste stays available as a fallback (private
-// profiles aren't reachable by name).
+// mirroring the Leaderboards page. The manual-paste fallback is passed as
+// `children` and rendered inside this card.
 export default function ProfileNameLoader({
   storageKey,
   onSave,
   onError,
+  children,
 }: {
   storageKey: string;
   /** Called with the raw save envelope ({ data, charNames, … }) on success. */
   onSave: (save: unknown) => void;
   onError?: (msg: string) => void;
+  /** Manual-paste fallback, rendered inside the card below the loader. */
+  children?: ReactNode;
 }) {
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [warnOpen, setWarnOpen] = useState(false);
   const initialized = useRef(false);
 
   const load = useCallback(
@@ -84,7 +94,7 @@ export default function ProfileNameLoader({
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Enter player name"
-          className="bg-zinc-950 border border-zinc-700 rounded px-3 py-2 text-sm flex-1 min-w-[180px] font-mono"
+          className="bg-zinc-950 border border-zinc-700 rounded px-3 py-2 text-sm flex-1 min-w-[160px] font-mono"
         />
         <button
           type="submit"
@@ -93,17 +103,27 @@ export default function ProfileNameLoader({
         >
           {loading ? "Loading…" : "Load"}
         </button>
+        <button
+          type="button"
+          onClick={() => setWarnOpen((v) => !v)}
+          aria-expanded={warnOpen}
+          className="flex items-center gap-1 px-2 py-2 text-sm rounded border border-amber-500/40 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20"
+          title="Where does this data come from?"
+        >
+          ⚠️ <span className="text-xs">{warnOpen ? "▾" : "▸"}</span>
+        </button>
       </form>
-      <div className="mt-2 flex items-start gap-2 rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm text-amber-200/90">
-        <span aria-hidden className="leading-tight">
-          ⚠️
-        </span>
-        <span className="leading-snug">
+
+      {warnOpen && (
+        <div className="mt-2 rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm text-amber-200/90">
           This is the player&apos;s last upload to IdleonToolbox — it may be
           older than your current in-game save. Paste manually for the latest.
-        </span>
-      </div>
+        </div>
+      )}
+
       {error && <p className="text-xs text-red-400 mt-2">⚠ {error}</p>}
+
+      {children && <div className="mt-3">{children}</div>}
     </div>
   );
 }

@@ -332,10 +332,9 @@ export default function DrCalculator({
         storageKey={NAME_KEY}
         onSave={(s) => applyParsedSave(s)}
         onError={(msg) => setError(msg)}
-      />
-
-      {/* Manual paste — fallback for private profiles, collapsed by default. */}
-      <details className="rounded-lg bg-zinc-900/60 p-4 mb-4 border border-zinc-800">
+      >
+        {/* Manual paste — fallback for private profiles, inside the card. */}
+        <details className="rounded-lg bg-zinc-900/40 p-3 border border-zinc-800">
         <summary className="cursor-pointer select-none flex items-center gap-2 flex-wrap">
           <span className="dt-arrow text-zinc-500 text-sm">▸</span>
           <span className="font-semibold text-gold">
@@ -369,7 +368,8 @@ export default function DrCalculator({
             Load pasted save
           </button>
         </div>
-      </details>
+        </details>
+      </ProfileNameLoader>
 
       {snapshotSlot && <div className="mb-4">{snapshotSlot}</div>}
 
