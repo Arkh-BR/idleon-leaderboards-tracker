@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   buildMapOptions,
   type MapOption,
@@ -368,38 +368,34 @@ export default function DrCalculator({
           (the save comes from the name loader above or the manual paste
           fallback below). */}
       <div className="rounded-lg bg-zinc-900/60 p-4 mb-4 border border-zinc-800 flex flex-col gap-3">
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-nowrap items-center gap-2 overflow-x-auto">
             <span className="shrink-0 text-sm text-zinc-400 font-medium">
               Character &amp; map:
             </span>
-            <select
+            <AutoWidthSelect
               value={charIdx}
               disabled={chars.length === 0}
-              onChange={(e) => setCharIdx(Number(e.target.value))}
-              className="max-w-full px-2 py-1.5 text-sm bg-zinc-900 border border-zinc-700 rounded text-sky-300 disabled:opacity-40"
-            >
-              {chars.length === 0 ? (
-                <option value={0}>-- load save first --</option>
-              ) : (
-                chars.map((c) => (
-                  <option key={c.charIndex} value={c.charIndex}>
-                    {c.charName} (Lv {c.level})
-                  </option>
-                ))
-              )}
-            </select>
-            <select
+              onChange={setCharIdx}
+              options={
+                chars.length === 0
+                  ? [{ value: 0, label: "-- load save first --" }]
+                  : chars.map((c) => ({
+                      value: c.charIndex,
+                      label: `${c.charName} (Lv ${c.level})`,
+                    }))
+              }
+              className="px-2 py-1.5 text-sm bg-zinc-900 border border-zinc-700 rounded text-sky-300 disabled:opacity-40"
+            />
+            <AutoWidthSelect
               value={mapIdx}
               disabled={chars.length === 0}
-              onChange={(e) => setMapIdx(Number(e.target.value))}
-              className="max-w-full px-2 py-1.5 text-sm bg-zinc-900 border border-zinc-700 rounded text-sky-300 disabled:opacity-40"
-            >
-              {mapOptions.map((m) => (
-                <option key={m.index} value={m.index}>
-                  {m.label}
-                </option>
-              ))}
-            </select>
+              onChange={setMapIdx}
+              options={mapOptions.map((m) => ({
+                value: m.index,
+                label: m.label,
+              }))}
+              className="px-2 py-1.5 text-sm bg-zinc-900 border border-zinc-700 rounded text-sky-300 disabled:opacity-40"
+            />
             <button
               type="button"
               onClick={() => setChipGalleryActive((v) => !v)}
@@ -455,5 +451,64 @@ export default function DrCalculator({
         )}
       </div>
     </div>
+  );
+}
+
+// A native <select> that sizes its width to the *currently-selected* option's
+// text instead of the widest option in the list. Without this, a single long
+// character/map name anywhere in the dropdown inflates the control and pushes
+// the Chip Gallery button onto a second line. A hidden sizer span mirrors the
+// selected label so we can measure its rendered width and apply it inline.
+function AutoWidthSelect({
+  value,
+  disabled,
+  onChange,
+  options,
+  className = "",
+}: {
+  value: number;
+  disabled?: boolean;
+  onChange: (v: number) => void;
+  options: { value: number; label: string }[];
+  className?: string;
+}) {
+  const sizerRef = useRef<HTMLSpanElement>(null);
+  const [width, setWidth] = useState<number | undefined>(undefined);
+  const selectedLabel =
+    options.find((o) => o.value === value)?.label ?? options[0]?.label ?? "";
+
+  useEffect(() => {
+    if (sizerRef.current) {
+      // box-sizing is border-box (Tailwind preflight): measured text width
+      // + L/R padding (16) + border (2) + room for the native arrow (~24).
+      setWidth(Math.ceil(sizerRef.current.offsetWidth) + 42);
+    }
+  }, [selectedLabel]);
+
+  return (
+    <span className="relative inline-flex shrink-0">
+      <select
+        value={value}
+        disabled={disabled}
+        onChange={(e) => onChange(Number(e.target.value))}
+        style={width ? { width } : undefined}
+        className={className}
+      >
+        {options.map((o) => (
+          <option key={o.value} value={o.value}>
+            {o.label}
+          </option>
+        ))}
+      </select>
+      {/* Off-layout sizer: identical typography (text-sm + inherited font),
+          no wrapping, invisible. Only used to measure the selected label. */}
+      <span
+        ref={sizerRef}
+        aria-hidden="true"
+        className="invisible absolute left-0 top-0 whitespace-pre text-sm"
+      >
+        {selectedLabel}
+      </span>
+    </span>
   );
 }
