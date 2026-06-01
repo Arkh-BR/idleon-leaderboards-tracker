@@ -20,12 +20,27 @@ function obj(v: unknown): Record<string, unknown> | null {
     : null;
 }
 
+// Number of characters on the account. The game now allows more than 10
+// characters; several tome quantities sum/scan per-character data
+// (Lv0_N, QuestComplete_N, SL_/SM_N, KLA_N, CharacterClass_N). A hardcoded
+// 10-char loop silently DROPS the 11th+ character — e.g. its level (Account
+// LV) and skill levels (Account Skills LV). Detect the real count from the
+// highest present Lv0_N (every char has one), with a charNames fallback.
+// Over-counting is harmless: every per-char loop already guards missing keys.
+function charCount(d: D): number {
+  let n = 0;
+  for (let i = 0; i < 24; i++) if (Array.isArray(d["Lv0_" + i])) n = i + 1;
+  if (n > 0) return n;
+  const names = (d as { charNames?: unknown }).charNames;
+  return Array.isArray(names) && names.length > 0 ? names.length : 10;
+}
+
 // ---------------------------------------------------------------- account / chars
 
 export function rawAccountLevel(d: D): number | null {
   let t = 0;
   let f = false;
-  for (let i = 0; i < 10; i++) {
+  for (let i = 0; i < charCount(d); i++) {
     const lv = d["Lv0_" + i];
     if (Array.isArray(lv) && lv[0] !== undefined) {
       t += num(lv[0]);
@@ -46,7 +61,7 @@ export function rawAchievements(d: D): number | null {
 export function rawUniqueQuests(d: D): number | null {
   const s: Record<string, boolean> = {};
   let c = 0;
-  for (let i = 0; i < 10; i++) {
+  for (let i = 0; i < charCount(d); i++) {
     const qc = obj(d["QuestComplete_" + i]);
     if (!qc) continue;
     for (const k of Object.keys(qc)) {
@@ -445,7 +460,7 @@ export function rawEquinoxClouds(d: D): number | null {
 
 export function rawSkillsLevels(d: D): number | null {
   let t = 0;
-  for (let c = 0; c < 10; c++) {
+  for (let c = 0; c < charCount(d); c++) {
     const lv = d["Lv0_" + c];
     if (Array.isArray(lv)) {
       for (let i = 1; i <= 20 && i < lv.length; i++) t += num(lv[i]);
@@ -465,7 +480,7 @@ export function rawPrayers(d: D): number | null {
 export function rawTalentMaxLevel(d: D): number | null {
   const mx: Record<string, number> = {};
   const srcs = ["SL_", "SM_"];
-  for (let c = 0; c < 10; c++) {
+  for (let c = 0; c < charCount(d); c++) {
     for (let si = 0; si < srcs.length; si++) {
       const sl = obj(d[srcs[si] + c]);
       if (!sl) continue;
@@ -484,7 +499,7 @@ export function rawTalentMaxLevel(d: D): number | null {
 
 export function rawDeathNoteDigits(d: D): number | null {
   const all: Record<number, number> = {};
-  for (let c = 0; c < 10; c++) {
+  for (let c = 0; c < charCount(d); c++) {
     const k = d["KLA_" + c];
     if (!Array.isArray(k)) continue;
     for (let i = 0; i < k.length; i++) {
@@ -714,7 +729,7 @@ export function rawBiggestHaul(d: D): number | null {
 
 export function rawSpelunkerLevel(d: D): number | null {
   let mx = 0;
-  for (let i = 0; i < 10; i++) {
+  for (let i = 0; i < charCount(d); i++) {
     const lv = d["Lv0_" + i];
     if (Array.isArray(lv) && lv.length > 19) {
       const sk = num(lv[19]);
@@ -1049,7 +1064,7 @@ function familyValueRound(
 
 function highestElementalSorcLevel(d: D): number {
   let max = 0;
-  for (let c = 0; c < 10; c++) {
+  for (let c = 0; c < charCount(d); c++) {
     if (num(d["CharacterClass_" + c]) !== CLASS_ELEMENTAL_SORC) continue;
     const lv = d["Lv0_" + c];
     if (Array.isArray(lv)) {
@@ -1096,7 +1111,7 @@ export function rawStarTalentsProper(d: D): number | null {
     shiny;
 
   let maxPts = 0;
-  for (let c = 0; c < 10; c++) {
+  for (let c = 0; c < charCount(d); c++) {
     const lv = d["Lv0_" + c];
     if (!Array.isArray(lv)) continue;
     const charLv = num(lv[0]);
@@ -1220,7 +1235,7 @@ export function rawSummonStones(d: D): number | null {
 
 export function rawDeathNoteDigitsProper(d: D): number | null {
   const all: Record<number, number> = {};
-  for (let c = 0; c < 10; c++) {
+  for (let c = 0; c < charCount(d); c++) {
     const k = d["KLA_" + c];
     if (!Array.isArray(k)) continue;
     for (let i = 0; i < k.length; i++) {
