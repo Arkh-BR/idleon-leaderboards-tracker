@@ -218,13 +218,15 @@ export default function SnapshotSection({
           <span className="w-3 text-zinc-500 select-none">
             {collapsed ? "▸" : "▾"}
           </span>
-          <span>📈 Snapshot History</span>
-          {collapsed && totalSnaps > 0 && (
-            <span className="text-xs text-zinc-500 font-normal">
-              ({totalSnaps} capture{totalSnaps === 1 ? "" : "s"} across{" "}
-              {trackedChars.length} char{trackedChars.length === 1 ? "" : "s"})
-            </span>
-          )}
+          <span className="flex flex-col text-left">
+            <span>📈 Snapshot History</span>
+            {collapsed && totalSnaps > 0 && (
+              <span className="text-xs text-zinc-500 font-normal">
+                ({totalSnaps} capture{totalSnaps === 1 ? "" : "s"} across{" "}
+                {trackedChars.length} char{trackedChars.length === 1 ? "" : "s"})
+              </span>
+            )}
+          </span>
         </button>
         <div className="flex gap-2 items-center justify-end">
           {headerExtra}
