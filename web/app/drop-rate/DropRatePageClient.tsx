@@ -155,7 +155,7 @@ function TopCompareToggle({
   onToggleArcaneMap: (v: boolean) => void;
 }) {
   return (
-    <div className="flex flex-col items-end gap-1.5">
+    <div className="flex flex-col items-center gap-1.5">
       <button
         type="button"
         onClick={onToggle}

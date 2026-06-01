@@ -415,7 +415,7 @@ export default function DrCalculator({
           {/* Chip Gallery toggle — sits under the Load Save row because it's a
               save-level setting (the +0.10 Gallery Bonus Multi boost is
               account-wide, not per-character / per-map). */}
-          <div className="p-2 rounded border border-zinc-800 bg-zinc-950/60 flex items-center gap-3 flex-wrap">
+          <div className="p-2 rounded border border-zinc-800 bg-zinc-950/60 flex items-center justify-center gap-5 flex-wrap">
           <button
             type="button"
             onClick={() => setChipGalleryActive((v) => !v)}
@@ -428,22 +428,20 @@ export default function DrCalculator({
           >
             {chipGalleryActive ? "🔌 Chip Gallery ON" : "⚪ Chip Gallery OFF"}
           </button>
-          <div className="ml-auto flex items-center gap-4 flex-wrap justify-end">
-            <div className="flex items-baseline gap-2">
-              <span className="text-xs uppercase tracking-wider text-zinc-500">
-                Total Drop Rate
+          <div className="flex items-baseline gap-2">
+            <span className="text-xs uppercase tracking-wider text-zinc-500">
+              Total Drop Rate
+            </span>
+            <span className="text-2xl font-extrabold text-gold tabular-nums">
+              {totalDr !== null ? totalDr.toFixed(2) + "x" : "—"}
+            </span>
+            {displayBase !== null && factor > 1.001 && (
+              <span className="text-[11px] text-zinc-600">
+                (base {formatIdleon(displayBase)}x × {factor.toFixed(2)}x map)
               </span>
-              <span className="text-2xl font-extrabold text-gold tabular-nums">
-                {totalDr !== null ? totalDr.toFixed(2) + "x" : "—"}
-              </span>
-              {displayBase !== null && factor > 1.001 && (
-                <span className="text-[11px] text-zinc-600">
-                  (base {formatIdleon(displayBase)}x × {factor.toFixed(2)}x map)
-                </span>
-              )}
-            </div>
-            {compareSlot}
+            )}
           </div>
+          {compareSlot}
         </div>
       </div>
 
