@@ -87,7 +87,7 @@ export default function DropRatePageClient() {
     return {
       flatTree: includeArcaneMap ? raw : stripArcaneMap(raw),
       capturedAt: Date.parse(TOP_DR_GENERATED_AT),
-      charName: `Hypothetical max (${TOP_DR_PLAYERS_SCANNED} top players)${
+      charName: `Observed Max (${TOP_DR_PLAYERS_SCANNED} top players)${
         includeArcaneMap ? "" : " · no Arcane Map"
       }`,
     };
