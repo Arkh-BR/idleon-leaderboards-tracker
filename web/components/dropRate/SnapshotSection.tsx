@@ -57,12 +57,14 @@ export default function SnapshotSection({
   const [notice, setNotice] = useState<string | null>(null);
   // Whole-section collapse — defaults to expanded for first-time users and
   // is persisted to localStorage so the choice survives reloads.
-  const [collapsed, setCollapsed] = useState(false);
+  // Starts collapsed by default; only expands if the user previously chose to
+  // expand it (COLLAPSE_KEY === "0").
+  const [collapsed, setCollapsed] = useState(true);
   useEffect(() => {
     if (typeof window === "undefined") return;
     try {
       const v = window.localStorage.getItem(COLLAPSE_KEY);
-      if (v === "1") setCollapsed(true);
+      if (v === "0") setCollapsed(false);
     } catch {
       // localStorage unavailable — keep default
     }

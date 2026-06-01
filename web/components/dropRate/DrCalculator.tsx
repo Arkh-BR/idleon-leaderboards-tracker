@@ -424,84 +424,29 @@ export default function DrCalculator({
           >
             {chipGalleryActive ? "🔌 Chip Gallery ON" : "⚪ Chip Gallery OFF"}
           </button>
-          <div className="text-[11px] text-zinc-500 leading-tight">
-            {chipDetected?.detected ? (
-              <>
-                <span className="text-emerald-400">●</span> Chip 16 detected on
-                char {chipDetected.charIdx} slot {chipDetected.slot}{" "}
-                <span className="text-zinc-600">
-                  (auto-enabled — toggle off to compare baseline)
-                </span>
-              </>
-            ) : (
-              <>
-                <span className="text-zinc-600">○</span> Chip 16 not detected
-                in save — toggle on if it was active when the gallery last
-                refreshed
-                {chipDetected?.labSlots && chipDetected.labSlots.length > 0 && (
-                  <details className="mt-1">
-                    <summary className="cursor-pointer text-zinc-600 hover:text-zinc-400">
-                      show lab chip slots ({chipDetected.labSlots.length} chars)
-                    </summary>
-                    <div className="mt-1 font-mono text-[10px] text-zinc-500 max-h-32 overflow-auto">
-                      {chipDetected.labSlots.map((slots, ci) => (
-                        <div key={ci}>
-                          char {ci}: [{slots.join(", ")}]
-                        </div>
-                      ))}
-                    </div>
-                  </details>
-                )}
-              </>
+          <div className="ml-auto flex items-baseline gap-2">
+            <span className="text-xs uppercase tracking-wider text-zinc-500">
+              Total Drop Rate
+            </span>
+            <span className="text-2xl font-extrabold text-gold tabular-nums">
+              {totalDr !== null ? totalDr.toFixed(2) + "x" : "—"}
+            </span>
+            {displayBase !== null && factor > 1.001 && (
+              <span className="text-[11px] text-zinc-600">
+                (base {formatIdleon(displayBase)}x × {factor.toFixed(2)}x map)
+              </span>
             )}
           </div>
         </div>
       </div>
 
-      {/* Big DR card centralizado */}
-      <div className="rounded-lg bg-zinc-900/60 border border-zinc-800 p-5 mb-4 text-center">
-        <div className="text-xs uppercase tracking-wider text-zinc-500">
-          Total Drop Rate Multiplier
-        </div>
-        <div className="text-5xl font-extrabold text-gold mt-1 tabular-nums">
-          {totalDr !== null ? totalDr.toFixed(2) + "x" : "—"}
-        </div>
-        <div className="text-xs text-zinc-500 mt-1">
-          {chars.length > 0 ? (
-            <>
-              Character:{" "}
-              <span className="text-zinc-300">
-                {chars.find((c) => c.charIndex === charIdx)?.charName ?? "—"}
-              </span>{" "}
-              • Map:{" "}
-              <span className="text-zinc-300">
-                {mapOptions.find((m) => m.index === mapIdx)?.name ?? "—"}
-              </span>
-              {factor > 1.001 && (
-                <>
-                  {" "}
-                  • Arcane:{" "}
-                  <span className="text-amber-300">{factor.toFixed(2)}x</span>
-                </>
-              )}
-            </>
-          ) : (
-            "load a save to begin"
-          )}
-        </div>
-        {displayBase !== null && factor > 1.001 && (
-          <div className="text-xs text-zinc-600 mt-1">
-            (base {formatIdleon(displayBase)}x × {factor.toFixed(2)}x map)
-          </div>
-        )}
-        {totalDr !== null && (
-          <div className="text-[10px] text-zinc-600 mt-2 italic leading-snug">
-            ⚠︎ May read ~1% lower than in-game (floating-point rounding through
-            the multiplicative chain). If you spot something missing or wrong,
-            DM me on Discord.
-          </div>
-        )}
-      </div>
+      {totalDr !== null && (
+        <p className="text-[11px] text-zinc-600 mb-4 text-center italic leading-snug">
+          ⚠︎ May read ~1% lower than in-game (floating-point rounding through
+          the multiplicative chain). If you spot something missing or wrong, DM
+          me on Discord.
+        </p>
+      )}
 
       {middleSlot && <div className="mb-4">{middleSlot}</div>}
 
