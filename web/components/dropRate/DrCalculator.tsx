@@ -54,6 +54,9 @@ type Props = {
   // Optional render slot right under the manual-paste box (above the controls)
   // — used by the page for the Snapshot History section.
   snapshotSlot?: React.ReactNode;
+  // Optional render slot on the same row as the Chip Gallery toggle + DR
+  // value — used by the page for the "Compare vs Observed Max" control.
+  compareSlot?: React.ReactNode;
 };
 
 export default function DrCalculator({
@@ -62,6 +65,7 @@ export default function DrCalculator({
   middleSlot,
   topSlot,
   snapshotSlot,
+  compareSlot,
 }: Props) {
   const [jsonText, setJsonText] = useState("");
   const [save, setSave] = useState<any | null>(null);
@@ -424,18 +428,21 @@ export default function DrCalculator({
           >
             {chipGalleryActive ? "🔌 Chip Gallery ON" : "⚪ Chip Gallery OFF"}
           </button>
-          <div className="ml-auto flex items-baseline gap-2">
-            <span className="text-xs uppercase tracking-wider text-zinc-500">
-              Total Drop Rate
-            </span>
-            <span className="text-2xl font-extrabold text-gold tabular-nums">
-              {totalDr !== null ? totalDr.toFixed(2) + "x" : "—"}
-            </span>
-            {displayBase !== null && factor > 1.001 && (
-              <span className="text-[11px] text-zinc-600">
-                (base {formatIdleon(displayBase)}x × {factor.toFixed(2)}x map)
+          <div className="ml-auto flex items-center gap-4 flex-wrap justify-end">
+            <div className="flex items-baseline gap-2">
+              <span className="text-xs uppercase tracking-wider text-zinc-500">
+                Total Drop Rate
               </span>
-            )}
+              <span className="text-2xl font-extrabold text-gold tabular-nums">
+                {totalDr !== null ? totalDr.toFixed(2) + "x" : "—"}
+              </span>
+              {displayBase !== null && factor > 1.001 && (
+                <span className="text-[11px] text-zinc-600">
+                  (base {formatIdleon(displayBase)}x × {factor.toFixed(2)}x map)
+                </span>
+              )}
+            </div>
+            {compareSlot}
           </div>
         </div>
       </div>
