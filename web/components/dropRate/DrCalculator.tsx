@@ -54,9 +54,6 @@ type Props = {
   // Optional render slot right under the manual-paste box (above the controls)
   // — used by the page for the Snapshot History section.
   snapshotSlot?: React.ReactNode;
-  // Optional render slot on the same row as the Chip Gallery toggle + DR
-  // value — used by the page for the "Compare vs Observed Max" control.
-  compareSlot?: React.ReactNode;
 };
 
 export default function DrCalculator({
@@ -65,7 +62,6 @@ export default function DrCalculator({
   middleSlot,
   topSlot,
   snapshotSlot,
-  compareSlot,
 }: Props) {
   const [jsonText, setJsonText] = useState("");
   const [save, setSave] = useState<any | null>(null);
@@ -415,7 +411,7 @@ export default function DrCalculator({
           {/* Chip Gallery toggle — sits under the Load Save row because it's a
               save-level setting (the +0.10 Gallery Bonus Multi boost is
               account-wide, not per-character / per-map). */}
-          <div className="p-2 rounded border border-zinc-800 bg-zinc-950/60 flex items-center justify-between gap-4 flex-wrap">
+          <div className="p-2 rounded border border-zinc-800 bg-zinc-950/60 flex items-center justify-center gap-5 flex-wrap">
           <button
             type="button"
             onClick={() => setChipGalleryActive((v) => !v)}
@@ -441,7 +437,6 @@ export default function DrCalculator({
               </span>
             )}
           </div>
-          {compareSlot}
         </div>
       </div>
 

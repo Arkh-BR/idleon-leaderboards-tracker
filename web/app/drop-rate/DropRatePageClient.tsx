@@ -114,6 +114,7 @@ export default function DropRatePageClient() {
         if (b) setCompareTop(false);
       }}
       selectedBaselineAt={baseline?.capturedAt ?? null}
+      headerExtra={compareBlock}
     />
   );
 
@@ -122,7 +123,6 @@ export default function DropRatePageClient() {
       <DrCalculator
         onStateChange={setCalcState}
         compareBaseline={effectiveBaseline}
-        compareSlot={compareBlock}
         snapshotSlot={snapshotBlock}
         topSlot={
           <AnonExcludedNote>

@@ -42,6 +42,9 @@ type Props = {
   /** Which snapshot's `capturedAt` is currently selected as the baseline.
    *  Used so the row that's been picked stays visually highlighted. */
   selectedBaselineAt?: number | null;
+  /** Extra controls rendered in the header, between the title and the
+   *  Save/Export/Import buttons (used for the Compare-vs-Observed-Max block). */
+  headerExtra?: React.ReactNode;
 };
 
 const COLLAPSE_KEY = "drop-rate.snapshot-section.collapsed.v1";
@@ -50,6 +53,7 @@ export default function SnapshotSection({
   state,
   onSelectBaseline,
   selectedBaselineAt,
+  headerExtra,
 }: Props) {
   const [trackedChars, setTrackedChars] = useState<string[]>([]);
   const [viewChar, setViewChar] = useState<string | null>(null);
@@ -223,6 +227,7 @@ export default function SnapshotSection({
             </span>
           )}
         </button>
+        {headerExtra}
         <div className="flex gap-2 items-center">
           <button
             type="button"
