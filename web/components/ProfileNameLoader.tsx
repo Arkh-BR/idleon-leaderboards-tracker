@@ -97,13 +97,6 @@ export default function ProfileNameLoader({
           className="bg-zinc-950 border border-zinc-700 rounded px-3 py-2 text-sm flex-1 min-w-[160px] font-mono"
         />
         <button
-          type="submit"
-          disabled={loading || !name.trim()}
-          className="bg-gold text-ink font-bold rounded px-4 py-2 text-sm disabled:opacity-50"
-        >
-          {loading ? "Loading…" : "Load"}
-        </button>
-        <button
           type="button"
           onClick={() => setWarnOpen((v) => !v)}
           aria-expanded={warnOpen}
@@ -111,6 +104,13 @@ export default function ProfileNameLoader({
           title="Where does this data come from?"
         >
           ⚠️ <span className="text-xs">{warnOpen ? "▾" : "▸"}</span>
+        </button>
+        <button
+          type="submit"
+          disabled={loading || !name.trim()}
+          className="bg-gold text-ink font-bold rounded px-4 py-2 text-sm disabled:opacity-50"
+        >
+          {loading ? "Loading…" : "Load"}
         </button>
       </form>
 
