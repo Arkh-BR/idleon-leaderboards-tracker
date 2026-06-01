@@ -1,17 +1,37 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import TomeRawPanel from "@/components/tome/TomeRawPanel";
 import BestTomePanel from "@/components/tome/BestTomePanel";
 import AnonExcludedNote from "@/components/AnonExcludedNote";
 
 type Tab = "best" | "raw";
 
+const DUNGEON_KEY = "idleon-leaderboards.tome.dungeonAsOne";
+
 export default function TomePageClient() {
   // Best Tome is the default view (polished UI). Raw analysis is the debug
   // view where the user pastes the JSON — both read from the same
   // localStorage key, so pasting in either tab updates the other.
   const [tab, setTab] = useState<Tab>("best");
+
+  // "Count Dungeon Rank as 1" toggle. Owned by the page (not a tab panel) so
+  // it survives tab switches, and persisted so it stays on across reloads
+  // until the user turns it off. Both panels apply it to their computation.
+  const [dungeonAsOne, setDungeonAsOne] = useState(false);
+  useEffect(() => {
+    try {
+      if (localStorage.getItem(DUNGEON_KEY) === "1") setDungeonAsOne(true);
+    } catch {}
+  }, []);
+  const toggleDungeon = () =>
+    setDungeonAsOne((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem(DUNGEON_KEY, next ? "1" : "0");
+      } catch {}
+      return next;
+    });
 
   return (
     <main className="max-w-7xl mx-auto px-4 py-6">
@@ -42,8 +62,18 @@ export default function TomePageClient() {
         </TabButton>
       </div>
 
-      {tab === "best" && <BestTomePanel />}
-      {tab === "raw" && <TomeRawPanel />}
+      {tab === "best" && (
+        <BestTomePanel
+          dungeonAsOne={dungeonAsOne}
+          onToggleDungeon={toggleDungeon}
+        />
+      )}
+      {tab === "raw" && (
+        <TomeRawPanel
+          dungeonAsOne={dungeonAsOne}
+          onToggleDungeon={toggleDungeon}
+        />
+      )}
 
       <footer className="mt-12 text-xs text-zinc-600 text-center border-t border-zinc-900 pt-4">
         Algorithm ported from the v7.9 Tome Raw Values Extractor (Apps Script).

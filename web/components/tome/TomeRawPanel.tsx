@@ -11,7 +11,15 @@ const NAME_KEY = "idleon-leaderboards.tome.playerName";
 // Debug panel for validating the tome computation. Shows every task with
 // raw value, computed pts, source label, and the [x1, x2, x3] bonus tuple
 // so it's possible to verify against the .gs script line-by-line.
-export default function TomeRawPanel() {
+export default function TomeRawPanel({
+  dungeonAsOne,
+  onToggleDungeon,
+}: {
+  /** Shared "count Dungeon Rank as 1" toggle, owned by the page so it
+   *  persists across tab switches / reloads. */
+  dungeonAsOne: boolean;
+  onToggleDungeon: () => void;
+}) {
   const [json, setJson] = useState("");
   // The last-loaded save (raw JSON string or parsed envelope). The displayed
   // result is derived from this + the Dungeon-as-1 toggle, so flipping the
@@ -19,7 +27,6 @@ export default function TomeRawPanel() {
   const [source, setSource] = useState<
     string | Record<string, unknown> | null
   >(null);
-  const [dungeonAsOne, setDungeonAsOne] = useState(false);
   const [result, setResult] = useState<TomeResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
@@ -124,7 +131,7 @@ export default function TomeRawPanel() {
         rightSlot={
           <button
             type="button"
-            onClick={() => setDungeonAsOne((v) => !v)}
+            onClick={onToggleDungeon}
             aria-pressed={dungeonAsOne}
             title="Score the Dungeon Rank tome line as 1 — ignores dungeon progress in the total."
             className={`shrink-0 whitespace-nowrap px-3 py-2 text-sm font-semibold rounded border transition-colors ${
