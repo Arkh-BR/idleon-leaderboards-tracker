@@ -1,0 +1,526 @@
+
+<!doctype html>
+<html lang="en">
+
+<head>
+    <title>Code coverage report for lib/tome/topPlayers.ts</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../../prettify.css" />
+    <link rel="stylesheet" href="../../base.css" />
+    <link rel="shortcut icon" type="image/x-icon" href="../../favicon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(../../sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+    
+<body>
+<div class='wrapper'>
+    <div class='pad1'>
+        <h1><a href="../../index.html">All files</a> / <a href="index.html">lib/tome</a> topPlayers.ts</h1>
+        <div class='clearfix'>
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">0% </span>
+                <span class="quiet">Statements</span>
+                <span class='fraction'>0/128</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">100% </span>
+                <span class="quiet">Branches</span>
+                <span class='fraction'>1/1</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">100% </span>
+                <span class="quiet">Functions</span>
+                <span class='fraction'>1/1</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">0% </span>
+                <span class="quiet">Lines</span>
+                <span class='fraction'>0/128</span>
+            </div>
+        
+            
+        </div>
+        <p class="quiet">
+            Press <em>n</em> or <em>j</em> to go to the next uncovered block, <em>b</em>, <em>p</em> or <em>k</em> for the previous block.
+        </p>
+        <template id="filterTemplate">
+            <div class="quiet">
+                Filter:
+                <input type="search" id="fileSearch">
+            </div>
+        </template>
+    </div>
+    <div class='status-line low'></div>
+    <pre><table class="coverage">
+<tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
+<a name='L2'></a><a href='#L2'>2</a>
+<a name='L3'></a><a href='#L3'>3</a>
+<a name='L4'></a><a href='#L4'>4</a>
+<a name='L5'></a><a href='#L5'>5</a>
+<a name='L6'></a><a href='#L6'>6</a>
+<a name='L7'></a><a href='#L7'>7</a>
+<a name='L8'></a><a href='#L8'>8</a>
+<a name='L9'></a><a href='#L9'>9</a>
+<a name='L10'></a><a href='#L10'>10</a>
+<a name='L11'></a><a href='#L11'>11</a>
+<a name='L12'></a><a href='#L12'>12</a>
+<a name='L13'></a><a href='#L13'>13</a>
+<a name='L14'></a><a href='#L14'>14</a>
+<a name='L15'></a><a href='#L15'>15</a>
+<a name='L16'></a><a href='#L16'>16</a>
+<a name='L17'></a><a href='#L17'>17</a>
+<a name='L18'></a><a href='#L18'>18</a>
+<a name='L19'></a><a href='#L19'>19</a>
+<a name='L20'></a><a href='#L20'>20</a>
+<a name='L21'></a><a href='#L21'>21</a>
+<a name='L22'></a><a href='#L22'>22</a>
+<a name='L23'></a><a href='#L23'>23</a>
+<a name='L24'></a><a href='#L24'>24</a>
+<a name='L25'></a><a href='#L25'>25</a>
+<a name='L26'></a><a href='#L26'>26</a>
+<a name='L27'></a><a href='#L27'>27</a>
+<a name='L28'></a><a href='#L28'>28</a>
+<a name='L29'></a><a href='#L29'>29</a>
+<a name='L30'></a><a href='#L30'>30</a>
+<a name='L31'></a><a href='#L31'>31</a>
+<a name='L32'></a><a href='#L32'>32</a>
+<a name='L33'></a><a href='#L33'>33</a>
+<a name='L34'></a><a href='#L34'>34</a>
+<a name='L35'></a><a href='#L35'>35</a>
+<a name='L36'></a><a href='#L36'>36</a>
+<a name='L37'></a><a href='#L37'>37</a>
+<a name='L38'></a><a href='#L38'>38</a>
+<a name='L39'></a><a href='#L39'>39</a>
+<a name='L40'></a><a href='#L40'>40</a>
+<a name='L41'></a><a href='#L41'>41</a>
+<a name='L42'></a><a href='#L42'>42</a>
+<a name='L43'></a><a href='#L43'>43</a>
+<a name='L44'></a><a href='#L44'>44</a>
+<a name='L45'></a><a href='#L45'>45</a>
+<a name='L46'></a><a href='#L46'>46</a>
+<a name='L47'></a><a href='#L47'>47</a>
+<a name='L48'></a><a href='#L48'>48</a>
+<a name='L49'></a><a href='#L49'>49</a>
+<a name='L50'></a><a href='#L50'>50</a>
+<a name='L51'></a><a href='#L51'>51</a>
+<a name='L52'></a><a href='#L52'>52</a>
+<a name='L53'></a><a href='#L53'>53</a>
+<a name='L54'></a><a href='#L54'>54</a>
+<a name='L55'></a><a href='#L55'>55</a>
+<a name='L56'></a><a href='#L56'>56</a>
+<a name='L57'></a><a href='#L57'>57</a>
+<a name='L58'></a><a href='#L58'>58</a>
+<a name='L59'></a><a href='#L59'>59</a>
+<a name='L60'></a><a href='#L60'>60</a>
+<a name='L61'></a><a href='#L61'>61</a>
+<a name='L62'></a><a href='#L62'>62</a>
+<a name='L63'></a><a href='#L63'>63</a>
+<a name='L64'></a><a href='#L64'>64</a>
+<a name='L65'></a><a href='#L65'>65</a>
+<a name='L66'></a><a href='#L66'>66</a>
+<a name='L67'></a><a href='#L67'>67</a>
+<a name='L68'></a><a href='#L68'>68</a>
+<a name='L69'></a><a href='#L69'>69</a>
+<a name='L70'></a><a href='#L70'>70</a>
+<a name='L71'></a><a href='#L71'>71</a>
+<a name='L72'></a><a href='#L72'>72</a>
+<a name='L73'></a><a href='#L73'>73</a>
+<a name='L74'></a><a href='#L74'>74</a>
+<a name='L75'></a><a href='#L75'>75</a>
+<a name='L76'></a><a href='#L76'>76</a>
+<a name='L77'></a><a href='#L77'>77</a>
+<a name='L78'></a><a href='#L78'>78</a>
+<a name='L79'></a><a href='#L79'>79</a>
+<a name='L80'></a><a href='#L80'>80</a>
+<a name='L81'></a><a href='#L81'>81</a>
+<a name='L82'></a><a href='#L82'>82</a>
+<a name='L83'></a><a href='#L83'>83</a>
+<a name='L84'></a><a href='#L84'>84</a>
+<a name='L85'></a><a href='#L85'>85</a>
+<a name='L86'></a><a href='#L86'>86</a>
+<a name='L87'></a><a href='#L87'>87</a>
+<a name='L88'></a><a href='#L88'>88</a>
+<a name='L89'></a><a href='#L89'>89</a>
+<a name='L90'></a><a href='#L90'>90</a>
+<a name='L91'></a><a href='#L91'>91</a>
+<a name='L92'></a><a href='#L92'>92</a>
+<a name='L93'></a><a href='#L93'>93</a>
+<a name='L94'></a><a href='#L94'>94</a>
+<a name='L95'></a><a href='#L95'>95</a>
+<a name='L96'></a><a href='#L96'>96</a>
+<a name='L97'></a><a href='#L97'>97</a>
+<a name='L98'></a><a href='#L98'>98</a>
+<a name='L99'></a><a href='#L99'>99</a>
+<a name='L100'></a><a href='#L100'>100</a>
+<a name='L101'></a><a href='#L101'>101</a>
+<a name='L102'></a><a href='#L102'>102</a>
+<a name='L103'></a><a href='#L103'>103</a>
+<a name='L104'></a><a href='#L104'>104</a>
+<a name='L105'></a><a href='#L105'>105</a>
+<a name='L106'></a><a href='#L106'>106</a>
+<a name='L107'></a><a href='#L107'>107</a>
+<a name='L108'></a><a href='#L108'>108</a>
+<a name='L109'></a><a href='#L109'>109</a>
+<a name='L110'></a><a href='#L110'>110</a>
+<a name='L111'></a><a href='#L111'>111</a>
+<a name='L112'></a><a href='#L112'>112</a>
+<a name='L113'></a><a href='#L113'>113</a>
+<a name='L114'></a><a href='#L114'>114</a>
+<a name='L115'></a><a href='#L115'>115</a>
+<a name='L116'></a><a href='#L116'>116</a>
+<a name='L117'></a><a href='#L117'>117</a>
+<a name='L118'></a><a href='#L118'>118</a>
+<a name='L119'></a><a href='#L119'>119</a>
+<a name='L120'></a><a href='#L120'>120</a>
+<a name='L121'></a><a href='#L121'>121</a>
+<a name='L122'></a><a href='#L122'>122</a>
+<a name='L123'></a><a href='#L123'>123</a>
+<a name='L124'></a><a href='#L124'>124</a>
+<a name='L125'></a><a href='#L125'>125</a>
+<a name='L126'></a><a href='#L126'>126</a>
+<a name='L127'></a><a href='#L127'>127</a>
+<a name='L128'></a><a href='#L128'>128</a>
+<a name='L129'></a><a href='#L129'>129</a>
+<a name='L130'></a><a href='#L130'>130</a>
+<a name='L131'></a><a href='#L131'>131</a>
+<a name='L132'></a><a href='#L132'>132</a>
+<a name='L133'></a><a href='#L133'>133</a>
+<a name='L134'></a><a href='#L134'>134</a>
+<a name='L135'></a><a href='#L135'>135</a>
+<a name='L136'></a><a href='#L136'>136</a>
+<a name='L137'></a><a href='#L137'>137</a>
+<a name='L138'></a><a href='#L138'>138</a>
+<a name='L139'></a><a href='#L139'>139</a>
+<a name='L140'></a><a href='#L140'>140</a>
+<a name='L141'></a><a href='#L141'>141</a>
+<a name='L142'></a><a href='#L142'>142</a>
+<a name='L143'></a><a href='#L143'>143</a>
+<a name='L144'></a><a href='#L144'>144</a>
+<a name='L145'></a><a href='#L145'>145</a>
+<a name='L146'></a><a href='#L146'>146</a>
+<a name='L147'></a><a href='#L147'>147</a>
+<a name='L148'></a><a href='#L148'>148</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">// Top-player tome snapshot + per-task classification. Bundled static data,
+// auto-refreshed by scripts/update-top-players.ts. Run that script to
+// re-scrape the IT profile pages of the current top players.
+//
+// Snapshot generated: 2026-06-01T04:36:20.285Z
+// Source: scraped from https://idleontoolbox.com/account/world-4/tome?profile=&lt;name&gt;
+// Players scanned: 71
+&nbsp;
+// Classification is the user-defined tag from column D of the original sheet.
+// Numbers are arbitrary IDs that map to semantic labels.
+<span class="cstat-no" title="statement not covered" >export const CLASSIFICATION_LABELS: Readonly&lt;Record&lt;number, string&gt;&gt; = {</span>
+<span class="cstat-no" title="statement not covered" >  1: "Priority",</span>
+<span class="cstat-no" title="statement not covered" >  3: "Doable",</span>
+<span class="cstat-no" title="statement not covered" >  4: "Time Gated",</span>
+<span class="cstat-no" title="statement not covered" >  5: "Lucky Gated",</span>
+<span class="cstat-no" title="statement not covered" >  9: "Update Gated",</span>
+<span class="cstat-no" title="statement not covered" >  12: "Capped",</span>
+<span class="cstat-no" title="statement not covered" >};</span>
+&nbsp;
+export type TopPlayerEntry = {
+  date: string;
+  player: string;
+  raw: number | null;
+  pts: number | null;
+  classification: number | null;
+};
+&nbsp;
+<span class="cstat-no" title="statement not covered" >export const TOP_PLAYERS: Readonly&lt;Record&lt;string, TopPlayerEntry&gt;&gt; = {</span>
+<span class="cstat-no" title="statement not covered" >  "Account LV": { date: "06/01/2026", player: "Dragami", raw: 18955, pts: 1746, classification: 3 },</span>
+<span class="cstat-no" title="statement not covered" >  "Account Skills LV": { date: "06/01/2026", player: "Seavik", raw: 136921, pts: 1596, classification: 3 },</span>
+<span class="cstat-no" title="statement not covered" >  "Total Talent Max LV": { date: "06/01/2026", player: "Seavik", raw: 233011, pts: 840, classification: 3 },</span>
+<span class="cstat-no" title="statement not covered" >  "Items Found": { date: "06/01/2026", player: "whorrryou", raw: 1854, pts: 1300, classification: 12 },</span>
+<span class="cstat-no" title="statement not covered" >  "Total Bubble LV": { date: "06/01/2026", player: "Dragonlzl", raw: 18999362, pts: 1750, classification: 12 },</span>
+<span class="cstat-no" title="statement not covered" >  "Stamp Total LV": { date: "06/01/2026", player: "Dragami", raw: 39599, pts: 1239, classification: 4 },</span>
+<span class="cstat-no" title="statement not covered" >  "Cards Total LV": { date: "06/01/2026", player: "AvacadoSqueeze", raw: 1713, pts: 1000, classification: 12 },</span>
+<span class="cstat-no" title="statement not covered" >  "Statue Total LV": { date: "06/01/2026", player: "TinTim", raw: 20582, pts: 808, classification: 3 },</span>
+<span class="cstat-no" title="statement not covered" >  "Total Achievements Completed": { date: "06/01/2026", player: "Breath1", raw: 268, pts: 850, classification: 12 },</span>
+<span class="cstat-no" title="statement not covered" >  "Unique Quests Completed": { date: "06/01/2026", player: "Breath1", raw: 328, pts: 500, classification: 9 },</span>
+<span class="cstat-no" title="statement not covered" >  "Total Tasks Completed": { date: "06/01/2026", player: "5OhTree", raw: 462, pts: 462, classification: 9 },</span>
+<span class="cstat-no" title="statement not covered" >  "Vault Upgrade bonus LV": { date: "06/01/2026", player: "Seavik", raw: 1040, pts: 1040, classification: 1 },</span>
+<span class="cstat-no" title="statement not covered" >  "Most Money held in Storage": { date: "06/01/2026", player: "Seavik", raw: 1.85e+58, pts: 495, classification: 3 },</span>
+<span class="cstat-no" title="statement not covered" >  "Most Spore Caps held in Inventory at once": { date: "06/01/2026", player: "Breath1", raw: 248000000000, pts: 173, classification: 3 },</span>
+<span class="cstat-no" title="statement not covered" >  "Total Colosseum Score": { date: "06/01/2026", player: "Flipper143", raw: 556542447, pts: 153, classification: 9 },</span>
+<span class="cstat-no" title="statement not covered" >  "Trophies Found": { date: "06/01/2026", player: "Dragami", raw: 24, pts: 700, classification: 12 },</span>
+<span class="cstat-no" title="statement not covered" >  "Nametags Found": { date: "06/01/2026", player: "AlexPhoenix", raw: 36, pts: 700, classification: 12 },</span>
+<span class="cstat-no" title="statement not covered" >  "Premium Hats Found": { date: "06/01/2026", player: "Shironee", raw: 82, pts: 700, classification: 9 },</span>
+<span class="cstat-no" title="statement not covered" >  "Best Spiketrap Surprise round": { date: "06/01/2026", player: "Yosh6400", raw: 127, pts: 100, classification: 12 },</span>
+<span class="cstat-no" title="statement not covered" >  "Tournaments Registrations": { date: "06/01/2026", player: "kONYYY", raw: 100, pts: 100, classification: 4 },</span>
+<span class="cstat-no" title="statement not covered" >  "Lava Dev Streams watched": { date: "06/01/2026", player: "Yosh6400", raw: 19, pts: 238, classification: 9 },</span>
+<span class="cstat-no" title="statement not covered" >  "Total Minigame Highscore": { date: "06/01/2026", player: "KyroChallenge", raw: 3877, pts: 100, classification: 12 },</span>
+<span class="cstat-no" title="statement not covered" >  "Total AFK Hours claimed": { date: "06/01/2026", player: "TinTim", raw: 874866, pts: 221, classification: 4 },</span>
+<span class="cstat-no" title="statement not covered" >  "DPS Record on Shimmer Island": { date: "06/01/2026", player: "blickter", raw: 1.59e+45, pts: 344, classification: 3 },</span>
+<span class="cstat-no" title="statement not covered" >  "Total Arcade Gold Ball Shop Upgrade LV": { date: "06/01/2026", player: "Shironee", raw: 6903, pts: 1200, classification: 9 },</span>
+<span class="cstat-no" title="statement not covered" >  "Most Balls earned from LBoFaF": { date: "06/01/2026", player: "B0schi", raw: 1253, pts: 145, classification: 5 },</span>
+<span class="cstat-no" title="statement not covered" >  "Jackpots Hit in Arcade": { date: "06/01/2026", player: "AlexPhoenix", raw: 8, pts: 80, classification: 5 },</span>
+<span class="cstat-no" title="statement not covered" >  "Star Talent Points Owned": { date: "06/01/2026", player: "Fiyria", raw: 12690, pts: 256, classification: 3 },</span>
+<span class="cstat-no" title="statement not covered" >  "Average kills for a Crystal Spawn": { date: "06/01/2026", player: "100Cotton", raw: 2, pts: 401, classification: 3 },</span>
+<span class="cstat-no" title="statement not covered" >  "Dungeon Rank": { date: "06/01/2026", player: "ARKHE", raw: 61, pts: 274, classification: 9 },</span>
+<span class="cstat-no" title="statement not covered" >  "Highest Drop Rate Multi": { date: "06/01/2026", player: "GreenMario27", raw: 73828.3, pts: 508, classification: 12 },</span>
+<span class="cstat-no" title="statement not covered" >  "Constellations Completed": { date: "06/01/2026", player: "0celot8", raw: 49, pts: 300, classification: 12 },</span>
+<span class="cstat-no" title="statement not covered" >  "Unique Obols Found": { date: "06/01/2026", player: "1st_Giri", raw: 109, pts: 250, classification: 9 },</span>
+<span class="cstat-no" title="statement not covered" >  "Total Vial LV": { date: "06/01/2026", player: "Yosh6400", raw: 1071, pts: 600, classification: 12 },</span>
+<span class="cstat-no" title="statement not covered" >  "Total Sigil LV": { date: "06/01/2026", player: "F1N4L_1", raw: 120, pts: 500, classification: 4 },</span>
+<span class="cstat-no" title="statement not covered" >  "Post Office PO Boxes Earned": { date: "06/01/2026", player: "Pontinhas", raw: 2011865, pts: 432, classification: 3 },</span>
+<span class="cstat-no" title="statement not covered" >  "Highest Killroy Score on a Warrior": { date: "06/01/2026", player: "ryujinsan", raw: 6872, pts: 226, classification: 4 },</span>
+<span class="cstat-no" title="statement not covered" >  "Highest Killroy Score on an Archer": { date: "06/01/2026", player: "ryujinsan", raw: 8872, pts: 237, classification: 4 },</span>
+<span class="cstat-no" title="statement not covered" >  "Highest Killroy Score on a Mage": { date: "06/01/2026", player: "ryujinsan", raw: 10258, pts: 243, classification: 4 },</span>
+<span class="cstat-no" title="statement not covered" >  "Megafeathers Earned from Orion": { date: "06/01/2026", player: "AvacadoSqueeze", raw: 36, pts: 297, classification: 4 },</span>
+<span class="cstat-no" title="statement not covered" >  "Megafish Earned from Poppy": { date: "06/01/2026", player: "ARKHE", raw: 26, pts: 278, classification: 4 },</span>
+<span class="cstat-no" title="statement not covered" >  "Megaflesh Earned from Bubba": { date: "06/01/2026", player: "Skvimpan", raw: 21, pts: 265, classification: 4 },</span>
+<span class="cstat-no" title="statement not covered" >  "Fastest Time to kill Chaotic Efaunt (in Seconds)": { date: "06/01/2026", player: "100Cotton", raw: 1, pts: 228, classification: 3 },</span>
+<span class="cstat-no" title="statement not covered" >  "Largest Oak Log Printer Sample": { date: "06/01/2026", player: "Dragami", raw: 15000000000000000000, pts: 389, classification: 3 },</span>
+<span class="cstat-no" title="statement not covered" >  "Largest Copper Ore Printer Sample": { date: "06/01/2026", player: "Fiyria", raw: 208000000000000000000, pts: 393, classification: 3 },</span>
+<span class="cstat-no" title="statement not covered" >  "Largest Spore Cap Printer Sample": { date: "06/01/2026", player: "Dragami", raw: 33000000000, pts: 253, classification: 3 },</span>
+<span class="cstat-no" title="statement not covered" >  "Largest Goldfish Printer Sample": { date: "06/01/2026", player: "Dragami", raw: 350000000000000000, pts: 287, classification: 3 },</span>
+<span class="cstat-no" title="statement not covered" >  "Largest Fly Printer Sample": { date: "06/01/2026", player: "TinTim", raw: 1014000000000000000, pts: 289, classification: 3 },</span>
+<span class="cstat-no" title="statement not covered" >  "Total Best Wave in Worship": { date: "06/01/2026", player: "Togiraikonok", raw: 1770, pts: 318, classification: 3 },</span>
+<span class="cstat-no" title="statement not covered" >  "Best Non Duplicate Goblin Gorefest Wave": { date: "06/01/2026", player: "100Cotton", raw: 180, pts: 203, classification: 3 },</span>
+<span class="cstat-no" title="statement not covered" >  "Total Prayer Upgrade LV": { date: "06/01/2026", player: "100Cotton", raw: 673, pts: 200, classification: 12 },</span>
+<span class="cstat-no" title="statement not covered" >  "Total Digits of all Deathnote Kills": { date: "06/01/2026", player: "lunaonline", raw: 1489, pts: 665, classification: 3 },</span>
+<span class="cstat-no" title="statement not covered" >  "Most Giants Killed in a Single Week": { date: "06/01/2026", player: "Lean_Meat", raw: 92, pts: 307, classification: 3 },</span>
+<span class="cstat-no" title="statement not covered" >  "Total Refinery Rank": { date: "06/01/2026", player: "5OhTree", raw: 56302, pts: 652, classification: 4 },</span>
+<span class="cstat-no" title="statement not covered" >  "Total Atom Upgrade LV": { date: "06/01/2026", player: "Shironee", raw: 965, pts: 525, classification: 3 },</span>
+<span class="cstat-no" title="statement not covered" >  "Total Construct Buildings LV": { date: "06/01/2026", player: "suk69", raw: 4768, pts: 852, classification: 4 },</span>
+<span class="cstat-no" title="statement not covered" >  "Equinox Clouds Completed": { date: "06/01/2026", player: "AvacadoSqueeze", raw: 76, pts: 750, classification: 12 },</span>
+<span class="cstat-no" title="statement not covered" >  "Most Greenstacks in Storage": { date: "06/01/2026", player: "FlipsyThEVicti", raw: 416, pts: 702, classification: 3 },</span>
+<span class="cstat-no" title="statement not covered" >  "Total Cooking Meals LV": { date: "06/01/2026", player: "suk69", raw: 10804, pts: 819, classification: 3 },</span>
+<span class="cstat-no" title="statement not covered" >  "Total Kitchen Upgrade LV": { date: "06/01/2026", player: "TinTim", raw: 21688, pts: 233, classification: 3 },</span>
+<span class="cstat-no" title="statement not covered" >  "Highest Power Mob": { date: "06/01/2026", player: "Blamren", raw: 7157012, pts: 132, classification: 3 },</span>
+<span class="cstat-no" title="statement not covered" >  "Fastest Time reaching Round 100 Arena (in Seconds)": { date: "06/01/2026", player: "ARKHE", raw: 28, pts: 193, classification: 3 },</span>
+<span class="cstat-no" title="statement not covered" >  "Total Shiny Mob LV": { date: "06/01/2026", player: "1st_Giri", raw: 1360, pts: 267, classification: 9 },</span>
+<span class="cstat-no" title="statement not covered" >  "Total Mob Breedability LV": { date: "06/01/2026", player: "AlexPhoenix", raw: 612, pts: 200, classification: 12 },</span>
+<span class="cstat-no" title="statement not covered" >  "Total Lab Chips Owned": { date: "06/01/2026", player: "whorrryou", raw: 588, pts: 195, classification: 4 },</span>
+<span class="cstat-no" title="statement not covered" >  "Rift Levels Completed": { date: "06/01/2026", player: "0celot8", raw: 59, pts: 500, classification: 12 },</span>
+<span class="cstat-no" title="statement not covered" >  "Total Onyx Statues": { date: "06/01/2026", player: "100Cotton", raw: 32, pts: 450, classification: 12 },</span>
+<span class="cstat-no" title="statement not covered" >  "Total Artifacts Found": { date: "06/01/2026", player: "1st_Giri", raw: 246, pts: 1000, classification: 12 },</span>
+<span class="cstat-no" title="statement not covered" >  "Total Boat Upgrade LV": { date: "06/01/2026", player: "TinTim", raw: 14398, pts: 201, classification: 3 },</span>
+<span class="cstat-no" title="statement not covered" >  "Gold Bar Sailing Treasure Owned": { date: "06/01/2026", player: "B0schi", raw: 203000000000000000000, pts: 179, classification: 3 },</span>
+<span class="cstat-no" title="statement not covered" >  "Highest Captain LV": { date: "06/01/2026", player: "B0schi", raw: 26, pts: 136, classification: 4 },</span>
+<span class="cstat-no" title="statement not covered" >  "Most Gaming Bits Owned": { date: "06/01/2026", player: "Bangada", raw: 4.18e+115, pts: 357, classification: 3 },</span>
+<span class="cstat-no" title="statement not covered" >  "Total Gaming Plants Evolved": { date: "06/01/2026", player: "Bangada", raw: 200713521, pts: 290, classification: 12 },</span>
+<span class="cstat-no" title="statement not covered" >  "Best Gold Nugget": { date: "06/01/2026", player: "Bangada", raw: 1706000000000, pts: 176, classification: 3 },</span>
+<span class="cstat-no" title="statement not covered" >  "Highest Immortal Snail LV": { date: "06/01/2026", player: "100Cotton", raw: 49, pts: 294, classification: 9 },</span>
+<span class="cstat-no" title="statement not covered" >  "Rat King Crowns Reclaimed": { date: "06/01/2026", player: "GreeneyBlood", raw: 100, pts: 400, classification: 3 },</span>
+<span class="cstat-no" title="statement not covered" >  "God Rank in Divinity": { date: "06/01/2026", player: "Untold", raw: 22, pts: 224, classification: 3 },</span>
+<span class="cstat-no" title="statement not covered" >  "Fastest Time to Kill 200 Tremor Wurms (in Seconds)": { date: "06/01/2026", player: "EzauQt", raw: 7, pts: 168, classification: 3 },</span>
+<span class="cstat-no" title="statement not covered" >  "Total Opals Found": { date: "06/01/2026", player: "Seavik", raw: 509, pts: 360, classification: 3 },</span>
+<span class="cstat-no" title="statement not covered" >  "Total LV of Cavern Villagers": { date: "06/01/2026", player: "blickter", raw: 558, pts: 410, classification: 3 },</span>
+<span class="cstat-no" title="statement not covered" >  "Total Digits of all Cavern Resources": { date: "06/01/2026", player: "SirPaiz", raw: 918, pts: 803, classification: 3 },</span>
+<span class="cstat-no" title="statement not covered" >  "Total Resource Layers Destroyed": { date: "06/01/2026", player: "Fiyria", raw: 174, pts: 329, classification: 3 },</span>
+<span class="cstat-no" title="statement not covered" >  "Best Dawg Den score": { date: "06/01/2026", player: "TinTim", raw: 9301000000, pts: 223, classification: 3 },</span>
+<span class="cstat-no" title="statement not covered" >  "Best Bravery Monument Round": { date: "06/01/2026", player: "Fiyria", raw: 67, pts: 246, classification: 3 },</span>
+<span class="cstat-no" title="statement not covered" >  "Best Justice Monument Round": { date: "06/01/2026", player: "Marc", raw: 650, pts: 301, classification: 5 },</span>
+<span class="cstat-no" title="statement not covered" >  "Best Wisdom Monument Round": { date: "06/01/2026", player: "Bangada", raw: 36, pts: 250, classification: 12 },</span>
+<span class="cstat-no" title="statement not covered" >  "Total Gambit Time (in Seconds)": { date: "06/01/2026", player: "Dragami", raw: 11483, pts: 480, classification: 3 },</span>
+<span class="cstat-no" title="statement not covered" >  "Best Pure Memory Round Reached": { date: "06/01/2026", player: "100Cotton", raw: 13, pts: 50, classification: 12 },</span>
+<span class="cstat-no" title="statement not covered" >  "Total Crops Discovered": { date: "06/01/2026", player: "F1N4L_1", raw: 330, pts: 350, classification: 12 },</span>
+<span class="cstat-no" title="statement not covered" >  "Total Golden Food Beanstacks": { date: "06/01/2026", player: "100Cotton", raw: 48, pts: 400, classification: 12 },</span>
+<span class="cstat-no" title="statement not covered" >  "Highest Crop OG": { date: "06/01/2026", player: "bob2nar", raw: 4295000000, pts: 184, classification: 5 },</span>
+<span class="cstat-no" title="statement not covered" >  "Total Land Rank": { date: "06/01/2026", player: "F1N4L_1", raw: 8620, pts: 211, classification: 3 },</span>
+<span class="cstat-no" title="statement not covered" >  "Largest Magic Bean Trade": { date: "06/01/2026", player: "PPistaken", raw: 7223946931289, pts: 290, classification: 12 },</span>
+<span class="cstat-no" title="statement not covered" >  "Farming Stickers Found": { date: "06/01/2026", player: "F1N4L_1", raw: 92, pts: 222, classification: 3 },</span>
+<span class="cstat-no" title="statement not covered" >  "Ninja Floors Unlocked": { date: "06/01/2026", player: "1st_Giri", raw: 96, pts: 250, classification: 12 },</span>
+<span class="cstat-no" title="statement not covered" >  "Jade Emporium Upgrades Purchased": { date: "06/01/2026", player: "100Cotton", raw: 47, pts: 658, classification: 9 },</span>
+<span class="cstat-no" title="statement not covered" >  "Total Ninja Knowledge Upgrades LV": { date: "06/01/2026", player: "SirPaiz", raw: 37988, pts: 665, classification: 3 },</span>
+<span class="cstat-no" title="statement not covered" >  "Total Career Summoning Wins": { date: "06/01/2026", player: "areyoufilming", raw: 489, pts: 595, classification: 3 },</span>
+<span class="cstat-no" title="statement not covered" >  "Total Summoning Upgrades LV": { date: "06/01/2026", player: "GreenMario27", raw: 25719, pts: 231, classification: 3 },</span>
+<span class="cstat-no" title="statement not covered" >  "Familiars Owned in Summoning": { date: "06/01/2026", player: "Fiyria", raw: 33445, pts: 215, classification: 4 },</span>
+<span class="cstat-no" title="statement not covered" >  "Total Summoning Boss Stone victories": { date: "06/01/2026", player: "Arlong", raw: 38, pts: 296, classification: 3 },</span>
+<span class="cstat-no" title="statement not covered" >  "Most DMG Dealt to Gravestone in a Weekly Battle": { date: "06/01/2026", player: "Flipper143", raw: 8022140, pts: 283, classification: 9 },</span>
+<span class="cstat-no" title="statement not covered" >  "Most Tottoise in Storage": { date: "06/01/2026", player: "YungEBT", raw: 12505329, pts: 134, classification: 4 },</span>
+<span class="cstat-no" title="statement not covered" >  "Best Deathbringer Max Damage in Wraith Mode": { date: "06/01/2026", player: "PerkOne", raw: 22000000000000, pts: 350, classification: 3 },</span>
+<span class="cstat-no" title="statement not covered" >  "Best Windwalker Max Damage in Tempest Mode": { date: "06/01/2026", player: "itsjakeee", raw: 1512000000000000, pts: 362, classification: 3 },</span>
+<span class="cstat-no" title="statement not covered" >  "Best Arcane Cultist Max Damage in Arcanist Mode": { date: "06/01/2026", player: "Skvimpan", raw: 18000000000, pts: 323, classification: 3 },</span>
+<span class="cstat-no" title="statement not covered" >  "Spirited Valley Emperor Boss Kills": { date: "06/01/2026", player: "EzauQt", raw: 183, pts: 400, classification: 12 },</span>
+<span class="cstat-no" title="statement not covered" >  "Total Coral Reef upgrades": { date: "06/01/2026", player: "100Cotton", raw: 47, pts: 400, classification: 12 },</span>
+<span class="cstat-no" title="statement not covered" >  "Total Spelunk Shop Upgrades LV": { date: "06/01/2026", player: "biggums3", raw: 13956, pts: 661, classification: 3 },</span>
+<span class="cstat-no" title="statement not covered" >  "Total Spelunk Discoveries made": { date: "06/01/2026", player: "1st_Giri", raw: 90, pts: 300, classification: 12 },</span>
+<span class="cstat-no" title="statement not covered" >  "Deepest Depth reached in a single Delve": { date: "06/01/2026", player: "biggums3", raw: 421, pts: 375, classification: 3 },</span>
+<span class="cstat-no" title="statement not covered" >  "Biggest Haul in a single Delve": { date: "06/01/2026", player: "biggums3", raw: 3.01e+46, pts: 284, classification: 3 },</span>
+<span class="cstat-no" title="statement not covered" >  "Highest leveled Spelunker": { date: "06/01/2026", player: "blickter", raw: 594, pts: 237, classification: 3 },</span>
+<span class="cstat-no" title="statement not covered" >  "Minehead Opponents Defeated": { date: "06/01/2026", player: "Baker333", raw: 18, pts: 270, classification: 3 },</span>
+<span class="cstat-no" title="statement not covered" >  "Total Research Grid Upgrades": { date: "06/01/2026", player: "Baker333", raw: 115, pts: 750, classification: 12 },</span>
+<span class="cstat-no" title="statement not covered" >  "Total Glimbo Trades": { date: "06/01/2026", player: "BopeBrancis", raw: 1806, pts: 380, classification: 3 },</span>
+<span class="cstat-no" title="statement not covered" >  "Unique Sushi Created": { date: "06/01/2026", player: "100Cotton", raw: 59, pts: 800, classification: 12 },</span>
+<span class="cstat-no" title="statement not covered" >  "Button Presses": { date: "06/01/2026", player: "F1N4L_1", raw: 287, pts: 440, classification: 3 },</span>
+<span class="cstat-no" title="statement not covered" >};</span>
+&nbsp;</pre></td></tr></table></pre>
+
+                <div class='push'></div><!-- for sticky footer -->
+            </div><!-- /wrapper -->
+            <div class='footer quiet pad2 space-top1 center small'>
+                Code coverage generated by
+                <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
+                at 2026-06-01T19:38:25.190Z
+            </div>
+        <script src="../../prettify.js"></script>
+        <script>
+            window.onload = function () {
+                prettyPrint();
+            };
+        </script>
+        <script src="../../sorter.js"></script>
+        <script src="../../block-navigation.js"></script>
+    </body>
+</html>
+    
