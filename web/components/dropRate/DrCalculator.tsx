@@ -419,7 +419,7 @@ export default function DrCalculator({
           <button
             type="button"
             onClick={() => setChipGalleryActive((v) => !v)}
-            className={`px-3 py-1.5 text-xs font-semibold rounded border transition-colors ${
+            className={`self-stretch flex items-center justify-center px-3 py-1.5 text-xs font-semibold rounded border transition-colors ${
               chipGalleryActive
                 ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/40 hover:bg-emerald-500/30"
                 : "bg-zinc-800 text-zinc-400 border-zinc-700 hover:bg-zinc-700"
