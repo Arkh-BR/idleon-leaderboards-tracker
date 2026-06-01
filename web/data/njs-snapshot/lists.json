@@ -20462,6 +20462,16 @@
       "-5",
       "1",
       "10"
+    ],
+    [
+      "fm_frog",
+      "Thank_you_for_rescuing_me_from_the_Fortune_Mill!",
+      "1",
+      "-18",
+      "0",
+      "-34",
+      "1",
+      "177"
     ]
   ],
   "CompanionDefLANG": [
@@ -20627,7 +20637,7 @@
       "0,10,0,1,3,6,10,11|12,23,12,14,17,20,23,12|37,48,37,39,42,45,48,12"
     ],
     [
-      "24,25,26,27,28,29,30,31,32,33,34,35,36,49,50,51,52,53,54,55,56,57,88,128,132,153,143,154,155,156,99,157,111,145,158,159,147,162,163,135",
+      "24,25,26,27,28,29,30,31,32,33,34,35,36,49,50,51,52,53,54,55,56,57,88,128,132,153,143,154,155,156,99,157,111,145,158,159,147,162,163,135,167",
       "11,58,150,151,152,160,161,164,165,166"
     ],
     []
@@ -65986,7 +65996,7 @@
     [
       "Big_Ol_Reef",
       "72",
-      "307",
+      "309",
       "320",
       "892",
       "5",
@@ -72824,8 +72834,8 @@
       "186"
     ],
     [
-      "11th_CHARACTER!_v1.15",
-      "*The_11th_character_slot_is_now_open!_It_requires_a_total_Account_LV_of_5000_or_more._@_*New_Map:Dreadnaught_Chamber._Found_deep_in_the_sunken_ship_of_World_7._@_*The_BIG_reveal_is_finally_here:_@___@_I_made_a_new,_standalone_idle_game_called_Fortune_Mill!_@__@_It_comes_out_on_Steam_this_TUESDAY_at_9am_PST,_just_2_DAYS_from_now!_The_store_page_is_up,_go_wishlist_it!_@___@_It_will_take_you_anywhere_from_12_hours_to_25+_hours_to_beat,_full_of_interesting_upgrades_and_mechanics,_with_optional_side_modes_extending_that_further._@___@_From_start_to_finish,_the_game_is_a_blast,_bringing_together_the_best_of_what_I've_learned_about_good_game_design,_but_more_simple_and_fun..._everything_came_together_while_making_this,_and_I_couldn't_be_more_excited!_@___@_It's_priced_at_7.99_USD,_but_will_be_25%_OFF_on_launch_for_just_5.99_USD,_and_will_have_regional_pricing_options!_@_*Have_fun_escaping_the_Fortune_Mill_on_Tuesday!_Normal_IdleOn_updates_are_resuming.",
+      "Perma_Greenstacks!_v1.16",
+      "*Tournament_rewards_for_Season_2_have_arrived,_check_your_rewards!_@_*Greenstacks_are_now_PERMANENT!_When_you_collect_10M_of_an_item_in_your_Storage_Chest,_that_item_will_count_as_greenstacked_now_and_forever!_@_*Greenstack_Display_added_to_The_Slab,_so_you_can_track_exactly_which_items_you've_Perma_Greenstacked!_@_*Fixed_the_Construction_Cog_bug._You'll_know_what_I_mean_if_you_were_affected_by_it!_@_*Fixed_the_Research_Observation_that_required_Lv.72_@_*Fixed_button_stapshotting._@___@_*There's_a_special_reward_for_everyone_who_beats_Fortune_Mill,_which_comes_out_Tuesday,_as_an_extra_thanks_from_me_to_you!_An_exclusive_Abacus_Frog_pet_who_gives_no_bonuses,_only_tournament_power,_and_is_untradeable._There_is_no_deadline_to_earn_him,_so_feel_free_to_take_your_time_before_buying,_and_enjoy_your_playthrough_if_you_do!",
       "*Le Monde 6 est arrivé, avec tout ce que vous pourriez souhaiter ! De nouveaux monstres, de nouvelles compétences, de nouvelles cartes, de nouveaux tampons, de nouvelles bulles, de nouvelles fioles, de nouvelles statues, de nouveaux équipements, tellement de nouveautés ! @ *Vous pouvez découvrir le Monde 6 vous-même, à la place, ces notes de mise à jour concernent tous les changements de cette mise à jour non liés au Monde 6. @ *Nouvel affichage des pièces ajouté ! Collectez 100 pièces Godshard pour voir ce que je veux dire ! @ *Le succès Trial by Time peut désormais être complété à n'importe quelle vitesse de déplacement. @ *Mise à l'échelle du bonus ajustée sur la 6ème bulle de chaque couleur. C'est un buff pour toute personne en dessous du niveau de bulle 300, sinon c'est un nerf. @ * Correction du problème où les archers glissaient lorsqu'ils essayaient de combattre des foules protégées. @ *Les attaques au canon de Siege Breaker apparaissent désormais derrière lui.",
       "*Welt 6 ist da, mit allem, was Sie sich nur wünschen können! Neue Monster, neue Fähigkeiten, neue Karten, neue Stempel, neue Blasen, neue Fläschchen, neue Statuen, neue Ausrüstung, so viel neues Zeug! @ *Sie können Welt 6 selbst entdecken. Stattdessen gelten diese Patchnotizen für alle Änderungen in diesem Update, die nicht mit Welt 6 zusammenhängen. @ *Neue Münzanzeige hinzugefügt! Sammle 100 Godshard-Münzen, um zu sehen, was ich meine! @ *Die Errungenschaft „Prüfung durch Zeit“ kann jetzt bei jeder Bewegungsgeschwindigkeit abgeschlossen werden. @ *Bonusskalierung für die 6. Blase jeder Farbe angepasst. Es ist ein Buff für alle unter Bubble Lv 300, andernfalls ist es ein Nerf. @ *Das Problem wurde behoben, bei dem Bogenschützen herumrutschten, wenn sie versuchten, gegen abgeschirmte Mobs zu kämpfen. @ *Die Kanonenangriffe von Belagerungsbrecher erscheinen jetzt hinter ihm.",
       "*원하는 모든 것을 갖춘 월드 6이 도착했습니다! 새로운 몬스터, 새로운 기술, 새로운 지도, 새로운 우표, 새로운 거품, 새로운 약병, 새로운 조각상, 새로운 장비, 너무나 많은 새로운 것들! @ *월드 6를 직접 발견하실 수 있습니다. 대신 이 패치 노트는 월드 6과 관련되지 않은 이번 업데이트의 모든 변경 사항에 대한 것입니다. @ *새로운 코인 표시가 추가되었습니다! 100개의 갓샤드 동전을 모아 무슨 뜻인지 알아보세요! @ *이제 모든 이동 속도에서 시간별 시험 업적을 완료할 수 있습니다. @ *각 색상의 6번째 버블에 대한 보너스 스케일링을 조정했습니다. 버블 Lv 300 미만인 사람에게는 버프이고, 그렇지 않으면 너프입니다. @ *방어막이 있는 몹과 싸울 때 궁수가 미끄러지는 문제를 수정했습니다. @ *Siege Breaker의 대포 공격이 이제 그의 뒤에서 생성됩니다.",
