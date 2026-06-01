@@ -152,9 +152,17 @@ const computeRefineryCycleTimes = (account: Account, characters: any[]) => {
     labCycleBonus,
     mealBonus,
     researchGridBonus,
-    combustionTime: 900 / baseSpeedFactor,
-    synthesisTime: 3600 / baseSpeedFactor,
-    polymerizeTime: (14400 * 25) / (baseSpeedFactor * (1 + (researchGridBonus + mealBonus) / 100))
+    // The game wraps the whole CycleInitialTime return in Math.ceil (N.js
+    // _customBlock_Refinery "CycleInitialTime"), so cycle times are integer
+    // seconds rounded UP. Numerators: 900·4^b·25^max(0,b-1) → 900 / 3600 /
+    // 14400·25. The polymerize (3rd tab) divisor carries an extra
+    // (1 + (Grid#48 + meal PolyRefSpd)/100) factor that the other tabs lack.
+    combustionTime: Math.ceil(900 / baseSpeedFactor),
+    synthesisTime: Math.ceil(3600 / baseSpeedFactor),
+    polymerizeTime: Math.ceil(
+      (14400 * 25) /
+        (baseSpeedFactor * (1 + (researchGridBonus + mealBonus) / 100))
+    ),
   };
 }
 
