@@ -227,8 +227,8 @@ export default function SnapshotSection({
             </span>
           )}
         </button>
-        {headerExtra}
-        <div className="flex gap-2 items-center">
+        <div className="flex gap-3 items-center flex-wrap justify-end">
+          {headerExtra}
           <button
             type="button"
             onClick={onSave}
