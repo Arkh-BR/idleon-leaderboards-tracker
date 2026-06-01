@@ -13,13 +13,13 @@
 // default tree (they would all resolve to identical numbers anyway).
 // Auto-refreshed by scripts/update-top-talents.ts.
 //
-// Snapshot generated: 2026-05-31T20:49:50.480Z
-// Players scanned: 71
+// Snapshot generated: 2026-06-01T05:41:02.604Z
+// Players scanned: 72
 
 import type { CorganNode } from "../corgan/node";
 
-export const HYPO_TALENTS_GENERATED_AT = "2026-05-31T20:49:50.480Z";
-export const HYPO_TALENTS_PLAYERS_SCANNED = 71;
+export const HYPO_TALENTS_GENERATED_AT = "2026-06-01T05:41:02.604Z";
+export const HYPO_TALENTS_PLAYERS_SCANNED = 72;
 
 export const HYPO_DEFAULT_TREE: CorganNode = {
   "name": "Effective Level",

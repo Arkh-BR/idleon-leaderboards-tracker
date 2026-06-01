@@ -5,7 +5,7 @@
 // Hood 279 / Curse of Mr Looty Booty 24) appear only in the profiles of
 // classes that own them. Use topDrFlatForClass(classKey).
 // Large file: lazy-load it, don't import statically.
-// Generated 2026-05-31T20:38:07.392Z · 74 players. Refresh: scripts/update-top-dr.ts.
+// Generated 2026-06-01T05:38:19.760Z · 74 players. Refresh: scripts/update-top-dr.ts.
 
 type FlatMap = Readonly<Record<string, number>>;
 
@@ -870,7 +870,7 @@ export const TOP_DR_FLAT: FlatMap = {
     "Drop Rate / Additive Pool / 🕳️ Holes / Monument Drop Rate / Wisdom Multiplier / Cosmo Upgrade / Cosmo Level": 4,
     "Drop Rate / Additive Pool / 🕳️ Holes / Monument Drop Rate / Wisdom Multiplier / Wisdom Monument": 249.70000000000002,
     "Drop Rate / Additive Pool / 🕳️ Holes / Monument Drop Rate / Wisdom Multiplier / Wisdom Monument / Bonus Per Level": 250,
-    "Drop Rate / Additive Pool / 🕳️ Holes / Monument Drop Rate / Wisdom Multiplier / Wisdom Monument / Wisdom Level": 177344,
+    "Drop Rate / Additive Pool / 🕳️ Holes / Monument Drop Rate / Wisdom Multiplier / Wisdom Monument / Wisdom Level": 177444,
     "Drop Rate / Additive Pool / 🕳️ Holes / Sanctum of LOOT (Cavern upg82)": 1000,
     "Drop Rate / Additive Pool / 🕳️ Holes / Sanctum of LOOT (Cavern upg82) / Level": 50,
     "Drop Rate / Additive Pool / 🕳️ Holes / Sanctum of LOOT (Cavern upg82) / Multiplier": 20,
