@@ -218,7 +218,7 @@ export default function SnapshotSection({
           <span className="w-3 text-zinc-500 select-none">
             {collapsed ? "▸" : "▾"}
           </span>
-          <span className="flex flex-col text-left">
+          <span className="flex flex-col items-center text-center">
             <span>📈 Snapshot History</span>
             {collapsed && totalSnaps > 0 && (
               <span className="text-xs text-zinc-500 font-normal">
