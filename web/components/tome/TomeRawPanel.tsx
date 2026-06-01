@@ -13,6 +13,13 @@ const NAME_KEY = "idleon-leaderboards.tome.playerName";
 // so it's possible to verify against the .gs script line-by-line.
 export default function TomeRawPanel() {
   const [json, setJson] = useState("");
+  // The last-loaded save (raw JSON string or parsed envelope). The displayed
+  // result is derived from this + the Dungeon-as-1 toggle, so flipping the
+  // toggle re-scores without needing to reload the save.
+  const [source, setSource] = useState<
+    string | Record<string, unknown> | null
+  >(null);
+  const [dungeonAsOne, setDungeonAsOne] = useState(false);
   const [result, setResult] = useState<TomeResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
@@ -26,49 +33,67 @@ export default function TomeRawPanel() {
       // If a player name is remembered, ProfileNameLoader auto-fetches it.
       if (localStorage.getItem(NAME_KEY)) return;
       const saved = localStorage.getItem(STORAGE_KEY) || "";
-      if (saved) setResult(computeTome(saved));
+      if (saved) setSource(saved);
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     }
   }, []);
+
+  // Re-score whenever the loaded save or the Dungeon-as-1 toggle changes.
+  useEffect(() => {
+    if (source == null) {
+      setResult(null);
+      return;
+    }
+    try {
+      setResult(
+        computeTome(source as Parameters<typeof computeTome>[0], {
+          dungeonRankAsOne: dungeonAsOne,
+        })
+      );
+      setError(null);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+      setResult(null);
+    }
+  }, [source, dungeonAsOne]);
 
   // Load-by-name path: computeTome accepts the parsed object directly. Persist
   // the JSON to STORAGE_KEY so the Best Tome panel (which reads the same key)
   // sees it too; the player name is persisted by ProfileNameLoader.
   function loadFromSave(save: any) {
     setError(null);
+    setSource(save); // the effect re-scores (applying the Dungeon-as-1 toggle)
     try {
-      setResult(computeTome(save));
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(save));
-      } catch {
-        // quota exceeded — non-fatal
-      }
-    } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
-      setResult(null);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(save));
+    } catch {
+      // quota exceeded — non-fatal
     }
   }
 
   function calculate() {
     setError(null);
     try {
-      const r = computeTome(json);
-      setResult(r);
-      try {
-        localStorage.setItem(STORAGE_KEY, json);
-      } catch {}
-      // Clear the textarea after a successful calc so the next paste lands
-      // on an empty input — no manual select-all/delete required.
-      setJson("");
+      // Validate the paste up-front so we don't persist garbage; the effect
+      // does the real (toggle-aware) scoring once `source` is set.
+      computeTome(json);
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
       setResult(null);
+      return;
     }
+    setSource(json);
+    try {
+      localStorage.setItem(STORAGE_KEY, json);
+    } catch {}
+    // Clear the textarea after a successful calc so the next paste lands
+    // on an empty input — no manual select-all/delete required.
+    setJson("");
   }
 
   function clearAll() {
     setJson("");
+    setSource(null);
     setResult(null);
     setError(null);
     try {
@@ -96,6 +121,21 @@ export default function TomeRawPanel() {
         storageKey={NAME_KEY}
         onSave={loadFromSave}
         onError={(msg) => setError(msg)}
+        rightSlot={
+          <button
+            type="button"
+            onClick={() => setDungeonAsOne((v) => !v)}
+            aria-pressed={dungeonAsOne}
+            title="Score the Dungeon Rank tome line as 1 — ignores dungeon progress in the total."
+            className={`shrink-0 whitespace-nowrap px-3 py-2 text-sm font-semibold rounded border transition-colors ${
+              dungeonAsOne
+                ? "bg-amber-500/20 text-amber-300 border-amber-500/40 hover:bg-amber-500/30"
+                : "bg-zinc-800 text-zinc-400 border-zinc-700 hover:bg-zinc-700"
+            }`}
+          >
+            🏰 Dungeon = 1{dungeonAsOne ? " ✓" : ""}
+          </button>
+        }
       >
         {/* Manual paste — fallback for private profiles, inside the card. */}
         <details className="rounded-lg bg-zinc-900/40 border border-zinc-800 p-3 space-y-4">
