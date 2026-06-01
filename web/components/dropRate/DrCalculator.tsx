@@ -373,7 +373,7 @@ export default function DrCalculator({
           (the save comes from the name loader above or the manual paste
           fallback below). */}
       <div className="rounded-lg bg-zinc-900/60 p-4 mb-4 border border-zinc-800 flex flex-col gap-3">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <span className="shrink-0 text-sm text-zinc-400 font-medium">
               Character &amp; map:
             </span>
@@ -381,7 +381,7 @@ export default function DrCalculator({
               value={charIdx}
               disabled={chars.length === 0}
               onChange={(e) => setCharIdx(Number(e.target.value))}
-              className="flex-1 min-w-0 px-2 py-1.5 text-sm bg-zinc-900 border border-zinc-700 rounded text-sky-300 disabled:opacity-40"
+              className="max-w-full px-2 py-1.5 text-sm bg-zinc-900 border border-zinc-700 rounded text-sky-300 disabled:opacity-40"
             >
               {chars.length === 0 ? (
                 <option value={0}>-- load save first --</option>
@@ -397,7 +397,7 @@ export default function DrCalculator({
               value={mapIdx}
               disabled={chars.length === 0}
               onChange={(e) => setMapIdx(Number(e.target.value))}
-              className="flex-1 min-w-0 px-2 py-1.5 text-sm bg-zinc-900 border border-zinc-700 rounded text-sky-300 disabled:opacity-40"
+              className="max-w-full px-2 py-1.5 text-sm bg-zinc-900 border border-zinc-700 rounded text-sky-300 disabled:opacity-40"
             >
               {mapOptions.map((m) => (
                 <option key={m.index} value={m.index}>
