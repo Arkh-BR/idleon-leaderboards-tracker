@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { buildSnapshot, parseSave, type DropRateSnapshot } from "@/lib/dropRate/extract";
+import { buildSnapshot, type DropRateSnapshot } from "@/lib/dropRate/extract";
 import {
   addSnapshot,
   clearChar,
@@ -107,13 +107,12 @@ export default function SnapshotSection({
     !!state &&
     state.charIndex !== null &&
     state.totalDr !== null &&
-    state.rawSaveText !== null;
+    !!state.save;
 
   function onSave() {
-    if (!canSave || !state || !state.rawSaveText) return;
+    if (!canSave || !state || !state.save) return;
     try {
-      const save = parseSave(state.rawSaveText);
-      const baseSnap = buildSnapshot(save, state.charIndex!);
+      const baseSnap = buildSnapshot(state.save, state.charIndex!);
       const flat = flattenTree(state.drTree);
       const nodeCount = Object.keys(flat).length;
       const enriched: EnrichedSnapshot = {

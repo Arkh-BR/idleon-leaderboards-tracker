@@ -29,7 +29,11 @@ export type CalculatorState = {
   arcane: number;
   mapIndex: number;
   mapLabel: string;
-  rawSaveText: string | null;
+  /** The parsed save envelope ({ data, charNames, … }) so the Snapshot
+   *  section can build a snapshot directly. The load-by-name path never
+   *  writes the raw JSON to localStorage, so reading it back from there
+   *  (the old approach) was empty and silently disabled snapshot saving. */
+  save: any;
   // Full detailed tree so snapshots can capture per-node values for delta
   // comparisons against future saves.
   drTree: DrNode | null;
@@ -278,11 +282,7 @@ export default function DrCalculator({
       arcane: factor,
       mapIndex: mapIdx,
       mapLabel: map?.name ?? "Town",
-      rawSaveText: save
-        ? (typeof window !== "undefined"
-            ? window.localStorage.getItem(SAVE_KEY)
-            : null)
-        : null,
+      save,
       drTree,
     });
   }, [charIdx, mapIdx, drTotal, drTree, chars, mapOptions, save, onStateChange]);
