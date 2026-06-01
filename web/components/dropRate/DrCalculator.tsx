@@ -405,25 +405,23 @@ export default function DrCalculator({
                 </option>
               ))}
             </select>
+            <button
+              type="button"
+              onClick={() => setChipGalleryActive((v) => !v)}
+              className={`px-3 py-1.5 text-xs font-semibold rounded border transition-colors ${
+                chipGalleryActive
+                  ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/40 hover:bg-emerald-500/30"
+                  : "bg-zinc-800 text-zinc-400 border-zinc-700 hover:bg-zinc-700"
+              }`}
+              title="Adds +0.10 to Gallery Bonus Multi (invisible boost from Silkrode Motherboard chip being active when the gallery last refreshed)"
+            >
+              {chipGalleryActive ? "🔌 Chip Gallery ON" : "⚪ Chip Gallery OFF"}
+            </button>
           </div>
           {error && <p className="text-xs text-red-300">{error}</p>}
 
-          {/* Chip Gallery toggle — sits under the Load Save row because it's a
-              save-level setting (the +0.10 Gallery Bonus Multi boost is
-              account-wide, not per-character / per-map). */}
-          <div className="p-2 rounded border border-zinc-800 bg-zinc-950/60 flex items-center justify-center gap-5 flex-wrap">
-          <button
-            type="button"
-            onClick={() => setChipGalleryActive((v) => !v)}
-            className={`self-stretch flex items-center justify-center px-3 py-1.5 text-xs font-semibold rounded border transition-colors ${
-              chipGalleryActive
-                ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/40 hover:bg-emerald-500/30"
-                : "bg-zinc-800 text-zinc-400 border-zinc-700 hover:bg-zinc-700"
-            }`}
-            title="Adds +0.10 to Gallery Bonus Multi (invisible boost from Silkrode Motherboard chip being active when gallery last refreshed)"
-          >
-            {chipGalleryActive ? "🔌 Chip Gallery ON" : "⚪ Chip Gallery OFF"}
-          </button>
+          {/* Total Drop Rate readout. */}
+          <div className="p-2 rounded border border-zinc-800 bg-zinc-950/60 flex items-center justify-center gap-2 flex-wrap">
           <div className="flex items-baseline gap-2">
             <span className="text-xs uppercase tracking-wider text-zinc-500">
               Total Drop Rate
