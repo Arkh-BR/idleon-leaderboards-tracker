@@ -4,7 +4,7 @@
 // equipment resolver can iterate to surface "unequipped but capable" items
 // in the DeepView. Output:
 //
-//   web/lib/corgan/stats/data/dr-items.gen.ts
+//   web/lib/arkh/stats/data/dr-items.gen.ts
 //
 // Each entry carries the item's built-in DR-style stat + numeric value
 // (matching exactly what equipment.ts's `itemUqMatch` looks up at runtime),
@@ -30,7 +30,7 @@ const OUTPUT_PATH = resolve(
   __dirname,
   "..",
   "lib",
-  "corgan",
+  "arkh",
   "stats",
   "data",
   "dr-items.gen.ts"

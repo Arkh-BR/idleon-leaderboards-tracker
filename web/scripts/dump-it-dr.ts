@@ -1,6 +1,6 @@
 // Run IT's getDropRate on zArkh's save and print the result.
-// Helps identify whether the 17% gap (Corgan 53370 vs in-game 62400) comes
-// from something IT computes that Corgan/we miss.
+// Helps identify whether the 17% gap (Arkh 53370 vs in-game 62400) comes
+// from something IT computes that Arkh/we miss.
 
 import { readFileSync } from "node:fs";
 import "../lib/it/polyfills.js";

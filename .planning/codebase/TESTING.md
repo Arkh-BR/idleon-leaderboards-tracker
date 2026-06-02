@@ -15,7 +15,7 @@ Framework: **Vitest v2.1.9** + **happy-dom** + **@testing-library/react**
 | `__tests__/lib/lbSnapshot.test.ts` | 18 | `lib/lbSnapshot.ts` (100%) |
 | `__tests__/lib/registry.test.ts` | 11 | `lib/registry.ts` (~94%) |
 | `__tests__/lib/sheets.test.ts` | 5 | `lib/sheets.ts` |
-| `__tests__/lib/corgan/formulas.test.ts` | 23 | `lib/corgan/formulas.ts` (~95%) |
+| `__tests__/lib/arkh/formulas.test.ts` | 23 | `lib/arkh/formulas.ts` (~95%) |
 | `__tests__/components/TopNav.test.tsx` | 3 | `components/TopNav.tsx` (~99%) |
 | `__tests__/components/LeaderboardsTable.test.tsx` | 6 | `components/LeaderboardsTable.tsx` (~76%) |
 | `__tests__/components/Dashboard.test.tsx` | 7 | `components/Dashboard.tsx` (~92%) |
@@ -59,7 +59,7 @@ lib/format.ts                ~95%  (lines 22-23: formatRelativeTime edge cases)
 lib/rank.ts                  100%
 lib/lbSnapshot.ts            100%
 lib/registry.ts              ~94%
-lib/corgan/formulas.ts       ~95%
+lib/arkh/formulas.ts       ~95%
 components/TopNav.tsx          ~99%
 components/Dashboard.tsx       ~92%
 components/LeaderboardsTable.tsx  ~76%
@@ -67,7 +67,7 @@ components/LeaderboardsTable.tsx  ~76%
 
 ## Next Steps
 
-- Expand coverage to `lib/corgan/game-helpers.ts`, `lib/corgan/computeDR.ts`
+- Expand coverage to `lib/arkh/game-helpers.ts`, `lib/arkh/computeDR.ts`
 - Expand coverage to `lib/it/parsers/`
 - Add E2E tests for actual leaderboard loading with mocked API
 - Consider visual regression tests with Playwright screenshots

@@ -2,12 +2,12 @@
 // values against in-game UI source-by-source.
 
 import { readFileSync } from "node:fs";
-import { loadSaveData } from "../lib/corgan/save/loader";
-import { saveData } from "../lib/corgan/state";
-import { buildTree } from "../lib/corgan/stats/tree-builder";
-import { getCatalog } from "../lib/corgan/stats/registry";
-import dropRateDesc from "../lib/corgan/stats/defs/drop-rate";
-import * as data from "../lib/corgan/save/data";
+import { loadSaveData } from "../lib/arkh/save/loader";
+import { saveData } from "../lib/arkh/state";
+import { buildTree } from "../lib/arkh/stats/tree-builder";
+import { getCatalog } from "../lib/arkh/stats/registry";
+import dropRateDesc from "../lib/arkh/stats/defs/drop-rate";
+import * as data from "../lib/arkh/save/data";
 
 const g = globalThis as any;
 if (!g.window) g.window = g;

@@ -16,11 +16,11 @@
 // Star talents (the "Special Talent" tabs) are pool-capped and have no Max
 // Book Lv Cap, so they're skipped entirely.
 
-import { loadSaveData } from "../corgan/save/loader";
-import { saveData } from "../corgan/state";
-import { skillLvData, skillLvMaxData } from "../corgan/save/data";
-import { computeMaxBookLv } from "../corgan/stats/systems/common/talent";
-import { entityName } from "../corgan/stats/entity-names";
+import { loadSaveData } from "../arkh/save/loader";
+import { saveData } from "../arkh/state";
+import { skillLvData, skillLvMaxData } from "../arkh/save/data";
+import { computeMaxBookLv } from "../arkh/stats/systems/common/talent";
+import { entityName } from "../arkh/stats/entity-names";
 import { TALENT_TABS_BY_CLASS } from "./talentTabs.gen";
 import { getCharClassKey, getCharClassLabel } from "./charClass";
 import { getActivePresetIdx } from "./compute";

@@ -5,14 +5,14 @@
 // like "Atom 12", "Compass 76", "Bubble 0,18", "OLA 232" still live.
 
 import { readFileSync } from "node:fs";
-import { computeCorganDropRate } from "../lib/corgan/computeDR";
-import type { CorganNode } from "../lib/corgan/node";
+import { computeArkhDropRate } from "../lib/arkh/computeDR";
+import type { ArkhNode } from "../lib/arkh/node";
 
 const SAVE_PATH =
   "C:\\Users\\Vinicius\\ClaudeCowork\\Leaderboard Ranking Sheet - Idleon\\save 25-21-16.json";
 
 const save = JSON.parse(readFileSync(SAVE_PATH, "utf8"));
-const r = computeCorganDropRate(save, 2, 0);
+const r = computeArkhDropRate(save, 2, 0);
 
 // Names that LOOK like raw ids: System followed by an id with no friendly
 // name in front. We exclude the well-known structural / sub-field labels.
@@ -150,7 +150,7 @@ const STRUCTURAL = new Set([
 
 const seen = new Map<string, { reason: string; sample: string }>();
 
-function walk(n: CorganNode, path: string[]) {
+function walk(n: ArkhNode, path: string[]) {
   const here = [...path, n.name];
   if (!STRUCTURAL.has(n.name)) {
     for (const { p, reason } of SUSPECT_PATTERNS) {

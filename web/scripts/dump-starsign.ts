@@ -1,14 +1,14 @@
 import { readFileSync } from "node:fs";
-import { computeCorganDropRate } from "../lib/corgan/computeDR";
-import type { CorganNode } from "../lib/corgan/node";
+import { computeArkhDropRate } from "../lib/arkh/computeDR";
+import type { ArkhNode } from "../lib/arkh/node";
 
 const SAVE_PATH =
   "C:\\Users\\Vinicius\\ClaudeCowork\\Leaderboard Ranking Sheet - Idleon\\save 25-21-16.json";
 
 const save = JSON.parse(readFileSync(SAVE_PATH, "utf8"));
-const r = computeCorganDropRate(save, 2, 0);
+const r = computeArkhDropRate(save, 2, 0);
 
-function find(n: CorganNode, name: string): CorganNode | null {
+function find(n: ArkhNode, name: string): ArkhNode | null {
   if (n.name === name) return n;
   for (const c of n.children || []) {
     const f = find(c, name);

@@ -4,18 +4,18 @@
 // view computes for a fresh tree should resolve in the flattened map.
 
 import { readFileSync } from "node:fs";
-import { computeCorganDropRate } from "../lib/corgan/computeDR";
+import { computeArkhDropRate } from "../lib/arkh/computeDR";
 import {
   flattenTree,
   nodePath,
 } from "../lib/dropRate/treeFlatten";
-import { parseSystemFromBucketName } from "../lib/corgan/stats/categorize";
-import type { CorganNode } from "../lib/corgan/node";
+import { parseSystemFromBucketName } from "../lib/arkh/stats/categorize";
+import type { ArkhNode } from "../lib/arkh/node";
 
 const SAVE_PATH =
   "C:\\Users\\Vinicius\\ClaudeCowork\\Leaderboard Ranking Sheet - Idleon\\save 25-21-16.json";
 const raw = JSON.parse(readFileSync(SAVE_PATH, "utf8"));
-const r = computeCorganDropRate(raw, 2, 0);
+const r = computeArkhDropRate(raw, 2, 0);
 
 const flat = flattenTree(r.tree);
 const flatKeys = Object.keys(flat);
@@ -30,7 +30,7 @@ type BucketProbe = {
   bucketVal: number;
 };
 const probes: BucketProbe[] = [];
-const root = r.tree as CorganNode;
+const root = r.tree as ArkhNode;
 const rootPath = nodePath("", root, [root], 0);
 const parentChildren = root.children || [];
 for (let pi = 0; pi < parentChildren.length; pi++) {

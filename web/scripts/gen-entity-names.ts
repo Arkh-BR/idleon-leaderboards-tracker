@@ -3,7 +3,7 @@
 // huge per-entity payloads (formulas, costs, descriptions, …) into a compact
 // id → display-name map. The output lands at:
 //
-//   web/lib/corgan/stats/data/entity-names.gen.ts
+//   web/lib/arkh/stats/data/entity-names.gen.ts
 //
 // We don't want to ship the full website-data with the DeepView bundle just to
 // read a few names, so the script does the cherry-picking once and the
@@ -29,7 +29,7 @@ const OUTPUT_PATH = resolve(
   __dirname,
   "..",
   "lib",
-  "corgan",
+  "arkh",
   "stats",
   "data",
   "entity-names.gen.ts"

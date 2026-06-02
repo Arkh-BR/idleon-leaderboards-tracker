@@ -1,12 +1,12 @@
 import { readFileSync } from "node:fs";
-import { loadSaveData } from "../lib/corgan/save/loader";
-import { saveData } from "../lib/corgan/state";
-import { numCharacters, currentMapData, charClassData } from "../lib/corgan/save/data";
+import { loadSaveData } from "../lib/arkh/save/loader";
+import { saveData } from "../lib/arkh/state";
+import { numCharacters, currentMapData, charClassData } from "../lib/arkh/save/data";
 import {
   computeMaxDamage,
   computeOverkillTier,
-} from "../lib/corgan/stats/systems/common/derived-damage";
-import { talent } from "../lib/corgan/stats/systems/common/talent";
+} from "../lib/arkh/stats/systems/common/derived-damage";
+import { talent } from "../lib/arkh/stats/systems/common/talent";
 
 const g = globalThis as any;
 if (!g.window) g.window = g;

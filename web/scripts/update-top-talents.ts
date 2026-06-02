@@ -6,7 +6,7 @@
 //
 // We compute that talent on every char of every top player, keep the BEST
 // value of EVERY node in its Effective Level subtree (best-per-path, full
-// depth), and emit CorganNode trees: the hypothetical-max Effective Level
+// depth), and emit ArkhNode trees: the hypothetical-max Effective Level
 // with complete sub-trees. The /talents "Hypothetical" tab renders it
 // straight. Effective Level itself = best base + bonus + super.
 //
@@ -40,8 +40,8 @@ import { computeTalentTreesForChars } from "../lib/talentsLevel/compute";
 import { flattenTree, nodePath } from "../lib/dropRate/treeFlatten";
 import { listCharacters } from "../lib/dropRate/extract";
 import { getCharClassKey } from "../lib/talentsLevel/charClass";
-import { skillLvMaxData } from "../lib/corgan/save/data";
-import type { CorganNode } from "../lib/corgan/node";
+import { skillLvMaxData } from "../lib/arkh/save/data";
+import type { ArkhNode } from "../lib/arkh/node";
 
 const HEALTH_BOOSTER = 0; // plain simple talent, no cap-booster
 const ES_CLASS_KEY = "Elemental_Sorcerer";
@@ -60,16 +60,16 @@ const LIMIT = (() => {
 const OUTPUT_FILE = join(__dirname, "..", "lib", "talentsLevel", "topTalents.ts");
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-const childByName = (n: CorganNode | undefined, name: string) =>
+const childByName = (n: ArkhNode | undefined, name: string) =>
   n?.children?.find((c) => c.name === name);
 
 // Walk a tree and overwrite each node's val with the best value seen for
 // its path (same nodePath scheme flattenTree uses).
 function applyBestVals(
-  node: CorganNode,
+  node: ArkhNode,
   best: Record<string, number>,
   parentPath: string,
-  siblings: CorganNode[],
+  siblings: ArkhNode[],
   idx: number
 ) {
   const path = nodePath(parentPath, node, siblings, idx);
@@ -84,14 +84,14 @@ function applyBestVals(
 // for one class pool (ES or non-ES).
 type Pool = {
   best: Record<string, number>;
-  structure: CorganNode | null;
+  structure: ArkhNode | null;
   structEff: number;
   chars: number;
 };
 const newPool = (): Pool => ({ best: {}, structure: null, structEff: -1, chars: 0 });
 
 // Fold one Health Booster Effective Level tree into a pool.
-function foldIntoPool(pool: Pool, tree: CorganNode) {
+function foldIntoPool(pool: Pool, tree: ArkhNode) {
   if (!childByName(tree, "Effective Level")) return false;
   const flat = flattenTree(tree);
   for (const path in flat) {
@@ -112,7 +112,7 @@ const FB68_PREFIX = "Family Bonus 68"; // node name "Family Bonus 68 (Mage)"
 // Recompute the additive parents we surface: Bonus Levels = Σ direct
 // sources (each maxed independently, so the parent ≠ stored sum), and
 // Effective Level = Base + Bonus + Super.
-function recomputeEff(eff: CorganNode) {
+function recomputeEff(eff: ArkhNode) {
   const bonusNode = childByName(eff, "Bonus Levels");
   if (bonusNode?.children) {
     bonusNode.val = bonusNode.children.reduce(
@@ -126,7 +126,7 @@ function recomputeEff(eff: CorganNode) {
 
 // Stamp the best-per-path values onto a pool's structure tree and pull out
 // the recomputed Effective Level node.
-function finalizePool(pool: Pool, label: string): CorganNode | null {
+function finalizePool(pool: Pool, label: string): ArkhNode | null {
   if (!pool.structure) return null;
   applyBestVals(pool.structure, pool.best, "", [pool.structure], 0);
   const eff = childByName(pool.structure, "Effective Level");
@@ -147,7 +147,7 @@ function finalizePool(pool: Pool, label: string): CorganNode | null {
 // has far more chars to draw from) while applying the ES-only buff, so the
 // ES reference is always ≥ the non-ES one — never undercounted by sparse
 // ES sampling.
-function buildESEff(defaultEff: CorganNode, esPool: Pool): CorganNode | null {
+function buildESEff(defaultEff: ArkhNode, esPool: Pool): ArkhNode | null {
   if (!esPool.structure) return null;
   applyBestVals(esPool.structure, esPool.best, "", [esPool.structure], 0);
   const esSrcEff = childByName(esPool.structure, "Effective Level");
@@ -161,10 +161,10 @@ function buildESEff(defaultEff: CorganNode, esPool: Pool): CorganNode | null {
   }
   // Clone the default Effective Level and swap its (unbuffed) FB68 child for
   // the buffed ES one, then recompute the additive parents.
-  const esEff: CorganNode = JSON.parse(JSON.stringify(defaultEff));
+  const esEff: ArkhNode = JSON.parse(JSON.stringify(defaultEff));
   const bonus = childByName(esEff, "Bonus Levels");
   if (!bonus?.children) return null;
-  const fb68Clone: CorganNode = JSON.parse(JSON.stringify(esFB68));
+  const fb68Clone: ArkhNode = JSON.parse(JSON.stringify(esFB68));
   const idx = bonus.children.findIndex((c) => c.name.startsWith(FB68_PREFIX));
   if (idx >= 0) bonus.children[idx] = fb68Clone;
   else bonus.children.push(fb68Clone);
@@ -270,13 +270,13 @@ async function main() {
 }
 
 function emitFile(
-  defaultTree: CorganNode,
-  esTree: CorganNode | null,
+  defaultTree: ArkhNode,
+  esTree: ArkhNode | null,
   starCeiling: Record<number, number>,
   scanned: number
 ) {
   const now = new Date().toISOString();
-  const overrides: Record<string, CorganNode> = {};
+  const overrides: Record<string, ArkhNode> = {};
   if (esTree) overrides[ES_CLASS_KEY] = esTree;
   const lines: string[] = [
     "// Hypothetical-max Effective Level trees (full depth) — the best value",
@@ -297,18 +297,18 @@ function emitFile(
     `// Snapshot generated: ${now}`,
     `// Players scanned: ${scanned}`,
     "",
-    'import type { CorganNode } from "../corgan/node";',
+    'import type { ArkhNode } from "../arkh/node";',
     "",
     `export const HYPO_TALENTS_GENERATED_AT = ${JSON.stringify(now)};`,
     `export const HYPO_TALENTS_PLAYERS_SCANNED = ${scanned};`,
     "",
-    `export const HYPO_DEFAULT_TREE: CorganNode = ${JSON.stringify(defaultTree, null, 2)};`,
+    `export const HYPO_DEFAULT_TREE: ArkhNode = ${JSON.stringify(defaultTree, null, 2)};`,
     "",
-    `export const HYPO_TREE_OVERRIDES: Record<string, CorganNode> = ${JSON.stringify(overrides, null, 2)};`,
+    `export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = ${JSON.stringify(overrides, null, 2)};`,
     "",
     "/** Pick the hypothetical-max Effective Level tree for a class key —",
     " *  the per-class override when one exists, else the non-ES default. */",
-    "export function hypoTreeForClass(classKey: string | null): CorganNode {",
+    "export function hypoTreeForClass(classKey: string | null): ArkhNode {",
     "  return (classKey && HYPO_TREE_OVERRIDES[classKey]) || HYPO_DEFAULT_TREE;",
     "}",
     "",

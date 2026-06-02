@@ -1,27 +1,27 @@
 // ===== TALENTS LEVEL ENTRY POINT =====
 // Loads a raw "Copy for Support" envelope, picks a single talent on a single
-// character, and returns the FULL talent CorganNode so the UI can render
+// character, and returns the FULL talent ArkhNode so the UI can render
 // every contributor (Active flag, Level / Effective Level breakdown, formula
 // note, multipliers like Plunderous Kills, etc.) — not just the Effective
 // Level subtree.
 
-import { loadSaveData } from "../corgan/save/loader";
-import { saveData } from "../corgan/state";
+import { loadSaveData } from "../arkh/save/loader";
+import { saveData } from "../arkh/state";
 import {
   skillLvData,
   playerStuffData,
-} from "../corgan/save/data";
-import { talent } from "../corgan/stats/systems/common/talent";
-import { entityName } from "../corgan/stats/entity-names";
-import type { CorganNode } from "../corgan/node";
+} from "../arkh/save/data";
+import { talent } from "../arkh/stats/systems/common/talent";
+import { entityName } from "../arkh/stats/entity-names";
+import type { ArkhNode } from "../arkh/node";
 
 export type TalentLevelResult = {
-  /** Full talent CorganNode — Active flag + Effective Level (Base + Bonus)
+  /** Full talent ArkhNode — Active flag + Effective Level (Base + Bonus)
    *  for tab 1-5 talents, or the talent's specialized shape (Tal 328's
    *  Plunderous-Kills branch, Tal 655's Per-Skull × Skulls, every other
    *  star talent's Active + Level + formula). The headline value is
    *  `tree.val` = the bonus the talent actually contributes. */
-  tree: CorganNode;
+  tree: ArkhNode;
   /** Talent id (echoed for convenience). */
   talentId: number;
   /** Friendly name from ENTITY_NAMES (or "" if no mapping). */
@@ -98,7 +98,7 @@ export function computeTalentEffective(
     const activePreset = getActivePresetIdx(rawEnvelope, charIdx);
     if (opts.presetIdx !== activePreset) {
       // talent.ts reads `skillLvData` and `playerStuffData` directly from
-      // the corgan save/data module (module-level let bindings). Mutating
+      // the arkh save/data module (module-level let bindings). Mutating
       // saveData.skillLvData wouldn't reach them — they have to be
       // mutated in place on the imported arrays.
       const preSL = readField(rawData, `SLpre_${charIdx}`) ?? {};
@@ -146,9 +146,9 @@ export function computeTalentTreesForChars(
   rawEnvelope: any,
   jobs: { charIdx: number; talentIds: number[] }[],
   opts?: { forceSuperActive?: boolean }
-): { charIdx: number; trees: Map<number, CorganNode> }[] {
+): { charIdx: number; trees: Map<number, ArkhNode> }[] {
   loadSaveData(rawEnvelope);
-  const out: { charIdx: number; trees: Map<number, CorganNode> }[] = [];
+  const out: { charIdx: number; trees: Map<number, ArkhNode> }[] = [];
   for (const job of jobs) {
     const ctx = {
       saveData,
@@ -158,7 +158,7 @@ export function computeTalentTreesForChars(
       splitSuperLevels: true,
       forceSuperActive: !!opts?.forceSuperActive,
     };
-    const trees = new Map<number, CorganNode>();
+    const trees = new Map<number, ArkhNode>();
     for (const id of job.talentIds) {
       try {
         trees.set(id, talent.resolve(id, ctx));

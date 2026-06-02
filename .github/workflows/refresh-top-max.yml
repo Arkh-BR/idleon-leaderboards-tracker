@@ -6,7 +6,7 @@ name: Refresh top DR & talent max
 #   • web/lib/talentsLevel/topTalents.ts
 # Both collectors fetch every top player's raw save straight from the IT
 # profiles endpoint (no browser needed — unlike the Tome refresh), run our
-# corgan engine, and keep the best value of every source across players.
+# arkh engine, and keep the best value of every source across players.
 
 on:
   schedule:

@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
-import { computeCorganDropRate } from "../lib/corgan/computeDR";
-import type { CorganNode } from "../lib/corgan/node";
+import { computeArkhDropRate } from "../lib/arkh/computeDR";
+import type { ArkhNode } from "../lib/arkh/node";
 
 const save = JSON.parse(
   readFileSync(
@@ -8,9 +8,9 @@ const save = JSON.parse(
     "utf8"
   )
 );
-const r = computeCorganDropRate(save, 2, 0);
+const r = computeArkhDropRate(save, 2, 0);
 
-function walk(n: CorganNode, path: string[]) {
+function walk(n: ArkhNode, path: string[]) {
   if (/Sneaking|Pristine Charm/i.test(n.name)) {
     console.log(n.name, "→", Number(n.val).toFixed(2), "  @", path.slice(-1).join(""));
   }

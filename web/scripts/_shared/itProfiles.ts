@@ -1,6 +1,6 @@
 // Shared helpers for the top-player scrapers: gather the candidate player
 // list from the IT leaderboards API and fetch a public profile's raw save
-// from the IT profiles endpoint (which our corgan engine consumes directly
+// from the IT profiles endpoint (which our arkh engine consumes directly
 // — see memory/it-profiles-save-endpoint).
 
 import { CATEGORIES } from "../../lib/registry";

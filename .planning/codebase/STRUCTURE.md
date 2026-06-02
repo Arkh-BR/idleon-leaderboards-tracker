@@ -31,7 +31,7 @@ idleon-leaderboards-tracker/
 │   │   └── TopNav.tsx
 │   ├── data/                 # Static data files
 │   ├── lib/                  # Shared utilities and domain logic
-│   │   ├── corgan/           # Corgan-related utilities
+│   │   ├── arkh/           # Arkh-related utilities
 │   │   ├── dropRate/         # Drop Rate domain logic
 │   │   ├── it/               # IdleonToolbox parsers, services, stubs, utility
 │   │   │   ├── _stubs/       # Component/hook stubs

@@ -26,7 +26,7 @@ const SNAP_DIR = resolve(REPO_ROOT, "web/data/njs-snapshot");
 const REPORT_DIR = resolve(SNAP_DIR, "reports");
 const CACHE_DIR = resolve(__dirname, ".cache");
 const ROOT_NJS = resolve(REPO_ROOT, "N.js");
-const GAME_DIR = resolve(REPO_ROOT, "web/lib/corgan/stats/data/game");
+const GAME_DIR = resolve(REPO_ROOT, "web/lib/arkh/stats/data/game");
 
 const args = new Set(process.argv.slice(2));
 const NO_FETCH = args.has("--no-fetch");
@@ -34,7 +34,7 @@ const DRY = args.has("--dry");
 const WRITE_GAME_DATA = args.has("--write-game-data");
 
 /**
- * Regenerates the corgan engine's committed game-data files from the live data
+ * Regenerates the arkh engine's committed game-data files from the live data
  * by merging onto the existing files (never drops a committed key). This is
  * what makes the detected changes actually reach the tools (Drop Rate etc.).
  */

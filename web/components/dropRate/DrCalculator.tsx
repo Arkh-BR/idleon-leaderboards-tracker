@@ -10,7 +10,7 @@ import { listCharacters, parseSave, type CharSummary } from "@/lib/dropRate/extr
 import { getCharClassKey } from "@/lib/talentsLevel/charClass";
 import DeepView from "./DeepView";
 import ProfileNameLoader from "@/components/ProfileNameLoader";
-import type { CorganNode as DrNode } from "@/lib/corgan/node";
+import type { ArkhNode as DrNode } from "@/lib/arkh/node";
 import type { FlatTree } from "@/lib/dropRate/treeFlatten";
 
 const SAVE_KEY = "drop-rate-tracker.last-upload.v1";
@@ -77,8 +77,8 @@ export default function DrCalculator({
   // Deep View is now the only renderer — the previous Detailed/Summary tabs
   // were collapsed in favor of the full-depth view since it strictly
   // supersedes both (every source from Detailed plus the sub-source layers
-  // that Summary couldn't reach). drTree comes from the Corgan-style compute
-  // (computeCorganDropRate) which matches the in-game value to within ~1%.
+  // that Summary couldn't reach). drTree comes from the Arkh-style compute
+  // (computeArkhDropRate) which matches the in-game value to within ~1%.
   const [drTree, setDrTree] = useState<DrNode | null>(null);
   const [drTotal, setDrTotal] = useState<number | null>(null);
   // Loading flag: only true between the moment compute starts and when the
@@ -235,9 +235,9 @@ export default function DrCalculator({
     setComputing(true);
     (async () => {
       try {
-        const mod = await import("@/lib/corgan/computeDR");
+        const mod = await import("@/lib/arkh/computeDR");
         if (cancelled) return;
-        const result = mod.computeCorganDropRate(save, charIdx, mapIdx, {
+        const result = mod.computeArkhDropRate(save, charIdx, mapIdx, {
           chipGalleryActive,
         });
         setDrTree(result.tree);

@@ -201,7 +201,7 @@ function main(): void {
 // Shape: for each class promotion (Beginner → Voidwalker, etc), the ordered
 // list of talent tabs the in-game UI shows, with the talents inside each
 // tab. Every class also gets the 4 Special Talent (star talent) tabs at the
-// end. The id field IS the numeric talent index our corgan resolvers use.
+// end. The id field IS the numeric talent index our arkh resolvers use.
 
 export type TalentEntry = {
   id: number;

@@ -15,8 +15,8 @@
 
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
-import { computeCorganDropRate } from "../lib/corgan/computeDR";
-import type { CorganNode } from "../lib/corgan/node";
+import { computeArkhDropRate } from "../lib/arkh/computeDR";
+import type { ArkhNode } from "../lib/arkh/node";
 import {
   parseSystemFromBucketName,
   systemWorld,
@@ -25,13 +25,13 @@ import {
   SYSTEM_EMOJI,
   type SystemKey,
   type WorldKey,
-} from "../lib/corgan/stats/categorize";
+} from "../lib/arkh/stats/categorize";
 import { nodePath } from "../lib/dropRate/treeFlatten";
 
 const SAVE_PATH =
   "C:\\Users\\Vinicius\\ClaudeCowork\\Leaderboard Ranking Sheet - Idleon\\save 25-21-16.json";
 
-// Closed-form formula spec captured from the corgan tree's "Formula
+// Closed-form formula spec captured from the arkh tree's "Formula
 // Result" child note (e.g. "decay(40,50,50)"). x1/x2 are the game
 // constants; the third number (lv at gen time) is the level — we don't
 // store it because the runtime reads the live level kid value.
@@ -61,7 +61,7 @@ type SourceEntry = {
   formulaKey?: string;
   /** Closed-form formula spec — when set, the runtime computes the
    *  parent as formulaEval(type, x1, x2, levelKid) × any x-fmt kids.
-   *  Captured by detectFormulaSpec() from the corgan tree's "Formula
+   *  Captured by detectFormulaSpec() from the arkh tree's "Formula
    *  Result" child note. */
   formulaSpec?: FormulaSpec;
   /** Game-constant per-level rate captured from a hidden "Per Level"
@@ -96,7 +96,7 @@ type SourceEntry = {
 };
 
 // Catalog-only placeholders / safety nets — never trackable sources.
-// Also drops synthetic "Formula Result" rows the Corgan lib surfaces
+// Also drops synthetic "Formula Result" rows the Arkh lib surfaces
 // under Guild/Stamp/Post Office/Exotic-59 bonuses: the parent's value
 // IS the formula result, so the child just duplicates the number with
 // no editable input — pure noise in the max-values tool.
@@ -179,7 +179,7 @@ function looksCustomNamed(name: string): boolean {
  *  Lets us encode formulas for rows whose name varies per save (e.g.
  *  the friend's display name on a Friend Bonus contribution row). */
 function detectStructuralFormula(
-  node: CorganNode,
+  node: ArkhNode,
   sys: SystemKey
 ): string | null {
   // Friends system, row carries exactly one "Score" leaf as a child →
@@ -394,11 +394,11 @@ function detectStructuralFormula(
   return null;
 }
 
-/** Look at a corgan node's children for a "Per Level" leaf — the game
+/** Look at a arkh node's children for a "Per Level" leaf — the game
  *  constant rate (e.g. Dream 10 = 5 DR / level, all others = 1). When
  *  present, returns the rate so we can lift it onto the parent entry
  *  and drive a formula even though we hide the row from the UI. */
-function detectPerLevelConst(node: CorganNode): number | null {
+function detectPerLevelConst(node: ArkhNode): number | null {
   const kids = node.children || [];
   const pl = kids.find((c) => c.name === "Per Level");
   if (!pl) return null;
@@ -406,12 +406,12 @@ function detectPerLevelConst(node: CorganNode): number | null {
   return Number.isFinite(v) ? v : null;
 }
 
-/** Look at a corgan node's children for a "Formula Result" leaf whose
+/** Look at a arkh node's children for a "Formula Result" leaf whose
  *  note encodes the closed-form spec used to compute the parent's value
  *  (e.g. "decay(40,50,50)"). Returns the spec with the level stripped
  *  off (level is read live from the level kid at runtime) — null if
  *  no Formula Result child or note doesn't match the expected shape. */
-function detectFormulaSpec(node: CorganNode): FormulaSpec | null {
+function detectFormulaSpec(node: ArkhNode): FormulaSpec | null {
   const rx =
     /^([a-zA-Z]+)\(\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*,\s*-?\d+(?:\.\d+)?\s*\)/;
   // Talents and any other parents emit the canonical spec on their own
@@ -467,8 +467,8 @@ const CUSTOM_FORMULA_NOTES: Record<string, string> = {
 };
 
 function detectAgg(
-  parent: CorganNode,
-  children: CorganNode[]
+  parent: ArkhNode,
+  children: ArkhNode[]
 ): AggRule | null {
   if (!children.length) return null;
   // 1. Custom formula trumps everything
@@ -531,9 +531,9 @@ function looksP2W(name: string, system: SystemKey): boolean {
 }
 
 function collectChildren(
-  parent: CorganNode,
+  parent: ArkhNode,
   parentPath: string,
-  bucket: CorganNode,
+  bucket: ArkhNode,
   sys: SystemKey,
   world: WorldKey,
   poolBadge: "Additive" | "Multi"
@@ -572,7 +572,7 @@ function collectChildren(
         // Surface the game constants on the row so the user sees what's
         // being computed (e.g. "decay(40, 50)" on Gold Charm). If the
         // note ALREADY contains the matching "type(x1,x2,lv)" pattern
-        // (corgan emits it for talents), strip that — the lv at gen
+        // (arkh emits it for talents), strip that — the lv at gen
         // time is misleading once the user starts editing.
         const formulaNote = `${spec.type}(${spec.x1}, ${spec.x2})`;
         const stripRx = new RegExp(
@@ -637,10 +637,10 @@ const raw = JSON.parse(readFileSync(SAVE_PATH, "utf8"));
 // rest of the tooling uses. Research mode is on so every talent's Base
 // Level / Points Invested defaults to the Max Book Lv Cap (the catalog
 // snapshot becomes the ceiling, not the actual save state).
-const r = computeCorganDropRate(raw, 2, 0, { useMaxResearchBaseLevel: true });
+const r = computeArkhDropRate(raw, 2, 0, { useMaxResearchBaseLevel: true });
 
 const sources: SourceEntry[] = [];
-const root = r.tree as CorganNode;
+const root = r.tree as ArkhNode;
 const rootPath = nodePath("", root, [root], 0);
 const tops = root.children || [];
 for (let pi = 0; pi < tops.length; pi++) {
@@ -683,7 +683,7 @@ for (let pi = 0; pi < tops.length; pi++) {
           entry.agg = "custom";
           const formulaNote = `${spec.type}(${spec.x1}, ${spec.x2})`;
           // Strip the gen-time "type(x1,x2,lv)" if it's already on the
-          // note (corgan emits this for talents); we don't want the
+          // note (arkh emits this for talents); we don't want the
           // stale lv showing once the user starts editing.
           const stripRx = new RegExp(
             `^${spec.type}\\(\\s*${spec.x1}\\s*,\\s*${spec.x2}\\s*,\\s*-?\\d+(?:\\.\\d+)?\\s*\\)\\s*—?\\s*`
@@ -724,7 +724,7 @@ for (let pi = 0; pi < tops.length; pi++) {
 /** Lift hidden formula-constant kids onto their parent entry.
  *
  *  Some agg parents (Family Bonus 68, Family Guy Multi) carry their
- *  decay constants as kids at the corgan source level — so the values
+ *  decay constants as kids at the arkh source level — so the values
  *  are sourced from familyBonusParams(34) / talentParams(144) at gen
  *  time, NOT hardcoded into the runtime handler. But those constants
  *  shouldn't show up as visible rows in the max-values tool (they're
@@ -1475,7 +1475,7 @@ const APP_JS = `
       // Two row shapes:
       //   A. Owned (or Unlocked) only — set bonuses, bundles. The bonus
       //      value lives as HIDDEN metadata on the parent entry
-      //      (p.bonusConst, lifted from the gen-time corgan tree).
+      //      (p.bonusConst, lifted from the gen-time arkh tree).
       //   B. Owned + Bonus kids — companions. Bonus is the editable
       //      delta (game emits Bonus=N where N is the additive
       //      contribution); STRICT on it too.
@@ -1516,7 +1516,7 @@ const APP_JS = `
       }
       // Shape A (set bonus / bundle): bonusConst is the hidden game
       // constant (analogous to familyBonusConsts on FB68 — sourced from
-      // the corgan tree at gen time, not hardcoded in this handler).
+      // the arkh tree at gen time, not hardcoded in this handler).
       var bn = p && Number(p.bonusConst);
       if (!Number.isFinite(bn)) return null;
       return idle + owned * (bn - idle);
@@ -1836,7 +1836,7 @@ const APP_JS = `
       // Vault upgrade mastery multiplier: 1 + masteryLv / 100. Each
       // mastery node mirrors the corresponding vd[32/61/89] level in
       // the save — bumping the level here lets us research what the
-      // upgrade tops out at without the corgan pipeline.
+      // upgrade tops out at without the arkh pipeline.
       var lv = kid(kids, /^Mastery Lv$/);
       if (lv === null) return null;
       return 1 + lv / 100;
@@ -2838,7 +2838,7 @@ const APP_JS = `
       // Research mode: catalog overrides have to match the gen-time snapshot
       // shape, where every talent's Base Level / Points Invested defaults
       // to the Max Book Lv Cap.
-      var r = DR.computeCorganDropRate(saveCache, charIdx, mapIdx, { useMaxResearchBaseLevel: true });
+      var r = DR.computeArkhDropRate(saveCache, charIdx, mapIdx, { useMaxResearchBaseLevel: true });
       var flat = DR.flattenTree(r.tree);
       // Build the override map: keep only entries that match a catalog id
       var overrides = {};

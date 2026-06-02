@@ -6,10 +6,10 @@
 // expected (formula precision); large diffs indicate a porting bug.
 
 import { readFileSync } from "node:fs";
-import { loadSaveData } from "../lib/corgan/save/loader";
-import { saveData } from "../lib/corgan/state";
-import { numCharacters } from "../lib/corgan/save/data";
-import { computeTotalStat } from "../lib/corgan/stats/systems/common/stats";
+import { loadSaveData } from "../lib/arkh/save/loader";
+import { saveData } from "../lib/arkh/state";
+import { numCharacters } from "../lib/arkh/save/data";
+import { computeTotalStat } from "../lib/arkh/stats/systems/common/stats";
 
 const g = globalThis as any;
 if (!g.window) g.window = g;

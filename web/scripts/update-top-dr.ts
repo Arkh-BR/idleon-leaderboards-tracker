@@ -1,6 +1,6 @@
 // Refresh the bundled top-player Drop Rate reference in
 // lib/dropRate/topDropRate.ts by fetching each top player's raw save from
-// the IT profiles endpoint and running OUR corgan DR engine on it.
+// the IT profiles endpoint and running OUR arkh DR engine on it.
 //
 // HYPOTHETICAL-MAX model: for every char of every candidate we resolve the
 // DR pools at PEAK (highest-arcane map + chip gallery on), then keep the
@@ -24,8 +24,8 @@ const g = globalThis as any;
 if (!g.window) g.window = g;
 
 import { gatherCandidates, fetchProfileSave } from "./_shared/itProfiles";
-import { computeCorganDRPools, combineDRPools } from "../lib/corgan/computeDR";
-import type { Pool } from "../lib/corgan/stats/tree-builder";
+import { computeArkhDRPools, combineDRPools } from "../lib/arkh/computeDR";
+import type { Pool } from "../lib/arkh/stats/tree-builder";
 import { flattenTree } from "../lib/dropRate/treeFlatten";
 import { listCharacters } from "../lib/dropRate/extract";
 import { getCharClassKey } from "../lib/talentsLevel/charClass";
@@ -47,7 +47,7 @@ import {
   findTalentNodePath,
   subtreePaths,
 } from "./_shared/classGating";
-import type { CorganNode } from "../lib/corgan/node";
+import type { ArkhNode } from "../lib/arkh/node";
 
 // Account-wide multipliers that are emitted under many owned items, so
 // best-per-path can leave them reading different values per row (each item
@@ -127,7 +127,7 @@ async function main() {
     bestPools: Record<string, Pool> | null;
     bestFlat: Record<string, number>;
     opSets: Map<string, Set<string>>;
-    structure: CorganNode | null;
+    structure: ArkhNode | null;
     structPaths: number;
   };
   const newGroup = (): GroupAcc => ({
@@ -173,7 +173,7 @@ async function main() {
     let playerBestChar = "";
     for (const ch of chars) {
       try {
-        const pools = computeCorganDRPools(save, ch.charIndex, bestMapIdx, {
+        const pools = computeArkhDRPools(save, ch.charIndex, bestMapIdx, {
           chipGalleryActive: true,
         });
         // Per-char full tree: its total drives the "best real player"

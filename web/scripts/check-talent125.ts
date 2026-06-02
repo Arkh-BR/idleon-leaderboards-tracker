@@ -1,12 +1,12 @@
 import { readFileSync } from "node:fs";
-import { loadSaveData } from "../lib/corgan/save/loader";
-import { saveData } from "../lib/corgan/state";
-import { currentMapData, numCharacters, charClassData } from "../lib/corgan/save/data";
-import { MapAFKtarget } from "../lib/corgan/stats/data/game/customlists.js";
-import { MONSTERS } from "../lib/corgan/stats/data/game/monsters.js";
-import { computeAccuracy } from "../lib/corgan/stats/systems/common/derived-damage";
-import { computeCalcTalent } from "../lib/corgan/stats/systems/common/calcTalent";
-import { talent } from "../lib/corgan/stats/systems/common/talent";
+import { loadSaveData } from "../lib/arkh/save/loader";
+import { saveData } from "../lib/arkh/state";
+import { currentMapData, numCharacters, charClassData } from "../lib/arkh/save/data";
+import { MapAFKtarget } from "../lib/arkh/stats/data/game/customlists.js";
+import { MONSTERS } from "../lib/arkh/stats/data/game/monsters.js";
+import { computeAccuracy } from "../lib/arkh/stats/systems/common/derived-damage";
+import { computeCalcTalent } from "../lib/arkh/stats/systems/common/calcTalent";
+import { talent } from "../lib/arkh/stats/systems/common/talent";
 
 const g = globalThis as any;
 if (!g.window) g.window = g;

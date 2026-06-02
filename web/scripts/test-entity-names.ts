@@ -1,5 +1,5 @@
 // Quick sanity check that label() returns real names for the DR sources.
-import { label } from "../lib/corgan/stats/entity-names";
+import { label } from "../lib/arkh/stats/entity-names";
 
 const cases: [string, unknown][] = [
   ["Talent", 279],

@@ -3,7 +3,7 @@
 // ============================================================================
 // DeepView — Full-depth, fully-expanded view of every DR source.
 //
-// Where CorganTree collapses past depth 2 to stay scannable, this view exposes
+// Where ArkhTree collapses past depth 2 to stay scannable, this view exposes
 // EVERY layer of the DR formula: pool → source → sub-source → sub-sub-source
 // (e.g. Main Additive Pool → Talent 279 → Bonus Levels → Family Bonus 68 →
 // Best Mage Lv). Designed to answer "what _really_ adds to my DR, and what
@@ -31,7 +31,7 @@ import {
   type CSSProperties,
   type ReactNode,
 } from "react";
-import type { CorganNode } from "@/lib/corgan/node";
+import type { ArkhNode } from "@/lib/arkh/node";
 import {
   parseSystemFromBucketName,
   systemWorld,
@@ -39,7 +39,7 @@ import {
   WORLD_EMOJI,
   type SystemKey,
   type WorldKey,
-} from "@/lib/corgan/stats/categorize";
+} from "@/lib/arkh/stats/categorize";
 import { nodePath, type FlatTree } from "@/lib/dropRate/treeFlatten";
 
 // Compare baseline plumbed from the SnapshotSection — when set, every row
@@ -115,7 +115,7 @@ function isPathOpen(
   path: string,
   depth: number,
   state: ExpandState,
-  node?: CorganNode
+  node?: ArkhNode
 ): boolean {
   const override = state.overrides[path];
   if (override !== undefined) return override;
@@ -128,7 +128,7 @@ function isPathOpen(
 }
 
 // -----------------------------------------------------------------------------
-// Formatting helpers — same conventions as CorganTree so values look familiar
+// Formatting helpers — same conventions as ArkhTree so values look familiar
 // -----------------------------------------------------------------------------
 
 // Idleon-style suffixed number — M/B/T/Q/QQ/QQQ, then scientific past 1e24
@@ -257,7 +257,7 @@ function valColor(val: number, fmt: string | undefined): string {
 
 // -----------------------------------------------------------------------------
 // Classification used to live here as a flat "By System" view. That layout
-// was removed — the tree's buckets (built by lib/corgan/stats/categorize.ts)
+// was removed — the tree's buckets (built by lib/arkh/stats/categorize.ts)
 // already group every source by its game system, so the parallel
 // classifier was redundant and out-of-date relative to the descriptor
 // renames. Search across the tree handles the "find a source quickly"
@@ -276,7 +276,7 @@ type TreeStats = {
   poolSums: Record<string, number>; // pool name → sum of its direct children vals
 };
 
-function computeStats(root: CorganNode | null): TreeStats {
+function computeStats(root: ArkhNode | null): TreeStats {
   const s: TreeStats = {
     nodeCount: 0,
     leafCount: 0,
@@ -293,7 +293,7 @@ function computeStats(root: CorganNode | null): TreeStats {
     "Post-Processing",
   ]);
 
-  function walk(node: CorganNode, depth: number, parentPoolName: string | null) {
+  function walk(node: ArkhNode, depth: number, parentPoolName: string | null) {
     s.nodeCount++;
     if (depth > s.maxDepth) s.maxDepth = depth;
     const kids = node.children || [];
@@ -316,7 +316,7 @@ function computeStats(root: CorganNode | null): TreeStats {
 // "% of pool" for additive sources. Returns null if the node isn't under one
 // of our recognized pools (e.g. LUK Scaling, Post-Processing leaves).
 function findPoolForPath(
-  root: CorganNode,
+  root: ArkhNode,
   targetPath: string[]
 ): string | null {
   const POOL_NAMES = new Set([
@@ -324,12 +324,12 @@ function findPoolForPath(
     "LUK2 Additive Pool",
     "Post-Processing",
   ]);
-  let current: CorganNode | null = root;
+  let current: ArkhNode | null = root;
   let pool: string | null = null;
   for (const seg of targetPath) {
     if (!current) return pool;
     if (POOL_NAMES.has(current.name)) pool = current.name;
-    const next: CorganNode | undefined = (current.children || []).find(
+    const next: ArkhNode | undefined = (current.children || []).find(
       (c) => c.name === seg
     );
     if (!next) return pool;
@@ -346,7 +346,7 @@ function findPoolForPath(
 // -----------------------------------------------------------------------------
 
 type TreeRowProps = {
-  node: CorganNode;
+  node: ArkhNode;
   depth: number;
   /** Parent path as a single " / "-joined string in the same scheme
    *  treeFlatten.nodePath() uses (dup-named siblings get "#i" suffix).
@@ -355,7 +355,7 @@ type TreeRowProps = {
   /** This node's sibling array (the parent's children) and its index in
    *  that array, so we can dedupe same-named siblings with "#i" — matches
    *  the path scheme used by snapshot flatTree storage. */
-  siblings: CorganNode[];
+  siblings: ArkhNode[];
   siblingIndex: number;
   /** Same as parentPathStr but kept as an array for findPoolForPath() which
    *  walks segments. The array form lets us tolerate "Foo / Bar" labels
@@ -368,9 +368,9 @@ type TreeRowProps = {
   // Lookup is O(1) so toggling hide-zero / typing in search doesn't trigger
   // an O(N²) re-walk inside every row's render. Either map being null means
   // "filter is off, everything passes". See computeFilterMaps() below.
-  hideZeroMap: WeakMap<CorganNode, boolean> | null;
-  searchMatchMap: WeakMap<CorganNode, boolean> | null;
-  root: CorganNode;
+  hideZeroMap: WeakMap<ArkhNode, boolean> | null;
+  searchMatchMap: WeakMap<ArkhNode, boolean> | null;
+  root: ArkhNode;
   stats: TreeStats;
   /** Snapshot flatTree for Δ lookups. null = no baseline selected. */
   baseline: FlatTree | null;
@@ -575,9 +575,9 @@ function TreeRow({
 // does. Containers pass through so the user can drill into a matching leaf.
 // -----------------------------------------------------------------------------
 
-function buildHideZeroMap(root: CorganNode): WeakMap<CorganNode, boolean> {
-  const map = new WeakMap<CorganNode, boolean>();
-  function walk(n: CorganNode): boolean {
+function buildHideZeroMap(root: ArkhNode): WeakMap<ArkhNode, boolean> {
+  const map = new WeakMap<ArkhNode, boolean>();
+  function walk(n: ArkhNode): boolean {
     const directNonZero = Math.abs(Number(n.val) || 0) > 1e-9;
     let any = directNonZero;
     const kids = n.children || [];
@@ -594,17 +594,17 @@ function buildHideZeroMap(root: CorganNode): WeakMap<CorganNode, boolean> {
 }
 
 function buildSearchMatchMap(
-  root: CorganNode,
+  root: ArkhNode,
   searchTerm: string
-): WeakMap<CorganNode, boolean> {
-  const map = new WeakMap<CorganNode, boolean>();
+): WeakMap<ArkhNode, boolean> {
+  const map = new WeakMap<ArkhNode, boolean>();
   const q = searchTerm.toLowerCase();
-  function matchesSelf(n: CorganNode): boolean {
+  function matchesSelf(n: ArkhNode): boolean {
     if (n.name.toLowerCase().includes(q)) return true;
     if (n.note && n.note.toLowerCase().includes(q)) return true;
     return false;
   }
-  function walk(n: CorganNode): boolean {
+  function walk(n: ArkhNode): boolean {
     let any = matchesSelf(n);
     for (const c of n.children || []) {
       if (walk(c)) any = true;
@@ -649,7 +649,7 @@ export default function DeepView({
   treeTabLabel = "🌳 Tree",
   onViewChange,
 }: {
-  tree: CorganNode | null;
+  tree: ArkhNode | null;
   /** Optional snapshot baseline. When set, every row gains a "Δ vs snap"
    *  badge showing current − captured. Lookup is keyed by the same
    *  nodePath() scheme treeFlatten uses to serialize the snapshot. */
@@ -993,13 +993,13 @@ type WorldBucket = {
   id: string;
   system: SystemKey;
   poolBadge: "Additive" | "Multi";
-  node: CorganNode;
+  node: ArkhNode;
   /** Canonical path under the root tree — same scheme treeFlatten uses
    *  so we can look up snapshot values for the Δ badge. */
   path: string;
 };
 
-function collectWorldBuckets(root: CorganNode): WorldBucket[] {
+function collectWorldBuckets(root: ArkhNode): WorldBucket[] {
   const out: WorldBucket[] = [];
   // The categorize-pass emits bucket nodes as direct children of these
   // two parents. Anything else (LUK Scaling, Total Sum, Chip Cap-Break,
@@ -1059,7 +1059,7 @@ function PerWorldView({
   hideZero,
   baseline,
 }: {
-  tree: CorganNode;
+  tree: ArkhNode;
   searchTerm: string;
   hideZero: boolean;
   baseline: FlatTree | null;
@@ -1246,7 +1246,7 @@ function WorldBucketChildren({
   parentPathStr,
   baseline,
 }: {
-  nodes: CorganNode[];
+  nodes: ArkhNode[];
   depth: number;
   parentPathStr: string;
   baseline: FlatTree | null;
@@ -1276,9 +1276,9 @@ function WorldBucketChildRow({
   parentPathStr,
   baseline,
 }: {
-  node: CorganNode;
+  node: ArkhNode;
   depth: number;
-  siblings: CorganNode[];
+  siblings: ArkhNode[];
   siblingIndex: number;
   parentPathStr: string;
   baseline: FlatTree | null;

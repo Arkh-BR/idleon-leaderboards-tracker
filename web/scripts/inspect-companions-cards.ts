@@ -3,14 +3,14 @@
 // spot leaves still showing as "Companion 22" instead of a real name.
 
 import { readFileSync } from "node:fs";
-import { computeCorganDropRate } from "../lib/corgan/computeDR";
-import type { CorganNode } from "../lib/corgan/node";
+import { computeArkhDropRate } from "../lib/arkh/computeDR";
+import type { ArkhNode } from "../lib/arkh/node";
 
 const SAVE_PATH =
   "C:\\Users\\Vinicius\\ClaudeCowork\\Leaderboard Ranking Sheet - Idleon\\save 25-21-16.json";
 
 const save = JSON.parse(readFileSync(SAVE_PATH, "utf8"));
-const result = computeCorganDropRate(save, 2, 0);
+const result = computeArkhDropRate(save, 2, 0);
 
 const POOL_NAMES = new Set([
   "Main Additive Pool",
@@ -24,7 +24,7 @@ type Leaf = { name: string; pool: string; val: number; note?: string };
 const companions: Leaf[] = [];
 const cards: Leaf[] = [];
 
-function walk(n: CorganNode, path: string[]) {
+function walk(n: ArkhNode, path: string[]) {
   const parentName = path.length > 0 ? path[path.length - 1] : "";
   if (POOL_NAMES.has(parentName)) {
     const entry: Leaf = { name: n.name, pool: parentName, val: Number(n.val) || 0, note: n.note };

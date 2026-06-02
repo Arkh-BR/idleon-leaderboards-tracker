@@ -1,14 +1,14 @@
 // Smoke test: zArkhe (char 2) on Froggy Fields (map 2) — user reports
-// in-game DR = 62399.97. Compare IT-port + Corgan-port outputs.
+// in-game DR = 62399.97. Compare IT-port + Arkh-port outputs.
 
 import { readFileSync } from "node:fs";
-import { computeCorganDropRate } from "../lib/corgan/computeDR";
-import { loadSaveData as itLoadStub } from "../lib/corgan/save/loader";
-import { saveData as corganSave } from "../lib/corgan/state";
+import { computeArkhDropRate } from "../lib/arkh/computeDR";
+import { loadSaveData as itLoadStub } from "../lib/arkh/save/loader";
+import { saveData as arkhSave } from "../lib/arkh/state";
 import { arcaneFactor, buildMapOptions } from "../lib/dropRate/arcaneBonus";
-import { ETC_STAT_NAMES, ITEMS_BY_UQ, itemUqMatch } from "../lib/corgan/stats/data/common/equipment";
-import { obolNamesData } from "../lib/corgan/save/data";
-import { obol } from "../lib/corgan/stats/systems/w2/obols";
+import { ETC_STAT_NAMES, ITEMS_BY_UQ, itemUqMatch } from "../lib/arkh/stats/data/common/equipment";
+import { obolNamesData } from "../lib/arkh/save/data";
+import { obol } from "../lib/arkh/stats/systems/w2/obols";
 
 // Polyfill window for IT's getDropRate (uses window.gtag in error catch)
 const g = globalThis as any;
@@ -30,7 +30,7 @@ const fkills = mb[mapIdx]?.[0] || 0;
 console.log(`mapBon[${mapIdx}] (Froggy Fields) kills = ${fkills}`);
 console.log(`arcaneFactor (IT impl) = ${arcaneFactor(fkills).toFixed(4)}x\n`);
 
-// === Corgan tree ===
+// === Arkh tree ===
 itLoadStub(raw);
 console.log(`[debug] ETC_STAT_NAMES['2'] = ${JSON.stringify(ETC_STAT_NAMES["2"])}`);
 console.log(`[debug] ITEMS_BY_UQ keys with DROP: ${Object.keys(ITEMS_BY_UQ).filter((k) => k.includes("DROP")).join(", ")}`);
@@ -42,13 +42,13 @@ if (sample) {
   const m = itemUqMatch(sample, ETC_STAT_NAMES["2"] || []);
   console.log(`[debug] itemUqMatch('${sample}', ETC2) = ${JSON.stringify(m)}`);
 }
-const obolNode = obol.resolve(2, { saveData: corganSave, charIdx });
+const obolNode = obol.resolve(2, { saveData: arkhSave, charIdx });
 console.log(`[debug] obol.resolve(2, zArkhe).val = ${obolNode.val}`);
-const { tree: corganTree, total: corganTotal } = computeCorganDropRate(raw, charIdx, mapIdx);
+const { tree: arkhTree, total: arkhTotal } = computeArkhDropRate(raw, charIdx, mapIdx);
 
-console.log(`[corgan] zArkhe DR on map ${mapIdx} = ${corganTotal.toFixed(2)}x`);
+console.log(`[arkh] zArkhe DR on map ${mapIdx} = ${arkhTotal.toFixed(2)}x`);
 console.log(`[user expected]                       = 62399.97x`);
-console.log(`[delta]                               = ${(corganTotal - 62399.97).toFixed(2)} (${((corganTotal / 62399.97 - 1) * 100).toFixed(1)}%)\n`);
+console.log(`[delta]                               = ${(arkhTotal - 62399.97).toFixed(2)} (${((arkhTotal / 62399.97 - 1) * 100).toFixed(1)}%)\n`);
 
 // Print top-level pool values to compare
 function printNode(n: any, depth = 0, max = 1) {
@@ -68,7 +68,7 @@ function printNode(n: any, depth = 0, max = 1) {
   }
 }
 
-printNode(corganTree, 0, 1);
+printNode(arkhTree, 0, 1);
 
 // Find arcaneMap node
 function findNode(n: any, name: string): any {
@@ -80,7 +80,7 @@ function findNode(n: any, name: string): any {
   }
   return null;
 }
-const arc = findNode(corganTree, "Arcane Map Bonus");
+const arc = findNode(arkhTree, "Arcane Map Bonus");
 console.log(`\n[arcaneMap node]`);
 if (arc) {
   console.log(`  val = ${arc.val.toFixed(3)} (fmt=${arc.fmt})`);

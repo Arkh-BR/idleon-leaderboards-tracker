@@ -3,10 +3,10 @@
 // a "Reference Character" node inside Base Level.
 
 import { readFileSync } from "node:fs";
-import { loadSaveData } from "../lib/corgan/save/loader";
-import { saveData } from "../lib/corgan/state";
-import { talent } from "../lib/corgan/stats/systems/common/talent";
-import type { CorganNode } from "../lib/corgan/node";
+import { loadSaveData } from "../lib/arkh/save/loader";
+import { saveData } from "../lib/arkh/state";
+import { talent } from "../lib/arkh/stats/systems/common/talent";
+import type { ArkhNode } from "../lib/arkh/node";
 
 const g = globalThis as any;
 if (!g.window) g.window = g;
@@ -23,7 +23,7 @@ loadSaveData(raw);
 const NEW_IDS = [51, 52, 53, 54, 57, 178, 204, 205, 327, 370, 373, 430, 505, 535, 585, 595, 597];
 const CONTROL_IDS = [10, 12, 328];
 
-function findRefChar(n: CorganNode): CorganNode | null {
+function findRefChar(n: ArkhNode): ArkhNode | null {
   if (n.name.startsWith("Reference Character:")) return n;
   if (!n.children) return null;
   for (const c of n.children) {

@@ -1,9 +1,9 @@
-import { ChipDesc } from "../lib/corgan/stats/data/game/customlists.js";
+import { ChipDesc } from "../lib/arkh/stats/data/game/customlists.js";
 import { readFileSync } from "node:fs";
-import { loadSaveData } from "../lib/corgan/save/loader";
-import { saveData } from "../lib/corgan/state";
-import { detectChip16 } from "../lib/corgan/stats/systems/w7/gallery";
-import * as data from "../lib/corgan/save/data";
+import { loadSaveData } from "../lib/arkh/save/loader";
+import { saveData } from "../lib/arkh/state";
+import { detectChip16 } from "../lib/arkh/stats/systems/w7/gallery";
+import * as data from "../lib/arkh/save/data";
 
 const g = globalThis as any;
 if (!g.window) g.window = g;

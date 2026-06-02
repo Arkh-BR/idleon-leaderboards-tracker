@@ -6,24 +6,24 @@
 // rawVal × Well Dressed multiplier on slot 15.
 
 import { readFileSync } from "node:fs";
-import { computeCorganDropRate } from "../lib/corgan/computeDR";
-import { gridBonusValue } from "../lib/corgan/stats/systems/w4/lab";
+import { computeArkhDropRate } from "../lib/arkh/computeDR";
+import { gridBonusValue } from "../lib/arkh/stats/systems/w4/lab";
 import {
   RES_GRID_RAW,
   SHAPE_BONUS_PCT,
   SHAPE_NAMES,
   gridBonusPerLv,
-} from "../lib/corgan/stats/data/w7/research";
-import { saveData } from "../lib/corgan/state";
+} from "../lib/arkh/stats/data/w7/research";
+import { saveData } from "../lib/arkh/state";
 
 const SAVE_PATH =
   "C:\\Users\\Vinicius\\ClaudeCowork\\Leaderboard Ranking Sheet - Idleon\\save 25-21-16.json";
 
 const raw = JSON.parse(readFileSync(SAVE_PATH, "utf8"));
-// computeCorganDropRate runs the loader internally as a side-effect,
+// computeArkhDropRate runs the loader internally as a side-effect,
 // populating saveData. Run it first so the registry queries below have
 // real data to read.
-const r = computeCorganDropRate(raw, 2, 0);
+const r = computeArkhDropRate(raw, 2, 0);
 
 // =========== Grid catalog ===========
 console.log("=== Research grid registry (all DR-relevant grids) ===");

@@ -13,7 +13,7 @@
 //      that trips any sentinel is discarded WHOLE, since a cheater rarely
 //      inflates just one value.
 
-import { parseSaveKey } from "../../lib/corgan/save/helpers";
+import { parseSaveKey } from "../../lib/arkh/save/helpers";
 
 /** Known hacked/cheated profiles (compared lowercased). */
 const HACKER_DENYLIST = new Set<string>([

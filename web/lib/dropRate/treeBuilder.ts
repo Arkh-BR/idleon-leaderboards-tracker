@@ -1,5 +1,5 @@
 // Converts the breakdown object returned by IT's getDropRate() into a
-// tree node structure compatible with the Corgan-style renderer.
+// tree node structure compatible with the Arkh-style renderer.
 //
 // Node shape (rendering-agnostic, JSON-safe):
 //   { name, val, fmt?, note?, children?: TreeNode[] }
@@ -130,7 +130,7 @@ export function buildDropRateTree(
       name: `Arcane Map Bonus (${mapLabel})`,
       val: arcaneFactorValue,
       fmt: "x",
-      note: "AFK kill count → arcane multiplier (Corgan formula)",
+      note: "AFK kill count → arcane multiplier (Arkh formula)",
     });
   }
 

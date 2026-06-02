@@ -1,10 +1,10 @@
 import { readFileSync } from "node:fs";
-import { loadSaveData } from "../lib/corgan/save/loader";
-import { saveData } from "../lib/corgan/state";
-import { skillLvMaxData, numCharacters } from "../lib/corgan/save/data";
-import { talent } from "../lib/corgan/stats/systems/common/talent";
-import { TALENT_CAP_BOOSTERS } from "../lib/corgan/stats/data/common/talent-cap-boosters";
-import type { CorganNode } from "../lib/corgan/node";
+import { loadSaveData } from "../lib/arkh/save/loader";
+import { saveData } from "../lib/arkh/state";
+import { skillLvMaxData, numCharacters } from "../lib/arkh/save/data";
+import { talent } from "../lib/arkh/stats/systems/common/talent";
+import { TALENT_CAP_BOOSTERS } from "../lib/arkh/stats/data/common/talent-cap-boosters";
+import type { ArkhNode } from "../lib/arkh/node";
 
 const g = globalThis as any;
 if (!g.window) g.window = g;
@@ -18,7 +18,7 @@ const raw = JSON.parse(
 loadSaveData(raw);
 
 // Walk the tree for a node with the given name.
-function findNode(root: CorganNode, name: string): CorganNode | null {
+function findNode(root: ArkhNode, name: string): ArkhNode | null {
   if (root.name === name) return root;
   for (const k of root.children || []) {
     const f = findNode(k, name);

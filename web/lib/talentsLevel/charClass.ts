@@ -8,7 +8,7 @@
 // from a naive title-case (e.g. "BLOOD_BERSERKER" → "Blood_Berserker",
 // not "Blood_berserker").
 
-import { ClassNames } from "../corgan/stats/data/game/customlists.js";
+import { ClassNames } from "../arkh/stats/data/game/customlists.js";
 
 // Map of numeric class index → PascalCase key in TALENT_TABS_BY_CLASS.
 // Built by lowercasing the CONSTANT_CASE name and capitalizing each

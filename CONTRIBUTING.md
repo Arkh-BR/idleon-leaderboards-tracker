@@ -45,7 +45,7 @@ web/
     talentsLevel/       # Talents Level specific components
     tome/               # Tome Score specific components
   lib/                  # Utilities, parsers, game logic
-    corgan/             # Corgan engine (save parser + DR calculator)
+    arkh/             # Arkh engine (save parser + DR calculator)
     dropRate/           # Drop Rate breakdown helpers
     it/                 # IdleonToolbox save parsers
   __tests__/            # Test suite (Vitest + Testing Library)

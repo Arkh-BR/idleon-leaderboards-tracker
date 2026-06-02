@@ -1,0 +1,80 @@
+// ===== GRIMOIRE SYSTEM (MC) =====
+// Real port replacing Stage 2 stub.
+import { node, type ArkhNode } from "../../../node";
+import { label } from "../../entity-names";
+import { grimoireUpgPerLevel } from "../../data/mc/grimoire";
+import { GRIMOIRE_NO_MULTI } from "../../data/game-constants";
+import type { SaveData } from "../../../state";
+
+type Ctx = { saveData: SaveData };
+
+export function grimoireUpgBonus(
+  idx: number,
+  grimoireGameData: any,
+  saveData: SaveData
+): number {
+  const level = Number((saveData.grimoireData as any)?.[idx]) || 0;
+  if (level <= 0) return 0;
+  const perLv =
+    (grimoireGameData && grimoireGameData[idx] && grimoireGameData[idx][5]) || 0;
+  if (GRIMOIRE_NO_MULTI.has(idx)) return level * perLv;
+  const multi36 = grimoireUpgBonus(36, grimoireGameData, saveData);
+  return level * perLv * (1 + multi36 / 100);
+}
+
+export function grimoireUpgBonus22(saveData: SaveData): number {
+  const g22 = Number((saveData.grimoireData as any)?.[22]) || 0;
+  const g36 = Number((saveData.grimoireData as any)?.[36]) || 0;
+  return g22 * (1 + g36 / 100);
+}
+
+// Friendly names sourced from grimoire[i].name in IT website-data.
+const GRIMOIRE_NAMES: Record<number, string> = {
+  17: "Grey Tome Book",
+  22: "Superior Crop Research",
+  36: "Writhing Grimoire",
+  39: "Skull of Major Talent",
+  44: "Skull of Major Droprate",
+};
+function grimoireLabel(id: number): string {
+  const n = GRIMOIRE_NAMES[id];
+  return n ? `${n} (Grimoire ${id})` : label("Grimoire", id);
+}
+
+const GRIMOIRE_DATA: Record<number, { perLevel: number; name: string }> = {
+  44: {
+    perLevel: grimoireUpgPerLevel(44),
+    name: grimoireLabel(44),
+  },
+};
+
+export const grimoire = {
+  resolve(id: number, ctx: Ctx): ArkhNode {
+    const data = GRIMOIRE_DATA[id];
+    if (!data)
+      return node(grimoireLabel(id), 0, null, { note: "grimoire " + id });
+    const saveData = ctx.saveData;
+    const lv = Number((saveData.grimoireData as any)?.[id]) || 0;
+    if (lv <= 0) return node(data.name, 0, null, { note: "grimoire " + id });
+
+    const lv36 = Number((saveData.grimoireData as any)?.[36]) || 0;
+    const multi36 = lv36 > 0 ? lv36 * 1 : 0;
+    const val = lv * data.perLevel * (1 + multi36 / 100);
+
+    return node(
+      data.name,
+      val,
+      [
+        node("Level", lv, null, { fmt: "raw" }),
+        node("Per Level", data.perLevel, null, { fmt: "raw" }),
+        node(grimoireLabel(36), 1 + multi36 / 100, null, {
+          fmt: "x",
+          note: "Level " + lv36,
+        }),
+      ],
+      { fmt: "+", note: "grimoire " + id }
+    );
+  },
+};
+// Expose so other resolvers (talent / farming / tome) can use the same names.
+export { grimoireLabel };

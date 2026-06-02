@@ -3,11 +3,11 @@
 // renders so we catch findDescendant-style bugs before they hit the UI.
 
 import { readFileSync } from "node:fs";
-import { loadSaveData } from "../lib/corgan/save/loader";
-import { saveData } from "../lib/corgan/state";
-import { numCharacters } from "../lib/corgan/save/data";
-import { talent } from "../lib/corgan/stats/systems/common/talent";
-import type { CorganNode } from "../lib/corgan/node";
+import { loadSaveData } from "../lib/arkh/save/loader";
+import { saveData } from "../lib/arkh/state";
+import { numCharacters } from "../lib/arkh/save/data";
+import { talent } from "../lib/arkh/stats/systems/common/talent";
+import type { ArkhNode } from "../lib/arkh/node";
 
 const g = globalThis as any;
 if (!g.window) g.window = g;
@@ -20,13 +20,13 @@ const raw = JSON.parse(
 );
 loadSaveData(raw);
 
-function getChildByName(n: CorganNode, name: string): CorganNode | null {
+function getChildByName(n: ArkhNode, name: string): ArkhNode | null {
   if (!n.children) return null;
   for (const c of n.children) if (c.name === name) return c;
   return null;
 }
 
-function findTargetEffectiveLevel(n: CorganNode): CorganNode | null {
+function findTargetEffectiveLevel(n: ArkhNode): ArkhNode | null {
   if (n.name === "Effective Level") return n;
   if (!n.children) return null;
   for (const c of n.children) {

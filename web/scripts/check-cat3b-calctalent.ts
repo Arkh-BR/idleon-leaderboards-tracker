@@ -1,8 +1,8 @@
 import { readFileSync } from "node:fs";
-import { loadSaveData } from "../lib/corgan/save/loader";
-import { saveData } from "../lib/corgan/state";
-import { talent } from "../lib/corgan/stats/systems/common/talent";
-import { computeCalcTalent } from "../lib/corgan/stats/systems/common/calcTalent";
+import { loadSaveData } from "../lib/arkh/save/loader";
+import { saveData } from "../lib/arkh/state";
+import { talent } from "../lib/arkh/stats/systems/common/talent";
+import { computeCalcTalent } from "../lib/arkh/stats/systems/common/calcTalent";
 
 const g = globalThis as any;
 if (!g.window) g.window = g;

@@ -1,10 +1,10 @@
 // Diagnóstico: Glimbo + EtcBonuses(91) + outros multipliers questionáveis
 import { readFileSync } from "node:fs";
-import { loadSaveData } from "../lib/corgan/save/loader";
-import { saveData } from "../lib/corgan/state";
-import { grid, chip } from "../lib/corgan/stats/systems/w4/lab";
-import { etcBonus } from "../lib/corgan/stats/systems/common/etcBonus";
-import * as data from "../lib/corgan/save/data";
+import { loadSaveData } from "../lib/arkh/save/loader";
+import { saveData } from "../lib/arkh/state";
+import { grid, chip } from "../lib/arkh/stats/systems/w4/lab";
+import { etcBonus } from "../lib/arkh/stats/systems/common/etcBonus";
+import * as data from "../lib/arkh/save/data";
 
 const g = globalThis as any;
 if (!g.window) g.window = g;
@@ -15,24 +15,24 @@ const SAVE_PATH =
 const raw = JSON.parse(readFileSync(SAVE_PATH, "utf8"));
 loadSaveData(raw);
 
-import { gfoodBonusMULTI, goldFoodBonuses } from "../lib/corgan/stats/systems/common/goldenFood";
-import { equipOrderData, equipQtyData } from "../lib/corgan/save/data";
+import { gfoodBonusMULTI, goldFoodBonuses } from "../lib/arkh/stats/systems/common/goldenFood";
+import { equipOrderData, equipQtyData } from "../lib/arkh/save/data";
 console.log("=== GFOOD MULTI ===");
 const gfm = gfoodBonusMULTI(2, null, saveData);
 console.log("gfoodBonusMULTI(zArkhe) =", gfm);
 // Detailed breakdown - call internal helpers directly
-import { sigilBonus } from "../lib/corgan/stats/systems/w2/alchemy";
-import { legendPTSbonus } from "../lib/corgan/stats/systems/w7/spelunking";
-import { computeSeraphMulti } from "../lib/corgan/stats/systems/common/starSign";
-import { vaultUpgBonus } from "../lib/corgan/stats/systems/common/vault";
-import { votingBonusz } from "../lib/corgan/stats/systems/w2/voting";
-import { pristineBon } from "../lib/corgan/stats/systems/w5/pristine";
-import { getBribeBonus } from "../lib/corgan/stats/systems/w3/bribe";
-import { getSetBonus } from "../lib/corgan/stats/systems/w3/setBonus";
-import { computeCardLv } from "../lib/corgan/stats/systems/common/cards";
-import { companions } from "../lib/corgan/stats/systems/common/companions";
-import { etcBonus as etcBon } from "../lib/corgan/stats/systems/common/etcBonus";
-import { starSignDropVal } from "../lib/corgan/stats/data/common/starSign";
+import { sigilBonus } from "../lib/arkh/stats/systems/w2/alchemy";
+import { legendPTSbonus } from "../lib/arkh/stats/systems/w7/spelunking";
+import { computeSeraphMulti } from "../lib/arkh/stats/systems/common/starSign";
+import { vaultUpgBonus } from "../lib/arkh/stats/systems/common/vault";
+import { votingBonusz } from "../lib/arkh/stats/systems/w2/voting";
+import { pristineBon } from "../lib/arkh/stats/systems/w5/pristine";
+import { getBribeBonus } from "../lib/arkh/stats/systems/w3/bribe";
+import { getSetBonus } from "../lib/arkh/stats/systems/w3/setBonus";
+import { computeCardLv } from "../lib/arkh/stats/systems/common/cards";
+import { companions } from "../lib/arkh/stats/systems/common/companions";
+import { etcBonus as etcBon } from "../lib/arkh/stats/systems/common/etcBonus";
+import { starSignDropVal } from "../lib/arkh/stats/data/common/starSign";
 
 const c8 = etcBon.resolve(8, { saveData, charIdx: 2 } as any);
 console.log("\n--- GFOOD MULTI COMPONENT BREAKDOWN ---");
@@ -51,14 +51,14 @@ console.log("cropfall card lv:", computeCardLv("cropfallEvent1", saveData));
 console.log("anni5 card lv:", computeCardLv("anni5Event1", saveData));
 
 // Inspect individual components by computing them with the same helpers
-import { computeAllTalentLVz } from "../lib/corgan/stats/systems/common/talent";
-import { talentParams, FAMILY_BONUS_33, CLASS_TREES, TALENT_144 } from "../lib/corgan/stats/data/common/talent";
-import { formulaEval } from "../lib/corgan/formulas";
-import { skillLvData, charClassData, numCharacters, cauldronInfoData, stampLvData, klaData } from "../lib/corgan/save/data";
-import { bubbleParams } from "../lib/corgan/stats/data/w2/alchemy";
-import { isBubblePrismad, getPrismaBonusMult } from "../lib/corgan/stats/systems/w2/alchemy";
-import { isFightingMap, mapKillReq } from "../lib/corgan/stats/data/common/maps";
-import { cookingMealMulti } from "../lib/corgan/stats/systems/common/cooking";
+import { computeAllTalentLVz } from "../lib/arkh/stats/systems/common/talent";
+import { talentParams, FAMILY_BONUS_33, CLASS_TREES, TALENT_144 } from "../lib/arkh/stats/data/common/talent";
+import { formulaEval } from "../lib/arkh/formulas";
+import { skillLvData, charClassData, numCharacters, cauldronInfoData, stampLvData, klaData } from "../lib/arkh/save/data";
+import { bubbleParams } from "../lib/arkh/stats/data/w2/alchemy";
+import { isBubblePrismad, getPrismaBonusMult } from "../lib/arkh/stats/systems/w2/alchemy";
+import { isFightingMap, mapKillReq } from "../lib/arkh/stats/data/common/maps";
+import { cookingMealMulti } from "../lib/arkh/stats/systems/common/cooking";
 
 // talent99
 const sl99 = (skillLvData as any)[2] || {};
@@ -171,7 +171,7 @@ if (etc91.children) {
   }
 }
 
-import { GALLERY_STAT_FOR_ID, NAMETAG_DR } from "../lib/corgan/stats/data/w7/gallery";
+import { GALLERY_STAT_FOR_ID, NAMETAG_DR } from "../lib/arkh/stats/data/w7/gallery";
 console.log("\n[debug] GALLERY_STAT_FOR_ID[91] =", GALLERY_STAT_FOR_ID["91"]);
 console.log("[debug] GALLERY_STAT_FOR_ID[2] =", GALLERY_STAT_FOR_ID["2"]);
 console.log("[debug] spelunkData[17] length:", (saveData.spelunkData[17] || []).length);
@@ -189,8 +189,8 @@ for (const k in NAMETAG_DR) {
   }
 }
 
-import { nametag as ng, galleryBonusMulti } from "../lib/corgan/stats/systems/w7/gallery";
-import { NAMETAG_NAMES } from "../lib/corgan/stats/data/w7/gallery";
+import { nametag as ng, galleryBonusMulti } from "../lib/arkh/stats/systems/w7/gallery";
+import { NAMETAG_NAMES } from "../lib/arkh/stats/data/w7/gallery";
 const nt91 = ng.resolve(91, ctx);
 console.log("\n[debug] nametag.resolve(91) children:");
 for (const c of nt91.children || []) {

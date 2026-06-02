@@ -3,26 +3,26 @@
 // (DROP_RATE / DROP_CHANCE / BONUS_DROP_RATE / DROP_RATE_MULTI).
 
 import { readFileSync } from "node:fs";
-import { computeCorganDropRate } from "../lib/corgan/computeDR";
-import type { CorganNode } from "../lib/corgan/node";
+import { computeArkhDropRate } from "../lib/arkh/computeDR";
+import type { ArkhNode } from "../lib/arkh/node";
 
 const SAVE_PATH =
   "C:\\Users\\Vinicius\\ClaudeCowork\\Leaderboard Ranking Sheet - Idleon\\save 25-21-16.json";
 
 const save = JSON.parse(readFileSync(SAVE_PATH, "utf8"));
-const result = computeCorganDropRate(save, 2, 0);
+const result = computeArkhDropRate(save, 2, 0);
 
-function find(n: CorganNode, predicate: (x: CorganNode) => boolean, out: CorganNode[]) {
+function find(n: ArkhNode, predicate: (x: ArkhNode) => boolean, out: ArkhNode[]) {
   if (predicate(n)) out.push(n);
   for (const c of n.children || []) find(c, predicate, out);
 }
 
-const etcNodes: CorganNode[] = [];
+const etcNodes: ArkhNode[] = [];
 find(result.tree, (n) => /etcBonus \d+\)/.test(n.name), etcNodes);
 
 for (const e of etcNodes) {
   console.log(`\n=== ${e.name} (val=${e.val.toFixed(2)}) ===`);
-  function dump(n: CorganNode, depth: number, maxDepth: number) {
+  function dump(n: ArkhNode, depth: number, maxDepth: number) {
     if (depth > maxDepth) return;
     const prefix = "  ".repeat(depth);
     const val = Number(n.val) || 0;

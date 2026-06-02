@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
-import { loadSaveData } from "../lib/corgan/save/loader";
-import { saveData } from "../lib/corgan/state";
-import { ROG_BONUS_QTY, ROG_DESC } from "../lib/corgan/stats/data/w7/sushi";
+import { loadSaveData } from "../lib/arkh/save/loader";
+import { saveData } from "../lib/arkh/state";
+import { ROG_BONUS_QTY, ROG_DESC } from "../lib/arkh/stats/data/w7/sushi";
 
 const g = globalThis as any;
 if (!g.window) g.window = g;

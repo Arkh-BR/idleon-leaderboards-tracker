@@ -1,6 +1,6 @@
 // esbuild-based bundler that ships the DR compute pipeline as a single
 // IIFE the standalone HTML can <script>-include. The bundle attaches
-// parseSave / listCharacters / computeCorganDropRate / flattenTree /
+// parseSave / listCharacters / computeArkhDropRate / flattenTree /
 // buildMapOptions onto globalThis.DRMax.
 
 import { build } from "esbuild";

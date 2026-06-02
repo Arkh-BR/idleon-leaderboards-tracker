@@ -4,14 +4,14 @@
 // IIFE that attaches to globalThis.DRMax.
 
 import { parseSave, listCharacters } from "./extract";
-import { computeCorganDropRate } from "@/lib/corgan/computeDR";
+import { computeArkhDropRate } from "@/lib/arkh/computeDR";
 import { flattenTree, type FlatTree } from "./treeFlatten";
 import { buildMapOptions } from "./arcaneBonus";
 
 (globalThis as unknown as { DRMax: unknown }).DRMax = {
   parseSave,
   listCharacters,
-  computeCorganDropRate,
+  computeArkhDropRate,
   flattenTree,
   buildMapOptions,
 };

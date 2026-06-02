@@ -18,12 +18,12 @@
 // Lightweight: pure SM lookups + one maxBookLv computation. No presets —
 // there's a single SkillLevelsMAX per char (no SMpre).
 
-import { loadSaveData } from "../corgan/save/loader";
-import { saveData } from "../corgan/state";
-import { skillLvMaxData } from "../corgan/save/data";
-import { computeMaxBookLv } from "../corgan/stats/systems/common/talent";
-import { hasTalentCapBoosters } from "../corgan/stats/data/common/talent-cap-boosters";
-import { entityName } from "../corgan/stats/entity-names";
+import { loadSaveData } from "../arkh/save/loader";
+import { saveData } from "../arkh/state";
+import { skillLvMaxData } from "../arkh/save/data";
+import { computeMaxBookLv } from "../arkh/stats/systems/common/talent";
+import { hasTalentCapBoosters } from "../arkh/stats/data/common/talent-cap-boosters";
+import { entityName } from "../arkh/stats/entity-names";
 import { TALENT_TABS_BY_CLASS } from "./talentTabs.gen";
 import { getCharClassKey, getCharClassLabel } from "./charClass";
 import { listCharacters } from "../dropRate/extract";

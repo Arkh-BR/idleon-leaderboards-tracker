@@ -3,9 +3,9 @@
 // `flattenTree` walks the detailed DR tree and produces a Record<path, value>
 // keyed by a stable path (slash-joined node names with an index suffix to
 // disambiguate same-named siblings). The same path scheme is used by
-// CorganTree at render time to look up baseline values for the delta column.
+// ArkhTree at render time to look up baseline values for the delta column.
 
-import type { CorganNode } from "@/lib/corgan/node";
+import type { ArkhNode } from "@/lib/arkh/node";
 
 export type FlatTree = Record<string, number>;
 
@@ -13,8 +13,8 @@ export type FlatTree = Record<string, number>;
  *  position among same-named siblings. Returns the full path string. */
 export function nodePath(
   parentPath: string,
-  node: CorganNode,
-  siblings: CorganNode[],
+  node: ArkhNode,
+  siblings: ArkhNode[],
   index: number
 ): string {
   // Count how many earlier siblings share this name → if >0, suffix with #i
@@ -27,11 +27,11 @@ export function nodePath(
 }
 
 /** Walks the tree and returns Record<path, val> for every node. */
-export function flattenTree(root: CorganNode | null): FlatTree {
+export function flattenTree(root: ArkhNode | null): FlatTree {
   const out: FlatTree = {};
   if (!root) return out;
 
-  function walk(node: CorganNode, parentPath: string, siblings: CorganNode[], idx: number) {
+  function walk(node: ArkhNode, parentPath: string, siblings: ArkhNode[], idx: number) {
     const path = nodePath(parentPath, node, siblings, idx);
     out[path] = Number(node.val) || 0;
     const kids = node.children || [];

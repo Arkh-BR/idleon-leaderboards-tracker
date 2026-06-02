@@ -16,12 +16,12 @@
 // Snapshot generated: 2026-06-01T05:41:02.604Z
 // Players scanned: 72
 
-import type { CorganNode } from "../corgan/node";
+import type { ArkhNode } from "../arkh/node";
 
 export const HYPO_TALENTS_GENERATED_AT = "2026-06-01T05:41:02.604Z";
 export const HYPO_TALENTS_PLAYERS_SCANNED = 72;
 
-export const HYPO_DEFAULT_TREE: CorganNode = {
+export const HYPO_DEFAULT_TREE: ArkhNode = {
   "name": "Effective Level",
   "val": 773,
   "children": [
@@ -967,7 +967,7 @@ export const HYPO_DEFAULT_TREE: CorganNode = {
   "note": "Base + Bonus + Super"
 };
 
-export const HYPO_TREE_OVERRIDES: Record<string, CorganNode> = {
+export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
   "Elemental_Sorcerer": {
     "name": "Effective Level",
     "val": 779,
@@ -1917,7 +1917,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, CorganNode> = {
 
 /** Pick the hypothetical-max Effective Level tree for a class key —
  *  the per-class override when one exists, else the non-ES default. */
-export function hypoTreeForClass(classKey: string | null): CorganNode {
+export function hypoTreeForClass(classKey: string | null): ArkhNode {
   return (classKey && HYPO_TREE_OVERRIDES[classKey]) || HYPO_DEFAULT_TREE;
 }
 

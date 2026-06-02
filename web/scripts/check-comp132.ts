@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
-import { loadSaveData } from "../lib/corgan/save/loader";
-import { saveData } from "../lib/corgan/state";
-import { companionBonus } from "../lib/corgan/stats/data/common/companions";
+import { loadSaveData } from "../lib/arkh/save/loader";
+import { saveData } from "../lib/arkh/state";
+import { companionBonus } from "../lib/arkh/stats/data/common/companions";
 
 const g = globalThis as any;
 if (!g.window) g.window = g;

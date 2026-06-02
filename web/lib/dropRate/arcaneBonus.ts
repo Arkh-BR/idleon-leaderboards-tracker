@@ -1,6 +1,6 @@
 // Arcane Map Bonus — Drop Rate multiplier earned per W7 map based on
 // AFK kill count tracked in save.data.MapBon[i][0]. 1:1 port of
-// Corgan's _arcaneMulti() in drop-rate-calc.html.
+// Arkh's _arcaneMulti() in drop-rate-calc.html.
 
 import { MAP_NAMES } from "./mapNames";
 

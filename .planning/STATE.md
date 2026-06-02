@@ -23,14 +23,14 @@
 - **Test suite:** 122 automated tests (116 Vitest + 6 Playwright E2E) — all passing ✅
   - *Unit/Component:* 116 tests across 10 files (`lib/`, `components/`, `app/api/`)
   - *E2E:* 6 tests across 2 files (`homepage`, `leaderboards`) with Chromium
-  - *Coverage:* `lib/rank.ts` 100%, `lib/lbSnapshot.ts` 100%, `lib/format.ts` ~95%, `lib/corgan/formulas.ts` ~95%, `components/Dashboard.tsx` ~92%, `components/TopNav.tsx` ~99%
+  - *Coverage:* `lib/rank.ts` 100%, `lib/lbSnapshot.ts` 100%, `lib/format.ts` ~95%, `lib/arkh/formulas.ts` ~95%, `components/Dashboard.tsx` ~92%, `components/TopNav.tsx` ~99%
   - *Infra:* Vitest v2 + happy-dom + Testing Library + Playwright v1.60
   - *CI/CD:* `.github/workflows/ci.yml` runs lint + unit tests + coverage + build + E2E on push/PR
   - *Docs:* `CONTRIBUTING.md` added with setup, testing, and contribution guidelines
 
 ### What's In Progress / Next
 
-1. Expandir cobertura para `lib/corgan/` (game-helpers, computeDR), `lib/it/parsers/`, páginas de utilitários
+1. Expandir cobertura para `lib/arkh/` (game-helpers, computeDR), `lib/it/parsers/`, páginas de utilitários
 2. Expandir E2E tests com mock da API de leaderboards
 3. Adicionar testes visuais (Playwright screenshots) para regressão de UI
 
@@ -79,13 +79,13 @@
 ## Next Actions (Priority Order)
 
 1. [x] Install Vitest + coverage + happy-dom
-2. [x] Escrever 10 arquivos de teste (116 tests) — `lib/`, `components/`, `app/api/`, `corgan/formulas.ts`
+2. [x] Escrever 10 arquivos de teste (116 tests) — `lib/`, `components/`, `app/api/`, `arkh/formulas.ts`
 3. [x] Adicionar scripts `test`, `test:watch`, `test:coverage`, `e2e`
 4. [x] Criar workflow CI (lint + test + coverage + build + E2E)
 5. [x] Configurar Playwright + escrever 6 E2E tests
 6. [x] Integrar E2E no CI workflow
 7. [x] Escrever `CONTRIBUTING.md`
-8. [ ] Expandir cobertura para `lib/corgan/game-helpers.ts`, `lib/corgan/computeDR.ts`
+8. [ ] Expandir cobertura para `lib/arkh/game-helpers.ts`, `lib/arkh/computeDR.ts`
 9. [ ] Expandir cobertura para `lib/it/parsers/`
 10. [ ] Adicionar testes visuais com Playwright screenshots
 11. [ ] Explorar: export snapshot data como CSV/JSON

@@ -9,9 +9,9 @@
 // every char and universal star talents (655) are on every class, so neither
 // is gated.
 
-import dropRateDesc from "../../lib/corgan/stats/defs/drop-rate";
+import dropRateDesc from "../../lib/arkh/stats/defs/drop-rate";
 import { TALENT_TABS_BY_CLASS } from "../../lib/talentsLevel/talentTabs.gen";
-import { isAccountWideTalent } from "../../lib/corgan/stats/data/common/account-wide-talents";
+import { isAccountWideTalent } from "../../lib/arkh/stats/data/common/account-wide-talents";
 
 export const SEP = " / ";
 

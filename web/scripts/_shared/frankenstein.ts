@@ -18,16 +18,16 @@
 // already IS its frankenstein max). No formula is ever guessed.
 
 import { nodePath, type FlatTree } from "../../lib/dropRate/treeFlatten";
-import type { CorganNode } from "../../lib/corgan/node";
+import type { ArkhNode } from "../../lib/arkh/node";
 
 const approx = (a: number, b: number) =>
   Math.abs(a - b) <= Math.abs(b) * 5e-4 + 1e-6;
 
-const isMult = (c: CorganNode) => c.fmt === "x";
+const isMult = (c: ArkhNode) => c.fmt === "x";
 
 // Each op predicts the parent value from its children's values (aligned to
 // `kids`). Additive children = everything that isn't a multiplier (fmt "x").
-type OpFn = (kids: CorganNode[], vals: number[]) => number;
+type OpFn = (kids: ArkhNode[], vals: number[]) => number;
 const OPS: Record<string, OpFn> = {
   "1+SUM/100": (_k, v) => 1 + v.reduce((a, b) => a + b, 0) / 100,
   "PROD(x)": (k, v) =>
@@ -56,7 +56,7 @@ const PRIORITY = [
   "SUM",
 ];
 
-function matchOps(n: CorganNode): Set<string> {
+function matchOps(n: ArkhNode): Set<string> {
   const kids = n.children || [];
   const out = new Set<string>();
   if (!kids.length) return out;
@@ -75,13 +75,13 @@ function matchOps(n: CorganNode): Set<string> {
 /** Walk one player's tree and intersect the matching-op set per node path
  *  into `opSets` (an op survives only if it matched for every tree seen). */
 export function accumulateOps(
-  tree: CorganNode,
+  tree: ArkhNode,
   opSets: Map<string, Set<string>>
 ): void {
   const walk = (
-    n: CorganNode,
+    n: ArkhNode,
     parentPath: string,
-    sibs: CorganNode[],
+    sibs: ArkhNode[],
     idx: number
   ) => {
     const path = nodePath(parentPath, n, sibs, idx);
@@ -117,16 +117,16 @@ export function chooseOps(opSets: Map<string, Set<string>>): Map<string, string>
  * its best-per-path value from `bestFlat`. Returns a flat path→value map.
  */
 export function recomputeFrankenstein(
-  structure: CorganNode,
+  structure: ArkhNode,
   bestFlat: FlatTree,
   opByPath: Map<string, string>
 ): { flat: FlatTree; recomputed: number } {
   const out: FlatTree = {};
   let recomputed = 0;
   const walk = (
-    n: CorganNode,
+    n: ArkhNode,
     parentPath: string,
-    sibs: CorganNode[],
+    sibs: ArkhNode[],
     idx: number
   ): number => {
     const path = nodePath(parentPath, n, sibs, idx);

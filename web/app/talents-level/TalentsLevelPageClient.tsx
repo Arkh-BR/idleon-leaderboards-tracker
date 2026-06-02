@@ -18,7 +18,7 @@ import {
 } from "@/lib/talentsLevel/charClass";
 import { getActivePresetIdx } from "@/lib/talentsLevel/compute";
 import { isAccountWideTalent } from "@/lib/talentsLevel/accountWideTalents";
-import type { CorganNode } from "@/lib/corgan/node";
+import type { ArkhNode } from "@/lib/arkh/node";
 import TalentsToMaxView from "@/components/talentsLevel/TalentsToMaxView";
 import type { ToMaxCharGroup } from "@/lib/talentsLevel/toMax";
 import UnbookedView from "@/components/talentsLevel/UnbookedView";
@@ -52,7 +52,7 @@ function hypoBaselineForClass(classKey: string | null) {
 // new tree, doesn't mutate). Used to hide "Points Invested" rows in the
 // Hypothetical tab — a hypothetical-max view doesn't care about the actual
 // investment, only the caps/bonuses.
-function stripNodesByName(node: CorganNode, name: string): CorganNode {
+function stripNodesByName(node: ArkhNode, name: string): ArkhNode {
   const kids = (node.children ?? [])
     .filter((c) => c.name !== name)
     .map((c) => stripNodesByName(c, name));
@@ -70,7 +70,7 @@ function stripNodesByName(node: CorganNode, name: string): CorganNode {
 //   • 625 (Toilet Paper Postage) — its "max" is the live cauldron-liquid
 //     count, a per-account value with NO fixed ceiling, so the global max
 //     across players (some huge cauldron) is meaningless here.
-function applyStarCeiling(tree: CorganNode, talentId: number): CorganNode {
+function applyStarCeiling(tree: ArkhNode, talentId: number): ArkhNode {
   if (
     talentId < 615 ||
     (talentId >= 641 && talentId <= 647) ||
@@ -158,7 +158,7 @@ type TalentSummary = {
   superLevels: number;
 };
 
-function getChildByName(node: CorganNode, name: string): CorganNode | null {
+function getChildByName(node: ArkhNode, name: string): ArkhNode | null {
   if (!node.children) return null;
   for (const c of node.children) {
     if (c.name === name) return c;
@@ -166,7 +166,7 @@ function getChildByName(node: CorganNode, name: string): CorganNode | null {
   return null;
 }
 
-function findDescendant(node: CorganNode, name: string): CorganNode | null {
+function findDescendant(node: ArkhNode, name: string): ArkhNode | null {
   if (node.name === name) return node;
   if (!node.children) return null;
   for (const c of node.children) {
@@ -185,7 +185,7 @@ function findDescendant(node: CorganNode, name: string): CorganNode | null {
  *  the booster char into the target's summary (which is exactly how
  *  Max Effective LV broke after we started embedding booster sub-trees
  *  under the cap). */
-function findTargetEffectiveLevel(node: CorganNode): CorganNode | null {
+function findTargetEffectiveLevel(node: ArkhNode): ArkhNode | null {
   if (node.name === "Effective Level") return node;
   if (!node.children) return null;
   for (const c of node.children) {
@@ -203,7 +203,7 @@ function findTargetEffectiveLevel(node: CorganNode): CorganNode | null {
   return null;
 }
 
-function extractTalentSummary(tree: CorganNode | null): TalentSummary | null {
+function extractTalentSummary(tree: ArkhNode | null): TalentSummary | null {
   if (!tree) return null;
   // Walk to the target's own Effective Level (skipping nested booster
   // trees), then pull all the metric kids as DIRECT children:
@@ -308,7 +308,7 @@ export default function TalentsLevelPageClient() {
   // preset when a save loads (we read PlayerStuff_{ci}[1] for that). The
   // user can flip to inspect the other preset's talent investments.
   const [presetIdx, setPresetIdx] = useState<0 | 1>(0);
-  const [tree, setTree] = useState<CorganNode | null>(null);
+  const [tree, setTree] = useState<ArkhNode | null>(null);
   const [computing, setComputing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   // Account-wide "Faltando p/ Max" scan — independent of the selected
@@ -325,7 +325,7 @@ export default function TalentsLevelPageClient() {
   // The active char's Health Booster (talent 0) Effective Level subtree —
   // the generic per-talent breakdown rendered on the Hypothetical tab,
   // compared against the bundled hypothetical max.
-  const [hypoPlayerTree, setHypoPlayerTree] = useState<CorganNode | null>(null);
+  const [hypoPlayerTree, setHypoPlayerTree] = useState<ArkhNode | null>(null);
   // Which DeepView tab is active (reported by DeepView via onViewChange).
   // The talent picker + headline summary only make sense for the Talent
   // Breakdown ("tree") tab — the other tabs are account-wide scans /
@@ -477,7 +477,7 @@ export default function TalentsLevelPageClient() {
   const currentTab: TalentTab | null = tabs[tabIdx] ?? null;
 
   // Whenever save/char/talent changes, recompute the FULL talent tree.
-  // Lazy-imported so the corgan bundle stays out of the initial page load.
+  // Lazy-imported so the arkh bundle stays out of the initial page load.
   useEffect(() => {
     if (!save || chars.length === 0) {
       setTree(null);
@@ -549,7 +549,7 @@ export default function TalentsLevelPageClient() {
   }, [save, charIdx, chars.length, presetIdx]);
 
   // Compute the account-wide "Faltando p/ Max" scan whenever the save
-  // changes. Lazy-imported (keeps the corgan bundle off the initial load)
+  // changes. Lazy-imported (keeps the arkh bundle off the initial load)
   // and cheap — pure SL/SM lookups, no per-talent tree resolve.
   useEffect(() => {
     if (!save || chars.length === 0) {

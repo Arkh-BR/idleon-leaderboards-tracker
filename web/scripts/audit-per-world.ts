@@ -4,8 +4,8 @@
 // so we can sanity-check it against the user's spec.
 
 import { readFileSync } from "node:fs";
-import { computeCorganDropRate } from "../lib/corgan/computeDR";
-import type { CorganNode } from "../lib/corgan/node";
+import { computeArkhDropRate } from "../lib/arkh/computeDR";
+import type { ArkhNode } from "../lib/arkh/node";
 import {
   parseSystemFromBucketName,
   systemWorld,
@@ -13,17 +13,17 @@ import {
   WORLD_EMOJI,
   type SystemKey,
   type WorldKey,
-} from "../lib/corgan/stats/categorize";
+} from "../lib/arkh/stats/categorize";
 
 const SAVE_PATH =
   "C:\\Users\\Vinicius\\ClaudeCowork\\Leaderboard Ranking Sheet - Idleon\\save 25-21-16.json";
 const raw = JSON.parse(readFileSync(SAVE_PATH, "utf8"));
-const r = computeCorganDropRate(raw, 2, 0);
+const r = computeArkhDropRate(raw, 2, 0);
 
 type Row = {
   system: SystemKey;
   poolBadge: "Additive" | "Multi";
-  node: CorganNode;
+  node: ArkhNode;
 };
 
 const rows: Row[] = [];

@@ -45,15 +45,15 @@ Talent X = <final bonus>
 
 | File | Role |
 |---|---|
-| `lib/corgan/stats/data/common/talent-final-bonus-wraps.ts` | The wrap registry `TALENT_FINAL_BONUS_WRAPS`, `CounterSource` union, `readCounter`, `applyTalentWrap`. (Renamed from `external-context-multipliers.ts`.) |
-| `lib/corgan/stats/data/common/account-wide-talents.ts` | `ACCOUNT_WIDE_TALENT_IDS` — talents whose bonus is cross-character (best owner-class char wins). |
-| `lib/corgan/stats/data/common/talent-cap-boosters.ts` | `TALENT_CAP_BOOSTERS` — per-talent SkillLevelsMAX cap overrides (see §7). |
-| `lib/corgan/stats/systems/common/stats.ts` | Ported stat engine — `computeTotalStat` + chain. |
-| `lib/corgan/stats/systems/common/derived-stats.ts` | `computePlayerHPmax`, `computePlayerMPmax`, `computeSkillEfficiency`. |
-| `lib/corgan/stats/systems/common/derived-damage.ts` | `computeMaxDamage`, `computeOverkillTier`, `computePlayerSpeed`, `computeAccuracy`. |
-| `lib/corgan/stats/systems/common/calcTalent.ts` | `computeCalcTalent(id, charIdx, saveData)` → `CalcTalentMAP[id]`. |
-| `lib/corgan/stats/systems/w6/upg-totals.ts` | Counter helpers (upgrade totals, inventory rollup, kill-tracker, atom, titans, onyx). |
-| `lib/corgan/stats/systems/common/talent.ts` | `talent.resolve` — calls `applyTalentWrap` at the 3 emit sites (account-wide / star / standard). |
+| `lib/arkh/stats/data/common/talent-final-bonus-wraps.ts` | The wrap registry `TALENT_FINAL_BONUS_WRAPS`, `CounterSource` union, `readCounter`, `applyTalentWrap`. (Renamed from `external-context-multipliers.ts`.) |
+| `lib/arkh/stats/data/common/account-wide-talents.ts` | `ACCOUNT_WIDE_TALENT_IDS` — talents whose bonus is cross-character (best owner-class char wins). |
+| `lib/arkh/stats/data/common/talent-cap-boosters.ts` | `TALENT_CAP_BOOSTERS` — per-talent SkillLevelsMAX cap overrides (see §7). |
+| `lib/arkh/stats/systems/common/stats.ts` | Ported stat engine — `computeTotalStat` + chain. |
+| `lib/arkh/stats/systems/common/derived-stats.ts` | `computePlayerHPmax`, `computePlayerMPmax`, `computeSkillEfficiency`. |
+| `lib/arkh/stats/systems/common/derived-damage.ts` | `computeMaxDamage`, `computeOverkillTier`, `computePlayerSpeed`, `computeAccuracy`. |
+| `lib/arkh/stats/systems/common/calcTalent.ts` | `computeCalcTalent(id, charIdx, saveData)` → `CalcTalentMAP[id]`. |
+| `lib/arkh/stats/systems/w6/upg-totals.ts` | Counter helpers (upgrade totals, inventory rollup, kill-tracker, atom, titans, onyx). |
+| `lib/arkh/stats/systems/common/talent.ts` | `talent.resolve` — calls `applyTalentWrap` at the 3 emit sites (account-wide / star / standard). |
 
 ### Registry entry shape (`TalentWrapSpec`)
 ```ts
@@ -224,7 +224,7 @@ The `/talents-level` headline does `Max Effective LV = cap + bonus + super`,
 - **N.js is the source of truth — corgan-source drifts.** Two formulas were
   wrong in corgan-source: the **sigil Eclectic 5th tier** (`SigilDesc[12]`,
   used for sigil lvl ≥ 3.5 — our `sigils.ts` is correct, matches N.js) and the
-  **golden-food scale in skill efficiency** (corgan used raw % `23004×`; N.js
+  **golden-food scale in skill efficiency** (arkh used raw % `23004×`; N.js
   returns `1 + GfoodBonus/100` for the `*Eff` keys — fixed). Always verify
   against N.js (`https://www.legendsofidleon.com/ytGl5oc/N.js`). See memory
   `corgan-source-vs-njs-drift.md`.

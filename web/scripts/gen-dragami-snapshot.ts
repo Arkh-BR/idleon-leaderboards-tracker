@@ -12,7 +12,7 @@
 
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { resolve, dirname } from "node:path";
-import { computeCorganDropRate } from "../lib/corgan/computeDR";
+import { computeArkhDropRate } from "../lib/arkh/computeDR";
 import { flattenTree } from "../lib/dropRate/treeFlatten";
 
 const repoRoot = resolve(__dirname, "..", "..");
@@ -41,7 +41,7 @@ for (let i = 0; i < charNames.length; i++) {
     // with the catalog's zArkhe baseline (which was computed at Froggy
     // Fields, factor=1.38). The user will swap maps live in the calc;
     // for the research tool the un-mapped baseline is the right anchor.
-    const r = computeCorganDropRate(raw, i, 0);
+    const r = computeArkhDropRate(raw, i, 0);
     const flat = flattenTree(r.tree);
     results.push({
       idx: i,

@@ -3,7 +3,7 @@
 // resolver doesn't mask the others.
 
 import { readFileSync } from "node:fs";
-import { computeCorganDropRate } from "../lib/corgan/computeDR";
+import { computeArkhDropRate } from "../lib/arkh/computeDR";
 
 const SAVE_PATH =
   "C:\\Users\\Vinicius\\ClaudeCowork\\Leaderboard Ranking Sheet - Idleon\\bsguiler.txt";
@@ -23,7 +23,7 @@ console.log();
 
 for (let ci = 0; ci < (save.charNames?.length || 0); ci++) {
   try {
-    const result = computeCorganDropRate(save, ci, 0);
+    const result = computeArkhDropRate(save, ci, 0);
     console.log(`Char ${ci} (${save.charNames[ci]}): DR=${result.total.toFixed(2)}`);
   } catch (e) {
     console.error(`Char ${ci} (${save.charNames[ci]}): FAILED`);
