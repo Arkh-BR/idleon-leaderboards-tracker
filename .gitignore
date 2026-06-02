@@ -39,3 +39,15 @@ idleon_raw_*.json
 # Corgan reference HTML used for layout matching
 .corgan-*.html
 .corgan-reference/
+
+# Google Sheets / Apps Script sources, docs and spreadsheets kept local-only
+/Code.gs
+/Code_Tome.gs
+/Code_TomeRaw.gs
+/Code_TomeRaw_v6_1.gs
+/INSTRUCTIONS.md
+/INSTRUCTIONS_TOME.md
+/Idleon_Leaderboards.xlsx
+/Idleon_Tome_Tracker.xlsx
+/README.md
+/TOME_PARITY.md
