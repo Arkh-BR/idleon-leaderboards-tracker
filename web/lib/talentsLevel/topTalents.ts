@@ -13,12 +13,12 @@
 // default tree (they would all resolve to identical numbers anyway).
 // Auto-refreshed by scripts/update-top-talents.ts.
 //
-// Snapshot generated: 2026-06-04T05:41:36.342Z
+// Snapshot generated: 2026-06-07T05:38:39.340Z
 // Players scanned: 75
 
 import type { ArkhNode } from "../arkh/node";
 
-export const HYPO_TALENTS_GENERATED_AT = "2026-06-04T05:41:36.342Z";
+export const HYPO_TALENTS_GENERATED_AT = "2026-06-07T05:38:39.340Z";
 export const HYPO_TALENTS_PLAYERS_SCANNED = 75;
 
 export const HYPO_DEFAULT_TREE: ArkhNode = {
@@ -496,13 +496,13 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
               "children": [
                 {
                   "name": "Char 4 Lv",
-                  "val": 1720,
+                  "val": 1726,
                   "fmt": "raw",
                   "note": "boschi5 — elemental sorcerer (cls 34)"
                 },
                 {
                   "name": "Char 8 Lv",
-                  "val": 1710,
+                  "val": 1720,
                   "fmt": "raw",
                   "note": "boschi9 — elemental sorcerer (cls 34)"
                 }
@@ -895,7 +895,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
           "children": [
             {
               "name": "Player Lv",
-              "val": 1829,
+              "val": 1876,
               "fmt": "raw",
               "note": "Lv0[0]"
             }
@@ -1443,13 +1443,13 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                 "children": [
                   {
                     "name": "Char 4 Lv",
-                    "val": 1720,
+                    "val": 1726,
                     "fmt": "raw",
                     "note": "boschi5 — elemental sorcerer (cls 34) — ACTIVE char (gets Family Guy buff if it wins the slot)"
                   },
                   {
                     "name": "Char 8 Lv",
-                    "val": 1710,
+                    "val": 1720,
                     "fmt": "raw",
                     "note": "boschi9 — elemental sorcerer (cls 34)"
                   }
@@ -1842,7 +1842,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
             "children": [
               {
                 "name": "Player Lv",
-                "val": 1829,
+                "val": 1876,
                 "fmt": "raw",
                 "note": "Lv0[0]"
               }
