@@ -1638,11 +1638,15 @@
       ],
       [
         4602,
-        233
+        73
       ],
       [
         4632,
-        74
+        274
+      ],
+      [
+        4662,
+        174
       ]
     ]
   ],
@@ -5365,6 +5369,20 @@
         "+{%_Drop_Rate_MULTIPLIER!_It's_golden_and_pirate_themed,_of_course_it_gives_DR!",
         "3",
         "7drMulto"
+      ],
+      [
+        "CANTEEN_READ",
+        "0.2",
+        "0",
+        "add",
+        "0",
+        "Spelunking5",
+        "Liquid4",
+        "Blank",
+        "Blank",
+        "+{%_extra_Cooking_Mastery_EXP_gain!",
+        "1",
+        "7cookmastery"
       ]
     ],
     [
@@ -5989,7 +6007,8 @@
     "w7A5",
     "Bug15",
     "w7A12",
-    "w7B12b"
+    "w7B12b",
+    "Spelunking5"
   ],
   "AlchemyVialItemsPCT": [
     "99",
@@ -6031,6 +6050,7 @@
     "3",
     "2",
     "2",
+    "1",
     "1",
     "1",
     "1",
@@ -7819,6 +7839,15 @@
       "%",
       "+{%_Fill_Spd",
       "35"
+    ],
+    [
+      "+{%_Cook_Mastery_EXP",
+      "100",
+      "100",
+      "decay",
+      "%",
+      "+{%_EXP",
+      "49"
     ]
   ],
   "ArcaneUpg": [
@@ -19665,13 +19694,13 @@
     ],
     [
       "rift1",
-      "Not_officially_in_the_game_and_may_never_be",
+      "3x_Cooking_Mastery_EXP_gain_and_{5_PTS_for_Cooking_Mastery",
       "1",
+      "-26",
       "0",
-      "0",
-      "0",
+      "-15",
       "1",
-      "100"
+      "160"
     ],
     [
       "rift4",
@@ -20637,7 +20666,7 @@
       "0,10,0,1,3,6,10,11|12,23,12,14,17,20,23,12|37,48,37,39,42,45,48,12"
     ],
     [
-      "24,25,26,27,28,29,30,31,32,33,34,35,36,49,50,51,52,53,54,55,56,57,88,128,132,153,143,154,155,156,99,157,111,145,158,159,147,162,163,135,167",
+      "24,25,26,27,28,29,30,31,32,33,34,35,36,49,50,51,52,53,54,55,56,57,128,132,143,154,155,156,99,157,111,145,158,159,147,162,87,88,153,163,135,167",
       "11,58,150,151,152,160,161,164,165,166"
     ],
     []
@@ -27507,10 +27536,10 @@
       "Small|Gratuity"
     ],
     [
-      "You_can't_buy_this_today,_or_tomorrow,_or_the_next_day.",
-      "2",
-      "150",
-      "Not|Today"
+      "Boosts_your_Cooking_Mastery_EXP_gain_rate_by_1.40x",
+      "4",
+      "100",
+      "Cooking|Master"
     ],
     [
       "You?_Buying_THIS??_YOU'RE_BROOOOKE!!!",
@@ -61222,7 +61251,7 @@
   ],
   "MealINFO": [
     [
-      "Turkey_a_la_Thank",
+      "Turkey_of_Thank",
       "10",
       "2",
       "+{%_Total_Damage",
@@ -61249,7 +61278,7 @@
       "Pie",
       "40",
       "5",
-      "+{%_New_Recipe_Cooking_Speed",
+      "+{%_Recipe_Cooking_Spd",
       "Cartoon_characters_with_a_fear_of_levitation_HATE_the_smell_of_this!",
       "Rcook"
     ],
@@ -61257,7 +61286,7 @@
       "Frenk_Fries",
       "60",
       "5",
-      "+{%_New_Mob_Breeding_Odds",
+      "+{%_New_Mob_Breed_Odds",
       "You're_breeding_Mobs_in_outer_space,_don't_be_shocked_that_there's_no_France!",
       "Npet"
     ],
@@ -61281,12 +61310,12 @@
       "Garlic_Bread",
       "175",
       "4",
-      "+{%_VIP_Library_Membership",
+      "+{%_VIP_Library_PTS",
       "The_letter_H_ain't_lookin'_so_good_after_eating_a_few_of_these...",
       "VIP"
     ],
     [
-      "Garlicless_Bread",
+      "Garlicles_Bread",
       "250",
       "2",
       "+{%_Lab_EXP",
@@ -61297,7 +61326,7 @@
       "Pizza",
       "350",
       "9",
-      "+{%_New_Mob_Breeding_Odds",
+      "+{%_New_Mob_Breed_Odds",
       "Mama_mia_mahhh_piiiiiiiizzza!!!_Wait_I_already_did_that_joke,_replace_this_one",
       "Npet"
     ],
@@ -61313,7 +61342,7 @@
       "Pancakes",
       "700",
       "2",
-      "+{Px_Line_Width_in_Lab_Mainframe",
+      "+{Px_Line_Width_in_Lab",
       "Ohhh,_they're_called_'pan'cakes_because_they're_like_cakes_made_in_a_pan_haha",
       "PxLine"
     ],
@@ -61329,15 +61358,15 @@
       "Cabbage",
       "1400",
       "5",
-      "+{%_Cooking_Spd_per_10_Kitchen_LVs",
-      "More_speed_every_10_total_kitchen_upgrade_LVs!_That's_one_IMPORTANT_vegetable!",
+      "+{%_Cooking_Spd_per_Ten",
+      "Ten_means_every_10_total_kitchen_upgrade_LVs!_That's_one_IMPORTANT_vegetable!",
       "KitchenEff"
     ],
     [
-      "Potato_Pea_Pastry",
+      "Potato_P_Pastry",
       "2000",
       "1",
-      "+{%_Lower_Egg_Incubator_Time",
+      "+{%_Lower_Egg_Creation_Time",
       "Yuhhhh_it's_that_Triple_P_threat!_Look_out_for_them_P's_bro!",
       "TimeEgg"
     ],
@@ -61345,7 +61374,7 @@
       "Dango",
       "3000",
       "2",
-      "+{%_Lower_Kitchen_Upgrade_Costs",
+      "+{%_Lower_Kitchen_Costs",
       "Look,_I'm_not_sure_what_these_are_either,_just_go_with_it.",
       "KitchC"
     ],
@@ -61353,7 +61382,7 @@
       "Sourish_Fish",
       "4000",
       "4",
-      "+{%_VIP_Library_Membership",
+      "+{%_VIP_Library_PTS",
       "Shhh_stop_saying_they're_sweet,_you're_gonna_get_me_in_trouble!",
       "VIP"
     ],
@@ -61377,7 +61406,7 @@
       "Canopy",
       "12500",
       "10",
-      "+{%_New_Recipe_Cooking_Speed",
+      "+{%_Recipe_Cooking_Spd",
       "...oh,_you_said_'Can_of_Pea's._You_know,_that_does_make_a_lot_more_sense.",
       "Rcook"
     ],
@@ -61385,7 +61414,7 @@
       "Cannoli",
       "20000",
       "1",
-      "+{%_Points_earned_in_Tower_Defence",
+      "+{%_PTS_in_Tower_Defence",
       "Ain't_got_no_joke_for_this_one,_it's_existence_is_enough_of_a_joke.",
       "TDpts"
     ],
@@ -61409,7 +61438,7 @@
       "Eggplant",
       "75000",
       "5",
-      "+{%_Mob_Breedability_Speed",
+      "+{%_Mob_Breedability_Rate",
       "Idk_what_you_Zoomers_are_up_to_with_those_eggplant_emojis,_but_I_don't_like_it...",
       "Breed"
     ],
@@ -61425,7 +61454,7 @@
       "Wild_Boar",
       "200000",
       "2",
-      "+{Px_Line_Width_in_Lab_Mainframe",
+      "+{Px_Line_Width_in_Lab",
       "It's_not_really_wild_anymore_is_it,_it_looks_kinda_dead_and_roasted.",
       "PxLine"
     ],
@@ -61433,7 +61462,7 @@
       "Donut",
       "300000",
       "15",
-      "+{%_New_Mob_Breeding_Odds",
+      "+{%_New_Mob_Breed_Odds",
       "Mmmmm..._doooooooonut...",
       "Npet"
     ],
@@ -61457,7 +61486,7 @@
       "Durian_Fruit",
       "1000000",
       "6",
-      "+{%_Lower_Kitchen_Upgrade_costs",
+      "+{%_Lower_Kitchen_costs",
       "This_must_have_been_in_the_room_when_Kurt_said_it_smelled_like_'teen_spirit'...",
       "KitchC"
     ],
@@ -61465,7 +61494,7 @@
       "Orange",
       "1500000",
       "3",
-      "+{%_VIP_Library_Membership",
+      "+{%_VIP_Library_PTS",
       "The_true_arch-nemesis_of_rappers_and_poets_alike.",
       "VIP"
     ],
@@ -61478,10 +61507,10 @@
       "Cash"
     ],
     [
-      "Chocolate_Truffle",
+      "Chocala_Truffle",
       "5000000",
       "25",
-      "+{%_New_Mob_Breeding_Odds",
+      "+{%_New_Mob_Breed_Odds",
       "I_mean_it's_got_a_bite_taken_out_of_it,_pretty_gross.",
       "Npet"
     ],
@@ -61497,7 +61526,7 @@
       "Fortune_Cookie",
       "12000000",
       "4",
-      "+{%_Faster_Library_checkout_Speed",
+      "+{%_Library_Checkout_Spd",
       "It_reads:_'Salvation_lies_not_within_enjoying_video_games,_but_from_gitting_gud_at_them'",
       "Lib"
     ],
@@ -61545,7 +61574,7 @@
       "Eel",
       "200000000",
       "1",
-      "+{%_Line_Width_in_Lab_Mainframe",
+      "+{%_Line_Width_in_Lab",
       "The_younger_sibling_of_the_Loch_Ness_Monster._He's_real,_but_no_one_really_cares.",
       "LinePct"
     ],
@@ -61577,7 +61606,7 @@
       "Sushi_Roll",
       "900000000",
       "7",
-      "+{%_VIP_Library_Membership",
+      "+{%_VIP_Library_PTS",
       "For_something_called_a_'sushi_roll',_it_isn't_moving_around_very_much.",
       "VIP"
     ],
@@ -61585,16 +61614,16 @@
       "Buncha_Banana",
       "1250000000.0",
       "4",
-      "+{_Max_LVs_for_TP_Pete_Star_Talent",
-      "Straight_from_the_island_of_Karjama!_Or_something_like_that,_starts_with_a_K_at_least.",
+      "+{_Max_LVs_for_TPPST",
+      "TPPST_stands_for_TP_Pete_Star_Talent,_the_one_that_boosts_stamps!",
       "TPpete"
     ],
     [
       "Pumpkin",
       "1700000000.0",
       "2",
-      "+{%_Liquid_Cap_for_liquids_1_and_2",
-      "According_to_the_author_of_the_Iliad,_its_value_should_peak_right_around_January...",
+      "+{%_Liquid_Cap",
+      "Specifically_for_Liquid_Types_1_and_2_in_the_Alchemy_skill!",
       "Liquid12"
     ],
     [
@@ -61614,10 +61643,10 @@
       "TotDmg"
     ],
     [
-      "Head_Chef_Geustloaf",
+      "Chef_Geustloaf",
       "10000000000.0",
       "4",
-      "+{%_Bits_Gained_in_Gaming",
+      "+{%_Bits_Gain_in_Gaming",
       "How_DARE_you_question_the_honorable_Chef_Geustloaf's_cooking_abilities!",
       "GamingBits"
     ],
@@ -61625,8 +61654,8 @@
       "Kiwi_Fruit",
       "14000000000.0",
       "2",
-      "+{%_Liquid_Cap_for_liquids_3_and_4",
-      "Is_there_a_reason_these_are_so_hard_to_cook?_Aren't_you_just_like..._cutting_it_in_half?",
+      "+{%_Liquid_Cap",
+      "Specifically_for_Liquid_Types_3_and_4_in_the_Alchemy_skill!",
       "Liquid34"
     ],
     [
@@ -61641,7 +61670,7 @@
       "Double_Cherry",
       "32000000000.0",
       "30",
-      "+{%_Meal_Cooking_Speed",
+      "+{%_Meal_Cooking_Spd",
       "So_like..._why_did_the_yellow_circle_want_these_again?_This_bonus_is_pretty_bad.",
       "Mcook"
     ],
@@ -61649,7 +61678,7 @@
       "Ratatouey",
       "52000000000.0",
       "8",
-      "+{%_Lower_Kitchen_Upgrade_costs",
+      "+{%_Lower_Kitchen_costs",
       "Hey_cmon_man_how_should_I_know_how_to_spell_Ratatouille,_there's_no_France_remember?",
       "KitchC"
     ],
@@ -61673,7 +61702,7 @@
       "Sausy_Sausage",
       "225000000000.0",
       "6",
-      "+{%_Bits_Gained_in_Gaming",
+      "+{%_Bits_Gain_in_Gaming",
       "Plump_innit!_Would_go_great_with_some_momey_milk!",
       "GamingBits"
     ],
@@ -61689,8 +61718,8 @@
       "Sticky_Bun",
       "700000000000.0",
       "5",
-      "+{%_All_Summoning_Essence_Gain",
-      "This_frosting_better_be_made_of_superglue_or_I'm_suing_for_false_advertising.",
+      "+{%_Essence_Gain",
+      "You_know,_Summoning_Essence,_the_currency_for_the_Summoning_Skill_in_World_6_bro!",
       "zSumEss"
     ],
     [
@@ -61702,11 +61731,11 @@
       "zSneakExp"
     ],
     [
-      "Misterloin_Steak",
+      "MrLoin_Steak",
       "1700000000000.0",
       "6",
-      "+{%_Jade_gain_from_Sneaking",
-      "Make_sure_to_paint_on_the_grill_marks_to_really_give_it_that_extra_taste!",
+      "+{%_Jade_Gain",
+      "Jade_is_the_currency_for_the_Sneaking_Skill_in_World_6_my_man!",
       "zJade"
     ],
     [
@@ -61718,18 +61747,18 @@
       "zSummonExp"
     ],
     [
-      "Bill_Jack_Pepper",
+      "Bill_Jack_Pep",
       "35000000000000.0",
       "5",
-      "+{%_Crop_Evolution_Chance",
-      "It's_Him.",
+      "+{%_Crop_Evo_Chance",
+      "For_farming!_Crop_Evo_chance_is_for_the_Farming_skill_in_World_6,_not_gaming!",
       "zCropEvo"
     ],
     [
-      "Burned_Marshmallow",
+      "Burned_Mello",
       "90000000000000.0",
       "40",
-      "+{%_Meal_Cooking_Speed",
+      "+{%_Meal_Cooking_Spd",
       "IMPORTANT,_this_bonus_DOUBLES_at_Farming_Lv_50._Triples_at_Farming_Lv_100,_and_so_on!",
       "zMealFarm"
     ],
@@ -61737,8 +61766,8 @@
       "Yumi_Peachring",
       "800000000000000.0",
       "2",
-      "+{%_All_Golden_Food_bonus",
-      "Don't_disrespect_the_ring._All_hail_the_ring.",
+      "+{%_Gold_Food_bonus",
+      "This_boosts_ALL_Golden_food,_insane!",
       "zGoldFood"
     ],
     [
@@ -61753,7 +61782,7 @@
       "Nyanborgir",
       "50000000000000000.0",
       "9",
-      "+{%_Crop_Evolution_Chance",
+      "+{%_Crop_Evo_Chance",
       "It's_the_greatest_meal_ever!_Bonus_DOUBLES_at_Summoning_Lv_50,_Triples_at_100,_etc",
       "zCropEvoSumm"
     ],
@@ -61769,7 +61798,7 @@
       "Woahtermelon",
       "5000000000000000000000000000000000000000000000000.0",
       "0.03",
-      "+{%_cheaper_Spelunking_Upgrades",
+      "+{%_lower_Spelunk_costs",
       "IMPORTANT,_this_bonus_DOUBLES_once_your_first_character_reaches_Lv_50_Spelunking!",
       "SplkUpg"
     ],
@@ -61777,7 +61806,7 @@
       "Cookies",
       "888880000000000000000000000000000000000000000000000000.0",
       "0.30",
-      "+{%_Total_Spelunking_POW",
+      "+{%_Spelunking_POW",
       "They're_pipin'_hot,_fresh_outta_the_oven..._wait,_what_oven?",
       "SplkPOW"
     ],
@@ -61785,7 +61814,7 @@
       "Singing_Seed",
       "100000000000000000000000000000000000000000000000000000000000.0",
       "0.20",
-      "+{%_Amber_gain_from_Spelunking",
+      "+{%_Amber_from_Spelunking",
       "You're_asking_me_will_my_love_grow?_Pistachioooooh_ohhh,_Pishaaaaaaachio!!!",
       "SplkAmb"
     ],
@@ -61793,7 +61822,7 @@
       "Tasty_Treat",
       "10000000000000000000000000000000000000000000000000000000000000.0",
       "0.01",
-      "+{%_Polymer_Refinery_Speed",
+      "+{%_Polymer_Refinery_Spd",
       "Hey_look!_It's..._wait,_where's_this_from?_I_know_I_recognize_it_from_somewhere...",
       "PolyRefSpd"
     ],
@@ -61801,16 +61830,16 @@
       "Giga_Chip",
       "10000000000000000000000000000000000000000000000000000000000000000.0",
       "0.01",
-      "+{%_Research_EXP_gains",
+      "+{%_Research_EXP",
       "People_always_say_'That's_Not_Yo_chip'_for_some_reason..._This_is_YES_yo_chip!",
       "ResearchXP"
     ],
     [
-      "2nd_Wedding_Cake",
+      "Divorce_Cake",
       "1000000000000000000000000000000000000000000000000000000000000000000.0",
       "0.02",
-      "+{%_Minehead_Mine_Currency_gain",
-      "Congrats_on_getting_married_again!_I_hope_it_lasts_this_time..._I_don't_have_a_3rd_cake!",
+      "+{%_Mine_Currency_gain",
+      "Mine_Currency_is_used_in_Mr._Minehead's_Depth_Charge_shop_in_World_7!",
       "MineCurr"
     ]
   ],
@@ -72834,8 +72863,8 @@
       "186"
     ],
     [
-      "Perma_Greenstacks!_v1.16",
-      "*Tournament_rewards_for_Season_2_have_arrived,_check_your_rewards!_@_*Greenstacks_are_now_PERMANENT!_When_you_collect_10M_of_an_item_in_your_Storage_Chest,_that_item_will_count_as_greenstacked_now_and_forever!_@_*Greenstack_Display_added_to_The_Slab,_so_you_can_track_exactly_which_items_you've_Perma_Greenstacked!_@_*Fixed_the_Construction_Cog_bug._You'll_know_what_I_mean_if_you_were_affected_by_it!_@_*Fixed_the_Research_Observation_that_required_Lv.72_@_*Fixed_button_stapshotting._@___@_*There's_a_special_reward_for_everyone_who_beats_Fortune_Mill,_which_comes_out_Tuesday,_as_an_extra_thanks_from_me_to_you!_An_exclusive_Abacus_Frog_pet_who_gives_no_bonuses,_only_tournament_power,_and_is_untradeable._There_is_no_deadline_to_earn_him,_so_feel_free_to_take_your_time_before_buying,_and_enjoy_your_playthrough_if_you_do!",
+      "Cooking_MASTERY_v1.17",
+      "*Unlocked_at_Rift_61,_Cooking_Mastery_(CM)_lets_you_RANK_UP_to_boost_your_meals!_@_*You_gain_CM_EXP_over_time,_and_when_you_earn_enough,_you'll_get_+1_Rank._@_*Each_Rank_gives_you_1_Purple_AND_Yellow_CM_points._Spend_purple_to_boost_CM_EXP_gain,_and_spend_yellow_points_to_boost_specific_Meal_bonuses!_@_*New_Ribbon_Max_Rank._Friendship_ended_with_Rank_20,_now_Rank_25_is_the_best_ribbon!_@_*New_Research_Grid_-_K3_@_*New_Vial_-_Spelunking_Chapter_6_pages._@_*New_Arcade_Bonus_type,_but_only_if_the_Twitch_Viewers_vote_for_it..._@_*New_Salt_Lick_upgrade._I'm_moving_DIFFERENT,_making_moves_here_guys!_@_*New_Zuperbit_upgrade_in_Gaming._@___@___@_*Shoutout_to_my_Mill_Escapers,_yall_know_who_you_are!!_Good_luck_in_the_new_NG+_mode!",
       "*Le Monde 6 est arrivé, avec tout ce que vous pourriez souhaiter ! De nouveaux monstres, de nouvelles compétences, de nouvelles cartes, de nouveaux tampons, de nouvelles bulles, de nouvelles fioles, de nouvelles statues, de nouveaux équipements, tellement de nouveautés ! @ *Vous pouvez découvrir le Monde 6 vous-même, à la place, ces notes de mise à jour concernent tous les changements de cette mise à jour non liés au Monde 6. @ *Nouvel affichage des pièces ajouté ! Collectez 100 pièces Godshard pour voir ce que je veux dire ! @ *Le succès Trial by Time peut désormais être complété à n'importe quelle vitesse de déplacement. @ *Mise à l'échelle du bonus ajustée sur la 6ème bulle de chaque couleur. C'est un buff pour toute personne en dessous du niveau de bulle 300, sinon c'est un nerf. @ * Correction du problème où les archers glissaient lorsqu'ils essayaient de combattre des foules protégées. @ *Les attaques au canon de Siege Breaker apparaissent désormais derrière lui.",
       "*Welt 6 ist da, mit allem, was Sie sich nur wünschen können! Neue Monster, neue Fähigkeiten, neue Karten, neue Stempel, neue Blasen, neue Fläschchen, neue Statuen, neue Ausrüstung, so viel neues Zeug! @ *Sie können Welt 6 selbst entdecken. Stattdessen gelten diese Patchnotizen für alle Änderungen in diesem Update, die nicht mit Welt 6 zusammenhängen. @ *Neue Münzanzeige hinzugefügt! Sammle 100 Godshard-Münzen, um zu sehen, was ich meine! @ *Die Errungenschaft „Prüfung durch Zeit“ kann jetzt bei jeder Bewegungsgeschwindigkeit abgeschlossen werden. @ *Bonusskalierung für die 6. Blase jeder Farbe angepasst. Es ist ein Buff für alle unter Bubble Lv 300, andernfalls ist es ein Nerf. @ *Das Problem wurde behoben, bei dem Bogenschützen herumrutschten, wenn sie versuchten, gegen abgeschirmte Mobs zu kämpfen. @ *Die Kanonenangriffe von Belagerungsbrecher erscheinen jetzt hinter ihm.",
       "*원하는 모든 것을 갖춘 월드 6이 도착했습니다! 새로운 몬스터, 새로운 기술, 새로운 지도, 새로운 우표, 새로운 거품, 새로운 약병, 새로운 조각상, 새로운 장비, 너무나 많은 새로운 것들! @ *월드 6를 직접 발견하실 수 있습니다. 대신 이 패치 노트는 월드 6과 관련되지 않은 이번 업데이트의 모든 변경 사항에 대한 것입니다. @ *새로운 코인 표시가 추가되었습니다! 100개의 갓샤드 동전을 모아 무슨 뜻인지 알아보세요! @ *이제 모든 이동 속도에서 시간별 시험 업적을 완료할 수 있습니다. @ *각 색상의 6번째 버블에 대한 보너스 스케일링을 조정했습니다. 버블 Lv 300 미만인 사람에게는 버프이고, 그렇지 않으면 너프입니다. @ *방어막이 있는 몹과 싸울 때 궁수가 미끄러지는 문제를 수정했습니다. @ *Siege Breaker의 대포 공격이 이제 그의 뒤에서 생성됩니다.",
@@ -74290,6 +74319,22 @@
       "120",
       "120",
       "120"
+    ],
+    [
+      "200",
+      "1",
+      "30",
+      "10",
+      "2",
+      "20"
+    ],
+    [
+      "SALTY",
+      "SPICY",
+      "SWEET",
+      "SMOKY",
+      "SOUR",
+      "SAVORY"
     ]
   ],
   "RandostuffLANG": [
@@ -79188,12 +79233,12 @@
       "You_can_now_speak_to_the_knife_found_in_the_map_past_Glimbo_to_play_the_Sushi_Station_game!_@_Also,_}x_more_Bucks_gained_from_your_Sushi!"
     ],
     [
-      "Name",
-      "1",
-      "1",
+      "Masterius_Cookerius",
+      "4",
+      "75",
       "0",
       "0",
-      "desc"
+      "Multiplies_your_EXP_gain_for_Cooking_Mastery,_a_feature_unlocked_at_Rift_61,_by_a_massive_}x_@_Also_gives_+|_Yellow_PTS_to_spend_on_Meals!"
     ],
     [
       "Name",
@@ -80604,7 +80649,9 @@
       "KILL_1000000_MONSTERS_WHILE_AFK._YOU'VE_KILLED_{_SO_FAR...",
       "KILL_5000000_MONSTERS_WHILE_AFK._YOU'VE_KILLED_{_SO_FAR...",
       "GET_5000_SKULL_POINTS._BETTER_SKULLS_ARE_WORTH_MORE._YOU_HAVE_{_SO_FAR...",
-      "GET_1000_SKULL_POINTS._BETTER_SKULLS_ARE_WORTH_MORE._YOU_HAVE_{_SO_FAR..."
+      "GET_1000_SKULL_POINTS._BETTER_SKULLS_ARE_WORTH_MORE._YOU_HAVE_{_SO_FAR...",
+      "DEFEAT_ANY_MONSTER_HERE_ON_11_CHARS._YOU'VE_DONE_{_SO_FAR...",
+      "DEFEAT_ANY_MONSTER_HERE_ON_12_CHARS._YOU'VE_DONE_{_SO_FAR..."
     ],
     [
       "336",
@@ -80663,6 +80710,11 @@
       "Filler",
       "Filler",
       "440",
+      "574",
+      "Cooking_Mastery",
+      "Filler",
+      "Filler",
+      "560",
       "574",
       "Rift_Guy",
       "Filler",
@@ -80731,10 +80783,10 @@
       "rift1",
       "w6a3",
       "w5b2",
-      "w5b2",
+      "w6b2",
       "w6b3",
       "rift3",
-      "w5b3",
+      "w6b4",
       "w6c1",
       "w6c2",
       "w6d3",
@@ -80800,7 +80852,17 @@
       "240",
       "320",
       "175",
-      "150"
+      "150",
+      "100",
+      "260",
+      "240",
+      "200",
+      "110",
+      "50",
+      "0",
+      "0",
+      "0",
+      "0"
     ],
     [
       "0",
@@ -80862,22 +80924,22 @@
       "11",
       "11",
       "11",
+      "14",
+      "0",
+      "12",
+      "3",
+      "14",
+      "7",
       "9",
-      "0",
-      "0",
-      "0",
-      "0",
-      "0",
-      "0",
-      "0",
-      "0",
-      "0",
-      "0",
-      "0",
-      "0",
-      "0",
-      "0",
-      "0",
+      "9",
+      "9",
+      "9",
+      "9",
+      "9",
+      "9",
+      "9",
+      "9",
+      "9",
       "0",
       "0",
       "0",
@@ -80918,7 +80980,9 @@
       "1000000",
       "5000000",
       "5000",
-      "1000"
+      "1000",
+      "11",
+      "12"
     ],
     [
       "0",
@@ -82095,12 +82159,12 @@
       "1.5"
     ],
     [
-      "Critter1",
+      "Refinery1",
       "+4_Obol_storage_slots_per_upgrade!_Circle,_Square,_Hexagon,_then_Sparkle,_in_that_order.",
-      "100",
+      "10",
       "1",
       "8",
-      "1.92"
+      "2.3"
     ],
     [
       "Refinery2",
@@ -82111,12 +82175,12 @@
       "1.15"
     ],
     [
-      "Soul2",
+      "Refinery2",
       "+{%_Class_EXP_and_Skill_EXP._Not_really_sure_what_those_blobulytes_do_with_these_souls...",
-      "250",
+      "10",
       ".2",
       "100",
-      "1.079"
+      "1.2"
     ],
     [
       "Refinery3",
@@ -82127,9 +82191,9 @@
       "2.2"
     ],
     [
-      "Critter4",
+      "Refinery3",
       "+{%_Liquid_rate_and_Capacity_for_all_liquids_in_Alchemy.",
-      "100",
+      "10",
       "1",
       "100",
       "1.122"
@@ -82140,15 +82204,15 @@
       "5",
       "5",
       "10",
-      "2"
+      "2.1"
     ],
     [
-      "Soul4",
+      "Refinery4",
       "+{%_Movement_Speed._Doesn't_work_if_you're_above_170%_move_speed_already.",
-      "100",
+      "10",
       ".4",
       "25",
-      "1.15"
+      "1.4"
     ],
     [
       "Refinery5",
@@ -82159,12 +82223,20 @@
       "2.2"
     ],
     [
-      "Critter6",
+      "Refinery5",
       "+{%_Total_Damage_dealt.",
-      "250",
+      "10",
       ".1",
       "250",
       "1.04"
+    ],
+    [
+      "Refinery6",
+      "+{%_Cooking_Mastery_EXP_gain,_a_feature_unlocked_via_Rift_61_deep_in_World_4.",
+      "100",
+      "1",
+      "100",
+      "1.22"
     ]
   ],
   "SceneNPCnodes": [
@@ -89645,6 +89717,7 @@
     "w7B11",
     "w7B11b",
     "w7B12",
+    "w7B12b",
     "BabaYagaETC",
     "Hgg",
     "Quest17",
@@ -189436,7 +189509,7 @@
       "Blank",
       "20",
       "0",
-      "10",
+      "11",
       "2",
       "10"
     ],
@@ -197395,7 +197468,7 @@
   "get_internalEncoding": "UTF-16",
   "get_supported": false,
   "get_supportsTouchEvents": "\"ontouchstart\"in document.documentElement||window.DocumentTouch&&document instanceof DocumentTouch?!0:!1",
-  "get_version": "\"WEB \"+(C.replace(\"9.2.0\",\".\",\",\")+\",0\")",
+  "get_version": "\"WEB \"+(z.replace(\"9.2.0\",\".\",\",\")+\",0\")",
   "get_versionString": "",
   "get_vertices": [
     -1,

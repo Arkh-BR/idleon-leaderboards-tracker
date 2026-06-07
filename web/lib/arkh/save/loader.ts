@@ -68,6 +68,9 @@ export function loadSaveData(raw: RawEnvelope): void {
   assignState({ ninjaData: (parseSaveKey(save, "Ninja") as any[]) || [] });
   assignState({ ribbonData: (parseSaveKey(save, "Ribbon") as any[]) || [] });
   assignState({ mealsData: (parseSaveKey(save, "Meals") as any[]) || [] });
+  // Cooking Mastery (Rift 61): CookMaster[0][g] = Yellow PTS spent on meal g,
+  // driving the per-meal BonusMultiCook multiplier. Absent on pre-mastery saves.
+  assignState({ cookMasterData: (parseSaveKey(save, "CookMaster") as any[]) || [] });
   const farmCrop = (parseSaveKey(save, "FarmCrop") as any) || {};
   assignState({
     farmCropCount: typeof farmCrop === "object" ? Object.keys(farmCrop).length : 0,

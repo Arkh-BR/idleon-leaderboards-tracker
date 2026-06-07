@@ -40,7 +40,7 @@ import { computeCardLv } from "./cards";
 import { companions } from "./companions";
 import { computeAllTalentLVz } from "./talent";
 import { talentParams, FAMILY_BONUS_33, CLASS_TREES, TALENT_144 } from "../../data/common/talent";
-import { cookingMealMulti } from "./cooking";
+import { cookingMealMulti, bonusMultiCook } from "./cooking";
 import { isFightingMap, mapKillReq } from "../../data/common/maps";
 import { klaData } from "../../../save/data";
 import { bubbleParams } from "../../data/w2/alchemy";
@@ -223,7 +223,9 @@ function mealBonusZGoldFood(saveData: SaveData): number {
     (optionsListData as any)[379],
     saveData.weeklyBossData
   );
-  return cm.val * ribbon * mealLv * 2;
+  // Meal 64 (Yumi Peachring, zGoldFood) — include its Cooking Mastery per-meal
+  // multiplier so the golden-food boost (→ DR) reflects PTS spent on this meal.
+  return bonusMultiCook(64, saveData) * cm.val * ribbon * mealLv * 2;
 }
 
 export function gfoodBonusMULTI(

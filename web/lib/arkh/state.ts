@@ -55,6 +55,7 @@ export type SaveData = {
   charNames: string[];
   ribbonData: any[];
   mealsData: any[];
+  cookMasterData: any[];
   farmCropCount: number;
   grimoireData: any[];
   vaultData: any[];
@@ -177,6 +178,7 @@ export const saveData: SaveData = {
   charNames: [],
   ribbonData: [],
   mealsData: [],
+  cookMasterData: [],
   farmCropCount: 0,
   grimoireData: [],
   vaultData: [],
