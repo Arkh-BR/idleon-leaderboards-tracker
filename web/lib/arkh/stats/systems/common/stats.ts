@@ -140,7 +140,7 @@ import { guildBonusParams } from "../../data/common/guild";
 import { equipSetBonus } from "../../data/common/equipment";
 import { talentParams } from "../../data/common/talent";
 import { farm as farmResolver } from "../w6/farming";
-import { cookingMealMulti } from "./cooking";
+import { cookingMealMulti, bonusMultiCook } from "./cooking";
 import {
   galleryBonusMulti,
   hatrackBonusMulti,
@@ -1703,7 +1703,7 @@ export function computeMealBonus(effectKey: string, saveData: SaveData): TreeRes
       String((s.olaData && s.olaData[379]) || ""),
       s.weeklyBossData
     );
-    const contrib = cookMulti * ribMeal * mealLv * bonusPerLv;
+    const contrib = bonusMultiCook(mi, s) * cookMulti * ribMeal * mealLv * bonusPerLv;
     total += contrib;
     children.push(
       node(
