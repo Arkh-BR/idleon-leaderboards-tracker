@@ -8,6 +8,8 @@ import {
   masteryExpReq,
 } from "@/lib/arkh/stats/systems/common/cookingMastery";
 import { optimize, type RoiRow } from "@/lib/cookingMastery/optimize";
+import { expRateTree } from "@/lib/cookingMastery/tree";
+import ArkhTree from "@/components/dropRate/ArkhTree";
 
 /** Compact k/M/B/T number formatting for Exp/h and large counts. */
 function notate(n: number): string {
@@ -63,11 +65,13 @@ export default function MasteryOptimizer({
       loadSaveData(envelope as never);
       const inp = readMasteryInputs(saveData);
       const result = optimize(inp, { calibrateExpRate: ingameExpRate });
-      return { inp, result, error: null as string | null };
+      const tree = expRateTree(saveData);
+      return { inp, result, tree, error: null as string | null };
     } catch (e) {
       return {
         inp: null,
         result: null,
+        tree: null,
         error: e instanceof Error ? e.message : String(e),
       };
     }
@@ -88,7 +92,7 @@ export default function MasteryOptimizer({
     );
   }
 
-  const { inp, result } = computed;
+  const { inp, result, tree } = computed;
   const preMastery =
     inp.rank === 0 && inp.ladles === 0 && inp.purple.every((p) => p === 0);
 
@@ -178,11 +182,22 @@ export default function MasteryOptimizer({
         <p>
           The <strong>Optimal</strong> column assumes a reset and reallocation of
           all {result.pools.purpleTotal} Purple PTS. Yellow PTS go into meal
-          bonuses and don&apos;t affect Exp/h.
-          {!result.calibrated &&
-            " Absolute Exp/h is computed from the save (vial, Arcade, Salt Lick, Research Grid, Zuperbit, Companion); enter your in-game Exp/h above only for fine calibration."}
+          bonuses and don&apos;t affect Exp/h. Absolute Exp/h is computed from the
+          save (vial, Arcade, Salt Lick, Research Grid, Zuperbit, Companion) — see
+          the full breakdown below.
         </p>
       </div>
+
+      {tree && (
+        <details className="rounded-lg border border-zinc-800 overflow-hidden">
+          <summary className="cursor-pointer select-none px-3 py-2 text-sm font-medium text-zinc-300 bg-zinc-900/60 hover:bg-zinc-900">
+            🌳 Exp/h breakdown (full tree)
+          </summary>
+          <div className="bg-zinc-950/40 border-t border-zinc-800">
+            <ArkhTree tree={tree} />
+          </div>
+        </details>
+      )}
     </div>
   );
 }
