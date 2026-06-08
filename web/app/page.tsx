@@ -6,7 +6,7 @@ export const metadata: Metadata = {
     absolute: "Arkh's Idleon Trackers",
   },
   description:
-    "Community trackers for Legends of Idleon — IT leaderboards rank monitor, local Tome Score calculator, Drop Rate breakdown, and a Talents tracker.",
+    "Community trackers for Legends of Idleon — IT leaderboards rank monitor, local Tome Score calculator, Drop Rate breakdown, Talents tracker, and a Cooking Mastery optimizer.",
 };
 
 export default function HomePage() {
@@ -50,6 +50,13 @@ export default function HomePage() {
           title="Talents Tracker"
           description="Per-talent Effective Level breakdown, plus account-wide scans: points still to invest and talents that still need books."
           cta="Open Talents"
+        />
+        <ShortcutCard
+          href="/cooking-mastery"
+          icon="🍳"
+          title="Cooking Mastery Optimizer"
+          description="Find the optimal Purple PTS split to maximize your Cooking Mastery Exp/h, with the marginal ROI of every upgrade. Game Code Faithful."
+          cta="Open Cooking Mastery"
         />
         <ShortcutCard
           href="/sheets"
