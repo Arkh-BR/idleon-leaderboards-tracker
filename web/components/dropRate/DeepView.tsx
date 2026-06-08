@@ -648,6 +648,8 @@ export default function DeepView({
   bare = false,
   treeTabLabel = "🌳 Tree",
   onViewChange,
+  defaultView = "tree",
+  extraTabsFirst = false,
 }: {
   tree: ArkhNode | null;
   /** Optional snapshot baseline. When set, every row gains a "Δ vs snap"
@@ -670,8 +672,12 @@ export default function DeepView({
    *  the caller can react — e.g. /talents-level hides the talent picker +
    *  headline unless the Talent Breakdown tab is active. */
   onViewChange?: (view: ViewMode) => void;
+  /** Initial active tab id. Defaults to the built-in "tree". */
+  defaultView?: ViewMode;
+  /** Render the caller's extraTabs before the built-in Tree tab. */
+  extraTabsFirst?: boolean;
 }) {
-  const [view, setView] = useState<ViewMode>("tree");
+  const [view, setView] = useState<ViewMode>(defaultView);
   // Report the active tab to the caller (mount + every change). onViewChange
   // is expected to be a stable callback; included in deps for correctness.
   useEffect(() => {
@@ -784,6 +790,22 @@ export default function DeepView({
           single-tree render). */}
       {!bare && (
       <div className="mb-3 flex items-center gap-1 border-b border-zinc-800">
+        {extraTabsFirst &&
+          extraTabs.map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              onClick={() => setView(t.id)}
+              className={`px-3 py-1.5 text-sm font-medium rounded-t -mb-px border ${
+                view === t.id
+                  ? "bg-sky-500/15 text-sky-300 border-sky-500/40 border-b-transparent"
+                  : "text-zinc-400 hover:text-zinc-200 border-transparent"
+              }`}
+              title={t.title}
+            >
+              {t.label}
+            </button>
+          ))}
         <button
           type="button"
           onClick={() => setView("tree")}
@@ -810,21 +832,22 @@ export default function DeepView({
             🌍 Per World
           </button>
         )}
-        {extraTabs.map((t) => (
-          <button
-            key={t.id}
-            type="button"
-            onClick={() => setView(t.id)}
-            className={`px-3 py-1.5 text-sm font-medium rounded-t -mb-px border ${
-              view === t.id
-                ? "bg-sky-500/15 text-sky-300 border-sky-500/40 border-b-transparent"
-                : "text-zinc-400 hover:text-zinc-200 border-transparent"
-            }`}
-            title={t.title}
-          >
-            {t.label}
-          </button>
-        ))}
+        {!extraTabsFirst &&
+          extraTabs.map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              onClick={() => setView(t.id)}
+              className={`px-3 py-1.5 text-sm font-medium rounded-t -mb-px border ${
+                view === t.id
+                  ? "bg-sky-500/15 text-sky-300 border-sky-500/40 border-b-transparent"
+                  : "text-zinc-400 hover:text-zinc-200 border-transparent"
+              }`}
+              title={t.title}
+            >
+              {t.label}
+            </button>
+          ))}
       </div>
       )}
 

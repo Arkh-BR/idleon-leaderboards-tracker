@@ -7,9 +7,9 @@ import {
   readMasteryInputs,
   masteryExpReq,
 } from "@/lib/arkh/stats/systems/common/cookingMastery";
-import { optimize, type RoiRow } from "@/lib/cookingMastery/optimize";
+import { optimize, type RoiRow, type OptimizeResult } from "@/lib/cookingMastery/optimize";
 import { expRateTree } from "@/lib/cookingMastery/tree";
-import ArkhTree from "@/components/dropRate/ArkhTree";
+import DeepView from "@/components/dropRate/DeepView";
 
 /** Compact k/M/B/T number formatting for Exp/h and large counts. */
 function notate(n: number): string {
@@ -95,8 +95,6 @@ export default function MasteryOptimizer({
   const { inp, result, tree } = computed;
   const preMastery =
     inp.rank === 0 && inp.ladles === 0 && inp.purple.every((p) => p === 0);
-
-  // Best next point: the unlocked upgrade with the largest current ROI.
   const bestNext = result.roi.find((r) => r.id === result.bestUpgradeId);
 
   return (
@@ -109,7 +107,7 @@ export default function MasteryOptimizer({
         </div>
       )}
 
-      {/* Summary cards */}
+      {/* Summary cards — always visible above the tabs (like the Total DR readout). */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <Stat
           label="Mastery Rank"
@@ -151,7 +149,31 @@ export default function MasteryOptimizer({
         </div>
       )}
 
-      {/* Allocation / ROI table — upgrades in game order */}
+      {/* Optimizer / Tree tabs — same DeepView tab strip the Drop Rate uses
+          (here with the Per-World tab off and the optimizer table as the
+          extra tab, opened by default). */}
+      <DeepView
+        tree={tree}
+        showWorldView={false}
+        defaultView="optimizer"
+        extraTabsFirst
+        treeTabLabel="🌳 Tree"
+        extraTabs={[
+          {
+            id: "optimizer",
+            label: "🎯 Optimizer",
+            title: "Optimal Purple PTS allocation + ROI per upgrade",
+            render: () => <OptimizerTable result={result} />,
+          },
+        ]}
+      />
+    </div>
+  );
+}
+
+function OptimizerTable({ result }: { result: OptimizeResult }) {
+  return (
+    <div className="space-y-3">
       <div className="overflow-x-auto rounded-lg border border-zinc-800">
         <table className="w-full text-sm">
           <thead className="bg-zinc-900 text-zinc-400">
@@ -165,7 +187,11 @@ export default function MasteryOptimizer({
           </thead>
           <tbody>
             {result.roi.map((row) => (
-              <AllocRow key={row.id} row={row} best={row.id === bestNext?.id} />
+              <AllocRow
+                key={row.id}
+                row={row}
+                best={row.id === result.bestUpgradeId}
+              />
             ))}
           </tbody>
         </table>
@@ -182,22 +208,10 @@ export default function MasteryOptimizer({
         <p>
           The <strong>Optimal</strong> column assumes a reset and reallocation of
           all {result.pools.purpleTotal} Purple PTS. Yellow PTS go into meal
-          bonuses and don&apos;t affect Exp/h. Absolute Exp/h is computed from the
-          save (vial, Arcade, Salt Lick, Research Grid, Zuperbit, Companion) — see
-          the full breakdown below.
+          bonuses and don&apos;t affect Exp/h. Open the <strong>🌳 Tree</strong>{" "}
+          tab for the full Exp/h breakdown.
         </p>
       </div>
-
-      {tree && (
-        <details className="rounded-lg border border-zinc-800 overflow-hidden">
-          <summary className="cursor-pointer select-none px-3 py-2 text-sm font-medium text-zinc-300 bg-zinc-900/60 hover:bg-zinc-900">
-            🌳 Exp/h breakdown (full tree)
-          </summary>
-          <div className="bg-zinc-950/40 border-t border-zinc-800">
-            <ArkhTree tree={tree} />
-          </div>
-        </details>
-      )}
     </div>
   );
 }
