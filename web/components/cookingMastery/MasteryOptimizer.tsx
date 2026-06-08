@@ -130,11 +130,20 @@ export default function MasteryOptimizer({
         />
       </div>
 
-      {bestNext && result.pools.purpleAvailable > 0 && (
+      {bestNext && (
         <div className="rounded-md border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-200/90">
-          💡 You have <strong>{result.pools.purpleAvailable}</strong> free Purple
-          PTS. The next one is best spent on <strong>{bestNext.name}</strong> (+
-          {bestNext.marginalGainPct.toFixed(2)}% Exp/h).
+          💡 <strong>Next point →</strong>{" "}
+          {result.pools.purpleAvailable > 0
+            ? `${result.pools.purpleAvailable} free Purple PT${
+                result.pools.purpleAvailable > 1 ? "s" : ""
+              } available; put the next one in `
+            : "the next Purple PT you earn should go in "}
+          <strong>{bestNext.name}</strong> (+
+          {bestNext.marginalGainPct.toFixed(2)}% Exp/h
+          {bestNext.currentPts < bestNext.optimalPts
+            ? `, toward the optimal ${result.optimal.purple[bestNext.id]}`
+            : ""}
+          ).
         </div>
       )}
 
@@ -189,6 +198,11 @@ function AllocRow({ row, best }: { row: RoiRow; best: boolean }) {
         <span className={row.unlocked ? "text-zinc-200" : "text-zinc-500"}>
           {row.name}
         </span>
+        {best && (
+          <span className="ml-2 text-[10px] font-semibold uppercase tracking-wide text-emerald-300 bg-emerald-500/15 border border-emerald-500/30 rounded px-1.5 py-0.5">
+            next
+          </span>
+        )}
         {!row.unlocked && (
           <span className="ml-2 text-[11px] text-zinc-500">
             🔒 rank {row.rankReq}
