@@ -118,6 +118,12 @@ export const communitySheets: SheetLink[] = [
     url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSCepYAs6sNDP4iq6MJNAG1pvFXzfC_3IQ7ttt5vfEEKAgQhIk4cQqnLRyeH6UyqDSuP4R-6WQeDmmP/pubhtml#gid=893917212",
     description: "Comprehensive game reference and tracking resource.",
   },
+  {
+    name: "Exotic Market Level Breakpoints",
+    url: "https://docs.google.com/spreadsheets/d/1pFbw_zrL3rvFeYwQ7acU_w8ecC_L_AcRmuMKC2ylPbM/edit?gid=0#gid=0",
+    description:
+      "Optimal level breakpoints for buying Exotic Market upgrades.",
+  },
 ];
 
 // Community tools — non-spreadsheet tools, wikis and dashboards.
