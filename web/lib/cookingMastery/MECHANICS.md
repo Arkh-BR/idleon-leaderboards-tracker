@@ -103,3 +103,24 @@ Multiplica o bônus da meal g (range 1→~2). Já portado em `lib/arkh/stats/sys
 
 Nomes p/ UI (strings do jogo): `EXP boost via Ladle / account Cooking LV / Divorce Cake Level /
 daily Ribbon gains / total Ribbon Ranks / Mastery Rank`.
+
+## Fatores externos da Exp/h (portados — `externalExpMulti`)
+
+Os 6 fatores multiplicativos são constantes em relação à alocação de Purple, mas necessários
+para a Exp/h absoluta. Validados a **0.08%** contra um save real (Exp/h in-game 56,6M).
+
+| Fator | N.js | Porte na engine |
+|---|---|---|
+| Research Grid K3 | `ResearchStuff("Grid_Bonus",190,0)` | `gridBonusValue(190, s)` (w4/lab) |
+| Zuperbit 68 | `GamingStatType("SuperBitType",68,0)` | ver nota abaixo |
+| Companion 87 (rift1) | `1 + 2·Companions(87)` | `companionIds.has(87)` |
+| Vial Canteen Read | `AlchVials["7cookmastery"]` | `computeVialByKey("7cookmastery", s)` (w2/alchemy) |
+| Arcade 69 | `ArcadeBonus(69)` | `arcadeBonus(69, s)` (w2/arcade) |
+| Salt Lick 10 (Refinery6) | `SaltLick(10) = SaltLick[10]·SaltLicks[10][3]` | inline (linear) |
+
+**SuperBitType / Number2Letter:** `SuperBitType(b) = Gaming[12].indexOf(Number2Letter[b]) != -1`.
+`Number2Letter` é um GameAttribute default do runtime Stencyl — **não existe como texto no bundle
+N.js** (só aparece em `getGameAttribute("Number2Letter")`, nunca atribuído). Como os super bits do
+Gaming são desbloqueados sequencialmente, `Gaming[12]` é um prefixo de `Number2Letter`, então
+`SuperBitType(b) = (b < Gaming[12].length)`. Exato para progressão sequencial densa (o caso comum);
+um `extBonusOverrides.cookMasteryExtMulti` (calibrado da Exp/h in-game) sobrescreve o produto se preciso.

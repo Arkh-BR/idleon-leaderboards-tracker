@@ -8,6 +8,10 @@
 // Exp/h is MULTIPLICATIVE across the upgrades; Yellow PTS do NOT feed Exp/h.
 
 import type { SaveData } from "../../../state";
+import { gridBonusValue } from "../w4/lab";
+import { arcadeBonus } from "../w2/arcade";
+import { computeVialByKey } from "../w2/alchemy";
+import { SaltLicks } from "../../data/game/customlists";
 
 // RandoListo2[8] — base coefficient per upgrade b (0..5).
 export const MASTERY_COEF = [200, 1, 30, 10, 2, 20] as const;
@@ -104,30 +108,45 @@ export function yellowTotal(inp: MasteryInputs): number {
   return purpleTotal(inp) + inp.researchGridYellow;
 }
 
+export type ExternalBreakdown = {
+  val: number;
+  researchGrid190: number; // ResearchStuff("Grid_Bonus",190) — % per the grid square
+  superBit68: number; // GamingStatType("SuperBitType",68) — 0/1
+  comp87: number; // Companion 87 (rift1) — 0/1
+  vial7cm: number; // AlchVials["7cookmastery"] — %
+  arcade69: number; // ArcadeBonus(69) — %
+  saltLick10: number; // SaltLick(10) — %
+};
+
 /**
  * Product of the Exp/h multipliers that are CONSTANT w.r.t. Purple allocation:
  *   (1+ResearchGrid190/100)·(1+40·SuperBit68/100)·(1+2·Comp87)·(1+(vial7cm+Arcade69+SaltLick10)/100)
  *
- * Only Companion 87 is ported exactly. The other four default to 0 (no bonus)
- * pending a per-subsystem port — they scale the ABSOLUTE Exp/h but do NOT change
- * the optimal Purple allocation or the ROI ranking. Override via
- * `extBonusOverrides["cookMasteryExtMulti"]` once measured against a real save.
+ * Ported from N.js (`ExpRateCook`), validated to 0.08% against a real save.
+ * Reuses the engine's grid/arcade/vial ports. SuperBitType needs Number2Letter
+ * (a runtime-only GameAttribute, absent from the JS bundle); since super bits
+ * unlock sequentially, Gaming[12] is a prefix of Number2Letter, so bit 68 is
+ * owned iff Gaming[12].length > 68. An `extBonusOverrides.cookMasteryExtMulti`
+ * number overrides the whole product (e.g. calibrated from an in-game Exp/h).
  */
-export function externalExpMulti(s: SaveData): number {
+export function externalExpMulti(s: SaveData): ExternalBreakdown {
   const override = (s.extBonusOverrides as any)?.cookMasteryExtMulti;
-  if (typeof override === "number" && override > 0) return override;
+  const researchGrid190 = gridBonusValue(190, s);
+  const gaming12 = String((s.gamingData as any[])?.[12] ?? "");
+  const superBit68 = gaming12.length > 68 ? 1 : 0;
   const comp87 = s.companionIds?.has(87) ? 1 : 0;
-  const researchGrid190 = 0; // TODO ResearchStuff("Grid_Bonus",190,0)
-  const superBit68 = 0; // TODO GamingStatType("SuperBitType",68,0)
-  const vial7cm = 0; // TODO AlchVials["7cookmastery"]
-  const arcade69 = 0; // TODO ArcadeBonus(69)
-  const saltLick10 = 0; // TODO SaltLick(10)
-  return (
-    (1 + researchGrid190 / 100) *
-    (1 + (40 * superBit68) / 100) *
-    (1 + 2 * comp87) *
-    (1 + (vial7cm + arcade69 + saltLick10) / 100)
-  );
+  const vial7cm = computeVialByKey("7cookmastery", s).val;
+  const arcade69 = arcadeBonus(69, s).val;
+  const slLv = Number((s.saltLickData as any[])?.[10]) || 0;
+  const saltLick10 = slLv > 0 ? slLv * (Number((SaltLicks as any)?.[10]?.[3]) || 0) : 0;
+  const val =
+    typeof override === "number" && override > 0
+      ? override
+      : (1 + researchGrid190 / 100) *
+        (1 + (40 * superBit68) / 100) *
+        (1 + 2 * comp87) *
+        (1 + (vial7cm + arcade69 + saltLick10) / 100);
+  return { val, researchGrid190, superBit68, comp87, vial7cm, arcade69, saltLick10 };
 }
 
 /** Extracts the mastery inputs from a loaded save. Pre-mastery saves → all zero. */
@@ -153,6 +172,6 @@ export function readMasteryInputs(s: SaveData): MasteryInputs {
     purple: Array.from({ length: 6 }, (_, i) => num((cm[2] as any[])?.[i])),
     comp87: s.companionIds?.has(87) ?? false,
     researchGridYellow: 0, // TODO ResearchStuff("Grid_Bonus",190,1)
-    externalMulti: externalExpMulti(s),
+    externalMulti: externalExpMulti(s).val,
   };
 }

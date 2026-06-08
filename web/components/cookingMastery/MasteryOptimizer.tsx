@@ -121,20 +121,12 @@ export default function MasteryOptimizer({
         />
         <Stat
           label="Exp/h atual"
-          value={result.calibrated ? `${notate(result.current.expRate)}/h` : "informe ↑"}
-          sub={
-            result.calibrated
-              ? "calibrado in-game"
-              : `core ${notate(result.current.expRateCore)}`
-          }
+          value={`${notate(result.current.expRate)}/h`}
+          sub={result.calibrated ? "calibrado in-game" : "calculado do save"}
         />
         <Stat
           label="Exp/h ótima"
-          value={
-            result.calibrated
-              ? `${notate(result.optimal.expRate)}/h`
-              : `core ${notate(result.optimal.expRateCore)}`
-          }
+          value={`${notate(result.optimal.expRate)}/h`}
           sub={`+${result.gainPct.toFixed(1)}% com realocação`}
           highlight={result.gainPct > 0.05}
         />
@@ -182,7 +174,7 @@ export default function MasteryOptimizer({
           {result.pools.purpleTotal} Purple PTS. Yellow PTS vão nos bônus das
           meals e não afetam a Exp/h.
           {!result.calibrated &&
-            " Informe a Exp/h in-game acima para ver os valores absolutos (o ganho % já é exato)."}
+            " A Exp/h absoluta é calculada do save (vial, Arcade, Salt Lick, Research Grid, Zuperbit, Companion); informe a Exp/h in-game acima só se quiser calibração fina."}
         </p>
       </div>
     </div>

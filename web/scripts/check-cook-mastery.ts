@@ -52,7 +52,7 @@ console.log(`Yellow total ${r.pools.yellowTotal}`);
 
 console.log("\n=== Exp/h ===");
 console.log(
-  `externalMulti: ${r.externalMulti.toFixed(3)} ${r.calibrated ? "(calibrado da Exp/h in-game)" : "(estimado — comp87 + externos parciais)"}`,
+  `externalMulti: ${r.externalMulti.toFixed(3)} ${r.calibrated ? "(calibrado da Exp/h in-game)" : "(calculado dos 6 fatores externos)"}`,
 );
 console.log(
   `Atual : ${r.current.expRate.toExponential(4)} /h   (core ${r.current.expRateCore.toFixed(3)})`,

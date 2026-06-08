@@ -94,10 +94,10 @@ export default function CookingMasteryPageClient() {
           <span className="text-xs text-zinc-500">(opcional)</span>
         </label>
         <p className="text-xs text-zinc-500 mt-2">
-          Os bônus externos (vial, Arcade, Salt Lick, Research Grid, Zuperbit) são
-          constantes em relação à alocação, então informar a Exp/h que o jogo
-          mostra calibra os valores <strong>absolutos</strong> exatamente. O ganho
-          percentual da otimização já é exato mesmo sem isso.
+          A Exp/h é <strong>calculada automaticamente</strong> do seu save (vial,
+          Arcade, Salt Lick, Research Grid, Zuperbit e Companion incluídos).
+          Informe a Exp/h que o jogo mostra apenas se quiser calibração fina — o
+          ganho percentual da otimização já é exato de qualquer forma.
         </p>
       </div>
 
