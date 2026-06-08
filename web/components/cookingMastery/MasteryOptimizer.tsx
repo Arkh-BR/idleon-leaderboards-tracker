@@ -34,9 +34,7 @@ function Stat({
   return (
     <div
       className={`rounded-lg border p-3 ${
-        highlight
-          ? "border-gold/40 bg-gold/5"
-          : "border-zinc-800 bg-zinc-900/60"
+        highlight ? "border-gold/40 bg-gold/5" : "border-zinc-800 bg-zinc-900/60"
       }`}
     >
       <div className="text-[11px] uppercase tracking-wide text-zinc-500">
@@ -78,14 +76,14 @@ export default function MasteryOptimizer({
   if (!computed) {
     return (
       <p className="text-sm text-zinc-500 text-center py-10">
-        Carregue um save acima para ver a distribuição ótima de Purple PTS.
+        Load a save above to see the optimal Purple PTS distribution.
       </p>
     );
   }
   if (computed.error || !computed.inp || !computed.result) {
     return (
       <p className="text-sm text-red-400 py-4">
-        ⚠ Não consegui ler o save: {computed.error}
+        ⚠ Couldn&apos;t read the save: {computed.error}
       </p>
     );
   }
@@ -94,16 +92,16 @@ export default function MasteryOptimizer({
   const preMastery =
     inp.rank === 0 && inp.ladles === 0 && inp.purple.every((p) => p === 0);
 
-  // The best next point: the unlocked upgrade with the largest current ROI.
-  const bestNext = result.roi.find((r) => r.unlocked && r.marginalGain > 0);
+  // Best next point: the unlocked upgrade with the largest current ROI.
+  const bestNext = result.roi.find((r) => r.id === result.bestUpgradeId);
 
   return (
     <div className="space-y-4">
       {preMastery && (
         <div className="rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm text-amber-200/90">
-          Este save parece ser <strong>anterior ao Cooking Mastery</strong>{" "}
-          (Rift 61) — rank 0 e sem pontos. Carregue um save com a mecânica
-          desbloqueada para otimizar.
+          This save looks like it&apos;s{" "}
+          <strong>from before Cooking Mastery</strong> (Rift 61) — rank 0 and no
+          points. Load a save with the mechanic unlocked to optimize.
         </div>
       )}
 
@@ -116,40 +114,39 @@ export default function MasteryOptimizer({
         />
         <Stat
           label="Purple PTS"
-          value={`${result.pools.purpleAvailable} livre`}
-          sub={`${result.pools.purpleSpent} / ${result.pools.purpleTotal} gasto`}
+          value={`${result.pools.purpleAvailable} free`}
+          sub={`${result.pools.purpleSpent} / ${result.pools.purpleTotal} spent`}
         />
         <Stat
-          label="Exp/h atual"
+          label="Current Exp/h"
           value={`${notate(result.current.expRate)}/h`}
-          sub={result.calibrated ? "calibrado in-game" : "calculado do save"}
+          sub={result.calibrated ? "calibrated in-game" : "computed from save"}
         />
         <Stat
-          label="Exp/h ótima"
+          label="Optimal Exp/h"
           value={`${notate(result.optimal.expRate)}/h`}
-          sub={`+${result.gainPct.toFixed(1)}% com realocação`}
+          sub={`+${result.gainPct.toFixed(1)}% with realloc`}
           highlight={result.gainPct > 0.05}
         />
       </div>
 
       {bestNext && result.pools.purpleAvailable > 0 && (
         <div className="rounded-md border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-200/90">
-          💡 Você tem <strong>{result.pools.purpleAvailable}</strong> Purple PTS
-          livre{result.pools.purpleAvailable > 1 ? "s" : ""}. O próximo rende
-          mais em <strong>{bestNext.name}</strong> (+
-          {bestNext.marginalGainPct.toFixed(2)}% de Exp/h).
+          💡 You have <strong>{result.pools.purpleAvailable}</strong> free Purple
+          PTS. The next one is best spent on <strong>{bestNext.name}</strong> (+
+          {bestNext.marginalGainPct.toFixed(2)}% Exp/h).
         </div>
       )}
 
-      {/* Allocation / ROI table */}
+      {/* Allocation / ROI table — upgrades in game order */}
       <div className="overflow-x-auto rounded-lg border border-zinc-800">
         <table className="w-full text-sm">
           <thead className="bg-zinc-900 text-zinc-400">
             <tr>
               <th className="text-left font-medium px-3 py-2">Upgrade</th>
-              <th className="text-right font-medium px-3 py-2">Valor/pt</th>
-              <th className="text-right font-medium px-3 py-2">Atual</th>
-              <th className="text-right font-medium px-3 py-2">Ótimo</th>
+              <th className="text-right font-medium px-3 py-2">Value/pt</th>
+              <th className="text-right font-medium px-3 py-2">Current</th>
+              <th className="text-right font-medium px-3 py-2">Optimal</th>
               <th className="text-right font-medium px-3 py-2">ROI /pt</th>
             </tr>
           </thead>
@@ -163,18 +160,18 @@ export default function MasteryOptimizer({
 
       <div className="text-[11px] text-zinc-500 space-y-1">
         <p>
-          A Exp/h do Cooking Mastery é um <strong>produto</strong> dos upgrades
-          de Purple PTS. Como cada upgrade tem rendimento decrescente, a
-          alocação ótima equaliza o ganho marginal (water-filling). “Valor/pt” =
-          base × coeficiente; “ROI /pt” = Exp/h ganho pelo próximo ponto na
-          alocação atual.
+          Cooking Mastery Exp/h is a <strong>product</strong> of the Purple PTS
+          upgrades. Since each has diminishing returns, the optimal split
+          equalizes the marginal gain (water-filling). “Value/pt” = base ×
+          coefficient; “ROI /pt” = Exp/h gained by the next point at the current
+          allocation.
         </p>
         <p>
-          A coluna <strong>Ótimo</strong> assume reset e realocação de todos os{" "}
-          {result.pools.purpleTotal} Purple PTS. Yellow PTS vão nos bônus das
-          meals e não afetam a Exp/h.
+          The <strong>Optimal</strong> column assumes a reset and reallocation of
+          all {result.pools.purpleTotal} Purple PTS. Yellow PTS go into meal
+          bonuses and don&apos;t affect Exp/h.
           {!result.calibrated &&
-            " A Exp/h absoluta é calculada do save (vial, Arcade, Salt Lick, Research Grid, Zuperbit, Companion); informe a Exp/h in-game acima só se quiser calibração fina."}
+            " Absolute Exp/h is computed from the save (vial, Arcade, Salt Lick, Research Grid, Zuperbit, Companion); enter your in-game Exp/h above only for fine calibration."}
         </p>
       </div>
     </div>
@@ -186,19 +183,21 @@ function AllocRow({ row, best }: { row: RoiRow; best: boolean }) {
   const isExpSource = row.id !== 3; // b=3 is "daily ribbon", not Exp/h
   return (
     <tr
-      className={`border-t border-zinc-800/70 ${
-        best ? "bg-emerald-500/5" : ""
-      }`}
+      className={`border-t border-zinc-800/70 ${best ? "bg-emerald-500/5" : ""}`}
     >
       <td className="px-3 py-2">
         <span className={row.unlocked ? "text-zinc-200" : "text-zinc-500"}>
           {row.name}
         </span>
         {!row.unlocked && (
-          <span className="ml-2 text-[11px] text-zinc-500">🔒 rank {row.rankReq}</span>
+          <span className="ml-2 text-[11px] text-zinc-500">
+            🔒 rank {row.rankReq}
+          </span>
         )}
         {row.unlocked && !isExpSource && (
-          <span className="ml-2 text-[11px] text-zinc-500">(não afeta Exp/h)</span>
+          <span className="ml-2 text-[11px] text-zinc-500">
+            (doesn&apos;t affect Exp/h)
+          </span>
         )}
       </td>
       <td className="px-3 py-2 text-right tabular-nums text-zinc-400">
@@ -208,7 +207,9 @@ function AllocRow({ row, best }: { row: RoiRow; best: boolean }) {
         {row.currentPts}
       </td>
       <td className="px-3 py-2 text-right tabular-nums">
-        <span className={row.unlocked && isExpSource ? "text-zinc-100" : "text-zinc-600"}>
+        <span
+          className={row.unlocked && isExpSource ? "text-zinc-100" : "text-zinc-600"}
+        >
           {row.unlocked && isExpSource ? row.optimalPts : "—"}
         </span>
         {delta !== 0 && isExpSource && row.unlocked && (
@@ -221,7 +222,9 @@ function AllocRow({ row, best }: { row: RoiRow; best: boolean }) {
       </td>
       <td className="px-3 py-2 text-right tabular-nums">
         {row.unlocked && isExpSource && row.marginalGainPct > 0 ? (
-          <span className={best ? "text-emerald-300 font-semibold" : "text-zinc-300"}>
+          <span
+            className={best ? "text-emerald-300 font-semibold" : "text-zinc-300"}
+          >
             +{row.marginalGainPct.toFixed(2)}%
           </span>
         ) : (

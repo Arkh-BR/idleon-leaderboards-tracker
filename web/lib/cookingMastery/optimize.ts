@@ -42,7 +42,8 @@ export type OptimizeResult = {
   gainPct: number; // optimal vs current (full realloc), %
   externalMulti: number; // Purple-independent multiplier used for absolute Exp/h
   calibrated: boolean; // true when externalMulti was backed out from an in-game Exp/h
-  roi: RoiRow[]; // one row per upgrade, sorted by current marginal ROI desc
+  bestUpgradeId: number | null; // upgrade id with the largest current marginal ROI
+  roi: RoiRow[]; // one row per upgrade, in game order (upgrade id 0..5)
 };
 
 const num = (v: unknown): number => Number(v) || 0;
@@ -129,7 +130,15 @@ export function optimize(
       marginalGainPct: currentCore > 0 ? (marginalCore / currentCore) * 100 : 0,
     };
   });
-  roi.sort((x, y) => y.marginalGain - x.marginalGain);
+  // Keep `roi` in game order (upgrade id 0..5); flag the best next point separately.
+  let bestUpgradeId: number | null = null;
+  let bestGain = 0;
+  for (const r of roi) {
+    if (r.unlocked && r.marginalGain > bestGain) {
+      bestGain = r.marginalGain;
+      bestUpgradeId = r.id;
+    }
+  }
 
   return {
     pools: {
@@ -151,6 +160,7 @@ export function optimize(
     gainPct: currentCore > 0 ? (optimalCore / currentCore - 1) * 100 : 0,
     externalMulti: ext,
     calibrated,
+    bestUpgradeId,
     roi,
   };
 }

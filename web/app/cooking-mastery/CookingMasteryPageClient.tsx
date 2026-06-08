@@ -31,7 +31,7 @@ export default function CookingMasteryPageClient() {
       setPasteError(null);
     } catch {
       setPasteError(
-        "JSON inválido. Cole o export do IdleonToolbox (Copy Data for Support) ou o save bruto.",
+        "Invalid JSON. Paste the IdleonToolbox export (Copy Data for Support) or the raw save.",
       );
     }
   }
@@ -41,9 +41,9 @@ export default function CookingMasteryPageClient() {
       <header className="py-4">
         <h1 className="text-2xl font-bold text-gold">🍳 Cooking Mastery Optimizer</h1>
         <p className="text-sm text-zinc-400 mt-1">
-          Distribua seus <strong>Purple PTS</strong> para maximizar a Exp/h do
-          Cooking Mastery (desbloqueado no Rift 61). Tudo é calculado localmente
-          no seu navegador.
+          Distribute your <strong>Purple PTS</strong> to maximize Cooking Mastery
+          Exp/h (unlocked at Rift 61). Everything is computed locally in your
+          browser.
         </p>
       </header>
 
@@ -57,13 +57,13 @@ export default function CookingMasteryPageClient() {
       >
         <details className="text-sm">
           <summary className="cursor-pointer text-zinc-400 hover:text-zinc-200 select-none">
-            …ou colar JSON manualmente
+            …or paste JSON manually
           </summary>
           <div className="mt-2 flex flex-col gap-2">
             <textarea
               value={pasteText}
               onChange={(e) => setPasteText(e.target.value)}
-              placeholder="Cole aqui o JSON do save (Copy Data for Support no IdleonToolbox)"
+              placeholder="Paste your save JSON here (Copy Data for Support on IdleonToolbox)"
               rows={4}
               className="w-full bg-zinc-950 border border-zinc-700 rounded px-3 py-2 text-xs font-mono"
             />
@@ -73,7 +73,7 @@ export default function CookingMasteryPageClient() {
               disabled={!pasteText.trim()}
               className="self-start bg-gold text-ink font-bold rounded px-4 py-2 text-sm disabled:opacity-50"
             >
-              Calcular
+              Calculate
             </button>
           </div>
         </details>
@@ -82,35 +82,33 @@ export default function CookingMasteryPageClient() {
       {/* In-game Exp/h calibration */}
       <div className="rounded-lg border border-zinc-800 bg-zinc-900/60 p-4 mb-4">
         <label className="flex flex-wrap items-center gap-2">
-          <span className="font-semibold text-gold">⚡ Exp/h in-game</span>
+          <span className="font-semibold text-gold">⚡ In-game Exp/h</span>
           <input
             type="text"
             inputMode="decimal"
             value={expRateStr}
             onChange={(e) => setExpRateStr(e.target.value)}
-            placeholder="ex: 56.6m"
+            placeholder="e.g. 56.6m"
             className="bg-zinc-950 border border-zinc-700 rounded px-3 py-2 text-sm w-40 font-mono"
           />
-          <span className="text-xs text-zinc-500">(opcional)</span>
+          <span className="text-xs text-zinc-500">(optional)</span>
         </label>
         <p className="text-xs text-zinc-500 mt-2">
-          A Exp/h é <strong>calculada automaticamente</strong> do seu save (vial,
-          Arcade, Salt Lick, Research Grid, Zuperbit e Companion incluídos).
-          Informe a Exp/h que o jogo mostra apenas se quiser calibração fina — o
-          ganho percentual da otimização já é exato de qualquer forma.
+          Exp/h is <strong>computed automatically</strong> from your save (vial,
+          Arcade, Salt Lick, Research Grid, Zuperbit and Companion included).
+          Enter the Exp/h the game shows only if you want fine calibration — the
+          optimization&apos;s percentage gain is exact either way.
         </p>
       </div>
 
-      {pasteError && (
-        <p className="text-xs text-red-400 mb-3">⚠ {pasteError}</p>
-      )}
+      {pasteError && <p className="text-xs text-red-400 mb-3">⚠ {pasteError}</p>}
 
       <MasteryOptimizer envelope={envelope} ingameExpRate={ingameExpRate} />
 
       <footer className="mt-8 text-[11px] text-zinc-600 text-center border-t border-zinc-900 pt-3">
-        Exp/h porta a fórmula <code>ExpRateCook</code> do jogo (Rift 61). A
-        alocação ótima usa greedy water-filling — exato para o produto
-        multiplicativo dos upgrades.
+        Exp/h ports the game&apos;s <code>ExpRateCook</code> formula (Rift 61). The
+        optimal allocation uses greedy water-filling — exact for the
+        multiplicative product of the upgrades.
       </footer>
     </main>
   );
