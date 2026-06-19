@@ -13,13 +13,13 @@
 // default tree (they would all resolve to identical numbers anyway).
 // Auto-refreshed by scripts/update-top-talents.ts.
 //
-// Snapshot generated: 2026-06-16T05:55:24.141Z
-// Players scanned: 76
+// Snapshot generated: 2026-06-19T05:49:44.677Z
+// Players scanned: 77
 
 import type { ArkhNode } from "../arkh/node";
 
-export const HYPO_TALENTS_GENERATED_AT = "2026-06-16T05:55:24.141Z";
-export const HYPO_TALENTS_PLAYERS_SCANNED = 76;
+export const HYPO_TALENTS_GENERATED_AT = "2026-06-19T05:49:44.677Z";
+export const HYPO_TALENTS_PLAYERS_SCANNED = 77;
 
 export const HYPO_DEFAULT_TREE: ArkhNode = {
   "name": "Effective Level",
@@ -33,7 +33,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
           "name": "Points Invested",
           "val": 396,
           "fmt": "raw",
-          "note": "actual save — owner: B0schi"
+          "note": "actual save — owner: Skvimpten"
         },
         {
           "name": "Max Book Lv Cap",
@@ -245,7 +245,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
         }
       ],
       "fmt": "raw",
-      "note": "min(invested, cap) — owner: B0schi"
+      "note": "min(invested, cap) — owner: Skvimpten"
     },
     {
       "name": "Bonus Levels",
@@ -263,7 +263,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                   "name": "Points Invested",
                   "val": 396,
                   "fmt": "raw",
-                  "note": "actual save — owner: B0schi"
+                  "note": "actual save — owner: Skvimpten"
                 },
                 {
                   "name": "Max Book Lv Cap",
@@ -475,11 +475,11 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                 }
               ],
               "fmt": "raw",
-              "note": "min(invested, cap) — owner: B0schi"
+              "note": "min(invested, cap) — owner: Skvimpten"
             }
           ],
           "fmt": "raw",
-          "note": "intervalAdd(1,20,396)"
+          "note": "intervalAdd(1,20,389)"
         },
         {
           "name": "Maroon Warship (Achievement 291)",
@@ -498,17 +498,11 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                   "name": "Char 4 Lv",
                   "val": 1741,
                   "fmt": "raw",
-                  "note": "boschi5 — elemental sorcerer (cls 34)"
-                },
-                {
-                  "name": "Char 8 Lv",
-                  "val": 1724,
-                  "fmt": "raw",
-                  "note": "boschi9 — elemental sorcerer (cls 34)"
+                  "note": "Skvimpfiver — elemental sorcerer (cls 34)"
                 }
               ],
               "fmt": "raw",
-              "note": "max across account — 2 mage chars"
+              "note": "max across account — 1 mage char"
             },
             {
               "name": "Family Guy Multi (×) — potential buff",
@@ -871,7 +865,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
           "name": "Sneaking Completions",
           "val": 5,
           "fmt": "raw",
-          "note": "raw=7"
+          "note": "raw=8"
         },
         {
           "name": "Skull of Major Talent (Grimoire 39)",
@@ -980,7 +974,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
             "name": "Points Invested",
             "val": 396,
             "fmt": "raw",
-            "note": "actual save — owner: B0schi"
+            "note": "actual save — owner: Skvimpten"
           },
           {
             "name": "Max Book Lv Cap",
@@ -1192,7 +1186,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
           }
         ],
         "fmt": "raw",
-        "note": "min(invested, cap) — owner: B0schi"
+        "note": "min(invested, cap) — owner: Skvimpten"
       },
       {
         "name": "Bonus Levels",
@@ -1210,7 +1204,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                     "name": "Points Invested",
                     "val": 396,
                     "fmt": "raw",
-                    "note": "actual save — owner: B0schi"
+                    "note": "actual save — owner: Skvimpten"
                   },
                   {
                     "name": "Max Book Lv Cap",
@@ -1422,11 +1416,11 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                   }
                 ],
                 "fmt": "raw",
-                "note": "min(invested, cap) — owner: B0schi"
+                "note": "min(invested, cap) — owner: Skvimpten"
               }
             ],
             "fmt": "raw",
-            "note": "intervalAdd(1,20,396)"
+            "note": "intervalAdd(1,20,389)"
           },
           {
             "name": "Maroon Warship (Achievement 291)",
@@ -1818,7 +1812,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
             "name": "Sneaking Completions",
             "val": 5,
             "fmt": "raw",
-            "note": "raw=7"
+            "note": "raw=8"
           },
           {
             "name": "Skull of Major Talent (Grimoire 39)",
