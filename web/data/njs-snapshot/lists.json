@@ -13875,10 +13875,66 @@
         "4"
       ],
       [
+        "caveD",
+        "H17",
+        "1000000",
+        "+{%_Total_Drop_Rate_(Passive)",
+        "6"
+      ],
+      [
         "Crystal4",
         "H14",
         "15",
         "+{%_Skill_Efficncy_(Passive)",
+        "3"
+      ],
+      [
+        "Blank",
+        "A0",
+        "10",
+        "+{%_Base_HP",
+        "3"
+      ],
+      [
+        "Blank",
+        "A0",
+        "10",
+        "+{%_Base_HP",
+        "3"
+      ],
+      [
+        "Blank",
+        "A0",
+        "10",
+        "+{%_Base_HP",
+        "3"
+      ],
+      [
+        "Blank",
+        "A0",
+        "10",
+        "+{%_Base_HP",
+        "3"
+      ],
+      [
+        "Blank",
+        "A0",
+        "10",
+        "+{%_Base_HP",
+        "3"
+      ],
+      [
+        "Blank",
+        "A0",
+        "10",
+        "+{%_Base_HP",
+        "3"
+      ],
+      [
+        "Blank",
+        "A0",
+        "10",
+        "+{%_Base_HP",
         "3"
       ]
     ],
@@ -19400,7 +19456,7 @@
       "0",
       "-41",
       "1",
-      "340"
+      "300"
     ],
     [
       "bubbab",
@@ -20501,6 +20557,16 @@
       "-34",
       "1",
       "177"
+    ],
+    [
+      "caveD",
+      "1.50x_Damage,_1.40x_Class_EXP,_1.30x_Drop_Rate,_and_1.20x_extra_Kills",
+      "1",
+      "-50",
+      "0",
+      "-33",
+      "1",
+      "210"
     ]
   ],
   "CompanionDefLANG": [
@@ -20666,7 +20732,7 @@
       "0,10,0,1,3,6,10,11|12,23,12,14,17,20,23,12|37,48,37,39,42,45,48,12"
     ],
     [
-      "24,25,26,27,28,29,30,31,32,33,34,35,36,49,50,51,52,53,54,55,56,57,128,132,143,154,155,156,99,157,111,145,158,159,147,162,87,88,153,163,135,167",
+      "24,25,26,27,28,29,30,31,32,33,34,35,36,49,50,51,52,53,54,55,56,57,128,132,143,154,155,156,99,157,111,145,158,159,147,162,87,88,153,163,135,167,168",
       "11,58,150,151,152,160,161,164,165,166"
     ],
     []
@@ -29630,7 +29696,7 @@
         "1000000",
         "1.10",
         "2",
-        "Unlock_Green_Water..._well,_it_will_in_the_Future._Also,_}x_Currency_Value,_at_least_THAT'S_true_for_right_now!"
+        "Unlock_Green_Water._Also,_}x_Currency_Value."
       ],
       [
         "Currency_Booster_II",
@@ -29699,7 +29765,7 @@
         "5",
         "250",
         "1.10",
-        "5",
+        "1",
         "Moolah_Stacks_are_worth_}x_more."
       ],
       [
@@ -29825,203 +29891,203 @@
     ],
     [
       [
-        "Name",
-        "IndexReq",
-        "X",
+        "Red_Water",
+        "6",
+        "53,142",
         "8",
-        "1",
-        "1.100",
+        "1000000000",
+        "1.500",
         "3",
-        "Unlock_Black_Water..._well,_it_will_in_the_future._Also,_}x_Currency_Value,_at_least_THAT'S_here_in_the_present!"
+        "Unlock_Red_Water..._well,_it_will_in_the_future._Also,_}x_Currency_Value,_at_least_THAT'S_here_in_the_present!"
       ],
       [
         "Currency_Booster_III",
-        "IndexReq",
-        "X",
+        "5",
+        "154,209",
         "6",
-        "1",
-        "1.100",
+        "10000000",
+        "1.700",
         "30",
         "All_currencies_are_worth_+{%_more."
       ],
       [
-        "Name",
-        "IndexReq",
-        "X",
+        "Moolahleluja",
+        "12",
+        "390,151",
         "6",
+        "5000",
+        "1.400",
         "1",
-        "1.100",
-        "0",
-        "You_can_now_find_Moolah_Stacks._@_All_moolah_stacks_you_find_have_a_base_value_of_$"
+        "You_can_now_find_Moolah_Stacks._@_All_moolah_stacks_you_find_have_a_base_value_of_$,_but_only_get_鉢(Total_Currency_Multi)_which_is:_@_^"
       ],
       [
-        "Name",
-        "IndexReq",
-        "X",
-        "7",
-        "1",
-        "1.100",
-        "0",
-        "You_can_now_find_Shilling_Stacks._@_All_shilling_stacks_you_find_have_a_base_value_of_$"
-      ],
-      [
-        "Name",
-        "IndexReq",
-        "X",
+        "Shillin_Grillin",
         "8",
+        "275,209",
+        "7",
+        "20000",
+        "1.600",
         "1",
-        "1.100",
-        "0",
-        "You_can_now_find_Greane_Stacks._@_All_greane_stacks_you_find_have_a_base_value_of_$"
+        "You_can_now_find_Shilling_Stacks._@_All_shilling_stacks_you_find_have_a_base_value_of_$,_but_only_get_鉢(Total_Currency_Multi)_which_is:_@_^"
       ],
       [
-        "Name",
-        "IndexReq",
-        "X",
-        "6",
+        "Rob_Greane",
         "1",
-        "1.100",
-        "0",
+        "95,230",
+        "8",
+        "100000",
+        "1.800",
+        "1",
+        "You_can_now_find_Greane_Stacks._@_All_greane_stacks_you_find_have_a_base_value_of_$,_but_only_get_鉢(Total_Currency_Multi)_which_is:_@_^"
+      ],
+      [
+        "Stackin'_Shillin",
+        "3",
+        "217,225",
+        "6",
+        "50000",
+        "1.300",
+        "1",
         "Shilling_Stacks_are_worth_}x_more."
       ],
       [
-        "Name",
-        "IndexReq",
-        "X",
+        "Stackin'_Gbacks",
+        "4",
+        "33,199",
         "7",
+        "200000",
+        "1.500",
         "1",
-        "1.100",
-        "0",
         "Greane_Stacks_are_worth_}x_more."
       ],
       [
-        "Name",
-        "IndexReq",
-        "X",
+        "Stackin'_Funds",
+        "19",
+        "121,142",
         "8",
+        "1000000",
+        "1.700",
         "1",
-        "1.100",
-        "0",
         "Oldmoney_Stacks_are_worth_}x_more."
       ],
       [
-        "Name",
-        "IndexReq",
-        "X",
-        "7",
-        "1",
-        "1.100",
-        "0",
-        "All_currencies_collected_have_a_1_in_$_of_being_LUCKY,_multiplying_the_value_of_that_specific_type_by_#x_forever!_@_Each_additional_one_is_4x_rarer"
-      ],
-      [
-        "Name",
-        "IndexReq",
-        "X",
-        "8",
-        "1",
-        "1.100",
-        "0",
-        "Boosts_the_LUCKY_multi_by_+{%._@_Also,_you_can_see_how_many_LUCKY_coins_of_each_type_you_have_from_the_number_of_dots_above_them."
-      ],
-      [
-        "Name",
-        "IndexReq",
-        "X",
-        "9",
-        "1",
-        "1.100",
-        "0",
-        "Every_Royal_stack_out_you_currently_have_boosts_Rubber_Ducky_chance_and_LUCKY_coin_chance_by_+{%_@_Total_Current_bonus:_$x_odds"
-      ],
-      [
-        "Name",
-        "IndexReq",
-        "X",
-        "7",
-        "1",
-        "1.100",
-        "0",
-        "Your_Rubber_Duckies_each_MULTIPLY_the_value_of_all_coins_by_$x._@_Total_Ducky_Bonus:_#x"
-      ],
-      [
-        "Name",
-        "IndexReq",
-        "X",
+        "Luck_fo'_REAL",
+        "2",
+        "333,181",
         "6",
+        "10000",
+        "1.500",
         "1",
-        "1.100",
-        "0",
-        "Adds_a_new_fountain_bar,_which_when_filled_has_a_1_in_$_chance_of_adding_a_Rubber_Ducky_to_the_fountain."
+        "All_currencies_collected_have_a_1_in_$_of_being_LUCKY,_multiplying_the_value_of_that_currency_type_forever!_@_Each_additional_one_is_4x_rarer"
       ],
       [
-        "Name",
-        "IndexReq",
-        "X",
-        "7",
+        "Skilluck",
+        "11",
+        "364,64",
+        "8",
+        "350000",
+        "1.900",
         "1",
-        "1.100",
-        "0",
+        "Boosts_bonus_of_each_LUCKY_coin_to_+$%._@_Also,_you_can_see_how_many_LUCKY_coins_of_each_type_you_have_from_the_number_of_dots_above_them."
+      ],
+      [
+        "Lucky_Ducky",
+        "11",
+        "247,127",
+        "8",
+        "100000",
+        "1.700",
+        "1",
+        "Boost_Rubber_Ducky_chance_and_LUCKY_coin_chance_by_+{%"
+      ],
+      [
+        "Ducktactular",
+        "8",
+        "309,106",
+        "7",
+        "10000",
+        "1.500",
+        "1",
+        "Your_Rubber_Duckies_each_boost_the_value_of_all_coins_you_find_by_}x._@_Total_Ducky_Bonus:_$x"
+      ],
+      [
+        "Rubber_Ducky",
+        "-1",
+        "447,117",
+        "5",
+        "10000000",
+        "10.00",
+        "5",
+        "Adds_a_new_fountain_bar,_which_when_filled_has_a_1_in_$_chance_of_giving_+1_Rubber_Ducky_stack."
+      ],
+      [
+        "Wisdom_Boost",
+        "18",
+        "640,136",
+        "7",
+        "10000",
+        "50.00",
+        "1",
         "All_Wisdom_Monument_bonuses_are_}x_larger."
       ],
       [
-        "Name",
-        "IndexReq",
-        "X",
+        "Minaus_Costs",
+        "12",
+        "505,82",
         "6",
+        "15000",
+        "8.500",
         "1",
-        "1.100",
-        "0",
-        "Minau_the_Villager's_upgrades_all_are_}x_cheaper_than_ever_before"
+        "Minau_the_Villager's_upgrades_all_are_}x_cheaper_than_before"
       ],
       [
-        "Name",
-        "IndexReq",
-        "X",
+        "Enchanterest",
+        "17",
+        "685,74",
         "7",
+        "25000",
+        "4.000",
         "1",
-        "1.100",
-        "0",
         "Your_Enchant_chance_over_at_The_Jar_cavern_is_}x_larger_than_before"
       ],
       [
-        "Name",
-        "IndexReq",
-        "X",
+        "Pen_N_Paper",
+        "14",
+        "565,94",
         "6",
+        "50000",
+        "20.00",
         "1",
-        "1.100",
-        "0",
         "Boosts_Research_EXP_gain_by_}x"
       ],
       [
-        "Name",
-        "IndexReq",
-        "X",
+        "Cook_Maxxing",
+        "16",
+        "623,61",
         "8",
+        "100000",
+        "6.200",
         "1",
-        "1.100",
-        "0",
-        "All_Masterclass_Drops,_specifically_Bones_Dust_and_Tachyons,_are_}x_larger"
+        "Boosts_Cooking_Mastery_EXP_gain_by_}x._Note_that_Cooking_Mastery_is_unlocked_at_Rift_61."
       ],
       [
-        "Name",
-        "IndexReq",
-        "X",
+        "Bubba_Forever",
+        "15",
+        "706,133",
         "7",
-        "1",
-        "1.100",
-        "0",
+        "250000",
+        "5.400",
+        "2",
         "Permanently_boost_Meat_Slice_Production_rate_at_Bubba_the_Seal_by_}x"
       ],
       [
-        "Name",
-        "IndexReq",
-        "X",
-        "7",
+        "Rupie_Monie",
         "1",
-        "1.100",
-        "0",
+        "185,149",
+        "7",
+        "1000000",
+        "2.500",
+        "1",
         "Moolah,_Shilling,_and_Greane_stacks_are_worth_+{%_more_per_POW_10_basic_Red_Rupie_you_have,_over_at_The_Jar_cavern."
       ]
     ]
@@ -30505,7 +30571,7 @@
       "0",
       "30",
       "1",
-      "Gives_+10_B.F.R._per_100_hounds_defeated_in_best_runs_of_each_class._尬__Beginner:!,_Warrior:#,_Archer:$,_Mage:%_@_Total_Bonus:_+{/hr_Bucket_Fill_Rate"
+      "Gives_+10_B.F.R._per_100_hounds_defeated_in_best_runs_of_each_class._尬__Beginner:!,_Warrior:#,_Archer:$,_Mage:%_@_Total_Bonus:_+{/hr_Bucket_Fill_Rate_(B.F.R.)"
     ],
     [
       "Triple_Tap_Tinkle",
@@ -30820,6 +30886,62 @@
       "+15%_All_Skill_Efficiency,_and_+10%_All_Skill_EXP_gain_per_Bottomless_Trench_Depth_you've_cast_down_to!"
     ],
     [
+      "2nd_Billion_Dollar_Grant",
+      "3",
+      "33",
+      "1000000000.0",
+      "1",
+      "Bolaia_now_get_a_brilliant_+20%_Study_Rate_per_LV,_instead_of_the_previous_+15%_per_LV!"
+    ],
+    [
+      "Glunko_Conglomeration",
+      "4",
+      "34",
+      "10",
+      "f",
+      "Crystal_Glunko_monsters_in_Cavern_18_now_respawn_25%_faster!"
+    ],
+    [
+      "More_Goo",
+      "4",
+      "35",
+      "10",
+      "f",
+      "Whenever_you_pick_up_shapes_dropped_by_Crystal_Glunko_monsters,_there's_a_10%_chance_to_get_DOUBLE_the_amount!"
+    ],
+    [
+      "Justin_Opal",
+      "0",
+      "36",
+      "10",
+      "f",
+      "Its_'just_an'_Opal._A_single_opal."
+    ],
+    [
+      "Even_More_Goo",
+      "4",
+      "36",
+      "10",
+      "f",
+      "Boosts_your_Double_Shape_chance_from_10%_up_to_20%"
+    ],
+    [
+      "Anotha_One",
+      "1",
+      "37",
+      "10",
+      "f",
+      "Gives_you_a_2nd_Golden_Bucket,_which_fills_faster_as_described_by_the_'Golden_Bucket_Boost'_upgrade_at_Cavern_16's_Fountain"
+    ],
+    [
+      "Increasingly_More_Goo",
+      "4",
+      "37",
+      "10",
+      "f",
+      "Boosts_your_Double_Shape_chance_from_20%_up_to_30%"
+    ],
+    [
       "NameNameName",
       "3",
       "24",
@@ -30865,7 +30987,7 @@
       "232",
       "95",
       "173",
-      "-60",
+      "-100",
       "216",
       "-150",
       "254",
@@ -31250,10 +31372,10 @@
       "639",
       "294",
       "425",
-      "0",
-      "0",
-      "0",
-      "0",
+      "360",
+      "585",
+      "107",
+      "238",
       "390",
       "556",
       "217",
@@ -31741,6 +31863,13 @@
       "98",
       "95",
       "96",
+      "99",
+      "100",
+      "101",
+      "102",
+      "103",
+      "104",
+      "105",
       "51",
       "31"
     ],
@@ -32224,7 +32353,7 @@
       "TEMPLE",
       "FOUNTAIN",
       "TRENCH",
-      "BRUH",
+      "THE_COVE",
       "BRUH",
       "BRUH"
     ],
@@ -32245,7 +32374,8 @@
       "+{%_Total_Gambit_Points._Also,_50%_chance_to_not_use_up_your_daily_Gambit_attempt_when_starting_a_Gambit!",
       "There_is_an_extra_+{%_chance_to_get_double_torches_when_picking_them_up!",
       "You_can_Marbleize_upgrades_more_than_once!_Also,_}x_higher_Marble_production!",
-      "Every_depth_cast_lowers_the_resources_needed_to_destroy_other_skilling_caverns_by_{%"
+      "Every_depth_cast_lowers_the_resources_needed_to_destroy_other_skilling_caverns_by_{%",
+      "The_first_{_upgrades_each_day_in_The_Cove_are_15%_cheaper"
     ],
     [
       "10",
@@ -32265,7 +32395,7 @@
       "30",
       "5",
       "3",
-      "0",
+      "1",
       "0",
       "0"
     ],
@@ -52265,82 +52395,82 @@
       ],
       [
         [
-          "Quest90",
-          "2_HOUR_LANTERN",
-          "Gives_you_a_Lantern_usable_item,_use_it_to_instantly_get_2_hours_of_ALL_cavern_progress!!_____(Except_for_skilling_caverns,_like_Motherlode)",
-          "1",
+          "GemQ19",
+          "6_STAR_CARDIFIER",
+          "Use_this_on_a_5_star_card_to_upgrade_it_to_6_stars!_You_get_to_choose_which_card_gets_upgraded,_no_randomness_involved!_Use_these_in_Codex.",
+          "880",
           "87",
-          "6",
-          "1",
+          "5",
+          "0",
           "0"
         ],
         [
-          "Quest90",
-          "2_HOUR_LANTERN",
-          "65%_off_normal_price_from_the_Oddities_section!_Remember,_you_can_only_use_12_of_these_per_day_while_new_caverns_are_released!",
-          "56",
+          "GemQ18",
+          "5_STAR_CARDIFIER",
+          "20%_OFF!_Use_this_on_a_4_star_card_to_upgrade_it_to_5_stars!_It_works_like_4_star_cardifiers_do,_you_get_to_choose_which_card_gets_upgraded,_no_randomness_involved!",
+          "400",
           "88",
-          "40",
-          "1",
-          "0"
-        ],
-        [
-          "Quest90",
-          "2_HOUR_LANTERN",
-          "These_are_freebies_too!",
-          "1",
-          "89",
-          "3",
-          "1",
-          "0"
-        ],
-        [
-          "Quest90",
-          "2_HOUR_LANTERN",
-          "These_aint.",
-          "95",
-          "90",
-          "20",
-          "1",
-          "0"
-        ],
-        [
-          "Blank",
-          "SUSHI_STATION_BUCKS",
-          "FREEBIE!_Instantly_gives_1_hour's_worth_of_BUCKS_for_your_Sushi_Station_in_World_7!_NOTE,_this_is_NOT_a_usable_item!!!_You_get_the_bucks_immediately!",
-          "1",
-          "91",
-          "12",
+          "10",
           "0",
           "0"
         ],
         [
-          "Blank",
-          "SUSHI_STATION_BUCKS",
-          "Instantly_gives_1_hour's_worth_of_BUCKS_for_your_Sushi_Station_in_World_7!_NOTE,_this_is_NOT_a_usable_item!!!_You_get_the_buck_immediately!",
-          "90",
-          "92",
-          "75",
-          "0",
-          "0"
-        ],
-        [
-          "Blank",
-          "YOYOMAH",
-          "+1_Hat_Rack_multi,_know_what_I_mean?",
-          "390",
-          "93",
-          "1",
-          "1",
-          "0"
-        ],
-        [
-          "Blank",
-          "YOYOMAH",
-          "This_nametag_gives_+4%_AFK_Gains._Why_no,_this_doesn't_affect_research,_funny_you_should_ask!_Ahaha!",
+          "EquipmentNametag3",
+          "BALLING_NAMETAG",
+          "Equip_this_nametag_to_make_your_nameplate_under_your_character_totally_blinged_out!_Also_comes_with_a_decent_+40%_Drop_Rate_bonus!",
           "750",
-          "94",
+          "89",
           "1",
+          "1",
+          "0"
+        ],
+        [
+          "Quest90",
+          "2_HOUR_LANTERN",
+          "Ahh_fre_lanterns_yees_lanterns_here_they_are_right_here_they're_here!",
+          "1",
+          "90",
+          "5",
+          "1",
+          "0"
+        ],
+        [
+          "EquipmentHats118",
+          "WINDWALKER_HOOD",
+          "Comes_with_a_1.25x_Extra_Dust_multiplier,_which_will_help_upgrade_The_Compass_while_playing_on_your_Windwalker!",
+          "890",
+          "91",
+          "1",
+          "1",
+          "0"
+        ],
+        [
+          "RibbonBig16",
+          "LEGEND_TIER_RIBBON",
+          "Gives_you_a_random_ribbon_for_your_Ribbon_Shelf,_found_at_the_Meals_Menu_in_World_4!_35%_chance_for_Tier_13,_30%_chance_for_Tier_14,_20%_for_Tier_15,_10%_for_Tier_16,_and_5%_for_Tier_17!",
+          "990",
+          "92",
+          "10",
+          "0",
+          "0"
+        ],
+        [
+          "RibbonBig14",
+          "SUPER_TIER_RIBBON",
+          "Gives_you_a_random_ribbon_for_your_Ribbon_Shelf,_found_at_the_Meals_Menu_in_World_4!_40%_chance_for_Tier_10,_30%_chance_for_Tier_11,_20%_for_Tier_12,_7%_for_Tier_13,_and_3%_for_Tier_15!",
+          "590",
+          "93",
+          "20",
+          "0",
+          "0"
+        ],
+        [
+          "Quest115",
+          "RESEARCH_PAPERS",
+          "50%_OFF_NORMAL_PRICE!_Use_this_to_instantly_get_2_hours_of_Research_gains!_Research_EXP,_Minehead_currency,_and_Sushi_currency!",
+          "195",
+          "94",
+          "50",
           "1",
           "0"
         ]
@@ -64802,7 +64932,7 @@
       "Research_Registrant_@_Registering_for_Tournament_gives_12hrs_Research_gains",
       "150",
       "Monumental_Reverence_@_+100_LVs_for_all_Monument_bonuses_every_day_forever",
-      "100"
+      "175"
     ],
     [
       "ForestBOSS",
@@ -72001,16 +72131,21 @@
       "60000000",
       "80000000",
       "100000000",
-      "999999999",
-      "999999999",
-      "999999999",
-      "999999999",
-      "999999999",
-      "1999999999",
-      "1999999999",
-      "1999999999",
-      "1999999999",
-      "1999999999"
+      "120000000",
+      "150000000",
+      "200000000",
+      "250000000",
+      "300000000",
+      "400000000",
+      "500000000",
+      "600000000",
+      "800000000",
+      "1000000000",
+      "1200000000",
+      "1400000000",
+      "1600000000",
+      "1800000000",
+      "2000000000"
     ],
     [
       "51",
@@ -72863,8 +72998,8 @@
       "186"
     ],
     [
-      "Cooking_MASTERY_v1.17",
-      "*Unlocked_at_Rift_61,_Cooking_Mastery_(CM)_lets_you_RANK_UP_to_boost_your_meals!_@_*You_gain_CM_EXP_over_time,_and_when_you_earn_enough,_you'll_get_+1_Rank._@_*Each_Rank_gives_you_1_Purple_AND_Yellow_CM_points._Spend_purple_to_boost_CM_EXP_gain,_and_spend_yellow_points_to_boost_specific_Meal_bonuses!_@_*New_Ribbon_Max_Rank._Friendship_ended_with_Rank_20,_now_Rank_25_is_the_best_ribbon!_@_*New_Research_Grid_-_K3_@_*New_Vial_-_Spelunking_Chapter_6_pages._@_*New_Arcade_Bonus_type,_but_only_if_the_Twitch_Viewers_vote_for_it..._@_*New_Salt_Lick_upgrade._I'm_moving_DIFFERENT,_making_moves_here_guys!_@_*New_Zuperbit_upgrade_in_Gaming._@___@___@_*Shoutout_to_my_Mill_Escapers,_yall_know_who_you_are!!_Good_luck_in_the_new_NG+_mode!",
+      "Glunko_Cavern_v1.18",
+      "*Cavern_18_now_available_-_The_CRYSTAL_GLUNKO_COVE!_@_*Collect_gooey_shapes,_from_Triangle_to_Nonagons,_and_use_them_to_upgrade_your_Cove_Stats!_You_have_unique_Drop_Rate,_AFK_gains,_and_Multikill_values_while_fighting_Crystal_Glunkos_in_this_new_cavern!_@_*Each_new_Shape_drop_from_Crystal_Glunkos_is_a_new_Slab_Item!_@_*Green_Water_added_to_Cavern_16_-_The_Fountain._that_means_20_new_Green_Water_upgrades,_including_powerful_multiplicative_IdleOn_bonuses!_@_*7_new_Schematics_to_build_from_Kaipu_the_Engineer_Villager!_@_*6_Star_Cardifiers_are_here,_and_everybody_gets_1_for_free!_In_fact,_if_you're_a_valued_active_player,_I_actually_gave_you_TWO_for_free!_@_*New_Crystalling_Glunko_pack_and_Limited_Items_available_now_in_the_Gemshop!_@_*Kill_Requirement_for_the_next_map_is_now_shown_in_the_top_left,_always!_@_*Fixed_a_bug_where_Dungeon_Rank_60+_would_show_as_Rank_1._Just_a_display_issue,_no_gains_were_lost!",
       "*Le Monde 6 est arrivé, avec tout ce que vous pourriez souhaiter ! De nouveaux monstres, de nouvelles compétences, de nouvelles cartes, de nouveaux tampons, de nouvelles bulles, de nouvelles fioles, de nouvelles statues, de nouveaux équipements, tellement de nouveautés ! @ *Vous pouvez découvrir le Monde 6 vous-même, à la place, ces notes de mise à jour concernent tous les changements de cette mise à jour non liés au Monde 6. @ *Nouvel affichage des pièces ajouté ! Collectez 100 pièces Godshard pour voir ce que je veux dire ! @ *Le succès Trial by Time peut désormais être complété à n'importe quelle vitesse de déplacement. @ *Mise à l'échelle du bonus ajustée sur la 6ème bulle de chaque couleur. C'est un buff pour toute personne en dessous du niveau de bulle 300, sinon c'est un nerf. @ * Correction du problème où les archers glissaient lorsqu'ils essayaient de combattre des foules protégées. @ *Les attaques au canon de Siege Breaker apparaissent désormais derrière lui.",
       "*Welt 6 ist da, mit allem, was Sie sich nur wünschen können! Neue Monster, neue Fähigkeiten, neue Karten, neue Stempel, neue Blasen, neue Fläschchen, neue Statuen, neue Ausrüstung, so viel neues Zeug! @ *Sie können Welt 6 selbst entdecken. Stattdessen gelten diese Patchnotizen für alle Änderungen in diesem Update, die nicht mit Welt 6 zusammenhängen. @ *Neue Münzanzeige hinzugefügt! Sammle 100 Godshard-Münzen, um zu sehen, was ich meine! @ *Die Errungenschaft „Prüfung durch Zeit“ kann jetzt bei jeder Bewegungsgeschwindigkeit abgeschlossen werden. @ *Bonusskalierung für die 6. Blase jeder Farbe angepasst. Es ist ein Buff für alle unter Bubble Lv 300, andernfalls ist es ein Nerf. @ *Das Problem wurde behoben, bei dem Bogenschützen herumrutschten, wenn sie versuchten, gegen abgeschirmte Mobs zu kämpfen. @ *Die Kanonenangriffe von Belagerungsbrecher erscheinen jetzt hinter ihm.",
       "*원하는 모든 것을 갖춘 월드 6이 도착했습니다! 새로운 몬스터, 새로운 기술, 새로운 지도, 새로운 우표, 새로운 거품, 새로운 약병, 새로운 조각상, 새로운 장비, 너무나 많은 새로운 것들! @ *월드 6를 직접 발견하실 수 있습니다. 대신 이 패치 노트는 월드 6과 관련되지 않은 이번 업데이트의 모든 변경 사항에 대한 것입니다. @ *새로운 코인 표시가 추가되었습니다! 100개의 갓샤드 동전을 모아 무슨 뜻인지 알아보세요! @ *이제 모든 이동 속도에서 시간별 시험 업적을 완료할 수 있습니다. @ *각 색상의 6번째 버블에 대한 보너스 스케일링을 조정했습니다. 버블 Lv 300 미만인 사람에게는 버프이고, 그렇지 않으면 너프입니다. @ *방어막이 있는 몹과 싸울 때 궁수가 미끄러지는 문제를 수정했습니다. @ *Siege Breaker의 대포 공격이 이제 그의 뒤에서 생성됩니다.",
@@ -74335,6 +74470,124 @@
       "SMOKY",
       "SOUR",
       "SAVORY"
+    ],
+    [
+      "弱",
+      "弦",
+      "弄",
+      "异",
+      "开",
+      "幽",
+      "幻",
+      "平",
+      "干",
+      "帮",
+      "帝",
+      "塑"
+    ],
+    [
+      "Opal_Find",
+      "Slop_Drop",
+      "Reslime",
+      "Droplier",
+      "Killionaire",
+      "Insta-Ribbon",
+      "Big_Hit_Multkill",
+      "Active_Drops",
+      "Sleepy_Drops",
+      "One_Big_Blue",
+      "Blue_Collector",
+      "Researchy",
+      "Droplier+",
+      "Sleepy_Drops+",
+      "Cavernicus",
+      "Multikill",
+      "One_Big_Purp",
+      "Slop_Drop+",
+      "Rich_Get_Rich",
+      "DeEmGe",
+      "Grandioso",
+      "Slop_Drop++",
+      "Purp_Collector",
+      "IDK_Broh"
+    ],
+    [
+      "Get_+1_opal_to_invest_into_Villagers!",
+      "Boost_Drop_Rate_here_in_The_Cove_by_{%",
+      "Increase_Crystal_Glunko_respawn_rate_by_+{%",
+      "Mulitply_Drop_Rate_here_in_this_Cove_by_}x",
+      "+{%_DR_here_in_The_Cove_per_POW_10_Glunko_kills",
+      "Get_a_Rank_15_Ribbon_for_Cooking,_instantly!",
+      "Boost_your_Multikill_Per_Dmg_Tier_here_to_{%",
+      "Decrease_the_cost_of_all_upgrades_here_by_$%",
+      "Boost_AFK_Gains_rate_here_by_+{%",
+      "}x_Drop_Value_for_your_specified_blue_shape",
+      "+{%_DR_here,_per_digit_of_Blue_Shapes_found",
+      "}x_Research_EXP_gain_for_outside_this_cove",
+      "Mulitply_Drop_Rate_here_in_this_Cove_by_}x",
+      "Boost_AFK_Gains_rate_here_by_+{%",
+      "Earn_}x_more_resources_from_all_caverns",
+      "Boost_base_Multikill_here_by_+{%",
+      "}x_Drop_Value_for_your_specified_purp_shape",
+      "Boost_Drop_Rate_here_by_+{%",
+      "Boost_DR_here_by_+{%_per_POW_10_normal_DR",
+      "Boost_Total_Damage_for_all_chars_by_}x",
+      "Boost_Grand_Discovery_Chance_in_Spelunking_by_}x",
+      "Boost_Drop_Rate_here_in_Cavern_18_by_{%",
+      "+{%_DR_here,_per_digit_of_Purp_Shapes_found",
+      "World_7_Skill_3_my_man,_not_yet."
+    ],
+    [
+      "1",
+      "10",
+      "2",
+      "5",
+      "2",
+      "1",
+      "1",
+      "3",
+      "1",
+      "10",
+      "1",
+      "1",
+      "15",
+      "3",
+      "10",
+      "100",
+      "10",
+      "25",
+      "2",
+      "1",
+      "5",
+      "150",
+      "2",
+      "1"
+    ],
+    [
+      "7.5",
+      "1.35",
+      "2.50",
+      "1.55",
+      "1.80",
+      "5.00",
+      "2.00",
+      "1.50",
+      "1.75",
+      "1.45",
+      "1.85",
+      "1.25",
+      "1.70",
+      "2.00",
+      "3.00",
+      "1.75",
+      "1.45",
+      "1.35",
+      "3.00",
+      "1.50",
+      "1.12",
+      "1.40",
+      "1.95",
+      "5.0"
     ]
   ],
   "RandostuffLANG": [
@@ -90405,6 +90658,18 @@
     "Quest73",
     "Quest90",
     "Quest94",
+    "HoleGshape0",
+    "HoleGshape1",
+    "HoleGshape2",
+    "HoleGshape3",
+    "HoleGshape4",
+    "HoleGshape5",
+    "HoleGshape6",
+    "HoleGshape7",
+    "HoleGshape8",
+    "HoleGshape9",
+    "HoleGshape10",
+    "HoleGshape11",
     "Quest75",
     "Quest85",
     "Quest88",
