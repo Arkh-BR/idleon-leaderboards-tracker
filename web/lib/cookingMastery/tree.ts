@@ -98,6 +98,12 @@ export function expRateTree(s: SaveData): ArkhNode {
       fmt: "x",
       note: ext.comp87 ? "owned (×3)" : "not owned",
     }),
+    node("Fountain Cook_Maxxing (Green Water)", 1 + ext.fountainCookMaxxing / 100, null, {
+      fmt: "x",
+      note: ext.fountainCookMaxxing
+        ? `+${ext.fountainCookMaxxing.toFixed(0)}%`
+        : "not owned",
+    }),
     node(
       "Vial + Arcade + Salt Lick",
       1 + slSum / 100,

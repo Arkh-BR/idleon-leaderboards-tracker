@@ -229,6 +229,7 @@ export const CARDS_PER_TIER: Readonly<Record<string, number>> = {
   w4c1: 26, w4c2: 27, w4c3: 28, w4c4: 30, Crystal3: 10, w5a1: 25, w5a2: 28,
   w5a3: 32, w5a4: 35, w5a5: 45, w5b1: 48, w5b2: 52, w5b3: 60, w5b4: 65,
   w5b5: 70, w5b6: 75, w5c1: 80, w5c2: 100, caveB: 5000, caveC: 10000,
+  caveD: 1000000, // Crystal Glunko card (CardsH17, Cavern 18) — added 2026-06
   Crystal4: 15, w6a1: 50, w6a2: 60, w6a3: 75, w6a4: 85, w6a5: 100, w6b1: 150,
   w6b2: 170, w6b3: 200, w6b4: 250, w6c1: 400, w6c2: 500, w6d1: 900,
   w6d2: 1300, w6d3: 2500, Crystal5: 5000, w7a1: 5000, w7a2: 7000, w7a3: 8500,

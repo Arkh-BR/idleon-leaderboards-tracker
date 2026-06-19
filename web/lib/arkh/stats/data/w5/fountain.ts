@@ -31,6 +31,10 @@ const FOUNTAIN_BONUS_PER_LV: Record<number, Record<number, number>> = {
     // (MonumentROGbonuses 2,6) feeds Drop Rate, so this ×(1 + lvl·1/100)
     // multiplies our `holes monument` DR source.
     13: 1,
+    // Cook_Maxxing — Green Water (2026-06). HoleFountUPG[2][17][6] = 1.
+    // N.js ExpRateCook multiplies Cooking-Mastery Exp/h by
+    // (1 + Fountain_BonTOT(2,17)/100); wired in cookingMastery.externalExpMulti.
+    17: 1,
   },
 };
 

@@ -12,6 +12,7 @@ import { gridBonusValue } from "../w4/lab";
 import { arcadeBonus } from "../w2/arcade";
 import { computeVialByKey } from "../w2/alchemy";
 import { SaltLicks } from "../../data/game/customlists";
+import { fountainBonusTotal } from "../../data/w5/fountain";
 
 // RandoListo2[8] — base coefficient per upgrade b (0..5).
 export const MASTERY_COEF = [200, 1, 30, 10, 2, 20] as const;
@@ -116,11 +117,13 @@ export type ExternalBreakdown = {
   vial7cm: number; // AlchVials["7cookmastery"] — %
   arcade69: number; // ArcadeBonus(69) — %
   saltLick10: number; // SaltLick(10) — %
+  fountainCookMaxxing: number; // Fountain_BonTOT(2,17) — Green Water Cook_Maxxing %
 };
 
 /**
  * Product of the Exp/h multipliers that are CONSTANT w.r.t. Purple allocation:
- *   (1+ResearchGrid190/100)·(1+40·SuperBit68/100)·(1+2·Comp87)·(1+(vial7cm+Arcade69+SaltLick10)/100)
+ *   (1+ResearchGrid190/100)·(1+40·SuperBit68/100)·(1+2·Comp87)
+ *   ·(1+FountainCookMaxxing/100)·(1+(vial7cm+Arcade69+SaltLick10)/100)
  *
  * Ported from N.js (`ExpRateCook`), validated to 0.08% against a real save.
  * Reuses the engine's grid/arcade/vial ports. SuperBitType needs Number2Letter
@@ -139,14 +142,17 @@ export function externalExpMulti(s: SaveData): ExternalBreakdown {
   const arcade69 = arcadeBonus(69, s).val;
   const slLv = Number((s.saltLickData as any[])?.[10]) || 0;
   const saltLick10 = slLv > 0 ? slLv * (Number((SaltLicks as any)?.[10]?.[3]) || 0) : 0;
+  // Green Water Cook_Maxxing (Fountain_BonTOT(2,17)) — 0 for players without it.
+  const fountainCookMaxxing = fountainBonusTotal(s, 2, 17);
   const val =
     typeof override === "number" && override > 0
       ? override
       : (1 + researchGrid190 / 100) *
         (1 + (40 * superBit68) / 100) *
         (1 + 2 * comp87) *
+        (1 + fountainCookMaxxing / 100) *
         (1 + (vial7cm + arcade69 + saltLick10) / 100);
-  return { val, researchGrid190, superBit68, comp87, vial7cm, arcade69, saltLick10 };
+  return { val, researchGrid190, superBit68, comp87, vial7cm, arcade69, saltLick10, fountainCookMaxxing };
 }
 
 /** Extracts the mastery inputs from a loaded save. Pre-mastery saves → all zero. */
