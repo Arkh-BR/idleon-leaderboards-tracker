@@ -96,12 +96,16 @@ export const compMulti = {
   resolve(id: number, ctx: Ctx, args?: number[]): ArkhNode {
     const cap = args ? args[0] : 1;
     const divisor = args ? args[1] : 1;
+    // Optional explicit multiplier on the bonus (default 1). Some companions
+    // apply a fractional factor with NO cap, e.g. Crystal Glunko (168):
+    // ×(1 + 0.3·comp168) → args [Infinity, 1, 0.3].
+    const mult = args && args[2] !== undefined ? args[2] : 1;
     const name = label("Companion", id);
     const owned = ctx.saveData.companionIds
       ? ctx.saveData.companionIds.has(id)
       : false;
     const bonusVal = owned ? companionBonus(id) : 0;
-    const raw = divisor > 1 ? bonusVal / divisor : bonusVal;
+    const raw = (divisor > 1 ? bonusVal / divisor : bonusVal) * mult;
     const val = Math.max(1, Math.min(cap, 1 + raw));
     // Owned/Not-owned status is reflected by `val` itself (1× when not
     // owned, > 1× when owned), so don't add a redundant zero-val "Owned"

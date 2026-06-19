@@ -215,6 +215,31 @@ export const cardSingle = {
   },
 };
 
+// Cavern cave-cards Drop Rate (additive). N.js (Drop_Rarity formula):
+//   Math.min(4*CardLv("caveC") + 6*CardLv("caveD"), 100)
+// caveC (Cavern 16) and caveD (Cavern 18 Crystal Glunko, added 2026-06) SHARE a
+// single cap of 100 — so they can't be modeled as two independent cardSingle
+// entries (each would cap separately). One combined node matches the game.
+export const caveDropCards = {
+  resolve(_id: unknown, ctx: Ctx): ArkhNode {
+    const cVal = 4 * computeCardLv("caveC", ctx.saveData);
+    const dVal = 6 * computeCardLv("caveD", ctx.saveData);
+    const val = Math.min(cVal + dVal, 100);
+    // Name contains "(Card " so categorize.ts buckets it under 🃏 Cards
+    // (matching the other cave/cardSingle DR sources it replaced).
+    return node(
+      "Cave Drop Rate (Card caveC+caveD)",
+      val,
+      [
+        node("caveC (×4)", cVal, null, { fmt: "raw" }),
+        node("caveD (×6)", dVal, null, { fmt: "raw" }),
+        node(val >= 100 ? "CAPPED (100)" : "Uncapped", val, null, { fmt: "raw" }),
+      ],
+      { fmt: "+" }
+    );
+  },
+};
+
 // ==================== CARD SET BONUS ====================
 
 export function computeCardSetBonus(charIdx: number, setKey: string): TreeResult {

@@ -46,7 +46,9 @@ const dropRateDesc: Descriptor = {
     ],
     addLUK2: [
       { system: "cardSingle", id: "mini5a", args: [1.5, 10] },
-      { system: "cardSingle", id: "caveC", args: [4, 30] },
+      // caveC + caveD share one cap of 100 (Crystal Glunko, 2026-06) —
+      // min(4·caveC + 6·caveD, 100). Was cardSingle caveC [4,30] before.
+      { system: "caveDR" },
       { system: "cardSingle", id: "anni4Event1", args: [2, 20] },
       { system: "cardSingle", id: "luckEvent1", args: [3, 25] },
       { system: "goldenFood", id: "DropRatez" },
@@ -92,6 +94,8 @@ const dropRateDesc: Descriptor = {
       { system: "pristine", id: 3 },
       { system: "etcBonus", id: 91 },
       { system: "compMulti", id: 132, args: [1.5] },
+      // Crystal Glunko companion (2026-06): ×(1 + 0.3·comp168), uncapped.
+      { system: "compMulti", id: 168, args: [Infinity, 1, 0.3] },
       { system: "compMulti", id: 26, args: [1.3] },
       { system: "compMulti", id: 160, args: [1.5, 2] },
       { system: "compMulti", id: 50, args: [1.01, 2500] },

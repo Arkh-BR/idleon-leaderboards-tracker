@@ -11,7 +11,7 @@ import { prayer } from "./systems/w3/prayer";
 import { shrine } from "./systems/w3/construction";
 import { arcade } from "./systems/w2/arcade";
 import { voting } from "./systems/w2/voting";
-import { card, cardSet, cardSingle } from "./systems/common/cards";
+import { card, cardSet, cardSingle, caveDropCards } from "./systems/common/cards";
 import { guild } from "./systems/common/guild";
 import { starSign } from "./systems/common/starSign";
 import { postOffice } from "./systems/w2/postOffice";
@@ -75,6 +75,7 @@ const _systems: Record<string, SystemResolver> = {
   card: card as unknown as SystemResolver,
   cardSet: cardSet as unknown as SystemResolver,
   cardSingle: cardSingle as unknown as SystemResolver,
+  caveDR: caveDropCards as unknown as SystemResolver,
   guild: guild as unknown as SystemResolver,
   starSign: starSign as unknown as SystemResolver,
   postOffice: postOffice as unknown as SystemResolver,
