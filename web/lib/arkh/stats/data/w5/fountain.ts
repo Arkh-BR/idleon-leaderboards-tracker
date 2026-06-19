@@ -26,7 +26,11 @@ const FOUNTAIN_BONUS_PER_LV: Record<number, Record<number, number>> = {
     13: 1, // Judicial_Boost: Justice monument bonuses ×(1 + n/100)
   },
   2: {
-    13: 0, // Wisdom Monument boost — placeholder in current game data
+    // Wisdom_Boost — ACTIVATED by the Green Water update (2026-06).
+    // HoleFountUPG[2][13][6] = 1 (same as Bravery/Justice). The Wisdom monument
+    // (MonumentROGbonuses 2,6) feeds Drop Rate, so this ×(1 + lvl·1/100)
+    // multiplies our `holes monument` DR source.
+    13: 1,
   },
 };
 

@@ -196,8 +196,11 @@ export const holes = {
           node("Monument Level", monLv, null, { fmt: "raw" }),
           node("Bonus Per Level", bonusPerLv, null, { fmt: "raw" }),
           node(
+            // Show finalMulti (= holeozDN × fountain boost), the value actually
+            // applied to `val`. Equals holeozDN for players without the Green
+            // Water Wisdom_Boost (fb=0); reflects the boost when present.
             "Wisdom Multiplier",
-            holeozDN,
+            finalMulti,
             multiCh.length ? multiCh : null,
             { fmt: "x" }
           ),
