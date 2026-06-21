@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import TopNav from "@/components/TopNav";
 
@@ -6,6 +6,8 @@ const mockUsePathname = vi.fn();
 vi.mock("next/navigation", () => ({
   usePathname: () => mockUsePathname(),
 }));
+// Existing tests assert the nav renders, so keep protest mode off here.
+vi.mock("@/lib/protest/config", () => ({ PROTEST_MODE: false }));
 
 describe("TopNav", () => {
   beforeEach(() => {

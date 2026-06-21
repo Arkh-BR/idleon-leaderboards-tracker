@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { PROTEST_MODE } from "@/lib/protest/config";
 
 type NavItem = { href: string; label: string };
 
@@ -45,6 +46,10 @@ export default function TopNav() {
       ro.disconnect();
     };
   }, [updateEdges]);
+
+  // Protest mode: hide the whole nav so every tool is unreachable from here.
+  // Placed after the hooks above so their call order stays stable.
+  if (PROTEST_MODE) return null;
 
   return (
     <nav className="sticky top-0 z-30 border-b border-zinc-800 bg-zinc-950/95 backdrop-blur supports-[backdrop-filter]:bg-zinc-950/75">
