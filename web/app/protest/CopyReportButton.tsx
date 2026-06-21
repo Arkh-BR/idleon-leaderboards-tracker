@@ -15,7 +15,7 @@ export default function CopyReportButton() {
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
       }}
-      className="rounded-md bg-zinc-800 px-4 py-2.5 text-sm font-bold text-zinc-100 transition-colors hover:bg-zinc-700"
+      className="rounded-md bg-zinc-800 px-6 py-3 text-base font-bold text-zinc-100 transition-colors hover:bg-zinc-700"
     >
       {copied ? "Copied!" : "⧉ Copy report"}
     </button>
