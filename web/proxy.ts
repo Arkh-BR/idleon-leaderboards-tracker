@@ -1,8 +1,8 @@
-// web/middleware.ts
+// web/proxy.ts
 import { NextResponse, type NextRequest } from "next/server";
 import { PROTEST_MODE } from "@/lib/protest/config";
 
-export function middleware(req: NextRequest) {
+export function proxy(req: NextRequest) {
   if (!PROTEST_MODE) return NextResponse.next();
 
   // Don't redirect the protest page onto itself (infinite loop).
