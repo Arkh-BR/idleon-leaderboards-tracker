@@ -2,7 +2,7 @@
 
 // Single switch for protest mode. Flip to `false` (or `git revert` the protest
 // commit) to instantly restore the whole site to normal.
-export const PROTEST_MODE = true;
+export const PROTEST_MODE = false;
 
 // All user-facing protest copy lives here so the page/middleware stay logic-only.
 export const PROTEST = {
