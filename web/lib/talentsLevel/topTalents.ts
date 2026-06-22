@@ -13,13 +13,13 @@
 // default tree (they would all resolve to identical numbers anyway).
 // Auto-refreshed by scripts/update-top-talents.ts.
 //
-// Snapshot generated: 2026-06-19T05:49:44.677Z
-// Players scanned: 77
+// Snapshot generated: 2026-06-22T05:54:23.513Z
+// Players scanned: 79
 
 import type { ArkhNode } from "../arkh/node";
 
-export const HYPO_TALENTS_GENERATED_AT = "2026-06-19T05:49:44.677Z";
-export const HYPO_TALENTS_PLAYERS_SCANNED = 77;
+export const HYPO_TALENTS_GENERATED_AT = "2026-06-22T05:54:23.513Z";
+export const HYPO_TALENTS_PLAYERS_SCANNED = 79;
 
 export const HYPO_DEFAULT_TREE: ArkhNode = {
   "name": "Effective Level",
@@ -778,7 +778,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
           "children": [
             {
               "name": "Divinity Lv",
-              "val": 849,
+              "val": 850,
               "fmt": "raw"
             },
             {
@@ -1725,7 +1725,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
             "children": [
               {
                 "name": "Divinity Lv",
-                "val": 849,
+                "val": 850,
                 "fmt": "raw"
               },
               {
