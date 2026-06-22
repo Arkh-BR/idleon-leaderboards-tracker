@@ -91,7 +91,8 @@ export const getFriendBonusStats = (account: any = {}) => {
     '% Skill Efficiency',
     '% Drop Rate',
     '% Skill EXP gain',
-    '% more Coins'
+    '% more Coins',
+    '% Extra Kills' // added in the 2026-06 Summer Event
   ];
   const companionList = account?.companions?.list;
   const hasMrPig = isCompanionBonusActive(account, 30);
@@ -151,8 +152,11 @@ export const getFriendBonusStats = (account: any = {}) => {
 
 
 const getFriendBonusQuantity = (statIndex: any, level = 0) => {
-  const cappedLevel = Math.min(12000, Math.max(0, level));
-  const scaling = Math.min(1, 0.2 + cappedLevel / (cappedLevel + 3000));
+  // FriendBonusQTY (N.js, "Summer Event" 2026-06): curve reworked when the
+  // Friend Bonus max was raised past Lv 12000 — base .2→.25, half 3E3→12E3,
+  // cap 12E3→3E4, fraction scaled ×1.5, saturates at 1.5 (was 1.0).
+  const cappedLevel = Math.min(30000, Math.max(0, level));
+  const scaling = Math.min(1.5, 0.25 + (cappedLevel / (cappedLevel + 12000)) * 1.5);
 
   switch (statIndex) {
     case 0:
@@ -167,6 +171,8 @@ const getFriendBonusQuantity = (statIndex: any, level = 0) => {
       return 30 * scaling;
     case 5:
       return 40 * scaling;
+    case 6:
+      return 10 * scaling; // Extra Kills — added in the 2026-06 Summer Event
     default:
       return 0;
   }

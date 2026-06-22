@@ -22,6 +22,7 @@ const FRIEND_SCALE: Record<number, number> = {
   3: 25,
   4: 30,
   5: 40,
+  6: 10, // Extra Kills — added in the 2026-06 Summer Event (not a DR source)
 };
 
 function computeFriendBonusSlots(saveData: SaveData): number {
@@ -50,7 +51,11 @@ export const friend = {
       if (count > 0) {
         const c = Math.min(FRIEND_DR.cap, Math.max(0, count));
         lastContrib =
-          scale * Math.min(1, FRIEND_DR.base + c / (c + FRIEND_DR.half));
+          scale *
+          Math.min(
+            FRIEND_DR.satCap,
+            FRIEND_DR.base + (c / (c + FRIEND_DR.half)) * FRIEND_DR.mult
+          );
         lastChild = node(
           parts[2] || "?",
           lastContrib,

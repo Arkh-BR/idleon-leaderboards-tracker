@@ -53,11 +53,20 @@ export const COMPANION_BONUS: Record<number, number> = {
 export const BOSS3B_CARD_PCT = 5;
 export const GALLERY_TROPH_CHIP_MULTI = 10;
 
+// FriendBonusQTY (N.js, "Summer Event" 2026-06-21): the saturation curve was
+// reworked when the Friend Bonus max was raised past Lv 12000. Verified
+// term-by-term against N.js:
+//   scale · Math.min(1.5, .25 + min(3E4,count)/(min(3E4,count)+12E3) · 1.5)
+// vs the old  scale · min(1, .2 + min(12E3,count)/(count+3E3)).
+// Net effect: low scores give slightly less, high scores (>12k) give more —
+// DR friend bonus now tops out at ~33% (count 30k) instead of 25%.
 export const FRIEND_DR = {
   scale: 25,
-  base: 0.2,
-  half: 3000,
-  cap: 12000,
+  base: 0.25,
+  half: 12000,
+  cap: 30000,
+  satCap: 1.5,
+  mult: 1.5,
 };
 
 export const DR_DREAM_COEFF = 5;
