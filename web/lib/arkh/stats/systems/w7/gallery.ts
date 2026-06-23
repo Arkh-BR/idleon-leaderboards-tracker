@@ -161,10 +161,22 @@ export function hatrackBonusMulti(saveData: SaveData): MultiResult {
   const evStr = saveData.cachedEventShopStr || "";
   const evShop30 = eventShopOwned(30, evStr);
   const sushiRoG36 = rogBonusQTY(36, saveData.cachedUniqueSushi || 0);
-  const sum = hatCount + 10 * evShop30 + mhq21 + sushiRoG36;
+  // Pet2 (Companion 31, "+{15% Hat Rack Bonus Multi") — activated in the 2026-06
+  // Summer Event (was the "Bababooey!" placeholder). N.js folds Companions(31)
+  // straight into the sum: 1 + (hats + Companions(31) + 10·evShop30 + …)/100.
+  const comp31 =
+    saveData.companionIds && saveData.companionIds.has(31) ? companionBonus(31) : 0;
+  const sum = hatCount + comp31 + 10 * evShop30 + mhq21 + sushiRoG36;
   const val = 1 + sum / 100;
   const ch: ArkhNode[] = [];
   if (hatCount > 0) ch.push(node("Hats Owned", hatCount, null, { fmt: "raw" }));
+  if (comp31 > 0)
+    ch.push(
+      node(label("Companion", 31), comp31, null, {
+        fmt: "raw",
+        note: "Hat Rack Bonus Multi",
+      })
+    );
   if (evShop30 > 0)
     ch.push(
       node("Hatrack Boutique Bonus (Event Shop 30)", 10 * evShop30, null, {
