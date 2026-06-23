@@ -7,3 +7,4 @@ out/
 *.tsbuildinfo
 scripts/arkhe-it-snapshot.json
 scripts/it-source/
+scripts/updater/golden/.cache/
