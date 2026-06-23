@@ -1,0 +1,37 @@
+import { computeArkhDropRate } from "../../../lib/arkh/computeDR";
+import { computeTome } from "../../../lib/tome/compute";
+import { computeTalentTreesForChars } from "../../../lib/talentsLevel/compute";
+import { loadSaveData } from "../../../lib/arkh/save/loader";
+import { saveData } from "../../../lib/arkh/state";
+import { expRateTree } from "../../../lib/cookingMastery/tree";
+import type { EngineSummary } from "./checks";
+
+// Fixed talent probe (char 0): DR talents — stable across saves, enough to
+// catch a talent-formula regression.
+const TALENT_PROBE = { charIdx: 0, talentIds: [279, 24, 655] };
+
+export function summarize(save: any): EngineSummary {
+  // Tome (also yields per-task for ground-truth).
+  // rows are in TASK ORDER (position i in the loop), which matches
+  // extraData.tomePoints indexing — so we index by row position, not computeIdx.
+  const tome = computeTome(save);
+  const tomeByTask: number[] = [];
+  for (let i = 0; i < tome.rows.length; i++) {
+    const r = tome.rows[i];
+    tomeByTask[i] = r.pts ?? 0;
+  }
+
+  // DR (char 0, map 0 — stable reference).
+  const drTotal = computeArkhDropRate(save, 0, 0).total;
+
+  // Cooking exp-rate (expRateTree needs the arkh state loaded).
+  loadSaveData(save);
+  const cookingExp = expRateTree(saveData).val;
+
+  // Talents: sum effective levels over the probe set.
+  let talentsTotal = 0;
+  const trees = computeTalentTreesForChars(save, [TALENT_PROBE]);
+  for (const c of trees) for (const node of c.trees.values()) talentsTotal += node.val || 0;
+
+  return { tomeByTask, tomeTotal: tome.totalPts, drTotal, cookingExp, talentsTotal };
+}
