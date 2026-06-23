@@ -19,6 +19,8 @@ import { fetchNjs, sha256 } from "./fetch-njs";
 import { diffMaps, diffSets, isMapDiffEmpty, type MapDiff } from "./diff";
 import { fetchSteamNews, newsSince, type SteamNews } from "./steam";
 import { buildItemsFile, buildListsFile } from "./emit-game-data";
+import { buildImpactReport } from "./impact";
+import { FORMULA_REGISTRY } from "./registry/formula-registry.gen";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(__dirname, "../../..");
@@ -288,6 +290,8 @@ async function main(): Promise<void> {
     nothingStructural
       ? "_Bundle mudou, mas nenhum dado estruturado/string detectado mudou (provável só renomeação/minificação)._"
       : "",
+    "",
+    buildImpactReport(formulasDiff, listsDiff, FORMULA_REGISTRY),
     "",
     section("Itens", itemsDiff, "item"),
     section("Listas / constantes", listsDiff, "list"),
