@@ -21,8 +21,18 @@ export function summarize(save: any): EngineSummary {
     tomeByTask[i] = r.pts ?? 0;
   }
 
-  // DR (char 0, map 0 — stable reference).
-  const drTotal = computeArkhDropRate(save, 0, 0).total;
+  // DR: max over all chars (the game/IT dropRate ground-truth is the best
+  // char, not char 0). mapIdx=0 (no map bonus), so ground-truth must use a
+  // loose tolerance — the reference value includes the active char's map.
+  let drTotal = 0;
+  const nChars = Array.isArray(save.charNames) ? save.charNames.length : 1;
+  for (let c = 0; c < nChars; c++) {
+    try {
+      drTotal = Math.max(drTotal, computeArkhDropRate(save, c, 0).total);
+    } catch {
+      /* skip chars that error in this context */
+    }
+  }
 
   // Cooking exp-rate (expRateTree needs the arkh state loaded).
   loadSaveData(save);
