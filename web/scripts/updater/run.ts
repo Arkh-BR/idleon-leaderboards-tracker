@@ -212,7 +212,8 @@ async function main(): Promise<void> {
   const cur = extractAll(text);
   console.log(
     `[updater] extraído: ${Object.keys(cur.items).length} itens · ` +
-      `${Object.keys(cur.lists).length} listas · ${cur.strings.length} strings`,
+      `${Object.keys(cur.lists).length} listas · ${cur.strings.length} strings · ` +
+      `${Object.keys(cur.formulas).length} fórmulas`,
   );
 
   // 4. Steam changelog. Always show the latest notes (the user wants "the most
@@ -264,7 +265,7 @@ async function main(): Promise<void> {
   }
 
   // 5. Diff against baseline.
-  const prev: Pick<Snapshot, "items" | "lists" | "strings"> & { formulas: Record<string, string> } = {
+  const prev: Pick<Snapshot, "items" | "lists" | "strings" | "formulas"> = {
     items: readJson(P.items, {}),
     lists: readJson(P.lists, {}),
     strings: readJson(P.strings, []),
@@ -277,6 +278,7 @@ async function main(): Promise<void> {
 
   const nothingStructural =
     isMapDiffEmpty(itemsDiff) && isMapDiffEmpty(listsDiff) &&
+    isMapDiffEmpty(formulasDiff) &&
     stringsDiff.added.length === 0 && stringsDiff.removed.length === 0;
 
   const report = [
@@ -289,6 +291,7 @@ async function main(): Promise<void> {
     "",
     section("Itens", itemsDiff, "item"),
     section("Listas / constantes", listsDiff, "list"),
+    section("Fórmulas", formulasDiff, "list"),
     stringsSection(stringsDiff),
     steamSection(allNews, sinceCheck),
   ].join("\n");

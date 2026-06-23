@@ -21,11 +21,10 @@ export type Snapshot = {
   items: Record<string, Record<string, string | number>>;
   lists: Record<string, unknown>;
   strings: string[];
-};
-
-export type ExtractResult = Pick<Snapshot, "items" | "lists" | "strings"> & {
   formulas: Record<string, string>;
 };
+
+export type ExtractResult = Pick<Snapshot, "items" | "lists" | "strings" | "formulas">;
 
 /**
  * Reads one JS literal starting at `start` (which must point at `[`, `{`, `"`
