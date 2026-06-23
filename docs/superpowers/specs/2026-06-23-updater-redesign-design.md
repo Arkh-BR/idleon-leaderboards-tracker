@@ -88,7 +88,14 @@ despachados por string, `if("<Name>"==d)return <expr>` (ex.: `FriendBonusQTY`,
 
 - Varre o bundle **normalizado** (reusa `normalizeBundle` + o scanner com consciência de
   strings/brackets que `extract.ts` já tem) capturando cada `if("<Name>"==d)return <expr>`
-  até o próximo `;if(`/fim do ternário, e cada `_customBlock_X=function`.
+  até o próximo `;if(`/fim do ternário.
+- **Escopo de captura — faseado.** A **Fase 1 captura apenas os blocos `==d`** (o dispatcher
+  de gameplay, onde vivem `FriendBonusQTY`, `HatrackBonusMulti` etc.). A captura dos **corpos
+  de `_customBlock_X=function`** e dos blocos despachados por **outras vars** (`==a/b/c`) é uma
+  **extensão deferida** (ver follow-ups do plano): importa quando a lógica portada muda DENTRO
+  de uma dessas funções sem alterar o texto do bloco `==d` externo. Até lá, "sem misses
+  silenciosos" vale para a classe `==d`; a rede de segurança e o re-sync diff do `lib/it`
+  reduzem o restante, mas a cobertura `_customBlock_` deve ser fechada numa próxima iteração.
 - Saída: `web/data/njs-snapshot/formulas.json` = `{ blockName → expressão normalizada }`,
   ao lado de `lists/items/strings`.
 - Diffado pelo `diff.ts` existente (diff genérico de mapas).

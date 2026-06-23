@@ -607,4 +607,6 @@ git commit -m "feat(updater): emit ported-formula impact section in the report"
 
 **Type consistency:** `extractFormulas(norm: string)` used identically in Task 1/2; `ExtractResult.formulas` added in Task 2 and consumed in `run.ts`; `buildRegistry`/`WEB_ROOT`/`FORMULA_REGISTRY` names consistent across Task 3/4/6; `buildImpactReport(formulasDiff, listsDiff, registry)` signature identical in Task 5/6; `MapDiff` imported from `./diff` (existing export).
 
-**Known follow-ups for later phases:** expand `@njs` coverage across the ~49 arkh systems (guard's DR-pool coverage check, spec §2); these are intentionally incremental.
+**Known follow-ups for later phases:**
+- Expand `@njs` coverage across the ~49 arkh systems (guard's DR-pool coverage check, spec §2); intentionally incremental.
+- **Extractor scope:** Phase 1 captures only `if("<Name>"==d)…` blocks. Capturing `_customBlock_X=function` bodies (~226) and non-`d` dispatchers (`==a/b/c`, ~26) is deferred — needed when ported logic changes INSIDE one of those functions without changing the outer `==d` block. The motivating misses (FriendBonusQTY, HatrackBonusMulti) are `==d` blocks, so they're covered; this closes the residual gap.
