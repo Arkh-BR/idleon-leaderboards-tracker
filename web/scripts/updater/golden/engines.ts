@@ -14,7 +14,19 @@ export function summarize(save: any): EngineSummary {
   // Tome (also yields per-task for ground-truth).
   // rows are in TASK ORDER (position i in the loop), which matches
   // extraData.tomePoints indexing — so we index by row position, not computeIdx.
-  const tome = computeTome(save);
+  //
+  // CRITICAL: defeat the IT-points override. computeTome normally overwrites
+  // its own per-task pts with parsedData.tomePoints when that array is present
+  // (so the UI matches idleontoolbox.com exactly). But fetched reference saves
+  // CARRY parsedData.tomePoints, so leaving the override on would make
+  // tomeByTask echo the very reference we validate against in run.ts — a
+  // tautology that passes regardless of port correctness. Strip it so
+  // tomeByTask reflects the engine's INDEPENDENT computation.
+  const saveForTome =
+    save && save.parsedData
+      ? { ...save, parsedData: { ...save.parsedData, tomePoints: undefined } }
+      : save;
+  const tome = computeTome(saveForTome);
   const tomeByTask: number[] = [];
   for (let i = 0; i < tome.rows.length; i++) {
     const r = tome.rows[i];

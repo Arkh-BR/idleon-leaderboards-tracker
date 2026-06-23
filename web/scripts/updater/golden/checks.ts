@@ -45,7 +45,14 @@ export function compareGroundTruth(
 
 export type Baseline = Record<string, { tomeTotal: number; drTotal: number; cookingExp: number; talentsTotal: number }>;
 
-/** Regression: summary values vs the versioned baseline (within tolPct percent). */
+/**
+ * Regression: summary values vs a versioned baseline (within tolPct percent).
+ *
+ * Intentionally NOT wired into run.ts: the orchestrator's reference saves are
+ * fetched from the IT profiles API and drift as players play, so a committed
+ * baseline of their totals would be perpetual noise. Retained (and unit-tested)
+ * as library API for a future regression mode over LOCAL, non-drifting saves.
+ */
 export function compareRegression(save: string, got: EngineSummary, baseline: Baseline, tolPct: number): Mismatch[] {
   const base = baseline[save];
   if (!base) return [];

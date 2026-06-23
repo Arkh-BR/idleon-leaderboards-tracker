@@ -756,6 +756,27 @@ export function rawGlimboTrades(d: D): number | null {
 
 // ---------------------------------------------------------------- "proper" extractors
 
+// maxStars for card-level calcs = round(4 + riftFiveStar + spelunkingSixStar).
+// Faithful to IT's parseCards and N.js: the 5th star unlocks at Rift >= 45, and
+// the 6th once Spelunking lore boss #2 is defeated (Spelunk[0][2] > 0). An
+// earlier port dropped the spelunking term, under-counting card levels for
+// accounts below the Tome points cap — the golden harness caught it on
+// "Cards Total LV" (0celot8: 862 vs IT 890; fixed → 890).
+function cardMaxStars(d: D): number {
+  const rift =
+    Array.isArray(d.Rift) && (d.Rift as unknown[])[0] !== undefined
+      ? num((d.Rift as unknown[])[0])
+      : 0;
+  const riftFiveStar = rift >= 45 ? 1 : 0;
+  const spelunk = d.Spelunk;
+  const loreBoss2Defeated =
+    Array.isArray(spelunk) && Array.isArray((spelunk as unknown[])[0])
+      ? num(((spelunk as unknown[])[0] as unknown[])[2]) > 0
+      : false;
+  const spelunkingSixStar = loreBoss2Defeated ? 1 : 0;
+  return Math.round(4 + riftFiveStar + spelunkingSixStar);
+}
+
 function calcStars(
   tierReq: number,
   amount: number,
@@ -789,11 +810,7 @@ function calcStars(
 export function rawCardsTotalLvProper(d: D): number | null {
   const cards = obj(d.Cards0);
   if (!cards) return null;
-  const rift =
-    Array.isArray(d.Rift) && (d.Rift as unknown[])[0] !== undefined
-      ? num((d.Rift as unknown[])[0])
-      : 0;
-  const maxStars = Math.round(4 + (rift >= 45 ? 1 : 0));
+  const maxStars = cardMaxStars(d);
   const opt = arr(d.OptLacc);
   const fiveStarRaw = String(opt[155] || "");
   const fiveStarList = fiveStarRaw ? fiveStarRaw.split(",") : [];
@@ -1016,11 +1033,7 @@ function calcCardStars(
 function cardPassiveStarBonus(d: D): number {
   const cards = obj(d.Cards0);
   if (!cards) return 0;
-  const rift =
-    Array.isArray(d.Rift) && (d.Rift as unknown[])[0] !== undefined
-      ? num((d.Rift as unknown[])[0])
-      : 0;
-  const maxStars = Math.round(4 + (rift >= 45 ? 1 : 0));
+  const maxStars = cardMaxStars(d);
   const opt = arr(d.OptLacc);
   const fiveStarRaw = String(opt[155] || "");
   const fiveStarList = fiveStarRaw ? fiveStarRaw.split(",") : [];
