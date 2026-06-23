@@ -89,13 +89,13 @@ despachados por string, `if("<Name>"==d)return <expr>` (ex.: `FriendBonusQTY`,
 - Varre o bundle **normalizado** (reusa `normalizeBundle` + o scanner com consciência de
   strings/brackets que `extract.ts` já tem) capturando cada `if("<Name>"==d)return <expr>`
   até o próximo `;if(`/fim do ternário.
-- **Escopo de captura — faseado.** A **Fase 1 captura apenas os blocos `==d`** (o dispatcher
-  de gameplay, onde vivem `FriendBonusQTY`, `HatrackBonusMulti` etc.). A captura dos **corpos
-  de `_customBlock_X=function`** e dos blocos despachados por **outras vars** (`==a/b/c`) é uma
-  **extensão deferida** (ver follow-ups do plano): importa quando a lógica portada muda DENTRO
-  de uma dessas funções sem alterar o texto do bloco `==d` externo. Até lá, "sem misses
-  silenciosos" vale para a classe `==d`; a rede de segurança e o re-sync diff do `lib/it`
-  reduzem o restante, mas a cobertura `_customBlock_` deve ser fechada numa próxima iteração.
+- **Escopo de captura (Fase 1 + 1.5 — implementado).** Captura: (a) **named-blocks de
+  qualquer dispatcher** `if("<Name>"==<v>)…` (`v` ∈ `a..z`, nome ≥3 chars — exclui ruído de
+  1–2 chars); e (b) os **corpos de `_customBlock_X=function`** (scaffolds), com os named-blocks
+  internos colapsados para `~` (o scaffold reflete só a lógica FORA deles, sem duplicar o
+  granular). Isso pega lógica despachada por número (`if(918==d)…`) e helpers diretos — fechando
+  o gap que o review da Fase 1 apontou. Baseline atual: **1303 entradas** (named-blocks +
+  233 scaffolds `_customBlock_` + non-`d`).
 - Saída: `web/data/njs-snapshot/formulas.json` = `{ blockName → expressão normalizada }`,
   ao lado de `lists/items/strings`.
 - Diffado pelo `diff.ts` existente (diff genérico de mapas).
