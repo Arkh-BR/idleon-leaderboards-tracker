@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { runCases } from "../../scripts/updater/golden/cases";
 import { compareGroundTruth, compareRegression, type EngineSummary } from "../../scripts/updater/golden/checks";
 
 describe("golden checks", () => {
@@ -21,5 +22,13 @@ describe("golden checks", () => {
     const got: EngineSummary = { tomeByTask: [], tomeTotal: 1000, drTotal: 5, cookingExp: 110, talentsTotal: 50 };
     const ms = compareRegression("ARKHE", got, base, 0); // 0% tolerance
     expect(ms.some((m) => m.kind === "regression" && m.key === "cookingExp")).toBe(true);
+  });
+});
+
+describe("golden synthetic cases", () => {
+  it("all synthetic cases pass", () => {
+    const results = runCases();
+    const failed = results.filter((r) => !r.ok).map((r) => r.name);
+    expect(failed, `failed: ${failed.join(", ")}`).toEqual([]);
   });
 });
