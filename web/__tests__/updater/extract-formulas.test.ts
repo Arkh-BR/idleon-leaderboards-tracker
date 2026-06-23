@@ -22,6 +22,37 @@ describe("extractFormulas", () => {
     const f = extractFormulas(src);
     expect(f["Quip"]).toBe(`"a;b}c"`);
   });
+
+  it("captures named-blocks dispatched on non-d vars", () => {
+    const src = `z._cb=function(c){if("GuildGpREQ"==c)return 5*c;}`;
+    const f = extractFormulas(src);
+    expect(f["GuildGpREQ"]).toBe("5*c");
+  });
+
+  it("ignores 1- and 2-char block names (noise)", () => {
+    const src = `z._cb=function(a){if("t"==a)return 1;if("nm"==a)return 2;}`;
+    const f = extractFormulas(src);
+    expect("t" in f).toBe(false);
+    expect("nm" in f).toBe(false);
+  });
+
+  it("captures a _customBlock_ scaffold including number-dispatched logic", () => {
+    const src = `z._customBlock_Companions=function(d){if(918==d)return 0;return d*2}`;
+    const f = extractFormulas(src);
+    expect(f["_customBlock_Companions"]).toContain("918==d");
+    expect(f["_customBlock_Companions"]).toContain("d*2");
+  });
+
+  it("collapses inner named-blocks in a scaffold (no redundant body)", () => {
+    const src = `z._customBlock_Thingies=function(d){if("AbcQTY"==d)return 1+2;return 9}`;
+    const f = extractFormulas(src);
+    // granular named-block captured on its own:
+    expect(f["AbcQTY"]).toBe("1+2");
+    // scaffold has the structure but NOT the inner expr:
+    expect(f["_customBlock_Thingies"]).toContain("~");
+    expect(f["_customBlock_Thingies"]).toContain("return 9");
+    expect(f["_customBlock_Thingies"]).not.toContain("1+2");
+  });
 });
 
 import { extractAll } from "../../scripts/updater/extract";
