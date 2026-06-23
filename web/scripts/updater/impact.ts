@@ -9,7 +9,7 @@ export function buildImpactReport(
   listsDiff: MapDiff,
   registry: Record<string, string[]>,
 ): string {
-  const lines: string[] = ["## Impacto nas fórmulas portadas", ""];
+  const items: string[] = [];
 
   const formulaChanges: [string, string][] = [
     ...formulasDiff.added.map((k): [string, string] => ["adicionada", k]),
@@ -18,8 +18,8 @@ export function buildImpactReport(
   ];
   for (const [kind, name] of formulaChanges) {
     const files = registry[name];
-    if (files) lines.push(`- 🔧 \`${name}\` ${kind} → revise: ${files.join(", ")}`);
-    else lines.push(`- ⚠️ \`${name}\` ${kind} — NÃO catalogado: investigar (port faltando ou fonte nova)`);
+    if (files) items.push(`- 🔧 \`${name}\` ${kind} → revise: ${files.join(", ")}`);
+    else items.push(`- ⚠️ \`${name}\` ${kind} — NÃO catalogado: investigar (port faltando ou fonte nova)`);
   }
 
   // Mirrored constants: a registry key "List[idx]" ties a changed list to a file.
@@ -27,13 +27,13 @@ export function buildImpactReport(
     for (const [name, files] of Object.entries(registry)) {
       const base = name.replace(/\[[0-9]+\]$/, "");
       if (base === c.key && base !== name) {
-        lines.push(`- 🪞 \`${c.key}\` mudou → constante espelhada (${name}) em: ${files.join(", ")}`);
+        items.push(`- 🪞 \`${c.key}\` mudou → constante espelhada (${name}) em: ${files.join(", ")}`);
       }
     }
   }
 
-  if (formulaChanges.length === 0 && lines.length === 2) {
-    lines.push("_Nenhuma fórmula portada tocada por este update._");
-  }
-  return lines.join("\n");
+  const body = items.length
+    ? items.join("\n")
+    : "_Nenhuma fórmula portada tocada por este update._";
+  return ["## Impacto nas fórmulas portadas", "", body].join("\n");
 }

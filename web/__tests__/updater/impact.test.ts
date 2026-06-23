@@ -31,4 +31,25 @@ describe("buildImpactReport", () => {
     expect(out).toContain("cookingMastery.ts");
     expect(out).toContain("espelhada");
   });
+
+  it("handles an added formula that is mapped", () => {
+    const fDiff: MapDiff = { ...empty, added: ["FriendBonusQTY"] };
+    const out = buildImpactReport(fDiff, empty, registry);
+    expect(out).toContain("adicionada");
+    expect(out).toContain("friend.ts");
+    expect(out).toContain("revise");
+  });
+
+  it("handles a removed uncatalogued formula", () => {
+    const fDiff: MapDiff = { ...empty, removed: ["GoneThing"] };
+    const out = buildImpactReport(fDiff, empty, registry);
+    expect(out).toContain("GoneThing");
+    expect(out).toContain("removida");
+    expect(out).toContain("NÃO catalogado");
+  });
+
+  it("emits the 'nothing touched' fallback when both diffs are empty", () => {
+    const out = buildImpactReport(empty, empty, registry);
+    expect(out).toContain("Nenhuma fórmula portada tocada");
+  });
 });
