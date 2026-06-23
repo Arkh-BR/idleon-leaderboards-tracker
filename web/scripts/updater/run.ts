@@ -20,6 +20,7 @@ import { diffMaps, diffSets, isMapDiffEmpty, type MapDiff } from "./diff";
 import { fetchSteamNews, newsSince, type SteamNews } from "./steam";
 import { buildItemsFile, buildListsFile } from "./emit-game-data";
 import { buildImpactReport } from "./impact";
+import { runCases } from "./golden/cases";
 import { FORMULA_REGISTRY } from "./registry/formula-registry.gen";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -292,6 +293,14 @@ async function main(): Promise<void> {
       : "",
     "",
     buildImpactReport(formulasDiff, listsDiff, FORMULA_REGISTRY),
+    "",
+    (() => {
+      const c = runCases();
+      const failed = c.filter((x) => !x.ok).map((x) => x.name);
+      return failed.length
+        ? `## Golden (sintéticos)\n\n- ❌ ${failed.length} caso(s) falhando: ${failed.join(", ")}`
+        : `## Golden (sintéticos)\n\n- ✅ ${c.length} caso(s) sintético(s) OK`;
+    })(),
     "",
     section("Itens", itemsDiff, "item"),
     section("Listas / constantes", listsDiff, "list"),
