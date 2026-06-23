@@ -153,6 +153,7 @@ export function galleryBonusMulti(
   return { val, children: ch };
 }
 
+// @njs HatrackBonusMulti
 export function hatrackBonusMulti(saveData: SaveData): MultiResult {
   const sp = saveData.spelunkData || [];
   const hatCount = (sp[46] && (sp[46] as any[]).length) || 0;

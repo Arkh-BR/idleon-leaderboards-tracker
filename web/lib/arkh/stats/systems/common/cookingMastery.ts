@@ -14,6 +14,7 @@ import { computeVialByKey } from "../w2/alchemy";
 import { SaltLicks } from "../../data/game/customlists";
 import { fountainBonusTotal } from "../../data/w5/fountain";
 
+// @njs RandoListo2[8]
 // RandoListo2[8] — base coefficient per upgrade b (0..5).
 export const MASTERY_COEF = [200, 1, 30, 10, 2, 20] as const;
 // RankREQcook — mastery rank needed to unlock upgrade b.

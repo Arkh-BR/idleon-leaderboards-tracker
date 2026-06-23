@@ -32,6 +32,7 @@ function computeFriendBonusSlots(saveData: SaveData): number {
   return Math.round(Math.min(20, 2 + comp44 + 2 * comp30 + evShop22));
 }
 
+// @njs FriendBonusQTY
 export const friend = {
   resolve(id: number, ctx: Ctx): ArkhNode {
     const friendStr = String((optionsListData as any)?.[476] ?? "");
