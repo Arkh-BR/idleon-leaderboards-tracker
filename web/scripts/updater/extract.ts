@@ -14,6 +14,8 @@
 //
 // Pure text parsing — never executes N.js (it expects a browser/canvas).
 
+import { extractFormulas } from "./extract-formulas";
+
 export type Snapshot = {
   meta: { sha256: string; byteLength: number };
   items: Record<string, Record<string, string | number>>;
@@ -21,7 +23,9 @@ export type Snapshot = {
   strings: string[];
 };
 
-export type ExtractResult = Pick<Snapshot, "items" | "lists" | "strings">;
+export type ExtractResult = Pick<Snapshot, "items" | "lists" | "strings"> & {
+  formulas: Record<string, string>;
+};
 
 /**
  * Reads one JS literal starting at `start` (which must point at `[`, `{`, `"`
@@ -337,5 +341,6 @@ export function extractAll(src: string): ExtractResult {
     items: extractItems(norm),
     lists: extractLists(norm),
     strings: extractStrings(norm),
+    formulas: extractFormulas(norm),
   };
 }

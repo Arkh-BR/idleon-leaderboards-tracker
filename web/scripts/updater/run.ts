@@ -92,6 +92,7 @@ const P = {
   items: resolve(SNAP_DIR, "items.json"),
   lists: resolve(SNAP_DIR, "lists.json"),
   strings: resolve(SNAP_DIR, "strings.json"),
+  formulas: resolve(SNAP_DIR, "formulas.json"),
   meta: resolve(SNAP_DIR, "meta.json"),
 };
 
@@ -250,6 +251,7 @@ async function main(): Promise<void> {
       writeJson(P.items, cur.items);
       writeJson(P.lists, cur.lists);
       writeJson(P.strings, cur.strings);
+      writeJson(P.formulas, cur.formulas);
       writeJson(P.meta, { sha256: curSha, byteLength: curBytes, lastSteamCheck: newSteamCheck } satisfies Meta);
       mkdirSync(REPORT_DIR, { recursive: true });
       writeFileSync(reportPath, report, "utf8");
@@ -262,14 +264,16 @@ async function main(): Promise<void> {
   }
 
   // 5. Diff against baseline.
-  const prev: Pick<Snapshot, "items" | "lists" | "strings"> = {
+  const prev: Pick<Snapshot, "items" | "lists" | "strings"> & { formulas: Record<string, string> } = {
     items: readJson(P.items, {}),
     lists: readJson(P.lists, {}),
     strings: readJson(P.strings, []),
+    formulas: readJson(P.formulas, {}),
   };
   const itemsDiff = diffMaps(prev.items, cur.items);
   const listsDiff = diffMaps(prev.lists, cur.lists);
   const stringsDiff = diffSets(prev.strings, cur.strings);
+  const formulasDiff = diffMaps(prev.formulas, cur.formulas);
 
   const nothingStructural =
     isMapDiffEmpty(itemsDiff) && isMapDiffEmpty(listsDiff) &&
@@ -294,6 +298,7 @@ async function main(): Promise<void> {
     writeJson(P.items, cur.items);
     writeJson(P.lists, cur.lists);
     writeJson(P.strings, cur.strings);
+    writeJson(P.formulas, cur.formulas);
     writeJson(P.meta, { sha256: curSha, byteLength: curBytes, lastSteamCheck: newSteamCheck } satisfies Meta);
     mkdirSync(REPORT_DIR, { recursive: true });
     writeFileSync(reportPath, report, "utf8");
@@ -304,6 +309,7 @@ async function main(): Promise<void> {
   console.log(`  Itens   ➕${itemsDiff.added.length} ➖${itemsDiff.removed.length} ✏️${itemsDiff.changed.length}`);
   console.log(`  Listas  ➕${listsDiff.added.length} ➖${listsDiff.removed.length} ✏️${listsDiff.changed.length}`);
   console.log(`  Strings ➕${stringsDiff.added.length} ➖${stringsDiff.removed.length}`);
+  console.log(`  Fórmulas ➕${formulasDiff.added.length} ➖${formulasDiff.removed.length} ✏️${formulasDiff.changed.length}`);
   console.log(`  Steam   ${newCount} nota(s) nova(s) · ${allNews.length} recentes`);
   console.log("──────────────────────────────────────────");
   if (DRY) {

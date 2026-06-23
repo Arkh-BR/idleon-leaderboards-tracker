@@ -23,3 +23,13 @@ describe("extractFormulas", () => {
     expect(f["Quip"]).toBe(`"a;b}c"`);
   });
 });
+
+import { extractAll } from "../../scripts/updater/extract";
+
+describe("extractAll", () => {
+  it("includes a formulas map", () => {
+    const src = `z._cb=function(d){if("MonsterCash"==d)return 5;}`;
+    const out = extractAll(src);
+    expect(out.formulas["MonsterCash"]).toBe("5");
+  });
+});
