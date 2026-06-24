@@ -95,9 +95,15 @@ jobs:
             exit 0
           fi
 
-          git checkout -b "$BRANCH"
+          # -B + --force makes a re-run self-healing: a prior run that pushed this
+          # branch but failed before creating the PR (transient gh error, etc.)
+          # leaves an orphan branch that would otherwise block the push. Safe to
+          # overwrite — this step only runs when NO auto-update PR is open (the
+          # openpr guard), so --force can only clobber an orphan, never an
+          # in-review PR branch.
+          git checkout -B "$BRANCH"
           git commit -m "chore(auto-update): N.js $SHA12 snapshot + mechanical game-data"
-          git push -u origin "$BRANCH"
+          git push -u origin "$BRANCH" --force
 
           if [ "$VALIDATE_OUTCOME" = "success" ]; then
             STATUS="clean"; LABEL="auto-update"
