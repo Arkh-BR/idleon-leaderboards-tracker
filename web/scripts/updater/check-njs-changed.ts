@@ -5,7 +5,7 @@
 import { appendFileSync, existsSync, readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { headNjs } from "./fetch-njs";
+import { headNjs, normalizeEtag } from "./fetch-njs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const META = resolve(__dirname, "../../data/njs-snapshot/meta.json");
@@ -17,8 +17,9 @@ function setOutput(key: string, val: string): void {
 
 /** Pure decision: changed when there is no baseline etag or it differs. */
 export function etagChanged(baselineEtag: string | null | undefined, liveEtag: string | null): boolean {
-  if (!baselineEtag) return true; // no baseline yet → force one processing run
-  return baselineEtag !== liveEtag;
+  const base = normalizeEtag(baselineEtag);
+  if (!base) return true; // no baseline yet → force one processing run
+  return base !== normalizeEtag(liveEtag);
 }
 
 async function main(): Promise<void> {

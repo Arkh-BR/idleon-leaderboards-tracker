@@ -12,6 +12,16 @@ export function sha256(text: string): string {
   return createHash("sha256").update(text, "utf8").digest("hex");
 }
 
+/** Normalizes an HTTP ETag for comparison: strips the optional weak-validator
+ *  prefix (`W/`) and surrounding whitespace, so a weak `W/"abc"` and a strong
+ *  `"abc"` for the same content compare equal. nginx returns a WEAK etag for
+ *  gzip-compressed responses — which is exactly what `fetch` gets by default —
+ *  so without this a weak/strong flip would falsely read as "changed". */
+export function normalizeEtag(e: string | null | undefined): string | null {
+  if (!e) return null;
+  return e.replace(/^\s*W\//i, "").trim();
+}
+
 export type FetchedNjs = { text: string; sha256: string; byteLength: number; etag: string | null };
 
 /** Downloads the live N.js to `destPath` and returns its text + hash + etag. */
