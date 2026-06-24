@@ -201,6 +201,24 @@ Se nada mudou → **no-op, sem PR**. Só dispara o trabalho pesado em mudança r
 
 **Gate:** o usuário revisa o PR e mergeia. O agente nunca toca a main.
 
+**Refinamento do trigger (jun/23 — substitui "cron via skill `schedule`, 6h"):** o gatilho é
+**event-driven via ETag do N.js**, hospedado em **GitHub Actions** (não na skill `schedule`):
+- Uma Action roda num cron curto (~30 min) e faz só um **`HEAD`** em
+  `legendsofidleon.com/.../N.js`, comparando `ETag`/`Last-Modified` com o último guardado
+  (em `meta.json`). É ~grátis — não baixa os ~25 MB.
+- Sem mudança → no-op. Com mudança → baixa o N.js, **confirma pelo hash de conteúdo**
+  (cinto-e-suspensório vs. re-deploy idêntico) e só então dispara o pipeline pesado.
+- Webhook puro (RSS→`repository_dispatch`) foi avaliado e **descartado**: o RSS só cobre
+  patches anunciados e perderia um hotfix silencioso que mexa numa fórmula — fura a
+  precisão. O ETag pega 100% (qualquer alteração do N.js muda mtime/tamanho → muda o ETag).
+- **Notificação:** canal do **Discord**. Da Action (nuvem) é via **webhook nativo do canal**
+  (`DISCORD_WEBHOOK_URL` como secret do repo); quando o fix roda numa sessão Claude, usa o
+  bot MCP (verificado funcionando em 23/06).
+- **Split detecção/correção (v1):** a Action faz detecção + mecânico (`--write-game-data`) +
+  golden + relatório de impacto, abre **PR draft** `auto-update-<data>` e notifica. A
+  **correção agêntica das fórmulas é feita pelo Claude** a partir do PR (o raciocínio fica
+  sob o Claude + gate humano no merge). Auto-fix headless em CI fica para uma v2.
+
 ---
 
 ## Garantias de cobertura (como nada passa silenciosamente)
@@ -263,6 +281,8 @@ web/data/njs-snapshot/
 web/__tests__/
   registry.guard.test.ts      (NOVO)
   golden.test.ts              (NOVO)
-.claude/ (ou equivalente)
-  routine "idleon-update-watch" (schedule, 6h)
+.github/workflows/
+  idleon-update-watch.yml     (NOVO — cron ~30min: HEAD/ETag no N.js →
+                               on change: detecção + mecânico + golden +
+                               PR draft auto-update-<data> + Discord webhook)
 ```
