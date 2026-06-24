@@ -1,5 +1,6 @@
-# Claude / IDE
-.claude/
+# Claude / IDE — ignore everything under .claude/ EXCEPT shared project commands
+.claude/*
+!.claude/commands/
 .superpowers/
 
 # Node / Next
