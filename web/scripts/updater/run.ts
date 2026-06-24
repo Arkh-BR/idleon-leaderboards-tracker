@@ -63,7 +63,7 @@ async function writeGameData(
   if (ls.missing.length) console.log(`[updater]    listas não reextraídas (mantidas do baseline): ${ls.missing.join(", ")}`);
 }
 
-type Meta = { sha256: string; byteLength: number; lastSteamCheck: number };
+type Meta = { sha256: string; byteLength: number; lastSteamCheck: number; etag?: string | null };
 
 function sortDeep(v: unknown): unknown {
   if (Array.isArray(v)) return v.map(sortDeep);
@@ -185,6 +185,7 @@ async function main(): Promise<void> {
   let text: string;
   let curSha: string;
   let curBytes: number;
+  let curEtag: string | null = null;
   if (NO_FETCH) {
     if (!existsSync(ROOT_NJS)) throw new Error(`--no-fetch but ${ROOT_NJS} is missing`);
     text = readFileSync(ROOT_NJS, "utf8");
@@ -198,6 +199,7 @@ async function main(): Promise<void> {
     text = got.text;
     curSha = got.sha256;
     curBytes = got.byteLength;
+    curEtag = got.etag;
     console.log(`[updater] baixado: ${curBytes} bytes → ${dest}`);
   }
 
@@ -206,7 +208,12 @@ async function main(): Promise<void> {
   const isFirst = prevMeta === null;
 
   if (!isFirst && prevMeta!.sha256 === curSha) {
-    console.log("[updater] ✅ sem mudanças — hash idêntico ao baseline. Nada a fazer.");
+    if (!NO_FETCH && !DRY && curEtag && prevMeta!.etag !== curEtag) {
+      writeJson(P.meta, { ...prevMeta!, etag: curEtag } satisfies Meta);
+      console.log(`[updater] ✅ sem mudança de conteúdo — etag atualizado (${curEtag}). Nada mais a fazer.`);
+    } else {
+      console.log("[updater] ✅ sem mudanças — hash idêntico ao baseline. Nada a fazer.");
+    }
     return;
   }
 
@@ -256,7 +263,7 @@ async function main(): Promise<void> {
       writeJson(P.lists, cur.lists);
       writeJson(P.strings, cur.strings);
       writeJson(P.formulas, cur.formulas);
-      writeJson(P.meta, { sha256: curSha, byteLength: curBytes, lastSteamCheck: newSteamCheck } satisfies Meta);
+      writeJson(P.meta, { sha256: curSha, byteLength: curBytes, lastSteamCheck: newSteamCheck, etag: curEtag } satisfies Meta);
       mkdirSync(REPORT_DIR, { recursive: true });
       writeFileSync(reportPath, report, "utf8");
       console.log(`[updater] 🌱 baseline criado em ${SNAP_DIR}`);
@@ -315,7 +322,7 @@ async function main(): Promise<void> {
     writeJson(P.lists, cur.lists);
     writeJson(P.strings, cur.strings);
     writeJson(P.formulas, cur.formulas);
-    writeJson(P.meta, { sha256: curSha, byteLength: curBytes, lastSteamCheck: newSteamCheck } satisfies Meta);
+    writeJson(P.meta, { sha256: curSha, byteLength: curBytes, lastSteamCheck: newSteamCheck, etag: curEtag } satisfies Meta);
     mkdirSync(REPORT_DIR, { recursive: true });
     writeFileSync(reportPath, report, "utf8");
   }
