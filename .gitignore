@@ -52,3 +52,7 @@ idleon_raw_*.json
 /Idleon_Leaderboards.xlsx
 /Idleon_Tome_Tracker.xlsx
 /TOME_PARITY.md
+
+# Local Discord launcher — opens Claude Code with the official Discord plugin
+# channel (`--channels`). Machine-specific paths, keep local-only.
+/start-discord.bat
