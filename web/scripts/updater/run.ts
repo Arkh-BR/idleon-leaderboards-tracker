@@ -15,7 +15,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { extractAll, type Item, type Snapshot } from "./extract";
-import { fetchNjs, sha256 } from "./fetch-njs";
+import { fetchNjs, normalizeEtag, sha256 } from "./fetch-njs";
 import { diffMaps, diffSets, isMapDiffEmpty, type MapDiff } from "./diff";
 import { fetchSteamNews, newsSince, type SteamNews } from "./steam";
 import { buildItemsFile, buildListsFile } from "./emit-game-data";
@@ -208,7 +208,7 @@ async function main(): Promise<void> {
   const isFirst = prevMeta === null;
 
   if (!isFirst && prevMeta!.sha256 === curSha) {
-    if (!NO_FETCH && !DRY && curEtag && prevMeta!.etag !== curEtag) {
+    if (!NO_FETCH && !DRY && curEtag && normalizeEtag(prevMeta!.etag) !== normalizeEtag(curEtag)) {
       writeJson(P.meta, { ...prevMeta!, etag: curEtag } satisfies Meta);
       console.log(`[updater] ✅ sem mudança de conteúdo — etag atualizado (${curEtag}). Nada mais a fazer.`);
     } else {

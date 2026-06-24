@@ -1,11 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
-
-// Stub out headNjs so the module-level main() in check-njs-changed.ts does not
-// fire a real network request when vitest imports the module.
-vi.mock("../../scripts/updater/fetch-njs", async (importOriginal) => {
-  const real = await importOriginal<typeof import("../../scripts/updater/fetch-njs")>();
-  return { ...real, headNjs: vi.fn().mockResolvedValue({ etag: null, lastModified: null, byteLength: null }) };
-});
+import { describe, it, expect } from "vitest";
 
 import { etagChanged } from "../../scripts/updater/check-njs-changed";
 import { buildDiscordMessage } from "../../scripts/updater/ci/notify-discord";

@@ -4,7 +4,7 @@
 // Always exits 0 — the workflow decides what to do with the output.
 import { appendFileSync, existsSync, readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { headNjs, normalizeEtag } from "./fetch-njs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -35,9 +35,11 @@ async function main(): Promise<void> {
   setOutput("etag", head.etag ?? "");
 }
 
-main().catch((e) => {
-  console.error("[check] ERRO:", (e as Error).message);
-  // Network hiccup → treat as "no change" so we don't open a broken PR.
-  setOutput("changed", "false");
-  process.exit(0);
-});
+if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
+  main().catch((e) => {
+    console.error("[check] ERRO:", (e as Error).message);
+    // Network hiccup → treat as "no change" so we don't open a broken PR.
+    setOutput("changed", "false");
+    process.exit(0);
+  });
+}

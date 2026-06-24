@@ -13,6 +13,9 @@ permissions:
   contents: write
   pull-requests: write
 
+# Anti-duplicate-PR guard (the openpr step) relies on the PR List API being
+# consistent by the time a queued run executes; cancel-in-progress:false queues
+# overlapping runs so a later run sees the earlier run's PR.
 concurrency:
   group: idleon-update-watch
   cancel-in-progress: false
@@ -47,7 +50,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          n=$(gh pr list --state open --search "head:auto-update-" --json number --jq 'length')
+          n=$(gh pr list --state open --json headRefName --jq '[.[] | select(.headRefName | startswith("auto-update-"))] | length')
           echo "Open auto-update PRs: $n"
           echo "open=$n" >> "$GITHUB_OUTPUT"
 
@@ -57,6 +60,8 @@ jobs:
         working-directory: web
         run: npx tsx scripts/updater/run.ts --write-game-data
 
+      # Inline validation sets the PR's clean/needs-human label + Discord status. The
+      # PR's check-status comes separately from ci.yml; the two can disagree.
       - name: Validate (build + unit tests + golden)
         id: validate
         if: steps.gate.outputs.changed == 'true' && steps.openpr.outputs.open == '0'

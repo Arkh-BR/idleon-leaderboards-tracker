@@ -3,6 +3,8 @@
 //   npx tsx scripts/updater/ci/notify-discord.ts "<prUrl>" "<status>" "<sha12>"
 // status: "clean" (build+tests+golden green) | "needs-human" (something failed)
 
+import { pathToFileURL } from "node:url";
+
 export function buildDiscordMessage(prUrl: string, status: string, sha12: string): string {
   const head =
     status === "clean"
@@ -37,7 +39,9 @@ async function main(): Promise<void> {
   console.log("[notify] Discord notificado.");
 }
 
-main().catch((e) => {
-  console.error("[notify] ERRO:", (e as Error).message);
-  process.exit(1);
-});
+if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
+  main().catch((e) => {
+    console.error("[notify] ERRO:", (e as Error).message);
+    process.exit(1);
+  });
+}

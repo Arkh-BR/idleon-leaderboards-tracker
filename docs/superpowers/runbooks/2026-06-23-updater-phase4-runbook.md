@@ -20,3 +20,4 @@
 ## Notes
 - One open auto-update PR at a time: if a PR is open, the workflow skips new runs until it's merged/closed (a second update while one is pending is caught on the next run after merge).
 - If validation failed (`needs-human`), the PR carries the `needs-human` label and the Discord ping says so.
+- A notificação do Discord é best-effort: uma falha do webhook não derruba o PR. Se você não receber o ping, confira o log do step "Open draft PR + notify Discord" em Actions.
