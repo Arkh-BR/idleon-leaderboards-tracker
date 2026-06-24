@@ -1,0 +1,112 @@
+name: Idleon update watch
+
+# Cheap ETag gate every 30 min: a HEAD on the live N.js compares the server's
+# content fingerprint to the committed baseline (no ~25 MB download). On a real
+# change it runs the detection + mechanical regen + golden pipeline, opens a
+# DRAFT PR auto-update-<sha>, and pings Discord. Never merges to main.
+on:
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: idleon-update-watch
+  cancel-in-progress: false
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install npm dependencies
+        working-directory: web
+        run: npm ci
+
+      - name: Cheap ETag gate
+        id: gate
+        working-directory: web
+        run: npx tsx scripts/updater/check-njs-changed.ts
+
+      - name: Skip if an auto-update PR is already open
+        id: openpr
+        if: steps.gate.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          n=$(gh pr list --state open --search "head:auto-update-" --json number --jq 'length')
+          echo "Open auto-update PRs: $n"
+          echo "open=$n" >> "$GITHUB_OUTPUT"
+
+      - name: Run detection + mechanical regen
+        id: pipeline
+        if: steps.gate.outputs.changed == 'true' && steps.openpr.outputs.open == '0'
+        working-directory: web
+        run: npx tsx scripts/updater/run.ts --write-game-data
+
+      - name: Validate (build + unit tests + golden)
+        id: validate
+        if: steps.gate.outputs.changed == 'true' && steps.openpr.outputs.open == '0'
+        continue-on-error: true
+        working-directory: web
+        run: |
+          npm run build
+          npm run test
+          npx tsx scripts/updater/golden/run.ts
+
+      - name: Open draft PR + notify Discord
+        if: steps.gate.outputs.changed == 'true' && steps.openpr.outputs.open == '0'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          VALIDATE_OUTCOME: ${{ steps.validate.outcome }}
+        run: |
+          set -euo pipefail
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          SHA12=$(node -e "console.log(require('./web/data/njs-snapshot/meta.json').sha256.slice(0,12))")
+          DATE=$(TZ=America/Sao_Paulo date +%Y-%m-%d)
+          BRANCH="auto-update-$SHA12"
+          REPORT="web/data/njs-snapshot/reports/report-$DATE.md"
+
+          # Nothing structural to commit? (e.g. only a minified rename) → no PR.
+          git add web/data/njs-snapshot web/lib/arkh/stats/data/game
+          if git diff --cached --quiet; then
+            echo "No structural changes to commit — skipping PR."
+            exit 0
+          fi
+
+          git checkout -b "$BRANCH"
+          git commit -m "chore(auto-update): N.js $SHA12 snapshot + mechanical game-data"
+          git push -u origin "$BRANCH"
+
+          if [ "$VALIDATE_OUTCOME" = "success" ]; then
+            STATUS="clean"; LABEL="auto-update"
+          else
+            STATUS="needs-human"; LABEL="needs-human"
+          fi
+
+          BODY_FILE="$REPORT"
+          [ -f "$BODY_FILE" ] || { echo "Game update detected; report missing." > /tmp/body.md; BODY_FILE=/tmp/body.md; }
+
+          PR_URL=$(gh pr create --draft --base main --head "$BRANCH" \
+            --title "Auto-update $DATE — N.js $SHA12 ($STATUS)" \
+            --body-file "$BODY_FILE")
+          echo "PR: $PR_URL"
+          gh pr edit "$PR_URL" --add-label "$LABEL" || true
+
+          ( cd web && npx tsx scripts/updater/ci/notify-discord.ts "$PR_URL" "$STATUS" "$SHA12" ) || true
