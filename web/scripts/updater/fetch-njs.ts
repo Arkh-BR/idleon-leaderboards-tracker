@@ -12,20 +12,37 @@ export function sha256(text: string): string {
   return createHash("sha256").update(text, "utf8").digest("hex");
 }
 
-export type FetchedNjs = { text: string; sha256: string; byteLength: number };
+export type FetchedNjs = { text: string; sha256: string; byteLength: number; etag: string | null };
 
-/** Downloads the live N.js to `destPath` and returns its text + hash. */
+/** Downloads the live N.js to `destPath` and returns its text + hash + etag. */
 export async function fetchNjs(destPath: string): Promise<FetchedNjs> {
   const res = await fetch(NJS_URL, { redirect: "follow" });
   if (!res.ok) {
     throw new Error(`fetch N.js failed: HTTP ${res.status} ${res.statusText}`);
   }
+  const etag = res.headers.get("etag");
   const text = await res.text();
   if (text.length < 1_000_000) {
-    // The real bundle is ~25 MB; anything tiny is an error page, not the game.
     throw new Error(`downloaded N.js looks wrong: only ${text.length} bytes`);
   }
   mkdirSync(dirname(destPath), { recursive: true });
   writeFileSync(destPath, text, "utf8");
-  return { text, sha256: sha256(text), byteLength: Buffer.byteLength(text, "utf8") };
+  return { text, sha256: sha256(text), byteLength: Buffer.byteLength(text, "utf8"), etag };
+}
+
+export type NjsHead = { etag: string | null; lastModified: string | null; byteLength: number | null };
+
+/** Cheap change-probe: reads the server's ETag/Last-Modified without downloading
+ *  the ~25 MB body. The ETag changes whenever the bundle's mtime/size changes. */
+export async function headNjs(): Promise<NjsHead> {
+  const res = await fetch(NJS_URL, { method: "HEAD", redirect: "follow" });
+  if (!res.ok) {
+    throw new Error(`HEAD N.js failed: HTTP ${res.status} ${res.statusText}`);
+  }
+  const cl = res.headers.get("content-length");
+  return {
+    etag: res.headers.get("etag"),
+    lastModified: res.headers.get("last-modified"),
+    byteLength: cl ? Number(cl) : null,
+  };
 }
