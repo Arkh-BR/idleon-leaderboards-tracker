@@ -19645,7 +19645,7 @@
   "w7b1 Not_officially_in_the_game_and_may_never_be 1 0 0 0 1 100",
   "w7b10 Not_officially_in_the_game_and_may_never_be 1 -43 0 -30 1 260",
   "w7b11 Multiplies_ALL_Research_Grid_bonuses_by_1.15x_(World_7_feature) 15 -26 0 -28 1 200",
-  "w7b12 Glimbo's_Swap_Meet's_prices_are_5.00x_cheaper_(World_7_feature) 1 -36 0 -41 1 300",
+  "w7b12 Glimbo's_Swap_Meet's_prices_are_5.00x_cheaper_(World_7_feature) 80 -36 0 -41 1 300",
   "w7b1b 100x_Gaming_Bits_gained_(World_5_feature) 99 -7 0 -18 1 140",
   "w7b2 20x_total_Spelunking_POW,_and_2x_Minehead_Currency_Gain! 20 -20 0 -19 1 190",
   "w7b3 Not_officially_in_the_game_and_may_never_be 1 0 0 0 1 100",
