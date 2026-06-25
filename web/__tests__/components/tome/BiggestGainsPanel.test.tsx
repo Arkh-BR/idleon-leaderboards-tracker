@@ -27,7 +27,8 @@ describe("BiggestGainsPanel", () => {
   it("shows an error banner when the stored JSON is invalid", async () => {
     localStorage.setItem(KEY, "{ not valid json");
     renderPanel();
-    expect(await screen.findByText(/^Error:/)).toBeInTheDocument();
+    // Banner renders "⚠ Error: …", so the message no longer starts the node.
+    expect(await screen.findByText(/Error:/)).toBeInTheDocument();
   });
 
   it("renders the hero card and the ranked table with the five columns", async () => {
@@ -35,7 +36,7 @@ describe("BiggestGainsPanel", () => {
     renderPanel();
 
     // Hero card.
-    expect(await screen.findByText(/Biggest win → push/i)).toBeInTheDocument();
+    expect(await screen.findByText(/Biggest win →/i)).toBeInTheDocument();
 
     // Table headers (exact English copy). Exact-string matches avoid colliding
     // with the methodology note, which also contains "Tome pts gain".
@@ -49,7 +50,7 @@ describe("BiggestGainsPanel", () => {
   it("puts the 'biggest win' badge on the first table row only", async () => {
     localStorage.setItem(KEY, EMPTY_SAVE);
     const { container } = renderPanel();
-    await screen.findByText(/Biggest win → push/i);
+    await screen.findByText(/Biggest win →/i);
 
     const badges = screen.getAllByText("biggest win");
     expect(badges).toHaveLength(1);
@@ -62,7 +63,7 @@ describe("BiggestGainsPanel", () => {
   it("reveals more rows (the gated tasks) when 'Include gated tasks' is toggled on", async () => {
     localStorage.setItem(KEY, EMPTY_SAVE);
     const { container } = renderPanel();
-    await screen.findByText(/Biggest win → push/i);
+    await screen.findByText(/Biggest win →/i);
 
     const before = container.querySelectorAll("tbody tr").length;
     expect(before).toBeGreaterThan(0);

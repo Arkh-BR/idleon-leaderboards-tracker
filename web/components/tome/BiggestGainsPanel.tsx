@@ -11,7 +11,7 @@
 // lib/tome/gains.ts — no duplicated formulas.
 // ============================================================================
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { computeTome, type TomeResult } from "@/lib/tome/compute";
 import {
   describeNextPoint,
@@ -22,22 +22,15 @@ import {
   rankGains,
   type EnrichedRow,
 } from "@/lib/tome/gains";
+import { CLASSIFICATION_STYLE } from "./BestTomePanel";
 import { formatIdleon } from "@/lib/format";
 
 const STORAGE_KEY = "idleon-leaderboards.tome.rawJson";
 const CLASSIFICATIONS_KEY = "idleon-leaderboards.tome.userClassifications";
 
-// Lean classification chip styles for the "Class" column. The Best Tome panel
-// owns the editable chips; here they are read-only, so a small label+color map
-// is all we need.
-const CLASS_STYLE: Record<number, { label: string; chip: string }> = {
-  1: { label: "Priority", chip: "bg-red-900/40 text-red-300 border-red-700/50" },
-  3: { label: "Doable", chip: "bg-emerald-900/40 text-emerald-300 border-emerald-700/50" },
-  4: { label: "Time Gated", chip: "bg-amber-900/40 text-amber-300 border-amber-700/50" },
-  5: { label: "Lucky Gated", chip: "bg-purple-900/40 text-purple-300 border-purple-700/50" },
-  9: { label: "Update Gated", chip: "bg-orange-900/40 text-orange-300 border-orange-700/50" },
-  12: { label: "Capped", chip: "bg-sky-900/40 text-sky-300 border-sky-700/50" },
-};
+// The "Class" column reuses the editable-chip palette the Best Tome panel owns
+// (CLASSIFICATION_STYLE). Importing it instead of duplicating a local map keeps
+// the same data the same color across both tabs and avoids drift (UI spec §2.6).
 
 // Methodology note (kept as a string so the apostrophes render literally and
 // don't trip react/no-unescaped-entities).
@@ -50,15 +43,30 @@ const METHODOLOGY =
 
 const EMPTY_HINT =
   "Paste your raw JSON in the Paste your data here tab first. Once you click " +
-  "Calculate Tome, this view auto-populates with the same data.";
+  "Calculate Tome, this view auto-populates.";
 
 // Edge copy (English) — see the design spec §4.
+// NOTE: this one message intentionally merges two §4 edge states that share the
+// exact same trigger (ranked is empty while gated gaps remain): "only gated
+// left" and "you've matched the top on every pushable task". Both mean the same
+// thing to the player — no actionable move right now, more behind the gated
+// toggle — so we state that result once and point at the toggle.
 const NO_ACTIONABLE =
   "No actionable gains right now — your remaining gaps are time/luck/update " +
   "gated. Toggle 'Include gated tasks' to see them.";
 const AT_CEILING =
   "You're at or above the top observed players on every task — nothing to gain " +
   "here. Nice.";
+
+// Edge-state helpers mirror the Drop Rate precedent (dropRate/BiggestGains.tsx
+// :41-51) so both prescriptive tabs render empty/error states identically.
+function Banner({ children }: { children: ReactNode }) {
+  return <p className="text-sm text-red-400 py-4">⚠ {children}</p>;
+}
+
+function Hint({ children }: { children: ReactNode }) {
+  return <p className="text-sm text-zinc-500 text-center py-10">{children}</p>;
+}
 
 export default function BiggestGainsPanel({
   dungeonAsOne,
@@ -125,19 +133,11 @@ export default function BiggestGainsPanel({
   const anyGap = useMemo(() => enriched.some((r) => gainPts(r) > 0), [enriched]);
 
   if (error) {
-    return (
-      <div className="bg-red-950/50 border border-red-800 rounded p-3 text-sm">
-        <strong className="text-red-400">Error:</strong> {error}
-      </div>
-    );
+    return <Banner>Error: {error}</Banner>;
   }
 
   if (!result) {
-    return (
-      <div className="bg-zinc-900/40 border border-zinc-800 rounded p-6 text-center text-sm text-zinc-400">
-        {EMPTY_HINT}
-      </div>
-    );
+    return <Hint>{EMPTY_HINT}</Hint>;
   }
 
   return (
@@ -150,7 +150,7 @@ export default function BiggestGainsPanel({
             type="checkbox"
             checked={includeGated}
             onChange={(e) => setIncludeGated(e.target.checked)}
-            className="accent-gold"
+            className="accent-emerald-500"
           />
           Include gated tasks
         </label>
@@ -165,7 +165,7 @@ export default function BiggestGainsPanel({
               : "border-zinc-700 text-zinc-300 hover:border-amber-500/50 hover:text-amber-300"
           }`}
         >
-          🏰 Dungeon = 1{dungeonAsOne ? " ✓" : ""}
+          <span aria-hidden="true">🏰</span> Dungeon = 1{dungeonAsOne ? " ✓" : ""}
         </button>
       </div>
 
@@ -191,12 +191,11 @@ function HeroCard({ hero }: { hero: EnrichedRow }) {
           np.target
         )}`;
   return (
-    <div className="rounded-xl border border-gold/40 bg-gradient-to-br from-zinc-900/80 to-zinc-900/40 p-5 shadow-lg shadow-gold/5">
-      <div className="text-xl sm:text-2xl font-bold text-gold leading-tight">
-        💡 Biggest win → push {displayTaskName(hero.task)} for{" "}
-        <span className="tabular-nums">+{gainPts(hero)}</span> Tome pts
-      </div>
-      <div className="text-sm text-zinc-400 mt-2 tabular-nums">{next}</div>
+    <div className="rounded-md border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-200/90">
+      <span aria-hidden="true">💡</span> <strong>Biggest win →</strong> push{" "}
+      <strong>{displayTaskName(hero.task)}</strong> for{" "}
+      <strong className="tabular-nums">+{gainPts(hero)} Tome pts</strong>
+      <div className="text-xs text-emerald-200/70 mt-0.5 tabular-nums">{next}</div>
     </div>
   );
 }
@@ -211,13 +210,13 @@ function GainsTable({
   return (
     <div className="overflow-x-auto rounded-lg border border-zinc-800">
       <table className="w-full text-sm border-separate border-spacing-0">
-        <thead className="text-zinc-300">
+        <thead className="text-zinc-400">
           <tr className="[&>th]:bg-zinc-900 [&>th]:border-b [&>th]:border-zinc-800 [&>th]:px-3 [&>th]:py-2">
-            <th className="text-left">Task</th>
-            <th className="text-right whitespace-nowrap">You → Top</th>
-            <th className="text-right whitespace-nowrap">Tome pts gain</th>
-            <th className="text-right whitespace-nowrap">Next point</th>
-            <th className="text-center">Class</th>
+            <th scope="col" className="text-left">Task</th>
+            <th scope="col" className="text-right whitespace-nowrap">You → Top</th>
+            <th scope="col" className="text-right whitespace-nowrap">Tome pts gain</th>
+            <th scope="col" className="text-right whitespace-nowrap">Next point</th>
+            <th scope="col" className="text-center">Class</th>
           </tr>
         </thead>
         <tbody>
@@ -237,15 +236,19 @@ function GainsRow({ row: r, isHero }: { row: EnrichedRow; isHero: boolean }) {
   const target = r.top && r.top.pts !== null ? r.top.pts : r.maxPts;
   const np = describeNextPoint(r);
   const cls = r.classification;
-  const clsMeta = cls !== null ? CLASS_STYLE[cls] : null;
+  const clsMeta = cls !== null ? CLASSIFICATION_STYLE[cls] : null;
 
   return (
-    <tr className="[&>td]:border-b [&>td]:border-zinc-800/60 [&>td]:px-3 [&>td]:py-2.5 hover:bg-zinc-900/40">
+    <tr
+      className={`[&>td]:border-b [&>td]:border-zinc-800/60 [&>td]:px-3 [&>td]:py-2.5 hover:bg-zinc-900/40 ${
+        isHero ? "bg-emerald-500/5" : ""
+      }`}
+    >
       <td className="font-medium text-zinc-100">
         <span className="inline-flex items-center gap-2 flex-wrap">
           {displayTaskName(r.task)}
           {isHero && (
-            <span className="text-[10px] uppercase tracking-wide font-semibold rounded px-1.5 py-0.5 bg-gold/15 text-gold border border-gold/40">
+            <span className="text-[10px] uppercase tracking-wide font-semibold rounded px-1.5 py-0.5 bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
               biggest win
             </span>
           )}
@@ -255,11 +258,11 @@ function GainsRow({ row: r, isHero }: { row: EnrichedRow; isHero: boolean }) {
         {yourPts} → {target}
       </td>
       <td className="text-right tabular-nums">
-        <span className="text-emerald-300 font-bold">+{gainPts(r)}</span>
+        <span className="text-emerald-300 font-semibold">+{gainPts(r)}</span>
       </td>
       <td className="text-right tabular-nums text-zinc-400 whitespace-nowrap">
         {np.kind === "maxed" ? (
-          <span className="text-sky-400 text-xs">maxed</span>
+          <span className="text-zinc-500 text-xs">maxed</span>
         ) : (
           <>
             {np.drop ? "−" : "+"}

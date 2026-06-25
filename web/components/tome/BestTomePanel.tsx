@@ -27,7 +27,7 @@ const TIER_ORDER: TomeTier[] = ["blue", "gold", "silver", "bronze", "missing"];
 // from the BEST TOME sheet (column D). Hex pair is for the <option> styling
 // inside the chip-shaped <select> (browsers don't apply Tailwind classes to
 // dropdown items, so we inline the colors).
-const CLASSIFICATION_STYLE: Record<
+export const CLASSIFICATION_STYLE: Record<
   number,
   { label: string; chip: string; bg: string; fg: string; sortRank: number }
 > = {
