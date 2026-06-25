@@ -8,7 +8,7 @@ import {
 import { formatIdleon } from "@/lib/format";
 import { listCharacters, parseSave, type CharSummary } from "@/lib/dropRate/extract";
 import { getCharClassKey } from "@/lib/talentsLevel/charClass";
-import DeepView from "./DeepView";
+import DeepView, { type DeepViewExtraTab } from "./DeepView";
 import ProfileNameLoader from "@/components/ProfileNameLoader";
 import type { ArkhNode as DrNode } from "@/lib/arkh/node";
 import type { FlatTree } from "@/lib/dropRate/treeFlatten";
@@ -37,6 +37,9 @@ export type CalculatorState = {
   // Full detailed tree so snapshots can capture per-node values for delta
   // comparisons against future saves.
   drTree: DrNode | null;
+  /** Compute error, already prefixed "Drop rate compute failed: …", or null.
+   *  Bubbled so extra tabs (e.g. Biggest Gains) can show the same banner. */
+  computeError: string | null;
 };
 
 type Props = {
@@ -56,6 +59,11 @@ type Props = {
   // Optional render slot right under the manual-paste box (above the controls)
   // — used by the page for the Snapshot History section.
   snapshotSlot?: React.ReactNode;
+  // Extra DeepView tabs (e.g. the "💡 Biggest Gains" panel) + initial tab.
+  // Forwarded verbatim to DeepView so the page can add tabs without a fork.
+  extraTabs?: DeepViewExtraTab[];
+  extraTabsFirst?: boolean;
+  defaultView?: string;
 };
 
 export default function DrCalculator({
@@ -63,6 +71,9 @@ export default function DrCalculator({
   compareBaseline,
   middleSlot,
   snapshotSlot,
+  extraTabs,
+  extraTabsFirst,
+  defaultView,
 }: Props) {
   const [jsonText, setJsonText] = useState("");
   const [save, setSave] = useState<any | null>(null);
@@ -284,8 +295,20 @@ export default function DrCalculator({
       mapLabel: map?.name ?? "Town",
       save,
       drTree,
+      computeError:
+        error && error.startsWith("Drop rate compute failed") ? error : null,
     });
-  }, [charIdx, mapIdx, drTotal, drTree, chars, mapOptions, save, onStateChange]);
+  }, [
+    charIdx,
+    mapIdx,
+    drTotal,
+    drTree,
+    chars,
+    mapOptions,
+    save,
+    onStateChange,
+    error,
+  ]);
 
   const onLoad = () => {
     if (!jsonText.trim()) {
@@ -447,7 +470,13 @@ export default function DrCalculator({
         {computing ? (
           <p className="text-sm text-zinc-500 italic">Computing…</p>
         ) : (
-          <DeepView tree={drTree} baseline={compareBaseline ?? null} />
+          <DeepView
+            tree={drTree}
+            baseline={compareBaseline ?? null}
+            extraTabs={extraTabs}
+            extraTabsFirst={extraTabsFirst}
+            defaultView={defaultView}
+          />
         )}
       </div>
     </div>

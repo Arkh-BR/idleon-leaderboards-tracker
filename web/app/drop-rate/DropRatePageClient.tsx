@@ -6,7 +6,9 @@ import DrCalculator, {
 } from "@/components/dropRate/DrCalculator";
 import SnapshotSection from "@/components/dropRate/SnapshotSection";
 import AnonExcludedNote from "@/components/AnonExcludedNote";
-import type { FlatTree } from "@/lib/dropRate/treeFlatten";
+import BiggestGains from "@/components/dropRate/BiggestGains";
+import type { DeepViewExtraTab } from "@/components/dropRate/DeepView";
+import { flattenTree, type FlatTree } from "@/lib/dropRate/treeFlatten";
 import {
   TOP_DR_GENERATED_AT,
   TOP_DR_PLAYERS_SCANNED,
@@ -95,6 +97,33 @@ export default function DropRatePageClient() {
 
   const effectiveBaseline = compareTop ? topBaseline : baseline;
 
+  // "💡 Biggest Gains" — ranks DR systems by the total Drop Rate gained by
+  // closing the gap to the Observed Max. Reuses the same flat tree the page
+  // already computes (no engine re-run) and lazy-loads the per-class top-DR
+  // reference internally. Entered as a DeepView extra tab (no DeepView fork).
+  const yoursFlat = useMemo<FlatTree | null>(
+    () => (calcState?.drTree ? flattenTree(calcState.drTree) : null),
+    [calcState?.drTree]
+  );
+  const biggestGainsTabs = useMemo<DeepViewExtraTab[]>(
+    () => [
+      {
+        id: "biggest-gains",
+        label: "💡 Biggest Gains",
+        title:
+          "Rank your Drop Rate systems by how much total DR closing the gap to the top players would give",
+        render: () => (
+          <BiggestGains
+            yoursFlat={yoursFlat}
+            classKey={classKey}
+            computeError={calcState?.computeError ?? null}
+          />
+        ),
+      },
+    ],
+    [yoursFlat, classKey, calcState?.computeError]
+  );
+
   // The compare-vs-top toggle sits next to the Chip Gallery + DR value
   // (compareSlot); the snapshot history is under the import box (snapshotSlot).
   const compareBlock = (
@@ -132,6 +161,9 @@ export default function DropRatePageClient() {
         onStateChange={setCalcState}
         compareBaseline={effectiveBaseline}
         snapshotSlot={snapshotBlock}
+        extraTabs={biggestGainsTabs}
+        extraTabsFirst
+        defaultView="biggest-gains"
       />
       <footer className="mt-8 text-[11px] text-zinc-600 text-center border-t border-zinc-900 pt-3">
         Drop rate is computed locally from your save JSON — pool tree
