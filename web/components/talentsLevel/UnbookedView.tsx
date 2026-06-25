@@ -133,8 +133,8 @@ export default function UnbookedView({
 
       {totalBooks === 0 ? (
         <p className="text-sm text-emerald-300 px-2 py-2">
-          🎉 Every talent (tab 1-5) is fully booked — all caps are at the Max
-          Book Lv ceiling.
+          🎉 Every character is fully booked — every cap is at the Max Book Lv
+          ceiling. Nice.
         </p>
       ) : (
         <>

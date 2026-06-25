@@ -958,7 +958,7 @@ export default function TalentsLevelPageClient() {
             extraTabs={[
               {
                 id: "tomax",
-                label: "📚 Points to Invest",
+                label: "💡 Biggest Gains: Points to Invest",
                 title:
                   "Tab 1-5 talents still below the Max Book Lv Cap, per account character",
                 render: () => (
@@ -970,7 +970,7 @@ export default function TalentsLevelPageClient() {
               },
               {
                 id: "unbooked",
-                label: "📕 Unbooked",
+                label: "💡 Biggest Gains: Unbooked",
                 title:
                   "Tab 1-5 talents whose cap is still below the Max Book Lv ceiling — can be raised with books",
                 render: () => (
@@ -982,7 +982,7 @@ export default function TalentsLevelPageClient() {
               },
               {
                 id: "hypothetical",
-                label: "🧪 Observed Max Lv",
+                label: "💡 Biggest Gains: Observed Max Lv",
                 title:
                   "Your Effective Level (Health Booster) with each row's observed max in the 🎯 chip — best Base + Bonus across the top players",
                 render: () =>

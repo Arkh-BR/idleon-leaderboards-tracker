@@ -157,8 +157,8 @@ export default function TalentsToMaxView({
 
       {totalMissing === 0 ? (
         <p className="text-sm text-emerald-300 px-2 py-2">
-          🎉 All talents (tab 1-5) are at the Max Book Lv Cap
-          {activeOnly ? " in the active preset" : ", in both presets"}.
+          🎉 Every character is at the Max Book Lv cap — nothing to invest
+          {activeOnly ? " in the active preset" : ""}. Nice.
         </p>
       ) : (
         <>
