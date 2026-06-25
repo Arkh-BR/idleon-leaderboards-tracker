@@ -109,6 +109,49 @@ describe("computeBiggestGains — denylist", () => {
   });
 });
 
+// ---- Post-Processing additive flat-adds (regression: IDL-8 critical #1) ------
+
+describe("computeBiggestGains — additive flat-adds inside Post-Processing", () => {
+  // Death Bringer Bundle (🎁 Bundles, +2 flat) and Sneaking Mastery
+  // (🥷 Sneaking Mastery, +0.3 flat) are flat ADDITIONS to the post-processing
+  // running total — not multipliers (see arkh/stats/defs/drop-rate.ts: both are
+  // wrapInBucket(..., "+")). Classifying every Post-Processing child as a
+  // multiplier reported a bogus (ref/yours − 1)×100 for them — e.g. a player
+  // below the max read "+100%", falsifying the hero number and ordering. Their
+  // real impact on total DR is sub-0.05% noise, so they are denylisted exactly
+  // like 🔹 Other / 🗺️ Arcane Map. The anchor save hid the bug because both
+  // sit at you == ref (gap 0), emitting no row.
+  it("excludes 🎁 Bundles (Death Bringer) and 🥷 Sneaking Mastery when below max", () => {
+    const yours = postFlat({
+      "🎁 Bundles": 1, // Death Bringer flat-add below max → bogus +100% if treated as mult
+      "🥷 Sneaking Mastery": 0.15, // flat-add below max → bogus +100% if treated as mult
+      "🎁 Bundles#1": 1.2, // Explorer Bundle — a genuine ×1.2 multiplier
+      "🖼️ Gallery": 4,
+    });
+    const ref = postFlat({
+      "🎁 Bundles": 2,
+      "🥷 Sneaking Mastery": 0.3,
+      "🎁 Bundles#1": 1.5, // Explorer improved → +25%
+      "🖼️ Gallery": 5, // +25%
+    });
+    const { rows } = computeBiggestGains(yours, ref);
+    const systems = rows.map((r) => r.system);
+    expect(systems).not.toContain("🎁 Bundles");
+    expect(systems).not.toContain("🥷 Sneaking Mastery");
+    // the legitimate Explorer Bundle multiplier must stay in the ranking
+    expect(systems).toContain("🎁 Bundles#1");
+    expect(rows.find((r) => r.system === "🎁 Bundles#1")!.type).toBe("multiplier");
+    // no bogus +100% hero number leaking from the flat-adds
+    expect(Math.max(...rows.map((r) => r.drGainPct))).toBeLessThan(30);
+  });
+
+  it("DENYLIST_PATHS contains the two Post-Processing flat-add paths (but not the Explorer Bundle)", () => {
+    expect(DENYLIST_PATHS.has(P("🎁 Bundles"))).toBe(true);
+    expect(DENYLIST_PATHS.has(P("🥷 Sneaking Mastery"))).toBe(true);
+    expect(DENYLIST_PATHS.has(P("🎁 Bundles#1"))).toBe(false);
+  });
+});
+
 describe("computeBiggestGains — non-finite safety net", () => {
   it("drops a multiplier with non-finite ratio (ref Infinity)", () => {
     const yours = postFlat({ "🔮 Inf": 1, "🎽 Equipment": 2 });

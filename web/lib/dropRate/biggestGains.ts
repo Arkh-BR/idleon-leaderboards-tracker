@@ -32,12 +32,27 @@ export const POST_PROCESSING_PATH = "Drop Rate / Post-Processing";
 export const MINOR_GAIN_THRESHOLD_PCT = 0.05;
 
 /** Systems excluded from the ranking by full path. These are not actionable
- *  upgrades: `🔹 Other` is a generic catch-all bucket (its reference came back
- *  as `1.00× → Infinity×`), and `🗺️ Arcane Map` is a situational AFK-map bonus
- *  that depends on the selected map, not something the player "levels up". */
+ *  upgrades:
+ *   - `🔹 Other` is a generic catch-all bucket (its reference came back as
+ *     `1.00× → Infinity×`), and `🗺️ Arcane Map` is a situational AFK-map bonus
+ *     that depends on the selected map, not something the player "levels up".
+ *   - `🎁 Bundles` (Death Bringer Bundle, +2) and `🥷 Sneaking Mastery` (+0.3)
+ *     are flat ADDITIONS to the Post-Processing running total — not factors
+ *     (see arkh/stats/defs/drop-rate.ts: both are `wrapInBucket(..., "+")`).
+ *     This module models every Post-Processing child as a multiplier, which
+ *     would report a bogus `(ref/yours − 1)×100` for them (e.g. +100% when
+ *     below max). Their real impact on total DR is sub-0.05% noise, so they
+ *     are excluded rather than mismodelled. NOTE: this denylists only the
+ *     Death Bringer slot `🎁 Bundles`; the Explorer Bundle is a genuine ×1.2
+ *     multiplier and flattens to `🎁 Bundles#1`, which stays in the ranking.
+ *     (The Death Bringer node is always emitted by the bundle handler — owned
+ *     or not — so it always holds the un-suffixed slot, keeping these paths
+ *     stable.) */
 export const DENYLIST_PATHS: ReadonlySet<string> = new Set<string>([
   `${POST_PROCESSING_PATH} / 🔹 Other`,
   `${POST_PROCESSING_PATH} / 🗺️ Arcane Map`,
+  `${POST_PROCESSING_PATH} / 🎁 Bundles`,
+  `${POST_PROCESSING_PATH} / 🥷 Sneaking Mastery`,
 ]);
 
 export type LeverType = "additive" | "multiplier";
@@ -93,6 +108,10 @@ export function computeBiggestGains(
   yoursFlat: FlatTree,
   refFlat: Record<string, number>
 ): BiggestGainsResult {
+  // Contract: the real DR tree always carries the Additive Pool node, so this
+  // resolves to `1 + pool/100`. The `|| 0` fallback (→ totalSum 1) only fires
+  // for a malformed tree missing the pool; it would over-credit additive gains
+  // but the node is structurally guaranteed in production.
   const totalSum = 1 + (Number(yoursFlat[ADDITIVE_POOL_PATH]) || 0) / 100;
 
   const rows: GainRow[] = [];
