@@ -3,17 +3,19 @@
 import { useEffect, useState } from "react";
 import TomeRawPanel from "@/components/tome/TomeRawPanel";
 import BestTomePanel from "@/components/tome/BestTomePanel";
+import BiggestGainsPanel from "@/components/tome/BiggestGainsPanel";
 import AnonExcludedNote from "@/components/AnonExcludedNote";
 
-type Tab = "best" | "raw";
+type Tab = "gains" | "best" | "raw";
 
 const DUNGEON_KEY = "idleon-leaderboards.tome.dungeonAsOne";
 
 export default function TomePageClient() {
-  // Best Tome is the default view (polished UI). Raw analysis is the debug
-  // view where the user pastes the JSON — both read from the same
-  // localStorage key, so pasting in either tab updates the other.
-  const [tab, setTab] = useState<Tab>("best");
+  // Biggest Gains is the default view — the prescriptive "what to push next"
+  // answer leads. Best Tome is the full descriptive sheet; Raw analysis is the
+  // debug view where the user pastes the JSON. All three read the same
+  // localStorage key, so pasting in any tab updates the others.
+  const [tab, setTab] = useState<Tab>("gains");
 
   // "Count Dungeon Rank as 1" toggle. Owned by the page (not a tab panel) so
   // it survives tab switches, and persisted so it stays on across reloads
@@ -54,6 +56,9 @@ export default function TomePageClient() {
         role="tablist"
         className="inline-flex gap-1 mb-6 p-1 rounded-lg bg-zinc-900/60 border border-zinc-800"
       >
+        <TabButton active={tab === "gains"} onClick={() => setTab("gains")}>
+          💡 Biggest Gains
+        </TabButton>
         <TabButton active={tab === "best"} onClick={() => setTab("best")}>
           🏆 Best Tome
         </TabButton>
@@ -62,6 +67,12 @@ export default function TomePageClient() {
         </TabButton>
       </div>
 
+      {tab === "gains" && (
+        <BiggestGainsPanel
+          dungeonAsOne={dungeonAsOne}
+          onToggleDungeon={toggleDungeon}
+        />
+      )}
       {tab === "best" && (
         <BestTomePanel
           dungeonAsOne={dungeonAsOne}

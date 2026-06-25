@@ -8,3 +8,6 @@ out/
 scripts/arkhe-it-snapshot.json
 scripts/it-source/
 scripts/updater/golden/.cache/
+# Real player saves used by the Biggest Gains anchor tests — private, kept
+# local-only. The tests skip gracefully when these are absent (e.g. in CI).
+__tests__/fixtures/tome/

@@ -1,35 +1,27 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { computeTome, type TomeResult, type TomeRow } from "@/lib/tome/compute";
+import { computeTome, type TomeResult } from "@/lib/tome/compute";
+import { isInvertedCurve } from "@/lib/tome/math";
+import { TIER_META, type TomeTier } from "@/lib/tome/tier";
 import {
-  calcPointsPercent,
-  isInvertedCurve,
-  maxPtsForBonus,
-  quantityForPts,
-} from "@/lib/tome/math";
-import { TIER_META, tierForPct, type TomeTier } from "@/lib/tome/tier";
-import { TOP_PLAYERS, type TopPlayerEntry } from "@/lib/tome/topPlayers";
-import { DEFAULT_CLASSIFICATIONS } from "@/lib/tome/defaultClassifications";
+  CAPPED_ID,
+  displayTaskName,
+  enrichRows,
+  nextPtCost,
+  type EnrichedRow,
+  type PtsSnapshot,
+} from "@/lib/tome/gains";
 import { formatIdleon } from "@/lib/format";
 
 const STORAGE_KEY = "idleon-leaderboards.tome.rawJson";
 const CLASSIFICATIONS_KEY = "idleon-leaderboards.tome.userClassifications";
 const SNAPSHOT_KEY = "idleon-leaderboards.tome.ptsSnapshot";
 
-// Shape stored under SNAPSHOT_KEY — a baseline of {taskName → pts} captured
-// at savedAt. The Δ column shows currentPts - snapshotPts so the user can
-// track how their tome score moved since the last save.
-type PtsSnapshot = {
-  savedAt: string; // ISO timestamp
-  pts: Record<string, number>;
-};
+// PtsSnapshot (the {taskName → pts} baseline behind the Δ column) and the
+// per-task enrichment now live in lib/tome/gains.ts so the Biggest Gains tab
+// shares the exact same math.
 const TIER_ORDER: TomeTier[] = ["blue", "gold", "silver", "bronze", "missing"];
-
-// Classification ID auto-assigned when the task is fully maxed (tier === "blue").
-// The user can still pick a different label if they want, but the panel always
-// renders "Capped" for these tasks.
-const CAPPED_ID = 12;
 
 // Visual style + display order for the user-defined classification tags
 // from the BEST TOME sheet (column D). Hex pair is for the <option> styling
@@ -59,22 +51,6 @@ type SortKey =
   | "next"
   | "pctRemaining";
 type SortDir = "asc" | "desc";
-
-type EnrichedRow = TomeRow & {
-  pct: number | null;
-  tier: TomeTier;
-  maxPts: number;                    // theoretical curve ceiling
-  rawForNextPt: number | null;       // raw value needed to reach pts+1
-  rawForMaxPts: number | null;       // raw value needed to reach maxPts
-  ptsGapToMax: number;               // gap to theoretical max
-  top: TopPlayerEntry | null;        // best observed player snapshot
-  ptsGapToTop: number;               // gap to top player's pts (>=0)
-  classification: number | null;     // effective classification (user choice OR auto-Capped)
-  userClassification: number | null; // raw user pick (no auto-override)
-  cappedByMax: boolean;              // true when forced to Capped by tier === "blue"
-  snapshotPts: number | null;        // saved baseline pts for this task (null if no snapshot)
-  ptsDelta: number | null;           // current pts - snapshot pts (null if no baseline)
-};
 
 export default function BestTomePanel({
   dungeonAsOne,
@@ -194,62 +170,13 @@ export default function BestTomePanel({
     } catch {}
   }
 
-  const enriched: EnrichedRow[] = useMemo(() => {
-    if (!result) return [];
-    return result.rows.map((r) => {
-      const maxPts = maxPtsForBonus(r.bonus);
-      const pct =
-        r.bonus && r.rawValue !== null
-          ? calcPointsPercent(r.bonus, Number(r.rawValue))
-          : null;
-      const tier = tierForPct(pct);
-      const currentPts = r.pts ?? 0;
-      const rawForNextPt = quantityForPts(r.bonus, currentPts + 1);
-      const rawForMaxPts = quantityForPts(r.bonus, maxPts);
-      const ptsGapToMax = Math.max(0, maxPts - currentPts);
-      const top = TOP_PLAYERS[r.task] ?? null;
-      const ptsGapToTop =
-        top && top.pts !== null ? Math.max(0, top.pts - currentPts) : 0;
-      // Auto-Capped ONLY when the user is at (or above) the theoretical
-      // maximum points for the task's curve — i.e., literally maxed out.
-      // The blue tier (99.9% of asymptote) is NOT enough.
-      const cappedByMax = currentPts > 0 && maxPts > 0 && currentPts >= maxPts;
-
-      // Default classification: prefer the hand-curated DEFAULT_CLASSIFICATIONS
-      // override (web/lib/tome/defaultClassifications.ts) when present, fall
-      // back to the snapshot value from the sheet. We never use 12 (Capped) as
-      // a default — Capped is reserved for the auto-rule above.
-      const overridePick = DEFAULT_CLASSIFICATIONS[r.task];
-      const snapshotDefault =
-        overridePick !== undefined
-          ? overridePick === CAPPED_ID
-            ? null
-            : overridePick
-          : top && top.classification !== null && top.classification !== CAPPED_ID
-            ? top.classification
-            : null;
-
-      const rawUserPick = userClass[r.task]; // undefined | 0 | 1/3/4/5/9
-      // userPick semantics:
-      //   undefined → user never touched → use snapshot default
-      //   0         → user explicitly cleared → no chip
-      //   1/3/4/5/9 → user's pick
-      const effectiveUserPick =
-        rawUserPick === undefined ? snapshotDefault : rawUserPick === 0 ? null : rawUserPick;
-
-      const classification = cappedByMax ? CAPPED_ID : effectiveUserPick;
-      const snapshotPts =
-        snapshot && r.task in snapshot.pts ? snapshot.pts[r.task] : null;
-      const ptsDelta =
-        snapshotPts !== null && r.pts !== null ? r.pts - snapshotPts : null;
-      return {
-        ...r, pct, tier, maxPts, rawForNextPt, rawForMaxPts, ptsGapToMax,
-        top, ptsGapToTop,
-        classification, userClassification: effectiveUserPick, cappedByMax,
-        snapshotPts, ptsDelta,
-      };
-    });
-  }, [result, userClass, snapshot]);
+  // Per-task enrichment (gap-to-top, effective classification, +1-pt cost…)
+  // lives in lib/tome/gains.ts so the Biggest Gains tab reuses the exact same
+  // math instead of duplicating this block.
+  const enriched: EnrichedRow[] = useMemo(
+    () => (result ? enrichRows(result.rows, userClass, snapshot) : []),
+    [result, userClass, snapshot]
+  );
 
   const totals = useMemo(() => {
     if (enriched.length === 0) {
@@ -637,23 +564,6 @@ function HeaderSub({ children }: { children?: React.ReactNode }) {
       {children ?? " "}
     </div>
   );
-}
-
-// Absolute raw delta to gain +1 pt. For inverted "Fastest Time" curves the
-// player needs to DROP raw (improve time); for everything else they need to
-// INCREASE raw. Sign is always positive — the caller decides how to label it.
-function nextPtCost(r: EnrichedRow): number | null {
-  if (r.rawValue === null || r.rawForNextPt === null) return null;
-  return isInvertedCurve(r.bonus)
-    ? Number(r.rawValue) - r.rawForNextPt
-    : r.rawForNextPt - Number(r.rawValue);
-}
-
-// Strips the trailing "(in Seconds)" annotation that the IT data carries on
-// fastest-time tasks. It's redundant in the UI (the inverted-curve hint
-// already explains the direction).
-function displayTaskName(name: string): string {
-  return name.replace(/\s*\(in Seconds\)$/i, "");
 }
 
 // Editable per-task classification chip. Renders a styled <select> that looks
