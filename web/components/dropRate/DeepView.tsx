@@ -650,6 +650,7 @@ export default function DeepView({
   onViewChange,
   defaultView = "tree",
   extraTabsFirst = false,
+  emptyTreeLabel = "Load a save above to populate the deep view.",
 }: {
   tree: ArkhNode | null;
   /** Optional snapshot baseline. When set, every row gains a "Δ vs snap"
@@ -676,6 +677,12 @@ export default function DeepView({
   defaultView?: ViewMode;
   /** Render the caller's extraTabs before the built-in Tree tab. */
   extraTabsFirst?: boolean;
+  /** Placeholder for the built-in tree tab when `tree` is null. Drop Rate
+   *  keeps the default ("load a save"). The Talents page passes
+   *  "Pick a talent from the grid above." so the talent-selection gate is
+   *  scoped to the tree tab instead of gating the whole page — the
+   *  account-wide extraTabs (front door) render without a selection (IDL-22). */
+  emptyTreeLabel?: string;
 }) {
   const [view, setView] = useState<ViewMode>(defaultView);
   // Report the active tab to the caller (mount + every change). onViewChange
@@ -772,12 +779,14 @@ export default function DeepView({
     return buildSearchMatchMap(tree, searchTerm);
   }, [searchTerm, tree]);
 
-  if (!tree) {
-    return (
-      <p className="text-sm text-zinc-500 italic">
-        Load a save above to populate the deep view.
-      </p>
-    );
+  // Only short-circuit when there's truly nothing to show: no tree AND no
+  // caller extraTabs that can stand on their own. Account-wide scans (the
+  // Talents front door) don't need a selected talent, so when extraTabs are
+  // present we fall through to the tab strip + per-view content, which
+  // handles the null-tree case — keeping the prescriptive views reachable as
+  // the default view without a selection (IDL-22).
+  if (!tree && extraTabs.length === 0) {
+    return <p className="text-sm text-zinc-500 italic">{emptyTreeLabel}</p>;
   }
 
   return (
@@ -855,7 +864,7 @@ export default function DeepView({
           control and benefits from a flex-grow input), followed by the
           expand-state buttons (tree-only) and the Hide-inactive toggle.
           Hidden for extra tabs, which render their own (if any) controls. */}
-      {!activeExtra && (
+      {!activeExtra && tree && (
       <div className="mb-3 flex flex-wrap items-center gap-2 p-2 rounded-lg border border-zinc-800 bg-zinc-900/60">
         {/* Search — flex-grow so it claims most of the bar width. */}
         <input
@@ -968,6 +977,15 @@ export default function DeepView({
 
       {activeExtra ? (
         activeExtra.render()
+      ) : !tree ? (
+        // Built-in tree/world tab active but no tree — scoped placeholder
+        // (e.g. Talents "Pick a talent…"). The early-return above already
+        // handles the no-tree + no-extraTabs (Drop Rate) case; this branch
+        // keeps the tab strip visible so the user can switch back to the
+        // front-door scans. Also narrows `tree` to non-null below.
+        <p className="text-sm text-zinc-500 italic px-2 py-4">
+          {emptyTreeLabel}
+        </p>
       ) : view === "world" ? (
         <PerWorldView
           tree={tree}

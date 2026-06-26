@@ -330,8 +330,10 @@ export default function TalentsLevelPageClient() {
   // The talent picker + headline summary only make sense for the Talent
   // Breakdown ("tree") tab — the other tabs are account-wide scans /
   // hypothetical that don't depend on the selected talent — so we hide
-  // them on those tabs.
-  const [deepViewTab, setDeepViewTab] = useState<string>("tree");
+  // them on those tabs. Initialized to the front-door default ("tomax",
+  // the Points to Invest scan) so the picker starts hidden, matching
+  // DeepView's defaultView and avoiding a first-paint flash (IDL-22).
+  const [deepViewTab, setDeepViewTab] = useState<string>("tomax");
   const handleDeepViewChange = useCallback((v: string) => {
     setDeepViewTab(v);
   }, []);
@@ -946,15 +948,23 @@ export default function TalentsLevelPageClient() {
           <p className="text-sm text-zinc-500 italic">
             Load a save above to populate the tree.
           </p>
-        ) : computing ? (
-          <p className="text-sm text-zinc-500 italic">Computing…</p>
-        ) : tree ? (
+        ) : (
           <DeepView
             tree={tree}
             baseline={null}
             showWorldView={false}
             treeTabLabel="🌳 Talent Breakdown"
             onViewChange={handleDeepViewChange}
+            // Front door (IDL-22): the account-wide prescriptive scans are the
+            // first tab + default view, reachable without picking a talent.
+            // The single-talent "🌳 Talent Breakdown" stays last; its
+            // "pick a talent" gate is now scoped to that tab via emptyTreeLabel
+            // (showing "Computing…" while the selected talent's tree resolves).
+            extraTabsFirst
+            defaultView="tomax"
+            emptyTreeLabel={
+              computing ? "Computing…" : "Pick a talent from the grid above."
+            }
             extraTabs={[
               {
                 id: "tomax",
@@ -1001,10 +1011,6 @@ export default function TalentsLevelPageClient() {
               },
             ]}
           />
-        ) : (
-          <p className="text-sm text-zinc-500 italic">
-            Pick a talent from the grid above.
-          </p>
         )}
       </div>
 
