@@ -13,13 +13,13 @@
 // default tree (they would all resolve to identical numbers anyway).
 // Auto-refreshed by scripts/update-top-talents.ts.
 //
-// Snapshot generated: 2026-06-22T05:54:23.513Z
-// Players scanned: 79
+// Snapshot generated: 2026-06-28T05:34:24.763Z
+// Players scanned: 78
 
 import type { ArkhNode } from "../arkh/node";
 
-export const HYPO_TALENTS_GENERATED_AT = "2026-06-22T05:54:23.513Z";
-export const HYPO_TALENTS_PLAYERS_SCANNED = 79;
+export const HYPO_TALENTS_GENERATED_AT = "2026-06-28T05:34:24.763Z";
+export const HYPO_TALENTS_PLAYERS_SCANNED = 78;
 
 export const HYPO_DEFAULT_TREE: ArkhNode = {
   "name": "Effective Level",
@@ -33,7 +33,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
           "name": "Points Invested",
           "val": 396,
           "fmt": "raw",
-          "note": "actual save — owner: Skvimpten"
+          "note": "actual save — owner: MeleeMan42069"
         },
         {
           "name": "Max Book Lv Cap",
@@ -245,7 +245,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
         }
       ],
       "fmt": "raw",
-      "note": "min(invested, cap) — owner: Skvimpten"
+      "note": "min(invested, cap) — owner: MeleeMan42069"
     },
     {
       "name": "Bonus Levels",
@@ -263,7 +263,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                   "name": "Points Invested",
                   "val": 396,
                   "fmt": "raw",
-                  "note": "actual save — owner: Skvimpten"
+                  "note": "actual save — owner: MeleeMan42069"
                 },
                 {
                   "name": "Max Book Lv Cap",
@@ -475,11 +475,11 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                 }
               ],
               "fmt": "raw",
-              "note": "min(invested, cap) — owner: Skvimpten"
+              "note": "min(invested, cap) — owner: MeleeMan42069"
             }
           ],
           "fmt": "raw",
-          "note": "intervalAdd(1,20,389)"
+          "note": "intervalAdd(1,20,396)"
         },
         {
           "name": "Maroon Warship (Achievement 291)",
@@ -492,21 +492,27 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
           "children": [
             {
               "name": "Best Mage Lv",
-              "val": 1751,
+              "val": 1763,
               "children": [
                 {
-                  "name": "Char 4 Lv",
-                  "val": 1741,
+                  "name": "Char 0 Lv",
+                  "val": 1751,
                   "fmt": "raw",
-                  "note": "Skvimpfiver — elemental sorcerer (cls 34)"
+                  "note": "BopeBrancis — elemental sorcerer (cls 34)"
+                },
+                {
+                  "name": "Char 9 Lv",
+                  "val": 1743,
+                  "fmt": "raw",
+                  "note": "BigES_Two — elemental sorcerer (cls 34)"
                 }
               ],
               "fmt": "raw",
-              "note": "max across account — 1 mage char"
+              "note": "max across account — 2 mage chars"
             },
             {
               "name": "Family Guy Multi (×) — potential buff",
-              "val": 1.354022988505747,
+              "val": 1.3541284403669724,
               "children": [
                 {
                   "name": "Base Level",
@@ -737,7 +743,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                 },
                 {
                   "name": "Bonus Levels",
-                  "val": 249,
+                  "val": 251,
                   "fmt": "+",
                   "note": "Σ ATL (unbuffed FB68, excl. super)"
                 },
@@ -783,7 +789,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
             },
             {
               "name": "Bubble Y2 Active",
-              "val": 1.4999032273673005,
+              "val": 1.4999112050364503,
               "fmt": "raw",
               "note": "0 if Y2 bubble not equipped & no all-bubbles flag"
             },
@@ -974,7 +980,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
             "name": "Points Invested",
             "val": 396,
             "fmt": "raw",
-            "note": "actual save — owner: Skvimpten"
+            "note": "actual save — owner: MeleeMan42069"
           },
           {
             "name": "Max Book Lv Cap",
@@ -1186,7 +1192,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
           }
         ],
         "fmt": "raw",
-        "note": "min(invested, cap) — owner: Skvimpten"
+        "note": "min(invested, cap) — owner: MeleeMan42069"
       },
       {
         "name": "Bonus Levels",
@@ -1204,7 +1210,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                     "name": "Points Invested",
                     "val": 396,
                     "fmt": "raw",
-                    "note": "actual save — owner: Skvimpten"
+                    "note": "actual save — owner: MeleeMan42069"
                   },
                   {
                     "name": "Max Book Lv Cap",
@@ -1416,11 +1422,11 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                   }
                 ],
                 "fmt": "raw",
-                "note": "min(invested, cap) — owner: Skvimpten"
+                "note": "min(invested, cap) — owner: MeleeMan42069"
               }
             ],
             "fmt": "raw",
-            "note": "intervalAdd(1,20,389)"
+            "note": "intervalAdd(1,20,396)"
           },
           {
             "name": "Maroon Warship (Achievement 291)",
@@ -1433,19 +1439,19 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
             "children": [
               {
                 "name": "Best Mage Lv",
-                "val": 1751,
+                "val": 1763,
                 "children": [
                   {
-                    "name": "Char 4 Lv",
-                    "val": 1741,
+                    "name": "Char 0 Lv",
+                    "val": 1751,
                     "fmt": "raw",
-                    "note": "boschi5 — elemental sorcerer (cls 34) — ACTIVE char (gets Family Guy buff if it wins the slot)"
+                    "note": "BopeBrancis — elemental sorcerer (cls 34) — ACTIVE char (gets Family Guy buff if it wins the slot)"
                   },
                   {
-                    "name": "Char 8 Lv",
-                    "val": 1724,
+                    "name": "Char 9 Lv",
+                    "val": 1743,
                     "fmt": "raw",
-                    "note": "boschi9 — elemental sorcerer (cls 34)"
+                    "note": "BigES_Two — elemental sorcerer (cls 34)"
                   }
                 ],
                 "fmt": "raw",
@@ -1453,7 +1459,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
               },
               {
                 "name": "Family Guy Multi (×) — potential buff",
-                "val": 1.354022988505747,
+                "val": 1.3540757749712973,
                 "children": [
                   {
                     "name": "Base Level",
@@ -1684,7 +1690,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                   },
                   {
                     "name": "Bonus Levels",
-                    "val": 249,
+                    "val": 250,
                     "fmt": "+",
                     "note": "Σ ATL (unbuffed FB68, excl. super)"
                   },
@@ -1730,7 +1736,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
               },
               {
                 "name": "Bubble Y2 Active",
-                "val": 1.4999032273673005,
+                "val": 1.4999112050364503,
                 "fmt": "raw",
                 "note": "0 if Y2 bubble not equipped & no all-bubbles flag"
               },
