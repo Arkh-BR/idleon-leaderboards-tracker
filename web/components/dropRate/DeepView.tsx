@@ -772,7 +772,94 @@ export default function DeepView({
     return buildSearchMatchMap(tree, searchTerm);
   }, [searchTerm, tree]);
 
+  // View tabs — sit where the "Deep View" title used to be. Built-in layouts:
+  // 🌳 Tree (formula hierarchy) and 🌍 Per World (sources grouped by world).
+  // `showWorldView` hides Per World, and `extraTabs` appends caller-supplied
+  // tabs (e.g. /talents-level's "Faltando p/ Max" account scan, or the Drop
+  // Rate "💡 Biggest Gains" panel). Hidden when `bare` (standalone tree).
+  // Extracted so it can render both with and without a tree (an active extra
+  // tab must show its own Empty/Loading state before any save is loaded).
+  const tabStrip = bare ? null : (
+    <div className="mb-3 flex items-center gap-1 border-b border-zinc-800">
+      {extraTabsFirst &&
+        extraTabs.map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            onClick={() => setView(t.id)}
+            className={`px-3 py-1.5 text-sm font-medium rounded-t -mb-px border ${
+              view === t.id
+                ? "bg-sky-500/15 text-sky-300 border-sky-500/40 border-b-transparent"
+                : "text-zinc-400 hover:text-zinc-200 border-transparent"
+            }`}
+            title={t.title}
+          >
+            {t.label}
+          </button>
+        ))}
+      <button
+        type="button"
+        onClick={() => setView("tree")}
+        className={`px-3 py-1.5 text-sm font-medium rounded-t -mb-px border ${
+          view === "tree"
+            ? "bg-sky-500/15 text-sky-300 border-sky-500/40 border-b-transparent"
+            : "text-zinc-400 hover:text-zinc-200 border-transparent"
+        }`}
+        title="Formula hierarchy — pool → source → sub-source"
+      >
+        {treeTabLabel}
+      </button>
+      {showWorldView && (
+        <button
+          type="button"
+          onClick={() => setView("world")}
+          className={`px-3 py-1.5 text-sm font-medium rounded-t -mb-px border ${
+            view === "world"
+              ? "bg-sky-500/15 text-sky-300 border-sky-500/40 border-b-transparent"
+              : "text-zinc-400 hover:text-zinc-200 border-transparent"
+          }`}
+          title="Sources grouped by world (Global / Character / W1 … W7)"
+        >
+          🌍 Per World
+        </button>
+      )}
+      {!extraTabsFirst &&
+        extraTabs.map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            onClick={() => setView(t.id)}
+            className={`px-3 py-1.5 text-sm font-medium rounded-t -mb-px border ${
+              view === t.id
+                ? "bg-sky-500/15 text-sky-300 border-sky-500/40 border-b-transparent"
+                : "text-zinc-400 hover:text-zinc-200 border-transparent"
+            }`}
+            title={t.title}
+          >
+            {t.label}
+          </button>
+        ))}
+    </div>
+  );
+
   if (!tree) {
+    // With caller-supplied tabs, keep the strip visible and let the active
+    // extra tab render its own empty state (the built-ins fall back to the
+    // generic hint). Without extra tabs, preserve the original placeholder.
+    if (!bare && extraTabs.length > 0) {
+      return (
+        <div className="font-sans">
+          {tabStrip}
+          {activeExtra ? (
+            <div>{activeExtra.render()}</div>
+          ) : (
+            <p className="text-sm text-zinc-500 italic">
+              Load a save above to populate the deep view.
+            </p>
+          )}
+        </div>
+      );
+    }
     return (
       <p className="text-sm text-zinc-500 italic">
         Load a save above to populate the deep view.
@@ -782,74 +869,7 @@ export default function DeepView({
 
   return (
     <div className="font-sans" data-hide-notes={!showNotes ? "1" : undefined}>
-      {/* View tabs — sit where the "Deep View" title used to be. Built-in
-          layouts: 🌳 Tree (formula hierarchy) and 🌍 Per World (sources
-          grouped by world). `showWorldView` hides Per World, and
-          `extraTabs` appends caller-supplied tabs (e.g. /talents-level's
-          "Faltando p/ Max" account scan). Hidden when `bare` (standalone
-          single-tree render). */}
-      {!bare && (
-      <div className="mb-3 flex items-center gap-1 border-b border-zinc-800">
-        {extraTabsFirst &&
-          extraTabs.map((t) => (
-            <button
-              key={t.id}
-              type="button"
-              onClick={() => setView(t.id)}
-              className={`px-3 py-1.5 text-sm font-medium rounded-t -mb-px border ${
-                view === t.id
-                  ? "bg-sky-500/15 text-sky-300 border-sky-500/40 border-b-transparent"
-                  : "text-zinc-400 hover:text-zinc-200 border-transparent"
-              }`}
-              title={t.title}
-            >
-              {t.label}
-            </button>
-          ))}
-        <button
-          type="button"
-          onClick={() => setView("tree")}
-          className={`px-3 py-1.5 text-sm font-medium rounded-t -mb-px border ${
-            view === "tree"
-              ? "bg-sky-500/15 text-sky-300 border-sky-500/40 border-b-transparent"
-              : "text-zinc-400 hover:text-zinc-200 border-transparent"
-          }`}
-          title="Formula hierarchy — pool → source → sub-source"
-        >
-          {treeTabLabel}
-        </button>
-        {showWorldView && (
-          <button
-            type="button"
-            onClick={() => setView("world")}
-            className={`px-3 py-1.5 text-sm font-medium rounded-t -mb-px border ${
-              view === "world"
-                ? "bg-sky-500/15 text-sky-300 border-sky-500/40 border-b-transparent"
-                : "text-zinc-400 hover:text-zinc-200 border-transparent"
-            }`}
-            title="Sources grouped by world (Global / Character / W1 … W7)"
-          >
-            🌍 Per World
-          </button>
-        )}
-        {!extraTabsFirst &&
-          extraTabs.map((t) => (
-            <button
-              key={t.id}
-              type="button"
-              onClick={() => setView(t.id)}
-              className={`px-3 py-1.5 text-sm font-medium rounded-t -mb-px border ${
-                view === t.id
-                  ? "bg-sky-500/15 text-sky-300 border-sky-500/40 border-b-transparent"
-                  : "text-zinc-400 hover:text-zinc-200 border-transparent"
-              }`}
-              title={t.title}
-            >
-              {t.label}
-            </button>
-          ))}
-      </div>
-      )}
+      {tabStrip}
 
       {/* Controls bar — single row. Search goes first (it's the most-used
           control and benefits from a flex-grow input), followed by the
