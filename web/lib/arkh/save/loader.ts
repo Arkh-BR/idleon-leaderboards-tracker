@@ -26,6 +26,34 @@ type RawEnvelope = {
   [key: string]: unknown;
 };
 
+/**
+ * Companion bonuses are active when the companion is OWNED (it.json envelope
+ * `companion.l`, "id,..." entries) OR its bonus was activated via a Pet-Bonus
+ * Token (Summer Event 2026) — recorded as a CSV of companion IDs in
+ * OptionsListAccount[606]. The game grants the identical bonus in both cases
+ * (CompanionDB[id][2]); N.js merges owned + [606] into DNSM.CompanionBon (see
+ * _customBlock_Companions), so we union them here.
+ */
+export function resolveCompanionActiveIds(
+  companionList: unknown[] | undefined,
+  petBonusToken: unknown
+): Set<number> {
+  const ids = new Set<number>();
+  if (Array.isArray(companionList)) {
+    for (const entry of companionList) {
+      const id = parseInt(String(entry).split(",")[0], 10);
+      if (!isNaN(id)) ids.add(id);
+    }
+  }
+  if (petBonusToken != null && String(petBonusToken) !== "") {
+    for (const part of String(petBonusToken).split(",")) {
+      const id = parseInt(part, 10);
+      if (!isNaN(id)) ids.add(id);
+    }
+  }
+  return ids;
+}
+
 export function loadSaveData(raw: RawEnvelope): void {
   const save = (raw.data ?? raw) as Record<string, unknown>;
   const companionRaw = raw.companion as { l?: unknown[] } | undefined;
@@ -339,14 +367,14 @@ export function loadSaveData(raw: RawEnvelope): void {
   }
   assignSaveData({ mapBonData: mapBonArr });
 
-  // Companion ownership from it.json envelope
-  if (companionRaw && Array.isArray(companionRaw.l)) {
-    const ids = new Set<number>();
-    for (const entry of companionRaw.l) {
-      const id = parseInt(String(entry).split(",")[0], 10);
-      if (!isNaN(id)) ids.add(id);
-    }
-    assignState({ companionIds: ids });
+  // Companion bonuses = owned companions UNION Pet-Bonus Token activations
+  // (OptionsListAccount[606]). See resolveCompanionActiveIds.
+  const companionActiveIds = resolveCompanionActiveIds(
+    companionRaw?.l,
+    optionsRaw?.[606]
+  );
+  if (companionActiveIds.size > 0) {
+    assignState({ companionIds: companionActiveIds });
   }
 
   // Per-character quest completion
