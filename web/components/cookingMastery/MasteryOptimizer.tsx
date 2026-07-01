@@ -134,18 +134,22 @@ export default function MasteryOptimizer({
 
       {bestNext && (
         <div className="rounded-md border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-200/90">
-          💡 <strong>Next point →</strong>{" "}
-          {result.pools.purpleAvailable > 0
-            ? `${result.pools.purpleAvailable} free Purple PT${
-                result.pools.purpleAvailable > 1 ? "s" : ""
-              } available; put the next one in `
-            : "the next Purple PT you earn should go in "}
-          <strong>{bestNext.name}</strong> (+
-          {bestNext.marginalGainPct.toFixed(2)}% Exp/h
+          💡 <strong>Biggest win →</strong> invest in{" "}
+          <strong>{bestNext.name}</strong> for{" "}
+          <strong>+{notate(bestNext.marginalGain)} Exp/h</strong>
           {bestNext.currentPts < bestNext.optimalPts
-            ? `, toward the optimal ${result.optimal.purple[bestNext.id]}`
+            ? ` (toward the optimal ${result.optimal.purple[bestNext.id]})`
             : ""}
-          ).
+          .
+          <div className="mt-1 text-xs text-emerald-300/80">
+            Next point:{" "}
+            {result.pools.purpleAvailable > 0
+              ? `${result.pools.purpleAvailable} free Purple PT${
+                  result.pools.purpleAvailable > 1 ? "s" : ""
+                } available — put one here now`
+              : "the next Purple PT you earn should go here"}{" "}
+            (+{bestNext.marginalGainPct.toFixed(2)}%).
+          </div>
         </div>
       )}
 
@@ -161,7 +165,7 @@ export default function MasteryOptimizer({
         extraTabs={[
           {
             id: "optimizer",
-            label: "🎯 Optimizer",
+            label: "💡 Biggest Gains",
             title: "Optimal Purple PTS allocation + ROI per upgrade",
             render: () => <OptimizerTable result={result} />,
           },
