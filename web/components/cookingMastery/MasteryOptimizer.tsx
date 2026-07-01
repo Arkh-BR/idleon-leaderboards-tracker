@@ -11,14 +11,17 @@ import { optimize, type RoiRow, type OptimizeResult } from "@/lib/cookingMastery
 import { expRateTree } from "@/lib/cookingMastery/tree";
 import DeepView from "@/components/dropRate/DeepView";
 
-/** Compact k/M/B/T number formatting for Exp/h and large counts. */
-function notate(n: number): string {
+/** Compact k/M/B/T number formatting for Exp/h and large counts. Keeps 1-2
+ * significant figures for sub-1 deltas instead of rounding them away —
+ * a tiny-but-real marginal gain must never read as "+0". */
+export function notate(n: number): string {
   if (!isFinite(n)) return "—";
   const a = Math.abs(n);
   if (a >= 1e12) return (n / 1e12).toFixed(2) + "T";
   if (a >= 1e9) return (n / 1e9).toFixed(2) + "B";
   if (a >= 1e6) return (n / 1e6).toFixed(2) + "M";
   if (a >= 1e3) return (n / 1e3).toFixed(2) + "K";
+  if (a > 0 && a < 1) return n.toPrecision(2);
   return a < 10 && !Number.isInteger(n) ? n.toFixed(2) : String(Math.round(n));
 }
 
@@ -162,6 +165,7 @@ export default function MasteryOptimizer({
         defaultView="optimizer"
         extraTabsFirst
         treeTabLabel="🌳 Tree"
+        accent="emerald"
         extraTabs={[
           {
             id: "optimizer",
@@ -175,18 +179,28 @@ export default function MasteryOptimizer({
   );
 }
 
-function OptimizerTable({ result }: { result: OptimizeResult }) {
+export function OptimizerTable({ result }: { result: OptimizeResult }) {
   return (
     <div className="space-y-3">
       <div className="overflow-x-auto rounded-lg border border-zinc-800">
         <table className="w-full text-sm">
+          <caption className="sr-only">
+            Cooking Mastery Purple PTS return-on-investment per upgrade — value
+            per point, current vs. optimal allocation, and marginal ROI.
+          </caption>
           <thead className="bg-zinc-900 text-zinc-400">
             <tr>
-              <th className="text-left font-medium px-3 py-2">Upgrade</th>
-              <th className="text-right font-medium px-3 py-2">Value/pt</th>
-              <th className="text-right font-medium px-3 py-2">Current</th>
-              <th className="text-right font-medium px-3 py-2">Optimal</th>
-              <th className="text-right font-medium px-3 py-2">ROI /pt</th>
+              <th scope="col" className="text-left font-medium px-3 py-2">Upgrade</th>
+              <th
+                scope="col"
+                className="text-right font-medium px-3 py-2"
+                title="Base stat × mastery coefficient = % Exp/h added per point invested"
+              >
+                Value/pt
+              </th>
+              <th scope="col" className="text-right font-medium px-3 py-2">Current</th>
+              <th scope="col" className="text-right font-medium px-3 py-2">Optimal</th>
+              <th scope="col" className="text-right font-medium px-3 py-2">ROI /pt</th>
             </tr>
           </thead>
           <tbody>
@@ -220,7 +234,7 @@ function OptimizerTable({ result }: { result: OptimizeResult }) {
   );
 }
 
-function AllocRow({ row, best }: { row: RoiRow; best: boolean }) {
+export function AllocRow({ row, best }: { row: RoiRow; best: boolean }) {
   const delta = row.optimalPts - row.currentPts;
   const isExpSource = row.id !== 3; // b=3 is "daily ribbon", not Exp/h
   return (
@@ -233,12 +247,12 @@ function AllocRow({ row, best }: { row: RoiRow; best: boolean }) {
         </span>
         {best && (
           <span className="ml-2 text-[10px] font-semibold uppercase tracking-wide text-emerald-300 bg-emerald-500/15 border border-emerald-500/30 rounded px-1.5 py-0.5">
-            next
+            Next best
           </span>
         )}
         {!row.unlocked && (
           <span className="ml-2 text-[11px] text-zinc-500">
-            🔒 rank {row.rankReq}
+            🔒 Locked (rank {row.rankReq})
           </span>
         )}
         {row.unlocked && !isExpSource && (
@@ -247,8 +261,11 @@ function AllocRow({ row, best }: { row: RoiRow; best: boolean }) {
           </span>
         )}
       </td>
-      <td className="px-3 py-2 text-right tabular-nums text-zinc-400">
-        {isExpSource ? `${row.base.toFixed(1)}×${row.coef}` : "—"}
+      <td
+        className="px-3 py-2 text-right tabular-nums text-zinc-400"
+        title={isExpSource ? `${row.base.toFixed(1)} × ${row.coef}` : undefined}
+      >
+        {isExpSource ? row.valuePerPt.toFixed(1) : "—"}
       </td>
       <td className="px-3 py-2 text-right tabular-nums text-zinc-300">
         {row.currentPts}
@@ -262,6 +279,7 @@ function AllocRow({ row, best }: { row: RoiRow; best: boolean }) {
         {delta !== 0 && isExpSource && row.unlocked && (
           <span
             className={`ml-1 text-[11px] ${delta > 0 ? "text-emerald-400" : "text-red-400"}`}
+            aria-label={delta > 0 ? `increase of ${delta}` : `decrease of ${Math.abs(delta)}`}
           >
             {delta > 0 ? `+${delta}` : delta}
           </span>
