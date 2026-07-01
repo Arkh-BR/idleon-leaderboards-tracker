@@ -165,6 +165,7 @@ export default function MasteryOptimizer({
         defaultView="optimizer"
         extraTabsFirst
         treeTabLabel="🌳 Tree"
+        accent="emerald"
         extraTabs={[
           {
             id: "optimizer",

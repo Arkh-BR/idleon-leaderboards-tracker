@@ -625,6 +625,30 @@ function buildSearchMatchMap(
 // a caller-supplied extra tab (see DeepViewExtraTab).
 type ViewMode = string;
 
+/** Accent theme for the tab strip + controls bar. "sky" is the original
+ * Drop Rate/Talents look (default, zero behavior change for existing
+ * callers); "emerald" matches the Cooking page's gain accent. Tailwind's
+ * JIT compiler only keeps classes that appear as full literal strings in
+ * source, so this MUST be a static lookup — never template-interpolate
+ * the color name into a class string. */
+export type DeepViewAccent = "sky" | "emerald";
+
+export function deepViewAccentClasses(accent: DeepViewAccent) {
+  const table = {
+    sky: {
+      tabActive: "bg-sky-500/15 text-sky-300 border-sky-500/40 border-b-transparent",
+      focusBorder: "focus:border-sky-500/60",
+      checkbox: "accent-sky-500",
+    },
+    emerald: {
+      tabActive: "bg-emerald-500/15 text-emerald-300 border-emerald-500/40 border-b-transparent",
+      focusBorder: "focus:border-emerald-500/60",
+      checkbox: "accent-emerald-500",
+    },
+  } as const;
+  return table[accent];
+}
+
 /** A caller-injected tab that renders its own content. Used by
  *  /talents-level to add the "Faltando p/ Max" account scan in place of
  *  the (irrelevant-for-a-single-talent) Per World layout. */
@@ -650,6 +674,7 @@ export default function DeepView({
   onViewChange,
   defaultView = "tree",
   extraTabsFirst = false,
+  accent = "sky",
 }: {
   tree: ArkhNode | null;
   /** Optional snapshot baseline. When set, every row gains a "Δ vs snap"
@@ -676,7 +701,12 @@ export default function DeepView({
   defaultView?: ViewMode;
   /** Render the caller's extraTabs before the built-in Tree tab. */
   extraTabsFirst?: boolean;
+  /** Tab strip + controls-bar color theme. Defaults to "sky" (today's
+   *  Drop Rate/Talents look). Pass "emerald" from pages whose accent
+   *  clashes with sky (e.g. Cooking). */
+  accent?: DeepViewAccent;
 }) {
+  const ac = deepViewAccentClasses(accent);
   const [view, setView] = useState<ViewMode>(defaultView);
   // Report the active tab to the caller (mount + every change). onViewChange
   // is expected to be a stable callback; included in deps for correctness.
@@ -798,7 +828,7 @@ export default function DeepView({
               onClick={() => setView(t.id)}
               className={`px-3 py-1.5 text-sm font-medium rounded-t -mb-px border ${
                 view === t.id
-                  ? "bg-sky-500/15 text-sky-300 border-sky-500/40 border-b-transparent"
+                  ? ac.tabActive
                   : "text-zinc-400 hover:text-zinc-200 border-transparent"
               }`}
               title={t.title}
@@ -811,7 +841,7 @@ export default function DeepView({
           onClick={() => setView("tree")}
           className={`px-3 py-1.5 text-sm font-medium rounded-t -mb-px border ${
             view === "tree"
-              ? "bg-sky-500/15 text-sky-300 border-sky-500/40 border-b-transparent"
+              ? ac.tabActive
               : "text-zinc-400 hover:text-zinc-200 border-transparent"
           }`}
           title="Formula hierarchy — pool → source → sub-source"
@@ -824,7 +854,7 @@ export default function DeepView({
             onClick={() => setView("world")}
             className={`px-3 py-1.5 text-sm font-medium rounded-t -mb-px border ${
               view === "world"
-                ? "bg-sky-500/15 text-sky-300 border-sky-500/40 border-b-transparent"
+                ? ac.tabActive
                 : "text-zinc-400 hover:text-zinc-200 border-transparent"
             }`}
             title="Sources grouped by world (Global / Character / W1 … W7)"
@@ -840,7 +870,7 @@ export default function DeepView({
               onClick={() => setView(t.id)}
               className={`px-3 py-1.5 text-sm font-medium rounded-t -mb-px border ${
                 view === t.id
-                  ? "bg-sky-500/15 text-sky-300 border-sky-500/40 border-b-transparent"
+                  ? ac.tabActive
                   : "text-zinc-400 hover:text-zinc-200 border-transparent"
               }`}
               title={t.title}
@@ -863,7 +893,7 @@ export default function DeepView({
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           placeholder="🔍 Search source name or note…"
-          className="flex-1 min-w-[200px] px-2 py-1 text-xs bg-zinc-950 border border-zinc-800 rounded text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-sky-500/60"
+          className={`flex-1 min-w-[200px] px-2 py-1 text-xs bg-zinc-950 border border-zinc-800 rounded text-zinc-200 placeholder-zinc-600 focus:outline-none ${ac.focusBorder}`}
         />
 
         {/* Expand / Collapse / Reset — works in both views. In Tree it
@@ -919,7 +949,7 @@ export default function DeepView({
             type="checkbox"
             checked={hideZero}
             onChange={(e) => setHideZero(e.target.checked)}
-            className="accent-sky-500"
+            className={ac.checkbox}
           />
           Hide inactive
         </label>
@@ -933,7 +963,7 @@ export default function DeepView({
             type="checkbox"
             checked={showNotes}
             onChange={(e) => toggleShowNotes(e.target.checked)}
-            className="accent-sky-500"
+            className={ac.checkbox}
           />
           Show notes
         </label>
