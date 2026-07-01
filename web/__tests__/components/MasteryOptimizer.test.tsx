@@ -63,3 +63,40 @@ describe("OptimizerTable — Value/pt column", () => {
     expect(header.getAttribute("title")).toMatch(/base stat.*coefficient/i);
   });
 });
+
+describe("OptimizerTable — accessibility", () => {
+  it("gives every column header a scope", () => {
+    const rows = [makeRow({ id: 0 })];
+    const { container } = render(<OptimizerTable result={makeResult(rows, 0)} />);
+    const headers = container.querySelectorAll("th");
+    expect(headers).toHaveLength(5);
+    headers.forEach((th) => expect(th.getAttribute("scope")).toBe("col"));
+  });
+
+  it("has a visually-hidden caption describing the table", () => {
+    const rows = [makeRow({ id: 0 })];
+    const { container } = render(<OptimizerTable result={makeResult(rows, 0)} />);
+    const caption = container.querySelector("caption");
+    expect(caption).not.toBeNull();
+    expect(caption).toHaveClass("sr-only");
+    expect(caption?.textContent).toMatch(/purple pts|roi|upgrade/i);
+  });
+
+  it("labels the best-upgrade chip with text, not color alone", () => {
+    const rows = [makeRow({ id: 0 })];
+    render(<OptimizerTable result={makeResult(rows, 0)} />);
+    expect(screen.getByText("Next best")).toBeInTheDocument();
+  });
+
+  it("spells out 'Locked' instead of relying on the 🔒 emoji alone", () => {
+    const rows = [makeRow({ id: 1, unlocked: false, rankReq: 42 })];
+    render(<OptimizerTable result={makeResult(rows, null)} />);
+    expect(screen.getByText(/Locked \(rank 42\)/)).toBeInTheDocument();
+  });
+
+  it("gives the +/- delta an explicit text alternative for color-blind users", () => {
+    const rows = [makeRow({ id: 0, currentPts: 1, optimalPts: 3 })];
+    render(<OptimizerTable result={makeResult(rows, 0)} />);
+    expect(screen.getByLabelText(/increase of 2/i)).toBeInTheDocument();
+  });
+});

@@ -183,6 +183,10 @@ export function OptimizerTable({ result }: { result: OptimizeResult }) {
     <div className="space-y-3">
       <div className="overflow-x-auto rounded-lg border border-zinc-800">
         <table className="w-full text-sm">
+          <caption className="sr-only">
+            Cooking Mastery Purple PTS return-on-investment per upgrade — value
+            per point, current vs. optimal allocation, and marginal ROI.
+          </caption>
           <thead className="bg-zinc-900 text-zinc-400">
             <tr>
               <th scope="col" className="text-left font-medium px-3 py-2">Upgrade</th>
@@ -242,12 +246,12 @@ export function AllocRow({ row, best }: { row: RoiRow; best: boolean }) {
         </span>
         {best && (
           <span className="ml-2 text-[10px] font-semibold uppercase tracking-wide text-emerald-300 bg-emerald-500/15 border border-emerald-500/30 rounded px-1.5 py-0.5">
-            next
+            Next best
           </span>
         )}
         {!row.unlocked && (
           <span className="ml-2 text-[11px] text-zinc-500">
-            🔒 rank {row.rankReq}
+            🔒 Locked (rank {row.rankReq})
           </span>
         )}
         {row.unlocked && !isExpSource && (
@@ -274,6 +278,7 @@ export function AllocRow({ row, best }: { row: RoiRow; best: boolean }) {
         {delta !== 0 && isExpSource && row.unlocked && (
           <span
             className={`ml-1 text-[11px] ${delta > 0 ? "text-emerald-400" : "text-red-400"}`}
+            aria-label={delta > 0 ? `increase of ${delta}` : `decrease of ${Math.abs(delta)}`}
           >
             {delta > 0 ? `+${delta}` : delta}
           </span>
