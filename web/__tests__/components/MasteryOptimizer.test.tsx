@@ -20,7 +20,6 @@ describe("notate", () => {
 
 function makeRow(overrides: Partial<RoiRow> & { id: number }): RoiRow {
   return {
-    id: overrides.id,
     name: `Upgrade ${overrides.id}`,
     unlocked: true,
     rankReq: 0,
