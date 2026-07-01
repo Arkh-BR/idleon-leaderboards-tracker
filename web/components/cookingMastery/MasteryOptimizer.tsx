@@ -178,18 +178,24 @@ export default function MasteryOptimizer({
   );
 }
 
-function OptimizerTable({ result }: { result: OptimizeResult }) {
+export function OptimizerTable({ result }: { result: OptimizeResult }) {
   return (
     <div className="space-y-3">
       <div className="overflow-x-auto rounded-lg border border-zinc-800">
         <table className="w-full text-sm">
           <thead className="bg-zinc-900 text-zinc-400">
             <tr>
-              <th className="text-left font-medium px-3 py-2">Upgrade</th>
-              <th className="text-right font-medium px-3 py-2">Value/pt</th>
-              <th className="text-right font-medium px-3 py-2">Current</th>
-              <th className="text-right font-medium px-3 py-2">Optimal</th>
-              <th className="text-right font-medium px-3 py-2">ROI /pt</th>
+              <th scope="col" className="text-left font-medium px-3 py-2">Upgrade</th>
+              <th
+                scope="col"
+                className="text-right font-medium px-3 py-2"
+                title="Base stat × mastery coefficient = % Exp/h added per point invested"
+              >
+                Value/pt
+              </th>
+              <th scope="col" className="text-right font-medium px-3 py-2">Current</th>
+              <th scope="col" className="text-right font-medium px-3 py-2">Optimal</th>
+              <th scope="col" className="text-right font-medium px-3 py-2">ROI /pt</th>
             </tr>
           </thead>
           <tbody>
@@ -223,7 +229,7 @@ function OptimizerTable({ result }: { result: OptimizeResult }) {
   );
 }
 
-function AllocRow({ row, best }: { row: RoiRow; best: boolean }) {
+export function AllocRow({ row, best }: { row: RoiRow; best: boolean }) {
   const delta = row.optimalPts - row.currentPts;
   const isExpSource = row.id !== 3; // b=3 is "daily ribbon", not Exp/h
   return (
@@ -250,8 +256,11 @@ function AllocRow({ row, best }: { row: RoiRow; best: boolean }) {
           </span>
         )}
       </td>
-      <td className="px-3 py-2 text-right tabular-nums text-zinc-400">
-        {isExpSource ? `${row.base.toFixed(1)}×${row.coef}` : "—"}
+      <td
+        className="px-3 py-2 text-right tabular-nums text-zinc-400"
+        title={isExpSource ? `${row.base.toFixed(1)} × ${row.coef}` : undefined}
+      >
+        {isExpSource ? row.valuePerPt.toFixed(1) : "—"}
       </td>
       <td className="px-3 py-2 text-right tabular-nums text-zinc-300">
         {row.currentPts}
