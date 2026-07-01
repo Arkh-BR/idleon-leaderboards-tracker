@@ -11,14 +11,17 @@ import { optimize, type RoiRow, type OptimizeResult } from "@/lib/cookingMastery
 import { expRateTree } from "@/lib/cookingMastery/tree";
 import DeepView from "@/components/dropRate/DeepView";
 
-/** Compact k/M/B/T number formatting for Exp/h and large counts. */
-function notate(n: number): string {
+/** Compact k/M/B/T number formatting for Exp/h and large counts. Keeps 1-2
+ * significant figures for sub-1 deltas instead of rounding them away —
+ * a tiny-but-real marginal gain must never read as "+0". */
+export function notate(n: number): string {
   if (!isFinite(n)) return "—";
   const a = Math.abs(n);
   if (a >= 1e12) return (n / 1e12).toFixed(2) + "T";
   if (a >= 1e9) return (n / 1e9).toFixed(2) + "B";
   if (a >= 1e6) return (n / 1e6).toFixed(2) + "M";
   if (a >= 1e3) return (n / 1e3).toFixed(2) + "K";
+  if (a > 0 && a < 1) return n.toPrecision(2);
   return a < 10 && !Number.isInteger(n) ? n.toFixed(2) : String(Math.round(n));
 }
 
