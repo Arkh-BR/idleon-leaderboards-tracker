@@ -27,15 +27,24 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # NOTE: `lint`, `build` and `e2e` steps are intentionally omitted for now:
+      # NOTE: `lint` and `build` steps are intentionally omitted for now:
       #   - `next lint` was removed in Next 16 and ESLint is not installed here
       #     (the old step aborted the whole job in ~20s, so nothing else ever ran).
       #   - `next build` currently fails on a pre-existing static-prerender issue;
       #     the real build/deploy is validated by the separate Vercel check.
-      #   - Playwright e2e needs a browser install step that this job does not do.
-      # CI runs the reliable vitest suite until those gates are restored.
+      # They can be restored once ESLint is set up / the prerender is fixed.
       - name: Run unit tests
         run: npm run test
 
       - name: Run tests with coverage
         run: npm run test:coverage
+
+      # E2E: playwright.config.ts only uses chromium and starts its own dev
+      # server (webServer: `npm run dev`), so this does not hit the broken build.
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run E2E tests
+        run: npm run e2e
+        env:
+          CI: true
