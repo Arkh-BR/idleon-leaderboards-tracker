@@ -23,7 +23,7 @@ import { rogBonusQTY } from "../w7/sushi";
 import { bubbleParams } from "../../data/w2/alchemy";
 import { AlchemyDescription } from "../../data/game/customlists.js";
 import { mainframeBonus } from "../w4/lab";
-import { N2L } from "../../data/common/encoding";
+import { N2L } from "../../data/game/hardcoded.js";
 import type { SaveData } from "../../../state";
 
 type Ctx = { saveData: SaveData; charIdx: number };
@@ -56,7 +56,7 @@ const BUBBLE_KEYS: Record<string, { cauldron: number; index: number }> = {
 
 export function isBubblePrismad(cauldron: number, bubbleIdx: number): boolean {
   const prismaStr = String((optionsListData as any)?.[384] ?? "");
-  const letter = N2L[cauldron] || "";
+  const letter = (N2L as string)[cauldron] || "";
   return prismaStr.indexOf(letter + Math.round(bubbleIdx) + ",") !== -1;
 }
 
