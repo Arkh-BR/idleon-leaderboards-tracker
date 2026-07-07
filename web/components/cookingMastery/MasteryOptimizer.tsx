@@ -134,18 +134,22 @@ export default function MasteryOptimizer({
 
       {bestNext && (
         <div className="rounded-md border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-200/90">
-          💡 <strong>Next point →</strong>{" "}
-          {result.pools.purpleAvailable > 0
-            ? `${result.pools.purpleAvailable} free Purple PT${
-                result.pools.purpleAvailable > 1 ? "s" : ""
-              } available; put the next one in `
-            : "the next Purple PT you earn should go in "}
-          <strong>{bestNext.name}</strong> (+
-          {bestNext.marginalGainPct.toFixed(2)}% Exp/h
+          💡 <strong>Biggest win →</strong> invest in{" "}
+          <strong>{bestNext.name}</strong> for{" "}
+          <strong>+{notate(bestNext.marginalGain)} Exp/h</strong>
           {bestNext.currentPts < bestNext.optimalPts
-            ? `, toward the optimal ${result.optimal.purple[bestNext.id]}`
+            ? ` (toward the optimal ${result.optimal.purple[bestNext.id]})`
             : ""}
-          ).
+          .
+          <div className="mt-1 text-xs text-emerald-300/80">
+            Next point:{" "}
+            {result.pools.purpleAvailable > 0
+              ? `${result.pools.purpleAvailable} free Purple PT${
+                  result.pools.purpleAvailable > 1 ? "s" : ""
+                } available — put one here now`
+              : "the next Purple PT you earn should go here"}{" "}
+            (+{bestNext.marginalGainPct.toFixed(2)}%).
+          </div>
         </div>
       )}
 
@@ -161,7 +165,7 @@ export default function MasteryOptimizer({
         extraTabs={[
           {
             id: "optimizer",
-            label: "🎯 Optimizer",
+            label: "💡 Biggest Gains",
             title: "Optimal Purple PTS allocation + ROI per upgrade",
             render: () => <OptimizerTable result={result} />,
           },
@@ -171,16 +175,23 @@ export default function MasteryOptimizer({
   );
 }
 
-function OptimizerTable({ result }: { result: OptimizeResult }) {
+export function OptimizerTable({ result }: { result: OptimizeResult }) {
   return (
     <div className="space-y-3">
+      {/* overflow-x-auto stays as a safety net for very narrow screens, but
+          the sm:table-cell columns below are dropped on mobile specifically
+          so Upgrade + Optimal + ROI /pt fit without needing to scroll. */}
       <div className="overflow-x-auto rounded-lg border border-zinc-800">
         <table className="w-full text-sm">
           <thead className="bg-zinc-900 text-zinc-400">
             <tr>
               <th className="text-left font-medium px-3 py-2">Upgrade</th>
-              <th className="text-right font-medium px-3 py-2">Value/pt</th>
-              <th className="text-right font-medium px-3 py-2">Current</th>
+              <th className="text-right font-medium px-3 py-2 hidden sm:table-cell">
+                Value/pt
+              </th>
+              <th className="text-right font-medium px-3 py-2 hidden sm:table-cell">
+                Current
+              </th>
               <th className="text-right font-medium px-3 py-2">Optimal</th>
               <th className="text-right font-medium px-3 py-2">ROI /pt</th>
             </tr>
@@ -224,29 +235,41 @@ function AllocRow({ row, best }: { row: RoiRow; best: boolean }) {
       className={`border-t border-zinc-800/70 ${best ? "bg-emerald-500/5" : ""}`}
     >
       <td className="px-3 py-2">
-        <span className={row.unlocked ? "text-zinc-200" : "text-zinc-500"}>
-          {row.name}
-        </span>
-        {best && (
-          <span className="ml-2 text-[10px] font-semibold uppercase tracking-wide text-emerald-300 bg-emerald-500/15 border border-emerald-500/30 rounded px-1.5 py-0.5">
-            next
+        {/* flex-col on mobile so "next"/🔒 chips stack under a long name
+            instead of wrapping mid-badge; sm: reverts to the original
+            inline layout. */}
+        <div
+          data-role="upgrade-cell-stack"
+          className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-2"
+        >
+          <span className={row.unlocked ? "text-zinc-200" : "text-zinc-500"}>
+            {row.name}
           </span>
-        )}
-        {!row.unlocked && (
-          <span className="ml-2 text-[11px] text-zinc-500">
-            🔒 rank {row.rankReq}
-          </span>
-        )}
-        {row.unlocked && !isExpSource && (
-          <span className="ml-2 text-[11px] text-zinc-500">
-            (doesn&apos;t affect Exp/h)
-          </span>
-        )}
+          {(best || !row.unlocked || (row.unlocked && !isExpSource)) && (
+            <div className="flex flex-wrap items-center gap-1.5">
+              {best && (
+                <span className="w-fit text-[10px] font-semibold uppercase tracking-wide text-emerald-300 bg-emerald-500/15 border border-emerald-500/30 rounded px-1.5 py-0.5">
+                  next
+                </span>
+              )}
+              {!row.unlocked && (
+                <span className="text-[11px] text-zinc-500">
+                  🔒 rank {row.rankReq}
+                </span>
+              )}
+              {row.unlocked && !isExpSource && (
+                <span className="text-[11px] text-zinc-500">
+                  (doesn&apos;t affect Exp/h)
+                </span>
+              )}
+            </div>
+          )}
+        </div>
       </td>
-      <td className="px-3 py-2 text-right tabular-nums text-zinc-400">
+      <td className="px-3 py-2 text-right tabular-nums text-zinc-400 hidden sm:table-cell">
         {isExpSource ? `${row.base.toFixed(1)}×${row.coef}` : "—"}
       </td>
-      <td className="px-3 py-2 text-right tabular-nums text-zinc-300">
+      <td className="px-3 py-2 text-right tabular-nums text-zinc-300 hidden sm:table-cell">
         {row.currentPts}
       </td>
       <td className="px-3 py-2 text-right tabular-nums">
