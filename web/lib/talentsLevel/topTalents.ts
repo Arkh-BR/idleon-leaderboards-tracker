@@ -13,13 +13,13 @@
 // default tree (they would all resolve to identical numbers anyway).
 // Auto-refreshed by scripts/update-top-talents.ts.
 //
-// Snapshot generated: 2026-07-04T05:23:07.409Z
-// Players scanned: 77
+// Snapshot generated: 2026-07-07T05:24:10.591Z
+// Players scanned: 79
 
 import type { ArkhNode } from "../arkh/node";
 
-export const HYPO_TALENTS_GENERATED_AT = "2026-07-04T05:23:07.409Z";
-export const HYPO_TALENTS_PLAYERS_SCANNED = 77;
+export const HYPO_TALENTS_GENERATED_AT = "2026-07-07T05:24:10.591Z";
+export const HYPO_TALENTS_PLAYERS_SCANNED = 79;
 
 export const HYPO_DEFAULT_TREE: ArkhNode = {
   "name": "Effective Level",
@@ -492,17 +492,17 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
           "children": [
             {
               "name": "Best Mage Lv",
-              "val": 1767,
+              "val": 1774,
               "children": [
                 {
                   "name": "Char 0 Lv",
-                  "val": 1751,
+                  "val": 1765,
                   "fmt": "raw",
                   "note": "BopeBrancis — elemental sorcerer (cls 34)"
                 },
                 {
                   "name": "Char 9 Lv",
-                  "val": 1743,
+                  "val": 1749,
                   "fmt": "raw",
                   "note": "BigES_Two — elemental sorcerer (cls 34)"
                 }
@@ -1439,17 +1439,17 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
             "children": [
               {
                 "name": "Best Mage Lv",
-                "val": 1767,
+                "val": 1774,
                 "children": [
                   {
                     "name": "Char 0 Lv",
-                    "val": 1751,
+                    "val": 1765,
                     "fmt": "raw",
                     "note": "BopeBrancis — elemental sorcerer (cls 34) — ACTIVE char (gets Family Guy buff if it wins the slot)"
                   },
                   {
                     "name": "Char 9 Lv",
-                    "val": 1743,
+                    "val": 1749,
                     "fmt": "raw",
                     "note": "BigES_Two — elemental sorcerer (cls 34)"
                   }
