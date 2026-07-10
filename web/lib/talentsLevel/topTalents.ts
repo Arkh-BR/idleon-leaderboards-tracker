@@ -13,12 +13,12 @@
 // default tree (they would all resolve to identical numbers anyway).
 // Auto-refreshed by scripts/update-top-talents.ts.
 //
-// Snapshot generated: 2026-07-07T05:24:10.591Z
+// Snapshot generated: 2026-07-10T05:24:23.825Z
 // Players scanned: 79
 
 import type { ArkhNode } from "../arkh/node";
 
-export const HYPO_TALENTS_GENERATED_AT = "2026-07-07T05:24:10.591Z";
+export const HYPO_TALENTS_GENERATED_AT = "2026-07-10T05:24:23.825Z";
 export const HYPO_TALENTS_PLAYERS_SCANNED = 79;
 
 export const HYPO_DEFAULT_TREE: ArkhNode = {
@@ -492,7 +492,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
           "children": [
             {
               "name": "Best Mage Lv",
-              "val": 1774,
+              "val": 1780,
               "children": [
                 {
                   "name": "Char 0 Lv",
@@ -834,7 +834,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                   "children": [
                     {
                       "name": "Endless Wins Count",
-                      "val": 389,
+                      "val": 390,
                       "fmt": "raw",
                       "note": "OLA[319] — total endless summoning victories"
                     },
@@ -1439,7 +1439,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
             "children": [
               {
                 "name": "Best Mage Lv",
-                "val": 1774,
+                "val": 1780,
                 "children": [
                   {
                     "name": "Char 0 Lv",
@@ -1781,7 +1781,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                     "children": [
                       {
                         "name": "Endless Wins Count",
-                        "val": 389,
+                        "val": 390,
                         "fmt": "raw",
                         "note": "OLA[319] — total endless summoning victories"
                       },
