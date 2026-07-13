@@ -32,10 +32,23 @@ const SYSTEM_ALIASES: Record<string, string[]> = {
   starsign: ["starSign"],
 };
 
+// Names IT's website-data hasn't published yet (new crystal/event companions,
+// etc.). Checked before the generated table so a later regen can't drop them.
+// Keyed by lowercased system. Extend as new unnamed sources surface.
+const MANUAL_NAMES: Record<string, Record<string, string>> = {
+  // Companion 168 = "caveD" in CompanionDB (1.30x Drop Rate); IT never named
+  // it. Without this it renders "Companion 168" and, lacking the "(Companion"
+  // tag, misses the Companions category → falls to "Other".
+  companion: { "168": "Crystal Glunko" },
+};
+
 export function entityName(system: string, id: unknown): string {
   if (id === null || id === undefined) return "";
   const sys = system.toLowerCase();
   const idStr = Array.isArray(id) ? id.join(",") : String(id);
+
+  const manual = MANUAL_NAMES[sys]?.[idStr];
+  if (manual) return manual;
 
   // Try the lowercase system key as-is first
   const candidates: string[] = [];
