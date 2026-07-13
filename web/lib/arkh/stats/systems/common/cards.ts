@@ -10,6 +10,7 @@ import { label } from "../../entity-names";
 import { cardEquipData, csetEqData } from "../../../save/data";
 import { CARD_BASE_REQ, CARD_DR_BONUS, CARD_DR_MULTI } from "../../data/common/cards";
 import { IDforCardSETbonus } from "../../data/game/custommaps.js";
+import { MONSTERS } from "../../data/game/monsters.js";
 import { legendPTSbonus } from "../w7/spelunking";
 import { charHasChip } from "../w4/lab";
 import { RANDOlist } from "../../data/game/customlists.js";
@@ -164,6 +165,21 @@ export const card = {
         })
       );
       total += contrib;
+    }
+    // Catalog: every obtainable DR card of this type that ISN'T equipped shows
+    // as a +0 reference row so the breakdown (and the Observed-Max overlay)
+    // lists them all — matching the nametag/trophy resolvers. Unreleased
+    // placeholder cards (source mob ExpGiven <= 1, e.g. W7-zone-B) are omitted.
+    const ownedKeys = new Set(
+      (equipped as string[]).filter((k) => k && k !== "B")
+    );
+    for (const key of Object.keys(table)) {
+      if (ownedKeys.has(key)) continue;
+      const mob = (MONSTERS as Record<string, { ExpGiven?: number }>)[key];
+      if (mob && Number(mob.ExpGiven) <= 1) continue; // unreleased placeholder
+      children.push(
+        node(label("Card", key), 0, null, { fmt: "+", note: "not equipped" })
+      );
     }
     if (legendMulti !== 1) {
       const legend21raw = legendPTSbonus(21, saveData);
