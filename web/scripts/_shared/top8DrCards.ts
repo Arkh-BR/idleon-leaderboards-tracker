@@ -140,24 +140,55 @@ export function capDrCardsInPools(grp: {
   return sel;
 }
 
+const MULTI_CARD_PATH =
+  "Drop Rate / Post-Processing / 🃏 Cards / " + MULTI_CARD_ITEM;
+
 /**
- * Rewrite the additive card node's display subtree to the capped 8-slot pick
- * and nudge its additive ancestors by the delta. The multi node already holds
- * only the observed multi cards, so its display needs no surgery.
+ * Rewrite a card node's children to the FULL obtainable catalog: every DR card
+ * shows, but only the picked 8 carry a value — the rest read +0 (reference).
+ * Non-card children (e.g. "Legendary Cardholder ×") are preserved.
+ */
+function rewriteCardCatalog(
+  flat: Record<string, number>,
+  nodePath: string,
+  table: Record<string, number>,
+  selVal: Map<string, number>
+): void {
+  const prefix = nodePath + " / ";
+  for (const p in flat) {
+    if (p.startsWith(prefix) && /\(Card /.test(p.slice(prefix.length))) {
+      delete flat[p]; // drop old card rows + their sub-children
+    }
+  }
+  const keys = Object.keys(obtainableDrCards(table)).sort(
+    (a, b) => (selVal.get(b) ?? 0) - (selVal.get(a) ?? 0)
+  );
+  for (const key of keys) {
+    flat[`${prefix}${label("Card", key)}`] = selVal.get(key) ?? 0;
+  }
+}
+
+/**
+ * Rewrite both card display nodes to show the FULL obtainable catalog, with the
+ * observed value only on the 8 slotted cards (rest +0). The additive node's
+ * total drives its additive ancestors (shifted by delta); the multi node's
+ * total is already fixed via the pool item, so its multiplicative ancestors are
+ * left as the generator built them.
  */
 export function patchCardFlatDisplay(
   flat: Record<string, number>,
   sel: Top8Result
 ): void {
-  const old = Number(flat[ADD_CARD_PATH]) || 0;
-  const delta = sel.additiveSum - old;
-  for (const p in flat) if (p.startsWith(ADD_CARD_PATH + " / ")) delete flat[p];
+  const selVal = new Map<string, number>(sel.picks.map((p) => [p.key, p.effVal]));
+
+  const oldAdd = Number(flat[ADD_CARD_PATH]) || 0;
+  rewriteCardCatalog(flat, ADD_CARD_PATH, CARD_DR_BONUS, selVal);
   flat[ADD_CARD_PATH] = sel.additiveSum;
-  for (const pk of sel.picks) {
-    if (pk.type !== "add") continue;
-    flat[`${ADD_CARD_PATH} / ${label("Card", pk.key)}`] = pk.effVal;
-  }
-  if (flat[CARDS_BUCKET_ADD] != null) flat[CARDS_BUCKET_ADD] += delta;
-  if (flat[ADDITIVE_POOL_PATH] != null) flat[ADDITIVE_POOL_PATH] += delta;
-  if (flat[TOTAL_SUM_PATH] != null) flat[TOTAL_SUM_PATH] += delta / 100;
+  const dAdd = sel.additiveSum - oldAdd;
+  if (flat[CARDS_BUCKET_ADD] != null) flat[CARDS_BUCKET_ADD] += dAdd;
+  if (flat[ADDITIVE_POOL_PATH] != null) flat[ADDITIVE_POOL_PATH] += dAdd;
+  if (flat[TOTAL_SUM_PATH] != null) flat[TOTAL_SUM_PATH] += dAdd / 100;
+
+  rewriteCardCatalog(flat, MULTI_CARD_PATH, CARD_DR_MULTI, selVal);
+  flat[MULTI_CARD_PATH] = sel.multiSum;
 }
