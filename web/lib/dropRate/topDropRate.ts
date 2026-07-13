@@ -5,7 +5,7 @@
 // Hood 279 / Curse of Mr Looty Booty 24) appear only in the profiles of
 // classes that own them. Use topDrFlatForClass(classKey).
 // Large file: lazy-load it, don't import statically.
-// Generated 2026-07-13T19:37:25.615Z · 79 players. Refresh: scripts/update-top-dr.ts.
+// Generated 2026-07-13T20:07:10.728Z · 79 players. Refresh: scripts/update-top-dr.ts.
 
 type FlatMap = Readonly<Record<string, number>>;
 
@@ -2472,9 +2472,8 @@ export const TOP_DR_FLAT: FlatMap = {
     "Drop Rate / Post-Processing / 🎽 Equipment / Equipment (etcBonus 99) / Corsair Uniform": 95.75,
     "Drop Rate / Post-Processing / 🎽 Equipment / Equipment (etcBonus 99) / Corsair Uniform / Item Bonus (raw)": 50,
     "Drop Rate / Post-Processing / 🎽 Equipment / Equipment (etcBonus 99) / Corsair Uniform / Well Dressed (Grid 172)": 1.915,
-    "Drop Rate / Post-Processing / 🐾 Companions": Infinity,
-    "Drop Rate / Post-Processing / 🐾 Companions / Crystal Glunko (Companion 168)": Infinity,
-    "Drop Rate / Post-Processing / 🐾 Companions / Crystal Glunko (Companion 168) / Cap": Infinity,
+    "Drop Rate / Post-Processing / 🐾 Companions": 3.8405250000000004,
+    "Drop Rate / Post-Processing / 🐾 Companions / Crystal Glunko (Companion 168)": 1.3,
     "Drop Rate / Post-Processing / 🐾 Companions / Crystal Glunko (Companion 168) / Not owned — no contribution": 0,
     "Drop Rate / Post-Processing / 🐾 Companions / Crystal Glunko (Companion 168) / Raw bonus": 1,
     "Drop Rate / Post-Processing / 🐾 Companions / Crystal Glunko (Companion 168) / Result": 1.3,
@@ -2623,7 +2622,7 @@ export const TOP_DR_FLAT: FlatMap = {
     "Drop Rate / Post-Processing / 🥷 Sneaking Mastery / Sneaking Completions (Sneaking Mastery) / Bonus": 0.3,
     "Drop Rate / Post-Processing / 🥷 Sneaking Mastery / Sneaking Completions (Sneaking Mastery) / OLA[232]": 8,
     "Drop Rate / Post-Processing / 🥷 Sneaking Mastery / Sneaking Completions (Sneaking Mastery) / Threshold": 1,
-    "Drop Rate / Total Sum": 471.50965173800967,
+    "Drop Rate / Total Sum": 470.58215173800966,
   };
 
 export const TOP_DR_PROFILE_OVERRIDES: Readonly<Record<string, FlatMap>> = {
@@ -2881,7 +2880,7 @@ export const TOP_DR_PROFILE_OVERRIDES: Readonly<Record<string, FlatMap>> = {
     "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / W3 Merit Shop Unlock / W3 Merit Points Spent": 5,
     "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Points Invested": 396,
     "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Universe Talent": 5,
-    "Drop Rate / Total Sum": 472.1268115013233,
+    "Drop Rate / Total Sum": 471.1993115013233,
   },
   "t279": {
     "Drop Rate": 260513.12279870445,
@@ -3122,7 +3121,7 @@ export const TOP_DR_PROFILE_OVERRIDES: Readonly<Record<string, FlatMap>> = {
     "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Max Book Lv Cap / W3 Merit Shop Unlock / W3 Merit Points Spent": 5,
     "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Points Invested": 396,
     "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Universe Talent": 5,
-    "Drop Rate / Total Sum": 471.87840173800964,
+    "Drop Rate / Total Sum": 470.95090173800963,
   },
 };
 

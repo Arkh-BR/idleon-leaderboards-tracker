@@ -20,7 +20,12 @@
 import { nodePath, type FlatTree } from "../../lib/dropRate/treeFlatten";
 import type { ArkhNode } from "../../lib/arkh/node";
 
+// Guard non-finite: Math.abs(x - Infinity) <= Math.abs(Infinity)*k is
+// Infinity <= Infinity === true, which would spuriously "verify" a bogus op
+// on any node carrying an Infinity child (e.g. an uncapped compMulti cap).
 const approx = (a: number, b: number) =>
+  Number.isFinite(a) &&
+  Number.isFinite(b) &&
   Math.abs(a - b) <= Math.abs(b) * 5e-4 + 1e-6;
 
 const isMult = (c: ArkhNode) => c.fmt === "x";
