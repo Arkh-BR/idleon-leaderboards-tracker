@@ -5,7 +5,7 @@
 // Hood 279 / Curse of Mr Looty Booty 24) appear only in the profiles of
 // classes that own them. Use topDrFlatForClass(classKey).
 // Large file: lazy-load it, don't import statically.
-// Generated 2026-07-13T19:27:55.615Z · 79 players. Refresh: scripts/update-top-dr.ts.
+// Generated 2026-07-13T19:37:25.615Z · 79 players. Refresh: scripts/update-top-dr.ts.
 
 type FlatMap = Readonly<Record<string, number>>;
 
