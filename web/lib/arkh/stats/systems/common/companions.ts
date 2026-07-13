@@ -113,7 +113,13 @@ export const compMulti = {
     const children: ArkhNode[] = owned
       ? [
           node("Raw bonus", bonusVal, null, { fmt: "+" }),
-          node("Cap", cap, null, { fmt: "x" }),
+          // An infinite cap (uncapped, e.g. Crystal Glunko 168) must NOT surface
+          // as a "Cap: Infinity" ×-child — the top-player frankenstein's PROD(x)
+          // op would grab it and blow the node up to Infinity. Emit Cap only
+          // when it's a real, finite cap.
+          ...(Number.isFinite(cap)
+            ? [node("Cap", cap, null, { fmt: "x" })]
+            : []),
           node("Result", val, null, { fmt: "x" }),
         ]
       : [
