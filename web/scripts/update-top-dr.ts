@@ -40,6 +40,7 @@ import {
   chooseOps,
   recomputeFrankenstein,
 } from "./_shared/frankenstein";
+import { capDrCardsInPools, patchCardFlatDisplay } from "./_shared/top8DrCards";
 import {
   deriveGatedTalents,
   allClassKeys,
@@ -224,6 +225,7 @@ async function main() {
   // Finalize a group: frankenstein-recompute its aggregates, reconcile shared
   // multipliers, and pin the root to its best-of-each-source total.
   const finalizeGroup = (grp: GroupAcc) => {
+    const cardSel = capDrCardsInPools(grp);
     for (const pn in grp.bestPools!) {
       let sum = 0;
       let product = 1;
@@ -241,6 +243,7 @@ async function main() {
       grp.bestFlat,
       chooseOps(grp.opSets)
     );
+    patchCardFlatDisplay(flat, cardSel);
     reconcileSharedMultipliers(flat, DR_SHARED_MULTIPLIERS);
     flat["Drop Rate"] = total;
     return { flat, total, recomputed };
