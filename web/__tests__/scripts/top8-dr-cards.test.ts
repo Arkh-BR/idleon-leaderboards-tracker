@@ -136,7 +136,7 @@ describe("capDrCardsInPools + patchCardFlatDisplay (generator glue)", () => {
     expect(sel.picks.filter((p) => p.boosted).every((p) => p.type === "multi")).toBe(true);
   });
 
-  it("rewrites the additive display node + shifts ancestors by delta", () => {
+  it("shows the FULL additive catalog: picks valued, rest +0; ancestors shift by delta", () => {
     const flat = mkFlat();
     const grp = { bestFlat: flat, bestPools: mkPools() };
     const beforePool = flat["Drop Rate / Additive Pool"];
@@ -144,9 +144,27 @@ describe("capDrCardsInPools + patchCardFlatDisplay (generator glue)", () => {
     patchCardFlatDisplay(flat, sel);
     const delta = sel.additiveSum - 741.125;
     expect(flat[ADD_NODE]).toBeCloseTo(sel.additiveSum, 9);
-    expect(flat[ADD_NODE + " / Mimic (Card mimicA)"]).toBeUndefined(); // stale gone
+    // every obtainable additive card is listed (full catalog), not just picks
     const kids = Object.keys(flat).filter((p) => p.startsWith(ADD_NODE + " / "));
-    expect(kids).toHaveLength(sel.picks.filter((p) => p.type === "add").length);
+    expect(kids).toHaveLength(Object.keys(obtainableDrCards(CARD_DR_BONUS)).length);
+    // a non-selected card (Mimic) shows with +0, no longer deleted
+    expect(flat[ADD_NODE + " / Mimic (Card mimicA)"]).toBe(0);
+    // a selected card carries its value
+    expect(flat[ADD_NODE + " / Emperor (Card Boss6A)"]).toBeGreaterThan(0);
     expect(flat["Drop Rate / Additive Pool"]).toBeCloseTo(beforePool + delta, 6);
+  });
+
+  it("shows the full multi catalog too, valued only on the slotted multi", () => {
+    const MULTI_NODE =
+      "Drop Rate / Post-Processing / 🃏 Cards / Drop Rate Multi Cards (Card Type 101)";
+    const flat = mkFlat();
+    flat[MULTI_NODE] = 49;
+    flat[MULTI_NODE + " / Coralcave Guardian (Card w7a12)"] = 24.5; // stale
+    const grp = { bestFlat: flat, bestPools: mkPools() };
+    const sel = capDrCardsInPools(grp);
+    patchCardFlatDisplay(flat, sel);
+    const kids = Object.keys(flat).filter((p) => p.startsWith(MULTI_NODE + " / "));
+    expect(kids).toHaveLength(Object.keys(obtainableDrCards(CARD_DR_MULTI)).length);
+    expect(flat[MULTI_NODE + " / Coralcave Guardian (Card w7a12)"]).toBeGreaterThan(0);
   });
 });
