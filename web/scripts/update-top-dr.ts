@@ -30,16 +30,6 @@ import { flattenTree } from "../lib/dropRate/treeFlatten";
 import { listCharacters } from "../lib/dropRate/extract";
 import { getCharClassKey } from "../lib/talentsLevel/charClass";
 import { buildMapOptions } from "../lib/dropRate/arcaneBonus";
-import {
-  reconcileSharedMultipliers,
-  sumMulti,
-  type SharedMultiplier,
-} from "./_shared/reconcile";
-import {
-  accumulateOps,
-  chooseOps,
-  recomputeFrankenstein,
-} from "./_shared/frankenstein";
 import { capDrCardsInPools, patchCardFlatDisplay } from "./_shared/top8DrCards";
 import {
   deriveGatedTalents,
@@ -48,17 +38,6 @@ import {
   findTalentNodePath,
   subtreePaths,
 } from "./_shared/classGating";
-import type { ArkhNode } from "../lib/arkh/node";
-
-// Account-wide multipliers that are emitted under many owned items, so
-// best-per-path can leave them reading different values per row (each item
-// is won by a different owner). Reconcile each to ONE frankenstein-max value
-// (1 + Σ best-of-each-sub-source / 100) shown consistently everywhere.
-// Extend this list if another shared "1 + Σ/100" multiplier surfaces.
-const DR_SHARED_MULTIPLIERS: SharedMultiplier[] = [
-  { name: "Gallery Bonus Multi", recompute: sumMulti },
-  { name: "Hatrack Bonus Multi", recompute: sumMulti },
-];
 
 const argv = process.argv.slice(2);
 const SLOW = argv.includes("--slow");
@@ -120,23 +99,17 @@ async function main() {
   // family bonus (Talent 68) is buffed by the Family Guy talent only when the
   // active char IS the Elemental Sorcerer. Computing over non-ES chars gives
   // the unbuffed FB68 every other class actually has; the ES group keeps the
-  // buffed value. Each group is a granular best-per-path map (the max any
-  // single char reached per node path) + op detection for the frankenstein
-  // recompute + the most-complete structure tree + the best-of-each-source
-  // pool set for the headline total.
+  // buffed value. Each group keeps the best-of-each-source pool set (which
+  // drives BOTH the total and the displayed breakdown via one combine() pass)
+  // plus a granular best-per-path map (still needed to seed observed card star
+  // levels for the 8-slot cap and to graft the buffed ES Family Bonus 68).
   type GroupAcc = {
     bestPools: Record<string, Pool> | null;
     bestFlat: Record<string, number>;
-    opSets: Map<string, Set<string>>;
-    structure: ArkhNode | null;
-    structPaths: number;
   };
   const newGroup = (): GroupAcc => ({
     bestPools: null,
     bestFlat: {},
-    opSets: new Map(),
-    structure: null,
-    structPaths: -1,
   });
   const nonES = newGroup();
   const es = newGroup();
@@ -192,17 +165,13 @@ async function main() {
           getCharClassKey(save, ch.charIndex) === "Elemental_Sorcerer"
             ? es
             : nonES;
+        // best-per-path map — seeds the card 8-slot cap (observed star levels)
+        // and the buffed ES Family Bonus 68 graft.
         const f = flattenTree(combined.tree);
         for (const p in f) {
           const v = f[p];
           if (grp.bestFlat[p] === undefined || v > grp.bestFlat[p])
             grp.bestFlat[p] = v;
-        }
-        accumulateOps(combined.tree, grp.opSets);
-        const nPaths = Object.keys(f).length;
-        if (nPaths > grp.structPaths) {
-          grp.structPaths = nPaths;
-          grp.structure = combined.tree;
         }
         grp.bestPools = mergeBest(grp.bestPools, pools);
       } catch {
@@ -217,13 +186,17 @@ async function main() {
     if (i < candidates.length - 1) await sleep(THROTTLE_MS);
   }
 
-  if (!nonES.bestPools || !nonES.structure) {
+  if (!nonES.bestPools) {
     console.error("× no non-ES pools collected, aborting");
     process.exit(1);
   }
 
-  // Finalize a group: frankenstein-recompute its aggregates, reconcile shared
-  // multipliers, and pin the root to its best-of-each-source total.
+  // Finalize a group: the displayed breakdown AND the headline total come from
+  // the SAME combine() pass over the best-of-each-source pools — the exact math
+  // the user's own save uses. So Total Sum × Post-Processing reconstructs the
+  // total exactly, with no separate best-per-path recompute to diverge from it
+  // (that split was what made the Post-Processing headline lie, leaked Infinity
+  // from uncapped companion caps, and fragmented one source across buckets).
   const finalizeGroup = (grp: GroupAcc) => {
     const cardSel = capDrCardsInPools(grp);
     for (const pn in grp.bestPools!) {
@@ -237,16 +210,15 @@ async function main() {
       grp.bestPools![pn].sum = sum;
       grp.bestPools![pn].product = product;
     }
-    const total = combineDRPools(grp.bestPools!).total;
-    const { flat, recomputed } = recomputeFrankenstein(
-      grp.structure!,
-      grp.bestFlat,
-      chooseOps(grp.opSets)
-    );
+    // combineDRPools runs over the capped card items capDrCardsInPools just
+    // wrote, so the tree and total agree. patchCardFlatDisplay then expands the
+    // card nodes to the full obtainable catalog; its additive delta is 0 here
+    // (the tree already carries the capped sum), so it shifts no ancestor.
+    const combined = combineDRPools(grp.bestPools!);
+    const flat = flattenTree(combined.tree);
     patchCardFlatDisplay(flat, cardSel);
-    reconcileSharedMultipliers(flat, DR_SHARED_MULTIPLIERS);
-    flat["Drop Rate"] = total;
-    return { flat, total, recomputed };
+    flat["Drop Rate"] = combined.total;
+    return { flat, total: combined.total };
   };
 
   const nonRes = finalizeGroup(nonES);
@@ -421,7 +393,7 @@ async function main() {
   }
 
   console.log(`\n✓ Scanned ${scanned} players (${skipped} skipped)`);
-  console.log(`  · non-ES recomputed ${nonRes.recomputed} aggregates · FB68 grafted onto ${fbGrafted} ES talent(s)`);
+  console.log(`  · FB68 grafted onto ${fbGrafted} ES talent(s)`);
   console.log(
     `  · gated talents: ${gated.map((g) => g.id).join(", ") || "none"} → profiles: ${Object.keys(overrides).concat(["base"]).join(", ")}`
   );
@@ -488,12 +460,13 @@ function emitFiles(
     .join("\n");
 
   const out: string[] = [
-    "// Top-player Drop Rate reference — GRANULAR best-per-path, frankenstein-",
-    "// recomputed aggregates, gated PER CLASS. Every value is the max any",
-    "// single scanned (player, char) reached for that node path; aggregates",
-    "// are rebuilt from their maxed children; class-specific talents (Robbing",
-    "// Hood 279 / Curse of Mr Looty Booty 24) appear only in the profiles of",
-    "// classes that own them. Use topDrFlatForClass(classKey).",
+    "// Top-player Drop Rate reference — best-of-each-source pool set run through",
+    "// ONE combine() pass (the same DR math a real save uses), gated PER CLASS.",
+    "// Every source is the max any single scanned (player, char) reached; the",
+    "// tree + total come from the same pass, so Total Sum × Post-Processing",
+    "// reconstructs the headline exactly. Class-specific talents (Robbing Hood",
+    "// 279 / Curse of Mr Looty Booty 24) appear only in the profiles of classes",
+    "// that own them. Use topDrFlatForClass(classKey).",
     "// Large file: lazy-load it, don't import statically.",
     `// Generated ${now} · ${scanned} players. Refresh: scripts/update-top-dr.ts.`,
     "",
