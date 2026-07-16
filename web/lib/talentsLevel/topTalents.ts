@@ -13,17 +13,17 @@
 // default tree (they would all resolve to identical numbers anyway).
 // Auto-refreshed by scripts/update-top-talents.ts.
 //
-// Snapshot generated: 2026-07-13T19:40:21.876Z
-// Players scanned: 76
+// Snapshot generated: 2026-07-16T05:09:00.014Z
+// Players scanned: 79
 
 import type { ArkhNode } from "../arkh/node";
 
-export const HYPO_TALENTS_GENERATED_AT = "2026-07-13T19:40:21.876Z";
-export const HYPO_TALENTS_PLAYERS_SCANNED = 76;
+export const HYPO_TALENTS_GENERATED_AT = "2026-07-16T05:09:00.014Z";
+export const HYPO_TALENTS_PLAYERS_SCANNED = 79;
 
 export const HYPO_DEFAULT_TREE: ArkhNode = {
   "name": "Effective Level",
-  "val": 776,
+  "val": 783,
   "children": [
     {
       "name": "Base Level",
@@ -33,7 +33,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
           "name": "Points Invested",
           "val": 396,
           "fmt": "raw",
-          "note": "actual save — owner: Skvimpten"
+          "note": "actual save — owner: Biggums_AFK"
         },
         {
           "name": "Max Book Lv Cap",
@@ -245,11 +245,11 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
         }
       ],
       "fmt": "raw",
-      "note": "min(invested, cap) — owner: Skvimpten"
+      "note": "min(invested, cap) — owner: Biggums_AFK"
     },
     {
       "name": "Bonus Levels",
-      "val": 255,
+      "val": 262,
       "children": [
         {
           "name": "Symbols of Beyond ~R (Talent 149)",
@@ -263,7 +263,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                   "name": "Points Invested",
                   "val": 396,
                   "fmt": "raw",
-                  "note": "actual save — owner: Skvimpten"
+                  "note": "actual save — owner: Biggums_AFK"
                 },
                 {
                   "name": "Max Book Lv Cap",
@@ -475,11 +475,11 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                 }
               ],
               "fmt": "raw",
-              "note": "min(invested, cap) — owner: Skvimpten"
+              "note": "min(invested, cap) — owner: Biggums_AFK"
             }
           ],
           "fmt": "raw",
-          "note": "intervalAdd(1,20,389)"
+          "note": "intervalAdd(1,20,396)"
         },
         {
           "name": "Maroon Warship (Achievement 291)",
@@ -498,7 +498,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                   "name": "Char 4 Lv",
                   "val": 1780,
                   "fmt": "raw",
-                  "note": "Skvimpfiver — elemental sorcerer (cls 34)"
+                  "note": "Biggums_Lux — elemental sorcerer (cls 34)"
                 }
               ],
               "fmt": "raw",
@@ -506,7 +506,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
             },
             {
               "name": "Family Guy Multi (×) — potential buff",
-              "val": 1.3541809851088202,
+              "val": 1.3544419134396355,
               "children": [
                 {
                   "name": "Base Level",
@@ -737,7 +737,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                 },
                 {
                   "name": "Bonus Levels",
-                  "val": 252,
+                  "val": 257,
                   "fmt": "+",
                   "note": "Σ ATL (unbuffed FB68, excl. super)"
                 },
@@ -774,11 +774,11 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
         },
         {
           "name": "Divinity Minor 2 (Arctis)",
-          "val": 67,
+          "val": 74,
           "children": [
             {
               "name": "Divinity Lv",
-              "val": 850,
+              "val": 851,
               "fmt": "raw"
             },
             {
@@ -789,7 +789,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
             },
             {
               "name": "Coral Kid 3",
-              "val": 218,
+              "val": 251,
               "fmt": "raw",
               "note": "OLA[430]"
             },
@@ -889,7 +889,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
           "children": [
             {
               "name": "Player Lv",
-              "val": 1876,
+              "val": 1883,
               "fmt": "raw",
               "note": "Lv0[0]"
             }
@@ -964,7 +964,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
 export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
   "Elemental_Sorcerer": {
     "name": "Effective Level",
-    "val": 782,
+    "val": 789,
     "children": [
       {
         "name": "Base Level",
@@ -974,7 +974,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
             "name": "Points Invested",
             "val": 396,
             "fmt": "raw",
-            "note": "actual save — owner: Skvimpten"
+            "note": "actual save — owner: Biggums_AFK"
           },
           {
             "name": "Max Book Lv Cap",
@@ -1186,11 +1186,11 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
           }
         ],
         "fmt": "raw",
-        "note": "min(invested, cap) — owner: Skvimpten"
+        "note": "min(invested, cap) — owner: Biggums_AFK"
       },
       {
         "name": "Bonus Levels",
-        "val": 261,
+        "val": 268,
         "children": [
           {
             "name": "Symbols of Beyond ~R (Talent 149)",
@@ -1204,7 +1204,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                     "name": "Points Invested",
                     "val": 396,
                     "fmt": "raw",
-                    "note": "actual save — owner: Skvimpten"
+                    "note": "actual save — owner: Biggums_AFK"
                   },
                   {
                     "name": "Max Book Lv Cap",
@@ -1416,11 +1416,11 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                   }
                 ],
                 "fmt": "raw",
-                "note": "min(invested, cap) — owner: Skvimpten"
+                "note": "min(invested, cap) — owner: Biggums_AFK"
               }
             ],
             "fmt": "raw",
-            "note": "intervalAdd(1,20,389)"
+            "note": "intervalAdd(1,20,396)"
           },
           {
             "name": "Maroon Warship (Achievement 291)",
@@ -1436,16 +1436,16 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                 "val": 1780,
                 "children": [
                   {
-                    "name": "Char 0 Lv",
-                    "val": 1765,
+                    "name": "Char 5 Lv",
+                    "val": 1738,
                     "fmt": "raw",
-                    "note": "BopeBrancis — elemental sorcerer (cls 34) — ACTIVE char (gets Family Guy buff if it wins the slot)"
+                    "note": "Parkhe — elemental sorcerer (cls 34) — ACTIVE char (gets Family Guy buff if it wins the slot)"
                   },
                   {
-                    "name": "Char 9 Lv",
-                    "val": 1749,
+                    "name": "Char 7 Lv",
+                    "val": 1756,
                     "fmt": "raw",
-                    "note": "BigES_Two — elemental sorcerer (cls 34)"
+                    "note": "Sarkhe — elemental sorcerer (cls 34)"
                   }
                 ],
                 "fmt": "raw",
@@ -1684,7 +1684,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                   },
                   {
                     "name": "Bonus Levels",
-                    "val": 251,
+                    "val": 256,
                     "fmt": "+",
                     "note": "Σ ATL (unbuffed FB68, excl. super)"
                   },
@@ -1721,11 +1721,11 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
           },
           {
             "name": "Divinity Minor 2 (Arctis)",
-            "val": 67,
+            "val": 74,
             "children": [
               {
                 "name": "Divinity Lv",
-                "val": 850,
+                "val": 851,
                 "fmt": "raw"
               },
               {
@@ -1736,7 +1736,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
               },
               {
                 "name": "Coral Kid 3",
-                "val": 218,
+                "val": 251,
                 "fmt": "raw",
                 "note": "OLA[430]"
               },
@@ -1836,7 +1836,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
             "children": [
               {
                 "name": "Player Lv",
-                "val": 1876,
+                "val": 1883,
                 "fmt": "raw",
                 "note": "Lv0[0]"
               }
