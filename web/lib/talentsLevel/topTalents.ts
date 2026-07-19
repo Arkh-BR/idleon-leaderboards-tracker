@@ -13,17 +13,17 @@
 // default tree (they would all resolve to identical numbers anyway).
 // Auto-refreshed by scripts/update-top-talents.ts.
 //
-// Snapshot generated: 2026-07-16T05:09:00.014Z
-// Players scanned: 79
+// Snapshot generated: 2026-07-19T05:08:31.199Z
+// Players scanned: 77
 
 import type { ArkhNode } from "../arkh/node";
 
-export const HYPO_TALENTS_GENERATED_AT = "2026-07-16T05:09:00.014Z";
-export const HYPO_TALENTS_PLAYERS_SCANNED = 79;
+export const HYPO_TALENTS_GENERATED_AT = "2026-07-19T05:08:31.199Z";
+export const HYPO_TALENTS_PLAYERS_SCANNED = 77;
 
 export const HYPO_DEFAULT_TREE: ArkhNode = {
   "name": "Effective Level",
-  "val": 783,
+  "val": 785,
   "children": [
     {
       "name": "Base Level",
@@ -249,7 +249,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
     },
     {
       "name": "Bonus Levels",
-      "val": 262,
+      "val": 264,
       "children": [
         {
           "name": "Symbols of Beyond ~R (Talent 149)",
@@ -492,11 +492,11 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
           "children": [
             {
               "name": "Best Mage Lv",
-              "val": 1780,
+              "val": 1804,
               "children": [
                 {
                   "name": "Char 4 Lv",
-                  "val": 1780,
+                  "val": 1782,
                   "fmt": "raw",
                   "note": "Biggums_Lux — elemental sorcerer (cls 34)"
                 }
@@ -804,7 +804,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
         },
         {
           "name": "Equinox Symbols (Dream 10)",
-          "val": 68,
+          "val": 69,
           "children": [
             {
               "name": "Base Max",
@@ -814,7 +814,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
             },
             {
               "name": "Summoning WinBonus 24",
-              "val": 49,
+              "val": 50,
               "children": [
                 {
                   "name": "Normal Wins Bonus",
@@ -824,11 +824,11 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                 },
                 {
                   "name": "Endless Wins Bonus",
-                  "val": 49,
+                  "val": 50,
                   "children": [
                     {
                       "name": "Endless Wins Count",
-                      "val": 390,
+                      "val": 401,
                       "fmt": "raw",
                       "note": "OLA[319] — total endless summoning victories"
                     },
@@ -885,11 +885,11 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
         },
         {
           "name": "Super Bit 47 Lv Bonus",
-          "val": 13,
+          "val": 14,
           "children": [
             {
               "name": "Player Lv",
-              "val": 1883,
+              "val": 1901,
               "fmt": "raw",
               "note": "Lv0[0]"
             }
@@ -964,7 +964,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
 export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
   "Elemental_Sorcerer": {
     "name": "Effective Level",
-    "val": 789,
+    "val": 791,
     "children": [
       {
         "name": "Base Level",
@@ -1190,7 +1190,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
       },
       {
         "name": "Bonus Levels",
-        "val": 268,
+        "val": 270,
         "children": [
           {
             "name": "Symbols of Beyond ~R (Talent 149)",
@@ -1433,27 +1433,21 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
             "children": [
               {
                 "name": "Best Mage Lv",
-                "val": 1780,
+                "val": 1804,
                 "children": [
                   {
-                    "name": "Char 5 Lv",
-                    "val": 1738,
+                    "name": "Char 1 Lv",
+                    "val": 1744,
                     "fmt": "raw",
-                    "note": "Parkhe — elemental sorcerer (cls 34) — ACTIVE char (gets Family Guy buff if it wins the slot)"
-                  },
-                  {
-                    "name": "Char 7 Lv",
-                    "val": 1756,
-                    "fmt": "raw",
-                    "note": "Sarkhe — elemental sorcerer (cls 34)"
+                    "note": "Bear_II — elemental sorcerer (cls 34) — ACTIVE char (gets Family Guy buff if it wins the slot)"
                   }
                 ],
                 "fmt": "raw",
-                "note": "max across account — 2 mage chars"
+                "note": "max across account — 1 mage char"
               },
               {
                 "name": "Family Guy Multi (×) — potential buff",
-                "val": 1.3541284403669724,
+                "val": 1.354233409610984,
                 "children": [
                   {
                     "name": "Base Level",
@@ -1751,7 +1745,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
           },
           {
             "name": "Equinox Symbols (Dream 10)",
-            "val": 68,
+            "val": 69,
             "children": [
               {
                 "name": "Base Max",
@@ -1761,7 +1755,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
               },
               {
                 "name": "Summoning WinBonus 24",
-                "val": 49,
+                "val": 50,
                 "children": [
                   {
                     "name": "Normal Wins Bonus",
@@ -1771,11 +1765,11 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                   },
                   {
                     "name": "Endless Wins Bonus",
-                    "val": 49,
+                    "val": 50,
                     "children": [
                       {
                         "name": "Endless Wins Count",
-                        "val": 390,
+                        "val": 401,
                         "fmt": "raw",
                         "note": "OLA[319] — total endless summoning victories"
                       },
@@ -1832,11 +1826,11 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
           },
           {
             "name": "Super Bit 47 Lv Bonus",
-            "val": 13,
+            "val": 14,
             "children": [
               {
                 "name": "Player Lv",
-                "val": 1883,
+                "val": 1901,
                 "fmt": "raw",
                 "note": "Lv0[0]"
               }
