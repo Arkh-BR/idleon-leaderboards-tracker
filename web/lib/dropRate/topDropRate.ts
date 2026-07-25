@@ -6,12 +6,12 @@
 // 279 / Curse of Mr Looty Booty 24) appear only in the profiles of classes
 // that own them. Use topDrFlatForClass(classKey).
 // Large file: lazy-load it, don't import statically.
-// Generated 2026-07-22T05:04:51.803Z · 74 players. Refresh: scripts/update-top-dr.ts.
+// Generated 2026-07-25T05:04:47.773Z · 75 players. Refresh: scripts/update-top-dr.ts.
 
 type FlatMap = Readonly<Record<string, number>>;
 
 export const TOP_DR_FLAT: FlatMap = {
-    "Drop Rate": 261392.9706017195,
+    "Drop Rate": 266827.72693566117,
     "Drop Rate / Additive Pool": 50360.37921262165,
     "Drop Rate / Additive Pool / ⚔️ Legend Talents": 3500,
     "Drop Rate / Additive Pool / ⚔️ Legend Talents / Greatest Drop Party Ever (Legend 1)": 3500,
@@ -854,18 +854,18 @@ export const TOP_DR_FLAT: FlatMap = {
     "Drop Rate / Chip Cap-Break": 0,
     "Drop Rate / Chip Cap-Break / Lab Chip DR": 60,
     "Drop Rate / Chip Cap-Break / Lab Chip DR / Slot 0 Grounded Processor": 60,
-    "Drop Rate / LUK Scaling": 1.1156113048860172,
-    "Drop Rate / LUK Scaling / Over-1000 curve": 0.7968652177757267,
-    "Drop Rate / LUK Scaling / × 1.4": 1.1156113048860172,
-    "Drop Rate / LUK Scaling / 🍀 Total LUK": 12981408,
-    "Drop Rate / Post-Processing": 518.000378002591,
+    "Drop Rate / LUK Scaling": 1.1156122932160775,
+    "Drop Rate / LUK Scaling / Over-1000 curve": 0.7968659237257697,
+    "Drop Rate / LUK Scaling / × 1.4": 1.1156122932160775,
+    "Drop Rate / LUK Scaling / 🍀 Total LUK": 13049772,
+    "Drop Rate / Post-Processing": 528.7703915425353,
     "Drop Rate / Post-Processing / ⚗️ Alchemy": 1.05488,
     "Drop Rate / Post-Processing / ⚗️ Alchemy / Drop Rate Vial": 5.488,
     "Drop Rate / Post-Processing / ⚗️ Alchemy / Drop Rate Vial / SHIPINABOTTLE": 5.488,
     "Drop Rate / Post-Processing / ⛏️ Minehead": 1.1,
     "Drop Rate / Post-Processing / ⛏️ Minehead / Minehead Floor 0": 10,
     "Drop Rate / Post-Processing / ⛏️ Minehead / Minehead Floor 0 / Bonus Value": 10,
-    "Drop Rate / Post-Processing / ⛏️ Minehead / Minehead Floor 0 / Mine Floor": 5,
+    "Drop Rate / Post-Processing / ⛏️ Minehead / Minehead Floor 0 / Mine Floor": 6,
     "Drop Rate / Post-Processing / 🃏 Cards": 1.49,
     "Drop Rate / Post-Processing / 🃏 Cards / Drop Rate Multi Cards (Card Type 101)": 49,
     "Drop Rate / Post-Processing / 🃏 Cards / Drop Rate Multi Cards (Card Type 101) / Coralcave Guardian (Card w7a12)": 24.5,
@@ -1054,8 +1054,8 @@ export const TOP_DR_FLAT: FlatMap = {
     "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Points Invested": 375,
     "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Plunderous Kills": 5523413,
     "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value": 4.75,
-    "Drop Rate / Post-Processing / 🎲 Glimbo": 1.32025,
-    "Drop Rate / Post-Processing / 🎲 Glimbo / Glimbo DR Multi": 1.32025,
+    "Drop Rate / Post-Processing / 🎲 Glimbo": 1.3477000000000001,
+    "Drop Rate / Post-Processing / 🎲 Glimbo / Glimbo DR Multi": 1.3477000000000001,
     "Drop Rate / Post-Processing / 🎲 Glimbo / Glimbo DR Multi / All Multi": 1.22,
     "Drop Rate / Post-Processing / 🎲 Glimbo / Glimbo DR Multi / All Multi / King Doot (Companion 0)": 5,
     "Drop Rate / Post-Processing / 🎲 Glimbo / Glimbo DR Multi / All Multi / King Doot (Companion 0) / Divine Design (Grid 173) Lv": 1,
@@ -1063,8 +1063,8 @@ export const TOP_DR_FLAT: FlatMap = {
     "Drop Rate / Post-Processing / 🎲 Glimbo / Glimbo DR Multi / All Multi / Pirate Deckhand (Companion 55) / Bonus": 15,
     "Drop Rate / Post-Processing / 🎲 Glimbo / Glimbo DR Multi / All Multi / Pirate Deckhand (Companion 55) / Owned": 1,
     "Drop Rate / Post-Processing / 🎲 Glimbo / Glimbo DR Multi / Glimbo Insider Trading Secrets (Grid 168) Level": 1,
-    "Drop Rate / Post-Processing / 🎲 Glimbo / Glimbo DR Multi / Shape Bonus": 1.25,
-    "Drop Rate / Post-Processing / 🎲 Glimbo / Glimbo DR Multi / Total Trades": 2144,
+    "Drop Rate / Post-Processing / 🎲 Glimbo / Glimbo DR Multi / Shape Bonus": 1.5,
+    "Drop Rate / Post-Processing / 🎲 Glimbo / Glimbo DR Multi / Total Trades": 1951,
     "Drop Rate / Post-Processing / 🎽 Equipment": 2.7405,
     "Drop Rate / Post-Processing / 🎽 Equipment / Equipment (etcBonus 91)": 40,
     "Drop Rate / Post-Processing / 🎽 Equipment / Equipment (etcBonus 91) / Chains of the Gilded Vaultguard": 40,
@@ -1214,12 +1214,12 @@ export const TOP_DR_FLAT: FlatMap = {
     "Drop Rate / Post-Processing / 🥷 Sneaking Mastery / Sneaking Completions (Sneaking Mastery) / Bonus": 0.3,
     "Drop Rate / Post-Processing / 🥷 Sneaking Mastery / Sneaking Completions (Sneaking Mastery) / OLA[232]": 1,
     "Drop Rate / Post-Processing / 🥷 Sneaking Mastery / Sneaking Completions (Sneaking Mastery) / Threshold": 1,
-    "Drop Rate / Total Sum": 504.61494823926535,
+    "Drop Rate / Total Sum": 504.6149482491486,
   };
 
 export const TOP_DR_PROFILE_OVERRIDES: Readonly<Record<string, FlatMap>> = {
   "ES": {
-    "Drop Rate": 261507.99363278344,
+    "Drop Rate": 266945.1414700053,
     "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level": 660,
     "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels": 264,
     "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Family Bonus 68 (Mage)": 22,
@@ -1248,7 +1248,7 @@ export const TOP_DR_PROFILE_OVERRIDES: Readonly<Record<string, FlatMap>> = {
     "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Super Levels": 125,
   },
   "t24": {
-    "Drop Rate": 261710.32761323274,
+    "Drop Rate": 267151.6822807976,
     "Drop Rate / Additive Pool": 50421.91488372201,
     "Drop Rate / Additive Pool / 🎯 Talents": 124.03567110036278,
     "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24)": 61.535671100362755,
@@ -1364,10 +1364,10 @@ export const TOP_DR_PROFILE_OVERRIDES: Readonly<Record<string, FlatMap>> = {
     "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Super Bit 47 Lv Bonus": 11,
     "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Super Bit 47 Lv Bonus / Player Lv": 1674,
     "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Universe Talent": 4,
-    "Drop Rate / Total Sum": 505.230304950269,
+    "Drop Rate / Total Sum": 505.23030496015224,
   },
   "t279": {
-    "Drop Rate": 261583.35579542542,
+    "Drop Rate": 267022.0705263127,
     "Drop Rate / Additive Pool": 50397.2949896086,
     "Drop Rate / Additive Pool / 🎯 Talents": 99.41577698695139,
     "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279)": 36.915776986951364,
@@ -1521,7 +1521,7 @@ export const TOP_DR_PROFILE_OVERRIDES: Readonly<Record<string, FlatMap>> = {
     "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Symbols Of Beyond ~g (Talent 374) / Base Level / Max Book Lv Cap / W3 Merit Shop Unlock / W3 Merit Points Spent": 5,
     "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Symbols Of Beyond ~g (Talent 374) / Base Level / Points Invested": 396,
     "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Universe Talent": 4,
-    "Drop Rate / Total Sum": 504.98410600913485,
+    "Drop Rate / Total Sum": 504.9841060190181,
   },
 };
 
