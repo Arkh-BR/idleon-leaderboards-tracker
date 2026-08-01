@@ -6,13 +6,13 @@
 // 279 / Curse of Mr Looty Booty 24) appear only in the profiles of classes
 // that own them. Use topDrFlatForClass(classKey).
 // Large file: lazy-load it, don't import statically.
-// Generated 2026-07-31T05:11:16.765Z · 80 players. Refresh: scripts/update-top-dr.ts.
+// Generated 2026-08-01T05:06:07.945Z · 80 players. Refresh: scripts/update-top-dr.ts.
 
 type FlatMap = Readonly<Record<string, number>>;
 
 export const TOP_DR_FLAT: FlatMap = {
-    "Drop Rate": 265698.28817557456,
-    "Drop Rate / Additive Pool": 50145.84108842617,
+    "Drop Rate": 260287.530293628,
+    "Drop Rate / Additive Pool": 50146.03382535865,
     "Drop Rate / Additive Pool / ⚔️ Legend Talents": 3500,
     "Drop Rate / Additive Pool / ⚔️ Legend Talents / Greatest Drop Party Ever (Legend 1)": 3500,
     "Drop Rate / Additive Pool / ⚔️ Legend Talents / Greatest Drop Party Ever (Legend 1) / Per Point": 500,
@@ -230,20 +230,20 @@ export const TOP_DR_FLAT: FlatMap = {
     "Drop Rate / Additive Pool / 🌾 Farming / Pommelion Seed (Exotic 59)": 22.513427491545652,
     "Drop Rate / Additive Pool / 🌾 Farming / Pommelion Seed (Exotic 59) / Formula Result": 22.513427491545652,
     "Drop Rate / Additive Pool / 🌾 Farming / Pommelion Seed (Exotic 59) / Level": 9054,
-    "Drop Rate / Additive Pool / 🍔 Golden Food": 24057.882835914592,
-    "Drop Rate / Additive Pool / 🍔 Golden Food / Golden Food: DropRatez": 24057.882835914592,
-    "Drop Rate / Additive Pool / 🍔 Golden Food / Golden Food: DropRatez / Emporium: FoodG13": 9852.458944505575,
+    "Drop Rate / Additive Pool / 🍔 Golden Food": 24058.075572847076,
+    "Drop Rate / Additive Pool / 🍔 Golden Food / Golden Food: DropRatez": 24058.075572847076,
+    "Drop Rate / Additive Pool / 🍔 Golden Food / Golden Food: DropRatez / Emporium: FoodG13": 9852.53787633542,
     "Drop Rate / Additive Pool / 🍔 Golden Food / Golden Food: DropRatez / Emporium: FoodG13 / Base Amount": 8,
     "Drop Rate / Additive Pool / 🍔 Golden Food / Golden Food: DropRatez / Emporium: FoodG13 / Eff Qty": 1000000,
     "Drop Rate / Additive Pool / 🍔 Golden Food / Golden Food: DropRatez / Emporium: FoodG13 / Emporium Lv": 3,
-    "Drop Rate / Additive Pool / 🍔 Golden Food / Golden Food: DropRatez / Equipped: FoodG13": 14205.423891409018,
+    "Drop Rate / Additive Pool / 🍔 Golden Food / Golden Food: DropRatez / Equipped: FoodG13": 14205.537696511657,
     "Drop Rate / Additive Pool / 🍔 Golden Food / Golden Food: DropRatez / Equipped: FoodG13 / Base Amount": 8,
     "Drop Rate / Additive Pool / 🍔 Golden Food / Golden Food: DropRatez / Equipped: FoodG13 / Log Factor": 7.389485606716818,
     "Drop Rate / Additive Pool / 🍔 Golden Food / Golden Food: DropRatez / Equipped: FoodG13 / Quantity": 24518920,
-    "Drop Rate / Additive Pool / 🍔 Golden Food / Golden Food: DropRatez / GFood Multi": 1079.2556072017856,
+    "Drop Rate / Additive Pool / 🍔 Golden Food / Golden Food: DropRatez / GFood Multi": 1079.2642535326584,
     "Drop Rate / Additive Pool / 🍔 Golden Food / Golden Food: DropRatez / GFood Multi / Family Bonus 66": 1.3786666666666667,
     "Drop Rate / Additive Pool / 🍔 Golden Food / Golden Food: DropRatez / GFood Multi / SECRET_SET multi": 1.25,
-    "Drop Rate / Additive Pool / 🍔 Golden Food / Golden Food: DropRatez / GFood Multi / Sources ÷ 100": 862.0258190947618,
+    "Drop Rate / Additive Pool / 🍔 Golden Food / Golden Food: DropRatez / GFood Multi / Sources ÷ 100": 862.03273615946,
     "Drop Rate / Additive Pool / 🍔 Golden Food / Golden Food: DropRatez / GFood Multi / Sources ÷ 100 / 2× Achievement 380": 2,
     "Drop Rate / Additive Pool / 🍔 Golden Food / Golden Food: DropRatez / GFood Multi / Sources ÷ 100 / 3× Achievement 383": 3,
     "Drop Rate / Additive Pool / 🍔 Golden Food / Golden Food: DropRatez / GFood Multi / Sources ÷ 100 / Achievement 37 (Nutty Crafter)": 5,
@@ -256,7 +256,7 @@ export const TOP_DR_FLAT: FlatMap = {
     "Drop Rate / Additive Pool / 🍔 Golden Food / Golden Food: DropRatez / GFood Multi / Sources ÷ 100 / Meal Yumi Peachring": 77560.98316936675,
     "Drop Rate / Additive Pool / 🍔 Golden Food / Golden Food: DropRatez / GFood Multi / Sources ÷ 100 / Pristine 14": 50,
     "Drop Rate / Additive Pool / 🍔 Golden Food / Golden Food: DropRatez / GFood Multi / Sources ÷ 100 / Sigil 14 (Emoji Veggie)": 560,
-    "Drop Rate / Additive Pool / 🍔 Golden Food / Golden Food: DropRatez / GFood Multi / Sources ÷ 100 / Stamp Golden Food": 909.8089318606983,
+    "Drop Rate / Additive Pool / 🍔 Golden Food / Golden Food: DropRatez / GFood Multi / Sources ÷ 100 / Stamp Golden Food": 910.5006383305201,
     "Drop Rate / Additive Pool / 🍔 Golden Food / Golden Food: DropRatez / GFood Multi / Sources ÷ 100 / Star Sign 69 + Seraph": 200,
     "Drop Rate / Additive Pool / 🍔 Golden Food / Golden Food: DropRatez / GFood Multi / Sources ÷ 100 / Talent 209 × Maps": 171.64681724845994,
     "Drop Rate / Additive Pool / 🍔 Golden Food / Golden Food: DropRatez / GFood Multi / Sources ÷ 100 / Talent 99 (Hungry For Gold)": 49.84777517564403,
@@ -858,7 +858,7 @@ export const TOP_DR_FLAT: FlatMap = {
     "Drop Rate / LUK Scaling / Over-1000 curve": 0.7968659237257697,
     "Drop Rate / LUK Scaling / × 1.4": 1.1156122932160775,
     "Drop Rate / LUK Scaling / 🍀 Total LUK": 13049772,
-    "Drop Rate / Post-Processing": 528.7802737429299,
+    "Drop Rate / Post-Processing": 518.0100501876148,
     "Drop Rate / Post-Processing / ⚗️ Alchemy": 1.05488,
     "Drop Rate / Post-Processing / ⚗️ Alchemy / Drop Rate Vial": 5.488,
     "Drop Rate / Post-Processing / ⚗️ Alchemy / Drop Rate Vial / SHIPINABOTTLE": 5.488,
@@ -1054,8 +1054,8 @@ export const TOP_DR_FLAT: FlatMap = {
     "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Effective Level / Bonus Levels / Symbols of Beyond ~R (Talent 149) / Base Level / Points Invested": 375,
     "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Plunderous Kills": 5523413,
     "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Talent Value": 4.75,
-    "Drop Rate / Post-Processing / 🎲 Glimbo": 1.3477000000000001,
-    "Drop Rate / Post-Processing / 🎲 Glimbo / Glimbo DR Multi": 1.3477000000000001,
+    "Drop Rate / Post-Processing / 🎲 Glimbo": 1.32025,
+    "Drop Rate / Post-Processing / 🎲 Glimbo / Glimbo DR Multi": 1.32025,
     "Drop Rate / Post-Processing / 🎲 Glimbo / Glimbo DR Multi / All Multi": 1.22,
     "Drop Rate / Post-Processing / 🎲 Glimbo / Glimbo DR Multi / All Multi / King Doot (Companion 0)": 5,
     "Drop Rate / Post-Processing / 🎲 Glimbo / Glimbo DR Multi / All Multi / King Doot (Companion 0) / Divine Design (Grid 173) Lv": 1,
@@ -1063,8 +1063,8 @@ export const TOP_DR_FLAT: FlatMap = {
     "Drop Rate / Post-Processing / 🎲 Glimbo / Glimbo DR Multi / All Multi / Pirate Deckhand (Companion 55) / Bonus": 15,
     "Drop Rate / Post-Processing / 🎲 Glimbo / Glimbo DR Multi / All Multi / Pirate Deckhand (Companion 55) / Owned": 1,
     "Drop Rate / Post-Processing / 🎲 Glimbo / Glimbo DR Multi / Glimbo Insider Trading Secrets (Grid 168) Level": 1,
-    "Drop Rate / Post-Processing / 🎲 Glimbo / Glimbo DR Multi / Shape Bonus": 1.5,
-    "Drop Rate / Post-Processing / 🎲 Glimbo / Glimbo DR Multi / Total Trades": 1968,
+    "Drop Rate / Post-Processing / 🎲 Glimbo / Glimbo DR Multi / Shape Bonus": 1.25,
+    "Drop Rate / Post-Processing / 🎲 Glimbo / Glimbo DR Multi / Total Trades": 2144,
     "Drop Rate / Post-Processing / 🎽 Equipment": 2.7405,
     "Drop Rate / Post-Processing / 🎽 Equipment / Equipment (etcBonus 91)": 40,
     "Drop Rate / Post-Processing / 🎽 Equipment / Equipment (etcBonus 91) / Chains of the Gilded Vaultguard": 40,
@@ -1214,12 +1214,12 @@ export const TOP_DR_FLAT: FlatMap = {
     "Drop Rate / Post-Processing / 🥷 Sneaking Mastery / Sneaking Completions (Sneaking Mastery) / Bonus": 0.3,
     "Drop Rate / Post-Processing / 🥷 Sneaking Mastery / Sneaking Completions (Sneaking Mastery) / OLA[232]": 1,
     "Drop Rate / Post-Processing / 🥷 Sneaking Mastery / Sneaking Completions (Sneaking Mastery) / Threshold": 1,
-    "Drop Rate / Total Sum": 502.46956700719386,
+    "Drop Rate / Total Sum": 502.4714943765187,
   };
 
 export const TOP_DR_PROFILE_OVERRIDES: Readonly<Record<string, FlatMap>> = {
   "ES": {
-    "Drop Rate": 265815.2054902051,
+    "Drop Rate": 260402.06666996318,
     "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level": 660,
     "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels": 264,
     "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Family Bonus 68 (Mage)": 22,
@@ -1248,8 +1248,8 @@ export const TOP_DR_PROFILE_OVERRIDES: Readonly<Record<string, FlatMap>> = {
     "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Super Levels": 125,
   },
   "t24": {
-    "Drop Rate": 266022.24352071126,
-    "Drop Rate / Additive Pool": 50207.37675952653,
+    "Drop Rate": 260604.8873051413,
+    "Drop Rate / Additive Pool": 50207.569496459015,
     "Drop Rate / Additive Pool / 🎯 Talents": 124.03567110036275,
     "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24)": 61.535671100362755,
     "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Active": 1,
@@ -1364,11 +1364,11 @@ export const TOP_DR_PROFILE_OVERRIDES: Readonly<Record<string, FlatMap>> = {
     "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Super Bit 47 Lv Bonus": 11,
     "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Super Bit 47 Lv Bonus / Player Lv": 1674,
     "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Universe Talent": 4,
-    "Drop Rate / Total Sum": 503.0849237181975,
+    "Drop Rate / Total Sum": 503.08685108752235,
   },
   "t279": {
-    "Drop Rate": 265892.6510042976,
-    "Drop Rate / Additive Pool": 50182.76051970579,
+    "Drop Rate": 260477.93433356384,
+    "Drop Rate / Additive Pool": 50182.95325663828,
     "Drop Rate / Additive Pool / 🎯 Talents": 99.41943127962085,
     "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279)": 36.91943127962085,
     "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Active": 1,
@@ -1521,7 +1521,7 @@ export const TOP_DR_PROFILE_OVERRIDES: Readonly<Record<string, FlatMap>> = {
     "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Symbols Of Beyond ~g (Talent 374) / Base Level / Max Book Lv Cap / W3 Merit Shop Unlock / W3 Merit Points Spent": 5,
     "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Symbols Of Beyond ~g (Talent 374) / Base Level / Points Invested": 396,
     "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Universe Talent": 4,
-    "Drop Rate / Total Sum": 502.83876131999006,
+    "Drop Rate / Total Sum": 502.8406886893149,
   },
 };
 

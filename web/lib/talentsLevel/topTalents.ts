@@ -13,12 +13,12 @@
 // default tree (they would all resolve to identical numbers anyway).
 // Auto-refreshed by scripts/update-top-talents.ts.
 //
-// Snapshot generated: 2026-07-31T05:14:07.614Z
+// Snapshot generated: 2026-08-01T05:09:26.917Z
 // Players scanned: 81
 
 import type { ArkhNode } from "../arkh/node";
 
-export const HYPO_TALENTS_GENERATED_AT = "2026-07-31T05:14:07.614Z";
+export const HYPO_TALENTS_GENERATED_AT = "2026-08-01T05:09:26.917Z";
 export const HYPO_TALENTS_PLAYERS_SCANNED = 81;
 
 export const HYPO_DEFAULT_TREE: ArkhNode = {
