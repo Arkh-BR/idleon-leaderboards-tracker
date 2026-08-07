@@ -13,13 +13,13 @@
 // default tree (they would all resolve to identical numbers anyway).
 // Auto-refreshed by scripts/update-top-talents.ts.
 //
-// Snapshot generated: 2026-08-04T05:07:27.554Z
-// Players scanned: 82
+// Snapshot generated: 2026-08-07T05:34:03.965Z
+// Players scanned: 78
 
 import type { ArkhNode } from "../arkh/node";
 
-export const HYPO_TALENTS_GENERATED_AT = "2026-08-04T05:07:27.554Z";
-export const HYPO_TALENTS_PLAYERS_SCANNED = 82;
+export const HYPO_TALENTS_GENERATED_AT = "2026-08-07T05:34:03.965Z";
+export const HYPO_TALENTS_PLAYERS_SCANNED = 78;
 
 export const HYPO_DEFAULT_TREE: ArkhNode = {
   "name": "Effective Level",
@@ -496,7 +496,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
               "children": [
                 {
                   "name": "Char 5 Lv",
-                  "val": 1744,
+                  "val": 1750,
                   "fmt": "raw",
                   "note": "Skootchz — elemental sorcerer (cls 34)"
                 }
@@ -506,7 +506,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
             },
             {
               "name": "Family Guy Multi (×) — potential buff",
-              "val": 1.3544937428896473,
+              "val": 1.3545970488081727,
               "children": [
                 {
                   "name": "Base Level",
@@ -516,7 +516,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                       "name": "Points Invested",
                       "val": 396,
                       "fmt": "raw",
-                      "note": "save=389"
+                      "note": "save=396"
                     },
                     {
                       "name": "Max Book Lv Cap",
@@ -737,7 +737,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                 },
                 {
                   "name": "Bonus Levels",
-                  "val": 258,
+                  "val": 260,
                   "fmt": "+",
                   "note": "Σ ATL (unbuffed FB68, excl. super)"
                 },
@@ -1437,7 +1437,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                 "children": [
                   {
                     "name": "Char 5 Lv",
-                    "val": 1744,
+                    "val": 1750,
                     "fmt": "raw",
                     "note": "Skootchz — elemental sorcerer (cls 34) — ACTIVE char (gets Family Guy buff if it wins the slot)"
                   }
@@ -1447,7 +1447,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
               },
               {
                 "name": "Family Guy Multi (×) — potential buff",
-                "val": 1.3544419134396355,
+                "val": 1.3545454545454545,
                 "children": [
                   {
                     "name": "Base Level",
@@ -1678,7 +1678,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                   },
                   {
                     "name": "Bonus Levels",
-                    "val": 257,
+                    "val": 259,
                     "fmt": "+",
                     "note": "Σ ATL (unbuffed FB68, excl. super)"
                   },
