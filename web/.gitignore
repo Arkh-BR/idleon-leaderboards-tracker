@@ -1,5 +1,7 @@
 node_modules/
 .next/
+coverage/
+test-results/
 out/
 .env*.local
 .vercel
