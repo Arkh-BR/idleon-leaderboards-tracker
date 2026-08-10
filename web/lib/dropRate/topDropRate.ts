@@ -6,13 +6,13 @@
 // 279 / Curse of Mr Looty Booty 24) appear only in the profiles of classes
 // that own them. Use topDrFlatForClass(classKey).
 // Large file: lazy-load it, don't import statically.
-// Generated 2026-08-07T05:30:54.876Z · 77 players. Refresh: scripts/update-top-dr.ts.
+// Generated 2026-08-10T05:20:11.674Z · 80 players. Refresh: scripts/update-top-dr.ts.
 
 type FlatMap = Readonly<Record<string, number>>;
 
 export const TOP_DR_FLAT: FlatMap = {
-    "Drop Rate": 282937.56375537714,
-    "Drop Rate / Additive Pool": 50936.94975993032,
+    "Drop Rate": 282965.161610703,
+    "Drop Rate / Additive Pool": 50941.94975993032,
     "Drop Rate / Additive Pool / ⚔️ Legend Talents": 3500,
     "Drop Rate / Additive Pool / ⚔️ Legend Talents / Greatest Drop Party Ever (Legend 1)": 3500,
     "Drop Rate / Additive Pool / ⚔️ Legend Talents / Greatest Drop Party Ever (Legend 1) / Per Point": 500,
@@ -464,13 +464,13 @@ export const TOP_DR_FLAT: FlatMap = {
     "Drop Rate / Additive Pool / 👑 Emperor / Drop Rate Emperor Bonus (Emperor 11)": 143,
     "Drop Rate / Additive Pool / 👑 Emperor / Drop Rate Emperor Bonus (Emperor 11) / Arcane 48": 24,
     "Drop Rate / Additive Pool / 👑 Emperor / Drop Rate Emperor Bonus (Emperor 11) / Emperor Bonuses Arcade Bonus (Arcade 51)": 80.80000000000001,
-    "Drop Rate / Additive Pool / 👑 Emperor / Drop Rate Emperor Bonus (Emperor 11) / Emperor Kills": 179,
+    "Drop Rate / Additive Pool / 👑 Emperor / Drop Rate Emperor Bonus (Emperor 11) / Emperor Kills": 177,
     "Drop Rate / Additive Pool / 👑 Emperor / Drop Rate Emperor Bonus (Emperor 11) / Multi": 2.048,
     "Drop Rate / Additive Pool / 👑 Emperor / Drop Rate Emperor Bonus (Emperor 11) / Raw Sum": 70,
     "Drop Rate / Additive Pool / 👑 Emperor / Drop Rate Emperor Bonus (Emperor 11) / Slot Matches": 7,
-    "Drop Rate / Additive Pool / 💭 Dreams": 390,
-    "Drop Rate / Additive Pool / 💭 Dreams / Equinox Symbols (Dream 10)": 390,
-    "Drop Rate / Additive Pool / 💭 Dreams / Equinox Symbols (Dream 10) / Dream Upgrade Level": 78,
+    "Drop Rate / Additive Pool / 💭 Dreams": 395,
+    "Drop Rate / Additive Pool / 💭 Dreams / Equinox Symbols (Dream 10)": 395,
+    "Drop Rate / Additive Pool / 💭 Dreams / Equinox Symbols (Dream 10) / Dream Upgrade Level": 79,
     "Drop Rate / Additive Pool / 💭 Dreams / Equinox Symbols (Dream 10) / Per Level": 5,
     "Drop Rate / Additive Pool / 📕 Grimoire": 601.5,
     "Drop Rate / Additive Pool / 📕 Grimoire / Skull of Major Droprate (Grimoire 44)": 601.5,
@@ -858,7 +858,7 @@ export const TOP_DR_FLAT: FlatMap = {
     "Drop Rate / LUK Scaling / Over-1000 curve": 0.7968719390599698,
     "Drop Rate / LUK Scaling / × 1.4": 1.1156207146839576,
     "Drop Rate / LUK Scaling / 🍀 Total LUK": 13662869,
-    "Drop Rate / Post-Processing": 554.3611209874227,
+    "Drop Rate / Post-Processing": 554.3608859529844,
     "Drop Rate / Post-Processing / ⚗️ Alchemy": 1.0624,
     "Drop Rate / Post-Processing / ⚗️ Alchemy / Drop Rate Vial": 6.24,
     "Drop Rate / Post-Processing / ⚗️ Alchemy / Drop Rate Vial / SHIPINABOTTLE": 6.24,
@@ -1212,24 +1212,24 @@ export const TOP_DR_FLAT: FlatMap = {
     "Drop Rate / Post-Processing / 🥷 Sneaking Mastery": 0.3,
     "Drop Rate / Post-Processing / 🥷 Sneaking Mastery / Sneaking Completions (Sneaking Mastery)": 0.3,
     "Drop Rate / Post-Processing / 🥷 Sneaking Mastery / Sneaking Completions (Sneaking Mastery) / Bonus": 0.3,
-    "Drop Rate / Post-Processing / 🥷 Sneaking Mastery / Sneaking Completions (Sneaking Mastery) / OLA[232]": 1,
+    "Drop Rate / Post-Processing / 🥷 Sneaking Mastery / Sneaking Completions (Sneaking Mastery) / OLA[232]": 2,
     "Drop Rate / Post-Processing / 🥷 Sneaking Mastery / Sneaking Completions (Sneaking Mastery) / Threshold": 1,
-    "Drop Rate / Total Sum": 510.3806538064501,
+    "Drop Rate / Total Sum": 510.4306538064501,
   };
 
 export const TOP_DR_PROFILE_OVERRIDES: Readonly<Record<string, FlatMap>> = {
   "ES": {
-    "Drop Rate": 283062.06786997954,
+    "Drop Rate": 283089.6778748774,
     "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level": 662,
     "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels": 266,
     "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Family Bonus 68 (Mage)": 22,
-    "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Best Mage Lv": 1804,
+    "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Best Mage Lv": 1814,
     "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff": 1.3545454545454545,
     "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Bonus Levels": 259,
     "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Effective Level": 577,
     "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Effective Level / Bonus Levels": 202,
     "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Effective Level / Bonus Levels / Family Bonus 68 (Mage)": 22,
-    "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Best Mage Lv": 1804,
+    "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Best Mage Lv": 1814,
     "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Best Mage Lv / Char 0 Lv": 1751,
     "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff": 1.3545454545454545,
     "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Base Level": 396,
@@ -1247,8 +1247,8 @@ export const TOP_DR_PROFILE_OVERRIDES: Readonly<Record<string, FlatMap>> = {
     "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Super Levels": 125,
   },
   "t24": {
-    "Drop Rate": 283278.47843881266,
-    "Drop Rate / Additive Pool": 50998.71446581267,
+    "Drop Rate": 283306.0762941383,
+    "Drop Rate / Additive Pool": 51003.71446581267,
     "Drop Rate / Additive Pool / 🎯 Talents": 124.26470588235296,
     "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24)": 61.76470588235294,
     "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Active": 1,
@@ -1363,11 +1363,11 @@ export const TOP_DR_PROFILE_OVERRIDES: Readonly<Record<string, FlatMap>> = {
     "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Super Bit 47 Lv Bonus": 12,
     "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Super Bit 47 Lv Bonus / Player Lv": 1702,
     "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Universe Talent": 5,
-    "Drop Rate / Total Sum": 510.9983008652736,
+    "Drop Rate / Total Sum": 511.04830086527363,
   },
   "t279": {
-    "Drop Rate": 283141.3431800099,
-    "Drop Rate / Additive Pool": 50973.869191209946,
+    "Drop Rate": 283168.94103533565,
+    "Drop Rate / Additive Pool": 50978.869191209946,
     "Drop Rate / Additive Pool / 🎯 Talents": 99.41943127962087,
     "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279)": 36.91943127962085,
     "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Active": 1,
@@ -1520,7 +1520,7 @@ export const TOP_DR_PROFILE_OVERRIDES: Readonly<Record<string, FlatMap>> = {
     "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Symbols Of Beyond ~g (Talent 374) / Base Level / Max Book Lv Cap / W3 Merit Shop Unlock / W3 Merit Points Spent": 5,
     "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Symbols Of Beyond ~g (Talent 374) / Base Level / Points Invested": 396,
     "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Universe Talent": 4,
-    "Drop Rate / Total Sum": 510.7498481192463,
+    "Drop Rate / Total Sum": 510.7998481192463,
   },
 };
 
