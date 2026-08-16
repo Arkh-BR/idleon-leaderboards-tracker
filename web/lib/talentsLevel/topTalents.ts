@@ -13,13 +13,13 @@
 // default tree (they would all resolve to identical numbers anyway).
 // Auto-refreshed by scripts/update-top-talents.ts.
 //
-// Snapshot generated: 2026-08-13T05:34:12.441Z
-// Players scanned: 73
+// Snapshot generated: 2026-08-16T04:32:21.339Z
+// Players scanned: 77
 
 import type { ArkhNode } from "../arkh/node";
 
-export const HYPO_TALENTS_GENERATED_AT = "2026-08-13T05:34:12.441Z";
-export const HYPO_TALENTS_PLAYERS_SCANNED = 73;
+export const HYPO_TALENTS_GENERATED_AT = "2026-08-16T04:32:21.339Z";
+export const HYPO_TALENTS_PLAYERS_SCANNED = 77;
 
 export const HYPO_DEFAULT_TREE: ArkhNode = {
   "name": "Effective Level",
@@ -33,7 +33,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
           "name": "Points Invested",
           "val": 396,
           "fmt": "raw",
-          "note": "actual save — owner: Scotchz"
+          "note": "actual save — owner: Biggums_AFK"
         },
         {
           "name": "Max Book Lv Cap",
@@ -245,7 +245,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
         }
       ],
       "fmt": "raw",
-      "note": "min(invested, cap) — owner: Scotchz"
+      "note": "min(invested, cap) — owner: Biggums_AFK"
     },
     {
       "name": "Bonus Levels",
@@ -263,7 +263,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                   "name": "Points Invested",
                   "val": 396,
                   "fmt": "raw",
-                  "note": "actual save — owner: Scotchz"
+                  "note": "actual save — owner: Biggums_AFK"
                 },
                 {
                   "name": "Max Book Lv Cap",
@@ -475,7 +475,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                 }
               ],
               "fmt": "raw",
-              "note": "min(invested, cap) — owner: Scotchz"
+              "note": "min(invested, cap) — owner: Biggums_AFK"
             }
           ],
           "fmt": "raw",
@@ -495,10 +495,10 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
               "val": 1814,
               "children": [
                 {
-                  "name": "Char 5 Lv",
-                  "val": 1750,
+                  "name": "Char 4 Lv",
+                  "val": 1814,
                   "fmt": "raw",
-                  "note": "Skootchz — elemental sorcerer (cls 34)"
+                  "note": "Biggums_Lux — elemental sorcerer (cls 34)"
                 }
               ],
               "fmt": "raw",
@@ -506,7 +506,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
             },
             {
               "name": "Family Guy Multi (×) — potential buff",
-              "val": 1.3545970488081727,
+              "val": 1.3544937428896473,
               "children": [
                 {
                   "name": "Base Level",
@@ -737,7 +737,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                 },
                 {
                   "name": "Bonus Levels",
-                  "val": 260,
+                  "val": 258,
                   "fmt": "+",
                   "note": "Σ ATL (unbuffed FB68, excl. super)"
                 },
@@ -974,7 +974,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
             "name": "Points Invested",
             "val": 396,
             "fmt": "raw",
-            "note": "actual save — owner: Scotchz"
+            "note": "actual save — owner: Biggums_AFK"
           },
           {
             "name": "Max Book Lv Cap",
@@ -1186,7 +1186,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
           }
         ],
         "fmt": "raw",
-        "note": "min(invested, cap) — owner: Scotchz"
+        "note": "min(invested, cap) — owner: Biggums_AFK"
       },
       {
         "name": "Bonus Levels",
@@ -1204,7 +1204,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                     "name": "Points Invested",
                     "val": 396,
                     "fmt": "raw",
-                    "note": "actual save — owner: Scotchz"
+                    "note": "actual save — owner: Biggums_AFK"
                   },
                   {
                     "name": "Max Book Lv Cap",
@@ -1416,7 +1416,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                   }
                 ],
                 "fmt": "raw",
-                "note": "min(invested, cap) — owner: Scotchz"
+                "note": "min(invested, cap) — owner: Biggums_AFK"
               }
             ],
             "fmt": "raw",
@@ -1437,17 +1437,23 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                 "children": [
                   {
                     "name": "Char 5 Lv",
-                    "val": 1750,
+                    "val": 1757,
                     "fmt": "raw",
-                    "note": "Skootchz — elemental sorcerer (cls 34) — ACTIVE char (gets Family Guy buff if it wins the slot)"
+                    "note": "Parkhe — elemental sorcerer (cls 34) — ACTIVE char (gets Family Guy buff if it wins the slot)"
+                  },
+                  {
+                    "name": "Char 7 Lv",
+                    "val": 1725,
+                    "fmt": "raw",
+                    "note": "Sarkhe — elemental sorcerer (cls 34)"
                   }
                 ],
                 "fmt": "raw",
-                "note": "max across account — 1 mage char"
+                "note": "max across account — 2 mage chars"
               },
               {
                 "name": "Family Guy Multi (×) — potential buff",
-                "val": 1.3545454545454545,
+                "val": 1.354337899543379,
                 "children": [
                   {
                     "name": "Base Level",
@@ -1678,7 +1684,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                   },
                   {
                     "name": "Bonus Levels",
-                    "val": 259,
+                    "val": 258,
                     "fmt": "+",
                     "note": "Σ ATL (unbuffed FB68, excl. super)"
                   },
