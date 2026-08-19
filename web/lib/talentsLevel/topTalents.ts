@@ -13,17 +13,17 @@
 // default tree (they would all resolve to identical numbers anyway).
 // Auto-refreshed by scripts/update-top-talents.ts.
 //
-// Snapshot generated: 2026-08-16T04:32:21.339Z
-// Players scanned: 77
+// Snapshot generated: 2026-08-19T04:33:49.905Z
+// Players scanned: 76
 
 import type { ArkhNode } from "../arkh/node";
 
-export const HYPO_TALENTS_GENERATED_AT = "2026-08-16T04:32:21.339Z";
-export const HYPO_TALENTS_PLAYERS_SCANNED = 77;
+export const HYPO_TALENTS_GENERATED_AT = "2026-08-19T04:33:49.905Z";
+export const HYPO_TALENTS_PLAYERS_SCANNED = 76;
 
 export const HYPO_DEFAULT_TREE: ArkhNode = {
   "name": "Effective Level",
-  "val": 784,
+  "val": 785,
   "children": [
     {
       "name": "Base Level",
@@ -249,7 +249,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
     },
     {
       "name": "Bonus Levels",
-      "val": 263,
+      "val": 264,
       "children": [
         {
           "name": "Symbols of Beyond ~R (Talent 149)",
@@ -492,11 +492,11 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
           "children": [
             {
               "name": "Best Mage Lv",
-              "val": 1814,
+              "val": 1816,
               "children": [
                 {
                   "name": "Char 4 Lv",
-                  "val": 1814,
+                  "val": 1816,
                   "fmt": "raw",
                   "note": "Biggums_Lux — elemental sorcerer (cls 34)"
                 }
@@ -506,7 +506,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
             },
             {
               "name": "Family Guy Multi (×) — potential buff",
-              "val": 1.3544937428896473,
+              "val": 1.3547511312217195,
               "children": [
                 {
                   "name": "Base Level",
@@ -737,7 +737,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                 },
                 {
                   "name": "Bonus Levels",
-                  "val": 258,
+                  "val": 264,
                   "fmt": "+",
                   "note": "Σ ATL (unbuffed FB68, excl. super)"
                 },
@@ -774,7 +774,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
         },
         {
           "name": "Divinity Minor 2 (Arctis)",
-          "val": 74,
+          "val": 75,
           "children": [
             {
               "name": "Divinity Lv",
@@ -789,7 +789,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
             },
             {
               "name": "Coral Kid 3",
-              "val": 251,
+              "val": 256,
               "fmt": "raw",
               "note": "OLA[430]"
             },
@@ -889,7 +889,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
           "children": [
             {
               "name": "Player Lv",
-              "val": 1903,
+              "val": 1911,
               "fmt": "raw",
               "note": "Lv0[0]"
             }
@@ -964,7 +964,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
 export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
   "Elemental_Sorcerer": {
     "name": "Effective Level",
-    "val": 790,
+    "val": 791,
     "children": [
       {
         "name": "Base Level",
@@ -1190,7 +1190,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
       },
       {
         "name": "Bonus Levels",
-        "val": 269,
+        "val": 270,
         "children": [
           {
             "name": "Symbols of Beyond ~R (Talent 149)",
@@ -1433,17 +1433,17 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
             "children": [
               {
                 "name": "Best Mage Lv",
-                "val": 1814,
+                "val": 1816,
                 "children": [
                   {
                     "name": "Char 5 Lv",
-                    "val": 1757,
+                    "val": 1747,
                     "fmt": "raw",
                     "note": "Parkhe — elemental sorcerer (cls 34) — ACTIVE char (gets Family Guy buff if it wins the slot)"
                   },
                   {
                     "name": "Char 7 Lv",
-                    "val": 1725,
+                    "val": 1739,
                     "fmt": "raw",
                     "note": "Sarkhe — elemental sorcerer (cls 34)"
                   }
@@ -1453,7 +1453,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
               },
               {
                 "name": "Family Guy Multi (×) — potential buff",
-                "val": 1.354337899543379,
+                "val": 1.3547511312217195,
                 "children": [
                   {
                     "name": "Base Level",
@@ -1684,7 +1684,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                   },
                   {
                     "name": "Bonus Levels",
-                    "val": 258,
+                    "val": 263,
                     "fmt": "+",
                     "note": "Σ ATL (unbuffed FB68, excl. super)"
                   },
@@ -1721,7 +1721,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
           },
           {
             "name": "Divinity Minor 2 (Arctis)",
-            "val": 74,
+            "val": 75,
             "children": [
               {
                 "name": "Divinity Lv",
@@ -1736,7 +1736,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
               },
               {
                 "name": "Coral Kid 3",
-                "val": 251,
+                "val": 256,
                 "fmt": "raw",
                 "note": "OLA[430]"
               },
@@ -1836,7 +1836,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
             "children": [
               {
                 "name": "Player Lv",
-                "val": 1903,
+                "val": 1911,
                 "fmt": "raw",
                 "note": "Lv0[0]"
               }
