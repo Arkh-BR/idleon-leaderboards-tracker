@@ -13,13 +13,13 @@
 // default tree (they would all resolve to identical numbers anyway).
 // Auto-refreshed by scripts/update-top-talents.ts.
 //
-// Snapshot generated: 2026-08-19T04:33:49.905Z
-// Players scanned: 76
+// Snapshot generated: 2026-08-22T04:32:12.872Z
+// Players scanned: 77
 
 import type { ArkhNode } from "../arkh/node";
 
-export const HYPO_TALENTS_GENERATED_AT = "2026-08-19T04:33:49.905Z";
-export const HYPO_TALENTS_PLAYERS_SCANNED = 76;
+export const HYPO_TALENTS_GENERATED_AT = "2026-08-22T04:32:12.872Z";
+export const HYPO_TALENTS_PLAYERS_SCANNED = 77;
 
 export const HYPO_DEFAULT_TREE: ArkhNode = {
   "name": "Effective Level",
@@ -828,7 +828,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                   "children": [
                     {
                       "name": "Endless Wins Count",
-                      "val": 390,
+                      "val": 391,
                       "fmt": "raw",
                       "note": "OLA[319] — total endless summoning victories"
                     },
@@ -889,7 +889,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
           "children": [
             {
               "name": "Player Lv",
-              "val": 1911,
+              "val": 1915,
               "fmt": "raw",
               "note": "Lv0[0]"
             }
@@ -1437,7 +1437,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                 "children": [
                   {
                     "name": "Char 5 Lv",
-                    "val": 1747,
+                    "val": 1795,
                     "fmt": "raw",
                     "note": "Parkhe — elemental sorcerer (cls 34) — ACTIVE char (gets Family Guy buff if it wins the slot)"
                   },
@@ -1775,7 +1775,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                     "children": [
                       {
                         "name": "Endless Wins Count",
-                        "val": 390,
+                        "val": 391,
                         "fmt": "raw",
                         "note": "OLA[319] — total endless summoning victories"
                       },
@@ -1836,7 +1836,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
             "children": [
               {
                 "name": "Player Lv",
-                "val": 1911,
+                "val": 1915,
                 "fmt": "raw",
                 "note": "Lv0[0]"
               }
