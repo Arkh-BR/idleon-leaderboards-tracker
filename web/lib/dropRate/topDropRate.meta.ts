@@ -2,11 +2,11 @@
 // imported). The large path→value table lives in topDropRate.ts and is
 // lazy-loaded on demand. Both auto-refreshed by scripts/update-top-dr.ts.
 
-export const TOP_DR_GENERATED_AT = "2026-08-22T04:27:43.827Z";
-export const TOP_DR_PLAYERS_SCANNED = 79;
+export const TOP_DR_GENERATED_AT = "2026-08-25T04:32:42.311Z";
+export const TOP_DR_PLAYERS_SCANNED = 75;
 // Best DR achievable by a single CLASS's frankenstein save (the highest
 // per-class ceiling — class-specific talents are gated by class, so this
 // is reachable in principle, unlike the all-classes-combined number).
-export const TOP_DR_HYPOTHETICAL_TOTAL = 300049.9414289299;
+export const TOP_DR_HYPOTHETICAL_TOTAL = 300061.85591894283;
 // Highest DR of a single real player, for context.
 export const TOP_DR_BEST = {"player":"Exrom","char":"Exrom2","total":228205.03885557406};

@@ -13,13 +13,13 @@
 // default tree (they would all resolve to identical numbers anyway).
 // Auto-refreshed by scripts/update-top-talents.ts.
 //
-// Snapshot generated: 2026-08-22T04:32:12.872Z
-// Players scanned: 77
+// Snapshot generated: 2026-08-25T04:35:34.979Z
+// Players scanned: 73
 
 import type { ArkhNode } from "../arkh/node";
 
-export const HYPO_TALENTS_GENERATED_AT = "2026-08-22T04:32:12.872Z";
-export const HYPO_TALENTS_PLAYERS_SCANNED = 77;
+export const HYPO_TALENTS_GENERATED_AT = "2026-08-25T04:35:34.979Z";
+export const HYPO_TALENTS_PLAYERS_SCANNED = 73;
 
 export const HYPO_DEFAULT_TREE: ArkhNode = {
   "name": "Effective Level",
@@ -33,7 +33,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
           "name": "Points Invested",
           "val": 396,
           "fmt": "raw",
-          "note": "actual save — owner: Biggums_AFK"
+          "note": "actual save — owner: Dragami"
         },
         {
           "name": "Max Book Lv Cap",
@@ -245,7 +245,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
         }
       ],
       "fmt": "raw",
-      "note": "min(invested, cap) — owner: Biggums_AFK"
+      "note": "min(invested, cap) — owner: Dragami"
     },
     {
       "name": "Bonus Levels",
@@ -263,7 +263,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                   "name": "Points Invested",
                   "val": 396,
                   "fmt": "raw",
-                  "note": "actual save — owner: Biggums_AFK"
+                  "note": "actual save — owner: Dragami"
                 },
                 {
                   "name": "Max Book Lv Cap",
@@ -475,7 +475,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                 }
               ],
               "fmt": "raw",
-              "note": "min(invested, cap) — owner: Biggums_AFK"
+              "note": "min(invested, cap) — owner: Dragami"
             }
           ],
           "fmt": "raw",
@@ -495,10 +495,10 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
               "val": 1816,
               "children": [
                 {
-                  "name": "Char 4 Lv",
-                  "val": 1816,
+                  "name": "Char 5 Lv",
+                  "val": 1795,
                   "fmt": "raw",
-                  "note": "Biggums_Lux — elemental sorcerer (cls 34)"
+                  "note": "Dragamino — elemental sorcerer (cls 34)"
                 }
               ],
               "fmt": "raw",
@@ -783,7 +783,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
             },
             {
               "name": "Bubble Y2 Active",
-              "val": 1.4999112050364503,
+              "val": 1.4999154891488067,
               "fmt": "raw",
               "note": "0 if Y2 bubble not equipped & no all-bubbles flag"
             },
@@ -828,7 +828,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                   "children": [
                     {
                       "name": "Endless Wins Count",
-                      "val": 391,
+                      "val": 390,
                       "fmt": "raw",
                       "note": "OLA[319] — total endless summoning victories"
                     },
@@ -974,7 +974,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
             "name": "Points Invested",
             "val": 396,
             "fmt": "raw",
-            "note": "actual save — owner: Biggums_AFK"
+            "note": "actual save — owner: Dragami"
           },
           {
             "name": "Max Book Lv Cap",
@@ -1186,7 +1186,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
           }
         ],
         "fmt": "raw",
-        "note": "min(invested, cap) — owner: Biggums_AFK"
+        "note": "min(invested, cap) — owner: Dragami"
       },
       {
         "name": "Bonus Levels",
@@ -1204,7 +1204,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                     "name": "Points Invested",
                     "val": 396,
                     "fmt": "raw",
-                    "note": "actual save — owner: Biggums_AFK"
+                    "note": "actual save — owner: Dragami"
                   },
                   {
                     "name": "Max Book Lv Cap",
@@ -1416,7 +1416,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                   }
                 ],
                 "fmt": "raw",
-                "note": "min(invested, cap) — owner: Biggums_AFK"
+                "note": "min(invested, cap) — owner: Dragami"
               }
             ],
             "fmt": "raw",
@@ -1439,17 +1439,11 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                     "name": "Char 5 Lv",
                     "val": 1795,
                     "fmt": "raw",
-                    "note": "Parkhe — elemental sorcerer (cls 34) — ACTIVE char (gets Family Guy buff if it wins the slot)"
-                  },
-                  {
-                    "name": "Char 7 Lv",
-                    "val": 1739,
-                    "fmt": "raw",
-                    "note": "Sarkhe — elemental sorcerer (cls 34)"
+                    "note": "Dragamino — elemental sorcerer (cls 34) — ACTIVE char (gets Family Guy buff if it wins the slot)"
                   }
                 ],
                 "fmt": "raw",
-                "note": "max across account — 2 mage chars"
+                "note": "max across account — 1 mage char"
               },
               {
                 "name": "Family Guy Multi (×) — potential buff",
@@ -1730,7 +1724,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
               },
               {
                 "name": "Bubble Y2 Active",
-                "val": 1.4999112050364503,
+                "val": 1.4999154891488067,
                 "fmt": "raw",
                 "note": "0 if Y2 bubble not equipped & no all-bubbles flag"
               },
@@ -1775,7 +1769,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                     "children": [
                       {
                         "name": "Endless Wins Count",
-                        "val": 391,
+                        "val": 390,
                         "fmt": "raw",
                         "note": "OLA[319] — total endless summoning victories"
                       },
