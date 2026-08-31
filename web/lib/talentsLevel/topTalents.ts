@@ -13,17 +13,17 @@
 // default tree (they would all resolve to identical numbers anyway).
 // Auto-refreshed by scripts/update-top-talents.ts.
 //
-// Snapshot generated: 2026-08-28T15:55:37.054Z
-// Players scanned: 77
+// Snapshot generated: 2026-08-31T10:25:03.106Z
+// Players scanned: 79
 
 import type { ArkhNode } from "../arkh/node";
 
-export const HYPO_TALENTS_GENERATED_AT = "2026-08-28T15:55:37.054Z";
-export const HYPO_TALENTS_PLAYERS_SCANNED = 77;
+export const HYPO_TALENTS_GENERATED_AT = "2026-08-31T10:25:03.106Z";
+export const HYPO_TALENTS_PLAYERS_SCANNED = 79;
 
 export const HYPO_DEFAULT_TREE: ArkhNode = {
   "name": "Effective Level",
-  "val": 785,
+  "val": 786,
   "children": [
     {
       "name": "Base Level",
@@ -31,9 +31,9 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
       "children": [
         {
           "name": "Points Invested",
-          "val": 396,
+          "val": 409,
           "fmt": "raw",
-          "note": "actual save — owner: Dragami"
+          "note": "actual save — owner: Tapioviina"
         },
         {
           "name": "Max Book Lv Cap",
@@ -245,15 +245,15 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
         }
       ],
       "fmt": "raw",
-      "note": "min(invested, cap) — owner: Dragami"
+      "note": "min(invested, cap) — owner: Tapioviina"
     },
     {
       "name": "Bonus Levels",
-      "val": 264,
+      "val": 265,
       "children": [
         {
           "name": "Symbols of Beyond ~R (Talent 149)",
-          "val": 20,
+          "val": 21,
           "children": [
             {
               "name": "Base Level",
@@ -261,9 +261,9 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
               "children": [
                 {
                   "name": "Points Invested",
-                  "val": 396,
+                  "val": 409,
                   "fmt": "raw",
-                  "note": "actual save — owner: Dragami"
+                  "note": "actual save — owner: Tapioviina"
                 },
                 {
                   "name": "Max Book Lv Cap",
@@ -475,11 +475,11 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                 }
               ],
               "fmt": "raw",
-              "note": "min(invested, cap) — owner: Dragami"
+              "note": "min(invested, cap) — owner: Tapioviina"
             }
           ],
           "fmt": "raw",
-          "note": "intervalAdd(1,20,396)"
+          "note": "intervalAdd(1,20,409)"
         },
         {
           "name": "Maroon Warship (Achievement 291)",
@@ -495,10 +495,10 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
               "val": 1816,
               "children": [
                 {
-                  "name": "Char 5 Lv",
-                  "val": 1795,
+                  "name": "Char 3 Lv",
+                  "val": 1713,
                   "fmt": "raw",
-                  "note": "Dragamino — elemental sorcerer (cls 34)"
+                  "note": "kONYYY4 — elemental sorcerer (cls 34)"
                 }
               ],
               "fmt": "raw",
@@ -506,7 +506,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
             },
             {
               "name": "Family Guy Multi (×) — potential buff",
-              "val": 1.3547511312217195,
+              "val": 1.355056179775281,
               "children": [
                 {
                   "name": "Base Level",
@@ -516,7 +516,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                       "name": "Points Invested",
                       "val": 396,
                       "fmt": "raw",
-                      "note": "save=396"
+                      "note": "save=409"
                     },
                     {
                       "name": "Max Book Lv Cap",
@@ -964,7 +964,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
 export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
   "Elemental_Sorcerer": {
     "name": "Effective Level",
-    "val": 791,
+    "val": 792,
     "children": [
       {
         "name": "Base Level",
@@ -972,9 +972,9 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
         "children": [
           {
             "name": "Points Invested",
-            "val": 396,
+            "val": 409,
             "fmt": "raw",
-            "note": "actual save — owner: Dragami"
+            "note": "actual save — owner: Tapioviina"
           },
           {
             "name": "Max Book Lv Cap",
@@ -1186,15 +1186,15 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
           }
         ],
         "fmt": "raw",
-        "note": "min(invested, cap) — owner: Dragami"
+        "note": "min(invested, cap) — owner: Tapioviina"
       },
       {
         "name": "Bonus Levels",
-        "val": 270,
+        "val": 271,
         "children": [
           {
             "name": "Symbols of Beyond ~R (Talent 149)",
-            "val": 20,
+            "val": 21,
             "children": [
               {
                 "name": "Base Level",
@@ -1202,9 +1202,9 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                 "children": [
                   {
                     "name": "Points Invested",
-                    "val": 396,
+                    "val": 409,
                     "fmt": "raw",
-                    "note": "actual save — owner: Dragami"
+                    "note": "actual save — owner: Tapioviina"
                   },
                   {
                     "name": "Max Book Lv Cap",
@@ -1416,11 +1416,11 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                   }
                 ],
                 "fmt": "raw",
-                "note": "min(invested, cap) — owner: Dragami"
+                "note": "min(invested, cap) — owner: Tapioviina"
               }
             ],
             "fmt": "raw",
-            "note": "intervalAdd(1,20,396)"
+            "note": "intervalAdd(1,20,409)"
           },
           {
             "name": "Maroon Warship (Achievement 291)",
@@ -1934,7 +1934,7 @@ export const STAR_TALENT_CEILING: Readonly<Record<number, number>> = {
   "630": 50,
   "631": 100,
   "632": 100,
-  "633": 100,
+  "633": 101,
   "634": 50,
   "635": 100,
   "636": 101,
@@ -1947,8 +1947,8 @@ export const STAR_TALENT_CEILING: Readonly<Record<number, number>> = {
   "643": 396,
   "644": 396,
   "645": 396,
-  "646": 396,
-  "647": 396,
+  "646": 409,
+  "647": 409,
   "649": 200,
   "650": 200,
   "651": 100,
