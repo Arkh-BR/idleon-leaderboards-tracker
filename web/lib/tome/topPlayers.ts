@@ -2,9 +2,9 @@
 // auto-refreshed by scripts/update-top-players.ts. Run that script to
 // re-scrape the IT profile pages of the current top players.
 //
-// Snapshot generated: 2026-08-28T14:49:27.001Z
+// Snapshot generated: 2026-08-31T09:11:49.303Z
 // Source: scraped from https://idleontoolbox.com/account/world-4/tome?profile=<name>
-// Players scanned: 77
+// Players scanned: 0
 
 // Classification is the user-defined tag from column D of the original sheet.
 // Numbers are arbitrary IDs that map to semantic labels.
