@@ -2,7 +2,7 @@
 // auto-refreshed by scripts/update-top-players.ts. Run that script to
 // re-scrape the IT profile pages of the current top players.
 //
-// Snapshot generated: 2026-08-31T09:11:49.303Z
+// Snapshot generated: 2026-09-01T08:14:16.601Z
 // Source: scraped from https://idleontoolbox.com/account/world-4/tome?profile=<name>
 // Players scanned: 0
 
