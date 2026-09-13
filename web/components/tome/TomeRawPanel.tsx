@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { computeTome, type TomeResult, type TomeRow } from "@/lib/tome/compute";
+import { TOME_TASKS } from "@/lib/tome/tasks";
 import { formatIdleon } from "@/lib/format";
 import ProfileNameLoader from "@/components/ProfileNameLoader";
 
@@ -170,7 +171,10 @@ export default function TomeRawPanel({
               , open your account menu (top-right) and click{" "}
               <strong className="text-gold">&ldquo;Copy for Support&rdquo;</strong>.
               That option includes the parsed tome values, giving us a{" "}
-              <strong>guaranteed 118/118 exact match</strong> with IT&rsquo;s
+              <strong>
+                guaranteed {TOME_TASKS.length}/{TOME_TASKS.length} exact match
+              </strong>{" "}
+              with IT&rsquo;s
               numbers. Then paste below.
             </p>
             <p className="text-xs text-zinc-400">

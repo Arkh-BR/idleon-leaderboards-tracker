@@ -63,6 +63,15 @@ export const CATEGORIES: CategorySpec[] = [
       { apiKey: "totalCoralKidUpgrades", label: "Total Coral Kid Upgrades" },
       { apiKey: "totalSushiStationUpgrades", label: "Total Sushi Station Upgrades" },
       { apiKey: "totalSushiKnowledgeLevels", label: "Total Sushi Knowledge Levels" },
+      // Added by IT 2026-09 (W7 Taskmaster / Royal Guardian update) — IT order.
+      { apiKey: "totalSushiPerfectos", label: "Total Sushi Perfectos" },
+      { apiKey: "totalButtonPresses", label: "Total Button Presses" },
+      { apiKey: "cookingMasteryLevel", label: "Cooking Mastery Level" },
+      { apiKey: "totalAdviceFishUpgrades", label: "Total Advice Fish Upgrades" },
+      { apiKey: "totalEquinoxUpgrades", label: "Total Equinox Upgrades" },
+      { apiKey: "totalRoyalArmoryUpgrades", label: "Total Royal Armory Upgrades" },
+      { apiKey: "totalRoyalResourceGrades", label: "Total Royal Resource Grades" },
+      { apiKey: "totalRoyalStatueLevels", label: "Total Royal Statue Levels" },
       { apiKey: "arenaWaves", label: "Arena Waves" },
       { apiKey: "dkOrbKills", label: "DK Orb Kills" },
       { apiKey: "sbPlunderousKills", label: "SB Plunderous Kills" },
@@ -177,6 +186,9 @@ export const CATEGORIES: CategorySpec[] = [
       { apiKey: "mostGiantsKilled", label: "Most Giants Killed" },
       { apiKey: "biggestHaulSpelunking", label: "Biggest Haul Spelunking" },
       { apiKey: "highestSpelunkingPower", label: "Highest Spelunking Power" },
+      // Added by IT 2026-09.
+      { apiKey: "totalSpelunkingDepths", label: "Total Spelunking Depths" },
+      { apiKey: "totalManicSpelunkingDepths", label: "Total Manic Spelunking Depths" },
       { apiKey: "mineheadOpponentsDefeated", label: "Minehead Opponents Defeated" },
       { apiKey: "totalGrandDiscoveries", label: "Total Grand Discoveries" },
       { apiKey: "glimboTotalTrades", label: "Glimbo Total Trades" },
@@ -205,8 +217,12 @@ export const CATEGORIES: CategorySpec[] = [
       { apiKey: "totalCollectibleLevels", label: "Total Collectible Levels" },
       { apiKey: "totalGambitTime", label: "Total Gambit Time" },
       { apiKey: "highestVillagerExp/hr", label: "Highest Villager Exp/hr" },
+      // Added by IT 2026-09.
+      { apiKey: "totalVillagerExp/hr", label: "Total Villager Exp/hr" },
       { apiKey: "highestColonyLevel", label: "Highest Colony Level" },
       { apiKey: "highestSanctumLevel", label: "Highest Sanctum Level" },
+      // Added by IT 2026-09.
+      { apiKey: "totalFountainUpgrades", label: "Total Fountain Upgrades" },
     ],
   },
 ];

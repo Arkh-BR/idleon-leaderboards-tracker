@@ -5,6 +5,7 @@ import type { LeaderboardsResponse } from "@/app/api/leaderboards/route";
 import LeaderboardsTable from "@/components/LeaderboardsTable";
 import Dashboard from "@/components/Dashboard";
 import { formatRelativeTime } from "@/lib/format";
+import { flatBoards } from "@/lib/registry";
 import {
   loadSnapshot,
   saveSnapshot as persistSnapshot,
@@ -14,6 +15,9 @@ import {
 } from "@/lib/lbSnapshot";
 
 type Tab = "leaderboards" | "dashboard";
+
+// Derived from the registry so the copy never drifts from what we track.
+const BOARD_COUNT = flatBoards().length;
 
 const STORAGE_KEY = "idleon-leaderboards.player";
 const HIDE_ANON_KEY = "idleon-leaderboards.hideAnon";
@@ -145,8 +149,8 @@ export default function LeaderboardsPageClient() {
           </h1>
         </div>
         <p className="text-zinc-400 text-sm">
-          Your position across all 153 IdleonToolbox leaderboards — updates
-          automatically, no spreadsheet required.
+          Your position across all {BOARD_COUNT} IdleonToolbox leaderboards —
+          updates automatically, no spreadsheet required.
         </p>
       </header>
 

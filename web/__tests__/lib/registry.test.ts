@@ -1,19 +1,24 @@
 import { describe, it, expect } from "vitest";
-import { CATEGORIES, type CategoryKey } from "@/lib/registry";
+import { CATEGORIES, flatBoards, type CategoryKey } from "@/lib/registry";
 
+// The registry mirrors IdleonToolbox's leaderboard catalog (one entry per
+// board the IT API serves). Re-sync it whenever IT adds boards: fetch
+// `?leaderboard=<category>` for each category and diff the keys.
 describe("registry", () => {
   it("contains 7 categories", () => {
     expect(CATEGORIES).toHaveLength(7);
   });
 
+  // Per-category counts as of the 2026-09 Royal Guardian / W7 Taskmaster
+  // update (IT added 8 general, 2 misc and 2 caverns boards → 165 total).
   const expectedCategories: { key: CategoryKey; expectedBoards: number }[] = [
     { key: "global", expectedBoards: 1 },
-    { key: "general", expectedBoards: 47 },
+    { key: "general", expectedBoards: 55 },
     { key: "tasks", expectedBoards: 11 },
     { key: "skills", expectedBoards: 21 },
     { key: "character", expectedBoards: 14 },
-    { key: "misc", expectedBoards: 42 },
-    { key: "caverns", expectedBoards: 17 },
+    { key: "misc", expectedBoards: 44 },
+    { key: "caverns", expectedBoards: 19 },
   ];
 
   const totalExpectedBoards = expectedCategories.reduce((sum, c) => sum + c.expectedBoards, 0);
@@ -21,6 +26,7 @@ describe("registry", () => {
   it(`contains ${totalExpectedBoards} total boards across all categories`, () => {
     const total = CATEGORIES.reduce((sum, cat) => sum + cat.boards.length, 0);
     expect(total).toBe(totalExpectedBoards);
+    expect(flatBoards()).toHaveLength(totalExpectedBoards);
   });
 
   expectedCategories.forEach(({ key, expectedBoards }) => {
@@ -51,5 +57,27 @@ describe("registry", () => {
       }
     }
     expect(keys.size).toBe(totalExpectedBoards);
+  });
+
+  it("includes the 2026-09 additions in IT's order", () => {
+    const general = CATEGORIES.find((c) => c.key === "general")!.boards.map((b) => b.apiKey);
+    const i = general.indexOf("totalSushiKnowledgeLevels");
+    expect(general.slice(i + 1, i + 10)).toEqual([
+      "totalSushiPerfectos",
+      "totalButtonPresses",
+      "cookingMasteryLevel",
+      "totalAdviceFishUpgrades",
+      "totalEquinoxUpgrades",
+      "totalRoyalArmoryUpgrades",
+      "totalRoyalResourceGrades",
+      "totalRoyalStatueLevels",
+      "arenaWaves",
+    ]);
+    const misc = CATEGORIES.find((c) => c.key === "misc")!.boards.map((b) => b.apiKey);
+    expect(misc.indexOf("totalSpelunkingDepths")).toBe(misc.indexOf("highestSpelunkingPower") + 1);
+    expect(misc.indexOf("totalManicSpelunkingDepths")).toBe(misc.indexOf("totalSpelunkingDepths") + 1);
+    const caverns = CATEGORIES.find((c) => c.key === "caverns")!.boards.map((b) => b.apiKey);
+    expect(caverns.indexOf("totalVillagerExp/hr")).toBe(caverns.indexOf("highestVillagerExp/hr") + 1);
+    expect(caverns.at(-1)).toBe("totalFountainUpgrades");
   });
 });

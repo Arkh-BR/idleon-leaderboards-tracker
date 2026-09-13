@@ -7,7 +7,6 @@ function makeBoard(overrides: Partial<BoardResult> & { apiKey: string }): BoardR
   return {
     category: "general",
     categoryLabel: "General",
-    apiKey: overrides.apiKey,
     label: "Test",
     myRank: 100,
     myScore: 1_000,

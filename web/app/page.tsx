@@ -1,5 +1,11 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { flatBoards } from "@/lib/registry";
+import { TOME_TASKS } from "@/lib/tome/tasks";
+
+// Derived from the catalogs so the landing copy never drifts.
+const BOARD_COUNT = flatBoards().length;
+const TOME_TASK_COUNT = TOME_TASKS.length;
 
 export const metadata: Metadata = {
   title: {
@@ -27,14 +33,14 @@ export default function HomePage() {
           href="/leaderboards"
           icon="🏆"
           title="IT Leaderboards Tracker"
-          description="See your rank across all 153 IdleonToolbox leaderboards in one place. Live data, cached 15 min."
+          description={`See your rank across all ${BOARD_COUNT} IdleonToolbox leaderboards in one place. Live data, cached 15 min.`}
           cta="Open Leaderboards"
         />
         <ShortcutCard
           href="/tome"
           icon="📖"
           title="Tome Score Tracker"
-          description="Paste your raw IT save JSON and compute the full 118-task Tome Score offline. Compare vs top players, track gains over time."
+          description={`Paste your raw IT save JSON and compute the full ${TOME_TASK_COUNT}-task Tome Score offline. Compare vs top players, track gains over time.`}
           cta="Open Tome Score"
         />
         <ShortcutCard
