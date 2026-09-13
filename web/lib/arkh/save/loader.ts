@@ -54,6 +54,23 @@ export function resolveCompanionActiveIds(
   return ids;
 }
 
+/**
+ * Stage-2 ("LV2") companions. N.js (on-load, right after `g.h.CompanionLVz=r`)
+ * sets CompanionLVz[id] = max over the companion.l entries of field [4]; ids
+ * with 1 then read CompanionDB[id][11] instead of [2] for their bonus. Pet-
+ * Bonus-Token activations never grant stage 2.
+ */
+export function resolveCompanionLv2Ids(companionList: unknown[] | undefined): Set<number> {
+  const ids = new Set<number>();
+  if (!Array.isArray(companionList)) return ids;
+  for (const entry of companionList) {
+    const parts = String(entry).split(",");
+    const id = parseInt(parts[0], 10);
+    if (!isNaN(id) && (Number(parts[4]) || 0) >= 1) ids.add(id);
+  }
+  return ids;
+}
+
 export function loadSaveData(raw: RawEnvelope): void {
   const save = (raw.data ?? raw) as Record<string, unknown>;
   const companionRaw = raw.companion as { l?: unknown[] } | undefined;
@@ -218,6 +235,9 @@ export function loadSaveData(raw: RawEnvelope): void {
   assignState({ bundlesData: parseSaveKey(save, "BundlesReceived") || {} });
   assignState({ farmRankData: parseSaveKey(save, "FarmRank") || {} });
   assignState({ forgeLvData: (parseSaveKey(save, "ForgeLV") as any[]) || [] });
+  // Royal Guardian (2026-08): statues / armory / resource grades + outposts.
+  assignState({ royalGData: (parseSaveKey(save, "RoyalG") as any[]) || [] });
+  assignState({ royalMapsData: (parseSaveKey(save, "RoyalMaps") as any[]) || [] });
 
   const nChars = raw.charNames ? raw.charNames.length : 10;
   assignSaveData({ numCharacters: nChars });
@@ -376,6 +396,7 @@ export function loadSaveData(raw: RawEnvelope): void {
   if (companionActiveIds.size > 0) {
     assignState({ companionIds: companionActiveIds });
   }
+  assignState({ companionLv2Ids: resolveCompanionLv2Ids(companionRaw?.l) });
 
   // Per-character quest completion
   const questComplete: any[] = [];

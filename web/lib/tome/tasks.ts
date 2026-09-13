@@ -2,7 +2,11 @@
 // indexed by position, not by name. If you re-sync from the .gs, paste the
 // raw arrays verbatim.
 
-// 118 tome tasks in the EXACT order they appear in the IT website.
+// 121 tome tasks in the EXACT order they appear in-game and on the IT website
+// (NinjaInfo[32] is the game's display→compute map). The 2026-08 Royal
+// Guardian update inserted three tasks at display slots 106–108; IT profiles
+// parsed since then carry 121 tomePoints in this order, while older cached
+// profiles still have the 118-entry layout (the golden harness remaps those).
 export const TOME_TASKS: readonly string[] = [
   "Account LV",
   "Account Skills LV",
@@ -110,6 +114,10 @@ export const TOME_TASKS: readonly string[] = [
   "Best Deathbringer Max Damage in Wraith Mode",
   "Best Windwalker Max Damage in Tempest Mode",
   "Best Arcane Cultist Max Damage in Arcanist Mode",
+  // Royal Guardian (2026-08) — display slots 106–108.
+  "Total Royal Statue LV",
+  "Royal Guardian Outposts Built",
+  "Total Resource Grade",
   "Spirited Valley Emperor Boss Kills",
   "Total Coral Reef upgrades",
   "Total Spelunk Shop Upgrades LV",
@@ -124,16 +132,17 @@ export const TOME_TASKS: readonly string[] = [
   "Button Presses",
 ];
 
-// Maps a task index (0-117, position in TOME_TASKS) to a compute index used
-// by TOME_BONUSES and the switch in computeRawValue. From IT's NEI32 array.
+// Maps a task index (0-120, position in TOME_TASKS) to a compute index used
+// by TOME_BONUSES and the switch in computeRawValue. Verbatim copy of the
+// game's NinjaInfo[32] (IT's NEI32) — 2026-08 inserted 118/119/120 at 106–108.
 export const NEI32: readonly number[] = [
   5, 11, 3, 65, 22, 0, 2, 1, 7, 4, 6, 81, 8, 9, 53, 10, 107, 109, 12, 113,
   106, 75, 13, 14, 80, 79, 25, 15, 16, 17, 18, 19, 21, 23, 24, 26, 27, 28,
   29, 85, 86, 108, 30, 31, 32, 33, 34, 35, 37, 36, 76, 38, 54, 40, 41, 42,
   39, 44, 50, 48, 46, 47, 49, 51, 52, 45, 55, 60, 57, 61, 62, 66, 59, 64,
   63, 111, 58, 56, 93, 84, 83, 92, 91, 87, 88, 89, 82, 94, 68, 69, 67, 77,
-  78, 112, 72, 74, 99, 71, 70, 73, 96, 20, 43, 90, 100, 101, 95, 97, 103,
-  104, 98, 102, 105, 110, 114, 115, 116, 117,
+  78, 112, 72, 74, 99, 71, 70, 73, 96, 20, 43, 90, 100, 101, 118, 119, 120,
+  95, 97, 103, 104, 98, 102, 105, 110, 114, 115, 116, 117,
 ];
 
 // Per-task curve params: [x1, x2, x3] where x2 selects the formula in
@@ -163,7 +172,11 @@ export const TOME_BONUSES: readonly (readonly [number, number, number])[] = [
   [100, 0, 300], [5000, 0, 500], [10, 1, 400], [10, 1, 400], [25, 1, 300],
   [2000, 0, 500], [90, 2, 300], [200, 0, 200], [20, 2, 250], [20, 2, 700],
   [12, 0, 250], [75, 2, 700], [40, 2, 600], [100, 2, 400], [150, 0, 300],
-  [365, 2, 365], [109, 2, 750], [1500, 0, 400], [54, 2, 800], [300, 0, 500],
+  // 116 "Unique Sushi Created": max 54 → 63 (2026-09, four new sushi tiers).
+  [365, 2, 365], [109, 2, 750], [1500, 0, 400], [63, 2, 800], [300, 0, 500],
+  // 118–120 Royal Guardian (2026-08): Total Royal Statue LV, Outposts Built,
+  // Total Resource Grade — from the game's Tome list [118..120].
+  [100, 0, 600], [65, 2, 650], [1000, 0, 600],
 ];
 
 // Fallback: if the raw extractor returns null for these compute indices, the
@@ -267,7 +280,10 @@ export const DUNGEON_LEVELS: readonly number[] = [
   1999999999, 1999999999, 1999999999, 1999999999,
 ];
 
-// mapEnemies values for the 99 deathNote rawNames (from IT website-data).
+// mapEnemies values (map index per deathNote rawName) for the 104 deathNote
+// mobs — originally from IT website-data; the W7 tail is kept in sync with the
+// game's DeathNoteMobs[6] via MapAFKtarget (w7b8–w7b10 = maps 322–324, and
+// w7b11/w7b12 = 325/326 added 2026-08). Order is irrelevant (digit sum).
 export const DEATHNOTE_MOB_IDX: readonly number[] = [
   1, 17, 2, 14, 16, 19, 24, 26, 27, 28, 8, 15, 13, 18, 31, 51, 52, 53, 57,
   58, 59, 60, 62, 63, 64, 65, 101, 103, 104, 105, 106, 107, 108, 109, 110,
@@ -275,5 +291,5 @@ export const DEATHNOTE_MOB_IDX: readonly number[] = [
   161, 162, 163, 201, 202, 203, 204, 205, 206, 207, 208, 209, 210, 211, 212,
   213, 251, 252, 253, 254, 255, 256, 257, 258, 259, 260, 261, 262, 263, 264,
   301, 302, 303, 304, 305, 306, 307, 308, 309, 310, 311, 312, 315, 316, 317,
-  318, 319, 320, 321,
+  318, 319, 320, 321, 322, 323, 324, 325, 326,
 ];

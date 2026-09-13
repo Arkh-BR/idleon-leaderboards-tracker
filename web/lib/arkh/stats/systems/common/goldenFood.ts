@@ -249,7 +249,10 @@ export function gfoodBonusMULTIBreakdown(
   saveData: SaveData
 ): { items: { name: string; val: number; arkh?: number }[]; total: number } {
   const setBonus = getSetBonus("SECRET_SET");
-  const setMul = 1 + (Number(setBonus?.val) || 0) / 100;
+  // Companion 174 (fm_rat, 2026-08): +50 to the SECRET_SET multiplier group
+  // and +10000 to the additive source sum (both explicit in N.js).
+  const comp174 = companions(174, saveData);
+  const setMul = 1 + ((Number(setBonus?.val) || 0) + 50 * comp174) / 100;
   const famBonus = Math.max(famBonusQTYs66(charIdx, saveData), 1);
   const etcG = etcBonusesGoldFood(charIdx, saveData);
   const talent99 = getTalent99(charIdx, saveData);
@@ -296,6 +299,7 @@ export function gfoodBonusMULTIBreakdown(
     { name: "Legend 25", val: legend25 },
     { name: "Card cropfall+anni5", val: cardPassiveBonus },
     { name: "Companion 155", val: comp155 },
+    { name: "Companion 174 ×10000", val: 1e4 * comp174 },
     { name: "Vault 86", val: vault86 },
   ];
   const rest = items.slice(2).reduce((a, i) => a + i.val, 0);

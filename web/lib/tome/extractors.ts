@@ -754,6 +754,46 @@ export function rawGlimboTrades(d: D): number | null {
   return arrSum((d.Research as unknown[])[12]);
 }
 
+// ---------------------------------------------------------------- royal guardian (2026-08)
+
+// RoyalG / RoyalMaps arrive as arrays from the IT profiles API but may be JSON
+// strings in a "Copy for Support" paste — accept both.
+function parseArr(v: unknown): unknown[] | null {
+  if (Array.isArray(v)) return v;
+  if (typeof v === "string") {
+    try {
+      const p = JSON.parse(v);
+      return Array.isArray(p) ? p : null;
+    } catch {
+      return null;
+    }
+  }
+  return null;
+}
+
+/** Total Royal Statue LV = Σ RoyalG[0]. */
+export function rawRoyalStatueLv(d: D): number | null {
+  const rg = parseArr(d.RoyalG);
+  const st = rg && parseArr(rg[0]);
+  return st ? arrSum(st) : null;
+}
+
+/** Royal Guardian Outposts Built = RoyalMaps entries carrying ≥ 3 fields. */
+export function rawRoyalOutposts(d: D): number | null {
+  const rm = parseArr(d.RoyalMaps);
+  if (!rm) return null;
+  let n = 0;
+  for (const e of rm) if (Array.isArray(e) && e.length >= 3) n++;
+  return n;
+}
+
+/** Total Resource Grade = Σ RoyalG[5] (N.js TotalStatz(0)). */
+export function rawResourceGrade(d: D): number | null {
+  const rg = parseArr(d.RoyalG);
+  const g = rg && parseArr(rg[5]);
+  return g ? arrSum(g) : null;
+}
+
 // ---------------------------------------------------------------- "proper" extractors
 
 // maxStars for card-level calcs = round(4 + riftFiveStar + spelunkingSixStar).

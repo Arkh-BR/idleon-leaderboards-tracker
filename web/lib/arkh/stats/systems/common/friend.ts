@@ -73,15 +73,26 @@ export const friend = {
     let total = lastContrib;
     const children: ArkhNode[] = [];
     if (lastChild) children.push(lastChild);
-    const comp30 = ctx.saveData.companionIds
-      ? ctx.saveData.companionIds.has(30)
-      : false;
+    // @njs FriendBonusXtraMulti
+    // 1 + (100·Companion 30 + 25·CompLV2(44)) / 100 — the stage-2 Companion 44
+    // term arrived with the 2026-08 update.
+    const comp30 = ctx.saveData.companionIds?.has(30) ? 1 : 0;
+    const comp44Lv2 = ctx.saveData.companionLv2Ids?.has(44) ? 1 : 0;
+    const xtra = 1 + (100 * comp30 + 25 * comp44Lv2) / 100;
+    if (xtra !== 1) total *= xtra;
     if (comp30) {
-      total *= COMPANION_BONUS[30];
       children.push(
         companionChild(30, COMPANION_BONUS[30], ctx.saveData, {
           fmt: "x",
           note: "companion 30",
+        })
+      );
+    }
+    if (comp44Lv2) {
+      children.push(
+        node("Companion 44 — Stage 2 (LV2)", 1.25, null, {
+          fmt: "x",
+          note: "+25% Friend Bonus multi",
         })
       );
     }

@@ -5,9 +5,11 @@
 // Strategy: MERGE onto the committed file, never regenerate blind —
 //   - items.js: update existing keys with live values, append genuinely new
 //     items, never drop a committed key.
-//   - customlists.js: emit ONLY the names the committed file already exports,
-//     in committed order (this filters out the lib-noise getters our generic
-//     extractor also picks up, e.g. get_version/test/next).
+//   - customlists.js: emit the names the committed file already exports, in
+//     committed order, then APPEND genuinely new game lists (PascalCase array
+//     values — e.g. ArmoryUpg / RoyalResources from the 2026-08 Royal Guardian
+//     update). The PascalCase+array rule filters out the lib-noise getters our
+//     generic extractor also picks up (get_version/test/next).
 // This keeps the contract stable and the git diff limited to real changes.
 
 import type { Item } from "./extract";
@@ -47,9 +49,22 @@ export function buildItemsFile(
   return { text, updated, added, kept };
 }
 
-export type ListsResult = { text: string; updated: number; missing: string[] };
+export type ListsResult = { text: string; updated: number; added: string[]; missing: string[] };
 
-/** Emit the committed list names, in committed order, with live values. */
+/** A brand-new game list worth committing: PascalCase name + array value,
+ *  minus the localization / description tables (…LANG, Lang…, …Desc, …MISC)
+ *  the engine never reads — they are large and would bloat the client bundle.
+ *  (The extractor also surfaces lowercase lib getters like get_version.) */
+function isNewGameList(name: string, val: unknown): boolean {
+  return (
+    /^[A-Z][A-Za-z0-9_]*$/.test(name) &&
+    !/LANG$|^Lang|Desc$|MISC$/.test(name) &&
+    Array.isArray(val)
+  );
+}
+
+/** Emit the committed list names, in committed order, with live values, then
+ *  append any genuinely new game lists the live build introduced. */
 export function buildListsFile(
   extracted: Record<string, unknown>,
   committedText: string,
@@ -69,6 +84,13 @@ export function buildListsFile(
     }
     return `export var ${name} = ${JSON.stringify(val)};`;
   });
+  const known = new Set(names);
+  const added: string[] = [];
+  for (const name of Object.keys(extracted).sort()) {
+    if (known.has(name) || !isNewGameList(name, extracted[name])) continue;
+    added.push(name);
+    lines.push(`export var ${name} = ${JSON.stringify(extracted[name])};`);
+  }
   const text = header("CustomLists + CustomLists2 + CustomLists3") + lines.join("\n\n") + "\n";
-  return { text, updated, missing };
+  return { text, updated, added, missing };
 }

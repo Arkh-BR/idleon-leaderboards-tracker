@@ -78,6 +78,13 @@ export type SaveData = {
   labJewelConnected: any[];
   labMainBonusFull: any[];
   companionIds: Set<number>;
+  // Companions at stage 2 ("LV2", companion.l field [4]) — N.js switches
+  // CompanionBon[id] to CompanionDB[id][11] for these. (2026-08)
+  companionLv2Ids: Set<number>;
+  // Royal Guardian (2026-08): raw `RoyalG` ([0]=Royal Statue lvs, [2]=Armory
+  // lvs, [5]=resource-node Grades) and `RoyalMaps` (one outpost per map idx).
+  royalGData: any[];
+  royalMapsData: any[];
   extBonusOverrides: Record<string, unknown>;
   serverVarResXP: number;
   serverVarMineHP: number;
@@ -201,6 +208,9 @@ export const saveData: SaveData = {
   labJewelConnected: [],
   labMainBonusFull: [],
   companionIds: new Set<number>(),
+  companionLv2Ids: new Set<number>(),
+  royalGData: [],
+  royalMapsData: [],
   extBonusOverrides: {},
   serverVarResXP: 1.01,
   serverVarMineHP: 1,

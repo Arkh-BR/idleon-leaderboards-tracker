@@ -200,6 +200,7 @@ export function hatrackBonusMulti(saveData: SaveData): MultiResult {
   return { val, children: ch };
 }
 
+// @njs PodiumsOwned_Lv4
 function podiumsOwnedLv4(saveData: SaveData): number {
   const sail33 = Number(
     (saveData.sailingData &&
@@ -209,10 +210,15 @@ function podiumsOwnedLv4(saveData: SaveData): number {
   );
   const comp28 =
     saveData.companionIds && saveData.companionIds.has(28) ? 1 : 0;
+  // Companion 28 at stage 2 (LV2) counts as one more Lv4 podium (2026-08).
+  const comp28Lv2 = saveData.companionLv2Ids?.has(28) ? 1 : 0;
   const evStr = saveData.cachedEventShopStr || "";
   const evShop29 = eventShopOwned(29, evStr);
   return Math.round(
-    Math.min(1, comp28) + evShop29 + Math.min(1, Math.floor(sail33 / 6))
+    Math.min(1, comp28) +
+      Math.min(1, comp28Lv2) +
+      evShop29 +
+      Math.min(1, Math.floor(sail33 / 6))
   );
 }
 

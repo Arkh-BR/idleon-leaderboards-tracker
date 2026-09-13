@@ -29,11 +29,18 @@ function arcaneMapBonus(kills: number, _saveData: SaveData): number {
   );
 }
 
+// N.js ArcaneMapMulti_bonMAX = 100·(getbonus2(1,589,-1) − 1) + min(10, ArcaneUpg 58).
+// Talent 589 is a decayMulti curve (x1=1, x2=500), so the game's getbonus2
+// evaluates to 1 on an account where NO character has it (formula at lv 0),
+// giving a cap of 0 → ×1. Our maxTalentBonus returns 0 for an unowned talent
+// (strict "no talent = no bonus"), which turned the cap into −100 and zeroed
+// the whole DR chain (×(1 + −100/100)) for every char of such accounts. Clamp
+// to the curve's floor of 1 to match the game.
 function arcaneMapMultiBonMax(
   activeCharIdx: number | undefined,
   saveData: SaveData
 ): number {
-  const t589 = maxTalentBonus(589, activeCharIdx, saveData);
+  const t589 = Math.max(1, maxTalentBonus(589, activeCharIdx, saveData));
   return 100 * (t589 - 1) + Math.min(10, arcaneUpgBonus(58, saveData));
 }
 

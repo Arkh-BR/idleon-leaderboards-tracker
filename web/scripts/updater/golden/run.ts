@@ -30,10 +30,19 @@ async function main(): Promise<void> {
     const got = summarize(save);
     const gt = save.extraData ?? save.parsedData ?? {};
     const hasTomeRef = Array.isArray(gt.tomePoints) && gt.tomePoints.length > 0;
+    // 2026-08: the game inserted three Royal Guardian tome tasks at display
+    // slots 106–108 (121 tasks). IT profiles parsed since then carry the new
+    // layout; older cached profiles still ship the 118-entry one. Remap those
+    // onto the new positions (NaN placeholders skip the three new slots) so a
+    // stale cache doesn't read as 12 phantom mismatches.
+    let tomeRef: number[] | undefined = gt.tomePoints;
+    if (Array.isArray(tomeRef) && tomeRef.length === 118) {
+      tomeRef = [...tomeRef.slice(0, 106), NaN, NaN, NaN, ...tomeRef.slice(106)];
+    }
     const ms = compareGroundTruth(
       name,
       got,
-      { tomePoints: gt.tomePoints, dropRate: gt.dropRate },
+      { tomePoints: tomeRef, dropRate: gt.dropRate },
       // tomeTol=1 absorbs rounding off-by-ones. drTolPct only gates whether the
       // DR line prints; DR is informational + methodology-mismatched (see
       // header), so the exact threshold isn't meaningful — kept loose at 8.

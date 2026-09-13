@@ -706,6 +706,12 @@
       68,
       35,
       8
+    ],
+    [
+      90,
+      68,
+      35,
+      8
     ]
   ],
   "AdvancedOptions": [
@@ -724,7 +730,8 @@
     "Full_Sneaking_Auto_Trash|With_this_on,_the_'Auto_Trash_Bad_Items'_toggle_in_Sneaking_will_trash_everything_with_worse_stats_than_the_best_version_of_that_item_you_have._It_also_trashes_all_new_hats.",
     "Insta_Use_Sneaking_Items|Hovering_over_Gemstones_and_Symbols_in_your_Ninja_Inventory_will_use_them!_No_need_to_click_and_hold_down_any_more_with_this_on!",
     "Move-All-Ninjas_Sneaking_Mode|Moving_$'s_Ninja_Twin_to_a_different_floor_will_also_move_ALL_other_Ninja_Twins_to_that_floor!",
-    "Full_Clear_Spelunking_Mode|Auto_Mode_in_Spelunking_will_not_advance_to_the_next_depth_until_it_clears_ALL_objects_on_the_current_depth!"
+    "Full_Clear_Spelunking_Mode|Auto_Mode_in_Spelunking_will_not_advance_to_the_next_depth_until_it_clears_ALL_objects_on_the_current_depth!",
+    "Hide_Item_Pickup_Status|This_enables_or_disables_the_words_that_popup_in_the_bottom_left_of_the_screen_whenever_you_pick_up_items,_coins,_or_gain_EXP._@___@_Helps_game_performance!"
   ],
   "AlchemyCoords": [
     [
@@ -2247,19 +2254,19 @@
         "W13"
       ],
       [
-        "BUBBLE",
-        "99",
+        "ROYAL_RICHES",
+        "20",
         "40",
         "decay",
         "0",
-        "FillerMaterial",
+        "w7B2",
         "Liquid4",
         "Blank",
         "Blank",
-        "It's_just_a_normal_bubble._It_doesn't_have_a_bonus_yet,_it_just_floats_and_is_round.",
+        "+{%_Resource_Collection_Rate_for_all_of_your_Royal_Guardian's_Outposts",
         "0",
-        "2500",
-        "6",
+        "10000",
+        "20",
         "0",
         "0",
         "W14"
@@ -2276,8 +2283,8 @@
         "Blank",
         "It's_just_a_normal_bubble._It_doesn't_have_a_bonus_yet,_it_just_floats_and_is_round.",
         "0",
-        "2500",
-        "6",
+        "50000",
+        "50",
         "0",
         "0",
         "W15"
@@ -7848,6 +7855,24 @@
       "%",
       "+{%_EXP",
       "49"
+    ],
+    [
+      "+{%_Kingdom_Resources",
+      "6",
+      "100",
+      "decay",
+      "%",
+      "+{%_Resources",
+      "31"
+    ],
+    [
+      "+{%_Marble_Drop_Rate",
+      "3",
+      "100",
+      "decay",
+      "%",
+      "+{%_Marble_DR",
+      "35"
     ]
   ],
   "ArcaneUpg": [
@@ -8606,6 +8631,1004 @@
       "0",
       "0",
       "These_pages_are_missing..."
+    ]
+  ],
+  "ArmoryUpg": [
+    [
+      "Resource_Grades_製",
+      "1",
+      "1.00",
+      "0",
+      "1",
+      "1",
+      "0",
+      "0",
+      "0",
+      "Whenever_an_'Empty'_resource_gets_refilled,_it_gets_+1_Grade!_@_Each_Grade_means_+50%_Max_Resources_and_+$%_Collection_Rate!"
+    ],
+    [
+      "Perfect_Purification",
+      "1",
+      "1.30",
+      "0",
+      "300",
+      "1",
+      "1",
+      "0",
+      "0",
+      "All_your_Purified_Maps_now_get_a_$x_bonus_to_Collection_Rate,_instead_of_the_standard_2x_bonus."
+    ],
+    [
+      "Kingdom_Expansion_2",
+      "1",
+      "1.00",
+      "0",
+      "1",
+      "1",
+      "4",
+      "0",
+      "0",
+      "Allows_you_to_expand_the_kingdom_into_World_2,_allowing_you_to_build_Outposts_and_collect_Resources!"
+    ],
+    [
+      "Kingdom_Expansion_3",
+      "1",
+      "1.00",
+      "0",
+      "1",
+      "1",
+      "10",
+      "0",
+      "0",
+      "Allows_you_to_expand_the_kingdom_into_World_3,_allowing_you_to_build_Outposts_and_collect_Resources!"
+    ],
+    [
+      "Kingdom_Expansion_4",
+      "1",
+      "1.00",
+      "0",
+      "1",
+      "1",
+      "15",
+      "0",
+      "0",
+      "Allows_you_to_expand_the_kingdom_into_World_4,_allowing_you_to_build_Outposts_and_collect_Resources!"
+    ],
+    [
+      "Kingdom_Expansion_5",
+      "1",
+      "1.00",
+      "0",
+      "1",
+      "1",
+      "16",
+      "0",
+      "0",
+      "Allows_you_to_expand_the_kingdom_into_World_5,_allowing_you_to_build_Outposts_and_collect_Resources!"
+    ],
+    [
+      "Kingdom_Expansion_6",
+      "1",
+      "1.00",
+      "1",
+      "1",
+      "1",
+      "25",
+      "0",
+      "0",
+      "Allows_you_to_expand_the_kingdom_into_World_6,_allowing_you_to_build_Outposts_and_collect_Resources!"
+    ],
+    [
+      "Kingdom_Expansion_7",
+      "1",
+      "1.00",
+      "2",
+      "1",
+      "1",
+      "40",
+      "0",
+      "0",
+      "Allows_you_to_expand_the_kingdom_into_World_7,_allowing_you_to_build_Outposts_and_collect_Resources!"
+    ],
+    [
+      "Kingdom_Expansion_8",
+      "1",
+      "1.00",
+      "1",
+      "1",
+      "1",
+      "45",
+      "0",
+      "0",
+      "Allows_you_to_expand_the_kingdom_into_World_8,_allowing_you_to_build_Outposts_and_collect_Resources!"
+    ],
+    [
+      "Blunder_Outpost_PTS_製",
+      "1",
+      "1.50",
+      "2",
+      "999999",
+      "1",
+      "50",
+      "0",
+      "0",
+      "All_of_your_Outposts_in_World_1_get_+{_PTS_to_spend_on_upgrades!"
+    ],
+    [
+      "Yumyum_Outpost_PTS",
+      "1",
+      "1.55",
+      "1",
+      "999999",
+      "1",
+      "70",
+      "0",
+      "0",
+      "All_of_your_Outposts_in_World_2_get_+{_PTS_to_spend_on_upgrades!"
+    ],
+    [
+      "Tundra_Outpost_PTS",
+      "1",
+      "1.60",
+      "2",
+      "999999",
+      "1",
+      "75",
+      "0",
+      "0",
+      "All_of_your_Outposts_in_World_3_get_+{_PTS_to_spend_on_upgrades!"
+    ],
+    [
+      "Hyperion_Outpost_PTS",
+      "1",
+      "1.65",
+      "4",
+      "999999",
+      "1",
+      "80",
+      "0",
+      "0",
+      "All_of_your_Outposts_in_World_4_get_+{_PTS_to_spend_on_upgrades!"
+    ],
+    [
+      "Plateau_Outpost_PTS",
+      "1",
+      "1.70",
+      "2",
+      "999999",
+      "1",
+      "100",
+      "0",
+      "0",
+      "All_of_your_Outposts_in_World_5_get_+{_PTS_to_spend_on_upgrades!"
+    ],
+    [
+      "Valley_Outpost_PTS",
+      "1",
+      "1.80",
+      "2",
+      "999999",
+      "1",
+      "101",
+      "0",
+      "0",
+      "All_of_your_Outposts_in_World_6_get_+{_PTS_to_spend_on_upgrades!"
+    ],
+    [
+      "Shimmerfin_Outpost_PTS",
+      "1",
+      "1.90",
+      "3",
+      "999999",
+      "1",
+      "115",
+      "0",
+      "0",
+      "All_of_your_Outposts_in_World_7_get_+{_PTS_to_spend_on_upgrades!"
+    ],
+    [
+      "World_8_Outpost_PTS",
+      "1",
+      "2.00",
+      "4",
+      "999999",
+      "1",
+      "140",
+      "0",
+      "0",
+      "All_of_your_Outposts_in_World_8_get_+{_PTS_to_spend_on_upgrades!"
+    ],
+    [
+      "Peacetime_Milita_製",
+      "1",
+      "1.00",
+      "5",
+      "1",
+      "1",
+      "170",
+      "0",
+      "0",
+      "Militia_Units_now_also_give_$_EXP/hr_to_their_Outpost's_highest_Rank,_giving_them_a_use_beyond_clearing_new_maps!"
+    ],
+    [
+      "Global_Decree_-_RG",
+      "1",
+      "3.50",
+      "10",
+      "999999",
+      "5",
+      "200",
+      "0",
+      "0",
+      "Each_Resource_Grade_(RG)_gives_all_outposts_+{%_Collection_Rate._@_Total_Bonus:+$%"
+    ],
+    [
+      "Wonderful_Workers",
+      "1",
+      "2.10",
+      "10",
+      "999999",
+      "10",
+      "230",
+      "0",
+      "0",
+      "Each_Worker_Unit_now_gives_+$%_Collection_Rate_bonus_to_their_outpost,_instead_of_the_standard_+50%_bonus."
+    ],
+    [
+      "Tremendous_Traders",
+      "1",
+      "2.10",
+      "5",
+      "999999",
+      "20",
+      "260",
+      "0",
+      "0",
+      "Each_Trader_Unit_now_gives_$_EXP/hr_toward_their_Outpost's_Trading_Rank."
+    ],
+    [
+      "Great_Guards",
+      "1",
+      "15.0",
+      "10",
+      "10",
+      "5",
+      "270",
+      "0",
+      "0",
+      "Each_Guard_Unit_now_increases_the_connection_range_of_their_Outpost_by_+$px"
+    ],
+    [
+      "Super_Surveyors",
+      "1",
+      "1.90",
+      "11",
+      "999999",
+      "15",
+      "280",
+      "0",
+      "0",
+      "Each_Surveyor_Unit_now_gives_$_EXP/hr_toward_their_Outpost's_Intel_Rank."
+    ],
+    [
+      "Mighty_Militia",
+      "1",
+      "1.20",
+      "11",
+      "999999",
+      "25",
+      "300",
+      "0",
+      "0",
+      "Each_Militia_Unit_now_clears_away_$_Monsters/hr_in_Uncontrolled_Maps."
+    ],
+    [
+      "Charismatic_Commanders",
+      "1",
+      "3.50",
+      "11",
+      "999999",
+      "5",
+      "320",
+      "0",
+      "0",
+      "Each_Commander_Unit_now_gives_$_EXP/hr_toward_their_Outpost's_Command_Rank."
+    ],
+    [
+      "Kingsman_Knights",
+      "1",
+      "5.00",
+      "12",
+      "999999",
+      "5",
+      "340",
+      "0",
+      "0",
+      "Each_Knight_Unit_now_gives_$_EXP/hr_toward_their_Outpost's_Military_Rank."
+    ],
+    [
+      "Passionate_Priests",
+      "1",
+      "2.10",
+      "12",
+      "999999",
+      "10",
+      "380",
+      "0",
+      "0",
+      "Each_Priest_Unit_now_gives_$_EXP/hr_toward_their_Outpost's_Purity_Rank."
+    ],
+    [
+      "Trader_Profession",
+      "1",
+      "1.00",
+      "10",
+      "1",
+      "1",
+      "400",
+      "0",
+      "0",
+      "Unlocks_the_Trader_profession,_who_level_up_their_Outpost's_Trading_Rank!_Swap_professions_via_'Upgrade_Outposts'_button."
+    ],
+    [
+      "Guard_Profession",
+      "1",
+      "1.00",
+      "13",
+      "1",
+      "1",
+      "420",
+      "0",
+      "0",
+      "Unlocks_the_Guard_profession,_who_boost_their_Outpost's_connection_range!_Swap_professions_via_'Upgrade_Outposts'_button."
+    ],
+    [
+      "Surveyor_Profession",
+      "1",
+      "1.00",
+      "13",
+      "1",
+      "1",
+      "450",
+      "0",
+      "0",
+      "Unlocks_the_Surveyor_profession,_who_level_up_their_Outpost's_Intel_Rank!_Swap_professions_via_'Upgrade_Outposts'_button."
+    ],
+    [
+      "Collect_Resources_Tool",
+      "0",
+      "1.00",
+      "14",
+      "1",
+      "1",
+      "480",
+      "0",
+      "0",
+      "Adds_a_new_button_to_the_World_Map!_When_enabled,_you_can_click_and_drag_on_your_Outposts_to_connect_them_to_Resources!"
+    ],
+    [
+      "Upgrade_Outposts_Tool",
+      "0",
+      "1.00",
+      "13",
+      "1",
+      "1",
+      "520",
+      "0",
+      "0",
+      "Adds_a_new_button_to_the_World_Map!_When_enabled,_you_can_click_on_any_Outpost_and_spend_its_PTS_on_upgrades!"
+    ],
+    [
+      "Move_Units_Tool",
+      "0.1",
+      "1.00",
+      "14",
+      "1",
+      "1",
+      "560",
+      "0",
+      "0",
+      "Adds_a_new_button_to_the_World_Map!_When_enabled,_you_can_click_and_drag_Movable_Units_to_change_which_Outpost_they're_stationed_at!"
+    ],
+    [
+      "Rat_Breeding_Protocol_I",
+      "1",
+      "100",
+      "15",
+      "10",
+      "10",
+      "590",
+      "0",
+      "0",
+      "Verminous_Rats,_found_in_the_cellar_dungeon_of_the_Royal_Castle,_respawn_+{%_faster."
+    ],
+    [
+      "Rat_Breeding_Protocol_II",
+      "1",
+      "1.95",
+      "14",
+      "100",
+      "1",
+      "630",
+      "0",
+      "0",
+      "Boosts_the_respawn_rate_of_Verminous_Rats_by_a_further_+{%"
+    ],
+    [
+      "Anti-Rodent_Power_Move_I",
+      "1",
+      "1.20",
+      "15",
+      "999999",
+      "5",
+      "660",
+      "0",
+      "0",
+      "Boosts_the_base_damage_you_deal_within_the_Royal_Castle_by_+{"
+    ],
+    [
+      "Anti-Rodent_Power_Move_II",
+      "1",
+      "1.25",
+      "15",
+      "999999",
+      "2",
+      "710",
+      "0",
+      "0",
+      "Boosts_the_total_damage_you_deal_within_the_Royal_Castle_by_+{%"
+    ],
+    [
+      "Parchment_of_Enchantment_製",
+      "1",
+      "1.00",
+      "20",
+      "1",
+      "1",
+      "750",
+      "0",
+      "0",
+      "Verminous_Rats_now_have_a_1_in_$_chance_to_drop_Parchments_of_Enchantment,_which_are_used_to_upgrade_Royal_Statues!"
+    ],
+    [
+      "Parchment_Surplus",
+      "1",
+      "1.10",
+      "20",
+      "999999",
+      "1",
+      "800",
+      "0",
+      "0",
+      "Boosts_the_drop_rate_of_Parchments_of_Enchantment_by_+{%"
+    ],
+    [
+      "Parchment_Doubleprint",
+      "1",
+      "1.85",
+      "20",
+      "100",
+      "1",
+      "850",
+      "0",
+      "0",
+      "Whenever_you_pick_up_Parchments_of_Enchantment,_there_is_a_$%_chance_to_get_DOUBLE!_So_like,_two_of_them!"
+    ],
+    [
+      "Parchment_Recycling",
+      "1",
+      "3.20",
+      "21",
+      "50",
+      "1",
+      "900",
+      "0",
+      "0",
+      "When_using_Parchments_of_Enchantment_to_upgrade_Royal_Statues,_there_is_a_$%_chance_they_are_not_used_up._Free_Usage!"
+    ],
+    [
+      "Royal_Marble",
+      "1",
+      "6.00",
+      "22",
+      "50",
+      "1",
+      "950",
+      "0",
+      "0",
+      "Mobs_in_maps_with_outposts_have_a_1_in_$_chance_to_drop_special_Marble_items,_which_are_used_to_unlock_the_Royal_Statues!"
+    ],
+    [
+      "Support_Camps",
+      "1",
+      "1000000000.0",
+      "21",
+      "3",
+      "1",
+      "1000",
+      "0",
+      "0",
+      "You_can_modify_{_Outposts_per_World_into_Support_Camps._Connects_to_other_outposts,_givin'_$"
+    ],
+    [
+      "Super_Support",
+      "1",
+      "2.10",
+      "21",
+      "100",
+      "1",
+      "1100",
+      "0",
+      "0",
+      "Support_Camps_give_}x_higher_boosts_to_their_connected_Outposts!"
+    ],
+    [
+      "Savage_Strongholds",
+      "1",
+      "1000000000.0",
+      "22",
+      "3",
+      "1",
+      "1200",
+      "0",
+      "0",
+      "You_can_now_modify_{_Outpost_per_World_into_Savage_Strongholds!_They_remove_$x_more_resources,_but_you_don't_keep_any!"
+    ],
+    [
+      "Royal_Reverence",
+      ".1",
+      "100",
+      "23",
+      "20",
+      "1",
+      "1300",
+      "0",
+      "0",
+      "All_Royal_Statues_give_}x_higher_bonuses!"
+    ],
+    [
+      "Royal_Talent_Points_I_製",
+      ".2",
+      "1.13",
+      "22",
+      "200",
+      "1",
+      "1350",
+      "0",
+      "0",
+      "+{_Talent_PTS_for_the_Royal_Guardian_class."
+    ],
+    [
+      "Royal_Talent_Points_II",
+      "1",
+      "1.22",
+      "22",
+      "200",
+      "1",
+      "1400",
+      "0",
+      "0",
+      "+{_Talent_PTS_for_the_Royal_Guardian_class."
+    ],
+    [
+      "Royal_Talent_Points_III",
+      "1",
+      "1.70",
+      "23",
+      "200",
+      "1",
+      "1450",
+      "0",
+      "0",
+      "+{_Talent_PTS_for_the_Royal_Guardian_class."
+    ],
+    [
+      "Royal_Talent_Points_IV",
+      "1",
+      "2.00",
+      "23",
+      "200",
+      "1",
+      "1500",
+      "0",
+      "0",
+      "+{_Talent_PTS_for_the_Royal_Guardian_class."
+    ],
+    [
+      "Global_Decree_-_OL",
+      "1",
+      "1.95",
+      "23",
+      "100",
+      "1",
+      "1550",
+      "0",
+      "0",
+      "Each_Outpost_LV_(OL)_gives_all_outposts_+{%_Collection_Rate._@_Total_Bonus:+$%"
+    ],
+    [
+      "Global_Decree_-_PM",
+      "1",
+      "4.25",
+      "24",
+      "40",
+      "25",
+      "1600",
+      "0",
+      "0",
+      "Each_Purified_Map_(PM)_gives_all_outposts_+{%_Collection_Rate._@_Total_Bonus:+$%"
+    ],
+    [
+      "Experiential_Triumph",
+      "1",
+      "1.90",
+      "25",
+      "100",
+      "2",
+      "1650",
+      "0",
+      "0",
+      "Every_100_Class_LVs_of_your_Royal_Guardian_over_1000_gives_all_outposts_+{%_Collection_Rate._Total_Bonus:+$%"
+    ],
+    [
+      "Tip-Top_'sources_製",
+      "1",
+      "750",
+      "26",
+      "10",
+      "1",
+      "1700",
+      "0",
+      "0",
+      "+{%_Collection_Rate_for_every_POW_10_'Top_of_List'_Resources_you_own.___Total_Bonus:+{%"
+    ],
+    [
+      "Guardian_Loyalty",
+      "1",
+      "1.00",
+      "26",
+      "1",
+      "1",
+      "1750",
+      "0",
+      "0",
+      "bro_no_way_no_howw"
+    ],
+    [
+      "Talent_Reattainment",
+      "1",
+      "1.75",
+      "30",
+      "300",
+      "1",
+      "1800",
+      "0",
+      "0",
+      "Your_'All_Talent_LVs'_bonuses_now_apply_to_Royal_Guardian_talents,_but_only_up_to_+{_LVs."
+    ],
+    [
+      "Super_Talent_Unban",
+      "1",
+      "1.00",
+      "30",
+      "1",
+      "1",
+      "1850",
+      "0",
+      "0",
+      "You_can_now_'Make_Super'_your_Royal_Guardian_talents."
+    ],
+    [
+      "Greater_Education",
+      "1",
+      "1.00",
+      "31",
+      "1",
+      "1",
+      "1900",
+      "0",
+      "0",
+      "Unlock_the_3rd_upgrade_options_for_all_outposts_across_all_worlds!"
+    ],
+    [
+      "Solo_Militia_Status",
+      "0.1",
+      "1.16",
+      "31",
+      "1000",
+      "4",
+      "1950",
+      "0",
+      "0",
+      "Active_kills_now_count_towards_clearing_monsters_to_build_outposts!_@_Also,_each_kill_has_a_{%_chance_to_count_as_extra!"
+    ],
+    [
+      "Orblet_Pittance",
+      "1",
+      "3.50",
+      "32",
+      "100",
+      "1",
+      "2000",
+      "0",
+      "0",
+      "Adds_a_new_{%_chance_for_the_Orb_of_Verisimilitude_to_drop_a_3rd_orblet_every_1000_kills!"
+    ],
+    [
+      "Blunder_Hills_Militia",
+      "0.25",
+      "10",
+      "33",
+      "10",
+      "1",
+      "2050",
+      "0",
+      "0",
+      "Recruits_a_new_Militia_unit_in_World_1,_which_clear_away_monsters_at_a_rate_of_$/hr_so_you_can_build_more_outposts!"
+    ],
+    [
+      "Yumyum_Desert_Militia",
+      "1",
+      "20",
+      "32",
+      "10",
+      "1",
+      "2100",
+      "0",
+      "0",
+      "Recruits_a_new_Militia_unit_in_World_2,_which_clear_away_monsters_at_a_rate_of_$/hr_so_you_can_build_more_outposts!"
+    ],
+    [
+      "Frostbite_Tundra_Militia",
+      "1",
+      "30",
+      "33",
+      "10",
+      "1",
+      "2150",
+      "0",
+      "0",
+      "Recruits_a_new_Militia_unit_in_World_3,_which_clear_away_monsters_at_a_rate_of_$/hr_so_you_can_build_more_outposts!"
+    ],
+    [
+      "Hyperion_Nebula_Militia",
+      "1",
+      "60",
+      "34",
+      "10",
+      "1",
+      "2250",
+      "0",
+      "0",
+      "Recruits_a_new_Militia_unit_in_World_4,_which_clear_away_monsters_at_a_rate_of_$/hr_so_you_can_build_more_outposts!"
+    ],
+    [
+      "Smouldering_Plateau_Militia",
+      "1",
+      "80",
+      "35",
+      "10",
+      "1",
+      "2300",
+      "0",
+      "0",
+      "Recruits_a_new_Militia_unit_in_World_5,_which_clear_away_monsters_at_a_rate_of_$/hr_so_you_can_build_more_outposts!"
+    ],
+    [
+      "Spirited_Valley_Militia",
+      "1",
+      "100",
+      "35",
+      "10",
+      "1",
+      "2400",
+      "0",
+      "0",
+      "Recruits_a_new_Militia_unit_in_World_6,_which_clear_away_monsters_at_a_rate_of_$/hr_so_you_can_build_more_outposts!"
+    ],
+    [
+      "Shimmerfin_Deep_Militia",
+      "1",
+      "150",
+      "36",
+      "10",
+      "1",
+      "2500",
+      "0",
+      "0",
+      "Recruits_a_new_Militia_unit_in_World_7,_which_clear_away_monsters_at_a_rate_of_$/hr_so_you_can_build_more_outposts!"
+    ],
+    [
+      "World_8_Militia",
+      "1",
+      "4000",
+      "36",
+      "10",
+      "1",
+      "2600",
+      "0",
+      "0",
+      "Recruits_a_new_Militia_unit_in_World_8,_which_clear_away_monsters_at_a_rate_of_$/hr_so_you_can_build_more_outposts!"
+    ],
+    [
+      "Kingdom_Sovereignty",
+      ".25",
+      "4.00",
+      "37",
+      "36",
+      "1",
+      "2700",
+      "0",
+      "0",
+      "Recruits_new_Movable_Unit_every_time_you_buy_this_upgrade!_@_Next_Unit:_$"
+    ],
+    [
+      "Super_Savagery",
+      "1",
+      "2.30",
+      "9",
+      "100",
+      "4",
+      "2800",
+      "0",
+      "0",
+      "Savage_Strongholds_remove_}x_more_resources_than_before!"
+    ],
+    [
+      "Resource_Replenish",
+      "1",
+      "1.05",
+      "9",
+      "1000",
+      "1",
+      "8800",
+      "0",
+      "0",
+      "All_'Empty'_resources_get_refilled_every_day._@_Also,_+{%_Collection_Rate_for_all_Outposts."
+    ],
+    [
+      "Trading_Rank",
+      "1",
+      "10000000.0",
+      "9",
+      "6",
+      "1",
+      "8800",
+      "0",
+      "0",
+      "Each_Trading_Rank_of_an_Outpost_gives_+1_PTS_for_Upgrades.$"
+    ],
+    [
+      "Intel_Rank",
+      "1",
+      "1000000.0",
+      "9",
+      "5",
+      "10",
+      "8800",
+      "0",
+      "0",
+      "Each_Intel_Rank_of_an_Outpost_boosts_the_EXP_gain_of_all_its_Ranks_by_+{%"
+    ],
+    [
+      "Command_Rank_製",
+      "1",
+      "1000000.0",
+      "9",
+      "5",
+      "25",
+      "8800",
+      "0",
+      "0",
+      "Each_Command_Rank_of_an_Outpost_adds_a_permanent_stationary_unit,_and_boosts_the_outpost's_Collection_Rate_by_+{%"
+    ],
+    [
+      "Military_Rank",
+      "1",
+      "1000000.0",
+      "9",
+      "5",
+      "2",
+      "8800",
+      "0",
+      "0",
+      "Each_Military_Rank_of_an_Outpost_boosts_its_connection_range_by_+{px"
+    ],
+    [
+      "Purity_Rank",
+      "1",
+      "1.00",
+      "9",
+      "1",
+      "1",
+      "8800",
+      "0",
+      "0",
+      "Achieving_a_PURITY_Rank_of_1_means_that_Outpost_and_Map_are_Purified._Click_the_膛_button_to_see_Purified_Bonuses."
+    ],
+    [
+      "Farmer_Joe",
+      "1",
+      "1.80",
+      "9",
+      "100",
+      "5",
+      "8800",
+      "0",
+      "0",
+      "Joe_will_tend_to_your_Equinox_Valley,_giving_+{%_Equinox_Bar_Fill_rate_and_spending_full_bars_on_the_upgrade_of_your_choice!"
+    ],
+    [
+      "State-Wide_Propoganda",
+      "1",
+      "2.20",
+      "9",
+      "100",
+      "10",
+      "8800",
+      "0",
+      "0",
+      "Boost_EXP/hr_of_your_chosen_Rank_Type_by_}x,_which_can_be_freely_changed_with_the_arrows_above."
+    ],
+    [
+      "Statue_Flair",
+      "1",
+      "1.00",
+      "9",
+      "1",
+      "1",
+      "8800",
+      "0",
+      "0",
+      "Unlock_the_Statue_Flair_system,_letting_you_spend_Marble_to_boost_normal_Statues_over_at_the_Statue_Man_in_W1_Town!"
+    ],
+    [
+      "Compounding_Outposting",
+      "1",
+      "17",
+      "9",
+      "1",
+      "1",
+      "8800",
+      "0",
+      "0",
+      "Pick_a_stat_to_boost!_More_outposts_built_means_bigger_boost!_@_Currently_giving_$"
+    ],
+    [
+      "Prismatic_Guardian",
+      "1",
+      "2.50",
+      "9",
+      "100",
+      "1",
+      "8800",
+      "0",
+      "0",
+      "Instantly_gain_1_Prisma_Bubble_Fragment!_Spend_these_in_Alchemy_to_boost_your_bubbles!"
+    ],
+    [
+      "Weekly_Skull_Stipend",
+      "1",
+      "2.10",
+      "9",
+      "100",
+      "2",
+      "8800",
+      "0",
+      "0",
+      "Start_each_week_with_{_Killroy_Skulls_over_in_W2_town!"
+    ],
+    [
+      "Ribbonic_Guardian",
+      "1",
+      "20",
+      "9",
+      "20",
+      "3",
+      "8800",
+      "0",
+      "0",
+      "There's_a_{%_chance_for_each_of_the_Ribbons_you_earn_each_day_is_+1_Tier_higher!"
     ]
   ],
   "ArtifactInfo": [
@@ -14646,11 +15669,11 @@
         "20"
       ],
       [
-        "Blank",
-        "A0",
-        "10",
-        "+{%_Base_HP",
-        "3"
+        "fm_rat",
+        "Z27",
+        "100000000",
+        "+{%_Masterclass_Drops_(Passive)",
+        "1"
       ],
       [
         "Blank",
@@ -15340,9 +16363,9 @@
       "Those_Bolt_Cutters_seem_suspicious,_like_they're_part_of_a_secret_entrance_in_the_last_sewer_map!",
       "This_game_will_have_8_entire_worlds,_mark_my_words!",
       "He_sees_a_wild_strawberry,_and_he_plucked_it,_and_he_ate_it..._and_it_was_the_sweetest_tasting_strawberry_he_ever_had.",
-      "Online_courses_offering_'secrets_to_success'_for_hundreds_or_thousands_of_dollars_are_all_scams._Trust_me,_stay_FAR_away_from_them.",
+      "Online_courses_offering_'secrets_to_success'_for_hundreds_or_thousands_of_dollars_are_all_scams..._well_unless_I_ever_have_one!!!!",
       "Keep_an_eye_out_for_those_little_star_symbols_around_the_game..._there's_one_in_the_tree_in_Blunderhills_Town!",
-      "I_sold_my_early_20s_in_order_to_be_here_making_games._I_dont_know_if_I_got_scammed_or_did_the_scamming_lol",
+      "I_sold_my_early_20s_in_order_to_be_here_making_games._EDIT_5_YEARS_LATER,_ok_make_that_entire_20s...",
       "Compare_your_life_to_mine_then_do_nothing_cuz_we're_both_chillin\\",
       "I_don't_even_like_idle_games...",
       "One_of_the_possible_names_for_this_game_was_Not_a_Yardsale._It_stayed_as_a_possiblity_for_a_shockingly_long_time...",
@@ -16034,10 +17057,10 @@
       "txt"
     ],
     [
-      "ROYAL_GUARDIAN",
-      "_",
-      "_",
-      "txt",
+      "+{%_DROP_RATE|MULTIPLIER",
+      "10",
+      "800",
+      "decay",
       "_",
       "_",
       "txt"
@@ -18882,11 +19905,15 @@
       "babaMummy",
       "All_Divinities_from_World_5_count_as_Active",
       "1",
-      "-53",
+      "-66",
       "-22",
       "-14",
       "2000",
-      "165"
+      "165",
+      "3000",
+      "240",
+      "All_Divinities_count_as_Active,_and_1.25x_Divinity_PTS_gain",
+      "1"
     ],
     [
       "rift2",
@@ -18896,7 +19923,11 @@
       "6",
       "-14",
       "450",
-      "125"
+      "125",
+      "2500",
+      "180",
+      "+35_Lv_for_all_Talents",
+      "35"
     ],
     [
       "ram",
@@ -18906,7 +19937,11 @@
       "16",
       "-19",
       "150",
-      "120"
+      "120",
+      "2100",
+      "170",
+      "Use_Storage_Chest_from_anywhere,_and_+30%_Carry_Capacity",
+      "1"
     ],
     [
       "Crystal3",
@@ -18916,7 +19951,11 @@
       "20",
       "-8",
       "150",
-      "110"
+      "110",
+      "1750",
+      "150",
+      "{130%_Drop_Rate_and_Class_Exp",
+      "130"
     ],
     [
       "sheep",
@@ -18926,7 +19965,11 @@
       "0",
       "-11",
       "10",
-      "80"
+      "80",
+      "1500",
+      "130",
+      "All_big_bubbles_in_Alchemy_count_as_equipped",
+      "1"
     ],
     [
       "w5b1",
@@ -18936,7 +19979,11 @@
       "0",
       "-5",
       "10",
-      "70"
+      "70",
+      "1400",
+      "100",
+      "{8%_All_Skill_Efficiency",
+      "8"
     ],
     [
       "beanG",
@@ -18946,7 +19993,11 @@
       "0",
       "-22",
       "10",
-      "65"
+      "65",
+      "1200",
+      "90",
+      "{8%_AFK_Gains_Rate_for_Fighting_and_Skills",
+      "8"
     ],
     [
       "slimeG",
@@ -18956,7 +20007,11 @@
       "0",
       "-1",
       "5",
-      "50"
+      "50",
+      "1000",
+      "80",
+      "+50%_Golden_Balls_earned_in_Arcade_for_Upgrades",
+      "2"
     ],
     [
       "jarSand",
@@ -18966,7 +20021,11 @@
       "0",
       "-3",
       "5",
-      "50"
+      "50",
+      "800",
+      "80",
+      "+20_Base_All_Stats_(STR/AGI/WIS/LUK)",
+      "20"
     ],
     [
       "bloque",
@@ -18976,7 +20035,11 @@
       "0",
       "-17",
       "5",
-      "50"
+      "50",
+      "700",
+      "75",
+      "+30%_All_Skill_EXP",
+      "30"
     ],
     [
       "frogG",
@@ -18986,7 +20049,11 @@
       "0",
       "-5",
       "5",
-      "40"
+      "40",
+      "600",
+      "70",
+      "+15%_Total_Damage",
+      "15"
     ],
     [
       "slimeBz",
@@ -18996,6 +20063,10 @@
       "0",
       "-30",
       "1",
+      "10",
+      "9999",
+      "11",
+      "Only_100_of_these_exist_in_IdleOn...",
       "10"
     ],
     [
@@ -19006,7 +20077,11 @@
       "0",
       "-35",
       "1000",
-      "150"
+      "150",
+      "4700",
+      "230",
+      "15x_Total_Damage",
+      "14"
     ],
     [
       "w6d3",
@@ -19016,7 +20091,11 @@
       "0",
       "-19",
       "250",
-      "140"
+      "140",
+      "3800",
+      "200",
+      "4x_Villager_EXP_and_+33_Opals",
+      "1.34"
     ],
     [
       "rift3",
@@ -19026,7 +20105,11 @@
       "0",
       "-16",
       "250",
-      "135"
+      "135",
+      "3400",
+      "185",
+      "3x_Kills_for_Opening_Portals_and_Deathnote",
+      "1.5"
     ],
     [
       "w6b4",
@@ -19036,7 +20119,11 @@
       "0",
       "-19",
       "100",
-      "110"
+      "110",
+      "2900",
+      "160",
+      "5.00x_faster_Equinox_Bar_Fill_Rate",
+      "4"
     ],
     [
       "Crystal4",
@@ -19046,7 +20133,11 @@
       "0",
       "-5",
       "100",
-      "110"
+      "110",
+      "2800",
+      "160",
+      "2.00x_Lab_EXP_and_Divinity_EXP_Gain",
+      "1"
     ],
     [
       "w5b6",
@@ -19056,7 +20147,11 @@
       "0",
       "-15",
       "100",
-      "100"
+      "100",
+      "2700",
+      "150",
+      "3d_Printer_samples_grow_{2%/day_for_100_days",
+      "2"
     ],
     [
       "frogBIG",
@@ -19066,7 +20161,11 @@
       "0",
       "-29",
       "10",
-      "80"
+      "80",
+      "2200",
+      "125",
+      "{35%_Carry_Capacity_for_all_item_types",
+      "35"
     ],
     [
       "potato",
@@ -19076,7 +20175,11 @@
       "0",
       "-25",
       "10",
-      "70"
+      "70",
+      "1900",
+      "120",
+      "{8%_Ballot_Bonus_Multi_(World_2_feature)",
+      "8"
     ],
     [
       "w4b1",
@@ -19086,7 +20189,11 @@
       "0",
       "-5",
       "10",
-      "60"
+      "60",
+      "1800",
+      "100",
+      "{40_Talent_Points_for_all_classes",
+      "40"
     ],
     [
       "frogP",
@@ -19096,7 +20203,11 @@
       "0",
       "-5",
       "5",
-      "55"
+      "55",
+      "1500",
+      "80",
+      "+20%_Defence",
+      "20"
     ],
     [
       "glass",
@@ -19106,7 +20217,11 @@
       "0",
       "-5",
       "5",
-      "50"
+      "50",
+      "1400",
+      "70",
+      "+20%_Drop_Rate",
+      "20"
     ],
     [
       "mushG",
@@ -19116,7 +20231,11 @@
       "0",
       "-5",
       "5",
-      "30"
+      "30",
+      "1300",
+      "60",
+      "+20%_Accuracy",
+      "20"
     ],
     [
       "Pet10",
@@ -19126,7 +20245,11 @@
       "0",
       "-13",
       "500",
-      "100"
+      "100",
+      "2500",
+      "150",
+      "6x_Coins_from_Mobs",
+      "5"
     ],
     [
       "Pet12",
@@ -19136,7 +20259,11 @@
       "0",
       "-20",
       "500",
-      "110"
+      "110",
+      "2500",
+      "150",
+      "{70%_AFK_Gains",
+      "70"
     ],
     [
       "Pet3",
@@ -19146,7 +20273,11 @@
       "0",
       "0",
       "500",
-      "100"
+      "100",
+      "2900",
+      "150",
+      "1.50x_Drop_Rate",
+      ".5"
     ],
     [
       "reindeer",
@@ -19156,7 +20287,11 @@
       "0",
       "-33",
       "500",
-      "150"
+      "150",
+      "3200",
+      "240",
+      "2.50x_Gold_Ball_Shop_Bonuses",
+      "1.5"
     ],
     [
       "w7d1",
@@ -19166,7 +20301,11 @@
       "0",
       "-48",
       "500",
-      "200"
+      "200",
+      "4500",
+      "300",
+      "{40%_AFK_gains_for_World_7_skills,_and_{2_Worldclass_Showcase_Slots_in_Gallery",
+      "40"
     ],
     [
       "Pet0",
@@ -19176,7 +20315,11 @@
       "0",
       "-8",
       "100",
-      "115"
+      "115",
+      "2700",
+      "170",
+      "1.75x_Kills_for_Opening_Portals_and_Deathnote",
+      ".75"
     ],
     [
       "Pet1",
@@ -19186,7 +20329,11 @@
       "0",
       "-5",
       "100",
-      "110"
+      "110",
+      "3500",
+      "160",
+      "2.5x_Friend_Bonuses,_{3_Friend_Bonus_Slots,_Auto_Loot,_Storage_Quickref_Usage,_Infinite_Teleporting",
+      "1.5"
     ],
     [
       "Pet2",
@@ -19196,7 +20343,11 @@
       "0",
       "-8",
       "100",
-      "170"
+      "170",
+      "3900",
+      "250",
+      "{25%_Hat_Rack_Bonus_Multi",
+      "25"
     ],
     [
       "Pet4",
@@ -19206,7 +20357,11 @@
       "0",
       "-13",
       "100",
-      "125"
+      "125",
+      "2800",
+      "189",
+      "2.5x_Class_EXP_gain_and_2.5x_All_Skill_EXP_gain",
+      "1.5"
     ],
     [
       "Pet5",
@@ -19216,7 +20371,11 @@
       "0",
       "-10",
       "100",
-      "100"
+      "100",
+      "2500",
+      "150",
+      "2.5x_Total_Damage,_and_2.5x_Class_EXP_gain",
+      "1.5"
     ],
     [
       "Pet6",
@@ -19226,7 +20385,11 @@
       "0",
       "-9",
       "100",
-      "80"
+      "80",
+      "2200",
+      "130",
+      "4x_Class_EXP_gain",
+      "3"
     ],
     [
       "Pet8",
@@ -19236,7 +20399,11 @@
       "0",
       "-13",
       "100",
-      "110"
+      "110",
+      "2500",
+      "155",
+      "3x_Refinery_Salts_produced_(affects_POW_produced_in_Refinery)",
+      "2"
     ],
     [
       "Pet11",
@@ -19246,7 +20413,11 @@
       "0",
       "-11",
       "100",
-      "100"
+      "100",
+      "2600",
+      "160",
+      "{300%_Gold_Balls_gained_from_the_Arcade,",
+      "300"
     ],
     [
       "w7e1",
@@ -19256,7 +20427,11 @@
       "20",
       "-33",
       "1000",
-      "150"
+      "150",
+      "4900",
+      "250",
+      "15x_Class_EXP_and_{15_Legend_Talent_PTS",
+      "1.5"
     ],
     [
       "w7a5",
@@ -19266,7 +20441,11 @@
       "0",
       "-15",
       "250",
-      "130"
+      "130",
+      "3800",
+      "200",
+      "6x_Coins_from_monsters,_and_6x_Masterclass_drops",
+      "5"
     ],
     [
       "w7a8",
@@ -19276,7 +20455,11 @@
       "30",
       "-7",
       "250",
-      "115"
+      "115",
+      "3500",
+      "170",
+      "+75%_Meritocracy_Bonus_Multi_(World_7_feature)",
+      "75"
     ],
     [
       "w7a4",
@@ -19286,7 +20469,11 @@
       "20",
       "-19",
       "100",
-      "110"
+      "110",
+      "2800",
+      "160",
+      "2.00x_Daily_Reef_Coral_(World_7_feature)",
+      "1"
     ],
     [
       "Crystal6",
@@ -19296,7 +20483,11 @@
       "0",
       "-14",
       "100",
-      "105"
+      "105",
+      "2700",
+      "150",
+      "{50%_Ballot_Bonus_Multi_(World_2_feature)",
+      "50"
     ],
     [
       "w7a3",
@@ -19306,7 +20497,11 @@
       "28",
       "-17",
       "100",
-      "90"
+      "90",
+      "2600",
+      "140",
+      "{1_Grade_for_3_Gallery_Showcases_(World_7_feature)",
+      "3"
     ],
     [
       "w7a7",
@@ -19316,7 +20511,11 @@
       "0",
       "-19",
       "10",
-      "80"
+      "80",
+      "1900",
+      "125",
+      "1.50x_Artifact_Find_chance_(World_5_feature)",
+      ".50"
     ],
     [
       "w7a10",
@@ -19326,7 +20525,11 @@
       "0",
       "-15",
       "10",
-      "75"
+      "75",
+      "1800",
+      "120",
+      "{1_Friend_Bonus_slot_and_{25%_Friend_Bonuses",
+      "1"
     ],
     [
       "w7a1",
@@ -19336,7 +20539,11 @@
       "0",
       "-5",
       "10",
-      "65"
+      "65",
+      "1750",
+      "100",
+      "2.50x_Coins_from_monsters",
+      "1.50"
     ],
     [
       "coconut",
@@ -19346,7 +20553,11 @@
       "0",
       "-24",
       "5",
-      "60"
+      "60",
+      "1200",
+      "90",
+      "+25%_faster_Alchemy_Brew_Speed",
+      "25"
     ],
     [
       "snakeG",
@@ -19356,7 +20567,11 @@
       "0",
       "-9",
       "5",
-      "55"
+      "55",
+      "900",
+      "80",
+      "+15%_Class_EXP",
+      "15"
     ],
     [
       "mushP",
@@ -19366,7 +20581,11 @@
       "0",
       "-11",
       "5",
-      "50"
+      "50",
+      "600",
+      "70",
+      "+7%_Golden_Food_bonus",
+      "7"
     ],
     [
       "bubba",
@@ -19376,7 +20595,11 @@
       "0",
       "-37",
       "5",
-      "165"
+      "165",
+      "4500",
+      "280",
+      "{50%_Gallery_Bonus_Multi_(World_7_feature)",
+      "50"
     ],
     [
       "snakeR",
@@ -19386,7 +20609,11 @@
       "0",
       "-9",
       "0",
-      "60"
+      "60",
+      "450",
+      "80",
+      "{50%_Class_EXP,_{50%_Drop_Rate,_1.01x_Class_EXP,_and_1.01x_Drop_Rate",
+      "50"
     ],
     [
       "w6c2b",
@@ -19396,7 +20623,11 @@
       "0",
       "-11",
       "100",
-      "130"
+      "130",
+      "2900",
+      "225",
+      "5x_bonuses_from_Orion,_Poppy,_and_Bubba_(and_all_future_Clickers)",
+      "4"
     ],
     [
       "w7b5",
@@ -19406,7 +20637,11 @@
       "0",
       "-18",
       "1",
-      "120"
+      "120",
+      "2500",
+      "180",
+      "1.80x_Research_EXP_gain_(World_7_feature)",
+      ".8"
     ],
     [
       "w7b1b",
@@ -19416,7 +20651,11 @@
       "0",
       "-18",
       "1",
-      "140"
+      "140",
+      "2800",
+      "220",
+      "200x_Gaming_Bits_gained_(World_5_feature)",
+      "199"
     ],
     [
       "w7b6b",
@@ -19426,7 +20665,11 @@
       "0",
       "-26",
       "1",
-      "165"
+      "165",
+      "3900",
+      "250",
+      "{1_new_Research_Shape,_and_a_new_1.15x_Research_EXP_multi",
+      "1"
     ],
     [
       "w7b11",
@@ -19436,7 +20679,11 @@
       "0",
       "-28",
       "1",
-      "200"
+      "200",
+      "4900",
+      "300",
+      "Multiplies_ALL_Research_Grid_bonuses_by_1.20x_(World_7_feature)",
+      "20"
     ],
     [
       "w7b10",
@@ -19446,7 +20693,11 @@
       "0",
       "-30",
       "1",
-      "260"
+      "260",
+      "5400",
+      "370",
+      "Not_officially_in_the_game_and_may_never_be",
+      "1"
     ],
     [
       "w7b12",
@@ -19456,7 +20707,11 @@
       "0",
       "-41",
       "1",
-      "300"
+      "300",
+      "5900",
+      "430",
+      "Glimbo's_Swap_Meet's_prices_are_15.00x_cheaper_(World_7_feature)",
+      "93.34"
     ],
     [
       "bubbab",
@@ -19466,7 +20721,11 @@
       "0",
       "-35",
       "1",
-      "420"
+      "420",
+      "7000",
+      "600",
+      "Not_officially_in_the_game_and_may_never_be",
+      "1"
     ],
     [
       "acorn",
@@ -19476,7 +20735,11 @@
       "0",
       "0",
       "1",
-      "60"
+      "60",
+      "9999",
+      "99",
+      "Not_officially_in_the_game_and_may_never_be",
+      "1"
     ],
     [
       "babaHour",
@@ -19486,7 +20749,11 @@
       "0",
       "0",
       "1",
-      "150"
+      "150",
+      "9999",
+      "99",
+      "Not_officially_in_the_game_and_may_never_be",
+      "1"
     ],
     [
       "babayaga",
@@ -19496,7 +20763,11 @@
       "0",
       "0",
       "1",
-      "150"
+      "150",
+      "9999",
+      "99",
+      "Not_officially_in_the_game_and_may_never_be",
+      "1"
     ],
     [
       "branch",
@@ -19506,7 +20777,11 @@
       "0",
       "0",
       "1",
-      "55"
+      "55",
+      "9999",
+      "99",
+      "Not_officially_in_the_game_and_may_never_be",
+      "1"
     ],
     [
       "carrotO",
@@ -19516,7 +20791,11 @@
       "0",
       "0",
       "1",
-      "80"
+      "80",
+      "9999",
+      "99",
+      "Not_officially_in_the_game_and_may_never_be",
+      "1"
     ],
     [
       "caveA",
@@ -19526,7 +20805,11 @@
       "0",
       "0",
       "1",
-      "100"
+      "100",
+      "9999",
+      "99",
+      "Not_officially_in_the_game_and_may_never_be",
+      "1"
     ],
     [
       "caveB",
@@ -19536,7 +20819,11 @@
       "0",
       "0",
       "1",
-      "100"
+      "100",
+      "9999",
+      "99",
+      "Not_officially_in_the_game_and_may_never_be",
+      "1"
     ],
     [
       "crabcake",
@@ -19546,7 +20833,11 @@
       "0",
       "0",
       "1",
-      "60"
+      "60",
+      "9999",
+      "99",
+      "Not_officially_in_the_game_and_may_never_be",
+      "1"
     ],
     [
       "crabcakeB",
@@ -19556,7 +20847,11 @@
       "0",
       "0",
       "1",
-      "100"
+      "100",
+      "9999",
+      "99",
+      "Not_officially_in_the_game_and_may_never_be",
+      "1"
     ],
     [
       "Crystal0",
@@ -19566,7 +20861,11 @@
       "0",
       "0",
       "1",
-      "105"
+      "105",
+      "9999",
+      "99",
+      "Not_officially_in_the_game_and_may_never_be",
+      "1"
     ],
     [
       "Crystal1",
@@ -19576,7 +20875,11 @@
       "0",
       "0",
       "1",
-      "105"
+      "105",
+      "9999",
+      "99",
+      "Not_officially_in_the_game_and_may_never_be",
+      "1"
     ],
     [
       "Crystal2",
@@ -19586,7 +20889,11 @@
       "0",
       "0",
       "1",
-      "100"
+      "100",
+      "9999",
+      "99",
+      "Not_officially_in_the_game_and_may_never_be",
+      "1"
     ],
     [
       "Crystal5",
@@ -19596,7 +20903,11 @@
       "0",
       "0",
       "1",
-      "100"
+      "100",
+      "9999",
+      "99",
+      "Not_officially_in_the_game_and_may_never_be",
+      "1"
     ],
     [
       "demonP",
@@ -19606,7 +20917,11 @@
       "0",
       "0",
       "1",
-      "100"
+      "100",
+      "9999",
+      "99",
+      "Not_officially_in_the_game_and_may_never_be",
+      "1"
     ],
     [
       "frogGG",
@@ -19616,7 +20931,11 @@
       "0",
       "0",
       "1",
-      "125"
+      "125",
+      "9999",
+      "99",
+      "Not_officially_in_the_game_and_may_never_be",
+      "1"
     ],
     [
       "frogR",
@@ -19626,7 +20945,11 @@
       "0",
       "0",
       "1",
-      "120"
+      "120",
+      "9999",
+      "99",
+      "Not_officially_in_the_game_and_may_never_be",
+      "1"
     ],
     [
       "frogY",
@@ -19636,7 +20959,11 @@
       "0",
       "0",
       "1",
-      "110"
+      "110",
+      "9999",
+      "99",
+      "Not_officially_in_the_game_and_may_never_be",
+      "1"
     ],
     [
       "ghost",
@@ -19646,7 +20973,11 @@
       "0",
       "0",
       "1",
-      "100"
+      "100",
+      "9999",
+      "99",
+      "Not_officially_in_the_game_and_may_never_be",
+      "1"
     ],
     [
       "goblinG",
@@ -19656,7 +20987,11 @@
       "0",
       "0",
       "1",
-      "45"
+      "45",
+      "9999",
+      "99",
+      "Not_officially_in_the_game_and_may_never_be",
+      "1"
     ],
     [
       "mamoth",
@@ -19666,7 +21001,11 @@
       "0",
       "0",
       "1",
-      "100"
+      "100",
+      "9999",
+      "99",
+      "Not_officially_in_the_game_and_may_never_be",
+      "1"
     ],
     [
       "mimicA",
@@ -19676,7 +21015,11 @@
       "0",
       "0",
       "1",
-      "40"
+      "40",
+      "9999",
+      "99",
+      "Not_officially_in_the_game_and_may_never_be",
+      "1"
     ],
     [
       "moonman",
@@ -19686,7 +21029,11 @@
       "0",
       "0",
       "1",
-      "70"
+      "70",
+      "9999",
+      "99",
+      "Not_officially_in_the_game_and_may_never_be",
+      "1"
     ],
     [
       "mushR",
@@ -19696,7 +21043,11 @@
       "0",
       "0",
       "1",
-      "40"
+      "40",
+      "9999",
+      "99",
+      "Not_officially_in_the_game_and_may_never_be",
+      "1"
     ],
     [
       "mushW",
@@ -19706,7 +21057,11 @@
       "0",
       "0",
       "1",
-      "100"
+      "100",
+      "9999",
+      "99",
+      "Not_officially_in_the_game_and_may_never_be",
+      "1"
     ],
     [
       "pincermin",
@@ -19716,7 +21071,11 @@
       "0",
       "0",
       "1",
-      "95"
+      "95",
+      "9999",
+      "99",
+      "Not_officially_in_the_game_and_may_never_be",
+      "1"
     ],
     [
       "plank",
@@ -19726,7 +21085,11 @@
       "0",
       "0",
       "1",
-      "50"
+      "50",
+      "9999",
+      "99",
+      "Not_officially_in_the_game_and_may_never_be",
+      "1"
     ],
     [
       "potatoB",
@@ -19736,7 +21099,11 @@
       "0",
       "0",
       "1",
-      "110"
+      "110",
+      "9999",
+      "99",
+      "Not_officially_in_the_game_and_may_never_be",
+      "1"
     ],
     [
       "ratB",
@@ -19746,7 +21113,11 @@
       "0",
       "0",
       "1",
-      "90"
+      "90",
+      "9999",
+      "99",
+      "Not_officially_in_the_game_and_may_never_be",
+      "1"
     ],
     [
       "rift1",
@@ -19756,7 +21127,11 @@
       "0",
       "-15",
       "1",
-      "160"
+      "160",
+      "3000",
+      "240",
+      "4x_Cooking_Mastery_EXP_gain_and_{7_PTS_for_Cooking_Mastery",
+      "1.5"
     ],
     [
       "rift4",
@@ -19766,7 +21141,11 @@
       "0",
       "-11",
       "1",
-      "170"
+      "170",
+      "3500",
+      "255",
+      "{75%_Prisma_Bubble_bonus_multi_and_{7_Prisma_Bubbles",
+      "1.5"
     ],
     [
       "sheepB",
@@ -19776,7 +21155,11 @@
       "0",
       "0",
       "1",
-      "100"
+      "100",
+      "9999",
+      "99",
+      "Not_officially_in_the_game_and_may_never_be",
+      "1"
     ],
     [
       "sandcastle",
@@ -19786,7 +21169,11 @@
       "0",
       "0",
       "1",
-      "45"
+      "45",
+      "9999",
+      "99",
+      "Not_officially_in_the_game_and_may_never_be",
+      "1"
     ],
     [
       "sandgiant",
@@ -19796,7 +21183,11 @@
       "0",
       "0",
       "1",
-      "105"
+      "105",
+      "9999",
+      "99",
+      "Not_officially_in_the_game_and_may_never_be",
+      "1"
     ],
     [
       "shovelR",
@@ -19806,7 +21197,11 @@
       "0",
       "0",
       "1",
-      "50"
+      "50",
+      "9999",
+      "99",
+      "Not_officially_in_the_game_and_may_never_be",
+      "1"
     ],
     [
       "shovel",
@@ -19816,7 +21211,11 @@
       "0",
       "0",
       "1",
-      "100"
+      "100",
+      "9999",
+      "99",
+      "Not_officially_in_the_game_and_may_never_be",
+      "1"
     ],
     [
       "skele",
@@ -19826,7 +21225,11 @@
       "0",
       "0",
       "1",
-      "100"
+      "100",
+      "9999",
+      "99",
+      "Not_officially_in_the_game_and_may_never_be",
+      "1"
     ],
     [
       "skele2",
@@ -19836,7 +21239,11 @@
       "0",
       "0",
       "1",
-      "100"
+      "100",
+      "9999",
+      "99",
+      "Not_officially_in_the_game_and_may_never_be",
+      "1"
     ],
     [
       "slimeB",
@@ -19846,7 +21253,11 @@
       "0",
       "0",
       "1",
-      "100"
+      "100",
+      "9999",
+      "99",
+      "Not_officially_in_the_game_and_may_never_be",
+      "1"
     ],
     [
       "slimmer",
@@ -19856,7 +21267,11 @@
       "0",
       "0",
       "1",
-      "100"
+      "100",
+      "9999",
+      "99",
+      "Not_officially_in_the_game_and_may_never_be",
+      "1"
     ],
     [
       "snailZ",
@@ -19866,7 +21281,11 @@
       "0",
       "0",
       "1",
-      "115"
+      "115",
+      "9999",
+      "99",
+      "Not_officially_in_the_game_and_may_never_be",
+      "1"
     ],
     [
       "snakeB",
@@ -19876,7 +21295,11 @@
       "0",
       "-5",
       "1",
-      "100"
+      "100",
+      "1500",
+      "140",
+      "All_Upgrade_Vault_upgrades_are_75%_cheaper!",
+      "75"
     ],
     [
       "snakeY",
@@ -19886,7 +21309,11 @@
       "0",
       "0",
       "1",
-      "100"
+      "100",
+      "9999",
+      "99",
+      "Not_officially_in_the_game_and_may_never_be",
+      "1"
     ],
     [
       "snowball",
@@ -19896,7 +21323,11 @@
       "0",
       "0",
       "1",
-      "100"
+      "100",
+      "9999",
+      "99",
+      "Not_officially_in_the_game_and_may_never_be",
+      "1"
     ],
     [
       "speaker",
@@ -19906,7 +21337,11 @@
       "0",
       "0",
       "1",
-      "100"
+      "100",
+      "9999",
+      "99",
+      "Not_officially_in_the_game_and_may_never_be",
+      "1"
     ],
     [
       "steak",
@@ -19916,7 +21351,11 @@
       "0",
       "0",
       "1",
-      "85"
+      "85",
+      "9999",
+      "99",
+      "Not_officially_in_the_game_and_may_never_be",
+      "1"
     ],
     [
       "steakR",
@@ -19926,7 +21365,11 @@
       "0",
       "0",
       "1",
-      "100"
+      "100",
+      "9999",
+      "99",
+      "Not_officially_in_the_game_and_may_never_be",
+      "1"
     ],
     [
       "thermostat",
@@ -19936,7 +21379,11 @@
       "0",
       "0",
       "1",
-      "100"
+      "100",
+      "9999",
+      "99",
+      "Not_officially_in_the_game_and_may_never_be",
+      "1"
     ],
     [
       "w4a2",
@@ -19946,7 +21393,11 @@
       "0",
       "0",
       "1",
-      "100"
+      "100",
+      "9999",
+      "99",
+      "Not_officially_in_the_game_and_may_never_be",
+      "1"
     ],
     [
       "w4a3",
@@ -19956,7 +21407,11 @@
       "0",
       "0",
       "1",
-      "100"
+      "100",
+      "9999",
+      "99",
+      "Not_officially_in_the_game_and_may_never_be",
+      "1"
     ],
     [
       "w4b2",
@@ -19966,7 +21421,11 @@
       "0",
       "0",
       "1",
-      "100"
+      "100",
+      "9999",
+      "99",
+      "Not_officially_in_the_game_and_may_never_be",
+      "1"
     ],
     [
       "w4b3",
@@ -19976,7 +21435,11 @@
       "0",
       "0",
       "1",
-      "100"
+      "100",
+      "9999",
+      "99",
+      "Not_officially_in_the_game_and_may_never_be",
+      "1"
     ],
     [
       "w4b4",
@@ -19986,7 +21449,11 @@
       "0",
       "0",
       "1",
-      "100"
+      "100",
+      "9999",
+      "99",
+      "Not_officially_in_the_game_and_may_never_be",
+      "1"
     ],
     [
       "w4c1",
@@ -19996,7 +21463,11 @@
       "0",
       "0",
       "1",
-      "60"
+      "60",
+      "1200",
+      "100",
+      "{150%_Class_EXP_and_Drop_Rate",
+      "150"
     ],
     [
       "w4c2",
@@ -20006,7 +21477,11 @@
       "0",
       "0",
       "1",
-      "100"
+      "100",
+      "9999",
+      "99",
+      "Not_officially_in_the_game_and_may_never_be",
+      "1"
     ],
     [
       "w4c3",
@@ -20016,7 +21491,11 @@
       "0",
       "0",
       "1",
-      "100"
+      "100",
+      "9999",
+      "99",
+      "Not_officially_in_the_game_and_may_never_be",
+      "1"
     ],
     [
       "w4c4",
@@ -20026,7 +21505,11 @@
       "0",
       "0",
       "1",
-      "100"
+      "100",
+      "9999",
+      "99",
+      "Not_officially_in_the_game_and_may_never_be",
+      "1"
     ],
     [
       "w5a1",
@@ -20036,7 +21519,11 @@
       "0",
       "0",
       "1",
-      "100"
+      "100",
+      "9999",
+      "99",
+      "Not_officially_in_the_game_and_may_never_be",
+      "1"
     ],
     [
       "w5a2",
@@ -20046,7 +21533,11 @@
       "0",
       "0",
       "1",
-      "100"
+      "100",
+      "9999",
+      "99",
+      "Not_officially_in_the_game_and_may_never_be",
+      "1"
     ],
     [
       "w5a3",
@@ -20056,7 +21547,11 @@
       "0",
       "0",
       "1",
-      "100"
+      "100",
+      "9999",
+      "99",
+      "Not_officially_in_the_game_and_may_never_be",
+      "1"
     ],
     [
       "w5a4",
@@ -20066,7 +21561,11 @@
       "0",
       "0",
       "1",
-      "100"
+      "100",
+      "9999",
+      "99",
+      "Not_officially_in_the_game_and_may_never_be",
+      "1"
     ],
     [
       "w5a5",
@@ -20076,7 +21575,11 @@
       "0",
       "0",
       "1",
-      "100"
+      "100",
+      "9999",
+      "99",
+      "Not_officially_in_the_game_and_may_never_be",
+      "1"
     ],
     [
       "w5b3",
@@ -20086,7 +21589,11 @@
       "0",
       "0",
       "1",
-      "100"
+      "100",
+      "9999",
+      "99",
+      "Not_officially_in_the_game_and_may_never_be",
+      "1"
     ],
     [
       "w5b4",
@@ -20096,7 +21603,11 @@
       "0",
       "0",
       "1",
-      "100"
+      "100",
+      "9999",
+      "99",
+      "Not_officially_in_the_game_and_may_never_be",
+      "1"
     ],
     [
       "w5b5",
@@ -20106,7 +21617,11 @@
       "0",
       "0",
       "1",
-      "100"
+      "100",
+      "9999",
+      "99",
+      "Not_officially_in_the_game_and_may_never_be",
+      "1"
     ],
     [
       "w5c1",
@@ -20116,7 +21631,11 @@
       "0",
       "0",
       "1",
-      "100"
+      "100",
+      "9999",
+      "99",
+      "Not_officially_in_the_game_and_may_never_be",
+      "1"
     ],
     [
       "w5c2",
@@ -20126,7 +21645,11 @@
       "0",
       "0",
       "1",
-      "100"
+      "100",
+      "9999",
+      "99",
+      "Not_officially_in_the_game_and_may_never_be",
+      "1"
     ],
     [
       "w6a1",
@@ -20136,17 +21659,25 @@
       "0",
       "0",
       "1",
-      "100"
+      "100",
+      "9999",
+      "99",
+      "Not_officially_in_the_game_and_may_never_be",
+      "1"
     ],
     [
       "w6a2",
-      "Not_officially_in_the_game_and_may_never_be",
+      "4x_Summoning_EXP_gain",
+      "3",
+      "-13",
+      "0",
+      "-3",
       "1",
-      "0",
-      "0",
-      "0",
-      "1",
-      "100"
+      "160",
+      "2700",
+      "225",
+      "7x_Summoning_EXP_gain",
+      "6"
     ],
     [
       "w6a3",
@@ -20156,7 +21687,11 @@
       "0",
       "0",
       "1",
-      "100"
+      "100",
+      "9999",
+      "99",
+      "Not_officially_in_the_game_and_may_never_be",
+      "1"
     ],
     [
       "w6a4",
@@ -20166,7 +21701,11 @@
       "0",
       "-4",
       "1",
-      "100"
+      "100",
+      "1500",
+      "140",
+      "{300%_Class_EXP_and_1.75x_Class_EXP_Multi",
+      "300"
     ],
     [
       "w6a5",
@@ -20176,7 +21715,11 @@
       "0",
       "0",
       "1",
-      "100"
+      "100",
+      "9999",
+      "99",
+      "Not_officially_in_the_game_and_may_never_be",
+      "1"
     ],
     [
       "w6b1",
@@ -20186,7 +21729,11 @@
       "0",
       "0",
       "1",
-      "100"
+      "100",
+      "9999",
+      "99",
+      "Not_officially_in_the_game_and_may_never_be",
+      "1"
     ],
     [
       "w6b2",
@@ -20196,7 +21743,11 @@
       "0",
       "0",
       "1",
-      "100"
+      "100",
+      "9999",
+      "99",
+      "Not_officially_in_the_game_and_may_never_be",
+      "1"
     ],
     [
       "w6b3",
@@ -20206,7 +21757,11 @@
       "0",
       "-18",
       "1",
-      "175"
+      "175",
+      "3500",
+      "265",
+      "{300%_Drop_Rate_and_1.70x_Drop_Rate_Multi",
+      "300"
     ],
     [
       "w6c1",
@@ -20216,7 +21771,11 @@
       "0",
       "0",
       "1",
-      "100"
+      "100",
+      "9999",
+      "99",
+      "Not_officially_in_the_game_and_may_never_be",
+      "1"
     ],
     [
       "w6c2",
@@ -20226,7 +21785,11 @@
       "0",
       "0",
       "1",
-      "100"
+      "100",
+      "9999",
+      "99",
+      "Not_officially_in_the_game_and_may_never_be",
+      "1"
     ],
     [
       "w6d1",
@@ -20236,7 +21799,11 @@
       "0",
       "0",
       "1",
-      "195"
+      "195",
+      "4300",
+      "300",
+      "3x_LVs_for_Monuments_Bonuses_when_selecting_Rewards!",
+      "200"
     ],
     [
       "w6d2",
@@ -20246,7 +21813,11 @@
       "0",
       "0",
       "1",
-      "100"
+      "100",
+      "9999",
+      "99",
+      "Not_officially_in_the_game_and_may_never_be",
+      "1"
     ],
     [
       "w7a2",
@@ -20256,7 +21827,11 @@
       "0",
       "0",
       "1",
-      "100"
+      "100",
+      "9999",
+      "99",
+      "Not_officially_in_the_game_and_may_never_be",
+      "1"
     ],
     [
       "w7a6",
@@ -20266,7 +21841,11 @@
       "0",
       "0",
       "1",
-      "100"
+      "100",
+      "9999",
+      "99",
+      "Not_officially_in_the_game_and_may_never_be",
+      "1"
     ],
     [
       "w7a9",
@@ -20276,7 +21855,11 @@
       "0",
       "0",
       "1",
-      "100"
+      "100",
+      "9999",
+      "99",
+      "Not_officially_in_the_game_and_may_never_be",
+      "1"
     ],
     [
       "w7a11",
@@ -20286,17 +21869,25 @@
       "0",
       "0",
       "1",
-      "100"
+      "100",
+      "9999",
+      "99",
+      "Not_officially_in_the_game_and_may_never_be",
+      "1"
     ],
     [
       "w7a12",
-      "Not_officially_in_the_game_and_may_never_be",
+      "3x_Resources_from_Outposts_for_Royal_Guardian",
+      "2",
+      "-31",
+      "0",
+      "-35",
       "1",
-      "0",
-      "0",
-      "0",
-      "1",
-      "100"
+      "200",
+      "4400",
+      "310",
+      "5x_Resources_from_Outposts_for_Royal_Guardian",
+      "4"
     ],
     [
       "w7b1",
@@ -20306,7 +21897,11 @@
       "0",
       "0",
       "1",
-      "100"
+      "100",
+      "9999",
+      "99",
+      "Not_officially_in_the_game_and_may_never_be",
+      "1"
     ],
     [
       "w7b2",
@@ -20316,7 +21911,11 @@
       "0",
       "-19",
       "1",
-      "190"
+      "190",
+      "3700",
+      "280",
+      "30x_total_Spelunking_POW,_and_3x_Minehead_Currency_Gain!",
+      "30"
     ],
     [
       "w7b3",
@@ -20326,7 +21925,11 @@
       "0",
       "0",
       "1",
-      "100"
+      "100",
+      "9999",
+      "99",
+      "Not_officially_in_the_game_and_may_never_be",
+      "1"
     ],
     [
       "w7b4",
@@ -20336,7 +21939,11 @@
       "0",
       "0",
       "1",
-      "180"
+      "180",
+      "3000",
+      "275",
+      "4x_Class_EXP_gain",
+      "3"
     ],
     [
       "w7b6",
@@ -20346,7 +21953,11 @@
       "0",
       "0",
       "1",
-      "100"
+      "100",
+      "9999",
+      "99",
+      "Not_officially_in_the_game_and_may_never_be",
+      "1"
     ],
     [
       "w7b7",
@@ -20356,27 +21967,39 @@
       "0",
       "-33",
       "1",
-      "160"
+      "160",
+      "2750",
+      "240",
+      "All_bonuses_from_The_Button_in_W7_are_1.75x_bigger",
+      "75"
     ],
     [
-      "w7b8zzz",
+      "w7b8",
+      "Both_+200_and_1.20x_Max_Stamina_for_Spelunking!",
+      "20",
+      "0",
+      "0",
+      "0",
+      "1",
+      "185",
+      "3500",
+      "280",
+      "Both_+350_and_1.35x_Max_Stamina_for_Spelunking!",
+      "35"
+    ],
+    [
+      "w7b9",
       "Not_officially_in_the_game_and_may_never_be",
       "1",
       "0",
       "0",
       "0",
       "1",
-      "100"
-    ],
-    [
-      "w7b9zzz",
+      "220",
+      "4150",
+      "320",
       "Not_officially_in_the_game_and_may_never_be",
-      "1",
-      "0",
-      "0",
-      "0",
-      "1",
-      "100"
+      "1"
     ],
     [
       "T1a",
@@ -20386,7 +22009,11 @@
       "0",
       "-19",
       "1",
-      "10"
+      "10",
+      "9999",
+      "12",
+      "Congratulations_on_winning_the_Tournament!",
+      "1"
     ],
     [
       "T1b",
@@ -20396,7 +22023,11 @@
       "0",
       "-19",
       "1",
-      "10"
+      "10",
+      "9999",
+      "12",
+      "Congratulations_on_winning_the_Tournament!",
+      "1"
     ],
     [
       "T1c",
@@ -20406,7 +22037,11 @@
       "0",
       "-24",
       "1",
-      "10"
+      "10",
+      "9999",
+      "12",
+      "Congratulations_on_winning_the_Tournament!",
+      "1"
     ],
     [
       "rift5",
@@ -20416,7 +22051,11 @@
       "0",
       "-20",
       "1",
-      "225"
+      "225",
+      "4500",
+      "325",
+      "{15_Research_PTS,_{30%_Research_AFK_Gains,_3x_Research_EXP_Gain,_and_{1_Magnifier",
+      "1"
     ],
     [
       "w7b3b",
@@ -20426,7 +22065,11 @@
       "0",
       "-22",
       "1",
-      "160"
+      "160",
+      "2800",
+      "230",
+      "2x_Kills_multi,_and_3x_Artifact_Find_Chance_for_Sailing!",
+      "1"
     ],
     [
       "w4b4b",
@@ -20436,7 +22079,11 @@
       "0",
       "-9",
       "1",
-      "175"
+      "175",
+      "3000",
+      "250",
+      "{4000%_additive_Gold_Food_bonus_effect",
+      "4000"
     ],
     [
       "slimeR",
@@ -20446,7 +22093,11 @@
       "0",
       "-2",
       "1",
-      "60"
+      "60",
+      "500",
+      "90",
+      "{25%_Total_Damage",
+      "25"
     ],
     [
       "Pet7",
@@ -20456,7 +22107,11 @@
       "0",
       "-10",
       "1",
-      "110"
+      "110",
+      "2100",
+      "175",
+      "3x_Construction_Build_Speed",
+      "200"
     ],
     [
       "slugG",
@@ -20466,7 +22121,11 @@
       "0",
       "5",
       "1",
-      "65"
+      "65",
+      "1250",
+      "100",
+      "{20%_Drop_Rate",
+      "20"
     ],
     [
       "PotG",
@@ -20476,7 +22135,11 @@
       "0",
       "-5",
       "1",
-      "110"
+      "110",
+      "2000",
+      "170",
+      "4x_Coins_from_Mobs",
+      "3"
     ],
     [
       "slimeB",
@@ -20486,7 +22149,11 @@
       "0",
       "-34",
       "1",
-      "230"
+      "230",
+      "5400",
+      "350",
+      "5x_Total_Damage,_9x_Class_EXP_gain,_2x_Drop_Rate",
+      "1"
     ],
     [
       "poppy",
@@ -20496,7 +22163,11 @@
       "0",
       "-15",
       "1",
-      "235"
+      "235",
+      "5800",
+      "380",
+      "2.5x_bonuses_from_Bonus_Ballot_and_Multi_Meritocracy",
+      "150"
     ],
     [
       "w6b2b",
@@ -20506,7 +22177,11 @@
       "0",
       "0",
       "1",
-      "165"
+      "165",
+      "3000",
+      "245",
+      "All_meals_are_8x_cheaper_to_level_up,_and_give_1.40x_higher_bonuses!",
+      "1.6"
     ],
     [
       "w5b5b",
@@ -20516,7 +22191,11 @@
       "0",
       "0",
       "1",
-      "190"
+      "190",
+      "3750",
+      "290",
+      "150x_Jade_Gain,_60x_Ninja_Stealth,_and_3.25x_Sneaking_EXP",
+      "1.5"
     ],
     [
       "T2a",
@@ -20526,7 +22205,11 @@
       "0",
       "-5",
       "1",
-      "10"
+      "10",
+      "9999",
+      "12",
+      "Congratulations_on_winning_the_Tournament!",
+      "1"
     ],
     [
       "T2b",
@@ -20536,7 +22219,11 @@
       "0",
       "-5",
       "1",
-      "10"
+      "10",
+      "9999",
+      "12",
+      "Congratulations_on_winning_the_Tournament!",
+      "1"
     ],
     [
       "T2c",
@@ -20546,17 +22233,25 @@
       "0",
       "-5",
       "1",
-      "10"
+      "10",
+      "9999",
+      "12",
+      "Congratulations_on_winning_the_Tournament!",
+      "1"
     ],
     [
       "fm_frog",
-      "Thank_you_for_rescuing_me_from_the_Fortune_Mill!",
+      "Thanks_a_million_for_rescuing_me_from_the_Fortune_Mill!",
       "1",
       "-18",
       "0",
       "-34",
       "1",
-      "177"
+      "177",
+      "1000",
+      "277",
+      "Thanks_a_million_for_rescuing_me_from_the_Fortune_Mill,_for_real!",
+      "1"
     ],
     [
       "caveD",
@@ -20566,7 +22261,11 @@
       "0",
       "-33",
       "1",
-      "210"
+      "210",
+      "4000",
+      "310",
+      "1.75x_Damage,_1.60x_Class_EXP,_1.45x_Drop_Rate,_and_1.30x_extra_Kills",
+      "1.5"
     ],
     [
       "fm_goose",
@@ -20576,7 +22275,81 @@
       "0",
       "-23",
       "1",
-      "250"
+      "250",
+      "5900",
+      "380",
+      "All_daily_ribbons_have_a_50%_chance_to_be_+1_Tier,_40%_for_+4_Tiers,_and_10%_for_+8_Tiers",
+      "1"
+    ],
+    [
+      "r0a",
+      "1.25x_Total_Damage",
+      "0.25",
+      "-8",
+      "0",
+      "-17",
+      "1",
+      "130",
+      "2500",
+      "225",
+      "1.35x_Total_Damage",
+      "0.35"
+    ],
+    [
+      "r0b",
+      "{100%_additive_Crystal_Monster_Spawn_chance",
+      "100",
+      "-28",
+      "0",
+      "-30",
+      "1",
+      "180",
+      "4400",
+      "300",
+      "{175%_additive_Crystal_Monster_Spawn_chance",
+      "175"
+    ],
+    [
+      "r0c",
+      "{20%_Marble_and_Parchment_drop_rate_for_Royal_Guardians",
+      "20",
+      "-48",
+      "0",
+      "-33",
+      "1",
+      "220",
+      "5500",
+      "390",
+      "{35%_Marble_and_Parchment_drop_rate_for_Royal_Guardians",
+      "35"
+    ],
+    [
+      "r0d",
+      "The_lord_of_amber_herself_is_keeping_her_bonus_a_secret..._for_now...",
+      "1",
+      "-100",
+      "0",
+      "-60",
+      "1",
+      "480",
+      "7200",
+      "650",
+      "Bonus_still_unknown..._for_now...",
+      "1"
+    ],
+    [
+      "fm_rat",
+      "+10000%_additive_Gold_Food_bonus_effect_and_1.50x_multiplier_to_Gold_Food",
+      "1",
+      "-56",
+      "0",
+      "-43",
+      "1",
+      "280",
+      "6800",
+      "410",
+      "+20000%_additive_Gold_Food_bonus_effect_and_2x_multiplier_to_Gold_Food",
+      "2"
     ]
   ],
   "CompanionDefLANG": [
@@ -20742,8 +22515,8 @@
       "0,10,0,1,3,6,10,11|12,23,12,14,17,20,23,12|37,48,37,39,42,45,48,12"
     ],
     [
-      "24,25,26,27,28,29,30,31,32,33,34,35,36,49,50,51,52,53,54,55,56,57,128,132,143,154,155,156,99,157,111,145,158,159,147,162,87,88,153,163,135,167,168",
-      "11,58,150,151,152,160,161,164,165,166,169"
+      "24,25,26,27,28,29,30,31,32,33,34,35,36,49,50,51,52,53,54,55,56,57,126,128,132,143,154,155,156,99,157,111,145,158,159,141,147,162,87,88,153,163,135,167,168,170,171,172",
+      "11,58,150,151,152,160,161,164,165,166,169,173,174"
     ],
     []
   ],
@@ -23584,10 +25357,15 @@
       "w7b1",
       "w7b2",
       "w7b3",
+      "w7b11",
+      "w7b12",
       "w7b4",
       "w7b5",
       "w7b6",
-      "w7b7"
+      "w7b7",
+      "w7b8",
+      "w7b9",
+      "w7b10"
     ]
   ],
   "DivStyle": [
@@ -26077,6 +27855,22 @@
       "25",
       "bin_p",
       "MAMA_TROLL_PACK"
+    ],
+    [
+      "148",
+      "5300",
+      "2500",
+      "27",
+      "bin_q",
+      "GLOWING_PACK"
+    ],
+    [
+      "149",
+      "5250",
+      "3000",
+      "34",
+      "bin_r",
+      "ANCIENT_PACK"
     ]
   ],
   "ExpBarHues": [
@@ -51369,10 +53163,10 @@
     [
       "6_O'Clock_Crystals",
       "1",
-      "2000",
+      "300",
       "filler",
       "}x_more_Daily_Guaranteed_Crystal_Mobs",
-      "You_know_how_you're_guaranteed_to_spawn_$_Crystal_Mobs_every_day?_Well_that'll_be_}x_higher_with_this_talent!"
+      "}x_more_Guaranteed_Crystal_Mobs_every_day._You_currently_get_$_daily_guaranteed."
     ],
     [
       "Shrine_World_Order_Bill",
@@ -52405,82 +54199,82 @@
       ],
       [
         [
-          "InvStorageZ",
-          "STORAGE_CHEST",
-          "IMPORTANT:_This_is_from_a_previous_event,_don't_buy_this_if_you_already_got_it_years_ago!_This_gives_16_Storage_Chest_slots_when_used_for_the_first_time!",
-          "2000",
+          "EquipmentHats140",
+          "LEGION_COMMANDER_HAT",
+          "Comes_with_a_small_+3%_Marble_Drop_Rate_bonus,_which_will_help_your_Royal_Guardian!",
+          "790",
           "87",
           "1",
           "1",
           "0"
         ],
         [
-          "EquipmentNametag8",
-          "SUMMER_SHOVEL_NAMETAG",
-          "This_nifty_nametag_gives_15%_EXP_from_Mobs_and_+4%_ALL_STAT_bonuses._It's_humble_in_it's_greatness!",
-          "900",
+          "Timecandy9",
+          "COSMIC_TIME_CANDY",
+          "A_time_candy_that_gives_a_random_amount_of_time_for_a_nonrandom_cost_of_gems?_How_inexplicable!_@_These_candies_give_up_to_500_hours_of_AFK_time,_but_on_average_give_24_hrs.",
+          "395",
           "88",
+          "20",
+          "1",
+          "0"
+        ],
+        [
+          "EquipmentRings37",
+          "WORLD_6_KILLS_RING",
+          "All_kills_in_World_6_count_1.30x_more_for_opening_portals_to_the_next_map._Helps_you_get_to_World_7_faster!",
+          "810",
+          "89",
           "2",
           "1",
           "0"
         ],
         [
-          "Quest49",
-          "SUMMER_COOLER",
-          "FREEBIE!_This_will_help_you_get_that_new_Sun_Hat..._hopefully...",
-          "1",
-          "89",
-          "1",
-          "50",
+          "RibbonBig16",
+          "LEGEND_TIER_RIBBON",
+          "Gives_you_a_random_ribbon_for_your_Ribbon_Shelf,_found_at_the_Meals_Menu_in_World_4!_35%_chance_for_Tier_13,_30%_chance_for_Tier_14,_20%_for_Tier_15,_10%_for_Tier_16,_and_5%_for_Tier_17!",
+          "990",
+          "90",
+          "10",
+          "0",
           "0"
         ],
         [
-          "EquipmentHats35",
-          "DEMON_HORNS",
-          "It_used_to_be_the_most_expensive_item_in_the_gemshop..._well,_it_still_is,_but_it_used_to_be_as_well._Don't_buy_this_for_stats_or_you_gon_be_big_angy.",
-          "3000",
-          "90",
+          "GemQ18",
+          "5_STAR_CARDIFIER",
+          "TWO_FREEBIES?!?!_Use_these_on_a_4_star_card_to_upgrade_it_to_5_stars!_It_works_like_4_star_cardifiers_do,_you_get_to_choose_which_card_gets_upgraded!",
           "1",
-          "1",
+          "91",
+          "2",
+          "0",
           "0"
         ],
         [
           "GemQ19",
           "6_STAR_CARDIFIER",
-          "Use_this_on_a_5_star_card_to_upgrade_it_to_6_stars!_You_get_to_choose_which_card_gets_upgraded,_no_randomness_involved!_Use_these_in_Codex.",
+          "Use_this_on_a_5_star_card_to_upgrade_it_to_6_stars!_It_works_like_5_star_cardifiers_do,_you_get_to_choose_which_card_gets_upgraded,_no_randomness_involved.",
           "880",
-          "91",
+          "92",
+          "6",
+          "0",
+          "0"
+        ],
+        [
+          "GemP39",
+          "EXALTED_STAMPS",
+          "Lets_you_turn_a_stamp_of_your_choice_into_an_Exalted_Stamp!_These_gives_2.00x_their_bonus,_or_even_up_to_3.00x_and_beyond_using_your_Windwalker's_Compass!",
+          "1100",
+          "93",
           "1",
           "0",
           "0"
         ],
         [
-          "EquipmentHats122",
-          "ARCANIST_CROWN",
-          "Comes_with_a_+25%_Extra_Tachyon_multiplier,_which_will_help_upgrade_the_Tesseract_while_playing_on_your_Arcane_Cultist!",
-          "790",
-          "92",
-          "1",
-          "1",
-          "0"
-        ],
-        [
-          "EquipmentPendant31",
+          "Blank",
           "DEATHBLOSSOM_PENDANT",
           "This_necklace_equipment_comes_with_a_1.30X_Damage_Multi_bonus,_and_+20%_Mob_Respawn_bonus!",
           "870",
-          "93",
-          "2",
-          "1",
-          "0"
-        ],
-        [
-          "Blank",
-          "RESEARCH_PAPERS",
-          "50%_OFF_NORMAL_PRICE!_Use_this_to_instantly_get_2_hours_of_Research_gains!_Research_EXP,_Minehead_currency,_and_Sushi_currency!",
-          "195",
           "94",
-          "50",
+          "2",
           "1",
           "0"
         ]
@@ -53025,7 +54819,7 @@
     "frogG",
     "Nothing",
     "Nothing",
-    "Z",
+    "Nothing",
     "Z",
     "Z",
     "Z",
@@ -54351,8 +56145,8 @@
         300
       ],
       [
-        999,
-        999,
+        9999,
+        9999,
         0
       ]
     ],
@@ -54366,8 +56160,8 @@
         300
       ],
       [
-        999,
-        2999921,
+        9999,
+        9999,
         0
       ]
     ],
@@ -54381,8 +56175,8 @@
         300
       ],
       [
-        999,
-        99999,
+        9999,
+        9999,
         0
       ]
     ],
@@ -54427,7 +56221,7 @@
         300
       ],
       [
-        536,
+        532,
         142,
         1
       ]
@@ -54442,7 +56236,7 @@
         300
       ],
       [
-        487,
+        470,
         130,
         1
       ]
@@ -54457,8 +56251,8 @@
         300
       ],
       [
-        333,
-        179,
+        345,
+        180,
         0
       ]
     ],
@@ -54505,7 +56299,7 @@
       ],
       [
         754,
-        207,
+        204,
         0
       ]
     ],
@@ -54535,8 +56329,8 @@
         300
       ],
       [
-        511,
-        139,
+        501,
+        136,
         1
       ]
     ],
@@ -54582,7 +56376,7 @@
       ],
       [
         765,
-        175,
+        169,
         0
       ]
     ],
@@ -54702,8 +56496,8 @@
         300
       ],
       [
-        631,
-        297,
+        627,
+        299,
         0
       ]
     ],
@@ -54763,8 +56557,8 @@
         999
       ],
       [
-        782,
-        217,
+        793,
+        227,
         0
       ]
     ],
@@ -54778,7 +56572,7 @@
         999
       ],
       [
-        763,
+        793,
         130,
         0
       ]
@@ -54868,8 +56662,8 @@
         999
       ],
       [
-        649,
-        244,
+        9999,
+        9999,
         1
       ]
     ],
@@ -54944,7 +56738,7 @@
       ],
       [
         662,
-        149,
+        135,
         1
       ]
     ],
@@ -54953,13 +56747,13 @@
         0
       ],
       [
-        0,
+        15,
         999,
         999
       ],
       [
-        9999,
-        9999,
+        300,
+        900,
         0
       ]
     ],
@@ -55080,8 +56874,8 @@
         500
       ],
       [
-        398,
-        200,
+        388,
+        188,
         0
       ]
     ],
@@ -55126,8 +56920,8 @@
         500
       ],
       [
-        215,
-        161,
+        230,
+        157,
         0
       ]
     ],
@@ -55141,8 +56935,8 @@
         500
       ],
       [
-        199,
-        195,
+        197,
+        185,
         0
       ]
     ],
@@ -55232,8 +57026,8 @@
         500
       ],
       [
-        225,
-        211,
+        227,
+        215,
         0
       ]
     ],
@@ -55412,8 +57206,8 @@
         999
       ],
       [
-        443,
-        206,
+        442,
+        208,
         1
       ]
     ],
@@ -55939,8 +57733,8 @@
         600
       ],
       [
-        691,
-        283,
+        683,
+        285,
         0
       ]
     ],
@@ -55970,7 +57764,7 @@
       ],
       [
         698,
-        214,
+        208,
         0
       ]
     ],
@@ -57396,8 +59190,8 @@
         600
       ],
       [
-        551,
-        294,
+        541,
+        292,
         0
       ]
     ],
@@ -57426,8 +59220,8 @@
         600
       ],
       [
-        426,
-        266,
+        418,
+        280,
         0
       ]
     ],
@@ -57442,7 +59236,7 @@
       ],
       [
         400,
-        257,
+        243,
         0
       ]
     ],
@@ -57456,8 +59250,8 @@
         600
       ],
       [
-        333,
-        261,
+        341,
+        264,
         0
       ]
     ],
@@ -57471,8 +59265,8 @@
         600
       ],
       [
-        296,
-        250,
+        290,
+        249,
         0
       ]
     ],
@@ -58946,8 +60740,8 @@
         600
       ],
       [
-        368,
-        122,
+        364,
+        118,
         0
       ]
     ],
@@ -59203,8 +60997,8 @@
         600
       ],
       [
-        533,
-        203,
+        523,
+        201,
         0
       ]
     ],
@@ -59268,7 +61062,7 @@
     "Grandfrog's_Gazebo",
     "Pet_Park",
     "Grand_Owl_Perch",
-    "Z",
+    "The_Royal_Castle",
     "Z",
     "Z",
     "Z",
@@ -59548,7 +61342,7 @@
     "Where_the_Kelp_Meets_Trench",
     "Trench_Precipice",
     "The_Glowing_Underbelly",
-    "fillername",
+    "Ancient_Fissure",
     "fillername",
     "Pirate_Mess_Hall",
     "Dreadnaught_Chamber"
@@ -59597,7 +61391,7 @@
     "Toadstall",
     "Pet_Dog",
     "_",
-    "Z",
+    "_",
     "Z",
     "Z",
     "Z",
@@ -59926,7 +61720,7 @@
     "Dungeon1",
     "GrasslandsF",
     "GrasslandsG",
-    "Z",
+    "GrasslandsH",
     "Z",
     "Z",
     "Z",
@@ -64509,7 +66303,8 @@
       "mini3a",
       "mini4a",
       "mini5a",
-      "mini6a"
+      "mini6a",
+      "fm_rat"
     ],
     [
       "+{%_DMG",
@@ -64630,6 +66425,9 @@
       "90",
       "100",
       "101",
+      "118",
+      "119",
+      "120",
       "95",
       "97",
       "103",
@@ -64868,13 +66666,13 @@
       "Coin_Stacking_@_Get_a_1.50x_multiplier_to_ALL_coin_gain,_and_profit_big_time!",
       "15",
       "Storage_Chest_@_Get_+12_storage_slots_for_your_storage_chest",
-      "15",
+      "20",
       "Storage_Vault_@_Get_+16_storage_slots_for_your_storage_chest",
       "40",
       "Secret_Pouch_@_Get_+3_Inventory_slots_for_your_Items_Backpack",
       "30",
       "Ribbon_Connoisseur_@_Get_+3_more_ribbons_every_day_for_your_Ribbon_Shelf",
-      "55",
+      "60",
       "Golden_Square_@_Get_+1_Trimmed_Construction_slot,_which_has_3x_speed!",
       "23",
       "Summoning_Star_@_Get_+10_Summoning_Doublers,_used_on_Summoning_Upgrades!",
@@ -64886,7 +66684,7 @@
       "Extra_Exaltedness_@_Get_+1_Exalted_Stamp_use,_and_+20%_Exalt_Bonus.",
       "35",
       "Smiley_Statue_@_All_statues_give_1.30x_higher_bonuses,_forever!",
-      "70",
+      "90",
       "Government_Subsidy_@_Get_1.60x_more_coins_from_defeating_monsters!",
       "17",
       "Automated_Mail_@_Get_+5_Boxes_at_the_Post_Office_every_day_you_play!",
@@ -64908,7 +66706,7 @@
       "Worldclass_Showcase_@_Turns_a_Gallery_Slot_in_World_7_to_Grade_4",
       "180",
       "King_of_the_Rack_@_+10%_Hat_Rack_Bonus_Multi",
-      "30",
+      "35",
       "Omega_Bubble_@_Kattlekruk_divinity_gives_1.50x_more_daily_bubbles",
       "90",
       "Legend_Scroll_@_Get_+2_more_Legend_Talent_PTS_for_World_7",
@@ -64948,7 +66746,17 @@
       "Doggie_Sticker_@_Boosts_Sticker_odds_by_2x_daily,_resets_when_finding_one",
       "250",
       "6_Star_Cardifiers_@_Gives_you_EIGHT_usable_6star_cardifiers!",
-      "200"
+      "200",
+      "Elegant_Ribbons_@_New_ribbons_have_25%_chance_to_be_+1_Tier_higher!",
+      "190",
+      "Fishmaxxing_@_5x_Fish_and_75%_cheaper_upgrades_for_Poppy!",
+      "275",
+      "Dough_Roller_@_2x_Cooking_Speed",
+      "50",
+      "Bejeweled_Ladle_@_+5_Purple_and_Yellow_PTS_for_Cooking_Mastery!",
+      "250",
+      "Boat_Discount_@_All_sailing_boat_upgrades_are_30%_cheaper",
+      "100"
     ],
     [
       "ForestBOSS",
@@ -65007,7 +66815,7 @@
       "100",
       "0",
       "You're_guaranteed_}x_more_Crystal_Mobs_than_normal_to_start_each_day",
-      "900",
+      "100",
       "0",
       "Get_}x_more_Worship_PTS_while_playing_Tower_Defence",
       "100",
@@ -66729,6 +68537,98 @@
       33,
       0,
       1
+    ]
+  ],
+  "OrbletMarket": [
+    [
+      "EMULSION",
+      "2",
+      "50",
+      "5",
+      "1",
+      "1",
+      "{%_chance_to_get_1M_statues_worth_of_Statue_EXP_when_a_Zenith_Cluster_is_formed!"
+    ],
+    [
+      "HYDRATION",
+      "3",
+      "1.08",
+      "200",
+      "5",
+      "1",
+      "+{%_Resource_Collection_for_all_Outposts"
+    ],
+    [
+      "TALENTED",
+      "5",
+      "1.120",
+      "100",
+      "1",
+      "1",
+      "+{_Talent_Points_for_Royal_Guardians"
+    ],
+    [
+      "FULL_CLEAR",
+      "10",
+      "1.250",
+      "50",
+      "1",
+      "4",
+      "+{%_extra_kills_for_Clearing_Mobs_in_order_to_build_new_outposts!"
+    ],
+    [
+      "GLORIFICATION",
+      "25",
+      "1.250",
+      "50",
+      "4",
+      "1",
+      "$"
+    ],
+    [
+      "INTERVENE",
+      "20",
+      "1.125",
+      "100",
+      "1",
+      "1",
+      "}x_higher_chance_for_Regal_Intervention_to_trigger!"
+    ],
+    [
+      "STRONK_RANK",
+      "50",
+      "1.200",
+      "50",
+      "5",
+      "1",
+      "All_kingdom_units_generate_Rank_EXP_+{%_faster"
+    ],
+    [
+      "BARGAIN",
+      "100",
+      "1.50",
+      "25",
+      "10",
+      "1",
+      "All_Masterclass_upgrades_cost_+{%_less_than_before"
+    ],
+    [
+      "LONG_RANGE",
+      "200",
+      "1.105",
+      "20",
+      "1",
+      "1",
+      "All_Outposts_get_+{px_longer_connection_range"
+    ],
+    [
+      "PARCHMORE",
+      "500",
+      "1.150",
+      "100",
+      "1",
+      "1",
+      "+{%_Parchment_of_Enchantment_Drop_Rate_from_Verminous_Rats"
     ]
   ],
   "Owlz": [
@@ -72161,7 +74061,18 @@
       "1400000000",
       "1600000000",
       "1800000000",
-      "2000000000"
+      "2000000000",
+      "5000000000.0",
+      "15000000000.0",
+      "60000000000.0",
+      "100000000000.0",
+      "400000000000.0",
+      "800000000000.0",
+      "2000000000000.0",
+      "5000000000000.0",
+      "30000000000000.0",
+      "500000000000000.0",
+      "10000000000000000.0"
     ],
     [
       "51",
@@ -73014,8 +74925,8 @@
       "186"
     ],
     [
-      "Summer_Event_v1.19",
-      "*The_Summer_Event_is_HERE!_Collect_50_coolers_from_mobs_every_day_for_event_items_and_a_free_play_at_the_Buried_Treasure_event_game!_@_*FOR_THIS_EVENT_ONLY,_if_you_kill_a_single_monster_you_get_a_unique_PET_BONUS_TOKEN!_Use_it_to_get_the_bonus_of_ANY_pet_you_want!!_If_you_ever_get_the_pet_later_by_buying_it_or_from_trading,_your_token_is_REFUNDED_and_you_can_use_it_on_a_different_bonus!_@_*New_Friend_Bonus,_exclusive_to_this_event,_the_EXTRA_KILLS_bonus!_Go_give_it_to_a_friend_in_need!_@_*New_Map,_with_a_new_monster!_The_GLOWFISH_is_the_toughest_mob_in_the_game_with_5,000T_crystal_HP,_but_their_passive_Research_EXP_makes_them_more_than_worth_farming!_@_*Added_touchable_grass_to_World_1_maps,_watch_out!_@_*Friend_Bonus_max_is_increased_beyond_Lv._12000!_@_*Buffed_many_upgrades_in_Cavern_18,_including_Killionaire,_Slop_Drop,_Droplier,_and_Droplier+_@_*Fixed_the_Cardiovascular_and_Pulsation_star_talent_book_drops_from_W1_Minibosses.",
+      "World_7_Taskmaster_v1.21",
+      "薪_@_*World 7 Tasks are here! Unlock them via Wavey Wayne in the top-left corner of the W7 town! There are 4 Tasks to complete up to 10 times each, and 5 upgrades to buy in the Merit Shop!_@_*New Sushi Upgrade COMBO METER added to early game (you_have_to_buy_it_first,_it's_a_new_upgrade_found toward the top of the upgrade list) - rack up hits by combining sushi (including heat of the east wind) using only the sushi on board, cooking new sushi breaks the combo!_@__@_蔓_@_*Added a new Advanced Feature, found within Options: 'Hide Item Pickup Status' - enable this to help game performance whenever you see fit_@_*Added Auto Play to the Event Game! It will play with the same solid strategy I used to simulate odds._@__@_蓬_@_*Pet Tokens spent on Tournament Champion pets are refunded, now and forever, just like they are with Glunko Supreme._@_* Made some endgame visual adjustments for Spelunking to help with game performance._@_*The spelunking upgrade 'Ambery Supply Swap' was changed from '25x amber & 20x less amber drops'_to '15x amber & 10x less amber drops'. I will continue to adjust this upgrade until it is strictly beneficial to have, in case this change doesn't quite do such. _@__@_蔬_@_*Fixed the new 'Emulsion' system that gave Statue EXP when creating Zenith Clusters from disappearing your emulsion gains sometimes._@_*Fixed the 3rd Outpust upgrade (Greater Education, boosts Rank EXP gain) to give its full bonus._@_*Fixed Research K5 upgrade to specify it only affects all OG masterclasses - Deathbringer, Windwalker, Arcane Cultist_@_*Fixed a graphical error with Bubba Megaflesh, where it was too low on the screen and overlapping with bubba's speech bubble_@_*Fixed issue regarding Pig+ taking teleports away",
       "*Le Monde 6 est arrivé, avec tout ce que vous pourriez souhaiter ! De nouveaux monstres, de nouvelles compétences, de nouvelles cartes, de nouveaux tampons, de nouvelles bulles, de nouvelles fioles, de nouvelles statues, de nouveaux équipements, tellement de nouveautés ! @ *Vous pouvez découvrir le Monde 6 vous-même, à la place, ces notes de mise à jour concernent tous les changements de cette mise à jour non liés au Monde 6. @ *Nouvel affichage des pièces ajouté ! Collectez 100 pièces Godshard pour voir ce que je veux dire ! @ *Le succès Trial by Time peut désormais être complété à n'importe quelle vitesse de déplacement. @ *Mise à l'échelle du bonus ajustée sur la 6ème bulle de chaque couleur. C'est un buff pour toute personne en dessous du niveau de bulle 300, sinon c'est un nerf. @ * Correction du problème où les archers glissaient lorsqu'ils essayaient de combattre des foules protégées. @ *Les attaques au canon de Siege Breaker apparaissent désormais derrière lui.",
       "*Welt 6 ist da, mit allem, was Sie sich nur wünschen können! Neue Monster, neue Fähigkeiten, neue Karten, neue Stempel, neue Blasen, neue Fläschchen, neue Statuen, neue Ausrüstung, so viel neues Zeug! @ *Sie können Welt 6 selbst entdecken. Stattdessen gelten diese Patchnotizen für alle Änderungen in diesem Update, die nicht mit Welt 6 zusammenhängen. @ *Neue Münzanzeige hinzugefügt! Sammle 100 Godshard-Münzen, um zu sehen, was ich meine! @ *Die Errungenschaft „Prüfung durch Zeit“ kann jetzt bei jeder Bewegungsgeschwindigkeit abgeschlossen werden. @ *Bonusskalierung für die 6. Blase jeder Farbe angepasst. Es ist ein Buff für alle unter Bubble Lv 300, andernfalls ist es ein Nerf. @ *Das Problem wurde behoben, bei dem Bogenschützen herumrutschten, wenn sie versuchten, gegen abgeschirmte Mobs zu kämpfen. @ *Die Kanonenangriffe von Belagerungsbrecher erscheinen jetzt hinter ihm.",
       "*원하는 모든 것을 갖춘 월드 6이 도착했습니다! 새로운 몬스터, 새로운 기술, 새로운 지도, 새로운 우표, 새로운 거품, 새로운 약병, 새로운 조각상, 새로운 장비, 너무나 많은 새로운 것들! @ *월드 6를 직접 발견하실 수 있습니다. 대신 이 패치 노트는 월드 6과 관련되지 않은 이번 업데이트의 모든 변경 사항에 대한 것입니다. @ *새로운 코인 표시가 추가되었습니다! 100개의 갓샤드 동전을 모아 무슨 뜻인지 알아보세요! @ *이제 모든 이동 속도에서 시간별 시험 업적을 완료할 수 있습니다. @ *각 색상의 6번째 버블에 대한 보너스 스케일링을 조정했습니다. 버블 Lv 300 미만인 사람에게는 버프이고, 그렇지 않으면 너프입니다. @ *방어막이 있는 몹과 싸울 때 궁수가 미끄러지는 문제를 수정했습니다. @ *Siege Breaker의 대포 공격이 이제 그의 뒤에서 생성됩니다.",
@@ -74337,7 +76248,8 @@
       "Sad_Urie",
       "Bloo_Radley",
       "Toobus_Goobus",
-      "Zenelith"
+      "Zenelith",
+      "Wavey_Wayne"
     ]
   ],
   "RandoListo2": [
@@ -77979,6 +79891,496 @@
       "-",
       "*FILLERZ_&*FILLERZ_&*FILLERZ",
       "0"
+    ],
+    [
+      "Valley_Visitor",
+      "1",
+      "Reach_World_6,_the_Spirited_Valley!_You'll_love_it_here,_all_the_spirits_are_very_friendly!",
+      "{10%_Money_for_all_&characters",
+      "0"
+    ],
+    [
+      "Scorin'_the_Ladies",
+      "1",
+      "Have_a_stack_of_exactly_250,000_Ladybugs_in_your_Storage_Chest.",
+      "{10%_Catching_&Efficiency",
+      "0"
+    ],
+    [
+      "Effervess_Enthusiess",
+      "1",
+      "Have_a_stack_of_exactly_5,000,000_Effervescent_Logs_in_your_Storage_Chest.",
+      "{10%_Choppin_Efficiency",
+      "0"
+    ],
+    [
+      "That's_MY_Crown",
+      "1",
+      "Have_a_stack_of_exactly_100,000,000_Royal_Headpiece_in_your_Storage_Chest.",
+      "*Dharma_Mesa_BG",
+      "0"
+    ],
+    [
+      "Leet_Lanterns",
+      "1",
+      "SECRET_ACHIEVEMENT_------------------------_Oh_yea,_that's_a_good_number._Sure,_it's_no_69420,_but_it's_vintage!",
+      "{4%_Damage_for_all_&characters",
+      "0"
+    ],
+    [
+      "Lil'_Overgrowth",
+      "1",
+      "Get_an_overgrowth_of_32x_on_a_single_crop.",
+      "*1.05x_Crop_Evo_&chance",
+      "0"
+    ],
+    [
+      "Major_Overgrowth",
+      "1",
+      "Get_an_overgrowth_of_1,024x_on_a_single_crop.",
+      "{15%_Farming_EXP",
+      "0"
+    ],
+    [
+      "Unreal_Overgrowth",
+      "1",
+      "Get_an_overgrowth_of_8,192x_on_a_single_crop.",
+      "{20%_Class_EXP",
+      "0"
+    ],
+    [
+      "Doctor_Repellant",
+      "1",
+      "Have_10,000_or_more_Apple_crops_in_your_Depot_at_once._You_can_lock_the_first_crop_before_it_grows_to_guarantee_an_apple!",
+      "*W6_Shop_EZ_Access",
+      "0"
+    ],
+    [
+      "Cob_Enjoyer",
+      "1",
+      "Have_1,000,000_or_more_Corn_crops_in_your_Depot_at_once._Mmmm,_Corn!",
+      "{15%_All_Skill_EXP",
+      "0"
+    ],
+    [
+      "Science_Undergrad",
+      "1",
+      "Find_30_unique_crops,_as_shown_by_the_Crop_Scientist!",
+      "{10%_Farm_EXP",
+      "0"
+    ],
+    [
+      "Science_Graduate",
+      "1",
+      "Find_70_unique_crops,_as_shown_by_the_Crop_Scientist!",
+      "*Spirit_Fields_BG",
+      "0"
+    ],
+    [
+      "Science_Post_Doc",
+      "1",
+      "Find_110_unique_crops,_as_shown_by_the_Crop_Scientist!",
+      "{1%_All_Stat_&for_all_characters",
+      "0"
+    ],
+    [
+      "Crop_Flooding",
+      "1",
+      "SECRET_ACHIEVEMENT_------------------------_That's..._That's_enough..._THAT'S_ENOUGH_WATER!_THAT'S_ENOUGH!",
+      "{5%_Magic_Beans_&from_Legumulyte",
+      "0"
+    ],
+    [
+      "Legumulucky",
+      "1",
+      "Make_a_crop_trade_with_the_Legumulyte_worth_exactly_777_magic_beans.",
+      "{2%_Damage_for_all_&characters",
+      "0"
+    ],
+    [
+      "Big_Time_Land_Owner",
+      "1",
+      "Get_27_plots_of_land_in_your_farm.",
+      "*1.15x_Crop_OG_Chance",
+      "0"
+    ],
+    [
+      "Ceramic_Sneaking",
+      "1",
+      "Reach_the_Sneaking_Floor_with_the_Petrified_Ceramist_guest.",
+      "*1.03x_Jade_Gain",
+      "0"
+    ],
+    [
+      "Top_Floor_Sneaking",
+      "1",
+      "Reach_what_seems_like_the_top_Floor_of_Sneaking_with_the_Eldar_Kingulyte_guest.",
+      "*1.07x_Jade_Gain",
+      "0"
+    ],
+    [
+      "Untying_Extraordinaire",
+      "1",
+      "Untie_6_other_Ninja_Twins.",
+      "*1.05x_Stealth_for_&all_Ninja_Twins",
+      "0"
+    ],
+    [
+      "Lucky_Stealy",
+      "1",
+      "Successfully_find_6_items_in_a_row,_in_a_single_AFK_claim_within_Sneaking.",
+      "*1.05x_Jade_Gain",
+      "0"
+    ],
+    [
+      "Yellow_Belt",
+      "1",
+      "Find_a_论50_Yellow_Belt_Sneaking_Charm._Yes,_exactly_论50.",
+      "{10%_Sneaking_EXP_gain",
+      "0"
+    ],
+    [
+      "Straw_Hat_Stacking",
+      "1",
+      "SECRET_ACHIEVEMENT_------------------------_It's_a_shame_you_can't_wear_them_all_at_once...",
+      "*1.01x_DMG_Multiplier_&for_all_characters",
+      "0"
+    ],
+    [
+      "Best_Bloomie",
+      "1",
+      "Get_a_Bloomy_Summoning_Familiar.",
+      "*1.05x_All_Essence_&Gain",
+      "0"
+    ],
+    [
+      "Regalis_My_Beloved",
+      "1",
+      "Get_a_Regalis_Summoning_Familiar.",
+      "*1.01x_larger_Winners_&Bonuses_from_Summoning",
+      "0"
+    ],
+    [
+      "This,_is,_Summoning!",
+      "1",
+      "Survive_for_5_minutes_in_The_King's_Gambit._Find_this_feature_in_Cavern_14_of_the_Hole_in_world_5.",
+      "*1.05x_All_Essence_&Gain",
+      "0"
+    ],
+    [
+      "Summoning_CM",
+      "1",
+      "Get_10_Career_Wins_within_Summoning",
+      "{3%_Damage_for_all_&characters",
+      "0"
+    ],
+    [
+      "Summoning_IM",
+      "1",
+      "Get_25_Career_Wins_within_Summoning",
+      "{20%_Money_for_all_&characters",
+      "0"
+    ],
+    [
+      "Summoning_GM",
+      "1",
+      "Get_58_Career_Wins_within_Summoning",
+      "{6%_Drop_Rate_&for_all_characters",
+      "0"
+    ],
+    [
+      "Penta_Defence",
+      "1",
+      "Reach_Wave_50_in_Breezy_Battle_without_placing_more_than_5_Towers_in_total.",
+      "*Lullaby_Airways_BG",
+      "0"
+    ],
+    [
+      "Spectre_Stars",
+      "1",
+      "Complete_all_constellations_in_the_Spirited_Valley._You_can_check_your_progress_within_the_Telescope.",
+      "*1.01x_larger_Winners_&Bonuses_from_Summoning",
+      "0"
+    ],
+    [
+      "Beanstacker_Trainee",
+      "1",
+      "Add_5_different_golden_foods_to_The_Beanstalk.",
+      "{2%_All_Golden_Food_&Bonuses",
+      "0"
+    ],
+    [
+      "Big_Big_Hampter",
+      "1",
+      "SECRET_ACHIEVEMENT_------------------------_Hampter_is_worth_it!",
+      "{4%_Drop_Rate_&for_all_characters",
+      "0"
+    ],
+    [
+      "Ghost_Buster",
+      "1",
+      "SECRET_ACHIEVEMENT_------------------------_You_took_out_the_baddest_spirit_of_them_all!",
+      "*Bamboo_Forest_BG",
+      "0"
+    ],
+    [
+      "Beanstacker_Prodigy",
+      "1",
+      "Add_14_different_golden_foods_to_The_Beanstalk.",
+      "{3%_All_Golden_Food_&Bonuses",
+      "0"
+    ],
+    [
+      "W6_is_Donezo",
+      "1",
+      "Get_a_Lava_Skull_or_higher_on_every_Spirited_Valley_monster_in_the_Deathnote.",
+      "*1.01x_DMG_Multiplier_&for_all_characters",
+      "0"
+    ],
+    [
+      "FILLERZZZ_ACH",
+      "20",
+      "-",
+      "*FILLERZ_&*FILLERZ_&*FILLERZ",
+      "0"
+    ],
+    [
+      "FILLERZZZ_ACH",
+      "20",
+      "-",
+      "*FILLERZ_&*FILLERZ_&*FILLERZ",
+      "0"
+    ],
+    [
+      "FILLERZZZ_ACH",
+      "20",
+      "-",
+      "*FILLERZ_&*FILLERZ_&*FILLERZ",
+      "0"
+    ],
+    [
+      "FILLERZZZ_ACH",
+      "20",
+      "-",
+      "*FILLERZ_&*FILLERZ_&*FILLERZ",
+      "0"
+    ],
+    [
+      "FILLERZZZ_ACH",
+      "20",
+      "-",
+      "*FILLERZ_&*FILLERZ_&*FILLERZ",
+      "0"
+    ],
+    [
+      "FILLERZZZ_ACH",
+      "20",
+      "-",
+      "*FILLERZ_&*FILLERZ_&*FILLERZ",
+      "0"
+    ],
+    [
+      "FILLERZZZ_ACH",
+      "20",
+      "-",
+      "*FILLERZ_&*FILLERZ_&*FILLERZ",
+      "0"
+    ],
+    [
+      "FILLERZZZ_ACH",
+      "20",
+      "-",
+      "*FILLERZ_&*FILLERZ_&*FILLERZ",
+      "0"
+    ],
+    [
+      "FILLERZZZ_ACH",
+      "20",
+      "-",
+      "*FILLERZ_&*FILLERZ_&*FILLERZ",
+      "0"
+    ],
+    [
+      "FILLERZZZ_ACH",
+      "20",
+      "-",
+      "*FILLERZ_&*FILLERZ_&*FILLERZ",
+      "0"
+    ],
+    [
+      "FILLERZZZ_ACH",
+      "20",
+      "-",
+      "*FILLERZ_&*FILLERZ_&*FILLERZ",
+      "0"
+    ],
+    [
+      "FILLERZZZ_ACH",
+      "20",
+      "-",
+      "*FILLERZ_&*FILLERZ_&*FILLERZ",
+      "0"
+    ],
+    [
+      "FILLERZZZ_ACH",
+      "20",
+      "-",
+      "*FILLERZ_&*FILLERZ_&*FILLERZ",
+      "0"
+    ],
+    [
+      "FILLERZZZ_ACH",
+      "20",
+      "-",
+      "*FILLERZ_&*FILLERZ_&*FILLERZ",
+      "0"
+    ],
+    [
+      "FILLERZZZ_ACH",
+      "20",
+      "-",
+      "*FILLERZ_&*FILLERZ_&*FILLERZ",
+      "0"
+    ],
+    [
+      "FILLERZZZ_ACH",
+      "20",
+      "-",
+      "*FILLERZ_&*FILLERZ_&*FILLERZ",
+      "0"
+    ],
+    [
+      "FILLERZZZ_ACH",
+      "20",
+      "-",
+      "*FILLERZ_&*FILLERZ_&*FILLERZ",
+      "0"
+    ],
+    [
+      "FILLERZZZ_ACH",
+      "20",
+      "-",
+      "*FILLERZ_&*FILLERZ_&*FILLERZ",
+      "0"
+    ],
+    [
+      "FILLERZZZ_ACH",
+      "20",
+      "-",
+      "*FILLERZ_&*FILLERZ_&*FILLERZ",
+      "0"
+    ],
+    [
+      "FILLERZZZ_ACH",
+      "20",
+      "-",
+      "*FILLERZ_&*FILLERZ_&*FILLERZ",
+      "0"
+    ],
+    [
+      "FILLERZZZ_ACH",
+      "20",
+      "-",
+      "*FILLERZ_&*FILLERZ_&*FILLERZ",
+      "0"
+    ],
+    [
+      "FILLERZZZ_ACH",
+      "20",
+      "-",
+      "*FILLERZ_&*FILLERZ_&*FILLERZ",
+      "0"
+    ],
+    [
+      "FILLERZZZ_ACH",
+      "20",
+      "-",
+      "*FILLERZ_&*FILLERZ_&*FILLERZ",
+      "0"
+    ],
+    [
+      "FILLERZZZ_ACH",
+      "20",
+      "-",
+      "*FILLERZ_&*FILLERZ_&*FILLERZ",
+      "0"
+    ],
+    [
+      "FILLERZZZ_ACH",
+      "20",
+      "-",
+      "*FILLERZ_&*FILLERZ_&*FILLERZ",
+      "0"
+    ],
+    [
+      "FILLERZZZ_ACH",
+      "20",
+      "-",
+      "*FILLERZ_&*FILLERZ_&*FILLERZ",
+      "0"
+    ],
+    [
+      "FILLERZZZ_ACH",
+      "20",
+      "-",
+      "*FILLERZ_&*FILLERZ_&*FILLERZ",
+      "0"
+    ],
+    [
+      "FILLERZZZ_ACH",
+      "20",
+      "-",
+      "*FILLERZ_&*FILLERZ_&*FILLERZ",
+      "0"
+    ],
+    [
+      "FILLERZZZ_ACH",
+      "20",
+      "-",
+      "*FILLERZ_&*FILLERZ_&*FILLERZ",
+      "0"
+    ],
+    [
+      "FILLERZZZ_ACH",
+      "20",
+      "-",
+      "*FILLERZ_&*FILLERZ_&*FILLERZ",
+      "0"
+    ],
+    [
+      "FILLERZZZ_ACH",
+      "20",
+      "-",
+      "*FILLERZ_&*FILLERZ_&*FILLERZ",
+      "0"
+    ],
+    [
+      "FILLERZZZ_ACH",
+      "20",
+      "-",
+      "*FILLERZ_&*FILLERZ_&*FILLERZ",
+      "0"
+    ],
+    [
+      "FILLERZZZ_ACH",
+      "20",
+      "-",
+      "*FILLERZ_&*FILLERZ_&*FILLERZ",
+      "0"
+    ],
+    [
+      "FILLERZZZ_ACH",
+      "20",
+      "-",
+      "*FILLERZ_&*FILLERZ_&*FILLERZ",
+      "0"
+    ],
+    [
+      "FILLERZZZ_ACH",
+      "20",
+      "-",
+      "*FILLERZ_&*FILLERZ_&*FILLERZ",
+      "0"
     ]
   ],
   "ResGridSquares": [
@@ -79188,7 +81590,7 @@
       "10",
       "0",
       "0",
-      "Reduces_the_cost_of_all_Masterclass_upgrades_by_{%_every_day,_FOREVER!_Total_Reduction:-&%"
+      "Reduces_the_cost_of_all_OG_Masterclass_upgrades_(DB,_WW,_AC)_by_{%_every_day,_FOREVER!_Total_Reduction:-&%"
     ],
     [
       "Spelunking_Research",
@@ -79511,12 +81913,12 @@
       "Multiplies_your_EXP_gain_for_Cooking_Mastery,_a_feature_unlocked_at_Rift_61,_by_a_massive_}x_@_Also_gives_+|_Yellow_PTS_to_spend_on_Meals!"
     ],
     [
-      "Name",
-      "1",
-      "1",
+      "Royal_Rewards",
+      "4",
+      "10",
       "0",
       "0",
-      "desc"
+      "Regal_Mobs_now_have_a_{%_chance_to_give_+3_kills_for_your_Royal_Guardian's_Orb_of_Virisimilitude_instead_of_simply_+2_kills"
     ],
     [
       "Name",
@@ -80539,7 +82941,11 @@
       "Wasabaisamarama",
       "Kraken_Roll",
       "Leviathan_Roll",
-      "Golthulu_Roll"
+      "Golthulu_Roll",
+      "Wasomber_Nigiri",
+      "Leek_Nigiri",
+      "Atomiroll",
+      "Octolingo"
     ],
     [
       "lol"
@@ -80557,6 +82963,7 @@
       "43",
       "17",
       "31",
+      "39",
       "14",
       "42",
       "13",
@@ -80589,7 +82996,7 @@
       "40",
       "38",
       "34",
-      "39"
+      "45"
     ],
     [
       "0",
@@ -80645,7 +83052,11 @@
       "6",
       "9",
       "8",
-      "10"
+      "10",
+      "3",
+      "5",
+      "8",
+      "7"
     ],
     [
       "+{%_more_Bucks_generated",
@@ -80732,7 +83143,11 @@
       "}x_Megacrop_Growth_Chance_for_getting_more_Farming_Stickers",
       "+{_Opals_for_your_Villagers",
       "}x_extra_Treasure_found_from_opening_Sailing_Chests",
-      "+{_Max_Build_LVs_for_all_Shrines_in_Construction"
+      "+{_Max_Build_LVs_for_all_Shrines_in_Construction",
+      "+{%_chance_for_an_additional_Orblet_stack_to_drop_on_Royal_Guardians!",
+      "+{%_Resource_Collection_Rate_for_all_your_Royal_Guardian_outposts!",
+      "Regal_Intervention_spawns_+{_more_Regal_Mobs_than_normal_when_triggered",
+      "+{%_drop_chance_for_Marble_for_your_Royal_Guardian"
     ],
     [
       "100",
@@ -80793,12 +83208,16 @@
       "25",
       "2",
       "30",
+      "10",
+      "10",
+      "30",
+      "2",
       "10"
     ],
     [
       "0,0",
       "82,23",
-      "82,23",
+      "100,81",
       "82,23"
     ],
     [
@@ -80902,6 +83321,107 @@
       "49",
       "46",
       "51"
+    ],
+    [
+      "}千_TOTAL_DAMAGE",
+      "}千_DROP_RATE",
+      "}千_EXTRA_KILLS",
+      "}千_CLASS_EXP",
+      "4",
+      "5",
+      "6",
+      "7"
+    ],
+    [
+      "200",
+      "50",
+      "30",
+      "300",
+      "10",
+      "10",
+      "10",
+      "10"
+    ],
+    [
+      "15",
+      "5",
+      "3",
+      "20",
+      "3",
+      "3",
+      "3",
+      "3"
+    ],
+    [
+      "30",
+      "46",
+      "58",
+      "31",
+      "9",
+      "41",
+      "70",
+      "37",
+      "78",
+      "35",
+      "27",
+      "71",
+      "20",
+      "60",
+      "32",
+      "19",
+      "79",
+      "2",
+      "61",
+      "57",
+      "23",
+      "0",
+      "47",
+      "10",
+      "80",
+      "28",
+      "21",
+      "68",
+      "73",
+      "24",
+      "50",
+      "56",
+      "38",
+      "81",
+      "42",
+      "43",
+      "3",
+      "62",
+      "18",
+      "11",
+      "52",
+      "36",
+      "29",
+      "72",
+      "22",
+      "76",
+      "44",
+      "69",
+      "48",
+      "74",
+      "25",
+      "17",
+      "33",
+      "39",
+      "4",
+      "63",
+      "12",
+      "75",
+      "26",
+      "77",
+      "53",
+      "49",
+      "40",
+      "1",
+      "51",
+      "82",
+      "59",
+      "45",
+      "55"
     ]
   ],
   "RiftStuff": [
@@ -81269,6 +83789,488 @@
       "180",
       "60",
       "290"
+    ]
+  ],
+  "RoyalResources": [
+    [
+      93,
+      361,
+      1000000,
+      5
+    ],
+    [
+      197,
+      151,
+      15000,
+      3
+    ],
+    [
+      327,
+      115,
+      1500,
+      3
+    ],
+    [
+      343,
+      281,
+      50000,
+      3
+    ],
+    [
+      467,
+      403,
+      50000,
+      5
+    ],
+    [
+      395,
+      198,
+      30000,
+      0
+    ],
+    [
+      466,
+      333,
+      70000,
+      4
+    ],
+    [
+      563,
+      226,
+      2000,
+      0
+    ],
+    [
+      478,
+      247,
+      10000,
+      0
+    ],
+    [
+      603,
+      346,
+      20000,
+      4
+    ],
+    [
+      705,
+      305,
+      5000,
+      4
+    ],
+    [
+      812,
+      266,
+      4000,
+      2
+    ],
+    [
+      816,
+      173,
+      40000,
+      2
+    ],
+    [
+      714,
+      118,
+      12000,
+      2
+    ],
+    [
+      811,
+      43,
+      200000,
+      5
+    ],
+    [
+      606,
+      106,
+      5000,
+      1
+    ],
+    [
+      0,
+      0,
+      0,
+      -1
+    ],
+    [
+      0,
+      0,
+      0,
+      -1
+    ],
+    [
+      0,
+      0,
+      0,
+      -1
+    ],
+    [
+      0,
+      0,
+      0,
+      -1
+    ],
+    [
+      123,
+      126,
+      3000,
+      13
+    ],
+    [
+      93,
+      362,
+      3000000,
+      15
+    ],
+    [
+      173,
+      255,
+      50000,
+      13
+    ],
+    [
+      271,
+      185,
+      6000,
+      10
+    ],
+    [
+      254,
+      314,
+      750000,
+      13
+    ],
+    [
+      365,
+      132,
+      250,
+      10
+    ],
+    [
+      353,
+      228,
+      1000,
+      10
+    ],
+    [
+      396,
+      322,
+      2000,
+      11
+    ],
+    [
+      450,
+      72,
+      80000,
+      12
+    ],
+    [
+      565,
+      323,
+      5000,
+      11
+    ],
+    [
+      567,
+      169,
+      25000,
+      12
+    ],
+    [
+      637,
+      226,
+      10000,
+      12
+    ],
+    [
+      598,
+      54,
+      150000,
+      14
+    ],
+    [
+      793,
+      41,
+      1500000,
+      15
+    ],
+    [
+      765,
+      132,
+      300000,
+      14
+    ],
+    [
+      804,
+      251,
+      500000,
+      14
+    ],
+    [
+      810,
+      336,
+      1000000,
+      11
+    ],
+    [
+      0,
+      0,
+      0,
+      -1
+    ],
+    [
+      0,
+      0,
+      0,
+      -1
+    ],
+    [
+      0,
+      0,
+      0,
+      -1
+    ],
+    [
+      87,
+      137,
+      1000000,
+      25
+    ],
+    [
+      158,
+      44,
+      500000,
+      24
+    ],
+    [
+      199,
+      197,
+      750,
+      20
+    ],
+    [
+      179,
+      314,
+      1250,
+      20
+    ],
+    [
+      365,
+      347,
+      2000,
+      20
+    ],
+    [
+      357,
+      265,
+      300,
+      20
+    ],
+    [
+      382,
+      55,
+      200000,
+      24
+    ],
+    [
+      436,
+      148,
+      5000,
+      21
+    ],
+    [
+      493,
+      286,
+      10000,
+      21
+    ],
+    [
+      476,
+      394,
+      800000,
+      21
+    ],
+    [
+      509,
+      44,
+      3000000,
+      25
+    ],
+    [
+      560,
+      186,
+      30000,
+      21
+    ],
+    [
+      632,
+      55,
+      320000,
+      23
+    ],
+    [
+      811,
+      47,
+      5000000,
+      26
+    ],
+    [
+      736,
+      151,
+      100000,
+      23
+    ],
+    [
+      741,
+      249,
+      75000,
+      22
+    ],
+    [
+      698,
+      334,
+      50000,
+      22
+    ],
+    [
+      807,
+      333,
+      500000,
+      22
+    ],
+    [
+      0,
+      0,
+      0,
+      -1
+    ],
+    [
+      0,
+      0,
+      0,
+      -1
+    ],
+    [
+      98,
+      49,
+      4000000,
+      35
+    ],
+    [
+      91,
+      358,
+      2500000,
+      34
+    ],
+    [
+      141,
+      195,
+      150000,
+      31
+    ],
+    [
+      237,
+      95,
+      300000,
+      31
+    ],
+    [
+      202,
+      264,
+      50000,
+      31
+    ],
+    [
+      371,
+      40,
+      6000000,
+      36
+    ],
+    [
+      395,
+      212,
+      10000,
+      32
+    ],
+    [
+      369,
+      398,
+      1000000,
+      34
+    ],
+    [
+      460,
+      321,
+      100000,
+      30
+    ],
+    [
+      511,
+      398,
+      25000,
+      30
+    ],
+    [
+      573,
+      256,
+      5000,
+      30
+    ],
+    [
+      704,
+      179,
+      1000,
+      30
+    ],
+    [
+      682,
+      343,
+      3000,
+      30
+    ],
+    [
+      476,
+      81,
+      500000,
+      33
+    ],
+    [
+      644,
+      52,
+      1000000,
+      33
+    ],
+    [
+      588,
+      176,
+      1500000,
+      33
+    ],
+    [
+      813,
+      99,
+      10000000,
+      37
+    ],
+    [
+      0,
+      0,
+      0,
+      -1
+    ],
+    [
+      0,
+      0,
+      0,
+      -1
+    ],
+    [
+      0,
+      0,
+      0,
+      -1
     ]
   ],
   "SSignInfoUI": [
@@ -85632,6 +88634,12 @@
       "Toobus_Goobus",
       "1",
       "13"
+    ],
+    [
+      "Briny_Tasks",
+      "Wavey_Wayne",
+      "5",
+      "2"
     ]
   ],
   "SceneNPCquestOrder": [
@@ -85983,7 +88991,8 @@
     "Toobus_Goobus2",
     "Toobus_Goobus3",
     "Zenelith1",
-    "Toobus_Goobus4"
+    "Toobus_Goobus4",
+    "Wavey_Wayne1"
   ],
   "SceneTransitions": [
     [
@@ -86067,7 +89076,7 @@
       ],
       [
         "20",
-        "MininggA"
+        "GrasslandsH"
       ]
     ],
     [
@@ -86370,8 +89379,8 @@
     ],
     [
       [
-        "Z",
-        "Z"
+        "2",
+        "PREVIOUSMAP"
       ]
     ],
     [
@@ -88461,17 +91470,17 @@
       ],
       [
         "10",
-        "uAquaB8"
+        "uAquaB9"
       ]
     ],
     [
       [
-        "15",
+        "12",
         "uAquaB8"
       ],
       [
-        "16",
-        "uAquaB10"
+        "13",
+        "uAquaB9"
       ]
     ],
     [
@@ -90113,11 +93122,13 @@
     "EquipmentHats134",
     "EquipmentHats135",
     "EquipmentHats139",
+    "EquipmentHats141",
     "EquipmentHats112",
     "EquipmentHats118",
     "EquipmentHats122",
     "EquipmentHats127",
     "EquipmentHats132",
+    "EquipmentHats140",
     "EquipmentHats90",
     "EquipmentHats91",
     "EquipmentHats92",
@@ -90371,6 +93382,9 @@
     "EquipmentCape16",
     "EquipmentCape18",
     "EquipmentCape19",
+    "EquipmentCape20",
+    "EquipmentCape21",
+    "EquipmentCape22",
     "EquipmentKeychain0",
     "EquipmentKeychain1",
     "EquipmentKeychain2",
@@ -90462,6 +93476,7 @@
     "EquipmentNametag36",
     "EquipmentNametag37",
     "EquipmentNametag41",
+    "EquipmentNametag42",
     "EquipmentGown1",
     "EquipmentGown2",
     "EquipmentGown3",
@@ -90469,6 +93484,7 @@
     "EquipmentGown5",
     "EquipmentGown6",
     "EquipmentGown7",
+    "EquipmentGown8",
     "EquipmentTools1",
     "EquipmentTools2",
     "EquipmentTools3",
@@ -90882,6 +93898,14 @@
     "Tach4",
     "Tach5",
     "Quest99",
+    "RGshard0",
+    "RGshard1",
+    "RGshard2",
+    "RGshard3",
+    "RGshard4",
+    "RGshard5",
+    "RGenh",
+    "RGenhB",
     "Coral1",
     "Coral2",
     "Coral3",
@@ -90891,6 +93915,7 @@
     "Coral7",
     "Coral8",
     "Quest110",
+    "Orblet",
     "BadgeG1",
     "BadgeG2",
     "BadgeG3",
@@ -92885,7 +95910,7 @@
         "DMK_Snowgoon",
         "30000000",
         "120",
-        "1000000",
+        "1200000",
         "1",
         "1.32",
         "140",
@@ -92899,6 +95924,168 @@
         "0",
         "1",
         "115",
+        "f"
+      ]
+    ],
+    [
+      [
+        "Candles",
+        "1",
+        "2",
+        "15000",
+        "0",
+        "1",
+        "0",
+        "17500000000000000000000000000.0"
+      ],
+      [
+        "Lil_Jar",
+        "2",
+        "3",
+        "20000",
+        "0",
+        "1",
+        "5",
+        "f"
+      ],
+      [
+        "Wreath",
+        "5",
+        "5",
+        "32000",
+        "0",
+        "1",
+        "12",
+        "f"
+      ],
+      [
+        "Stool",
+        "10",
+        "8",
+        "45000",
+        "0",
+        "1",
+        "24",
+        "f"
+      ],
+      [
+        "Candlssimo",
+        "50",
+        "10",
+        "65000",
+        "0",
+        "1",
+        "33",
+        "f"
+      ],
+      [
+        "Vase_of_Air",
+        "125",
+        "15",
+        "80000",
+        "0",
+        "1",
+        "42",
+        "f"
+      ],
+      [
+        "Barrier_Rope",
+        "300",
+        "25",
+        "110000",
+        "0",
+        "1",
+        "54",
+        "f"
+      ],
+      [
+        "Vase_of_Thistle",
+        "750",
+        "35",
+        "140000",
+        "0",
+        "1",
+        "68",
+        "f"
+      ],
+      [
+        "Chair",
+        "3000",
+        "40",
+        "190000",
+        "0",
+        "1",
+        "80",
+        "f"
+      ],
+      [
+        "Marble_Urn",
+        "15000",
+        "50",
+        "250000",
+        "0",
+        "1",
+        "91",
+        "f"
+      ],
+      [
+        "Holy_Visage",
+        "60000",
+        "60",
+        "350000",
+        "0",
+        "1",
+        "105",
+        "f"
+      ],
+      [
+        "Candelabra",
+        "200000",
+        "80",
+        "600000",
+        "0",
+        "1",
+        "120",
+        "f"
+      ],
+      [
+        "Squarelumn",
+        "5000000",
+        "100",
+        "1000000",
+        "0",
+        "1",
+        "140",
+        "f"
+      ],
+      [
+        "Crown_Jewel",
+        "20000000",
+        "120",
+        "1200000",
+        "1",
+        "1",
+        "160",
+        "f"
+      ],
+      [
+        "Vase_of_Sanctimony",
+        "60000000",
+        "150",
+        "1500000",
+        "1",
+        "1.35",
+        "180",
+        "f"
+      ],
+      [
+        "Esquire_Morose",
+        "10000000",
+        "15000",
+        "250000",
+        "0",
+        "1",
+        "130",
         "f"
       ]
     ]
@@ -93738,7 +96925,7 @@
     ],
     [
       "Amber_Be_Here",
-      "10000000",
+      "1",
       "29.5",
       "10",
       "1",
@@ -93750,6 +96937,246 @@
       "_",
       "_",
       "Amber_now_drops_+{%_more_often_from_destroying_rocks,_moving_you_ever_closer_to_your_childhood_dreams_of_having_100%_Amber_Drop_Chance!",
+      "_"
+    ],
+    [
+      "Manic_Mode",
+      "1",
+      "29.5",
+      "1",
+      "1",
+      "1",
+      "51",
+      "17",
+      "0",
+      "1",
+      "_",
+      "_",
+      "You_can_now_toggle_Manic_Mode_ON_and_OFF_before_entering_a_tunnel._When_ON,_Stamina_Costs_are_30x_higher,_but_you_get_credited_with_a_new_'Manic_Best_Depth'_for_the_tunnel!",
+      "_"
+    ],
+    [
+      "Manic_POW",
+      "10",
+      "2.15",
+      "100",
+      "1",
+      "1",
+      "53",
+      "17",
+      "1",
+      "0",
+      "_",
+      "_",
+      "+{%_POW._This_bonus_is_increased_by_1.05x_for_every_Manic_Depth_you've_reached_across_all_tunnels,_which_is_currently_^!_@_Total_Bonus:+$%_POW",
+      "_"
+    ],
+    [
+      "Manic_Discoveries",
+      "25",
+      "2.2",
+      "100",
+      "1",
+      "1",
+      "54",
+      "17",
+      "2",
+      "0",
+      "_",
+      "_",
+      "+{%_Grand_Discovery_Chance._This_bonus_is_increased_by_1.05x_for_every_Manic_Depth_you've_reached_across_all_tunnels,_which_is_currently_^!_@_Total_Bonus:+$%_Grand_Discovery_Chance",
+      "_"
+    ],
+    [
+      "Manic_Efficiency",
+      "200",
+      "2.3",
+      "100",
+      "1",
+      "1",
+      "55",
+      "17",
+      "3",
+      "0",
+      "_",
+      "_",
+      "+{%_Spelunking_Efficiency._This_bonus_is_increased_by_1.05x_for_every_Manic_Depth_you've_reached_across_all_tunnels,_which_is_currently_^!_@_Total_Bonus:+$%_Spelunking_Efficiency",
+      "_"
+    ],
+    [
+      "Elixir_Memorization",
+      "1200",
+      "300000000",
+      "5",
+      "1",
+      "1",
+      "53",
+      "18",
+      "0",
+      "1",
+      "_",
+      "_",
+      "Hold_down_on_an_Elixir_Option_(the_12_on_the_left-side)_to_memorize_it._You_start_every_run_with_one_usage_of_each_memorize_elixir!_@_You_can_memorize_up_to_{_different_elixirs.",
+      "_"
+    ],
+    [
+      "Doublethink_Memory",
+      "4000",
+      "2.4",
+      "100",
+      "1",
+      "1",
+      "57",
+      "18",
+      "1",
+      "1",
+      "_",
+      "_",
+      "There's_a_{%_chance_to_get_TWO_elixir_usages_from_your_Memorized_Elixirs,_instead_of_just_one!",
+      "_"
+    ],
+    [
+      "Stamina_Trackometer",
+      "20000",
+      "3.5",
+      "50",
+      "1",
+      "1",
+      "57",
+      "19",
+      "0",
+      "0",
+      "_",
+      "_",
+      "Unlocks_the_Stamina_Trackometer._This_meter_fills_up_whenever_you_use_stamina_during_a_delve,_and_levels_up_when_you've_used_enough!_@_Each_Trackometer_LV_gives_+{%_Stamina_EXP_Gain",
+      "_"
+    ],
+    [
+      "Amber-Track",
+      "75000",
+      "3.6",
+      "50",
+      "2",
+      "1",
+      "59",
+      "19",
+      "1",
+      "0",
+      "_",
+      "_",
+      "Your_Trackometer_now_gives_+{%_Amber_per_LV!_@_Total_Bonus:_+$%_Amber_Gains",
+      "_"
+    ],
+    [
+      "Maxima-Track",
+      "200000",
+      "100",
+      "25",
+      "1",
+      "1",
+      "60",
+      "19",
+      "2",
+      "1",
+      "_",
+      "_",
+      "Your_Trackometer_now_gives_+{_Max_Stamina_per_LV!_@_Total_Bonus:_+$_Max_Stamina_for_all_characters",
+      "_"
+    ],
+    [
+      "Royal_Hardhat",
+      "1000000",
+      "5.5",
+      "50",
+      "1",
+      "1",
+      "59",
+      "20",
+      "0",
+      "1",
+      "_",
+      "_",
+      "+{_Talent_PTS_for_your_Royal_Guardians!",
+      "_"
+    ],
+    [
+      "Paper_Hardhat",
+      "5000000",
+      "2.2",
+      "200",
+      "2",
+      "1",
+      "62",
+      "20",
+      "1",
+      "0",
+      "_",
+      "_",
+      "+{%_Research_EXP_gain!",
+      "_"
+    ],
+    [
+      "Fire_Hardhat",
+      "60000000",
+      "1.85",
+      "250",
+      "4",
+      "1",
+      "63",
+      "20",
+      "2",
+      "0",
+      "_",
+      "_",
+      "+{%_Total_Damage_for_all_characters_for_like,_fighting_monsters_and_stuff_and_things!",
+      "_"
+    ],
+    [
+      "Striped_Hardhat",
+      "125000000",
+      "1.7",
+      "300",
+      "1",
+      "1",
+      "64",
+      "20",
+      "3",
+      "0",
+      "_",
+      "_",
+      "Your_Priest_units_generate_}x_more_Purity_EXP,_so_you_can_purify_maps_that_much_faster!",
+      "_"
+    ],
+    [
+      "The_Pink_Amber_Purposefully-Misleading-Part_of_the_Contract",
+      "1",
+      "1.25",
+      "99999",
+      "1",
+      "1",
+      "62",
+      "21",
+      "0",
+      "0",
+      "_",
+      "_",
+      "Red_was_never_part_of_the_agreement,_clearly!!_We_only_work_with_Pink_Amber,_worth_1Q_Red_Amber_(or_1e24_Orange_Amber)_each._As_a_show_of_good_faith_despite_your_misunderstanding,_you_get_+{%_more_amber.",
+      "_"
+    ],
+    [
+      "Amber_Supply_Swap",
+      "2",
+      "29.5",
+      "1",
+      "1",
+      "1",
+      "66",
+      "21",
+      "1",
+      "1",
+      "_",
+      "_",
+      "Amber_is_worth_15x_more_but_now_drops_10x_less_often,_utterly_destroying_your_naive_childhood_fantasy_of_achieving_100%_Amber_Drop_Chance._Oh,_what_a_shame.",
       "_"
     ]
   ],
@@ -93852,7 +97279,7 @@
       "Bizarrio",
       "Glitter_End",
       "Scoutpost",
-      "Name10",
+      "Exiled_Throne",
       "Name11",
       "Name12",
       "Name13",
@@ -93868,8 +97295,8 @@
       "49",
       "69",
       "99",
-      "54",
-      "59",
+      "114",
+      "129",
       "64",
       "69",
       "79",
@@ -93956,7 +97383,7 @@
       "Sigils_can_be_upgraded_a_4th_time_to_Ethereal!_@_Each_one_also_gives_+0.2%_Prisma_Bubble_Multi!",
       "Get_a_brand_new_Shape_for_your_Research_Grid!",
       "Palette_Colours_now_give_1.50x_bonuses,_and_Palette_Luck_is_+4%_higher_per_Gaming_LV",
-      "9",
+      "1.50x_chance_for_Marble_Drops_on_Royal_Guardians,_and_+50_Royal_Guardian_Talent_PTS!",
       "10",
       "11",
       "12",
@@ -94007,7 +97434,8 @@
       "Advice_on_Sleeping,Don't_do_it_while_awake._@_+{%_Spelunking_AFK_Gains,20,31,filler",
       "Advice_on_Murder_One,Only_do_it_in_video_games._@_+{%_Kill_per_Kill_in_W7,10,33,filler",
       "Advice_on_Being_Smart,Use_100%_of_your_brain._@_}x_Class_EXP_Gain,25,35,filler",
-      "Advice_on_Materialism,Two_things_better_than_one_tbh._@_+{%_Double_Gold_Food_drop_chance,10,38,filler"
+      "Advice_on_Materialism,Two_things_better_than_one_tbh._@_+{%_Double_Gold_Food_drop_chance,10,38,filler",
+      "Advice_on_Settlement,Clear_mobs_build_outpost_ez._@_+{%_extra_mob_clear_for_Royal_Guardian,15,41,filler"
     ],
     [
       "241,614,301,5,3,4,0",
@@ -94053,10 +97481,10 @@
       "250",
       "1000",
       "3000",
-      "10000",
       "25000",
-      "100000",
-      "500000"
+      "500000",
+      "10000000",
+      "250000000"
     ],
     [
       "+{%_Daily_Reef_Coral",
@@ -94064,7 +97492,7 @@
       "+{%_Spelunking_Amber_gain",
       "}x_Class_EXP_gain",
       "+{%_Research_EXP",
-      "+{%_who_knows",
+      "+{%_Minehead_DMG潤Money",
       "+{%_who_knows",
       "+{%_who_knows",
       "+{%_who_knows"
@@ -94075,7 +97503,7 @@
       "3",
       "4",
       "3",
-      "1",
+      "5",
       "1",
       "1",
       "1"
@@ -95980,193 +99408,225 @@
       "POWER",
       "@BASE_DAMAGE",
       "30",
-      "3"
+      "3",
+      "0"
     ],
     [
       "SPEED",
       "%@MOVE_SPEED",
       "65",
-      "0.1"
+      "0.1",
+      "0"
     ],
     [
       "MINING",
       "@MINING_POWER",
       "280",
-      "0.3"
+      "0.3",
+      "0"
     ],
     [
       "FEASTY",
       "%@FOOD_EFFECT",
       "320",
-      "1"
+      "1",
+      "0"
     ],
     [
       "HEALTH",
       "@BASE_HEALTH",
       "0",
-      "3"
+      "3",
+      "0"
     ],
     [
       "KACHOW",
       "%@CRIT_DAMAGE",
       "-15",
-      "0.4"
+      "0.4",
+      "1"
     ],
     [
       "LUMBERBOB",
       "@CHOPPIN_POWER",
       "90",
-      "0.3"
+      "0.3",
+      "0"
     ],
     [
       "THICC_SKIN",
       "@BASE_DEFENCE",
       "210",
-      "1"
+      "1",
+      "0"
     ],
     [
       "OCEANMAN",
       "@FISHING_POWER",
       "115",
-      "0.3"
+      "0.3",
+      "1"
     ],
     [
       "OL_RELIABLE",
       "@CATCHIN_POWER",
       "45",
-      "0.3"
+      "0.3",
+      "1"
     ],
     [
       "EXP",
       "%@CLASS_EXP",
       "0",
-      "0.1"
+      "0.1",
+      "1"
     ],
     [
       "ANVIL",
       "%@PRODUCT_SPD",
       "165",
-      "0.5"
+      "0.5",
+      "0"
     ],
     [
       "CAULDRON",
       "%@ALCHEMY_EXP",
       "280",
-      "0.5"
+      "0.5",
+      "1"
     ],
     [
       "BEHOLDER",
       "%@CRIT_CHANCE",
       "300",
-      "0.2"
+      "0.2",
+      "1"
     ],
     [
       "BULLSEYE",
       "%@ACCURACY",
       "110",
-      "0.8"
+      "0.8",
+      "1"
     ],
     [
       "BOX",
       "@TRAPPIN_POWER",
       "180",
-      "0.3"
+      "0.3",
+      "2"
     ],
     [
       "TWOSOUL",
       "@WORSHIP_POWER",
       "260",
-      "0.3"
+      "0.3",
+      "2"
     ],
     [
       "EHEXPEE",
       "%@SKILL_EXP",
       "69",
-      "0.1"
+      "0.1",
+      "2"
     ],
     [
       "SEESAW",
       "%@CONS_EXP",
       "13",
-      "0.5"
+      "0.5",
+      "2"
     ],
     [
       "PECUNIA",
       "%@COINS",
       "50",
+      "1",
       "1"
     ],
     [
       "MUTTON",
       "%@COOKING_EXP",
       "0",
-      "0.3"
+      "0.3",
+      "3"
     ],
     [
       "EGG",
       "%@BREEDING_EXP",
       "25",
-      "0.4"
+      "0.4",
+      "3"
     ],
     [
       "BATTLEAXE",
       "%@DAMAGE",
       "300",
-      "0.2"
+      "0.2",
+      "0"
     ],
     [
       "SPIRAL",
       "%@DIVINITY_EXP",
       "70",
-      "1"
+      "1",
+      "4"
     ],
     [
       "BOAT",
       "%@SAILING_SPD",
       "210",
-      "0.5"
+      "0.5",
+      "4"
     ],
     [
       "COMPOST",
       "%@FARMING_EXP",
       "75",
-      "0.4"
+      "0.4",
+      "5"
     ],
     [
       "STEALTH",
       "%@STEALTH",
       "185",
-      "0.3"
+      "0.3",
+      "5"
     ],
     [
       "ESSENCE",
       "%@WHITE_ESS",
       "160",
-      "0.6"
+      "0.6",
+      "5"
     ],
     [
       "VILLAGER",
       "%@VILLAGER_EXP",
       "120",
-      "0.3"
+      "0.3",
+      "4"
     ],
     [
       "DRAGON",
       "%@STATUES_BONUS",
       "270",
-      "0.2"
+      "0.2",
+      "3"
     ],
     [
       "SPELUNKY",
       "%@SPELUNK_EXP",
       "43",
-      "0.1"
+      "0.1",
+      "6"
     ],
     [
       "CORAL",
       "%@DAILY_CORAL",
       "181",
-      "0.02"
+      "0.02",
+      "6"
     ]
   ],
   "SteamAchieves": [
@@ -96672,7 +100132,8 @@
       "w7b4",
       "w7b5",
       "w7b6",
-      "w7b7"
+      "w7b7",
+      "w7b8"
     ],
     [
       "26",
@@ -99369,12 +102830,12 @@
       "Boosts_all_Sushi_EXP_gained_from_all_sources_by_+{%._That_includes_newly_created_Sushi_and_EXP_from_Cold_and_Milktoast_plates."
     ],
     [
-      "Rift_Guy's_Upgrade",
-      "0",
+      "Combo_Meter",
+      "1",
       "1.10",
       "1",
       "0",
-      "I've_got_my_hands_in_everything!_Minehead,_farming,_the_rift..._so_yea,_of_course_I'm_in_the_Sushi_biz_too,_don't_be_so_shocked."
+      "Combining_sushi_adds_score_to_the_Combo_Meter_equal_to_the_Tier_created,_but_cooking_new_sushi_OR_taking_too_long_ends_the_combo._Get_a_perma_Bucks_Multi_based_on_your_best_combo!"
     ],
     [
       "No_Tax_on_Tips",
@@ -99415,6 +102876,14 @@
       "1",
       "0",
       "Creating_a_new_sushi_type_gives_a_new_IdleOn_bonus_for_the_REST_of_the_game!_Check_them_out_in_the_BONUS_tap,_top_right_corner."
+    ],
+    [
+      "Rift_Guy's_Upgrade",
+      "0",
+      "1.10",
+      "1",
+      "0",
+      "I've_got_my_hands_in_everything!_Minehead,_farming,_the_rift..._so_yea,_of_course_I'm_in_the_Sushi_biz_too,_don't_be_so_shocked."
     ]
   ],
   "TDtraits": [
@@ -167903,7 +171372,7 @@
         "decay"
       ],
       [
-        "+{%_chance_%_+}%_range"
+        "+{%_chance_&_+}%_range"
       ],
       [
         "0"
@@ -168386,18 +171855,151 @@
     ],
     [
       [
-        "_"
+        "Teleports_you_to_the_Royal_Castle._Also,_+{%_Resource_Collection_Rate_for_all_outposts!"
       ],
       [
-        "_",
-        "_",
-        "txt",
+        "120",
+        "50",
+        "decay",
         "_",
         "_",
         "txt"
       ],
       [
-        "_"
+        "+{%_Resource_Collection"
+      ],
+      [
+        "1"
+      ]
+    ],
+    [
+      [
+        "Opens_the_Royal_Armory,_letting_you_spend_Royal_Resources_to_expand_your_Kingdom._Also,_+{%_Resource_Collection!"
+      ],
+      [
+        "150",
+        "300",
+        "decay",
+        "_",
+        "_",
+        "txt"
+      ],
+      [
+        "+{%_Resource_Collection"
+      ],
+      [
+        "1"
+      ]
+    ],
+    [
+      [
+        "Spawn_a_Guardian_Disciple_for_{_sec,_who_throw_daggerangs_and_make_mobs_who_respawn_nearby_Regal_Mobs."
+      ],
+      [
+        "15",
+        "0.10",
+        "bigBase",
+        "_",
+        "_",
+        "txt"
+      ],
+      [
+        "+0.1_sec_duration"
+      ],
+      [
+        "1"
+      ]
+    ],
+    [
+      [
+        "The_Orb_lasts_+{_seconds_longer,_and_now_gets_+2_kills_from_Regal_Mobs."
+      ],
+      [
+        "60",
+        "200",
+        "decay",
+        "_",
+        "_",
+        "txt"
+      ],
+      [
+        "+{s_Orb_Duration"
+      ],
+      [
+        "0"
+      ]
+    ],
+    [
+      [
+        "When_D.I._respawns_all_monsters,_there's_a_{%_chance_that_}_Regal_mobs_are_spawned_too!"
+      ],
+      [
+        "5",
+        "150",
+        "decay",
+        "5",
+        "20",
+        "intervalAdd"
+      ],
+      [
+        "+{%_chance_&_+}_mobs"
+      ],
+      [
+        "0"
+      ]
+    ],
+    [
+      [
+        "All_outposts_get_a_{x_boost_to_their_Resource_Collection_Rate"
+      ],
+      [
+        "6",
+        "300",
+        "decayMulti",
+        "_",
+        "_",
+        "txt"
+      ],
+      [
+        "+{x_Resource_Collection"
+      ],
+      [
+        "0"
+      ]
+    ],
+    [
+      [
+        "All_forms_of_clearing_mobs_to_build_outposts,_via_Militia_or_Yourself,_is_{x_more_effective"
+      ],
+      [
+        "5",
+        "400",
+        "decayMulti",
+        "_",
+        "_",
+        "txt"
+      ],
+      [
+        "+{x_Mob_Clearing"
+      ],
+      [
+        "0"
+      ]
+    ],
+    [
+      [
+        "Monsters_in_outposts_drop_Marble_{x_more_often"
+      ],
+      [
+        "1.6",
+        "400",
+        "decayMulti",
+        "_",
+        "_",
+        "txt"
+      ],
+      [
+        "+{x_Marble_Drop_Rate"
       ],
       [
         "0"
@@ -168424,18 +172026,37 @@
     ],
     [
       [
-        "_"
+        "The_Orb_drops_1_orblet_every_1000_kills,_with_a_{%_chance_to_drop_two._Use_this_talent_to_open_the_Orblet_shop!"
       ],
       [
-        "_",
-        "_",
-        "txt",
+        "110",
+        "300",
+        "decay",
         "_",
         "_",
         "txt"
       ],
       [
-        "_"
+        "+{%_chance_for_2x_Orblets"
+      ],
+      [
+        "1"
+      ]
+    ],
+    [
+      [
+        "All_Spelunking_Shop_upgrades_are_{%_cheaper_for_every_total_Royal_Statue_LV_you_have."
+      ],
+      [
+        "50",
+        "200",
+        "decay",
+        "_",
+        "_",
+        "txt"
+      ],
+      [
+        "{%_Cheaper_Upg"
       ],
       [
         "0"
@@ -168443,37 +172064,18 @@
     ],
     [
       [
-        "_"
+        "+{%_Max_Stamina_and_}x_Spelunking_EXP_gain._This_works_on_all_characters!"
       ],
       [
-        "_",
-        "_",
-        "txt",
-        "_",
-        "_",
-        "txt"
+        "200",
+        "250",
+        "decay",
+        "15",
+        "250",
+        "decayMulti"
       ],
       [
-        "_"
-      ],
-      [
-        "0"
-      ]
-    ],
-    [
-      [
-        "_"
-      ],
-      [
-        "_",
-        "_",
-        "txt",
-        "_",
-        "_",
-        "txt"
-      ],
-      [
-        "_"
+        "+{%_Max_&_}x_EXP"
       ],
       [
         "0"
@@ -168481,37 +172083,18 @@
     ],
     [
       [
-        "_"
+        "{x_Spelunking_Efficiency_and_+}%_Spelunking_Speed_for_finding_Spelunky_Pages!_Works_on_all_chars."
       ],
       [
-        "_",
-        "_",
-        "txt",
-        "_",
-        "_",
-        "txt"
+        "5",
+        "300",
+        "decayMulti",
+        "30",
+        "2",
+        "bigBase"
       ],
       [
-        "_"
-      ],
-      [
-        "0"
-      ]
-    ],
-    [
-      [
-        "_"
-      ],
-      [
-        "_",
-        "_",
-        "txt",
-        "_",
-        "_",
-        "txt"
-      ],
-      [
-        "_"
+        "{x_Eff_&_}%_Speed"
       ],
       [
         "0"
@@ -168519,18 +172102,18 @@
     ],
     [
       [
-        "_"
+        "{x_higher_Grand_Discovery_Chance_in_Spelunking._Works_on_all_characters!"
       ],
       [
-        "_",
-        "_",
-        "txt",
+        "20",
+        "400",
+        "decayMulti",
         "_",
         "_",
         "txt"
       ],
       [
-        "_"
+        "{x_G.D._chance"
       ],
       [
         "0"
@@ -168538,132 +172121,18 @@
     ],
     [
       [
-        "_"
+        "+{%_Drop_Rate_per_Resource_Grade_across_all_worlds."
       ],
       [
-        "_",
-        "_",
-        "txt",
+        "3",
+        "500",
+        "decay",
         "_",
         "_",
         "txt"
       ],
       [
-        "_"
-      ],
-      [
-        "0"
-      ]
-    ],
-    [
-      [
-        "_"
-      ],
-      [
-        "_",
-        "_",
-        "txt",
-        "_",
-        "_",
-        "txt"
-      ],
-      [
-        "_"
-      ],
-      [
-        "0"
-      ]
-    ],
-    [
-      [
-        "_"
-      ],
-      [
-        "_",
-        "_",
-        "txt",
-        "_",
-        "_",
-        "txt"
-      ],
-      [
-        "_"
-      ],
-      [
-        "0"
-      ]
-    ],
-    [
-      [
-        "_"
-      ],
-      [
-        "_",
-        "_",
-        "txt",
-        "_",
-        "_",
-        "txt"
-      ],
-      [
-        "_"
-      ],
-      [
-        "0"
-      ]
-    ],
-    [
-      [
-        "_"
-      ],
-      [
-        "_",
-        "_",
-        "txt",
-        "_",
-        "_",
-        "txt"
-      ],
-      [
-        "_"
-      ],
-      [
-        "0"
-      ]
-    ],
-    [
-      [
-        "_"
-      ],
-      [
-        "_",
-        "_",
-        "txt",
-        "_",
-        "_",
-        "txt"
-      ],
-      [
-        "_"
-      ],
-      [
-        "0"
-      ]
-    ],
-    [
-      [
-        "_"
-      ],
-      [
-        "_",
-        "_",
-        "txt",
-        "_",
-        "_",
-        "txt"
-      ],
-      [
-        "_"
+        "+{%_DR_per_Grade"
       ],
       [
         "0"
@@ -175492,7 +178961,7 @@
     ],
     [
       [
-        "Backup_needed?_How_about_{x_Tachyon_Gain_and_-}_kills_needed_to_charge_Arcane_Crystals"
+        "Backup_needed?_How_about_{x_Tachyon_Gain_and_}_less_kills_needed_to_charge_Arcane_Crystals"
       ],
       [
         "0.5",
@@ -177256,21 +180725,21 @@
     "_",
     "_",
     "_",
+    "CASTLE_CONVENE",
+    "ROYAL_ARMORY",
+    "GUARDIAN_DISCIPLE",
+    "ORB_OF_VERISIMILITUDE",
+    "REGAL_INTERVENTION",
+    "INDUSTRIAL_POLITICS",
+    "WARBOUND_POLITICS",
+    "AESTHETIC_POLITICS",
     "_",
-    "_",
-    "_",
-    "_",
-    "_",
-    "_",
-    "_",
-    "_",
-    "_",
-    "_",
-    "_",
-    "_",
-    "_",
-    "_",
-    "_",
+    "LIL'_ORBLETS",
+    "AMBER_HOARD",
+    "SPELUNKING_SPECIALTY",
+    "PIT_O'_PAGES",
+    "GRAND_VEIN",
+    "GRADED_RATE",
     "_",
     "_",
     "_",
@@ -181355,12 +184824,12 @@
     225,
     226,
     227,
-    228,
     229,
+    228,
     230,
     231,
     232,
-    233,
+    203,
     234,
     235,
     236,
@@ -183791,6 +187260,178 @@
         "_",
         "_"
       ]
+    ],
+    [
+      [
+        "Marathon_Delver",
+        "Use_up_{_or_more_Stamina_in_a_single_Spelunking_Delve",
+        "Blank420q",
+        "10",
+        "2|0|Ok,_now_go_use_up_IRL_Stamina_on_a_real_marathon!",
+        "100",
+        "500",
+        "3100",
+        "8000",
+        "20000",
+        "40000",
+        "80000",
+        "150000",
+        "250000",
+        "500000"
+      ],
+      [
+        "Record_Depths",
+        "Have_a_total_Best_Depth_of_{_across_all_tunnels,_including_Manic_Mode!",
+        "Blank420q",
+        "10",
+        "2|0|Quit_while_you're_ahead..._or,_below?_I_guess?",
+        "50",
+        "300",
+        "1000",
+        "2500",
+        "5000",
+        "10000",
+        "25000",
+        "50000",
+        "100000",
+        "10000"
+      ],
+      [
+        "Minehead_1HKO",
+        "Deal_{_Damage_in_a_single_round_of_Minehead's_Depth_Charge!",
+        "Blank420q",
+        "10",
+        "1|0|Aw_shucks,_I_knew_you_liked_minehead_all_along!",
+        "5000",
+        "20000",
+        "100000",
+        "500000",
+        "2500000",
+        "10000000",
+        "50000000",
+        "250000000",
+        "1000000000",
+        "2000000000"
+      ],
+      [
+        "Smarti_Sushi",
+        "Reach_a_total_Knowledge_LV_across_all_your_Sushi_of_{",
+        "Blank420q",
+        "10",
+        "2|0|It's_not_real_knowledge_ya_know,_it's_just_pixellated_sushi.",
+        "100",
+        "200",
+        "300",
+        "500",
+        "750",
+        "1000",
+        "1300",
+        "1600",
+        "2000",
+        "2500"
+      ],
+      [
+        "Undisclosed_Task",
+        "To_be_revealed_in_World_7_Part_3!",
+        "Blank420q",
+        "10",
+        "1|0|Essentially_speaking,_you_have_a_lot_of_unspent_essence.",
+        "4",
+        "10",
+        "15",
+        "20",
+        "30",
+        "45",
+        "60",
+        "80",
+        "100",
+        "125"
+      ],
+      [
+        "Undisclosed_Task",
+        "To_be_revealed_in_World_7_Part_3!",
+        "Blank420q",
+        "10",
+        "1|0|You_stole_all_those_items._Hope_you're_proud..._oh_you_are?_Well_good!",
+        "10",
+        "25",
+        "100",
+        "250",
+        "500",
+        "1000",
+        "2000",
+        "3500",
+        "7500",
+        "15000"
+      ],
+      [
+        "Sinking_the_Nautilus!",
+        "}",
+        "Defeat_the_World_7_boss!|Reach_Showdown_3_by_defeating_the_Emperor_twice|Defeat_the_Emperor_on_3_players,_in_order,_starting_with_the_1st|Reach_Showdown_5_by_defeating_the_Emperor_twice.|Reach_Showdown_10_by_defeating_the_Emperor_nine_times.|Reach_Showdown_15_by_defeating_the_Emperor_fourteen_times.|Reach_Showdown_21_by_defeating_the_Emperor_twenty_times|Reach_Showdown_50_by_defeating_the_Emperor_fourty_nine_times|Reach_Showdown_75_by_defeating_the_Emperor_seventy_four_times|Reach_Showdown_100_by_defeating_the_Emperor_ninety_nine_times",
+        "10",
+        "2|1|Kattlekruk's_demeanor_gives_you_the_feeling_there_are_powers_greater_than_the_Gods",
+        "1",
+        "1",
+        "3",
+        "1",
+        "1",
+        "1",
+        "1",
+        "1",
+        "1",
+        "1"
+      ],
+      [
+        "Achievement_Diver",
+        "Complete_{_Shimmerfin_Achievements,_not_that_you_can_yet!",
+        "Blank420q",
+        "10",
+        "2|0|Filler_haha",
+        "5",
+        "10",
+        "15",
+        "20",
+        "25",
+        "30",
+        "40",
+        "50",
+        "60",
+        "70"
+      ],
+      [
+        "Nope",
+        "You_have_enough_daily_stuff_already._Go_do_the_other_world's_daily_task!",
+        "Blank420q",
+        "6",
+        "0",
+        "69420",
+        "_",
+        "_",
+        "_",
+        "_",
+        "_",
+        "_",
+        "_",
+        "_",
+        "_"
+      ],
+      [
+        "Nuh_uh",
+        "Seriously,_you_don't_need_more_daily_stuff_to_do._I_wont_let_you.",
+        "Blank420q",
+        "4",
+        "0",
+        "69420",
+        "_",
+        "_",
+        "_",
+        "_",
+        "_",
+        "_",
+        "_",
+        "_",
+        "_"
+      ]
     ]
   ],
   "TaskShopDesc": [
@@ -184366,8 +188007,8 @@
     ],
     [
       [
-        "+{_Talent_Pts_for_Tab_5,_for_all_the",
-        "Classes_that_aren't_out_yet!_Exciting!",
+        "+{_Talent_Pts_for_the_5th_tab,_which",
+        "is_the_Master_Class's_tab!",
         "0",
         "0",
         "0",
@@ -184447,6 +188088,120 @@
         "BonusPerLv",
         "Shoes|Pants|Torso|Helmet|SoldOut",
         "SmithingRecipes6",
+        "0"
+      ],
+      [
+        "IDK_YET",
+        "Descline2",
+        "0",
+        "0",
+        "0",
+        "4",
+        "3",
+        "bonusGiven",
+        "BonusPerLv",
+        "Blank420q",
+        "Blank",
+        "5"
+      ],
+      [
+        "IDK_YET",
+        "Descline2",
+        "0",
+        "0",
+        "0",
+        "5",
+        "cost",
+        "bonusGiven",
+        "BonusPerLv",
+        "Blank420q",
+        "Blank",
+        "0"
+      ]
+    ],
+    [
+      [
+        "+{%_Spelunking_POW,_but_like,_it's_a",
+        "multiplier!",
+        "0",
+        "0",
+        "0",
+        "15",
+        "1",
+        "bonusGiven",
+        "BonusPerLv",
+        "Blank420q",
+        "Tasksy1",
+        "15"
+      ],
+      [
+        "All_Shimmerfin_Deep_Mobs_respawn_+{%",
+        "faster._This_boosts_AFK_kills_per_hour!",
+        "0",
+        "0",
+        "0",
+        "10",
+        "1",
+        "bonusGiven",
+        "BonusPerLv",
+        "Blank420q",
+        "Tasksy2",
+        "1"
+      ],
+      [
+        "+{_max_Stamina_for_all_characters",
+        "in_Spelunking!",
+        "0",
+        "0",
+        "0",
+        "5",
+        "1",
+        "bonusGiven",
+        "BonusPerLv",
+        "Blank420q",
+        "Tasksy3",
+        "20"
+      ],
+      [
+        "+{_Research_PTS.",
+        "Save_these_PTS_for_an_emergency_only!",
+        "0",
+        "0",
+        "0",
+        "5",
+        "2",
+        "bonusGiven",
+        "BonusPerLv",
+        "Blank420q",
+        "Tasksy4",
+        "1"
+      ],
+      [
+        "+{%_Minehead_Currency_Gain!",
+        "This_is_a_multiplier_too!!!",
+        "0",
+        "0",
+        "0",
+        "10",
+        "1",
+        "bonusGiven",
+        "BonusPerLv",
+        "Blank420q",
+        "Tasksy5",
+        "10"
+      ],
+      [
+        "Unlocks_recipe_to_craft_Nautilus_}.",
+        "Descline2",
+        "1",
+        "6",
+        "2",
+        "4",
+        "2",
+        "bonusGiven",
+        "BonusPerLv",
+        "Shoes|Pants|Torso|Helmet|SoldOut",
+        "SmithingRecipes7",
         "0"
       ],
       [
@@ -188572,7 +192327,7 @@
       "3",
       "350",
       "filler",
-      "This_tracks_your_Crystal_Mob_spawn_chance!_While_this_is_capped_at_1_in_100,_you_get_BONUS_Exp_and_Drops_if_your_Crystal_Spawn_is_better!_For_example,_if_your_average_kills_is_20,_you're_getting_5x_Exp_and_Drops_from_Crystals!"
+      "This_tracks_your_Crystal_Mob_spawn_chance!_While_this_is_capped_at_1_in_10,_you_get_BONUS_Exp_and_Drops_if_your_Crystal_Spawn_is_better!_For_example,_if_your_average_kills_is_1_in_5,_you're_getting_2x_Exp_and_Drops_from_Crystals!"
     ],
     [
       "Dungeon_Rank",
@@ -189368,7 +193123,7 @@
     ],
     [
       "Unique_Sushi_Created_膛",
-      "54",
+      "63",
       "2",
       "800",
       "filler",
@@ -189381,6 +193136,30 @@
       "500",
       "filler",
       "This_is_referring_to_THE_BUTTON,_found_in_the_Mantaray_map_in_World_7!_This_map_is_the_12th_map_away_from_town,_to_give_you_an_idea_of_where_this_map_is."
+    ],
+    [
+      "Total_Royal_Statue_LV",
+      "100",
+      "0",
+      "600",
+      "filler",
+      "filler"
+    ],
+    [
+      "Royal_Guardian_Outposts_Built",
+      "65",
+      "2",
+      "650",
+      "filler",
+      "filler"
+    ],
+    [
+      "Total_Resource_Grade_膛",
+      "1000",
+      "0",
+      "600",
+      "filler",
+      "Resource_Grade_refers_to_the_Royal_Guardian_resource_system,_where_you_increase_each_resource_node's_Grade_by_collecting_all_its_resources."
     ]
   ],
   "TournyRewards": [
@@ -189396,6 +193175,11 @@
       "EquipmentNametagReplica38",
       "EquipmentNametagReplica39",
       "EquipmentNametagReplica40"
+    ],
+    [
+      "EquipmentRingsChat13",
+      "EquipmentRingsChat14",
+      "EquipmentRingsChat15"
     ]
   ],
   "TournyStuff": [
@@ -189744,6 +193528,97 @@
       "괭",
       "겼",
       "겠"
+    ],
+    [
+      "晕",
+      "晋",
+      "晃",
+      "昭",
+      "易",
+      "昂",
+      "时",
+      "旧"
+    ],
+    [
+      "秘",
+      "秒",
+      "科",
+      "私",
+      "秀",
+      "离",
+      "禧",
+      "福"
+    ],
+    [
+      "禅",
+      "禁",
+      "祸",
+      "祷",
+      "祭",
+      "祥",
+      "神",
+      "祝"
+    ],
+    [
+      "菊",
+      "菇",
+      "获",
+      "莱",
+      "莫",
+      "荷",
+      "荧",
+      "荣"
+    ],
+    [
+      "牧",
+      "牡",
+      "牛",
+      "牌",
+      "版",
+      "片",
+      "爷",
+      "父"
+    ],
+    [
+      "拖",
+      "拒",
+      "拇",
+      "抢",
+      "抠",
+      "扯",
+      "扭",
+      "扫"
+    ],
+    [
+      "软",
+      "转",
+      "轨",
+      "车",
+      "躲",
+      "身",
+      "蹿",
+      "扫"
+    ],
+    [
+      "Blunder_Hills_Meadow",
+      "Smolderin'_Plateau_Ridge",
+      "Mysterious_Unknown_Land",
+      "Mysterious_Unknown_Land",
+      "Mysterious_Unknown_Land",
+      "Mysterious_Unknown_Land",
+      "Mysterious_Unknown_Land",
+      "Mysterious_Unknown_Land"
+    ],
+    [
+      "6",
+      "24",
+      "6",
+      "6",
+      "6",
+      "6",
+      "6",
+      "6",
+      "6"
     ]
   ],
   "TowerInfo": [
@@ -194555,7 +198430,7 @@
     [
       "TRUE_ZEN",
       "1",
-      "1.14",
+      "1.140",
       "250",
       "2",
       "1",
@@ -194573,7 +198448,7 @@
     [
       "LAMP_BOOST",
       "5",
-      "1.09",
+      "1.090",
       "200",
       "1",
       "1",
@@ -194582,7 +198457,7 @@
     [
       "DOUBLE_CLUSTER",
       "8",
-      "1.17",
+      "1.170",
       "100",
       "5",
       "1",
@@ -194591,7 +198466,7 @@
     [
       "BUBBLE_BOOST",
       "15",
-      "1.5",
+      "1.500",
       "25",
       "2",
       "1",
@@ -194600,7 +198475,7 @@
     [
       "SUPER_DUPERS",
       "50",
-      "1.7",
+      "1.700",
       "25",
       "1",
       "1",
@@ -194609,7 +198484,7 @@
     [
       "MOST_GRANDIOSE",
       "250",
-      "1.25",
+      "1.250",
       "50",
       "4",
       "1",
@@ -194618,7 +198493,7 @@
     [
       "GIGA_SYMBOLS",
       "1000",
-      "1.15",
+      "1.150",
       "100",
       "1",
       "1",
@@ -194635,12 +198510,21 @@
     ],
     [
       "CLASSY_GOGO",
-      "25000",
+      "10000",
       "1.115",
       "100",
       "1",
       "1",
-      "}x_Class_EXP_gain,_for_now..."
+      "}x_Class_EXP_gain"
+    ],
+    [
+      "KINGDOMERCIAL",
+      "25000",
+      "1.410",
+      "100",
+      "1",
+      "1",
+      "}x_Resource_gains_for_Royal_Guardian"
     ]
   ],
   "fillerzz4": [
@@ -197754,7 +201638,7 @@
   "get_internalEncoding": "UTF-16",
   "get_supported": false,
   "get_supportsTouchEvents": "\"ontouchstart\"in document.documentElement||window.DocumentTouch&&document instanceof DocumentTouch?!0:!1",
-  "get_version": "\"WEB \"+(z.replace(\"9.2.0\",\".\",\",\")+\",0\")",
+  "get_version": "\"WEB \"+(y.replace(\"9.2.0\",\".\",\",\")+\",0\")",
   "get_versionString": "",
   "get_vertices": [
     -1,

@@ -8,7 +8,7 @@ export const MAP_NAMES: readonly string[] = [
   "Jungle_Perimeter", "Birch_Enclave", "Hollowed_Trunk", "Winding_Willows", "TutorialA", "TutorialB", "TutorialC", "TutorialD",
   "Vegetable_Patch", "JungleX", "Forest_Outskirts", "Encroaching_Forest_Villas", "Tucked_Away", "End_Of_The_Road", "The_Roots", "Where_the_Branches_End",
   "Motherlode_Pit", "How_Did_u_get_here", "Miningg1", "Miningg2", "Dewdrop_Colosseum", "Spike_Surprise", "Meel's_Crypt", "Grandfrog's_Backyard",
-  "Grandfrog's_Gazebo", "Pet_Park", "Grand_Owl_Perch", "Z", "Z", "Z", "Z", "Z",
+  "Grandfrog's_Gazebo", "Pet_Park", "Grand_Owl_Perch", "GrasslandsH", "Z", "Z", "Z", "Z",
   "Z", "Z", "YumYum_Grotto", "Jar_Bridge", "The_Mimic_Hole", "Dessert_Dunes", "Salty_Shores", "Faraway_Piers",
   "Filler", "The_Grandioso_Canyon", "Shifty_Sandbox", "Pincer_Plateau", "Slamabam_Straightaway", "Deepwater_Docks", "The_Ring", "Up_Up_Down_Down",
   "Sands_of_Time", "Djonnuttown", "Efaunt's_Tomb", "Bandit_Bob's_Hideout", "Sandstone_Colosseum", "Mummy_Memorial", "Heaty_Hole", "Gravel_Tomb",

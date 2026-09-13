@@ -36,6 +36,7 @@ import { artifactBase } from "../../data/w5/sailing";
 import { hasBonusMajor } from "../w5/divinity";
 import { label, entityName } from "../../entity-names";
 import { talentParams, familyBonusParams, CLASS_TREES } from "../../data/common/talent";
+import { armoryUpgBonus } from "../../data/w7/royalG";
 import {
   isAccountWideTalent,
   ACCOUNT_WIDE_SPECIAL_BRANCH_IDS,
@@ -807,7 +808,7 @@ export function computeAllTalentLVz(
     ? Math.max(0, Math.floor((currentPlayerLv - 500) / 100))
     : 0;
 
-  return Math.floor(
+  const total = Math.floor(
     spelunkBonus +
       tal149 +
       tal374 +
@@ -823,6 +824,13 @@ export function computeAllTalentLVz(
       arcane57 +
       lvBonusTerm
   );
+  // Royal Guardian talents (225–239, 2026-08): "All Talent LV" bonuses reach
+  // them only up to Armory 55 (Talent Reattainment) levels — N.js sets
+  // AllTalMaxCapFR = ArmoryUpgBonus(55) for that id range (9999 otherwise).
+  if (talentIdx >= 225 && talentIdx <= 239) {
+    return Math.min(total, Math.floor(armoryUpgBonus(55, saveData)));
+  }
+  return total;
 }
 
 /** Builds the breakdown node tree for the talent bonus levels — mirrors

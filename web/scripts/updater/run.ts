@@ -59,7 +59,7 @@ async function writeGameData(
   }
   writeFileSync(itemsPath, it.text, "utf8");
   writeFileSync(listsPath, ls.text, "utf8");
-  console.log(`[updater] 🛠️  game-data atualizado: items.js (+${it.added} novos, ~${it.updated} alterados, ${it.kept} preservados) · customlists.js (~${ls.updated} alteradas)`);
+  console.log(`[updater] 🛠️  game-data atualizado: items.js (+${it.added} novos, ~${it.updated} alterados, ${it.kept} preservados) · customlists.js (~${ls.updated} alteradas, +${ls.added.length} novas${ls.added.length ? ": " + ls.added.join(", ") : ""})`);
   if (ls.missing.length) console.log(`[updater]    listas não reextraídas (mantidas do baseline): ${ls.missing.join(", ")}`);
 }
 

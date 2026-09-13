@@ -74,6 +74,9 @@ const dropRateDesc: Descriptor = {
       { system: "legendPTS", id: 1 },
       { system: "spelunkShop", id: 50 },
       { system: "companion", id: 132 },
+      // Royal Guardian (2026-08): GetTalentNumber(1,239) × TotalStatz(0) —
+      // "+{%_Drop_Rate_per_Resource_Grade" × Σ resource-node Grades.
+      { system: "royalGrade", id: 239 },
     ],
     chipDR: [{ system: "chip", id: "dr" }],
     postFlat: [
@@ -84,7 +87,12 @@ const dropRateDesc: Descriptor = {
       { system: "workshop" },
       { system: "bundle", id: "bun_p" },
       { system: "arcaneMap" },
+      // Royal Statue #1 = DROP_RATE (2026-08): ×(1 + StatueBon(1)/100).
+      { system: "royalStatue", id: 1 },
       { system: "card", id: 101 },
+      // Royal Guardian family bonus (class 16, FamBonusQTYs["32"]) — a % DR
+      // MULTIPLIER curve decay(10, 800) on the best RG level: ×(1 + FB/100).
+      { system: "familyBonus", id: 16 },
       { system: "sushiRoG", id: 48 },
       { system: "glimbo" },
       { system: "tome", id: 7 },
@@ -93,11 +101,15 @@ const dropRateDesc: Descriptor = {
       { system: "cloudBonus", id: 69, args: [5] },
       { system: "pristine", id: 3 },
       { system: "etcBonus", id: 91 },
-      { system: "compMulti", id: 132, args: [1.5] },
+      // Mama Troll: 1 + (min(.5, comp132) + .2·CompLV2(132)) — stage 2 adds
+      // +0.2 outside the 1.5 cap (2026-08).
+      { system: "compMulti", id: 132, args: [1.5, 1, 1, 0.2] },
       // Crystal Glunko companion (2026-06): ×(1 + 0.3·comp168), uncapped.
       { system: "compMulti", id: 168, args: [Infinity, 1, 0.3] },
       { system: "compMulti", id: 26, args: [1.3] },
-      { system: "compMulti", id: 160, args: [1.5, 2] },
+      // Glunko The Massive: (1 + .5·comp160) — the 1.5 cap was removed in the
+      // 2026-08 update (stage 2 lifts the bonus past it).
+      { system: "compMulti", id: 160, args: [Infinity, 2] },
       { system: "compMulti", id: 50, args: [1.01, 2500] },
       // W7 Ship-in-a-Bottle vial — % Drop Rate MULTIPLIER. Game applies it as
       // ×(1 + val/100); a pure mult, so order within the chain doesn't matter.

@@ -300,6 +300,7 @@ type WinBonusParts = {
   wb31?: number;
   empBon8?: number;
   godshardSet?: number;
+  banI?: number;
   winnerSum?: number;
   winnerMult?: number;
   idx?: number;
@@ -329,17 +330,20 @@ export function _winBonusParts(idx: number, swb: number[], saveData: SaveData): 
     : 0;
   const ach379 = achieveStatus(379, saveData);
   const ach373 = achieveStatus(373, saveData);
+  // @njs WinBonus — 50·Have_ban_i: owning the `ban_i` bundle (BundlesReceived)
+  // adds +50 to the winner-bonus group (2026-08).
+  const banI = Number((saveData.bundlesData as any)?.ban_i) === 1 ? 50 : 0;
   const baseMult = idx >= 20 && idx <= 33 ? 1 : 3.5;
   const pristineMult = 1 + pristine8 / 100;
   const gemMult = 1 + (10 * gemItems11) / 100;
-  let winnerSum = artBonus32 + taskVal + ach379 + ach373 + godshardSet;
+  let winnerSum = artBonus32 + taskVal + ach379 + ach373 + godshardSet + banI;
   if (idx !== 19) winnerSum += wb31 + empBon8;
   const winnerMult = 1 + winnerSum / 100;
   const val = baseMult * raw * pristineMult * gemMult * winnerMult;
   return {
     val, raw, baseMult, pristine8, pristineMult, gemItems11, gemMult,
     artBonus32, artRarity, taskVal, ach379, ach373, wb31, empBon8,
-    godshardSet, winnerSum, winnerMult, idx,
+    godshardSet, banI, winnerSum, winnerMult, idx,
   };
 }
 

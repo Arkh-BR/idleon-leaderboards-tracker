@@ -458,11 +458,12 @@ function computeRawValue(
     case 116: {
       // IT's logic (parsers/world-7/sushiStation.ts): the uniqueSushi count
       // is the length of the CONSECUTIVE prefix of Sushi[5] where each entry
-      // is >= 0. The first -1 (or undefined) ends the chain. MAX_TIER = 58.
+      // is >= 0. The first -1 (or undefined) ends the chain. 63 tiers since
+      // the 2026-09 update (Research[30] length; was 59).
       if (Array.isArray(data.Sushi) && Array.isArray((data.Sushi as unknown[])[5])) {
         const tracking = (data.Sushi as unknown[])[5] as unknown[];
         let uniqueSushi = 0;
-        for (let i = 0; i <= 58; i++) {
+        for (let i = 0; i <= 62; i++) {
           const v = tracking[i] ?? -1;
           if (Number(v) >= 0) {
             uniqueSushi = i + 1;
@@ -475,6 +476,19 @@ function computeRawValue(
       return null;
     }
     case 117: return O(opt, 594, out);
+    // Royal Guardian (2026-08) — see extractors "royal guardian" section.
+    case 118: {
+      const v = ex.rawRoyalStatueLv(data);
+      return v !== null ? R(out, "raw.RoyalG[0] sum", v) : null;
+    }
+    case 119: {
+      const v = ex.rawRoyalOutposts(data);
+      return v !== null ? R(out, "raw.RoyalMaps built (≥3 fields)", v) : null;
+    }
+    case 120: {
+      const v = ex.rawResourceGrade(data);
+      return v !== null ? R(out, "raw.RoyalG[5] sum", v) : null;
+    }
     default: return null;
   }
 }

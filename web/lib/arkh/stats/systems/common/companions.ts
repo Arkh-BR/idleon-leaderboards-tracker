@@ -10,7 +10,7 @@ type Ctx = { saveData: SaveData };
 
 export function companions(idx: number, saveData: SaveData): number {
   if (!saveData.companionIds || !saveData.companionIds.has(idx)) return 0;
-  return companionBonus(idx);
+  return companionBonus(idx, saveData.companionLv2Ids);
 }
 
 export const companion = {
@@ -19,7 +19,8 @@ export const companion = {
     const owned = ctx.saveData.companionIds
       ? ctx.saveData.companionIds.has(id)
       : false;
-    const bonusVal = companionBonus(id);
+    const lv2 = !!ctx.saveData.companionLv2Ids?.has(id);
+    const bonusVal = companionBonus(id, ctx.saveData.companionLv2Ids);
     const val = owned ? bonusVal : 0;
     if (!owned) {
       return node(
@@ -40,7 +41,10 @@ export const companion = {
       val,
       [
         node("Owned", 1, null, { fmt: "raw" }),
-        node("Bonus", bonusVal, null, { fmt: "+" }),
+        node("Bonus", bonusVal, null, {
+          fmt: "+",
+          note: lv2 ? "stage 2 (LV2) value — CompanionDB[id][11]" : undefined,
+        }),
       ],
       { fmt: "+" }
     );
@@ -100,25 +104,43 @@ export const compMulti = {
     // apply a fractional factor with NO cap, e.g. Crystal Glunko (168):
     // ×(1 + 0.3·comp168) → args [Infinity, 1, 0.3].
     const mult = args && args[2] !== undefined ? args[2] : 1;
+    // Optional flat add applied ONLY at stage 2, outside the cap — Mama Troll
+    // (132) in N.js is 1 + (min(.5, comp132) + .2·CompLV2(132)) → args
+    // [1.5, 1, 1, 0.2]. (2026-08)
+    const lv2Add = args && args[3] !== undefined ? args[3] : 0;
     const name = label("Companion", id);
     const owned = ctx.saveData.companionIds
       ? ctx.saveData.companionIds.has(id)
       : false;
-    const bonusVal = owned ? companionBonus(id) : 0;
+    const lv2 = owned && !!ctx.saveData.companionLv2Ids?.has(id);
+    // Stage-2 companions read CompanionDB[id][11] (e.g. Crystal Glunko 1 → 1.5,
+    // so ×(1 + 0.3·1.5) = 1.45 — the "1.45x Drop Rate" of its upgraded text).
+    const bonusVal = owned ? companionBonus(id, ctx.saveData.companionLv2Ids) : 0;
     const raw = (divisor > 1 ? bonusVal / divisor : bonusVal) * mult;
-    const val = Math.max(1, Math.min(cap, 1 + raw));
+    const val = Math.max(1, Math.min(cap, 1 + raw) + (lv2 ? lv2Add : 0));
     // Owned/Not-owned status is reflected by `val` itself (1× when not
     // owned, > 1× when owned), so don't add a redundant zero-val "Owned"
     // row. When not owned, swap in a single explanatory row instead.
     const children: ArkhNode[] = owned
       ? [
-          node("Raw bonus", bonusVal, null, { fmt: "+" }),
+          node("Raw bonus", bonusVal, null, {
+            fmt: "+",
+            note: lv2 ? "stage 2 (LV2) value" : undefined,
+          }),
           // An infinite cap (uncapped, e.g. Crystal Glunko 168) must NOT surface
           // as a "Cap: Infinity" ×-child — the top-player frankenstein's PROD(x)
           // op would grab it and blow the node up to Infinity. Emit Cap only
           // when it's a real, finite cap.
           ...(Number.isFinite(cap)
             ? [node("Cap", cap, null, { fmt: "x" })]
+            : []),
+          ...(lv2 && lv2Add
+            ? [
+                node("Stage 2 (LV2) bonus", lv2Add, null, {
+                  fmt: "+",
+                  note: "added outside the cap",
+                }),
+              ]
             : []),
           node("Result", val, null, { fmt: "x" }),
         ]

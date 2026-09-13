@@ -43,6 +43,8 @@ import { pristine } from "./systems/w5/pristine";
 import { glimbo, workshop, eventShop } from "./systems/common/wrappers";
 import { lukScaling } from "./systems/common/stats";
 import { button } from "./systems/w7/button";
+import { royalStatue, royalGrade } from "./systems/w7/royalG";
+import { familyBonus } from "./systems/common/familyBonus";
 
 // Loose ctx type — each system narrows what it actually reads
 export type SystemCtx = {
@@ -112,6 +114,9 @@ const _systems: Record<string, SystemResolver> = {
   eventShop: eventShop as unknown as SystemResolver,
   lukScaling: lukScaling as unknown as SystemResolver,
   button: button as unknown as SystemResolver,
+  royalStatue: royalStatue as unknown as SystemResolver,
+  royalGrade: royalGrade as unknown as SystemResolver,
+  familyBonus: familyBonus as unknown as SystemResolver,
 };
 
 export function getSystem(name: string): SystemResolver | null {

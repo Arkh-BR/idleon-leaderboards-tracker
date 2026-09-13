@@ -74,6 +74,7 @@ export type SystemKey =
   | "Sneaking Mastery"
   | "Event Shop"
   | "Summoning"
+  | "Royal Guardian"
   | "Other";
 
 // Emoji prefix per category — used to decorate bucket headers in both
@@ -128,6 +129,7 @@ export const SYSTEM_EMOJI: Record<SystemKey, string> = {
   "Sneaking Mastery": "🥷",
   "Event Shop": "🛍️",
   Summoning: "🐲",
+  "Royal Guardian": "🏰",
   Other: "🔹",
 };
 
@@ -202,6 +204,8 @@ export const SYSTEM_WORLD: Record<SystemKey, WorldKey> = {
   "Arcane Map": "Global",
   "Cloud Bonus": "Global",
   "Event Shop": "Global",
+  // Royal Statues / resource grades / family bonus are account-wide (2026-08).
+  "Royal Guardian": "Global",
 
   // Character — class progression / character-bound bonuses
   "LUK / Stats": "Character",
@@ -313,6 +317,7 @@ export const SYSTEM_ORDER: SystemKey[] = [
   "Sneaking Mastery",
   "Event Shop",
   "Summoning",
+  "Royal Guardian",
   "Other",
 ];
 
@@ -320,6 +325,13 @@ export const SYSTEM_ORDER: SystemKey[] = [
 // system tag sits at the end as "(Talent 279)" / "(Pristine Charm)" / etc.).
 type Rule = { match: RegExp; system: SystemKey };
 const RULES: Rule[] = [
+  // ----- Royal Guardian (2026-08) — checked first so its talent-tagged
+  // "DR per Resource Grade (Talent 239)" row stays with the statue + family
+  // bonus instead of falling into the generic Talents bucket.
+  {
+    match: /^Royal (Statue|Guardian)\b|Resource Grade \(Talent\s/,
+    system: "Royal Guardian",
+  },
   // ----- Character progression (entity-name-tagged) -----
   { match: /\(Talent\s/, system: "Talents" },
   {
