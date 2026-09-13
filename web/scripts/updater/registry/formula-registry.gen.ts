@@ -10,6 +10,9 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   "FriendBonusQTY": [
     "lib/arkh/stats/systems/common/friend.ts"
   ],
+  "FriendBonusSlots": [
+    "lib/arkh/stats/systems/common/friend.ts"
+  ],
   "FriendBonusXtraMulti": [
     "lib/arkh/stats/systems/common/friend.ts"
   ],

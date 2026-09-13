@@ -78,9 +78,10 @@ export function galleryBonusMulti(
       : 0;
   const y13capped = Math.min(20, bubbleBonusY13(saveData));
   const cardLv = Math.min(computeCardLv("w7a11", saveData), 10);
+  // Bubba The Seal: +30 → +50 at stage 2 (LV2) — scales every nametag/trophy.
   const comp49 =
     saveData.companionIds && saveData.companionIds.has(49)
-      ? companionBonus(49)
+      ? companionBonus(49, saveData.companionLv2Ids)
       : 0;
   const clamWork7 = (Number((optionsListData as any)[464]) || 0) > 7 ? 1 : 0;
   const ola467 = Number((optionsListData as any)[467]) || 0;
@@ -166,7 +167,9 @@ export function hatrackBonusMulti(saveData: SaveData): MultiResult {
   // Summer Event (was the "Bababooey!" placeholder). N.js folds Companions(31)
   // straight into the sum: 1 + (hats + Companions(31) + 10·evShop30 + …)/100.
   const comp31 =
-    saveData.companionIds && saveData.companionIds.has(31) ? companionBonus(31) : 0;
+    saveData.companionIds && saveData.companionIds.has(31)
+      ? companionBonus(31, saveData.companionLv2Ids)
+      : 0;
   const sum = hatCount + comp31 + 10 * evShop30 + mhq21 + sushiRoG36;
   const val = 1 + sum / 100;
   const ch: ArkhNode[] = [];

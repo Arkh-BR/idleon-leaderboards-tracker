@@ -40,7 +40,7 @@ export function computeButtonBonus(slotIdx: number, saveData: SaveData): number 
   const hits = fullCycles * 5 + Math.max(0, Math.min(5, rem - 5 * slotIdx));
   const comp147 =
     saveData.companionIds && saveData.companionIds.has(147)
-      ? companionBonus(147)
+      ? companionBonus(147, saveData.companionLv2Ids)
       : 0;
   const grid125 = gridBonusValue(125, saveData);
   const multi = (1 + comp147 / 100) * (1 + grid125 / 100);
@@ -58,7 +58,7 @@ export const button = {
     const hits = fullCycles * 5 + Math.max(0, Math.min(5, rem - 5 * slot));
     const comp147 =
       ctx.saveData.companionIds && ctx.saveData.companionIds.has(147)
-        ? companionBonus(147)
+        ? companionBonus(147, ctx.saveData.companionLv2Ids)
         : 0;
     const grid125 = gridBonusValue(125, ctx.saveData);
     const multi = (1 + comp147 / 100) * (1 + grid125 / 100);

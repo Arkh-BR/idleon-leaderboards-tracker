@@ -751,7 +751,7 @@ export function computeAllTalentLVz(
 
   // Companion 1 (Rift Slug)
   const comp1 = saveData.companionIds && saveData.companionIds.has(1)
-    ? companionBonus(1) : 0;
+    ? companionBonus(1, saveData.companionLv2Ids) : 0;
 
   // Divinity Minor 2 (Arctis)
   const y2bp = bubbleParams(3, 21);
@@ -1376,7 +1376,7 @@ function resolveAllTalentLVz(
   }
 
   const comp1v = saveData.companionIds && saveData.companionIds.has(1)
-    ? companionBonus(1) : 0;
+    ? companionBonus(1, saveData.companionLv2Ids) : 0;
   if (comp1v > 0) {
     children.push(companionChild(1, comp1v, saveData, { fmt: "raw" }));
   }

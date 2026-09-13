@@ -21,7 +21,7 @@ export const owl = {
     const legendMulti = 1 + legend26 / 100;
     const comp51 =
       ctx.saveData.companionIds && ctx.saveData.companionIds.has(51)
-        ? companionBonus(51)
+        ? companionBonus(51, ctx.saveData.companionLv2Ids)
         : 0;
 
     const ola262 = Number((optionsListData as any)?.[262]) || 0;

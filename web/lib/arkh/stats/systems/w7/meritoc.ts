@@ -41,7 +41,7 @@ function _meritocParts(optionIdx: number, saveData: SaveData): MeritocParts {
   const clamWork3 = (Number((saveData.olaData as any)[464]) || 0) > 3 ? 1 : 0;
   const comp39 =
     saveData.companionIds && saveData.companionIds.has(39)
-      ? companionBonus(39)
+      ? companionBonus(39, saveData.companionLv2Ids)
       : 0;
   const legend24 = legendPTSbonus(24, saveData);
   const arcade59 = arcadeBonus(59, saveData).val;
@@ -49,7 +49,7 @@ function _meritocParts(optionIdx: number, saveData: SaveData): MeritocParts {
   const rog51 = rogBonusQTY(51, saveData.cachedUniqueSushi);
   const comp161 =
     saveData.companionIds && saveData.companionIds.has(161)
-      ? companionBonus(161)
+      ? companionBonus(161, saveData.companionLv2Ids)
       : 0;
   const addSum =
     5 * clamWork3 + comp39 + legend24 + arcade59 + 20 * eventShop23 + rog51;

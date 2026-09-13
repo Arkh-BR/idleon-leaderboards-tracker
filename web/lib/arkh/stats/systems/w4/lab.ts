@@ -52,9 +52,13 @@ export function gridBonusValue(id: number, saveData: SaveData): number {
 
 function gridAllMulti(saveData: SaveData) {
   const comp55 =
-    saveData.companionIds && saveData.companionIds.has(55) ? companionBonus(55) : 0;
+    saveData.companionIds && saveData.companionIds.has(55)
+      ? companionBonus(55, saveData.companionLv2Ids)
+      : 0;
   const comp0 =
-    saveData.companionIds && saveData.companionIds.has(0) ? companionBonus(0) : 0;
+    saveData.companionIds && saveData.companionIds.has(0)
+      ? companionBonus(0, saveData.companionLv2Ids)
+      : 0;
   const grid173Lv = Number((saveData.gridLevels as any)?.[173]) || 0;
   const cb71 = cloudBonus(71, saveData.weeklyBossData);
   const cb72 = cloudBonus(72, saveData.weeklyBossData);
