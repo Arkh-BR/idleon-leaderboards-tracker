@@ -3,9 +3,20 @@ import { node, treeResult, type ArkhNode, type TreeResult } from "../../../node"
 import { label } from "../../entity-names";
 import { arcadeShopParams } from "../../data/w2/arcade";
 import { companionChild } from "../common/companions";
+import { companionBonus } from "../../data/common/companions";
 import type { SaveData } from "../../../state";
 
 type Ctx = { saveData: SaveData };
+
+// N.js _customBlock_ArcadeBonus: `1 == Companions(27) && ArcadBonDNz *= 2`.
+// It compares the CompanionBon value with exactly 1, so the ×2 only applies
+// while Reindeer is at stage 1; at stage 2 (CompanionDB[27][11] = 1.5) the
+// game silently drops it despite the "2.50x" LV2 text. Mirrored on purpose:
+// the engine tracks the live game, not the intended value.
+export function comp27Multi(saveData: SaveData): number {
+  const owned = !!(saveData.companionIds && saveData.companionIds.has(27));
+  return owned && companionBonus(27, saveData.companionLv2Ids) === 1 ? 2 : 1;
+}
 
 export function arcadeBonus(idx: number, saveData: SaveData): TreeResult {
   const params = arcadeShopParams(idx);
@@ -20,7 +31,7 @@ export function arcadeBonus(idx: number, saveData: SaveData): TreeResult {
         : base * lv
       : (base * lv) / (lv + denom);
   const maxedM = lv === 101 ? 2 : 1;
-  const comp27M = saveData.companionIds && saveData.companionIds.has(27) ? 2 : 1;
+  const comp27M = comp27Multi(saveData);
   const val = maxedM * comp27M * raw;
   return treeResult(val, [
     node("Raw (lv=" + lv + ")", raw, null, { fmt: "raw" }),
@@ -40,7 +51,7 @@ export const arcade = {
     const tr = arcadeBonus(id, saveData);
     const val = tr.val;
     const maxedM = lv === 101 ? 2 : 1;
-    const comp27M = saveData.companionIds && saveData.companionIds.has(27) ? 2 : 1;
+    const comp27M = comp27Multi(saveData);
     return node(
       label("Arcade", id),
       val,
@@ -53,7 +64,9 @@ export const arcade = {
         }),
         companionChild(27, comp27M, saveData, {
           fmt: "x",
-          note: "companion 27",
+          note: saveData.companionLv2Ids?.has(27)
+            ? "stage 2: game applies no ×2 (checks value == 1)"
+            : "companion 27",
         }),
       ],
       { fmt: "+", note: "arcade " + id }

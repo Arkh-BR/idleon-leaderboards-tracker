@@ -240,7 +240,7 @@ function podiumsOwnedLv3(saveData: SaveData): number {
   );
 }
 
-function podiumsOwnedLv2(saveData: SaveData): number {
+export function podiumsOwnedLv2(saveData: SaveData): number {
   const gem40 = Number((saveData.gemItemsData && saveData.gemItemsData[40]) || 0);
   const sail33 = Number(
     (saveData.sailingData &&
@@ -248,8 +248,12 @@ function podiumsOwnedLv2(saveData: SaveData): number {
       saveData.sailingData[3][33]) ||
       0
   );
+  // N.js PodiumsOwned_Lv2 adds Companions(42) itself: CompanionDB[42][2] = 2
+  // showcases (3 at stage 2), not a 0/1 flag.
   const comp42 =
-    saveData.companionIds && saveData.companionIds.has(42) ? 1 : 0;
+    saveData.companionIds && saveData.companionIds.has(42)
+      ? companionBonus(42, saveData.companionLv2Ids)
+      : 0;
   const clamWork0 = (Number((optionsListData as any)[464]) || 0) > 0 ? 1 : 0;
   const ola467 = Number((optionsListData as any)[467]) || 0;
   const killroy3 = (ola467 / (200 + ola467)) * 10;
