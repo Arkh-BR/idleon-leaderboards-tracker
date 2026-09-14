@@ -96,7 +96,7 @@ export function expRateTree(s: SaveData): ArkhNode {
     }),
     node("Companion 87 (rift1)", 1 + 2 * ext.comp87, null, {
       fmt: "x",
-      note: ext.comp87 ? "owned (×3)" : "not owned",
+      note: ext.comp87 ? `owned (×${1 + 2 * ext.comp87})` : "not owned",
     }),
     node("Fountain Cook_Maxxing (Green Water)", 1 + ext.fountainCookMaxxing / 100, null, {
       fmt: "x",

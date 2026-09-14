@@ -5,6 +5,7 @@
 import { arrSum, arrMax, lavaLog, type RawObj } from "./math";
 import { CARDS_PER_TIER, DEATHNOTE_MOB_IDX, DUNGEON_LEVELS } from "./tasks";
 import { SUMMONING_ENEMY_IDS } from "./summoningEnemies";
+import { companionBonus } from "../arkh/stats/data/common/companions";
 
 type D = RawObj;
 
@@ -1007,17 +1008,27 @@ function guildStarDazzleBonus(d: D): number {
   return (120 * level) / (level + 50);
 }
 
-function flyingWormCompanionBonus(d: D): number {
-  // Companion index 20 (Flying_Worm) gives +30 Talent Points if acquired.
-  // Companion data in blob.companion.l (list of "id,tradable,?,?,?" strings).
-  // Acquired = any entry in list has id === "20".
-  const c = (d as { companion?: { l?: string[] } }).companion;
+// Companion bonus as the game reads it (DNSM.CompanionBon): CompanionDB[id][2],
+// or [11] once the companion reached stage 2 — field [4] of its companion.l
+// entry ("id,tradable,?,?,stage2"), max over duplicates like N.js CompanionLVz.
+export function companionValue(d: D, id: number): number {
+  const c = (d as { companion?: { l?: unknown[] } }).companion;
   if (!c?.l || !Array.isArray(c.l)) return 0;
-  const acquired = c.l.some((entry) => {
-    if (typeof entry !== "string") return false;
-    return entry.split(",")[0] === "20";
-  });
-  return acquired ? 30 : 0;
+  let owned = false;
+  let lv2 = false;
+  for (const entry of c.l) {
+    if (typeof entry !== "string") continue;
+    const parts = entry.split(",");
+    if (Number(parts[0]) !== id) continue;
+    owned = true;
+    if (Number(parts[4]) >= 1) lv2 = true;
+  }
+  return owned ? companionBonus(id, lv2 ? new Set([id]) : null) : 0;
+}
+
+function flyingWormCompanionBonus(d: D): number {
+  // Companion 20 (Flying_Worm): +30 Talent Points, +40 at stage 2.
+  return companionValue(d, 20);
 }
 
 function shinyStarTalentPetBonus(d: D): number {
@@ -1206,12 +1217,9 @@ export function rawStarTalentsProper(d: D): number | null {
     if (Array.isArray(d.Grimoire) && (d.Grimoire as unknown[])[39] !== undefined) {
       grimoire = num((d.Grimoire as unknown[])[39]);
     }
-    // Companion 1 (Rift_Slug) acquired → +25 added levels (envelope-only).
-    let companion1 = 0;
+    // Companion 1 (Rift_Slug) acquired → +25 added levels (+35 at stage 2).
+    const companion1 = companionValue(d, 1);
     const cList = (d as { companion?: { l?: string[] } }).companion?.l;
-    if (Array.isArray(cList) && cList.some((e) => typeof e === "string" && e.split(",")[0] === "1")) {
-      companion1 = 25;
-    }
     // Superbit 'Timmy_Talented' check (best-effort): looking for it in gaming
     // sprout data is complex. Approximate using char level: per IT formula
     // `superbit ? Math.max(0, floor((charLv - 500) / 100) * superbit) : 0`.

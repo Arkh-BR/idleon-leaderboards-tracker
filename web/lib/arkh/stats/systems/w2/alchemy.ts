@@ -24,6 +24,7 @@ import { bubbleParams } from "../../data/w2/alchemy";
 import { AlchemyDescription } from "../../data/game/customlists.js";
 import { mainframeBonus } from "../w4/lab";
 import { N2L } from "../../data/common/encoding";
+import { companionBonus } from "../../data/common/companions";
 import type { SaveData } from "../../../state";
 
 type Ctx = { saveData: SaveData; charIdx: number };
@@ -99,8 +100,12 @@ export function getPrismaBonusMult(saveData: SaveData): number {
   const exLv = Number((saveData.farmUpgData as any)?.[ex48.farmSlot]) || 0;
   const exotic48 = exLv > 0 ? (ex48.base * exLv) / (ex48.denom + exLv) : 0;
   const legend36 = legendPTSbonus(36, saveData);
+  // N.js: 50·Companions(88) — the CompanionBon value, so Rift4 at stage 2
+  // (CompanionDB[88][11] = 1.5) contributes 75, not 50.
   const comp88 =
-    saveData.companionIds && saveData.companionIds.has(88) ? 1 : 0;
+    saveData.companionIds && saveData.companionIds.has(88)
+      ? companionBonus(88, saveData.companionLv2Ids)
+      : 0;
   const sushiRoG23 = rogBonusQTY(23, saveData.cachedUniqueSushi || 0);
   const sum =
     arcane45 +
