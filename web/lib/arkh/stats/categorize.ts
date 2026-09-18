@@ -325,11 +325,11 @@ export const SYSTEM_ORDER: SystemKey[] = [
 // system tag sits at the end as "(Talent 279)" / "(Pristine Charm)" / etc.).
 type Rule = { match: RegExp; system: SystemKey };
 const RULES: Rule[] = [
-  // ----- Royal Guardian (2026-08) — checked first so its talent-tagged
-  // "DR per Resource Grade (Talent 239)" row stays with the statue + family
-  // bonus instead of falling into the generic Talents bucket.
+  // ----- Royal Guardian (2026-08): the Royal Statue and the class family
+  // bonus. Graded Rate (Talent 239) is a talent and lands in Talents like
+  // every other "(Talent N)" row.
   {
-    match: /^Royal (Statue|Guardian)\b|Resource Grade \(Talent\s/,
+    match: /^Royal (Statue|Guardian)\b/,
     system: "Royal Guardian",
   },
   // ----- Character progression (entity-name-tagged) -----

@@ -11,6 +11,23 @@
 //   the friendly name first.
 
 import { ENTITY_NAMES } from "./data/entity-names.gen";
+import { TalentIconNames } from "./data/game/customlists.js";
+
+// "GRADED_RATE" → "Graded Rate", "PIT_O'_PAGES" → "Pit O' Pages". Used for
+// talents the generated table (IT website-data) doesn't know yet — e.g. the
+// Royal Guardian tab (225–239) — straight from the game's TalentIconNames.
+const SMALL_WORDS = new Set(["of", "the", "a", "an", "and", "in", "for", "to"]);
+function talentNameFromGame(raw: string): string {
+  return raw
+    .split("_")
+    .filter(Boolean)
+    .map((w, i) => {
+      const lower = w.toLowerCase();
+      if (i > 0 && SMALL_WORDS.has(lower)) return lower;
+      return lower.charAt(0).toUpperCase() + lower.slice(1);
+    })
+    .join(" ");
+}
 
 // Aliases used by the descriptor & resolvers — these map our system keys to
 // the ones we generated in ENTITY_NAMES (the generator picks the closest IT
@@ -63,6 +80,10 @@ export function entityName(system: string, id: unknown): string {
   for (const c of candidates) {
     const m = ENTITY_NAMES[c];
     if (m && m[idStr]) return m[idStr];
+  }
+  if (sys === "talent") {
+    const raw = (TalentIconNames as unknown as string[])[Number(idStr)];
+    if (raw && raw !== "_") return talentNameFromGame(raw);
   }
   return "";
 }

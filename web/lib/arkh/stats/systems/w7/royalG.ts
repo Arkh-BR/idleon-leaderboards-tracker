@@ -6,6 +6,7 @@
 // Both read the `RoyalG` save attribute (see data/w7/royalG.ts).
 
 import { node, type ArkhNode } from "../../../node";
+import { entityName } from "../../entity-names";
 import { talent } from "../common/talent";
 import {
   armoryUpgBonus,
@@ -52,15 +53,18 @@ export const royalStatue = {
   },
 };
 
-/** Talent × Σ resource-node Grades — an additive DR term. */
+/** Talent × Σ resource-node Grades — an additive DR term. Named like every
+ *  other talent row ("<name> … (Talent N)") so the categorizer files it under
+ *  Talents; the Royal Guardian bucket keeps only the statue + family bonus. */
 export const royalGrade = {
   resolve(id: number, ctx: Ctx): ArkhNode {
     const t = talent.resolve(id, ctx as any);
     const grades = totalResourceGrade(ctx.saveData);
     const perGrade = Number(t.val) || 0;
     const val = perGrade * grades;
+    const talentName = entityName("Talent", id) || "DR per Resource Grade";
     return node(
-      `DR per Resource Grade (Talent ${id})`,
+      `${talentName} × Total Resource Grades (Talent ${id})`,
       val,
       [
         t,
