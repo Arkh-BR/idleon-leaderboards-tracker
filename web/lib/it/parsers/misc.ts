@@ -28,6 +28,7 @@ import { getShrineBonus } from './world-3/shrines';
 import { isSuperbitUnlocked } from './world-5/gaming';
 import { getFamilyBonusBonus } from './family';
 import { getStatsFromGear } from './items';
+import { CompanionDB } from '../../arkh/stats/data/game/customlists.js';
 import LavaRand from '../utility/lavaRand';
 import { isPast } from 'date-fns';
 import { getGuildBonusBonus } from './guild';
@@ -1190,26 +1191,42 @@ export const getCompanions = (companionObject: any = {}) => {
   const [companionIndex] = companionObject?.e?.split(',') || [];
   const companion = companions?.[companionIndex];
   const ownedCompanions = companionObject?.l?.reduce((result: any, comp: any) => {
-    const [companionIndex, isTradable] = comp?.split(',');
-    const current = result[companionIndex] || { count: 0, tradableCount: 0, nonTradableCount: 0 };
+    const [companionIndex, isTradable, , , levelRaw] = `${comp}`.split(',');
+    const current = result[companionIndex] || { count: 0, tradableCount: 0, nonTradableCount: 0, level: 0 };
     const tradable = isTradable === '1';
+    // Field [4] = Pet Mart+ stage (2026-08); the game keeps the max across copies
+    // (CompanionLVz). Absent/malformed on pre-patch saves → 0, never NaN.
+    const parsedLevel = Number(levelRaw);
+    const level = Number.isFinite(parsedLevel) ? parsedLevel : 0;
     return {
       ...result,
       [companionIndex]: {
         count: current.count + 1,
         tradableCount: current.tradableCount + (tradable ? 1 : 0),
-        nonTradableCount: current.nonTradableCount + (tradable ? 0 : 1)
+        nonTradableCount: current.nonTradableCount + (tradable ? 0 : 1),
+        level: Math.max(current.level, level)
       }
     }
   }, {});
 
-  const updatedCompanions = companions?.map((comp, index) => ({
-    ...comp,
-    acquired: (ownedCompanions?.[index]?.count || 0) > 0,
-    copies: ownedCompanions?.[index]?.count ?? 0,
-    tradableCount: ownedCompanions?.[index]?.tradableCount ?? 0,
-    nonTradableCount: ownedCompanions?.[index]?.nonTradableCount ?? 0
-  }))
+  const updatedCompanions = companions?.map((comp, index) => {
+    const level = ownedCompanions?.[index]?.level ?? 0;
+    const upgraded = level >= 1;
+    // Stage-2 value (live IT: `upgradedBonus`). This port's website-data predates
+    // Pet Mart+, so read CompanionDB[index][11] from the engine's game data — the
+    // same column N.js puts into CompanionBon.
+    const upgradedBonus = Number((CompanionDB as any)?.[index]?.[11]);
+    return {
+      ...comp,
+      acquired: (ownedCompanions?.[index]?.count || 0) > 0,
+      copies: ownedCompanions?.[index]?.count ?? 0,
+      tradableCount: ownedCompanions?.[index]?.tradableCount ?? 0,
+      nonTradableCount: ownedCompanions?.[index]?.nonTradableCount ?? 0,
+      level,
+      upgraded,
+      bonus: upgraded && Number.isFinite(upgradedBonus) ? upgradedBonus : comp?.bonus
+    };
+  })
 
   return {
     totalBoxesOpened: companionObject?.x,
@@ -1223,6 +1240,12 @@ export const getCompanions = (companionObject: any = {}) => {
 
 export const isCompanionBonusActive = (account: any, index: any) => {
   return account?.companions?.list?.at(index)?.acquired;
+}
+
+// Pet Mart+ flag (game: _customBlock_CompLV2): acquired AND upgraded to stage >= 1.
+export const isCompanionLvl2Active = (account: any, index: any) => {
+  const companion = account?.companions?.list?.at(index);
+  return !!(companion?.acquired && (companion?.level ?? 0) >= 1);
 }
 
 export const getRandomEventItems = (account: any) => {

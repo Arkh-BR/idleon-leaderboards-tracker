@@ -13,6 +13,7 @@ import {
   expRateCore,
   purpleTotal,
   sourceBase,
+  yellowTotal,
   type MasteryInputs,
 } from "../arkh/stats/systems/common/cookingMastery";
 
@@ -145,7 +146,7 @@ export function optimize(
       purpleTotal: total,
       purpleSpent: spent,
       purpleAvailable: Math.max(0, total - spent),
-      yellowTotal: total + inp.researchGridYellow,
+      yellowTotal: yellowTotal(inp),
     },
     current: {
       purple: inp.purple.slice(),

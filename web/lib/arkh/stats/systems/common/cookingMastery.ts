@@ -14,6 +14,7 @@ import { computeVialByKey } from "../w2/alchemy";
 import { SaltLicks } from "../../data/game/customlists";
 import { fountainBonusTotal } from "../../data/w5/fountain";
 import { eventShopOwned } from "../../../game-helpers";
+import { companionBonus } from "../../data/common/companions";
 
 // @njs RandoListo2[8]
 // RandoListo2[8] — base coefficient per upgrade b (0..5).
@@ -47,7 +48,7 @@ export type MasteryInputs = {
   divorceCakeLv: number; // Meals[0][73]
   totalRibbonRanks: number; // Σ Ribbon[28+] (CkMst_RbLvT)
   purple: number[]; // CookMaster[2][0..5] — Purple PTS per upgrade
-  comp87: boolean; // Companion 87 (rift1): +5 pts each colour, ×3 Exp/h
+  comp87: number; // Companions(87) value: 0 none, 1 stage 1, 1.5 stage 2 → +5·comp87 pts each colour, ×(1 + 2·comp87) Exp/h
   evShop54?: boolean; // Event Shop 54 (Bejeweled Ladle, 2026-09): +5 pts each colour
   researchGridYellow: number; // ResearchStuff("Grid_Bonus",190,1) — extra Yellow pts
   externalMulti: number; // product of Purple-independent Exp/h multipliers
@@ -102,22 +103,29 @@ export function masteryExpReq(rank: number): number {
   return 100 * Math.pow(2.5, rank) * Math.pow(5, Math.max(0, rank - 40));
 }
 
-// @njs PtsLeftCook_P
-/** Purple PTS pool total = rank + 1 + 5·comp87 + 5·evShop54 (PtsLeftCook_P, before spending). */
-export function purpleTotal(inp: MasteryInputs): number {
-  return inp.rank + 1 + (inp.comp87 ? 5 : 0) + (inp.evShop54 ? 5 : 0);
+// Shared by PtsLeftCook_P/Y: rank + (1 + 5·EventShop54 + 5·Companions(87)).
+// Companions(87) is the CompanionBon value, so Rift1 at stage 2 gives 7.5 —
+// the game Math.round()s the whole pool, which we mirror.
+function ptsPool(inp: MasteryInputs): number {
+  return inp.rank + 1 + 5 * inp.comp87 + (inp.evShop54 ? 5 : 0);
 }
 
-/** Yellow PTS pool total = purpleTotal + research-grid yellow (PtsLeftCook_Y). */
+// @njs PtsLeftCook_P
+/** Purple PTS pool total = round(rank + 1 + 5·comp87 + 5·evShop54) (PtsLeftCook_P, before spending). */
+export function purpleTotal(inp: MasteryInputs): number {
+  return Math.round(ptsPool(inp));
+}
+
+/** Yellow PTS pool total = round(purple pool + research-grid yellow) (PtsLeftCook_Y). */
 export function yellowTotal(inp: MasteryInputs): number {
-  return purpleTotal(inp) + inp.researchGridYellow;
+  return Math.round(ptsPool(inp) + inp.researchGridYellow);
 }
 
 export type ExternalBreakdown = {
   val: number;
   researchGrid190: number; // ResearchStuff("Grid_Bonus",190) — % per the grid square
   superBit68: number; // GamingStatType("SuperBitType",68) — 0/1
-  comp87: number; // Companion 87 (rift1) — 0/1
+  comp87: number; // Companions(87) value — 0 / 1 / 1.5 (stage 2)
   vial7cm: number; // AlchVials["7cookmastery"] — %
   arcade69: number; // ArcadeBonus(69) — %
   saltLick10: number; // SaltLick(10) — %
@@ -141,7 +149,7 @@ export function externalExpMulti(s: SaveData): ExternalBreakdown {
   const researchGrid190 = gridBonusValue(190, s);
   const gaming12 = String((s.gamingData as any[])?.[12] ?? "");
   const superBit68 = gaming12.length > 68 ? 1 : 0;
-  const comp87 = s.companionIds?.has(87) ? 1 : 0;
+  const comp87 = s.companionIds?.has(87) ? companionBonus(87, s.companionLv2Ids) : 0;
   const vial7cm = computeVialByKey("7cookmastery", s).val;
   const arcade69 = arcadeBonus(69, s).val;
   const slLv = Number((s.saltLickData as any[])?.[10]) || 0;
@@ -180,7 +188,7 @@ export function readMasteryInputs(s: SaveData): MasteryInputs {
     divorceCakeLv: num(meals0[DIVORCE_CAKE_MEAL]),
     totalRibbonRanks,
     purple: Array.from({ length: 6 }, (_, i) => num((cm[2] as any[])?.[i])),
-    comp87: s.companionIds?.has(87) ?? false,
+    comp87: s.companionIds?.has(87) ? companionBonus(87, s.companionLv2Ids) : 0,
     evShop54: eventShopOwned(54, s.cachedEventShopStr || "") === 1,
     researchGridYellow: 0, // TODO ResearchStuff("Grid_Bonus",190,1)
     externalMulti: externalExpMulti(s).val,

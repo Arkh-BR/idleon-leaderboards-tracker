@@ -8,6 +8,16 @@ import {
   totalResourceGrade,
 } from "../../../lib/arkh/stats/data/w7/royalG";
 import { computeArcaneMapMultiBon } from "../../../lib/arkh/stats/systems/mc/tesseract";
+import { getPrismaBonusMult } from "../../../lib/arkh/stats/systems/w2/alchemy";
+import { comp27Multi } from "../../../lib/arkh/stats/systems/w2/arcade";
+import { podiumsOwnedLv2 } from "../../../lib/arkh/stats/systems/w7/gallery";
+import { cookingMealMulti } from "../../../lib/arkh/stats/systems/common/cooking";
+import {
+  externalExpMulti,
+  purpleTotal,
+  readMasteryInputs,
+} from "../../../lib/arkh/stats/systems/common/cookingMastery";
+import { companionValue } from "../../../lib/tome/extractors";
 import { formulaEval } from "../../../lib/arkh/formulas";
 import { assignSaveData } from "../../../lib/arkh/save/data";
 import { saveData } from "../../../lib/arkh/state";
@@ -128,6 +138,90 @@ export const CASES: GoldenCase[] = [
         return familyBonusValue(16, saveData);
       })();
       return v > 0 && near(v, expected) && noRg === 0;
+    },
+  },
+  // 2026-09-14: readers that used a literal instead of CompanionDB ignored
+  // stage 2. Each case flips companionLv2Ids and checks the CompanionBon value.
+  {
+    name: "Rift4 (88) stage 2: prisma bubble multi term 50 → 75",
+    note: "N.js 50·Companions(88) reads CompanionBon, not a 0/1 flag",
+    run: () => {
+      saveData.companionIds = new Set<number>([88]);
+      saveData.companionLv2Ids = new Set<number>();
+      const a = getPrismaBonusMult(saveData);
+      saveData.companionLv2Ids = new Set<number>([88]);
+      const b = getPrismaBonusMult(saveData);
+      return near(b - a, 0.25);
+    },
+  },
+  {
+    name: "w7a3 (42) counts 2 Lv2 showcases (3 at stage 2)",
+    note: "N.js PodiumsOwned_Lv2 adds Companions(42) itself — was a +1 flag",
+    run: () => {
+      saveData.companionIds = new Set<number>();
+      saveData.companionLv2Ids = new Set<number>();
+      const none = podiumsOwnedLv2(saveData);
+      saveData.companionIds = new Set<number>([42]);
+      const base = podiumsOwnedLv2(saveData);
+      saveData.companionLv2Ids = new Set<number>([42]);
+      const lv2 = podiumsOwnedLv2(saveData);
+      return base - none === 2 && lv2 - none === 3;
+    },
+  },
+  {
+    name: "Reindeer (27) doubles arcade bonuses only at stage 1",
+    note: "N.js `1 == Companions(27)`: stage 2 (1.5) loses the ×2 — mirrored",
+    run: () => {
+      saveData.companionIds = new Set<number>();
+      saveData.companionLv2Ids = new Set<number>();
+      const none = comp27Multi(saveData);
+      saveData.companionIds = new Set<number>([27]);
+      const base = comp27Multi(saveData);
+      saveData.companionLv2Ids = new Set<number>([27]);
+      const lv2 = comp27Multi(saveData);
+      return none === 1 && base === 2 && lv2 === 1;
+    },
+  },
+  {
+    name: "w6b2b (162) meal multi 25% → 40% at stage 2",
+    note: "N.js (1 + 25·Companions(162)/100), CompanionBon 1 → 1.6",
+    run: () => {
+      saveData.companionIds = new Set<number>([162]);
+      saveData.companionLv2Ids = new Set<number>();
+      const a = cookingMealMulti(saveData).comp162;
+      saveData.companionLv2Ids = new Set<number>([162]);
+      const b = cookingMealMulti(saveData).comp162;
+      return near(a, 25) && near(b, 40);
+    },
+  },
+  {
+    name: "Rift1 (87) stage 2: Cooking Mastery +7.5 pts (pool rounded) and ×4 Exp/h",
+    note: "N.js 5·Companions(87) and (1 + 2·Companions(87)) with CompanionBon 1.5",
+    run: () => {
+      saveData.companionIds = new Set<number>([87]);
+      saveData.companionLv2Ids = new Set<number>([87]);
+      const inp = readMasteryInputs(saveData);
+      const ext = externalExpMulti(saveData);
+      const stage1 = { ...inp, comp87: 1 };
+      return (
+        near(inp.comp87, 1.5) &&
+        purpleTotal(stage1) === inp.rank + 6 &&
+        purpleTotal(inp) === inp.rank + 9 && // round(rank + 8.5)
+        near(ext.comp87, 1.5)
+      );
+    },
+  },
+  {
+    name: "Tome: Flying Worm (20) 30 → 40 talent pts, Rift Slug (1) 25 → 35 at stage 2",
+    note: "tome extractors read CompanionDB via companionValue(), not literals",
+    run: () => {
+      const blob = (l: string[]) => ({ companion: { l } }) as any;
+      return (
+        companionValue(blob(["20,1,0,0,0"]), 20) === 30 &&
+        companionValue(blob(["20,1,0,0,1"]), 20) === 40 &&
+        companionValue(blob(["1,0,0,0,0", "1,0,0,0,1"]), 1) === 35 &&
+        companionValue(blob([]), 1) === 0
+      );
     },
   },
 ];

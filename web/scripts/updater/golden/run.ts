@@ -12,10 +12,28 @@
 // mergeBest is future work) → INFORMATIONAL. Synthetic cases → FATAL.
 // Regression-vs-baseline is intentionally omitted (fetched saves change as
 // players play).
+// The embedded reference is computed by idleontoolbox.com's parser at the
+// moment the PLAYER uploads, so it is exactly as fresh as the profile: a
+// profile last uploaded before a game update carries the old task layout and
+// the old companion values, and cannot validate anything newer. Such profiles
+// are reported as "stale reference" and skipped instead of counting as fatal.
+// (The live IT parser reads companion stage 2 — `upgradedBonus` — so fresh
+// references DO exercise stage-2 values; only the local `web/lib/it` port lags.)
 import { referenceProfiles, getSave } from "./saves";
 import { summarize } from "./engines";
 import { compareGroundTruth } from "./checks";
 import { runCases } from "./cases";
+import { TOME_TASKS } from "../../../lib/tome/tasks";
+
+// 2026-08-25: Royal Guardian update (121 tome tasks, companion stage 2).
+const REF_CUTOFF_MS = Date.UTC(2026, 7, 25);
+
+/** When idleontoolbox.com parsed this profile (ms). `lastUpdated` has shipped in
+ *  both seconds and milliseconds — normalise on magnitude. */
+function referenceParsedAt(save: any): number {
+  const t = Number(save?.lastUpdated) || 0;
+  return t > 1e12 ? t : t * 1000;
+}
 
 async function main(): Promise<void> {
   const g = globalThis as any;
@@ -30,19 +48,13 @@ async function main(): Promise<void> {
     const got = summarize(save);
     const gt = save.extraData ?? save.parsedData ?? {};
     const hasTomeRef = Array.isArray(gt.tomePoints) && gt.tomePoints.length > 0;
-    // 2026-08: the game inserted three Royal Guardian tome tasks at display
-    // slots 106–108 (121 tasks). IT profiles parsed since then carry the new
-    // layout; older cached profiles still ship the 118-entry one. Remap those
-    // onto the new positions (NaN placeholders skip the three new slots) so a
-    // stale cache doesn't read as 12 phantom mismatches.
-    let tomeRef: number[] | undefined = gt.tomePoints;
-    if (Array.isArray(tomeRef) && tomeRef.length === 118) {
-      tomeRef = [...tomeRef.slice(0, 106), NaN, NaN, NaN, ...tomeRef.slice(106)];
-    }
+    const parsedAt = referenceParsedAt(save);
+    const staleRef =
+      hasTomeRef && (gt.tomePoints.length !== TOME_TASKS.length || parsedAt < REF_CUTOFF_MS);
     const ms = compareGroundTruth(
       name,
       got,
-      { tomePoints: tomeRef, dropRate: gt.dropRate },
+      { tomePoints: staleRef ? undefined : gt.tomePoints, dropRate: gt.dropRate },
       // tomeTol=1 absorbs rounding off-by-ones. drTolPct only gates whether the
       // DR line prints; DR is informational + methodology-mismatched (see
       // header), so the exact threshold isn't meaningful — kept loose at 8.
@@ -54,6 +66,15 @@ async function main(): Promise<void> {
       // No embedded reference (some profiles ship no tomePoints) — we cannot
       // validate Tome for this save. Say so plainly instead of a vacuous "✅".
       console.log(`· ${name}: ⊘ Tome ${got.tomeTotal} (no reference in save — not validated)`);
+    } else if (staleRef) {
+      const when = parsedAt ? new Date(parsedAt).toISOString().slice(0, 10) : "unknown date";
+      const why =
+        gt.tomePoints.length !== TOME_TASKS.length
+          ? `${gt.tomePoints.length}-task layout from a pre-update IT parser`
+          : "parsed before the 2026-08-25 update";
+      console.log(
+        `· ${name}: ⊘ Tome ${got.tomeTotal} (stale reference: ${why}, uploaded ${when} — not validated until the player re-uploads)`,
+      );
     } else if (tome.length) {
       fatal += tome.length;
       console.log(`· ${name}: ❌ ${tome.length} Tome per-task mismatch(es)`);
