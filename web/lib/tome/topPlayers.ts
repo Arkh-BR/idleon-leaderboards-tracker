@@ -3,7 +3,7 @@
 // player's raw save from the IT profiles API and scores it with our tome
 // engine (lib/tome/compute.ts), so every entry follows the current game rules.
 //
-// Snapshot generated: 2026-09-18T22:35:59.544Z
+// Snapshot generated: 2026-09-18T22:55:03.339Z
 // Source: https://profiles.idleontoolbox.workers.dev/api/profiles/?profile=<name> → computeTome()
 // Players scanned: 76
 
@@ -56,7 +56,7 @@ export const TOP_PLAYERS: Readonly<Record<string, TopPlayerEntry>> = {
   "Jackpots Hit in Arcade": { date: "09/18/2026", player: "FenrirAdra", raw: 9, pts: 80, classification: 5 },
   "Star Talent Points Owned": { date: "09/18/2026", player: "PerkOne", raw: 13946, pts: 259, classification: 3 },
   "Average kills for a Crystal Spawn": { date: "09/18/2026", player: "Fluffle_Puff", raw: 1, pts: 402, classification: 3 },
-  "Dungeon Rank": { date: "09/18/2026", player: "Riltin", raw: 71, pts: 284, classification: 9 },
+  "Dungeon Rank": { date: "09/18/2026", player: "Riltin", raw: 78, pts: 289, classification: 9 },
   "Highest Drop Rate Multi": { date: "09/18/2026", player: "ElementalOn", raw: 3009319943.5728, pts: 508, classification: 12 },
   "Constellations Completed": { date: "09/18/2026", player: "01010111001", raw: 49, pts: 300, classification: 12 },
   "Unique Obols Found": { date: "09/18/2026", player: "1st_Giri", raw: 109, pts: 250, classification: 9 },

@@ -17,7 +17,8 @@ import {
   purpleTotal,
   readMasteryInputs,
 } from "../../../lib/arkh/stats/systems/common/cookingMastery";
-import { companionValue, rawJellyOperations } from "../../../lib/tome/extractors";
+import { companionValue, rawDungeonRank, rawJellyOperations } from "../../../lib/tome/extractors";
+import { DUNGEON_LEVELS } from "../../../lib/tome/tasks";
 import { jellyRoGBonus } from "../../../lib/arkh/stats/data/w7/jelly";
 import { rogDropMulti } from "../../../lib/arkh/stats/systems/w7/jelly";
 import { rogBonusQTY } from "../../../lib/arkh/stats/systems/w7/sushi";
@@ -350,6 +351,23 @@ export const CASES: GoldenCase[] = [
       const cap = Math.floor(armoryUpgBonus(55, saveData));
       const lifted = bonusOf(239);
       return capped === 0 && uncapped >= 6 && cap > 0 && lifted === Math.min(uncapped, cap);
+    },
+  },
+  {
+    name: "Tome: Dungeon Rank = first RANDOlist[29] threshold above the points (87 live ranks, no cap)",
+    note: "N.js TomeQTY[17] = GenINFO[12]; the old hand-copied table capped everyone past 120M at rank 66",
+    run: () => {
+      const rank = (pts: number) => rawDungeonRank({ OptLacc: [...new Array(71).fill(0), pts] } as any);
+      // Table [0, 4, 10, …]: 5 pts → first threshold above is index 2; exactly
+      // 4 pts counts as reached (4 < 4 is false) → also 2; 1.93B (ARKHE) → 75.
+      return (
+        DUNGEON_LEVELS.length >= 87 &&
+        rank(5) === 2 &&
+        rank(4) === 2 &&
+        rank(3) === 1 &&
+        rank(1934670447) === 75 &&
+        rank(1e17) === DUNGEON_LEVELS.length
+      );
     },
   },
   {

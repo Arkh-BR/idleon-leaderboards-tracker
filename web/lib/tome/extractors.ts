@@ -519,15 +519,23 @@ export function rawDeathNoteDigits(d: D): number | null {
   return dg > 0 ? dg : null;
 }
 
+// N.js (ActorEvents_498 → GenINFO[12] → TomeQTY[17]): rank starts at 1 and
+// becomes the FIRST index b whose threshold exceeds the points:
+//   for b in 0..len: if OptLacc[71] < RANDOlist[29][b] { rank = b; break }
+// Equivalent to "one past the last threshold reached", including at exact
+// equality (points == threshold counts as reached). IdleonToolbox uses "last
+// index strictly exceeded", which is one rank LOW vs the game (ARKHE: game
+// 75, IT 74). Past every threshold (> 1e16, unreachable) the game keeps 1;
+// we return the table length instead of that artefact.
 export function rawDungeonRank(d: D): number | null {
   const opt = arr(d.OptLacc);
   const p = opt[71];
   if (p === undefined || p === null) return null;
-  let r = 0;
-  for (let i = 0; i < DUNGEON_LEVELS.length; i++) {
-    if (Number(p) > DUNGEON_LEVELS[i]) r = i;
+  const points = Number(p);
+  for (let b = 0; b < DUNGEON_LEVELS.length; b++) {
+    if (points < DUNGEON_LEVELS[b]) return b;
   }
-  return r + 1;
+  return DUNGEON_LEVELS.length;
 }
 
 export function rawStarTalents(d: D): number | null {

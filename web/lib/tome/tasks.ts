@@ -2,7 +2,9 @@
 // indexed by position, not by name. If you re-sync from the .gs, paste the
 // raw arrays verbatim.
 
-// 121 tome tasks in the EXACT order they appear in-game and on the IT website
+import { RANDOlist } from "../arkh/stats/data/game/customlists.js";
+
+// 122 tome tasks in the EXACT order they appear in-game and on the IT website
 // (NinjaInfo[32] is the game's display→compute map). The 2026-08 Royal
 // Guardian update inserted three tasks at display slots 106–108; IT profiles
 // parsed since then carry 121 tomePoints in this order, while older cached
@@ -273,17 +275,15 @@ export const CARDS_PER_TIER: Readonly<Record<string, number>> = {
   luckEvent1: 5, luckEvent2: 5, anni5Event1: 6,
 };
 
-// Dungeon ranks from 0-rounded OptLacc[71] thresholds.
-export const DUNGEON_LEVELS: readonly number[] = [
-  0, 4, 10, 18, 28, 40, 70, 110, 160, 230, 320, 470, 670, 940, 1310, 1760,
-  2400, 3250, 4000, 5000, 6160, 8000, 10000, 12500, 15000, 18400, 21000,
-  25500, 30500, 36500, 45400, 52000, 61000, 72500, 85000, 110000, 125000,
-  145000, 170000, 200000, 250000, 275000, 325000, 400000, 490000, 600000,
-  725000, 875000, 1000000, 1200000, 1500000, 3000000, 5000000, 10000000,
-  20000000, 30000000, 40000000, 50000000, 60000000, 80000000, 100000000,
-  999999999, 999999999, 999999999, 999999999, 999999999, 1999999999,
-  1999999999, 1999999999, 1999999999, 1999999999,
-];
+// Dungeon rank thresholds on OptLacc[71] (dungeon points) — the game's
+// RANDOlist[29], read from the regenerated game data so new ranks flow in
+// with every update. The previous hand-copied table stopped at 100M and was
+// padded with 999999999 sentinels, so every account past ~120M points was
+// capped at rank 66 (ARKHE at 1.93B is rank 75; the live table has 87
+// thresholds up to 1e16).
+export const DUNGEON_LEVELS: readonly number[] = (
+  ((RANDOlist as unknown as unknown[][])[29] as unknown[]) || []
+).map(Number);
 
 // mapEnemies values (map index per deathNote rawName) for the 104 deathNote
 // mobs — originally from IT website-data; the W7 tail is kept in sync with the
