@@ -4,6 +4,8 @@ import { emperorBonType, emperorBonVal } from "../../data/common/emperor";
 import { arcadeBonus } from "../w2/arcade";
 import { arcaneUpgBonus } from "../mc/tesseract";
 import { label } from "../../entity-names";
+import { jellyRoGBonus } from "../../data/w7/jelly";
+import { jellyRoGNode } from "../w7/jelly";
 import type { SaveData } from "../../../state";
 
 type Ctx = { saveData: SaveData };
@@ -27,8 +29,14 @@ export function computeEmperorBon(bonusIdx: number, saveData: SaveData): number 
     const slot = r % 48;
     if (emperorBonType(slot) === bonusIdx) sum += emperorBonVal(bonusIdx);
   }
+  // N.js EmperorBon: floor(sum × (1 + (Arcane 48 + Arcade 51 + Jelly 28)/100))
+  // — Jelly Operator obstruction 28 (Strabbury, 2026-09-18).
   const mult =
-    1 + (arcaneUpgBonus(48, saveData) + arcadeBonus(51, saveData).val) / 100;
+    1 +
+    (arcaneUpgBonus(48, saveData) +
+      arcadeBonus(51, saveData).val +
+      jellyRoGBonus(28, saveData)) /
+      100;
   return Math.floor(sum * mult);
 }
 
@@ -47,7 +55,8 @@ export const emperor = {
     }
     const arcane48 = arcaneUpgBonus(48, saveData);
     const arcade51val = arcadeBonus(51, saveData).val;
-    const mult = 1 + (arcane48 + arcade51val) / 100;
+    const jelly28 = jellyRoGBonus(28, saveData);
+    const mult = 1 + (arcane48 + arcade51val + jelly28) / 100;
     const val = Math.floor(sum * mult);
     if (val <= 0)
       return node(emperorLabel(id), 0, null, { note: "emperor " + id });
@@ -60,6 +69,7 @@ export const emperor = {
         node("Raw Sum", sum, null, { fmt: "raw" }),
         node(label("Arcane", 48), arcane48, null, { fmt: "raw" }),
         node(label("Arcade", 51), arcade51val, null, { fmt: "raw" }),
+        jellyRoGNode(28, saveData),
         node("Multi", mult, null, { fmt: "x" }),
       ],
       { fmt: "+", note: "emperor " + id }

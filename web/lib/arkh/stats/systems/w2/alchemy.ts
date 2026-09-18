@@ -25,6 +25,7 @@ import { AlchemyDescription } from "../../data/game/customlists.js";
 import { mainframeBonus } from "../w4/lab";
 import { N2L } from "../../data/common/encoding";
 import { companionBonus } from "../../data/common/companions";
+import { jellyRoGBonus } from "../../data/w7/jelly";
 import type { SaveData } from "../../../state";
 
 type Ctx = { saveData: SaveData; charIdx: number };
@@ -107,10 +108,14 @@ export function getPrismaBonusMult(saveData: SaveData): number {
       ? companionBonus(88, saveData.companionLv2Ids)
       : 0;
   const sushiRoG23 = rogBonusQTY(23, saveData.cachedUniqueSushi || 0);
+  // Jelly Operator obstruction 36 (Bowling Pin): "Prisma Bubbles give a 0.01x
+  // higher bonus" — +1 in the /100 sum (2026-09-18).
+  const jelly36 = jellyRoGBonus(36, saveData);
   const sum =
     arcane45 +
     arcade54 +
     sushiRoG23 +
+    jelly36 +
     hasW6Trophy +
     palette28 +
     0.2 * purpleSigils +

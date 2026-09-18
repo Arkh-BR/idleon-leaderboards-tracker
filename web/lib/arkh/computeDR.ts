@@ -18,9 +18,10 @@ export type ArkhDRResult = {
 };
 
 export type ComputeDROpts = {
-  /** Toggle the invisible +0.10 Gallery Bonus Multi from Lab chip being
-   *  active at the moment the gallery refreshed. Cannot be detected from
-   *  save state; users opt in via UI. */
+  /** Override for the +0.10 Gallery Bonus Multi from Lab chip 16 (Silkrode
+   *  Motherboard). N.js GalleryBonusMulti reads chipBonuses("troph") for the
+   *  CURRENT player, so by default (undefined) the engine detects the chip on
+   *  the active char's lab slots; pass true/false to force it. */
   chipGalleryActive?: boolean;
   /** Research mode for the Base Level node inside every talent's Effective
    *  Level subtree. When true, both "Points Invested" and the parent "Base
@@ -58,7 +59,10 @@ export function computeArkhDropRate(
     activeCharIdx: charIdx,
     mapBon,
     mapIdx,
-    chipGalleryActive: !!opts?.chipGalleryActive,
+    // undefined = auto: the gallery resolvers detect chip 16 on the active
+    // char (N.js chipBonuses("troph") is per current player); a boolean is
+    // an explicit override (UI toggle / observed-max collector).
+    chipGalleryActive: opts?.chipGalleryActive,
     useMaxResearchBaseLevel: !!opts?.useMaxResearchBaseLevel,
     splitSuperLevels: !!opts?.splitSuperLevels,
   };
@@ -85,7 +89,10 @@ export function computeArkhDRPools(
     activeCharIdx: charIdx,
     mapBon,
     mapIdx,
-    chipGalleryActive: !!opts?.chipGalleryActive,
+    // undefined = auto: the gallery resolvers detect chip 16 on the active
+    // char (N.js chipBonuses("troph") is per current player); a boolean is
+    // an explicit override (UI toggle / observed-max collector).
+    chipGalleryActive: opts?.chipGalleryActive,
     useMaxResearchBaseLevel: !!opts?.useMaxResearchBaseLevel,
     splitSuperLevels: !!opts?.splitSuperLevels,
   };

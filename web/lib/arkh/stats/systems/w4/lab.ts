@@ -17,6 +17,7 @@ import { gridBonusPerLv, SHAPE_BONUS_PCT } from "../../data/w7/research";
 import { cloudBonus, emporiumBonus } from "../../../game-helpers";
 import { companionBonus } from "../../data/common/companions";
 import { companionChild } from "../common/companions";
+import { rogBonusQTY } from "../w7/sushi";
 import { ChipDesc } from "../../data/game/customlists.js";
 import { labJewelUnlocked } from "../../../save/helpers";
 import type { SaveData } from "../../../state";
@@ -63,8 +64,12 @@ function gridAllMulti(saveData: SaveData) {
   const cb71 = cloudBonus(71, saveData.weeklyBossData);
   const cb72 = cloudBonus(72, saveData.weeklyBossData);
   const cb76 = cloudBonus(76, saveData.weeklyBossData);
+  // N.js Grid_Bonus_Allmulti: … + CloudBonus(76) + SushiStuff("RoG_BonusQTY",53)
+  // — the sushi term was missing (every grid square read 1.22× instead of
+  // 1.23× on ARKHE; verified against the live game 2026-09-18).
+  const sushi53 = rogBonusQTY(53, saveData.cachedUniqueSushi || 0);
   const sum =
-    comp55 + 5 * Math.min(1, grid173Lv * comp0) + cb71 + cb72 + cb76;
+    comp55 + 5 * Math.min(1, grid173Lv * comp0) + cb71 + cb72 + cb76 + sushi53;
   return {
     val: 1 + sum / 100,
     comp55,
@@ -73,6 +78,7 @@ function gridAllMulti(saveData: SaveData) {
     cb71,
     cb72,
     cb76,
+    sushi53,
   };
 }
 
@@ -109,6 +115,12 @@ export const grid = {
           [node(`${gridLabel(173)} Lv`, am.grid173Lv, null, { fmt: "raw" })],
           { fmt: "raw", note: "companion 0" }
         )
+      );
+    if (am.sushi53 > 0)
+      allMultiChildren.push(
+        node("Sushi Tier 54 — Research Grid All Multi (RoG Bonus 53)", am.sushi53, null, {
+          fmt: "raw",
+        })
       );
 
     if (id === 168) {

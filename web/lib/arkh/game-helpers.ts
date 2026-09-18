@@ -46,11 +46,17 @@ export function buildEmporiumArray(ninjaData102_9: unknown): number[] {
   return arr;
 }
 
+// N.js RibbonBonus(t): 1 + (floor(5t + floor(t/2)·(4 + 6.5·floor(t/5)))
+//   + floor(t/4)·EMPEROR_SET/4 + floor(t/10)·CloudBonus(73)
+//   + floor(t/20)·JellyOperation("RoG_BonusQTY",60)) / 100
+// `jelly60` = the Jelly Operator obstruction-60 value (Soldier Shiv, +5 for
+// tier-20+ ribbons, 2026-09-18); callers pass jellyRoGBonus(60, saveData).
 export function ribbonBonusAt(
   index: number,
   ribbonData: any[],
   olaStr379: unknown,
-  weeklyBossData: any
+  weeklyBossData: any,
+  jelly60: number = 0
 ): number {
   const t = Number(ribbonData[index]) || 0;
   if (t <= 0) return 1;
@@ -61,11 +67,13 @@ export function ribbonBonusAt(
   const cb73 = weeklyBossData
     ? Math.floor(t / 10) * cloudBonus(73, weeklyBossData)
     : 0;
+  const jellyTerm = Math.floor(t / 20) * (Number(jelly60) || 0);
   return (
     1 +
     (Math.floor(5 * t + Math.floor(t / 2) * (4 + 6.5 * Math.floor(t / 5))) +
       empTerm +
-      cb73) /
+      cb73 +
+      jellyTerm) /
       100
   );
 }

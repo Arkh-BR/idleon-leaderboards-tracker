@@ -23,10 +23,12 @@ type Ctx = { saveData: SaveData };
 
 const HOLE_DATA = HOLE_MULTIPLIERS;
 
-// applyMonumentFountain: IT-only extension (not in corgan-source).
-// The Fountain cavern's per-tier monument-boost upgrade multiplies
-// the corresponding monument's bonuses by `1 + fountainBonusTotal(t, 13)/100`,
-// clamped to ≥ 1. Applies for t = 0/1/2.
+// N.js MonumentROGbonuses(b, e): HoleozDN = 1; when e != 9 it becomes
+// 1 + MonumentROGbonuses(b, 9)/100 + CosmoBonusQTY(0,0)/100; then, for EVERY
+// e (the Wisdom monument e = 9 included), b = 0/1/2 multiplies it by
+// (1 + Fountain_BonTOT(b, 13)/100). The Fountain factor therefore boosts the
+// Wisdom monument's own value AND the final multiplier — verified against the
+// live game on ARKHE (DR monument 635.6, not 558.2).
 function applyMonumentFountain(base: number, saveData: SaveData, t: number): number {
   if (t !== 0 && t !== 1 && t !== 2) return base;
   const fb = fountainBonusTotal(saveData, t, 13);
@@ -135,28 +137,25 @@ export const holes = {
       const wisIdx = 10 * t + iWis;
       const wisLv = Number((hd[15] && (hd[15] as any)[wisIdx]) || 0);
       const wisBonusPerLv = holesMonBonus(29);
-      let wisBonus = 0;
-      if (wisLv > 0) {
-        wisBonus =
-          0.1 * Math.ceil((wisLv / (250 + wisLv)) * 10 * wisBonusPerLv);
-      }
+      // Wisdom monument = MonumentROGbonuses(2, 9): the Fountain factor is
+      // inside its own ceil() too (N.js applies it for every e).
+      const wisBonus = computeMonumentROGbonus(t, iWis, ctx.saveData);
 
       const cosmo00Base = cosmoUpgBase(0, 0);
       const cosmo00Lv = Number((hd[4] && (hd[4] as any)[0]) || 0);
       const cosmoBonus = Math.floor(cosmo00Base * cosmo00Lv);
 
       const holeozDN = 1 + wisBonus / 100 + cosmoBonus / 100;
-      // IT extension: fountain Wisdom-monument boost (t=2, i=13) multiplies
-      // monument bonuses. Placeholder in current game data (perLv=0), but
-      // included so any future activation flows through automatically.
       const finalMulti = applyMonumentFountain(holeozDN, ctx.saveData, t);
       const fountainTier = fountainBonusTotal(ctx.saveData, t, 13);
 
       const val =
-        0.1 *
-        Math.ceil(
-          (monLv / (250 + monLv)) * 10 * bonusPerLv * finalMulti
-        );
+        bonusPerLv < 30
+          ? monLv * bonusPerLv * Math.max(1, finalMulti)
+          : 0.1 *
+            Math.ceil(
+              (monLv / (250 + monLv)) * 10 * bonusPerLv * Math.max(1, finalMulti)
+            );
 
       const multiCh: ArkhNode[] = [];
       if (wisBonus > 0)
@@ -276,6 +275,9 @@ export function computeMonumentROGbonus(
       computeMonumentROGbonus(t, 9, saveData) / 100 +
       computeCosmoBonus(0, 0, saveData) / 100;
   }
+  // Fountain (t, 13) multiplies HoleozDN for every i — the Wisdom monument
+  // (i = 9) included, so it compounds into the other monuments' multiplier.
+  holeozDN = applyMonumentFountain(holeozDN, saveData, t);
 
   if (bonusInfo < 30) {
     return level * bonusInfo * Math.max(1, holeozDN);

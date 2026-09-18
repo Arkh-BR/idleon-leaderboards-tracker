@@ -93,7 +93,9 @@ const dropRateDesc: Descriptor = {
       // Royal Guardian family bonus (class 16, FamBonusQTYs["32"]) — a % DR
       // MULTIPLIER curve decay(10, 800) on the best RG level: ×(1 + FB/100).
       { system: "familyBonus", id: 16 },
-      { system: "sushiRoG", id: 48 },
+      // ×(1 + (Sushi RoG 48 + Jelly Operator RoG 14)/100) — one factor in
+      // N.js (2026-09-18 added the Jelly term inside the same parenthesis).
+      { system: "rogDropMulti" },
       { system: "glimbo" },
       { system: "tome", id: 7 },
       { system: "etcBonus", id: 99 },

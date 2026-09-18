@@ -1,6 +1,6 @@
 // Synthetic golden cases: inject minimal state and assert an engine reacts the
 // expected way. Catches term-level regressions that no real save covers yet.
-import { hatrackBonusMulti } from "../../../lib/arkh/stats/systems/w7/gallery";
+import { galleryBonusMulti, hatrackBonusMulti } from "../../../lib/arkh/stats/systems/w7/gallery";
 import { compMulti } from "../../../lib/arkh/stats/systems/common/companions";
 import { familyBonusValue } from "../../../lib/arkh/stats/systems/common/familyBonus";
 import {
@@ -17,7 +17,18 @@ import {
   purpleTotal,
   readMasteryInputs,
 } from "../../../lib/arkh/stats/systems/common/cookingMastery";
-import { companionValue } from "../../../lib/tome/extractors";
+import { companionValue, rawJellyOperations } from "../../../lib/tome/extractors";
+import { jellyRoGBonus } from "../../../lib/arkh/stats/data/w7/jelly";
+import { rogDropMulti } from "../../../lib/arkh/stats/systems/w7/jelly";
+import { rogBonusQTY } from "../../../lib/arkh/stats/systems/w7/sushi";
+import { computeEmperorBon } from "../../../lib/arkh/stats/systems/w6/emperor";
+import { emperorBonType, emperorBonVal } from "../../../lib/arkh/stats/data/common/emperor";
+import { computeStampDoublerSources } from "../../../lib/arkh/stats/systems/w1/stamp";
+import { ribbonBonusAt } from "../../../lib/arkh/game-helpers";
+import { NEI32, TOME_BONUSES, TOME_TASKS } from "../../../lib/tome/tasks";
+import { talent } from "../../../lib/arkh/stats/systems/common/talent";
+import { armoryUpgBonus } from "../../../lib/arkh/stats/data/w7/royalG";
+import type { ArkhNode } from "../../../lib/arkh/node";
 import { formulaEval } from "../../../lib/arkh/formulas";
 import { assignSaveData } from "../../../lib/arkh/save/data";
 import { saveData } from "../../../lib/arkh/state";
@@ -209,6 +220,151 @@ export const CASES: GoldenCase[] = [
         purpleTotal(inp) === inp.rank + 9 && // round(rank + 8.5)
         near(ext.comp87, 1.5)
       );
+    },
+  },
+  // 2026-09-18 Jelly Operator: obstruction b is active once Research[7][9] > b.
+  {
+    name: "Jelly Operator RoG 14 (Drop Rate) unlocks once MORE than 14 obstructions are down",
+    note: "guards JellyOperation(\"RoG_BonusQTY\", b) = Research[7][9] > b ? Research[47][b] : 0",
+    run: () => {
+      saveData.stateR7 = [];
+      const none = jellyRoGBonus(14, saveData);
+      saveData.stateR7 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 14];
+      const exact = jellyRoGBonus(14, saveData);
+      saveData.stateR7 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 15];
+      const on = jellyRoGBonus(14, saveData);
+      return none === 0 && exact === 0 && on === 5;
+    },
+  },
+  {
+    name: "Drop Rate RoG factor sums Sushi 48 and Jelly 14 inside ONE (1 + x/100)",
+    note: "N.js: ×(1 + (SushiStuff RoG 48 + JellyOperation RoG 14)/100)",
+    run: () => {
+      saveData.cachedUniqueSushi = 64;
+      saveData.stateR7 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 72];
+      const n = rogDropMulti.resolve(0, { saveData } as any);
+      const expected = rogBonusQTY(48, 64) + 5;
+      return n.fmt === "+" && near(Number(n.val), expected) && (n.children?.length ?? 0) === 2;
+    },
+  },
+  {
+    name: "Emperor bonus multi gains Jelly 28 (+2%) next to Arcane 48 and Arcade 51",
+    note: "N.js EmperorBon: floor(sum × (1 + (Arcane48 + Arcade51 + Jelly28)/100))",
+    run: () => {
+      saveData.arcaneData = [];
+      saveData.arcadeUpgData = [];
+      saveData.olaData = [];
+      (saveData.olaData as any)[369] = 48; // one pass over the 48 emperor slots
+      let sum = 0;
+      for (let r = 0; r < 48; r++) if (emperorBonType(r) === 11) sum += emperorBonVal(11);
+      saveData.stateR7 = [];
+      const before = computeEmperorBon(11, saveData);
+      saveData.stateR7 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 72];
+      const after = computeEmperorBon(11, saveData);
+      return sum > 0 && before === Math.floor(sum) && after === Math.floor(sum * 1.02);
+    },
+  },
+  {
+    name: "Stamp Doubler adds Jelly 50 ÷ 100 (+0.01) next to Sushi RoG 17",
+    note: "N.js StampDoubler: … + (SushiRoG17 + JellyRoG50/100)",
+    run: () => {
+      saveData.stateR7 = [];
+      const a = computeStampDoublerSources(saveData).total;
+      saveData.stateR7 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 72];
+      const b = computeStampDoublerSources(saveData).total;
+      return near(b - a, 0.01);
+    },
+  },
+  {
+    name: "Ribbon bonus: tier-20+ ribbons gain floor(t/20) × Jelly 60",
+    note: "N.js RibbonBonus: … + floor(b/20) × JellyOperation RoG 60",
+    run: () => {
+      const rib = [20];
+      const plain = ribbonBonusAt(0, rib, "", {});
+      const jelly = ribbonBonusAt(0, rib, "", {}, 5);
+      const low = ribbonBonusAt(0, [19], "", {}, 5) - ribbonBonusAt(0, [19], "", {});
+      return near(jelly - plain, 0.05) && near(low, 0);
+    },
+  },
+  {
+    name: "Golden Food multi: Jelly 10 (+100%) and 51 (+200%) are additive % sources",
+    note: "N.js GoldFoodBonuses rest-sum: … + Vault86 + Jelly10 + Jelly51",
+    run: () => {
+      saveData.stateR7 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 72];
+      return jellyRoGBonus(10, saveData) === 100 && jellyRoGBonus(51, saveData) === 200;
+    },
+  },
+  {
+    name: "Tome: 122 tasks, Successful Jelly Operations appended (compute 121, 72 → 800 pts)",
+    note: "NinjaInfo[32] appended 121; Tome list [121] = [72,2,800]; Unique Sushi max 64",
+    run: () => {
+      const rawOps = rawJellyOperations({
+        Research: [[], [], [], [], [], [], [], [0, 0, 0, 0, 0, 0, 0, 0, 0, 37]],
+      } as any);
+      const preUpdate = rawJellyOperations({ Research: [[], [], [], [], [], [], [], [0, 1]] } as any);
+      return (
+        TOME_TASKS.length === 122 &&
+        TOME_TASKS[121] === "Successful Jelly Operations" &&
+        NEI32.length === 122 &&
+        NEI32[121] === 121 &&
+        TOME_BONUSES.length === 122 &&
+        TOME_BONUSES[121][0] === 72 &&
+        TOME_BONUSES[121][2] === 800 &&
+        TOME_BONUSES[116][0] === 64 &&
+        rawOps === 37 &&
+        preUpdate === 0
+      );
+    },
+  },
+  {
+    name: "Royal Guardian talents get All-Talent-LV bonus levels only up to Armory 55",
+    note: "N.js AllTalMaxCapFR = ArmoryUpgBonus(55) for talents 225–239 (9999 otherwise)",
+    run: () => {
+      // Talent 149 (Symbols of Beyond) at 100 → 1 + floor(100/20) = 6 bonus
+      // levels; whatever else the (possibly real-save) state contributes is
+      // measured with the cap lifted, then checked against Armory 55.
+      assignSaveData({
+        numCharacters: 1,
+        charClassData: [16],
+        skillLvData: [{ 239: 10, 149: 100 }],
+      });
+      saveData.charNames = ["RG"];
+      saveData.companionIds = new Set<number>();
+      saveData.companionLv2Ids = new Set<number>();
+      saveData.royalGData = [[], [], new Array(99).fill(0), [], [], []];
+      const bonusOf = (id: number): number => {
+        const tree = talent.resolve(id, { saveData, charIdx: 0 } as any);
+        let found: number | null = null;
+        const walk = (n: ArkhNode | undefined) => {
+          if (!n || found !== null) return;
+          if (n.name === "Bonus Levels") { found = Number(n.val) || 0; return; }
+          for (const c of n.children || []) walk(c);
+        };
+        walk(tree);
+        return found ?? -1;
+      };
+      const capped = bonusOf(239); // Armory 55 lv 0 → cap 0
+      saveData.royalGData[2][55] = 9999;
+      const uncapped = bonusOf(239);
+      saveData.royalGData[2][55] = 20;
+      const cap = Math.floor(armoryUpgBonus(55, saveData));
+      const lifted = bonusOf(239);
+      return capped === 0 && uncapped >= 6 && cap > 0 && lifted === Math.min(uncapped, cap);
+    },
+  },
+  {
+    name: "Gallery Bonus Multi counts chip 16 per character (the game's chipBonuses(\"troph\"))",
+    note: "verified against the live game 2026-09-18: 2.27× with the chip, 2.17× without",
+    run: () => {
+      // char 0 wears Silkrode Motherboard (chip 16), char 1 does not.
+      assignSaveData({ numCharacters: 2, labData: [[], [16, 0, 0], [10, 0, 0]] });
+      saveData.spelunkData = [];
+      saveData.cachedUniqueSushi = 0;
+      saveData.companionIds = new Set<number>();
+      const withChip = galleryBonusMulti(saveData, { charIdx: 0 }).val;
+      const without = galleryBonusMulti(saveData, { charIdx: 1 }).val;
+      const forcedOff = galleryBonusMulti(saveData, { charIdx: 0, chipGalleryActive: false }).val;
+      return near(withChip - without, 0.1) && near(forcedOff, without);
     },
   },
   {

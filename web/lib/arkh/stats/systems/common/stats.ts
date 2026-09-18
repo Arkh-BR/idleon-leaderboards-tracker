@@ -132,6 +132,7 @@ import { votingBonusz } from "../w2/voting";
 import { vaultUpgBonus } from "./vault";
 import { pristineBon } from "../w5/pristine";
 import { isExalted, computeStampDoublerSources } from "../w1/stamp";
+import { jellyRoGBonus } from "../../data/w7/jelly";
 import { artifactBase } from "../../data/w5/sailing";
 import { cosmoUpgBase } from "../../data/w5/hole";
 import { computeMeritocBonusz } from "../w7/meritoc";
@@ -488,7 +489,10 @@ export function computeGalleryBaseStat(
   let total = 0;
   const children: ArkhNode[] = [];
   const sp = saveData.spelunkData || [];
-  const gbm = galleryBonusMulti(saveData).val;
+  const gbm = galleryBonusMulti(saveData, {
+    chipGalleryActive: (ctx as any).chipGalleryActive,
+    charIdx,
+  }).val;
   const hbm = hatrackBonusMulti(saveData).val;
 
   // Trophy base stat
@@ -1701,7 +1705,8 @@ export function computeMealBonus(effectKey: string, saveData: SaveData): TreeRes
       ribIdx,
       s.ribbonData,
       String((s.olaData && s.olaData[379]) || ""),
-      s.weeklyBossData
+      s.weeklyBossData,
+      jellyRoGBonus(60, s)
     );
     const contrib = bonusMultiCook(mi, s) * cookMulti * ribMeal * mealLv * bonusPerLv;
     total += contrib;

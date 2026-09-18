@@ -15,6 +15,7 @@ import { SaltLicks } from "../../data/game/customlists";
 import { fountainBonusTotal } from "../../data/w5/fountain";
 import { eventShopOwned } from "../../../game-helpers";
 import { companionBonus } from "../../data/common/companions";
+import { jellyRoGBonus } from "../../data/w7/jelly";
 
 // @njs RandoListo2[8]
 // RandoListo2[8] — base coefficient per upgrade b (0..5).
@@ -50,6 +51,7 @@ export type MasteryInputs = {
   purple: number[]; // CookMaster[2][0..5] — Purple PTS per upgrade
   comp87: number; // Companions(87) value: 0 none, 1 stage 1, 1.5 stage 2 → +5·comp87 pts each colour, ×(1 + 2·comp87) Exp/h
   evShop54?: boolean; // Event Shop 54 (Bejeweled Ladle, 2026-09): +5 pts each colour
+  jelly13?: number; // Jelly Operator obstruction 13 (Starry Bling, 2026-09-18): +1 pt each colour
   researchGridYellow: number; // ResearchStuff("Grid_Bonus",190,1) — extra Yellow pts
   externalMulti: number; // product of Purple-independent Exp/h multipliers
 };
@@ -103,11 +105,12 @@ export function masteryExpReq(rank: number): number {
   return 100 * Math.pow(2.5, rank) * Math.pow(5, Math.max(0, rank - 40));
 }
 
-// Shared by PtsLeftCook_P/Y: rank + (1 + 5·EventShop54 + 5·Companions(87)).
-// Companions(87) is the CompanionBon value, so Rift1 at stage 2 gives 7.5 —
-// the game Math.round()s the whole pool, which we mirror.
+// Shared by PtsLeftCook_P/Y: rank + (1 + 5·EventShop54 + 5·Companions(87)
+// + JellyOperation("RoG_BonusQTY",13)). Companions(87) is the CompanionBon
+// value, so Rift1 at stage 2 gives 7.5 — the game Math.round()s the whole
+// pool, which we mirror.
 function ptsPool(inp: MasteryInputs): number {
-  return inp.rank + 1 + 5 * inp.comp87 + (inp.evShop54 ? 5 : 0);
+  return inp.rank + 1 + 5 * inp.comp87 + (inp.evShop54 ? 5 : 0) + (inp.jelly13 || 0);
 }
 
 // @njs PtsLeftCook_P
@@ -190,6 +193,7 @@ export function readMasteryInputs(s: SaveData): MasteryInputs {
     purple: Array.from({ length: 6 }, (_, i) => num((cm[2] as any[])?.[i])),
     comp87: s.companionIds?.has(87) ? companionBonus(87, s.companionLv2Ids) : 0,
     evShop54: eventShopOwned(54, s.cachedEventShopStr || "") === 1,
+    jelly13: jellyRoGBonus(13, s),
     researchGridYellow: 0, // TODO ResearchStuff("Grid_Bonus",190,1)
     externalMulti: externalExpMulti(s).val,
   };

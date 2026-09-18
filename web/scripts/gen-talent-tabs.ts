@@ -77,7 +77,54 @@ const TALENT_PAGES_MAP: Record<string, string[]> = {
     "Wizard",
     "Elemental_Sorcerer",
   ],
+  // Royal Guardian (2026-08-25): Divine Knight's promotion
+  // (ClassPromotionChoices[12] = ["16"]). Its tab is not in IT's website-data
+  // yet, so it is synthesized from the game lists (see SYNTH_TABS).
+  Royal_Guardian: [
+    "Rage_Basics",
+    "Warrior",
+    "Squire",
+    "Divine_Knight",
+    "Royal_Guardian",
+  ],
 };
+
+// Tabs missing from website-data.json, built from the engine's game lists:
+// the 15 talent SLOTS of the class tab (TalentOrder maps slot → talent id;
+// "_" entries are empty slots). Royal Guardian = slots 225..239.
+const SYNTH_TABS: Record<string, [number, number]> = {
+  Royal_Guardian: [225, 239],
+};
+
+async function synthesizeTab(tabName: string): Promise<TabEntry> {
+  const range = SYNTH_TABS[tabName];
+  if (!range) throw new Error(`No synthesized talents for tab "${tabName}"`);
+  const lists = (await import("../lib/arkh/stats/data/game/customlists.js")) as Record<
+    string,
+    unknown
+  >;
+  const order = lists.TalentOrder as number[];
+  const names = lists.TalentIconNames as string[];
+  const descs = lists.TalentDescriptions as unknown[][];
+  const talents: TalentEntry[] = [];
+  for (let slot = range[0]; slot <= range[1]; slot++) {
+    const id = Number(order[slot]);
+    const name = String(names[id] ?? "_");
+    if (!name || name === "_" || EXCLUDED_IDS.has(id)) continue;
+    const d = (descs[id] as unknown[][]) || [];
+    const params = (d[1] as string[]) || [];
+    talents.push({
+      id,
+      name,
+      lvlUpText: String((d[2] as string[])?.[0] ?? ""),
+      description: String((d[0] as string[])?.[0] ?? ""),
+      funcX: String(params[2] ?? ""),
+      x1: Number(params[0]) || 0,
+      x2: Number(params[1]) || 0,
+    });
+  }
+  return { name: tabName, talents };
+}
 
 // Star talent tabs — universal, every class has access to the same 4 pages.
 const STAR_TALENT_TABS = [
@@ -129,10 +176,10 @@ function loadTalentsFromWebsiteData(): Record<string, Record<string, RawTalent>>
   return out;
 }
 
-function tabsForClass(
+async function tabsForClass(
   className: string,
   talentsByClass: Record<string, Record<string, RawTalent>>
-): TabEntry[] {
+): Promise<TabEntry[]> {
   const pages = TALENT_PAGES_MAP[className];
   if (!pages) {
     throw new Error(`No talent pages defined for class "${className}"`);
@@ -142,6 +189,10 @@ function tabsForClass(
   for (const tabName of pages) {
     const raw = talentsByClass[tabName];
     if (!raw) {
+      if (SYNTH_TABS[tabName]) {
+        tabs.push(await synthesizeTab(tabName));
+        continue;
+      }
       throw new Error(
         `website-data.json has no talents for tab "${tabName}" (needed by class "${className}")`
       );
@@ -183,7 +234,7 @@ function tabsForClass(
   return tabs;
 }
 
-function main(): void {
+async function main(): Promise<void> {
   const talentsByClass = loadTalentsFromWebsiteData();
 
   // Build the full lookup. Keys are PascalCase class names that match what
@@ -191,7 +242,7 @@ function main(): void {
   // conversion done in the runtime helper).
   const result: Record<string, { tabs: TabEntry[] }> = {};
   for (const className of Object.keys(TALENT_PAGES_MAP)) {
-    result[className] = { tabs: tabsForClass(className, talentsByClass) };
+    result[className] = { tabs: await tabsForClass(className, talentsByClass) };
   }
 
   // Emit. Header is a hand-written banner; the rest is JSON pretty-printed.
@@ -235,4 +286,7 @@ export const TALENT_TABS_BY_CLASS: Record<string, TalentClass> = `;
   console.log(`  Classes: ${classCount}, total talent rows: ${talentCount}`);
 }
 
-main();
+main().catch((e) => {
+  console.error(e);
+  process.exit(1);
+});

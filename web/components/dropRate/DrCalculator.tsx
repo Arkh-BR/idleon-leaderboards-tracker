@@ -96,10 +96,11 @@ export default function DrCalculator({
   // tree lands. Used to gate the "Computing…" indicator under the tree pane.
   const [computing, setComputing] = useState(false);
 
-  // Chip Gallery: invisible +0.10 Gallery Bonus Multi when Lab chip 16
-  // (Silkrode Motherboard) was active at the moment the gallery refreshed.
-  // Auto-detected from Lab[1+ci][s] on save load; user can toggle manually.
-  const [chipGalleryActive, setChipGalleryActive] = useState(false);
+  // Chip Gallery: +0.10 Gallery Bonus Multi from Lab chip 16 (Silkrode
+  // Motherboard). The game reads it PER CHARACTER (chipBonuses("troph") on the
+  // char being computed), so `undefined` = AUTO: the engine detects the chip
+  // on the selected char's lab slots. true/false force it (what-if toggle).
+  const [chipGalleryActive, setChipGalleryActive] = useState<boolean | undefined>(undefined);
   const [chipDetected, setChipDetected] = useState<{
     detected: boolean;
     charIdx: number;
@@ -188,14 +189,13 @@ export default function DrCalculator({
     setMapIdx(inOptions ? currentMap : 0);
   }, [charIdx, save, chars.length, mapOptions]);
 
-  // Detect Lab chip 16 (Silkrode Motherboard) on save load. Reads
-  // Lab[1+ci][s] for every character; if any slot has chip 16 the gallery
-  // chip toggle auto-flips ON since the in-game gallery refresh likely
-  // captured the +0.10 multi already.
+  // Detect Lab chip 16 (Silkrode Motherboard) on save load for the info
+  // panel (which chars carry it). The DR itself uses AUTO (per selected
+  // char) unless the user forces the toggle; a new save resets to AUTO.
   useEffect(() => {
     if (!save) {
       setChipDetected(null);
-      setChipGalleryActive(false);
+      setChipGalleryActive(undefined);
       return;
     }
     const data = (save as any)?.data ?? save;
@@ -230,7 +230,7 @@ export default function DrCalculator({
       }
     }
     setChipDetected(found);
-    setChipGalleryActive(found.detected);
+    setChipGalleryActive(undefined);
   }, [save]);
 
   // Compute the detailed DR tree whenever save/char/chip changes. Loaded
@@ -421,15 +421,24 @@ export default function DrCalculator({
             />
             <button
               type="button"
-              onClick={() => setChipGalleryActive((v) => !v)}
+              // AUTO → ON → OFF → AUTO
+              onClick={() =>
+                setChipGalleryActive((v) => (v === undefined ? true : v ? false : undefined))
+              }
               className={`shrink-0 whitespace-nowrap px-3 py-1.5 text-xs font-semibold rounded border transition-colors ${
-                chipGalleryActive
+                chipGalleryActive === true
                   ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/40 hover:bg-emerald-500/30"
-                  : "bg-zinc-800 text-zinc-400 border-zinc-700 hover:bg-zinc-700"
+                  : chipGalleryActive === false
+                    ? "bg-zinc-800 text-zinc-400 border-zinc-700 hover:bg-zinc-700"
+                    : "bg-sky-500/15 text-sky-300 border-sky-500/40 hover:bg-sky-500/25"
               }`}
-              title="Adds +0.10 to Gallery Bonus Multi (invisible boost from Silkrode Motherboard chip being active when the gallery last refreshed)"
+              title="Silkrode Motherboard (Lab chip 16) adds +0.10 to Gallery Bonus Multi. AUTO = the game's rule (counted when the selected character has the chip in its lab slots); ON/OFF force it for what-if checks."
             >
-              {chipGalleryActive ? "🔌 Chip Gallery ON" : "⚪ Chip Gallery OFF"}
+              {chipGalleryActive === true
+                ? "🔌 Chip Gallery ON"
+                : chipGalleryActive === false
+                  ? "⚪ Chip Gallery OFF"
+                  : "🔍 Chip Gallery AUTO"}
             </button>
           </div>
           {error && <p className="text-xs text-red-300">{error}</p>}

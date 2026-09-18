@@ -458,12 +458,12 @@ function computeRawValue(
     case 116: {
       // IT's logic (parsers/world-7/sushiStation.ts): the uniqueSushi count
       // is the length of the CONSECUTIVE prefix of Sushi[5] where each entry
-      // is >= 0. The first -1 (or undefined) ends the chain. 63 tiers since
-      // the 2026-09 update (Research[30] length; was 59).
+      // is >= 0. The first -1 (or undefined) ends the chain. 64 tiers since
+      // the 2026-09-18 update (Research[30] length; was 59 → 63 → 64).
       if (Array.isArray(data.Sushi) && Array.isArray((data.Sushi as unknown[])[5])) {
         const tracking = (data.Sushi as unknown[])[5] as unknown[];
         let uniqueSushi = 0;
-        for (let i = 0; i <= 62; i++) {
+        for (let i = 0; i <= 63; i++) {
           const v = tracking[i] ?? -1;
           if (Number(v) >= 0) {
             uniqueSushi = i + 1;
@@ -488,6 +488,11 @@ function computeRawValue(
     case 120: {
       const v = ex.rawResourceGrade(data);
       return v !== null ? R(out, "raw.RoyalG[5] sum", v) : null;
+    }
+    // Jelly Operator (2026-09-18): obstructions defeated = Research[7][9].
+    case 121: {
+      const v = ex.rawJellyOperations(data);
+      return v !== null ? R(out, "raw.Research[7][9]", v) : null;
     }
     default: return null;
   }

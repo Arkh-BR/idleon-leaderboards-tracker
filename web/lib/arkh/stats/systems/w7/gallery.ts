@@ -26,20 +26,22 @@ import { companionBonus } from "../../data/common/companions";
 import { companionChild } from "../common/companions";
 import { GALLERY_TROPH_CHIP_MULTI } from "../../data/game-constants";
 import { bubbleBonusY13 } from "../w2/alchemy";
+import { charHasChip } from "../w4/lab";
 import type { SaveData } from "../../../state";
 
 type GalleryOpts = {
   // Chip 16 (Silkrode Motherboard) contributes +10 to the Gallery Bonus Multi
-  // sum (=+0.10 to multi). In-game the gallery snapshot is cached at refresh
-  // time, so the *current* save's labData state may not match what's
-  // actually active in the gallery. Callers pass `chipGalleryActive` as the
-  // source of truth (typically auto-derived from labData on save load, then
-  // user-overridable via UI). When the flag is undefined we fall back to
-  // detecting chip 16 in labData for backward compat.
+  // sum (=+0.10 to multi). N.js GalleryBonusMulti reads
+  // 10 × chipBonuses("troph") for the CURRENT player, i.e. whether the char
+  // being computed has the chip in its lab slots — deterministic from the
+  // save. `chipGalleryActive` is an explicit override (UI toggle, observed-max
+  // collector); when undefined the resolver detects the chip on `charIdx`
+  // (or on any char when no charIdx is known — legacy entry points).
   chipGalleryActive?: boolean;
+  charIdx?: number;
 };
 
-type Ctx = { saveData: SaveData; chipGalleryActive?: boolean };
+type Ctx = { saveData: SaveData; charIdx?: number; chipGalleryActive?: boolean };
 type MultiResult = { val: number; children: ArkhNode[] };
 
 export const CHIP_GALLERY_BOOST = 10; // +10 to additive sum (=> +0.10 to multi)
@@ -66,16 +68,21 @@ export function galleryBonusMulti(
 ): MultiResult {
   const sp = saveData.spelunkData || [];
   const galleryLv = Number((sp[13] && sp[13][4]) || 0);
-  // Chip 16 contribution. The caller's `chipGalleryActive` is the source of
-  // truth (UI auto-fills it from labData and lets the user override). When
-  // not provided, fall back to direct labData detection so older entry
-  // points still work.
+  // Chip 16 contribution — see GalleryOpts. Verified against the live game
+  // (2026-09-18): every ARKHE char wears chip 16 and the game's gallery
+  // multi is 2.27, not 2.17.
   const trophChip =
-    opts?.chipGalleryActive === undefined
-      ? (detectChip16(saveData) ? 1 : 0)
-      : opts.chipGalleryActive
-      ? 1
-      : 0;
+    opts?.chipGalleryActive !== undefined
+      ? opts.chipGalleryActive
+        ? 1
+        : 0
+      : opts?.charIdx !== undefined && opts.charIdx >= 0
+        ? charHasChip(opts.charIdx, "troph")
+          ? 1
+          : 0
+        : detectChip16(saveData)
+          ? 1
+          : 0;
   const y13capped = Math.min(20, bubbleBonusY13(saveData));
   const cardLv = Math.min(computeCardLv("w7a11", saveData), 10);
   // Bubba The Seal: +30 → +50 at stage 2 (LV2) — scales every nametag/trophy.
@@ -301,7 +308,8 @@ export const nametag = {
     const sp = saveData.spelunkData || [];
     const levels = (sp[17] || []) as any[];
     const gbmObj = galleryBonusMulti(saveData, {
-      chipGalleryActive: !!ctx.chipGalleryActive,
+      chipGalleryActive: ctx.chipGalleryActive,
+      charIdx: ctx.charIdx,
     });
     const gbm = gbmObj.val;
     let total = 0;
@@ -385,7 +393,8 @@ export const trophy = {
     const sp = saveData.spelunkData || [];
     const trophySlots = (sp[16] || []) as any[];
     const gbmObj = galleryBonusMulti(saveData, {
-      chipGalleryActive: !!ctx.chipGalleryActive,
+      chipGalleryActive: ctx.chipGalleryActive,
+      charIdx: ctx.charIdx,
     });
     const gbm = gbmObj.val;
     let total = 0;

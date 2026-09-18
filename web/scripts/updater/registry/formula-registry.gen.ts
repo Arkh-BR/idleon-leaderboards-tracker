@@ -28,6 +28,9 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   "RandoListo2[8]": [
     "lib/arkh/stats/systems/common/cookingMastery.ts"
   ],
+  "RoG_BonusQTY": [
+    "lib/arkh/stats/data/w7/jelly.ts"
+  ],
   "StatueBon": [
     "lib/arkh/stats/data/w7/royalG.ts"
   ],

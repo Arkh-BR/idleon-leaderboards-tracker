@@ -49,6 +49,7 @@ import { starSignDropVal } from "../../data/common/starSign";
 import { ACHIEVE_STATUS } from "../../data/game/hardcoded.js";
 import { etcBonus } from "./etcBonus";
 import { isExalted, computeStampDoublerSources } from "../w1/stamp";
+import { jellyLabel, jellyRoGBonus } from "../../data/w7/jelly";
 import type { SaveData } from "../../../state";
 
 type Ctx = {
@@ -221,7 +222,8 @@ function mealBonusZGoldFood(saveData: SaveData): number {
     ribbonIdx,
     saveData.ribbonData,
     (optionsListData as any)[379],
-    saveData.weeklyBossData
+    saveData.weeklyBossData,
+    jellyRoGBonus(60, saveData)
   );
   // Meal 64 (Yumi Peachring, zGoldFood) — include its Cooking Mastery per-meal
   // multiplier so the golden-food boost (→ DR) reflects PTS spent on this meal.
@@ -277,6 +279,10 @@ export function gfoodBonusMULTIBreakdown(
   );
   const comp155 = companions(155, saveData);
   const vault86 = vaultUpgBonus(86, saveData);
+  // Jelly Operator obstructions 10 (Spinine, +100%) and 51 (Smooth Stone,
+  // +200%) "total Golden Food bonus" — additive % sources (2026-09-18).
+  const jelly10 = jellyRoGBonus(10, saveData);
+  const jelly51 = jellyRoGBonus(51, saveData);
 
   const items = [
     { name: "setMul (SECRET_SET)", val: setMul, arkh: 1 },
@@ -301,6 +307,8 @@ export function gfoodBonusMULTIBreakdown(
     { name: "Companion 155", val: comp155 },
     { name: "Companion 174 ×10000", val: 1e4 * comp174 },
     { name: "Vault 86", val: vault86 },
+    { name: jellyLabel(10), val: jelly10 },
+    { name: jellyLabel(51), val: jelly51 },
   ];
   const rest = items.slice(2).reduce((a, i) => a + i.val, 0);
   return { items, total: setMul * (famBonus + rest / 100) };

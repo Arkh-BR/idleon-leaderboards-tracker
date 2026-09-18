@@ -134,4 +134,5 @@ export const DEFAULT_CLASSIFICATIONS: Readonly<Record<string, number | null>> = 
   "Total Glimbo Trades": 3,
   "Unique Sushi Created": 3,
   "Button Presses": 3,
+  "Successful Jelly Operations": 3,
 };

@@ -795,6 +795,16 @@ export function rawResourceGrade(d: D): number | null {
   return g ? arrSum(g) : null;
 }
 
+/** Successful Jelly Operations = Research[7][9] (obstructions defeated at the
+ *  W7 Jelly Operator research game, 2026-09-18). Saves from before the update
+ *  have a shorter Research[7] — read as 0, not null, so the row still shows. */
+export function rawJellyOperations(d: D): number | null {
+  const r = parseArr(d.Research);
+  const r7 = r && parseArr(r[7]);
+  if (!r7) return null;
+  return num(r7[9]);
+}
+
 // ---------------------------------------------------------------- "proper" extractors
 
 // maxStars for card-level calcs = round(4 + riftFiveStar + spelunkingSixStar).

@@ -11,6 +11,8 @@ import { legendPTSbonus } from "./spelunking";
 import { companionBonus } from "../../data/common/companions";
 import { companionChild } from "../common/companions";
 import { rogBonusQTY } from "./sushi";
+import { jellyRoGBonus } from "../../data/w7/jelly";
+import { jellyRoGNode } from "./jelly";
 import type { SaveData } from "../../../state";
 
 type Ctx = { saveData: SaveData };
@@ -28,6 +30,7 @@ type MeritocParts = {
   arcade59?: number;
   eventShop23?: number;
   rog51?: number;
+  jelly33?: number;
   comp161?: number;
 };
 
@@ -47,17 +50,20 @@ function _meritocParts(optionIdx: number, saveData: SaveData): MeritocParts {
   const arcade59 = arcadeBonus(59, saveData).val;
   const eventShop23 = eventShopOwned(23, saveData.cachedEventShopStr);
   const rog51 = rogBonusQTY(51, saveData.cachedUniqueSushi);
+  // Jelly Operator obstruction 33 (Onyx Apple): +1% Multi Meritocracy, added
+  // next to the sushi RoG 51 term (2026-09-18).
+  const jelly33 = jellyRoGBonus(33, saveData);
   const comp161 =
     saveData.companionIds && saveData.companionIds.has(161)
       ? companionBonus(161, saveData.companionLv2Ids)
       : 0;
   const addSum =
-    5 * clamWork3 + comp39 + legend24 + arcade59 + 20 * eventShop23 + rog51;
+    5 * clamWork3 + comp39 + legend24 + arcade59 + 20 * eventShop23 + rog51 + jelly33;
   const multi = (canVote ? 1 : 0.25) + addSum / 100;
   const val = baseVal * (1 + comp161 / 100) * multi;
   return {
     val, baseVal, canVote, multi, clamWork3, comp39, legend24,
-    arcade59, eventShop23, rog51, comp161,
+    arcade59, eventShop23, rog51, jelly33, comp161,
   };
 }
 
@@ -106,6 +112,7 @@ export const meritoc = {
       );
     if ((p.rog51 || 0) > 0)
       multiCh.push(node(label("RoG", 51), p.rog51 || 0, null, { fmt: "raw" }));
+    if ((p.jelly33 || 0) > 0) multiCh.push(jellyRoGNode(33, saveData));
     const ch: ArkhNode[] = [
       node("Base", p.baseVal || 0, null, { fmt: "raw" }),
       node(

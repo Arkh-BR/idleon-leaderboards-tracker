@@ -25,8 +25,14 @@ import { compareGroundTruth } from "./checks";
 import { runCases } from "./cases";
 import { TOME_TASKS } from "../../../lib/tome/tasks";
 
-// 2026-08-25: Royal Guardian update (121 tome tasks, companion stage 2).
-const REF_CUTOFF_MS = Date.UTC(2026, 7, 25);
+// Date of the latest game update that changed a Tome task. A reference parsed
+// by idleontoolbox.com before it was computed against the OLD rules (e.g.
+// 2026-09-18 raised Unique Sushi's max from 63 to 64, so every pre-update
+// profile shows 800 pts where the live game now gives 788) — bump this on
+// every update that touches a task and let the players re-upload.
+//   2026-08-25 Royal Guardian: 121 tasks (3 inserted at 106–108), companion stage 2
+//   2026-09-18 Jelly Operator: 122 tasks (121 appended), Unique Sushi max 64
+const REF_CUTOFF_MS = Date.UTC(2026, 8, 18);
 
 /** When idleontoolbox.com parsed this profile (ms). `lastUpdated` has shipped in
  *  both seconds and milliseconds — normalise on magnitude. */
@@ -49,8 +55,12 @@ async function main(): Promise<void> {
     const gt = save.extraData ?? save.parsedData ?? {};
     const hasTomeRef = Array.isArray(gt.tomePoints) && gt.tomePoints.length > 0;
     const parsedAt = referenceParsedAt(save);
+    // 2026-09-18 appended one task (Successful Jelly Operations) at the END of
+    // the list, so a 121-entry reference still lines up with the first 121
+    // rows — compareGroundTruth walks min(length) and simply skips the new
+    // row. Anything shorter comes from the pre-2026-08-25 layout.
     const staleRef =
-      hasTomeRef && (gt.tomePoints.length !== TOME_TASKS.length || parsedAt < REF_CUTOFF_MS);
+      hasTomeRef && (gt.tomePoints.length < TOME_TASKS.length - 1 || parsedAt < REF_CUTOFF_MS);
     const ms = compareGroundTruth(
       name,
       got,
@@ -69,11 +79,11 @@ async function main(): Promise<void> {
     } else if (staleRef) {
       const when = parsedAt ? new Date(parsedAt).toISOString().slice(0, 10) : "unknown date";
       const why =
-        gt.tomePoints.length !== TOME_TASKS.length
+        gt.tomePoints.length < TOME_TASKS.length - 1
           ? `${gt.tomePoints.length}-task layout from a pre-update IT parser`
-          : "parsed before the 2026-08-25 update";
+          : "parsed before the 2026-09-18 update (Unique Sushi max 64)";
       console.log(
-        `· ${name}: ⊘ Tome ${got.tomeTotal} (stale reference: ${why}, uploaded ${when} — not validated until the player re-uploads)`,
+        `· ${name}: ⊘ Tome ${got.tomeTotal} (stale reference: ${why}; uploaded ${when} — not validated until the player re-uploads)`,
       );
     } else if (tome.length) {
       fatal += tome.length;

@@ -38,6 +38,7 @@ import { bundle } from "./systems/common/bundle";
 import { ola } from "./systems/common/ola";
 import { arcaneMap } from "./systems/mc/tesseract";
 import { sushiRoG } from "./systems/w7/sushi";
+import { jellyRoG, rogDropMulti } from "./systems/w7/jelly";
 import { minehead } from "./systems/w7/minehead";
 import { pristine } from "./systems/w5/pristine";
 import { glimbo, workshop, eventShop } from "./systems/common/wrappers";
@@ -107,6 +108,8 @@ const _systems: Record<string, SystemResolver> = {
   ola: ola as unknown as SystemResolver,
   arcaneMap: arcaneMap as unknown as SystemResolver,
   sushiRoG: sushiRoG as unknown as SystemResolver,
+  jellyRoG: jellyRoG as unknown as SystemResolver,
+  rogDropMulti: rogDropMulti as unknown as SystemResolver,
   minehead: minehead as unknown as SystemResolver,
   pristine: pristine as unknown as SystemResolver,
   glimbo: glimbo as unknown as SystemResolver,

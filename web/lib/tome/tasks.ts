@@ -130,11 +130,14 @@ export const TOME_TASKS: readonly string[] = [
   "Total Glimbo Trades",
   "Unique Sushi Created",
   "Button Presses",
+  // 2026-09-18 Jelly Operator — appended at the end of the in-game list.
+  "Successful Jelly Operations",
 ];
 
-// Maps a task index (0-120, position in TOME_TASKS) to a compute index used
+// Maps a task index (0-121, position in TOME_TASKS) to a compute index used
 // by TOME_BONUSES and the switch in computeRawValue. Verbatim copy of the
-// game's NinjaInfo[32] (IT's NEI32) — 2026-08 inserted 118/119/120 at 106–108.
+// game's NinjaInfo[32] (IT's NEI32) — 2026-08 inserted 118/119/120 at 106–108;
+// 2026-09-18 appended 121 (Successful Jelly Operations) at the end.
 export const NEI32: readonly number[] = [
   5, 11, 3, 65, 22, 0, 2, 1, 7, 4, 6, 81, 8, 9, 53, 10, 107, 109, 12, 113,
   106, 75, 13, 14, 80, 79, 25, 15, 16, 17, 18, 19, 21, 23, 24, 26, 27, 28,
@@ -142,7 +145,7 @@ export const NEI32: readonly number[] = [
   39, 44, 50, 48, 46, 47, 49, 51, 52, 45, 55, 60, 57, 61, 62, 66, 59, 64,
   63, 111, 58, 56, 93, 84, 83, 92, 91, 87, 88, 89, 82, 94, 68, 69, 67, 77,
   78, 112, 72, 74, 99, 71, 70, 73, 96, 20, 43, 90, 100, 101, 118, 119, 120,
-  95, 97, 103, 104, 98, 102, 105, 110, 114, 115, 116, 117,
+  95, 97, 103, 104, 98, 102, 105, 110, 114, 115, 116, 117, 121,
 ];
 
 // Per-task curve params: [x1, x2, x3] where x2 selects the formula in
@@ -172,11 +175,13 @@ export const TOME_BONUSES: readonly (readonly [number, number, number])[] = [
   [100, 0, 300], [5000, 0, 500], [10, 1, 400], [10, 1, 400], [25, 1, 300],
   [2000, 0, 500], [90, 2, 300], [200, 0, 200], [20, 2, 250], [20, 2, 700],
   [12, 0, 250], [75, 2, 700], [40, 2, 600], [100, 2, 400], [150, 0, 300],
-  // 116 "Unique Sushi Created": max 54 → 63 (2026-09, four new sushi tiers).
-  [365, 2, 365], [109, 2, 750], [1500, 0, 400], [63, 2, 800], [300, 0, 500],
+  // 116 "Unique Sushi Created": max 54 → 63 (2026-09-05) → 64 (2026-09-18).
+  [365, 2, 365], [109, 2, 750], [1500, 0, 400], [64, 2, 800], [300, 0, 500],
   // 118–120 Royal Guardian (2026-08): Total Royal Statue LV, Outposts Built,
   // Total Resource Grade — from the game's Tome list [118..120].
   [100, 0, 600], [65, 2, 650], [1000, 0, 600],
+  // 121 "Successful Jelly Operations" (2026-09-18): 72 obstructions, 800 pts.
+  [72, 2, 800],
 ];
 
 // Fallback: if the raw extractor returns null for these compute indices, the

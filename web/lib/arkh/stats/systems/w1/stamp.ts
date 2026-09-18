@@ -19,6 +19,8 @@ import { exoticParams } from "../../data/w5/farming";
 import { paletteParams } from "../../data/w4/gaming";
 import { compassUpgPerLevel } from "../../data/common/compass";
 import { rogBonusQTY } from "../w7/sushi";
+import { jellyLabel, jellyRoGBonus } from "../../data/w7/jelly";
+import { jellyRoGNode } from "../w7/jelly";
 import { STAMP_DATA } from "../../data/w1/stamp";
 import { ITEMS } from "../../data/game/items.js";
 import type { SaveData } from "../../../state";
@@ -88,10 +90,14 @@ export function computeStampDoublerSources(saveData: SaveData): { total: number;
 
   const legend36 = legendPTSbonus(36, saveData);
   const sushiRoG17 = rogBonusQTY(17, saveData.cachedUniqueSushi || 0);
+  // Jelly Operator obstruction 50 (Fancy Facet, 2026-09-18): N.js adds
+  // JellyOperation("RoG_BonusQTY",50)/100 next to the sushi term. The /100
+  // is literal in the game (value 1 → +0.01 doubler), mirrored as-is.
+  const jelly50 = jellyRoGBonus(50, saveData) / 100;
 
   const innerSum =
     atom12 + prist20 + compass76 + emperorSet + evShop18 + palette23 + exotic49 + spelunk43;
-  const total = 100 + innerSum + legend36 + sushiRoG17;
+  const total = 100 + innerSum + legend36 + sushiRoG17 + jelly50;
 
   // Sub-source names mirror IT's website-data:
   //   atomsInfo[12]      → Aluminium - Stamp Supercharger
@@ -148,6 +154,10 @@ export function computeStampDoublerSources(saveData: SaveData): { total: number;
       null,
       { fmt: "+" }
     ),
+    node(jellyLabel(50), jelly50, [jellyRoGNode(50, saveData)], {
+      fmt: "+",
+      note: "Jelly RoG 50 ÷ 100 (game literal)",
+    }),
   ];
 
   return { total, children };

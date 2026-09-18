@@ -19282,5 +19282,1116 @@ export const TALENT_TABS_BY_CLASS: Record<string, TalentClass> = {
         ]
       }
     ]
+  },
+  "Royal_Guardian": {
+    "tabs": [
+      {
+        "name": "Rage_Basics",
+        "talents": [
+          {
+            "id": 0,
+            "name": "HEALTH_BOOSTER",
+            "lvlUpText": "+{_HP",
+            "description": "Increases_Max_HP_by_{",
+            "funcX": "add",
+            "x1": 1,
+            "x2": 0.15
+          },
+          {
+            "id": 1,
+            "name": "MANA_BOOSTER",
+            "lvlUpText": "+{_MP",
+            "description": "Increases_Max_MP_by_{,_which_is_used_to_cast_Class_Attacks",
+            "funcX": "add",
+            "x1": 1,
+            "x2": 0.1
+          },
+          {
+            "id": 8,
+            "name": "STAR_PLAYER",
+            "lvlUpText": "+1_Star_Talent_Point",
+            "description": "Gives_{_Star_Talent_Points._Star_Talents_are_found_later_in_the_game",
+            "funcX": "add",
+            "x1": 1,
+            "x2": 0
+          },
+          {
+            "id": 9,
+            "name": "BUCKLERED_UP",
+            "lvlUpText": "+{%_Total_DEF",
+            "description": "Increases_Total_Defense_by_+{%",
+            "funcX": "decay",
+            "x1": 40,
+            "x2": 60
+          },
+          {
+            "id": 5,
+            "name": "SHARPENED_AXE",
+            "lvlUpText": "+{_Base_Weapon_Power",
+            "description": "Increases_Base_Weapon_Power_by_{._This_increases_damage!!",
+            "funcX": "add",
+            "x1": 0.4,
+            "x2": 0
+          },
+          {
+            "id": 10,
+            "name": "FIST_OF_RAGE",
+            "lvlUpText": "+{_STR",
+            "description": "Increases_your_Base_STR_by_{",
+            "funcX": "add",
+            "x1": 1,
+            "x2": 0
+          },
+          {
+            "id": 11,
+            "name": "QUICKNESS_BOOTS",
+            "lvlUpText": "+{_AGI",
+            "description": "Increases_your_Base_AGI_by_{",
+            "funcX": "add",
+            "x1": 1,
+            "x2": 0
+          },
+          {
+            "id": 12,
+            "name": "BOOK_OF_THE_WISE",
+            "lvlUpText": "+{_WIS",
+            "description": "Increases_your_Base_WIS_by_{",
+            "funcX": "add",
+            "x1": 1,
+            "x2": 0
+          },
+          {
+            "id": 13,
+            "name": "LUCKY_CLOVER",
+            "lvlUpText": "+{_LUK",
+            "description": "Increases_your_Base_LUK_by_{",
+            "funcX": "add",
+            "x1": 1,
+            "x2": 0
+          },
+          {
+            "id": 6,
+            "name": "GILDED_SWORD",
+            "lvlUpText": "+{%_Damage",
+            "description": "Boosts_Damage_dealt|to_all_monsters_by_{%",
+            "funcX": "add",
+            "x1": 1.5,
+            "x2": 0
+          },
+          {
+            "id": 85,
+            "name": "BRUTE_EFFICIENCY",
+            "lvlUpText": "+{%_Efficiency",
+            "description": "Increases_the_total_efficiency_of_all_specialized_skills_by_{%",
+            "funcX": "add",
+            "x1": 1,
+            "x2": 0.02
+          },
+          {
+            "id": 86,
+            "name": "MEAT_SHANK",
+            "lvlUpText": "+{%_Damage",
+            "description": "Damage_dealt_is_increased_by_{%_for_every_power_of_10_Max_HP_you_have",
+            "funcX": "decay",
+            "x1": 100,
+            "x2": 80
+          },
+          {
+            "id": 87,
+            "name": "CRITIKILL",
+            "lvlUpText": "+{%_Critical_Damage",
+            "description": "Increases_Critical_Hit_Damage_by_{%",
+            "funcX": "decay",
+            "x1": 52,
+            "x2": 50
+          },
+          {
+            "id": 88,
+            "name": "IDLE_BRAWLING",
+            "lvlUpText": "+{%_AFK_Gains_Rate",
+            "description": "AFK_Gains_Rate_for_Fighting_is_increased_by_{%",
+            "funcX": "decay",
+            "x1": 20,
+            "x2": 50
+          },
+          {
+            "id": 89,
+            "name": "IDLE_SKILLING",
+            "lvlUpText": "+{%_AFK_Gains_Rate",
+            "description": "AFK_Gains_Rate_for_all_Specialized_Skills_is_increased_by_{%",
+            "funcX": "decay",
+            "x1": 20,
+            "x2": 40
+          }
+        ]
+      },
+      {
+        "name": "Warrior",
+        "talents": [
+          {
+            "id": 90,
+            "name": "POWER_STRIKE",
+            "lvlUpText": "+{%_Damage",
+            "description": "Slash_forward_dealing_{%|damage_to_up_to|2_monsters",
+            "funcX": "bigBase",
+            "x1": 130,
+            "x2": 3
+          },
+          {
+            "id": 91,
+            "name": "WHIRL",
+            "lvlUpText": "+{%_Damage_&_+}_Mobs_Hit",
+            "description": "Swing_your_weapon_around_you|dealing_{%_damage_to_up_to|}_monsters",
+            "funcX": "bigBase",
+            "x1": 60,
+            "x2": 1.5
+          },
+          {
+            "id": 92,
+            "name": "HEALTH_OVERDRIVE",
+            "lvlUpText": "+{%_HP",
+            "description": "Increase_max_HP_by_{%",
+            "funcX": "add",
+            "x1": 0.5,
+            "x2": 0.02
+          },
+          {
+            "id": 93,
+            "name": "DOUBLE_STRIKE",
+            "lvlUpText": "{%_Double_Hit_Chance",
+            "description": "Basic_Attacks_with_Warrior_Weapons_have_a_{%_chance_to_hit_twice",
+            "funcX": "decay",
+            "x1": 110,
+            "x2": 50
+          },
+          {
+            "id": 94,
+            "name": "FIRMLY_GRASP_IT",
+            "lvlUpText": "+{_STR_&_+}_Mins",
+            "description": "Temporarily_boosts_base_STR_by_{_for_}_minutes",
+            "funcX": "bigBase",
+            "x1": 15,
+            "x2": 1
+          },
+          {
+            "id": 95,
+            "name": "STRENGTH_IN_NUMBERS",
+            "lvlUpText": "+{%_Effect",
+            "description": "STR's_effect_on_both_Damage_and_HP_is_increased_by_{%",
+            "funcX": "add",
+            "x1": 0.75,
+            "x2": 0
+          },
+          {
+            "id": 96,
+            "name": "'STR'ESS_TESTED_GARB",
+            "lvlUpText": "+{%_more_STR_from_equips",
+            "description": "All_Equipment_gives_{%_more_STR_than_what's_listed",
+            "funcX": "add",
+            "x1": 1.5,
+            "x2": 0
+          },
+          {
+            "id": 97,
+            "name": "CARRY_A_BIG_STICK",
+            "lvlUpText": "+{%_Weapon_Power_Effect",
+            "description": "The_effect_Weapon_Power_has_on_Damage_Dealt_is_increased_by_{%",
+            "funcX": "add",
+            "x1": 1,
+            "x2": 0
+          },
+          {
+            "id": 98,
+            "name": "ABSOLUTE_UNIT",
+            "lvlUpText": "+{_STR",
+            "description": "+{_base_STR",
+            "funcX": "add",
+            "x1": 1,
+            "x2": 0
+          },
+          {
+            "id": 99,
+            "name": "HAUNGRY_FOR_GOLD",
+            "lvlUpText": "+{%_Bonus",
+            "description": "Golden_Food_bonuses_are_increased_by_{%",
+            "funcX": "decay",
+            "x1": 55,
+            "x2": 80
+          },
+          {
+            "id": 100,
+            "name": "BIG_PICK",
+            "lvlUpText": "+{%_Efficiency",
+            "description": "Swings_forward_and_mines_the_rock_with_+{%_bonus_Mining_Efficiency",
+            "funcX": "bigBase",
+            "x1": 150,
+            "x2": 15
+          },
+          {
+            "id": 101,
+            "name": "COPPER_COLLECTOR",
+            "lvlUpText": "+{%_efficiency",
+            "description": "Mining_Efficiency_is_increased_by_+{%_for_every_power_of_10_Copper_Ore_in_Storage_Chest.",
+            "funcX": "decay",
+            "x1": 20,
+            "x2": 70
+          },
+          {
+            "id": 102,
+            "name": "MOTHERLODE_MINER",
+            "lvlUpText": "+{%_Multi-Ore_Base_Chance",
+            "description": "+{%_base_multi-ore_drop_chance._This_can_trigger_up_to_4_times_in_a_row_per_swing.",
+            "funcX": "decay",
+            "x1": 20,
+            "x2": 50
+          },
+          {
+            "id": 103,
+            "name": "TOOL_PROFICIENCY",
+            "lvlUpText": "+{%_POW_per_10_Mining_Lv",
+            "description": "Pickaxes_give_+{%_more_Mining_Power_than_whats_listed_for_every_10_Mining_Lv_you_have",
+            "funcX": "decay",
+            "x1": 16,
+            "x2": 40
+          },
+          {
+            "id": 104,
+            "name": "TEMPESTUOUS_EMOTIONS",
+            "lvlUpText": "+{%_Exp_Gain",
+            "description": "Increases_Exp_Gain_for_all_Specialized_Skills_by_{%",
+            "funcX": "add",
+            "x1": 1,
+            "x2": 0
+          }
+        ]
+      },
+      {
+        "name": "Squire",
+        "talents": [
+          {
+            "id": 120,
+            "name": "SHOCKWAVE_SLASH",
+            "lvlUpText": "+{%_DMG_&_+}_Mobs_hit",
+            "description": "Slash_forward,_causing_a_shockwave_which_deals_{%_dmg_to_up_to_}_enemies",
+            "funcX": "bigBase",
+            "x1": 175,
+            "x2": 2
+          },
+          {
+            "id": 121,
+            "name": "DAGGERANG",
+            "lvlUpText": "+{%_DMG_&_+}_Mobs_hit",
+            "description": "Throw_a_dagger_which_comes_right_back_to_you,_dealing_{%_Dmg_to_up_to_}_mobs",
+            "funcX": "bigBase",
+            "x1": 200,
+            "x2": 1.5
+          },
+          {
+            "id": 122,
+            "name": "BRICKY_SKIN",
+            "lvlUpText": "+{%_Block,_+}_Base_DEF",
+            "description": "Block_{%_of_all_damage._Also,_passively_gives_+}_base_DEF_at_all_times,_even_when_not_in_use!",
+            "funcX": "bigBase",
+            "x1": 20,
+            "x2": 0.4
+          },
+          {
+            "id": 123,
+            "name": "MASTERY_UP",
+            "lvlUpText": "+{%_Mastery",
+            "description": "+{%_Mastery._This_affects_how_big_your_minimum_damage_is_compared_to_max_damage!",
+            "funcX": "decay",
+            "x1": 18,
+            "x2": 50
+          },
+          {
+            "id": 124,
+            "name": "BALANCED_SPIRIT",
+            "lvlUpText": "+{%_Acc/DEF,_-}%_Dmg",
+            "description": "Boosts_Accuracy_and_DEF_by_+{%,_but_lowers_damage_by_-}%",
+            "funcX": "decay",
+            "x1": 25,
+            "x2": 50
+          },
+          {
+            "id": 125,
+            "name": "PRECISION_POWER",
+            "lvlUpText": "+{%_Dmg_if_ACC_big",
+            "description": "+{%_Dmg_per_Refinery_Rank_if_accuracy_is_1.5x_higher_than_needed_for_100%_hit_chance",
+            "funcX": "decay",
+            "x1": 11,
+            "x2": 80
+          },
+          {
+            "id": 111,
+            "name": "FISTFUL_OF_OBOL",
+            "lvlUpText": "+{%_more_STR_from_Obols",
+            "description": "Obols_give_+{%_more_STR_than_what's_listed",
+            "funcX": "decay",
+            "x1": 60,
+            "x2": 50
+          },
+          {
+            "id": 127,
+            "name": "SHIELDIEST_STATUES",
+            "lvlUpText": "+{%_higher_bonuses",
+            "description": "'Power',_'Mining',_and_'Defence'_statues_give_{%_higher_bonuses",
+            "funcX": "decay",
+            "x1": 100,
+            "x2": 50
+          },
+          {
+            "id": 81,
+            "name": "STR_SUMMORE",
+            "lvlUpText": "+{_Max_Lv",
+            "description": "+{_Max_Talent_Level_for_'Fist_of_Rage'",
+            "funcX": "add",
+            "x1": 1,
+            "x2": 0
+          },
+          {
+            "id": 129,
+            "name": "BLOCKY_BOTTLES",
+            "lvlUpText": "+{_Max_LV_for_Meat_Shank",
+            "description": "Each_Lv_of_'Warriors_Rule'_Bubble_raises_max_Lv_of_'Meat_Shank'_Talent,_up_to_+{",
+            "funcX": "add",
+            "x1": 1,
+            "x2": 0
+          },
+          {
+            "id": 130,
+            "name": "REFINERY_THROTTLE",
+            "lvlUpText": "+1_Cycle_Every_8_Lvs",
+            "description": "Automatically_trigger_{_Refinery_Cycles._Still_costs_materials,_though.",
+            "funcX": "intervalAdd",
+            "x1": 3,
+            "x2": 8
+          },
+          {
+            "id": 131,
+            "name": "REDOX_RATES",
+            "lvlUpText": "+{%_Build_Spd",
+            "description": "+{%_Build_Speed_per_power_of_10_Redox_Salts_in_your_Storage_Chest",
+            "funcX": "decay",
+            "x1": 40,
+            "x2": 70
+          },
+          {
+            "id": 132,
+            "name": "SHARPER_SAWS",
+            "lvlUpText": "+{%_Construction_EXP",
+            "description": "+{%_Construction_EXP_gain._More_like_Cogstruction_am_I_right_fellas?",
+            "funcX": "add",
+            "x1": 1,
+            "x2": 0
+          },
+          {
+            "id": 133,
+            "name": "SUPER_SAMPLES",
+            "lvlUpText": "+{%_Sample_Size",
+            "description": "+{%_Sample_Size_when_taking_Samples_for_the_3d_printer.",
+            "funcX": "decay",
+            "x1": 9,
+            "x2": 75
+          },
+          {
+            "id": 119,
+            "name": "BACK_TO_BASICS",
+            "lvlUpText": "+1_Talent_Pt",
+            "description": "+{_Talent_Points_for_the_'Warrior'_talent_tab,_and_+10_dmg_to_these_Talents'_feelings!",
+            "funcX": "add",
+            "x1": 1,
+            "x2": 0
+          }
+        ]
+      },
+      {
+        "name": "Divine_Knight",
+        "talents": [
+          {
+            "id": 165,
+            "name": "KNIGHTLY_DISCIPLE",
+            "lvlUpText": "+0.15_sec_duration",
+            "description": "Spawn_a_knight_disciple_who_generates_shockwaves_for_{_sec.",
+            "funcX": "bigBase",
+            "x1": 10,
+            "x2": 0.15
+          },
+          {
+            "id": 166,
+            "name": "MEGA_MONGORANG",
+            "lvlUpText": "+{%_Size_&_+}_Mobs",
+            "description": "Your_daggerang_is_now_+{%_larger_in_size,_and_hits_up_to_}_more_mobs.",
+            "funcX": "bigBase",
+            "x1": 100,
+            "x2": 2
+          },
+          {
+            "id": 167,
+            "name": "DIVINE_INTERVENTION",
+            "lvlUpText": "+{%_crit_dmg",
+            "description": "While_active_if_all_mobs_on_screen_are_dead,_instantly_revive_all._Also_+{%_crit_dmg",
+            "funcX": "decay",
+            "x1": 200,
+            "x2": 300
+          },
+          {
+            "id": 168,
+            "name": "ORB_OF_REMEMBRANCE",
+            "lvlUpText": "+0.4_sec_Duration",
+            "description": "+1%_active_EXP_and_Drop_Rate_per_mob_kill_shown_above_Orb._Orb_lasts_for_{_sec",
+            "funcX": "bigBase",
+            "x1": 30,
+            "x2": 0.4
+          },
+          {
+            "id": 169,
+            "name": "IMBUED_SHOCKWAVES",
+            "lvlUpText": "+{%_shockwave_chance",
+            "description": "Every_basic_attack_with_a_spear_has_a_{%_chance_of_sending_out_a_shockwave.",
+            "funcX": "decay",
+            "x1": 100,
+            "x2": 100
+          },
+          {
+            "id": 170,
+            "name": "GAMER_STRENGTH",
+            "lvlUpText": "+{_Wep_Power_per_10_Lv",
+            "description": "+{_Weapon_Power_for_every_10_Gaming_Lvs_of_this_character.",
+            "funcX": "decay",
+            "x1": 7,
+            "x2": 100
+          },
+          {
+            "id": 141,
+            "name": "CHARRED_SKULLS",
+            "lvlUpText": "+{%_Kill_Per_Kill_Per_1000",
+            "description": "+{%_Kill_per_Kill_per_1000_STR._Each_kill_is_worth_more_for_opening_portals_and_Deathnote!",
+            "funcX": "decay",
+            "x1": 40,
+            "x2": 100
+          },
+          {
+            "id": 142,
+            "name": "SKILL_STRENGTHEN",
+            "lvlUpText": "+{%_impact_&_}_STR",
+            "description": "STR_has_a_{%_larger_impact_on_Skill_Efficiency._Also,_+}_STR.",
+            "funcX": "decay",
+            "x1": 60,
+            "x2": 80
+          },
+          {
+            "id": 143,
+            "name": "OVERBLOWN_TESTOSTERONE",
+            "lvlUpText": "+{%_STR_&_+}_Max_LV",
+            "description": "+{%_STR,_and_+}_Max_Talent_Lv_for_'Fist_of_Rage'",
+            "funcX": "decay",
+            "x1": 15,
+            "x2": 100
+          },
+          {
+            "id": 144,
+            "name": "THE_FAMILY_GUY",
+            "lvlUpText": "+{%_Bonus",
+            "description": "+{%_larger_Family_Bonuses_than_what_is_displayed_from_bonuses_given_by_this_player",
+            "funcX": "decay",
+            "x1": 40,
+            "x2": 100
+          },
+          {
+            "id": 175,
+            "name": "UNDYING_PASSION",
+            "lvlUpText": "+{%_chance",
+            "description": "+{%_Chance_to_get_Gaming_AFK_progress_when_claiming_AFK_gains,_but_not_from_candy.",
+            "funcX": "decay",
+            "x1": 40,
+            "x2": 100
+          },
+          {
+            "id": 176,
+            "name": "1000_HOURS_PLAYED",
+            "lvlUpText": "+{%_Gaming_EXP",
+            "description": "+{%_Gaming_EXP_gain_for_all_characters!",
+            "funcX": "decay",
+            "x1": 60,
+            "x2": 100
+          },
+          {
+            "id": 177,
+            "name": "BITTY_LITTY",
+            "lvlUpText": "+{%_bits_per_gaming_lv",
+            "description": "+{%_Bits_gained_per_Gaming_LV,_no_matter_which_character_you're_on!",
+            "funcX": "decay",
+            "x1": 20,
+            "x2": 100
+          },
+          {
+            "id": 178,
+            "name": "KING_OF_THE_REMEMBERED",
+            "lvlUpText": "+{%_printer_output",
+            "description": "+{%_printer_output_for_every_POW_10_kills_ever_done_with_the_rememberance_orb.",
+            "funcX": "decay",
+            "x1": 5,
+            "x2": 150
+          },
+          {
+            "id": 149,
+            "name": "SYMBOLS_OF_BEYOND_~R",
+            "lvlUpText": "+1_all_LVs_every_20_LVs",
+            "description": "+{_Lv_for_all_talents_higher_than_Lv_1._This_bonus_goes_up_every_20_lvs",
+            "funcX": "intervalAdd",
+            "x1": 1,
+            "x2": 20
+          }
+        ]
+      },
+      {
+        "name": "Royal_Guardian",
+        "talents": [
+          {
+            "id": 225,
+            "name": "CASTLE_CONVENE",
+            "lvlUpText": "+{%_Resource_Collection",
+            "description": "Teleports_you_to_the_Royal_Castle._Also,_+{%_Resource_Collection_Rate_for_all_outposts!",
+            "funcX": "decay",
+            "x1": 120,
+            "x2": 50
+          },
+          {
+            "id": 226,
+            "name": "ROYAL_ARMORY",
+            "lvlUpText": "+{%_Resource_Collection",
+            "description": "Opens_the_Royal_Armory,_letting_you_spend_Royal_Resources_to_expand_your_Kingdom._Also,_+{%_Resource_Collection!",
+            "funcX": "decay",
+            "x1": 150,
+            "x2": 300
+          },
+          {
+            "id": 227,
+            "name": "GUARDIAN_DISCIPLE",
+            "lvlUpText": "+0.1_sec_duration",
+            "description": "Spawn_a_Guardian_Disciple_for_{_sec,_who_throw_daggerangs_and_make_mobs_who_respawn_nearby_Regal_Mobs.",
+            "funcX": "bigBase",
+            "x1": 15,
+            "x2": 0.1
+          },
+          {
+            "id": 229,
+            "name": "REGAL_INTERVENTION",
+            "lvlUpText": "+{%_chance_&_+}_mobs",
+            "description": "When_D.I._respawns_all_monsters,_there's_a_{%_chance_that_}_Regal_mobs_are_spawned_too!",
+            "funcX": "decay",
+            "x1": 5,
+            "x2": 150
+          },
+          {
+            "id": 228,
+            "name": "ORB_OF_VERISIMILITUDE",
+            "lvlUpText": "+{s_Orb_Duration",
+            "description": "The_Orb_lasts_+{_seconds_longer,_and_now_gets_+2_kills_from_Regal_Mobs.",
+            "funcX": "decay",
+            "x1": 60,
+            "x2": 200
+          },
+          {
+            "id": 230,
+            "name": "INDUSTRIAL_POLITICS",
+            "lvlUpText": "+{x_Resource_Collection",
+            "description": "All_outposts_get_a_{x_boost_to_their_Resource_Collection_Rate",
+            "funcX": "decayMulti",
+            "x1": 6,
+            "x2": 300
+          },
+          {
+            "id": 231,
+            "name": "WARBOUND_POLITICS",
+            "lvlUpText": "+{x_Mob_Clearing",
+            "description": "All_forms_of_clearing_mobs_to_build_outposts,_via_Militia_or_Yourself,_is_{x_more_effective",
+            "funcX": "decayMulti",
+            "x1": 5,
+            "x2": 400
+          },
+          {
+            "id": 232,
+            "name": "AESTHETIC_POLITICS",
+            "lvlUpText": "+{x_Marble_Drop_Rate",
+            "description": "Monsters_in_outposts_drop_Marble_{x_more_often",
+            "funcX": "decayMulti",
+            "x1": 1.6,
+            "x2": 400
+          },
+          {
+            "id": 203,
+            "name": "BUILT_DIFFERENT",
+            "lvlUpText": "+{_STR",
+            "description": "+{_base_STR",
+            "funcX": "add",
+            "x1": 5,
+            "x2": 0
+          },
+          {
+            "id": 234,
+            "name": "LIL'_ORBLETS",
+            "lvlUpText": "+{%_chance_for_2x_Orblets",
+            "description": "The_Orb_drops_1_orblet_every_1000_kills,_with_a_{%_chance_to_drop_two._Use_this_talent_to_open_the_Orblet_shop!",
+            "funcX": "decay",
+            "x1": 110,
+            "x2": 300
+          },
+          {
+            "id": 235,
+            "name": "AMBER_HOARD",
+            "lvlUpText": "{%_Cheaper_Upg",
+            "description": "All_Spelunking_Shop_upgrades_are_{%_cheaper_for_every_total_Royal_Statue_LV_you_have.",
+            "funcX": "decay",
+            "x1": 50,
+            "x2": 200
+          },
+          {
+            "id": 236,
+            "name": "SPELUNKING_SPECIALTY",
+            "lvlUpText": "+{%_Max_&_}x_EXP",
+            "description": "+{%_Max_Stamina_and_}x_Spelunking_EXP_gain._This_works_on_all_characters!",
+            "funcX": "decay",
+            "x1": 200,
+            "x2": 250
+          },
+          {
+            "id": 237,
+            "name": "PIT_O'_PAGES",
+            "lvlUpText": "{x_Eff_&_}%_Speed",
+            "description": "{x_Spelunking_Efficiency_and_+}%_Spelunking_Speed_for_finding_Spelunky_Pages!_Works_on_all_chars.",
+            "funcX": "decayMulti",
+            "x1": 5,
+            "x2": 300
+          },
+          {
+            "id": 238,
+            "name": "GRAND_VEIN",
+            "lvlUpText": "{x_G.D._chance",
+            "description": "{x_higher_Grand_Discovery_Chance_in_Spelunking._Works_on_all_characters!",
+            "funcX": "decayMulti",
+            "x1": 20,
+            "x2": 400
+          },
+          {
+            "id": 239,
+            "name": "GRADED_RATE",
+            "lvlUpText": "+{%_DR_per_Grade",
+            "description": "+{%_Drop_Rate_per_Resource_Grade_across_all_worlds.",
+            "funcX": "decay",
+            "x1": 3,
+            "x2": 500
+          }
+        ]
+      },
+      {
+        "name": "Special Talent 1",
+        "talents": [
+          {
+            "id": 657,
+            "name": "CASH_MONEY",
+            "lvlUpText": "+{%_Coins",
+            "description": "All_monsters_drop_+{%_more_coins._Use_these_coins_to_buy_all_sorts_of_things!",
+            "funcX": "decay",
+            "x1": 70,
+            "x2": 50
+          },
+          {
+            "id": 658,
+            "name": "QUEST_KAPOW!",
+            "lvlUpText": "+{%_Damage_cap",
+            "description": "Each_Completed_Quest_on_any_character_gives_+1%_Damage,_up_to_a_total_of_+{%_Damage",
+            "funcX": "add",
+            "x1": 5,
+            "x2": 0
+          },
+          {
+            "id": 617,
+            "name": "STUDIOUS_QUESTER",
+            "lvlUpText": "+{%_Skill_Eff",
+            "description": "Each_Completed_Quest_on_any_character_gives_+0.10%_All_Skill_efficiency._Total_bonus_caps_at_+{%",
+            "funcX": "add",
+            "x1": 0.4,
+            "x2": 0
+          },
+          {
+            "id": 618,
+            "name": "QUEST_CHUNGUS",
+            "lvlUpText": "+{_LUK_Cap",
+            "description": "Each_Completed_Quest_on_any_character_gives_+1_LUK._Total_bonus_caps_at_+{_LUK",
+            "funcX": "add",
+            "x1": 4,
+            "x2": 0
+          },
+          {
+            "id": 619,
+            "name": "CRYSTALS_4_DAYYS",
+            "lvlUpText": "+{%_Spawn_Rate",
+            "description": "Crystal_Monsters_have_a_+{%_chance_to_spawn",
+            "funcX": "decay",
+            "x1": 174,
+            "x2": 50
+          },
+          {
+            "id": 620,
+            "name": "WILL_OF_THE_ELDEST",
+            "lvlUpText": "+{_All_Stat_Cap",
+            "description": "+1_All_Stats_for_every_10_Levels_of_your_highest_leveled_character._Caps_at_+{.",
+            "funcX": "add",
+            "x1": 1,
+            "x2": 0
+          },
+          {
+            "id": 621,
+            "name": "TICK_TOCK",
+            "lvlUpText": "+{%_Away_Gain_Rate",
+            "description": "+{%_AFK_Gains_Rate_for_both_Fighting_and_Skills",
+            "funcX": "decay",
+            "x1": 8,
+            "x2": 50
+          },
+          {
+            "id": 622,
+            "name": "STONKS!",
+            "lvlUpText": "Even_Stonkier!",
+            "description": "Gives_{_Special_Talent_Points.",
+            "funcX": "decay",
+            "x1": 130,
+            "x2": 50
+          },
+          {
+            "id": 623,
+            "name": "ROLL_DA_DICE",
+            "lvlUpText": "Dice_only_has_{_sides",
+            "description": "Rolls_a_{_sided_dice._If_it_lands_on_a_1,_you_win_a_special_Trophy!",
+            "funcX": "reduce",
+            "x1": 10000,
+            "x2": 25
+          },
+          {
+            "id": 624,
+            "name": "ATTACKS_ON_SIMMER",
+            "lvlUpText": "+{%_attack_AFK_effect",
+            "description": "Attack_moves_boost_your_AFK_gains_+{%_more_than_they_normally_do",
+            "funcX": "decay",
+            "x1": 40,
+            "x2": 100
+          },
+          {
+            "id": 616,
+            "name": "BEGINNER_BEST_CLASS",
+            "lvlUpText": "+{_Weapon_Pow_Cap",
+            "description": "+1_Base_Weapon_Power_every_10_Lvs_of_your_best_Beginner._Caps_at_+{.",
+            "funcX": "add",
+            "x1": 1,
+            "x2": 0
+          },
+          {
+            "id": 626,
+            "name": "EXP_CONVERTER",
+            "lvlUpText": "+{%_Exp_Converted",
+            "description": "{%_of_EXP_earned_in_chosen_Skill_is_turned_to_Class_EXP._Assign_to_Attack_to_choose.",
+            "funcX": "decay",
+            "x1": 150,
+            "x2": 200
+          },
+          {
+            "id": 627,
+            "name": "GOBLET_OF_HEMOGLOBIN",
+            "lvlUpText": "+{%_HP_regen_per_kill",
+            "description": "Killing_a_monster_heals_you_by_{%._This_also_counts_for_AFK,_helping_Survivability!",
+            "funcX": "decay",
+            "x1": 6,
+            "x2": 66
+          }
+        ]
+      },
+      {
+        "name": "Special Talent 2",
+        "talents": [
+          {
+            "id": 632,
+            "name": "JUST_EXP",
+            "lvlUpText": "+{%_Class_Exp",
+            "description": "+{%_Class_EXP",
+            "funcX": "decay",
+            "x1": 30,
+            "x2": 50
+          },
+          {
+            "id": 631,
+            "name": "FROTHY_MALK",
+            "lvlUpText": "+{%_Boost_Food_Effect",
+            "description": "Boost_foods,_like_potions,_give_+{%_higher_bonuses_than_normal.",
+            "funcX": "decay",
+            "x1": 50,
+            "x2": 50
+          },
+          {
+            "id": 630,
+            "name": "CONVERT_BETTER,_DARNIT!",
+            "lvlUpText": "+{x_more_Class_Exp",
+            "description": "EXP_Converter_Talent_gives_{x_more_Class_EXP_every_5_LV_of_chosen_skill",
+            "funcX": "decayMulti",
+            "x1": 1.7,
+            "x2": 100
+          },
+          {
+            "id": 629,
+            "name": "PULSATION",
+            "lvlUpText": "+{%_Mana_Regen_rate",
+            "description": "The_rate_at_which_you_gain_mana_used_to_cast_Attacks_is_boosted_by_+{%",
+            "funcX": "decay",
+            "x1": 75,
+            "x2": 60
+          },
+          {
+            "id": 628,
+            "name": "CARDIOVASCULAR!",
+            "lvlUpText": "+{%_card_drop_chance",
+            "description": "+{%_additional_card_drop_chance._It's_multiplicative,_so_it_always_helps!",
+            "funcX": "decay",
+            "x1": 60,
+            "x2": 60
+          },
+          {
+            "id": 633,
+            "name": "MILKYWAY_CANDIES",
+            "lvlUpText": "+{%_Candy_drop",
+            "description": "{%_chance_to_get_a_Time_Candy_if_AFK_30+_hrs._Longer_AFK_boosts_candy_quality",
+            "funcX": "decay",
+            "x1": 200,
+            "x2": 100
+          },
+          {
+            "id": 634,
+            "name": "TELEKINETIC_STORAGE",
+            "lvlUpText": "+{%_Carry_Cap",
+            "description": "Deposits_your_items_to_storage,_and_destroys_items_on_ground._PASSIVE:_+{%_Carry_Cap",
+            "funcX": "decay",
+            "x1": 30,
+            "x2": 60
+          },
+          {
+            "id": 635,
+            "name": "PRINTER_SAMPLING",
+            "lvlUpText": "+{%_AFK_gains_sampled",
+            "description": "Use_from_the_Attack_Bar_to_sample_{%_of_the_resource_you're_AFKing,_produced_at_the_3d_Printer!",
+            "funcX": "bigBase",
+            "x1": 10,
+            "x2": 0.075
+          },
+          {
+            "id": 636,
+            "name": "SUPERSOURCE",
+            "lvlUpText": "+{_Base_Efficiency",
+            "description": "+{_Base_Efficiency_for_Mining,_Choppin,_Fishing,_and_Catching!",
+            "funcX": "decay",
+            "x1": 250,
+            "x2": 100
+          },
+          {
+            "id": 637,
+            "name": "ACTION_FRENZY",
+            "lvlUpText": "+{%_Skilling_Speed",
+            "description": "+{%_Speed_for_all_Skills._Zoom_zoom!_Isn't_that_what_you_zoomers_are_all_about?",
+            "funcX": "decay",
+            "x1": 60,
+            "x2": 100
+          },
+          {
+            "id": 638,
+            "name": "DUNGEONIC_DAMAGE",
+            "lvlUpText": "+{%_dmg_per_POW_10_Creds",
+            "description": "+{%_damage_for_every_power_of_10_Dungeon_Credits_you've_earned",
+            "funcX": "decay",
+            "x1": 15,
+            "x2": 100
+          },
+          {
+            "id": 639,
+            "name": "SHRINE_ARCHITECT",
+            "lvlUpText": "+{%_Charge_Rate",
+            "description": "Cast_this_talent_to_place_shrines._You_also_charge_them_+{%_faster",
+            "funcX": "decay",
+            "x1": 50,
+            "x2": 50
+          },
+          {
+            "id": 640,
+            "name": "MEGA_CRIT",
+            "lvlUpText": "+{%_chance_&+}%_Dmg",
+            "description": "+{%_Crit_chance._If_over_100%_crit_chance,_can_Mega_Crit_for_+}%_more_dmg.",
+            "funcX": "decay",
+            "x1": 20,
+            "x2": 100
+          }
+        ]
+      },
+      {
+        "name": "Special Talent 3",
+        "talents": [
+          {
+            "id": 641,
+            "name": "TIPTOE_QUICKNESS",
+            "lvlUpText": "+{%_Spd_or_+}%_Acc",
+            "description": "+{%_Movement_Speed,_if_you're_under_200%_Speed._Otherwise,_+}%_Accuracy.",
+            "funcX": "decay",
+            "x1": 25,
+            "x2": 100
+          },
+          {
+            "id": 642,
+            "name": "UBERCHARGED_HEALTH",
+            "lvlUpText": "+{_Base_HP",
+            "description": "Increases_base_HP_by_+{._Cardiovascularly_impressive!",
+            "funcX": "add",
+            "x1": 2,
+            "x2": 0.2
+          },
+          {
+            "id": 643,
+            "name": "COINS_FOR_CHARON",
+            "lvlUpText": "+{%_Cash_per_tier",
+            "description": "+{%_cash_per_Multikill_Damage_Tier,_as_shown_by_the_purple_multiplier_in_AFK_Info",
+            "funcX": "decay",
+            "x1": 25,
+            "x2": 75
+          },
+          {
+            "id": 644,
+            "name": "AMERICAN_TIPPER",
+            "lvlUpText": "+{%_Cash",
+            "description": "+{%_Cash_per_10_Levels_of_your_Cooking_Skill.",
+            "funcX": "decay",
+            "x1": 80,
+            "x2": 100
+          },
+          {
+            "id": 645,
+            "name": "OVERACCURATE_CRIT",
+            "lvlUpText": "+{%_Crit_Chance",
+            "description": "+{%_Crit_Chance_for_every_Power_of_10_accuracy_above_100%_Hit_Chance.",
+            "funcX": "decay",
+            "x1": 8,
+            "x2": 70
+          },
+          {
+            "id": 646,
+            "name": "ANCIENT_MULTITOOL",
+            "lvlUpText": "+{%_Efficiency",
+            "description": "+{%_Efficiency_for_all_Skills",
+            "funcX": "decay",
+            "x1": 50,
+            "x2": 100
+          },
+          {
+            "id": 647,
+            "name": "STATUE_METALLURGY",
+            "lvlUpText": "+{%_2x_Statue_chance",
+            "description": "Monsters_have_a_+{%_chance_of_dropping_twice_as_many_Statues_as_normal",
+            "funcX": "decay",
+            "x1": 15,
+            "x2": 100
+          },
+          {
+            "id": 625,
+            "name": "TOILET_PAPER_POSTAGE",
+            "lvlUpText": "+{x_higher_bonus",
+            "description": "Stamps_giving_Skill_Efficiency_will_give_{x_higher_bonuses.",
+            "funcX": "decayMulti",
+            "x1": 0.7,
+            "x2": 100
+          },
+          {
+            "id": 649,
+            "name": "FILTHY_DAMAGE",
+            "lvlUpText": "+{%_dmg_per_POW_10_Garbo",
+            "description": "+{%_damage_for_every_power_of_10_Garbage_you_have",
+            "funcX": "decay",
+            "x1": 20,
+            "x2": 100
+          },
+          {
+            "id": 650,
+            "name": "RANDO_EVENT_LOOTY",
+            "lvlUpText": "+{%_AFK_per_rare",
+            "description": "+{%_AFK_Gains_Rate_per_Random_Event_Rare_Item_found",
+            "funcX": "decay",
+            "x1": 0.75,
+            "x2": 100
+          },
+          {
+            "id": 651,
+            "name": "SPICE_SPILLAGE",
+            "lvlUpText": "+{%_Chance",
+            "description": "+{%_chance_to_claim_all_Mob_spices_when_claiming_1hr+_AFK_gains.",
+            "funcX": "decay",
+            "x1": 200,
+            "x2": 100
+          },
+          {
+            "id": 652,
+            "name": "STAT_OVERLOAD",
+            "lvlUpText": "+{_All_Stat",
+            "description": "+{_total_STR,_AGI,_WIS,_and_LUK._Total_means_this_bonus_is_not_affected_by_+%_ALL_STAT.",
+            "funcX": "add",
+            "x1": 1,
+            "x2": 0
+          },
+          {
+            "id": 653,
+            "name": "DUMMY_THICC_STATS",
+            "lvlUpText": "+{%_All_Stat",
+            "description": "+{%_All_Stat_per_POW_10_best_DPS_ever_on_the_Target_Dummy",
+            "funcX": "decay",
+            "x1": 0.35,
+            "x2": 50
+          }
+        ]
+      },
+      {
+        "name": "Special Talent 4",
+        "talents": [
+          {
+            "id": 654,
+            "name": "MONOLITHIALISM",
+            "lvlUpText": "+{%_Multikill_per_Onyx",
+            "description": "+{%_MultiKill_per_unique_Onyx_Statue_you_have",
+            "funcX": "decay",
+            "x1": 30,
+            "x2": 100
+          },
+          {
+            "id": 655,
+            "name": "BOSS_BATTLE_SPILLOVER",
+            "lvlUpText": "+{%_Drop_Rate_per_diff",
+            "description": "+{%_Drop_Rate_for_each_difficulty_of_weekly_boss_battle_defeated_this_week.",
+            "funcX": "decay",
+            "x1": 25,
+            "x2": 100
+          },
+          {
+            "id": 656,
+            "name": "DREAMER_DAMAGE",
+            "lvlUpText": "+{%_DMG_per_dream_complete",
+            "description": "+{%_Damage_per_Equinox_Dream_cloud_completed",
+            "funcX": "decay",
+            "x1": 5,
+            "x2": 100
+          },
+          {
+            "id": 615,
+            "name": "BORED_TO_DEATH",
+            "lvlUpText": "{_sec_Respawn",
+            "description": "Reduces_the_Respawn_Timer_to_{_sec._This_will_boost_AFK_Survival_Percent!",
+            "funcX": "reduce",
+            "x1": 600,
+            "x2": 2
+          }
+        ]
+      }
+    ]
   }
 };

@@ -1577,7 +1577,7 @@ function resolveAllTalentLVz(
     );
   }
 
-  const total = Math.floor(
+  let total = Math.floor(
     spelunkBonus +
       tal149 +
       tal374 +
@@ -1593,6 +1593,23 @@ function resolveAllTalentLVz(
       arcane57 +
       lvBonusTerm
   );
+  // Royal Guardian talents (225–239): N.js caps the whole AllTalentLVz sum at
+  // ArmoryUpgBonus(55) ("AllTalMaxCapFR" — Talent Reattainment; 9999 for every
+  // other talent). Without that armory upgrade a Royal Guardian gets NO bonus
+  // levels on its own tab. Same rule as computeAllTalentLVz, mirrored here so
+  // the tree (Effective Level) shows the same number the game uses.
+  if (talentIdx >= 225 && talentIdx <= 239) {
+    const cap = Math.floor(armoryUpgBonus(55, saveData));
+    if (total > cap) {
+      children.push(
+        node("Royal Armory cap (Armory 55 — Talent Reattainment)", cap - total, null, {
+          fmt: "raw",
+          note: `All Talent LV bonuses reach Royal Guardian talents only up to ${cap} (was ${total})`,
+        })
+      );
+      total = cap;
+    }
+  }
   // Effective Level = rawLv + total still holds regardless of split mode:
   // when splitSuper is true, the Bonus row in talent.resolve reports
   // (total - superBonus) and the Super row reports superBonus; sum is
@@ -1600,7 +1617,7 @@ function resolveAllTalentLVz(
   return {
     total,
     children,
-    superBonus: splitSuper ? spelunkBonus : 0,
+    superBonus: splitSuper ? Math.min(spelunkBonus, total) : 0,
     superChildren: splitSuper && superChildren ? superChildren : undefined,
     // Passed the exclusion check at line 510-518, so this talent is
     // eligible for the Spelunking 4D super slot. talent.resolve uses
@@ -1631,9 +1648,11 @@ function getTalentNumber(
 ) {
   const sl = (skillLvData as any)[charIdx] || {};
   const rawLv = Number(sl[talentIdx] || sl[String(talentIdx)]) || 0;
-  // Game's getbonus2 passes raw talent LEVEL (atlIdx) to AllTalentLVz instead
-  // of the talent index. The ctxChar param decides which char's skill levels/
-  // divinity/spelunk is queried for the ATL chain.
+  // `atlIdx` lets a caller resolve the ATL chain for a different talent id
+  // than the one being valued (kept for special branches); getbonus2 leaves it
+  // undefined so AllTalentLVz sees the real talent index, as in N.js. The
+  // ctxChar param decides which char's skill levels/divinity/spelunk is
+  // queried for the ATL chain.
   // NOTE: we compute bonusDetail even when rawLv === 0 so the max-values
   // tool can surface "what would the bonus levels be if I picked up this
   // talent" for inactive (level-0) talents. The contribution sources
@@ -1669,13 +1688,20 @@ function getbonus2(
   let bestR:
     | ReturnType<typeof getTalentNumber>
     | null = null;
+  // N.js _customBlock_getbonus2(d, b, -1): for every player g with
+  // SkillLevels[b] > 0, formula(SkillLevels[b] + AllTalentLVz("b|g")) and keep
+  // the max. The bonus levels are THAT player's own (their Symbols of Beyond,
+  // super-talent preset, Family Guy…), and AllTalentLVz receives the talent
+  // index — not the active char's chain and not the raw level. Verified
+  // against the live game (2026-09-18): Archlord of the Pirates on ARKHE is
+  // Barkhe at 396 + 387 own bonus levels, not 396 + the active char's 263.
+  void activeCharIdx;
   for (let ci = 0; ci < numCharacters; ci++) {
     const sl = (skillLvData as any)[ci] || {};
     const rawLv = Number(sl[talentIdx] || sl[String(talentIdx)]) || 0;
     let r: ReturnType<typeof getTalentNumber>;
     if (talentIdx >= 100) {
-      const ctxForATL = activeCharIdx != null && activeCharIdx >= 0 ? activeCharIdx : ci;
-      r = getTalentNumber(ci, talentIdx, data, ctxForATL, rawLv, saveData, atlOpts);
+      r = getTalentNumber(ci, talentIdx, data, ci, undefined, saveData, atlOpts);
     } else if (rawLv <= 0) {
       r = {
         val: 0,
@@ -1819,12 +1845,11 @@ export const talent = {
       ];
       if (r.detail) {
         // Build the base level node first, then inject "Reference Character"
-        // as its FIRST child. This makes the visual link explicit: the
-        // reference char only contributes to Base Level (it supplies the
-        // raw lv used as Points Invested). Bonus Levels and Super Levels
-        // are computed against the ACTIVE char's context, not the
-        // reference char, so the sibling-of-Effective-Level placement we
-        // had before was misleading.
+        // as its FIRST child. The reference char supplies BOTH the raw lv
+        // (Points Invested) and the bonus levels (N.js getbonus2 evaluates
+        // AllTalentLVz for that player), so Effective Level is entirely that
+        // char's — the active char only chooses which map/context the final
+        // value is applied to.
         const baseLvlNode = emitBaseLevelNode(r.detail.rawLv, saveData, {
           ownerCharIdx: r.bestChar,
           ownerName: bestName,
@@ -1836,9 +1861,9 @@ export const talent = {
           node(bestLabel, r.detail.rawLv, null, {
             fmt: "raw",
             note:
-              "supplies the raw lv used as Points Invested — affects " +
-              "Base Level only; Bonus Levels and Super Levels are " +
-              "computed against the active char",
+              "supplies the raw lv used as Points Invested AND the bonus " +
+              "levels (its own Symbols of Beyond, super-talent preset, " +
+              "Family Guy…) — N.js keeps the best player's whole chain",
           }),
           ...(baseLvlNode.children || []),
         ];
