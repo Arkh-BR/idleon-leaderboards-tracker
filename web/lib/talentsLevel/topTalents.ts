@@ -13,13 +13,13 @@
 // default tree (they would all resolve to identical numbers anyway).
 // Auto-refreshed by scripts/update-top-talents.ts.
 //
-// Snapshot generated: 2026-09-16T09:03:42.803Z
-// Players scanned: 80
+// Snapshot generated: 2026-09-18T22:35:48.080Z
+// Players scanned: 77
 
 import type { ArkhNode } from "../arkh/node";
 
-export const HYPO_TALENTS_GENERATED_AT = "2026-09-16T09:03:42.803Z";
-export const HYPO_TALENTS_PLAYERS_SCANNED = 80;
+export const HYPO_TALENTS_GENERATED_AT = "2026-09-18T22:35:48.080Z";
+export const HYPO_TALENTS_PLAYERS_SCANNED = 77;
 
 export const HYPO_DEFAULT_TREE: ArkhNode = {
   "name": "Effective Level",
@@ -492,7 +492,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
           "children": [
             {
               "name": "Best Mage Lv",
-              "val": 1868,
+              "val": 1879,
               "children": [
                 {
                   "name": "Char 1 Lv",
@@ -502,7 +502,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                 },
                 {
                   "name": "Char 8 Lv",
-                  "val": 1850,
+                  "val": 1853,
                   "fmt": "raw",
                   "note": "Sven_OTI — elemental sorcerer (cls 34)"
                 }
@@ -784,7 +784,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
           "children": [
             {
               "name": "Divinity Lv",
-              "val": 853,
+              "val": 854,
               "fmt": "raw"
             },
             {
@@ -1439,7 +1439,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
             "children": [
               {
                 "name": "Best Mage Lv",
-                "val": 1868,
+                "val": 1879,
                 "children": [
                   {
                     "name": "Char 1 Lv",
@@ -1725,7 +1725,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
             "children": [
               {
                 "name": "Divinity Lv",
-                "val": 853,
+                "val": 854,
                 "fmt": "raw"
               },
               {
@@ -1953,8 +1953,8 @@ export const STAR_TALENT_CEILING: Readonly<Record<number, number>> = {
   "643": 396,
   "644": 396,
   "645": 396,
-  "646": 396,
-  "647": 396,
+  "646": 408,
+  "647": 404,
   "649": 200,
   "650": 200,
   "651": 100,

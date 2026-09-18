@@ -29,23 +29,11 @@ jobs:
         working-directory: web
         run: npm ci
 
-      - name: Cache Playwright browsers
-        uses: actions/cache@v4
-        id: playwright-cache
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ hashFiles('web/package-lock.json') }}
-
-      - name: Install Playwright system deps
-        working-directory: web
-        run: npx playwright install-deps chromium
-
-      - name: Install Playwright Chromium (if not cached)
-        if: steps.playwright-cache.outputs.cache-hit != 'true'
-        working-directory: web
-        run: npx playwright install chromium
-
-      - name: Run scraper
+      # No browser: the script fetches raw saves from the IT profiles API and
+      # scores them with our tome engine. It exits non-zero when fewer than
+      # 10 players could be computed, so a broken fetch fails the run instead
+      # of committing a timestamp-only bump.
+      - name: Compute top-player snapshot
         working-directory: web
         run: npx tsx scripts/update-top-players.ts
 

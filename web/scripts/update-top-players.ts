@@ -1,48 +1,44 @@
-// Refresh the bundled top-player snapshot in lib/tome/topPlayers.ts by
-// scraping the IT profile pages of the actual top players.
+// Refresh the bundled top-player Tome snapshot in lib/tome/topPlayers.ts by
+// fetching each top player's raw save from the IT profiles API and running
+// OUR tome engine on it (the same rules /tome and the golden harness use).
+//
+// Until 2026-09 this scraped the rendered idleontoolbox.com tome page in
+// headless Chromium. Its DOM matcher was pinned to exactly 118 task cards, so
+// from the 2026-08-25 update (121 tasks) on it silently scraped 0 / 80
+// players every run and only bumped the timestamp — the cron looked green
+// while the snapshot stayed frozen at 2026-08-28. Computing from the raw
+// save has no DOM to break, needs no browser, and scores every player by the
+// CURRENT game rules (a profile's stored parsedData.tomePoints is frozen at
+// upload time, e.g. Unique Sushi max 63 vs the live 64).
 //
 // Pipeline:
-//   1. Hit profiles.idleontoolbox.workers.dev for each of the 153 leaderboard
-//      categories to get top-N per board.
-//   2. Build a deduped candidate set: top 1 of every board + top 10 of the
-//      "totalTomePoints" board (the one the user actually cares about).
-//      Anonymous players (Anon#xxxxxx) are excluded since their profiles
-//      are not publicly viewable.
-//   3. Open each candidate's tome page in headless Chromium and scrape the
-//      118-row task list off the rendered DOM.
-//   4. Aggregate the best per task (highest pts; for ties, the more
-//      impressive raw — higher for ascending curves, lower for inverted).
-//   5. Preserve the existing per-task classification values so user-curated
-//      tags survive the refresh, then overwrite the snapshot file.
+//   1. Candidates = top 1 of every leaderboard + top 10 of totalTomePoints
+//      (shared gatherCandidates: anonymous + denylisted players excluded).
+//   2. fetchProfileSave(name) → computeTome(save) with the IT override
+//      stripped, so pts come from our per-task computation.
+//   3. Aggregate the best per task: highest pts; ties → the more impressive
+//      raw (lower for the x2 = 3 "fastest time" curves, higher otherwise).
+//   4. Preserve the per-task classification values, overwrite the file.
 //
-// Run with:  npx tsx scripts/update-top-players.ts
-//
-// Knobs:
-//   --limit N    cap candidate set to first N players (for smoke testing)
-//   --headed     run Chromium with UI (debugging)
-//   --slow       throttle to 1500ms between players (be extra nice to IT)
-
-import { chromium, type Browser, type Page } from "playwright";
-import { readFileSync, writeFileSync } from "node:fs";
+// Run:  npx tsx web/scripts/update-top-players.ts
+// Knobs: --limit N   cap candidate set (smoke test; relaxes the min-players guard)
+//        --slow      1500ms between players (be extra nice to IT)
+//        --dry       compute + report, do not write the file
+import { writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { CATEGORIES } from "../lib/registry";
+import { gatherCandidates, fetchProfileSave } from "./_shared/itProfiles";
+import { computeTome } from "../lib/tome/compute";
+import { TOME_TASKS } from "../lib/tome/tasks";
 import { TOP_PLAYERS } from "../lib/tome/topPlayers";
 
-const IT_API =
-  "https://profiles.idleontoolbox.workers.dev/api/leaderboards";
-const TOME_URL = (name: string) =>
-  `https://idleontoolbox.com/account/world-4/tome?profile=${encodeURIComponent(name)}`;
+const g = globalThis as any;
+if (!g.window) g.window = g;
+
 const OUTPUT_FILE = join(__dirname, "..", "lib", "tome", "topPlayers.ts");
 
-const HEADERS = {
-  Referer: "https://idleontoolbox.com/",
-  "User-Agent":
-    "Mozilla/5.0 (compatible; IdleonTrackersScraper/1.0; +https://github.com/Arkh-BR/idleon-leaderboards-tracker)",
-};
-
 const args = new Set(process.argv.slice(2));
-const HEADED = args.has("--headed");
 const SLOW = args.has("--slow");
+const DRY = args.has("--dry");
 const THROTTLE_MS = SLOW ? 1500 : 500;
 const LIMIT = (() => {
   const argv = process.argv.slice(2);
@@ -50,206 +46,66 @@ const LIMIT = (() => {
   if (idx >= 0 && argv[idx + 1]) return Number(argv[idx + 1]) || null;
   return null;
 })();
+// A snapshot built from a handful of players would silently DOWNGRADE every
+// task the missing players led — refuse to write one. --limit is a smoke
+// test and relaxes this.
+const MIN_PLAYERS = LIMIT ? 1 : 10;
+// Our engine covers every task unless an extractor returns null; a player
+// with far fewer rows means the save is incomplete/private-shaped.
+const MIN_TASKS = 100;
 
-// ───────────────────────────────────────────────────────────────── leaderboards
+// ───────────────────────────────────────────────────── compute one player
 
-type TopEntry = { mainChar?: string; rank?: number; [k: string]: unknown };
-type CategoryTopResponse = Record<
-  string,
-  { public?: Record<string, TopEntry[]> } | undefined
->;
+type PlayerTask = { task: string; raw: number; pts: number; inverted: boolean };
+type PlayerResult = { player: string; totalPts: number; tasks: PlayerTask[] };
 
-async function fetchCategoryTop(
-  category: string
-): Promise<Record<string, TopEntry[]>> {
-  const url = `${IT_API}?leaderboard=${encodeURIComponent(category)}`;
-  const r = await fetch(url, { headers: HEADERS });
-  if (!r.ok) throw new Error(`top ${category}: HTTP ${r.status}`);
-  const data = (await r.json()) as CategoryTopResponse;
-  return data[category]?.public ?? {};
-}
-
-function isAnonymous(name: string): boolean {
-  return name.startsWith("Anon#") || name.startsWith("Anon ") || !name.trim();
-}
-
-async function gatherCandidates(): Promise<string[]> {
-  console.log(`\n→ Fetching top players across ${CATEGORIES.length} categories…`);
-  const candidates = new Set<string>();
-  const tomeBoard: TopEntry[] = [];
-
-  for (const cat of CATEGORIES) {
-    try {
-      const boards = await fetchCategoryTop(cat.key);
-      for (const board of cat.boards) {
-        const list = boards[board.apiKey] ?? [];
-        // Top 1 of every board
-        const top1 = list[0]?.mainChar?.trim();
-        if (top1 && !isAnonymous(top1)) candidates.add(top1);
-        // Snapshot the totalTomePoints board for top 10
-        if (board.apiKey === "totalTomePoints") {
-          tomeBoard.push(...list);
-        }
-      }
-    } catch (e) {
-      console.warn(`  × category ${cat.key} failed:`, (e as Error).message);
-    }
-  }
-
-  // Top 10 of the tome board specifically
-  for (const entry of tomeBoard.slice(0, 10)) {
-    const name = entry.mainChar?.trim();
-    if (name && !isAnonymous(name)) candidates.add(name);
-  }
-
-  let names = [...candidates].sort();
-  if (LIMIT) names = names.slice(0, LIMIT);
-  console.log(`  ✓ ${names.length} unique candidates`);
-  return names;
-}
-
-// ──────────────────────────────────────────────────────── idleon number parser
-
-// IT uses K/M/B/T/Q/QQ/QQQ for magnitudes plus scientific E notation past 10^25.
-function parseIdleonNumber(raw: string): number {
-  const s = raw.trim().replace(/,/g, "");
-  if (s === "" || s === "—" || s === "-") return NaN;
-  // Scientific: "4.79E56"
-  if (/^-?\d+(\.\d+)?[eE][+-]?\d+$/.test(s)) return Number(s);
-  // Suffixed: "149B", "553Q", "5105M"
-  const m = s.match(/^(-?\d+(?:\.\d+)?)(K|M|B|T|Q|QQ|QQQ|QQQQ|QQQQQ)$/i);
-  if (m) {
-    const n = Number(m[1]);
-    const mult: Record<string, number> = {
-      K: 1e3, M: 1e6, B: 1e9, T: 1e12, Q: 1e15,
-      QQ: 1e18, QQQ: 1e21, QQQQ: 1e24, QQQQQ: 1e27,
-    };
-    return n * mult[m[2].toUpperCase()];
-  }
-  const n = Number(s);
-  return isFinite(n) ? n : NaN;
-}
-
-// ─────────────────────────────────────────────────────── scrape one player
-
-type ScrapedTask = { task: string; raw: number; pts: number };
-type ScrapeResult = {
-  player: string;
-  totalPts: number;
-  tasks: ScrapedTask[];
-} | null;
-
-async function scrapePlayer(page: Page, name: string): Promise<ScrapeResult> {
-  await page.goto(TOME_URL(name), { waitUntil: "domcontentloaded", timeout: 30_000 });
-  // Wait until the page rendered all 118 task cards (Firestore Listen channel
-  // streams the data in after JS hydrates). Cap at 20s.
-  try {
-    await page.waitForFunction(
-      () => {
-        const matches =
-          (document.body.innerText.match(/\d+,?\d* PTS/g) || []).length;
-        return matches >= 100; // 118 in full, but accept some slack
-      },
-      { timeout: 20_000 }
-    );
-  } catch {
-    // Either private / not found / IT rate-limited us — skip silently.
-    return null;
-  }
-
-  const scraped = await page.evaluate(() => {
-    const allDivs = [...document.querySelectorAll("div")];
-    const container = allDivs.find((el) => {
-      const matches = (el.textContent || "").match(/\d+,?\d* PTS/g) || [];
-      return (
-        matches.length === 118 &&
-        el.children.length >= 100 &&
-        el.children.length <= 200
-      );
+function computePlayer(name: string, save: any): PlayerResult {
+  // computeTome overwrites its own per-task pts with parsedData.tomePoints
+  // when the envelope carries them (so /tome matches idleontoolbox.com for
+  // the player's own upload). For the snapshot every player must be scored
+  // by the same, current rules — strip the override like the golden does.
+  const input =
+    save && save.parsedData
+      ? { ...save, parsedData: { ...save.parsedData, tomePoints: undefined } }
+      : save;
+  const res = computeTome(input);
+  const tasks: PlayerTask[] = [];
+  for (const r of res.rows) {
+    if (r.pts === null || r.rawValue === null || !Number.isFinite(r.rawValue)) continue;
+    tasks.push({
+      task: r.task,
+      raw: r.rawValue,
+      pts: r.pts,
+      // x2 = 3 → inverted curve (lower raw is better).
+      inverted: r.bonus?.[1] === 3,
     });
-    if (!container) return null;
-    const totalMatch =
-      document.body.innerText.match(/Total Points\s*([\d,]+)/);
-    const totalPts = totalMatch ? Number(totalMatch[1].replace(/,/g, "")) : 0;
-    const tasks = [...container.children]
-      .map((el) => {
-        const lines = (el as HTMLElement).innerText
-          .trim()
-          .split("\n")
-          .map((l) => l.trim())
-          .filter(Boolean);
-        if (lines.length < 3) return null;
-        // Last line is "X PTS", penultimate-ish is raw qty, first is name
-        const ptsMatch = lines[lines.length - 1].match(/^([\d,]+)\s*PTS$/i);
-        if (!ptsMatch) return null;
-        const pts = Number(ptsMatch[1].replace(/,/g, ""));
-        const rawStr = lines[lines.length - 2];
-        // Task name is everything up to the raw — usually line 0, but some
-        // tasks have multi-word names that wrap, so join all leading lines.
-        const taskName = lines.slice(0, lines.length - 2).join(" ");
-        return { task: taskName, rawStr, pts };
-      })
-      .filter(Boolean);
-    return { totalPts, tasks };
-  });
-
-  if (!scraped) return null;
-
-  // Parse raw numbers outside browser context (parseIdleonNumber is Node-side).
-  const tasks = scraped.tasks
-    .map((t) => {
-      if (!t) return null;
-      const raw = parseIdleonNumber(t.rawStr);
-      return { task: t.task, raw, pts: t.pts };
-    })
-    .filter((t): t is ScrapedTask => t !== null && !Number.isNaN(t.raw));
-
-  return { player: name, totalPts: scraped.totalPts, tasks };
+  }
+  return { player: name, totalPts: res.totalPts, tasks };
 }
 
 // ────────────────────────────────────────────────────────────── aggregate
-
-const INVERTED_TASK_NAMES = new Set<string>(
-  // Curves with x2=3 — lower raw wins. Pulled from the task list explicitly
-  // so we don't have to depend on the bonus table here. Update if Lava adds
-  // more "Fastest Time" tasks.
-  [
-    "Fastest Time to kill Chaotic Efaunt (in Seconds)",
-    "Fastest Time reaching Round 100 Arena (in Seconds)",
-    "Fastest Time to Kill 200 Tremor Wurms (in Seconds)",
-    "Total Gambit Time (in Seconds)",
-  ]
-);
 
 type AggEntry = {
   player: string;
   raw: number;
   pts: number;
-  date: string; // ISO -> formatted as MM/DD/YYYY to match the existing file
+  date: string; // MM/DD/YYYY to match the existing file
 };
 
-function aggregateBestPerTask(
-  scrapes: NonNullable<ScrapeResult>[]
-): Map<string, AggEntry> {
+function aggregateBestPerTask(results: PlayerResult[]): Map<string, AggEntry> {
   const best = new Map<string, AggEntry>();
   const today = new Date();
   const dateStr = `${String(today.getMonth() + 1).padStart(2, "0")}/${String(today.getDate()).padStart(2, "0")}/${today.getFullYear()}`;
 
-  for (const scrape of scrapes) {
-    for (const t of scrape.tasks) {
+  for (const res of results) {
+    for (const t of res.tasks) {
       const cur = best.get(t.task);
       if (
         !cur ||
         t.pts > cur.pts ||
-        (t.pts === cur.pts &&
-          (INVERTED_TASK_NAMES.has(t.task) ? t.raw < cur.raw : t.raw > cur.raw))
+        (t.pts === cur.pts && (t.inverted ? t.raw < cur.raw : t.raw > cur.raw))
       ) {
-        best.set(t.task, {
-          player: scrape.player,
-          raw: t.raw,
-          pts: t.pts,
-          date: dateStr,
-        });
+        best.set(t.task, { player: res.player, raw: t.raw, pts: t.pts, date: dateStr });
       }
     }
   }
@@ -258,30 +114,32 @@ function aggregateBestPerTask(
 
 // ──────────────────────────────────────────────────────────── emit file
 
-function emitTopPlayersFile(
-  best: Map<string, AggEntry>,
-  totalScanned: number
-): void {
-  // Preserve existing classifications + retain tasks we didn't see in any
-  // scrape (e.g. event-gated tasks not yet present in any top player).
-  const allTaskNames = new Set<string>([
-    ...Object.keys(TOP_PLAYERS),
-    ...best.keys(),
-  ]);
+function fmtNum(v: number | null): string {
+  return v === null || !Number.isFinite(v) ? "null" : String(v);
+}
+
+function emitTopPlayersFile(best: Map<string, AggEntry>, totalScanned: number): string {
+  // In-game task order first, then any legacy key the task list no longer
+  // carries (kept so a renamed task never silently loses its classification).
+  const allTaskNames = [
+    ...TOME_TASKS,
+    ...Object.keys(TOP_PLAYERS).filter((k) => !(TOME_TASKS as readonly string[]).includes(k)),
+  ];
 
   const lines: string[] = [];
   lines.push(
     "// Top-player tome snapshot + per-task classification. Bundled static data,",
-    "// auto-refreshed by scripts/update-top-players.ts. Run that script to",
-    "// re-scrape the IT profile pages of the current top players.",
+    "// auto-refreshed by scripts/update-top-players.ts: it fetches each top",
+    "// player's raw save from the IT profiles API and scores it with our tome",
+    "// engine (lib/tome/compute.ts), so every entry follows the current game rules.",
     "//",
     `// Snapshot generated: ${new Date().toISOString()}`,
-    `// Source: scraped from https://idleontoolbox.com/account/world-4/tome?profile=<name>`,
+    "// Source: https://profiles.idleontoolbox.workers.dev/api/profiles/?profile=<name> → computeTome()",
     `// Players scanned: ${totalScanned}`,
     "",
     "// Classification is the user-defined tag from column D of the original sheet.",
     "// Numbers are arbitrary IDs that map to semantic labels.",
-    'export const CLASSIFICATION_LABELS: Readonly<Record<number, string>> = {',
+    "export const CLASSIFICATION_LABELS: Readonly<Record<number, string>> = {",
     '  1: "Priority",',
     '  3: "Doable",',
     '  4: "Time Gated",',
@@ -305,29 +163,20 @@ function emitTopPlayersFile(
     const fresh = best.get(task);
     const old = TOP_PLAYERS[task];
     const classification = old?.classification ?? null;
+    const cls = classification === null ? "null" : String(classification);
     if (fresh) {
-      const rawStr =
-        fresh.raw === null
-          ? "null"
-          : Number.isFinite(fresh.raw)
-            ? String(fresh.raw)
-            : "null";
-      const ptsStr = fresh.pts === null ? "null" : String(fresh.pts);
       lines.push(
-        `  ${JSON.stringify(task)}: { date: ${JSON.stringify(fresh.date)}, player: ${JSON.stringify(fresh.player)}, raw: ${rawStr}, pts: ${ptsStr}, classification: ${classification === null ? "null" : String(classification)} },`
+        `  ${JSON.stringify(task)}: { date: ${JSON.stringify(fresh.date)}, player: ${JSON.stringify(fresh.player)}, raw: ${fmtNum(fresh.raw)}, pts: ${fmtNum(fresh.pts)}, classification: ${cls} },`
       );
     } else if (old) {
-      const rawStr = old.raw === null ? "null" : String(old.raw);
-      const ptsStr = old.pts === null ? "null" : String(old.pts);
       lines.push(
-        `  ${JSON.stringify(task)}: { date: ${JSON.stringify(old.date)}, player: ${JSON.stringify(old.player)}, raw: ${rawStr}, pts: ${ptsStr}, classification: ${classification === null ? "null" : String(classification)} },`
+        `  ${JSON.stringify(task)}: { date: ${JSON.stringify(old.date)}, player: ${JSON.stringify(old.player)}, raw: ${fmtNum(old.raw)}, pts: ${fmtNum(old.pts)}, classification: ${cls} },`
       );
     }
   }
 
   lines.push("};", "");
-  writeFileSync(OUTPUT_FILE, lines.join("\n"));
-  console.log(`\n✓ Wrote ${OUTPUT_FILE}`);
+  return lines.join("\n");
 }
 
 // ────────────────────────────────────────────────────────── main
@@ -337,34 +186,37 @@ async function sleep(ms: number) {
 }
 
 async function main() {
-  const candidates = await gatherCandidates();
+  console.log("\n→ Fetching top players across the leaderboard categories…");
+  const candidates = await gatherCandidates({
+    focusBoard: "totalTomePoints",
+    limit: LIMIT ?? undefined,
+  });
+  console.log(`  ✓ ${candidates.length} unique candidates`);
   if (candidates.length === 0) {
     console.error("× no candidates found, aborting");
     process.exit(1);
   }
 
-  console.log(`\n→ Launching headless Chromium (${HEADED ? "headed" : "headless"})…`);
-  const browser: Browser = await chromium.launch({ headless: !HEADED });
-  const context = await browser.newContext({
-    userAgent: HEADERS["User-Agent"],
-  });
-  const page = await context.newPage();
-
-  const results: NonNullable<ScrapeResult>[] = [];
+  const results: PlayerResult[] = [];
   let skipped = 0;
-
   for (let i = 0; i < candidates.length; i++) {
     const name = candidates[i];
     const tag = `[${i + 1}/${candidates.length}]`;
     process.stdout.write(`  ${tag} ${name.padEnd(20)}`);
     try {
-      const res = await scrapePlayer(page, name);
-      if (!res || res.tasks.length < 100) {
-        console.log(`  · skipped (private/not found/incomplete)`);
+      const save = await fetchProfileSave(name);
+      if (!save) {
+        console.log("  · skipped (private/not found)");
         skipped++;
       } else {
-        console.log(`  ✓ ${res.tasks.length} tasks, total ${res.totalPts}`);
-        results.push(res);
+        const res = computePlayer(name, save);
+        if (res.tasks.length < MIN_TASKS) {
+          console.log(`  · skipped (only ${res.tasks.length} tasks computed)`);
+          skipped++;
+        } else {
+          console.log(`  ✓ ${res.tasks.length} tasks, total ${res.totalPts}`);
+          results.push(res);
+        }
       }
     } catch (e) {
       console.log(`  × error: ${(e as Error).message}`);
@@ -373,16 +225,27 @@ async function main() {
     if (i < candidates.length - 1) await sleep(THROTTLE_MS);
   }
 
-  await browser.close();
-
-  console.log(
-    `\n✓ Scraped ${results.length} / ${candidates.length} players (${skipped} skipped)`
-  );
+  console.log(`\n✓ Computed ${results.length} / ${candidates.length} players (${skipped} skipped)`);
+  if (results.length < MIN_PLAYERS) {
+    console.error(
+      `× only ${results.length} player(s) computed (need ${MIN_PLAYERS}) — refusing to write a degraded snapshot`
+    );
+    process.exit(1);
+  }
 
   const best = aggregateBestPerTask(results);
-  console.log(`  · ${best.size} / 118 tasks have a fresh top entry`);
+  console.log(`  · ${best.size} / ${TOME_TASKS.length} tasks have a fresh top entry`);
+  const bestTotal = results.reduce((m, r) => (r.totalPts > m.totalPts ? r : m), results[0]);
+  console.log(`  · best single player: ${bestTotal.player} (${bestTotal.totalPts} pts)`);
 
-  emitTopPlayersFile(best, results.length);
+  const text = emitTopPlayersFile(best, results.length);
+  if (DRY) {
+    console.log("\n(--dry) not writing. Preview of the first rows:");
+    console.log(text.split("\n").slice(29, 37).join("\n"));
+    return;
+  }
+  writeFileSync(OUTPUT_FILE, text);
+  console.log(`\n✓ Wrote ${OUTPUT_FILE}`);
 }
 
 main().catch((e) => {

@@ -111,8 +111,19 @@ jobs:
             STATUS="needs-human"; LABEL="needs-human"
           fi
 
-          BODY_FILE="$REPORT"
-          [ -f "$BODY_FILE" ] || { echo "Game update detected; report missing." > /tmp/body.md; BODY_FILE=/tmp/body.md; }
+          # GitHub caps a PR body at 65536 chars; a big patch's report is far
+          # longer (2026-09-18: 1710 lines → "Body is too long", no PR, and
+          # the branch sat orphaned). Ship a truncated body that points at the
+          # full report committed on the branch.
+          BODY_FILE=/tmp/body.md
+          if [ -f "$REPORT" ]; then
+            head -c 60000 "$REPORT" > "$BODY_FILE"
+            if [ "$(wc -c < "$REPORT")" -gt 60000 ]; then
+              printf '\n\n…\n\n_Report truncated for the PR body — full version: `%s` on this branch._\n' "$REPORT" >> "$BODY_FILE"
+            fi
+          else
+            echo "Game update detected; report missing." > "$BODY_FILE"
+          fi
 
           PR_URL=$(gh pr create --draft --base main --head "$BRANCH" \
             --title "Auto-update $DATE — N.js $SHA12 ($STATUS)" \
