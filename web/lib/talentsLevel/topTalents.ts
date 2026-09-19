@@ -13,13 +13,13 @@
 // default tree (they would all resolve to identical numbers anyway).
 // Auto-refreshed by scripts/update-top-talents.ts.
 //
-// Snapshot generated: 2026-09-18T22:35:48.080Z
-// Players scanned: 77
+// Snapshot generated: 2026-09-19T08:31:13.428Z
+// Players scanned: 79
 
 import type { ArkhNode } from "../arkh/node";
 
-export const HYPO_TALENTS_GENERATED_AT = "2026-09-18T22:35:48.080Z";
-export const HYPO_TALENTS_PLAYERS_SCANNED = 77;
+export const HYPO_TALENTS_GENERATED_AT = "2026-09-19T08:31:13.428Z";
+export const HYPO_TALENTS_PLAYERS_SCANNED = 79;
 
 export const HYPO_DEFAULT_TREE: ArkhNode = {
   "name": "Effective Level",
@@ -492,7 +492,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
           "children": [
             {
               "name": "Best Mage Lv",
-              "val": 1879,
+              "val": 1883,
               "children": [
                 {
                   "name": "Char 1 Lv",
@@ -789,7 +789,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
             },
             {
               "name": "Bubble Y2 Active",
-              "val": 1.4999154891488067,
+              "val": 1.4999285814611758,
               "fmt": "raw",
               "note": "0 if Y2 bubble not equipped & no all-bubbles flag"
             },
@@ -1439,7 +1439,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
             "children": [
               {
                 "name": "Best Mage Lv",
-                "val": 1879,
+                "val": 1883,
                 "children": [
                   {
                     "name": "Char 1 Lv",
@@ -1730,7 +1730,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
               },
               {
                 "name": "Bubble Y2 Active",
-                "val": 1.4999154891488067,
+                "val": 1.4999285814611758,
                 "fmt": "raw",
                 "note": "0 if Y2 bubble not equipped & no all-bubbles flag"
               },
