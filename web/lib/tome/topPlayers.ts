@@ -3,9 +3,9 @@
 // player's raw save from the IT profiles API and scores it with our tome
 // engine (lib/tome/compute.ts), so every entry follows the current game rules.
 //
-// Snapshot generated: 2026-09-19T00:20:12.699Z
+// Snapshot generated: 2026-09-19T07:43:33.726Z
 // Source: https://profiles.idleontoolbox.workers.dev/api/profiles/?profile=<name> → computeTome()
-// Players scanned: 76
+// Players scanned: 78
 
 // Classification is the user-defined tag from column D of the original sheet.
 // Numbers are arbitrary IDs that map to semantic labels.
@@ -27,7 +27,7 @@ export type TopPlayerEntry = {
 };
 
 export const TOP_PLAYERS: Readonly<Record<string, TopPlayerEntry>> = {
-  "Account LV": { date: "09/19/2026", player: "ChaoticGungnir", raw: 20638, pts: 1773, classification: 3 },
+  "Account LV": { date: "09/19/2026", player: "GreenMario27", raw: 20683, pts: 1774, classification: 3 },
   "Account Skills LV": { date: "09/19/2026", player: "PerkOne", raw: 150394, pts: 1608, classification: 3 },
   "Total Talent Max LV": { date: "09/19/2026", player: "ChaoticGungnir", raw: 300745.60348168004, pts: 847, classification: 3 },
   "Items Found": { date: "09/19/2026", player: "Shironee", raw: 1891, pts: 1300, classification: 12 },
@@ -46,7 +46,7 @@ export const TOP_PLAYERS: Readonly<Record<string, TopPlayerEntry>> = {
   "Nametags Found": { date: "09/19/2026", player: "26515665165165", raw: 38, pts: 700, classification: 12 },
   "Premium Hats Found": { date: "09/19/2026", player: "Frans813", raw: 87, pts: 700, classification: 9 },
   "Best Spiketrap Surprise round": { date: "09/19/2026", player: "Bangada", raw: 282, pts: 100, classification: 12 },
-  "Tournaments Registrations": { date: "09/19/2026", player: "Hyucan", raw: 209, pts: 209, classification: 4 },
+  "Tournaments Registrations": { date: "09/19/2026", player: "Hyucan", raw: 210, pts: 210, classification: 4 },
   "Lava Dev Streams watched": { date: "09/19/2026", player: "EzauQt", raw: 22, pts: 250, classification: 9 },
   "Total Minigame Highscore": { date: "09/19/2026", player: "KyroChallenge", raw: 3877, pts: 100, classification: 12 },
   "Total AFK Hours claimed": { date: "09/19/2026", player: "TinTim", raw: 979704.09694445, pts: 233, classification: 4 },
@@ -81,14 +81,14 @@ export const TOP_PLAYERS: Readonly<Record<string, TopPlayerEntry>> = {
   "Total Digits of all Deathnote Kills": { date: "09/19/2026", player: "Shironee", raw: 1725, pts: 686, classification: 3 },
   "Most Giants Killed in a Single Week": { date: "09/19/2026", player: "Frans813", raw: 86, pts: 304, classification: 3 },
   "Total Refinery Rank": { date: "09/19/2026", player: "Dragami", raw: 61655, pts: 652, classification: 4 },
-  "Total Atom Upgrade LV": { date: "09/19/2026", player: "Hyucan", raw: 1050, pts: 529, classification: 3 },
+  "Total Atom Upgrade LV": { date: "09/19/2026", player: "PulseIRL", raw: 1051, pts: 529, classification: 3 },
   "Total Construct Buildings LV": { date: "09/19/2026", player: "suk69", raw: 4960, pts: 863, classification: 4 },
   "Equinox Clouds Completed": { date: "09/19/2026", player: "AvacadoSqueeze", raw: 76, pts: 750, classification: 12 },
   "Most Greenstacks in Storage": { date: "09/19/2026", player: "FlipsyThEVicti", raw: 432, pts: 707, classification: 3 },
   "Total Cooking Meals LV": { date: "09/19/2026", player: "suk69", raw: 11263, pts: 827, classification: 3 },
   "Total Kitchen Upgrade LV": { date: "09/19/2026", player: "Chalalaa", raw: 23078, pts: 236, classification: 3 },
   "Highest Power Mob": { date: "09/19/2026", player: "Chalalaa", raw: 7505632.450141936, pts: 133, classification: 3 },
-  "Fastest Time reaching Round 100 Arena (in Seconds)": { date: "09/19/2026", player: "ARKHE", raw: 28, pts: 193, classification: 3 },
+  "Fastest Time reaching Round 100 Arena (in Seconds)": { date: "09/19/2026", player: "Arlong", raw: 27.75, pts: 193, classification: 3 },
   "Total Shiny Mob LV": { date: "09/19/2026", player: "100Cotton", raw: 1360, pts: 267, classification: 9 },
   "Total Mob Breedability LV": { date: "09/19/2026", player: "1st_Giri", raw: 612, pts: 200, classification: 12 },
   "Total Lab Chips Owned": { date: "09/19/2026", player: "ryujinsan", raw: 620, pts: 196, classification: 4 },
@@ -118,9 +118,9 @@ export const TOP_PLAYERS: Readonly<Record<string, TopPlayerEntry>> = {
   "Total Crops Discovered": { date: "09/19/2026", player: "1st_Giri", raw: 330, pts: 350, classification: 12 },
   "Total Golden Food Beanstacks": { date: "09/19/2026", player: "0xEXCEED", raw: 48, pts: 400, classification: 12 },
   "Highest Crop OG": { date: "09/19/2026", player: "kONYYY", raw: 17179869184, pts: 186, classification: 5 },
-  "Total Land Rank": { date: "09/19/2026", player: "MeatyLock", raw: 9108, pts: 214, classification: 3 },
+  "Total Land Rank": { date: "09/19/2026", player: "MeatyLock", raw: 9109, pts: 214, classification: 3 },
   "Largest Magic Bean Trade": { date: "09/19/2026", player: "GreenMario27", raw: 29903835684052.4, pts: 290, classification: 12 },
-  "Farming Stickers Found": { date: "09/19/2026", player: "GreenMario27", raw: 110, pts: 239, classification: 3 },
+  "Farming Stickers Found": { date: "09/19/2026", player: "GreenMario27", raw: 111, pts: 240, classification: 3 },
   "Ninja Floors Unlocked": { date: "09/19/2026", player: "1st_Giri", raw: 96, pts: 250, classification: 12 },
   "Jade Emporium Upgrades Purchased": { date: "09/19/2026", player: "01010111001", raw: 47, pts: 658, classification: 9 },
   "Total Ninja Knowledge Upgrades LV": { date: "09/19/2026", player: "EzauQt", raw: 38808, pts: 666, classification: 3 },
@@ -130,7 +130,7 @@ export const TOP_PLAYERS: Readonly<Record<string, TopPlayerEntry>> = {
   "Total Summoning Boss Stone victories": { date: "09/19/2026", player: "BopeBrancis", raw: 39, pts: 298, classification: 3 },
   "Most DMG Dealt to Gravestone in a Weekly Battle": { date: "09/19/2026", player: "EzauQt", raw: 10143621, pts: 285, classification: 9 },
   "Most Tottoise in Storage": { date: "09/19/2026", player: "YungEBT", raw: 14705639, pts: 134, classification: 4 },
-  "Best Deathbringer Max Damage in Wraith Mode": { date: "09/19/2026", player: "PerkOne", raw: 54588071995107.57, pts: 352, classification: 3 },
+  "Best Deathbringer Max Damage in Wraith Mode": { date: "09/19/2026", player: "Kovarin", raw: 55969742061081.02, pts: 352, classification: 3 },
   "Best Windwalker Max Damage in Tempest Mode": { date: "09/19/2026", player: "Bear_I", raw: 2405632178752838, pts: 363, classification: 3 },
   "Best Arcane Cultist Max Damage in Arcanist Mode": { date: "09/19/2026", player: "Hyucan", raw: 56287175193.37201, pts: 328, classification: 3 },
   "Total Royal Statue LV": { date: "09/19/2026", player: "Fluffle_Puff", raw: 8, pts: 141, classification: null },
@@ -138,15 +138,15 @@ export const TOP_PLAYERS: Readonly<Record<string, TopPlayerEntry>> = {
   "Total Resource Grade": { date: "09/19/2026", player: "Fluffle_Puff", raw: 1247, pts: 577, classification: null },
   "Spirited Valley Emperor Boss Kills": { date: "09/19/2026", player: "EzauQt", raw: 183, pts: 400, classification: 12 },
   "Total Coral Reef upgrades": { date: "09/19/2026", player: "0xEXCEED", raw: 47, pts: 400, classification: 12 },
-  "Total Spelunk Shop Upgrades LV": { date: "09/19/2026", player: "PulseIRL", raw: 15172, pts: 665, classification: 3 },
-  "Total Spelunk Discoveries made": { date: "09/19/2026", player: "AvacadoSqueeze", raw: 105, pts: 300, classification: 12 },
+  "Total Spelunk Shop Upgrades LV": { date: "09/19/2026", player: "PulseIRL", raw: 15182, pts: 665, classification: 3 },
+  "Total Spelunk Discoveries made": { date: "09/19/2026", player: "Arlong", raw: 105, pts: 300, classification: 12 },
   "Deepest Depth reached in a single Delve": { date: "09/19/2026", player: "blickter", raw: 492, pts: 383, classification: 3 },
   "Biggest Haul in a single Delve": { date: "09/19/2026", player: "biggums3", raw: 1.9082564233354236e+49, pts: 288, classification: 3 },
   "Highest leveled Spelunker": { date: "09/19/2026", player: "blickter", raw: 616, pts: 239, classification: 3 },
   "Minehead Opponents Defeated": { date: "09/19/2026", player: "26515665165165", raw: 19, pts: 285, classification: 3 },
   "Total Research Grid Upgrades": { date: "09/19/2026", player: "Baker333", raw: 136, pts: 750, classification: 12 },
   "Total Glimbo Trades": { date: "09/19/2026", player: "BopeBrancis", raw: 2303, pts: 409, classification: 3 },
-  "Unique Sushi Created": { date: "09/19/2026", player: "Baker333", raw: 64, pts: 800, classification: 12 },
+  "Unique Sushi Created": { date: "09/19/2026", player: "Arlong", raw: 64, pts: 800, classification: 12 },
   "Button Presses": { date: "09/19/2026", player: "suk69", raw: 348, pts: 470, classification: 3 },
-  "Successful Jelly Operations": { date: "09/19/2026", player: "Baker333", raw: 23, pts: 256, classification: null },
+  "Successful Jelly Operations": { date: "09/19/2026", player: "GreenMario27", raw: 24, pts: 267, classification: null },
 };
