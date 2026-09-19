@@ -11,7 +11,7 @@
 // write report + (unless --dry) rewrite snapshots. The snapshots live in git,
 // so `git diff web/data/njs-snapshot` is itself the per-version changelog.
 
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { extractAll, type Item, type Snapshot } from "./extract";
@@ -207,7 +207,16 @@ async function main(): Promise<void> {
   const prevMeta = readJson<Meta | null>(P.meta, null);
   const isFirst = prevMeta === null;
 
-  if (!isFirst && prevMeta!.sha256 === curSha) {
+  // Tell the workflow whether the BYTES changed. The ETag gate can fire on
+  // identical content (a re-deploy, a replica outside the skew window); in
+  // that case there is nothing to validate and nothing to open a PR for — an
+  // etag-only "clean" PR just sits there blocking real detection.
+  const sameContent = !isFirst && prevMeta!.sha256 === curSha;
+  if (process.env.GITHUB_OUTPUT) {
+    appendFileSync(process.env.GITHUB_OUTPUT, `content_changed=${sameContent ? "false" : "true"}\n`);
+  }
+
+  if (sameContent) {
     if (!NO_FETCH && !DRY && curEtag && normalizeEtag(prevMeta!.etag) !== normalizeEtag(curEtag)) {
       writeJson(P.meta, { ...prevMeta!, etag: curEtag } satisfies Meta);
       console.log(`[updater] ✅ sem mudança de conteúdo — etag atualizado (${curEtag}). Nada mais a fazer.`);

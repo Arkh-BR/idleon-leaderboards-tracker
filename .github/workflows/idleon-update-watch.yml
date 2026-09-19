@@ -60,11 +60,16 @@ jobs:
         working-directory: web
         run: npx tsx scripts/updater/run.ts --write-game-data
 
+      # run.ts reports content_changed=false when the ETag gate fired but the
+      # downloaded bytes hash to the committed baseline (identical re-deploy, or
+      # a replica outside the gate's skew window). Nothing to validate, nothing
+      # to PR — an etag-only PR would only block real detection (openpr guard).
+
       # Inline validation sets the PR's clean/needs-human label + Discord status. The
       # PR's check-status comes separately from ci.yml; the two can disagree.
       - name: Validate (build + unit tests + golden)
         id: validate
-        if: steps.gate.outputs.changed == 'true' && steps.openpr.outputs.open == '0'
+        if: steps.gate.outputs.changed == 'true' && steps.openpr.outputs.open == '0' && steps.pipeline.outputs.content_changed != 'false'
         continue-on-error: true
         working-directory: web
         run: |
@@ -73,7 +78,7 @@ jobs:
           npx tsx scripts/updater/golden/run.ts
 
       - name: Open draft PR + notify Discord
-        if: steps.gate.outputs.changed == 'true' && steps.openpr.outputs.open == '0'
+        if: steps.gate.outputs.changed == 'true' && steps.openpr.outputs.open == '0' && steps.pipeline.outputs.content_changed != 'false'
         env:
           GH_TOKEN: ${{ github.token }}
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}

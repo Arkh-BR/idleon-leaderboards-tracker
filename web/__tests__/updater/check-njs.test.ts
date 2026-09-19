@@ -18,6 +18,20 @@ describe("etagChanged", () => {
   it("weak vs strong for the same content is NOT a change", () => {
     expect(etagChanged('"abc"', 'W/"abc"')).toBe(false);
   });
+  // GitHub Pages ETag = "<mtime hex>-<size hex>"; replicas differ by a second.
+  it("replica mtime skew with the same size is NOT a change (2026-09-18 false PR)", () => {
+    expect(etagChanged('W/"6aad6d41-18f8a15"', 'W/"6aad6d42-18f8a15"')).toBe(false);
+    expect(etagChanged('"6aad6d42-18f8a15"', 'W/"6aad6d41-18f8a15"')).toBe(false);
+  });
+  it("same size but a deploy more than five minutes apart IS a change", () => {
+    expect(etagChanged('"6aad6d41-18f8a15"', '"6aad6e6e-18f8a15"')).toBe(true); // +301 s
+  });
+  it("a different size IS a change even with close mtimes", () => {
+    expect(etagChanged('"6aad6d41-18f8a15"', '"6aad6d42-18f8a16"')).toBe(true);
+  });
+  it("a missing live etag still counts as changed", () => {
+    expect(etagChanged('"6aad6d41-18f8a15"', null)).toBe(true);
+  });
 });
 
 describe("buildDiscordMessage", () => {

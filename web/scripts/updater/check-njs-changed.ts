@@ -15,11 +15,32 @@ function setOutput(key: string, val: string): void {
   if (out) appendFileSync(out, `${key}=${val}\n`);
 }
 
-/** Pure decision: changed when there is no baseline etag or it differs. */
+// The game is served from GitHub Pages, whose ETag is "<mtime hex>-<size hex>".
+// Its origin replicas hold the same file with mtimes a second apart, so the
+// SAME bytes come back as "6aad6d41-18f8a15" from one POP and
+// "6aad6d42-18f8a15" from another (2026-09-18: the CI runner and the baseline
+// saw different replicas → a "clean" PR whose only change was the etag, which
+// then blocked real detection through the open-PR guard). Same size + mtimes
+// within this window = the same deploy. A real update landing within five
+// minutes of the previous one AND byte-identical in size is not a thing.
+const MIRROR_SKEW_S = 300;
+
+function parseMtimeSize(etag: string | null): { mtime: number; size: number } | null {
+  const m = /^"?([0-9a-f]+)-([0-9a-f]+)"?$/i.exec(etag ?? "");
+  return m ? { mtime: parseInt(m[1], 16), size: parseInt(m[2], 16) } : null;
+}
+
+/** Pure decision: changed when there is no baseline etag or it differs —
+ *  ignoring the W/ prefix and replica mtime skew (see MIRROR_SKEW_S). */
 export function etagChanged(baselineEtag: string | null | undefined, liveEtag: string | null): boolean {
   const base = normalizeEtag(baselineEtag);
   if (!base) return true; // no baseline yet → force one processing run
-  return base !== normalizeEtag(liveEtag);
+  const live = normalizeEtag(liveEtag);
+  if (base === live) return false;
+  const a = parseMtimeSize(base);
+  const b = parseMtimeSize(live);
+  if (a && b && a.size === b.size && Math.abs(a.mtime - b.mtime) <= MIRROR_SKEW_S) return false;
+  return true;
 }
 
 async function main(): Promise<void> {
