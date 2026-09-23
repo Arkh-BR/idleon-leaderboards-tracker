@@ -25,6 +25,7 @@ import UnbookedView from "@/components/talentsLevel/UnbookedView";
 import type { UnbookedCharGroup } from "@/lib/talentsLevel/unbooked";
 import AnonExcludedNote from "@/components/AnonExcludedNote";
 import ProfileNameLoader from "@/components/ProfileNameLoader";
+import { accountAutoLoads } from "@/lib/gameAuth/session";
 import {
   hypoTreeForClass,
   HYPO_TALENTS_GENERATED_AT,
@@ -387,9 +388,11 @@ export default function TalentsLevelPageClient() {
   // page survives reloads.
   useEffect(() => {
     try {
-      // If a player name is remembered, ProfileNameLoader auto-fetches it —
-      // skip restoring a (possibly stale) pasted JSON in that case.
-      if (!window.localStorage.getItem(NAME_KEY)) {
+      // If ProfileNameLoader will put a save on screen (a remembered player
+      // name, or the signed-in account) skip restoring a (possibly stale)
+      // pasted JSON — this effect runs after the loader's and would
+      // overwrite its save.
+      if (!window.localStorage.getItem(NAME_KEY) && !accountAutoLoads()) {
         const raw = window.localStorage.getItem(SAVE_KEY);
         if (raw) stageSave(raw, { silent: true });
       }

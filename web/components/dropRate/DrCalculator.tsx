@@ -10,6 +10,7 @@ import { listCharacters, parseSave, type CharSummary } from "@/lib/dropRate/extr
 import { getCharClassKey } from "@/lib/talentsLevel/charClass";
 import DeepView, { type DeepViewExtraTab } from "./DeepView";
 import ProfileNameLoader from "@/components/ProfileNameLoader";
+import { accountAutoLoads } from "@/lib/gameAuth/session";
 import type { ArkhNode as DrNode } from "@/lib/arkh/node";
 import type { FlatTree } from "@/lib/dropRate/treeFlatten";
 
@@ -182,11 +183,12 @@ export default function DrCalculator({
   );
 
   // Hydrate on mount from localStorage so refresh doesn't blow away the upload.
-  // If a player name is remembered, the ProfileNameLoader auto-fetches it —
-  // skip restoring a (possibly stale) pasted JSON in that case.
+  // If ProfileNameLoader will put a save on screen (a remembered player name,
+  // or the signed-in account) skip restoring a (possibly stale) pasted JSON —
+  // this effect runs after the loader's and would overwrite its save.
   useEffect(() => {
     try {
-      if (window.localStorage.getItem(NAME_KEY)) return;
+      if (window.localStorage.getItem(NAME_KEY) || accountAutoLoads()) return;
       const raw = window.localStorage.getItem(SAVE_KEY);
       if (raw) stageSave(raw, { silent: true });
     } catch {

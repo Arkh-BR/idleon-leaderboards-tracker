@@ -15,6 +15,7 @@ import {
   cachedEnvelope,
   checkForUpdate,
   hasSession,
+  lastCheckAt,
   loadAccountSave,
   SessionExpiredError,
   setAutoUpdateMode,
@@ -35,6 +36,8 @@ import {
 // The manual-paste fallback is passed as `children` and rendered inside.
 
 const AUTO_UPDATE_MS = 5 * 60 * 1000;
+/** How often the timer looks at the shared clock (lastCheckAt). */
+const TICK_MS = 60 * 1000;
 const BTN =
   "px-2 py-1 text-xs rounded border border-zinc-700 text-zinc-200 hover:bg-zinc-800 disabled:opacity-50";
 
@@ -93,10 +96,14 @@ export default function ProfileNameLoader({
   }, []);
 
   const applyAccount = useCallback((env: SaveEnvelope) => {
+    setError(null);
     setAccount({ mainChar: env.charNames[0] ?? "?", lastUpdated: env.lastUpdated });
     const refresh = showingAccount.current;
     showingAccount.current = true;
-    cb.current.onSave(env, { refresh });
+    // The cached envelope is shared by every page this visit: each gets its
+    // own copy, so one that writes into `data` (computeTome does) can't
+    // change it for the others.
+    cb.current.onSave({ ...env, data: { ...env.data } }, { refresh });
   }, []);
 
   const syncAccount = useCallback(
@@ -175,29 +182,26 @@ export default function ProfileNameLoader({
   }, [storageKey, load, applyAccount, syncAccount, loginEnabled]);
 
   // Auto-update: signed in, not paused/stopped, tab visible → a cheap check
-  // every 5 min; a newer save replaces the one on screen.
+  // once 5 min have passed since the last one. The clock lives in the session,
+  // so switching pages (which remounts this) doesn't restart it. A newer save
+  // replaces the account save on screen — never a save loaded by name.
   useEffect(() => {
     if (!signedIn || mode !== "on") return;
-    let last = Date.now();
     const tick = async () => {
-      last = Date.now();
+      if (document.visibilityState !== "visible") return;
+      if (Date.now() - lastCheckAt() < AUTO_UPDATE_MS) return;
       try {
         const env = await checkForUpdate();
-        if (env) applyAccount(env);
+        if (env && showingAccount.current) applyAccount(env);
       } catch (e) {
-        if (!hasSession()) fail(e); // session gone; network blips retry next tick
+        if (!hasSession()) fail(e); // session gone; network blips retry next time
       }
     };
-    const id = setInterval(() => {
-      if (document.visibilityState === "visible") tick();
-    }, AUTO_UPDATE_MS);
-    const onVisible = () => {
-      if (document.visibilityState === "visible" && Date.now() - last >= AUTO_UPDATE_MS) tick();
-    };
-    document.addEventListener("visibilitychange", onVisible);
+    const id = setInterval(tick, TICK_MS);
+    document.addEventListener("visibilitychange", tick);
     return () => {
       clearInterval(id);
-      document.removeEventListener("visibilitychange", onVisible);
+      document.removeEventListener("visibilitychange", tick);
     };
   }, [signedIn, mode, applyAccount, fail]);
 
@@ -237,7 +241,7 @@ export default function ProfileNameLoader({
           <span>
             ✅ <span className="font-semibold text-gold">{account?.mainChar ?? "Signed in"}</span>
           </span>
-          {account && (
+          {account && Number.isFinite(account.lastUpdated) && (
             <span className="text-zinc-400">
               · save updated {formatDistanceToNow(account.lastUpdated, { addSuffix: true })}
             </span>

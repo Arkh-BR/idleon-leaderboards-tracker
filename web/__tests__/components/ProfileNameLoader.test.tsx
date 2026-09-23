@@ -11,6 +11,7 @@ const s = vi.hoisted(() => ({
   signOut: vi.fn(),
   startSession: vi.fn(),
   accountAutoLoads: vi.fn(),
+  lastCheckAt: vi.fn(),
 }));
 const SessionExpiredError = vi.hoisted(
   () =>
@@ -24,7 +25,9 @@ vi.mock("@/lib/gameAuth/session", () => ({ ...s, SessionExpiredError }));
 
 import ProfileNameLoader from "@/components/ProfileNameLoader";
 
-const ENV = { charNames: ["Alpha"], lastUpdated: Date.parse("2026-09-22T10:00:00Z") };
+const ENV = { charNames: ["Alpha"], lastUpdated: Date.parse("2026-09-22T10:00:00Z"), data: {} };
+const NAMED = { data: {}, charNames: ["Named"] };
+const FIVE_MIN = 5 * 60 * 1000;
 
 beforeEach(() => {
   vi.stubEnv("NEXT_PUBLIC_IDLEON_FIREBASE_API_KEY", "test-key");
@@ -33,9 +36,10 @@ beforeEach(() => {
   s.cachedEnvelope.mockReturnValue(null);
   s.autoUpdateMode.mockReturnValue("on");
   s.checkForUpdate.mockResolvedValue(null);
+  s.lastCheckAt.mockReturnValue(Date.now()); // the shared clock: just checked
   vi.stubGlobal(
     "fetch",
-    vi.fn(async (_url: string) => new Response(JSON.stringify({ data: {}, charNames: ["Named"] })))
+    vi.fn(async (_url: string) => new Response(JSON.stringify(NAMED)))
   );
   Object.defineProperty(document, "visibilityState", { value: "visible", configurable: true });
 });
@@ -87,6 +91,18 @@ describe("ProfileNameLoader — game account", () => {
     render(<ProfileNameLoader storageKey="k" onSave={onSave} />);
     await waitFor(() => expect(onSave).toHaveBeenCalledWith(ENV, { refresh: false }));
     expect(s.loadAccountSave).not.toHaveBeenCalled();
+    // A copy: a page writing into `data` can't touch the shared cached save.
+    const [given] = onSave.mock.calls[0];
+    expect(given).not.toBe(ENV);
+    expect(given.data).not.toBe(ENV.data);
+  });
+
+  it("a save without a valid update time still renders, minus 'save updated'", async () => {
+    s.hasSession.mockReturnValue(true);
+    s.cachedEnvelope.mockReturnValue({ ...ENV, lastUpdated: NaN });
+    render(<ProfileNameLoader storageKey="k" onSave={vi.fn()} />);
+    expect(await screen.findByText("Alpha")).toBeInTheDocument();
+    expect(screen.queryByText(/save updated/)).toBeNull();
   });
 
   it("Stop is honored on open: no account auto-load, the name auto-load runs", async () => {
@@ -128,7 +144,7 @@ describe("ProfileNameLoader — game account", () => {
     expect(screen.getByText(/Sign in to load your save automatically/)).toBeInTheDocument();
   });
 
-  it("auto-update: every 5 min a newer save arrives as a refresh", async () => {
+  it("auto-update: 5 min after the last check a newer save arrives as a refresh", async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     s.hasSession.mockReturnValue(true);
     s.loadAccountSave.mockResolvedValue(ENV);
@@ -138,9 +154,51 @@ describe("ProfileNameLoader — game account", () => {
     render(<ProfileNameLoader storageKey="k" onSave={onSave} />);
     await waitFor(() => expect(onSave).toHaveBeenCalledWith(ENV, { refresh: false }));
     await act(async () => {
-      await vi.advanceTimersByTimeAsync(5 * 60 * 1000);
+      await vi.advanceTimersByTimeAsync(FIVE_MIN);
     });
     expect(s.checkForUpdate).toHaveBeenCalledTimes(1);
     expect(onSave).toHaveBeenLastCalledWith(NEWER, { refresh: true });
+  });
+
+  it("auto-update never replaces a save loaded by name", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    s.hasSession.mockReturnValue(true);
+    s.loadAccountSave.mockResolvedValue(ENV);
+    s.checkForUpdate.mockResolvedValue({ ...ENV, lastUpdated: ENV.lastUpdated + 60_000 });
+    const onSave = vi.fn();
+    render(<ProfileNameLoader storageKey="k" onSave={onSave} />);
+    await waitFor(() => expect(onSave).toHaveBeenCalledWith(ENV, { refresh: false }));
+    fireEvent.change(screen.getByPlaceholderText("Enter player name"), {
+      target: { value: "TopPlayer" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Load" }));
+    await waitFor(() => expect(onSave).toHaveBeenLastCalledWith(NAMED));
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(FIVE_MIN);
+    });
+    expect(s.checkForUpdate).toHaveBeenCalledTimes(1);
+    expect(onSave).toHaveBeenLastCalledWith(NAMED);
+  });
+
+  it("the 5-min clock is shared: a remount doesn't check again or restart the countdown", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    s.hasSession.mockReturnValue(true);
+    s.cachedEnvelope.mockReturnValue(ENV);
+    s.lastCheckAt.mockReturnValue(Date.now()); // a check just happened
+    const page1 = render(<ProfileNameLoader storageKey="k" onSave={vi.fn()} />);
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(FIVE_MIN - 60_000);
+    });
+    page1.unmount(); // the user switches tool pages
+    render(<ProfileNameLoader storageKey="k" onSave={vi.fn()} />);
+    await act(async () => {
+      document.dispatchEvent(new Event("visibilitychange"));
+    });
+    expect(s.checkForUpdate).not.toHaveBeenCalled();
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(60_000);
+    });
+    // 5 min after the last check — not 5 min after the remount.
+    expect(s.checkForUpdate).toHaveBeenCalledTimes(1);
   });
 });
