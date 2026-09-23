@@ -65,8 +65,12 @@ function mergeBest(acc: Record<string, Pool> | null, incoming: Record<string, Po
 function profileFlat(best: Record<string, Pool>, zeroTalentIds: number[]): Record<string, number> {
   const clone: Record<string, Pool> = {};
   for (const pn in best) {
+    // Drop the subtree along with the value (mirrors update-top-dr.ts's
+    // buildProfileFlat, which deletes every path under a zeroed talent) so a
+    // non-owning class doesn't see the owner's detail rows in Compare vs
+    // Observed Max.
     const items = best[pn].items.map((it) =>
-      zeroTalentIds.some((id) => it.name.endsWith(`(Talent ${id})`)) ? { ...it, val: 0 } : { ...it }
+      zeroTalentIds.some((id) => it.name.endsWith(`(Talent ${id})`)) ? { ...it, val: 0, children: null } : { ...it }
     );
     let sum = 0;
     let product = 1;

@@ -1,4 +1,4 @@
-name: Refresh top DR & talent max
+name: Refresh top DR, coin & talent max
 
 # Rebuilds the bundled "hypothetical max" reference datasets the Drop Rate,
 # Coin Multi and Talents pages compare against:
@@ -46,6 +46,8 @@ jobs:
 
       - name: Refresh top-player Coin Multi max
         working-directory: web
+        continue-on-error: true
+        timeout-minutes: 12
         run: npx tsx scripts/update-top-coin.ts
 
       - name: Refresh top-player Talent max
