@@ -77,17 +77,20 @@ type EnrichedRow = TomeRow & {
 };
 
 export default function BestTomePanel({
+  loaded,
   dungeonAsOne,
   onToggleDungeon,
 }: {
+  /** The page's latest save (account, by name, or pasted in the Raw tab). */
+  loaded?: unknown;
   /** Shared "count Dungeon Rank as 1" toggle, owned by the page so it
    *  persists across tab switches / reloads. */
   dungeonAsOne: boolean;
   onToggleDungeon: () => void;
 }) {
-  // Raw saved JSON string; the result is derived from it + the Dungeon-as-1
-  // toggle so flipping the toggle re-scores without a reload.
-  const [source, setSource] = useState<string | null>(null);
+  // The save (JSON string or parsed envelope); the result is derived from it
+  // + the Dungeon-as-1 toggle so flipping the toggle re-scores without a reload.
+  const [source, setSource] = useState<string | Record<string, unknown> | null>(null);
   const [result, setResult] = useState<TomeResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
@@ -135,6 +138,12 @@ export default function BestTomePanel({
     } catch {}
   }, []);
 
+  // The page's latest save; declared after the hydrate so it wins on mount.
+  // Applied in place — sort, filters and search survive every update.
+  useEffect(() => {
+    if (loaded != null) setSource(loaded as string | Record<string, unknown>);
+  }, [loaded]);
+
   // Re-score whenever the loaded save or the Dungeon-as-1 toggle changes, so
   // the whole Best Tome view (total, gaps, per-row pts) honors the toggle.
   useEffect(() => {
@@ -143,7 +152,11 @@ export default function BestTomePanel({
       return;
     }
     try {
-      setResult(computeTome(source, { dungeonRankAsOne: dungeonAsOne }));
+      setResult(
+        computeTome(source as Parameters<typeof computeTome>[0], {
+          dungeonRankAsOne: dungeonAsOne,
+        })
+      );
       setError(null);
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
