@@ -16,6 +16,7 @@
 - **Nenhuma dependência npm nova.**
 - Firestore/RTDB: **só `GET`**. Token nunca vai para rota `/api/*` nossa e nunca aparece em `console.*`.
 - **Não copiar código do IdleonToolbox** (GPL-3.0) — o código abaixo foi escrito a partir do protocolo descrito no spec.
+- **Nenhuma credencial do jogo no repositório** (decisão do usuário, 22/09): a chave web do Firebase e o client OAuth do Google vêm de `NEXT_PUBLIC_IDLEON_FIREBASE_API_KEY`, `NEXT_PUBLIC_IDLEON_GOOGLE_CLIENT_ID` e `NEXT_PUBLIC_IDLEON_GOOGLE_CLIENT_SECRET` — cadastradas na Vercel (Production + Preview) e, localmente, em `web/.env.local` (já ignorado por `.env*.local`). Ler sempre com a expressão literal `process.env.NEXT_PUBLIC_…` (o Next só inlina assim). Valor faltando → erro `"Sign-in isn't set up on this site yet."`, e a linha de login do `ProfileNameLoader` não aparece.
 - Sessão persistida só com "Keep me signed in" (checkbox **marcado por padrão**): `localStorage["gameAuth.session.v1"] = {v: 1, provider, uid, refreshToken}` — nunca `idToken`, nunca o envelope.
 - Auto-update: a cada **5 min** com a aba visível, checagem com `mask.fieldPaths`; Stop = `localStorage["gameAuth.autoUpdate.v1"] = "off"`; Pause só em memória.
 - **Nunca rodar `npm run dev`.** O `npm run build` local já quebra no prerender na main (pré-existente) — não perseguir. Verificação = vitest + tsc + preview da Vercel.
@@ -28,6 +29,7 @@
 | Arquivo | Ação | Responsabilidade |
 |---------|------|------------------|
 | `web/.gitignore` | Modificar | Ignorar `__tests__/fixtures/gameAuth/` (save privado do usuário) |
+| `web/.env.local` | Criar (local, **nunca** commitado) | As 3 variáveis `NEXT_PUBLIC_IDLEON_*` para o spike e testes manuais |
 | `web/lib/gameAuth/firebase.ts` | Criar | REST do Firebase do jogo (auth + leituras GET) e decoder Firestore |
 | `web/lib/gameAuth/providers.ts` | Criar | Google device flow; Steam OpenID + `asil` |
 | `web/lib/gameAuth/envelope.ts` | Criar | Envelope compatível com o IT + carimbo do Tome |
@@ -82,20 +84,28 @@ git commit -m "chore(web): gitignore private game-login fixtures" -m "Co-Authore
 git push -q
 ```
 
-- [ ] **Step 5: Escrever `SPIKE_DIR/parity.mjs`**
+- [ ] **Step 5: Criar `web/.env.local` (local, nunca commitado)**
+
+Três linhas: `NEXT_PUBLIC_IDLEON_FIREBASE_API_KEY=` (o `apiKey` do config web público do Firebase do jogo — o mesmo que o IdleonToolbox usa em `firebase/config.js`), `NEXT_PUBLIC_IDLEON_GOOGLE_CLIENT_ID=` e `NEXT_PUBLIC_IDLEON_GOOGLE_CLIENT_SECRET=` (o client de device flow do jogo, em `services/auth/google.js` do IdleonToolbox). Os valores **nunca** entram em arquivo versionado.
+
+Run: `git check-ignore -v .env.local`
+Expected: aponta para a regra `.env*.local` de `web/.gitignore`.
+
+- [ ] **Step 5b: Escrever `SPIKE_DIR/parity.mjs`**
 
 ```js
 // THROWAWAY. Signs in with the game's Google device flow, saves the raw REST
 // responses into web/__tests__/fixtures/gameAuth/ (gitignored). Never prints
-// tokens. Usage: node parity.mjs <path-to-web>
+// tokens. Usage (from web/): node --env-file=.env.local parity.mjs <path-to-web>
 import { mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
 
 const FIX = path.join(process.argv[2], "__tests__/fixtures/gameAuth");
 mkdirSync(FIX, { recursive: true });
-const KEY = "AIzaSyAU62kOE6xhSrFqoXQPv6_WHxYilmoUxDk";
-const CID = "267901585099-u6fjd75v6k9gefq7bcokcndv99riir5j";
-const CSECRET = "HzoZF-UKUNfFwBuz4vafwsaR";
+const KEY = process.env.NEXT_PUBLIC_IDLEON_FIREBASE_API_KEY;
+const CID = process.env.NEXT_PUBLIC_IDLEON_GOOGLE_CLIENT_ID;
+const CSECRET = process.env.NEXT_PUBLIC_IDLEON_GOOGLE_CLIENT_SECRET;
+if (!KEY || !CID || !CSECRET) throw new Error("missing NEXT_PUBLIC_IDLEON_* — see web/.env.local");
 const FS = "https://firestore.googleapis.com/v1/projects/idlemmo/databases/(default)/documents";
 const RTDB = "https://idlemmo.firebaseio.com";
 const form = (o) => ({
@@ -157,7 +167,7 @@ console.log("saved data-rest.json + side-rest.json");
 - [ ] **Step 6: Rodar com o usuário**
 
 Antes: peça ao usuário para **fechar o jogo** (o save não pode mudar durante o teste).
-Run (em background, de `web/`): `node "SPIKE_DIR/parity.mjs" "$PWD"`
+Run (em background, de `web/`): `node --env-file=.env.local "SPIKE_DIR/parity.mjs" "$PWD"`
 Repasse o código impresso: o usuário abre `https://www.google.com/device`, digita o código e escolhe a conta Google do Idleon.
 Expected: `_data status: 200`; `charNames` 200; `masked keys: [ 'name', 'createTime', 'updateTime' ]`; `same updateTime as full: true`.
 
@@ -245,7 +255,7 @@ Expected: os dois números próximos (diferença de ~1 tarefa, as que só existe
 `web/__tests__/lib/gameAuth/firebase.test.ts`:
 
 ```ts
-import { describe, it, expect, vi, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { existsSync, readFileSync } from "node:fs";
 import {
   AuthRejectedError,
@@ -274,7 +284,11 @@ function mockFetch(status: number, body: unknown) {
   return f;
 }
 
-afterEach(() => vi.unstubAllGlobals());
+beforeEach(() => vi.stubEnv("NEXT_PUBLIC_IDLEON_FIREBASE_API_KEY", "test-key"));
+afterEach(() => {
+  vi.unstubAllGlobals();
+  vi.unstubAllEnvs();
+});
 
 describe("decodeFirestoreFields", () => {
   it("decodes every value type the save uses", () => {
@@ -326,7 +340,7 @@ describe("auth", () => {
     expect(a).toMatchObject({ uid: "u1", refreshToken: "r1" });
     expect(a.expiresAt).toBeGreaterThan(Date.now() + 3_500_000);
     const [url, init] = f.mock.calls[0];
-    expect(url).toContain("identitytoolkit.googleapis.com/v1/accounts:signInWithIdp?key=");
+    expect(url).toContain("identitytoolkit.googleapis.com/v1/accounts:signInWithIdp?key=test-key");
     expect(JSON.parse(String(init?.body))).toEqual({
       postBody: "id_token=g-tok&providerId=google.com",
       requestUri: "http://localhost",
@@ -340,6 +354,13 @@ describe("auth", () => {
     expect(JSON.parse(String(f.mock.calls[0][1]?.body))).toEqual({ token: "ct", returnSecureToken: true });
   });
 
+  it("without the site's key, sign-in says it isn't set up (no request made)", async () => {
+    vi.stubEnv("NEXT_PUBLIC_IDLEON_FIREBASE_API_KEY", "");
+    const f = mockFetch(200, {});
+    await expect(signInWithGoogleIdToken("g")).rejects.toThrow("Sign-in isn't set up on this site yet.");
+    expect(f).not.toHaveBeenCalled();
+  });
+
   it("a rejected sign-in throws AuthRejectedError with Google's code", async () => {
     mockFetch(400, { error: { message: "INVALID_IDP_RESPONSE : Unable to parse" } });
     await expect(signInWithGoogleIdToken("bad")).rejects.toMatchObject({
@@ -351,7 +372,7 @@ describe("auth", () => {
   it("refreshSession sends a form and maps the snake_case answer", async () => {
     const f = mockFetch(200, { id_token: jwt({ sub: "u1" }), refresh_token: "r2", expires_in: "3600" });
     expect(await refreshSession("r1")).toMatchObject({ uid: "u1", refreshToken: "r2" });
-    expect(f.mock.calls[0][0]).toContain("securetoken.googleapis.com/v1/token?key=");
+    expect(f.mock.calls[0][0]).toContain("securetoken.googleapis.com/v1/token?key=test-key");
     expect(String(f.mock.calls[0][1]?.body)).toBe("grant_type=refresh_token&refresh_token=r1");
   });
 
@@ -431,14 +452,21 @@ Expected: FAIL — `Failed to resolve import "@/lib/gameAuth/firebase"`.
 // from the protocol (IdleonToolbox is GPL-3.0; nothing copied). Auth calls
 // return tokens; data calls are GET-only by construction.
 
-// Public web config of the game's Firebase project. Firebase API keys identify
-// the project; they aren't secrets.
-const API_KEY = "AIzaSyAU62kOE6xhSrFqoXQPv6_WHxYilmoUxDk";
 const IDENTITY = "https://identitytoolkit.googleapis.com/v1/accounts";
-const SECURE_TOKEN = `https://securetoken.googleapis.com/v1/token?key=${API_KEY}`;
+const SECURE_TOKEN = "https://securetoken.googleapis.com/v1/token";
 const FIRESTORE =
   "https://firestore.googleapis.com/v1/projects/idlemmo/databases/(default)/documents";
 const RTDB = "https://idlemmo.firebaseio.com";
+
+// The game's Firebase web API key comes from the environment (Vercel + local
+// .env.local) so no third-party credential lives in this public repo. It still
+// ships to the browser — Firebase web keys identify the project, they aren't
+// secrets. Keep the literal `process.env.NEXT_PUBLIC_…`: it's what Next inlines.
+function apiKey(): string {
+  const key = process.env.NEXT_PUBLIC_IDLEON_FIREBASE_API_KEY;
+  if (!key) throw new Error("Sign-in isn't set up on this site yet.");
+  return key;
+}
 
 export type FirebaseAuth = {
   uid: string;
@@ -486,7 +514,7 @@ const JSON_HEADERS = { "Content-Type": "application/json" };
 /** Google ID token (from the device flow) → Firebase session. */
 export async function signInWithGoogleIdToken(googleIdToken: string): Promise<FirebaseAuth> {
   const b = await authPost(
-    `${IDENTITY}:signInWithIdp?key=${API_KEY}`,
+    `${IDENTITY}:signInWithIdp?key=${apiKey()}`,
     JSON_HEADERS,
     JSON.stringify({
       postBody: `id_token=${encodeURIComponent(googleIdToken)}&providerId=google.com`,
@@ -500,7 +528,7 @@ export async function signInWithGoogleIdToken(googleIdToken: string): Promise<Fi
 /** Custom token (from the game's Steam function) → Firebase session. */
 export async function signInWithCustomToken(token: string): Promise<FirebaseAuth> {
   const b = await authPost(
-    `${IDENTITY}:signInWithCustomToken?key=${API_KEY}`,
+    `${IDENTITY}:signInWithCustomToken?key=${apiKey()}`,
     JSON_HEADERS,
     JSON.stringify({ token, returnSecureToken: true })
   );
@@ -510,7 +538,7 @@ export async function signInWithCustomToken(token: string): Promise<FirebaseAuth
 /** Refresh token → fresh ID token (plus the possibly rotated refresh token). */
 export async function refreshSession(refreshToken: string): Promise<FirebaseAuth> {
   const b = await authPost(
-    SECURE_TOKEN,
+    `${SECURE_TOKEN}?key=${apiKey()}`,
     { "Content-Type": "application/x-www-form-urlencoded" },
     new URLSearchParams({ grant_type: "refresh_token", refresh_token: refreshToken })
   );
@@ -624,7 +652,7 @@ git push -q
 `web/__tests__/lib/gameAuth/providers.test.ts`:
 
 ```ts
-import { describe, it, expect, vi, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import {
   STEAM_RETURN_URL,
   exchangeSteamAssertion,
@@ -644,12 +672,25 @@ function mockFetchSeq(...answers: Array<{ status?: number; body: unknown }>) {
   return f;
 }
 
+beforeEach(() => {
+  vi.stubEnv("NEXT_PUBLIC_IDLEON_GOOGLE_CLIENT_ID", "test-client-id");
+  vi.stubEnv("NEXT_PUBLIC_IDLEON_GOOGLE_CLIENT_SECRET", "test-secret");
+});
 afterEach(() => {
   vi.unstubAllGlobals();
+  vi.unstubAllEnvs();
   vi.useRealTimers();
 });
 
 describe("Google device flow", () => {
+  it("without the site's Google client, sign-in says it isn't set up (no request made)", async () => {
+    vi.stubEnv("NEXT_PUBLIC_IDLEON_GOOGLE_CLIENT_SECRET", "");
+    const f = mockFetchSeq({ body: {} });
+    await expect(requestDeviceCode()).rejects.toThrow("Sign-in isn't set up on this site yet.");
+    await expect(pollDeviceToken("D")).rejects.toThrow("Sign-in isn't set up on this site yet.");
+    expect(f).not.toHaveBeenCalled();
+  });
+
   it("requestDeviceCode asks for email+profile and maps the answer", async () => {
     const f = mockFetchSeq({ body: { device_code: "D", user_code: "ABC-DEF", interval: 5, expires_in: 1800 } });
     const c = await requestDeviceCode();
@@ -658,7 +699,7 @@ describe("Google device flow", () => {
     expect(f.mock.calls[0][0]).toBe("https://oauth2.googleapis.com/device/code");
     const body = new URLSearchParams(String(f.mock.calls[0][1]?.body));
     expect(body.get("scope")).toBe("email profile");
-    expect(body.get("client_id")).toMatch(/^267901585099-/);
+    expect(body.get("client_id")).toBe("test-client-id");
   });
 
   it("requestDeviceCode failure is readable", async () => {
@@ -687,7 +728,8 @@ describe("Google device flow", () => {
     const body = new URLSearchParams(String(f.mock.calls[0][1]?.body));
     expect(body.get("grant_type")).toBe("urn:ietf:params:oauth:grant-type:device_code");
     expect(body.get("device_code")).toBe("D");
-    expect(body.get("client_secret")).toBeTruthy();
+    expect(body.get("client_id")).toBe("test-client-id");
+    expect(body.get("client_secret")).toBe("test-secret");
   });
 
   it("waitForGoogleIdToken waits the interval and backs off on slow_down", async () => {
@@ -791,15 +833,22 @@ Expected: FAIL — `Failed to resolve import "@/lib/gameAuth/providers"`.
 //  - Steam: OpenID 2.0 returning to the game's own /steamsso/ page (the only
 //    return_to the game's `asil` function verifies), then `asil` → custom token.
 
-// The game's OAuth client for limited-input devices. Device-flow client
-// secrets aren't confidential; every Idleon tool ships this same pair.
-const GOOGLE_CLIENT_ID = "267901585099-u6fjd75v6k9gefq7bcokcndv99riir5j";
-const GOOGLE_CLIENT_SECRET = "HzoZF-UKUNfFwBuz4vafwsaR";
 export const GOOGLE_DEVICE_URL = "https://www.google.com/device";
 export const STEAM_RETURN_URL = "https://www.legendsofidleon.com/steamsso/";
 const ASIL_URL = "https://us-central1-idlemmo.cloudfunctions.net/asil";
 
 const FORM = { "Content-Type": "application/x-www-form-urlencoded" };
+
+// The game's device-flow OAuth client comes from the environment (Vercel +
+// local .env.local) so no third-party credential lives in this public repo.
+// It still reaches the browser — device-flow client secrets aren't
+// confidential. Keep the literal `process.env.NEXT_PUBLIC_…`: Next inlines it.
+function googleClient(): { id: string; secret: string } {
+  const id = process.env.NEXT_PUBLIC_IDLEON_GOOGLE_CLIENT_ID;
+  const secret = process.env.NEXT_PUBLIC_IDLEON_GOOGLE_CLIENT_SECRET;
+  if (!id || !secret) throw new Error("Sign-in isn't set up on this site yet.");
+  return { id, secret };
+}
 
 export type DeviceCode = {
   deviceCode: string;
@@ -811,10 +860,11 @@ export type DeviceCode = {
 };
 
 export async function requestDeviceCode(): Promise<DeviceCode> {
+  const { id } = googleClient();
   const r = await fetch("https://oauth2.googleapis.com/device/code", {
     method: "POST",
     headers: FORM,
-    body: new URLSearchParams({ client_id: GOOGLE_CLIENT_ID, scope: "email profile" }),
+    body: new URLSearchParams({ client_id: id, scope: "email profile" }),
   });
   const b = await r.json().catch(() => ({}));
   if (!r.ok || !b.device_code) throw new Error("Couldn't get a Google sign-in code — try again.");
@@ -831,12 +881,13 @@ export type DevicePoll =
   | { status: "ok"; idToken: string };
 
 export async function pollDeviceToken(deviceCode: string): Promise<DevicePoll> {
+  const { id, secret } = googleClient();
   const r = await fetch("https://oauth2.googleapis.com/token", {
     method: "POST",
     headers: FORM,
     body: new URLSearchParams({
-      client_id: GOOGLE_CLIENT_ID,
-      client_secret: GOOGLE_CLIENT_SECRET,
+      client_id: id,
+      client_secret: secret,
       device_code: deviceCode,
       grant_type: "urn:ietf:params:oauth:grant-type:device_code",
     }),
@@ -1582,6 +1633,7 @@ import ProfileNameLoader from "@/components/ProfileNameLoader";
 const ENV = { charNames: ["Alpha"], lastUpdated: Date.parse("2026-09-22T10:00:00Z") };
 
 beforeEach(() => {
+  vi.stubEnv("NEXT_PUBLIC_IDLEON_FIREBASE_API_KEY", "test-key");
   Object.values(s).forEach((f) => f.mockReset());
   s.hasSession.mockReturnValue(false);
   s.cachedEnvelope.mockReturnValue(null);
@@ -1596,10 +1648,22 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.unstubAllGlobals();
+  vi.unstubAllEnvs();
   vi.useRealTimers();
 });
 
 describe("ProfileNameLoader — game account", () => {
+  it("site without the game key: no sign-in offered, the name auto-load still works", async () => {
+    vi.stubEnv("NEXT_PUBLIC_IDLEON_FIREBASE_API_KEY", "");
+    localStorage.setItem("k", "SomePlayer");
+    s.hasSession.mockReturnValue(true); // even a stored session is ignored
+    const onSave = vi.fn();
+    render(<ProfileNameLoader storageKey="k" onSave={onSave} />);
+    await waitFor(() => expect(onSave).toHaveBeenCalledWith({ data: {}, charNames: ["Named"] }));
+    expect(screen.queryByText(/Sign in to load your save automatically/)).toBeNull();
+    expect(s.loadAccountSave).not.toHaveBeenCalled();
+  });
+
   it("signed out: offers sign-in and keeps the remembered-name auto-load", async () => {
     localStorage.setItem("k", "SomePlayer");
     const onSave = vi.fn();
@@ -2007,6 +2071,9 @@ export default function ProfileNameLoader({
   const [warnOpen, setWarnOpen] = useState(false);
   const initialized = useRef(false);
 
+  // Sign-in needs the game's Firebase key (NEXT_PUBLIC_IDLEON_*); without it
+  // the site simply doesn't offer it.
+  const loginEnabled = !!process.env.NEXT_PUBLIC_IDLEON_FIREBASE_API_KEY;
   const [signedIn, setSignedIn] = useState(false);
   const [account, setAccount] = useState<{ mainChar: string; lastUpdated: number } | null>(null);
   const [mode, setMode] = useState<AutoUpdateMode>("on");
@@ -2092,13 +2159,14 @@ export default function ProfileNameLoader({
     initialized.current = true;
     const m = autoUpdateMode();
     setMode(m);
-    setSignedIn(hasSession());
-    const cached = cachedEnvelope();
+    const session = loginEnabled && hasSession();
+    setSignedIn(session);
+    const cached = loginEnabled ? cachedEnvelope() : null;
     if (cached) {
       applyAccount(cached);
       return;
     }
-    if (hasSession() && m !== "off") {
+    if (session && m !== "off") {
       syncAccount(false);
       return;
     }
@@ -2110,7 +2178,7 @@ export default function ProfileNameLoader({
       setName(saved);
       load(saved);
     }
-  }, [storageKey, load, applyAccount, syncAccount]);
+  }, [storageKey, load, applyAccount, syncAccount, loginEnabled]);
 
   // Auto-update: signed in, not paused/stopped, tab visible → a cheap check
   // every 5 min; a newer save replaces the one on screen.
@@ -2168,7 +2236,7 @@ export default function ProfileNameLoader({
 
   return (
     <div className="rounded-lg bg-zinc-900/60 p-4 mb-4 border border-zinc-800">
-      {signedIn ? (
+      {loginEnabled && (signedIn ? (
         <div className="flex flex-wrap items-center gap-2 text-sm mb-3">
           <span>
             ✅ <span className="font-semibold text-gold">{account?.mainChar ?? "Signed in"}</span>
@@ -2223,8 +2291,10 @@ export default function ProfileNameLoader({
             Steam
           </button>
         </div>
+      ))}
+      {loginEnabled && (
+        <GameLoginDialog tab={dialogTab} onClose={() => setDialogTab(null)} onSignedIn={onSignedIn} />
       )}
-      <GameLoginDialog tab={dialogTab} onClose={() => setDialogTab(null)} onSignedIn={onSignedIn} />
 
       <form onSubmit={onSubmit} className="flex flex-wrap gap-2 items-center">
         <span className="font-semibold text-gold">👤 Load by player name</span>
@@ -2273,7 +2343,7 @@ export default function ProfileNameLoader({
 - [ ] **Step 5: Rodar e ver passar**
 
 Run: `npx vitest run __tests__/components/ProfileNameLoader.test.tsx`
-Expected: PASS (6 testes).
+Expected: PASS (7 testes).
 
 - [ ] **Step 6: Suíte inteira + tipos (as 4 páginas usam o loader)**
 
@@ -2573,6 +2643,12 @@ Run: `npx tsc --noEmit -p . 2>&1 | tail -3` → mesmo resultado da baseline (sem
 
 Run: `grep -rnE "console\.|method: \"(PUT|PATCH|DELETE)\"" lib/gameAuth components/GameLoginDialog.tsx ; echo done`
 Expected: nenhuma linha antes de `done`.
+Run: `git grep -nE "AIza[0-9A-Za-z_-]{35}|CLIENT_(ID|SECRET) = \"" -- ':/' ; echo done`
+Expected: nenhuma linha antes de `done` — nenhuma credencial do jogo escrita no repositório.
+
+- [ ] **Step 2b: Variáveis na Vercel (usuário)**
+
+O usuário cadastra `NEXT_PUBLIC_IDLEON_FIREBASE_API_KEY`, `NEXT_PUBLIC_IDLEON_GOOGLE_CLIENT_ID` e `NEXT_PUBLIC_IDLEON_GOOGLE_CLIENT_SECRET` nas Environment Variables do projeto na Vercel, em **Production e Preview** (os mesmos valores do `web/.env.local`). `NEXT_PUBLIC_*` entra no bundle **na hora do build**: se a preview for gerada antes do cadastro, é preciso fazer um redeploy. Sem as variáveis, o site só não mostra o login.
 
 - [ ] **Step 3: Abrir PR draft (sem merge)**
 
@@ -2589,6 +2665,7 @@ Implements docs/superpowers/specs/2026-09-22-game-login-save-sync-design.md.
 - "Keep me signed in" (default on) stores only the refresh token; auto-update every 5 min while the tab is visible (cheap masked check), with Pause / Stop / Sync now / Sign out.
 - Drop Rate keeps the user's map/chip across auto-updates.
 - Production CSP limiting where the page can send data.
+- No game credential in the repo: set `NEXT_PUBLIC_IDLEON_FIREBASE_API_KEY`, `NEXT_PUBLIC_IDLEON_GOOGLE_CLIENT_ID`, `NEXT_PUBLIC_IDLEON_GOOGLE_CLIENT_SECRET` in Vercel (Production + Preview). Without them the site just hides sign-in.
 
 Not in this PR: Apple (needs a proxy), email login.
 

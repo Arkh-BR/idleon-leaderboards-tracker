@@ -43,7 +43,7 @@ IdleonToolbox faz.
 | D4 | Validação real só com Google (conta do usuário); Steam só por teste unitário até aparecer tester | usuário |
 | D5 | REST puro (`fetch`), sem Firebase SDK — zero dependência nova | proposta |
 | D6 | Reimplementar a partir do protocolo; **não copiar código do IT** (GPL-3.0; nosso repo é público sem licença) | proposta |
-| D7 | Credenciais do jogo hardcoded num lugar só (como IT/IE). Env var não muda nada material: o valor vai pro browser de qualquer forma e o problema é usar credencial alheia, não onde ela está escrita | proposta |
+| D7 | Credenciais do jogo (chave web do Firebase + client OAuth do Google) **fora do repositório**: variáveis `NEXT_PUBLIC_IDLEON_FIREBASE_API_KEY`, `NEXT_PUBLIC_IDLEON_GOOGLE_CLIENT_ID`, `NEXT_PUBLIC_IDLEON_GOOGLE_CLIENT_SECRET` na Vercel (Production + Preview) e em `web/.env.local` localmente. Os valores ainda chegam ao browser (inevitável com login no browser), mas nenhum segredo de terceiro fica no repo público. Sem as variáveis, o site não oferece login | usuário (22/09, após o classificador de segurança barrar o segredo no texto) |
 | D8 | Atualização automática com botões **Pause** e **Stop** | usuário |
 | D9 | Semântica: checagem a cada 5 min com a aba visível; Pause = congela nesta visita; Stop = desliga até religar, lembrado no aparelho, inclusive o auto-load ao abrir o site | proposta |
 
@@ -80,7 +80,7 @@ API key sem restrição de referrer; CORS liberado em `oauth2.googleapis.com`,
    `{"data":{"claimedId","nonce","assocHandle","sig","signed"}}` → `{"result": <custom token>}` →
    Firebase `accounts:signInWithCustomToken`.
 
-### Firebase REST (API key pública do jogo)
+### Firebase REST (chave web do jogo, via `NEXT_PUBLIC_IDLEON_FIREBASE_API_KEY`)
 
 - Auth: `https://identitytoolkit.googleapis.com/v1/accounts:signInWithIdp|signInWithCustomToken?key=…`
   → `idToken` (1 h) + `refreshToken`.
@@ -182,7 +182,8 @@ ferramenta não recarrega o documento e o envelope em memória é reaproveitado 
 
 ## UI (texto do site em inglês)
 
-**`ProfileNameLoader`** — nova linha no topo do card (cobre as 4 páginas):
+**`ProfileNameLoader`** — nova linha no topo do card (cobre as 4 páginas). Só aparece com as
+variáveis `NEXT_PUBLIC_IDLEON_*` configuradas (D7); sem elas, o card fica como hoje.
 
 - Deslogado: `🔑 Sign in to load your save automatically` + `[Google]` `[Steam]` → abre o diálogo
   na aba certa.
@@ -287,7 +288,8 @@ do decoder, no padrão dos saves reais já usados nos testes.
 **Build:** `tsc` nos arquivos tocados + vitest (o `npm run build` local já quebra no prerender na
 main — problema pré-existente). Sem `npm run dev`.
 
-**Preview Vercel (usuário):** login Google → 4 páginas carregam; recarregar com "Keep me signed
+**Preview Vercel (usuário):** antes, cadastrar as 3 variáveis `NEXT_PUBLIC_IDLEON_*` na Vercel
+(entram no bundle no build — cadastro depois exige redeploy). Então: login Google → 4 páginas carregam; recarregar com "Keep me signed
 in" → carrega sozinho; sem a opção → pede login; Sign out → limpa; jogar e ver o save atualizar
 sozinho em ≤5 min; Pause congela, Resume retoma; Stop sobrevive ao reload e não carrega a conta
 sozinho; CSP sem erro no console.
