@@ -176,8 +176,9 @@ ferramenta não recarrega o documento e o envelope em memória é reaproveitado 
     conta só entra via **Sync now**. **Start auto-update** religa (`on`) e checa na hora.
 - **Sync now** ignora o modo: fetch completo imediato; não muda o modo.
 - **Não perder seleção a cada update:** Talents (char), Tome (busca) e Cooking (sem estado) já
-  preservam o que o usuário escolheu — verificado. O Drop Rate reseta o mapa no `applyParsedSave`
-  → passa a preservar o `mapIdx` se ainda válido, como já faz com o `charIdx`.
+  preservam o que o usuário escolheu — verificado. O Drop Rate reseta o mapa (e volta o chip 16
+  para AUTO) a cada save novo → num refresh da mesma conta passa a preservar o `mapIdx` se ainda
+  válido e a escolha do chip, como já faz com o `charIdx`.
 
 ## UI (texto do site em inglês)
 
