@@ -46,6 +46,7 @@ import { lukScaling } from "./systems/common/stats";
 import { button } from "./systems/w7/button";
 import { royalStatue, royalGrade } from "./systems/w7/royalG";
 import { familyBonus } from "./systems/common/familyBonus";
+import { coin } from "./systems/coin/coin";
 
 // Loose ctx type — each system narrows what it actually reads
 export type SystemCtx = {
@@ -59,6 +60,11 @@ export type SystemCtx = {
   // Gallery Bonus Multi to model the invisible "chip-active-at-refresh" bonus.
   // Off by default; toggled by UI.
   chipGalleryActive?: boolean;
+  // The character's saved AFKtarget_N (their last-engaged combat target,
+  // independent of CurrentMap). Coin Multi's talent 643 term uses it in
+  // place of MapAFKtarget[map] when the viewed map is the char's own saved
+  // map, matching N.js OverkillStuffs("2") (no MapAFKtarget/FIGHTING gate).
+  afkTarget?: string;
 };
 
 export type SystemResolver = {
@@ -120,6 +126,7 @@ const _systems: Record<string, SystemResolver> = {
   royalStatue: royalStatue as unknown as SystemResolver,
   royalGrade: royalGrade as unknown as SystemResolver,
   familyBonus: familyBonus as unknown as SystemResolver,
+  coin: coin as unknown as SystemResolver,
 };
 
 export function getSystem(name: string): SystemResolver | null {

@@ -12,6 +12,7 @@ test.describe("Homepage", () => {
       { title: "IT Leaderboards Tracker", desc: "See your rank" },
       { title: "Tome Score Tracker", desc: "offline" },
       { title: "Drop Rate Tracker", desc: "Game Code Faithful" },
+      { title: "Coin Multi Tracker", desc: "coin formula" },
       { title: "Talents Tracker", desc: "Per-talent" },
       { title: "Sheets \u0026 Tools", desc: "curated" },
     ];

@@ -4,8 +4,23 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   "ArmoryUpgBonus": [
     "lib/arkh/stats/data/w7/royalG.ts"
   ],
+  "Bonus_Minor": [
+    "lib/arkh/stats/systems/coin/divinityMinor.ts"
+  ],
+  "CardsCollected": [
+    "lib/arkh/stats/systems/coin/accountKills.ts"
+  ],
   "ClassFamilyBonuses[16]": [
     "lib/arkh/stats/systems/common/familyBonus.ts"
+  ],
+  "CropSCbonMulti": [
+    "lib/arkh/stats/systems/w6/farming.ts"
+  ],
+  "DeathNoteRank": [
+    "lib/arkh/stats/systems/coin/gambit.ts"
+  ],
+  "DivMinorBonus": [
+    "lib/arkh/stats/systems/coin/divinityMinor.ts"
   ],
   "FriendBonusQTY": [
     "lib/arkh/stats/systems/common/friend.ts"
@@ -16,8 +31,32 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   "FriendBonusXtraMulti": [
     "lib/arkh/stats/systems/common/friend.ts"
   ],
+  "GambitBonuses": [
+    "lib/arkh/stats/systems/coin/gambit.ts"
+  ],
+  "GambitPTSmulti": [
+    "lib/arkh/stats/systems/coin/gambit.ts"
+  ],
+  "GambitPts": [
+    "lib/arkh/stats/systems/coin/gambit.ts"
+  ],
+  "GambitPtsREQ": [
+    "lib/arkh/stats/systems/coin/gambit.ts"
+  ],
   "HatrackBonusMulti": [
     "lib/arkh/stats/systems/w7/gallery.ts"
+  ],
+  "MonsterCash": [
+    "lib/arkh/stats/systems/coin/coin.ts"
+  ],
+  "OverkillQTY": [
+    "lib/arkh/stats/systems/coin/gambit.ts"
+  ],
+  "OverkillStuffs": [
+    "lib/arkh/stats/systems/coin/coin.ts"
+  ],
+  "PocketDivOwned": [
+    "lib/arkh/stats/systems/coin/divinityMinor.ts"
   ],
   "PodiumsOwned_Lv4": [
     "lib/arkh/stats/systems/w7/gallery.ts"
@@ -36,6 +75,9 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   ],
   "TotalStatz": [
     "lib/arkh/stats/data/w7/royalG.ts"
+  ],
+  "VaultKillzTotal": [
+    "lib/arkh/stats/systems/coin/accountKills.ts"
   ],
   "WinBonus": [
     "lib/arkh/stats/systems/w6/summoning.ts"

@@ -1,10 +1,11 @@
-name: Refresh top DR & talent max
+name: Refresh top DR, coin & talent max
 
-# Rebuilds the bundled "hypothetical max" reference datasets the Drop Rate
-# and Talents pages compare against:
+# Rebuilds the bundled "hypothetical max" reference datasets the Drop Rate,
+# Coin Multi and Talents pages compare against:
 #   • web/lib/dropRate/topDropRate.ts       (+ .meta.ts)
+#   • web/lib/coinMulti/topCoinMulti.ts     (+ .meta.ts)
 #   • web/lib/talentsLevel/topTalents.ts
-# Both collectors fetch every top player's raw save straight from the IT
+# All three collectors fetch every top player's raw save straight from the IT
 # profiles endpoint (no browser needed — unlike the Tome refresh), run our
 # arkh engine, and keep the best value of every source across players.
 
@@ -43,6 +44,12 @@ jobs:
         working-directory: web
         run: npx tsx scripts/update-top-dr.ts
 
+      - name: Refresh top-player Coin Multi max
+        working-directory: web
+        continue-on-error: true
+        timeout-minutes: 12
+        run: npx tsx scripts/update-top-coin.ts
+
       - name: Refresh top-player Talent max
         working-directory: web
         run: npx tsx scripts/update-top-talents.ts
@@ -54,11 +61,11 @@ jobs:
           GIT_COMMITTER_NAME: github-actions[bot]
           GIT_COMMITTER_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
         run: |
-          files="web/lib/dropRate/topDropRate.ts web/lib/dropRate/topDropRate.meta.ts web/lib/talentsLevel/topTalents.ts"
+          files="web/lib/dropRate/topDropRate.ts web/lib/dropRate/topDropRate.meta.ts web/lib/coinMulti/topCoinMulti.ts web/lib/coinMulti/topCoinMulti.meta.ts web/lib/talentsLevel/topTalents.ts"
           git add $files
           if git diff --cached --quiet; then
             echo "Snapshots unchanged, nothing to commit."
             exit 0
           fi
-          git commit -m "chore: auto-refresh top DR + talent max snapshots"
+          git commit -m "chore: auto-refresh top DR + coin + talent max snapshots"
           git push

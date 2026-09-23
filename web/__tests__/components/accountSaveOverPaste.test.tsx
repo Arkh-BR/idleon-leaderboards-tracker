@@ -18,6 +18,7 @@ vi.mock("@/lib/arkh/computeDR", () => ({
     throw new Error("stub");
   },
 }));
+vi.mock("@/lib/arkh/computeCoin", () => ({ computeArkhCoinMulti: () => { throw new Error("stub"); } }));
 vi.mock("@/lib/talentsLevel/compute", () => ({
   getActivePresetIdx: () => 0,
   computeTalentEffective: () => {
@@ -30,6 +31,7 @@ vi.mock("@/lib/talentsLevel/unbooked", () => ({ computeUnbooked: () => [] }));
 import { loadAccountSave, setAutoUpdateMode, signOut, startSession } from "@/lib/gameAuth/session";
 import DrCalculator from "@/components/dropRate/DrCalculator";
 import TalentsLevelPageClient from "@/app/talents-level/TalentsLevelPageClient";
+import CoinCalculator from "@/components/coinMulti/CoinCalculator";
 
 const AUTH = { uid: "u1", idToken: "id1", refreshToken: "r1", expiresAt: Date.now() + 3_600_000 };
 const ACCOUNT = {
@@ -94,5 +96,12 @@ describe("an old pasted save never overrides the account save", () => {
     localStorage.setItem("drop-rate-tracker.last-upload.v1", OLD_PASTE);
     render(<DrCalculator />);
     await waitFor(() => expect(shownChar()).toBe("OldPasteChar (Lv 100)"));
+  });
+
+  it("Coin Multi — account save already loaded this visit", async () => {
+    localStorage.setItem("coin-multi-tracker.last-upload.v1", OLD_PASTE);
+    await loadAccountThisVisit();
+    render(<CoinCalculator />);
+    await waitFor(() => expect(shownChar()).toBe(ACCOUNT_CHAR));
   });
 });

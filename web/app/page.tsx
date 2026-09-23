@@ -51,6 +51,13 @@ export default function HomePage() {
           cta="Open Drop Rate"
         />
         <ShortcutCard
+          href="/coin-multi"
+          icon="🪙"
+          title="Coin Multi Tracker"
+          description="Every term of the game's coin formula on your save, per character and map, with snapshots and a top-player comparison."
+          cta="Open Coin Multi"
+        />
+        <ShortcutCard
           href="/talents-level"
           icon="🌟"
           title="Talents Tracker"
