@@ -38,7 +38,7 @@ import { getBribeBonus } from "../w3/bribe";
 import { getSetBonus } from "../w3/setBonus";
 import { computeCardLv } from "./cards";
 import { companions } from "./companions";
-import { computeAllTalentLVz } from "./talent";
+import { computeAllTalentLVz, maxTalentBonus } from "./talent";
 import { talentParams, FAMILY_BONUS_33, CLASS_TREES, TALENT_144 } from "../../data/common/talent";
 import { cookingMealMulti, bonusMultiCook } from "./cooking";
 import { isFightingMap, mapKillReq } from "../../data/common/maps";
@@ -180,7 +180,7 @@ function famBonusQTYs66(charIdx: number, saveData: SaveData): number {
 
 // apocalypseWow × apocalypses: DK class talent (skillIndex 209) × number
 // of fighting maps where DK has accumulated ≥ 1e9 kills.
-function apocalypseWowContrib(saveData: SaveData): number {
+function apocalypseWowContrib(charIdx: number, saveData: SaveData): number {
   // Find a DK character. corgan-source uses tree[3] === 10 as the marker.
   let dkIdx = -1;
   for (let ci = 0; ci < numCharacters; ci++) {
@@ -190,15 +190,10 @@ function apocalypseWowContrib(saveData: SaveData): number {
   }
   if (dkIdx < 0) return 0;
 
-  // Talent 209 (APOCALYPSE_WOW) value for the DK character.
-  const sl = (skillLvData as any)[dkIdx] || {};
-  const rawLv = Number(sl[209]) || 0;
-  if (rawLv <= 0) return 0;
-  const bonusLv = computeAllTalentLVz(209, dkIdx, undefined, saveData);
-  const eff = rawLv + bonusLv;
-  const t209 = talentParams(209);
-  if (!t209) return 0;
-  const perPt = formulaEval(t209.formula, t209.x1, t209.x2, eff);
+  // Talent 209 (APOCALYPSE_WOW): N.js getbonus2(1,209,-1) — the owner's
+  // level, but its bonus levels read the ACTIVE char (Lv0[0] etc.).
+  const perPt = maxTalentBonus(209, charIdx, saveData);
+  if (perPt <= 0) return 0;
 
   // Apocalypse count = number of fighting maps with ≥ 1e9 kills on DK.
   let count = 0;
@@ -269,7 +264,7 @@ export function gfoodBonusMULTIBreakdown(
   const ach380 = achieveStatusTiered(380, saveData);
   const ach383 = achieveStatusTiered(383, saveData);
   const voting26 = votingBonusz(26, undefined, saveData);
-  const talent209xMaps = apocalypseWowContrib(saveData);
+  const talent209xMaps = apocalypseWowContrib(charIdx, saveData);
   const comp48 = companions(48, saveData);
   const legend25 = legendPTSbonus(25, saveData);
   const cardPassiveBonus = Math.min(
