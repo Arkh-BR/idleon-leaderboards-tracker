@@ -16,6 +16,9 @@ const SESSION_KEY = "gameAuth.session.v1";
 const AUTO_KEY = "gameAuth.autoUpdate.v1";
 /** Refresh the ID token when less than this is left on it. */
 const REFRESH_MARGIN_MS = 5 * 60 * 1000;
+/** Refresh answers that mean the stored session is dead for good; anything
+ *  else (5xx, 429, …) is transient and keeps the session like a network error. */
+const DEAD_SESSION_CODES = new Set(["TOKEN_EXPIRED", "INVALID_REFRESH_TOKEN", "USER_DISABLED", "USER_NOT_FOUND"]);
 
 type Session = FirebaseAuth & { provider: Provider; keep: boolean };
 type Stored = { v: 1; provider: Provider; uid: string; refreshToken: string };
@@ -87,7 +90,7 @@ async function liveSession(): Promise<Session> {
     try {
       session = { ...session, ...(await refreshSession(session.refreshToken)) };
     } catch (e) {
-      if (e instanceof AuthRejectedError) {
+      if (e instanceof AuthRejectedError && DEAD_SESSION_CODES.has(e.code)) {
         signOut();
         throw new SessionExpiredError();
       }

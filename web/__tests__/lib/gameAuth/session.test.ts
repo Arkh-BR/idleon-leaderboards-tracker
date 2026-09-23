@@ -105,6 +105,21 @@ describe("loadAccountSave", () => {
     await expect(loadAccountSave()).rejects.toBeInstanceOf(NoCharactersError);
     expect(hasSession()).toBe(false);
   });
+
+  it("USER_DISABLED (a dead-session code) signs out", async () => {
+    storeSession();
+    fb.refreshSession.mockRejectedValue(new AuthRejectedError("USER_DISABLED"));
+    await expect(loadAccountSave()).rejects.toThrow("Session expired — sign in again");
+    expect(hasSession()).toBe(false);
+  });
+
+  it("HTTP_503 (a transient error) keeps the session", async () => {
+    storeSession();
+    fb.refreshSession.mockRejectedValue(new AuthRejectedError("HTTP_503"));
+    await expect(loadAccountSave()).rejects.toThrow("HTTP_503");
+    expect(hasSession()).toBe(true);
+    expect(stored().refreshToken).toBe("r0");
+  });
 });
 
 describe("checkForUpdate", () => {
