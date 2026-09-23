@@ -160,6 +160,22 @@ describe("ProfileNameLoader — game account", () => {
     expect(onSave).toHaveBeenLastCalledWith(NEWER, { refresh: true });
   });
 
+  it("auto-update heals a failed first load: the save goes on screen, the error goes away", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    s.hasSession.mockReturnValue(true);
+    s.loadAccountSave.mockRejectedValue(new Error("Couldn't read your save (HTTP 503)"));
+    s.checkForUpdate.mockResolvedValue(ENV); // nothing cached yet: the check downloads it
+    const onSave = vi.fn();
+    render(<ProfileNameLoader storageKey="k" onSave={onSave} />);
+    expect(await screen.findByText(/HTTP 503/)).toBeInTheDocument();
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(FIVE_MIN);
+    });
+    expect(s.checkForUpdate).toHaveBeenCalledTimes(1);
+    expect(onSave).toHaveBeenCalledWith(ENV, { refresh: false });
+    expect(screen.queryByText(/HTTP 503/)).toBeNull();
+  });
+
   it("auto-update never replaces a save loaded by name", async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     s.hasSession.mockReturnValue(true);

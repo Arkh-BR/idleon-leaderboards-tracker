@@ -74,6 +74,8 @@ export default function ProfileNameLoader({
   const [dialogTab, setDialogTab] = useState<Provider | null>(null);
   // Whether the page currently shows the account save (vs one loaded by name).
   const showingAccount = useRef(false);
+  // Whether it shows a save loaded by name: auto-update leaves that alone.
+  const showingNamed = useRef(false);
   // Set by Sign out: a load it cut short ends in SessionExpiredError, which
   // isn't news to the user.
   const signedOutByUser = useRef(false);
@@ -100,6 +102,7 @@ export default function ProfileNameLoader({
     setAccount({ mainChar: env.charNames[0] ?? "?", lastUpdated: env.lastUpdated });
     const refresh = showingAccount.current;
     showingAccount.current = true;
+    showingNamed.current = false;
     // The cached envelope is shared by every page this visit: each gets its
     // own copy, so one that writes into `data` (computeTome does) can't
     // change it for the others.
@@ -141,6 +144,7 @@ export default function ProfileNameLoader({
           localStorage.setItem(storageKey, player);
         } catch {}
         showingAccount.current = false;
+        showingNamed.current = true;
         onSave(body);
       } catch (e) {
         const msg = e instanceof Error ? e.message : String(e);
@@ -184,7 +188,8 @@ export default function ProfileNameLoader({
   // Auto-update: signed in, not paused/stopped, tab visible → a cheap check
   // once 5 min have passed since the last one. The clock lives in the session,
   // so switching pages (which remounts this) doesn't restart it. A newer save
-  // replaces the account save on screen — never a save loaded by name.
+  // — or the first one, after a failed load — goes on screen unless the page
+  // shows a save loaded by name.
   useEffect(() => {
     if (!signedIn || mode !== "on") return;
     const tick = async () => {
@@ -192,7 +197,7 @@ export default function ProfileNameLoader({
       if (Date.now() - lastCheckAt() < AUTO_UPDATE_MS) return;
       try {
         const env = await checkForUpdate();
-        if (env && showingAccount.current) applyAccount(env);
+        if (env && !showingNamed.current) applyAccount(env);
       } catch (e) {
         if (!hasSession()) fail(e); // session gone; network blips retry next time
       }
@@ -218,6 +223,7 @@ export default function ProfileNameLoader({
     setSignedIn(true);
     setMode(autoUpdateMode());
     showingAccount.current = false;
+    showingNamed.current = false; // signing in asks for the account save
     syncAccount(false);
   }
 
