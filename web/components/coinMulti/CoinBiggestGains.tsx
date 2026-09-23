@@ -21,7 +21,8 @@ const fmtGain = (p: number) => (p < 1e4 ? p.toFixed(1) : notate(p));
 const METHODOLOGY_NOTE =
   "Coin gain = how much your total Coin Multi would rise if this source matched the top players " +
   "(Observed Max). Every group multiplies the total, so a source's gain is its group's new factor " +
-  "over the current one. Values are a ceiling, not a one-level step.";
+  "over the current one. Values are a ceiling, not a one-level step. The top-player reference is " +
+  "measured on map 301 (World 7), so the Guild and Coins For Charon rows reflect that map choice too.";
 
 export type LoadReference = (classKey: string | null) => Promise<Record<string, number>>;
 

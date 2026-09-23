@@ -321,10 +321,14 @@ function HistoryTable({
             const prev = rows[i + 1];
             const cur = s.computedCoinMulti;
             const prevVal = prev?.computedCoinMulti;
-            const delta =
+            const rawDelta =
               prevVal !== undefined && prevVal > 0 && Number.isFinite(prevVal)
                 ? (cur / prevVal - 1) * 100
                 : null;
+            // An imported snapshot without computedCoinMulti (or any other
+            // non-finite input) must read like "no previous row" (—), not
+            // fall through to the render's "0" (unchanged) branch.
+            const delta = rawDelta !== null && Number.isFinite(rawDelta) ? rawDelta : null;
             const isSelected = selectedBaselineAt === s.capturedAt;
             const hasTree = !!s.flatTree;
             return (
