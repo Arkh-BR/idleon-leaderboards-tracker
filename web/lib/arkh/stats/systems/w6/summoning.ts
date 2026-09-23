@@ -364,7 +364,11 @@ export function computeWinBonus(
   return p.val;
 }
 
-export function computeSummUpgBonus(t: number, saveData: SaveData): TreeResult {
+export function computeSummUpgBonus(
+  t: number,
+  saveData: SaveData,
+  activeCharIdx?: number
+): TreeResult {
   const level = Number((saveData.summonData as any)?.[0]?.[t]) || 0;
   if (level <= 0) return treeResult(0);
   const perLv = Number((SummonUPG as any)[t]?.[6]) || 0;
@@ -374,7 +378,8 @@ export function computeSummUpgBonus(t: number, saveData: SaveData): TreeResult {
   const gilded = saveData.holesData && (saveData.holesData[28] as any[] | undefined);
   if (gilded && gilded.indexOf(t) !== -1) {
     moltoz = 2;
-    const tal597 = maxTalentBonus(597, undefined, saveData);
+    // getbonus2(1,597,-1): bonus levels read the active char (talent.ts).
+    const tal597 = maxTalentBonus(597, activeCharIdx, saveData);
     const tal597Add = Math.max(0, tal597 / 100 - 1);
     let bonus78 = 0;
     if (t !== 78) {

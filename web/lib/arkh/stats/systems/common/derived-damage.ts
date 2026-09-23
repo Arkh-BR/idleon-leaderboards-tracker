@@ -746,7 +746,7 @@ export function computeMaxDamage(charIdx: number, ctx: Ctx): number {
   const dream6 = Number(dreamData && (dreamData as any)[6]) || 0;
   ddl2 *= 1 + dream6 / 10;
   ddl2 *= 1 + rval(pristine, 0, ctx) / 100;
-  ddl2 *= 1 + safe(computeSummUpgBonus, 79, s) / 100;
+  ddl2 *= 1 + safe(computeSummUpgBonus, 79, s, charIdx) / 100;
 
   // Buff+Friend+StarSigns+Divinity
   const starSignPctDmg = computeStarSignBonus("PctDmg", ci, s);
@@ -1207,7 +1207,7 @@ export function computeAccuracy(charIdx: number, ctx: Ctx): number {
     gfBaseAcc = gf && typeof gf === "object" ? Number((gf as any).total) || 0 : Number(gf) || 0;
   } catch {}
   const stampBaseAcc = safe(computeStampBonusOfTypeX, "BaseAcc", s);
-  const summVault4 = safe(computeSummUpgBonus, 4, s);
+  const summVault4 = safe(computeSummUpgBonus, 4, s, ci);
 
   const totalStatsAcc =
     2 + vialBaseACC + boxAcc + cardBonus23 + etc28 + gfBaseAcc + stampBaseAcc +
