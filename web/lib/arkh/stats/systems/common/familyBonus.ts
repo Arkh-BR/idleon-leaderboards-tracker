@@ -13,9 +13,10 @@ import { familyBonusParams } from "../../data/common/talent";
 import { ClassNames } from "../../data/game/customlists.js";
 import { charClassData, numCharacters } from "../../../save/data";
 import { formulaEval } from "../../../formulas";
+import { computeFamBonusQTYs } from "./stats";
 import type { SaveData } from "../../../state";
 
-type Ctx = { saveData: SaveData };
+type Ctx = { saveData: SaveData; charIdx?: number; activeCharIdx?: number };
 
 /** Highest Lv0 among characters whose class index is exactly `clsIdx`. */
 export function bestClassLevel(clsIdx: number, saveData: SaveData): number {
@@ -52,7 +53,14 @@ export const familyBonus = {
     const s = ctx.saveData;
     const p = familyBonusParams(id);
     const best = bestClassLevel(id, s);
-    const val = familyBonusValue(id, s);
+    const curve = familyBonusValue(id, s);
+    // The chain reads DNSM.FamBonusQTYs[2·id] as the game builds it for the
+    // ACTIVE character: a running max over characters in save order where the
+    // active character's own value is buffed by its The Family Guy (talent
+    // 144). computeFamBonusQTYs ports that loop, so e.g. the top Royal
+    // Guardian with Family Guy gets ×(1 + tal144/100) on its own DR.
+    const active = ctx.activeCharIdx ?? ctx.charIdx ?? -1;
+    const val = computeFamBonusQTYs(active, s)[2 * id] ?? curve;
     const cls = className(id);
     return node(
       `${cls} Family Bonus`,
@@ -65,6 +73,14 @@ export const familyBonus = {
         node("Lv Offset", p?.lvOffset ?? 0, null, { fmt: "raw" }),
         node("Formula x1", p?.x1 ?? 0, null, { fmt: "raw" }),
         node("Formula x2", p?.x2 ?? 0, null, { fmt: "raw" }),
+        ...(val !== curve
+          ? [
+              node("The Family Guy (Talent 144)", val - curve, null, {
+                fmt: "+",
+                note: "active character's own family bonus × (1 + talent 144 / 100)",
+              }),
+            ]
+          : []),
       ],
       { fmt: "+", note: `family bonus ${id} (FamBonusQTYs["${2 * id}"])` }
     );
