@@ -1,7 +1,6 @@
 // The game account's save, assembled into the envelope IdleonToolbox's
 // "Copy for Support" produces — so every tool page consumes it unchanged.
 import { firestoreGet, rtdbGet } from "./firebase";
-import { computeTome } from "@/lib/tome/compute";
 
 export type SaveEnvelope = {
   data: Record<string, unknown>;
@@ -82,15 +81,18 @@ export async function fetchSaveEnvelope(uid: string, idToken: string): Promise<S
     accountCreateTime: Math.floor(Date.parse(save.createTime) / 1000) * 1000,
     lastUpdated: Date.parse(save.updateTime),
   };
-  return { ...envelope, extraData: { totalTomePoints: tomePoints(envelope) } };
+  return { ...envelope, extraData: { totalTomePoints: await tomePoints(envelope) } };
 }
 
 // computeTome copies side fields (companion, guildData, …) INTO the inner
 // save, so it gets a shallow copy — the envelope's `data` stays the pristine
 // save. The DR loader reads `extraData.totalTomePoints`; without it every
 // Tome-driven DR bonus would be missing (IdleonToolbox normally stamps it).
-function tomePoints(env: Omit<SaveEnvelope, "extraData">): number {
+// Imported on demand: this module rides along with the sign-in loader on
+// every tool page, and a static import would bundle the Tome engine into all.
+async function tomePoints(env: Omit<SaveEnvelope, "extraData">): Promise<number> {
   try {
+    const { computeTome } = await import("@/lib/tome/compute");
     return computeTome({ ...env, data: { ...env.data } } as Parameters<typeof computeTome>[0])
       .totalPts;
   } catch {
