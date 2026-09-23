@@ -1,7 +1,8 @@
 # Login da conta Idleon (Google/Steam) → save automático — Design Spec
 
 **Data:** 2026-09-22
-**Status:** aprovado pelo usuário (22/09/2026, com o adendo Pause/Stop) — pronto para plano de implementação
+**Status:** aprovado pelo usuário (22/09/2026, com o adendo Pause/Stop); implementado no branch
+(Tasks 1–8 + correções da revisão final, 23/09) — aguardando preview e validação do usuário
 **Branch:** `claude/social-auth-game-save-sync-ea785d`
 
 ## Problema
@@ -141,7 +142,8 @@ ferramenta não recarrega o documento e o envelope em memória é reaproveitado 
 
 ## Sessão e "Keep me signed in"
 
-- **Em memória:** `{provider, uid, idToken, idTokenExp, refreshToken}` + `{envelope, fetchedAt}`.
+- **Em memória:** `{provider, uid, idToken, expiresAt, refreshToken, keep}` + o envelope + `lastCheckAt`
+  (relógio compartilhado da atualização automática).
 - **Persistido** só com a checkbox marcada:
   `localStorage["gameAuth.session.v1"] = {v: 1, provider, uid, refreshToken}`.
   **Nunca** o `idToken` nem o envelope.
@@ -156,7 +158,11 @@ ferramenta não recarrega o documento e o envelope em memória é reaproveitado 
 - **Erro de auth no refresh** (`TOKEN_EXPIRED`, `INVALID_REFRESH_TOKEN`, `USER_DISABLED`,
   `USER_NOT_FOUND`) → sign out + "Session expired — sign in again". Erro de rede → mantém a
   sessão, mostra o erro, permite retry.
-- **Multi-aba:** sign out numa aba vale nas outras no próximo carregamento. Aceito.
+- **Sign out é definitivo:** um refresh em andamento nunca ressuscita a sessão, e sign out numa aba
+  encerra a sessão das outras no próximo uso (a sessão guardada sumiu). Se o `localStorage` recusar
+  a gravação, a sessão vira só-memória (não é derrubada à toa).
+- **Conta errada:** sem save (`_data` inexistente) ou sem personagens → sign out, com a dica
+  "is this the account you play Idleon with?".
 
 ## Atualização automática (Pause / Stop)
 
@@ -164,8 +170,11 @@ ferramenta não recarrega o documento e o envelope em memória é reaproveitado 
   **5 min** faz uma checagem barata:
   `GET _data/{uid}?mask.fieldPaths=<campo inexistente>` devolve só `name`/`createTime`/`updateTime`
   (~200 bytes em vez de ~1,3 MB; verificado em `_vars/_vars` em 22/09). `updateTime` mudou →
-  fetch completo → `onSave`. Não mudou → nada acontece. Aba volta a ficar visível depois de >5 min
-  → checa na hora. Timer vive no `ProfileNameLoader` (limpo no unmount).
+  fetch completo → `onSave`. Não mudou → nada acontece. Implementação: o `ProfileNameLoader` faz um
+  tique a cada 60 s (e ao voltar a aba) e checa só se a aba está visível e já passaram 5 min desde
+  `lastCheckAt`, relógio que vive no `session.ts` e é compartilhado entre as páginas — trocar de
+  ferramenta não zera a contagem. O tique só aplica o save novo se a página está mostrando o save da
+  conta (não substitui um jogador carregado por nome); Sync now / Resume / Start sempre aplicam.
 - **Modos** (`session.ts`):
   - `on` (padrão) — ciclo rodando.
   - `paused` — **Pause** congela o save na tela durante esta visita: sem checagem. Só em memória;
@@ -200,6 +209,13 @@ variáveis `NEXT_PUBLIC_IDLEON_*` configuradas (D7); sem elas, o card fica como 
 
   Carregar por nome continua disponível logado (ex.: ver o save de outro jogador).
 
+  Quando a conta vai carregar no mount (`accountAutoLoads()` no `session.ts`), Drop Rate, Talents e
+  Tome não restauram um JSON colado antigo por cima dela. Cada página recebe uma cópia rasa do
+  envelope, para não alterar o cache compartilhado.
+
+- **Tome:** o `ProfileNameLoader` fica acima das abas (com o toggle "Dungeon = 1"), então as duas
+  abas recebem o save da conta; a colagem manual continua na aba "Paste your data here".
+
 **`GameLoginDialog`** (`<dialog>` nativo, abas):
 
 - **Google:** passos numerados, código grande, `[Copy code & open Google]`, aviso
@@ -209,7 +225,10 @@ variáveis `NEXT_PUBLIC_IDLEON_*` configuradas (D7); sem elas, o card fica como 
   page that opens — don't click its blue button" → campo da URL + `[Log in]`, validação inline do
   prefixo.
 - Checkbox **"Keep me signed in on this device"** (marcado) + "Stores a login token in this
-  browser so your save loads on every visit. Sign out removes it."
+  browser so your save loads on every visit. It can act on your game account, so only use this on
+  your own device. Sign out removes it."
+- Fechar o diálogo cancela o login, mesmo depois da aprovação no Google. O popup da Steam abre com
+  `noopener`.
 - Rodapé: "Your login goes straight from your browser to Google/Steam and the game's servers —
   never through ours. We only read your save; we never change it."
 
@@ -234,15 +253,19 @@ dependência comprometida no nosso domínio leriam o `localStorage`.
    default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';
    img-src 'self' data:; font-src 'self';
    connect-src 'self' https://oauth2.googleapis.com https://identitytoolkit.googleapis.com
-     https://securetoken.googleapis.com https://firestore.googleapis.com
+     https://securetoken.googleapis.com https://firestore.googleapis.com/v1/projects/idlemmo/
      https://idlemmo.firebaseio.com https://us-central1-idlemmo.cloudfunctions.net;
    frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'
    ```
 
-   Ganho: `connect-src`/`img-src` barram exfiltração por fetch, beacon ou imagem para host de
-   atacante. Teto: `'unsafe-inline'` em script é exigido pelo Next sem nonce; nonce força render
-   dinâmico em todas as páginas (caminho de upgrade, se preciso). A toolbar da Vercel na preview
-   (`vercel.live`) fica bloqueada — aceito.
+   Ganho: `connect-src`/`img-src` barram exfiltração por fetch, beacon ou imagem para hosts
+   arbitrários, e o Firestore fica preso ao projeto do jogo. Teto: `identitytoolkit`/`securetoken`
+   são compartilhados por todos os projetos Firebase (a chave vai na query, não dá para prender),
+   então um script injetado ainda poderia mandar o token para o próprio projeto Firebase dele. E a
+   CSP não impede uso indevido dentro da página: um script injetado pode escrever no save pelos
+   endpoints permitidos. `'unsafe-inline'` em script é exigido pelo Next sem nonce; nonce força
+   render dinâmico em todas as páginas (caminho de upgrade, se preciso). A toolbar da Vercel na
+   preview (`vercel.live`) fica bloqueada — aceito.
 6. **Zero dependência nova** (sem SDK do Firebase).
 
 ## Erros (mensagens em inglês)
@@ -253,6 +276,7 @@ dependência comprometida no nosso domínio leriam o `localStorage`.
 | URL Steam inválida | validação inline antes de chamar a `asil` |
 | `asil` devolve erro | "Steam sign-in failed: {message}" |
 | Conta sem personagens | "No characters found for this account" + sign out |
+| Conta sem save (conta Google errada) | "No save found for this account — is this the account you play Idleon with?" + sign out |
 | Firestore/RTDB 403 | "Couldn't read your save" (mantém a sessão) |
 | Rede | mensagem + retry; sessão mantida |
 | Refresh inválido | sign out + "Session expired — sign in again" |
@@ -309,6 +333,14 @@ Merge na main só quando o usuário pedir.
 | R5 | UX do Steam frágil (copia-cola, uso único) | Médio | Instrução explícita, igual ao IT |
 | R6 | Tome calculado por nós ~1 task abaixo do IT (tasks só de leaderboard) | Baixo | Medido no spike |
 | R7 | Custo no Firestore da Lava: ~1,3 MB por visita/update + 1 leitura mascarada a cada 5 min por aba visível | Baixo | Cache em memória entre páginas; fetch completo só quando `updateTime` muda; sem checagem com aba oculta |
+
+## Limitações conhecidas (v1)
+
+- Um JSON colado no Drop Rate/Talents enquanto logado com auto-update ligado é substituído na
+  próxima atualização da conta. Pause/Stop mantém o que foi colado.
+- Trocar de conta numa aba não é detectado pelas outras abas abertas (raro).
+- O "save updated X ago" só se atualiza quando chega um save novo.
+- Sign out não revoga o token no servidor (limitação do Firebase, igual ao IT).
 
 ## Futuro (fora do v1)
 
