@@ -46,3 +46,20 @@ describe.skipIf(!existsSync(SAVE))("DR Royal Guardian family bonus honours The F
     expect(rgFamily("Darkhe")).toBeCloseTo(6.8884, 3);
   });
 });
+
+describe.skipIf(!existsSync(SAVE))("DR total matches the in-game reading", () => {
+  let save: { charNames: string[]; extraData: { totalTomePoints: number } };
+  beforeAll(() => {
+    save = JSON.parse(readFileSync(SAVE, "utf8").replace(/^﻿/, ""));
+    // This export carries IdleonToolbox's Tome count (52,722); signed-in
+    // saves get our computeTome stamp, 53,011 for this account state.
+    save.extraData.totalTomePoints = 53011;
+  });
+
+  it("Markhe on map 14 reads 363,893.46× in game", () => {
+    // −0.21% with 1.4·LUK inside the /100, −0.005% with getbonus2's bonus
+    // levels on the reference char instead of the active one.
+    const dr = computeArkhDropRate(save, save.charNames.indexOf("Markhe"), 14).total;
+    expect(Math.abs(dr / 363893.46 - 1)).toBeLessThan(1e-5);
+  });
+});
