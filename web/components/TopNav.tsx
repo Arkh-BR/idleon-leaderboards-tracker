@@ -11,6 +11,7 @@ const ITEMS: NavItem[] = [
   { href: "/leaderboards", label: "🏆 IT Leaderboards" },
   { href: "/tome", label: "📖 Tome Score" },
   { href: "/drop-rate", label: "🎲 Drop Rate" },
+  { href: "/coin-multi", label: "🪙 Coin Multi" },
   { href: "/talents-level", label: "🌟 Talents" },
   { href: "/cooking-mastery", label: "🍳 Cooking Mastery" },
   { href: "/sheets", label: "📊 Sheets & Tools" },
