@@ -47,7 +47,6 @@ import { ITEMS } from "../../data/game/items.js";
 import { MONSTERS } from "../../data/game/monsters.js";
 import {
   MapAFKtarget,
-  MapDetails,
   GrimoireUpg,
   AtomInfo,
 } from "../../data/game/customlists.js";
@@ -57,7 +56,6 @@ import {
   dreamData,
   divinityData,
   cauldronInfoData,
-  klaData,
   stampLvData,
   equipOrderData,
   equipQtyData,
@@ -968,31 +966,15 @@ export function computeMaxDamage(charIdx: number, ctx: Ctx): number {
 // counter alone). Exported so tests can pin each term.
 // --------------------------------------------------------------------------
 export function talentCalcTerms(ci: number, ctx: Ctx): Record<number, number> {
-  // talent.resolve already returns 31/125/305/656 as GTN(1,id) × their
+  // talent.resolve already returns 31/110/125/305/656 as GTN(1,id) × their
   // counter (the final-bonus wraps), so no counter goes on top here.
   const tc31 = rval(talent, 31, ctx); // GTN × floor(lowest skill LV / 5)
+  const tc110 = rval(talent, 110, ctx); // GTN × min(maps over 100k kills, GTN(2,110))
   const tc125 = rval(talent, 125, ctx); // GTN × Σ Refinery ranks, accuracy-gated
   const tc305 = rval(talent, 305, ctx) / 50; // GTN × items ever found, /50
   const tc656 = rval(talent, 656, ctx); // GTN × dream clouds completed
-  // 110/470/485 apply their own counter to the bare GTN: calcTalent.ts
-  // miscounts these (110 reads KLA off saveData, which never carries it;
-  // 470/485 count the save envelope's "length" key).
-  // TalentCalc(110): GTN(1,110) * min(monstersOver100K, GTN(2,110))
-  const _gtn1_110 = gtn(110, ctx);
-  const _gtn2_110 = gtn(110, ctx, { tab: 2 });
-  let _monstersOver100K = 0;
-  if (_gtn1_110 > 0) {
-    const _kla = (klaData as any)[ci] || [];
-    for (let _mi = 0; _mi < (MapAFKtarget as any).length; _mi++) {
-      const _mob = (MapAFKtarget as any)[_mi];
-      if (!_mob || _mob === "Nothing" || _mob === "Z" || _mob === "Filler") continue;
-      const _killReq =
-        Number((MapDetails as any)[_mi] && (MapDetails as any)[_mi][0] && (MapDetails as any)[_mi][0][0]) || 0;
-      const _klaVal = Number(_kla[_mi] && _kla[_mi][0]) || 0;
-      if (_killReq - _klaVal >= 100000) _monstersOver100K++;
-    }
-  }
-  const tc110 = _gtn1_110 * Math.min(_monstersOver100K, _gtn2_110);
+  // 470/485 apply their own counter to the bare GTN: calcTalent.ts counts
+  // the save envelope's "length" key for these.
   // TalentCalc(485): GTN(1,485) * count(vials with lv > 3)
   let _vialCount = 0;
   const _ci4 = cauldronInfoData && (cauldronInfoData as any)[4];
