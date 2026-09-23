@@ -26,6 +26,19 @@ Object.defineProperty(window, "localStorage", {
   writable: true,
 });
 
+// happy-dom's AbortSignal has no static timeout(); mirror the browser API for tests.
+if (typeof AbortSignal.timeout !== "function") {
+  Object.defineProperty(AbortSignal, "timeout", {
+    configurable: true,
+    writable: true,
+    value: (ms: number) => {
+      const c = new AbortController();
+      setTimeout(() => c.abort(new DOMException("signal timed out", "TimeoutError")), ms);
+      return c.signal;
+    },
+  });
+}
+
 // Reset storage before each test
 beforeEach(() => {
   Object.keys(storage).forEach((k) => delete storage[k]);

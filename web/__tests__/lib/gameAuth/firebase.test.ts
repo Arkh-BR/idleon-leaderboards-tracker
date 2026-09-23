@@ -177,7 +177,6 @@ describe("reads (GET only)", () => {
     await signInWithGoogleIdToken("g-tok");
     expect(f.mock.calls[0][1]?.signal).toBeInstanceOf(AbortSignal);
 
-    mockFetch(200, { id_token: jwt({ sub: "u1" }), refresh_token: "r2", expires_in: "3600" });
     const f2 = mockFetch(200, { id_token: jwt({ sub: "u1" }), refresh_token: "r2", expires_in: "3600" });
     await refreshSession("r1");
     expect(f2.mock.calls[0][1]?.signal).toBeInstanceOf(AbortSignal);
