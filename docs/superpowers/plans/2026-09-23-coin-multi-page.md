@@ -57,9 +57,11 @@
    - Cost if wrong: cosmetic.
 3. **Vault 37 is not an IT divergence** (spec risk 1 retracted for it).
    - Why: `VaultKillzTotal(9)` = Σ min(100, bubble lv) over cauldrons 0–3, which is what IT does.
-   - The known IT gaps are two, and both are checked into the total test (Task 5):
+   - The known IT gaps are four, and all are folded into the total test (Task 5):
      - `7·CardLv("w5b1")` in the additive group, which IT omits;
-     - Measurement 13 inside Gambit 7: IT adds the miniboss skulls (`OverkillQTY(7)`) to `MeasurementQTYfound(6)`, which N.js sums over worlds 0–6 only.
+     - Measurement 13 inside Gambit 7: IT adds the miniboss skulls (`OverkillQTY(7)`) to `MeasurementQTYfound(6)`, which N.js sums over worlds 0–6 only;
+     - `TalentCalc(643)` = talent × `OverkillStuffs("2")`, the multikill tier (51 for Markhe on map 14): IT uses ×1 (found in Task 1);
+     - golden food: N.js adds `JellyOperation("RoG_BonusQTY",10)` to the golden-food multiplier; IT omits it (found in Task 1).
 4. **In-game precision.**
    - The game shows the coin multi at ≤ 3–4 significant digits: "Big" notation (e.g. `6.77E35`), or truncation to 0.1M/0.1B.
    - So the validation test (Task 12) compares the display string.
@@ -68,6 +70,7 @@
    - Its multiplier pulls seven cavern sub-terms; Measurement 13 needs a Deathnote skull count the engine never ported.
    - Checked while planning on the reference save: every sub-term equals IdleonToolbox's except Measurement 13 (79.0333 in IT vs 77.1284 in N.js, 58 miniboss skulls), so Gambit 7 = **74.03532772764761** (IT: 74.04491048389032).
 6. **Where the game shows the value** (spec risk 4, resolved): Upgrade Vault → upgrade 2 "Monster Tax" → the line "Total Coin Bonus from all sources: …x". N.js @11794293 fills its `~` with `ArbitraryCode("MonsterCash")` for the **active character on its current map**.
+7. **The map drives two terms** (found in Task 1): the guild world, and talent 643's multikill tier (the AFK monster's HP; exponent 5 from map 300). The `talent643` source follows the selected map; the collector uses map 301 (W7's first fighting map; 300 is a town).
 
 ## Reference values (IdleonToolbox live `getCashMulti`)
 
@@ -1206,15 +1209,20 @@ In the `it.each` table:
 And a new `it` after the `it.each`:
 
 ```ts
-  it("total = IdleonToolbox's total, corrected for the two terms where IT departs from N.js", () => {
+  it("total = IdleonToolbox's total, corrected for the four terms where IT departs from N.js", () => {
     const IT_TOTAL = 6.773746899414287e35;
-    // 7·CardLv("w5b1"): N.js adds it to the additive group; IT omits it.
+    // Additive group (g23): IT's Σ plus what N.js adds on top of it —
+    // 7·CardLv("w5b1") (IT omits it), talent 643's multikill tier (IT uses ×1)
+    // and golden food's JellyOperation RoG 10 term (IT omits it).
     const IT_ADDITIVE = 69877.71279617335;
-    const w5b1 = (1 + (IT_ADDITIVE + src("cardW5b1")) / 100) / (1 + IT_ADDITIVE / 100);
+    const IT_TALENT643 = 20.941558441558442;
+    const IT_GOLD_FOOD = 41196.37827189698;
+    const delta = src("cardW5b1") + (src("talent643") - IT_TALENT643) + (src("goldFood") - IT_GOLD_FOOD);
+    const additive = (1 + (IT_ADDITIVE + delta) / 100) / (1 + IT_ADDITIVE / 100);
     // Gambit 7: IT counts miniboss skulls in Measurement 13; N.js doesn't.
     const IT_GAMBIT7 = 74.04491048389032;
     const gambit = (1 + src("gambit7") / 100) / (1 + IT_GAMBIT7 / 100);
-    expect(Math.abs(tree.val / (IT_TOTAL * w5b1 * gambit) - 1)).toBeLessThan(1e-9);
+    expect(Math.abs(tree.val / (IT_TOTAL * additive * gambit) - 1)).toBeLessThan(1e-9);
   });
 ```
 
@@ -1816,8 +1824,9 @@ describe("coin multi map options", () => {
 - [ ] **Step 2: Run it — FAIL.** Then create `web/lib/coinMulti/mapOptions.ts`:
 
 ```ts
-// Map list for the Coin Multi page. Only the guild term depends on the map,
-// through its world: GuildBonuses(8)·(1 + ⌊map/50⌋).
+// Map list for the Coin Multi page. The map drives two terms: the guild
+// world, GuildBonuses(8)·(1 + ⌊map/50⌋), and talent 643's multikill tier
+// (the AFK monster's HP; exponent 5 from map 300).
 
 import { MAP_NAMES } from "@/lib/dropRate/mapNames";
 
@@ -2189,7 +2198,7 @@ export default function CoinCalculator({
             value={mapIdx}
             disabled={chars.length === 0}
             onChange={(e) => setMapIdx(Number(e.target.value))}
-            title="Only the guild bonus depends on the map: ×(1 + world − 1)"
+            title="The map sets the guild bonus world and Coins For Charon's multikill tier"
             className="px-2 py-1.5 text-sm bg-zinc-900 border border-zinc-700 rounded text-sky-300 disabled:opacity-40"
           >
             {mapOptions.map((m) => (
@@ -2663,7 +2672,7 @@ git commit -m "feat(coin): Biggest Gains with multi-group math" -m "Co-Authored-
 
 **Model** (same as the DR collector, minus the DR-only parts):
 - **Players:** the #1 of every IT leaderboard plus the top 10 of the `cashMulti` board.
-- **Per character:** coin pools at `BEST_MAP = 300` (world 7, the top guild factor).
+- **Per character:** coin pools at `BEST_MAP = 301` (w7a1 Refraction Bend: world 7, the top guild factor, and a real multikill tier; map 300 is a town).
 - **Merge:** keep the best value per pool item; the item index is the same source for every save.
 - **Base profile:** one `combineCoinPools` pass with the class-specific talents zeroed.
 - **Per-profile override:** the talents the class owns.
@@ -2726,7 +2735,7 @@ Run — PASS.
 ```ts
 // Refresh the bundled top-player Coin Multi reference in
 // lib/coinMulti/topCoinMulti.ts (+ .meta.ts). Same model as update-top-dr.ts:
-// every char of every candidate at the best map (world 7 for the guild term),
+// every char of every candidate at map 301 (world 7 for the guild term),
 // the best value per source across everyone, then ONE combine() pass — the
 // tree and the total come from the same math a real save uses. Class talents
 // are gated per class.
@@ -2755,8 +2764,9 @@ const LIMIT = (() => {
 })();
 // Never publish a shrunken reference (the Tome cron lesson); --limit is a smoke test.
 const MIN_PLAYERS = LIMIT ? 1 : 20;
-// Only the guild term reads the map, through ⌊map/50⌋: map 300 is world 7.
-const BEST_MAP = 300;
+// The map feeds the guild world (⌊map/50⌋ + 1) and talent 643's multikill
+// tier. 301 (w7a1) is W7's first fighting map; 300 is a town (tier 1).
+const BEST_MAP = 301;
 
 const OUTPUT_FILE = join(__dirname, "..", "lib", "coinMulti", "topCoinMulti.ts");
 const META_FILE = join(__dirname, "..", "lib", "coinMulti", "topCoinMulti.meta.ts");

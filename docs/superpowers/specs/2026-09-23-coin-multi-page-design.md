@@ -64,7 +64,7 @@ ordem (parênteses conferidos no texto cru):
 | G22 | `1 + (Divinity Bonus_Minor(−1,3) + FarmingStuffs CropSCbonus(4))/100` |
 | G23 | `1 + Σ/100`, Σ = `GetTalentNumber(1,657)` + frasco `MonsterCash` + `EtcBonuses("3")` + `CardBonusREAL(11)` + `7·CardLv("w5b1")` + `GetTalentNumber(1,22)` + `FlurboShop(4)` + `ArcadeBonus(10)` + `ArcadeBonus(11)` + `BoxRewards["13c"]` + **`GuildBonuses(8)·(1 + ⌊CurrentMap/50⌋)`** + `TalentCalc(643)` + `TalentCalc(644)` + `GoldFoodBonuses("MonsterCash")` + `VaultUpg(17)·getLOG(OLA[340])` + `5·Ach(235)` + `10·Ach(350)` + `20·Ach(376)` + `VaultUpg(2)` + `VaultUpg(14)·VaultKillzTotal(4)` + `VaultUpg(31)·VaultKillzTotal(7)` + `OLA[420]` + `VaultUpg(70)·Stuff2("CardsCollected")` |
 
-O único termo que depende do **mapa** é a guilda (G23), via o mundo `⌊mapa/50⌋`.
+Dois termos dependem do **mapa**: a guilda (G23), via o mundo `⌊mapa/50⌋`, e o `TalentCalc(643)`, via o tier de multikill contra o monstro do mapa (`OverkillStuffs("2")`, expoente 5 a partir do mapa 300). *(Corrigido na execução, Task 1: antes dizia que só a guilda dependia do mapa.)*
 
 **Exibição no jogo** (N.js @11794100): `> 1e16` → `NotateNumber(x,"Big")`; `> 1e10` →
 `⌊x/1e8⌋/10 + "B"`; `> 1e7` → `⌊x/1e5⌋/10 + "M"` (as duas **truncam**); senão
@@ -109,7 +109,7 @@ O único termo que depende do **mapa** é a guilda (G23), via o mundo `⌊mapa/5
 - **Coletor** `web/scripts/update-top-coin.ts` (fork do `update-top-dr.ts`):
   - Jogadores: #1 de cada leaderboard do IT + **top 10 do board `cashMulti`**; mesmos filtros do DR
     (anônimos, denylist, saves hackeados).
-  - Cada personagem calculado no **melhor mapa** (mundo mais alto, maximizando o termo da guilda).
+  - Cada personagem calculado no **mapa 301** (primeiro mapa de luta do W7: mundo mais alto para a guilda e tier de multikill real; o 300 é cidade).
   - Melhor valor por fonte e **uma única passada** do `combine` sobre os melhores pools (total e ramos
     consistentes).
   - **Limite de cartas** (fork de `_shared/top8DrCards.ts`): só as cartas de moeda que cabem nos slots de
