@@ -18,9 +18,10 @@ export type SaveEnvelope = {
   extraData: { totalTomePoints: number };
 };
 
+/** The account has nothing to load — the session signs out on it. */
 export class NoCharactersError extends Error {
-  constructor() {
-    super("No characters found for this account");
+  constructor(message = "No characters found for this account") {
+    super(message);
     this.name = "NoCharactersError";
   }
 }
@@ -48,7 +49,11 @@ export async function fetchSaveEnvelope(uid: string, idToken: string): Promise<S
     optional(firestoreGet("_TOURNAMENT/_TOURNAMENT", idToken)),
     optional(firestoreGet("_vars/_vars", idToken)),
   ]);
-  if (!save) throw new Error("No save found for this account");
+  if (!save) {
+    throw new NoCharactersError(
+      "No save found for this account — is this the account you play Idleon with?"
+    );
+  }
   if (!Array.isArray(charNames) || charNames.length === 0) throw new NoCharactersError();
 
   const gid = typeof guildId === "string" && guildId ? guildId : null;

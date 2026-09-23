@@ -16,6 +16,7 @@ import {
   checkForUpdate,
   hasSession,
   loadAccountSave,
+  SessionExpiredError,
   setAutoUpdateMode,
   signOut,
   type AutoUpdateMode,
@@ -70,6 +71,9 @@ export default function ProfileNameLoader({
   const [dialogTab, setDialogTab] = useState<Provider | null>(null);
   // Whether the page currently shows the account save (vs one loaded by name).
   const showingAccount = useRef(false);
+  // Set by Sign out: a load it cut short ends in SessionExpiredError, which
+  // isn't news to the user.
+  const signedOutByUser = useRef(false);
   // Latest callbacks: pages pass inline lambdas, and the auto-update timer
   // must not restart on every render.
   const cb = useRef({ onSave, onError });
@@ -78,6 +82,7 @@ export default function ProfileNameLoader({
   });
 
   const fail = useCallback((e: unknown) => {
+    if (e instanceof SessionExpiredError && signedOutByUser.current) return;
     const msg = e instanceof Error ? e.message : String(e);
     setError(msg);
     cb.current.onError?.(msg);
@@ -204,6 +209,7 @@ export default function ProfileNameLoader({
   }
 
   function onSignedIn() {
+    signedOutByUser.current = false;
     setDialogTab(null);
     setSignedIn(true);
     setMode(autoUpdateMode());
@@ -212,6 +218,7 @@ export default function ProfileNameLoader({
   }
 
   function onSignOut() {
+    signedOutByUser.current = true;
     signOut();
     setSignedIn(false);
     setAccount(null);

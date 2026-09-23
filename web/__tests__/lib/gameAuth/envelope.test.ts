@@ -85,10 +85,16 @@ describe("fetchSaveEnvelope", () => {
     expect(env.tournament).toEqual({ user: null, match: null, global: null, leaderboard: [] });
   });
 
-  it("no characters → NoCharactersError; no save → error", async () => {
+  it("no characters → NoCharactersError; no save → NoCharactersError asking about the account", async () => {
     mockGame({ "documents/_data/u1": doc({}) });
-    await expect(fetchSaveEnvelope("u1", "tok")).rejects.toBeInstanceOf(NoCharactersError);
+    const noChars = fetchSaveEnvelope("u1", "tok");
+    await expect(noChars).rejects.toBeInstanceOf(NoCharactersError);
+    await expect(noChars).rejects.toThrow("No characters found for this account");
     mockGame({ "/_uid/u1.json": ["Alpha"] });
-    await expect(fetchSaveEnvelope("u1", "tok")).rejects.toThrow("No save found for this account");
+    const noSave = fetchSaveEnvelope("u1", "tok");
+    await expect(noSave).rejects.toBeInstanceOf(NoCharactersError);
+    await expect(noSave).rejects.toThrow(
+      "No save found for this account — is this the account you play Idleon with?"
+    );
   });
 });

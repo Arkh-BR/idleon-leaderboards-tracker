@@ -10,8 +10,17 @@ const s = vi.hoisted(() => ({
   setAutoUpdateMode: vi.fn(),
   signOut: vi.fn(),
   startSession: vi.fn(),
+  accountAutoLoads: vi.fn(),
 }));
-vi.mock("@/lib/gameAuth/session", () => s);
+const SessionExpiredError = vi.hoisted(
+  () =>
+    class SessionExpiredError extends Error {
+      constructor() {
+        super("Session expired — sign in again");
+      }
+    }
+);
+vi.mock("@/lib/gameAuth/session", () => ({ ...s, SessionExpiredError }));
 
 import ProfileNameLoader from "@/components/ProfileNameLoader";
 
@@ -102,6 +111,21 @@ describe("ProfileNameLoader — game account", () => {
     fireEvent.click(screen.getByRole("button", { name: /Stop/ }));
     expect(s.setAutoUpdateMode).toHaveBeenLastCalledWith("off");
     expect(screen.getByRole("button", { name: /Start auto-update/ })).toBeInTheDocument();
+  });
+
+  it("Sign out during a load: the cancelled load shows no 'Session expired'", async () => {
+    s.hasSession.mockReturnValue(true);
+    let reject!: (e: unknown) => void;
+    s.loadAccountSave.mockReturnValue(new Promise((_, r) => (reject = r)));
+    const onError = vi.fn();
+    render(<ProfileNameLoader storageKey="k" onSave={vi.fn()} onError={onError} />);
+    s.hasSession.mockReturnValue(false);
+    fireEvent.click(screen.getByRole("button", { name: "Sign out" }));
+    expect(s.signOut).toHaveBeenCalled();
+    await act(async () => reject(new SessionExpiredError()));
+    expect(screen.queryByText(/Session expired/)).toBeNull();
+    expect(onError).not.toHaveBeenCalled();
+    expect(screen.getByText(/Sign in to load your save automatically/)).toBeInTheDocument();
   });
 
   it("auto-update: every 5 min a newer save arrives as a refresh", async () => {

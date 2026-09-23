@@ -26,6 +26,9 @@ type Stored = { v: 1; provider: Provider; uid: string; refreshToken: string };
 let session: Session | null = null;
 let envelope: SaveEnvelope | null = null;
 let paused = false;
+/** Epoch ms of the last save download or update check: the auto-update clock,
+ *  shared so switching pages doesn't restart the 5-min countdown. */
+let lastCheck = 0;
 
 export class SessionExpiredError extends Error {
   constructor() {
@@ -50,7 +53,9 @@ function persist(s: Session) {
   try {
     localStorage.setItem(SESSION_KEY, JSON.stringify(stored));
   } catch {
-    // storage blocked: the session just lasts this visit
+    // Storage blocked: the session just lasts this visit — and its missing
+    // stored copy mustn't read as "signed out in another tab".
+    s.keep = false;
   }
 }
 
@@ -77,8 +82,23 @@ export function cachedEnvelope(): SaveEnvelope | null {
   return envelope;
 }
 
-/** The session with an ID token good for 5+ more minutes. A rejected refresh
- *  signs out (SessionExpiredError); network errors propagate, session kept. */
+/** Whether ProfileNameLoader puts the account save on screen at mount — pages
+ *  skip restoring an old pasted save when it will. */
+export function accountAutoLoads(): boolean {
+  if (!process.env.NEXT_PUBLIC_IDLEON_FIREBASE_API_KEY) return false;
+  return envelope !== null || (hasSession() && autoUpdateMode() !== "off");
+}
+
+/** When the account save was last downloaded or checked (epoch ms). */
+export function lastCheckAt(): number {
+  return lastCheck;
+}
+
+/** The session with an ID token good for 5+ more minutes. Signed out
+ *  meanwhile — here, or in another tab (its stored token is gone) — or a
+ *  refresh rejected for good ends it: SessionExpiredError, and a signed-out
+ *  session never comes back. Network errors and transient rejections (5xx,
+ *  429…) propagate with the session kept. */
 async function liveSession(): Promise<Session> {
   if (!session) {
     const stored = readStored();
@@ -86,30 +106,46 @@ async function liveSession(): Promise<Session> {
     const { provider, uid, refreshToken } = stored;
     session = { provider, uid, refreshToken, idToken: "", expiresAt: 0, keep: true };
   }
-  if (session.expiresAt - Date.now() < REFRESH_MARGIN_MS) {
-    try {
-      session = { ...session, ...(await refreshSession(session.refreshToken)) };
-    } catch (e) {
-      if (e instanceof AuthRejectedError && DEAD_SESSION_CODES.has(e.code)) {
-        signOut();
-        throw new SessionExpiredError();
-      }
-      throw e;
-    }
-    persist(session);
+  const s0 = session;
+  const signedOutElsewhere = () => s0.keep && !readStored();
+  if (signedOutElsewhere()) {
+    signOut();
+    throw new SessionExpiredError();
   }
+  if (s0.expiresAt - Date.now() >= REFRESH_MARGIN_MS) return s0;
+  let fresh: FirebaseAuth;
+  try {
+    fresh = await refreshSession(s0.refreshToken);
+  } catch (e) {
+    if (e instanceof AuthRejectedError && DEAD_SESSION_CODES.has(e.code)) {
+      if (session === s0) signOut();
+      throw new SessionExpiredError();
+    }
+    throw e;
+  }
+  // Signed out or switched account during the refresh (here or elsewhere):
+  // don't merge or store the fresh token.
+  if (session !== s0 || signedOutElsewhere()) {
+    if (session === s0) signOut();
+    throw new SessionExpiredError();
+  }
+  session = { ...s0, ...fresh };
+  persist(session);
   return session;
 }
 
 /** The account save, cached for the visit unless `force`. */
 export async function loadAccountSave({ force = false } = {}): Promise<SaveEnvelope> {
   if (envelope && !force) return envelope;
+  lastCheck = Date.now();
   const s = await liveSession();
   let fresh: SaveEnvelope;
   try {
     fresh = await fetchSaveEnvelope(s.uid, s.idToken);
   } catch (e) {
-    if (e instanceof NoCharactersError) signOut();
+    // No save / no characters: a dead end for this account (e.g. the wrong
+    // Google account) — unless another one signed in meanwhile.
+    if (e instanceof NoCharactersError && session?.uid === s.uid) signOut();
     throw e;
   }
   // Signed out (or switched account) while downloading: drop the result.
@@ -120,10 +156,12 @@ export async function loadAccountSave({ force = false } = {}): Promise<SaveEnvel
 
 /** Cheap poll: a newer save if the game wrote one since ours, else null. */
 export async function checkForUpdate(): Promise<SaveEnvelope | null> {
-  if (!envelope) return loadAccountSave();
+  const known = envelope; // a Sign out during the awaits clears `envelope`
+  if (!known) return loadAccountSave();
+  lastCheck = Date.now();
   const s = await liveSession();
   const t = await firestoreUpdateTime(`_data/${s.uid}`, s.idToken);
-  if (!t || Date.parse(t) === envelope.lastUpdated) return null;
+  if (!t || Date.parse(t) === known.lastUpdated) return null;
   return loadAccountSave({ force: true });
 }
 
