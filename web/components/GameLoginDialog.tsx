@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useId, useRef, useState, type FormEvent } from "react";
 import {
   GOOGLE_DEVICE_URL,
   exchangeSteamAssertion,
@@ -33,6 +33,9 @@ export default function GameLoginDialog({
   const ref = useRef<HTMLDialogElement>(null);
   const [active, setActive] = useState<Provider>("google");
   const [keep, setKeep] = useState(true);
+  const id = useId();
+  const titleId = `${id}-title`;
+  const panelId = `${id}-panel`;
 
   useEffect(() => {
     const d = ref.current;
@@ -59,13 +62,16 @@ export default function GameLoginDialog({
     <dialog
       ref={ref}
       onClose={onClose}
+      aria-labelledby={titleId}
       className="w-[min(32rem,calc(100vw-2rem))] rounded-lg border border-zinc-700 bg-zinc-900 p-5 text-zinc-200 backdrop:bg-black/60"
     >
       {/* Content only while open: unmounting stops the Google polling. */}
       {tab && (
         <div className="flex flex-col gap-4">
           <div className="flex items-start justify-between gap-2">
-            <h2 className="text-lg font-bold text-gold">Sign in with your Idleon account</h2>
+            <h2 id={titleId} className="text-lg font-bold text-gold">
+              Sign in with your Idleon account
+            </h2>
             <button
               type="button"
               onClick={onClose}
@@ -80,6 +86,7 @@ export default function GameLoginDialog({
               type="button"
               role="tab"
               aria-selected={active === "google"}
+              aria-controls={panelId}
               className={tabClass("google")}
               onClick={() => setActive("google")}
             >
@@ -89,17 +96,20 @@ export default function GameLoginDialog({
               type="button"
               role="tab"
               aria-selected={active === "steam"}
+              aria-controls={panelId}
               className={tabClass("steam")}
               onClick={() => setActive("steam")}
             >
               Steam
             </button>
           </div>
-          {active === "google" ? (
-            <GoogleTab onAuth={(a) => done(a, "google")} />
-          ) : (
-            <SteamTab onAuth={(a) => done(a, "steam")} />
-          )}
+          <div role="tabpanel" id={panelId}>
+            {active === "google" ? (
+              <GoogleTab onAuth={(a) => done(a, "google")} />
+            ) : (
+              <SteamTab onAuth={(a) => done(a, "steam")} />
+            )}
+          </div>
           <label className="flex items-start gap-2 text-sm">
             <input
               type="checkbox"
@@ -110,8 +120,9 @@ export default function GameLoginDialog({
             <span>
               Keep me signed in on this device
               <span className="block text-xs text-zinc-500">
-                Stores a login token in this browser so your save loads on every visit. Sign out
-                removes it.
+                Stores a login token in this browser so your save loads on every visit. It can
+                act on your game account, so only use this on your own device. Sign out removes
+                it.
               </span>
             </span>
           </label>
@@ -144,7 +155,9 @@ function GoogleTab({ onAuth }: { onAuth: (a: FirebaseAuth) => void }) {
         if (ac.signal.aborted) return;
         setCode(c);
         const googleIdToken = await waitForGoogleIdToken(c, ac.signal);
-        onAuthRef.current(await signInWithGoogleIdToken(googleIdToken));
+        const auth = await signInWithGoogleIdToken(googleIdToken);
+        if (ac.signal.aborted) return; // closed after approving: don't sign in
+        onAuthRef.current(auth);
       } catch (e) {
         if (!ac.signal.aborted) setError(e instanceof Error ? e.message : String(e));
       }
@@ -224,7 +237,7 @@ function SteamTab({ onAuth }: { onAuth: (a: FirebaseAuth) => void }) {
           <button
             type="button"
             className="text-gold underline"
-            onClick={() => window.open(steamLoginUrl(), "_blank", "popup")}
+            onClick={() => window.open(steamLoginUrl(), "_blank", "popup,noopener")}
           >
             Sign in through Steam
           </button>{" "}

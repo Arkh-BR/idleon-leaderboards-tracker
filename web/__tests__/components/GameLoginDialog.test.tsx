@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, fireEvent, act, waitFor } from "@testing-library/react";
-import type { DeviceCode } from "@/lib/gameAuth/providers";
+import { steamLoginUrl, type DeviceCode } from "@/lib/gameAuth/providers";
 import type { FirebaseAuth } from "@/lib/gameAuth/firebase";
 
 // Keep the real parseSteamReturnUrl / steamLoginUrl / GOOGLE_DEVICE_URL (the
@@ -60,6 +60,14 @@ describe("GameLoginDialog", () => {
 
     expect(await screen.findByText("WXYZ-9999")).toBeInTheDocument();
     expect(screen.getByRole("checkbox")).toBeChecked(); // "Keep me signed in" defaults on
+    expect(screen.getByText(/It can act on your game account, so only use this on your own device/))
+      .toBeInTheDocument();
+    // a11y: the dialog is named by its title; the tabs point at their panel.
+    expect(screen.getByRole("dialog", { name: "Sign in with your Idleon account" })).toBeInTheDocument();
+    const panelId = screen.getByRole("tabpanel").id;
+    expect(panelId).not.toBe("");
+    expect(screen.getByRole("tab", { name: "Google" })).toHaveAttribute("aria-controls", panelId);
+    expect(screen.getByRole("tab", { name: "Steam" })).toHaveAttribute("aria-controls", panelId);
 
     await waitFor(() =>
       expect(firebaseMock.signInWithGoogleIdToken).toHaveBeenCalledWith("google-id-token-xyz")
@@ -121,6 +129,10 @@ describe("GameLoginDialog", () => {
     const onSignedIn = vi.fn();
     render(<GameLoginDialog tab="steam" onClose={vi.fn()} onSignedIn={onSignedIn} />);
 
+    // The Steam window can't reach back into this page.
+    fireEvent.click(screen.getByRole("button", { name: "Sign in through Steam" }));
+    expect(window.open).toHaveBeenCalledWith(steamLoginUrl(), "_blank", "popup,noopener");
+
     const input = screen.getByPlaceholderText(/steamsso/i);
     const submit = screen.getByRole("button", { name: /Log in/ });
 
@@ -169,5 +181,30 @@ describe("GameLoginDialog", () => {
     rerender(<GameLoginDialog tab={null} onClose={vi.fn()} onSignedIn={vi.fn()} />);
 
     await waitFor(() => expect(capturedSignal!.aborted).toBe(true));
+  });
+
+  it("closing after Google approval, before the game's sign-in answers, doesn't sign in", async () => {
+    const CODE: DeviceCode = { deviceCode: "devcode-6", userCode: "DDDD-4444", interval: 5, expiresAt: Date.now() + 1_800_000 };
+    const AUTH: FirebaseAuth = { uid: "u6", idToken: "id-6", refreshToken: "r-6", expiresAt: Date.now() + 3_600_000 };
+    providersMock.requestDeviceCode.mockResolvedValue(CODE);
+    providersMock.waitForGoogleIdToken.mockResolvedValue("google-id-token-6");
+    let finish!: (a: FirebaseAuth) => void;
+    firebaseMock.signInWithGoogleIdToken.mockImplementation(
+      () => new Promise<FirebaseAuth>((resolve) => { finish = resolve; })
+    );
+
+    const onSignedIn = vi.fn();
+    const { rerender } = render(
+      <GameLoginDialog tab="google" onClose={vi.fn()} onSignedIn={onSignedIn} />
+    );
+    await waitFor(() => expect(firebaseMock.signInWithGoogleIdToken).toHaveBeenCalled());
+
+    rerender(<GameLoginDialog tab={null} onClose={vi.fn()} onSignedIn={onSignedIn} />);
+    await act(async () => {
+      finish(AUTH);
+    });
+
+    expect(sessionMock.startSession).not.toHaveBeenCalled();
+    expect(onSignedIn).not.toHaveBeenCalled();
   });
 });
