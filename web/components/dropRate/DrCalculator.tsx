@@ -108,16 +108,22 @@ export default function DrCalculator({
     labSlots?: number[][];
   } | null>(null);
 
+  // A refresh of the same account (auto-update / Sync now) keeps the user's
+  // map + chip choices; a fresh load re-derives them from the save.
+  const keepViewRef = useRef(false);
+  const lastCharIdxRef = useRef(charIdx);
+
   // Apply an already-parsed save envelope ({ data, charNames, … }) into state.
   // Shared by the paste path (stageSave) and the load-by-name path.
   const applyParsedSave = useCallback(
-    (parsed: any, opts: { silent?: boolean } = {}) => {
+    (parsed: any, opts: { silent?: boolean; keepView?: boolean } = {}) => {
       try {
         const list = listCharacters(parsed);
         if (list.length === 0) {
           if (!opts.silent) setError("Save parsed but no characters found.");
           return false;
         }
+        keepViewRef.current = !!opts.keepView;
         setSave(parsed);
         setChars(list);
         setCharIdx((prev) =>
@@ -125,10 +131,14 @@ export default function DrCalculator({
         );
         const opts2 = buildMapOptions(parsed);
         setMapOptions(opts2);
-        // Default to character's current map if available, else Town
+        // Default to character's current map if available, else Town — unless
+        // this is a refresh and the user's map is still on the list.
         const data = (parsed as any)?.data ?? {};
         const currentMap = Number(data[`CurrentMap_${list[0].charIndex}`]) || 0;
-        setMapIdx(opts2.some((m) => m.index === currentMap) ? currentMap : 0);
+        const fallback = opts2.some((m) => m.index === currentMap) ? currentMap : 0;
+        setMapIdx((prev) =>
+          opts.keepView && opts2.some((m) => m.index === prev) ? prev : fallback
+        );
         setError(null);
         return true;
       } catch (e) {
@@ -183,6 +193,10 @@ export default function DrCalculator({
   // if the map isn't in the list (e.g. removed event map).
   useEffect(() => {
     if (!save || chars.length === 0) return;
+    const charChanged = lastCharIdxRef.current !== charIdx;
+    lastCharIdxRef.current = charIdx;
+    // Same-account refresh with the same character: keep the user's map.
+    if (keepViewRef.current && !charChanged) return;
     const data = (save as any)?.data ?? {};
     const currentMap = Number(data[`CurrentMap_${charIdx}`]) || 0;
     const inOptions = mapOptions.some((m) => m.index === currentMap);
@@ -230,7 +244,7 @@ export default function DrCalculator({
       }
     }
     setChipDetected(found);
-    setChipGalleryActive(undefined);
+    if (!keepViewRef.current) setChipGalleryActive(undefined);
   }, [save]);
 
   // Compute the detailed DR tree whenever save/char/chip changes. Loaded
@@ -344,7 +358,7 @@ export default function DrCalculator({
       {/* Primary: load the save automatically by player name. */}
       <ProfileNameLoader
         storageKey={NAME_KEY}
-        onSave={(s) => applyParsedSave(s)}
+        onSave={(s, meta) => applyParsedSave(s, { keepView: meta?.refresh })}
         onError={(msg) => setError(msg)}
       >
         {/* Manual paste — fallback for private profiles, inside the card. */}
