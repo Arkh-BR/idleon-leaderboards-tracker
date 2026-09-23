@@ -7,7 +7,7 @@
 import { node, type ArkhNode } from "../../../node";
 import type { SystemCtx } from "../../registry";
 import { getLOG } from "../../../formulas";
-import { optionsListData } from "../../../save/data";
+import { optionsListData, currentMapData } from "../../../save/data";
 import { eventShopOwned } from "../../../game-helpers";
 import { label } from "../../entity-names";
 import { bubbleValByKey, computeVialByKey } from "../w2/alchemy";
@@ -23,6 +23,7 @@ import { sushiRoG } from "../w7/sushi";
 import { gridBonusValue } from "../w4/lab";
 import { getSetBonus } from "../w3/setBonus";
 import { maxTalentBonus, talent } from "../common/talent";
+import { computeOverkillTier } from "../common/derived-damage";
 import { friend } from "../common/friend";
 import { vaultUpgBonus } from "../common/vault";
 import { pristineBon } from "../w5/pristine";
@@ -148,26 +149,31 @@ function resolveCoin(id: string, ctx: SystemCtx): ArkhNode {
     case "talent22":
     case "talent644":
       return talent.resolve(Number(id.slice(6)), tctx);
-    // Talent 643 (Coins For Charon): N.js multiplies GetTalentNumber(1,643)
-    // by CalcTalentMAP["643"] = OverkillStuffs("2") — a LIVE multikill-combo
-    // counter built only while actually AFK-fighting, not something a static
-    // save records. The shared talent.resolve() wrap (talent-final-bonus-
-    // wraps.ts, via computeCalcTalent → computeOverkillTier) instead feeds it
-    // a THEORETICAL max-damage tier, which overstates this term for a save
-    // snapshot (tier 51 here) — both N.js's own uninitialized CalcTalentMAP
-    // entry and our port's own "not on a fighting map" branch default this
-    // counter to 1 (baseline/inactive), and IdleonToolbox's cross-check
-    // confirms that reading is right (last 0.11-style residual: 1306.4712...
-    // only reconciles when 643 contributes its bare coefficient). We read
-    // that coefficient back off the shared resolver's "Talent Value" child
-    // instead of re-deriving the whole effective-level pipeline here.
+    // Talent 643 (Coins For Charon): TalentCalc(643) = GetTalentNumber(1,643)
+    // × OverkillStuffs("2") (N.js @4075410). OverkillStuffs is deterministic
+    // (max damage vs the AFK target's HP, not a live/session counter), and
+    // talent.resolve() already wires it correctly via computeCalcTalent →
+    // computeOverkillTier — but on the character's SAVED current map
+    // (currentMapData[ci]). The Coin Multi page lets the user view a
+    // different map, and the tier depends on the map (monster HP, and the
+    // ×5 vs ×2 exponent at map ≥ 300), so when ctx.mapIdx names one other
+    // than the saved map, rescale tv × tier from the saved map's tier to the
+    // selected map's tier — reusing the same maxDmg (it doesn't depend on
+    // the map, only the monster HP / exponent do).
     case "talent643": {
-      const resolved = talent.resolve(643, tctx);
-      const tv = Number(resolved.children?.find((c) => c.name === "Talent Value")?.val) || 0;
-      return node(resolved.name, tv, resolved.children, {
-        fmt: "+",
-        note: "OverkillStuffs('2') is live combat state, not derivable from a save — treated as baseline (×1)",
-      });
+      const r = talent.resolve(643, tctx);
+      const savedMap = Number((currentMapData as any)?.[ci]);
+      if (ctx.mapIdx == null || ctx.mapIdx === savedMap || !(Number(r.val) > 0)) {
+        return r;
+      }
+      const t0 = computeOverkillTier(ci, { saveData: s, charIdx: ci });
+      const t1 = computeOverkillTier(ci, { saveData: s, charIdx: ci }, { mapIdx: ctx.mapIdx, maxDmg: t0.maxDmg });
+      return node(
+        r.name,
+        (r.val / t0.tier) * t1.tier,
+        [...(r.children ?? []), raw(`Multikill tier on map ${ctx.mapIdx}`, t1.tier)],
+        { fmt: "+" }
+      );
     }
     case "vialCash":
       return add("Cash Vial (MonsterCash)", computeVialByKey("MonsterCash", s));

@@ -3,6 +3,8 @@ import { existsSync, readFileSync } from "node:fs";
 import { computeArkhCoinMulti } from "@/lib/arkh/computeCoin";
 import { COIN_GROUPS } from "@/lib/arkh/stats/defs/coin-multi";
 import type { ArkhNode } from "@/lib/arkh/node";
+import { saveData } from "@/lib/arkh/state";
+import { computeOverkillTier } from "@/lib/arkh/stats/systems/common/derived-damage";
 
 const g = globalThis as unknown as { window?: unknown };
 if (!g.window) g.window = g;
@@ -14,9 +16,12 @@ const SAVE = "scripts/updater/golden/.cache/arkhe-live-2026-09-23.json";
 
 describe.skipIf(!existsSync(SAVE))("Coin Multi — Markhe on map 14 vs IdleonToolbox", () => {
   let tree: ArkhNode;
+  let save: any;
+  let markheIdx: number;
   beforeAll(() => {
-    const save = JSON.parse(readFileSync(SAVE, "utf8"));
-    tree = computeArkhCoinMulti(save, save.charNames.indexOf("Markhe"), 14).tree;
+    save = JSON.parse(readFileSync(SAVE, "utf8"));
+    markheIdx = save.charNames.indexOf("Markhe");
+    tree = computeArkhCoinMulti(save, markheIdx, 14).tree;
   });
 
   const src = (id: string): number => {
@@ -52,7 +57,12 @@ describe.skipIf(!existsSync(SAVE))("Coin Multi — Markhe on map 14 vs IdleonToo
     ["pristine 16", () => src("pristine16"), 40],
     ["prayer 8", () => src("prayer8"), 0],
     ["talent 657", () => src("talent657"), 46.666666666666664],
-    ["talents 22 + 643 + 644", () => sum("talent22", "talent643", "talent644"), 1306.4712107932967],
+    ["talents 22 + 644", () => sum("talent22", "talent644"), 1285.5296523517382],
+    // N.js ≠ IT: IT treats OverkillStuffs("2") (the multikill tier, 51 here)
+    // as 1. N.js's TalentCalc(643) = GetTalentNumber(1,643) × OverkillStuffs
+    // ("2") (@4075410, a deterministic max-dmg-vs-AFK-target-HP tier, not a
+    // live counter) — our value keeps the tier.
+    ["talent 643 × multikill tier", () => src("talent643"), 1068.0194805194806],
     ["cash vial", () => src("vialCash"), 101.92],
     ["money gear (etc 3)", () => src("etc3"), 2088.704016863951],
     ["money cards", () => src("card11"), 0],
@@ -72,4 +82,31 @@ describe.skipIf(!existsSync(SAVE))("Coin Multi — Markhe on map 14 vs IdleonToo
     ["vault 2", () => src("vault2"), 4657.08],
     ["ninja extra cash", () => src("ola420"), 150],
   ])("%s", (_name, get, expected) => close(get(), expected));
+
+  it("moves only guild8 and talent643 when the viewed map changes", () => {
+    const tree301 = computeArkhCoinMulti(save, markheIdx, 301).tree;
+    // computeArkhCoinMulti reloads the save into the shared singleton on
+    // every call; read the tier right after this one, before anything else
+    // touches it.
+    const tier301 = computeOverkillTier(markheIdx, { saveData, charIdx: markheIdx }, { mapIdx: 301 }).tier;
+
+    const src301 = (id: string): number => {
+      const gi = COIN_GROUPS.findIndex((x) => x.sources.includes(id));
+      const si = COIN_GROUPS[gi].sources.indexOf(id);
+      return Number(tree301.children![gi].children![si].val) || 0;
+    };
+
+    for (const grp of COIN_GROUPS) {
+      for (const id of grp.sources) {
+        if (id === "guild8" || id === "talent643") continue;
+        close(src301(id), src(id));
+      }
+    }
+
+    // World multi: 1 + ⌊map/50⌋ → map 14 gives ×1, map 301 gives ×7.
+    close(src301("guild8"), 7 * src("guild8"));
+    // Multikill tier is map-dependent (monster HP, ×5 vs ×2 exponent at
+    // map ≥ 300); tv is not, so map14 / 51 × tier301 recovers it.
+    close(src301("talent643"), (src("talent643") / 51) * tier301);
+  });
 });
