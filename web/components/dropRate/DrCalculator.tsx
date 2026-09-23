@@ -134,7 +134,14 @@ export default function DrCalculator({
         // Default to character's current map if available, else Town — unless
         // this is a refresh and the user's map is still on the list.
         const data = (parsed as any)?.data ?? {};
-        const currentMap = Number(data[`CurrentMap_${list[0].charIndex}`]) || 0;
+        // On a refresh the map effect is skipped, so fall back to the selected
+        // character's current map; a fresh load keeps using the first character
+        // (the effect then re-derives it for whoever is selected).
+        const fallbackChar =
+          opts.keepView && list.some((c) => c.charIndex === lastCharIdxRef.current)
+            ? lastCharIdxRef.current
+            : list[0].charIndex;
+        const currentMap = Number(data[`CurrentMap_${fallbackChar}`]) || 0;
         const fallback = opts2.some((m) => m.index === currentMap) ? currentMap : 0;
         setMapIdx((prev) =>
           opts.keepView && opts2.some((m) => m.index === prev) ? prev : fallback
