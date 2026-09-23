@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeAll } from "vitest";
 import { existsSync, readFileSync } from "node:fs";
 import { computeArkhDropRate } from "@/lib/arkh/computeDR";
 import type { ArkhNode } from "@/lib/arkh/node";
@@ -21,7 +21,13 @@ function find(n: ArkhNode, re: RegExp): ArkhNode | null {
 }
 
 describe.skipIf(!existsSync(SAVE))("DR Royal Guardian family bonus honours The Family Guy", () => {
-  const save = JSON.parse(readFileSync(SAVE, "utf8").replace(/^﻿/, ""));
+  // Read in beforeAll, not in the describe body: vitest still runs the body
+  // of a skipped describe to collect its tests, so a top-level read would
+  // throw ENOENT in CI where the private save is absent.
+  let save: { charNames: string[] };
+  beforeAll(() => {
+    save = JSON.parse(readFileSync(SAVE, "utf8").replace(/^﻿/, ""));
+  });
   const rgFamily = (who: string) => {
     const { tree } = computeArkhDropRate(save, save.charNames.indexOf(who), 0);
     return find(tree, /^Royal Guardian Family Bonus/)!.val;
