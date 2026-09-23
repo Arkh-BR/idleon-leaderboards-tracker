@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { computeTome, type TomeResult, type TomeRow } from "@/lib/tome/compute";
 import { TOME_TASKS } from "@/lib/tome/tasks";
 import { formatIdleon } from "@/lib/format";
-import ProfileNameLoader from "@/components/ProfileNameLoader";
+import { accountAutoLoads } from "@/lib/gameAuth/session";
 
 const STORAGE_KEY = "idleon-leaderboards.tome.rawJson";
 const NAME_KEY = "idleon-leaderboards.tome.playerName";
@@ -13,18 +13,17 @@ const NAME_KEY = "idleon-leaderboards.tome.playerName";
 // raw value, computed pts, source label, and the [x1, x2, x3] bonus tuple
 // so it's possible to verify against the .gs script line-by-line.
 export default function TomeRawPanel({
-  dungeonAsOne,
-  onToggleDungeon,
+  loaded,
+  onPasted,
 }: {
-  /** Shared "count Dungeon Rank as 1" toggle, owned by the page so it
-   *  persists across tab switches / reloads. */
-  dungeonAsOne: boolean;
-  onToggleDungeon: () => void;
+  /** The page's latest save (account, by name, or pasted here). */
+  loaded?: unknown;
+  /** A paste was calculated (its JSON) or cleared (null). */
+  onPasted?: (json: string | null) => void;
 }) {
   const [json, setJson] = useState("");
-  // The last-loaded save (raw JSON string or parsed envelope). The displayed
-  // result is derived from this + the Dungeon-as-1 toggle, so flipping the
-  // toggle re-scores without needing to reload the save.
+  // The last-loaded save (raw JSON string or parsed envelope) the displayed
+  // result is derived from.
   const [source, setSource] = useState<
     string | Record<string, unknown> | null
   >(null);
@@ -38,8 +37,9 @@ export default function TomeRawPanel({
   // also hydrate) — it just doesn't get rehydrated into the input.
   useEffect(() => {
     try {
-      // If a player name is remembered, ProfileNameLoader auto-fetches it.
-      if (localStorage.getItem(NAME_KEY)) return;
+      // The page's loader will deliver a save (a remembered player name, or
+      // the signed-in account): don't show a possibly stale paste meanwhile.
+      if (localStorage.getItem(NAME_KEY) || accountAutoLoads()) return;
       const saved = localStorage.getItem(STORAGE_KEY) || "";
       if (saved) setSource(saved);
     } catch (e) {
@@ -47,43 +47,31 @@ export default function TomeRawPanel({
     }
   }, []);
 
-  // Re-score whenever the loaded save or the Dungeon-as-1 toggle changes.
+  // The page's latest save; declared after the hydrate so it wins on mount.
+  useEffect(() => {
+    if (loaded != null) setSource(loaded as string | Record<string, unknown>);
+  }, [loaded]);
+
+  // Re-score whenever the loaded save changes.
   useEffect(() => {
     if (source == null) {
       setResult(null);
       return;
     }
     try {
-      setResult(
-        computeTome(source as Parameters<typeof computeTome>[0], {
-          dungeonRankAsOne: dungeonAsOne,
-        })
-      );
+      setResult(computeTome(source as Parameters<typeof computeTome>[0]));
       setError(null);
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
       setResult(null);
     }
-  }, [source, dungeonAsOne]);
-
-  // Load-by-name path: computeTome accepts the parsed object directly. Persist
-  // the JSON to STORAGE_KEY so the Best Tome panel (which reads the same key)
-  // sees it too; the player name is persisted by ProfileNameLoader.
-  function loadFromSave(save: any) {
-    setError(null);
-    setSource(save); // the effect re-scores (applying the Dungeon-as-1 toggle)
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(save));
-    } catch {
-      // quota exceeded — non-fatal
-    }
-  }
+  }, [source]);
 
   function calculate() {
     setError(null);
     try {
       // Validate the paste up-front so we don't persist garbage; the effect
-      // does the real (toggle-aware) scoring once `source` is set.
+      // does the scoring once `source` is set.
       computeTome(json);
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
@@ -94,6 +82,7 @@ export default function TomeRawPanel({
     try {
       localStorage.setItem(STORAGE_KEY, json);
     } catch {}
+    onPasted?.(json); // the Best Tome tab shows it too
     // Clear the textarea after a successful calc so the next paste lands
     // on an empty input — no manual select-all/delete required.
     setJson("");
@@ -107,6 +96,7 @@ export default function TomeRawPanel({
     try {
       localStorage.removeItem(STORAGE_KEY);
     } catch {}
+    onPasted?.(null);
   }
 
   const filteredRows = useMemo(() => {
@@ -124,33 +114,13 @@ export default function TomeRawPanel({
 
   return (
     <div className="space-y-4">
-      {/* Primary: load by player name; manual paste lives inside the card. */}
-      <ProfileNameLoader
-        storageKey={NAME_KEY}
-        onSave={loadFromSave}
-        onError={(msg) => setError(msg)}
-        rightSlot={
-          <button
-            type="button"
-            onClick={onToggleDungeon}
-            aria-pressed={dungeonAsOne}
-            title="Score the Dungeon Rank tome line as 1 — ignores dungeon progress in the total."
-            className={`shrink-0 whitespace-nowrap px-3 py-2 text-sm font-semibold rounded border transition-colors ${
-              dungeonAsOne
-                ? "bg-amber-500/20 text-amber-300 border-amber-500/40 hover:bg-amber-500/30"
-                : "bg-zinc-800 text-zinc-400 border-zinc-700 hover:bg-zinc-700"
-            }`}
-          >
-            🏰 Dungeon = 1{dungeonAsOne ? " ✓" : ""}
-          </button>
-        }
-      >
-        {/* Manual paste — fallback for private profiles, inside the card. */}
-        <details className="rounded-lg bg-zinc-900/40 border border-zinc-800 p-3 space-y-4">
-        <summary className="cursor-pointer select-none flex items-center gap-2 font-semibold text-gold text-sm">
-          <span className="dt-arrow text-zinc-500">▸</span>
-          📋 Or paste the save manually
-        </summary>
+      {/* Manual paste — fallback for private profiles (the page's loader
+          above the tabs covers sign-in and player names). */}
+      <details className="rounded-lg bg-zinc-900/40 border border-zinc-800 p-3 space-y-4">
+      <summary className="cursor-pointer select-none flex items-center gap-2 font-semibold text-gold text-sm">
+        <span className="dt-arrow text-zinc-500">▸</span>
+        📋 Or paste the save manually
+      </summary>
       <div className="rounded-lg border border-gold/50 bg-gold/10 p-4 text-sm">
         <div className="flex items-start gap-3">
           <span className="text-2xl leading-none">📋</span>
@@ -224,7 +194,6 @@ export default function TomeRawPanel({
         </p>
       </div>
       </details>
-      </ProfileNameLoader>
 
       {error && (
         <div className="bg-red-950/50 border border-red-800 rounded p-3 text-sm">

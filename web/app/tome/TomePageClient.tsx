@@ -1,14 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import TomeRawPanel from "@/components/tome/TomeRawPanel";
 import BestTomePanel from "@/components/tome/BestTomePanel";
 import AnonExcludedNote from "@/components/AnonExcludedNote";
+import ProfileNameLoader from "@/components/ProfileNameLoader";
 import { TOME_TASKS } from "@/lib/tome/tasks";
 
 type Tab = "best" | "raw";
 
-const DUNGEON_KEY = "idleon-leaderboards.tome.dungeonAsOne";
+const STORAGE_KEY = "idleon-leaderboards.tome.rawJson";
+const NAME_KEY = "idleon-leaderboards.tome.playerName";
 
 export default function TomePageClient() {
   // Best Tome is the default view (polished UI). Raw analysis is the debug
@@ -16,23 +18,26 @@ export default function TomePageClient() {
   // localStorage key, so pasting in either tab updates the other.
   const [tab, setTab] = useState<Tab>("best");
 
-  // "Count Dungeon Rank as 1" toggle. Owned by the page (not a tab panel) so
-  // it survives tab switches, and persisted so it stays on across reloads
-  // until the user turns it off. Both panels apply it to their computation.
-  const [dungeonAsOne, setDungeonAsOne] = useState(false);
-  useEffect(() => {
+  // The latest save — from the loader above the tabs (account or player
+  // name) or pasted in the Raw tab. Both tabs apply it without remounting.
+  const [loaded, setLoaded] = useState<unknown>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  // Persisted like a paste, so the Best Tome tab hydrates it on the next visit.
+  function onSave(save: unknown) {
+    setLoadError(null);
+    setLoaded(save);
     try {
-      if (localStorage.getItem(DUNGEON_KEY) === "1") setDungeonAsOne(true);
-    } catch {}
-  }, []);
-  const toggleDungeon = () =>
-    setDungeonAsOne((prev) => {
-      const next = !prev;
-      try {
-        localStorage.setItem(DUNGEON_KEY, next ? "1" : "0");
-      } catch {}
-      return next;
-    });
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(save));
+    } catch {
+      // quota exceeded — non-fatal
+    }
+  }
+  // A paste (or Clear) in the Raw tab: the latest save, and an earlier load
+  // error no longer applies.
+  function onPasted(json: string | null) {
+    setLoadError(null);
+    setLoaded(json);
+  }
 
   return (
     <main className="max-w-7xl mx-auto px-4 py-6">
@@ -52,6 +57,14 @@ export default function TomePageClient() {
         </AnonExcludedNote>
       </header>
 
+      {/* One loader for both tabs, so the default Best Tome tab gets the save. */}
+      <ProfileNameLoader storageKey={NAME_KEY} onSave={onSave} onError={setLoadError} />
+      {loadError && (
+        <div className="mb-4 bg-red-950/50 border border-red-800 rounded p-3 text-sm">
+          <strong className="text-red-400">Error:</strong> {loadError}
+        </div>
+      )}
+
       <div
         role="tablist"
         className="inline-flex gap-1 mb-6 p-1 rounded-lg bg-zinc-900/60 border border-zinc-800"
@@ -64,18 +77,8 @@ export default function TomePageClient() {
         </TabButton>
       </div>
 
-      {tab === "best" && (
-        <BestTomePanel
-          dungeonAsOne={dungeonAsOne}
-          onToggleDungeon={toggleDungeon}
-        />
-      )}
-      {tab === "raw" && (
-        <TomeRawPanel
-          dungeonAsOne={dungeonAsOne}
-          onToggleDungeon={toggleDungeon}
-        />
-      )}
+      {tab === "best" && <BestTomePanel loaded={loaded} />}
+      {tab === "raw" && <TomeRawPanel loaded={loaded} onPasted={onPasted} />}
 
       <footer className="mt-12 text-xs text-zinc-600 text-center border-t border-zinc-900 pt-4">
         Algorithm ported from the v7.9 Tome Raw Values Extractor (Apps Script).
