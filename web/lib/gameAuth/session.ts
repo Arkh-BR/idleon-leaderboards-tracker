@@ -94,11 +94,20 @@ export function lastCheckAt(): number {
   return lastCheck;
 }
 
-/** The session with an ID token good for 5+ more minutes. Signed out
- *  meanwhile — here, or in another tab (its stored token is gone) — or a
- *  refresh rejected for good ends it: SessionExpiredError, and a signed-out
- *  session never comes back. Network errors and transient rejections (5xx,
- *  429…) propagate with the session kept. */
+/** A kept session whose stored token is gone was signed out in another tab. */
+const signedOutElsewhere = (s: Session) => s.keep && !readStored();
+
+/** The refresh in flight per session, shared by concurrent callers (e.g. the
+ *  next page's loader after a page switch): a second refresh would find the
+ *  session already replaced by the first one's and take it for a sign-out. */
+const refreshing = new WeakMap<Session, Promise<Session>>();
+
+/** The session with an ID token good for 5+ more minutes; concurrent callers
+ *  share one refresh. Signed out meanwhile — here, or in another tab (its
+ *  stored token is gone) — or a refresh rejected for good ends it:
+ *  SessionExpiredError, and a signed-out session never comes back. Network
+ *  errors and transient rejections (5xx, 429…) propagate with the session
+ *  kept. */
 async function liveSession(): Promise<Session> {
   if (!session) {
     const stored = readStored();
@@ -107,12 +116,20 @@ async function liveSession(): Promise<Session> {
     session = { provider, uid, refreshToken, idToken: "", expiresAt: 0, keep: true };
   }
   const s0 = session;
-  const signedOutElsewhere = () => s0.keep && !readStored();
-  if (signedOutElsewhere()) {
+  if (signedOutElsewhere(s0)) {
     signOut();
     throw new SessionExpiredError();
   }
   if (s0.expiresAt - Date.now() >= REFRESH_MARGIN_MS) return s0;
+  let shared = refreshing.get(s0);
+  if (!shared) {
+    shared = refresh(s0).finally(() => refreshing.delete(s0));
+    refreshing.set(s0, shared);
+  }
+  return shared;
+}
+
+async function refresh(s0: Session): Promise<Session> {
   let fresh: FirebaseAuth;
   try {
     fresh = await refreshSession(s0.refreshToken);
@@ -125,7 +142,7 @@ async function liveSession(): Promise<Session> {
   }
   // Signed out or switched account during the refresh (here or elsewhere):
   // don't merge or store the fresh token.
-  if (session !== s0 || signedOutElsewhere()) {
+  if (session !== s0 || signedOutElsewhere(s0)) {
     if (session === s0) signOut();
     throw new SessionExpiredError();
   }

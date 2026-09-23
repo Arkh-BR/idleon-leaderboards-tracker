@@ -49,11 +49,11 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
-/** A refreshSession the test finishes by hand. */
+/** refreshSession calls the test finishes by hand (all pending ones at once). */
 function pendingRefresh() {
-  let finish!: (a: FirebaseAuth) => void;
-  fb.refreshSession.mockImplementation(() => new Promise<FirebaseAuth>((r) => (finish = r)));
-  return (a: FirebaseAuth) => finish(a);
+  const pending: Array<(a: FirebaseAuth) => void> = [];
+  fb.refreshSession.mockImplementation(() => new Promise<FirebaseAuth>((r) => pending.push(r)));
+  return (a: FirebaseAuth) => pending.forEach((finish) => finish(a));
 }
 
 describe("session persistence", () => {
@@ -191,6 +191,20 @@ describe("a signed-out session stays signed out", () => {
     await expect(load).rejects.toBeInstanceOf(SessionExpiredError);
     expect(stored()).toBeNull();
     expect(hasSession()).toBe(false);
+  });
+
+  it("concurrent loads with a refresh due share one refresh — neither is 'signed out'", async () => {
+    storeSession(); // e.g. a page switch while the first page's refresh is in flight
+    const finish = pendingRefresh();
+    ev.fetchSaveEnvelope.mockResolvedValue(ENV);
+    const first = loadAccountSave();
+    const second = loadAccountSave();
+    finish({ ...AUTH, refreshToken: "r2" });
+    await expect(first).resolves.toBe(ENV);
+    await expect(second).resolves.toBe(ENV);
+    expect(fb.refreshSession).toHaveBeenCalledTimes(1);
+    expect(hasSession()).toBe(true);
+    expect(stored().refreshToken).toBe("r2");
   });
 
   it("storage refusing writes: a kept session still works this visit", async () => {
