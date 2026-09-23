@@ -60,6 +60,11 @@ export type SystemCtx = {
   // Gallery Bonus Multi to model the invisible "chip-active-at-refresh" bonus.
   // Off by default; toggled by UI.
   chipGalleryActive?: boolean;
+  // The character's saved AFKtarget_N (their last-engaged combat target,
+  // independent of CurrentMap). Coin Multi's talent 643 term uses it in
+  // place of MapAFKtarget[map] when the viewed map is the char's own saved
+  // map, matching N.js OverkillStuffs("2") (no MapAFKtarget/FIGHTING gate).
+  afkTarget?: string;
 };
 
 export type SystemResolver = {

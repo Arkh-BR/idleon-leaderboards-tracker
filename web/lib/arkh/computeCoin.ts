@@ -13,20 +13,22 @@ import type { ArkhNode } from "./node";
 
 export type ArkhCoinResult = { tree: ArkhNode; total: number };
 
-function ctxFor(charIdx: number, mapIdx: number) {
-  return { saveData, charIdx, activeCharIdx: charIdx, mapBon: data.mapBonData, mapIdx };
+function ctxFor(rawEnvelope: any, charIdx: number, mapIdx: number) {
+  const afkTargetRaw = rawEnvelope?.data?.["AFKtarget_" + charIdx];
+  const afkTarget = afkTargetRaw != null && afkTargetRaw !== "" ? String(afkTargetRaw) : undefined;
+  return { saveData, charIdx, activeCharIdx: charIdx, mapBon: data.mapBonData, mapIdx, afkTarget };
 }
 
 export function computeArkhCoinMulti(rawEnvelope: any, charIdx: number, mapIdx: number = 0): ArkhCoinResult {
   loadSaveData(rawEnvelope);
-  const tree = buildTree(coinMultiDesc, getCatalog(), ctxFor(charIdx, mapIdx));
+  const tree = buildTree(coinMultiDesc, getCatalog(), ctxFor(rawEnvelope, charIdx, mapIdx));
   return { tree, total: tree.val };
 }
 
 /** Pools without combine() — the Observed Max collector merges these across saves. */
 export function computeArkhCoinPools(rawEnvelope: any, charIdx: number, mapIdx: number = 0): Record<string, Pool> {
   loadSaveData(rawEnvelope);
-  return buildPools(coinMultiDesc, getCatalog(), ctxFor(charIdx, mapIdx));
+  return buildPools(coinMultiDesc, getCatalog(), ctxFor(rawEnvelope, charIdx, mapIdx));
 }
 
 export function combineCoinPools(pools: Record<string, Pool>): ArkhCoinResult {

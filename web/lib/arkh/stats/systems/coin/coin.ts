@@ -10,7 +10,8 @@ import { getLOG, formulaEval } from "../../../formulas";
 import { optionsListData, currentMapData, numCharacters, dreamData } from "../../../save/data";
 import { eventShopOwned, emporiumBonus } from "../../../game-helpers";
 import { label } from "../../entity-names";
-import { DungPassiveStats2, RANDOlist } from "../../data/game/customlists.js";
+import { DungPassiveStats2, RANDOlist, MapAFKtarget } from "../../data/game/customlists.js";
+import { MONSTERS } from "../../data/game/monsters.js";
 import { legendPTSbonus, computePaletteBonus } from "../w7/spelunking";
 import { cropSCbonMulti } from "../w6/farming";
 import { vaultKillzTotal, cardsCollected, accountMapKills } from "./accountKills";
@@ -33,7 +34,7 @@ import { sushiRoG } from "../w7/sushi";
 import { gridBonusValue, mainframeBonus } from "../w4/lab";
 import { getSetBonus } from "../w3/setBonus";
 import { maxTalentBonus, talent } from "../common/talent";
-import { computeOverkillTier } from "../common/derived-damage";
+import { computeOverkillTier, computeMaxDamage } from "../common/derived-damage";
 import { friend } from "../common/friend";
 import { vaultUpgBonus } from "../common/vault";
 import { pristineBon } from "../w5/pristine";
@@ -61,6 +62,21 @@ const BUBBLES: Record<string, { name: string; key: string; stat: number; label: 
 };
 
 const ACH_WEIGHT: Record<number, number> = { 235: 5, 350: 10, 376: 20 };
+
+// N.js OverkillStuffs("2") loop, parametrized directly by (hp, maxDmg,
+// exponent) instead of derived from a map lookup — unlike
+// computeOverkillTier (derived-damage.ts), which hard-codes MapAFKtarget[map]
+// as the target and refuses non-FIGHTING maps, N.js applies neither: it
+// always measures against the player's own AFKtarget_N.
+function multikillTier(hp: number, maxDmg: number, exponent: number): number {
+  if (hp <= 0) return 1;
+  let tier = 1;
+  for (let st = 0; st < 50; st++) {
+    if (maxDmg >= hp * exponent * Math.pow(exponent, st + 1)) tier = st + 2;
+    else break;
+  }
+  return tier;
+}
 
 // @njs MonsterCash
 function resolveCoin(id: string, ctx: SystemCtx): ArkhNode {
@@ -170,46 +186,38 @@ function resolveCoin(id: string, ctx: SystemCtx): ArkhNode {
       return talent.resolve(Number(id.slice(6)), tctx);
     // @njs OverkillStuffs
     // Talent 643 (Coins For Charon): TalentCalc(643) = GetTalentNumber(1,643)
-    // × OverkillStuffs("2") (N.js @4075410). OverkillStuffs is deterministic
-    // (max damage vs the AFK target's HP, not a live/session counter), and
-    // talent.resolve() already wires it correctly via computeCalcTalent →
-    // computeOverkillTier — but on the character's SAVED current map
-    // (currentMapData[ci]). The Coin Multi page lets the user view a
-    // different map, and the tier depends on the map (monster HP, and the
-    // ×5 vs ×2 exponent at map ≥ 300), so when ctx.mapIdx names one other
-    // than the saved map, rescale tv × tier from the saved map's tier to the
-    // selected map's tier — reusing the same maxDmg (it doesn't depend on
-    // the map, only the monster HP / exponent do).
-    //
-    // Known gap (pending an in-game check): N.js OverkillStuffs("2")
-    // (@4075410) measures against MonsterDefinitionsGET[AFKtarget] — the
-    // player's LAST ENGAGED target (save key AFKtarget_N) — with no AFK-type
-    // check. This engine instead uses MapAFKtarget[map] and forces tier 1 off
-    // fighting maps (computeOverkillTier), so a character parked in town or
-    // on a skilling map may read ×1 here while the game keeps using its last
-    // combat target.
+    // × OverkillStuffs("2") (N.js @4075410): S2Nz4 = 1; for f = 0..49: if
+    // DamageDealed("Max") >= MonsterDefinitionsGET[AFKtarget].MonsterHPTotal
+    // · E · E^(f+1) then S2Nz4 = f + 2 else break, E = CurrentMap >= 300 ? 5
+    // : 2. AFKtarget is the player's own saved AFKtarget_N (their
+    // last-engaged combat target) — NOT MapAFKtarget[CurrentMap] — and there
+    // is no AFK-type check, so the tier holds even off fighting maps (e.g.
+    // parked in town). talent.resolve() applies the shared wrap's tier
+    // (computeOverkillTier, which DOES hard-code MapAFKtarget[map] and the
+    // FIGHTING gate) for the character's own saved map, so dividing it back
+    // out (tv = r.val / t0.tier) recovers the bare GetTalentNumber(1,643);
+    // we then reapply the real N.js tier for whichever map is being viewed,
+    // using ctx.afkTarget in place of MapAFKtarget[map] when that map is the
+    // character's own saved one.
     case "talent643": {
       const r = talent.resolve(643, tctx);
-      const savedMap = Number((currentMapData as any)?.[ci]);
-      if (ctx.mapIdx == null || ctx.mapIdx === savedMap || !(Number(r.val) > 0)) {
-        return r;
-      }
+      if (!(Number(r.val) > 0)) return r;
       const t0 = computeOverkillTier(ci, { saveData: s, charIdx: ci });
-      // t0.maxDmg reads 0 (not null) when the saved map isn't a fighting map
-      // (computeOverkillTier's early return) — `|| undefined` lets the
-      // selected-map call recompute maxDmg fresh instead of silently reusing
-      // that 0, which otherwise pins every selected map to tier 1.
-      const t1 = computeOverkillTier(
-        ci,
-        { saveData: s, charIdx: ci },
-        { mapIdx: ctx.mapIdx, maxDmg: t0.maxDmg || undefined }
-      );
+      const tv = Number(r.val) / t0.tier;
+      const savedMap = Number((currentMapData as any)?.[ci]);
+      const map = ctx.mapIdx ?? savedMap;
+      const target = map === savedMap && ctx.afkTarget ? ctx.afkTarget : (MapAFKtarget as any)[map];
+      const hp = Number((MONSTERS as any)[target as any]?.MonsterHPTotal) || 0;
+      // t0.maxDmg is 0 (not null) whenever the saved map isn't a fighting
+      // map (computeOverkillTier's early return) — recompute it fresh then.
+      const maxDmg = t0.maxDmg || computeMaxDamage(ci, { saveData: s, charIdx: ci });
+      const tier = multikillTier(hp, maxDmg, map >= 300 ? 5 : 2);
       return node(
         r.name,
-        (r.val / t0.tier) * t1.tier,
+        tv * tier,
         [
           ...(r.children ?? []),
-          node("Multikill tier (selected map)", t1.tier, null, { fmt: "raw", note: `Map ${ctx.mapIdx}` }),
+          node("Multikill tier (selected map)", tier, null, { fmt: "raw", note: `Map ${map} · target ${target}` }),
         ],
         { fmt: "+" }
       );
