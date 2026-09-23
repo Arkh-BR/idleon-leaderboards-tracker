@@ -430,11 +430,17 @@ describe("reads (GET only)", () => {
 // Real save captured by the Task 1 spike (gitignored) — skipped when absent.
 const REST_FIX = "__tests__/fixtures/gameAuth/data-rest.json";
 const IT_FIX = "__tests__/fixtures/gameAuth/it-export.json";
+const readJson = (f: string) => JSON.parse(readFileSync(f, "utf8").replace(/^﻿/, ""));
 describe.skipIf(!existsSync(REST_FIX) || !existsSync(IT_FIX))("decoder vs IdleonToolbox export (real save)", () => {
-  it("decoded _data equals the `data` IdleonToolbox exported", () => {
-    const rest = JSON.parse(readFileSync(REST_FIX, "utf8"));
-    const itExport = JSON.parse(readFileSync(IT_FIX, "utf8"));
-    expect(decodeFirestoreFields(rest.fields)).toEqual(itExport.data);
+  // The game stores MapBon as JSON text; IdleonToolbox's export has it
+  // pre-parsed. Every reader of ours accepts the text (parseSaveKey,
+  // buildMapOptions, IT's tryToParse), so the decoder stays faithful.
+  it("decoded _data equals IdleonToolbox's `data` (MapBon compared parsed)", () => {
+    const { MapBon, ...decoded } = decodeFirestoreFields(readJson(REST_FIX).fields);
+    const { MapBon: itMapBon, ...itData } = readJson(IT_FIX).data;
+    expect(decoded).toEqual(itData);
+    expect(typeof MapBon).toBe("string");
+    expect(JSON.parse(MapBon as string)).toEqual(itMapBon);
   });
 });
 ```
@@ -2698,4 +2704,9 @@ Não mergear. Mergear na main só quando o usuário pedir explicitamente.
 
 ## Spike findings
 
-(preenchido na Task 1, Step 10, se houver diferenças)
+Rodado em 22/09/2026 com a conta Google do usuário (jogo fechado):
+
+- **Login e leituras:** device flow aprovado; `signInWithIdp` ok; `_data` 200 (859 campos); as 8 leituras laterais 200; `GET ?mask.fieldPaths=zzNoSuchField` devolve só `{name, createTime, updateTime}` com o mesmo `updateTime` do doc completo.
+- **Paridade:** 858/859 campos idênticos ao `data` do "Copy for Support" do IT; `charNames` e `companion` idênticos. Única diferença: `MapBon` — o jogo guarda como texto JSON, o export do IT traz já convertido em lista. Os três leitores do nosso código (`parseSaveKey` do arkh, `buildMapOptions`, `tryToParse` do parser do IT) aceitam o texto → **decoder continua fiel ao Firestore**; o teste real da Task 2 compara `MapBon` depois de `JSON.parse` (já ajustado acima).
+- **Chaves do export do IT:** `accountCreateTime, charNames, companion, data, extraData, guildData, lastUpdated, serverVars, tournament` — mesmo formato do nosso envelope.
+- **Tome:** nosso `computeTome` = 53011 × IT = 52722 (+289): +267 da tarefa nova "Successful Jelly Operations" (update de 18/09, que o IT ainda não conta) e +17/+3/+1/+1 em Arcade Gold Ball, Atoms, Star Talent e Deathnote. 122 tarefas cobertas, 0 faltando. Com login, o DR usa o nosso número — mais atual que o do IT.
