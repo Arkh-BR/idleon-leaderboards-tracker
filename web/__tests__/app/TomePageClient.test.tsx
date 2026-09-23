@@ -17,7 +17,7 @@ const SessionExpiredError = vi.hoisted(() => class SessionExpiredError extends E
 vi.mock("@/lib/gameAuth/session", () => ({ ...s, SessionExpiredError }));
 
 // The panels compute the whole tome; capture what the page hands them instead.
-type PanelProps = { loaded?: unknown; dungeonAsOne: boolean; onPasted?: (j: string | null) => void };
+type PanelProps = { loaded?: unknown; onPasted?: (j: string | null) => void };
 const panels = vi.hoisted(() => ({ best: vi.fn(), raw: vi.fn() }));
 vi.mock("@/components/tome/BestTomePanel", () => ({
   default: (props: PanelProps) => {
@@ -67,11 +67,18 @@ describe("TomePageClient — one loader above the tabs", () => {
     expect(lastProps(panels.best).loaded).toBe("PASTED JSON");
   });
 
-  it("the Dungeon = 1 toggle sits in the loader and drives both tabs", () => {
+  it("a paste or Clear in the Raw tab clears a stale load error above the tabs", async () => {
+    s.cachedEnvelope.mockReturnValue(null);
+    s.loadAccountSave.mockRejectedValue(new Error("Couldn't read your save (HTTP 503)"));
     render(<TomePageClient />);
-    fireEvent.click(screen.getByRole("button", { name: /Dungeon = 1/ }));
-    expect(lastProps(panels.best).dungeonAsOne).toBe(true);
+    expect(await screen.findByText("Error:")).toBeInTheDocument(); // the page's banner
     fireEvent.click(screen.getByRole("tab", { name: /Paste your data here/ }));
-    expect(lastProps(panels.raw).dungeonAsOne).toBe(true);
+    act(() => lastProps(panels.raw).onPasted!("PASTED JSON"));
+    expect(screen.queryByText("Error:")).toBeNull();
+
+    fireEvent.click(screen.getByRole("button", { name: /Sync now/ })); // fails again
+    expect(await screen.findByText("Error:")).toBeInTheDocument();
+    act(() => lastProps(panels.raw).onPasted!(null)); // Clear
+    expect(screen.queryByText("Error:")).toBeNull();
   });
 });

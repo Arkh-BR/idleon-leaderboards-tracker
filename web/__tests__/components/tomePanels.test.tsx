@@ -11,7 +11,6 @@ import TomeRawPanel from "@/components/tome/TomeRawPanel";
 const RESULT = { rows: [], totalPts: 0, coveredCount: 0, missingCount: 0, usedParsedTomePoints: false };
 const A = { charNames: ["Alpha"], data: { Lv0_0: 1 } };
 const B = { charNames: ["Alpha"], data: { Lv0_0: 2 } };
-const OPTS = { dungeonRankAsOne: false };
 
 beforeEach(() => {
   vi.stubEnv("NEXT_PUBLIC_IDLEON_FIREBASE_API_KEY", "");
@@ -22,26 +21,24 @@ afterEach(() => vi.unstubAllEnvs());
 
 describe("Tome panels apply the page's save", () => {
   it("Best Tome scores each new save in place — the search survives", () => {
-    const { rerender } = render(
-      <BestTomePanel loaded={A} dungeonAsOne={false} onToggleDungeon={() => {}} />
-    );
-    expect(tome.computeTome).toHaveBeenLastCalledWith(A, OPTS);
+    const { rerender } = render(<BestTomePanel loaded={A} />);
+    expect(tome.computeTome).toHaveBeenLastCalledWith(A);
     fireEvent.change(screen.getByPlaceholderText("Search task…"), { target: { value: "jelly" } });
-    rerender(<BestTomePanel loaded={B} dungeonAsOne={false} onToggleDungeon={() => {}} />);
-    expect(tome.computeTome).toHaveBeenLastCalledWith(B, OPTS);
+    rerender(<BestTomePanel loaded={B} />);
+    expect(tome.computeTome).toHaveBeenLastCalledWith(B);
     expect(screen.getByPlaceholderText("Search task…")).toHaveValue("jelly");
   });
 
   it("Raw tab shows the page's save; a calculated paste goes back to the page", () => {
     const onPasted = vi.fn();
-    render(<TomeRawPanel loaded={A} onPasted={onPasted} dungeonAsOne={false} />);
-    expect(tome.computeTome).toHaveBeenLastCalledWith(A, OPTS);
+    render(<TomeRawPanel loaded={A} onPasted={onPasted} />);
+    expect(tome.computeTome).toHaveBeenLastCalledWith(A);
     fireEvent.change(screen.getByPlaceholderText(/Paste the output of "Copy for Support"/), {
       target: { value: '{"x":1}' },
     });
     fireEvent.click(screen.getByText("Calculate Tome"));
     expect(onPasted).toHaveBeenCalledWith('{"x":1}');
     expect(localStorage.getItem("idleon-leaderboards.tome.rawJson")).toBe('{"x":1}');
-    expect(tome.computeTome).toHaveBeenLastCalledWith('{"x":1}', OPTS);
+    expect(tome.computeTome).toHaveBeenLastCalledWith('{"x":1}');
   });
 });

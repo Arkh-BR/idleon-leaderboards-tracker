@@ -15,20 +15,15 @@ const NAME_KEY = "idleon-leaderboards.tome.playerName";
 export default function TomeRawPanel({
   loaded,
   onPasted,
-  dungeonAsOne,
 }: {
   /** The page's latest save (account, by name, or pasted here). */
   loaded?: unknown;
   /** A paste was calculated (its JSON) or cleared (null). */
   onPasted?: (json: string | null) => void;
-  /** Shared "count Dungeon Rank as 1" toggle, owned by the page so it
-   *  persists across tab switches / reloads. */
-  dungeonAsOne: boolean;
 }) {
   const [json, setJson] = useState("");
-  // The last-loaded save (raw JSON string or parsed envelope). The displayed
-  // result is derived from this + the Dungeon-as-1 toggle, so flipping the
-  // toggle re-scores without needing to reload the save.
+  // The last-loaded save (raw JSON string or parsed envelope) the displayed
+  // result is derived from.
   const [source, setSource] = useState<
     string | Record<string, unknown> | null
   >(null);
@@ -57,30 +52,26 @@ export default function TomeRawPanel({
     if (loaded != null) setSource(loaded as string | Record<string, unknown>);
   }, [loaded]);
 
-  // Re-score whenever the loaded save or the Dungeon-as-1 toggle changes.
+  // Re-score whenever the loaded save changes.
   useEffect(() => {
     if (source == null) {
       setResult(null);
       return;
     }
     try {
-      setResult(
-        computeTome(source as Parameters<typeof computeTome>[0], {
-          dungeonRankAsOne: dungeonAsOne,
-        })
-      );
+      setResult(computeTome(source as Parameters<typeof computeTome>[0]));
       setError(null);
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
       setResult(null);
     }
-  }, [source, dungeonAsOne]);
+  }, [source]);
 
   function calculate() {
     setError(null);
     try {
       // Validate the paste up-front so we don't persist garbage; the effect
-      // does the real (toggle-aware) scoring once `source` is set.
+      // does the scoring once `source` is set.
       computeTome(json);
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));

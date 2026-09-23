@@ -78,18 +78,11 @@ type EnrichedRow = TomeRow & {
 
 export default function BestTomePanel({
   loaded,
-  dungeonAsOne,
-  onToggleDungeon,
 }: {
   /** The page's latest save (account, by name, or pasted in the Raw tab). */
   loaded?: unknown;
-  /** Shared "count Dungeon Rank as 1" toggle, owned by the page so it
-   *  persists across tab switches / reloads. */
-  dungeonAsOne: boolean;
-  onToggleDungeon: () => void;
 }) {
-  // The save (JSON string or parsed envelope); the result is derived from it
-  // + the Dungeon-as-1 toggle so flipping the toggle re-scores without a reload.
+  // The save (JSON string or parsed envelope) the result is derived from.
   const [source, setSource] = useState<string | Record<string, unknown> | null>(null);
   const [result, setResult] = useState<TomeResult | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -144,25 +137,20 @@ export default function BestTomePanel({
     if (loaded != null) setSource(loaded as string | Record<string, unknown>);
   }, [loaded]);
 
-  // Re-score whenever the loaded save or the Dungeon-as-1 toggle changes, so
-  // the whole Best Tome view (total, gaps, per-row pts) honors the toggle.
+  // Re-score whenever the loaded save changes.
   useEffect(() => {
     if (!source) {
       setResult(null);
       return;
     }
     try {
-      setResult(
-        computeTome(source as Parameters<typeof computeTome>[0], {
-          dungeonRankAsOne: dungeonAsOne,
-        })
-      );
+      setResult(computeTome(source as Parameters<typeof computeTome>[0]));
       setError(null);
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
       setResult(null);
     }
-  }, [source, dungeonAsOne]);
+  }, [source]);
 
   // Capture every task's current pts as the new baseline. Tasks without
   // a current pts value are still recorded as 0 so future comparisons treat
@@ -472,19 +460,6 @@ export default function BestTomePanel({
 
         {/* Right group: toggles + actions */}
         <div className="flex flex-wrap gap-2 items-center ml-auto">
-          <button
-            type="button"
-            onClick={onToggleDungeon}
-            aria-pressed={dungeonAsOne}
-            title="Score the Dungeon Rank tome line as 1 — ignores dungeon progress in the total."
-            className={`text-xs font-semibold px-3 py-1.5 rounded-md border transition-colors ${
-              dungeonAsOne
-                ? "bg-amber-500/20 text-amber-300 border-amber-500/40 hover:bg-amber-500/30"
-                : "border-zinc-700 text-zinc-300 hover:border-amber-500/50 hover:text-amber-300"
-            }`}
-          >
-            🏰 Dungeon = 1{dungeonAsOne ? " ✓" : ""}
-          </button>
           <label className="flex items-center gap-2 text-sm text-zinc-300 px-2.5 py-1.5 rounded-md border border-zinc-700/60 hover:border-zinc-600 cursor-pointer">
             <input
               type="checkbox"

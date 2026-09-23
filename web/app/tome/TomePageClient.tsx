@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import TomeRawPanel from "@/components/tome/TomeRawPanel";
 import BestTomePanel from "@/components/tome/BestTomePanel";
 import AnonExcludedNote from "@/components/AnonExcludedNote";
@@ -9,7 +9,6 @@ import { TOME_TASKS } from "@/lib/tome/tasks";
 
 type Tab = "best" | "raw";
 
-const DUNGEON_KEY = "idleon-leaderboards.tome.dungeonAsOne";
 const STORAGE_KEY = "idleon-leaderboards.tome.rawJson";
 const NAME_KEY = "idleon-leaderboards.tome.playerName";
 
@@ -33,24 +32,12 @@ export default function TomePageClient() {
       // quota exceeded — non-fatal
     }
   }
-
-  // "Count Dungeon Rank as 1" toggle. Owned by the page (not a tab panel) so
-  // it survives tab switches, and persisted so it stays on across reloads
-  // until the user turns it off. Both panels apply it to their computation.
-  const [dungeonAsOne, setDungeonAsOne] = useState(false);
-  useEffect(() => {
-    try {
-      if (localStorage.getItem(DUNGEON_KEY) === "1") setDungeonAsOne(true);
-    } catch {}
-  }, []);
-  const toggleDungeon = () =>
-    setDungeonAsOne((prev) => {
-      const next = !prev;
-      try {
-        localStorage.setItem(DUNGEON_KEY, next ? "1" : "0");
-      } catch {}
-      return next;
-    });
+  // A paste (or Clear) in the Raw tab: the latest save, and an earlier load
+  // error no longer applies.
+  function onPasted(json: string | null) {
+    setLoadError(null);
+    setLoaded(json);
+  }
 
   return (
     <main className="max-w-7xl mx-auto px-4 py-6">
@@ -71,26 +58,7 @@ export default function TomePageClient() {
       </header>
 
       {/* One loader for both tabs, so the default Best Tome tab gets the save. */}
-      <ProfileNameLoader
-        storageKey={NAME_KEY}
-        onSave={onSave}
-        onError={setLoadError}
-        rightSlot={
-          <button
-            type="button"
-            onClick={toggleDungeon}
-            aria-pressed={dungeonAsOne}
-            title="Score the Dungeon Rank tome line as 1 — ignores dungeon progress in the total."
-            className={`shrink-0 whitespace-nowrap px-3 py-2 text-sm font-semibold rounded border transition-colors ${
-              dungeonAsOne
-                ? "bg-amber-500/20 text-amber-300 border-amber-500/40 hover:bg-amber-500/30"
-                : "bg-zinc-800 text-zinc-400 border-zinc-700 hover:bg-zinc-700"
-            }`}
-          >
-            🏰 Dungeon = 1{dungeonAsOne ? " ✓" : ""}
-          </button>
-        }
-      />
+      <ProfileNameLoader storageKey={NAME_KEY} onSave={onSave} onError={setLoadError} />
       {loadError && (
         <div className="mb-4 bg-red-950/50 border border-red-800 rounded p-3 text-sm">
           <strong className="text-red-400">Error:</strong> {loadError}
@@ -109,20 +77,8 @@ export default function TomePageClient() {
         </TabButton>
       </div>
 
-      {tab === "best" && (
-        <BestTomePanel
-          loaded={loaded}
-          dungeonAsOne={dungeonAsOne}
-          onToggleDungeon={toggleDungeon}
-        />
-      )}
-      {tab === "raw" && (
-        <TomeRawPanel
-          loaded={loaded}
-          onPasted={setLoaded}
-          dungeonAsOne={dungeonAsOne}
-        />
-      )}
+      {tab === "best" && <BestTomePanel loaded={loaded} />}
+      {tab === "raw" && <TomeRawPanel loaded={loaded} onPasted={onPasted} />}
 
       <footer className="mt-12 text-xs text-zinc-600 text-center border-t border-zinc-900 pt-4">
         Algorithm ported from the v7.9 Tome Raw Values Extractor (Apps Script).
