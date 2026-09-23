@@ -9,6 +9,21 @@ const FIRESTORE =
   "https://firestore.googleapis.com/v1/projects/idlemmo/databases/(default)/documents";
 const RTDB = "https://idlemmo.firebaseio.com";
 
+// A hung request must not block sign-in forever (concurrent callers share one refresh).
+const TIMEOUT_MS = 30_000;
+
+function timeoutSignal(): AbortSignal {
+  if (AbortSignal.timeout) {
+    return AbortSignal.timeout(TIMEOUT_MS);
+  }
+  // Fallback for test environments (happy-dom) that don't have AbortSignal.timeout.
+  const ctrl = new AbortController();
+  const id = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
+  // Clean up the timeout when the signal is used or becomes irrelevant.
+  ctrl.signal.addEventListener("abort", () => clearTimeout(id), { once: true });
+  return ctrl.signal;
+}
+
 // The game's Firebase web API key comes from the environment (Vercel + local
 // .env.local) so no third-party credential lives in this public repo. It still
 // ships to the browser — Firebase web keys identify the project, they aren't
@@ -51,7 +66,7 @@ function toAuth(idToken: string, refreshToken: string, expiresInSec: unknown): F
 }
 
 async function authPost(url: string, headers: HeadersInit, body: BodyInit): Promise<any> {
-  const r = await fetch(url, { method: "POST", headers, body });
+  const r = await fetch(url, { method: "POST", headers, body, signal: timeoutSignal() });
   const json = await r.json().catch(() => ({}));
   if (!r.ok) {
     // "INVALID_IDP_RESPONSE : details" → "INVALID_IDP_RESPONSE"
@@ -125,7 +140,7 @@ export type FirestoreDoc = {
   updateTime: string;
 };
 
-const bearer = (idToken: string) => ({ headers: { Authorization: `Bearer ${idToken}` } });
+const bearer = (idToken: string) => ({ headers: { Authorization: `Bearer ${idToken}` }, signal: timeoutSignal() });
 
 /** GET a Firestore document; null when it doesn't exist. */
 export async function firestoreGet(path: string, idToken: string): Promise<FirestoreDoc | null> {
@@ -151,7 +166,7 @@ export async function firestoreUpdateTime(path: string, idToken: string): Promis
 
 /** GET a Realtime Database path (JSON null when absent). */
 export async function rtdbGet(path: string, idToken: string): Promise<unknown> {
-  const r = await fetch(`${RTDB}/${path}.json?auth=${encodeURIComponent(idToken)}`);
+  const r = await fetch(`${RTDB}/${path}.json?auth=${encodeURIComponent(idToken)}`, { signal: timeoutSignal() });
   if (!r.ok) throw new Error(`Couldn't read your save (HTTP ${r.status})`);
   return r.json();
 }

@@ -145,6 +145,7 @@ describe("reads (GET only)", () => {
     );
     expect(init?.method ?? "GET").toBe("GET");
     expect(init?.headers).toEqual({ Authorization: "Bearer tok" });
+    expect(init?.signal).toBeInstanceOf(AbortSignal);
 
     mockFetch(404, {});
     expect(await firestoreGet("_data/u1", "tok")).toBeNull();
@@ -160,6 +161,7 @@ describe("reads (GET only)", () => {
     expect(await firestoreUpdateTime("_data/u1", "tok")).toBe("2026-09-22T10:05:00Z");
     expect(f.mock.calls[0][0]).toContain("/_data/u1?mask.fieldPaths=zzNoSuchField");
     expect(f.mock.calls[0][1]?.method ?? "GET").toBe("GET");
+    expect(f.mock.calls[0][1]?.signal).toBeInstanceOf(AbortSignal);
   });
 
   it("rtdbGet: GET with the auth param", async () => {
@@ -167,6 +169,18 @@ describe("reads (GET only)", () => {
     expect(await rtdbGet("_uid/u1", "tok")).toEqual(["Alpha"]);
     expect(f.mock.calls[0][0]).toBe("https://idlemmo.firebaseio.com/_uid/u1.json?auth=tok");
     expect(f.mock.calls[0][1]?.method ?? "GET").toBe("GET");
+    expect(f.mock.calls[0][1]?.signal).toBeInstanceOf(AbortSignal);
+  });
+
+  it("auth and data calls pass an AbortSignal timeout", async () => {
+    const f = mockFetch(200, { idToken: jwt({ sub: "u1" }), refreshToken: "r1", expiresIn: "3600" });
+    await signInWithGoogleIdToken("g-tok");
+    expect(f.mock.calls[0][1]?.signal).toBeInstanceOf(AbortSignal);
+
+    mockFetch(200, { id_token: jwt({ sub: "u1" }), refresh_token: "r2", expires_in: "3600" });
+    const f2 = mockFetch(200, { id_token: jwt({ sub: "u1" }), refresh_token: "r2", expires_in: "3600" });
+    await refreshSession("r1");
+    expect(f2.mock.calls[0][1]?.signal).toBeInstanceOf(AbortSignal);
   });
 });
 
