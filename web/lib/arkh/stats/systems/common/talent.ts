@@ -826,9 +826,14 @@ export function computeAllTalentLVz(
   );
   // Royal Guardian talents (225–239, 2026-08): "All Talent LV" bonuses reach
   // them only up to Armory 55 (Talent Reattainment) levels — N.js sets
-  // AllTalMaxCapFR = ArmoryUpgBonus(55) for that id range (9999 otherwise).
+  // AllTalMaxCapFR = ArmoryUpgBonus(55) for that id range (9999 otherwise)
+  // and returns floor(min(cap, rest) + AllTalMaxSUPERdn): the super-talent
+  // levels ride on top of the cap (spelunkBonus is an integer).
   if (talentIdx >= 225 && talentIdx <= 239) {
-    return Math.min(total, Math.floor(armoryUpgBonus(55, saveData)));
+    return (
+      Math.min(total - spelunkBonus, Math.floor(armoryUpgBonus(55, saveData))) +
+      spelunkBonus
+    );
   }
   return total;
 }
@@ -1597,21 +1602,23 @@ function resolveAllTalentLVz(
       arcane57 +
       lvBonusTerm
   );
-  // Royal Guardian talents (225–239): N.js caps the whole AllTalentLVz sum at
+  // Royal Guardian talents (225–239): N.js caps the AllTalentLVz sum at
   // ArmoryUpgBonus(55) ("AllTalMaxCapFR" — Talent Reattainment; 9999 for every
-  // other talent). Without that armory upgrade a Royal Guardian gets NO bonus
-  // levels on its own tab. Same rule as computeAllTalentLVz, mirrored here so
-  // the tree (Effective Level) shows the same number the game uses.
+  // other talent) BEFORE adding the super-talent levels, which stay uncapped.
+  // Without that armory upgrade a Royal Guardian gets no other bonus levels on
+  // its own tab. Same rule as computeAllTalentLVz, mirrored here so the tree
+  // (Effective Level) shows the same number the game uses.
   if (talentIdx >= 225 && talentIdx <= 239) {
     const cap = Math.floor(armoryUpgBonus(55, saveData));
-    if (total > cap) {
+    const rest = total - spelunkBonus;
+    if (rest > cap) {
       children.push(
-        node("Royal Armory cap (Armory 55 — Talent Reattainment)", cap - total, null, {
+        node("Royal Armory cap (Armory 55 — Talent Reattainment)", cap - rest, null, {
           fmt: "raw",
-          note: `All Talent LV bonuses reach Royal Guardian talents only up to ${cap} (was ${total})`,
+          note: `All Talent LV bonuses reach Royal Guardian talents only up to ${cap} (was ${rest}); super-talent levels are not capped`,
         })
       );
-      total = cap;
+      total = cap + spelunkBonus;
     }
   }
   // Effective Level = rawLv + total still holds regardless of split mode:
@@ -1621,7 +1628,7 @@ function resolveAllTalentLVz(
   return {
     total,
     children,
-    superBonus: splitSuper ? Math.min(spelunkBonus, total) : 0,
+    superBonus: splitSuper ? spelunkBonus : 0,
     superChildren: splitSuper && superChildren ? superChildren : undefined,
     // Passed the exclusion check at line 510-518, so this talent is
     // eligible for the Spelunking 4D super slot. talent.resolve uses
