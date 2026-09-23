@@ -62,6 +62,7 @@ const BUBBLES: Record<string, { name: string; key: string; stat: number; label: 
 
 const ACH_WEIGHT: Record<number, number> = { 235: 5, 350: 10, 376: 20 };
 
+// @njs MonsterCash
 function resolveCoin(id: string, ctx: SystemCtx): ArkhNode {
   const s = ctx.saveData;
   const ci = ctx.charIdx;
@@ -167,6 +168,7 @@ function resolveCoin(id: string, ctx: SystemCtx): ArkhNode {
     case "talent22":
     case "talent644":
       return talent.resolve(Number(id.slice(6)), tctx);
+    // @njs OverkillStuffs
     // Talent 643 (Coins For Charon): TalentCalc(643) = GetTalentNumber(1,643)
     // × OverkillStuffs("2") (N.js @4075410). OverkillStuffs is deterministic
     // (max damage vs the AFK target's HP, not a live/session counter), and
@@ -178,6 +180,14 @@ function resolveCoin(id: string, ctx: SystemCtx): ArkhNode {
     // than the saved map, rescale tv × tier from the saved map's tier to the
     // selected map's tier — reusing the same maxDmg (it doesn't depend on
     // the map, only the monster HP / exponent do).
+    //
+    // Known gap (pending an in-game check): N.js OverkillStuffs("2")
+    // (@4075410) measures against MonsterDefinitionsGET[AFKtarget] — the
+    // player's LAST ENGAGED target (save key AFKtarget_N) — with no AFK-type
+    // check. This engine instead uses MapAFKtarget[map] and forces tier 1 off
+    // fighting maps (computeOverkillTier), so a character parked in town or
+    // on a skilling map may read ×1 here while the game keeps using its last
+    // combat target.
     case "talent643": {
       const r = talent.resolve(643, tctx);
       const savedMap = Number((currentMapData as any)?.[ci]);
@@ -185,11 +195,22 @@ function resolveCoin(id: string, ctx: SystemCtx): ArkhNode {
         return r;
       }
       const t0 = computeOverkillTier(ci, { saveData: s, charIdx: ci });
-      const t1 = computeOverkillTier(ci, { saveData: s, charIdx: ci }, { mapIdx: ctx.mapIdx, maxDmg: t0.maxDmg });
+      // t0.maxDmg reads 0 (not null) when the saved map isn't a fighting map
+      // (computeOverkillTier's early return) — `|| undefined` lets the
+      // selected-map call recompute maxDmg fresh instead of silently reusing
+      // that 0, which otherwise pins every selected map to tier 1.
+      const t1 = computeOverkillTier(
+        ci,
+        { saveData: s, charIdx: ci },
+        { mapIdx: ctx.mapIdx, maxDmg: t0.maxDmg || undefined }
+      );
       return node(
         r.name,
         (r.val / t0.tier) * t1.tier,
-        [...(r.children ?? []), raw(`Multikill tier on map ${ctx.mapIdx}`, t1.tier)],
+        [
+          ...(r.children ?? []),
+          node("Multikill tier (selected map)", t1.tier, null, { fmt: "raw", note: `Map ${ctx.mapIdx}` }),
+        ],
         { fmt: "+" }
       );
     }

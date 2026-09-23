@@ -5,6 +5,8 @@ import { COIN_GROUPS } from "@/lib/arkh/stats/defs/coin-multi";
 import type { ArkhNode } from "@/lib/arkh/node";
 import { saveData } from "@/lib/arkh/state";
 import { computeOverkillTier } from "@/lib/arkh/stats/systems/common/derived-damage";
+import { isFightingMap } from "@/lib/arkh/stats/data/common/maps";
+import { currentMapData } from "@/lib/arkh/save/data";
 
 const g = globalThis as unknown as { window?: unknown };
 if (!g.window) g.window = g;
@@ -139,5 +141,38 @@ describe.skipIf(!existsSync(SAVE))("Coin Multi — Markhe on map 14 vs IdleonToo
     // Multikill tier is map-dependent (monster HP, ×5 vs ×2 exponent at
     // map ≥ 300); tv is not, so map14 / 51 × tier301 recovers it.
     close(src301("talent643"), (src("talent643") / 51) * tier301);
+  });
+
+  it("talent 643 rescales correctly from a non-fighting saved map (maxDmg=0 regression)", () => {
+    // ARKHELUCK's saved map (216) isn't a fighting map, so
+    // computeOverkillTier(ci, ctx) returns { tier: 1, maxDmg: 0 } for it —
+    // maxDmg is 0, not null. The bug: the rescale in coin.ts passed that
+    // literal 0 through as the selected map's maxDmg override, and since
+    // computeOverkillTier only recomputes maxDmg when it's null, the
+    // selected-map call silently kept maxDmg=0 → tier stuck at 1 for every
+    // map viewed, not just the saved one.
+    const luckIdx = save.charNames.indexOf("ARKHELUCK");
+    expect(luckIdx).toBeGreaterThanOrEqual(0);
+    const savedMap = Number(currentMapData[luckIdx]);
+    expect(isFightingMap(savedMap)).toBe(false);
+
+    const srcOf = (t: ArkhNode): number => {
+      const gi = COIN_GROUPS.findIndex((x) => x.sources.includes("talent643"));
+      const si = COIN_GROUPS[gi].sources.indexOf("talent643");
+      return Number(t.children![gi].children![si].val) || 0;
+    };
+
+    // On its own saved map the tier is 1, so this is the bare talent value.
+    const valSaved = srcOf(computeArkhCoinMulti(save, luckIdx, savedMap).tree);
+    expect(valSaved).toBeGreaterThan(0);
+
+    const val301 = srcOf(computeArkhCoinMulti(save, luckIdx, 301).tree);
+    // computeArkhCoinMulti reloads the save into the shared singleton on
+    // every call; read the tier right after this one (no maxDmg override —
+    // this is the fresh, from-scratch tier at map 301).
+    const tier301 = computeOverkillTier(luckIdx, { saveData, charIdx: luckIdx }, { mapIdx: 301 }).tier;
+    expect(tier301).toBeGreaterThan(1);
+
+    close(val301, valSaved * tier301);
   });
 });

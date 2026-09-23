@@ -1,6 +1,7 @@
 // ===== ARKH COIN MULTI ENTRY POINT =====
 // Loads the save into the arkh state singleton and runs the coin-multi
-// descriptor. mapIdx only feeds the guild term (×(1 + ⌊map/50⌋)).
+// descriptor. mapIdx feeds the guild term (×(1 + ⌊map/50⌋)) and talent 643's
+// multikill tier (OverkillStuffs, rescaled to the selected map).
 
 import { loadSaveData } from "./save/loader";
 import { saveData } from "./state";
