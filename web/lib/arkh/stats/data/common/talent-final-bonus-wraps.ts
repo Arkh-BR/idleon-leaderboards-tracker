@@ -926,16 +926,17 @@ export const TALENT_FINAL_BONUS_WRAPS: Record<number, TalentWrapSpec> = {
   },
 
   // Tal 305 — Looty Mc Shooty (per-char).
-  // N.js: GetTalentNumber(1,305) × CalcTalentMAP[305].
+  // N.js: GetTalentNumber(1,305) × CalcTalentMAP[305], which DamageDealed
+  // and the tooltip divide by 50 ("per 50 items").
   // CalcTalentMAP[305] = items ever found (Cards[1] minus Gem/Cards entries).
   305: {
     counterLabel: "Items Ever Found",
     counterSource: { kind: "CalcTalent", talentId: 305 },
     counterNote:
       "CalcTalentMAP[305] — count of Cards[1] entries (excl. Gem*/Cards*)",
-    wrap: (tv, c) => tv * c,
+    wrap: (tv, c) => (tv * c) / 50,
     fmt: "+",
-    noteForActive: (tv, c) => `${tv.toFixed(2)} × ${c} % damage`,
+    noteForActive: (tv, c) => `${tv.toFixed(2)} × ${c} / 50 % damage`,
     inactiveVal: 0,
     inactiveNote: (_tv, c) =>
       c <= 0 ? "Inactive — no items found" : "Inactive — talent 0",
@@ -960,7 +961,8 @@ export const TALENT_FINAL_BONUS_WRAPS: Record<number, TalentWrapSpec> = {
   },
 
   // Tal 470 — Paperwork, Great... (per-char).
-  // N.js: GetTalentNumber(1,470) × CalcTalentMAP[470].
+  // N.js: GetTalentNumber(1,470) × CalcTalentMAP[470], which DamageDealed
+  // and the tooltip divide by 10 ("per 10 stamps").
   // CalcTalentMAP[470] = stamps in collection (StampLevelMAX>0.5).
   // [PROXY COUNTER] we count StampLv>0 (raw save lacks StampLevelMAX).
   470: {
@@ -968,9 +970,9 @@ export const TALENT_FINAL_BONUS_WRAPS: Record<number, TalentWrapSpec> = {
     counterSource: { kind: "CalcTalent", talentId: 470 },
     counterNote:
       "CalcTalentMAP[470] — [PROXY] count StampLv>0 (StampLevelMAX unported)",
-    wrap: (tv, c) => tv * c,
+    wrap: (tv, c) => (tv * c) / 10,
     fmt: "+",
-    noteForActive: (tv, c) => `${tv.toFixed(2)} × ${c} % damage`,
+    noteForActive: (tv, c) => `${tv.toFixed(2)} × ${c} / 10 % damage`,
     inactiveVal: 0,
     inactiveNote: (_tv, c) =>
       c <= 0 ? "Inactive — no stamps" : "Inactive — talent 0",

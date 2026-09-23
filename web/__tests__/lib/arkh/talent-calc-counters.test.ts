@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll } from "vitest";
 import { existsSync, readFileSync } from "node:fs";
 import { loadSaveData } from "@/lib/arkh/save/loader";
 import { saveData } from "@/lib/arkh/state";
-import { maxTalentBonus } from "@/lib/arkh/stats/systems/common/talent";
+import { talent, maxTalentBonus } from "@/lib/arkh/stats/systems/common/talent";
 import { computeCalcTalent } from "@/lib/arkh/stats/systems/common/calcTalent";
 import { computeArkhDropRate } from "@/lib/arkh/computeDR";
 import { MapDetails } from "@/lib/arkh/stats/data/game/customlists.js";
@@ -54,6 +54,34 @@ describe("Apocalypse counters (110/146/209)", () => {
   });
 });
 
+const node = (id: number, ci: number) => talent.resolve(id, { saveData, charIdx: ci });
+const kid = (n: ArkhNode, name: string) => n.children?.find((k) => k.name === name)?.val ?? NaN;
+
+// N.js tooltips (~7195614, ~7198211) show GTN(1,305)·(MAP/50) and
+// GTN(1,470)·(MAP/10): the same /50 and /10 as DamageDealed.
+describe("305/470 headlines carry DamageDealed's /50 and /10", () => {
+  beforeAll(() => {
+    loadSaveData({
+      charNames: ["T"],
+      data: {
+        SL_0: JSON.stringify({ 305: 100, 470: 100 }),
+        Cards1: JSON.stringify(["Copper", "Iron", "GemP1", "CardsA0"]),
+        StampLv: JSON.stringify([[1, 2, 0], [4], []]),
+      },
+    });
+  });
+
+  it("305 = GTN × 2 items / 50", () => {
+    const t305 = node(305, 0);
+    expect(t305.val).toBeCloseTo((kid(t305, "Talent Value") * 2) / 50, 6); // Copper, Iron
+  });
+
+  it("470 = GTN × 3 stamps / 10", () => {
+    const t470 = node(470, 0);
+    expect(t470.val).toBeCloseTo((kid(t470, "Talent Value") * 3) / 10, 6);
+  });
+});
+
 // Real saves (gitignored golden cache); skip in CI where they're absent.
 const SAVE = "scripts/updater/golden/.cache/arkhe-live-2026-09-23.json";
 const DR_SAVE = "scripts/updater/golden/.cache/arkhe-2026-09-23.json";
@@ -75,6 +103,16 @@ describe.skipIf(!existsSync(SAVE))("talent counters on a real save", () => {
 
   it("209 reads ARKHE's 106 maps over 1e9 for every character", () => {
     for (let ci = 0; ci < names.length; ci++) expect(computeCalcTalent(209, ci, saveData)).toBe(106);
+  });
+
+  it("Darkhe's 305 headline divides by 50", () => {
+    const t305 = node(305, names.indexOf("Darkhe"));
+    expect(t305.val).toBeCloseTo((kid(t305, "Talent Value") * kid(t305, "Items Ever Found")) / 50, 6);
+  });
+
+  it("Parkhe's 470 headline divides by 10", () => {
+    const t470 = node(470, names.indexOf("Parkhe"));
+    expect(t470.val).toBeCloseTo((kid(t470, "Talent Value") * kid(t470, "Stamps In Collection")) / 10, 6);
   });
 });
 

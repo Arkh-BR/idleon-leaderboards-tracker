@@ -967,11 +967,12 @@ export function computeMaxDamage(charIdx: number, ctx: Ctx): number {
 // --------------------------------------------------------------------------
 export function talentCalcTerms(ci: number, ctx: Ctx): Record<number, number> {
   // talent.resolve already returns 31/110/125/305/656 as GTN(1,id) × their
-  // counter (the final-bonus wraps), so no counter goes on top here.
+  // counter (the final-bonus wraps; 305's carries the /50), so no counter
+  // goes on top here.
   const tc31 = rval(talent, 31, ctx); // GTN × floor(lowest skill LV / 5)
   const tc110 = rval(talent, 110, ctx); // GTN × min(maps over 100k kills, GTN(2,110))
   const tc125 = rval(talent, 125, ctx); // GTN × Σ Refinery ranks, accuracy-gated
-  const tc305 = rval(talent, 305, ctx) / 50; // GTN × items ever found, /50
+  const tc305 = rval(talent, 305, ctx); // GTN × items ever found / 50
   const tc656 = rval(talent, 656, ctx); // GTN × dream clouds completed
   // 470/485 apply their own counter to the bare GTN: calcTalent.ts counts
   // the save envelope's "length" key for these.
