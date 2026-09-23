@@ -14,6 +14,7 @@ import { DungPassiveStats2, RANDOlist } from "../../data/game/customlists.js";
 import { legendPTSbonus, computePaletteBonus } from "../w7/spelunking";
 import { cropSCbonMulti } from "../w6/farming";
 import { vaultKillzTotal, cardsCollected, accountMapKills } from "./accountKills";
+import { divinityMinorSum } from "./divinityMinor";
 import { computeArtifactBonus } from "../w5/sailing";
 import { votingBonusz } from "../w2/voting";
 import { computeMeritocBonusz } from "../w7/meritoc";
@@ -245,6 +246,8 @@ function resolveCoin(id: string, ctx: SystemCtx): ArkhNode {
       const v = formulaEval(String(row[3]), Number(row[1]), Number(row[2]), lv);
       return node("Flurbo Shop 4 (Monster Cash)", v, [raw("Level", lv)], { fmt: "+" });
     }
+    case "divMinor3":
+      return node("Divinity minor bonus (Cash)", divinityMinorSum(3, ci, s), null, { fmt: "+" });
     case "cropSC4": {
       const unlocked = emporiumBonus(23, (s.ninjaData as any[])?.[102]?.[9]) ? 1 : 0;
       const crops = Math.round(s.farmCropCount || 0);

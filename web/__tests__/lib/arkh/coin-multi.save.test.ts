@@ -93,6 +93,7 @@ describe.skipIf(!existsSync(SAVE))("Coin Multi — Markhe on map 14 vs IdleonToo
     ["artifact 1 × highest level", () => src("artifact1"), 22800],
     ["mainframe 9 × green mushroom kills", () => src("mainframe9"), 17114049124783.2],
     ["vote 34 (inactive this week)", () => src("vote34"), 0],
+    ["divinity minor (Cash)", () => src("divMinor3"), 5379.683449995177],
   ])("%s", (_name, get, expected) => close(get(), expected));
 
   it("moves only guild8 and talent643 when the viewed map changes", () => {
