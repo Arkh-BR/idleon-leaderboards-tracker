@@ -6,7 +6,7 @@ import { MAP_NAMES } from "@/lib/dropRate/mapNames";
 
 export type CoinMapOption = { index: number; name: string; world: number; label: string };
 
-const SKIP = new Set(["", "PlayerSelect", "Z", "Nothing"]);
+const SKIP = new Set(["", "PlayerSelect", "Z", "Nothing", "Filler", "Unused", "fillername"]);
 
 export function worldOf(mapIdx: number): number {
   return Math.floor(mapIdx / 50) + 1;
