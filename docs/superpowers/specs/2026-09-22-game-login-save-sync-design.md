@@ -1,7 +1,7 @@
 # Login da conta Idleon (Google/Steam) → save automático — Design Spec
 
 **Data:** 2026-09-22
-**Status:** rascunho — aguardando revisão do usuário
+**Status:** aprovado pelo usuário (22/09/2026, com o adendo Pause/Stop) — pronto para plano de implementação
 **Branch:** `claude/social-auth-game-save-sync-ea785d`
 
 ## Problema
@@ -21,14 +21,15 @@ IdleonToolbox faz.
 2. Save puxado **direto do servidor do jogo**, no mesmo envelope que as 4 ferramentas já consomem
    (Drop Rate, Tome, Talents, Cooking) — pipeline dos engines intocado.
 3. **"Keep me signed in"**: com a opção marcada, toda visita carrega o save atualizado sem re-login.
-4. **Somente leitura**, garantido pelo código.
-5. **Login nunca passa pelo nosso servidor** (browser ↔ Google/Steam/jogo).
+4. **Atualização automática** enquanto a página está aberta, com botões **Pause** e **Stop**.
+5. **Somente leitura**, garantido pelo código.
+6. **Login nunca passa pelo nosso servidor** (browser ↔ Google/Steam/jogo).
 
 ## Não-objetivos
 
 - Apple (v1.1 — `tspa`/`capsc` não têm CORS, exigem proxy) e Email/senha.
 - Escrever qualquer coisa no save ou na conta.
-- Sync em tempo real (listener) — 1 leitura por visita + botão Sync.
+- Sync em tempo real (listener do Firestore) — no lugar dele, checagem barata a cada 5 min (§Atualização automática).
 - Auto-preencher o nome na página Leaderboards.
 - Pedir permissão à Lavaflame2.
 
@@ -43,6 +44,8 @@ IdleonToolbox faz.
 | D5 | REST puro (`fetch`), sem Firebase SDK — zero dependência nova | proposta |
 | D6 | Reimplementar a partir do protocolo; **não copiar código do IT** (GPL-3.0; nosso repo é público sem licença) | proposta |
 | D7 | Credenciais do jogo hardcoded num lugar só (como IT/IE). Env var não muda nada material: o valor vai pro browser de qualquer forma e o problema é usar credencial alheia, não onde ela está escrita | proposta |
+| D8 | Atualização automática com botões **Pause** e **Stop** | usuário |
+| D9 | Semântica: checagem a cada 5 min com a aba visível; Pause = congela nesta visita; Stop = desliga até religar, lembrado no aparelho, inclusive o auto-load ao abrir o site | proposta |
 
 ## Como funciona (protocolo)
 
@@ -124,12 +127,13 @@ relativo).
 
 | Unidade | Faz | Interface | Depende de |
 |---------|-----|-----------|------------|
-| `web/lib/gameAuth/firebase.ts` | REST do Firebase do jogo + constantes do projeto + decoder | `signInWithGoogleIdToken(idToken)`, `signInWithCustomToken(token)`, `refreshSession(refreshToken)`, `firestoreGet(path, idToken)`, `rtdbGet(path, idToken)`, `decodeFirestoreFields(fields)` | `fetch` |
+| `web/lib/gameAuth/firebase.ts` | REST do Firebase do jogo + constantes do projeto + decoder | `signInWithGoogleIdToken(idToken)`, `signInWithCustomToken(token)`, `refreshSession(refreshToken)`, `firestoreGet(path, idToken)`, `firestoreUpdateTime(path, idToken)`, `rtdbGet(path, idToken)`, `decodeFirestoreFields(fields)` | `fetch` |
 | `web/lib/gameAuth/providers.ts` | Google device flow + Steam OpenID/`asil` + constantes | `requestDeviceCode()`, `pollDeviceToken(deviceCode)` → `{status, idToken?}`, `steamLoginUrl()`, `parseSteamReturnUrl(url)`, `exchangeSteamAssertion(params)` | `fetch` |
 | `web/lib/gameAuth/envelope.ts` | Monta o envelope a partir de `uid` + `idToken` | `fetchSaveEnvelope(uid, idToken)` | `firebase.ts`, `lib/tome/compute` |
-| `web/lib/gameAuth/session.ts` | Estado da sessão, persistência opt-in, cache em memória do envelope | `startSession(auth, keep)`, `hasSession()`, `loadAccountSave({force})`, `signOut()` | `firebase.ts`, `envelope.ts`, `localStorage` |
+| `web/lib/gameAuth/session.ts` | Estado da sessão, persistência opt-in, cache em memória do envelope, modo da atualização automática | `startSession(auth, keep)`, `hasSession()`, `cachedEnvelope()`, `loadAccountSave({force})`, `checkForUpdate()`, `autoUpdateMode()`, `setAutoUpdateMode(mode)`, `signOut()` | `firebase.ts`, `envelope.ts`, `localStorage` |
 | `web/components/GameLoginDialog.tsx` | Diálogo (`<dialog>` nativo), abas Google/Steam, checkbox "Keep me signed in" | `open`, `initialTab`, `onClose`, `onSignedIn()` | `providers.ts`, `session.ts` |
-| `web/components/ProfileNameLoader.tsx` (edit) | Linha "Sign in" / "Signed in" + precedência do auto-load | inalterada (`onSave`) | `session.ts`, dialog |
+| `web/components/ProfileNameLoader.tsx` (edit) | Linha "Sign in" / "Signed in" com os controles, precedência do auto-load e o timer da atualização automática | inalterada (`onSave`) | `session.ts`, dialog |
+| `web/components/dropRate/DrCalculator.tsx` (edit) | Preservar o mapa selecionado quando chega save novo (hoje volta pro mapa atual do char em `applyParsedSave`, linhas 126-131) | — | — |
 
 `session.ts` é um módulo singleton de propósito: o `TopNav` usa `next/link`, então trocar de
 ferramenta não recarrega o documento e o envelope em memória é reaproveitado pelas 4 páginas —
@@ -141,8 +145,9 @@ ferramenta não recarrega o documento e o envelope em memória é reaproveitado 
 - **Persistido** só com a checkbox marcada:
   `localStorage["gameAuth.session.v1"] = {v: 1, provider, uid, refreshToken}`.
   **Nunca** o `idToken` nem o envelope.
-- **Carga de página:** sessão em memória → usa o envelope em cache. Senão, sessão persistida →
-  `refreshSession` → `fetchSaveEnvelope` → `onSave`. O refresh devolve `refresh_token` → regrava.
+- **Carga de página:** segue a precedência do mount (§UI). Quando precisa buscar com sessão
+  persistida → `refreshSession` → `fetchSaveEnvelope` → `onSave`. O refresh devolve
+  `refresh_token` → regrava.
 - **Sync:** força novo fetch (botão desabilitado durante o fetch). `idToken` a menos de 5 min de
   expirar → refresh antes.
 - **Sign out:** limpa memória + `localStorage`. Não há revogação no servidor (o refresh token do
@@ -153,16 +158,45 @@ ferramenta não recarrega o documento e o envelope em memória é reaproveitado 
   sessão, mostra o erro, permite retry.
 - **Multi-aba:** sign out numa aba vale nas outras no próximo carregamento. Aceito.
 
+## Atualização automática (Pause / Stop)
+
+- **Ciclo:** logado, modo `on`, página aberta e **aba visível** (Page Visibility API) → a cada
+  **5 min** faz uma checagem barata:
+  `GET _data/{uid}?mask.fieldPaths=<campo inexistente>` devolve só `name`/`createTime`/`updateTime`
+  (~200 bytes em vez de ~1,3 MB; verificado em `_vars/_vars` em 22/09). `updateTime` mudou →
+  fetch completo → `onSave`. Não mudou → nada acontece. Aba volta a ficar visível depois de >5 min
+  → checa na hora. Timer vive no `ProfileNameLoader` (limpo no unmount).
+- **Modos** (`session.ts`):
+  - `on` (padrão) — ciclo rodando.
+  - `paused` — **Pause** congela o save na tela durante esta visita: sem checagem. Só em memória;
+    recarregar a página volta a `on`. **Resume** checa na hora e retoma o ciclo.
+  - `off` — **Stop** desliga até religar, **lembrado no aparelho**
+    (`localStorage["gameAuth.autoUpdate.v1"] = "off"`): sem checagem **e sem auto-load da conta ao
+    abrir o site** — a página volta ao comportamento atual (último nome / JSON colado). O save da
+    conta só entra via **Sync now**. **Start auto-update** religa (`on`) e checa na hora.
+- **Sync now** ignora o modo: fetch completo imediato; não muda o modo.
+- **Não perder seleção a cada update:** Talents (char), Tome (busca) e Cooking (sem estado) já
+  preservam o que o usuário escolheu — verificado. O Drop Rate reseta o mapa no `applyParsedSave`
+  → passa a preservar o `mapIdx` se ainda válido, como já faz com o `charIdx`.
+
 ## UI (texto do site em inglês)
 
 **`ProfileNameLoader`** — nova linha no topo do card (cobre as 4 páginas):
 
 - Deslogado: `🔑 Sign in to load your save automatically` + `[Google]` `[Steam]` → abre o diálogo
   na aba certa.
-- Logado: `✅ {charNames[0]} · save updated {tempo relativo de lastUpdated} · [Sync] [Sign out]`.
-- **Precedência no mount:** há sessão → carrega da conta (pula o auto-load por nome). Senão →
-  comportamento atual (último nome). Carregar por nome continua disponível logado (ex.: ver o save
-  de outro jogador).
+- Logado: `✅ {charNames[0]} · save updated {tempo relativo de lastUpdated} · {status}` +
+  controles, com `{status}` = `auto-updating` / `paused` / `auto-update off`:
+  - modo `on`: `[⏸ Pause] [⏹ Stop]`
+  - modo `paused`: `[▶ Resume] [⏹ Stop]`
+  - modo `off`: `[▶ Start auto-update]`
+  - sempre: `[⟳ Sync now] [Sign out]`
+- **Precedência no mount:**
+  1. Envelope da conta já em memória nesta visita → usa (qualquer modo).
+  2. Senão, há sessão e modo ≠ `off` → carrega da conta (pula o auto-load por nome).
+  3. Senão → comportamento atual (último nome).
+
+  Carregar por nome continua disponível logado (ex.: ver o save de outro jogador).
 
 **`GameLoginDialog`** (`<dialog>` nativo, abas):
 
@@ -233,6 +267,10 @@ dependência comprometida no nosso domínio leriam o `localStorage`.
 - Steam: `parseSteamReturnUrl` (válida, host errado, sem `claimed_id`) e corpo do request da `asil`.
 - `session`: keep=true persiste só `{v, provider, uid, refreshToken}`; keep=false não persiste;
   `signOut` limpa; refresh inválido limpa; `uid` vem do `sub` do JWT.
+- Atualização automática: `checkForUpdate` com `updateTime` igual → `null` sem fetch completo;
+  diferente → envelope novo; checagem usa `mask.fieldPaths`; `off` persiste e `paused` não;
+  precedência do mount (cache → conta se modo ≠ `off` → nome).
+- Drop Rate: save novo preserva `mapIdx` válido.
 
 **Spike de paridade** (1ª tarefa do plano, descartável, com a conta Google do usuário): script
 `tsx` local → usuário aprova o código em google.com/device → REST → envelope. Com o jogo
@@ -249,7 +287,9 @@ do decoder, no padrão dos saves reais já usados nos testes.
 main — problema pré-existente). Sem `npm run dev`.
 
 **Preview Vercel (usuário):** login Google → 4 páginas carregam; recarregar com "Keep me signed
-in" → carrega sozinho; sem a opção → pede login; Sign out → limpa; CSP sem erro no console.
+in" → carrega sozinho; sem a opção → pede login; Sign out → limpa; jogar e ver o save atualizar
+sozinho em ≤5 min; Pause congela, Resume retoma; Stop sobrevive ao reload e não carrega a conta
+sozinho; CSP sem erro no console.
 **Steam:** precisa de alguém com conta Steam antes do merge, ou merge com Steam validado só por
 teste unitário — decisão do usuário no PR.
 
@@ -265,7 +305,7 @@ Merge na main só quando o usuário pedir.
 | R4 | Steam sem validação real | Médio | Testes unitários + tester antes do merge |
 | R5 | UX do Steam frágil (copia-cola, uso único) | Médio | Instrução explícita, igual ao IT |
 | R6 | Tome calculado por nós ~1 task abaixo do IT (tasks só de leaderboard) | Baixo | Medido no spike |
-| R7 | Leitura de ~1,3 MB por visita no Firestore da Lava | Baixo | Cache em memória entre páginas, sem listener |
+| R7 | Custo no Firestore da Lava: ~1,3 MB por visita/update + 1 leitura mascarada a cada 5 min por aba visível | Baixo | Cache em memória entre páginas; fetch completo só quando `updateTime` muda; sem checagem com aba oculta |
 
 ## Futuro (fora do v1)
 
