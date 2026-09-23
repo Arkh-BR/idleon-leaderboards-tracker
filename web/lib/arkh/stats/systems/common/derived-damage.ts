@@ -216,6 +216,26 @@ function computeSaltLick(_idx: number, _s: SaveData): number {
   return 0; // [STUB] W3 salt-lick dmg unported
 }
 
+// Counts CauldronInfo[4] entries (vial levels) that are > 3 (Green+ tier).
+// The raw save's CauldronInfo[4] dict carries a spurious "length" key (save
+// envelope artifact, e.g. {"0":13,...,"87":0,"length":88}) that isn't a vial
+// slot — N.js reads CauldronInfo[4].length only as the loop bound
+// (`for (t = CauldronInfo[4].length; f < t; )`), never as an element, so
+// non-numeric keys must be skipped here too.
+export function countVialsOver3(ci4: unknown): number {
+  let count = 0;
+  if (!ci4) return count;
+  if (Array.isArray(ci4)) {
+    for (let i = 0; i < ci4.length; i++) if ((Number(ci4[i]) || 0) > 3) count++;
+  } else if (typeof ci4 === "object") {
+    for (const k in ci4 as any) {
+      if (isNaN(Number(k))) continue;
+      if ((Number((ci4 as any)[k]) || 0) > 3) count++;
+    }
+  }
+  return count;
+}
+
 // ==========================================================================
 // MAX DAMAGE — port of damage.js combine() (normal mode).
 // Returns DDL[0] × DDL[1] × DDL[2] as a finite scalar.
@@ -614,16 +634,8 @@ export function computeMaxDamage(charIdx: number, ctx: Ctx): number {
       _refSum += Number((s.refineryData as any)[_ri] && (s.refineryData as any)[_ri][1]) || 0;
   const tc125 = gtn125 * _refSum;
   // TalentCalc(485): GTN(1,485) * count(vials with lv > 3)
-  let _vialCount = 0;
   const _ci4 = cauldronInfoData && (cauldronInfoData as any)[4];
-  if (_ci4) {
-    if (Array.isArray(_ci4)) {
-      for (let _vi = 0; _vi < _ci4.length; _vi++) if ((Number(_ci4[_vi]) || 0) > 3) _vialCount++;
-    } else if (typeof _ci4 === "object") {
-      for (const _vk in _ci4) if ((Number(_ci4[_vk]) || 0) > 3) _vialCount++;
-    }
-  }
-  const tc485 = rval(talent, 485, ctx) * _vialCount;
+  const tc485 = rval(talent, 485, ctx) * countVialsOver3(_ci4);
   // TalentCalc(305): GTN(1,305) * cardCount / 50
   const _c1 = (s.cards1Data as any) || [];
   let _cardCount = _c1.length;
