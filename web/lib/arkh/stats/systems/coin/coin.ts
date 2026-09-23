@@ -7,13 +7,18 @@
 import { node, type ArkhNode } from "../../../node";
 import type { SystemCtx } from "../../registry";
 import { getLOG, formulaEval } from "../../../formulas";
-import { optionsListData, currentMapData } from "../../../save/data";
+import { optionsListData, currentMapData, numCharacters, dreamData } from "../../../save/data";
 import { eventShopOwned, emporiumBonus } from "../../../game-helpers";
 import { label } from "../../entity-names";
 import { DungPassiveStats2, RANDOlist } from "../../data/game/customlists.js";
-import { legendPTSbonus } from "../w7/spelunking";
+import { legendPTSbonus, computePaletteBonus } from "../w7/spelunking";
 import { cropSCbonMulti } from "../w6/farming";
-import { vaultKillzTotal, cardsCollected } from "./accountKills";
+import { vaultKillzTotal, cardsCollected, accountMapKills } from "./accountKills";
+import { computeArtifactBonus } from "../w5/sailing";
+import { votingBonusz } from "../w2/voting";
+import { computeMeritocBonusz } from "../w7/meritoc";
+import { computeWinBonus } from "../w6/summoning";
+import { cosmoBonus } from "../w5/hole";
 import { bubbleValByKey, computeVialByKey } from "../w2/alchemy";
 import {
   computeMealBonus,
@@ -24,7 +29,7 @@ import {
 import { companions } from "../common/companions";
 import { etcBonus } from "../common/etcBonus";
 import { sushiRoG } from "../w7/sushi";
-import { gridBonusValue } from "../w4/lab";
+import { gridBonusValue, mainframeBonus } from "../w4/lab";
 import { getSetBonus } from "../w3/setBonus";
 import { maxTalentBonus, talent } from "../common/talent";
 import { computeOverkillTier } from "../common/derived-damage";
@@ -292,6 +297,38 @@ function resolveCoin(id: string, ctx: SystemCtx): ArkhNode {
       const v = vaultUpgBonus(70, s);
       const cards = cardsCollected(s);
       return node(`${label("Vault", 70)} × cards collected`, v * cards, [raw("Vault 70", v), raw("Cards collected", cards)], { fmt: "+" });
+    }
+    // Artifact 1 (Maneki Kat): base × tier (computeArtifactBonus) × the
+    // highest character level (CalcTalentMAP["620"], account-wide).
+    case "artifact1": {
+      const base = computeArtifactBonus(1, ci, { saveData: s, charIdx: ci } as any);
+      let top = 0;
+      for (let c = 0; c < numCharacters; c++) top = Math.max(top, Number((s.lv0AllData as any[])?.[c]?.[0]) || 0);
+      return node(`${label("Artifact", 1)} × highest level`, base * top, [raw("Artifact bonus", base), raw("Highest char level", top)], { fmt: "+" });
+    }
+    // MainframeBonus(9) = (LabMainBonus[9][5] + MainframeBonus(113)) ×
+    // ⌊kills/1e6⌋ (or × kills/1e6 past 1e8), kills = green mushroom map
+    // (MapAFKtarget.indexOf("mushG") = 1) account kills. mainframeBonus()
+    // in lab.ts already returns the unmultiplied base9 sum (see its comment);
+    // the kill multiplier is applied here, not inside the shared helper.
+    case "mainframe9": {
+      const base = mainframeBonus(9, s);
+      const k = accountMapKills(1) / 1e6; // map 1 = MapAFKtarget "mushG"
+      const mult = k < 1e8 ? Math.floor(k) : k;
+      return node("Lab Mainframe 9 × green mushroom kills", base * mult, [raw("Mainframe 9", base), raw("Kills / 1e6", mult)], { fmt: "+" });
+    }
+    // VotingBonusz(34): base value gated on the active weekly vote, scaled
+    // by a multi built from companions/dream/cosmo/win/event-shop/palette/
+    // legend/sushi terms. Only nonzero in weeks vote 34 wins.
+    case "vote34": {
+      const es = (n: number) => eventShopOwned(n, s.cachedEventShopStr || "");
+      const inner =
+        companions(41, s) + (Number((dreamData as any[])[13]) || 0) + cosmoBonus(s, 2, 3) +
+        computeWinBonus(22, null, s) + 17 * es(7) + 13 * es(16) + companions(19, s) +
+        computePaletteBonus(32, s) + legendPTSbonus(22, s) +
+        (Number(sushiRoG.resolve(50, ctx as any).val) || 0);
+      const multi = (1 + companions(161, s) / 100) * (1 + computeMeritocBonusz(9, s) / 100) * (1 + inner / 100);
+      return node("Vote 34 (Cash)", votingBonusz(34, multi, s), [node("Voting multi", multi, null, { fmt: "x" })], { fmt: "+" });
     }
     default:
       // Ported by Tasks 2–5; 0 keeps the product valid meanwhile.
