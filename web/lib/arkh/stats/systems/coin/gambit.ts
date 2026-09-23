@@ -15,6 +15,7 @@ const H = (s: SaveData, row: number, i: number) =>
 const info = (row: number, i: number) =>
   String(((HolesInfo as unknown as unknown[][])[row] ?? [])[i] ?? "");
 
+// @njs DeathNoteRank
 /** N.js WorkbenchStuff("DeathNoteRank", kills, 0): one mob's skull value. */
 function deathNoteRank(kills: number, s: SaveData): number {
   if (kills < 25e3) return 0;
@@ -28,6 +29,7 @@ function deathNoteRank(kills: number, s: SaveData): number {
   return kills > 1e9 && (Number((s.riftData as any[])?.[0]) || 0) >= 20 ? 20 : 10;
 }
 
+// @njs OverkillQTY
 /** Σ_{w=0..6} N.js WorkbenchStuff("OverkillQTY", w): the Deathnote skulls of
  *  worlds 1–7. Index 7 (minibosses) isn't part of MeasurementQTYfound(6). */
 export function deathNoteSkulls(s: SaveData): number {
@@ -66,6 +68,7 @@ function jarCollectible(b: number, s: SaveData): number {
   return H(s, 24, b) * Number(info(67, b).split("|")[1]) * (1 + legendPTSbonus(29, s) / 100);
 }
 
+// @njs GambitPTSmulti
 /** N.js Holes("GambitPTSmulti"). B_UPG(78, 10) has no special case: 10 once bought. */
 export function gambitPtsMulti(s: SaveData): number {
   const bUpg78 = H(s, 13, 78) !== 0 ? 10 : 0;
@@ -82,6 +85,7 @@ export function gambitPtsMulti(s: SaveData): number {
   );
 }
 
+// @njs GambitPts
 /** N.js Holes("GambitPts", 777). */
 export function gambitPoints(s: SaveData): number {
   let sum = 0;
@@ -92,10 +96,13 @@ export function gambitPoints(s: SaveData): number {
   return sum * gambitPtsMulti(s);
 }
 
+// @njs GambitPtsREQ
+/** N.js Holes("GambitPtsREQ", b). */
 export function gambitPtsReq(b: number): number {
   return 2e3 + 1e3 * (b + 1) * (1 + b / 5) * Math.pow(1.26, b);
 }
 
+// @njs GambitBonuses
 /** N.js Holes("GambitBonuses", b) for b ≥ 1. */
 export function gambitBonus(b: number, s: SaveData): number {
   const pts = gambitPoints(s);

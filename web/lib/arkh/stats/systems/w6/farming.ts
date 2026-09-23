@@ -165,6 +165,7 @@ export function computeExoticBonus(idx: number, saveData: SaveData): number {
   return (ex.base * lv) / (ex.denom + lv);
 }
 
+// @njs CropSCbonMulti
 /** N.js FarmingStuffs("CropSCbonMulti") — shared by every Crop Depot bonus
  *  (the same factors the cropSC7 branch above multiplies). */
 export function cropSCbonMulti(saveData: SaveData): number {

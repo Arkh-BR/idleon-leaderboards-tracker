@@ -22,6 +22,7 @@ export function accountMapKills(m: number): number {
 // (4–7), Tasks[3] completions (8), Σ min(100, bubble lv) (9).
 const VK_MAPS = [14, 24, 13, 8] as const;
 
+// @njs VaultKillzTotal
 export function vaultKillzTotal(k: number, saveData: SaveData): number {
   if (k >= 0 && k <= 3) return accountMapKills(VK_MAPS[k]);
   if (k >= 4 && k <= 7) {
@@ -56,6 +57,7 @@ export function vaultKillzTotal(k: number, saveData: SaveData): number {
   return 0;
 }
 
+// @njs CardsCollected
 /** N.js Stuff2("CardsCollected"): distinct CardStuff cards with Cards[0][key] ≥ 1. */
 export function cardsCollected(saveData: SaveData): number {
   const owned = (saveData.cards0Data ?? {}) as Record<string, unknown>;

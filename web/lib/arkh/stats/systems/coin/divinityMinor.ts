@@ -20,6 +20,7 @@ import { companions } from "../common/companions";
 import { cosmoBonus } from "../w5/hole";
 import type { SaveData } from "../../../state";
 
+// @njs PocketDivOwned
 /** N.js Holes("PocketDivOwned", type). */
 export function pocketDivOwned(type: number, saveData: SaveData): number {
   const h11 = (((saveData.holesData as any[]) ?? [])[11] ?? []) as unknown[];
@@ -42,6 +43,7 @@ function y2Active(activeCi: number, saveData: SaveData): number {
   return allBubbles || equipped ? val : 0;
 }
 
+// @njs DivMinorBonus
 /** N.js Divinity("DivMinorBonus", f, godIdx). */
 function divMinorBonus(f: number, godIdx: number, activeCi: number, saveData: SaveData): number {
   const lv = Number((saveData.lv0AllData as any[])?.[f]?.[14]) || 0;
@@ -55,6 +57,8 @@ function divMinorBonus(f: number, godIdx: number, activeCi: number, saveData: Sa
   );
 }
 
+// @njs Bonus_Minor
+/** N.js Divinity("Bonus_Minor", -1, type). */
 export function divinityMinorSum(type: number, activeCi: number, saveData: SaveData): number {
   const typeOfGod: number[] = [];
   for (let g = 0; g < 10; g++) typeOfGod.push(godsType(g));
