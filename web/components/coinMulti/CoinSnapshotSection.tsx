@@ -331,7 +331,10 @@ function HistoryTable({
             const prev = rows[i + 1];
             const cur = s.computedCoinMulti;
             const prevVal = prev?.computedCoinMulti;
-            const delta = prevVal !== undefined ? (cur / prevVal - 1) * 100 : null;
+            const delta =
+              prevVal !== undefined && prevVal > 0 && Number.isFinite(prevVal)
+                ? (cur / prevVal - 1) * 100
+                : null;
             const isSelected = selectedBaselineAt === s.capturedAt;
             const hasTree = !!s.flatTree;
             return (
