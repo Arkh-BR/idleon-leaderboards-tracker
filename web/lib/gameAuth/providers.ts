@@ -75,15 +75,15 @@ export async function pollDeviceToken(deviceCode: string): Promise<DevicePoll> {
 const sleep = (ms: number, signal: AbortSignal) =>
   new Promise<void>((resolve, reject) => {
     if (signal.aborted) return reject(signal.reason);
-    const t = setTimeout(resolve, ms);
-    signal.addEventListener(
-      "abort",
-      () => {
-        clearTimeout(t);
-        reject(signal.reason);
-      },
-      { once: true }
-    );
+    const onAbort = () => {
+      clearTimeout(t);
+      reject(signal.reason);
+    };
+    const t = setTimeout(() => {
+      signal.removeEventListener("abort", onAbort);
+      resolve();
+    }, ms);
+    signal.addEventListener("abort", onAbort, { once: true });
   });
 
 /** Poll until the user approves on google.com/device (resolves the Google ID

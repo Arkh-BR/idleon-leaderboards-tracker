@@ -114,6 +114,34 @@ describe("Google device flow", () => {
     await vi.advanceTimersByTimeAsync(10_000);
     expect(f).not.toHaveBeenCalled();
   });
+
+  it("does not accumulate abort listeners across poll iterations", async () => {
+    vi.useFakeTimers();
+    const f = mockFetchSeq(
+      { status: 428, body: { error: "authorization_pending" } },
+      { status: 428, body: { error: "authorization_pending" } },
+      { status: 428, body: { error: "authorization_pending" } },
+      { body: { id_token: "G" } }
+    );
+    const ac = new AbortController();
+    const code = { deviceCode: "D", userCode: "U", interval: 5, expiresAt: Date.now() + 600_000 };
+    const addSpy = vi.spyOn(ac.signal, "addEventListener");
+    const removeSpy = vi.spyOn(ac.signal, "removeEventListener");
+
+    const p = waitForGoogleIdToken(code, ac.signal);
+    // Poll 1: pending
+    await vi.advanceTimersByTimeAsync(5_000);
+    // Poll 2: pending
+    await vi.advanceTimersByTimeAsync(5_000);
+    // Poll 3: pending
+    await vi.advanceTimersByTimeAsync(5_000);
+    // Poll 4: approved
+    await vi.advanceTimersByTimeAsync(5_000);
+    await expect(p).resolves.toBe("G");
+
+    // Check: at most 1 abort listener should be registered (adds - removes <= 1)
+    expect(addSpy.mock.calls.length - removeSpy.mock.calls.length).toBeLessThanOrEqual(1);
+  });
 });
 
 const RETURN =
