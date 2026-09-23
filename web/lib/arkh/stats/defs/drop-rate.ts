@@ -125,15 +125,12 @@ const dropRateDesc: Descriptor = {
     const lukC = 1.4 * lukVal;
 
     // Step 2+3: additive pools.
-    // N.js source (the in-game ground truth) at line 5611-5614 has:
-    //   e = 1 + (1.4 * DropRateLUK + (talent279 + ... )) / 100
-    // i.e. the 1.4*LUK term is INSIDE the /100 division alongside the
-    // additives, not outside. Arkh and IdleonToolbox both use the
-    // outside-the-/100 form (1.4*LUK + add/100 + 1), which is off from the
-    // game by ~(1.4 * lukVal) units of base — about 0.3% on a fully geared
-    // character. Matching N.js literally.
+    // N.js: e = 1 + (1.4*DropRateLUK + (talent279 + … + Companions(132))/100)
+    // The /100 closes on the additive group only — 1.4*LUK sits OUTSIDE it
+    // (IdleonToolbox agrees). Reading it as (1.4*LUK + add)/100 lost ~1.1
+    // of base, −0.21% vs the in-game DR on a 363k× Royal Guardian (2026-09).
     const addSum = pools.addMain.sum + pools.addLUK2.sum;
-    let base = 1 + (lukC + addSum) / 100;
+    let base = 1 + lukC + addSum / 100;
 
     // Chip cap-break (only if base < 5)
     const chipPct = pools.chipDR.items[0] ? pools.chipDR.items[0].val : 0;
@@ -181,7 +178,7 @@ const dropRateDesc: Descriptor = {
     // "Multiplier Chain" bucket where same-system items merge freely.
 
     // Merged additive pool — the formula sums addMain.sum + addLUK2.sum
-    // before applying (lukC + addSum)/100, so the two pools are
+    // before applying addSum/100, so the two pools are
     // mathematically a single bucket. Combine them into one "Additive
     // Pool" section.
     const allAdditiveItems = [
@@ -229,9 +226,9 @@ const dropRateDesc: Descriptor = {
 
     // LUK Scaling — collapse the previous standalone "× 1.4" sibling INTO
     // this wrapper so the section reads top-to-bottom as the math chain:
-    //   🍀 Total LUK  →  curve  →  × 1.4  =  lukC (contribution to addSum).
-    // Parent val = lukC so the headline matches what actually feeds the
-    // Additive Pool, not the pre-×1.4 luk curve.
+    //   🍀 Total LUK  →  curve  →  × 1.4  =  lukC (added to base as-is).
+    // Parent val = lukC so the headline matches what actually lands in the
+    // Total Sum, not the pre-×1.4 luk curve.
     const lukScalingChildren: ArkhNode[] = pools.base.items[0]?.children
       ? [...pools.base.items[0].children]
       : [];
@@ -253,7 +250,7 @@ const dropRateDesc: Descriptor = {
         // the curve breakdown inside is reference material, not what they
         // scan for. Matches the categorize-bucket pattern.
         defaultClosed: true,
-        note: "Total LUK → curve → × 1.4 = contribution to additive sum",
+        note: "Total LUK → curve → × 1.4 = added to the Total Sum (outside the /100)",
       },
       {
         name: "Additive Pool",
@@ -267,11 +264,11 @@ const dropRateDesc: Descriptor = {
         val: base - chipApplied,
         fmt: "raw",
         note:
-          "1 + (1.4·LUK + addSum)/100  =  1 + (" +
+          "1 + 1.4·LUK + addSum/100  =  1 + " +
           lukC.toFixed(2) +
           " + " +
           addSum.toFixed(1) +
-          ") / 100  — N.js formula",
+          " / 100  — N.js formula",
       },
       {
         name: "Chip Cap-Break",

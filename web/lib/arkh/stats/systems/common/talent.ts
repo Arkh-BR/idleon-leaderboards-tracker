@@ -826,9 +826,14 @@ export function computeAllTalentLVz(
   );
   // Royal Guardian talents (225–239, 2026-08): "All Talent LV" bonuses reach
   // them only up to Armory 55 (Talent Reattainment) levels — N.js sets
-  // AllTalMaxCapFR = ArmoryUpgBonus(55) for that id range (9999 otherwise).
+  // AllTalMaxCapFR = ArmoryUpgBonus(55) for that id range (9999 otherwise)
+  // and returns floor(min(cap, rest) + AllTalMaxSUPERdn): the super-talent
+  // levels ride on top of the cap (spelunkBonus is an integer).
   if (talentIdx >= 225 && talentIdx <= 239) {
-    return Math.min(total, Math.floor(armoryUpgBonus(55, saveData)));
+    return (
+      Math.min(total - spelunkBonus, Math.floor(armoryUpgBonus(55, saveData))) +
+      spelunkBonus
+    );
   }
   return total;
 }
@@ -852,6 +857,10 @@ function resolveAllTalentLVz(
     return { total: 0, children: [] };
   }
   const children: ArkhNode[] = [];
+  // Super-talent lookup uses slotIdx; every other term reads the context
+  // char (the active player for getbonus2 — see computeAllTalentLVz).
+  const ctxSlot =
+    opts && opts.contextSlot !== undefined ? opts.contextSlot : slotIdx;
 
   // Spelunk Super Talent. Two factors:
   //  - Is this talent ELIGIBLE? (passed the exclusion check above — set
@@ -954,7 +963,7 @@ function resolveAllTalentLVz(
   }
 
   function intervalAddCharNode(talId: number, lbl: string): number {
-    const sl = slotIdx >= 0 ? (skillLvData as any)[slotIdx] : null;
+    const sl = ctxSlot >= 0 ? (skillLvData as any)[ctxSlot] : null;
     const lv = Number(sl && (sl[talId] || sl[String(talId)])) || 0;
     const val = lv > 0 ? 1 + Math.floor(lv / 20) : 0;
     if (val > 0) {
@@ -969,12 +978,12 @@ function resolveAllTalentLVz(
           // its "any raw kid" fallback and applies intervalAdd.
           [
             emitBaseLevelNode(lv, saveData, {
-              ownerCharIdx: slotIdx,
+              ownerCharIdx: ctxSlot,
               ownerName:
-                saveData.charNames && saveData.charNames[slotIdx],
+                saveData.charNames && saveData.charNames[ctxSlot],
               useMaxResearch: !!opts?.useMaxResearchBaseLevel,
               talentId: 144,
-              activeCharIdx: slotIdx,
+              activeCharIdx: ctxSlot,
             }),
           ],
           { fmt: "raw", note: "intervalAdd(1,20," + lv + ")" }
@@ -1019,20 +1028,20 @@ function resolveAllTalentLVz(
   let tal144Super = 0;
   {
     tal144RawLv =
-      Number((skillLvData as any)[slotIdx] && (skillLvData as any)[slotIdx][144]) || 0;
+      Number((skillLvData as any)[ctxSlot] && (skillLvData as any)[ctxSlot][144]) || 0;
     if (tal144RawLv > 0 && t144) {
       // Count the Spelunk super talent as active for Family Guy too (it
       // stays in the effective level / multiplier), but compute the no-super
       // value so the node can show Bonus and Super on separate rows.
       const atlFor144 = computeAllTalentLVz(
         144,
-        slotIdx,
+        ctxSlot,
         { skipTal144FamMult: true, forceSuperActive: true },
         saveData
       );
       const atlNoSuper = computeAllTalentLVz(
         144,
-        slotIdx,
+        ctxSlot,
         { skipTal144FamMult: true, excludeSuper: true },
         saveData
       );
@@ -1099,7 +1108,7 @@ function resolveAllTalentLVz(
       famBonus68 = unbuffed;
       maxMageCharLv = lv;
       bestContribCharIdx = ci;
-      if (ci === slotIdx && tal144Mult > 1) {
+      if (ci === ctxSlot && tal144Mult > 1) {
         famBonus68 = unbuffed * tal144Mult;
         bestUsedTal144 = true;
       } else {
@@ -1112,7 +1121,7 @@ function resolveAllTalentLVz(
       (ClassNames as Record<number, string>)[cls] || `cls ${cls}`;
     const charName =
       (saveData.charNames && saveData.charNames[ci]) || `Char ${ci}`;
-    const isActive = ci === slotIdx;
+    const isActive = ci === ctxSlot;
     // STABLE catalog id — uses "Char N Lv" without baking the friendly
     // name into the path, so other accounts loading their save can
     // override these refs (their flat tree emits the same "Char N Lv"
@@ -1398,15 +1407,15 @@ function resolveAllTalentLVz(
   const godX1_2 = godMinorX1(2);
   let divLvCaptured = 0;
   let y2ActiveCaptured = 0;
-  if (slotIdx >= 0 && hasBonusMajor(slotIdx, 2, saveData)) {
+  if (ctxSlot >= 0 && hasBonusMajor(ctxSlot, 2, saveData)) {
     const divLv =
-      ((saveData as any).lv0AllData?.[slotIdx] && (saveData as any).lv0AllData[slotIdx][14]) ||
+      ((saveData as any).lv0AllData?.[ctxSlot] && (saveData as any).lv0AllData[ctxSlot][14]) ||
       0;
     divLvCaptured = divLv;
     if (divLv > 0) {
       const includesY2 =
-        (cauldronBubblesData as any)[slotIdx] &&
-        (cauldronBubblesData as any)[slotIdx].includes("d21");
+        (cauldronBubblesData as any)[ctxSlot] &&
+        (cauldronBubblesData as any)[ctxSlot].includes("d21");
       const y2Active = allBubblesActive || includesY2 ? y2Value : 0;
       y2ActiveCaptured = y2Active;
       divMinor =
@@ -1553,9 +1562,9 @@ function resolveAllTalentLVz(
   }
 
   const currentPlayerLv =
-    (slotIdx >= 0 &&
-      (saveData as any).lv0AllData?.[slotIdx] &&
-      (saveData as any).lv0AllData[slotIdx][0]) ||
+    (ctxSlot >= 0 &&
+      (saveData as any).lv0AllData?.[ctxSlot] &&
+      (saveData as any).lv0AllData[ctxSlot][0]) ||
     0;
   const superBit47 = superBitType(47, (saveData as any).gamingData?.[12]);
   const lvBonusTerm = superBit47
@@ -1593,21 +1602,23 @@ function resolveAllTalentLVz(
       arcane57 +
       lvBonusTerm
   );
-  // Royal Guardian talents (225–239): N.js caps the whole AllTalentLVz sum at
+  // Royal Guardian talents (225–239): N.js caps the AllTalentLVz sum at
   // ArmoryUpgBonus(55) ("AllTalMaxCapFR" — Talent Reattainment; 9999 for every
-  // other talent). Without that armory upgrade a Royal Guardian gets NO bonus
-  // levels on its own tab. Same rule as computeAllTalentLVz, mirrored here so
-  // the tree (Effective Level) shows the same number the game uses.
+  // other talent) BEFORE adding the super-talent levels, which stay uncapped.
+  // Without that armory upgrade a Royal Guardian gets no other bonus levels on
+  // its own tab. Same rule as computeAllTalentLVz, mirrored here so the tree
+  // (Effective Level) shows the same number the game uses.
   if (talentIdx >= 225 && talentIdx <= 239) {
     const cap = Math.floor(armoryUpgBonus(55, saveData));
-    if (total > cap) {
+    const rest = total - spelunkBonus;
+    if (rest > cap) {
       children.push(
-        node("Royal Armory cap (Armory 55 — Talent Reattainment)", cap - total, null, {
+        node("Royal Armory cap (Armory 55 — Talent Reattainment)", cap - rest, null, {
           fmt: "raw",
-          note: `All Talent LV bonuses reach Royal Guardian talents only up to ${cap} (was ${total})`,
+          note: `All Talent LV bonuses reach Royal Guardian talents only up to ${cap} (was ${rest}); super-talent levels are not capped`,
         })
       );
-      total = cap;
+      total = cap + spelunkBonus;
     }
   }
   // Effective Level = rawLv + total still holds regardless of split mode:
@@ -1617,7 +1628,7 @@ function resolveAllTalentLVz(
   return {
     total,
     children,
-    superBonus: splitSuper ? Math.min(spelunkBonus, total) : 0,
+    superBonus: splitSuper ? spelunkBonus : 0,
     superChildren: splitSuper && superChildren ? superChildren : undefined,
     // Passed the exclusion check at line 510-518, so this talent is
     // eligible for the Spelunking 4D super slot. talent.resolve uses
@@ -1690,18 +1701,19 @@ function getbonus2(
     | null = null;
   // N.js _customBlock_getbonus2(d, b, -1): for every player g with
   // SkillLevels[b] > 0, formula(SkillLevels[b] + AllTalentLVz("b|g")) and keep
-  // the max. The bonus levels are THAT player's own (their Symbols of Beyond,
-  // super-talent preset, Family Guy…), and AllTalentLVz receives the talent
-  // index — not the active char's chain and not the raw level. Verified
-  // against the live game (2026-09-18): Archlord of the Pirates on ARKHE is
-  // Barkhe at 396 + 387 own bonus levels, not 396 + the active char's 263.
-  void activeCharIdx;
+  // the max. AllTalentLVz only uses g for the super-talent lookup (that's the
+  // 387-vs-263 gap verified 2026-09-18: Barkhe's own super levels count).
+  // Everything else in it — Symbols of Beyond, Divinity, Lv0[0], the Family
+  // Guy'd FamBonusQTYs — reads the ACTIVE player (2026-09-23: Markhe lv 1900
+  // gives Archlord on ARKHELUCK the +14 Super Bit 47 levels, not ARKHELUCK's 13).
+  const ctxOpts =
+    activeCharIdx != null ? { ...atlOpts, contextSlot: activeCharIdx } : atlOpts;
   for (let ci = 0; ci < numCharacters; ci++) {
     const sl = (skillLvData as any)[ci] || {};
     const rawLv = Number(sl[talentIdx] || sl[String(talentIdx)]) || 0;
     let r: ReturnType<typeof getTalentNumber>;
     if (talentIdx >= 100) {
-      r = getTalentNumber(ci, talentIdx, data, ci, undefined, saveData, atlOpts);
+      r = getTalentNumber(ci, talentIdx, data, ci, undefined, saveData, ctxOpts);
     } else if (rawLv <= 0) {
       r = {
         val: 0,
