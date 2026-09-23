@@ -173,8 +173,10 @@ ferramenta não recarrega o documento e o envelope em memória é reaproveitado 
   fetch completo → `onSave`. Não mudou → nada acontece. Implementação: o `ProfileNameLoader` faz um
   tique a cada 60 s (e ao voltar a aba) e checa só se a aba está visível e já passaram 5 min desde
   `lastCheckAt`, relógio que vive no `session.ts` e é compartilhado entre as páginas — trocar de
-  ferramenta não zera a contagem. O tique só aplica o save novo se a página está mostrando o save da
-  conta (não substitui um jogador carregado por nome); Sync now / Resume / Start sempre aplicam.
+  ferramenta não zera a contagem. O tique aplica o save da conta a menos que a página esteja
+  mostrando um jogador carregado por nome (assim também se recupera sozinho de uma primeira carga
+  que falhou); Sync now / Resume / Start sempre aplicam. Cargas simultâneas compartilham uma única
+  renovação do token, e toda requisição ao servidor do jogo expira em 30 s.
 - **Modos** (`session.ts`):
   - `on` (padrão) — ciclo rodando.
   - `paused` — **Pause** congela o save na tela durante esta visita: sem checagem. Só em memória;
@@ -213,8 +215,9 @@ variáveis `NEXT_PUBLIC_IDLEON_*` configuradas (D7); sem elas, o card fica como 
   Tome não restauram um JSON colado antigo por cima dela. Cada página recebe uma cópia rasa do
   envelope, para não alterar o cache compartilhado.
 
-- **Tome:** o `ProfileNameLoader` fica acima das abas (com o toggle "Dungeon = 1"), então as duas
-  abas recebem o save da conta; a colagem manual continua na aba "Paste your data here".
+- **Tome:** o `ProfileNameLoader` fica acima das abas, então as duas abas recebem o save da conta;
+  a colagem manual continua na aba "Paste your data here". O toggle "Dungeon = 1" foi removido a
+  pedido do usuário (23/09), junto com a opção correspondente do motor.
 
 **`GameLoginDialog`** (`<dialog>` nativo, abas):
 
