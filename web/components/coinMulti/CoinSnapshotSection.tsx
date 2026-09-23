@@ -8,20 +8,10 @@ import {
 import { formatCoinMulti } from "@/lib/coinMulti/format";
 import { formatRelativeTime } from "@/lib/format";
 import { flattenTree, type FlatTree } from "@/lib/dropRate/treeFlatten";
-
-// Stand-in for CoinCalculator's state until Task 8 creates it; same field
-// names so the import type swap there is a one-line change.
-type CoinState = {
-  charIndex: number | null;
-  charName: string;
-  totalCoin: number | null;
-  mapLabel: string;
-  save: any;
-  coinTree: import("@/lib/arkh/node").ArkhNode | null;
-};
+import type { CoinCalculatorState } from "./CoinCalculator";
 
 type Props = {
-  state: CoinState | null;
+  state: CoinCalculatorState | null;
   /** Tells the parent which snapshot's flatTree to use as the delta
    *  baseline in the detailed tree's third column. Null = no comparison. */
   onSelectBaseline?: (baseline: {
