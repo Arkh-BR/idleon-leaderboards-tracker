@@ -4,9 +4,12 @@ import { computeArkhCoinMulti } from "@/lib/arkh/computeCoin";
 import { COIN_GROUPS } from "@/lib/arkh/stats/defs/coin-multi";
 import type { ArkhNode } from "@/lib/arkh/node";
 import { saveData } from "@/lib/arkh/state";
-import { computeOverkillTier } from "@/lib/arkh/stats/systems/common/derived-damage";
+import { computeOverkillTier, computeMaxDamage } from "@/lib/arkh/stats/systems/common/derived-damage";
+import { talent } from "@/lib/arkh/stats/systems/common/talent";
 import { isFightingMap } from "@/lib/arkh/stats/data/common/maps";
 import { currentMapData } from "@/lib/arkh/save/data";
+import { MONSTERS } from "@/lib/arkh/stats/data/game/monsters.js";
+import { formatCoinMulti } from "@/lib/coinMulti/format";
 
 const g = globalThis as unknown as { window?: unknown };
 if (!g.window) g.window = g;
@@ -143,18 +146,23 @@ describe.skipIf(!existsSync(SAVE))("Coin Multi — Markhe on map 14 vs IdleonToo
     close(src301("talent643"), (src("talent643") / 51) * tier301);
   });
 
-  it("talent 643 rescales correctly from a non-fighting saved map (maxDmg=0 regression)", () => {
-    // ARKHELUCK's saved map (216) isn't a fighting map, so
-    // computeOverkillTier(ci, ctx) returns { tier: 1, maxDmg: 0 } for it —
-    // maxDmg is 0, not null. The bug: the rescale in coin.ts passed that
-    // literal 0 through as the selected map's maxDmg override, and since
-    // computeOverkillTier only recomputes maxDmg when it's null, the
-    // selected-map call silently kept maxDmg=0 → tier stuck at 1 for every
-    // map viewed, not just the saved one.
+  it("talent 643 uses the character's saved AFKtarget_N, not MapAFKtarget[map]", () => {
+    // ARKHELUCK's saved map (216, The Hole) isn't a fighting map, so the
+    // shared wrap (computeOverkillTier, used inside talent.resolve) forces
+    // tier 1 there — but N.js OverkillStuffs("2") has no FIGHTING gate: it
+    // always measures DamageDealed("Max") against the character's own
+    // AFKtarget_N (their last-engaged combat target), regardless of map.
     const luckIdx = save.charNames.indexOf("ARKHELUCK");
     expect(luckIdx).toBeGreaterThanOrEqual(0);
     const savedMap = Number(currentMapData[luckIdx]);
     expect(isFightingMap(savedMap)).toBe(false);
+
+    const ctx = { saveData, charIdx: luckIdx, activeCharIdx: luckIdx };
+    // On its own (non-fighting) saved map the shared wrap's tier is 1, so
+    // dividing it back out recovers the bare GetTalentNumber(1,643).
+    const t0 = computeOverkillTier(luckIdx, ctx);
+    expect(t0.tier).toBe(1);
+    const tv = Number(talent.resolve(643, ctx).val) / t0.tier;
 
     const srcOf = (t: ArkhNode): number => {
       const gi = COIN_GROUPS.findIndex((x) => x.sources.includes("talent643"));
@@ -162,17 +170,54 @@ describe.skipIf(!existsSync(SAVE))("Coin Multi — Markhe on map 14 vs IdleonToo
       return Number(t.children![gi].children![si].val) || 0;
     };
 
-    // On its own saved map the tier is 1, so this is the bare talent value.
-    const valSaved = srcOf(computeArkhCoinMulti(save, luckIdx, savedMap).tree);
-    expect(valSaved).toBeGreaterThan(0);
-
+    // Map 301 (a fighting map, target = MapAFKtarget[301]): the shared
+    // function already gets this right.
     const val301 = srcOf(computeArkhCoinMulti(save, luckIdx, 301).tree);
-    // computeArkhCoinMulti reloads the save into the shared singleton on
-    // every call; read the tier right after this one (no maxDmg override —
-    // this is the fresh, from-scratch tier at map 301).
-    const tier301 = computeOverkillTier(luckIdx, { saveData, charIdx: luckIdx }, { mapIdx: 301 }).tier;
+    const tier301 = computeOverkillTier(luckIdx, ctx, { mapIdx: 301 }).tier;
     expect(tier301).toBeGreaterThan(1);
+    close(val301, tv * tier301);
 
-    close(val301, valSaved * tier301);
+    // Its own saved map (216): N.js measures against AFKtarget_N directly,
+    // not MapAFKtarget[216] — computed here independently of coin.ts.
+    const afkTargetN = String((save.data as Record<string, unknown>)["AFKtarget_" + luckIdx]);
+    const hp = Number((MONSTERS as any)[afkTargetN]?.MonsterHPTotal) || 0;
+    expect(hp).toBeGreaterThan(0);
+    const maxDmg = computeMaxDamage(luckIdx, ctx);
+    const tierVs = (monsterHP: number, dmg: number, exponent: number): number => {
+      let tier = 1;
+      for (let st = 0; st < 50; st++) {
+        if (dmg >= monsterHP * exponent * Math.pow(exponent, st + 1)) tier = st + 2;
+        else break;
+      }
+      return tier;
+    };
+    const tierSaved = tierVs(hp, maxDmg, 2);
+    const valSaved = srcOf(computeArkhCoinMulti(save, luckIdx, savedMap).tree);
+    close(valSaved, tv * tierSaved);
+  });
+});
+
+// Reading source: in-game Upgrade Vault → "Monster Tax" → "Total Coin Bonus
+// from all sources" line, read 2026-09-23. The town case reuses a COPY of
+// the 05:25 UTC golden save (SAVE, above) with ONLY Markhe's current map
+// moved to Blunder Hills (map 0) — no new save is downloaded.
+describe.skipIf(!existsSync(SAVE))("Coin Multi matches the game's Monster Tax readings", () => {
+  let save: any;
+  let markheIdx: number;
+  beforeAll(() => {
+    save = JSON.parse(readFileSync(SAVE, "utf8"));
+    markheIdx = save.charNames.indexOf("Markhe");
+  });
+
+  it("Markhe on Valley of the Beans (map 14)", () => {
+    const { total } = computeArkhCoinMulti(save, markheIdx, 14);
+    expect(formatCoinMulti(total)).toBe("6.88E35");
+  });
+
+  it("Markhe parked in town (map 0) — AFKtarget_N keeps the multikill tier", () => {
+    const townSave = JSON.parse(JSON.stringify(save));
+    townSave.data["CurrentMap_" + markheIdx] = 0;
+    const { total } = computeArkhCoinMulti(townSave, markheIdx, 0);
+    expect(formatCoinMulti(total)).toBe("6.88E35");
   });
 });
