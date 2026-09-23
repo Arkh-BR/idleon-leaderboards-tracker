@@ -43,6 +43,7 @@ import { arcadeBonus } from "../w2/arcade";
 import { guild } from "../common/guild";
 import { goldFoodBonuses } from "../common/goldenFood";
 import { achieveStatus } from "../common/achievement";
+import { gambitBonus, gambitPoints, deathNoteSkulls } from "./gambit";
 
 /** Class talents in the coin formula (per-char GetTalentNumber / TalentCalc).
  *  Talent 433 is account-wide (getbonus2) so it isn't listed. */
@@ -119,6 +120,13 @@ function resolveCoin(id: string, ctx: SystemCtx): ArkhNode {
     }
     case "goldSet":
       return add("Gold Set", getSetBonus("GOLD_SET"));
+    case "gambit7":
+      return node(
+        "Gambit 7 (Cash)",
+        gambitBonus(7, s),
+        [raw("Gambit points", gambitPoints(s)), raw("Deathnote skulls (Measurement 13)", deathNoteSkulls(s))],
+        { fmt: "+" }
+      );
     // G15 — (1 + 250·bun_y/100). Don't call bundle.resolve: it recurses on any
     // bundle id other than bun_v/bun_p.
     case "bunY": {
@@ -334,8 +342,7 @@ function resolveCoin(id: string, ctx: SystemCtx): ArkhNode {
       return node("Vote 34 (Cash)", votingBonusz(34, multi, s), [node("Voting multi", multi, null, { fmt: "x" })], { fmt: "+" });
     }
     default:
-      // Ported by Tasks 2–5; 0 keeps the product valid meanwhile.
-      return node(`${id} (not ported yet)`, 0, null, { note: "coin:" + id });
+      throw new Error(`coin: unknown source "${id}"`);
   }
 }
 

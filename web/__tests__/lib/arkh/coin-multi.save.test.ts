@@ -49,6 +49,8 @@ describe.skipIf(!existsSync(SAVE))("Coin Multi — Markhe on map 14 vs IdleonToo
     ["research grid", () => sum("grid149", "grid169"), 51.9675],
     ["extra money gear (etc 100)", () => src("etc100"), 530.625],
     ["gold set", () => src("goldSet"), 50],
+    // N.js ≠ IT: IT adds the miniboss skulls to Measurement 13 (IT: 74.04491048389032).
+    ["gambit 7", () => src("gambit7"), 74.03532772764761],
     ["cash bundle", () => src("bunY"), 250],
     ["dust walker", () => src("dustWalker"), 478.9864015395238],
     ["meal", () => src("mealCash"), 120491.29261439998],
@@ -95,6 +97,22 @@ describe.skipIf(!existsSync(SAVE))("Coin Multi — Markhe on map 14 vs IdleonToo
     ["vote 34 (inactive this week)", () => src("vote34"), 0],
     ["divinity minor (Cash)", () => src("divMinor3"), 5379.683449995177],
   ])("%s", (_name, get, expected) => close(get(), expected));
+
+  it("total = IdleonToolbox's total, corrected for the four terms where IT departs from N.js", () => {
+    const IT_TOTAL = 6.773746899414287e35;
+    // Additive group (g23): IT's Σ plus what N.js adds on top of it —
+    // 7·CardLv("w5b1") (IT omits it), talent 643's multikill tier (IT uses ×1)
+    // and golden food's JellyOperation RoG 10 term (IT omits it).
+    const IT_ADDITIVE = 69877.71279617335;
+    const IT_TALENT643 = 20.941558441558442;
+    const IT_GOLD_FOOD = 41196.37827189698;
+    const delta = src("cardW5b1") + (src("talent643") - IT_TALENT643) + (src("goldFood") - IT_GOLD_FOOD);
+    const additive = (1 + (IT_ADDITIVE + delta) / 100) / (1 + IT_ADDITIVE / 100);
+    // Gambit 7: IT counts miniboss skulls in Measurement 13; N.js doesn't.
+    const IT_GAMBIT7 = 74.04491048389032;
+    const gambit = (1 + src("gambit7") / 100) / (1 + IT_GAMBIT7 / 100);
+    expect(Math.abs(tree.val / (IT_TOTAL * additive * gambit) - 1)).toBeLessThan(1e-9);
+  });
 
   it("moves only guild8 and talent643 when the viewed map changes", () => {
     const tree301 = computeArkhCoinMulti(save, markheIdx, 301).tree;
