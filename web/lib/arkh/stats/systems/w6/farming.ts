@@ -164,3 +164,14 @@ export function computeExoticBonus(idx: number, saveData: SaveData): number {
   if (lv <= 0) return 0;
   return (ex.base * lv) / (ex.denom + lv);
 }
+
+/** N.js FarmingStuffs("CropSCbonMulti") — shared by every Crop Depot bonus
+ *  (the same factors the cropSC7 branch above multiplies). */
+export function cropSCbonMulti(saveData: SaveData): number {
+  const mf17 = mainframeBonus(17, saveData);
+  const grim22 = grimoireUpgBonus22(saveData);
+  const exotic40Lv = Number((saveData.farmUpgData as any)?.[60]) || 0;
+  const exotic40 = exotic40Lv > 0 ? (20 * exotic40Lv) / (1000 + exotic40Lv) : 0;
+  const vault79 = vaultUpgBonus(79, saveData);
+  return (1 + mf17 / 100) * (1 + (grim22 + exotic40 + vault79) / 100);
+}

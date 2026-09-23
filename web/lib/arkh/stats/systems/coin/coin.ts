@@ -6,10 +6,14 @@
 
 import { node, type ArkhNode } from "../../../node";
 import type { SystemCtx } from "../../registry";
-import { getLOG } from "../../../formulas";
+import { getLOG, formulaEval } from "../../../formulas";
 import { optionsListData, currentMapData } from "../../../save/data";
-import { eventShopOwned } from "../../../game-helpers";
+import { eventShopOwned, emporiumBonus } from "../../../game-helpers";
 import { label } from "../../entity-names";
+import { DungPassiveStats2, RANDOlist } from "../../data/game/customlists.js";
+import { legendPTSbonus } from "../w7/spelunking";
+import { cropSCbonMulti } from "../w6/farming";
+import { vaultKillzTotal, cardsCollected } from "./accountKills";
 import { bubbleValByKey, computeVialByKey } from "../w2/alchemy";
 import {
   computeMealBonus,
@@ -230,6 +234,65 @@ function resolveCoin(id: string, ctx: SystemCtx): ArkhNode {
     }
     case "ola420":
       return node("Ninja Extra Cash (OLA[420])", ola(420), null, { fmt: "+" });
+    case "flurbo4": {
+      const row = ((DungPassiveStats2 as any[])[4] ?? []) as unknown[];
+      const lv = Number((s.dungUpgData as any[])?.[5]?.[4]) || 0;
+      const v = formulaEval(String(row[3]), Number(row[1]), Number(row[2]), lv);
+      return node("Flurbo Shop 4 (Monster Cash)", v, [raw("Level", lv)], { fmt: "+" });
+    }
+    case "cropSC4": {
+      const unlocked = emporiumBonus(23, (s.ninjaData as any[])?.[102]?.[9]) ? 1 : 0;
+      const crops = Math.round(s.farmCropCount || 0);
+      const multi = cropSCbonMulti(s);
+      return node(
+        "Crop Depot Bonus 4 (Cash)",
+        unlocked ? 15 * crops * multi : 0,
+        [raw("Emporium 23 unlocked", unlocked), raw("Crops found", crops), node("Depot multi", multi, null, { fmt: "x" })],
+        { fmt: "+" }
+      );
+    }
+    case "arena5":
+    case "arena14": {
+      const i = id === "arena5" ? 5 : 14;
+      const coeff = i === 5 ? 0.5 : 1;
+      const wave = ola(89);
+      const req = Number((RANDOlist as any[])[53]?.[i]);
+      const owned = Number.isFinite(req) && wave >= req ? 1 : 0;
+      return node(
+        `Pet Arena bonus ${i}${coeff !== 1 ? " (×0.5)" : ""}`,
+        coeff * owned,
+        [raw("Arena wave (OLA[89])", wave), raw("Wave needed", req)],
+        { fmt: "raw" }
+      );
+    }
+    case "roo6": {
+      const mf = (k: number) => (ola(279) > k ? (k === 11 ? ola(279) - 11 : 1) : 0);
+      const all = 50 * mf(1) + 50 * mf(3) + 50 * mf(6) + 50 * mf(8) + 50 * Math.min(1, mf(11)) + 25 * Math.max(0, mf(11) - 1);
+      const legend = legendPTSbonus(26, s);
+      const c51 = companions(51, s);
+      const steps = Math.max(0, Math.ceil((ola(271) - 6) / 7));
+      return node(
+        "Kangaroo Cash (Roo 6)",
+        3 * (1 + legend / 100) * (1 + c51) * (1 + all / 100) * steps,
+        [raw("Legend 26", legend), raw("Companion 51", c51), raw("Megafeathers %", all), raw("⌈(OLA[271] − 6) / 7⌉", steps)],
+        { fmt: "+" }
+      );
+    }
+    case "vault14":
+    case "vault31":
+    case "vault34":
+    case "vault37": {
+      const n = Number(id.slice(5));
+      const k = n === 14 ? 4 : n === 31 ? 7 : n === 34 ? 8 : 9;
+      const v = vaultUpgBonus(n, s);
+      const kills = vaultKillzTotal(k, s);
+      return node(`${label("Vault", n)} × VaultKillzTotal(${k})`, v * kills, [raw(`Vault ${n}`, v), raw(`VaultKillzTotal(${k})`, kills)], { fmt: "+" });
+    }
+    case "vault70": {
+      const v = vaultUpgBonus(70, s);
+      const cards = cardsCollected(s);
+      return node(`${label("Vault", 70)} × cards collected`, v * cards, [raw("Vault 70", v), raw("Cards collected", cards)], { fmt: "+" });
+    }
     default:
       // Ported by Tasks 2–5; 0 keeps the product valid meanwhile.
       return node(`${id} (not ported yet)`, 0, null, { note: "coin:" + id });

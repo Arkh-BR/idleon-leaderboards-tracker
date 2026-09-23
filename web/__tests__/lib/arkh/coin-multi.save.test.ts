@@ -81,6 +81,15 @@ describe.skipIf(!existsSync(SAVE))("Coin Multi — Markhe on map 14 vs IdleonToo
     ["achievements", () => sum("ach235", "ach350", "ach376"), 35],
     ["vault 2", () => src("vault2"), 4657.08],
     ["ninja extra cash", () => src("ola420"), 150],
+    ["flurbo 4", () => src("flurbo4"), 25],
+    ["crop depot 4", () => src("cropSC4"), 31557.789495412842],
+    ["pet arena 5 (×0.5) + 14", () => sum("arena5", "arena14"), 1.5],
+    ["kangaroo (Roo 6)", () => src("roo6"), 8167.5],
+    ["vault 14 × kills(4)", () => src("vault14"), 3349],
+    ["vault 31 × kills(7)", () => src("vault31"), 2206.4],
+    ["vault 34 × kills(8)", () => src("vault34"), 12292.8],
+    ["vault 37 × kills(9)", () => src("vault37"), 525241.4],
+    ["vault 70 × cards collected", () => src("vault70"), 8070],
   ])("%s", (_name, get, expected) => close(get(), expected));
 
   it("moves only guild8 and talent643 when the viewed map changes", () => {
