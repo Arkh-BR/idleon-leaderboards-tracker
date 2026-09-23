@@ -46,7 +46,6 @@ export default function ProfileNameLoader({
   onSave,
   onError,
   children,
-  rightSlot,
 }: {
   storageKey: string;
   /** Called with the raw save envelope ({ data, charNames, … }) on success. */
@@ -54,9 +53,6 @@ export default function ProfileNameLoader({
   onError?: (msg: string) => void;
   /** Manual-paste fallback, rendered inside the card below the loader. */
   children?: ReactNode;
-  /** Optional control rendered to the right of the Load button (e.g. a
-   *  page-specific toggle). */
-  rightSlot?: ReactNode;
 }) {
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
@@ -327,7 +323,6 @@ export default function ProfileNameLoader({
         >
           {loading ? "Loading…" : "Load"}
         </button>
-        {rightSlot}
       </form>
 
       {warnOpen && (
