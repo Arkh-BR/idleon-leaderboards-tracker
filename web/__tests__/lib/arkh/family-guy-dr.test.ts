@@ -58,8 +58,10 @@ describe.skipIf(!existsSync(SAVE))("DR total matches the in-game reading", () =>
 
   it("Markhe on map 14 reads 363,893.46× in game", () => {
     // −0.21% with 1.4·LUK inside the /100, −0.005% with getbonus2's bonus
-    // levels on the reference char instead of the active one.
+    // levels on the reference char instead of the active one, −0.11 with
+    // golden food's Apocalypse Wow (talent 209) still on the Death Bringer's.
     const dr = computeArkhDropRate(save, save.charNames.indexOf("Markhe"), 14).total;
-    expect(Math.abs(dr / 363893.46 - 1)).toBeLessThan(1e-5);
+    // The stats screen shows Math.round(100 × DR) / 100.
+    expect(Math.round(dr * 100) / 100).toBe(363893.46);
   });
 });
