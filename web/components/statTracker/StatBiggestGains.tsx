@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Num from "@/components/Num";
 import type { FlatTree } from "@/lib/dropRate/treeFlatten";
 import { computeGains, splitGains, type GainRow } from "@/lib/statTracker/biggestGains";
@@ -24,7 +24,7 @@ export default function StatBiggestGains({
   yoursFlat,
   classKey,
   computeError = null,
-  loadReference = (ck) => config.loadTop().then((m) => m.flatForClass(ck)),
+  loadReference,
 }: {
   config: StatPageConfig;
   yoursFlat: FlatTree | null;
@@ -36,18 +36,28 @@ export default function StatBiggestGains({
   const [refError, setRefError] = useState<string | null>(null);
   const [showMinor, setShowMinor] = useState(false);
 
+  // loadReference has no caller-supplied value in the common case (the page
+  // doesn't pass one), so the default loader is memoized here rather than
+  // an inline default parameter — an inline arrow gets a new identity every
+  // render, which would re-fire the fetch effect below on any unrelated
+  // re-render (e.g. toggling "Compare vs Observed Max" elsewhere on the page).
+  const effectiveLoadReference = useMemo(
+    () => loadReference ?? ((ck: string | null) => config.loadTop().then((m) => m.flatForClass(ck))),
+    [loadReference, config]
+  );
+
   useEffect(() => {
     if (!yoursFlat || computeError) return;
     let cancelled = false;
     setRef(null);
     setRefError(null);
-    loadReference(classKey)
+    effectiveLoadReference(classKey)
       .then((r) => !cancelled && setRef(r))
       .catch((e) => !cancelled && setRefError(e instanceof Error ? e.message : String(e)));
     return () => {
       cancelled = true;
     };
-  }, [yoursFlat, classKey, computeError, loadReference]);
+  }, [yoursFlat, classKey, computeError, effectiveLoadReference]);
 
   if (computeError) return <Banner>{computeError}</Banner>;
   if (!yoursFlat) return <Hint>Load a save above to see your biggest {config.statName} gains.</Hint>;

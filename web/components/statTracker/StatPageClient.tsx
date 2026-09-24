@@ -42,7 +42,7 @@ export default function StatPageClient({ config }: { config: StatPageConfig }) {
       capturedAt: Date.parse(config.topMeta.generatedAt),
       charName: `Observed Max (${config.topMeta.playersScanned} top players)`,
     };
-  }, [compareTop, topMod, classKey]);
+  }, [compareTop, topMod, classKey, config]);
 
   const yoursFlat = useMemo<FlatTree | null>(
     () => (calcState?.tree ? flattenTree(calcState.tree) : null),
@@ -60,7 +60,7 @@ export default function StatPageClient({ config }: { config: StatPageConfig }) {
         ),
       },
     ],
-    [yoursFlat, classKey, calcState?.computeError]
+    [yoursFlat, classKey, calcState?.computeError, config]
   );
 
   const compareBlock = (

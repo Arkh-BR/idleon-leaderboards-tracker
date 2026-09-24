@@ -71,7 +71,7 @@ export default function StatSnapshotSection({
     const list = store.listTrackedChars();
     setTrackedChars(list);
     setViewChar((prev) => (prev && list.includes(prev) ? prev : list[0] ?? null));
-  }, []);
+  }, [store]);
 
   useEffect(() => {
     refresh();
@@ -83,7 +83,7 @@ export default function StatSnapshotSection({
       return;
     }
     setHistory(store.listSnapshots(viewChar) as StatSnapshot[]);
-  }, [viewChar, trackedChars]);
+  }, [viewChar, trackedChars, store]);
 
   const canSave =
     !!state &&

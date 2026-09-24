@@ -189,7 +189,7 @@ export default function StatCalculator({
       tree,
       computeError: error && error.startsWith(config.errPrefix) ? error : null,
     });
-  }, [charIdx, mapIdx, total, tree, chars, mapOptions, save, onStateChange, error]);
+  }, [charIdx, mapIdx, total, tree, chars, mapOptions, save, onStateChange, error, config]);
 
   const onLoad = () => {
     if (!jsonText.trim()) {

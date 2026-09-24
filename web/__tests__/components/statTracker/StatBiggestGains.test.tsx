@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import StatBiggestGains from "@/components/statTracker/StatBiggestGains";
 import { testConfig } from "./testConfig";
@@ -32,5 +32,17 @@ describe("StatBiggestGains", () => {
       />
     );
     expect(screen.getByText(/Test multi compute failed: x/)).toBeInTheDocument();
+  });
+
+  it("doesn't refetch the reference on an unrelated re-render when loadReference is omitted", async () => {
+    // Regression: the default loader used to be a fresh arrow function on
+    // every render (no loadReference prop passed), so any unrelated parent
+    // re-render re-fired the fetch effect and flashed the loading state.
+    const loadTop = vi.fn(async () => ({ flatForClass: () => ref }));
+    const cfg = { ...testConfig, loadTop };
+    const { rerender } = render(<StatBiggestGains config={cfg} yoursFlat={yours} classKey={null} />);
+    await screen.findByText(/Biggest win/);
+    rerender(<StatBiggestGains config={cfg} yoursFlat={yours} classKey={null} />);
+    expect(loadTop).toHaveBeenCalledTimes(1);
   });
 });
