@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { listCharacters, parseSave, type CharSummary } from "@/lib/dropRate/extract";
+import { defaultCharIndex, listCharacters, parseSave, type CharSummary } from "@/lib/dropRate/extract";
 import { getCharClassKey } from "@/lib/talentsLevel/charClass";
 import DeepView, { type DeepViewExtraTab } from "@/components/dropRate/DeepView";
 import ProfileNameLoader from "@/components/ProfileNameLoader";
@@ -74,14 +74,21 @@ export default function CoinCalculator({
         keepViewRef.current = !!opts.keepView;
         setSave(parsed);
         setChars(list);
-        setCharIdx((prev) => (list.some((c) => c.charIndex === prev) ? prev : list[0].charIndex));
+        // Fresh load: default to whoever's online now (else the first
+        // character). Refresh: keep today's logic (the previous char, if
+        // still present). Map fallback below uses the SAME character so the
+        // "jump to current map" effect can't override it with a different one.
+        const fallbackChar = opts.keepView
+          ? list.some((c) => c.charIndex === lastCharIdxRef.current)
+            ? lastCharIdxRef.current
+            : list[0].charIndex
+          : defaultCharIndex(parsed, list);
+        setCharIdx((prev) =>
+          opts.keepView ? (list.some((c) => c.charIndex === prev) ? prev : list[0].charIndex) : fallbackChar
+        );
         const maps = buildCoinMapOptions(parsed);
         setMapOptions(maps);
         const data = (parsed as any)?.data ?? {};
-        const fallbackChar =
-          opts.keepView && list.some((c) => c.charIndex === lastCharIdxRef.current)
-            ? lastCharIdxRef.current
-            : list[0].charIndex;
         const currentMap = Number(data[`CurrentMap_${fallbackChar}`]) || 0;
         const fallback = maps.some((m) => m.index === currentMap) ? currentMap : maps[0]?.index ?? 0;
         setMapIdx((prev) => (opts.keepView && maps.some((m) => m.index === prev) ? prev : fallback));

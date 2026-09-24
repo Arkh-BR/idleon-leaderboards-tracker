@@ -29,6 +29,41 @@ const save = () => ({
   },
 });
 const mapSelect = () => screen.getAllByRole("combobox")[1] as HTMLSelectElement;
+const charSelect = () => screen.getAllByRole("combobox")[0] as HTMLSelectElement;
+
+// Char 1 is "online now": lastUpdated is fresh and char 1's PTimeAway lands
+// right on it, while char 0's is 11h stale (see lib/dropRate/extract.ts).
+const onlineSave = () => {
+  const lastUpdated = Date.now();
+  const s = save();
+  return {
+    ...s,
+    lastUpdated,
+    data: {
+      ...s.data,
+      PTimeAway_0: (lastUpdated - 11 * 3_600_000) / 1_000_000,
+      PTimeAway_1: lastUpdated / 1_000_000,
+    },
+  };
+};
+
+describe("DrCalculator — defaults to the online character", () => {
+  it("a fresh load defaults to the character that's online now, and their map", () => {
+    render(<DrCalculator />);
+    act(() => loader!.onSave(onlineSave()));
+    expect(charSelect().value).toBe("1");
+    expect(mapSelect().value).toBe("3"); // char 1's current map
+  });
+
+  it("a refresh keeps the user's switch away from the online character", () => {
+    render(<DrCalculator />);
+    act(() => loader!.onSave(onlineSave()));
+    expect(charSelect().value).toBe("1");
+    fireEvent.change(charSelect(), { target: { value: "0" } });
+    act(() => loader!.onSave(onlineSave(), { refresh: true }));
+    expect(charSelect().value).toBe("0");
+  });
+});
 
 describe("DrCalculator — account refresh keeps the view", () => {
   it("keeps map + chip on refresh, re-derives them on a fresh load", () => {
