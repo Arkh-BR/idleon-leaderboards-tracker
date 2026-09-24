@@ -1076,7 +1076,11 @@ function computeAllStatPCT(
   const ola172 = Number((optionsListData && (optionsListData as any)[172]) || 0);
   const logOla172 = ola172 > 0 ? getLOG(ola172) : 0;
   const tal653node = talentResolver.resolve(653, ctx);
-  const tal653eff = tal653node.val;
+  // resolve() returns 653's wrapped final bonus, GTN × log10(OLA[172]) (see
+  // talent-final-bonus-wraps.ts). N.js takes the bare GetTalentNumber — the
+  // wrap's "Talent Value" kid — and applies the log once, here.
+  const tal653tv = (tal653node.children || []).find((k) => k.name === "Talent Value");
+  const tal653eff = tal653tv ? tal653tv.val : tal653node.val;
   const tal653val = Math.min(15, logOla172 * tal653eff);
   addSub("min(15,LOG(OLA172)*tal653)", tal653val, [
     node("OLA[172]", ola172, null, { fmt: "raw" }),

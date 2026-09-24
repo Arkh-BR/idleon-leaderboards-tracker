@@ -615,7 +615,14 @@ export function computeSkillEfficiency(
   const toolBubble = safe((k: string, c: number, sv: SaveData) => bubbleValByKey(k, c, sv).val, sk.toolBubble, ci, s);
   const skillLv =
     Number(s.lv0AllData && s.lv0AllData[ci] && s.lv0AllData[ci][sk.skillLvIdx]) || 0;
-  const toolTalent = rval(talent, sk.toolTalent, ctx);
+  // N.js SkillStats: toolWP × (1 + GetTalentNumber(1,tool) × (LV/10)/100). A
+  // wrapped tool talent (103) already resolves to GTN × (Lv0[1]/10)/100 (see
+  // talent-final-bonus-wraps.ts), so read its bare "Talent Value" kid.
+  const toolTalent = safe((id: number) => {
+    const n = talent.resolve(id, ctx);
+    const tv = (n.children || []).find((k) => k.name === "Talent Value");
+    return tv ? tv.val : n.val;
+  }, sk.toolTalent);
   const skillStatsDN =
     wpRaw * (1 + (toolTalent * (skillLv / 10)) / 100) * (1 + toolBubble / 100) + 4;
 
