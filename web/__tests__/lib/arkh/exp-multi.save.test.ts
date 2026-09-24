@@ -1,8 +1,9 @@
 import { describe, it, expect, beforeAll } from "vitest";
 import { existsSync, readFileSync } from "node:fs";
-import { computeArkhExpMulti } from "@/lib/arkh/computeExp";
+import { computeArkhExpMulti, bestExpMapIdx } from "@/lib/arkh/computeExp";
 import { EXP_GROUPS } from "@/lib/arkh/stats/defs/exp-multi";
 import type { ArkhNode } from "@/lib/arkh/node";
+import { formatExpMulti } from "@/lib/expMulti/format";
 
 const g = globalThis as unknown as { window?: unknown };
 if (!g.window) g.window = g;
@@ -296,5 +297,48 @@ describe.skipIf(!existsSync(SAVE))("EXP Multi — Markhe on map 14 vs IdleonTool
     };
     walk(tree);
     expect(notes).toEqual([]);
+  });
+});
+
+describe.skipIf(!existsSync(SAVE))("EXP Multi — scenarios on the ARKHE save", () => {
+  let save: any;
+  beforeAll(() => {
+    save = JSON.parse(readFileSync(SAVE, "utf8"));
+  });
+  const srcOf = (tree: ArkhNode, id: string): number => {
+    const gi = EXP_GROUPS.findIndex((x) => x.sources.includes(id));
+    return Number(tree.children![gi].children![EXP_GROUPS[gi].sources.indexOf(id)].val);
+  };
+
+  it("Darkhe (strictly lowest level) gets the merit block and Noobie Gains", () => {
+    const t = computeArkhExpMulti(save, save.charNames.indexOf("Darkhe"), 14).tree;
+    expect(srcOf(t, "merit3")).toBe(36); // merit W1#3 at level 12 × 3
+    expect(srcOf(t, "superbit19")).toBe(50);
+    expect(srcOf(t, "vault12")).toBeGreaterThan(0); // Baby on Board (236.4 per the semantics notes)
+  });
+
+  it("a town has no Shiny Medallions bonus", () => {
+    const t = computeArkhExpMulti(save, save.charNames.indexOf("Markhe"), 0).tree;
+    expect(srcOf(t, "medallion429")).toBe(1);
+  });
+
+  it("the best map scores at least as high as every other map", () => {
+    const ci = save.charNames.indexOf("Markhe");
+    const best = bestExpMapIdx(save, ci);
+    const at = (m: number) => {
+      const t = computeArkhExpMulti(save, ci, m).tree;
+      return srcOf(t, "arcane1") * srcOf(t, "medallion429");
+    };
+    const bestScore = at(best);
+    for (const m of [0, 1, 14, 24, 110, 162, 258, 261, 262, 301]) expect(bestScore).toBeGreaterThanOrEqual(at(m) - 1e-12);
+  });
+
+  it("the page total prints like the game", () => {
+    const t = computeArkhExpMulti(save, save.charNames.indexOf("Markhe"), 14).tree;
+    // N.js-faithful total (see the reconciliation in the describe block above:
+    // IT total × comp145 × (N.js G10 ÷ IT G10) = 4.351487173854608e19). IT's
+    // own total (1.4504214791708842e19, missing comp145's ×3 and the small
+    // G10 terms) would print "14504214T".
+    expect(formatExpMulti(t.val)).toBe("43514871T");
   });
 });
