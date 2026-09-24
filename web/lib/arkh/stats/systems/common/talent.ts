@@ -55,6 +55,7 @@ import { godMinorX1 } from "../../data/w5/divinity";
 import { DIVINITY_MINOR_DENOM } from "../../data/game-constants";
 import { numCharacters, charClassData } from "../../../save/data";
 import { achieveStatus } from "./achievement";
+import { computeFamBonusQTYs } from "./stats";
 import type { SaveData } from "../../../state";
 
 type Ctx = {
@@ -700,19 +701,21 @@ export function computeAllTalentLVz(
   let famBonus68 = 0;
   if (opts && opts.partialFamBonusMap !== undefined) {
     famBonus68 = Number(opts.partialFamBonusMap[68]) || 0;
+  } else if (!(opts && opts.skipFamBonus68) && !(opts && opts.skipTal144FamMult)) {
+    // FamBonusQTYs["68"] as the game's save-order walk leaves it for the
+    // context char: its Family Guy buff only sticks when it sets the value
+    // and no later raw value beats the buffed one.
+    famBonus68 = computeFamBonusQTYs(ctxSlot, saveData)[68] ?? 0;
   } else if (!(opts && opts.skipFamBonus68)) {
+    // Unbuffed best sorcerer, for the Family Guy's own level.
     const fb34 = familyBonusParams(34);
     let maxMageCharLv = 0;
-    let maxMageCharIdx = -1;
     for (let ci = 0; ci < numCharacters; ci++) {
       const cls = (charClassData as any)[ci];
       if (cls === 34 || cls === 38) {
         const lv =
           (saveData as any).lv0AllData?.[ci] && (saveData as any).lv0AllData[ci][0] || 0;
-        if (lv > maxMageCharLv) {
-          maxMageCharLv = lv;
-          maxMageCharIdx = ci;
-        }
+        if (lv > maxMageCharLv) maxMageCharLv = lv;
       }
     }
     const famN = Math.max(0, Math.round(maxMageCharLv - (fb34 as any).lvOffset));
@@ -720,33 +723,6 @@ export function computeAllTalentLVz(
       famN > 0
         ? formulaEval((fb34 as any).formula, (fb34 as any).x1, (fb34 as any).x2, famN)
         : 0;
-    // Talent 144 multiplier when active char IS max provider
-    if (
-      famBonus68 > 0 &&
-      maxMageCharIdx === ctxSlot &&
-      !(opts && opts.skipTal144FamMult)
-    ) {
-      const rawLv144 =
-        Number((skillLvData as any)[ctxSlot] && (skillLvData as any)[ctxSlot][144]) ||
-        0;
-      if (rawLv144 > 0) {
-        const atlFor144 = computeAllTalentLVz(
-          144,
-          slotIdx,
-          Object.assign({}, opts, { skipTal144FamMult: true }),
-          saveData
-        );
-        const effLv144 = rawLv144 + atlFor144;
-        const t144 = talentParams(144);
-        const tal144Val = formulaEval(
-          (t144 as any).formula,
-          (t144 as any).x1,
-          (t144 as any).x2,
-          effLv144
-        );
-        famBonus68 = famBonus68 * (1 + tal144Val / 100);
-      }
-    }
   }
 
   // Companion 1 (Rift Slug)
