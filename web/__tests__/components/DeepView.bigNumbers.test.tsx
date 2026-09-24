@@ -3,12 +3,17 @@ import { render, screen } from "@testing-library/react";
 import DeepView from "@/components/dropRate/DeepView";
 
 // Coin Multi groups reach 1e11x and sources 1e13 — printed in full they
-// overflowed the value column. Past 1e6 the "x" and "+" formats use the same
-// K/M/B/T suffixes as raw rows; smaller values (every Drop Rate number) keep
-// their full-precision form.
+// overflowed the value column. The site-wide number format (lib/numberFormat)
+// suffixes every "x" and "+" value past 1e3 with K/M/B/T… at 3 decimals.
+//
+// The suffix renders as its own highlighted <span>, so a value's text is
+// split across sibling nodes — match by the container's full textContent
+// (a function matcher) instead of getByText on the split string.
+const byText = (text: string) => (_: string, el: Element | null) =>
+  el?.textContent === text;
 
 describe("DeepView — big multipliers and additives", () => {
-  it("suffixes x/+ values past 1e6 and leaves smaller ones alone", () => {
+  it("suffixes x/+ values past 1e3 and keeps 3 decimals everywhere", () => {
     render(
       <DeepView
         tree={{
@@ -24,11 +29,14 @@ describe("DeepView — big multipliers and additives", () => {
         }}
       />
     );
-    expect(screen.getByText("171.14Bx")).toBeInTheDocument();
-    expect(screen.getByText("+17.11T")).toBeInTheDocument();
-    expect(screen.getByText("20696.661x")).toBeInTheDocument();
-    expect(screen.getByText("+120491.290")).toBeInTheDocument();
+    expect(screen.getByText(byText("171.140Bx"))).toBeInTheDocument();
+    expect(screen.getByText(byText("+17.114T"))).toBeInTheDocument();
+    expect(screen.getByText(byText("20.697Kx"))).toBeInTheDocument();
+    expect(screen.getByText(byText("+120.491K"))).toBeInTheDocument();
     // Full precision stays available on hover.
-    expect(screen.getByText("171.14Bx")).toHaveAttribute("title", "171140496624.184");
+    expect(screen.getByText(byText("171.140Bx"))).toHaveAttribute(
+      "title",
+      "171140496624.184"
+    );
   });
 });

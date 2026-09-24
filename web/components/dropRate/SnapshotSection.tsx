@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import Num from "@/components/Num";
 import { buildSnapshot, type DropRateSnapshot } from "@/lib/dropRate/extract";
 import {
   addSnapshot,
@@ -372,23 +373,21 @@ function HistoryTable({
                   </div>
                 </td>
                 <td className="px-2 py-2 text-right font-mono text-gold">
-                  {dr !== null ? dr.toFixed(2) + "x" : "—"}
+                  {dr !== null ? <Num value={dr} unit="x" /> : "—"}
                 </td>
                 <td className="px-2 py-2 text-right font-mono text-xs">
                   {delta === null ? (
                     <span className="text-zinc-600">—</span>
                   ) : delta > 0 ? (
-                    <span className="text-emerald-400">
-                      +{delta.toFixed(2)}x
-                    </span>
+                    <Num value={delta} plus unit="x" className="text-emerald-400" />
                   ) : delta < 0 ? (
-                    <span className="text-red-400">{delta.toFixed(2)}x</span>
+                    <Num value={delta} unit="x" className="text-red-400" />
                   ) : (
                     <span className="text-zinc-500">0</span>
                   )}
                 </td>
                 <td className="px-2 py-2 text-right font-mono text-zinc-300">
-                  {formatIdleon(s.luck)}
+                  <Num value={s.luck} />
                 </td>
                 <td className="px-2 py-2 text-right text-zinc-400 text-xs">
                   {s.mapName ?? "—"}

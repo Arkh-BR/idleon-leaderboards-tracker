@@ -41,6 +41,8 @@ import {
   type WorldKey,
 } from "@/lib/arkh/stats/categorize";
 import { nodePath, type FlatTree } from "@/lib/dropRate/treeFlatten";
+import { formatNum } from "@/lib/numberFormat";
+import Num from "@/components/Num";
 
 // Compare baseline plumbed from the SnapshotSection — when set, every row
 // in both layouts gets a "Δ vs snap" badge showing current − captured.
@@ -131,50 +133,20 @@ function isPathOpen(
 // Formatting helpers — same conventions as ArkhTree so values look familiar
 // -----------------------------------------------------------------------------
 
-// Idleon-style suffixed number — M/B/T/Q/QQ/QQQ, then scientific past 1e24
-// (where toFixed itself starts emitting exponent strings, which produced the
-// "3.7e+34B" garbage when only B existed and bigger numbers got divided by 1e9).
-function suffixed(val: number): string {
-  const abs = Math.abs(val);
-  if (abs >= 1e24) return val.toExponential(2);
-  if (abs >= 1e21) return (val / 1e21).toFixed(2) + "QQQ";
-  if (abs >= 1e18) return (val / 1e18).toFixed(2) + "QQ";
-  if (abs >= 1e15) return (val / 1e15).toFixed(2) + "Q";
-  if (abs >= 1e12) return (val / 1e12).toFixed(2) + "T";
-  if (abs >= 1e9) return (val / 1e9).toFixed(2) + "B";
-  if (abs >= 1e6) return (val / 1e6).toFixed(2) + "M";
-  if (abs >= 1e3) return (val / 1e3).toFixed(2) + "K";
-  return val.toFixed(3);
+/** Map a node's `fmt` to the shared `<Num>` / `formatNum` options — one
+ *  mapping reused by both the JSX row renders and the string-only spots
+ *  (title text, RefBadge) so the two never drift apart. */
+function fmtOpts(fmt: string | undefined): { plus?: boolean; unit?: string } {
+  if (fmt === "x") return { unit: "x" };
+  if (fmt === "+") return { plus: true };
+  if (fmt === "%") return { unit: "%" };
+  return {};
 }
 
-/** Drop trailing zeros (and a bare trailing dot) from a fixed string. */
-function trimZeros(s: string): string {
-  return s.indexOf(".") >= 0 ? s.replace(/\.?0+$/, "") : s;
-}
-
+/** String form of the site-wide number format, for spots that can't host
+ *  the JSX `<Num>` (title attributes, sentences with an embedded number). */
 function formatVal(val: number, fmt: string | undefined): string {
-  if (!Number.isFinite(val)) return "—";
-  // Multipliers compound into the final DR, so show real precision (6 dp,
-  // trimmed) for normal-range multis instead of rounding 1.26974 → 1.270.
-  // Big multis (>=1000) don't need decimals; past 1e6 (Coin Multi groups
-  // reach 1e11x) use the K/M/B/T suffixes so they fit the column; past 1e21
-  // use exponential. The row's title keeps the full value.
-  if (fmt === "x") {
-    const a = Math.abs(val);
-    if (a >= 1e21) return val.toExponential(2) + "x";
-    if (a >= 1e6) return suffixed(val) + "x";
-    return trimZeros(val.toFixed(a < 1000 ? 6 : 3)) + "x";
-  }
-  // Additive fmts keep their unit; suffixed past 1e6, exponential past 1e21.
-  if (fmt === "+") {
-    const a = Math.abs(val);
-    return (
-      (val >= 0 ? "+" : "") +
-      (a >= 1e21 ? val.toExponential(2) : a >= 1e6 ? suffixed(val) : val.toFixed(3))
-    );
-  }
-  if (fmt === "%") return val.toFixed(2) + "%";
-  return suffixed(val);
+  return formatNum(val, fmtOpts(fmt));
 }
 
 /** Look up a path's reference value in the baseline flatTree. Returns null
@@ -220,7 +192,7 @@ function RefBadge({
         fmt
       )}`}
     >
-      🎯 {formatVal(reference, fmt)}
+      🎯 <Num value={reference} {...fmtOpts(fmt)} />
     </span>
   );
 }
@@ -427,7 +399,7 @@ function TreeRow({
           const tone: "weak" | "med" | "strong" =
             absPct >= 10 ? "strong" : absPct >= 3 ? "med" : "weak";
           weightBadge = {
-            label: pct >= 0 ? `+${pct.toFixed(1)}%` : `${pct.toFixed(1)}%`,
+            label: formatNum(pct, { plus: true, unit: "%" }),
             tone,
           };
         }
@@ -532,15 +504,14 @@ function TreeRow({
           current={Number(node.val) || 0}
           fmt={node.fmt}
         />
-        <span
+        <Num
+          value={node.val}
+          {...fmtOpts(node.fmt)}
           className={`font-mono tabular-nums text-right w-24 ${valColor(
             node.val,
             node.fmt
           )}`}
-          title={Number.isFinite(node.val) ? String(node.val) : undefined}
-        >
-          {formatVal(node.val, node.fmt)}
-        </span>
+        />
       </div>
       {open && hasChildren && (
         <div className="bg-black/20 border-l-2 border-white/5">
@@ -1266,14 +1237,14 @@ function WorldBucketRow({
           current={Number(bucket.node.val) || 0}
           fmt={bucket.node.fmt}
         />
-        <span
+        <Num
+          value={bucket.node.val}
+          {...fmtOpts(bucket.node.fmt)}
           className={`font-mono tabular-nums w-24 text-right ${valColor(
             bucket.node.val,
             bucket.node.fmt
           )}`}
-        >
-          {formatVal(bucket.node.val, bucket.node.fmt)}
-        </span>
+        />
       </div>
       {open && hasChildren && (
         <div className="bg-black/20 border-t border-zinc-800/60 px-3 py-2">
@@ -1361,14 +1332,14 @@ function WorldBucketChildRow({
           current={Number(node.val) || 0}
           fmt={node.fmt}
         />
-        <span
+        <Num
+          value={node.val}
+          {...fmtOpts(node.fmt)}
           className={`font-mono tabular-nums text-xs ${valColor(
             node.val,
             node.fmt
           )}`}
-        >
-          {formatVal(node.val, node.fmt)}
-        </span>
+        />
       </div>
       {open && hasChildren && (
         <WorldBucketChildren

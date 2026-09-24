@@ -74,7 +74,7 @@ describe("BiggestGains — states", () => {
     // sentence spans several text nodes, so assert the hero container text.
     const heroStrong = await screen.findByText("Biggest win →");
     expect(heroStrong.parentElement?.textContent).toContain(
-      "improve 🎽 Equipment for +50% Drop Rate"
+      "improve 🎽 Equipment for +50.000% Drop Rate"
     );
     // "biggest win" badge on the top row (distinct from the hero strong)
     expect(screen.getByText("biggest win")).toBeInTheDocument();
@@ -82,9 +82,11 @@ describe("BiggestGains — states", () => {
     for (const h of ["System", "Type", "You", "Observed Max", "DR gain"]) {
       expect(screen.getByText(h)).toBeInTheDocument();
     }
-    // Multiplier type badge + the table's DR-gain cell (one decimal place)
+    // Multiplier type badge + the DR-gain number (3 decimals, site-wide format).
+    // The hero banner and the table's gain cell now render the identical
+    // string (both go through <Num>), so there are two matches.
     expect(screen.getByText("Multiplier")).toBeInTheDocument();
-    expect(screen.getByText("+50.0%")).toBeInTheDocument();
+    expect(screen.getAllByText("+50.000%").length).toBe(2);
     // The system is named in both the hero and the ranked table row
     expect(screen.getAllByText("🎽 Equipment")).toHaveLength(2);
   });
