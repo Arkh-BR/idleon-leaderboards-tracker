@@ -553,7 +553,14 @@ export function rawBubbleTotalLv(d: D): number | null {
   for (let i = 0; i < 4 && i < ci.length; i++) {
     const c = obj(ci[i]);
     if (!c) continue;
-    for (const k of Object.keys(c)) t += num(c[k]);
+    // CauldronInfo[i] can deserialize as a {slot: lv, length: N} dict (save
+    // envelope artifact) — skip "length" so it isn't summed as a bogus extra
+    // bubble level. N.js sums a real array (`for i < CauldronInfo[i].length`);
+    // .length is only ever read once as the loop bound.
+    for (const k of Object.keys(c)) {
+      if (isNaN(Number(k))) continue;
+      t += num(c[k]);
+    }
   }
   return t > 0 ? t : null;
 }
@@ -564,7 +571,12 @@ export function rawVialTotalLv(d: D): number | null {
   const c = obj(v);
   if (!c) return null;
   let t = 0;
-  for (const k of Object.keys(c)) t += num(c[k]);
+  // Same "length" envelope artifact as rawBubbleTotalLv above — N.js sums a
+  // real array (`for i < CauldronInfo[4].length`), never the .length itself.
+  for (const k of Object.keys(c)) {
+    if (isNaN(Number(k))) continue;
+    t += num(c[k]);
+  }
   return t > 0 ? t : null;
 }
 
