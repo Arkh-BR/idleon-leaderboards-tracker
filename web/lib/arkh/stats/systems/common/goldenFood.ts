@@ -4,8 +4,7 @@
 // gfoodBonusMULTI() folds ~25 cross-system sources. We assemble them
 // numerically (no tree) from the helpers each system already exposes.
 // Coverage choices (deviations from corgan-source, all conservative):
-//   - famBonusQTYs66 → max(1, ...) defaults to 1 (full FAMILY_BONUS_33
-//     port belongs with a proper family-bonus module).
+//   - famBonusQTYs66 → computeFamBonusQTYs' save-order walk, key 66.
 //   - etcBonuses8 → equipment + obol scan for %_GOLD_FOOD_EFFECT
 //     (skips the chip/grid172/emm overrides; trophy/nametag/premhat
 //     would land here via etcBonus(8) but the gfood resolve currently
@@ -39,7 +38,8 @@ import { getSetBonus } from "../w3/setBonus";
 import { computeCardLv } from "./cards";
 import { companions } from "./companions";
 import { computeAllTalentLVz, maxTalentBonus } from "./talent";
-import { talentParams, FAMILY_BONUS_33, CLASS_TREES, TALENT_144 } from "../../data/common/talent";
+import { talentParams, CLASS_TREES } from "../../data/common/talent";
+import { computeFamBonusQTYs } from "./stats";
 import { cookingMealMulti, bonusMultiCook } from "./cooking";
 import { isFightingMap, mapKillReq } from "../../data/common/maps";
 import { klaData } from "../../../save/data";
@@ -136,46 +136,10 @@ function getTalent99(charIdx: number, saveData: SaveData): number {
   return formulaEval(t99.formula, t99.x1, t99.x2, effectiveLv);
 }
 
+// FamBonusQTYs["66"] (Shaman line) from the game's save-order walk: the
+// active char's Family Guy (talent 144) only counts when it sets the value.
 function famBonusQTYs66(charIdx: number, saveData: SaveData): number {
-  if (!FAMILY_BONUS_33) return 0;
-  // theFamilyGuy (talent 144) multiplies family bonus when the active char
-  // is the best contributor for this family bonus.
-  let talent144Val = 0;
-  if (TALENT_144) {
-    const sl144 = (skillLvData as any)[charIdx] || {};
-    const rawLv144 = Number(sl144[144] || sl144["144"]) || 0;
-    if (rawLv144 > 0) {
-      const bonus144Lv = computeAllTalentLVz(144, charIdx, undefined, saveData);
-      const eff144 = rawLv144 + bonus144Lv;
-      talent144Val = formulaEval(
-        TALENT_144.formula,
-        TALENT_144.x1,
-        TALENT_144.x2,
-        eff144
-      );
-    }
-  }
-  let maxBonus = 0;
-  for (let ci = 0; ci < numCharacters; ci++) {
-    const classId = (charClassData as any)[ci] || 0;
-    const tree = CLASS_TREES[classId];
-    if (!tree || !tree.includes(33)) continue;
-    const charLevel =
-      Number(((saveData.lv0AllData as any)?.[ci] || [])[0]) || 0;
-    const effectiveLv = Math.max(0, charLevel - FAMILY_BONUS_33.lvOffset);
-    let bonus = formulaEval(
-      FAMILY_BONUS_33.formula,
-      FAMILY_BONUS_33.x1,
-      FAMILY_BONUS_33.x2,
-      effectiveLv
-    );
-    // theFamilyGuy only applies when the active char IS this contributor.
-    if (ci === charIdx && talent144Val > 0) {
-      bonus = bonus * (1 + talent144Val / 100);
-    }
-    if (bonus > maxBonus) maxBonus = bonus;
-  }
-  return maxBonus;
+  return computeFamBonusQTYs(charIdx, saveData)[66] ?? 0;
 }
 
 // apocalypseWow × apocalypses: DK class talent (skillIndex 209) × number
