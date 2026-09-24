@@ -87,12 +87,15 @@ describe("MR_MASSACRE gate (AlchBubbles.MKtierACTIVE)", () => {
       0,
       14
     ).tree;
-    return Number(t.children![2].children![MK_POOLS.perTier.indexOf("bubbleMKtier")].val);
+    return t.children![2].children![MK_POOLS.perTier.indexOf("bubbleMKtier")];
   };
+  const active = (n: ReturnType<typeof bubble>) => n.children!.find((c) => c.name.startsWith("Active"))!.val;
 
   it('needs "c15" equipped without Sheepie (cauldron letters _ a b c)', () => {
-    expect(bubble(["c15"])).toBeGreaterThan(0);
-    expect(bubble(["d15"])).toBe(0);
-    expect(bubble([])).toBe(0);
+    expect(Number(bubble(["c15"]).val)).toBeGreaterThan(0);
+    expect(active(bubble(["c15"]))).toBe(1);
+    expect(bubble(["d15"]).val).toBe(0);
+    expect(active(bubble(["d15"]))).toBe(0);
+    expect(bubble([]).val).toBe(0);
   });
 });

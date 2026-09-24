@@ -9,7 +9,7 @@
 
 import { node, type ArkhNode } from "../../../node";
 import type { SystemCtx } from "../../registry";
-import { optionsListData, currentMapData, cauldronBubblesData } from "../../../save/data";
+import { optionsListData, currentMapData } from "../../../save/data";
 import { label } from "../../entity-names";
 import { RandoListo2 } from "../../data/game/customlists.js";
 import { MK_NODES, MK_RULES } from "../../defs/multikill";
@@ -20,7 +20,7 @@ import { computeBoxReward, computeCardBonusByType } from "../common/stats";
 import { computeCardSetBonus } from "../common/cards";
 import { overkillActive, overkillStuffs } from "../common/overkill";
 import { computeStampBonusOfTypeX } from "../w1/stamp";
-import { computeVialByKey, bubbleValByKey } from "../w2/alchemy";
+import { computeVialByKey, bubbleValByKey, isActiveBubbleOn } from "../w2/alchemy";
 import { arcadeBonus } from "../w2/arcade";
 import { prayersReal } from "../w3/prayer";
 import { chipBonuses } from "../w4/lab";
@@ -28,7 +28,6 @@ import { computeShinyBonusS } from "../w4/breeding";
 import { computeArtifactBonus } from "../w5/sailing";
 import { measurementBonusTotal, overkillQTY } from "../coin/gambit";
 import { saltLick } from "../exp/saltLick";
-import { companions } from "../common/companions";
 import { starSignBonusReal } from "../common/starSign";
 import { getBuffBonuses } from "../common/buffs";
 
@@ -164,15 +163,12 @@ function resolveMultikill(id: string, ctx: SystemCtx): ArkhNode {
     }
     // N.js AlchBubbles.MKtierACTIVE (MR_MASSACRE, cauldron 3 bubble 15): an
     // ACTIVE key exists only with Companions(4) (Sheepie) or "c15" in
-    // CauldronBubbles[char] — cauldron letters are _ a b c (@4460300).
+    // CauldronBubbles[char] (@4460300). bubbleValByKey applies that gate
+    // (isActiveBubbleOn); the flag row only explains a 0.
     case "bubbleMKtier": {
-      const sheepie = companions(4, s) === 1 ? 1 : 0;
-      const list = (cauldronBubblesData as any[])[ci];
-      const equipped = (Array.isArray(list) ? list : Object.values(list ?? {})).includes("c15") ? 1 : 0;
       const r = bubbleValByKey("MKtierACTIVE", ci, s);
-      return pct("MR_MASSACRE bubble (MKtierACTIVE)", sheepie || equipped ? r.val : 0, [
-        raw("Sheepie (Companion 4)", sheepie),
-        raw('Equipped ("c15")', equipped),
+      return pct("MR_MASSACRE bubble (MKtierACTIVE)", r.val, [
+        raw('Active (Sheepie or "c15" equipped)', isActiveBubbleOn(ci, 3, 15, s) ? 1 : 0),
         ...(r.children ?? []),
       ]);
     }
