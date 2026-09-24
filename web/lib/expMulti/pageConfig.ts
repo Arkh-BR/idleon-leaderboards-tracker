@@ -3,6 +3,7 @@
 import type { StatPageConfig } from "@/lib/statTracker/config";
 import { groupedGainsModel } from "@/lib/statTracker/biggestGains";
 import { EXP_GROUPS, EXP_ROOT } from "@/lib/arkh/stats/defs/exp-multi";
+import { EXP_CIRCUMSTANTIAL_SOURCE_NAMES } from "@/lib/arkh/stats/systems/exp/exp";
 import { formatExpMulti } from "./format";
 import { TOP_EXP_GENERATED_AT, TOP_EXP_PLAYERS_SCANNED } from "./topExpMulti.meta";
 
@@ -27,7 +28,7 @@ export const EXP_PAGE: StatPageConfig = {
   compute: (save, charIdx, mapIdx) =>
     import("@/lib/arkh/computeExp").then((m) => m.computeArkhExpMulti(save, charIdx, mapIdx)),
   formatTotal: formatExpMulti,
-  gains: groupedGainsModel(EXP_ROOT, EXP_GROUPS),
+  gains: groupedGainsModel(EXP_ROOT, EXP_GROUPS, { skip: EXP_CIRCUMSTANTIAL_SOURCE_NAMES }),
   loadTop: () =>
     import("./topExpMulti").then((m) => ({
       flatForClass: (classKey: string | null) => m.topExpFlatForClass(classKey) as Record<string, number>,
@@ -37,7 +38,8 @@ export const EXP_PAGE: StatPageConfig = {
     "EXP gain = how much your total Class EXP Multi would rise if this source matched the top players " +
     "(Observed Max), recomputed through the game's formula. Values are a ceiling, not a one-level step. " +
     "Each top player is measured on their best EXP map (Arcane map bonus × Shiny Medallions), so those " +
-    "two rows reflect that map choice too.",
+    "two rows reflect that map choice too. Sources that only apply to your lowest-level character or " +
+    "below a level cap aren't ranked.",
   compareTitle: "Compare every EXP source against the best value observed across the top players",
   gainsTabTitle: "Rank your EXP sources by how much Class EXP Multi matching the top players would give",
   footer: "EXP Multi is computed locally from your save — every term of the game's Class EXP formula, group by group.",

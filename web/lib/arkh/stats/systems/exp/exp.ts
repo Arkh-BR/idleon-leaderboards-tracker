@@ -68,6 +68,30 @@ import { msaClassExp, msaTotalWaves } from "./msa";
  *  55/328/429/434 are account-wide (getbonus2), 632 is a star talent. */
 export const EXP_CLASS_TALENTS = [35] as const;
 
+// Node names of the six circumstantial EXP sources: a character can never
+// actually get these unless it's the account's lowest-level char (superbit19,
+// merit3, vault12) or it's still under the relevant level cap (newbie,
+// cardSet0, mealClexp). Biggest Gains excludes them from the ranking (they'd
+// rank a source the viewed character can't reach) — see groupedGainsModel's
+// `skip` option in lib/statTracker/biggestGains.ts. Named constants (reused
+// verbatim inside the matching switch cases below) so the skip list can never
+// drift from the actual node names.
+const NOOBIE_GAINS_NAME = "Noobie Gains (Super Bit 19) · lowest-level character";
+const MERIT_LOWEST_LEVEL_NAME = "Merit (Lowest-Level Family)";
+const VAULT_12_NAME = label("Vault", 12);
+const NEWBIE_BRACKET_NAME = "Newbie Bracket";
+const CARD_SET_0_NAME = "Card Set 0";
+const MEALS_CLEXP_NAME = "Meals (Clexp)";
+
+export const EXP_CIRCUMSTANTIAL_SOURCE_NAMES = [
+  NOOBIE_GAINS_NAME,
+  MERIT_LOWEST_LEVEL_NAME,
+  VAULT_12_NAME,
+  NEWBIE_BRACKET_NAME,
+  CARD_SET_0_NAME,
+  MEALS_CLEXP_NAME,
+] as const;
+
 const raw = (name: string, v: number): ArkhNode => node(name, v, null, { fmt: "raw" });
 const factor = (name: string, v: number, children?: ArkhNode[] | null, note?: string): ArkhNode =>
   node(name, v, children ?? null, { fmt: "x", note });
@@ -128,7 +152,7 @@ function resolveExp(id: string, ctx: SystemCtx): ArkhNode {
     case "workbench":
       return workshop.resolve(undefined as any, tctx);
 
-    // @njs 1==BundlesReceived.bun_q → LUK3 += 20
+    // N.js 1==BundlesReceived.bun_q → LUK3 += 20 (@4241578)
     case "bunQ": {
       const owned = Number((s.bundlesData as any)?.bun_q) === 1 ? 1 : 0;
       return pct("EXP Bundle (bun_q)", owned ? 20 : 0, [raw("Owned", owned)]);
@@ -141,7 +165,7 @@ function resolveExp(id: string, ctx: SystemCtx): ArkhNode {
       const bit = superBitType(19, (s.gamingData as any)?.[12]);
       const active = merit > 0 && lowest === 1 && bit === 1;
       return pct(
-        "Noobie Gains (Super Bit 19) · lowest-level character",
+        NOOBIE_GAINS_NAME,
         active ? 50 : 0,
         [raw("Merit (Tasks[2][0][2])", merit), raw("Lowest level", lowest), raw("Super Bit 19", bit)]
       );
@@ -162,8 +186,8 @@ function resolveExp(id: string, ctx: SystemCtx): ArkhNode {
       );
     }
 
-    // @njs (1+9·Companions(37)) / (1+Companions(n)) / (1+4·Companions(160)) /
-    // (1+.4·Companions(168)) — flat coefficient off COMP_COEF.
+    // N.js (1+9·Companions(37)) / (1+Companions(n)) / (1+4·Companions(160)) /
+    // (1+.4·Companions(168)) — flat coefficient off COMP_COEF. (@4242637)
     case "comp37":
     case "comp33":
     case "comp32":
@@ -213,7 +237,7 @@ function resolveExp(id: string, ctx: SystemCtx): ArkhNode {
         raw("Boony Crowns % (Grid 68 × crowns)", stickerCrownPct(s)),
       ]);
     }
-    // @njs (1+.1·SuperBitType(63))
+    // N.js (1+.1·SuperBitType(63)) (@4243370)
     case "superbit63": {
       const bit = superBitType(63, (s.gamingData as any)?.[12]);
       return factor("Experienced Gamer (Super Bit 63)", 1 + 0.1 * bit, [raw("Super Bit 63", bit)]);
@@ -228,22 +252,22 @@ function resolveExp(id: string, ctx: SystemCtx): ArkhNode {
         raw("Spelunk[45][9] level", lv),
       ]);
     }
-    // @njs (1+EtcBonuses("84")/100)
+    // N.js (1+EtcBonuses("84")/100) (@4243532)
     case "etc84": {
       const e = etcBonus.resolve(84, { saveData: s, charIdx: ci });
       return factor("Class EXP multi gear (Etc 84)", 1 + Number(e.val) / 100, [e]);
     }
-    // @njs (1+CardBonusREAL(100)/100)
+    // N.js (1+CardBonusREAL(100)/100) (@4243572)
     case "card100": {
       const cb = computeCardBonusByType(100, ci, s);
       return factor("Cards (Card Type 100)", 1 + Number(cb.val) / 100, cb.children);
     }
-    // @njs (1+ArcadeBonus(60)/100)
+    // N.js (1+ArcadeBonus(60)/100) (@4243614)
     case "arcade60": {
       const a = arcadeBonus(60, s);
       return factor(label("Arcade", 60), 1 + Number(a.val) / 100, a.children);
     }
-    // @njs (1+AlchVials["7classexp"]/100)
+    // N.js (1+AlchVials["7classexp"]/100) (@4243698)
     case "vialClassExp": {
       const v = computeVialByKey("7classexp", s);
       return factor("Class EXP vial (7classexp)", 1 + Number(v.val) / 100, v.children);
@@ -282,8 +306,8 @@ function resolveExp(id: string, ctx: SystemCtx): ArkhNode {
         raw("God Rank", rank),
       ]);
     }
-    // @njs (1+CardSetBonuses(0,"12")/100) — computeCardSetBonus is the direct
-    // port of _customBlock_CardSetBonuses (Cards[3] keyed by IDforCardSETbonus).
+    // N.js (1+CardSetBonuses(0,"12")/100) (@4244260) — computeCardSetBonus is
+    // the direct port of _customBlock_CardSetBonuses (Cards[3] keyed by IDforCardSETbonus).
     case "cardSet12": {
       const cs = computeCardSetBonus(ci, "12");
       return factor("Card Set 12", 1 + Number(cs.val) / 100, cs.children);
@@ -398,7 +422,7 @@ function resolveExp(id: string, ctx: SystemCtx): ArkhNode {
     case "merit3": {
       const merit = Number((s.tasksGlobalData as any)?.[2]?.[0]?.[2]) || 0;
       const active = merit > 0 && isLowestLevel(ci, s);
-      return pct("Merit (Lowest-Level Family)", active ? 3 * merit : 0, [
+      return pct(MERIT_LOWEST_LEVEL_NAME, active ? 3 * merit : 0, [
         raw("Merit (Tasks[2][0][2])", merit),
         raw("Lowest level", active ? 1 : 0),
       ]);
@@ -408,20 +432,20 @@ function resolveExp(id: string, ctx: SystemCtx): ArkhNode {
       const merit = Number((s.tasksGlobalData as any)?.[2]?.[0]?.[2]) || 0;
       const active = merit > 0 && isLowestLevel(ci, s);
       const v = active ? vaultUpgBonus(12, s) : 0;
-      return pct(label("Vault", 12), v, [raw("Lowest level", active ? 1 : 0)]);
+      return pct(VAULT_12_NAME, v, [raw("Lowest level", active ? 1 : 0)]);
     }
     // N.js Lv0<50 → CardSetBonuses(0,"0") — same equipped-set semantics as
     // Task 2's cardSet12 (computeCardSetBonus), key "0".
     case "cardSet0": {
-      if (level >= 50) return pct("Card Set 0", 0);
+      if (level >= 50) return pct(CARD_SET_0_NAME, 0);
       const cs = computeCardSetBonus(ci, "0");
-      return pct("Card Set 0", Number(cs.val) || 0, cs.children);
+      return pct(CARD_SET_0_NAME, Number(cs.val) || 0, cs.children);
     }
     // N.js Lv0<120 → MealBonus("Clexp")
     case "mealClexp": {
-      if (level >= 120) return pct("Meals (Clexp)", 0);
+      if (level >= 120) return pct(MEALS_CLEXP_NAME, 0);
       const m = computeMealBonus("Clexp", s);
-      return pct("Meals (Clexp)", m.val, m.children);
+      return pct(MEALS_CLEXP_NAME, m.val, m.children);
     }
     // N.js hasOwnProperty(WeeklyBoss,"c") → min(150, WeeklyBoss.c)
     case "weeklyBoss": {
@@ -433,7 +457,7 @@ function resolveExp(id: string, ctx: SystemCtx): ArkhNode {
     // N.js Lv0<10?150:Lv0<30?100:Lv0<50?50:0
     case "newbie": {
       const val = level < 10 ? 150 : level < 30 ? 100 : level < 50 ? 50 : 0;
-      return pct("Newbie Bracket", val, [raw("Class Level", level)]);
+      return pct(NEWBIE_BRACKET_NAME, val, [raw("Class Level", level)]);
     }
     // @njs Bonus_Minor — N.js Divinity("Bonus_Minor",
     // GetPlayersUsernames.indexOf(UserInfo[0]), 4) — the ACTIVE character's
@@ -442,8 +466,16 @@ function resolveExp(id: string, ctx: SystemCtx): ArkhNode {
     case "divMinor4":
       return pct("Divinity Minor Bonus (Class EXP)", divinityMinorFor(ci, 4, s));
     // N.js CardSetBonuses(0,"5") — same system+id already wired into DR (G7).
-    case "cardSet5":
-      return cardSet.resolve(5, ctx as any);
+    // Named locally (not via cardSet.resolve()'s own label()) — the real name,
+    // "Damage / Drop / EXP Set Bonus (Card Set 5)", contains the flat-tree's
+    // " / " path separator, which makes this node invisible as a direct child
+    // of its group (groupedGainsModel/directChildren in biggestGains.ts split
+    // it into fake sub-path segments instead). label() itself can't change:
+    // DR's stored snapshot paths depend on its exact output.
+    case "cardSet5": {
+      const r = cardSet.resolve(5, ctx as any);
+      return pct("Card Set 5 (Damage · Drop · EXP)", r.val, r.children);
+    }
     // N.js ArbitraryCode("StatueBonusGiven10") — added directly, no ÷100
     // (unlike Coin's statue19: EXP's whole G10 pool is what gets ÷100).
     case "statue10": {

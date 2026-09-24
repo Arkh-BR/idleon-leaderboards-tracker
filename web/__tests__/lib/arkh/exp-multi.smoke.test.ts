@@ -2,7 +2,9 @@
 // envelope (the exp switch throws on unknown ids).
 import { describe, it, expect } from "vitest";
 import { computeArkhExpMulti } from "@/lib/arkh/computeExp";
-import { EXP_GROUPS } from "@/lib/arkh/stats/defs/exp-multi";
+import { EXP_GROUPS, EXP_ROOT } from "@/lib/arkh/stats/defs/exp-multi";
+import { groupedGainsModel } from "@/lib/statTracker/biggestGains";
+import { flattenTree } from "@/lib/dropRate/treeFlatten";
 
 const g = globalThis as unknown as { window?: unknown };
 if (!g.window) g.window = g;
@@ -14,6 +16,19 @@ describe("EXP Multi smoke test", () => {
     expect(total).toBeGreaterThanOrEqual(1);
     expect(tree.children).toHaveLength(EXP_GROUPS.length);
     tree.children!.forEach((grp, i) => expect(grp.children).toHaveLength(EXP_GROUPS[i].sources.length));
+  });
+
+  // Every group's factor, recomputed by the Biggest Gains model purely from
+  // the flattened tree (path string arithmetic), must reproduce the same
+  // total the tree itself carries (built by combine() from the real pools).
+  // A node whose name embeds " / " — the flat-tree path separator — would
+  // fragment into fake sub-path segments and silently drop out of its
+  // group's direct children (see the cardSet5 fix in systems/exp/exp.ts).
+  it("groupedGainsModel.totalFromFlat(flattenTree(tree)) reproduces tree.val", () => {
+    const { tree } = computeArkhExpMulti({ charNames: ["A"], data: {} }, 0, 14);
+    const flat = flattenTree(tree);
+    const total = groupedGainsModel(EXP_ROOT, EXP_GROUPS).totalFromFlat(flat);
+    expect(Math.abs(total / tree.val - 1)).toBeLessThan(1e-12);
   });
 
   // The private save has no ClassEXP food equipped, so the port is checked

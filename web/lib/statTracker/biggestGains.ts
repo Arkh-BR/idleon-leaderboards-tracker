@@ -65,16 +65,27 @@ export function splitGains(
 
 const DISPLAY: Record<StatGroup["kind"], GainDisplay> = { pct: "pct", raw: "raw", min4: "raw", mult: "x" };
 
-/** GainsModel for a groupedDescriptor stat (Coin Multi, EXP Multi). */
-export function groupedGainsModel(root: string, groups: readonly StatGroup[]): GainsModel {
+/** GainsModel for a groupedDescriptor stat (Coin Multi, EXP Multi).
+ *  `skip` names sources (by their node name, the path's last segment) that
+ *  `sources()` must not rank — e.g. circumstantial sources a character can
+ *  never get (lowest-level-only, level-capped). They still count in
+ *  `totalFromFlat`, which sums every direct child regardless of skip. */
+export function groupedGainsModel(
+  root: string,
+  groups: readonly StatGroup[],
+  opts?: { skip?: readonly string[] }
+): GainsModel {
   const groupPath = (g: StatGroup) => `${root} / ${g.name}`;
+  const skip = new Set(opts?.skip ?? []);
   return {
     sources(yoursFlat, refFlat) {
       const out: GainSource[] = [];
       for (const g of groups) {
         const gp = groupPath(g);
         for (const path of directChildren(gp, yoursFlat, refFlat)) {
-          out.push({ path, group: g.name, source: path.slice(gp.length + 3), display: DISPLAY[g.kind] });
+          const source = path.slice(gp.length + 3);
+          if (skip.has(source)) continue;
+          out.push({ path, group: g.name, source, display: DISPLAY[g.kind] });
         }
       }
       return out;

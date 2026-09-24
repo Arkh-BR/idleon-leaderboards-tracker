@@ -5,9 +5,14 @@
 //   Amount · FoodBonuses(Effect + "EffectBonus").
 // FoodSlotsOwned is set on spawn (@15072643) as
 //   round(2 + GemItemsPurchased[59] + floor(Tasks[2][2][0] / 2)).
-// ponytail: FoodBonuses (@4104779) is taken as 1 — exact for ClassEXP and any
-// effect it doesn't scale; Health / …Boosts / …Forge… effects need its
-// multiplier ported before they can call this.
+// ponytail: FoodBonuses (@4104779) is taken as 1 — verified against N.js:
+// only "HealthEffectBonus" and "...BoostsEffectBonus" scale (their own
+// GoldFoodBonuses/BoxRewards/etc. formula); "...ForgeEffectBonus" returns 1,
+// "...ForgeCooldownBonus" returns 1 − GetBribeBonus/100, "...OreRedux..."
+// returns 0, and every other key falls through to 1 — including
+// "ClassEXPEffectBonus", so this port is exact for Class EXP as written.
+// Only Health/Boosts/Forge/OreRedux effects would need that multiplier
+// ported before they could call this helper.
 import { equipOrderData, equipQtyData } from "../../../save/data";
 import { ITEMS } from "../../data/game/items.js";
 import type { SaveData } from "../../../state";

@@ -59,3 +59,21 @@ describe("what-if Biggest Gains over grouped stats", () => {
     expect(minor.map((r) => r.path)).toEqual(["b"]);
   });
 });
+
+describe("skip option — circumstantial sources excluded from ranking, kept in the total", () => {
+  const skipModel = groupedGainsModel("Root", GROUPS, { skip: ["A"] });
+
+  it("sources()/computeGains() omit the skipped source", () => {
+    const yours = { [`${P} / A`]: 100, [`${P} / B`]: 200 };
+    const ref = { [`${P} / A`]: 400, [`${P} / B`]: 400 };
+    expect(skipModel.sources(yours, ref).map((s) => s.source)).toEqual(["B"]);
+    const { rows, comparableSources } = computeGains(skipModel, yours, ref);
+    expect(rows.map((r) => r.source)).toEqual(["B"]);
+    expect(comparableSources).toBe(1);
+  });
+
+  it("totalFromFlat still sums the skipped source", () => {
+    const yours = { [`${P} / A`]: 100, [`${P} / B`]: 200 };
+    expect(skipModel.totalFromFlat(yours)).toBeCloseTo(model.totalFromFlat(yours), 12);
+  });
+});

@@ -1,9 +1,11 @@
 import { describe, it, expect, beforeAll } from "vitest";
 import { existsSync, readFileSync } from "node:fs";
 import { computeArkhExpMulti, bestExpMapIdx } from "@/lib/arkh/computeExp";
-import { EXP_GROUPS } from "@/lib/arkh/stats/defs/exp-multi";
+import { EXP_GROUPS, EXP_ROOT } from "@/lib/arkh/stats/defs/exp-multi";
 import type { ArkhNode } from "@/lib/arkh/node";
 import { formatExpMulti } from "@/lib/expMulti/format";
+import { groupedGainsModel } from "@/lib/statTracker/biggestGains";
+import { flattenTree } from "@/lib/dropRate/treeFlatten";
 
 const g = globalThis as unknown as { window?: unknown };
 if (!g.window) g.window = g;
@@ -27,6 +29,11 @@ describe.skipIf(!existsSync(SAVE))("EXP Multi — Markhe on map 14 vs IdleonTool
     const gi = EXP_GROUPS.findIndex((x) => x.sources.includes(id));
     const si = EXP_GROUPS[gi].sources.indexOf(id);
     return Number(tree.children![gi].children![si].val);
+  };
+  const srcName = (id: string): string => {
+    const gi = EXP_GROUPS.findIndex((x) => x.sources.includes(id));
+    const si = EXP_GROUPS[gi].sources.indexOf(id);
+    return tree.children![gi].children![si].name;
   };
   const group = (key: string): number => Number(tree.children![EXP_GROUPS.findIndex((x) => x.key === key)].val);
   const close = (actual: number, expected: number) => {
@@ -244,6 +251,10 @@ describe.skipIf(!existsSync(SAVE))("EXP Multi — Markhe on map 14 vs IdleonTool
   });
   it("newbie bracket is off past level 50", () => expect(src("newbie")).toBe(0));
   it("prayer 9 enters as a negative (its curse)", () => expect(src("prayer9")).toBeLessThanOrEqual(0));
+  it("cavern upg47/upg83 use their N.js HolesBuildings friendly names", () => {
+    expect(srcName("hole47")).toBe("Gloomie Expie (Cavern upg47)");
+    expect(srcName("hole83")).toBe("Sanctum of EXP (Cavern upg83)");
+  });
 
   // ===== Task 4 — the six new ports =====
   it.each([
@@ -297,6 +308,18 @@ describe.skipIf(!existsSync(SAVE))("EXP Multi — Markhe on map 14 vs IdleonTool
     };
     walk(tree);
     expect(notes).toEqual([]);
+  });
+
+  // Regression guard for the cardSet5 path bug: every group's factor,
+  // recomputed by the Biggest Gains model purely from the flattened tree,
+  // must reproduce the same total the tree itself carries. Exercised on a
+  // real save (not the empty CI envelope) so every real node name — e.g.
+  // cardSet5's "Damage / Drop / EXP Set Bonus" — is actually populated with
+  // a nonzero value and would fail this if it fragmented on " / " again.
+  it("groupedGainsModel.totalFromFlat(flattenTree(tree)) reproduces tree.val", () => {
+    const flat = flattenTree(tree);
+    const total = groupedGainsModel(EXP_ROOT, EXP_GROUPS).totalFromFlat(flat);
+    expect(Math.abs(total / tree.val - 1)).toBeLessThan(1e-12);
   });
 });
 

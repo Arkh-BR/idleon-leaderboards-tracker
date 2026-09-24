@@ -2,7 +2,7 @@
 // ONE combine() pass (the same math a real save uses), gated PER CLASS for
 // the formula's class talents. Use topExpFlatForClass(classKey).
 // Large file: lazy-load it, don't import statically.
-// Generated 2026-09-24T13:00:46.589Z · 83 players. Refresh: scripts/update-top-exp.ts.
+// Generated 2026-09-24T14:18:41.621Z · 83 players. Refresh: scripts/update-top-exp.ts.
 
 type FlatMap = Readonly<Record<string, number>>;
 
@@ -180,12 +180,7 @@ export const TOP_EXP_FLAT: FlatMap = {
     "EXP Multi / ➕ Additive Pool / Button: Class XP (Slot 8)": 327.8821875,
     "EXP Multi / ➕ Additive Pool / Capitalist Win (Achievement 188) × 5": 5,
     "EXP Multi / ➕ Additive Pool / Card Set 0": 0,
-    "EXP Multi / ➕ Additive Pool / Cavern upg47": 550,
-    "EXP Multi / ➕ Additive Pool / Cavern upg47 / Level": 22,
-    "EXP Multi / ➕ Additive Pool / Cavern upg47 / Multiplier": 25,
-    "EXP Multi / ➕ Additive Pool / Cavern upg83": 2000,
-    "EXP Multi / ➕ Additive Pool / Cavern upg83 / Level": 50,
-    "EXP Multi / ➕ Additive Pool / Cavern upg83 / Multiplier": 40,
+    "EXP Multi / ➕ Additive Pool / Card Set 5 (Damage · Drop · EXP)": 42,
     "EXP Multi / ➕ Additive Pool / Clammie (Companion 111)": 150,
     "EXP Multi / ➕ Additive Pool / Class EXP Cards (Card Type 44)": 245,
     "EXP Multi / ➕ Additive Pool / Class EXP Cards (Card Type 44) / Boss2A Lv7": 61.25,
@@ -198,7 +193,6 @@ export const TOP_EXP_FLAT: FlatMap = {
     "EXP Multi / ➕ Additive Pool / Class EXP Gain Arcade Bonus (Arcade 12) / Raw (lv=101)": 10.049751243781095,
     "EXP Multi / ➕ Additive Pool / Compass 51": 15075,
     "EXP Multi / ➕ Additive Pool / Crystal Custard (Companion 3)": 130,
-    "EXP Multi / ➕ Additive Pool / Damage / Drop / EXP Set Bonus (Card Set 5)": 42,
     "EXP Multi / ➕ Additive Pool / Divinity Minor Bonus (Class EXP)": 513.1743405974033,
     "EXP Multi / ➕ Additive Pool / Dungeon Pinch (Achievement 57)": 1,
     "EXP Multi / ➕ Additive Pool / Dungeon Slap (Achievement 124) × 2": 2,
@@ -497,6 +491,9 @@ export const TOP_EXP_FLAT: FlatMap = {
     "EXP Multi / ➕ Additive Pool / Friend Bonus / Mr Pig (Companion 30) / Owned": 1,
     "EXP Multi / ➕ Additive Pool / Friend Bonus / slave_30": 35.75062034739454,
     "EXP Multi / ➕ Additive Pool / Friend Bonus / slave_30 / Score": 20240,
+    "EXP Multi / ➕ Additive Pool / Gloomie Expie (Cavern upg47)": 550,
+    "EXP Multi / ➕ Additive Pool / Gloomie Expie (Cavern upg47) / Level": 22,
+    "EXP Multi / ➕ Additive Pool / Gloomie Expie (Cavern upg47) / Multiplier": 25,
     "EXP Multi / ➕ Additive Pool / Golden Food (ClassEXPz)": 222051.6313428394,
     "EXP Multi / ➕ Additive Pool / Grimoire 24": 12480,
     "EXP Multi / ➕ Additive Pool / Iron Set": 25,
@@ -527,6 +524,9 @@ export const TOP_EXP_FLAT: FlatMap = {
     "EXP Multi / ➕ Additive Pool / Post Office (Monster EXP) / Box_of_Unwanted_Stats slot2": 18.51063829787234,
     "EXP Multi / ➕ Additive Pool / Salt Lick 3 (Class EXP)": 20,
     "EXP Multi / ➕ Additive Pool / Salt Lick 3 (Class EXP) / Level": 100,
+    "EXP Multi / ➕ Additive Pool / Sanctum of EXP (Cavern upg83)": 2000,
+    "EXP Multi / ➕ Additive Pool / Sanctum of EXP (Cavern upg83) / Level": 50,
+    "EXP Multi / ➕ Additive Pool / Sanctum of EXP (Cavern upg83) / Multiplier": 40,
     "EXP Multi / ➕ Additive Pool / Santa Snake (Companion 50)": 50,
     "EXP Multi / ➕ Additive Pool / Shiny Pets (Breeding 1)": 60,
     "EXP Multi / ➕ Additive Pool / Sigil 8": 490,
