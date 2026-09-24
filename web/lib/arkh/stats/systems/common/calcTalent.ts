@@ -213,13 +213,17 @@ export function computeCalcTalent(
       for (let cat = 0; cat < 3; cat++) {
         const arr = stampLv?.[cat] ?? stampLv?.[String(cat)];
         if (!arr) continue;
-        // StampLv can be an array or a {slot: lv} dict per category.
+        // StampLv can be an array or a {slot: lv, length: N} dict per
+        // category depending on the save envelope (same quirk as
+        // CauldronInfo[4] in case 485 below) — skip the "length" key so
+        // it isn't counted as a bogus extra stamp.
         if (Array.isArray(arr)) {
           for (let z = 0; z < arr.length; z++) {
             if ((Number(arr[z]) || 0) > 0.5) count++;
           }
         } else if (typeof arr === "object") {
           for (const k in arr) {
+            if (k === "length") continue;
             if ((Number(arr[k]) || 0) > 0.5) count++;
           }
         }
@@ -230,8 +234,10 @@ export function computeCalcTalent(
     // ── 485 — Virile Vials (per-char): vials at >= Green LV ──────────
     // N.js: count of CauldronInfo[4][g] > 3. (Vial levels; >3 = Green+.)
     case 485: {
-      // CauldronInfo[4] can be an array or a {slot: lv} dict depending
-      // on the save envelope — handle both.
+      // CauldronInfo[4] can be an array or a {slot: lv, length: N} dict
+      // depending on the save envelope — handle both, and skip the
+      // "length" key so it isn't counted as a bogus extra vial (mirrors
+      // the CauldronInfo guard in accountKills.ts's vaultKillzTotal k=9).
       const vials = (cauldronInfoData as any)?.[4];
       let count = 0;
       if (Array.isArray(vials)) {
@@ -240,6 +246,7 @@ export function computeCalcTalent(
         }
       } else if (vials && typeof vials === "object") {
         for (const k in vials) {
+          if (k === "length") continue;
           if ((Number(vials[k]) || 0) > 3) count++;
         }
       }
