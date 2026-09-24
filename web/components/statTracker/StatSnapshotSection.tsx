@@ -1,0 +1,406 @@
+"use client";
+
+import { useCallback, useEffect, useMemo, useState } from "react";
+import Num from "@/components/Num";
+import { createSnapshotStore, type StatSnapshot } from "@/lib/statTracker/storage";
+import { formatRelativeTime } from "@/lib/format";
+import { flattenTree, type FlatTree } from "@/lib/dropRate/treeFlatten";
+import type { StatPageConfig } from "@/lib/statTracker/config";
+import type { StatCalculatorState } from "./StatCalculator";
+
+type Props = {
+  config: StatPageConfig;
+  state: StatCalculatorState | null;
+  /** Tells the parent which snapshot's flatTree to use as the delta
+   *  baseline in the detailed tree's third column. Null = no comparison. */
+  onSelectBaseline?: (baseline: {
+    flatTree: FlatTree;
+    capturedAt: number;
+    charName: string;
+  } | null) => void;
+  /** Which snapshot's `capturedAt` is currently selected as the baseline.
+   *  Used so the row that's been picked stays visually highlighted. */
+  selectedBaselineAt?: number | null;
+  /** Extra controls rendered in the header, between the title and the
+   *  Save/Export/Import buttons (used for the Compare-vs-Observed-Max block). */
+  headerExtra?: React.ReactNode;
+};
+
+export default function StatSnapshotSection({
+  config,
+  state,
+  onSelectBaseline,
+  selectedBaselineAt,
+  headerExtra,
+}: Props) {
+  const store = useMemo(
+    () => createSnapshotStore(config.storage.snapshots, config.storage.exportLabel, config.storage.legacyValueKey),
+    [config]
+  );
+  const [trackedChars, setTrackedChars] = useState<string[]>([]);
+  const [viewChar, setViewChar] = useState<string | null>(null);
+  const [history, setHistory] = useState<StatSnapshot[]>([]);
+  const [notice, setNotice] = useState<string | null>(null);
+  // Whole-section collapse — defaults to expanded for first-time users and
+  // is persisted to localStorage so the choice survives reloads.
+  // Starts collapsed by default; only expands if the user previously chose to
+  // expand it (COLLAPSE_KEY === "0").
+  const [collapsed, setCollapsed] = useState(true);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const v = window.localStorage.getItem(config.storage.collapse);
+      if (v === "0") setCollapsed(false);
+    } catch {
+      // localStorage unavailable — keep default
+    }
+  }, []);
+  function toggleCollapsed() {
+    setCollapsed((prev) => {
+      const next = !prev;
+      try {
+        window.localStorage.setItem(config.storage.collapse, next ? "1" : "0");
+      } catch {
+        // ignore
+      }
+      return next;
+    });
+  }
+
+  const refresh = useCallback(() => {
+    const list = store.listTrackedChars();
+    setTrackedChars(list);
+    setViewChar((prev) => (prev && list.includes(prev) ? prev : list[0] ?? null));
+  }, []);
+
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
+
+  useEffect(() => {
+    if (!viewChar) {
+      setHistory([]);
+      return;
+    }
+    setHistory(store.listSnapshots(viewChar) as StatSnapshot[]);
+  }, [viewChar, trackedChars]);
+
+  const canSave =
+    !!state &&
+    state.charIndex !== null &&
+    state.total !== null &&
+    !!state.save;
+
+  function onSave() {
+    if (!canSave || !state || !state.save) return;
+    try {
+      const flat = flattenTree(state.tree);
+      const nodeCount = Object.keys(flat).length;
+      const snap = store.buildSnapshot(state.save, state.charIndex!, state.total!, state.mapLabel, nodeCount > 0 ? flat : undefined);
+      store.addSnapshot(snap);
+      setNotice(`Snapshot saved for ${snap.charName} — ${config.statName} ${config.formatTotal(snap.value)}x on ${state.mapLabel}${nodeCount > 0 ? ` (${nodeCount} tree nodes captured)` : ""}`);
+      refresh();
+      setViewChar(snap.charName);
+    } catch (e) {
+      setNotice(e instanceof Error ? e.message : String(e));
+    }
+  }
+
+  /** Toggle this snapshot as the delta baseline for the detailed tree.
+   *  Click again to clear. Re-selecting a different snap swaps the baseline. */
+  function onPickBaseline(snap: StatSnapshot) {
+    if (!onSelectBaseline) return;
+    if (selectedBaselineAt === snap.capturedAt) {
+      onSelectBaseline(null);
+      return;
+    }
+    if (!snap.flatTree) {
+      setNotice(
+        "This snapshot doesn't have a tree captured (saved before v2). Save a new one to compare against."
+      );
+      return;
+    }
+    onSelectBaseline({
+      flatTree: snap.flatTree,
+      capturedAt: snap.capturedAt,
+      charName: snap.charName,
+    });
+  }
+
+  function onClear(charName: string) {
+    if (!confirm(`Erase all snapshots for ${charName}?`)) return;
+    store.clearChar(charName);
+    refresh();
+  }
+
+  function onDel(charName: string, ts: number) {
+    store.deleteSnapshot(charName, ts);
+    setHistory(store.listSnapshots(charName) as StatSnapshot[]);
+    refresh();
+  }
+
+  function onExport() {
+    const text = store.exportAllAsJson();
+    const blob = new Blob([text], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${config.storage.exportPrefix}-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function onImport(e: React.ChangeEvent<HTMLInputElement>) {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const res = store.importFromJson(String(reader.result ?? ""));
+      setNotice(
+        res.ok
+          ? `Imported ${res.snapshotsImported} snapshots across ${res.charsImported} chars.`
+          : res.error ?? "Import failed"
+      );
+      refresh();
+    };
+    reader.readAsText(f);
+  }
+
+  // Aggregate count across all tracked chars so the collapsed header can
+  // surface "47 snapshots across 3 chars" without expanding.
+  const totalSnaps = trackedChars.reduce(
+    (a, n) => a + store.listSnapshots(n).length,
+    0
+  );
+
+  return (
+    <section className="rounded-lg bg-zinc-900/60 border border-zinc-800 p-4">
+      <div className="flex items-center justify-between gap-2">
+        {/* Header doubles as the collapse toggle so the user can hide the
+            whole capture history when they don't need it. */}
+        <button
+          type="button"
+          onClick={toggleCollapsed}
+          className="flex items-center gap-2 text-base font-semibold text-sky-300 hover:text-sky-200 select-none"
+          title={collapsed ? "Expand snapshot history" : "Collapse snapshot history"}
+        >
+          <span className="w-3 text-zinc-500 select-none">
+            {collapsed ? "▸" : "▾"}
+          </span>
+          <span className="flex flex-col items-center text-center">
+            <span>📈 Snapshot History</span>
+            {collapsed && totalSnaps > 0 && (
+              <span className="text-xs text-zinc-500 font-normal">
+                ({totalSnaps} capture{totalSnaps === 1 ? "" : "s"} across{" "}
+                {trackedChars.length} char{trackedChars.length === 1 ? "" : "s"})
+              </span>
+            )}
+          </span>
+        </button>
+        <div className="flex gap-2 items-center justify-end">
+          {headerExtra}
+          <button
+            type="button"
+            onClick={onSave}
+            disabled={!canSave}
+            className="px-3 py-1.5 text-xs rounded bg-gold/15 text-gold border border-gold/40 hover:bg-gold/25 disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            💾 Save snapshot
+          </button>
+          {/* Use the same thin arrows the DeepView Expand/Collapse buttons use
+              so the iconography is consistent across the page. Convention:
+              ↑ Export — data going OUT of the app (up/out to a file)
+              ↓ Import — data coming IN to the app (down/in from a file) */}
+          <button
+            type="button"
+            onClick={onExport}
+            className="px-3 py-1 text-xs rounded bg-zinc-800 text-zinc-200 border border-zinc-700 hover:bg-zinc-700"
+            title="Export all snapshots to a JSON file"
+          >
+            ↑ Export
+          </button>
+          <label
+            className="px-3 py-1 text-xs rounded bg-zinc-800 text-zinc-200 border border-zinc-700 hover:bg-zinc-700 cursor-pointer"
+            title="Import snapshots from a previously-exported JSON file"
+          >
+            ↓ Import
+            <input
+              type="file"
+              accept="application/json,.json"
+              onChange={onImport}
+              className="hidden"
+            />
+          </label>
+        </div>
+      </div>
+      {!collapsed && (
+        <div className="mt-3">
+          {notice && (
+            <p className="mb-3 text-xs text-emerald-300">{notice}</p>
+          )}
+
+          {trackedChars.length === 0 ? (
+            <p className="text-sm text-zinc-500 italic">
+              No snapshots yet. Click &ldquo;Save snapshot&rdquo; above after loading a
+              save.
+            </p>
+          ) : (
+            <>
+              <div className="flex flex-wrap gap-1 mb-3">
+                {trackedChars.map((n) => (
+                  <button
+                    key={n}
+                    onClick={() => setViewChar(n)}
+                    className={`px-3 py-1 text-xs rounded border ${
+                      viewChar === n
+                        ? "bg-gold/15 text-gold border-gold/40"
+                        : "bg-zinc-800/40 text-zinc-400 border-zinc-700 hover:bg-zinc-800"
+                    }`}
+                  >
+                    {n}{" "}
+                    <span className="opacity-60">
+                      ({store.listSnapshots(n).length})
+                    </span>
+                  </button>
+                ))}
+                {viewChar && (
+                  <button
+                    onClick={() => onClear(viewChar)}
+                    className="ml-auto px-3 py-1 text-xs rounded bg-red-500/10 text-red-300 border border-red-500/40 hover:bg-red-500/20"
+                  >
+                    🗑 Clear {viewChar}
+                  </button>
+                )}
+              </div>
+
+              {viewChar && history.length > 0 ? (
+                <HistoryTable
+                  history={history}
+                  statName={config.statName}
+                  onDelete={(t) => onDel(viewChar, t)}
+                  onPickBaseline={onPickBaseline}
+                  selectedBaselineAt={selectedBaselineAt ?? null}
+                />
+              ) : (
+                <p className="text-sm text-zinc-500 italic">
+                  No snapshots for {viewChar} yet.
+                </p>
+              )}
+            </>
+          )}
+        </div>
+      )}
+    </section>
+  );
+}
+
+function HistoryTable({
+  history,
+  statName,
+  onDelete,
+  onPickBaseline,
+  selectedBaselineAt,
+}: {
+  history: StatSnapshot[];
+  statName: string;
+  onDelete: (ts: number) => void;
+  onPickBaseline: (snap: StatSnapshot) => void;
+  selectedBaselineAt: number | null;
+}) {
+  const rows = [...history].reverse();
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full text-sm">
+        <thead>
+          <tr className="text-left text-xs uppercase tracking-wider text-zinc-500 border-b border-zinc-800">
+            <th className="px-2 py-2">Captured</th>
+            <th className="px-2 py-2 text-right">{statName}</th>
+            <th className="px-2 py-2 text-right">Δ</th>
+            <th className="px-2 py-2 text-right">Map</th>
+            <th className="px-2 py-2 text-center">Compare</th>
+            <th className="px-2 py-2 w-8"></th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((s, i) => {
+            const prev = rows[i + 1];
+            const cur = s.value;
+            const prevVal = prev?.value;
+            const rawDelta =
+              prevVal !== undefined && prevVal > 0 && Number.isFinite(prevVal)
+                ? (cur / prevVal - 1) * 100
+                : null;
+            // An imported snapshot without a value (or any other
+            // non-finite input) must read like "no previous row" (—), not
+            // fall through to the render's "0" (unchanged) branch.
+            const delta = rawDelta !== null && Number.isFinite(rawDelta) ? rawDelta : null;
+            const isSelected = selectedBaselineAt === s.capturedAt;
+            const hasTree = !!s.flatTree;
+            return (
+              <tr
+                key={s.capturedAt}
+                className={`border-b border-zinc-900 ${
+                  isSelected ? "bg-sky-500/10" : ""
+                }`}
+              >
+                <td className="px-2 py-2 text-zinc-300">
+                  <div>{new Date(s.capturedAt).toLocaleString()}</div>
+                  <div className="text-[10px] text-zinc-500">
+                    {formatRelativeTime(s.capturedAt)}
+                  </div>
+                </td>
+                <td className="px-2 py-2 text-right font-mono text-gold">
+                  <Num value={s.value} unit="x" />
+                </td>
+                <td className="px-2 py-2 text-right font-mono text-xs">
+                  {delta === null ? (
+                    <span className="text-zinc-600">—</span>
+                  ) : Math.abs(delta) < 0.0005 ? (
+                    // Rounds to 0.000 at 3 decimals — treat as unchanged
+                    // rather than colouring float noise as a gain/loss.
+                    <span className="text-zinc-500">0</span>
+                  ) : delta > 0 ? (
+                    <Num value={delta} plus unit="%" className="text-emerald-400" />
+                  ) : (
+                    <Num value={delta} unit="%" className="text-red-400" />
+                  )}
+                </td>
+                <td className="px-2 py-2 text-right text-zinc-400 text-xs">
+                  {s.mapName ?? "—"}
+                </td>
+                <td className="px-2 py-2 text-center">
+                  <button
+                    onClick={() => onPickBaseline(s)}
+                    disabled={!hasTree}
+                    title={
+                      hasTree
+                        ? "Compare current load vs this snapshot in the detailed tree"
+                        : "Saved before tree-snapshot support — re-save to compare"
+                    }
+                    className={`px-2 py-0.5 text-[10px] rounded border ${
+                      isSelected
+                        ? "bg-sky-500/30 text-sky-200 border-sky-400"
+                        : hasTree
+                        ? "bg-zinc-800 text-zinc-400 border-zinc-700 hover:bg-zinc-700"
+                        : "bg-zinc-900 text-zinc-700 border-zinc-800 cursor-not-allowed"
+                    }`}
+                  >
+                    {isSelected ? "✓ Active" : "▶ Compare"}
+                  </button>
+                </td>
+                <td className="px-2 py-2 text-right">
+                  <button
+                    onClick={() => onDelete(s.capturedAt)}
+                    className="text-zinc-500 hover:text-red-300 text-xs"
+                  >
+                    ✕
+                  </button>
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+}
