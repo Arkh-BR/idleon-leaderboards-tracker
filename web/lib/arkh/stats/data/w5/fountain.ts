@@ -21,6 +21,9 @@ import type { SaveData } from "../../../state";
 const FOUNTAIN_BONUS_PER_LV: Record<number, Record<number, number>> = {
   0: {
     13: 1, // Monumental_Boost: Bravery monument bonuses ×(1 + n/100)
+    // Class_EXP_Boost — HoleFountUPG[0][16][6] = 1. EXP Multi G7 term
+    // fountain16: ×(1 + Fountain_BonTOT(0,16)/100).
+    16: 1,
   },
   1: {
     13: 1, // Judicial_Boost: Justice monument bonuses ×(1 + n/100)
