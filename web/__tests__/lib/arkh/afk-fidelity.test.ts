@@ -15,6 +15,20 @@ describe("starSignBonusReal (FightAFK)", () => {
   const load = (signs: string, lv: number, extra: Record<string, unknown> = {}) =>
     loadSaveData({ charNames: ["A"], data: { PVtStarSign_0: signs, Lv0_0: [lv], StarSg: {}, ...extra } });
   const STAR_CHIP = { Lab: [[], [15, -1, -1, -1, -1, -1, -1]] }; // Silkrode Nanochip ("star")
+  // enabledStarSigns > 29: Rift[0] >= 10 unlocks a baseline of 5
+  // (getEnabledStarSigns), plus a shiny-pet "+{ Infinite Star Signs" bonus
+  // (category 3) of round(20 · 2) = 40 from one maxed-out World 1 Squirrel
+  // (PET_SHINY_TYPE[0][1] = type 2, SHINY_BONUS_PER_LV[2] = 2, exp 1e15 forces
+  // the top shiny level, 20) — enabled = 5 + 40 = 45 (verified against
+  // getEnabledStarSigns directly; the shiny-bonus arithmetic itself is
+  // pre-existing w4/breeding.ts code, out of Task 3's scope). This puts
+  // signs 19 and 29 (indices 19, 29) inside the unlocked range [0, 45).
+  const ENABLED_45: Record<string, unknown> = (() => {
+    const breeding: number[][] = [];
+    breeding[22] = [];
+    breeding[22][1] = 1e15;
+    return { Rift: [10], Breeding: breeding };
+  })();
 
   it("sign 54 equipped at or above the enabled count costs 7", () => {
     load("54", 120);
@@ -46,6 +60,39 @@ describe("starSignBonusReal (FightAFK)", () => {
     expect(starSignBonusReal("FightAFK", 0, saveData).val).toBeCloseTo(2.2, 12);
     load("54", 120, { StarSg: { Seraph_Cosmos: 1 } });
     expect(starSignBonusReal("FightAFK", 0, saveData).val).toBe(-7);
+  });
+
+  // N.js builds StarSignsDL as equipped (PVtStarSign) UNION every k <
+  // enabledStarSigns whose CustomLists.StarSigns[k][0] name is a key of
+  // StarSignsUnlocked (starsigns_fn.txt lines 2-3: the `f<g` loop pushes `k`
+  // onto StarSignsDL when `StarSignsUnlocked.h[name]` exists). A sign in that
+  // unlocked range counts exactly like an equipped one — the two tests below
+  // never equip anything (PVtStarSign_0 = "").
+  it("an unlocked sign below the enabled count counts even when it isn't equipped", () => {
+    // N.js: D.contains(StarSignsDL,"19") → StarSigns.FightAFK = 2 + ... —
+    // no enabled-count gate on sign 19, so being in the DL is enough.
+    load("", 120, { ...ENABLED_45, StarSg: { Silly_Snoozer: 1 } }); // sign 19's name
+    expect(starSignBonusReal("FightAFK", 0, saveData).val).toBe(2);
+
+    // Same sign, but its name is absent from StarSignsUnlocked this time:
+    // the unlocked-range loop never pushes "19" onto StarSignsDL, and it
+    // isn't equipped either, so D.contains(StarSignsDL,"19") is false.
+    load("", 120, { ...ENABLED_45, StarSg: {} });
+    expect(starSignBonusReal("FightAFK", 0, saveData).val).toBe(0);
+  });
+
+  it("a negative sign only applies once its own index reaches the enabled count, unlocked or not", () => {
+    // N.js: D.contains(StarSignsDL,"29") → { if (29 > enabledStarSigns-1) {
+    // StarSigns.FightAFK -= 6 } } — being in the DL (here, via the unlocked
+    // range: enabled=45 puts 29 inside [0,45)) is NOT sufficient; the −6 line
+    // itself is gated on 29 >= enabledStarSigns, which is false at 45.
+    load("", 120, { ...ENABLED_45, StarSg: { Mr_No_Sleep: 1 } }); // sign 29's name
+    expect(starSignBonusReal("FightAFK", 0, saveData).val).toBe(0);
+
+    // Equip sign 29 directly instead (no Rift ⇒ enabledStarSigns = 0, so
+    // 29 > 0-1 holds): the same −6 line now applies.
+    load("29", 120);
+    expect(starSignBonusReal("FightAFK", 0, saveData).val).toBe(-6);
   });
 });
 
