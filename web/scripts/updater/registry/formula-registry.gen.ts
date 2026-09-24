@@ -44,6 +44,10 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   "CropSCbonMulti": [
     "lib/arkh/stats/systems/w6/farming.ts"
   ],
+  "DancingCoralBonus": [
+    "lib/arkh/stats/systems/exp/dancingCoral.ts",
+    "lib/arkh/stats/systems/exp/exp.ts"
+  ],
   "DeathNoteRank": [
     "lib/arkh/stats/systems/coin/gambit.ts"
   ],
@@ -89,6 +93,10 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   "HatrackBonusMulti": [
     "lib/arkh/stats/systems/w7/gallery.ts"
   ],
+  "MSA_Bonus": [
+    "lib/arkh/stats/systems/exp/exp.ts",
+    "lib/arkh/stats/systems/exp/msa.ts"
+  ],
   "MeritocBonusz": [
     "lib/arkh/stats/systems/exp/exp.ts"
   ],
@@ -126,6 +134,10 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   "StatueBon": [
     "lib/arkh/stats/data/w7/royalG.ts",
     "lib/arkh/stats/systems/exp/exp.ts"
+  ],
+  "StickerBonus": [
+    "lib/arkh/stats/systems/exp/exp.ts",
+    "lib/arkh/stats/systems/exp/sticker.ts"
   ],
   "SuperBitType": [
     "lib/arkh/stats/systems/exp/exp.ts"

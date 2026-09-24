@@ -57,6 +57,12 @@ import { votingMulti } from "../coin/coin";
 import { medallionList } from "./medallions";
 import { isLowestLevel } from "./lowestLevel";
 import { compassBonus } from "./compass";
+import { stickerBonus, stickerCount, stickerCrownPct } from "./sticker";
+import { dancingCoralBonus, dancingCoralTower } from "./dancingCoral";
+import { bubbaRoGBonus, bubbaRoGAll, bubbaRoGTiers } from "./bubba";
+import { totalFoodBonuses, foodSlotsOwned } from "./food";
+import { saltLick, saltLickLevel } from "./saltLick";
+import { msaClassExp, msaTotalWaves } from "./msa";
 
 /** Class talents in the EXP formula (read from the active character).
  *  55/328/429/434 are account-wide (getbonus2), 632 is a star talent. */
@@ -67,23 +73,6 @@ const factor = (name: string, v: number, children?: ArkhNode[] | null, note?: st
   node(name, v, children ?? null, { fmt: "x", note });
 const pct = (name: string, v: number, children?: ArkhNode[] | null, note?: string): ArkhNode =>
   node(name, v, children ?? null, { fmt: "+", note });
-/** Terms ported in a later task of the EXP plan; neutral until then. */
-const pending = (name: string, neutral: number): ArkhNode =>
-  node(name, neutral, null, { fmt: neutral === 1 ? "x" : "+", note: "pending port" });
-
-// G10 (➕ Additive Pool, defs/exp-multi.ts) — Task 4 ports these last three
-// (unported subsystems: regular Food, Salt Lick, the live-NPC MSA counter).
-// Every other G10 id is a real case below.
-const G10_PENDING = new Set<string>(["food", "saltLick3", "msa4"]);
-
-// "boxMonsterExp" → "Box Monster Exp", "saltLick3" → "Salt Lick 3" — readable
-// label for a pending() row (space before both a case change and a trailing number).
-function niceName(id: string): string {
-  return id
-    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
-    .replace(/([a-zA-Z])(\d+)$/, "$1 $2")
-    .replace(/^./, (c) => c.toUpperCase());
-}
 
 // Flat companion terms — (1 + coeff·Companions(n)). comp128 (min/CompLV2) and
 // comp50 (clamp) have their own shape and are handled as separate cases.
@@ -125,8 +114,6 @@ function arrCount(v: unknown): number {
 // (it requires a letter first); per-case @njs tags below cite the specific
 // sub-formula each case ports instead, where one is separately named.
 function resolveExp(id: string, ctx: SystemCtx): ArkhNode {
-  if (G10_PENDING.has(id)) return pending(niceName(id), 0);
-
   const s = ctx.saveData;
   const ci = ctx.charIdx;
   const tctx = { saveData: s, charIdx: ci, activeCharIdx: ci } as any;
@@ -218,9 +205,14 @@ function resolveExp(id: string, ctx: SystemCtx): ArkhNode {
         [raw("Grid 130", g130), raw("Grid 131", g131), raw("Grid 132", g132), raw("Grid 152", g152)]
       );
     }
-    // Task 4 port — FarmingStuffs("StickerBonus",0,0).
-    case "sticker0":
-      return pending("Sticker 0", 1);
+    // @njs StickerBonus — (1+FarmingStuffs("StickerBonus",0,0)/100) (@4243276), sticker.ts
+    case "sticker0": {
+      const v = stickerBonus(0, s);
+      return factor("Mega Mongo Sticker (Sticker 0)", 1 + v / 100, [
+        raw("Stickers found (Research[9][0])", stickerCount(0, s)),
+        raw("Boony Crowns % (Grid 68 × crowns)", stickerCrownPct(s)),
+      ]);
+    }
     // @njs (1+.1·SuperBitType(63))
     case "superbit63": {
       const bit = superBitType(63, (s.gamingData as any)?.[12]);
@@ -274,9 +266,11 @@ function resolveExp(id: string, ctx: SystemCtx): ArkhNode {
       const b = computeBigFishBonus(4, s);
       return factor("Big Fish 4", 1 + b / 100, [raw("Big Fish 4 bonus", b)]);
     }
-    // Task 4 port — Thingies("DancingCoralBonus",3,0).
-    case "dancingCoral3":
-      return pending("Dancing Coral 3", 1);
+    // @njs DancingCoralBonus — (1+Thingies("DancingCoralBonus",3,0)/100) (@4244052), dancingCoral.ts
+    case "dancingCoral3": {
+      const v = dancingCoralBonus(3, s);
+      return factor("Dancing Coral 3", 1 + v / 100, [raw("Pantheon Shrine level (Tower[21])", dancingCoralTower(3, s))]);
+    }
     // @njs CoralKidUpgBonus — pow(1+CoralKidUpgBonus(2)/100, max(0,Divinity[25]-10));
     // CoralKidUpgBonus(2) = 20·OLA[429]/(25+OLA[429]).
     case "coralKid": {
@@ -294,9 +288,15 @@ function resolveExp(id: string, ctx: SystemCtx): ArkhNode {
       const cs = computeCardSetBonus(ci, "12");
       return factor("Card Set 12", 1 + Number(cs.val) / 100, cs.children);
     }
-    // Task 4 port — Bubbastuff("BubbaRoG_Bonuses",6,0).
-    case "bubba6":
-      return pending("Bubba RoG 6", 1);
+    // N.js (1+Bubbastuff("BubbaRoG_Bonuses",6,0)/100) (@4244288), bubba.ts
+    case "bubba6": {
+      const v = bubbaRoGBonus(6, s);
+      return factor("Bubba RoG 6", 1 + v / 100, [
+        raw("Megaflesh bonus % (Bubba_RoG_all)", bubbaRoGAll(s)),
+        raw(label("Companion", 51), companions(51, s)),
+        raw("Tiers ⌈(Bubba[1][3] − 5) / 7⌉", bubbaRoGTiers(6, s)),
+      ]);
+    }
     // @njs RoG_BonusQTY — (1+SushiStuff("RoG_BonusQTY",15,0)/100)
     case "sushi15": {
       const su = sushiRoG.resolve(15, ctx as any);
@@ -368,6 +368,10 @@ function resolveExp(id: string, ctx: SystemCtx): ArkhNode {
       const r = computeBoxReward(ci, "monsterExp");
       return pct("Post Office (Monster EXP)", r.val, r.children);
     }
+    // N.js TotalFoodBonuses("ClassEXP") (@4246378), food.ts — equipped
+    // regular food only (golden food is goldFood below).
+    case "food":
+      return pct("Food (Class EXP)", totalFoodBonuses("ClassEXP", ci, s), [raw("Food slots owned", foodSlotsOwned(s))]);
     // N.js StarSigns.MainXP
     case "starSignMainXP": {
       const r = computeStarSignBonus("MainXP", ci, s);
@@ -452,6 +456,9 @@ function resolveExp(id: string, ctx: SystemCtx): ArkhNode {
     // N.js Shrine(5)
     case "shrine5":
       return pct(label("Shrine", 5), computeShrine(5, s));
+    // N.js SaltLick(3) (@4246848), saltLick.ts
+    case "saltLick3":
+      return pct("Salt Lick 3 (Class EXP)", saltLick(3, s), [raw("Level", saltLickLevel(3, s))]);
     // N.js prayersReal(n,0)
     case "prayer0":
     case "prayer2": {
@@ -494,6 +501,9 @@ function resolveExp(id: string, ctx: SystemCtx): ArkhNode {
     // @njs ShinyBonusS — N.js Breeding("ShinyBonusS","Nah",1,-1)
     case "shiny1":
       return pct("Shiny Pets (Breeding 1)", computeShinyBonusS(1, s));
+    // @njs MSA_Bonus — N.js GamingStatType("MSA_Bonus",4,0) (@4247353), msa.ts
+    case "msa4":
+      return pct("MSA Totalizer (Class EXP)", msaClassExp(s), [raw("Total Worship waves", msaTotalWaves(s))]);
     // N.js getbonus2(1,55,-1) — account-wide (EXP Cultivation).
     case "talent55":
       return talent.resolve(55, tctx);

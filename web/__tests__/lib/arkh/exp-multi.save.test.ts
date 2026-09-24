@@ -241,4 +241,58 @@ describe.skipIf(!existsSync(SAVE))("EXP Multi — Markhe on map 14 vs IdleonTool
   });
   it("newbie bracket is off past level 50", () => expect(src("newbie")).toBe(0));
   it("prayer 9 enters as a negative (its curse)", () => expect(src("prayer9")).toBeLessThanOrEqual(0));
+
+  // ===== Task 4 — the six new ports =====
+  it.each([
+    // IT "Sticker" 7.6624 — Research[9][0]=20 stickers × Research[25][0]=10
+    // × (1 + (Grid_Bonus(68,2) = 1.476 × Research[11].length 100 crowns
+    // + 30·EventShopOwned(37))/100) × (1 + 20·SuperBitType(62)/100) = 666.24.
+    ["sticker 0", () => src("sticker0"), 7.6624],
+    // IT "Dancing Coral" 5.4 — Spelunky[24][3]=4 × max(0, Tower[21]=310 − 200) = 440.
+    ["dancing coral 3", () => src("dancingCoral3"), 5.4],
+    // IT "Bubba (RoG)" 4.023999999999999 — megaflesh Bubba[1][8]=20 →
+    // 20·(1+1+1+1+(20−11)) = 260; (1+2.6) × (1+Companions(51)=2)
+    // × Spelunky[33][6]=4 × ceil((Bubba[1][3]=48 − 5)/7)=7 = 302.4.
+    ["bubba RoG 6", () => src("bubba6"), 4.023999999999999],
+    // IT "Food" 0 — Markhe's 6 food slots (2 + GemItemsPurchased[59]=2 +
+    // floor(Tasks[2][2][0]=4 / 2)) hold no item whose Effect is "ClassEXP".
+    ["food (ClassEXP, none equipped)", () => src("food"), 0],
+    // IT "Salt Lick" 0.2 ×100 — SaltLick[3]=100 × SaltLicks[3][3]=0.2.
+    ["salt lick 3", () => src("saltLick3"), 20],
+    // IT "MSA" 1.7808000000000002 ×100 — derivable from the save: N.js's
+    // _GenINFO[114] is Σ TotemInfo[0] (1590 total waves); Super Bit 11 owned
+    // → 1.12 × floor(1590/10).
+    ["MSA 4 (Class EXP)", () => src("msa4"), 178.08],
+  ])("%s", (_n, get, expected) => close(get(), expected));
+
+  // IT total ÷ Π(IT's 30 listed factors) = 239978.33438403253, but IT's
+  // companion product also applies (1+.4·Companions(168)) = 1.6 (its comp168
+  // is 1.5, LV2, like ours) without a breakdown row, so IT's own additive
+  // factor is ÷1.6 = 149986.45899002033.
+  // N.js ≠ IT: four G10 terms, pct points (÷100 in the factor):
+  //   divMinor4    489.14213968595817 vs IT 24.45710698429791  (row above)
+  //   goldFood     136205.0427607203  vs IT 136007.25806453588 (row above)
+  //   stampClassxp 5.294117647058823  vs IT 0                  (row above)
+  //   comp128add   100 vs IT 0 — N.js ExpGainLUK6 ends "…Minehead(
+  //                "Button_Bonuses",8,0)+Companions(128)" (@4245842); IT stops
+  //                at getButtonBonus(account,8) = 323.039… (= our button8).
+  //   Σ 767.7638465331379 / 100 = 7.677638465331379 → 149994.13662848566.
+  const IT_G10 = 239978.33438403253 / 1.6;
+  const NJS_G10 =
+    IT_G10 +
+    (489.14213968595817 - 24.45710698429791 + (136205.0427607203 - 136007.25806453588) + 5.294117647058823 + 100) / 100;
+  it("additive pool = IT's implied factor, reconciled term by term", () => close(group("g10"), NJS_G10));
+  // N.js ≠ IT: IT's total 1.4504214791708842e19 has no (1+Companions(145)) = 3
+  // (N.js @4242829; absent from IT's getClassExpMulti) and uses its own G10.
+  it("total = IT total × comp145 × (N.js G10 ÷ IT G10)", () =>
+    close(tree.val, 1.4504214791708842e19 * 3 * (NJS_G10 / IT_G10)));
+  it("no source is left unported", () => {
+    const notes: string[] = [];
+    const walk = (n: ArkhNode) => {
+      if (n.note === "pending port") notes.push(n.name);
+      n.children?.forEach(walk);
+    };
+    walk(tree);
+    expect(notes).toEqual([]);
+  });
 });
