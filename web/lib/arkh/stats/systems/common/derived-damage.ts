@@ -162,6 +162,19 @@ function rval(
   }
 }
 
+// GetTalentNumber itself. talent.resolve returns a wrapped talent's final
+// bonus (its formula value × a counter, see talent-final-bonus-wraps.ts);
+// the bare formula value is the wrapped node's "Talent Value" kid.
+function gtn(id: number, ctx: any, args?: any): number {
+  try {
+    const n = talent.resolve(id, ctx, args);
+    const tv = n.children && n.children.find((k) => k.name === "Talent Value");
+    return (tv ? tv.val : n.val) || 0;
+  } catch {
+    return 0;
+  }
+}
+
 // --------------------------------------------------------------------------
 // [STUB] genuinely-unported damage sub-sources — see header note. Each
 // returns 0 (additive %) or 1 (neutral multiplier). Tiny relative to the
@@ -578,101 +591,8 @@ export function computeMaxDamage(charIdx: number, ctx: Ctx): number {
   const bubbleA12 = safe(bubbleValByKey, "A12", ci, s);
   const bubbleM12 = safe(bubbleValByKey, "M12", ci, s);
   talentChainSum += bubbleW12 + bubbleA12 + bubbleM12;
-  // TalentCalc(31): GTN(1,31) * floor(minCharSkillLv / 5)
-  const tc31raw = rval(talent, 31, ctx);
-  let _minSkillLv = 1e9;
-  const _lv0Ci = (s.lv0AllData as any) && (s.lv0AllData as any)[ci];
-  if (_lv0Ci) {
-    for (let _sk3 = 1; _sk3 <= 9; _sk3++) {
-      const _slv3 = Number(_lv0Ci[_sk3]) || 0;
-      if (_slv3 < _minSkillLv) _minSkillLv = _slv3;
-    }
-  }
-  if (_minSkillLv > 1e8) _minSkillLv = 0;
-  const tc31 = tc31raw * Math.floor(_minSkillLv / 5);
-  // TalentCalc(110): GTN(1,110) * min(monstersOver100K, GTN(2,110))
-  const _gtn1_110 = rval(talent, 110, ctx);
-  const _gtn2_110 = rval(talent, 110, ctx, { tab: 2 });
-  let _monstersOver100K = 0;
-  if (_gtn1_110 > 0) {
-    const _kla = (klaData as any)[ci] || [];
-    for (let _mi = 0; _mi < (MapAFKtarget as any).length; _mi++) {
-      const _mob = (MapAFKtarget as any)[_mi];
-      if (!_mob || _mob === "Nothing" || _mob === "Z" || _mob === "Filler") continue;
-      const _killReq =
-        Number((MapDetails as any)[_mi] && (MapDetails as any)[_mi][0] && (MapDetails as any)[_mi][0][0]) || 0;
-      const _klaVal = Number(_kla[_mi] && _kla[_mi][0]) || 0;
-      if (_killReq - _klaVal >= 100000) _monstersOver100K++;
-    }
-  }
-  const tc110 = _gtn1_110 * Math.min(_monstersOver100K, _gtn2_110);
-  // TalentCalc(125): GTN(1,125) * sum(Refinery[3..8][1])
-  const gtn125 = rval(talent, 125, ctx);
-  let _refSum = 0;
-  if (s.refineryData)
-    for (let _ri = 3; _ri <= 8; _ri++)
-      _refSum += Number((s.refineryData as any)[_ri] && (s.refineryData as any)[_ri][1]) || 0;
-  const tc125 = gtn125 * _refSum;
-  // TalentCalc(485): GTN(1,485) * count(vials with lv > 3)
-  let _vialCount = 0;
-  const _ci4 = cauldronInfoData && (cauldronInfoData as any)[4];
-  if (_ci4) {
-    if (Array.isArray(_ci4)) {
-      for (let _vi = 0; _vi < _ci4.length; _vi++) if ((Number(_ci4[_vi]) || 0) > 3) _vialCount++;
-    } else if (typeof _ci4 === "object") {
-      for (const _vk in _ci4) if ((Number(_ci4[_vk]) || 0) > 3) _vialCount++;
-    }
-  }
-  const tc485 = rval(talent, 485, ctx) * _vialCount;
-  // TalentCalc(305): GTN(1,305) * cardCount / 50
-  const _c1 = (s.cards1Data as any) || [];
-  let _cardCount = _c1.length;
-  const _ensured = [
-    "MaxCapBagT1",
-    "MaxCapBag6",
-    "MaxCapBagT2",
-    "MaxCapBagM1",
-    "EquipmentTools1",
-    "OilBarrel4",
-  ];
-  if (_c1.indexOf("Trophy6") !== -1) {
-    for (let _ni = 1; _ni < 16; _ni++) if (_ni !== 8) _ensured.push("NPCtoken" + _ni);
-    _ensured.push(
-      "BadgeG1",
-      "BadgeG2",
-      "BadgeG3",
-      "BadgeD1",
-      "BadgeD2",
-      "BadgeD3",
-      "BadgeI1",
-      "BadgeI2",
-      "BadgeI3"
-    );
-  }
-  for (let _ei = 0; _ei < _ensured.length; _ei++)
-    if (_c1.indexOf(_ensured[_ei]) === -1) _cardCount++;
-  for (let _cdi = 0; _cdi < _c1.length; _cdi++) {
-    const _cn = "" + _c1[_cdi];
-    if (_cn.indexOf("Gem") === 0 || _cn.indexOf("Cards") === 0) _cardCount--;
-  }
-  const tc305 = (rval(talent, 305, ctx) * _cardCount) / 50;
-  // TalentCalc(470): GTN(1,470) * stampCount / 10
-  let _stampCount = 0;
-  if (stampLvData)
-    for (let _sc = 0; _sc < 3; _sc++) {
-      const _scat = (stampLvData as any)[_sc];
-      if (!_scat) continue;
-      if (Array.isArray(_scat)) {
-        for (let _z = 0; _z < _scat.length; _z++) if ((Number(_scat[_z]) || 0) > 0.5) _stampCount++;
-      } else {
-        for (const _sk in _scat) {
-          if (isNaN(Number(_sk))) continue;
-          if ((Number(_scat[_sk]) || 0) > 0.5) _stampCount++;
-        }
-      }
-    }
-  const tc470 = (rval(talent, 470, ctx) * _stampCount) / 10;
-  talentChainSum += tc31 + tc110 + tc125 + tc485 + tc305 + tc470;
+  const tc = talentCalcTerms(ci, ctx);
+  talentChainSum += tc[31] + tc[110] + tc[125] + tc[485] + tc[305] + tc[470];
   // B_UPG(57)
   const _holes9 = (s.holesData as any) && (s.holesData as any)[9];
   const _holes13 = (s.holesData as any) && (s.holesData as any)[13];
@@ -1040,6 +960,71 @@ export function computeMaxDamage(charIdx: number, ctx: Ctx): number {
   let maxDmg = baseDmgRaw * pctMult * ddl2;
   if (maxDmg !== maxDmg || maxDmg == null) maxDmg = 0;
   return maxDmg;
+}
+
+// --------------------------------------------------------------------------
+// DamageDealed's TalentCalc terms (N.js offset ~4093000): TalentCalc(31) +
+// TalentCalc(110) + GTN(1,125)·TalentCalc(125) + TalentCalc(485) +
+// TalentCalc(305)/50 + TalentCalc(470)/10, where TalentCalc(id) =
+// GTN(1,id) × CalcTalentMAP[id] (TalentCalc(125) is its counter alone).
+// Exported so tests can pin each term.
+// --------------------------------------------------------------------------
+export function talentCalcTerms(ci: number, ctx: Ctx): Record<number, number> {
+  // talent.resolve already returns 31/125/305 as GTN(1,id) × their counter
+  // (the final-bonus wraps), so no counter goes on top here.
+  const tc31 = rval(talent, 31, ctx); // GTN × floor(lowest skill LV / 5)
+  const tc125 = rval(talent, 125, ctx); // GTN × Σ Refinery ranks, accuracy-gated
+  const tc305 = rval(talent, 305, ctx) / 50; // GTN × items ever found, /50
+  // 110/470/485 apply their own counter to the bare GTN: calcTalent.ts
+  // miscounts these (110 reads KLA off saveData, which never carries it;
+  // 470/485 count the save envelope's "length" key).
+  // TalentCalc(110): GTN(1,110) * min(monstersOver100K, GTN(2,110))
+  const _gtn1_110 = gtn(110, ctx);
+  const _gtn2_110 = gtn(110, ctx, { tab: 2 });
+  let _monstersOver100K = 0;
+  if (_gtn1_110 > 0) {
+    const _kla = (klaData as any)[ci] || [];
+    for (let _mi = 0; _mi < (MapAFKtarget as any).length; _mi++) {
+      const _mob = (MapAFKtarget as any)[_mi];
+      if (!_mob || _mob === "Nothing" || _mob === "Z" || _mob === "Filler") continue;
+      const _killReq =
+        Number((MapDetails as any)[_mi] && (MapDetails as any)[_mi][0] && (MapDetails as any)[_mi][0][0]) || 0;
+      const _klaVal = Number(_kla[_mi] && _kla[_mi][0]) || 0;
+      if (_killReq - _klaVal >= 100000) _monstersOver100K++;
+    }
+  }
+  const tc110 = _gtn1_110 * Math.min(_monstersOver100K, _gtn2_110);
+  // TalentCalc(485): GTN(1,485) * count(vials with lv > 3)
+  let _vialCount = 0;
+  const _ci4 = cauldronInfoData && (cauldronInfoData as any)[4];
+  if (_ci4) {
+    if (Array.isArray(_ci4)) {
+      for (let _vi = 0; _vi < _ci4.length; _vi++) if ((Number(_ci4[_vi]) || 0) > 3) _vialCount++;
+    } else if (typeof _ci4 === "object") {
+      for (const _vk in _ci4) {
+        if (isNaN(Number(_vk))) continue;
+        if ((Number(_ci4[_vk]) || 0) > 3) _vialCount++;
+      }
+    }
+  }
+  const tc485 = gtn(485, ctx) * _vialCount;
+  // TalentCalc(470): GTN(1,470) * stampCount / 10
+  let _stampCount = 0;
+  if (stampLvData)
+    for (let _sc = 0; _sc < 3; _sc++) {
+      const _scat = (stampLvData as any)[_sc];
+      if (!_scat) continue;
+      if (Array.isArray(_scat)) {
+        for (let _z = 0; _z < _scat.length; _z++) if ((Number(_scat[_z]) || 0) > 0.5) _stampCount++;
+      } else {
+        for (const _sk in _scat) {
+          if (isNaN(Number(_sk))) continue;
+          if ((Number(_scat[_sk]) || 0) > 0.5) _stampCount++;
+        }
+      }
+    }
+  const tc470 = (gtn(470, ctx) * _stampCount) / 10;
+  return { 31: tc31, 110: tc110, 125: tc125, 485: tc485, 305: tc305, 470: tc470 };
 }
 
 // --------------------------------------------------------------------------
