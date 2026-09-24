@@ -624,7 +624,7 @@ G1–G9 cases. `s` = saveData, `ci` = char index, `tctx` as above; "x" rows retu
 | `workbench` | `WorkbenchStuff("AdditionExtraEXPnDR",0,0)` | `workshop.resolve(undefined, tctx)` from `../common/wrappers` — return its node as-is (val = factor, 1.2811 on Markhe) | as returned |
 | `bunQ` (%) | `1==BundlesReceived.bun_q → LUK3 += 20` | `Number((s.bundlesData as any)?.bun_q) === 1 ? 20 : 0` | `"EXP Bundle (bun_q)"`, child raw Owned |
 | `superbit19` (%) | inside `Tasks[2][0][2] > 0` + lowest-level loop: `SuperBitType(19)==1 → LUK3 = 50` | `merit > 0 && isLowestLevel && superBitType(19, (s.gamingData as any)?.[12]) ? 50 : 0`, `merit = Number((s.tasksGlobalData as any)?.[2]?.[0]?.[2]) || 0` | `"Noobie Gains (Super Bit 19) · lowest-level character"`, children raw merit, raw lowest (1/0), raw bit |
-| `medallion429` (x) | `GenINFO[17]==1 → LUK5 *= max(1, getbonus2(1,429,-1))` | `gate ? Math.max(1, Number(talent.resolve(429, tctx).val) \|\| 0) : 1`; `gate = medals.includes(String((MapAFKtarget as any)[map]))`, `medals` = `compassData[3]` (parse if it's a string; empty array if missing). Spec D1: never read `AFKtarget_N` | `label("Talent", 429)`, children raw "Medallion owned (map's monster)", raw "Talent 429 (getbonus2)"; note `Map ${map} · ${monster}` |
+| `medallion429` (x) | `GenINFO[17]==1 → LUK5 *= max(1, getbonus2(1,429,-1))` | `gate ? Math.max(1, Number(talent.resolve(429, tctx).val) \|\| 0) : 1`; `gate = medallionList(s).includes(String((MapAFKtarget as any)[map]))`. Put the reader in `systems/exp/medallions.ts` as `export function medallionList(s: any): string[]` returning `compassData[3]` (parse it if it's a JSON string; `[]` if missing) — Task 5 imports it. Spec D1: never read `AFKtarget_N` | `label("Talent", 429)`, children raw "Medallion owned (map's monster)", raw "Talent 429 (getbonus2)"; note `Map ${map} · ${monster}` |
 | `comp37` | `(1+9·Companions(37))` | `1 + 9 * companions(37, s)` | `label("Companion", 37)` |
 | `comp33` / `comp32` / `comp34` / `comp145` | `(1+Companions(n))` | `1 + companions(n, s)` | `label("Companion", n)` |
 | `comp160` | `(1+4·Companions(160))` | `1 + 4 * companions(160, s)` | |
@@ -867,7 +867,9 @@ describe("formatExpMulti (the stats panel's Class EXP line)", () => {
     [5, "5.00"],
     [5.5, "5.50"],
     [12.3049, "12.3"],
-    [12.345, "12.35"],
+    [12.346, "12.35"],
+    // 100 × 12.345 is 1234.4999… in floats; the game's JS rounds it down too.
+    [12.345, "12.34"],
   ])("%s → %s", (v, s) => expect(formatExpMulti(v)).toBe(s));
 
   it("prints a dash for a non-finite value", () => expect(formatExpMulti(NaN)).toBe("—"));
@@ -932,7 +934,7 @@ export function bestExpMapIdx(rawEnvelope: any, charIdx: number): number {
 }
 ```
 
-`medallionList(s)` = the same `compassData[3]` reader you used for `medallion429` in Task 2 — export it from `systems/exp/exp.ts` (or a small `systems/exp/medallions.ts`) and import it here; don't duplicate it.
+Import `medallionList` from `./stats/systems/exp/medallions` (created in Task 2) — don't duplicate the reader.
 
 - [ ] **Step 5: Scenario checks** — append to `exp-multi.save.test.ts`:
 
@@ -1698,7 +1700,7 @@ describe("shared Observed Max collector", () => {
 
 - [ ] **Step 2: Run** `npx vitest run __tests__/scripts/topStatCollector.test.ts` → FAIL.
 
-- [ ] **Step 3: `classGating.ts`** — append (reuses the loop of `deriveGatedTalents`):
+- [ ] **Step 3: `classGating.ts`** — add `deriveGatedTalentsFor` and make the existing `deriveGatedTalents()` delegate to it (it keeps collecting the DR pool's talent ids, then returns `deriveGatedTalentsFor([...ids])` — same result, one loop):
 
 ```ts
 /** deriveGatedTalents over an explicit talent list (Coin Multi, EXP Multi…). */
