@@ -19,11 +19,17 @@ vi.mock("@/lib/arkh/computeCoin", () => ({
     throw new Error("stub");
   },
 }));
+vi.mock("@/lib/arkh/computeAfk", () => ({
+  computeArkhAfkGains: () => {
+    throw new Error("stub");
+  },
+}));
 
 import StatCalculator from "@/components/statTracker/StatCalculator";
 import { testConfig } from "./testConfig";
 import { EXP_PAGE } from "@/lib/expMulti/pageConfig";
 import { COIN_PAGE } from "@/lib/coinMulti/pageConfig";
+import { AFK_PAGE } from "@/lib/afkGains/pageConfig";
 import type { StatPageConfig } from "@/lib/statTracker/config";
 
 const save = () => ({
@@ -104,6 +110,12 @@ describe("StatCalculator", () => {
     render(<StatCalculator config={COIN_PAGE} />);
     expect(loader!.storageKey).toBe("coin-multi-tracker.playerName");
     expect(screen.getByText(/Coin Multi Calculator/)).toBeInTheDocument();
+  });
+
+  it("renders the AFK Gains config", () => {
+    render(<StatCalculator config={AFK_PAGE} />);
+    expect(loader!.storageKey).toBe("afk-gains-tracker.playerName");
+    expect(screen.getByText(/AFK Gains Calculator/)).toBeInTheDocument();
   });
 
   it("prints a % stat's headline in its unit, with the percent as the title", async () => {

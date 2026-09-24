@@ -65,6 +65,13 @@ export default function HomePage() {
           cta="Open EXP Multi"
         />
         <ShortcutCard
+          href="/afk-gains"
+          icon="💤"
+          title="AFK Gains Tracker"
+          description="Every term of the game's fighting AFK gains formula on your save, per character and map, with snapshots and a top-player comparison."
+          cta="Open AFK Gains"
+        />
+        <ShortcutCard
           href="/talents-level"
           icon="🌟"
           title="Talents Tracker"
