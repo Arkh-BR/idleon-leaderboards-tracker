@@ -3,6 +3,7 @@
 // rules must work on synthetic saves. Synthetic OLA arrays are sparse on
 // purpose: a 0 at OLA[606] would switch companion 0 on (Pet-Bonus Token CSV).
 import { describe, it, expect } from "vitest";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { computeArkhMultikill } from "@/lib/arkh/computeMultikill";
 import { MK_NODES, MK_POOLS, MK_RULES } from "@/lib/arkh/stats/defs/multikill";
 import { FORMULA_REGISTRY } from "@/scripts/updater/registry/formula-registry.gen";
@@ -60,4 +61,20 @@ describe("Multikill smoke test", () => {
       "lib/arkh/stats/systems/multikill/multikill.ts",
     ]);
   });
+});
+
+describe("Multikill on the cached saves", () => {
+  // Keep last: it loads real saves into the arkh singleton.
+  const CACHE = "scripts/updater/golden/.cache";
+  const cached = existsSync(CACHE) ? readdirSync(CACHE).filter((f) => f.endsWith(".json")) : [];
+  it.skipIf(cached.length === 0)("every character gives a finite total on maps 14, 251 and 301", () => {
+    for (const f of cached) {
+      const save = JSON.parse(readFileSync(`${CACHE}/${f}`, "utf8"));
+      for (let c = 0; c < (save.charNames?.length ?? 0); c++) {
+        for (const m of [14, 251, 301]) {
+          expect(Number.isFinite(computeArkhMultikill(save, c, m).total), `${f} #${c} map ${m}`).toBe(true);
+        }
+      }
+    }
+  }, 120_000);
 });

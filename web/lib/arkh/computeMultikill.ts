@@ -20,3 +20,9 @@ export function computeArkhMultikillPools(rawEnvelope: any, charIdx: number, map
 export function combineMultikillPools(pools: Record<string, Pool>): StatResult {
   return combineStatPools(multikillDesc, pools);
 }
+
+/** Spec M7: the Observed Max collector measures every character on map 251
+ *  (w6a1). Every endgame character is at the tier-51 cap there, so the
+ *  reference doesn't depend on the unreconciled max damage. Moving it to 301
+ *  is a follow-up of the max-damage reconciliation. */
+export const MK_COLLECTOR_MAP = 251;

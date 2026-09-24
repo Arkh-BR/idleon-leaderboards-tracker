@@ -2,9 +2,10 @@ import { describe, it, expect, beforeAll } from "vitest";
 import { existsSync, readFileSync } from "node:fs";
 import { loadSaveData } from "@/lib/arkh/save/loader";
 import { saveData } from "@/lib/arkh/state";
-import { computeArkhMultikill } from "@/lib/arkh/computeMultikill";
+import { computeArkhMultikill, MK_COLLECTOR_MAP } from "@/lib/arkh/computeMultikill";
 import { deathNoteSkulls, overkillQTY } from "@/lib/arkh/stats/systems/coin/gambit";
-import { MK_NODES, MK_POOLS } from "@/lib/arkh/stats/defs/multikill";
+import { MK_NODES, MK_POOLS, MK_RULES } from "@/lib/arkh/stats/defs/multikill";
+import { formatMultikill } from "@/lib/multikill/format";
 import type { ArkhNode } from "@/lib/arkh/node";
 
 const g = globalThis as unknown as { window?: unknown };
@@ -132,6 +133,78 @@ describe.skipIf(!existsSync(SAVE))("Multikill — the other ten characters vs Id
     const ci = save.charNames.indexOf(name);
     expect(computeArkhMultikill(save, ci, Number(save.data["CurrentMap_" + ci])).total).toBe(expected);
   });
+});
+
+describe.skipIf(!existsSync(SAVE))("Multikill — map scenarios on the ARKHE save", () => {
+  let save: any;
+  beforeAll(() => {
+    save = JSON.parse(readFileSync(SAVE, "utf8"));
+  });
+  const idx = (name: string) => save.charNames.indexOf(name);
+  const kid = (t: ArkhNode, name: string) => t.children!.find((c) => c.name === name)!;
+
+  it("Markhe on map 14 prints like the game: 81706", () => {
+    expect(formatMultikill(computeArkhMultikill(save, idx("Markhe"), 14).total)).toBe("81706");
+  });
+
+  it("map 301: soft cap on both halves, tier 24 from arkh's max damage (an estimate) → 3185%", () => {
+    const t = computeArkhMultikill(save, idx("Markhe"), 301).tree;
+    close(Number(t.children![0].val), 114.409);
+    close(Number(t.children![2].val), 127.96466227076502); // raw Σ 1741.2331… (W7 page 460)
+    expect(t.children![1]).toMatchObject({ name: MK_NODES.tierW7, val: 24 });
+    expect(t.children![1].note).toMatch(/^estimate/); // IT's max damage gives tier 30 → 3953 (spec M4)
+    expect(t.children![2].children!.at(-1)).toMatchObject({ name: MK_RULES.softCap });
+    expect(t.children![2].children!.at(-1)!.note).toMatch(/reduced by ~93%$/);
+    expect(t.val).toBe(3185);
+  });
+
+  it("map 251 (the collector's): the W6 page and tier 51 → 80686%; every character is at the cap", () => {
+    const t = computeArkhMultikill(save, idx("Markhe"), MK_COLLECTOR_MAP).tree;
+    expect(t.children![2].children![0]).toMatchObject({ name: "Death Note (W6 page)", val: 280 });
+    expect(t.val).toBe(80686);
+    for (let ci = 0; ci < save.charNames.length; ci++) {
+      expect(computeArkhMultikill(save, ci, MK_COLLECTOR_MAP).tree.children![1].val, save.charNames[ci]).toBe(51);
+    }
+  }, 30_000);
+
+  // N.js ≠ IT: IT's getMultiKillTotal ignores the Cove override; N.js replaces
+  // both sums on map 216 in cavern 17 (@7754109, @7751511).
+  it("the Crystal Glunko Cove (a copy with ARKHE in cavern 17): 38×100 + 51 × 46×1 → 6146% (spec M19)", () => {
+    const copy = JSON.parse(JSON.stringify(save));
+    const holes = typeof copy.data.Holes === "string" ? JSON.parse(copy.data.Holes) : copy.data.Holes;
+    holes[0][0] = 17;
+    copy.data.Holes = typeof copy.data.Holes === "string" ? JSON.stringify(holes) : holes;
+    const t = computeArkhMultikill(copy, 0, 216).tree;
+    expect([t.children![0].val, t.children![1].val, t.children![2].val]).toEqual([3800, 51, 46]);
+    expect(t.val).toBe(6146);
+  });
+
+  // N.js ≠ IT: IT's getMultiKillTotal keeps w7a6's static 1e18 HP; N.js sets
+  // Clamz_HP after the curses (@6467129).
+  it("Clamworks (map 306): HP = 1e16·30^8 = 6.561e27, no curse → tier 4 (estimate) → 626%", () => {
+    const t = computeArkhMultikill(save, idx("Markhe"), 306).tree;
+    const tier = t.children![1];
+    expect(kid(tier, "Target HP").val).toBe(1e16 * Math.pow(30, 8));
+    expect(tier.val).toBe(4);
+    expect(tier.note).toMatch(/^estimate/);
+    expect(t.val).toBe(626);
+  });
+
+  it("zArkhe's Jawbreaker curse (1180%, HP ×12.8): tier 21 → 19 on map 301 → 2754% (3032% without it)", () => {
+    const t = computeArkhMultikill(save, idx("zArkhe"), 301).tree;
+    const tier = t.children![1];
+    close(Number(kid(tier, "Target HP").children!.find((c) => c.name === "Prayer curses")!.val), 12.8);
+    expect(tier.val).toBe(19);
+    expect(t.val).toBe(2754);
+  });
+
+  it("OverkillStuffs('3') is on for all 11; only Markhe's AFK Info shows the line", () => {
+    for (let ci = 0; ci < save.charNames.length; ci++) {
+      const status = computeArkhMultikill(save, ci, Number(save.data["CurrentMap_" + ci])).tree.children![3];
+      expect(status.val, save.charNames[ci]).toBe(1);
+      expect(status.note).toMatch(ci === idx("Markhe") ? /shows the MULTIKILL line/ : /hides the MULTIKILL line/);
+    }
+  }, 30_000);
 });
 
 // In-game AFK Info reading taken 2026-09-24 alongside this save (controller-
