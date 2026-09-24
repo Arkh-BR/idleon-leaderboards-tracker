@@ -2,23 +2,13 @@
 
 import { useEffect, useState } from "react";
 import AnonExcludedNote from "@/components/AnonExcludedNote";
+import Num from "@/components/Num";
 import type { FlatTree } from "@/lib/dropRate/treeFlatten";
 import {
   computeBiggestGains,
   splitByThreshold,
   type GainRow,
 } from "@/lib/dropRate/biggestGains";
-
-/** Compact k/M/B/T number formatting (mirrors the Cooking Mastery optimizer). */
-function notate(n: number): string {
-  if (!isFinite(n)) return "—";
-  const a = Math.abs(n);
-  if (a >= 1e12) return (n / 1e12).toFixed(2) + "T";
-  if (a >= 1e9) return (n / 1e9).toFixed(2) + "B";
-  if (a >= 1e6) return (n / 1e6).toFixed(2) + "M";
-  if (a >= 1e3) return (n / 1e3).toFixed(2) + "K";
-  return a < 10 && !Number.isInteger(n) ? n.toFixed(2) : String(Math.round(n));
-}
 
 const METHODOLOGY_NOTE =
   "DR gain = how much your total Drop Rate would rise if this system matched " +
@@ -51,10 +41,12 @@ function Hint({ children }: { children: React.ReactNode }) {
 }
 
 /** Format a system's contribution for the You / Observed Max columns. */
-function fmtContribution(row: GainRow, value: number): string {
-  return row.type === "additive"
-    ? `+${notate(value)}pp`
-    : `${value.toFixed(2)}×`;
+function fmtContribution(row: GainRow, value: number) {
+  return row.type === "additive" ? (
+    <Num value={value} plus unit="pp" />
+  ) : (
+    <Num value={value} unit="×" />
+  );
 }
 
 export default function BiggestGains({
@@ -170,7 +162,10 @@ export default function BiggestGains({
         <div className="rounded-md border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-200/90">
           💡 <strong>Biggest win →</strong> improve{" "}
           <strong>{visible[0].system}</strong> for{" "}
-          <strong>+{Math.round(visible[0].drGainPct)}%</strong> Drop Rate
+          <strong>
+            <Num value={visible[0].drGainPct} plus unit="%" />
+          </strong>{" "}
+          Drop Rate
         </div>
       ) : (
         <div className="rounded-md border border-zinc-700 bg-zinc-900/60 px-3 py-2 text-sm text-zinc-400">
@@ -256,9 +251,12 @@ function GainRowView({ row, best }: { row: GainRow; best: boolean }) {
         {fmtContribution(row, row.max)}
       </td>
       <td className="px-3 py-2 text-right tabular-nums">
-        <span className="text-emerald-300 font-semibold">
-          +{row.drGainPct.toFixed(1)}%
-        </span>
+        <Num
+          value={row.drGainPct}
+          plus
+          unit="%"
+          className="text-emerald-300 font-semibold"
+        />
       </td>
     </tr>
   );

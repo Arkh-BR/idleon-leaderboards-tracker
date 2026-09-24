@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import Num from "@/components/Num";
 import {
   addSnapshot, buildCoinSnapshot, clearChar, deleteSnapshot, exportAllAsJson,
   importFromJson, listSnapshots, listTrackedChars, type CoinSnapshot,
@@ -344,23 +345,20 @@ function HistoryTable({
                     {formatRelativeTime(s.capturedAt)}
                   </div>
                 </td>
-                <td
-                  className="px-2 py-2 text-right font-mono text-gold"
-                  title={String(s.computedCoinMulti)}
-                >
-                  {formatCoinMulti(s.computedCoinMulti) + "x"}
+                <td className="px-2 py-2 text-right font-mono text-gold">
+                  <Num value={s.computedCoinMulti} unit="x" />
                 </td>
                 <td className="px-2 py-2 text-right font-mono text-xs">
                   {delta === null ? (
                     <span className="text-zinc-600">—</span>
-                  ) : delta > 0 ? (
-                    <span className="text-emerald-400">
-                      +{delta.toFixed(2)}%
-                    </span>
-                  ) : delta < 0 ? (
-                    <span className="text-red-400">{delta.toFixed(2)}%</span>
-                  ) : (
+                  ) : Math.abs(delta) < 0.0005 ? (
+                    // Rounds to 0.000 at 3 decimals — treat as unchanged
+                    // rather than colouring float noise as a gain/loss.
                     <span className="text-zinc-500">0</span>
+                  ) : delta > 0 ? (
+                    <Num value={delta} plus unit="%" className="text-emerald-400" />
+                  ) : (
+                    <Num value={delta} unit="%" className="text-red-400" />
                   )}
                 </td>
                 <td className="px-2 py-2 text-right text-zinc-400 text-xs">

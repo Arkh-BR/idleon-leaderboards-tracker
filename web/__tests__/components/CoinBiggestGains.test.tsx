@@ -17,7 +17,7 @@ describe("CoinBiggestGains", () => {
     render(<CoinBiggestGains yoursFlat={yours} classKey={null} loadReference={async () => ref} />);
     expect(await screen.findByText(/Biggest win/)).toBeInTheDocument();
     expect(screen.getAllByText("Alpha Source").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("+75.0%").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("+75.000%").length).toBeGreaterThan(0);
     expect(screen.queryByText("Beta Source")).toBeNull(); // already at the max
   });
 

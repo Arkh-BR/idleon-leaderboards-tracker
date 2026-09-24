@@ -1,22 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Num from "@/components/Num";
 import type { FlatTree } from "@/lib/dropRate/treeFlatten";
 import { computeCoinGains, splitCoinGains, type CoinGainRow } from "@/lib/coinMulti/biggestGains";
-
-/** Compact k/M/B/T formatting for large percentages and contributions. */
-function notate(n: number): string {
-  if (!isFinite(n)) return "—";
-  const a = Math.abs(n);
-  if (a >= 1e12) return (n / 1e12).toFixed(2) + "T";
-  if (a >= 1e9) return (n / 1e9).toFixed(2) + "B";
-  if (a >= 1e6) return (n / 1e6).toFixed(2) + "M";
-  if (a >= 1e4) return (n / 1e3).toFixed(1) + "K";
-  return n.toFixed(a < 10 && !Number.isInteger(n) ? 2 : 0);
-}
-
-/** Gain percentages: one decimal below 10,000%, compact above. */
-const fmtGain = (p: number) => (p < 1e4 ? p.toFixed(1) : notate(p));
 
 const METHODOLOGY_NOTE =
   "Coin gain = how much your total Coin Multi would rise if this source matched the top players " +
@@ -38,9 +25,8 @@ const Hint = ({ children }: { children: React.ReactNode }) => (
   <p className="text-sm text-zinc-500 text-center py-10">{children}</p>
 );
 
-function fmtContribution(row: CoinGainRow, v: number): string {
-  if (row.kind === "pct") return `+${notate(v)}%`;
-  return notate(v);
+function fmtContribution(row: CoinGainRow, v: number) {
+  return row.kind === "pct" ? <Num value={v} plus unit="%" /> : <Num value={v} />;
 }
 
 export default function CoinBiggestGains({
@@ -103,7 +89,10 @@ export default function CoinBiggestGains({
       {visible.length > 0 ? (
         <div className="rounded-md border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-200/90">
           💡 <strong>Biggest win →</strong> improve <strong>{visible[0].source}</strong> for{" "}
-          <strong>+{fmtGain(visible[0].gainPct)}%</strong> Coin Multi
+          <strong>
+            <Num value={visible[0].gainPct} plus unit="%" />
+          </strong>{" "}
+          Coin Multi
         </div>
       ) : (
         <div className="rounded-md border border-zinc-700 bg-zinc-900/60 px-3 py-2 text-sm text-zinc-400">
@@ -131,7 +120,7 @@ export default function CoinBiggestGains({
                 <td className="px-3 py-2 text-right tabular-nums text-zinc-300">{fmtContribution(row, row.you)}</td>
                 <td className="px-3 py-2 text-right tabular-nums text-zinc-300">{fmtContribution(row, row.max)}</td>
                 <td className="px-3 py-2 text-right tabular-nums">
-                  <span className="text-emerald-300 font-semibold">+{fmtGain(row.gainPct)}%</span>
+                  <Num value={row.gainPct} plus unit="%" className="text-emerald-300 font-semibold" />
                 </td>
               </tr>
             ))}
