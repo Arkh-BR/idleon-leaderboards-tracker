@@ -3,6 +3,7 @@
 // game's number format, the Biggest Gains model and the Observed Max loader.
 
 import type { ArkhNode } from "@/lib/arkh/node";
+import type { GainRow } from "./biggestGains";
 
 export type StatResult = { tree: ArkhNode; total: number };
 
@@ -16,6 +17,10 @@ export type GainSource = { path: string; group: string; source: string; display:
 export type GainsModel = {
   sources(yoursFlat: Record<string, number>, refFlat: Record<string, number>): GainSource[];
   totalFromFlat(flat: Record<string, number>): number;
+  /** Optional steps the model computes itself — no Observed Max — ranked
+   *  with the source rows but never counted as comparable sources, e.g.
+   *  Multikill's "+1 damage tier". */
+  levers?(yoursFlat: Record<string, number>): GainRow[];
 };
 
 /** The generated Observed Max module (lib/<stat>/top*.ts), lazy-loaded. */
@@ -60,6 +65,10 @@ export type StatPageConfig = {
    *  headline, snapshot notice and history table. Biggest Gains and Compare
    *  don't change. */
   unit?: "x" | "%";
+  /** The headline's tooltip. Default: the exponent form ("x"), or 100·total
+   *  with 2 decimals for a "%" rate (AFK Gains). A stat whose total is
+   *  already a percent (Multikill) passes its own. */
+  totalTitle?(x: number): string;
   gains: GainsModel;
   loadTop(): Promise<TopModule>;
   topMeta: { generatedAt: string; playersScanned: number };

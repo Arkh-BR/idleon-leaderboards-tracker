@@ -49,6 +49,11 @@ export function computeGains(
     comparableSources++;
     if (gainPct > 0) rows.push({ ...s, you, max, gainPct });
   }
+  // Model-computed steps (Multikill's "+1 damage tier"): ranked with the rows,
+  // never comparable sources — they have no Observed Max.
+  for (const lever of model.levers?.(yoursFlat) ?? []) {
+    if (Number.isFinite(lever.gainPct) && lever.gainPct > 0) rows.push(lever);
+  }
   rows.sort((a, b) => b.gainPct - a.gainPct);
   return { rows, comparableSources };
 }

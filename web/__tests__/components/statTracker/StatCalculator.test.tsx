@@ -137,4 +137,18 @@ describe("StatCalculator", () => {
     act(() => loader!.onSave(save()));
     expect(await screen.findByText("12.50x")).toHaveAttribute("title", "1.250000e+1x");
   });
+
+  it("uses the config's totalTitle for the headline tooltip", async () => {
+    const tree = { name: "Test Multi", val: 81706, fmt: "%" as const, children: [] };
+    const pct: StatPageConfig = {
+      ...testConfig,
+      unit: "%",
+      formatTotal: (x) => String(Math.floor(x)),
+      totalTitle: (x) => x.toLocaleString("en-US") + "%",
+      compute: async () => ({ tree, total: tree.val }),
+    };
+    render(<StatCalculator config={pct} />);
+    act(() => loader!.onSave(save()));
+    expect(await screen.findByText("81706%")).toHaveAttribute("title", "81,706%");
+  });
 });
