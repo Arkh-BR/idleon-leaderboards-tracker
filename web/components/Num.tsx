@@ -16,10 +16,13 @@ export default function Num({
   /** Text appended after the suffix, e.g. "x", "%", "pp", "×". */
   unit?: string;
   className?: string;
-  /** Defaults to the full value (String(value)) when omitted. */
-  title?: string;
+  /** Defaults to the full value (String(value)) when omitted. Pass `false`
+   *  to opt out entirely — e.g. when an ancestor already carries a richer
+   *  title (a formula note, a "you have X" sentence) that this Num's own
+   *  default would otherwise shadow. */
+  title?: string | false;
 }) {
-  const resolvedTitle = title ?? String(value);
+  const resolvedTitle = title === false ? undefined : title ?? String(value);
   const parts = numParts(value);
   if (!parts) {
     return (
@@ -33,7 +36,9 @@ export default function Num({
     <span className={className} title={resolvedTitle}>
       {sign}
       {parts.num}
-      <span className="text-[1.15em] font-semibold">{parts.suffix}</span>
+      {parts.suffix && (
+        <span className="text-[1.15em] font-semibold">{parts.suffix}</span>
+      )}
       {unit}
     </span>
   );

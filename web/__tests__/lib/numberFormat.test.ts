@@ -19,9 +19,11 @@ describe("formatNum", () => {
     [17114049124784.227, "17.114T"],
     [5e18, "5.000QQ"],
     [7e21, "7.000QQQ"],
+    [9.999996e23, "1.000E24"], // QQQ→E promotion: 999.9996QQQ rounds up
     [6.885265702671293e35, "6.885E35"],
     [9.9996e24, "1.000E25"], // mantissa rounds to 10.000 → bump the exponent
     [-1234, "-1.234K"],
+    [-0.0001, "0.000"], // negative rounds to zero digits — sign suppressed
   ])("formatNum(%p) -> %p", (input, expected) => {
     expect(formatNum(input)).toBe(expected);
   });

@@ -23,6 +23,13 @@ function fixed3(n: number): string {
   return n.toFixed(3);
 }
 
+/** Build the final parts, suppressing the "-" sign when the rounded digits
+ *  are all zero — a negative value that rounds to 0 should read "0.000",
+ *  not "-0.000". */
+function withSign(sign: string, num: string, suffix: string): NumParts {
+  return { sign: Number(num) === 0 ? "" : sign, num, suffix };
+}
+
 /** Mantissa + exponent for |v| >= 1e24, 3-decimal mantissa in [1, 10). */
 function eNotationParts(abs: number): { num: string; suffix: string } {
   let exp = Math.floor(Math.log10(abs));
@@ -54,22 +61,26 @@ export function numParts(v: number): NumParts | null {
   const sign = v < 0 ? "-" : "";
   const abs = Math.abs(v);
 
-  if (abs >= 1e24) return { sign, ...eNotationParts(abs) };
+  if (abs >= 1e24) {
+    const e = eNotationParts(abs);
+    return withSign(sign, e.num, e.suffix);
+  }
 
   for (let i = 0; i < TIERS.length; i++) {
     const { threshold, suffix } = TIERS[i];
     if (abs < threshold) continue;
     const scaled = abs / threshold;
-    if (Number(fixed3(scaled)) < 1000) return { sign, num: fixed3(scaled), suffix };
+    if (Number(fixed3(scaled)) < 1000) return withSign(sign, fixed3(scaled), suffix);
     // Rounds up to the next tier (or into E-notation past QQQ).
     const next = TIERS[i - 1];
-    if (next) return { sign, num: fixed3(abs / next.threshold), suffix: next.suffix };
-    return { sign, ...eNotationParts(abs) };
+    if (next) return withSign(sign, fixed3(abs / next.threshold), next.suffix);
+    const e = eNotationParts(abs);
+    return withSign(sign, e.num, e.suffix);
   }
 
   // Plain range (< 1e3), with the same promotion guard.
-  if (Number(fixed3(abs)) >= 1000) return { sign, num: fixed3(abs / 1e3), suffix: "K" };
-  return { sign, num: fixed3(abs), suffix: "" };
+  if (Number(fixed3(abs)) >= 1000) return withSign(sign, fixed3(abs / 1e3), "K");
+  return withSign(sign, fixed3(abs), "");
 }
 
 /** Plain-string rendering of numParts — for `title` attributes and

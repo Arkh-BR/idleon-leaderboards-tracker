@@ -37,6 +37,11 @@ describe("Num", () => {
     );
   });
 
+  it("title={false} opts out of the default title entirely", () => {
+    const { container } = render(<Num value={5} title={false} />);
+    expect(container.firstElementChild).not.toHaveAttribute("title");
+  });
+
   it("applies the passed className to the root element", () => {
     const { container } = render(
       <Num value={5} className="text-emerald-300" />

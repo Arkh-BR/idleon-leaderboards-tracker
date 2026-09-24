@@ -192,7 +192,7 @@ function RefBadge({
         fmt
       )}`}
     >
-      🎯 <Num value={reference} {...fmtOpts(fmt)} />
+      🎯 <Num value={reference} {...fmtOpts(fmt)} title={false} />
     </span>
   );
 }
@@ -1244,6 +1244,7 @@ function WorldBucketRow({
             bucket.node.val,
             bucket.node.fmt
           )}`}
+          title={false}
         />
       </div>
       {open && hasChildren && (
@@ -1339,6 +1340,7 @@ function WorldBucketChildRow({
             node.val,
             node.fmt
           )}`}
+          title={false}
         />
       </div>
       {open && hasChildren && (
