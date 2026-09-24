@@ -1,7 +1,7 @@
 # Página AFK Gains Rate (Fighting) — Design Spec
 
 **Data:** 2026-09-24
-**Status:** rascunho autônomo (noite de 24→25/09/2026). O usuário delegou as decisões ("tome as decisões sozinho e anote") e avalia tudo de manhã. Nada aqui foi aprovado ainda. As decisões autônomas estão na seção própria.
+**Status:** executado durante a noite (24→25/09/2026), revisado e **validado no jogo em 24/09/2026** (Markhe no mapa 14, save fresco: **58870%**, motor 588.7052987540884 — âncora anterior, save de 23/09 usado nos testes: 42231%). O usuário delegou as decisões ("tome as decisões sozinho e anote"); as decisões autônomas estão na seção própria.
 **Branch:** `feat/afk-gains-page`, empilhado em `feat/exp-multi-page` (que traz o kit `statTracker`)
 
 ## Problema
@@ -20,7 +20,7 @@ O AFK Gains Rate é o valor que `AFKgainrates(tipo)` devolve: o multiplicador do
 ## Objetivos
 
 - **Página "AFK Gains Tracker"** com as mesmas funcionalidades do Coin Multi e do EXP Multi: calculadora + árvore, snapshots, Compare vs Observed Max e Biggest Gains.
-- **Valor igual ao do jogo.** O número calculado localmente a partir do save deve ser igual à linha AFK GAINS RATE do AFK Info para o personagem/mapa validado (Markhe no mapa 14: **42231%**).
+- **Valor igual ao do jogo.** O número calculado localmente a partir do save deve ser igual à linha AFK GAINS RATE do AFK Info para o personagem/mapa validado (Markhe no mapa 14: **42231%** no save de 23/09 usado nos testes; **confirmado no jogo em 24/09/2026** com save fresco: **58870%**, motor 588.7052987540884).
 - **Só motor + config.** O kit ganha uma única opção nova (`unit`). O resto é descritor, sistema e config.
 - **DR, Coin e EXP intocados.** Zero mudança de comportamento (números, chaves de storage, snapshots). As correções de fidelidade entram como funções novas; as antigas continuam alimentando o DR.
 
@@ -286,7 +286,7 @@ A raiz "AFK Gains Rate" vale `R3 × max(.01, R2 > 0 ? R2 : G1·G2·G3·R1)`, com
   - sem `unit`, "x" como hoje (os testes do Coin e do EXP não mudam);
   - `deriveGatedTalentsFor([79, 88, 268, 448])` → os quatro; `deriveGatedTalentsFor([621, 650])` → `[]`.
 - **DR, Coin e EXP protegidos**: regressão do DR (363.893,46), `coin-multi.save` (6,88E35, agora com `flurboShop`/`rooBonus` extraídos) e os testes do EXP, todos verdes.
-- **Jogo**: o AFK Info (AFK GAINS RATE) do Markhe bate com a página, com save fresco obtido **sem login quando possível** (perfil público do IT ou "Copy for Support" colado). No save em cache, o esperado é 42231%.
+- **Jogo**: o AFK Info (AFK GAINS RATE) do Markhe bate com a página, com save fresco obtido **sem login quando possível** (perfil público do IT ou "Copy for Support" colado). No save em cache (23/09), o esperado é 42231%. **Validado em 24/09/2026** com save fresco: Markhe no mapa 14 = **58870%** (motor 588.7052987540884).
 - **Verificação**: `tsc --noEmit` + vitest + preview da Vercel; **nunca** `npm run dev`.
 - **Critério de pronto**: bater a leitura do jogo, na mesma formatação da tela.
 
@@ -316,7 +316,7 @@ A raiz "AFK Gains Rate" vale `R3 × max(.01, R2 > 0 ? R2 : G1·G2·G3·R1)`, com
 ## Riscos e pontos em aberto
 
 1. **Star signs em contas mid-game.** O save de validação não exercita a correção: no Markhe (`enabled ≥ 57`, nível 120) o caminho antigo e o novo dão os mesmos 120. Só os testes sintéticos cobrem o −7 do signo 54, os gates de nível e a 2ª passada do star chip. O próprio `getEnabledStarSigns` (rift ≥ 10 → 5 + Shiny 3) não é revalidado aqui.
-2. **Qualidade do oráculo.** O total do IT está errado por 3 bugs (A7), então o teste depende da reconciliação termo a termo. A única âncora externa é a leitura do jogo (42231%).
+2. **Qualidade do oráculo.** O total do IT está errado por 3 bugs (A7), então o teste depende da reconciliação termo a termo. A âncora externa é a leitura do jogo: 42231% no save de 23/09 (usado nos testes) e, validado no jogo em 24/09/2026 com save fresco, 58870% (motor 588.7052987540884) — o motor bateu com o jogo nas duas leituras.
 3. **Sensibilidade.** Comida dourada (5500,84) e canguru (1361,25) somam 6862,09 pts: ≈81% do Σ do G1, ≈90% do `ALL`. Um erro de escala neles aparece no total, não como detalhe. A comida dourada do arkh é a validada ao centavo no DR (PR #28), e o `rooBonus` é a mesma conta do `roo6` do Coin (validado em 6,88E35).
 4. **Cove.** É caso de borda (char fazendo AFK na caverna 17). Não há oráculo: o `getCglunkoAfkGains` do IT não está ligado e não tem o ×1,3 do `bun_u`. Vale só a leitura do N.js e um teste sintético. O painel da Cove formata diferente (Exibição no jogo).
 5. **Tipo do alvo (A9).** No mapa salvo, o painel usa o `AFKtarget_N` real; a página usa o alvo padrão do mapa. Os dois só divergem fora da luta (ex.: o minério escolhido num mapa de mineração), que já está fora do escopo. Com alvo `Nothing`/`Paying_Respect`, o total 0 esvazia o Biggest Gains, e a aba mostra a mensagem de "no comparable reference".

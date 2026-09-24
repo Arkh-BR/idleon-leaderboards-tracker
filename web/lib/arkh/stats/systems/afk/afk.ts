@@ -165,7 +165,7 @@ function resolveAfk(id: string, ctx: SystemCtx): ArkhNode {
     }
     // N.js Shrine(8) — its map gate isn't modelled (spec A5, like DR and EXP).
     case "shrine8":
-      return pct(label("Shrine", 8), computeShrine(8, s), null, "treated as always active (spec A5)");
+      return pct(label("Shrine", 8), computeShrine(8, s), null, "treated as always active (map gate not modelled)");
     case "winBonus11":
       return pct("Summoning win bonus 11", computeWinBonus(11, null, s));
     case "goldFoodAllAFK":

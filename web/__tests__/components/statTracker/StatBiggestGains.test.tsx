@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import StatBiggestGains from "@/components/statTracker/StatBiggestGains";
+import type { GainsModel } from "@/lib/statTracker/config";
 import { testConfig } from "./testConfig";
 
 const G = "Test Multi / Pool";
@@ -19,6 +20,21 @@ describe("StatBiggestGains", () => {
     expect(screen.getAllByText("Alpha Source").length).toBeGreaterThan(0);
     expect(screen.getAllByText("+75.000%").length).toBeGreaterThan(0);
     expect(screen.queryByText("Beta Source")).toBeNull(); // already at the max
+  });
+
+  it("says the stat is 0 on this map instead of blaming the reference", async () => {
+    // A flat tree whose total is genuinely 0 (e.g. AFK on a town, or any
+    // Nothing-type map) — totalFromFlat(yoursFlat) itself must gate this,
+    // not comparableSources (which is also 0 here, but for the wrong reason).
+    const zeroGains: GainsModel = {
+      sources: () => [{ path: `${G} / Alpha Source`, group: "Pool", source: "Alpha Source", display: "pct" }],
+      totalFromFlat: (flat) => Number(flat[`${G} / Alpha Source`]) || 0,
+    };
+    const cfg = { ...testConfig, gains: zeroGains };
+    const zeroFlat = { [`${G} / Alpha Source`]: 0 };
+    render(<StatBiggestGains config={cfg} yoursFlat={zeroFlat} classKey={null} loadReference={async () => ref} />);
+    expect(await screen.findByText(`${testConfig.statName} is 0 on this map — pick a map where it applies.`)).toBeInTheDocument();
+    expect(screen.queryByText(/No comparable top-player reference/)).toBeNull();
   });
 
   it("shows the compute error banner", () => {

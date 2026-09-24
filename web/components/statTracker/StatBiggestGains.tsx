@@ -71,6 +71,9 @@ export default function StatBiggestGains({
     );
   }
 
+  if (!(config.gains.totalFromFlat(yoursFlat) > 0)) {
+    return <Hint>{config.statName} is 0 on this map — pick a map where it applies.</Hint>;
+  }
   const result = computeGains(config.gains, yoursFlat, ref);
   if (result.comparableSources === 0) {
     return <Hint>No comparable top-player reference for this character yet — can&apos;t rank {config.statName} gains.</Hint>;

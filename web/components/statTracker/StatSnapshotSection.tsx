@@ -358,7 +358,9 @@ function HistoryTable({
                 </td>
                 <td className="px-2 py-2 text-right font-mono text-gold">
                   {unit === "%" ? (
-                    <span title={String(s.value)}>{formatTotal(s.value)}%</span>
+                    <span title={String(s.value)}>
+                      {Number.isFinite(s.value) ? `${formatTotal(s.value)}%` : "—"}
+                    </span>
                   ) : (
                     <Num value={s.value} unit="x" />
                   )}
