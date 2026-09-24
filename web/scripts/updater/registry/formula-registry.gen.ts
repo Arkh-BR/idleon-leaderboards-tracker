@@ -208,6 +208,9 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   "_customBlock_FlurboShop": [
     "lib/arkh/stats/systems/coin/coin.ts"
   ],
+  "_customBlock_GetBuffBonuses": [
+    "lib/arkh/stats/systems/common/buffs.ts"
+  ],
   "_customBlock_GetSetBonus": [
     "lib/arkh/stats/systems/w3/setBonus.ts"
   ],

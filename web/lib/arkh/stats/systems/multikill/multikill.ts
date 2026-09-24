@@ -9,7 +9,7 @@
 
 import { node, type ArkhNode } from "../../../node";
 import type { SystemCtx } from "../../registry";
-import { optionsListData, currentMapData } from "../../../save/data";
+import { optionsListData, currentMapData, cauldronBubblesData } from "../../../save/data";
 import { label } from "../../entity-names";
 import { RandoListo2 } from "../../data/game/customlists.js";
 import { MK_NODES, MK_RULES } from "../../defs/multikill";
@@ -20,7 +20,7 @@ import { computeBoxReward, computeCardBonusByType } from "../common/stats";
 import { computeCardSetBonus } from "../common/cards";
 import { overkillActive, overkillStuffs } from "../common/overkill";
 import { computeStampBonusOfTypeX } from "../w1/stamp";
-import { computeVialByKey } from "../w2/alchemy";
+import { computeVialByKey, bubbleValByKey } from "../w2/alchemy";
 import { arcadeBonus } from "../w2/arcade";
 import { prayersReal } from "../w3/prayer";
 import { chipBonuses } from "../w4/lab";
@@ -28,6 +28,9 @@ import { computeShinyBonusS } from "../w4/breeding";
 import { computeArtifactBonus } from "../w5/sailing";
 import { measurementBonusTotal, overkillQTY } from "../coin/gambit";
 import { saltLick } from "../exp/saltLick";
+import { companions } from "../common/companions";
+import { starSignBonusReal } from "../common/starSign";
+import { getBuffBonuses } from "../common/buffs";
 
 /** Class talents of the formula (per-character buffs) — spec M16. 654 is a
  *  star talent (every class) and 58 is account-wide, so neither is gated. */
@@ -38,9 +41,6 @@ const factor = (name: string, v: number, children?: ArkhNode[] | null): ArkhNode
   node(name, v, children ?? null, { fmt: "x" });
 const pct = (name: string, v: number, children?: ArkhNode[] | null, note?: string): ArkhNode =>
   node(name, v, children ?? null, { fmt: "+", note });
-/** Terms ported in a later task of the Multikill plan; neutral in Σ until then. */
-const pending = (name: string, neutral: number): ArkhNode =>
-  node(name, neutral, null, { fmt: "+", note: "pending port" });
 
 // @njs MultiKill_base
 // @njs MultiKill_perTier
@@ -53,8 +53,12 @@ function resolveMultikill(id: string, ctx: SystemCtx): ArkhNode {
 
   switch (id) {
     // ── Base Multikill (N.js order) ──
-    case "sign47":
-      return pending("Star signs (Multikill)", 0);
+    // N.js DNSM.StarSigns.MultiKill: sign 47 Cullingo +15 (@6506250), × Seraph —
+    // the active-signs port (equipped ∪ unlocked below the enabled count).
+    case "sign47": {
+      const r = starSignBonusReal("MultiKill", ci, s);
+      return pct("Star signs (Multikill)", r.val, r.children);
+    }
     // N.js SaltLick(8): the level × SaltLicks[8][3] (3 per level, max 10).
     case "saltLick8": {
       const lv = Number((s.saltLickData as any)?.[8]) || 0;
@@ -112,8 +116,11 @@ function resolveMultikill(id: string, ctx: SystemCtx): ArkhNode {
       const r = computeVialByKey("Overkill", s);
       return pct("Vials (Overkill)", r.val, r.children);
     }
+    // N.js GetBuffBonuses(46,2): Void Radius's y while its buff is active,
+    // for class 4/5 with buff 45. The name keeps "(Talent 46)": the collector
+    // gates that suffix (spec M16).
     case "buff46":
-      return pending(label("Talent", 46), 0);
+      return pct(label("Talent", 46), getBuffBonuses(46, 2, ci, s), null, "active buff only");
     // N.js ArcadeBonus(8).
     case "arcade8": {
       const r = arcadeBonus(8, s);
@@ -122,8 +129,9 @@ function resolveMultikill(id: string, ctx: SystemCtx): ArkhNode {
     // N.js Sailing("ArtifactBonus",26,0): Trilobite Rock, 25 × its tier.
     case "artifact26":
       return pct("Trilobite Rock (Artifact 26)", computeArtifactBonus(26, ci, { saveData: s, charIdx: ci } as any));
+    // N.js GetBuffBonuses(469,2): Mana Is Life's y while its buff is active.
     case "buff469":
-      return pending(label("Talent", 469), 0);
+      return pct(label("Talent", 469), getBuffBonuses(469, 2, ci, s), null, "active buff only");
     // N.js chipBonuses("mkill"): the active character's lab chips (Wood Chip, 15).
     case "chipMkill":
       return pct("Lab chip (mkill)", chipBonuses("mkill", ci));
@@ -136,8 +144,11 @@ function resolveMultikill(id: string, ctx: SystemCtx): ArkhNode {
       const r = computeCardBonusByType(80, ci, s);
       return pct("Cards (Card Type 80)", r.val, r.children);
     }
-    case "sign78":
-      return pending("Star signs (Multikill per tier)", 0);
+    // N.js DNSM.StarSigns["78"]: sign 78 Killian Maximus +3 (@6513550), × Seraph.
+    case "sign78": {
+      const r = starSignBonusReal("78", ci, s);
+      return pct("Star signs (Multikill per tier)", r.val, r.children);
+    }
     // N.js prayersReal(16,0): Balance of Pain, super-bit branch included.
     case "prayer16": {
       const r = prayersReal(16, 0, ci, s);
@@ -151,8 +162,20 @@ function resolveMultikill(id: string, ctx: SystemCtx): ArkhNode {
       const r = computeBoxReward(ci, "13b");
       return pct("Post Office 13b", r.val, r.children);
     }
-    case "bubbleMKtier":
-      return pending("MR_MASSACRE bubble (MKtierACTIVE)", 0);
+    // N.js AlchBubbles.MKtierACTIVE (MR_MASSACRE, cauldron 3 bubble 15): an
+    // ACTIVE key exists only with Companions(4) (Sheepie) or "c15" in
+    // CauldronBubbles[char] — cauldron letters are _ a b c (@4460300).
+    case "bubbleMKtier": {
+      const sheepie = companions(4, s) === 1 ? 1 : 0;
+      const list = (cauldronBubblesData as any[])[ci];
+      const equipped = (Array.isArray(list) ? list : Object.values(list ?? {})).includes("c15") ? 1 : 0;
+      const r = bubbleValByKey("MKtierACTIVE", ci, s);
+      return pct("MR_MASSACRE bubble (MKtierACTIVE)", sheepie || equipped ? r.val : 0, [
+        raw("Sheepie (Companion 4)", sheepie),
+        raw('Equipped ("c15")', equipped),
+        ...(r.children ?? []),
+      ]);
+    }
     // N.js CardSetBonuses(0,"11") = Cards[3]["{%_Multikill_Per_Tier"].
     case "cardSet11": {
       const r = computeCardSetBonus(ci, "11");

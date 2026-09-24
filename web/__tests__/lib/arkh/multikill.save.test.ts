@@ -90,4 +90,59 @@ describe.skipIf(!existsSync(SAVE))("Multikill — Markhe on map 14 vs IdleonTool
     expect([0, 1, 2, 3, 4, 5, 6, 7].map((w) => overkillQTY(w, saveData))).toEqual([300, 220, 280, 260, 260, 280, 460, 58]);
     expect(deathNoteSkulls(saveData)).toBe(2060); // Σ W1–W7: Coin's Measurement 13 input
   });
+
+  it.each<[string, number]>([
+    ["sign47", 150], // Cullingo 15 × Seraph 10 (245 enabled signs: the unlocked range counts)
+    ["sign78", 30], // Killian Maximus 3 × Seraph 10
+    ["buff46", 0], // no Void Radius buff (BuffsActive_8 = 94, 168, 167)
+    ["buff469", 0],
+    ["bubbleMKtier", 89.11312573906189], // Sheepie owned (and "c15" equipped)
+  ])("%s", (id, expected) => close(src(id), expected));
+
+  it("Base Multikill = 1063.45", () => close(Number(tree.children![0].val), 1063.45));
+  it("Multikill per Tier = 1581.2331…", () => close(Number(tree.children![2].val), 1581.2331135382508));
+  it("total = IdleonToolbox = the AFK Info's MULTIKILL: 81706%", () => expect(tree.val).toBe(81706));
+  it("active, and the AFK Info shows the line (beanG is FIGHTING)", () => {
+    expect(src("active")).toBe(1);
+    expect(tree.children![3].note).toBe("the AFK Info shows the MULTIKILL line");
+  });
+
+  it("no source is left unported", () => {
+    const notes: string[] = [];
+    const walk = (n: ArkhNode) => {
+      if (n.note === "pending port") notes.push(n.name);
+      n.children?.forEach(walk);
+    };
+    walk(tree);
+    expect(notes).toEqual([]);
+  });
+});
+
+describe.skipIf(!existsSync(SAVE))("Multikill — the other ten characters vs IdleonToolbox", () => {
+  let save: any;
+  beforeAll(() => {
+    save = JSON.parse(readFileSync(SAVE, "utf8"));
+  });
+
+  // Their saved map is 216 (cavern 3, no Cove), target Bravery_Monument: tier 51.
+  it.each<[string, number]>([
+    ["ARKHE", 77116], ["ARKHELUCK", 106167], ["zArkhe", 107748], ["farkhe", 77116], ["Darkhe", 77116],
+    ["Parkhe", 106167], ["Warkhe", 105652], ["Sarkhe", 107748], ["Barkhe", 106167], ["Arkhiiiiii", 106167],
+  ])("%s on the saved map", (name, expected) => {
+    const ci = save.charNames.indexOf(name);
+    expect(computeArkhMultikill(save, ci, Number(save.data["CurrentMap_" + ci])).total).toBe(expected);
+  });
+});
+
+// In-game AFK Info reading taken 2026-09-24 alongside this save (controller-
+// supplied anchor, distinct file from SAVE above): Markhe on map 14 (Valley
+// of the Beans) read MULTIKILL = 81706% in the live panel.
+const SAVE2 = "scripts/updater/golden/.cache/arkhe-live-2026-09-24.json";
+
+describe.skipIf(!existsSync(SAVE2))("Multikill — Markhe on map 14 vs the in-game panel (2026-09-24)", () => {
+  it("matches the in-game AFK Info reading taken 2026-09-24 alongside this save", () => {
+    const save2 = JSON.parse(readFileSync(SAVE2, "utf8"));
+    const markheIdx = save2.charNames.indexOf("Markhe");
+    expect(computeArkhMultikill(save2, markheIdx, 14).tree.val).toBe(81706);
+  });
 });
