@@ -12,6 +12,7 @@ const ITEMS: NavItem[] = [
   { href: "/tome", label: "📖 Tome Score" },
   { href: "/drop-rate", label: "🎲 Drop Rate" },
   { href: "/coin-multi", label: "🪙 Coin Multi" },
+  { href: "/exp-multi", label: "✨ EXP Multi" },
   { href: "/talents-level", label: "🌟 Talents" },
   { href: "/cooking-mastery", label: "🍳 Cooking Mastery" },
   { href: "/sheets", label: "📊 Sheets & Tools" },

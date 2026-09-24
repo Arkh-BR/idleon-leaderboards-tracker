@@ -9,9 +9,15 @@ vi.mock("@/components/ProfileNameLoader", () => ({
     return null;
   },
 }));
+vi.mock("@/lib/arkh/computeExp", () => ({
+  computeArkhExpMulti: () => {
+    throw new Error("stub");
+  },
+}));
 
 import StatCalculator from "@/components/statTracker/StatCalculator";
 import { testConfig } from "./testConfig";
+import { EXP_PAGE } from "@/lib/expMulti/pageConfig";
 
 const save = () => ({
   charNames: ["Alpha", "Beta"],
@@ -79,5 +85,11 @@ describe("StatCalculator", () => {
     render(<StatCalculator config={testConfig} />);
     act(() => loader!.onSave(save()));
     expect(await screen.findByText(/Test multi compute failed: stub/)).toBeInTheDocument();
+  });
+
+  it("renders the EXP Multi config", () => {
+    render(<StatCalculator config={EXP_PAGE} />);
+    expect(loader!.storageKey).toBe("exp-multi-tracker.playerName");
+    expect(screen.getByText(/EXP Multi Calculator/)).toBeInTheDocument();
   });
 });

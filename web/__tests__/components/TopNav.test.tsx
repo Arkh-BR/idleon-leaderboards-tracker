@@ -22,6 +22,7 @@ describe("TopNav", () => {
     expect(screen.getByText(/Talents/i)).toBeInTheDocument();
     expect(screen.getByText(/Sheets.*Tools/i)).toBeInTheDocument();
     expect(screen.getByText(/Coin Multi/i)).toBeInTheDocument();
+    expect(screen.getByText(/EXP Multi/i)).toBeInTheDocument();
   });
 
   it("marks active item based on pathname", () => {
