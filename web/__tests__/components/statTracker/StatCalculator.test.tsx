@@ -14,10 +14,16 @@ vi.mock("@/lib/arkh/computeExp", () => ({
     throw new Error("stub");
   },
 }));
+vi.mock("@/lib/arkh/computeCoin", () => ({
+  computeArkhCoinMulti: () => {
+    throw new Error("stub");
+  },
+}));
 
 import StatCalculator from "@/components/statTracker/StatCalculator";
 import { testConfig } from "./testConfig";
 import { EXP_PAGE } from "@/lib/expMulti/pageConfig";
+import { COIN_PAGE } from "@/lib/coinMulti/pageConfig";
 
 const save = () => ({
   charNames: ["Alpha", "Beta"],
@@ -91,5 +97,11 @@ describe("StatCalculator", () => {
     render(<StatCalculator config={EXP_PAGE} />);
     expect(loader!.storageKey).toBe("exp-multi-tracker.playerName");
     expect(screen.getByText(/EXP Multi Calculator/)).toBeInTheDocument();
+  });
+
+  it("renders the Coin Multi config", () => {
+    render(<StatCalculator config={COIN_PAGE} />);
+    expect(loader!.storageKey).toBe("coin-multi-tracker.playerName");
+    expect(screen.getByText(/Coin Multi Calculator/)).toBeInTheDocument();
   });
 });
