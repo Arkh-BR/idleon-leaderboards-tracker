@@ -48,8 +48,7 @@ import {
 import { ClassNames } from "../../data/game/customlists.js";
 import { companionBonus } from "../../data/common/companions";
 import { companionChild } from "./companions";
-import { bubbleParams } from "../../data/w2/alchemy";
-import { isActiveBubbleOn } from "../w2/alchemy";
+import { bubbleValByKey } from "../w2/alchemy";
 import { equipSetBonus } from "../../data/common/equipment";
 import { godMinorX1 } from "../../data/w5/divinity";
 import { DIVINITY_MINOR_DENOM } from "../../data/game-constants";
@@ -730,15 +729,6 @@ export function computeAllTalentLVz(
     ? companionBonus(1, saveData.companionLv2Ids) : 0;
 
   // Divinity Minor 2 (Arctis)
-  const y2bp = bubbleParams(3, 21);
-  const y2BubbleLv =
-    Number(
-      (cauldronInfoData as any)?.[3] && (cauldronInfoData as any)[3][21]
-    ) || 0;
-  const y2Value =
-    y2BubbleLv > 0
-      ? formulaEval((y2bp as any).formula, (y2bp as any).x1, (y2bp as any).x2, y2BubbleLv)
-      : 0;
   let divMinor = 0;
   const coralKid3 = Number((optionsListData as any)?.[430]) || 0;
   if (ctxSlot >= 0 && hasBonusMajor(ctxSlot, 2, saveData)) {
@@ -746,7 +736,7 @@ export function computeAllTalentLVz(
       ((saveData as any).lv0AllData?.[ctxSlot] && (saveData as any).lv0AllData[ctxSlot][14]) ||
       0;
     if (divLv > 0) {
-      const y2Active = isActiveBubbleOn(ctxSlot, 3, 21, saveData) ? y2Value : 0;
+      const y2Active = bubbleValByKey("Y2ACTIVE", ctxSlot, saveData).val;
       divMinor =
         Math.max(1, y2Active) *
         (1 + coralKid3 / 100) *
@@ -1362,15 +1352,6 @@ function resolveAllTalentLVz(
   }
 
   // Divinity Minor 2
-  const y2bp = bubbleParams(3, 21);
-  const y2BubbleLv =
-    Number(
-      (cauldronInfoData as any)?.[3] && (cauldronInfoData as any)[3][21]
-    ) || 0;
-  const y2Value =
-    y2BubbleLv > 0
-      ? formulaEval((y2bp as any).formula, (y2bp as any).x1, (y2bp as any).x2, y2BubbleLv)
-      : 0;
   let divMinor = 0;
   const coralKid3 = Number((optionsListData as any)?.[430]) || 0;
   const godX1_2 = godMinorX1(2);
@@ -1382,7 +1363,7 @@ function resolveAllTalentLVz(
       0;
     divLvCaptured = divLv;
     if (divLv > 0) {
-      const y2Active = isActiveBubbleOn(ctxSlot, 3, 21, saveData) ? y2Value : 0;
+      const y2Active = bubbleValByKey("Y2ACTIVE", ctxSlot, saveData).val;
       y2ActiveCaptured = y2Active;
       divMinor =
         Math.max(1, y2Active) *
@@ -1403,7 +1384,7 @@ function resolveAllTalentLVz(
           node("Divinity Lv", divLvCaptured, null, { fmt: "raw" }),
           node("Bubble Y2 Active", y2ActiveCaptured, null, {
             fmt: "raw",
-            note: "0 if Y2 bubble not equipped & no all-bubbles flag",
+            note: "0 unless BIG_P is equipped or Sheepie owned; Prisma included",
           }),
           node("Coral Kid 3", coralKid3, null, { fmt: "raw", note: "OLA[430]" }),
           node("God Minor X1(2)", godX1_2, null, {
@@ -1996,7 +1977,6 @@ void playerStuffData;
 void superBitType;
 void hasBonusMajor;
 void companionBonus;
-void bubbleParams;
 void equipSetBonus;
 void godMinorX1;
 void DIVINITY_MINOR_DENOM;

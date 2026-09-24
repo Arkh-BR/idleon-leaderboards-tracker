@@ -251,6 +251,8 @@ export function bubbleValByKey(
         const lv =
           Number((cauldronInfoData as any)?.[c2]?.[i]) || 0;
         if (lv <= 0) return treeResult(0, null);
+        if (key.indexOf("ACTIVE") >= 0 && !isActiveBubbleOn(charIdx, c2, i, saveData))
+          return treeResult(0, null);
         const baseVal = formulaEval(
           arr[i][3],
           Number(arr[i][1]),
