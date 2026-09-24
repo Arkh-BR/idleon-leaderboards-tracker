@@ -224,11 +224,13 @@ describe.skipIf(!existsSync(SAVE))("EXP Multi — Markhe on map 14 vs IdleonTool
     ["companion 47", () => src("comp47"), 10],
     // IT "Companion (Obolbrine)" 1.5 ×100 (arkh names id 111 differently).
     ["companion 111", () => src("comp111"), 150],
-    // not in IT's breakdown as a separate line (terms.md: IT folds this into
-    // its internal getButtonBonus(account,8) bucket together with comp128add,
-    // never shown standalone) — N.js keeps Button_Bonuses(8) and Companions
-    // (128) as two separate addends in the formula, so they stay separate here.
+    // not in IT's breakdown as a line — IT's internal getButtonBonus(account,8)
+    // is 323.0390625000002 (probed via the oracle), i.e. button8 alone.
     ["button 8 (Class XP slot)", () => src("button8"), 323.03906250000006],
+    // N.js ≠ IT: N.js adds Companions(128) right after Button_Bonuses(8)
+    // (@4245842); IT's getClassExpMulti never adds it (IT 0) — see the G10
+    // reconciliation below. (terms.md's "IT folds it into the button bucket"
+    // was wrong: IT's button value is exactly our button8.)
     ["companion 128 (additive)", () => src("comp128add"), 100],
   ])("%s", (_n, get, expected) => close(get(), expected));
 
