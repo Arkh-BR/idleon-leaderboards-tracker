@@ -3,7 +3,7 @@
 // source in each pool, sums them up, and hands the pools to descriptor's
 // combine() to produce the final tree.
 
-import type { ArkhNode } from "../node";
+import type { ArkhNode, NodeFmt } from "../node";
 import type { SystemCtx, SystemResolver } from "./registry";
 
 export type SourceSpec = {
@@ -27,7 +27,7 @@ export type Descriptor = {
   combine(
     pools: Record<string, Pool>,
     ctx: SystemCtx
-  ): { val: number; children: ArkhNode[]; note?: string };
+  ): { val: number; children: ArkhNode[]; note?: string; fmt?: NodeFmt };
 };
 
 /** Resolve every source in each pool and return the pools (items + sum +
@@ -88,7 +88,7 @@ export function buildTree(
     // multiplier) renders with the "x" formatter so the value reads
     // "43093.438x" instead of getting auto-truncated to "43.09K" by
     // formatVal's default thousands collapse.
-    fmt: "x",
+    fmt: result.fmt ?? "x",
     children: result.children,
     ...(result.note ? { note: result.note } : {}),
   };

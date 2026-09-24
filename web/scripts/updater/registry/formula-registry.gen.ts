@@ -115,6 +115,17 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   "MonumentROGbonuses": [
     "lib/arkh/stats/systems/exp/exp.ts"
   ],
+  "MultiKillTOTAL": [
+    "lib/arkh/stats/defs/multikill.ts"
+  ],
+  "MultiKill_base": [
+    "lib/arkh/stats/defs/multikill.ts",
+    "lib/arkh/stats/systems/multikill/multikill.ts"
+  ],
+  "MultiKill_perTier": [
+    "lib/arkh/stats/defs/multikill.ts",
+    "lib/arkh/stats/systems/multikill/multikill.ts"
+  ],
   "OverkillQTY": [
     "lib/arkh/stats/systems/coin/gambit.ts"
   ],
@@ -192,7 +203,8 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/arkh/stats/systems/w3/setBonus.ts"
   ],
   "_customBlock_Holes2": [
-    "lib/arkh/stats/systems/afk/afk.ts"
+    "lib/arkh/stats/systems/afk/afk.ts",
+    "lib/arkh/stats/systems/multikill/multikill.ts"
   ],
   "_customBlock_JellyOperation": [
     "lib/arkh/stats/data/w7/jelly.ts"
