@@ -156,18 +156,23 @@ function formatVal(val: number, fmt: string | undefined): string {
   if (!Number.isFinite(val)) return "—";
   // Multipliers compound into the final DR, so show real precision (6 dp,
   // trimmed) for normal-range multis instead of rounding 1.26974 → 1.270.
-  // Big multis (>=1000) don't need decimals; past 1e21 use exponential.
+  // Big multis (>=1000) don't need decimals; past 1e6 (Coin Multi groups
+  // reach 1e11x) use the K/M/B/T suffixes so they fit the column; past 1e21
+  // use exponential. The row's title keeps the full value.
   if (fmt === "x") {
     const a = Math.abs(val);
     if (a >= 1e21) return val.toExponential(2) + "x";
+    if (a >= 1e6) return suffixed(val) + "x";
     return trimZeros(val.toFixed(a < 1000 ? 6 : 3)) + "x";
   }
-  // Additive fmts keep their unit; fall back to exponential past 1e21.
-  if (fmt === "+")
+  // Additive fmts keep their unit; suffixed past 1e6, exponential past 1e21.
+  if (fmt === "+") {
+    const a = Math.abs(val);
     return (
       (val >= 0 ? "+" : "") +
-      (Math.abs(val) >= 1e21 ? val.toExponential(2) : val.toFixed(3))
+      (a >= 1e21 ? val.toExponential(2) : a >= 1e6 ? suffixed(val) : val.toFixed(3))
     );
+  }
   if (fmt === "%") return val.toFixed(2) + "%";
   return suffixed(val);
 }
@@ -532,6 +537,7 @@ function TreeRow({
             node.val,
             node.fmt
           )}`}
+          title={Number.isFinite(node.val) ? String(node.val) : undefined}
         >
           {formatVal(node.val, node.fmt)}
         </span>
