@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll } from "vitest";
 import { existsSync, readFileSync } from "node:fs";
-import { computeArkhAfkGains } from "@/lib/arkh/computeAfk";
+import { computeArkhAfkGains, bestAfkMapIdx } from "@/lib/arkh/computeAfk";
 import { AFK_POOLS } from "@/lib/arkh/stats/defs/afk-gains";
 import type { ArkhNode } from "@/lib/arkh/node";
 
@@ -119,5 +119,52 @@ describe.skipIf(!existsSync(SAVE))("AFK Gains Rate — Markhe on map 14 vs Idleo
     };
     walk(tree);
     expect(notes).toEqual([]);
+  });
+});
+
+describe.skipIf(!existsSync(SAVE))("AFK Gains Rate — map scenarios on the ARKHE save", () => {
+  let save: any;
+  let ci: number;
+  beforeAll(() => {
+    save = JSON.parse(readFileSync(SAVE, "utf8"));
+    ci = save.charNames.indexOf("Markhe");
+  });
+
+  it("map 1: arcane slot 2 = 30.158… → 549.68 (54968%)", () => {
+    const t = computeArkhAfkGains(save, ci, 1).tree;
+    close(srcIn(t, "arcaneMapAfk"), 30.158131799045954);
+    close(t.val, 549.6821378607555);
+    expect(Math.floor(100 * t.val)).toBe(54968);
+  });
+
+  it("map 306 (Clamworks): ×0.2 → 84.46 (8446%)", () => {
+    const t = computeArkhAfkGains(save, ci, 306).tree;
+    expect(srcIn(t, "clamworks306")).toBe(0.2);
+    close(t.val, 84.46374118359688);
+    expect(Math.floor(100 * t.val)).toBe(8446);
+  });
+
+  it("a town and a non-Cove cavern read 0%", () => {
+    expect(computeArkhAfkGains(save, ci, 0).total).toBe(0);
+    expect(computeArkhAfkGains(save, save.charNames.indexOf("Darkhe"), 216).total).toBe(0); // cavern 3
+  });
+
+  it("the best AFK map is 1 (slot-2 kills only on maps 1 and 156)", () => {
+    expect(bestAfkMapIdx(save, ci)).toBe(1);
+  });
+});
+
+// In-game AFK Info reading taken 2026-09-24 alongside this save (controller-
+// supplied anchor, distinct file from SAVE above): Markhe on map 14 (Valley
+// of the Beans) read AFK GAINS RATE = 58870% in the live panel.
+const SAVE2 = "scripts/updater/golden/.cache/arkhe-live-2026-09-24.json";
+
+describe.skipIf(!existsSync(SAVE2))("AFK Gains Rate — Markhe on map 14 vs the in-game panel (2026-09-24)", () => {
+  it("matches the in-game AFK Info reading taken 2026-09-24 alongside this save", () => {
+    const save2 = JSON.parse(readFileSync(SAVE2, "utf8"));
+    const markheIdx = save2.charNames.indexOf("Markhe");
+    const total = computeArkhAfkGains(save2, markheIdx, 14).total;
+    close(total, 588.7052987540884);
+    expect(Math.floor(100 * total)).toBe(58870);
   });
 });

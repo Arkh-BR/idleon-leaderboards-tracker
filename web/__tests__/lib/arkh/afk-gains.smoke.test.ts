@@ -3,7 +3,8 @@
 // on synthetic saves. Synthetic OLA arrays are sparse on purpose: a 0 at
 // OLA[606] would switch companion 0 on (Pet-Bonus Token CSV).
 import { describe, it, expect } from "vitest";
-import { computeArkhAfkGains } from "@/lib/arkh/computeAfk";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { computeArkhAfkGains, bestAfkMapIdx } from "@/lib/arkh/computeAfk";
 import { AFK_POOLS } from "@/lib/arkh/stats/defs/afk-gains";
 import { FORMULA_REGISTRY } from "@/scripts/updater/registry/formula-registry.gen";
 
@@ -59,5 +60,26 @@ describe("AFK Gains smoke test", () => {
 
   it("registers the port under N.js's AFKgainrates for the updater", () => {
     expect(FORMULA_REGISTRY["_customBlock_AFKgainrates"]).toEqual(["lib/arkh/stats/systems/afk/afk.ts"]);
+  });
+});
+
+describe("AFK best map and cached saves", () => {
+  it("with no slot-2 kills it falls back to the character's own fighting map, else 301", () => {
+    expect(bestAfkMapIdx({ charNames: ["A"], data: { CurrentMap_0: 14 } }, 0)).toBe(14);
+    expect(bestAfkMapIdx({ charNames: ["A"], data: { CurrentMap_0: 306 } }, 0)).toBe(301); // Clamworks is never a candidate
+    expect(bestAfkMapIdx({ charNames: ["A"], data: { CurrentMap_0: 0 } }, 0)).toBe(301); // town
+  });
+
+  // Keep last: it loads real saves into the arkh singleton.
+  const CACHE = "scripts/updater/golden/.cache";
+  const cached = existsSync(CACHE) ? readdirSync(CACHE).filter((f) => f.endsWith(".json")) : [];
+  it.skipIf(cached.length === 0)("every cached save gives a finite rate for every character on its best map", () => {
+    for (const f of cached) {
+      const save = JSON.parse(readFileSync(`${CACHE}/${f}`, "utf8"));
+      for (let c = 0; c < (save.charNames?.length ?? 0); c++) {
+        const total = computeArkhAfkGains(save, c, bestAfkMapIdx(save, c)).total;
+        expect(Number.isFinite(total), `${f} #${c}`).toBe(true);
+      }
+    }
   });
 });
