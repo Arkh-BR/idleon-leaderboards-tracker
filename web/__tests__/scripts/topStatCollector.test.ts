@@ -59,7 +59,7 @@ describe("shared Observed Max collector", () => {
       expect(g.owners.size).toBeGreaterThan(0);
       expect(g.owners.size).toBeLessThan(all);
     }
-    expect(deriveGatedTalentsFor([35]).map((g) => g.id)).toEqual([35]); // Lucky Charms: Maestro tab only
+    expect(deriveGatedTalentsFor([35]).map((g) => g.id)).toEqual([35]); // Lucky Charms: Maestro tab (shared with Voidwalker), not every class
     expect(deriveGatedTalentsFor([632])).toEqual([]); // star talent, every class
   });
 });

@@ -27,7 +27,10 @@ concurrency:
 jobs:
   refresh:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    # 45: two capped steps (Coin + EXP, 12 min each, continue-on-error) plus
+    # the uncapped DR/Talent steps and checkout/npm ci must all fit before
+    # "Commit refreshed snapshots" runs, or every snapshot for the run is lost.
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
 
