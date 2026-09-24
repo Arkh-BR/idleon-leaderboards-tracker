@@ -8,9 +8,9 @@ import { node, type ArkhNode } from "../../../node";
 import type { SystemCtx } from "../../registry";
 import { optionsListData, currentMapData, divinityData } from "../../../save/data";
 import { superBitType, cloudBonus } from "../../../game-helpers";
-import { formulaEval, getLOG } from "../../../formulas";
+import { getLOG } from "../../../formulas";
 import { label } from "../../entity-names";
-import { MapAFKtarget, ZenithMarket, GrimoireUpg, DungPassiveStats2 } from "../../data/game/customlists.js";
+import { MapAFKtarget, ZenithMarket, GrimoireUpg } from "../../data/game/customlists.js";
 
 import { talent } from "../common/talent";
 import { companions } from "../common/companions";
@@ -52,7 +52,7 @@ import { computeExoticBonus } from "../w6/farming";
 import { grimoireUpgBonus } from "../mc/grimoire";
 import { computeButtonBonus } from "../w7/button";
 import { divinityMinorFor } from "../coin/divinityMinor";
-import { votingMulti } from "../coin/coin";
+import { votingMulti, flurboShop } from "../coin/coin";
 
 import { medallionList } from "./medallions";
 import { isLowestLevel } from "./lowestLevel";
@@ -133,10 +133,9 @@ function arrCount(v: unknown): number {
   return 0;
 }
 
-// N.js x._customBlock_ExpMulti(0) — the snapshot key is the underscore-led
-// "_customBlock_ExpMulti", which the registry guard's regex can't capture
-// (it requires a letter first); per-case @njs tags below cite the specific
-// sub-formula each case ports instead, where one is separately named.
+// @njs _customBlock_ExpMulti
+// N.js x._customBlock_ExpMulti(0) — per-case @njs tags below cite the
+// specific sub-formula each case ports instead, where one is separately named.
 function resolveExp(id: string, ctx: SystemCtx): ArkhNode {
   const s = ctx.saveData;
   const ci = ctx.charIdx;
@@ -503,12 +502,10 @@ function resolveExp(id: string, ctx: SystemCtx): ArkhNode {
       const r = computePrayerReal(9, 1, ci, s);
       return pct(`${label("Prayer", 9)} (curse)`, -(Number(r.val) || 0), r.children);
     }
-    // N.js FlurboShop(2) — same 4-line idiom as coin's flurbo4, idx 2.
+    // N.js FlurboShop(2) — shares coin's extracted flurboShop(), idx 2.
     case "flurbo2": {
-      const row = ((DungPassiveStats2 as any[])[2] ?? []) as unknown[];
-      const lv = Number((s.dungUpgData as any[])?.[5]?.[2]) || 0;
-      const v = formulaEval(String(row[3]), Number(row[1]), Number(row[2]), lv);
-      return pct("Flurbo Shop 2 (Class EXP)", v, [raw("Level", lv)]);
+      const r = flurboShop(2, s);
+      return pct("Flurbo Shop 2 (Class EXP)", r.val, r.children);
     }
     // N.js AchieveStatus(n) × weight
     case "ach57":

@@ -6,6 +6,7 @@
 
 import { node, type ArkhNode } from "../../../node";
 import type { SystemCtx } from "../../registry";
+import type { SaveData } from "../../../state";
 import { getLOG, formulaEval } from "../../../formulas";
 import { optionsListData, currentMapData, numCharacters, dreamData } from "../../../save/data";
 import { eventShopOwned, emporiumBonus } from "../../../game-helpers";
@@ -54,6 +55,32 @@ type Tree = { val: number; children: ArkhNode[] | null };
 const add = (name: string, r: Tree, note?: string): ArkhNode =>
   node(name, r.val, r.children, { fmt: "+", note });
 const raw = (name: string, v: number): ArkhNode => node(name, v, null, { fmt: "raw" });
+
+/** N.js FlurboShop(idx) (@7827791): DungPassiveStats2[idx] at level
+ *  DungUpg[5][idx]. Coin's flurbo4, EXP's flurbo2 and AFK's flurbo7. */
+// @njs _customBlock_FlurboShop
+export function flurboShop(idx: number, s: SaveData): { val: number; children: ArkhNode[] } {
+  const row = ((DungPassiveStats2 as any[])[idx] ?? []) as unknown[];
+  const lv = Number((s.dungUpgData as any[])?.[5]?.[idx]) || 0;
+  return { val: formulaEval(String(row[3]), Number(row[1]), Number(row[2]), lv), children: [raw("Level", lv)] };
+}
+
+/** N.js Summoning("RooBonuses", idx) (@10827396): coef·(1 + Legend26/100)·
+ *  (1 + Companions(51))·(1 + RooBonusAll/100)·max(0, ⌈(OLA[271] − idx)/7⌉),
+ *  RooBonusAll = the megafeather %. N.js coef per idx 0–6: 3, 3, 5, 2, 2, .5, 3. */
+// @njs RooBonuses
+export function rooBonus(idx: number, coef: number, s: SaveData): { val: number; children: ArkhNode[] } {
+  const ola = (i: number) => Number((optionsListData as any[])[i]) || 0;
+  const mf = (k: number) => (ola(279) > k ? (k === 11 ? ola(279) - 11 : 1) : 0);
+  const all = 50 * mf(1) + 50 * mf(3) + 50 * mf(6) + 50 * mf(8) + 50 * Math.min(1, mf(11)) + 25 * Math.max(0, mf(11) - 1);
+  const legend = legendPTSbonus(26, s);
+  const c51 = companions(51, s);
+  const steps = Math.max(0, Math.ceil((ola(271) - idx) / 7));
+  return {
+    val: coef * (1 + legend / 100) * (1 + c51) * (1 + all / 100) * steps,
+    children: [raw("Legend 26", legend), raw("Companion 51", c51), raw("Megafeathers %", all), raw(`⌈(OLA[271] − ${idx}) / 7⌉`, steps)],
+  };
+}
 
 const BUBBLES: Record<string, { name: string; key: string; stat: number; label: string }> = {
   bubbleSTR: { name: "Penny of Strength", key: "CashSTR", stat: 0, label: "STR" },
@@ -292,10 +319,8 @@ function resolveCoin(id: string, ctx: SystemCtx): ArkhNode {
     case "ola420":
       return node("Ninja Extra Cash (OLA[420])", ola(420), null, { fmt: "+" });
     case "flurbo4": {
-      const row = ((DungPassiveStats2 as any[])[4] ?? []) as unknown[];
-      const lv = Number((s.dungUpgData as any[])?.[5]?.[4]) || 0;
-      const v = formulaEval(String(row[3]), Number(row[1]), Number(row[2]), lv);
-      return node("Flurbo Shop 4 (Monster Cash)", v, [raw("Level", lv)], { fmt: "+" });
+      const r = flurboShop(4, s);
+      return node("Flurbo Shop 4 (Monster Cash)", r.val, r.children, { fmt: "+" });
     }
     case "divMinor3":
       return node("Divinity minor bonus (Cash)", divinityMinorSum(3, ci, s), null, { fmt: "+" });
@@ -325,17 +350,8 @@ function resolveCoin(id: string, ctx: SystemCtx): ArkhNode {
       );
     }
     case "roo6": {
-      const mf = (k: number) => (ola(279) > k ? (k === 11 ? ola(279) - 11 : 1) : 0);
-      const all = 50 * mf(1) + 50 * mf(3) + 50 * mf(6) + 50 * mf(8) + 50 * Math.min(1, mf(11)) + 25 * Math.max(0, mf(11) - 1);
-      const legend = legendPTSbonus(26, s);
-      const c51 = companions(51, s);
-      const steps = Math.max(0, Math.ceil((ola(271) - 6) / 7));
-      return node(
-        "Kangaroo Cash (Roo 6)",
-        3 * (1 + legend / 100) * (1 + c51) * (1 + all / 100) * steps,
-        [raw("Legend 26", legend), raw("Companion 51", c51), raw("Megafeathers %", all), raw("⌈(OLA[271] − 6) / 7⌉", steps)],
-        { fmt: "+" }
-      );
+      const r = rooBonus(6, 3, s);
+      return node("Kangaroo Cash (Roo 6)", r.val, r.children, { fmt: "+" });
     }
     case "vault14":
     case "vault31":

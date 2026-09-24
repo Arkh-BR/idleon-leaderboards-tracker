@@ -55,6 +55,11 @@ export type StatPageConfig = {
   compute(save: unknown, charIdx: number, mapIdx: number): Promise<StatResult>;
   /** The game's own text for the headline number (without the trailing "x"). */
   formatTotal(x: number): string;
+  /** Headline unit, default "x". "%": formatTotal returns the percent number
+   *  (AFK Gains: ⌊100·rate⌋) and the kit prints it with "%" — calculator
+   *  headline, snapshot notice and history table. Biggest Gains and Compare
+   *  don't change. */
+  unit?: "x" | "%";
   gains: GainsModel;
   loadTop(): Promise<TopModule>;
   topMeta: { generatedAt: string; playersScanned: number };

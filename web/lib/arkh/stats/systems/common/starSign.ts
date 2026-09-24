@@ -6,10 +6,12 @@
 
 import { node, type ArkhNode } from "../../../node";
 import { label } from "../../entity-names";
-import { labData } from "../../../save/data";
+import { labData, starSignData } from "../../../save/data";
 import { starSignDropVal } from "../../data/common/starSign";
 import { computeMeritocBonusz } from "../w7/meritoc";
 import { computeShinyBonusS } from "../w4/breeding";
+import { StarSigns } from "../../data/game/customlists.js";
+import { chipBonuses } from "../w4/lab";
 import type { SaveData } from "../../../state";
 
 type Ctx = { saveData: SaveData; charIdx: number };
@@ -156,3 +158,63 @@ export const starSign = {
     );
   },
 };
+
+// ── Active star signs (the faithful per-key sum) ────────────────────────
+// N.js _customBlock_StarSigns (@6490716). A sign counts only when it is in
+// StarSignsDL = the character's equipped signs (PVtStarSign_ci) ∪ every
+// k < enabledStarSigns whose name is in StarSignsUnlocked. Some lines only
+// apply while the sign is at or above the enabled count (29, 54) or above a
+// class level (56). One star chip with no enabled signs re-adds the equipped
+// signs (2nd pass, @6491933) unless pass 1 went negative (N.js restores the
+// negatives); Seraph multiplies positive totals only (@6514021).
+// computeStarSignBonus above keeps the DR's "every listed sign" reading.
+
+type SignTerm = {
+  sign: number;
+  val: number;
+  /** Only while sign ≥ enabledStarSigns (N.js `sign > enabled − 1`). */
+  notEnabled?: boolean;
+  /** Only when the class level Lv0[0] is above this. */
+  lvAbove?: number;
+};
+
+// @njs _customBlock_StarSigns
+export const STAR_SIGN_TERMS: Record<string, readonly SignTerm[]> = {
+  FightAFK: [
+    { sign: 19, val: 2 },
+    { sign: 28, val: 6 },
+    { sign: 29, val: -6, notEnabled: true },
+    { sign: 54, val: -7, notEnabled: true },
+    { sign: 56, val: 4, lvAbove: 99 },
+  ],
+};
+
+export function starSignBonusReal(key: string, ci: number, saveData: SaveData): StarSignTree {
+  const terms = STAR_SIGN_TERMS[key] ?? [];
+  const enabled = getEnabledStarSigns(saveData);
+  const lv = Number((saveData.lv0AllData as any)?.[ci]?.[0]) || 0;
+  const equipped = new Set(String((starSignData as any)?.[ci] ?? "").split(","));
+  const active = new Set(equipped);
+  const unlocked = saveData.starSignsUnlocked;
+  const names = StarSigns as unknown as string[][];
+  if (unlocked && typeof unlocked === "object" && !Array.isArray(unlocked)) {
+    for (let k = 0; k < enabled && k < names.length; k++) {
+      const nm = names[k]?.[0];
+      if (nm && nm in unlocked) active.add(String(k));
+    }
+  }
+  const counted = (dl: Set<string>) =>
+    terms.filter(
+      (t) => dl.has(String(t.sign)) && (!t.notEnabled || t.sign > enabled - 1) && (t.lvAbove == null || lv > t.lvAbove)
+    );
+  const sumOf = (ts: readonly SignTerm[]) => ts.reduce((a, t) => a + t.val, 0);
+  const pass1 = counted(active);
+  const sum1 = sumOf(pass1);
+  const again = chipBonuses("star", ci) === 1 && !(enabled >= 1) && sum1 >= 0 ? counted(equipped) : [];
+  const base = sum1 + sumOf(again);
+  const seraph = base > 0 ? computeSeraphMulti(ci, saveData) : 1;
+  const children: ArkhNode[] = pass1.map((t) => node(label("Star Sign", t.sign), t.val, null, { fmt: "+" }));
+  if (again.length) children.push(node("Star chip: equipped signs count twice", sumOf(again), null, { fmt: "+" }));
+  if (seraph !== 1) children.push(node("Seraph Multi", seraph, null, { fmt: "x" }));
+  return { val: base * seraph, children };
+}

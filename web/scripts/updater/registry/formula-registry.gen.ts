@@ -16,6 +16,9 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   "BigFishBonuses": [
     "lib/arkh/stats/systems/exp/exp.ts"
   ],
+  "Bonus_MAJOR": [
+    "lib/arkh/stats/systems/w5/divinity.ts"
+  ],
   "Bonus_Minor": [
     "lib/arkh/stats/systems/coin/divinityMinor.ts",
     "lib/arkh/stats/systems/exp/exp.ts"
@@ -124,9 +127,15 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   "RandoListo2[8]": [
     "lib/arkh/stats/systems/common/cookingMastery.ts"
   ],
+  "RecalcChipBonuses": [
+    "lib/arkh/stats/systems/w4/lab.ts"
+  ],
   "RoG_BonusQTY": [
     "lib/arkh/stats/data/w7/jelly.ts",
     "lib/arkh/stats/systems/exp/exp.ts"
+  ],
+  "RooBonuses": [
+    "lib/arkh/stats/systems/coin/coin.ts"
   ],
   "ShinyBonusS": [
     "lib/arkh/stats/systems/exp/exp.ts"
@@ -160,5 +169,35 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   ],
   "ZenithMarketBonus": [
     "lib/arkh/stats/systems/exp/exp.ts"
+  ],
+  "_customBlock_AFKgainrates": [
+    "lib/arkh/stats/systems/afk/afk.ts"
+  ],
+  "_customBlock_Companions": [
+    "lib/arkh/stats/data/common/companions.ts"
+  ],
+  "_customBlock_ExpMulti": [
+    "lib/arkh/stats/systems/exp/exp.ts"
+  ],
+  "_customBlock_FlurboShop": [
+    "lib/arkh/stats/systems/coin/coin.ts"
+  ],
+  "_customBlock_GetSetBonus": [
+    "lib/arkh/stats/systems/w3/setBonus.ts"
+  ],
+  "_customBlock_Holes2": [
+    "lib/arkh/stats/systems/afk/afk.ts"
+  ],
+  "_customBlock_JellyOperation": [
+    "lib/arkh/stats/data/w7/jelly.ts"
+  ],
+  "_customBlock_StarSigns": [
+    "lib/arkh/stats/systems/common/starSign.ts"
+  ],
+  "_customBlock_chipBonuses": [
+    "lib/arkh/stats/systems/w4/lab.ts"
+  ],
+  "_customBlock_prayersReal": [
+    "lib/arkh/stats/systems/w3/prayer.ts"
   ]
 };

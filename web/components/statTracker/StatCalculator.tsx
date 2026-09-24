@@ -55,6 +55,7 @@ export default function StatCalculator({
   const [tree, setTree] = useState<ArkhNode | null>(null);
   const [total, setTotal] = useState<number | null>(null);
   const [computing, setComputing] = useState(false);
+  const unit = config.unit ?? "x";
 
   // A refresh of the same account (auto-update / Sync now) keeps the map;
   // a fresh load re-derives it from the save.
@@ -287,9 +288,15 @@ export default function StatCalculator({
           <span className="text-xs uppercase tracking-wider text-zinc-500">{config.totalLabel}</span>
           <span
             className="text-2xl font-extrabold text-gold tabular-nums"
-            title={total !== null ? total.toExponential(6) + "x" : undefined}
+            title={
+              total !== null
+                ? unit === "%"
+                  ? (100 * total).toFixed(2) + "%"
+                  : total.toExponential(6) + "x"
+                : undefined
+            }
           >
-            {total !== null ? config.formatTotal(total) + "x" : "—"}
+            {total !== null ? config.formatTotal(total) + unit : "—"}
           </span>
         </div>
       </div>

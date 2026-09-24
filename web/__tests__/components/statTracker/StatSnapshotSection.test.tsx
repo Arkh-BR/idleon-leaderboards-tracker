@@ -34,4 +34,40 @@ describe("StatSnapshotSection", () => {
     expect(screen.getByText(/Snapshot saved for Alpha — Test Multi 12.50x on W1 · Spore Meadows/)).toBeInTheDocument();
     expect(JSON.parse(localStorage.getItem(testConfig.storage.snapshots)!).snapshotsByChar.Alpha).toHaveLength(1);
   });
+
+  it("prints a % stat in the notice and the history table", async () => {
+    const pct = { ...testConfig, unit: "%" as const, formatTotal: (x: number) => String(Math.floor(100 * x)) };
+    localStorage.setItem(pct.storage.collapse, "0");
+    render(<StatSnapshotSection config={pct} state={{ ...state(), total: 422.31870591798446 }} />);
+    // getByText(/Save snapshot/) is ambiguous here too (see the test above):
+    // the empty-state copy matches before any snapshot exists.
+    fireEvent.click(screen.getByRole("button", { name: /Save snapshot/ }));
+    expect(screen.getByText(/Snapshot saved for Alpha — Test Multi 42231% on W1 · Spore Meadows/)).toBeInTheDocument();
+    expect(await screen.findByText("42231%")).toBeInTheDocument();
+  });
+
+  it("prints a plain em dash (not '—%') for a % stat with a non-finite value", () => {
+    // Mirrors formatAfkGains: real page configs return "—" from formatTotal
+    // for a non-finite input, so the history table must not glue a trailing
+    // "%" onto that — same bare "—" the unit==='x' (Num) branch already shows.
+    const pct = {
+      ...testConfig,
+      unit: "%" as const,
+      formatTotal: (x: number) => (Number.isFinite(x) ? String(Math.floor(100 * x)) : "—"),
+    };
+    localStorage.setItem(pct.storage.collapse, "0");
+    localStorage.setItem(
+      pct.storage.snapshots,
+      JSON.stringify({
+        snapshotsByChar: {
+          Alpha: [
+            { capturedAt: 1, saveUpdatedAt: null, charIndex: 0, charName: "Alpha", level: 1, value: null, mapName: "W1" },
+          ],
+        },
+      })
+    );
+    const { container } = render(<StatSnapshotSection config={pct} state={null} />);
+    expect(container.querySelector("td.text-gold")?.textContent).toBe("—");
+    expect(screen.queryByText("—%")).toBeNull();
+  });
 });

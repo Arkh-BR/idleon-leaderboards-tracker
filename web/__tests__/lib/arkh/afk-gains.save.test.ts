@@ -1,0 +1,170 @@
+import { describe, it, expect, beforeAll } from "vitest";
+import { existsSync, readFileSync } from "node:fs";
+import { computeArkhAfkGains, bestAfkMapIdx } from "@/lib/arkh/computeAfk";
+import { AFK_POOLS } from "@/lib/arkh/stats/defs/afk-gains";
+import type { ArkhNode } from "@/lib/arkh/node";
+
+const g = globalThis as unknown as { window?: unknown };
+if (!g.window) g.window = g;
+
+// Signed-in save of ARKHE (2026-09-23 05:25 UTC, gitignored golden cache).
+// Expected values = IdleonToolbox's live getAfkGain breakdown on this exact
+// file for Markhe on map 14 (SP/afk/it-afk.mts), unless a comment says
+// N.js ≠ IT (spec A7: IT has three proven bugs).
+const SAVE = "scripts/updater/golden/.cache/arkhe-live-2026-09-23.json";
+
+const close = (actual: number, expected: number) => {
+  if (expected === 0) expect(actual).toBe(0);
+  else expect(Math.abs(actual / expected - 1)).toBeLessThan(1e-9);
+};
+
+/** A source's value, found by its pool position (G1 = fight then ALL). */
+const srcIn = (tree: ArkhNode, id: string): number => {
+  const [fight, all, multi, rules] = AFK_POOLS.map((p) => p.sources);
+  const kids = tree.children!;
+  if (fight.includes(id)) return Number(kids[0].children![fight.indexOf(id)].val);
+  if (all.includes(id)) return Number(kids[0].children![fight.length + all.indexOf(id)].val);
+  if (multi.includes(id)) return Number(kids[1 + multi.indexOf(id)].children![0].val);
+  return Number(kids[3 + rules.indexOf(id)].val);
+};
+
+describe.skipIf(!existsSync(SAVE))("AFK Gains Rate — Markhe on map 14 vs IdleonToolbox", () => {
+  let tree: ArkhNode;
+  beforeAll(() => {
+    const save = JSON.parse(readFileSync(SAVE, "utf8"));
+    tree = computeArkhAfkGains(save, save.charNames.indexOf("Markhe"), 14).tree;
+  });
+  const src = (id: string) => srcIn(tree, id);
+
+  it.each<[string, number]>([
+    // fight pool
+    ["base", 40],
+    ["fam8", 4.369959677419355],
+    ["boxFightAFK", 8.478260869565217],
+    ["talent88", 18.616874135546336],
+    ["bribe3", 5],
+    ["talent268", 0],
+    ["cardSet10", 0],
+    ["talent448", 0],
+    ["talent621", 6.340248962655601],
+    ["card43", 0],
+    ["talent79", 0],
+    ["etc20", 62.58095607084296],
+    // N.js ≠ IT: IT calls getStatsFromGear(ch, 59) without `account` → 699.2619263172074
+    // (loses the Silkrode chip ×2 and Well-Dressed); N.js EtcBonuses("59") has them.
+    ["etc59", 719.5619263172074],
+    ["guild4", 5],
+    ["cardW6d1", 7],
+    // ALL pool
+    ["merit", 2],
+    ["arcade6", 8.039800995024876],
+    ["compass57", 10.8],
+    ["divMinor5", 268.9841724997589],
+    ["comp6", 8],
+    ["comp25", 50],
+    ["shrine8", 6.075],
+    ["talent650", 2.5],
+    ["winBonus11", 212.93999999999997],
+    // N.js ≠ IT: IT 5492.85043625293; arkh's golden-food multi is the one
+    // validated to the cent on the DR (talent 209 getbonus2, PR #28).
+    ["goldFoodAllAFK", 5500.8382581543565],
+    ["cardW6d3", 10.5],
+    ["vote6", 0], // vote 32 is the active one on this save
+    ["eventShop5", 20],
+    ["vault23", 59.1],
+    ["bunU", 30],
+    // MULTI and the map rules
+    ["arcaneMapAfk", 0], // map 14 has no slot-2 kills
+    ["etc92", 396.613269898924],
+    ["clamworks306", 1],
+    ["cglunkoCove", 0],
+    ["afkType", 1], // beanG is FIGHTING
+  ])("%s", (id, expected) => close(src(id), expected));
+
+  it.each<[string, number]>([
+    // Signs 19 + 28 + 56 come from the unlocked range (enabled 245; 29 and 54
+    // are below it, so no penalty): 12 × Seraph 10.
+    ["starFightAFK", 120],
+    ["prayer4", 0],
+    ["curse12", -89], // Ruck Sack equipped, level 50: round(15 · 5.9)
+    ["chipFafk", 0],
+  ])("%s", (id, expected) => close(src(id), expected));
+
+  it.each<[string, number]>([
+    // N.js ≠ arkh getSetBonus: SET_BONUS_VALUES has no VOID_SET (0 on this
+    // save, 421.822 total); IT is right here (10).
+    ["voidSet", 10],
+    ["flurbo7", 5],
+    ["divMajor", 30],
+    ["roo5", 1361.25],
+  ])("%s", (id, expected) => close(src(id), expected));
+
+  it("fighting pool Σ/100", () => close(Number(tree.children![0].val), 85.03975457682378));
+  it("Etc 92 factor", () => close(Number(tree.children![2].val), 4.96613269898924));
+
+  // N.js ≠ IT: IT getAfkGain = 418.94730659590607. Its three proven bugs are
+  // base/100 ((0.4 + S)/100·MULTI instead of (0.4 + S/100)·MULTI, −0.396·MULTI),
+  // etc59 without `account` (−20.3 pts) and golden food (−7.9878 pts):
+  // 418.9473 + 0.678878219·4.96613 = 422.3187.
+  it("total = IT reconciled → the panel's 42231%", () => {
+    close(tree.val, 422.31870591798446);
+    expect(Math.floor(100 * tree.val)).toBe(42231);
+  });
+
+  it("no source is left unported", () => {
+    const notes: string[] = [];
+    const walk = (n: ArkhNode) => {
+      if (n.note === "pending port") notes.push(n.name);
+      n.children?.forEach(walk);
+    };
+    walk(tree);
+    expect(notes).toEqual([]);
+  });
+});
+
+describe.skipIf(!existsSync(SAVE))("AFK Gains Rate — map scenarios on the ARKHE save", () => {
+  let save: any;
+  let ci: number;
+  beforeAll(() => {
+    save = JSON.parse(readFileSync(SAVE, "utf8"));
+    ci = save.charNames.indexOf("Markhe");
+  });
+
+  it("map 1: arcane slot 2 = 30.158… → 549.68 (54968%)", () => {
+    const t = computeArkhAfkGains(save, ci, 1).tree;
+    close(srcIn(t, "arcaneMapAfk"), 30.158131799045954);
+    close(t.val, 549.6821378607555);
+    expect(Math.floor(100 * t.val)).toBe(54968);
+  });
+
+  it("map 306 (Clamworks): ×0.2 → 84.46 (8446%)", () => {
+    const t = computeArkhAfkGains(save, ci, 306).tree;
+    expect(srcIn(t, "clamworks306")).toBe(0.2);
+    close(t.val, 84.46374118359688);
+    expect(Math.floor(100 * t.val)).toBe(8446);
+  });
+
+  it("a town and a non-Cove cavern read 0%", () => {
+    expect(computeArkhAfkGains(save, ci, 0).total).toBe(0);
+    expect(computeArkhAfkGains(save, save.charNames.indexOf("Darkhe"), 216).total).toBe(0); // cavern 3
+  });
+
+  it("the best AFK map is 1 (slot-2 kills only on maps 1 and 156)", () => {
+    expect(bestAfkMapIdx(save, ci)).toBe(1);
+  });
+});
+
+// In-game AFK Info reading taken 2026-09-24 alongside this save (controller-
+// supplied anchor, distinct file from SAVE above): Markhe on map 14 (Valley
+// of the Beans) read AFK GAINS RATE = 58870% in the live panel.
+const SAVE2 = "scripts/updater/golden/.cache/arkhe-live-2026-09-24.json";
+
+describe.skipIf(!existsSync(SAVE2))("AFK Gains Rate — Markhe on map 14 vs the in-game panel (2026-09-24)", () => {
+  it("matches the in-game AFK Info reading taken 2026-09-24 alongside this save", () => {
+    const save2 = JSON.parse(readFileSync(SAVE2, "utf8"));
+    const markheIdx = save2.charNames.indexOf("Markhe");
+    const total = computeArkhAfkGains(save2, markheIdx, 14).total;
+    close(total, 588.7052987540884);
+    expect(Math.floor(100 * total)).toBe(58870);
+  });
+});

@@ -38,5 +38,8 @@ export function computeStatPools(
 
 export function combineStatPools(desc: Descriptor, pools: Record<string, Pool>): StatResult {
   const r = desc.combine(pools, {} as never);
-  return { tree: { name: desc.name, val: r.val, fmt: "x", children: r.children }, total: r.val };
+  return {
+    tree: { name: desc.name, val: r.val, fmt: "x", children: r.children, ...(r.note ? { note: r.note } : {}) },
+    total: r.val,
+  };
 }

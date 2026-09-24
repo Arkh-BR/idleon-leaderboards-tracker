@@ -327,6 +327,25 @@ export function computeChipBonus(effectKey: string): number {
   return total;
 }
 
+/** N.js chipBonuses(key) (@5139280) = DNSM.ChipBbonusz[key], which
+ *  RecalcChipBonuses (@7900506) fills from the ACTIVE character's seven lab
+ *  slots (Lab[1+ci], −1 = empty): Σ ChipDesc[c][11] over chips whose [10] is
+ *  `key`. computeChipBonus sums every character's chips (the DR's reading). */
+// @njs _customBlock_chipBonuses
+// @njs RecalcChipBonuses
+export function chipBonuses(key: string, ci: number): number {
+  const slots = (labData as any)?.[1 + ci];
+  if (!slots) return 0;
+  let total = 0;
+  for (let i = 0; i < 7; i++) {
+    const c = Number(slots[i]);
+    if (!Number.isFinite(c) || c === -1) continue;
+    const row = (ChipDesc as any)[c | 0];
+    if (row && row[10] === key) total += Number(row[11]) || 0;
+  }
+  return total;
+}
+
 export function charHasChip(charIdx: number, effectKey: string): boolean {
   if (!labData) return false;
   const chips = (labData as any)[1 + charIdx];
