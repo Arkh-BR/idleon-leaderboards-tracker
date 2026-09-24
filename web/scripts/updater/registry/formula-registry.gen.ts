@@ -32,6 +32,9 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   "CardsCollected": [
     "lib/arkh/stats/systems/coin/accountKills.ts"
   ],
+  "Clamz_HP": [
+    "lib/arkh/stats/systems/common/overkill.ts"
+  ],
   "ClassFamilyBonuses[16]": [
     "lib/arkh/stats/systems/common/familyBonus.ts"
   ],
@@ -106,6 +109,9 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   "MonsterCash": [
     "lib/arkh/stats/systems/coin/coin.ts"
   ],
+  "MonsterRespawnTimeReset": [
+    "lib/arkh/stats/systems/common/overkill.ts"
+  ],
   "MonumentROGbonuses": [
     "lib/arkh/stats/systems/exp/exp.ts"
   ],
@@ -113,7 +119,7 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/arkh/stats/systems/coin/gambit.ts"
   ],
   "OverkillStuffs": [
-    "lib/arkh/stats/systems/coin/coin.ts"
+    "lib/arkh/stats/systems/common/overkill.ts"
   ],
   "PocketDivOwned": [
     "lib/arkh/stats/systems/coin/divinityMinor.ts"

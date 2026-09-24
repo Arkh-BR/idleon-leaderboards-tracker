@@ -221,3 +221,27 @@ describe.skipIf(!existsSync(SAVE))("Coin Multi matches the game's Monster Tax re
     expect(formatCoinMulti(total)).toBe("6.88E35");
   });
 });
+
+// Spec M5: talent 643's tier measures the target's live HP — the character's
+// prayer curses (MonsterRespawnTimeReset @6466526) and Clamworks' Clamz_HP
+// (@10887166). Markhe carries no curse, so her 6.88E35 above is unchanged.
+describe.skipIf(!existsSync(SAVE))("Coin talent 643 — the game's target HP (spec M5)", () => {
+  let save: any;
+  beforeAll(() => {
+    save = JSON.parse(readFileSync(SAVE, "utf8"));
+  });
+  const tierOf = (name: string, map: number): number => {
+    const t = computeArkhCoinMulti(save, save.charNames.indexOf(name), map).tree;
+    const gi = COIN_GROUPS.findIndex((x) => x.sources.includes("talent643"));
+    const n = t.children![gi].children![COIN_GROUPS[gi].sources.indexOf("talent643")];
+    return Number(n.children!.find((c) => c.name === "Multikill tier (selected map)")!.val);
+  };
+
+  it("zArkhe's Jawbreaker curse (1180%, HP ×12.8): tier 21 → 19 on map 301", () => {
+    expect(tierOf("zArkhe", 301)).toBe(19);
+  });
+
+  it("Clamworks (map 306) measures Clamz_HP = 1e16·30^8, not the table's 1e18: tier 18 → 4", () => {
+    expect(tierOf("Markhe", 306)).toBe(4);
+  });
+});
