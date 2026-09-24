@@ -72,6 +72,13 @@ export default function HomePage() {
           cta="Open AFK Gains"
         />
         <ShortcutCard
+          href="/multikill"
+          icon="💥"
+          title="Multikill Tracker"
+          description="Every term of the game's multikill formula on your save — base, damage tier and per-tier sources — per character and map, with snapshots and a top-player comparison."
+          cta="Open Multikill"
+        />
+        <ShortcutCard
           href="/talents-level"
           icon="🌟"
           title="Talents Tracker"

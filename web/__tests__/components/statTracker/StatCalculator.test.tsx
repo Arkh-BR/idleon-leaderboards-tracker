@@ -24,12 +24,18 @@ vi.mock("@/lib/arkh/computeAfk", () => ({
     throw new Error("stub");
   },
 }));
+vi.mock("@/lib/arkh/computeMultikill", () => ({
+  computeArkhMultikill: () => {
+    throw new Error("stub");
+  },
+}));
 
 import StatCalculator from "@/components/statTracker/StatCalculator";
 import { testConfig } from "./testConfig";
 import { EXP_PAGE } from "@/lib/expMulti/pageConfig";
 import { COIN_PAGE } from "@/lib/coinMulti/pageConfig";
 import { AFK_PAGE } from "@/lib/afkGains/pageConfig";
+import { MULTIKILL_PAGE } from "@/lib/multikill/pageConfig";
 import type { StatPageConfig } from "@/lib/statTracker/config";
 
 const save = () => ({
@@ -116,6 +122,12 @@ describe("StatCalculator", () => {
     render(<StatCalculator config={AFK_PAGE} />);
     expect(loader!.storageKey).toBe("afk-gains-tracker.playerName");
     expect(screen.getByText(/AFK Gains Calculator/)).toBeInTheDocument();
+  });
+
+  it("renders the Multikill config", () => {
+    render(<StatCalculator config={MULTIKILL_PAGE} />);
+    expect(loader!.storageKey).toBe("multikill-tracker.playerName");
+    expect(screen.getByText(/Multikill Calculator/)).toBeInTheDocument();
   });
 
   it("prints a % stat's headline in its unit, with the percent as the title", async () => {
