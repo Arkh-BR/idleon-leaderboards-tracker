@@ -89,4 +89,35 @@ describe.skipIf(!existsSync(SAVE))("AFK Gains Rate — Markhe on map 14 vs Idleo
     ["curse12", -89], // Ruck Sack equipped, level 50: round(15 · 5.9)
     ["chipFafk", 0],
   ])("%s", (id, expected) => close(src(id), expected));
+
+  it.each<[string, number]>([
+    // N.js ≠ arkh getSetBonus: SET_BONUS_VALUES has no VOID_SET (0 on this
+    // save, 421.822 total); IT is right here (10).
+    ["voidSet", 10],
+    ["flurbo7", 5],
+    ["divMajor", 30],
+    ["roo5", 1361.25],
+  ])("%s", (id, expected) => close(src(id), expected));
+
+  it("fighting pool Σ/100", () => close(Number(tree.children![0].val), 85.03975457682378));
+  it("Etc 92 factor", () => close(Number(tree.children![2].val), 4.96613269898924));
+
+  // N.js ≠ IT: IT getAfkGain = 418.94730659590607. Its three proven bugs are
+  // base/100 ((0.4 + S)/100·MULTI instead of (0.4 + S/100)·MULTI, −0.396·MULTI),
+  // etc59 without `account` (−20.3 pts) and golden food (−7.9878 pts):
+  // 418.9473 + 0.678878219·4.96613 = 422.3187.
+  it("total = IT reconciled → the panel's 42231%", () => {
+    close(tree.val, 422.31870591798446);
+    expect(Math.floor(100 * tree.val)).toBe(42231);
+  });
+
+  it("no source is left unported", () => {
+    const notes: string[] = [];
+    const walk = (n: ArkhNode) => {
+      if (n.note === "pending port") notes.push(n.name);
+      n.children?.forEach(walk);
+    };
+    walk(tree);
+    expect(notes).toEqual([]);
+  });
 });

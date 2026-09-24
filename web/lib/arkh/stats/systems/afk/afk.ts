@@ -30,11 +30,13 @@ import { computeShrine } from "../w3/construction";
 import { computeWinBonus } from "../w6/summoning";
 import { computeArcaneMapMultiBon } from "../mc/tesseract";
 import { divinityMinorSum } from "../coin/divinityMinor";
-import { votingMulti } from "../coin/coin";
+import { votingMulti, flurboShop, rooBonus } from "../coin/coin";
 import { compassBonus } from "../exp/compass";
 import { prayersReal } from "../w3/prayer";
 import { chipBonuses } from "../w4/lab";
 import { starSignBonusReal } from "../common/starSign";
+import { setBonus } from "../w3/setBonus";
+import { bonusMajorReal } from "../w5/divinity";
 
 /** Class talents of the formula (per-character GetTalentNumber) — spec A10.
  *  621 (Tick Tock) and 650 (Rando Event Looty) are star talents of every class. */
@@ -45,8 +47,6 @@ const pct = (name: string, v: number, children?: ArkhNode[] | null, note?: strin
   node(name, v, children ?? null, { fmt: "+", note });
 const factor = (name: string, v: number, children?: ArkhNode[] | null, note?: string): ArkhNode =>
   node(name, v, children ?? null, { fmt: "x", note });
-/** Terms ported in a later task of the AFK plan; 0 (neutral in Σ) until then. */
-const pending = (name: string): ArkhNode => node(name, 0, null, { fmt: "+", note: "pending port" });
 
 // @njs _customBlock_AFKgainrates
 function resolveAfk(id: string, ctx: SystemCtx): ArkhNode {
@@ -143,12 +143,18 @@ function resolveAfk(id: string, ctx: SystemCtx): ArkhNode {
     // compass 39/80 factor (EXP Task 3's compassBonus handles both branches).
     case "compass57":
       return pct("Compass 57", compassBonus(57, s));
+    // N.js GetSetBonus("VOID_SET","Bonus",0,0): OLA[379] ∪ worn parts (spec A11).
     case "voidSet":
-      return pending("Void Set Bonus");
-    case "flurbo7":
-      return pending("Flurbo Shop 7 (AFK Gains)");
-    case "divMajor":
-      return pending("Divinity major bonus ×30 (type 0)");
+      return setBonus.resolve("void", { saveData: s, charIdx: ci });
+    case "flurbo7": {
+      const r = flurboShop(7, s);
+      return pct("Flurbo Shop 7 (AFK Gains)", r.val, r.children);
+    }
+    // N.js 30*Divinity("Bonus_MAJOR", ci, 0) — Snehebatu's +30% AFK Gains.
+    case "divMajor": {
+      const on = bonusMajorReal(ci, 0, s) ? 1 : 0;
+      return pct("Divinity major bonus ×30 (type 0)", 30 * on, [raw("Major bonus active", on)]);
+    }
     // N.js Divinity("Bonus_Minor",-1,5).
     case "divMinor5":
       return pct("Divinity minor bonus 5", divinityMinorSum(5, ci, s));
@@ -169,8 +175,11 @@ function resolveAfk(id: string, ctx: SystemCtx): ArkhNode {
       const lv = computeCardLv("w6d3", s);
       return pct("Card w6d3 ×1.5 (All AFK, passive)", 1.5 * lv, [raw("Card level", lv)]);
     }
-    case "roo5":
-      return pending("Kangaroo AFK Gains (Roo 5)");
+    // N.js Summoning("RooBonuses",5,0) — coefficient .5, offset 5.
+    case "roo5": {
+      const r = rooBonus(5, 0.5, s);
+      return pct("Kangaroo AFK Gains (Roo 5)", r.val, r.children);
+    }
     // N.js Summoning("VotingBonusz",6,0): 0 unless vote 6 is the active one.
     case "vote6": {
       const m = votingMulti(ctx);

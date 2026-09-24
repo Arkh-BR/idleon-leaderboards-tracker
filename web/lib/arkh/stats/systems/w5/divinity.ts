@@ -10,7 +10,7 @@
 //   5. Normal assignment: divinityData[playerIdx + 12]
 
 import { godsType } from "../../data/w4/gods";
-import { divinityData, optionsListData } from "../../../save/data";
+import { divinityData, optionsListData, skillLvData } from "../../../save/data";
 import type { SaveData } from "../../../state";
 
 export function hasBonusMajor(
@@ -50,4 +50,20 @@ export function hasBonusMajor(
   const gid = assignedGod == null ? -1 : assignedGod;
   if (gid >= 0 && godsType(gid) === godType) return true;
   return false;
+}
+
+/** N.js Divinity("Bonus_MAJOR", ci, type) (@10683007): hasBonusMajor plus the
+ *  two paths it misses — Gem Shop item 9 (type 0 only) and Polytheism
+ *  (talent 505: god SL505 mod 10, while Divinity[25] > that index, only for a
+ *  character linked to a god). hasBonusMajor stays as the DR reads it. */
+// @njs Bonus_MAJOR
+export function bonusMajorReal(ci: number, type: number, saveData: SaveData): boolean {
+  if (hasBonusMajor(ci, type, saveData)) return true;
+  if (type === 0 && Number((saveData.gemItemsData as any)?.[9]) === 1) return true;
+  const linked = (divinityData as any)?.[ci + 12];
+  if (linked == null || Number(linked) === -1) return false;
+  const sl505 = Number((skillLvData as any)?.[ci]?.[505]) || 0;
+  if (!(sl505 > 0)) return false;
+  const g = sl505 - 10 * Math.floor(sl505 / 10);
+  return godsType(g) === type && (Number((divinityData as any)?.[25]) || 0) > g;
 }

@@ -22,6 +22,7 @@ export function getSetBonus(setName: string): TreeResult {
 
 const SET_DATA: Record<string, { key: string; bonus: number }> = {
   efaunt: { key: "EFAUNT_SET", bonus: equipSetBonus("EFAUNT_SET") },
+  void: { key: "VOID_SET", bonus: equipSetBonus("VOID_SET") },
 };
 
 function checkSetEquipped(setName: string, charIdx: number): boolean {
@@ -51,6 +52,20 @@ function checkSetEquipped(setName: string, charIdx: number): boolean {
       }
     }
   }
+  // N.js GetSetBonus "PartsOn" (@11008519): when EquipmentSets[set][3][1] is
+  // 1, one weapon from the set's third list worn in the gear row is a part
+  // too (VOID_SET: 4 armor + 2 tools + 1 weapon). EFAUNT's is 0 → unchanged.
+  // @njs _customBlock_GetSetBonus
+  if (specialCap === 1) {
+    const weapons = (setDef[2] || []) as string[];
+    for (let s = 0; s < 16; s++) {
+      const item = row0[s] || row0[String(s)];
+      if (item && weapons.indexOf(item) !== -1) {
+        partsOn++;
+        break;
+      }
+    }
+  }
   return partsOn >= partsReq;
 }
 
@@ -62,6 +77,7 @@ const SET_FRIENDLY_NAMES: Record<string, string> = {
   efaunt: "Efaunt Set Bonus",
   godshard: "Godshard Set Bonus",
   emperor: "Emperor Set Bonus",
+  void: "Void Set Bonus",
 };
 
 export const setBonus = {

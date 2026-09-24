@@ -16,6 +16,9 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   "BigFishBonuses": [
     "lib/arkh/stats/systems/exp/exp.ts"
   ],
+  "Bonus_MAJOR": [
+    "lib/arkh/stats/systems/w5/divinity.ts"
+  ],
   "Bonus_Minor": [
     "lib/arkh/stats/systems/coin/divinityMinor.ts",
     "lib/arkh/stats/systems/exp/exp.ts"
@@ -131,6 +134,9 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/arkh/stats/data/w7/jelly.ts",
     "lib/arkh/stats/systems/exp/exp.ts"
   ],
+  "RooBonuses": [
+    "lib/arkh/stats/systems/coin/coin.ts"
+  ],
   "ShinyBonusS": [
     "lib/arkh/stats/systems/exp/exp.ts"
   ],
@@ -172,6 +178,12 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   ],
   "_customBlock_ExpMulti": [
     "lib/arkh/stats/systems/exp/exp.ts"
+  ],
+  "_customBlock_FlurboShop": [
+    "lib/arkh/stats/systems/coin/coin.ts"
+  ],
+  "_customBlock_GetSetBonus": [
+    "lib/arkh/stats/systems/w3/setBonus.ts"
   ],
   "_customBlock_Holes2": [
     "lib/arkh/stats/systems/afk/afk.ts"

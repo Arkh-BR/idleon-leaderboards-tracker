@@ -7,6 +7,8 @@ import { saveData } from "@/lib/arkh/state";
 import { prayersReal, computePrayerReal } from "@/lib/arkh/stats/systems/w3/prayer";
 import { chipBonuses, computeChipBonus } from "@/lib/arkh/stats/systems/w4/lab";
 import { starSignBonusReal, computeStarSignBonus } from "@/lib/arkh/stats/systems/common/starSign";
+import { setBonus } from "@/lib/arkh/stats/systems/w3/setBonus";
+import { bonusMajorReal, hasBonusMajor } from "@/lib/arkh/stats/systems/w5/divinity";
 
 const g = globalThis as unknown as { window?: unknown };
 if (!g.window) g.window = g;
@@ -151,5 +153,52 @@ describe("chipBonuses", () => {
   it("counts chip 0 (only -1 is an empty slot)", () => {
     loadSaveData({ charNames: ["A"], data: { StarSg: {}, Lab: [[], [0, 0, -1, -1, -1, -1, -1]] } });
     expect(chipBonuses("def", 0)).toBe(20); // Grounded Nanochip ×2
+  });
+});
+
+describe("Void Set (setBonus 'void', spec A11)", () => {
+  // VOID_SET = 4 armor pieces + 2 of its tools + 1 of its weapons (EquipmentSets[3] = ["2","1","10",…]).
+  const gear = (weapon: string) => ({
+    charNames: ["A"],
+    data: {
+      StarSg: {},
+      EquipOrder_0: [
+        ["EquipmentHats54", weapon, "EquipmentShirts27", "EquipmentPants21", "EquipmentShoes22"],
+        ["EquipmentTools11", "EquipmentToolsHatchet7"],
+      ],
+    },
+  });
+
+  it("is unlocked by the 7 worn parts, without OLA[379]", () => {
+    loadSaveData(gear("EquipmentSword3"));
+    expect(setBonus.resolve("void", { saveData, charIdx: 0 }).val).toBe(10);
+  });
+
+  it("needs the weapon: armor + tools alone are 6 of 7 parts", () => {
+    loadSaveData(gear("Blank"));
+    expect(setBonus.resolve("void", { saveData, charIdx: 0 }).val).toBe(0);
+  });
+});
+
+describe("bonusMajorReal", () => {
+  it("Gem Shop item 9 turns on the type-0 major only", () => {
+    loadSaveData({ charNames: ["A"], data: { StarSg: {}, GemItemsPurchased: [0, 0, 0, 0, 0, 0, 0, 0, 0, 1] } });
+    expect(bonusMajorReal(0, 0, saveData)).toBe(true);
+    expect(bonusMajorReal(0, 2, saveData)).toBe(false);
+    expect(hasBonusMajor(0, 0, saveData)).toBe(false); // the DR helper is untouched
+  });
+
+  it("Polytheism: talent 505's god (SL505 mod 10) while the god rank is past it", () => {
+    const div = Array(26).fill(0);
+    div[12] = 1; // char 0 linked to Arctis (type 2), so hasBonusMajor(…, 0) is false
+    div[25] = 3;
+    loadSaveData({ charNames: ["A"], data: { StarSg: {}, Divinity: div, SL_0: { 505: 10 } } });
+    expect(bonusMajorReal(0, 0, saveData)).toBe(true); // god 0 = Snehebatu (type 0), 3 > 0
+    loadSaveData({ charNames: ["A"], data: { StarSg: {}, Divinity: div, SL_0: { 505: 11 } } });
+    expect(bonusMajorReal(0, 0, saveData)).toBe(false); // god 1 is type 2
+    const unlinked = [...div];
+    unlinked[12] = -1;
+    loadSaveData({ charNames: ["A"], data: { StarSg: {}, Divinity: unlinked, SL_0: { 505: 10 } } });
+    expect(bonusMajorReal(0, 0, saveData)).toBe(false); // not linked → no Polytheism
   });
 });
