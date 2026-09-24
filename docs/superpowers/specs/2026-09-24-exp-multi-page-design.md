@@ -60,6 +60,7 @@ O usuário foi dormir e pediu: "tome as decisões sozinho e anote". Tudo abaixo 
 | D7 | **MSA** (`GamingStatType("MSA_Bonus",4)`, que lê estado de NPC `_GenINFO[114+]`): portar a partir do que o `_GenINFO` reconstrói no load, se sair do save. Se não sair, a fonte fica **0 com nota** e o gap é documentado no teste. | O IT mostra 1,78 neste save (`msaTotalizer`), então dá para derivar do save. O que não der fica explícito, não inventado. |
 | D8 | **Shrine** reusa o sistema do DR (tratado como global). | Mesma simplificação do DR. Com Moai Head o shrine é global de verdade (endgame). |
 | D9 | O pool aditivo é **uma lista plana** de fontes (~60), na ordem do jogo. Os blocos LUK2/LUK4/LUK6 não viram subnós. | O Biggest Gains só enxerga filhos diretos do grupo. |
+| D10 | O **Biggest Gains do kit** é um what-if genérico: troca cada fonte pelo Observed Max e recalcula o total com `totalFromFlat` do stat. Substitui as fórmulas de ganho por tipo do Coin. | A pesquisa do AFK Gains (base + Σ, piso, overrides) e do Multikill (`⌊B + T·P⌋`, soft cap no W7) mostrou que as fórmulas por tipo não servem para eles. Para o Coin, o what-if dá o mesmo número. |
 
 ## Fórmula (fonte da verdade: N.js vivo)
 
@@ -160,7 +161,7 @@ A página acrescenta o "x". A referência do IT neste save, 1,45e19, sai como "1
 |---|---|---|
 | `lib/statTracker/config.ts` | novo | Tipo `StatPageConfig` (abaixo) |
 | `lib/statTracker/storage.ts` | `lib/coinMulti/storage.ts` | `createSnapshotStore(key, legacyValueKey?)`: snapshots por char, export/import |
-| `lib/statTracker/biggestGains.ts` | `lib/coinMulti/biggestGains.ts` | Ganho por fonte para os 4 tipos de grupo |
+| `lib/statTracker/biggestGains.ts` | `lib/coinMulti/biggestGains.ts` | Ganho por fonte por what-if (`totalFromFlat`), mais o `groupedGainsModel` |
 | `lib/statTracker/mapOptions.ts` | `lib/coinMulti/mapOptions.ts` | Lista de mapas (todos + `CurrentMap_*`) |
 | `components/statTracker/StatCalculator.tsx` | `CoinCalculator.tsx` | Login/nome/colar, char online, char+mapa, total, árvore |
 | `components/statTracker/StatSnapshotSection.tsx` | `CoinSnapshotSection.tsx` | Histórico, Δ, compare, export/import |
@@ -172,14 +173,18 @@ A página acrescenta o "x". A referência do IT neste save, 1,45e19, sai como "1
 - chaves de storage: save colado, nome, snapshots, colapso;
 - `compute(save, char, map)`, com import dinâmico;
 - `formatTotal`, a notação do jogo;
-- raiz e grupos, para o Biggest Gains;
+- o modelo de ganhos `gains` (fontes + `totalFromFlat`), para o Biggest Gains;
 - `loadTop(classKey)` e o meta do Observed Max (data e players).
 
 Regras do kit:
 - **Snapshots do Coin preservados.** O snapshot genérico guarda o valor em `value`. A loja do Coin lê o campo antigo `computedCoinMulti` como fallback (`legacyValueKey`), então históricos e exports antigos continuam funcionando. As chaves de localStorage do Coin não mudam.
-- **Ganho do tipo `mult`.** A razão é `máx/você`. Com `max(1, ·)`, é `max(1, F·máx/você) / F`.
-  - Os tipos `pct`, `raw` e `min4` mantêm a matemática atual do Coin.
-  - O `min4` passa a usar a soma do grupo, igual ao atual quando o grupo tem uma fonte só.
+- **Biggest Gains por what-if (D10).** Para cada fonte com referência:
+  1. troca o valor dela pelo Observed Max na árvore achatada;
+  2. recalcula o total com `totalFromFlat` do stat;
+  3. ganho = `novo/atual − 1`.
+  - Para stats agrupados, `groupedGainsModel(root, groups)` implementa `totalFromFlat` com o `groupFactorOf` de cada grupo sobre os filhos diretos, e lista as fontes por grupo.
+  - O resultado é algebricamente igual às fórmulas por tipo que o Coin usa hoje, e continua certo em `max(1, ·)`, pow e `min4` com várias fontes.
+  - AFK e Multikill (piso, soft cap, `⌊B + T·P⌋`) só vão precisar do próprio `totalFromFlat`.
 - **Rotas.** As páginas viram cascas: `app/exp-multi/page.tsx` e `app/coin-multi/page.tsx` renderizam `<StatPageClient config={…} />`.
 - **Arquivos por stat.** Cada stat tem `lib/<stat>/pageConfig.ts` (a `StatPageConfig`), `lib/<stat>/format.ts` (notação do jogo) e `lib/<stat>/top*.ts`/`.meta.ts` (Observed Max gerado).
   - EXP: `lib/expMulti/{pageConfig,format,topExpMulti,topExpMulti.meta}.ts`.
