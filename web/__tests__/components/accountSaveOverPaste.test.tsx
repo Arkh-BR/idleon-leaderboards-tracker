@@ -31,7 +31,8 @@ vi.mock("@/lib/talentsLevel/unbooked", () => ({ computeUnbooked: () => [] }));
 import { loadAccountSave, setAutoUpdateMode, signOut, startSession } from "@/lib/gameAuth/session";
 import DrCalculator from "@/components/dropRate/DrCalculator";
 import TalentsLevelPageClient from "@/app/talents-level/TalentsLevelPageClient";
-import CoinCalculator from "@/components/coinMulti/CoinCalculator";
+import StatCalculator from "@/components/statTracker/StatCalculator";
+import { COIN_PAGE } from "@/lib/coinMulti/pageConfig";
 
 const AUTH = { uid: "u1", idToken: "id1", refreshToken: "r1", expiresAt: Date.now() + 3_600_000 };
 const ACCOUNT = {
@@ -101,7 +102,7 @@ describe("an old pasted save never overrides the account save", () => {
   it("Coin Multi — account save already loaded this visit", async () => {
     localStorage.setItem("coin-multi-tracker.last-upload.v1", OLD_PASTE);
     await loadAccountThisVisit();
-    render(<CoinCalculator />);
+    render(<StatCalculator config={COIN_PAGE} />);
     await waitFor(() => expect(shownChar()).toBe(ACCOUNT_CHAR));
   });
 });

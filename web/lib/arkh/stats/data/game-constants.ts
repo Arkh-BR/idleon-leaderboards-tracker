@@ -38,7 +38,13 @@ export const TOME_DATA: Record<number, TomeData> = {
 
 export const HOLE_MULTIPLIERS: Record<string, { buildIdx: number; dataIdx: number; multi: number }> = {
   upg46: { buildIdx: 46, dataIdx: 26, multi: 5 },
+  // N.js Holes("B_UPG",47,0): 47==b?25*Holes[11][26] — same underlying level
+  // as upg46 (Holes[11][26]), its own build gate (Holes[13][47]), tier-2 multi.
+  upg47: { buildIdx: 47, dataIdx: 26, multi: 25 },
   upg82: { buildIdx: 82, dataIdx: 55, multi: 20 },
+  // N.js Holes("B_UPG",83,40): 82==b||83==b||84==b?e*Holes[11][55] — the
+  // caller's own `e` (40) is the multi; shares Holes[11][55] with upg82.
+  upg83: { buildIdx: 83, dataIdx: 55, multi: 40 },
   brass20: { buildIdx: 20, dataIdx: 14, multi: 5 },
 };
 

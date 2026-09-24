@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { buildCoinMapOptions, worldOf } from "@/lib/coinMulti/mapOptions";
+import { buildStatMapOptions, worldOf } from "@/lib/statTracker/mapOptions";
 
 describe("coin multi map options", () => {
   it("world = ⌊map / 50⌋ + 1 (the guild term's factor)", () => {
@@ -9,7 +9,7 @@ describe("coin multi map options", () => {
   });
 
   it("lists named maps with a world prefix, skips placeholders, keeps current maps", () => {
-    const opts = buildCoinMapOptions({ data: { CurrentMap_0: 14, CurrentMap_1: 999 } });
+    const opts = buildStatMapOptions({ data: { CurrentMap_0: 14, CurrentMap_1: 999 } });
     const byIdx = new Map(opts.map((o) => [o.index, o]));
     expect(byIdx.get(1)?.label).toBe("W1 · Spore Meadows");
     expect(byIdx.has(4)).toBe(false); // PlayerSelect

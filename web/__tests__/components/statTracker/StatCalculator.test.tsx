@@ -9,13 +9,21 @@ vi.mock("@/components/ProfileNameLoader", () => ({
     return null;
   },
 }));
+vi.mock("@/lib/arkh/computeExp", () => ({
+  computeArkhExpMulti: () => {
+    throw new Error("stub");
+  },
+}));
 vi.mock("@/lib/arkh/computeCoin", () => ({
   computeArkhCoinMulti: () => {
     throw new Error("stub");
   },
 }));
 
-import CoinCalculator from "@/components/coinMulti/CoinCalculator";
+import StatCalculator from "@/components/statTracker/StatCalculator";
+import { testConfig } from "./testConfig";
+import { EXP_PAGE } from "@/lib/expMulti/pageConfig";
+import { COIN_PAGE } from "@/lib/coinMulti/pageConfig";
 
 const save = () => ({
   charNames: ["Alpha", "Beta"],
@@ -39,14 +47,14 @@ const onlineSave = () => {
 const charSelect = () => screen.getAllByRole("combobox")[0] as HTMLSelectElement;
 const mapSelect = () => screen.getAllByRole("combobox")[1] as HTMLSelectElement;
 
-describe("CoinCalculator", () => {
+describe("StatCalculator", () => {
   it("uses its own name key", () => {
-    render(<CoinCalculator />);
-    expect(loader!.storageKey).toBe("coin-multi-tracker.playerName");
+    render(<StatCalculator config={testConfig} />);
+    expect(loader!.storageKey).toBe("test-multi-tracker.playerName");
   });
 
   it("keeps the map on refresh, re-derives it on a fresh load", () => {
-    render(<CoinCalculator />);
+    render(<StatCalculator config={testConfig} />);
     act(() => loader!.onSave(save()));
     expect(mapSelect().value).toBe("2");
     fireEvent.change(mapSelect(), { target: { value: "8" } }); // Poopy Sewers
@@ -57,14 +65,14 @@ describe("CoinCalculator", () => {
   });
 
   it("a fresh load defaults to the character that's online now, and their map", () => {
-    render(<CoinCalculator />);
+    render(<StatCalculator config={testConfig} />);
     act(() => loader!.onSave(onlineSave()));
     expect(charSelect().value).toBe("1");
     expect(mapSelect().value).toBe("14");
   });
 
   it("a refresh keeps the user's switch away from the online character", () => {
-    render(<CoinCalculator />);
+    render(<StatCalculator config={testConfig} />);
     act(() => loader!.onSave(onlineSave()));
     expect(charSelect().value).toBe("1");
     fireEvent.change(charSelect(), { target: { value: "0" } });
@@ -73,15 +81,27 @@ describe("CoinCalculator", () => {
   });
 
   it("switching character jumps to that character's map", () => {
-    render(<CoinCalculator />);
+    render(<StatCalculator config={testConfig} />);
     act(() => loader!.onSave(save()));
     fireEvent.change(charSelect(), { target: { value: "1" } });
     expect(mapSelect().value).toBe("14");
   });
 
   it("shows the compute error with its own prefix", async () => {
-    render(<CoinCalculator />);
+    render(<StatCalculator config={testConfig} />);
     act(() => loader!.onSave(save()));
-    expect(await screen.findByText(/Coin multi compute failed: stub/)).toBeInTheDocument();
+    expect(await screen.findByText(/Test multi compute failed: stub/)).toBeInTheDocument();
+  });
+
+  it("renders the EXP Multi config", () => {
+    render(<StatCalculator config={EXP_PAGE} />);
+    expect(loader!.storageKey).toBe("exp-multi-tracker.playerName");
+    expect(screen.getByText(/EXP Multi Calculator/)).toBeInTheDocument();
+  });
+
+  it("renders the Coin Multi config", () => {
+    render(<StatCalculator config={COIN_PAGE} />);
+    expect(loader!.storageKey).toBe("coin-multi-tracker.playerName");
+    expect(screen.getByText(/Coin Multi Calculator/)).toBeInTheDocument();
   });
 });

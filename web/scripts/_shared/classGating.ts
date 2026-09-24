@@ -27,6 +27,11 @@ export function deriveGatedTalents(): GatedTalent[] {
       if (s.system === "talent" && typeof s.id === "number") ids.add(s.id);
     }
   }
+  return deriveGatedTalentsFor([...ids]);
+}
+
+/** deriveGatedTalents over an explicit talent list (Coin Multi, EXP Multi…). */
+export function deriveGatedTalentsFor(ids: readonly number[]): GatedTalent[] {
   const classKeys = Object.keys(TALENT_TABS_BY_CLASS);
   const out: GatedTalent[] = [];
   for (const id of ids) {
@@ -34,11 +39,7 @@ export function deriveGatedTalents(): GatedTalent[] {
     const owners = new Set<string>();
     for (const c of classKeys) {
       const tabs = (TALENT_TABS_BY_CLASS as any)[c]?.tabs ?? [];
-      if (
-        tabs.some((t: any) => t.talents.some((x: any) => x.id === id))
-      ) {
-        owners.add(c);
-      }
+      if (tabs.some((t: any) => t.talents.some((x: any) => x.id === id))) owners.add(c);
     }
     if (owners.size === 0 || owners.size === classKeys.length) continue;
     out.push({ id, owners });

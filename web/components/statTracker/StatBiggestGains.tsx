@@ -1,22 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Num from "@/components/Num";
 import type { FlatTree } from "@/lib/dropRate/treeFlatten";
-import { computeCoinGains, splitCoinGains, type CoinGainRow } from "@/lib/coinMulti/biggestGains";
-
-const METHODOLOGY_NOTE =
-  "Coin gain = how much your total Coin Multi would rise if this source matched the top players " +
-  "(Observed Max). Every group multiplies the total, so a source's gain is its group's new factor " +
-  "over the current one. Values are a ceiling, not a one-level step. The top-player reference is " +
-  "measured on map 301 (World 7), so the Guild and Coins For Charon rows reflect that map choice too.";
+import { computeGains, splitGains, type GainRow } from "@/lib/statTracker/biggestGains";
+import type { StatPageConfig } from "@/lib/statTracker/config";
 
 export type LoadReference = (classKey: string | null) => Promise<Record<string, number>>;
-
-const defaultLoadReference: LoadReference = async (classKey) => {
-  const mod = await import("@/lib/coinMulti/topCoinMulti");
-  return mod.topCoinFlatForClass(classKey) as Record<string, number>;
-};
 
 const Banner = ({ children }: { children: React.ReactNode }) => (
   <p className="text-sm text-red-400 py-4">⚠ {children}</p>
@@ -25,16 +15,18 @@ const Hint = ({ children }: { children: React.ReactNode }) => (
   <p className="text-sm text-zinc-500 text-center py-10">{children}</p>
 );
 
-function fmtContribution(row: CoinGainRow, v: number) {
-  return row.kind === "pct" ? <Num value={v} plus unit="%" /> : <Num value={v} />;
+function fmtContribution(row: GainRow, v: number) {
+  return row.display === "pct" ? <Num value={v} plus unit="%" /> : row.display === "x" ? <Num value={v} unit="x" /> : <Num value={v} />;
 }
 
-export default function CoinBiggestGains({
+export default function StatBiggestGains({
+  config,
   yoursFlat,
   classKey,
   computeError = null,
-  loadReference = defaultLoadReference,
+  loadReference,
 }: {
+  config: StatPageConfig;
   yoursFlat: FlatTree | null;
   classKey: string | null;
   computeError?: string | null;
@@ -44,22 +36,32 @@ export default function CoinBiggestGains({
   const [refError, setRefError] = useState<string | null>(null);
   const [showMinor, setShowMinor] = useState(false);
 
+  // loadReference has no caller-supplied value in the common case (the page
+  // doesn't pass one), so the default loader is memoized here rather than
+  // an inline default parameter — an inline arrow gets a new identity every
+  // render, which would re-fire the fetch effect below on any unrelated
+  // re-render (e.g. toggling "Compare vs Observed Max" elsewhere on the page).
+  const effectiveLoadReference = useMemo(
+    () => loadReference ?? ((ck: string | null) => config.loadTop().then((m) => m.flatForClass(ck))),
+    [loadReference, config]
+  );
+
   useEffect(() => {
     if (!yoursFlat || computeError) return;
     let cancelled = false;
     setRef(null);
     setRefError(null);
-    loadReference(classKey)
+    effectiveLoadReference(classKey)
       .then((r) => !cancelled && setRef(r))
       .catch((e) => !cancelled && setRefError(e instanceof Error ? e.message : String(e)));
     return () => {
       cancelled = true;
     };
-  }, [yoursFlat, classKey, computeError, loadReference]);
+  }, [yoursFlat, classKey, computeError, effectiveLoadReference]);
 
   if (computeError) return <Banner>{computeError}</Banner>;
-  if (!yoursFlat) return <Hint>Load a save above to see your biggest Coin Multi gains.</Hint>;
-  if (refError) return <Banner>Coin multi compute failed: {refError}</Banner>;
+  if (!yoursFlat) return <Hint>Load a save above to see your biggest {config.statName} gains.</Hint>;
+  if (refError) return <Banner>{config.errPrefix}: {refError}</Banner>;
   if (!ref) {
     return (
       <p className="text-sm text-zinc-500 text-center py-10">
@@ -69,9 +71,9 @@ export default function CoinBiggestGains({
     );
   }
 
-  const result = computeCoinGains(yoursFlat, ref);
+  const result = computeGains(config.gains, yoursFlat, ref);
   if (result.comparableSources === 0) {
-    return <Hint>No comparable top-player reference for this character yet — can&apos;t rank Coin Multi gains.</Hint>;
+    return <Hint>No comparable top-player reference for this character yet — can&apos;t rank {config.statName} gains.</Hint>;
   }
   if (result.rows.length === 0) {
     return (
@@ -81,7 +83,7 @@ export default function CoinBiggestGains({
     );
   }
 
-  const { major, minor } = splitCoinGains(result.rows);
+  const { major, minor } = splitGains(result.rows);
   const visible = showMinor ? result.rows : major;
 
   return (
@@ -92,7 +94,7 @@ export default function CoinBiggestGains({
           <strong>
             <Num value={visible[0].gainPct} plus unit="%" />
           </strong>{" "}
-          Coin Multi
+          {config.statName}
         </div>
       ) : (
         <div className="rounded-md border border-zinc-700 bg-zinc-900/60 px-3 py-2 text-sm text-zinc-400">
@@ -107,7 +109,7 @@ export default function CoinBiggestGains({
               <th className="text-left font-medium px-3 py-2">Source</th>
               <th className="text-right font-medium px-3 py-2">You</th>
               <th className="text-right font-medium px-3 py-2">Observed Max</th>
-              <th className="text-right font-medium px-3 py-2">Coin gain</th>
+              <th className="text-right font-medium px-3 py-2">{config.gainLabel} gain</th>
             </tr>
           </thead>
           <tbody>
@@ -140,7 +142,7 @@ export default function CoinBiggestGains({
         {minor.length > 0 && <span className="text-zinc-600">({minor.length} below {"<"}0.05%)</span>}
       </label>
 
-      <p className="text-[11px] text-zinc-500 leading-snug">{METHODOLOGY_NOTE}</p>
+      <p className="text-[11px] text-zinc-500 leading-snug">{config.methodologyNote}</p>
     </div>
   );
 }

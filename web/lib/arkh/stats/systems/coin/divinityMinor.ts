@@ -8,6 +8,7 @@ import {
   divinityData,
   optionsListData,
   numCharacters,
+  skillLvData,
 } from "../../../save/data";
 import { bubbleValByKey } from "../w2/alchemy";
 import { DIVINITY_MINOR_DENOM } from "../../data/game-constants";
@@ -15,6 +16,7 @@ import { godsType } from "../../data/w4/gods";
 import { godMinorX1 } from "../../data/w5/divinity";
 import { companions } from "../common/companions";
 import { cosmoBonus } from "../w5/hole";
+import { gridBonusValue } from "../w4/lab";
 import type { SaveData } from "../../../state";
 
 // @njs PocketDivOwned
@@ -63,4 +65,51 @@ export function divinityMinorSum(type: number, activeCi: number, saveData: SaveD
     }
   }
   return sum;
+}
+
+// @njs Bonus_Minor
+/** N.js Divinity("Bonus_Minor", charIdx, type) — the SINGLE-PLAYER branch
+ *  (charIdx != -1), read from the same "Bonus_Minor"==d block as
+ *  divinityMinorSum (@10684830), starting right after its `if(-1==b){...}`
+ *  arm. EXP Multi's divMinor4 calls this shape (N.js @4241238:
+ *  `Divinity("Bonus_Minor", GetPlayersUsernames.indexOf(UserInfo[0]), 4)`),
+ *  NOT divinityMinorSum's roster-sum shape — Coin's divMinor3 is the only
+ *  existing caller of that one, and it really does pass -1.
+ *
+ *  Differences from the roster-sum branch's "everyone" override:
+ *    - applies for ANY type (not gated to type 3/5)
+ *    - two more unlock conditions: ResearchStuff("Grid_Bonus",173,0)>=1 for
+ *      type 2, and GemItemsPurchased[9]==1 for type 0
+ *  When not "everyone": checks the character's own linked god
+ *  (Divinity[charIdx+12]), then falls back to the Talent 505 (Polytheism)
+ *  covenant — SkillLevels[505] mod 10 selects a god by raw index, gated on
+ *  Divinity[25] (unlocked deities count) being greater than that index. */
+export function divinityMinorFor(charIdx: number, type: number, saveData: SaveData): number {
+  const grid173 = gridBonusValue(173, saveData);
+  const gem9 = Number((saveData.gemItemsData as any[])?.[9]) || 0;
+  const everyone =
+    companions(0, saveData) === 1 ||
+    pocketDivOwned(type, saveData) === 1 ||
+    (grid173 >= 1 && type === 2) ||
+    (gem9 === 1 && type === 0);
+  if (everyone) {
+    const typeOfGod: number[] = [];
+    for (let g = 0; g < 10; g++) typeOfGod.push(godsType(g));
+    return divMinorBonus(charIdx, typeOfGod.indexOf(type), charIdx, saveData);
+  }
+
+  const linked = Number((divinityData as any[])[charIdx + 12]);
+  if (!Number.isFinite(linked) || linked === -1) return 0;
+  if (godsType(linked) === type) return divMinorBonus(charIdx, linked, charIdx, saveData);
+
+  // Talent 505 (Polytheism) covenant: raw SkillLevels[505] mod 10 = chosen
+  // god index (N.js writes it as `lv505-10*floor(lv505/10)`, same thing for
+  // lv505>=0), only live once Divinity[25] (unlocked deities) exceeds it.
+  const lv505 = Number((skillLvData as any[])?.[charIdx]?.[505]) || 0;
+  if (lv505 <= 0) return 0;
+  const godIdx = lv505 % 10;
+  if (godsType(godIdx) !== type) return 0;
+  const unlockedDeities = Number((divinityData as any[])?.[25]) || 0;
+  if (unlockedDeities <= godIdx) return 0;
+  return divMinorBonus(charIdx, godIdx, charIdx, saveData);
 }

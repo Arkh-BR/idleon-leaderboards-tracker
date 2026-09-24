@@ -58,6 +58,13 @@ export default function HomePage() {
           cta="Open Coin Multi"
         />
         <ShortcutCard
+          href="/exp-multi"
+          icon="✨"
+          title="EXP Multi Tracker"
+          description="Every term of the game's Class EXP formula on your save, per character and map, with snapshots and a top-player comparison."
+          cta="Open EXP Multi"
+        />
+        <ShortcutCard
           href="/talents-level"
           icon="🌟"
           title="Talents Tracker"

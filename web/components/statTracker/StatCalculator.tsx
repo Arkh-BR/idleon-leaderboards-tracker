@@ -6,32 +6,29 @@ import { getCharClassKey } from "@/lib/talentsLevel/charClass";
 import DeepView, { type DeepViewExtraTab } from "@/components/dropRate/DeepView";
 import ProfileNameLoader from "@/components/ProfileNameLoader";
 import { accountAutoLoads } from "@/lib/gameAuth/session";
-import { buildCoinMapOptions, type CoinMapOption } from "@/lib/coinMulti/mapOptions";
-import { formatCoinMulti } from "@/lib/coinMulti/format";
+import { buildStatMapOptions, type StatMapOption } from "@/lib/statTracker/mapOptions";
 import type { ArkhNode } from "@/lib/arkh/node";
 import type { FlatTree } from "@/lib/dropRate/treeFlatten";
+import type { StatPageConfig } from "@/lib/statTracker/config";
 
-const SAVE_KEY = "coin-multi-tracker.last-upload.v1";
-const NAME_KEY = "coin-multi-tracker.playerName";
-const ERR_PREFIX = "Coin multi compute failed";
-
-export type CoinCalculatorState = {
+export type StatCalculatorState = {
   charIndex: number | null;
   charName: string;
   /** PascalCase class key of the selected char (picks the per-class Observed Max). */
   classKey: string | null;
   charSummary: CharSummary | null;
-  totalCoin: number | null;
+  total: number | null;
   mapIndex: number;
   mapLabel: string;
   save: any;
-  coinTree: ArkhNode | null;
-  /** Compute error ("Coin multi compute failed: …") or null. */
+  tree: ArkhNode | null;
+  /** Compute error (`<errPrefix>: …`) or null. */
   computeError: string | null;
 };
 
 type Props = {
-  onStateChange?: (s: CoinCalculatorState) => void;
+  config: StatPageConfig;
+  onStateChange?: (s: StatCalculatorState) => void;
   compareBaseline?: { flatTree: FlatTree; capturedAt: number; charName: string } | null;
   snapshotSlot?: React.ReactNode;
   extraTabs?: DeepViewExtraTab[];
@@ -39,7 +36,8 @@ type Props = {
   defaultView?: string;
 };
 
-export default function CoinCalculator({
+export default function StatCalculator({
+  config,
   onStateChange,
   compareBaseline,
   snapshotSlot,
@@ -52,10 +50,10 @@ export default function CoinCalculator({
   const [chars, setChars] = useState<CharSummary[]>([]);
   const [charIdx, setCharIdx] = useState<number>(0);
   const [mapIdx, setMapIdx] = useState<number>(0);
-  const [mapOptions, setMapOptions] = useState<CoinMapOption[]>([]);
+  const [mapOptions, setMapOptions] = useState<StatMapOption[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [coinTree, setCoinTree] = useState<ArkhNode | null>(null);
-  const [coinTotal, setCoinTotal] = useState<number | null>(null);
+  const [tree, setTree] = useState<ArkhNode | null>(null);
+  const [total, setTotal] = useState<number | null>(null);
   const [computing, setComputing] = useState(false);
 
   // A refresh of the same account (auto-update / Sync now) keeps the map;
@@ -86,7 +84,7 @@ export default function CoinCalculator({
         setCharIdx((prev) =>
           opts.keepView ? (list.some((c) => c.charIndex === prev) ? prev : list[0].charIndex) : fallbackChar
         );
-        const maps = buildCoinMapOptions(parsed);
+        const maps = buildStatMapOptions(parsed);
         setMapOptions(maps);
         const data = (parsed as any)?.data ?? {};
         const currentMap = Number(data[`CurrentMap_${fallbackChar}`]) || 0;
@@ -114,22 +112,22 @@ export default function CoinCalculator({
       const ok = applyParsedSave(parsed, opts);
       if (ok) {
         try {
-          window.localStorage.setItem(SAVE_KEY, text);
+          window.localStorage.setItem(config.storage.save, text);
         } catch {
           // quota exceeded
         }
       }
       return ok;
     },
-    [applyParsedSave]
+    [applyParsedSave, config.storage.save]
   );
 
   // Restore a pasted save unless the name loader / signed-in account will
   // put one on screen (this effect runs after the loader's).
   useEffect(() => {
     try {
-      if (window.localStorage.getItem(NAME_KEY) || accountAutoLoads()) return;
-      const raw = window.localStorage.getItem(SAVE_KEY);
+      if (window.localStorage.getItem(config.storage.name) || accountAutoLoads()) return;
+      const raw = window.localStorage.getItem(config.storage.save);
       if (raw) stageSave(raw, { silent: true });
     } catch {
       // ignore
@@ -150,8 +148,8 @@ export default function CoinCalculator({
 
   useEffect(() => {
     if (!save || chars.length === 0) {
-      setCoinTree(null);
-      setCoinTotal(null);
+      setTree(null);
+      setTotal(null);
       setComputing(false);
       return;
     }
@@ -159,14 +157,13 @@ export default function CoinCalculator({
     setComputing(true);
     (async () => {
       try {
-        const mod = await import("@/lib/arkh/computeCoin");
+        const result = await config.compute(save, charIdx, mapIdx);
         if (cancelled) return;
-        const result = mod.computeArkhCoinMulti(save, charIdx, mapIdx);
-        setCoinTree(result.tree);
-        setCoinTotal(result.total);
+        setTree(result.tree);
+        setTotal(result.total);
         setError(null);
       } catch (e) {
-        if (!cancelled) setError(`${ERR_PREFIX}: ` + (e instanceof Error ? e.message : String(e)));
+        if (!cancelled) setError(`${config.errPrefix}: ` + (e instanceof Error ? e.message : String(e)));
       } finally {
         if (!cancelled) setComputing(false);
       }
@@ -174,7 +171,7 @@ export default function CoinCalculator({
     return () => {
       cancelled = true;
     };
-  }, [save, charIdx, mapIdx, chars.length]);
+  }, [save, charIdx, mapIdx, chars.length, config]);
 
   useEffect(() => {
     if (!onStateChange) return;
@@ -185,14 +182,14 @@ export default function CoinCalculator({
       charName: ch?.charName ?? "",
       classKey: save && ch ? getCharClassKey(save, ch.charIndex) : null,
       charSummary: ch ?? null,
-      totalCoin: coinTotal,
+      total,
       mapIndex: mapIdx,
       mapLabel: map?.name ?? `Map ${mapIdx}`,
       save,
-      coinTree,
-      computeError: error && error.startsWith(ERR_PREFIX) ? error : null,
+      tree,
+      computeError: error && error.startsWith(config.errPrefix) ? error : null,
     });
-  }, [charIdx, mapIdx, coinTotal, coinTree, chars, mapOptions, save, onStateChange, error]);
+  }, [charIdx, mapIdx, total, tree, chars, mapOptions, save, onStateChange, error, config]);
 
   const onLoad = () => {
     if (!jsonText.trim()) {
@@ -205,15 +202,12 @@ export default function CoinCalculator({
   return (
     <div>
       <h1 className="flex items-baseline gap-3 mb-1 mt-2">
-        <span className="text-3xl font-extrabold text-gold">🪙 Coin Multi Calculator</span>
+        <span className="text-3xl font-extrabold text-gold">{config.emoji} {config.calculatorTitle}</span>
       </h1>
-      <p className="text-center text-xs text-zinc-500 mb-4">
-        Computes every character&apos;s monster coin multiplier from your save. Select character &amp; map. All
-        processing local in your browser.
-      </p>
+      <p className="text-center text-xs text-zinc-500 mb-4">{config.subtitle}</p>
 
       <ProfileNameLoader
-        storageKey={NAME_KEY}
+        storageKey={config.storage.name}
         onSave={(s, meta) => applyParsedSave(s, { keepView: meta?.refresh })}
         onError={(msg) => setError(msg)}
       >
@@ -277,7 +271,7 @@ export default function CoinCalculator({
             value={mapIdx}
             disabled={chars.length === 0}
             onChange={(e) => setMapIdx(Number(e.target.value))}
-            title="The map sets the guild bonus world and Coins For Charon's multikill tier"
+            title={config.mapTitle}
             className="px-2 py-1.5 text-sm bg-zinc-900 border border-zinc-700 rounded text-sky-300 disabled:opacity-40"
           >
             {mapOptions.map((m) => (
@@ -290,12 +284,12 @@ export default function CoinCalculator({
         {error && <p className="text-xs text-red-300">{error}</p>}
 
         <div className="p-2 rounded border border-zinc-800 bg-zinc-950/60 flex items-center justify-center gap-2 flex-wrap">
-          <span className="text-xs uppercase tracking-wider text-zinc-500">Total Coin Multi</span>
+          <span className="text-xs uppercase tracking-wider text-zinc-500">{config.totalLabel}</span>
           <span
             className="text-2xl font-extrabold text-gold tabular-nums"
-            title={coinTotal !== null ? coinTotal.toExponential(6) + "x" : undefined}
+            title={total !== null ? total.toExponential(6) + "x" : undefined}
           >
-            {coinTotal !== null ? formatCoinMulti(coinTotal) + "x" : "—"}
+            {total !== null ? config.formatTotal(total) + "x" : "—"}
           </span>
         </div>
       </div>
@@ -305,7 +299,7 @@ export default function CoinCalculator({
           <p className="text-sm text-zinc-500 italic">Computing…</p>
         ) : (
           <DeepView
-            tree={coinTree}
+            tree={tree}
             baseline={compareBaseline ?? null}
             extraTabs={extraTabs}
             extraTabsFirst={extraTabsFirst}

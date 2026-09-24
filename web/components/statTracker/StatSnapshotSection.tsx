@@ -1,18 +1,16 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Num from "@/components/Num";
-import {
-  addSnapshot, buildCoinSnapshot, clearChar, deleteSnapshot, exportAllAsJson,
-  importFromJson, listSnapshots, listTrackedChars, type CoinSnapshot,
-} from "@/lib/coinMulti/storage";
-import { formatCoinMulti } from "@/lib/coinMulti/format";
+import { createSnapshotStore, type StatSnapshot } from "@/lib/statTracker/storage";
 import { formatRelativeTime } from "@/lib/format";
 import { flattenTree, type FlatTree } from "@/lib/dropRate/treeFlatten";
-import type { CoinCalculatorState } from "./CoinCalculator";
+import type { StatPageConfig } from "@/lib/statTracker/config";
+import type { StatCalculatorState } from "./StatCalculator";
 
 type Props = {
-  state: CoinCalculatorState | null;
+  config: StatPageConfig;
+  state: StatCalculatorState | null;
   /** Tells the parent which snapshot's flatTree to use as the delta
    *  baseline in the detailed tree's third column. Null = no comparison. */
   onSelectBaseline?: (baseline: {
@@ -28,17 +26,20 @@ type Props = {
   headerExtra?: React.ReactNode;
 };
 
-const COLLAPSE_KEY = "coin-multi.snapshot-section.collapsed.v1";
-
-export default function CoinSnapshotSection({
+export default function StatSnapshotSection({
+  config,
   state,
   onSelectBaseline,
   selectedBaselineAt,
   headerExtra,
 }: Props) {
+  const store = useMemo(
+    () => createSnapshotStore(config.storage.snapshots, config.storage.exportLabel, config.storage.legacyValueKey),
+    [config]
+  );
   const [trackedChars, setTrackedChars] = useState<string[]>([]);
   const [viewChar, setViewChar] = useState<string | null>(null);
-  const [history, setHistory] = useState<CoinSnapshot[]>([]);
+  const [history, setHistory] = useState<StatSnapshot[]>([]);
   const [notice, setNotice] = useState<string | null>(null);
   // Whole-section collapse — defaults to expanded for first-time users and
   // is persisted to localStorage so the choice survives reloads.
@@ -48,7 +49,7 @@ export default function CoinSnapshotSection({
   useEffect(() => {
     if (typeof window === "undefined") return;
     try {
-      const v = window.localStorage.getItem(COLLAPSE_KEY);
+      const v = window.localStorage.getItem(config.storage.collapse);
       if (v === "0") setCollapsed(false);
     } catch {
       // localStorage unavailable — keep default
@@ -58,7 +59,7 @@ export default function CoinSnapshotSection({
     setCollapsed((prev) => {
       const next = !prev;
       try {
-        window.localStorage.setItem(COLLAPSE_KEY, next ? "1" : "0");
+        window.localStorage.setItem(config.storage.collapse, next ? "1" : "0");
       } catch {
         // ignore
       }
@@ -67,10 +68,10 @@ export default function CoinSnapshotSection({
   }
 
   const refresh = useCallback(() => {
-    const list = listTrackedChars();
+    const list = store.listTrackedChars();
     setTrackedChars(list);
     setViewChar((prev) => (prev && list.includes(prev) ? prev : list[0] ?? null));
-  }, []);
+  }, [store]);
 
   useEffect(() => {
     refresh();
@@ -81,23 +82,23 @@ export default function CoinSnapshotSection({
       setHistory([]);
       return;
     }
-    setHistory(listSnapshots(viewChar) as CoinSnapshot[]);
-  }, [viewChar, trackedChars]);
+    setHistory(store.listSnapshots(viewChar) as StatSnapshot[]);
+  }, [viewChar, trackedChars, store]);
 
   const canSave =
     !!state &&
     state.charIndex !== null &&
-    state.totalCoin !== null &&
+    state.total !== null &&
     !!state.save;
 
   function onSave() {
     if (!canSave || !state || !state.save) return;
     try {
-      const flat = flattenTree(state.coinTree);
+      const flat = flattenTree(state.tree);
       const nodeCount = Object.keys(flat).length;
-      const snap = buildCoinSnapshot(state.save, state.charIndex!, state.totalCoin!, state.mapLabel, nodeCount > 0 ? flat : undefined);
-      addSnapshot(snap);
-      setNotice(`Snapshot saved for ${snap.charName} — Coin Multi ${formatCoinMulti(snap.computedCoinMulti)}x on ${state.mapLabel}${nodeCount > 0 ? ` (${nodeCount} tree nodes captured)` : ""}`);
+      const snap = store.buildSnapshot(state.save, state.charIndex!, state.total!, state.mapLabel, nodeCount > 0 ? flat : undefined);
+      store.addSnapshot(snap);
+      setNotice(`Snapshot saved for ${snap.charName} — ${config.statName} ${config.formatTotal(snap.value)}x on ${state.mapLabel}${nodeCount > 0 ? ` (${nodeCount} tree nodes captured)` : ""}`);
       refresh();
       setViewChar(snap.charName);
     } catch (e) {
@@ -107,7 +108,7 @@ export default function CoinSnapshotSection({
 
   /** Toggle this snapshot as the delta baseline for the detailed tree.
    *  Click again to clear. Re-selecting a different snap swaps the baseline. */
-  function onPickBaseline(snap: CoinSnapshot) {
+  function onPickBaseline(snap: StatSnapshot) {
     if (!onSelectBaseline) return;
     if (selectedBaselineAt === snap.capturedAt) {
       onSelectBaseline(null);
@@ -128,23 +129,23 @@ export default function CoinSnapshotSection({
 
   function onClear(charName: string) {
     if (!confirm(`Erase all snapshots for ${charName}?`)) return;
-    clearChar(charName);
+    store.clearChar(charName);
     refresh();
   }
 
   function onDel(charName: string, ts: number) {
-    deleteSnapshot(charName, ts);
-    setHistory(listSnapshots(charName) as CoinSnapshot[]);
+    store.deleteSnapshot(charName, ts);
+    setHistory(store.listSnapshots(charName) as StatSnapshot[]);
     refresh();
   }
 
   function onExport() {
-    const text = exportAllAsJson();
+    const text = store.exportAllAsJson();
     const blob = new Blob([text], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `coin-multi-snapshots-${new Date().toISOString().slice(0, 10)}.json`;
+    a.download = `${config.storage.exportPrefix}-${new Date().toISOString().slice(0, 10)}.json`;
     a.click();
     URL.revokeObjectURL(url);
   }
@@ -154,7 +155,7 @@ export default function CoinSnapshotSection({
     if (!f) return;
     const reader = new FileReader();
     reader.onload = () => {
-      const res = importFromJson(String(reader.result ?? ""));
+      const res = store.importFromJson(String(reader.result ?? ""));
       setNotice(
         res.ok
           ? `Imported ${res.snapshotsImported} snapshots across ${res.charsImported} chars.`
@@ -168,7 +169,7 @@ export default function CoinSnapshotSection({
   // Aggregate count across all tracked chars so the collapsed header can
   // surface "47 snapshots across 3 chars" without expanding.
   const totalSnaps = trackedChars.reduce(
-    (a, n) => a + listSnapshots(n).length,
+    (a, n) => a + store.listSnapshots(n).length,
     0
   );
 
@@ -258,7 +259,7 @@ export default function CoinSnapshotSection({
                   >
                     {n}{" "}
                     <span className="opacity-60">
-                      ({listSnapshots(n).length})
+                      ({store.listSnapshots(n).length})
                     </span>
                   </button>
                 ))}
@@ -275,6 +276,7 @@ export default function CoinSnapshotSection({
               {viewChar && history.length > 0 ? (
                 <HistoryTable
                   history={history}
+                  statName={config.statName}
                   onDelete={(t) => onDel(viewChar, t)}
                   onPickBaseline={onPickBaseline}
                   selectedBaselineAt={selectedBaselineAt ?? null}
@@ -294,13 +296,15 @@ export default function CoinSnapshotSection({
 
 function HistoryTable({
   history,
+  statName,
   onDelete,
   onPickBaseline,
   selectedBaselineAt,
 }: {
-  history: CoinSnapshot[];
+  history: StatSnapshot[];
+  statName: string;
   onDelete: (ts: number) => void;
-  onPickBaseline: (snap: CoinSnapshot) => void;
+  onPickBaseline: (snap: StatSnapshot) => void;
   selectedBaselineAt: number | null;
 }) {
   const rows = [...history].reverse();
@@ -310,7 +314,7 @@ function HistoryTable({
         <thead>
           <tr className="text-left text-xs uppercase tracking-wider text-zinc-500 border-b border-zinc-800">
             <th className="px-2 py-2">Captured</th>
-            <th className="px-2 py-2 text-right">Coin Multi</th>
+            <th className="px-2 py-2 text-right">{statName}</th>
             <th className="px-2 py-2 text-right">Δ</th>
             <th className="px-2 py-2 text-right">Map</th>
             <th className="px-2 py-2 text-center">Compare</th>
@@ -320,13 +324,13 @@ function HistoryTable({
         <tbody>
           {rows.map((s, i) => {
             const prev = rows[i + 1];
-            const cur = s.computedCoinMulti;
-            const prevVal = prev?.computedCoinMulti;
+            const cur = s.value;
+            const prevVal = prev?.value;
             const rawDelta =
               prevVal !== undefined && prevVal > 0 && Number.isFinite(prevVal)
                 ? (cur / prevVal - 1) * 100
                 : null;
-            // An imported snapshot without computedCoinMulti (or any other
+            // An imported snapshot without a value (or any other
             // non-finite input) must read like "no previous row" (—), not
             // fall through to the render's "0" (unchanged) branch.
             const delta = rawDelta !== null && Number.isFinite(rawDelta) ? rawDelta : null;
@@ -346,7 +350,7 @@ function HistoryTable({
                   </div>
                 </td>
                 <td className="px-2 py-2 text-right font-mono text-gold">
-                  <Num value={s.computedCoinMulti} unit="x" />
+                  <Num value={s.value} unit="x" />
                 </td>
                 <td className="px-2 py-2 text-right font-mono text-xs">
                   {delta === null ? (

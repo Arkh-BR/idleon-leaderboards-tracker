@@ -4,16 +4,11 @@
 // the `coin` system (systems/coin/coin.ts); a group's shape lives here:
 //   pct → 1 + Σ/100      raw → 1 + Σ      min4 → 1 + min(4, Σ)
 
-import type { ArkhNode } from "../../node";
-import type { Descriptor, SourceSpec } from "../tree-builder";
+import type { Descriptor } from "../tree-builder";
+import { groupedDescriptor, groupFactorOf, type StatGroup } from "./grouped";
 
 export type CoinGroupKind = "pct" | "raw" | "min4";
-export type CoinGroup = {
-  key: string;
-  name: string;
-  kind: CoinGroupKind;
-  sources: readonly string[];
-};
+export type CoinGroup = StatGroup & { kind: CoinGroupKind };
 
 export const COIN_ROOT = "Coin Multi";
 
@@ -54,40 +49,16 @@ export const COIN_GROUPS: readonly CoinGroup[] = [
 ];
 
 export function groupFactor(kind: CoinGroupKind, sum: number): number {
-  if (kind === "pct") return 1 + sum / 100;
-  if (kind === "raw") return 1 + sum;
-  return 1 + Math.min(4, sum);
+  return groupFactorOf({ kind }, [sum]);
 }
 
-const KIND_NOTE: Record<CoinGroupKind, string> = {
-  pct: "× (1 + Σ/100)",
-  raw: "× (1 + Σ)",
-  min4: "× (1 + min(4, Σ))",
-};
-
-const pools: Record<string, SourceSpec[]> = {};
-for (const g of COIN_GROUPS) {
-  pools[g.key] = g.sources.map((id) => ({ system: "coin", id }));
-}
-
-const coinMultiDesc: Descriptor = {
+const coinMultiDesc: Descriptor = groupedDescriptor({
   id: "coin-multi",
   name: COIN_ROOT,
   scope: "character+map",
   category: "economy",
-  pools,
-  combine(p) {
-    let total = 1;
-    const children: ArkhNode[] = [];
-    for (const g of COIN_GROUPS) {
-      const items = p[g.key]?.items ?? [];
-      const sum = items.reduce((a, it) => a + (Number(it.val) || 0), 0);
-      const factor = groupFactor(g.kind, sum);
-      total *= factor;
-      children.push({ name: g.name, val: factor, fmt: "x", note: KIND_NOTE[g.kind], children: items });
-    }
-    return { val: total, children };
-  },
-};
+  system: "coin",
+  groups: COIN_GROUPS,
+});
 
 export default coinMultiDesc;

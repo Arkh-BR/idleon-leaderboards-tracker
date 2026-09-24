@@ -42,13 +42,19 @@ export const holes = {
     if (!hd) return node("Hole: " + id, 0);
 
     // Standard upgrades: multi × Holes[11][dataIdx] if building constructed.
-    // Cavern upgrades have friendly names baked into holesBuildings (IT data):
+    // Cavern upgrades have friendly names from N.js's HolesBuildings[buildIdx][0]
+    // (customlists.js, "_" → " "):
     //   upg46 → "Gloomie Lootie" (+5% DR per Gloomie Mushroom colony cleared)
     //   upg82 → "Sanctum of LOOT" (+20% DR per Sanctum cleared)
-    // Use those as the primary label and keep the cavern id as the tag.
+    //   upg47 → "Gloomie Expie" (+25% Class EXP per Gloomie Mushroom colony cleared)
+    //   upg83 → "Sanctum of EXP" (+40% Class EXP per Sanctum cleared)
+    // Use those as the primary label and keep the cavern id as the tag. DR only
+    // reads 46/82 (below) — 47/83 are additive, for the EXP Multi page only.
     const CAVERN_UPGRADE_NAMES: Record<string, string> = {
       upg46: "Gloomie Lootie",
       upg82: "Sanctum of LOOT",
+      upg47: "Gloomie Expie",
+      upg83: "Sanctum of EXP",
     };
     const data = HOLE_DATA[id];
     if (data) {
