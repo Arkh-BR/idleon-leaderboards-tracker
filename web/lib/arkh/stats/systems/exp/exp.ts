@@ -133,10 +133,9 @@ function arrCount(v: unknown): number {
   return 0;
 }
 
-// N.js x._customBlock_ExpMulti(0) — the snapshot key is the underscore-led
-// "_customBlock_ExpMulti", which the registry guard's regex can't capture
-// (it requires a letter first); per-case @njs tags below cite the specific
-// sub-formula each case ports instead, where one is separately named.
+// @njs _customBlock_ExpMulti
+// N.js x._customBlock_ExpMulti(0) — per-case @njs tags below cite the
+// specific sub-formula each case ports instead, where one is separately named.
 function resolveExp(id: string, ctx: SystemCtx): ArkhNode {
   const s = ctx.saveData;
   const ci = ctx.charIdx;

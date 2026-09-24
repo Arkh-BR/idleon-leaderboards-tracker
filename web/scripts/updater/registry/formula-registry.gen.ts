@@ -160,5 +160,20 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   ],
   "ZenithMarketBonus": [
     "lib/arkh/stats/systems/exp/exp.ts"
+  ],
+  "_customBlock_AFKgainrates": [
+    "lib/arkh/stats/systems/afk/afk.ts"
+  ],
+  "_customBlock_Companions": [
+    "lib/arkh/stats/data/common/companions.ts"
+  ],
+  "_customBlock_ExpMulti": [
+    "lib/arkh/stats/systems/exp/exp.ts"
+  ],
+  "_customBlock_Holes2": [
+    "lib/arkh/stats/systems/afk/afk.ts"
+  ],
+  "_customBlock_JellyOperation": [
+    "lib/arkh/stats/data/w7/jelly.ts"
   ]
 };

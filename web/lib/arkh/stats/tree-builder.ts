@@ -27,7 +27,7 @@ export type Descriptor = {
   combine(
     pools: Record<string, Pool>,
     ctx: SystemCtx
-  ): { val: number; children: ArkhNode[] };
+  ): { val: number; children: ArkhNode[]; note?: string };
 };
 
 /** Resolve every source in each pool and return the pools (items + sum +
@@ -90,5 +90,6 @@ export function buildTree(
     // formatVal's default thousands collapse.
     fmt: "x",
     children: result.children,
+    ...(result.note ? { note: result.note } : {}),
   };
 }
