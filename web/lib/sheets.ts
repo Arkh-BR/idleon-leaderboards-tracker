@@ -153,17 +153,17 @@ export const communityTools: SheetLink[] = [
   },
   {
     name: "Arcanist Drops",
-    url: "https://codepen.io/NotArkh/pen/MYwLmPz",
+    url: "https://codepen.io/NotCorgan/pen/MYwLmPz",
     description:
       "Shows each item's drop status based on your Arcanist upgrade Quality %.",
-    author: "Arkh",
+    author: "Corgan",
   },
   {
-    name: "Idleon Research Optimizer",
-    url: "https://arkh.github.io/idleon-research-optimizer",
+    name: "Corgan Tools",
+    url: "https://corgan.github.io/idleon-research-optimizer/",
     description:
-      "Plans and optimizes your research strategy — part of Arkh's Idleon Builds calculators.",
-    author: "Arkh",
+      "Idleon Builds — calculators and optimizers for cogs, statues, sailing, farming, research and more.",
+    author: "Corgan",
   },
   {
     name: "Idleon Daily Checklist",
