@@ -44,6 +44,17 @@ describe("Multikill page config", () => {
     const top = await MULTIKILL_PAGE.loadTop();
     expect(Object.keys(top.flatForClass(null)).length).toBeGreaterThan(0);
   });
+
+  it("loadTop drops the tier's and status's diagnostic children, keeps the values themselves", async () => {
+    const top = await MULTIKILL_PAGE.loadTop();
+    const flat = top.flatForClass(null);
+    expect(flat[`${MK_ROOT} / ${MK_NODES.tier}`]).toBe(51);
+    expect(flat[`${MK_ROOT} / ${MK_NODES.active}`]).toBe(1);
+    for (const path of Object.keys(flat)) {
+      expect(path.startsWith(`${MK_ROOT} / ${MK_NODES.tier} / `)).toBe(false);
+      expect(path.startsWith(`${MK_ROOT} / ${MK_NODES.active} / `)).toBe(false);
+    }
+  });
 });
 
 describe("Multikill what-if gains model (synthetic)", () => {
@@ -99,7 +110,9 @@ describe("Multikill what-if gains model (synthetic)", () => {
 
   it("the tier ranks against the reference below map 300, never in W7 (spec M12)", () => {
     const below = computeGains(multikillGainsModel, flatOf({ tier: 40 }), { [TIER]: 51 });
-    expect(below.rows.find((r) => r.source === MK_NODES.tier)).toMatchObject({ you: 40, max: 51, display: "raw" });
+    const tierRow = below.rows.find((r) => r.source === MK_NODES.tier);
+    expect(tierRow).toMatchObject({ you: 40, max: 51, display: "raw" });
+    expect(tierRow!.group).toContain("estimate"); // spec M17: below 51 is an estimate
     const w7 = computeGains(multikillGainsModel, flatOf(W7), { [TIER]: 51 });
     expect(w7.comparableSources).toBe(0);
     expect(w7.rows.map((r) => r.source)).toEqual(["+1 damage tier"]);
@@ -109,7 +122,7 @@ describe("Multikill what-if gains model (synthetic)", () => {
     const [lever] = multikillGainsModel.levers!(flatOf(W7));
     expect(lever).toMatchObject({ source: "+1 damage tier", you: 24, max: 25, display: "raw" });
     expect(lever.gainPct).toBeCloseTo((3313 / 3185 - 1) * 100, 9); // +4.0%
-    expect(lever.group).toBe("needs ×5 more max damage (next tier at 1.500E31)");
+    expect(lever.group).toBe("needs ×5 more max damage (next tier at 1.500E31) · estimate");
     expect(multikillGainsModel.levers!(flatOf())).toEqual([]);
   });
 

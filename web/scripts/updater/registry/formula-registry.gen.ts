@@ -221,6 +221,9 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   "_customBlock_JellyOperation": [
     "lib/arkh/stats/data/w7/jelly.ts"
   ],
+  "_customBlock_SaltLick": [
+    "lib/arkh/stats/systems/exp/saltLick.ts"
+  ],
   "_customBlock_StarSigns": [
     "lib/arkh/stats/systems/common/starSign.ts"
   ],
