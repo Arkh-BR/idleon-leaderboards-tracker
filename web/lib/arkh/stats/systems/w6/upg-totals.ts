@@ -4,45 +4,30 @@
 // Ported 1:1 from N.js _customBlock_Summoning/Windwalker/ArcaneType
 // "...UpgTotal" branches.
 
-import { GrimoireUpg, ArcaneUpg, CompassUpg, AtomInfo, MapDetails } from "../../data/game/customlists.js";
-import { optionsListData, numCharacters } from "../../../save/data";
+import { GrimoireUpg, ArcaneUpg, CompassUpg, AtomInfo, MapAFKtarget } from "../../data/game/customlists.js";
+import { MONSTERS } from "../../data/game/monsters.js";
+import { mapKillReq } from "../../data/common/maps";
+import { optionsListData, klaData } from "../../../save/data";
 import type { SaveData } from "../../../state";
 
-/** Count of fighting maps where total kills on that map's monster reach a
- *  threshold. N.js (TalentCalc Apocalypse loop): killsDone(map g) =
- *  MapDetails[g][0][0] − KLA[charIdx][g][0]. KLA[g][0] (kills-left-to-
- *  advance) goes deeply negative once you over-kill a map, so killsDone
- *  grows unbounded = lifetime kills. Skips maps with no kill target
- *  (MapDetails[g][0][0] <= 0). Used by the Apocalypse talents (110/146/209).
- *  NOTE: the in-game loop also gates on AFKtype==="FIGHTING"; we rely on the
- *  threshold instead (non-fighting maps have ~0 killsDone), which matches in
- *  practice. */
-export function apocalypseMapsOver(
-  s: SaveData,
-  charIdx: number,
-  threshold: number
-): number {
-  const kla = ((s as any).klaData || [])[charIdx] || [];
-  const md = MapDetails as any[];
+/** Count of FIGHTING maps whose monster the char killed ≥ threshold times.
+ *  N.js (TalentCalc Apocalypse loop, ~4451850): over the maps whose AFK
+ *  target is a monster, stopping at the char's KLA length, killsDone(g) =
+ *  MapDetails[g][0][0] − KLA[g][0]. KLA[g][0] (kills-left-to-advance) goes
+ *  negative once you over-kill a map, so killsDone is lifetime kills, also
+ *  on maps with no kill requirement. KLA lives in the save/data binding
+ *  (the loader never puts it on saveData). Used by the Apocalypse talents
+ *  (110/146/209). */
+export function apocalypseMapsOver(charIdx: number, threshold: number): number {
+  const kla = (klaData as any[])[charIdx] || [];
   let count = 0;
-  for (let g = 0; g < md.length; g++) {
-    const total = Number(md[g]?.[0]?.[0]) || 0;
-    if (total <= 0) continue;
-    const left = Number(kla[g]?.[0]) || 0;
-    if (total - left >= threshold) count++;
+  for (let g = 0; g < (MapAFKtarget as any[]).length; g++) {
+    const mon = (MONSTERS as any)[(MapAFKtarget as any[])[g]];
+    if (!mon) continue;
+    if (g >= kla.length) break;
+    if (mon.AFKtype === "FIGHTING" && mapKillReq(g) - (Number(kla[g]?.[0]) || 0) >= threshold) count++;
   }
   return count;
-}
-
-/** Best (max) apocalypseMapsOver across all chars — for the account-wide
- *  Apocalypse Wow (209), which the game reads off the top DK char. */
-export function apocalypseMapsOverBest(s: SaveData, threshold: number): number {
-  let best = 0;
-  for (let ci = 0; ci < numCharacters; ci++) {
-    const v = apocalypseMapsOver(s, ci, threshold);
-    if (v > best) best = v;
-  }
-  return best;
 }
 
 /** Σ Grimoire[0 .. GrimoireUpg.length] — total grimoire upgrade levels.

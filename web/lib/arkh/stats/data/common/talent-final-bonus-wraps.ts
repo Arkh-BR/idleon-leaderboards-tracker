@@ -859,8 +859,7 @@ export const TALENT_FINAL_BONUS_WRAPS: Record<number, TalentWrapSpec> = {
 
   // Tal 110 — Apocalypse Zow (Death Bringer, per-char).
   // N.js: GetTalentNumber(1,110) × CalcTalentMAP[110].
-  // [STUB COUNTER] CalcTalentMAP[110] = mob types killed >100k — needs the
-  // rift kill-tracker (unported), so the counter is 0 → emits inactive.
+  // CalcTalentMAP[110] = min(maps killed >100k, GetTalentNumber(2,110)).
   110: {
     counterLabel: "Mob Types Killed >100k",
     counterSource: { kind: "CalcTalent", talentId: 110 },
@@ -896,8 +895,7 @@ export const TALENT_FINAL_BONUS_WRAPS: Record<number, TalentWrapSpec> = {
 
   // Tal 146 — Apocalypse Chow (Death Bringer, per-char).
   // N.js: GetTalentNumber(1,146) × CalcTalentMAP[146].
-  // [STUB COUNTER] CalcTalentMAP[146] = mob types killed >1m — rift
-  // kill-tracker unported → counter 0 → inactive.
+  // CalcTalentMAP[146] = min(maps killed >1m, GetTalentNumber(2,146)).
   146: {
     counterLabel: "Mob Types Killed >1m",
     counterSource: { kind: "CalcTalent", talentId: 146 },
@@ -914,11 +912,10 @@ export const TALENT_FINAL_BONUS_WRAPS: Record<number, TalentWrapSpec> = {
   // Tal 209 — Apocalypse Wow (Death Bringer, account-wide).
   // N.js: GetTalentNumber(1,209) × CalcTalentMAP[209] (account-wide via
   // the DK char's kill tracker; talent.resolve emits max for id 209).
-  // [STUB COUNTER] mob types killed >1b — rift kill-tracker unported → 0.
   209: {
     counterLabel: "Mob Types Killed >1b",
     counterSource: { kind: "CalcTalent", talentId: 209 },
-    counterNote: "CalcTalentMAP[209] — best char's fighting maps with >1b lifetime kills",
+    counterNote: "CalcTalentMAP[209] — the Death Bringer's fighting maps with >1b lifetime kills",
     wrap: (tv, c) => tv * c,
     fmt: "+",
     noteForActive: (tv, c) => `${tv.toFixed(2)} × ${c} % gold food effect`,
@@ -929,16 +926,17 @@ export const TALENT_FINAL_BONUS_WRAPS: Record<number, TalentWrapSpec> = {
   },
 
   // Tal 305 — Looty Mc Shooty (per-char).
-  // N.js: GetTalentNumber(1,305) × CalcTalentMAP[305].
+  // N.js: GetTalentNumber(1,305) × CalcTalentMAP[305], which DamageDealed
+  // and the tooltip divide by 50 ("per 50 items").
   // CalcTalentMAP[305] = items ever found (Cards[1] minus Gem/Cards entries).
   305: {
     counterLabel: "Items Ever Found",
     counterSource: { kind: "CalcTalent", talentId: 305 },
     counterNote:
       "CalcTalentMAP[305] — count of Cards[1] entries (excl. Gem*/Cards*)",
-    wrap: (tv, c) => tv * c,
+    wrap: (tv, c) => (tv * c) / 50,
     fmt: "+",
-    noteForActive: (tv, c) => `${tv.toFixed(2)} × ${c} % damage`,
+    noteForActive: (tv, c) => `${tv.toFixed(2)} × ${c} / 50 % damage`,
     inactiveVal: 0,
     inactiveNote: (_tv, c) =>
       c <= 0 ? "Inactive — no items found" : "Inactive — talent 0",
@@ -963,7 +961,8 @@ export const TALENT_FINAL_BONUS_WRAPS: Record<number, TalentWrapSpec> = {
   },
 
   // Tal 470 — Paperwork, Great... (per-char).
-  // N.js: GetTalentNumber(1,470) × CalcTalentMAP[470].
+  // N.js: GetTalentNumber(1,470) × CalcTalentMAP[470], which DamageDealed
+  // and the tooltip divide by 10 ("per 10 stamps").
   // CalcTalentMAP[470] = stamps in collection (StampLevelMAX>0.5).
   // [PROXY COUNTER] we count StampLv>0 (raw save lacks StampLevelMAX).
   470: {
@@ -971,9 +970,9 @@ export const TALENT_FINAL_BONUS_WRAPS: Record<number, TalentWrapSpec> = {
     counterSource: { kind: "CalcTalent", talentId: 470 },
     counterNote:
       "CalcTalentMAP[470] — [PROXY] count StampLv>0 (StampLevelMAX unported)",
-    wrap: (tv, c) => tv * c,
+    wrap: (tv, c) => (tv * c) / 10,
     fmt: "+",
-    noteForActive: (tv, c) => `${tv.toFixed(2)} × ${c} % damage`,
+    noteForActive: (tv, c) => `${tv.toFixed(2)} × ${c} / 10 % damage`,
     inactiveVal: 0,
     inactiveNote: (_tv, c) =>
       c <= 0 ? "Inactive — no stamps" : "Inactive — talent 0",

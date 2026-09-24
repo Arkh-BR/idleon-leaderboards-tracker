@@ -47,7 +47,6 @@ import { ITEMS } from "../../data/game/items.js";
 import { MONSTERS } from "../../data/game/monsters.js";
 import {
   MapAFKtarget,
-  MapDetails,
   GrimoireUpg,
   AtomInfo,
 } from "../../data/game/customlists.js";
@@ -57,7 +56,6 @@ import {
   dreamData,
   divinityData,
   cauldronInfoData,
-  klaData,
   stampLvData,
   equipOrderData,
   equipQtyData,
@@ -379,16 +377,17 @@ export function computeMaxDamage(charIdx: number, ctx: Ctx): number {
         : 0;
     const _starWP = computeStarSignBonus("WepPow", ci, s);
     const _arc17 = rval(arcade, 17, ctx);
-    // Skill-based WP talents
+    // Skill-based WP talents: bare GetTalentNumber × counter (N.js
+    // TotalStats("Weapon_Power")), not the wrapped final bonus.
     const _lv0 = (s.lv0AllData as any) && (s.lv0AllData as any)[ci];
-    const _t530 = rval(talent, 530, ctx) * Math.floor((Number(_lv0 && _lv0[12]) || 0) / 10);
-    const _t140 = rval(talent, 140, ctx) * Math.floor((Number(_lv0 && _lv0[10]) || 0) / 10);
-    const _t170 = rval(talent, 170, ctx) * Math.floor((Number(_lv0 && _lv0[15]) || 0) / 10);
-    const _t320 = rval(talent, 320, ctx) * Math.floor((Number(_lv0 && _lv0[13]) || 0) / 10);
-    const _t500 = rval(talent, 500, ctx) * Math.floor((Number(_lv0 && _lv0[14]) || 0) / 10);
+    const _t530 = gtn(530, ctx) * Math.floor((Number(_lv0 && _lv0[12]) || 0) / 10);
+    const _t140 = gtn(140, ctx) * Math.floor((Number(_lv0 && _lv0[10]) || 0) / 10);
+    const _t170 = gtn(170, ctx) * Math.floor((Number(_lv0 && _lv0[15]) || 0) / 10);
+    const _t320 = gtn(320, ctx) * Math.floor((Number(_lv0 && _lv0[13]) || 0) / 10);
+    const _t500 = gtn(500, ctx) * Math.floor((Number(_lv0 && _lv0[14]) || 0) / 10);
     const _petStored02 =
       Number((s.petsStoredData as any) && (s.petsStoredData as any)[0] && (s.petsStoredData as any)[0][2]) || 0;
-    const _t365 = rval(talent, 365, ctx) * getLOG(Math.max(1, _petStored02));
+    const _t365 = gtn(365, ctx) * getLOG(Math.max(1, _petStored02));
     // TalentCalc(616): min(GTN(1,616), floor(maxBeginnerLv / 10))
     let _tc616 = 0;
     try {
@@ -550,8 +549,8 @@ export function computeMaxDamage(charIdx: number, ctx: Ctx): number {
   const farmRank14 = safe(farmRankUpgBonus, 14, ci, s);
   const statue22 = safe(computeStatueBonusGiven, 22, ci, s);
   const talent113 = rval(talent, 113, ctx);
-  const talent86 = rval(talent, 86, ctx);
-  const talent446 = rval(talent, 446, ctx);
+  const talent86 = gtn(86, ctx); // × log10(HP) below, as in N.js
+  const talent446 = gtn(446, ctx); // × log10(MP) below
   const hpLog = getLOG(Math.max(hpMax, 1));
   const mpLog = getLOG(Math.max(mpMax, 1));
   const rooBonus4 = safe(computeRooBonus, 4, s);
@@ -602,22 +601,17 @@ export function computeMaxDamage(charIdx: number, ctx: Ctx): number {
       : 0;
   talentChainSum += bUpg57;
   // T290 * floor(min(speed-1, 10) / 0.15)
-  const talent290 = rval(talent, 290, ctx);
+  const talent290 = gtn(290, ctx);
   const _spdClamp = Math.min(playerSpeed - 1, 10);
   talentChainSum += talent290 * Math.floor(_spdClamp / 0.15);
-  // TalentCalc(656): GTN(1,656) * count(dream challenges WeeklyBoss["d_"+i]==-1)
-  let _dreamCount = 0;
-  const _wb = (s as any).weeklyBossData;
-  if (_wb) for (let _di = 0; _di < 100; _di++) if (Number(_wb["d_" + _di]) === -1) _dreamCount++;
-  const tc656 = rval(talent, 656, ctx) * _dreamCount;
-  talentChainSum += tc656;
+  talentChainSum += tc[656]; // TalentCalc(656)
   // LOG(OLA[161]) * T649
   const ola161 = Number((optionsListData as any)[161]) || 0;
-  const talent649 = rval(talent, 649, ctx);
+  const talent649 = gtn(649, ctx);
   talentChainSum += getLOG(ola161) * talent649;
   // LOG(OLA[71]) * T638
   const ola71 = Number((optionsListData as any)[71]) || 0;
-  const talent638 = rval(talent, 638, ctx);
+  const talent638 = gtn(638, ctx);
   talentChainSum += getLOG(ola71) * talent638;
   // min(TotalQuestsComplete, T658)
   const talent658 = rval(talent, 658, ctx);
@@ -626,7 +620,7 @@ export function computeMaxDamage(charIdx: number, ctx: Ctx): number {
   // DivinityMinor(ci, 7)  [STUB]
   talentChainSum += safe(computeDivinityMinor, ci, 7, s);
   // T463 * floor(minigameHiScore[0] / 25)
-  const talent463 = rval(talent, 463, ctx, { tab: 2 });
+  const talent463 = gtn(463, ctx, { tab: 2 });
   let minigameHS = 0;
   try {
     const _mhArr = (s as any).minigameHiscores || ((s as any).data && (s as any).data.FamValMinigameHiscores);
@@ -650,8 +644,10 @@ export function computeMaxDamage(charIdx: number, ctx: Ctx): number {
   if (pctMult > 1e8) pctMult = 1e8 * Math.pow(pctMult / 1e8, 0.3);
 
   // === DDL[2]: Big multiplier group ===
-  const t508 = rval(talent, 508, ctx, { mode: "max", tab: 1 });
-  const t208 = rval(talent, 208, ctx, { mode: "max", tab: 1 });
+  // WorkbenchStuff("AdditionExtraDMG"): getbonus2(1,id,-1) is the per-log
+  // coefficient; the wrapped value is already the 1 + … × log10 multiplier.
+  const t508 = gtn(508, ctx, { mode: "max", tab: 1 });
+  const t208 = gtn(208, ctx, { mode: "max", tab: 1 });
   const ola152 = Number((optionsListData as any)[152]) || 0;
   const ola329 = Number((optionsListData as any)[329]) || 0;
   let wbDmg = (1 + (t508 * getLOG(ola152)) / 100) * (1 + (t208 * getLOG(ola329)) / 100);
@@ -965,35 +961,21 @@ export function computeMaxDamage(charIdx: number, ctx: Ctx): number {
 // --------------------------------------------------------------------------
 // DamageDealed's TalentCalc terms (N.js offset ~4093000): TalentCalc(31) +
 // TalentCalc(110) + GTN(1,125)·TalentCalc(125) + TalentCalc(485) +
-// TalentCalc(305)/50 + TalentCalc(470)/10, where TalentCalc(id) =
-// GTN(1,id) × CalcTalentMAP[id] (TalentCalc(125) is its counter alone).
-// Exported so tests can pin each term.
+// TalentCalc(305)/50 + TalentCalc(470)/10 + TalentCalc(656), where
+// TalentCalc(id) = GTN(1,id) × CalcTalentMAP[id] (TalentCalc(125) is its
+// counter alone). Exported so tests can pin each term.
 // --------------------------------------------------------------------------
 export function talentCalcTerms(ci: number, ctx: Ctx): Record<number, number> {
-  // talent.resolve already returns 31/125/305 as GTN(1,id) × their counter
-  // (the final-bonus wraps), so no counter goes on top here.
+  // talent.resolve already returns 31/110/125/305/656 as GTN(1,id) × their
+  // counter (the final-bonus wraps; 305's carries the /50), so no counter
+  // goes on top here.
   const tc31 = rval(talent, 31, ctx); // GTN × floor(lowest skill LV / 5)
+  const tc110 = rval(talent, 110, ctx); // GTN × min(maps over 100k kills, GTN(2,110))
   const tc125 = rval(talent, 125, ctx); // GTN × Σ Refinery ranks, accuracy-gated
-  const tc305 = rval(talent, 305, ctx) / 50; // GTN × items ever found, /50
-  // 110/470/485 apply their own counter to the bare GTN: calcTalent.ts
-  // miscounts these (110 reads KLA off saveData, which never carries it;
-  // 470/485 count the save envelope's "length" key).
-  // TalentCalc(110): GTN(1,110) * min(monstersOver100K, GTN(2,110))
-  const _gtn1_110 = gtn(110, ctx);
-  const _gtn2_110 = gtn(110, ctx, { tab: 2 });
-  let _monstersOver100K = 0;
-  if (_gtn1_110 > 0) {
-    const _kla = (klaData as any)[ci] || [];
-    for (let _mi = 0; _mi < (MapAFKtarget as any).length; _mi++) {
-      const _mob = (MapAFKtarget as any)[_mi];
-      if (!_mob || _mob === "Nothing" || _mob === "Z" || _mob === "Filler") continue;
-      const _killReq =
-        Number((MapDetails as any)[_mi] && (MapDetails as any)[_mi][0] && (MapDetails as any)[_mi][0][0]) || 0;
-      const _klaVal = Number(_kla[_mi] && _kla[_mi][0]) || 0;
-      if (_killReq - _klaVal >= 100000) _monstersOver100K++;
-    }
-  }
-  const tc110 = _gtn1_110 * Math.min(_monstersOver100K, _gtn2_110);
+  const tc305 = rval(talent, 305, ctx); // GTN × items ever found / 50
+  const tc656 = rval(talent, 656, ctx); // GTN × dream clouds completed
+  // 470/485 apply their own counter to the bare GTN: calcTalent.ts counts
+  // the save envelope's "length" key for these.
   // TalentCalc(485): GTN(1,485) * count(vials with lv > 3)
   let _vialCount = 0;
   const _ci4 = cauldronInfoData && (cauldronInfoData as any)[4];
@@ -1024,7 +1006,7 @@ export function talentCalcTerms(ci: number, ctx: Ctx): Record<number, number> {
       }
     }
   const tc470 = (gtn(470, ctx) * _stampCount) / 10;
-  return { 31: tc31, 110: tc110, 125: tc125, 485: tc485, 305: tc305, 470: tc470 };
+  return { 31: tc31, 110: tc110, 125: tc125, 485: tc485, 305: tc305, 470: tc470, 656: tc656 };
 }
 
 // --------------------------------------------------------------------------

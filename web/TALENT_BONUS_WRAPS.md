@@ -184,7 +184,7 @@ All faithful ports of corgan-source defs/systems, reusing each other.
 - **upg-totals.ts**: `grimoireUpgTotal`, `arcaneUpgTotal`, `compassUpgTotal`
   (note: Compass save is NESTED — sum `Compass[0][i]`), `totBreedzWWz`,
   `statueOnyxOwned`, `invStorageOwned`, `atomBonus1`, `totalTitanKills`,
-  `apocalypseMapsOver`/`apocalypseMapsOverBest`.
+  `apocalypseMapsOver`.
 
 ---
 
@@ -193,7 +193,7 @@ All faithful ports of corgan-source defs/systems, reusing each other.
 | Talent(s) | System ported | Counter formula |
 |---|---|---|
 | 101/131/295/311/461/476 | inventory rollup | `invStorageOwned(item)` = Σ qty in all chars' `InventoryOrder_N/ItemQTY_N` + `ChestOrder/ChestQuantity` |
-| 110/146/209 (Apocalypse) | rift kill-tracker | `killsDone(map g) = MapDetails[g][0][0] − KLA[charIdx][g][0]` (KLA goes negative on over-kill = lifetime kills); count maps ≥ 1e5/1e6/1e9; 110/146 capped by GTN(2,id) |
+| 110/146/209 (Apocalypse) | rift kill-tracker | `killsDone(map g) = MapDetails[g][0][0] − KLA[charIdx][g][0]` (KLA, from the `save/data` binding, goes negative on over-kill = lifetime kills); count FIGHTING maps ≥ 1e5/1e6 on the active char (110/146, capped by GTN(2,id) at the effective LV) and ≥ 1e9 on the last Death-Bringer-line char (209) |
 | 643 (Coins For Charon) | max-damage engine | overkill tier = log_okExp(maxDmg / monsterHP), 1..50; okExp = currentMap≥300 ? 5 : 2 |
 | 290 (Speedna) | move speed | `min(1000, 100×(computePlayerSpeed−1))` |
 | 125 (Precision Power) | accuracy engine | `Σ Refinery[3+g][1] (g=0..5)` IF `computeAccuracy ≥ 2.25 × MONSTERS[MapAFKtarget[currentMap]].Defence` else 0 |
