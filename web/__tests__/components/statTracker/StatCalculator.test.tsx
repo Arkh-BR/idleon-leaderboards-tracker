@@ -24,6 +24,7 @@ import StatCalculator from "@/components/statTracker/StatCalculator";
 import { testConfig } from "./testConfig";
 import { EXP_PAGE } from "@/lib/expMulti/pageConfig";
 import { COIN_PAGE } from "@/lib/coinMulti/pageConfig";
+import type { StatPageConfig } from "@/lib/statTracker/config";
 
 const save = () => ({
   charNames: ["Alpha", "Beta"],
@@ -103,5 +104,25 @@ describe("StatCalculator", () => {
     render(<StatCalculator config={COIN_PAGE} />);
     expect(loader!.storageKey).toBe("coin-multi-tracker.playerName");
     expect(screen.getByText(/Coin Multi Calculator/)).toBeInTheDocument();
+  });
+
+  it("prints a % stat's headline in its unit, with the percent as the title", async () => {
+    const tree = { name: "Test Multi", val: 422.31870591798446, fmt: "x" as const, children: [] };
+    const pct: StatPageConfig = {
+      ...testConfig,
+      unit: "%",
+      formatTotal: (x) => String(Math.floor(100 * x)),
+      compute: async () => ({ tree, total: tree.val }),
+    };
+    render(<StatCalculator config={pct} />);
+    act(() => loader!.onSave(save()));
+    expect(await screen.findByText("42231%")).toHaveAttribute("title", "42231.87%");
+  });
+
+  it("keeps the multiplier unit by default", async () => {
+    const tree = { name: "Test Multi", val: 12.5, fmt: "x" as const, children: [] };
+    render(<StatCalculator config={{ ...testConfig, compute: async () => ({ tree, total: 12.5 }) }} />);
+    act(() => loader!.onSave(save()));
+    expect(await screen.findByText("12.50x")).toHaveAttribute("title", "1.250000e+1x");
   });
 });

@@ -37,6 +37,7 @@ export default function StatSnapshotSection({
     () => createSnapshotStore(config.storage.snapshots, config.storage.exportLabel, config.storage.legacyValueKey),
     [config]
   );
+  const unit = config.unit ?? "x";
   const [trackedChars, setTrackedChars] = useState<string[]>([]);
   const [viewChar, setViewChar] = useState<string | null>(null);
   const [history, setHistory] = useState<StatSnapshot[]>([]);
@@ -98,7 +99,7 @@ export default function StatSnapshotSection({
       const nodeCount = Object.keys(flat).length;
       const snap = store.buildSnapshot(state.save, state.charIndex!, state.total!, state.mapLabel, nodeCount > 0 ? flat : undefined);
       store.addSnapshot(snap);
-      setNotice(`Snapshot saved for ${snap.charName} — ${config.statName} ${config.formatTotal(snap.value)}x on ${state.mapLabel}${nodeCount > 0 ? ` (${nodeCount} tree nodes captured)` : ""}`);
+      setNotice(`Snapshot saved for ${snap.charName} — ${config.statName} ${config.formatTotal(snap.value)}${unit} on ${state.mapLabel}${nodeCount > 0 ? ` (${nodeCount} tree nodes captured)` : ""}`);
       refresh();
       setViewChar(snap.charName);
     } catch (e) {
@@ -277,6 +278,8 @@ export default function StatSnapshotSection({
                 <HistoryTable
                   history={history}
                   statName={config.statName}
+                  unit={unit}
+                  formatTotal={config.formatTotal}
                   onDelete={(t) => onDel(viewChar, t)}
                   onPickBaseline={onPickBaseline}
                   selectedBaselineAt={selectedBaselineAt ?? null}
@@ -297,12 +300,16 @@ export default function StatSnapshotSection({
 function HistoryTable({
   history,
   statName,
+  unit,
+  formatTotal,
   onDelete,
   onPickBaseline,
   selectedBaselineAt,
 }: {
   history: StatSnapshot[];
   statName: string;
+  unit: "x" | "%";
+  formatTotal: (x: number) => string;
   onDelete: (ts: number) => void;
   onPickBaseline: (snap: StatSnapshot) => void;
   selectedBaselineAt: number | null;
@@ -350,7 +357,11 @@ function HistoryTable({
                   </div>
                 </td>
                 <td className="px-2 py-2 text-right font-mono text-gold">
-                  <Num value={s.value} unit="x" />
+                  {unit === "%" ? (
+                    <span title={String(s.value)}>{formatTotal(s.value)}%</span>
+                  ) : (
+                    <Num value={s.value} unit="x" />
+                  )}
                 </td>
                 <td className="px-2 py-2 text-right font-mono text-xs">
                   {delta === null ? (
