@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import DeepView from "@/components/dropRate/DeepView";
 import {
+  defaultCharIndex,
   listCharacters,
   parseSave,
   type CharSummary,
@@ -339,8 +340,12 @@ export default function TalentsLevelPageClient() {
 
   // Apply an already-parsed save envelope. Shared by the paste path
   // (stageSave) and the load-by-name path (ProfileNameLoader.onSave).
+  // This page has no map to jump to, so unlike Drop Rate / Coin Multi it
+  // only needs `keepView` for the character pick: fresh load (sign-in,
+  // player name, paste) defaults to whoever's online now; a same-account
+  // resync (auto-update / Sync now, `keepView: true`) keeps the user's pick.
   const applyParsedSave = useCallback(
-    (parsed: any, opts: { silent?: boolean } = {}) => {
+    (parsed: any, opts: { silent?: boolean; keepView?: boolean } = {}) => {
       try {
         const list = listCharacters(parsed);
         if (list.length === 0) {
@@ -350,7 +355,11 @@ export default function TalentsLevelPageClient() {
         setSave(parsed);
         setChars(list);
         setCharIdx((prev) =>
-          list.some((c) => c.charIndex === prev) ? prev : list[0].charIndex
+          opts.keepView
+            ? list.some((c) => c.charIndex === prev)
+              ? prev
+              : list[0].charIndex
+            : defaultCharIndex(parsed, list)
         );
         setError(null);
         return true;
@@ -654,7 +663,7 @@ export default function TalentsLevelPageClient() {
       {/* Primary: load the save automatically by player name. */}
       <ProfileNameLoader
         storageKey={NAME_KEY}
-        onSave={(s) => applyParsedSave(s)}
+        onSave={(s, meta) => applyParsedSave(s, { keepView: meta?.refresh })}
         onError={(msg) => setError(msg)}
       >
         {/* Manual paste — fallback for private profiles, inside the card. */}

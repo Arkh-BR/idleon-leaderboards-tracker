@@ -21,6 +21,21 @@ const save = () => ({
   charNames: ["Alpha", "Beta"],
   data: { PVStatList_0: [1, 1, 1, 1, 100], PVStatList_1: [1, 1, 1, 1, 90], CurrentMap_0: 2, CurrentMap_1: 14 },
 });
+// Char 1 is "online now": lastUpdated is fresh and char 1's PTimeAway lands
+// right on it, while char 0's is 11h stale (see lib/dropRate/extract.ts).
+const onlineSave = () => {
+  const lastUpdated = Date.now();
+  const s = save();
+  return {
+    ...s,
+    lastUpdated,
+    data: {
+      ...s.data,
+      PTimeAway_0: (lastUpdated - 11 * 3_600_000) / 1_000_000,
+      PTimeAway_1: lastUpdated / 1_000_000,
+    },
+  };
+};
 const charSelect = () => screen.getAllByRole("combobox")[0] as HTMLSelectElement;
 const mapSelect = () => screen.getAllByRole("combobox")[1] as HTMLSelectElement;
 
@@ -39,6 +54,22 @@ describe("CoinCalculator", () => {
     expect(mapSelect().value).toBe("8");
     act(() => loader!.onSave(save()));
     expect(mapSelect().value).toBe("2");
+  });
+
+  it("a fresh load defaults to the character that's online now, and their map", () => {
+    render(<CoinCalculator />);
+    act(() => loader!.onSave(onlineSave()));
+    expect(charSelect().value).toBe("1");
+    expect(mapSelect().value).toBe("14");
+  });
+
+  it("a refresh keeps the user's switch away from the online character", () => {
+    render(<CoinCalculator />);
+    act(() => loader!.onSave(onlineSave()));
+    expect(charSelect().value).toBe("1");
+    fireEvent.change(charSelect(), { target: { value: "0" } });
+    act(() => loader!.onSave(onlineSave(), { refresh: true }));
+    expect(charSelect().value).toBe("0");
   });
 
   it("switching character jumps to that character's map", () => {

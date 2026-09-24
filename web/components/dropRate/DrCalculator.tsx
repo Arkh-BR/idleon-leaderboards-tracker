@@ -6,7 +6,7 @@ import {
   type MapOption,
 } from "@/lib/dropRate/arcaneBonus";
 import { formatIdleon } from "@/lib/format";
-import { listCharacters, parseSave, type CharSummary } from "@/lib/dropRate/extract";
+import { defaultCharIndex, listCharacters, parseSave, type CharSummary } from "@/lib/dropRate/extract";
 import { getCharClassKey } from "@/lib/talentsLevel/charClass";
 import DeepView, { type DeepViewExtraTab } from "./DeepView";
 import ProfileNameLoader from "@/components/ProfileNameLoader";
@@ -127,21 +127,23 @@ export default function DrCalculator({
         keepViewRef.current = !!opts.keepView;
         setSave(parsed);
         setChars(list);
+        // Fresh load: default to whoever's online now (else the first
+        // character). Refresh: keep today's logic (the previous char, if
+        // still present). Map fallback below uses the SAME character so the
+        // "jump to current map" effect can't override it with a different one.
+        const fallbackChar = opts.keepView
+          ? list.some((c) => c.charIndex === lastCharIdxRef.current)
+            ? lastCharIdxRef.current
+            : list[0].charIndex
+          : defaultCharIndex(parsed, list);
         setCharIdx((prev) =>
-          list.some((c) => c.charIndex === prev) ? prev : list[0].charIndex
+          opts.keepView ? (list.some((c) => c.charIndex === prev) ? prev : list[0].charIndex) : fallbackChar
         );
         const opts2 = buildMapOptions(parsed);
         setMapOptions(opts2);
         // Default to character's current map if available, else Town — unless
         // this is a refresh and the user's map is still on the list.
         const data = (parsed as any)?.data ?? {};
-        // On a refresh the map effect is skipped, so fall back to the selected
-        // character's current map; a fresh load keeps using the first character
-        // (the effect then re-derives it for whoever is selected).
-        const fallbackChar =
-          opts.keepView && list.some((c) => c.charIndex === lastCharIdxRef.current)
-            ? lastCharIdxRef.current
-            : list[0].charIndex;
         const currentMap = Number(data[`CurrentMap_${fallbackChar}`]) || 0;
         const fallback = opts2.some((m) => m.index === currentMap) ? currentMap : 0;
         setMapIdx((prev) =>

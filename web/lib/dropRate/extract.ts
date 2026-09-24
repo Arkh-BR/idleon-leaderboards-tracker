@@ -90,6 +90,48 @@ export function listCharacters(save: RawSave): CharSummary[] {
   return out;
 }
 
+// A save older than this isn't "the game is open right now" — no point
+// guessing who's active from a stale snapshot.
+const ONLINE_STALE_MS = 10 * 60 * 1000;
+// How close the leading character's last-activity timestamp must sit to
+// lastUpdated to trust it as "the one currently being played."
+const ONLINE_MATCH_MS = 5 * 60 * 1000;
+
+// Index (into charNames) of the character that is online right now, or null
+// if nobody is. data.PTimeAway_<ci> is the character's last-activity
+// timestamp in thousands of seconds (×1e6 = Unix ms, matching
+// save.lastUpdated's scale); the active character's value is refreshed
+// continuously while the others go stale. Rule verified against two real
+// saves: the active char's PTimeAway×1000 landed within seconds of
+// lastUpdated, the others sat ~11.7h earlier.
+export function onlineCharIndex(save: RawSave, now: number = Date.now()): number | null {
+  const lastUpdated = num(save.lastUpdated);
+  if (lastUpdated === null || now - lastUpdated > ONLINE_STALE_MS) return null;
+
+  const names = Array.isArray(save.charNames) ? (save.charNames as unknown[]) : [];
+  const data = save.data ?? {};
+  let bestIdx: number | null = null;
+  let bestAway = -Infinity;
+  for (let i = 0; i < names.length; i++) {
+    const away = num(data[`PTimeAway_${i}`]);
+    if (away === null || away <= bestAway) continue;
+    bestAway = away;
+    bestIdx = i;
+  }
+  if (bestIdx === null) return null;
+
+  const activityMs = bestAway * 1_000_000;
+  return Math.abs(activityMs - lastUpdated) <= ONLINE_MATCH_MS ? bestIdx : null;
+}
+
+// The character a calculator should default to on a fresh load: whoever's
+// online now (if still a listed character), else the first character.
+export function defaultCharIndex(save: RawSave, list: CharSummary[], now: number = Date.now()): number {
+  const online = onlineCharIndex(save, now);
+  if (online !== null && list.some((c) => c.charIndex === online)) return online;
+  return list[0].charIndex;
+}
+
 export function buildSnapshot(save: RawSave, charIndex: number): DropRateSnapshot {
   const chars = listCharacters(save);
   const ch = chars.find((c) => c.charIndex === charIndex);
