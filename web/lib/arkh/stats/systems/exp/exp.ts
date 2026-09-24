@@ -51,7 +51,7 @@ import { computeWinBonus } from "../w6/summoning";
 import { computeExoticBonus } from "../w6/farming";
 import { grimoireUpgBonus } from "../mc/grimoire";
 import { computeButtonBonus } from "../w7/button";
-import { divinityMinorSum } from "../coin/divinityMinor";
+import { divinityMinorFor } from "../coin/divinityMinor";
 import { votingMulti } from "../coin/coin";
 
 import { medallionList } from "./medallions";
@@ -431,9 +431,12 @@ function resolveExp(id: string, ctx: SystemCtx): ArkhNode {
       const val = level < 10 ? 150 : level < 30 ? 100 : level < 50 ? 50 : 0;
       return pct("Newbie Bracket", val, [raw("Class Level", level)]);
     }
-    // @njs Bonus_Minor — N.js Divinity("Bonus_Minor", playerIdx, 4)
+    // @njs Bonus_Minor — N.js Divinity("Bonus_Minor",
+    // GetPlayersUsernames.indexOf(UserInfo[0]), 4) — the ACTIVE character's
+    // own index, i.e. divinityMinorFor's single-player branch, not
+    // divinityMinorSum's roster-sum (-1) branch Coin's divMinor3 uses.
     case "divMinor4":
-      return pct("Divinity Minor Bonus (Class EXP)", divinityMinorSum(4, ci, s));
+      return pct("Divinity Minor Bonus (Class EXP)", divinityMinorFor(ci, 4, s));
     // N.js CardSetBonuses(0,"5") — same system+id already wired into DR (G7).
     case "cardSet5":
       return cardSet.resolve(5, ctx as any);

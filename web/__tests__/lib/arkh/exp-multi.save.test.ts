@@ -109,14 +109,32 @@ describe.skipIf(!existsSync(SAVE))("EXP Multi — Markhe on map 14 vs IdleonTool
     ["meals (Clexp, off — Lv0 ≥ 120)", () => src("mealClexp"), 0],
     // IT "Weekly Boss" 0.54 ×100.
     ["weekly boss (min(150, WeeklyBoss.c))", () => src("weeklyBoss"), 54],
-    // IT shows "God (Omniphau) 0.24457106984297908" (nonzero) — but reading
-    // this save's raw Divinity[12..23] (each character's linked god index)
-    // directly, no character on the account links a type-4 (Omniphau) god:
-    // types are {0,0,8,0,6,7,0,-1,2,0,-1,-1}. N.js only sums per-character
-    // LINKED gods for type 4 (not the "everyone" branch, which is type 3/5
-    // only), so 0 is what N.js gives here; treated as an IT-side gap/staleness
-    // per constraints ("IT lines are hints, not ground truth").
-    ["divinity minor 4 (Omniphau) — no character links it this save", () => src("divMinor4"), 0],
+    // N.js ExpMulti (@4241238) calls Divinity("Bonus_Minor",
+    // GetPlayersUsernames.indexOf(UserInfo[0]), 4) — the ACTIVE character's
+    // own index, i.e. the single-player branch (divinityMinorFor), NOT
+    // divinityMinorSum's roster-sum (-1) branch Coin's divMinor3 uses (fix
+    // round 1: was wrongly calling divinityMinorSum, which gave 0 here since
+    // no character links a type-4 god — see git history for that version).
+    // Reading the "Bonus_Minor" b!=-1 branch (@10684830+~1150) directly: its
+    // "everyone" override applies for ANY type when Companions(0)==1 (owned
+    // on this save), so it returns DivMinorBonus(charIdx, typeOfGod.indexOf(4)).
+    // typeOfGod.indexOf(4)=5 (Omniphau). Reading "DivMinorBonus" (@10688050)
+    // directly: max(1,AlchBubbles.Y2ACTIVE) × (1+CoralKidUpgBonus(3)/100) ×
+    // Lv0[14]/(60+Lv0[14]) × GodsInfo[GodsInfo[5][13]][3]. On this save:
+    // Y2ACTIVE=1.4987422438369948 (bubble 3/21 "BIG_P" via the all-bubbles
+    // companion), CoralKidUpgBonus(3)=OLA[430]=251, lv0AllData[markheIdx][14]
+    // =795, GodsInfo[GodsInfo[5][13]][3] = GodsInfo[4][3] = 100 (GodsInfo[4]
+    // is Goharut's row — its own text field literally reads "+{%_Class_EXP",
+    // confirming the double-indirection: a type-4 minor bonus's magnitude is
+    // sourced from GodsInfo[4], not Omniphau's own row 5). Product:
+    // 1.4987422438369948 × 3.51 × (795/855) × 100 = 489.14213968595817.
+    // IT's own "God (Omniphau)" line reads 0.24457106984297908 — exactly
+    // our value ÷2000 (not the ×100 relation every other cross-checked term
+    // here has); could not find a term in the verified N.js formula that
+    // explains that ratio (tried dropping Y2ACTIVE and/or the coral factor —
+    // neither lands on it), so treating this as an IT-side gap/different
+    // formula for this specific mechanic rather than changing the port.
+    ["divinity minor 4 (Omniphau), single-player Bonus_Minor branch", () => src("divMinor4"), 489.14213968595817],
     // IT "Card Set" 0.36 ×100 — same equipped-set semantics as cardSet12 (Task 2).
     ["card set 5 (Damage/Drop/EXP set)", () => src("cardSet5"), 36],
     // IT "Statue" 2256.924964211468 ×100 — no ÷100 here (EXP's whole G10 pool
