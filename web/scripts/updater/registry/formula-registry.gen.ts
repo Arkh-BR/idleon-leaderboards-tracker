@@ -124,6 +124,9 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   "RandoListo2[8]": [
     "lib/arkh/stats/systems/common/cookingMastery.ts"
   ],
+  "RecalcChipBonuses": [
+    "lib/arkh/stats/systems/w4/lab.ts"
+  ],
   "RoG_BonusQTY": [
     "lib/arkh/stats/data/w7/jelly.ts",
     "lib/arkh/stats/systems/exp/exp.ts"
@@ -175,5 +178,14 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   ],
   "_customBlock_JellyOperation": [
     "lib/arkh/stats/data/w7/jelly.ts"
+  ],
+  "_customBlock_StarSigns": [
+    "lib/arkh/stats/systems/common/starSign.ts"
+  ],
+  "_customBlock_chipBonuses": [
+    "lib/arkh/stats/systems/w4/lab.ts"
+  ],
+  "_customBlock_prayersReal": [
+    "lib/arkh/stats/systems/w3/prayer.ts"
   ]
 };

@@ -80,4 +80,13 @@ describe.skipIf(!existsSync(SAVE))("AFK Gains Rate — Markhe on map 14 vs Idleo
     ["cglunkoCove", 0],
     ["afkType", 1], // beanG is FIGHTING
   ])("%s", (id, expected) => close(src(id), expected));
+
+  it.each<[string, number]>([
+    // Signs 19 + 28 + 56 come from the unlocked range (enabled 245; 29 and 54
+    // are below it, so no penalty): 12 × Seraph 10.
+    ["starFightAFK", 120],
+    ["prayer4", 0],
+    ["curse12", -89], // Ruck Sack equipped, level 50: round(15 · 5.9)
+    ["chipFafk", 0],
+  ])("%s", (id, expected) => close(src(id), expected));
 });

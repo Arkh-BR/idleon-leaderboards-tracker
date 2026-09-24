@@ -32,6 +32,9 @@ import { computeArcaneMapMultiBon } from "../mc/tesseract";
 import { divinityMinorSum } from "../coin/divinityMinor";
 import { votingMulti } from "../coin/coin";
 import { compassBonus } from "../exp/compass";
+import { prayersReal } from "../w3/prayer";
+import { chipBonuses } from "../w4/lab";
+import { starSignBonusReal } from "../common/starSign";
 
 /** Class talents of the formula (per-character GetTalentNumber) — spec A10.
  *  621 (Tick Tock) and 650 (Rando Event Looty) are star talents of every class. */
@@ -97,16 +100,29 @@ function resolveAfk(id: string, ctx: SystemCtx): ArkhNode {
     case "etc20":
     case "etc59":
       return etcBonus.resolve(Number(id.slice(3)), { saveData: s, charIdx: ci });
-    case "starFightAFK":
-      return pending("Star signs (FightAFK)");
+    // N.js DNSM.StarSigns.FightAFK — the active-signs port (spec A4).
+    case "starFightAFK": {
+      const r = starSignBonusReal("FightAFK", ci, s);
+      return pct("Star signs (FightAFK)", r.val, r.children);
+    }
     case "guild4":
       return guild.resolve(4, tctx);
-    case "prayer4":
-      return pending(label("Prayer", 4));
-    case "curse12":
-      return pending("Ruck Sack curse (Prayer 12)");
+    // N.js prayersReal(4,0) — with the super-bit branch (spec A4).
+    case "prayer4": {
+      const r = prayersReal(4, 0, ci, s);
+      return pct(label("Prayer", 4), r.val, r.children);
+    }
+    // N.js −prayersReal(12,1): the Ruck Sack curse. Kept NEGATIVE (−89 on
+    // Markhe, Ruck Sack equipped at level 50) — prayersReal(12,1,…) itself
+    // returns 0 in the super-bit branch (cost===1 short-circuits), so this
+    // only differs from 0 through the equipped branch of computePrayerReal.
+    case "curse12": {
+      const r = prayersReal(12, 1, ci, s);
+      return pct("Ruck Sack curse (Prayer 12)", -r.val, r.children);
+    }
+    // N.js chipBonuses("fafk") — the active character's chips only.
     case "chipFafk":
-      return pending("Lab chip (fafk)");
+      return pct("Lab chip (fafk)", chipBonuses("fafk", ci));
     // N.js CardLv("w6d1") ×1.
     case "cardW6d1":
       return pct("Card w6d1 (Fighting AFK, passive)", computeCardLv("w6d1", s));

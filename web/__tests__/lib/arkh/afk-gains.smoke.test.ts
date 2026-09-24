@@ -10,7 +10,11 @@ import { FORMULA_REGISTRY } from "@/scripts/updater/registry/formula-registry.ge
 const g = globalThis as unknown as { window?: unknown };
 if (!g.window) g.window = g;
 
-const EMPTY = { charNames: ["A"], data: {} };
+// StarSg: {} is explicit because the arkh singleton only assigns
+// starSignsUnlocked when StarSg is present in the envelope (see
+// global-constraints.md); leaving it out would let starFightAFK read
+// whatever an earlier-loaded save left behind.
+const EMPTY = { charNames: ["A"], data: { StarSg: {} } };
 
 describe("AFK Gains smoke test", () => {
   it("resolves every source on an empty save; map 1 is the bare 40% base", () => {
@@ -44,7 +48,7 @@ describe("AFK Gains smoke test", () => {
     ola[643] = 33;
     const cove = (cavern: number, bundles: Record<string, number>) => ({
       charNames: ["A"],
-      data: { Holes: [[cavern]], OptLacc: ola, BundlesReceived: bundles },
+      data: { StarSg: {}, Holes: [[cavern]], OptLacc: ola, BundlesReceived: bundles },
     });
     // (10 + OLA[638]·RandoListo2[13][8] + OLA[643]·RandoListo2[13][13])/100 = (10 + 58·1 + 33·3)/100
     expect(computeArkhAfkGains(cove(17, { bun_u: 1 }), 0, 216).total).toBeCloseTo(1.67 * 1.3, 12);
