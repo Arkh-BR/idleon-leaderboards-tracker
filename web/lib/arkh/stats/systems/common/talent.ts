@@ -16,7 +16,6 @@ import {
   skillLvData,
   skillLvMaxData,
   cauldronInfoData,
-  cauldronBubblesData,
   optionsListData,
   playerStuffData,
   dreamData,
@@ -50,6 +49,7 @@ import { ClassNames } from "../../data/game/customlists.js";
 import { companionBonus } from "../../data/common/companions";
 import { companionChild } from "./companions";
 import { bubbleParams } from "../../data/w2/alchemy";
+import { isActiveBubbleOn } from "../w2/alchemy";
 import { equipSetBonus } from "../../data/common/equipment";
 import { godMinorX1 } from "../../data/w5/divinity";
 import { DIVINITY_MINOR_DENOM } from "../../data/game-constants";
@@ -739,8 +739,6 @@ export function computeAllTalentLVz(
     y2BubbleLv > 0
       ? formulaEval((y2bp as any).formula, (y2bp as any).x1, (y2bp as any).x2, y2BubbleLv)
       : 0;
-  const allBubblesActive =
-    saveData.companionIds && saveData.companionIds.has(4);
   let divMinor = 0;
   const coralKid3 = Number((optionsListData as any)?.[430]) || 0;
   if (ctxSlot >= 0 && hasBonusMajor(ctxSlot, 2, saveData)) {
@@ -748,10 +746,7 @@ export function computeAllTalentLVz(
       ((saveData as any).lv0AllData?.[ctxSlot] && (saveData as any).lv0AllData[ctxSlot][14]) ||
       0;
     if (divLv > 0) {
-      const includesY2 =
-        (cauldronBubblesData as any)[ctxSlot] &&
-        (cauldronBubblesData as any)[ctxSlot].includes("d21");
-      const y2Active = allBubblesActive || includesY2 ? y2Value : 0;
+      const y2Active = isActiveBubbleOn(ctxSlot, 3, 21, saveData) ? y2Value : 0;
       divMinor =
         Math.max(1, y2Active) *
         (1 + coralKid3 / 100) *
@@ -1376,8 +1371,6 @@ function resolveAllTalentLVz(
     y2BubbleLv > 0
       ? formulaEval((y2bp as any).formula, (y2bp as any).x1, (y2bp as any).x2, y2BubbleLv)
       : 0;
-  const allBubblesActive =
-    saveData.companionIds && saveData.companionIds.has(4);
   let divMinor = 0;
   const coralKid3 = Number((optionsListData as any)?.[430]) || 0;
   const godX1_2 = godMinorX1(2);
@@ -1389,10 +1382,7 @@ function resolveAllTalentLVz(
       0;
     divLvCaptured = divLv;
     if (divLv > 0) {
-      const includesY2 =
-        (cauldronBubblesData as any)[ctxSlot] &&
-        (cauldronBubblesData as any)[ctxSlot].includes("d21");
-      const y2Active = allBubblesActive || includesY2 ? y2Value : 0;
+      const y2Active = isActiveBubbleOn(ctxSlot, 3, 21, saveData) ? y2Value : 0;
       y2ActiveCaptured = y2Active;
       divMinor =
         Math.max(1, y2Active) *

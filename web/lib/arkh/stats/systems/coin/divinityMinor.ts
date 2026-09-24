@@ -9,10 +9,10 @@ import {
   optionsListData,
   numCharacters,
   cauldronInfoData,
-  cauldronBubblesData,
 } from "../../../save/data";
 import { formulaEval } from "../../../formulas";
 import { bubbleParams } from "../../data/w2/alchemy";
+import { isActiveBubbleOn } from "../w2/alchemy";
 import { DIVINITY_MINOR_DENOM } from "../../data/game-constants";
 import { godsType } from "../../data/w4/gods";
 import { godMinorX1 } from "../../data/w5/divinity";
@@ -31,16 +31,14 @@ export function pocketDivOwned(type: number, saveData: SaveData): number {
 }
 
 /** N.js AlchBubbles.Y2ACTIVE for the active char — same rule talent.ts uses
- *  for its own "Divinity Minor 2 (Arctis)" term (computeAllTalentLVz,
- *  common/talent.ts:757-778): bubble 3/21 ("d21") value if the all-bubbles
+ *  for its own "Divinity Minor 2 (Arctis)" term (computeAllTalentLVz in
+ *  common/talent.ts): bubble 3/21 ("c21") value if the all-bubbles
  *  companion (4) is owned, or the active char has it equipped. */
 function y2Active(activeCi: number, saveData: SaveData): number {
   const bp = bubbleParams(3, 21);
   const lv = Number((cauldronInfoData as any[])?.[3]?.[21]) || 0;
   const val = bp && lv > 0 ? formulaEval(bp.formula, bp.x1, bp.x2, lv) : 0;
-  const allBubbles = !!saveData.companionIds?.has(4);
-  const equipped = !!(cauldronBubblesData as any[])?.[activeCi]?.includes?.("d21");
-  return allBubbles || equipped ? val : 0;
+  return isActiveBubbleOn(activeCi, 3, 21, saveData) ? val : 0;
 }
 
 // @njs DivMinorBonus
