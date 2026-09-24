@@ -1,8 +1,8 @@
 // ===== GAMBIT (coin) =====
-// Port of N.js Holes("GambitBonuses", b) and its point pipeline, with the
-// Deathnote skull count Measurement 13 needs (WorkbenchStuff OverkillQTY).
+// Port of N.js Holes("GambitBonuses", b) and its point pipeline, the Death
+// Note pages (WorkbenchStuff OverkillQTY) and Measurements 9 and 13.
 
-import { HolesInfo, DeathNoteMobs, MapAFKtarget } from "../../data/game/customlists.js";
+import { HolesInfo, DeathNoteMobs, MapAFKtarget, NinjaInfo } from "../../data/game/customlists.js";
 import { getLOG } from "../../../formulas";
 import { legendPTSbonus } from "../w7/spelunking";
 import { computeMonumentROGbonus, cosmoBonus } from "../w5/hole";
@@ -16,8 +16,18 @@ const info = (row: number, i: number) =>
   String(((HolesInfo as unknown as unknown[][])[row] ?? [])[i] ?? "");
 
 // @njs DeathNoteRank
-/** N.js WorkbenchStuff("DeathNoteRank", kills, 0): one mob's skull value. */
-function deathNoteRank(kills: number, s: SaveData): number {
+/** N.js WorkbenchStuff("DeathNoteRank", kills, e): one mob's skull value;
+ *  e = 7842 is the miniboss table. */
+function deathNoteRank(kills: number, s: SaveData, mini = false): number {
+  if (mini) {
+    if (kills < 100) return 0;
+    if (kills < 250) return 1;
+    if (kills < 1e3) return 2;
+    if (kills < 5e3) return 3;
+    if (kills < 25e3) return 4;
+    if (kills < 1e5) return 5;
+    return kills < 1e6 ? 7 : 10;
+  }
   if (kills < 25e3) return 0;
   if (kills < 1e5) return 1;
   if (kills < 2.5e5) return 2;
@@ -30,32 +40,63 @@ function deathNoteRank(kills: number, s: SaveData): number {
 }
 
 // @njs OverkillQTY
-/** Σ_{w=0..6} N.js WorkbenchStuff("OverkillQTY", w): the Deathnote skulls of
- *  worlds 1–7. Index 7 (minibosses) isn't part of MeasurementQTYfound(6). */
-export function deathNoteSkulls(s: SaveData): number {
-  const mapOf = MapAFKtarget as unknown as string[];
-  let n = 0;
-  for (const mobs of (DeathNoteMobs as unknown as string[][]).slice(0, 7)) {
-    for (const mob of mobs) {
-      const m = mapOf.indexOf(mob);
-      n += deathNoteRank(m >= 0 ? accountMapKills(m) : 0, s);
-    }
+/** N.js WorkbenchStuff("OverkillQTY", w) (@7756378): the Death Note page of
+ *  world w (0–6: Σ rank of every DeathNoteMobs[w] mob over the account's kills
+ *  on its map) or, for w = 7, the minibosses (Σ rank of Ninja[105][i] for the
+ *  NinjaInfo[30] bosses, table 7842). */
+export function overkillQTY(w: number, s: SaveData): number {
+  if (w === 7) {
+    const kills = ((s.ninjaData as any[]) ?? [])[105] ?? [];
+    const bosses = ((NinjaInfo as unknown as unknown[][])[30] ?? []).length;
+    let t = 0;
+    for (let i = 0; i < bosses; i++) t += deathNoteRank(Number(kills[i]) || 0, s, true);
+    return t;
   }
+  const mapOf = MapAFKtarget as unknown as string[];
+  let t = 0;
+  for (const mob of (DeathNoteMobs as unknown as string[][])[w] ?? []) {
+    const m = mapOf.indexOf(mob);
+    t += deathNoteRank(m >= 0 ? accountMapKills(m) : 0, s);
+  }
+  return t;
+}
+
+/** Σ OverkillQTY(0..6): the Death Note skulls MeasurementQTYfound(6) counts
+ *  (no minibosses). */
+export function deathNoteSkulls(s: SaveData): number {
+  let n = 0;
+  for (let w = 0; w < 7; w++) n += overkillQTY(w, s);
   return n;
 }
 
-/** N.js Holes("MeasurementBonusTOTAL", 13) = MeasurementBaseBonus(13) ×
- *  MeasurementMulti(HolesInfo[52][13] = 6 → Deathnote skulls / 125). */
-function measurement13(s: SaveData): number {
-  const lv = H(s, 22, 13);
-  const raw = info(55, 13); // "10TOT"
+// @njs MeasurementBaseBonus
+/** N.js Holes("MeasurementBaseBonus", i) (@10914899): (1 + Cosmo(1,3)/100) ×
+ *  (HolesInfo[55][i] has "TOT" ? n·lv/(100 + lv) : n·lv), lv = Holes[22][i]. */
+function measurementBase(i: number, s: SaveData): number {
+  const lv = H(s, 22, i);
+  const raw = info(55, i);
   const cosmo = 1 + cosmoBonus(s, 1, 3) / 100;
-  const base = raw.includes("TOT")
+  return raw.includes("TOT")
     ? cosmo * ((Number(raw.replace("TOT", "")) * lv) / (100 + lv))
     : cosmo * Number(raw) * lv;
-  const qty = deathNoteSkulls(s) / 125;
-  const multi = qty < 5 ? 1 + (18 * qty) / 100 : 1 + (18 * qty + 8 * (qty - 5)) / 100;
-  return base * multi;
+}
+
+// @njs MeasurementMulti
+/** N.js Holes("MeasurementMulti", type) (@10918723), q = MeasurementQTYfound(type, 99):
+ *  1 + 18q/100, or 1 + (18q + 8(q − 5))/100 from q = 5. Ported types: 0 =
+ *  log10 of the Gloomie kills (Holes[11][28]), 6 = the Death Note skulls / 125.
+ *  ponytail: any other type reads q = 0 (×1) — port it before reading that measurement. */
+function measurementMulti(type: number, s: SaveData): number {
+  const q = type === 0 ? getLOG(H(s, 11, 28)) : type === 6 ? deathNoteSkulls(s) / 125 : 0;
+  return q < 5 ? 1 + (18 * q) / 100 : 1 + (18 * q + 8 * (q - 5)) / 100;
+}
+
+// @njs MeasurementBonusTOTAL
+/** N.js Holes("MeasurementBonusTOTAL", i) (@10918979) = MeasurementBaseBonus(i)
+ *  × MeasurementMulti(HolesInfo[52][i]). Gambit reads 13 (type 6), Multikill
+ *  reads 9 (type 0). */
+export function measurementBonusTotal(i: number, s: SaveData): number {
+  return measurementBase(i, s) * measurementMulti(Number(info(52, i)), s);
 }
 
 /** N.js Holes("StudyBolaiaBonuses", b), generic branch (b ∉ {3, 9}). */
@@ -74,7 +115,7 @@ export function gambitPtsMulti(s: SaveData): number {
   const bUpg78 = H(s, 13, 78) !== 0 ? 10 : 0;
   return (
     1 +
-    (measurement13(s) +
+    (measurementBonusTotal(13, s) +
       studyBolaia(13, s) +
       bUpg78 +
       computeMonumentROGbonus(2, 7, s) +

@@ -1,6 +1,9 @@
 import { describe, it, expect, beforeAll } from "vitest";
 import { existsSync, readFileSync } from "node:fs";
+import { loadSaveData } from "@/lib/arkh/save/loader";
+import { saveData } from "@/lib/arkh/state";
 import { computeArkhMultikill } from "@/lib/arkh/computeMultikill";
+import { deathNoteSkulls, overkillQTY } from "@/lib/arkh/stats/systems/coin/gambit";
 import { MK_NODES, MK_POOLS } from "@/lib/arkh/stats/defs/multikill";
 import type { ArkhNode } from "@/lib/arkh/node";
 
@@ -70,4 +73,21 @@ describe.skipIf(!existsSync(SAVE))("Multikill — Markhe on map 14 vs IdleonTool
     ["tier", 51],
     ["active", 1],
   ])("%s", (id, expected) => close(src(id), expected));
+
+  it.each<[string, number]>([
+    ["saltLick8", 30], // SaltLick[8] = 10, 3 per level
+    ["deathNoteWorld", 300], // map 14 → the W1 page (15 mobs at 20)
+    ["deathNoteMini", 58],
+    ["meas9", 281.3841523937517], // Holes[22][9] = 465 ("40TOT") × the Gloomie multi (log10 1.35e14)
+  ])("%s", (id, expected) => close(src(id), expected));
+
+  it("names the Death Note row by its world (spec M11)", () => {
+    expect(tree.children![2].children![0].name).toBe("Death Note (W1 page)");
+  });
+
+  it("Death Note pages W1–W7 and the minibosses", () => {
+    loadSaveData(save);
+    expect([0, 1, 2, 3, 4, 5, 6, 7].map((w) => overkillQTY(w, saveData))).toEqual([300, 220, 280, 260, 260, 280, 460, 58]);
+    expect(deathNoteSkulls(saveData)).toBe(2060); // Σ W1–W7: Coin's Measurement 13 input
+  });
 });

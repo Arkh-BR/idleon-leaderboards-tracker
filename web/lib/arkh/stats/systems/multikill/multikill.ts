@@ -26,6 +26,8 @@ import { prayersReal } from "../w3/prayer";
 import { chipBonuses } from "../w4/lab";
 import { computeShinyBonusS } from "../w4/breeding";
 import { computeArtifactBonus } from "../w5/sailing";
+import { measurementBonusTotal, overkillQTY } from "../coin/gambit";
+import { saltLick } from "../exp/saltLick";
 
 /** Class talents of the formula (per-character buffs) — spec M16. 654 is a
  *  star talent (every class) and 58 is account-wide, so neither is gated. */
@@ -53,8 +55,11 @@ function resolveMultikill(id: string, ctx: SystemCtx): ArkhNode {
     // ── Base Multikill (N.js order) ──
     case "sign47":
       return pending("Star signs (Multikill)", 0);
-    case "saltLick8":
-      return pending("Salt Lick 8 (Multikill)", 0);
+    // N.js SaltLick(8): the level × SaltLicks[8][3] (3 per level, max 10).
+    case "saltLick8": {
+      const lv = Number((s.saltLickData as any)?.[8]) || 0;
+      return pct("Salt Lick 8 (Multikill)", saltLick(8, s), [raw("Level (SaltLick[8])", lv)]);
+    }
     // N.js StampBonusOfTypeX("Overkill") — only StampC19 has that type.
     case "stampC19": {
       const r = computeStampBonusOfTypeX("Overkill", s);
@@ -92,10 +97,16 @@ function resolveMultikill(id: string, ctx: SystemCtx): ArkhNode {
     }
 
     // ── Multikill per Tier (N.js order) ──
-    case "deathNoteWorld":
-      return pending(`Death Note (W${Math.floor(map / 50) + 1} page)`, 0);
+    // N.js OverkillQTY(⌊CurrentMap/50⌋): the Death Note page of the map's
+    // world. The name carries the world, so Biggest Gains and Compare only
+    // meet the map-251 reference (W6) on a W6 map (spec M11).
+    case "deathNoteWorld": {
+      const w = Math.floor(map / 50);
+      return pct(`Death Note (W${w + 1} page)`, overkillQTY(w, s));
+    }
+    // N.js OverkillQTY(7): the 10 minibosses (table 7842 over Ninja[105]).
     case "deathNoteMini":
-      return pending("Death Note (minibosses)", 0);
+      return pct("Death Note (minibosses)", overkillQTY(7, s));
     // N.js AlchVials.Overkill.
     case "vialOverkill": {
       const r = computeVialByKey("Overkill", s);
@@ -116,8 +127,10 @@ function resolveMultikill(id: string, ctx: SystemCtx): ArkhNode {
     // N.js chipBonuses("mkill"): the active character's lab chips (Wood Chip, 15).
     case "chipMkill":
       return pct("Lab chip (mkill)", chipBonuses("mkill", ci));
+    // N.js Holes("MeasurementBonusTOTAL",9,0): the "40TOT" base × the
+    // Gloomie-kills multi (type 0).
     case "meas9":
-      return pending("Measurement 9 (Multikill per tier)", 0);
+      return pct("Measurement 9 (Multikill per tier)", measurementBonusTotal(9, s));
     // N.js CardBonusREAL(80).
     case "card80": {
       const r = computeCardBonusByType(80, ci, s);

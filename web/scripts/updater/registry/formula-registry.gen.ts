@@ -103,6 +103,15 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/arkh/stats/systems/exp/exp.ts",
     "lib/arkh/stats/systems/exp/msa.ts"
   ],
+  "MeasurementBaseBonus": [
+    "lib/arkh/stats/systems/coin/gambit.ts"
+  ],
+  "MeasurementBonusTOTAL": [
+    "lib/arkh/stats/systems/coin/gambit.ts"
+  ],
+  "MeasurementMulti": [
+    "lib/arkh/stats/systems/coin/gambit.ts"
+  ],
   "MeritocBonusz": [
     "lib/arkh/stats/systems/exp/exp.ts"
   ],
