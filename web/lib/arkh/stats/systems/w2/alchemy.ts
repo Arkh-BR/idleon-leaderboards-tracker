@@ -7,6 +7,7 @@ import { node, treeResult, type ArkhNode, type TreeResult } from "../../../node"
 import { label } from "../../entity-names";
 import {
   cauldronInfoData,
+  cauldronBubblesData,
   optionsListData,
   charClassData,
 } from "../../../save/data";
@@ -60,6 +61,21 @@ export function isBubblePrismad(cauldron: number, bubbleIdx: number): boolean {
   const prismaStr = String((optionsListData as any)?.[384] ?? "");
   const letter = N2L[cauldron] || "";
   return prismaStr.indexOf(letter + Math.round(bubbleIdx) + ",") !== -1;
+}
+
+/** N.js TalentCalc(-2) @4460455 only sets an "ACTIVE" bubble's AlchBubbles
+ *  key (Y2ACTIVE, kpkACTIVE, …) when Sheepie (companion 4) is owned or the
+ *  char has the bubble equipped: CauldronBubbles[char] holds
+ *  N2L[cauldron] + index, so BIG_P (cauldron 3, bubble 21) is "c21". */
+export function isActiveBubbleOn(
+  charIdx: number,
+  cauldron: number,
+  bubbleIdx: number,
+  saveData: SaveData
+): boolean {
+  if (saveData.companionIds?.has(4)) return true;
+  const equipped = (cauldronBubblesData as any[])?.[charIdx];
+  return Array.isArray(equipped) && equipped.includes(N2L[cauldron] + bubbleIdx);
 }
 
 export function getPrismaBonusMult(saveData: SaveData): number {
@@ -235,6 +251,8 @@ export function bubbleValByKey(
         const lv =
           Number((cauldronInfoData as any)?.[c2]?.[i]) || 0;
         if (lv <= 0) return treeResult(0, null);
+        if (key.indexOf("ACTIVE") >= 0 && !isActiveBubbleOn(charIdx, c2, i, saveData))
+          return treeResult(0, null);
         const baseVal = formulaEval(
           arr[i][3],
           Number(arr[i][1]),
