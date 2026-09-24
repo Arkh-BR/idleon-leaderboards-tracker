@@ -60,4 +60,10 @@ export const SET_BONUS_VALUES: Record<string, number> = {
   EMPEROR_SET: equipSetBonus("EMPEROR_SET"),
   LUSTRE_SET: equipSetBonus("LUSTRE_SET"),
   TROLL_SET: equipSetBonus("TROLL_SET"),
+  // EXP Multi G10 "ironSet" (getSetBonus("IRON_SET")) — gap found while
+  // implementing Task 3: OLA[379] listed IRON_SET as unlocked but this table
+  // had no entry, so getSetBonus() silently returned 0. equipSetBonus() is
+  // the generic EquipmentSets[.][3][2] reader already used by every other
+  // row here; = 25 on the validation save, matching IT ×100.
+  IRON_SET: equipSetBonus("IRON_SET"),
 };

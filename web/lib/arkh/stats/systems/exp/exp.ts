@@ -8,28 +8,55 @@ import { node, type ArkhNode } from "../../../node";
 import type { SystemCtx } from "../../registry";
 import { optionsListData, currentMapData, divinityData } from "../../../save/data";
 import { superBitType, cloudBonus } from "../../../game-helpers";
+import { formulaEval, getLOG } from "../../../formulas";
 import { label } from "../../entity-names";
-import { MapAFKtarget, ZenithMarket } from "../../data/game/customlists.js";
+import { MapAFKtarget, ZenithMarket, GrimoireUpg, DungPassiveStats2 } from "../../data/game/customlists.js";
 
 import { talent } from "../common/talent";
 import { companions } from "../common/companions";
 import { etcBonus } from "../common/etcBonus";
 import { workshop } from "../common/wrappers";
-import { computeCardBonusByType } from "../common/stats";
-import { computeCardSetBonus } from "../common/cards";
+import { vaultUpgBonus } from "../common/vault";
+import { friend } from "../common/friend";
+import { achieveStatus } from "../common/achievement";
+import { computeStarSignBonus } from "../common/starSign";
+import { goldFoodBonuses } from "../common/goldenFood";
+import { computeStampBonusOfTypeX } from "../w1/stamp";
+import {
+  computeCardBonusByType,
+  computeBoxReward,
+  computeMealBonus,
+  computeStatueBonusGiven,
+} from "../common/stats";
+import { computeCardSetBonus, cardSet, computeCardLv } from "../common/cards";
 import { gridBonusValue } from "../w4/lab";
 import { jellyRoGBonus } from "../../data/w7/jelly";
 import { arcadeBonus } from "../w2/arcade";
-import { computeVialByKey } from "../w2/alchemy";
+import { computeVialByKey, bubbleValByKey, sigilBonus } from "../w2/alchemy";
 import { computeArcaneMapMultiBon } from "../mc/tesseract";
 import { computeBigFishBonus } from "../w7/spelunking";
 import { sushiRoG } from "../w7/sushi";
 import { fountainBonusTotal } from "../../data/w5/fountain";
 import { royalStatue } from "../w7/royalG";
 import { computeMeritocBonusz } from "../w7/meritoc";
+import { computeShinyBonusS } from "../w4/breeding";
+import { computeAllShimmerBonuses } from "../w3/equinox";
+import { owl } from "../w1/owl";
+import { votingBonusz } from "../w2/voting";
+import { computePrayerReal } from "../w3/prayer";
+import { computeShrine } from "../w3/construction";
+import { getSetBonus } from "../w3/setBonus";
+import { holes, computeMonumentROGbonus } from "../w5/hole";
+import { computeWinBonus } from "../w6/summoning";
+import { computeExoticBonus } from "../w6/farming";
+import { grimoireUpgBonus } from "../mc/grimoire";
+import { computeButtonBonus } from "../w7/button";
+import { divinityMinorSum } from "../coin/divinityMinor";
+import { votingMulti } from "../coin/coin";
 
 import { medallionList } from "./medallions";
 import { isLowestLevel } from "./lowestLevel";
+import { compassBonus } from "./compass";
 
 /** Class talents in the EXP formula (read from the active character).
  *  55/328/429/434 are account-wide (getbonus2), 632 is a star talent. */
@@ -44,25 +71,18 @@ const pct = (name: string, v: number, children?: ArkhNode[] | null, note?: strin
 const pending = (name: string, neutral: number): ArkhNode =>
   node(name, neutral, null, { fmt: neutral === 1 ? "x" : "+", note: "pending port" });
 
-// G10 (➕ Additive Pool, defs/exp-multi.ts) — every id ported in Task 3. Kept
-// as one guard clause (instead of 60 near-identical case labels) so Task 3's
-// diff is just "remove the id here, add its real case" per source.
-const G10_PENDING = new Set<string>([
-  "luk", "talent35", "etc4", "boxMonsterExp", "food", "starSignMainXP", "vialMonsterExp",
-  "bubbleExp", "card44",
-  "merit3", "vault12", "cardSet0", "mealClexp", "weeklyBoss", "newbie", "divMinor4", "cardSet5",
-  "statue10", "talent632", "shrine5", "saltLick3", "prayer0", "prayer2", "prayer9", "flurbo2",
-  "ach57", "ach357", "ach61", "ach124", "ach188", "arcade12", "sigil8", "ach286", "shiny1",
-  "msa4", "talent55",
-  "cardSpring", "comp3", "comp50add", "shimmer179", "goldFood", "owl0", "vote15", "monument1_6",
-  "compass51", "hole47", "win23", "grimoire24", "vault3", "vault35", "hole83",
-  "ironSet", "exotic50", "ola421", "stampClassxp", "friend1", "comp47", "comp111", "button8",
-  "comp128add",
-]);
+// G10 (➕ Additive Pool, defs/exp-multi.ts) — Task 4 ports these last three
+// (unported subsystems: regular Food, Salt Lick, the live-NPC MSA counter).
+// Every other G10 id is a real case below.
+const G10_PENDING = new Set<string>(["food", "saltLick3", "msa4"]);
 
-// "boxMonsterExp" → "Box Monster Exp" — readable label for a pending() row.
+// "boxMonsterExp" → "Box Monster Exp", "saltLick3" → "Salt Lick 3" — readable
+// label for a pending() row (space before both a case change and a trailing number).
 function niceName(id: string): string {
-  return id.replace(/([a-z0-9])([A-Z])/g, "$1 $2").replace(/^./, (c) => c.toUpperCase());
+  return id
+    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+    .replace(/([a-zA-Z])(\d+)$/, "$1 $2")
+    .replace(/^./, (c) => c.toUpperCase());
 }
 
 // Flat companion terms — (1 + coeff·Companions(n)). comp128 (min/CompLV2) and
@@ -70,6 +90,21 @@ function niceName(id: string): string {
 const COMP_COEF: Record<string, number> = {
   comp37: 9, comp33: 1, comp32: 1, comp34: 1, comp145: 1, comp160: 4, comp168: 0.4,
 };
+
+// G10 achievement terms: AchieveStatus(n) × weight (ach357/61/124/188/286).
+const ACH_WEIGHT: Record<string, number> = {
+  ach57: 1, ach357: 20, ach61: 3, ach124: 2, ach188: 5, ach286: 25,
+};
+
+// N.js ExpMulti(0)'s own LUK curve (distinct from DR's lukCurve() — ÷30 and
+// 0.8/.3963 constants here vs DR's ÷40 and 0.5/.297). Exported for reuse by
+// both G10 "luk" (the curve/1.8 term) and "talent35" (its ×T35/100 cross term).
+export function expLukCurve(luk: number): number {
+  if (!Number.isFinite(luk) || luk < 0) return 0;
+  return luk < 1e3
+    ? (Math.pow(luk + 1, 0.37) - 1) / 30
+    : 0.8 * ((luk - 1e3) / (luk + 2500)) + 0.3963;
+}
 
 // Spelunk[6].length — save arrays may deserialize as {0:…, length:N} objects
 // instead of a real array; count numeric keys and ignore "length" itself.
@@ -98,6 +133,7 @@ function resolveExp(id: string, ctx: SystemCtx): ArkhNode {
   const ola = (i: number) => Number((optionsListData as any[])[i]) || 0;
   const savedMap = Number((currentMapData as any)?.[ci]) || 0;
   const map = ctx.mapIdx ?? savedMap;
+  const level = Number((s.lv0AllData as any[])?.[ci]?.[0]) || 0;
 
   switch (id) {
     // N.js WorkbenchStuff("AdditionExtraEXPnDR",0,0) — Tal 328 × log(OLA[139]),
@@ -302,6 +338,250 @@ function resolveExp(id: string, ctx: SystemCtx): ArkhNode {
     // N.js EtcBonuses("78")
     case "etc78":
       return etcBonus.resolve(78, { saveData: s, charIdx: ci });
+
+    // ===== G10 — ➕ Additive Pool =====
+    // N.js ExpGainLUK*(1+T35/100)/1.8 — split into two pct-points terms so
+    // T35 (class-gated) can be zeroed independently: "luk" = 100·curve/1.8
+    // (the "1+" part) and "talent35" = curve·t35/1.8 (the "·T35/100" part).
+    // Both recover the true term once G10's pool divides the sum by 100.
+    case "luk": {
+      const luk = Number((s.statList as any)?.[ci]?.[3]) || 0;
+      const curve = expLukCurve(luk);
+      return pct("LUK Scaling (Class EXP)", (100 * curve) / 1.8, [
+        raw("Total LUK", luk),
+        raw("EXP LUK curve", curve),
+      ]);
+    }
+    case "talent35": {
+      const luk = Number((s.statList as any)?.[ci]?.[3]) || 0;
+      const curve = expLukCurve(luk);
+      const t = talent.resolve(35, tctx);
+      const t35 = Number(t.val) || 0;
+      return node(t.name, (curve * t35) / 1.8, [raw("EXP LUK curve", curve), raw("Talent 35", t35)], { fmt: "+" });
+    }
+    // N.js EtcBonuses("4") — IT "% Xp From Monsters" (Equip+Gallery+Hat Rack).
+    case "etc4":
+      return etcBonus.resolve(4, { saveData: s, charIdx: ci });
+    // N.js BoxRewards.monsterExp — Box of Unwanted Stats slot 2 (N.js
+    // PostOffUpgradeInfo row: "...decay %_Monster_EXP...acc def monsterExp").
+    case "boxMonsterExp": {
+      const r = computeBoxReward(ci, "monsterExp");
+      return pct("Post Office (Monster EXP)", r.val, r.children);
+    }
+    // N.js StarSigns.MainXP
+    case "starSignMainXP": {
+      const r = computeStarSignBonus("MainXP", ci, s);
+      return pct("Star Sign (Main XP)", r.val, r.children);
+    }
+    // N.js AlchVials.MonsterEXP
+    case "vialMonsterExp": {
+      const r = computeVialByKey("MonsterEXP", s);
+      return pct("Vials (Monster EXP)", r.val, r.children);
+    }
+    // N.js AlchBubbles.expACTIVE
+    case "bubbleExp": {
+      const r = bubbleValByKey("expACTIVE", ci, s);
+      return pct("Bubble (Class EXP Active)", r.val, r.children);
+    }
+    // N.js CardBonusREAL(44)
+    case "card44": {
+      const r = computeCardBonusByType(44, ci, s);
+      return pct("Class EXP Cards (Card Type 44)", r.val, r.children);
+    }
+    // N.js Tasks[2][0][2]>0 lowest-level block: ExpGainLUK2 = 3*merit + Vault12
+    // — active only when the block's gate (merit owned + lowest-level char)
+    // holds; see SP/exp/semantics.md §4.
+    case "merit3": {
+      const merit = Number((s.tasksGlobalData as any)?.[2]?.[0]?.[2]) || 0;
+      const active = merit > 0 && isLowestLevel(ci, s);
+      return pct("Merit (Lowest-Level Family)", active ? 3 * merit : 0, [
+        raw("Merit (Tasks[2][0][2])", merit),
+        raw("Lowest level", active ? 1 : 0),
+      ]);
+    }
+    // @njs VaultUpgBonus — same block as merit3, gated on the lowest-level char.
+    case "vault12": {
+      const merit = Number((s.tasksGlobalData as any)?.[2]?.[0]?.[2]) || 0;
+      const active = merit > 0 && isLowestLevel(ci, s);
+      const v = active ? vaultUpgBonus(12, s) : 0;
+      return pct(label("Vault", 12), v, [raw("Lowest level", active ? 1 : 0)]);
+    }
+    // N.js Lv0<50 → CardSetBonuses(0,"0") — same equipped-set semantics as
+    // Task 2's cardSet12 (computeCardSetBonus), key "0".
+    case "cardSet0": {
+      if (level >= 50) return pct("Card Set 0", 0);
+      const cs = computeCardSetBonus(ci, "0");
+      return pct("Card Set 0", Number(cs.val) || 0, cs.children);
+    }
+    // N.js Lv0<120 → MealBonus("Clexp")
+    case "mealClexp": {
+      if (level >= 120) return pct("Meals (Clexp)", 0);
+      const m = computeMealBonus("Clexp", s);
+      return pct("Meals (Clexp)", m.val, m.children);
+    }
+    // N.js hasOwnProperty(WeeklyBoss,"c") → min(150, WeeklyBoss.c)
+    case "weeklyBoss": {
+      const wb = s.weeklyBossData as any;
+      const has = !!wb && Object.prototype.hasOwnProperty.call(wb, "c");
+      const val = has ? Math.min(150, Number(wb.c) || 0) : 0;
+      return pct("Weekly Boss", val, has ? [raw("WeeklyBoss.c", Number(wb.c) || 0)] : null);
+    }
+    // N.js Lv0<10?150:Lv0<30?100:Lv0<50?50:0
+    case "newbie": {
+      const val = level < 10 ? 150 : level < 30 ? 100 : level < 50 ? 50 : 0;
+      return pct("Newbie Bracket", val, [raw("Class Level", level)]);
+    }
+    // @njs Bonus_Minor — N.js Divinity("Bonus_Minor", playerIdx, 4)
+    case "divMinor4":
+      return pct("Divinity Minor Bonus (Class EXP)", divinityMinorSum(4, ci, s));
+    // N.js CardSetBonuses(0,"5") — same system+id already wired into DR (G7).
+    case "cardSet5":
+      return cardSet.resolve(5, ctx as any);
+    // N.js ArbitraryCode("StatueBonusGiven10") — added directly, no ÷100
+    // (unlike Coin's statue19: EXP's whole G10 pool is what gets ÷100).
+    case "statue10": {
+      const r = computeStatueBonusGiven(10, ci, s);
+      return pct(label("Statue", 10), r.val, r.children);
+    }
+    // N.js GetTalentNumber(1,632) — star talent (id≥615), active character.
+    case "talent632":
+      return talent.resolve(632, tctx);
+    // N.js Shrine(5)
+    case "shrine5":
+      return pct(label("Shrine", 5), computeShrine(5, s));
+    // N.js prayersReal(n,0)
+    case "prayer0":
+    case "prayer2": {
+      const n = Number(id.slice(6));
+      const r = computePrayerReal(n, 0, ci, s);
+      return pct(label("Prayer", n), r.val, r.children);
+    }
+    // N.js −prayersReal(9,1) — the curse column; don't forget the minus sign.
+    case "prayer9": {
+      const r = computePrayerReal(9, 1, ci, s);
+      return pct(`${label("Prayer", 9)} (curse)`, -(Number(r.val) || 0), r.children);
+    }
+    // N.js FlurboShop(2) — same 4-line idiom as coin's flurbo4, idx 2.
+    case "flurbo2": {
+      const row = ((DungPassiveStats2 as any[])[2] ?? []) as unknown[];
+      const lv = Number((s.dungUpgData as any[])?.[5]?.[2]) || 0;
+      const v = formulaEval(String(row[3]), Number(row[1]), Number(row[2]), lv);
+      return pct("Flurbo Shop 2 (Class EXP)", v, [raw("Level", lv)]);
+    }
+    // N.js AchieveStatus(n) × weight
+    case "ach57":
+    case "ach357":
+    case "ach61":
+    case "ach124":
+    case "ach188":
+    case "ach286": {
+      const n = Number(id.slice(3));
+      const w = ACH_WEIGHT[id];
+      const name = w === 1 ? label("Achievement", n) : `${label("Achievement", n)} × ${w}`;
+      return pct(name, w * achieveStatus(n, s));
+    }
+    // N.js ArcadeBonus(12)
+    case "arcade12": {
+      const a = arcadeBonus(12, s);
+      return pct(label("Arcade", 12), a.val, a.children);
+    }
+    // N.js Labb("SigilBonus","Blank",8,0)
+    case "sigil8":
+      return pct(label("Sigil", 8), sigilBonus(8, s));
+    // @njs ShinyBonusS — N.js Breeding("ShinyBonusS","Nah",1,-1)
+    case "shiny1":
+      return pct("Shiny Pets (Breeding 1)", computeShinyBonusS(1, s));
+    // N.js getbonus2(1,55,-1) — account-wide (EXP Cultivation).
+    case "talent55":
+      return talent.resolve(55, tctx);
+    // @njs CardLv — N.js 2*RunCodeOfTypeXforThingY("CardLv","springEvent1")
+    case "cardSpring": {
+      const lv = computeCardLv("springEvent1", s);
+      return pct(`${label("Card", "springEvent1")} × 2`, 2 * lv, [raw("Card Lv", lv)]);
+    }
+    // N.js Companions(n) — flat additive companion value (LUK6 block).
+    case "comp3":
+    case "comp47":
+    case "comp111":
+    case "comp50add":
+    case "comp128add": {
+      const n = Number(id.replace(/^comp/, "").replace(/add$/, ""));
+      return pct(label("Companion", n), companions(n, s));
+    }
+    // @njs AllShimmerBonuses — N.js OptionsListAccount[179] * Dreamstuff("AllShimmerBonuses",0)
+    case "shimmer179": {
+      const o179 = ola(179);
+      const shim = computeAllShimmerBonuses(s);
+      return pct("Island Shimmer (OLA[179])", o179 * shim, [
+        raw("OLA[179]", o179),
+        raw("Shimmer multi", shim),
+      ]);
+    }
+    // N.js GoldFoodBonuses("ClassEXPz")
+    case "goldFood":
+      return pct("Golden Food (ClassEXPz)", goldFoodBonuses("ClassEXPz", ci, undefined, s).total);
+    // N.js Summoning("OwlBonuses",0,0)
+    case "owl0":
+      return owl.resolve(0, ctx as any);
+    // N.js Summoning("VotingBonusz",15,0) — shares Coin's votingMulti(ctx).
+    case "vote15": {
+      const multi = votingMulti(ctx);
+      const v = votingBonusz(15, multi, s);
+      return pct("Vote 15 (Class EXP)", v, [raw("Voting multi", multi)]);
+    }
+    // @njs MonumentROGbonuses — N.js Holes("MonumentROGbonuses",1,6)
+    case "monument1_6":
+      return pct("Monument ROG Bonus (tier 1, idx 6)", computeMonumentROGbonus(1, 6, s));
+    // @njs CompassBonus — N.js Windwalker("CompassBonus",51,0), Moon of Experience.
+    case "compass51":
+      return pct(label("Compass", 51), compassBonus(51, s));
+    // @njs B_UPG — N.js Holes("B_UPG",47,0) / Holes("B_UPG",83,40); data
+    // extended (game-constants.ts) with upg47/upg83.
+    case "hole47":
+      return holes.resolve("upg47", ctx as any);
+    case "hole83":
+      return holes.resolve("upg83", ctx as any);
+    // @njs WinBonus — N.js ExpMulti(999) = Summoning("WinBonus",23,0)
+    case "win23":
+      return pct("Win Bonus 23", computeWinBonus(23, null, s));
+    // @njs GrimoireUpgBonus — N.js Summoning("GrimoireUpgBonus",24,0)
+    case "grimoire24":
+      return pct(label("Grimoire", 24), grimoireUpgBonus(24, GrimoireUpg, s));
+    // @njs VaultUpgBonus — N.js Summoning("VaultUpgBonus",3,0)
+    case "vault3":
+      return pct(label("Vault", 3), vaultUpgBonus(3, s));
+    // @njs VaultUpgBonus — N.js Summoning("VaultUpgBonus",35,0) * getLOG(OLA[345]),
+    // same shape as coin's vault17 (× log(OLA[340])).
+    case "vault35": {
+      const v = vaultUpgBonus(35, s);
+      const lg = getLOG(ola(345));
+      return pct(`${label("Vault", 35)} × log(OLA[345])`, v * lg, [
+        raw("Vault 35", v),
+        raw("log10(OLA[345])", lg),
+      ]);
+    }
+    // N.js GetSetBonus("IRON_SET","Bonus",0,0)
+    case "ironSet": {
+      const r = getSetBonus("IRON_SET");
+      return pct("Iron Set", r.val, r.children);
+    }
+    // @njs ExoticBonusQTY — N.js FarmingStuffs("ExoticBonusQTY",50,0)
+    case "exotic50":
+      return pct("Exotic Market 50", computeExoticBonus(50, s));
+    // N.js OptionsListAccount[421]
+    case "ola421":
+      return pct("Account Option 421", ola(421));
+    // N.js StampBonusOfTypeX("classxp")
+    case "stampClassxp": {
+      const r = computeStampBonusOfTypeX("classxp", s);
+      return pct("Stamp (Class XP)", r.val, r.children);
+    }
+    // @njs FriendBonusStatz — N.js Thingies("FriendBonusStatz",1,0)
+    case "friend1":
+      return friend.resolve(1, { saveData: s });
+    // @njs Button_Bonuses — N.js Minehead("Button_Bonuses",8,0), slot 8 is "Class XP".
+    case "button8":
+      return pct("Button: Class XP (Slot 8)", computeButtonBonus(8, s));
 
     default:
       throw new Error(`exp: unknown source "${id}"`);

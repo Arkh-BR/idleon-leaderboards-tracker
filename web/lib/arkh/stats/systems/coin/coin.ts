@@ -63,6 +63,20 @@ const BUBBLES: Record<string, { name: string; key: string; stat: number; label: 
 
 const ACH_WEIGHT: Record<number, number> = { 235: 5, 350: 10, 376: 20 };
 
+// Voting multi shared by Coin's vote34 and EXP Multi's vote15 (votingBonusz
+// gates on activeVoteIdx, so the same multi is inert unless that vote is
+// the account's active one). Extracted so both callers share one formula.
+export function votingMulti(ctx: SystemCtx): number {
+  const s = ctx.saveData;
+  const es = (n: number) => eventShopOwned(n, s.cachedEventShopStr || "");
+  const inner =
+    companions(41, s) + (Number((dreamData as any[])[13]) || 0) + cosmoBonus(s, 2, 3) +
+    computeWinBonus(22, null, s) + 17 * es(7) + 13 * es(16) + companions(19, s) +
+    computePaletteBonus(32, s) + legendPTSbonus(22, s) +
+    (Number(sushiRoG.resolve(50, ctx as any).val) || 0);
+  return (1 + companions(161, s) / 100) * (1 + computeMeritocBonusz(9, s) / 100) * (1 + inner / 100);
+}
+
 // N.js OverkillStuffs("2") loop, parametrized directly by (hp, maxDmg,
 // exponent) instead of derived from a map lookup — unlike
 // computeOverkillTier (derived-damage.ts), which hard-codes MapAFKtarget[map]
@@ -361,13 +375,7 @@ function resolveCoin(id: string, ctx: SystemCtx): ArkhNode {
     // by a multi built from companions/dream/cosmo/win/event-shop/palette/
     // legend/sushi terms. Only nonzero in weeks vote 34 wins.
     case "vote34": {
-      const es = (n: number) => eventShopOwned(n, s.cachedEventShopStr || "");
-      const inner =
-        companions(41, s) + (Number((dreamData as any[])[13]) || 0) + cosmoBonus(s, 2, 3) +
-        computeWinBonus(22, null, s) + 17 * es(7) + 13 * es(16) + companions(19, s) +
-        computePaletteBonus(32, s) + legendPTSbonus(22, s) +
-        (Number(sushiRoG.resolve(50, ctx as any).val) || 0);
-      const multi = (1 + companions(161, s) / 100) * (1 + computeMeritocBonusz(9, s) / 100) * (1 + inner / 100);
+      const multi = votingMulti(ctx);
       return node("Vote 34 (Cash)", votingBonusz(34, multi, s), [node("Voting multi", multi, null, { fmt: "x" })], { fmt: "+" });
     }
     default:
