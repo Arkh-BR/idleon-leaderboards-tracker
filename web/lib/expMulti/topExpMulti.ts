@@ -2,12 +2,12 @@
 // ONE combine() pass (the same math a real save uses), gated PER CLASS for
 // the formula's class talents. Use topExpFlatForClass(classKey).
 // Large file: lazy-load it, don't import statically.
-// Generated 2026-09-24T14:18:41.621Z · 83 players. Refresh: scripts/update-top-exp.ts.
+// Generated 2026-09-25T09:32:52.418Z · 83 players. Refresh: scripts/update-top-exp.ts.
 
 type FlatMap = Readonly<Record<string, number>>;
 
 export const TOP_EXP_FLAT: FlatMap = {
-    "EXP Multi": 1.2827351979102684e+22,
+    "EXP Multi": 1.2895949308954445e+22,
     "EXP Multi / ⚔️ Slayer Abominator": 3.7093033937446114,
     "EXP Multi / ⚔️ Slayer Abominator / Slayer Abominator (Talent 434)": 3.7093033937446114,
     "EXP Multi / ⚔️ Slayer Abominator / Slayer Abominator (Talent 434) / Abominations Killed": 35,
@@ -163,9 +163,9 @@ export const TOP_EXP_FLAT: FlatMap = {
     "EXP Multi / ⚔️ Slayer Abominator / Slayer Abominator (Talent 434) / Effective Level / Bonus Levels / Symbols Of Beyond ~p (Talent 539) / Base Level / Points Invested": 409,
     "EXP Multi / ⚔️ Slayer Abominator / Slayer Abominator (Talent 434) / Effective Level / Bonus Levels / Universe Talent": 5,
     "EXP Multi / ⚔️ Slayer Abominator / Slayer Abominator (Talent 434) / Talent Value": 1.0381628787878787,
-    "EXP Multi / ➕ Additive Pool": 794905.3055225252,
+    "EXP Multi / ➕ Additive Pool": 794905.4204639136,
     "EXP Multi / ➕ Additive Pool / 2 Minute Meal (Achievement 61) × 3": 3,
-    "EXP Multi / ➕ Additive Pool / Account Option 421": 128,
+    "EXP Multi / ➕ Additive Pool / Account Option 421": 139,
     "EXP Multi / ➕ Additive Pool / Baby Boa (Companion 47)": 10,
     "EXP Multi / ➕ Additive Pool / Baby Troll (Companion 128)": 100,
     "EXP Multi / ➕ Additive Pool / Big Brain Time (Prayer 0)": 177,
@@ -485,12 +485,12 @@ export const TOP_EXP_FLAT: FlatMap = {
     "EXP Multi / ➕ Additive Pool / Flurbo Shop 2 (Class EXP) / Level": 50,
     "EXP Multi / ➕ Additive Pool / Food (Class EXP)": 270,
     "EXP Multi / ➕ Additive Pool / Food (Class EXP) / Food slots owned": 6,
-    "EXP Multi / ➕ Additive Pool / Friend Bonus": 89.37655086848635,
+    "EXP Multi / ➕ Additive Pool / Friend Bonus": 89.87068965517241,
     "EXP Multi / ➕ Additive Pool / Friend Bonus / Mr Pig (Companion 30)": 2.5,
     "EXP Multi / ➕ Additive Pool / Friend Bonus / Mr Pig (Companion 30) / Bonus": 2.5,
     "EXP Multi / ➕ Additive Pool / Friend Bonus / Mr Pig (Companion 30) / Owned": 1,
-    "EXP Multi / ➕ Additive Pool / Friend Bonus / slave_30": 35.75062034739454,
-    "EXP Multi / ➕ Additive Pool / Friend Bonus / slave_30 / Score": 20240,
+    "EXP Multi / ➕ Additive Pool / Friend Bonus / Trickz_Grind": 35.94827586206897,
+    "EXP Multi / ➕ Additive Pool / Friend Bonus / Trickz_Grind / Score": 20625,
     "EXP Multi / ➕ Additive Pool / Gloomie Expie (Cavern upg47)": 550,
     "EXP Multi / ➕ Additive Pool / Gloomie Expie (Cavern upg47) / Level": 22,
     "EXP Multi / ➕ Additive Pool / Gloomie Expie (Cavern upg47) / Multiplier": 25,
@@ -571,9 +571,9 @@ export const TOP_EXP_FLAT: FlatMap = {
     "EXP Multi / ➕ Additive Pool / Vault 12": 238.8,
     "EXP Multi / ➕ Additive Pool / Vault 12 / Lowest level": 1,
     "EXP Multi / ➕ Additive Pool / Vault 3": 2934.36,
-    "EXP Multi / ➕ Additive Pool / Vault 35 × log(OLA[345])": 1110.2890188102624,
+    "EXP Multi / ➕ Additive Pool / Vault 35 × log(OLA[345])": 1110.2890188498948,
     "EXP Multi / ➕ Additive Pool / Vault 35 × log(OLA[345]) / Vault 35": 60.3,
-    "EXP Multi / ➕ Additive Pool / Vault 35 × log(OLA[345]) / log10(OLA[345])": 18.412753214100537,
+    "EXP Multi / ➕ Additive Pool / Vault 35 × log(OLA[345]) / log10(OLA[345])": 18.412753214757792,
     "EXP Multi / ➕ Additive Pool / Vials (Monster EXP)": 104.51999999999998,
     "EXP Multi / ➕ Additive Pool / Vials (Monster EXP) / MIMICRAUGHT": 104.51999999999998,
     "EXP Multi / ➕ Additive Pool / Vote 15 (Class EXP)": 422.12307692307695,
@@ -785,7 +785,7 @@ export const TOP_EXP_FLAT: FlatMap = {
     "EXP Multi / 🏅 Shiny Medallions / Shiny Medallions (Talent 429)": 3.0014955134596213,
     "EXP Multi / 🏅 Shiny Medallions / Shiny Medallions (Talent 429) / Medallion owned (map's monster)": 1,
     "EXP Multi / 🏅 Shiny Medallions / Shiny Medallions (Talent 429) / Talent 429 (getbonus2)": 3.0014955134596213,
-    "EXP Multi / 🐾 Companions · Jelly · Lab": 143557.22865991422,
+    "EXP Multi / 🐾 Companions · Jelly · Lab": 144324.9143746731,
     "EXP Multi / 🐾 Companions · Jelly · Lab / Baby Troll (Companion 128)": 1.5,
     "EXP Multi / 🐾 Companions · Jelly · Lab / Bunny (Companion 34)": 3,
     "EXP Multi / 🐾 Companions · Jelly · Lab / Chippy (Companion 33)": 2,
@@ -809,8 +809,8 @@ export const TOP_EXP_FLAT: FlatMap = {
     "EXP Multi / 🐾 Companions · Jelly · Lab / Santa Snake (Companion 50)": 1.01,
     "EXP Multi / 🐾 Companions · Jelly · Lab / Whale (Companion 32)": 2,
     "EXP Multi / 🐾 Companions · Jelly · Lab / Whallamus (Companion 37)": 10,
-    "EXP Multi / 🐾 Companions · Jelly · Lab / Zenith Market 9": 1.87,
-    "EXP Multi / 🐾 Companions · Jelly · Lab / Zenith Market 9 / Spelunk[45][9] level": 87,
+    "EXP Multi / 🐾 Companions · Jelly · Lab / Zenith Market 9": 1.88,
+    "EXP Multi / 🐾 Companions · Jelly · Lab / Zenith Market 9 / Spelunk[45][9] level": 88,
     "EXP Multi / 🐾 Companions · Jelly · Lab / Zenith Market 9 / ZenithMarket[9][4]": 1,
     "EXP Multi / 💎 Classy Discoveries": 23.39364488886554,
     "EXP Multi / 💎 Classy Discoveries / Classy Discoveries": 23.39364488886554,
@@ -1002,10 +1002,10 @@ export const TOP_EXP_FLAT: FlatMap = {
 
 export const TOP_EXP_PROFILE_OVERRIDES: Readonly<Record<string, FlatMap>> = {
   "t35": {
-    "EXP Multi": 1.2827435087573014e+22,
-    "EXP Multi / ➕ Additive Pool": 794910.4557175231,
-    "EXP Multi / ➕ Additive Pool / Lucky Charms (Talent 35)": 515.0194997940877,
-    "EXP Multi / ➕ Additive Pool / Lucky Charms (Talent 35) / EXP LUK curve": 1.1961743221023973,
+    "EXP Multi": 1.2896032862517628e+22,
+    "EXP Multi / ➕ Additive Pool": 794910.5706997499,
+    "EXP Multi / ➕ Additive Pool / Lucky Charms (Talent 35)": 515.0235836312701,
+    "EXP Multi / ➕ Additive Pool / Lucky Charms (Talent 35) / EXP LUK curve": 1.196183807143595,
     "EXP Multi / ➕ Additive Pool / Lucky Charms (Talent 35) / Talent 35": 775,
   },
 };

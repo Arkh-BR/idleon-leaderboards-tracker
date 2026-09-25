@@ -2,7 +2,7 @@
 // imported). The path table lives in topAfkGains.ts and is lazy-loaded.
 // Both auto-refreshed by scripts/update-top-afk.ts.
 
-export const TOP_AFK_GENERATED_AT = "2026-09-24T17:19:08.638Z";
+export const TOP_AFK_GENERATED_AT = "2026-09-25T09:40:07.978Z";
 export const TOP_AFK_PLAYERS_SCANNED = 83;
 // Best AFK Gains Rate a single CLASS's best-of-each-source build reaches.
 export const TOP_AFK_HYPOTHETICAL_TOTAL = 2521.2887956025133;

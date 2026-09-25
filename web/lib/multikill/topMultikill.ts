@@ -2,7 +2,7 @@
 // ONE combine() pass (the same math a real save uses), gated PER CLASS for
 // the formula's class talents. Use topMultikillFlatForClass(classKey).
 // Large file: lazy-load it, don't import statically.
-// Generated 2026-09-25T01:17:14.001Z · 85 players. Refresh: scripts/update-top-multikill.ts.
+// Generated 2026-09-25T09:46:38.879Z · 84 players. Refresh: scripts/update-top-multikill.ts.
 
 type FlatMap = Readonly<Record<string, number>>;
 
@@ -222,9 +222,9 @@ export const TOP_MULTIKILL_PROFILE_OVERRIDES: Readonly<Record<string, FlatMap>> 
   "t46": {
   },
   "t469": {
-    "Multikill": 129728,
-    "Multikill / Multikill per Tier": 2488.104280002139,
-    "Multikill / Multikill per Tier / Mana Is Life (Talent 469)": 34.85199485199485,
+    "Multikill": 129727,
+    "Multikill / Multikill per Tier": 2488.0843264938135,
+    "Multikill / Multikill per Tier / Mana Is Life (Talent 469)": 34.83204134366925,
   },
 };
 

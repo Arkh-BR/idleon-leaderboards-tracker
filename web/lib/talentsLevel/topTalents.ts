@@ -13,17 +13,17 @@
 // default tree (they would all resolve to identical numbers anyway).
 // Auto-refreshed by scripts/update-top-talents.ts.
 //
-// Snapshot generated: 2026-09-22T09:00:52.738Z
-// Players scanned: 80
+// Snapshot generated: 2026-09-25T09:50:55.144Z
+// Players scanned: 81
 
 import type { ArkhNode } from "../arkh/node";
 
-export const HYPO_TALENTS_GENERATED_AT = "2026-09-22T09:00:52.738Z";
-export const HYPO_TALENTS_PLAYERS_SCANNED = 80;
+export const HYPO_TALENTS_GENERATED_AT = "2026-09-25T09:50:55.144Z";
+export const HYPO_TALENTS_PLAYERS_SCANNED = 81;
 
 export const HYPO_DEFAULT_TREE: ArkhNode = {
   "name": "Effective Level",
-  "val": 801,
+  "val": 802,
   "children": [
     {
       "name": "Base Level",
@@ -33,7 +33,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
           "name": "Points Invested",
           "val": 409,
           "fmt": "raw",
-          "note": "actual save — owner: MeleeMan42069"
+          "note": "actual save — owner: Coantic"
         },
         {
           "name": "Max Book Lv Cap",
@@ -155,7 +155,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                     }
                   ],
                   "fmt": "raw",
-                  "note": "4 raw × 3.5× Base = 14.00  →  then × 1.95× Higher Bonus × 2.77× Winner = 75.62"
+                  "note": "4 raw × 3.5× Base = 14.00  →  then × 1.95× Higher Bonus × 3.27× Winner = 89.27"
                 },
                 {
                   "name": "Higher Bonus Multi",
@@ -245,11 +245,11 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
         }
       ],
       "fmt": "raw",
-      "note": "min(invested, cap) — owner: MeleeMan42069"
+      "note": "min(invested, cap) — owner: Coantic"
     },
     {
       "name": "Bonus Levels",
-      "val": 267,
+      "val": 268,
       "children": [
         {
           "name": "Symbols of Beyond ~R (Talent 149)",
@@ -263,7 +263,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                   "name": "Points Invested",
                   "val": 409,
                   "fmt": "raw",
-                  "note": "actual save — owner: MeleeMan42069"
+                  "note": "actual save — owner: Coantic"
                 },
                 {
                   "name": "Max Book Lv Cap",
@@ -385,7 +385,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                             }
                           ],
                           "fmt": "raw",
-                          "note": "4 raw × 3.5× Base = 14.00  →  then × 1.95× Higher Bonus × 2.77× Winner = 75.62"
+                          "note": "4 raw × 3.5× Base = 14.00  →  then × 1.95× Higher Bonus × 3.27× Winner = 89.27"
                         },
                         {
                           "name": "Higher Bonus Multi",
@@ -475,7 +475,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                 }
               ],
               "fmt": "raw",
-              "note": "min(invested, cap) — owner: MeleeMan42069"
+              "note": "min(invested, cap) — owner: Coantic"
             }
           ],
           "fmt": "raw",
@@ -495,16 +495,16 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
               "val": 1886,
               "children": [
                 {
-                  "name": "Char 0 Lv",
-                  "val": 1859,
+                  "name": "Char 2 Lv",
+                  "val": 1856,
                   "fmt": "raw",
-                  "note": "BopeBrancis — elemental sorcerer (cls 34)"
+                  "note": "lol_wizard — elemental sorcerer (cls 34)"
                 },
                 {
                   "name": "Char 9 Lv",
-                  "val": 1851,
+                  "val": 1865,
                   "fmt": "raw",
-                  "note": "BigES_Two — elemental sorcerer (cls 34)"
+                  "note": "Eepy_boy — elemental sorcerer (cls 34)"
                 }
               ],
               "fmt": "raw",
@@ -512,7 +512,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
             },
             {
               "name": "Family Guy Multi (×) — potential buff",
-              "val": 1.3555555555555556,
+              "val": 1.3556048834628192,
               "children": [
                 {
                   "name": "Base Level",
@@ -648,7 +648,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                                 }
                               ],
                               "fmt": "raw",
-                              "note": "4 raw × 3.5× Base = 14.00  →  then × 1.95× Higher Bonus × 2.77× Winner = 75.62"
+                              "note": "4 raw × 3.5× Base = 14.00  →  then × 1.95× Higher Bonus × 3.27× Winner = 89.27"
                             },
                             {
                               "name": "Higher Bonus Multi",
@@ -743,7 +743,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                 },
                 {
                   "name": "Bonus Levels",
-                  "val": 266,
+                  "val": 267,
                   "fmt": "+",
                   "note": "Σ ATL (unbuffed FB68, excl. super)"
                 },
@@ -780,7 +780,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
         },
         {
           "name": "Divinity Minor 2 (Arctis)",
-          "val": 76,
+          "val": 77,
           "children": [
             {
               "name": "Divinity Lv",
@@ -791,11 +791,11 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
               "name": "Bubble Y2 Active",
               "val": 1.4999285814611758,
               "fmt": "raw",
-              "note": "0 if Y2 bubble not equipped & no all-bubbles flag"
+              "note": "0 unless BIG_P is equipped or Sheepie owned; Prisma included"
             },
             {
               "name": "Coral Kid 3",
-              "val": 260,
+              "val": 267,
               "fmt": "raw",
               "note": "OLA[430]"
             },
@@ -970,7 +970,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
 export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
   "Elemental_Sorcerer": {
     "name": "Effective Level",
-    "val": 807,
+    "val": 808,
     "children": [
       {
         "name": "Base Level",
@@ -980,7 +980,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
             "name": "Points Invested",
             "val": 409,
             "fmt": "raw",
-            "note": "actual save — owner: MeleeMan42069"
+            "note": "actual save — owner: Coantic"
           },
           {
             "name": "Max Book Lv Cap",
@@ -1102,7 +1102,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                       }
                     ],
                     "fmt": "raw",
-                    "note": "4 raw × 3.5× Base = 14.00  →  then × 1.95× Higher Bonus × 2.77× Winner = 75.62"
+                    "note": "4 raw × 3.5× Base = 14.00  →  then × 1.95× Higher Bonus × 3.27× Winner = 89.27"
                   },
                   {
                     "name": "Higher Bonus Multi",
@@ -1192,11 +1192,11 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
           }
         ],
         "fmt": "raw",
-        "note": "min(invested, cap) — owner: MeleeMan42069"
+        "note": "min(invested, cap) — owner: Coantic"
       },
       {
         "name": "Bonus Levels",
-        "val": 273,
+        "val": 274,
         "children": [
           {
             "name": "Symbols of Beyond ~R (Talent 149)",
@@ -1210,7 +1210,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                     "name": "Points Invested",
                     "val": 409,
                     "fmt": "raw",
-                    "note": "actual save — owner: MeleeMan42069"
+                    "note": "actual save — owner: Coantic"
                   },
                   {
                     "name": "Max Book Lv Cap",
@@ -1332,7 +1332,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                               }
                             ],
                             "fmt": "raw",
-                            "note": "4 raw × 3.5× Base = 14.00  →  then × 1.95× Higher Bonus × 2.77× Winner = 75.62"
+                            "note": "4 raw × 3.5× Base = 14.00  →  then × 1.95× Higher Bonus × 3.27× Winner = 89.27"
                           },
                           {
                             "name": "Higher Bonus Multi",
@@ -1422,7 +1422,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                   }
                 ],
                 "fmt": "raw",
-                "note": "min(invested, cap) — owner: MeleeMan42069"
+                "note": "min(invested, cap) — owner: Coantic"
               }
             ],
             "fmt": "raw",
@@ -1449,7 +1449,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                   },
                   {
                     "name": "Char 9 Lv",
-                    "val": 1851,
+                    "val": 1865,
                     "fmt": "raw",
                     "note": "BigES_Two — elemental sorcerer (cls 34)"
                   }
@@ -1459,7 +1459,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
               },
               {
                 "name": "Family Guy Multi (×) — potential buff",
-                "val": 1.3555061179087875,
+                "val": 1.3555555555555556,
                 "children": [
                   {
                     "name": "Base Level",
@@ -1690,7 +1690,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                   },
                   {
                     "name": "Bonus Levels",
-                    "val": 265,
+                    "val": 266,
                     "fmt": "+",
                     "note": "Σ ATL (unbuffed FB68, excl. super)"
                   },
@@ -1727,7 +1727,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
           },
           {
             "name": "Divinity Minor 2 (Arctis)",
-            "val": 76,
+            "val": 77,
             "children": [
               {
                 "name": "Divinity Lv",
@@ -1738,11 +1738,11 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                 "name": "Bubble Y2 Active",
                 "val": 1.4999285814611758,
                 "fmt": "raw",
-                "note": "0 if Y2 bubble not equipped & no all-bubbles flag"
+                "note": "0 unless BIG_P is equipped or Sheepie owned; Prisma included"
               },
               {
                 "name": "Coral Kid 3",
-                "val": 260,
+                "val": 267,
                 "fmt": "raw",
                 "note": "OLA[430]"
               },
@@ -1960,7 +1960,7 @@ export const STAR_TALENT_CEILING: Readonly<Record<number, number>> = {
   "644": 396,
   "645": 396,
   "646": 408,
-  "647": 404,
+  "647": 406,
   "649": 200,
   "650": 200,
   "651": 100,
@@ -1970,5 +1970,5 @@ export const STAR_TALENT_CEILING: Readonly<Record<number, number>> = {
   "655": 100,
   "656": 200,
   "657": 100,
-  "658": 210
+  "658": 220
 };
