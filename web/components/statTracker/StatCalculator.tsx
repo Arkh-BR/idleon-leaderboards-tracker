@@ -35,6 +35,8 @@ type Props = {
   extraTabs?: DeepViewExtraTab[];
   extraTabsFirst?: boolean;
   defaultView?: string;
+  /** Top of the Tree tab (the page's Compare vs Observed Max toggle). */
+  treeToolbar?: React.ReactNode;
 };
 
 export default function StatCalculator({
@@ -45,6 +47,7 @@ export default function StatCalculator({
   extraTabs,
   extraTabsFirst,
   defaultView,
+  treeToolbar,
 }: Props) {
   const [save, setSave] = useState<any | null>(null);
   const [chars, setChars] = useState<CharSummary[]>([]);
@@ -283,6 +286,7 @@ export default function StatCalculator({
             extraTabsFirst={extraTabsFirst}
             defaultView={defaultView}
             showWorldView={false}
+            treeToolbar={treeToolbar}
           />
         )}
       </div>

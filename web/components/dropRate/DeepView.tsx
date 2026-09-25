@@ -627,6 +627,7 @@ export default function DeepView({
   onViewChange,
   defaultView = "tree",
   extraTabsFirst = false,
+  treeToolbar,
 }: {
   tree: ArkhNode | null;
   /** Optional snapshot baseline. When set, every row gains a "Δ vs snap"
@@ -653,6 +654,9 @@ export default function DeepView({
   defaultView?: ViewMode;
   /** Render the caller's extraTabs before the built-in Tree tab. */
   extraTabsFirst?: boolean;
+  /** Controls shown at the top of the Tree tab only (the tracker pages'
+   *  "Compare vs Observed Max" toggle). */
+  treeToolbar?: ReactNode;
 }) {
   const [view, setView] = useState<ViewMode>(defaultView);
   // Report the active tab to the caller (mount + every change). onViewChange
@@ -847,6 +851,8 @@ export default function DeepView({
   return (
     <div className="font-sans" data-hide-notes={!showNotes ? "1" : undefined}>
       {tabStrip}
+
+      {view === "tree" && treeToolbar && <div className="mb-3">{treeToolbar}</div>}
 
       {/* Controls bar — single row. Search goes first (it's the most-used
           control and benefits from a flex-grow input), followed by the

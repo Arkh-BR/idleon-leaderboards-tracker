@@ -5,7 +5,6 @@ import DrCalculator, {
   type CalculatorState,
 } from "@/components/dropRate/DrCalculator";
 import SnapshotSection from "@/components/dropRate/SnapshotSection";
-import AnonExcludedNote from "@/components/AnonExcludedNote";
 import BiggestGains from "@/components/dropRate/BiggestGains";
 import type { DeepViewExtraTab } from "@/components/dropRate/DeepView";
 import { flattenTree, type FlatTree } from "@/lib/dropRate/treeFlatten";
@@ -124,8 +123,8 @@ export default function DropRatePageClient() {
     [yoursFlat, classKey, calcState?.computeError]
   );
 
-  // The compare-vs-top toggle sits next to the Chip Gallery + DR value
-  // (compareSlot); the snapshot history is under the import box (snapshotSlot).
+  // The compare-vs-top toggle sits at the top of the Tree tab (treeToolbar);
+  // the snapshot history is under the import box (snapshotSlot).
   const compareBlock = (
     <TopCompareToggle
       active={compareTop}
@@ -136,23 +135,14 @@ export default function DropRatePageClient() {
     />
   );
   const snapshotBlock = (
-    <div className="flex flex-col gap-3">
-      <SnapshotSection
-        state={calcState}
-        onSelectBaseline={(b) => {
-          setBaseline(b);
-          if (b) setCompareTop(false);
-        }}
-        selectedBaselineAt={baseline?.capturedAt ?? null}
-        headerExtra={compareBlock}
-      />
-      <div className="text-center">
-        <AnonExcludedNote>
-          Anonymous players are excluded from the top-player comparison —
-          anonymous profiles have no public save to compute from.
-        </AnonExcludedNote>
-      </div>
-    </div>
+    <SnapshotSection
+      state={calcState}
+      onSelectBaseline={(b) => {
+        setBaseline(b);
+        if (b) setCompareTop(false);
+      }}
+      selectedBaselineAt={baseline?.capturedAt ?? null}
+    />
   );
 
   return (
@@ -164,6 +154,7 @@ export default function DropRatePageClient() {
         extraTabs={biggestGainsTabs}
         extraTabsFirst
         defaultView="biggest-gains"
+        treeToolbar={compareBlock}
       />
       <footer className="mt-8 text-[11px] text-zinc-600 text-center border-t border-zinc-900 pt-3">
         Drop rate is computed locally from your save JSON — pool tree
@@ -189,25 +180,22 @@ function TopCompareToggle({
   onToggleArcaneMap: (v: boolean) => void;
 }) {
   return (
-    <div className="flex flex-col items-center gap-1.5">
-      <button
-        type="button"
-        onClick={onToggle}
-        disabled={loading}
-        className={`whitespace-nowrap px-2.5 py-1.5 text-xs font-semibold rounded border transition-colors disabled:opacity-50 ${
-          active
-            ? "bg-amber-500/15 text-amber-300 border-amber-500/40"
-            : "bg-zinc-900 text-zinc-300 border-zinc-700 hover:bg-zinc-800"
+    <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5">
+      <label
+        className={`inline-flex items-center gap-1.5 text-xs font-semibold cursor-pointer select-none ${
+          active ? "text-amber-300" : "text-zinc-300"
         }`}
         title="Compare every DR source against the best value observed across the top players"
       >
-        🏅{" "}
-        {loading
-          ? "Loading…"
-          : active
-          ? "Comparing vs Observed Max"
-          : "Compare vs Observed Max"}
-      </button>
+        <input
+          type="checkbox"
+          checked={active}
+          disabled={loading}
+          onChange={onToggle}
+          className="accent-amber-500"
+        />
+        🏅 {loading ? "Loading…" : "Compare vs Observed Max"}
+      </label>
       <label
         className="flex items-center gap-1.5 text-[11px] text-zinc-400 cursor-pointer select-none"
         title="Include the Arcane Map's Post-Processing multiplier in the Observed Max DR. Uncheck to see the ceiling without the map."
