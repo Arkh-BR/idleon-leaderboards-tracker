@@ -207,7 +207,9 @@ export default function SnapshotSection({
 
   return (
     <section className="rounded-lg bg-zinc-900/60 border border-zinc-800 p-4">
-      <div className="flex items-center justify-between gap-2">
+      {/* Below sm the toolbar wraps under the title (on a 375px phone it
+          would widen the page); sm+ keeps the single nowrap row. */}
+      <div className="flex flex-wrap sm:flex-nowrap items-center justify-between gap-2">
         {/* Header doubles as the collapse toggle so the user can hide the
             whole capture history when they don't need it. */}
         <button
@@ -229,7 +231,7 @@ export default function SnapshotSection({
             )}
           </span>
         </button>
-        <div className="flex gap-2 items-center justify-end">
+        <div className="flex flex-wrap sm:flex-nowrap gap-2 items-center justify-end">
           {headerExtra}
           <button
             type="button"
