@@ -374,7 +374,9 @@ export default function ProfileNameLoader({
           {showAccount ? (
             <>
               {status}
-              <div className="ml-auto flex flex-wrap items-center gap-2">
+              {/* Right-aligned even when it wraps (phones), so the ⋯ menu,
+                  anchored to its button's right edge, opens on screen. */}
+              <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
                 {modeButton}
                 {syncButton}
                 <button
