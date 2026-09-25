@@ -64,7 +64,7 @@ describe("DropRatePageClient — the tracker header", () => {
     fireEvent.click(treeTab);
     const compare = screen.getByLabelText(/Compare vs Observed Max/);
     expect(compare).toHaveAttribute("type", "checkbox");
-    expect(treeTab.parentElement!.parentElement).toContainElement(compare); // tab → tabs → the strip
+    expect(treeTab.parentElement!.nextElementSibling).toContainElement(compare); // right after the tabs
     expect(screen.queryByLabelText(/Include Arcane Map/)).toBeNull(); // only while comparing
 
     fireEvent.click(compare);

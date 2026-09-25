@@ -657,7 +657,8 @@ export default function DeepView({
   /** Render the caller's extraTabs before the built-in Tree tab. */
   extraTabsFirst?: boolean;
   /** Controls at the tab strip's right end, on the built-in views only (the
-   *  tracker pages' "Compare vs Observed Max" toggle). */
+   *  tracker pages' "Compare vs Observed Max" toggle). Not shown when `bare`
+   *  (no tab strip). */
   treeToolbar?: ReactNode;
   /** The baseline banner's hint on how to switch / turn off the comparison.
    *  The tracker pages pass one per baseline source (a snapshot or the
@@ -841,6 +842,12 @@ export default function DeepView({
     </div>
   );
 
+  const hint = (
+    <span className="text-zinc-500 italic truncate min-w-0 grow basis-24 text-right" title={baselineHint}>
+      {baselineHint}
+    </span>
+  );
+
   if (!tree) {
     // With caller-supplied tabs, keep the strip visible and let the active
     // extra tab render its own empty state (the built-ins fall back to the
@@ -964,12 +971,14 @@ export default function DeepView({
       {/* If a snapshot baseline is selected, surface a small banner so the
           user knows which snapshot is currently driving the Δ badges. */}
       {!activeExtra && baseline && (
-        // One line on desktop — left side states the active comparison (plus
-        // the caller's extra controls), right side gives a hint that truncates
-        // with ellipsis (full text stays accessible via the title tooltip). On
-        // phones the extras and the hint wrap under the statement.
+        // Left side states the active comparison, right side gives a hint
+        // that truncates with ellipsis (full text stays accessible via the
+        // title tooltip), or wraps under it when less than 6rem is left. The
+        // caller's extra controls share a row of their own with the hint, so
+        // they don't move when the statement's width changes (Drop Rate's
+        // " · no Arcane Map"). On phones the statement wraps too.
         <div className="mb-3 px-3 py-2 rounded-md border border-sky-500/30 bg-sky-500/5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs overflow-hidden">
-          <span className="text-sky-200 whitespace-nowrap flex-shrink-0">
+          <span className="text-sky-200 sm:whitespace-nowrap sm:flex-shrink-0">
             Comparing against{" "}
             <span className="font-semibold">{baseline.charName}</span>{" "}
             snapshot from{" "}
@@ -977,13 +986,14 @@ export default function DeepView({
               {new Date(baseline.capturedAt).toLocaleString()}
             </span>
           </span>
-          {baselineExtra}
-          <span
-            className="text-zinc-500 italic truncate min-w-0 flex-1 text-right"
-            title={baselineHint}
-          >
-            {baselineHint}
-          </span>
+          {baselineExtra ? (
+            <div className="basis-full flex items-center gap-3 min-w-0">
+              {baselineExtra}
+              {hint}
+            </div>
+          ) : (
+            hint
+          )}
         </div>
       )}
 
