@@ -54,6 +54,13 @@ describe("overkillStuffs — the AFK target's live HP", () => {
     expect(ok.tier).toBe(3);
   });
 
+  it("a map whose AFK target isn't a monster has no HP: tier 1 and never active", () => {
+    load([-1, -1, -1, -1, -1, -1]);
+    const ok = overkillStuffs(0, 3, { saveData }, { maxDmg: 1e30 });
+    expect(ok).toMatchObject({ hp: 0, tier: 1 });
+    expect(overkillActive(ok, 0, saveData).maxOk).toBe(false);
+  });
+
   it("Clamworks (w7a6) is Clamz_HP = 1e16·30^OLA[464], never cursed", () => {
     load([8, -1, -1, -1, -1, -1]);
     const ok = overkillStuffs(0, 306, { saveData });

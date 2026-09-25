@@ -35,6 +35,10 @@ function tierPath(flat: Record<string, number>): string | null {
   return null;
 }
 
+/** A target without HP (a map whose AFK target isn't a monster) pins the tier
+ *  at 1: its next threshold reads 0 and no damage moves it. */
+const tierCanMove = (flat: Record<string, number>, tp: string) => Number(flat[`${tp} / Next tier at`]) > 0;
+
 /** mkTotal's inputs from a flat tree: B and P are the direct children minus
  *  the rule rows; the soft cap applies when its row exists; the Cove row's
  *  value replaces its half. */
@@ -65,7 +69,7 @@ export const multikillGainsModel: GainsModel = {
     // Only reachable below tier 51 (computeGains drops a gainPct <= 0 row, and
     // the reference tier is always 51) — same estimate caveat as the tree node
     // (spec M17): arkh's max damage isn't reconciled with the game yet.
-    if (tp === pathOf(MK_NODES.tier))
+    if (tp === pathOf(MK_NODES.tier) && tierCanMove(yoursFlat, tp))
       out.push({ path: tp, group: `${MK_NODES.tier} · estimate`, source: MK_NODES.tier, display: "raw" });
     return out;
   },
@@ -74,14 +78,17 @@ export const multikillGainsModel: GainsModel = {
     const p = partsFromFlat(yoursFlat);
     const tp = tierPath(yoursFlat);
     const now = mkTotal(p);
-    if (!tp || p.tier >= 51 || !(now > 0)) return [];
+    if (!tp || p.tier >= 51 || !(now > 0) || !tierCanMove(yoursFlat, tp)) return [];
     const E = Number(yoursFlat[`${tp} / Exponent`]) || 2;
-    const next = Number(yoursFlat[`${tp} / Next tier at`]) || 0;
+    const next = Number(yoursFlat[`${tp} / Next tier at`]);
+    const maxDmg = Number(yoursFlat[`${tp} / Max Damage`]) || 0;
+    // What the next tier really asks for: next / max, anywhere in (1, E].
+    const need = maxDmg > 0 && next > maxDmg ? next / maxDmg : E;
     return [
       {
         path: `${tp} / +1`,
         // Only reachable below tier 51 (the guard above): same estimate caveat.
-        group: `needs ×${E} more max damage (next tier at ${formatNum(next)}) · estimate`,
+        group: `needs ×${Number(need.toFixed(2))} more max damage (next tier at ${formatNum(next)}) · estimate`,
         source: "+1 damage tier",
         display: "raw",
         you: p.tier,

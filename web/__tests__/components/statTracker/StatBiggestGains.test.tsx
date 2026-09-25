@@ -22,6 +22,14 @@ describe("StatBiggestGains", () => {
     expect(screen.queryByText("Beta Source")).toBeNull(); // already at the max
   });
 
+  it("shows no Observed Max for a lever row", async () => {
+    const lever = { path: `${G} / +1`, group: "Levers", source: "+1 step", display: "raw" as const, you: 1, max: 2, gainPct: 60 };
+    const gains: GainsModel = { ...testConfig.gains, levers: () => [lever] };
+    render(<StatBiggestGains config={{ ...testConfig, gains }} yoursFlat={ref} classKey={null} loadReference={async () => ref} />);
+    expect((await screen.findAllByText("+1 step")).length).toBeGreaterThan(0);
+    expect(screen.getByText("—")).toBeInTheDocument();
+  });
+
   it("keeps the methodology note when every source is already at the max", async () => {
     render(<StatBiggestGains config={testConfig} yoursFlat={ref} classKey={null} loadReference={async () => ref} />);
     expect(await screen.findByText(/at or above the Observed Max on every source/)).toBeInTheDocument();

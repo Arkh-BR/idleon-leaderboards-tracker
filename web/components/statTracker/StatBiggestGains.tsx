@@ -127,7 +127,9 @@ export default function StatBiggestGains({
                   <div className="text-[11px] text-zinc-500">{row.group}</div>
                 </td>
                 <td className="px-3 py-2 text-right tabular-nums text-zinc-300">{fmtContribution(row, row.you)}</td>
-                <td className="px-3 py-2 text-right tabular-nums text-zinc-300">{fmtContribution(row, row.max)}</td>
+                <td className="px-3 py-2 text-right tabular-nums text-zinc-300">
+                  {row.lever ? "—" : fmtContribution(row, row.max)}
+                </td>
                 <td className="px-3 py-2 text-right tabular-nums">
                   <Num value={row.gainPct} plus unit="%" className="text-emerald-300 font-semibold" />
                 </td>

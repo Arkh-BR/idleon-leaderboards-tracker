@@ -2,7 +2,7 @@
 // ONE combine() pass (the same math a real save uses), gated PER CLASS for
 // the formula's class talents. Use topMultikillFlatForClass(classKey).
 // Large file: lazy-load it, don't import statically.
-// Generated 2026-09-24T21:10:43.256Z · 85 players. Refresh: scripts/update-top-multikill.ts.
+// Generated 2026-09-25T01:17:14.001Z · 85 players. Refresh: scripts/update-top-multikill.ts.
 
 type FlatMap = Readonly<Record<string, number>>;
 
@@ -96,10 +96,9 @@ export const TOP_MULTIKILL_FLAT: FlatMap = {
     "Multikill / Multikill per Tier / Death Note (minibosses)": 80,
     "Multikill / Multikill per Tier / Lab chip (mkill)": 60,
     "Multikill / Multikill per Tier / MR_MASSACRE bubble (MKtierACTIVE)": 89.68608301360307,
+    "Multikill / Multikill per Tier / MR_MASSACRE bubble (MKtierACTIVE) / Active (Sheepie or \"c15\" equipped)": 1,
     "Multikill / Multikill per Tier / MR_MASSACRE bubble (MKtierACTIVE) / Base": 89.68608301360307,
-    "Multikill / Multikill per Tier / MR_MASSACRE bubble (MKtierACTIVE) / Equipped (\"c15\")": 0,
     "Multikill / Multikill per Tier / MR_MASSACRE bubble (MKtierACTIVE) / Level": 14285,
-    "Multikill / Multikill per Tier / MR_MASSACRE bubble (MKtierACTIVE) / Sheepie (Companion 4)": 1,
     "Multikill / Multikill per Tier / Mana Is Life (Talent 469)": 0,
     "Multikill / Multikill per Tier / Master Of The System (Talent 58)": 308.9326765188834,
     "Multikill / Multikill per Tier / Master Of The System (Talent 58) / Effective Level": 409,

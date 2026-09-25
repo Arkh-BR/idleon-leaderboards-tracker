@@ -127,6 +127,15 @@ describe("Multikill what-if gains model (synthetic)", () => {
     expect(multikillGainsModel.levers!(flatOf())).toEqual([]);
   });
 
+  it("the lever asks for next ÷ max damage; a target without HP offers neither the tier nor the lever", () => {
+    const tp = `${MK_ROOT} / ${MK_NODES.tierW7}`;
+    const [lever] = multikillGainsModel.levers!({ ...flatOf(W7), [`${tp} / Max Damage`]: 1e31 });
+    expect(lever.group).toBe("needs ×1.5 more max damage (next tier at 1.500E31) · estimate");
+    const noHp = { ...flatOf({ tier: 1 }), [`${TIER} / Next tier at`]: 0 };
+    expect(multikillGainsModel.levers!(noHp)).toEqual([]);
+    expect(multikillGainsModel.sources(noHp, {}).some((s) => s.path === TIER)).toBe(false);
+  });
+
   it("the Death Note row only meets a reference on the same world (spec M11)", () => {
     const flat = flatOf();
     expect(computeGains(multikillGainsModel, flat, { [DN(6)]: 280 }).comparableSources).toBe(0);
@@ -165,6 +174,6 @@ describe.skipIf(!existsSync(SAVE))("Multikill what-if on the ARKHE save", () => 
     const [lever] = multikillGainsModel.levers!(flattenTree(computeArkhMultikill(save, markhe(), 301).tree));
     expect(lever).toMatchObject({ you: 24, max: 25 });
     expect(lever.gainPct).toBeCloseTo((3313 / 3185 - 1) * 100, 9);
-    expect(lever.group).toMatch(/^needs ×5 more max damage \(next tier at /);
+    expect(lever.group).toMatch(/^needs ×3\.47 more max damage \(next tier at /); // 2.086E31 / 6.013E30
   });
 });

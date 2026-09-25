@@ -86,5 +86,6 @@ describe("model levers — model-computed steps ranked but not comparable source
     const res = computeGains(withLevers, { [`${P} / A`]: 100, [`${P} / B`]: 200 }, { [`${P} / A`]: 400 });
     expect(res.comparableSources).toBe(1);
     expect(res.rows.map((r) => r.source)).toEqual(["A", "+1 step"]); // 75% then 60%; the 0% lever is dropped
+    expect(res.rows.map((r) => r.lever)).toEqual([undefined, true]);
   });
 });

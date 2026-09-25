@@ -105,7 +105,8 @@ export function overkillActive(ok: Overkill, ci: number, s: SaveData): OverkillA
   const mon = (MONSTERS as any)[ok.target];
   const defence = Number(mon?.Defence) || 0;
   const accuracy = computeAccuracy(ci, { saveData: s, charIdx: ci });
-  const maxOk = ok.maxDmg >= ok.hp * ok.exponent;
+  // A target missing from MONSTERS has no HP (N.js reads undefined: the test is false).
+  const maxOk = ok.hp > 0 && ok.maxDmg >= ok.hp * ok.exponent;
   const deathNote = (Number((s.towerData as any)?.[2]) || 0) > 0.5;
   const accOk = accuracy > 1.5 * defence;
   return {
