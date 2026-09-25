@@ -92,16 +92,23 @@ describe("overkillStuffs — the AFK target's live HP", () => {
 
 // N.js TalentCalc: CalcTalentMAP["643"] = OverkillStuffs("2"), which measures
 // DamageDealed("Max") against the live AFKtarget (the save's AFKtarget_N) with
-// no FIGHTING gate. Map 216 has no AFK monster (MapAFKtarget = "Nothing"), but
-// a character parked there still targets Bravery_Monument (42 HP).
+// no FIGHTING gate. Map 216 has no AFK monster (MapAFKtarget = "Nothing", 42
+// HP), but a character parked there still targets its own AFKtarget_N.
 describe("talent 643's counter — OverkillStuffs('2') on the saved map", () => {
-  it("measures the save's AFKtarget_N, not MapAFKtarget, and isn't gated to FIGHTING", () => {
-    loadSaveData({
-      charNames: ["A"],
-      data: { CurrentMap_0: 216, AFKtarget_0: "Bravery_Monument" },
-    });
-    const ok = overkillStuffs(0, 216, { saveData, afkTarget: "Bravery_Monument" });
+  const load = (afk?: string) =>
+    loadSaveData({ charNames: ["A"], data: { StarSg: {}, CurrentMap_0: 216, ...(afk ? { AFKtarget_0: afk } : {}) } });
+
+  it("isn't gated to FIGHTING: on 216 it measures the table target (42 HP)", () => {
+    load();
+    const ok = overkillStuffs(0, 216, { saveData });
     expect(ok.tier).toBeGreaterThan(1);
     expect(computeCalcTalent(643, 0, saveData)).toBe(ok.tier);
+  });
+
+  it("measures the save's AFKtarget_N, not MapAFKtarget (w6a1: 3e9 HP)", () => {
+    load("w6a1");
+    const own = overkillStuffs(0, 216, { saveData, afkTarget: "w6a1" });
+    expect(own.tier).toBeLessThan(overkillStuffs(0, 216, { saveData }).tier);
+    expect(computeCalcTalent(643, 0, saveData)).toBe(own.tier);
   });
 });

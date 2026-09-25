@@ -194,10 +194,10 @@ describe.skipIf(!existsSync(SAVE))("Coin Multi — Markhe on map 14 vs IdleonToo
     close(valSaved, tv * tierSaved);
   });
 
-  it("the Talents page and the top-talents cron read Coin's talent 643 on the saved map", () => {
+  it("the Talents page (and its tree helper) reads Coin's talent 643 on the saved map", () => {
     // Same shared wrap (talent.resolve): CalcTalentMAP["643"] = OverkillStuffs
     // ("2") on the character's own map and AFKtarget_N. ARKHELUCK, parked on
-    // map 216 like 7 others, targets Bravery_Monument (42 HP) → the tier caps
+    // map 216 like 9 others, targets Bravery_Monument (42 HP) → the tier caps
     // at 51, as it does for Markhe fighting on map 14.
     const coin643 = (t: ArkhNode): number => {
       const gi = COIN_GROUPS.findIndex((x) => x.sources.includes("talent643"));
