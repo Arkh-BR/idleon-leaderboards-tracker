@@ -149,6 +149,11 @@ export default function DropRatePageClient() {
       <DrCalculator
         onStateChange={setCalcState}
         compareBaseline={effectiveBaseline}
+        baselineHint={
+          compareTop
+            ? "Uncheck Compare vs Observed Max to hide it"
+            : "Pick another snapshot in History to switch, or toggle it off there"
+        }
         totalActions={snapshots.actions}
         totalPanel={snapshots.panel}
         extraTabs={biggestGainsTabs}

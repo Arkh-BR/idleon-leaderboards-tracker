@@ -628,6 +628,7 @@ export default function DeepView({
   defaultView = "tree",
   extraTabsFirst = false,
   treeToolbar,
+  baselineHint = "Pick another snapshot to switch — toggle off in Snapshot History",
 }: {
   tree: ArkhNode | null;
   /** Optional snapshot baseline. When set, every row gains a "Δ vs snap"
@@ -657,6 +658,10 @@ export default function DeepView({
   /** Controls shown at the top of the Tree tab only (the tracker pages'
    *  "Compare vs Observed Max" toggle). */
   treeToolbar?: ReactNode;
+  /** The baseline banner's hint on how to switch / turn off the comparison.
+   *  The tracker pages pass one per baseline source (a snapshot or the
+   *  Observed Max toggle). */
+  baselineHint?: string;
 }) {
   const [view, setView] = useState<ViewMode>(defaultView);
   // Report the active tab to the caller (mount + every change). onViewChange
@@ -962,9 +967,9 @@ export default function DeepView({
           </span>
           <span
             className="text-zinc-500 italic truncate min-w-0 ml-auto"
-            title="Pick another snapshot to switch — toggle off in History"
+            title={baselineHint}
           >
-            Pick another snapshot to switch — toggle off in History
+            {baselineHint}
           </span>
         </div>
       )}

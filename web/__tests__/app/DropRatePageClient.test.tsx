@@ -72,4 +72,20 @@ describe("DropRatePageClient — the tracker header", () => {
     expect(screen.queryByLabelText(/Compare vs Observed Max/)).toBeNull();
     expect(screen.queryByLabelText(/Include Arcane Map/)).toBeNull();
   });
+
+  it("the comparison banner's hint points at whatever drives it", async () => {
+    await loaded();
+    const saveButton = screen.getByRole("button", { name: "💾 Save snapshot" });
+    await waitFor(() => expect(saveButton).toBeEnabled());
+    fireEvent.click(saveButton);
+    fireEvent.click(screen.getByRole("button", { name: /History \(1\)/ }));
+    fireEvent.click(screen.getByRole("button", { name: "🌳 Tree" }));
+
+    fireEvent.click(screen.getByRole("button", { name: "▶ Compare" })); // a snapshot baseline
+    expect(screen.getByText("Pick another snapshot in History to switch, or toggle it off there")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByLabelText(/Compare vs Observed Max/));
+    expect(await screen.findByText("Uncheck Compare vs Observed Max to hide it")).toBeInTheDocument();
+    expect(screen.queryByText(/Pick another snapshot/)).toBeNull();
+  });
 });

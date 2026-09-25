@@ -40,6 +40,8 @@ type Props = {
   defaultView?: string;
   /** Top of the Tree tab (the page's Compare vs Observed Max toggle). */
   treeToolbar?: React.ReactNode;
+  /** The comparison banner's hint, per baseline source (see DeepView). */
+  baselineHint?: string;
 };
 
 export default function StatCalculator({
@@ -52,6 +54,7 @@ export default function StatCalculator({
   extraTabsFirst,
   defaultView,
   treeToolbar,
+  baselineHint,
 }: Props) {
   const [save, setSave] = useState<any | null>(null);
   const [chars, setChars] = useState<CharSummary[]>([]);
@@ -291,6 +294,7 @@ export default function StatCalculator({
             defaultView={defaultView}
             showWorldView={false}
             treeToolbar={treeToolbar}
+            baselineHint={baselineHint}
           />
         )}
       </div>

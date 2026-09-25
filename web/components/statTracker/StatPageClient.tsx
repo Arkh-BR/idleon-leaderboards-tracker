@@ -98,6 +98,11 @@ export default function StatPageClient({ config }: { config: StatPageConfig }) {
         config={config}
         onStateChange={setCalcState}
         compareBaseline={compareTop ? topBaseline : baseline}
+        baselineHint={
+          compareTop
+            ? "Uncheck Compare vs Observed Max to hide it"
+            : "Pick another snapshot in History to switch, or toggle it off there"
+        }
         totalActions={snapshots.actions}
         totalPanel={snapshots.panel}
         extraTabs={gainsTabs}
