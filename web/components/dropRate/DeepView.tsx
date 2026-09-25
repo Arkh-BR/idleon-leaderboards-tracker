@@ -962,9 +962,9 @@ export default function DeepView({
           </span>
           <span
             className="text-zinc-500 italic truncate min-w-0 ml-auto"
-            title="Pick another snapshot to switch — toggle off in Snapshot History"
+            title="Pick another snapshot to switch — toggle off in History"
           >
-            Pick another snapshot to switch — toggle off in Snapshot History
+            Pick another snapshot to switch — toggle off in History
           </span>
         </div>
       )}
