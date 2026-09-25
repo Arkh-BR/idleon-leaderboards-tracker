@@ -13,7 +13,7 @@ import { eventShopOwned } from "../../../game-helpers";
 import { label } from "../../entity-names";
 import { MapAFKtarget, RandoListo2 } from "../../data/game/customlists.js";
 import { MONSTERS } from "../../data/game/monsters.js";
-import { AFK_NODES } from "../../defs/afk-gains";
+import { AFK_NODES, AFK_VOTE_NAME } from "../../defs/afk-gains";
 import { talent } from "../common/talent";
 import { companions } from "../common/companions";
 import { etcBonus } from "../common/etcBonus";
@@ -183,7 +183,7 @@ function resolveAfk(id: string, ctx: SystemCtx): ArkhNode {
     // N.js Summoning("VotingBonusz",6,0): 0 unless vote 6 is the active one.
     case "vote6": {
       const m = votingMulti(ctx);
-      return pct("Vote 6 (AFK Gains)", votingBonusz(6, m, s), [factor("Voting multi", m)]);
+      return pct(AFK_VOTE_NAME, votingBonusz(6, m, s), [factor("Voting multi", m)]);
     }
     // N.js 20*EventShopOwned(5).
     case "eventShop5": {

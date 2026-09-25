@@ -18,6 +18,7 @@ import { vaultKillzTotal, cardsCollected, accountMapKills } from "./accountKills
 import { divinityMinorSum } from "./divinityMinor";
 import { computeArtifactBonus } from "../w5/sailing";
 import { votingBonusz } from "../w2/voting";
+import { COIN_VOTE_NAME } from "../../defs/coin-multi";
 import { computeMeritocBonusz } from "../w7/meritoc";
 import { computeWinBonus } from "../w6/summoning";
 import { cosmoBonus } from "../w5/hole";
@@ -359,7 +360,7 @@ function resolveCoin(id: string, ctx: SystemCtx): ArkhNode {
     // legend/sushi terms. Only nonzero in weeks vote 34 wins.
     case "vote34": {
       const multi = votingMulti(ctx);
-      return node("Vote 34 (Cash)", votingBonusz(34, multi, s), [node("Voting multi", multi, null, { fmt: "x" })], { fmt: "+" });
+      return node(COIN_VOTE_NAME, votingBonusz(34, multi, s), [node("Voting multi", multi, null, { fmt: "x" })], { fmt: "+" });
     }
     default:
       throw new Error(`coin: unknown source "${id}"`);

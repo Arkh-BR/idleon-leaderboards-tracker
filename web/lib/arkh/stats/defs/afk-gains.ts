@@ -16,6 +16,10 @@ import type { StatGroup } from "./grouped";
 
 export const AFK_ROOT = "AFK Gains Rate";
 
+/** The weekly vote's node. The vote is server-wide and changes every week, so
+ *  Biggest Gains leaves it out: it isn't something a player raises. */
+export const AFK_VOTE_NAME = "Vote 6 (AFK Gains)";
+
 /** Tree node names. Fixed, so snapshot and Observed Max paths never move with
  *  the map (the monster and the AFK type go in the notes). */
 export const AFK_NODES = {

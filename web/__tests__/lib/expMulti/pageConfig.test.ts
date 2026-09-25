@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { EXP_PAGE } from "@/lib/expMulti/pageConfig";
-import { EXP_GROUPS, EXP_ROOT } from "@/lib/arkh/stats/defs/exp-multi";
+import { EXP_GROUPS, EXP_ROOT, EXP_VOTE_NAME } from "@/lib/arkh/stats/defs/exp-multi";
 import { EXP_CIRCUMSTANTIAL_SOURCE_NAMES } from "@/lib/arkh/stats/systems/exp/exp";
 
 describe("EXP Multi page config", () => {
@@ -40,6 +40,12 @@ describe("EXP Multi page config", () => {
     }
     // Still summed into the group total (pct group: raising them raises it).
     expect(EXP_PAGE.gains.totalFromFlat(ref)).toBeGreaterThan(EXP_PAGE.gains.totalFromFlat(yours));
+  });
+
+  it("doesn't rank the weekly vote (Vote 15)", () => {
+    const G = `${EXP_ROOT} / ${EXP_GROUPS.find((g) => g.sources.includes("vote15"))!.name}`;
+    const rows = EXP_PAGE.gains.sources({ [`${G} / ${EXP_VOTE_NAME}`]: 0 }, { [`${G} / ${EXP_VOTE_NAME}`]: 30 });
+    expect(rows.some((r) => r.source === EXP_VOTE_NAME)).toBe(false);
   });
 
   it("methodology note explains why circumstantial sources aren't ranked", () => {

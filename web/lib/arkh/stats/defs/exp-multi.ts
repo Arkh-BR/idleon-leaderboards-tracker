@@ -11,6 +11,10 @@ import { groupedDescriptor, type StatGroup } from "./grouped";
 
 export const EXP_ROOT = "EXP Multi";
 
+/** The weekly vote's node. The vote is server-wide and changes every week, so
+ *  Biggest Gains leaves it out: it isn't something a player raises. */
+export const EXP_VOTE_NAME = "Vote 15 (Class EXP)";
+
 export const EXP_GROUPS: readonly StatGroup[] = [
   { key: "g01", name: "🛠️ Workbench", kind: "mult", sources: ["workbench"] },
   { key: "g02", name: "🎁 Bundle + Superbit", kind: "pct", sources: ["bunQ", "superbit19"] },
