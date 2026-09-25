@@ -13,7 +13,9 @@ vi.mock("@/components/ProfileNameLoader", () => ({
 vi.mock("@/lib/arkh/computeDR", () => ({
   computeArkhDropRate: () => ({ tree: { name: "Drop Rate", val: 2.5, fmt: "x", children: [] }, total: 2.5 }),
 }));
-vi.mock("@/lib/dropRate/topDropRate", () => ({ topDrFlatForClass: () => ({ "Drop Rate": 5 }) }));
+vi.mock("@/lib/dropRate/topDropRate", () => ({
+  topDrFlatForClass: () => ({ "Drop Rate": 5, "Drop Rate / Post-Processing / 🗺️ Arcane Map": 2 }),
+}));
 
 import DropRatePageClient from "@/app/drop-rate/DropRatePageClient";
 
@@ -72,8 +74,12 @@ describe("DropRatePageClient — the tracker header", () => {
     expect(compare).toBeChecked();
     const arcane = screen.getByLabelText(/Include Arcane Map/);
     expect(who.closest("div")).toContainElement(arcane); // the comparison banner
+    const badge = () => screen.getByTitle(/^Reference \(Observed Max\)/); // the tree root's 🎯
+    expect(badge()).toHaveTextContent("🎯 5.000x");
     fireEvent.click(arcane);
-    expect(screen.getByText(/^Observed Max \(\d+ top players\) · no Arcane Map$/)).toBeInTheDocument();
+    expect(arcane).not.toBeChecked();
+    expect(badge()).toHaveTextContent("🎯 2.500x"); // the Observed Max without the map's ×2
+    expect(who).toHaveTextContent(/^Observed Max \(\d+ top players\)$/); // same text: the checkbox shows it
 
     fireEvent.click(screen.getByRole("button", { name: "🌍 Per World" }));
     expect(screen.getByLabelText(/Compare vs Observed Max/)).toBeChecked();

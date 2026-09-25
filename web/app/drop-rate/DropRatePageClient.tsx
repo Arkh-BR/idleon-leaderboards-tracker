@@ -88,9 +88,8 @@ export default function DropRatePageClient() {
     return {
       flatTree: includeArcaneMap ? raw : stripArcaneMap(raw),
       capturedAt: Date.parse(TOP_DR_GENERATED_AT),
-      charName: `Observed Max (${TOP_DR_PLAYERS_SCANNED} top players)${
-        includeArcaneMap ? "" : " · no Arcane Map"
-      }`,
+      // The Include Arcane Map checkbox under it in the banner shows which.
+      charName: `Observed Max (${TOP_DR_PLAYERS_SCANNED} top players)`,
     };
   }, [compareTop, topMod, classKey, includeArcaneMap]);
 

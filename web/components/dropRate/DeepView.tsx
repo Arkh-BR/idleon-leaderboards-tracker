@@ -975,8 +975,8 @@ export default function DeepView({
         // that truncates with ellipsis (full text stays accessible via the
         // title tooltip), or wraps under it when less than 6rem is left. The
         // caller's extra controls share a row of their own with the hint, so
-        // they don't move when the statement's width changes (Drop Rate's
-        // " · no Arcane Map"). On phones the statement wraps too.
+        // they don't jump between lines as the statement's width varies (date
+        // format, player count). On phones the statement wraps too.
         <div className="mb-3 px-3 py-2 rounded-md border border-sky-500/30 bg-sky-500/5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs overflow-hidden">
           <span className="text-sky-200 sm:whitespace-nowrap sm:flex-shrink-0">
             Comparing against{" "}
