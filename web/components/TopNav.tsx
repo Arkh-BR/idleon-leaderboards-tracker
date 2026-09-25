@@ -148,55 +148,59 @@ export default function TopNav() {
           <span className="text-zinc-400 text-sm">›</span>
         </div>
 
-        <div ref={scrollRef} className="flex items-center gap-1 overflow-x-auto no-scrollbar px-2 sm:px-4">
-          {ENTRIES.map((entry) =>
-            "items" in entry ? (
-              // The list follows its button in the DOM (tab and reading order).
-              // Absolutely positioned against the non-scrolling wrapper, it
-              // isn't clipped by this strip's overflow-x.
-              <div key={entry.label} ref={groupRef} className="contents" onBlur={onGroupBlur}>
-                <button
-                  ref={buttonRef}
-                  type="button"
-                  aria-expanded={open}
-                  aria-controls={open ? MENU_ID : undefined}
-                  onClick={toggle}
-                  className={tabClass(entry.items.some((i) => isActive(pathname, i.href)))}
-                >
-                  {entry.label} <span aria-hidden>{open ? "▴" : "▾"}</span>
-                </button>
-                {open && (
-                  <ul
-                    id={MENU_ID}
-                    style={{ left: menuLeft ?? 0 }}
-                    className="absolute top-full z-20 mt-px w-[192px] rounded-b-md border border-zinc-800 bg-zinc-950 py-1 shadow-lg shadow-black/40"
+        {/* Centered while the tabs fit (w-max + mx-auto); when they overflow,
+            the auto margins drop to 0 so the strip still scrolls from its start. */}
+        <div ref={scrollRef} className="overflow-x-auto no-scrollbar px-2 sm:px-4">
+          <div className="flex w-max mx-auto items-center gap-1">
+            {ENTRIES.map((entry) =>
+              "items" in entry ? (
+                // The list follows its button in the DOM (tab and reading order).
+                // Absolutely positioned against the non-scrolling wrapper, it
+                // isn't clipped by this strip's overflow-x.
+                <div key={entry.label} ref={groupRef} className="contents" onBlur={onGroupBlur}>
+                  <button
+                    ref={buttonRef}
+                    type="button"
+                    aria-expanded={open}
+                    aria-controls={open ? MENU_ID : undefined}
+                    onClick={toggle}
+                    className={tabClass(entry.items.some((i) => isActive(pathname, i.href)))}
                   >
-                    {entry.items.map((item) => {
-                      const active = isActive(pathname, item.href);
-                      return (
-                        <li key={item.href}>
-                          <Link
-                            href={item.href}
-                            onClick={close}
-                            aria-current={active ? "page" : undefined}
-                            className={`block whitespace-nowrap px-4 py-2 text-sm ${
-                              active ? "text-gold bg-zinc-900" : "text-zinc-300 hover:bg-zinc-900 hover:text-zinc-100"
-                            }`}
-                          >
-                            {item.label}
-                          </Link>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                )}
-              </div>
-            ) : (
-              <Link key={entry.href} href={entry.href} className={tabClass(isActive(pathname, entry.href))}>
-                {entry.label}
-              </Link>
-            )
-          )}
+                    {entry.label} <span aria-hidden>{open ? "▴" : "▾"}</span>
+                  </button>
+                  {open && (
+                    <ul
+                      id={MENU_ID}
+                      style={{ left: menuLeft ?? 0 }}
+                      className="absolute top-full z-20 mt-px w-[192px] rounded-b-md border border-zinc-800 bg-zinc-950 py-1 shadow-lg shadow-black/40"
+                    >
+                      {entry.items.map((item) => {
+                        const active = isActive(pathname, item.href);
+                        return (
+                          <li key={item.href}>
+                            <Link
+                              href={item.href}
+                              onClick={close}
+                              aria-current={active ? "page" : undefined}
+                              className={`block whitespace-nowrap px-4 py-2 text-sm ${
+                                active ? "text-gold bg-zinc-900" : "text-zinc-300 hover:bg-zinc-900 hover:text-zinc-100"
+                              }`}
+                            >
+                              {item.label}
+                            </Link>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
+                </div>
+              ) : (
+                <Link key={entry.href} href={entry.href} className={tabClass(isActive(pathname, entry.href))}>
+                  {entry.label}
+                </Link>
+              )
+            )}
+          </div>
         </div>
       </div>
     </nav>
