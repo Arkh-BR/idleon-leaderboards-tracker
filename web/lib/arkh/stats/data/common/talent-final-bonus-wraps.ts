@@ -1051,18 +1051,17 @@ export const TALENT_FINAL_BONUS_WRAPS: Record<number, TalentWrapSpec> = {
 
   // Tal 643 — Coins For Charon (per-char).
   // N.js: GetTalentNumber(1,643) × CalcTalentMAP[643].
-  // CalcTalentMAP[643] = OverkillStuffs("2") = multikill damage tier.
-  // [STUB COUNTER] overkill-tier sim unported → counter 0 → inactive.
+  // CalcTalentMAP[643] = OverkillStuffs("2") = multikill damage tier on the
+  // saved map, against AFKtarget_N (calcTalent.ts) — always ≥ 1.
   643: {
     counterLabel: "Multikill Damage Tier",
     counterSource: { kind: "CalcTalent", talentId: 643 },
-    counterNote: "CalcTalentMAP[643] — [STUB] OverkillStuffs(\"2\") unported (0)",
+    counterNote: "CalcTalentMAP[643] — OverkillStuffs(\"2\"): max damage vs AFKtarget_N's HP, saved map",
     wrap: (tv, c) => tv * c,
     fmt: "+",
     noteForActive: (tv, c) => `${tv.toFixed(2)} × ${c} % cash per tier`,
     inactiveVal: 0,
-    inactiveNote: (_tv, c) =>
-      c <= 0 ? "Inactive — counter stubbed (multikill tier unported)" : "Inactive — talent 0",
+    inactiveNote: () => "Inactive — talent 0",
     extraBaseKids: tvKid(),
   },
 

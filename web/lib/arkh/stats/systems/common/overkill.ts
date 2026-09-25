@@ -7,9 +7,9 @@
 // Time, Midas Minded, Jawbreaker, equipped by this character (@6466526) —
 // THEN the Clamworks clam w7a6 set to Thingies("Clamz_HP") = 1e16·30^OLA[464]
 // (@10887166, @6467129), so the clam never carries the curses.
-// Shared by Coin's talent 643 and the Multikill page (spec M5). Not
-// derived-damage.ts:computeOverkillTier (MapAFKtarget + a FIGHTING gate, no
-// curses), which keeps feeding talent.resolve(643)'s wrap.
+// Shared by talent 643's wrap (calcTalent.ts, the saved map), Coin (the
+// viewed map) and the Multikill page (spec M5). Not derived-damage.ts:
+// computeOverkillTier (MapAFKtarget + a FIGHTING gate, no curses).
 
 import { MapAFKtarget } from "../../data/game/customlists.js";
 import { MONSTERS } from "../../data/game/monsters.js";

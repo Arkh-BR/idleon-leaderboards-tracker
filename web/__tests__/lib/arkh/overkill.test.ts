@@ -5,6 +5,7 @@ import { describe, it, expect } from "vitest";
 import { loadSaveData } from "@/lib/arkh/save/loader";
 import { saveData } from "@/lib/arkh/state";
 import { multikillTier, overkillActive, overkillStuffs } from "@/lib/arkh/stats/systems/common/overkill";
+import { computeCalcTalent } from "@/lib/arkh/stats/systems/common/calcTalent";
 import { FORMULA_REGISTRY } from "@/scripts/updater/registry/formula-registry.gen";
 
 const g = globalThis as unknown as { window?: unknown };
@@ -86,5 +87,21 @@ describe("overkillStuffs — the AFK target's live HP", () => {
   it("registers the port under N.js's names for the updater", () => {
     expect(FORMULA_REGISTRY["OverkillStuffs"]).toEqual(["lib/arkh/stats/systems/common/overkill.ts"]);
     expect(FORMULA_REGISTRY["Clamz_HP"]).toEqual(["lib/arkh/stats/systems/common/overkill.ts"]);
+  });
+});
+
+// N.js TalentCalc: CalcTalentMAP["643"] = OverkillStuffs("2"), which measures
+// DamageDealed("Max") against the live AFKtarget (the save's AFKtarget_N) with
+// no FIGHTING gate. Map 216 has no AFK monster (MapAFKtarget = "Nothing"), but
+// a character parked there still targets Bravery_Monument (42 HP).
+describe("talent 643's counter — OverkillStuffs('2') on the saved map", () => {
+  it("measures the save's AFKtarget_N, not MapAFKtarget, and isn't gated to FIGHTING", () => {
+    loadSaveData({
+      charNames: ["A"],
+      data: { CurrentMap_0: 216, AFKtarget_0: "Bravery_Monument" },
+    });
+    const ok = overkillStuffs(0, 216, { saveData, afkTarget: "Bravery_Monument" });
+    expect(ok.tier).toBeGreaterThan(1);
+    expect(computeCalcTalent(643, 0, saveData)).toBe(ok.tier);
   });
 });
