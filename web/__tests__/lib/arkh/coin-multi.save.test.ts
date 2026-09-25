@@ -10,6 +10,7 @@ import { isFightingMap } from "@/lib/arkh/stats/data/common/maps";
 import { currentMapData } from "@/lib/arkh/save/data";
 import { MONSTERS } from "@/lib/arkh/stats/data/game/monsters.js";
 import { formatCoinMulti } from "@/lib/coinMulti/format";
+import { computeTalentEffective, computeTalentTreesForChars } from "@/lib/talentsLevel/compute";
 
 const g = globalThis as unknown as { window?: unknown };
 if (!g.window) g.window = g;
@@ -147,22 +148,19 @@ describe.skipIf(!existsSync(SAVE))("Coin Multi — Markhe on map 14 vs IdleonToo
   });
 
   it("talent 643 uses the character's saved AFKtarget_N, not MapAFKtarget[map]", () => {
-    // ARKHELUCK's saved map (216, The Hole) isn't a fighting map, so the
-    // shared wrap (computeOverkillTier, used inside talent.resolve) forces
-    // tier 1 there — but N.js OverkillStuffs("2") has no FIGHTING gate: it
-    // always measures DamageDealed("Max") against the character's own
-    // AFKtarget_N (their last-engaged combat target), regardless of map.
+    // ARKHELUCK's saved map (216, The Hole) isn't a fighting map
+    // (MapAFKtarget[216] = "Nothing") — but N.js OverkillStuffs("2") has no
+    // FIGHTING gate: it always measures DamageDealed("Max") against the
+    // character's own AFKtarget_N (their last-engaged combat target),
+    // regardless of map.
     const luckIdx = save.charNames.indexOf("ARKHELUCK");
     expect(luckIdx).toBeGreaterThanOrEqual(0);
     const savedMap = Number(currentMapData[luckIdx]);
     expect(isFightingMap(savedMap)).toBe(false);
 
     const ctx = { saveData, charIdx: luckIdx, activeCharIdx: luckIdx };
-    // On its own (non-fighting) saved map the shared wrap's tier is 1, so
-    // dividing it back out recovers the bare GetTalentNumber(1,643).
-    const t0 = computeOverkillTier(luckIdx, ctx);
-    expect(t0.tier).toBe(1);
-    const tv = Number(talent.resolve(643, ctx).val) / t0.tier;
+    // The bare GetTalentNumber(1,643), before the wrap's × tier.
+    const tv = Number(talent.resolve(643, ctx).children!.find((k) => k.name === "Talent Value")!.val);
 
     const srcOf = (t: ArkhNode): number => {
       const gi = COIN_GROUPS.findIndex((x) => x.sources.includes("talent643"));
@@ -194,6 +192,25 @@ describe.skipIf(!existsSync(SAVE))("Coin Multi — Markhe on map 14 vs IdleonToo
     const tierSaved = tierVs(hp, maxDmg, 2);
     const valSaved = srcOf(computeArkhCoinMulti(save, luckIdx, savedMap).tree);
     close(valSaved, tv * tierSaved);
+  });
+
+  it("the Talents page and the top-talents cron read Coin's talent 643 on the saved map", () => {
+    // Same shared wrap (talent.resolve): CalcTalentMAP["643"] = OverkillStuffs
+    // ("2") on the character's own map and AFKtarget_N. ARKHELUCK, parked on
+    // map 216 like 7 others, targets Bravery_Monument (42 HP) → the tier caps
+    // at 51, as it does for Markhe fighting on map 14.
+    const coin643 = (t: ArkhNode): number => {
+      const gi = COIN_GROUPS.findIndex((x) => x.sources.includes("talent643"));
+      return Number(t.children![gi].children![COIN_GROUPS[gi].sources.indexOf("talent643")].val) || 0;
+    };
+    for (const name of ["ARKHELUCK", "Markhe"]) {
+      const ci = save.charNames.indexOf(name);
+      const map = Number(save.data["CurrentMap_" + ci]);
+      close(coin643(computeArkhCoinMulti(save, ci, map).tree), 1068.0194805194806);
+      close(Number(computeTalentEffective(save, ci, 643).tree.val), 1068.0194805194806);
+      const cron = computeTalentTreesForChars(save, [{ charIdx: ci, talentIds: [643] }]);
+      close(Number(cron[0].trees.get(643)!.val), 1068.0194805194806);
+    }
   });
 });
 

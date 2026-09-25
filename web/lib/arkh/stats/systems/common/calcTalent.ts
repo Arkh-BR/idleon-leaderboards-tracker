@@ -18,7 +18,7 @@
 // ── Faithfulness notes ──────────────────────────────────────────────
 // Every key is now computed from ported systems: rift kill-trackers
 // (110/146/209 via apocalypseMapsOver), overkill tier (643 via
-// computeOverkillTier), and the accuracy gate (125 via computeAccuracy)
+// overkillStuffs), and the accuracy gate (125 via computeAccuracy)
 // were all de-stubbed. Tal 470 still uses a documented `[PROXY]`
 // (StampLv>0 stands in for StampLevelMAX>0.5).
 
@@ -29,6 +29,7 @@ import {
   stampLvData,
   skillLvData,
   currentMapData,
+  afkTargetData,
 } from "../../../save/data";
 import type { SaveData } from "../../../state";
 import {
@@ -40,7 +41,8 @@ import { MONSTERS } from "../../data/game/monsters.js";
 import { apocalypseMapsOver } from "../w6/upg-totals";
 import { talentParams, CLASS_TREES } from "../../data/common/talent";
 import { formulaEval } from "../../../formulas";
-import { computeOverkillTier, computeAccuracy } from "./derived-damage";
+import { computeAccuracy } from "./derived-damage";
+import { overkillStuffs } from "./overkill";
 import { computeAllTalentLVz } from "./talent";
 
 /** GetTalentNumber(2,id) — the "Counts up to {" cap on the Apocalypse
@@ -292,14 +294,16 @@ export function computeCalcTalent(
     // ── 643 — Coins For Charon (per-char): Multikill Damage Tier ─────
     // N.js seeds MAP[643] = -11, then lazily replaces it with
     // RunCodeOfTypeXforThingY("OverkillStuffs","2") (the purple multikill
-    // damage tier shown in AFK Info) on first read. We now port that:
-    // computeOverkillTier ports overkill.js, calling computeMaxDamage
-    // (derived-damage.ts, a port of damage.js) instead of arkh's
-    // buildTree/getCatalog. Returns the raw tier (1..50) for the char on
-    // their current AFK map; the wrap (talent-final-bonus-wraps.ts) applies
+    // damage tier shown in AFK Info) on first read: DamageDealed("Max") vs
+    // the live AFKtarget's HP — the save's AFKtarget_N on its CurrentMap,
+    // no FIGHTING gate (a character parked on map 216 still targets
+    // Bravery_Monument). The wrap (talent-final-bonus-wraps.ts) applies
     // tv × counter.
     case 643:
-      return computeOverkillTier(charIdx, { saveData, charIdx }).tier;
+      return overkillStuffs(charIdx, Number((currentMapData as any)?.[charIdx]) || 0, {
+        saveData,
+        afkTarget: afkTargetData[charIdx],
+      }).tier;
 
     // ── 644 — American Tipper (per-char): Cooking Lv / 10 ────────────
     // N.js: MAP[644] = Lv0[10] / 10 (active char's cooking level over 10,

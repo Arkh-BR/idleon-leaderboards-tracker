@@ -34,7 +34,6 @@ import { sushiRoG } from "../w7/sushi";
 import { gridBonusValue, mainframeBonus } from "../w4/lab";
 import { getSetBonus } from "../w3/setBonus";
 import { maxTalentBonus, talent } from "../common/talent";
-import { computeOverkillTier } from "../common/derived-damage";
 import { overkillStuffs } from "../common/overkill";
 import { friend } from "../common/friend";
 import { vaultUpgBonus } from "../common/vault";
@@ -212,21 +211,18 @@ function resolveCoin(id: string, ctx: SystemCtx): ArkhNode {
       return talent.resolve(Number(id.slice(6)), tctx);
     // Talent 643 (Coins For Charon): TalentCalc(643) = GetTalentNumber(1,643)
     // × OverkillStuffs("2") (N.js @4075410). talent.resolve() applies the
-    // shared wrap's tier (computeOverkillTier: MapAFKtarget of the saved map,
-    // a FIGHTING gate, no curses), so dividing it back out recovers the bare
-    // GetTalentNumber(1,643); overkillStuffs (common/overkill.ts) then gives
-    // the game's tier for the viewed map: AFKtarget_N on the saved map, the
-    // HP with the character's prayer curses, Clamz_HP on map 306 (spec M5).
+    // tier on the character's saved map (calcTalent.ts); Coin swaps it for
+    // the viewed map's — both from overkillStuffs (common/overkill.ts):
+    // AFKtarget_N on the saved map, the HP with the character's prayer
+    // curses, Clamz_HP on map 306 (spec M5).
     case "talent643": {
       const r = talent.resolve(643, tctx);
       if (!(Number(r.val) > 0)) return r;
-      const t0 = computeOverkillTier(ci, { saveData: s, charIdx: ci });
-      const tv = Number(r.val) / t0.tier;
-      const map = ctx.mapIdx ?? Number((currentMapData as any)?.[ci]);
-      const ok = overkillStuffs(ci, map, ctx, { maxDmg: t0.maxDmg });
+      const saved = overkillStuffs(ci, Number((currentMapData as any)?.[ci]) || 0, ctx);
+      const ok = overkillStuffs(ci, ctx.mapIdx ?? saved.map, ctx, { maxDmg: saved.maxDmg });
       return node(
         r.name,
-        tv * ok.tier,
+        (Number(r.val) / saved.tier) * ok.tier,
         [
           ...(r.children ?? []),
           node("Multikill tier (selected map)", ok.tier, null, { fmt: "raw", note: `Map ${ok.map} · target ${ok.target}` }),

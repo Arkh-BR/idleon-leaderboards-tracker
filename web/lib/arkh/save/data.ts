@@ -25,6 +25,8 @@ export let postOfficeData: any[] = [];
 export let cardEquipData: any[] = [];
 export let csetEqData: any[] = [];
 export let currentMapData: any[] = [];
+/** AFKtarget_N — the character's saved AFK target (monster key, "" when absent). */
+export let afkTargetData: string[] = [];
 export let mapBonData: any[] = [];
 export let obolNamesData: any[] = [];
 export let obolMapsData: any[] = [];
@@ -60,6 +62,7 @@ export type DataUpdate = {
   cardEquipData?: any[];
   csetEqData?: any[];
   currentMapData?: any[];
+  afkTargetData?: string[];
   mapBonData?: any[];
   obolNamesData?: any[];
   obolMapsData?: any[];
@@ -96,6 +99,7 @@ export function assignSaveData(u: DataUpdate): void {
   if ("cardEquipData" in u) cardEquipData = u.cardEquipData!;
   if ("csetEqData" in u) csetEqData = u.csetEqData!;
   if ("currentMapData" in u) currentMapData = u.currentMapData!;
+  if ("afkTargetData" in u) afkTargetData = u.afkTargetData!;
   if ("mapBonData" in u) mapBonData = u.mapBonData!;
   if ("obolNamesData" in u) obolNamesData = u.obolNamesData!;
   if ("obolMapsData" in u) obolMapsData = u.obolMapsData!;

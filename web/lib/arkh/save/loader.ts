@@ -353,6 +353,7 @@ export function loadSaveData(raw: RawEnvelope): void {
   const cardEquip: any[] = [];
   const csetEq: any[] = [];
   const currentMap: number[] = [];
+  const afkTarget: string[] = [];
   const buffsActive: any[] = [];
   for (let ci = 0; ci < nChars; ci++) {
     prayersPerChar.push((parseSaveKey(save, "Prayers_" + ci) as any[]) || []);
@@ -360,6 +361,8 @@ export function loadSaveData(raw: RawEnvelope): void {
     cardEquip.push((parseSaveKey(save, "CardEquip_" + ci) as any[]) || []);
     csetEq.push((parseSaveKey(save, "CSetEq_" + ci) as any) || {});
     currentMap.push(Number(parseSaveKey(save, "CurrentMap_" + ci)) || 0);
+    // A bare monster key, not JSON — parseSaveKey would warn on every char.
+    afkTarget.push(String(save["AFKtarget_" + ci] ?? ""));
     buffsActive.push((parseSaveKey(save, "BuffsActive_" + ci) as any[]) || []);
   }
   assignSaveData({ prayersPerCharData: prayersPerChar });
@@ -367,6 +370,7 @@ export function loadSaveData(raw: RawEnvelope): void {
   assignSaveData({ cardEquipData: cardEquip });
   assignSaveData({ csetEqData: csetEq });
   assignSaveData({ currentMapData: currentMap });
+  assignSaveData({ afkTargetData: afkTarget });
   assignSaveData({ buffsActiveData: buffsActive });
 
   // MapBon — per-map kill counts. In a raw save it's a flat comma-separated
