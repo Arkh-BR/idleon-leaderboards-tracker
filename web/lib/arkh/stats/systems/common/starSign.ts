@@ -187,6 +187,10 @@ export const STAR_SIGN_TERMS: Record<string, readonly SignTerm[]> = {
     { sign: 54, val: -7, notEnabled: true },
     { sign: 56, val: 4, lvAbove: 99 },
   ],
+  // Multikill (spec M6): sign 47 Cullingo → StarSigns.MultiKill += 15
+  // (@6506250); sign 78 Killian Maximus → StarSigns["78"] += 3 (@6513550).
+  MultiKill: [{ sign: 47, val: 15 }],
+  "78": [{ sign: 78, val: 3 }],
 };
 
 export function starSignBonusReal(key: string, ci: number, saveData: SaveData): StarSignTree {

@@ -13,6 +13,8 @@ export type GainRow = GainSource & {
   max: number;
   /** % the stat's total rises if this source matched the Observed Max. */
   gainPct: number;
+  /** A row the model computes itself (GainsModel.levers): no Observed Max. */
+  lever?: true;
 };
 
 /** Paths exactly one segment below `parent`, across the given flat maps. */
@@ -48,6 +50,11 @@ export function computeGains(
     if (!Number.isFinite(gainPct)) continue;
     comparableSources++;
     if (gainPct > 0) rows.push({ ...s, you, max, gainPct });
+  }
+  // Model-computed steps (Multikill's "+1 damage tier"): ranked with the rows,
+  // never comparable sources — they have no Observed Max.
+  for (const lever of model.levers?.(yoursFlat) ?? []) {
+    if (Number.isFinite(lever.gainPct) && lever.gainPct > 0) rows.push({ ...lever, lever: true });
   }
   rows.sort((a, b) => b.gainPct - a.gainPct);
   return { rows, comparableSources };

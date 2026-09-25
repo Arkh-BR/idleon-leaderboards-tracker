@@ -32,6 +32,9 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   "CardsCollected": [
     "lib/arkh/stats/systems/coin/accountKills.ts"
   ],
+  "Clamz_HP": [
+    "lib/arkh/stats/systems/common/overkill.ts"
+  ],
   "ClassFamilyBonuses[16]": [
     "lib/arkh/stats/systems/common/familyBonus.ts"
   ],
@@ -100,20 +103,43 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/arkh/stats/systems/exp/exp.ts",
     "lib/arkh/stats/systems/exp/msa.ts"
   ],
+  "MeasurementBaseBonus": [
+    "lib/arkh/stats/systems/coin/gambit.ts"
+  ],
+  "MeasurementBonusTOTAL": [
+    "lib/arkh/stats/systems/coin/gambit.ts"
+  ],
+  "MeasurementMulti": [
+    "lib/arkh/stats/systems/coin/gambit.ts"
+  ],
   "MeritocBonusz": [
     "lib/arkh/stats/systems/exp/exp.ts"
   ],
   "MonsterCash": [
     "lib/arkh/stats/systems/coin/coin.ts"
   ],
+  "MonsterRespawnTimeReset": [
+    "lib/arkh/stats/systems/common/overkill.ts"
+  ],
   "MonumentROGbonuses": [
     "lib/arkh/stats/systems/exp/exp.ts"
+  ],
+  "MultiKillTOTAL": [
+    "lib/arkh/stats/defs/multikill.ts"
+  ],
+  "MultiKill_base": [
+    "lib/arkh/stats/defs/multikill.ts",
+    "lib/arkh/stats/systems/multikill/multikill.ts"
+  ],
+  "MultiKill_perTier": [
+    "lib/arkh/stats/defs/multikill.ts",
+    "lib/arkh/stats/systems/multikill/multikill.ts"
   ],
   "OverkillQTY": [
     "lib/arkh/stats/systems/coin/gambit.ts"
   ],
   "OverkillStuffs": [
-    "lib/arkh/stats/systems/coin/coin.ts"
+    "lib/arkh/stats/systems/common/overkill.ts"
   ],
   "PocketDivOwned": [
     "lib/arkh/stats/systems/coin/divinityMinor.ts"
@@ -182,14 +208,21 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   "_customBlock_FlurboShop": [
     "lib/arkh/stats/systems/coin/coin.ts"
   ],
+  "_customBlock_GetBuffBonuses": [
+    "lib/arkh/stats/systems/common/buffs.ts"
+  ],
   "_customBlock_GetSetBonus": [
     "lib/arkh/stats/systems/w3/setBonus.ts"
   ],
   "_customBlock_Holes2": [
-    "lib/arkh/stats/systems/afk/afk.ts"
+    "lib/arkh/stats/systems/afk/afk.ts",
+    "lib/arkh/stats/systems/multikill/multikill.ts"
   ],
   "_customBlock_JellyOperation": [
     "lib/arkh/stats/data/w7/jelly.ts"
+  ],
+  "_customBlock_SaltLick": [
+    "lib/arkh/stats/systems/exp/saltLick.ts"
   ],
   "_customBlock_StarSigns": [
     "lib/arkh/stats/systems/common/starSign.ts"

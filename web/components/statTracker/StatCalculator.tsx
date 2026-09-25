@@ -290,9 +290,11 @@ export default function StatCalculator({
             className="text-2xl font-extrabold text-gold tabular-nums"
             title={
               total !== null
-                ? unit === "%"
-                  ? (100 * total).toFixed(2) + "%"
-                  : total.toExponential(6) + "x"
+                ? config.totalTitle
+                  ? config.totalTitle(total)
+                  : unit === "%"
+                    ? (100 * total).toFixed(2) + "%"
+                    : total.toExponential(6) + "x"
                 : undefined
             }
           >

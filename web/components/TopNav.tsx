@@ -14,6 +14,7 @@ const ITEMS: NavItem[] = [
   { href: "/coin-multi", label: "🪙 Coin Multi" },
   { href: "/exp-multi", label: "✨ EXP Multi" },
   { href: "/afk-gains", label: "💤 AFK Gains" },
+  { href: "/multikill", label: "💥 Multikill" },
   { href: "/talents-level", label: "🌟 Talents" },
   { href: "/cooking-mastery", label: "🍳 Cooking Mastery" },
   { href: "/sheets", label: "📊 Sheets & Tools" },

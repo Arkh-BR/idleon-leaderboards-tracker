@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { computeGains, splitGains, groupedGainsModel } from "@/lib/statTracker/biggestGains";
+import type { GainsModel } from "@/lib/statTracker/config";
 import type { StatGroup } from "@/lib/arkh/stats/defs/grouped";
 
 const GROUPS: StatGroup[] = [
@@ -75,5 +76,16 @@ describe("skip option — circumstantial sources excluded from ranking, kept in 
   it("totalFromFlat still sums the skipped source", () => {
     const yours = { [`${P} / A`]: 100, [`${P} / B`]: 200 };
     expect(skipModel.totalFromFlat(yours)).toBeCloseTo(model.totalFromFlat(yours), 12);
+  });
+});
+
+describe("model levers — model-computed steps ranked but not comparable sources", () => {
+  it("ranks the model's levers with the sources, without counting them as comparable", () => {
+    const lever = { path: "Root / Step", group: "Levers", source: "+1 step", display: "raw" as const, you: 1, max: 2, gainPct: 60 };
+    const withLevers: GainsModel = { ...model, levers: () => [lever, { ...lever, path: "Root / Flat", source: "flat", gainPct: 0 }] };
+    const res = computeGains(withLevers, { [`${P} / A`]: 100, [`${P} / B`]: 200 }, { [`${P} / A`]: 400 });
+    expect(res.comparableSources).toBe(1);
+    expect(res.rows.map((r) => r.source)).toEqual(["A", "+1 step"]); // 75% then 60%; the 0% lever is dropped
+    expect(res.rows.map((r) => r.lever)).toEqual([undefined, true]);
   });
 });

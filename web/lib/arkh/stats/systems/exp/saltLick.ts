@@ -11,6 +11,7 @@ export function saltLickLevel(idx: number, s: SaveData): number {
   return Number((s.saltLickData as any)?.[idx]) || 0;
 }
 
+// @njs _customBlock_SaltLick
 export function saltLick(idx: number, s: SaveData): number {
   const lv = saltLickLevel(idx, s);
   return lv > 0 ? lv * (Number((SaltLicks as any)[idx]?.[3]) || 0) : 0;

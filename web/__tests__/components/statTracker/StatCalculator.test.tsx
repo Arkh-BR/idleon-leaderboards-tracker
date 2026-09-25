@@ -24,12 +24,18 @@ vi.mock("@/lib/arkh/computeAfk", () => ({
     throw new Error("stub");
   },
 }));
+vi.mock("@/lib/arkh/computeMultikill", () => ({
+  computeArkhMultikill: () => {
+    throw new Error("stub");
+  },
+}));
 
 import StatCalculator from "@/components/statTracker/StatCalculator";
 import { testConfig } from "./testConfig";
 import { EXP_PAGE } from "@/lib/expMulti/pageConfig";
 import { COIN_PAGE } from "@/lib/coinMulti/pageConfig";
 import { AFK_PAGE } from "@/lib/afkGains/pageConfig";
+import { MULTIKILL_PAGE } from "@/lib/multikill/pageConfig";
 import type { StatPageConfig } from "@/lib/statTracker/config";
 
 const save = () => ({
@@ -118,6 +124,12 @@ describe("StatCalculator", () => {
     expect(screen.getByText(/AFK Gains Calculator/)).toBeInTheDocument();
   });
 
+  it("renders the Multikill config", () => {
+    render(<StatCalculator config={MULTIKILL_PAGE} />);
+    expect(loader!.storageKey).toBe("multikill-tracker.playerName");
+    expect(screen.getByText(/Multikill Calculator/)).toBeInTheDocument();
+  });
+
   it("prints a % stat's headline in its unit, with the percent as the title", async () => {
     const tree = { name: "Test Multi", val: 422.31870591798446, fmt: "x" as const, children: [] };
     const pct: StatPageConfig = {
@@ -136,5 +148,19 @@ describe("StatCalculator", () => {
     render(<StatCalculator config={{ ...testConfig, compute: async () => ({ tree, total: 12.5 }) }} />);
     act(() => loader!.onSave(save()));
     expect(await screen.findByText("12.50x")).toHaveAttribute("title", "1.250000e+1x");
+  });
+
+  it("uses the config's totalTitle for the headline tooltip", async () => {
+    const tree = { name: "Test Multi", val: 81706, fmt: "%" as const, children: [] };
+    const pct: StatPageConfig = {
+      ...testConfig,
+      unit: "%",
+      formatTotal: (x) => String(Math.floor(x)),
+      totalTitle: (x) => x.toLocaleString("en-US") + "%",
+      compute: async () => ({ tree, total: tree.val }),
+    };
+    render(<StatCalculator config={pct} />);
+    act(() => loader!.onSave(save()));
+    expect(await screen.findByText("81706%")).toHaveAttribute("title", "81,706%");
   });
 });
