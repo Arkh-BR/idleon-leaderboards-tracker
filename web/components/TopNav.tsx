@@ -30,7 +30,7 @@ const ENTRIES: NavEntry[] = [
 ];
 
 const MENU_ID = "nav-trackers-menu";
-/** The list's width (Tailwind w-48), so it can be kept inside the bar. */
+/** The list's width in px (class w-[192px]), so it can be kept inside the bar. */
 const MENU_W = 192;
 
 const isActive = (pathname: string, href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
@@ -117,9 +117,11 @@ export default function TopNav() {
     };
   }, [open, close]);
 
-  // Tabbing out of the button and its list closes it.
+  // Tabbing out of the button and its list closes it. A blur with no new
+  // target is a pointer press (Safari doesn't focus clicked links): the
+  // pointerdown listener handles those, or a click on a list link would be lost.
   const onGroupBlur = (e: FocusEvent<HTMLDivElement>) => {
-    if (!e.currentTarget.contains(e.relatedTarget as Node | null)) close();
+    if (e.relatedTarget && !e.currentTarget.contains(e.relatedTarget as Node)) close();
   };
 
   // Protest mode: hide the whole nav so every tool is unreachable from here.
@@ -167,7 +169,7 @@ export default function TopNav() {
                   <ul
                     id={MENU_ID}
                     style={{ left: menuLeft ?? 0 }}
-                    className="absolute top-full z-20 mt-px w-48 rounded-b-md border border-zinc-800 bg-zinc-950 py-1 shadow-lg shadow-black/40"
+                    className="absolute top-full z-20 mt-px w-[192px] rounded-b-md border border-zinc-800 bg-zinc-950 py-1 shadow-lg shadow-black/40"
                   >
                     {entry.items.map((item) => {
                       const active = isActive(pathname, item.href);

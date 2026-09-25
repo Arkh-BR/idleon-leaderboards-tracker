@@ -63,10 +63,12 @@ describe("TopNav", () => {
     expect(screen.queryByRole("link", { name: /Coin Multi/i })).toBeNull();
   });
 
-  it("stays open while focus moves inside the list", () => {
+  it("stays open while focus moves inside the list, or on a blur with no target (Safari press)", () => {
     render(<TopNav />);
     fireEvent.click(trackersButton());
     fireEvent.focusOut(trackersButton(), { relatedTarget: screen.getByRole("link", { name: /Drop Rate/i }) });
+    expect(screen.getByRole("link", { name: /Coin Multi/i })).toBeInTheDocument();
+    fireEvent.focusOut(trackersButton(), { relatedTarget: null });
     expect(screen.getByRole("link", { name: /Coin Multi/i })).toBeInTheDocument();
   });
 
