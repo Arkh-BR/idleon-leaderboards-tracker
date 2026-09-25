@@ -43,6 +43,7 @@ import { computeShinyBonusS } from "../w4/breeding";
 import { computeAllShimmerBonuses } from "../w3/equinox";
 import { owl } from "../w1/owl";
 import { votingBonusz } from "../w2/voting";
+import { EXP_VOTE_NAME } from "../../defs/exp-multi";
 import { computePrayerReal } from "../w3/prayer";
 import { computeShrine } from "../w3/construction";
 import { getSetBonus } from "../w3/setBonus";
@@ -569,7 +570,7 @@ function resolveExp(id: string, ctx: SystemCtx): ArkhNode {
     case "vote15": {
       const multi = votingMulti(ctx);
       const v = votingBonusz(15, multi, s);
-      return pct("Vote 15 (Class EXP)", v, [raw("Voting multi", multi)]);
+      return pct(EXP_VOTE_NAME, v, [raw("Voting multi", multi)]);
     }
     // @njs MonumentROGbonuses — N.js Holes("MonumentROGbonuses",1,6)
     case "monument1_6":

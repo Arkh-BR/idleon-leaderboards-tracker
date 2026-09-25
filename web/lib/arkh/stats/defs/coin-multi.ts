@@ -12,6 +12,10 @@ export type CoinGroup = StatGroup & { kind: CoinGroupKind };
 
 export const COIN_ROOT = "Coin Multi";
 
+/** The weekly vote's node. The vote is server-wide and changes every week, so
+ *  Biggest Gains leaves it out: it isn't something a player raises. */
+export const COIN_VOTE_NAME = "Vote 34 (Cash)";
+
 export const COIN_GROUPS: readonly CoinGroup[] = [
   { key: "g01", name: "🫧 Cash Bubbles", kind: "pct", sources: ["bubbleSTR", "bubbleAGI", "bubbleWIS"] },
   { key: "g02", name: "🐾 Companion 24", kind: "min4", sources: ["comp24"] },

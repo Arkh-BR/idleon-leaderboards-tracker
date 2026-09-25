@@ -14,7 +14,8 @@ const METHODOLOGY_NOTE =
   "DR gain = how much your total Drop Rate would rise if this system matched " +
   "the top players (Observed Max). Additive systems all share the same " +
   "sensitivity, so they rank by raw gap; multipliers rank by ratio. Values " +
-  "are a ceiling, not a one-level step.";
+  "are a ceiling, not a one-level step. The weekly vote isn't ranked: it's " +
+  "server-wide and changes every week.";
 
 /** Loads the per-class Observed-Max reference. Injectable for tests; the
  *  default lazy-imports the (large) top-DR module just like the page's

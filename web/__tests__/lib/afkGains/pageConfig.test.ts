@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll } from "vitest";
 import { existsSync, readFileSync } from "node:fs";
 import { AFK_PAGE, afkGainsModel, formatAfkGains } from "@/lib/afkGains/pageConfig";
-import { AFK_NODES, AFK_ROOT } from "@/lib/arkh/stats/defs/afk-gains";
+import { AFK_NODES, AFK_ROOT, AFK_VOTE_NAME } from "@/lib/arkh/stats/defs/afk-gains";
 import { combineAfkPools, computeArkhAfkGains } from "@/lib/arkh/computeAfk";
 import { computeGains } from "@/lib/statTracker/biggestGains";
 import { flattenTree } from "@/lib/dropRate/treeFlatten";
@@ -56,6 +56,12 @@ describe("AFK Gains page config", () => {
 });
 
 describe("AFK what-if gains model (synthetic)", () => {
+  it("doesn't rank the weekly vote (Vote 6)", () => {
+    const P = `${AFK_ROOT} / ${AFK_NODES.pool}`;
+    const rows = afkGainsModel.sources({ [`${P} / ${AFK_VOTE_NAME}`]: 0, [`${P} / Other`]: 5 }, { [`${P} / ${AFK_VOTE_NAME}`]: 30 });
+    expect(rows.map((r) => r.source)).toEqual(["Other"]);
+  });
+
   const P = (...items: Array<[string, number]>): Pool => ({ items: items.map(([name, val]) => ({ name, val })), sum: 0, product: 0 });
   const flatOf = (clam: number, cove: number, type: number) =>
     flattenTree(

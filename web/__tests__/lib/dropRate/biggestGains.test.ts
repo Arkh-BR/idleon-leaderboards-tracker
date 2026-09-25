@@ -103,6 +103,12 @@ describe("computeBiggestGains — denylist", () => {
     expect(systems).toEqual(["🎽 Equipment"]);
   });
 
+  it("excludes the weekly vote (🗳️ Voting): server-wide, not a player's lever", () => {
+    const yours = additiveFlat(100, { "🗳️ Voting": 0, "🍔 Golden Food": 10 });
+    const ref = additiveFlat(100, { "🗳️ Voting": 38, "🍔 Golden Food": 20 });
+    expect(computeBiggestGains(yours, ref).rows.map((r) => r.system)).toEqual(["🍔 Golden Food"]);
+  });
+
   it("DENYLIST_PATHS contains the two excluded full paths", () => {
     expect(DENYLIST_PATHS.has(P("🔹 Other"))).toBe(true);
     expect(DENYLIST_PATHS.has(P("🗺️ Arcane Map"))).toBe(true);

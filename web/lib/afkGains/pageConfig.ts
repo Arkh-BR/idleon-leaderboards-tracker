@@ -3,7 +3,7 @@
 
 import type { GainSource, GainsModel, StatPageConfig } from "@/lib/statTracker/config";
 import { directChildren } from "@/lib/statTracker/biggestGains";
-import { AFK_NODES, AFK_ROOT, afkRate } from "@/lib/arkh/stats/defs/afk-gains";
+import { AFK_NODES, AFK_ROOT, AFK_VOTE_NAME, afkRate } from "@/lib/arkh/stats/defs/afk-gains";
 import { TOP_AFK_GENERATED_AT, TOP_AFK_PLAYERS_SCANNED } from "./topAfkGains.meta";
 
 /** The AFK Info panel's number (N.js @3790178: ""+Math.floor(100*rate)+"%"),
@@ -25,7 +25,8 @@ export const afkGainsModel: GainsModel = {
     for (const g of GROUPS) {
       const gp = pathOf(g);
       for (const p of directChildren(gp, yoursFlat, refFlat)) {
-        out.push({ path: p, group: g, source: p.slice(gp.length + 3), display: "pct" });
+        const source = p.slice(gp.length + 3);
+        if (source !== AFK_VOTE_NAME) out.push({ path: p, group: g, source, display: "pct" });
       }
     }
     return out;
@@ -80,7 +81,7 @@ export const AFK_PAGE: StatPageConfig = {
     "AFK gain = how much your AFK Gains Rate would rise if this source matched the top players " +
     "(Observed Max), recomputed through the game's formula. Values are a ceiling, not a one-level step. " +
     "Each top player is measured on their best Arcane AFK map (slot 2), so that row reflects the map " +
-    "choice too.",
+    "choice too. The weekly vote isn't ranked: it's server-wide and changes every week.",
   compareTitle: "Compare every AFK gains source against the best value observed across the top players",
   gainsTabTitle: "Rank your AFK sources by how much AFK Gains Rate matching the top players would give",
   footer:

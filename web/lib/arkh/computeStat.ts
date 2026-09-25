@@ -2,7 +2,7 @@
 // Loads the save into the arkh state singleton and runs a grouped stat
 // descriptor (Coin Multi, EXP Multi, …) for one character on one map.
 // mapIdx is the selected map; afkTarget is the character's saved
-// AFKtarget_N (Coin's talent 643 reads it).
+// AFKtarget_N as the loader read it (the same value talent 643's wrap uses).
 
 import { loadSaveData } from "./save/loader";
 import { saveData } from "./state";
@@ -13,9 +13,9 @@ import type { ArkhNode } from "./node";
 
 export type StatResult = { tree: ArkhNode; total: number };
 
-export function statCtx(rawEnvelope: any, charIdx: number, mapIdx: number): SystemCtx {
-  const afkTargetRaw = rawEnvelope?.data?.["AFKtarget_" + charIdx];
-  const afkTarget = afkTargetRaw != null && afkTargetRaw !== "" ? String(afkTargetRaw) : undefined;
+/** Call after loadSaveData(rawEnvelope): afkTarget comes from the loaded save. */
+export function statCtx(_rawEnvelope: unknown, charIdx: number, mapIdx: number): SystemCtx {
+  const afkTarget = data.afkTargetData[charIdx] || undefined;
   return { saveData, charIdx, activeCharIdx: charIdx, mapBon: data.mapBonData, mapIdx, afkTarget };
 }
 

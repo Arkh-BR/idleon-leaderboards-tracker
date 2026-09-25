@@ -47,8 +47,11 @@ export const MINOR_GAIN_THRESHOLD_PCT = 0.05;
  *     multiplier and flattens to `🎁 Bundles#1`, which stays in the ranking.
  *     (The Death Bringer node is always emitted by the bundle handler — owned
  *     or not — so it always holds the un-suffixed slot, keeping these paths
- *     stable.) */
+ *     stable.)
+ *   - `🗳️ Voting` is the weekly vote: server-wide and different every week, so
+ *     it isn't something the player raises. */
 export const DENYLIST_PATHS: ReadonlySet<string> = new Set<string>([
+  `${ADDITIVE_POOL_PATH} / 🗳️ Voting`,
   `${POST_PROCESSING_PATH} / 🔹 Other`,
   `${POST_PROCESSING_PATH} / 🗺️ Arcane Map`,
   `${POST_PROCESSING_PATH} / 🎁 Bundles`,
