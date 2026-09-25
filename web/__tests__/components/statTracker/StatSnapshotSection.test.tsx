@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
-import StatSnapshotSection from "@/components/statTracker/StatSnapshotSection";
+import { useStatSnapshots } from "@/components/statTracker/StatSnapshotSection";
 import type { StatCalculatorState } from "@/components/statTracker/StatCalculator";
 import { testConfig } from "./testConfig";
 
@@ -16,6 +16,17 @@ const state = (): StatCalculatorState => ({
   tree: { name: "Test Multi", val: 12.5, fmt: "x", children: [] },
   computeError: null,
 });
+
+/** The page puts `actions` next to the total and `panel` under it. */
+function StatSnapshotSection(props: Parameters<typeof useStatSnapshots>[0]) {
+  const { actions, panel } = useStatSnapshots(props);
+  return (
+    <>
+      {actions}
+      {panel}
+    </>
+  );
+}
 
 beforeEach(() => localStorage.clear());
 
@@ -33,6 +44,40 @@ describe("StatSnapshotSection", () => {
     fireEvent.click(screen.getByRole("button", { name: /Save snapshot/ }));
     expect(screen.getByText(/Snapshot saved for Alpha — Test Multi 12.50x on W1 · Spore Meadows/)).toBeInTheDocument();
     expect(JSON.parse(localStorage.getItem(testConfig.storage.snapshots)!).snapshotsByChar.Alpha).toHaveLength(1);
+  });
+
+  it("History (N) counts the page's snapshots and opens the panel: Export, Import, chips, Clear", () => {
+    const snap = (capturedAt: number, charName: string) => ({
+      capturedAt,
+      saveUpdatedAt: null,
+      charIndex: 0,
+      charName,
+      level: 1,
+      value: 10,
+      mapName: "W1",
+    });
+    localStorage.setItem(
+      testConfig.storage.snapshots,
+      JSON.stringify({ snapshotsByChar: { Alpha: [snap(1, "Alpha"), snap(2, "Alpha")], Beta: [snap(3, "Beta")] } })
+    );
+    render(<StatSnapshotSection config={testConfig} state={state()} />);
+    const history = screen.getByRole("button", { name: "📈 History (3)" });
+    expect(history).toHaveAttribute("aria-expanded", "false");
+    expect(screen.queryByRole("button", { name: /Export/ })).toBeNull();
+
+    fireEvent.click(history);
+    expect(history).toHaveAttribute("aria-expanded", "true");
+    expect(localStorage.getItem(testConfig.storage.collapse)).toBe("0");
+    expect(screen.getByRole("button", { name: "↑ Export" })).toBeInTheDocument();
+    expect(screen.getByLabelText(/Import/)).toHaveAttribute("type", "file");
+    expect(screen.getByRole("button", { name: /Beta/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "🗑 Clear Alpha" })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /Save snapshot/ }));
+    expect(history).toHaveTextContent("📈 History (4)");
+    fireEvent.click(history);
+    expect(localStorage.getItem(testConfig.storage.collapse)).toBe("1");
+    expect(screen.queryByRole("button", { name: /Export/ })).toBeNull();
   });
 
   it("prints a % stat in the notice and the history table", async () => {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
 import Num from "@/components/Num";
 import { buildSnapshot, type DropRateSnapshot } from "@/lib/dropRate/extract";
 import {
@@ -43,27 +43,26 @@ type Props = {
   /** Which snapshot's `capturedAt` is currently selected as the baseline.
    *  Used so the row that's been picked stays visually highlighted. */
   selectedBaselineAt?: number | null;
-  /** Extra controls rendered in the header, between the title and the
-   *  Save/Export/Import buttons (used for the Compare-vs-Observed-Max block). */
-  headerExtra?: React.ReactNode;
 };
 
 const COLLAPSE_KEY = "drop-rate.snapshot-section.collapsed.v1";
 
-export default function SnapshotSection({
+/** The Drop Rate snapshot history, in two parts that share one state:
+ *  `actions` (💾 Save snapshot + the 📈 History (N) toggle, right of the
+ *  Total Drop Rate) and `panel` (the history itself, under the total row;
+ *  null while collapsed). */
+export function useDrSnapshots({
   state,
   onSelectBaseline,
   selectedBaselineAt,
-  headerExtra,
-}: Props) {
+}: Props): { actions: ReactNode; panel: ReactNode } {
   const [trackedChars, setTrackedChars] = useState<string[]>([]);
   const [viewChar, setViewChar] = useState<string | null>(null);
   const [history, setHistory] = useState<EnrichedSnapshot[]>([]);
   const [notice, setNotice] = useState<string | null>(null);
-  // Whole-section collapse — defaults to expanded for first-time users and
-  // is persisted to localStorage so the choice survives reloads.
-  // Starts collapsed by default; only expands if the user previously chose to
-  // expand it (COLLAPSE_KEY === "0").
+  // History panel collapse, persisted to localStorage so the choice survives
+  // reloads. Starts collapsed by default; only expands if the user previously
+  // chose to expand it (COLLAPSE_KEY === "0").
   const [collapsed, setCollapsed] = useState(true);
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -198,131 +197,118 @@ export default function SnapshotSection({
     reader.readAsText(f);
   }
 
-  // Aggregate count across all tracked chars so the collapsed header can
-  // surface "47 snapshots across 3 chars" without expanding.
+  // Every snapshot this page holds, across all tracked chars.
   const totalSnaps = trackedChars.reduce(
     (a, n) => a + listSnapshots(n).length,
     0
   );
 
-  return (
-    <section className="rounded-lg bg-zinc-900/60 border border-zinc-800 p-4">
-      <div className="flex items-center justify-between gap-2">
-        {/* Header doubles as the collapse toggle so the user can hide the
-            whole capture history when they don't need it. */}
+  const actions = (
+    <>
+      <button
+        type="button"
+        onClick={onSave}
+        disabled={!canSave}
+        className="px-3 py-1.5 text-xs rounded bg-gold/15 text-gold border border-gold/40 hover:bg-gold/25 disabled:opacity-40 disabled:cursor-not-allowed"
+      >
+        💾 Save snapshot
+      </button>
+      <button
+        type="button"
+        onClick={toggleCollapsed}
+        aria-expanded={!collapsed}
+        className="text-xs font-semibold text-sky-300 hover:text-sky-200 select-none"
+        title={collapsed ? "Show snapshot history" : "Hide snapshot history"}
+      >
+        📈 History ({totalSnaps})
+      </button>
+    </>
+  );
+
+  const panel = !collapsed && (
+    <div className="border-t border-zinc-800 pt-3">
+      <div className="flex gap-2 items-center justify-end mb-3">
+        {/* Use the same thin arrows the DeepView Expand/Collapse buttons use
+            so the iconography is consistent across the page. Convention:
+            ↑ Export — data going OUT of the app (up/out to a file)
+            ↓ Import — data coming IN to the app (down/in from a file) */}
         <button
           type="button"
-          onClick={toggleCollapsed}
-          className="flex items-center gap-2 text-base font-semibold text-sky-300 hover:text-sky-200 select-none"
-          title={collapsed ? "Expand snapshot history" : "Collapse snapshot history"}
+          onClick={onExport}
+          className="px-3 py-1 text-xs rounded bg-zinc-800 text-zinc-200 border border-zinc-700 hover:bg-zinc-700"
+          title="Export all snapshots to a JSON file"
         >
-          <span className="w-3 text-zinc-500 select-none">
-            {collapsed ? "▸" : "▾"}
-          </span>
-          <span className="flex flex-col items-center text-center">
-            <span>📈 Snapshot History</span>
-            {collapsed && totalSnaps > 0 && (
-              <span className="text-xs text-zinc-500 font-normal">
-                ({totalSnaps} capture{totalSnaps === 1 ? "" : "s"} across{" "}
-                {trackedChars.length} char{trackedChars.length === 1 ? "" : "s"})
-              </span>
-            )}
-          </span>
+          ↑ Export
         </button>
-        <div className="flex gap-2 items-center justify-end">
-          {headerExtra}
-          <button
-            type="button"
-            onClick={onSave}
-            disabled={!canSave}
-            className="px-3 py-1.5 text-xs rounded bg-gold/15 text-gold border border-gold/40 hover:bg-gold/25 disabled:opacity-40 disabled:cursor-not-allowed"
-          >
-            💾 Save snapshot
-          </button>
-          {/* Use the same thin arrows the DeepView Expand/Collapse buttons use
-              so the iconography is consistent across the page. Convention:
-              ↑ Export — data going OUT of the app (up/out to a file)
-              ↓ Import — data coming IN to the app (down/in from a file) */}
-          <button
-            type="button"
-            onClick={onExport}
-            className="px-3 py-1 text-xs rounded bg-zinc-800 text-zinc-200 border border-zinc-700 hover:bg-zinc-700"
-            title="Export all snapshots to a JSON file"
-          >
-            ↑ Export
-          </button>
-          <label
-            className="px-3 py-1 text-xs rounded bg-zinc-800 text-zinc-200 border border-zinc-700 hover:bg-zinc-700 cursor-pointer"
-            title="Import snapshots from a previously-exported JSON file"
-          >
-            ↓ Import
-            <input
-              type="file"
-              accept="application/json,.json"
-              onChange={onImport}
-              className="hidden"
-            />
-          </label>
-        </div>
+        <label
+          className="px-3 py-1 text-xs rounded bg-zinc-800 text-zinc-200 border border-zinc-700 hover:bg-zinc-700 cursor-pointer"
+          title="Import snapshots from a previously-exported JSON file"
+        >
+          ↓ Import
+          <input
+            type="file"
+            accept="application/json,.json"
+            onChange={onImport}
+            className="hidden"
+          />
+        </label>
       </div>
-      {!collapsed && (
-        <div className="mt-3">
-          {notice && (
-            <p className="mb-3 text-xs text-emerald-300">{notice}</p>
-          )}
-
-          {trackedChars.length === 0 ? (
-            <p className="text-sm text-zinc-500 italic">
-              No snapshots yet. Click &ldquo;Save snapshot&rdquo; above after loading a
-              save.
-            </p>
-          ) : (
-            <>
-              <div className="flex flex-wrap gap-1 mb-3">
-                {trackedChars.map((n) => (
-                  <button
-                    key={n}
-                    onClick={() => setViewChar(n)}
-                    className={`px-3 py-1 text-xs rounded border ${
-                      viewChar === n
-                        ? "bg-gold/15 text-gold border-gold/40"
-                        : "bg-zinc-800/40 text-zinc-400 border-zinc-700 hover:bg-zinc-800"
-                    }`}
-                  >
-                    {n}{" "}
-                    <span className="opacity-60">
-                      ({listSnapshots(n).length})
-                    </span>
-                  </button>
-                ))}
-                {viewChar && (
-                  <button
-                    onClick={() => onClear(viewChar)}
-                    className="ml-auto px-3 py-1 text-xs rounded bg-red-500/10 text-red-300 border border-red-500/40 hover:bg-red-500/20"
-                  >
-                    🗑 Clear {viewChar}
-                  </button>
-                )}
-              </div>
-
-              {viewChar && history.length > 0 ? (
-                <HistoryTable
-                  history={history}
-                  onDelete={(t) => onDel(viewChar, t)}
-                  onPickBaseline={onPickBaseline}
-                  selectedBaselineAt={selectedBaselineAt ?? null}
-                />
-              ) : (
-                <p className="text-sm text-zinc-500 italic">
-                  No snapshots for {viewChar} yet.
-                </p>
-              )}
-            </>
-          )}
-        </div>
+      {notice && (
+        <p className="mb-3 text-xs text-emerald-300">{notice}</p>
       )}
-    </section>
+
+      {trackedChars.length === 0 ? (
+        <p className="text-sm text-zinc-500 italic">
+          No snapshots yet. Click &ldquo;Save snapshot&rdquo; above after loading a
+          save.
+        </p>
+      ) : (
+        <>
+          <div className="flex flex-wrap gap-1 mb-3">
+            {trackedChars.map((n) => (
+              <button
+                key={n}
+                onClick={() => setViewChar(n)}
+                className={`px-3 py-1 text-xs rounded border ${
+                  viewChar === n
+                    ? "bg-gold/15 text-gold border-gold/40"
+                    : "bg-zinc-800/40 text-zinc-400 border-zinc-700 hover:bg-zinc-800"
+                }`}
+              >
+                {n}{" "}
+                <span className="opacity-60">
+                  ({listSnapshots(n).length})
+                </span>
+              </button>
+            ))}
+            {viewChar && (
+              <button
+                onClick={() => onClear(viewChar)}
+                className="ml-auto px-3 py-1 text-xs rounded bg-red-500/10 text-red-300 border border-red-500/40 hover:bg-red-500/20"
+              >
+                🗑 Clear {viewChar}
+              </button>
+            )}
+          </div>
+
+          {viewChar && history.length > 0 ? (
+            <HistoryTable
+              history={history}
+              onDelete={(t) => onDel(viewChar, t)}
+              onPickBaseline={onPickBaseline}
+              selectedBaselineAt={selectedBaselineAt ?? null}
+            />
+          ) : (
+            <p className="text-sm text-zinc-500 italic">
+              No snapshots for {viewChar} yet.
+            </p>
+          )}
+        </>
+      )}
+    </div>
   );
+
+  return { actions, panel };
 }
 
 function HistoryTable({

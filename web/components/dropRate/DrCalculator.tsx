@@ -58,9 +58,10 @@ type Props = {
   // Breakdown — used by the page to render the snapshot section there so it
   // sits near the headline value instead of buried at the bottom.
   middleSlot?: React.ReactNode;
-  // Optional render slot right under the manual-paste box (above the controls)
-  // — used by the page for the Snapshot History section.
-  snapshotSlot?: React.ReactNode;
+  // Inline right of the Total Drop Rate (the page's Save snapshot + History)
+  // and under the total row, in the same card (the snapshot history panel).
+  totalActions?: React.ReactNode;
+  totalPanel?: React.ReactNode;
   // Extra DeepView tabs (e.g. the "💡 Biggest Gains" panel) + initial tab.
   // Forwarded verbatim to DeepView so the page can add tabs without a fork.
   extraTabs?: DeepViewExtraTab[];
@@ -74,7 +75,8 @@ export default function DrCalculator({
   onStateChange,
   compareBaseline,
   middleSlot,
-  snapshotSlot,
+  totalActions,
+  totalPanel,
   extraTabs,
   extraTabsFirst,
   defaultView,
@@ -380,8 +382,6 @@ export default function DrCalculator({
         <PasteSaveDetails onLoad={onLoad} />
       </ProfileNameLoader>
 
-      {snapshotSlot && <div className="mb-4">{snapshotSlot}</div>}
-
       {/* Analysis controls — character / map / chip gallery. Always visible
           (the save comes from the name loader above or the manual paste
           fallback below). */}
@@ -453,7 +453,9 @@ export default function DrCalculator({
               </span>
             )}
           </div>
+          {totalActions && <div className="ml-2 flex items-center gap-2">{totalActions}</div>}
         </div>
+        {totalPanel}
       </div>
 
       {totalDr !== null && (

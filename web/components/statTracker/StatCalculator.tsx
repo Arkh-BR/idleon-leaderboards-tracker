@@ -31,7 +31,10 @@ type Props = {
   config: StatPageConfig;
   onStateChange?: (s: StatCalculatorState) => void;
   compareBaseline?: { flatTree: FlatTree; capturedAt: number; charName: string } | null;
-  snapshotSlot?: React.ReactNode;
+  /** Inline right of the headline total (the page's Save snapshot + History). */
+  totalActions?: React.ReactNode;
+  /** Under the total row, in the same card (the snapshot history panel). */
+  totalPanel?: React.ReactNode;
   extraTabs?: DeepViewExtraTab[];
   extraTabsFirst?: boolean;
   defaultView?: string;
@@ -43,7 +46,8 @@ export default function StatCalculator({
   config,
   onStateChange,
   compareBaseline,
-  snapshotSlot,
+  totalActions,
+  totalPanel,
   extraTabs,
   extraTabsFirst,
   defaultView,
@@ -219,8 +223,6 @@ export default function StatCalculator({
         <PasteSaveDetails onLoad={onLoad} />
       </ProfileNameLoader>
 
-      {snapshotSlot && <div className="mb-4">{snapshotSlot}</div>}
-
       <div className="rounded-lg bg-zinc-900/60 p-4 mb-4 border border-zinc-800 flex flex-col gap-3">
         <div className="flex flex-nowrap items-center gap-2 overflow-x-auto">
           <span className="shrink-0 text-sm text-zinc-400 font-medium">Character &amp; map:</span>
@@ -272,7 +274,9 @@ export default function StatCalculator({
           >
             {total !== null ? config.formatTotal(total) + unit : "—"}
           </span>
+          {totalActions && <div className="ml-2 flex items-center gap-2">{totalActions}</div>}
         </div>
+        {totalPanel}
       </div>
 
       <div className="rounded-lg bg-zinc-900/60 border border-zinc-800 p-4 mb-4">

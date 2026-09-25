@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import DrCalculator, {
   type CalculatorState,
 } from "@/components/dropRate/DrCalculator";
-import SnapshotSection from "@/components/dropRate/SnapshotSection";
+import { useDrSnapshots } from "@/components/dropRate/SnapshotSection";
 import BiggestGains from "@/components/dropRate/BiggestGains";
 import type { DeepViewExtraTab } from "@/components/dropRate/DeepView";
 import { flattenTree, type FlatTree } from "@/lib/dropRate/treeFlatten";
@@ -49,8 +49,8 @@ export default function DropRatePageClient() {
   const [calcState, setCalcState] = useState<CalculatorState | null>(null);
   // When the user picks a snapshot to compare against, the detailed tree
   // gains a per-node "Δ vs snap" column. Lives at the page level so the
-  // SnapshotSection (which owns the picker) and DrCalculator (which renders
-  // the tree) can share it.
+  // snapshots (useDrSnapshots, which owns the picker) and DrCalculator (which
+  // renders the tree) can share it.
   const [baseline, setBaseline] = useState<Baseline | null>(null);
   // Compare against the bundled top-player reference instead of a personal
   // snapshot. The (large) module is lazy-loaded the first time the toggle is
@@ -124,7 +124,8 @@ export default function DropRatePageClient() {
   );
 
   // The compare-vs-top toggle sits at the top of the Tree tab (treeToolbar);
-  // the snapshot history is under the import box (snapshotSlot).
+  // Save snapshot + History right of the Total Drop Rate, the history panel
+  // under it (totalActions / totalPanel).
   const compareBlock = (
     <TopCompareToggle
       active={compareTop}
@@ -134,23 +135,22 @@ export default function DropRatePageClient() {
       onToggleArcaneMap={setIncludeArcaneMap}
     />
   );
-  const snapshotBlock = (
-    <SnapshotSection
-      state={calcState}
-      onSelectBaseline={(b) => {
-        setBaseline(b);
-        if (b) setCompareTop(false);
-      }}
-      selectedBaselineAt={baseline?.capturedAt ?? null}
-    />
-  );
+  const snapshots = useDrSnapshots({
+    state: calcState,
+    onSelectBaseline: (b) => {
+      setBaseline(b);
+      if (b) setCompareTop(false);
+    },
+    selectedBaselineAt: baseline?.capturedAt ?? null,
+  });
 
   return (
     <main className="max-w-3xl mx-auto px-3 pb-12">
       <DrCalculator
         onStateChange={setCalcState}
         compareBaseline={effectiveBaseline}
-        snapshotSlot={snapshotBlock}
+        totalActions={snapshots.actions}
+        totalPanel={snapshots.panel}
         extraTabs={biggestGainsTabs}
         extraTabsFirst
         defaultView="biggest-gains"

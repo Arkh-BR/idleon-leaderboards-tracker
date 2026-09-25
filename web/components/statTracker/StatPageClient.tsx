@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import StatCalculator, { type StatCalculatorState } from "@/components/statTracker/StatCalculator";
-import StatSnapshotSection from "@/components/statTracker/StatSnapshotSection";
+import { useStatSnapshots } from "@/components/statTracker/StatSnapshotSection";
 import StatBiggestGains from "@/components/statTracker/StatBiggestGains";
 import type { DeepViewExtraTab } from "@/components/dropRate/DeepView";
 import { flattenTree, type FlatTree } from "@/lib/dropRate/treeFlatten";
@@ -81,17 +81,16 @@ export default function StatPageClient({ config }: { config: StatPageConfig }) {
     </label>
   );
 
-  const snapshotBlock = (
-    <StatSnapshotSection
-      config={config}
-      state={calcState}
-      onSelectBaseline={(b) => {
-        setBaseline(b);
-        if (b) setCompareTop(false);
-      }}
-      selectedBaselineAt={baseline?.capturedAt ?? null}
-    />
-  );
+  // Save snapshot + History sit right of the total, the history panel under it.
+  const snapshots = useStatSnapshots({
+    config,
+    state: calcState,
+    onSelectBaseline: (b) => {
+      setBaseline(b);
+      if (b) setCompareTop(false);
+    },
+    selectedBaselineAt: baseline?.capturedAt ?? null,
+  });
 
   return (
     <main className="max-w-3xl mx-auto px-3 pb-12">
@@ -99,7 +98,8 @@ export default function StatPageClient({ config }: { config: StatPageConfig }) {
         config={config}
         onStateChange={setCalcState}
         compareBaseline={compareTop ? topBaseline : baseline}
-        snapshotSlot={snapshotBlock}
+        totalActions={snapshots.actions}
+        totalPanel={snapshots.panel}
         extraTabs={gainsTabs}
         extraTabsFirst
         defaultView="biggest-gains"
