@@ -78,7 +78,8 @@ export default function ProfileNameLoader({
   // Sign-in needs the game's Firebase key (NEXT_PUBLIC_IDLEON_*); without it
   // the site simply doesn't offer it.
   const loginEnabled = !!process.env.NEXT_PUBLIC_IDLEON_FIREBASE_API_KEY;
-  const [signedIn, setSignedIn] = useState(false);
+  // null until the mount effect has looked at the session (SSR / first paint).
+  const [signedIn, setSignedIn] = useState<boolean | null>(null);
   const [account, setAccount] = useState<{ mainChar: string; lastUpdated: number } | null>(null);
   const [mode, setMode] = useState<AutoUpdateMode>("on");
   const [syncing, setSyncing] = useState(false);
@@ -365,13 +366,28 @@ export default function ProfileNameLoader({
   const errorLine = error && <p className="text-xs text-red-400 mt-2">⚠ {error}</p>;
 
   if (compact) {
-    const showAccount = loginEnabled && signedIn;
-    // Signed out, the name form and paste block are always in view.
-    const formOpen = !showAccount || anotherOpen;
+    // Until the mount effect has looked up the session (SSR / first paint): a
+    // neutral row as tall as the signed-in one, so a signed-in user's card
+    // doesn't collapse under them on load. Nothing to look up without login.
+    const pending = loginEnabled && signedIn === null;
+    const showAccount = loginEnabled && signedIn === true;
+    // The name form + paste block: in view signed out, behind "Load another
+    // save" signed in. Hidden rather than unmounted, so a collapse keeps a
+    // paste (`hidden` is display: none — not focusable, not announced; its
+    // wrappers carry no display class that would override it).
+    const formHidden = pending || (showAccount && !anotherOpen);
     return (
       <div className="rounded-lg bg-zinc-900/60 p-4 mb-4 border border-zinc-800">
         <div className="flex flex-wrap items-center gap-2 text-sm">
-          {showAccount ? (
+          {pending ? (
+            <>
+              <span className="text-zinc-500">Loading…</span>
+              {/* Height strut: the signed-in row's buttons set its height. */}
+              <span aria-hidden className={`${BTN} invisible`}>
+                ⋯
+              </span>
+            </>
+          ) : showAccount ? (
             <>
               {status}
               {/* Right-aligned even when it wraps (phones), so the ⋯ menu,
@@ -387,7 +403,16 @@ export default function ProfileNameLoader({
                 >
                   Load another save {anotherOpen ? "▴" : "▾"}
                 </button>
-                <div ref={menuRef} className="relative">
+                {/* Tabbing out closes the menu. A blur with no new target is a
+                    pointer press (Safari doesn't focus clicked buttons): the
+                    pointerdown listener handles those, like TopNav's list. */}
+                <div
+                  ref={menuRef}
+                  className="relative"
+                  onBlur={(e) => {
+                    if (e.relatedTarget && !e.currentTarget.contains(e.relatedTarget)) setMenuOpen(false);
+                  }}
+                >
                   <button
                     ref={menuButtonRef}
                     type="button"
@@ -408,6 +433,8 @@ export default function ProfileNameLoader({
                           onClick={() => {
                             setMenuOpen(false);
                             changeMode("off");
+                            // The item leaves with the menu: keep focus on ⋯.
+                            menuButtonRef.current?.focus();
                           }}
                         >
                           Stop auto-sync
@@ -443,13 +470,18 @@ export default function ProfileNameLoader({
             </>
           )}
         </div>
-        {showAccount &&
-          anotherOpen &&
-          nameForm(<span className="text-zinc-400">👤</span>, "mt-3 flex flex-wrap items-center gap-2")}
+        <div hidden={formHidden}>
+          {showAccount &&
+            nameForm(<span className="text-zinc-400">👤</span>, "mt-3 flex flex-wrap items-center gap-2")}
+          {warnBox}
+        </div>
         {dialog}
-        {formOpen && warnBox}
         {errorLine}
-        {formOpen && children && <div className="mt-3">{children}</div>}
+        {children && (
+          <div hidden={formHidden} className="mt-3">
+            {children}
+          </div>
+        )}
       </div>
     );
   }

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach, onTestFinished } from "vitest";
 import { render, screen, fireEvent, act, waitFor, within } from "@testing-library/react";
 
 const s = vi.hoisted(() => ({
@@ -23,7 +23,9 @@ const SessionExpiredError = vi.hoisted(
 );
 vi.mock("@/lib/gameAuth/session", () => ({ ...s, SessionExpiredError }));
 
+import { renderToString } from "react-dom/server";
 import ProfileNameLoader from "@/components/ProfileNameLoader";
+import PasteSaveDetails from "@/components/PasteSaveDetails";
 
 const ENV = { charNames: ["Alpha"], lastUpdated: Date.parse("2026-09-22T10:00:00Z"), data: {} };
 const NAMED = { data: {}, charNames: ["Named"] };
@@ -236,11 +238,12 @@ describe("ProfileNameLoader — compact (tracker pages)", () => {
       expect(within(row).getByRole("button", { name })).toBeInTheDocument();
     }
     // Stop / Sign out wait in the ⋯ menu; the name form and paste block
-    // behind "Load another save".
+    // behind "Load another save" (mounted, hidden).
     expect(screen.queryByRole("button", { name: /Stop/ })).toBeNull();
     expect(screen.queryByRole("button", { name: "Sign out" })).toBeNull();
-    expect(screen.queryByPlaceholderText("Enter player name")).toBeNull();
-    expect(screen.queryByText("PASTE BLOCK")).toBeNull();
+    expect(screen.getByPlaceholderText("Enter player name")).not.toBeVisible();
+    expect(screen.queryByRole("button", { name: "Load" })).toBeNull();
+    expect(screen.getByText("PASTE BLOCK")).not.toBeVisible();
   });
 
   it("signed in: Load another save reveals the name form (⚠️ + Load) and the paste block", async () => {
@@ -256,14 +259,15 @@ describe("ProfileNameLoader — compact (tracker pages)", () => {
     expect(toggle).toHaveAttribute("aria-expanded", "false");
     fireEvent.click(toggle);
     expect(toggle).toHaveAttribute("aria-expanded", "true");
-    expect(screen.getByText("PASTE BLOCK")).toBeInTheDocument();
+    expect(screen.getByText("PASTE BLOCK")).toBeVisible();
     fireEvent.click(screen.getByTitle("Where does this data come from?"));
     expect(screen.getByText(/last upload to IdleonToolbox/)).toBeInTheDocument();
     fireEvent.change(screen.getByPlaceholderText("Enter player name"), { target: { value: "TopPlayer" } });
     fireEvent.click(screen.getByRole("button", { name: "Load" }));
     await waitFor(() => expect(onSave).toHaveBeenLastCalledWith(NAMED));
     fireEvent.click(toggle);
-    expect(screen.queryByPlaceholderText("Enter player name")).toBeNull();
+    expect(screen.getByPlaceholderText("Enter player name")).not.toBeVisible();
+    expect(screen.getByText("PASTE BLOCK")).not.toBeVisible();
   });
 
   it("signed in: ⋯ holds Stop auto-sync and Sign out; an outside press or Escape closes it", async () => {
@@ -297,6 +301,97 @@ describe("ProfileNameLoader — compact (tracker pages)", () => {
     expect(screen.getByRole("button", { name: "Google" })).toBeInTheDocument();
   });
 
+  it("signed in: ⋯ closes when focus leaves it; Stop auto-sync hands focus back to ⋯", async () => {
+    s.hasSession.mockReturnValue(true);
+    s.cachedEnvelope.mockReturnValue(ENV);
+    render(<ProfileNameLoader storageKey="k" onSave={vi.fn()} compact />);
+    const more = await screen.findByRole("button", { name: /More account actions/ });
+    fireEvent.click(more);
+    const signOut = screen.getByRole("button", { name: "Sign out" });
+    // Moving inside the menu, or a press (no new target: the pointerdown
+    // listener handles it), keeps it open.
+    fireEvent.focusOut(more, { relatedTarget: signOut });
+    fireEvent.focusOut(signOut, { relatedTarget: null });
+    expect(more).toHaveAttribute("aria-expanded", "true");
+    // Tabbing out closes it.
+    fireEvent.focusOut(signOut, { relatedTarget: screen.getByRole("button", { name: /Sync now/ }) });
+    expect(more).toHaveAttribute("aria-expanded", "false");
+
+    fireEvent.click(more);
+    const stop = screen.getByRole("button", { name: "Stop auto-sync" });
+    stop.focus();
+    fireEvent.click(stop);
+    expect(more).toHaveAttribute("aria-expanded", "false");
+    expect(more).toHaveFocus();
+  });
+
+  it("signed in: a paste survives collapsing Load another save", async () => {
+    s.hasSession.mockReturnValue(true);
+    s.cachedEnvelope.mockReturnValue(ENV);
+    render(
+      <ProfileNameLoader storageKey="k" onSave={vi.fn()} compact>
+        <PasteSaveDetails onLoad={() => false} />
+      </ProfileNameLoader>
+    );
+    const toggle = await screen.findByRole("button", { name: /Load another save/ });
+    fireEvent.click(toggle);
+    const box = () => screen.getByPlaceholderText(/Copy for Support/);
+    fireEvent.change(box(), { target: { value: '{"pasted": true}' } });
+    fireEvent.click(toggle);
+    // Collapsed: kept, but out of view and out of the accessibility tree.
+    expect(box().closest("[hidden]")).not.toBeNull();
+    expect(screen.queryByRole("button", { name: "Load pasted save" })).toBeNull();
+    fireEvent.click(toggle);
+    expect(box()).toHaveValue('{"pasted": true}');
+    expect(box().closest("[hidden]")).toBeNull();
+  });
+
+  it("first paint (SSR, before the session is looked up): a neutral one-row placeholder", () => {
+    // What the server sends — mount effects haven't run, so the session isn't
+    // known yet: no sign-in buttons and no name form that would collapse away
+    // for a signed-in user.
+    const host = document.body.appendChild(document.createElement("div"));
+    onTestFinished(() => host.remove());
+    host.innerHTML = renderToString(
+      <ProfileNameLoader storageKey="k" onSave={vi.fn()} compact>
+        {paste}
+      </ProfileNameLoader>
+    );
+    const view = within(host);
+    expect(view.getByText("Loading…")).toBeInTheDocument();
+    expect(view.queryByText(/Sign in/)).toBeNull();
+    expect(view.queryByRole("button", { name: "Google" })).toBeNull();
+    expect(view.queryByPlaceholderText("Enter player name")).toBeNull();
+    expect(view.getByText("PASTE BLOCK")).not.toBeVisible();
+  });
+
+  it("first paint without sign-in on the site: the name form right away (nothing to look up)", () => {
+    vi.stubEnv("NEXT_PUBLIC_IDLEON_FIREBASE_API_KEY", "");
+    const html = renderToString(
+      <ProfileNameLoader storageKey="k" onSave={vi.fn()} compact>
+        {paste}
+      </ProfileNameLoader>
+    );
+    expect(html).not.toContain("Loading…");
+    expect(html).toContain('placeholder="Enter player name"');
+  });
+
+  it("after mount the placeholder gives way: one row signed in, the full card signed out", async () => {
+    s.hasSession.mockReturnValue(true);
+    s.cachedEnvelope.mockReturnValue(ENV);
+    const signedIn = render(<ProfileNameLoader storageKey="k" onSave={vi.fn()} compact />);
+    expect(await screen.findByText("Alpha")).toBeInTheDocument();
+    expect(screen.queryByText("Loading…")).toBeNull();
+    signedIn.unmount();
+
+    s.hasSession.mockReturnValue(false);
+    s.cachedEnvelope.mockReturnValue(null);
+    render(<ProfileNameLoader storageKey="k" onSave={vi.fn()} compact />);
+    expect(screen.queryByText("Loading…")).toBeNull();
+    expect(screen.getByRole("button", { name: "Google" })).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("Enter player name")).toBeVisible();
+  });
+
   it("signed out: sign-in and the name form share one wrapping row, the paste block below", () => {
     render(
       <ProfileNameLoader storageKey="k" onSave={vi.fn()} compact>
@@ -311,7 +406,7 @@ describe("ProfileNameLoader — compact (tracker pages)", () => {
     expect(within(row).getByTitle("Where does this data come from?")).toBeInTheDocument();
     expect(within(row).getByRole("button", { name: "Load" })).toBeInTheDocument();
     expect(within(row).queryByText("PASTE BLOCK")).toBeNull();
-    expect(screen.getByText("PASTE BLOCK")).toBeInTheDocument();
+    expect(screen.getByText("PASTE BLOCK")).toBeVisible();
     expect(screen.queryByText(/Sign in to load your save automatically/)).toBeNull();
     expect(screen.queryByText(/Load by player name/)).toBeNull();
   });
@@ -326,7 +421,7 @@ describe("ProfileNameLoader — compact (tracker pages)", () => {
     expect(screen.queryByText(/Sign in/)).toBeNull();
     expect(screen.getByPlaceholderText("Enter player name")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Load" })).toBeInTheDocument();
-    expect(screen.getByText("PASTE BLOCK")).toBeInTheDocument();
+    expect(screen.getByText("PASTE BLOCK")).toBeVisible();
   });
 
   it("not compact (Talents, Tome, Cooking): today's card, every control in view", async () => {
@@ -345,5 +440,18 @@ describe("ProfileNameLoader — compact (tracker pages)", () => {
     expect(screen.getByText("PASTE BLOCK")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /Load another save/ })).toBeNull();
     expect(screen.queryByRole("button", { name: /More account actions/ })).toBeNull();
+  });
+
+  it("not compact, first paint: today's signed-out card, no placeholder", () => {
+    const html = renderToString(
+      <ProfileNameLoader storageKey="k" onSave={vi.fn()}>
+        {paste}
+      </ProfileNameLoader>
+    );
+    expect(html).not.toContain("Loading…");
+    expect(html).toContain("Sign in to load your save automatically");
+    expect(html).toContain("👤 Load by player name");
+    expect(html).toContain("PASTE BLOCK");
+    expect(html).not.toContain("hidden");
   });
 });
