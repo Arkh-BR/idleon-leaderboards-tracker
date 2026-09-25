@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, fireEvent, act, waitFor } from "@testing-library/react";
+import { render, screen, fireEvent, act, waitFor, within } from "@testing-library/react";
 
 const s = vi.hoisted(() => ({
   hasSession: vi.fn(),
@@ -216,5 +216,134 @@ describe("ProfileNameLoader — game account", () => {
     });
     // 5 min after the last check — not 5 min after the remount.
     expect(s.checkForUpdate).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("ProfileNameLoader — compact (tracker pages)", () => {
+  const paste = <p>PASTE BLOCK</p>;
+
+  it("signed in: status, Pause, Sync now, Load another save and ⋯ share one row", async () => {
+    s.hasSession.mockReturnValue(true);
+    s.cachedEnvelope.mockReturnValue(ENV);
+    render(
+      <ProfileNameLoader storageKey="k" onSave={vi.fn()} compact>
+        {paste}
+      </ProfileNameLoader>
+    );
+    const row = (await screen.findByText("Alpha")).closest("div")!;
+    expect(row).toHaveTextContent(/✅ Alpha\s*· updated .+ ago\s*· auto-updating/);
+    for (const name of [/Pause/, /Sync now/, /Load another save/, /More account actions/]) {
+      expect(within(row).getByRole("button", { name })).toBeInTheDocument();
+    }
+    // Stop / Sign out wait in the ⋯ menu; the name form and paste block
+    // behind "Load another save".
+    expect(screen.queryByRole("button", { name: /Stop/ })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Sign out" })).toBeNull();
+    expect(screen.queryByPlaceholderText("Enter player name")).toBeNull();
+    expect(screen.queryByText("PASTE BLOCK")).toBeNull();
+  });
+
+  it("signed in: Load another save reveals the name form (⚠️ + Load) and the paste block", async () => {
+    s.hasSession.mockReturnValue(true);
+    s.cachedEnvelope.mockReturnValue(ENV);
+    const onSave = vi.fn();
+    render(
+      <ProfileNameLoader storageKey="k" onSave={onSave} compact>
+        {paste}
+      </ProfileNameLoader>
+    );
+    const toggle = await screen.findByRole("button", { name: /Load another save/ });
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    fireEvent.click(toggle);
+    expect(toggle).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByText("PASTE BLOCK")).toBeInTheDocument();
+    fireEvent.click(screen.getByTitle("Where does this data come from?"));
+    expect(screen.getByText(/last upload to IdleonToolbox/)).toBeInTheDocument();
+    fireEvent.change(screen.getByPlaceholderText("Enter player name"), { target: { value: "TopPlayer" } });
+    fireEvent.click(screen.getByRole("button", { name: "Load" }));
+    await waitFor(() => expect(onSave).toHaveBeenLastCalledWith(NAMED));
+    fireEvent.click(toggle);
+    expect(screen.queryByPlaceholderText("Enter player name")).toBeNull();
+  });
+
+  it("signed in: ⋯ holds Stop auto-sync and Sign out; an outside press or Escape closes it", async () => {
+    s.hasSession.mockReturnValue(true);
+    s.cachedEnvelope.mockReturnValue(ENV);
+    render(<ProfileNameLoader storageKey="k" onSave={vi.fn()} compact />);
+    const more = await screen.findByRole("button", { name: /More account actions/ });
+    expect(more).toHaveAttribute("aria-expanded", "false");
+    fireEvent.click(more);
+    expect(more).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByRole("button", { name: "Stop auto-sync" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Sign out" })).toBeInTheDocument();
+    fireEvent.pointerDown(document.body);
+    expect(more).toHaveAttribute("aria-expanded", "false");
+    expect(screen.queryByRole("button", { name: "Sign out" })).toBeNull();
+    fireEvent.click(more);
+    fireEvent.keyDown(document, { key: "Escape" });
+    expect(screen.queryByRole("button", { name: "Sign out" })).toBeNull();
+
+    fireEvent.click(more);
+    fireEvent.click(screen.getByRole("button", { name: "Stop auto-sync" }));
+    expect(s.setAutoUpdateMode).toHaveBeenLastCalledWith("off");
+    expect(screen.queryByRole("button", { name: "Sign out" })).toBeNull(); // picking closes it
+    // Stopped: Start sits in the row, the menu drops Stop.
+    expect(screen.getByRole("button", { name: /Start auto-update/ })).toBeInTheDocument();
+    expect(screen.getByText(/auto-update off/)).toBeInTheDocument();
+    fireEvent.click(more);
+    expect(screen.queryByRole("button", { name: "Stop auto-sync" })).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Sign out" }));
+    expect(s.signOut).toHaveBeenCalled();
+    expect(screen.getByRole("button", { name: "Google" })).toBeInTheDocument();
+  });
+
+  it("signed out: sign-in and the name form share one wrapping row, the paste block below", () => {
+    render(
+      <ProfileNameLoader storageKey="k" onSave={vi.fn()} compact>
+        {paste}
+      </ProfileNameLoader>
+    );
+    const row = screen.getByText("🔑 Sign in").closest("div")!;
+    expect(row).toHaveClass("flex-wrap");
+    expect(within(row).getByRole("button", { name: "Google" })).toBeInTheDocument();
+    expect(within(row).getByRole("button", { name: "Steam" })).toBeInTheDocument();
+    expect(within(row).getByPlaceholderText("Enter player name")).toBeInTheDocument();
+    expect(within(row).getByTitle("Where does this data come from?")).toBeInTheDocument();
+    expect(within(row).getByRole("button", { name: "Load" })).toBeInTheDocument();
+    expect(within(row).queryByText("PASTE BLOCK")).toBeNull();
+    expect(screen.getByText("PASTE BLOCK")).toBeInTheDocument();
+    expect(screen.queryByText(/Sign in to load your save automatically/)).toBeNull();
+    expect(screen.queryByText(/Load by player name/)).toBeNull();
+  });
+
+  it("without sign-in on the site: the name form and the paste block only", () => {
+    vi.stubEnv("NEXT_PUBLIC_IDLEON_FIREBASE_API_KEY", "");
+    render(
+      <ProfileNameLoader storageKey="k" onSave={vi.fn()} compact>
+        {paste}
+      </ProfileNameLoader>
+    );
+    expect(screen.queryByText(/Sign in/)).toBeNull();
+    expect(screen.getByPlaceholderText("Enter player name")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Load" })).toBeInTheDocument();
+    expect(screen.getByText("PASTE BLOCK")).toBeInTheDocument();
+  });
+
+  it("not compact (Talents, Tome, Cooking): today's card, every control in view", async () => {
+    s.hasSession.mockReturnValue(true);
+    s.cachedEnvelope.mockReturnValue(ENV);
+    render(
+      <ProfileNameLoader storageKey="k" onSave={vi.fn()}>
+        {paste}
+      </ProfileNameLoader>
+    );
+    expect(await screen.findByText(/save updated/)).toBeInTheDocument();
+    expect(screen.getByText("👤 Load by player name")).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("Enter player name")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Stop/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Sign out" })).toBeInTheDocument();
+    expect(screen.getByText("PASTE BLOCK")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Load another save/ })).toBeNull();
+    expect(screen.queryByRole("button", { name: /More account actions/ })).toBeNull();
   });
 });

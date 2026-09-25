@@ -34,23 +34,33 @@ import {
 // On mount: account save already loaded this visit → signed in with
 // auto-update not stopped → the last player name (persisted per page).
 // The manual-paste fallback is passed as `children` and rendered inside.
+//
+// `compact` (the tracker pages) puts the card on one line: signed in, the
+// status + Pause/Resume + Sync now, with the name form and paste block behind
+// "Load another save" and Stop / Sign out in a ⋯ menu; signed out, sign-in
+// and the name form share one row.
 
 const AUTO_UPDATE_MS = 5 * 60 * 1000;
 /** How often the timer looks at the shared clock (lastCheckAt). */
 const TICK_MS = 60 * 1000;
 const BTN =
   "px-2 py-1 text-xs rounded border border-zinc-700 text-zinc-200 hover:bg-zinc-800 disabled:opacity-50";
+const MENU_ITEM =
+  "block w-full whitespace-nowrap px-3 py-1.5 text-left text-xs text-zinc-300 hover:bg-zinc-900 hover:text-zinc-100";
 
 export default function ProfileNameLoader({
   storageKey,
   onSave,
   onError,
+  compact = false,
   children,
 }: {
   storageKey: string;
   /** Called with the raw save envelope ({ data, charNames, … }) on success. */
   onSave: (save: unknown, meta?: { refresh?: boolean }) => void;
   onError?: (msg: string) => void;
+  /** One-line layout (tracker pages); see above. */
+  compact?: boolean;
   /** Manual-paste fallback, rendered inside the card below the loader. */
   children?: ReactNode;
 }) {
@@ -58,6 +68,11 @@ export default function ProfileNameLoader({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [warnOpen, setWarnOpen] = useState(false);
+  // Compact, signed in: the "Load another save" section and the ⋯ menu.
+  const [anotherOpen, setAnotherOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
   const initialized = useRef(false);
 
   // Sign-in needs the game's Firebase key (NEXT_PUBLIC_IDLEON_*); without it
@@ -206,6 +221,27 @@ export default function ProfileNameLoader({
     };
   }, [signedIn, mode, applyAccount, fail]);
 
+  // A press outside the ⋯ menu (pointerdown: iOS sends no mousedown for plain
+  // taps) or Escape closes it, like the TopNav Trackers list.
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onDown = (e: PointerEvent) => {
+      if (!menuRef.current?.contains(e.target as Node)) setMenuOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      const inside = menuRef.current?.contains(document.activeElement);
+      setMenuOpen(false);
+      if (inside) menuButtonRef.current?.focus();
+    };
+    document.addEventListener("pointerdown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("pointerdown", onDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [menuOpen]);
+
   function changeMode(m: AutoUpdateMode) {
     setAutoUpdateMode(m);
     setMode(m);
@@ -236,49 +272,198 @@ export default function ProfileNameLoader({
     load(name);
   }
 
+  // Pieces both layouts share.
+  const status = (
+    <>
+      <span>
+        ✅ <span className="font-semibold text-gold">{account?.mainChar ?? "Signed in"}</span>
+      </span>
+      {account && Number.isFinite(account.lastUpdated) && (
+        <span className="text-zinc-400">
+          · {compact ? "updated" : "save updated"}{" "}
+          {formatDistanceToNow(account.lastUpdated, { addSuffix: true })}
+        </span>
+      )}
+      <span className="text-zinc-400">
+        · {mode === "on" ? "auto-updating" : mode === "paused" ? "paused" : "auto-update off"}
+      </span>
+    </>
+  );
+  // Exactly one shows: Pause (on), Resume (paused), Start (off).
+  const modeButton =
+    mode === "on" ? (
+      <button type="button" className={BTN} onClick={() => changeMode("paused")}>
+        ⏸ Pause
+      </button>
+    ) : mode === "paused" ? (
+      <button type="button" className={BTN} onClick={() => changeMode("on")}>
+        ▶ Resume
+      </button>
+    ) : (
+      <button type="button" className={BTN} onClick={() => changeMode("on")}>
+        ▶ Start auto-update
+      </button>
+    );
+  const syncButton = (
+    <button
+      type="button"
+      className={BTN}
+      disabled={syncing}
+      onClick={() => syncAccount(true)}
+    >
+      {syncing ? "Syncing…" : "⟳ Sync now"}
+    </button>
+  );
+  const signInButtons = (
+    <>
+      <button type="button" className={BTN} onClick={() => setDialogTab("google")}>
+        Google
+      </button>
+      <button type="button" className={BTN} onClick={() => setDialogTab("steam")}>
+        Steam
+      </button>
+    </>
+  );
+  const dialog = loginEnabled && (
+    <GameLoginDialog tab={dialogTab} onClose={() => setDialogTab(null)} onSignedIn={onSignedIn} />
+  );
+  const nameForm = (lead: ReactNode, className: string) => (
+    <form onSubmit={onSubmit} className={className}>
+      {lead}
+      <input
+        type="text"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        placeholder="Enter player name"
+        className="bg-zinc-950 border border-zinc-700 rounded px-3 py-2 text-sm flex-1 min-w-[160px] font-mono"
+      />
+      <button
+        type="button"
+        onClick={() => setWarnOpen((v) => !v)}
+        aria-expanded={warnOpen}
+        className="flex items-center gap-1 px-2 py-2 text-sm rounded border border-amber-500/40 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20"
+        title="Where does this data come from?"
+      >
+        ⚠️ <span className="text-xs">{warnOpen ? "▾" : "▸"}</span>
+      </button>
+      <button
+        type="submit"
+        disabled={loading || !name.trim()}
+        className="bg-gold text-ink font-bold rounded px-4 py-2 text-sm disabled:opacity-50"
+      >
+        {loading ? "Loading…" : "Load"}
+      </button>
+    </form>
+  );
+  const warnBox = warnOpen && (
+    <div className="mt-2 rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm text-amber-200/90">
+      This is the player&apos;s last upload to IdleonToolbox — it may be
+      older than your current in-game save. Sign in or paste manually for
+      the latest.
+    </div>
+  );
+  const errorLine = error && <p className="text-xs text-red-400 mt-2">⚠ {error}</p>;
+
+  if (compact) {
+    const showAccount = loginEnabled && signedIn;
+    // Signed out, the name form and paste block are always in view.
+    const formOpen = !showAccount || anotherOpen;
+    return (
+      <div className="rounded-lg bg-zinc-900/60 p-4 mb-4 border border-zinc-800">
+        <div className="flex flex-wrap items-center gap-2 text-sm">
+          {showAccount ? (
+            <>
+              {status}
+              <div className="ml-auto flex flex-wrap items-center gap-2">
+                {modeButton}
+                {syncButton}
+                <button
+                  type="button"
+                  onClick={() => setAnotherOpen((v) => !v)}
+                  aria-expanded={anotherOpen}
+                  className="text-xs text-gold hover:underline"
+                >
+                  Load another save {anotherOpen ? "▴" : "▾"}
+                </button>
+                <div ref={menuRef} className="relative">
+                  <button
+                    ref={menuButtonRef}
+                    type="button"
+                    className={BTN}
+                    onClick={() => setMenuOpen((v) => !v)}
+                    aria-expanded={menuOpen}
+                    aria-label="More account actions"
+                    title="More account actions"
+                  >
+                    ⋯
+                  </button>
+                  {menuOpen && (
+                    <div className="absolute right-0 top-full z-20 mt-1 rounded-md border border-zinc-800 bg-zinc-950 py-1 shadow-lg shadow-black/40">
+                      {mode !== "off" && (
+                        <button
+                          type="button"
+                          className={MENU_ITEM}
+                          onClick={() => {
+                            setMenuOpen(false);
+                            changeMode("off");
+                          }}
+                        >
+                          Stop auto-sync
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        className={MENU_ITEM}
+                        onClick={() => {
+                          setMenuOpen(false);
+                          onSignOut();
+                        }}
+                      >
+                        Sign out
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </>
+          ) : (
+            <>
+              {loginEnabled && (
+                <>
+                  <span className="font-semibold text-gold">🔑 Sign in</span>
+                  {signInButtons}
+                </>
+              )}
+              {nameForm(
+                <span className="text-zinc-400">{loginEnabled ? "or 👤" : "👤"}</span>,
+                "flex flex-1 flex-wrap items-center gap-2"
+              )}
+            </>
+          )}
+        </div>
+        {showAccount &&
+          anotherOpen &&
+          nameForm(<span className="text-zinc-400">👤</span>, "mt-3 flex flex-wrap items-center gap-2")}
+        {dialog}
+        {formOpen && warnBox}
+        {errorLine}
+        {formOpen && children && <div className="mt-3">{children}</div>}
+      </div>
+    );
+  }
+
   return (
     <div className="rounded-lg bg-zinc-900/60 p-4 mb-4 border border-zinc-800">
       {loginEnabled && (signedIn ? (
         <div className="flex flex-wrap items-center gap-2 text-sm mb-3">
-          <span>
-            ✅ <span className="font-semibold text-gold">{account?.mainChar ?? "Signed in"}</span>
-          </span>
-          {account && Number.isFinite(account.lastUpdated) && (
-            <span className="text-zinc-400">
-              · save updated {formatDistanceToNow(account.lastUpdated, { addSuffix: true })}
-            </span>
-          )}
-          <span className="text-zinc-400">
-            · {mode === "on" ? "auto-updating" : mode === "paused" ? "paused" : "auto-update off"}
-          </span>
-          {mode === "on" && (
-            <button type="button" className={BTN} onClick={() => changeMode("paused")}>
-              ⏸ Pause
-            </button>
-          )}
-          {mode === "paused" && (
-            <button type="button" className={BTN} onClick={() => changeMode("on")}>
-              ▶ Resume
-            </button>
-          )}
+          {status}
+          {modeButton}
           {mode !== "off" && (
             <button type="button" className={BTN} onClick={() => changeMode("off")}>
               ⏹ Stop
             </button>
           )}
-          {mode === "off" && (
-            <button type="button" className={BTN} onClick={() => changeMode("on")}>
-              ▶ Start auto-update
-            </button>
-          )}
-          <button
-            type="button"
-            className={BTN}
-            disabled={syncing}
-            onClick={() => syncAccount(true)}
-          >
-            {syncing ? "Syncing…" : "⟳ Sync now"}
-          </button>
+          {syncButton}
           <button type="button" className={BTN} onClick={onSignOut}>
             Sign out
           </button>
@@ -286,54 +471,19 @@ export default function ProfileNameLoader({
       ) : (
         <div className="flex flex-wrap items-center gap-2 text-sm mb-3">
           <span className="font-semibold text-gold">🔑 Sign in to load your save automatically</span>
-          <button type="button" className={BTN} onClick={() => setDialogTab("google")}>
-            Google
-          </button>
-          <button type="button" className={BTN} onClick={() => setDialogTab("steam")}>
-            Steam
-          </button>
+          {signInButtons}
         </div>
       ))}
-      {loginEnabled && (
-        <GameLoginDialog tab={dialogTab} onClose={() => setDialogTab(null)} onSignedIn={onSignedIn} />
+      {dialog}
+
+      {nameForm(
+        <span className="font-semibold text-gold">👤 Load by player name</span>,
+        "flex flex-wrap gap-2 items-center"
       )}
 
-      <form onSubmit={onSubmit} className="flex flex-wrap gap-2 items-center">
-        <span className="font-semibold text-gold">👤 Load by player name</span>
-        <input
-          type="text"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="Enter player name"
-          className="bg-zinc-950 border border-zinc-700 rounded px-3 py-2 text-sm flex-1 min-w-[160px] font-mono"
-        />
-        <button
-          type="button"
-          onClick={() => setWarnOpen((v) => !v)}
-          aria-expanded={warnOpen}
-          className="flex items-center gap-1 px-2 py-2 text-sm rounded border border-amber-500/40 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20"
-          title="Where does this data come from?"
-        >
-          ⚠️ <span className="text-xs">{warnOpen ? "▾" : "▸"}</span>
-        </button>
-        <button
-          type="submit"
-          disabled={loading || !name.trim()}
-          className="bg-gold text-ink font-bold rounded px-4 py-2 text-sm disabled:opacity-50"
-        >
-          {loading ? "Loading…" : "Load"}
-        </button>
-      </form>
+      {warnBox}
 
-      {warnOpen && (
-        <div className="mt-2 rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm text-amber-200/90">
-          This is the player&apos;s last upload to IdleonToolbox — it may be
-          older than your current in-game save. Sign in or paste manually for
-          the latest.
-        </div>
-      )}
-
-      {error && <p className="text-xs text-red-400 mt-2">⚠ {error}</p>}
+      {errorLine}
 
       {children && <div className="mt-3">{children}</div>}
     </div>

@@ -10,6 +10,7 @@ import { defaultCharIndex, listCharacters, parseSave, type CharSummary } from "@
 import { getCharClassKey } from "@/lib/talentsLevel/charClass";
 import DeepView, { type DeepViewExtraTab } from "./DeepView";
 import ProfileNameLoader from "@/components/ProfileNameLoader";
+import PasteSaveDetails from "@/components/PasteSaveDetails";
 import { accountAutoLoads } from "@/lib/gameAuth/session";
 import type { ArkhNode as DrNode } from "@/lib/arkh/node";
 import type { FlatTree } from "@/lib/dropRate/treeFlatten";
@@ -76,7 +77,6 @@ export default function DrCalculator({
   extraTabsFirst,
   defaultView,
 }: Props) {
-  const [jsonText, setJsonText] = useState("");
   const [save, setSave] = useState<any | null>(null);
   const [chars, setChars] = useState<CharSummary[]>([]);
   const [charIdx, setCharIdx] = useState<number>(0);
@@ -335,12 +335,12 @@ export default function DrCalculator({
     error,
   ]);
 
-  const onLoad = () => {
-    if (!jsonText.trim()) {
+  const onLoad = (text: string) => {
+    if (!text.trim()) {
       setError("Paste a raw save JSON first.");
-      return;
+      return false;
     }
-    if (stageSave(jsonText)) setJsonText("");
+    return stageSave(text);
   };
 
   const factor = mapOptions.find((m) => m.index === mapIdx)?.factor ?? 1;
@@ -371,43 +371,10 @@ export default function DrCalculator({
         storageKey={NAME_KEY}
         onSave={(s, meta) => applyParsedSave(s, { keepView: meta?.refresh })}
         onError={(msg) => setError(msg)}
+        compact
       >
         {/* Manual paste — fallback for private profiles, inside the card. */}
-        <details className="rounded-lg bg-zinc-900/40 p-3 border border-zinc-800">
-        <summary className="cursor-pointer select-none flex items-center gap-2 flex-wrap">
-          <span className="dt-arrow text-zinc-500 text-sm">▸</span>
-          <span className="font-semibold text-gold">
-            📋 Or paste a save manually
-          </span>
-          <span className="text-xs text-zinc-500 font-normal">
-            Uses the &ldquo;Copy for Support&rdquo; button on{" "}
-            <a
-              href="https://idleontoolbox.com"
-              target="_blank"
-              rel="noreferrer"
-              className="text-gold hover:underline"
-              onClick={(e) => e.stopPropagation()}
-            >
-              idleontoolbox.com
-            </a>
-          </span>
-        </summary>
-        <div className="flex flex-col gap-3 mt-3">
-          <textarea
-            value={jsonText}
-            onChange={(e) => setJsonText(e.target.value)}
-            placeholder='Paste the output of "Copy for Support" here (Ctrl+V)…'
-            className="w-full h-20 bg-zinc-950 border border-zinc-800 rounded p-2 text-xs font-mono text-zinc-200 focus:outline-none focus:border-gold"
-          />
-          <button
-            type="button"
-            onClick={onLoad}
-            className="self-start px-4 py-1.5 text-sm font-semibold rounded bg-sky-500/20 text-sky-300 border border-sky-500/40 hover:bg-sky-500/30"
-          >
-            Load pasted save
-          </button>
-        </div>
-        </details>
+        <PasteSaveDetails onLoad={onLoad} />
       </ProfileNameLoader>
 
       {snapshotSlot && <div className="mb-4">{snapshotSlot}</div>}
