@@ -10,7 +10,6 @@ import { defaultCharIndex, listCharacters, parseSave, type CharSummary } from "@
 import { getCharClassKey } from "@/lib/talentsLevel/charClass";
 import DeepView, { type DeepViewExtraTab } from "./DeepView";
 import ProfileNameLoader from "@/components/ProfileNameLoader";
-import PasteSaveDetails from "@/components/PasteSaveDetails";
 import { accountAutoLoads } from "@/lib/gameAuth/session";
 import type { ArkhNode as DrNode } from "@/lib/arkh/node";
 import type { FlatTree } from "@/lib/dropRate/treeFlatten";
@@ -380,10 +379,9 @@ export default function DrCalculator({
         onSave={(s, meta) => applyParsedSave(s, { keepView: meta?.refresh })}
         onError={(msg) => setError(msg)}
         compact
-      >
-        {/* Manual paste — fallback for private profiles, inside the card. */}
-        <PasteSaveDetails onLoad={onLoad} />
-      </ProfileNameLoader>
+        // Manual paste — fallback for private profiles, inside the card.
+        onPaste={onLoad}
+      />
 
       {/* Analysis controls — character / map / chip gallery. Always visible
           (the save comes from the name loader above or the manual paste

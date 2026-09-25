@@ -13,6 +13,15 @@ describe("PasteSaveDetails", () => {
     expect(summary.contains(hint)).toBe(false);
   });
 
+  it("bare: just the hint, the box and the button — no <details>/<summary>", () => {
+    const { container } = render(<PasteSaveDetails onLoad={() => true} bare />);
+    expect(container.querySelector("details, summary")).toBeNull();
+    expect(screen.queryByText("📋 Paste a save")).toBeNull();
+    expect(screen.getByRole("link", { name: "idleontoolbox.com" })).toBeVisible();
+    expect(screen.getByPlaceholderText(/Copy for Support/)).toBeVisible();
+    expect(screen.getByRole("button", { name: "Load pasted save" })).toBeVisible();
+  });
+
   it("hands the text to onLoad and clears the box only when it loaded", () => {
     const onLoad = vi.fn().mockReturnValueOnce(false).mockReturnValueOnce(true);
     render(<PasteSaveDetails onLoad={onLoad} />);

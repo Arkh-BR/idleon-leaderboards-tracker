@@ -9,6 +9,7 @@ import {
 } from "react";
 import { formatDistanceToNow } from "date-fns";
 import GameLoginDialog from "@/components/GameLoginDialog";
+import PasteSaveDetails from "@/components/PasteSaveDetails";
 import type { SaveEnvelope } from "@/lib/gameAuth/envelope";
 import {
   autoUpdateMode,
@@ -37,8 +38,9 @@ import {
 //
 // `compact` (the tracker pages) puts the card on one line: signed in, the
 // status + Pause/Resume + Sync now, with the name form and paste block behind
-// "Load another save" and Stop / Sign out in a ⋯ menu; signed out, sign-in
-// and the name form share one row.
+// "Load another save" and Stop / Sign out in a ⋯ menu; signed out, sign-in,
+// the name form and a "📋 Paste a save" toggle share one row. Its paste box
+// comes from `onPaste` (PasteSaveDetails), not `children`.
 
 const AUTO_UPDATE_MS = 5 * 60 * 1000;
 /** How often the timer looks at the shared clock (lastCheckAt). */
@@ -53,6 +55,7 @@ export default function ProfileNameLoader({
   onSave,
   onError,
   compact = false,
+  onPaste,
   children,
 }: {
   storageKey: string;
@@ -61,15 +64,20 @@ export default function ProfileNameLoader({
   onError?: (msg: string) => void;
   /** One-line layout (tracker pages); see above. */
   compact?: boolean;
-  /** Manual-paste fallback, rendered inside the card below the loader. */
+  /** Compact: loads a pasted save, true when it loaded (the box then clears). */
+  onPaste?: (text: string) => boolean;
+  /** Manual-paste fallback, rendered inside the card below the loader (not
+   *  compact — compact renders its paste box from `onPaste`). */
   children?: ReactNode;
 }) {
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [warnOpen, setWarnOpen] = useState(false);
-  // Compact, signed in: the "Load another save" section and the ⋯ menu.
+  // Compact: the "Load another save" section and the ⋯ menu (signed in), the
+  // row's "Paste a save" box (signed out).
   const [anotherOpen, setAnotherOpen] = useState(false);
+  const [pasteOpen, setPasteOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
@@ -367,26 +375,25 @@ export default function ProfileNameLoader({
 
   if (compact) {
     // Until the mount effect has looked up the session (SSR / first paint): a
-    // neutral row as tall as the signed-in one, so a signed-in user's card
-    // doesn't collapse under them on load. Nothing to look up without login.
+    // neutral "Loading…" row, so the card doesn't change height when it
+    // resolves. Nothing to look up without login.
     const pending = loginEnabled && signedIn === null;
     const showAccount = loginEnabled && signedIn === true;
-    // The name form + paste block: in view signed out, behind "Load another
-    // save" signed in. Hidden rather than unmounted, so a collapse keeps a
-    // paste (`hidden` is display: none — not focusable, not announced; its
-    // wrappers carry no display class that would override it).
+    // Below the row, hidden rather than unmounted (so closing keeps a paste;
+    // `hidden` is display: none — not focusable, not announced, and its
+    // wrappers carry no display class that would override it): signed in,
+    // the name form and paste <details> behind "Load another save"; signed
+    // out, the bare paste box behind the row's "Paste a save".
     const formHidden = pending || (showAccount && !anotherOpen);
+    const pasteHidden = pending || (showAccount ? !anotherOpen : !pasteOpen);
     return (
       <div className="rounded-lg bg-zinc-900/60 p-4 mb-4 border border-zinc-800">
-        <div className="flex flex-wrap items-center gap-2 text-sm">
+        {/* One row in every state, at least as tall as the name form (text-sm
+            input: 1.25rem line + py-2 + 1px borders), so the placeholder,
+            signed-in and signed-out rows match on desktop — no jump. */}
+        <div className="flex flex-wrap items-center gap-2 text-sm min-h-[calc(2.25rem+2px)]">
           {pending ? (
-            <>
-              <span className="text-zinc-500">Loading…</span>
-              {/* Height strut: the signed-in row's buttons set its height. */}
-              <span aria-hidden className={`${BTN} invisible`}>
-                ⋯
-              </span>
-            </>
+            <span className="text-zinc-500">Loading…</span>
           ) : showAccount ? (
             <>
               {status}
@@ -467,6 +474,16 @@ export default function ProfileNameLoader({
                 <span className="text-zinc-400">{loginEnabled ? "or 👤" : "👤"}</span>,
                 "flex flex-1 flex-wrap items-center gap-2"
               )}
+              {onPaste && (
+                <button
+                  type="button"
+                  onClick={() => setPasteOpen((v) => !v)}
+                  aria-expanded={pasteOpen}
+                  className="text-xs text-gold hover:underline"
+                >
+                  📋 Paste a save {pasteOpen ? "▴" : "▾"}
+                </button>
+              )}
             </>
           )}
         </div>
@@ -477,9 +494,10 @@ export default function ProfileNameLoader({
         </div>
         {dialog}
         {errorLine}
-        {children && (
-          <div hidden={formHidden} className="mt-3">
-            {children}
+        {/* One spot in every state, so a paste also survives signing in/out. */}
+        {onPaste && (
+          <div hidden={pasteHidden} className="mt-3">
+            <PasteSaveDetails onLoad={onPaste} bare={!showAccount} />
           </div>
         )}
       </div>

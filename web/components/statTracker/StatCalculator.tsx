@@ -5,7 +5,6 @@ import { defaultCharIndex, listCharacters, parseSave, type CharSummary } from "@
 import { getCharClassKey } from "@/lib/talentsLevel/charClass";
 import DeepView, { type DeepViewExtraTab } from "@/components/dropRate/DeepView";
 import ProfileNameLoader from "@/components/ProfileNameLoader";
-import PasteSaveDetails from "@/components/PasteSaveDetails";
 import { accountAutoLoads } from "@/lib/gameAuth/session";
 import { buildStatMapOptions, type StatMapOption } from "@/lib/statTracker/mapOptions";
 import type { ArkhNode } from "@/lib/arkh/node";
@@ -222,9 +221,8 @@ export default function StatCalculator({
         onSave={(s, meta) => applyParsedSave(s, { keepView: meta?.refresh })}
         onError={(msg) => setError(msg)}
         compact
-      >
-        <PasteSaveDetails onLoad={onLoad} />
-      </ProfileNameLoader>
+        onPaste={onLoad}
+      />
 
       <div className="rounded-lg bg-zinc-900/60 p-4 mb-4 border border-zinc-800 flex flex-col gap-3">
         <div className="flex flex-nowrap items-center gap-2 overflow-x-auto">
