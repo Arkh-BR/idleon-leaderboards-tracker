@@ -223,7 +223,7 @@ function resolveCoin(id: string, ctx: SystemCtx): ArkhNode {
       const t0 = computeOverkillTier(ci, { saveData: s, charIdx: ci });
       const tv = Number(r.val) / t0.tier;
       const map = ctx.mapIdx ?? Number((currentMapData as any)?.[ci]);
-      const ok = overkillStuffs(ci, map, ctx);
+      const ok = overkillStuffs(ci, map, ctx, { maxDmg: t0.maxDmg });
       return node(
         r.name,
         tv * ok.tier,

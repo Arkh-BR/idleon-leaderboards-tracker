@@ -18,7 +18,7 @@ import { etcBonus } from "../common/etcBonus";
 import { achieveStatus } from "../common/achievement";
 import { computeBoxReward, computeCardBonusByType } from "../common/stats";
 import { computeCardSetBonus } from "../common/cards";
-import { overkillActive, overkillStuffs } from "../common/overkill";
+import { overkillActive, overkillStuffs, type Overkill } from "../common/overkill";
 import { computeStampBonusOfTypeX } from "../w1/stamp";
 import { computeVialByKey, bubbleValByKey, isActiveBubbleOn } from "../w2/alchemy";
 import { arcadeBonus } from "../w2/arcade";
@@ -27,7 +27,7 @@ import { chipBonuses } from "../w4/lab";
 import { computeShinyBonusS } from "../w4/breeding";
 import { computeArtifactBonus } from "../w5/sailing";
 import { measurementBonusTotal, overkillQTY } from "../coin/gambit";
-import { saltLick } from "../exp/saltLick";
+import { saltLick, saltLickLevel } from "../exp/saltLick";
 import { starSignBonusReal } from "../common/starSign";
 import { getBuffBonuses } from "../common/buffs";
 
@@ -40,6 +40,17 @@ const factor = (name: string, v: number, children?: ArkhNode[] | null): ArkhNode
   node(name, v, children ?? null, { fmt: "x" });
 const pct = (name: string, v: number, children?: ArkhNode[] | null, note?: string): ArkhNode =>
   node(name, v, children ?? null, { fmt: "+", note });
+
+// "tier" and "active" read the same damage tier; computeMaxDamage is most of a
+// compute, so one tree build (one ctx from statCtx) shares one overkillStuffs.
+const overkillMemo = new WeakMap<SystemCtx, { ci: number; map: number; ok: Overkill }>();
+function overkillOf(ci: number, map: number, ctx: SystemCtx): Overkill {
+  const hit = overkillMemo.get(ctx);
+  if (hit && hit.ci === ci && hit.map === map) return hit.ok;
+  const ok = overkillStuffs(ci, map, ctx);
+  overkillMemo.set(ctx, { ci, map, ok });
+  return ok;
+}
 
 // @njs MultiKill_base
 // @njs MultiKill_perTier
@@ -60,8 +71,7 @@ function resolveMultikill(id: string, ctx: SystemCtx): ArkhNode {
     }
     // N.js SaltLick(8): the level × SaltLicks[8][3] (3 per level, max 10).
     case "saltLick8": {
-      const lv = Number((s.saltLickData as any)?.[8]) || 0;
-      return pct("Salt Lick 8 (Multikill)", saltLick(8, s), [raw("Level (SaltLick[8])", lv)]);
+      return pct("Salt Lick 8 (Multikill)", saltLick(8, s), [raw("Level (SaltLick[8])", saltLickLevel(8, s))]);
     }
     // N.js StampBonusOfTypeX("Overkill") — only StampC19 has that type.
     case "stampC19": {
@@ -115,11 +125,14 @@ function resolveMultikill(id: string, ctx: SystemCtx): ArkhNode {
       const r = computeVialByKey("Overkill", s);
       return pct("Vials (Overkill)", r.val, r.children);
     }
-    // N.js GetBuffBonuses(46,2): Void Radius's y while its buff is active,
-    // for class 4/5 with buff 45. The name keeps "(Talent 46)": the collector
-    // gates that suffix (spec M16).
+    // N.js GetBuffBonuses(46,2) and (469,2): Void Radius's y (class 4/5 with
+    // buff 45) and Mana Is Life's y, each while its buff is active. The names
+    // keep "(Talent N)": the collector gates that suffix (spec M16).
     case "buff46":
-      return pct(label("Talent", 46), getBuffBonuses(46, 2, ci, s), null, "active buff only");
+    case "buff469": {
+      const t = Number(id.slice(4));
+      return pct(label("Talent", t), getBuffBonuses(t, 2, ci, s), null, "active buff only");
+    }
     // N.js ArcadeBonus(8).
     case "arcade8": {
       const r = arcadeBonus(8, s);
@@ -128,9 +141,6 @@ function resolveMultikill(id: string, ctx: SystemCtx): ArkhNode {
     // N.js Sailing("ArtifactBonus",26,0): Trilobite Rock, 25 × its tier.
     case "artifact26":
       return pct("Trilobite Rock (Artifact 26)", computeArtifactBonus(26, ci, { saveData: s, charIdx: ci } as any));
-    // N.js GetBuffBonuses(469,2): Mana Is Life's y while its buff is active.
-    case "buff469":
-      return pct(label("Talent", 469), getBuffBonuses(469, 2, ci, s), null, "active buff only");
     // N.js chipBonuses("mkill"): the active character's lab chips (Wood Chip, 15).
     case "chipMkill":
       return pct("Lab chip (mkill)", chipBonuses("mkill", ci));
@@ -184,7 +194,7 @@ function resolveMultikill(id: string, ctx: SystemCtx): ArkhNode {
     // reference (M12). "estimate" below the cap: arkh's max damage isn't
     // reconciled with the game yet (M4, M17).
     case "tier": {
-      const ok = overkillStuffs(ci, map, ctx);
+      const ok = overkillOf(ci, map, ctx);
       const hpKids = ok.clam
         ? [raw("Clamworks HP (1e16 × 30^OLA[464])", ok.staticHp)]
         : [
@@ -212,11 +222,13 @@ function resolveMultikill(id: string, ctx: SystemCtx): ArkhNode {
     // N.js MultiKill_base / _perTier on maps ≥ 300: the Shimmerfin Deep soft
     // cap on both sums (combine applies mkSoftCap; the per-tier bypass
     // e = 8675309 only feeds the W7 notice).
-    case "softCap":
-      return node(MK_RULES.softCap, map >= 300 ? 1 : 0, null, {
+    case "softCap": {
+      const capped = map >= 300;
+      return node(MK_RULES.softCap, capped ? 1 : 0, null, {
         fmt: "raw",
-        note: map >= 300 ? "Shimmerfin Deep (map ≥ 300)" : `map ${map}: no soft cap`,
+        note: capped ? "Shimmerfin Deep (map ≥ 300)" : `map ${map}: no soft cap`,
       });
+    }
     // N.js 216==CurrentMap && 17==Holes[0][me] → each sum is REPLACED by
     // Holes2("Cglunko_MKbase") = Cglunko_upgBon(15) and ("Cglunko_MKtier") =
     // Cglunko_upgBon(6), Cglunko_upgBon(b) = OLA[630+b]·RandoListo2[13][b]
@@ -237,7 +249,7 @@ function resolveMultikill(id: string, ctx: SystemCtx): ArkhNode {
     // applies the multikill only when it's 1, and prints the AFK Info line
     // only for a FIGHTING target (@3835457).
     case "active": {
-      const ok = overkillStuffs(ci, map, ctx);
+      const ok = overkillOf(ci, map, ctx);
       const a = overkillActive(ok, ci, s);
       const note = !a.active
         ? "inactive: the game applies no multikill"

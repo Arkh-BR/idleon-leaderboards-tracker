@@ -22,6 +22,12 @@ describe("StatBiggestGains", () => {
     expect(screen.queryByText("Beta Source")).toBeNull(); // already at the max
   });
 
+  it("keeps the methodology note when every source is already at the max", async () => {
+    render(<StatBiggestGains config={testConfig} yoursFlat={ref} classKey={null} loadReference={async () => ref} />);
+    expect(await screen.findByText(/at or above the Observed Max on every source/)).toBeInTheDocument();
+    expect(screen.getByText(testConfig.methodologyNote)).toBeInTheDocument();
+  });
+
   it("says the stat is 0 on this map instead of blaming the reference", async () => {
     // A flat tree whose total is genuinely 0 (e.g. AFK on a town, or any
     // Nothing-type map) — totalFromFlat(yoursFlat) itself must gate this,

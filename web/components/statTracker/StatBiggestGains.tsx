@@ -78,10 +78,14 @@ export default function StatBiggestGains({
   if (result.comparableSources === 0) {
     return <Hint>No comparable top-player reference for this character yet — can&apos;t rank {config.statName} gains.</Hint>;
   }
+  const note = <p className="text-[11px] text-zinc-500 leading-snug">{config.methodologyNote}</p>;
   if (result.rows.length === 0) {
     return (
-      <div className="rounded-md border border-emerald-500/30 bg-emerald-500/10 px-3 py-3 text-sm text-emerald-200/90 text-center">
-        🎉 You&apos;re at or above the Observed Max on every source — nothing to gain here. Nice.
+      <div className="space-y-4">
+        <div className="rounded-md border border-emerald-500/30 bg-emerald-500/10 px-3 py-3 text-sm text-emerald-200/90 text-center">
+          🎉 You&apos;re at or above the Observed Max on every source — nothing to gain here. Nice.
+        </div>
+        {note}
       </div>
     );
   }
@@ -145,7 +149,7 @@ export default function StatBiggestGains({
         {minor.length > 0 && <span className="text-zinc-600">({minor.length} below {"<"}0.05%)</span>}
       </label>
 
-      <p className="text-[11px] text-zinc-500 leading-snug">{config.methodologyNote}</p>
+      {note}
     </div>
   );
 }

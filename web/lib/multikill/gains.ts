@@ -54,10 +54,13 @@ function partsFromFlat(flat: Record<string, number>): MkParts {
 export const multikillGainsModel: GainsModel = {
   sources(yoursFlat) {
     const out: GainSource[] = [];
-    for (const g of HALVES) {
-      const gp = pathOf(g);
-      for (const p of half(yoursFlat, g).sources) out.push({ path: p, group: g, source: p.slice(gp.length + 3), display: "pct" });
-    }
+    // In the Crystal Glunko Cove the cavern replaces both sums (M19): none of
+    // their sources moves the total there, so none is offered.
+    if (half(yoursFlat, MK_NODES.base).cove === null)
+      for (const g of HALVES) {
+        const gp = pathOf(g);
+        for (const p of half(yoursFlat, g).sources) out.push({ path: p, group: g, source: p.slice(gp.length + 3), display: "pct" });
+      }
     const tp = tierPath(yoursFlat);
     // Only reachable below tier 51 (computeGains drops a gainPct <= 0 row, and
     // the reference tier is always 51) — same estimate caveat as the tree node

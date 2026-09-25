@@ -104,8 +104,9 @@ describe("Multikill what-if gains model (synthetic)", () => {
     expect(rows.find((r) => r.source === "Per tier X")!.gainPct).toBeCloseTo((3233 / 3185 - 1) * 100, 9);
   });
 
-  it("in the Cove the sources don't move the total", () => {
+  it("in the Cove the sources don't move the total, so only the tier is offered", () => {
     expect(computeGains(multikillGainsModel, flatOf({ cove: [3800, 46] }), { [A]: 5000 }).rows).toEqual([]);
+    expect(multikillGainsModel.sources(flatOf({ cove: [3800, 46] }), {}).map((s) => s.source)).toEqual([MK_NODES.tier]);
   });
 
   it("the tier ranks against the reference below map 300, never in W7 (spec M12)", () => {

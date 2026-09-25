@@ -59,6 +59,13 @@ describe("Multikill combine", () => {
     expect(p.children!.at(-1)!.note).toMatch(/reduced by ~93%$/);
   });
 
+  it("a W7 sum below 20 isn't capped, and its note says so (even at 0)", () => {
+    const { tree } = combineMultikillPools(pools({ base: [0], perTier: [0.5], tier: 1, soft: true }));
+    const [b, , p] = tree.children!;
+    expect(b.children!.at(-1)!.note).toMatch(/reduced by ~0%$/);
+    expect(p.children!.at(-1)!.note).toMatch(/reduced by ~0%$/);
+  });
+
   it("the Cove row replaces each half's value", () => {
     const { tree, total } = combineMultikillPools(pools({ cove: [3800, 46] }));
     expect(total).toBe(6146);

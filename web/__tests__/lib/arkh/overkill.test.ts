@@ -46,6 +46,14 @@ describe("overkillStuffs — the AFK target's live HP", () => {
     expect(ok.hp / (7e13 * 12.8)).toBeCloseTo(1, 12);
   });
 
+  it("uses a max damage the caller already has (Coin's talent 643 passes its own)", () => {
+    load([8, -1, -1, -1, -1, -1]);
+    const hp = overkillStuffs(0, 301, { saveData }).hp;
+    const ok = overkillStuffs(0, 301, { saveData }, { maxDmg: hp * 200 }); // HP·5³ ≤ 200·HP < HP·5⁴
+    expect(ok.maxDmg).toBe(hp * 200);
+    expect(ok.tier).toBe(3);
+  });
+
   it("Clamworks (w7a6) is Clamz_HP = 1e16·30^OLA[464], never cursed", () => {
     load([8, -1, -1, -1, -1, -1]);
     const ok = overkillStuffs(0, 306, { saveData });

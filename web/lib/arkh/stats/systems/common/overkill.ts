@@ -57,7 +57,14 @@ export type Overkill = {
 
 // @njs MonsterRespawnTimeReset
 // @njs Clamz_HP
-export function overkillStuffs(ci: number, map: number, ctx: { saveData: SaveData; afkTarget?: string }): Overkill {
+/** `opts.maxDmg`: the character's max damage when the caller already has it
+ *  (it depends on the character, not on the map or target). */
+export function overkillStuffs(
+  ci: number,
+  map: number,
+  ctx: { saveData: SaveData; afkTarget?: string },
+  opts?: { maxDmg?: number }
+): Overkill {
   const s = ctx.saveData;
   const savedMap = Number((currentMapData as any)?.[ci]);
   const target = String((map === savedMap && ctx.afkTarget ? ctx.afkTarget : (MapAFKtarget as any)[map]) ?? "");
@@ -69,12 +76,8 @@ export function overkillStuffs(ci: number, map: number, ctx: { saveData: SaveDat
     : Number((MONSTERS as any)[target]?.MonsterHPTotal) || 0;
   const hp = staticHp * curse;
   const exponent = map >= 300 ? 5 : 2;
-  let maxDmg = 0;
-  try {
-    maxDmg = computeMaxDamage(ci, { saveData: s, charIdx: ci }) || 0;
-  } catch {
-    maxDmg = 0;
-  }
+  // Not swallowed: a failing max damage must surface, not read as tier 1.
+  const maxDmg = opts?.maxDmg || computeMaxDamage(ci, { saveData: s, charIdx: ci }) || 0;
   const tier = multikillTier(hp, maxDmg, exponent);
   return {
     map, target, clam, staticHp, curses, curse, hp, exponent, maxDmg, tier,

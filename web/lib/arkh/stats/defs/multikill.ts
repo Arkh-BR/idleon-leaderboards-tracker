@@ -99,7 +99,7 @@ const sum = (xs: ArkhNode[]): number => xs.reduce((a, it) => a + (Number(it.val)
 function ruleRows(p: MkParts, raw: number, value: number): ArkhNode[] {
   if (p.cove) return [{ name: MK_RULES.cove, val: value, fmt: "+", note: `replaces Σ ${raw.toFixed(2)} (map 216, cavern 17)` }];
   if (!p.softCap) return [];
-  const cut = Math.max(0, Math.round(100 * (1 - value / Math.max(1, raw))));
+  const cut = raw > 0 ? Math.max(0, Math.round(100 * (1 - value / raw))) : 0;
   return [{ name: MK_RULES.softCap, val: value, fmt: "+", note: `Σ ${raw.toFixed(2)} → ${value.toFixed(3)} · reduced by ~${cut}%` }];
 }
 
