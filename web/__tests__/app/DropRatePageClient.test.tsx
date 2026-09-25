@@ -33,11 +33,14 @@ describe("DropRatePageClient — the tracker header", () => {
     expect(screen.queryByText(/Anonymous players/)).toBeNull();
   });
 
-  it("Save snapshot and History (N) sit in the total row; History opens the panel under it", async () => {
+  it("History (N) and Save snapshot sit in a row under the total; History opens the panel under it", async () => {
     const total = await loaded();
-    const row = total.parentElement!.parentElement!; // total → its label group → the total row
-    const saveButton = within(row).getByRole("button", { name: "💾 Save snapshot" });
+    const box = total.parentElement!.parentElement!; // total → its label group → the total box
+    expect(within(box).queryByRole("button")).toBeNull(); // the total stands alone
+    const row = box.nextElementSibling as HTMLElement;
     const history = within(row).getByRole("button", { name: "📈 History (0)" });
+    const saveButton = within(row).getByRole("button", { name: "💾 Save snapshot" });
+    expect(row.firstElementChild).toBe(history); // History left, Save snapshot right
     expect(screen.queryByText(/Snapshot History/)).toBeNull();
 
     // Enabled once the calculator has lifted its state to the page.
@@ -46,31 +49,40 @@ describe("DropRatePageClient — the tracker header", () => {
     expect(history).toHaveTextContent("📈 History (1)");
     expect(screen.queryByRole("button", { name: /Export/ })).toBeNull();
     fireEvent.click(history);
-    const card = row.parentElement!; // the character & map card
+    const card = box.parentElement!; // the character & map card
     expect(within(card).getByText(/Snapshot saved for Alpha/)).toBeInTheDocument();
     expect(within(card).getByRole("button", { name: "↑ Export" })).toBeInTheDocument();
     expect(within(card).getByLabelText(/Import/)).toHaveAttribute("type", "file");
     expect(within(card).getByRole("button", { name: "🗑 Clear Alpha" })).toBeInTheDocument();
   });
 
-  it("Compare vs Observed Max and Include Arcane Map sit at the top of the Tree tab only", async () => {
+  it("Compare vs Observed Max sits at the tab strip's right end on Tree and Per World; Include Arcane Map in the banner while comparing", async () => {
     await loaded();
     // 💡 Biggest Gains is the default tab.
     expect(screen.queryByLabelText(/Compare vs Observed Max/)).toBeNull();
-    expect(screen.queryByLabelText(/Include Arcane Map/)).toBeNull();
-    fireEvent.click(screen.getByRole("button", { name: "🌳 Tree" }));
+    const treeTab = screen.getByRole("button", { name: "🌳 Tree" });
+    fireEvent.click(treeTab);
     const compare = screen.getByLabelText(/Compare vs Observed Max/);
     expect(compare).toHaveAttribute("type", "checkbox");
+    expect(treeTab.parentElement!.parentElement).toContainElement(compare); // tab → tabs → the strip
+    expect(screen.queryByLabelText(/Include Arcane Map/)).toBeNull(); // only while comparing
 
     fireEvent.click(compare);
-    expect(await screen.findByText(/^Observed Max \(\d+ top players\)$/)).toBeInTheDocument();
+    const who = await screen.findByText(/^Observed Max \(\d+ top players\)$/);
     expect(compare).toBeChecked();
-    fireEvent.click(screen.getByLabelText(/Include Arcane Map/));
+    const arcane = screen.getByLabelText(/Include Arcane Map/);
+    expect(who.closest("div")).toContainElement(arcane); // the comparison banner
+    fireEvent.click(arcane);
     expect(screen.getByText(/^Observed Max \(\d+ top players\) · no Arcane Map$/)).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "🌍 Per World" }));
-    expect(screen.queryByLabelText(/Compare vs Observed Max/)).toBeNull();
+    expect(screen.getByLabelText(/Compare vs Observed Max/)).toBeChecked();
+    expect(screen.getByLabelText(/Include Arcane Map/)).not.toBeChecked();
+    fireEvent.click(screen.getByLabelText(/Compare vs Observed Max/));
     expect(screen.queryByLabelText(/Include Arcane Map/)).toBeNull();
+
+    fireEvent.click(screen.getByRole("button", { name: "💡 Biggest Gains" }));
+    expect(screen.queryByLabelText(/Compare vs Observed Max/)).toBeNull();
   });
 
   it("the comparison banner's hint points at whatever drives it", async () => {

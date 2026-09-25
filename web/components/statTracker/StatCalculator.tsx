@@ -30,14 +30,14 @@ type Props = {
   config: StatPageConfig;
   onStateChange?: (s: StatCalculatorState) => void;
   compareBaseline?: { flatTree: FlatTree; capturedAt: number; charName: string } | null;
-  /** Inline right of the headline total (the page's Save snapshot + History). */
+  /** A row under the headline total (the page's History toggle + Save snapshot). */
   totalActions?: React.ReactNode;
-  /** Under the total row, in the same card (the snapshot history panel). */
+  /** Under that row, in the same card (the snapshot history panel). */
   totalPanel?: React.ReactNode;
   extraTabs?: DeepViewExtraTab[];
   extraTabsFirst?: boolean;
   defaultView?: string;
-  /** Top of the Tree tab (the page's Compare vs Observed Max toggle). */
+  /** The tab strip's right end, on the Tree tab (the page's Compare vs Observed Max toggle). */
   treeToolbar?: React.ReactNode;
   /** The comparison banner's hint, per baseline source (see DeepView). */
   baselineHint?: string;
@@ -275,8 +275,8 @@ export default function StatCalculator({
           >
             {total !== null ? config.formatTotal(total) + unit : "—"}
           </span>
-          {totalActions && <div className="ml-2 flex items-center gap-2">{totalActions}</div>}
         </div>
+        {totalActions && <div className="-mt-1 flex items-center gap-2">{totalActions}</div>}
         {totalPanel}
       </div>
 

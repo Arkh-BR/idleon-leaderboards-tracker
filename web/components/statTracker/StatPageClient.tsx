@@ -62,7 +62,7 @@ export default function StatPageClient({ config }: { config: StatPageConfig }) {
     [yoursFlat, classKey, calcState?.computeError, config]
   );
 
-  // Sits at the top of the Tree tab — the view it changes.
+  // At the tab strip's right end, on the Tree tab — the view it changes.
   const compareToggle = (
     <label
       className={`inline-flex items-center gap-1.5 text-xs font-semibold cursor-pointer select-none ${
@@ -81,7 +81,7 @@ export default function StatPageClient({ config }: { config: StatPageConfig }) {
     </label>
   );
 
-  // Save snapshot + History sit right of the total, the history panel under it.
+  // History + Save snapshot in a row under the total, the history panel under that.
   const snapshots = useStatSnapshots({
     config,
     state: calcState,

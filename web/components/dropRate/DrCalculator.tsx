@@ -57,8 +57,8 @@ type Props = {
   // Breakdown — used by the page to render the snapshot section there so it
   // sits near the headline value instead of buried at the bottom.
   middleSlot?: React.ReactNode;
-  // Inline right of the Total Drop Rate (the page's Save snapshot + History)
-  // and under the total row, in the same card (the snapshot history panel).
+  // A row under the Total Drop Rate (the page's History toggle + Save
+  // snapshot) and under that, in the same card (the snapshot history panel).
   totalActions?: React.ReactNode;
   totalPanel?: React.ReactNode;
   // Extra DeepView tabs (e.g. the "💡 Biggest Gains" panel) + initial tab.
@@ -66,10 +66,13 @@ type Props = {
   extraTabs?: DeepViewExtraTab[];
   extraTabsFirst?: boolean;
   defaultView?: string;
-  // Top of the Tree tab — the page's Compare vs Observed Max toggle.
+  // The tab strip's right end on the Tree / Per World tabs — the page's
+  // Compare vs Observed Max toggle.
   treeToolbar?: React.ReactNode;
-  // The comparison banner's hint, per baseline source (see DeepView).
+  // The comparison banner's hint, per baseline source, and extra controls
+  // (Include Arcane Map) — see DeepView.
   baselineHint?: string;
+  baselineExtra?: React.ReactNode;
 };
 
 export default function DrCalculator({
@@ -83,6 +86,7 @@ export default function DrCalculator({
   defaultView,
   treeToolbar,
   baselineHint,
+  baselineExtra,
 }: Props) {
   const [save, setSave] = useState<any | null>(null);
   const [chars, setChars] = useState<CharSummary[]>([]);
@@ -454,8 +458,8 @@ export default function DrCalculator({
               </span>
             )}
           </div>
-          {totalActions && <div className="ml-2 flex items-center gap-2">{totalActions}</div>}
         </div>
+        {totalActions && <div className="-mt-1 flex items-center gap-2">{totalActions}</div>}
         {totalPanel}
       </div>
 
@@ -485,6 +489,7 @@ export default function DrCalculator({
             defaultView={defaultView}
             treeToolbar={treeToolbar}
             baselineHint={baselineHint}
+            baselineExtra={baselineExtra}
           />
         )}
       </div>

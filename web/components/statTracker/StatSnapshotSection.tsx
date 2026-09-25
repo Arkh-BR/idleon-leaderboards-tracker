@@ -24,8 +24,8 @@ type Props = {
 };
 
 /** The page's snapshot history, in two parts that share one state: `actions`
- *  (💾 Save snapshot + the 📈 History (N) toggle, right of the headline
- *  total) and `panel` (the history itself, under the total row; null while
+ *  (the 📈 History (N) toggle + 💾 Save snapshot, a row under the headline
+ *  total) and `panel` (the history itself, under that row; null while
  *  collapsed). */
 export function useStatSnapshots({
   config,
@@ -176,20 +176,20 @@ export function useStatSnapshots({
     <>
       <button
         type="button"
-        onClick={onSave}
-        disabled={!canSave}
-        className="px-3 py-1.5 text-xs rounded bg-gold/15 text-gold border border-gold/40 hover:bg-gold/25 disabled:opacity-40 disabled:cursor-not-allowed"
-      >
-        💾 Save snapshot
-      </button>
-      <button
-        type="button"
         onClick={toggleCollapsed}
         aria-expanded={!collapsed}
         className="text-xs font-semibold text-sky-300 hover:text-sky-200 select-none"
         title={collapsed ? "Show snapshot history" : "Hide snapshot history"}
       >
-        📈 History ({totalSnaps})
+        📈 History ({totalSnaps}) <span aria-hidden>{collapsed ? "▸" : "▾"}</span>
+      </button>
+      <button
+        type="button"
+        onClick={onSave}
+        disabled={!canSave}
+        className="ml-auto px-2.5 py-1 text-xs rounded border border-zinc-700 bg-zinc-900 text-zinc-300 hover:bg-zinc-800 disabled:opacity-40 disabled:cursor-not-allowed"
+      >
+        💾 Save snapshot
       </button>
     </>
   );

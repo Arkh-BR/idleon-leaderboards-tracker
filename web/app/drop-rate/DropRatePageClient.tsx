@@ -123,17 +123,24 @@ export default function DropRatePageClient() {
     [yoursFlat, classKey, calcState?.computeError]
   );
 
-  // The compare-vs-top toggle sits at the top of the Tree tab (treeToolbar);
-  // Save snapshot + History right of the Total Drop Rate, the history panel
-  // under it (totalActions / totalPanel).
-  const compareBlock = (
-    <TopCompareToggle
-      active={compareTop}
-      loading={topLoading}
-      onToggle={toggleTop}
-      includeArcaneMap={includeArcaneMap}
-      onToggleArcaneMap={setIncludeArcaneMap}
-    />
+  // The compare-vs-top toggle sits at the tab strip's right end (treeToolbar),
+  // its Include Arcane Map option in the comparison banner while it's on
+  // (baselineExtra); History + Save snapshot in a row under the Total Drop
+  // Rate, the history panel under that (totalActions / totalPanel).
+  const compareToggle = <TopCompareToggle active={compareTop} loading={topLoading} onToggle={toggleTop} />;
+  const arcaneToggle = compareTop && (
+    <label
+      className="inline-flex items-center gap-1.5 text-zinc-300 cursor-pointer select-none whitespace-nowrap"
+      title="Include the Arcane Map's Post-Processing multiplier in the Observed Max DR. Uncheck to see the ceiling without the map."
+    >
+      <input
+        type="checkbox"
+        checked={includeArcaneMap}
+        onChange={(e) => setIncludeArcaneMap(e.target.checked)}
+        className="accent-amber-500"
+      />
+      🗺️ Include Arcane Map
+    </label>
   );
   const snapshots = useDrSnapshots({
     state: calcState,
@@ -159,7 +166,8 @@ export default function DropRatePageClient() {
         extraTabs={biggestGainsTabs}
         extraTabsFirst
         defaultView="biggest-gains"
-        treeToolbar={compareBlock}
+        treeToolbar={compareToggle}
+        baselineExtra={arcaneToggle}
       />
       <footer className="mt-8 text-[11px] text-zinc-600 text-center border-t border-zinc-900 pt-3">
         Drop rate is computed locally from your save JSON — pool tree
@@ -174,45 +182,26 @@ function TopCompareToggle({
   active,
   loading,
   onToggle,
-  includeArcaneMap,
-  onToggleArcaneMap,
 }: {
   active: boolean;
   loading: boolean;
   onToggle: () => void;
-  /** Whether the Observed-Max baseline includes the Arcane Map multiplier. */
-  includeArcaneMap: boolean;
-  onToggleArcaneMap: (v: boolean) => void;
 }) {
   return (
-    <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5">
-      <label
-        className={`inline-flex items-center gap-1.5 text-xs font-semibold cursor-pointer select-none ${
-          active ? "text-amber-300" : "text-zinc-300"
-        }`}
-        title="Compare every DR source against the best value observed across the top players"
-      >
-        <input
-          type="checkbox"
-          checked={active}
-          disabled={loading}
-          onChange={onToggle}
-          className="accent-amber-500"
-        />
-        🏅 {loading ? "Loading…" : "Compare vs Observed Max"}
-      </label>
-      <label
-        className="flex items-center gap-1.5 text-[11px] text-zinc-400 cursor-pointer select-none"
-        title="Include the Arcane Map's Post-Processing multiplier in the Observed Max DR. Uncheck to see the ceiling without the map."
-      >
-        <input
-          type="checkbox"
-          checked={includeArcaneMap}
-          onChange={(e) => onToggleArcaneMap(e.target.checked)}
-          className="accent-amber-500"
-        />
-        🗺️ Include Arcane Map
-      </label>
-    </div>
+    <label
+      className={`inline-flex items-center gap-1.5 text-xs font-semibold cursor-pointer select-none ${
+        active ? "text-amber-300" : "text-zinc-300"
+      }`}
+      title="Compare every DR source against the best value observed across the top players"
+    >
+      <input
+        type="checkbox"
+        checked={active}
+        disabled={loading}
+        onChange={onToggle}
+        className="accent-amber-500"
+      />
+      🏅 {loading ? "Loading…" : "Compare vs Observed Max"}
+    </label>
   );
 }
