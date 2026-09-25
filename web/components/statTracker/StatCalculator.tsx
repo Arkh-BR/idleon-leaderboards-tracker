@@ -30,22 +30,31 @@ type Props = {
   config: StatPageConfig;
   onStateChange?: (s: StatCalculatorState) => void;
   compareBaseline?: { flatTree: FlatTree; capturedAt: number; charName: string } | null;
-  snapshotSlot?: React.ReactNode;
+  /** A row under the headline total (the page's History toggle + Save snapshot). */
+  totalActions?: React.ReactNode;
+  /** Under that row, in the same card (the snapshot history panel). */
+  totalPanel?: React.ReactNode;
   extraTabs?: DeepViewExtraTab[];
   extraTabsFirst?: boolean;
   defaultView?: string;
+  /** The tab strip's right end, on the Tree tab (the page's Compare vs Observed Max toggle). */
+  treeToolbar?: React.ReactNode;
+  /** The comparison banner's hint, per baseline source (see DeepView). */
+  baselineHint?: string;
 };
 
 export default function StatCalculator({
   config,
   onStateChange,
   compareBaseline,
-  snapshotSlot,
+  totalActions,
+  totalPanel,
   extraTabs,
   extraTabsFirst,
   defaultView,
+  treeToolbar,
+  baselineHint,
 }: Props) {
-  const [jsonText, setJsonText] = useState("");
   const [save, setSave] = useState<any | null>(null);
   const [chars, setChars] = useState<CharSummary[]>([]);
   const [charIdx, setCharIdx] = useState<number>(0);
@@ -192,12 +201,12 @@ export default function StatCalculator({
     });
   }, [charIdx, mapIdx, total, tree, chars, mapOptions, save, onStateChange, error, config]);
 
-  const onLoad = () => {
-    if (!jsonText.trim()) {
+  const onLoad = (text: string) => {
+    if (!text.trim()) {
       setError("Paste a raw save JSON first.");
-      return;
+      return false;
     }
-    if (stageSave(jsonText)) setJsonText("");
+    return stageSave(text);
   };
 
   return (
@@ -211,43 +220,9 @@ export default function StatCalculator({
         storageKey={config.storage.name}
         onSave={(s, meta) => applyParsedSave(s, { keepView: meta?.refresh })}
         onError={(msg) => setError(msg)}
-      >
-        <details className="rounded-lg bg-zinc-900/40 p-3 border border-zinc-800">
-          <summary className="cursor-pointer select-none flex items-center gap-2 flex-wrap">
-            <span className="dt-arrow text-zinc-500 text-sm">▸</span>
-            <span className="font-semibold text-gold">📋 Or paste a save manually</span>
-            <span className="text-xs text-zinc-500 font-normal">
-              Uses the &ldquo;Copy for Support&rdquo; button on{" "}
-              <a
-                href="https://idleontoolbox.com"
-                target="_blank"
-                rel="noreferrer"
-                className="text-gold hover:underline"
-                onClick={(e) => e.stopPropagation()}
-              >
-                idleontoolbox.com
-              </a>
-            </span>
-          </summary>
-          <div className="flex flex-col gap-3 mt-3">
-            <textarea
-              value={jsonText}
-              onChange={(e) => setJsonText(e.target.value)}
-              placeholder='Paste the output of "Copy for Support" here (Ctrl+V)…'
-              className="w-full h-20 bg-zinc-950 border border-zinc-800 rounded p-2 text-xs font-mono text-zinc-200 focus:outline-none focus:border-gold"
-            />
-            <button
-              type="button"
-              onClick={onLoad}
-              className="self-start px-4 py-1.5 text-sm font-semibold rounded bg-sky-500/20 text-sky-300 border border-sky-500/40 hover:bg-sky-500/30"
-            >
-              Load pasted save
-            </button>
-          </div>
-        </details>
-      </ProfileNameLoader>
-
-      {snapshotSlot && <div className="mb-4">{snapshotSlot}</div>}
+        compact
+        onPaste={onLoad}
+      />
 
       <div className="rounded-lg bg-zinc-900/60 p-4 mb-4 border border-zinc-800 flex flex-col gap-3">
         <div className="flex flex-nowrap items-center gap-2 overflow-x-auto">
@@ -301,6 +276,8 @@ export default function StatCalculator({
             {total !== null ? config.formatTotal(total) + unit : "—"}
           </span>
         </div>
+        {totalActions && <div className="-mt-1 flex items-center gap-2">{totalActions}</div>}
+        {totalPanel}
       </div>
 
       <div className="rounded-lg bg-zinc-900/60 border border-zinc-800 p-4 mb-4">
@@ -314,6 +291,8 @@ export default function StatCalculator({
             extraTabsFirst={extraTabsFirst}
             defaultView={defaultView}
             showWorldView={false}
+            treeToolbar={treeToolbar}
+            baselineHint={baselineHint}
           />
         )}
       </div>

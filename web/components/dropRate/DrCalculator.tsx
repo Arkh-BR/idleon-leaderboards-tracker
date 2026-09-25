@@ -57,26 +57,37 @@ type Props = {
   // Breakdown — used by the page to render the snapshot section there so it
   // sits near the headline value instead of buried at the bottom.
   middleSlot?: React.ReactNode;
-  // Optional render slot right under the manual-paste box (above the controls)
-  // — used by the page for the Snapshot History section.
-  snapshotSlot?: React.ReactNode;
+  // A row under the Total Drop Rate (the page's History toggle + Save
+  // snapshot) and under that, in the same card (the snapshot history panel).
+  totalActions?: React.ReactNode;
+  totalPanel?: React.ReactNode;
   // Extra DeepView tabs (e.g. the "💡 Biggest Gains" panel) + initial tab.
   // Forwarded verbatim to DeepView so the page can add tabs without a fork.
   extraTabs?: DeepViewExtraTab[];
   extraTabsFirst?: boolean;
   defaultView?: string;
+  // The tab strip's right end on the Tree / Per World tabs — the page's
+  // Compare vs Observed Max toggle.
+  treeToolbar?: React.ReactNode;
+  // The comparison banner's hint, per baseline source, and extra controls
+  // (Include Arcane Map) — see DeepView.
+  baselineHint?: string;
+  baselineExtra?: React.ReactNode;
 };
 
 export default function DrCalculator({
   onStateChange,
   compareBaseline,
   middleSlot,
-  snapshotSlot,
+  totalActions,
+  totalPanel,
   extraTabs,
   extraTabsFirst,
   defaultView,
+  treeToolbar,
+  baselineHint,
+  baselineExtra,
 }: Props) {
-  const [jsonText, setJsonText] = useState("");
   const [save, setSave] = useState<any | null>(null);
   const [chars, setChars] = useState<CharSummary[]>([]);
   const [charIdx, setCharIdx] = useState<number>(0);
@@ -335,12 +346,12 @@ export default function DrCalculator({
     error,
   ]);
 
-  const onLoad = () => {
-    if (!jsonText.trim()) {
+  const onLoad = (text: string) => {
+    if (!text.trim()) {
       setError("Paste a raw save JSON first.");
-      return;
+      return false;
     }
-    if (stageSave(jsonText)) setJsonText("");
+    return stageSave(text);
   };
 
   const factor = mapOptions.find((m) => m.index === mapIdx)?.factor ?? 1;
@@ -371,46 +382,10 @@ export default function DrCalculator({
         storageKey={NAME_KEY}
         onSave={(s, meta) => applyParsedSave(s, { keepView: meta?.refresh })}
         onError={(msg) => setError(msg)}
-      >
-        {/* Manual paste — fallback for private profiles, inside the card. */}
-        <details className="rounded-lg bg-zinc-900/40 p-3 border border-zinc-800">
-        <summary className="cursor-pointer select-none flex items-center gap-2 flex-wrap">
-          <span className="dt-arrow text-zinc-500 text-sm">▸</span>
-          <span className="font-semibold text-gold">
-            📋 Or paste a save manually
-          </span>
-          <span className="text-xs text-zinc-500 font-normal">
-            Uses the &ldquo;Copy for Support&rdquo; button on{" "}
-            <a
-              href="https://idleontoolbox.com"
-              target="_blank"
-              rel="noreferrer"
-              className="text-gold hover:underline"
-              onClick={(e) => e.stopPropagation()}
-            >
-              idleontoolbox.com
-            </a>
-          </span>
-        </summary>
-        <div className="flex flex-col gap-3 mt-3">
-          <textarea
-            value={jsonText}
-            onChange={(e) => setJsonText(e.target.value)}
-            placeholder='Paste the output of "Copy for Support" here (Ctrl+V)…'
-            className="w-full h-20 bg-zinc-950 border border-zinc-800 rounded p-2 text-xs font-mono text-zinc-200 focus:outline-none focus:border-gold"
-          />
-          <button
-            type="button"
-            onClick={onLoad}
-            className="self-start px-4 py-1.5 text-sm font-semibold rounded bg-sky-500/20 text-sky-300 border border-sky-500/40 hover:bg-sky-500/30"
-          >
-            Load pasted save
-          </button>
-        </div>
-        </details>
-      </ProfileNameLoader>
-
-      {snapshotSlot && <div className="mb-4">{snapshotSlot}</div>}
+        compact
+        // Manual paste — fallback for private profiles, inside the card.
+        onPaste={onLoad}
+      />
 
       {/* Analysis controls — character / map / chip gallery. Always visible
           (the save comes from the name loader above or the manual paste
@@ -484,6 +459,8 @@ export default function DrCalculator({
             )}
           </div>
         </div>
+        {totalActions && <div className="-mt-1 flex items-center gap-2">{totalActions}</div>}
+        {totalPanel}
       </div>
 
       {totalDr !== null && (
@@ -510,6 +487,9 @@ export default function DrCalculator({
             extraTabs={extraTabs}
             extraTabsFirst={extraTabsFirst}
             defaultView={defaultView}
+            treeToolbar={treeToolbar}
+            baselineHint={baselineHint}
+            baselineExtra={baselineExtra}
           />
         )}
       </div>

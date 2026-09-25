@@ -2,9 +2,8 @@
 
 import { useMemo, useState } from "react";
 import StatCalculator, { type StatCalculatorState } from "@/components/statTracker/StatCalculator";
-import StatSnapshotSection from "@/components/statTracker/StatSnapshotSection";
+import { useStatSnapshots } from "@/components/statTracker/StatSnapshotSection";
 import StatBiggestGains from "@/components/statTracker/StatBiggestGains";
-import AnonExcludedNote from "@/components/AnonExcludedNote";
 import type { DeepViewExtraTab } from "@/components/dropRate/DeepView";
 import { flattenTree, type FlatTree } from "@/lib/dropRate/treeFlatten";
 import type { StatPageConfig, TopModule } from "@/lib/statTracker/config";
@@ -63,42 +62,35 @@ export default function StatPageClient({ config }: { config: StatPageConfig }) {
     [yoursFlat, classKey, calcState?.computeError, config]
   );
 
-  const compareBlock = (
-    <button
-      type="button"
-      onClick={toggleTop}
-      disabled={topLoading}
-      className={`whitespace-nowrap px-2.5 py-1.5 text-xs font-semibold rounded border transition-colors disabled:opacity-50 ${
-        compareTop
-          ? "bg-amber-500/15 text-amber-300 border-amber-500/40"
-          : "bg-zinc-900 text-zinc-300 border-zinc-700 hover:bg-zinc-800"
+  // At the tab strip's right end, on the Tree tab — the view it changes.
+  const compareToggle = (
+    <label
+      className={`inline-flex items-center gap-1.5 text-xs font-semibold cursor-pointer select-none ${
+        compareTop ? "text-amber-300" : "text-zinc-300"
       }`}
       title={config.compareTitle}
     >
-      🏅 {topLoading ? "Loading…" : compareTop ? "Comparing vs Observed Max" : "Compare vs Observed Max"}
-    </button>
+      <input
+        type="checkbox"
+        checked={compareTop}
+        disabled={topLoading}
+        onChange={toggleTop}
+        className="accent-amber-500"
+      />
+      🏅 {topLoading ? "Loading…" : "Compare vs Observed Max"}
+    </label>
   );
 
-  const snapshotBlock = (
-    <div className="flex flex-col gap-3">
-      <StatSnapshotSection
-        config={config}
-        state={calcState}
-        onSelectBaseline={(b) => {
-          setBaseline(b);
-          if (b) setCompareTop(false);
-        }}
-        selectedBaselineAt={baseline?.capturedAt ?? null}
-        headerExtra={compareBlock}
-      />
-      <div className="text-center">
-        <AnonExcludedNote>
-          Anonymous players are excluded from the top-player comparison — anonymous profiles have no public
-          save to compute from.
-        </AnonExcludedNote>
-      </div>
-    </div>
-  );
+  // History + Save snapshot in a row under the total, the history panel under that.
+  const snapshots = useStatSnapshots({
+    config,
+    state: calcState,
+    onSelectBaseline: (b) => {
+      setBaseline(b);
+      if (b) setCompareTop(false);
+    },
+    selectedBaselineAt: baseline?.capturedAt ?? null,
+  });
 
   return (
     <main className="max-w-3xl mx-auto px-3 pb-12">
@@ -106,10 +98,17 @@ export default function StatPageClient({ config }: { config: StatPageConfig }) {
         config={config}
         onStateChange={setCalcState}
         compareBaseline={compareTop ? topBaseline : baseline}
-        snapshotSlot={snapshotBlock}
+        baselineHint={
+          compareTop
+            ? "Uncheck Compare vs Observed Max to hide it"
+            : "Pick another snapshot in History to switch, or toggle it off there"
+        }
+        totalActions={snapshots.actions}
+        totalPanel={snapshots.panel}
         extraTabs={gainsTabs}
         extraTabsFirst
         defaultView="biggest-gains"
+        treeToolbar={compareToggle}
       />
       <footer className="mt-8 text-[11px] text-zinc-600 text-center border-t border-zinc-900 pt-3">
         {config.footer}

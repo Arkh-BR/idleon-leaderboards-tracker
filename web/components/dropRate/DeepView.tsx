@@ -627,6 +627,9 @@ export default function DeepView({
   onViewChange,
   defaultView = "tree",
   extraTabsFirst = false,
+  treeToolbar,
+  baselineHint = "Pick another snapshot to switch — toggle off in Snapshot History",
+  baselineExtra,
 }: {
   tree: ArkhNode | null;
   /** Optional snapshot baseline. When set, every row gains a "Δ vs snap"
@@ -653,6 +656,17 @@ export default function DeepView({
   defaultView?: ViewMode;
   /** Render the caller's extraTabs before the built-in Tree tab. */
   extraTabsFirst?: boolean;
+  /** Controls at the tab strip's right end, on the built-in views only (the
+   *  tracker pages' "Compare vs Observed Max" toggle). Not shown when `bare`
+   *  (no tab strip). */
+  treeToolbar?: ReactNode;
+  /** The baseline banner's hint on how to switch / turn off the comparison.
+   *  The tracker pages pass one per baseline source (a snapshot or the
+   *  Observed Max toggle). */
+  baselineHint?: string;
+  /** Extra controls inside the comparison banner (Drop Rate's "Include
+   *  Arcane Map", while comparing vs Observed Max). */
+  baselineExtra?: ReactNode;
 }) {
   const [view, setView] = useState<ViewMode>(defaultView);
   // Report the active tab to the caller (mount + every change). onViewChange
@@ -757,66 +771,81 @@ export default function DeepView({
   // Extracted so it can render both with and without a tree (an active extra
   // tab must show its own Empty/Loading state before any save is loaded).
   const tabStrip = bare ? null : (
-    <div className="mb-3 flex items-center gap-1 border-b border-zinc-800">
-      {extraTabsFirst &&
-        extraTabs.map((t) => (
-          <button
-            key={t.id}
-            type="button"
-            onClick={() => setView(t.id)}
-            className={`px-3 py-1.5 text-sm font-medium rounded-t -mb-px border ${
-              view === t.id
-                ? "bg-sky-500/15 text-sky-300 border-sky-500/40 border-b-transparent"
-                : "text-zinc-400 hover:text-zinc-200 border-transparent"
-            }`}
-            title={t.title}
-          >
-            {t.label}
-          </button>
-        ))}
-      <button
-        type="button"
-        onClick={() => setView("tree")}
-        className={`px-3 py-1.5 text-sm font-medium rounded-t -mb-px border ${
-          view === "tree"
-            ? "bg-sky-500/15 text-sky-300 border-sky-500/40 border-b-transparent"
-            : "text-zinc-400 hover:text-zinc-200 border-transparent"
-        }`}
-        title="Formula hierarchy — pool → source → sub-source"
-      >
-        {treeTabLabel}
-      </button>
-      {showWorldView && (
+    // The caller's toolbar sits at the strip's right end on the built-in
+    // views, the border running under both; on phones it drops under the tabs.
+    <div className="mb-3 flex flex-wrap items-end">
+      <div className="flex grow items-center gap-1 border-b border-zinc-800">
+        {extraTabsFirst &&
+          extraTabs.map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              onClick={() => setView(t.id)}
+              className={`px-3 py-1.5 text-sm font-medium rounded-t -mb-px border ${
+                view === t.id
+                  ? "bg-sky-500/15 text-sky-300 border-sky-500/40 border-b-transparent"
+                  : "text-zinc-400 hover:text-zinc-200 border-transparent"
+              }`}
+              title={t.title}
+            >
+              {t.label}
+            </button>
+          ))}
         <button
           type="button"
-          onClick={() => setView("world")}
+          onClick={() => setView("tree")}
           className={`px-3 py-1.5 text-sm font-medium rounded-t -mb-px border ${
-            view === "world"
+            view === "tree"
               ? "bg-sky-500/15 text-sky-300 border-sky-500/40 border-b-transparent"
               : "text-zinc-400 hover:text-zinc-200 border-transparent"
           }`}
-          title="Sources grouped by world (Global / Character / W1 … W7)"
+          title="Formula hierarchy — pool → source → sub-source"
         >
-          🌍 Per World
+          {treeTabLabel}
         </button>
-      )}
-      {!extraTabsFirst &&
-        extraTabs.map((t) => (
+        {showWorldView && (
           <button
-            key={t.id}
             type="button"
-            onClick={() => setView(t.id)}
+            onClick={() => setView("world")}
             className={`px-3 py-1.5 text-sm font-medium rounded-t -mb-px border ${
-              view === t.id
+              view === "world"
                 ? "bg-sky-500/15 text-sky-300 border-sky-500/40 border-b-transparent"
                 : "text-zinc-400 hover:text-zinc-200 border-transparent"
             }`}
-            title={t.title}
+            title="Sources grouped by world (Global / Character / W1 … W7)"
           >
-            {t.label}
+            🌍 Per World
           </button>
-        ))}
+        )}
+        {!extraTabsFirst &&
+          extraTabs.map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              onClick={() => setView(t.id)}
+              className={`px-3 py-1.5 text-sm font-medium rounded-t -mb-px border ${
+                view === t.id
+                  ? "bg-sky-500/15 text-sky-300 border-sky-500/40 border-b-transparent"
+                  : "text-zinc-400 hover:text-zinc-200 border-transparent"
+              }`}
+              title={t.title}
+            >
+              {t.label}
+            </button>
+          ))}
+      </div>
+      {tree && !activeExtra && treeToolbar && (
+        <div className="w-full pt-2 sm:flex sm:w-auto sm:items-center sm:self-stretch sm:border-b sm:border-zinc-800 sm:pl-3 sm:pt-0">
+          {treeToolbar}
+        </div>
+      )}
     </div>
+  );
+
+  const hint = (
+    <span className="text-zinc-500 italic truncate min-w-0 grow basis-24 text-right" title={baselineHint}>
+      {baselineHint}
+    </span>
   );
 
   if (!tree) {
@@ -942,11 +971,14 @@ export default function DeepView({
       {/* If a snapshot baseline is selected, surface a small banner so the
           user knows which snapshot is currently driving the Δ badges. */}
       {!activeExtra && baseline && (
-        // Single-line banner — left side states the active comparison,
-        // right side gives a hint that truncates with ellipsis on narrow
-        // viewports (full text stays accessible via the title tooltip).
-        <div className="mb-3 px-3 py-2 rounded-md border border-sky-500/30 bg-sky-500/5 flex items-center gap-3 text-xs overflow-hidden">
-          <span className="text-sky-200 whitespace-nowrap flex-shrink-0">
+        // Left side states the active comparison, right side gives a hint
+        // that truncates with ellipsis (full text stays accessible via the
+        // title tooltip), or wraps under it when less than 6rem is left. The
+        // caller's extra controls share a row of their own with the hint, so
+        // they don't jump between lines as the statement's width varies (date
+        // format, player count). On phones the statement wraps too.
+        <div className="mb-3 px-3 py-2 rounded-md border border-sky-500/30 bg-sky-500/5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs overflow-hidden">
+          <span className="text-sky-200 sm:whitespace-nowrap sm:flex-shrink-0">
             Comparing against{" "}
             <span className="font-semibold">{baseline.charName}</span>{" "}
             snapshot from{" "}
@@ -954,12 +986,14 @@ export default function DeepView({
               {new Date(baseline.capturedAt).toLocaleString()}
             </span>
           </span>
-          <span
-            className="text-zinc-500 italic truncate min-w-0 ml-auto"
-            title="Pick another snapshot to switch — toggle off in Snapshot History"
-          >
-            Pick another snapshot to switch — toggle off in Snapshot History
-          </span>
+          {baselineExtra ? (
+            <div className="basis-full flex items-center gap-3 min-w-0">
+              {baselineExtra}
+              {hint}
+            </div>
+          ) : (
+            hint
+          )}
         </div>
       )}
 

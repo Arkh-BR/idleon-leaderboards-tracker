@@ -4,8 +4,7 @@ import { useMemo, useState } from "react";
 import DrCalculator, {
   type CalculatorState,
 } from "@/components/dropRate/DrCalculator";
-import SnapshotSection from "@/components/dropRate/SnapshotSection";
-import AnonExcludedNote from "@/components/AnonExcludedNote";
+import { useDrSnapshots } from "@/components/dropRate/SnapshotSection";
 import BiggestGains from "@/components/dropRate/BiggestGains";
 import type { DeepViewExtraTab } from "@/components/dropRate/DeepView";
 import { flattenTree, type FlatTree } from "@/lib/dropRate/treeFlatten";
@@ -50,8 +49,8 @@ export default function DropRatePageClient() {
   const [calcState, setCalcState] = useState<CalculatorState | null>(null);
   // When the user picks a snapshot to compare against, the detailed tree
   // gains a per-node "Δ vs snap" column. Lives at the page level so the
-  // SnapshotSection (which owns the picker) and DrCalculator (which renders
-  // the tree) can share it.
+  // snapshots (useDrSnapshots, which owns the picker) and DrCalculator (which
+  // renders the tree) can share it.
   const [baseline, setBaseline] = useState<Baseline | null>(null);
   // Compare against the bundled top-player reference instead of a personal
   // snapshot. The (large) module is lazy-loaded the first time the toggle is
@@ -89,9 +88,8 @@ export default function DropRatePageClient() {
     return {
       flatTree: includeArcaneMap ? raw : stripArcaneMap(raw),
       capturedAt: Date.parse(TOP_DR_GENERATED_AT),
-      charName: `Observed Max (${TOP_DR_PLAYERS_SCANNED} top players)${
-        includeArcaneMap ? "" : " · no Arcane Map"
-      }`,
+      // The Include Arcane Map checkbox under it in the banner shows which.
+      charName: `Observed Max (${TOP_DR_PLAYERS_SCANNED} top players)`,
     };
   }, [compareTop, topMod, classKey, includeArcaneMap]);
 
@@ -124,46 +122,51 @@ export default function DropRatePageClient() {
     [yoursFlat, classKey, calcState?.computeError]
   );
 
-  // The compare-vs-top toggle sits next to the Chip Gallery + DR value
-  // (compareSlot); the snapshot history is under the import box (snapshotSlot).
-  const compareBlock = (
-    <TopCompareToggle
-      active={compareTop}
-      loading={topLoading}
-      onToggle={toggleTop}
-      includeArcaneMap={includeArcaneMap}
-      onToggleArcaneMap={setIncludeArcaneMap}
-    />
-  );
-  const snapshotBlock = (
-    <div className="flex flex-col gap-3">
-      <SnapshotSection
-        state={calcState}
-        onSelectBaseline={(b) => {
-          setBaseline(b);
-          if (b) setCompareTop(false);
-        }}
-        selectedBaselineAt={baseline?.capturedAt ?? null}
-        headerExtra={compareBlock}
+  // The compare-vs-top toggle sits at the tab strip's right end (treeToolbar),
+  // its Include Arcane Map option in the comparison banner while it's on
+  // (baselineExtra); History + Save snapshot in a row under the Total Drop
+  // Rate, the history panel under that (totalActions / totalPanel).
+  const compareToggle = <TopCompareToggle active={compareTop} loading={topLoading} onToggle={toggleTop} />;
+  const arcaneToggle = compareTop && (
+    <label
+      className="inline-flex items-center gap-1.5 text-zinc-300 cursor-pointer select-none whitespace-nowrap"
+      title="Include the Arcane Map's Post-Processing multiplier in the Observed Max DR. Uncheck to see the ceiling without the map."
+    >
+      <input
+        type="checkbox"
+        checked={includeArcaneMap}
+        onChange={(e) => setIncludeArcaneMap(e.target.checked)}
+        className="accent-amber-500"
       />
-      <div className="text-center">
-        <AnonExcludedNote>
-          Anonymous players are excluded from the top-player comparison —
-          anonymous profiles have no public save to compute from.
-        </AnonExcludedNote>
-      </div>
-    </div>
+      🗺️ Include Arcane Map
+    </label>
   );
+  const snapshots = useDrSnapshots({
+    state: calcState,
+    onSelectBaseline: (b) => {
+      setBaseline(b);
+      if (b) setCompareTop(false);
+    },
+    selectedBaselineAt: baseline?.capturedAt ?? null,
+  });
 
   return (
     <main className="max-w-3xl mx-auto px-3 pb-12">
       <DrCalculator
         onStateChange={setCalcState}
         compareBaseline={effectiveBaseline}
-        snapshotSlot={snapshotBlock}
+        baselineHint={
+          compareTop
+            ? "Uncheck Compare vs Observed Max to hide it"
+            : "Pick another snapshot in History to switch, or toggle it off there"
+        }
+        totalActions={snapshots.actions}
+        totalPanel={snapshots.panel}
         extraTabs={biggestGainsTabs}
         extraTabsFirst
         defaultView="biggest-gains"
+        treeToolbar={compareToggle}
+        baselineExtra={arcaneToggle}
       />
       <footer className="mt-8 text-[11px] text-zinc-600 text-center border-t border-zinc-900 pt-3">
         Drop rate is computed locally from your save JSON — pool tree
@@ -178,48 +181,26 @@ function TopCompareToggle({
   active,
   loading,
   onToggle,
-  includeArcaneMap,
-  onToggleArcaneMap,
 }: {
   active: boolean;
   loading: boolean;
   onToggle: () => void;
-  /** Whether the Observed-Max baseline includes the Arcane Map multiplier. */
-  includeArcaneMap: boolean;
-  onToggleArcaneMap: (v: boolean) => void;
 }) {
   return (
-    <div className="flex flex-col items-center gap-1.5">
-      <button
-        type="button"
-        onClick={onToggle}
+    <label
+      className={`inline-flex items-center gap-1.5 text-xs font-semibold cursor-pointer select-none ${
+        active ? "text-amber-300" : "text-zinc-300"
+      }`}
+      title="Compare every DR source against the best value observed across the top players"
+    >
+      <input
+        type="checkbox"
+        checked={active}
         disabled={loading}
-        className={`whitespace-nowrap px-2.5 py-1.5 text-xs font-semibold rounded border transition-colors disabled:opacity-50 ${
-          active
-            ? "bg-amber-500/15 text-amber-300 border-amber-500/40"
-            : "bg-zinc-900 text-zinc-300 border-zinc-700 hover:bg-zinc-800"
-        }`}
-        title="Compare every DR source against the best value observed across the top players"
-      >
-        🏅{" "}
-        {loading
-          ? "Loading…"
-          : active
-          ? "Comparing vs Observed Max"
-          : "Compare vs Observed Max"}
-      </button>
-      <label
-        className="flex items-center gap-1.5 text-[11px] text-zinc-400 cursor-pointer select-none"
-        title="Include the Arcane Map's Post-Processing multiplier in the Observed Max DR. Uncheck to see the ceiling without the map."
-      >
-        <input
-          type="checkbox"
-          checked={includeArcaneMap}
-          onChange={(e) => onToggleArcaneMap(e.target.checked)}
-          className="accent-amber-500"
-        />
-        🗺️ Include Arcane Map
-      </label>
-    </div>
+        onChange={onToggle}
+        className="accent-amber-500"
+      />
+      🏅 {loading ? "Loading…" : "Compare vs Observed Max"}
+    </label>
   );
 }
