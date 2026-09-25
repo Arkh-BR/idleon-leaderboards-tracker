@@ -28,28 +28,46 @@ describe("TopNav", () => {
     for (const t of TRACKERS) expect(screen.queryByRole("link", { name: t })).toBeNull();
   });
 
-  it("opens the Trackers list on click, with every tracker", () => {
+  it("opens the Trackers list on click, right after its button, with every tracker", () => {
     render(<TopNav />);
+    expect(trackersButton()).not.toHaveAttribute("aria-controls");
     fireEvent.click(trackersButton());
     expect(trackersButton()).toHaveAttribute("aria-expanded", "true");
+    const list = trackersButton().nextElementSibling!;
+    expect(trackersButton()).toHaveAttribute("aria-controls", list.id);
+    expect(list.querySelectorAll("a")).toHaveLength(5); // tab / reading order: button, then the list
     for (const t of TRACKERS) expect(screen.getByRole("link", { name: t })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Multikill/i })).toHaveAttribute("href", "/multikill");
   });
 
-  it("closes the list on a second click, Escape and an outside click", () => {
+  it("closes the list on a second click, Escape, an outside press and tabbing out", () => {
     render(<TopNav />);
     fireEvent.click(trackersButton());
     fireEvent.click(trackersButton());
     expect(screen.queryByRole("link", { name: /Coin Multi/i })).toBeNull();
 
+    trackersButton().focus(); // Escape returns focus only when it was on the button or list
     fireEvent.click(trackersButton());
     fireEvent.keyDown(document, { key: "Escape" });
     expect(screen.queryByRole("link", { name: /Coin Multi/i })).toBeNull();
     expect(trackersButton()).toHaveFocus();
 
     fireEvent.click(trackersButton());
-    fireEvent.mouseDown(document.body);
+    fireEvent.pointerDown(document.body);
     expect(screen.queryByRole("link", { name: /Coin Multi/i })).toBeNull();
+
+    fireEvent.click(trackersButton());
+    fireEvent.focusOut(screen.getByRole("link", { name: /Multikill/i }), {
+      relatedTarget: screen.getByRole("link", { name: /Talents/i }),
+    });
+    expect(screen.queryByRole("link", { name: /Coin Multi/i })).toBeNull();
+  });
+
+  it("stays open while focus moves inside the list", () => {
+    render(<TopNav />);
+    fireEvent.click(trackersButton());
+    fireEvent.focusOut(trackersButton(), { relatedTarget: screen.getByRole("link", { name: /Drop Rate/i }) });
+    expect(screen.getByRole("link", { name: /Coin Multi/i })).toBeInTheDocument();
   });
 
   it("marks Trackers active on a tracker page, and that tracker inside the list", () => {
