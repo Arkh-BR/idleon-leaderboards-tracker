@@ -13,13 +13,13 @@
 // default tree (they would all resolve to identical numbers anyway).
 // Auto-refreshed by scripts/update-top-talents.ts.
 //
-// Snapshot generated: 2026-09-25T09:50:55.144Z
-// Players scanned: 81
+// Snapshot generated: 2026-09-28T10:54:11.479Z
+// Players scanned: 80
 
 import type { ArkhNode } from "../arkh/node";
 
-export const HYPO_TALENTS_GENERATED_AT = "2026-09-25T09:50:55.144Z";
-export const HYPO_TALENTS_PLAYERS_SCANNED = 81;
+export const HYPO_TALENTS_GENERATED_AT = "2026-09-28T10:54:11.479Z";
+export const HYPO_TALENTS_PLAYERS_SCANNED = 80;
 
 export const HYPO_DEFAULT_TREE: ArkhNode = {
   "name": "Effective Level",
@@ -492,7 +492,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
           "children": [
             {
               "name": "Best Mage Lv",
-              "val": 1886,
+              "val": 1895,
               "children": [
                 {
                   "name": "Char 2 Lv",
@@ -895,7 +895,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
           "children": [
             {
               "name": "Player Lv",
-              "val": 1925,
+              "val": 1938,
               "fmt": "raw",
               "note": "Lv0[0]"
             }
@@ -1439,7 +1439,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
             "children": [
               {
                 "name": "Best Mage Lv",
-                "val": 1886,
+                "val": 1895,
                 "children": [
                   {
                     "name": "Char 0 Lv",
@@ -1842,7 +1842,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
             "children": [
               {
                 "name": "Player Lv",
-                "val": 1925,
+                "val": 1938,
                 "fmt": "raw",
                 "note": "Lv0[0]"
               }
