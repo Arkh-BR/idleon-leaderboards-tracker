@@ -2,12 +2,12 @@
 // ONE combine() pass (the same math a real save uses), gated PER CLASS for
 // the formula's class talents. Use topMultikillFlatForClass(classKey).
 // Large file: lazy-load it, don't import statically.
-// Generated 2026-09-28T10:51:11.671Z · 84 players. Refresh: scripts/update-top-multikill.ts.
+// Generated 2026-10-01T11:12:22.264Z · 81 players. Refresh: scripts/update-top-multikill.ts.
 
 type FlatMap = Readonly<Record<string, number>>;
 
 export const TOP_MULTIKILL_FLAT: FlatMap = {
-    "Multikill": 127958,
+    "Multikill": 128031,
     "Multikill / Active in AFK": 1,
     "Multikill / Active in AFK / Accuracy > 1.5 × Defence": 1,
     "Multikill / Active in AFK / Accuracy > 1.5 × Defence / Accuracy": 227520059831878750,
@@ -80,7 +80,7 @@ export const TOP_MULTIKILL_FLAT: FlatMap = {
     "Multikill / Damage Tier / Target HP / Prayer curses / Curse: Midas Minded (Prayer 7)": 0,
     "Multikill / Damage Tier / Target HP / Static HP": 3000000000,
     "Multikill / Damage Tier / Tier reached at": 6.755399441055744e+24,
-    "Multikill / Multikill per Tier": 2453.3829623661595,
+    "Multikill / Multikill per Tier": 2454.824270429778,
     "Multikill / Multikill per Tier / Balance Of Pain (Prayer 16)": 31,
     "Multikill / Multikill per Tier / Balance Of Pain (Prayer 16) / Base Bonus": 8,
     "Multikill / Multikill per Tier / Balance Of Pain (Prayer 16) / Level Scale": 3.9,
@@ -142,7 +142,7 @@ export const TOP_MULTIKILL_FLAT: FlatMap = {
     "Multikill / Multikill per Tier / Master Of The System (Talent 58) / Effective Level / Bonus Levels": 0,
     "Multikill / Multikill per Tier / Master Of The System (Talent 58) / Speedrun Highscore Maps": 115,
     "Multikill / Multikill per Tier / Master Of The System (Talent 58) / Talent Value": 13.431855500821017,
-    "Multikill / Multikill per Tier / Measurement 9 (Multikill per tier)": 307.54830914814374,
+    "Multikill / Multikill per Tier / Measurement 9 (Multikill per tier)": 308.9896172117626,
     "Multikill / Multikill per Tier / Multikill Per Tier Arcade Bonus (Arcade 8)": 20.09950248756219,
     "Multikill / Multikill per Tier / Multikill Per Tier Arcade Bonus (Arcade 8) / Companion 27 Multi": 2,
     "Multikill / Multikill per Tier / Multikill Per Tier Arcade Bonus (Arcade 8) / Maxed Multi (101)": 2,
@@ -222,8 +222,8 @@ export const TOP_MULTIKILL_PROFILE_OVERRIDES: Readonly<Record<string, FlatMap>> 
   "t46": {
   },
   "t469": {
-    "Multikill": 129734,
-    "Multikill / Multikill per Tier": 2488.215003709829,
+    "Multikill": 129807,
+    "Multikill / Multikill per Tier": 2489.6563117734477,
     "Multikill / Multikill per Tier / Mana Is Life (Talent 469)": 34.83204134366925,
   },
 };
