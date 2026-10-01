@@ -51,6 +51,9 @@ export const CATEGORIES: CategorySpec[] = [
       { apiKey: "totalShinyLevels", label: "Total Shiny Levels" },
       { apiKey: "totalBreedabilityLevels", label: "Total Breedability Levels" },
       { apiKey: "totalPlotRanks", label: "Total Plot Ranks" },
+      // Added by IT 2026-09-30 (Jelly Operator update) — IT order.
+      { apiKey: "totalDayMarketLevels", label: "Total Day Market Levels" },
+      { apiKey: "totalNightMarketLevels", label: "Total Night Market Levels" },
       { apiKey: "totalPrimeKills", label: "Total Prime Kills" },
       { apiKey: "highestPowerPet", label: "Highest Power Pet" },
       { apiKey: "slab", label: "Slab" },
@@ -72,6 +75,11 @@ export const CATEGORIES: CategorySpec[] = [
       { apiKey: "totalRoyalArmoryUpgrades", label: "Total Royal Armory Upgrades" },
       { apiKey: "totalRoyalResourceGrades", label: "Total Royal Resource Grades" },
       { apiKey: "totalRoyalStatueLevels", label: "Total Royal Statue Levels" },
+      // Added by IT 2026-09-30 (Jelly Operator update) — IT order.
+      { apiKey: "bestJellyDps", label: "Best Jelly DPS" },
+      { apiKey: "totalJellyCellLevels", label: "Total Jelly Cell Levels" },
+      { apiKey: "totalJellyUpgrades", label: "Total Jelly Upgrades" },
+      { apiKey: "bestSushiCombo", label: "Best Sushi Combo" },
       { apiKey: "arenaWaves", label: "Arena Waves" },
       { apiKey: "dkOrbKills", label: "DK Orb Kills" },
       { apiKey: "sbPlunderousKills", label: "SB Plunderous Kills" },

@@ -138,6 +138,30 @@ describe("GET /api/leaderboards", () => {
     expect(json.boards.length).toBeGreaterThan(0);
   });
 
+  it("hides boards IT serves as null (no data yet), like IT does", async () => {
+    fetchMock.mockImplementation(async (input: string | URL | Request) => {
+      const url = new URL(typeof input === "string" ? input : (input as any).url || String(input));
+      const lb = url.searchParams.get("leaderboard") || "";
+      if (url.searchParams.get("leaderboardUser")) {
+        return createJsonResponse({ bestJellyDps: { mainChar: null, rank: null, bestJellyDps: null } });
+      }
+      if (lb !== "general") return createJsonResponse({});
+      const view = {
+        totalMoney: [{ mainChar: "Alice", rank: 1, totalMoney: 500 }],
+        bestJellyDps: null,
+      };
+      return createJsonResponse({ general: { public: view, anonymous: view } });
+    });
+
+    const res = await GET(makeReq({ player: "NullBoardPlayer" }));
+    const keys = ((await res.json()) as LeaderboardsResponse).boards.map((b) => b.apiKey);
+
+    expect(keys).toContain("totalMoney");
+    expect(keys).not.toContain("bestJellyDps");
+    // Categories whose response lacks the board key entirely still list it.
+    expect(keys).toContain("totalLevels");
+  });
+
   it("respects cache and returns cached data on subsequent calls", async () => {
     fetchMock.mockResolvedValue(createJsonResponse({ public: {}, anonymous: {} }));
 

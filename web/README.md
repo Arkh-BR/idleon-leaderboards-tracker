@@ -1,7 +1,7 @@
 # Idleon Leaderboards — Web version
 
 Web app counterpart to the `Idleon_Leaderboards.xlsx` spreadsheet. Shows any
-player's position across all 165 [IdleonToolbox](https://idleontoolbox.com)
+player's position across all 171 [IdleonToolbox](https://idleontoolbox.com)
 leaderboards, with:
 
 - Search, category filter, and column sorting
@@ -58,10 +58,10 @@ web/
 │   ├── page.tsx                    # Main UI (tabs + player input)
 │   └── globals.css
 ├── components/
-│   ├── LeaderboardsTable.tsx       # Filterable table of all 165 leaderboards
+│   ├── LeaderboardsTable.tsx       # Filterable table of all 171 leaderboards
 │   └── Dashboard.tsx               # 5 analytical sections
 └── lib/
-    ├── registry.ts                 # The 165 leaderboards (ported from Code.gs, synced with IT's API)
+    ├── registry.ts                 # The 171 leaderboards (ported from Code.gs, synced with IT's API)
     ├── format.ts                   # Idleon notation (M/B/T/Q/QQ/QQQ)
     └── rank.ts                     # Rank colors and tiers
 ```
