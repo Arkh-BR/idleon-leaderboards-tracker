@@ -9,11 +9,12 @@ describe("registry", () => {
     expect(CATEGORIES).toHaveLength(7);
   });
 
-  // Per-category counts as of the 2026-09 Royal Guardian / W7 Taskmaster
-  // update (IT added 8 general, 2 misc and 2 caverns boards → 165 total).
+  // Per-category counts as of the 2026-09-30 Jelly Operator update (IT added
+  // 6 general boards → 171 total; the 2026-09 Royal Guardian update had
+  // added 8 general, 2 misc and 2 caverns).
   const expectedCategories: { key: CategoryKey; expectedBoards: number }[] = [
     { key: "global", expectedBoards: 1 },
-    { key: "general", expectedBoards: 55 },
+    { key: "general", expectedBoards: 61 },
     { key: "tasks", expectedBoards: 11 },
     { key: "skills", expectedBoards: 21 },
     { key: "character", expectedBoards: 14 },
@@ -71,7 +72,7 @@ describe("registry", () => {
       "totalRoyalArmoryUpgrades",
       "totalRoyalResourceGrades",
       "totalRoyalStatueLevels",
-      "arenaWaves",
+      "bestJellyDps",
     ]);
     const misc = CATEGORIES.find((c) => c.key === "misc")!.boards.map((b) => b.apiKey);
     expect(misc.indexOf("totalSpelunkingDepths")).toBe(misc.indexOf("highestSpelunkingPower") + 1);
@@ -79,5 +80,23 @@ describe("registry", () => {
     const caverns = CATEGORIES.find((c) => c.key === "caverns")!.boards.map((b) => b.apiKey);
     expect(caverns.indexOf("totalVillagerExp/hr")).toBe(caverns.indexOf("highestVillagerExp/hr") + 1);
     expect(caverns.at(-1)).toBe("totalFountainUpgrades");
+  });
+
+  it("includes the 2026-09-30 Jelly Operator additions in IT's order", () => {
+    const general = CATEGORIES.find((c) => c.key === "general")!.boards.map((b) => b.apiKey);
+    const p = general.indexOf("totalPlotRanks");
+    expect(general.slice(p + 1, p + 4)).toEqual([
+      "totalDayMarketLevels",
+      "totalNightMarketLevels",
+      "totalPrimeKills",
+    ]);
+    const s = general.indexOf("totalRoyalStatueLevels");
+    expect(general.slice(s + 1, s + 6)).toEqual([
+      "bestJellyDps",
+      "totalJellyCellLevels",
+      "totalJellyUpgrades",
+      "bestSushiCombo",
+      "arenaWaves",
+    ]);
   });
 });

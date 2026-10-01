@@ -126,6 +126,10 @@ export async function GET(req: NextRequest) {
   const boards: BoardResult[] = [];
   for (const { cat, top, user } of settled) {
     for (const board of cat.boards) {
+      // IT serves a board it has no data for yet as `null` (new boards until
+      // its first aggregation fills them) and hides it; do the same. A failed
+      // category fetch leaves `top` empty instead, so those boards still show.
+      if (board.apiKey in top && !Array.isArray(top[board.apiKey])) continue;
       const topList = top[board.apiKey] ?? [];
       const userRaw = user[board.apiKey];
       const userList: TopEntry[] = Array.isArray(userRaw)
