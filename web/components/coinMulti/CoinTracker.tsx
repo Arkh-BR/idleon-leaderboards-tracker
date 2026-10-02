@@ -11,7 +11,7 @@ function Coins({ value }: { value: number }) {
       {coinStacks(value).map((s) => (
         <span key={s.tier} className="inline-flex items-center gap-0.5 align-middle ml-1.5 first:ml-0">
           {/* ponytail: only Coins25 can pass 99 — it takes the site's big-number format */}
-          {s.qty > 99 ? <Num value={s.qty} title={false} /> : <span>{s.qty}</span>}
+          {s.qty > 99 ? <Num value={s.qty} title={false} /> : <span className="inline-block min-w-[2ch] text-right">{s.qty}</span>}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={`/coin-icons/Coins${s.tier}.png`} alt={`Coin tier ${s.tier}`} className="h-5 w-auto [image-rendering:pixelated]" />
         </span>
