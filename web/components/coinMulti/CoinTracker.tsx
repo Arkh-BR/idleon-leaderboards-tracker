@@ -1,17 +1,19 @@
 "use client";
 
 import { useMemo } from "react";
+import Num from "@/components/Num";
 import { coinStacks, coinWallet } from "@/lib/coinMulti/wallet";
 
-/** Coins as the game shows them: icon + 2-digit count per tier. */
+/** Coins as the game shows them: 2-digit count + icon per tier. */
 function Coins({ value }: { value: number }) {
   return (
-    <span className="inline-flex items-center gap-1.5 justify-end" title={value.toExponential(3)}>
+    <span className="whitespace-nowrap" title={value.toExponential(3)}>
       {coinStacks(value).map((s) => (
-        <span key={s.tier} className="inline-flex items-center gap-0.5">
+        <span key={s.tier} className="inline-flex items-center gap-0.5 align-middle ml-1.5 first:ml-0">
+          {/* ponytail: only Coins25 can pass 99 — it takes the site's big-number format */}
+          {s.qty > 99 ? <Num value={s.qty} title={false} /> : <span>{s.qty}</span>}
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={`/coin-icons/Coins${s.tier}.png`} alt={`Coin tier ${s.tier}`} className="h-4 w-auto [image-rendering:pixelated]" />
-          <span className="min-w-[1.1rem] text-left">{s.qty.toLocaleString("en-US")}</span>
+          <img src={`/coin-icons/Coins${s.tier}.png`} alt={`Coin tier ${s.tier}`} className="h-5 w-auto [image-rendering:pixelated]" />
         </span>
       ))}
     </span>
@@ -43,7 +45,7 @@ export default function CoinTracker({ save }: { save: any }) {
         <tbody>
           {rows.map((r) => (
             <tr key={r.key} className="border-t border-zinc-800">
-              <td className="py-1.5 pr-2 text-sky-300 truncate max-w-[10rem]">{r.name}</td>
+              <td className="py-1.5 pr-2 text-sky-300 whitespace-nowrap">{r.name}</td>
               <td className="py-1.5 px-2 text-right text-gold">
                 <Coins value={r.coins} />
               </td>
