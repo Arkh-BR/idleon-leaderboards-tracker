@@ -1,8 +1,22 @@
 "use client";
 
 import { useMemo } from "react";
-import Num from "@/components/Num";
-import { coinWallet } from "@/lib/coinMulti/wallet";
+import { coinStacks, coinWallet } from "@/lib/coinMulti/wallet";
+
+/** Coins as the game shows them: icon + 2-digit count per tier. */
+function Coins({ value }: { value: number }) {
+  return (
+    <span className="inline-flex items-center gap-1.5 justify-end" title={value.toExponential(3)}>
+      {coinStacks(value).map((s) => (
+        <span key={s.tier} className="inline-flex items-center gap-0.5">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={`/coin-icons/Coins${s.tier}.png`} alt={`Coin tier ${s.tier}`} className="h-4 w-auto [image-rendering:pixelated]" />
+          <span className="min-w-[1.1rem] text-left">{s.qty.toLocaleString("en-US")}</span>
+        </span>
+      ))}
+    </span>
+  );
+}
 
 /** Coins per character (and in the storage bank), richest first. */
 export default function CoinTracker({ save }: { save: any }) {
@@ -23,7 +37,7 @@ export default function CoinTracker({ save }: { save: any }) {
           <tr className="text-xs uppercase tracking-wider text-zinc-500 text-left">
             <th className="py-1.5 pr-2 font-medium">Character</th>
             <th className="py-1.5 px-2 font-medium text-right">Coins</th>
-            <th className="py-1.5 pl-2 font-medium w-2/5">Share</th>
+            <th className="py-1.5 pl-2 font-medium w-1/4">Share</th>
           </tr>
         </thead>
         <tbody>
@@ -31,7 +45,7 @@ export default function CoinTracker({ save }: { save: any }) {
             <tr key={r.key} className="border-t border-zinc-800">
               <td className="py-1.5 pr-2 text-sky-300 truncate max-w-[10rem]">{r.name}</td>
               <td className="py-1.5 px-2 text-right text-gold">
-                <Num value={r.coins} />
+                <Coins value={r.coins} />
               </td>
               <td className="py-1.5 pl-2">
                 <div className="flex items-center gap-2">
@@ -48,7 +62,7 @@ export default function CoinTracker({ save }: { save: any }) {
           <tr className="border-t-2 border-zinc-700 font-semibold">
             <td className="py-1.5 pr-2 text-zinc-300">Total</td>
             <td className="py-1.5 px-2 text-right text-gold">
-              <Num value={wallet.total} />
+              <Coins value={wallet.total} />
             </td>
             <td />
           </tr>
