@@ -10,7 +10,14 @@ import type { StatPageConfig, TopModule } from "@/lib/statTracker/config";
 
 type Baseline = { flatTree: FlatTree; capturedAt: number; charName: string };
 
-export default function StatPageClient({ config }: { config: StatPageConfig }) {
+export default function StatPageClient({
+  config,
+  extraTabs,
+}: {
+  config: StatPageConfig;
+  /** Page-specific tabs after Biggest Gains (Coin Multi's Coin Tracker). */
+  extraTabs?: (state: StatCalculatorState | null) => DeepViewExtraTab[];
+}) {
   const [calcState, setCalcState] = useState<StatCalculatorState | null>(null);
   const [baseline, setBaseline] = useState<Baseline | null>(null);
   const [compareTop, setCompareTop] = useState(false);
@@ -58,8 +65,9 @@ export default function StatPageClient({ config }: { config: StatPageConfig }) {
           <StatBiggestGains config={config} yoursFlat={yoursFlat} classKey={classKey} computeError={calcState?.computeError ?? null} />
         ),
       },
+      ...(extraTabs?.(calcState) ?? []),
     ],
-    [yoursFlat, classKey, calcState?.computeError, config]
+    [yoursFlat, classKey, calcState, config, extraTabs]
   );
 
   // At the tab strip's right end, on the Tree tab — the view it changes.
