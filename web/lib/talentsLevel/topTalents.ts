@@ -13,13 +13,13 @@
 // default tree (they would all resolve to identical numbers anyway).
 // Auto-refreshed by scripts/update-top-talents.ts.
 //
-// Snapshot generated: 2026-10-01T11:16:29.328Z
-// Players scanned: 78
+// Snapshot generated: 2026-10-04T10:53:26.919Z
+// Players scanned: 80
 
 import type { ArkhNode } from "../arkh/node";
 
-export const HYPO_TALENTS_GENERATED_AT = "2026-10-01T11:16:29.328Z";
-export const HYPO_TALENTS_PLAYERS_SCANNED = 78;
+export const HYPO_TALENTS_GENERATED_AT = "2026-10-04T10:53:26.919Z";
+export const HYPO_TALENTS_PLAYERS_SCANNED = 80;
 
 export const HYPO_DEFAULT_TREE: ArkhNode = {
   "name": "Effective Level",
@@ -492,7 +492,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
           "children": [
             {
               "name": "Best Mage Lv",
-              "val": 1895,
+              "val": 1903,
               "children": [
                 {
                   "name": "Char 2 Lv",
@@ -895,7 +895,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
           "children": [
             {
               "name": "Player Lv",
-              "val": 1942,
+              "val": 1943,
               "fmt": "raw",
               "note": "Lv0[0]"
             }
@@ -1439,7 +1439,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
             "children": [
               {
                 "name": "Best Mage Lv",
-                "val": 1895,
+                "val": 1903,
                 "children": [
                   {
                     "name": "Char 0 Lv",
@@ -1842,7 +1842,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
             "children": [
               {
                 "name": "Player Lv",
-                "val": 1942,
+                "val": 1943,
                 "fmt": "raw",
                 "note": "Lv0[0]"
               }
@@ -1946,7 +1946,7 @@ export const STAR_TALENT_CEILING: Readonly<Record<number, number>> = {
   "630": 50,
   "631": 100,
   "632": 100,
-  "633": 100,
+  "633": 101,
   "634": 50,
   "635": 100,
   "636": 101,
@@ -1954,13 +1954,13 @@ export const STAR_TALENT_CEILING: Readonly<Record<number, number>> = {
   "638": 101,
   "639": 100,
   "640": 101,
-  "641": 396,
-  "642": 405,
-  "643": 396,
-  "644": 396,
-  "645": 396,
-  "646": 408,
-  "647": 406,
+  "641": 405,
+  "642": 406,
+  "643": 398,
+  "644": 403,
+  "645": 397,
+  "646": 409,
+  "647": 409,
   "649": 200,
   "650": 200,
   "651": 100,

@@ -2,19 +2,19 @@
 // ONE combine() pass (the same math a real save uses), gated PER CLASS for
 // the formula's class talents. Use topMultikillFlatForClass(classKey).
 // Large file: lazy-load it, don't import statically.
-// Generated 2026-10-01T11:12:22.264Z · 81 players. Refresh: scripts/update-top-multikill.ts.
+// Generated 2026-10-04T10:50:27.618Z · 81 players. Refresh: scripts/update-top-multikill.ts.
 
 type FlatMap = Readonly<Record<string, number>>;
 
 export const TOP_MULTIKILL_FLAT: FlatMap = {
-    "Multikill": 128031,
+    "Multikill": 128086,
     "Multikill / Active in AFK": 1,
     "Multikill / Active in AFK / Accuracy > 1.5 × Defence": 1,
     "Multikill / Active in AFK / Accuracy > 1.5 × Defence / Accuracy": 227520059831878750,
     "Multikill / Active in AFK / Accuracy > 1.5 × Defence / Target Defence": 50000,
     "Multikill / Active in AFK / Death Note built (TowerInfo[2] > 0.5)": 1,
     "Multikill / Active in AFK / Max damage ≥ HP × E": 1,
-    "Multikill / Base Multikill": 2835.4707977207972,
+    "Multikill / Base Multikill": 2835.6207977207973,
     "Multikill / Base Multikill / Death Note building ×2": 102,
     "Multikill / Base Multikill / Death Note building ×2 / Building level (TowerInfo[2])": 51,
     "Multikill / Base Multikill / Just Passing By (Achievement 123) × 2": 2,
@@ -24,14 +24,14 @@ export const TOP_MULTIKILL_FLAT: FlatMap = {
     "Multikill / Base Multikill / Monolithialism (Talent 654) / Max Level": 150,
     "Multikill / Base Multikill / Monolithialism (Talent 654) / Onyx Statues Owned": 32,
     "Multikill / Base Multikill / Monolithialism (Talent 654) / Talent Value": 18,
-    "Multikill / Base Multikill / Multikill gear (Etc 29)": 111.95,
-    "Multikill / Base Multikill / Multikill gear (Etc 29) / Hatrack Bonuses": 28.950000000000003,
-    "Multikill / Base Multikill / Multikill gear (Etc 29) / Hatrack Bonuses / Nuget Cake Fedora": 28.950000000000003,
+    "Multikill / Base Multikill / Multikill gear (Etc 29)": 112.1,
+    "Multikill / Base Multikill / Multikill gear (Etc 29) / Hatrack Bonuses": 29.099999999999998,
+    "Multikill / Base Multikill / Multikill gear (Etc 29) / Hatrack Bonuses / Nuget Cake Fedora": 29.099999999999998,
     "Multikill / Base Multikill / Multikill gear (Etc 29) / Hatrack Bonuses / Nuget Cake Fedora / Base": 15,
-    "Multikill / Base Multikill / Multikill gear (Etc 29) / Hatrack Bonuses / Nuget Cake Fedora / Hatrack Bonus Multi": 1.9300000000000002,
+    "Multikill / Base Multikill / Multikill gear (Etc 29) / Hatrack Bonuses / Nuget Cake Fedora / Hatrack Bonus Multi": 1.94,
     "Multikill / Base Multikill / Multikill gear (Etc 29) / Hatrack Bonuses / Nuget Cake Fedora / Hatrack Bonus Multi / Abalone Sashimi (Sushi Tier 37) — Hat Rack Multi (RoG Bonus 36)": 1,
     "Multikill / Base Multikill / Multikill gear (Etc 29) / Hatrack Bonuses / Nuget Cake Fedora / Hatrack Bonus Multi / Hatrack Boutique Bonus (Event Shop 30)": 10,
-    "Multikill / Base Multikill / Multikill gear (Etc 29) / Hatrack Bonuses / Nuget Cake Fedora / Hatrack Bonus Multi / Hats Owned": 67,
+    "Multikill / Base Multikill / Multikill gear (Etc 29) / Hatrack Bonuses / Nuget Cake Fedora / Hatrack Bonus Multi / Hats Owned": 68,
     "Multikill / Base Multikill / Multikill gear (Etc 29) / Hatrack Bonuses / Nuget Cake Fedora / Hatrack Bonus Multi / Wild Boar (Companion 31)": 15,
     "Multikill / Base Multikill / Multikill gear (Etc 29) / Obol Bonuses": 83,
     "Multikill / Base Multikill / Multikill gear (Etc 29) / Obol Bonuses / Personal": 83,
@@ -80,7 +80,7 @@ export const TOP_MULTIKILL_FLAT: FlatMap = {
     "Multikill / Damage Tier / Target HP / Prayer curses / Curse: Midas Minded (Prayer 7)": 0,
     "Multikill / Damage Tier / Target HP / Static HP": 3000000000,
     "Multikill / Damage Tier / Tier reached at": 6.755399441055744e+24,
-    "Multikill / Multikill per Tier": 2454.824270429778,
+    "Multikill / Multikill per Tier": 2455.8967712253207,
     "Multikill / Multikill per Tier / Balance Of Pain (Prayer 16)": 31,
     "Multikill / Multikill per Tier / Balance Of Pain (Prayer 16) / Base Bonus": 8,
     "Multikill / Multikill per Tier / Balance Of Pain (Prayer 16) / Level Scale": 3.9,
@@ -142,7 +142,7 @@ export const TOP_MULTIKILL_FLAT: FlatMap = {
     "Multikill / Multikill per Tier / Master Of The System (Talent 58) / Effective Level / Bonus Levels": 0,
     "Multikill / Multikill per Tier / Master Of The System (Talent 58) / Speedrun Highscore Maps": 115,
     "Multikill / Multikill per Tier / Master Of The System (Talent 58) / Talent Value": 13.431855500821017,
-    "Multikill / Multikill per Tier / Measurement 9 (Multikill per tier)": 308.9896172117626,
+    "Multikill / Multikill per Tier / Measurement 9 (Multikill per tier)": 310.06211800730466,
     "Multikill / Multikill per Tier / Multikill Per Tier Arcade Bonus (Arcade 8)": 20.09950248756219,
     "Multikill / Multikill per Tier / Multikill Per Tier Arcade Bonus (Arcade 8) / Companion 27 Multi": 2,
     "Multikill / Multikill per Tier / Multikill Per Tier Arcade Bonus (Arcade 8) / Maxed Multi (101)": 2,
@@ -222,8 +222,8 @@ export const TOP_MULTIKILL_PROFILE_OVERRIDES: Readonly<Record<string, FlatMap>> 
   "t46": {
   },
   "t469": {
-    "Multikill": 129807,
-    "Multikill / Multikill per Tier": 2489.6563117734477,
+    "Multikill": 129862,
+    "Multikill / Multikill per Tier": 2490.7288125689897,
     "Multikill / Multikill per Tier / Mana Is Life (Talent 469)": 34.83204134366925,
   },
 };
