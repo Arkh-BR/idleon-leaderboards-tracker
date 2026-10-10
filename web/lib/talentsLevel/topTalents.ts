@@ -13,13 +13,13 @@
 // default tree (they would all resolve to identical numbers anyway).
 // Auto-refreshed by scripts/update-top-talents.ts.
 //
-// Snapshot generated: 2026-10-07T11:21:22.952Z
-// Players scanned: 83
+// Snapshot generated: 2026-10-10T10:48:36.182Z
+// Players scanned: 77
 
 import type { ArkhNode } from "../arkh/node";
 
-export const HYPO_TALENTS_GENERATED_AT = "2026-10-07T11:21:22.952Z";
-export const HYPO_TALENTS_PLAYERS_SCANNED = 83;
+export const HYPO_TALENTS_GENERATED_AT = "2026-10-10T10:48:36.182Z";
+export const HYPO_TALENTS_PLAYERS_SCANNED = 77;
 
 export const HYPO_DEFAULT_TREE: ArkhNode = {
   "name": "Effective Level",
@@ -502,7 +502,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                 },
                 {
                   "name": "Char 9 Lv",
-                  "val": 1865,
+                  "val": 1900,
                   "fmt": "raw",
                   "note": "Eepy_boy — elemental sorcerer (cls 34)"
                 }
@@ -1443,13 +1443,13 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                 "children": [
                   {
                     "name": "Char 0 Lv",
-                    "val": 1859,
+                    "val": 1905,
                     "fmt": "raw",
                     "note": "BopeBrancis — elemental sorcerer (cls 34) — ACTIVE char (gets Family Guy buff if it wins the slot)"
                   },
                   {
                     "name": "Char 9 Lv",
-                    "val": 1865,
+                    "val": 1900,
                     "fmt": "raw",
                     "note": "BigES_Two — elemental sorcerer (cls 34)"
                   }
@@ -1946,7 +1946,7 @@ export const STAR_TALENT_CEILING: Readonly<Record<number, number>> = {
   "630": 50,
   "631": 100,
   "632": 100,
-  "633": 101,
+  "633": 100,
   "634": 50,
   "635": 100,
   "636": 101,
@@ -1954,13 +1954,13 @@ export const STAR_TALENT_CEILING: Readonly<Record<number, number>> = {
   "638": 101,
   "639": 100,
   "640": 101,
-  "641": 405,
+  "641": 396,
   "642": 405,
   "643": 408,
   "644": 396,
   "645": 396,
-  "646": 409,
-  "647": 409,
+  "646": 408,
+  "647": 406,
   "649": 200,
   "650": 200,
   "651": 100,

@@ -2,7 +2,7 @@
 // ONE combine() pass (the same math a real save uses), gated PER CLASS for
 // the formula's class talents. Use topMultikillFlatForClass(classKey).
 // Large file: lazy-load it, don't import statically.
-// Generated 2026-10-07T11:16:53.118Z · 84 players. Refresh: scripts/update-top-multikill.ts.
+// Generated 2026-10-10T10:44:41.166Z · 79 players. Refresh: scripts/update-top-multikill.ts.
 
 type FlatMap = Readonly<Record<string, number>>;
 
@@ -10,7 +10,7 @@ export const TOP_MULTIKILL_FLAT: FlatMap = {
     "Multikill": 127355,
     "Multikill / Active in AFK": 1,
     "Multikill / Active in AFK / Accuracy > 1.5 × Defence": 1,
-    "Multikill / Active in AFK / Accuracy > 1.5 × Defence / Accuracy": 227520059831878750,
+    "Multikill / Active in AFK / Accuracy > 1.5 × Defence / Accuracy": 9.569801606463741e+25,
     "Multikill / Active in AFK / Accuracy > 1.5 × Defence / Target Defence": 50000,
     "Multikill / Active in AFK / Death Note built (TowerInfo[2] > 0.5)": 1,
     "Multikill / Active in AFK / Max damage ≥ HP × E": 1,
@@ -71,7 +71,7 @@ export const TOP_MULTIKILL_FLAT: FlatMap = {
     "Multikill / Base Multikill / Wazzzzam! (Achievement 122) × 6": 6,
     "Multikill / Damage Tier": 51,
     "Multikill / Damage Tier / Exponent": 2,
-    "Multikill / Damage Tier / Max Damage": 3.1730639460340186e+25,
+    "Multikill / Damage Tier / Max Damage": 2.0565463046573182e+27,
     "Multikill / Damage Tier / Next tier at": 1.3510798882111488e+25,
     "Multikill / Damage Tier / Target HP": 3000000000,
     "Multikill / Damage Tier / Target HP / Prayer curses": 1,
@@ -219,9 +219,9 @@ export const TOP_MULTIKILL_PROFILE_OVERRIDES: Readonly<Record<string, FlatMap>> 
   "t46": {
   },
   "t469": {
-    "Multikill": 129132,
-    "Multikill / Multikill per Tier": 2476.4055635168143,
-    "Multikill / Multikill per Tier / Mana Is Life (Talent 469)": 34.83204134366925,
+    "Multikill": 129123,
+    "Multikill / Multikill per Tier": 2476.2401888398113,
+    "Multikill / Multikill per Tier / Mana Is Life (Talent 469)": 34.666666666666664,
   },
 };
 
