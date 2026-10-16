@@ -13,12 +13,12 @@
 // default tree (they would all resolve to identical numbers anyway).
 // Auto-refreshed by scripts/update-top-talents.ts.
 //
-// Snapshot generated: 2026-10-13T11:51:48.928Z
+// Snapshot generated: 2026-10-16T09:05:38.910Z
 // Players scanned: 76
 
 import type { ArkhNode } from "../arkh/node";
 
-export const HYPO_TALENTS_GENERATED_AT = "2026-10-13T11:51:48.928Z";
+export const HYPO_TALENTS_GENERATED_AT = "2026-10-16T09:05:38.910Z";
 export const HYPO_TALENTS_PLAYERS_SCANNED = 76;
 
 export const HYPO_DEFAULT_TREE: ArkhNode = {
@@ -1946,7 +1946,7 @@ export const STAR_TALENT_CEILING: Readonly<Record<number, number>> = {
   "630": 50,
   "631": 100,
   "632": 100,
-  "633": 101,
+  "633": 100,
   "634": 50,
   "635": 100,
   "636": 101,
@@ -1954,13 +1954,13 @@ export const STAR_TALENT_CEILING: Readonly<Record<number, number>> = {
   "638": 101,
   "639": 100,
   "640": 101,
-  "641": 405,
+  "641": 396,
   "642": 405,
   "643": 408,
   "644": 405,
-  "645": 396,
-  "646": 409,
-  "647": 409,
+  "645": 404,
+  "646": 408,
+  "647": 406,
   "649": 200,
   "650": 200,
   "651": 100,

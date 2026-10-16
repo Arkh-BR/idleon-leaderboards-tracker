@@ -2,19 +2,19 @@
 // ONE combine() pass (the same math a real save uses), gated PER CLASS for
 // the formula's class talents. Use topMultikillFlatForClass(classKey).
 // Large file: lazy-load it, don't import statically.
-// Generated 2026-10-13T11:48:42.340Z · 75 players. Refresh: scripts/update-top-multikill.ts.
+// Generated 2026-10-16T09:02:43.830Z · 78 players. Refresh: scripts/update-top-multikill.ts.
 
 type FlatMap = Readonly<Record<string, number>>;
 
 export const TOP_MULTIKILL_FLAT: FlatMap = {
-    "Multikill": 127355,
+    "Multikill": 127356,
     "Multikill / Active in AFK": 1,
     "Multikill / Active in AFK / Accuracy > 1.5 × Defence": 1,
     "Multikill / Active in AFK / Accuracy > 1.5 × Defence / Accuracy": 9.569801606463741e+25,
     "Multikill / Active in AFK / Accuracy > 1.5 × Defence / Target Defence": 50000,
     "Multikill / Active in AFK / Death Note built (TowerInfo[2] > 0.5)": 1,
     "Multikill / Active in AFK / Max damage ≥ HP × E": 1,
-    "Multikill / Base Multikill": 2835.6207977207973,
+    "Multikill / Base Multikill": 2835.9415898000057,
     "Multikill / Base Multikill / Death Note building ×2": 102,
     "Multikill / Base Multikill / Death Note building ×2 / Building level (TowerInfo[2])": 51,
     "Multikill / Base Multikill / Just Passing By (Achievement 123) × 2": 2,
@@ -62,8 +62,8 @@ export const TOP_MULTIKILL_FLAT: FlatMap = {
     "Multikill / Base Multikill / Multikill gear (Etc 29) / Obol Bonuses / Personal / ObolSilverKill × 12 / Slot 8": 3,
     "Multikill / Base Multikill / Salt Lick 8 (Multikill)": 30,
     "Multikill / Base Multikill / Salt Lick 8 (Multikill) / Level (SaltLick[8])": 10,
-    "Multikill / Base Multikill / Stamps (Overkill)": 1856.5207977207976,
-    "Multikill / Base Multikill / Stamps (Overkill) / b18": 1856.5207977207976,
+    "Multikill / Base Multikill / Stamps (Overkill)": 1856.8415898000057,
+    "Multikill / Base Multikill / Stamps (Overkill) / b18": 1856.8415898000057,
     "Multikill / Base Multikill / Star signs (Multikill)": 150,
     "Multikill / Base Multikill / Star signs (Multikill) / Cullingo (Star Sign 47)": 15,
     "Multikill / Base Multikill / Star signs (Multikill) / Seraph Multi": 10,
@@ -219,9 +219,9 @@ export const TOP_MULTIKILL_PROFILE_OVERRIDES: Readonly<Record<string, FlatMap>> 
   "t46": {
   },
   "t469": {
-    "Multikill": 129120,
-    "Multikill / Multikill per Tier": 2476.168116767739,
-    "Multikill / Multikill per Tier / Mana Is Life (Talent 469)": 34.5945945945946,
+    "Multikill": 128617,
+    "Multikill / Multikill per Tier": 2466.306346600625,
+    "Multikill / Multikill per Tier / Mana Is Life (Talent 469)": 24.732824427480917,
   },
 };
 
