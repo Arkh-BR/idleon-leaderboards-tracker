@@ -13,17 +13,17 @@
 // default tree (they would all resolve to identical numbers anyway).
 // Auto-refreshed by scripts/update-top-talents.ts.
 //
-// Snapshot generated: 2026-10-16T09:05:38.910Z
-// Players scanned: 76
+// Snapshot generated: 2026-10-19T09:55:50.675Z
+// Players scanned: 74
 
 import type { ArkhNode } from "../arkh/node";
 
-export const HYPO_TALENTS_GENERATED_AT = "2026-10-16T09:05:38.910Z";
-export const HYPO_TALENTS_PLAYERS_SCANNED = 76;
+export const HYPO_TALENTS_GENERATED_AT = "2026-10-19T09:55:50.675Z";
+export const HYPO_TALENTS_PLAYERS_SCANNED = 74;
 
 export const HYPO_DEFAULT_TREE: ArkhNode = {
   "name": "Effective Level",
-  "val": 802,
+  "val": 803,
   "children": [
     {
       "name": "Base Level",
@@ -94,7 +94,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
               "children": [
                 {
                   "name": "Atom 7 Lv",
-                  "val": 70,
+                  "val": 71,
                   "fmt": "raw"
                 }
               ],
@@ -249,7 +249,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
     },
     {
       "name": "Bonus Levels",
-      "val": 268,
+      "val": 269,
       "children": [
         {
           "name": "Symbols of Beyond ~R (Talent 149)",
@@ -324,7 +324,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                       "children": [
                         {
                           "name": "Atom 7 Lv",
-                          "val": 70,
+                          "val": 71,
                           "fmt": "raw"
                         }
                       ],
@@ -492,7 +492,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
           "children": [
             {
               "name": "Best Mage Lv",
-              "val": 1910,
+              "val": 1967,
               "children": [
                 {
                   "name": "Char 2 Lv",
@@ -585,7 +585,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                           "children": [
                             {
                               "name": "Atom 7 Lv",
-                              "val": 70,
+                              "val": 71,
                               "fmt": "raw"
                             }
                           ],
@@ -834,7 +834,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                   "children": [
                     {
                       "name": "Endless Wins Count",
-                      "val": 397,
+                      "val": 401,
                       "fmt": "raw",
                       "note": "OLA[319] — total endless summoning victories"
                     },
@@ -891,11 +891,11 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
         },
         {
           "name": "Super Bit 47 Lv Bonus",
-          "val": 14,
+          "val": 15,
           "children": [
             {
               "name": "Player Lv",
-              "val": 1973,
+              "val": 2052,
               "fmt": "raw",
               "note": "Lv0[0]"
             }
@@ -970,7 +970,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
 export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
   "Elemental_Sorcerer": {
     "name": "Effective Level",
-    "val": 808,
+    "val": 809,
     "children": [
       {
         "name": "Base Level",
@@ -1041,7 +1041,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                 "children": [
                   {
                     "name": "Atom 7 Lv",
-                    "val": 70,
+                    "val": 71,
                     "fmt": "raw"
                   }
                 ],
@@ -1196,7 +1196,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
       },
       {
         "name": "Bonus Levels",
-        "val": 274,
+        "val": 275,
         "children": [
           {
             "name": "Symbols of Beyond ~R (Talent 149)",
@@ -1271,7 +1271,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                         "children": [
                           {
                             "name": "Atom 7 Lv",
-                            "val": 70,
+                            "val": 71,
                             "fmt": "raw"
                           }
                         ],
@@ -1439,7 +1439,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
             "children": [
               {
                 "name": "Best Mage Lv",
-                "val": 1910,
+                "val": 1967,
                 "children": [
                   {
                     "name": "Char 0 Lv",
@@ -1532,7 +1532,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                             "children": [
                               {
                                 "name": "Atom 7 Lv",
-                                "val": 70,
+                                "val": 71,
                                 "fmt": "raw"
                               }
                             ],
@@ -1781,7 +1781,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                     "children": [
                       {
                         "name": "Endless Wins Count",
-                        "val": 397,
+                        "val": 401,
                         "fmt": "raw",
                         "note": "OLA[319] — total endless summoning victories"
                       },
@@ -1838,11 +1838,11 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
           },
           {
             "name": "Super Bit 47 Lv Bonus",
-            "val": 14,
+            "val": 15,
             "children": [
               {
                 "name": "Player Lv",
-                "val": 1973,
+                "val": 2052,
                 "fmt": "raw",
                 "note": "Lv0[0]"
               }
@@ -1955,12 +1955,12 @@ export const STAR_TALENT_CEILING: Readonly<Record<number, number>> = {
   "639": 100,
   "640": 101,
   "641": 396,
-  "642": 405,
+  "642": 406,
   "643": 408,
-  "644": 405,
+  "644": 403,
   "645": 404,
   "646": 408,
-  "647": 406,
+  "647": 409,
   "649": 200,
   "650": 200,
   "651": 100,
