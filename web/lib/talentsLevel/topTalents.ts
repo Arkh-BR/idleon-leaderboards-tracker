@@ -13,31 +13,31 @@
 // default tree (they would all resolve to identical numbers anyway).
 // Auto-refreshed by scripts/update-top-talents.ts.
 //
-// Snapshot generated: 2026-10-19T09:55:50.675Z
+// Snapshot generated: 2026-10-22T09:35:32.734Z
 // Players scanned: 74
 
 import type { ArkhNode } from "../arkh/node";
 
-export const HYPO_TALENTS_GENERATED_AT = "2026-10-19T09:55:50.675Z";
+export const HYPO_TALENTS_GENERATED_AT = "2026-10-22T09:35:32.734Z";
 export const HYPO_TALENTS_PLAYERS_SCANNED = 74;
 
 export const HYPO_DEFAULT_TREE: ArkhNode = {
   "name": "Effective Level",
-  "val": 803,
+  "val": 834,
   "children": [
     {
       "name": "Base Level",
-      "val": 409,
+      "val": 434,
       "children": [
         {
           "name": "Points Invested",
-          "val": 409,
+          "val": 434,
           "fmt": "raw",
-          "note": "actual save — owner: Coantic"
+          "note": "actual save — owner: Scotchz"
         },
         {
           "name": "Max Book Lv Cap",
-          "val": 409,
+          "val": 434,
           "children": [
             {
               "name": "Base Level (N.js literal)",
@@ -94,7 +94,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
               "children": [
                 {
                   "name": "Atom 7 Lv",
-                  "val": 71,
+                  "val": 72,
                   "fmt": "raw"
                 }
               ],
@@ -102,7 +102,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
             },
             {
               "name": "Sovereign Fury Relic",
-              "val": 150,
+              "val": 175,
               "children": [
                 {
                   "name": "Artifact 21 Base",
@@ -111,7 +111,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                 },
                 {
                   "name": "Artifact 21 Tier",
-                  "val": 6,
+                  "val": 7,
                   "fmt": "raw"
                 }
               ],
@@ -155,7 +155,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                     }
                   ],
                   "fmt": "raw",
-                  "note": "4 raw × 3.5× Base = 14.00  →  then × 1.95× Higher Bonus × 3.27× Winner = 89.27"
+                  "note": "4 raw × 3.5× Base = 14.00  →  then × 1.95× Higher Bonus × 2.77× Winner = 75.62"
                 },
                 {
                   "name": "Higher Bonus Multi",
@@ -197,7 +197,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                   "children": [
                     {
                       "name": "Sovereign Winz Lantern",
-                      "val": 150,
+                      "val": 175,
                       "children": [
                         {
                           "name": "Artifact 32 Base",
@@ -206,7 +206,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                         },
                         {
                           "name": "Artifact 32 Tier",
-                          "val": 6,
+                          "val": 7,
                           "fmt": "raw"
                         }
                       ],
@@ -245,29 +245,29 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
         }
       ],
       "fmt": "raw",
-      "note": "min(invested, cap) — owner: Coantic"
+      "note": "min(invested, cap) — owner: Scotchz"
     },
     {
       "name": "Bonus Levels",
-      "val": 269,
+      "val": 275,
       "children": [
         {
           "name": "Symbols of Beyond ~R (Talent 149)",
-          "val": 21,
+          "val": 22,
           "children": [
             {
               "name": "Base Level",
-              "val": 409,
+              "val": 434,
               "children": [
                 {
                   "name": "Points Invested",
-                  "val": 409,
+                  "val": 434,
                   "fmt": "raw",
-                  "note": "actual save — owner: Coantic"
+                  "note": "actual save — owner: Scotchz"
                 },
                 {
                   "name": "Max Book Lv Cap",
-                  "val": 409,
+                  "val": 434,
                   "children": [
                     {
                       "name": "Base Level (N.js literal)",
@@ -324,7 +324,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                       "children": [
                         {
                           "name": "Atom 7 Lv",
-                          "val": 71,
+                          "val": 72,
                           "fmt": "raw"
                         }
                       ],
@@ -332,7 +332,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                     },
                     {
                       "name": "Sovereign Fury Relic",
-                      "val": 150,
+                      "val": 175,
                       "children": [
                         {
                           "name": "Artifact 21 Base",
@@ -341,7 +341,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                         },
                         {
                           "name": "Artifact 21 Tier",
-                          "val": 6,
+                          "val": 7,
                           "fmt": "raw"
                         }
                       ],
@@ -385,7 +385,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                             }
                           ],
                           "fmt": "raw",
-                          "note": "4 raw × 3.5× Base = 14.00  →  then × 1.95× Higher Bonus × 3.27× Winner = 89.27"
+                          "note": "4 raw × 3.5× Base = 14.00  →  then × 1.95× Higher Bonus × 2.77× Winner = 75.62"
                         },
                         {
                           "name": "Higher Bonus Multi",
@@ -427,7 +427,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                           "children": [
                             {
                               "name": "Sovereign Winz Lantern",
-                              "val": 150,
+                              "val": 175,
                               "children": [
                                 {
                                   "name": "Artifact 32 Base",
@@ -436,7 +436,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                                 },
                                 {
                                   "name": "Artifact 32 Tier",
-                                  "val": 6,
+                                  "val": 7,
                                   "fmt": "raw"
                                 }
                               ],
@@ -475,11 +475,11 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                 }
               ],
               "fmt": "raw",
-              "note": "min(invested, cap) — owner: Coantic"
+              "note": "min(invested, cap) — owner: Scotchz"
             }
           ],
           "fmt": "raw",
-          "note": "intervalAdd(1,20,409)"
+          "note": "intervalAdd(1,20,434)"
         },
         {
           "name": "Maroon Warship (Achievement 291)",
@@ -492,41 +492,35 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
           "children": [
             {
               "name": "Best Mage Lv",
-              "val": 1967,
+              "val": 1969,
               "children": [
                 {
-                  "name": "Char 2 Lv",
-                  "val": 1910,
+                  "name": "Char 5 Lv",
+                  "val": 1956,
                   "fmt": "raw",
-                  "note": "lol_wizard — elemental sorcerer (cls 34)"
-                },
-                {
-                  "name": "Char 9 Lv",
-                  "val": 1900,
-                  "fmt": "raw",
-                  "note": "Eepy_boy — elemental sorcerer (cls 34)"
+                  "note": "Skootchz — elemental sorcerer (cls 34)"
                 }
               ],
               "fmt": "raw",
-              "note": "max across account — 2 mage chars"
+              "note": "max across account — 1 mage char"
             },
             {
               "name": "Family Guy Multi (×) — potential buff",
-              "val": 1.3556048834628192,
+              "val": 1.3570354457572502,
               "children": [
                 {
                   "name": "Base Level",
-                  "val": 409,
+                  "val": 434,
                   "children": [
                     {
                       "name": "Points Invested",
-                      "val": 409,
+                      "val": 434,
                       "fmt": "raw",
                       "note": "save=409"
                     },
                     {
                       "name": "Max Book Lv Cap",
-                      "val": 409,
+                      "val": 434,
                       "children": [
                         {
                           "name": "Base Level (N.js literal)",
@@ -585,7 +579,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                           "children": [
                             {
                               "name": "Atom 7 Lv",
-                              "val": 71,
+                              "val": 72,
                               "fmt": "raw"
                             }
                           ],
@@ -594,7 +588,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                         },
                         {
                           "name": "Sovereign Fury Relic",
-                          "val": 150,
+                          "val": 175,
                           "children": [
                             {
                               "name": "Artifact 21 Base",
@@ -603,7 +597,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                             },
                             {
                               "name": "Artifact 21 Tier",
-                              "val": 6,
+                              "val": 7,
                               "fmt": "raw"
                             }
                           ],
@@ -648,7 +642,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                                 }
                               ],
                               "fmt": "raw",
-                              "note": "4 raw × 3.5× Base = 14.00  →  then × 1.95× Higher Bonus × 3.27× Winner = 89.27"
+                              "note": "4 raw × 3.5× Base = 14.00  →  then × 1.95× Higher Bonus × 2.77× Winner = 75.62"
                             },
                             {
                               "name": "Higher Bonus Multi",
@@ -690,7 +684,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                               "children": [
                                 {
                                   "name": "Sovereign Winz Lantern",
-                                  "val": 150,
+                                  "val": 175,
                                   "children": [
                                     {
                                       "name": "Artifact 32 Base",
@@ -699,7 +693,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                                     },
                                     {
                                       "name": "Artifact 32 Tier",
-                                      "val": 6,
+                                      "val": 7,
                                       "fmt": "raw"
                                     }
                                   ],
@@ -743,7 +737,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                 },
                 {
                   "name": "Bonus Levels",
-                  "val": 267,
+                  "val": 272,
                   "fmt": "+",
                   "note": "Σ ATL (unbuffed FB68, excl. super)"
                 },
@@ -780,11 +774,11 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
         },
         {
           "name": "Divinity Minor 2 (Arctis)",
-          "val": 77,
+          "val": 82,
           "children": [
             {
               "name": "Divinity Lv",
-              "val": 854,
+              "val": 915,
               "fmt": "raw"
             },
             {
@@ -795,7 +789,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
             },
             {
               "name": "Coral Kid 3",
-              "val": 267,
+              "val": 284,
               "fmt": "raw",
               "note": "OLA[430]"
             },
@@ -871,7 +865,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
           "name": "Sneaking Completions",
           "val": 5,
           "fmt": "raw",
-          "note": "raw=8"
+          "note": "raw=9"
         },
         {
           "name": "Skull of Major Talent (Grimoire 39)",
@@ -895,7 +889,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
           "children": [
             {
               "name": "Player Lv",
-              "val": 2052,
+              "val": 2055,
               "fmt": "raw",
               "note": "Lv0[0]"
             }
@@ -970,21 +964,21 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
 export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
   "Elemental_Sorcerer": {
     "name": "Effective Level",
-    "val": 809,
+    "val": 840,
     "children": [
       {
         "name": "Base Level",
-        "val": 409,
+        "val": 434,
         "children": [
           {
             "name": "Points Invested",
-            "val": 409,
+            "val": 434,
             "fmt": "raw",
-            "note": "actual save — owner: Coantic"
+            "note": "actual save — owner: Scotchz"
           },
           {
             "name": "Max Book Lv Cap",
-            "val": 409,
+            "val": 434,
             "children": [
               {
                 "name": "Base Level (N.js literal)",
@@ -1041,7 +1035,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                 "children": [
                   {
                     "name": "Atom 7 Lv",
-                    "val": 71,
+                    "val": 72,
                     "fmt": "raw"
                   }
                 ],
@@ -1049,7 +1043,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
               },
               {
                 "name": "Sovereign Fury Relic",
-                "val": 150,
+                "val": 175,
                 "children": [
                   {
                     "name": "Artifact 21 Base",
@@ -1058,7 +1052,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                   },
                   {
                     "name": "Artifact 21 Tier",
-                    "val": 6,
+                    "val": 7,
                     "fmt": "raw"
                   }
                 ],
@@ -1102,7 +1096,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                       }
                     ],
                     "fmt": "raw",
-                    "note": "4 raw × 3.5× Base = 14.00  →  then × 1.95× Higher Bonus × 3.27× Winner = 89.27"
+                    "note": "4 raw × 3.5× Base = 14.00  →  then × 1.95× Higher Bonus × 2.77× Winner = 75.62"
                   },
                   {
                     "name": "Higher Bonus Multi",
@@ -1144,7 +1138,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                     "children": [
                       {
                         "name": "Sovereign Winz Lantern",
-                        "val": 150,
+                        "val": 175,
                         "children": [
                           {
                             "name": "Artifact 32 Base",
@@ -1153,7 +1147,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                           },
                           {
                             "name": "Artifact 32 Tier",
-                            "val": 6,
+                            "val": 7,
                             "fmt": "raw"
                           }
                         ],
@@ -1192,29 +1186,29 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
           }
         ],
         "fmt": "raw",
-        "note": "min(invested, cap) — owner: Coantic"
+        "note": "min(invested, cap) — owner: Scotchz"
       },
       {
         "name": "Bonus Levels",
-        "val": 275,
+        "val": 281,
         "children": [
           {
             "name": "Symbols of Beyond ~R (Talent 149)",
-            "val": 21,
+            "val": 22,
             "children": [
               {
                 "name": "Base Level",
-                "val": 409,
+                "val": 434,
                 "children": [
                   {
                     "name": "Points Invested",
-                    "val": 409,
+                    "val": 434,
                     "fmt": "raw",
-                    "note": "actual save — owner: Coantic"
+                    "note": "actual save — owner: Scotchz"
                   },
                   {
                     "name": "Max Book Lv Cap",
-                    "val": 409,
+                    "val": 434,
                     "children": [
                       {
                         "name": "Base Level (N.js literal)",
@@ -1271,7 +1265,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                         "children": [
                           {
                             "name": "Atom 7 Lv",
-                            "val": 71,
+                            "val": 72,
                             "fmt": "raw"
                           }
                         ],
@@ -1279,7 +1273,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                       },
                       {
                         "name": "Sovereign Fury Relic",
-                        "val": 150,
+                        "val": 175,
                         "children": [
                           {
                             "name": "Artifact 21 Base",
@@ -1288,7 +1282,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                           },
                           {
                             "name": "Artifact 21 Tier",
-                            "val": 6,
+                            "val": 7,
                             "fmt": "raw"
                           }
                         ],
@@ -1332,7 +1326,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                               }
                             ],
                             "fmt": "raw",
-                            "note": "4 raw × 3.5× Base = 14.00  →  then × 1.95× Higher Bonus × 3.27× Winner = 89.27"
+                            "note": "4 raw × 3.5× Base = 14.00  →  then × 1.95× Higher Bonus × 2.77× Winner = 75.62"
                           },
                           {
                             "name": "Higher Bonus Multi",
@@ -1374,7 +1368,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                             "children": [
                               {
                                 "name": "Sovereign Winz Lantern",
-                                "val": 150,
+                                "val": 175,
                                 "children": [
                                   {
                                     "name": "Artifact 32 Base",
@@ -1383,7 +1377,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                                   },
                                   {
                                     "name": "Artifact 32 Tier",
-                                    "val": 6,
+                                    "val": 7,
                                     "fmt": "raw"
                                   }
                                 ],
@@ -1422,11 +1416,11 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                   }
                 ],
                 "fmt": "raw",
-                "note": "min(invested, cap) — owner: Coantic"
+                "note": "min(invested, cap) — owner: Scotchz"
               }
             ],
             "fmt": "raw",
-            "note": "intervalAdd(1,20,409)"
+            "note": "intervalAdd(1,20,434)"
           },
           {
             "name": "Maroon Warship (Achievement 291)",
@@ -1439,41 +1433,35 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
             "children": [
               {
                 "name": "Best Mage Lv",
-                "val": 1967,
+                "val": 1969,
                 "children": [
                   {
-                    "name": "Char 0 Lv",
-                    "val": 1905,
+                    "name": "Char 5 Lv",
+                    "val": 1956,
                     "fmt": "raw",
-                    "note": "BopeBrancis — elemental sorcerer (cls 34) — ACTIVE char (gets Family Guy buff if it wins the slot)"
-                  },
-                  {
-                    "name": "Char 9 Lv",
-                    "val": 1900,
-                    "fmt": "raw",
-                    "note": "BigES_Two — elemental sorcerer (cls 34)"
+                    "note": "Skootchz — elemental sorcerer (cls 34) — ACTIVE char (gets Family Guy buff if it wins the slot)"
                   }
                 ],
                 "fmt": "raw",
-                "note": "max across account — 2 mage chars"
+                "note": "max across account — 1 mage char"
               },
               {
                 "name": "Family Guy Multi (×) — potential buff",
-                "val": 1.3555555555555556,
+                "val": 1.3570354457572502,
                 "children": [
                   {
                     "name": "Base Level",
-                    "val": 409,
+                    "val": 434,
                     "children": [
                       {
                         "name": "Points Invested",
-                        "val": 409,
+                        "val": 434,
                         "fmt": "raw",
-                        "note": "save=409"
+                        "note": "save=434"
                       },
                       {
                         "name": "Max Book Lv Cap",
-                        "val": 409,
+                        "val": 434,
                         "children": [
                           {
                             "name": "Base Level (N.js literal)",
@@ -1532,7 +1520,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                             "children": [
                               {
                                 "name": "Atom 7 Lv",
-                                "val": 71,
+                                "val": 72,
                                 "fmt": "raw"
                               }
                             ],
@@ -1541,7 +1529,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                           },
                           {
                             "name": "Sovereign Fury Relic",
-                            "val": 150,
+                            "val": 175,
                             "children": [
                               {
                                 "name": "Artifact 21 Base",
@@ -1550,7 +1538,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                               },
                               {
                                 "name": "Artifact 21 Tier",
-                                "val": 6,
+                                "val": 7,
                                 "fmt": "raw"
                               }
                             ],
@@ -1637,7 +1625,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                                 "children": [
                                   {
                                     "name": "Sovereign Winz Lantern",
-                                    "val": 150,
+                                    "val": 175,
                                     "children": [
                                       {
                                         "name": "Artifact 32 Base",
@@ -1646,7 +1634,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                                       },
                                       {
                                         "name": "Artifact 32 Tier",
-                                        "val": 6,
+                                        "val": 7,
                                         "fmt": "raw"
                                       }
                                     ],
@@ -1690,7 +1678,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                   },
                   {
                     "name": "Bonus Levels",
-                    "val": 266,
+                    "val": 272,
                     "fmt": "+",
                     "note": "Σ ATL (unbuffed FB68, excl. super)"
                   },
@@ -1727,11 +1715,11 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
           },
           {
             "name": "Divinity Minor 2 (Arctis)",
-            "val": 77,
+            "val": 82,
             "children": [
               {
                 "name": "Divinity Lv",
-                "val": 854,
+                "val": 915,
                 "fmt": "raw"
               },
               {
@@ -1742,7 +1730,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
               },
               {
                 "name": "Coral Kid 3",
-                "val": 267,
+                "val": 284,
                 "fmt": "raw",
                 "note": "OLA[430]"
               },
@@ -1818,7 +1806,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
             "name": "Sneaking Completions",
             "val": 5,
             "fmt": "raw",
-            "note": "raw=8"
+            "note": "raw=9"
           },
           {
             "name": "Skull of Major Talent (Grimoire 39)",
@@ -1842,7 +1830,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
             "children": [
               {
                 "name": "Player Lv",
-                "val": 2052,
+                "val": 2055,
                 "fmt": "raw",
                 "note": "Lv0[0]"
               }
@@ -1957,7 +1945,7 @@ export const STAR_TALENT_CEILING: Readonly<Record<number, number>> = {
   "641": 396,
   "642": 406,
   "643": 408,
-  "644": 403,
+  "644": 405,
   "645": 404,
   "646": 408,
   "647": 409,
