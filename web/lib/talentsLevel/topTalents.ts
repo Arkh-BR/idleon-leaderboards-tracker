@@ -13,31 +13,31 @@
 // default tree (they would all resolve to identical numbers anyway).
 // Auto-refreshed by scripts/update-top-talents.ts.
 //
-// Snapshot generated: 2026-10-22T09:35:32.734Z
-// Players scanned: 74
+// Snapshot generated: 2026-10-25T09:27:37.222Z
+// Players scanned: 77
 
 import type { ArkhNode } from "../arkh/node";
 
-export const HYPO_TALENTS_GENERATED_AT = "2026-10-22T09:35:32.734Z";
-export const HYPO_TALENTS_PLAYERS_SCANNED = 74;
+export const HYPO_TALENTS_GENERATED_AT = "2026-10-25T09:27:37.222Z";
+export const HYPO_TALENTS_PLAYERS_SCANNED = 77;
 
 export const HYPO_DEFAULT_TREE: ArkhNode = {
   "name": "Effective Level",
-  "val": 834,
+  "val": 842,
   "children": [
     {
       "name": "Base Level",
-      "val": 434,
+      "val": 441,
       "children": [
         {
           "name": "Points Invested",
-          "val": 434,
+          "val": 441,
           "fmt": "raw",
-          "note": "actual save — owner: Scotchz"
+          "note": "actual save — owner: Purewud"
         },
         {
           "name": "Max Book Lv Cap",
-          "val": 434,
+          "val": 441,
           "children": [
             {
               "name": "Base Level (N.js literal)",
@@ -119,7 +119,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
             },
             {
               "name": "Summoning Winner Bonus 19",
-              "val": 89.27099999999999,
+              "val": 96.09599999999999,
               "children": [
                 {
                   "name": "Summoning Battles",
@@ -155,7 +155,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                     }
                   ],
                   "fmt": "raw",
-                  "note": "4 raw × 3.5× Base = 14.00  →  then × 1.95× Higher Bonus × 2.77× Winner = 75.62"
+                  "note": "4 raw × 3.5× Base = 14.00  →  then × 1.95× Higher Bonus × 3.02× Winner = 82.45"
                 },
                 {
                   "name": "Higher Bonus Multi",
@@ -193,7 +193,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                 },
                 {
                   "name": "Winner Multi (combined)",
-                  "val": 3.27,
+                  "val": 3.52,
                   "children": [
                     {
                       "name": "Sovereign Winz Lantern",
@@ -245,29 +245,29 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
         }
       ],
       "fmt": "raw",
-      "note": "min(invested, cap) — owner: Scotchz"
+      "note": "min(invested, cap) — owner: Purewud"
     },
     {
       "name": "Bonus Levels",
-      "val": 275,
+      "val": 276,
       "children": [
         {
           "name": "Symbols of Beyond ~R (Talent 149)",
-          "val": 22,
+          "val": 23,
           "children": [
             {
               "name": "Base Level",
-              "val": 434,
+              "val": 441,
               "children": [
                 {
                   "name": "Points Invested",
-                  "val": 434,
+                  "val": 441,
                   "fmt": "raw",
-                  "note": "actual save — owner: Scotchz"
+                  "note": "actual save — owner: Purewud"
                 },
                 {
                   "name": "Max Book Lv Cap",
-                  "val": 434,
+                  "val": 441,
                   "children": [
                     {
                       "name": "Base Level (N.js literal)",
@@ -349,7 +349,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                     },
                     {
                       "name": "Summoning Winner Bonus 19",
-                      "val": 89.27099999999999,
+                      "val": 96.09599999999999,
                       "children": [
                         {
                           "name": "Summoning Battles",
@@ -385,7 +385,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                             }
                           ],
                           "fmt": "raw",
-                          "note": "4 raw × 3.5× Base = 14.00  →  then × 1.95× Higher Bonus × 2.77× Winner = 75.62"
+                          "note": "4 raw × 3.5× Base = 14.00  →  then × 1.95× Higher Bonus × 3.02× Winner = 82.45"
                         },
                         {
                           "name": "Higher Bonus Multi",
@@ -423,7 +423,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                         },
                         {
                           "name": "Winner Multi (combined)",
-                          "val": 3.27,
+                          "val": 3.52,
                           "children": [
                             {
                               "name": "Sovereign Winz Lantern",
@@ -475,11 +475,11 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                 }
               ],
               "fmt": "raw",
-              "note": "min(invested, cap) — owner: Scotchz"
+              "note": "min(invested, cap) — owner: Purewud"
             }
           ],
           "fmt": "raw",
-          "note": "intervalAdd(1,20,434)"
+          "note": "intervalAdd(1,20,441)"
         },
         {
           "name": "Maroon Warship (Achievement 291)",
@@ -492,35 +492,41 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
           "children": [
             {
               "name": "Best Mage Lv",
-              "val": 1969,
+              "val": 1977,
               "children": [
                 {
-                  "name": "Char 5 Lv",
-                  "val": 1956,
+                  "name": "Char 4 Lv",
+                  "val": 1977,
                   "fmt": "raw",
-                  "note": "Skootchz — elemental sorcerer (cls 34)"
+                  "note": "sm4rtb0i — elemental sorcerer (cls 34)"
+                },
+                {
+                  "name": "Char 9 Lv",
+                  "val": 1904,
+                  "fmt": "raw",
+                  "note": "Sastery — elemental sorcerer (cls 34)"
                 }
               ],
               "fmt": "raw",
-              "note": "max across account — 1 mage char"
+              "note": "max across account — 2 mage chars"
             },
             {
               "name": "Family Guy Multi (×) — potential buff",
-              "val": 1.3570354457572502,
+              "val": 1.3573560767590618,
               "children": [
                 {
                   "name": "Base Level",
-                  "val": 434,
+                  "val": 441,
                   "children": [
                     {
                       "name": "Points Invested",
-                      "val": 434,
+                      "val": 441,
                       "fmt": "raw",
-                      "note": "save=409"
+                      "note": "save=441"
                     },
                     {
                       "name": "Max Book Lv Cap",
-                      "val": 434,
+                      "val": 441,
                       "children": [
                         {
                           "name": "Base Level (N.js literal)",
@@ -606,7 +612,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                         },
                         {
                           "name": "Summoning Winner Bonus 19",
-                          "val": 89.27099999999999,
+                          "val": 96.09599999999999,
                           "children": [
                             {
                               "name": "Summoning Battles",
@@ -642,7 +648,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                                 }
                               ],
                               "fmt": "raw",
-                              "note": "4 raw × 3.5× Base = 14.00  →  then × 1.95× Higher Bonus × 2.77× Winner = 75.62"
+                              "note": "4 raw × 3.5× Base = 14.00  →  then × 1.95× Higher Bonus × 3.02× Winner = 82.45"
                             },
                             {
                               "name": "Higher Bonus Multi",
@@ -680,7 +686,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                             },
                             {
                               "name": "Winner Multi (combined)",
-                              "val": 3.27,
+                              "val": 3.52,
                               "children": [
                                 {
                                   "name": "Sovereign Winz Lantern",
@@ -737,7 +743,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                 },
                 {
                   "name": "Bonus Levels",
-                  "val": 272,
+                  "val": 273,
                   "fmt": "+",
                   "note": "Σ ATL (unbuffed FB68, excl. super)"
                 },
@@ -778,7 +784,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
           "children": [
             {
               "name": "Divinity Lv",
-              "val": 915,
+              "val": 949,
               "fmt": "raw"
             },
             {
@@ -789,7 +795,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
             },
             {
               "name": "Coral Kid 3",
-              "val": 284,
+              "val": 289,
               "fmt": "raw",
               "note": "OLA[430]"
             },
@@ -865,7 +871,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
           "name": "Sneaking Completions",
           "val": 5,
           "fmt": "raw",
-          "note": "raw=9"
+          "note": "raw=8"
         },
         {
           "name": "Skull of Major Talent (Grimoire 39)",
@@ -964,21 +970,21 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
 export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
   "Elemental_Sorcerer": {
     "name": "Effective Level",
-    "val": 840,
+    "val": 848,
     "children": [
       {
         "name": "Base Level",
-        "val": 434,
+        "val": 441,
         "children": [
           {
             "name": "Points Invested",
-            "val": 434,
+            "val": 441,
             "fmt": "raw",
-            "note": "actual save — owner: Scotchz"
+            "note": "actual save — owner: Purewud"
           },
           {
             "name": "Max Book Lv Cap",
-            "val": 434,
+            "val": 441,
             "children": [
               {
                 "name": "Base Level (N.js literal)",
@@ -1060,7 +1066,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
               },
               {
                 "name": "Summoning Winner Bonus 19",
-                "val": 89.27099999999999,
+                "val": 96.09599999999999,
                 "children": [
                   {
                     "name": "Summoning Battles",
@@ -1096,7 +1102,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                       }
                     ],
                     "fmt": "raw",
-                    "note": "4 raw × 3.5× Base = 14.00  →  then × 1.95× Higher Bonus × 2.77× Winner = 75.62"
+                    "note": "4 raw × 3.5× Base = 14.00  →  then × 1.95× Higher Bonus × 3.02× Winner = 82.45"
                   },
                   {
                     "name": "Higher Bonus Multi",
@@ -1134,7 +1140,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                   },
                   {
                     "name": "Winner Multi (combined)",
-                    "val": 3.27,
+                    "val": 3.52,
                     "children": [
                       {
                         "name": "Sovereign Winz Lantern",
@@ -1186,29 +1192,29 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
           }
         ],
         "fmt": "raw",
-        "note": "min(invested, cap) — owner: Scotchz"
+        "note": "min(invested, cap) — owner: Purewud"
       },
       {
         "name": "Bonus Levels",
-        "val": 281,
+        "val": 282,
         "children": [
           {
             "name": "Symbols of Beyond ~R (Talent 149)",
-            "val": 22,
+            "val": 23,
             "children": [
               {
                 "name": "Base Level",
-                "val": 434,
+                "val": 441,
                 "children": [
                   {
                     "name": "Points Invested",
-                    "val": 434,
+                    "val": 441,
                     "fmt": "raw",
-                    "note": "actual save — owner: Scotchz"
+                    "note": "actual save — owner: Purewud"
                   },
                   {
                     "name": "Max Book Lv Cap",
-                    "val": 434,
+                    "val": 441,
                     "children": [
                       {
                         "name": "Base Level (N.js literal)",
@@ -1290,7 +1296,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                       },
                       {
                         "name": "Summoning Winner Bonus 19",
-                        "val": 89.27099999999999,
+                        "val": 96.09599999999999,
                         "children": [
                           {
                             "name": "Summoning Battles",
@@ -1326,7 +1332,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                               }
                             ],
                             "fmt": "raw",
-                            "note": "4 raw × 3.5× Base = 14.00  →  then × 1.95× Higher Bonus × 2.77× Winner = 75.62"
+                            "note": "4 raw × 3.5× Base = 14.00  →  then × 1.95× Higher Bonus × 3.02× Winner = 82.45"
                           },
                           {
                             "name": "Higher Bonus Multi",
@@ -1364,7 +1370,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                           },
                           {
                             "name": "Winner Multi (combined)",
-                            "val": 3.27,
+                            "val": 3.52,
                             "children": [
                               {
                                 "name": "Sovereign Winz Lantern",
@@ -1416,11 +1422,11 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                   }
                 ],
                 "fmt": "raw",
-                "note": "min(invested, cap) — owner: Scotchz"
+                "note": "min(invested, cap) — owner: Purewud"
               }
             ],
             "fmt": "raw",
-            "note": "intervalAdd(1,20,434)"
+            "note": "intervalAdd(1,20,441)"
           },
           {
             "name": "Maroon Warship (Achievement 291)",
@@ -1433,7 +1439,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
             "children": [
               {
                 "name": "Best Mage Lv",
-                "val": 1969,
+                "val": 1977,
                 "children": [
                   {
                     "name": "Char 5 Lv",
@@ -1447,21 +1453,21 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
               },
               {
                 "name": "Family Guy Multi (×) — potential buff",
-                "val": 1.3570354457572502,
+                "val": 1.3572649572649573,
                 "children": [
                   {
                     "name": "Base Level",
-                    "val": 434,
+                    "val": 441,
                     "children": [
                       {
                         "name": "Points Invested",
-                        "val": 434,
+                        "val": 441,
                         "fmt": "raw",
                         "note": "save=434"
                       },
                       {
                         "name": "Max Book Lv Cap",
-                        "val": 434,
+                        "val": 441,
                         "children": [
                           {
                             "name": "Base Level (N.js literal)",
@@ -1547,7 +1553,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                           },
                           {
                             "name": "Summoning Winner Bonus 19",
-                            "val": 89.27099999999999,
+                            "val": 96.09599999999999,
                             "children": [
                               {
                                 "name": "Summoning Battles",
@@ -1621,7 +1627,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                               },
                               {
                                 "name": "Winner Multi (combined)",
-                                "val": 3.27,
+                                "val": 3.52,
                                 "children": [
                                   {
                                     "name": "Sovereign Winz Lantern",
@@ -1719,7 +1725,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
             "children": [
               {
                 "name": "Divinity Lv",
-                "val": 915,
+                "val": 949,
                 "fmt": "raw"
               },
               {
@@ -1730,7 +1736,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
               },
               {
                 "name": "Coral Kid 3",
-                "val": 284,
+                "val": 289,
                 "fmt": "raw",
                 "note": "OLA[430]"
               },
@@ -1806,7 +1812,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
             "name": "Sneaking Completions",
             "val": 5,
             "fmt": "raw",
-            "note": "raw=9"
+            "note": "raw=8"
           },
           {
             "name": "Skull of Major Talent (Grimoire 39)",
@@ -1942,10 +1948,10 @@ export const STAR_TALENT_CEILING: Readonly<Record<number, number>> = {
   "638": 101,
   "639": 100,
   "640": 101,
-  "641": 396,
+  "641": 413,
   "642": 406,
   "643": 408,
-  "644": 405,
+  "644": 404,
   "645": 404,
   "646": 408,
   "647": 409,
@@ -1958,5 +1964,5 @@ export const STAR_TALENT_CEILING: Readonly<Record<number, number>> = {
   "655": 100,
   "656": 200,
   "657": 100,
-  "658": 210
+  "658": 235
 };
