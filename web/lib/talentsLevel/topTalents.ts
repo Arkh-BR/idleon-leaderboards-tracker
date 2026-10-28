@@ -13,17 +13,17 @@
 // default tree (they would all resolve to identical numbers anyway).
 // Auto-refreshed by scripts/update-top-talents.ts.
 //
-// Snapshot generated: 2026-10-25T09:27:37.222Z
-// Players scanned: 77
+// Snapshot generated: 2026-10-28T10:44:05.587Z
+// Players scanned: 78
 
 import type { ArkhNode } from "../arkh/node";
 
-export const HYPO_TALENTS_GENERATED_AT = "2026-10-25T09:27:37.222Z";
-export const HYPO_TALENTS_PLAYERS_SCANNED = 77;
+export const HYPO_TALENTS_GENERATED_AT = "2026-10-28T10:44:05.587Z";
+export const HYPO_TALENTS_PLAYERS_SCANNED = 78;
 
 export const HYPO_DEFAULT_TREE: ArkhNode = {
   "name": "Effective Level",
-  "val": 842,
+  "val": 844,
   "children": [
     {
       "name": "Base Level",
@@ -33,7 +33,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
           "name": "Points Invested",
           "val": 441,
           "fmt": "raw",
-          "note": "actual save — owner: Purewud"
+          "note": "actual save — owner: MeatyTrap"
         },
         {
           "name": "Max Book Lv Cap",
@@ -245,14 +245,14 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
         }
       ],
       "fmt": "raw",
-      "note": "min(invested, cap) — owner: Purewud"
+      "note": "min(invested, cap) — owner: MeatyTrap"
     },
     {
       "name": "Bonus Levels",
-      "val": 276,
+      "val": 278,
       "children": [
         {
-          "name": "Symbols of Beyond ~R (Talent 149)",
+          "name": "Symbols Of Beyond ~g (Talent 374)",
           "val": 23,
           "children": [
             {
@@ -263,7 +263,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                   "name": "Points Invested",
                   "val": 441,
                   "fmt": "raw",
-                  "note": "actual save — owner: Purewud"
+                  "note": "actual save — owner: MeatyTrap"
                 },
                 {
                   "name": "Max Book Lv Cap",
@@ -475,7 +475,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                 }
               ],
               "fmt": "raw",
-              "note": "min(invested, cap) — owner: Purewud"
+              "note": "min(invested, cap) — owner: MeatyTrap"
             }
           ],
           "fmt": "raw",
@@ -492,19 +492,19 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
           "children": [
             {
               "name": "Best Mage Lv",
-              "val": 1977,
+              "val": 1969,
               "children": [
                 {
                   "name": "Char 4 Lv",
-                  "val": 1977,
+                  "val": 1965,
                   "fmt": "raw",
-                  "note": "sm4rtb0i — elemental sorcerer (cls 34)"
+                  "note": "MeatyChop — elemental sorcerer (cls 34)"
                 },
                 {
-                  "name": "Char 9 Lv",
-                  "val": 1904,
+                  "name": "Char 10 Lv",
+                  "val": 1969,
                   "fmt": "raw",
-                  "note": "Sastery — elemental sorcerer (cls 34)"
+                  "note": "MeatyEleven — elemental sorcerer (cls 34)"
                 }
               ],
               "fmt": "raw",
@@ -512,7 +512,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
             },
             {
               "name": "Family Guy Multi (×) — potential buff",
-              "val": 1.3573560767590618,
+              "val": 1.357492029755579,
               "children": [
                 {
                   "name": "Base Level",
@@ -743,7 +743,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                 },
                 {
                   "name": "Bonus Levels",
-                  "val": 273,
+                  "val": 275,
                   "fmt": "+",
                   "note": "Σ ATL (unbuffed FB68, excl. super)"
                 },
@@ -780,11 +780,11 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
         },
         {
           "name": "Divinity Minor 2 (Arctis)",
-          "val": 82,
+          "val": 84,
           "children": [
             {
               "name": "Divinity Lv",
-              "val": 949,
+              "val": 994,
               "fmt": "raw"
             },
             {
@@ -795,7 +795,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
             },
             {
               "name": "Coral Kid 3",
-              "val": 289,
+              "val": 293,
               "fmt": "raw",
               "note": "OLA[430]"
             },
@@ -820,7 +820,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
             },
             {
               "name": "Summoning WinBonus 24",
-              "val": 50,
+              "val": 51,
               "children": [
                 {
                   "name": "Normal Wins Bonus",
@@ -830,11 +830,11 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                 },
                 {
                   "name": "Endless Wins Bonus",
-                  "val": 50,
+                  "val": 51,
                   "children": [
                     {
                       "name": "Endless Wins Count",
-                      "val": 401,
+                      "val": 407,
                       "fmt": "raw",
                       "note": "OLA[319] — total endless summoning victories"
                     },
@@ -970,7 +970,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
 export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
   "Elemental_Sorcerer": {
     "name": "Effective Level",
-    "val": 848,
+    "val": 850,
     "children": [
       {
         "name": "Base Level",
@@ -980,7 +980,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
             "name": "Points Invested",
             "val": 441,
             "fmt": "raw",
-            "note": "actual save — owner: Purewud"
+            "note": "actual save — owner: MeatyTrap"
           },
           {
             "name": "Max Book Lv Cap",
@@ -1192,14 +1192,14 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
           }
         ],
         "fmt": "raw",
-        "note": "min(invested, cap) — owner: Purewud"
+        "note": "min(invested, cap) — owner: MeatyTrap"
       },
       {
         "name": "Bonus Levels",
-        "val": 282,
+        "val": 284,
         "children": [
           {
-            "name": "Symbols of Beyond ~R (Talent 149)",
+            "name": "Symbols Of Beyond ~g (Talent 374)",
             "val": 23,
             "children": [
               {
@@ -1210,7 +1210,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                     "name": "Points Invested",
                     "val": 441,
                     "fmt": "raw",
-                    "note": "actual save — owner: Purewud"
+                    "note": "actual save — owner: MeatyTrap"
                   },
                   {
                     "name": "Max Book Lv Cap",
@@ -1422,7 +1422,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                   }
                 ],
                 "fmt": "raw",
-                "note": "min(invested, cap) — owner: Purewud"
+                "note": "min(invested, cap) — owner: MeatyTrap"
               }
             ],
             "fmt": "raw",
@@ -1439,7 +1439,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
             "children": [
               {
                 "name": "Best Mage Lv",
-                "val": 1977,
+                "val": 1969,
                 "children": [
                   {
                     "name": "Char 5 Lv",
@@ -1453,7 +1453,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
               },
               {
                 "name": "Family Guy Multi (×) — potential buff",
-                "val": 1.3572649572649573,
+                "val": 1.357401490947817,
                 "children": [
                   {
                     "name": "Base Level",
@@ -1684,7 +1684,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                   },
                   {
                     "name": "Bonus Levels",
-                    "val": 272,
+                    "val": 273,
                     "fmt": "+",
                     "note": "Σ ATL (unbuffed FB68, excl. super)"
                   },
@@ -1721,11 +1721,11 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
           },
           {
             "name": "Divinity Minor 2 (Arctis)",
-            "val": 82,
+            "val": 84,
             "children": [
               {
                 "name": "Divinity Lv",
-                "val": 949,
+                "val": 994,
                 "fmt": "raw"
               },
               {
@@ -1736,7 +1736,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
               },
               {
                 "name": "Coral Kid 3",
-                "val": 289,
+                "val": 293,
                 "fmt": "raw",
                 "note": "OLA[430]"
               },
@@ -1761,7 +1761,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
               },
               {
                 "name": "Summoning WinBonus 24",
-                "val": 50,
+                "val": 51,
                 "children": [
                   {
                     "name": "Normal Wins Bonus",
@@ -1771,11 +1771,11 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                   },
                   {
                     "name": "Endless Wins Bonus",
-                    "val": 50,
+                    "val": 51,
                     "children": [
                       {
                         "name": "Endless Wins Count",
-                        "val": 401,
+                        "val": 407,
                         "fmt": "raw",
                         "note": "OLA[319] — total endless summoning victories"
                       },
@@ -1940,7 +1940,7 @@ export const STAR_TALENT_CEILING: Readonly<Record<number, number>> = {
   "630": 50,
   "631": 100,
   "632": 100,
-  "633": 100,
+  "633": 101,
   "634": 50,
   "635": 100,
   "636": 101,
@@ -1950,11 +1950,11 @@ export const STAR_TALENT_CEILING: Readonly<Record<number, number>> = {
   "640": 101,
   "641": 413,
   "642": 406,
-  "643": 408,
-  "644": 404,
-  "645": 404,
-  "646": 408,
-  "647": 409,
+  "643": 426,
+  "644": 405,
+  "645": 409,
+  "646": 424,
+  "647": 423,
   "649": 200,
   "650": 200,
   "651": 100,
