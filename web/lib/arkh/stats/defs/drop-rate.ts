@@ -89,6 +89,9 @@ const dropRateDesc: Descriptor = {
       { system: "arcaneMap" },
       // Royal Statue #1 = DROP_RATE (2026-08): ×(1 + StatueBon(1)/100).
       { system: "royalStatue", id: 1 },
+      // Luminous Menagerie Boost 24 "}x_Drop_Rate" (2026-10-16):
+      // ×(1 + MenagerieStuff("BoostQTY",24)/100), between StatueBon and card 101.
+      { system: "menagerieBoost", id: 24 },
       { system: "card", id: 101 },
       // Royal Guardian family bonus (class 16, FamBonusQTYs["32"]) — a % DR
       // MULTIPLIER curve decay(10, 800) on the best RG level: ×(1 + FB/100).

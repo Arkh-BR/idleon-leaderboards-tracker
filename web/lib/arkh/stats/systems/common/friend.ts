@@ -35,12 +35,15 @@ function compVal(id: number, saveData: SaveData): number {
 }
 
 // @njs FriendBonusSlots
-// round(min(20, 2 + Companions(44) + 2·Companions(30) + EventShop 22)) — with
-// Pet1 (30) at stage 2 its value is 1.5, i.e. +3 slots (its LV2 text).
+// round(min(20, 2 + Companions(44) + 2·Companions(30) + EventShop 22 +
+// EventShop 67)) — with Pet1 (30) at stage 2 its value is 1.5, i.e. +3 slots
+// (its LV2 text). Event shop 67 is a Halloween 2026-10 purchase.
 function computeFriendBonusSlots(saveData: SaveData): number {
-  const evShop22 = eventShopOwned(22, saveData.cachedEventShopStr || "");
+  const evStr = saveData.cachedEventShopStr || "";
+  const evShop22 = eventShopOwned(22, evStr);
+  const evShop67 = eventShopOwned(67, evStr);
   return Math.round(
-    Math.min(20, 2 + compVal(44, saveData) + 2 * compVal(30, saveData) + evShop22)
+    Math.min(20, 2 + compVal(44, saveData) + 2 * compVal(30, saveData) + evShop22 + evShop67)
   );
 }
 

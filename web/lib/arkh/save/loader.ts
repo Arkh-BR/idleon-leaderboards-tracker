@@ -102,6 +102,7 @@ export function loadSaveData(raw: RawEnvelope): void {
   assignState({ towerData: (parseSaveKey(save, "Tower") as any[]) || [] });
   const spelunkRaw = (parseSaveKey(save, "Spelunk") as any[]) || [];
   assignState({ spelunkData: spelunkRaw });
+  assignState({ menagerieData: (parseSaveKey(save, "Menagerie") as any[]) || [] });
   assignState({ arcadeUpgData: (parseSaveKey(save, "ArcadeUpg") as any[]) || [] });
   assignState({ cards0Data: parseSaveKey(save, "Cards0") || {} });
   assignState({ cards1Data: (parseSaveKey(save, "Cards1") as any[]) || [] });

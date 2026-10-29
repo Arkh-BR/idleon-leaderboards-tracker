@@ -59,6 +59,7 @@ export type SystemKey =
   | "Sushi"
   | "Minehead"
   | "Button"
+  | "Menagerie"
   | "Arcane Map"
   | "Glimbo"
   | "Workshop"
@@ -115,6 +116,7 @@ export const SYSTEM_EMOJI: Record<SystemKey, string> = {
   Sushi: "🍣",
   Minehead: "⛏️",
   Button: "🔘",
+  Menagerie: "🪼",
   "Arcane Map": "🗺️",
   Glimbo: "🎲",
   Workshop: "🛠️",
@@ -260,6 +262,7 @@ export const SYSTEM_WORLD: Record<SystemKey, WorldKey> = {
   Minehead: "World 7",
   Glimbo: "World 7",
   Button: "World 7",
+  Menagerie: "World 7",
 
   Other: "Other",
 };
@@ -303,6 +306,7 @@ export const SYSTEM_ORDER: SystemKey[] = [
   "Sushi",
   "Minehead",
   "Button",
+  "Menagerie",
   "Arcane Map",
   "Glimbo",
   "Workshop",
@@ -381,6 +385,7 @@ const RULES: Rule[] = [
   { match: /\(RoG Bonus\s|\(Sushi\s/, system: "Sushi" },
   { match: /\(Minehead\s|^Minehead\b/i, system: "Minehead" },
   { match: /\(Button\s/, system: "Button" },
+  { match: /^Menagerie\b/, system: "Menagerie" },
   { match: /^Arcane Map|^Arcane\b/i, system: "Arcane Map" },
   { match: /^Glimbo\b/i, system: "Glimbo" },
   { match: /^Workshop\b/i, system: "Workshop" },

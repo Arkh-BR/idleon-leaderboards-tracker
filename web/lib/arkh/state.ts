@@ -43,6 +43,8 @@ export type SaveData = {
   olaData: any[];
   towerData: any[];
   spelunkData: any[];
+  // W7 Luminous Menagerie (2026-10-16): save key "Menagerie", 8 lists.
+  menagerieData: any[];
   arcadeUpgData: any[];
   cards0Data: any;
   cards1Data: any[];
@@ -173,6 +175,7 @@ export const saveData: SaveData = {
   olaData: [],
   towerData: [],
   spelunkData: [],
+  menagerieData: [],
   arcadeUpgData: [],
   cards0Data: {},
   cards1Data: [],

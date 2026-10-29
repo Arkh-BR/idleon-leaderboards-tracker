@@ -18,6 +18,13 @@ export function comp27Multi(saveData: SaveData): number {
   return owned && companionBonus(27, saveData.companionLv2Ids) === 1 ? 2 : 1;
 }
 
+// N.js _customBlock_ArcadeBonus: level 101 = Super (×2), level 102 = Omega
+// (2026-10-16, ×6 = the ×3 Omega stacked on the ×2 Super). The raw formula
+// still takes the stored level (101 / 102).
+export function arcadeMaxedMulti(lv: number): number {
+  return lv === 102 ? 6 : lv === 101 ? 2 : 1;
+}
+
 export function arcadeBonus(idx: number, saveData: SaveData): TreeResult {
   const params = arcadeShopParams(idx);
   if (!params) return treeResult(0);
@@ -30,12 +37,12 @@ export function arcadeBonus(idx: number, saveData: SaveData): TreeResult {
         ? ((base + denom) / denom + 0.5 * (lv - 1)) / (base / denom) * lv * base
         : base * lv
       : (base * lv) / (lv + denom);
-  const maxedM = lv === 101 ? 2 : 1;
+  const maxedM = arcadeMaxedMulti(lv);
   const comp27M = comp27Multi(saveData);
   const val = maxedM * comp27M * raw;
   return treeResult(val, [
     node("Raw (lv=" + lv + ")", raw, null, { fmt: "raw" }),
-    node("Maxed Multi (101)", maxedM, null, { fmt: "x" }),
+    node("Maxed Multi (Super 101 ×2 / Omega 102 ×6)", maxedM, null, { fmt: "x" }),
     node("Companion 27 Multi", comp27M, null, { fmt: "x" }),
   ]);
 }
@@ -50,7 +57,7 @@ export const arcade = {
     if (lv <= 0) return node(label("Arcade", id), 0, null, { note: "arcade " + id });
     const tr = arcadeBonus(id, saveData);
     const val = tr.val;
-    const maxedM = lv === 101 ? 2 : 1;
+    const maxedM = arcadeMaxedMulti(lv);
     const comp27M = comp27Multi(saveData);
     return node(
       label("Arcade", id),
@@ -60,7 +67,7 @@ export const arcade = {
         node("Raw Value", val / maxedM / comp27M, null, { fmt: "raw" }),
         node("Maxed Bonus", maxedM, null, {
           fmt: "x",
-          note: lv === 101 ? "Level 101" : "Not maxed",
+          note: lv === 102 ? "Omega (level 102)" : lv === 101 ? "Super (level 101)" : "Not maxed",
         }),
         companionChild(27, comp27M, saveData, {
           fmt: "x",

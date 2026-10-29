@@ -224,11 +224,16 @@ function podiumsOwnedLv4(saveData: SaveData): number {
   const comp28Lv2 = saveData.companionLv2Ids?.has(28) ? 1 : 0;
   const evStr = saveData.cachedEventShopStr || "";
   const evShop29 = eventShopOwned(29, evStr);
+  // 2026-10-16: artifact 33 at the new tier 7 (Verisimilitude) adds one more
+  // podium, and so does owning the `ban_m` bundle (Have_ban_m).
+  const banM = Number((saveData.bundlesData as any)?.ban_m) === 1 ? 1 : 0;
   return Math.round(
     Math.min(1, comp28) +
       Math.min(1, comp28Lv2) +
       evShop29 +
-      Math.min(1, Math.floor(sail33 / 6))
+      Math.min(1, Math.floor(sail33 / 6)) +
+      Math.min(1, Math.floor(sail33 / 7)) +
+      banM
   );
 }
 

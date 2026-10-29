@@ -5,16 +5,14 @@ import { mainframeBonus } from "../w4/lab";
 import { vaultUpgBonus } from "../common/vault";
 import { emporiumBonus } from "../../../game-helpers";
 import { grimoireUpgBonus22 } from "../mc/grimoire";
-import { exoticParams, ninjaInfo } from "../../data/w5/farming";
+import { exoticBonusQTY, exoticDoubled, ninjaInfo } from "../../data/w5/farming";
 import { talent } from "../common/talent";
 import type { SaveData } from "../../../state";
 
 type Ctx = { saveData: SaveData; charIdx: number };
 
 export function exoticBonusQTY40(saveData: SaveData): number {
-  const lv = Number((saveData.farmUpgData as any)?.[60]) || 0;
-  if (lv <= 0) return 0;
-  return (20 * lv) / (1000 + lv);
+  return exoticBonusQTY(40, saveData);
 }
 
 export const farm = {
@@ -135,18 +133,23 @@ export const farm = {
       const lv = Number((saveData.farmUpgData as any)?.[79]) || 0;
       if (lv <= 0)
         return node("Pommelion Seed (Exotic 59)", 0, null, { note: "farm exotic59" });
-      const val = (25 * lv) / (1000 + lv);
+      const doubled = exoticDoubled(59, saveData);
+      const val = exoticBonusQTY(59, saveData);
       return node(
         "Pommelion Seed (Exotic 59)",
         val,
         [
           node("Level", lv, null, { fmt: "raw" }),
-          node("Formula Result", val, null, {
+          node("Formula Result", (25 * lv) / (1000 + lv), null, {
             fmt: "raw",
             // Canonical "type(x1,x2,lv)" shape — matches the format the
             // catalog generator's detectFormulaSpec() parses to lift the
             // formula into the max-values tool's runtime evaluator.
             note: "decay(25," + 1000 + "," + lv + ")",
+          }),
+          node("Menagerie Exotic Doubler", doubled ? 2 : 1, null, {
+            fmt: "x",
+            note: doubled ? "doubler placed (Spelunk[50])" : "no doubler",
           }),
         ],
         { fmt: "+", note: "farm exotic59" }
@@ -158,11 +161,7 @@ export const farm = {
 };
 
 export function computeExoticBonus(idx: number, saveData: SaveData): number {
-  const ex = exoticParams(idx);
-  if (!ex || ex.base === 0) return 0;
-  const lv = Number((saveData.farmUpgData as any)?.[ex.farmSlot]) || 0;
-  if (lv <= 0) return 0;
-  return (ex.base * lv) / (ex.denom + lv);
+  return exoticBonusQTY(idx, saveData);
 }
 
 // @njs CropSCbonMulti
@@ -171,8 +170,7 @@ export function computeExoticBonus(idx: number, saveData: SaveData): number {
 export function cropSCbonMulti(saveData: SaveData): number {
   const mf17 = mainframeBonus(17, saveData);
   const grim22 = grimoireUpgBonus22(saveData);
-  const exotic40Lv = Number((saveData.farmUpgData as any)?.[60]) || 0;
-  const exotic40 = exotic40Lv > 0 ? (20 * exotic40Lv) / (1000 + exotic40Lv) : 0;
+  const exotic40 = exoticBonusQTY(40, saveData);
   const vault79 = vaultUpgBonus(79, saveData);
   return (1 + mf17 / 100) * (1 + (grim22 + exotic40 + vault79) / 100);
 }

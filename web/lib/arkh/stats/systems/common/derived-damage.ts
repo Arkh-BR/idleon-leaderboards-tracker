@@ -109,6 +109,7 @@ import { computeCosmoBonus, computeMonumentROGbonus } from "../w5/hole";
 import { computeArtifactBonus } from "../w5/sailing";
 import { computeAllShimmerBonuses } from "../w3/equinox";
 import { computePaletteBonus } from "../w7/spelunking";
+import { menagerieObolMiscMulti } from "../../data/w7/menagerie";
 import { computeMeritocBonusz } from "../w7/meritoc";
 import { mineheadBonusQTY } from "../w7/minehead";
 import { rogBonusQTY, computeUniqueSushi } from "../w7/sushi";
@@ -341,6 +342,8 @@ export function computeMaxDamage(charIdx: number, ctx: Ctx): number {
         }
       }
     } catch {}
+    // 2026-10-16: the obol sum of non-STR/AGI/WIS/LUK stats × ObolMISCmulti.
+    _obolWP *= menagerieObolMiscMulti(s);
     // Flat adds: 5 + BoxRewards["12a"] + CardLv(w5b2) + CardBonus(18) + Sigil(17)
     const _box12a = safe(computeBoxReward, ci, "12a");
     const _cardLvW5b2 = safe(computeCardLv, "w5b2", s);
@@ -1162,7 +1165,7 @@ export function computeAccuracy(charIdx: number, ctx: Ctx): number {
   } catch {}
   let obolAcc = 0;
   try {
-    obolAcc = computeObolBaseStat(ci, "Accuracy").val || 0;
+    obolAcc = (computeObolBaseStat(ci, "Accuracy").val || 0) * menagerieObolMiscMulti(s);
   } catch {}
   const vialBaseACC = safe(computeVialByKey, "baseACC", s);
   const boxAcc = safe(computeBoxReward, ci, "acc");
