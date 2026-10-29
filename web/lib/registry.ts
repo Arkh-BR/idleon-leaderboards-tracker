@@ -5,7 +5,8 @@ export type CategoryKey =
   | "skills"
   | "character"
   | "misc"
-  | "caverns";
+  | "caverns"
+  | "masterclass";
 
 export type BoardSpec = { apiKey: string; label: string };
 
@@ -72,9 +73,6 @@ export const CATEGORIES: CategorySpec[] = [
       { apiKey: "cookingMasteryLevel", label: "Cooking Mastery Level" },
       { apiKey: "totalAdviceFishUpgrades", label: "Total Advice Fish Upgrades" },
       { apiKey: "totalEquinoxUpgrades", label: "Total Equinox Upgrades" },
-      { apiKey: "totalRoyalArmoryUpgrades", label: "Total Royal Armory Upgrades" },
-      { apiKey: "totalRoyalResourceGrades", label: "Total Royal Resource Grades" },
-      { apiKey: "totalRoyalStatueLevels", label: "Total Royal Statue Levels" },
       // Added by IT 2026-09-30 (Jelly Operator update) — IT order.
       { apiKey: "bestJellyDps", label: "Best Jelly DPS" },
       { apiKey: "totalJellyCellLevels", label: "Total Jelly Cell Levels" },
@@ -89,6 +87,10 @@ export const CATEGORIES: CategorySpec[] = [
       { apiKey: "dungeonCredits", label: "Dungeon Credits" },
       { apiKey: "dungeonFlurbos", label: "Dungeon Flurbos" },
       { apiKey: "endlessSummoningWins", label: "Endless Summoning Wins" },
+      // Added by IT 2026-10 (Luminous Menagerie update) — IT order.
+      { apiKey: "bestCrucibleRound", label: "Best Crucible Round" },
+      { apiKey: "menagerieRank", label: "Menagerie Rank" },
+      { apiKey: "totalMenagerieBoostLevels", label: "Total Menagerie Boost Levels" },
     ],
   },
   {
@@ -146,9 +148,6 @@ export const CATEGORIES: CategorySpec[] = [
       { apiKey: "level", label: "Level" },
       { apiKey: "dropRate", label: "Drop Rate" },
       { apiKey: "cashMulti", label: "Cash Multi" },
-      { apiKey: "totalGrimoireUpgrades", label: "Total Grimoire Upgrades" },
-      { apiKey: "totalCompassUpgrades", label: "Total Compass Upgrades" },
-      { apiKey: "totalArcanistUpgrades", label: "Total Arcanist Upgrades" },
       { apiKey: "defence", label: "Defence" },
       { apiKey: "accuracy", label: "Accuracy" },
       { apiKey: "hp", label: "HP" },
@@ -181,9 +180,6 @@ export const CATEGORIES: CategorySpec[] = [
       { apiKey: "crosslinkSaltRank", label: "Crosslink Salt Rank" },
       { apiKey: "propagatedSaltRank", label: "Propagated Salt Rank" },
       { apiKey: "anionicSaltRank", label: "Anionic Salt Rank" },
-      { apiKey: "totalDustCollected", label: "Total Dust Collected" },
-      { apiKey: "totalBonesCollected", label: "Total Bones Collected" },
-      { apiKey: "totalTachyonsCollected", label: "Total Tachyons Collected" },
       { apiKey: "highestCogExp", label: "Highest Cog Exp" },
       { apiKey: "highestConstructExp/hr", label: "Highest Construct Exp/hr" },
       { apiKey: "highestCallMeBob", label: "Highest Call Me Bob" },
@@ -231,6 +227,27 @@ export const CATEGORIES: CategorySpec[] = [
       { apiKey: "highestSanctumLevel", label: "Highest Sanctum Level" },
       // Added by IT 2026-09.
       { apiKey: "totalFountainUpgrades", label: "Total Fountain Upgrades" },
+    ],
+  },
+  // IT 2026-10: class-specific boards moved here from General / Character /
+  // Misc, plus four new ones (Medallions, Arcane Map Multi, Outposts).
+  {
+    key: "masterclass",
+    label: "Masterclass",
+    boards: [
+      { apiKey: "totalGrimoireUpgrades", label: "Total Grimoire Upgrades" },
+      { apiKey: "totalBonesCollected", label: "Total Bones Collected" },
+      { apiKey: "totalCompassUpgrades", label: "Total Compass Upgrades" },
+      { apiKey: "totalDustCollected", label: "Total Dust Collected" },
+      { apiKey: "totalMedallions", label: "Total Medallions" },
+      { apiKey: "totalArcanistUpgrades", label: "Total Arcanist Upgrades" },
+      { apiKey: "totalTachyonsCollected", label: "Total Tachyons Collected" },
+      { apiKey: "highestArcaneMapMulti", label: "Highest Arcane Map Multi" },
+      { apiKey: "totalRoyalArmoryUpgrades", label: "Total Royal Armory Upgrades" },
+      { apiKey: "totalRoyalResourceGrades", label: "Total Royal Resource Grades" },
+      { apiKey: "totalRoyalStatueLevels", label: "Total Royal Statue Levels" },
+      { apiKey: "totalOutposts", label: "Total Outposts" },
+      { apiKey: "highestOutpostResourceRate", label: "Highest Outpost Resource Rate" },
     ],
   },
 ];

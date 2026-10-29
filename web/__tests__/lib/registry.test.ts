@@ -5,21 +5,22 @@ import { CATEGORIES, flatBoards, type CategoryKey } from "@/lib/registry";
 // board the IT API serves). Re-sync it whenever IT adds boards: fetch
 // `?leaderboard=<category>` for each category and diff the keys.
 describe("registry", () => {
-  it("contains 7 categories", () => {
-    expect(CATEGORIES).toHaveLength(7);
+  it("contains 8 categories", () => {
+    expect(CATEGORIES).toHaveLength(8);
   });
 
-  // Per-category counts as of the 2026-09-30 Jelly Operator update (IT added
-  // 6 general boards → 171 total; the 2026-09 Royal Guardian update had
-  // added 8 general, 2 misc and 2 caverns).
+  // Per-category counts as of the 2026-10 Luminous Menagerie update: IT moved
+  // 9 class-specific boards into a new "masterclass" category (13 boards with
+  // 4 new ones) and added 3 general boards → 178 total.
   const expectedCategories: { key: CategoryKey; expectedBoards: number }[] = [
     { key: "global", expectedBoards: 1 },
     { key: "general", expectedBoards: 61 },
     { key: "tasks", expectedBoards: 11 },
     { key: "skills", expectedBoards: 21 },
-    { key: "character", expectedBoards: 14 },
-    { key: "misc", expectedBoards: 44 },
+    { key: "character", expectedBoards: 11 },
+    { key: "misc", expectedBoards: 41 },
     { key: "caverns", expectedBoards: 19 },
+    { key: "masterclass", expectedBoards: 13 },
   ];
 
   const totalExpectedBoards = expectedCategories.reduce((sum, c) => sum + c.expectedBoards, 0);
@@ -63,15 +64,13 @@ describe("registry", () => {
   it("includes the 2026-09 additions in IT's order", () => {
     const general = CATEGORIES.find((c) => c.key === "general")!.boards.map((b) => b.apiKey);
     const i = general.indexOf("totalSushiKnowledgeLevels");
-    expect(general.slice(i + 1, i + 10)).toEqual([
+    // The three Royal Guardian boards moved to "masterclass" in 2026-10.
+    expect(general.slice(i + 1, i + 7)).toEqual([
       "totalSushiPerfectos",
       "totalButtonPresses",
       "cookingMasteryLevel",
       "totalAdviceFishUpgrades",
       "totalEquinoxUpgrades",
-      "totalRoyalArmoryUpgrades",
-      "totalRoyalResourceGrades",
-      "totalRoyalStatueLevels",
       "bestJellyDps",
     ]);
     const misc = CATEGORIES.find((c) => c.key === "misc")!.boards.map((b) => b.apiKey);
@@ -90,13 +89,34 @@ describe("registry", () => {
       "totalNightMarketLevels",
       "totalPrimeKills",
     ]);
-    const s = general.indexOf("totalRoyalStatueLevels");
+    const s = general.indexOf("totalEquinoxUpgrades");
     expect(general.slice(s + 1, s + 6)).toEqual([
       "bestJellyDps",
       "totalJellyCellLevels",
       "totalJellyUpgrades",
       "bestSushiCombo",
       "arenaWaves",
+    ]);
+  });
+
+  it("mirrors the 2026-10 masterclass split and Menagerie additions in IT's order", () => {
+    const general = CATEGORIES.find((c) => c.key === "general")!.boards.map((b) => b.apiKey);
+    expect(general.slice(-3)).toEqual(["bestCrucibleRound", "menagerieRank", "totalMenagerieBoostLevels"]);
+    const masterclass = CATEGORIES.find((c) => c.key === "masterclass")!.boards.map((b) => b.apiKey);
+    expect(masterclass).toEqual([
+      "totalGrimoireUpgrades",
+      "totalBonesCollected",
+      "totalCompassUpgrades",
+      "totalDustCollected",
+      "totalMedallions",
+      "totalArcanistUpgrades",
+      "totalTachyonsCollected",
+      "highestArcaneMapMulti",
+      "totalRoyalArmoryUpgrades",
+      "totalRoyalResourceGrades",
+      "totalRoyalStatueLevels",
+      "totalOutposts",
+      "highestOutpostResourceRate",
     ]);
   });
 });

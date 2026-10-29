@@ -2,7 +2,7 @@
 
 A full-stack [Next.js](https://nextjs.org) web app that tracks any
 [Legends of Idleon](https://www.legendsofidleon.com) player's standing across
-all **171 [IdleonToolbox](https://idleontoolbox.com) leaderboards** — plus
+all **178 [IdleonToolbox](https://idleontoolbox.com) leaderboards** — plus
 game-faithful calculators for Drop Rate, Tome score, and Talents. No login, no
 database, free to host.
 
@@ -16,7 +16,7 @@ database, free to host.
 
 | Tool | What it does |
 |---|---|
-| **Leaderboards Tracker** | Your rank and score across all 171 IT boards, with search, category filters, sortable columns, and an expandable top-10 per board. |
+| **Leaderboards Tracker** | Your rank and score across all 178 IT boards, with search, category filters, sortable columns, and an expandable top-10 per board. |
 | **Dashboard** | Tier summary, heatmap by category, worst positions, quick wins, and your best 30 — computed from the live data. |
 | **Snapshot / Delta** | Save a snapshot per player (browser `localStorage`) and see net rank movement on the next visit. |
 | **Drop Rate Tracker** | Game-code-faithful Drop Rate breakdown, ported from the in-game formulas. |
