@@ -32,7 +32,10 @@ import { TOME_TASKS } from "../../../lib/tome/tasks";
 // every update that touches a task and let the players re-upload.
 //   2026-08-25 Royal Guardian: 121 tasks (3 inserted at 106–108), companion stage 2
 //   2026-09-18 Jelly Operator: 122 tasks (121 appended), Unique Sushi max 64
-const REF_CUTOFF_MS = Date.UTC(2026, 8, 18);
+//   2026-10-16/22 Lumi Menagerie + Halloween: 124 tasks (122–123 appended);
+//     IdleonToolbox shipped 2.3.550 parsing on 10-22, so only uploads from
+//     10-23 on carry a reference parsed with the current rules.
+const REF_CUTOFF_MS = Date.UTC(2026, 9, 23);
 
 /** When idleontoolbox.com parsed this profile (ms). `lastUpdated` has shipped in
  *  both seconds and milliseconds — normalise on magnitude. */

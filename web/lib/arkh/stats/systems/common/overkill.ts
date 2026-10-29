@@ -15,7 +15,7 @@ import { MapAFKtarget } from "../../data/game/customlists.js";
 import { MONSTERS } from "../../data/game/monsters.js";
 import { optionsListData, currentMapData } from "../../../save/data";
 import { prayersReal } from "../w3/prayer";
-import { computeAccuracy, computeMaxDamage } from "./derived-damage";
+import { computeAccuracy, computeMaxDamage, mapDamageDivisor } from "./derived-damage";
 import type { SaveData } from "../../../state";
 
 // @njs OverkillStuffs
@@ -77,7 +77,8 @@ export function overkillStuffs(
   const hp = staticHp * curse;
   const exponent = map >= 300 ? 5 : 2;
   // Not swallowed: a failing max damage must surface, not read as tier 1.
-  const maxDmg = opts?.maxDmg || computeMaxDamage(ci, { saveData: s, charIdx: ci }) || 0;
+  const maxDmg =
+    (opts?.maxDmg || computeMaxDamage(ci, { saveData: s, charIdx: ci }) || 0) / mapDamageDivisor(map, s);
   const tier = multikillTier(hp, maxDmg, exponent);
   return {
     map, target, clam, staticHp, curses, curse, hp, exponent, maxDmg, tier,

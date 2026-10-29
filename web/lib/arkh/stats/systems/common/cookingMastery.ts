@@ -16,6 +16,7 @@ import { fountainBonusTotal } from "../../data/w5/fountain";
 import { eventShopOwned } from "../../../game-helpers";
 import { companionBonus } from "../../data/common/companions";
 import { jellyRoGBonus } from "../../data/w7/jelly";
+import { menagerieBoostQTY } from "../../data/w7/menagerie";
 
 // @njs RandoListo2[8]
 // RandoListo2[8] — base coefficient per upgrade b (0..5).
@@ -51,7 +52,8 @@ export type MasteryInputs = {
   purple: number[]; // CookMaster[2][0..5] — Purple PTS per upgrade
   comp87: number; // Companions(87) value: 0 none, 1 stage 1, 1.5 stage 2 → +5·comp87 pts each colour, ×(1 + 2·comp87) Exp/h
   evShop54?: boolean; // Event Shop 54 (Bejeweled Ladle, 2026-09): +5 pts each colour
-  jelly13?: number; // Jelly Operator obstruction 13 (Starry Bling, 2026-09-18): +1 pt each colour
+  jelly13?: number; // Jelly Operator obstruction 13 (Starry Bling, 2026-09-18): +1 Purple pt
+  jelly5?: number; // Jelly Operator obstruction 5: +1 Yellow pt (PtsLeftCook_Y reads RoG 5, not 13)
   researchGridYellow: number; // ResearchStuff("Grid_Bonus",190,1) — extra Yellow pts
   externalMulti: number; // product of Purple-independent Exp/h multipliers
 };
@@ -106,22 +108,23 @@ export function masteryExpReq(rank: number): number {
 }
 
 // Shared by PtsLeftCook_P/Y: rank + (1 + 5·EventShop54 + 5·Companions(87)
-// + JellyOperation("RoG_BonusQTY",13)). Companions(87) is the CompanionBon
-// value, so Rift1 at stage 2 gives 7.5 — the game Math.round()s the whole
-// pool, which we mirror.
-function ptsPool(inp: MasteryInputs): number {
-  return inp.rank + 1 + 5 * inp.comp87 + (inp.evShop54 ? 5 : 0) + (inp.jelly13 || 0);
+// + JellyOperation("RoG_BonusQTY", 13 for Purple / 5 for Yellow)). Companions(87)
+// is the CompanionBon value, so Rift1 at stage 2 gives 7.5 — the game
+// Math.round()s the whole pool, which we mirror.
+function ptsPool(inp: MasteryInputs, jelly: number): number {
+  return inp.rank + 1 + 5 * inp.comp87 + (inp.evShop54 ? 5 : 0) + jelly;
 }
 
 // @njs PtsLeftCook_P
 /** Purple PTS pool total = round(rank + 1 + 5·comp87 + 5·evShop54) (PtsLeftCook_P, before spending). */
 export function purpleTotal(inp: MasteryInputs): number {
-  return Math.round(ptsPool(inp));
+  return Math.round(ptsPool(inp, inp.jelly13 || 0));
 }
 
-/** Yellow PTS pool total = round(purple pool + research-grid yellow) (PtsLeftCook_Y). */
+// @njs PtsLeftCook_Y
+/** Yellow PTS pool total = round(pool with Jelly RoG 5 + research-grid yellow) (PtsLeftCook_Y). */
 export function yellowTotal(inp: MasteryInputs): number {
-  return Math.round(ptsPool(inp) + inp.researchGridYellow);
+  return Math.round(ptsPool(inp, inp.jelly5 || 0) + inp.researchGridYellow);
 }
 
 export type ExternalBreakdown = {
@@ -133,6 +136,7 @@ export type ExternalBreakdown = {
   arcade69: number; // ArcadeBonus(69) — %
   saltLick10: number; // SaltLick(10) — %
   fountainCookMaxxing: number; // Fountain_BonTOT(2,17) — Green Water Cook_Maxxing %
+  menagerieBoost21: number; // MenagerieStuff("BoostQTY",21) — % (2026-10-16)
 };
 
 /**
@@ -159,15 +163,18 @@ export function externalExpMulti(s: SaveData): ExternalBreakdown {
   const saltLick10 = slLv > 0 ? slLv * (Number((SaltLicks as any)?.[10]?.[3]) || 0) : 0;
   // Green Water Cook_Maxxing (Fountain_BonTOT(2,17)) — 0 for players without it.
   const fountainCookMaxxing = fountainBonusTotal(s, 2, 17);
+  // Luminous Menagerie Boost 21 "x Cooking Mastery EXP gains" (2026-10-16).
+  const menagerieBoost21 = menagerieBoostQTY(21, s);
   const val =
     typeof override === "number" && override > 0
       ? override
       : (1 + researchGrid190 / 100) *
         (1 + (40 * superBit68) / 100) *
         (1 + 2 * comp87) *
+        (1 + menagerieBoost21 / 100) *
         (1 + fountainCookMaxxing / 100) *
         (1 + (vial7cm + arcade69 + saltLick10) / 100);
-  return { val, researchGrid190, superBit68, comp87, vial7cm, arcade69, saltLick10, fountainCookMaxxing };
+  return { val, researchGrid190, superBit68, comp87, vial7cm, arcade69, saltLick10, fountainCookMaxxing, menagerieBoost21 };
 }
 
 /** Extracts the mastery inputs from a loaded save. Pre-mastery saves → all zero. */
@@ -194,6 +201,7 @@ export function readMasteryInputs(s: SaveData): MasteryInputs {
     comp87: s.companionIds?.has(87) ? companionBonus(87, s.companionLv2Ids) : 0,
     evShop54: eventShopOwned(54, s.cachedEventShopStr || "") === 1,
     jelly13: jellyRoGBonus(13, s),
+    jelly5: jellyRoGBonus(5, s),
     researchGridYellow: 0, // TODO ResearchStuff("Grid_Bonus",190,1)
     externalMulti: externalExpMulti(s).val,
   };

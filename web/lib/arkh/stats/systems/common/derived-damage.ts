@@ -110,6 +110,8 @@ import { computeArtifactBonus } from "../w5/sailing";
 import { computeAllShimmerBonuses } from "../w3/equinox";
 import { computePaletteBonus } from "../w7/spelunking";
 import { menagerieObolMiscMulti } from "../../data/w7/menagerie";
+import { jellyRoGBonus } from "../../data/w7/jelly";
+import { royalStatueBon } from "../../data/w7/royalG";
 import { computeMeritocBonusz } from "../w7/meritoc";
 import { mineheadBonusQTY } from "../w7/minehead";
 import { rogBonusQTY, computeUniqueSushi } from "../w7/sushi";
@@ -528,7 +530,9 @@ export function computeMaxDamage(charIdx: number, ctx: Ctx): number {
   const playerSpeed = computePlayerSpeed(ci, ctx);
   const bubbleSPD = bdmgSPD * (Math.log2(Math.max(playerSpeed - 0.1, 0)) / 0.25);
 
-  baseDmgRaw += stampBaseDmg + sigil4 + bubbleHP + bubbleMP + bubbleSPD;
+  // CardLv("fallEvent2") joined the CardBonusREAL(4) + SigilBonus(4) group (2026-10-22).
+  const cardLvFallEvent2 = safe(computeCardLv, "fallEvent2", s);
+  baseDmgRaw += stampBaseDmg + sigil4 + bubbleHP + bubbleMP + bubbleSPD + cardLvFallEvent2;
   // owlBonus1 — owl resolver (OwlBonuses(1))
   baseDmgRaw += rval(owlResolver, 1, ctx);
 
@@ -879,7 +883,17 @@ export function computeMaxDamage(charIdx: number, ctx: Ctx): number {
       mhWepPowDmgPCT = _mhBon4 * (_baseWP + _affixWP);
     }
   } catch {}
-  ddl2 *= (1 + mhBonusQTY0 / 100) * (1 + mhWepPowDmgPCT / 100);
+  // Same N.js line: × Jelly RoG 37 × Royal Statue 0 × (1 + CoralKidUpgBonus(11)/100)^max(0, Divinity[25] − 35)
+  // (Coral Kid 11 = round(OLA[621]), 2026-10-16).
+  const jelly37 = safe(jellyRoGBonus, 37, s);
+  const royalStatue0 = safe(royalStatueBon, 0, s as any);
+  const coralKid11 = Math.round(Number((optionsListData as any)[621]) || 0);
+  ddl2 *=
+    (1 + mhBonusQTY0 / 100) *
+    (1 + mhWepPowDmgPCT / 100) *
+    (1 + jelly37 / 100) *
+    (1 + royalStatue0 / 100) *
+    Math.pow(1 + coralKid11 / 100, Math.max(0, div25 - 35));
 
   // WeeklyBoss.g bonus
   try {
@@ -959,6 +973,14 @@ export function computeMaxDamage(charIdx: number, ctx: Ctx): number {
   let maxDmg = baseDmgRaw * pctMult * ddl2;
   if (maxDmg !== maxDmg || maxDmg == null) maxDmg = 0;
   return maxDmg;
+}
+
+/** N.js Max (2026-10-16): on The Clamworks (map 306) DamageDealtLIST[2] is
+divided by 100^Menagerie[5][2]. Overkill callers apply it per target map,
+since computeMaxDamage itself is map-independent. */
+export function mapDamageDivisor(map: number, s: SaveData): number {
+  if (map !== 306) return 1;
+  return Math.pow(100, Number((s.menagerieData as any)?.[5]?.[2]) || 0);
 }
 
 // --------------------------------------------------------------------------
@@ -1279,7 +1301,7 @@ export function computeOverkillTier(
   let maxDmg = opts.maxDmg;
   if (maxDmg == null) {
     try {
-      maxDmg = computeMaxDamage(charIdx, ctx) || 0;
+      maxDmg = (computeMaxDamage(charIdx, ctx) || 0) / mapDamageDivisor(mapIdx, ctx.saveData);
     } catch {
       maxDmg = 0;
     }

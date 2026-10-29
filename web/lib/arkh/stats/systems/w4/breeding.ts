@@ -8,14 +8,19 @@ import {
   SHINY_TYPE_TO_CAT,
   SHINY_CAT_NAMES,
 } from "../../data/w4/breeding";
+import { menagerieUnlockOwned } from "../../data/w7/menagerie";
 import type { SaveData } from "../../../state";
 
 type Ctx = { saveData: SaveData };
 
-function shinyLvFromExp(exp: number): number {
+// @njs SpecialPassives
+// Breeding("SpecialPassives","Lv"): 19 thresholds, + 10 more once Menagerie
+// unlock 11 is owned (2026-10-16: shiny cap Lv 20 → 30).
+function shinyLvFromExp(exp: number, saveData: SaveData): number {
   if (exp <= 0) return 0;
   let lv = 1;
-  for (let e = 0; e < 19; e++) {
+  const thresholds = 19 + 10 * menagerieUnlockOwned(11, saveData);
+  for (let e = 0; e < thresholds; e++) {
     if (exp > Math.floor((1 + Math.pow(e + 1, 1.6)) * Math.pow(1.7, e + 1))) {
       lv = e + 2;
     }
@@ -48,7 +53,7 @@ function _shinyBonusParts(catKey: number, saveData: SaveData): ShinyParts {
       const shinyTypeIdx = petTypes[pet];
       const cat = SHINY_TYPE_TO_CAT[shinyTypeIdx];
       if (cat !== catKey) continue;
-      const shinyLv = shinyLvFromExp(exp);
+      const shinyLv = shinyLvFromExp(exp, saveData);
       const bonusPerLv = SHINY_BONUS_PER_LV[shinyTypeIdx] || 0;
       const val = Math.round(shinyLv * bonusPerLv);
       total += val;

@@ -9,15 +9,25 @@ import {
 } from "../../../lib/arkh/stats/data/w7/royalG";
 import { computeArcaneMapMultiBon } from "../../../lib/arkh/stats/systems/mc/tesseract";
 import { getPrismaBonusMult } from "../../../lib/arkh/stats/systems/w2/alchemy";
-import { comp27Multi } from "../../../lib/arkh/stats/systems/w2/arcade";
+import { arcadeMaxedMulti, comp27Multi } from "../../../lib/arkh/stats/systems/w2/arcade";
+import { MENAGERIE_BOOST_PER_LV, menagerieBoostQTY } from "../../../lib/arkh/stats/data/w7/menagerie";
 import { podiumsOwnedLv2 } from "../../../lib/arkh/stats/systems/w7/gallery";
 import { cookingMealMulti } from "../../../lib/arkh/stats/systems/common/cooking";
 import {
   externalExpMulti,
   purpleTotal,
   readMasteryInputs,
+  yellowTotal,
 } from "../../../lib/arkh/stats/systems/common/cookingMastery";
-import { companionValue, rawDungeonRank, rawJellyOperations } from "../../../lib/tome/extractors";
+import {
+  companionValue,
+  rawDungeonRank,
+  rawJellyOperations,
+  rawMenagerieBoostLv,
+  rawMenagerieRank,
+  rawShinyLevelsProper,
+  rawStarTalentsProper,
+} from "../../../lib/tome/extractors";
 import { DUNGEON_LEVELS } from "../../../lib/tome/tasks";
 import { jellyRoGBonus } from "../../../lib/arkh/stats/data/w7/jelly";
 import { rogDropMulti } from "../../../lib/arkh/stats/systems/w7/jelly";
@@ -296,7 +306,7 @@ export const CASES: GoldenCase[] = [
     },
   },
   {
-    name: "Tome: 122 tasks, Successful Jelly Operations appended (compute 121, 72 → 800 pts)",
+    name: "Tome: Successful Jelly Operations at slot 121 (compute 121, 72 → 800 pts)",
     note: "NinjaInfo[32] appended 121; Tome list [121] = [72,2,800]; Unique Sushi max 64",
     run: () => {
       const rawOps = rawJellyOperations({
@@ -304,11 +314,8 @@ export const CASES: GoldenCase[] = [
       } as any);
       const preUpdate = rawJellyOperations({ Research: [[], [], [], [], [], [], [], [0, 1]] } as any);
       return (
-        TOME_TASKS.length === 122 &&
         TOME_TASKS[121] === "Successful Jelly Operations" &&
-        NEI32.length === 122 &&
         NEI32[121] === 121 &&
-        TOME_BONUSES.length === 122 &&
         TOME_BONUSES[121][0] === 72 &&
         TOME_BONUSES[121][2] === 800 &&
         TOME_BONUSES[116][0] === 64 &&
@@ -396,6 +403,99 @@ export const CASES: GoldenCase[] = [
         companionValue(blob(["1,0,0,0,0", "1,0,0,0,1"]), 1) === 35 &&
         companionValue(blob([]), 1) === 0
       );
+    },
+  },
+  // 2026-10-16 Luminous Menagerie.
+  {
+    name: "Tome: 124 tasks, Menagerie Rank (122, [50,2,1200]) + Boosts Upg LV (123, [700,0,750]) appended",
+    note: "N.js TomeQTY[122] = Menagerie[0][2]; TomeQTY[123] = Σ Menagerie[3]; NinjaInfo[32] appended 122, 123",
+    run: () => {
+      const m = { Menagerie: [[5, 1, 37], [], [], [3, 0, 4, 2]] } as any;
+      const asString = { Menagerie: JSON.stringify(m.Menagerie) } as any;
+      return (
+        TOME_TASKS.length === 124 &&
+        TOME_TASKS[122] === "Luminous Menagerie Rank" &&
+        TOME_TASKS[123] === "Total Menagerie Boosts Upg LV" &&
+        NEI32.length === 124 && NEI32[122] === 122 && NEI32[123] === 123 &&
+        TOME_BONUSES.length === 124 &&
+        TOME_BONUSES[122].join() === "50,2,1200" &&
+        TOME_BONUSES[123].join() === "700,0,750" &&
+        rawMenagerieRank(m) === 37 && rawMenagerieBoostLv(m) === 9 &&
+        rawMenagerieRank(asString) === 37 && rawMenagerieBoostLv(asString) === 9 &&
+        rawMenagerieRank({} as any) === 0 && rawMenagerieBoostLv({} as any) === 0
+      );
+    },
+  },
+  {
+    name: "Tome shiny LVs: Menagerie unlock 11 raises the shiny cap 20 → 30",
+    note: "N.js Breeding(\"SpecialPassives\",\"Lv\") loops 19 + 10·MenagerieStuff(\"UnlockOwned\",11) thresholds",
+    run: () => {
+      const breeding = [] as any[];
+      breeding[22] = [1e12, 0];
+      const unlocks = new Array(20).fill(0);
+      const without = rawShinyLevelsProper({ Breeding: breeding, Menagerie: [[], [], unlocks] } as any);
+      unlocks[11] = 1;
+      const withU = rawShinyLevelsProper({ Breeding: breeding, Menagerie: [[], [], unlocks] } as any);
+      return without === 20 + 1 && withU === 30 + 1;
+    },
+  },
+  {
+    name: "Tome Star Talent Points: the played character (latest PTimeAway_N), not the best one",
+    note: "N.js TomeQTY[15] = TotalTalentPoints(...)[5] of the logged-in char (IT getBestActiveCharacter)",
+    run: () => {
+      const chars = { Lv0_0: [501, 0, 0, 0, 0, 0, 0, 0, 0, 0], Lv0_1: [101, 0, 0, 0, 0, 0, 0, 0, 0, 0] } as any;
+      return (
+        rawStarTalentsProper({ ...chars, PTimeAway_0: 1, PTimeAway_1: 2 }) === 97 &&
+        rawStarTalentsProper({ ...chars, PTimeAway_0: 2, PTimeAway_1: 1 }) === 497 &&
+        rawStarTalentsProper(chars) === 497 // no away times → best char
+      );
+    },
+  },
+  {
+    name: "Cooking Mastery Exp/h ×(1 + Menagerie Boost 21/100)",
+    note: "N.js ExpRateCook: …*(1+MenagerieStuff(\"BoostQTY\",21,0)/100)*… (1%/level)",
+    run: () => {
+      const prev = saveData.menagerieData;
+      try {
+        saveData.menagerieData = [];
+        const a = externalExpMulti(saveData).val;
+        const m3 = new Array(25).fill(0);
+        m3[21] = 30;
+        saveData.menagerieData = [[], [], [], m3];
+        return near(externalExpMulti(saveData).val / a, 1.3, 1e-9);
+      } finally {
+        saveData.menagerieData = prev;
+      }
+    },
+  },
+  {
+    name: "Cooking Mastery Yellow PTS use Jelly RoG 5, Purple PTS Jelly RoG 13",
+    note: "N.js PtsLeftCook_Y …+JellyOperation(\"RoG_BonusQTY\",5)… vs PtsLeftCook_P …(\"RoG_BonusQTY\",13)…",
+    run: () => {
+      const inp: any = { rank: 10, comp87: 0, evShop54: false, jelly13: 0, jelly5: 1, researchGridYellow: 0 };
+      return yellowTotal(inp) === 12 && purpleTotal(inp) === 11;
+    },
+  },
+  {
+    name: "Arcade Omega: level 102 = ×6 (Super 101 = ×2)",
+    note: "N.js ArcadeBonus: 101==ArcadeUpg[d] ? ×2 : 102==ArcadeUpg[d] && ×6",
+    run: () => arcadeMaxedMulti(100) === 1 && arcadeMaxedMulti(101) === 2 && arcadeMaxedMulti(102) === 6,
+  },
+  {
+    name: "DR: Menagerie Boost 24 = Research[58][24] × Menagerie[3][24]",
+    note: "N.js Drop_Rarity …*(1+RoyalG(\"StatueBon\",1)/100)*(1+MenagerieStuff(\"BoostQTY\",24)/100)*…",
+    run: () => {
+      const prev = saveData.menagerieData;
+      try {
+        const m3 = new Array(25).fill(0);
+        m3[24] = 7;
+        saveData.menagerieData = [[], [], [], m3];
+        const v = menagerieBoostQTY(24, saveData);
+        saveData.menagerieData = [];
+        return near(v, 7 * MENAGERIE_BOOST_PER_LV[24]) && menagerieBoostQTY(24, saveData) === 0;
+      } finally {
+        saveData.menagerieData = prev;
+      }
     },
   },
 ];

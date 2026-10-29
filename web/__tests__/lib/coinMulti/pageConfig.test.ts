@@ -25,7 +25,7 @@ describe("Coin Multi page config (migration keeps every key and string)", () => 
       errPrefix: "Coin multi compute failed",
       mapTitle: "The map sets the guild bonus world and Coins For Charon's multikill tier",
     });
-    expect(COIN_PAGE.formatTotal(6.885e35)).toBe("6.88E35");
+    expect(COIN_PAGE.formatTotal(6.885e35)).toBe("6.88e35");
   });
 
   it("doesn't rank the weekly vote (Vote 34)", () => {

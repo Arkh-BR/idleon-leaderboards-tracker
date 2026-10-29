@@ -3,7 +3,7 @@ import { formatCoinMulti, notateBig, notateMultiplierInfo } from "@/lib/coinMult
 
 describe("formatCoinMulti — the game's MonsterCash stat line", () => {
   it.each([
-    [6.773746899414287e35, "6.77E35"], // Markhe, map 14 (IdleonToolbox value)
+    [6.773746899414287e35, "6.77e35"], // Markhe, map 14 (IdleonToolbox value); lowercase e since 2026-10-16
     [5e16, "50Q"], // Big ladder, ceil
     [3.5e11, "350B"], // ⌊x/1e8⌋/10 + "B" (truncates)
     [12345678, "12.3M"], // ⌊x/1e5⌋/10 + "M" (truncates)
@@ -14,8 +14,8 @@ describe("formatCoinMulti — the game's MonsterCash stat line", () => {
   ])("%s → %s", (x, shown) => expect(formatCoinMulti(x)).toBe(shown));
 
   it("keeps the game's getLOG quirk at exact powers of ten", () => {
-    // getLOG = ln/2.30259 lands just under 22 for 1e22, so the game prints 10E21.
-    expect(notateBig(1e22)).toBe("10E21");
+    // getLOG = ln/2.30259 lands just under 22 for 1e22, so the game prints 10e21.
+    expect(notateBig(1e22)).toBe("10e21");
   });
 
   it("MultiplierInfo pads to two decimals", () => {

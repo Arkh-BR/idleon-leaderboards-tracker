@@ -29,8 +29,13 @@ describe("coinStacks", () => {
     expect(show(5e10)).toBe("5c6"); // > 1E10: window jumps to Coins6–10
     expect(show(1203040506070809)).toBe("12c8 3c7 4c6");
   });
-  it("lets Coins25 grow past 99", () => {
-    expect(coinStacks(3.41e58)[0]).toEqual({ tier: 25, qty: 34100000000 });
-    expect(coinStacks(3.41e58).map((s) => s.tier)).toEqual([25, 24, 23, 22, 21]);
+  it("reaches the 2026-10-16 coins (Coins26–30, totalcointypes(3) = 5)", () => {
+    expect(coinStacks(3.41e58)[0]).toEqual({ tier: 30, qty: 3 });
+    expect(coinStacks(3.41e58).map((s) => s.tier)).toEqual([30, 29, 28, 27, 26]);
+    expect(coinStacks(5e50).map((s) => s.tier)).toEqual([26]); // > 1E50: window jumps to Coins26–30
+  });
+  it("lets Coins30 grow past 99", () => {
+    expect(coinStacks(3.41e68)[0]).toEqual({ tier: 30, qty: 34100000000 });
+    expect(coinStacks(3.41e68).map((s) => s.tier)).toEqual([30, 29, 28, 27, 26]);
   });
 });
