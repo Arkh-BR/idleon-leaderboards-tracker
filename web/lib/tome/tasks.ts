@@ -2,9 +2,9 @@
 // indexed by position, not by name. If you re-sync from the .gs, paste the
 // raw arrays verbatim.
 
-import { RANDOlist } from "../arkh/stats/data/game/customlists.js";
+import { CardStuff, RANDOlist } from "../arkh/stats/data/game/customlists.js";
 
-// 122 tome tasks in the EXACT order they appear in-game and on the IT website
+// 124 tome tasks in the EXACT order they appear in-game and on the IT website
 // (NinjaInfo[32] is the game's display→compute map). The 2026-08 Royal
 // Guardian update inserted three tasks at display slots 106–108; IT profiles
 // parsed since then carry 121 tomePoints in this order, while older cached
@@ -134,12 +134,16 @@ export const TOME_TASKS: readonly string[] = [
   "Button Presses",
   // 2026-09-18 Jelly Operator — appended at the end of the in-game list.
   "Successful Jelly Operations",
+  // 2026-10-16 Luminous Menagerie — appended at the end of the in-game list.
+  "Luminous Menagerie Rank",
+  "Total Menagerie Boosts Upg LV",
 ];
 
-// Maps a task index (0-121, position in TOME_TASKS) to a compute index used
+// Maps a task index (0-123, position in TOME_TASKS) to a compute index used
 // by TOME_BONUSES and the switch in computeRawValue. Verbatim copy of the
 // game's NinjaInfo[32] (IT's NEI32) — 2026-08 inserted 118/119/120 at 106–108;
-// 2026-09-18 appended 121 (Successful Jelly Operations) at the end.
+// 2026-09-18 appended 121 (Successful Jelly Operations) at the end;
+// 2026-10-16 appended 122/123 (Luminous Menagerie Rank, Menagerie Boosts LV).
 export const NEI32: readonly number[] = [
   5, 11, 3, 65, 22, 0, 2, 1, 7, 4, 6, 81, 8, 9, 53, 10, 107, 109, 12, 113,
   106, 75, 13, 14, 80, 79, 25, 15, 16, 17, 18, 19, 21, 23, 24, 26, 27, 28,
@@ -148,6 +152,7 @@ export const NEI32: readonly number[] = [
   63, 111, 58, 56, 93, 84, 83, 92, 91, 87, 88, 89, 82, 94, 68, 69, 67, 77,
   78, 112, 72, 74, 99, 71, 70, 73, 96, 20, 43, 90, 100, 101, 118, 119, 120,
   95, 97, 103, 104, 98, 102, 105, 110, 114, 115, 116, 117, 121,
+  122, 123,
 ];
 
 // Per-task curve params: [x1, x2, x3] where x2 selects the formula in
@@ -184,6 +189,9 @@ export const TOME_BONUSES: readonly (readonly [number, number, number])[] = [
   [100, 0, 600], [65, 2, 650], [1000, 0, 600],
   // 121 "Successful Jelly Operations" (2026-09-18): 72 obstructions, 800 pts.
   [72, 2, 800],
+  // 122–123 Luminous Menagerie (2026-10-16): Tome list [122] = [50,2,1200]
+  // (Menagerie Rank), [123] = [700,0,750] (Total Menagerie Boosts Upg LV).
+  [50, 2, 1200], [700, 0, 750],
 ];
 
 // Fallback: if the raw extractor returns null for these compute indices, the
@@ -219,61 +227,16 @@ export const COMPUTE_LB_FALLBACK: Readonly<Record<number, [string, string]>> = {
   115: ["misc", "glimboTotalTrades"],
 };
 
-// Cards perTier table (rawName -> perTier) from IT website-data.json.
-export const CARDS_PER_TIER: Readonly<Record<string, number>> = {
-  mushG: 5, mushR: 10, frogG: 6, beanG: 7, slimeG: 8, snakeG: 9, carrotO: 10,
-  goblinG: 10, plank: 10, frogBIG: 10, poopSmall: 10, ratB: 10, branch: 10,
-  acorn: 10, Crystal0: 3, mushW: 10, jarSand: 10, mimicA: 10, crabcake: 10,
-  coconut: 10, sandcastle: 10, pincermin: 10, potato: 10, steak: 10,
-  moonman: 10, sandgiant: 10, snailZ: 10, shovelR: 10, Crystal1: 3,
-  Bandit_Bob: 1, Copper: 10, Iron: 10, Gold: 10, ForgeA: 10, OakTree: 10,
-  BirchTree: 10, JungleTree: 10, ForestTree: 10, Fish1: 10, Fish2: 10,
-  Fish3: 10, Bug1: 10, Bug2: 10, Plat: 10, Dementia: 10, Void: 10,
-  Lustre: 10, ForgeB: 10, PalmTree: 10, ToiletTree: 10, StumpTree: 10,
-  SaharanFoal: 10, Tree7: 10, AlienTree: 10, Tree8: 10, Fish4: 10, Fish5: 8,
-  Fish6: 10, Fish7: 10, Fish8: 10, Bug3: 10, Bug4: 10, Bug5: 10, Bug6: 10,
-  Bug7: 10, SoulCard1: 3, SoulCard2: 3, SoulCard3: 3, SoulCard4: 4,
-  CritterCard1: 4, CritterCard2: 4, CritterCard3: 4, CritterCard4: 4,
-  CritterCard5: 4, sheep: 11, flake: 12, stache: 13, bloque: 14, mamoth: 15,
-  snowball: 15, penguin: 15, thermostat: 15, glass: 17, snakeB: 17,
-  speaker: 17, eye: 17, ram: 20, skele: 15, skele2: 15, Crystal2: 10,
-  Starfire: 12, Dreadlo: 15, Godshard: 400, Prehistrium: 5000, Tree9: 12,
-  Tree10: 15, Tree12: 15, Tree13: 15, Tree14: 1000, Fish9: 15, Fish10: 18,
-  Fish11: 24, Fish12: 30, Bug8: 10, Bug9: 12, Bug10: 15, Bug12: 15,
-  Bug13: 15, Bug14: 1000, CritterCard6: 5, CritterCard7: 6, CritterCard8: 7,
-  CritterCard9: 9, CritterCard10: 12, CritterCard11: 50, SoulCard5: 5,
-  SoulCard6: 7, SoulCard7: 7, SoulCard8: 250, SpelunkingCard0: 100,
-  SpelunkingCard1: 300, SpelunkingCard2: 3000, SpelunkingCard3: 40000,
-  SpelunkingCard4: 150000, SpelunkingCard5: 2500000, mushP: 15, w4a2: 17,
-  w4a3: 18, demonP: 19, w4b2: 20, w4b1: 21, w4b3: 22, w4b4: 23, w4b5: 24,
-  w4c1: 26, w4c2: 27, w4c3: 28, w4c4: 30, Crystal3: 10, w5a1: 25, w5a2: 28,
-  w5a3: 32, w5a4: 35, w5a5: 45, w5b1: 48, w5b2: 52, w5b3: 60, w5b4: 65,
-  w5b5: 70, w5b6: 75, w5c1: 80, w5c2: 100, caveB: 5000, caveC: 10000,
-  caveD: 1000000, // Crystal Glunko card (CardsH17, Cavern 18) — added 2026-06
-  Crystal4: 15, w6a1: 50, w6a2: 60, w6a3: 75, w6a4: 85, w6a5: 100, w6b1: 150,
-  w6b2: 170, w6b3: 200, w6b4: 250, w6c1: 400, w6c2: 500, w6d1: 900,
-  w6d2: 1300, w6d3: 2500, Crystal5: 5000, w7a1: 5000, w7a2: 7000, w7a3: 8500,
-  w7a4: 11000, w7a5: 15000, w7a6: 25000, w7a7: 35000, w7a8: 65000,
-  w7a9: 100000, w7a10: 150000, w7a11: 250000, w7a12: 400000, w7b1: 100000,
-  w7b2: 300000, w7b3: 500000, w7b4: 900000, w7b5: 1500000, w7b6: 3500000,
-  w7b7: 6000000, w7b8: 10000000, w7b9: 20000000, w7b10: 30000000,
-  w7b11: 20000000, w7b12: 100000000, Crystal6: 2500000, frogP: 1.5, frogD: 2,
-  frogY: 2, frogR: 2, frogW: 3, frogGG: 5, frogGR: 1.5, frogGR2: 1.5,
-  frogGR3: 1.5, frogGR4: 1, target: 2, rocky: 2, steakR: 2, totem: 2,
-  cactus: 2, potatoB: 5, snakeZ: 1.5, snakeZ2: 1.5, snakeZ3: 1.5,
-  iceknight: 8, iceBossZ: 2, iceBossZ2: 1.5, iceBossZ3: 1.5, slimeB: 2,
-  babayaga: 1.5, poopBig: 1.5, poopD: 1, wolfA: 1.5, wolfB: 1.5, wolfC: 10,
-  babaHour: 1.5, babaMummy: 1.5, Boss2A: 1.5, Boss2B: 1.5, Boss2C: 11,
-  mini3a: 5, Boss3A: 1.5, Boss3B: 1.5, Boss3C: 12, mini4a: 5, Boss4A: 2,
-  Boss4B: 2, Boss4C: 4, mini5a: 4, Boss5A: 3, Boss5B: 4, Boss5C: 5,
-  mini6a: 5, Boss6A: 6, Boss6B: 9, Boss6C: 13, ghost: 2, xmasEvent: 1.5,
-  xmasEvent2: 1.5, slimeR: 2, loveEvent: 1.5, loveEvent2: 1.5,
-  loveEvent3: 1.5, sheepB: 3, snakeY: 3, EasterEvent1: 1.5,
-  EasterEvent2: 1.5, shovelY: 4, crabcakeB: 4, SummerEvent1: 8,
-  SummerEvent2: 8, xmasEvent3: 1, springEvent1: 1, springEvent2: 1,
-  fallEvent1: 3, anni4Event1: 4, cropfallEvent1: 6, xmasEvent4: 1,
-  luckEvent1: 5, luckEvent2: 5, anni5Event1: 6,
-};
+// Cards perTier table (rawName -> perTier) = the game's CardStuff[w][i][2],
+// read from the regenerated game data so new cards flow in with every update
+// (the hand-copied table missed SpelunkingCard6 / fallEvent2 / fm_rat and had
+// w7b12 at 1e8 instead of 4e7). "Blank" rows are padding.
+export const CARDS_PER_TIER: Readonly<Record<string, number>> = Object.fromEntries(
+  (CardStuff as string[][][])
+    .flat()
+    .filter((c) => c[0] !== "Blank")
+    .map((c) => [c[0], Number(c[2])]),
+);
 
 // Dungeon rank thresholds on OptLacc[71] (dungeon points) — the game's
 // RANDOlist[29], read from the regenerated game data so new ranks flow in

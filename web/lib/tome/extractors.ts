@@ -6,6 +6,8 @@ import { arrSum, arrMax, lavaLog, type RawObj } from "./math";
 import { CARDS_PER_TIER, DEATHNOTE_MOB_IDX, DUNGEON_LEVELS } from "./tasks";
 import { SUMMONING_ENEMY_IDS } from "./summoningEnemies";
 import { companionBonus } from "../arkh/stats/data/common/companions";
+import { menagerieUnlockOwned } from "../arkh/stats/data/w7/menagerie";
+import type { SaveData } from "../arkh/state";
 
 type D = RawObj;
 
@@ -825,6 +827,28 @@ export function rawJellyOperations(d: D): number | null {
   return num(r7[9]);
 }
 
+// Luminous Menagerie (2026-10-16), save key "Menagerie" (8 lists). Saves from
+// before the update have no key: the game's initialize4 fills it with zeros,
+// so both tasks read 0 there (not null).
+function menagerie(d: D): unknown[] {
+  return parseArr(d.Menagerie) ?? [];
+}
+
+/** MenagerieStuff("UnlockOwned", b) on a raw save (lead's helper, raw-save adapter). */
+export function menagerieUnlock(d: D, b: number): number {
+  return menagerieUnlockOwned(b, { menagerieData: menagerie(d) } as unknown as SaveData);
+}
+
+/** Luminous Menagerie Rank = TomeQTY[122] = Menagerie[0][2]. */
+export function rawMenagerieRank(d: D): number {
+  return num(parseArr(menagerie(d)[0])?.[2]);
+}
+
+/** Total Menagerie Boosts Upg LV = TomeQTY[123] = Σ Menagerie[3]. */
+export function rawMenagerieBoostLv(d: D): number {
+  return arrSum(parseArr(menagerie(d)[3]) ?? []);
+}
+
 // ---------------------------------------------------------------- "proper" extractors
 
 // maxStars for card-level calcs = round(4 + riftFiveStar + spelunkingSixStar).
@@ -898,10 +922,16 @@ export function rawCardsTotalLvProper(d: D): number | null {
   return total > 0 ? total : null;
 }
 
-function getShinyLevelFromProgress(p: number): number {
+// N.js Breeding("SpecialPassives","Lv"): 19 thresholds, + 10 more once
+// Menagerie unlock 11 is owned (2026-10-16: shiny cap 20 → 30).
+function shinyThresholds(d: D): number {
+  return 19 + 10 * menagerieUnlock(d, 11);
+}
+
+function getShinyLevelFromProgress(p: number, thresholds: number): number {
   if (!p || p === 0) return 0;
   let sl = 0;
-  for (let i = 0; i < 19; i++) {
+  for (let i = 0; i < thresholds; i++) {
     if (p > Math.floor((1 + Math.pow(i + 1, 1.6)) * Math.pow(1.7, i + 1))) {
       sl = i + 2;
     }
@@ -912,19 +942,20 @@ function getShinyLevelFromProgress(p: number): number {
 export function rawShinyLevelsProper(d: D): number | null {
   if (!d.Breeding) return null;
   const breed = d.Breeding as unknown[];
+  const thresholds = shinyThresholds(d);
   let total = 0;
   for (let w = 0; w < 4; w++) {
     const arrW = breed[22 + w];
     if (!Array.isArray(arrW)) continue;
     for (let p = 0; p < arrW.length; p++) {
-      const sl = getShinyLevelFromProgress(num(arrW[p]));
+      const sl = getShinyLevelFromProgress(num(arrW[p]), thresholds);
       total += sl === 0 ? 1 : sl;
     }
   }
   return total > 0 ? total : null;
 }
 
-// Star Talents (compute 15): max-across-chars of (level-1 + sum_skills_1_9 - 3
+// Star Talents (compute 15): the played char's (level-1 + sum_skills_1_9 - 3
 // + per-char talent bonuses + account-wide bonuses).
 //
 // We port the high-impact pieces of IT's calcTotalStarTalent:
@@ -1070,14 +1101,7 @@ function shinyStarTalentPetBonus(d: D): number {
   if (!Array.isArray(w2Progress)) return 0;
   const progress = num((w2Progress as unknown[])[11]);
   if (progress <= 0) return 0;
-  let shinyLv = 0;
-  for (let i = 0; i < 19; i++) {
-    if (progress > Math.floor((1 + Math.pow(i + 1, 1.6)) * Math.pow(1.7, i + 1))) {
-      shinyLv = i + 2;
-    }
-  }
-  if (shinyLv === 0) shinyLv = 1;
-  return Math.round(2 * shinyLv);
+  return Math.round(2 * getShinyLevelFromProgress(progress, shinyThresholds(d)));
 }
 
 function calcCardStars(
@@ -1204,8 +1228,20 @@ export function rawStarTalentsProper(d: D): number | null {
     companion +
     shiny;
 
+  // N.js TomeQTY[15] = TotalTalentPoints(...)[5] — the PLAYED character's
+  // star tab (its own Lv0 / talents). The played char is the one with the
+  // latest PTimeAway_N (IT's getBestActiveCharacter); fall back to the best
+  // char when the save carries no away times.
+  let activeChar = -1;
+  let bestAway = 0;
+  for (let c = 0; c < charCount(d); c++) {
+    const away = num(d["PTimeAway_" + c]);
+    if (away > bestAway) { bestAway = away; activeChar = c; }
+  }
+
   let maxPts = 0;
   for (let c = 0; c < charCount(d); c++) {
+    if (activeChar >= 0 && c !== activeChar) continue;
     const lv = d["Lv0_" + c];
     if (!Array.isArray(lv)) continue;
     const charLv = num(lv[0]);
