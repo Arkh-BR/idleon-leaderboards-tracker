@@ -2,9 +2,9 @@
 // imported). The path table lives in topAfkGains.ts and is lazy-loaded.
 // Both auto-refreshed by scripts/update-top-afk.ts.
 
-export const TOP_AFK_GENERATED_AT = "2026-10-28T10:34:54.931Z";
-export const TOP_AFK_PLAYERS_SCANNED = 80;
+export const TOP_AFK_GENERATED_AT = "2026-10-29T22:20:09.435Z";
+export const TOP_AFK_PLAYERS_SCANNED = 88;
 // Best AFK Gains Rate a single CLASS's best-of-each-source build reaches.
-export const TOP_AFK_HYPOTHETICAL_TOTAL = 2704.2837721751716;
+export const TOP_AFK_HYPOTHETICAL_TOTAL = 2988.9509696874816;
 // Highest AFK Gains Rate of a single real player, for context.
-export const TOP_AFK_BEST = {"player":"Arlong","char":"Arlong","total":2359.1194186679977};
+export const TOP_AFK_BEST = {"player":"Arlong","char":"Arlong","total":2474.4476548945345};

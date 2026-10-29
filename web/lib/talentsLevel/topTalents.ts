@@ -13,13 +13,13 @@
 // default tree (they would all resolve to identical numbers anyway).
 // Auto-refreshed by scripts/update-top-talents.ts.
 //
-// Snapshot generated: 2026-10-28T10:44:05.587Z
-// Players scanned: 78
+// Snapshot generated: 2026-10-29T22:32:30.735Z
+// Players scanned: 84
 
 import type { ArkhNode } from "../arkh/node";
 
-export const HYPO_TALENTS_GENERATED_AT = "2026-10-28T10:44:05.587Z";
-export const HYPO_TALENTS_PLAYERS_SCANNED = 78;
+export const HYPO_TALENTS_GENERATED_AT = "2026-10-29T22:32:30.735Z";
+export const HYPO_TALENTS_PLAYERS_SCANNED = 84;
 
 export const HYPO_DEFAULT_TREE: ArkhNode = {
   "name": "Effective Level",
@@ -33,7 +33,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
           "name": "Points Invested",
           "val": 441,
           "fmt": "raw",
-          "note": "actual save — owner: MeatyTrap"
+          "note": "actual save — owner: GoddessFreia"
         },
         {
           "name": "Max Book Lv Cap",
@@ -155,7 +155,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                     }
                   ],
                   "fmt": "raw",
-                  "note": "4 raw × 3.5× Base = 14.00  →  then × 1.95× Higher Bonus × 3.02× Winner = 82.45"
+                  "note": "4 raw × 3.5× Base = 14.00  →  then × 1.95× Higher Bonus × 3.52× Winner = 96.10"
                 },
                 {
                   "name": "Higher Bonus Multi",
@@ -245,7 +245,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
         }
       ],
       "fmt": "raw",
-      "note": "min(invested, cap) — owner: MeatyTrap"
+      "note": "min(invested, cap) — owner: GoddessFreia"
     },
     {
       "name": "Bonus Levels",
@@ -263,7 +263,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                   "name": "Points Invested",
                   "val": 441,
                   "fmt": "raw",
-                  "note": "actual save — owner: MeatyTrap"
+                  "note": "actual save — owner: GoddessFreia"
                 },
                 {
                   "name": "Max Book Lv Cap",
@@ -385,7 +385,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                             }
                           ],
                           "fmt": "raw",
-                          "note": "4 raw × 3.5× Base = 14.00  →  then × 1.95× Higher Bonus × 3.02× Winner = 82.45"
+                          "note": "4 raw × 3.5× Base = 14.00  →  then × 1.95× Higher Bonus × 3.52× Winner = 96.10"
                         },
                         {
                           "name": "Higher Bonus Multi",
@@ -475,7 +475,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                 }
               ],
               "fmt": "raw",
-              "note": "min(invested, cap) — owner: MeatyTrap"
+              "note": "min(invested, cap) — owner: GoddessFreia"
             }
           ],
           "fmt": "raw",
@@ -498,13 +498,13 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                   "name": "Char 4 Lv",
                   "val": 1965,
                   "fmt": "raw",
-                  "note": "MeatyChop — elemental sorcerer (cls 34)"
+                  "note": "llasoaola — elemental sorcerer (cls 34)"
                 },
                 {
-                  "name": "Char 10 Lv",
-                  "val": 1969,
+                  "name": "Char 7 Lv",
+                  "val": 1923,
                   "fmt": "raw",
-                  "note": "MeatyEleven — elemental sorcerer (cls 34)"
+                  "note": "Stanflandala — elemental sorcerer (cls 34)"
                 }
               ],
               "fmt": "raw",
@@ -512,7 +512,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
             },
             {
               "name": "Family Guy Multi (×) — potential buff",
-              "val": 1.357492029755579,
+              "val": 1.3575371549893842,
               "children": [
                 {
                   "name": "Base Level",
@@ -648,7 +648,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                                 }
                               ],
                               "fmt": "raw",
-                              "note": "4 raw × 3.5× Base = 14.00  →  then × 1.95× Higher Bonus × 3.02× Winner = 82.45"
+                              "note": "4 raw × 3.5× Base = 14.00  →  then × 1.95× Higher Bonus × 3.52× Winner = 96.10"
                             },
                             {
                               "name": "Higher Bonus Multi",
@@ -743,7 +743,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                 },
                 {
                   "name": "Bonus Levels",
-                  "val": 275,
+                  "val": 276,
                   "fmt": "+",
                   "note": "Σ ATL (unbuffed FB68, excl. super)"
                 },
@@ -980,7 +980,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
             "name": "Points Invested",
             "val": 441,
             "fmt": "raw",
-            "note": "actual save — owner: MeatyTrap"
+            "note": "actual save — owner: GoddessFreia"
           },
           {
             "name": "Max Book Lv Cap",
@@ -1102,7 +1102,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                       }
                     ],
                     "fmt": "raw",
-                    "note": "4 raw × 3.5× Base = 14.00  →  then × 1.95× Higher Bonus × 3.02× Winner = 82.45"
+                    "note": "4 raw × 3.5× Base = 14.00  →  then × 1.95× Higher Bonus × 3.52× Winner = 96.10"
                   },
                   {
                     "name": "Higher Bonus Multi",
@@ -1192,7 +1192,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
           }
         ],
         "fmt": "raw",
-        "note": "min(invested, cap) — owner: MeatyTrap"
+        "note": "min(invested, cap) — owner: GoddessFreia"
       },
       {
         "name": "Bonus Levels",
@@ -1210,7 +1210,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                     "name": "Points Invested",
                     "val": 441,
                     "fmt": "raw",
-                    "note": "actual save — owner: MeatyTrap"
+                    "note": "actual save — owner: GoddessFreia"
                   },
                   {
                     "name": "Max Book Lv Cap",
@@ -1332,7 +1332,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                               }
                             ],
                             "fmt": "raw",
-                            "note": "4 raw × 3.5× Base = 14.00  →  then × 1.95× Higher Bonus × 3.02× Winner = 82.45"
+                            "note": "4 raw × 3.5× Base = 14.00  →  then × 1.95× Higher Bonus × 3.52× Winner = 96.10"
                           },
                           {
                             "name": "Higher Bonus Multi",
@@ -1422,7 +1422,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                   }
                 ],
                 "fmt": "raw",
-                "note": "min(invested, cap) — owner: MeatyTrap"
+                "note": "min(invested, cap) — owner: GoddessFreia"
               }
             ],
             "fmt": "raw",
@@ -1684,7 +1684,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                   },
                   {
                     "name": "Bonus Levels",
-                    "val": 273,
+                    "val": 275,
                     "fmt": "+",
                     "note": "Σ ATL (unbuffed FB68, excl. super)"
                   },
@@ -1940,7 +1940,7 @@ export const STAR_TALENT_CEILING: Readonly<Record<number, number>> = {
   "630": 50,
   "631": 100,
   "632": 100,
-  "633": 101,
+  "633": 100,
   "634": 50,
   "635": 100,
   "636": 101,
@@ -1949,12 +1949,12 @@ export const STAR_TALENT_CEILING: Readonly<Record<number, number>> = {
   "639": 100,
   "640": 101,
   "641": 413,
-  "642": 406,
+  "642": 409,
   "643": 426,
   "644": 405,
   "645": 409,
-  "646": 424,
-  "647": 423,
+  "646": 436,
+  "647": 433,
   "649": 200,
   "650": 200,
   "651": 100,
