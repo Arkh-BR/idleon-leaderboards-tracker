@@ -228,20 +228,21 @@ describe.skipIf(!existsSync(SAVE))("Coin Multi matches the game's Monster Tax re
 
   it("Markhe on Valley of the Beans (map 14)", () => {
     const { total } = computeArkhCoinMulti(save, markheIdx, 14);
-    expect(formatCoinMulti(total)).toBe("6.88E35");
+    // The 2026-10-16 build prints NotateNumber("Big")'s tail with a lowercase e.
+    expect(formatCoinMulti(total)).toBe("6.88e35");
   });
 
   it("Markhe parked in town (map 0) — AFKtarget_N keeps the multikill tier", () => {
     const townSave = JSON.parse(JSON.stringify(save));
     townSave.data["CurrentMap_" + markheIdx] = 0;
     const { total } = computeArkhCoinMulti(townSave, markheIdx, 0);
-    expect(formatCoinMulti(total)).toBe("6.88E35");
+    expect(formatCoinMulti(total)).toBe("6.88e35");
   });
 });
 
 // Spec M5: talent 643's tier measures the target's live HP — the character's
 // prayer curses (MonsterRespawnTimeReset @6466526) and Clamworks' Clamz_HP
-// (@10887166). Markhe carries no curse, so her 6.88E35 above is unchanged.
+// (@10887166). Markhe carries no curse, so her 6.88e35 above is unchanged.
 describe.skipIf(!existsSync(SAVE))("Coin talent 643 — the game's target HP (spec M5)", () => {
   let save: any;
   beforeAll(() => {

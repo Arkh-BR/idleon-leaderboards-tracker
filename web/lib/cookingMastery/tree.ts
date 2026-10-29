@@ -18,6 +18,7 @@ import {
   MASTERY_RANK_REQ,
   EXP_UPGRADE_IDS,
   UPGRADE_NAMES,
+  type ExternalBreakdown,
   type MasteryInputs,
 } from "../arkh/stats/systems/common/cookingMastery";
 import type { SaveData } from "../arkh/state";
@@ -51,7 +52,7 @@ function baseNote(b: number, inp: MasteryInputs): string {
 
 export function expRateTree(s: SaveData): ArkhNode {
   const inp = readMasteryInputs(s);
-  const ext = externalExpMulti(s);
+  const ext: ExternalBreakdown & { menagerieBoost21?: number } = externalExpMulti(s);
   const core = expRateCore(inp, inp.purple);
   const total = core * ext.val;
 
@@ -104,6 +105,16 @@ export function expRateTree(s: SaveData): ArkhNode {
         ? `+${ext.fountainCookMaxxing.toFixed(0)}%`
         : "not owned",
     }),
+    // ExpRateCook ×(1 + MenagerieStuff("BoostQTY",21)/100) (2026-10-16). Listed
+    // once externalExpMulti reports it, so the children always multiply to ext.val.
+    ...(ext.menagerieBoost21 === undefined
+      ? []
+      : [
+          node("Menagerie Boost: Cooking Mastery EXP (#21)", 1 + ext.menagerieBoost21 / 100, null, {
+            fmt: "x",
+            note: ext.menagerieBoost21 ? `+${ext.menagerieBoost21}%` : "not upgraded",
+          }),
+        ]),
     node(
       "Vial + Arcade + Salt Lick",
       1 + slSum / 100,

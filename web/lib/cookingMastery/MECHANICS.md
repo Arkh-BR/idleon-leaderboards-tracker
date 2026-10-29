@@ -27,6 +27,7 @@ No save bruto a chave é `CookMaster` (lista JSON). Carregado via `getLoadJsonLi
   *(1+Summoning2("BonusAmountcook",0,99)/100)   // b=0 Ladle
   *(1+Summoning2("BonusAmountcook",1,99)/100)   // b=1 Account Cooking LV
   *(1+Summoning2("BonusAmountcook",2,99)/100)   // b=2 Divorce Cake Level
+  *(1+MenagerieStuff("BoostQTY",21,0)/100)     // Menagerie Boost 21 (2026-10-16): Research[58][21]=1 × Menagerie[3][21]
   *(1+Summoning2("BonusAmountcook",4,99)/100)   // b=4 total Ribbon Ranks
   *(1+ResearchStuff("Grid_Bonus",190,0)/100)    // Research Grid K3 (Masterius_Cookerius)
   *(1+40*GamingStatType("SuperBitType",68,0)/100) // Zuperbit upg 68
@@ -117,6 +118,7 @@ para a Exp/h absoluta. Validados a **0.08%** contra um save real (Exp/h in-game 
 | Vial Canteen Read | `AlchVials["7cookmastery"]` | `computeVialByKey("7cookmastery", s)` (w2/alchemy) |
 | Arcade 69 | `ArcadeBonus(69)` | `arcadeBonus(69, s)` (w2/arcade) |
 | Salt Lick 10 (Refinery6) | `SaltLick(10) = SaltLick[10]·SaltLicks[10][3]` | inline (linear) |
+| Menagerie Boost 21 (2026-10-16) | `MenagerieStuff("BoostQTY",21,0)` | `menagerieBoostQTY(21, s)` (w7/menagerie) |
 
 **SuperBitType / Number2Letter:** `SuperBitType(b) = Gaming[12].indexOf(Number2Letter[b]) != -1`.
 `Number2Letter` é um GameAttribute default do runtime Stencyl — **não existe como texto no bundle

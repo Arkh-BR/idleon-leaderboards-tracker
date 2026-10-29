@@ -14,9 +14,8 @@ import { pristineBon } from "../w5/pristine";
 import { getSetBonus } from "../w3/setBonus";
 import { vaultUpgBonus } from "../common/vault";
 import { mainframeBonus } from "../w4/lab";
-import { legendPTSbonus } from "../w7/spelunking";
-import { exoticParams } from "../../data/w5/farming";
-import { paletteParams } from "../../data/w4/gaming";
+import { computePaletteBonus, legendPTSbonus } from "../w7/spelunking";
+import { exoticBonusQTY } from "../../data/w5/farming";
 import { compassUpgPerLevel } from "../../data/common/compass";
 import { rogBonusQTY } from "../w7/sushi";
 import { jellyLabel, jellyRoGBonus } from "../../data/w7/jelly";
@@ -52,32 +51,11 @@ export function computeStampDoublerSources(saveData: SaveData): { total: number;
   const emperorSet = getSetBonus("EMPEROR_SET").val;
   const evShop18 = 20 * eventShopOwned(18, saveData.cachedEventShopStr);
 
-  const paletteLv =
-    (saveData.spelunkData &&
-      saveData.spelunkData[9] &&
-      Number((saveData.spelunkData[9] as any)[23])) ||
-    0;
-  const pal23 = paletteParams(23);
-  const palRaw23 =
-    paletteLv > 0 ? (paletteLv / (paletteLv + pal23.denom)) * pal23.coeff : 0;
-  const palLegendMulti = 1 + legendPTSbonus(10, saveData) / 100;
-  const loreFlag8 =
-    Number(
-      (saveData.spelunkData &&
-        saveData.spelunkData[0] &&
-        (saveData.spelunkData[0] as any)[8]) ||
-        0
-    ) >= 1
-      ? 1
-      : 0;
-  const palLoreMulti = 1 + 0.5 * loreFlag8;
-  const palette23 = palRaw23 * palLegendMulti * palLoreMulti;
+  const palette23 = computePaletteBonus(23, saveData);
+  const paletteLv = Number((saveData.spelunkData as any)?.[9]?.[23]) || 0;
 
-  const ex49 = exoticParams(49);
-  const exoticLv =
-    (saveData.farmUpgData && Number((saveData.farmUpgData as any)[ex49.farmSlot])) || 0;
-  const exotic49 =
-    exoticLv > 0 ? (ex49.base * exoticLv) / (ex49.denom + exoticLv) : 0;
+  const exotic49 = exoticBonusQTY(49, saveData);
+  const exoticLv = Number((saveData.farmUpgData as any)?.[20 + 49]) || 0;
 
   const spelunk43 = Math.round(
     Number(

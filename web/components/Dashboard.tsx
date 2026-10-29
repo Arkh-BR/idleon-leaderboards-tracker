@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import type { BoardResult } from "@/app/api/leaderboards/route";
 import { formatIdleon, formatPct } from "@/lib/format";
+import { CATEGORIES } from "@/lib/registry";
 import { rankBgClass, tierOf, TIER_LABELS, TIER_COLORS, type Tier } from "@/lib/rank";
 import { netRankMovement, type BoardDelta } from "@/lib/lbSnapshot";
 
@@ -25,15 +26,8 @@ const TIERS: Tier[] = [
   "rank500plus",
 ];
 
-const CATEGORIES_ORDER = [
-  "Global",
-  "General",
-  "Tasks",
-  "Skills",
-  "Character",
-  "Misc",
-  "Caverns",
-];
+// Category labels in IT's API order, straight from the registry.
+const CATEGORIES_ORDER = CATEGORIES.map((c) => c.label);
 
 export default function Dashboard({
   boards,

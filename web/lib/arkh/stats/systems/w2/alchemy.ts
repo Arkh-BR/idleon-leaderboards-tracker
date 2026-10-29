@@ -16,9 +16,8 @@ import { vaultUpgBonus } from "../common/vault";
 import { arcaneUpgBonus } from "../mc/tesseract";
 import { computeMeritocBonusz } from "../w7/meritoc";
 import { arcadeBonus } from "./arcade";
-import { legendPTSbonus } from "../w7/spelunking";
-import { paletteParams } from "../../data/w4/gaming";
-import { exoticParams } from "../../data/w5/farming";
+import { computePaletteBonus, legendPTSbonus } from "../w7/spelunking";
+import { exoticBonusQTY } from "../../data/w5/farming";
 import { sigilTiers, sigilCodename } from "../../data/common/sigils";
 import { rogBonusQTY } from "../w7/sushi";
 import { bubbleParams } from "../../data/w2/alchemy";
@@ -78,6 +77,8 @@ export function isActiveBubbleOn(
   return Array.isArray(equipped) && equipped.includes(N2L[cauldron] + bubbleIdx);
 }
 
+const PRISMA_CAP = 5;
+
 export function getPrismaBonusMult(saveData: SaveData): number {
   const arcane45 = arcaneUpgBonus(45, saveData);
   const arcade54 = arcadeBonus(54, saveData).val;
@@ -89,22 +90,7 @@ export function getPrismaBonusMult(saveData: SaveData): number {
   )
     ? 10
     : 0;
-  const palLv = Number(
-    (saveData.spelunkData &&
-      (saveData.spelunkData[9] as any)?.[28]) ||
-      0
-  );
-  const pal28 = paletteParams(28) as any;
-  const palRaw = palLv > 0 ? (palLv / (palLv + pal28.denom)) * pal28.coeff : 0;
-  const palLegendMulti = 1 + legendPTSbonus(10, saveData) / 100;
-  const loreFlag8 =
-    Number(
-      (saveData.spelunkData && (saveData.spelunkData[0] as any)?.[8]) || 0
-    ) >= 1
-      ? 1
-      : 0;
-  const palLoreMulti = 1 + 0.5 * loreFlag8;
-  const palette28 = palRaw * palLegendMulti * palLoreMulti;
+  const palette28 = computePaletteBonus(28, saveData);
   let purpleSigils = 0;
   const sigArr =
     saveData.cauldronP2WData && (saveData.cauldronP2WData[4] as any[]);
@@ -113,9 +99,7 @@ export function getPrismaBonusMult(saveData: SaveData): number {
       if (Number((sigArr as any)[1 + 2 * si]) >= 3) purpleSigils++;
     }
   }
-  const ex48 = exoticParams(48);
-  const exLv = Number((saveData.farmUpgData as any)?.[ex48.farmSlot]) || 0;
-  const exotic48 = exLv > 0 ? (ex48.base * exLv) / (ex48.denom + exLv) : 0;
+  const exotic48 = exoticBonusQTY(48, saveData);
   const legend36 = legendPTSbonus(36, saveData);
   // N.js: 50·Companions(88) — the CompanionBon value, so Rift4 at stage 2
   // (CompanionDB[88][11] = 1.5) contributes 75, not 50.
@@ -138,7 +122,8 @@ export function getPrismaBonusMult(saveData: SaveData): number {
     exotic48 +
     legend36 +
     50 * comp88;
-  return Math.min(4, 2 + sum / 100);
+  // @njs PrismaBonusMult — cap raised 4 → 5 in 2.3.550 (2026-10-22).
+  return Math.min(PRISMA_CAP, 2 + sum / 100);
 }
 
 export function bubbleBonusY13(saveData: SaveData): number {
@@ -176,7 +161,7 @@ export const alchemy = {
     ];
     if (isPrisma) {
       children.push(
-        node("Prisma Bonus", prismaMult, null, { fmt: "x", note: "cap 4" })
+        node("Prisma Bonus", prismaMult, null, { fmt: "x", note: "cap " + PRISMA_CAP })
       );
     }
     return node(label("Bubble", bubbleId), val, children, {

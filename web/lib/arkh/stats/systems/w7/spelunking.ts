@@ -106,7 +106,15 @@ export function computePaletteBonus(paletteIdx: number, saveData: SaveData): num
       ? 1
       : 0;
   const palLoreMulti = 1 + 0.5 * loreFlag8;
-  return raw * palLegendMulti * palLoreMulti;
+  return raw * palLegendMulti * paletteBlackStarMulti(paletteIdx, saveData) * palLoreMulti;
+}
+
+// @njs PaletteBonus
+/** Black stars placed on a palette hexagon (Spelunk[49][g], 2026-10-16
+ *  Menagerie): ×max(1, 1 + (bs + floor(bs/2))). */
+export function paletteBlackStarMulti(paletteIdx: number, saveData: SaveData): number {
+  const bs = Number((saveData.spelunkData as any)?.[49]?.[paletteIdx]) || 0;
+  return Math.max(1, 1 + (bs + Math.floor(bs / 2)));
 }
 
 export const palette = {

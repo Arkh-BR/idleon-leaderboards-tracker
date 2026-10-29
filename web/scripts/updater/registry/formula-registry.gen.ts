@@ -23,6 +23,10 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/arkh/stats/systems/coin/divinityMinor.ts",
     "lib/arkh/stats/systems/exp/exp.ts"
   ],
+  "BoostQTY": [
+    "lib/arkh/stats/data/w7/menagerie.ts",
+    "lib/arkh/stats/systems/exp/exp.ts"
+  ],
   "Button_Bonuses": [
     "lib/arkh/stats/systems/exp/exp.ts"
   ],
@@ -61,6 +65,7 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/arkh/stats/systems/coin/divinityMinor.ts"
   ],
   "ExoticBonusQTY": [
+    "lib/arkh/stats/data/w5/farming.ts",
     "lib/arkh/stats/systems/exp/exp.ts"
   ],
   "Fountain_BonTOT": [
@@ -135,11 +140,21 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/arkh/stats/defs/multikill.ts",
     "lib/arkh/stats/systems/multikill/multikill.ts"
   ],
+  "ObolMISCmulti": [
+    "lib/arkh/stats/data/w7/menagerie.ts"
+  ],
   "OverkillQTY": [
     "lib/arkh/stats/systems/coin/gambit.ts"
   ],
   "OverkillStuffs": [
     "lib/arkh/stats/systems/common/overkill.ts"
+  ],
+  "PaletteBonus": [
+    "lib/arkh/stats/systems/w7/spelunking.ts"
+  ],
+  "PetArenaCrucBonus": [
+    "lib/arkh/stats/systems/exp/exp.ts",
+    "lib/arkh/stats/systems/exp/petArenaCruc.ts"
   ],
   "PocketDivOwned": [
     "lib/arkh/stats/systems/coin/divinityMinor.ts"
@@ -147,7 +162,13 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   "PodiumsOwned_Lv4": [
     "lib/arkh/stats/systems/w7/gallery.ts"
   ],
+  "PrismaBonusMult": [
+    "lib/arkh/stats/systems/w2/alchemy.ts"
+  ],
   "PtsLeftCook_P": [
+    "lib/arkh/stats/systems/common/cookingMastery.ts"
+  ],
+  "PtsLeftCook_Y": [
     "lib/arkh/stats/systems/common/cookingMastery.ts"
   ],
   "RandoListo2[8]": [
@@ -166,6 +187,9 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   "ShinyBonusS": [
     "lib/arkh/stats/systems/exp/exp.ts"
   ],
+  "SpecialPassives": [
+    "lib/arkh/stats/systems/w4/breeding.ts"
+  ],
   "StatueBon": [
     "lib/arkh/stats/data/w7/royalG.ts",
     "lib/arkh/stats/systems/exp/exp.ts"
@@ -182,6 +206,9 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   ],
   "TotalTitanKills": [
     "lib/arkh/stats/systems/exp/exp.ts"
+  ],
+  "UnlockOwned": [
+    "lib/arkh/stats/data/w7/menagerie.ts"
   ],
   "VaultKillzTotal": [
     "lib/arkh/stats/systems/coin/accountKills.ts"
@@ -221,6 +248,9 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   "_customBlock_JellyOperation": [
     "lib/arkh/stats/data/w7/jelly.ts"
   ],
+  "_customBlock_NotateNumber": [
+    "lib/coinMulti/format.ts"
+  ],
   "_customBlock_SaltLick": [
     "lib/arkh/stats/systems/exp/saltLick.ts"
   ],
@@ -232,5 +262,8 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   ],
   "_customBlock_prayersReal": [
     "lib/arkh/stats/systems/w3/prayer.ts"
+  ],
+  "_customBlock_totalcointypes": [
+    "lib/coinMulti/wallet.ts"
   ]
 };

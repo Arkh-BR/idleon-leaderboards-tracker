@@ -22,10 +22,8 @@ describe.skipIf(!existsSync(CACHE))("card resolver catalog", () => {
     expect(cardRows(10)).toHaveLength(Object.keys(CARD_DR_BONUS).length);
   });
 
-  it("drops unreleased placeholder multi cards (ExpGiven ≤ 1)", () => {
+  it("lists every multi DR card once all are released (Ancientfish / Magni Pufferfin, 2026-10-16)", () => {
     loadSaveData(JSON.parse(readFileSync(CACHE, "utf8")));
-    // 2 released of 4 total (Ancientfish/Magni filtered)
-    expect(cardRows(101).length).toBeLessThan(Object.keys(CARD_DR_MULTI).length);
-    expect(cardRows(101).length).toBeGreaterThan(0);
+    expect(cardRows(101)).toHaveLength(Object.keys(CARD_DR_MULTI).length);
   });
 });

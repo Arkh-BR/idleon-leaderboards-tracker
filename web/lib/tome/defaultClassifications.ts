@@ -135,4 +135,6 @@ export const DEFAULT_CLASSIFICATIONS: Readonly<Record<string, number | null>> = 
   "Unique Sushi Created": 3,
   "Button Presses": 3,
   "Successful Jelly Operations": 3,
+  "Luminous Menagerie Rank": 3,
+  "Total Menagerie Boosts Upg LV": 3,
 };

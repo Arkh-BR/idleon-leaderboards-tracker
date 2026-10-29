@@ -107,7 +107,7 @@ function computeRawValue(
     case 14: return O(opt, 172, out);
     case 15: {
       const v = ex.rawStarTalentsProper(data);
-      return v !== null ? R(out, "max(charLv-1+skillSum1-9-3)", v) : null;
+      return v !== null ? R(out, "played char: charLv-1+skillSum1-9-3+…", v) : null;
     }
     case 16: {
       const s = O(opt, 202, out);
@@ -494,6 +494,9 @@ function computeRawValue(
       const v = ex.rawJellyOperations(data);
       return v !== null ? R(out, "raw.Research[7][9]", v) : null;
     }
+    // Luminous Menagerie (2026-10-16).
+    case 122: return R(out, "raw.Menagerie[0][2]", ex.rawMenagerieRank(data));
+    case 123: return R(out, "raw.Menagerie[3] sum", ex.rawMenagerieBoostLv(data));
     default: return null;
   }
 }

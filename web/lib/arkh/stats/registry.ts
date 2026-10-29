@@ -45,6 +45,7 @@ import { glimbo, workshop, eventShop } from "./systems/common/wrappers";
 import { lukScaling } from "./systems/common/stats";
 import { button } from "./systems/w7/button";
 import { royalStatue, royalGrade } from "./systems/w7/royalG";
+import { menagerieBoost } from "./systems/w7/menagerie";
 import { familyBonus } from "./systems/common/familyBonus";
 import { coin } from "./systems/coin/coin";
 import { exp } from "./systems/exp/exp";
@@ -127,6 +128,7 @@ const _systems: Record<string, SystemResolver> = {
   lukScaling: lukScaling as unknown as SystemResolver,
   button: button as unknown as SystemResolver,
   royalStatue: royalStatue as unknown as SystemResolver,
+  menagerieBoost: menagerieBoost as unknown as SystemResolver,
   royalGrade: royalGrade as unknown as SystemResolver,
   familyBonus: familyBonus as unknown as SystemResolver,
   coin: coin as unknown as SystemResolver,

@@ -49,7 +49,8 @@ import { computeShrine } from "../w3/construction";
 import { getSetBonus } from "../w3/setBonus";
 import { holes, computeMonumentROGbonus } from "../w5/hole";
 import { computeWinBonus } from "../w6/summoning";
-import { computeExoticBonus } from "../w6/farming";
+import { exoticBonusQTY, exoticDoubled } from "../../data/w5/farming";
+import { menagerieBoost } from "../w7/menagerie";
 import { grimoireUpgBonus } from "../mc/grimoire";
 import { computeButtonBonus } from "../w7/button";
 import { divinityMinorFor } from "../coin/divinityMinor";
@@ -64,6 +65,7 @@ import { bubbaRoGBonus, bubbaRoGAll, bubbaRoGTiers } from "./bubba";
 import { totalFoodBonuses, foodSlotsOwned } from "./food";
 import { saltLick, saltLickLevel } from "./saltLick";
 import { msaClassExp, msaTotalWaves } from "./msa";
+import { petArenaCrucBonus, arenaCrucTier, arenaCrucWave } from "./petArenaCruc";
 
 /** Class talents in the EXP formula (read from the active character).
  *  55/328/429/434 are account-wide (getbonus2), 632 is a star talent. */
@@ -197,6 +199,20 @@ function resolveExp(id: string, ctx: SystemCtx): ArkhNode {
     case "comp168": {
       const n = Number(id.slice(4));
       return factor(label("Companion", n), 1 + COMP_COEF[id] * companions(n, s));
+    }
+    // @njs PetArenaCrucBonus — N.js (1+.2·Breeding("PetArenaCrucBonus","0",15,0))
+    // (2026-10-16, petArenaCruc.ts): ×1.2 once the Crucible's 16th wave is cleared.
+    case "arenaCruc15": {
+      const on = petArenaCrucBonus(15, s);
+      return factor("Pet Arena Crucible bonus 15 (×1.2)", 1 + 0.2 * on, [
+        raw("Crucible best wave (OLA[628])", arenaCrucWave()),
+        raw("Crucible waves cleared", arenaCrucTier(s)),
+      ]);
+    }
+    // @njs BoostQTY — N.js (1+MenagerieStuff("BoostQTY",23,0)/100) (2026-10-16).
+    case "menagerie23": {
+      const m = menagerieBoost.resolve(23, ctx as any);
+      return factor(m.name, 1 + Number(m.val) / 100, m.children);
     }
     // @njs RoG_BonusQTY — (1+JellyOperation("RoG_BonusQTY",n,0)/100)
     case "jelly30":
@@ -342,21 +358,17 @@ function resolveExp(id: string, ctx: SystemCtx): ArkhNode {
       return factor(r.name, 1 + Number(r.val) / 100, r.children);
     }
     // @njs MeritocBonusz — max(1, pow(1.03,Spelunk[6].length)·SuperBitType(24)·
-    //   (1+Meritoc2("MeritocBonusz",27,0)/100)·(1+max(0,5·(OLA[464]-8))/100))
+    //   (1+Meritoc2("MeritocBonusz",27,0)/100)). The 2026-10-16 build dropped
+    //   the (1+max(0,5·(OLA[464]-8))/100) factor.
     case "classy": {
       const n = arrCount((s.spelunkData as any)?.[6]);
       const bit24 = superBitType(24, (s.gamingData as any)?.[12]);
       const meritoc27 = computeMeritocBonusz(27, s);
-      const o464 = ola(464);
-      const val = Math.max(
-        1,
-        Math.pow(1.03, n) * bit24 * (1 + meritoc27 / 100) * (1 + Math.max(0, 5 * (o464 - 8)) / 100)
-      );
+      const val = Math.max(1, Math.pow(1.03, n) * bit24 * (1 + meritoc27 / 100));
       return factor("Classy Discoveries", val, [
         raw("Spelunk[6].length", n),
         raw("Super Bit 24", bit24),
         raw("Meritoc 27", meritoc27),
-        raw("OLA[464]", o464),
       ]);
     }
     // N.js EtcBonuses("78")
@@ -608,9 +620,10 @@ function resolveExp(id: string, ctx: SystemCtx): ArkhNode {
       const r = getSetBonus("IRON_SET");
       return pct("Iron Set", r.val, r.children);
     }
-    // @njs ExoticBonusQTY — N.js FarmingStuffs("ExoticBonusQTY",50,0)
+    // @njs ExoticBonusQTY — N.js FarmingStuffs("ExoticBonusQTY",50,0), ×2 when
+    // a Menagerie doubler sits on it (Spelunk[50], 2026-10-16).
     case "exotic50":
-      return pct("Exotic Market 50", computeExoticBonus(50, s));
+      return pct("Exotic Market 50", exoticBonusQTY(50, s), [raw("Menagerie doubler", exoticDoubled(50, s) ? 1 : 0)]);
     // N.js OptionsListAccount[421]
     case "ola421":
       return pct("Account Option 421", ola(421));

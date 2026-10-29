@@ -25,7 +25,7 @@ export const EXP_GROUPS: readonly StatGroup[] = [
     kind: "mult",
     max1: true,
     sources: [
-      "comp37", "comp33", "comp160", "comp32", "comp168", "comp34", "comp145", "jelly30",
+      "comp37", "comp33", "comp160", "comp32", "arenaCruc15", "menagerie23", "comp168", "comp34", "comp145", "jelly30",
       "jelly62", "comp128", "gridExp", "sticker0", "superbit63", "zenith9", "comp50",
     ],
   },

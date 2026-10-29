@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import type { BoardResult } from "@/app/api/leaderboards/route";
 import { formatIdleon, formatPct } from "@/lib/format";
+import { CATEGORIES } from "@/lib/registry";
 import { rankBgClass } from "@/lib/rank";
 import type { BoardDelta } from "@/lib/lbSnapshot";
 
@@ -23,16 +24,7 @@ type Props = {
   deltas?: Record<string, BoardDelta>;
 };
 
-const CATEGORY_OPTIONS = [
-  "All",
-  "Global",
-  "General",
-  "Tasks",
-  "Skills",
-  "Character",
-  "Misc",
-  "Caverns",
-];
+const CATEGORY_OPTIONS = ["All", ...CATEGORIES.map((c) => c.label)];
 
 export default function LeaderboardsTable({ boards, deltas = {} }: Props) {
   const [category, setCategory] = useState("All");
@@ -186,7 +178,7 @@ export default function LeaderboardsTable({ boards, deltas = {} }: Props) {
               ? "border-gold/50 text-gold bg-gold/10 cursor-default"
               : "border-zinc-700 text-zinc-300 hover:border-gold hover:text-gold"
           }`}
-          title="Restore IT's curated order — tabs (Global → General → Tasks → Skills → Character → Misc → Caverns), boards in their canonical sequence within each."
+          title={`Restore IT's curated order — tabs (${CATEGORIES.map((c) => c.label).join(" → ")}), boards in their canonical sequence within each.`}
         >
           🎯 Smart sort
         </button>

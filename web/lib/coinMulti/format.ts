@@ -3,7 +3,10 @@
 
 import { getLOG } from "@/lib/arkh/formulas";
 
-/** N.js NotateNumber(d, "Big"): the generic ladder (ceil), then E-notation. */
+// @njs _customBlock_NotateNumber
+/** N.js NotateNumber(d, "Big"): the generic ladder (ceil), then e-notation.
+ *  Since 2026-10-16 the default tail prints a lowercase "e" (the uppercase
+ *  "E" form moved to the new "LargeE" format, only the Menagerie uses it). */
 export function notateBig(d: number): string {
   if (d < 1e3) return `${Math.floor(d)}`;
   if (d < 1e4) return `${Math.ceil(d / 10) / 100}K`;
@@ -25,7 +28,7 @@ export function notateBig(d: number): string {
   if (d < 1e20) return `${Math.ceil(d / 1e17) / 10}QQ`;
   if (d < 1e21) return `${Math.ceil(d / 1e18)}QQ`;
   const e = Math.floor(getLOG(d));
-  return `${Math.floor((d / Math.pow(10, e)) * 100) / 100}E${e}`;
+  return `${Math.floor((d / Math.pow(10, e)) * 100) / 100}e${e}`;
 }
 
 /** N.js NotateNumber(d, "MultiplierInfo") without its "#" placeholder. */
