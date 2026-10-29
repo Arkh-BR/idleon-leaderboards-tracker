@@ -11,6 +11,7 @@ import { computeArcaneMapMultiBon } from "../../../lib/arkh/stats/systems/mc/tes
 import { getPrismaBonusMult } from "../../../lib/arkh/stats/systems/w2/alchemy";
 import { arcadeMaxedMulti, comp27Multi } from "../../../lib/arkh/stats/systems/w2/arcade";
 import { MENAGERIE_BOOST_PER_LV, menagerieBoostQTY } from "../../../lib/arkh/stats/data/w7/menagerie";
+import { exoticBonusQTY } from "../../../lib/arkh/stats/data/w5/farming";
 import { podiumsOwnedLv2 } from "../../../lib/arkh/stats/systems/w7/gallery";
 import { cookingMealMulti } from "../../../lib/arkh/stats/systems/common/cooking";
 import {
@@ -474,6 +475,28 @@ export const CASES: GoldenCase[] = [
     run: () => {
       const inp: any = { rank: 10, comp87: 0, evShop54: false, jelly13: 0, jelly5: 1, researchGridYellow: 0 };
       return yellowTotal(inp) === 12 && purpleTotal(inp) === 11;
+    },
+  },
+  {
+    name: "Exotic Market doubler: Spelunk[50] lists the exotic → ×2 (Land Rank DR reads exotic 14)",
+    note: "N.js ExoticBonusQTY: D.contains(Spelunk[50],e) && ExoticFarmBon[e] *= 2; LankRankUpgBonus ×(1+ExoticBonusQTY(14)/100)",
+    run: () => {
+      const prevFarm = saveData.farmUpgData;
+      const prevSpel = saveData.spelunkData;
+      try {
+        const farm = new Array(80).fill(0);
+        farm[34] = 1000; // exotic 14 at Lv 1000 → 60 × 1000/2000 = 30
+        saveData.farmUpgData = farm;
+        saveData.spelunkData = [];
+        const plain = exoticBonusQTY(14, saveData);
+        const spel = [] as any[];
+        spel[50] = [14];
+        saveData.spelunkData = spel;
+        return near(plain, 30) && near(exoticBonusQTY(14, saveData), 60);
+      } finally {
+        saveData.farmUpgData = prevFarm;
+        saveData.spelunkData = prevSpel;
+      }
     },
   },
   {

@@ -110,6 +110,7 @@ import { computeArtifactBonus } from "../w5/sailing";
 import { computeAllShimmerBonuses } from "../w3/equinox";
 import { computePaletteBonus } from "../w7/spelunking";
 import { menagerieObolMiscMulti } from "../../data/w7/menagerie";
+import { exoticBonusQTY } from "../../data/w5/farming";
 import { jellyRoGBonus } from "../../data/w7/jelly";
 import { royalStatueBon } from "../../data/w7/royalG";
 import { computeMeritocBonusz } from "../w7/meritoc";
@@ -769,7 +770,7 @@ export function computeMaxDamage(charIdx: number, ctx: Ctx): number {
     tomeBonus0 = tome.resolve(0, ctx as any).val || 0;
   } catch {}
   const compassBonus48 = safe(computeCompassBonus, 48, s);
-  const exotic41 = 0; // [STUB] computeExoticBonus(41) — W6 farming exotic dmg unported
+  const exotic41 = safe(exoticBonusQTY, 41, s); // FarmingStuffs("ExoticBonusQTY",41) — Briar Patch
   const ola419 = Number((optionsListData as any)[419]) || 0;
   const _grp3Sum =
     riftETC0 +

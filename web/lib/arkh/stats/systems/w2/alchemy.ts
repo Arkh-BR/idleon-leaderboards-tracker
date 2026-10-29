@@ -77,6 +77,8 @@ export function isActiveBubbleOn(
   return Array.isArray(equipped) && equipped.includes(N2L[cauldron] + bubbleIdx);
 }
 
+const PRISMA_CAP = 5;
+
 export function getPrismaBonusMult(saveData: SaveData): number {
   const arcane45 = arcaneUpgBonus(45, saveData);
   const arcade54 = arcadeBonus(54, saveData).val;
@@ -120,7 +122,8 @@ export function getPrismaBonusMult(saveData: SaveData): number {
     exotic48 +
     legend36 +
     50 * comp88;
-  return Math.min(4, 2 + sum / 100);
+  // @njs PrismaBonusMult — cap raised 4 → 5 in 2.3.550 (2026-10-22).
+  return Math.min(PRISMA_CAP, 2 + sum / 100);
 }
 
 export function bubbleBonusY13(saveData: SaveData): number {
@@ -158,7 +161,7 @@ export const alchemy = {
     ];
     if (isPrisma) {
       children.push(
-        node("Prisma Bonus", prismaMult, null, { fmt: "x", note: "cap 4" })
+        node("Prisma Bonus", prismaMult, null, { fmt: "x", note: "cap " + PRISMA_CAP })
       );
     }
     return node(label("Bubble", bubbleId), val, children, {

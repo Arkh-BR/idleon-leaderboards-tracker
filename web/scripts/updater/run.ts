@@ -14,11 +14,11 @@
 import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { extractAll, type Item, type Snapshot } from "./extract";
+import { extractAll, extractMonsters, normalizeBundle, type Item, type Monster, type Snapshot } from "./extract";
 import { fetchNjs, normalizeEtag, sha256 } from "./fetch-njs";
 import { diffMaps, diffSets, isMapDiffEmpty, type MapDiff } from "./diff";
 import { fetchSteamNews, newsSince, type SteamNews } from "./steam";
-import { buildItemsFile, buildListsFile } from "./emit-game-data";
+import { buildItemsFile, buildListsFile, buildMonstersFile } from "./emit-game-data";
 import { buildImpactReport } from "./impact";
 import { runCases } from "./golden/cases";
 import { FORMULA_REGISTRY } from "./registry/formula-registry.gen";
@@ -44,22 +44,27 @@ const WRITE_GAME_DATA = args.has("--write-game-data");
 async function writeGameData(
   items: Record<string, Item>,
   lists: Record<string, unknown>,
+  monsters: Record<string, Monster>,
 ): Promise<void> {
   const itemsPath = resolve(GAME_DIR, "items.js");
   const listsPath = resolve(GAME_DIR, "customlists.js");
+  const monstersPath = resolve(GAME_DIR, "monsters.js");
+  const committedMonsters = (await import(pathToFileURL(monstersPath).href)).MONSTERS as Record<string, Monster>;
   const committedItems = (await import(pathToFileURL(itemsPath).href)).ITEMS as Record<string, Item>;
   const listsMod = (await import(pathToFileURL(listsPath).href)) as Record<string, unknown>;
   const committedListsText = readFileSync(listsPath, "utf8");
 
   const it = buildItemsFile(items, committedItems);
   const ls = buildListsFile(lists, committedListsText, listsMod);
+  const mo = buildMonstersFile(monsters, committedMonsters);
   if (DRY) {
     console.log(`[updater] (--dry) game-data NÃO gravado. itens: +${it.added} ~${it.updated}; listas: ~${ls.updated}`);
     return;
   }
   writeFileSync(itemsPath, it.text, "utf8");
   writeFileSync(listsPath, ls.text, "utf8");
-  console.log(`[updater] 🛠️  game-data atualizado: items.js (+${it.added} novos, ~${it.updated} alterados, ${it.kept} preservados) · customlists.js (~${ls.updated} alteradas, +${ls.added.length} novas${ls.added.length ? ": " + ls.added.join(", ") : ""})`);
+  writeFileSync(monstersPath, mo.text, "utf8");
+  console.log(`[updater] 🛠️  game-data atualizado: items.js (+${it.added} novos, ~${it.updated} alterados, ${it.kept} preservados) · customlists.js (~${ls.updated} alteradas, +${ls.added.length} novas${ls.added.length ? ": " + ls.added.join(", ") : ""}) · monsters.js (+${mo.added} novos, ~${mo.updated} alterados)`);
   if (ls.missing.length) console.log(`[updater]    listas não reextraídas (mantidas do baseline): ${ls.missing.join(", ")}`);
 }
 
@@ -250,7 +255,7 @@ async function main(): Promise<void> {
     : sinceCheck;
 
   // 4b. Optionally regenerate the engine's committed game-data files.
-  if (WRITE_GAME_DATA) await writeGameData(cur.items, cur.lists);
+  if (WRITE_GAME_DATA) await writeGameData(cur.items, cur.lists, extractMonsters(normalizeBundle(text)));
 
   const today = todaySP();
   const reportPath = resolve(REPORT_DIR, `report-${today}.md`);

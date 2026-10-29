@@ -39,9 +39,11 @@ export const farm = {
       // shape. Still consumed here as a × factor (with a max(1,..) floor).
       const tal207Node = talent.resolve(207, ctx, { mode: "max" });
       const tal207 = Number(tal207Node.val) || 0;
+      // N.js LankRankUpgBonus: …*(1+FarmingStuffs("ExoticBonusQTY",14)/100)*…
+      // — the shared helper carries the Menagerie Spelunk[50] doubler.
       const exotic14Lv = Number((saveData.farmUpgData as any)?.[34]) || 0;
-      const exotic14 =
-        exotic14Lv > 0 ? (60 * exotic14Lv) / (1000 + exotic14Lv) : 0;
+      const exotic14 = exoticBonusQTY(14, saveData);
+      const exotic14Doubled = exoticDoubled(14, saveData);
       if (ninjaVal <= 0 || rankLv <= 0)
         return node(friendlyName, 0, null, { note: "farm " + id });
       const val =
@@ -55,7 +57,7 @@ export const farm = {
           tal207Node,
           node("Pommelyon Seed (Exotic 14) Bonus", 1 + exotic14 / 100, null, {
             fmt: "x",
-            note: "Level " + exotic14Lv,
+            note: "Level " + exotic14Lv + (exotic14Doubled ? " · Menagerie doubler ×2" : ""),
           }),
         ],
         { fmt: "+", note: "farm " + id }
@@ -84,8 +86,7 @@ export const farm = {
       const mf17 = mainframeBonus(17, saveData);
       const grim22 = grimoireUpgBonus22(saveData);
       const exotic40Lv = Number((saveData.farmUpgData as any)?.[60]) || 0;
-      const exotic40 =
-        exotic40Lv > 0 ? (20 * exotic40Lv) / (1000 + exotic40Lv) : 0;
+      const exotic40 = exoticBonusQTY(40, saveData);
       const vault79 = vaultUpgBonus(79, saveData);
       const multi =
         (1 + mf17 / 100) * (1 + (grim22 + exotic40 + vault79) / 100);

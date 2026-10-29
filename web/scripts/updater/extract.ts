@@ -334,6 +334,32 @@ export function normalizeBundle(src: string): string {
   return parts.join("");
 }
 
+// Monsters are registered as `<obj>.addNewMonster("KEY",{Name:"…",…})` with a
+// plain object literal. A few fields reference engine constants
+// (`Type:G.ORE_TYPE`); those are dropped, which matches the committed
+// monsters.js shape (it never carried them).
+const MONSTER_RE = /addNewMonster\("([^"]+)",\s*\{/g;
+const ENGINE_REF_RE = /:\s*[A-Za-z_$][\w$]*\.[A-Z][A-Z0-9_]*(?=[,}])/g;
+
+export type Monster = Record<string, unknown>;
+
+export function extractMonsters(src: string): Record<string, Monster> {
+  const out: Record<string, Monster> = {};
+  let m: RegExpExecArray | null;
+  MONSTER_RE.lastIndex = 0;
+  while ((m = MONSTER_RE.exec(src))) {
+    const { raw, end } = readLiteral(src, MONSTER_RE.lastIndex - 1);
+    const val = canonicalize(raw.replace(ENGINE_REF_RE, ':"__engineRef"'));
+    if (val && typeof val === "object" && !Array.isArray(val)) {
+      const mon: Monster = {};
+      for (const [k, v] of Object.entries(val as Monster)) if (v !== "__engineRef") mon[k] = v;
+      out[m[1]] = mon;
+    }
+    MONSTER_RE.lastIndex = end;
+  }
+  return out;
+}
+
 export function extractAll(src: string): ExtractResult {
   const norm = normalizeBundle(src);
   return {

@@ -162,6 +162,9 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   "PodiumsOwned_Lv4": [
     "lib/arkh/stats/systems/w7/gallery.ts"
   ],
+  "PrismaBonusMult": [
+    "lib/arkh/stats/systems/w2/alchemy.ts"
+  ],
   "PtsLeftCook_P": [
     "lib/arkh/stats/systems/common/cookingMastery.ts"
   ],

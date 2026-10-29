@@ -59,12 +59,18 @@ describe("selectTop8DrCards (pre-valued)", () => {
 });
 
 describe("obtainableDrCards", () => {
-  it("drops unreleased placeholders (w7b9/w7b10), keeps released", () => {
-    const m = obtainableDrCards(CARD_DR_MULTI);
-    expect(m.w7b9).toBeUndefined(); // Ancientfish (ExpGiven 1)
-    expect(m.w7b10).toBeUndefined(); // Magni Pufferfin (ExpGiven 1)
+  it("drops unreleased placeholders (ExpGiven ≤ 1), keeps released", () => {
+    // `ghost` is still an ExpGiven-1 placeholder in the game data.
+    const m = obtainableDrCards({ ghost: 1, w7a12: 1, w7b10: 1 });
+    expect(m.ghost).toBeUndefined();
     expect(m.w7a12).toBeDefined(); // Coralcave Guardian
-    expect(m.w7b7).toBeDefined(); // Mantaray
+    expect(m.w7b10).toBeDefined(); // Magni Pufferfin — released 2026-10-16
+  });
+
+  it("keeps every multi DR card now that Ancientfish / Magni Pufferfin are out (2026-10-16)", () => {
+    expect(Object.keys(obtainableDrCards(CARD_DR_MULTI))).toHaveLength(
+      Object.keys(CARD_DR_MULTI).length
+    );
   });
 
   it("keeps every additive DR card (all mobs released)", () => {
@@ -87,9 +93,9 @@ describe("buildDrCardInputs (observed stars)", () => {
     expect(multi[0].val).toBeCloseTo(1 * 5 * 1.75, 9); // base 1 × lv 5 × legend
   });
 
-  it("never emits an unreleased placeholder even if 'observed'", () => {
+  it("emits a newly released multi card once observed (w7b9 Ancientfish, 2026-10-16)", () => {
     const { multi } = buildDrCardInputs((k) => (k === "w7b9" ? 6 : 0));
-    expect(multi).toHaveLength(0); // w7b9 filtered by obtainableDrCards
+    expect(multi.map((c) => c.key)).toEqual(["w7b9"]);
   });
 });
 
