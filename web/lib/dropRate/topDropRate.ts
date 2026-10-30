@@ -6,13 +6,13 @@
 // 279 / Curse of Mr Looty Booty 24) appear only in the profiles of classes
 // that own them. Use topDrFlatForClass(classKey).
 // Large file: lazy-load it, don't import statically.
-// Generated 2026-10-29T21:52:09.923Z · 86 players. Refresh: scripts/update-top-dr.ts.
+// Generated 2026-10-30T01:17:25.717Z · 87 players. Refresh: scripts/update-top-dr.ts.
 
 type FlatMap = Readonly<Record<string, number>>;
 
 export const TOP_DR_FLAT: FlatMap = {
-    "Drop Rate": 6229228.264316976,
-    "Drop Rate / Additive Pool": 94496.59427017112,
+    "Drop Rate": 6229514.61294972,
+    "Drop Rate / Additive Pool": 94500.95810440987,
     "Drop Rate / Additive Pool / ⚔️ Legend Talents": 3500,
     "Drop Rate / Additive Pool / ⚔️ Legend Talents / Greatest Drop Party Ever (Legend 1)": 3500,
     "Drop Rate / Additive Pool / ⚔️ Legend Talents / Greatest Drop Party Ever (Legend 1) / Per Point": 500,
@@ -71,14 +71,14 @@ export const TOP_DR_FLAT: FlatMap = {
     "Drop Rate / Additive Pool / 🃏 Cards / Luckulyte (Card luckEvent1) / Card Qty": 26,
     "Drop Rate / Additive Pool / 🃏 Cards / Luckulyte (Card luckEvent1) / Per Star": 3,
     "Drop Rate / Additive Pool / 🃏 Cards / Luckulyte (Card luckEvent1) / Uncapped": 9,
-    "Drop Rate / Additive Pool / 🌾 Farming": 5844.622195339629,
-    "Drop Rate / Additive Pool / 🌾 Farming / Crop Depot Bonus 7 (Farming cropSC7)": 1536.1512045209217,
+    "Drop Rate / Additive Pool / 🌾 Farming": 5848.9860295783965,
+    "Drop Rate / Additive Pool / 🌾 Farming / Crop Depot Bonus 7 (Farming cropSC7)": 1540.5150387596898,
     "Drop Rate / Additive Pool / 🌾 Farming / Crop Depot Bonus 7 (Farming cropSC7) / Crop Count": 330,
     "Drop Rate / Additive Pool / 🌾 Farming / Crop Depot Bonus 7 (Farming cropSC7) / Excess": 230,
-    "Drop Rate / Additive Pool / 🌾 Farming / Crop Depot Bonus 7 (Farming cropSC7) / Multi": 6.678918280525747,
+    "Drop Rate / Additive Pool / 🌾 Farming / Crop Depot Bonus 7 (Farming cropSC7) / Multi": 6.697891472868217,
     "Drop Rate / Additive Pool / 🌾 Farming / Crop Depot Bonus 7 (Farming cropSC7) / Multi / Depot Studies PhD (Mainframe 17)": 46,
     "Drop Rate / Additive Pool / 🌾 Farming / Crop Depot Bonus 7 (Farming cropSC7) / Multi / Properly Funded Research (Vault 79)": 20,
-    "Drop Rate / Additive Pool / 🌾 Farming / Crop Depot Bonus 7 (Farming cropSC7) / Multi / Scienterrific (Exotic 40)": 37.460156200393676,
+    "Drop Rate / Additive Pool / 🌾 Farming / Crop Depot Bonus 7 (Farming cropSC7) / Multi / Scienterrific (Exotic 40)": 38.75968992248062,
     "Drop Rate / Additive Pool / 🌾 Farming / Crop Depot Bonus 7 (Farming cropSC7) / Multi / Superior Crop Research (Grimoire 22)": 300,
     "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9)": 4285.957563327162,
     "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207)": 2.602385685884692,
@@ -1037,7 +1037,7 @@ export const TOP_DR_FLAT: FlatMap = {
     "Drop Rate / LUK Scaling / Over-1000 curve": 0.7969558506370034,
     "Drop Rate / LUK Scaling / × 1.4": 1.1157381908918047,
     "Drop Rate / LUK Scaling / 🍀 Total LUK": 39635671,
-    "Drop Rate / Post-Processing": 6577.271140567874,
+    "Drop Rate / Post-Processing": 6577.270431184396,
     "Drop Rate / Post-Processing / ⚗️ Alchemy": 1.0788,
     "Drop Rate / Post-Processing / ⚗️ Alchemy / Drop Rate Vial": 7.88,
     "Drop Rate / Post-Processing / ⚗️ Alchemy / Drop Rate Vial / SHIPINABOTTLE": 7.88,
@@ -1429,12 +1429,12 @@ export const TOP_DR_FLAT: FlatMap = {
     "Drop Rate / Post-Processing / 🪼 Menagerie / Menagerie Boost: Drop Rate (Boost 24)": 0,
     "Drop Rate / Post-Processing / 🪼 Menagerie / Menagerie Boost: Drop Rate (Boost 24) / Level": 0,
     "Drop Rate / Post-Processing / 🪼 Menagerie / Menagerie Boost: Drop Rate (Boost 24) / Per Level": 1,
-    "Drop Rate / Total Sum": 947.081680892603,
+    "Drop Rate / Total Sum": 947.1253192349906,
   };
 
 export const TOP_DR_PROFILE_OVERRIDES: Readonly<Record<string, FlatMap>> = {
   "ES": {
-    "Drop Rate": 5909776.300166814,
+    "Drop Rate": 5910062.720448009,
     "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level": 812,
     "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels": 403,
     "Drop Rate / Additive Pool / 🌾 Farming / Crop Drop Rate Rank (Farming rank9) / Dank Ranks (Talent 207) / Effective Level / Bonus Levels / Family Bonus 68 (Mage)": 22,
@@ -1489,8 +1489,8 @@ export const TOP_DR_PROFILE_OVERRIDES: Readonly<Record<string, FlatMap>> = {
     "Drop Rate / Post-Processing / 🎯 Talents / Archlord Of The Pirates (Talent 328) / Effective Level / Bonus Levels / Family Bonus 68 (Mage) / Family Guy Multi (×) — potential buff / Bonus Levels": 275,
   },
   "t24": {
-    "Drop Rate": 6233295.414023888,
-    "Drop Rate / Additive Pool": 94558.57594256516,
+    "Drop Rate": 6233581.762656631,
+    "Drop Rate / Additive Pool": 94562.93977680392,
     "Drop Rate / Additive Pool / 🎯 Talents": 5015.3205349532855,
     "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24)": 61.98167239404353,
     "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Active": 1,
@@ -1605,11 +1605,11 @@ export const TOP_DR_PROFILE_OVERRIDES: Readonly<Record<string, FlatMap>> = {
     "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Super Bit 47 Lv Bonus": 13,
     "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Super Bit 47 Lv Bonus / Player Lv": 1807,
     "Drop Rate / Additive Pool / 🎯 Talents / Curse Of Mr Looty Booty (Talent 24) / Effective Level / Bonus Levels / Universe Talent": 5,
-    "Drop Rate / Total Sum": 947.7014976165434,
+    "Drop Rate / Total Sum": 947.745135958931,
   },
   "t279": {
-    "Drop Rate": 6231656.680576049,
-    "Drop Rate / Additive Pool": 94533.60232540702,
+    "Drop Rate": 6231943.029208792,
+    "Drop Rate / Additive Pool": 94537.96615964577,
     "Drop Rate / Additive Pool / 🎯 Talents": 4990.346917795145,
     "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279)": 37.008055235903335,
     "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Active": 1,
@@ -1763,7 +1763,7 @@ export const TOP_DR_PROFILE_OVERRIDES: Readonly<Record<string, FlatMap>> = {
     "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Symbols Of Beyond ~g (Talent 374) / Base Level / Max Book Lv Cap / W3 Merit Shop Unlock / W3 Merit Points Spent": 5,
     "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Symbols Of Beyond ~g (Talent 374) / Base Level / Points Invested": 434,
     "Drop Rate / Additive Pool / 🎯 Talents / Robbing Hood (Talent 279) / Effective Level / Bonus Levels / Universe Talent": 5,
-    "Drop Rate / Total Sum": 947.451761444962,
+    "Drop Rate / Total Sum": 947.4953997873496,
   },
 };
 

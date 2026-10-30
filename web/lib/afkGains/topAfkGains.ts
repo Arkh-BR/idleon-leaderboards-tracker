@@ -2,13 +2,13 @@
 // ONE combine() pass (the same math a real save uses), gated PER CLASS for
 // the formula's class talents. Use topAfkFlatForClass(classKey).
 // Large file: lazy-load it, don't import statically.
-// Generated 2026-10-29T22:20:09.435Z · 88 players. Refresh: scripts/update-top-afk.ts.
+// Generated 2026-10-30T01:47:13.423Z · 89 players. Refresh: scripts/update-top-afk.ts.
 
 type FlatMap = Readonly<Record<string, number>>;
 
 export const TOP_AFK_FLAT: FlatMap = {
-    "AFK Gains Rate": 2987.176931135601,
-    "AFK Gains Rate / ⚔️ Fighting AFK pool": 340.38023029634894,
+    "AFK Gains Rate": 2987.256875019719,
+    "AFK Gains Rate / ⚔️ Fighting AFK pool": 340.3893396722962,
     "AFK Gains Rate / ⚔️ Fighting AFK pool / AFK Bundle (bun_u)": 30,
     "AFK Gains Rate / ⚔️ Fighting AFK pool / AFK Bundle (bun_u) / Owned": 1,
     "AFK Gains Rate / ⚔️ Fighting AFK pool / AFK Gains Rate Arcade Bonus (Arcade 6)": 8.039800995024876,
@@ -33,7 +33,7 @@ export const TOP_AFK_FLAT: FlatMap = {
     "AFK Gains Rate / ⚔️ Fighting AFK pool / Compass 57": 13,
     "AFK Gains Rate / ⚔️ Fighting AFK pool / Divinity major bonus ×30 (type 0)": 30,
     "AFK Gains Rate / ⚔️ Fighting AFK pool / Divinity major bonus ×30 (type 0) / Major bonus active": 1,
-    "AFK Gains Rate / ⚔️ Fighting AFK pool / Divinity minor bonus 5": 304.01092055819856,
+    "AFK Gains Rate / ⚔️ Fighting AFK pool / Divinity minor bonus 5": 304.92185815291606,
     "AFK Gains Rate / ⚔️ Fighting AFK pool / EtcBonuses(20) (etcBonus 20)": 63.49212689020381,
     "AFK Gains Rate / ⚔️ Fighting AFK pool / EtcBonuses(20) (etcBonus 20) / Nametag Bonuses": 63.49212689020381,
     "AFK Gains Rate / ⚔️ Fighting AFK pool / EtcBonuses(20) (etcBonus 20) / Nametag Bonuses / Island Adventurer Nametag": 23.088046141892296,
@@ -408,8 +408,8 @@ export const TOP_AFK_FLAT: FlatMap = {
     "AFK Gains Rate / 🏝️ Crystal Glunko Cove (map 216, cavern 17)": 0,
     "AFK Gains Rate / 🏝️ Crystal Glunko Cove (map 216, cavern 17) / AFK Bundle (bun_u)": 0,
     "AFK Gains Rate / 🏝️ Crystal Glunko Cove (map 216, cavern 17) / Cavern (Holes[0][char])": -1,
-    "AFK Gains Rate / 🏝️ Crystal Glunko Cove (map 216, cavern 17) / Cglunko upgrade 13": 51,
-    "AFK Gains Rate / 🏝️ Crystal Glunko Cove (map 216, cavern 17) / Cglunko upgrade 8": 39,
+    "AFK Gains Rate / 🏝️ Crystal Glunko Cove (map 216, cavern 17) / Cglunko upgrade 13": 78,
+    "AFK Gains Rate / 🏝️ Crystal Glunko Cove (map 216, cavern 17) / Cglunko upgrade 8": 36,
     "AFK Gains Rate / 🗺️ Arcane map bonus (slot 2)": 1.5222060244809024,
     "AFK Gains Rate / 🗺️ Arcane map bonus (slot 2) / Arcane map bonus (slot 2, AFK)": 52.22060244809024,
     "AFK Gains Rate / 🗺️ Arcane map bonus (slot 2) / Arcane map bonus (slot 2, AFK) / Kills (mapBon[map][2])": 3857625,
@@ -418,8 +418,8 @@ export const TOP_AFK_FLAT: FlatMap = {
 
 export const TOP_AFK_PROFILE_OVERRIDES: Readonly<Record<string, FlatMap>> = {
   "t268": {
-    "AFK Gains Rate": 2988.8324038795304,
-    "AFK Gains Rate / ⚔️ Fighting AFK pool": 340.56886665998536,
+    "AFK Gains Rate": 2988.912347763647,
+    "AFK Gains Rate / ⚔️ Fighting AFK pool": 340.5779760359325,
     "AFK Gains Rate / ⚔️ Fighting AFK pool / Idle Shooting (Talent 268)": 18.863636363636363,
     "AFK Gains Rate / ⚔️ Fighting AFK pool / Idle Shooting (Talent 268) / Active": 1,
     "AFK Gains Rate / ⚔️ Fighting AFK pool / Idle Shooting (Talent 268) / Effective Level": 830,
@@ -573,8 +573,8 @@ export const TOP_AFK_PROFILE_OVERRIDES: Readonly<Record<string, FlatMap>> = {
     "AFK Gains Rate / ⚔️ Fighting AFK pool / Idle Shooting (Talent 268) / Effective Level / Bonus Levels / Universe Talent": 5,
   },
   "t448": {
-    "AFK Gains Rate": 2988.8280267631276,
-    "AFK Gains Rate / ⚔️ Fighting AFK pool": 340.56836790014495,
+    "AFK Gains Rate": 2988.9079706472444,
+    "AFK Gains Rate / ⚔️ Fighting AFK pool": 340.57747727609217,
     "AFK Gains Rate / ⚔️ Fighting AFK pool / Idle Casting (Talent 448)": 18.81376037959668,
     "AFK Gains Rate / ⚔️ Fighting AFK pool / Idle Casting (Talent 448) / Active": 1,
     "AFK Gains Rate / ⚔️ Fighting AFK pool / Idle Casting (Talent 448) / Effective Level": 793,
@@ -728,8 +728,8 @@ export const TOP_AFK_PROFILE_OVERRIDES: Readonly<Record<string, FlatMap>> = {
     "AFK Gains Rate / ⚔️ Fighting AFK pool / Idle Casting (Talent 448) / Effective Level / Bonus Levels / Universe Talent": 5,
   },
   "t79": {
-    "AFK Gains Rate": 2988.9509696874816,
-    "AFK Gains Rate / ⚔️ Fighting AFK pool": 340.5823768932076,
+    "AFK Gains Rate": 2989.0309135715984,
+    "AFK Gains Rate / ⚔️ Fighting AFK pool": 340.59148626915476,
     "AFK Gains Rate / ⚔️ Fighting AFK pool / Sleepin' On The Job (Talent 79)": 20.214659685863875,
     "AFK Gains Rate / ⚔️ Fighting AFK pool / Sleepin' On The Job (Talent 79) / Active": 1,
     "AFK Gains Rate / ⚔️ Fighting AFK pool / Sleepin' On The Job (Talent 79) / Effective Level": 1287,
@@ -930,8 +930,8 @@ export const TOP_AFK_PROFILE_OVERRIDES: Readonly<Record<string, FlatMap>> = {
     "AFK Gains Rate / ⚔️ Fighting AFK pool / Sleepin' On The Job (Talent 79) / Effective Level / Bonus Levels / Universe Talent": 5,
   },
   "t88": {
-    "AFK Gains Rate": 2988.831719252937,
-    "AFK Gains Rate / ⚔️ Fighting AFK pool": 340.5687886487517,
+    "AFK Gains Rate": 2988.911663137054,
+    "AFK Gains Rate / ⚔️ Fighting AFK pool": 340.57789802469887,
     "AFK Gains Rate / ⚔️ Fighting AFK pool / Idle Brawling (Talent 88)": 18.8558352402746,
     "AFK Gains Rate / ⚔️ Fighting AFK pool / Idle Brawling (Talent 88) / Active": 1,
     "AFK Gains Rate / ⚔️ Fighting AFK pool / Idle Brawling (Talent 88) / Effective Level": 824,

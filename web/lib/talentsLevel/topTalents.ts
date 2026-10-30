@@ -13,13 +13,13 @@
 // default tree (they would all resolve to identical numbers anyway).
 // Auto-refreshed by scripts/update-top-talents.ts.
 //
-// Snapshot generated: 2026-10-29T22:32:30.735Z
-// Players scanned: 84
+// Snapshot generated: 2026-10-30T01:59:51.990Z
+// Players scanned: 85
 
 import type { ArkhNode } from "../arkh/node";
 
-export const HYPO_TALENTS_GENERATED_AT = "2026-10-29T22:32:30.735Z";
-export const HYPO_TALENTS_PLAYERS_SCANNED = 84;
+export const HYPO_TALENTS_GENERATED_AT = "2026-10-30T01:59:51.990Z";
+export const HYPO_TALENTS_PLAYERS_SCANNED = 85;
 
 export const HYPO_DEFAULT_TREE: ArkhNode = {
   "name": "Effective Level",
@@ -795,7 +795,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
             },
             {
               "name": "Coral Kid 3",
-              "val": 293,
+              "val": 297,
               "fmt": "raw",
               "note": "OLA[430]"
             },
@@ -1736,7 +1736,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
               },
               {
                 "name": "Coral Kid 3",
-                "val": 293,
+                "val": 297,
                 "fmt": "raw",
                 "note": "OLA[430]"
               },
@@ -1949,9 +1949,9 @@ export const STAR_TALENT_CEILING: Readonly<Record<number, number>> = {
   "639": 100,
   "640": 101,
   "641": 413,
-  "642": 409,
+  "642": 434,
   "643": 426,
-  "644": 405,
+  "644": 406,
   "645": 409,
   "646": 436,
   "647": 433,

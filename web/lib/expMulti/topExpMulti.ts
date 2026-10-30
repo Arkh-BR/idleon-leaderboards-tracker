@@ -2,12 +2,12 @@
 // ONE combine() pass (the same math a real save uses), gated PER CLASS for
 // the formula's class talents. Use topExpFlatForClass(classKey).
 // Large file: lazy-load it, don't import statically.
-// Generated 2026-10-29T22:11:16.129Z · 86 players. Refresh: scripts/update-top-exp.ts.
+// Generated 2026-10-30T01:37:44.485Z · 87 players. Refresh: scripts/update-top-exp.ts.
 
 type FlatMap = Readonly<Record<string, number>>;
 
 export const TOP_EXP_FLAT: FlatMap = {
-    "EXP Multi": 6.469823777605098e+23,
+    "EXP Multi": 4.773829650875675e+23,
     "EXP Multi / ⚔️ Slayer Abominator": 3.7650306696232914,
     "EXP Multi / ⚔️ Slayer Abominator / Slayer Abominator (Talent 434)": 3.7650306696232914,
     "EXP Multi / ⚔️ Slayer Abominator / Slayer Abominator (Talent 434) / Abominations Killed": 35,
@@ -163,7 +163,7 @@ export const TOP_EXP_FLAT: FlatMap = {
     "EXP Multi / ⚔️ Slayer Abominator / Slayer Abominator (Talent 434) / Effective Level / Bonus Levels / Symbols Of Beyond ~p (Talent 539) / Base Level / Points Invested": 434,
     "EXP Multi / ⚔️ Slayer Abominator / Slayer Abominator (Talent 434) / Effective Level / Bonus Levels / Universe Talent": 5,
     "EXP Multi / ⚔️ Slayer Abominator / Slayer Abominator (Talent 434) / Talent Value": 1.038605287146764,
-    "EXP Multi / ➕ Additive Pool": 849082.9409702969,
+    "EXP Multi / ➕ Additive Pool": 625922.3707907551,
     "EXP Multi / ➕ Additive Pool / 2 Minute Meal (Achievement 61) × 3": 3,
     "EXP Multi / ➕ Additive Pool / Account Option 421": 128,
     "EXP Multi / ➕ Additive Pool / Baby Boa (Companion 47)": 10,
@@ -177,7 +177,7 @@ export const TOP_EXP_FLAT: FlatMap = {
     "EXP Multi / ➕ Additive Pool / Bubble (Class EXP Active) / Level": 528446,
     "EXP Multi / ➕ Additive Pool / Bubbulyte (Card springEvent1) × 2": 12,
     "EXP Multi / ➕ Additive Pool / Bubbulyte (Card springEvent1) × 2 / Card Lv": 6,
-    "EXP Multi / ➕ Additive Pool / Button: Class XP (Slot 8)": 371.95500000000004,
+    "EXP Multi / ➕ Additive Pool / Button: Class XP (Slot 8)": 373.44937500000003,
     "EXP Multi / ➕ Additive Pool / Capitalist Win (Achievement 188) × 5": 5,
     "EXP Multi / ➕ Additive Pool / Card Set 0": 0,
     "EXP Multi / ➕ Additive Pool / Card Set 5 (Damage · Drop · EXP)": 42,
@@ -489,8 +489,8 @@ export const TOP_EXP_FLAT: FlatMap = {
     "EXP Multi / ➕ Additive Pool / EtcBonuses(4) (etcBonus 4) / Trophy Bonuses / Trailblazer / Gallery Bonus Multi / Skull Shop Tier 3 (Killroy 3)": 9.245852187028659,
     "EXP Multi / ➕ Additive Pool / EtcBonuses(4) (etcBonus 4) / Trophy Bonuses / Trailblazer / Slot": 60,
     "EXP Multi / ➕ Additive Pool / EtcBonuses(4) (etcBonus 4) / Trophy Bonuses / Trailblazer / Tier": 1.5,
-    "EXP Multi / ➕ Additive Pool / Exotic Market 50": 251.67525773195877,
-    "EXP Multi / ➕ Additive Pool / Exotic Market 50 / Menagerie doubler": 0,
+    "EXP Multi / ➕ Additive Pool / Exotic Market 50": 545.9508152418701,
+    "EXP Multi / ➕ Additive Pool / Exotic Market 50 / Menagerie doubler": 1,
     "EXP Multi / ➕ Additive Pool / Flurbo Shop 2 (Class EXP)": 15,
     "EXP Multi / ➕ Additive Pool / Flurbo Shop 2 (Class EXP) / Level": 50,
     "EXP Multi / ➕ Additive Pool / Food (Class EXP)": 165,
@@ -526,7 +526,7 @@ export const TOP_EXP_FLAT: FlatMap = {
     "EXP Multi / ➕ Additive Pool / Merit (Lowest-Level Family)": 36,
     "EXP Multi / ➕ Additive Pool / Merit (Lowest-Level Family) / Lowest level": 1,
     "EXP Multi / ➕ Additive Pool / Merit (Lowest-Level Family) / Merit (Tasks[2][0][2])": 12,
-    "EXP Multi / ➕ Additive Pool / Monument ROG Bonus (tier 1, idx 6)": 76094256.2982,
+    "EXP Multi / ➕ Additive Pool / Monument ROG Bonus (tier 1, idx 6)": 53309652.844799995,
     "EXP Multi / ➕ Additive Pool / Newbie Bracket": 0,
     "EXP Multi / ➕ Additive Pool / Newbie Bracket / Class Level": 1502,
     "EXP Multi / ➕ Additive Pool / No Krakens? ): (Achievement 286) × 25": 25,
@@ -547,16 +547,16 @@ export const TOP_EXP_FLAT: FlatMap = {
     "EXP Multi / ➕ Additive Pool / Star Sign (Main XP) / Sign 2": 1,
     "EXP Multi / ➕ Additive Pool / Star Sign (Main XP) / Sign 24": 3,
     "EXP Multi / ➕ Additive Pool / Star Sign (Main XP) / Sign 52": 6,
-    "EXP Multi / ➕ Additive Pool / Statue 10": 8273773.047265742,
+    "EXP Multi / ➕ Additive Pool / Statue 10": 8742023.712779064,
     "EXP Multi / ➕ Additive Pool / Statue 10 / Base/Lv": 0.1,
     "EXP Multi / ➕ Additive Pool / Statue 10 / EventShop 19": 1,
-    "EXP Multi / ➕ Additive Pool / Statue 10 / Gold G2": 4.1,
-    "EXP Multi / ➕ Additive Pool / Statue 10 / Gold G3": 4.66,
-    "EXP Multi / ➕ Additive Pool / Statue 10 / Level": 744,
-    "EXP Multi / ➕ Additive Pool / Statue 10 / Meritoc 26": 226.09950248756218,
-    "EXP Multi / ➕ Additive Pool / Statue 10 / Statue 29 multi": 29857.506077975624,
-    "EXP Multi / ➕ Additive Pool / Statue 10 / Talent 487": 93.45549738219896,
-    "EXP Multi / ➕ Additive Pool / Statue 10 / Talent 56": 136.90851735015772,
+    "EXP Multi / ➕ Additive Pool / Statue 10 / Gold G2": 3.8,
+    "EXP Multi / ➕ Additive Pool / Statue 10 / Gold G3": 4.74,
+    "EXP Multi / ➕ Additive Pool / Statue 10 / Level": 772,
+    "EXP Multi / ➕ Additive Pool / Statue 10 / Meritoc 26": 251.09950248756218,
+    "EXP Multi / ➕ Additive Pool / Statue 10 / Statue 29 multi": 30498.29151541916,
+    "EXP Multi / ➕ Additive Pool / Statue 10 / Talent 487": 94.15204678362574,
+    "EXP Multi / ➕ Additive Pool / Statue 10 / Talent 56": 131.85689948892676,
     "EXP Multi / ➕ Additive Pool / Summereading Shrine (Shrine 5)": 58.050000000000004,
     "EXP Multi / ➕ Additive Pool / Summoning Owl": 29700,
     "EXP Multi / ➕ Additive Pool / Summoning Owl / Base Per Owl": 5,
@@ -855,11 +855,11 @@ export const TOP_EXP_FLAT: FlatMap = {
     "EXP Multi / 💎 Classy Discoveries / Classy Discoveries / Meritoc 27": 0,
     "EXP Multi / 💎 Classy Discoveries / Classy Discoveries / Spelunk[6].length": 105,
     "EXP Multi / 💎 Classy Discoveries / Classy Discoveries / Super Bit 24": 1,
-    "EXP Multi / 🗺️ Arcane · Spelunk · Reef · Sets": 2124188.507338099,
+    "EXP Multi / 🗺️ Arcane · Spelunk · Reef · Sets": 2126165.968246067,
     "EXP Multi / 🗺️ Arcane · Spelunk · Reef · Sets / Arcane map bonus (slot 1, EXP)": 1.4349328187990154,
     "EXP Multi / 🗺️ Arcane · Spelunk · Reef · Sets / Arcane map bonus (slot 1, EXP) / Kills (mapBon[map][1])": 1709343,
-    "EXP Multi / 🗺️ Arcane · Spelunk · Reef · Sets / Big Fish 4": 1.201171875,
-    "EXP Multi / 🗺️ Arcane · Spelunk · Reef · Sets / Big Fish 4 / Big Fish 4 bonus": 20.1171875,
+    "EXP Multi / 🗺️ Arcane · Spelunk · Reef · Sets / Big Fish 4": 1.202290076335878,
+    "EXP Multi / 🗺️ Arcane · Spelunk · Reef · Sets / Big Fish 4 / Big Fish 4 bonus": 20.229007633587788,
     "EXP Multi / 🗺️ Arcane · Spelunk · Reef · Sets / Bubba RoG 6": 4.5280000000000005,
     "EXP Multi / 🗺️ Arcane · Spelunk · Reef · Sets / Bubba RoG 6 / Megaflesh bonus % (Bubba_RoG_all)": 320,
     "EXP Multi / 🗺️ Arcane · Spelunk · Reef · Sets / Bubba RoG 6 / Santas Little Helper (Companion 51)": 2,
@@ -1042,8 +1042,8 @@ export const TOP_EXP_FLAT: FlatMap = {
 
 export const TOP_EXP_PROFILE_OVERRIDES: Readonly<Record<string, FlatMap>> = {
   "t35": {
-    "EXP Multi": 6.469864844322447e+23,
-    "EXP Multi / ➕ Additive Pool": 849088.3304600791,
+    "EXP Multi": 4.773870755823072e+23,
+    "EXP Multi / ➕ Additive Pool": 625927.7602805374,
     "EXP Multi / ➕ Additive Pool / Lucky Charms (Talent 35)": 538.9489782256853,
     "EXP Multi / ➕ Additive Pool / Lucky Charms (Talent 35) / EXP LUK curve": 1.196187621216071,
     "EXP Multi / ➕ Additive Pool / Lucky Charms (Talent 35) / Talent 35": 811,
