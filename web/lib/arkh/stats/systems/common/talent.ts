@@ -616,7 +616,32 @@ type ATLOpts = {
    *  Family Guy (144) ATL bonus WITHOUT super, so the family-bonus node can
    *  surface its super contribution as a separate row. */
   excludeSuper?: boolean;
+  /** getbonus2's AllTalentLVz("t|g") path: the talent counts as super when
+   *  it sits in EITHER talent preset of player g, not only the active one. */
+  anyPreset?: boolean;
 };
+
+// @njs _customBlock_RunCodeOfTypeXforThingY
+/** Is `talentIdx` a Spelunk super talent for `slotIdx`? N.js
+ *  RunCodeOfTypeXforThingY: the "AllTalentLVz|g" path (getbonus2) checks both
+ *  presets — max(Spelunk[20+g].indexOf(t), Spelunk[20+g+12].indexOf(t)) + 1 —
+ *  while every other caller reads only the current preset
+ *  Spelunk[20 + g + 12·PlayerStuff[1]]. */
+function superTalentListed(
+  talentIdx: number,
+  slotIdx: number,
+  opts: ATLOpts | undefined,
+  saveData: SaveData
+): boolean {
+  const sp = saveData.spelunkData as any;
+  const has = (preset: number) => {
+    const arr = sp?.[20 + slotIdx + 12 * preset];
+    return Array.isArray(arr) && arr.indexOf(talentIdx) !== -1;
+  };
+  if (opts?.anyPreset) return has(0) || has(1);
+  const preset = Number((playerStuffData as any)?.[slotIdx]?.[1]) || 0;
+  return has(preset);
+}
 
 /**
  * Full port of corgan-source computeAllTalentLVz.
@@ -648,16 +673,8 @@ export function computeAllTalentLVz(
   // Spelunk super talent
   let spelunkBonus = 0;
   if (slotIdx >= 0) {
-    const preset =
-      Number(
-        (playerStuffData as any)?.[slotIdx] && (playerStuffData as any)[slotIdx][1]
-      ) || 0;
-    const superArr =
-      saveData.spelunkData &&
-      (saveData.spelunkData as any)[20 + slotIdx + 12 * preset];
     const superActive =
-      (Array.isArray(superArr) && superArr.indexOf(talentIdx) !== -1) ||
-      !!opts?.forceSuperActive;
+      superTalentListed(talentIdx, slotIdx, opts, saveData) || !!opts?.forceSuperActive;
     if (!opts?.excludeSuper && superActive) {
       const base = 50;
       // Zenith Market "Super Duper Talents (Yellow 2)": up to 5 levels, +10
@@ -826,8 +843,8 @@ function resolveAllTalentLVz(
   // Spelunk Super Talent. Two factors:
   //  - Is this talent ELIGIBLE? (passed the exclusion check above — set
   //    on the return as superEligible)
-  //  - Is it ACTIVE for the active char's preset? (in spelunkData[20+ci+
-  //    12*preset]). When yes, spelunkBonus = 50 + Legend7×10 + W7B5 and
+  //  - Is it ACTIVE? (superTalentListed: the current preset, or either preset
+  //    on getbonus2's path). When yes, spelunkBonus = 50 + Legend7×10 + W7B5 and
   //    contributes to total. When no, spelunkBonus stays 0 BUT we still
   //    surface a Super Levels row in split mode so the user knows the
   //    bonus exists and is currently inactive (Active=0).
@@ -840,10 +857,6 @@ function resolveAllTalentLVz(
   let superActive = false;
   let potentialSuperBonus = 0;
   if (slotIdx >= 0) {
-    const preset =
-      Number(
-        (playerStuffData as any)?.[slotIdx] && (playerStuffData as any)[slotIdx][1]
-      ) || 0;
     // Compute the per-talent super bonus value regardless of array
     // membership — Legend7/W7B5 don't depend on which talent is selected,
     // only on account progress.
@@ -873,12 +886,8 @@ function resolveAllTalentLVz(
     );
     const zenithSuperDupers = zenithLevel * zenithPerLv;
     potentialSuperBonus = Math.round(base + yellow2 + zenithSuperDupers);
-    const superArr =
-      saveData.spelunkData &&
-      (saveData.spelunkData as any)[20 + slotIdx + 12 * preset];
     superActive =
-      (Array.isArray(superArr) && superArr.indexOf(talentIdx) !== -1) ||
-      !!opts?.forceSuperActive;
+      superTalentListed(talentIdx, slotIdx, opts, saveData) || !!opts?.forceSuperActive;
     if (superActive) {
       spelunkBonus = potentialSuperBonus;
       const kids: ArkhNode[] = [
@@ -1653,8 +1662,12 @@ function getbonus2(
   // Everything else in it — Symbols of Beyond, Divinity, Lv0[0], the Family
   // Guy'd FamBonusQTYs — reads the ACTIVE player (2026-09-23: Markhe lv 1900
   // gives Archlord on ARKHELUCK the +14 Super Bit 47 levels, not ARKHELUCK's 13).
-  const ctxOpts =
-    activeCharIdx != null ? { ...atlOpts, contextSlot: activeCharIdx } : atlOpts;
+  // The super-talent lookup on that path reads both presets of g.
+  const ctxOpts: ATLOpts = {
+    ...atlOpts,
+    anyPreset: true,
+    ...(activeCharIdx != null ? { contextSlot: activeCharIdx } : {}),
+  };
   for (let ci = 0; ci < numCharacters; ci++) {
     const sl = (skillLvData as any)[ci] || {};
     const rawLv = Number(sl[talentIdx] || sl[String(talentIdx)]) || 0;

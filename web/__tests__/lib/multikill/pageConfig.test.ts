@@ -174,6 +174,9 @@ describe.skipIf(!existsSync(SAVE))("Multikill what-if on the ARKHE save", () => 
     const [lever] = multikillGainsModel.levers!(flattenTree(computeArkhMultikill(save, markhe(), 301).tree));
     expect(lever).toMatchObject({ you: 24, max: 25 });
     expect(lever.gainPct).toBeCloseTo((3313 / 3185 - 1) * 100, 9);
-    expect(lever.group).toMatch(/^needs ×3\.47 more max damage \(next tier at /); // 2.086E31 / 6.013E30
+    // 2.086E31 / 6.48E30: max damage counts Briar Patch (exotic 41, +5083%) and
+    // Royal Statue 0 (+200%) since 2026-10 — both in N.js `Max`, both stubbed
+    // before (the old ×3.47 came from that incomplete engine).
+    expect(lever.group).toMatch(/^needs ×3\.22 more max damage \(next tier at /);
   });
 });

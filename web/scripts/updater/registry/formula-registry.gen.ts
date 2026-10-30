@@ -251,6 +251,9 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   "_customBlock_NotateNumber": [
     "lib/coinMulti/format.ts"
   ],
+  "_customBlock_RunCodeOfTypeXforThingY": [
+    "lib/arkh/stats/systems/common/talent.ts"
+  ],
   "_customBlock_SaltLick": [
     "lib/arkh/stats/systems/exp/saltLick.ts"
   ],
