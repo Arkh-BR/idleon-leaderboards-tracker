@@ -20,6 +20,11 @@ git diff web/data/njs-snapshot web/lib/arkh/stats/data/game
 git add web/data/njs-snapshot web/lib/arkh/stats/data/game && git commit -m "chore: bump game data"
 ```
 
+> **Depois do update, o site ficou diferente do jogo?** Siga
+> [`scripts/dr-debug/README.md`](../dr-debug/README.md): captura do save no
+> momento da leitura, bisseção com 2 leituras do jogo e varreduras do N.js
+> (fórmulas alcançáveis que mudaram, sub-casos homônimos, `custommaps.js`).
+
 ## Fechando o ciclo: `--write-game-data`
 
 As ferramentas Drop Rate / Talents leem dos arquivos commitados
