@@ -35,12 +35,12 @@ export const EXP_PAGE: StatPageConfig = {
     })),
   topMeta: { generatedAt: TOP_EXP_GENERATED_AT, playersScanned: TOP_EXP_PLAYERS_SCANNED },
   methodologyNote:
-    "EXP gain = how much your total Class EXP Multi would rise if this source matched the top players " +
-    "(Observed Max), recomputed through the game's formula. Values are a ceiling, not a one-level step. " +
+    "EXP gain = how much your total Class EXP Multi would rise if this source matched the top players of your class family " +
+    "(Observed Max — warrior, archer, mage and beginner lines are measured apart, since stat-scaled sources differ), recomputed through the game's formula. Values are a ceiling, not a one-level step. " +
     "Each top player is measured on their best EXP map (Arcane map bonus × Shiny Medallions), so those " +
     "two rows reflect that map choice too. Sources that only apply to your lowest-level character or " +
     "below a level cap aren't ranked. The weekly vote isn't ranked: it's server-wide and changes every week.",
-  compareTitle: "Compare every EXP source against the best value observed across the top players",
+  compareTitle: "Compare every EXP source against the best value observed across the top players of your class family",
   gainsTabTitle: "Rank your EXP sources by how much Class EXP Multi matching the top players would give",
   footer: "EXP Multi is computed locally from your save — every term of the game's Class EXP formula, group by group.",
 };

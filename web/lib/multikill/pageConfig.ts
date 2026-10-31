@@ -52,13 +52,13 @@ export const MULTIKILL_PAGE: StatPageConfig = {
     })),
   topMeta: { generatedAt: TOP_MULTIKILL_GENERATED_AT, playersScanned: TOP_MULTIKILL_PLAYERS_SCANNED },
   methodologyNote:
-    "Multikill gain = how much your Multikill would rise if this source matched the top players " +
-    "(Observed Max), recomputed through the game's formula ⌊Base + Tier × Per Tier⌋. Values are a ceiling, " +
+    "Multikill gain = how much your Multikill would rise if this source matched the top players of your class family " +
+    "(Observed Max — warrior, archer, mage and beginner lines are measured apart, since stat-scaled sources differ), recomputed through the game's formula ⌊Base + Tier × Per Tier⌋. Values are a ceiling, " +
     "not a one-level step. The top players are measured on map 251 (World 6, every endgame character at " +
     "the tier-51 cap), so the Death Note row is only compared on a World 6 map and the damage tier only " +
     "outside World 7. \"+1 damage tier\" is a step, not a reference: it needs ×2 more max damage (×5 in World 7). " +
     "In the Crystal Glunko Cove the cavern sets the multikill, so no source moves it there.",
-  compareTitle: "Compare every Multikill source against the best value observed across the top players",
+  compareTitle: "Compare every Multikill source against the best value observed across the top players of your class family",
   gainsTabTitle: "Rank your Multikill sources by how much Multikill matching the top players would give",
   footer:
     "Multikill is computed locally from your save — every term of the game's multikill formula, base and per damage tier.",

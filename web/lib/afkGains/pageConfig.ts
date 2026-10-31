@@ -78,11 +78,11 @@ export const AFK_PAGE: StatPageConfig = {
     })),
   topMeta: { generatedAt: TOP_AFK_GENERATED_AT, playersScanned: TOP_AFK_PLAYERS_SCANNED },
   methodologyNote:
-    "AFK gain = how much your AFK Gains Rate would rise if this source matched the top players " +
-    "(Observed Max), recomputed through the game's formula. Values are a ceiling, not a one-level step. " +
+    "AFK gain = how much your AFK Gains Rate would rise if this source matched the top players of your class family " +
+    "(Observed Max — warrior, archer, mage and beginner lines are measured apart, since stat-scaled sources differ), recomputed through the game's formula. Values are a ceiling, not a one-level step. " +
     "Each top player is measured on their best Arcane AFK map (slot 2), so that row reflects the map " +
     "choice too. The weekly vote isn't ranked: it's server-wide and changes every week.",
-  compareTitle: "Compare every AFK gains source against the best value observed across the top players",
+  compareTitle: "Compare every AFK gains source against the best value observed across the top players of your class family",
   gainsTabTitle: "Rank your AFK sources by how much AFK Gains Rate matching the top players would give",
   footer:
     "AFK Gains Rate is computed locally from your save — every term of the game's fighting AFK formula, pool by pool.",

@@ -39,6 +39,32 @@ function getMap(): Record<number, string> {
   return _cache;
 }
 
+/** Class family = the main-stat line (N.js ReturnClasses / ClassStatTypes):
+ *  ids < 6 are the beginner line (LUK); above that the root is
+ *  6 + 12·⌊(id − 6)/12⌋ → 6 warrior (STR), 18 archer (AGI), 30 mage (WIS). */
+export type ClassFamily = "beginner" | "warrior" | "archer" | "mage";
+export const CLASS_FAMILIES: readonly ClassFamily[] = ["beginner", "warrior", "archer", "mage"];
+
+export function classFamilyOfIndex(classIdx: number): ClassFamily | null {
+  if (!Number.isFinite(classIdx) || classIdx < 1 || classIdx > 41) return null;
+  if (classIdx < 6) return "beginner";
+  return (["warrior", "archer", "mage"] as const)[Math.floor((classIdx - 6) / 12)];
+}
+
+let _familyByKey: Record<string, ClassFamily> | null = null;
+/** Family of a PascalCase class key ("Royal_Guardian" → "warrior"). */
+export function classFamilyOfKey(classKey: string | null | undefined): ClassFamily | null {
+  if (!classKey) return null;
+  if (!_familyByKey) {
+    _familyByKey = {};
+    for (const [idx, key] of Object.entries(getMap())) {
+      const fam = classFamilyOfIndex(Number(idx));
+      if (fam) _familyByKey[key] = fam;
+    }
+  }
+  return _familyByKey[classKey] ?? null;
+}
+
 /** Read CharacterClass_{ci} from the raw save and return the PascalCase
  *  class key, or null if the field is missing / the class is filler. */
 export function getCharClassKey(rawSave: any, charIdx: number): string | null {
