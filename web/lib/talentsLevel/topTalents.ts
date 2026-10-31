@@ -13,13 +13,13 @@
 // default tree (they would all resolve to identical numbers anyway).
 // Auto-refreshed by scripts/update-top-talents.ts.
 //
-// Snapshot generated: 2026-10-30T01:59:51.990Z
-// Players scanned: 85
+// Snapshot generated: 2026-10-31T10:48:06.849Z
+// Players scanned: 84
 
 import type { ArkhNode } from "../arkh/node";
 
-export const HYPO_TALENTS_GENERATED_AT = "2026-10-30T01:59:51.990Z";
-export const HYPO_TALENTS_PLAYERS_SCANNED = 85;
+export const HYPO_TALENTS_GENERATED_AT = "2026-10-31T10:48:06.849Z";
+export const HYPO_TALENTS_PLAYERS_SCANNED = 84;
 
 export const HYPO_DEFAULT_TREE: ArkhNode = {
   "name": "Effective Level",
@@ -512,7 +512,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
             },
             {
               "name": "Family Guy Multi (×) — potential buff",
-              "val": 1.3575371549893842,
+              "val": 1.3575821845174973,
               "children": [
                 {
                   "name": "Base Level",
@@ -743,7 +743,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                 },
                 {
                   "name": "Bonus Levels",
-                  "val": 276,
+                  "val": 277,
                   "fmt": "+",
                   "note": "Σ ATL (unbuffed FB68, excl. super)"
                 },
@@ -784,7 +784,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
           "children": [
             {
               "name": "Divinity Lv",
-              "val": 994,
+              "val": 1023,
               "fmt": "raw"
             },
             {
@@ -795,7 +795,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
             },
             {
               "name": "Coral Kid 3",
-              "val": 297,
+              "val": 293,
               "fmt": "raw",
               "note": "OLA[430]"
             },
@@ -1442,18 +1442,24 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                 "val": 1969,
                 "children": [
                   {
-                    "name": "Char 5 Lv",
-                    "val": 1956,
+                    "name": "Char 4 Lv",
+                    "val": 1965,
                     "fmt": "raw",
-                    "note": "Skootchz — elemental sorcerer (cls 34) — ACTIVE char (gets Family Guy buff if it wins the slot)"
+                    "note": "sm4rtb0i — elemental sorcerer (cls 34) — ACTIVE char (gets Family Guy buff if it wins the slot)"
+                  },
+                  {
+                    "name": "Char 9 Lv",
+                    "val": 1904,
+                    "fmt": "raw",
+                    "note": "Sastery — elemental sorcerer (cls 34)"
                   }
                 ],
                 "fmt": "raw",
-                "note": "max across account — 1 mage char"
+                "note": "max across account — 2 mage chars"
               },
               {
                 "name": "Family Guy Multi (×) — potential buff",
-                "val": 1.357401490947817,
+                "val": 1.3575821845174973,
                 "children": [
                   {
                     "name": "Base Level",
@@ -1463,7 +1469,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                         "name": "Points Invested",
                         "val": 441,
                         "fmt": "raw",
-                        "note": "save=434"
+                        "note": "save=441"
                       },
                       {
                         "name": "Max Book Lv Cap",
@@ -1589,7 +1595,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                                   }
                                 ],
                                 "fmt": "raw",
-                                "note": "4 raw × 3.5× Base = 14.00  →  then × 1.95× Higher Bonus × 2.77× Winner = 75.62"
+                                "note": "4 raw × 3.5× Base = 14.00  →  then × 1.95× Higher Bonus × 3.02× Winner = 82.45"
                               },
                               {
                                 "name": "Higher Bonus Multi",
@@ -1684,7 +1690,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                   },
                   {
                     "name": "Bonus Levels",
-                    "val": 275,
+                    "val": 277,
                     "fmt": "+",
                     "note": "Σ ATL (unbuffed FB68, excl. super)"
                   },
@@ -1725,7 +1731,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
             "children": [
               {
                 "name": "Divinity Lv",
-                "val": 994,
+                "val": 1023,
                 "fmt": "raw"
               },
               {
@@ -1736,7 +1742,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
               },
               {
                 "name": "Coral Kid 3",
-                "val": 297,
+                "val": 293,
                 "fmt": "raw",
                 "note": "OLA[430]"
               },
@@ -1948,10 +1954,10 @@ export const STAR_TALENT_CEILING: Readonly<Record<number, number>> = {
   "638": 101,
   "639": 100,
   "640": 101,
-  "641": 413,
+  "641": 409,
   "642": 434,
   "643": 426,
-  "644": 406,
+  "644": 407,
   "645": 409,
   "646": 436,
   "647": 433,
