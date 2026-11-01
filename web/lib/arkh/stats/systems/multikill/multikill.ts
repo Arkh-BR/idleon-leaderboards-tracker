@@ -35,7 +35,7 @@ import { getBuffBonuses } from "../common/buffs";
  *  star talent (every class) and 58 is account-wide, so neither is gated. */
 export const MK_CLASS_TALENTS = [46, 469] as const;
 
-const raw = (name: string, v: number): ArkhNode => node(name, v, null, { fmt: "raw" });
+const raw = (name: string, v: number, note?: string): ArkhNode => node(name, v, null, { fmt: "raw", note });
 const factor = (name: string, v: number, children?: ArkhNode[] | null): ArkhNode =>
   node(name, v, children ?? null, { fmt: "x" });
 const pct = (name: string, v: number, children?: ArkhNode[] | null, note?: string): ArkhNode =>
@@ -67,28 +67,30 @@ function resolveMultikill(id: string, ctx: SystemCtx): ArkhNode {
     // the active-signs port (equipped ∪ unlocked below the enabled count).
     case "sign47": {
       const r = starSignBonusReal("MultiKill", ci, s);
-      return pct("Star signs (Multikill)", r.val, r.children);
+      return pct("Cullingo (Star Sign 47)", r.val, r.children, "+15% Total Multikill, × Seraph");
     }
     // N.js SaltLick(8): the level × SaltLicks[8][3] (3 per level, max 10).
     case "saltLick8": {
-      return pct("Salt Lick 8 (Multikill)", saltLick(8, s), [raw("Level (SaltLick[8])", saltLickLevel(8, s))]);
+      return pct("Multikill Rate (Salt Lick 8)", saltLick(8, s), [raw("Level (SaltLick[8])", saltLickLevel(8, s))], "3 per level, max 10");
     }
     // N.js StampBonusOfTypeX("Overkill") — only StampC19 has that type.
     case "stampC19": {
       const r = computeStampBonusOfTypeX("Overkill", s);
-      return pct("Stamps (Overkill)", r.val, r.children);
+      return pct("Multikill Stamp (Stamp C19)", r.val, r.children, "StampBonusOfTypeX(\"Overkill\"); only C19 has that type");
     }
     // N.js 2*TowerInfo[2]: the Death Note building's level ×2.
     case "deathNoteBuilding": {
       const lv = Number((s.towerData as any)?.[2]) || 0;
-      return pct("Death Note building ×2", 2 * lv, [raw("Building level (TowerInfo[2])", lv)]);
+      return pct("Death Note building", 2 * lv, [raw("Building level (TowerInfo[2])", lv)], "2 × the building level (TowerInfo[2])");
     }
     // N.js EtcBonuses("29") / ("71") — numeric ids (a string id drops gallery items).
     case "etc29":
     case "etc71": {
       const n = Number(id.slice(3));
       const e = etcBonus.resolve(n, { saveData: s, charIdx: ci });
-      return pct(n === 29 ? "Multikill gear (Etc 29)" : "Multikill per tier gear (Etc 71)", Number(e.val) || 0, e.children);
+      return n === 29
+        ? pct("Multikill (Equipment)", Number(e.val) || 0, e.children, "EtcBonuses(29) = %_MULTIKILL")
+        : pct("Multikill per Tier (Equipment)", Number(e.val) || 0, e.children, "EtcBonuses(71) = %_MULTIKILL_PER_TIER");
     }
     // N.js Math.min(5, AchieveStatus(148)) + 6*AchieveStatus(122) + 2*AchieveStatus(123).
     case "ach148":
@@ -97,7 +99,7 @@ function resolveMultikill(id: string, ctx: SystemCtx): ArkhNode {
     case "ach123": {
       const n = Number(id.slice(3));
       const w = n === 122 ? 6 : 2;
-      return pct(`${label("Achievement", n)} × ${w}`, w * achieveStatus(n, s));
+      return pct(label("Achievement", n), w * achieveStatus(n, s), null, `× ${w}`);
     }
     // N.js StatueOnyxOwned*GetTalentNumber(1,654) (star talent) and
     // getbonus2(1,58,-1)*⌊OLA[158]/5⌋ (account-wide): talent.resolve applies
@@ -123,7 +125,7 @@ function resolveMultikill(id: string, ctx: SystemCtx): ArkhNode {
     // N.js AlchVials.Overkill.
     case "vialOverkill": {
       const r = computeVialByKey("Overkill", s);
-      return pct("Vials (Overkill)", r.val, r.children);
+      return pct("Slowergy Drink (Vial 35)", r.val, r.children, "Vial effect key Overkill");
     }
     // N.js GetBuffBonuses(46,2) and (469,2): Void Radius's y (class 4/5 with
     // buff 45) and Mana Is Life's y, each while its buff is active. The names
@@ -143,20 +145,20 @@ function resolveMultikill(id: string, ctx: SystemCtx): ArkhNode {
       return pct("Trilobite Rock (Artifact 26)", computeArtifactBonus(26, ci, { saveData: s, charIdx: ci } as any));
     // N.js chipBonuses("mkill"): the active character's lab chips (Wood Chip, 15).
     case "chipMkill":
-      return pct("Lab chip (mkill)", chipBonuses("mkill", ci));
+      return pct("Wood Chip (Lab Chip 14)", chipBonuses("mkill", ci), null, "Chip effect key mkill; only the active character's chips");
     // N.js Holes("MeasurementBonusTOTAL",9,0): the "40TOT" base × the
     // Gloomie-kills multi (type 0).
     case "meas9":
-      return pct("Measurement 9 (Multikill per tier)", measurementBonusTotal(9, s));
+      return pct("Multikill per Tier Measurement (Measurement 9)", measurementBonusTotal(9, s), null, "Base × the Gloomie-kills multi (type 0)");
     // N.js CardBonusREAL(80).
     case "card80": {
       const r = computeCardBonusByType(80, ci, s);
-      return pct("Cards (Card Type 80)", r.val, r.children);
+      return pct("Multikill per Tier Cards (Card Type 80)", r.val, r.children);
     }
     // N.js DNSM.StarSigns["78"]: sign 78 Killian Maximus +3 (@6513550), × Seraph.
     case "sign78": {
       const r = starSignBonusReal("78", ci, s);
-      return pct("Star signs (Multikill per tier)", r.val, r.children);
+      return pct("Killian Maximus (Star Sign 78)", r.val, r.children, "+3% Multikill per Tier, × Seraph");
     }
     // N.js prayersReal(16,0): Balance of Pain, super-bit branch included.
     case "prayer16": {
@@ -165,11 +167,11 @@ function resolveMultikill(id: string, ctx: SystemCtx): ArkhNode {
     }
     // N.js Breeding("ShinyBonusS","Nah",4,-1).
     case "shiny4":
-      return pct("Shiny Pets (Breeding 4)", computeShinyBonusS(4, s));
+      return pct("Multikill Per Tier Shiny Pet (Breeding 4)", computeShinyBonusS(4, s));
     // N.js BoxRewards["13b"] (Utilitarian Capsule).
     case "box13b": {
       const r = computeBoxReward(ci, "13b");
-      return pct("Post Office 13b", r.val, r.children);
+      return pct("Utilitarian Capsule (Post Office 13b)", r.val, r.children, "% Multikill per Tier (second slot of box 13)");
     }
     // N.js AlchBubbles.MKtierACTIVE (MR_MASSACRE, cauldron 3 bubble 15): an
     // ACTIVE key exists only with Companions(4) (Sheepie) or "c15" in
@@ -177,15 +179,15 @@ function resolveMultikill(id: string, ctx: SystemCtx): ArkhNode {
     // (isActiveBubbleOn); the flag row only explains a 0.
     case "bubbleMKtier": {
       const r = bubbleValByKey("MKtierACTIVE", ci, s);
-      return pct("MR_MASSACRE bubble (MKtierACTIVE)", r.val, [
+      return pct("Mr Massacre (Kazam Cauldron)", r.val, [
         raw('Active (Sheepie or "c15" equipped)', isActiveBubbleOn(ci, 3, 15, s) ? 1 : 0),
         ...(r.children ?? []),
-      ]);
+      ], "ACTIVE bubble (key MKtierACTIVE): counts only with Sheepie or when \"c15\" is equipped");
     }
     // N.js CardSetBonuses(0,"11") = Cards[3]["{%_Multikill_Per_Tier"].
     case "cardSet11": {
       const r = computeCardSetBonus(ci, "11");
-      return pct("Card Set 11 (Multikill per tier)", r.val, r.children);
+      return pct("Multikill Per Tier Set Bonus (Card Set 11)", r.val, r.children);
     }
 
     // ── Damage tier, map rules, status ──
@@ -260,9 +262,9 @@ function resolveMultikill(id: string, ctx: SystemCtx): ArkhNode {
         MK_NODES.active,
         a.active ? 1 : 0,
         [
-          raw("Max damage ≥ HP × E", a.maxOk ? 1 : 0),
-          raw("Death Note built (TowerInfo[2] > 0.5)", a.deathNote ? 1 : 0),
-          node("Accuracy > 1.5 × Defence", a.accOk ? 1 : 0, [raw("Accuracy", a.accuracy), raw("Target Defence", a.defence)], { fmt: "raw" }),
+          raw("Max damage vs target HP", a.maxOk ? 1 : 0, "maxDamage ≥ HP × E (E = the Exponent row)"),
+          raw("Death Note built", a.deathNote ? 1 : 0, "TowerInfo[2] > 0.5"),
+          node("Accuracy beats the target's Defence", a.accOk ? 1 : 0, [raw("Accuracy", a.accuracy), raw("Target Defence", a.defence)], { fmt: "raw", note: "Accuracy > 1.5 × target Defence" }),
         ],
         { fmt: "raw", note }
       );
