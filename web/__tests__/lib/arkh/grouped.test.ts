@@ -61,7 +61,7 @@ describe("grouped descriptors", () => {
 
   it("add / replace neutrals and notes", () => {
     expect(neutralValue("add")).toBe(0);
-    expect(neutralValue("replace")).toBeNaN();
+    expect(neutralValue("replace")).toBe(0);
     expect(groupNote({ kind: "add" })).toBe("+ Σ");
     expect(groupNote({ kind: "add", below: 5 })).toBe("+ Σ (only below 5, capped at 5)");
     expect(groupNote({ kind: "replace" })).toBe("replaces the total");
@@ -73,7 +73,9 @@ describe("grouped descriptors", () => {
     expect(applyGroupStep({ kind: "add" }, [1, 2, NaN], 3)).toBe(6);
     expect(applyGroupStep({ kind: "add" }, [], 3)).toBe(3);
     expect(applyGroupStep({ kind: "replace" }, [NaN, 9, 4], 3)).toBe(9);
-    expect(applyGroupStep({ kind: "replace" }, [0], 3)).toBe(0); // 0 is a finite replacement
+    expect(applyGroupStep({ kind: "replace" }, [0], 3)).toBe(3); // 0 = does not apply
+    expect(applyGroupStep({ kind: "replace" }, [0, 9], 3)).toBe(9);
+    expect(applyGroupStep({ kind: "replace" }, [-1], 3)).toBe(3);
     expect(applyGroupStep({ kind: "replace" }, [NaN], 3)).toBe(3);
     expect(applyGroupStep({ kind: "replace" }, [], 3)).toBe(3);
   });
@@ -118,7 +120,7 @@ describe("grouped descriptors", () => {
     expect(run(500)).toBeCloseTo(6, 12); // 1 + 5 = 6 → untouched
   });
 
-  it("replace: a finite source replaces the total, NaN leaves it", () => {
+  it("replace: a finite source > 0 replaces the total, NaN or 0 leaves it", () => {
     const d = mixed();
     const base = { a: pool(100), b: pool(0), c: pool(1), d: pool() };
     const hit = combineStatPools(d, { ...base, e: pool(7) });
@@ -127,5 +129,8 @@ describe("grouped descriptors", () => {
     const miss = combineStatPools(d, { ...base, e: pool(NaN) });
     expect(miss.total).toBe(2);
     expect(miss.tree.children![4].val).toBeNaN();
+    const zero = combineStatPools(d, { ...base, e: pool(0) });
+    expect(zero.total).toBe(2);
+    expect(zero.tree.children![4].val).toBeNaN();
   });
 });

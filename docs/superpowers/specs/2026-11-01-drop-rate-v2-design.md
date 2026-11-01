@@ -64,10 +64,10 @@ usuário quer um **DR V2 do zero**, no mesmo formato dos trackers novos.
 
 - `lib/arkh/stats/defs/grouped.ts`: novos `GroupKind`:
   - `add` — `total += Σ`; com `below?: number` vira `total < below ? min(below, total + Σ) : total` (piso do chip);
-  - `replace` — se o grupo tem uma fonte com valor finito, `total = esse valor` (Cove).
+  - `replace` — só com o primeiro valor finito > 0 (emitir 0 quando não se aplica); `total = esse valor` (Cove).
   `groupedDescriptor.combine` e `groupedGainsModel.totalFromFlat` passam a aplicar cada grupo como um passo
   em ordem (`pct/raw/min4/mult` continuam multiplicando como hoje). `neutralValue`: `add → 0`,
-  `replace → NaN` (nenhuma troca). Display no Biggest Gains: `add`/`replace` → `raw`.
+  `replace → 0` (nenhuma troca). Display no Biggest Gains: `add`/`replace` → `raw`.
 - `StatPageConfig.refToggle?: { label: string; title: string; sources: string[] }`: um checkbox no Compare;
   desligado, as fontes listadas (nomes de nó) entram na referência com o valor neutro do grupo. Sem
   `refToggle`, nada muda.

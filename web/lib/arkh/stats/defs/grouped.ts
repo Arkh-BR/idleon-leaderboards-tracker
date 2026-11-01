@@ -8,9 +8,9 @@
 // Two opt-in step kinds act on the running total instead of multiplying it
 // (Drop Rate adds constants between multiplications and replaces the total on
 // one map): add → total + Σ (with `below`: only a total under N, capped at N),
-// replace → the first finite source replaces the total. A replace source that
-// does not apply must be left out of its pool, not emitted as NaN: flattenTree
-// turns NaN into 0, and the what-if would then replace the total with 0.
+// replace → the first finite source > 0 replaces the total. Meant for a single
+// source: emit 0 when it doesn't apply (never omit it or emit NaN: flattenTree
+// turns NaN into 0, and 0 is what keeps the what-if equal to the tree).
 
 import type { ArkhNode } from "../../node";
 import type { Descriptor, SourceSpec } from "../tree-builder";
@@ -46,10 +46,11 @@ export function groupFactorOf(g: Pick<StatGroup, "kind" | "max1">, vals: readonl
 }
 
 /** The group's own number in the tree: the factor for pct/raw/min4/mult, Σ for
- *  add, the replacement (NaN when no source is finite) for replace. */
+ *  add, the replacement (NaN, shown as "—", when no source is a finite value
+ *  > 0) for replace. */
 export function groupVal(g: Pick<StatGroup, "kind" | "max1">, vals: readonly number[]): number {
   if (g.kind === "add") return vals.reduce((a, v) => a + (Number(v) || 0), 0);
-  if (g.kind === "replace") return vals.find((v) => Number.isFinite(v)) ?? NaN;
+  if (g.kind === "replace") return vals.find((v) => Number.isFinite(v) && v > 0) ?? NaN;
   return groupFactorOf(g, vals);
 }
 
@@ -65,7 +66,7 @@ export function applyGroupStep(g: Pick<StatGroup, "kind" | "max1" | "below">, va
 
 /** The value a zeroed (e.g. class-gated) source takes in a group of this kind. */
 export function neutralValue(kind: GroupKind): number {
-  return kind === "mult" ? 1 : kind === "replace" ? NaN : 0;
+  return kind === "mult" ? 1 : 0;
 }
 
 export function groupNote(g: Pick<StatGroup, "kind" | "max1" | "below">): string {

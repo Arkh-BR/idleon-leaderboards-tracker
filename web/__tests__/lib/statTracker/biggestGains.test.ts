@@ -112,6 +112,8 @@ describe("add / replace steps — the what-if total mirrors the tree", () => {
     ["chip leaves a total of 6", { a: [500], b: [], c: [1], d: [0.2], e: [] }, 6],
     ["chip adds 0.3 under the cap", { a: [50], b: [1, 1], c: [1.2], d: [0.3], e: [] }, 4.5],
     ["replace swaps the total", { a: [50], b: [1, 1], c: [1.2], d: [0.3], e: [7] }, 7],
+    ["inactive replace as NaN", { a: [50], b: [1, 1], c: [1.2], d: [0.3], e: [NaN] }, 4.5],
+    ["inactive replace as 0", { a: [50], b: [1, 1], c: [1.2], d: [0.3], e: [0] }, 4.5],
   ] as const)("%s", (_n, p, expected) => {
     const r = combineStatPools(desc, Object.fromEntries(Object.entries(p).map(([k, v]) => [k, pool(...v)])));
     expect(r.total).toBeCloseTo(expected, 12);
