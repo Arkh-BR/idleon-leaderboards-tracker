@@ -86,8 +86,10 @@ usuário quer um **DR V2 do zero**, no mesmo formato dos trackers novos.
   do helper é compartilhado com o V1, renomeia na chamada com `renamed()`). `@njs` em todo termo novo.
 - `lib/arkh/computeDropRateV2.ts`: `computeArkhDropRateV2(raw, ci, map)`, `computeArkhDropRateV2Pools`,
   `combineDropRateV2Pools`, `bestDrMapIdx(save, ci)` (mapa de luta com o maior bônus Arcane slot 0, fora o 216).
-- Talentos de classe da fórmula (`GetTalentNumber(1, …)`: 24, 239, 279, 655 e o do Workbench 328)
-  listados em `DR2_CLASS_TALENTS` para o gating por classe do coletor.
+- Talentos de classe da fórmula (`GetTalentNumber(1, …)`: 24, 239, 279, 655) listados em
+  `DR2_CLASS_TALENTS` para o gating por classe do coletor. O 328 do Workbench **não** entra: o N.js
+  o lê como `getbonus2(1,328,-1)` (@7821743), o melhor valor entre todos os personagens da conta,
+  então não depende da classe.
 
 ### Página
 

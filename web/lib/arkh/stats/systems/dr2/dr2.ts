@@ -11,8 +11,9 @@
 // whenever this file loads first.
 //
 // Where V1 and N.js differ, this follows N.js: EtcBonuses("102") is a term,
-// VotingBonusz(27) carries VotingBonuszMulti, Companions 26 and 160 share one
-// max(1, ·) factor, and the Cove replaces the total.
+// StarSigns.Drop counts only the active signs, VotingBonusz(27) carries
+// VotingBonuszMulti, Companions 26 and 160 share one max(1, ·) factor, and the
+// Cove replaces the total.
 
 import { node, renamed, renamedDeep, type ArkhNode } from "../../../node";
 import type { SystemCtx } from "../../registry";
@@ -23,7 +24,7 @@ import { postOffice } from "../w2/postOffice";
 import { etcBonus } from "../common/etcBonus";
 import { alchemy, sigil, vial } from "../w2/alchemy";
 import { card, cardSet, cardSingle, caveDropCards } from "../common/cards";
-import { starSign } from "../common/starSign";
+import { starSignBonusReal } from "../common/starSign";
 import { guild } from "../common/guild";
 import { shrine } from "../w3/construction";
 import { prayer } from "../w3/prayer";
@@ -83,7 +84,7 @@ const TERMS: Record<string, Term> = {
   bubble: [alchemy, "DROPPIN_LOADS", undefined, "Droppin Loads (Kazam Cauldron)", "AlchBubbles.DropRate (bubble [3][1])"],
   card10: [card, 10],
   talent24: [talent, 24],
-  starSigns: [starSign, "drop", undefined, "Star Signs: Drop Rate", "StarSigns.Drop: Pirate Booty (14), Druipi Major (76), × Seraph"],
+  // starSigns: a switch case below (StarSigns.Drop, active signs only)
   guild10: [guild, 10],
   // The helper's name, "Damage / Drop / EXP Set Bonus (Card Set 5)", holds the
   // flat-tree separator " / ".
@@ -175,6 +176,13 @@ function resolveDr2(id: string, ctx: SystemCtx): ArkhNode {
     case "luk": {
       const l = lukScaling.resolve(undefined, ctx);
       return node("LUK Scaling (Drop Rate)", 140 * l.val, l.children, { fmt: "+", note: "1.4 × the LUK curve, outside the /100: 140 × curve as %" });
+    }
+    // StarSigns.Drop: +5 with sign 14 and +12 with sign 76 in StarSignsDL (the
+    // equipped signs + the infinite ones), × Seraph. V1's resolver counts both
+    // signs always.
+    case "starSigns": {
+      const r = starSignBonusReal("Drop", ci, s);
+      return node("Star Signs: Drop Rate", r.val, r.children, { fmt: "+", note: "StarSigns.Drop: Pirate Booty (14), Druipi Major (76), × Seraph" });
     }
     // VotingBonusz(27) = NinjaInfo base × VotingBonuszMulti (V1's resolver
     // leaves the multi at 1); only the week's winning vote counts.
