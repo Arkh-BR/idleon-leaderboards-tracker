@@ -12,6 +12,7 @@ test.describe("Homepage", () => {
       { title: "IT Leaderboards Tracker", desc: "See your rank" },
       { title: "Tome Score Tracker", desc: "offline" },
       { title: "Drop Rate Tracker", desc: "Game Code Faithful" },
+      { title: "Drop Rate V2 (beta)", desc: "new beta engine" },
       { title: "Coin Multi Tracker", desc: "coin formula" },
       { title: "EXP Multi Tracker", desc: "Class EXP formula" },
       { title: "AFK Gains Tracker", desc: "AFK gains formula" },

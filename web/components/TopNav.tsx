@@ -13,6 +13,7 @@ const TRACKERS: NavGroup = {
   label: "📈 Trackers",
   items: [
     { href: "/drop-rate", label: "🎲 Drop Rate" },
+    { href: "/drop-rate-v2", label: "🎲 Drop Rate V2 (beta)" },
     { href: "/coin-multi", label: "🪙 Coin Multi" },
     { href: "/exp-multi", label: "✨ EXP Multi" },
     { href: "/afk-gains", label: "💤 AFK Gains" },
