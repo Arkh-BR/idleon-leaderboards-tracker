@@ -252,8 +252,8 @@ describe.skipIf(!existsSync(SAVE))("EXP Multi — Markhe on map 14 vs IdleonTool
   it("newbie bracket is off past level 50", () => expect(src("newbie")).toBe(0));
   it("prayer 9 enters as a negative (its curse)", () => expect(src("prayer9")).toBeLessThanOrEqual(0));
   it("cavern upg47/upg83 use their N.js HolesBuildings friendly names", () => {
-    expect(srcName("hole47")).toBe("Gloomie Expie (Cavern upg47)");
-    expect(srcName("hole83")).toBe("Sanctum of EXP (Cavern upg83)");
+    expect(srcName("hole47")).toBe("Gloomie Expie (Cavern Upgrade 47)");
+    expect(srcName("hole83")).toBe("Sanctum of EXP (Cavern Upgrade 83)");
   });
 
   // ===== Task 4 — the six new ports =====
