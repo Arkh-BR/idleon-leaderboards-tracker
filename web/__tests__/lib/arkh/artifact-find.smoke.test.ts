@@ -16,4 +16,17 @@ describe("Artifact Find smoke test", () => {
     expect(tree.children).toHaveLength(24);
     expect(tree.children).toHaveLength(ARTI_GROUPS.length);
   });
+
+  // User decision (2026-11-01): the tracker equals the Skill Info outside the W5 town, where
+  // N.js has not yet filled NONdummies[60] (it does so only under `200 == CurrentMap`). The
+  // type-6 captains stay visible as a count but add nothing. Real-save tests skip in CI.
+  it("shows type-6 captains as a count under a node that adds 0", () => {
+    const two = JSON.stringify([[6, 0, 0, 0, 0, 0, 0], [6, 0, 0, 0, 0, 0, 0]]);
+    const { tree } = computeArkhArtifactFind({ charNames: ["A"], data: { Captains: two } }, 0);
+    const additive = tree.children![0];
+    const capt = additive.children![ARTI_GROUPS[0].sources.indexOf("captains6")];
+    expect(capt.name).toMatch(/^Captains of type 6/);
+    expect(capt.val).toBe(0);
+    expect(capt.children![0].val).toBe(2);
+  });
 });
