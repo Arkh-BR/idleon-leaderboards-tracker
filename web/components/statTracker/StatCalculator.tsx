@@ -65,6 +65,8 @@ export default function StatCalculator({
   const [total, setTotal] = useState<number | null>(null);
   const [computing, setComputing] = useState(false);
   const unit = config.unit ?? "x";
+  // A page without a map selector always computes on map 0.
+  const effMapIdx = config.noMap ? 0 : mapIdx;
 
   // A refresh of the same account (auto-update / Sync now) keeps the map;
   // a fresh load re-derives it from the save.
@@ -167,7 +169,7 @@ export default function StatCalculator({
     setComputing(true);
     (async () => {
       try {
-        const result = await config.compute(save, charIdx, mapIdx);
+        const result = await config.compute(save, charIdx, effMapIdx);
         if (cancelled) return;
         setTree(result.tree);
         setTotal(result.total);
@@ -181,7 +183,7 @@ export default function StatCalculator({
     return () => {
       cancelled = true;
     };
-  }, [save, charIdx, mapIdx, chars.length, config]);
+  }, [save, charIdx, effMapIdx, chars.length, config]);
 
   useEffect(() => {
     if (!onStateChange) return;
@@ -193,13 +195,13 @@ export default function StatCalculator({
       classKey: save && ch ? getCharClassKey(save, ch.charIndex) : null,
       charSummary: ch ?? null,
       total,
-      mapIndex: mapIdx,
-      mapLabel: map?.name ?? `Map ${mapIdx}`,
+      mapIndex: effMapIdx,
+      mapLabel: config.noMap ? "any map" : map?.name ?? `Map ${mapIdx}`,
       save,
       tree,
       computeError: error && error.startsWith(config.errPrefix) ? error : null,
     });
-  }, [charIdx, mapIdx, total, tree, chars, mapOptions, save, onStateChange, error, config]);
+  }, [charIdx, mapIdx, effMapIdx, total, tree, chars, mapOptions, save, onStateChange, error, config]);
 
   const onLoad = (text: string) => {
     if (!text.trim()) {
@@ -226,7 +228,7 @@ export default function StatCalculator({
 
       <div className="rounded-lg bg-zinc-900/60 p-4 mb-4 border border-zinc-800 flex flex-col gap-3">
         <div className="flex flex-nowrap items-center gap-2 overflow-x-auto">
-          <span className="shrink-0 text-sm text-zinc-400 font-medium">Character &amp; map:</span>
+          <span className="shrink-0 text-sm text-zinc-400 font-medium">{config.noMap ? "Character:" : "Character & map:"}</span>
           <select
             value={charIdx}
             disabled={chars.length === 0}
@@ -243,19 +245,21 @@ export default function StatCalculator({
               ))
             )}
           </select>
-          <select
-            value={mapIdx}
-            disabled={chars.length === 0}
-            onChange={(e) => setMapIdx(Number(e.target.value))}
-            title={config.mapTitle}
-            className="px-2 py-1.5 text-sm bg-zinc-900 border border-zinc-700 rounded text-sky-300 disabled:opacity-40"
-          >
-            {mapOptions.map((m) => (
-              <option key={m.index} value={m.index}>
-                {m.label}
-              </option>
-            ))}
-          </select>
+          {!config.noMap && (
+            <select
+              value={mapIdx}
+              disabled={chars.length === 0}
+              onChange={(e) => setMapIdx(Number(e.target.value))}
+              title={config.mapTitle}
+              className="px-2 py-1.5 text-sm bg-zinc-900 border border-zinc-700 rounded text-sky-300 disabled:opacity-40"
+            >
+              {mapOptions.map((m) => (
+                <option key={m.index} value={m.index}>
+                  {m.label}
+                </option>
+              ))}
+            </select>
+          )}
         </div>
         {error && <p className="text-xs text-red-300">{error}</p>}
 
