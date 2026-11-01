@@ -78,6 +78,12 @@ export type StatPageConfig = {
   topMeta: { generatedAt: string; playersScanned: number };
   methodologyNote: string;
   compareTitle: string;
+  /** Optional checkbox next to Compare vs Observed Max (Drop Rate V2's Arcane
+   *  Map): unchecked drops `groupPath` and its subtree from the reference and
+   *  replays the root — the path's first segment — through
+   *  `gains.totalFromFlat`. Only the Compare baseline; Biggest Gains keeps the
+   *  full reference. */
+  refToggle?: { label: string; title: string; groupPath: string };
   gainsTabTitle: string;
   footer: string;
 };

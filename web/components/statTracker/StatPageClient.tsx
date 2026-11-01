@@ -10,6 +10,21 @@ import type { StatPageConfig, TopModule } from "@/lib/statTracker/config";
 
 type Baseline = { flatTree: FlatTree; capturedAt: number; charName: string };
 
+/** The reference without one group: its subtree is dropped and the root (the
+ *  path's first segment) is replayed through the stat's own total — a group
+ *  with ordered add/replace steps can't be divided back out. */
+function stripGroup(flat: FlatTree, groupPath: string, totalFromFlat: (f: FlatTree) => number): FlatTree {
+  const out: FlatTree = {};
+  let removed = false;
+  for (const path in flat) {
+    if (path === groupPath || path.startsWith(`${groupPath} / `)) removed = true;
+    else out[path] = flat[path];
+  }
+  if (!removed) return flat;
+  out[groupPath.split(" / ")[0]] = totalFromFlat(out);
+  return out;
+}
+
 export default function StatPageClient({
   config,
   extraTabs,
@@ -23,6 +38,8 @@ export default function StatPageClient({
   const [compareTop, setCompareTop] = useState(false);
   const [topMod, setTopMod] = useState<TopModule | null>(null);
   const [topLoading, setTopLoading] = useState(false);
+  // config.refToggle: whether the Observed Max reference keeps that group.
+  const [includeRef, setIncludeRef] = useState(true);
 
   const toggleTop = async () => {
     if (compareTop) {
@@ -43,12 +60,16 @@ export default function StatPageClient({
   const classKey = calcState?.classKey ?? null;
   const topBaseline = useMemo<Baseline | null>(() => {
     if (!compareTop || !topMod) return null;
+    const raw = topMod.flatForClass(classKey) as FlatTree;
     return {
-      flatTree: topMod.flatForClass(classKey) as FlatTree,
+      flatTree:
+        config.refToggle && !includeRef
+          ? stripGroup(raw, config.refToggle.groupPath, config.gains.totalFromFlat)
+          : raw,
       capturedAt: Date.parse(config.topMeta.generatedAt),
       charName: `Observed Max (${config.topMeta.playersScanned} top players)`,
     };
-  }, [compareTop, topMod, classKey, config]);
+  }, [compareTop, topMod, classKey, config, includeRef]);
 
   const yoursFlat = useMemo<FlatTree | null>(
     () => (calcState?.tree ? flattenTree(calcState.tree) : null),
@@ -89,6 +110,27 @@ export default function StatPageClient({
     </label>
   );
 
+  const toolbar =
+    compareTop && config.refToggle ? (
+      <>
+        {compareToggle}
+        <label
+          className="inline-flex items-center gap-1.5 ml-3 text-xs text-zinc-300 cursor-pointer select-none whitespace-nowrap"
+          title={config.refToggle.title}
+        >
+          <input
+            type="checkbox"
+            checked={includeRef}
+            onChange={(e) => setIncludeRef(e.target.checked)}
+            className="accent-amber-500"
+          />
+          {config.refToggle.label}
+        </label>
+      </>
+    ) : (
+      compareToggle
+    );
+
   // History + Save snapshot in a row under the total, the history panel under that.
   const snapshots = useStatSnapshots({
     config,
@@ -116,7 +158,7 @@ export default function StatPageClient({
         extraTabs={gainsTabs}
         extraTabsFirst
         defaultView="biggest-gains"
-        treeToolbar={compareToggle}
+        treeToolbar={toolbar}
       />
       <footer className="mt-8 text-[11px] text-zinc-600 text-center border-t border-zinc-900 pt-3">
         {config.footer}
