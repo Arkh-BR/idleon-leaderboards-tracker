@@ -30,11 +30,11 @@ concurrency:
 jobs:
   refresh:
     runs-on: ubuntu-latest
-    # 75: five capped steps (Coin + EXP + AFK + Multikill + Artifact Find, 12 min each,
-    # continue-on-error) plus the uncapped DR/Talent steps and checkout/npm ci
-    # must all fit before "Commit refreshed snapshots" runs, or every
-    # snapshot for the run is lost.
-    timeout-minutes: 75
+    # 90: five capped steps (Coin + EXP + AFK + Multikill + Artifact Find, 12 min each
+    # = 60, continue-on-error) plus the uncapped DR and Talent steps and checkout/npm ci
+    # (~70 min worst case) must all fit before "Commit refreshed snapshots" runs: a job
+    # timeout skips that step and loses every reference of the run.
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
 
