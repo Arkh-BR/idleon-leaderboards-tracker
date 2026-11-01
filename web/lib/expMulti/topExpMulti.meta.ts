@@ -2,7 +2,7 @@
 // imported). The path table lives in topExpMulti.ts and is lazy-loaded.
 // Both auto-refreshed by scripts/update-top-exp.ts.
 
-export const TOP_EXP_GENERATED_AT = "2026-10-31T20:28:32.983Z";
+export const TOP_EXP_GENERATED_AT = "2026-11-01T13:36:50.734Z";
 export const TOP_EXP_PLAYERS_SCANNED = 83;
 // Best EXP Multi a single CLASS's best-of-each-source build reaches.
 export const TOP_EXP_HYPOTHETICAL_TOTAL = 5.79610029334169e+23;

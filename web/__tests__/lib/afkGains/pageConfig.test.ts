@@ -114,7 +114,7 @@ describe.skipIf(!existsSync(SAVE))("AFK what-if gains on the ARKHE save (Markhe)
 
   it.each([14, 306])("+100 pts on a fighting-pool source is +100/Σ on map %i", (map) => {
     const flat = flattenTree(computeArkhAfkGains(save, ci, map).tree);
-    const path = `${AFK_ROOT} / ${AFK_NODES.pool} / Golden food (AllAFK)`;
+    const path = `${AFK_ROOT} / ${AFK_NODES.pool} / Golden Dumpling (Golden Food)`;
     const { rows } = computeGains(afkGainsModel, flat, { [path]: flat[path] + 100 });
     expect(rows[0].gainPct).toBeCloseTo((100 / 8503.975457682378) * 100, 9); // +1.1759%
   });

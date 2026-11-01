@@ -17,6 +17,8 @@ export type StatGroup = {
   kind: GroupKind;
   /** mult only: the game wraps the product in Math.max(1, ·). */
   max1?: boolean;
+  /** Tooltip text after the shape note ("× (1 + Σ/100) · <note>"). */
+  note?: string;
   sources: readonly string[];
 };
 
@@ -68,7 +70,7 @@ export function groupedDescriptor(opts: {
         const items = p[g.key]?.items ?? [];
         const factor = groupFactorOf(g, items.map((it) => Number(it.val)));
         total *= factor;
-        children.push({ name: g.name, val: factor, fmt: "x", note: groupNote(g), children: items });
+        children.push({ name: g.name, val: factor, fmt: "x", note: g.note ? `${groupNote(g)} · ${g.note}` : groupNote(g), children: items });
       }
       return { val: total, children };
     },

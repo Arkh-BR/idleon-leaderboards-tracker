@@ -34,6 +34,26 @@ export function node(
   return r;
 }
 
+/** A copy of `n` under a stat tracker's own name and note. The shared helpers
+ *  (etcBonus, friend, owl, holes…) also feed Drop Rate, so a tracker renames
+ *  their result at its call site instead of editing the helper. */
+export function renamed(n: ArkhNode, name: string, note?: string): ArkhNode {
+  const c: ArkhNode = { ...n, name };
+  if (note) c.note = note;
+  else delete c.note;
+  return c;
+}
+
+/** `n` and its descendants, each one `pick` names swapped through renamed() (its
+ *  own note stays unless `pick` gives a new one). For jargon rows deep inside a
+ *  shared helper's result, which a tracker cannot rename where they are built. */
+export function renamedDeep(n: ArkhNode, pick: (name: string) => [name: string, note?: string] | undefined): ArkhNode {
+  const hit = pick(n.name);
+  const c = hit ? renamed(n, hit[0], hit[1] ?? n.note) : { ...n };
+  if (n.children) c.children = n.children.map((k) => renamedDeep(k, pick));
+  return c;
+}
+
 // Numeric tree result — backward-compat for code that treats results as numbers.
 export type TreeResult = {
   val: number;

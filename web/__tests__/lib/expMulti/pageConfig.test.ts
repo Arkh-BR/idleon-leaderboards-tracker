@@ -17,7 +17,7 @@ describe("EXP Multi page config", () => {
   it("formats like the game and models gains over the EXP groups", () => {
     expect(EXP_PAGE.formatTotal(1.4504214791708842e19)).toBe("14504214T");
     const G = `${EXP_ROOT} / ${EXP_GROUPS[1].name}`;
-    expect(EXP_PAGE.gains.totalFromFlat({ [`${G} / EXP Bundle (bun_q)`]: 20 })).toBeCloseTo(1.2, 12);
+    expect(EXP_PAGE.gains.totalFromFlat({ [`${G} / EXP Bundle`]: 20 })).toBeCloseTo(1.2, 12);
   });
 
   it("loads the Observed Max for a class", async () => {
