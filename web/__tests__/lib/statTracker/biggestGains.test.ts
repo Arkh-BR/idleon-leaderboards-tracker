@@ -127,3 +127,30 @@ describe("add / replace steps — the what-if total mirrors the tree", () => {
     expect(rows[0].gainPct).toBeCloseTo(((1.5 + 4) / 3.5 - 1) * 100, 9);
   });
 });
+
+describe("replace groups — counted in the total, never ranked", () => {
+  const G2: StatGroup[] = [
+    { key: "p", name: "P", kind: "pct", sources: ["a"] },
+    { key: "cv", name: "Cove", kind: "replace", sources: ["cove"] },
+  ];
+  const m = groupedGainsModel("Root", G2);
+  const CV = "Root / Cove";
+  // A is at its max and the Cove (5.5) replaces a total of 10: dropping the Cove
+  // to its Observed Max of 0 would "gain" +81.8% if it were ranked.
+  const active = { [`${P} / A`]: 900, [`${CV} / Cove`]: 5.5 };
+  const ref = { [`${P} / A`]: 900, [`${CV} / Cove`]: 0 };
+
+  it("sources() leaves the replace source out, so the Cove's Observed Max of 0 never reads as a loss", () => {
+    expect(m.sources(active, ref).map((s) => s.source)).toEqual(["A"]);
+    const { rows, comparableSources } = computeGains(m, active, ref);
+    expect(rows).toEqual([]);
+    expect(comparableSources).toBe(1);
+    expect(m.totalFromFlat(active)).toBe(5.5); // still counts in the total
+  });
+
+  it("replacedBy names the active replace group, null when it is inactive or absent", () => {
+    expect(m.replacedBy?.(active)).toBe("Cove");
+    expect(m.replacedBy?.({ ...active, [`${CV} / Cove`]: 0 })).toBeNull();
+    expect(model.replacedBy?.({ [`${P} / A`]: 100 })).toBeNull();
+  });
+});

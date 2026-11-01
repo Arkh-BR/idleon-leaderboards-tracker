@@ -21,6 +21,10 @@ export type GainsModel = {
    *  with the source rows but never counted as comparable sources, e.g.
    *  Multikill's "+1 damage tier". */
   levers?(yoursFlat: Record<string, number>): GainRow[];
+  /** Name of the step that replaces the whole total in `yoursFlat` (Drop Rate
+   *  V2's Crystal Glunko Cove), or null. While one does, every what-if on the
+   *  other sources is a no-op, so the tab says so instead of ranking. */
+  replacedBy?(yoursFlat: Record<string, number>): string | null;
 };
 
 /** The generated Observed Max module (lib/<stat>/top*.ts), lazy-loaded. */
@@ -81,8 +85,10 @@ export type StatPageConfig = {
   /** Optional checkbox next to Compare vs Observed Max (Drop Rate V2's Arcane
    *  Map): unchecked drops `groupPath` and its subtree from the reference and
    *  replays the root — the path's first segment — through
-   *  `gains.totalFromFlat`. Only the Compare baseline; Biggest Gains keeps the
-   *  full reference. */
+   *  `gains.totalFromFlat`. `groupPath` must be a direct child of the root
+   *  (`<root> / <group>`): only the root is recomputed, a deeper path would
+   *  leave its ancestors' values stale. Only the Compare baseline; Biggest
+   *  Gains keeps the full reference. */
   refToggle?: { label: string; title: string; groupPath: string };
   gainsTabTitle: string;
   footer: string;
