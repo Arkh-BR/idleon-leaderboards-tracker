@@ -58,6 +58,9 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/arkh/stats/systems/exp/dancingCoral.ts",
     "lib/arkh/stats/systems/exp/exp.ts"
   ],
+  "DaveyJonesBonus": [
+    "lib/arkh/stats/systems/w5/sailing.ts"
+  ],
   "DeathNoteRank": [
     "lib/arkh/stats/systems/coin/gambit.ts"
   ],
@@ -139,6 +142,9 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   "MultiKill_perTier": [
     "lib/arkh/stats/defs/multikill.ts",
     "lib/arkh/stats/systems/multikill/multikill.ts"
+  ],
+  "NightmarinerTotLV": [
+    "lib/arkh/stats/systems/w5/sailing.ts"
   ],
   "ObolMISCmulti": [
     "lib/arkh/stats/data/w7/menagerie.ts"
@@ -225,6 +231,9 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   ],
   "_customBlock_AFKgainrates": [
     "lib/arkh/stats/systems/afk/afk.ts"
+  ],
+  "_customBlock_CaptBonusCalc": [
+    "lib/arkh/stats/systems/w5/sailing.ts"
   ],
   "_customBlock_Companions": [
     "lib/arkh/stats/data/common/companions.ts"
