@@ -32,8 +32,10 @@ const digitSum6 = (from: number) => {
  *  · (1 + u10·Bdig/100) · (1 + u22·Pdig/100)
  *  · (1 + u4·⌈getLOG OLA[668]⌉/100) · (1 + u18·⌈getLOG OLA[200]⌉/100)
  *  with Bdig = Σ⌈getLOG OLA[654..659]⌉ (blue shapes) and
- *  Pdig = Σ⌈getLOG OLA[660..665]⌉ (purple shapes). OLA[200] is the Drop Rate
- *  the game last saved, read from the save as is. */
+ *  Pdig = Σ⌈getLOG OLA[660..665]⌉ (purple shapes). OLA[200] is read from the
+ *  save as is. It is NOT the Drop Rate the game last saved: N.js (@5737687)
+ *  writes it only when TotalStats("Drop_Rarity") > OLA[200] && 216 != CurrentMap,
+ *  i.e. it holds the best non-Cove Drop Rate ever recorded. */
 // @njs _customBlock_Holes2
 export function cglunkoDR(s: SaveData): number {
   const u = (i: number) => cglunkoUpgBon(i, s);

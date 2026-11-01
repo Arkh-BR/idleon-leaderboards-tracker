@@ -115,7 +115,7 @@ export default function StatPageClient({
       <>
         {compareToggle}
         <label
-          className="inline-flex items-center gap-1.5 ml-3 text-xs text-zinc-300 cursor-pointer select-none whitespace-nowrap"
+          className="inline-flex items-center gap-1.5 sm:ml-3 text-xs text-zinc-300 cursor-pointer select-none whitespace-nowrap"
           title={config.refToggle.title}
         >
           <input

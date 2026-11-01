@@ -68,9 +68,10 @@ usuário quer um **DR V2 do zero**, no mesmo formato dos trackers novos.
   `groupedDescriptor.combine` e `groupedGainsModel.totalFromFlat` passam a aplicar cada grupo como um passo
   em ordem (`pct/raw/min4/mult` continuam multiplicando como hoje). `neutralValue`: `add → 0`,
   `replace → 0` (nenhuma troca). Display no Biggest Gains: `add`/`replace` → `raw`.
-- `StatPageConfig.refToggle?: { label: string; title: string; sources: string[] }`: um checkbox no Compare;
-  desligado, as fontes listadas (nomes de nó) entram na referência com o valor neutro do grupo. Sem
-  `refToggle`, nada muda.
+- `StatPageConfig.refToggle?: { label: string; title: string; groupPath: string }`: um checkbox no Compare;
+  desligado, o subtree em `groupPath` (filho direto da raiz: `<raiz> / <grupo>`) é removido da referência e
+  só a raiz é recomputada, com `totalFromFlat`. Só a linha-base do Compare; o Biggest Gains mantém a
+  referência completa. Sem `refToggle`, nada muda.
 
 ### Motor
 
