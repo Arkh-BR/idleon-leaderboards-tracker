@@ -7,7 +7,7 @@
 // which depends on ResearchEXP/AFK descriptors, sim-math, sushi/minehead
 // systems — all out of scope for drop-rate. We'll add it in a later stage.
 
-import { saveData, assignState } from "../state";
+import { saveData, assignState, resetState } from "../state";
 import { assignSaveData } from "./data";
 import { parseSaveKey } from "./helpers";
 import { computeUniqueSushi } from "../stats/systems/w7/sushi";
@@ -72,6 +72,9 @@ export function resolveCompanionLv2Ids(companionList: unknown[] | undefined): Se
 }
 
 export function loadSaveData(raw: RawEnvelope): void {
+  // The state is a process-wide singleton: without this, a field the save
+  // lacks (assigned only conditionally below) keeps the previous save's value.
+  resetState();
   const save = (raw.data ?? raw) as Record<string, unknown>;
   const companionRaw = raw.companion as { l?: unknown[] } | undefined;
 
@@ -422,20 +425,10 @@ export function loadSaveData(raw: RawEnvelope): void {
   if (Array.isArray(vc) && vc.length > 0)
     assignState({ activeVoteIdx: Number(vc[0]) || -1 });
 
+  // save/data.ts lives outside resetState(): always assign, 0 when absent.
   const timeAwayRaw = parseSaveKey(save, "TimeAway") as any;
-  if (timeAwayRaw && typeof timeAwayRaw === "object") {
-    if (timeAwayRaw.GlobalTime != null) {
-      assignSaveData({
-        saveGlobalTime: Number(timeAwayRaw.GlobalTime) || 0,
-      });
-    }
-  }
-
-  if (raw.tournament?.global?.T != null) {
-    assignSaveData({
-      tournamentDay: Number(raw.tournament.global.T) || 0,
-    });
-  }
+  assignSaveData({ saveGlobalTime: Number(timeAwayRaw?.GlobalTime) || 0 });
+  assignSaveData({ tournamentDay: Number(raw.tournament?.global?.T) || 0 });
 
   // Derived research/cache state (subset of Arkh — drop-rate doesn't read most)
   const researchLevels = lv0All
