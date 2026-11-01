@@ -100,6 +100,23 @@ describe("StatCalculator", () => {
     expect(mapSelect().value).toBe("14");
   });
 
+  it("noMap: no map selector, a 'Character:' row, compute always gets map 0", async () => {
+    const tree = { name: "Test Multi", val: 2, fmt: "x" as const, children: [] };
+    const compute = vi.fn(async (_save: unknown, _char: number, _map: number) => ({ tree, total: 2 }));
+    const states: { mapIndex: number; mapLabel: string }[] = [];
+    render(<StatCalculator config={{ ...testConfig, noMap: true, compute }} onStateChange={(s) => states.push(s)} />);
+    act(() => loader!.onSave(save())); // char 0's CurrentMap_0 is 2
+    expect(screen.getAllByRole("combobox")).toHaveLength(1);
+    expect(screen.getByText("Character:")).toBeInTheDocument();
+    expect(screen.queryByText(/map:/)).toBeNull();
+    await screen.findByText("2.00x");
+    fireEvent.change(charSelect(), { target: { value: "1" } }); // CurrentMap_1 is 14
+    await screen.findByText("2.00x");
+    expect(compute.mock.calls.length).toBeGreaterThan(0);
+    expect(compute.mock.calls.every(([, , map]) => map === 0)).toBe(true);
+    expect(states.at(-1)).toMatchObject({ mapIndex: 0, mapLabel: "any map" });
+  });
+
   it("shows the compute error with its own prefix", async () => {
     render(<StatCalculator config={testConfig} />);
     act(() => loader!.onSave(save()));

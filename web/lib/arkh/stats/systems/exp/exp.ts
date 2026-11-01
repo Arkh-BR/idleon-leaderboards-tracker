@@ -124,7 +124,7 @@ export function expLukCurve(luk: number): number {
 
 // Spelunk[6].length — save arrays may deserialize as {0:…, length:N} objects
 // instead of a real array; count numeric keys and ignore "length" itself.
-function arrCount(v: unknown): number {
+export function arrCount(v: unknown): number {
   if (Array.isArray(v)) return v.length;
   if (v && typeof v === "object") {
     let n = 0;

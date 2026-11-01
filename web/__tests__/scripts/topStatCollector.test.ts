@@ -1,5 +1,8 @@
-import { describe, it, expect } from "vitest";
-import { buildFamilyReference, mergeBest, profileFlat, renderTopFiles, type StatCollectorConfig } from "@/scripts/_shared/topStatCollector";
+import { describe, it, expect, vi } from "vitest";
+import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { buildFamilyReference, mergeBest, profileFlat, renderTopFiles, runTopCollector, type StatCollectorConfig } from "@/scripts/_shared/topStatCollector";
 import { deriveGatedTalentsFor, allClassKeys } from "@/scripts/_shared/classGating";
 import { groupedDescriptor } from "@/lib/arkh/stats/defs/grouped";
 import { combineStatPools } from "@/lib/arkh/computeStat";
@@ -24,6 +27,10 @@ const pool = (...items: Array<[string, number]>): Pool => ({
   sum: 0,
   product: 0,
 });
+
+// Evaluates the generated module (types stripped) and returns its lookup function.
+const evalLookup = (data: string) =>
+  new Function(data.replace(/^type .*$/m, "").replace(/export /g, "").replace(/: Readonly<[^=]*?>\s*=/g, " =").replace(/\(classKey: [^)]*\): FlatMap/, "(classKey)") + "\nreturn topTestFlatForClass;")();
 
 describe("shared Observed Max collector", () => {
   it("keeps the best value per source position", () => {
@@ -56,7 +63,7 @@ describe("shared Observed Max collector", () => {
 
   it("the generated lookup picks the class's family, then its talent profile", () => {
     const { data } = renderTopFiles(cfg, { warrior: { Root: 4 }, mage: { Root: 7 } }, { "mage:t35": { Root: 8 } }, { Warrior: ["warrior", "base"], Wizard: ["mage", "t35"] }, "mage", null, 8, 20, "2026-10-31T00:00:00.000Z");
-    const mod = new Function(data.replace(/^type .*$/m, "").replace(/export /g, "").replace(/: Readonly<[^=]*?>\s*=/g, " =").replace(/\(classKey: [^)]*\): FlatMap/, "(classKey)") + "\nreturn topTestFlatForClass;")();
+    const mod = evalLookup(data);
     expect(mod("Warrior").Root).toBe(4); // warrior family, no talent override
     expect(mod("Wizard").Root).toBe(8); // mage family + its t35 profile
     expect(mod(null).Root).toBe(7); // no class → default (highest) family
@@ -85,5 +92,54 @@ describe("shared Observed Max collector", () => {
     }
     expect(deriveGatedTalentsFor([35]).map((g) => g.id)).toEqual([35]); // Lucky Charms: Maestro tab (shared with Voidwalker), not every class
     expect(deriveGatedTalentsFor([632])).toEqual([]); // star talent, every class
+  });
+
+  it("an account-wide stat (one \"all\" family, no gated talents) resolves to that flat for every class", () => {
+    const ref = buildFamilyReference({ ...cfg, gated: [] }, { all: mergeBest(null, { m: pool(["Y", 5]), p: pool(["Z", 10]) }) });
+    expect(ref.defaultFamily).toBe("all");
+    expect(ref.classProfile).toEqual({});
+    expect(ref.overrides).toEqual({});
+    const { data } = renderTopFiles(cfg, ref.familyFlats, ref.overrides, ref.classProfile, ref.defaultFamily, null, ref.maxTotal, 20, "2026-11-01T00:00:00.000Z");
+    expect(data).toContain('export const TOP_TEST_DEFAULT_FAMILY = "all";');
+    const lookup = evalLookup(data);
+    expect(lookup("Royal_Guardian").Root).toBe(ref.familyFlats.all!.Root);
+    expect(lookup(null)).toEqual(ref.familyFlats.all);
+  });
+
+  describe("runTopCollector family key", () => {
+    // One cached-save envelope, a warrior (class 7) — enough for the collector's per-char loop.
+    const run = async (extra: Partial<StatCollectorConfig>) => {
+      const dir = mkdtempSync(join(tmpdir(), "top-collector-"));
+      const saves = join(dir, "saves");
+      mkdirSync(saves);
+      writeFileSync(join(saves, "p1.json"), JSON.stringify({ charNames: ["W"], data: { PVStatList_0: [0, 0, 0, 0, 1], CharacterClass_0: 7 } }));
+      const outputFile = join(dir, "top.ts");
+      const metaFile = join(dir, "top.meta.ts");
+      const quiet = [vi.spyOn(console, "log").mockImplementation(() => {}), vi.spyOn(process.stdout, "write").mockImplementation(() => true)];
+      try {
+        await runTopCollector(
+          { ...cfg, focusBoard: "x", gated: [], outputFile, metaFile, computePools: () => ({ m: pool(["Y", 5]), p: pool(["Z", 10]) }), ...extra } as StatCollectorConfig,
+          ["--saves-dir", saves, "--limit", "1"]
+        );
+        return readFileSync(outputFile, "utf8");
+      } finally {
+        quiet.forEach((s) => s.mockRestore());
+        rmSync(dir, { recursive: true, force: true });
+      }
+    };
+
+    it("perFamily: false merges every char into the \"all\" family", async () => {
+      const data = await run({ perFamily: false });
+      expect(data).toContain('export const TOP_TEST_DEFAULT_FAMILY = "all";');
+      expect(data).toContain('"all": {');
+      expect(data).not.toContain('"warrior": {');
+      expect(data).toContain("export const TOP_TEST_CLASS_PROFILE: Readonly<Record<string, readonly [string, string]>> = {};");
+    });
+
+    it("default stays per class family", async () => {
+      const data = await run({});
+      expect(data).toContain('export const TOP_TEST_DEFAULT_FAMILY = "warrior";');
+      expect(data).not.toContain('"all": {');
+    });
   });
 });

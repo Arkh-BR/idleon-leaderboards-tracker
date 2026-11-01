@@ -39,6 +39,10 @@ export type StatPageConfig = {
   totalLabel: string;
   /** Tooltip of the map selector. */
   mapTitle: string;
+  /** The stat doesn't depend on a map: the calculator hides the map selector,
+   *  labels the row "Character:", calls `compute(save, charIdx, 0)` and
+   *  reports the map as "any map" (snapshot notice and history). */
+  noMap?: true;
   /** Prefix of compute error messages, e.g. "Coin multi compute failed". */
   errPrefix: string;
   storage: {

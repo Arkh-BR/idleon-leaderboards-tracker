@@ -191,6 +191,8 @@ export const STAR_SIGN_TERMS: Record<string, readonly SignTerm[]> = {
   // (@6506250); sign 78 Killian Maximus → StarSigns["78"] += 3 (@6513550).
   MultiKill: [{ sign: 47, val: 15 }],
   "78": [{ sign: 78, val: 3 }],
+  // Artifact Find: sign 61 Artifosho → StarSigns["61"] += 15 (@6557415).
+  "61": [{ sign: 61, val: 15 }],
 };
 
 export function starSignBonusReal(key: string, ci: number, saveData: SaveData): StarSignTree {

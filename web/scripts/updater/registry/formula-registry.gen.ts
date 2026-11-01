@@ -11,10 +11,14 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/arkh/stats/data/w7/royalG.ts"
   ],
   "B_UPG": [
+    "lib/arkh/stats/systems/artifact/terms.ts",
     "lib/arkh/stats/systems/exp/exp.ts"
   ],
   "BigFishBonuses": [
     "lib/arkh/stats/systems/exp/exp.ts"
+  ],
+  "BoatArtiMulti": [
+    "lib/arkh/stats/systems/artifact/artifact.ts"
   ],
   "Bonus_MAJOR": [
     "lib/arkh/stats/systems/w5/divinity.ts"
@@ -58,6 +62,9 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/arkh/stats/systems/exp/dancingCoral.ts",
     "lib/arkh/stats/systems/exp/exp.ts"
   ],
+  "DaveyJonesBonus": [
+    "lib/arkh/stats/systems/w5/sailing.ts"
+  ],
   "DeathNoteRank": [
     "lib/arkh/stats/systems/coin/gambit.ts"
   ],
@@ -70,6 +77,9 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   ],
   "Fountain_BonTOT": [
     "lib/arkh/stats/systems/exp/exp.ts"
+  ],
+  "FractalIslandBonus": [
+    "lib/arkh/stats/systems/artifact/terms.ts"
   ],
   "FriendBonusQTY": [
     "lib/arkh/stats/systems/common/friend.ts"
@@ -103,6 +113,12 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   ],
   "HatrackBonusMulti": [
     "lib/arkh/stats/systems/w7/gallery.ts"
+  ],
+  "KillroyBonuses": [
+    "lib/arkh/stats/systems/artifact/terms.ts"
+  ],
+  "LoreEpiBon": [
+    "lib/arkh/stats/systems/artifact/terms.ts"
   ],
   "MSA_Bonus": [
     "lib/arkh/stats/systems/exp/exp.ts",
@@ -139,6 +155,12 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   "MultiKill_perTier": [
     "lib/arkh/stats/defs/multikill.ts",
     "lib/arkh/stats/systems/multikill/multikill.ts"
+  ],
+  "NightmarinerBon": [
+    "lib/arkh/stats/systems/artifact/terms.ts"
+  ],
+  "NightmarinerTotLV": [
+    "lib/arkh/stats/systems/w5/sailing.ts"
   ],
   "ObolMISCmulti": [
     "lib/arkh/stats/data/w7/menagerie.ts"
@@ -225,6 +247,9 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   ],
   "_customBlock_AFKgainrates": [
     "lib/arkh/stats/systems/afk/afk.ts"
+  ],
+  "_customBlock_CaptBonusCalc": [
+    "lib/arkh/stats/systems/w5/sailing.ts"
   ],
   "_customBlock_Companions": [
     "lib/arkh/stats/data/common/companions.ts"

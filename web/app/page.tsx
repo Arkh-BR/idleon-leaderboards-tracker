@@ -79,6 +79,13 @@ export default function HomePage() {
           cta="Open Multikill"
         />
         <ShortcutCard
+          href="/artifact-find"
+          icon="🏺"
+          title="Artifact Find Tracker"
+          description="Every term of the game's Artifact Find formula on your save, per character, with snapshots and a top-player comparison."
+          cta="Open Artifact Find"
+        />
+        <ShortcutCard
           href="/talents-level"
           icon="🌟"
           title="Talents Tracker"
