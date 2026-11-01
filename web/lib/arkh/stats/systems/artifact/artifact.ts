@@ -29,7 +29,7 @@ import { sushiRoG } from "../w7/sushi";
 import { computeWinBonus } from "../w6/summoning";
 import { jellyRoG } from "../w7/jelly";
 import { pristine } from "../w5/pristine";
-import { computeMonumentROGbonus } from "../w5/hole";
+import { computeMonumentROGbonus, monumentBonusLabel } from "../w5/hole";
 import { computeExoticBonus } from "../w6/farming";
 import { computePaletteBonus } from "../w7/spelunking";
 
@@ -145,7 +145,7 @@ function resolveArtifact(id: string, ctx: SystemCtx): ArkhNode {
     case "comp56":
       return factor(`${label("Companion", 56)} ÷ 5`, companions(56, s) / 5);
     case "monument1_2":
-      return plus("Monument ROG Bonus (tier 1, idx 2)", computeMonumentROGbonus(1, 2, s));
+      return plus(monumentBonusLabel(1, 2), computeMonumentROGbonus(1, 2, s));
     case "exotic45":
       return plus("Exotic Bonus 45", computeExoticBonus(45, s));
     case "palette5":

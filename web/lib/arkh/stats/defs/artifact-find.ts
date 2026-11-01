@@ -48,7 +48,7 @@ export const ARTI_GROUPS: readonly StatGroup[] = [
   { key: "m17", name: "🗳️ Weekly Vote", kind: "pct", sources: ["vote20"] },
   { key: "m18", name: "🐾 Companion 43", kind: "raw", sources: ["comp43"] },
   { key: "m19", name: "🐾 Companion 56", kind: "mult", max1: true, sources: ["comp56"] },
-  { key: "m20", name: "🗿 Monument Bonus", kind: "pct", sources: ["monument1_2"] },
+  { key: "m20", name: "🗿 Justice Monument", kind: "pct", sources: ["monument1_2"] },
   { key: "m21", name: "🌿 Exotic Crop 45", kind: "pct", sources: ["exotic45"] },
   { key: "m22", name: "🎨 Palette 5", kind: "pct", sources: ["palette5"] },
   { key: "m23", name: "⛏️ Spelunk Discoveries", kind: "mult", max1: true, sources: ["spelunkBit26"] },

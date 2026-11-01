@@ -261,6 +261,18 @@ export const cosmo = {
   },
 };
 
+/** The game's name for monument t's bonus i: HolesInfo[41][t] is the
+ *  monument ("Justice"), HolesInfo[32][10t+i] the bonus text
+ *  ("}x_Artifact|Find_Chance") → "Justice Monument: Artifact Find Chance". */
+export function monumentBonusLabel(t: number, i: number): string {
+  const name = String((HolesInfo as any)[41]?.[t] ?? `Monument ${t}`);
+  const text = String((HolesInfo as any)[32]?.[10 * t + i] ?? `bonus ${i}`)
+    .replace(/^[+}]?[{}]?[%x]?[_|]?/, "")
+    .replace(/[_|]+/g, " ")
+    .trim();
+  return `${name} Monument: ${text}`;
+}
+
 export function computeMonumentROGbonus(
   t: number,
   i: number,

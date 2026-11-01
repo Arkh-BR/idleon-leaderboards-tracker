@@ -47,7 +47,7 @@ import { EXP_VOTE_NAME } from "../../defs/exp-multi";
 import { computePrayerReal } from "../w3/prayer";
 import { computeShrine } from "../w3/construction";
 import { getSetBonus } from "../w3/setBonus";
-import { holes, computeMonumentROGbonus } from "../w5/hole";
+import { holes, computeMonumentROGbonus, monumentBonusLabel } from "../w5/hole";
 import { computeWinBonus } from "../w6/summoning";
 import { exoticBonusQTY, exoticDoubled } from "../../data/w5/farming";
 import { menagerieBoost } from "../w7/menagerie";
@@ -586,7 +586,7 @@ function resolveExp(id: string, ctx: SystemCtx): ArkhNode {
     }
     // @njs MonumentROGbonuses — N.js Holes("MonumentROGbonuses",1,6)
     case "monument1_6":
-      return pct("Monument ROG Bonus (tier 1, idx 6)", computeMonumentROGbonus(1, 6, s));
+      return pct(monumentBonusLabel(1, 6), computeMonumentROGbonus(1, 6, s));
     // @njs CompassBonus — N.js Windwalker("CompassBonus",51,0), Moon of Experience.
     case "compass51":
       return pct(label("Compass", 51), compassBonus(51, s));
