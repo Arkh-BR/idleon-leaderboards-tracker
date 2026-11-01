@@ -39,7 +39,8 @@ export const ARTIFACT_PAGE: StatPageConfig = {
     "Artifact Find gain = how much your total Artifact Find would rise if this source matched the top players " +
     "(Observed Max — the best value of each source across the top players), recomputed through the game's formula. " +
     "Values are a ceiling, not a one-level step. Like the Skill Info, everything is measured on boat 0. " +
-    "The weekly vote isn't ranked: it's server-wide and changes every week.",
+    "The weekly vote isn't ranked: it's server-wide and changes every week. " +
+    "Tier-6 captains aren't counted, matching the Skill Info outside the W5 town (the game only adds them after you enter it).",
   compareTitle: "Compare every Artifact Find source against the best value observed across the top players",
   gainsTabTitle: "Rank your Artifact Find sources by how much total Artifact Find matching the top players would give",
   footer: "Artifact Find is computed locally from your save — every term of the game's Sailing formula, group by group.",

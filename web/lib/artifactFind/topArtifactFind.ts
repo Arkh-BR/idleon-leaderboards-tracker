@@ -3,20 +3,20 @@
 // through ONE combine() pass (the same math a real save uses), gated PER
 // CLASS for the formula's class talents. Use topArtifactFlatForClass(classKey).
 // Large file: lazy-load it, don't import statically.
-// Generated 2026-11-01T03:44:04.161Z · 83 players. Refresh: scripts/update-top-artifact.ts.
+// Generated 2026-11-01T11:27:25.090Z · 83 players. Refresh: scripts/update-top-artifact.ts.
 
 type FlatMap = Readonly<Record<string, number>>;
 
 export const TOP_ARTI_FAMILY_FLAT: Readonly<Record<string, FlatMap>> = {
   "all": {
-    "Artifact Find": 2736347335897862700,
+    "Artifact Find": 2566756042454381600,
     "Artifact Find / ☠️ Davey Jones": 16.799999999999997,
     "Artifact Find / ☠️ Davey Jones / Davey Jones (boat 0)": 16.799999999999997,
     "Artifact Find / ⛏️ Spelunk Discoveries": 7.998674705139815,
     "Artifact Find / ⛏️ Spelunk Discoveries / Spelunk discoveries × Super Bit 26": 7.998674705139815,
     "Artifact Find / ⛏️ Spelunk Discoveries / Spelunk discoveries × Super Bit 26 / Spelunk[6].length": 105,
     "Artifact Find / ⛏️ Spelunk Discoveries / Spelunk discoveries × Super Bit 26 / Super Bit 26": 1,
-    "Artifact Find / ➕ Additive Pool": 80.67475871955077,
+    "Artifact Find / ➕ Additive Pool": 75.67475871955077,
     "Artifact Find / ➕ Additive Pool / Artifact 3": 2499,
     "Artifact Find / ➕ Additive Pool / Artifact Find Arcade Bonus (Arcade 32)": 302.970297029703,
     "Artifact Find / ➕ Additive Pool / Artifact Find Arcade Bonus (Arcade 32) / Companion 27 Multi": 2,
@@ -31,8 +31,8 @@ export const TOP_ARTI_FAMILY_FLAT: Readonly<Record<string, FlatMap>> = {
     "Artifact Find / ➕ Additive Pool / Bribe 34 / Bribe Value": 20,
     "Artifact Find / ➕ Additive Pool / Captain (boat 0)": 1952,
     "Artifact Find / ➕ Additive Pool / Captain (boat 0) / Captain index": 1,
-    "Artifact Find / ➕ Additive Pool / Captains of type 6 (×25, up to 30)": 500,
-    "Artifact Find / ➕ Additive Pool / Captains of type 6 (×25, up to 30) / Type-6 captains": 20,
+    "Artifact Find / ➕ Additive Pool / Captains of type 6 (not counted)": 0,
+    "Artifact Find / ➕ Additive Pool / Captains of type 6 (not counted) / Type-6 captains": 20,
     "Artifact Find / ➕ Additive Pool / Fractal Island 3 (×20)": 20,
     "Artifact Find / ➕ Additive Pool / Fractal Island 3 (×20) / Unlocked": 1,
     "Artifact Find / ➕ Additive Pool / Grid 109": 39.975,
