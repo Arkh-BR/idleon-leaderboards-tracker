@@ -11,6 +11,7 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/arkh/stats/data/w7/royalG.ts"
   ],
   "B_UPG": [
+    "lib/arkh/stats/systems/artifact/terms.ts",
     "lib/arkh/stats/systems/exp/exp.ts"
   ],
   "BigFishBonuses": [
@@ -74,6 +75,9 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   "Fountain_BonTOT": [
     "lib/arkh/stats/systems/exp/exp.ts"
   ],
+  "FractalIslandBonus": [
+    "lib/arkh/stats/systems/artifact/terms.ts"
+  ],
   "FriendBonusQTY": [
     "lib/arkh/stats/systems/common/friend.ts"
   ],
@@ -106,6 +110,12 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   ],
   "HatrackBonusMulti": [
     "lib/arkh/stats/systems/w7/gallery.ts"
+  ],
+  "KillroyBonuses": [
+    "lib/arkh/stats/systems/artifact/terms.ts"
+  ],
+  "LoreEpiBon": [
+    "lib/arkh/stats/systems/artifact/terms.ts"
   ],
   "MSA_Bonus": [
     "lib/arkh/stats/systems/exp/exp.ts",
@@ -142,6 +152,9 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   "MultiKill_perTier": [
     "lib/arkh/stats/defs/multikill.ts",
     "lib/arkh/stats/systems/multikill/multikill.ts"
+  ],
+  "NightmarinerBon": [
+    "lib/arkh/stats/systems/artifact/terms.ts"
   ],
   "NightmarinerTotLV": [
     "lib/arkh/stats/systems/w5/sailing.ts"
