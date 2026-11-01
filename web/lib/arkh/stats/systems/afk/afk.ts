@@ -6,7 +6,7 @@
 // Existing helpers are reused as-is. The spec A4 fixes are new functions next
 // to the old ones, which keep feeding the Drop Rate.
 
-import { node, type ArkhNode } from "../../../node";
+import { node, renamed, type ArkhNode } from "../../../node";
 import type { SystemCtx } from "../../registry";
 import { optionsListData, currentMapData } from "../../../save/data";
 import { eventShopOwned } from "../../../game-helpers";
@@ -42,7 +42,13 @@ import { bonusMajorReal } from "../w5/divinity";
  *  621 (Tick Tock) and 650 (Rando Event Looty) are star talents of every class. */
 export const AFK_CLASS_TALENTS = [79, 88, 268, 448] as const;
 
-const raw = (name: string, v: number): ArkhNode => node(name, v, null, { fmt: "raw" });
+// Name + tooltip of the three EtcBonuses sources that share a case (the game's names; jargon goes in the tooltip).
+const ETC_NAMES: Record<string, [string, string]> = {
+  etc20: ["Fight AFK Gain (Equipment)", "EtcBonuses(20) = %_FIGHT_AFK_GAIN"],
+  etc59: ["All AFK Gain (Equipment)", "EtcBonuses(59) = %_ALL_AFK_GAIN"],
+};
+
+const raw = (name: string, v: number, note?: string): ArkhNode => node(name, v, null, { fmt: "raw", note });
 const pct = (name: string, v: number, children?: ArkhNode[] | null, note?: string): ArkhNode =>
   node(name, v, children ?? null, { fmt: "+", note });
 const factor = (name: string, v: number, children?: ArkhNode[] | null, note?: string): ArkhNode =>
@@ -86,27 +92,27 @@ function resolveAfk(id: string, ctx: SystemCtx): ArkhNode {
     }
     case "bribe3": {
       const r = getBribeBonus("3", s);
-      return pct(label("Bribe", 3), r.val, r.children);
+      return pct("Sleeping on the Job (Bribe 3)", r.val, r.children, "+5% fighting AFK gains rate");
     }
     case "cardSet10": {
       const r = computeCardSetBonus(ci, "10");
-      return pct("Card Set 10 (Fight AFK)", r.val, r.children);
+      return pct("Fight AFK Gain Rate Set Bonus (Card Set 10)", r.val, r.children);
     }
     case "card43": {
       const r = computeCardBonusByType(43, ci, s);
-      return pct("Cards (Card Type 43)", r.val, r.children);
+      return pct("Fighting AFK Cards (Card Type 43)", r.val, r.children);
     }
     // N.js EtcBonuses("20") / ("59") — numeric ids (a string id drops gallery items).
     case "etc20":
     case "etc59":
-      return etcBonus.resolve(Number(id.slice(3)), { saveData: s, charIdx: ci });
+      return renamed(etcBonus.resolve(Number(id.slice(3)), { saveData: s, charIdx: ci }), ...ETC_NAMES[id]);
     // N.js DNSM.StarSigns.FightAFK — the active-signs port (spec A4).
     case "starFightAFK": {
       const r = starSignBonusReal("FightAFK", ci, s);
-      return pct("Star signs (FightAFK)", r.val, r.children);
+      return pct("Star Signs: Fighting AFK", r.val, r.children, "StarSigns.FightAFK: Silly Snoozer (19), The Forsaken (28), Mr No Sleep (29, negative), S. Snoozer Major (56)");
     }
     case "guild4":
-      return guild.resolve(4, tctx);
+      return renamed(guild.resolve(4, tctx), "REM Fighting (Guild 4)");
     // N.js prayersReal(4,0) — with the super-bit branch (spec A4).
     case "prayer4": {
       const r = prayersReal(4, 0, ci, s);
@@ -122,18 +128,18 @@ function resolveAfk(id: string, ctx: SystemCtx): ArkhNode {
     }
     // N.js chipBonuses("fafk") — the active character's chips only.
     case "chipFafk":
-      return pct("Lab chip (fafk)", chipBonuses("fafk", ci));
+      return pct("Conductive Software (Lab Chip 7)", chipBonuses("fafk", ci), null, "Chip effect key fafk; only the active character's chips");
     // N.js CardLv("w6d1") ×1.
     case "cardW6d1":
-      return pct("Card w6d1 (Fighting AFK, passive)", computeCardLv("w6d1", s));
+      return pct(label("Card", "w6d1"), computeCardLv("w6d1", s), null, "Fighting AFK, passive (×1)");
 
     // ── ALL (every AFK type) ──
     // N.js Tasks[2][1][2] > charIdx → AFKgainzzALL = 2 (the W2 merit).
     case "merit": {
       const lv = Number((s.tasksGlobalData as any)?.[2]?.[1]?.[2]) || 0;
-      return pct("W2 merit: +2% AFK Gains for your first characters", lv > ci ? 2 : 0, [
+      return pct("Merit: AFK Gains for First Characters", lv > ci ? 2 : 0, [
         raw("Merit level (Tasks[2][1][2])", lv),
-      ]);
+      ], "+2% AFK Gains for your first N characters (N = merit level, Tasks[2][1][2]); World 2 merit");
     }
     case "arcade6": {
       const r = arcadeBonus(6, s);
@@ -142,22 +148,22 @@ function resolveAfk(id: string, ctx: SystemCtx): ArkhNode {
     // N.js Windwalker("CompassBonus",57,0): CompassUpg[57][9] = 0, so no
     // compass 39/80 factor (EXP Task 3's compassBonus handles both branches).
     case "compass57":
-      return pct("Compass 57", compassBonus(57, s));
+      return pct("Moon of Sleep (Compass 57)", compassBonus(57, s));
     // N.js GetSetBonus("VOID_SET","Bonus",0,0): OLA[379] ∪ worn parts (spec A11).
     case "voidSet":
-      return setBonus.resolve("void", { saveData: s, charIdx: ci });
+      return renamed(setBonus.resolve("void", { saveData: s, charIdx: ci }), "Void Set Bonus", "Equipment set \"void\" (OLA[379] plus worn parts)");
     case "flurbo7": {
       const r = flurboShop(7, s);
-      return pct("Flurbo Shop 7 (AFK Gains)", r.val, r.children);
+      return pct("AFK Gains (Flurbo Shop 7)", r.val, r.children);
     }
     // N.js 30*Divinity("Bonus_MAJOR", ci, 0) — Snehebatu's +30% AFK Gains.
     case "divMajor": {
       const on = bonusMajorReal(ci, 0, s) ? 1 : 0;
-      return pct("Divinity major bonus ×30 (type 0)", 30 * on, [raw("Major bonus active", on)]);
+      return pct("Snehebatu Major Bonus (Divinity 0)", 30 * on, [raw("Major bonus active", on)], "+30% AFK Gains while the active character is linked (×30)");
     }
     // N.js Divinity("Bonus_Minor",-1,5).
     case "divMinor5":
-      return pct("Divinity minor bonus 5", divinityMinorSum(5, ci, s));
+      return pct("AFK Gains (Divinity Minor Bonus 5)", divinityMinorSum(5, ci, s), null, "Σ over the linked gods' minor bonus, type 5");
     case "comp6":
     case "comp25": {
       const n = Number(id.slice(4));
@@ -167,35 +173,35 @@ function resolveAfk(id: string, ctx: SystemCtx): ArkhNode {
     case "shrine8":
       return pct(label("Shrine", 8), computeShrine(8, s), null, "treated as always active (map gate not modelled)");
     case "winBonus11":
-      return pct("Summoning win bonus 11", computeWinBonus(11, null, s));
+      return pct("AFK Gains (Winner Bonus 11)", computeWinBonus(11, null, s), null, "Summoning winner bonus 11");
     case "goldFoodAllAFK":
-      return pct("Golden food (AllAFK)", goldFoodBonuses("AllAFK", ci, undefined, s).total);
+      return pct("Golden Dumpling (Golden Food)", goldFoodBonuses("AllAFK", ci, undefined, s).total, null, "Σ of equipped + Emporium golden foods with effect AllAFK");
     // N.js 1.5*CardLv("w6d3").
     case "cardW6d3": {
       const lv = computeCardLv("w6d3", s);
-      return pct("Card w6d3 ×1.5 (All AFK, passive)", 1.5 * lv, [raw("Card level", lv)]);
+      return pct(label("Card", "w6d3"), 1.5 * lv, [raw("Card level", lv)], "All AFK, passive; × 1.5 per card level");
     }
     // N.js Summoning("RooBonuses",5,0) — coefficient .5, offset 5.
     case "roo5": {
       const r = rooBonus(5, 0.5, s);
-      return pct("Kangaroo AFK Gains (Roo 5)", r.val, r.children);
+      return pct("Fisheroo Reset (Poppy Upgrade 5)", r.val, r.children, "Poppy the Kangaroo Mouse upgrade (code name RooBonuses 5), coefficient 0.5");
     }
     // N.js Summoning("VotingBonusz",6,0): 0 unless vote 6 is the active one.
     case "vote6": {
       const m = votingMulti(ctx);
-      return pct(AFK_VOTE_NAME, votingBonusz(6, m, s), [factor("Voting multi", m)]);
+      return pct(AFK_VOTE_NAME, votingBonusz(6, m, s), [factor("Voting multi", m)], "Only counts the week vote 6 wins");
     }
     // N.js 20*EventShopOwned(5).
     case "eventShop5": {
       const owned = eventShopOwned(5, s.cachedEventShopStr || "");
-      return pct("Event Shop 5 (×20)", 20 * owned, [raw("Owned", owned)]);
+      return pct("Sleepy Joe Armstrong (Event Shop 5)", 20 * owned, [raw("Owned", owned)], "×20: +20% AFK gains");
     }
     case "vault23":
-      return pct(label("Vault", 23), vaultUpgBonus(23, s));
+      return pct("Sleepy Time (Vault 23)", vaultUpgBonus(23, s));
     // N.js 1==BundlesReceived.bun_u → AFKgainzzALL += 30 (after MULTI, still in ALL).
     case "bunU": {
       const owned = Number((s.bundlesData as any)?.bun_u) === 1 ? 1 : 0;
-      return pct("AFK Bundle (bun_u)", 30 * owned, [raw("Owned", owned)]);
+      return pct("AFK Bundle", 30 * owned, [raw("Owned", owned)], "bun_u: clothes pack, +30% AFK gains; no in-game title");
     }
 
     // ── MULTI ──
@@ -203,18 +209,19 @@ function resolveAfk(id: string, ctx: SystemCtx): ArkhNode {
     case "arcaneMapAfk": {
       const kills = Number((ctx.mapBon as any)?.[map]?.[2]) || 0;
       return pct(
-        "Arcane map bonus (slot 2, AFK)",
+        "Arcane Map Bonus: AFK Gains",
         computeArcaneMapMultiBon(2, { ...ctx, mapIdx: map } as any),
-        [raw("Kills (mapBon[map][2])", kills)]
+        [raw("Kills (mapBon[map][2])", kills)],
+        "MapBon slot 2 kills"
       );
     }
     case "etc92":
-      return etcBonus.resolve(92, { saveData: s, charIdx: ci });
+      return renamed(etcBonus.resolve(92, { saveData: s, charIdx: ci }), "AFK Gains Multi (Equipment)", "EtcBonuses(92) = %_AFK_GAINS_MULTI");
 
     // ── Map rules (spec A3 / A9) ──
     // N.js 306==CurrentMap → AFKgainzzDNz = .2*(…the same sum…).
     case "clamworks306":
-      return factor(AFK_NODES.clam, map === 306 ? 0.2 : 1, null, map === 306 ? "Clamworks: AFK gains are 1/5" : `map ${map}: no effect`);
+      return factor(AFK_NODES.clam, map === 306 ? 0.2 : 1, null, `×0.2 on map 306 · ${map === 306 ? "Clamworks: AFK gains are 1/5" : `map ${map}: no effect`}`);
     // N.js 216==CurrentMap && 17==Holes[0][ci] → AFKgainzzDNz =
     // Holes2("Cglunko_AFKgains") × (1 + 30·min(1, bun_u)/100), with
     // Cglunko_AFKgains = (10 + Cglunko_upgBon(8) + Cglunko_upgBon(13))/100 (@10969315)
@@ -228,8 +235,13 @@ function resolveAfk(id: string, ctx: SystemCtx): ArkhNode {
       return factor(
         AFK_NODES.cove,
         cove ? rate : 0,
-        [raw("Cavern (Holes[0][char])", cavern), raw("Cglunko upgrade 8", u8), raw("Cglunko upgrade 13", u13), raw("AFK Bundle (bun_u)", bun)],
-        cove ? "replaces the whole rate" : "inactive: not map 216 in cavern 17"
+        [
+          raw("The character's cavern", cavern, "Holes[0][char]"),
+          raw("Sleepy Drops (Cove Upgrade 8)", u8, "Boost AFK Gains rate in the Cove"),
+          raw("Sleepy Drops+ (Cove Upgrade 13)", u13, "Boost AFK Gains rate in the Cove"),
+          raw("AFK Bundle", bun, "×(1 + 30% with the bundle)"),
+        ],
+        `Map 216 (The Hole), cavern 17 (The Cove); replaces the whole rate${cove ? "" : " · inactive: not map 216 in cavern 17"}`
       );
     }
     // AFK Info dispatch (@3786279): the panel shows AFKgainrates(type of the

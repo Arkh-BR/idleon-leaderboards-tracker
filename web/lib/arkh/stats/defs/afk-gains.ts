@@ -18,16 +18,16 @@ export const AFK_ROOT = "AFK Gains Rate";
 
 /** The weekly vote's node. The vote is server-wide and changes every week, so
  *  Biggest Gains leaves it out: it isn't something a player raises. */
-export const AFK_VOTE_NAME = "Vote 6 (AFK Gains)";
+export const AFK_VOTE_NAME = "AFK Gains (Weekly Vote 6)";
 
 /** Tree node names. Fixed, so snapshot and Observed Max paths never move with
  *  the map (the monster and the AFK type go in the notes). */
 export const AFK_NODES = {
   pool: "⚔️ Fighting AFK pool",
-  arcane: "🗺️ Arcane map bonus (slot 2)",
-  etc92: "🎽 AFK Gains multi gear (Etc 92)",
-  clam: "🦪 Clamworks ×0.2 (map 306)",
-  cove: "🏝️ Crystal Glunko Cove (map 216, cavern 17)",
+  arcane: "🗺️ Arcane Map Bonus: AFK Gains",
+  etc92: "🎽 AFK Gains Multi (Equipment)",
+  clam: "🦪 The Clamworks",
+  cove: "🏝️ Crystal Glunko Cove",
   type: "🎯 AFK target type",
 } as const;
 
@@ -112,7 +112,7 @@ const afkGainsDesc: Descriptor = {
     };
     const children: ArkhNode[] = [
       { name: AFK_NODES.pool, val: parts.sum / 100, fmt: "x", note: "Σ/100", children: pool },
-      { name: AFK_NODES.arcane, val: 1 + parts.arcane / 100, fmt: "x", note: "× (1 + Σ/100)", children: arcane ? [arcane] : [] },
+      { name: AFK_NODES.arcane, val: 1 + parts.arcane / 100, fmt: "x", note: "× (1 + Σ/100) · MapBon slot 2", children: arcane ? [arcane] : [] },
       { name: AFK_NODES.etc92, val: 1 + parts.etc92 / 100, fmt: "x", note: "× (1 + Σ/100)", children: etc92 ? [etc92] : [] },
       ...items("rules"),
     ];
