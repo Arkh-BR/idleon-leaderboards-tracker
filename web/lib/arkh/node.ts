@@ -44,6 +44,16 @@ export function renamed(n: ArkhNode, name: string, note?: string): ArkhNode {
   return c;
 }
 
+/** `n` and its descendants, each one `pick` names swapped through renamed() (its
+ *  own note stays unless `pick` gives a new one). For jargon rows deep inside a
+ *  shared helper's result, which a tracker cannot rename where they are built. */
+export function renamedDeep(n: ArkhNode, pick: (name: string) => [name: string, note?: string] | undefined): ArkhNode {
+  const hit = pick(n.name);
+  const c = hit ? renamed(n, hit[0], hit[1] ?? n.note) : { ...n };
+  if (n.children) c.children = n.children.map((k) => renamedDeep(k, pick));
+  return c;
+}
+
 // Numeric tree result — backward-compat for code that treats results as numbers.
 export type TreeResult = {
   val: number;

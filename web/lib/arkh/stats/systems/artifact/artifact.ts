@@ -19,7 +19,7 @@ import { votingBonusz } from "../w2/voting";
 import { starSignBonusReal } from "../common/starSign";
 import { shiny } from "../w4/breeding";
 import { getBribeBonus } from "../w3/bribe";
-import { arcadeBonus } from "../w2/arcade";
+import { arcadeBonusNamed } from "../common/tracker-names";
 import { gridBonusValue, mainframeBonus } from "../w4/lab";
 import { vaultUpgBonus } from "../common/vault";
 import { companions } from "../common/companions";
@@ -40,7 +40,7 @@ type Tree = { val: number; children: ArkhNode[] | null };
 const add = (name: string, r: Tree, note?: string): ArkhNode => node(name, r.val, r.children, { fmt: "+", note });
 const plus = (name: string, v: number, kids?: ArkhNode[], note?: string): ArkhNode => node(name, v, kids, { fmt: "+", note });
 const factor = (name: string, v: number, kids?: ArkhNode[], note?: string): ArkhNode => node(name, v, kids, { fmt: "x", note });
-const raw = (name: string, v: number): ArkhNode => node(name, v, null, { fmt: "raw" });
+const raw = (name: string, v: number, note?: string): ArkhNode => node(name, v, null, { fmt: "raw", note });
 
 // @njs BoatArtiMulti
 function resolveArtifact(id: string, ctx: SystemCtx): ArkhNode {
@@ -82,7 +82,7 @@ function resolveArtifact(id: string, ctx: SystemCtx): ArkhNode {
     case "arcade32":
     case "arcade66": {
       const n = Number(id.slice(6));
-      return add(label("Arcade", n), arcadeBonus(n, s));
+      return add(label("Arcade", n), arcadeBonusNamed(n, s));
     }
     case "bUpg55":
       return plus("Tune of Artifaction (Cavern Upgrade 55)", holesBUpg55(s), undefined, "+10% per power of 10 Natural Notes");
@@ -154,7 +154,7 @@ function resolveArtifact(id: string, ctx: SystemCtx): ArkhNode {
     case "spelunkBit26": {
       const n = arrCount((s.spelunkData as any)?.[6]);
       const bit = superBitType(26, (s.gamingData as any)?.[12]);
-      return factor("Artifacto Discoveries (Super Bit 26)", Math.pow(1.02, n) * bit, [raw("Spelunk[6].length", n), raw("Super Bit 26", bit)], "1.02 ^ Spelunk discoveries × Super Bit 26");
+      return factor("Artifacto Discoveries (Super Bit 26)", Math.pow(1.02, n) * bit, [raw("Discoveries found", n, "Spelunk[6].length"), raw("Super Bit 26", bit)], "1.02 ^ Spelunk discoveries × Super Bit 26");
     }
     default:
       throw new Error(`artifact: unknown source "${id}"`);

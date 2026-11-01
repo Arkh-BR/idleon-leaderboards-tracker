@@ -31,7 +31,7 @@ import {
 import { computeCardSetBonus, cardSet, computeCardLv } from "../common/cards";
 import { gridBonusValue } from "../w4/lab";
 import { jellyRoGBonus, JELLY_ROG_NAMES } from "../../data/w7/jelly";
-import { arcadeBonus } from "../w2/arcade";
+import { arcadeBonusNamed } from "../common/tracker-names";
 import { computeVialByKey, bubbleValByKey, sigilBonus } from "../w2/alchemy";
 import { computeArcaneMapMultiBon } from "../mc/tesseract";
 import { computeBigFishBonus } from "../w7/spelunking";
@@ -98,7 +98,7 @@ export const EXP_CIRCUMSTANTIAL_SOURCE_NAMES = [
   MEALS_CLEXP_NAME,
 ] as const;
 
-const raw = (name: string, v: number): ArkhNode => node(name, v, null, { fmt: "raw" });
+const raw = (name: string, v: number, note?: string): ArkhNode => node(name, v, null, { fmt: "raw", note });
 const factor = (name: string, v: number, children?: ArkhNode[] | null, note?: string): ArkhNode =>
   node(name, v, children ?? null, { fmt: "x", note });
 const pct = (name: string, v: number, children?: ArkhNode[] | null, note?: string): ArkhNode =>
@@ -172,7 +172,7 @@ function resolveExp(id: string, ctx: SystemCtx): ArkhNode {
       return pct(
         NOOBIE_GAINS_NAME,
         active ? 50 : 0,
-        [raw("Merit (Tasks[2][0][2])", merit), raw("Lowest level", lowest), raw("Super Bit 19", bit)],
+        [raw("Merit level", merit, "Tasks[2][0][2]"), raw("Lowest level", lowest), raw("Super Bit 19", bit)],
         "Only the account's lowest-level character gets it"
       );
     }
@@ -187,7 +187,7 @@ function resolveExp(id: string, ctx: SystemCtx): ArkhNode {
       return factor(
         label("Talent", 429),
         val,
-        [raw("Medallion owned (map's monster)", gate ? 1 : 0), raw("Talent 429 (getbonus2)", Number(t.val) || 0)],
+        [raw("Medallion owned (map's monster)", gate ? 1 : 0), raw("Talent value", Number(t.val) || 0, "getbonus2(1, 429), account-wide")],
         `Map ${map} · ${monster}`
       );
     }
@@ -209,7 +209,7 @@ function resolveExp(id: string, ctx: SystemCtx): ArkhNode {
     case "arenaCruc15": {
       const on = petArenaCrucBonus(15, s);
       return factor("1.20x Class EXP (Pet Arena Crucible 15)", 1 + 0.2 * on, [
-        raw("Crucible best wave (OLA[628])", arenaCrucWave()),
+        raw("Best Crucible wave", arenaCrucWave(), "OLA[628]"),
         raw("Crucible waves cleared", arenaCrucTier(s)),
       ], "×1.2 once the Crucible's 16th wave is cleared (RANDOlist[115][15])");
     }
@@ -254,7 +254,7 @@ function resolveExp(id: string, ctx: SystemCtx): ArkhNode {
     case "sticker0": {
       const v = stickerBonus(0, s);
       return factor("Mega Mongo Sticker (Sticker 0)", 1 + v / 100, [
-        raw("Stickers found (Research[9][0])", stickerCount(0, s)),
+        raw("Stickers found", stickerCount(0, s), "Research[9][0]"),
         raw("Boony Crowns % (Grid 68 × crowns)", stickerCrownPct(s)),
       ]);
     }
@@ -269,8 +269,8 @@ function resolveExp(id: string, ctx: SystemCtx): ArkhNode {
       const lv = Number((s.spelunkData as any)?.[45]?.[9]) || 0;
       const zen = Math.floor(perLv * lv);
       return factor("Classy Gogo (Zenith Market 9)", 1 + zen / 100, [
-        raw("ZenithMarket[9][4]", perLv),
-        raw("Spelunk[45][9] level", lv),
+        raw("Bonus per level", perLv, "ZenithMarket[9][4]"),
+        raw("Upgrade level", lv, "Spelunk[45][9]"),
       ]);
     }
     // N.js (1+EtcBonuses("84")/100) (@4243532)
@@ -285,7 +285,7 @@ function resolveExp(id: string, ctx: SystemCtx): ArkhNode {
     }
     // N.js (1+ArcadeBonus(60)/100) (@4243614)
     case "arcade60": {
-      const a = arcadeBonus(60, s);
+      const a = arcadeBonusNamed(60, s);
       return factor(label("Arcade", 60), 1 + Number(a.val) / 100, a.children);
     }
     // N.js (1+AlchVials["7classexp"]/100) (@4243698)
@@ -304,7 +304,7 @@ function resolveExp(id: string, ctx: SystemCtx): ArkhNode {
     case "arcane1": {
       const bon = computeArcaneMapMultiBon(1, ctx as any);
       const kills = Number((ctx.mapBon?.[map] as any)?.[1]) || 0;
-      return factor("Arcane Map Bonus: Class EXP", 1 + bon / 100, [raw("Kills (mapBon[map][1])", kills)], "MapBon slot 1 (slot 0 = DR, 2 = AFK)");
+      return factor("Arcane Map Bonus: Class EXP", 1 + bon / 100, [raw("Kills on this map", kills, "MapBon[map][1]")], "MapBon slot 1 (slot 0 = DR, 2 = AFK)");
     }
     // @njs BigFishBonuses — (1+Spelunk("BigFishBonuses",4,0)/100)
     case "bigFish4": {
@@ -314,7 +314,7 @@ function resolveExp(id: string, ctx: SystemCtx): ArkhNode {
     // @njs DancingCoralBonus — (1+Thingies("DancingCoralBonus",3,0)/100) (@4244052), dancingCoral.ts
     case "dancingCoral3": {
       const v = dancingCoralBonus(3, s);
-      return factor("Class EXP (Dancing Coral 3)", 1 + v / 100, [raw("Pantheon Shrine level (Tower[21])", dancingCoralTower(3, s))], "Depends on the Pantheon Shrine level (TowerInfo[21])");
+      return factor("Class EXP (Dancing Coral 3)", 1 + v / 100, [raw("Pantheon Shrine level", dancingCoralTower(3, s), "TowerInfo[21]")], "Depends on the Pantheon Shrine level (TowerInfo[21])");
     }
     // @njs CoralKidUpgBonus — pow(1+CoralKidUpgBonus(2)/100, max(0,Divinity[25]-10));
     // CoralKidUpgBonus(2) = 20·OLA[429]/(25+OLA[429]).
@@ -337,9 +337,9 @@ function resolveExp(id: string, ctx: SystemCtx): ArkhNode {
     case "bubba6": {
       const v = bubbaRoGBonus(6, s);
       return factor("XP Multi (Bubba RoG 6)", 1 + v / 100, [
-        raw("Megaflesh bonus % (Bubba_RoG_all)", bubbaRoGAll(s)),
+        raw("Megaflesh bonus %", bubbaRoGAll(s), "Bubba_RoG_all"),
         raw(label("Companion", 51), companions(51, s)),
-        raw("Tiers ⌈(Bubba[1][3] − 5) / 7⌉", bubbaRoGTiers(6, s)),
+        raw("Bubba tiers", bubbaRoGTiers(6, s), "⌈(Bubba[1][3] − 5) / 7⌉"),
       ], "Bubba the Seal RoG bonus 6");
     }
     // @njs RoG_BonusQTY — (1+SushiStuff("RoG_BonusQTY",15,0)/100)
@@ -371,7 +371,7 @@ function resolveExp(id: string, ctx: SystemCtx): ArkhNode {
       const meritoc27 = computeMeritocBonusz(27, s);
       const val = Math.max(1, Math.pow(1.03, n) * bit24 * (1 + meritoc27 / 100));
       return factor("Classy Discoveries", val, [
-        raw("Spelunk[6].length", n),
+        raw("Discoveries found", n, "Spelunk[6].length"),
         raw("Super Bit 24", bit24),
         raw("Meritoc 27", meritoc27),
       ]);
@@ -440,7 +440,7 @@ function resolveExp(id: string, ctx: SystemCtx): ArkhNode {
       const merit = Number((s.tasksGlobalData as any)?.[2]?.[0]?.[2]) || 0;
       const active = merit > 0 && isLowestLevel(ci, s);
       return pct(MERIT_LOWEST_LEVEL_NAME, active ? 3 * merit : 0, [
-        raw("Merit (Tasks[2][0][2])", merit),
+        raw("Merit level", merit, "Tasks[2][0][2]"),
         raw("Lowest level", active ? 1 : 0),
       ], "Taskboard merit (Tasks[2][0][2]): +3% per level, lowest-level character only");
     }
@@ -538,7 +538,7 @@ function resolveExp(id: string, ctx: SystemCtx): ArkhNode {
     }
     // N.js ArcadeBonus(12)
     case "arcade12": {
-      const a = arcadeBonus(12, s);
+      const a = arcadeBonusNamed(12, s);
       return pct(label("Arcade", 12), a.val, a.children);
     }
     // N.js Labb("SigilBonus","Blank",8,0)
@@ -572,7 +572,7 @@ function resolveExp(id: string, ctx: SystemCtx): ArkhNode {
       const o179 = ola(179);
       const shim = computeAllShimmerBonuses(s);
       return pct("Island Shimmer", o179 * shim, [
-        raw("OLA[179]", o179),
+        raw("Shimmer count", o179, "OLA[179]"),
         raw("Shimmer multi", shim),
       ], "OLA[179] × AllShimmerBonuses (The Shim Lantern, Artifact 31)");
     }
@@ -616,7 +616,7 @@ function resolveExp(id: string, ctx: SystemCtx): ArkhNode {
       const lg = getLOG(ola(345));
       return pct("Schoolin' the Fish (Vault 35)", v * lg, [
         raw("Vault 35", v),
-        raw("log10(OLA[345])", lg),
+        raw("Total fish caught (log10)", lg, "log10(OLA[345])"),
       ], "× log10(total fish caught) (OLA[345])");
     }
     // N.js GetSetBonus("IRON_SET","Bonus",0,0)

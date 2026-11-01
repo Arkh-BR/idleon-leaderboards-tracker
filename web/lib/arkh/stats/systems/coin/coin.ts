@@ -41,7 +41,7 @@ import { vaultUpgBonus } from "../common/vault";
 import { pristineBon } from "../w5/pristine";
 import { computePrayerReal } from "../w3/prayer";
 import { computeCardLv } from "../common/cards";
-import { arcadeBonus } from "../w2/arcade";
+import { arcadeBonusNamed, trackerNamed } from "../common/tracker-names";
 import { guild } from "../common/guild";
 import { goldFoodBonuses } from "../common/goldenFood";
 import { achieveStatus } from "../common/achievement";
@@ -54,7 +54,7 @@ export const COIN_CLASS_TALENTS = [22, 657, 643, 644] as const;
 type Tree = { val: number; children: ArkhNode[] | null };
 const add = (name: string, r: Tree, note?: string): ArkhNode =>
   node(name, r.val, r.children, { fmt: "+", note });
-const raw = (name: string, v: number): ArkhNode => node(name, v, null, { fmt: "raw" });
+const raw = (name: string, v: number, note?: string): ArkhNode => node(name, v, null, { fmt: "raw", note });
 
 /** N.js FlurboShop(idx) (@7827791): DungPassiveStats2[idx] at level
  *  DungUpg[5][idx]. Coin's flurbo4, EXP's flurbo2 and AFK's flurbo7. */
@@ -78,7 +78,7 @@ export function rooBonus(idx: number, coef: number, s: SaveData): { val: number;
   const steps = Math.max(0, Math.ceil((ola(271) - idx) / 7));
   return {
     val: coef * (1 + legend / 100) * (1 + c51) * (1 + all / 100) * steps,
-    children: [raw("Legend 26", legend), raw("Companion 51", c51), raw("Megafeathers %", all), raw(`⌈(OLA[271] − ${idx}) / 7⌉`, steps)],
+    children: [raw("Legend 26", legend), raw("Companion 51", c51), raw("Megafeathers %", all), raw("Roo reset tiers", steps, `⌈(OLA[271] − ${idx}) / 7⌉: one tier per 7 Roo resets (OLA[271]) beyond this upgrade's offset`)],
   };
 }
 
@@ -96,11 +96,11 @@ const ETC_NAMES: Record<string, [string, string]> = {
   etc100: ["Extra Money (Equipment)", "EtcBonuses(100) = %_EXTRA_MONEY"],
   etc3: ["Money (Equipment)", "EtcBonuses(3) = %_MONEY"],
 };
-const VAULT_KILLS: Record<number, [string, string]> = {
-  14: ["Bored to Death (Vault 14)", "× ⌊log10(Bean kills)⌋, Valley Of The Beans (VaultKillzTotal(4))"],
-  31: ["Dirty Money (Vault 31)", "× ⌊log10(Poop kills)⌋, Poopy Sewers (VaultKillzTotal(7))"],
-  34: ["Recipe for Profit (Vault 34)", "× Taskboard recipes unlocked (VaultKillzTotal(8))"],
-  37: ["Bubble Money (Vault 37)", "× Σ min(100, bubble level) (VaultKillzTotal(9))"],
+const VAULT_KILLS: Record<number, [string, string, string]> = {
+  14: ["Bored to Death (Vault 14)", "× ⌊log10(Bean kills)⌋, Valley Of The Beans (VaultKillzTotal(4))", "Bean kills (log10, rounded down)"],
+  31: ["Dirty Money (Vault 31)", "× ⌊log10(Poop kills)⌋, Poopy Sewers (VaultKillzTotal(7))", "Poop kills (log10, rounded down)"],
+  34: ["Recipe for Profit (Vault 34)", "× Taskboard recipes unlocked (VaultKillzTotal(8))", "Taskboard recipes unlocked"],
+  37: ["Bubble Money (Vault 37)", "× Σ min(100, bubble level) (VaultKillzTotal(9))", "Bubble levels (each capped at 100)"],
 };
 
 // Voting multi shared by Coin's vote34 and EXP Multi's vote15 (votingBonusz
@@ -140,7 +140,7 @@ function resolveCoin(id: string, ctx: SystemCtx): ArkhNode {
         [
           node("Bubble", bub.val, bub.children, { fmt: "raw" }),
           raw(`Total ${b.label}`, statVal),
-          raw(`⌊${b.label} / 250⌋`, steps),
+          raw(`${b.label} ÷ 250 (rounded down)`, steps, `⌊${b.label} / 250⌋`),
         ],
         { fmt: "+", note: `Cash bubble (key ${b.key}): +% cash per 250 ${b.label}` }
       );
@@ -207,7 +207,7 @@ function resolveCoin(id: string, ctx: SystemCtx): ArkhNode {
       return node(
         label("Talent", 433),
         tv * lg,
-        [raw("Talent 433 (getbonus2, min 1)", tv), raw("log10(OLA[362])", lg)],
+        [raw("Talent value (at least 1)", tv, "getbonus2(1, 433), account-wide; floored at 1"), raw("Total dust collected (log10)", lg, "log10(OLA[362])")],
         { fmt: "+", note: "× log10(total dust ever collected) (OLA[362]); talent value floored at 1" }
       );
     }
@@ -233,7 +233,7 @@ function resolveCoin(id: string, ctx: SystemCtx): ArkhNode {
     case "talent657":
     case "talent22":
     case "talent644":
-      return talent.resolve(Number(id.slice(6)), tctx);
+      return trackerNamed(talent.resolve(Number(id.slice(6)), tctx));
     // Talent 643 (Coins For Charon): TalentCalc(643) = GetTalentNumber(1,643)
     // × OverkillStuffs("2") (N.js @4075410). talent.resolve() applies the
     // tier on the character's saved map (calcTalent.ts); Coin swaps it for
@@ -241,7 +241,7 @@ function resolveCoin(id: string, ctx: SystemCtx): ArkhNode {
     // AFKtarget_N on the saved map, the HP with the character's prayer
     // curses, Clamz_HP on map 306 (spec M5).
     case "talent643": {
-      const r = talent.resolve(643, tctx);
+      const r = trackerNamed(talent.resolve(643, tctx));
       if (!(Number(r.val) > 0)) return r;
       const saved = overkillStuffs(ci, Number((currentMapData as any)?.[ci]) || 0, ctx);
       const ok = overkillStuffs(ci, ctx.mapIdx ?? saved.map, ctx, { maxDmg: saved.maxDmg });
@@ -266,7 +266,7 @@ function resolveCoin(id: string, ctx: SystemCtx): ArkhNode {
     case "arcade10":
     case "arcade11": {
       const n = Number(id.slice(6));
-      return add(label("Arcade", n), arcadeBonus(n, s));
+      return add(label("Arcade", n), arcadeBonusNamed(n, s));
     }
     // BoxRewards["13c"] — computeBoxReward applies the slot thresholds
     // (postOffice.resolve doesn't).
@@ -278,7 +278,7 @@ function resolveCoin(id: string, ctx: SystemCtx): ArkhNode {
       return node(
         "Coin Supercharger (Guild 8)",
         (Number(gn.val) || 0) * world,
-        [gn, node("1 + ⌊map / 50⌋", world, null, { fmt: "x" })],
+        [gn, node("World number", world, null, { fmt: "x", note: "1 + ⌊map / 50⌋" })],
         { fmt: "+", note: "× world number (1 + ⌊map / 50⌋)" }
       );
     }
@@ -304,7 +304,7 @@ function resolveCoin(id: string, ctx: SystemCtx): ArkhNode {
       return node(
         "Mining Payday (Vault 17)",
         v * lg,
-        [raw("Vault 17", v), raw("log10(OLA[340])", lg)],
+        [raw("Vault 17", v), raw("Total ores mined (log10)", lg, "log10(OLA[340])")],
         { fmt: "+", note: "× log10(total ores mined) (OLA[340])" }
       );
     }
@@ -340,7 +340,7 @@ function resolveCoin(id: string, ctx: SystemCtx): ArkhNode {
       return node(
         i === 5 ? "1.5x Monster Cash (Pet Arena Bonus 5)" : "2x Monster Cash (Pet Arena Bonus 14)",
         coeff * owned,
-        [raw("Arena wave (OLA[89])", wave), raw("Wave needed", req)],
+        [raw("Best Pet Arena wave", wave, "OLA[89]"), raw("Wave needed", req)],
         { fmt: "raw", note: i === 5 ? "×0.5; unlocks at arena wave 20 (RANDOlist[53][5])" : "Unlocks at arena wave 175" }
       );
     }
@@ -356,8 +356,8 @@ function resolveCoin(id: string, ctx: SystemCtx): ArkhNode {
       const k = n === 14 ? 4 : n === 31 ? 7 : n === 34 ? 8 : 9;
       const v = vaultUpgBonus(n, s);
       const kills = vaultKillzTotal(k, s);
-      const [name, note] = VAULT_KILLS[n];
-      return node(name, v * kills, [raw(`Vault ${n}`, v), raw(`VaultKillzTotal(${k})`, kills)], { fmt: "+", note });
+      const [name, note, killsName] = VAULT_KILLS[n];
+      return node(name, v * kills, [raw(`Vault ${n}`, v), raw(killsName, kills, `VaultKillzTotal(${k})`)], { fmt: "+", note });
     }
     case "vault70": {
       const v = vaultUpgBonus(70, s);
@@ -381,7 +381,7 @@ function resolveCoin(id: string, ctx: SystemCtx): ArkhNode {
       const base = mainframeBonus(9, s);
       const k = accountMapKills(1) / 1e6; // map 1 = MapAFKtarget "mushG"
       const mult = k < 1e8 ? Math.floor(k) : k;
-      return node("Fungi Finger Pocketer (Mainframe 9)", base * mult, [raw("Mainframe 9", base), raw("Kills / 1e6", mult)], {
+      return node("Fungi Finger Pocketer (Mainframe 9)", base * mult, [raw("Mainframe 9", base), raw("Kills (millions)", mult, "Kills / 1e6, rounded down below 1e8 millions")], {
         fmt: "+",
         note: "× ⌊Green Mushroom account kills / 1M⌋ (Death Note)",
       });

@@ -23,7 +23,7 @@ import { goldFoodBonuses } from "../common/goldenFood";
 import { vaultUpgBonus } from "../common/vault";
 import { computeBoxReward, computeCardBonusByType } from "../common/stats";
 import { computeCardLv, computeCardSetBonus } from "../common/cards";
-import { arcadeBonus } from "../w2/arcade";
+import { arcadeBonusNamed, trackerNamed } from "../common/tracker-names";
 import { votingBonusz } from "../w2/voting";
 import { getBribeBonus } from "../w3/bribe";
 import { computeShrine } from "../w3/construction";
@@ -42,7 +42,7 @@ import { bonusMajorReal } from "../w5/divinity";
  *  621 (Tick Tock) and 650 (Rando Event Looty) are star talents of every class. */
 export const AFK_CLASS_TALENTS = [79, 88, 268, 448] as const;
 
-// Name + tooltip of the three EtcBonuses sources that share a case (the game's names; jargon goes in the tooltip).
+// Name + tooltip of the two EtcBonuses sources that share a case (the game's names; jargon goes in the tooltip).
 const ETC_NAMES: Record<string, [string, string]> = {
   etc20: ["Fight AFK Gain (Equipment)", "EtcBonuses(20) = %_FIGHT_AFK_GAIN"],
   etc59: ["All AFK Gain (Equipment)", "EtcBonuses(59) = %_ALL_AFK_GAIN"],
@@ -87,7 +87,7 @@ function resolveAfk(id: string, ctx: SystemCtx): ArkhNode {
     case "talent79":
     case "talent650": {
       const n = Number(id.slice(6));
-      const t = talent.resolve(n, tctx);
+      const t = trackerNamed(talent.resolve(n, tctx));
       return pct(label("Talent", n), Number(t.val) || 0, t.children);
     }
     case "bribe3": {
@@ -138,11 +138,11 @@ function resolveAfk(id: string, ctx: SystemCtx): ArkhNode {
     case "merit": {
       const lv = Number((s.tasksGlobalData as any)?.[2]?.[1]?.[2]) || 0;
       return pct("Merit: AFK Gains for First Characters", lv > ci ? 2 : 0, [
-        raw("Merit level (Tasks[2][1][2])", lv),
+        raw("Merit level", lv, "Tasks[2][1][2]"),
       ], "+2% AFK Gains for your first N characters (N = merit level, Tasks[2][1][2]); World 2 merit");
     }
     case "arcade6": {
-      const r = arcadeBonus(6, s);
+      const r = arcadeBonusNamed(6, s);
       return pct(label("Arcade", 6), r.val, r.children);
     }
     // N.js Windwalker("CompassBonus",57,0): CompassUpg[57][9] = 0, so no
@@ -211,7 +211,7 @@ function resolveAfk(id: string, ctx: SystemCtx): ArkhNode {
       return pct(
         "Arcane Map Bonus: AFK Gains",
         computeArcaneMapMultiBon(2, { ...ctx, mapIdx: map } as any),
-        [raw("Kills (mapBon[map][2])", kills)],
+        [raw("Kills on this map", kills, "MapBon[map][2]")],
         "MapBon slot 2 kills"
       );
     }

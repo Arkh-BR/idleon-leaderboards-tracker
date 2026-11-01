@@ -21,7 +21,7 @@ import { computeCardSetBonus } from "../common/cards";
 import { overkillActive, overkillStuffs, type Overkill } from "../common/overkill";
 import { computeStampBonusOfTypeX } from "../w1/stamp";
 import { computeVialByKey, bubbleValByKey, isActiveBubbleOn } from "../w2/alchemy";
-import { arcadeBonus } from "../w2/arcade";
+import { arcadeBonusNamed } from "../common/tracker-names";
 import { prayersReal } from "../w3/prayer";
 import { chipBonuses } from "../w4/lab";
 import { computeShinyBonusS } from "../w4/breeding";
@@ -71,7 +71,7 @@ function resolveMultikill(id: string, ctx: SystemCtx): ArkhNode {
     }
     // N.js SaltLick(8): the level × SaltLicks[8][3] (3 per level, max 10).
     case "saltLick8": {
-      return pct("Multikill Rate (Salt Lick 8)", saltLick(8, s), [raw("Level (SaltLick[8])", saltLickLevel(8, s))], "3 per level, max 10");
+      return pct("Multikill Rate (Salt Lick 8)", saltLick(8, s), [raw("Salt Lick level", saltLickLevel(8, s), "SaltLick[8]")], "3 per level, max 10");
     }
     // N.js StampBonusOfTypeX("Overkill") — only StampC19 has that type.
     case "stampC19": {
@@ -81,7 +81,7 @@ function resolveMultikill(id: string, ctx: SystemCtx): ArkhNode {
     // N.js 2*TowerInfo[2]: the Death Note building's level ×2.
     case "deathNoteBuilding": {
       const lv = Number((s.towerData as any)?.[2]) || 0;
-      return pct("Death Note building", 2 * lv, [raw("Building level (TowerInfo[2])", lv)], "2 × the building level (TowerInfo[2])");
+      return pct("Death Note building", 2 * lv, [raw("Building level", lv, "TowerInfo[2]")], "2 × the building level (TowerInfo[2])");
     }
     // N.js EtcBonuses("29") / ("71") — numeric ids (a string id drops gallery items).
     case "etc29":
@@ -137,7 +137,7 @@ function resolveMultikill(id: string, ctx: SystemCtx): ArkhNode {
     }
     // N.js ArcadeBonus(8).
     case "arcade8": {
-      const r = arcadeBonus(8, s);
+      const r = arcadeBonusNamed(8, s);
       return pct(label("Arcade", 8), r.val, r.children);
     }
     // N.js Sailing("ArtifactBonus",26,0): Trilobite Rock, 25 × its tier.
@@ -198,7 +198,7 @@ function resolveMultikill(id: string, ctx: SystemCtx): ArkhNode {
     case "tier": {
       const ok = overkillOf(ci, map, ctx);
       const hpKids = ok.clam
-        ? [raw("Clamworks HP (1e16 × 30^OLA[464])", ok.staticHp)]
+        ? [raw("Clamworks HP", ok.staticHp, "1e16 × 30^OLA[464]")]
         : [
             raw("Static HP", ok.staticHp),
             factor("Prayer curses", ok.curse, [
@@ -243,7 +243,7 @@ function resolveMultikill(id: string, ctx: SystemCtx): ArkhNode {
       return node(
         MK_RULES.cove,
         on ? 1 : 0,
-        [raw("Cglunko MK base (upgrade 15)", upg(15)), raw("Cglunko MK per tier (upgrade 6)", upg(6)), raw("Cavern (Holes[0][char])", cavern)],
+        [raw("Cglunko MK base (upgrade 15)", upg(15)), raw("Cglunko MK per tier (upgrade 6)", upg(6)), raw("The character's cavern", cavern, "Holes[0][char]")],
         { fmt: "raw", note: on ? "replaces both sums" : "inactive: not map 216 in cavern 17" }
       );
     }
