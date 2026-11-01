@@ -45,7 +45,7 @@ export const DR2_PAGE: StatPageConfig = {
   },
   methodologyNote:
     "Drop Rate gain = how much your total Drop Rate would rise if this source matched the Observed Max — the best value " +
-    "of each source among the top players — recomputed through the game's formula. LUK Scaling scales with LUK, so it's " +
+    "of each source among the top players — recomputed through the game's formula. LUK Scaling (it depends on your Total LUK) is " +
     "measured within your class family (warrior, archer, mage or beginner line). Values are a ceiling, not a one-level step. " +
     "The weekly vote isn't ranked: it's server-wide and changes every week. " +
     "The Arcane Map multiplier depends on the map you farm, so the Include Arcane Map checkbox next to Compare vs Observed Max " +

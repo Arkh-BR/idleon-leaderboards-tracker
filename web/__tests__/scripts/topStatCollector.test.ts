@@ -61,6 +61,13 @@ describe("shared Observed Max collector", () => {
     expect(meta).toContain("export const TOP_TEST_HYPOTHETICAL_TOTAL = 3;");
   });
 
+  it("the generated header names the rule the reference was built with", () => {
+    const head = (extra: Partial<StatCollectorConfig>) => renderTopFiles({ ...cfg, ...extra }, {}, {}, {}, "warrior", null, 0, 20, "2026-11-01T00:00:00.000Z").data;
+    expect(head({})).toContain("of that family's chars run");
+    expect(head({ familySources: [] })).toContain("the rest from every char");
+    expect(head({ perFamily: false })).toContain('ONE account-wide family ("all")');
+  });
+
   it("the generated lookup picks the class's family, then its talent profile", () => {
     const { data } = renderTopFiles(cfg, { warrior: { Root: 4 }, mage: { Root: 7 } }, { "mage:t35": { Root: 8 } }, { Warrior: ["warrior", "base"], Wizard: ["mage", "t35"] }, "mage", null, 8, 20, "2026-10-31T00:00:00.000Z");
     const mod = evalLookup(data);

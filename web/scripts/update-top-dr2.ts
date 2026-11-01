@@ -5,8 +5,12 @@
 // arcane slot-0 bonus — never the Cove, 216); the formula's class talents
 // (DR2_CLASS_TALENTS) are gated per class. Only the LUK curve is stat-scaled
 // (LUK is the beginner line's main stat), so only it stays per CLASS FAMILY;
-// every other source takes the best across all families — class-agnostic gear
-// like the Corsair Uniform counts for a family none of whose top players wears it.
+// every other source takes the best across all families. Equipment is taken
+// cross-family too, so a Class ALL item like the Corsair Uniform counts for a
+// family none of whose top players wears it. A few weapons are class-locked:
+// Mittens of the Gods (beginner only, +40% Drop Rate vs +20 for the other
+// lines' best weapons) sets the Drop Rate (Equipment) row for every family —
+// ~0.02% of the root, accepted.
 //
 // Run (from web/):  npx tsx scripts/update-top-dr2.ts   [--limit N] [--slow] [--saves-dir <dir>]
 import { join } from "node:path";

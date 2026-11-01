@@ -179,7 +179,7 @@ export function buildFamilyReference(
 }
 
 export function renderTopFiles(
-  cfg: Pick<StatCollectorConfig, "label" | "constPrefix" | "flatForClassFn" | "scriptName"> & { outputFile?: string },
+  cfg: Pick<StatCollectorConfig, "label" | "constPrefix" | "flatForClassFn" | "scriptName" | "perFamily" | "familySources"> & { outputFile?: string },
   familyFlats: Partial<Record<RefFamily, Record<string, number>>>,
   overrides: Record<string, Record<string, number>>,
   classProfile: Record<string, [ClassFamily, string]>,
@@ -221,12 +221,31 @@ export function renderTopFiles(
       .map((k) => `  ${JSON.stringify(k)}: ${obj(m[k]!)},`)
       .join("\n");
 
+  const fn = cfg.flatForClassFn;
+  // The header names the rule this reference was built with.
+  const scope =
+    cfg.perFamily === false
+      ? [
+          `// Top-player ${cfg.label} reference — ONE account-wide family ("all"): the`,
+          `// best-of-each-source pools of every char run through ONE combine() pass`,
+          `// (the same math a real save uses), no class talents gated. Use ${fn}(classKey).`,
+        ]
+      : cfg.familySources
+        ? [
+            `// Top-player ${cfg.label} reference — per CLASS FAMILY (beginner / warrior /`,
+            `// archer / mage): the best-of-each-source pools (stat-scaled sources from`,
+            `// that family's chars, the rest from every char) run through ONE combine()`,
+            `// pass (the same math a real save uses), gated PER CLASS for the formula's`,
+            `// class talents. Use ${fn}(classKey).`,
+          ]
+        : [
+            `// Top-player ${cfg.label} reference — per CLASS FAMILY (beginner / warrior /`,
+            `// archer / mage), the best-of-each-source pools of that family's chars run`,
+            `// through ONE combine() pass (the same math a real save uses), gated PER`,
+            `// CLASS for the formula's class talents. Use ${fn}(classKey).`,
+          ];
   const data = [
-    `// Top-player ${cfg.label} reference — per CLASS FAMILY (beginner / warrior /`,
-    `// archer / mage): the best-of-each-source pools (stat-scaled sources from`,
-    `// that family's chars, the rest from every char) run through ONE combine()`,
-    `// pass (the same math a real save uses), gated PER CLASS for the formula's`,
-    `// class talents. Use ${cfg.flatForClassFn}(classKey).`,
+    ...scope,
     "// Large file: lazy-load it, don't import statically.",
     `// Generated ${now} · ${scanned} players. Refresh: ${cfg.scriptName}.`,
     "",
