@@ -4,8 +4,8 @@
 // two-decimal ladder keyed on the UNROUNDED 10·d % 10 and 100·d % 10 — which
 // is why notateMultiplierInfo (keyed on the rounded value) can't stand in.
 // Returns the text without the trailing "#" placeholder. N.js offset @6713518:
-// the PlayerInfo panel's `_PlayerInfoNumbers` list, built from @6707695 (no
-// @njs tag: the updater registry doesn't scan lib/dropRateV2).
+// the PlayerInfo panel's `_PlayerInfoNumbers` list, built from @6707695 (no njs
+// tag here: the updater registry doesn't scan lib/dropRateV2).
 export function formatDropRateV2(d: number): string {
   if (!Number.isFinite(d)) return "—";
   if (9999 < d) return `${Math.floor(d)}`;
