@@ -84,6 +84,30 @@ describe("TopNav", () => {
     expect(screen.getByRole("link", { name: /EXP Multi/i })).not.toHaveAttribute("aria-current");
   });
 
+  it("marks only the current Drop Rate page: /drop-rate-v2 doesn't light up /drop-rate", () => {
+    mockUsePathname.mockReturnValue("/drop-rate-v2");
+    render(<TopNav />);
+    expect(trackersButton().className).toContain("border-gold");
+    fireEvent.click(trackersButton());
+    expect(screen.getByRole("link", { name: /Drop Rate V2/i })).toHaveAttribute("aria-current", "page");
+    expect(screen.getByRole("link", { name: /Drop Rate$/i })).not.toHaveAttribute("aria-current");
+  });
+
+  it("marks /drop-rate alone as V1, not V2, and keeps nested routes active", () => {
+    mockUsePathname.mockReturnValue("/drop-rate");
+    const { unmount } = render(<TopNav />);
+    fireEvent.click(trackersButton());
+    expect(screen.getByRole("link", { name: /Drop Rate$/i })).toHaveAttribute("aria-current", "page");
+    expect(screen.getByRole("link", { name: /Drop Rate V2/i })).not.toHaveAttribute("aria-current");
+    unmount();
+
+    mockUsePathname.mockReturnValue("/drop-rate-v2/");
+    render(<TopNav />);
+    fireEvent.click(trackersButton());
+    expect(screen.getByRole("link", { name: /Drop Rate V2/i })).toHaveAttribute("aria-current", "page");
+    expect(screen.getByRole("link", { name: /Drop Rate$/i })).not.toHaveAttribute("aria-current");
+  });
+
   it("marks active item based on pathname", () => {
     mockUsePathname.mockReturnValue("/leaderboards");
     const { container } = render(<TopNav />);

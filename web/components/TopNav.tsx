@@ -35,7 +35,9 @@ const MENU_ID = "nav-trackers-menu";
 /** The list's width in px (class w-[192px]), so it can be kept inside the bar. */
 const MENU_W = 192;
 
-const isActive = (pathname: string, href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
+// Whole path segments: /drop-rate-v2 must not light up /drop-rate (and the other way round).
+const isActive = (pathname: string, href: string) =>
+  href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`);
 
 const tabClass = (active: boolean) =>
   `shrink-0 whitespace-nowrap px-3 sm:px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
