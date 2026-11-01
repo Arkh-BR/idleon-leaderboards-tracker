@@ -3,10 +3,12 @@
 // StarSg, serverVars, TimeAway, tournament) — the Observed Max collectors load
 // dozens of saves per process, and the site re-loads on an account switch.
 import { describe, it, expect } from "vitest";
+import { existsSync, readFileSync } from "node:fs";
 import { loadSaveData } from "@/lib/arkh/save/loader";
 import { saveData } from "@/lib/arkh/state";
 import * as data from "@/lib/arkh/save/data";
 import { computeArkhCoinMulti } from "@/lib/arkh/computeCoin";
+import { computeArkhArtifactFind } from "@/lib/arkh/computeArtifactFind";
 
 const g = globalThis as unknown as { window?: unknown };
 if (!g.window) g.window = g;
@@ -51,5 +53,16 @@ describe("loadSaveData resets the state between saves", () => {
     expect(saveData.totalTomePoints).toBe(20000);
     expect(saveData.starSignsUnlocked).toEqual({ Activelius: 1 });
     expect(data.tournamentDay).toBe(12);
+  });
+});
+
+// Real save (gitignored golden cache); skips in CI where it's absent.
+const SAVE = "scripts/updater/golden/.cache/arkhe-live-2026-11-01.json";
+
+describe.skipIf(!existsSync(SAVE))("loadSaveData resets the state after a real save", () => {
+  it("Artifact Find of an empty save is 1 after ARKHE (was 616)", () => {
+    const save = JSON.parse(readFileSync(SAVE, "utf8"));
+    expect(computeArkhArtifactFind(save, save.charNames.indexOf("Markhe")).total).toBeGreaterThan(1);
+    expect(computeArkhArtifactFind(EMPTY, 0).total).toBe(1);
   });
 });
