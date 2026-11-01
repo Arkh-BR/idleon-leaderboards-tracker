@@ -8,12 +8,13 @@
 
 import { node, renamed, type ArkhNode } from "../../../node";
 import type { SystemCtx } from "../../registry";
-import { optionsListData, currentMapData } from "../../../save/data";
+import { currentMapData } from "../../../save/data";
 import { eventShopOwned } from "../../../game-helpers";
 import { label } from "../../entity-names";
-import { MapAFKtarget, RandoListo2 } from "../../data/game/customlists.js";
+import { MapAFKtarget } from "../../data/game/customlists.js";
 import { MONSTERS } from "../../data/game/monsters.js";
 import { AFK_NODES, AFK_VOTE_NAME } from "../../defs/afk-gains";
+import { cglunkoUpgBon } from "../dr2/cove";
 import { talent } from "../common/talent";
 import { companions } from "../common/companions";
 import { etcBonus } from "../common/etcBonus";
@@ -59,7 +60,6 @@ function resolveAfk(id: string, ctx: SystemCtx): ArkhNode {
   const s = ctx.saveData;
   const ci = ctx.charIdx;
   const tctx = { saveData: s, charIdx: ci, activeCharIdx: ci } as any;
-  const ola = (i: number) => Number((optionsListData as any[])[i]) || 0;
   const map = ctx.mapIdx ?? (Number((currentMapData as any)?.[ci]) || 0);
   const cavern = Number((s.holesData as any)?.[0]?.[ci]);
   const cove = map === 216 && cavern === 17;
@@ -228,8 +228,8 @@ function resolveAfk(id: string, ctx: SystemCtx): ArkhNode {
     // and Cglunko_upgBon(i) = OLA[630+i]·RandoListo2[13][i] (@10969789).
     // @njs _customBlock_Holes2
     case "cglunkoCove": {
-      const u8 = ola(638) * (Number((RandoListo2 as any)[13]?.[8]) || 0);
-      const u13 = ola(643) * (Number((RandoListo2 as any)[13]?.[13]) || 0);
+      const u8 = cglunkoUpgBon(8, s);
+      const u13 = cglunkoUpgBon(13, s);
       const bun = Math.min(1, Number((s.bundlesData as any)?.bun_u) || 0);
       const rate = ((10 + u8 + u13) / 100) * (1 + (30 * bun) / 100);
       return factor(

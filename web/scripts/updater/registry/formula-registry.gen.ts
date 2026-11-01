@@ -268,6 +268,7 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   ],
   "_customBlock_Holes2": [
     "lib/arkh/stats/systems/afk/afk.ts",
+    "lib/arkh/stats/systems/dr2/cove.ts",
     "lib/arkh/stats/systems/multikill/multikill.ts"
   ],
   "_customBlock_JellyOperation": [
