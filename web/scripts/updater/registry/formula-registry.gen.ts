@@ -17,6 +17,9 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   "BigFishBonuses": [
     "lib/arkh/stats/systems/exp/exp.ts"
   ],
+  "BoatArtiMulti": [
+    "lib/arkh/stats/systems/artifact/artifact.ts"
+  ],
   "Bonus_MAJOR": [
     "lib/arkh/stats/systems/w5/divinity.ts"
   ],

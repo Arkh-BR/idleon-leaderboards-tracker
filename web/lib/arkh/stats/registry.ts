@@ -48,6 +48,7 @@ import { royalStatue, royalGrade } from "./systems/w7/royalG";
 import { menagerieBoost } from "./systems/w7/menagerie";
 import { familyBonus } from "./systems/common/familyBonus";
 import { coin } from "./systems/coin/coin";
+import { artifact } from "./systems/artifact/artifact";
 import { exp } from "./systems/exp/exp";
 import { afk } from "./systems/afk/afk";
 import { multikill } from "./systems/multikill/multikill";
@@ -132,6 +133,7 @@ const _systems: Record<string, SystemResolver> = {
   royalGrade: royalGrade as unknown as SystemResolver,
   familyBonus: familyBonus as unknown as SystemResolver,
   coin: coin as unknown as SystemResolver,
+  artifact: artifact as unknown as SystemResolver,
   exp: exp as unknown as SystemResolver,
   afk: afk as unknown as SystemResolver,
   multikill: multikill as unknown as SystemResolver,
