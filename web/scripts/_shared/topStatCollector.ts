@@ -21,6 +21,10 @@ import { hackedSaveReason } from "./hackers";
 import { allClassKeys, profileKey, type GatedTalent } from "./classGating";
 import { classFamilyOfIndex, classFamilyOfKey, type ClassFamily } from "../../lib/talentsLevel/charClass";
 
+/** "all" = one account-wide reference (cfg.perFamily === false). Stays local to
+ *  the collector — ClassFamily itself is not widened. */
+type RefFamily = ClassFamily | "all";
+
 export type StatCollectorConfig = {
   /** Stat name for logs and generated comments, e.g. "EXP Multi". */
   label: string;
@@ -40,6 +44,9 @@ export type StatCollectorConfig = {
   flatForClassFn: string;
   /** e.g. "scripts/update-top-exp.ts" (named in the generated comments). */
   scriptName: string;
+  /** false → an account-wide stat: every char merges into one "all" family
+   *  (no class split, no class-talent gating). Omitted → one family per class family. */
+  perFamily?: false;
 };
 
 type Best = { player: string; char: string; total: number };
@@ -93,25 +100,26 @@ export function profileFlat(
  *  The page merges {...familyBase, ...override}. */
 export function buildFamilyReference(
   cfg: Pick<StatCollectorConfig, "root" | "groups" | "combine" | "gated">,
-  bestByFamily: Partial<Record<ClassFamily, Record<string, Pool>>>
+  bestByFamily: Partial<Record<RefFamily, Record<string, Pool>>>
 ): {
-  familyFlats: Partial<Record<ClassFamily, Record<string, number>>>;
+  familyFlats: Partial<Record<RefFamily, Record<string, number>>>;
   overrides: Record<string, Record<string, number>>;
   classProfile: Record<string, [ClassFamily, string]>;
-  defaultFamily: ClassFamily;
+  defaultFamily: RefFamily;
   maxTotal: number;
 } {
-  const familyFlats: Partial<Record<ClassFamily, Record<string, number>>> = {};
+  const familyFlats: Partial<Record<RefFamily, Record<string, number>>> = {};
   const overrides: Record<string, Record<string, number>> = {};
   const classProfile: Record<string, [ClassFamily, string]> = {};
   let maxTotal = 0;
-  let defaultFamily: ClassFamily | null = null;
-  for (const f of Object.keys(bestByFamily) as ClassFamily[]) {
+  let defaultFamily: RefFamily | null = null;
+  for (const f of Object.keys(bestByFamily) as RefFamily[]) {
     const flat = profileFlat(cfg, bestByFamily[f]!, cfg.gated.map((x) => x.id));
     familyFlats[f] = flat;
     if (defaultFamily === null || (flat[cfg.root] || 0) > (familyFlats[defaultFamily]![cfg.root] || 0)) defaultFamily = f;
     maxTotal = Math.max(maxTotal, flat[cfg.root] || 0);
   }
+  // An "all" reference has no real family key, so this loop is a no-op for it.
   for (const c of allClassKeys()) {
     const family = classFamilyOfKey(c);
     if (!family || !bestByFamily[family]) continue;
@@ -132,10 +140,10 @@ export function buildFamilyReference(
 
 export function renderTopFiles(
   cfg: Pick<StatCollectorConfig, "label" | "constPrefix" | "flatForClassFn" | "scriptName"> & { outputFile?: string },
-  familyFlats: Partial<Record<ClassFamily, Record<string, number>>>,
+  familyFlats: Partial<Record<RefFamily, Record<string, number>>>,
   overrides: Record<string, Record<string, number>>,
   classProfile: Record<string, [ClassFamily, string]>,
-  defaultFamily: ClassFamily,
+  defaultFamily: RefFamily,
   best: Best | null,
   hypotheticalTotal: number,
   scanned: number,
@@ -236,7 +244,7 @@ export async function runTopCollector(cfg: StatCollectorConfig, argv: string[] =
     : await gatherCandidates({ limit: LIMIT ?? undefined, focusBoard: cfg.focusBoard });
   console.log(`  ✓ ${candidates.length} candidates`);
 
-  const bestByFamily: Partial<Record<ClassFamily, Record<string, Pool>>> = {};
+  const bestByFamily: Partial<Record<RefFamily, Record<string, Pool>>> = {};
   let bestTotal: Best | null = null;
   let scanned = 0;
   let skipped = 0;
@@ -267,7 +275,8 @@ export async function runTopCollector(cfg: StatCollectorConfig, argv: string[] =
           playerBest = total;
           playerBestChar = ch.charName;
         }
-        const family = classFamilyOfIndex(Number(save.data?.[`CharacterClass_${ch.charIndex}`]));
+        const family: RefFamily | null =
+          cfg.perFamily === false ? "all" : classFamilyOfIndex(Number(save.data?.[`CharacterClass_${ch.charIndex}`]));
         if (family) bestByFamily[family] = mergeBest(bestByFamily[family] ?? null, pools);
       } catch {
         // skip a char that fails to compute
@@ -288,7 +297,7 @@ export async function runTopCollector(cfg: StatCollectorConfig, argv: string[] =
 
   console.log(`\n✓ Scanned ${scanned} players (${skipped} skipped)`);
   console.log(`  · gated talents: ${cfg.gated.map((x) => x.id).join(", ") || "none"}`);
-  for (const f of Object.keys(ref.familyFlats) as ClassFamily[]) console.log(`  · ${f.padEnd(8)} ceiling: ${(ref.familyFlats[f]![cfg.root] || 0).toExponential(3)}x`);
+  for (const f of Object.keys(ref.familyFlats) as RefFamily[]) console.log(`  · ${f.padEnd(8)} ceiling: ${(ref.familyFlats[f]![cfg.root] || 0).toExponential(3)}x`);
   console.log(`  · best per-class ceiling: ${ref.maxTotal.toExponential(3)}x`);
   console.log(`  · best real player: ${bestTotal?.total.toExponential(3)}x by ${bestTotal?.player} (${bestTotal?.char})`);
 
