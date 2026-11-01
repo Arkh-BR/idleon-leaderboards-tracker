@@ -1,6 +1,5 @@
-// Synthetic saves for the shared damage-tier helper (spec M5). This file never
-// loads a real save: the arkh state is a singleton and loadSaveData doesn't
-// reset every field. The OLA array is sparse on purpose (OLA[606]).
+// Synthetic saves for the shared damage-tier helper (spec M5). The OLA array
+// is sparse on purpose (OLA[606]).
 import { describe, it, expect } from "vitest";
 import { loadSaveData } from "@/lib/arkh/save/loader";
 import { saveData } from "@/lib/arkh/state";

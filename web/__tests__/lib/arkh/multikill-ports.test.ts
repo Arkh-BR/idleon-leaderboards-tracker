@@ -1,6 +1,4 @@
-// Synthetic saves for the Multikill ports (spec M6). This file never loads a
-// real save: the arkh state is a singleton and loadSaveData doesn't reset
-// every field, so each envelope spells out what it relies on.
+// Synthetic saves for the Multikill ports (spec M6).
 import { describe, it, expect } from "vitest";
 import { loadSaveData } from "@/lib/arkh/save/loader";
 import { saveData } from "@/lib/arkh/state";
