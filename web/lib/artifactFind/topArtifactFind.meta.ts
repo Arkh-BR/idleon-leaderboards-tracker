@@ -2,7 +2,7 @@
 // imported). The path table lives in topArtifactFind.ts and is lazy-loaded.
 // Both auto-refreshed by scripts/update-top-artifact.ts.
 
-export const TOP_ARTI_GENERATED_AT = "2026-11-01T12:57:29.222Z";
+export const TOP_ARTI_GENERATED_AT = "2026-11-01T13:40:39.931Z";
 export const TOP_ARTI_PLAYERS_SCANNED = 83;
 // Best Artifact Find a single CLASS's best-of-each-source build reaches.
 export const TOP_ARTI_HYPOTHETICAL_TOTAL = 2566756042454381600;

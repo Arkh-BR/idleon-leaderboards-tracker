@@ -3,7 +3,7 @@
 // through ONE combine() pass (the same math a real save uses), gated PER
 // CLASS for the formula's class talents. Use topArtifactFlatForClass(classKey).
 // Large file: lazy-load it, don't import statically.
-// Generated 2026-11-01T12:57:29.222Z · 83 players. Refresh: scripts/update-top-artifact.ts.
+// Generated 2026-11-01T13:40:39.931Z · 83 players. Refresh: scripts/update-top-artifact.ts.
 
 type FlatMap = Readonly<Record<string, number>>;
 
@@ -14,16 +14,16 @@ export const TOP_ARTI_FAMILY_FLAT: Readonly<Record<string, FlatMap>> = {
     "Artifact Find / ☠️ Davey Jones / Davey Jones": 16.799999999999997,
     "Artifact Find / ⛏️ Artifacto Discoveries (Super Bit 26)": 7.998674705139815,
     "Artifact Find / ⛏️ Artifacto Discoveries (Super Bit 26) / Artifacto Discoveries (Super Bit 26)": 7.998674705139815,
-    "Artifact Find / ⛏️ Artifacto Discoveries (Super Bit 26) / Artifacto Discoveries (Super Bit 26) / Spelunk[6].length": 105,
+    "Artifact Find / ⛏️ Artifacto Discoveries (Super Bit 26) / Artifacto Discoveries (Super Bit 26) / Discoveries found": 105,
     "Artifact Find / ⛏️ Artifacto Discoveries (Super Bit 26) / Artifacto Discoveries (Super Bit 26) / Super Bit 26": 1,
     "Artifact Find / ➕ Additive Pool": 75.67475871955077,
     "Artifact Find / ➕ Additive Pool / Artifact Find Arcade Bonus (Arcade 32)": 302.970297029703,
     "Artifact Find / ➕ Additive Pool / Artifact Find Arcade Bonus (Arcade 32) / Companion 27 Multi": 2,
-    "Artifact Find / ➕ Additive Pool / Artifact Find Arcade Bonus (Arcade 32) / Maxed Multi (Super 101 ×2 / Omega 102 ×6)": 6,
+    "Artifact Find / ➕ Additive Pool / Artifact Find Arcade Bonus (Arcade 32) / Maxed Multi (Super ×2 · Omega ×6)": 6,
     "Artifact Find / ➕ Additive Pool / Artifact Find Arcade Bonus (Arcade 32) / Raw (lv=102)": 25.247524752475247,
     "Artifact Find / ➕ Additive Pool / Artifact Find Arcade Bonus (Arcade 66)": 120.59701492537313,
     "Artifact Find / ➕ Additive Pool / Artifact Find Arcade Bonus (Arcade 66) / Companion 27 Multi": 2,
-    "Artifact Find / ➕ Additive Pool / Artifact Find Arcade Bonus (Arcade 66) / Maxed Multi (Super 101 ×2 / Omega 102 ×6)": 2,
+    "Artifact Find / ➕ Additive Pool / Artifact Find Arcade Bonus (Arcade 66) / Maxed Multi (Super ×2 · Omega ×6)": 2,
     "Artifact Find / ➕ Additive Pool / Artifact Find Arcade Bonus (Arcade 66) / Raw (lv=101)": 30.149253731343283,
     "Artifact Find / ➕ Additive Pool / Artifact Find Chance (Vault 63)": 955.2,
     "Artifact Find / ➕ Additive Pool / Artifact Pilfering (Bribe 34)": 20,
