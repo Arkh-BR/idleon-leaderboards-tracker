@@ -102,3 +102,10 @@ que mudou. Folhas que mudaram por mecânica nova são os suspeitos. O caso de
 - Voto ativo = `serverVars.voteCategories[0]`. `voteCat2` e `OLA[453]` são da
   Meritocracia.
 - `OLA[200]` é o DR **máximo** já visto, não o atual. Não use como alvo.
+- Stats de Sailing (Artifact Find `BoatArtiMulti`, `LootMulti`):
+  `NONdummies[60]` (capitães tier 6, +25% cada) só é calculado dentro de
+  `if(200==CurrentMap)` (mapa 200 = `wLavaaTown`, a cidade do W5). Fora dela o
+  Skill Info mostra um valor menor até a sessão entrar na cidade do W5 —
+  validado em 01/11/2026 no Markhe: 160Q fora vs 167Q na cidade. O tracker
+  segue o valor de fora (decisão do usuário); se um update passar a calcular
+  isso no load, o tracker lerá ~4% a menos.

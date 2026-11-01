@@ -7,6 +7,7 @@
 // per-crown % times the King Rat crowns reclaimed.
 import { Research } from "../../data/game/customlists.js";
 import { eventShopOwned, superBitType } from "../../../game-helpers";
+import { menagerieUnlockOwned } from "../../data/w7/menagerie";
 import { gridBonusValue } from "../w4/lab";
 import type { SaveData } from "../../../state";
 
@@ -24,4 +25,14 @@ export function stickerBonus(idx: number, s: SaveData): number {
     (1 + (stickerCrownPct(s) + 30 * eventShopOwned(37, s.cachedEventShopStr)) / 100) *
     (1 + (20 * superBitType(62, (s.gamingData as any)?.[12])) / 100);
   return multi * stickerCount(idx, s) * (Number((Research as any)[25]?.[idx]) || 0);
+}
+
+/** The same N.js StickerBonus call with its slot argument (e = 99 or 100):
+ *  stickers 1 and 2 count only in one slot, picked by Menagerie unlock 22 —
+ *  slot 99 while it is locked, slot 100 once it is bought (the other reads 0). */
+// @njs StickerBonus
+export function stickerBonusSlot(idx: number, slot: 99 | 100, s: SaveData): number {
+  const owned = menagerieUnlockOwned(22, s);
+  if ((idx === 1 || idx === 2) && ((slot === 99 && owned === 1) || (slot === 100 && owned === 0))) return 0;
+  return stickerBonus(idx, s);
 }

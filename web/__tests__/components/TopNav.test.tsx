@@ -9,7 +9,7 @@ vi.mock("next/navigation", () => ({
 // Existing tests assert the nav renders, so keep protest mode off here.
 vi.mock("@/lib/protest/config", () => ({ PROTEST_MODE: false }));
 
-const TRACKERS = [/Drop Rate/i, /Coin Multi/i, /EXP Multi/i, /AFK Gains/i, /Multikill/i];
+const TRACKERS = [/Drop Rate/i, /Coin Multi/i, /EXP Multi/i, /AFK Gains/i, /Multikill/i, /Artifact Find/i];
 const trackersButton = () => screen.getByRole("button", { name: /Trackers/ });
 
 describe("TopNav", () => {
@@ -35,9 +35,10 @@ describe("TopNav", () => {
     expect(trackersButton()).toHaveAttribute("aria-expanded", "true");
     const list = trackersButton().nextElementSibling!;
     expect(trackersButton()).toHaveAttribute("aria-controls", list.id);
-    expect(list.querySelectorAll("a")).toHaveLength(5); // tab / reading order: button, then the list
+    expect(list.querySelectorAll("a")).toHaveLength(6); // tab / reading order: button, then the list
     for (const t of TRACKERS) expect(screen.getByRole("link", { name: t })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Multikill/i })).toHaveAttribute("href", "/multikill");
+    expect(screen.getByRole("link", { name: /Artifact Find/i })).toHaveAttribute("href", "/artifact-find");
   });
 
   it("closes the list on a second click, Escape, an outside press and tabbing out", () => {

@@ -17,6 +17,7 @@ const TRACKERS: NavGroup = {
     { href: "/exp-multi", label: "✨ EXP Multi" },
     { href: "/afk-gains", label: "💤 AFK Gains" },
     { href: "/multikill", label: "💥 Multikill" },
+    { href: "/artifact-find", label: "🏺 Artifact Find" },
   ],
 };
 
