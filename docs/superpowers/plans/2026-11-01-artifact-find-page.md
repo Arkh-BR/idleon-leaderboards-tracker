@@ -27,7 +27,7 @@
 2. Boat 0 with no captain (`Boats[0][0] = -1`) → captain term 0. Pinned in Task 1.
 3. Menagerie unlock 22 moves Sticker 2 from the additive pool to its own factor — never both. Pinned in Task 2.
 4. Save without a Tome score (`totalTomePoints` 0) → `LoreEpiBon` 0, never NaN. Pinned in Task 2.
-5. A character without Artifosho equipped still gets it when the sign is unlocked as infinite. Pinned in Task 2 via `starSignBonusReal("61", …)`.
+5. A character without Artifosho equipped still gets it when the sign is unlocked as infinite. `starSignBonusReal` already walks the infinite signs; Task 2 adds a second case with the sign only in `starSignsUnlocked` (enabled count > 61) expecting 15.
 
 ---
 
