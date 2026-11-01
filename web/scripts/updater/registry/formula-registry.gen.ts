@@ -286,6 +286,10 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   "_customBlock_StarSigns": [
     "lib/arkh/stats/systems/common/starSign.ts"
   ],
+  "_customBlock_TotalStats": [
+    "lib/arkh/stats/defs/drop-rate-v2.ts",
+    "lib/arkh/stats/systems/dr2/dr2.ts"
+  ],
   "_customBlock_chipBonuses": [
     "lib/arkh/stats/systems/w4/lab.ts"
   ],
