@@ -3,7 +3,7 @@
 // gain = new / current − 1. Exact for every formula shape (products,
 // max(1, ·), pow, caps, floors) as long as totalFromFlat mirrors the combine.
 
-import { groupFactorOf, type StatGroup } from "@/lib/arkh/stats/defs/grouped";
+import { applyGroupStep, type StatGroup } from "@/lib/arkh/stats/defs/grouped";
 import type { GainDisplay, GainSource, GainsModel } from "./config";
 
 export const MINOR_GAIN_THRESHOLD_PCT = 0.05;
@@ -70,7 +70,7 @@ export function splitGains(
   return { major, minor };
 }
 
-const DISPLAY: Record<StatGroup["kind"], GainDisplay> = { pct: "pct", raw: "raw", min4: "raw", mult: "x" };
+const DISPLAY: Record<StatGroup["kind"], GainDisplay> = { pct: "pct", raw: "raw", min4: "raw", mult: "x", add: "raw", replace: "raw" };
 
 /** GainsModel for a groupedDescriptor stat (Coin Multi, EXP Multi).
  *  `skip` names sources (by their node name, the path's last segment) that
@@ -99,7 +99,7 @@ export function groupedGainsModel(
     },
     totalFromFlat(flat) {
       let total = 1;
-      for (const g of groups) total *= groupFactorOf(g, directChildren(groupPath(g), flat).map((p) => Number(flat[p])));
+      for (const g of groups) total = applyGroupStep(g, directChildren(groupPath(g), flat).map((p) => Number(flat[p])), total);
       return total;
     },
   };

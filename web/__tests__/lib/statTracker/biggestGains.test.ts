@@ -1,5 +1,9 @@
 import { describe, it, expect } from "vitest";
 import { computeGains, splitGains, groupedGainsModel } from "@/lib/statTracker/biggestGains";
+import { combineStatPools } from "@/lib/arkh/computeStat";
+import { flattenTree } from "@/lib/dropRate/treeFlatten";
+import { groupedDescriptor } from "@/lib/arkh/stats/defs/grouped";
+import type { Pool } from "@/lib/arkh/stats/tree-builder";
 import type { GainsModel } from "@/lib/statTracker/config";
 import type { StatGroup } from "@/lib/arkh/stats/defs/grouped";
 
@@ -87,5 +91,37 @@ describe("model levers — model-computed steps ranked but not comparable source
     expect(res.comparableSources).toBe(1);
     expect(res.rows.map((r) => r.source)).toEqual(["A", "+1 step"]); // 75% then 60%; the 0% lever is dropped
     expect(res.rows.map((r) => r.lever)).toEqual([undefined, true]);
+  });
+});
+
+describe("add / replace steps — the what-if total mirrors the tree", () => {
+  const STEPS: StatGroup[] = [
+    { key: "a", name: "A", kind: "pct", sources: ["a1"] },
+    { key: "b", name: "B", kind: "add", sources: ["b1", "b2"] },
+    { key: "c", name: "C", kind: "mult", sources: ["c1"] },
+    { key: "d", name: "D", kind: "add", below: 5, sources: ["d1"] },
+    { key: "e", name: "E", kind: "replace", sources: ["e1"] },
+  ];
+  const desc = groupedDescriptor({ id: "s", name: "Steps", scope: "character", category: "test", system: "none", groups: STEPS });
+  const stepsModel = groupedGainsModel("Steps", STEPS);
+  const pool = (...vals: number[]): Pool => ({ items: vals.map((v, i) => ({ name: `s${i}`, val: v })), sum: 0, product: 0 });
+
+  it.each([
+    ["plain chain", { a: [50], b: [1, 1], c: [1.2], d: [], e: [] }, 4.2],
+    ["chip tops up under 5", { a: [395], b: [], c: [1], d: [0.2], e: [] }, 5],
+    ["chip leaves a total of 6", { a: [500], b: [], c: [1], d: [0.2], e: [] }, 6],
+    ["chip adds 0.3 under the cap", { a: [50], b: [1, 1], c: [1.2], d: [0.3], e: [] }, 4.5],
+    ["replace swaps the total", { a: [50], b: [1, 1], c: [1.2], d: [0.3], e: [7] }, 7],
+  ] as const)("%s", (_n, p, expected) => {
+    const r = combineStatPools(desc, Object.fromEntries(Object.entries(p).map(([k, v]) => [k, pool(...v)])));
+    expect(r.total).toBeCloseTo(expected, 12);
+    expect(stepsModel.totalFromFlat(flattenTree(r.tree))).toBeCloseTo(r.total, 12);
+  });
+
+  it("ranks an add source by the new total over the old one", () => {
+    const yours = { "Steps / A": 1.5, "Steps / A / a1": 50, "Steps / B": 2, "Steps / B / b1": 2 };
+    const { rows } = computeGains(stepsModel, yours, { "Steps / B / b1": 4 });
+    expect(rows[0]).toMatchObject({ source: "b1", group: "B", display: "raw", you: 2, max: 4 });
+    expect(rows[0].gainPct).toBeCloseTo(((1.5 + 4) / 3.5 - 1) * 100, 9);
   });
 });

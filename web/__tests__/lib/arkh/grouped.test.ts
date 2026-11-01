@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { groupFactorOf, groupedDescriptor, neutralValue, groupNote } from "@/lib/arkh/stats/defs/grouped";
+import { groupFactorOf, groupedDescriptor, neutralValue, groupNote, applyGroupStep } from "@/lib/arkh/stats/defs/grouped";
 import { combineStatPools } from "@/lib/arkh/computeStat";
 import type { Pool } from "@/lib/arkh/stats/tree-builder";
 
@@ -57,5 +57,75 @@ describe("grouped descriptors", () => {
     expect(r.tree.children![0]).toMatchObject({ name: "A", val: 6, fmt: "x", note: "× max(1, Π)" });
     expect(r.tree.children![1]).toMatchObject({ name: "B", val: 1.5, note: "× (1 + Σ/100)" });
     expect(r.tree.children![0].children).toHaveLength(2);
+  });
+
+  it("add / replace neutrals and notes", () => {
+    expect(neutralValue("add")).toBe(0);
+    expect(neutralValue("replace")).toBeNaN();
+    expect(groupNote({ kind: "add" })).toBe("+ Σ");
+    expect(groupNote({ kind: "add", below: 5 })).toBe("+ Σ (only below 5, capped at 5)");
+    expect(groupNote({ kind: "replace" })).toBe("replaces the total");
+  });
+
+  it("applyGroupStep: multiplicative kinds multiply, add adds, replace swaps", () => {
+    expect(applyGroupStep({ kind: "pct" }, [50], 2)).toBe(3);
+    expect(applyGroupStep({ kind: "mult", max1: true }, [0.5], 4)).toBe(4);
+    expect(applyGroupStep({ kind: "add" }, [1, 2, NaN], 3)).toBe(6);
+    expect(applyGroupStep({ kind: "add" }, [], 3)).toBe(3);
+    expect(applyGroupStep({ kind: "replace" }, [NaN, 9, 4], 3)).toBe(9);
+    expect(applyGroupStep({ kind: "replace" }, [0], 3)).toBe(0); // 0 is a finite replacement
+    expect(applyGroupStep({ kind: "replace" }, [NaN], 3)).toBe(3);
+    expect(applyGroupStep({ kind: "replace" }, [], 3)).toBe(3);
+  });
+
+  it("add below N: only tops up a total under N, capped at N", () => {
+    const chip = { kind: "add", below: 5 } as const;
+    expect(applyGroupStep(chip, [0.2], 4.95)).toBe(5);
+    expect(applyGroupStep(chip, [0.02], 4.95)).toBeCloseTo(4.97, 12);
+    expect(applyGroupStep(chip, [0.2], 5)).toBe(5);
+    expect(applyGroupStep(chip, [0.2], 6)).toBe(6);
+  });
+
+  const mixed = (below?: number) =>
+    groupedDescriptor({
+      id: "m",
+      name: "Mixed",
+      scope: "character",
+      category: "test",
+      system: "none",
+      groups: [
+        { key: "a", name: "A", kind: "pct", sources: ["a1"] },
+        { key: "b", name: "B", kind: "add", sources: ["b1"] },
+        { key: "c", name: "C", kind: "mult", sources: ["c1"] },
+        { key: "d", name: "D", kind: "add", below, sources: ["d1"] },
+        { key: "e", name: "E", kind: "replace", sources: ["e1"] },
+      ],
+    });
+
+  it("runs add / mult steps in order: (1.5 + 2) × 1.2", () => {
+    const d = mixed();
+    const r = combineStatPools(d, { a: pool(50), b: pool(2), c: pool(1.2), d: pool(), e: pool() });
+    expect(r.total).toBeCloseTo(4.2, 12);
+    expect(r.tree.children!.map((c) => c.val)).toEqual([1.5, 2, 1.2, 0, NaN]);
+    expect(r.tree.children![1]).toMatchObject({ name: "B", note: "+ Σ" });
+    expect(r.tree.children![4]).toMatchObject({ name: "E", note: "replaces the total" });
+  });
+
+  it("add below 5 in a chain: 4.95 + 0.2 → 5, 6 stays 6", () => {
+    const d = mixed(5);
+    const run = (a: number) => combineStatPools(d, { a: pool(a), b: pool(0), c: pool(1), d: pool(0.2), e: pool() }).total;
+    expect(run(395)).toBeCloseTo(5, 12); // 1 + 3.95 = 4.95 → 5
+    expect(run(500)).toBeCloseTo(6, 12); // 1 + 5 = 6 → untouched
+  });
+
+  it("replace: a finite source replaces the total, NaN leaves it", () => {
+    const d = mixed();
+    const base = { a: pool(100), b: pool(0), c: pool(1), d: pool() };
+    const hit = combineStatPools(d, { ...base, e: pool(7) });
+    expect(hit.total).toBe(7);
+    expect(hit.tree.children![4].val).toBe(7);
+    const miss = combineStatPools(d, { ...base, e: pool(NaN) });
+    expect(miss.total).toBe(2);
+    expect(miss.tree.children![4].val).toBeNaN();
   });
 });
