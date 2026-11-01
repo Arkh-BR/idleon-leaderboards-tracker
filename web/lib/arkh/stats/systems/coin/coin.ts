@@ -4,7 +4,7 @@
 // Existing helpers are reused as-is; terms the engine never ported live in
 // this folder so the Drop Rate paths stay untouched.
 
-import { node, type ArkhNode } from "../../../node";
+import { node, renamed, type ArkhNode } from "../../../node";
 import type { SystemCtx } from "../../registry";
 import type { SaveData } from "../../../state";
 import { getLOG, formulaEval } from "../../../formulas";
@@ -82,13 +82,26 @@ export function rooBonus(idx: number, coef: number, s: SaveData): { val: number;
   };
 }
 
-const BUBBLES: Record<string, { name: string; key: string; stat: number; label: string }> = {
-  bubbleSTR: { name: "Penny of Strength", key: "CashSTR", stat: 0, label: "STR" },
-  bubbleAGI: { name: "Dollar of Agility", key: "CashAGI", stat: 1, label: "AGI" },
-  bubbleWIS: { name: "Nickel of Wisdom", key: "CashWIS", stat: 2, label: "WIS" },
+const BUBBLES: Record<string, { name: string; cauldron: string; key: string; stat: number; label: string }> = {
+  bubbleSTR: { name: "Penny of Strength", cauldron: "Power Cauldron", key: "CashSTR", stat: 0, label: "STR" },
+  bubbleAGI: { name: "Dollar of Agility", cauldron: "Quicc Cauldron", key: "CashAGI", stat: 1, label: "AGI" },
+  bubbleWIS: { name: "Nickel of Wisdom", cauldron: "High-IQ Cauldron", key: "CashWIS", stat: 2, label: "WIS" },
 };
 
 const ACH_WEIGHT: Record<number, number> = { 235: 5, 350: 10, 376: 20 };
+
+// Name + tooltip of the sources that share a case (the game's names; jargon goes in the tooltip).
+const ETC_NAMES: Record<string, [string, string]> = {
+  etc77: ["Bonus Money (Equipment)", "EtcBonuses(77) = %_BONUS_MONEY; gear + obols + nametag + trophy + premium hat"],
+  etc100: ["Extra Money (Equipment)", "EtcBonuses(100) = %_EXTRA_MONEY"],
+  etc3: ["Money (Equipment)", "EtcBonuses(3) = %_MONEY"],
+};
+const VAULT_KILLS: Record<number, [string, string]> = {
+  14: ["Bored to Death (Vault 14)", "× ⌊log10(Bean kills)⌋, Valley Of The Beans (VaultKillzTotal(4))"],
+  31: ["Dirty Money (Vault 31)", "× ⌊log10(Poop kills)⌋, Poopy Sewers (VaultKillzTotal(7))"],
+  34: ["Recipe for Profit (Vault 34)", "× Taskboard recipes unlocked (VaultKillzTotal(8))"],
+  37: ["Bubble Money (Vault 37)", "× Σ min(100, bubble level) (VaultKillzTotal(9))"],
+};
 
 // Voting multi shared by Coin's vote34 and EXP Multi's vote15 (votingBonusz
 // gates on activeVoteIdx, so the same multi is inert unless that vote is
@@ -122,14 +135,14 @@ function resolveCoin(id: string, ctx: SystemCtx): ArkhNode {
       const steps = Math.floor(statVal / 250);
       const bub = bubbleValByKey(b.key, ci, s);
       return node(
-        `${b.name} (${b.key})`,
+        `${b.name} (${b.cauldron})`,
         bub.val * steps,
         [
           node("Bubble", bub.val, bub.children, { fmt: "raw" }),
           raw(`Total ${b.label}`, statVal),
           raw(`⌊${b.label} / 250⌋`, steps),
         ],
-        { fmt: "+" }
+        { fmt: "+", note: `Cash bubble (key ${b.key}): +% cash per 250 ${b.label}` }
       );
     }
     // G2–G5 — companion values; the group applies min(4, ·) or 1 + v.
@@ -146,63 +159,74 @@ function resolveCoin(id: string, ctx: SystemCtx): ArkhNode {
       const n = id === "eventShop9" ? 9 : 20;
       const coeff = n === 9 ? 0.5 : 0.6;
       const owned = eventShopOwned(n, s.cachedEventShopStr || "");
-      return node(`Event Shop ${n} (×${coeff})`, coeff * owned, [raw("Owned", owned)], { fmt: "raw" });
+      return node(
+        n === 9 ? "Coin Stacking (Event Shop 9)" : "Government Subsidy (Event Shop 20)",
+        coeff * owned,
+        [raw("Owned", owned)],
+        { fmt: "raw", note: n === 9 ? "×0.5 per purchase: 1.5x all coin gain" : "×0.6 per purchase: 1.6x coins from monsters" }
+      );
     }
     // EtcBonuses("77"/"100"/"3") — numeric ids (a string id drops gallery items).
     case "etc77":
     case "etc100":
     case "etc3":
-      return etcBonus.resolve(Number(id.slice(3)), { saveData: s, charIdx: ci });
+      return renamed(etcBonus.resolve(Number(id.slice(3)), { saveData: s, charIdx: ci }), ...ETC_NAMES[id]);
     case "sushi18":
     case "sushi37":
       return sushiRoG.resolve(Number(id.slice(5)), ctx as any);
     case "grid149":
     case "grid169": {
       const n = Number(id.slice(4));
-      return node(`Research Grid ${n}`, gridBonusValue(n, s), null, { fmt: "+" });
+      return node(n === 149 ? "Glimbo Linguistics (Research Grid 149)" : "Glimbo BOGO Offer (Research Grid 169)", gridBonusValue(n, s), null, {
+        fmt: "+",
+        note: n === 149 ? "Also boosts coins dropped by monsters" : "Also x coin gain",
+      });
     }
     case "goldSet":
       return add("Gold Set", getSetBonus("GOLD_SET"));
     case "gambit7":
       return node(
-        "Gambit 7 (Cash)",
+        "Coins from Monsters (Gambit Bonus 7)",
         gambitBonus(7, s),
         [raw("Gambit points", gambitPoints(s)), raw("Deathnote skulls (Measurement 13)", deathNoteSkulls(s))],
-        { fmt: "+" }
+        { fmt: "+", note: "10 × log10(Gambit points); needs the bonus's point requirement" }
       );
     // G15 — (1 + 250·bun_y/100). Don't call bundle.resolve: it recurses on any
     // bundle id other than bun_v/bun_p.
     case "bunY": {
       const owned = Number((s.bundlesData as any)?.bun_y) === 1 ? 1 : 0;
-      return node("Cash Bundle (bun_y)", 250 * owned, [raw("Owned", owned)], { fmt: "+" });
+      return node("Cash Bundle", 250 * owned, [raw("Owned", owned)], {
+        fmt: "+",
+        note: "bun_y: 3000-gem pack with +250% cash from monsters; no in-game title",
+      });
     }
     // G16 — max(1, getbonus2(1,433,-1))·getLOG(OLA[362]), active-char context.
     case "dustWalker": {
       const tv = Math.max(1, maxTalentBonus(433, ci, s));
       const lg = getLOG(ola(362));
       return node(
-        `${label("Talent", 433)} × log(OLA[362])`,
+        label("Talent", 433),
         tv * lg,
         [raw("Talent 433 (getbonus2, min 1)", tv), raw("log10(OLA[362])", lg)],
-        { fmt: "+" }
+        { fmt: "+", note: "× log10(total dust ever collected) (OLA[362]); talent value floored at 1" }
       );
     }
     case "mealCash":
-      return add("Meals (Cash)", computeMealBonus("Cash", s));
+      return add("Salad + Bunt Cake (Meals 2 · 31)", computeMealBonus("Cash", s), "MealBonus(\"Cash\"): every meal with the Cash effect");
     // G18 adds these WITHOUT /100 — except the statue, which is /100.
     case "friend5":
-      return friend.resolve(5, { saveData: s });
+      return renamed(friend.resolve(5, { saveData: s }), "More Coins (Friend Bonus 5)", "Friend bonus type 5; scales with account level");
     case "statue19": {
       const r = computeStatueBonusGiven(19, ci, s);
       return node(
-        `${label("Statue", 19)} ÷ 100`,
+        "Pecunia Statue (Statue 19)",
         r.val / 100,
         [node("Statue bonus", r.val, r.children, { fmt: "raw" })],
-        { fmt: "raw" }
+        { fmt: "raw", note: "÷ 100 (statue % to fraction)" }
       );
     }
     case "pristine16":
-      return node(label("Pristine", 16), pristineBon(16, s), null, { fmt: "+" });
+      return node("Gumball Necklace (Pristine Charm 16)", pristineBon(16, s), null, { fmt: "+", note: "x money from monsters" });
     case "prayer8":
       return add(label("Prayer", 8), computePrayerReal(8, 0, ci, s));
     // G23 terms.
@@ -232,12 +256,12 @@ function resolveCoin(id: string, ctx: SystemCtx): ArkhNode {
       );
     }
     case "vialCash":
-      return add("Cash Vial (MonsterCash)", computeVialByKey("MonsterCash", s));
+      return add("Dieter Drink (Vial 5)", computeVialByKey("MonsterCash", s), "Vial effect key MonsterCash");
     case "card11":
       return add("Money Cards (Card Type 11)", computeCardBonusByType(11, ci, s));
     case "cardW5b1": {
       const lv = computeCardLv("w5b1", s);
-      return node(`${label("Card", "w5b1")} × 7`, 7 * lv, [raw("Card Lv", lv)], { fmt: "+" });
+      return node(label("Card", "w5b1"), 7 * lv, [raw("Card Lv", lv)], { fmt: "+", note: "× 7 per card level" });
     }
     case "arcade10":
     case "arcade11": {
@@ -247,60 +271,63 @@ function resolveCoin(id: string, ctx: SystemCtx): ArkhNode {
     // BoxRewards["13c"] — computeBoxReward applies the slot thresholds
     // (postOffice.resolve doesn't).
     case "box13c":
-      return add("Post Office 13c", computeBoxReward(ci, "13c"));
+      return add("Utilitarian Capsule (Post Office 13c)", computeBoxReward(ci, "13c"), "% Cash from Mobs (third slot of box 13)");
     case "guild8": {
       const gn = guild.resolve(8, { saveData: s } as any);
       const world = 1 + Math.floor((ctx.mapIdx ?? 0) / 50);
       return node(
-        "Guild 8 × World",
+        "Coin Supercharger (Guild 8)",
         (Number(gn.val) || 0) * world,
         [gn, node("1 + ⌊map / 50⌋", world, null, { fmt: "x" })],
-        { fmt: "+" }
+        { fmt: "+", note: "× world number (1 + ⌊map / 50⌋)" }
       );
     }
     case "goldFood":
       return node(
-        "Golden Food (MonsterCash)",
+        "Golden Bread (Golden Food)",
         goldFoodBonuses("MonsterCash", ci, undefined, s).total,
         null,
-        { fmt: "+" }
+        { fmt: "+", note: "Σ of equipped + Emporium golden foods with effect MonsterCash" }
       );
     case "ach235":
     case "ach350":
     case "ach376": {
       const n = Number(id.slice(3));
       const w = ACH_WEIGHT[n];
-      return node(`${label("Achievement", n)} × ${w}`, w * achieveStatus(n, s), null, { fmt: "+" });
+      return node(label("Achievement", n), w * achieveStatus(n, s), null, { fmt: "+", note: `× ${w}` });
     }
     case "vault2":
-      return node(label("Vault", 2), vaultUpgBonus(2, s), null, { fmt: "+" });
+      return node("Monster Tax (Vault 2)", vaultUpgBonus(2, s), null, { fmt: "+" });
     case "vault17": {
       const v = vaultUpgBonus(17, s);
       const lg = getLOG(ola(340));
       return node(
-        `${label("Vault", 17)} × log(OLA[340])`,
+        "Mining Payday (Vault 17)",
         v * lg,
         [raw("Vault 17", v), raw("log10(OLA[340])", lg)],
-        { fmt: "+" }
+        { fmt: "+", note: "× log10(total ores mined) (OLA[340])" }
       );
     }
     case "ola420":
-      return node("Ninja Extra Cash (OLA[420])", ola(420), null, { fmt: "+" });
+      return node("Coins from Monsters (Hoops Shop 1)", ola(420), null, { fmt: "+", note: "Level of Hoops shop upgrade 1 (OLA[420])" });
     case "flurbo4": {
       const r = flurboShop(4, s);
-      return node("Flurbo Shop 4 (Monster Cash)", r.val, r.children, { fmt: "+" });
+      return node("Monster Cash (Flurbo Shop 4)", r.val, r.children, { fmt: "+" });
     }
     case "divMinor3":
-      return node("Divinity minor bonus (Cash)", divinityMinorSum(3, ci, s), null, { fmt: "+" });
+      return node("Coins Gained (Divinity Minor Bonus 3)", divinityMinorSum(3, ci, s), null, {
+        fmt: "+",
+        note: "Σ over the linked gods' minor bonus, type 3",
+      });
     case "cropSC4": {
       const unlocked = emporiumBonus(23, (s.ninjaData as any[])?.[102]?.[9]) ? 1 : 0;
       const crops = Math.round(s.farmCropCount || 0);
       const multi = cropSCbonMulti(s);
       return node(
-        "Crop Depot Bonus 4 (Cash)",
+        "Crop Depot: Cash from Mobs (Bonus 4)",
         unlocked ? 15 * crops * multi : 0,
         [raw("Emporium 23 unlocked", unlocked), raw("Crops found", crops), node("Depot multi", multi, null, { fmt: "x" })],
-        { fmt: "+" }
+        { fmt: "+", note: "+15% per crop found × depot multi; unlocked by \"Science Environmentally Sourced Pencil\" (Emporium 23)" }
       );
     }
     case "arena5":
@@ -311,15 +338,15 @@ function resolveCoin(id: string, ctx: SystemCtx): ArkhNode {
       const req = Number((RANDOlist as any[])[53]?.[i]);
       const owned = Number.isFinite(req) && wave >= req ? 1 : 0;
       return node(
-        `Pet Arena bonus ${i}${coeff !== 1 ? " (×0.5)" : ""}`,
+        i === 5 ? "1.5x Monster Cash (Pet Arena Bonus 5)" : "2x Monster Cash (Pet Arena Bonus 14)",
         coeff * owned,
         [raw("Arena wave (OLA[89])", wave), raw("Wave needed", req)],
-        { fmt: "raw" }
+        { fmt: "raw", note: i === 5 ? "×0.5; unlocks at arena wave 20 (RANDOlist[53][5])" : "Unlocks at arena wave 175" }
       );
     }
     case "roo6": {
       const r = rooBonus(6, 3, s);
-      return node("Kangaroo Cash (Roo 6)", r.val, r.children, { fmt: "+" });
+      return node("Fishing Buddy (Poppy Upgrade 6)", r.val, r.children, { fmt: "+", note: "Poppy the Kangaroo Mouse upgrade (code name RooBonuses 6)" });
     }
     case "vault14":
     case "vault31":
@@ -329,12 +356,13 @@ function resolveCoin(id: string, ctx: SystemCtx): ArkhNode {
       const k = n === 14 ? 4 : n === 31 ? 7 : n === 34 ? 8 : 9;
       const v = vaultUpgBonus(n, s);
       const kills = vaultKillzTotal(k, s);
-      return node(`${label("Vault", n)} × VaultKillzTotal(${k})`, v * kills, [raw(`Vault ${n}`, v), raw(`VaultKillzTotal(${k})`, kills)], { fmt: "+" });
+      const [name, note] = VAULT_KILLS[n];
+      return node(name, v * kills, [raw(`Vault ${n}`, v), raw(`VaultKillzTotal(${k})`, kills)], { fmt: "+", note });
     }
     case "vault70": {
       const v = vaultUpgBonus(70, s);
       const cards = cardsCollected(s);
-      return node(`${label("Vault", 70)} × cards collected`, v * cards, [raw("Vault 70", v), raw("Cards collected", cards)], { fmt: "+" });
+      return node("Collection Cashout (Vault 70)", v * cards, [raw("Vault 70", v), raw("Cards collected", cards)], { fmt: "+", note: "× cards collected" });
     }
     // Artifact 1 (Maneki Kat): base × tier (computeArtifactBonus) × the
     // highest character level (CalcTalentMAP["620"], account-wide).
@@ -342,7 +370,7 @@ function resolveCoin(id: string, ctx: SystemCtx): ArkhNode {
       const base = computeArtifactBonus(1, ci, { saveData: s, charIdx: ci } as any);
       let top = 0;
       for (let c = 0; c < numCharacters; c++) top = Math.max(top, Number((s.lv0AllData as any[])?.[c]?.[0]) || 0);
-      return node(`${label("Artifact", 1)} × highest level`, base * top, [raw("Artifact bonus", base), raw("Highest char level", top)], { fmt: "+" });
+      return node("Maneki Kat (Artifact 1)", base * top, [raw("Artifact bonus", base), raw("Highest char level", top)], { fmt: "+", note: "× highest character class level" });
     }
     // MainframeBonus(9) = (LabMainBonus[9][5] + MainframeBonus(113)) ×
     // ⌊kills/1e6⌋ (or × kills/1e6 past 1e8), kills = green mushroom map
@@ -353,14 +381,20 @@ function resolveCoin(id: string, ctx: SystemCtx): ArkhNode {
       const base = mainframeBonus(9, s);
       const k = accountMapKills(1) / 1e6; // map 1 = MapAFKtarget "mushG"
       const mult = k < 1e8 ? Math.floor(k) : k;
-      return node("Lab Mainframe 9 × green mushroom kills", base * mult, [raw("Mainframe 9", base), raw("Kills / 1e6", mult)], { fmt: "+" });
+      return node("Fungi Finger Pocketer (Mainframe 9)", base * mult, [raw("Mainframe 9", base), raw("Kills / 1e6", mult)], {
+        fmt: "+",
+        note: "× ⌊Green Mushroom account kills / 1M⌋ (Death Note)",
+      });
     }
     // VotingBonusz(34): base value gated on the active weekly vote, scaled
     // by a multi built from companions/dream/cosmo/win/event-shop/palette/
     // legend/sushi terms. Only nonzero in weeks vote 34 wins.
     case "vote34": {
       const multi = votingMulti(ctx);
-      return node(COIN_VOTE_NAME, votingBonusz(34, multi, s), [node("Voting multi", multi, null, { fmt: "x" })], { fmt: "+" });
+      return node(COIN_VOTE_NAME, votingBonusz(34, multi, s), [node("Voting multi", multi, null, { fmt: "x" })], {
+        fmt: "+",
+        note: "Only counts the week vote 34 wins",
+      });
     }
     default:
       throw new Error(`coin: unknown source "${id}"`);

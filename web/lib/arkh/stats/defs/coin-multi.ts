@@ -14,29 +14,29 @@ export const COIN_ROOT = "Coin Multi";
 
 /** The weekly vote's node. The vote is server-wide and changes every week, so
  *  Biggest Gains leaves it out: it isn't something a player raises. */
-export const COIN_VOTE_NAME = "Vote 34 (Cash)";
+export const COIN_VOTE_NAME = "Cash from Monsters (Weekly Vote 34)";
 
 export const COIN_GROUPS: readonly CoinGroup[] = [
   { key: "g01", name: "🫧 Cash Bubbles", kind: "pct", sources: ["bubbleSTR", "bubbleAGI", "bubbleWIS"] },
-  { key: "g02", name: "🐾 Companion 24", kind: "min4", sources: ["comp24"] },
-  { key: "g03", name: "🐾 Coin Drop Multi", kind: "raw", sources: ["comp38"] },
-  { key: "g04", name: "🐾 Companion 45", kind: "min4", sources: ["comp45"] },
-  { key: "g05", name: "🐾 Companion 159", kind: "min4", sources: ["comp159"] },
-  { key: "g06", name: "🛍️ Event Shop 9", kind: "raw", sources: ["eventShop9"] },
-  { key: "g07", name: "🛍️ Event Shop 20", kind: "raw", sources: ["eventShop20"] },
+  { key: "g02", name: "🐾 Cool Bird (Companion 24)", kind: "min4", sources: ["comp24"] },
+  { key: "g03", name: "🐾 Balloonfish (Companion 38)", kind: "raw", note: "Coin drop multi", sources: ["comp38"] },
+  { key: "g04", name: "🐾 Equinox Broadbass (Companion 45)", kind: "min4", sources: ["comp45"] },
+  { key: "g05", name: "🐾 Potluck (Companion 159)", kind: "min4", sources: ["comp159"] },
+  { key: "g06", name: "🛍️ Coin Stacking (Event Shop 9)", kind: "raw", sources: ["eventShop9"] },
+  { key: "g07", name: "🛍️ Government Subsidy (Event Shop 20)", kind: "raw", sources: ["eventShop20"] },
   { key: "g08", name: "🎽 Bonus Money Gear", kind: "pct", sources: ["etc77"] },
-  { key: "g09", name: "🍣 Sushi 18", kind: "pct", sources: ["sushi18"] },
-  { key: "g10", name: "🍣 Sushi 37", kind: "pct", sources: ["sushi37"] },
-  { key: "g11", name: "🔬 Research Grid", kind: "pct", sources: ["grid149", "grid169"] },
+  { key: "g09", name: "🍣 Tobo Twins (Sushi Tier 19)", kind: "pct", sources: ["sushi18"] },
+  { key: "g10", name: "🍣 Aji Sashimi (Sushi Tier 38)", kind: "pct", sources: ["sushi37"] },
+  { key: "g11", name: "🔬 Glimbo Linguistics · BOGO Offer", kind: "pct", note: "Research Grids 149 and 169", sources: ["grid149", "grid169"] },
   { key: "g12", name: "🎽 Extra Money Gear", kind: "pct", sources: ["etc100"] },
   { key: "g13", name: "🧰 Gold Set", kind: "pct", sources: ["goldSet"] },
   { key: "g14", name: "🎰 Gambit", kind: "pct", sources: ["gambit7"] },
   { key: "g15", name: "🎁 Cash Bundle", kind: "pct", sources: ["bunY"] },
-  { key: "g16", name: "🌪️ Dust Walker", kind: "pct", sources: ["dustWalker"] },
-  { key: "g17", name: "🍽️ Meal · Artifact · Roo · Vote", kind: "pct", sources: ["mealCash", "artifact1", "roo6", "vote34"] },
-  { key: "g18", name: "🏟️ Arena · Friend · Statue", kind: "raw", sources: ["arena5", "friend5", "arena14", "statue19"] },
-  { key: "g19", name: "💻 Lab · Vault Kills", kind: "pct", sources: ["mainframe9", "vault34", "vault37"] },
-  { key: "g20", name: "🌟 Pristine Charm 16", kind: "pct", sources: ["pristine16"] },
+  { key: "g16", name: "🌪️ Dustwalker (Talent 433)", kind: "pct", sources: ["dustWalker"] },
+  { key: "g17", name: "🍽️ Meals · Maneki Kat · Fishing Buddy · Weekly Vote", kind: "pct", sources: ["mealCash", "artifact1", "roo6", "vote34"] },
+  { key: "g18", name: "🏟️ Pet Arena · Friend Bonus · Pecunia Statue", kind: "raw", sources: ["arena5", "friend5", "arena14", "statue19"] },
+  { key: "g19", name: "💻 Fungi Finger Pocketer · Vault Kills", kind: "pct", sources: ["mainframe9", "vault34", "vault37"] },
+  { key: "g20", name: "🌟 Gumball Necklace (Pristine Charm 16)", kind: "pct", sources: ["pristine16"] },
   { key: "g21", name: "🙏 Jawbreaker Prayer", kind: "pct", sources: ["prayer8"] },
   { key: "g22", name: "⛪ Divinity · Crop Depot", kind: "pct", sources: ["divMinor3", "cropSC4"] },
   {

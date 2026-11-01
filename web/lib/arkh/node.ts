@@ -34,6 +34,16 @@ export function node(
   return r;
 }
 
+/** A copy of `n` under a stat tracker's own name and note. The shared helpers
+ *  (etcBonus, friend, owl, holes…) also feed Drop Rate, so a tracker renames
+ *  their result at its call site instead of editing the helper. */
+export function renamed(n: ArkhNode, name: string, note?: string): ArkhNode {
+  const c: ArkhNode = { ...n, name };
+  if (note) c.note = note;
+  else delete c.note;
+  return c;
+}
+
 // Numeric tree result — backward-compat for code that treats results as numbers.
 export type TreeResult = {
   val: number;
