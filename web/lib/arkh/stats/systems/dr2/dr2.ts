@@ -178,8 +178,8 @@ function resolveDr2(id: string, ctx: SystemCtx): ArkhNode {
       return node("LUK Scaling (Drop Rate)", 140 * l.val, l.children, { fmt: "+", note: "1.4 × the LUK curve, outside the /100: 140 × curve as %" });
     }
     // StarSigns.Drop: +5 with sign 14 and +12 with sign 76 in StarSignsDL (the
-    // equipped signs + the infinite ones), × Seraph. V1's resolver counts both
-    // signs always.
+    // equipped signs + the infinite ones), × Seraph. V1's starSign resolver
+    // calls the same helper (it only differs in the Seraph row's name).
     case "starSigns": {
       const r = starSignBonusReal("Drop", ci, s);
       return node("Star Signs: Drop Rate", r.val, r.children, { fmt: "+", note: "StarSigns.Drop: Pirate Booty (14), Druipi Major (76), × Seraph" });
