@@ -19,14 +19,16 @@ export const farm = {
   resolve(id: string | number, ctx: Ctx): ArkhNode {
     const saveData = ctx.saveData;
 
-    if (id === "rank9" || id === "rank19") {
-      const rankIdx = id === "rank9" ? 9 : 19;
-      // Rank 9 = the Drop Rate crop rank; 19 doesn't appear in the DR pool
-      // today but keep symmetric naming if it ever lands there.
+    // N.js LankRankUpgBonus: ranks 4/9/14/19 are linear (this branch); the
+    // others follow 1.7·x/(x + 80) and aren't read by any stat yet.
+    if (id === "rank9" || id === "rank14" || id === "rank19") {
+      const rankIdx = Number(id.slice(4));
+      // Rank 9 = the Drop Rate crop rank; 14 = Max damage's Damage %; 19 is
+      // a TotalStats term.
       const friendlyName =
         id === "rank9"
           ? `Crop Drop Rate Rank (Farming rank9)`
-          : `Farming Rank 19 (Farming rank19)`;
+          : `Farming Rank ${rankIdx} (Farming ${id})`;
       const ninjaArr = ninjaInfo(36);
       const ninjaVal = Number(ninjaArr[rankIdx]) || 0;
       const rankLv = Number(

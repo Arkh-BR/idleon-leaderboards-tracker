@@ -71,6 +71,9 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   "CropSCbonMulti": [
     "lib/arkh/stats/systems/w6/farming.ts"
   ],
+  "CropSCbonus": [
+    "lib/arkh/stats/systems/damage/damage.ts"
+  ],
   "DancingCoralBonus": [
     "lib/arkh/stats/systems/exp/dancingCoral.ts",
     "lib/arkh/stats/systems/exp/exp.ts"
@@ -144,6 +147,7 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/arkh/stats/systems/artifact/terms.ts"
   ],
   "MSA_Bonus": [
+    "lib/arkh/stats/systems/damage/damage.ts",
     "lib/arkh/stats/systems/exp/exp.ts",
     "lib/arkh/stats/systems/exp/msa.ts"
   ],
@@ -201,6 +205,9 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   "PaletteBonus": [
     "lib/arkh/stats/systems/w7/spelunking.ts"
   ],
+  "PetArenaBonus": [
+    "lib/arkh/stats/systems/damage/damage.ts"
+  ],
   "PetArenaCrucBonus": [
     "lib/arkh/stats/systems/exp/exp.ts",
     "lib/arkh/stats/systems/exp/petArenaCruc.ts"
@@ -227,8 +234,17 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   "RandoListo2[8]": [
     "lib/arkh/stats/systems/common/cookingMastery.ts"
   ],
+  "RatDMG": [
+    "lib/arkh/stats/systems/damage/damage.ts"
+  ],
   "RecalcChipBonuses": [
     "lib/arkh/stats/systems/w4/lab.ts"
+  ],
+  "ReliquariumInPosession": [
+    "lib/arkh/stats/systems/damage/damage.ts"
+  ],
+  "RiftSkillETC": [
+    "lib/arkh/stats/systems/w4/rift.ts"
   ],
   "RoG_BonusQTY": [
     "lib/arkh/stats/data/w7/jelly.ts",
@@ -298,6 +314,10 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   "_customBlock_FlurboShop": [
     "lib/arkh/stats/systems/coin/coin.ts"
   ],
+  "_customBlock_FoodBonuses": [
+    "lib/arkh/stats/systems/common/derived-damage.ts",
+    "lib/arkh/stats/systems/damage/damage.ts"
+  ],
   "_customBlock_GetBuffBonuses": [
     "lib/arkh/stats/systems/common/buffs.ts"
   ],
@@ -344,5 +364,8 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   ],
   "_customBlock_totalcointypes": [
     "lib/coinMulti/wallet.ts"
+  ],
+  "skillLvRanks": [
+    "lib/arkh/stats/systems/w4/rift.ts"
   ]
 };

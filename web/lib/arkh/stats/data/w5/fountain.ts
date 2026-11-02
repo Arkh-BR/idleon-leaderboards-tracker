@@ -27,6 +27,9 @@ const FOUNTAIN_BONUS_PER_LV: Record<number, Record<number, number>> = {
   },
   1: {
     13: 1, // Judicial_Boost: Justice monument bonuses ×(1 + n/100)
+    // Swingy_O'_Sword — HoleFountUPG[1][16][6] = 1. Max damage's
+    // ×(1 + Fountain_BonTOT(1,16)/100), after the L2 soft cap.
+    16: 1,
   },
   2: {
     // Wisdom_Boost — ACTIVATED by the Green Water update (2026-06).

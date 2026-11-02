@@ -4,30 +4,23 @@
 // `damage` system (systems/damage/damage.ts: one source per N.js term,
 // computeMaxDamage = dmgMax over them); this file keeps the shared inputs it
 // reads: DamageDealtSTATtype, TotalStats("Weapon_Power"), PlayerSpeedBonus,
-// the TalentCalc terms, the green-sigil and map-306 terms, and the accuracy
-// (talent 125's gate, OverkillStuffs("3")). It must not import the damage
-// system (damage.ts imports this file).
+// the food-boost multiplier, the TalentCalc terms, the green-sigil and
+// map-306 terms, and the accuracy (talent 125's gate, OverkillStuffs("3")).
+// It must not import the damage system (damage.ts imports this file).
 //
 // ── [STUB] notes ────────────────────────────────────────────────────────
-// The following sub-sources are GENUINELY NOT ported here and are STUBBED to
-// 0 (or the neutral multiplier 1); each is flagged `[STUB]` inline. The
-// damage system reads them until they are wired to their ports:
-//   computeVaultKillzTotal  (vault kill counters)
-//   computeFlurboShop       (W2 dungeon flurbo shop WP)
-//   computeRooBonus         (W7 sushi RoG dmg %)
-//   bubbaRoGBonuses         (W7 bubba RoG dmg %)
-//   farmRankUpgBonus        (W6 farm-rank dmg %)
-//   computeDivinityMinor    (W5 divinity minor link)
-//   computeDivinityBless    (W5 divinity blessing)
-//   computeRiftSkillETC     (W4 rift skill ETC)
-//   computeEclipseSkulls    (W4 rift eclipse skulls)
-//   computeKillroyDMG       (W4 rift killroy dmg)
-//   computeCompassBonus     (W7 compass dmg %)
-//   computeMSABonus         (W4 gaming MSA dmg %)
-//   computeStickerBonus     (W6 farming sticker dmg, neutral=1)
-//   computeCropSC           (W6 farming crop scientist dmg %)
-//   computePetArenaBonus    (W4 pet-arena dmg %)
-//   computeSaltLick         (W3 salt-lick dmg %)
+// The following sub-sources are NOT wired here and are STUBBED to 0 (or the
+// neutral multiplier 1); each is flagged `[STUB]` inline:
+//   computeDivinityBless    (W5 divinity blessing)          — damage
+//   computeEclipseSkulls    (W4 rift eclipse skulls)        — damage
+//   computeKillroyDMG       (W4 rift killroy dmg)           — damage
+//   computeStickerBonus     (W6 farming sticker dmg, =1)    — damage
+//   computeFlurboShop       (flurbo shop 5)                 — accuracy
+//   computeRooBonus         (Roo bonus 3)                   — accuracy
+//   computeDivinityMinor    (divinity minor link)           — accuracy
+//   computeSaltLick         (salt lick 7)                   — speed
+// The last four have real ports elsewhere (coin, exp) that accuracy and
+// speed don't read yet.
 
 import type { ArkhNode } from "../../../node";
 import type { SaveData } from "../../../state";
@@ -82,6 +75,7 @@ import { computeCardSetBonus, computeCardLv } from "./cards";
 import { computePrayerReal } from "../w3/prayer";
 import { computeChipBonus, gridBonusValue } from "../w4/lab";
 import { capevineSystemOn, gallerySystemOn, premhatSystemOn } from "../w7/gallery";
+import { flurboShop } from "../coin/coin";
 
 // --------------------------------------------------------------------------
 // Local helpers (mirror defs/helpers.js safe / rval), shared with the damage
@@ -137,33 +131,20 @@ export function gtn(id: number, ctx: any, args?: any): number {
 }
 
 // --------------------------------------------------------------------------
-// [STUB] genuinely-unported damage sub-sources — see header note. Each
-// returns 0 (additive %) or 1 (neutral multiplier). Tiny relative to the
-// log-based tier thresholds.
+// [STUB] sub-sources not wired yet — see header note. Each returns 0
+// (additive %) or 1 (neutral multiplier).
 // --------------------------------------------------------------------------
-export function computeVaultKillzTotal(_idx: number, _s: SaveData): number {
-  return 0; // [STUB] vault kill counters unported
-}
 function computeFlurboShop(_idx: number, _s: SaveData): number {
-  return 0; // [STUB] W2 dungeon flurbo shop unported
+  return 0; // [STUB] accuracy's flurbo 5 (coin.ts flurboShop is the port)
 }
-export function computeRooBonus(_idx: number, _s: SaveData): number {
-  return 0; // [STUB] W7 sushi RoG dmg unported
+function computeRooBonus(_idx: number, _s: SaveData): number {
+  return 0; // [STUB] accuracy's Roo 3 (coin.ts rooBonus is the port)
 }
-export function bubbaRoGBonuses(_idx: number, _s: SaveData): number {
-  return 0; // [STUB] W7 bubba RoG dmg unported
-}
-export function farmRankUpgBonus(_idx: number, _ci: number, _s: SaveData): number {
-  return 0; // [STUB] W6 farm-rank dmg unported
-}
-export function computeDivinityMinor(_ci: number, _idx: number, _s: SaveData): number {
-  return 0; // [STUB] W5 divinity minor link unported
+function computeDivinityMinor(_ci: number, _idx: number, _s: SaveData): number {
+  return 0; // [STUB] accuracy's divinity minor (coin/divinityMinor.ts is the port)
 }
 export function computeDivinityBless(_idx: number, _s: SaveData): number {
   return 0; // [STUB] W5 divinity blessing unported
-}
-export function computeRiftSkillETC(_idx: number, _s: SaveData): number {
-  return 0; // [STUB] W4 rift skill ETC unported
 }
 export function computeEclipseSkulls(_s: SaveData): number {
   return 0; // [STUB] W4 rift eclipse skulls unported
@@ -171,23 +152,34 @@ export function computeEclipseSkulls(_s: SaveData): number {
 export function computeKillroyDMG(_s: SaveData): number {
   return 0; // [STUB] W4 rift killroy dmg unported
 }
-export function computeCompassBonus(_idx: number, _s: SaveData): number {
-  return 0; // [STUB] W7 compass dmg unported
-}
-export function computeMSABonus(_idx: number, _s: SaveData): number {
-  return 0; // [STUB] W4 gaming MSA dmg unported
-}
 export function computeStickerBonus(_idx: number, _s: SaveData): number {
   return 1; // [STUB] W6 farming sticker dmg (neutral multiplier)
 }
-export function computeCropSC(_idx: number, _s: SaveData): number {
-  return 0; // [STUB] W6 farming crop scientist dmg unported
+function computeSaltLick(_idx: number, _s: SaveData): number {
+  return 0; // [STUB] speed's salt lick 7 (exp/saltLick.ts is the port)
 }
-export function computePetArenaBonus(_idx: number): number {
-  return 0; // [STUB] W4 pet-arena dmg unported
-}
-export function computeSaltLick(_idx: number, _s: SaveData): number {
-  return 0; // [STUB] W3 salt-lick dmg unported
+
+/** N.js FoodBonuses("…BoostsEffectBonus") (@4104779): the effect multiplier of
+ *  every boost food (Weapon Power, Base Damage, Move Speed…); 1 if a read throws. */
+// @njs _customBlock_FoodBonuses
+export function foodBoostMulti(ci: number, ctx: Ctx): number {
+  const s = ctx.saveData;
+  try {
+    return (
+      1 +
+      (safe(computeBoxReward, ci, "PowerFoodEffect") +
+        safe(computeStatueBonusGiven, 3, ci, s) +
+        rval(etcBonus, "9", ctx) +
+        safe(computeStampBonusOfTypeX, "BFood", s) +
+        computeStarSignBonus("FoodEffect", ci, s) +
+        safe(computeCardBonusByType, 48, ci, s) +
+        safe(computeCardSetBonus, ci, "1") +
+        rval(talent, 631, ctx)) /
+        100
+    );
+  } catch {
+    return 1;
+  }
 }
 
 // ==========================================================================
@@ -240,8 +232,8 @@ export function damageStatType(ci: number, ctx: Ctx): DamageStatType {
   return { stat, statVal, t95, t455, t20, W6, A6, M6, val };
 }
 
-/** N.js TotalStats("Weapon_Power") — ported inline from damage.js (Flurbo
- *  shop still a stub). 0 if any part throws, as before. */
+/** N.js TotalStats("Weapon_Power") — ported inline from damage.js; FlurboShop(0)
+ *  is coin.ts's port. 0 if any part throws, as before. */
 // @njs _customBlock_TotalStats
 export function computeWeaponPower(ci: number, ctx: Ctx): number {
   const s = ctx.saveData;
@@ -408,37 +400,13 @@ export function computeWeaponPower(ci: number, ctx: Ctx): number {
           if (_fqty > 0) _foodWP += Number((ITEMS as any)[_fname].Amount) || 0;
         }
       }
-      if (_foodWP > 0) {
-        let _boostEff = 1;
-        try {
-          const _bBoxVal = safe(computeBoxReward, ci, "PowerFoodEffect");
-          const _bStatue3 = safe(computeStatueBonusGiven, 3, ci, s);
-          const _bStampVal = safe(computeStampBonusOfTypeX, "BFood", s);
-          const _bStar = computeStarSignBonus("FoodEffect", ci, s);
-          const _bCard48 = safe(computeCardBonusByType, 48, ci, s);
-          const _bT631 = rval(talent, 631, ctx);
-          const _bEtc9 = rval(etcBonus, "9", ctx);
-          const _bCardSet01 = safe(computeCardSetBonus, ci, "1");
-          _boostEff =
-            1 +
-            (_bBoxVal +
-              _bStatue3 +
-              _bEtc9 +
-              _bStampVal +
-              _bStar +
-              _bCard48 +
-              _bCardSet01 +
-              _bT631) /
-              100;
-        } catch {}
-        _foodWP *= _boostEff;
-      }
+      if (_foodWP > 0) _foodWP *= foodBoostMulti(ci, ctx);
     } catch {}
     const _guild3 = rval(guild, 3, ctx);
     wpRaw =
       5 +
       _box12a +
-      safe(computeFlurboShop, 0, s) +
+      safe(flurboShop, 0, s) +
       _foodWP +
       _cardLvW5b2 +
       _cardBon18 +
@@ -469,8 +437,8 @@ export function greenSigilDmgPct(s: SaveData): number {
 }
 
 /** N.js Max (2026-10-16): on The Clamworks (map 306) DamageDealtLIST[2] is
-divided by 100^Menagerie[5][2]. Overkill callers apply it per target map,
-since computeMaxDamage called without a map is map-independent. */
+divided by 100^Menagerie[5][2]. The damage system's map306 source reads it;
+overkill divides its map-less Max by it. */
 export function mapDamageDivisor(map: number, s: SaveData): number {
   if (map !== 306) return 1;
   return Math.pow(100, Number((s.menagerieData as any)?.[5]?.[2]) || 0);
@@ -549,32 +517,7 @@ export function computePlayerSpeed(ci: number, ctx: Ctx): number {
         (ITEMS as any)[_sfname].Effect === "MoveSpdBoosts"
       ) {
         const _sfqty = Number((_spdFoodQty && _spdFoodQty[_sfi]) || 0);
-        if (_sfqty > 0) {
-          const _sfAmt = Number((ITEMS as any)[_sfname].Amount) || 0;
-          let _sfBoost = 1;
-          try {
-            const _sfBoxVal = safe(computeBoxReward, ci, "PowerFoodEffect");
-            const _sfStatue3 = safe(computeStatueBonusGiven, 3, ci, s);
-            const _sfStampVal = safe(computeStampBonusOfTypeX, "BFood", s);
-            const _sfStar = computeStarSignBonus("FoodEffect", ci, s);
-            const _sfCard48 = safe(computeCardBonusByType, 48, ci, s);
-            const _sfT631 = rval(talent, 631, ctx);
-            const _sfEtc9 = rval(etcBonus, "9", ctx);
-            const _sfCardSet01 = safe(computeCardSetBonus, ci, "1");
-            _sfBoost =
-              1 +
-              (_sfBoxVal +
-                _sfStatue3 +
-                _sfEtc9 +
-                _sfStampVal +
-                _sfStar +
-                _sfCard48 +
-                _sfCardSet01 +
-                _sfT631) /
-                100;
-          } catch {}
-          _spdFood += _sfAmt * _sfBoost;
-        }
+        if (_sfqty > 0) _spdFood += (Number((ITEMS as any)[_sfname].Amount) || 0) * foodBoostMulti(ci, ctx);
       }
     }
     const _spdT266 = rval(talent, 266, ctx);

@@ -150,10 +150,11 @@ describe.skipIf(!existsSync(SAVE))("Multikill what-if on the ARKHE save", () => 
   });
   const markhe = () => save.charNames.indexOf("Markhe");
 
+  // tier 27→29 (301) and 7→9 (306): max damage completed (damage tracker)
   it.each<[number, number]>([
     [14, 81706],
-    [301, 3569],
-    [306, 1010],
+    [301, 3825],
+    [306, 1266],
     [251, 80686],
   ])("Markhe on map %i: totalFromFlat = the tree = %i", (map, want) => {
     const t = computeArkhMultikill(save, markhe(), map).tree;
@@ -173,10 +174,11 @@ describe.skipIf(!existsSync(SAVE))("Multikill what-if on the ARKHE save", () => 
   // Engine pins (estimated tiers). 2026-11-01 fix round: max damage now reads
   // the full EtcBonuses("72"/"75"/"104") (nametags/trophies/Hat Rack were
   // dropped for string ids) and Companions(168)/(170): tier 24 → 27, 3185 → 3569.
-  it("Markhe on map 301: +1 damage tier, 27 → 28, is +3.6%", () => {
+  // tier 27→29: max damage completed (damage tracker)
+  it("Markhe on map 301: +1 damage tier, 29 → 30, is +3.3%", () => {
     const [lever] = multikillGainsModel.levers!(flattenTree(computeArkhMultikill(save, markhe(), 301).tree));
-    expect(lever).toMatchObject({ you: 27, max: 28 });
-    expect(lever.gainPct).toBeCloseTo((3697 / 3569 - 1) * 100, 9);
+    expect(lever).toMatchObject({ you: 29, max: 30 });
+    expect(lever.gainPct).toBeCloseTo((3953 / 3825 - 1) * 100, 9);
     // 2.086E31 / 6.48E30: max damage counts Briar Patch (exotic 41, +5083%) and
     // Royal Statue 0 (+200%) since 2026-10 — both in N.js `Max`, both stubbed
     // before (the old ×3.47 came from that incomplete engine). 2026-11-01:
@@ -185,6 +187,8 @@ describe.skipIf(!existsSync(SAVE))("Multikill what-if on the ARKHE save", () => 
     // (the Cape Vine rule doesn't move it at this precision). Engine pin, not
     // a game reading.
     // Fix round: ×2.56 → ×2.26 (next tier at 2.608E33), same causes as above.
-    expect(lever.group).toMatch(/^needs ×2\.26 more max damage \(next tier at 2\.608E33\)/);
+    // Damage tracker: the max damage gained its already-ported terms (fountain
+    // 16, Rift skills, vault kills…): tier 29, ×2.33 to the next (6.519E34).
+    expect(lever.group).toMatch(/^needs ×2\.33 more max damage \(next tier at 6\.519E34\)/);
   });
 });

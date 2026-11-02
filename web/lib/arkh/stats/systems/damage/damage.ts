@@ -7,11 +7,10 @@
 // mult groups, the exponent for the Reliquarium (0 = off), the replacement for
 // the map-43 arena (0 elsewhere).
 //
-// The terms are the old derived-damage computeMaxDamage's, moved unchanged
-// (same helpers, same 0-on-throw reads, [STUB]s included). The terms it never
-// had — Owl 2, Spelunk shop 64, Cglunko 19, Fountain 16, food after the cap,
-// Cactolyte, Reliquarium, map 306, RatDMG, buff 108 and the Mastery sources —
-// are their group's neutral value for now.
+// The terms are the old derived-damage computeMaxDamage's (same helpers, same
+// 0-on-throw reads), each wired to the port that already lives in its own
+// system. Still [STUB]: eclipse skulls, sticker, Killroy, divinity blessings.
+// Buff 108 is 0: an active buff, not in the save.
 //
 // Resolvers are imported directly, not through getCatalog(): registry.ts
 // imports this file. derived-damage.ts holds the shared inputs and must not
@@ -21,7 +20,7 @@ import { node, type ArkhNode } from "../../../node";
 import type { SystemCtx } from "../../registry";
 import { getLOG } from "../../../formulas";
 import { ITEMS } from "../../data/game/items.js";
-import { AlchemyDescription, AtomInfo, GrimoireUpg } from "../../data/game/customlists.js";
+import { AlchemyDescription, AtomInfo, GrimoireUpg, RANDOlist } from "../../data/game/customlists.js";
 import { charClassData, divinityData, dreamData, emmData, equipOrderData, optionsListData } from "../../../save/data";
 import { entityName, label } from "../../entity-names";
 import damageDesc, { dmgMax, type ValsOf } from "../../defs/damage";
@@ -44,22 +43,25 @@ import {
   computePlayerSpeed,
   talentCalcTerms,
   greenSigilDmgPct,
-  computeVaultKillzTotal,
-  computeRooBonus,
-  bubbaRoGBonuses,
-  farmRankUpgBonus,
-  computeDivinityMinor,
+  mapDamageDivisor,
+  foodBoostMulti,
   computeDivinityBless,
-  computeRiftSkillETC,
   computeEclipseSkulls,
   computeKillroyDMG,
-  computeCompassBonus,
-  computeMSABonus,
   computeStickerBonus,
-  computeCropSC,
-  computePetArenaBonus,
-  computeSaltLick,
 } from "../common/derived-damage";
+import { vaultKillzTotal } from "../coin/accountKills";
+import { rooBonus } from "../coin/coin";
+import { divinityMinorFor } from "../coin/divinityMinor";
+import { bubbaRoGBonus } from "../exp/bubba";
+import { compassBonus } from "../exp/compass";
+import { msaTotalWaves } from "../exp/msa";
+import { saltLick } from "../exp/saltLick";
+import { totalFoodBonuses } from "../exp/food";
+import { riftSkillETC } from "../w4/rift";
+import { farm, cropSCbonMulti } from "../w6/farming";
+import { cglunkoUpgBon } from "../dr2/cove";
+import { fountainBonusTotal } from "../../data/w5/fountain";
 import { talent } from "../common/talent";
 import { etcBonus } from "../common/etcBonus";
 import { vault } from "../common/vault";
@@ -86,14 +88,14 @@ import { computeCosmoBonus, computeMonumentROGbonus } from "../w5/hole";
 import { computeArtifactBonus } from "../w5/sailing";
 import { computeSummUpgBonus, winBonus } from "../w6/summoning";
 import { grimoireUpgBonus } from "../mc/grimoire";
-import { computePaletteBonus } from "../w7/spelunking";
+import { computePaletteBonus, shopUpgBonus } from "../w7/spelunking";
 import { computeMeritocBonusz } from "../w7/meritoc";
 import { mineheadBonusQTY } from "../w7/minehead";
 import { rogBonusQTY, computeUniqueSushi } from "../w7/sushi";
 import { exoticBonusQTY } from "../../data/w5/farming";
 import { jellyRoGBonus } from "../../data/w7/jelly";
-import { royalStatueBon } from "../../data/w7/royalG";
-import { superBitType } from "../../../game-helpers";
+import { royalStatueBon, armoryUpgBonus } from "../../data/w7/royalG";
+import { superBitType, emporiumBonus } from "../../../game-helpers";
 
 /** GetTalentNumber(1|2, …) talents the block reads on the viewed character,
  *  each surfaced as a "(Talent n)" node: the Observed Max collector gates them
@@ -110,8 +112,6 @@ const pct = (name: string, v: number, children?: ArkhNode[] | null, note?: strin
   node(name, v, children ?? null, { fmt: "+", note });
 const factor = (name: string, v: number, children?: ArkhNode[] | null, note?: string): ArkhNode =>
   node(name, v, children ?? null, { fmt: "x", note });
-/** A term the old computeMaxDamage never had: its group's neutral value until it's wired. */
-const NOT_YET = "not counted yet";
 
 type Resolver = { resolve(id: any, ctx: any, args?: any): ArkhNode };
 type Read = { v: number; kids?: ArkhNode[] | null };
@@ -151,6 +151,7 @@ function bubbleName(key: string): string {
 // Inputs several sources read (STAT, WP, HP/MP, speed, TalentCalc, family
 // bonuses, the four stats): computed once per ctx — one tree build, or one
 // computeMaxDamage call (which builds its own ctx), as the old inline code did.
+// Keyed by the ctx object: a ctx must not be mutated after its first use.
 const sharedMemo = new WeakMap<SystemCtx, Map<string, unknown>>();
 function once<T>(ctx: SystemCtx, key: string, fn: () => T): T {
   let m = sharedMemo.get(ctx);
@@ -283,11 +284,11 @@ function resolveDamage(id: string, ctx: SystemCtx): ArkhNode {
     // N.js Summoning("VaultUpgBonus",0).
     case "vault0":
       return helperPct(label("Vault", 0), res(vault, 0, ctx));
-    // N.js VaultUpgBonus(20) × VaultKillzTotal(5) — the kill counter is a [STUB] (0).
+    // N.js VaultUpgBonus(20) × VaultKillzTotal(5).
     case "vault20": {
       const v = rval(vault, 20, ctx);
-      const k = safe(computeVaultKillzTotal, 5, s);
-      return pct(label("Vault", 20), v * k, [raw("Vault bonus", v), raw("Vault kills (5)", k, "[STUB] not ported: 0")]);
+      const k = safe(vaultKillzTotal, 5, s);
+      return pct(label("Vault", 20), v * k, [raw("Vault bonus", v), raw("Vault kills (5)", k, "⌊log10(account kills on map 24)⌋")]);
     }
     // N.js StampBonusOfTypeX("BaseDmg").
     case "stampBaseDmg":
@@ -328,9 +329,15 @@ function resolveDamage(id: string, ctx: SystemCtx): ArkhNode {
     // N.js RunCodeOfTypeXforThingY("CardLv","fallEvent2") (2026-10-22).
     case "cardFallEvent2":
       return pct("Card fallEvent2 level", safe(computeCardLv, "fallEvent2", s), null, 'CardLv("fallEvent2")');
-    // N.js Σ FoodSlotsOwned BaseDmgBoosts: Amount × FoodBonuses(…) — after the cap.
-    case "foodBaseDmg":
-      return pct("Base Damage Food", 0, null, NOT_YET);
+    // N.js Σ over the FoodSlotsOwned food with Effect "BaseDmgBoosts" (not
+    // Blank, quantity ≠ 0) of Amount × FoodBonuses("BaseDmgBoostsEffectBonus"),
+    // added after the cap. The multiplier is the same for every such food.
+    // @njs _customBlock_FoodBonuses
+    case "foodBaseDmg": {
+      const amt = safe(totalFoodBonuses, "BaseDmgBoosts", ci, s);
+      const m = foodBoostMulti(ci, ctx);
+      return pct("Base Damage Food", amt * m, [raw("Food Amount", amt), factor("Food effect bonus", m)], "Σ Amount × food effect bonus");
+    }
 
     // ── L1: Damage % — (1 + Σ/100) × smithing × win × talents × golden food, soft cap ──
     // N.js Math.pow(DamageDealtSTATtype, .7).
@@ -338,11 +345,11 @@ function resolveDamage(id: string, ctx: SystemCtx): ArkhNode {
       const st = statTypeOf(ctx).val;
       return pct("Primary Stat^0.7", Math.pow(st, 0.7), [raw("Primary Stat", st)], "DamageDealtSTATtype^0.7");
     }
-    // N.js VaultUpgBonus(27) × VaultKillzTotal(6) — the kill counter is a [STUB] (0).
+    // N.js VaultUpgBonus(27) × VaultKillzTotal(6).
     case "vault27": {
       const v = rval(vault, 27, ctx);
-      const k = safe(computeVaultKillzTotal, 6, s);
-      return pct(label("Vault", 27), v * k, [raw("Vault bonus", v), raw("Vault kills (6)", k, "[STUB] not ported: 0")]);
+      const k = safe(vaultKillzTotal, 6, s);
+      return pct(label("Vault", 27), v * k, [raw("Vault bonus", v), raw("Vault kills (6)", k, "⌊log10(account kills on map 13)⌋")]);
     }
     // N.js VaultUpgBonus(15) × OLA[338].
     case "vault15": {
@@ -363,9 +370,9 @@ function resolveDamage(id: string, ctx: SystemCtx): ArkhNode {
     // N.js StampBonusOfTypeX("PctDmg").
     case "stampPctDmg":
       return helperPct("Damage % Stamps", sn(computeStampBonusOfTypeX, "PctDmg", s), 'StampBonusOfTypeX("PctDmg")');
-    // N.js FarmingStuffs("LankRankUpgBonus",14) — [STUB] (0).
+    // N.js FarmingStuffs("LankRankUpgBonus",14) (w6/farming.ts).
     case "lankRank14":
-      return pct("Land Rank 14", safe(farmRankUpgBonus, 14, ci, s), null, "[STUB] not ported: 0");
+      return helperPct("Land Rank 14", res(farm, "rank14", ctx), "LankRankUpgBonus(14)");
     // N.js ArbitraryCode("StatueBonusGiven22").
     case "statue22":
       return helperPct("Statue 22", sn(computeStatueBonusGiven, 22, ci, s));
@@ -383,19 +390,20 @@ function resolveDamage(id: string, ctx: SystemCtx): ArkhNode {
     }
     // N.js Summoning("OwlBonuses",2).
     case "owl2":
-      return pct(label("Owl", 2), 0, null, NOT_YET);
-    // N.js Summoning("RooBonuses",4) — [STUB] (0).
+      return helperPct(label("Owl", 2), res(owl, 2, ctx));
+    // N.js Summoning("RooBonuses",4): coefficient 2 (coin.ts).
     case "roo4":
-      return pct("Roo Bonus 4", safe(computeRooBonus, 4, s), null, "[STUB] not ported: 0");
-    // N.js Bubbastuff("BubbaRoG_Bonuses",4) — [STUB] (0).
+      return helperPct("Roo Bonus 4", sn(rooBonus, 4, 2, s), "RooBonuses(4), coefficient 2");
+    // N.js Bubbastuff("BubbaRoG_Bonuses",4) (exp/bubba.ts).
     case "bubbaRoG4":
-      return pct("Bubba RoG Bonus 4", safe(bubbaRoGBonuses, 4, s), null, "[STUB] not ported: 0");
+      return pct("Bubba RoG Bonus 4", safe(bubbaRoGBonus, 4, s));
     // N.js VaultUpgBonus(80).
     case "vault80":
       return helperPct(label("Vault", 80), res(vault, 80, ctx));
-    // N.js Spelunk("ShopUpgBonus",64).
+    // N.js Spelunk("ShopUpgBonus",64): SpelunkUpg[64][4] × level (64 has no
+    // post-fix in SpelunkyUpgTOT).
     case "spelunkShop64":
-      return pct("Spelunk Shop 64", 0, null, NOT_YET);
+      return pct("Spelunk Shop 64", safe(shopUpgBonus, 64, s));
     // N.js 1 + GTN(1,284)·(min(100, Lv0[2])/10)/100 (read wrapped, as before).
     case "talent284": {
       const t = rval(talent, 284, ctx);
@@ -464,9 +472,10 @@ function resolveDamage(id: string, ctx: SystemCtx): ArkhNode {
       const quests = Number((s as any).totalQuestsComplete) || 0;
       return pct(label("Talent", 658), Math.min(quests, t), [raw("Talent", t), raw("Quests completed", quests)], "min(quests, talent)");
     }
-    // N.js Divinity("Bonus_Minor", char, 7) — [STUB] (0).
+    // N.js Divinity("Bonus_Minor", GetPlayersUsernames.indexOf(UserInfo[0]), 7):
+    // this character's single-player branch (coin/divinityMinor.ts).
     case "divMinor7":
-      return pct("Divinity Minor Link 7", safe(computeDivinityMinor, ci, 7, s), null, "[STUB] not ported: 0");
+      return pct("Divinity Minor Link 7", safe(divinityMinorFor, ci, 7, s), null, 'Divinity("Bonus_Minor", this character, 7)');
     // N.js × GoldFoodBonuses("Damage") (1 + total/100).
     case "goldFoodDmg": {
       let total = 0;
@@ -515,9 +524,9 @@ function resolveDamage(id: string, ctx: SystemCtx): ArkhNode {
     // N.js 1 + Summoning("SummUpgBonus",79)/100.
     case "summUpg79":
       return helperFactor("Summoning Upgrade 79", sn(computeSummUpgBonus, 79, s, ci));
-    // N.js 1 + Holes2("Cglunko_upgBon",19)/100.
+    // N.js 1 + Holes2("Cglunko_upgBon",19)/100 (dr2/cove.ts).
     case "cglunko19":
-      return factor("Crystal Glunko Upgrade 19", 1, null, NOT_YET);
+      return helperFactor("Crystal Glunko Upgrade 19", sn(cglunkoUpgBon, 19, s));
     // N.js GetBuffBonuses(108,2): a buff, only while it's active (not in the save).
     case "buff108":
       return pct("Buff 108 (active buff only)", 0, null, "active buff only");
@@ -579,25 +588,36 @@ function resolveDamage(id: string, ctx: SystemCtx): ArkhNode {
     // N.js Breeding("ShinyBonusS","Nah",5).
     case "shiny5":
       return pct("Shiny Pets (Breeding 5)", safe(computeShinyBonusS, 5, s));
-    // N.js GamingStatType("MSA_Bonus",0) — [STUB] (0).
-    case "msa0":
-      return pct("MSA Bonus 0", safe(computeMSABonus, 0, s), null, "[STUB] not ported: 0");
+    // N.js GamingStatType("MSA_Bonus",0): SuperBitType(7) ? ⌊_GenINFO[114]/10⌋ : 0.
+    // exp/msa.ts ports only slot 4; slot 0 reads the same wave total.
+    // @njs MSA_Bonus
+    case "msa0": {
+      const waves = safe(msaTotalWaves, s);
+      const on = safe(superBitType, 7, (s.gamingData as any)?.[12]) === 1;
+      return pct("MSA Bonus 0", on ? Math.floor(waves / 10) : 0, [raw("Total Worship waves", waves), raw("Super Bit 7", on ? 1 : 0)], "⌊waves / 10⌋ once Super Bit 7 is owned");
+    }
     // N.js OLA[178] × Dreamstuff("AllShimmerBonuses").
     case "shimmer178": {
       const sh = safe(computeAllShimmerBonuses, s);
       return pct("Shimmer Bonuses", ola(178) * sh, [raw("OLA[178]", ola(178)), raw("All shimmer bonuses", sh)]);
     }
-    // N.js FarmingStuffs("CropSCbonus",0) — [STUB] (0).
-    case "cropSC0":
-      return pct("Crop Scientist 0", safe(computeCropSC, 0, s), null, "[STUB] not ported: 0");
+    // N.js FarmingStuffs("CropSCbonus",0): Emporium 27 → 20 × round(crops found)
+    // × CropSCbonMulti (the depot multi in w6/farming.ts; Coin's cropSC4 shape).
+    // @njs CropSCbonus
+    case "cropSC0": {
+      const on = emporiumBonus(27, (s.ninjaData as any)?.[102]?.[9]) === 1;
+      const crops = Math.round(Number(s.farmCropCount) || 0);
+      const multi = safe(cropSCbonMulti, s);
+      return pct("Crop Scientist 0", on ? 20 * crops * multi : 0, [raw("Emporium 27 unlocked", on ? 1 : 0), raw("Crops found", crops), factor("Depot multi", multi)], "20 × crops found × depot multi");
+    }
     // N.js VaultUpgBonus(41) × getLOG(OLA[346]).
     case "vault41": {
       const v = rval(vault, 41, ctx);
       return pct(label("Vault", 41), v * getLOG(ola(346)), [raw("Vault bonus", v), raw("OLA[346]", ola(346))], "× log10(OLA[346])");
     }
-    // N.js RiftStuff("RiftSkillETC",0) — [STUB] (0).
+    // N.js RiftStuff("RiftSkillETC",0) (w4/rift.ts).
     case "riftEtc0":
-      return pct("Rift Skill Bonus 0", safe(computeRiftSkillETC, 0, s), null, "[STUB] not ported: 0");
+      return pct("Rift Skill Bonus 0", safe(riftSkillETC, 0, s), null, "7 + 5 per skill past mastery rank 2 (Rift 15)");
     // N.js AlchBubbles.pctDmg1 / pctDmg2 / pctDmg3.
     case "pctDmg1":
     case "pctDmg2":
@@ -643,9 +663,9 @@ function resolveDamage(id: string, ctx: SystemCtx): ArkhNode {
     // N.js Summoning("TomeBonus",0).
     case "tome0":
       return helperPct("Tome Bonus 0", res(tome, 0, ctx));
-    // N.js Windwalker("CompassBonus",48) — [STUB] (0).
+    // N.js Windwalker("CompassBonus",48) (exp/compass.ts).
     case "compass48":
-      return pct("Compass Bonus 48", safe(computeCompassBonus, 48, s), null, "[STUB] not ported: 0");
+      return pct("Compass Bonus 48", safe(compassBonus, 48, s));
     // N.js FarmingStuffs("ExoticBonusQTY",41) — Briar Patch.
     case "exotic41":
       return pct("Exotic Crop 41", safe(exoticBonusQTY, 41, s));
@@ -656,9 +676,9 @@ function resolveDamage(id: string, ctx: SystemCtx): ArkhNode {
     // N.js GetTalentNumber(1,6) (read wrapped, as before).
     case "talent6":
       return talentPct(6);
-    // N.js SaltLick(9) — [STUB] (0).
+    // N.js SaltLick(9) (exp/saltLick.ts).
     case "saltLick9":
-      return pct("Salt Lick 9", safe(computeSaltLick, 9, s), null, "[STUB] not ported: 0");
+      return pct("Salt Lick 9", safe(saltLick, 9, s));
     // N.js EtcBonuses("45").
     case "etc45":
       return helperPct("Damage % (Equipment)", res(etcBonus, "45", ctx), "EtcBonuses(45)");
@@ -695,12 +715,24 @@ function resolveDamage(id: string, ctx: SystemCtx): ArkhNode {
     // N.js CardSetBonuses(0,"5").
     case "cardSet5":
       return helperPct("Card Set 5 (Damage · Drop · EXP)", sn(computeCardSetBonus, ci, "5"));
-    // N.js 20 × Breeding("PetArenaBonus",2) / 40 × (…,15) — [STUB] (0).
+    // N.js 20 × Breeding("PetArenaBonus",2) / 40 × (…,15) = CalcTalentMAP.arena > n,
+    // arena = how many RANDOlist[53] waves in a row the best wave (OLA[89])
+    // has reached. (exp/petArenaCruc.ts is the Crucible's twin; Coin inlines
+    // its own two bonuses.)
+    // @njs PetArenaBonus
     case "petArena2":
     case "petArena15": {
       const n = Number(id.slice(8));
       const w = n === 2 ? 20 : 40;
-      return pct(`Pet Arena ${n}`, w * safe(computePetArenaBonus, n), null, `× ${w} · [STUB] not ported: 0`);
+      const reqs = ((RANDOlist as any[])[53] ?? []) as unknown[];
+      let arena = 0;
+      while (arena < 16 && ola(89) >= Number(reqs[arena])) arena++;
+      return pct(
+        `Pet Arena ${n}`,
+        arena > n ? w : 0,
+        [raw("Best arena wave", ola(89), "OLA[89]"), raw("Arena waves reached", arena)],
+        `${w} once more than ${n} arena waves are reached`
+      );
     }
     // N.js chipBonuses("dmg").
     case "chipDmg":
@@ -779,9 +811,24 @@ function resolveDamage(id: string, ctx: SystemCtx): ArkhNode {
       } catch {}
       return factor("Weekly Boss", f, null, "1 + min(150, g)/100");
     }
-    // N.js × 0.5 while the Cactolyte quest is open.
-    case "cactolyte":
-      return factor("Cactolyte", 1, null, NOT_YET);
+    // N.js × 0.5 when QuestComplete.Cactolyte3 == 0, CharacterClass == 2 and
+    // _ItemsOwnedMap.Quest47 ≥ 1 (the Elderly Peanut). _ItemsOwnedMap is the
+    // character's InventoryOrder summed by name over ItemQuantity.
+    case "cactolyte": {
+      const inv = (s.inventoryOrderData as any)?.[ci] ?? {};
+      const qty = (s.itemQtyData as any)?.[ci] ?? {};
+      let peanuts = 0;
+      for (const k of Object.keys(inv)) if (inv[k] === "Quest47") peanuts += Number(qty[k]) || 0;
+      const q = (s.questCompleteData as any)?.[ci]?.Cactolyte3;
+      const open = q != null && Number(q) === 0;
+      const cls = Number(charClassData && (charClassData as any)[ci]) || 0;
+      return factor(
+        "Cactolyte quest (Elderly Peanut)",
+        open && cls === 2 && peanuts >= 1 ? 0.5 : 1,
+        [raw("Elderly Peanuts carried", peanuts), raw("Cactolyte3 in progress", open ? 1 : 0), raw("Class", cls)],
+        "× 0.5 while class 2 carries the Elderly Peanut on Cactolyte3"
+      );
+    }
     // N.js 1 + EtcBonuses("72" | "75" | "104")/100.
     case "etc72":
     case "etc75":
@@ -792,9 +839,9 @@ function resolveDamage(id: string, ctx: SystemCtx): ArkhNode {
     // N.js 1 + VotingBonusz(1,1)/100.
     case "voting1":
       return helperFactor("Voting Bonus 1", sn(votingBonusz, 1, 1, s));
-    // N.js 1 + Fountain_BonTOT(1,16)/100.
+    // N.js 1 + Holes2("Fountain_BonTOT",1,16)/100: Swingy O' Sword (data/w5/fountain.ts).
     case "fountain16":
-      return factor("Fountain 16", 1, null, NOT_YET);
+      return helperFactor("Fountain 16", sn(fountainBonusTotal, s, 1, 16), "1 + Fountain_BonTOT(1,16)/100");
     // N.js 1 + Sushi RoG 49/100.
     case "sushi49": {
       const u = (s as any).cachedUniqueSushi || safe(computeUniqueSushi, (s as any).sushiData);
@@ -873,29 +920,50 @@ function resolveDamage(id: string, ctx: SystemCtx): ArkhNode {
       const v = famOf(ctx, 80);
       return factor("Family Bonus 80", 1 + v / 100, [pct("Bonus %", v)], "1 + x/100");
     }
-    // N.js L2^(4/(5 + OLA[473])) with the Reliquarium (Quest105 in the inventory).
-    case "reliquarium":
-      return raw("Reliquarium", 0, NOT_YET);
-    // N.js L2 / 100^Menagerie[5][2] on map 306.
-    case "map306":
-      return factor("Clamworks (map 306)", 1, null, NOT_YET);
+    // N.js L2^(4/(5 + OLA[473])) when Thingies("ReliquariumInPosession") == 1:
+    // "Quest105" in the character's InventoryOrder. The exponent is the source.
+    // @njs ReliquariumInPosession
+    case "reliquarium": {
+      const owned = Object.values((s.inventoryOrderData as any)?.[ci] ?? {}).includes("Quest105");
+      return node("Reliquarium", owned ? 4 / (5 + ola(473)) : 0, [raw("Carried", owned ? 1 : 0), raw("OLA[473]", ola(473))], {
+        fmt: "raw",
+        note: "exponent 4/(5 + OLA[473]) while carrying the Unstable Reliquarium",
+      });
+    }
+    // N.js L2 / 100^Menagerie[5][2] when CurrentMap == 306 (The Clamworks).
+    case "map306": {
+      const d = mapDamageDivisor(ctx.mapIdx ?? -1, s);
+      return factor("Clamworks (map 306)", 1 / d, [raw("Divisor", d, "100^Menagerie[5][2]")], "1 / 100^Menagerie[5][2] on map 306");
+    }
 
     // ── Map 43: RoyalG("RatDMG") replaces Max ──
-    case "ratDmg":
-      return raw("Rat Damage (Royal Guardian arena)", 0, NOT_YET);
+    // N.js (10 + ArmoryUpgBonus(35)) × (1 + ArmoryUpgBonus(36)/100) when CurrentMap == 43.
+    // @njs RatDMG
+    case "ratDmg": {
+      const name = "Rat Damage (Royal Guardian arena)";
+      if (ctx.mapIdx !== 43) return raw(name, 0, "map 43 only");
+      const a35 = safe(armoryUpgBonus, 35, s);
+      const a36 = safe(armoryUpgBonus, 36, s);
+      return node(name, (10 + a35) * (1 + a36 / 100), [raw("Armory 35", a35), pct("Armory 36", a36)], {
+        fmt: "raw",
+        note: "(10 + Armory 35) × (1 + Armory 36/100)",
+      });
+    }
 
     // ── Mastery (Min = Max × Mastery): min(.8, .35 − GTN(2,113)/100 +
     // (AlchBubbles.Mastery + CardBonusREAL(21) + GTN(1,123) + EtcBonuses("21"))/100) ──
-    case "talent113b":
-      return pct(`${label("Talent", 113)} · Mastery`, 0, null, NOT_YET);
+    case "talent113b": {
+      const t = gtn(113, ctx, { tab: 2 });
+      return pct(`${label("Talent", 113)} · Mastery`, -t, [raw("Talent Value", t, "GetTalentNumber(2,113)")], "subtracted");
+    }
     case "bubbleMastery":
-      return pct(bubbleName("Mastery"), 0, null, NOT_YET);
+      return helperPct(bubbleName("Mastery"), sn(bubbleValByKey, "Mastery", ci, s));
     case "card21":
-      return pct("Mastery Cards (Card Type 21)", 0, null, NOT_YET);
+      return helperPct("Mastery Cards (Card Type 21)", sn(computeCardBonusByType, 21, ci, s));
     case "talent123":
-      return pct(label("Talent", 123), 0, null, NOT_YET);
+      return pct(label("Talent", 123), gtn(123, ctx), null, "GetTalentNumber(1,123)");
     case "etc21":
-      return pct("Mastery (Equipment)", 0, null, NOT_YET);
+      return helperPct("Mastery (Equipment)", res(etcBonus, "21", ctx), "EtcBonuses(21)");
 
     default:
       throw new Error(`damage: unknown source "${id}"`);
