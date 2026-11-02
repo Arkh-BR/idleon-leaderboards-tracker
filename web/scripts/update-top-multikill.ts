@@ -5,7 +5,10 @@
 // max damage, and the Death Note row is the W6 page. Candidates: the #1 of
 // every board plus the top 10 of Monsters Killed (M15). Talents 46/469 are
 // gated per class (M16); both sit in the per-tier sum, so `groups: []` makes
-// their neutral value 0.
+// their neutral value 0. No source scales with a character stat (the damage
+// tier does through max damage, but every endgame char is at the tier-51 cap
+// on map 251), so every source takes the best across all class families
+// (familySources: []).
 //
 // Run (from web/):  npx tsx scripts/update-top-multikill.ts   [--limit N] [--slow]
 import { join } from "node:path";
@@ -27,6 +30,7 @@ runTopCollector({
   computePools: (save, ci) => computeArkhMultikillPools(save, ci, MK_COLLECTOR_MAP),
   combine: combineMultikillPools,
   gated: deriveGatedTalentsFor(MK_CLASS_TALENTS),
+  familySources: [],
   outputFile: join(__dirname, "..", "lib", "multikill", "topMultikill.ts"),
   metaFile: join(__dirname, "..", "lib", "multikill", "topMultikill.meta.ts"),
   constPrefix: "TOP_MULTIKILL",

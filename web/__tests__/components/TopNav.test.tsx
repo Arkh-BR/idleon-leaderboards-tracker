@@ -9,7 +9,7 @@ vi.mock("next/navigation", () => ({
 // Existing tests assert the nav renders, so keep protest mode off here.
 vi.mock("@/lib/protest/config", () => ({ PROTEST_MODE: false }));
 
-const TRACKERS = [/Drop Rate/i, /Coin Multi/i, /EXP Multi/i, /AFK Gains/i, /Multikill/i, /Artifact Find/i];
+const TRACKERS = [/Drop Rate$/i, /Drop Rate V2/i, /Coin Multi/i, /EXP Multi/i, /AFK Gains/i, /Multikill/i, /Artifact Find/i];
 const trackersButton = () => screen.getByRole("button", { name: /Trackers/ });
 
 describe("TopNav", () => {
@@ -35,10 +35,12 @@ describe("TopNav", () => {
     expect(trackersButton()).toHaveAttribute("aria-expanded", "true");
     const list = trackersButton().nextElementSibling!;
     expect(trackersButton()).toHaveAttribute("aria-controls", list.id);
-    expect(list.querySelectorAll("a")).toHaveLength(6); // tab / reading order: button, then the list
+    expect(list.querySelectorAll("a")).toHaveLength(7); // tab / reading order: button, then the list
     for (const t of TRACKERS) expect(screen.getByRole("link", { name: t })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Multikill/i })).toHaveAttribute("href", "/multikill");
     expect(screen.getByRole("link", { name: /Artifact Find/i })).toHaveAttribute("href", "/artifact-find");
+    expect(screen.getByRole("link", { name: /Drop Rate V2/i })).toHaveAttribute("href", "/drop-rate-v2");
+    expect(screen.getByRole("link", { name: /Drop Rate$/i })).toHaveAttribute("href", "/drop-rate");
   });
 
   it("closes the list on a second click, Escape, an outside press and tabbing out", () => {
@@ -67,7 +69,7 @@ describe("TopNav", () => {
   it("stays open while focus moves inside the list, or on a blur with no target (Safari press)", () => {
     render(<TopNav />);
     fireEvent.click(trackersButton());
-    fireEvent.focusOut(trackersButton(), { relatedTarget: screen.getByRole("link", { name: /Drop Rate/i }) });
+    fireEvent.focusOut(trackersButton(), { relatedTarget: screen.getByRole("link", { name: /Drop Rate$/i }) });
     expect(screen.getByRole("link", { name: /Coin Multi/i })).toBeInTheDocument();
     fireEvent.focusOut(trackersButton(), { relatedTarget: null });
     expect(screen.getByRole("link", { name: /Coin Multi/i })).toBeInTheDocument();
@@ -80,6 +82,30 @@ describe("TopNav", () => {
     fireEvent.click(trackersButton());
     expect(screen.getByRole("link", { name: /Coin Multi/i })).toHaveAttribute("aria-current", "page");
     expect(screen.getByRole("link", { name: /EXP Multi/i })).not.toHaveAttribute("aria-current");
+  });
+
+  it("marks only the current Drop Rate page: /drop-rate-v2 doesn't light up /drop-rate", () => {
+    mockUsePathname.mockReturnValue("/drop-rate-v2");
+    render(<TopNav />);
+    expect(trackersButton().className).toContain("border-gold");
+    fireEvent.click(trackersButton());
+    expect(screen.getByRole("link", { name: /Drop Rate V2/i })).toHaveAttribute("aria-current", "page");
+    expect(screen.getByRole("link", { name: /Drop Rate$/i })).not.toHaveAttribute("aria-current");
+  });
+
+  it("marks /drop-rate alone as V1, not V2, and keeps nested routes active", () => {
+    mockUsePathname.mockReturnValue("/drop-rate");
+    const { unmount } = render(<TopNav />);
+    fireEvent.click(trackersButton());
+    expect(screen.getByRole("link", { name: /Drop Rate$/i })).toHaveAttribute("aria-current", "page");
+    expect(screen.getByRole("link", { name: /Drop Rate V2/i })).not.toHaveAttribute("aria-current");
+    unmount();
+
+    mockUsePathname.mockReturnValue("/drop-rate-v2/");
+    render(<TopNav />);
+    fireEvent.click(trackersButton());
+    expect(screen.getByRole("link", { name: /Drop Rate V2/i })).toHaveAttribute("aria-current", "page");
+    expect(screen.getByRole("link", { name: /Drop Rate$/i })).not.toHaveAttribute("aria-current");
   });
 
   it("marks active item based on pathname", () => {

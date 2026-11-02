@@ -1,13 +1,20 @@
 // Shared Observed Max collector for grouped stats (Coin Multi, EXP Multi…):
-// every char of every candidate → the best value per source across the
-// chars of the same CLASS FAMILY (beginner / warrior / archer / mage) → ONE
-// combine() pass per family (the tree and the total come from the same math
-// a real save uses) → per-class gating of class talents → a generated
-// lib/<stat>/top*.ts (+ .meta.ts). Never publishes a shrunken reference.
+// every char of every candidate → the best value per source → ONE combine()
+// pass per CLASS FAMILY (beginner / warrior / archer / mage; the tree and the
+// total come from the same math a real save uses) → per-class gating of class
+// talents → a generated lib/<stat>/top*.ts (+ .meta.ts). Never publishes a
+// shrunken reference.
 //
-// Why per family: stat-scaled sources (the Cash Bubbles use STR, AGI and WIS)
-// mixed across classes made a reference no character can reach — the max STR
-// of a warrior next to the max AGI of an archer and the max WIS of a mage.
+// Which best each source takes (cfg.familySources):
+//   · a source that depends on a character stat (STR/AGI/WIS/LUK totals) is
+//     listed in familySources and takes the best of the FAMILY's own chars —
+//     the Cash Bubbles use STR, AGI and WIS, and a warrior never reaches a
+//     mage's WIS, so mixing them made a reference no character can reach;
+//   · every other source takes the best across ALL families (class-agnostic
+//     gear, account bonuses…), so a family with no top player wearing an item
+//     isn't capped by that;
+//   · familySources omitted → every source per family (the old rule).
+// Class talents stay gated per class either way (buildFamilyReference).
 
 import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { basename, join } from "node:path";
@@ -24,6 +31,10 @@ import { classFamilyOfIndex, classFamilyOfKey, type ClassFamily } from "../../li
 /** "all" = one account-wide reference (cfg.perFamily === false). Stays local to
  *  the collector — ClassFamily itself is not widened. */
 type RefFamily = ClassFamily | "all";
+
+/** A source split by class family: `group` = pool key; `name` = only the item
+ *  with that node name, omitted = the whole group. */
+export type FamilySource = { group: string; name?: string };
 
 export type StatCollectorConfig = {
   /** Stat name for logs and generated comments, e.g. "EXP Multi". */
@@ -47,6 +58,10 @@ export type StatCollectorConfig = {
   /** false → an account-wide stat: every char merges into one "all" family
    *  (no class split, no class-talent gating). Omitted → one family per class family. */
   perFamily?: false;
+  /** The sources that depend on a character stat: per family, these come
+   *  from that family's best; every other source from the best across all
+   *  families. Omitted → every source per family. See the header. */
+  familySources?: readonly FamilySource[];
 };
 
 type Best = { player: string; char: string; total: number };
@@ -70,6 +85,31 @@ export function mergeBest(acc: Record<string, Pool> | null, incoming: Record<str
     }
   }
   return acc;
+}
+
+/** Each family's pools, item by item: a familySources item from that family's
+ *  best, every other item from the best across all families (bestAll). Same
+ *  positions as mergeBest — every char's pools come from one descriptor. */
+export function withCrossFamilyBest(
+  bestByFamily: Partial<Record<RefFamily, Record<string, Pool>>>,
+  bestAll: Record<string, Pool>,
+  familySources: readonly FamilySource[]
+): Partial<Record<RefFamily, Record<string, Pool>>> {
+  const ownBest = (pn: string, name: string) => familySources.some((f) => f.group === pn && (f.name === undefined || f.name === name));
+  const out: Partial<Record<RefFamily, Record<string, Pool>>> = {};
+  for (const f of Object.keys(bestByFamily) as RefFamily[]) {
+    const fam = bestByFamily[f]!;
+    const pools: Record<string, Pool> = {};
+    for (const pn in bestAll) {
+      const items = bestAll[pn].items.map((it, i) => {
+        const own = fam[pn]?.items[i];
+        return own && ownBest(pn, own.name) ? own : it;
+      });
+      pools[pn] = { items, sum: 0, product: 0 };
+    }
+    out[f] = pools;
+  }
+  return out;
 }
 
 /** Best pools with some class talents set to their group's neutral value
@@ -139,7 +179,7 @@ export function buildFamilyReference(
 }
 
 export function renderTopFiles(
-  cfg: Pick<StatCollectorConfig, "label" | "constPrefix" | "flatForClassFn" | "scriptName"> & { outputFile?: string },
+  cfg: Pick<StatCollectorConfig, "label" | "constPrefix" | "flatForClassFn" | "scriptName" | "perFamily" | "familySources"> & { outputFile?: string },
   familyFlats: Partial<Record<RefFamily, Record<string, number>>>,
   overrides: Record<string, Record<string, number>>,
   classProfile: Record<string, [ClassFamily, string]>,
@@ -181,11 +221,31 @@ export function renderTopFiles(
       .map((k) => `  ${JSON.stringify(k)}: ${obj(m[k]!)},`)
       .join("\n");
 
+  const fn = cfg.flatForClassFn;
+  // The header names the rule this reference was built with.
+  const scope =
+    cfg.perFamily === false
+      ? [
+          `// Top-player ${cfg.label} reference — ONE account-wide family ("all"): the`,
+          `// best-of-each-source pools of every char run through ONE combine() pass`,
+          `// (the same math a real save uses), no class talents gated. Use ${fn}(classKey).`,
+        ]
+      : cfg.familySources
+        ? [
+            `// Top-player ${cfg.label} reference — per CLASS FAMILY (beginner / warrior /`,
+            `// archer / mage): the best-of-each-source pools (stat-scaled sources from`,
+            `// that family's chars, the rest from every char) run through ONE combine()`,
+            `// pass (the same math a real save uses), gated PER CLASS for the formula's`,
+            `// class talents. Use ${fn}(classKey).`,
+          ]
+        : [
+            `// Top-player ${cfg.label} reference — per CLASS FAMILY (beginner / warrior /`,
+            `// archer / mage), the best-of-each-source pools of that family's chars run`,
+            `// through ONE combine() pass (the same math a real save uses), gated PER`,
+            `// CLASS for the formula's class talents. Use ${fn}(classKey).`,
+          ];
   const data = [
-    `// Top-player ${cfg.label} reference — per CLASS FAMILY (beginner / warrior /`,
-    `// archer / mage), the best-of-each-source pools of that family's chars run`,
-    `// through ONE combine() pass (the same math a real save uses), gated PER`,
-    `// CLASS for the formula's class talents. Use ${cfg.flatForClassFn}(classKey).`,
+    ...scope,
     "// Large file: lazy-load it, don't import statically.",
     `// Generated ${now} · ${scanned} players. Refresh: ${cfg.scriptName}.`,
     "",
@@ -245,6 +305,7 @@ export async function runTopCollector(cfg: StatCollectorConfig, argv: string[] =
   console.log(`  ✓ ${candidates.length} candidates`);
 
   const bestByFamily: Partial<Record<RefFamily, Record<string, Pool>>> = {};
+  let bestAll: Record<string, Pool> | null = null;
   let bestTotal: Best | null = null;
   let scanned = 0;
   let skipped = 0;
@@ -278,6 +339,7 @@ export async function runTopCollector(cfg: StatCollectorConfig, argv: string[] =
         const family: RefFamily | null =
           cfg.perFamily === false ? "all" : classFamilyOfIndex(Number(save.data?.[`CharacterClass_${ch.charIndex}`]));
         if (family) bestByFamily[family] = mergeBest(bestByFamily[family] ?? null, pools);
+        bestAll = mergeBest(bestAll, pools);
       } catch {
         // skip a char that fails to compute
       }
@@ -293,7 +355,17 @@ export async function runTopCollector(cfg: StatCollectorConfig, argv: string[] =
     process.exit(1);
   }
 
-  const ref = buildFamilyReference(cfg, bestByFamily);
+  let familyPools = bestByFamily;
+  if (cfg.familySources) {
+    // A renamed node would silently fall back to the cross-family best.
+    for (const f of cfg.familySources) {
+      if (!bestAll?.[f.group]?.items.some((it) => f.name === undefined || it.name === f.name)) {
+        throw new Error(`familySources: no source ${f.group}${f.name ? ` / "${f.name}"` : ""}`);
+      }
+    }
+    familyPools = withCrossFamilyBest(bestByFamily, bestAll!, cfg.familySources);
+  }
+  const ref = buildFamilyReference(cfg, familyPools);
 
   console.log(`\n✓ Scanned ${scanned} players (${skipped} skipped)`);
   console.log(`  · gated talents: ${cfg.gated.map((x) => x.id).join(", ") || "none"}`);

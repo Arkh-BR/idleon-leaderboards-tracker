@@ -35,12 +35,13 @@ export const COIN_PAGE: StatPageConfig = {
     })),
   topMeta: { generatedAt: TOP_COIN_GENERATED_AT, playersScanned: TOP_COIN_PLAYERS_SCANNED },
   methodologyNote:
-    "Coin gain = how much your total Coin Multi would rise if this source matched the top players of your class family " +
-    "(Observed Max — warrior, archer, mage and beginner lines are measured apart, since stat-scaled sources differ). Every group multiplies the total, so a source's gain is its group's new factor " +
+    "Coin gain = how much your total Coin Multi would rise if this source matched the Observed Max — the best value " +
+    "of each source among the top players. The Cash Bubbles scale with STR, AGI and WIS, so they're measured within " +
+    "your class family (warrior, archer, mage or beginner line). Every group multiplies the total, so a source's gain is its group's new factor " +
     "over the current one. Values are a ceiling, not a one-level step. The top-player reference is " +
     "measured on map 301 (World 7), so the Guild and Coins For Charon rows reflect that map choice too. " +
     "The weekly vote isn't ranked: it's server-wide and changes every week.",
-  compareTitle: "Compare every coin source against the best value observed across the top players of your class family",
+  compareTitle: "Compare every coin source against the best value observed across the top players (Cash Bubbles: within your class family)",
   gainsTabTitle: "Rank your coin sources by how much Coin Multi matching the top players would give",
   footer: "Coin Multi is computed locally from your save — every term of the game's coin formula, group by group.",
 };

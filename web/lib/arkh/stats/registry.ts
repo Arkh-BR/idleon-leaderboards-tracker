@@ -52,6 +52,7 @@ import { artifact } from "./systems/artifact/artifact";
 import { exp } from "./systems/exp/exp";
 import { afk } from "./systems/afk/afk";
 import { multikill } from "./systems/multikill/multikill";
+import { dr2 } from "./systems/dr2/dr2";
 
 // Loose ctx type — each system narrows what it actually reads
 export type SystemCtx = {
@@ -137,6 +138,7 @@ const _systems: Record<string, SystemResolver> = {
   exp: exp as unknown as SystemResolver,
   afk: afk as unknown as SystemResolver,
   multikill: multikill as unknown as SystemResolver,
+  dr2: dr2 as unknown as SystemResolver,
 };
 
 export function getSystem(name: string): SystemResolver | null {

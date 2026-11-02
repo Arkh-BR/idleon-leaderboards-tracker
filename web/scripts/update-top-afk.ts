@@ -3,7 +3,9 @@
 // save's best Arcane AFK map (bestAfkMapIdx: the fighting map with the highest
 // arcane slot-2 bonus — spec A6); talents 79/88/268/448 are gated per class
 // (A10). Neutral values are 0 (they're all in the fighting pool); the map
-// rules stay neutral because the chosen map is never 216 or 306.
+// rules stay neutral because the chosen map is never 216 or 306. No source
+// scales with a character stat, so every source takes the best across all
+// class families (familySources: []).
 //
 // Run (from web/):  npx tsx scripts/update-top-afk.ts   [--limit N] [--slow]
 import { join } from "node:path";
@@ -25,6 +27,7 @@ runTopCollector({
   computePools: (save, ci) => computeArkhAfkPools(save, ci, bestAfkMapIdx(save, ci)),
   combine: combineAfkPools,
   gated: deriveGatedTalentsFor(AFK_CLASS_TALENTS),
+  familySources: [],
   outputFile: join(__dirname, "..", "lib", "afkGains", "topAfkGains.ts"),
   metaFile: join(__dirname, "..", "lib", "afkGains", "topAfkGains.meta.ts"),
   constPrefix: "TOP_AFK",

@@ -3,7 +3,7 @@
 // gain = new / current − 1. Exact for every formula shape (products,
 // max(1, ·), pow, caps, floors) as long as totalFromFlat mirrors the combine.
 
-import { groupFactorOf, type StatGroup } from "@/lib/arkh/stats/defs/grouped";
+import { applyGroupStep, groupVal, type StatGroup } from "@/lib/arkh/stats/defs/grouped";
 import type { GainDisplay, GainSource, GainsModel } from "./config";
 
 export const MINOR_GAIN_THRESHOLD_PCT = 0.05;
@@ -70,24 +70,30 @@ export function splitGains(
   return { major, minor };
 }
 
-const DISPLAY: Record<StatGroup["kind"], GainDisplay> = { pct: "pct", raw: "raw", min4: "raw", mult: "x" };
+const DISPLAY: Record<StatGroup["kind"], GainDisplay> = { pct: "pct", raw: "raw", min4: "raw", mult: "x", add: "raw", replace: "raw" };
 
 /** GainsModel for a groupedDescriptor stat (Coin Multi, EXP Multi).
  *  `skip` names sources (by their node name, the path's last segment) that
  *  `sources()` must not rank — e.g. circumstantial sources a character can
  *  never get (lowest-level-only, level-capped). They still count in
- *  `totalFromFlat`, which sums every direct child regardless of skip. */
+ *  `totalFromFlat`, which sums every direct child regardless of skip.
+ *  `replace` groups (the Drop Rate V2 Cove) are never ranked either: the
+ *  collector has no Observed Max for them, so the what-if would "remove" the
+ *  step. They still count in `totalFromFlat`, and `replacedBy` names the one
+ *  that currently replaces the total. */
 export function groupedGainsModel(
   root: string,
   groups: readonly StatGroup[],
   opts?: { skip?: readonly string[] }
 ): GainsModel {
   const groupPath = (g: StatGroup) => `${root} / ${g.name}`;
+  const valsOf = (g: StatGroup, flat: Record<string, number>) => directChildren(groupPath(g), flat).map((p) => Number(flat[p]));
   const skip = new Set(opts?.skip ?? []);
   return {
     sources(yoursFlat, refFlat) {
       const out: GainSource[] = [];
       for (const g of groups) {
+        if (g.kind === "replace") continue;
         const gp = groupPath(g);
         for (const path of directChildren(gp, yoursFlat, refFlat)) {
           const source = path.slice(gp.length + 3);
@@ -99,8 +105,12 @@ export function groupedGainsModel(
     },
     totalFromFlat(flat) {
       let total = 1;
-      for (const g of groups) total *= groupFactorOf(g, directChildren(groupPath(g), flat).map((p) => Number(flat[p])));
+      for (const g of groups) total = applyGroupStep(g, valsOf(g, flat), total);
       return total;
+    },
+    replacedBy(yoursFlat) {
+      // groupVal(replace) is NaN unless a source is finite and > 0: the step's own "active" test.
+      return groups.find((g) => g.kind === "replace" && Number.isFinite(groupVal(g, valsOf(g, yoursFlat))))?.name ?? null;
     },
   };
 }
