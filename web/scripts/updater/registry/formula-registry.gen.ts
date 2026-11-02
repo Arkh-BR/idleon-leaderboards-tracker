@@ -280,6 +280,9 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   "_customBlock_Companions": [
     "lib/arkh/stats/data/common/companions.ts"
   ],
+  "_customBlock_DamageDealed": [
+    "lib/arkh/stats/defs/damage.ts"
+  ],
   "_customBlock_ExpMulti": [
     "lib/arkh/stats/systems/exp/exp.ts"
   ],
