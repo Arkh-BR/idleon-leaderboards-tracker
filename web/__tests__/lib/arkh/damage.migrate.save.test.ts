@@ -10,41 +10,39 @@ import { computeArkhDamage } from "@/lib/arkh/computeDamage";
 const g = globalThis as unknown as { window?: unknown };
 if (!g.window) g.window = g;
 
-// Regression pin of the Task 3 values: max damage with every term that
-// already had a port elsewhere wired in (Flurbo, vault kills, Roo, Bubba, land
-// rank, divinity minor, Rift skills, compass, MSA, crop depot, pet arena, salt
-// lick, owl, spelunk shop, Cglunko, fountain, base-damage food, Cactolyte,
-// Reliquarium). Captured 2026-11-02 with computeMaxDamage(ci, { saveData,
-// charIdx: ci }) (no map: map 43/306 neutral), per character. The Task 2 pin
-// (the old derived-damage number) is in git history; per-save before → after
-// is in the Task 3 commit body. Saves (gitignored golden cache): ARKHE
+// Regression pin of the Task 4 values: max damage with every N.js term wired
+// (Task 3: the terms that already had a port elsewhere; Task 4: divinity
+// blessings 7/8, eclipse skulls, Killroy, sticker). Captured 2026-11-02 with
+// computeMaxDamage(ci, { saveData, charIdx: ci }) (no map: map 43/306
+// neutral), per character. Earlier pins are in git history; per-save
+// before → after is in the Task 3 and Task 4 commit bodies. Saves (gitignored golden cache): ARKHE
 // post-update, then by account level (Σ character levels) the strongest
 // (Arlong 20922), a middle one (24632463 18198) and the weakest (0celot8 9753).
 const DIR = "scripts/updater/golden/.cache/";
 const CAPTURED: Record<string, Record<string, number>> = {
   "arkhe-live-2026-11-01-postupdate.json": {
-    ARKHE: 2.2745392623905634e+33, ARKHELUCK: 1.984373342242861e+33, zArkhe: 3.075977456010111e+33,
-    farkhe: 4.129584027056621e+37, Darkhe: 1.9320138623153094e+33, Parkhe: 2.1720063871478434e+33,
-    Warkhe: 1.173337555029224e+37, Sarkhe: 1.909900867626751e+33, Markhe: 4.3018745533775425e+37,
-    Barkhe: 1.9433563492957047e+33, Arkhiiiiii: 1.8307998628736013e+33,
+    ARKHE: 2.776419535394748e+34, ARKHELUCK: 2.422228098682789e+34, zArkhe: 3.754696188591826e+34,
+    farkhe: 5.040782524775504e+38, Darkhe: 2.3583154261966807e+34, Parkhe: 2.651262637665543e+34,
+    Warkhe: 1.432236129426755e+38, Sarkhe: 2.3313231682679836e+34, Markhe: 5.2510891969663806e+38,
+    Barkhe: 2.3721606488107907e+34, Arkhiiiiii: 2.2347684160606395e+34,
   },
   "Arlong.json": {
-    Arlong: 5.585721047359333e+31, arlongarcher: 4.324663781584962e+31, richardburnish: 5.898271774861364e+31,
-    forsenmods: 2.177013138595555e+34, borushiki: 8.153781699107847e+33, ArlongHunter: 7.338756284298223e+33,
-    MyWifeLeftMe: 3.5508686454904095e+33, ALTAddiciton: 7.639474371896854e+33, Arshort: 6.2402896220878285e+31,
-    Valtan: 5.095931312921777e+31, Synergism: 4.715959863199386e+30,
+    Arlong: 6.798488582592886e+32, arlongarcher: 5.263631515676537e+32, richardburnish: 7.178900087998835e+32,
+    forsenmods: 2.6496845870764568e+35, borushiki: 9.924124623542713e+34, ArlongHunter: 8.93214150621075e+34,
+    MyWifeLeftMe: 4.32183056403544e+34, ALTAddiciton: 9.298151277873974e+34, Arshort: 7.595176591908996e+32,
+    Valtan: 6.202356070923848e+32, Synergism: 5.739885507007991e+31,
   },
   "24632463.json": {
-    "24632463": 2.2949411760219873e+31, "246324633": 2.7181525883233874e+29, "2463a": 9.121432136868468e+30,
-    "2463w": 1.0495013066450707e+31, "2463m": 1.9233073545668176e+30, "2463a2": 1.6374088148771775e+31,
-    "2463w2": 1.36193572389123e+31, "2463a3": 3.768919325305133e+29, "2463m2": 4.558124913457115e+29,
-    "2463b": 7.864243435828153e+28, "2463w3": 1.6018462723882404e+29,
+    "24632463": 1.4644834326161384e+32, "246324633": 1.7345496584022864e+30, "2463a": 5.820709648571976e+31,
+    "2463w": 6.697240400535572e+31, "2463m": 1.2273306985036627e+31, "2463a2": 1.0448886912055128e+32,
+    "2463w2": 8.690995328185575e+31, "2463a3": 2.405081214475219e+30, "2463m2": 2.9087013163115893e+30,
+    "2463b": 6.0818974319943904e+29, "2463w3": 1.0221949704073836e+30,
   },
   "0celot8.json": {
-    "0celot8": 1.0004181355250402e+23, "0celot9": 2.247677508764839e+23, "0celot10": 5.161008863615786e+21,
-    "0celot11": 1.6274404777365148e+23, "0celot12": 1.1132303769831054e+22, "0celot13": 1.4864782628597153e+22,
-    "0celot14": 4.1398116080989336e+21, "0celot15": 3.1845122521779566e+24, "0celot16": 1.2746058759634273e+22,
-    "0celot17": 6.793899617871238e+21,
+    "0celot8": 3.3667076786885886e+23, "0celot9": 5.361602508642358e+23, "0celot10": 1.7368345608515605e+22,
+    "0celot11": 4.59232049973213e+23, "0celot12": 3.7463547564025463e+22, "0celot13": 5.002446080350056e+22,
+    "0celot14": 2.0087020685605487e+22, "0celot15": 9.014531530460838e+24, "0celot16": 4.2894317992711675e+22,
+    "0celot17": 2.2863513899357044e+22,
   },
 };
 
@@ -57,7 +55,7 @@ const nanPaths = (n: ArkhNode, path = n.name): string[] => [
 ];
 
 for (const [file, want] of Object.entries(CAPTURED)) {
-  describe.skipIf(!existsSync(DIR + file))(`max damage, Task 3 value — ${file}`, () => {
+  describe.skipIf(!existsSync(DIR + file))(`max damage, Task 4 value — ${file}`, () => {
     // Read in beforeAll: vitest still runs a skipped describe's body.
     let save: any;
     beforeAll(() => {

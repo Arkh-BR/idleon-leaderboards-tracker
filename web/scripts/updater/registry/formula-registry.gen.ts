@@ -21,6 +21,9 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   "BigFishBonuses": [
     "lib/arkh/stats/systems/exp/exp.ts"
   ],
+  "BlesssBonus": [
+    "lib/arkh/stats/systems/w5/divinity.ts"
+  ],
   "BoatArtiMulti": [
     "lib/arkh/stats/systems/artifact/artifact.ts"
   ],
@@ -91,7 +94,12 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/arkh/stats/data/w5/farming.ts",
     "lib/arkh/stats/systems/exp/exp.ts"
   ],
+  "FarmingStickerDMG_unlocked": [
+    "lib/arkh/stats/systems/w6/farming.ts"
+  ],
   "Fountain_BonTOT": [
+    "lib/arkh/stats/data/w5/fountain.ts",
+    "lib/arkh/stats/systems/damage/damage.ts",
     "lib/arkh/stats/systems/exp/exp.ts"
   ],
   "FractalIslandBonus": [
@@ -142,6 +150,9 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   ],
   "KillroyBonuses": [
     "lib/arkh/stats/systems/artifact/terms.ts"
+  ],
+  "KillroyDMG": [
+    "lib/arkh/stats/systems/w4/rift.ts"
   ],
   "LoreEpiBon": [
     "lib/arkh/stats/systems/artifact/terms.ts"
@@ -267,6 +278,9 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/arkh/stats/systems/exp/exp.ts",
     "lib/arkh/stats/systems/exp/sticker.ts"
   ],
+  "StickerDMGmulti": [
+    "lib/arkh/stats/systems/w6/farming.ts"
+  ],
   "SuperBitType": [
     "lib/arkh/stats/systems/exp/exp.ts"
   ],
@@ -275,6 +289,9 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   ],
   "TotalStatz": [
     "lib/arkh/stats/data/w7/royalG.ts"
+  ],
+  "TotalStickers": [
+    "lib/arkh/stats/systems/w6/farming.ts"
   ],
   "TotalTitanKills": [
     "lib/arkh/stats/systems/exp/exp.ts"
@@ -325,7 +342,9 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/arkh/stats/systems/w3/setBonus.ts"
   ],
   "_customBlock_Holes2": [
+    "lib/arkh/stats/data/w5/fountain.ts",
     "lib/arkh/stats/systems/afk/afk.ts",
+    "lib/arkh/stats/systems/damage/damage.ts",
     "lib/arkh/stats/systems/dr2/cove.ts",
     "lib/arkh/stats/systems/multikill/multikill.ts"
   ],
@@ -364,6 +383,9 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   ],
   "_customBlock_totalcointypes": [
     "lib/coinMulti/wallet.ts"
+  ],
+  "eclipseSkulls": [
+    "lib/arkh/stats/systems/w4/rift.ts"
   ],
   "skillLvRanks": [
     "lib/arkh/stats/systems/w4/rift.ts"

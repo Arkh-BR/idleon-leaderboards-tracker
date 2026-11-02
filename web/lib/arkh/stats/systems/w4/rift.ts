@@ -1,9 +1,38 @@
-// ===== RIFT (W4): skill mastery =====
+// ===== RIFT (W4): skill mastery, Death Note eclipse skulls, Killroy =====
 // N.js RiftStuff (@10789969): "skillLvRanks", "RiftSkillBonus,<f>" and
 // "RiftSkillETC". From Rift 15 each skill's account-wide total level earns
 // mastery ranks; RiftSkillETC sums the per-skill bonuses one stat reads.
+// "eclipseSkulls" and "KillroyDMG" are Max damage's two Rift factors.
 import { numCharacters } from "../../../save/data";
+import { DeathNoteMobs, MapAFKtarget } from "../../data/game/customlists.js";
+import { accountMapKills } from "../coin/accountKills";
+import { deathNoteRank } from "../coin/gambit";
 import type { SaveData } from "../../../state";
+
+// @njs eclipseSkulls
+/** N.js RiftStuff("eclipseSkulls") (@10792655): 5 per World 1–6 Death Note
+ *  mob whose account kills on its map reach DeathNoteRank ≥ 15 (the eclipse
+ *  skull: > 1e9 kills from Rift 20). */
+export function eclipseSkulls(s: SaveData): number {
+  const mapOf = MapAFKtarget as unknown as string[];
+  let n = 0;
+  for (let w = 0; w < 6; w++)
+    for (const mob of (DeathNoteMobs as unknown as string[][])[w] ?? []) {
+      const m = mapOf.indexOf(mob);
+      if (m >= 0 && deathNoteRank(accountMapKills(m), s) >= 15) n++;
+    }
+  return 5 * n;
+}
+
+// @njs KillroyDMG
+/** N.js RiftStuff("KillroyDMG") (@10791738): ⌊(Σ KRbest[mob] over every
+ *  DeathNoteMobs list)^0.4⌋, KRbest = the best Killroy kills per monster. */
+export function killroyDmg(s: SaveData): number {
+  const kr = (s.krBestData ?? {}) as Record<string, unknown>;
+  let t = 0;
+  for (const list of DeathNoteMobs as unknown as string[][]) for (const mob of list) t += Number(kr[mob]) || 0;
+  return Math.floor(Math.pow(t, 0.4));
+}
 
 // @njs skillLvRanks
 /** Skill f's rank 0–7: Σ Lv0[f + 1] over every character against

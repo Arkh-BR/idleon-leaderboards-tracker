@@ -1,23 +1,22 @@
 // ===== FOUNTAIN DATA (W5) =====
-// IT-only extension — Arkh's source predates the Fountain cavern, so this
-// has no corgan-source counterpart. We hand-build the `holeFountUpg` table
-// (bonusPerLevel per [tier][upgradeIdx]) for the upgrades the DR pipeline
-// queries, plus the helper that reads fountainUpgradeLevels + marbleize
-// from the save and returns the total bonus.
+// Arkh's source predates the Fountain cavern, so this has no corgan-source
+// counterpart. We hand-build the per-level bonus (HoleFountUPG[tier][idx][6])
+// for the upgrades a stat reads — Drop Rate's monuments, EXP Multi, Cooking
+// Mastery, Max damage — plus the helper that reads the levels and marble
+// tiers from the save and returns the total bonus.
 //
 // The save shape is:
-//   holesData[31] = fountainUpgradeLevels[tier 0..2][idx 0..19] = level (cap 10)
-//   holesData[32] = fountainMarbleizeLevels[tier 0..2][idx 0..19] = marble tier
+//   holesData[31] = upgrade levels[tier 0..2][idx 0..19] (no cap: saves hold 566+)
+//   holesData[32] = marble tiers[tier 0..2][idx 0..19]
 //
-// Formula (matches IT's getFountainBonusTotal):
+// Formula (N.js Holes2 "Fountain_BonTOT" / "Fountain_MarbleBon"):
 //   marbleMulti = marbleTier === 0 ? 1 : 1.5 + 0.5 * marbleTier
-//   bonus       = round(level * bonusPerLevel * marbleMulti)
+//   bonus       = round(marbleMulti * level * HoleFountUPG[tier][idx][6])
 
 import type { SaveData } from "../../../state";
 
-// Subset of holeFountUpg.bonusPerLevel — keyed [tier][upgradeIdx].
-// Only the upgrades read by DR/monument live here. Add more as needed.
-// Source: IT website-data.json @ holeFountUpg.
+// Subset of HoleFountUPG[tier][idx][6] (the bonus per level), keyed
+// [tier][upgradeIdx]: only the upgrades a stat reads. Add more as needed.
 const FOUNTAIN_BONUS_PER_LV: Record<number, Record<number, number>> = {
   0: {
     13: 1, // Monumental_Boost: Bravery monument bonuses ×(1 + n/100)
@@ -48,6 +47,10 @@ export function fountainBonusPerLevel(t: number, i: number): number {
   return FOUNTAIN_BONUS_PER_LV[t]?.[i] ?? 0;
 }
 
+// @njs Fountain_BonTOT
+// @njs _customBlock_Holes2
+/** N.js Holes2("Fountain_BonTOT", t, i) (@11045841); the marble multiplier is
+ *  Holes2("Fountain_MarbleBon", t, i), a branch of the _customBlock_Holes2 chain. */
 export function fountainBonusTotal(
   saveData: SaveData,
   t: number,

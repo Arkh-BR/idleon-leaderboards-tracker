@@ -12,19 +12,10 @@
 // overkill → damage, used only inside function bodies: nothing in that loop
 // may call across it at module top level.
 //
-// ── [STUB] notes ────────────────────────────────────────────────────────
-// The following sub-sources are NOT wired here and are STUBBED to 0 (or the
-// neutral multiplier 1); each is flagged `[STUB]` inline:
-//   computeDivinityBless    (W5 divinity blessing)          — damage
-//   computeEclipseSkulls    (W4 rift eclipse skulls)        — damage
-//   computeKillroyDMG       (W4 rift killroy dmg)           — damage
-//   computeStickerBonus     (W6 farming sticker dmg, =1)    — damage
-//   computeFlurboShop       (flurbo shop 5)                 — accuracy
-//   computeRooBonus         (Roo bonus 3)                   — accuracy
-//   computeDivinityMinor    (divinity minor link)           — accuracy
-//   computeSaltLick         (salt lick 7)                   — speed
-// The last four have real ports elsewhere (coin, exp) that accuracy and
-// speed don't read yet.
+// ── [STUB] note ─────────────────────────────────────────────────────────
+// One sub-source is still STUBBED to 0, flagged `[STUB]` inline: accuracy's
+// RooBonuses(3). Its port (rooBonus) lives in coin.ts, which this file must
+// not import (see above).
 
 import type { ArkhNode } from "../../../node";
 import type { SaveData } from "../../../state";
@@ -80,6 +71,8 @@ import { computePrayerReal } from "../w3/prayer";
 import { computeChipBonus, gridBonusValue } from "../w4/lab";
 import { capevineSystemOn, gallerySystemOn, premhatSystemOn } from "../w7/gallery";
 import { flurboShop } from "../coin/flurbo";
+import { divinityMinorFor } from "../coin/divinityMinor";
+import { saltLick } from "../exp/saltLick";
 
 // --------------------------------------------------------------------------
 // Local helpers (mirror defs/helpers.js safe / rval), shared with the damage
@@ -134,33 +127,10 @@ export function gtn(id: number, ctx: any, args?: any): number {
   }
 }
 
-// --------------------------------------------------------------------------
-// [STUB] sub-sources not wired yet — see header note. Each returns 0
-// (additive %) or 1 (neutral multiplier).
-// --------------------------------------------------------------------------
-function computeFlurboShop(_idx: number, _s: SaveData): number {
-  return 0; // [STUB] accuracy's flurbo 5 (coin/flurbo.ts is the port)
-}
+// [STUB] accuracy's RooBonuses(3): coin.ts rooBonus is the port, out of reach
+// (coin → overkill → damage → this file).
 function computeRooBonus(_idx: number, _s: SaveData): number {
-  return 0; // [STUB] accuracy's Roo 3 (coin.ts rooBonus is the port)
-}
-function computeDivinityMinor(_ci: number, _idx: number, _s: SaveData): number {
-  return 0; // [STUB] accuracy's divinity minor (coin/divinityMinor.ts is the port)
-}
-export function computeDivinityBless(_idx: number, _s: SaveData): number {
-  return 0; // [STUB] W5 divinity blessing unported
-}
-export function computeEclipseSkulls(_s: SaveData): number {
-  return 0; // [STUB] W4 rift eclipse skulls unported
-}
-export function computeKillroyDMG(_s: SaveData): number {
-  return 0; // [STUB] W4 rift killroy dmg unported
-}
-export function computeStickerBonus(_idx: number, _s: SaveData): number {
-  return 1; // [STUB] W6 farming sticker dmg (neutral multiplier)
-}
-function computeSaltLick(_idx: number, _s: SaveData): number {
-  return 0; // [STUB] speed's salt lick 7 (exp/saltLick.ts is the port)
+  return 0;
 }
 
 /** N.js FoodBonuses("…BoostsEffectBonus") (@4104779): the effect multiplier of
@@ -543,7 +513,7 @@ export function computePlayerSpeed(ci: number, ctx: Ctx): number {
       _agiScale / 2.2 +
       1;
     if (playerSpeed <= 2) {
-      const _saltLick7 = safe(computeSaltLick, 7, s);
+      const _saltLick7 = safe(saltLick, 7, s);
       const _chipMove = safe(computeChipBonus, "move");
       const _spdT641 = rval(talent, 641, ctx);
       const _sigil13 = rval(sigil, 13, ctx);
@@ -588,10 +558,10 @@ export function computePlayerSpeed(ci: number, ctx: Ctx): number {
 // few missing additive % almost never flips the result:
 //   getBuffBonus(288,2) / getBuffBonus(124,1)  — runtime buffs, never in
 //       the raw save → 0 (same treatment as derived-damage GetBuffBonuses).
-//   computeFlurboShop(5)   — W2 dungeon flurbo shop  [STUB, local =0]
-//   computeRooBonus(3)     — W7 sushi RoG acc        [STUB, local =0]
-//   computeDivinityMinor   — W5 divinity minor link  [STUB, local =0]
-// All other sub-sources reuse already-ported systems.
+//   computeRooBonus(3)     — Roo (Poppy) upgrade 3   [STUB, local =0]
+// All other sub-sources reuse already-ported systems: FlurboShop(5) from
+// coin/flurbo.ts, Divinity("Bonus_Minor", this character, 0) from
+// coin/divinityMinor.ts.
 // ==========================================================================
 
 /** ClassStatTypes secondary-stat lookup (N.js ClassStatTypes, offset
@@ -656,7 +626,7 @@ export function computeAccuracy(charIdx: number, ctx: Ctx): number {
   const cardBonus17 = safe(computeCardBonusByType, 17, ci, s);
   const statue14 = safe(computeStatueBonusGiven, 14, ci, s);
   const arcade2 = rval(arcade, 2, ctx);
-  const flurbo5 = safe(computeFlurboShop, 5, s); // [STUB] local =0
+  const flurbo5 = safe(flurboShop, 5, s);
   const bribe21 = safe(getBribeBonus, "21", s);
   const comp23 = rval(companion, 23, ctx);
   const starAccPct = computeStarSignBonus("AccPct", ci, s); // faithful-to-arkh =0
@@ -688,7 +658,7 @@ export function computeAccuracy(charIdx: number, ctx: Ctx): number {
   const rooBonus3 = safe(computeRooBonus, 3, s); // [STUB] local =0
   const votingBonus3 = rval(winBonus, 3, ctx);
   const amarokSet = safe(getSetBonus, "AMAROK_SET");
-  const divinityMinor = safe(computeDivinityMinor, ci, 0, s); // [STUB] local =0
+  const divinityMinor = safe(divinityMinorFor, ci, 0, s);
 
   const prayerMult = Math.max(0.1, 1 + (prayer6 - prayer15pen - prayer16pen) / 100);
   const postMult1 = 1 + (playerACCDN + 2 * cardSet4) / 200;

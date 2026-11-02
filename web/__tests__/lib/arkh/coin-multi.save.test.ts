@@ -260,12 +260,14 @@ describe.skipIf(!existsSync(SAVE))("Coin talent 643 — the game's target HP (sp
   // damage now reads the full EtcBonuses("72"/"75"/"104") and
   // Companions(168)/(170) (were 19 and 4).
   // tier 22→24: max damage completed (damage tracker)
-  it("zArkhe's Jawbreaker curse (1180%, HP ×12.8): tier 24 on map 301", () => {
-    expect(tierOf("zArkhe", 301)).toBe(24);
+  // tier 24→25: max damage completed (damage tracker)
+  it("zArkhe's Jawbreaker curse (1180%, HP ×12.8): tier 25 on map 301", () => {
+    expect(tierOf("zArkhe", 301)).toBe(25);
   });
 
   // tier 7→9: max damage completed (damage tracker)
-  it("Clamworks (map 306) measures Clamz_HP = 1e16·30^8, not the table's 1e18: tier 9", () => {
-    expect(tierOf("Markhe", 306)).toBe(9);
+  // tier 9→10: max damage completed (damage tracker)
+  it("Clamworks (map 306) measures Clamz_HP = 1e16·30^8, not the table's 1e18: tier 10", () => {
+    expect(tierOf("Markhe", 306)).toBe(10);
   });
 });

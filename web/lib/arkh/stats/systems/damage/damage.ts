@@ -9,8 +9,8 @@
 //
 // The terms are the old derived-damage computeMaxDamage's (same helpers, same
 // 0-on-throw reads), each wired to the port that already lives in its own
-// system. Still [STUB]: eclipse skulls, sticker, Killroy, divinity blessings.
-// Buff 108 is 0: an active buff, not in the save.
+// system (Task 4 ported the last four: divinity blessings 7/8, eclipse
+// skulls, Killroy, sticker). Buff 108 is 0: an active buff, not in the save.
 //
 // Resolvers are imported directly, not through getCatalog(): registry.ts
 // imports this file. derived-damage.ts holds the shared inputs and must not
@@ -20,7 +20,7 @@ import { node, type ArkhNode } from "../../../node";
 import type { SystemCtx } from "../../registry";
 import { getLOG } from "../../../formulas";
 import { ITEMS } from "../../data/game/items.js";
-import { AlchemyDescription, AtomInfo, GrimoireUpg, RANDOlist } from "../../data/game/customlists.js";
+import { AlchemyDescription, AtomInfo, GodsInfo, GrimoireUpg, RANDOlist } from "../../data/game/customlists.js";
 import { charClassData, divinityData, dreamData, emmData, equipOrderData, optionsListData } from "../../../save/data";
 import { entityName, label } from "../../entity-names";
 import damageDesc, { dmgMax, type ValsOf } from "../../defs/damage";
@@ -45,10 +45,6 @@ import {
   greenSigilDmgPct,
   mapDamageDivisor,
   foodBoostMulti,
-  computeDivinityBless,
-  computeEclipseSkulls,
-  computeKillroyDMG,
-  computeStickerBonus,
 } from "../common/derived-damage";
 import { vaultKillzTotal } from "../coin/accountKills";
 import { rooBonus } from "../coin/coin";
@@ -58,8 +54,8 @@ import { compassBonus } from "../exp/compass";
 import { msaTotalWaves } from "../exp/msa";
 import { saltLick } from "../exp/saltLick";
 import { totalFoodBonuses } from "../exp/food";
-import { riftSkillETC } from "../w4/rift";
-import { farm, cropSCbonMulti } from "../w6/farming";
+import { riftSkillETC, eclipseSkulls, killroyDmg } from "../w4/rift";
+import { farm, cropSCbonMulti, stickerDmgMulti } from "../w6/farming";
 import { cglunkoUpgBon } from "../dr2/cove";
 import { fountainBonusTotal } from "../../data/w5/fountain";
 import { talent } from "../common/talent";
@@ -84,6 +80,7 @@ import { tome } from "../w4/tome";
 import { computeShinyBonusS } from "../w4/breeding";
 import { mainframeBonus, computeChipBonus } from "../w4/lab";
 import { pristine } from "../w5/pristine";
+import { divinityBlessBonus } from "../w5/divinity";
 import { computeCosmoBonus, computeMonumentROGbonus } from "../w5/hole";
 import { computeArtifactBonus } from "../w5/sailing";
 import { computeSummUpgBonus, winBonus } from "../w6/summoning";
@@ -507,9 +504,9 @@ function resolveDamage(id: string, ctx: SystemCtx): ArkhNode {
     // N.js 1 + AlchVials["7dmg"]/100.
     case "vial7dmg":
       return helperFactor("Damage Vial (7dmg)", sn(computeVialByKey, "7dmg", s));
-    // N.js 1 + RiftStuff("eclipseSkulls")/100 — [STUB] (0).
+    // N.js 1 + RiftStuff("eclipseSkulls")/100 (w4/rift.ts).
     case "eclipse":
-      return factor("Eclipse Skulls", 1 + safe(computeEclipseSkulls, s) / 100, null, "[STUB] not ported: 1");
+      return helperFactor("Eclipse Skulls (Death Note)", sn(eclipseSkulls, s), "+5% per eclipse skull (over 1e9 kills of a World 1–6 Death Note monster, Rift 20)");
     // N.js 1 + GamingStatType("PaletteBonus",34)/100.
     case "palette34":
       return helperFactor("Palette 34", sn(computePaletteBonus, 34, s));
@@ -745,10 +742,18 @@ function resolveDamage(id: string, ctx: SystemCtx): ArkhNode {
       const kids = ACH_WEIGHTS.map(([n, w]) => pct(label("Achievement", n), w * safe(achieveStatus, n, s), null, `× ${w}`));
       return pct("Achievements", kids.reduce((a, k) => a + k.val, 0), kids);
     }
-    // N.js Divinity("BlesssBonus",7) / (…,8) — [STUB] (0).
+    // N.js Divinity("BlesssBonus",7) / (…,8) (w5/divinity.ts): Flutterbis' and
+    // Kattlekruk's blessings, Divinity[35] / Divinity[36].
     case "bless7":
-    case "bless8":
-      return pct(`Divinity Blessing ${id.slice(5)}`, safe(computeDivinityBless, Number(id.slice(5)), s), null, "[STUB] not ported: 0");
+    case "bless8": {
+      const b = Number(id.slice(5));
+      return pct(
+        `${(GodsInfo as any)[b][0]} Blessing (God ${b})`,
+        safe(divinityBlessBonus, b, s),
+        [raw("Blessing level", Number((divinityData as any)?.[28 + b]) || 0, `Divinity[${28 + b}]`)],
+        'Divinity("BlesssBonus", ' + b + ")"
+      );
+    }
     // N.js max((1 − GTN(1,24)/100)·(1 − GetBuffBonuses(124,2)/100)·max(.01, 1 −
     // (prayersReal(6,1) + prayersReal(13,1))/100), .05).
     case "penalty": {
@@ -840,6 +845,8 @@ function resolveDamage(id: string, ctx: SystemCtx): ArkhNode {
     case "voting1":
       return helperFactor("Voting Bonus 1", sn(votingBonusz, 1, 1, s));
     // N.js 1 + Holes2("Fountain_BonTOT",1,16)/100: Swingy O' Sword (data/w5/fountain.ts).
+    // @njs Fountain_BonTOT
+    // @njs _customBlock_Holes2
     case "fountain16":
       return helperFactor("Fountain 16", sn(fountainBonusTotal, s, 1, 16), "1 + Fountain_BonTOT(1,16)/100");
     // N.js 1 + Sushi RoG 49/100.
@@ -860,12 +867,9 @@ function resolveDamage(id: string, ctx: SystemCtx): ArkhNode {
     // N.js 1 + CardBonusREAL(96)/100.
     case "card96":
       return helperFactor("Damage Cards (Card Type 96)", sn(computeCardBonusByType, 96, ci, s));
-    // N.js max(1, FarmingStuffs("StickerDMGmulti")) — [STUB] (1).
-    case "sticker": {
-      let v = safe(computeStickerBonus, 0, s);
-      if (v < 1) v = 1;
-      return factor("Sticker Damage", Math.max(1, v), null, "[STUB] not ported: 1");
-    }
+    // N.js max(1, FarmingStuffs("StickerDMGmulti")) (w6/farming.ts).
+    case "sticker":
+      return factor("Sticker Damage (Grid 47)", Math.max(1, safe(stickerDmgMulti, s)), null, "1 + Grid 47 × stickers found / 100, once Grid 47 is unlocked");
     // N.js 1 + (TomeBonus(6) + AchieveStatus(371) + AchieveStatus(384))/100.
     case "tome6": {
       let t6 = 0;
@@ -876,9 +880,11 @@ function resolveDamage(id: string, ctx: SystemCtx): ArkhNode {
       const a384 = safe(achieveStatus, 384, s);
       return factor("Tome Bonus 6 & Achievements", 1 + (t6 + a371 + a384) / 100, [pct("Tome Bonus 6", t6), pct(label("Achievement", 371), a371), pct(label("Achievement", 384), a384)], "1 + Σ/100");
     }
-    // N.js 1 + max(0, min(2, RiftStuff("KillroyDMG")/100)) — [STUB] (1).
-    case "killroy":
-      return factor("Killroy Damage", 1 + Math.max(0, Math.min(2, safe(computeKillroyDMG, s) / 100)), null, "[STUB] not ported: 1");
+    // N.js 1 + max(0, min(2, RiftStuff("KillroyDMG")/100)) (w4/rift.ts).
+    case "killroy": {
+      const k = safe(killroyDmg, s);
+      return factor("Killroy Damage", 1 + Math.max(0, Math.min(2, k / 100)), [pct("Bonus %", k)], "1 + min(200, ⌊(Σ best Killroy kills)^0.4⌋)/100");
+    }
     // N.js max(1, (1+C12)(1+C33)(1+2·C160)(1+.5·C168)(1+C170)) (@4123746).
     case "companions": {
       const c = (n: number) => rval(companion, n, ctx);
