@@ -6,7 +6,11 @@
 // reads: DamageDealtSTATtype, TotalStats("Weapon_Power"), PlayerSpeedBonus,
 // the food-boost multiplier, the TalentCalc terms, the green-sigil and
 // map-306 terms, and the accuracy (talent 125's gate, OverkillStuffs("3")).
-// It must not import the damage system (damage.ts imports this file).
+// It must not import the damage system (damage.ts imports this file), nor
+// coin.ts (coin → overkill → damage); FlurboShop comes from the coin/flurbo.ts
+// leaf. The one path back is talent → its final-bonus wraps → calcTalent →
+// overkill → damage, used only inside function bodies: nothing in that loop
+// may call across it at module top level.
 //
 // ── [STUB] notes ────────────────────────────────────────────────────────
 // The following sub-sources are NOT wired here and are STUBBED to 0 (or the
@@ -75,7 +79,7 @@ import { computeCardSetBonus, computeCardLv } from "./cards";
 import { computePrayerReal } from "../w3/prayer";
 import { computeChipBonus, gridBonusValue } from "../w4/lab";
 import { capevineSystemOn, gallerySystemOn, premhatSystemOn } from "../w7/gallery";
-import { flurboShop } from "../coin/coin";
+import { flurboShop } from "../coin/flurbo";
 
 // --------------------------------------------------------------------------
 // Local helpers (mirror defs/helpers.js safe / rval), shared with the damage
@@ -135,7 +139,7 @@ export function gtn(id: number, ctx: any, args?: any): number {
 // (additive %) or 1 (neutral multiplier).
 // --------------------------------------------------------------------------
 function computeFlurboShop(_idx: number, _s: SaveData): number {
-  return 0; // [STUB] accuracy's flurbo 5 (coin.ts flurboShop is the port)
+  return 0; // [STUB] accuracy's flurbo 5 (coin/flurbo.ts is the port)
 }
 function computeRooBonus(_idx: number, _s: SaveData): number {
   return 0; // [STUB] accuracy's Roo 3 (coin.ts rooBonus is the port)
@@ -233,7 +237,7 @@ export function damageStatType(ci: number, ctx: Ctx): DamageStatType {
 }
 
 /** N.js TotalStats("Weapon_Power") — ported inline from damage.js; FlurboShop(0)
- *  is coin.ts's port. 0 if any part throws, as before. */
+ *  is coin/flurbo.ts's port. 0 if any part throws, as before. */
 // @njs _customBlock_TotalStats
 export function computeWeaponPower(ci: number, ctx: Ctx): number {
   const s = ctx.saveData;

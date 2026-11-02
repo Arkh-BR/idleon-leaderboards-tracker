@@ -312,7 +312,7 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/arkh/stats/systems/exp/exp.ts"
   ],
   "_customBlock_FlurboShop": [
-    "lib/arkh/stats/systems/coin/coin.ts"
+    "lib/arkh/stats/systems/coin/flurbo.ts"
   ],
   "_customBlock_FoodBonuses": [
     "lib/arkh/stats/systems/common/derived-damage.ts",

@@ -7,14 +7,15 @@
 import { node, renamed, type ArkhNode } from "../../../node";
 import type { SystemCtx } from "../../registry";
 import type { SaveData } from "../../../state";
-import { getLOG, formulaEval } from "../../../formulas";
+import { getLOG } from "../../../formulas";
 import { optionsListData, currentMapData, numCharacters, dreamData } from "../../../save/data";
 import { eventShopOwned, emporiumBonus } from "../../../game-helpers";
 import { label } from "../../entity-names";
-import { DungPassiveStats2, RANDOlist } from "../../data/game/customlists.js";
+import { RANDOlist } from "../../data/game/customlists.js";
 import { legendPTSbonus, computePaletteBonus } from "../w7/spelunking";
 import { cropSCbonMulti } from "../w6/farming";
 import { vaultKillzTotal, cardsCollected, accountMapKills } from "./accountKills";
+import { flurboShop } from "./flurbo";
 import { divinityMinorSum } from "./divinityMinor";
 import { computeArtifactBonus } from "../w5/sailing";
 import { votingBonusz } from "../w2/voting";
@@ -56,14 +57,8 @@ const add = (name: string, r: Tree, note?: string): ArkhNode =>
   node(name, r.val, r.children, { fmt: "+", note });
 const raw = (name: string, v: number, note?: string): ArkhNode => node(name, v, null, { fmt: "raw", note });
 
-/** N.js FlurboShop(idx) (@7827791): DungPassiveStats2[idx] at level
- *  DungUpg[5][idx]. Coin's flurbo4, EXP's flurbo2 and AFK's flurbo7. */
-// @njs _customBlock_FlurboShop
-export function flurboShop(idx: number, s: SaveData): { val: number; children: ArkhNode[] } {
-  const row = ((DungPassiveStats2 as any[])[idx] ?? []) as unknown[];
-  const lv = Number((s.dungUpgData as any[])?.[5]?.[idx]) || 0;
-  return { val: formulaEval(String(row[3]), Number(row[1]), Number(row[2]), lv), children: [raw("Level", lv)] };
-}
+// FlurboShop lives in a leaf module (derived-damage reads it); re-exported here.
+export { flurboShop };
 
 /** N.js Summoning("RooBonuses", idx) (@10827396): coef·(1 + Legend26/100)·
  *  (1 + Companions(51))·(1 + RooBonusAll/100)·max(0, ⌈(OLA[271] − idx)/7⌉),
