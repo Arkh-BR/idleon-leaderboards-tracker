@@ -98,7 +98,7 @@ import { companion } from "./companions";
 import { friend } from "./friend";
 import { guild } from "./guild";
 import { tome } from "../w4/tome";
-import { sigil, bubbleValByKey, computeVialByKey } from "../w2/alchemy";
+import { sigil, bubbleValByKey, computeVialByKey, totalGreenSigils } from "../w2/alchemy";
 import { getBribeBonus } from "../w3/bribe";
 import { grimoireUpgBonus } from "../mc/grimoire";
 import { getSetBonus } from "../w3/setBonus";
@@ -121,7 +121,8 @@ import { computeWorkbenchStuff } from "./stats";
 import { computeCardSetBonus, computeCardLv } from "./cards";
 import { computePrayerReal } from "../w3/prayer";
 import { achieveStatus } from "../common/achievement";
-import { mainframeBonus, computeChipBonus } from "../w4/lab";
+import { mainframeBonus, computeChipBonus, gridBonusValue } from "../w4/lab";
+import { capevineSystemOn } from "../w7/gallery";
 import { owl as owlResolver } from "../w1/owl";
 import { superBitType } from "../../../game-helpers";
 
@@ -278,9 +279,12 @@ export function computeMaxDamage(charIdx: number, ctx: Ctx): number {
       (s.spelunkData as any) &&
       (s.spelunkData as any)[16] &&
       (s.spelunkData as any)[16].length > 0;
+    // Cape Vine (2026-11-01): the worn cape (slot 12) stops counting.
+    const _capeOn = capevineSystemOn(ci);
     if (_eo && _eo[0]) {
       for (let _si = 0; _si < 16; _si++) {
         if (_galleryActive && (_si === 8 || _si === 10 || _si === 14)) continue;
+        if (_capeOn && _si === 12) continue;
         const _iname = _eo[0][_si];
         if (_iname && _iname !== "Blank") {
           _equipWP +=
@@ -951,7 +955,11 @@ export function computeMaxDamage(charIdx: number, ctx: Ctx): number {
   const crystal6Lv = safe(computeCardLv, "Crystal6", s);
   const crystal6Bonus = Math.min(1.5 * crystal6Lv, 15);
   const meritoc5 = safe(computeMeritocBonusz, 5, s);
-  ddl2 *= compMult * (1 + crystal6Bonus / 100) * (1 + meritoc5 / 100);
+  ddl2 *=
+    compMult *
+    (1 + crystal6Bonus / 100) *
+    (1 + meritoc5 / 100) *
+    (1 + safe(greenSigilDmgPct, s) / 100);
 
   // Bundle bonus
   try {
@@ -974,6 +982,14 @@ export function computeMaxDamage(charIdx: number, ctx: Ctx): number {
   let maxDmg = baseDmgRaw * pctMult * ddl2;
   if (maxDmg !== maxDmg || maxDmg == null) maxDmg = 0;
   return maxDmg;
+}
+
+/** N.js Max (2026-11-01): DamageDealtLIST[2] gains ×(1 + min(100,
+ *  TotalGreenSigils · Grid_Bonus(127))/100), right after MeritocBonusz(5) —
+ *  each Eclectic ("green") sigil gives Research Grid H6's damage, capped at 100%. */
+// @njs Max
+export function greenSigilDmgPct(s: SaveData): number {
+  return Math.min(100, totalGreenSigils(s) * gridBonusValue(127, s));
 }
 
 /** N.js Max (2026-10-16): on The Clamworks (map 306) DamageDealtLIST[2] is

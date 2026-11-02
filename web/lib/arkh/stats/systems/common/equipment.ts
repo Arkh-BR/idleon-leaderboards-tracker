@@ -11,6 +11,7 @@ import { label, entityName } from "../../entity-names";
 import { emmData, equipOrderData } from "../../../save/data";
 import { ETC_STAT_NAMES, itemUqMatch } from "../../data/common/equipment";
 import { charHasChip, gridBonusValue } from "../w4/lab";
+import { capevineSystemOn } from "../w7/gallery";
 import { DR_ITEMS, type DrItem } from "../../data/dr-items.gen";
 import type { SaveData } from "../../../state";
 
@@ -136,14 +137,17 @@ export const equipment = {
     const galleryOn =
       ((sp[16] as any[])?.length > 0) || ((sp[17] as any[])?.length > 0);
     const premhatOn = (sp[46] as any[])?.length > 0;
+    // Cape Vine (2026-11-01): the worn cape (slot 12) stops counting.
+    const capeOn = capevineSystemOn(ctx.charIdx);
     let skipSlots: Record<number, boolean> | null = null;
-    if (galleryOn || premhatOn) {
+    if (galleryOn || premhatOn || capeOn) {
       skipSlots = {};
       if (galleryOn) {
         skipSlots[10] = true;
         skipSlots[14] = true;
       }
       if (premhatOn) skipSlots[8] = true;
+      if (capeOn) skipSlots[12] = true;
     }
 
     const chipDoubles: Record<number, boolean> = {};
@@ -261,6 +265,8 @@ export const equipment = {
       if (!statSet.has(it.stat)) continue;
       if (equippedKeys.has(it.key)) continue;
       if (SKIP_TYPES_IN_EQUIPMENT_CATALOG.has(it.type)) continue;
+      // Cape Vine ON: a worn cape gives nothing, so don't suggest equipping one.
+      if (capeOn && it.type === "CAPE") continue;
       const bucket = TYPE_LABELS[it.type] || it.type;
       if (!catalogByType.has(bucket)) catalogByType.set(bucket, []);
       catalogByType.get(bucket)!.push(it);

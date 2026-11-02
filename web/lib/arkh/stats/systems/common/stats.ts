@@ -146,6 +146,8 @@ import {
   galleryBonusMulti,
   hatrackBonusMulti,
   trophyTier,
+  capevineSystemOn,
+  capeVineBonTot,
 } from "../w7/gallery";
 import { COMPANION_BONUS } from "../../data/game-constants";
 
@@ -447,6 +449,9 @@ export function computeEquipBaseStat(
   const galleryOn =
     (sp[16] && sp[16].length > 0) || (sp[17] && sp[17].length > 0);
   const premhatOn = sp[46] && sp[46].length > 0;
+  // Cape Vine (2026-11-01): the worn cape (slot 12) stops counting.
+  // @njs _customBlock_TotalStats
+  const capeOn = capevineSystemOn(charIdx);
   for (let row = 0; row < 2; row++) {
     const rr = eqData[row];
     if (!rr) continue;
@@ -455,6 +460,7 @@ export function computeEquipBaseStat(
     for (let slot = 0; slot < maxSlots; slot++) {
       if (row === 0 && galleryOn && (slot === 10 || slot === 14)) continue;
       if (row === 0 && premhatOn && slot === 8) continue;
+      if (row === 0 && capeOn && slot === 12) continue;
       const itemName = rr[slot] || rr[String(slot)];
       if (!itemName || itemName === "Blank") continue;
       const item = (ITEMS as any)[itemName];
@@ -565,6 +571,18 @@ export function computeGalleryBaseStat(
   if (premhatTotal > 0) {
     children.push(node("Premhat Base " + statName, premhatTotal, premhatCh, { fmt: "raw" }));
     total += premhatTotal;
+  }
+
+  // Cape Vine base stat (2026-11-01): TotalStats(d) += CapeVineBonTOT[d].
+  const capeVal = capevineSystemOn(charIdx) ? capeVineBonTot(saveData)[statName] || 0 : 0;
+  if (capeVal) {
+    children.push(
+      node("Cape Vine Base " + statName, capeVal, null, {
+        fmt: "raw",
+        note: "Game quirk: the last cape's stat × its vine multi + the Hat Rack's stat again",
+      })
+    );
+    total += capeVal;
   }
 
   return { val: total, children };

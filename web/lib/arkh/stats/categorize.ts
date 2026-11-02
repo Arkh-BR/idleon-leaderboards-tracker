@@ -68,6 +68,7 @@ export type SystemKey =
   | "Obols"
   | "Gallery"
   | "Hatrack"
+  | "Cape Vine"
   | "Golden Food"
   | "Set Bonuses"
   | "Bundles"
@@ -124,6 +125,7 @@ export const SYSTEM_EMOJI: Record<SystemKey, string> = {
   Obols: "🪙",
   Gallery: "🖼️",
   Hatrack: "🎩",
+  "Cape Vine": "🧣",
   "Golden Food": "🍔",
   "Set Bonuses": "🧰",
   Bundles: "🎁",
@@ -241,6 +243,7 @@ export const SYSTEM_WORLD: Record<SystemKey, WorldKey> = {
   // World 4
   "Shiny Pets": "World 4",
   Tome: "World 4",
+  "Cape Vine": "World 4",
   Chips: "World 4",
 
   // World 5
@@ -314,6 +317,7 @@ export const SYSTEM_ORDER: SystemKey[] = [
   "Obols",
   "Gallery",
   "Hatrack",
+  "Cape Vine",
   "Golden Food",
   "Set Bonuses",
   "Bundles",
@@ -413,6 +417,7 @@ const RULES: Rule[] = [
   { match: /^Trophies\b|^Trophy\b/i, system: "Gallery" },
   // Hatrack (PremHat) sub-source.
   { match: /^Hatrack\b/i, system: "Hatrack" },
+  { match: /^Cape Vine\b/i, system: "Cape Vine" },
   { match: /\(Golden Food\s|\(GFood\s|^Golden Food/i, system: "Golden Food" },
   {
     match: /\(Smithing\s|\(Set Bonus\s|^Smithing\b/i,
@@ -547,6 +552,7 @@ function explodeEtcBonus(items: ArkhNode[]): ArkhNode[] {
       else if (/^Nametag Bonuses/.test(cname)) newName = `Nametags ${idTag}`;
       else if (/^Trophy Bonuses/.test(cname)) newName = `Trophies ${idTag}`;
       else if (/^Hatrack Bonuses/.test(cname)) newName = `Hatrack ${idTag}`;
+      else if (/^Cape Vine Bonuses/.test(cname)) newName = `Cape Vine ${idTag}`;
       out.push({ ...child, name: newName });
     }
   }

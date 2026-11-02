@@ -176,7 +176,11 @@ describe.skipIf(!existsSync(SAVE))("Multikill what-if on the ARKHE save", () => 
     expect(lever.gainPct).toBeCloseTo((3313 / 3185 - 1) * 100, 9);
     // 2.086E31 / 6.48E30: max damage counts Briar Patch (exotic 41, +5083%) and
     // Royal Statue 0 (+200%) since 2026-10 — both in N.js `Max`, both stubbed
-    // before (the old ×3.47 came from that incomplete engine).
-    expect(lever.group).toMatch(/^needs ×3\.22 more max damage \(next tier at /);
+    // before (the old ×3.47 came from that incomplete engine). 2026-11-01:
+    // ×3.22 → ×2.56 — the update's green-sigil factor, ×(1 + min(100, 21
+    // Eclectic sigils × Grid 127's 1.23)/100) = ×1.2583, raises max damage
+    // (the Cape Vine rule doesn't move it at this precision). Engine pin, not
+    // a game reading.
+    expect(lever.group).toMatch(/^needs ×2\.56 more max damage \(next tier at /);
   });
 });
