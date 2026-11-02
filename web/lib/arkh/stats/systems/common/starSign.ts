@@ -7,7 +7,6 @@
 import { node, type ArkhNode } from "../../../node";
 import { label } from "../../entity-names";
 import { labData, starSignData } from "../../../save/data";
-import { starSignDropVal } from "../../data/common/starSign";
 import { computeMeritocBonusz } from "../w7/meritoc";
 import { computeShinyBonusS } from "../w4/breeding";
 import { StarSigns } from "../../data/game/customlists.js";
@@ -73,13 +72,6 @@ export function computeStarSignBonus(
   return { val: total, children };
 }
 
-const SIGN_TABLES: Record<
-  string,
-  { indices: number[]; val: (idx: number) => number }
-> = {
-  drop: { indices: [14, 76], val: starSignDropVal },
-};
-
 const STAR_CHIP_ID = 15;
 
 export function computeSeraphMulti(charIdx: number, saveData: SaveData): number {
@@ -119,43 +111,18 @@ export function computeSeraphMulti(charIdx: number, saveData: SaveData): number 
   return chipMulti * meritocMulti * seraphMulti;
 }
 
+// V1's descriptor entry ({ system: "starSign", id: "drop" }): the faithful
+// StarSigns.Drop, so only the signs active in StarSignsDL count (see
+// starSignBonusReal below). Keeps V1's "Seraph Multiplier" row name so the
+// V1 tree paths (Observed Max reference, source catalog) stay put.
+const SIGN_KEYS: Record<string, string> = { drop: "Drop" };
+
 export const starSign = {
   resolve(id: string, ctx: Ctx): ArkhNode {
-    const saveData = ctx.saveData;
-    const table = SIGN_TABLES[id];
-    if (!table)
-      return node("Star Signs", 0, null, { note: "starSign:" + id });
-    let baseTotal = 0;
-    const signChildren: ArkhNode[] = [];
-    for (let i = 0; i < table.indices.length; i++) {
-      const idx = table.indices[i];
-      const bonus = table.val(idx);
-      const name = label("Star Sign", idx);
-      signChildren.push(node(name, bonus, null, { fmt: "+" }));
-      baseTotal += bonus;
-    }
-    if (baseTotal <= 0)
-      return node("Star Signs", 0, signChildren, {
-        fmt: "+",
-        note: "starSign:" + id,
-      });
-
-    const totalMulti = computeSeraphMulti(ctx.charIdx, saveData);
-    const total = baseTotal * totalMulti;
-
-    // Flatten: skip the "Base Sum" wrapper and just hang the individual sign
-    // rows directly under "Star Signs", followed by the Seraph multiplier as
-    // its own sibling row. The base sum is implicit from the sum of sign
-    // children + the multiplier shows its own factor.
-    return node(
-      "Star Signs",
-      total,
-      [
-        ...signChildren,
-        node("Seraph Multiplier", totalMulti, null, { fmt: "x" }),
-      ],
-      { fmt: "+", note: "starSign:" + id }
-    );
+    const key = SIGN_KEYS[id];
+    if (!key) return node("Star Signs", 0, null, { note: "starSign:" + id });
+    const r = starSignBonusReal(key, ctx.charIdx, ctx.saveData, "Seraph Multiplier");
+    return node("Star Signs", r.val, r.children, { fmt: "+", note: "starSign:" + id });
   },
 };
 
@@ -167,7 +134,8 @@ export const starSign = {
 // class level (56). One star chip with no enabled signs re-adds the equipped
 // signs (2nd pass, @6491933) unless pass 1 went negative (N.js restores the
 // negatives); Seraph multiplies positive totals only (@6514021).
-// computeStarSignBonus above keeps the DR's "every listed sign" reading.
+// computeStarSignBonus above still counts every listed sign (it feeds the
+// derived damage / HP / EXP code, not the Drop Rate trackers).
 
 type SignTerm = {
   sign: number;
@@ -193,15 +161,16 @@ export const STAR_SIGN_TERMS: Record<string, readonly SignTerm[]> = {
   "78": [{ sign: 78, val: 3 }],
   // Artifact Find: sign 61 Artifosho → StarSigns["61"] += 15 (@6557415).
   "61": [{ sign: 61, val: 15 }],
-  // Drop Rate V2: sign 14 Pirate Booty → StarSigns.Drop += 5 (@6544444); sign
-  // 76 Druipi Major → += 12 (@6560535). V1 reads SIGN_TABLES.drop instead.
+  // Drop Rate: sign 14 Pirate Booty → StarSigns.Drop += 5 (@6544444); sign 76
+  // Druipi Major → += 12 (@6560535). V1 reaches this through the starSign
+  // resolver above, V2 calls it directly.
   Drop: [
     { sign: 14, val: 5 },
     { sign: 76, val: 12 },
   ],
 };
 
-export function starSignBonusReal(key: string, ci: number, saveData: SaveData): StarSignTree {
+export function starSignBonusReal(key: string, ci: number, saveData: SaveData, seraphLabel = "Seraph Multi"): StarSignTree {
   const terms = STAR_SIGN_TERMS[key] ?? [];
   const enabled = getEnabledStarSigns(saveData);
   const lv = Number((saveData.lv0AllData as any)?.[ci]?.[0]) || 0;
@@ -227,6 +196,6 @@ export function starSignBonusReal(key: string, ci: number, saveData: SaveData): 
   const seraph = base > 0 ? computeSeraphMulti(ci, saveData) : 1;
   const children: ArkhNode[] = pass1.map((t) => node(label("Star Sign", t.sign), t.val, null, { fmt: "+" }));
   if (again.length) children.push(node("Star chip: equipped signs count twice", sumOf(again), null, { fmt: "+" }));
-  if (seraph !== 1) children.push(node("Seraph Multi", seraph, null, { fmt: "x" }));
+  if (seraph !== 1) children.push(node(seraphLabel, seraph, null, { fmt: "x" }));
   return { val: base * seraph, children };
 }
