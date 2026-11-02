@@ -52,6 +52,16 @@ export function sigilBonus(sigilIdx: number, saveData: SaveData): number {
   return base * artifactMulti * meritocMulti;
 }
 
+/** N.js Labb("TotalGreenSigils"): sigils at level >= 4, the Eclectic tier
+ *  (the game calls it "green"). */
+// @njs TotalGreenSigils
+export function totalGreenSigils(saveData: SaveData): number {
+  const arr = ((saveData.cauldronP2WData as any)?.[4] || []) as any[];
+  let n = 0;
+  for (let i = 0; i < 24; i++) if (Number(arr[1 + 2 * i]) >= 4) n++;
+  return n;
+}
+
 const BUBBLE_KEYS: Record<string, { cauldron: number; index: number }> = {
   DROPPIN_LOADS: { cauldron: 3, index: 1 },
 };

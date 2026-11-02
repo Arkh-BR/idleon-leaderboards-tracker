@@ -9175,5 +9175,27 @@ export var MONSTERS = {
       1000,
       1
     ]
+  },
+  "cathie": {
+    "Name": "Catherine",
+    "AFKtype": "FIGHTING",
+    "MonsterFace": 23,
+    "MonsterOffsetX": 38,
+    "MonsterOffsetY": 47,
+    "HeightOfMonster": 70,
+    "MonsterMoving": 1,
+    "MovingFrame": 11,
+    "DeathFrame": 22,
+    "RespawnTime": 40,
+    "MonsterHPTotal": 14000,
+    "SpecialType": "_",
+    "ExpGiven": 420,
+    "ExpType": 0,
+    "Defence": 1,
+    "MoveSPEED": 5,
+    "Damages": [
+      2,
+      1
+    ]
   }
 };

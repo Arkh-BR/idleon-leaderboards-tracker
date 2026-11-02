@@ -6,13 +6,15 @@ import type { ArkhNode } from "@/lib/arkh/node";
 import { formatExpMulti } from "@/lib/expMulti/format";
 import { groupedGainsModel } from "@/lib/statTracker/biggestGains";
 import { flattenTree } from "@/lib/dropRate/treeFlatten";
+import { capeVineOff } from "./preCapeVine";
 
 const g = globalThis as unknown as { window?: unknown };
 if (!g.window) g.window = g;
 
 // Signed-in save of ARKHE (2026-09-23 05:25 UTC, gitignored golden cache).
 // Expected values = IdleonToolbox's live getClassExpMulti on this exact file
-// for Markhe on map 14, unless a comment says N.js ≠ IT.
+// for Markhe on map 14, unless a comment says N.js ≠ IT. Pre-update save and
+// oracle: evaluated with the Cape Vine OFF (the worn cape counts), see preCapeVine.
 const SAVE = "scripts/updater/golden/.cache/arkhe-live-2026-09-23.json";
 
 describe.skipIf(!existsSync(SAVE))("EXP Multi — Markhe on map 14 vs IdleonToolbox", () => {
@@ -20,7 +22,7 @@ describe.skipIf(!existsSync(SAVE))("EXP Multi — Markhe on map 14 vs IdleonTool
   let save: any;
   let markheIdx: number;
   beforeAll(() => {
-    save = JSON.parse(readFileSync(SAVE, "utf8"));
+    save = capeVineOff(JSON.parse(readFileSync(SAVE, "utf8")));
     markheIdx = save.charNames.indexOf("Markhe");
     tree = computeArkhExpMulti(save, markheIdx, 14).tree;
   });
@@ -326,7 +328,7 @@ describe.skipIf(!existsSync(SAVE))("EXP Multi — Markhe on map 14 vs IdleonTool
 describe.skipIf(!existsSync(SAVE))("EXP Multi — scenarios on the ARKHE save", () => {
   let save: any;
   beforeAll(() => {
-    save = JSON.parse(readFileSync(SAVE, "utf8"));
+    save = capeVineOff(JSON.parse(readFileSync(SAVE, "utf8")));
   });
   const srcOf = (tree: ArkhNode, id: string): number => {
     const gi = EXP_GROUPS.findIndex((x) => x.sources.includes(id));

@@ -51165,5 +51165,29 @@ export var ITEMS = {
     "desc_line6": "Filler",
     "desc_line7": "Filler",
     "desc_line8": "Filler"
+  },
+  "EquipmentCape23": {
+    "_type": "equip",
+    "displayName": "Lovely_Balloon",
+    "sellPrice": 1,
+    "typeGen": "aCape",
+    "ID": 24,
+    "Type": "CAPE",
+    "lvReqToCraft": "55",
+    "lvReqToEquip": 1,
+    "Class": "ALL",
+    "Speed": 0,
+    "Reach": 0,
+    "Weapon_Power": 20,
+    "STR": 0,
+    "AGI": 0,
+    "WIS": 0,
+    "LUK": 0,
+    "Defence": 0,
+    "UQ1txt": "%_DROP_RATE",
+    "UQ1val": 250,
+    "UQ2txt": "0",
+    "UQ2val": 0,
+    "Upgrade_Slots_Left": 0
   }
 };

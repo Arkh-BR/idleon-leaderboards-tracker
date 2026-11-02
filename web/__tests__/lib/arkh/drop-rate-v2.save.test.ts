@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { existsSync, readFileSync } from "node:fs";
 import { computeArkhDropRateV2 } from "@/lib/arkh/computeDropRateV2";
 import { formatDropRateV2 } from "@/lib/dropRateV2/format";
+import { capeVineOff } from "./preCapeVine";
 
 const g = globalThis as unknown as { window?: unknown };
 if (!g.window) g.window = g;
@@ -9,11 +10,12 @@ if (!g.window) g.window = g;
 // Real save (gitignored golden cache); skips in CI where it's absent.
 // ARKHE, 2026-10-30, captured through the site's sign-in at the same moment as
 // two in-game readings of Markhe (#8) on Molten Edge (map 324) — the same
-// readings V1's dr-live-2026-10-30.save.test.ts pins.
+// readings V1's dr-live-2026-10-30.save.test.ts pins. Pre-update readings:
+// evaluated with the Cape Vine OFF (422,881 / 259,438 with it ON).
 const SAVE = "scripts/updater/golden/.cache/arkhe-live-2026-10-30.json";
 
 describe.skipIf(!existsSync(SAVE))("Drop Rate V2 matches the in-game reading", () => {
-  const load = () => JSON.parse(readFileSync(SAVE, "utf8"));
+  const load = () => capeVineOff(JSON.parse(readFileSync(SAVE, "utf8")));
 
   // The character panel shows Math.floor(DR) once DR > 9999.
   it("Markhe on map 324 reads 448,955× in game", () => {

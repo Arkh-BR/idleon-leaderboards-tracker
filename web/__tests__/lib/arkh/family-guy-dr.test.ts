@@ -2,6 +2,7 @@ import { describe, it, expect, beforeAll } from "vitest";
 import { existsSync, readFileSync } from "node:fs";
 import { computeArkhDropRate } from "@/lib/arkh/computeDR";
 import type { ArkhNode } from "@/lib/arkh/node";
+import { capeVineOff } from "./preCapeVine";
 
 const g = globalThis as unknown as { window?: unknown };
 if (!g.window) g.window = g;
@@ -50,7 +51,9 @@ describe.skipIf(!existsSync(SAVE))("DR Royal Guardian family bonus honours The F
 describe.skipIf(!existsSync(SAVE))("DR total matches the in-game reading", () => {
   let save: { charNames: string[]; extraData: { totalTomePoints: number } };
   beforeAll(() => {
-    save = JSON.parse(readFileSync(SAVE, "utf8").replace(/^﻿/, ""));
+    // Pre-update reading (the worn cape still counted): Cape Vine OFF. With it
+    // ON the engine reads 342,578.95.
+    save = capeVineOff(JSON.parse(readFileSync(SAVE, "utf8").replace(/^﻿/, "")));
     // This export carries IdleonToolbox's Tome count (52,722); signed-in
     // saves get our computeTome stamp, 53,011 for this account state.
     save.extraData.totalTomePoints = 53011;
