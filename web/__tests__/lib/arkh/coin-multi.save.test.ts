@@ -258,7 +258,7 @@ describe.skipIf(!existsSync(SAVE))("Coin talent 643 — the game's target HP (sp
   // Engine pins (estimated tiers). 2026-11-01 fix round: +3 tiers each — max
   // damage now reads the full EtcBonuses("72"/"75"/"104") and
   // Companions(168)/(170) (were 19 and 4).
-  it("zArkhe's Jawbreaker curse (1180%, HP ×12.8): tier 23 → 22 on map 301", () => {
+  it("zArkhe's Jawbreaker curse (1180%, HP ×12.8): tier 22 on map 301", () => {
     expect(tierOf("zArkhe", 301)).toBe(22);
   });
 
