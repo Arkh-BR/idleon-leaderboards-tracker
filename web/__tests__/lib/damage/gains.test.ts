@@ -4,7 +4,7 @@ import { damageGainsModel } from "@/lib/damage/gains";
 import { computeArkhDamage } from "@/lib/arkh/computeDamage";
 import { computeGains } from "@/lib/statTracker/biggestGains";
 import { flattenTree } from "@/lib/dropRate/treeFlatten";
-import { DMG_LAYERS, DMG_NODES, DMG_RAT, DMG_ROOT, DMG_RULES } from "@/lib/arkh/stats/defs/damage";
+import { DMG_KEYS, DMG_LAYERS, DMG_NODES, DMG_RAT, DMG_ROOT, DMG_RULES } from "@/lib/arkh/stats/defs/damage";
 
 const g = globalThis as unknown as { window?: unknown };
 if (!g.window) g.window = g;
@@ -18,6 +18,8 @@ const CASES: Record<string, string[]> = {
 };
 const MAPS = [0, 14, 43, 306];
 const BUFF = "Buff 108 (active buff only)";
+// The map-306 divider's group: a map rule (the map is picked, not improved).
+const MAP_GROUP = DMG_LAYERS.flatMap((l) => l.steps).find((s) => s.key === DMG_KEYS.map)!.name;
 
 const rel = (a: number, b: number) => Math.abs(a / b - 1);
 
@@ -59,8 +61,10 @@ for (const [file, chars] of Object.entries(CASES)) describe.skipIf(!existsSync(D
         expect(s.path.startsWith(`${DMG_ROOT} / ${DMG_RULES.relic}`)).toBe(false);
         expect(flat).toHaveProperty([s.path]);
       }
-      // The pow group's one item and the buff are in the tree but never offered.
+      // The pow group's one item, the map divider and the buff are in the tree but never offered.
       expect(sources.some((s) => s.group === DMG_RULES.relic)).toBe(false);
+      expect(sources.some((s) => s.group === MAP_GROUP)).toBe(false);
+      expect(flat).toHaveProperty([`${DMG_ROOT} / ${DMG_NODES.mult} / ${MAP_GROUP} / Clamworks (map 306)`]);
       expect(flat).toHaveProperty([`${DMG_ROOT} / ${DMG_NODES.mult} / Buffs, Friends & Star Signs / ${BUFF}`]);
     });
 
@@ -88,6 +92,18 @@ for (const [file, chars] of Object.entries(CASES)) describe.skipIf(!existsSync(D
       expect(computeGains(damageGainsModel, flat, boosted).rows).toEqual([]);
     });
   });
+
+  if (file === "Arlong.json")
+    it("map 306 against a map-0 reference: the divider is not a source, the top gain is finite and sane", () => {
+      const yours = flattenTree(treeOf("Arlong", 306));
+      const ref0 = flattenTree(treeOf("Arlong", 0));
+      // Only the divider differs (1e-8 vs 1); bump one real source so a row exists.
+      const statue = damageGainsModel.sources(ref0, ref0).find((s) => s.source === "Statue 22")!.path;
+      const { rows } = computeGains(damageGainsModel, yours, { ...ref0, [statue]: ref0[statue] + 1e6 });
+      expect(rows.some((r) => r.group === MAP_GROUP)).toBe(false);
+      expect(rows[0]).toMatchObject({ path: statue });
+      expect(Number.isFinite(rows[0].gainPct) && rows[0].gainPct > 0 && rows[0].gainPct < 1e3).toBe(true);
+    });
 
   if (file === "Arlong.json")
     it("map 306 divides Max by 1e8, and the what-if follows", () => {

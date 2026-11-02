@@ -41,6 +41,10 @@ export const DMG_RULES = {
 /** One step of a layer: a group acting on the running total, the layer's soft
  *  cap (no sources), or the Reliquarium exponent (`v ** e`; its source is 0
  *  when not owned, which is the neutral step). */
+/** Pool keys other code needs by name. `map`: the map-306 divider's group, a
+ *  map rule rather than a source (Biggest Gains never ranks it). */
+export const DMG_KEYS = { map: "l2map" } as const;
+
 export type DmgStep =
   | StatGroup
   | { key: string; name: string; kind: "cap" }
@@ -172,7 +176,7 @@ export const DMG_LAYERS: readonly DmgLayer[] = [
       { key: "l2post2", name: "Companions, Crystal & Sigils", kind: "mult", sources: ["companions", "crystal6", "meritoc5", "greenSigils"] },
       { key: "l2bundle", name: "Bundle & Family", kind: "mult", sources: ["bundleA", "fam80"] },
       { key: "l2relic", name: DMG_RULES.relic, kind: "pow", sources: ["reliquarium"] },
-      { key: "l2map", name: "Map", kind: "mult", sources: ["map306"] },
+      { key: DMG_KEYS.map, name: "Map", kind: "mult", sources: ["map306"] },
     ],
   },
 ];
@@ -301,7 +305,7 @@ const damageDesc: Descriptor = {
           return { name: s.name, val: r.capIn ? r.capOut / r.capIn : 1, fmt: "x", note: `${short(r.capIn)} → ${short(r.capOut)}` };
         }
         if (s.kind === "pow") {
-          return { name: s.name, val: powExp(valsOf(s.key)), fmt: "raw", note: "L2 ^ exponent (0 = inactive)", children: items(s.key) };
+          return { name: s.name, val: powExp(valsOf(s.key)), fmt: "raw", note: `${layer.node} ^ exponent (0 = inactive)`, children: items(s.key) };
         }
         return groupNode(s, items(s.key), valsOf(s.key));
       });
