@@ -147,15 +147,19 @@ describe.skipIf(!existsSync(SAVE))("Multikill — map scenarios on the ARKHE sav
     expect(formatMultikill(computeArkhMultikill(save, idx("Markhe"), 14).total)).toBe("81706");
   });
 
-  it("map 301: soft cap on both halves, tier 24 from arkh's max damage (an estimate) → 3185%", () => {
+  // Engine pins: the damage tiers below are estimates from arkh's max damage.
+  // 2026-11-01 fix round (+3 tiers each): max damage now reads the full
+  // EtcBonuses("72"/"75"/"104") — nametags, trophies and the Hat Rack were
+  // dropped for string ids, ×64.5 on Markhe — and Companions(168)/(170), ×2.19.
+  it("map 301: soft cap on both halves, tier 27 from arkh's max damage (an estimate) → 3569%", () => {
     const t = computeArkhMultikill(save, idx("Markhe"), 301).tree;
     close(Number(t.children![0].val), 114.409);
     close(Number(t.children![2].val), 127.96466227076502); // raw Σ 1741.2331… (W7 page 460)
-    expect(t.children![1]).toMatchObject({ name: MK_NODES.tierW7, val: 24 });
+    expect(t.children![1]).toMatchObject({ name: MK_NODES.tierW7, val: 27 });
     expect(t.children![1].note).toMatch(/^estimate/); // IT's max damage gives tier 30 → 3953 (spec M4)
     expect(t.children![2].children!.at(-1)).toMatchObject({ name: MK_RULES.softCap });
     expect(t.children![2].children!.at(-1)!.note).toMatch(/reduced by ~93%$/);
-    expect(t.val).toBe(3185);
+    expect(t.val).toBe(3569);
   });
 
   it("map 251 (the collector's): the W6 page and tier 51 → 80686%; every character is at the cap", () => {
@@ -181,21 +185,21 @@ describe.skipIf(!existsSync(SAVE))("Multikill — map scenarios on the ARKHE sav
 
   // N.js ≠ IT: IT's getMultiKillTotal keeps w7a6's static 1e18 HP; N.js sets
   // Clamz_HP after the curses (@6467129).
-  it("Clamworks (map 306): HP = 1e16·30^8 = 6.561e27, no curse → tier 4 (estimate) → 626%", () => {
+  it("Clamworks (map 306): HP = 1e16·30^8 = 6.561e27, no curse → tier 7 (estimate) → 1010%", () => {
     const t = computeArkhMultikill(save, idx("Markhe"), 306).tree;
     const tier = t.children![1];
     expect(kid(tier, "Target HP").val).toBe(1e16 * Math.pow(30, 8));
-    expect(tier.val).toBe(4);
+    expect(tier.val).toBe(7);
     expect(tier.note).toMatch(/^estimate/);
-    expect(t.val).toBe(626);
+    expect(t.val).toBe(1010);
   });
 
-  it("zArkhe's Jawbreaker curse (1180%, HP ×12.8): tier 21 → 19 on map 301 → 2754% (3032% without it)", () => {
+  it("zArkhe's Jawbreaker curse (1180%, HP ×12.8): tier 22 on map 301 → 3171%", () => {
     const t = computeArkhMultikill(save, idx("zArkhe"), 301).tree;
     const tier = t.children![1];
     close(Number(kid(tier, "Target HP").children!.find((c) => c.name === "Prayer curses")!.val), 12.8);
-    expect(tier.val).toBe(19);
-    expect(t.val).toBe(2754);
+    expect(tier.val).toBe(22);
+    expect(t.val).toBe(3171);
   });
 
   it("OverkillStuffs('3') is on for all 11; only Markhe's AFK Info shows the line", () => {

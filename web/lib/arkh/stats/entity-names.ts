@@ -56,7 +56,9 @@ const MANUAL_NAMES: Record<string, Record<string, string>> = {
   // Companion 168 = "caveD" in CompanionDB (1.30x Drop Rate); IT never named
   // it. Without this it renders "Companion 168" and, lacking the "(Companion"
   // tag, misses the Companions category → falls to "Other".
-  companion: { "168": "Crystal Glunko" },
+  // Companion 105 = "cathie" (MONSTERS.cathie.Name "Catherine", the Cape Vine's
+  // custodian, 2026-11-01); IT's table still has the old placeholder there.
+  companion: { "105": "Catherine", "168": "Crystal Glunko" },
 };
 
 export function entityName(system: string, id: unknown): string {

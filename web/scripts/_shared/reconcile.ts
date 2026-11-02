@@ -19,6 +19,9 @@
 // So the Gallery Bonus Multi becomes one consistent, maximal number wherever
 // it appears, instead of inheriting a different player's value per item.
 //
+// Never register "Cape Vine Bonus Multi": it differs per vine slot (Golden
+// ×1, regular ×0.25), so it isn't one account-wide number and isn't 1 + Σ/100.
+//
 // NOTE: this only touches the multiplier's own subtree (at and below its
 // node). A parent that consumes the multiplier as a factor (e.g. a nametag
 // contribution = Tier × GBM × Base) stays at its own per-path max — those

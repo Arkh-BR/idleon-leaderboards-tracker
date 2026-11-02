@@ -34,6 +34,12 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   "Button_Bonuses": [
     "lib/arkh/stats/systems/exp/exp.ts"
   ],
+  "CapevineBonusMulti": [
+    "lib/arkh/stats/systems/w7/gallery.ts"
+  ],
+  "CapevineBonusesSystemON": [
+    "lib/arkh/stats/systems/w7/gallery.ts"
+  ],
   "CardLv": [
     "lib/arkh/stats/systems/exp/exp.ts"
   ],
@@ -93,6 +99,10 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   "FriendBonusXtraMulti": [
     "lib/arkh/stats/systems/common/friend.ts"
   ],
+  "GalleryBonusSystemON": [
+    "lib/arkh/stats/systems/common/stats.ts",
+    "lib/arkh/stats/systems/w7/gallery.ts"
+  ],
   "GambitBonuses": [
     "lib/arkh/stats/systems/coin/gambit.ts"
   ],
@@ -114,6 +124,12 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   "HatrackBonusMulti": [
     "lib/arkh/stats/systems/w7/gallery.ts"
   ],
+  "Have_ban_o": [
+    "lib/arkh/stats/systems/w7/gallery.ts"
+  ],
+  "InitializeCapeBonuses": [
+    "lib/arkh/stats/systems/w7/gallery.ts"
+  ],
   "KillroyBonuses": [
     "lib/arkh/stats/systems/artifact/terms.ts"
   ],
@@ -123,6 +139,9 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   "MSA_Bonus": [
     "lib/arkh/stats/systems/exp/exp.ts",
     "lib/arkh/stats/systems/exp/msa.ts"
+  ],
+  "Max": [
+    "lib/arkh/stats/systems/common/derived-damage.ts"
   ],
   "MeasurementBaseBonus": [
     "lib/arkh/stats/systems/coin/gambit.ts"
@@ -184,6 +203,10 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   "PodiumsOwned_Lv4": [
     "lib/arkh/stats/systems/w7/gallery.ts"
   ],
+  "PremHatBonusesSystemON": [
+    "lib/arkh/stats/systems/common/stats.ts",
+    "lib/arkh/stats/systems/w7/gallery.ts"
+  ],
   "PrismaBonusMult": [
     "lib/arkh/stats/systems/w2/alchemy.ts"
   ],
@@ -222,6 +245,9 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   ],
   "SuperBitType": [
     "lib/arkh/stats/systems/exp/exp.ts"
+  ],
+  "TotalGreenSigils": [
+    "lib/arkh/stats/systems/w2/alchemy.ts"
   ],
   "TotalStatz": [
     "lib/arkh/stats/data/w7/royalG.ts"
@@ -286,8 +312,12 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   "_customBlock_StarSigns": [
     "lib/arkh/stats/systems/common/starSign.ts"
   ],
+  "_customBlock_Stuff2": [
+    "lib/arkh/stats/systems/w7/gallery.ts"
+  ],
   "_customBlock_TotalStats": [
     "lib/arkh/stats/defs/drop-rate-v2.ts",
+    "lib/arkh/stats/systems/common/stats.ts",
     "lib/arkh/stats/systems/dr2/dr2.ts"
   ],
   "_customBlock_chipBonuses": [

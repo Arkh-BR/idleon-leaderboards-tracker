@@ -146,6 +146,10 @@ import {
   galleryBonusMulti,
   hatrackBonusMulti,
   trophyTier,
+  gallerySystemOn,
+  premhatSystemOn,
+  capevineSystemOn,
+  capeVineBonTot,
 } from "../w7/gallery";
 import { COMPANION_BONUS } from "../../data/game-constants";
 
@@ -444,9 +448,13 @@ export function computeEquipBaseStat(
   if (!eqData) return { val: 0, children: [] };
   const emm = emmData && (emmData as any)[charIdx];
   const sp = saveData.spelunkData || [];
-  const galleryOn =
-    (sp[16] && sp[16].length > 0) || (sp[17] && sp[17].length > 0);
-  const premhatOn = sp[46] && sp[46].length > 0;
+  // @njs GalleryBonusSystemON
+  const galleryOn = gallerySystemOn(charIdx);
+  // @njs PremHatBonusesSystemON
+  const premhatOn = premhatSystemOn(charIdx);
+  // Cape Vine (2026-11-01): the worn cape (slot 12) stops counting.
+  // @njs _customBlock_TotalStats
+  const capeOn = capevineSystemOn(charIdx);
   for (let row = 0; row < 2; row++) {
     const rr = eqData[row];
     if (!rr) continue;
@@ -455,6 +463,7 @@ export function computeEquipBaseStat(
     for (let slot = 0; slot < maxSlots; slot++) {
       if (row === 0 && galleryOn && (slot === 10 || slot === 14)) continue;
       if (row === 0 && premhatOn && slot === 8) continue;
+      if (row === 0 && capeOn && slot === 12) continue;
       const itemName = rr[slot] || rr[String(slot)];
       if (!itemName || itemName === "Blank") continue;
       const item = (ITEMS as any)[itemName];
@@ -495,8 +504,10 @@ export function computeGalleryBaseStat(
   }).val;
   const hbm = hatrackBonusMulti(saveData).val;
 
-  // Trophy base stat
-  const trophySlots = sp[16] || [];
+  // Trophy / nametag base stats: TotalStats adds them only while
+  // GalleryBonusSystemON.
+  const galOn = gallerySystemOn(charIdx);
+  const trophySlots = galOn ? sp[16] || [] : [];
   let trophyTotal = 0;
   const trophyCh: ArkhNode[] = [];
   for (let i = 0; i < trophySlots.length; i++) {
@@ -521,7 +532,7 @@ export function computeGalleryBaseStat(
   }
 
   // Nametag base stat
-  const nametagLevels = sp[17] || [];
+  const nametagLevels = galOn ? sp[17] || [] : [];
   let nametagTotal = 0;
   const nametagCh: ArkhNode[] = [];
   for (let ni = 0; ni < nametagLevels.length; ni++) {
@@ -548,8 +559,9 @@ export function computeGalleryBaseStat(
     total += nametagTotal;
   }
 
-  // Premhat base stat
-  const hats = sp[46] || [];
+  // Premhat base stat (TotalStats adds PremHatBonTOT only while
+  // PremHatBonusesSystemON).
+  const hats = premhatSystemOn(charIdx) ? sp[46] || [] : [];
   let premhatTotal = 0;
   const premhatCh: ArkhNode[] = [];
   for (let hi = 0; hi < hats.length; hi++) {
@@ -565,6 +577,18 @@ export function computeGalleryBaseStat(
   if (premhatTotal > 0) {
     children.push(node("Premhat Base " + statName, premhatTotal, premhatCh, { fmt: "raw" }));
     total += premhatTotal;
+  }
+
+  // Cape Vine base stat (2026-11-01): TotalStats(d) += CapeVineBonTOT[d].
+  const capeVal = capevineSystemOn(charIdx) ? capeVineBonTot(saveData)[statName] || 0 : 0;
+  if (capeVal) {
+    children.push(
+      node("Cape Vine Base " + statName, capeVal, null, {
+        fmt: "raw",
+        note: "Game quirk: the last cape's stat × its vine multi + the Hat Rack's stat again",
+      })
+    );
+    total += capeVal;
   }
 
   return { val: total, children };

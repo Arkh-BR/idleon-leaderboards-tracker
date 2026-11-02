@@ -1,17 +1,20 @@
 import { describe, it, expect } from "vitest";
 import { existsSync, readFileSync } from "node:fs";
 import { computeArkhDropRate } from "@/lib/arkh/computeDR";
+import { capeVineOff } from "./preCapeVine";
 
 const g = globalThis as unknown as { window?: unknown };
 if (!g.window) g.window = g;
 
 // Real save (gitignored golden cache); skips in CI where it's absent.
 // ARKHE, 2026-10-30, captured through the site's sign-in at the same moment as
-// two in-game readings of Markhe (#8) on Molten Edge (map 324).
+// two in-game readings of Markhe (#8) on Molten Edge (map 324). Pre-update
+// readings (his worn EquipmentCape18 still counted): evaluated with the Cape
+// Vine OFF. With it ON the engine reads 422,881 / 259,438.
 const SAVE = "scripts/updater/golden/.cache/arkhe-live-2026-10-30.json";
 
 describe.skipIf(!existsSync(SAVE))("DR matches the in-game reading (post Lumi/Halloween update)", () => {
-  const load = () => JSON.parse(readFileSync(SAVE, "utf8"));
+  const load = () => capeVineOff(JSON.parse(readFileSync(SAVE, "utf8")));
 
   // The stats screen shows Math.floor(DR) once DR > 9999.
   it("Markhe on map 324 reads 448,955× in game", () => {

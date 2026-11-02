@@ -3,12 +3,12 @@
 //
 // In-game, EtcBonuses(X) is one total across ALL gear sources, applied as a
 // single (1 + total/100) multiplier. We sum equipment + obol + nametag +
-// trophy + premhat for the requested stat id.
+// trophy + premhat + Cape Vine (2026-11-01) for the requested stat id.
 
 import { node, type ArkhNode } from "../../../node";
 import { equipment } from "./equipment";
 import { obol } from "../w2/obols";
-import { nametag, trophy, premhat } from "../w7/gallery";
+import { nametag, trophy, premhat, capevine } from "../w7/gallery";
 import type { SaveData } from "../../../state";
 
 type Ctx = { saveData: SaveData; charIdx: number };
@@ -30,18 +30,24 @@ function etcBonusLabel(id: number | (number | string)[]): string {
 }
 
 export const etcBonus = {
-  resolve(id: number | (number | string)[], ctx: Ctx): ArkhNode {
+  resolve(rawId: number | string | (number | string)[], ctx: Ctx): ArkhNode {
+    // N.js EtcBonuses("72") and EtcBonuses(72) read the same ETC map entry, so
+    // a numeric-string id (the damage / stat ports pass "72", "104", …) must
+    // reach every sub-source — the gallery ones used to drop it to 0.
+    const id = typeof rawId === "string" ? Number(rawId) : rawId;
     const eqNode = equipment.resolve(id, ctx);
     const obNode = obol.resolve(id, ctx);
-    const ntNode = nametag.resolve(typeof id === "number" ? id : 0, ctx);
-    const trNode = trophy.resolve(typeof id === "number" ? id : 0, ctx);
-    const phNode = premhat.resolve(typeof id === "number" ? id : 0, ctx);
+    const ntNode = nametag.resolve(id, ctx);
+    const trNode = trophy.resolve(id, ctx);
+    const phNode = premhat.resolve(id, ctx);
+    const cvNode = capevine.resolve(id, ctx);
     const total =
       (eqNode.val || 0) +
       (obNode.val || 0) +
       (ntNode.val || 0) +
       (trNode.val || 0) +
-      (phNode.val || 0);
+      (phNode.val || 0) +
+      (cvNode.val || 0);
     const children: ArkhNode[] = [];
     // Include sub-nodes even when val=0: the equipment / obol / nametag /
     // trophy resolvers each now append a catalog of DR-capable entries the
@@ -54,6 +60,7 @@ export const etcBonus = {
     if (ntNode.val || hasChildren(ntNode)) children.push(ntNode);
     if (trNode.val || hasChildren(trNode)) children.push(trNode);
     if (phNode.val) children.push(phNode);
+    if (cvNode.val) children.push(cvNode);
 
     // Keep the canonical id tag in the name so the existing entity-tag
     // splitter in DeepView mutes it (label() does the same thing for
