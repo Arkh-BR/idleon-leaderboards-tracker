@@ -146,6 +146,7 @@ import {
   galleryBonusMulti,
   hatrackBonusMulti,
   trophyTier,
+  premhatSystemOn,
   capevineSystemOn,
   capeVineBonTot,
 } from "../w7/gallery";
@@ -448,7 +449,8 @@ export function computeEquipBaseStat(
   const sp = saveData.spelunkData || [];
   const galleryOn =
     (sp[16] && sp[16].length > 0) || (sp[17] && sp[17].length > 0);
-  const premhatOn = sp[46] && sp[46].length > 0;
+  // @njs PremHatBonusesSystemON
+  const premhatOn = premhatSystemOn(charIdx);
   // Cape Vine (2026-11-01): the worn cape (slot 12) stops counting.
   // @njs _customBlock_TotalStats
   const capeOn = capevineSystemOn(charIdx);
@@ -554,8 +556,9 @@ export function computeGalleryBaseStat(
     total += nametagTotal;
   }
 
-  // Premhat base stat
-  const hats = sp[46] || [];
+  // Premhat base stat (TotalStats adds PremHatBonTOT only while
+  // PremHatBonusesSystemON).
+  const hats = premhatSystemOn(charIdx) ? sp[46] || [] : [];
   let premhatTotal = 0;
   const premhatCh: ArkhNode[] = [];
   for (let hi = 0; hi < hats.length; hi++) {

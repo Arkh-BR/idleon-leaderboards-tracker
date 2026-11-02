@@ -11,7 +11,7 @@ import { label, entityName } from "../../entity-names";
 import { emmData, equipOrderData } from "../../../save/data";
 import { ETC_STAT_NAMES, itemUqMatch } from "../../data/common/equipment";
 import { charHasChip, gridBonusValue } from "../w4/lab";
-import { capevineSystemOn } from "../w7/gallery";
+import { capevineSystemOn, premhatSystemOn } from "../w7/gallery";
 import { DR_ITEMS, type DrItem } from "../../data/dr-items.gen";
 import type { SaveData } from "../../../state";
 
@@ -136,7 +136,7 @@ export const equipment = {
     const sp = saveData.spelunkData || [];
     const galleryOn =
       ((sp[16] as any[])?.length > 0) || ((sp[17] as any[])?.length > 0);
-    const premhatOn = (sp[46] as any[])?.length > 0;
+    const premhatOn = premhatSystemOn(ctx.charIdx);
     // Cape Vine (2026-11-01): the worn cape (slot 12) stops counting.
     const capeOn = capevineSystemOn(ctx.charIdx);
     let skipSlots: Record<number, boolean> | null = null;

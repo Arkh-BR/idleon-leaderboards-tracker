@@ -481,7 +481,9 @@ export const premhat = {
       return node("Hatrack " + id, 0, null, { note: "premhat " + id });
     const saveData = ctx.saveData;
     const sp = saveData.spelunkData || [];
-    const hats = (sp[46] || []) as any[];
+    // TotalStats adds PremHatBonTOT only while PremHatBonusesSystemON.
+    const on = ctx.charIdx != null && premhatSystemOn(ctx.charIdx);
+    const hats = (on ? sp[46] || [] : []) as any[];
     const hbmObj = hatrackBonusMulti(saveData);
     const hbm = hbmObj.val;
     let total = 0;
@@ -526,14 +528,25 @@ export const premhat = {
 // N.js OnPlayStart4 pushes an empty Spelunk[54] into pre-update saves, so a
 // missing entry reads as "no capes deposited".
 
-/** ON for the character once its map 100 (W3 town) has no kills left. Towns
- *  have no kill requirement, so in practice every character is ON. */
+/** KillsLeft2Advance[map][0] <= 0 for the character (the current one in N.js).
+ *  Towns have no kill requirement, so a town check is ON in practice. */
+function noKillsLeft(charIdx: number, map: number): boolean {
+  const row = (klaData as any[])[charIdx]?.[map];
+  // ponytail: no KLA row (synthetic / partial save) reads as OFF; N.js would
+  // throw there. Real saves always carry KLA_N.
+  return Array.isArray(row) && (Number(row[0]) || 0) <= 0;
+}
+
+/** N.js Gallery("PremHatBonusesSystemON") @11144301: map 50 (W2 town). */
+// @njs PremHatBonusesSystemON
+export function premhatSystemOn(charIdx: number): boolean {
+  return noKillsLeft(charIdx, 50);
+}
+
+/** N.js Gallery("CapevineBonusesSystemON") @11146683: map 100 (W3 town). */
 // @njs CapevineBonusesSystemON
 export function capevineSystemOn(charIdx: number): boolean {
-  const row = (klaData as any[])[charIdx]?.[100];
-  // ponytail: no KLA row (synthetic / partial save) reads as OFF, the pre-update
-  // rules; N.js would throw there.
-  return Array.isArray(row) && (Number(row[0]) || 0) <= 0;
+  return noKillsLeft(charIdx, 100);
 }
 
 /** N.js Stuff2("GoldCapeVinesOwned") = round(1 + OLA[669] + 3·Have_ban_o). */
@@ -572,12 +585,37 @@ function capevineMultiNode(n: number, s: SaveData): ArkhNode {
 
 const CAPE_BASE_STATS = ["Weapon_Power", "STR", "AGI", "WIS", "LUK", "Defence"];
 
+type VineUq = { n: number; cape: string; name: string; txt: string; base: number; val: number };
+
+/** InitializeCapeBonuses' UQ loop, one line per (cape, UQ1/UQ2) — the single
+ *  source for both CapeVineBonTOT and the EtcBonuses node. */
+function vineUqs(s: SaveData): VineUq[] {
+  const out: VineUq[] = [];
+  const capes = vineCapes(s);
+  for (let n = 0; n < capes.length; n++) {
+    const item = (ITEMS as any)[capes[n]];
+    if (!item) continue;
+    const m = capevineBonusMulti(n, s);
+    for (const u of [1, 2]) {
+      const txt = item["UQ" + u + "txt"];
+      if (!txt || txt === "0") continue;
+      const base = Number(item["UQ" + u + "val"]) || 0;
+      const name = String(item.displayName || capes[n]).replace(/[|_]/g, " ");
+      out.push({ n, cape: capes[n], name, txt, base, val: m * base });
+    }
+  }
+  return out;
+}
+
 /** N.js Gallery("InitializeCapeBonuses") → DNSM.CapeVineBonTOT. */
 // @njs InitializeCapeBonuses
 export function capeVineBonTot(s: SaveData): Record<string, number> {
   const tot: Record<string, number> = {};
   const capes = vineCapes(s);
   if (!capes.length) return tot;
+  // UQ lines first, then the base-stat overwrite: N.js interleaves them per
+  // cape, which only differs if a UQ were named like a base stat (none is).
+  for (const q of vineUqs(s)) tot[q.txt] = (tot[q.txt] || 0) + q.val;
   // PremHatBonTOT[stat] for the six base stats (InitializePremHatBonuses).
   const hbm = hatrackBonusMulti(s).val;
   const hatStat: Record<string, number> = {};
@@ -591,10 +629,6 @@ export function capeVineBonTot(s: SaveData): Record<string, number> {
     const item = (ITEMS as any)[capes[n]];
     if (!item) continue;
     const m = capevineBonusMulti(n, s);
-    for (const u of [1, 2]) {
-      const txt = item["UQ" + u + "txt"];
-      if (txt && txt !== "0") tot[txt] = (tot[txt] || 0) + m * (Number(item["UQ" + u + "val"]) || 0);
-    }
     // The game's own behaviour, ported literally: the six base stats are
     // OVERWRITTEN per cape (not summed) and start from PremHatBonTOT[stat] —
     // the block was copied from InitializePremHatBonuses and still reads the
@@ -612,27 +646,20 @@ export const capevine = {
     let total = 0;
     const children: ArkhNode[] = [];
     if (Object.keys(map).length && ctx.charIdx != null && capevineSystemOn(ctx.charIdx)) {
-      const capes = vineCapes(s);
-      for (let n = 0; n < capes.length; n++) {
-        const item = (ITEMS as any)[capes[n]];
-        if (!item) continue;
-        for (const u of [1, 2]) {
-          const base = Number(item["UQ" + u + "val"]) || 0;
-          if (!map[item["UQ" + u + "txt"]]) continue;
-          const val = capevineBonusMulti(n, s) * base;
-          total += val;
-          children.push(
-            node(
-              String(item.displayName || capes[n]).replace(/[|_]/g, " "),
-              val,
-              [capevineMultiNode(n, s), node("Base", base, null, { fmt: "raw" })],
-              {
-                fmt: "+",
-                note: (goldCapeVinesOwned(s) > n ? "Golden Vine" : "Vine") + " slot " + (n + 1),
-              }
-            )
-          );
-        }
+      for (const q of vineUqs(s)) {
+        if (!map[q.txt]) continue;
+        total += q.val;
+        children.push(
+          node(
+            q.name,
+            q.val,
+            [capevineMultiNode(q.n, s), node("Base", q.base, null, { fmt: "raw" })],
+            {
+              fmt: "+",
+              note: (goldCapeVinesOwned(s) > q.n ? "Golden Vine" : "Vine") + " slot " + (q.n + 1),
+            }
+          )
+        );
       }
     }
     return node("Cape Vine Bonuses", total, children, { fmt: "+", note: "capevine " + id });

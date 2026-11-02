@@ -3,6 +3,8 @@ import { existsSync, readFileSync } from "node:fs";
 import { computeArkhDropRate } from "@/lib/arkh/computeDR";
 import { computeArkhDropRateV2 } from "@/lib/arkh/computeDropRateV2";
 import type { ArkhNode } from "@/lib/arkh/node";
+import { saveData } from "@/lib/arkh/state";
+import { etcBonus } from "@/lib/arkh/stats/systems/common/etcBonus";
 
 const g = globalThis as unknown as { window?: unknown };
 if (!g.window) g.window = g;
@@ -34,5 +36,16 @@ describe.skipIf(!existsSync(SAVE))("DR matches the in-game reading (post Cape Vi
 
   it("V2: the same 462,577×", () => {
     expect(Math.floor(computeArkhDropRateV2(load(), 8, 100).total)).toBe(462577);
+  });
+
+  // Max damage asks for EtcBonuses("104") with a string id; it must read the
+  // same full ETC map as 104 — Cape Vine included (%_BIGGER_DAMAGE: Bladed
+  // Rucksack 500, Beeg Egg 300, Dragonroll 100, all golden ×1.32 = 1188).
+  it("EtcBonuses(\"104\") = EtcBonuses(104), Cape Vine included", () => {
+    computeArkhDropRate(load(), 8, 100); // loads the save into the engine state
+    const ctx = { saveData, charIdx: 8 };
+    const s = etcBonus.resolve("104" as any, ctx);
+    expect(s.val).toBe(etcBonus.resolve(104, ctx).val);
+    expect(s.children!.find((c) => c.name === "Cape Vine Bonuses")!.val).toBeCloseTo(1188, 9);
   });
 });

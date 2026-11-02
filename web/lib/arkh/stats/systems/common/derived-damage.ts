@@ -122,7 +122,7 @@ import { computeCardSetBonus, computeCardLv } from "./cards";
 import { computePrayerReal } from "../w3/prayer";
 import { achieveStatus } from "../common/achievement";
 import { mainframeBonus, computeChipBonus, gridBonusValue } from "../w4/lab";
-import { capevineSystemOn } from "../w7/gallery";
+import { capevineSystemOn, premhatSystemOn } from "../w7/gallery";
 import { owl as owlResolver } from "../w1/owl";
 import { superBitType } from "../../../game-helpers";
 
@@ -279,11 +279,14 @@ export function computeMaxDamage(charIdx: number, ctx: Ctx): number {
       (s.spelunkData as any) &&
       (s.spelunkData as any)[16] &&
       (s.spelunkData as any)[16].length > 0;
-    // Cape Vine (2026-11-01): the worn cape (slot 12) stops counting.
+    // Same skips as TotalStats' equipment scan: premium hat (slot 8) while
+    // PremHatBonusesSystemON, worn cape (slot 12) while the Cape Vine is ON.
+    const _hatOn = premhatSystemOn(ci);
     const _capeOn = capevineSystemOn(ci);
     if (_eo && _eo[0]) {
       for (let _si = 0; _si < 16; _si++) {
-        if (_galleryActive && (_si === 8 || _si === 10 || _si === 14)) continue;
+        if (_galleryActive && (_si === 10 || _si === 14)) continue;
+        if (_hatOn && _si === 8) continue;
         if (_capeOn && _si === 12) continue;
         const _iname = _eo[0][_si];
         if (_iname && _iname !== "Blank") {
@@ -947,11 +950,17 @@ export function computeMaxDamage(charIdx: number, ctx: Ctx): number {
     (1 + (tomeBonus6 + ach371 + ach384) / 100) *
     (1 + Math.max(0, Math.min(2, safe(computeKillroyDMG, s) / 100)));
 
-  // More post-softcap: Companions(12,33,160) + Crystal6 card + Meritoc
+  // More post-softcap: Companions(12,33,160,168,170) + Crystal6 card + Meritoc
+  // N.js @4123746: max(1, (1+c12)(1+c33)(1+2·c160)(1+.5·c168)(1+c170)).
   const comp12 = rval(companion, 12, ctx);
   const comp33 = rval(companion, 33, ctx);
   const comp160 = rval(companion, 160, ctx);
-  const compMult = Math.max(1, (1 + comp12) * (1 + comp33) * (1 + 2 * comp160));
+  const comp168 = rval(companion, 168, ctx);
+  const comp170 = rval(companion, 170, ctx);
+  const compMult = Math.max(
+    1,
+    (1 + comp12) * (1 + comp33) * (1 + 2 * comp160) * (1 + 0.5 * comp168) * (1 + comp170)
+  );
   const crystal6Lv = safe(computeCardLv, "Crystal6", s);
   const crystal6Bonus = Math.min(1.5 * crystal6Lv, 15);
   const meritoc5 = safe(computeMeritocBonusz, 5, s);

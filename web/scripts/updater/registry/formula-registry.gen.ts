@@ -199,6 +199,10 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   "PodiumsOwned_Lv4": [
     "lib/arkh/stats/systems/w7/gallery.ts"
   ],
+  "PremHatBonusesSystemON": [
+    "lib/arkh/stats/systems/common/stats.ts",
+    "lib/arkh/stats/systems/w7/gallery.ts"
+  ],
   "PrismaBonusMult": [
     "lib/arkh/stats/systems/w2/alchemy.ts"
   ],

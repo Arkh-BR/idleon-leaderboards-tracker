@@ -14,6 +14,7 @@ import {
   capeVineBonTot,
 } from "@/lib/arkh/stats/systems/w7/gallery";
 import { totalGreenSigils } from "@/lib/arkh/stats/systems/w2/alchemy";
+import { premhatSystemOn } from "@/lib/arkh/stats/systems/w7/gallery";
 import { greenSigilDmgPct } from "@/lib/arkh/stats/systems/common/derived-damage";
 
 // EquipmentCape18: UQ1 %_CLASS_EXP_MULTI 100, UQ2 %_DROP_RATE_MULTI 40, STR 10.
@@ -22,9 +23,11 @@ import { greenSigilDmgPct } from "@/lib/arkh/stats/systems/common/derived-damage
 const DR = 2; // EtcBonuses(2) = %_DROP_RATE
 const DR_MULTI = 91; // EtcBonuses(91) = %_DROP_RATE_MULTI
 
-/** Character 0 wears EquipmentCape18 in slot 12; map 100's kills left = kla100. */
+/** Character 0 wears EquipmentCape18 in slot 12; map 100's kills left = kla100
+ *  (map 50, the Hat Rack's switch, is cleared as on every real save). */
 function setup(kla100: number | null, ola669 = 0) {
   const kla: any[] = [];
+  kla[50] = [0, 0, 0];
   if (kla100 !== null) kla[100] = [kla100, 0];
   const ola: number[] = [];
   ola[669] = ola669;
@@ -73,6 +76,29 @@ describe("the worn cape (slot 12)", () => {
     expect(etc(DR_MULTI, s)).toBe(0);
     expect(computeEquipBaseStat(0, "STR", s).val).toBe(0);
     expect(capeVineBonTot(s)).toEqual({});
+  });
+});
+
+describe("PremHatBonusesSystemON (map 50's kills left)", () => {
+  it("skips the premium hat slot (8) and adds the Hat Rack only while ON", () => {
+    const hatSave = () => {
+      const sp: any[] = [];
+      sp[46] = ["EquipmentHats1"]; // STR 2, Hat Rack multi 1.01
+      return sd({ spelunkData: sp });
+    };
+    const wear = (kla50: number) => {
+      const kla: any[] = [];
+      kla[50] = [kla50, 0, 0];
+      assignSaveData({ klaData: [kla], equipOrderData: [[{ 8: "EquipmentHats1" }, {}]], emmData: [[{}, {}]] });
+    };
+    wear(0);
+    expect(premhatSystemOn(0)).toBe(true);
+    expect(computeEquipBaseStat(0, "STR", hatSave()).val).toBe(0);
+    expect(computeGalleryBaseStat(0, { saveData: hatSave(), charIdx: 0 } as any, "STR").val).toBeCloseTo(2.02, 9);
+    wear(4);
+    expect(premhatSystemOn(0)).toBe(false);
+    expect(computeEquipBaseStat(0, "STR", hatSave()).val).toBe(2);
+    expect(computeGalleryBaseStat(0, { saveData: hatSave(), charIdx: 0 } as any, "STR").val).toBe(0);
   });
 });
 

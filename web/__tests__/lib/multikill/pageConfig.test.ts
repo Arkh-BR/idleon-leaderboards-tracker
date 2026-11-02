@@ -152,8 +152,8 @@ describe.skipIf(!existsSync(SAVE))("Multikill what-if on the ARKHE save", () => 
 
   it.each<[number, number]>([
     [14, 81706],
-    [301, 3185],
-    [306, 626],
+    [301, 3569],
+    [306, 1010],
     [251, 80686],
   ])("Markhe on map %i: totalFromFlat = the tree = %i", (map, want) => {
     const t = computeArkhMultikill(save, markhe(), map).tree;
@@ -170,10 +170,13 @@ describe.skipIf(!existsSync(SAVE))("Multikill what-if on the ARKHE save", () => 
     expect(multikillGainsModel.totalFromFlat(flattenTree(t))).toBe(6146);
   });
 
-  it("Markhe on map 301: +1 damage tier, 24 → 25, is +4.0%", () => {
+  // Engine pins (estimated tiers). 2026-11-01 fix round: max damage now reads
+  // the full EtcBonuses("72"/"75"/"104") (nametags/trophies/Hat Rack were
+  // dropped for string ids) and Companions(168)/(170): tier 24 → 27, 3185 → 3569.
+  it("Markhe on map 301: +1 damage tier, 27 → 28, is +3.6%", () => {
     const [lever] = multikillGainsModel.levers!(flattenTree(computeArkhMultikill(save, markhe(), 301).tree));
-    expect(lever).toMatchObject({ you: 24, max: 25 });
-    expect(lever.gainPct).toBeCloseTo((3313 / 3185 - 1) * 100, 9);
+    expect(lever).toMatchObject({ you: 27, max: 28 });
+    expect(lever.gainPct).toBeCloseTo((3697 / 3569 - 1) * 100, 9);
     // 2.086E31 / 6.48E30: max damage counts Briar Patch (exotic 41, +5083%) and
     // Royal Statue 0 (+200%) since 2026-10 — both in N.js `Max`, both stubbed
     // before (the old ×3.47 came from that incomplete engine). 2026-11-01:
@@ -181,6 +184,7 @@ describe.skipIf(!existsSync(SAVE))("Multikill what-if on the ARKHE save", () => 
     // Eclectic sigils × Grid 127's 1.23)/100) = ×1.2583, raises max damage
     // (the Cape Vine rule doesn't move it at this precision). Engine pin, not
     // a game reading.
-    expect(lever.group).toMatch(/^needs ×2\.56 more max damage \(next tier at /);
+    // Fix round: ×2.56 → ×2.26 (next tier at 2.608E33), same causes as above.
+    expect(lever.group).toMatch(/^needs ×2\.26 more max damage \(next tier at 2\.608E33\)/);
   });
 });

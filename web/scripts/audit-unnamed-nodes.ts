@@ -64,6 +64,7 @@ function walk(n: ArkhNode, depth: number, path: string[]) {
     "Nametag Bonuses",
     "Trophy Bonuses",
     "Hatrack Bonuses",
+    "Cape Vine Bonuses",
     "Available DR Items (not equipped)",
     "Available DR Obols (not equipped)",
     "× 1.4",

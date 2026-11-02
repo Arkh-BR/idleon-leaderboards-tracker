@@ -30,13 +30,17 @@ function etcBonusLabel(id: number | (number | string)[]): string {
 }
 
 export const etcBonus = {
-  resolve(id: number | (number | string)[], ctx: Ctx): ArkhNode {
+  resolve(rawId: number | string | (number | string)[], ctx: Ctx): ArkhNode {
+    // N.js EtcBonuses("72") and EtcBonuses(72) read the same ETC map entry, so
+    // a numeric-string id (the damage / stat ports pass "72", "104", …) must
+    // reach every sub-source — the gallery ones used to drop it to 0.
+    const id = typeof rawId === "string" ? Number(rawId) : rawId;
     const eqNode = equipment.resolve(id, ctx);
     const obNode = obol.resolve(id, ctx);
-    const ntNode = nametag.resolve(typeof id === "number" ? id : 0, ctx);
-    const trNode = trophy.resolve(typeof id === "number" ? id : 0, ctx);
-    const phNode = premhat.resolve(typeof id === "number" ? id : 0, ctx);
-    const cvNode = capevine.resolve(typeof id === "number" ? id : 0, ctx);
+    const ntNode = nametag.resolve(id, ctx);
+    const trNode = trophy.resolve(id, ctx);
+    const phNode = premhat.resolve(id, ctx);
+    const cvNode = capevine.resolve(id, ctx);
     const total =
       (eqNode.val || 0) +
       (obNode.val || 0) +
