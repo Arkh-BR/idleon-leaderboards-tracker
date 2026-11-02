@@ -61,6 +61,13 @@ describe("shared Observed Max collector", () => {
     expect(meta).toContain("export const TOP_TEST_HYPOTHETICAL_TOTAL = 3;");
   });
 
+  it("the generated header names the rule the reference was built with", () => {
+    const head = (extra: Partial<StatCollectorConfig>) => renderTopFiles({ ...cfg, ...extra }, {}, {}, {}, "warrior", null, 0, 20, "2026-11-01T00:00:00.000Z").data;
+    expect(head({})).toContain("of that family's chars run");
+    expect(head({ familySources: [] })).toContain("the rest from every char");
+    expect(head({ perFamily: false })).toContain('ONE account-wide family ("all")');
+  });
+
   it("the generated lookup picks the class's family, then its talent profile", () => {
     const { data } = renderTopFiles(cfg, { warrior: { Root: 4 }, mage: { Root: 7 } }, { "mage:t35": { Root: 8 } }, { Warrior: ["warrior", "base"], Wizard: ["mage", "t35"] }, "mage", null, 8, 20, "2026-10-31T00:00:00.000Z");
     const mod = evalLookup(data);
@@ -107,19 +114,21 @@ describe("shared Observed Max collector", () => {
   });
 
   describe("runTopCollector family key", () => {
-    // One cached-save envelope, a warrior (class 7) — enough for the collector's per-char loop.
-    const run = async (extra: Partial<StatCollectorConfig>) => {
+    // One cached-save envelope per class (default: a warrior, class 7), one char each.
+    const run = async (extra: Partial<StatCollectorConfig>, classes = [7]) => {
       const dir = mkdtempSync(join(tmpdir(), "top-collector-"));
       const saves = join(dir, "saves");
       mkdirSync(saves);
-      writeFileSync(join(saves, "p1.json"), JSON.stringify({ charNames: ["W"], data: { PVStatList_0: [0, 0, 0, 0, 1], CharacterClass_0: 7 } }));
+      classes.forEach((c, k) =>
+        writeFileSync(join(saves, `p${k}.json`), JSON.stringify({ charNames: ["W"], data: { PVStatList_0: [0, 0, 0, 0, 1], CharacterClass_0: c } }))
+      );
       const outputFile = join(dir, "top.ts");
       const metaFile = join(dir, "top.meta.ts");
       const quiet = [vi.spyOn(console, "log").mockImplementation(() => {}), vi.spyOn(process.stdout, "write").mockImplementation(() => true)];
       try {
         await runTopCollector(
           { ...cfg, focusBoard: "x", gated: [], outputFile, metaFile, computePools: () => ({ m: pool(["Y", 5]), p: pool(["Z", 10]) }), ...extra } as StatCollectorConfig,
-          ["--saves-dir", saves, "--limit", "1"]
+          ["--saves-dir", saves, "--limit", String(classes.length)]
         );
         return readFileSync(outputFile, "utf8");
       } finally {
@@ -140,6 +149,30 @@ describe("shared Observed Max collector", () => {
       const data = await run({});
       expect(data).toContain('export const TOP_TEST_DEFAULT_FAMILY = "warrior";');
       expect(data).not.toContain('"all": {');
+    });
+
+    // A beginner (class 1) with high LUK and no gear; a warrior (class 7) with low LUK in the Corsair Uniform.
+    const lukAndGear = (save: any) =>
+      save.data.CharacterClass_0 === 1
+        ? { m: pool(["Y", 1]), p: pool(["LUK curve", 50], ["Corsair Uniform", 0]) }
+        : { m: pool(["Y", 1]), p: pool(["LUK curve", 5], ["Corsair Uniform", 157]) };
+
+    it("familySources: a stat-scaled source stays per family, every other one takes the best across families", async () => {
+      const lookup = evalLookup(await run({ computePools: lukAndGear, familySources: [{ group: "p", name: "LUK curve" }] }, [1, 7]));
+      expect(lookup("Voidwalker")["Root / P / LUK curve"]).toBe(50);
+      expect(lookup("Voidwalker")["Root / P / Corsair Uniform"]).toBe(157); // the warrior's gear
+      expect(lookup("Royal_Guardian")["Root / P / LUK curve"]).toBe(5); // not the beginner's LUK
+      expect(lookup("Royal_Guardian")["Root / P / Corsair Uniform"]).toBe(157);
+    });
+
+    it("familySources omitted keeps every source per family", async () => {
+      const lookup = evalLookup(await run({ computePools: lukAndGear }, [1, 7]));
+      expect(lookup("Voidwalker")["Root / P / LUK curve"]).toBe(50);
+      expect(lookup("Voidwalker")["Root / P / Corsair Uniform"]).toBe(0);
+    });
+
+    it("refuses a familySources entry that names no source", async () => {
+      await expect(run({ computePools: lukAndGear, familySources: [{ group: "p", name: "Renamed" }] }, [1, 7])).rejects.toThrow(/familySources/);
     });
   });
 });

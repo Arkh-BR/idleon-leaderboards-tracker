@@ -45,13 +45,13 @@ export const DR2_PAGE: StatPageConfig = {
   },
   methodologyNote:
     "Drop Rate gain = how much your total Drop Rate would rise if this source matched the Observed Max — the best value " +
-    "of each source among the top players of your class family (warrior, archer, mage and beginner lines are measured apart), " +
-    "recomputed through the game's formula. Values are a ceiling, not a one-level step. " +
+    "of each source among the top players — recomputed through the game's formula. LUK Scaling (it depends on your Total LUK) is " +
+    "measured within your class family (warrior, archer, mage or beginner line). Values are a ceiling, not a one-level step. " +
     "The weekly vote isn't ranked: it's server-wide and changes every week. " +
     "The Arcane Map multiplier depends on the map you farm, so the Include Arcane Map checkbox next to Compare vs Observed Max " +
     "excludes it from the Compare reference (Biggest Gains keeps the full reference). " +
     "This is the beta engine; the original Drop Rate page stays available.",
-  compareTitle: "Compare every Drop Rate source against the best value observed across the top players of your class family",
+  compareTitle: "Compare every Drop Rate source against the best value observed across the top players (LUK Scaling: within your class family)",
   gainsTabTitle: "Rank your Drop Rate sources by how much Drop Rate matching the top players would give",
   footer: "Drop Rate V2 (beta) is computed locally from your save — every term of the game's Drop Rate formula, group by group.",
 };

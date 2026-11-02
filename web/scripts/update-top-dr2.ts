@@ -3,9 +3,14 @@
 // TotalStats("Drop_Rarity") term by term. Each character is measured on its
 // save's best Arcane drop map (bestDrMapIdx: the fighting map with the highest
 // arcane slot-0 bonus — never the Cove, 216); the formula's class talents
-// (DR2_CLASS_TALENTS) are gated per class. The reference stays per CLASS FAMILY
-// (default collector): LUK weighs differently per class line, so mixing the
-// best LUK of a mage with a warrior's other sources would be unreachable.
+// (DR2_CLASS_TALENTS) are gated per class. Only the LUK curve is stat-scaled
+// (LUK is the beginner line's main stat), so only it stays per CLASS FAMILY;
+// every other source takes the best across all families. Equipment is taken
+// cross-family too, so a Class ALL item like the Corsair Uniform counts for a
+// family none of whose top players wears it. A few weapons are class-locked:
+// Mittens of the Gods (beginner only, +40% Drop Rate vs +20 for the other
+// lines' best weapons) sets the Drop Rate (Equipment) row for every family —
+// ~0.02% of the root, accepted.
 //
 // Run (from web/):  npx tsx scripts/update-top-dr2.ts   [--limit N] [--slow] [--saves-dir <dir>]
 import { join } from "node:path";
@@ -28,6 +33,7 @@ runTopCollector({
   computePools: (save, ci) => computeArkhDropRateV2Pools(save, ci, bestDrMapIdx(save, ci)),
   combine: combineDropRateV2Pools,
   gated: deriveGatedTalentsFor(DR2_CLASS_TALENTS),
+  familySources: [{ group: "base", name: "LUK Scaling (Drop Rate)" }],
   outputFile: join(__dirname, "..", "lib", "dropRateV2", "topDropRateV2.ts"),
   metaFile: join(__dirname, "..", "lib", "dropRateV2", "topDropRateV2.meta.ts"),
   constPrefix: "TOP_DR2",

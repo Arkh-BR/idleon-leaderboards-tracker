@@ -1,7 +1,10 @@
 // Refresh the bundled top-player EXP Multi reference in
 // lib/expMulti/topExpMulti.ts (+ .meta.ts). Each character is measured on its
 // save's best EXP map (bestExpMapIdx: arcane slot 1 × Shiny Medallions — the
-// spec's D5); Lucky Charms (talent 35) is gated per class.
+// spec's D5); Lucky Charms (talent 35) is gated per class. The LUK curve (its
+// "LUK Scaling" term and Lucky Charms' ×curve cross term) is the only
+// stat-scaled source, so only those stay per class family; every other source
+// takes the best across all families.
 //
 // Run (from web/):  npx tsx scripts/update-top-exp.ts   [--limit N] [--slow]
 import { join } from "node:path";
@@ -23,6 +26,10 @@ runTopCollector({
   computePools: (save, ci) => computeArkhExpPools(save, ci, bestExpMapIdx(save, ci)),
   combine: combineExpPools,
   gated: deriveGatedTalentsFor(EXP_CLASS_TALENTS),
+  familySources: [
+    { group: "g10", name: "LUK Scaling (Class EXP)" },
+    { group: "g10", name: "Lucky Charms (Talent 35)" },
+  ],
   outputFile: join(__dirname, "..", "lib", "expMulti", "topExpMulti.ts"),
   metaFile: join(__dirname, "..", "lib", "expMulti", "topExpMulti.meta.ts"),
   constPrefix: "TOP_EXP",
