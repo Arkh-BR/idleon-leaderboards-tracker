@@ -63,11 +63,14 @@ describe("Damage page config", () => {
     expect(DAMAGE_PAGE.totalTitle!(5, null)).toBe("Min — ~ Max 5");
   });
 
-  it("loads an (empty, until Task 7's collector fills it) Observed Max without throwing", async () => {
+  it("loads the generated Observed Max: players scanned, and a finite positive Damage root", async () => {
     const top = await DAMAGE_PAGE.loadTop();
-    expect(top.flatForClass(null)).toEqual({});
-    expect(top.flatForClass("Barbarian")).toEqual({});
-    expect(DAMAGE_PAGE.topMeta).toEqual({ generatedAt: "", playersScanned: 0 });
+    expect(DAMAGE_PAGE.topMeta.playersScanned).toBeGreaterThan(0);
+    for (const classKey of [null, "Barbarian"]) {
+      const root = top.flatForClass(classKey)["Damage"];
+      expect(Number.isFinite(root), String(classKey)).toBe(true);
+      expect(root, String(classKey)).toBeGreaterThan(0);
+    }
   });
 });
 
