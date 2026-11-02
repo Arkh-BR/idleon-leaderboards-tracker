@@ -193,6 +193,12 @@ export const STAR_SIGN_TERMS: Record<string, readonly SignTerm[]> = {
   "78": [{ sign: 78, val: 3 }],
   // Artifact Find: sign 61 Artifosho → StarSigns["61"] += 15 (@6557415).
   "61": [{ sign: 61, val: 15 }],
+  // Drop Rate V2: sign 14 Pirate Booty → StarSigns.Drop += 5 (@6544444); sign
+  // 76 Druipi Major → += 12 (@6560535). V1 reads SIGN_TABLES.drop instead.
+  Drop: [
+    { sign: 14, val: 5 },
+    { sign: 76, val: 12 },
+  ],
 };
 
 export function starSignBonusReal(key: string, ci: number, saveData: SaveData): StarSignTree {

@@ -61,6 +61,18 @@ export default function StatBiggestGains({
 
   if (computeError) return <Banner>{computeError}</Banner>;
   if (!yoursFlat) return <Hint>Load a save above to see your biggest {config.statName} gains.</Hint>;
+  const replacedBy = config.gains.replacedBy?.(yoursFlat) ?? null;
+  if (replacedBy) {
+    return (
+      <div className="space-y-4">
+        <div className="rounded-md border border-zinc-700 bg-zinc-900/60 px-3 py-2 text-sm text-zinc-400">
+          On this map your total is replaced by {replacedBy} — your other sources don&apos;t change it. Pick another map to see your biggest
+          gains.
+        </div>
+        <p className="text-[11px] text-zinc-500 leading-snug">{config.methodologyNote}</p>
+      </div>
+    );
+  }
   if (refError) return <Banner>{config.errPrefix}: {refError}</Banner>;
   if (!ref) {
     return (

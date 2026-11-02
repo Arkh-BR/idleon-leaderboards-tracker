@@ -51,6 +51,13 @@ export default function HomePage() {
           cta="Open Drop Rate"
         />
         <ShortcutCard
+          href="/drop-rate-v2"
+          icon="🎲"
+          title="Drop Rate V2 (beta)"
+          description="The new beta engine: every term of the game's Drop Rate formula on your save, group by group, with snapshots and a top-player comparison."
+          cta="Open Drop Rate V2"
+        />
+        <ShortcutCard
           href="/coin-multi"
           icon="🪙"
           title="Coin Multi Tracker"

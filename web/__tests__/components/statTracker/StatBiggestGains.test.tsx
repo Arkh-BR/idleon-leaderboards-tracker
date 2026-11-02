@@ -51,6 +51,22 @@ describe("StatBiggestGains", () => {
     expect(screen.queryByText(/No comparable top-player reference/)).toBeNull();
   });
 
+  it("explains a replaced total instead of claiming every source is at the max", async () => {
+    const gains: GainsModel = { ...testConfig.gains, replacedBy: () => "Test Cove" };
+    render(<StatBiggestGains config={{ ...testConfig, gains }} yoursFlat={yours} classKey={null} loadReference={async () => ref} />);
+    expect(await screen.findByText(/total is replaced by Test Cove/)).toBeInTheDocument();
+    expect(screen.getByText(/Pick another map/)).toBeInTheDocument();
+    expect(screen.queryByText(/Biggest win/)).toBeNull();
+    expect(screen.queryByText(/at or above the Observed Max/)).toBeNull();
+    expect(screen.getByText(testConfig.methodologyNote)).toBeInTheDocument();
+  });
+
+  it("ranks as usual when replacedBy says nothing replaces the total", async () => {
+    const gains: GainsModel = { ...testConfig.gains, replacedBy: () => null };
+    render(<StatBiggestGains config={{ ...testConfig, gains }} yoursFlat={yours} classKey={null} loadReference={async () => ref} />);
+    expect(await screen.findByText(/Biggest win/)).toBeInTheDocument();
+  });
+
   it("shows the compute error banner", () => {
     render(
       <StatBiggestGains
