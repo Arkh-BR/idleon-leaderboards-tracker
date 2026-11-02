@@ -12,7 +12,7 @@ if (!g.window) g.window = g;
 
 const SAVE = "scripts/updater/golden/.cache/arkhe-live-2026-11-01-postupdate.json";
 
-describe("formatDamage (Player Info: ceil of Min and Max, game notation)", () => {
+describe("formatDamage (ceil, then the site notation)", () => {
   it.each<[number, string]>([
     [0.2, "1"],
     [999998.2, "999,999"],
