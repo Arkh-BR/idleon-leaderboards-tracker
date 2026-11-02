@@ -166,15 +166,7 @@ export function computeOverkillTier(
   }
 
   const okExp = mapIdx >= 300 ? 5 : 2;
-  let tier = 1;
-  for (let st = 0; st < 50; st++) {
-    const threshold = monsterHP * okExp * Math.pow(okExp, st + 1);
-    if ((maxDmg as number) >= threshold) {
-      tier = st + 2;
-    } else {
-      break;
-    }
-  }
+  const tier = multikillTier(monsterHP, maxDmg as number, okExp);
 
   return { tier, maxDmg: maxDmg as number, monsterHP, mapIdx, exponent: okExp };
 }
