@@ -294,7 +294,7 @@ function HistoryTable({
 }: {
   history: StatSnapshot[];
   statName: string;
-  unit: "x" | "%";
+  unit: "x" | "%" | "";
   formatTotal: (x: number) => string;
   onDelete: (ts: number) => void;
   onPickBaseline: (snap: StatSnapshot) => void;
@@ -348,7 +348,7 @@ function HistoryTable({
                       {Number.isFinite(s.value) ? `${formatTotal(s.value)}%` : "—"}
                     </span>
                   ) : (
-                    <Num value={s.value} unit="x" />
+                    <Num value={s.value} unit={unit} />
                   )}
                 </td>
                 <td className="px-2 py-2 text-right font-mono text-xs">

@@ -36,6 +36,7 @@ import { EXP_PAGE } from "@/lib/expMulti/pageConfig";
 import { COIN_PAGE } from "@/lib/coinMulti/pageConfig";
 import { AFK_PAGE } from "@/lib/afkGains/pageConfig";
 import { MULTIKILL_PAGE } from "@/lib/multikill/pageConfig";
+import { DAMAGE_PAGE } from "@/lib/damage/pageConfig";
 import type { StatPageConfig } from "@/lib/statTracker/config";
 
 const save = () => ({
@@ -147,6 +148,12 @@ describe("StatCalculator", () => {
     expect(screen.getByText(/Multikill Calculator/)).toBeInTheDocument();
   });
 
+  it("renders the Damage config", () => {
+    render(<StatCalculator config={DAMAGE_PAGE} />);
+    expect(loader!.storageKey).toBe("damage-tracker.playerName");
+    expect(screen.getByText(/Damage Calculator/)).toBeInTheDocument();
+  });
+
   it("prints a % stat's headline in its unit, with the percent as the title", async () => {
     const tree = { name: "Test Multi", val: 422.31870591798446, fmt: "x" as const, children: [] };
     const pct: StatPageConfig = {
@@ -179,5 +186,26 @@ describe("StatCalculator", () => {
     render(<StatCalculator config={pct} />);
     act(() => loader!.onSave(save()));
     expect(await screen.findByText("81706%")).toHaveAttribute("title", "81,706%");
+  });
+
+  it("prints the config's headline (no unit) and hands totalTitle the tree", async () => {
+    const tree = { name: "Test Multi", val: 2e9, fmt: "raw" as const, children: [{ name: "Mastery", val: 0.5, fmt: "raw" as const }] };
+    const cfg: StatPageConfig = {
+      ...testConfig,
+      unit: "",
+      headline: (t, total) => `${total * Number(t.children?.[0].val)} ~ ${total}`,
+      totalTitle: (x, t) => `Min ${x * Number(t?.children?.[0].val)}`,
+      compute: async () => ({ tree, total: tree.val }),
+    };
+    render(<StatCalculator config={cfg} />);
+    act(() => loader!.onSave(save()));
+    expect(await screen.findByText("1000000000 ~ 2000000000")).toHaveAttribute("title", "Min 1000000000");
+  });
+
+  it('unit "" prints the bare formatTotal, with no trailing unit in the default title either', async () => {
+    const tree = { name: "Test Multi", val: 12.5, fmt: "raw" as const, children: [] };
+    render(<StatCalculator config={{ ...testConfig, unit: "", compute: async () => ({ tree, total: 12.5 }) }} />);
+    act(() => loader!.onSave(save()));
+    expect(await screen.findByText("12.50")).toHaveAttribute("title", "1.250000e+1");
   });
 });
