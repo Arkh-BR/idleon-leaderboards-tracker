@@ -16,6 +16,7 @@ import { legendPTSbonus, computePaletteBonus } from "../w7/spelunking";
 import { cropSCbonMulti } from "../w6/farming";
 import { vaultKillzTotal, cardsCollected, accountMapKills } from "./accountKills";
 import { flurboShop } from "./flurbo";
+import { rooBonus } from "./roo";
 import { divinityMinorSum } from "./divinityMinor";
 import { computeArtifactBonus } from "../w5/sailing";
 import { votingBonusz } from "../w2/voting";
@@ -57,25 +58,8 @@ const add = (name: string, r: Tree, note?: string): ArkhNode =>
   node(name, r.val, r.children, { fmt: "+", note });
 const raw = (name: string, v: number, note?: string): ArkhNode => node(name, v, null, { fmt: "raw", note });
 
-// FlurboShop lives in a leaf module (derived-damage reads it); re-exported here.
-export { flurboShop };
-
-/** N.js Summoning("RooBonuses", idx) (@10827396): coef·(1 + Legend26/100)·
- *  (1 + Companions(51))·(1 + RooBonusAll/100)·max(0, ⌈(OLA[271] − idx)/7⌉),
- *  RooBonusAll = the megafeather %. N.js coef per idx 0–6: 3, 3, 5, 2, 2, .5, 3. */
-// @njs RooBonuses
-export function rooBonus(idx: number, coef: number, s: SaveData): { val: number; children: ArkhNode[] } {
-  const ola = (i: number) => Number((optionsListData as any[])[i]) || 0;
-  const mf = (k: number) => (ola(279) > k ? (k === 11 ? ola(279) - 11 : 1) : 0);
-  const all = 50 * mf(1) + 50 * mf(3) + 50 * mf(6) + 50 * mf(8) + 50 * Math.min(1, mf(11)) + 25 * Math.max(0, mf(11) - 1);
-  const legend = legendPTSbonus(26, s);
-  const c51 = companions(51, s);
-  const steps = Math.max(0, Math.ceil((ola(271) - idx) / 7));
-  return {
-    val: coef * (1 + legend / 100) * (1 + c51) * (1 + all / 100) * steps,
-    children: [raw("Legend 26", legend), raw("Companion 51", c51), raw("Megafeathers %", all), raw("Roo reset tiers", steps, `⌈(OLA[271] − ${idx}) / 7⌉: one tier per 7 Roo resets (OLA[271]) beyond this upgrade's offset`)],
-  };
-}
+// FlurboShop and RooBonuses live in leaf modules (derived-damage reads them); re-exported here.
+export { flurboShop, rooBonus };
 
 const BUBBLES: Record<string, { name: string; cauldron: string; key: string; stat: number; label: string }> = {
   bubbleSTR: { name: "Penny of Strength", cauldron: "Power Cauldron", key: "CashSTR", stat: 0, label: "STR" },
@@ -239,7 +223,9 @@ function resolveCoin(id: string, ctx: SystemCtx): ArkhNode {
       const r = trackerNamed(talent.resolve(643, tctx));
       if (!(Number(r.val) > 0)) return r;
       const saved = overkillStuffs(ci, Number((currentMapData as any)?.[ci]) || 0, ctx);
-      const ok = overkillStuffs(ci, ctx.mapIdx ?? saved.map, ctx, { maxDmg: saved.maxDmg });
+      // saved.maxDmg is the Max on the saved map; the map rules sit inside it.
+      const map = ctx.mapIdx ?? saved.map;
+      const ok = map === saved.map ? saved : overkillStuffs(ci, map, ctx);
       return node(
         r.name,
         (Number(r.val) / saved.tier) * ok.tier,

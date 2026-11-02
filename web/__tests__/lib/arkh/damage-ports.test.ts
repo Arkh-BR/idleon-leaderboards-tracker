@@ -2,12 +2,13 @@ import { describe, it, expect, beforeEach } from "vitest";
 import { existsSync, readFileSync } from "node:fs";
 import { loadSaveData } from "@/lib/arkh/save/loader";
 import { saveData } from "@/lib/arkh/state";
-import { divinityData } from "@/lib/arkh/save/data";
+import { divinityData, optionsListData } from "@/lib/arkh/save/data";
 import { N2L } from "@/lib/arkh/stats/data/game/hardcoded.js";
 import { DeathNoteMobs, GodsInfo, MapAFKtarget, MapDetails } from "@/lib/arkh/stats/data/game/customlists.js";
 import { damage } from "@/lib/arkh/stats/systems/damage/damage";
 import { computeAccuracy } from "@/lib/arkh/stats/systems/common/derived-damage";
 import { flurboShop } from "@/lib/arkh/stats/systems/coin/flurbo";
+import { rooBonus } from "@/lib/arkh/stats/systems/coin/coin";
 import { gridBonusValue } from "@/lib/arkh/stats/systems/w4/lab";
 import { divinityBlessBonus } from "@/lib/arkh/stats/systems/w5/divinity";
 import { eclipseSkulls, killroyDmg } from "@/lib/arkh/stats/systems/w4/rift";
@@ -130,6 +131,16 @@ describe.skipIf(!existsSync(ARKHE))("new damage ports — ARKHE post-update", ()
     up[5] = lv + 10;
     expect(flurboShop(5, s()).val).toBeGreaterThan(f0);
     expect(computeAccuracy(ci, { ...ctxOf(ci) })).toBeGreaterThan(a0);
+  });
+
+  it("accuracy reads RooBonuses(3) (coefficient 2)", () => {
+    const a0 = computeAccuracy(ci, ctxOf(ci));
+    const r0 = rooBonus(3, 2, s()).val;
+    const resets = Number((optionsListData as any)[271]) || 0;
+    (optionsListData as any)[271] = resets + 70; // 10 more Roo reset tiers
+    expect(rooBonus(3, 2, s()).val).toBeGreaterThan(r0);
+    expect(computeAccuracy(ci, ctxOf(ci))).toBeGreaterThan(a0);
+    (optionsListData as any)[271] = resets;
   });
 });
 

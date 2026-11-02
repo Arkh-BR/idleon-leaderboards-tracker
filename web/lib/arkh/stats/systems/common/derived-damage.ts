@@ -7,15 +7,10 @@
 // the food-boost multiplier, the TalentCalc terms, the green-sigil and
 // map-306 terms, and the accuracy (talent 125's gate, OverkillStuffs("3")).
 // It must not import the damage system (damage.ts imports this file), nor
-// coin.ts (coin → overkill → damage); FlurboShop comes from the coin/flurbo.ts
-// leaf. The one path back is talent → its final-bonus wraps → calcTalent →
-// overkill → damage, used only inside function bodies: nothing in that loop
-// may call across it at module top level.
-//
-// ── [STUB] note ─────────────────────────────────────────────────────────
-// One sub-source is still STUBBED to 0, flagged `[STUB]` inline: accuracy's
-// RooBonuses(3). Its port (rooBonus) lives in coin.ts, which this file must
-// not import (see above).
+// coin.ts (coin → overkill → damage); FlurboShop and RooBonuses come from the
+// coin/flurbo.ts and coin/roo.ts leaves. The one path back is talent → its
+// final-bonus wraps → calcTalent → overkill → damage, used only inside
+// function bodies: nothing in that loop may call across it at module top level.
 
 import type { ArkhNode } from "../../../node";
 import type { SaveData } from "../../../state";
@@ -71,6 +66,7 @@ import { computePrayerReal } from "../w3/prayer";
 import { computeChipBonus, gridBonusValue } from "../w4/lab";
 import { capevineSystemOn, gallerySystemOn, premhatSystemOn } from "../w7/gallery";
 import { flurboShop } from "../coin/flurbo";
+import { rooBonus } from "../coin/roo";
 import { divinityMinorFor } from "../coin/divinityMinor";
 import { saltLick } from "../exp/saltLick";
 
@@ -125,12 +121,6 @@ export function gtn(id: number, ctx: any, args?: any): number {
   } catch {
     return 0;
   }
-}
-
-// [STUB] accuracy's RooBonuses(3): coin.ts rooBonus is the port, out of reach
-// (coin → overkill → damage → this file).
-function computeRooBonus(_idx: number, _s: SaveData): number {
-  return 0;
 }
 
 /** N.js FoodBonuses("…BoostsEffectBonus") (@4104779): the effect multiplier of
@@ -411,8 +401,7 @@ export function greenSigilDmgPct(s: SaveData): number {
 }
 
 /** N.js Max (2026-10-16): on The Clamworks (map 306) DamageDealtLIST[2] is
-divided by 100^Menagerie[5][2]. The damage system's map306 source reads it;
-overkill divides its map-less Max by it. */
+divided by 100^Menagerie[5][2]. The damage system's map306 source reads it. */
 export function mapDamageDivisor(map: number, s: SaveData): number {
   if (map !== 306) return 1;
   return Math.pow(100, Number((s.menagerieData as any)?.[5]?.[2]) || 0);
@@ -558,10 +547,9 @@ export function computePlayerSpeed(ci: number, ctx: Ctx): number {
 // few missing additive % almost never flips the result:
 //   getBuffBonus(288,2) / getBuffBonus(124,1)  — runtime buffs, never in
 //       the raw save → 0 (same treatment as derived-damage GetBuffBonuses).
-//   computeRooBonus(3)     — Roo (Poppy) upgrade 3   [STUB, local =0]
 // All other sub-sources reuse already-ported systems: FlurboShop(5) from
-// coin/flurbo.ts, Divinity("Bonus_Minor", this character, 0) from
-// coin/divinityMinor.ts.
+// coin/flurbo.ts, RooBonuses(3) from coin/roo.ts, Divinity("Bonus_Minor",
+// this character, 0) from coin/divinityMinor.ts.
 // ==========================================================================
 
 /** ClassStatTypes secondary-stat lookup (N.js ClassStatTypes, offset
@@ -655,7 +643,7 @@ export function computeAccuracy(charIdx: number, ctx: Ctx): number {
   const prayer16pen = safe(computePrayerReal, 16, 1, ci, s);
   const chipAcc = safe(computeChipBonus, "acc");
   const mealTotAcc = safe(computeMealBonus, "TotAcc", s);
-  const rooBonus3 = safe(computeRooBonus, 3, s); // [STUB] local =0
+  const rooBonus3 = safe(rooBonus, 3, 2, s); // Summoning("RooBonuses",3,0): coefficient 2
   const votingBonus3 = rval(winBonus, 3, ctx);
   const amarokSet = safe(getSetBonus, "AMAROK_SET");
   const divinityMinor = safe(divinityMinorFor, ci, 0, s);

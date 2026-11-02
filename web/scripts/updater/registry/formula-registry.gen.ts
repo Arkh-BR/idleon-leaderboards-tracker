@@ -262,7 +262,7 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/arkh/stats/systems/exp/exp.ts"
   ],
   "RooBonuses": [
-    "lib/arkh/stats/systems/coin/coin.ts"
+    "lib/arkh/stats/systems/coin/roo.ts"
   ],
   "ShinyBonusS": [
     "lib/arkh/stats/systems/exp/exp.ts"

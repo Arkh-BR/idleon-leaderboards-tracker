@@ -15,7 +15,7 @@ import { MapAFKtarget } from "../../data/game/customlists.js";
 import { MONSTERS } from "../../data/game/monsters.js";
 import { optionsListData, currentMapData } from "../../../save/data";
 import { prayersReal } from "../w3/prayer";
-import { computeAccuracy, mapDamageDivisor } from "./derived-damage";
+import { computeAccuracy } from "./derived-damage";
 import { computeMaxDamage } from "../damage/damage";
 import type { SaveData } from "../../../state";
 
@@ -58,8 +58,9 @@ export type Overkill = {
 
 // @njs MonsterRespawnTimeReset
 // @njs Clamz_HP
-/** `opts.maxDmg`: the character's max damage when the caller already has it
- *  (it depends on the character, not on the map or target). */
+/** `opts.maxDmg`: the character's max damage ON THIS MAP when the caller already
+ *  has it. The map rules (map 306 ÷, map 43 RatDMG) are inside the max damage
+ *  (computeMaxDamage(ci, ctx, map)), so a Max measured on another map is not one. */
 export function overkillStuffs(
   ci: number,
   map: number,
@@ -78,8 +79,7 @@ export function overkillStuffs(
   const hp = staticHp * curse;
   const exponent = map >= 300 ? 5 : 2;
   // Not swallowed: a failing max damage must surface, not read as tier 1.
-  const maxDmg =
-    (opts?.maxDmg || computeMaxDamage(ci, { saveData: s, charIdx: ci }) || 0) / mapDamageDivisor(map, s);
+  const maxDmg = opts?.maxDmg || computeMaxDamage(ci, { saveData: s, charIdx: ci }, map) || 0;
   const tier = multikillTier(hp, maxDmg, exponent);
   return {
     map, target, clam, staticHp, curses, curse, hp, exponent, maxDmg, tier,
@@ -159,7 +159,7 @@ export function computeOverkillTier(
   let maxDmg = opts.maxDmg;
   if (maxDmg == null) {
     try {
-      maxDmg = (computeMaxDamage(charIdx, ctx) || 0) / mapDamageDivisor(mapIdx, ctx.saveData);
+      maxDmg = computeMaxDamage(charIdx, ctx, mapIdx) || 0;
     } catch {
       maxDmg = 0;
     }
