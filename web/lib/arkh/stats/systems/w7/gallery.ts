@@ -312,7 +312,9 @@ export const nametag = {
       return node("Nametag " + id, 0, null, { note: "nametag " + id });
     const saveData = ctx.saveData;
     const sp = saveData.spelunkData || [];
-    const levels = (sp[17] || []) as any[];
+    // TotalStats adds the nametag/trophy totals only while GalleryBonusSystemON.
+    const on = ctx.charIdx != null && gallerySystemOn(ctx.charIdx);
+    const levels = (on ? sp[17] || [] : []) as any[];
     const gbmObj = galleryBonusMulti(saveData, {
       chipGalleryActive: ctx.chipGalleryActive,
       charIdx: ctx.charIdx,
@@ -397,7 +399,8 @@ export const trophy = {
       return node("Trophy " + id, 0, null, { note: "trophy " + id });
     const saveData = ctx.saveData;
     const sp = saveData.spelunkData || [];
-    const trophySlots = (sp[16] || []) as any[];
+    const on = ctx.charIdx != null && gallerySystemOn(ctx.charIdx);
+    const trophySlots = (on ? sp[16] || [] : []) as any[];
     const gbmObj = galleryBonusMulti(saveData, {
       chipGalleryActive: ctx.chipGalleryActive,
       charIdx: ctx.charIdx,
@@ -535,6 +538,12 @@ function noKillsLeft(charIdx: number, map: number): boolean {
   // ponytail: no KLA row (synthetic / partial save) reads as OFF; N.js would
   // throw there. Real saves always carry KLA_N.
   return Array.isArray(row) && (Number(row[0]) || 0) <= 0;
+}
+
+/** N.js Gallery("GalleryBonusSystemON") @11137676: map 250 (W6 town). */
+// @njs GalleryBonusSystemON
+export function gallerySystemOn(charIdx: number): boolean {
+  return noKillsLeft(charIdx, 250);
 }
 
 /** N.js Gallery("PremHatBonusesSystemON") @11144301: map 50 (W2 town). */

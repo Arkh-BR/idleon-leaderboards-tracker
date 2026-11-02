@@ -122,7 +122,7 @@ import { computeCardSetBonus, computeCardLv } from "./cards";
 import { computePrayerReal } from "../w3/prayer";
 import { achieveStatus } from "../common/achievement";
 import { mainframeBonus, computeChipBonus, gridBonusValue } from "../w4/lab";
-import { capevineSystemOn, premhatSystemOn } from "../w7/gallery";
+import { capevineSystemOn, gallerySystemOn, premhatSystemOn } from "../w7/gallery";
 import { owl as owlResolver } from "../w1/owl";
 import { superBitType } from "../../../game-helpers";
 
@@ -275,12 +275,10 @@ export function computeMaxDamage(charIdx: number, ctx: Ctx): number {
     const _eo = equipOrderData && (equipOrderData as any)[ci];
     let _equipWP = 0;
     const _em0 = emmData && (emmData as any)[ci] && (emmData as any)[ci][0];
-    const _galleryActive =
-      (s.spelunkData as any) &&
-      (s.spelunkData as any)[16] &&
-      (s.spelunkData as any)[16].length > 0;
-    // Same skips as TotalStats' equipment scan: premium hat (slot 8) while
-    // PremHatBonusesSystemON, worn cape (slot 12) while the Cape Vine is ON.
+    // Same skips as TotalStats' equipment scan: trophy/nametag (10/14) while
+    // GalleryBonusSystemON, premium hat (slot 8) while PremHatBonusesSystemON,
+    // worn cape (slot 12) while the Cape Vine is ON.
+    const _galleryActive = gallerySystemOn(ci);
     const _hatOn = premhatSystemOn(ci);
     const _capeOn = capevineSystemOn(ci);
     if (_eo && _eo[0]) {

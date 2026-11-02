@@ -14,7 +14,7 @@ import {
   capeVineBonTot,
 } from "@/lib/arkh/stats/systems/w7/gallery";
 import { totalGreenSigils } from "@/lib/arkh/stats/systems/w2/alchemy";
-import { premhatSystemOn } from "@/lib/arkh/stats/systems/w7/gallery";
+import { premhatSystemOn, gallerySystemOn } from "@/lib/arkh/stats/systems/w7/gallery";
 import { greenSigilDmgPct } from "@/lib/arkh/stats/systems/common/derived-damage";
 
 // EquipmentCape18: UQ1 %_CLASS_EXP_MULTI 100, UQ2 %_DROP_RATE_MULTI 40, STR 10.
@@ -24,10 +24,12 @@ const DR = 2; // EtcBonuses(2) = %_DROP_RATE
 const DR_MULTI = 91; // EtcBonuses(91) = %_DROP_RATE_MULTI
 
 /** Character 0 wears EquipmentCape18 in slot 12; map 100's kills left = kla100
- *  (map 50, the Hat Rack's switch, is cleared as on every real save). */
+ *  (maps 50 and 250, the Hat Rack's and the Gallery's switches, are cleared as
+ *  on every real save). */
 function setup(kla100: number | null, ola669 = 0) {
   const kla: any[] = [];
   kla[50] = [0, 0, 0];
+  kla[250] = [0, 0];
   if (kla100 !== null) kla[100] = [kla100, 0];
   const ola: number[] = [];
   ola[669] = ola669;
@@ -99,6 +101,45 @@ describe("PremHatBonusesSystemON (map 50's kills left)", () => {
     expect(premhatSystemOn(0)).toBe(false);
     expect(computeEquipBaseStat(0, "STR", hatSave()).val).toBe(2);
     expect(computeGalleryBaseStat(0, { saveData: hatSave(), charIdx: 0 } as any, "STR").val).toBe(0);
+  });
+});
+
+describe("GalleryBonusSystemON (map 250's kills left)", () => {
+  // Trophy2 = %_DROP_RATE 7 (EtcBonuses(2)); Trophy1 = STR 10.
+  const wear = (kla250: number, item: string) => {
+    const kla: any[] = [];
+    kla[250] = [kla250, 0];
+    assignSaveData({ klaData: [kla], equipOrderData: [[{ 10: item }, {}]], emmData: [[{}, {}]], labData: [] });
+  };
+  const placed = (trophyId: number) => {
+    const sp: any[] = [];
+    sp[16] = [trophyId];
+    return sd({ spelunkData: sp });
+  };
+  const part = (n: ReturnType<typeof etcBonus.resolve>, name: string) =>
+    n.children!.find((c) => c.name === name)?.val ?? 0;
+
+  it("ON: the trophy slot (10) is skipped and the gallery's trophies count", () => {
+    wear(0, "Trophy2");
+    expect(gallerySystemOn(0)).toBe(true);
+    const n = etcBonus.resolve(DR, { saveData: placed(2), charIdx: 0 });
+    expect(part(n, "Equipment Bonuses")).toBe(0);
+    expect(part(n, "Trophy Bonuses")).toBeGreaterThan(0);
+    wear(0, "Trophy1");
+    expect(computeEquipBaseStat(0, "STR", placed(1)).val).toBe(0);
+    expect(computeGalleryBaseStat(0, { saveData: placed(1), charIdx: 0 } as any, "STR").val).toBeGreaterThan(0);
+  });
+
+  it("OFF: the worn trophy counts and the gallery doesn't", () => {
+    wear(3, "Trophy2");
+    expect(gallerySystemOn(0)).toBe(false);
+    const n = etcBonus.resolve(DR, { saveData: placed(2), charIdx: 0 });
+    expect(part(n, "Equipment Bonuses")).toBe(7);
+    expect(part(n, "Trophy Bonuses")).toBe(0);
+    expect(n.val).toBe(7);
+    wear(3, "Trophy1");
+    expect(computeEquipBaseStat(0, "STR", placed(1)).val).toBe(10);
+    expect(computeGalleryBaseStat(0, { saveData: placed(1), charIdx: 0 } as any, "STR").val).toBe(0);
   });
 });
 

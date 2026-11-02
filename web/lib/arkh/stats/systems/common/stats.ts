@@ -146,6 +146,7 @@ import {
   galleryBonusMulti,
   hatrackBonusMulti,
   trophyTier,
+  gallerySystemOn,
   premhatSystemOn,
   capevineSystemOn,
   capeVineBonTot,
@@ -447,8 +448,8 @@ export function computeEquipBaseStat(
   if (!eqData) return { val: 0, children: [] };
   const emm = emmData && (emmData as any)[charIdx];
   const sp = saveData.spelunkData || [];
-  const galleryOn =
-    (sp[16] && sp[16].length > 0) || (sp[17] && sp[17].length > 0);
+  // @njs GalleryBonusSystemON
+  const galleryOn = gallerySystemOn(charIdx);
   // @njs PremHatBonusesSystemON
   const premhatOn = premhatSystemOn(charIdx);
   // Cape Vine (2026-11-01): the worn cape (slot 12) stops counting.
@@ -503,8 +504,10 @@ export function computeGalleryBaseStat(
   }).val;
   const hbm = hatrackBonusMulti(saveData).val;
 
-  // Trophy base stat
-  const trophySlots = sp[16] || [];
+  // Trophy / nametag base stats: TotalStats adds them only while
+  // GalleryBonusSystemON.
+  const galOn = gallerySystemOn(charIdx);
+  const trophySlots = galOn ? sp[16] || [] : [];
   let trophyTotal = 0;
   const trophyCh: ArkhNode[] = [];
   for (let i = 0; i < trophySlots.length; i++) {
@@ -529,7 +532,7 @@ export function computeGalleryBaseStat(
   }
 
   // Nametag base stat
-  const nametagLevels = sp[17] || [];
+  const nametagLevels = galOn ? sp[17] || [] : [];
   let nametagTotal = 0;
   const nametagCh: ArkhNode[] = [];
   for (let ni = 0; ni < nametagLevels.length; ni++) {
