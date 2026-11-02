@@ -3,7 +3,8 @@ import { existsSync, readFileSync } from "node:fs";
 import { loadSaveData } from "@/lib/arkh/save/loader";
 import { saveData } from "@/lib/arkh/state";
 import { talent } from "@/lib/arkh/stats/systems/common/talent";
-import { computeMaxDamage, talentCalcTerms } from "@/lib/arkh/stats/systems/common/derived-damage";
+import { talentCalcTerms } from "@/lib/arkh/stats/systems/common/derived-damage";
+import { computeMaxDamage } from "@/lib/arkh/stats/systems/damage/damage";
 
 const g = globalThis as unknown as { window?: unknown };
 if (!g.window) g.window = g;

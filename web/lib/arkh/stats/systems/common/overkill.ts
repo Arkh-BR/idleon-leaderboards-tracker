@@ -8,14 +8,15 @@
 // THEN the Clamworks clam w7a6 set to Thingies("Clamz_HP") = 1e16·30^OLA[464]
 // (@10887166, @6467129), so the clam never carries the curses.
 // Shared by talent 643's wrap (calcTalent.ts, the saved map), Coin (the
-// viewed map) and the Multikill page (spec M5). Not derived-damage.ts:
-// computeOverkillTier (MapAFKtarget + a FIGHTING gate, no curses).
+// viewed map) and the Multikill page (spec M5). computeOverkillTier at the
+// bottom is the older port (MapAFKtarget + a FIGHTING gate, no curses).
 
 import { MapAFKtarget } from "../../data/game/customlists.js";
 import { MONSTERS } from "../../data/game/monsters.js";
 import { optionsListData, currentMapData } from "../../../save/data";
 import { prayersReal } from "../w3/prayer";
-import { computeAccuracy, computeMaxDamage, mapDamageDivisor } from "./derived-damage";
+import { computeAccuracy, mapDamageDivisor } from "./derived-damage";
+import { computeMaxDamage } from "../damage/damage";
 import type { SaveData } from "../../../state";
 
 // @njs OverkillStuffs
@@ -115,4 +116,65 @@ export function overkillActive(ok: Overkill, ci: number, s: SaveData): OverkillA
     maxOk, deathNote, accOk, accuracy, defence,
     type: String(mon?.AFKtype ?? "no definition"),
   };
+}
+
+// ==========================================================================
+// OVERKILL TIER — port of systems/common/overkill.js (OverkillStuffs("2")),
+// moved unchanged from derived-damage.ts (which can't import the damage system).
+// ==========================================================================
+export type OverkillResult = {
+  tier: number;
+  maxDmg: number;
+  monsterHP: number;
+  mapIdx: number;
+  exponent: number;
+};
+
+/**
+ * Compute the overkill tier (1..50) for a character on their current AFK map.
+ * Game logic: OverkillStuffs("2")
+ *   okExp = CurrentMap >= 300 ? 5 : 2
+ *   tier = 1; for s=0..49: if maxDmg >= MonsterHP * okExp * okExp^(s+1) → tier = s+2
+ */
+export function computeOverkillTier(
+  charIdx: number,
+  ctx: { saveData: SaveData; charIdx: number; activeCharIdx?: number },
+  opts?: { mapIdx?: number; maxDmg?: number }
+): OverkillResult {
+  opts = opts || {};
+  const mapIdx =
+    opts.mapIdx != null
+      ? opts.mapIdx
+      : (currentMapData && (currentMapData as any)[charIdx]) || 0;
+  const monsterKey = (MapAFKtarget as any)[mapIdx];
+  const mon = monsterKey && (MONSTERS as any)[monsterKey];
+  const monsterHP = (mon && mon.MonsterHPTotal) || 0;
+  const afkType = mon && mon.AFKtype;
+
+  // Only fighting maps have overkill.
+  if (afkType !== "FIGHTING" || monsterHP <= 0) {
+    return { tier: 1, maxDmg: 0, monsterHP: 0, mapIdx, exponent: 1 };
+  }
+
+  let maxDmg = opts.maxDmg;
+  if (maxDmg == null) {
+    try {
+      maxDmg = (computeMaxDamage(charIdx, ctx) || 0) / mapDamageDivisor(mapIdx, ctx.saveData);
+    } catch {
+      maxDmg = 0;
+    }
+  }
+
+  const okExp = mapIdx >= 300 ? 5 : 2;
+  let tier = 1;
+  for (let st = 0; st < 50; st++) {
+    const threshold = monsterHP * okExp * Math.pow(okExp, st + 1);
+    if ((maxDmg as number) >= threshold) {
+      tier = st + 2;
+    } else {
+      break;
+    }
+  }
+
+  return { tier, maxDmg: maxDmg as number, monsterHP, mapIdx, exponent: okExp };
 }

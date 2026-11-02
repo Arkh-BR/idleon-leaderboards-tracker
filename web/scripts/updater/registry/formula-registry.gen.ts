@@ -10,8 +10,12 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   "ArmoryUpgBonus": [
     "lib/arkh/stats/data/w7/royalG.ts"
   ],
+  "AtomBonuses": [
+    "lib/arkh/stats/systems/damage/damage.ts"
+  ],
   "B_UPG": [
     "lib/arkh/stats/systems/artifact/terms.ts",
+    "lib/arkh/stats/systems/damage/damage.ts",
     "lib/arkh/stats/systems/exp/exp.ts"
   ],
   "BigFishBonuses": [
@@ -57,6 +61,9 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   ],
   "CompassBonus": [
     "lib/arkh/stats/systems/exp/exp.ts"
+  ],
+  "ConstMasteryBonus": [
+    "lib/arkh/stats/systems/damage/damage.ts"
   ],
   "CoralKidUpgBonus": [
     "lib/arkh/stats/systems/exp/exp.ts"
@@ -141,7 +148,8 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/arkh/stats/systems/exp/msa.ts"
   ],
   "Max": [
-    "lib/arkh/stats/systems/common/derived-damage.ts"
+    "lib/arkh/stats/systems/common/derived-damage.ts",
+    "lib/arkh/stats/systems/damage/damage.ts"
   ],
   "MeasurementBaseBonus": [
     "lib/arkh/stats/systems/coin/gambit.ts"
@@ -281,7 +289,8 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/arkh/stats/data/common/companions.ts"
   ],
   "_customBlock_DamageDealed": [
-    "lib/arkh/stats/defs/damage.ts"
+    "lib/arkh/stats/defs/damage.ts",
+    "lib/arkh/stats/systems/damage/damage.ts"
   ],
   "_customBlock_ExpMulti": [
     "lib/arkh/stats/systems/exp/exp.ts"
@@ -320,8 +329,12 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   ],
   "_customBlock_TotalStats": [
     "lib/arkh/stats/defs/drop-rate-v2.ts",
+    "lib/arkh/stats/systems/common/derived-damage.ts",
     "lib/arkh/stats/systems/common/stats.ts",
     "lib/arkh/stats/systems/dr2/dr2.ts"
+  ],
+  "_customBlock_WorkbenchStuff": [
+    "lib/arkh/stats/systems/damage/damage.ts"
   ],
   "_customBlock_chipBonuses": [
     "lib/arkh/stats/systems/w4/lab.ts"
