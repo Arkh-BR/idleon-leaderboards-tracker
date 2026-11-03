@@ -33,10 +33,12 @@ describe("diffSaves", () => {
 
   it("keeps a non-JSON string as a string, silently", () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const installed = console.warn;
     try {
       const d = diffSaves(env({ AFKtarget_0: "Laboratory" }), env({ AFKtarget_0: "Nothing" }));
       expect(d).toEqual([{ path: "AFKtarget_0", before: "Laboratory", after: "Nothing" }]);
       expect(warn).not.toHaveBeenCalled();
+      expect(console.warn).toBe(installed); // put back as found, not left silenced
     } finally {
       warn.mockRestore();
     }
@@ -78,6 +80,12 @@ describe("diffTrees", () => {
     // a looser threshold drops the 50% one too; a zero threshold keeps both
     expect(diffTrees(a, b, 0.6)).toEqual([]);
     expect(diffTrees(a, b, 0).map((x) => x.path)).toEqual(["R / g / x", "R / h"]);
+  });
+
+  it("the threshold is relative: at damage-sized magnitudes float noise is dropped, a real change kept", () => {
+    const big = { R: 1e30, "R / n": 1e30, "R / m": 1e30 };
+    const moved = { R: 1e30, "R / n": 1e30 * (1 + 1e-12), "R / m": 1.5e30 };
+    expect(diffTrees(big, moved)).toEqual([{ path: "R / m", before: 1e30, after: 1.5e30 }]);
   });
 
   it("reports leaves that appear or disappear, and 0 → x", () => {
