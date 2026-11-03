@@ -4,7 +4,7 @@
 // shopUpgBonus, chapterBonus.
 
 import { node, type ArkhNode } from "../../../node";
-import { label } from "../../entity-names";
+import { gameLabel, label } from "../../entity-names";
 import { legendTalentPerPt } from "../../data/w7/legendTalent";
 import { spelunkUpgPerLevel } from "../../data/w7/spelunking";
 import { paletteParams } from "../../data/w4/gaming";
@@ -31,19 +31,12 @@ export function legendPTSbonus(idx: number, saveData: SaveData): number {
 }
 
 const SPELUNK_DATA: Record<number, unknown> = { 50: {} };
-// Friendly names for the Spelunk Shop upgrades the DR pool references.
-// Sourced from spelunkingUpgrades[i].name in IT website-data.
-const SPELUNK_SHOP_NAMES: Record<number, string> = {
-  50: "Golden Hardhat",
-};
 
 export const spelunkShop = {
   resolve(id: number, ctx: Ctx): ArkhNode {
     const data = SPELUNK_DATA[id];
-    const friendly = SPELUNK_SHOP_NAMES[id];
-    const name = friendly
-      ? `${friendly} (Spelunking ${id})`
-      : label("Spelunking", id);
+    // Name = the game's SpelunkUpg[id][0] ("Golden_Hardhat").
+    const name = gameLabel("Spelunking", id, (SpelunkUpg as any)[id]?.[0]);
     if (!data) return node(name, 0, null, { note: "spelunk " + id });
     const saveData = ctx.saveData;
     const shopLv = Number(

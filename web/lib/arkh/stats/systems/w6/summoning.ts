@@ -3,10 +3,10 @@
 // winBonus resolver used by the DR descriptor.
 
 import { node, treeResult, type ArkhNode, type TreeResult } from "../../../node";
-import { label } from "../../entity-names";
+import { gameName, label } from "../../entity-names";
 import { artifactBase } from "../../data/w5/sailing";
 import { equipSetBonus } from "../../data/common/equipment";
-import { SummonUPG } from "../../data/game/customlists.js";
+import { SummonEnemies, SummonUPG } from "../../data/game/customlists.js";
 import {
   SUMMON_ENDLESS_TYPE,
   SUMMON_ENDLESS_VAL,
@@ -414,15 +414,12 @@ export function computeSummUpgBonus(
   ]);
 }
 
-// Friendly labels for the Summoning win-bonus tiers that feed the DR pool.
-// Sourced from summoningBonuses[i].bonus in IT website-data, scrubbed of the
-// "+{%_" placeholder syntax.
-const SUMM_WIN_NAMES: Record<number, string> = {
-  9: "Drop Rate Summoning Win",
-};
+// Name = the game's win-bonus text SummonEnemies[6][id] (the list WinBonus
+// indexes) minus its value slot: "+{%_Drop_Rate" → "Drop Rate Summoning Win".
 function summoningWinName(id: number): string {
-  const friendly = SUMM_WIN_NAMES[id];
-  return friendly ? `${friendly} (Summoning ${id})` : label("Summoning", id);
+  const raw = (SummonEnemies as any)[6]?.[id];
+  const friendly = gameName(typeof raw === "string" ? raw.replace(/^[^A-Za-z0-9]*x?_/, "") : "");
+  return friendly ? `${friendly} Summoning Win (Summoning ${id})` : label("Summoning", id);
 }
 
 export const winBonus = {

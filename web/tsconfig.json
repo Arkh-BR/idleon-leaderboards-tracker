@@ -23,12 +23,7 @@
       }
     ],
     "paths": {
-      "@/*": ["./*"],
-      "@parsers/*": ["./lib/it/parsers/*"],
-      "@utility/*": ["./lib/it/utility/*"],
-      "@website-data": ["./lib/it/data/website-data.json"],
-      "@components/*": ["./lib/it/_stubs/components/*"],
-      "@hooks/*": ["./lib/it/_stubs/hooks/*"]
+      "@/*": ["./*"]
     }
   },
   "include": [
@@ -41,9 +36,6 @@
   ],
   "exclude": [
     "node_modules",
-    "scripts",
-    "lib/it/utility/generate-sitemap.mjs",
-    "lib/it/utility/createEmotionCache.js",
-    "lib/it/utility/builds"
+    "scripts"
   ]
 }

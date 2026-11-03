@@ -2,7 +2,7 @@
 // 1:1 port replacing the Stage 2 stub.
 
 import { node, treeResult, type ArkhNode, type TreeResult } from "../../../node";
-import { label } from "../../entity-names";
+import { gameName, label } from "../../entity-names";
 import { optionsListData, equipOrderData } from "../../../save/data";
 import { equipSetBonus } from "../../data/common/equipment";
 import { EquipmentSets } from "../../data/game/custommaps.js";
@@ -74,21 +74,12 @@ function checkSetEquipped(setName: string, charIdx: number): boolean {
   return partsOn >= partsReq;
 }
 
-// Map a SET_DATA id ("efaunt", "godshard", etc.) to its display name.
-// IT website-data labels equipmentSets by SETNAME_SET — we humanise that
-// into "Efaunt Set" / "Godshard Set" etc. so the descriptor row reads as
-// the set the user can equip, not as "Smithing efaunt".
-const SET_FRIENDLY_NAMES: Record<string, string> = {
-  efaunt: "Efaunt Set Bonus",
-  godshard: "Godshard Set Bonus",
-  emperor: "Emperor Set Bonus",
-  void: "Void Set Bonus",
-};
-
 export const setBonus = {
   resolve(id: string, ctx: Ctx): ArkhNode {
     const data = SET_DATA[id];
-    const friendly = SET_FRIENDLY_NAMES[id];
+    // Name = the game's EquipmentSets key: "efaunt" → EFAUNT_SET → "Efaunt Set Bonus".
+    const setKey = `${id.toUpperCase()}_SET`;
+    const friendly = (EquipmentSets as any)[setKey] ? `${gameName(setKey)} Bonus` : "";
     const tag = `Smithing ${id}`;
     const name = friendly ? `${friendly} (${tag})` : label("Smithing", id);
     if (!data) return node(name, 0, null, { note: "set " + id });

@@ -68,7 +68,6 @@ components/LeaderboardsTable.tsx  ~76%
 ## Next Steps
 
 - Expand coverage to `lib/arkh/game-helpers.ts`, `lib/arkh/computeDR.ts`
-- Expand coverage to `lib/it/parsers/`
 - Add E2E tests for actual leaderboard loading with mocked API
 - Consider visual regression tests with Playwright screenshots
 

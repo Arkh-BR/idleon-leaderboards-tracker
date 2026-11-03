@@ -3,22 +3,17 @@
 // the charm is unlocked (ninjaData[107][idx] === 1).
 
 import { node, type ArkhNode } from "../../../node";
-import { label } from "../../entity-names";
+import { gameLabel, gameName } from "../../entity-names";
 import { pristineCharmBonus } from "../../data/common/sigils";
+import { NjEQ } from "../../data/game/custommaps.js";
 import type { SaveData } from "../../../state";
 
-// Friendly charm names sourced from pristineCharms[i].name in IT website-data.
-export const PRISTINE_NAMES: Record<number, string> = {
-  3: "Cotton Candy",
-  8: "Crystal Comb",
-  14: "Liquorice Roll",
-  17: "Liquorice Rolle",
-  20: "Jellypick",
-};
-
+// Name = the game's charm item NjEQ["NjTrP" + id][2] ("Jellypick"), the
+// entry PristineBon reads the bonus from.
+const charmRaw = (id: number) => (NjEQ as any)["NjTrP" + id]?.[2];
+export const pristineName = (id: number): string => gameName(charmRaw(id));
 export function pristineLabel(id: number): string {
-  const n = PRISTINE_NAMES[id];
-  return n ? `${n} (Pristine ${id})` : label("Pristine", id);
+  return gameLabel("Pristine", id, charmRaw(id));
 }
 
 export function pristineBon(idx: number, saveData: SaveData): number {

@@ -2,12 +2,12 @@ import { describe, it, expect } from "vitest";
 import { label } from "@/lib/arkh/stats/entity-names";
 import { classifySystem } from "@/lib/arkh/stats/categorize";
 
-// Companion 168 = "caveD" in CompanionDB (1.30x Drop Rate). IT's website-data
-// never named it, so it rendered "Companion 168" and — lacking the "(Companion"
-// tag the categorizer keys on — fell into the "Other" bucket instead of 🐾
-// Companions. A manual name in entity-names fixes both.
+// Companion 168 = "caveD" in CompanionDB (1.30x Drop Rate). Unnamed, it
+// rendered "Companion 168" and — lacking the "(Companion" tag the categorizer
+// keys on — fell into the "Other" bucket instead of 🐾 Companions. The name now
+// comes from the game data (MONSTERS.caveD.Name) via gen-entity-names.ts.
 describe("Companion 168 (Crystal Glunko) naming + categorization", () => {
-  it("has a friendly name despite IT data lacking one", () => {
+  it("has a friendly name", () => {
     expect(label("Companion", 168)).toBe("Crystal Glunko (Companion 168)");
   });
 
@@ -15,7 +15,7 @@ describe("Companion 168 (Crystal Glunko) naming + categorization", () => {
     expect(classifySystem(label("Companion", 168))).toBe("Companions");
   });
 
-  it("does not regress an IT-named companion", () => {
+  it("does not regress another named companion", () => {
     expect(classifySystem(label("Companion", 49))).toBe("Companions");
   });
 });

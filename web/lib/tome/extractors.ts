@@ -4,7 +4,6 @@
 
 import { arrSum, arrMax, lavaLog, type RawObj } from "./math";
 import { CARDS_PER_TIER, DEATHNOTE_MOB_IDX, DUNGEON_LEVELS } from "./tasks";
-import { SUMMONING_ENEMY_IDS } from "./summoningEnemies";
 import { computeCardLv } from "../arkh/stats/systems/common/cards";
 import { loadSaveData } from "../arkh/save/loader";
 import { saveData as engineSave } from "../arkh/state";
@@ -20,6 +19,7 @@ import { getBribeBonus } from "../arkh/stats/systems/w3/bribe";
 import { fractalIslandBonus } from "../arkh/stats/systems/artifact/terms";
 import { vaultUpgBonus } from "../arkh/stats/systems/common/vault";
 import { companions } from "../arkh/stats/systems/common/companions";
+import { CardStuff, DeathNoteMobs, PetStats } from "../arkh/stats/data/game/customlists.js";
 import { menagerieUnlockOwned } from "../arkh/stats/data/w7/menagerie";
 import type { SaveData } from "../arkh/state";
 
@@ -642,27 +642,28 @@ export function rawGambitTime(d: D): number | null {
 }
 
 export function rawCareerSummWins(d: D): number | null {
-  // IT's parseSummoning iterates a hardcoded list of 108 valid enemies
-  // (9 white battles + 99 deathNote) and counts each as won if its ID is in
-  // Summon[1]. Then adds highestEndlessLevel = OptLacc[319]. Rift/mini-boss
-  // entries that may appear in Summon[1] are NOT counted because they're
-  // not in IT's enemy list.
+  // N.js summoning scene (_GenINFO[143][9], read by TomeQTY[71]): each won
+  // battle in Summon[1] counts as a white battle when it starts with "Pet",
+  // else once per DeathNoteMobs world row holding it (slots 1–8; rift and
+  // mini-boss fights are in neither), + OptLacc[319] endless wins.
+  // @njs DeathNoteMobs
   if (!d.Summon || !Array.isArray((d.Summon as unknown[])[1])) return null;
-  const wonBattles = (d.Summon as unknown[])[1] as unknown[];
-  const wonSet = new Set(wonBattles.map((x) => String(x)));
-  let validWins = 0;
-  for (const id of SUMMONING_ENEMY_IDS) {
-    if (wonSet.has(id)) validWins++;
+  const worlds = (DeathNoteMobs as unknown as string[][]).slice(0, 8);
+  let wins = 0;
+  for (const raw of (d.Summon as unknown[])[1] as unknown[]) {
+    const id = String(raw);
+    if (id.indexOf("Pet") === 0) wins++;
+    else for (const mobs of worlds) if (mobs.includes(id)) wins++;
   }
-  const opt = arr(d.OptLacc);
-  const endless = num(opt[319]);
-  return validWins + endless;
+  return Math.round(wins + num(arr(d.OptLacc)[319]));
 }
 
-// Fixed pet count per world from IT's website-data petStats. Only 4 worlds
-// have pets; Breeding[13 + worldIndex] may have extra trailing slots which
-// IT ignores (it iterates account.breeding.pets, derived from petStats).
-const PET_COUNTS_PER_WORLD: readonly number[] = [17, 17, 18, 16];
+// Pets per breeding world = the game's PetStats[w] rows. Only the 4 breeding
+// worlds have pets (rows 4–7 are 1-entry placeholders); Breeding[13 + w] may
+// have extra trailing slots, so the EXP array length would overshoot.
+const PET_COUNTS_PER_WORLD: readonly number[] = (PetStats as unknown as unknown[][])
+  .slice(0, 4)
+  .map((pets) => pets.length);
 
 // TomeQTY[51]: for every pet of the breeding worlds, its breedability level
 // min(9, floor((2ndMulti - 1)^0.8) + 1), where Breeding("2ndMulti") is

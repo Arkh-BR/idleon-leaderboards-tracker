@@ -273,9 +273,9 @@ describe("Drop Rate keeps its original names", () => {
     expect(etcBonus.resolve(2, ctx()).name).toBe("Drop Rate (Equipment) (etcBonus 2)");
     expect(friend.resolve(3, ctx())).toMatchObject({ name: "Friend Bonus", note: "friend 3" });
     expect(friend.resolve(5, ctx())).toMatchObject({ name: "Friend Bonus", note: "friend 5" });
-    expect(guild.resolve(4, ctx())).toMatchObject({ name: "Guild 4", note: "guild 4" });
+    expect(guild.resolve(4, ctx())).toMatchObject({ name: "REM Fighting (Guild 4)", note: "guild 4" }); // GuildBonuses[4][0]
     expect(guild.resolve(10, ctx()).name).toBe("Gold Charm (Guild 10)");
-    expect(pristine.resolve(2, ctx()).name).toBe("Pristine 2");
+    expect(pristine.resolve(2, ctx()).name).toBe("Glowing Veil (Pristine 2)"); // NjEQ.NjTrP2[2]
     expect(pristine.resolve(3, ctx()).name).toBe("Cotton Candy (Pristine 3)");
     expect(sushiRoG.resolve(15, ctx()).name).toBe("Tobiko Temaki (Sushi Tier 16) — Class EXP gain (RoG Bonus 15)");
     expect(owl.resolve(0, ctx())).toMatchObject({ name: "Summoning Owl", note: "owl 0" });

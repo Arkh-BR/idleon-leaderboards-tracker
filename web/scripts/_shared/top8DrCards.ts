@@ -16,7 +16,7 @@ import { CARD_DR_BONUS, CARD_DR_MULTI } from "../../lib/arkh/stats/data/common/c
 import type { Pool } from "../../lib/arkh/stats/tree-builder";
 import { label } from "../../lib/arkh/stats/entity-names";
 
-const LEGEND = 1.75; // ponytail: Legendary Cardholder (Legend 21) ceiling — every endgamer caps it
+const LEGEND = 1.75; // ponytail: Flopping a Full House (Legend 21) ceiling — every endgamer caps it
 const CHIP = 2; // slots 1 & 8 chip double (card1/card2)
 const SLOTS = 8;
 
@@ -146,7 +146,7 @@ const MULTI_CARD_PATH =
 /**
  * Rewrite a card node's children to the FULL obtainable catalog: every DR card
  * shows, but only the picked 8 carry a value — the rest read +0 (reference).
- * Non-card children (e.g. "Legendary Cardholder ×") are preserved.
+ * Non-card children (e.g. "Flopping a Full House (Legend 21) ×") are preserved.
  */
 function rewriteCardCatalog(
   flat: Record<string, number>,

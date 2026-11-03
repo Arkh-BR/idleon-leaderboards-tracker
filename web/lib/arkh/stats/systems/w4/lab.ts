@@ -9,7 +9,7 @@
 // will swap in the real BFS once the descriptor lands.
 
 import { node, type ArkhNode } from "../../../node";
-import { label } from "../../entity-names";
+import { gameLabel, label } from "../../entity-names";
 import { labData, numCharacters } from "../../../save/data";
 import { JEWEL_DESC, LAB_BONUS_BASE, LAB_BONUS_DYNAMIC } from "../../data/w4/lab";
 import { chipBonusValue } from "../../data/w4/chips";
@@ -18,7 +18,7 @@ import { cloudBonus, emporiumBonus } from "../../../game-helpers";
 import { companionBonus } from "../../data/common/companions";
 import { companionChild } from "../common/companions";
 import { rogBonusQTY } from "../w7/sushi";
-import { ChipDesc } from "../../data/game/customlists.js";
+import { ChipDesc, ResGridSquares } from "../../data/game/customlists.js";
 import { labJewelUnlocked } from "../../../save/helpers";
 import { MapAFKtarget } from "../../data/game/customlists.js";
 import { accountMapKills } from "../coin/accountKills";
@@ -26,16 +26,9 @@ import type { SaveData } from "../../../state";
 
 type Ctx = { saveData: SaveData; charIdx: number };
 
-// Friendly grid (Research Square) names sourced from
-// researchGridSquares[i].name in IT website-data.
-const GRID_NAMES: Record<number, string> = {
-  168: "Glimbo Insider Trading Secrets",
-  172: "Well Dressed",
-  173: "Divine Design",
-};
+// Name = the game's ResGridSquares[id][0] ("Well_Dressed").
 function gridLabel(id: number): string {
-  const n = GRID_NAMES[id];
-  return n ? `${n} (Grid ${id})` : label("Grid", id);
+  return gameLabel("Grid", id, (ResGridSquares as any)[id]?.[0]);
 }
 
 // Compute the raw grid bonus value (additive %, e.g. 73.8 for Grid 172 Lv 2).

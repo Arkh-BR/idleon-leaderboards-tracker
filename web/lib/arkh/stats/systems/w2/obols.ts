@@ -53,7 +53,7 @@ function scanObols(
 }
 
 // Catalog lookup: obol key → friendly name. Used to label both equipped
-// rows and the unequipped catalog with the IT website-data display name
+// rows and the unequipped catalog with the game's item display name
 // (e.g. "ObolSilverPop" → "Silver Obol of Pop Pop").
 const OBOL_CATALOG_BY_KEY = new Map<
   string,

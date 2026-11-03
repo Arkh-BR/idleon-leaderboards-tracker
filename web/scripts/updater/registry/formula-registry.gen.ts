@@ -41,6 +41,9 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/arkh/stats/data/w7/menagerie.ts",
     "lib/arkh/stats/systems/exp/exp.ts"
   ],
+  "Button_BonusPerTime": [
+    "lib/arkh/stats/systems/w7/button.ts"
+  ],
   "Button_Bonuses": [
     "lib/arkh/stats/systems/exp/exp.ts"
   ],
@@ -89,6 +92,10 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   ],
   "DaveyJonesBonus": [
     "lib/arkh/stats/systems/w5/sailing.ts"
+  ],
+  "DeathNoteMobs": [
+    "lib/tome/extractors.ts",
+    "lib/tome/tasks.ts"
   ],
   "DeathNoteRank": [
     "lib/arkh/stats/systems/coin/gambit.ts"

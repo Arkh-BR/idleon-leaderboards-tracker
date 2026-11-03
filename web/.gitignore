@@ -10,3 +10,4 @@ scripts/it-source/
 scripts/updater/golden/.cache/
 # Private save captured by the game-login parity spike (never commit)
 __tests__/fixtures/gameAuth/
+coverage/

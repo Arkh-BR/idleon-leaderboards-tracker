@@ -2,7 +2,7 @@
 // indexed by position, not by name. If you re-sync from the .gs, paste the
 // raw arrays verbatim.
 
-import { CardStuff, RANDOlist } from "../arkh/stats/data/game/customlists.js";
+import { CardStuff, DeathNoteMobs, MapAFKtarget, RANDOlist } from "../arkh/stats/data/game/customlists.js";
 
 // 124 tome tasks in the EXACT order they appear in-game and on the IT website
 // (NinjaInfo[32] is the game's display→compute map). The 2026-08 Royal
@@ -248,16 +248,11 @@ export const DUNGEON_LEVELS: readonly number[] = (
   ((RANDOlist as unknown as unknown[][])[29] as unknown[]) || []
 ).map(Number);
 
-// mapEnemies values (map index per deathNote rawName) for the 104 deathNote
-// mobs — originally from IT website-data; the W7 tail is kept in sync with the
-// game's DeathNoteMobs[6] via MapAFKtarget (w7b8–w7b10 = maps 322–324, and
-// w7b11/w7b12 = 325/326 added 2026-08). Order is irrelevant (digit sum).
-export const DEATHNOTE_MOB_IDX: readonly number[] = [
-  1, 17, 2, 14, 16, 19, 24, 26, 27, 28, 8, 15, 13, 18, 31, 51, 52, 53, 57,
-  58, 59, 60, 62, 63, 64, 65, 101, 103, 104, 105, 106, 107, 108, 109, 110,
-  111, 112, 113, 116, 117, 151, 152, 153, 154, 155, 156, 157, 158, 159, 160,
-  161, 162, 163, 201, 202, 203, 204, 205, 206, 207, 208, 209, 210, 211, 212,
-  213, 251, 252, 253, 254, 255, 256, 257, 258, 259, 260, 261, 262, 263, 264,
-  301, 302, 303, 304, 305, 306, 307, 308, 309, 310, 311, 312, 315, 316, 317,
-  318, 319, 320, 321, 322, 323, 324, 325, 326,
-];
+// Map index of every deathNote mob, as the game's TomeQTY[38] loop finds it:
+// MapAFKtarget.indexOf(DeathNoteMobs[w][i]), unmapped mobs skipped. Order is
+// irrelevant (digit sum).
+// @njs DeathNoteMobs
+export const DEATHNOTE_MOB_IDX: readonly number[] = (DeathNoteMobs as unknown as string[][])
+  .flat()
+  .map((mob) => (MapAFKtarget as unknown as string[]).indexOf(mob))
+  .filter((i) => i >= 0);

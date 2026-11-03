@@ -18,7 +18,7 @@
 // the old companion values, and cannot validate anything newer. Such profiles
 // are reported as "stale reference" and skipped instead of counting as fatal.
 // (The live IT parser reads companion stage 2 — `upgradedBonus` — so fresh
-// references DO exercise stage-2 values; only the local `web/lib/it` port lags.)
+// references DO exercise stage-2 values.)
 import { referenceProfiles, getSave } from "./saves";
 import { summarize } from "./engines";
 import { compareGroundTruth } from "./checks";
