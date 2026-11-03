@@ -7,6 +7,7 @@ import { formulaEval } from "@/lib/arkh/formulas";
 import { computeCardLv } from "@/lib/arkh/stats/systems/common/cards";
 import { mainframeBonus, mainframeBonusRaw } from "@/lib/arkh/stats/systems/w4/lab";
 import { mapKillReq } from "@/lib/arkh/stats/data/common/maps";
+import { damageStatType } from "@/lib/arkh/stats/systems/common/derived-damage";
 
 const g = globalThis as unknown as { window?: unknown };
 if (!g.window) g.window = g;
@@ -83,5 +84,23 @@ describe("Lab mainframe 9 and jewel 114 carry their LabMFbonuses multipliers", (
     load();
     expect(mainframeBonusRaw(9, saveData)).toBeGreaterThan(0);
     expect(mainframeBonus(9, saveData)).toBeCloseTo(5 * mainframeBonusRaw(9, saveData), 10);
+  });
+});
+
+// N.js TalentCalc's bubble class gate (@4493650): below class 7 it zeroes
+// W1/A1/A5/M5 but none of W6/A6/M6; 7–17 drops A6/M6, 18–29 W6/M6, 30+ W6/A6.
+describe("DamageDealtSTATtype keeps W6/A6/M6 below class 7", () => {
+  const sixes = (cls: number) => {
+    const levels = Array.from({ length: 4 }, () => Object.fromEntries(Array.from({ length: 40 }, (_, i) => [i, 100])));
+    loadSaveData({ charNames: ["A"], data: { CharacterClass_0: cls, Lv0_0: [100], CauldronInfo: JSON.stringify(levels) } });
+    const r = damageStatType(0, { saveData, charIdx: 0 });
+    return [r.W6, r.A6, r.M6].map((v) => v > 0);
+  };
+
+  it("class 6 counts all three; 7, 18 and 30 only their own", () => {
+    expect(sixes(6)).toEqual([true, true, true]);
+    expect(sixes(7)).toEqual([true, false, false]);
+    expect(sixes(18)).toEqual([false, true, false]);
+    expect(sixes(30)).toEqual([false, false, true]);
   });
 });

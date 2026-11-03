@@ -391,6 +391,7 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/arkh/stats/systems/w7/gallery.ts"
   ],
   "_customBlock_TalentCalc": [
+    "lib/arkh/stats/systems/common/derived-damage.ts",
     "lib/arkh/stats/systems/common/stats.ts",
     "lib/arkh/stats/systems/w4/lab.ts"
   ],

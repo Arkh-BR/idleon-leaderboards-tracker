@@ -183,9 +183,11 @@ export function damageStatType(ci: number, ctx: Ctx): DamageStatType {
   let W6 = safe(bubbleValByKey, "W6", ci, s);
   let A6 = safe(bubbleValByKey, "A6", ci, s);
   let M6 = safe(bubbleValByKey, "M6", ci, s);
-  // Game zeros class-mismatched bubbles (W6/A6/M6).
+  // @njs _customBlock_TalentCalc
+  // Game zeros class-mismatched bubbles (W6/A6/M6), N.js @4493650: below
+  // class 7 none of them, 7–17 A6/M6, 18–29 W6/M6, 30+ W6/A6.
   const cls = Number(charClassData && (charClassData as any)[ci]) || 0;
-  if (cls >= 6 && cls < 18) {
+  if (cls >= 7 && cls < 18) {
     A6 = 0;
     M6 = 0;
   } else if (cls >= 18 && cls < 30) {
