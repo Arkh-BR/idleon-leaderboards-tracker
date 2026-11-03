@@ -4,6 +4,7 @@ import { createHash } from "node:crypto";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { pathToFileURL } from "node:url";
+import { assertEnvelope } from "../../lib/readings/envelope";
 import { READINGS_DIR, READINGS_INDEX, loadReadings } from "../../lib/readings/registry";
 import type { Reading } from "../../lib/readings/types";
 
@@ -15,8 +16,8 @@ export function importBundle(
   dir = READINGS_DIR,
   index = READINGS_INDEX,
 ): Reading {
+  assertEnvelope(envelope, reading.id); // allowlist: the session token never enters a bundle
   const json = JSON.stringify(envelope);
-  if (json.includes("gameAuth.session")) throw new Error(`${reading.id}: envelope carries the session token`);
   const saveFile = `${reading.id}.json`;
   mkdirSync(dir, { recursive: true });
   writeFileSync(join(dir, saveFile), json);

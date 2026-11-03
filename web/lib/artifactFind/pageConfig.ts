@@ -9,6 +9,7 @@ import { TOP_ARTI_GENERATED_AT, TOP_ARTI_PLAYERS_SCANNED } from "./topArtifactFi
 
 export const ARTIFACT_PAGE: StatPageConfig = {
   statName: "Artifact Find",
+  readingStat: "artifactFind",
   gainLabel: "Artifact Find",
   emoji: "🏺",
   calculatorTitle: "Artifact Find Calculator",

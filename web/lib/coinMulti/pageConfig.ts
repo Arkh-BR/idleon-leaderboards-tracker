@@ -8,6 +8,7 @@ import { TOP_COIN_GENERATED_AT, TOP_COIN_PLAYERS_SCANNED } from "./topCoinMulti.
 
 export const COIN_PAGE: StatPageConfig = {
   statName: "Coin Multi",
+  readingStat: "coinMulti",
   gainLabel: "Coin",
   emoji: "🪙",
   calculatorTitle: "Coin Multi Calculator",

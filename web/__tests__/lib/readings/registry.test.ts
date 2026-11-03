@@ -46,13 +46,16 @@ describe("readings registry", () => {
     }
   });
 
-  it("import refuses an envelope that carries the session token", () => {
+  it("import refuses an envelope with keys outside the save envelope", () => {
     const tmp = mkdtempSync(join(tmpdir(), "readings-"));
     try {
       const reading = { id: "t", stat: "damage" as const, charIdx: 0, charName: "x", map: 0, capturedAt: "", game: "" };
-      expect(() =>
-        importBundle({ reading, envelope: { "gameAuth.session.v1": "secret" } }, join(tmp, "s"), join(tmp, "i.json")),
-      ).toThrow(/session token/);
+      for (const extra of ["refreshToken", "gameAuth.session.v1"]) {
+        expect(() =>
+          importBundle({ reading, envelope: { data: {}, [extra]: "secret" } }, join(tmp, "s"), join(tmp, "i.json")),
+        ).toThrow(/outside the save envelope/);
+      }
+      expect(existsSync(join(tmp, "s"))).toBe(false); // refused before anything is written
     } finally {
       rmSync(tmp, { recursive: true, force: true });
     }

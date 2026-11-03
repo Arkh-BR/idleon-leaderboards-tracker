@@ -50,6 +50,7 @@ export const afkGainsModel: GainsModel = {
 
 export const AFK_PAGE: StatPageConfig = {
   statName: "AFK Gains Rate",
+  readingStat: "afkGains",
   gainLabel: "AFK",
   emoji: "💤",
   calculatorTitle: "AFK Gains Calculator",

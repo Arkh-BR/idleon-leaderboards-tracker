@@ -5,6 +5,7 @@ import { defaultCharIndex, listCharacters, parseSave, type CharSummary } from "@
 import { getCharClassKey } from "@/lib/talentsLevel/charClass";
 import DeepView, { type DeepViewExtraTab } from "@/components/dropRate/DeepView";
 import ProfileNameLoader from "@/components/ProfileNameLoader";
+import RecordReading from "./RecordReading";
 import { accountAutoLoads } from "@/lib/gameAuth/session";
 import { buildStatMapOptions, type StatMapOption } from "@/lib/statTracker/mapOptions";
 import type { ArkhNode } from "@/lib/arkh/node";
@@ -282,6 +283,16 @@ export default function StatCalculator({
         </div>
         {totalActions && <div className="-mt-1 flex items-center gap-2">{totalActions}</div>}
         {totalPanel}
+        {config.readingStat && save && (
+          <RecordReading
+            stat={config.readingStat}
+            label={config.statName}
+            save={save}
+            charIdx={charIdx}
+            charName={chars.find((c) => c.charIndex === charIdx)?.charName ?? ""}
+            mapIdx={effMapIdx}
+          />
+        )}
       </div>
 
       <div className="rounded-lg bg-zinc-900/60 border border-zinc-800 p-4 mb-4">

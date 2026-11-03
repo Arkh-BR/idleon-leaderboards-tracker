@@ -3,6 +3,7 @@
 // game's number format, the Biggest Gains model and the Observed Max loader.
 
 import type { ArkhNode } from "@/lib/arkh/node";
+import type { StatKey } from "@/lib/readings/types";
 import type { GainRow } from "./biggestGains";
 
 export type StatResult = { tree: ArkhNode; total: number };
@@ -33,6 +34,8 @@ export type TopModule = { flatForClass(classKey: string | null): Record<string, 
 export type StatPageConfig = {
   /** Stat name in copy: "Coin Multi", "EXP Multi". */
   statName: string;
+  /** The in-game stat the debug "Record in-game reading" form (`?debug=1`) records on this page. */
+  readingStat?: StatKey;
   /** Short label for the gain column: "Coin" → "Coin gain". */
   gainLabel: string;
   emoji: string;
