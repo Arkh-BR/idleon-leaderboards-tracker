@@ -46,7 +46,7 @@ import { computeVialByKey } from "../w2/alchemy";
 import { computeArtifactBonus } from "../w5/sailing";
 import { tome } from "../w4/tome";
 import { computePaletteBonus } from "../w7/spelunking";
-import { computeChipBonus, mainframeBonus } from "../w4/lab";
+import { chipBonuses, mainframeBonus } from "../w4/lab";
 import { friend } from "./friend";
 import { holes } from "../w5/hole";
 import { computeAllShimmerBonuses } from "../w3/equinox";
@@ -243,6 +243,9 @@ export function computePlayerHPmax(charIdx: number, ctx: Ctx): Tree {
   const talent272 = rval(talent, 272, ctx);
   const etc15 = rval(etcBonus, "15", ctx);
   // Shrine(1): computeShrine reads every shrine (shrine.resolve only knows shrine 4).
+  // It skips N.js's Shrine gate (Artifact 0 owned, or the current map is the shrine's,
+  // or MF5 on and the same world, @7828132) and counts a shrine as always active,
+  // as afk.ts's Shrine(8) already does.
   const shrine1 = safe(computeShrine, 1, s);
   const _brPctHP = computeBoxReward(ci, "pctHP");
   const boxPctHP = _brPctHP.val || 0;
@@ -442,7 +445,7 @@ function computeAllEfficiencies(ci: number, ctx: Ctx): number {
   const talent646 = rval(talent, 646, ctx);
   const tomeBonus1 = rval(tome, 1, ctx);
   const paletteBonus10 = safe(computePaletteBonus, 10, ctx.saveData);
-  const chipToteff = safe(computeChipBonus, "toteff");
+  const chipToteff = safe(chipBonuses, "toteff", ci);
   const cardCrystal4 = 3 * safe(cardLv, "Crystal4", ctx.saveData);
   const friendStatz2 = rval(friend, 2, ctx);
   const riftSkillETC2 = safe(computeRiftSkillETC, 2, ctx.saveData);
@@ -494,7 +497,7 @@ function computeAllBaseSkillEff(ci: number, ctx: Ctx): number {
   const divBless2 = safe(computeDivinityBless, 2, ctx.saveData);
   const _br20b = computeBoxReward(ci, "20b");
   const boxReward20b = _br20b.val || 0;
-  const chipEff = safe(computeChipBonus, "eff");
+  const chipEff = safe(chipBonuses, "eff", ci);
   const talent636 = rval(talent, 636, ctx);
   const mf112 = safe(mainframeBonus, 112, ctx.saveData);
 

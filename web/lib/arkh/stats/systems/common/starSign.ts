@@ -32,8 +32,6 @@ export const SIGN_BONUSES: Record<string, Record<number, number>> = {
   MoveSpd: { 1: 2, 8: 4, 13: 2, 32: -3, 51: -12 },
   TotalHP: { 28: -80 },
   FoodEffect: { 22: 15 },
-  // @njs _customBlock_StarSigns — signs 13 (+4) and 35 (+10), PlayerAccTot's StarSigns.AccPct.
-  AccPct: { 13: 4, 35: 10 },
 };
 
 export type StarSignTree = { val: number; children: ArkhNode[] | null };
@@ -137,7 +135,8 @@ export const starSign = {
 // signs (2nd pass, @6491933) unless pass 1 went negative (N.js restores the
 // negatives); Seraph multiplies positive totals only (@6514021).
 // computeStarSignBonus above still counts every listed sign (it feeds the
-// derived damage / HP / EXP code, not the Drop Rate trackers).
+// derived damage / HP / EXP code, not the Drop Rate trackers). Accuracy
+// (AccPct) already reads this faithful path.
 
 type SignTerm = {
   sign: number;
@@ -169,6 +168,12 @@ export const STAR_SIGN_TERMS: Record<string, readonly SignTerm[]> = {
   Drop: [
     { sign: 14, val: 5 },
     { sign: 76, val: 12 },
+  ],
+  // Accuracy (PlayerAccTot): sign 13 → StarSigns.AccPct += 4 (@6546709),
+  // sign 35 → += 10 (@6553645); plain StarSignsDL membership, no gate.
+  AccPct: [
+    { sign: 13, val: 4 },
+    { sign: 35, val: 10 },
   ],
 };
 

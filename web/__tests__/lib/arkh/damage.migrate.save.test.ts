@@ -23,10 +23,14 @@ const DIR = "scripts/updater/golden/.cache/";
 // Shrine(1) and FamBonusQTYs["18"] (Max HP ×3.0–4.0). Only the two Max HP
 // readers moved — Big Meaty Claws (bdmgHP × log10(HP − 250)) and Meat Shank
 // (GTN 86 × log10(HP)) — by ×1.000000–1.000789; the accuracy fix moves no pin.
-// Damage audit vs the 2026-11-03 in-game readings re-pinned every value four
-// times, one commit each (the tag shows the last): Artifact 25 (×1.0088–1.346),
-// TotalQuestsComplete (×1.0000–1.094), Mainframe 0/11 (×1.0053–1.040),
-// Artifact 2 (×1.0000004–1.037).
+// Damage audit vs the 2026-11-03 in-game readings re-pinned every value five
+// times, one commit each (the tag shows the last): Shrine(0) (0ce684a,
+// ×1.0000012–1.0018509), Artifact 25 (×1.0088–1.346), TotalQuestsComplete
+// (b5efd0e, ×1.0000–1.094; it moved 34 of the 43 pins), Mainframe 0/11
+// (×1.0053–1.040), Artifact 2 (×1.0000004–1.037). A sixth re-pin, the review's
+// active-char chips fix (chipBonuses is the current player's, not the sum over
+// every character): only the 20 characters of 24632463 and 0celot8 moved
+// (×0.9134–0.99983, Lab Chips (Damage), Weapon Power and their soft caps).
 const CAPTURED: Record<string, Record<string, number>> = {
   "arkhe-live-2026-11-01-postupdate.json": {
     ARKHE: 3.0398294088711956e+34, // Artifact 2 fix (damage tracker)
@@ -55,29 +59,29 @@ const CAPTURED: Record<string, Record<string, number>> = {
     Synergism: 6.091643023080177e+31, // Artifact 2 fix (damage tracker)
   },
   "24632463.json": {
-    "24632463": 1.5036663928508902e+32, // Artifact 2 fix (damage tracker)
-    "246324633": 1.7807085411022898e+30, // Artifact 2 fix (damage tracker)
-    "2463a": 5.968169103977567e+31, // Artifact 2 fix (damage tracker)
-    "2463w": 6.878190713349689e+31, // Artifact 2 fix (damage tracker)
-    "2463m": 1.2579013586053175e+31, // Artifact 2 fix (damage tracker)
-    "2463a2": 1.0723181459030647e+32, // Artifact 2 fix (damage tracker)
-    "2463w2": 8.930762136221822e+31, // Artifact 2 fix (damage tracker)
-    "2463a3": 2.4686376173500797e+30, // Artifact 2 fix (damage tracker)
-    "2463m2": 2.988346631638664e+30, // Artifact 2 fix (damage tracker)
-    "2463b": 6.458742939828733e+29, // Artifact 2 fix (damage tracker)
-    "2463w3": 1.0457680516133229e+30, // Artifact 2 fix (damage tracker)
+    "24632463": 1.4972436070187004e+32, // active-char chips fix (damage tracker)
+    "246324633": 1.6734382957324247e+30, // active-char chips fix (damage tracker)
+    "2463a": 5.91498394887791e+31, // active-char chips fix (damage tracker)
+    "2463w": 6.810153834185378e+31, // active-char chips fix (damage tracker)
+    "2463m": 1.148965245477348e+31, // active-char chips fix (damage tracker)
+    "2463a2": 1.0620814920962943e+32, // active-char chips fix (damage tracker)
+    "2463w2": 8.887358391975038e+31, // active-char chips fix (damage tracker)
+    "2463a3": 2.357093316354946e+30, // active-char chips fix (damage tracker)
+    "2463m2": 2.840698853116713e+30, // active-char chips fix (damage tracker)
+    "2463b": 5.977244480724832e+29, // active-char chips fix (damage tracker)
+    "2463w3": 9.881573630387946e+29, // active-char chips fix (damage tracker)
   },
   "0celot8.json": {
-    "0celot8": 4.694768736468319e+23, // Artifact 2 fix (damage tracker)
-    "0celot9": 7.376199930758121e+23, // Artifact 2 fix (damage tracker)
-    "0celot10": 2.4750473187541127e+22, // Artifact 2 fix (damage tracker)
-    "0celot11": 5.9903240516481744e+23, // Artifact 2 fix (damage tracker)
-    "0celot12": 5.170718958078967e+22, // Artifact 2 fix (damage tracker)
+    "0celot8": 4.6939843048304246e+23, // active-char chips fix (damage tracker)
+    "0celot9": 7.374967468640844e+23, // active-char chips fix (damage tracker)
+    "0celot10": 2.4741284202583438e+22, // active-char chips fix (damage tracker)
+    "0celot11": 5.9893231504349497e+23, // active-char chips fix (damage tracker)
+    "0celot12": 5.168799250986699e+22, // active-char chips fix (damage tracker)
     "0celot13": 7.0869822286805265e+22, // Artifact 2 fix (damage tracker)
-    "0celot14": 2.826849948177642e+22, // Artifact 2 fix (damage tracker)
-    "0celot15": 1.2478162735534385e+25, // Artifact 2 fix (damage tracker)
-    "0celot16": 5.777733003892782e+22, // Artifact 2 fix (damage tracker)
-    "0celot17": 3.2401717331336416e+22, // Artifact 2 fix (damage tracker)
+    "0celot14": 2.8258004377041604e+22, // active-char chips fix (damage tracker)
+    "0celot15": 1.2476077805217265e+25, // active-char chips fix (damage tracker)
+    "0celot16": 5.775587933718887e+22, // active-char chips fix (damage tracker)
+    "0celot17": 3.2389687707003506e+22, // active-char chips fix (damage tracker)
   },
 };
 

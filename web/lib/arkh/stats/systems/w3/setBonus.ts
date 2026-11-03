@@ -17,7 +17,7 @@ type Ctx = { saveData: SaveData; charIdx: number };
 // @njs _customBlock_GetSetBonus
 export function getSetBonus(setName: string): TreeResult {
   const perma = String((optionsListData as any)?.[379] ?? "");
-  if (!perma.includes(setName)) return treeResult(0);
+  if (!perma.split(",").includes(setName)) return treeResult(0);
   const val = equipSetBonus(setName);
   return treeResult(val, [
     node(setName + " Unlocked", 1, null, { fmt: "raw" }),
@@ -93,7 +93,7 @@ export const setBonus = {
     const name = friendly ? `${friendly} (${tag})` : label("Smithing", id);
     if (!data) return node(name, 0, null, { note: "set " + id });
     const perma = String((optionsListData as any)?.[379] ?? "");
-    let unlocked = perma.includes(data.key);
+    let unlocked = perma.split(",").includes(data.key);
     if (!unlocked) {
       unlocked = checkSetEquipped(data.key, ctx.charIdx);
     }

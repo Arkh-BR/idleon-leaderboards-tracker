@@ -78,7 +78,7 @@ import { computeAllShimmerBonuses } from "../w3/equinox";
 import { computePrayerReal } from "../w3/prayer";
 import { tome } from "../w4/tome";
 import { computeShinyBonusS } from "../w4/breeding";
-import { mainframeBonus, computeChipBonus } from "../w4/lab";
+import { mainframeBonus, chipBonuses } from "../w4/lab";
 import { pristine } from "../w5/pristine";
 import { divinityBlessBonus } from "../w5/divinity";
 import { computeCosmoBonus, computeMonumentROGbonus } from "../w5/hole";
@@ -551,6 +551,9 @@ function resolveDamage(id: string, ctx: SystemCtx): ArkhNode {
     case "lustreSet":
       return helperPct("Lustre Set", sn(getSetBonus, "LUSTRE_SET"));
     // N.js Shrine(0): computeShrine, the reader Max HP's Shrine(1) uses (shrine.resolve only knows shrine 4).
+    // computeShrine skips N.js's Shrine gate (Artifact 0 owned, or the current map is the
+    // shrine's, or MF5 on and the same world, @7828132), as afk.ts's Shrine(8) already does:
+    // it counts a shrine as always active.
     // @njs _customBlock_Shrine
     case "shrine0":
       return helperPct(label("Shrine", 0), sn(computeShrine, 0, s));
@@ -568,6 +571,8 @@ function resolveDamage(id: string, ctx: SystemCtx): ArkhNode {
     case "fam20":
       return pct("Family Bonus 20", famOf(ctx, 20));
     // N.js Sailing("ArtifactBonus",25 | 2 | 8 | 27 | 29).
+    // Gap: Artifact 8 lacks N.js's getLOG(Σ WorkbenchStuff("PlayerBuildSpd") over every
+    // character) factor (@7814745), so computeArtifactBonus returns base × tier for it.
     case "artifact25":
     case "artifact2":
     case "artifact8":
@@ -734,7 +739,7 @@ function resolveDamage(id: string, ctx: SystemCtx): ArkhNode {
     }
     // N.js chipBonuses("dmg").
     case "chipDmg":
-      return pct("Lab Chips (Damage)", safe(computeChipBonus, "dmg"), null, 'chipBonuses("dmg")');
+      return pct("Lab Chips (Damage)", safe(chipBonuses, "dmg", ci), null, 'chipBonuses("dmg")');
     // N.js MealBonus("TotDmg").
     case "mealTotDmg":
       return helperPct("Meals (Total Damage)", sn(computeMealBonus, "TotDmg", s));

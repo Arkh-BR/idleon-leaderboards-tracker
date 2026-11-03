@@ -1,16 +1,17 @@
-name: Refresh top DR, DR V2, coin, EXP, AFK, multikill, artifact find & talent max
+name: Refresh top DR, DR V2, coin, EXP, AFK, multikill, damage, artifact find & talent max
 
 # Rebuilds the bundled "hypothetical max" reference datasets the Drop Rate,
-# Drop Rate V2, Coin Multi, EXP Multi, AFK Gains, Multikill, Artifact Find and Talents pages compare against:
+# Drop Rate V2, Coin Multi, EXP Multi, AFK Gains, Multikill, Damage, Artifact Find and Talents pages compare against:
 #   • web/lib/dropRate/topDropRate.ts       (+ .meta.ts)
 #   • web/lib/dropRateV2/topDropRateV2.ts   (+ .meta.ts)
 #   • web/lib/coinMulti/topCoinMulti.ts     (+ .meta.ts)
 #   • web/lib/expMulti/topExpMulti.ts       (+ .meta.ts)
 #   • web/lib/afkGains/topAfkGains.ts        (+ .meta.ts)
 #   • web/lib/multikill/topMultikill.ts      (+ .meta.ts)
+#   • web/lib/damage/topDamage.ts            (+ .meta.ts)
 #   • web/lib/artifactFind/topArtifactFind.ts (+ .meta.ts)
 #   • web/lib/talentsLevel/topTalents.ts
-# All eight collectors fetch every top player's raw save straight from the IT
+# All nine collectors fetch every top player's raw save straight from the IT
 # profiles endpoint (no browser needed — unlike the Tome refresh), run our
 # arkh engine, and keep the best value of every source across players.
 
@@ -31,11 +32,11 @@ concurrency:
 jobs:
   refresh:
     runs-on: ubuntu-latest
-    # 102: six capped steps (Coin + EXP + AFK + Multikill + Artifact Find + DR V2, 12 min
-    # each = 72, continue-on-error) plus the uncapped DR and Talent steps and checkout/npm ci
-    # (~82 min worst case) must all fit before "Commit refreshed snapshots" runs: a job
+    # 114: seven capped steps (Coin + EXP + AFK + Multikill + Damage + Artifact Find + DR V2,
+    # 12 min each = 84, continue-on-error) plus the uncapped DR and Talent steps and checkout/npm ci
+    # (~94 min worst case) must all fit before "Commit refreshed snapshots" runs: a job
     # timeout skips that step and loses every reference of the run.
-    timeout-minutes: 102
+    timeout-minutes: 114
     steps:
       - uses: actions/checkout@v4
 
@@ -77,6 +78,12 @@ jobs:
         timeout-minutes: 12
         run: npx tsx scripts/update-top-multikill.ts
 
+      - name: Refresh top-player Damage max
+        working-directory: web
+        continue-on-error: true
+        timeout-minutes: 12
+        run: npx tsx scripts/update-top-damage.ts
+
       - name: Refresh top-player Artifact Find max
         working-directory: web
         continue-on-error: true
@@ -100,11 +107,11 @@ jobs:
           GIT_COMMITTER_NAME: github-actions[bot]
           GIT_COMMITTER_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
         run: |
-          files="web/lib/dropRate/topDropRate.ts web/lib/dropRate/topDropRate.meta.ts web/lib/coinMulti/topCoinMulti.ts web/lib/coinMulti/topCoinMulti.meta.ts web/lib/expMulti/topExpMulti.ts web/lib/expMulti/topExpMulti.meta.ts web/lib/afkGains/topAfkGains.ts web/lib/afkGains/topAfkGains.meta.ts web/lib/multikill/topMultikill.ts web/lib/multikill/topMultikill.meta.ts web/lib/artifactFind/topArtifactFind.ts web/lib/artifactFind/topArtifactFind.meta.ts web/lib/dropRateV2/topDropRateV2.ts web/lib/dropRateV2/topDropRateV2.meta.ts web/lib/talentsLevel/topTalents.ts"
+          files="web/lib/dropRate/topDropRate.ts web/lib/dropRate/topDropRate.meta.ts web/lib/coinMulti/topCoinMulti.ts web/lib/coinMulti/topCoinMulti.meta.ts web/lib/expMulti/topExpMulti.ts web/lib/expMulti/topExpMulti.meta.ts web/lib/afkGains/topAfkGains.ts web/lib/afkGains/topAfkGains.meta.ts web/lib/multikill/topMultikill.ts web/lib/multikill/topMultikill.meta.ts web/lib/damage/topDamage.ts web/lib/damage/topDamage.meta.ts web/lib/artifactFind/topArtifactFind.ts web/lib/artifactFind/topArtifactFind.meta.ts web/lib/dropRateV2/topDropRateV2.ts web/lib/dropRateV2/topDropRateV2.meta.ts web/lib/talentsLevel/topTalents.ts"
           git add $files
           if git diff --cached --quiet; then
             echo "Snapshots unchanged, nothing to commit."
             exit 0
           fi
-          git commit -m "chore: auto-refresh top DR + DR V2 + coin + EXP + AFK + multikill + artifact find + talent max snapshots"
+          git commit -m "chore: auto-refresh top DR + DR V2 + coin + EXP + AFK + multikill + damage + artifact find + talent max snapshots"
           git push

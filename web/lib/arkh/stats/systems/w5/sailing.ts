@@ -1,9 +1,9 @@
-// ===== SAILING SYSTEM (W5) — DR-relevant slice =====
+// ===== SAILING SYSTEM (W5) — artifact slice =====
 // Pragmatic port of computeArtifactBonus covering the artifacts the DR
-// pipeline reads (16, 31, 32, 35, 37, 39). The full implementation in
-// corgan-source has 130 lines of per-artifact scaling tied to talents,
-// build speed, stats and meals — we cover the base + tier multiplier and
-// the simple cases we need.
+// (16, 31, 32, 35, 37, 39) and Damage (2, 8, 25, 27, 29) pipelines read.
+// Beyond base × tier it scales artifacts 2/10/18/20 (Slab), 3/5/23 (skill
+// level), 13 (meals), 25 (primary stat), 27 and 29. Artifact 8 is still
+// base × tier: N.js also multiplies it by getLOG(Σ PlayerBuildSpd).
 
 import { charClassData, divinityData } from "../../../save/data";
 import { artifactBase } from "../../data/w5/sailing";

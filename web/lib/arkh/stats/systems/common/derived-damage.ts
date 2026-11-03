@@ -43,7 +43,7 @@ import {
   computeObolBaseStat,
   primaryStatForClass,
 } from "./stats";
-import { computeStarSignBonus as computeStarSignBonusTree } from "./starSign";
+import { computeStarSignBonus as computeStarSignBonusTree, starSignBonusReal } from "./starSign";
 
 /** Scalar star-sign bonus (derived-damage only needs the number, not the
  *  tree). Delegates to the shared ./starSign helper — no local copy. */
@@ -64,7 +64,7 @@ import { menagerieObolMiscMulti } from "../../data/w7/menagerie";
 import { computeSummUpgBonus } from "../w6/summoning";
 import { computeCardSetBonus, computeCardLv } from "./cards";
 import { computePrayerReal } from "../w3/prayer";
-import { computeChipBonus, chipBonuses, gridBonusValue } from "../w4/lab";
+import { chipBonuses, gridBonusValue } from "../w4/lab";
 import { votingBonusz } from "../w2/voting";
 import { votingMulti } from "../coin/votingMulti";
 import { capevineSystemOn, gallerySystemOn, premhatSystemOn } from "../w7/gallery";
@@ -292,7 +292,7 @@ export function computeWeaponPower(ci: number, ctx: Ctx): number {
     const _cardBon18 = safe(computeCardBonusByType, 18, ci, s);
     const _sigil17 = rval(sigil, 17, ctx);
     // Pct scaling on equip WP: (1 + (chipWP + bubW1 + bubA1 + bubM1)/100)
-    const _chipWP = safe(computeChipBonus, "weppow");
+    const _chipWP = safe(chipBonuses, "weppow", ci);
     let _bubW1 = safe(bubbleValByKey, "W1", ci, s);
     let _bubA1 = safe(bubbleValByKey, "A1", ci, s);
     let _bubM1 = safe(bubbleValByKey, "M1", ci, s);
@@ -506,7 +506,7 @@ export function computePlayerSpeed(ci: number, ctx: Ctx): number {
       1;
     if (playerSpeed <= 2) {
       const _saltLick7 = safe(saltLick, 7, s);
-      const _chipMove = safe(computeChipBonus, "move");
+      const _chipMove = safe(chipBonuses, "move", ci);
       const _spdT641 = rval(talent, 641, ctx);
       const _sigil13 = rval(sigil, 13, ctx);
       if (playerSpeed > 1.75) {
@@ -619,7 +619,7 @@ export function computeAccuracy(charIdx: number, ctx: Ctx): number {
   const flurbo5 = safe(flurboShop, 5, s);
   const bribe21 = safe(getBribeBonus, "21", s);
   const comp23 = rval(companion, 23, ctx);
-  const starAccPct = computeStarSignBonus("AccPct", ci, s);
+  const starAccPct = starSignBonusReal("AccPct", ci, s).val; // equipped/unlocked signs only (N.js StarSignsDL)
   const buff288 = 0; // [STUB] GetBuffBonuses(288,2) — runtime buff, not in save
   const buff124 = 0; // [STUB] GetBuffBonuses(124,1) — runtime buff, not in save
 
