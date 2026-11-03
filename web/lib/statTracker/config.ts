@@ -70,13 +70,18 @@ export type StatPageConfig = {
   formatTotal(x: number): string;
   /** Headline unit, default "x". "%": formatTotal returns the percent number
    *  (AFK Gains: ⌊100·rate⌋) and the kit prints it with "%" — calculator
-   *  headline, snapshot notice and history table. Biggest Gains and Compare
-   *  don't change. */
-  unit?: "x" | "%";
+   *  headline, snapshot notice and history table. "": a bare number (Damage).
+   *  Biggest Gains and Compare don't change. */
+  unit?: "x" | "%" | "";
+  /** The headline's whole text, when it isn't `formatTotal(total) + unit`
+   *  (Damage prints "Min ~ Max"). Only the calculator headline; the snapshot
+   *  notice and history table keep formatTotal. */
+  headline?(tree: ArkhNode, total: number): string;
   /** The headline's tooltip. Default: the exponent form ("x"), or 100·total
    *  with 2 decimals for a "%" rate (AFK Gains). A stat whose total is
-   *  already a percent (Multikill) passes its own. */
-  totalTitle?(x: number): string;
+   *  already a percent (Multikill) passes its own. `tree` is the computed
+   *  tree the total came from. */
+  totalTitle?(x: number, tree?: ArkhNode | null): string;
   gains: GainsModel;
   loadTop(): Promise<TopModule>;
   topMeta: { generatedAt: string; playersScanned: number };

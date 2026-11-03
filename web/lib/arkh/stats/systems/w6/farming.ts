@@ -1,7 +1,7 @@
 // ===== FARMING SYSTEM (W6) =====
 import { node, type ArkhNode } from "../../../node";
 import { label } from "../../entity-names";
-import { mainframeBonus } from "../w4/lab";
+import { mainframeBonus, gridBonusValue } from "../w4/lab";
 import { vaultUpgBonus } from "../common/vault";
 import { emporiumBonus } from "../../../game-helpers";
 import { grimoireUpgBonus22 } from "../mc/grimoire";
@@ -19,14 +19,16 @@ export const farm = {
   resolve(id: string | number, ctx: Ctx): ArkhNode {
     const saveData = ctx.saveData;
 
-    if (id === "rank9" || id === "rank19") {
-      const rankIdx = id === "rank9" ? 9 : 19;
-      // Rank 9 = the Drop Rate crop rank; 19 doesn't appear in the DR pool
-      // today but keep symmetric naming if it ever lands there.
+    // N.js LankRankUpgBonus: ranks 4/9/14/19 are linear (this branch); the
+    // others follow 1.7·x/(x + 80) and aren't read by any stat yet.
+    if (id === "rank9" || id === "rank14" || id === "rank19") {
+      const rankIdx = Number(id.slice(4));
+      // Rank 9 = the Drop Rate crop rank; 14 = Max damage's Damage %; 19 is
+      // a TotalStats term.
       const friendlyName =
         id === "rank9"
           ? `Crop Drop Rate Rank (Farming rank9)`
-          : `Farming Rank 19 (Farming rank19)`;
+          : `Farming Rank ${rankIdx} (Farming ${id})`;
       const ninjaArr = ninjaInfo(36);
       const ninjaVal = Number(ninjaArr[rankIdx]) || 0;
       const rankLv = Number(
@@ -174,4 +176,19 @@ export function cropSCbonMulti(saveData: SaveData): number {
   const exotic40 = exoticBonusQTY(40, saveData);
   const vault79 = vaultUpgBonus(79, saveData);
   return (1 + mf17 / 100) * (1 + (grim22 + exotic40 + vault79) / 100);
+}
+
+// @njs StickerDMGmulti
+// @njs TotalStickers
+// @njs FarmingStickerDMG_unlocked
+/** N.js FarmingStuffs("StickerDMGmulti") (@10818426): 1 + Grid_Bonus(47) ·
+ *  TotalStickers/100 once FarmingStickerDMG_unlocked (Grid_Bonus(47) ≥ 1),
+ *  else 1. TotalStickers = round(Σ Research[9]), the stickers found per type. */
+export function stickerDmgMulti(saveData: SaveData): number {
+  const g47 = gridBonusValue(47, saveData);
+  if (g47 < 1) return 1;
+  const found = (saveData.research as any)?.[9];
+  let total = 0;
+  for (let e = 0; e < (Number(found?.length) || 0); e++) total += Number(found[e]) || 0;
+  return 1 + (g47 * Math.round(total)) / 100;
 }

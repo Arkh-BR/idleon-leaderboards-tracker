@@ -18,7 +18,7 @@ const info = (row: number, i: number) =>
 // @njs DeathNoteRank
 /** N.js WorkbenchStuff("DeathNoteRank", kills, e): one mob's skull value;
  *  e = 7842 is the miniboss table. */
-function deathNoteRank(kills: number, s: SaveData, mini = false): number {
+export function deathNoteRank(kills: number, s: SaveData, mini = false): number {
   if (mini) {
     if (kills < 100) return 0;
     if (kills < 250) return 1;

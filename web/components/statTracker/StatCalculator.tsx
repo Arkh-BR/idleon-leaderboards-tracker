@@ -270,14 +270,14 @@ export default function StatCalculator({
             title={
               total !== null
                 ? config.totalTitle
-                  ? config.totalTitle(total)
+                  ? config.totalTitle(total, tree)
                   : unit === "%"
                     ? (100 * total).toFixed(2) + "%"
-                    : total.toExponential(6) + "x"
+                    : total.toExponential(6) + unit
                 : undefined
             }
           >
-            {total !== null ? config.formatTotal(total) + unit : "—"}
+            {total === null ? "—" : config.headline && tree ? config.headline(tree, total) : config.formatTotal(total) + unit}
           </span>
         </div>
         {totalActions && <div className="-mt-1 flex items-center gap-2">{totalActions}</div>}

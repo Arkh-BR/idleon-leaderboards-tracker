@@ -70,7 +70,8 @@ export function splitGains(
   return { major, minor };
 }
 
-const DISPLAY: Record<StatGroup["kind"], GainDisplay> = { pct: "pct", raw: "raw", min4: "raw", mult: "x", add: "raw", replace: "raw" };
+/** How a group kind reads in the Biggest Gains table. */
+export const GROUP_DISPLAY: Record<StatGroup["kind"], GainDisplay> = { pct: "pct", raw: "raw", min4: "raw", mult: "x", add: "raw", replace: "raw" };
 
 /** GainsModel for a groupedDescriptor stat (Coin Multi, EXP Multi).
  *  `skip` names sources (by their node name, the path's last segment) that
@@ -98,7 +99,7 @@ export function groupedGainsModel(
         for (const path of directChildren(gp, yoursFlat, refFlat)) {
           const source = path.slice(gp.length + 3);
           if (skip.has(source)) continue;
-          out.push({ path, group: g.name, source, display: DISPLAY[g.kind] });
+          out.push({ path, group: g.name, source, display: GROUP_DISPLAY[g.kind] });
         }
       }
       return out;

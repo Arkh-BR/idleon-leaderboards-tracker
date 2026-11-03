@@ -4,7 +4,8 @@ import { computeArkhCoinMulti } from "@/lib/arkh/computeCoin";
 import { COIN_GROUPS } from "@/lib/arkh/stats/defs/coin-multi";
 import type { ArkhNode } from "@/lib/arkh/node";
 import { saveData } from "@/lib/arkh/state";
-import { computeOverkillTier, computeMaxDamage } from "@/lib/arkh/stats/systems/common/derived-damage";
+import { computeOverkillTier } from "@/lib/arkh/stats/systems/common/overkill";
+import { computeMaxDamage } from "@/lib/arkh/stats/systems/damage/damage";
 import { talent } from "@/lib/arkh/stats/systems/common/talent";
 import { isFightingMap } from "@/lib/arkh/stats/data/common/maps";
 import { currentMapData } from "@/lib/arkh/save/data";
@@ -258,11 +259,15 @@ describe.skipIf(!existsSync(SAVE))("Coin talent 643 — the game's target HP (sp
   // Engine pins (estimated tiers). 2026-11-01 fix round: +3 tiers each — max
   // damage now reads the full EtcBonuses("72"/"75"/"104") and
   // Companions(168)/(170) (were 19 and 4).
-  it("zArkhe's Jawbreaker curse (1180%, HP ×12.8): tier 22 on map 301", () => {
-    expect(tierOf("zArkhe", 301)).toBe(22);
+  // tier 22→24: max damage completed (damage tracker)
+  // tier 24→25: max damage completed (damage tracker)
+  it("zArkhe's Jawbreaker curse (1180%, HP ×12.8): tier 25 on map 301", () => {
+    expect(tierOf("zArkhe", 301)).toBe(25);
   });
 
-  it("Clamworks (map 306) measures Clamz_HP = 1e16·30^8, not the table's 1e18: tier 7", () => {
-    expect(tierOf("Markhe", 306)).toBe(7);
+  // tier 7→9: max damage completed (damage tracker)
+  // tier 9→10: max damage completed (damage tracker)
+  it("Clamworks (map 306) measures Clamz_HP = 1e16·30^8, not the table's 1e18: tier 10", () => {
+    expect(tierOf("Markhe", 306)).toBe(10);
   });
 });

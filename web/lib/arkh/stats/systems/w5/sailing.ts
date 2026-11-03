@@ -1,14 +1,18 @@
-// ===== SAILING SYSTEM (W5) — DR-relevant slice =====
+// ===== SAILING SYSTEM (W5) — artifact slice =====
 // Pragmatic port of computeArtifactBonus covering the artifacts the DR
-// pipeline reads (16, 31, 32, 35, 37, 39). The full implementation in
-// corgan-source has 130 lines of per-artifact scaling tied to talents,
-// build speed, stats and meals — we cover the base + tier multiplier and
-// the simple cases we need.
+// (16, 31, 32, 35, 37, 39) and Damage (2, 8, 25, 27, 29) pipelines read.
+// Beyond base × tier it scales artifacts 2/10/18/20 (Slab), 3/5/23 (skill
+// level), 13 (meals), 25 (primary stat), 27 and 29. Artifact 8 is still
+// base × tier: N.js also multiplies it by getLOG(Σ PlayerBuildSpd).
 
 import { charClassData, divinityData } from "../../../save/data";
 import { artifactBase } from "../../data/w5/sailing";
 import { getLOG } from "../../../formulas";
 import { legendPTSbonus } from "../w7/spelunking";
+import { computeTotalStat, primaryStatForClass } from "../common/stats";
+import { vaultUpgBonus } from "../common/vault";
+import { mainframeBonus } from "../w4/lab";
+import { computeMeritocBonusz } from "../w7/meritoc";
 import type { SaveData } from "../../../state";
 
 type Ctx = { saveData: SaveData };
@@ -44,6 +48,22 @@ export function computeArtifactBonus(
   } else if (artIdx === 29) {
     const div39 = Number((divinityData as any)?.[39]) || 1;
     val *= getLOG(div39);
+  } else if (artIdx === 25) {
+    // @njs ArtifactBonus
+    // N.js ArtifactBonus(25) (@10714975): × ⌊TotalStats(the class's primary
+    // stat)/100⌋, recomputed on every read for the character asking.
+    const c = ci >= 0 ? ci : 0;
+    val *= Math.floor(computeTotalStat(primaryStatForClass(c), c, { ...(ctx as any), charIdx: c }).computed / 100);
+  } else if (artIdx === 2 || artIdx === 10 || artIdx === 18 || artIdx === 20) {
+    // @njs ArtifactBonus
+    // N.js: × (1 + MainframeBonus(15)/100) × Sailing("SlabboBonus_AllMulti")
+    // × ⌊max(0, Cards[1].length − 500)/10⌋ (the Slab's items found).
+    const slabMulti =
+      (1 + computeMeritocBonusz(23, saveData) / 100) *
+      (1 + legendPTSbonus(28, saveData) / 100) *
+      (1 + vaultUpgBonus(74, saveData) / 100);
+    const found = (((saveData as any).cards1Data as unknown[]) || []).length;
+    val *= (1 + mainframeBonus(15, saveData) / 100) * slabMulti * Math.floor(Math.max(0, found - 500) / 10);
   }
 
   if (tier >= 2) val *= tier;

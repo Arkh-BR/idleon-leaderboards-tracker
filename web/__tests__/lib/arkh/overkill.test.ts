@@ -3,7 +3,8 @@
 import { describe, it, expect } from "vitest";
 import { loadSaveData } from "@/lib/arkh/save/loader";
 import { saveData } from "@/lib/arkh/state";
-import { multikillTier, overkillActive, overkillStuffs } from "@/lib/arkh/stats/systems/common/overkill";
+import { computeOverkillTier, multikillTier, overkillActive, overkillStuffs } from "@/lib/arkh/stats/systems/common/overkill";
+import { computeMaxDamage } from "@/lib/arkh/stats/systems/damage/damage";
 import { computeCalcTalent } from "@/lib/arkh/stats/systems/common/calcTalent";
 import { FORMULA_REGISTRY } from "@/scripts/updater/registry/formula-registry.gen";
 
@@ -46,7 +47,7 @@ describe("overkillStuffs — the AFK target's live HP", () => {
     expect(ok.hp / (7e13 * 12.8)).toBeCloseTo(1, 12);
   });
 
-  it("uses a max damage the caller already has (Coin's talent 643 passes its own)", () => {
+  it("uses a max damage the caller already has", () => {
     load([8, -1, -1, -1, -1, -1]);
     const hp = overkillStuffs(0, 301, { saveData }).hp;
     const ok = overkillStuffs(0, 301, { saveData }, { maxDmg: hp * 200 }); // HP·5³ ≤ 200·HP < HP·5⁴
@@ -86,6 +87,35 @@ describe("overkillStuffs — the AFK target's live HP", () => {
   it("registers the port under N.js's names for the updater", () => {
     expect(FORMULA_REGISTRY["OverkillStuffs"]).toEqual(["lib/arkh/stats/systems/common/overkill.ts"]);
     expect(FORMULA_REGISTRY["Clamz_HP"]).toEqual(["lib/arkh/stats/systems/common/overkill.ts"]);
+  });
+});
+
+// The map rules live in the max damage (damage.ts: map 306 divides L2, map 43
+// replaces Max by RatDMG): overkill hands it the map and adds nothing of its own.
+describe("overkillStuffs — the max damage carries the map rules (damage tracker)", () => {
+  const load = () => {
+    loadSaveData({ charNames: ["A"], data: { StarSg: {}, CurrentMap_0: 14 } });
+    (saveData as any).menagerieData = [[], [], [], [], [], [0, 0, 2]]; // Menagerie[5][2] = 2 → ÷100² on map 306
+    return { saveData, charIdx: 0 };
+  };
+
+  it("map 306: the tier reads computeMaxDamage(ci, ctx, 306), no extra division", () => {
+    const ctx = load();
+    const ok = overkillStuffs(0, 306, ctx);
+    expect(ok.maxDmg).toBe(computeMaxDamage(0, ctx, 306));
+    expect(ok.maxDmg / (computeMaxDamage(0, ctx, 100) / 100 ** 2)).toBeCloseTo(1, 12);
+    expect(computeOverkillTier(0, ctx, { mapIdx: 306 }).maxDmg).toBe(ok.maxDmg);
+  });
+
+  it("opts.maxDmg is already a map-applied Max: map 306 leaves it as it is", () => {
+    const ctx = load();
+    expect(overkillStuffs(0, 306, ctx, { maxDmg: 5e9 }).maxDmg).toBe(5e9);
+  });
+
+  it("map 43: Max is RatDMG, as N.js DamageDealed('Max') there", () => {
+    const ctx = load();
+    expect(computeMaxDamage(0, ctx, 43)).not.toBe(computeMaxDamage(0, ctx));
+    expect(overkillStuffs(0, 43, ctx).maxDmg).toBe(computeMaxDamage(0, ctx, 43));
   });
 });
 

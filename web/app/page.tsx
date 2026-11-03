@@ -86,6 +86,13 @@ export default function HomePage() {
           cta="Open Multikill"
         />
         <ShortcutCard
+          href="/damage"
+          icon="⚔️"
+          title="Damage Tracker"
+          description="Every term of the game's damage formula on your save — the Player Info Damage line (Min ~ Max), base damage, damage % and multipliers — per character and map, with snapshots and a top-player comparison."
+          cta="Open Damage"
+        />
+        <ShortcutCard
           href="/artifact-find"
           icon="🏺"
           title="Artifact Find Tracker"

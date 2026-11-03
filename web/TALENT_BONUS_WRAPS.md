@@ -50,7 +50,9 @@ Talent X = <final bonus>
 | `lib/arkh/stats/data/common/talent-cap-boosters.ts` | `TALENT_CAP_BOOSTERS` — per-talent SkillLevelsMAX cap overrides (see §7). |
 | `lib/arkh/stats/systems/common/stats.ts` | Ported stat engine — `computeTotalStat` + chain. |
 | `lib/arkh/stats/systems/common/derived-stats.ts` | `computePlayerHPmax`, `computePlayerMPmax`, `computeSkillEfficiency`. |
-| `lib/arkh/stats/systems/common/derived-damage.ts` | `computeMaxDamage`, `computeOverkillTier`, `computePlayerSpeed`, `computeAccuracy`. |
+| `lib/arkh/stats/systems/common/derived-damage.ts` | `computePlayerSpeed`, `computeAccuracy` and the shared damage inputs. |
+| `lib/arkh/stats/systems/damage/damage.ts` | `computeMaxDamage` (the `damage` system). |
+| `lib/arkh/stats/systems/common/overkill.ts` | `computeOverkillTier`. |
 | `lib/arkh/stats/systems/common/calcTalent.ts` | `computeCalcTalent(id, charIdx, saveData)` → `CalcTalentMAP[id]`. |
 | `lib/arkh/stats/systems/w6/upg-totals.ts` | Counter helpers (upgrade totals, inventory rollup, kill-tracker, atom, titans, onyx). |
 | `lib/arkh/stats/systems/common/talent.ts` | `talent.resolve` — calls `applyTalentWrap` at the 3 emit sites (account-wide / star / standard). |
@@ -177,9 +179,10 @@ All faithful ports of corgan-source defs/systems, reusing each other.
   within ~1%** (the gap is a stale save snapshot, not a bug — see §8).
 - **derived-stats.ts**: `computePlayerHPmax`, `computePlayerMPmax`,
   `computeSkillEfficiency`.
-- **derived-damage.ts** (port of damage.js ~994 lines): `computeMaxDamage`,
-  `computeOverkillTier`, `computePlayerSpeed`, `computeAccuracy` (port of
-  accuracy.js ~190 lines).
+- **derived-damage.ts** (shared damage inputs): `computePlayerSpeed`,
+  `computeAccuracy` (port of accuracy.js ~190 lines). `computeMaxDamage` now
+  lives in `systems/damage/damage.ts` (the `damage` system) and
+  `computeOverkillTier` in `systems/common/overkill.ts`.
 - **calcTalent.ts**: `computeCalcTalent` — CalcTalentMAP keys.
 - **upg-totals.ts**: `grimoireUpgTotal`, `arcaneUpgTotal`, `compassUpgTotal`
   (note: Compass save is NESTED — sum `Compass[0][i]`), `totBreedzWWz`,
@@ -232,7 +235,7 @@ The `/talents-level` headline does `Max Effective LV = cap + bonus + super`,
   `PVStatList_N` because the player leveled sigils to Eclectic *after* the save
   wrote the snapshot. Not a bug.
 - **Import cycle** `derived-damage → talent → talent-final-bonus-wraps →
-  calcTalent → derived-damage` resolves safely: all cross-cycle uses are
+  calcTalent → overkill → damage → derived-damage` resolves safely: all cross-cycle uses are
   call-time inside hoisted function declarations; the damage path never resolves
   talent 643/125 (no recursion).
 - **Two N.js wrap-detection traps** (both bit us): the `findDescendant`

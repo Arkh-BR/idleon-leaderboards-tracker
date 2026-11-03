@@ -214,10 +214,8 @@ describe.skipIf(!existsSync(SAVE))("EXP Multi — Markhe on map 14 vs IdleonTool
     // + vault35(972.2039…) SUMMED; checked individually here.
     ["vault 3", () => src("vault3"), 2844.68],
     ["vault 35 × log(OLA[345])", () => src("vault35"), 972.2039361013409],
-    // IT "Iron Set" 0.25 ×100 — gap found while implementing this task:
-    // SET_BONUS_VALUES had no IRON_SET entry despite OLA[379] listing it as
-    // unlocked; fixed additively in data/common/equipment.ts (equipSetBonus
-    // is the same generic EquipmentSets[.][3][2] reader every other row uses).
+    // IT "Iron Set" 0.25 ×100: getSetBonus reads EquipmentSets[.][3][2] for
+    // every set listed in OLA[379] (no more per-set whitelist).
     ["iron set", () => src("ironSet"), 25],
     // IT "Exotic Market" 2.357188772230555 ×100.
     ["exotic market 50", () => src("exotic50"), 235.7188772230555],

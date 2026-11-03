@@ -14,6 +14,7 @@ import { computeUniqueSushi } from "../stats/systems/w7/sushi";
 import { LAB_BONUS_BASE, LAB_BONUS_DYNAMIC, JEWEL_DESC } from "../stats/data/w4/lab";
 import { computeLabConnectivity } from "../stats/systems/w4/lab";
 import { emporiumBonus } from "../game-helpers";
+import { SceneNPCquestOrder } from "../stats/data/game/customlists.js";
 
 type RawEnvelope = {
   data?: Record<string, unknown>;
@@ -131,6 +132,7 @@ export function loadSaveData(raw: RawEnvelope): void {
   assignState({ holesData: (parseSaveKey(save, "Holes") as any[]) || [] });
   assignState({ riftData: (parseSaveKey(save, "Rift") as any[]) || [] });
   assignState({ breedingData: (parseSaveKey(save, "Breeding") as any[]) || [] });
+  assignState({ greenStacks: (parseSaveKey(save, "GreenStacks") as any[]) || [] });
   assignState({ summonData: (parseSaveKey(save, "Summon") as any[]) || [] });
   assignState({ arcaneData: (parseSaveKey(save, "Arcane") as any[]) || [] });
   assignState({ sushiData: (parseSaveKey(save, "Sushi") as any[]) || [] });
@@ -412,6 +414,13 @@ export function loadSaveData(raw: RawEnvelope): void {
     questComplete.push((parseSaveKey(save, "QuestComplete_" + ci) as any) || {});
   }
   assignState({ questCompleteData: questComplete });
+  // @njs _customBlock_ArbitraryCode
+  // N.js ArbitraryCode("TotalQuestsComplete") = TomeQTY[4]: the
+  // SceneNPCquestOrder quests some character has completed (QuestComplete 1).
+  assignState({
+    totalQuestsComplete: (SceneNPCquestOrder as string[]).filter((q) => questComplete.some((qc) => Number(qc?.[q]) === 1))
+      .length,
+  });
 
   // Server vars (Research EXP, mining, voting)
   const sv = raw.serverVars as Record<string, unknown> | undefined;

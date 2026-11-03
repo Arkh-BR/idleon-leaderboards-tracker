@@ -1,5 +1,6 @@
 // ===== W5 DIVINITY SYSTEM =====
-// 1:1 port of corgan-source/js/stats/systems/w5/divinity.js (hasBonusMajor only).
+// 1:1 port of corgan-source/js/stats/systems/w5/divinity.js (hasBonusMajor),
+// plus N.js Bonus_MAJOR and BlesssBonus.
 //
 // hasBonusMajor(playerIdx, godType, saveData) returns true if the player has the
 // "major bonus" for godType active. Sources checked in order:
@@ -10,6 +11,8 @@
 //   5. Normal assignment: divinityData[playerIdx + 12]
 
 import { godsType } from "../../data/w4/gods";
+import { GodsInfo } from "../../data/game/customlists.js";
+import { emporiumBonus } from "../../../game-helpers";
 import { divinityData, optionsListData, skillLvData } from "../../../save/data";
 import type { SaveData } from "../../../state";
 
@@ -66,4 +69,16 @@ export function bonusMajorReal(ci: number, type: number, saveData: SaveData): bo
   if (!(sl505 > 0)) return false;
   const g = sl505 - 10 * Math.floor(sl505 / 10);
   return godsType(g) === type && (Number((divinityData as any)?.[25]) || 0) > g;
+}
+
+/** N.js Divinity("BlesssBonus", b) (@10758320): god b's blessing level
+ *  Divinity[28 + b] × GodsInfo[b][14] × (1 + .05·EmporiumBonus(33)·max(0,
+ *  Divinity[25] − 10)). The Tutorial-scene 0 is runtime only. */
+// @njs BlesssBonus
+export function divinityBlessBonus(b: number, s: SaveData): number {
+  // ponytail: b = 2 (Nobisect) scales by the live char's efficiencies and stats; no reader yet.
+  if (b === 2) throw new Error("BlesssBonus 2 not ported");
+  const div = (i: number) => Number((divinityData as any)?.[i]) || 0;
+  const emp33 = emporiumBonus(33, (s.ninjaData as any)?.[102]?.[9]);
+  return div(28 + b) * (Number((GodsInfo as any)[b]?.[14]) || 0) * (1 + 0.05 * emp33 * Math.max(0, div(25) - 10));
 }

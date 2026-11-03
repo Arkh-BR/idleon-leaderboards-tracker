@@ -1,0 +1,113 @@
+import { describe, it, expect, beforeAll } from "vitest";
+import { existsSync, readFileSync } from "node:fs";
+import { DAMAGE_PAGE } from "@/lib/damage/pageConfig";
+import { damageGainsModel } from "@/lib/damage/gains";
+import { formatDamage, formatDamageLine } from "@/lib/damage/format";
+import { computeArkhDamage } from "@/lib/arkh/computeDamage";
+import { DMG_NODES } from "@/lib/arkh/stats/defs/damage";
+import type { ArkhNode } from "@/lib/arkh/node";
+
+const g = globalThis as unknown as { window?: unknown };
+if (!g.window) g.window = g;
+
+const SAVE = "scripts/updater/golden/.cache/arkhe-live-2026-11-01-postupdate.json";
+
+describe("formatDamage (the Player Info ladder, N.js @6710738)", () => {
+  it.each<[number, string]>([
+    [0.2, "1"],
+    [1234567.2, "1234568"],
+    [12345678.9, "12.346M"],
+    [5e10, "50000M"],
+    [2e14, "200T"],
+    [5e20, "💎500"],
+    [3e26, "💎300Y"],
+    [2.27755e34, "💎22776₸"],
+  ])("%s → %s", (x, s) => expect(formatDamage(x)).toBe(s));
+
+  it("prints a dash for a non-finite value", () => expect(formatDamage(NaN)).toBe("—"));
+
+  it("the line takes Max's unit for both ends, like the panel", () => {
+    expect(formatDamageLine(1.63095e34, 2.27755e34)).toBe("💎16310₸~22776₸");
+    expect(formatDamageLine(9.0005e32, 5.00005e33)).toBe("💎900.1₸~5000.1₸");
+    expect(formatDamageLine(5_000_000, 20_000_000)).toBe("5M~20M");
+    expect(formatDamageLine(NaN, 5)).toBe("—~5");
+  });
+});
+
+describe("Damage page config", () => {
+  it("has its own storage keys, copy and a bare unit", () => {
+    expect(DAMAGE_PAGE.storage).toEqual({
+      save: "damage-tracker.last-upload.v1",
+      name: "damage-tracker.playerName",
+      snapshots: "damage-tracker.v1",
+      collapse: "damage.snapshot-section.collapsed.v1",
+      exportPrefix: "damage-snapshots",
+      exportLabel: "damage-tracker",
+    });
+    expect(DAMAGE_PAGE).toMatchObject({
+      statName: "Damage",
+      gainLabel: "Damage",
+      emoji: "⚔️",
+      calculatorTitle: "Damage Calculator",
+      totalLabel: "Damage",
+      unit: "",
+      errPrefix: "Damage compute failed",
+      mapTitle: "The map sets the Royal Guardian arena (map 43) and Clamworks' damage divider (map 306)",
+    });
+    expect(DAMAGE_PAGE.formatTotal).toBe(formatDamage);
+    expect(DAMAGE_PAGE.gains).toBe(damageGainsModel);
+    expect(DAMAGE_PAGE.methodologyNote).toMatch(/Active buffs \(Talents 108\/124\) and masterclass forms \(Wraith, Tempest, Tesseract\) are not counted/);
+  });
+
+  const tree = (max: number, mastery: number): ArkhNode => ({
+    name: "Damage",
+    val: max,
+    children: [{ name: DMG_NODES.mastery, val: mastery }],
+  });
+
+  it("headline is Min ~ Max, Min = Max × Mastery; the tooltip has both in full", () => {
+    expect(DAMAGE_PAGE.headline!(tree(2_000_000, 0.5), 2_000_000)).toBe("1000000~2000000");
+    expect(DAMAGE_PAGE.totalTitle!(2_000_000, tree(2_000_000, 0.5))).toBe("Min 1,000,000 ~ Max 2,000,000");
+    // No Mastery node: a dash for Min, never NaN text.
+    expect(DAMAGE_PAGE.headline!({ name: "Damage", val: 5 }, 5)).toBe("—~5");
+    expect(DAMAGE_PAGE.totalTitle!(5, null)).toBe("Min — ~ Max 5");
+  });
+
+  it("loads the generated Observed Max: players scanned, and a finite positive Damage root", async () => {
+    const top = await DAMAGE_PAGE.loadTop();
+    expect(DAMAGE_PAGE.topMeta.playersScanned).toBeGreaterThan(0);
+    for (const classKey of [null, "Barbarian"]) {
+      const root = top.flatForClass(classKey)["Damage"];
+      expect(Number.isFinite(root), String(classKey)).toBe(true);
+      expect(root, String(classKey)).toBeGreaterThan(0);
+    }
+  });
+
+  // Needs no private save: the Biggest Gains tab feeds loadTop().flatForClass(key)
+  // unfiltered (damage has no refToggle) to totalFromFlat, so the generated
+  // reference must re-derive its own Damage root through dmgMax.
+  it.each([null, "Barbarian"])("the generated reference is self-consistent: totalFromFlat(flat) = flat Damage (%s)", async (classKey) => {
+    const flat = (await DAMAGE_PAGE.loadTop()).flatForClass(classKey);
+    const root = flat["Damage"];
+    expect(Math.abs(damageGainsModel.totalFromFlat(flat) - root) / root).toBeLessThan(1e-9);
+  });
+});
+
+describe.skipIf(!existsSync(SAVE))("Damage page config on a real save", () => {
+  let save: any;
+  beforeAll(() => {
+    save = JSON.parse(readFileSync(SAVE, "utf8").replace(/^﻿/, ""));
+  });
+
+  it("compute is computeArkhDamage, and the headline reads Mastery off its tree", async () => {
+    const ci = save.charNames.indexOf("ARKHE");
+    const r = await DAMAGE_PAGE.compute(save, ci, 0);
+    expect(r.total).toBe(computeArkhDamage(save, ci, 0).total);
+    const mastery = r.tree.children!.find((c) => c.name === DMG_NODES.mastery)!.val;
+    expect(mastery).toBeGreaterThan(0);
+    expect(DAMAGE_PAGE.headline!(r.tree, r.total)).toBe(formatDamageLine(r.total * mastery, r.total));
+    // The arena fixes Mastery at 0.2.
+    const arena = await DAMAGE_PAGE.compute(save, ci, 43);
+    expect(arena.tree.children!.find((c) => c.name === DMG_NODES.mastery)!.val).toBeCloseTo(0.2, 12);
+  });
+});

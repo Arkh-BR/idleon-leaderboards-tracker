@@ -7,21 +7,20 @@
 import { node, renamed, type ArkhNode } from "../../../node";
 import type { SystemCtx } from "../../registry";
 import type { SaveData } from "../../../state";
-import { getLOG, formulaEval } from "../../../formulas";
-import { optionsListData, currentMapData, numCharacters, dreamData } from "../../../save/data";
+import { getLOG } from "../../../formulas";
+import { optionsListData, currentMapData, numCharacters } from "../../../save/data";
 import { eventShopOwned, emporiumBonus } from "../../../game-helpers";
 import { label } from "../../entity-names";
-import { DungPassiveStats2, RANDOlist } from "../../data/game/customlists.js";
-import { legendPTSbonus, computePaletteBonus } from "../w7/spelunking";
+import { RANDOlist } from "../../data/game/customlists.js";
 import { cropSCbonMulti } from "../w6/farming";
 import { vaultKillzTotal, cardsCollected, accountMapKills } from "./accountKills";
+import { flurboShop } from "./flurbo";
+import { rooBonus } from "./roo";
+import { votingMulti } from "./votingMulti";
 import { divinityMinorSum } from "./divinityMinor";
 import { computeArtifactBonus } from "../w5/sailing";
 import { votingBonusz } from "../w2/voting";
 import { COIN_VOTE_NAME } from "../../defs/coin-multi";
-import { computeMeritocBonusz } from "../w7/meritoc";
-import { computeWinBonus } from "../w6/summoning";
-import { cosmoBonus } from "../w5/hole";
 import { bubbleValByKey, computeVialByKey } from "../w2/alchemy";
 import {
   computeMealBonus,
@@ -56,31 +55,8 @@ const add = (name: string, r: Tree, note?: string): ArkhNode =>
   node(name, r.val, r.children, { fmt: "+", note });
 const raw = (name: string, v: number, note?: string): ArkhNode => node(name, v, null, { fmt: "raw", note });
 
-/** N.js FlurboShop(idx) (@7827791): DungPassiveStats2[idx] at level
- *  DungUpg[5][idx]. Coin's flurbo4, EXP's flurbo2 and AFK's flurbo7. */
-// @njs _customBlock_FlurboShop
-export function flurboShop(idx: number, s: SaveData): { val: number; children: ArkhNode[] } {
-  const row = ((DungPassiveStats2 as any[])[idx] ?? []) as unknown[];
-  const lv = Number((s.dungUpgData as any[])?.[5]?.[idx]) || 0;
-  return { val: formulaEval(String(row[3]), Number(row[1]), Number(row[2]), lv), children: [raw("Level", lv)] };
-}
-
-/** N.js Summoning("RooBonuses", idx) (@10827396): coef·(1 + Legend26/100)·
- *  (1 + Companions(51))·(1 + RooBonusAll/100)·max(0, ⌈(OLA[271] − idx)/7⌉),
- *  RooBonusAll = the megafeather %. N.js coef per idx 0–6: 3, 3, 5, 2, 2, .5, 3. */
-// @njs RooBonuses
-export function rooBonus(idx: number, coef: number, s: SaveData): { val: number; children: ArkhNode[] } {
-  const ola = (i: number) => Number((optionsListData as any[])[i]) || 0;
-  const mf = (k: number) => (ola(279) > k ? (k === 11 ? ola(279) - 11 : 1) : 0);
-  const all = 50 * mf(1) + 50 * mf(3) + 50 * mf(6) + 50 * mf(8) + 50 * Math.min(1, mf(11)) + 25 * Math.max(0, mf(11) - 1);
-  const legend = legendPTSbonus(26, s);
-  const c51 = companions(51, s);
-  const steps = Math.max(0, Math.ceil((ola(271) - idx) / 7));
-  return {
-    val: coef * (1 + legend / 100) * (1 + c51) * (1 + all / 100) * steps,
-    children: [raw("Legend 26", legend), raw("Companion 51", c51), raw("Megafeathers %", all), raw("Roo reset tiers", steps, `⌈(OLA[271] − ${idx}) / 7⌉: one tier per 7 Roo resets (OLA[271]) beyond this upgrade's offset`)],
-  };
-}
+// FlurboShop, RooBonuses and the voting multi live in leaf modules (derived-damage reads them); re-exported here.
+export { flurboShop, rooBonus, votingMulti };
 
 const BUBBLES: Record<string, { name: string; cauldron: string; key: string; stat: number; label: string }> = {
   bubbleSTR: { name: "Penny of Strength", cauldron: "Power Cauldron", key: "CashSTR", stat: 0, label: "STR" },
@@ -103,19 +79,6 @@ const VAULT_KILLS: Record<number, [string, string, string]> = {
   37: ["Bubble Money (Vault 37)", "× Σ min(100, bubble level) (VaultKillzTotal(9))", "Bubble levels (each capped at 100)"],
 };
 
-// Voting multi shared by Coin's vote34 and EXP Multi's vote15 (votingBonusz
-// gates on activeVoteIdx, so the same multi is inert unless that vote is
-// the account's active one). Extracted so both callers share one formula.
-export function votingMulti(ctx: SystemCtx): number {
-  const s = ctx.saveData;
-  const es = (n: number) => eventShopOwned(n, s.cachedEventShopStr || "");
-  const inner =
-    companions(41, s) + (Number((dreamData as any[])[13]) || 0) + cosmoBonus(s, 2, 3) +
-    computeWinBonus(22, null, s) + 17 * es(7) + 13 * es(16) + companions(19, s) +
-    computePaletteBonus(32, s) + legendPTSbonus(22, s) +
-    (Number(sushiRoG.resolve(50, ctx as any).val) || 0);
-  return (1 + companions(161, s) / 100) * (1 + computeMeritocBonusz(9, s) / 100) * (1 + inner / 100);
-}
 
 // @njs MonsterCash
 function resolveCoin(id: string, ctx: SystemCtx): ArkhNode {
@@ -244,7 +207,9 @@ function resolveCoin(id: string, ctx: SystemCtx): ArkhNode {
       const r = trackerNamed(talent.resolve(643, tctx));
       if (!(Number(r.val) > 0)) return r;
       const saved = overkillStuffs(ci, Number((currentMapData as any)?.[ci]) || 0, ctx);
-      const ok = overkillStuffs(ci, ctx.mapIdx ?? saved.map, ctx, { maxDmg: saved.maxDmg });
+      // saved.maxDmg is the Max on the saved map; the map rules sit inside it.
+      const map = ctx.mapIdx ?? saved.map;
+      const ok = map === saved.map ? saved : overkillStuffs(ci, map, ctx);
       return node(
         r.name,
         (Number(r.val) / saved.tier) * ok.tier,

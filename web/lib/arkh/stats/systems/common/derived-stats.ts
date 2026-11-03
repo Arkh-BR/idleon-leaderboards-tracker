@@ -28,7 +28,7 @@ import {
   computeTotalStat,
   computeCardBonusByType,
   computeBoxReward,
-  computeFamBonusQTY,
+  computeFamBonusQTYs,
 } from "./stats";
 import { computeStampBonusOfTypeX } from "../w1/stamp";
 import { goldFoodBonuses } from "./goldenFood";
@@ -36,7 +36,7 @@ import { computeCardSetBonus, cardLv } from "./cards";
 import { talent } from "./talent";
 import { etcBonus } from "./etcBonus";
 import { bubbleValByKey, getPrismaBonusMult } from "../w2/alchemy";
-import { shrine } from "../w3/construction";
+import { computeShrine } from "../w3/construction";
 import { computeStatueBonusGiven, computeMealBonus } from "./stats";
 import { computeStarSignBonus } from "./starSign";
 import { computeShinyBonusS } from "../w4/breeding";
@@ -46,7 +46,7 @@ import { computeVialByKey } from "../w2/alchemy";
 import { computeArtifactBonus } from "../w5/sailing";
 import { tome } from "../w4/tome";
 import { computePaletteBonus } from "../w7/spelunking";
-import { computeChipBonus, mainframeBonus } from "../w4/lab";
+import { chipBonuses, mainframeBonus } from "../w4/lab";
 import { friend } from "./friend";
 import { holes } from "../w5/hole";
 import { computeAllShimmerBonuses } from "../w3/equinox";
@@ -131,6 +131,7 @@ function getBuffBonus(
 // ==========================================================================
 // MAX HP — _customBlock_PlayerHPmax: LIST[0] × LIST[1] × LIST[2]
 // ==========================================================================
+// @njs _customBlock_PlayerHPmax
 export function computePlayerHPmax(charIdx: number, ctx: Ctx): Tree {
   const s = ctx.saveData;
   const ci = charIdx ?? ctx.charIdx ?? 0;
@@ -241,10 +242,15 @@ export function computePlayerHPmax(charIdx: number, ctx: Ctx): Tree {
   const talent92 = rval(talent, 92, ctx);
   const talent272 = rval(talent, 272, ctx);
   const etc15 = rval(etcBonus, "15", ctx);
-  const shrine1 = rval(shrine, 1, ctx);
+  // Shrine(1): computeShrine reads every shrine (shrine.resolve only knows shrine 4).
+  // It skips N.js's Shrine gate (Artifact 0 owned, or the current map is the shrine's,
+  // or MF5 on and the same world, @7828132) and counts a shrine as always active,
+  // as afk.ts's Shrine(8) already does.
+  const shrine1 = safe(computeShrine, 1, s);
   const _brPctHP = computeBoxReward(ci, "pctHP");
   const boxPctHP = _brPctHP.val || 0;
-  const famBonus18 = safe(computeFamBonusQTY, 18, s);
+  // DNSM.FamBonusQTYs["18"]: the active char's family map (talent 144 buff).
+  const famBonus18 = computeFamBonusQTYs(ctx.activeCharIdx ?? ci, s)[18] || 0;
   const _cardBonus8T = safeTree(computeCardBonusByType, 8, ci, s);
   const cardBonus8 = _cardBonus8T.val;
   const _starSignHPT = computeStarSignBonus("TotalHP", ci, s);
@@ -420,7 +426,7 @@ function computePrayerReal(
 
 // AllEfficiencies: shared multiplier for ALL skill efficiencies (6 groups)
 function computeAllEfficiencies(ci: number, ctx: Ctx): number {
-  const famBonus42 = safe(computeFamBonusQTY, 42, ctx.saveData);
+  const famBonus42 = computeFamBonusQTYs(ctx.activeCharIdx ?? ci, ctx.saveData)[42] || 0;
   const etc48 = rval(etcBonus, "48", ctx);
   const vial6SkillEff = safe((k: string, s: SaveData) => computeVialByKey(k, s).val, "6SkillEff", ctx.saveData);
   const artifactBonus15 = safe(computeArtifactBonus, 15, ci, ctx as any);
@@ -439,7 +445,7 @@ function computeAllEfficiencies(ci: number, ctx: Ctx): number {
   const talent646 = rval(talent, 646, ctx);
   const tomeBonus1 = rval(tome, 1, ctx);
   const paletteBonus10 = safe(computePaletteBonus, 10, ctx.saveData);
-  const chipToteff = safe(computeChipBonus, "toteff");
+  const chipToteff = safe(chipBonuses, "toteff", ci);
   const cardCrystal4 = 3 * safe(cardLv, "Crystal4", ctx.saveData);
   const friendStatz2 = rval(friend, 2, ctx);
   const riftSkillETC2 = safe(computeRiftSkillETC, 2, ctx.saveData);
@@ -491,7 +497,7 @@ function computeAllBaseSkillEff(ci: number, ctx: Ctx): number {
   const divBless2 = safe(computeDivinityBless, 2, ctx.saveData);
   const _br20b = computeBoxReward(ci, "20b");
   const boxReward20b = _br20b.val || 0;
-  const chipEff = safe(computeChipBonus, "eff");
+  const chipEff = safe(chipBonuses, "eff", ci);
   const talent636 = rval(talent, 636, ctx);
   const mf112 = safe(mainframeBonus, 112, ctx.saveData);
 

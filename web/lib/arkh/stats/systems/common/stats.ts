@@ -1750,23 +1750,6 @@ export function computeMealBonus(effectKey: string, saveData: SaveData): TreeRes
   return treeResult(total, children);
 }
 
-// ==================== FAMILIAR BONUSES ====================
-export function computeFamBonusQTY(famIdx: number, saveData: SaveData): number {
-  const s = saveData;
-  if (!ClassFamilyBonuses || !(ClassFamilyBonuses as any[])[famIdx]) return 0;
-  const info = (ClassFamilyBonuses as any[])[famIdx];
-  const bonusPerChar = Number(info[1]) || 0;
-  let total = 0;
-  for (let ci2 = 0; ci2 < numCharacters; ci2++) {
-    const cls2 = Number((charClassData as any) && (charClassData as any)[ci2]) || 0;
-    if (cls2 <= 0) continue;
-    const lvArr = s.lv0AllData && s.lv0AllData[ci2];
-    const classLv = Number(lvArr && lvArr[0]) || 0;
-    if (classLv > 0) total += bonusPerChar;
-  }
-  return total;
-}
-
 // ==================== WORKBENCH (WORLD BOSS) ====================
 export function computeWorkbenchStuff(saveData: SaveData): number {
   const s = saveData;

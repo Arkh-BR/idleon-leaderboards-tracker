@@ -150,10 +150,12 @@ describe.skipIf(!existsSync(SAVE))("Multikill what-if on the ARKHE save", () => 
   });
   const markhe = () => save.charNames.indexOf("Markhe");
 
+  // tier 27→29 (301) and 7→9 (306): max damage completed (damage tracker)
+  // tier 29→30 (301) and 9→10 (306): max damage completed (damage tracker)
   it.each<[number, number]>([
     [14, 81706],
-    [301, 3569],
-    [306, 1010],
+    [301, 3953],
+    [306, 1394],
     [251, 80686],
   ])("Markhe on map %i: totalFromFlat = the tree = %i", (map, want) => {
     const t = computeArkhMultikill(save, markhe(), map).tree;
@@ -173,10 +175,12 @@ describe.skipIf(!existsSync(SAVE))("Multikill what-if on the ARKHE save", () => 
   // Engine pins (estimated tiers). 2026-11-01 fix round: max damage now reads
   // the full EtcBonuses("72"/"75"/"104") (nametags/trophies/Hat Rack were
   // dropped for string ids) and Companions(168)/(170): tier 24 → 27, 3185 → 3569.
-  it("Markhe on map 301: +1 damage tier, 27 → 28, is +3.6%", () => {
+  // tier 27→29: max damage completed (damage tracker)
+  // tier 29→30: max damage completed (damage tracker)
+  it("Markhe on map 301: +1 damage tier, 30 → 31, is +3.2%", () => {
     const [lever] = multikillGainsModel.levers!(flattenTree(computeArkhMultikill(save, markhe(), 301).tree));
-    expect(lever).toMatchObject({ you: 27, max: 28 });
-    expect(lever.gainPct).toBeCloseTo((3697 / 3569 - 1) * 100, 9);
+    expect(lever).toMatchObject({ you: 30, max: 31 });
+    expect(lever.gainPct).toBeCloseTo((4081 / 3953 - 1) * 100, 9);
     // 2.086E31 / 6.48E30: max damage counts Briar Patch (exotic 41, +5083%) and
     // Royal Statue 0 (+200%) since 2026-10 — both in N.js `Max`, both stubbed
     // before (the old ×3.47 came from that incomplete engine). 2026-11-01:
@@ -185,6 +189,12 @@ describe.skipIf(!existsSync(SAVE))("Multikill what-if on the ARKHE save", () => 
     // (the Cape Vine rule doesn't move it at this precision). Engine pin, not
     // a game reading.
     // Fix round: ×2.56 → ×2.26 (next tier at 2.608E33), same causes as above.
-    expect(lever.group).toMatch(/^needs ×2\.26 more max damage \(next tier at 2\.608E33\)/);
+    // Damage tracker: the max damage gained its already-ported terms (fountain
+    // 16, Rift skills, vault kills…): tier 29, ×2.33 to the next (6.519E34).
+    // Then its four new ports (blessings 7/8, eclipse skulls, Killroy,
+    // sticker): tier 30, ×1.12 to the next (3.260E35).
+    // Artifact 25 fix (damage tracker): ×1.12 → ×1.07.
+    // Mainframe 0/11 fix (damage tracker): ×1.07 → ×1.05.
+    expect(lever.group).toMatch(/^needs ×1\.05 more max damage \(next tier at 3\.260E35\)/);
   });
 });
