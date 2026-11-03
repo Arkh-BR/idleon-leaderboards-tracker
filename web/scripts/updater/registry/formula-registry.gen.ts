@@ -123,6 +123,9 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   "FriendBonusXtraMulti": [
     "lib/arkh/stats/systems/common/friend.ts"
   ],
+  "GalleryBonusMulti": [
+    "lib/arkh/stats/systems/w7/gallery.ts"
+  ],
   "GalleryBonusSystemON": [
     "lib/arkh/stats/systems/common/stats.ts",
     "lib/arkh/stats/systems/w7/gallery.ts"
