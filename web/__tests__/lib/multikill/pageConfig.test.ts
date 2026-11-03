@@ -113,7 +113,7 @@ describe("Multikill what-if gains model (synthetic)", () => {
     const below = computeGains(multikillGainsModel, flatOf({ tier: 40 }), { [TIER]: 51 });
     const tierRow = below.rows.find((r) => r.source === MK_NODES.tier);
     expect(tierRow).toMatchObject({ you: 40, max: 51, display: "raw" });
-    expect(tierRow!.group).toContain("estimate"); // spec M17: below 51 is an estimate
+    expect(tierRow!.group).toBe(MK_NODES.tier); // max damage = the game's: no "estimate" tag
     const w7 = computeGains(multikillGainsModel, flatOf(W7), { [TIER]: 51 });
     expect(w7.comparableSources).toBe(0);
     expect(w7.rows.map((r) => r.source)).toEqual(["+1 damage tier"]);
@@ -123,14 +123,14 @@ describe("Multikill what-if gains model (synthetic)", () => {
     const [lever] = multikillGainsModel.levers!(flatOf(W7));
     expect(lever).toMatchObject({ source: "+1 damage tier", you: 24, max: 25, display: "raw" });
     expect(lever.gainPct).toBeCloseTo((3313 / 3185 - 1) * 100, 9); // +4.0%
-    expect(lever.group).toBe("needs ×5 more max damage (next tier at 1.500E31) · estimate");
+    expect(lever.group).toBe("needs ×5 more max damage (next tier at 1.500E31)");
     expect(multikillGainsModel.levers!(flatOf())).toEqual([]);
   });
 
   it("the lever asks for next ÷ max damage; a target without HP offers neither the tier nor the lever", () => {
     const tp = `${MK_ROOT} / ${MK_NODES.tierW7}`;
     const [lever] = multikillGainsModel.levers!({ ...flatOf(W7), [`${tp} / Max Damage`]: 1e31 });
-    expect(lever.group).toBe("needs ×1.5 more max damage (next tier at 1.500E31) · estimate");
+    expect(lever.group).toBe("needs ×1.5 more max damage (next tier at 1.500E31)");
     const noHp = { ...flatOf({ tier: 1 }), [`${TIER} / Next tier at`]: 0 };
     expect(multikillGainsModel.levers!(noHp)).toEqual([]);
     expect(multikillGainsModel.sources(noHp, {}).some((s) => s.path === TIER)).toBe(false);
@@ -172,7 +172,7 @@ describe.skipIf(!existsSync(SAVE))("Multikill what-if on the ARKHE save", () => 
     expect(multikillGainsModel.totalFromFlat(flattenTree(t))).toBe(6146);
   });
 
-  // Engine pins (estimated tiers). 2026-11-01 fix round: max damage now reads
+  // Engine pins (tiers from arkh's max damage). 2026-11-01 fix round: max damage now reads
   // the full EtcBonuses("72"/"75"/"104") (nametags/trophies/Hat Rack were
   // dropped for string ids) and Companions(168)/(170): tier 24 → 27, 3185 → 3569.
   // tier 27→29: max damage completed (damage tracker)

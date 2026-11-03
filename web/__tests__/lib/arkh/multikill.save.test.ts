@@ -44,7 +44,7 @@ describe.skipIf(!existsSync(SAVE))("Multikill — Markhe on map 14 vs IdleonTool
   it("has the four root children; the tier's note names the map and target", () => {
     expect(tree.children!.map((c) => c.name)).toEqual([MK_NODES.base, MK_NODES.tier, MK_NODES.perTier, MK_NODES.active]);
     expect(tree.children![0].children).toHaveLength(MK_POOLS.base.length); // no rule row on map 14
-    expect(tree.children![1].note).toBe("Map 14 · beanG"); // tier 51: no "estimate" (M17)
+    expect(tree.children![1].note).toBe("Map 14 · beanG");
   });
 
   it.each<[string, number]>([
@@ -147,18 +147,18 @@ describe.skipIf(!existsSync(SAVE))("Multikill — map scenarios on the ARKHE sav
     expect(formatMultikill(computeArkhMultikill(save, idx("Markhe"), 14).total)).toBe("81706");
   });
 
-  // Engine pins: the damage tiers below are estimates from arkh's max damage.
+  // Engine pins: the damage tiers below come from arkh's max damage (= the game's).
   // 2026-11-01 fix round (+3 tiers each): max damage now reads the full
   // EtcBonuses("72"/"75"/"104") — nametags, trophies and the Hat Rack were
   // dropped for string ids, ×64.5 on Markhe — and Companions(168)/(170), ×2.19.
   // tier 27→29: max damage completed (damage tracker)
   // tier 29→30: max damage completed (damage tracker)
-  it("map 301: soft cap on both halves, tier 30 from arkh's max damage (an estimate) → 3953%", () => {
+  it("map 301: soft cap on both halves, tier 30 from arkh's max damage → 3953%", () => {
     const t = computeArkhMultikill(save, idx("Markhe"), 301).tree;
     close(Number(t.children![0].val), 114.409);
     close(Number(t.children![2].val), 127.96466227076502); // raw Σ 1741.2331… (W7 page 460)
     expect(t.children![1]).toMatchObject({ name: MK_NODES.tierW7, val: 30 });
-    expect(t.children![1].note).toMatch(/^estimate/); // IT's max damage gives tier 30 → 3953 (spec M4)
+    expect(t.children![1].note).toMatch(/^Map 301 · /); // no "estimate": max damage = the game's
     expect(t.children![2].children!.at(-1)).toMatchObject({ name: MK_RULES.softCap });
     expect(t.children![2].children!.at(-1)!.note).toMatch(/reduced by ~93%$/);
     expect(t.val).toBe(3953);
@@ -189,12 +189,12 @@ describe.skipIf(!existsSync(SAVE))("Multikill — map scenarios on the ARKHE sav
   // Clamz_HP after the curses (@6467129).
   // tier 7→9: max damage completed (damage tracker)
   // tier 9→10: max damage completed (damage tracker)
-  it("Clamworks (map 306): HP = 1e16·30^8 = 6.561e27, no curse → tier 10 (estimate) → 1394%", () => {
+  it("Clamworks (map 306): HP = 1e16·30^8 = 6.561e27, no curse → tier 10 → 1394%", () => {
     const t = computeArkhMultikill(save, idx("Markhe"), 306).tree;
     const tier = t.children![1];
     expect(kid(tier, "Target HP").val).toBe(1e16 * Math.pow(30, 8));
     expect(tier.val).toBe(10);
-    expect(tier.note).toMatch(/^estimate/);
+    expect(tier.note).toMatch(/^Map 306 · /);
     expect(t.val).toBe(1394);
   });
 
