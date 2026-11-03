@@ -27,3 +27,15 @@ function describe(v: unknown): string {
   if (Array.isArray(v)) return "array";
   return v === null ? "null" : typeof v;
 }
+
+/** A mirrored N.js function returned NaN or Infinity. `block` refuses to cache or pass it on. */
+export class NonFiniteResult extends Error {
+  readonly block: string;
+  readonly args: readonly unknown[];
+  constructor(block: string, args: readonly unknown[], got: number) {
+    super(`${block}(${JSON.stringify(args)}) returned ${got}`);
+    this.name = "NonFiniteResult";
+    this.block = block;
+    this.args = args;
+  }
+}
