@@ -259,6 +259,7 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/arkh/stats/systems/damage/damage.ts"
   ],
   "RiftSkillETC": [
+    "lib/arkh/stats/systems/common/derived-stats.ts",
     "lib/arkh/stats/systems/w4/rift.ts"
   ],
   "RoG_BonusQTY": [

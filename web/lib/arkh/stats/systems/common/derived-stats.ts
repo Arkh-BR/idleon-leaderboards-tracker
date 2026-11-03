@@ -44,6 +44,7 @@ import { votingBonusz } from "../w2/voting";
 import { getSetBonus } from "../w3/setBonus";
 import { computeVialByKey } from "../w2/alchemy";
 import { computeArtifactBonus } from "../w5/sailing";
+import { riftSkillETC } from "../w4/rift";
 import { tome } from "../w4/tome";
 import { computePaletteBonus } from "../w7/spelunking";
 import { chipBonuses, mainframeBonus } from "../w4/lab";
@@ -391,9 +392,8 @@ export function computePlayerMPmax(charIdx: number, ctx: Ctx): Tree {
 // ported in our codebase. They return 0 here (clearly marked). corgan-source
 // itself stubs GetBuffBonuses(40,2)→0. Real impact on Fishing efficiency is
 // modest (these are minor additive % sources). Port them properly when the
-// w4/rift, w4/gaming, w5/divinity-bless/minor, w3 salt-lick/flurbo, and
+// w4/gaming, w5/divinity-bless/minor, w3 salt-lick/flurbo, and
 // common/calcTalent systems land.
-const computeRiftSkillETC = (_idx: number, _s: SaveData): number => 0; // [STUB] w4/rift
 const computeMSABonus = (_idx: number, _s: SaveData): number => 0; // [STUB] w4/gaming
 const computeDivinityBless = (_idx: number, _s: SaveData): number => 0; // [STUB] w5/divinity
 const computeCalcTalent = (
@@ -448,7 +448,8 @@ function computeAllEfficiencies(ci: number, ctx: Ctx): number {
   const chipToteff = safe(chipBonuses, "toteff", ci);
   const cardCrystal4 = 3 * safe(cardLv, "Crystal4", ctx.saveData);
   const friendStatz2 = rval(friend, 2, ctx);
-  const riftSkillETC2 = safe(computeRiftSkillETC, 2, ctx.saveData);
+  // @njs RiftSkillETC
+  const riftSkillETC2 = safe(riftSkillETC, 2, ctx.saveData);
   const holesB49_15 = rval(holes, 49 as any, ctx);
   const ola422 = Number((optionsListData as any)[422]) || 0;
   const shimmerOla180 = Number((optionsListData as any)[180]) || 0;
