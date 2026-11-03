@@ -38,13 +38,13 @@ export const DMG_RULES = {
   rat: "Royal Guardian arena (map 43)",
 } as const;
 
-/** One step of a layer: a group acting on the running total, the layer's soft
- *  cap (no sources), or the Reliquarium exponent (`v ** e`; its source is 0
- *  when not owned, which is the neutral step). */
 /** Pool keys other code needs by name. `map`: the map-306 divider's group, a
  *  map rule rather than a source (Biggest Gains never ranks it). */
 export const DMG_KEYS = { map: "l2map" } as const;
 
+/** One step of a layer: a group acting on the running total, the layer's soft
+ *  cap (no sources), or the Reliquarium exponent (`v ** e`; its source is 0
+ *  when not owned, which is the neutral step). */
 export type DmgStep =
   | StatGroup
   | { key: string; name: string; kind: "cap" }

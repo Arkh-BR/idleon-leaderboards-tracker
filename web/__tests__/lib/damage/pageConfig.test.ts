@@ -72,6 +72,15 @@ describe("Damage page config", () => {
       expect(root, String(classKey)).toBeGreaterThan(0);
     }
   });
+
+  // Needs no private save: the Biggest Gains tab feeds loadTop().flatForClass(key)
+  // unfiltered (damage has no refToggle) to totalFromFlat, so the generated
+  // reference must re-derive its own Damage root through dmgMax.
+  it.each([null, "Barbarian"])("the generated reference is self-consistent: totalFromFlat(flat) = flat Damage (%s)", async (classKey) => {
+    const flat = (await DAMAGE_PAGE.loadTop()).flatForClass(classKey);
+    const root = flat["Damage"];
+    expect(Math.abs(damageGainsModel.totalFromFlat(flat) - root) / root).toBeLessThan(1e-9);
+  });
 });
 
 describe.skipIf(!existsSync(SAVE))("Damage page config on a real save", () => {

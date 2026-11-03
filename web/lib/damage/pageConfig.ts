@@ -54,5 +54,6 @@ export const DAMAGE_PAGE: StatPageConfig = {
   compareTitle: "Compare every Damage source against the best value observed across the top players",
   gainsTabTitle: "Rank your Damage sources by how much Max damage matching the top players would give",
   footer:
-    "Damage is computed locally from your save — every term of the game's damage formula: base, percent and multipliers, with the three soft caps.",
+    "Damage is computed locally from your save — every term of the game's damage formula: base, percent and multipliers, with the three soft caps. " +
+    "Not counted: active buffs, masterclass forms (Wraith, Tempest, Tesseract) and dungeons.",
 };

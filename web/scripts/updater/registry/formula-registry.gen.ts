@@ -69,6 +69,7 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/arkh/stats/systems/damage/damage.ts"
   ],
   "CoralKidUpgBonus": [
+    "lib/arkh/stats/systems/damage/damage.ts",
     "lib/arkh/stats/systems/exp/exp.ts"
   ],
   "CropSCbonMulti": [

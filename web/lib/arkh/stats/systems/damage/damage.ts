@@ -47,7 +47,7 @@ import {
   foodBoostMulti,
 } from "../common/derived-damage";
 import { vaultKillzTotal } from "../coin/accountKills";
-import { rooBonus } from "../coin/coin";
+import { rooBonus } from "../coin/roo";
 import { divinityMinorFor } from "../coin/divinityMinor";
 import { bubbaRoGBonus } from "../exp/bubba";
 import { compassBonus } from "../exp/compass";
@@ -802,7 +802,7 @@ function resolveDamage(id: string, ctx: SystemCtx): ArkhNode {
     // N.js 1 + RoyalStatue(0)/100.
     case "royalStatue0":
       return factor("Royal Statue 0", 1 + safe(royalStatueBon, 0, s as any) / 100);
-    // N.js (1 + CoralKidUpgBonus(11)/100)^max(0, Divinity[25] − 35); Coral Kid 11 = round(OLA[621]).
+    // @njs CoralKidUpgBonus — (1 + CoralKidUpgBonus(11)/100)^max(0, Divinity[25] − 35); Coral Kid 11 = round(OLA[621]).
     case "coralKid11": {
       const ck = Math.round(Number((optionsListData as any)[621]) || 0);
       return factor("Coral Kid 11", Math.pow(1 + ck / 100, Math.max(0, div25() - 35)), [raw("Coral Kid 11", ck, "round(OLA[621])"), raw("Divinity[25]", div25())], "(1 + x/100)^max(0, Divinity[25] − 35)");

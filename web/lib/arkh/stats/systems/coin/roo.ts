@@ -1,7 +1,8 @@
 // ===== ROO BONUSES (Poppy the Kangaroo Mouse) =====
 // A leaf module: the accuracy in derived-damage reads RooBonuses(3) and must
 // not go through coin.ts (coin → overkill → damage → derived-damage).
-// coin.ts re-exports it for Coin, AFK and the damage system.
+// coin.ts re-exports it for Coin and AFK; the damage system and the accuracy
+// import this leaf directly.
 import { node, type ArkhNode } from "../../../node";
 import { optionsListData } from "../../../save/data";
 import { legendPTSbonus } from "../w7/spelunking";
