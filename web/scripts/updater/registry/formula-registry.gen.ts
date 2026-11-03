@@ -367,6 +367,9 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   "_customBlock_SaltLick": [
     "lib/arkh/stats/systems/exp/saltLick.ts"
   ],
+  "_customBlock_Shrine": [
+    "lib/arkh/stats/systems/damage/damage.ts"
+  ],
   "_customBlock_StarSigns": [
     "lib/arkh/stats/systems/common/starSign.ts"
   ],

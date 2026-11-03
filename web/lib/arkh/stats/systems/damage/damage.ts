@@ -73,7 +73,7 @@ import { sigil, bubbleValByKey, computeVialByKey } from "../w2/alchemy";
 import { votingBonusz } from "../w2/voting";
 import { getBribeBonus } from "../w3/bribe";
 import { getSetBonus } from "../w3/setBonus";
-import { shrine } from "../w3/construction";
+import { computeShrine } from "../w3/construction";
 import { computeAllShimmerBonuses } from "../w3/equinox";
 import { computePrayerReal } from "../w3/prayer";
 import { tome } from "../w4/tome";
@@ -550,9 +550,10 @@ function resolveDamage(id: string, ctx: SystemCtx): ArkhNode {
     // N.js GetSetBonus("LUSTRE_SET").
     case "lustreSet":
       return helperPct("Lustre Set", sn(getSetBonus, "LUSTRE_SET"));
-    // N.js Shrine(0).
+    // N.js Shrine(0): computeShrine, the reader Max HP's Shrine(1) uses (shrine.resolve only knows shrine 4).
+    // @njs _customBlock_Shrine
     case "shrine0":
-      return helperPct(label("Shrine", 0), res(shrine, 0, ctx));
+      return helperPct(label("Shrine", 0), sn(computeShrine, 0, s));
     // N.js Holes("MonumentROGbonuses",0,6).
     case "monument06":
       return helperPct("Monument Bonus (0, 6)", sn(computeMonumentROGbonus, 0, 6, s));

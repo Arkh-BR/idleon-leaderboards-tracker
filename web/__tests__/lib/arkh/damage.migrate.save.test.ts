@@ -25,28 +25,55 @@ const DIR = "scripts/updater/golden/.cache/";
 // (GTN 86 × log10(HP)) — by ×1.000000–1.000789; the accuracy fix moves no pin.
 const CAPTURED: Record<string, Record<string, number>> = {
   "arkhe-live-2026-11-01-postupdate.json": {
-    ARKHE: 2.7766371498204002e+34, ARKHELUCK: 2.4222513205759753e+34, zArkhe: 3.7550439926603195e+34,
-    farkhe: 5.040782524917704e+38, Darkhe: 2.3583384075001786e+34, Parkhe: 2.651280278920277e+34,
-    Warkhe: 1.4322361295261329e+38, Sarkhe: 2.331341023348853e+34, Markhe: 5.251093758355909e+38,
-    Barkhe: 2.372183969948847e+34, Arkhiiiiii: 2.2347855056051522e+34,
+    ARKHE: 2.7766433004483027e+34, // Shrine(0) fix (damage tracker)
+    ARKHELUCK: 2.4222566861979766e+34, // Shrine(0) fix (damage tracker)
+    zArkhe: 3.7550523106025958e+34, // Shrine(0) fix (damage tracker)
+    farkhe: 5.040793690948821e+38, // Shrine(0) fix (damage tracker)
+    Darkhe: 2.3583436315462295e+34, // Shrine(0) fix (damage tracker)
+    Parkhe: 2.651286151873126e+34, // Shrine(0) fix (damage tracker)
+    Warkhe: 1.4322393021274323e+38, // Shrine(0) fix (damage tracker)
+    Sarkhe: 2.3313461875919606e+34, // Shrine(0) fix (damage tracker)
+    Markhe: 5.251105390255521e+38, // Shrine(0) fix (damage tracker)
+    Barkhe: 2.3721892246647354e+34, // Shrine(0) fix (damage tracker)
+    Arkhiiiiii: 2.234790455964421e+34, // Shrine(0) fix (damage tracker)
   },
   "Arlong.json": {
-    Arlong: 6.799066624056253e+32, arlongarcher: 5.263691488173615e+32, richardburnish: 7.178946968297116e+32,
-    forsenmods: 2.649692519712955e+35, borushiki: 9.924124708749461e+34, ArlongHunter: 8.932141607252716e+34,
-    MyWifeLeftMe: 4.321830661400303e+34, ALTAddiciton: 9.29817543805819e+34, Arshort: 7.596052614891807e+32,
-    Valtan: 6.20240228937387e+32, Synergism: 5.740898333268079e+31,
+    Arlong: 6.799089819357371e+32, // Shrine(0) fix (damage tracker)
+    arlongarcher: 5.263709445513087e+32, // Shrine(0) fix (damage tracker)
+    richardburnish: 7.178971459623794e+32, // Shrine(0) fix (damage tracker)
+    forsenmods: 2.649701559267834e+35, // Shrine(0) fix (damage tracker)
+    borushiki: 9.924158565383487e+34, // Shrine(0) fix (damage tracker)
+    ArlongHunter: 8.932172079688155e+34, // Shrine(0) fix (damage tracker)
+    MyWifeLeftMe: 4.321845405535764e+34, // Shrine(0) fix (damage tracker)
+    ALTAddiciton: 9.298207159235843e+34, // Shrine(0) fix (damage tracker)
+    Arshort: 7.596078529194678e+32, // Shrine(0) fix (damage tracker)
+    Valtan: 6.202423449170888e+32, // Shrine(0) fix (damage tracker)
+    Synergism: 5.74091791862191e+31, // Shrine(0) fix (damage tracker)
   },
   "24632463.json": {
-    "24632463": 1.4644846609040638e+32, "246324633": 1.7345645050668315e+30, "2463a": 5.820710165416866e+31,
-    "2463w": 6.697240988039444e+31, "2463m": 1.2273654977384314e+31, "2463a2": 1.044888783119697e+32,
-    "2463w2": 8.690996092123729e+31, "2463a3": 2.405099563119169e+30, "2463m2": 2.908899305244725e+30,
-    "2463b": 6.082064697924241e+29, "2463w3": 1.0222069031901713e+30,
+    "24632463": 1.4644864190964117e+32, // Shrine(0) fix (damage tracker)
+    "246324633": 1.7345665875061364e+30, // Shrine(0) fix (damage tracker)
+    "2463a": 5.820717153496924e+31, // Shrine(0) fix (damage tracker)
+    "2463w": 6.697249028442569e+31, // Shrine(0) fix (damage tracker)
+    "2463m": 1.227366971257662e+31, // Shrine(0) fix (damage tracker)
+    "2463a2": 1.0448900375656774e+32, // Shrine(0) fix (damage tracker)
+    "2463w2": 8.691006526138615e+31, // Shrine(0) fix (damage tracker)
+    "2463a3": 2.4051024505723876e+30, // Shrine(0) fix (damage tracker)
+    "2463m2": 2.908902797537016e+30, // Shrine(0) fix (damage tracker)
+    "2463b": 6.08208498086376e+29, // Shrine(0) fix (damage tracker)
+    "2463w3": 1.0222081304053179e+30, // Shrine(0) fix (damage tracker)
   },
   "0celot8.json": {
-    "0celot8": 3.366766700951028e+23, "0celot9": 5.364678419055121e+23, "0celot10": 1.7369734576950101e+22,
-    "0celot11": 4.595941728644595e+23, "0celot12": 3.7467453442874063e+22, "0celot13": 5.0026108081495005e+22,
-    "0celot14": 2.0087771716149095e+22, "0celot15": 9.016810459635187e+24, "0celot16": 4.289860959200893e+22,
-    "0celot17": 2.2864936550467226e+22,
+    "0celot8": 3.3729893927194875e+23, // Shrine(0) fix (damage tracker)
+    "0celot9": 5.369137329705921e+23, // Shrine(0) fix (damage tracker)
+    "0celot10": 1.740183852498374e+22, // Shrine(0) fix (damage tracker)
+    "0celot11": 4.599764441860788e+23, // Shrine(0) fix (damage tracker)
+    "0celot12": 3.753670338917706e+22, // Shrine(0) fix (damage tracker)
+    "0celot13": 5.011856980473535e+22, // Shrine(0) fix (damage tracker)
+    "0celot14": 2.0124899326916406e+22, // Shrine(0) fix (damage tracker)
+    "0celot15": 9.024306124094807e+24, // Shrine(0) fix (damage tracker)
+    "0celot16": 4.297794162977383e+22, // Shrine(0) fix (damage tracker)
+    "0celot17": 2.2907257936159097e+22, // Shrine(0) fix (damage tracker)
   },
 };
 
