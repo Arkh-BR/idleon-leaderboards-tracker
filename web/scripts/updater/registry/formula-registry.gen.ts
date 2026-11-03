@@ -433,6 +433,9 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/arkh/stats/systems/common/stats.ts",
     "lib/arkh/stats/systems/dr2/dr2.ts"
   ],
+  "_customBlock_TotalTalentPoints": [
+    "lib/tome/extractors.ts"
+  ],
   "_customBlock_Windwalker": [
     "lib/arkh/stats/systems/w2/voting.ts"
   ],

@@ -16,7 +16,7 @@ const SAVES: Record<string, Pins> = {
     tasks: {
       0: [30638, 1190], // Stamp Total LV
       2: [1703, 1000], // Cards Total LV
-      15: [13200, 257], // Star Talent Points Owned
+      15: [13202, 257], // Star Talent Points Owned
       51: [612, 200], // Total Breedability LV
       75: [670, 100], // Total Minigame Highscore
       112: [119, 246], // Total Farming Stickers
@@ -24,11 +24,11 @@ const SAVES: Record<string, Pins> = {
     },
   },
   "0celot8.json": {
-    total: 40753,
+    total: 40755,
     tasks: {
       0: [14602, 1007],
       2: [1195, 890],
-      15: [3800, 204],
+      15: [3947, 206],
       51: [151, 61],
       75: [360, 80],
       112: [27, 117],
@@ -36,11 +36,11 @@ const SAVES: Record<string, Pins> = {
     },
   },
   "21ucky4u.json": {
-    total: 53006,
+    total: 53007,
     tasks: {
       0: [26711, 1161],
       2: [1601, 1000],
-      15: [11551, 253],
+      15: [11644, 254],
       51: [599, 200],
       75: [292, 65],
       112: [97, 227],

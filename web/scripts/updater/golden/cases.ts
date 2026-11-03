@@ -1,7 +1,7 @@
 // Synthetic golden cases: inject minimal state and assert an engine reacts the
 // expected way. Catches term-level regressions that no real save covers yet.
 import { galleryBonusMulti, hatrackBonusMulti } from "../../../lib/arkh/stats/systems/w7/gallery";
-import { compMulti } from "../../../lib/arkh/stats/systems/common/companions";
+import { companions, compMulti } from "../../../lib/arkh/stats/systems/common/companions";
 import { familyBonusValue } from "../../../lib/arkh/stats/systems/common/familyBonus";
 import {
   royalStatueBon,
@@ -21,7 +21,6 @@ import {
   yellowTotal,
 } from "../../../lib/arkh/stats/systems/common/cookingMastery";
 import {
-  companionValue,
   rawDungeonRank,
   rawJellyOperations,
   rawMenagerieBoostLv,
@@ -44,6 +43,7 @@ import type { ArkhNode } from "../../../lib/arkh/node";
 import { formulaEval } from "../../../lib/arkh/formulas";
 import { assignSaveData } from "../../../lib/arkh/save/data";
 import { saveData } from "../../../lib/arkh/state";
+import { loadSaveData } from "../../../lib/arkh/save/loader";
 
 export type GoldenCase = { name: string; run: () => boolean; note: string };
 
@@ -395,14 +395,17 @@ export const CASES: GoldenCase[] = [
   },
   {
     name: "Tome: Flying Worm (20) 30 → 40 talent pts, Rift Slug (1) 25 → 35 at stage 2",
-    note: "tome extractors read CompanionDB via companionValue(), not literals",
+    note: "the Tome star tab reads Companions(20) through the engine (CompanionDB, stage 2 = companion.l field [4])",
     run: () => {
-      const blob = (l: string[]) => ({ companion: { l } }) as any;
+      const val = (l: string[], id: number) => {
+        loadSaveData({ data: {}, companion: { l } } as any);
+        return companions(id, saveData);
+      };
       return (
-        companionValue(blob(["20,1,0,0,0"]), 20) === 30 &&
-        companionValue(blob(["20,1,0,0,1"]), 20) === 40 &&
-        companionValue(blob(["1,0,0,0,0", "1,0,0,0,1"]), 1) === 35 &&
-        companionValue(blob([]), 1) === 0
+        val(["20,1,0,0,0"], 20) === 30 &&
+        val(["20,1,0,0,1"], 20) === 40 &&
+        val(["1,0,0,0,0", "1,0,0,0,1"], 1) === 35 &&
+        val([], 1) === 0
       );
     },
   },
@@ -442,9 +445,14 @@ export const CASES: GoldenCase[] = [
   },
   {
     name: "Tome Star Talent Points: the played character (latest PTimeAway_N), not the best one",
-    note: "N.js TomeQTY[15] = TotalTalentPoints(...)[5] of the logged-in char (IT getBestActiveCharacter)",
+    note: "N.js TomeQTY[15] = TotalTalentPoints(...)[5] of the logged-in char",
     run: () => {
-      const chars = { Lv0_0: [501, 0, 0, 0, 0, 0, 0, 0, 0, 0], Lv0_1: [101, 0, 0, 0, 0, 0, 0, 0, 0, 0] } as any;
+      // CauldronP2W -1 = sigil 9 locked (an absent level reads 0, the first tier).
+      const chars = {
+        Lv0_0: [501, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        Lv0_1: [101, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        CauldronP2W: [[], [], [], [], new Array(20).fill(-1)],
+      } as any;
       return (
         rawStarTalentsProper({ ...chars, PTimeAway_0: 1, PTimeAway_1: 2 }) === 97 &&
         rawStarTalentsProper({ ...chars, PTimeAway_0: 2, PTimeAway_1: 1 }) === 497 &&
