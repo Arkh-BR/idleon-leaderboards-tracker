@@ -59,7 +59,7 @@ export type ToMaxCharGroup = {
   totalScanned: number;
 };
 
-// Strip IT formula-placeholder tokens out of lvlUpText so it reads as a
+// Strip the game's formula-placeholder tokens out of lvlUpText so it reads as a
 // plain bonus name. Mirrors the same helper in TalentsLevelPageClient.
 function cleanLvlUpText(s: string): string {
   return s.replace(/[{}_]/g, " ").replace(/\s+/g, " ").trim();
