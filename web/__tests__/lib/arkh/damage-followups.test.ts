@@ -10,6 +10,8 @@ import { mapKillReq } from "@/lib/arkh/stats/data/common/maps";
 import { damageStatType } from "@/lib/arkh/stats/systems/common/derived-damage";
 import { computeShrine } from "@/lib/arkh/stats/systems/w3/construction";
 import { votingBonusz } from "@/lib/arkh/stats/systems/w2/voting";
+import { computeArtifactBonus } from "@/lib/arkh/stats/systems/w5/sailing";
+import { playerBuildSpd } from "@/lib/arkh/stats/systems/w3/construction";
 
 const g = globalThis as unknown as { window?: unknown };
 if (!g.window) g.window = g;
@@ -140,4 +142,19 @@ describe("Vote 1 also counts below the active vote's world", () => {
   it("vote 25 (World 6) with 3 portals open (world 4): counts", () => expect(vote1(25, 3)).toBe(50));
   it("vote 25 with every portal open (world 7): doesn't", () => expect(vote1(25, 6)).toBe(0));
   it("vote 27 (no world asked): doesn't", () => expect(vote1(27, 0)).toBe(0));
+});
+
+// N.js Sailing("ArtifactBonus",8) (@10718371): base 6 × getLOG(Σ every player's
+// WorkbenchStuff("PlayerBuildSpd")), which starts at 3 × (Construction lv/2 + .7)^1.6.
+describe("Artifact 8 scales with the account's build speed", () => {
+  it("two bare builders at Construction 100 and 200: 6 × getLOG(3·50.7^1.6 + 3·100.7^1.6)", () => {
+    const sailing: number[][] = [[], [], [], []];
+    sailing[3][8] = 1;
+    loadSaveData({ charNames: ["A", "B"], data: { Sailing: JSON.stringify(sailing), Lv0_0: [1, 0, 0, 0, 0, 0, 0, 0, 100], Lv0_1: [1, 0, 0, 0, 0, 0, 0, 0, 200] } });
+    const ctx = { saveData, charIdx: 0 };
+    const [a, b] = [3 * Math.pow(50.7, 1.6), 3 * Math.pow(100.7, 1.6)];
+    expect(playerBuildSpd(0, 0, ctx)).toBeCloseTo(a, 8);
+    expect(playerBuildSpd(1, 0, ctx)).toBeCloseTo(b, 8);
+    expect(computeArtifactBonus(8, 0, ctx)).toBeCloseTo((6 * Math.log(a + b)) / 2.30259, 10);
+  });
 });

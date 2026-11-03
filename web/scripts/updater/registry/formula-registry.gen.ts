@@ -70,7 +70,8 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/arkh/stats/systems/exp/exp.ts"
   ],
   "ConstMasteryBonus": [
-    "lib/arkh/stats/systems/damage/damage.ts"
+    "lib/arkh/stats/systems/damage/damage.ts",
+    "lib/arkh/stats/systems/w3/construction.ts"
   ],
   "CoralKidUpgBonus": [
     "lib/arkh/stats/systems/damage/damage.ts",
@@ -227,6 +228,10 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   "PetArenaCrucBonus": [
     "lib/arkh/stats/systems/exp/exp.ts",
     "lib/arkh/stats/systems/exp/petArenaCruc.ts"
+  ],
+  "PlayerBuildSpd": [
+    "lib/arkh/stats/systems/w3/construction.ts",
+    "lib/arkh/stats/systems/w5/sailing.ts"
   ],
   "PocketDivOwned": [
     "lib/arkh/stats/systems/coin/divinityMinor.ts"

@@ -19,7 +19,8 @@ export function accountMapKills(m: number): number {
 }
 
 // VaultKillzTotal order: kills on maps 14, 24, 13, 8 (0–3), ⌊log10⌋ of those
-// (4–7), Tasks[3] completions (8), Σ min(100, bubble lv) (9).
+// (4–7), Tasks[3] completions (8), Σ min(100, bubble lv) (9), kills on map 101
+// (10) and their ⌊log10⌋ (11, no under-10 guard).
 const VK_MAPS = [14, 24, 13, 8] as const;
 
 // @njs VaultKillzTotal
@@ -54,6 +55,8 @@ export function vaultKillzTotal(k: number, saveData: SaveData): number {
     }
     return Math.round(n);
   }
+  if (k === 10) return accountMapKills(101);
+  if (k === 11) return Math.floor(getLOG(accountMapKills(101)));
   return 0;
 }
 

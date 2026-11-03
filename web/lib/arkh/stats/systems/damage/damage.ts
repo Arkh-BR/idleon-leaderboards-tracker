@@ -569,9 +569,7 @@ function resolveDamage(id: string, ctx: SystemCtx): ArkhNode {
     // N.js FamBonusQTYs["20"].
     case "fam20":
       return pct("Family Bonus 20", famOf(ctx, 20));
-    // N.js Sailing("ArtifactBonus",25 | 2 | 8 | 27 | 29).
-    // Gap: Artifact 8 lacks N.js's getLOG(Σ WorkbenchStuff("PlayerBuildSpd") over every
-    // character) factor (@7814745), so computeArtifactBonus returns base × tier for it.
+    // N.js Sailing("ArtifactBonus",25 | 2 | 8 | 27 | 29) (w5/sailing.ts).
     case "artifact25":
     case "artifact2":
     case "artifact8":
