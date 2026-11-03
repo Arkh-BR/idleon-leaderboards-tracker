@@ -71,6 +71,7 @@ import { owl } from "../w1/owl";
 import { arcade } from "../w2/arcade";
 import { sigil, bubbleValByKey, computeVialByKey } from "../w2/alchemy";
 import { votingBonusz } from "../w2/voting";
+import { votingMulti } from "../coin/votingMulti";
 import { getBribeBonus } from "../w3/bribe";
 import { getSetBonus } from "../w3/setBonus";
 import { computeShrine } from "../w3/construction";
@@ -845,9 +846,11 @@ function resolveDamage(id: string, ctx: SystemCtx): ArkhNode {
       const n = id.slice(3);
       return helperFactor(`Damage (Equipment ${n})`, res(etcBonus, n, ctx), `EtcBonuses(${n})`);
     }
-    // N.js 1 + VotingBonusz(1,1)/100.
+    // N.js 1 + VotingBonusz(1)/100, × VotingBonuszMulti (coin/votingMulti.ts); vote 1
+    // also counts while the character hasn't reached the active vote's world.
+    // @njs _customBlock_Summoning2
     case "voting1":
-      return helperFactor("Voting Bonus 1", sn(votingBonusz, 1, 1, s));
+      return helperFactor("Voting Bonus 1", sn(votingBonusz, 1, votingMulti(ctx), s, ci));
     // N.js 1 + Holes2("Fountain_BonTOT",1,16)/100: Swingy O' Sword (data/w5/fountain.ts).
     // @njs Fountain_BonTOT
     // @njs _customBlock_Holes2

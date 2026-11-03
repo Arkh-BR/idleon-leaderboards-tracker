@@ -9,6 +9,7 @@ import { mainframeBonus, mainframeBonusRaw } from "@/lib/arkh/stats/systems/w4/l
 import { mapKillReq } from "@/lib/arkh/stats/data/common/maps";
 import { damageStatType } from "@/lib/arkh/stats/systems/common/derived-damage";
 import { computeShrine } from "@/lib/arkh/stats/systems/w3/construction";
+import { votingBonusz } from "@/lib/arkh/stats/systems/w2/voting";
 
 const g = globalThis as unknown as { window?: unknown };
 if (!g.window) g.window = g;
@@ -122,4 +123,21 @@ describe("Shrines count only where N.js's gate lets them", () => {
     expect(shrine(0, 200)).toBeGreaterThan(0);
     expect(shrine(1, 150)).toBe(shrine(0, 200));
   });
+});
+
+// N.js VotingBonusz (@10953438): vote 1 (25, damage) counts while it's the
+// active vote, or while the character's portal world (GenINFO[58]) is under
+// the world the active vote asks for (vote 25: World 6).
+describe("Vote 1 also counts below the active vote's world", () => {
+  const vote1 = (active: number, opened: number) => {
+    const kla: number[][] = [];
+    for (let k = 0; k < 6; k++) kla[50 * k] = [k < opened ? 0 : 100]; // town portals 0, 50, … 250
+    loadSaveData({ charNames: ["A"], data: { KLA_0: JSON.stringify(kla) }, serverVars: { voteCategories: [active] } });
+    return votingBonusz(1, 2, saveData, 0);
+  };
+
+  it("active vote 1: 25 × multi", () => expect(vote1(1, 6)).toBe(50));
+  it("vote 25 (World 6) with 3 portals open (world 4): counts", () => expect(vote1(25, 3)).toBe(50));
+  it("vote 25 with every portal open (world 7): doesn't", () => expect(vote1(25, 6)).toBe(0));
+  it("vote 27 (no world asked): doesn't", () => expect(vote1(27, 0)).toBe(0));
 });

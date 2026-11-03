@@ -327,6 +327,9 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   "_customBlock_ArbitraryCode": [
     "lib/arkh/save/loader.ts"
   ],
+  "_customBlock_ArcaneType": [
+    "lib/arkh/stats/systems/w2/voting.ts"
+  ],
   "_customBlock_CaptBonusCalc": [
     "lib/arkh/stats/systems/w5/sailing.ts"
   ],
@@ -394,6 +397,10 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   "_customBlock_Stuff2": [
     "lib/arkh/stats/systems/w7/gallery.ts"
   ],
+  "_customBlock_Summoning2": [
+    "lib/arkh/stats/systems/damage/damage.ts",
+    "lib/arkh/stats/systems/w2/voting.ts"
+  ],
   "_customBlock_TalentCalc": [
     "lib/arkh/stats/systems/common/derived-damage.ts",
     "lib/arkh/stats/systems/common/stats.ts",
@@ -404,6 +411,9 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/arkh/stats/systems/common/derived-damage.ts",
     "lib/arkh/stats/systems/common/stats.ts",
     "lib/arkh/stats/systems/dr2/dr2.ts"
+  ],
+  "_customBlock_Windwalker": [
+    "lib/arkh/stats/systems/w2/voting.ts"
   ],
   "_customBlock_WorkbenchStuff": [
     "lib/arkh/stats/systems/damage/damage.ts"

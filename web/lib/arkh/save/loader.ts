@@ -218,6 +218,7 @@ export function loadSaveData(raw: RawEnvelope): void {
   }
   assignState({ starSignProgData: (parseSaveKey(save, "SSprog") as any[]) || [] });
   assignState({ compassData: (parseSaveKey(save, "Compass") as any[]) || [] });
+  assignState({ tessData: (parseSaveKey(save, "Tess") as any[]) || [] });
   assignState({ atomsData: (parseSaveKey(save, "Atoms") as any[]) || [] });
   assignState({ gemItemsData: (parseSaveKey(save, "GemItemsPurchased") as any[]) || [] });
   assignState({ achieveRegData: (parseSaveKey(save, "AchieveReg") as any[]) || [] });
