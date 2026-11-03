@@ -249,7 +249,7 @@
 - Produces:
   - `lib/game/data/index.ts` re-exports the updater-generated N.js lists (`lib/arkh/stats/data/game/*.js`: customlists, items, custommaps, monsters…) as the `lib/game` data entry point. They are game data generated from N.js, not corgan code; a later plan moves the files physically.
   - `verifyMap(trace: TraceNode, readings: Reading[], readingStatOf: (block: string) => StatKey[]): { block: string; status: "validated" | "derived" | "runtime" }[]`, where "validated" means a reading of a stat whose trace contains that block exists.
-  - CLI: `verify-map <StatKey>` writes `reports/verify-<stat>.md` (gitignored).
+  - CLI: `verify-map <StatKey>` writes `reports/verify-<stat>.md`. Add `web/reports/` to `.gitignore` if it isn't there.
 
 - [ ] **Step 1: Failing tests:** on a synthetic trace with three blocks (one covered by a reading, one with a runtime note, one plain), the statuses are exactly validated, runtime and derived.
 - [ ] **Step 2–4:** FAIL → implement → pass + tsc.
