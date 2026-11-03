@@ -36,23 +36,24 @@ export function buildRogArray(uniqueSushi: number): number[] {
   return arr;
 }
 
+/** "<Sushi Name> (Sushi Tier <N>) — <effect> (RoG Bonus <id>)". RoG slot
+ *  index i is unlocked by creating the (i+1)-th unique sushi, so the
+ *  friendly tier is one-indexed. SUSHI_NAMES is indexed by RoG slot too. */
+export function rogLabel(id: number): string {
+  const effect = rogEffectText(id);
+  const sushiName = SUSHI_NAMES[id] || "";
+  const tier = id + 1;
+  const prefix = sushiName ? `${sushiName} (Sushi Tier ${tier})` : `Sushi Tier ${tier}`;
+  return effect ? `${prefix} — ${effect} (RoG Bonus ${id})` : `${prefix} (RoG Bonus ${id})`;
+}
+
 export const sushiRoG = {
   resolve(id: number, ctx: Ctx): ArkhNode {
     const saveData = ctx.saveData;
     const us = saveData.cachedUniqueSushi || 0;
     const val = rogBonusQTY(id, us);
-    const effect = rogEffectText(id);
-    // Label as "<Sushi Name> Tier <N> — <effect> (RoG Bonus <id>)". RoG slot
-    // index i is unlocked by creating the (i+1)-th unique sushi, so the
-    // friendly tier is one-indexed. SUSHI_NAMES is indexed by RoG slot too.
-    const sushiName = SUSHI_NAMES[id] || "";
-    const tier = id + 1;
-    const prefix = sushiName ? `${sushiName} (Sushi Tier ${tier})` : `Sushi Tier ${tier}`;
-    const label = effect
-      ? `${prefix} — ${effect} (RoG Bonus ${id})`
-      : `${prefix} (RoG Bonus ${id})`;
     return node(
-      label,
+      rogLabel(id),
       val,
       [
         node("Unique Sushi", us, null, { fmt: "raw" }),

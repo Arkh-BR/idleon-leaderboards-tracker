@@ -3,10 +3,6 @@
 // The Button is the W7 Mantaray-map minigame: each press adds bonuses to one of
 // 9 rotating slots. Bonus per slot = hits × BUTTON_RATES[slot] × bonusMulti
 // where bonusMulti = (1 + comp147/100) × (1 + grid125/100).
-//
-// Slot mapping from website-data ButtonBonusNames:
-//   0 = Res XP, 1 = Minehead, 2 = Sushi, 3 = Arti Odds, 4 = Xtra,
-//   5 = Spelunk, 6 = Cooking SPD, 7 = Crop Evo, 8 = Class XP.
 
 import { node, type ArkhNode } from "../../../node";
 import { optionsListData } from "../../../save/data";
@@ -16,13 +12,18 @@ import type { SaveData } from "../../../state";
 
 type Ctx = { saveData: SaveData };
 
+// @njs Button_BonusPerTime
 export const BUTTON_RATES = [2, 3, 2, 2, 4, 5, 4, 25, 5];
 
+// Slot labels, in Button_Bonuses slot order: the game's Button screen string
+// "}x_Res._XP割,}x_Minehead@薄,}x_Sushi@蔵,}x_Arti.@Odds,}x_Xtra明,}x_Spelunk@番,
+// }x_Cooking_SPD,}x_Crop_Evo,+{%_Class_XP" (N.js, inline in the scene code —
+// no game list carries it) minus the value slots, line breaks and icon marks.
 const BUTTON_NAMES = [
-  "Res XP",
+  "Res. XP",
   "Minehead",
   "Sushi",
-  "Arti Odds",
+  "Arti. Odds",
   "Xtra",
   "Spelunk",
   "Cooking SPD",

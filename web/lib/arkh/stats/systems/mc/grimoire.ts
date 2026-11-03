@@ -1,9 +1,10 @@
 // ===== GRIMOIRE SYSTEM (MC) =====
 // Real port replacing Stage 2 stub.
 import { node, type ArkhNode } from "../../../node";
-import { label } from "../../entity-names";
+import { gameLabel } from "../../entity-names";
 import { grimoireUpgPerLevel } from "../../data/mc/grimoire";
 import { GRIMOIRE_NO_MULTI } from "../../data/game-constants";
+import { GrimoireUpg } from "../../data/game/customlists.js";
 import type { SaveData } from "../../../state";
 
 type Ctx = { saveData: SaveData };
@@ -28,17 +29,9 @@ export function grimoireUpgBonus22(saveData: SaveData): number {
   return g22 * (1 + g36 / 100);
 }
 
-// Friendly names sourced from grimoire[i].name in IT website-data.
-const GRIMOIRE_NAMES: Record<number, string> = {
-  17: "Grey Tome Book",
-  22: "Superior Crop Research",
-  36: "Writhing Grimoire",
-  39: "Skull of Major Talent",
-  44: "Skull of Major Droprate",
-};
+// Name = the game's GrimoireUpg[id][0] ("Skull_of_Major_Droprate_製").
 function grimoireLabel(id: number): string {
-  const n = GRIMOIRE_NAMES[id];
-  return n ? `${n} (Grimoire ${id})` : label("Grimoire", id);
+  return gameLabel("Grimoire", id, (GrimoireUpg as any)[id]?.[0]);
 }
 
 const GRIMOIRE_DATA: Record<number, { perLevel: number; name: string }> = {

@@ -30,6 +30,22 @@ function talentNameFromGame(raw: string): string {
     .join(" ");
 }
 
+/** A name from a game list as the game shows it: "_" → space, minus the "_製"
+ *  info-button marker (N.js: replace(name, "_製", "")) and the "$" slot the
+ *  game fills at draw time. ALL-CAPS codenames (EXALTED_ELDOU, EFAUNT_SET)
+ *  are title-cased like talents. "" when the list has no entry. */
+export function gameName(raw: unknown): string {
+  const s = typeof raw === "string" ? raw.replace(/_製/g, "").replace(/\$/g, "") : "";
+  return /[a-z]/.test(s) ? s.replace(/_/g, " ").trim() : talentNameFromGame(s);
+}
+
+/** "Gold Charm (Guild 10)" from the game-list entry `raw`; falls back to
+ *  label(system, id) when the list has no name for that id. */
+export function gameLabel(system: string, id: unknown, raw: unknown, suffix = ""): string {
+  const n = gameName(raw);
+  return n ? `${n} (${system} ${id})${suffix}` : label(system, id, suffix);
+}
+
 // Aliases used by the descriptor & resolvers — these map our system keys to
 // the ones we generated in ENTITY_NAMES (the generator picks the closest game
 // list but the descriptor may use a near-synonym).

@@ -41,6 +41,9 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/arkh/stats/data/w7/menagerie.ts",
     "lib/arkh/stats/systems/exp/exp.ts"
   ],
+  "Button_BonusPerTime": [
+    "lib/arkh/stats/systems/w7/button.ts"
+  ],
   "Button_Bonuses": [
     "lib/arkh/stats/systems/exp/exp.ts"
   ],
