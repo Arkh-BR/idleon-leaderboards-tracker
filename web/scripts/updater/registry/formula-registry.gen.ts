@@ -93,6 +93,10 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   "DaveyJonesBonus": [
     "lib/arkh/stats/systems/w5/sailing.ts"
   ],
+  "DeathNoteMobs": [
+    "lib/tome/extractors.ts",
+    "lib/tome/tasks.ts"
+  ],
   "DeathNoteRank": [
     "lib/arkh/stats/systems/coin/gambit.ts"
   ],
