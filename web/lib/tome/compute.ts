@@ -15,6 +15,7 @@ import {
   type RawObj,
 } from "./math";
 import * as ex from "./extractors";
+import { computeUniqueSushi } from "../arkh/stats/systems/w7/sushi";
 
 type D = RawObj;
 type ParsedData = Record<string, unknown>;
@@ -456,22 +457,9 @@ function computeRawValue(
       return v !== null ? R(out, "Research[12] sum", v) : null;
     }
     case 116: {
-      // IT's logic (parsers/world-7/sushiStation.ts): the uniqueSushi count
-      // is the length of the CONSECUTIVE prefix of Sushi[5] where each entry
-      // is >= 0. The first -1 (or undefined) ends the chain. 64 tiers since
-      // the 2026-09-18 update (Research[30] length; was 59 → 63 → 64).
+      // TomeQTY[116] = SushiStuff("UniqueSushi") — the engine's port.
       if (Array.isArray(data.Sushi) && Array.isArray((data.Sushi as unknown[])[5])) {
-        const tracking = (data.Sushi as unknown[])[5] as unknown[];
-        let uniqueSushi = 0;
-        for (let i = 0; i <= 63; i++) {
-          const v = tracking[i] ?? -1;
-          if (Number(v) >= 0) {
-            uniqueSushi = i + 1;
-          } else {
-            break;
-          }
-        }
-        return R(out, "Sushi[5] consecutive>=0", uniqueSushi);
+        return R(out, "Sushi[5] consecutive>=0", computeUniqueSushi(data.Sushi));
       }
       return null;
     }

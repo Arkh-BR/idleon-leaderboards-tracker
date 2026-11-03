@@ -130,6 +130,9 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   "FriendBonusXtraMulti": [
     "lib/arkh/stats/systems/common/friend.ts"
   ],
+  "GalleryBonusMulti": [
+    "lib/arkh/stats/systems/w7/gallery.ts"
+  ],
   "GalleryBonusSystemON": [
     "lib/arkh/stats/systems/common/stats.ts",
     "lib/arkh/stats/systems/w7/gallery.ts"
@@ -302,6 +305,12 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   "SuperBitType": [
     "lib/arkh/stats/systems/exp/exp.ts"
   ],
+  "TomePCT": [
+    "lib/tome/math.ts"
+  ],
+  "TomePTS": [
+    "lib/tome/math.ts"
+  ],
   "TotPetsFound": [
     "lib/arkh/stats/systems/w4/lab.ts"
   ],
@@ -312,10 +321,14 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/arkh/stats/data/w7/royalG.ts"
   ],
   "TotalStickers": [
-    "lib/arkh/stats/systems/w6/farming.ts"
+    "lib/arkh/stats/systems/w6/farming.ts",
+    "lib/tome/extractors.ts"
   ],
   "TotalTitanKills": [
     "lib/arkh/stats/systems/exp/exp.ts"
+  ],
+  "UniqueSushi": [
+    "lib/arkh/stats/systems/w7/sushi.ts"
   ],
   "UnlockOwned": [
     "lib/arkh/stats/data/w7/menagerie.ts"
@@ -341,6 +354,9 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   ],
   "_customBlock_ArcaneType": [
     "lib/arkh/stats/systems/w2/voting.ts"
+  ],
+  "_customBlock_Breeding": [
+    "lib/tome/extractors.ts"
   ],
   "_customBlock_CaptBonusCalc": [
     "lib/arkh/stats/systems/w5/sailing.ts"
@@ -424,6 +440,9 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/arkh/stats/systems/common/stats.ts",
     "lib/arkh/stats/systems/dr2/dr2.ts"
   ],
+  "_customBlock_TotalTalentPoints": [
+    "lib/tome/extractors.ts"
+  ],
   "_customBlock_Windwalker": [
     "lib/arkh/stats/systems/w2/voting.ts"
   ],
@@ -432,6 +451,9 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   ],
   "_customBlock_chipBonuses": [
     "lib/arkh/stats/systems/w4/lab.ts"
+  ],
+  "_customBlock_getLOG": [
+    "lib/tome/math.ts"
   ],
   "_customBlock_prayersReal": [
     "lib/arkh/stats/systems/w3/prayer.ts"

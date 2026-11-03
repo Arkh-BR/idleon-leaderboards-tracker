@@ -26,12 +26,14 @@ export function arrMax(a: Raw): number {
   return m === -Infinity ? 0 : m;
 }
 
-// Lava's base-e log clamped at 1 (matches IT's lavaLog).
+// The game's getLOG: log10 of n clamped at 1 (Lava divides by 2.30259).
+// @njs _customBlock_getLOG
 export function lavaLog(n: number): number {
   return Math.log(Math.max(n, 1)) / 2.30259;
 }
 
 // The 5 curve formulas from calcPointsPercent. x2 picks which one.
+// @njs TomePCT
 export function calcPointsPercent(
   b: readonly [number, number, number] | undefined,
   q: number
@@ -56,7 +58,14 @@ export function calcPointsPercent(
   return 0;
 }
 
-// Wraps calcPointsPercent: returns ceil(pct * x3) clamped to >= 0.
+// Points a task shows at quantity q: N.js TomePTS = ceil(TomePCT · Tome[3]),
+// floored at 0 for a curve that went negative or non-finite.
+// @njs TomePTS
+function ptsAt(b: readonly [number, number, number], q: number): number {
+  const pct = calcPointsPercent(b, q);
+  return isFinite(pct) && pct > 0 ? Math.ceil(pct * b[2]) : 0;
+}
+
 // Returns null if quantity is null/undefined/NaN (means "no data").
 export function calcTomePts(
   computeIdx: number,
@@ -66,89 +75,43 @@ export function calcTomePts(
   if (!b || quantity === null || quantity === undefined || Number.isNaN(quantity)) {
     return null;
   }
-  const pct = calcPointsPercent(b, Number(quantity));
-  if (!isFinite(pct) || pct < 0) return 0;
-  return Math.ceil(pct * b[2]);
+  return ptsAt(b, Number(quantity));
 }
 
-// Inverse of calcPointsPercent: given a target pct, return the minimum
-// quantity needed to reach (or exceed) it. Returns null when the target is
-// mathematically unreachable for that curve (asymptote, capped at 1, etc.)
-// or when the resulting quantity would be negative / non-finite.
-//
-// Adapted from IT's getRequiredQuantitiesEfficient (parsers/world-4/tome.ts).
-export function quantityForPct(
-  b: readonly [number, number, number] | undefined,
-  targetPct: number
-): number | null {
-  if (!b || !isFinite(targetPct) || targetPct <= 0) return 0;
-  const x1 = b[0];
-  const x2 = b[1];
-
-  if (x2 === 0) {
-    // pct = ((1.7q)/(q+x1))^0.7  →  base = pct^(1/0.7),  q = (base·x1)/(1.7-base)
-    const base = Math.pow(targetPct, 1 / 0.7);
-    if (1.7 - base <= 0) return null; // asymptote (max pct ≈ 1.7^0.7 ≈ 1.44)
-    return (base * x1) / (1.7 - base);
-  }
-
-  if (x2 === 1) {
-    // pct = (2.4·lavaLog(q))/(2·lavaLog(q)+x1)
-    const denom = 2 * targetPct - 2.4;
-    if (denom === 0) return null;
-    const logQ = (-targetPct * x1) / denom;
-    return Math.pow(10, logQ);
-  }
-
-  if (x2 === 2) {
-    // pct = min(1, q/x1)  →  q = pct·x1, capped at 1
-    if (targetPct > 1) return null;
-    return targetPct * x1;
-  }
-
-  if (x2 === 3) {
-    // pct = ((1.2·(6x1-q))/(7x1-q))^5 (inverted curve)
-    const base = Math.pow(targetPct, 1 / 5);
-    const denom = 1.2 - base;
-    if (denom === 0) return null;
-    const q = (1.2 * 6 * x1 - base * 7 * x1) / denom;
-    if (q > 5 * x1 || q < 0) return null;
-    return q;
-  }
-
-  if (x2 === 4) {
-    // pct = ((2·min(x1,q))/(min(x1,q)+x1))^0.7
-    if (targetPct >= 1) return x1;
-    const base = Math.pow(targetPct, 1 / 0.7);
-    const denom = 2 - base;
-    if (denom === 0) return null;
-    const q = (base * x1) / denom;
-    if (q > x1) return null;
-    return q;
-  }
-
-  return null;
-}
-
-// Convenience: given current pts, returns the raw quantity threshold to land
-// at `pts + N`. Returns null when unreachable (already capped, etc.).
-//
-// For ascending curves (x2 = 0/1/2/4): higher q → more pts. The minimum q
-// that gives targetPts is what we want; Math.ceil so we don't round past
-// the boundary.
-//
-// For inverted curves (x2 = 3, used by "Fastest Time" tasks): lower q →
-// more pts. The MAXIMUM q that still gives targetPts is what we want;
-// Math.floor for the same boundary reason.
+// The whole quantity at which a task first shows `targetPts`, searched on the
+// game's own curve (ptsAt) rather than solved for: the smallest one on the
+// rising curves, the largest one on the "fewer is better" curve (x2 = 3,
+// which pays nothing past 5·x1). null when no finite quantity gets there.
 export function quantityForPts(
   bonus: readonly [number, number, number] | undefined,
   targetPts: number
 ): number | null {
   if (!bonus || targetPts <= 0) return 0;
-  const targetPct = targetPts / bonus[2];
-  const q = quantityForPct(bonus, targetPct);
-  if (q === null || !isFinite(q) || q < 0) return null;
-  return bonus[1] === 3 ? Math.floor(q) : Math.ceil(q);
+  const ok = (q: number) => ptsAt(bonus, q) >= targetPts;
+  if (bonus[1] === 3) {
+    let lo = 0; // ok(lo) holds throughout
+    let hi = Math.floor(5 * bonus[0]);
+    if (!ok(lo)) return null;
+    while (lo < hi) {
+      const mid = Math.ceil((lo + hi) / 2);
+      if (ok(mid)) lo = mid;
+      else hi = mid - 1;
+    }
+    return lo;
+  }
+  let lo = 0; // !ok(lo) and ok(hi) hold throughout
+  let hi = 1;
+  while (!ok(hi)) {
+    lo = hi;
+    hi *= 2;
+    if (!isFinite(hi)) return null;
+  }
+  for (;;) {
+    const mid = Math.floor((lo + hi) / 2);
+    if (mid <= lo || mid >= hi) return hi;
+    if (ok(mid)) hi = mid;
+    else lo = mid;
+  }
 }
 
 // True for the inverted "fewer is better" curve (x2 = 3). Used by the UI to
@@ -159,28 +122,17 @@ export function isInvertedCurve(
   return bonus?.[1] === 3;
 }
 
-// Theoretical maximum pts for this curve, derived from the asymptote of
-// each formula. Used by the Best Tome panel to show "max possible".
+// Most points a task can show: TomePTS at the top of its TomePCT curve. Curves
+// 0 and 1 only approach their limits (1.7^0.7 and 2.4/2 as q grows); 2 and 4
+// cap at q = x1; the fewer-is-better 3 peaks at q = 0.
 export function maxPtsForBonus(
   bonus: readonly [number, number, number] | undefined
 ): number {
   if (!bonus) return 0;
-  const x2 = bonus[1];
-  const x3 = bonus[2];
-  // Curve asymptotes (from getMaxPointsForBonus in IT's tome.ts):
-  //   x2=0 → 1.7^0.7 ≈ 1.4314 (asymptote of type-0 curve)
-  //   x2=1 → 1.2 (log curve approaches 1.2)
-  //   x2=2 → 1 (linear, capped at 1)
-  //   x2=3 → ~1.1513 (peak of type-3 curve at q → 0)
-  //   x2=4 → 1 (capped at 1)
-  let maxPct: number;
-  if (x2 === 0) maxPct = Math.pow(1.7, 0.7);
-  else if (x2 === 1) maxPct = 1.2;
-  else if (x2 === 2) maxPct = 1;
-  else if (x2 === 3) maxPct = 1.1512569953;
-  else if (x2 === 4) maxPct = 1;
-  else maxPct = 0;
-  return Math.ceil(maxPct * x3);
+  const [x1, x2, x3] = bonus;
+  const top =
+    x2 === 0 ? Math.pow(1.7, 0.7) : x2 === 1 ? 1.2 : calcPointsPercent(bonus, x2 === 3 ? 0 : x1);
+  return Math.ceil(top * x3);
 }
 
 // Many fields in the Lava save come in as JSON-encoded strings (e.g.

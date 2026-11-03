@@ -67,6 +67,10 @@ export const sushiRoG = {
   },
 };
 
+// N.js SushiStuff("UniqueSushi"): the run of Sushi[5] tiers made (>= 0) from
+// tier 0 up to the first -1. The game stops at MaxTier + 1; the save's slots
+// past it hold -1, so the run ends there too.
+// @njs UniqueSushi
 export function computeUniqueSushi(sushiData: any): number {
   const tiers = sushiData?.[5];
   if (!Array.isArray(tiers)) return 0;

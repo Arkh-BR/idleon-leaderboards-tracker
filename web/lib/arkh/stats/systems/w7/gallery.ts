@@ -63,6 +63,10 @@ export function detectChip16(saveData: SaveData): boolean {
   return false;
 }
 
+// N.js "GalleryBonusMulti": 1 + (3·Spelunk[13][4] + 10·chip troph
+// + 3·ClamWork 7 + Killroy 3 + min(20, bubble Y13) + min(10, card w7a11)
+// + Companions(49) + SushiStuff("RoG_BonusQTY", 54)) / 100.
+// @njs GalleryBonusMulti
 export function galleryBonusMulti(
   saveData: SaveData,
   opts?: GalleryOpts
@@ -94,9 +98,7 @@ export function galleryBonusMulti(
   const clamWork7 = (Number((optionsListData as any)[464]) || 0) > 7 ? 1 : 0;
   const ola467 = Number((optionsListData as any)[467]) || 0;
   const killroy3 = (ola467 / (200 + ola467)) * 10;
-  // IT source: sushiBonus54 — "+{% Gallery Bonus Multi" (RoG_BonusQTY at index 54).
-  // Arkh compute is missing this, which causes ~+1 to sum (=> +0.01 multi) when
-  // uniqueSushi > 54. Affects every nametag/trophy proportionally.
+  // Sushi RoG bonus 54 ("+{% Gallery Bonus Multi"), live past 54 unique sushi.
   const sushi54 = rogBonusQTY(54, saveData.cachedUniqueSushi || 0);
   const sum =
     3 * galleryLv +

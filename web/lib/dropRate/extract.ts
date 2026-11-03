@@ -160,18 +160,3 @@ export function buildSnapshot(save: RawSave, charIndex: number): DropRateSnapsho
     accountAgeDays: num(ex.accountAge),
   };
 }
-
-// Re-implementation of the luck → DR multiplier curve from N.js
-// (mirrors getDropRate() in IT parsers/character.ts:2226-2232).
-// Useful for Phase 1 even without the full pipeline, because it tells us
-// what fraction of `accountDropRate` comes from luck vs everything else.
-export function luckDropRateContribution(luck: number): number {
-  if (!Number.isFinite(luck) || luck < 0) return 0;
-  let luckMulti: number;
-  if (luck < 1e3) {
-    luckMulti = (Math.pow(luck + 1, 0.37) - 1) / 40;
-  } else {
-    luckMulti = ((luck - 1e3) / (luck + 2500)) * 0.5 + 0.297;
-  }
-  return 1.4 * luckMulti;
-}

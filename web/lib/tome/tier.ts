@@ -1,11 +1,7 @@
-// Tier classification mirroring IT's segmentColors from
-// parsers/world-4/tome.ts:
-//   pct < 0.4  → bronze
-//   pct < 0.75 → silver
-//   pct < 0.999 → gold
-//   else        → blue (capped / at max)
-//
-// Used in the Best Tome panel to color-code each task by progress.
+// Colour tier of a Tome task by its TomePCT. The thresholds are the game's:
+// the Tome page draws a task's "PTS" text in one of four fonts, switching at
+// pct .4, .75 and .999 (N.js Tome scene, right before it prints TomePTS).
+// The tier names are the site's.
 
 export type TomeTier = "bronze" | "silver" | "gold" | "blue" | "missing";
 
