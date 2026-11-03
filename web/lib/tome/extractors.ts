@@ -6,6 +6,7 @@ import { arrSum, arrMax, lavaLog, type RawObj } from "./math";
 import { CARDS_PER_TIER, DEATHNOTE_MOB_IDX, DUNGEON_LEVELS } from "./tasks";
 import { SUMMONING_ENEMY_IDS } from "./summoningEnemies";
 import { companionBonus } from "../arkh/stats/data/common/companions";
+import { computeCardLv } from "../arkh/stats/systems/common/cards";
 import { menagerieUnlockOwned } from "../arkh/stats/data/w7/menagerie";
 import type { SaveData } from "../arkh/state";
 
@@ -133,19 +134,18 @@ export function rawResearch(d: D): number | null {
 
 // ---------------------------------------------------------------- stamps / tasks / meals
 
+// TomeQTY[0] is the stamp page's TOTAL_LV (N.js stamp actor init, GenINFO[106]):
+// Σ StampLevel[tab][i] over the three stamp tabs. A tab can arrive as a
+// {i: lv, length: n} object; only its numeric keys are stamps.
 export function rawStamps(d: D): number | null {
   const sl = d.StampLv;
   if (!Array.isArray(sl)) return null;
   let t = 0;
-  for (let i = 0; i < sl.length; i++) {
-    const row = obj(sl[i]);
-    if (!row) continue;
-    // StampLv rows are plain objects that carry a `"length"` own property
-    // holding the count of stamps in that category. Skipping it matches IT's
-    // `calcStampLevels` behavior.
+  for (let tab = 0; tab < 3; tab++) {
+    const row = sl[tab];
+    if (!row || typeof row !== "object") continue;
     for (const k of Object.keys(row)) {
-      if (k === "length") continue;
-      t += num(row[k]);
+      if (!isNaN(Number(k))) t += num((row as Record<string, unknown>)[k]);
     }
   }
   return t;
@@ -363,17 +363,12 @@ export function rawTowerSum(d: D): number | null {
   return s;
 }
 
+// TomeQTY[75]: FamilyValuesMap.MinigameHiscores[0..3] + OptionsListAccount[99].
 export function rawMinigameScore(d: D): number | null {
-  // IT's calcMinigameTotalScore (parsers/highScores.ts) sums the first 5
-  // entries of a concatenated list: [chopping, fishing, catching, mining,
-  // pen-pals]. The first 4 come from FamValMinigameHiscores[0..3] (mapped
-  // via minigameIndexMapping) and pen-pals is accountOptions[99].
   const m = d.FamValMinigameHiscores;
   if (!Array.isArray(m)) return null;
-  let s = 0;
-  for (let i = 0; i < Math.min(4, m.length); i++) s += num(m[i]);
-  const opt = d.OptLacc;
-  if (Array.isArray(opt)) s += num(opt[99]);
+  let s = num(arr(d.OptLacc)[99]);
+  for (let i = 0; i < 4; i++) s += num(m[i]);
   return s;
 }
 
@@ -385,18 +380,11 @@ export function rawSummoningStones(d: D): number | null {
 
 // ---------------------------------------------------------------- farming / boats / sail
 
+// TomeQTY[112] = FarmingStuffs("TotalStickers"): Σ Research[9].
+// @njs TotalStickers
 export function rawFarmingStickers(d: D): number | null {
-  // IT (parsers/world-7/research.ts) computes totalStickers = sum(Research[9])
-  // where Research[9] is the per-sticker-type level array. OptLacc[140] is a
-  // related but slightly stale value — use Research[9] to match IT.
-  if (Array.isArray(d.Research) && Array.isArray((d.Research as unknown[])[9])) {
-    return arrSum((d.Research as unknown[])[9]);
-  }
-  const opt = arr(d.OptLacc);
-  const v = opt[140];
-  if (v !== undefined && v !== null) return Math.floor(Number(v));
-  if (Array.isArray(d.FarmStick)) return d.FarmStick.length;
-  return null;
+  if (!Array.isArray(d.Research) || !Array.isArray((d.Research as unknown[])[9])) return null;
+  return arrSum((d.Research as unknown[])[9]);
 }
 
 export function rawBoatsLevel(d: D): number | null {
@@ -663,36 +651,21 @@ export function rawCareerSummWins(d: D): number | null {
 // IT ignores (it iterates account.breeding.pets, derived from petStats).
 const PET_COUNTS_PER_WORLD: readonly number[] = [17, 17, 18, 16];
 
+// TomeQTY[51]: for every pet of the breeding worlds, its breedability level
+// min(9, floor((2ndMulti - 1)^0.8) + 1), where Breeding("2ndMulti") is
+// 1 + ln(max(1, (EXP + 1)^0.725)) once Breeding[2][3] > 0 (the breeding
+// actor's GenINFO[53][0] unlock), else 1. EXP = Breeding[13 + world][pet].
+// @njs _customBlock_Breeding
 export function rawBreedability(d: D): number | null {
-  // Port of IT's `totalBreedabilityLv` (parsers/world-4/breeding.ts:189-209).
-  // For each pet across the 4 breeding worlds:
-  //
-  //   secondUnlocked = Breeding[2][2] > 0          // pet upgrade list index 2
-  //   second = secondUnlocked
-  //              ? 1 + log(max(1, pow(EXP+1, 0.725)))
-  //              : 1
-  //   breedingLevel = min(9, floor(pow(second-1, 0.8)) + 1)
-  //   totalBreedabilityLv = sum(breedingLevel) over every pet slot
-  //
-  // Per-world EXP arrays live at Breeding[13 + worldIndex]. Pet counts come
-  // from petStats — using the EXP array length directly would overshoot.
   if (!Array.isArray(d.Breeding)) return null;
   const breeding = d.Breeding as unknown[];
-  const upgrades = Array.isArray(breeding[2]) ? (breeding[2] as unknown[]) : [];
-  const secondUnlocked = Number(upgrades[2] ?? 0) > 0;
-
+  const unlocked = num(arr(breeding[2])[3]) > 0;
   let total = 0;
   for (let w = 0; w < PET_COUNTS_PER_WORLD.length; w++) {
-    const expArr = breeding[13 + w];
-    if (!Array.isArray(expArr)) continue;
-    const petCount = PET_COUNTS_PER_WORLD[w];
-    for (let p = 0; p < petCount; p++) {
-      const exp = Number((expArr as unknown[])[p]) || 0;
-      const second = secondUnlocked
-        ? 1 + Math.log(Math.max(1, Math.pow(exp + 1, 0.725)))
-        : 1;
-      const breedingLevel = Math.min(9, Math.floor(Math.pow(second - 1, 0.8)) + 1);
-      total += breedingLevel;
+    const exp = arr(breeding[13 + w]);
+    for (let p = 0; p < PET_COUNTS_PER_WORLD[w]; p++) {
+      const multi = unlocked ? 1 + Math.log(Math.max(1, Math.pow(num(exp[p]) + 1, 0.725))) : 1;
+      total += Math.min(9, Math.floor(Math.pow(multi - 1, 0.8)) + 1);
     }
   }
   return total;
@@ -705,29 +678,15 @@ export function rawShinyLevels(d: D): number | null {
 
 // ---------------------------------------------------------------- v7.9 W7 / breeding / spelunk extras
 
+// TomeQTY[46]: the best Pets[g][2] / PetsStored[g][2] power, from 0.
 export function rawHighestPowerMob(d: D): number | null {
-  // IT's calcHighestPower (parsers/world-4/breeding.ts) aggregates:
-  //  - PetsStored[*][2]              (stored pets)
-  //  - Pets[*][2]                    (fence pets + territory teams)
-  // NOT Breeding[3] — that's genetics/material counts, not pet power.
-  const powers: number[] = [];
-  if (Array.isArray(d.PetsStored)) {
-    for (const p of d.PetsStored) {
-      if (Array.isArray(p) && p[2] !== undefined) {
-        const v = Number(p[2]);
-        if (!Number.isNaN(v) && v > 0) powers.push(v);
-      }
-    }
+  if (!Array.isArray(d.Pets) && !Array.isArray(d.PetsStored)) return null;
+  let best = 0;
+  for (const pet of [...arr(d.Pets), ...arr(d.PetsStored)]) {
+    const v = Number(arr(pet)[2]);
+    if (v > best) best = v;
   }
-  if (Array.isArray(d.Pets)) {
-    for (const p of d.Pets) {
-      if (Array.isArray(p) && p[2] !== undefined) {
-        const v = Number(p[2]);
-        if (!Number.isNaN(v) && v > 0) powers.push(v);
-      }
-    }
-  }
-  return powers.length > 0 ? Math.max(...powers) : null;
+  return best;
 }
 
 export function rawCoralReefSum(d: D): number | null {
@@ -851,73 +810,25 @@ export function rawMenagerieBoostLv(d: D): number {
 
 // ---------------------------------------------------------------- "proper" extractors
 
-// maxStars for card-level calcs = round(4 + riftFiveStar + spelunkingSixStar).
-// Faithful to IT's parseCards and N.js: the 5th star unlocks at Rift >= 45, and
-// the 6th once Spelunking lore boss #2 is defeated (Spelunk[0][2] > 0). An
-// earlier port dropped the spelunking term, under-counting card levels for
-// accounts below the Tome points cap — the golden harness caught it on
-// "Cards Total LV" (0celot8: 862 vs IT 890; fixed → 890).
-function cardMaxStars(d: D): number {
-  const rift =
-    Array.isArray(d.Rift) && (d.Rift as unknown[])[0] !== undefined
-      ? num((d.Rift as unknown[])[0])
-      : 0;
-  const riftFiveStar = rift >= 45 ? 1 : 0;
-  const spelunk = d.Spelunk;
-  const loreBoss2Defeated =
-    Array.isArray(spelunk) && Array.isArray((spelunk as unknown[])[0])
-      ? num(((spelunk as unknown[])[0] as unknown[])[2]) > 0
-      : false;
-  const spelunkingSixStar = loreBoss2Defeated ? 1 : 0;
-  return Math.round(4 + riftFiveStar + spelunkingSixStar);
+// The engine's card helpers read these four save keys only.
+function cardSave(d: D): SaveData {
+  return {
+    cards0Data: obj(d.Cards0) ?? {},
+    riftData: arr(d.Rift),
+    spelunkData: arr(d.Spelunk),
+    olaData: arr(d.OptLacc),
+  } as unknown as SaveData;
 }
 
-function calcStars(
-  tierReq: number,
-  amount: number,
-  name: string,
-  maxStars: number,
-  isInFiveStarList: boolean
-): number {
-  let lvl = 0;
-  for (let i = 0; i < maxStars; i++) {
-    if (name === "Boss3B") {
-      if (amount > 1.5 * Math.pow(i + 1 + Math.floor(i / 3), 2)) lvl = i + 2;
-    } else {
-      if (
-        amount >
-        tierReq *
-          Math.pow(
-            i +
-              1 +
-              (Math.floor(i / 3) + (16 * Math.floor(i / 4) + 100 * Math.floor(i / 5))),
-            2
-          )
-      ) {
-        lvl = i + 2;
-      }
-    }
-  }
-  if (isInFiveStarList && lvl < 6) return 5;
-  return lvl > 0 ? lvl - 1 : lvl;
-}
-
+// TomeQTY[2]: Σ CardLv over the Cards[0] keys that are game cards (CardStuff),
+// with the engine's port of N.js CardLv.
 export function rawCardsTotalLvProper(d: D): number | null {
   const cards = obj(d.Cards0);
   if (!cards) return null;
-  const maxStars = cardMaxStars(d);
-  const opt = arr(d.OptLacc);
-  const fiveStarRaw = String(opt[155] || "");
-  const fiveStarList = fiveStarRaw ? fiveStarRaw.split(",") : [];
+  const s = cardSave(d);
   let total = 0;
   for (const name of Object.keys(cards)) {
-    const amount = num(cards[name]);
-    if (amount <= 0) continue;
-    const perTier = CARDS_PER_TIER[name];
-    if (perTier === undefined) continue;
-    const isFive = fiveStarList.indexOf(name) !== -1;
-    const stars = calcStars(perTier, amount, name, maxStars, isFive);
-    total += stars + 1;
+    if (CARDS_PER_TIER[name] !== undefined) total += computeCardLv(name, s);
   }
   return total > 0 ? total : null;
 }
@@ -1104,51 +1015,13 @@ function shinyStarTalentPetBonus(d: D): number {
   return Math.round(2 * getShinyLevelFromProgress(progress, shinyThresholds(d)));
 }
 
-function calcCardStars(
-  tierReq: number,
-  amount: number,
-  name: string,
-  maxStars: number,
-  isInFiveStarList: boolean
-): number {
-  let lvl = 0;
-  for (let i = 0; i < maxStars; i++) {
-    if (name === "Boss3B") {
-      if (amount > 1.5 * Math.pow(i + 1 + Math.floor(i / 3), 2)) lvl = i + 2;
-    } else {
-      if (
-        amount >
-        tierReq *
-          Math.pow(
-            i +
-              1 +
-              (Math.floor(i / 3) +
-                (16 * Math.floor(i / 4) + 100 * Math.floor(i / 5))),
-            2
-          )
-      ) {
-        lvl = i + 2;
-      }
-    }
-  }
-  if (isInFiveStarList && lvl < 6) return 5;
-  return lvl > 0 ? lvl - 1 : lvl;
-}
-
 function cardPassiveStarBonus(d: D): number {
   const cards = obj(d.Cards0);
   if (!cards) return 0;
-  const maxStars = cardMaxStars(d);
-  const opt = arr(d.OptLacc);
-  const fiveStarRaw = String(opt[155] || "");
-  const fiveStarList = fiveStarRaw ? fiveStarRaw.split(",") : [];
+  const s = cardSave(d);
   let total = 0;
-  for (const [name, baseBonus, perTier] of STAR_TALENT_CARDS) {
-    const amount = num(cards[name]);
-    if (amount <= 0) continue;
-    const isFive = fiveStarList.indexOf(name) !== -1;
-    const stars = calcCardStars(perTier, amount, name, maxStars, isFive);
-    total += baseBonus * (stars + 1);
+  for (const [name, baseBonus] of STAR_TALENT_CARDS) {
+    if (num(cards[name]) > 0) total += baseBonus * computeCardLv(name, s);
   }
   return total;
 }

@@ -314,7 +314,8 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/arkh/stats/data/w7/royalG.ts"
   ],
   "TotalStickers": [
-    "lib/arkh/stats/systems/w6/farming.ts"
+    "lib/arkh/stats/systems/w6/farming.ts",
+    "lib/tome/extractors.ts"
   ],
   "TotalTitanKills": [
     "lib/arkh/stats/systems/exp/exp.ts"
@@ -346,6 +347,9 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   ],
   "_customBlock_ArcaneType": [
     "lib/arkh/stats/systems/w2/voting.ts"
+  ],
+  "_customBlock_Breeding": [
+    "lib/tome/extractors.ts"
   ],
   "_customBlock_CaptBonusCalc": [
     "lib/arkh/stats/systems/w5/sailing.ts"
