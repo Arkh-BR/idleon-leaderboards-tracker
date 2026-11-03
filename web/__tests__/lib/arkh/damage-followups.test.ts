@@ -4,6 +4,7 @@ import { saveData } from "@/lib/arkh/state";
 import { computeSkillEfficiency } from "@/lib/arkh/stats/systems/common/derived-stats";
 import { computeFamBonusQTYs } from "@/lib/arkh/stats/systems/common/stats";
 import { formulaEval } from "@/lib/arkh/formulas";
+import { computeCardLv } from "@/lib/arkh/stats/systems/common/cards";
 
 const g = globalThis as unknown as { window?: unknown };
 if (!g.window) g.window = g;
@@ -36,5 +37,23 @@ describe("Family bonuses 24 and 44 carry the account's best Family Guy", () => {
 
   it("24 is decay(50,150) at Lv 500 − 69, × 1.2", () => {
     expect(fam()[24]).toBeCloseTo(formulaEval("decay", 50, 150, 431) * 1.2, 10);
+  });
+});
+
+// N.js CardLv (@4083568): a card in OLA[603] below 7 stars reads 7, then one
+// in OLA[155] below 6 reads 6.
+describe("CardLv honours the OLA[603] upgrade list", () => {
+  const lv = (ola603: string, ola155: string) => {
+    const ola: string[] = [];
+    ola[155] = ola155;
+    ola[603] = ola603;
+    loadSaveData({ charNames: ["A"], data: { Cards0: JSON.stringify({ w7a11: 1 }), OptLacc: ola } });
+    return computeCardLv("w7a11", saveData);
+  };
+
+  it("1 card is Lv 1, 7 when listed in 603, 6 when only in 155", () => {
+    expect(lv("0", "0")).toBe(1);
+    expect(lv("0,w7a11", "0,w7a11")).toBe(7);
+    expect(lv("0", "0,w7a11")).toBe(6);
   });
 });

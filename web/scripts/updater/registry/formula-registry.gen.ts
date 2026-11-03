@@ -51,6 +51,7 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/arkh/stats/systems/w7/gallery.ts"
   ],
   "CardLv": [
+    "lib/arkh/stats/systems/common/cards.ts",
     "lib/arkh/stats/systems/exp/exp.ts"
   ],
   "CardsCollected": [
