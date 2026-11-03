@@ -49,7 +49,7 @@
 **Order:**
 
 1. React / Next.js built-ins (`react`, `next/*`)
-2. External packages (`date-fns`, `lodash.merge`)
+2. External packages (`date-fns`)
 3. Internal path aliases (`@/components/*`, `@/lib/*`, `@/app/api/*`)
 4. Relative imports (`./page-client`)
 5. Type-only imports (`import type { ... }`)
@@ -57,11 +57,6 @@
 **Path Aliases:**
 
 - `@/*` → `web/*` — project root relative
-- `@parsers/*` → `./lib/it/parsers/*`
-- `@utility/*` → `./lib/it/utility/*`
-- `@website-data` → `./lib/it/data/website-data.json`
-- `@components/*` → `./lib/it/_stubs/components/*`
-- `@hooks/*` → `./lib/it/_stubs/hooks/*`
 
 ## Error Handling
 

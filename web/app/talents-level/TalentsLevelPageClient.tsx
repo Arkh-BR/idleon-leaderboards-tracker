@@ -106,7 +106,7 @@ const PRESET_KEY = "talents-level.preset-idx.v1";
 // least intimidating empty state.
 const FALLBACK_CLASS_KEY = "Beginner";
 
-// Strip the IT data's "{" / "}" formula-placeholder tokens out of the
+// Strip the game text's "{" / "}" formula-placeholder tokens out of the
 // lvlUpText we render under each talent card — they read as garbage in a
 // detached UI (the in-game pass replaces them with the current value, but
 // we just want the human-readable bonus name).
@@ -114,7 +114,7 @@ function cleanLvlUpText(s: string): string {
   return s.replace(/[{}_]/g, " ").replace(/\s+/g, " ").trim();
 }
 
-// IT-style tab name → display label. The website-data keys use underscores
+// Generated tab name → display label. The tab names use underscores
 // and we get nicer headers swapping them out, plus we drop the "Special "
 // prefix to keep the tab strip compact ("Star 1" / "Star 2" reads tighter).
 function tabDisplayName(rawName: string): string {

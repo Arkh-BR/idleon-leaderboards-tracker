@@ -1,20 +1,16 @@
 // ===== GUILD SYSTEM =====
 import { node, type ArkhNode } from "../../../node";
-import { label } from "../../entity-names";
+import { gameLabel } from "../../entity-names";
 import { formulaEval } from "../../../formulas";
 import { guildBonusParams } from "../../data/common/guild";
+import { GuildBonuses } from "../../data/game/customlists.js";
 import type { SaveData } from "../../../state";
 
 type Ctx = { saveData: SaveData };
 
-// Friendly guild-bonus names sourced from guildBonuses[i].name in IT
-// website-data. The DR descriptor references id 10 (Gold Charm).
-const GUILD_NAMES: Record<number, string> = {
-  10: "Gold Charm",
-};
+// Name = the game's GuildBonuses[id][0] ("Gold_Charm" → "Gold Charm").
 function guildLabel(id: number): string {
-  const n = GUILD_NAMES[id];
-  return n ? `${n} (Guild ${id})` : label("Guild", id);
+  return gameLabel("Guild", id, (GuildBonuses as any)[id]?.[0]);
 }
 
 export const guild = {

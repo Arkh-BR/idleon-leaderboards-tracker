@@ -12,6 +12,7 @@ import { CARD_BASE_REQ, CARD_DR_BONUS, CARD_DR_MULTI } from "../../data/common/c
 import { IDforCardSETbonus } from "../../data/game/custommaps.js";
 import { MONSTERS } from "../../data/game/monsters.js";
 import { legendPTSbonus } from "../w7/spelunking";
+import { legendLabel } from "../w7/legend";
 import { charHasChip } from "../w4/lab";
 import { RANDOlist } from "../../data/game/customlists.js";
 import type { SaveData } from "../../../state";
@@ -167,7 +168,7 @@ export const card = {
       const legend21raw = legendPTSbonus(21, saveData);
       children.push(
         node(
-          "Legendary Cardholder (Legend 21) ×",
+          legendLabel(21, " ×"),
           legendMulti,
           [node("Legend PTS", legend21raw, null, { fmt: "raw" })],
           { fmt: "x" }

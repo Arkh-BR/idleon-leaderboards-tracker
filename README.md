@@ -110,9 +110,9 @@ See [`CONTRIBUTING.md`](CONTRIBUTING.md) for setup, testing, and PR guidelines.
 
 GNU General Public License v3.0 — see [`LICENSE`](LICENSE).
 
-The code in [`web/lib/it/`](web/lib/it/) comes from
-[Idleon Toolbox](https://github.com/Morta1/IdleonToolbox) (GPL-3.0) and has
-been modified; [`web/lib/it/README.md`](web/lib/it/README.md) lists the changes.
+Parts of the code and data were originally ported or adapted from
+[Idleon Toolbox](https://github.com/Morta1/IdleonToolbox) (GPL-3.0) and have
+since been modified; the comments at those places say so.
 
 ---
 

@@ -1,27 +1,16 @@
 // ===== LEGEND SYSTEM (W7) =====
 import { node, type ArkhNode } from "../../../node";
-import { label } from "../../entity-names";
+import { gameLabel } from "../../entity-names";
 import { legendPTSbonus } from "./spelunking";
 import { legendTalentPerPt } from "../../data/w7/legendTalent";
+import { LegendTalents } from "../../data/game/customlists.js";
 import type { SaveData } from "../../../state";
 
 type Ctx = { saveData: SaveData };
 
-// Friendly names sourced from legendTalents[i].name in IT website-data.
-// Exported so cross-system consumers (talents/owl/cards/etc.) can reuse it.
-export const LEGEND_NAMES: Record<number, string> = {
-  1: "Greatest Drop Party Ever",
-  7: "Spelunky Super Talent",
-  21: "Legendary Cardholder",
-  25: "Master Chef",
-  26: "Furry Friends Forever",
-  36: "Wowa Woowa",
-};
-
+// Name = the game's LegendTalents[id][0] ("Wowa_Woowa").
 export function legendLabel(id: number, suffix?: string): string {
-  const n = LEGEND_NAMES[id];
-  if (n) return `${n} (Legend ${id})${suffix || ""}`;
-  return label("Legend", id, suffix);
+  return gameLabel("Legend", id, (LegendTalents as any)[id]?.[0], suffix);
 }
 
 export const legendPTS = {

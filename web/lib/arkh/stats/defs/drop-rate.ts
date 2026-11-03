@@ -30,7 +30,7 @@ const dropRateDesc: Descriptor = {
       { system: "postOffice", id: [11, 0] },
       { system: "etcBonus", id: 2 },
       // etcBonus 102 (%_DROP_CHANCE) is dropped from the pool: no item in
-      // IT website-data carries it as a built-in, so the only way for it
+      // the game's ItemDefinitions carries it as a built-in, so the only way for it
       // to contribute is a random UQ-stone roll of that exact stat onto
       // an item or obol — extremely rare in practice and worth zero for
       // every observed save. Keeping the entry showed an empty wrapper

@@ -6,18 +6,20 @@
 // matching the game's behavior for un-doubled stamps.
 
 import { node, treeResult, type ArkhNode, type TreeResult } from "../../../node";
-import { label } from "../../entity-names";
+import { gameLabel, label } from "../../entity-names";
 import { stampLvData } from "../../../save/data";
 import { formulaEval } from "../../../formulas";
 import { eventShopOwned } from "../../../game-helpers";
-import { pristineBon } from "../w5/pristine";
+import { pristineBon, pristineLabel, pristineName } from "../w5/pristine";
 import { getSetBonus } from "../w3/setBonus";
 import { vaultUpgBonus } from "../common/vault";
 import { mainframeBonus } from "../w4/lab";
 import { computePaletteBonus, legendPTSbonus } from "../w7/spelunking";
 import { exoticBonusQTY } from "../../data/w5/farming";
 import { compassUpgPerLevel } from "../../data/common/compass";
-import { rogBonusQTY } from "../w7/sushi";
+import { rogBonusQTY, rogLabel } from "../w7/sushi";
+import { legendLabel } from "../w7/legend";
+import { AtomInfo, CompassUpg, MarketExoticInfo } from "../../data/game/customlists.js";
 import { jellyLabel, jellyRoGBonus } from "../../data/w7/jelly";
 import { jellyRoGNode } from "../w7/jelly";
 import { STAMP_DATA } from "../../data/w1/stamp";
@@ -77,24 +79,20 @@ export function computeStampDoublerSources(saveData: SaveData): { total: number;
     atom12 + prist20 + compass76 + emperorSet + evShop18 + palette23 + exotic49 + spelunk43;
   const total = 100 + innerSum + legend36 + sushiRoG17 + jelly50;
 
-  // Sub-source names mirror IT's website-data:
-  //   atomsInfo[12]      → Aluminium - Stamp Supercharger
-  //   pristineCharms[20] → Jellypick
-  //   compass[76]        → Abomination Slayer XVII
-  //   exoticMarketInfo[49] → Exalted Eldou
-  //   legendTalents[36]  → Wowa Woowa
-  //   research[36][17]   → Exalted Bonus +0.01x (sushi RoG slot 17)
+  // Sub-source names come from the game lists: AtomInfo[12], the Pristine
+  // charm NjTrP20, CompassUpg[76], MarketExoticInfo[49], LegendTalents[36]
+  // and the sushi RoG slot 17 text.
   const children: ArkhNode[] = [
     node("Base Doubler", 100, null, { fmt: "raw" }),
     node(
-      "Aluminium — Stamp Supercharger (Atom 12)",
+      gameLabel("Atom", 12, (AtomInfo as any)[12]?.[0]),
       atom12,
       null,
       { fmt: "+" }
     ),
-    node("Jellypick (Pristine 20)", prist20, null, { fmt: "+" }),
+    node(pristineLabel(20), prist20, null, { fmt: "+" }),
     node(
-      "Abomination Slayer XVII (Compass 76)",
+      gameLabel("Compass", 76, (CompassUpg as any)[76]?.[0]),
       compass76,
       compass76 > 0
         ? [node("Compass Level", compassLv, null, { fmt: "raw" })]
@@ -112,7 +110,7 @@ export function computeStampDoublerSources(saveData: SaveData): { total: number;
       { fmt: "+" }
     ),
     node(
-      "Exalted Eldou (Exotic 49)",
+      gameLabel("Exotic", 49, (MarketExoticInfo as any)[49]?.[0]),
       exotic49,
       exoticLv > 0
         ? [node("Exotic Level", exoticLv, null, { fmt: "raw" })]
@@ -125,9 +123,9 @@ export function computeStampDoublerSources(saveData: SaveData): { total: number;
       null,
       { fmt: "+" }
     ),
-    node("Wowa Woowa (Legend 36)", legend36, null, { fmt: "+" }),
+    node(legendLabel(36), legend36, null, { fmt: "+" }),
     node(
-      "Tobo Sardine (Sushi Tier 18) — Exalted Bonus (RoG Bonus 17)",
+      rogLabel(17),
       sushiRoG17,
       null,
       { fmt: "+" }
@@ -219,7 +217,7 @@ export const stamp = {
       }
       if (pristineMulti > 1) {
         stampChildren.push(
-          node("Liquorice Rolle ×", pristineMulti, null, {
+          node(`${pristineName(17)} ×`, pristineMulti, null, {
             fmt: "x",
             note: "Pristine 17",
           })

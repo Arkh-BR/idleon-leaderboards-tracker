@@ -30,7 +30,7 @@
 
 ### What's In Progress / Next
 
-1. Expandir cobertura para `lib/arkh/` (game-helpers, computeDR), `lib/it/parsers/`, páginas de utilitários
+1. Expandir cobertura para `lib/arkh/` (game-helpers, computeDR), páginas de utilitários
 2. Expandir E2E tests com mock da API de leaderboards
 3. Adicionar testes visuais (Playwright screenshots) para regressão de UI
 
@@ -86,7 +86,6 @@
 6. [x] Integrar E2E no CI workflow
 7. [x] Escrever `CONTRIBUTING.md`
 8. [ ] Expandir cobertura para `lib/arkh/game-helpers.ts`, `lib/arkh/computeDR.ts`
-9. [ ] Expandir cobertura para `lib/it/parsers/`
 10. [ ] Adicionar testes visuais com Playwright screenshots
 11. [ ] Explorar: export snapshot data como CSV/JSON
 12. [ ] Explorar: offline/PWA para visualização de leaderboards

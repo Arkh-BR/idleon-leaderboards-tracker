@@ -16,7 +16,7 @@ import { DR_ITEMS, type DrItem } from "../../data/dr-items.gen";
 import type { SaveData } from "../../../state";
 
 // Equipment "Type" buckets used to group catalog rows (Helmet, Shirt, …).
-// Keys mirror the IT website-data `Type` field exactly; values are the
+// Keys mirror the item `Type` field (N.js ItemDefinitions); values are the
 // display labels the catalog rows roll up under.
 const TYPE_LABELS: Record<string, string> = {
   HELMET: "Helmets",

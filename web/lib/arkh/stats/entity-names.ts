@@ -1,7 +1,7 @@
 // ===== ENTITY NAMES — Real game names plumbed through the resolver chain =====
 //
-// We use the auto-generated ENTITY_NAMES table (sourced from IT website-data)
-// to turn "Talent 279" into "Robbing Hood", "Stamp A38" into "Golden Sixes
+// We use the auto-generated ENTITY_NAMES table (sourced from the game's own
+// lists — see web/scripts/gen-entity-names.ts) to turn "Talent 279" into "Robbing Hood", "Stamp A38" into "Golden Sixes
 // Stamp", etc. Coverage: talents, stamps, cards, prayers, shrines,
 // achievements, star signs, arcade, post office, vials, bubbles, owl bonuses.
 //
@@ -14,8 +14,9 @@ import { ENTITY_NAMES } from "./data/entity-names.gen";
 import { TalentIconNames } from "./data/game/customlists.js";
 
 // "GRADED_RATE" → "Graded Rate", "PIT_O'_PAGES" → "Pit O' Pages". Used for
-// talents the generated table (IT website-data) doesn't know yet — e.g. the
-// Royal Guardian tab (225–239) — straight from the game's TalentIconNames.
+// talents the generated table doesn't know yet (a game update landed in
+// customlists.js but gen-entity-names.ts wasn't re-run), straight from the
+// game's TalentIconNames.
 const SMALL_WORDS = new Set(["of", "the", "a", "an", "and", "in", "for", "to"]);
 function talentNameFromGame(raw: string): string {
   return raw
@@ -29,9 +30,25 @@ function talentNameFromGame(raw: string): string {
     .join(" ");
 }
 
+/** A name from a game list as the game shows it: "_" → space, minus the "_製"
+ *  info-button marker (N.js: replace(name, "_製", "")) and the "$" slot the
+ *  game fills at draw time. ALL-CAPS codenames (EXALTED_ELDOU, EFAUNT_SET)
+ *  are title-cased like talents. "" when the list has no entry. */
+export function gameName(raw: unknown): string {
+  const s = typeof raw === "string" ? raw.replace(/_製/g, "").replace(/\$/g, "") : "";
+  return /[a-z]/.test(s) ? s.replace(/_/g, " ").trim() : talentNameFromGame(s);
+}
+
+/** "Gold Charm (Guild 10)" from the game-list entry `raw`; falls back to
+ *  label(system, id) when the list has no name for that id. */
+export function gameLabel(system: string, id: unknown, raw: unknown, suffix = ""): string {
+  const n = gameName(raw);
+  return n ? `${n} (${system} ${id})${suffix}` : label(system, id, suffix);
+}
+
 // Aliases used by the descriptor & resolvers — these map our system keys to
-// the ones we generated in ENTITY_NAMES (the generator picks the closest IT
-// data section but the descriptor may use a near-synonym).
+// the ones we generated in ENTITY_NAMES (the generator picks the closest game
+// list but the descriptor may use a near-synonym).
 const SYSTEM_ALIASES: Record<string, string[]> = {
   cardset: ["cardSet", "card"],
   cardsingle: ["card"],
@@ -49,25 +66,10 @@ const SYSTEM_ALIASES: Record<string, string[]> = {
   starsign: ["starSign"],
 };
 
-// Names IT's website-data hasn't published yet (new crystal/event companions,
-// etc.). Checked before the generated table so a later regen can't drop them.
-// Keyed by lowercased system. Extend as new unnamed sources surface.
-const MANUAL_NAMES: Record<string, Record<string, string>> = {
-  // Companion 168 = "caveD" in CompanionDB (1.30x Drop Rate); IT never named
-  // it. Without this it renders "Companion 168" and, lacking the "(Companion"
-  // tag, misses the Companions category → falls to "Other".
-  // Companion 105 = "cathie" (MONSTERS.cathie.Name "Catherine", the Cape Vine's
-  // custodian, 2026-11-01); IT's table still has the old placeholder there.
-  companion: { "105": "Catherine", "168": "Crystal Glunko" },
-};
-
 export function entityName(system: string, id: unknown): string {
   if (id === null || id === undefined) return "";
   const sys = system.toLowerCase();
   const idStr = Array.isArray(id) ? id.join(",") : String(id);
-
-  const manual = MANUAL_NAMES[sys]?.[idStr];
-  if (manual) return manual;
 
   // Try the lowercase system key as-is first
   const candidates: string[] = [];
@@ -98,8 +100,8 @@ export function label(
   const idStr = Array.isArray(id) ? id.join(",") : String(id);
   const friendly = entityName(system, id);
   // Keep the system+id tag in parens so the canonical id is still
-  // grep-able / cross-referenceable when users compare against IT's
-  // leaderboards or external resources that quote ids directly.
+  // grep-able / cross-referenceable against leaderboards or external
+  // resources that quote ids directly.
   const tag = `${system} ${idStr}`;
   const base = friendly ? `${friendly} (${tag})` : tag;
   return base + (suffix || "");
