@@ -42,16 +42,36 @@ if (!g.window) g.window = g;
 import { runTopCollector } from "./_shared/topStatCollector";
 import { deriveGatedTalentsFor } from "./_shared/classGating";
 import { computeArkhDamagePools, combineDamagePools, DMG_COLLECTOR_MAP } from "../lib/arkh/computeDamage";
-import { DMG_ROOT, DMG_GROUPS } from "../lib/arkh/stats/defs/damage";
+import { DMG_ROOT, DMG_GROUPS, DMG_LAYERS } from "../lib/arkh/stats/defs/damage";
 import { DMG_CLASS_TALENTS } from "../lib/arkh/stats/systems/damage/damage";
+import type { Pool } from "../lib/arkh/stats/tree-builder";
 
-runTopCollector({
+/** The Reliquarium's pool key (the layers' one `pow` step). */
+const RELIC_KEY = DMG_LAYERS.flatMap((l) => l.steps).find((st) => st.kind === "pow")!.key;
+
+/** One character's pools with the Reliquarium forced off (val 0, "Carried" 0). Its
+ *  exponent 4/(5+OLA[473]) is < 1, so mergeBest's "keep the larger" would let ONE
+ *  carrier make every family reference apply L2^0.33; same paths, neutral value. */
+export function collectorPools(save: any, ci: number): Record<string, Pool> {
+  const pools = computeArkhDamagePools(save, ci, DMG_COLLECTOR_MAP);
+  const relic = pools[RELIC_KEY];
+  if (!relic) return pools;
+  const items = relic.items.map((it) => ({
+    ...it,
+    val: 0,
+    children: it.children?.map((c) => (c.name === "Carried" ? { ...c, val: 0 } : c)),
+  }));
+  return { ...pools, [RELIC_KEY]: { ...relic, items } };
+}
+
+// Imported by the unit test (collectorPools) without running the collector.
+if (require.main === module) runTopCollector({
   label: "Damage",
   // No board ranks damage: the combat one, like Multikill.
   focusBoard: "monstersKilled",
   root: DMG_ROOT,
   groups: DMG_GROUPS,
-  computePools: (save, ci) => computeArkhDamagePools(save, ci, DMG_COLLECTOR_MAP),
+  computePools: collectorPools,
   combine: combineDamagePools,
   gated: deriveGatedTalentsFor(DMG_CLASS_TALENTS),
   familySources: [
