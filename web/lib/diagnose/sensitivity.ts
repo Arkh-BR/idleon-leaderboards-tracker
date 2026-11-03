@@ -113,9 +113,10 @@ export type Mutation = `unequip:${number}` | `map:${number}`;
 export function whatIf(envelope: unknown, mutation: Mutation, charIdx = 0): unknown {
   const env = structuredClone(envelope) as { data?: Record<string, unknown> };
   const data = (env.data ?? env) as Record<string, unknown>; // as the loader reads it
-  const [kind, arg] = mutation.split(":");
+  const m = /^(unequip|map):(\d+)$/.exec(mutation);
+  if (!m) throw new Error(`whatIf: bad mutation "${mutation}" (unequip:<slot> | map:<id>)`);
+  const [, kind, arg] = m;
   const n = Number(arg);
-  if (!Number.isInteger(n) || n < 0) throw new Error(`whatIf: bad mutation "${mutation}"`);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const edit = (key: string, fn: (v: any) => void) => {
     const raw = data[key];
@@ -128,7 +129,6 @@ export function whatIf(envelope: unknown, mutation: Mutation, charIdx = 0): unkn
     edit(`EquipOrder_${charIdx}`, (rows) => (rows[0][n] = "Blank"));
     edit(`EquipQTY_${charIdx}`, (rows) => (rows[0][n] = 0));
     edit(`EMm0_${charIdx}`, (slots) => delete slots[n]);
-  } else if (kind === "map") data[`CurrentMap_${charIdx}`] = n;
-  else throw new Error(`whatIf: unknown mutation "${mutation}" (unequip:<slot> | map:<id>)`);
+  } else data[`CurrentMap_${charIdx}`] = n; // map
   return env;
 }

@@ -19,7 +19,7 @@ import { rankHypotheses, rankPairs, ratio, type DiagReading } from "@/lib/diagno
 import { alerts, elasticities, totalWith, whatIf, type Mutation } from "@/lib/diagnose/sensitivity";
 import { flattenTree } from "@/lib/dropRate/treeFlatten";
 import { KIT_PAGES } from "@/lib/readings/compute";
-import { parseGameValue } from "@/lib/readings/format";
+import { gameResolution, parseGameValue } from "@/lib/readings/format";
 import { loadReadings, readingSave, READINGS_DIR } from "@/lib/readings/registry";
 import type { Reading, StatKey } from "@/lib/readings/types";
 import type { StatPageConfig } from "@/lib/statTracker/config";
@@ -58,7 +58,8 @@ export async function prepare(ids: string[], all = loadReadings(), dir = READING
       // Same text on screen: the display can't tell them apart, so the game's
       // number is taken to be the site's (ratio 1).
       const game = parseGameValue(r.stat, siteText) === shown ? total : shown;
-      inputs.push({ r, page, save, tree, flat: flattenTree(tree), total, game, siteText, totalFromFlat: page.gains.totalFromFlat });
+      const tol = gameResolution(r.stat, r.game);
+      inputs.push({ r, page, save, tree, flat: flattenTree(tree), total, game, tol, siteText, totalFromFlat: page.gains.totalFromFlat });
     }
   }
   return { inputs, skipped };
@@ -77,10 +78,6 @@ const rows = (items: [string, string][]): [string, string[]][] => {
 };
 const names = (ps: string[]) =>
   ps.length === 1 ? short(ps[0]) : `[${ps.length} terms] ${ps.slice(0, 3).map(short).join("; ")}${ps.length > 3 ? "; …" : ""}`;
-const geomean = (fs: number[]) => {
-  const ln = fs.filter(Number.isFinite).map(Math.log);
-  return Math.exp(ln.reduce((a, b) => a + b, 0) / ln.length);
-};
 
 async function report(group: Input[], o: Opts) {
   const { page } = group[0];
@@ -88,7 +85,7 @@ async function report(group: Input[], o: Opts) {
   group.forEach((x, i) => {
     const same = x.game === x.total ? "  (same display)" : "";
     console.log(`[${i}] ${x.r.id}  ${x.r.charName} #${x.r.charIdx} map ${x.r.map}`);
-    console.log(`    game ${x.r.game}  site ${x.siteText}  game/site ${ratio(x.game, x.total).toPrecision(10)}${same}`);
+    console.log(`    game ${x.r.game}  site ${x.siteText}  game/site ${ratio(x.game, x.total).toPrecision(10)}${same}  display ±${x.tol?.toExponential(1)}`);
     const model = x.totalFromFlat(x.flat);
     if (Math.abs(model / x.total - 1) > 1e-9) console.log(`    ! totalFromFlat = ${model} ≠ tree total ${x.total}: the model below isn't the tree`);
   });
@@ -107,7 +104,8 @@ async function report(group: Input[], o: Opts) {
   const hyps = rankHypotheses(group, paths);
   const off = group.filter((x) => x.game !== x.total).length;
   console.log(`\n-- Hypotheses: one term × factor (${hyps.length} ranked; ${off} of ${group.length} reading(s) differ from the game) --`);
-  console.log("   spread = max − min of ln factor across readings (0 = one factor explains all), then the factor per reading; free = that reading doesn't constrain the term");
+  console.log("   spread = max − min of ln factor across readings, 0 when one factor reproduces every reading within its display; then the factor per reading");
+  console.log("   free = a matching reading that factor wouldn't visibly move (it doesn't constrain the term); 1 = it would, so that reading pins the term");
   if (!hyps.length) console.log("  none: nothing to explain");
   else if (off < 2) console.log("  only one reading differs: every term that can reach it fits (spread 0 ties) — --what-if shows which next reading separates them");
   for (const [k, ps] of rows(hyps.map((h) => [`${h.spread.toExponential(2)} ${h.factors.map(fmtF).join(" ")}`, h.path])).slice(0, 15))
@@ -145,9 +143,8 @@ async function report(group: Input[], o: Opts) {
       const flat = flattenTree(tree);
       console.log(`${x.r.id}: site ${x.siteText} → ${headline(page, total)} (×${(total / x.total).toPrecision(6)})`);
       for (const h of top) {
-        const f = geomean(h.factors);
-        const pred = totalWith(flat, x.totalFromFlat, [[h.path, f]]);
-        console.log(`  game/site ${ratio(pred, total).toPrecision(8)}  game shows ${headline(page, pred)}  if ×${f.toPrecision(7)} ${short(h.path)}`);
+        const pred = totalWith(flat, x.totalFromFlat, [[h.path, h.factor]]);
+        console.log(`  game/site ${ratio(pred, total).toPrecision(8)}  game shows ${headline(page, pred)}  if ×${h.factor.toPrecision(7)} ${short(h.path)}`);
       }
     }
   }

@@ -94,6 +94,48 @@ describe("rankHypotheses", () => {
   });
 });
 
+describe("rankHypotheses — display precision", () => {
+  // total = (b + o)·m. Three readings match the game at 5 digits (tol 6e-5) and have
+  // no o; the fourth is 1.2e-6 under the game, far below what the others can show.
+  const Bp = "R / b", O = "R / o", M = "R / m";
+  const T = (f: Flat) => (f[Bp] + f[O]) * f[M];
+  const mk = (b: number, o: number, m: number, gap: number, tol?: number): DiagReading => {
+    const flat = { [Bp]: b, [O]: o, [M]: m };
+    return { flat, total: T(flat), game: T(flat) * (1 + gap), totalFromFlat: T, tol };
+  };
+  const readings = (tol?: number) => [mk(90, 0, 3, 0, tol), mk(120, 0, 2, 0, tol), mk(70, 0, 5, 0, tol), mk(100, 5, 2, 1.2e-6, 1e-8)];
+
+  it("a term in every reading is not outranked by one only the differing reading has", () => {
+    const ranked = rankHypotheses(readings(6e-5), [O, M, Bp]);
+    const m = ranked.find((h) => h.path === M)!;
+    const o = ranked.find((h) => h.path === O)!;
+    expect(m.spread).toBe(0); // ×1.0000012 moves the matched readings by less than they show
+    expect(o.spread).toBe(0);
+    expect(m.factors.slice(0, 3).every(Number.isNaN)).toBe(true);
+    expect(m.factor).toBeCloseTo(1 + 1.2e-6, 12);
+    expect(ranked.indexOf(m)).toBeLessThan(ranked.indexOf(o)); // the smaller correction first
+  });
+
+  it("without a display tolerance the matched readings pin the shared term to 1", () => {
+    const ranked = rankHypotheses(readings(), [O, M, Bp]);
+    const m = ranked.find((h) => h.path === M)!;
+    expect(m.factors.slice(0, 3)).toEqual([1, 1, 1]);
+    expect(m.spread).toBeGreaterThan(1e-6);
+    expect(ranked[0].path).toBe(O);
+  });
+
+  it("two differing readings that agree within their precision are consistent", () => {
+    const X = "R / x", Y = "R / y";
+    const S = (f: Flat) => f[X] + f[Y];
+    const r = (x: number, y: number, k: number): DiagReading => {
+      const flat = { [X]: x, [Y]: y };
+      return { flat, total: S(flat), game: x * k + y, totalFromFlat: S, tol: 1e-4 };
+    };
+    const [x] = rankHypotheses([r(10, 5, 1.1), r(20, 1, 1.10001)], [X]);
+    expect(x.spread).toBe(0); // ln 1.10001 − ln 1.1 ≈ 9e-6, inside 1e-4 of the totals
+  });
+});
+
 describe("rankPairs (--pairs)", () => {
   it("two true factors are found by least squares on log ratios", () => {
     // total = cap(x + y + 1)·z: three readings, x ×1.2 and z ×0.9 everywhere. The +1
@@ -153,8 +195,8 @@ describe("whatIf", () => {
     expect((whatIf(env(), "map:43") as ReturnType<typeof env>).data.CurrentMap_0).toBe(43);
   });
 
-  it("an unknown mutation throws", () => {
-    expect(() => whatIf(env(), "fly:1" as never)).toThrow(/mutation/);
+  it.each(["fly:1", "unequip:", "unequip:1:2", "unequip:1.5", "map:-1", "map:x", " map:3"])("rejects %j", (bad) => {
+    expect(() => whatIf(env(), bad as never)).toThrow(/mutation/);
   });
 });
 

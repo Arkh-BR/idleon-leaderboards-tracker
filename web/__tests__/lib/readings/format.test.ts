@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { formatGameValue, normalizeGameText, parseGameValue } from "@/lib/readings/format";
+import { formatGameValue, gameResolution, normalizeGameText, parseGameValue } from "@/lib/readings/format";
 import type { StatKey } from "@/lib/readings/types";
 
 // Every StatKey, as the game prints it. The Player Info strings are the
@@ -124,4 +124,17 @@ describe("parseGameValue — the number behind a game text (diagnose's game side
     expect(parseGameValue("coinMulti", "—")).toBeNaN();
     expect(parseGameValue("damage", "")).toBeNaN();
   });
+});
+
+describe("gameResolution — one unit of the last digit shown, relative to the number", () => {
+  it.each<[StatKey, string, number]>([
+    ["damage", "💎9030₸~16475₸", 1 / 16475], // the Max's digits
+    ["damage", "💎47604339₸~86857861₸", 1 / 86857861],
+    ["dropRateV2", "5.00x", 0.01 / 5],
+    ["coinMulti", "6.77e35x", 0.01 / 6.77],
+    ["str", "92,009,075", 1 / 92009075],
+    ["afkGains", "42231%", 1 / 42231],
+  ])("%s %j → %s", (stat, text, rel) => expect(gameResolution(stat, text)).toBeCloseTo(rel, 15));
+
+  it("NaN when the text is not a number", () => expect(gameResolution("coinMulti", "—")).toBeNaN());
 });

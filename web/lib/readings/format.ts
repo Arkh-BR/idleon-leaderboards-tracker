@@ -100,17 +100,25 @@ export const normalizeGameText = (s: string): string => s.trim().replace(/\s+/g,
 // the Damage line's M/T plus Y (×1e24) and ₸ (×1e30).
 const UNITS: Record<string, number> = { K: 1e3, M: 1e6, B: 1e9, T: 1e12, Q: 1e15, QQ: 1e18, Y: 1e24, "₸": 1e30 };
 
-/** The number behind a game text, to the display's precision (the inverse of
- *  formatGameValue): Damage reads its Max, the part after "~"; NaN when the
- *  text is not a number these formatters print. */
-export function parseGameValue(stat: StatKey, text: string): number {
+function gameNumber(stat: StatKey, text: string): { value: number; rel: number } | null {
   let s = normalizeGameText(text);
   // The Damage line's 💎 tiers without a glyph count in 1e18 units.
   const gem = s.startsWith("💎");
   if (stat === "damage") s = s.slice(s.indexOf("~") + 1);
   s = s.replace("💎", "").replace(/(x|%| PTS)$/, "").replace(/,/g, "");
   const m = /^(\d+(?:\.\d+)?)(?:[eE](\d+))?(QQ|Q|K|M|B|T|Y|₸)?$/.exec(s);
-  if (!m) return NaN;
+  if (!m) return null;
   const v = Number(`${m[1]}e${m[2] ?? 0}`) * (m[3] ? UNITS[m[3]] : gem ? 1e18 : 1);
-  return stat === "afkGains" ? v / 100 : v; // AFK prints ⌊100·rate⌋%
+  const lastDigit = 10 ** -(m[1].split(".")[1]?.length ?? 0);
+  return { value: stat === "afkGains" ? v / 100 : v, rel: lastDigit / Number(m[1]) }; // AFK prints ⌊100·rate⌋%
 }
+
+/** The number behind a game text, to the display's precision (the inverse of
+ *  formatGameValue): Damage reads its Max, the part after "~"; NaN when the
+ *  text is not a number these formatters print. */
+export const parseGameValue = (stat: StatKey, text: string): number => gameNumber(stat, text)?.value ?? NaN;
+
+/** How precisely that text pins the number: one unit of its last digit over the
+ *  number shown ("16475₸" → 1/16475). Whatever the ladder rounds with (ceil,
+ *  floor, round), the true value is within it. NaN when not a number. */
+export const gameResolution = (stat: StatKey, text: string): number => gameNumber(stat, text)?.rel ?? NaN;
