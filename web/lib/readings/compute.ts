@@ -23,7 +23,7 @@ import type { Reading, StatKey } from "./types";
 const g = globalThis as unknown as { window?: unknown };
 if (!g.window) g.window = g;
 
-const KIT_PAGES: Partial<Record<StatKey, StatPageConfig>> = {
+export const KIT_PAGES: Partial<Record<StatKey, StatPageConfig>> = {
   dropRateV2: DR2_PAGE,
   coinMulti: COIN_PAGE,
   expMulti: EXP_PAGE,

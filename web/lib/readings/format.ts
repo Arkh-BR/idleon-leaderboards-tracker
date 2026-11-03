@@ -95,3 +95,22 @@ export function formatGameValue(stat: StatKey, v: { value: number; min?: number 
 
 /** Trim and collapse inner whitespace (incl. nbsp) before comparing game text. */
 export const normalizeGameText = (s: string): string => s.trim().replace(/\s+/g, " ");
+
+// Unit glyphs of every ladder above: NotateNumber K…QQ, CommaNotation M/T/QQ,
+// the Damage line's M/T plus Y (×1e24) and ₸ (×1e30).
+const UNITS: Record<string, number> = { K: 1e3, M: 1e6, B: 1e9, T: 1e12, Q: 1e15, QQ: 1e18, Y: 1e24, "₸": 1e30 };
+
+/** The number behind a game text, to the display's precision (the inverse of
+ *  formatGameValue): Damage reads its Max, the part after "~"; NaN when the
+ *  text is not a number these formatters print. */
+export function parseGameValue(stat: StatKey, text: string): number {
+  let s = normalizeGameText(text);
+  // The Damage line's 💎 tiers without a glyph count in 1e18 units.
+  const gem = s.startsWith("💎");
+  if (stat === "damage") s = s.slice(s.indexOf("~") + 1);
+  s = s.replace("💎", "").replace(/(x|%| PTS)$/, "").replace(/,/g, "");
+  const m = /^(\d+(?:\.\d+)?)(?:[eE](\d+))?(QQ|Q|K|M|B|T|Y|₸)?$/.exec(s);
+  if (!m) return NaN;
+  const v = Number(`${m[1]}e${m[2] ?? 0}`) * (m[3] ? UNITS[m[3]] : gem ? 1e18 : 1);
+  return stat === "afkGains" ? v / 100 : v; // AFK prints ⌊100·rate⌋%
+}

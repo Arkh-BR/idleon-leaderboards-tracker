@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { formatGameValue, normalizeGameText } from "@/lib/readings/format";
+import { formatGameValue, normalizeGameText, parseGameValue } from "@/lib/readings/format";
 import type { StatKey } from "@/lib/readings/types";
 
 // Every StatKey, as the game prints it. The Player Info strings are the
@@ -97,4 +97,31 @@ describe("normalizeGameText", () => {
     ["a\u00a0 b\t c", "a b c"],
     ["", ""],
   ])("%j → %j", (raw, norm) => expect(normalizeGameText(raw)).toBe(norm));
+});
+
+describe("parseGameValue — the number behind a game text (diagnose's game side)", () => {
+  it.each<[StatKey, string, number]>([
+    ["damage", "💎9030₸~16475₸", 16475e30], // Damage compares on Max
+    ["damage", "💎47604339₸~86857861₸", 86857861e30],
+    ["damage", "💎1.5~2.25", 2.25e18], // 💎 with no glyph: ×1e18 tiers
+    ["damage", "150~201", 201],
+    ["damage", "3.2M~4.5T", 4.5e12],
+    ["maxHp", "396T", 396e12],
+    ["maxMp", "5.1B", 5.1e9],
+    ["accuracy", "5.83E35", 5.83e35],
+    ["str", "92,009,075", 92009075],
+    ["coinMulti", "6.77e35x", 6.77e35],
+    ["coinMulti", "350Bx", 350e9],
+    ["expMulti", "14504214Tx", 14504214e12],
+    ["afkGains", "42231%", 422.31], // AFK prints ⌊100·rate⌋%
+    ["multikill", "81706%", 81706],
+    ["artifactFind", "12.4Kx", 12400],
+    ["dropRateV2", "5.00x", 5],
+    ["tomeScore", " 55,439  PTS ", 55439],
+  ])("%s %j → %s", (stat, text, value) => expect(parseGameValue(stat, text)).toBe(value));
+
+  it("NaN when the text is not a number", () => {
+    expect(parseGameValue("coinMulti", "—")).toBeNaN();
+    expect(parseGameValue("damage", "")).toBeNaN();
+  });
 });
