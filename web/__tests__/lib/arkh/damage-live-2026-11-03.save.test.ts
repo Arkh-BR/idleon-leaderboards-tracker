@@ -26,8 +26,8 @@ const minMax = ({ file, ci }: Reading): [number, number] => {
 };
 
 describe.skipIf(!READINGS.every((r) => existsSync(DIR + r.file)))("Max damage matches the in-game Player Info", () => {
-  // farkhe's 8 digits sit ~4e-6 under the game: Artifacts 2 and 8's slab and
-  // build-speed factors aren't ported.
+  // farkhe's 8 digits sit ~1.7e-6 under the game: Artifact 8's build-speed
+  // factor (getLOG of every player's PlayerBuildSpd) isn't ported.
   it.each(READINGS)("$who: Damage reads $game", (r) => {
     const [min, max] = minMax(r);
     const [gMin, gMax] = r.game.split("~").map(Number);

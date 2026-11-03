@@ -10,6 +10,9 @@ import { artifactBase } from "../../data/w5/sailing";
 import { getLOG } from "../../../formulas";
 import { legendPTSbonus } from "../w7/spelunking";
 import { computeTotalStat, primaryStatForClass } from "../common/stats";
+import { vaultUpgBonus } from "../common/vault";
+import { mainframeBonus } from "../w4/lab";
+import { computeMeritocBonusz } from "../w7/meritoc";
 import type { SaveData } from "../../../state";
 
 type Ctx = { saveData: SaveData };
@@ -51,6 +54,16 @@ export function computeArtifactBonus(
     // stat)/100⌋, recomputed on every read for the character asking.
     const c = ci >= 0 ? ci : 0;
     val *= Math.floor(computeTotalStat(primaryStatForClass(c), c, { ...(ctx as any), charIdx: c }).computed / 100);
+  } else if (artIdx === 2 || artIdx === 10 || artIdx === 18 || artIdx === 20) {
+    // @njs ArtifactBonus
+    // N.js: × (1 + MainframeBonus(15)/100) × Sailing("SlabboBonus_AllMulti")
+    // × ⌊max(0, Cards[1].length − 500)/10⌋ (the Slab's items found).
+    const slabMulti =
+      (1 + computeMeritocBonusz(23, saveData) / 100) *
+      (1 + legendPTSbonus(28, saveData) / 100) *
+      (1 + vaultUpgBonus(74, saveData) / 100);
+    const found = (((saveData as any).cards1Data as unknown[]) || []).length;
+    val *= (1 + mainframeBonus(15, saveData) / 100) * slabMulti * Math.floor(Math.max(0, found - 500) / 10);
   }
 
   if (tier >= 2) val *= tier;
