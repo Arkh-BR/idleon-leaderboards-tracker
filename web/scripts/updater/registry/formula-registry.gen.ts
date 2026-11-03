@@ -295,6 +295,12 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   "SuperBitType": [
     "lib/arkh/stats/systems/exp/exp.ts"
   ],
+  "TomePCT": [
+    "lib/tome/math.ts"
+  ],
+  "TomePTS": [
+    "lib/tome/math.ts"
+  ],
   "TotPetsFound": [
     "lib/arkh/stats/systems/w4/lab.ts"
   ],
@@ -425,6 +431,9 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   ],
   "_customBlock_chipBonuses": [
     "lib/arkh/stats/systems/w4/lab.ts"
+  ],
+  "_customBlock_getLOG": [
+    "lib/tome/math.ts"
   ],
   "_customBlock_prayersReal": [
     "lib/arkh/stats/systems/w3/prayer.ts"
