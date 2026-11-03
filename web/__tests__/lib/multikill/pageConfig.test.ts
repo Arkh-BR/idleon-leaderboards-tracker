@@ -194,6 +194,7 @@ describe.skipIf(!existsSync(SAVE))("Multikill what-if on the ARKHE save", () => 
     // Then its four new ports (blessings 7/8, eclipse skulls, Killroy,
     // sticker): tier 30, ×1.12 to the next (3.260E35).
     // Artifact 25 fix (damage tracker): ×1.12 → ×1.07.
-    expect(lever.group).toMatch(/^needs ×1\.07 more max damage \(next tier at 3\.260E35\)/);
+    // Mainframe 0/11 fix (damage tracker): ×1.07 → ×1.05.
+    expect(lever.group).toMatch(/^needs ×1\.05 more max damage \(next tier at 3\.260E35\)/);
   });
 });

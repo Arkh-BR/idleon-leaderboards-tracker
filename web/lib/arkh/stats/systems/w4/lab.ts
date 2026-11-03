@@ -218,12 +218,20 @@ export function mainframeBonus(e: number, saveData: SaveData): number {
       // path uses mfb(9) directly.
       return base9;
     }
+    // @njs _customBlock_MainframeBonus
+    // @njs TotPetsFound
+    // @njs _customBlock_TalentCalc
     if (e === 0) {
-      // Breeding pet count multi — not ported (not in DR path)
-      return active;
+      // Animal Farm: × Breeding("TotPetsFound") = Σ Breeding[1][w] over the
+      // max(3, OLA[117]) breeding worlds (the breeding actor's GenINFO[110]).
+      const worlds = Math.max(3, Number((saveData as any).olaData?.[117]) || 0);
+      let pets = 0;
+      for (let w = 0; w < worlds; w++) pets += Number((saveData as any).breedingData?.[1]?.[w]) || 0;
+      return (active + mainframeBonus(101, saveData)) * pets;
     }
     if (e === 3) return active + mainframeBonus(107, saveData);
-    if (e === 11) return active + mainframeBonus(117, saveData);
+    // Banking Fury: TalentCalc(-7) stores LabMFbonuses["11"] = this × GreenStacks.length.
+    if (e === 11) return (active + mainframeBonus(117, saveData)) * ((((saveData as any).greenStacks as unknown[]) || []).length);
     if (e === 13) return active;
     if (e === 15) return active + mainframeBonus(118, saveData);
     if (e === 17) return active + mainframeBonus(120, saveData);

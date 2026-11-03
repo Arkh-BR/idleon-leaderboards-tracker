@@ -288,6 +288,9 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   "SuperBitType": [
     "lib/arkh/stats/systems/exp/exp.ts"
   ],
+  "TotPetsFound": [
+    "lib/arkh/stats/systems/w4/lab.ts"
+  ],
   "TotalGreenSigils": [
     "lib/arkh/stats/systems/w2/alchemy.ts"
   ],
@@ -358,6 +361,9 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   "_customBlock_JellyOperation": [
     "lib/arkh/stats/data/w7/jelly.ts"
   ],
+  "_customBlock_MainframeBonus": [
+    "lib/arkh/stats/systems/w4/lab.ts"
+  ],
   "_customBlock_NotateNumber": [
     "lib/coinMulti/format.ts"
   ],
@@ -381,6 +387,9 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   ],
   "_customBlock_Stuff2": [
     "lib/arkh/stats/systems/w7/gallery.ts"
+  ],
+  "_customBlock_TalentCalc": [
+    "lib/arkh/stats/systems/w4/lab.ts"
   ],
   "_customBlock_TotalStats": [
     "lib/arkh/stats/defs/drop-rate-v2.ts",

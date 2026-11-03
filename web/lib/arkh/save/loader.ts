@@ -132,6 +132,7 @@ export function loadSaveData(raw: RawEnvelope): void {
   assignState({ holesData: (parseSaveKey(save, "Holes") as any[]) || [] });
   assignState({ riftData: (parseSaveKey(save, "Rift") as any[]) || [] });
   assignState({ breedingData: (parseSaveKey(save, "Breeding") as any[]) || [] });
+  assignState({ greenStacks: (parseSaveKey(save, "GreenStacks") as any[]) || [] });
   assignState({ summonData: (parseSaveKey(save, "Summon") as any[]) || [] });
   assignState({ arcaneData: (parseSaveKey(save, "Arcane") as any[]) || [] });
   assignState({ sushiData: (parseSaveKey(save, "Sushi") as any[]) || [] });

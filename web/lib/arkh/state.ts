@@ -66,6 +66,7 @@ export type SaveData = {
   holesData: any[];
   riftData: any[];
   breedingData: any[];
+  greenStacks: any[];
   summonData: any[];
   atomsData: any[];
   arcaneData: any[];
@@ -200,6 +201,7 @@ function initialState(): SaveData {
     holesData: [],
     riftData: [],
     breedingData: [],
+    greenStacks: [],
     summonData: [],
     atomsData: [],
     arcaneData: [],
