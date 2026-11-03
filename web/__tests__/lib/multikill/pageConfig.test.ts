@@ -193,6 +193,7 @@ describe.skipIf(!existsSync(SAVE))("Multikill what-if on the ARKHE save", () => 
     // 16, Rift skills, vault kills…): tier 29, ×2.33 to the next (6.519E34).
     // Then its four new ports (blessings 7/8, eclipse skulls, Killroy,
     // sticker): tier 30, ×1.12 to the next (3.260E35).
-    expect(lever.group).toMatch(/^needs ×1\.12 more max damage \(next tier at 3\.260E35\)/);
+    // Artifact 25 fix (damage tracker): ×1.12 → ×1.07.
+    expect(lever.group).toMatch(/^needs ×1\.07 more max damage \(next tier at 3\.260E35\)/);
   });
 });

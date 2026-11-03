@@ -9,6 +9,7 @@ import { charClassData, divinityData } from "../../../save/data";
 import { artifactBase } from "../../data/w5/sailing";
 import { getLOG } from "../../../formulas";
 import { legendPTSbonus } from "../w7/spelunking";
+import { computeTotalStat, primaryStatForClass } from "../common/stats";
 import type { SaveData } from "../../../state";
 
 type Ctx = { saveData: SaveData };
@@ -44,6 +45,12 @@ export function computeArtifactBonus(
   } else if (artIdx === 29) {
     const div39 = Number((divinityData as any)?.[39]) || 1;
     val *= getLOG(div39);
+  } else if (artIdx === 25) {
+    // @njs ArtifactBonus
+    // N.js ArtifactBonus(25) (@10714975): × ⌊TotalStats(the class's primary
+    // stat)/100⌋, recomputed on every read for the character asking.
+    const c = ci >= 0 ? ci : 0;
+    val *= Math.floor(computeTotalStat(primaryStatForClass(c), c, { ...(ctx as any), charIdx: c }).computed / 100);
   }
 
   if (tier >= 2) val *= tier;

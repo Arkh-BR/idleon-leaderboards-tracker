@@ -10,6 +10,9 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   "ArmoryUpgBonus": [
     "lib/arkh/stats/data/w7/royalG.ts"
   ],
+  "ArtifactBonus": [
+    "lib/arkh/stats/systems/w5/sailing.ts"
+  ],
   "AtomBonuses": [
     "lib/arkh/stats/systems/damage/damage.ts"
   ],
