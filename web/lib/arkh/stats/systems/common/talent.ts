@@ -1704,11 +1704,12 @@ function getbonus2(
 export function maxTalentBonus(
   talentIdx: number,
   activeCharIdx: number | undefined,
-  saveData: SaveData
+  saveData: SaveData,
+  atlOpts?: ATLOpts
 ): number {
   const data = getTalentData(talentIdx);
   if (!data) return 0;
-  return getbonus2(talentIdx, data, activeCharIdx, saveData).val;
+  return getbonus2(talentIdx, data, activeCharIdx, saveData, atlOpts).val;
 }
 
 export const talent = {
