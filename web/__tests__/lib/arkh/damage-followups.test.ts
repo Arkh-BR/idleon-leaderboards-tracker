@@ -8,6 +8,7 @@ import { computeCardLv } from "@/lib/arkh/stats/systems/common/cards";
 import { mainframeBonus, mainframeBonusRaw } from "@/lib/arkh/stats/systems/w4/lab";
 import { mapKillReq } from "@/lib/arkh/stats/data/common/maps";
 import { damageStatType } from "@/lib/arkh/stats/systems/common/derived-damage";
+import { computeShrine } from "@/lib/arkh/stats/systems/w3/construction";
 
 const g = globalThis as unknown as { window?: unknown };
 if (!g.window) g.window = g;
@@ -102,5 +103,23 @@ describe("DamageDealtSTATtype keeps W6/A6/M6 below class 7", () => {
     expect(sixes(7)).toEqual([true, false, false]);
     expect(sixes(18)).toEqual([false, true, false]);
     expect(sixes(30)).toEqual([false, false, true]);
+  });
+});
+
+// N.js Shrine(i) (@7828132): a shrine counts with Artifact 0 owned, on its own
+// map, or with Mainframe 5 in its world; the map defaults to the saved one.
+describe("Shrines count only where N.js's gate lets them", () => {
+  const shrine = (artifact0: number, map?: number) => {
+    const sailing: number[][] = [[], [], [], [artifact0]];
+    loadSaveData({ charNames: ["A"], data: { Shrine: JSON.stringify([[200, 0, 0, 10]]), Sailing: JSON.stringify(sailing), CurrentMap_0: 150 } });
+    return computeShrine(0, 0, { saveData, mapIdx: map });
+  };
+
+  it("a W5 shrine (map 200) is off in W4, on in W5 (Mainframe 5), on everywhere with Artifact 0", () => {
+    expect(shrine(0, 150)).toBe(0);
+    expect(shrine(0)).toBe(0); // the saved map, 150
+    expect(shrine(0, 210)).toBe(shrine(0, 200));
+    expect(shrine(0, 200)).toBeGreaterThan(0);
+    expect(shrine(1, 150)).toBe(shrine(0, 200));
   });
 });

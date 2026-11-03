@@ -169,9 +169,10 @@ function resolveAfk(id: string, ctx: SystemCtx): ArkhNode {
       const n = Number(id.slice(4));
       return pct(label("Companion", n), companions(n, s));
     }
-    // N.js Shrine(8) — its map gate isn't modelled (spec A5, like DR and EXP).
+    // N.js Shrine(8), gated on the AFK map (Artifact 0, or the shrine's map, or MF5 and the same world).
+    // @njs _customBlock_Shrine
     case "shrine8":
-      return pct(label("Shrine", 8), computeShrine(8, s), null, "treated as always active (map gate not modelled)");
+      return pct(label("Shrine", 8), computeShrine(8, ci, { saveData: s, mapIdx: map }), null, "active with Artifact 0, on its map, or in its world with Mainframe 5");
     case "winBonus11":
       return pct("AFK Gains (Winner Bonus 11)", computeWinBonus(11, null, s), null, "Summoning winner bonus 11");
     case "goldFoodAllAFK":

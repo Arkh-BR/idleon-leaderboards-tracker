@@ -382,7 +382,11 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/arkh/stats/systems/exp/saltLick.ts"
   ],
   "_customBlock_Shrine": [
-    "lib/arkh/stats/systems/damage/damage.ts"
+    "lib/arkh/stats/systems/afk/afk.ts",
+    "lib/arkh/stats/systems/common/derived-stats.ts",
+    "lib/arkh/stats/systems/damage/damage.ts",
+    "lib/arkh/stats/systems/exp/exp.ts",
+    "lib/arkh/stats/systems/w3/construction.ts"
   ],
   "_customBlock_StarSigns": [
     "lib/arkh/stats/systems/common/starSign.ts"

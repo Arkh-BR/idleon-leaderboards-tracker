@@ -550,13 +550,11 @@ function resolveDamage(id: string, ctx: SystemCtx): ArkhNode {
     // N.js GetSetBonus("LUSTRE_SET").
     case "lustreSet":
       return helperPct("Lustre Set", sn(getSetBonus, "LUSTRE_SET"));
-    // N.js Shrine(0): computeShrine, the reader Max HP's Shrine(1) uses (shrine.resolve only knows shrine 4).
-    // computeShrine skips N.js's Shrine gate (Artifact 0 owned, or the current map is the
-    // shrine's, or MF5 on and the same world, @7828132), as afk.ts's Shrine(8) already does:
-    // it counts a shrine as always active.
+    // N.js Shrine(0): computeShrine, the reader Max HP's Shrine(1) uses (shrine.resolve only knows shrine 4),
+    // gated on the ctx's map (Artifact 0, or the shrine's map, or MF5 and the same world).
     // @njs _customBlock_Shrine
     case "shrine0":
-      return helperPct(label("Shrine", 0), sn(computeShrine, 0, s));
+      return helperPct(label("Shrine", 0), sn(computeShrine, 0, ci, ctx));
     // N.js Holes("MonumentROGbonuses",0,6).
     case "monument06":
       return helperPct("Monument Bonus (0, 6)", sn(computeMonumentROGbonus, 0, 6, s));

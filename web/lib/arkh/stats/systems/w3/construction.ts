@@ -9,6 +9,9 @@ import { label } from "../../entity-names";
 import { computeCardLvDetail } from "../common/cards";
 import { shrineBase, shrinePerLevel } from "../../data/w3/shrine";
 import { BOSS3B_CARD_PCT } from "../../data/game-constants";
+import { currentMapData } from "../../../save/data";
+import { computeArtifactBonus } from "../w5/sailing";
+import { mainframeBonus } from "../w4/lab";
 import type { SaveData } from "../../../state";
 
 type Ctx = { saveData: SaveData };
@@ -62,11 +65,23 @@ export const shrine = {
   },
 };
 
-export function computeShrine(idx: number, saveData: SaveData): number {
-  const shrineLv = Number(
-    (saveData.shrineData && (saveData.shrineData as any)[idx]?.[3]) || 0
-  );
-  if (shrineLv <= 0) return 0;
+// @njs _customBlock_Shrine
+/** N.js Shrine(i) (@7828132): a placed shrine (level > .5) counts only when
+ *  Artifact 0 is owned, it stands on the current map, or Mainframe 5 is on
+ *  and it's in the same world (map / 50). The map is ctx.mapIdx when given,
+ *  else the character's saved CurrentMap. */
+export function computeShrine(idx: number, ci: number, ctx: { saveData: SaveData; mapIdx?: number }): number {
+  const saveData = ctx.saveData;
+  const row = (saveData.shrineData as any)?.[idx];
+  const shrineLv = Number(row?.[3]) || 0;
+  if (!(shrineLv > 0.5)) return 0;
+  const map = ctx.mapIdx ?? (Number((currentMapData as any)?.[ci]) || 0);
+  const at = Number(row?.[0]) || 0;
+  const on =
+    computeArtifactBonus(0, ci, ctx) >= 1 ||
+    map === at ||
+    (mainframeBonus(5, saveData) === 1 && Math.floor(map / 50) === Math.floor(at / 50));
+  if (!on) return 0;
   const base = shrineBase(idx);
   const perLv = shrinePerLevel(idx);
   const rawVal = base + perLv * (shrineLv - 1);

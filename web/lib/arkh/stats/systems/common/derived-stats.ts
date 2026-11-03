@@ -243,11 +243,10 @@ export function computePlayerHPmax(charIdx: number, ctx: Ctx): Tree {
   const talent92 = rval(talent, 92, ctx);
   const talent272 = rval(talent, 272, ctx);
   const etc15 = rval(etcBonus, "15", ctx);
-  // Shrine(1): computeShrine reads every shrine (shrine.resolve only knows shrine 4).
-  // It skips N.js's Shrine gate (Artifact 0 owned, or the current map is the shrine's,
-  // or MF5 on and the same world, @7828132) and counts a shrine as always active,
-  // as afk.ts's Shrine(8) already does.
-  const shrine1 = safe(computeShrine, 1, s);
+  // Shrine(1): computeShrine reads every shrine (shrine.resolve only knows shrine 4),
+  // with N.js's gate (Artifact 0, or the shrine's map, or MF5 and the same world).
+  // @njs _customBlock_Shrine
+  const shrine1 = safe(computeShrine, 1, ci, ctx);
   const _brPctHP = computeBoxReward(ci, "pctHP");
   const boxPctHP = _brPctHP.val || 0;
   // DNSM.FamBonusQTYs["18"]: the active char's family map (talent 144 buff).
