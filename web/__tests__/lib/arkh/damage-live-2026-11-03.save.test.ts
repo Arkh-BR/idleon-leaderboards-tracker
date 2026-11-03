@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { existsSync, readFileSync } from "node:fs";
 import { computeArkhDamage } from "@/lib/arkh/computeDamage";
+import { formatDamageLine } from "@/lib/damage/format";
 
 const g = globalThis as unknown as { window?: unknown };
 if (!g.window) g.window = g;
@@ -32,7 +33,8 @@ describe.skipIf(!READINGS.every((r) => existsSync(DIR + r.file)))("Max damage ma
     const [min, max] = minMax(r);
     const [gMin, gMax] = r.game.split("~").map(Number);
     if (gMax < 1e6) {
-      expect(`${Math.ceil(min / 1e30)}~${Math.ceil(max / 1e30)}`).toBe(r.game);
+      // The site's headline prints the panel's own string.
+      expect(formatDamageLine(min, max)).toBe(`💎${gMin}₸~${gMax}₸`);
     } else {
       expect(Math.abs(max / 1e30 / gMax - 1)).toBeLessThan(1e-5);
       expect(Math.abs(min / 1e30 / gMin - 1)).toBeLessThan(1e-5);

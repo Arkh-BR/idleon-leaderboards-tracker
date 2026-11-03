@@ -343,9 +343,10 @@ function HistoryTable({
                   </div>
                 </td>
                 <td className="px-2 py-2 text-right font-mono text-gold">
-                  {unit === "%" ? (
+                  {unit !== "x" ? (
+                    // "%" (AFK/Multikill) and "" (Damage) print the game's own text.
                     <span title={String(s.value)}>
-                      {Number.isFinite(s.value) ? `${formatTotal(s.value)}%` : "—"}
+                      {Number.isFinite(s.value) ? `${formatTotal(s.value)}${unit}` : "—"}
                     </span>
                   ) : (
                     <Num value={s.value} unit={unit} />

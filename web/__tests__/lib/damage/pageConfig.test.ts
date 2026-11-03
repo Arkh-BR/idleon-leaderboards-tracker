@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll } from "vitest";
 import { existsSync, readFileSync } from "node:fs";
 import { DAMAGE_PAGE } from "@/lib/damage/pageConfig";
 import { damageGainsModel } from "@/lib/damage/gains";
-import { formatDamage } from "@/lib/damage/format";
+import { formatDamage, formatDamageLine } from "@/lib/damage/format";
 import { computeArkhDamage } from "@/lib/arkh/computeDamage";
 import { DMG_NODES } from "@/lib/arkh/stats/defs/damage";
 import type { ArkhNode } from "@/lib/arkh/node";
@@ -12,16 +12,26 @@ if (!g.window) g.window = g;
 
 const SAVE = "scripts/updater/golden/.cache/arkhe-live-2026-11-01-postupdate.json";
 
-describe("formatDamage (ceil, then the site notation)", () => {
+describe("formatDamage (the Player Info ladder, N.js @6710738)", () => {
   it.each<[number, string]>([
     [0.2, "1"],
-    [999998.2, "999,999"],
-    [999999.4, "1.00M"],
-    [1234567.2, "1.23M"],
-    [2.776419535394748e34, "2.78e+34"],
+    [1234567.2, "1234568"],
+    [12345678.9, "12.346M"],
+    [5e10, "50000M"],
+    [2e14, "200T"],
+    [5e20, "💎500"],
+    [3e26, "💎300Y"],
+    [2.27755e34, "💎22776₸"],
   ])("%s → %s", (x, s) => expect(formatDamage(x)).toBe(s));
 
   it("prints a dash for a non-finite value", () => expect(formatDamage(NaN)).toBe("—"));
+
+  it("the line takes Max's unit for both ends, like the panel", () => {
+    expect(formatDamageLine(1.63095e34, 2.27755e34)).toBe("💎16310₸~22776₸");
+    expect(formatDamageLine(9.0005e32, 5.00005e33)).toBe("💎900.1₸~5000.1₸");
+    expect(formatDamageLine(5_000_000, 20_000_000)).toBe("5M~20M");
+    expect(formatDamageLine(NaN, 5)).toBe("—~5");
+  });
 });
 
 describe("Damage page config", () => {
@@ -56,10 +66,10 @@ describe("Damage page config", () => {
   });
 
   it("headline is Min ~ Max, Min = Max × Mastery; the tooltip has both in full", () => {
-    expect(DAMAGE_PAGE.headline!(tree(2_000_000, 0.5), 2_000_000)).toBe("1.00M ~ 2.00M");
+    expect(DAMAGE_PAGE.headline!(tree(2_000_000, 0.5), 2_000_000)).toBe("1000000~2000000");
     expect(DAMAGE_PAGE.totalTitle!(2_000_000, tree(2_000_000, 0.5))).toBe("Min 1,000,000 ~ Max 2,000,000");
     // No Mastery node: a dash for Min, never NaN text.
-    expect(DAMAGE_PAGE.headline!({ name: "Damage", val: 5 }, 5)).toBe("— ~ 5");
+    expect(DAMAGE_PAGE.headline!({ name: "Damage", val: 5 }, 5)).toBe("—~5");
     expect(DAMAGE_PAGE.totalTitle!(5, null)).toBe("Min — ~ Max 5");
   });
 
@@ -95,7 +105,7 @@ describe.skipIf(!existsSync(SAVE))("Damage page config on a real save", () => {
     expect(r.total).toBe(computeArkhDamage(save, ci, 0).total);
     const mastery = r.tree.children!.find((c) => c.name === DMG_NODES.mastery)!.val;
     expect(mastery).toBeGreaterThan(0);
-    expect(DAMAGE_PAGE.headline!(r.tree, r.total)).toBe(`${formatDamage(r.total * mastery)} ~ ${formatDamage(r.total)}`);
+    expect(DAMAGE_PAGE.headline!(r.tree, r.total)).toBe(formatDamageLine(r.total * mastery, r.total));
     // The arena fixes Mastery at 0.2.
     const arena = await DAMAGE_PAGE.compute(save, ci, 43);
     expect(arena.tree.children!.find((c) => c.name === DMG_NODES.mastery)!.val).toBeCloseTo(0.2, 12);

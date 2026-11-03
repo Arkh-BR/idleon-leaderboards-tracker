@@ -5,7 +5,7 @@
 import type { StatPageConfig } from "@/lib/statTracker/config";
 import type { ArkhNode } from "@/lib/arkh/node";
 import { DMG_NODES } from "@/lib/arkh/stats/defs/damage";
-import { formatDamage } from "./format";
+import { formatDamage, formatDamageLine } from "./format";
 import { damageGainsModel } from "./gains";
 import { TOP_DAMAGE_GENERATED_AT, TOP_DAMAGE_PLAYERS_SCANNED } from "./topDamage.meta";
 
@@ -37,7 +37,7 @@ export const DAMAGE_PAGE: StatPageConfig = {
     import("@/lib/arkh/computeDamage").then((m) => m.computeArkhDamage(save, charIdx, mapIdx)),
   formatTotal: formatDamage,
   unit: "",
-  headline: (tree, total) => `${formatDamage(minOf(tree, total))} ~ ${formatDamage(total)}`,
+  headline: (tree, total) => formatDamageLine(minOf(tree, total), total),
   totalTitle: (x, tree) => `Min ${full(minOf(tree, x))} ~ Max ${full(x)}`,
   gains: damageGainsModel,
   loadTop: () => import("./topDamage").then((m) => ({ flatForClass: (classKey: string | null) => m.topDamageFlatForClass(classKey) })),

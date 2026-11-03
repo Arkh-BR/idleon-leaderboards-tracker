@@ -116,12 +116,12 @@ describe("StatSnapshotSection", () => {
     expect(screen.queryByText("—%")).toBeNull();
   });
 
-  it('unit "" prints the notice and the history value without a unit', () => {
+  it('unit "" prints the notice and the history value as the game text (formatTotal), without a unit', () => {
     const bare = { ...testConfig, unit: "" as const };
     localStorage.setItem(bare.storage.collapse, "0");
     const { container } = render(<StatSnapshotSection config={bare} state={state()} />);
     fireEvent.click(screen.getByRole("button", { name: /Save snapshot/ }));
     expect(screen.getByText(/Snapshot saved for Alpha — Test Multi 12.50 on W1 · Spore Meadows/)).toBeInTheDocument();
-    expect(container.querySelector("td.text-gold")?.textContent).toBe("12.500");
+    expect(container.querySelector("td.text-gold")?.textContent).toBe("12.50");
   });
 });
