@@ -5,6 +5,8 @@ import { computeSkillEfficiency } from "@/lib/arkh/stats/systems/common/derived-
 import { computeFamBonusQTYs } from "@/lib/arkh/stats/systems/common/stats";
 import { formulaEval } from "@/lib/arkh/formulas";
 import { computeCardLv } from "@/lib/arkh/stats/systems/common/cards";
+import { mainframeBonus, mainframeBonusRaw } from "@/lib/arkh/stats/systems/w4/lab";
+import { mapKillReq } from "@/lib/arkh/stats/data/common/maps";
 
 const g = globalThis as unknown as { window?: unknown };
 if (!g.window) g.window = g;
@@ -55,5 +57,31 @@ describe("CardLv honours the OLA[603] upgrade list", () => {
     expect(lv("0", "0")).toBe(1);
     expect(lv("0,w7a11", "0,w7a11")).toBe(7);
     expect(lv("0", "0,w7a11")).toBe(6);
+  });
+});
+
+// N.js TalentCalc(-7) (@4511431) builds LabMFbonuses, then multiplies
+// "114" by ⌊(Σ kitchen speed/fire/luck levels + .5)/25⌋ (kitchens in order,
+// up to the first unbuilt) and "9" by ⌊green mushroom account kills / 1e6⌋.
+describe("Lab mainframe 9 and jewel 114 carry their LabMFbonuses multipliers", () => {
+  const load = () => {
+    const lab: number[][] = [];
+    lab[14] = Array(30).fill(1); // every jewel unlocked
+    const kla: number[][] = [];
+    kla[1] = [mapKillReq(1) - 5.5e6]; // 5.5M kills on mushG (map 1)
+    const kitchens = [[1, 0, 0, 0, 0, 0, 10, 10, 10], [1, 0, 0, 0, 0, 0, 10, 10, 9], [0, 0, 0, 0, 0, 0, 99, 99, 99]];
+    loadSaveData({ charNames: ["A"], data: { Lab: JSON.stringify(lab), KLA_0: JSON.stringify(kla), Cooking: JSON.stringify(kitchens) } });
+  };
+
+  it("114 × ⌊(30 + 29 + .5)/25⌋ = × 2 (the unbuilt third kitchen doesn't count)", () => {
+    load();
+    expect(mainframeBonusRaw(114, saveData)).toBeGreaterThan(0);
+    expect(mainframeBonus(114, saveData)).toBeCloseTo(2 * mainframeBonusRaw(114, saveData), 10);
+  });
+
+  it("9 × ⌊5.5M / 1M⌋ = × 5", () => {
+    load();
+    expect(mainframeBonusRaw(9, saveData)).toBeGreaterThan(0);
+    expect(mainframeBonus(9, saveData)).toBeCloseTo(5 * mainframeBonusRaw(9, saveData), 10);
   });
 });

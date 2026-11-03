@@ -20,6 +20,8 @@ import { companionChild } from "../common/companions";
 import { rogBonusQTY } from "../w7/sushi";
 import { ChipDesc } from "../../data/game/customlists.js";
 import { labJewelUnlocked } from "../../../save/helpers";
+import { MapAFKtarget } from "../../data/game/customlists.js";
+import { accountMapKills } from "../coin/accountKills";
 import type { SaveData } from "../../../state";
 
 type Ctx = { saveData: SaveData; charIdx: number };
@@ -200,9 +202,41 @@ export const chip = {
 // the node is reachable, else the inactive value. Until Stage 5's BFS
 // lands, both arrays default to empty so this returns 0 for most calls.
 
-// 1:1 port of corgan-source mainframeBonus. Recursive (e=8 reads e=119, e=9
-// reads e=113, jewels multiply by mfb(8) etc.).
+// @njs _customBlock_TalentCalc
+/** N.js MainframeBonus(e) once TalentCalc(-7) has built LabMFbonuses
+ *  (@4511431): the computed value below, then main bonus 9 × the account's
+ *  green mushroom kills in millions (⌊⌋ under 1e8 millions), jewel 114 ×
+ *  ⌊(Σ kitchen speed/fire/luck levels + .5)/25⌋, main bonus 11 × GreenStacks. */
 export function mainframeBonus(e: number, saveData: SaveData): number {
+  const v = mainframeBonusRaw(e, saveData);
+  if (e === 9) return v * mf9KillsMulti();
+  if (e === 11) return v * ((((saveData as any).greenStacks as unknown[]) || []).length);
+  if (e === 114) return v * Math.floor((kitchenLevels(saveData) + 0.5) / 25);
+  return v;
+}
+
+/** LabMFbonuses["9"]'s kill multi: MapAFKtarget "mushG" account kills / 1e6. */
+export function mf9KillsMulti(): number {
+  const m = (MapAFKtarget as unknown as string[]).indexOf("mushG");
+  const k = m >= 0 ? accountMapKills(m) / 1e6 : 0;
+  return k < 1e8 ? Math.floor(k) : k;
+}
+
+// Σ Cooking[g][6..8] over the kitchens in order, up to the first unbuilt one.
+function kitchenLevels(saveData: SaveData): number {
+  let t = 0;
+  for (let g = 0; g < 10; g++) {
+    const k = (saveData.cookingData as any[])?.[g];
+    if (!k || Number(k[0]) === 0) break;
+    t += (Number(k[6]) || 0) + (Number(k[7]) || 0) + (Number(k[8]) || 0);
+  }
+  return t;
+}
+
+// 1:1 port of corgan-source mainframeBonus: N.js MainframeBonus while
+// LabMFbonuses is being built. Recursive (e=8 reads e=119, e=9 reads e=113,
+// jewels multiply by mfb(8) etc.).
+export function mainframeBonusRaw(e: number, saveData: SaveData): number {
   const lmbFull = (saveData as any).labMainBonusFull as any[] | undefined;
   if (!lmbFull) return 0;
   const lmbLen = lmbFull.length;
@@ -211,13 +245,7 @@ export function mainframeBonus(e: number, saveData: SaveData): number {
     const labBonusConnected = (saveData as any).labBonusConnected as any[];
     if (!labBonusConnected || !labBonusConnected[e]) return lmbFull[e][3];
     const active = lmbFull[e][4];
-    if (e === 9) {
-      const base9 = active + mainframeBonus(113, saveData);
-      // Total green mushroom kills feeds mainframeBonus(9); not implemented here.
-      // Returning base9 underestimates slightly when this is queried but no DR
-      // path uses mfb(9) directly.
-      return base9;
-    }
+    if (e === 9) return active + mainframeBonus(113, saveData);
     // @njs _customBlock_MainframeBonus
     // @njs TotPetsFound
     // @njs _customBlock_TalentCalc
@@ -230,8 +258,7 @@ export function mainframeBonus(e: number, saveData: SaveData): number {
       return (active + mainframeBonus(101, saveData)) * pets;
     }
     if (e === 3) return active + mainframeBonus(107, saveData);
-    // Banking Fury: TalentCalc(-7) stores LabMFbonuses["11"] = this × GreenStacks.length.
-    if (e === 11) return (active + mainframeBonus(117, saveData)) * ((((saveData as any).greenStacks as unknown[]) || []).length);
+    if (e === 11) return active + mainframeBonus(117, saveData);
     if (e === 13) return active;
     if (e === 15) return active + mainframeBonus(118, saveData);
     if (e === 17) return active + mainframeBonus(120, saveData);
@@ -270,7 +297,7 @@ export function mainframeBonus(e: number, saveData: SaveData): number {
     e === 112 &&
     mainframeBonus(111, saveData) > 0 &&
     mainframeBonus(113, saveData) > 0 &&
-    mainframeBonus(114, saveData) > 0 &&
+    mainframeBonusRaw(114, saveData) > 0 &&
     mainframeBonus(115, saveData) > 0
   )
     doubler = 2;

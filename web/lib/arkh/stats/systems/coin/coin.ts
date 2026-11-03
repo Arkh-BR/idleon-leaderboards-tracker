@@ -13,7 +13,7 @@ import { eventShopOwned, emporiumBonus } from "../../../game-helpers";
 import { label } from "../../entity-names";
 import { RANDOlist } from "../../data/game/customlists.js";
 import { cropSCbonMulti } from "../w6/farming";
-import { vaultKillzTotal, cardsCollected, accountMapKills } from "./accountKills";
+import { vaultKillzTotal, cardsCollected } from "./accountKills";
 import { flurboShop } from "./flurbo";
 import { rooBonus } from "./roo";
 import { votingMulti } from "./votingMulti";
@@ -31,7 +31,7 @@ import {
 import { companions } from "../common/companions";
 import { etcBonus } from "../common/etcBonus";
 import { sushiRoG } from "../w7/sushi";
-import { gridBonusValue, mainframeBonus } from "../w4/lab";
+import { gridBonusValue, mainframeBonus, mainframeBonusRaw, mf9KillsMulti } from "../w4/lab";
 import { getSetBonus } from "../w3/setBonus";
 import { maxTalentBonus, talent } from "../common/talent";
 import { overkillStuffs } from "../common/overkill";
@@ -339,14 +339,12 @@ function resolveCoin(id: string, ctx: SystemCtx): ArkhNode {
     }
     // MainframeBonus(9) = (LabMainBonus[9][5] + MainframeBonus(113)) ×
     // ⌊kills/1e6⌋ (or × kills/1e6 past 1e8), kills = green mushroom map
-    // (MapAFKtarget.indexOf("mushG") = 1) account kills. mainframeBonus()
-    // in lab.ts already returns the unmultiplied base9 sum (see its comment);
-    // the kill multiplier is applied here, not inside the shared helper.
+    // (MapAFKtarget.indexOf("mushG") = 1) account kills — lab.ts's
+    // mainframeBonus applies TalentCalc(-7)'s kill multi.
     case "mainframe9": {
-      const base = mainframeBonus(9, s);
-      const k = accountMapKills(1) / 1e6; // map 1 = MapAFKtarget "mushG"
-      const mult = k < 1e8 ? Math.floor(k) : k;
-      return node("Fungi Finger Pocketer (Mainframe 9)", base * mult, [raw("Mainframe 9", base), raw("Kills (millions)", mult, "Kills / 1e6, rounded down below 1e8 millions")], {
+      const base = mainframeBonusRaw(9, s);
+      const mult = mf9KillsMulti();
+      return node("Fungi Finger Pocketer (Mainframe 9)", mainframeBonus(9, s), [raw("Mainframe 9", base), raw("Kills (millions)", mult, "Kills / 1e6, rounded down below 1e8 millions")], {
         fmt: "+",
         note: "× ⌊Green Mushroom account kills / 1M⌋ (Death Note)",
       });
