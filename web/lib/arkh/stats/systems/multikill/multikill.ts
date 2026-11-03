@@ -193,8 +193,7 @@ function resolveMultikill(id: string, ctx: SystemCtx): ArkhNode {
     // ── Damage tier, map rules, status ──
     // N.js OverkillStuffs("2") against the target's live HP (common/overkill.ts,
     // spec M1/M5). Named by ladder: the ×5 W7 tier never meets the map-251
-    // reference (M12). "estimate" below the cap: arkh's max damage isn't
-    // reconciled with the game yet (M4, M17).
+    // reference (M12). Max damage matches the game's Player Info (damage tracker).
     case "tier": {
       const ok = overkillOf(ci, map, ctx);
       const hpKids = ok.clam
@@ -207,7 +206,7 @@ function resolveMultikill(id: string, ctx: SystemCtx): ArkhNode {
               raw(`Curse: ${label("Prayer", 8)}`, ok.curses[2]),
             ]),
           ];
-      const note = `${ok.tier < 51 ? "estimate — max damage isn't reconciled with the game yet · " : ""}Map ${ok.map} · ${ok.target}`;
+      const note = `Map ${ok.map} · ${ok.target}`;
       return node(
         ok.exponent === 5 ? MK_NODES.tierW7 : MK_NODES.tier,
         ok.tier,

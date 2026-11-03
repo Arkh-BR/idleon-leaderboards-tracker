@@ -18,17 +18,20 @@ import type { SaveData } from "../../../state";
 
 type Ctx = { saveData: SaveData; charIdx: number };
 
+// @njs CardLv
+// N.js RunCodeOfTypeXforThingY("CardLv") (@4083568): 1 once owned, the star
+// thresholds, then a card listed in OLA[603] reads at least 7, one in
+// OLA[155] at least 6, whatever the card count.
 export function computeCardLv(cardKey: string, saveData: SaveData): number {
   if (!saveData || !saveData.cards0Data) return 0;
   const qty = Number((saveData.cards0Data as any)[cardKey]) || 0;
-  if (qty <= 0) return 0;
   const rift5star = (saveData.riftData[0] || 0) >= 45 ? 1 : 0;
   const spelunk6star =
     ((saveData.spelunkData && saveData.spelunkData[0] && saveData.spelunkData[0][2]) || 0) >= 1
       ? 1
       : 0;
   const maxStars = Math.round(4 + rift5star + spelunk6star);
-  let lv = 1;
+  let lv = qty > 0 ? 1 : 0;
   if (cardKey === "Boss3B") {
     for (let s = 0; s < maxStars; s++) {
       if (qty > 1.5 * Math.pow(s + 1 + Math.floor(s / 3), 2)) lv = s + 2;
@@ -49,8 +52,9 @@ export function computeCardLv(cardKey: string, saveData: SaveData): number {
       if (qty > thr) lv = s + 2;
     }
   }
-  const ola155 = String(saveData.olaData[155] || "");
-  if (ola155.split(",").includes(cardKey) && lv < 6) lv = 6;
+  const listed = (i: number) => String(saveData.olaData[i] || "").split(",").includes(cardKey);
+  if (listed(603) && lv < 7) return 7;
+  if (listed(155) && lv < 6) return 6;
   return lv;
 }
 
@@ -60,37 +64,15 @@ export function cardLv(cardId: string, saveData: SaveData): number {
 
 export function computeCardLvDetail(cardKey: string, saveData: SaveData) {
   const qty = Number((saveData.cards0Data as any)[cardKey]) || 0;
+  const lv = computeCardLv(cardKey, saveData);
   if (qty <= 0)
-    return { lv: 0, qty: 0, maxStars: 0, rift5: false, spelunk6: false };
+    return { lv, qty: 0, maxStars: 0, rift5: false, spelunk6: false };
   const rift5star = (saveData.riftData[0] || 0) >= 45 ? 1 : 0;
   const spelunk6star =
     ((saveData.spelunkData && saveData.spelunkData[0] && saveData.spelunkData[0][2]) || 0) >= 1
       ? 1
       : 0;
   const maxStars = Math.round(4 + rift5star + spelunk6star);
-  let lv = 1;
-  if (cardKey === "Boss3B") {
-    for (let s = 0; s < maxStars; s++) {
-      if (qty > 1.5 * Math.pow(s + 1 + Math.floor(s / 3), 2)) lv = s + 2;
-    }
-  } else {
-    const baseReq = CARD_BASE_REQ[cardKey] || 10;
-    for (let s = 0; s < maxStars; s++) {
-      const thr =
-        baseReq *
-        Math.pow(
-          s +
-            1 +
-            Math.floor(s / 3) +
-            16 * Math.floor(s / 4) +
-            100 * Math.floor(s / 5),
-          2
-        );
-      if (qty > thr) lv = s + 2;
-    }
-  }
-  const ola155 = String(saveData.olaData[155] || "");
-  if (ola155.split(",").includes(cardKey) && lv < 6) lv = 6;
   return { lv, qty, maxStars, rift5: !!rift5star, spelunk6: !!spelunk6star };
 }
 

@@ -2,10 +2,10 @@
 // Pragmatic port of computeArtifactBonus covering the artifacts the DR
 // (16, 31, 32, 35, 37, 39) and Damage (2, 8, 25, 27, 29) pipelines read.
 // Beyond base × tier it scales artifacts 2/10/18/20 (Slab), 3/5/23 (skill
-// level), 13 (meals), 25 (primary stat), 27 and 29. Artifact 8 is still
-// base × tier: N.js also multiplies it by getLOG(Σ PlayerBuildSpd).
+// level), 8 (build speed), 13 (meals), 25 (primary stat), 27 and 29.
 
-import { charClassData, divinityData } from "../../../save/data";
+import { charClassData, divinityData, numCharacters } from "../../../save/data";
+import { playerBuildSpd } from "../w3/construction";
 import { artifactBase } from "../../data/w5/sailing";
 import { getLOG } from "../../../formulas";
 import { legendPTSbonus } from "../w7/spelunking";
@@ -34,6 +34,13 @@ export function computeArtifactBonus(
       (saveData.lv0AllData as any)?.[ci >= 0 ? ci : 0]?.[13]
     ) || 0;
     val *= sailLv;
+  } else if (artIdx === 8) {
+    // @njs ArtifactBonus
+    // @njs PlayerBuildSpd
+    // N.js (@10718371): × getLOG(Σ WorkbenchStuff("PlayerBuildSpd") over every player).
+    let spd = 0;
+    for (let p = 0; p < numCharacters; p++) spd += playerBuildSpd(p, ci >= 0 ? ci : 0, ctx);
+    val *= getLOG(spd);
   } else if (artIdx === 13) {
     const highMeal = Number((saveData.mealsData as any)?.[2]?.[0]) || 1;
     val *= getLOG(highMeal);

@@ -67,10 +67,9 @@ export const multikillGainsModel: GainsModel = {
       }
     const tp = tierPath(yoursFlat);
     // Only reachable below tier 51 (computeGains drops a gainPct <= 0 row, and
-    // the reference tier is always 51) — same estimate caveat as the tree node
-    // (spec M17): arkh's max damage isn't reconciled with the game yet.
+    // the reference tier is always 51).
     if (tp === pathOf(MK_NODES.tier) && tierCanMove(yoursFlat, tp))
-      out.push({ path: tp, group: `${MK_NODES.tier} · estimate`, source: MK_NODES.tier, display: "raw" });
+      out.push({ path: tp, group: MK_NODES.tier, source: MK_NODES.tier, display: "raw" });
     return out;
   },
   totalFromFlat: (flat) => mkTotal(partsFromFlat(flat)),
@@ -87,8 +86,8 @@ export const multikillGainsModel: GainsModel = {
     return [
       {
         path: `${tp} / +1`,
-        // Only reachable below tier 51 (the guard above): same estimate caveat.
-        group: `needs ×${Number(need.toFixed(2))} more max damage (next tier at ${formatNum(next)}) · estimate`,
+        // Only reachable below tier 51 (the guard above).
+        group: `needs ×${Number(need.toFixed(2))} more max damage (next tier at ${formatNum(next)})`,
         source: "+1 damage tier",
         display: "raw",
         you: p.tier,

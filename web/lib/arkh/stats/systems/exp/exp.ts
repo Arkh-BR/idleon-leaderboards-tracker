@@ -502,9 +502,10 @@ function resolveExp(id: string, ctx: SystemCtx): ArkhNode {
     // N.js GetTalentNumber(1,632) — star talent (id≥615), active character.
     case "talent632":
       return talent.resolve(632, tctx);
-    // N.js Shrine(5)
+    // N.js Shrine(5), gated on the EXP map (Artifact 0, or the shrine's map, or MF5 and the same world).
+    // @njs _customBlock_Shrine
     case "shrine5":
-      return pct(label("Shrine", 5), computeShrine(5, s));
+      return pct(label("Shrine", 5), computeShrine(5, ci, { saveData: s, mapIdx: map }));
     // N.js SaltLick(3) (@4246848), saltLick.ts
     case "saltLick3":
       return pct("Class EXP and Skill EXP (Salt Lick 3)", saltLick(3, s), [raw("Level", saltLickLevel(3, s))]);

@@ -44,6 +44,7 @@ import { votingBonusz } from "../w2/voting";
 import { getSetBonus } from "../w3/setBonus";
 import { computeVialByKey } from "../w2/alchemy";
 import { computeArtifactBonus } from "../w5/sailing";
+import { riftSkillETC } from "../w4/rift";
 import { tome } from "../w4/tome";
 import { computePaletteBonus } from "../w7/spelunking";
 import { chipBonuses, mainframeBonus } from "../w4/lab";
@@ -242,11 +243,10 @@ export function computePlayerHPmax(charIdx: number, ctx: Ctx): Tree {
   const talent92 = rval(talent, 92, ctx);
   const talent272 = rval(talent, 272, ctx);
   const etc15 = rval(etcBonus, "15", ctx);
-  // Shrine(1): computeShrine reads every shrine (shrine.resolve only knows shrine 4).
-  // It skips N.js's Shrine gate (Artifact 0 owned, or the current map is the shrine's,
-  // or MF5 on and the same world, @7828132) and counts a shrine as always active,
-  // as afk.ts's Shrine(8) already does.
-  const shrine1 = safe(computeShrine, 1, s);
+  // Shrine(1): computeShrine reads every shrine (shrine.resolve only knows shrine 4),
+  // with N.js's gate (Artifact 0, or the shrine's map, or MF5 and the same world).
+  // @njs _customBlock_Shrine
+  const shrine1 = safe(computeShrine, 1, ci, ctx);
   const _brPctHP = computeBoxReward(ci, "pctHP");
   const boxPctHP = _brPctHP.val || 0;
   // DNSM.FamBonusQTYs["18"]: the active char's family map (talent 144 buff).
@@ -391,9 +391,8 @@ export function computePlayerMPmax(charIdx: number, ctx: Ctx): Tree {
 // ported in our codebase. They return 0 here (clearly marked). corgan-source
 // itself stubs GetBuffBonuses(40,2)→0. Real impact on Fishing efficiency is
 // modest (these are minor additive % sources). Port them properly when the
-// w4/rift, w4/gaming, w5/divinity-bless/minor, w3 salt-lick/flurbo, and
+// w4/gaming, w5/divinity-bless/minor, w3 salt-lick/flurbo, and
 // common/calcTalent systems land.
-const computeRiftSkillETC = (_idx: number, _s: SaveData): number => 0; // [STUB] w4/rift
 const computeMSABonus = (_idx: number, _s: SaveData): number => 0; // [STUB] w4/gaming
 const computeDivinityBless = (_idx: number, _s: SaveData): number => 0; // [STUB] w5/divinity
 const computeCalcTalent = (
@@ -448,7 +447,8 @@ function computeAllEfficiencies(ci: number, ctx: Ctx): number {
   const chipToteff = safe(chipBonuses, "toteff", ci);
   const cardCrystal4 = 3 * safe(cardLv, "Crystal4", ctx.saveData);
   const friendStatz2 = rval(friend, 2, ctx);
-  const riftSkillETC2 = safe(computeRiftSkillETC, 2, ctx.saveData);
+  // @njs RiftSkillETC
+  const riftSkillETC2 = safe(riftSkillETC, 2, ctx.saveData);
   const holesB49_15 = rval(holes, 49 as any, ctx);
   const ola422 = Number((optionsListData as any)[422]) || 0;
   const shimmerOla180 = Number((optionsListData as any)[180]) || 0;

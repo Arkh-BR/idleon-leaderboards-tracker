@@ -106,7 +106,7 @@ import { shiny as shinyResolver } from "../w4/breeding";
 import { arcade as arcadeResolver } from "../w2/arcade";
 import { owl as owlResolver } from "../w1/owl";
 import { companion as companionResolver } from "./companions";
-import { talent as talentResolver, computeAllTalentLVz } from "./talent";
+import { talent as talentResolver, computeAllTalentLVz, maxTalentBonus } from "./talent";
 import { NAMETAG_TIER_SCALE } from "../../data/common/nametag";
 import {
   StarSigns,
@@ -962,6 +962,16 @@ export function computeFamBonusQTYs(
               rawLv144 + bonus144
             );
             result[key] = bonus * (1 + tal144val / 100);
+          }
+          // @njs _customBlock_TalentCalc
+          // N.js (@4498476): keys "24" and "44" always take × (1 +
+          // getbonus2(1,144,-1)/100), the account's best Family Guy, read
+          // against the map as built so far (its AllTalentLVz reads FB 68).
+          if (key === 24 || key === 44) {
+            const best144 = maxTalentBonus(144, activeCharIdx >= 0 ? activeCharIdx : undefined, saveData, {
+              partialFamBonusMap: result,
+            });
+            result[key] = bonus * (1 + best144 / 100);
           }
         }
       }

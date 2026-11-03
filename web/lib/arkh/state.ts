@@ -71,6 +71,7 @@ export type SaveData = {
   atomsData: any[];
   arcaneData: any[];
   compassData: any[];
+  tessData: any[];
   gemItemsData: any[];
   achieveRegData: any[];
   bribeStatusData: any[];
@@ -206,6 +207,7 @@ function initialState(): SaveData {
     atomsData: [],
     arcaneData: [],
     compassData: [],
+    tessData: [],
     gemItemsData: [],
     achieveRegData: [],
     bribeStatusData: [],

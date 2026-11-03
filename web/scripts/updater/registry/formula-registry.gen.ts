@@ -51,6 +51,7 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/arkh/stats/systems/w7/gallery.ts"
   ],
   "CardLv": [
+    "lib/arkh/stats/systems/common/cards.ts",
     "lib/arkh/stats/systems/exp/exp.ts"
   ],
   "CardsCollected": [
@@ -69,7 +70,8 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/arkh/stats/systems/exp/exp.ts"
   ],
   "ConstMasteryBonus": [
-    "lib/arkh/stats/systems/damage/damage.ts"
+    "lib/arkh/stats/systems/damage/damage.ts",
+    "lib/arkh/stats/systems/w3/construction.ts"
   ],
   "CoralKidUpgBonus": [
     "lib/arkh/stats/systems/damage/damage.ts",
@@ -227,6 +229,10 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/arkh/stats/systems/exp/exp.ts",
     "lib/arkh/stats/systems/exp/petArenaCruc.ts"
   ],
+  "PlayerBuildSpd": [
+    "lib/arkh/stats/systems/w3/construction.ts",
+    "lib/arkh/stats/systems/w5/sailing.ts"
+  ],
   "PocketDivOwned": [
     "lib/arkh/stats/systems/coin/divinityMinor.ts"
   ],
@@ -259,6 +265,7 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/arkh/stats/systems/damage/damage.ts"
   ],
   "RiftSkillETC": [
+    "lib/arkh/stats/systems/common/derived-stats.ts",
     "lib/arkh/stats/systems/w4/rift.ts"
   ],
   "RoG_BonusQTY": [
@@ -325,6 +332,9 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   "_customBlock_ArbitraryCode": [
     "lib/arkh/save/loader.ts"
   ],
+  "_customBlock_ArcaneType": [
+    "lib/arkh/stats/systems/w2/voting.ts"
+  ],
   "_customBlock_CaptBonusCalc": [
     "lib/arkh/stats/systems/w5/sailing.ts"
   ],
@@ -380,7 +390,11 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/arkh/stats/systems/exp/saltLick.ts"
   ],
   "_customBlock_Shrine": [
-    "lib/arkh/stats/systems/damage/damage.ts"
+    "lib/arkh/stats/systems/afk/afk.ts",
+    "lib/arkh/stats/systems/common/derived-stats.ts",
+    "lib/arkh/stats/systems/damage/damage.ts",
+    "lib/arkh/stats/systems/exp/exp.ts",
+    "lib/arkh/stats/systems/w3/construction.ts"
   ],
   "_customBlock_StarSigns": [
     "lib/arkh/stats/systems/common/starSign.ts"
@@ -388,7 +402,13 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   "_customBlock_Stuff2": [
     "lib/arkh/stats/systems/w7/gallery.ts"
   ],
+  "_customBlock_Summoning2": [
+    "lib/arkh/stats/systems/damage/damage.ts",
+    "lib/arkh/stats/systems/w2/voting.ts"
+  ],
   "_customBlock_TalentCalc": [
+    "lib/arkh/stats/systems/common/derived-damage.ts",
+    "lib/arkh/stats/systems/common/stats.ts",
     "lib/arkh/stats/systems/w4/lab.ts"
   ],
   "_customBlock_TotalStats": [
@@ -396,6 +416,9 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/arkh/stats/systems/common/derived-damage.ts",
     "lib/arkh/stats/systems/common/stats.ts",
     "lib/arkh/stats/systems/dr2/dr2.ts"
+  ],
+  "_customBlock_Windwalker": [
+    "lib/arkh/stats/systems/w2/voting.ts"
   ],
   "_customBlock_WorkbenchStuff": [
     "lib/arkh/stats/systems/damage/damage.ts"
