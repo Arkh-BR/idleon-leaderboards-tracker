@@ -23,6 +23,10 @@ const DIR = "scripts/updater/golden/.cache/";
 // Shrine(1) and FamBonusQTYs["18"] (Max HP ×3.0–4.0). Only the two Max HP
 // readers moved — Big Meaty Claws (bdmgHP × log10(HP − 250)) and Meat Shank
 // (GTN 86 × log10(HP)) — by ×1.000000–1.000789; the accuracy fix moves no pin.
+// Damage audit vs the 2026-11-03 in-game readings re-pinned every value four
+// times, one commit each (the tag shows the last): Artifact 25 (×1.0088–1.346),
+// TotalQuestsComplete (×1.0000–1.094), Mainframe 0/11 (×1.0053–1.040),
+// Artifact 2 (×1.0000004–1.037).
 const CAPTURED: Record<string, Record<string, number>> = {
   "arkhe-live-2026-11-01-postupdate.json": {
     ARKHE: 3.0398294088711956e+34, // Artifact 2 fix (damage tracker)
