@@ -6162,7 +6162,7 @@ export const TALENT_TABS_BY_CLASS: Record<string, TalentClass> = {
           {
             "id": 199,
             "name": "DETONATION",
-            "lvlUpText": "+{%_chance_%_+}%_range",
+            "lvlUpText": "+{%_chance_&_+}%_range",
             "description": "{%_chance_to_trigger_a_combustion_explosion_when_defeating_a_horde._Also,_+}%_larger_combustion_range",
             "funcX": "decay",
             "x1": 200,
@@ -17065,7 +17065,7 @@ export const TALENT_TABS_BY_CLASS: Record<string, TalentClass> = {
             "id": 599,
             "name": "BACKUP_ENERGY",
             "lvlUpText": "{x_Tachyon_&_-}_charge",
-            "description": "Backup_needed?_How_about_{x_Tachyon_Gain_and_-}_kills_needed_to_charge_Arcane_Crystals",
+            "description": "Backup_needed?_How_about_{x_Tachyon_Gain_and_}_less_kills_needed_to_charge_Arcane_Crystals",
             "funcX": "decayMulti",
             "x1": 0.5,
             "x2": 250

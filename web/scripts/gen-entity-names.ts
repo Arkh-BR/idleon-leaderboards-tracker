@@ -1,30 +1,28 @@
 // ============================================================================
-// gen-entity-names.ts — build-time extractor that distills website-data.json's
-// huge per-entity payloads (formulas, costs, descriptions, …) into a compact
-// id → display-name map. The output lands at:
+// gen-entity-names.ts — build-time extractor that distills the game's own
+// lists (the N.js-derived game data in web/lib/arkh/stats/data/game/, kept
+// current by the updater) into a compact id → display-name map. Output:
 //
 //   web/lib/arkh/stats/data/entity-names.gen.ts
 //
-// We don't want to ship the full website-data with the DeepView bundle just to
-// read a few names, so the script does the cherry-picking once and the
-// generated file (~50KB readable JS) is committed.
+// The game lists are a few MB; the DeepView only needs the names, so the
+// script does the cherry-picking once and the generated file is committed.
+// Re-run it after the updater regenerates the game data.
 //
 // Run with: npx tsx web/scripts/gen-entity-names.ts
 // ============================================================================
 
-import { readFileSync, writeFileSync } from "node:fs";
+import { writeFileSync } from "node:fs";
 import { resolve } from "node:path";
+import * as LISTS from "../lib/arkh/stats/data/game/customlists.js";
+import { ITEMS } from "../lib/arkh/stats/data/game/items.js";
+import { MONSTERS } from "../lib/arkh/stats/data/game/monsters.js";
 
 type Json = any;
+const L: Json = LISTS;
+const ITEM_DEFS: Json = ITEMS;
+const MONSTER_DEFS: Json = MONSTERS;
 
-const DATA_PATH = resolve(
-  __dirname,
-  "..",
-  "lib",
-  "it",
-  "data",
-  "website-data.json"
-);
 const OUTPUT_PATH = resolve(
   __dirname,
   "..",
@@ -35,13 +33,11 @@ const OUTPUT_PATH = resolve(
   "entity-names.gen.ts"
 );
 
-const data: Json = JSON.parse(readFileSync(DATA_PATH, "utf8"));
-
 // ----------------------------------------------------------------------------
 // Helpers
 // ----------------------------------------------------------------------------
 
-/** Hand-curated overrides for names where IT's raw key collapses words or
+/** Hand-curated overrides for names where the raw key collapses words or
  *  uses an in-game typo we want to preserve / fix. Keyed by the upper-case
  *  raw key (NOT the humanized form) so we patch at source. */
 const NAME_OVERRIDES: Record<string, string> = {
@@ -84,13 +80,14 @@ const PRESERVED_ACRONYMS = new Set([
 
 /** Convert SCREAMING_SNAKE / underscore_case into "Title Case". Operations:
  *   1. Hand-curated override list for fixed-up names.
- *   2. Split on underscores, then for each word lowercase + capitalize first.
+ *   2. Split on underscores and "|" (the game's line break in item names),
+ *      then for each word lowercase + capitalize first.
  *   3. Restore preserved acronyms (HP, STR, LUK, etc.) to uppercase. */
 function humanize(raw: string): string {
   if (!raw) return "";
   if (NAME_OVERRIDES[raw]) return NAME_OVERRIDES[raw];
   return raw
-    .replace(/_/g, " ")
+    .replace(/[_|]/g, " ")
     .split(/\s+/)
     .map((w) => {
       if (!w) return w;
@@ -104,202 +101,150 @@ function humanize(raw: string): string {
 }
 
 // ----------------------------------------------------------------------------
-// Talents — Object<TreeName, Object<TALENT_KEY, { skillIndex, ... }>>
+// Talents — TalentIconNames[id] for every id placed in a talent tab
+// (TalentOrder). Empty slots are "_"; the few ids with a name but no
+// TalentDescriptions text ("C", "A", "Special53") aren't real talents.
 // ----------------------------------------------------------------------------
 const talents: Record<number, string> = {};
-for (const treeName in data.talents) {
-  const tree = data.talents[treeName];
-  for (const k in tree) {
-    const t = tree[k];
-    const idx = Number(t?.skillIndex);
-    if (Number.isFinite(idx)) {
-      talents[idx] = humanize(k);
-    }
-  }
+for (const raw of L.TalentOrder) {
+  const id = Number(raw);
+  const name = L.TalentIconNames[id];
+  if (!name || name === "_" || L.TalentDescriptions[id]?.[0]?.[0] === "_") continue;
+  talents[id] = humanize(name);
 }
 
 // ----------------------------------------------------------------------------
-// Stamps — { combat: {idx:{...}}, skills: {...}, misc: {...} }
-// Our codes are "A38", "B12", "C5" where letter is category and number is
-// 1-indexed position. The IT data is 0-indexed (combat[0] = stamp 1).
+// Stamps — ItemDefinitions StampA1…, StampB1…, StampC1… Our codes are "A38",
+// "B12", "C5": letter = category, number = the item's 1-indexed position.
 // ----------------------------------------------------------------------------
 const stamps: Record<string, string> = {};
-const STAMP_CAT_LETTERS: Record<string, string> = {
-  combat: "A",
-  skills: "B",
-  misc: "C",
-};
-for (const cat in data.stamps) {
-  const letter = STAMP_CAT_LETTERS[cat];
-  if (!letter) continue;
-  const group = data.stamps[cat];
-  for (const k in group) {
-    const idx = Number(k);
-    if (!Number.isFinite(idx)) continue;
-    const s = group[k];
-    const name = humanize(s.displayName || s.rawName || `Stamp ${letter}${idx + 1}`);
-    stamps[`${letter}${idx + 1}`] = name;
+for (const key in ITEM_DEFS) {
+  const m = /^Stamp([ABC])(\d+)$/.exec(key);
+  if (m) stamps[`${m[1]}${m[2]}`] = humanize(ITEM_DEFS[key].displayName);
+}
+
+// ----------------------------------------------------------------------------
+// Cards — CardStuff[category][i][0] is the monster key; the card's name is
+// that monster's Name. "Blank" filler slots have no monster → skipped.
+// ----------------------------------------------------------------------------
+const cards: Record<string, string> = {};
+for (const cat of L.CardStuff) {
+  for (const c of cat) {
+    const name = MONSTER_DEFS[c[0]]?.Name;
+    if (name) cards[c[0]] = humanize(name);
   }
 }
 
 // ----------------------------------------------------------------------------
-// Cards — { cardKey: { displayName, rawName, ... } }
-// ----------------------------------------------------------------------------
-const cards: Record<string, string> = {};
-for (const k in data.cards) {
-  const c = data.cards[k];
-  cards[k] = humanize(c.displayName || c.rawName || k);
-}
-
-// ----------------------------------------------------------------------------
-// Prayers — { id: { name, effect, ... } }
+// Prayers — PrayerInfo[i][0]
 // ----------------------------------------------------------------------------
 const prayers: Record<number, string> = {};
-for (const k in data.prayers) {
-  const idx = Number(k);
-  if (!Number.isFinite(idx)) continue;
-  prayers[idx] = humanize(data.prayers[k].name || `Prayer ${k}`);
-}
-
-// ----------------------------------------------------------------------------
-// Shrines — { id: { shrineName, ... } }
-// IT stores shrines starting at index 18 (the in-game item-ID space) but our
-// descriptor refers to them 0-indexed (shrine 4 = drop). Build BOTH maps so
-// the lookup can match either convention.
-// ----------------------------------------------------------------------------
-const shrines: Record<number, string> = {};
-const shrineKeys = Object.keys(data.shrines)
-  .map((k) => Number(k))
-  .filter((n) => Number.isFinite(n))
-  .sort((a, b) => a - b);
-shrineKeys.forEach((rawIdx, zeroIdx) => {
-  const s = data.shrines[rawIdx];
-  const name = humanize(s.shrineName || `Shrine ${rawIdx}`);
-  shrines[rawIdx] = name;
-  shrines[zeroIdx] = name;
+L.PrayerInfo.forEach((p: Json, i: number) => {
+  prayers[i] = humanize(p[0]);
 });
 
 // ----------------------------------------------------------------------------
-// Achievements — array
+// Shrines — ShrineInfo[i][0]. Our descriptors refer to them 0-indexed
+// (shrine 4 = drop); shrines are also construction buildings 18+
+// (TowerInfo[18] = Woodular_Shrine), so both keys resolve.
 // ----------------------------------------------------------------------------
-const achievements: Record<number, string> = {};
-if (Array.isArray(data.achievements)) {
-  data.achievements.forEach((a: Json, i: number) => {
-    if (a && a.name) achievements[i] = humanize(a.name);
-  });
-}
+const shrines: Record<number, string> = {};
+L.ShrineInfo.forEach((s: Json, i: number) => {
+  shrines[i] = shrines[i + 18] = humanize(s[0]);
+});
 
 // ----------------------------------------------------------------------------
-// Star Signs — { id: { starName, ... } }. Our descriptor uses logical keys
-// like "drop" (which means "the drop-rate sign — IT has Gum Drop / Gum Drop
-// Major"). We expose both: numeric ids AND logical keys.
+// Achievements — RegAchieves[i][0]
+// ----------------------------------------------------------------------------
+const achievements: Record<number, string> = {};
+L.RegAchieves.forEach((a: Json, i: number) => {
+  achievements[i] = humanize(a[0]);
+});
+
+// ----------------------------------------------------------------------------
+// Star Signs — StarSigns[i][0]. Our descriptor uses logical keys like "drop"
+// (the drop-rate sign — Gum Drop / Gum Drop Major). We expose both: numeric
+// ids AND logical keys.
 // ----------------------------------------------------------------------------
 const starSigns: Record<string | number, string> = {};
-for (const k in data.starSigns) {
-  const s = data.starSigns[k];
-  const name = humanize(s.starName || s.name || `Star Sign ${k}`);
-  starSigns[k] = name;
-}
+L.StarSigns.forEach((s: Json, i: number) => {
+  starSigns[i] = humanize(s[0]);
+});
 // Logical-key alias used by the descriptor. We search for the most-specific
 // "Major" version since that's the one our resolver picks at high levels.
 const dropSign =
-  Object.values(data.starSigns).find((s: Json) =>
-    /gum_?drop_?major/i.test(s?.starName || "")
-  ) ||
-  Object.values(data.starSigns).find((s: Json) =>
-    /gum_?drop/i.test(s?.starName || "")
-  );
-if (dropSign && (dropSign as Json).starName) {
-  starSigns["drop"] = humanize((dropSign as Json).starName);
-}
+  L.StarSigns.find((s: Json) => /gum_?drop_?major/i.test(s[0])) ||
+  L.StarSigns.find((s: Json) => /gum_?drop/i.test(s[0]));
+if (dropSign) starSigns["drop"] = humanize(dropSign[0]);
 
 // ----------------------------------------------------------------------------
-// Arcade — array, our descriptor uses arcade id: 27.
-// IT's bonusName field is just the effect text ("+{%_Drop"). The effect
-// field has more context. We label by stripping {/}/+/% and showing what
-// the bonus boosts, which yields "Drop Rate" for arcade 27.
+// Arcade — ArcadeShopInfo[i][0] is the effect text ("+{%_Drop_Rate",
+// "}x_Worship_Souls"). We label by stripping the value placeholders
+// ({ / }x / + / %), which yields "Drop Rate" for arcade 27.
 // ----------------------------------------------------------------------------
 const arcade: Record<number, string> = {};
-if (Array.isArray(data.arcadeShop)) {
-  data.arcadeShop.forEach((a: Json, i: number) => {
-    if (!a) return;
-    const raw = String(a.effect || a.bonusName || `Arcade ${i}`)
-      .replace(/_/g, " ")
-      .replace(/[\{\}+%]/g, "")
-      .replace(/\b\d+\b/g, "")
-      .replace(/\s+/g, " ")
-      .trim();
-    const humanized = humanize(raw);
-    // Add "Arcade Bonus" prefix so it doesn't read like a standalone phrase.
-    arcade[i] = humanized ? `${humanized} Arcade Bonus` : `Arcade ${i}`;
-  });
-}
+L.ArcadeShopInfo.forEach((a: Json, i: number) => {
+  const raw = String(a[0])
+    .replace(/^\}x_/, "")
+    .replace(/_/g, " ")
+    .replace(/[\{\}+%]/g, "")
+    .replace(/\b\d+\b/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+  const humanized = humanize(raw);
+  // Add "Arcade Bonus" prefix so it doesn't read like a standalone phrase.
+  arcade[i] = humanized ? `${humanized} Arcade Bonus` : `Arcade ${i}`;
+});
 
 // ----------------------------------------------------------------------------
-// Post Office — array of upgrades
+// Post Office — PostOffUpgradeInfo[i][0]
 // ----------------------------------------------------------------------------
 const postOffice: Record<string, string> = {};
-if (Array.isArray(data.postOffice)) {
-  data.postOffice.forEach((p: Json, i: number) => {
-    if (p && p.name) postOffice[i] = humanize(p.name);
-  });
-}
+L.PostOffUpgradeInfo.forEach((p: Json, i: number) => {
+  postOffice[i] = humanize(p[0]);
+});
 
 // ----------------------------------------------------------------------------
-// Vials — array
+// Vials — AlchemyDescription[4][i][0]
 // ----------------------------------------------------------------------------
 const vials: Record<number, string> = {};
-if (Array.isArray(data.vials)) {
-  data.vials.forEach((v: Json, i: number) => {
-    if (v && v.name) vials[i] = humanize(v.name);
+L.AlchemyDescription[4].forEach((v: Json, i: number) => {
+  vials[i] = humanize(v[0]);
+});
+
+// ----------------------------------------------------------------------------
+// Bubbles — AlchemyDescription[0..3] = the four cauldrons (power, quicc,
+// high-iq, kazam). Key "cauldronIdx,bubbleIdx" → name.
+// ----------------------------------------------------------------------------
+const bubbles: Record<string, string> = {};
+for (let ci = 0; ci < 4; ci++) {
+  L.AlchemyDescription[ci].forEach((b: Json, bi: number) => {
+    bubbles[`${ci},${bi}`] = humanize(b[0]);
   });
 }
 
 // ----------------------------------------------------------------------------
-// Bubbles — { cauldronName: [...] } across the cauldrons key
-// ----------------------------------------------------------------------------
-const bubbles: Record<string, string> = {}; // key "cauldronIdx,bubbleIdx" → name
-if (data.cauldrons && typeof data.cauldrons === "object") {
-  let cauldronIdx = 0;
-  for (const name in data.cauldrons) {
-    const list = data.cauldrons[name];
-    if (Array.isArray(list)) {
-      list.forEach((b: Json, bi: number) => {
-        if (b && b.bubbleName) {
-          bubbles[`${cauldronIdx},${bi}`] = humanize(b.bubbleName);
-        }
-      });
-    }
-    cauldronIdx++;
-  }
-}
-
-// ----------------------------------------------------------------------------
-// Owl bonuses — array
+// Owl — the descriptors' owl ids are the Orion bonus slots, which have no
+// name list in the game data (Owlz is the feather upgrade shop), so empty.
 // ----------------------------------------------------------------------------
 const owl: Record<number, string> = {};
-if (data.owlData && Array.isArray(data.owlData.bonuses)) {
-  data.owlData.bonuses.forEach((b: Json, i: number) => {
-    if (b && (b.name || b.effect)) owl[i] = humanize(b.name || `Owl ${i}`);
-  });
-}
 
 // ----------------------------------------------------------------------------
-// Companions — array { name: "King_Doot", rawName: "babaMummy", effect: ... }
-// Our descriptor uses numeric ids that index into this array.
+// Companions — CompanionDB[i][0] is the monster key; the name is that
+// monster's Name. Our descriptor uses numeric ids that index into CompanionDB.
+// Unreleased slots with no monster ("shovel", "slimmer") are skipped.
 // ----------------------------------------------------------------------------
 const companions: Record<number, string> = {};
-if (Array.isArray(data.companions)) {
-  data.companions.forEach((c: Json, i: number) => {
-    if (c && c.name) companions[i] = humanize(c.name);
-  });
-}
+L.CompanionDB.forEach((c: Json, i: number) => {
+  const name = MONSTER_DEFS[c[0]]?.Name;
+  if (name) companions[i] = humanize(name);
+});
 
 // ----------------------------------------------------------------------------
 // Card Types (bonus-table-id → display name) and Card Sets — these are the
 // abstracted card-system entries the descriptor refers to via "card 10" /
-// "card 101" / "cardSet 5" / "cardSet 6". They're not first-class entities
-// in website-data, so we hand-curate the four DR-relevant ones.
+// "card 101" / "cardSet 5" / "cardSet 6". They're not named entities in the
+// game data, so we hand-curate the four DR-relevant ones.
 // ----------------------------------------------------------------------------
 const cardType: Record<number, string> = {
   10: "Drop Rate Cards",
@@ -316,54 +261,30 @@ const cardSet: Record<number, string> = {
 // Compose output
 // ----------------------------------------------------------------------------
 const out: Record<string, Record<string, string>> = {
-  talent: Object.fromEntries(
-    Object.entries(talents).map(([k, v]) => [k, v])
-  ),
+  talent: talents,
   stamp: stamps,
   card: cards,
   cardSingle: cards, // alias — cardSingle id "mini5a" should resolve via same map
-  prayer: Object.fromEntries(
-    Object.entries(prayers).map(([k, v]) => [k, v])
-  ),
-  shrine: Object.fromEntries(
-    Object.entries(shrines).map(([k, v]) => [k, v])
-  ),
-  achievement: Object.fromEntries(
-    Object.entries(achievements).map(([k, v]) => [k, v])
-  ),
-  starSign: Object.fromEntries(
-    Object.entries(starSigns).map(([k, v]) => [k, v])
-  ),
-  arcade: Object.fromEntries(
-    Object.entries(arcade).map(([k, v]) => [k, v])
-  ),
+  prayer: prayers,
+  shrine: shrines,
+  achievement: achievements,
+  starSign: starSigns,
+  arcade,
   postOffice,
-  vial: Object.fromEntries(
-    Object.entries(vials).map(([k, v]) => [k, v])
-  ),
+  vial: vials,
   bubble: bubbles,
-  owl: Object.fromEntries(
-    Object.entries(owl).map(([k, v]) => [k, v])
-  ),
-  companion: Object.fromEntries(
-    Object.entries(companions).map(([k, v]) => [k, v])
-  ),
-  compMulti: Object.fromEntries(
-    Object.entries(companions).map(([k, v]) => [k, v])
-  ),
-  cardType: Object.fromEntries(
-    Object.entries(cardType).map(([k, v]) => [k, v])
-  ),
-  cardSet: Object.fromEntries(
-    Object.entries(cardSet).map(([k, v]) => [k, v])
-  ),
+  owl,
+  companion: companions,
+  compMulti: companions,
+  cardType,
+  cardSet,
 };
 
 const lines: string[] = [];
 lines.push(
   "// AUTO-GENERATED by web/scripts/gen-entity-names.ts — do not edit by hand."
 );
-lines.push("// Source: web/lib/it/data/website-data.json");
+lines.push("// Source: web/lib/arkh/stats/data/game/{customlists,items,monsters}.js (N.js)");
 lines.push("// Regenerate: npx tsx web/scripts/gen-entity-names.ts");
 lines.push("");
 lines.push("export const ENTITY_NAMES: Record<string, Record<string, string>> = {");
