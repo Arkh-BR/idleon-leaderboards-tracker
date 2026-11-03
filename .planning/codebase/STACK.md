@@ -50,7 +50,6 @@
 
 - `@vercel/analytics` 2.0.1 - Web analytics tracking (production only)
 - `date-fns` 2.30.0 - Date formatting and manipulation
-- `lodash.merge` 4.6.2 - Deep object merging for data processing
 - `next` 16.2.6 - Core framework for routing, API routes, SSR, and static generation
 
 **Infrastructure:**
@@ -68,7 +67,7 @@
 **Build:**
 
 - `next.config.mjs` — Next.js config with Turbopack root enabled, React Strict Mode
-- `tsconfig.json` — TypeScript with strict mode, path aliases (`@/*`, `@parsers/*`, `@utility/*`, etc.)
+- `tsconfig.json` — TypeScript with strict mode, path alias `@/*`
 - `tailwind.config.ts` — Custom theme colors (`gold`, `silver`, `bronze`, `ink`) and font mapping
 - `postcss.config.mjs` — Tailwind + autoprefixer pipeline
 

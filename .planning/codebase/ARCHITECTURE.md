@@ -44,7 +44,7 @@
 
 - Purpose: Shared logic for data transformation, formatting, ranking, and snapshots
 - Contains: Formatting helpers, rank calculations, snapshot management, registry of game data
-- Location: `lib/*.ts`, `lib/<feature>/*.ts`, `lib/it/**/*.ts`
+- Location: `lib/*.ts`, `lib/<feature>/*.ts`
 - Depends on: TypeScript built-ins, browser APIs (localStorage)
 - Used by: Components, pages, and API routes
 

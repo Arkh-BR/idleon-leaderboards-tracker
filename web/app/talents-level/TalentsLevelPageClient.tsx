@@ -114,7 +114,7 @@ function cleanLvlUpText(s: string): string {
   return s.replace(/[{}_]/g, " ").replace(/\s+/g, " ").trim();
 }
 
-// IT-style tab name → display label. The website-data keys use underscores
+// Generated tab name → display label. The tab names use underscores
 // and we get nicer headers swapping them out, plus we drop the "Special "
 // prefix to keep the tab strip compact ("Star 1" / "Star 2" reads tighter).
 function tabDisplayName(rawName: string): string {

@@ -33,12 +33,6 @@ idleon-leaderboards-tracker/
 │   ├── lib/                  # Shared utilities and domain logic
 │   │   ├── arkh/           # Arkh-related utilities
 │   │   ├── dropRate/         # Drop Rate domain logic
-│   │   ├── it/               # IdleonToolbox parsers, services, stubs, utility
-│   │   │   ├── _stubs/       # Component/hook stubs
-│   │   │   ├── data/         # IT game data JSON
-│   │   │   ├── parsers/      # Data parsing modules
-│   │   │   ├── services/     # API service wrappers
-│   │   │   └── utility/      # Helper scripts and utilities
 │   │   ├── talentsLevel/     # Talents domain logic
 │   │   ├── tome/             # Tome domain logic
 │   │   ├── format.ts         # Number/time formatting
@@ -97,7 +91,6 @@ idleon-leaderboards-tracker/
 - Purpose: Pure utility and domain logic (no React components)
 - Contains: `format.ts`, `rank.ts`, `lbSnapshot.ts`, `registry.ts`, plus per-feature directories
 - Key files: `registry.ts` (153-board mapping), `lbSnapshot.ts` (localStorage snapshot logic)
-- `lib/it/` — IdleonToolbox integration: parsers, services, game data, utility scripts
 
 **`web/scripts/`**
 
@@ -176,12 +169,6 @@ idleon-leaderboards-tracker/
 - Handler: `web/app/api/<route-name>/route.ts`
 
 ## Special Directories
-
-**`web/lib/it/`**
-
-- Purpose: IdleonToolbox integration — parsers, services, game data, utilities, and stub components/hooks
-- Source: Reverse-engineered or adapted from IdleonToolbox source
-- Committed: Yes (part of repo)
 
 **`web/public/`**
 

@@ -47,7 +47,6 @@ web/
   lib/                  # Utilities, parsers, game logic
     arkh/             # Arkh engine (save parser + DR calculator)
     dropRate/           # Drop Rate breakdown helpers
-    it/                 # IdleonToolbox save parsers
   __tests__/            # Test suite (Vitest + Testing Library)
   e2e/                  # End-to-end tests (Playwright)
 ```
