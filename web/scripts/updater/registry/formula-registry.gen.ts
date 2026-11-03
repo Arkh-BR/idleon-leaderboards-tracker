@@ -319,6 +319,9 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   "TotalTitanKills": [
     "lib/arkh/stats/systems/exp/exp.ts"
   ],
+  "UniqueSushi": [
+    "lib/arkh/stats/systems/w7/sushi.ts"
+  ],
   "UnlockOwned": [
     "lib/arkh/stats/data/w7/menagerie.ts"
   ],
