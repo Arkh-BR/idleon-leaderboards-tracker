@@ -4,16 +4,21 @@
 import { node, treeResult, type ArkhNode, type TreeResult } from "../../../node";
 import { label } from "../../entity-names";
 import { optionsListData, equipOrderData } from "../../../save/data";
-import { equipSetBonus, SET_BONUS_VALUES } from "../../data/common/equipment";
+import { equipSetBonus } from "../../data/common/equipment";
 import { EquipmentSets } from "../../data/game/custommaps.js";
 import type { SaveData } from "../../../state";
 
 type Ctx = { saveData: SaveData; charIdx: number };
 
+/** N.js GetSetBonus(set, "Bonus"): EquipmentSets[set][3][2] once the set is in
+ *  OLA[379] (permanently unlocked) — every set, no whitelist. */
+// ponytail: the worn-full-set fallback (PartsOn ≥ PartsReq) is not modelled
+// here (setBonus.resolve does it for the sets that need it).
+// @njs _customBlock_GetSetBonus
 export function getSetBonus(setName: string): TreeResult {
   const perma = String((optionsListData as any)?.[379] ?? "");
   if (!perma.includes(setName)) return treeResult(0);
-  const val = SET_BONUS_VALUES[setName] || 0;
+  const val = equipSetBonus(setName);
   return treeResult(val, [
     node(setName + " Unlocked", 1, null, { fmt: "raw" }),
     node("Bonus Value", val, null, { fmt: "raw" }),

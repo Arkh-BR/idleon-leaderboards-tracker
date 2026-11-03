@@ -91,8 +91,7 @@ describe.skipIf(!existsSync(SAVE))("AFK Gains Rate — Markhe on map 14 vs Idleo
   ])("%s", (id, expected) => close(src(id), expected));
 
   it.each<[string, number]>([
-    // N.js ≠ arkh getSetBonus: SET_BONUS_VALUES has no VOID_SET (0 on this
-    // save, 421.822 total); IT is right here (10).
+    // GetSetBonus("VOID_SET") = 10 (OLA[379] ∪ worn parts, setBonus.resolve).
     ["voidSet", 10],
     ["flurbo7", 5],
     ["divMajor", 30],

@@ -28,7 +28,7 @@ import {
   computeTotalStat,
   computeCardBonusByType,
   computeBoxReward,
-  computeFamBonusQTY,
+  computeFamBonusQTYs,
 } from "./stats";
 import { computeStampBonusOfTypeX } from "../w1/stamp";
 import { goldFoodBonuses } from "./goldenFood";
@@ -36,7 +36,7 @@ import { computeCardSetBonus, cardLv } from "./cards";
 import { talent } from "./talent";
 import { etcBonus } from "./etcBonus";
 import { bubbleValByKey, getPrismaBonusMult } from "../w2/alchemy";
-import { shrine } from "../w3/construction";
+import { computeShrine } from "../w3/construction";
 import { computeStatueBonusGiven, computeMealBonus } from "./stats";
 import { computeStarSignBonus } from "./starSign";
 import { computeShinyBonusS } from "../w4/breeding";
@@ -131,6 +131,7 @@ function getBuffBonus(
 // ==========================================================================
 // MAX HP — _customBlock_PlayerHPmax: LIST[0] × LIST[1] × LIST[2]
 // ==========================================================================
+// @njs _customBlock_PlayerHPmax
 export function computePlayerHPmax(charIdx: number, ctx: Ctx): Tree {
   const s = ctx.saveData;
   const ci = charIdx ?? ctx.charIdx ?? 0;
@@ -241,10 +242,12 @@ export function computePlayerHPmax(charIdx: number, ctx: Ctx): Tree {
   const talent92 = rval(talent, 92, ctx);
   const talent272 = rval(talent, 272, ctx);
   const etc15 = rval(etcBonus, "15", ctx);
-  const shrine1 = rval(shrine, 1, ctx);
+  // Shrine(1): computeShrine reads every shrine (shrine.resolve only knows shrine 4).
+  const shrine1 = safe(computeShrine, 1, s);
   const _brPctHP = computeBoxReward(ci, "pctHP");
   const boxPctHP = _brPctHP.val || 0;
-  const famBonus18 = safe(computeFamBonusQTY, 18, s);
+  // DNSM.FamBonusQTYs["18"]: the active char's family map (talent 144 buff).
+  const famBonus18 = computeFamBonusQTYs(ctx.activeCharIdx ?? ci, s)[18] || 0;
   const _cardBonus8T = safeTree(computeCardBonusByType, 8, ci, s);
   const cardBonus8 = _cardBonus8T.val;
   const _starSignHPT = computeStarSignBonus("TotalHP", ci, s);
@@ -420,7 +423,7 @@ function computePrayerReal(
 
 // AllEfficiencies: shared multiplier for ALL skill efficiencies (6 groups)
 function computeAllEfficiencies(ci: number, ctx: Ctx): number {
-  const famBonus42 = safe(computeFamBonusQTY, 42, ctx.saveData);
+  const famBonus42 = computeFamBonusQTYs(ctx.activeCharIdx ?? ci, ctx.saveData)[42] || 0;
   const etc48 = rval(etcBonus, "48", ctx);
   const vial6SkillEff = safe((k: string, s: SaveData) => computeVialByKey(k, s).val, "6SkillEff", ctx.saveData);
   const artifactBonus15 = safe(computeArtifactBonus, 15, ci, ctx as any);

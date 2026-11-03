@@ -355,6 +355,12 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   "_customBlock_NotateNumber": [
     "lib/coinMulti/format.ts"
   ],
+  "_customBlock_PlayerAccTot": [
+    "lib/arkh/stats/systems/common/derived-damage.ts"
+  ],
+  "_customBlock_PlayerHPmax": [
+    "lib/arkh/stats/systems/common/derived-stats.ts"
+  ],
   "_customBlock_RunCodeOfTypeXforThingY": [
     "lib/arkh/stats/systems/common/talent.ts"
   ],

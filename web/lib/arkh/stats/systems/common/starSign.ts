@@ -32,6 +32,8 @@ export const SIGN_BONUSES: Record<string, Record<number, number>> = {
   MoveSpd: { 1: 2, 8: 4, 13: 2, 32: -3, 51: -12 },
   TotalHP: { 28: -80 },
   FoodEffect: { 22: 15 },
+  // @njs _customBlock_StarSigns — signs 13 (+4) and 35 (+10), PlayerAccTot's StarSigns.AccPct.
+  AccPct: { 13: 4, 35: 10 },
 };
 
 export type StarSignTree = { val: number; children: ArkhNode[] | null };

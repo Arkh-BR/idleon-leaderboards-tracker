@@ -8,22 +8,19 @@ import { node, renamed, type ArkhNode } from "../../../node";
 import type { SystemCtx } from "../../registry";
 import type { SaveData } from "../../../state";
 import { getLOG } from "../../../formulas";
-import { optionsListData, currentMapData, numCharacters, dreamData } from "../../../save/data";
+import { optionsListData, currentMapData, numCharacters } from "../../../save/data";
 import { eventShopOwned, emporiumBonus } from "../../../game-helpers";
 import { label } from "../../entity-names";
 import { RANDOlist } from "../../data/game/customlists.js";
-import { legendPTSbonus, computePaletteBonus } from "../w7/spelunking";
 import { cropSCbonMulti } from "../w6/farming";
 import { vaultKillzTotal, cardsCollected, accountMapKills } from "./accountKills";
 import { flurboShop } from "./flurbo";
 import { rooBonus } from "./roo";
+import { votingMulti } from "./votingMulti";
 import { divinityMinorSum } from "./divinityMinor";
 import { computeArtifactBonus } from "../w5/sailing";
 import { votingBonusz } from "../w2/voting";
 import { COIN_VOTE_NAME } from "../../defs/coin-multi";
-import { computeMeritocBonusz } from "../w7/meritoc";
-import { computeWinBonus } from "../w6/summoning";
-import { cosmoBonus } from "../w5/hole";
 import { bubbleValByKey, computeVialByKey } from "../w2/alchemy";
 import {
   computeMealBonus,
@@ -58,8 +55,8 @@ const add = (name: string, r: Tree, note?: string): ArkhNode =>
   node(name, r.val, r.children, { fmt: "+", note });
 const raw = (name: string, v: number, note?: string): ArkhNode => node(name, v, null, { fmt: "raw", note });
 
-// FlurboShop and RooBonuses live in leaf modules (derived-damage reads them); re-exported here.
-export { flurboShop, rooBonus };
+// FlurboShop, RooBonuses and the voting multi live in leaf modules (derived-damage reads them); re-exported here.
+export { flurboShop, rooBonus, votingMulti };
 
 const BUBBLES: Record<string, { name: string; cauldron: string; key: string; stat: number; label: string }> = {
   bubbleSTR: { name: "Penny of Strength", cauldron: "Power Cauldron", key: "CashSTR", stat: 0, label: "STR" },
@@ -82,19 +79,6 @@ const VAULT_KILLS: Record<number, [string, string, string]> = {
   37: ["Bubble Money (Vault 37)", "× Σ min(100, bubble level) (VaultKillzTotal(9))", "Bubble levels (each capped at 100)"],
 };
 
-// Voting multi shared by Coin's vote34 and EXP Multi's vote15 (votingBonusz
-// gates on activeVoteIdx, so the same multi is inert unless that vote is
-// the account's active one). Extracted so both callers share one formula.
-export function votingMulti(ctx: SystemCtx): number {
-  const s = ctx.saveData;
-  const es = (n: number) => eventShopOwned(n, s.cachedEventShopStr || "");
-  const inner =
-    companions(41, s) + (Number((dreamData as any[])[13]) || 0) + cosmoBonus(s, 2, 3) +
-    computeWinBonus(22, null, s) + 17 * es(7) + 13 * es(16) + companions(19, s) +
-    computePaletteBonus(32, s) + legendPTSbonus(22, s) +
-    (Number(sushiRoG.resolve(50, ctx as any).val) || 0);
-  return (1 + companions(161, s) / 100) * (1 + computeMeritocBonusz(9, s) / 100) * (1 + inner / 100);
-}
 
 // @njs MonsterCash
 function resolveCoin(id: string, ctx: SystemCtx): ArkhNode {

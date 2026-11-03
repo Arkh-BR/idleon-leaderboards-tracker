@@ -7,8 +7,9 @@
 // the food-boost multiplier, the TalentCalc terms, the green-sigil and
 // map-306 terms, and the accuracy (talent 125's gate, OverkillStuffs("3")).
 // It must not import the damage system (damage.ts imports this file), nor
-// coin.ts (coin → overkill → damage); FlurboShop and RooBonuses come from the
-// coin/flurbo.ts and coin/roo.ts leaves. The one path back is talent → its
+// coin.ts (coin → overkill → damage); FlurboShop, RooBonuses and the voting
+// multi come from the coin/flurbo.ts, coin/roo.ts and coin/votingMulti.ts
+// leaves. The one path back is talent → its
 // final-bonus wraps → calcTalent → overkill → damage, used only inside
 // function bodies: nothing in that loop may call across it at module top level.
 
@@ -60,10 +61,12 @@ import { sigil, bubbleValByKey, computeVialByKey, totalGreenSigils } from "../w2
 import { getBribeBonus } from "../w3/bribe";
 import { getSetBonus } from "../w3/setBonus";
 import { menagerieObolMiscMulti } from "../../data/w7/menagerie";
-import { computeSummUpgBonus, winBonus } from "../w6/summoning";
+import { computeSummUpgBonus } from "../w6/summoning";
 import { computeCardSetBonus, computeCardLv } from "./cards";
 import { computePrayerReal } from "../w3/prayer";
-import { computeChipBonus, gridBonusValue } from "../w4/lab";
+import { computeChipBonus, chipBonuses, gridBonusValue } from "../w4/lab";
+import { votingBonusz } from "../w2/voting";
+import { votingMulti } from "../coin/votingMulti";
 import { capevineSystemOn, gallerySystemOn, premhatSystemOn } from "../w7/gallery";
 import { flurboShop } from "../coin/flurbo";
 import { rooBonus } from "../coin/roo";
@@ -536,20 +539,18 @@ export function computePlayerSpeed(ci: number, ctx: Ctx): number {
 //   acc = (pow(PlayerACCDN/4, 1.4) + PlayerACCDN + TotalStats("Accuracy"))
 //       × (1 + (PlayerACCDN + 2·CardSet(0,"4"))/200)                  [Step 4]
 //       × max(.1, 1 + (prayer6 − prayer15 − prayer16)/100)
-//       × (1 + (chipAcc + mealTotAcc + roo3 + voting3 + amarokSet)/100)
+//       × (1 + (chipBonuses("acc") + MealBonus("TotAcc") + RooBonuses(3)
+//              + VotingBonusz(3) + GetSetBonus("AMAROK_SET"))/100)
 //       × (1 + DivinityMinor/100)
 //
-// ── Faithfulness / [STUB] notes ──────────────────────────────────────────
-// Star-sign AccPct is faithful to corgan-source (its SIGN_BONUSES table has
-// no AccPct key → contributes 0, matching computeStarSignBonus here). The
-// following sub-sources are genuinely unported in this codebase and STUB to
-// the neutral value (0 additive). Because accuracy only feeds a >= gate, a
-// few missing additive % almost never flips the result:
+// ── [STUB] notes ─────────────────────────────────────────────────────────
 //   getBuffBonus(288,2) / getBuffBonus(124,1)  — runtime buffs, never in
 //       the raw save → 0 (same treatment as derived-damage GetBuffBonuses).
 // All other sub-sources reuse already-ported systems: FlurboShop(5) from
-// coin/flurbo.ts, RooBonuses(3) from coin/roo.ts, Divinity("Bonus_Minor",
-// this character, 0) from coin/divinityMinor.ts.
+// coin/flurbo.ts, RooBonuses(3) from coin/roo.ts, VotingBonusz(3) from
+// w2/voting.ts × coin/votingMulti.ts, Divinity("Bonus_Minor", this
+// character, 0) from coin/divinityMinor.ts. Validated to the game's Player
+// Info reading (2026-11-03, __tests__/lib/arkh/hp-accuracy-live-*.save.test.ts).
 // ==========================================================================
 
 /** ClassStatTypes secondary-stat lookup (N.js ClassStatTypes, offset
@@ -569,6 +570,7 @@ function secondaryStatForClass(ci: number): string {
  * is the active char (matches N.js, which evaluates against the active
  * char's stats). Returns a finite scalar; never throws.
  */
+// @njs _customBlock_PlayerAccTot
 export function computeAccuracy(charIdx: number, ctx: Ctx): number {
   const s = ctx.saveData;
   if (!s) return 0;
@@ -617,7 +619,7 @@ export function computeAccuracy(charIdx: number, ctx: Ctx): number {
   const flurbo5 = safe(flurboShop, 5, s);
   const bribe21 = safe(getBribeBonus, "21", s);
   const comp23 = rval(companion, 23, ctx);
-  const starAccPct = computeStarSignBonus("AccPct", ci, s); // faithful-to-arkh =0
+  const starAccPct = computeStarSignBonus("AccPct", ci, s);
   const buff288 = 0; // [STUB] GetBuffBonuses(288,2) — runtime buff, not in save
   const buff124 = 0; // [STUB] GetBuffBonuses(124,1) — runtime buff, not in save
 
@@ -641,10 +643,11 @@ export function computeAccuracy(charIdx: number, ctx: Ctx): number {
   const prayer6 = safe(computePrayerReal, 6, 0, ci, s);
   const prayer15pen = safe(computePrayerReal, 15, 1, ci, s);
   const prayer16pen = safe(computePrayerReal, 16, 1, ci, s);
-  const chipAcc = safe(computeChipBonus, "acc");
+  const chipAcc = safe(chipBonuses, "acc", ci); // the active char's own lab chips
   const mealTotAcc = safe(computeMealBonus, "TotAcc", s);
   const rooBonus3 = safe(rooBonus, 3, 2, s); // Summoning("RooBonuses",3,0): coefficient 2
-  const votingBonus3 = rval(winBonus, 3, ctx);
+  // Summoning("VotingBonusz",3,0) — not WinBonus(3): 0 unless vote 3 is active.
+  const votingBonus3 = safe(votingBonusz, 3, safe(votingMulti, ctx), s);
   const amarokSet = safe(getSetBonus, "AMAROK_SET");
   const divinityMinor = safe(divinityMinorFor, ci, 0, s);
 
