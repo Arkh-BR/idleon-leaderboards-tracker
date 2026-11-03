@@ -319,6 +319,9 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   "_customBlock_AFKgainrates": [
     "lib/arkh/stats/systems/afk/afk.ts"
   ],
+  "_customBlock_ArbitraryCode": [
+    "lib/arkh/save/loader.ts"
+  ],
   "_customBlock_CaptBonusCalc": [
     "lib/arkh/stats/systems/w5/sailing.ts"
   ],
