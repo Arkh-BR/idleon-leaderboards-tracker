@@ -4,7 +4,7 @@
 import { describe, it, expect } from "vitest";
 import { existsSync, readFileSync } from "node:fs";
 import { basename } from "node:path";
-import { GOLDEN_SAVES, KNOWN_ARKH_DIFFS, arkhArtifactLeaf, gameCtx } from "../support/arkhOracle";
+import { GOLDEN_SAVES, KNOWN_ARKH_DIFFS, UNPORTED_REFUSALS, arkhArtifactLeaf, gameCtx } from "../support/arkhOracle";
 import { withPlayer, type Ctx } from "@/lib/game/ctx";
 import { InvalidSaveValue, MissingSaveKey, NotPorted } from "@/lib/game/errors";
 import { HoleFountUPG, MarketExoticInfo, Research, ResGridSquares } from "@/lib/game/data";
@@ -51,23 +51,10 @@ function stateOf(path: string) {
   return s;
 }
 
-// Ruling E: a save missing a key the current N.js loader maps stays a strict MissingSaveKey. Every key these terms read is CSver-gated in the
-// loader (ArcadeUpg 6.7, FarmUpg 14, Holes 19, Spelunk 27, Research 29, Sushi 30, Menagerie 34), so the refusals are the pre-migration saves
-// (below the current CSver, checked in the loop). `save: key` pairs, pinned exactly per term. Holes[31][0] is a list the Holes of the older
-// saves does not have yet (Holes itself loads from CSver 19). Menagerie is the exception: a save below CSver 34 lacks it and the game fills in
-// its own lists (LOADER_DEFAULTS), so the 31 saves that used to be refused for it now compute, and equal lib/arkh like the others.
+// Ruling E: a save missing a key the current N.js loader maps stays a strict MissingSaveKey. An older save is read after the game's own load
+// steps (lib/game/migrations: Menagerie below CSver 34, the Spelunk lists of DoOnceREAL 380 and 395...), so the refusals are the saves older
+// than the steps ported, the same for every term (UNPORTED_REFUSALS), all below the current CSver (checked in the loop).
 const CURRENT_CSVER = 34.05;
-const REFUSED: Record<string, string[]> = {
-  arcade32: [],
-  arcade66: [],
-  bUpg55: [],
-  sticker2add: ["5OhTree.json: Sushi", "HourZero.json: Research"],
-  sticker2mult: [],
-  grid109: ["5OhTree.json: Sushi", "HourZero.json: Research"],
-  grid106: ["5OhTree.json: Sushi", "HourZero.json: Research"],
-  monument1_2: ["5OhTree.json: Holes[31][0]", "HourZero.json: Holes[31][0]"],
-  exotic45: ["HourZero.json: Spelunk"],
-};
 
 describe.skipIf(GOLDEN_SAVES.length === 0)("lib/game account-upgrade terms against lib/arkh on every real save and character", () => {
   for (const id of Object.keys(TERMS)) {
@@ -100,7 +87,7 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("lib/game account-upgrade terms again
       expect(mismatches).toEqual([]);
       expect(pairs).toBeGreaterThan(100); // a loop over nothing would pass
       expect(seen.size).toBeGreaterThan(minSeen); // nor would a term that is the same number everywhere
-      expect([...refused].sort()).toEqual(REFUSED[id]);
+      expect([...refused].sort()).toEqual(UNPORTED_REFUSALS);
       for (const r of refused) expect(csverOf(r.split(": ")[0]), `${r} is pre-migration`).toBeLessThan(CURRENT_CSVER);
     }, 120_000);
   }
@@ -516,11 +503,11 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("FarmingStuffs StickerBonus (N.js @10
     expect(sticker2(c, 99)).toBeGreaterThan(0);
     expect(sticker2(c, 100)).toBe(0);
   });
-  it("a save below CSver 34 has no Menagerie: the game's own lists give unlock 0 (slot 99), and the trace says so", () => {
-    const c = variant((d) => { delete d.Menagerie; d.CSver = 33.05; }, { trace: true });
+  it("a save below CSver 34 has no Menagerie: the game's own lists give unlock 0 (slot 99), and the state says which load steps ran", () => {
+    const c = variant((d) => { delete d.Menagerie; d.CSver = 33.05; });
     expect(sticker2(c, 99)).toBeGreaterThan(0);
     expect(sticker2(c, 100)).toBe(0);
-    expect(JSON.stringify(c.trace)).toContain("absent: loader default Menagerie (CSver < 34)");
+    expect(c.state.migrations).toEqual(["Menagerie = [] (loader: CSver < 34 @19944986, init @6586152)", "Menagerie filled (initialize4 @6336662)"]);
   });
   it("sticker 1 follows the same rule; any other sticker (b = 0) has no slot rule", () => {
     const c = sticker(0);

@@ -5,9 +5,8 @@ import { MissingSaveKey, NotPorted } from "../errors";
 /**
  * N.js `_customBlock_MenagerieStuff(d, b, e)` @5176140: one function, a chain of named sub-cases. Only the sub-cases the Artifact Find port reaches.
  * It opens with `if (0 == Menagerie.length) return 0`, the guard for the empty list the attribute starts as (@6586152). The game
- * never calculates on that list: right after the load, initialize4 fills it with lists of zeros (@6336662). `attr` gives a save
- * below CSver 34, which lacks the key (the loader reads it only from 34, @19945057), those lists (LOADER_DEFAULTS), so the guard
- * only meets an empty list that something hands it.
+ * never calculates on that list: right after the load, initialize4 fills an empty Menagerie with lists of zeros (@6336662), and
+ * lib/game/migrations does the same when the state is built, so the guard is never reached through a GameState.
  */
 export const MenagerieStuff: (ctx: Ctx, d: string, b: number, e: number) => number = block("MenagerieStuff", (ctx, d: string, b: number, _e: number) => {
   const menagerie = attr(ctx, "Menagerie"); // a save at or above CSver 34 without the key is refused (attr throws)

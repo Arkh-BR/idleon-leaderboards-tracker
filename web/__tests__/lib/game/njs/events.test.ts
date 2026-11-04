@@ -5,7 +5,7 @@
 import { describe, it, expect } from "vitest";
 import { existsSync, readFileSync } from "node:fs";
 import { basename } from "node:path";
-import { GOLDEN_SAVES, KNOWN_ARKH_DIFFS, arkhArtifactLeaf, gameCtx } from "../support/arkhOracle";
+import { GOLDEN_SAVES, KNOWN_ARKH_DIFFS, UNPORTED_REFUSALS, arkhArtifactLeaf, gameCtx } from "../support/arkhOracle";
 import { withPlayer, type Ctx, type TraceNode } from "@/lib/game/ctx";
 import { hString } from "@/lib/game/hstring";
 import { InvalidSaveValue, MissingSaveKey, NotPorted } from "@/lib/game/errors";
@@ -33,21 +33,15 @@ import { loadNjs } from "@/scripts/njs-calls";
 
 // ── the terms, written the way BoatArtiMulti writes them ────────────────────────────────────────
 // `want` turns lib/arkh's leaf into the same term (the leaf of a `max1` group is the raw factor, the group clamps it).
-// `blockers` lists, in the order the game reads them, the save keys a pre-migration save can lack: the port refuses those saves
-// (Ruling E). `needs` says when they are read at all (the vote is lazy: nothing of its multi is read unless vote 20 is in force).
+// Ruling E: an older save is read after the game's load steps (lib/game/migrations), so a term refuses only the saves older than the steps
+// ported (UNPORTED_REFUSALS), and only when it reads the save at all: `needs` says when (the vote is lazy: nothing of its multi is read
+// unless vote 20 is in force).
 type Data = Record<string, any>;
 type Term = {
   term: (c: Ctx) => number;
   want?: (leaf: number) => number;
   minSeen: number;
-  blockers?: ((d: Data) => string | null)[];
   needs?: (env: any) => boolean;
-};
-const lacksKey = (key: string) => (d: Data) => (key in d ? null : key);
-const lacksElement = (key: string, i: number) => (d: Data) => {
-  if (!(key in d)) return key;
-  const v = typeof d[key] === "string" ? JSON.parse(d[key]) : d[key];
-  return v?.[i] == null ? `${key}[${i}]` : null;
 };
 const TERMS: Record<string, Term> = {
   fractal3: { term: (c) => 20 * RandomEvent(c, "FractalIslandBonus", 3, 999), minSeen: 2 },
@@ -55,15 +49,14 @@ const TERMS: Record<string, Term> = {
   vault63: { term: (c) => Summoning(c, "VaultUpgBonus", 63, 0), minSeen: 5 },
   killroy: { term: (c) => Math.max(1, RandomEvent(c, "KillroyBonuses", 0, 0)), want: (l) => Math.max(1, l), minSeen: 5 },
   slugs: { term: (c) => Math.max(1, Math.pow(1.5, Stuff2(c, "PurpleChestSlugsOwned", 0, 0))), want: (l) => Math.max(1, l), minSeen: 2 },
-  // the Winner Bonus reads Arcane (Emperor bonus 8), missing from pre-migration saves. BundlesReceived (ban_i) is no blocker: an absent key
-  // is an account that never bought a bundle, read as the loader's empty map (Ruling H)
-  win3: { term: (c) => Summoning(c, "WinBonus", 3, 0), minSeen: 5, blockers: [lacksKey("Arcane")] },
+  // the Winner Bonus reads Arcane (Emperor bonus 8). BundlesReceived (ban_i) is no gap: an absent key is an account that never bought a
+  // bundle, read as the loader's empty map (Ruling H)
+  win3: { term: (c) => Summoning(c, "WinBonus", 3, 0), minSeen: 5 },
   // the vote reads its multi only while vote 20 is the one in force; the Palette then reads Spelunk[9] and Spelunk[49]
   vote20: {
     term: (c) => Summoning(c, "VotingBonusz", 20, 0),
     minSeen: 2,
     needs: (env) => env.serverVars?.voteCategories?.[0] == 20,
-    blockers: [lacksKey("Spelunk"), lacksElement("Spelunk", 49)],
   },
 };
 
@@ -83,7 +76,7 @@ function stateOf(path: string) {
 describe.skipIf(GOLDEN_SAVES.length === 0)("lib/game events, shops and votes terms against lib/arkh on every real save and character", () => {
   for (const id of Object.keys(TERMS)) {
     it(id, () => {
-      const { term, want: toWant = (l: number) => l, minSeen, blockers = [], needs = () => true } = TERMS[id];
+      const { term, want: toWant = (l: number) => l, minSeen, needs = () => true } = TERMS[id];
       const t0 = performance.now();
       const mismatches: string[] = [];
       const refused = new Set<string>();
@@ -92,9 +85,8 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("lib/game events, shops and votes ter
       let pairs = 0;
       for (const path of GOLDEN_SAVES) {
         const { ctx, chars, env } = stateOf(path);
-        // Ruling E, pinned per save and key: the first blocker the save lacks is the key the port refuses it on
-        const blocked = needs(env) ? blockers.map((b) => b(env.data)).find((k) => k !== null) : undefined;
-        if (blocked) expectedRefused.add(`${basename(path)}: ${blocked}`);
+        const unported = UNPORTED_REFUSALS.find((r) => r.startsWith(`${basename(path)}: `));
+        if (unported && needs(env)) expectedRefused.add(unported);
         for (let ci = 0; ci < chars; ci++) {
           if (KNOWN_ARKH_DIFFS.some((d) => d.save === basename(path) && (d.ci ?? ci) === ci && d.source === id)) continue;
           let got: number;
@@ -899,15 +891,6 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("VotingBonusz / VotingBonuszMulti / M
 // on them (Meritoc 9 is never active, for one). Here vote 20 is forced on every save, on a fresh clone per save (the oracle caches by
 // identity), and the game's VotingBonusz is compared with lib/arkh's on that same forced object.
 describe.skipIf(GOLDEN_SAVES.length === 0)("vote 20 forced on every real save, against lib/arkh", () => {
-  /** Zero-pads Spelunk[49] when the save lacks it. A TEST DEVICE, not a game default: the older saves would otherwise be refused at the Palette before the rest of the multi is read. */
-  const padSpelunk49 = (data: Data) => {
-    const text = typeof data.Spelunk === "string";
-    const spelunk = text ? JSON.parse(data.Spelunk) : data.Spelunk;
-    if (spelunk && spelunk[49] == null) {
-      spelunk[49] = Array(37).fill(0);
-      data.Spelunk = text ? JSON.stringify(spelunk) : spelunk;
-    }
-  };
   it("vote20", () => {
     const t0 = performance.now();
     const mismatches: string[] = [];
@@ -918,7 +901,6 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("vote 20 forced on every real save, a
     for (const path of GOLDEN_SAVES) {
       const env = JSON.parse(readFileSync(path, "utf8"));
       env.serverVars = { ...(env.serverVars ?? {}), voteCategories: [20, 24, 27, 32] };
-      padSpelunk49(env.data);
       const ctx = gameCtx(env, 0);
       for (let ci = 0; ci < env.charNames.length; ci++) {
         if (KNOWN_ARKH_DIFFS.some((d) => d.save === basename(path) && (d.ci ?? ci) === ci && d.source === "vote20")) continue;
@@ -944,8 +926,8 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("vote 20 forced on every real save, a
     expect(pairs).toBeGreaterThan(1000); // a loop over nothing would pass
     expect(seen.size).toBeGreaterThan(50); // nor would a multi that is the same on every save
     expect(meritocActive).toBeGreaterThan(0); // the Meritoc 9 chain, which no real server answer reaches, is exercised on real data here
-    // Ruling E, pinned per save and key: HourZero (CSver 23.05) has no Spelunk at all, 5OhTree (29.05) no Sushi
-    expect([...refused].sort()).toEqual(["5OhTree.json: Sushi", "HourZero.json: Spelunk"]);
+    // Ruling E: the older saves are read after the game's load steps (their Spelunk[49] included); only the two older than the steps ported are refused
+    expect([...refused].sort()).toEqual(UNPORTED_REFUSALS);
   }, 300_000);
 });
 

@@ -145,8 +145,8 @@ const tomeScores = new WeakMap<GameState, { total: number; covered: number; rows
  * `DNSM.TomeQTYtot`, the account's Tome score: the Tome actor's `GenInfo[84]` (ActorEvents_229), which sums `Summoning("TomePTS", g)`
  * over `DNSM.TomeQTY` @5779007 and keeps it in `TomeQTYtot` @5778865. It is runtime state this engine does not replay, so it stands in
  * with our own port of the Tome, `computeTome` (lib/tome, written from the N.js, validated in the game on 2026-11-03), run on the save
- * (Ruling K). Nothing IdleonToolbox computed is read: the envelope is rebuilt without `parsedData` and `extraData`, which would make
- * `computeTome` take IT's per-task points.
+ * as the state holds it, after the game's load steps (lib/game/migrations) (Ruling K). Nothing IdleonToolbox computed is read: the
+ * envelope is rebuilt without `parsedData` and `extraData`, which would make `computeTome` take IT's per-task points.
  *
  * `computeTome` does not throw for a row it cannot compute (the save lacks what it reads): it counts it as no points. That would make a
  * pre-migration save's score a silent floor, so a result with fewer rows computed than rows is refused (`IncompleteTome`, a

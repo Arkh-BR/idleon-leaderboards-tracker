@@ -4,7 +4,7 @@
 import { describe, it, expect } from "vitest";
 import { existsSync, readFileSync } from "node:fs";
 import { basename } from "node:path";
-import { GOLDEN_SAVES, KNOWN_ARKH_DIFFS, arkhArtifactLeaf, gameCtx } from "../support/arkhOracle";
+import { GOLDEN_SAVES, KNOWN_ARKH_DIFFS, UNPORTED_REFUSALS, arkhArtifactLeaf, gameCtx } from "../support/arkhOracle";
 import { withPlayer, type Ctx, type TraceNode } from "@/lib/game/ctx";
 import { InvalidSaveValue, MissingSaveKey, NotPorted } from "@/lib/game/errors";
 import { Breeding } from "@/lib/game/njs/Breeding";
@@ -69,8 +69,9 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("lib/game pets and companions terms a
       expect(mismatches).toEqual([]);
       expect(pairs).toBeGreaterThan(100); // a loop over nothing would pass
       expect(seen.size).toBeGreaterThan(minSeen); // nor would a term that is the same number everywhere
-      // no save is refused: the pre-34 saves lack Menagerie, and the game loading them keeps its init `[]` (LOADER_DEFAULTS)
-      expect(refused).toEqual([]);
+      // the pre-34 saves lack Menagerie: the game's load fills in its own lists (lib/game/migrations), so only the saves older than the
+      // load steps ported are refused
+      expect([...new Set(refused.map((r) => r.replace(/#\d+: /, ": ")))].sort()).toEqual(UNPORTED_REFUSALS);
     }, 120_000);
   }
 });
@@ -261,13 +262,15 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("nightmariner (MenagerieStuff Nightma
     expect(MenagerieStuff(variant((d) => setIn(d, "Menagerie", (m) => (m[2].length = 5))), "UnlockOwned", 13, 0)).toBe(0); // past the list: asNumber(null)
     expect(() => MenagerieStuff(variant((d) => setIn(d, "Menagerie", (m) => (m[2] = null))), "UnlockOwned", 13, 0)).toThrow(MissingSaveKey);
   });
-  it("an empty Menagerie list is a legal state and every sub-case is 0 (the head guard `0 == Menagerie.length`, @5176140)", () => {
+  it("an empty Menagerie list is never read as such: the game's load fills it (initialize4 @6336662) before the head guard `0 == Menagerie.length` (@5176140) could see it", () => {
+    // `[]` in a save is a synthetic edge (the attribute starts as `[]`, and the fill runs on every load)
     const empty = () => variant((d) => (d.Menagerie = []));
-    expect(MenagerieStuff(empty(), "UnlockOwned", 13, 0)).toBe(0);
-    expect(MenagerieStuff(empty(), "NightmarinerTotLV", 0, 0)).toBe(0); // not the boats' total, which is non-zero on this save
-    expect(MenagerieStuff(empty(), "NightmarinerBon", 0, 0)).toBe(0); // 0, not 1: the guard returns before the sub-case
-    expect(MenagerieStuff(variant(() => {}), "NightmarinerTotLV", 0, 0)).toBeGreaterThan(0);
-    expect(() => MenagerieStuff(variant((d) => delete d.Menagerie), "UnlockOwned", 13, 0)).toThrow(MissingSaveKey); // a missing key is still refused
+    expect(empty().state.migrations).toEqual(["Menagerie filled (initialize4 @6336662)"]);
+    expect(MenagerieStuff(empty(), "UnlockOwned", 13, 0)).toBe(0); // the fill owns no unlock
+    expect(MenagerieStuff(empty(), "NightmarinerTotLV", 0, 0)).toBe(MenagerieStuff(variant(() => {}), "NightmarinerTotLV", 0, 0)); // the boats' total, not the guard's 0
+    expect(MenagerieStuff(empty(), "NightmarinerTotLV", 0, 0)).toBeGreaterThan(0);
+    expect(MenagerieStuff(empty(), "NightmarinerBon", 0, 0)).toBe(1); // unlock 13 not owned: 1, not the guard's 0
+    expect(() => MenagerieStuff(variant((d) => delete d.Menagerie), "UnlockOwned", 13, 0)).toThrow(MissingSaveKey); // a missing key at CSver 34.05 is still refused
   });
   it.skipIf(!existsSync("scripts/updater/.cache/N.new.js"))("calls what N.js calls", () => {
     const fn = njsFunction(loadNjs(), "MenagerieStuff")!;

@@ -3,8 +3,8 @@
 
 /**
  * The save version (`data.CSver`) the N.js loader maps in full (Menagerie, Spelunk, Research...). A save below it is pre-migration:
- * the game migrates it on load, this engine refuses it with a MissingSaveKey (Ruling E), except for an attribute with a
- * LOADER_DEFAULTS entry (lib/game/attr), where it reads the value the game itself gives.
+ * the game migrates it on load. This engine replays the load steps Artifact Find needs (lib/game/migrations) and refuses, with a
+ * MissingSaveKey (Ruling E), what they do not give.
  */
 export const CURRENT_CSVER = 34.05;
 

@@ -27,7 +27,7 @@ import { TRACKERS } from "@/lib/game/trackers";
 import type { StatResult } from "@/lib/statTracker/config";
 import { callDiff, njsCalls, njsFunction, njsNamedBlocks, traceCalls } from "@/lib/diagnose/njsCalls";
 import { loadNjs } from "@/scripts/njs-calls";
-import { GOLDEN_SAVES, KNOWN_ARKH_DIFFS, arkhArtifactLeaf, arkhArtifactTree, gameCtx } from "../support/arkhOracle";
+import { GOLDEN_SAVES, KNOWN_ARKH_DIFFS, UNPORTED_REFUSALS, arkhArtifactLeaf, arkhArtifactTree, gameCtx } from "../support/arkhOracle";
 
 const rel = (got: number, want: number) => Math.abs(got - want) <= 1e-9 * Math.max(1, Math.abs(want));
 const relErr = (got: number, want: number) => Math.abs(got - want) / Math.max(1, Math.abs(want));
@@ -179,22 +179,12 @@ describe("the display config", () => {
 
 // ── the totals ──────────────────────────────────────────────────────────────────────────────────
 // Ruling E: a save missing a key the current N.js loader maps stays a strict MissingSaveKey, so the adapter refuses it (it throws; Task 10
-// decides what the page shows). Every one is a pre-migration save (below the current CSver, checked in the loop). Menagerie (CSver 34) is no
-// longer a reason: the game fills it in itself (LOADER_DEFAULTS, Task 11). The 31 saves that lacked it are still refused, now for the next
-// key the expression reads that they lack, pinned exactly (the first key, in the order the expression reads them):
-//   - Spelunk[49]: the list the game adds to an older Spelunk in its DoOnceREAL migration (@6465395, `50 > Spelunk.length`), which no loader
-//     default covers (22 saves, among them the four 09/23 and 09/24 saves of ARKHE);
-//   - Tome rows 107,108,109: lib/tome cannot compute the Royal Guardian rows of a save below CSver 34 (IncompleteTome, 7 saves);
-//   - 5OhTree has no Sushi, HourZero no Research.
-const NO_SPELUNK49 = ["01010111001.json","0xEXCEED.json","1st_Giri.json","26515665165165.json","B0schi.json","Dragonlzl.json","FenrirAdra.json","Frans813.json","Grandesz.json","Jrod11.json","MarleyLongbott.json","Pepega777.json","Rinkzate.json","TinTim.json","arkhe-2026-09-23.json","arkhe-it-profile-2026-09-24.json","arkhe-live-2026-09-23.json","arkhe-live-2026-09-24.json","breakinbrad.json","dida123.json","joelok.json","ryujinsan.json"];
-const TOME_PARTIAL = ["0celot8.json","100Cotton.json","24632463.json","Brokami.json","Exrom.json","GIM_SSS.json","Pontinhas.json"];
+// decides what the page shows). An older save is computed after the game's own load steps (lib/game/migrations, Task 12): the 31 saves below
+// CSver 34.05 lacked Menagerie, Spelunk[49] (and [47..48]) or the Royal Guardian lists of the Tome, which the load gives them. Only the saves
+// older than the steps ported stay refused (UNPORTED_REFUSALS), below the current CSver (checked in the loop).
 const CURRENT_CSVER = 34.05;
-const REFUSED_SAVES = [
-  ...NO_SPELUNK49.map((f) => `${f}: Spelunk[49]`),
-  ...TOME_PARTIAL.map((f) => `${f}: Tome rows 107,108,109`),
-  "5OhTree.json: Sushi",
-  "HourZero.json: Research",
-].sort();
+/** The real saves below the current CSver that compute now, through the load steps (Task 12): 29 names, 31 files. */
+const MIGRATED = ["01010111001.json","0celot8.json","0xEXCEED.json","100Cotton.json","1st_Giri.json","24632463.json","26515665165165.json","B0schi.json","Brokami.json","Dragonlzl.json","Exrom.json","FenrirAdra.json","Frans813.json","GIM_SSS.json","Grandesz.json","Jrod11.json","MarleyLongbott.json","Pepega777.json","Pontinhas.json","Rinkzate.json","TinTim.json","arkhe-2026-09-23.json","arkhe-it-profile-2026-09-24.json","arkhe-live-2026-09-23.json","arkhe-live-2026-09-24.json","breakinbrad.json","dida123.json","joelok.json","ryujinsan.json"];
 const csverOf = (file: string): number => JSON.parse(readFileSync(GOLDEN_SAVES.find((p) => basename(p) === file)!, "utf8")).data.CSver;
 
 describe.skipIf(noSaves)("computeGameArtifactFind against lib/arkh on every real save and character", () => {
@@ -204,6 +194,7 @@ describe.skipIf(noSaves)("computeGameArtifactFind against lib/arkh on every real
     const leafMismatches: string[] = [];
     const display: string[] = [];
     const refused = new Set<string>();
+    const migrated = new Set<string>();
     const seenTotals = new Set<number>();
     let pairs = 0;
     let known = 0;
@@ -218,6 +209,7 @@ describe.skipIf(noSaves)("computeGameArtifactFind against lib/arkh on every real
           refusedPairs++;
           continue;
         }
+        if (stateOf(path).state.migrations.length) migrated.add(file);
         // display and value agree: the groups recombine, the way lib/arkh combines them (its own groupVal / applyGroupStep), to the call's total
         let rebuilt = 1;
         ARTI_GROUPS.forEach((g, gi) => {
@@ -254,9 +246,21 @@ describe.skipIf(noSaves)("computeGameArtifactFind against lib/arkh on every real
     expect(pairs).toBeGreaterThan(500); // a loop over nothing would pass
     expect(seenTotals.size).toBeGreaterThan(100); // nor would one number everywhere
     expect(known).toBeGreaterThan(0);
-    expect(refusals).toEqual(REFUSED_SAVES);
+    expect(refusals).toEqual(UNPORTED_REFUSALS);
     for (const f of refusals) expect(csverOf(f.split(": ")[0]), `${f} is pre-migration`).toBeLessThan(CURRENT_CSVER);
+    // the older saves the load steps make computable
+    expect([...migrated].sort()).toEqual(MIGRATED);
   }, 600_000);
+
+  it("an older save is computed after the game's load steps, and the root of its tree says which ran", () => {
+    const path = GOLDEN_SAVES.find((p) => basename(p) === "arkhe-live-2026-09-23.json"); // CSver 33.05, DoOnceREAL 389.1
+    expect(path).toBeDefined();
+    const steps = ["Menagerie = [] (loader: CSver < 34 @19944986, init @6586152)", "Menagerie filled (initialize4 @6336662)", "OnPlayStart4 DoOnceREAL < 395 @6465133"];
+    expect(stateOf(path!).state.migrations).toEqual(steps);
+    const { tree } = gameArtifactFind(stateOf(path!).state, 0);
+    expect(tree.note).toBe(`migrated: the game's load steps ran on this older save: ${steps.join("; ")}`);
+    expect(gameArtifactFind(stateOf(ARKHE_11_01).state, 0).tree.note).toBeUndefined(); // a current save: nothing ran
+  });
 
   it("a refused save throws instead of answering a number", () => {
     const hour = GOLDEN_SAVES.find((p) => basename(p) === "HourZero.json");

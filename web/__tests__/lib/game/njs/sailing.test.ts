@@ -4,7 +4,7 @@
 import { describe, it, expect } from "vitest";
 import { existsSync, readFileSync } from "node:fs";
 import { basename } from "node:path";
-import { GOLDEN_SAVES, KNOWN_ARKH_DIFFS, arkhArtifactLeaf, gameCtx } from "../support/arkhOracle";
+import { GOLDEN_SAVES, KNOWN_ARKH_DIFFS, UNPORTED_REFUSALS, arkhArtifactLeaf, gameCtx } from "../support/arkhOracle";
 import { asNum } from "@/lib/game/attr";
 import { withPlayer, type Ctx } from "@/lib/game/ctx";
 import { MissingSaveKey, NotPorted } from "@/lib/game/errors";
@@ -68,11 +68,8 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("lib/game Sailing terms against lib/a
       expect(mismatches).toEqual([]);
       expect(pairs).toBeGreaterThan(100); // a loop over nothing would pass
       expect(seen.size).toBeGreaterThan(5); // nor would a term that is the same number everywhere
-      // strict mode: a save the game never gave this key (CSver < 27/29: no Spelunk/Research) is refused, not read as 0
-      if (id === "davey") {
-        expect(new Set(refused.map((r) => r.split(": ")[0].split("#")[0]))).toEqual(new Set(["HourZero.json"]));
-        expect(refused.every((r) => /: (Spelunk|Research)$/.test(r))).toBe(true);
-      } else expect(refused).toEqual([]);
+      // strict mode: an older save is read after the game's load steps (lib/game/migrations); one older than the steps ported is refused
+      expect([...new Set(refused.map((r) => r.replace(/#\d+: /, ": ")))].sort()).toEqual(UNPORTED_REFUSALS);
     }, 120_000);
   }
 });

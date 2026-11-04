@@ -11,6 +11,7 @@
 //     `opt` included. `opt(...) ?? fallback` can therefore never hide bad data.
 import type { SaveEnvelope } from "@/lib/gameAuth/envelope";
 import { InvalidSaveValue, MissingSaveKey } from "./errors";
+import { migrate } from "./migrations";
 
 /** The save envelope. `extraData` is only stamped on some saves, so it is optional. */
 export type GameEnvelope = Omit<SaveEnvelope, "extraData"> & {
@@ -20,8 +21,15 @@ export type GameEnvelope = Omit<SaveEnvelope, "extraData"> & {
 type Idx = string | number;
 
 export class GameState {
-  /** Every save key. JSON strings are parsed; null-prototype object, so `__proto__` is just a key. */
-  readonly data: Readonly<Record<string, unknown>>;
+  readonly #data: Readonly<Record<string, unknown>>;
+  /**
+   * Every save key, after the game's load steps (lib/game/migrations). JSON strings are parsed; null-prototype object, so `__proto__` is
+   * just a key. Reading it throws `refusal` when there is one: nothing is computed on a save the load could not be replayed for.
+   */
+  get data(): Readonly<Record<string, unknown>> {
+    if (this.refusal) throw this.refusal;
+    return this.#data;
+  }
   /** Keys that looked like JSON (`[`/`{`) but did not parse: key -> the raw text. The accessors refuse them. */
   readonly corrupt: Readonly<Record<string, string>>;
   readonly charNames: readonly string[];
@@ -32,10 +40,15 @@ export class GameState {
   readonly accountCreateTime: number;
   readonly lastUpdated: number;
   readonly extraData: Readonly<Record<string, unknown>> | undefined;
+  /** The load steps of the game that ran on this save (lib/game/migrations), in order: `data` is the save after them. Empty for a current save. */
+  readonly migrations: readonly string[];
+  /** Why the load steps could not be replayed on this save (a key they need is absent, or the save is older than the steps ported). */
+  readonly refusal: MissingSaveKey | InvalidSaveValue | undefined;
 
   /**
    * Validates the envelope, then builds a frozen private copy of it (the caller's
-   * envelope stays mutable: the old engine writes into it). There is no way to
+   * envelope stays mutable: the old engine writes into it), with the game's load
+   * steps applied to the copy (lib/game/migrations). There is no way to
    * construct an unfrozen state. Top-level extras (e.g. `parsedData`) are ignored.
    */
   constructor(env: GameEnvelope) {
@@ -49,7 +62,10 @@ export class GameState {
       data[k] = parsed.value;
       if (parsed.corrupt) corrupt[k] = parsed.value as string;
     }
-    this.data = Object.freeze(data);
+    const loaded = migrate(data, corrupt);
+    this.migrations = Object.freeze(loaded.steps);
+    this.refusal = loaded.refusal;
+    this.#data = deepFreeze(data);
     this.corrupt = Object.freeze(corrupt);
     this.charNames = frozenCopy(field(e, "charNames", "an array", Array.isArray)) as string[];
     this.companion = frozenCopy(field(e, "companion", "an object or null", () => true));
@@ -107,12 +123,13 @@ const frozenCopy = <T>(v: T): T =>
  * `"8,_,_,"`, even `"123"`) is the save's own text and stays a string. A string
  * that starts with `[`/`{` but does not parse is corrupt data: it is flagged so
  * the accessors refuse it instead of passing it off as a value or as absent.
+ * The value is a private copy, not frozen yet: the load steps change it first.
  */
 function parseSaveValue(v: unknown): { value: unknown; corrupt: boolean } {
-  if (typeof v !== "string") return { value: frozenCopy(v), corrupt: false };
+  if (typeof v !== "string") return { value: v !== null && typeof v === "object" ? structuredClone(v) : v, corrupt: false };
   if (v[0] !== "[" && v[0] !== "{") return { value: v, corrupt: false };
   try {
-    return { value: deepFreeze(JSON.parse(v)), corrupt: false };
+    return { value: JSON.parse(v), corrupt: false };
   } catch {
     return { value: v, corrupt: true };
   }
@@ -129,12 +146,12 @@ const address = (key: string, idx: readonly Idx[]): string => key + idx.map((i) 
  * a corrupt key, a step into a non-container (indexing a string would silently
  * yield a character), or a string index on an array (`"0"`, `"length"`).
  */
-function lookup(state: Pick<GameState, "data" | "corrupt">, key: string, idx: readonly Idx[]): unknown {
+function lookup(state: GameState, key: string, idx: readonly Idx[]): unknown {
+  let cur: unknown = state.data; // first: a state with a refusal throws it before anything else
   if (Object.hasOwn(state.corrupt, key)) {
     throw new InvalidSaveValue(key, "valid JSON", state.corrupt[key]);
   }
   const path = [key, ...idx];
-  let cur: unknown = state.data;
   for (let i = 0; i < path.length; i++) {
     const step = path[i];
     // `cur` is always an object/array here: state.data at i=0, checked below after.
@@ -161,10 +178,7 @@ export function num(state: GameState, key: string, ...idx: Idx[]): number {
   return v;
 }
 
-/**
- * The explicit "may be absent" accessor: the value, or `undefined` when the address is absent. Wrong-shape data still throws.
- * It reads any `{ data, corrupt }` pair, so a value that is not in the save (a loader default, `attr`) is walked the same way.
- */
-export function opt(state: Pick<GameState, "data" | "corrupt">, key: string, ...idx: Idx[]): unknown {
+/** The explicit "may be absent" accessor: the value, or `undefined` when the address is absent. Wrong-shape data still throws. */
+export function opt(state: GameState, key: string, ...idx: Idx[]): unknown {
   return lookup(state, key, idx);
 }

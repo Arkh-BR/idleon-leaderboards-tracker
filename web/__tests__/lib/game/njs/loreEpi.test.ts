@@ -78,7 +78,7 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("Thingies LoreEpiBon at controlled To
             got = term(withPlayer(ctx, ci));
           } catch (e) {
             if (!(e instanceof MissingSaveKey)) throw e;
-            continue; // HourZero: no Spelunk (pinned in w7Systems.test.ts)
+            continue; // the saves older than the load steps ported (UNPORTED_REFUSALS, pinned in w7Systems.test.ts)
           }
           const want = arkhArtifactLeaf(env, ci, "loreEpi3");
           pairs++;

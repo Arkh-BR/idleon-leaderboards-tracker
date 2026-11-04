@@ -9,6 +9,7 @@ import { computeArkhArtifactFind } from "@/lib/arkh/computeArtifactFind";
 import { ARTI_GROUPS } from "@/lib/arkh/stats/defs/artifact-find";
 import type { ArkhNode } from "@/lib/arkh/node";
 import { makeCtx, type Ctx } from "@/lib/game/ctx";
+import { UNPORTED_STEPS } from "@/lib/game/migrations";
 import { buildGameState, type GameEnvelope } from "@/lib/game/state";
 
 // lib/arkh reads `window` when it runs; the happy-dom env has one, a bare node env does not.
@@ -99,6 +100,14 @@ export function arkhArtifactLeaf(save: unknown, ci: number, sourceId: string): n
   return leaf.val;
 }
 
+/**
+ * What every lib/game loop over the real saves refuses (Ruling E), as `<file>: <key>`, sorted: the game's load steps are replayed on an
+ * older save (lib/game/migrations), so a save is refused only when it is older than the oldest step ported (DoOnceREAL below
+ * OLDEST_GATE), and then for every read. Two real saves are; neither could compute anyway (their Sushi, below CSver 30, is the
+ * game's attribute default, which N.js does not hold).
+ */
+export const UNPORTED_REFUSALS: readonly string[] = ["5OhTree.json", "HourZero.json"].map((f) => `${f}: ${UNPORTED_STEPS}`);
+
 /** The lib/game Ctx for character `ci` of a parsed save, on map 0 (what Artifact Find uses). */
 export const gameCtx = (save: unknown, ci: number, trace?: boolean): Ctx =>
   makeCtx(buildGameState(save as GameEnvelope), { player: ci, map: 0, trace });
@@ -110,9 +119,19 @@ const TOME_SOURCE =
   "lib/arkh reads IdleonToolbox's parsedData tome total; lib/game uses lib/tome (N.js port, validated in game 2026-11-03) for the Tome actor's GenInfo[84] @5778865 (the Lore Episode reads it). With the total forced to IdleonToolbox's number for this save, lib/game equals lib/arkh (loreEpi.test.ts)";
 /** The saves whose loreEpi3 differs only because the Tome total of lib/tome is not the one IdleonToolbox stamped (checked in loreEpi.test.ts). */
 const TOME_SOURCE_SAVES = [
-  "1st_Giri.json", "Dragonlzl.json", "FenrirAdra.json", "Flipper143.json", "Grandesz.json", "Koweabooo.json", "arkhe-2026-09-23.json",
-  "bluestar3112.json", "breakinbrad.json", "hellzd4nt3.json", "joelok.json",
-]; // only full-coverage saves: a save with a Tome row lib/tome cannot compute is refused (IncompleteTome), not a difference
+  "1st_Giri.json", "24632463.json", "Dragonlzl.json", "Exrom.json", "FenrirAdra.json", "Flipper143.json", "GIM_SSS.json", "Grandesz.json",
+  "Koweabooo.json", "arkhe-2026-09-23.json", "bluestar3112.json", "breakinbrad.json", "hellzd4nt3.json", "joelok.json",
+]; // only full-coverage saves: a save with a Tome row lib/tome cannot compute is refused (IncompleteTome), not a difference. The older ones
+// (below CSver 34) are scored after the game's load steps (lib/game/migrations): IdleonToolbox's 118 rows have none of the Royal Guardian
+// rows (107..109) the load gives them, and it stamped its number on the save as stored
+
+/**
+ * 0celot8 (DoOnceREAL 367.1) runs the load step DoOnceREAL < 378 (@6459191), which resets OptionsListAccount[200], the account's highest
+ * Drop Rate (the Tome's row 31 "Highest Drop Rate Multi"), to 1: lib/tome scores the save after it (raw 1, 38 points); IdleonToolbox's
+ * number scored the stored record (251.24, 458 points). The game raises the record again from the live Drop Rate as soon as a character
+ * plays (@5739878), which is runtime.
+ */
+const TOME_AFTER_RESET = `${TOME_SOURCE}. On top of that, this save runs the load step DoOnceREAL < 378 (@6459191), which resets the highest Drop Rate (OptionsListAccount[200], the Tome's row 31) to 1; IdleonToolbox scored the stored record. The game raises it again from the live Drop Rate when a character plays (@5739878, runtime)`;
 
 /**
  * Where N.js proves lib/arkh wrong and lib/game keeps the N.js value. `save` is the file name of the
@@ -129,4 +148,5 @@ export const KNOWN_ARKH_DIFFS: { save: string; ci?: number; source: string; why:
   { save: "Koweabooo.json", ci: 10, source: "button3", why: `${COMPANION_0_GATE}. The Minehead cache is per session in the game, not per character: lib/game models it as built for the current character (Minehead.ts), so the game shows this value only if the session's first Minehead read was on this character` },
   // Ruling K: the Tome score of the Lore Episode is lib/tome's, not IdleonToolbox's (ci omitted: every character)
   ...TOME_SOURCE_SAVES.map((save) => ({ save, source: "loreEpi3", why: TOME_SOURCE })),
+  { save: "0celot8.json", source: "loreEpi3", why: TOME_AFTER_RESET },
 ];

@@ -16,7 +16,7 @@
 // port that needs the changed value rebuilds it from those keys.
 import type { Ctx } from "./ctx";
 import { SAVE_ATTRS } from "./data/saveAttrs.gen";
-import { MissingSaveKey, UnknownAttribute } from "./errors";
+import { UnknownAttribute } from "./errors";
 import { charKey, opt } from "./state";
 import { traceNode } from "./trace";
 
@@ -42,27 +42,6 @@ export const RUNTIME_ATTRS: readonly { name: string; reason: string }[] = [
   { name: "PlayerDATABASE", reason: "assembled by the loader from the per-character attributes: read those with withPlayer(ctx, ci)" },
   { name: "UserInfo", reason: "session runtime: filled by the server login, not from a save key" },
 ];
-
-/**
- * Attributes the cloud loader replaces only when `minCSver <= CSver` (`gateAt`). A save below the gate that lacks the key is not
- * broken: the game loading it keeps the attribute as it started (`initAt`) and, once the load is done, its own init code completes
- * it (`fillAt`). `init` is that final value, what every calculation of the game reads, so it is what `attr` returns. A save at or
- * above the gate without the key is a real gap and still throws. Hand-listed from N.js, one entry per attribute a port needs;
- * attr.test.ts reads every entry back from the live N.js, so a game update that moves or changes one fails there.
- */
-export const LOADER_DEFAULTS: Readonly<Record<string, { minCSver: number; init: unknown; initAt: number; fillAt: number; gateAt: number }>> = {
-  // Menagerie starts as `[]` (`d.gameAttributes.h.Menagerie = []` @6586152). The loader reads it only under `34 <= getLoad("CSver")`
-  // @19945057 and then calls initialize1, whose chain ends in initialize4, where `if (0 == Menagerie.length)` pushes eight lists of
-  // zeros (20, 50, 50, 50, 14, 9, 17 and 17 long) @6336662: no unlock owned, nothing leveled. MenagerieStuff's own `0 == length` guard
-  // never sees the empty list in the game, because this fill runs first.
-  Menagerie: {
-    minCSver: 34,
-    init: [20, 50, 50, 50, 14, 9, 17, 17].map((n) => Array<number>(n).fill(0)),
-    initAt: 6586152,
-    fillAt: 6336662,
-    gateAt: 19945057,
-  },
-};
 
 const runtimeReason = new Map(RUNTIME_ATTRS.map((r) => [r.name, r.reason]));
 
@@ -92,32 +71,14 @@ function unknownWhy(name: string, element: string | undefined): [string, string?
  * Throws `UnknownAttribute` for a name the loader does not load, `MissingSaveKey` (naming the save
  * key) when the save lacks the key, `InvalidSaveValue` when something on the path cannot be
  * indexed; an index the save does not have gives `undefined` (the caller decides: `asNum` is 0).
- * The one exception to the missing key: a LOADER_DEFAULTS attribute on a save below its `minCSver` reads the game's init value.
+ * The save is read after the game's load steps (lib/game/migrations): an attribute an older save lacks that the game itself fills
+ * in on load (Menagerie below CSver 34...) is there.
  */
 export function attr(ctx: Ctx, name: string, ...idx: Idx[]): unknown {
   const { entry, rest } = resolve(name, idx);
   const key = entry.perPlayer ? charKey(entry.key, ctx.player) : entry.key;
-  const saved = opt(ctx.state, key);
-  if (saved !== undefined) return rest.length ? opt(ctx.state, key, ...rest) : saved;
-  const init = loaderDefault(ctx, name, key);
-  if (ctx.trace) {
-    const { minCSver, initAt, fillAt } = LOADER_DEFAULTS[name];
-    ctx.trace.children.push(traceNode(ctx.trace, ctx.player, "(absent)", [address(name, idx)], 0, `absent: loader default ${name} (CSver < ${minCSver}) @${initAt}, filled @${fillAt}`));
-  }
-  return rest.length ? opt({ data: { [key]: init }, corrupt: {} }, key, ...rest) : init;
-}
-
-/**
- * What the game holds for `name` when the save lacks its `key`: a fresh copy of the init value if `name` is in LOADER_DEFAULTS and the
- * save is below the loader's gate, else `MissingSaveKey`. The gate is N.js's own comparison, `minCSver <= c.asNumber(CSver)`, so a
- * save without a CSver is not "below" (the game's null would be) and is refused.
- */
-function loaderDefault(ctx: Ctx, name: string, key: string): unknown {
-  if (!Object.hasOwn(LOADER_DEFAULTS, name)) throw new MissingSaveKey(key);
-  const { minCSver, init } = LOADER_DEFAULTS[name];
-  const csver = opt(ctx.state, "CSver");
-  if (csver === undefined || minCSver <= asNumber(csver)) throw new MissingSaveKey(key);
-  return structuredClone(init);
+  const whole = ctx.state.get(key);
+  return rest.length ? opt(ctx.state, key, ...rest) : whole;
 }
 
 /**

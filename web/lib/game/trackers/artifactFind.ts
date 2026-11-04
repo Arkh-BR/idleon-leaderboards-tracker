@@ -148,7 +148,9 @@ export function gameArtifactFind(state: GameState, charIdx: number): StatResult 
   // outer Math.max(1, ...) is applied to the product, as N.js does.
   const rebuilt = Math.max(1, groups.reduce((t, g) => t * g.val, 1));
   if (!(Math.abs(rebuilt - total) <= 1e-9 * Math.max(1, Math.abs(total)))) throw new TreeTotalMismatch(total, rebuilt);
-  return { tree: { name: ARTI_ROOT, val: total, fmt: "x", children: groups }, total };
+  // An older save is computed after the game's own load steps (lib/game/migrations): the root says which ran, like the trace's notes
+  const migrated = state.migrations.length ? { note: `migrated: the game's load steps ran on this older save: ${state.migrations.join("; ")}` } : {};
+  return { tree: { name: ARTI_ROOT, val: total, fmt: "x", ...migrated, children: groups }, total };
 }
 
 // The page calls compute(save, charIdx) with the same parsed save object on every character switch (StatCalculator keeps it in state), so

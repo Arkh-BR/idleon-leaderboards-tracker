@@ -4,7 +4,7 @@
 import { describe, it, expect } from "vitest";
 import { existsSync, readFileSync } from "node:fs";
 import { basename } from "node:path";
-import { GOLDEN_SAVES, KNOWN_ARKH_DIFFS, arkhArtifactLeaf, gameCtx } from "../support/arkhOracle";
+import { GOLDEN_SAVES, KNOWN_ARKH_DIFFS, UNPORTED_REFUSALS, arkhArtifactLeaf, gameCtx } from "../support/arkhOracle";
 import { withPlayer, type Ctx } from "@/lib/game/ctx";
 import { IncompleteTome, InvalidSaveValue, MissingSaveKey, NotPorted } from "@/lib/game/errors";
 import { ChipDesc as ChipDescData, LabMainBonus, NinjaInfo, Number2Letter, Spelunky, UpgradeVault } from "@/lib/game/data";
@@ -62,39 +62,11 @@ function stateOf(path: string) {
   return s;
 }
 
-// Ruling E: a save missing a key the current N.js loader maps stays a strict MissingSaveKey. `save: key` pairs, pinned exactly per
-// term; every one is a pre-migration save (below the current CSver, checked in the loop).
+// Ruling E: a save missing a key the current N.js loader maps stays a strict MissingSaveKey. An older save is read after the game's own load
+// steps (lib/game/migrations): Menagerie below CSver 34, the Spelunk lists Spelunk[47..53] (DoOnceREAL 380 and 395), the Royal Guardian
+// lists of the Tome's rows 107..109 below CSver 33. So the refusals are the saves older than the steps ported, the same for every term
+// (UNPORTED_REFUSALS), all below the current CSver (checked in the loop).
 const CURRENT_CSVER = 34.05;
-// Sushi is loaded from CSver 30, Research from 29, Spelunk from 27, Arcane from 25; Spelunk[49] is a list the Spelunk of the older saves
-// does not have yet (Spelunk itself loads from CSver 27). starSign61 reads the Breeding's Shiny bonus 3 through the Menagerie (unlock 11)
-// whenever the Rift enables star signs (Rift 10+, every real save). Menagerie loads from CSver 34, but a save below it is not refused: the game
-// fills in its own lists (LOADER_DEFAULTS), so the 31 saves without it compute (unlock 0) and equal lib/arkh.
-// loreEpi3 also reads the Tome score: lib/tome cannot compute the Royal Guardian rows (107..109, and 120 Unique Sushi on 5OhTree) of the saves
-// below CSver 34, and a partial score is refused (IncompleteTome). HourZero has no Spelunk, which is read first.
-const LORE_REFUSED = [
-  "0celot8.json: Tome rows 107,108,109",
-  "100Cotton.json: Tome rows 107,108,109",
-  "24632463.json: Tome rows 107,108,109",
-  "5OhTree.json: Tome rows 107,108,109,120",
-  "Brokami.json: Tome rows 107,108,109",
-  "Exrom.json: Tome rows 107,108,109",
-  "GIM_SSS.json: Tome rows 107,108,109",
-  "HourZero.json: Spelunk",
-  "Pontinhas.json: Tome rows 107,108,109",
-];
-const NO_SPELUNK49 = ["01010111001.json: Spelunk[49]","0celot8.json: Spelunk[49]","0xEXCEED.json: Spelunk[49]","100Cotton.json: Spelunk[49]","1st_Giri.json: Spelunk[49]","24632463.json: Spelunk[49]","26515665165165.json: Spelunk[49]","5OhTree.json: Spelunk[49]","B0schi.json: Spelunk[49]","Brokami.json: Spelunk[49]","Dragonlzl.json: Spelunk[49]","Exrom.json: Spelunk[49]","FenrirAdra.json: Spelunk[49]","Frans813.json: Spelunk[49]","GIM_SSS.json: Spelunk[49]","Grandesz.json: Spelunk[49]","HourZero.json: Spelunk","Jrod11.json: Spelunk[49]","MarleyLongbott.json: Spelunk[49]","Pepega777.json: Spelunk[49]","Pontinhas.json: Spelunk[49]","Rinkzate.json: Spelunk[49]","TinTim.json: Spelunk[49]","arkhe-2026-09-23.json: Spelunk[49]","arkhe-it-profile-2026-09-24.json: Spelunk[49]","arkhe-live-2026-09-23.json: Spelunk[49]","arkhe-live-2026-09-24.json: Spelunk[49]","breakinbrad.json: Spelunk[49]","dida123.json: Spelunk[49]","joelok.json: Spelunk[49]","ryujinsan.json: Spelunk[49]"];
-const REFUSED: Record<string, string[]> = {
-  button3: [],
-  sushi7: ["5OhTree.json: Sushi", "HourZero.json: Sushi"],
-  jelly19: ["HourZero.json: Research"],
-  mainframe14: [],
-  loreEpi3: LORE_REFUSED,
-  pristine2: [],
-  palette5: NO_SPELUNK49,
-  spelunkBit26: ["HourZero.json: Spelunk"],
-  starSign61: ["HourZero.json: Arcane"],
-  vialTurtle: [],
-};
 
 describe.skipIf(GOLDEN_SAVES.length === 0)("lib/game W7 and DNSM terms against lib/arkh on every real save and character", () => {
   for (const id of Object.keys(TERMS)) {
@@ -127,7 +99,7 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("lib/game W7 and DNSM terms against l
       expect(mismatches).toEqual([]);
       expect(pairs).toBeGreaterThan(100); // a loop over nothing would pass
       expect(seen.size).toBeGreaterThan(minSeen); // nor would a term that is the same number everywhere
-      expect([...refused].sort()).toEqual(REFUSED[id]);
+      expect([...refused].sort()).toEqual(UNPORTED_REFUSALS);
       for (const r of refused) expect(csverOf(r.split(": ")[0]), `${r} is pre-migration`).toBeLessThan(CURRENT_CSVER);
     }, 300_000);
   }
@@ -738,8 +710,8 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("variants forced on every real save, 
     const r = forced("starSign61", (env) => env.charNames.forEach((_: string, i: number) => (dataOf(env)[`PVtStarSign_${i}`] = "61,_,_,")));
     console.info(`[w7 starSign61 worn] ${r.pairs} pairs, ${r.mismatches.length} mismatches, ${r.seen.size} distinct`);
     expect(r.mismatches).toEqual([]);
-    expect(r.pairs).toBeGreaterThan(1000); // the 31 saves without a Menagerie compute too; only HourZero is refused (REFUSED.starSign61)
-    expect([...new Set(r.refused)].sort()).toEqual(["HourZero.json: Arcane"]);
+    expect(r.pairs).toBeGreaterThan(1000); // the saves without a Menagerie compute too (the load fills it in)
+    expect([...new Set(r.refused)].sort()).toEqual(UNPORTED_REFUSALS);
     expect(r.seen.size).toBeGreaterThan(3);
     expect(r.seen.has(0)).toBe(false); // really worn everywhere
   }, 300_000);
