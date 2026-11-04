@@ -17,12 +17,17 @@ import { normalizeBundle } from "@/scripts/updater/extract";
 const NJS = "scripts/updater/.cache/N.new.js"; // relative to web/, the cwd of `npx tsx`
 const USAGE = "usage: npx tsx scripts/njs-calls.ts <Block> [<NamedBlock>] [<n>]   (e.g. Sailing ArtifactBonus 25)";
 
+/** The live N.js, normalized (what njsFunction reads). Throws when it was never downloaded. */
+export function loadNjs(): string {
+  if (!existsSync(NJS)) throw new Error(`${NJS} not found (npx tsx scripts/updater/run.ts downloads it)`);
+  return normalizeBundle(readFileSync(NJS, "utf8"));
+}
+
 function main(argv: string[]) {
   const [block, ...selectors] = argv;
   if (!block || selectors.length > 2) throw new Error(USAGE);
-  if (!existsSync(NJS)) throw new Error(`${NJS} not found (npx tsx scripts/updater/run.ts downloads it)`);
 
-  const fn = njsFunction(normalizeBundle(readFileSync(NJS, "utf8")), block);
+  const fn = njsFunction(loadNjs(), block);
   if (!fn) throw new Error(`no _customBlock_${block} in the live N.js`);
   let text: string | undefined = fn.body;
   let path = block;
