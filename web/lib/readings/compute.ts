@@ -1,5 +1,6 @@
-// The site's value for one recorded in-game reading. Today every stat is routed
-// to lib/arkh; later plans swap each one to lib/game behind this same function.
+// The site's value for one recorded in-game reading. Every stat is routed to
+// lib/arkh except Artifact Find (its page config computes on lib/game); later
+// plans swap each one to lib/game behind this same function.
 // lib/arkh keeps module-level state (saveData): call this sequentially, never in
 // parallel — the save is reloaded on every call.
 

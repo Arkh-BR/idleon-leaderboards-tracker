@@ -54,7 +54,7 @@ export const ARTIFACT_PAGE: StatPageConfig = {
     exportLabel: "artifact-find-tracker",
   },
   compute: withPageErrors((save, charIdx) =>
-    import("@/lib/arkh/computeArtifactFind").then((m) => m.computeArkhArtifactFind(save, charIdx))
+    import("@/lib/game/trackers/artifactFind").then((m) => m.computeGameArtifactFind(save, charIdx))
   ),
   formatTotal: formatArtifactFind,
   gains: groupedGainsModel(ARTI_ROOT, ARTI_GROUPS, { skip: [ARTI_VOTE_NAME] }),

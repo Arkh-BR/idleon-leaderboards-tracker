@@ -12,6 +12,9 @@
 // Sailing(ctx, "BoatArtiMulti", 0, 0) on a Ctx made with `trace: true` (gameArtifactFind does exactly that and trims what it hands the page).
 //
 // The type of the result is the page's own (lib/statTracker/config StatResult: type-only, nothing of lib/arkh runs here).
+//
+// Performance, user decision 2026-11-04: the page switched to this engine at warm-character-switch parity with lib/arkh (about 2 ms); a
+// loaded save costs about 24 ms once (state build + Tome) against lib/arkh's 2 ms, accepted as "no perceptible slowdown".
 import type { StatResult } from "@/lib/statTracker/config";
 import { ARTI_GROUPS, ARTI_ROOT, ARTI_VOTE_NAME } from "@/lib/artifactFind/groups";
 import { makeCtx, type Ctx, type TraceNode } from "../ctx";
