@@ -1,12 +1,16 @@
 import { asNum, asNumber, attr, SAVE_ATTRS } from "../attr";
-import { block, type Ctx } from "../ctx";
-import { EmperorBon, LegendTalents } from "../data";
+import { block, runtime, type Ctx } from "../ctx";
+import { EmperorBon, LegendTalents, Spelunky } from "../data";
 import { NotPorted } from "../errors";
+import { hString } from "../hstring";
+import { listAt } from "../lists";
 import { opt } from "../state";
 import { traceNode } from "../trace";
 import { ArcadeBonus } from "./ArcadeBonus";
 import { ArcaneType } from "./ArcaneType";
+import { GetSetBonus } from "./GetSetBonus";
 import { JellyOperation } from "./JellyOperation";
+import { Summoning } from "./Summoning";
 
 /** N.js `_customBlock_Thingies(d, b, e)` @10955095. Only the sub-cases the Artifact Find port reaches. */
 export const Thingies = block("Thingies", (ctx, d: string, b: number, e: number) => {
@@ -22,6 +26,9 @@ export const Thingies = block("Thingies", (ctx, d: string, b: number, e: number)
       return asNum(ctx, "OptionsListAccount", 464) > b ? 1 : 0;
     case "EmperorBon":
       return emperorBon(ctx, b);
+    // @10974601
+    case "LoreEpiBon":
+      return loreEpiBon(ctx, b);
     default:
       throw new NotPorted("Thingies", d);
   }
@@ -59,4 +66,28 @@ function haveBanI(ctx: Ctx): number {
     return 0;
   }
   return 1 == attr(ctx, "BundlesReceived", "ban_i") ? 1 : 0;
+}
+
+/**
+ * `LoreEpiBon` @10974601: entry `b` of `DNSM.LoreEpiBon`, a list the game fills on the first call (and when `b == -1`, the rebuild, not
+ * ported; here it is built from the save each time) with one entry per lore episode of Spelunky[20]: 0 while the episode is not unlocked
+ * (`Spelunk[13][2] > g` is false), else, for Spelunky[21][g] = "a|from" and p = floor(max(0, Tome - from) / 100) ^ .7,
+ * (1 + (Grimoire upgrade 17 + the TROLL set bonus) / 100) x a x max(0, p / (25 + p)).
+ *
+ * Tome is the Tome actor's `GenInfo[84]` (ActorEvents_229, @5778865), the account's Tome score: the sum of `Summoning("TomePTS", g)` over
+ * `DNSM.TomeQTY` @5779007, which this engine does not compute. It reads the score the envelope carries (`GameState.tomePoints`); an
+ * envelope with none counts as 0 points and shows as a runtime leaf.
+ */
+function loreEpiBon(ctx: Ctx, b: number): number {
+  if (b < 0) throw new NotPorted("Thingies", `LoreEpiBon:${b}`); // the rebuild (-1) and the clamp Math.max(0, b)
+  const episodes = (Spelunky as unknown as readonly (readonly unknown[])[])[20].length;
+  const g = Math.max(0, b) | 0;
+  // the game answers undefined for an episode past the list, which the caller would turn into NaN
+  if (g >= episodes) throw new RangeError(`Thingies LoreEpiBon: no lore episode ${b} in Spelunky[20]`);
+  listAt(ctx, "Spelunk", 13); // the game indexes Spelunk[13][2] directly
+  if (!(asNum(ctx, "Spelunk", 13, 2) > g)) return 0;
+  const [value, from] = hString((Spelunky as unknown as readonly (readonly unknown[])[])[21][g]).split("|");
+  const tome = ctx.state.tomePoints ?? runtime(ctx, "Tome.totalPoints", "the envelope has no Tome score (extraData.totalTomePoints, parsedData.totalTomePoints)");
+  const p = Math.pow(Math.floor(Math.max(0, tome - asNumber(from)) / 100), 0.7);
+  return (1 + (Summoning(ctx, "GrimoireUpgBonus", 17, 0) + GetSetBonus(ctx, "TROLL_SET", "Bonus", 0, 0)) / 100) * asNumber(value) * Math.max(0, p / (25 + p));
 }

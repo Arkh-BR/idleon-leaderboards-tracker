@@ -24,3 +24,15 @@ export function contains(list: unknown, x: unknown): boolean {
   const values: unknown[] = Array.isArray(list) ? list : Object.values(list as object);
   return values.some((v) => v == x);
 }
+
+/**
+ * `listAt` for a list the save keeps either as an array or as a `{"0": …}` map (the cloud's sparse lists: `CauldronInfo[4]` is one).
+ * The game's loader gives it back as a list; the elements are read with `asNum` as for any list, by their number.
+ */
+export function listOrMapAt(ctx: Ctx, name: string, ...idx: (string | number)[]): object {
+  const v = attr(ctx, name, ...idx);
+  const address = name + idx.map((i) => `[${i}]`).join("");
+  if (v === undefined) throw new MissingSaveKey(address);
+  if (v === null || typeof v !== "object") throw new InvalidSaveValue(address, "an array or a map", v);
+  return v;
+}

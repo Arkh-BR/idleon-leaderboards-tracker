@@ -1,11 +1,17 @@
 // DNSM is the game's cache of computed values. It is not in the save (Ruling A), so each cache the port
 // reads is a function that replays the code that fills it. Only the caches Artifact Find reads from here;
 // the other DNSM keys are ported where their function is (ShinyBonusS in Breeding, NghMrTOT in MenagerieStuff).
-import { asNumber, attr } from "../attr";
-import { runtime, type Ctx } from "../ctx";
-import { CompanionDB } from "../data";
+import { asNum, asNumber, attr } from "../attr";
+import { block, runtime, type Ctx } from "../ctx";
+import { AlchemyDescription, CompanionDB, StarSigns } from "../data";
 import { InvalidSaveValue, MissingSaveKey, NotPorted } from "../errors";
 import { hString } from "../hstring";
+import { contains } from "../lists";
+import { charKey, opt } from "../state";
+import { CauldronStats } from "./CauldronStats";
+import { chipBonuses } from "./chipBonuses";
+import { RiftStuff } from "./RiftStuff";
+import { Summoning2 } from "./Summoning2";
 
 /**
  * `u.getCompanionInfoMe()` @10650052: the account's companion list, one "id,x,x,x,stage2" entry each,
@@ -60,3 +66,73 @@ export function DNSM_CompanionBon(ctx: Ctx): Map<string, number> {
   }
   return bon;
 }
+
+/**
+ * `PersonalValuesMap.StarSign` of the current player: the signs the character wears, as the text "69,49,26," (a trailing comma, `_` for
+ * an empty slot). The cloud load @19924336 reads it from `PVtStarSign_<player>` (CSver 4 and up); when that is "" it takes
+ * `"" + PVStarSign_<player>`, and "-1" becomes "0". The key is not in SAVE_ATTRS (a dynamic key of the loader's loop), so it is read here.
+ */
+function equippedSignsText(ctx: Ctx): string {
+  const text = opt(ctx.state, charKey("PVtStarSign", ctx.player));
+  if (text === undefined) throw new MissingSaveKey(charKey("PVtStarSign", ctx.player));
+  if (text !== "") return hString(text);
+  const old = opt(ctx.state, charKey("PVStarSign", ctx.player));
+  if (old === undefined) throw new MissingSaveKey(charKey("PVStarSign", ctx.player));
+  return hString(old) === "-1" ? "0" : hString(old);
+}
+
+/**
+ * `DNSM.StarSigns["61"]` (Artifosho, +15% Artifact Find chance), the map `_customBlock_StarSigns` @6540622 rebuilds for the current player
+ * every time it runs (a character loads, a sign is changed): a new map, then
+ *  - the list of active signs `StarSignsDL`: the signs worn (`PersonalValuesMap.StarSign` split on ",") and, for each of the first
+ *    `RiftStuff("enabledStarSigns")` signs whose name the account has unlocked (StarSignsUnlocked), its index; sign 61 is `15 + its
+ *    value` when "61" is in that list (@6559902);
+ *  - a second pass over the worn signs only, when the Silkrode Nanochip is the one star chip equipped (chipBonuses("star") is exactly 1)
+ *    and the Rift enables no sign (@6541841), which adds the 15 again;
+ *  - then, with Seraph Cosmos unlocked (@6563929), every positive value times max(1, min(2, 1 + chip x floor((999 + enabled) / 1000)))
+ *    x (1 + Meritoc bonus 22 / 100) x min(5, (1.1 + min(Arcane[40], 10) / 100) ^ ceil((Lv0[18] + 1) / 20)).
+ * A sign that is not active has no entry in the map, which the game reads as 0. Only the key "61" is ported; the other keys are other
+ * signs' lines of the same function.
+ */
+export const DNSM_StarSigns = block("DNSM.StarSigns", (ctx, key: string) => {
+  if (key !== "61") throw new NotPorted("DNSM.StarSigns", key);
+  const equipped = () => equippedSignsText(ctx).split(",");
+  const unlocked = attr(ctx, "StarSignsUnlocked");
+  if (unlocked === null || typeof unlocked !== "object" || Array.isArray(unlocked)) throw new InvalidSaveValue("StarSignsUnlocked", "a map", unlocked);
+  const signs = StarSigns as unknown as readonly (readonly unknown[])[];
+  let active = equipped(); // DNSM.StarSignsDL
+  for (let f = 0, g = RiftStuff(ctx, "enabledStarSigns", 0) | 0; f < g; f++) {
+    if (f < signs.length && Object.hasOwn(unlocked, hString(signs[f][0]))) active.push(`${f}`);
+  }
+  let value: number | undefined; // StarSigns.h["61"]
+  for (let pass = 0; pass < 2; pass++) {
+    if (0 == pass || (1 == chipBonuses(ctx, "star") && !(1 <= RiftStuff(ctx, "enabledStarSigns", 0)))) {
+      if (1 == pass) active = equipped();
+      if (contains(active, "61")) value = 15 + asNumber(value);
+    }
+  }
+  if (Object.hasOwn(unlocked, "Seraph_Cosmos") && 0 < asNumber(value)) {
+    value =
+      asNumber(value) *
+      Math.max(1, Math.min(2, 1 + chipBonuses(ctx, "star") * Math.floor((999 + RiftStuff(ctx, "enabledStarSigns", 0)) / 1e3))) *
+      (1 + Summoning2(ctx, "MeritocBonusz", 22, 0) / 100) *
+      Math.min(5, Math.pow(1.1 + Math.min(asNum(ctx, "Arcane", 40), 10) / 100, Math.ceil((asNum(ctx, "Lv0", 18) + 1) / 20)));
+  }
+  return asNumber(value);
+});
+
+/**
+ * `DNSM.AlchVials[key]`, the map `TalentCalc(-2)` (@4482440) rebuilds at @4495601: a new map, then for each vial g of AlchemyDescription[4], under the vial's
+ * kind AlchemyDescription[4][g][11], `CauldronStats("VialBonus", 4, g, 0)` added to what the kind already holds. `"6turtle"` is
+ * Turtle Tisane (vial 74), the only vial of its kind. A kind no vial has is absent from the map, which the game reads as 0. Only the
+ * vials of the kind asked are computed here; the others are other keys of the same loop.
+ */
+export const DNSM_AlchVials = block("DNSM.AlchVials", (ctx, key: string) => {
+  let total: number | undefined;
+  const vials = (AlchemyDescription as unknown as readonly (readonly unknown[])[][])[4];
+  for (let g = 0; g < vials.length; g++) {
+    if (hString(vials[g][11]) !== key) continue;
+    total = CauldronStats(ctx, "VialBonus", 4, g, 0) + asNumber(total);
+  }
+  return asNumber(total);
+});

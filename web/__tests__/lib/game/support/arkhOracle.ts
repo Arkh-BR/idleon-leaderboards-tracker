@@ -108,4 +108,6 @@ export const KNOWN_ARKH_DIFFS: { save: string; ci?: number; source: string; why:
   { save: "Koweabooo.json", ci: 10, source: "grid106", why: COMPANION_0_GATE },
   { save: "Koweabooo.json", ci: 10, source: "sticker2add", why: COMPANION_0_GATE },
   { save: "Koweabooo.json", ci: 10, source: "sticker2mult", why: COMPANION_0_GATE }, // 0 on every real save; differs only with Menagerie unlock 22 forced
+  // Task 8: the Minehead presses are multiplied by 1 + Grid_Bonus(125, 0) / 100, whose Grid_Bonus_Allmulti has the same Companions(0) term
+  { save: "Koweabooo.json", ci: 10, source: "button3", why: COMPANION_0_GATE },
 ];

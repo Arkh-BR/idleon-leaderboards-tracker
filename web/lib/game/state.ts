@@ -12,9 +12,13 @@
 import type { SaveEnvelope } from "@/lib/gameAuth/envelope";
 import { InvalidSaveValue, MissingSaveKey } from "./errors";
 
-/** The save envelope. `extraData` is only stamped on some saves, so it is optional. */
+/**
+ * The save envelope. `extraData` is only stamped on some saves, so it is optional. `parsedData` is what the public-profile
+ * collectors stamp instead; the state does not keep it, only the Tome score it may carry (`GameState.tomePoints`).
+ */
 export type GameEnvelope = Omit<SaveEnvelope, "extraData"> & {
   extraData?: Readonly<Record<string, unknown>>;
+  parsedData?: Readonly<Record<string, unknown>>;
 };
 
 type Idx = string | number;
@@ -32,6 +36,13 @@ export class GameState {
   readonly accountCreateTime: number;
   readonly lastUpdated: number;
   readonly extraData: Readonly<Record<string, unknown>> | undefined;
+  /**
+   * The account's Tome score, as the envelope carries it: `extraData.totalTomePoints` ("Copy for Support" and our own login, which
+   * stamps `computeTome`'s), else `parsedData.totalTomePoints` (the public profiles). The game computes it at runtime (the Tome
+   * actor's `GenInfo[84]`, the sum of `Summoning("TomePTS")`), and this engine does not port the Tome yet: `Thingies("LoreEpiBon")`
+   * reads this stamped value. `undefined` when the envelope has none.
+   */
+  readonly tomePoints: number | undefined;
 
   /**
    * Validates the envelope, then builds a frozen private copy of it (the caller's
@@ -63,6 +74,14 @@ export class GameState {
     const extra = e.extraData ?? undefined;
     if (extra !== undefined && !isRecord(extra)) throw new InvalidSaveValue("envelope.extraData", "an object", extra);
     this.extraData = frozenCopy(extra) as Record<string, unknown> | undefined;
+    const fromExtra = (extra as Record<string, unknown> | undefined)?.totalTomePoints;
+    const parsed = e.parsedData;
+    const fromParsed = isRecord(parsed) ? (parsed as Record<string, unknown>).totalTomePoints : undefined;
+    const tome = fromExtra ?? fromParsed;
+    if (tome != null && !isFiniteNumber(tome)) {
+      throw new InvalidSaveValue(`envelope.${fromExtra != null ? "extraData" : "parsedData"}.totalTomePoints`, "a finite number", tome);
+    }
+    this.tomePoints = tome == null ? undefined : (tome as number);
     Object.freeze(this);
   }
 

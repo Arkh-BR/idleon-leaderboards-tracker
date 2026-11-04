@@ -223,7 +223,7 @@ describe("ports stay on their boundary", () => {
     for (const d of ["BoatArtiMulti", "SlabboBonus_AllMulti", "Nope"]) expect(() => Sailing(c(), d, 0, 0)).toThrow(NotPorted);
   });
   it("Thingies / ResearchStuff: only what the ported terms need", () => {
-    expect(() => Thingies(c(), "LoreEpiBon", 3, 0)).toThrow(NotPorted);
+    expect(() => Thingies(c(), "LoreEpiBon", -1, 0)).toThrow(NotPorted); // the cache rebuild (Task 8 ported the entries 0..10)
     expect(() => ResearchStuff(c(), "Grid_Bonus", 31, 2)).toThrow(NotPorted); // the e == 2 squares other than 67, 68 and 107 (Task 7)
     expect(() => ResearchStuff(c(), "TotalObsLVs", 0, 0)).toThrow(NotPorted);
   });

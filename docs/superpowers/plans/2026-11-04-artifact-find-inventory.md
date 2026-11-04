@@ -124,10 +124,10 @@ Do not edit by hand: regenerate it when N.js changes. Tick a row when its sub-ca
 
 ## Minehead
 
-- [ ] Minehead("Button_Bonuses",3,0) — depth 1 — 1219 chars
-- [ ] Minehead("GlimboTotalTrades",0,0) — depth 2 — 481 chars
-- [ ] Minehead("Button_BonusPerTime") — depth 2 — 56 chars
-- [ ] Minehead("Button_BonusMULTI",0,0) — depth 2 — 102 chars
+- [x] Minehead("Button_Bonuses",3,0) — depth 1 — 1219 chars — ported in Task 8 (any slot 0..8): the replay of the DNSM.Button_Bonsuz fill, press by press over OptionsListAccount[594]
+- [~] Minehead("GlimboTotalTrades",0,0) — depth 2 — 481 chars — not reached for Button_Bonuses 3 and Grid_Bonus(125, 0): only the e == 2 branch of Grid_Bonus square 168 (and UI code) calls it
+- [x] Minehead("Button_BonusPerTime") — depth 2 — 56 chars — ported in Task 8 (any slot)
+- [x] Minehead("Button_BonusMULTI",0,0) — depth 2 — 102 chars — ported in Task 8
 
 ## Stuff2
 
@@ -150,12 +150,12 @@ Do not edit by hand: regenerate it when N.js changes. Tick a row when its sub-ca
 
 ## MainframeBonus
 
-- [ ] MainframeBonus(14) — depth 1 — 3598 chars — whole body
+- [x] MainframeBonus(14) — depth 1 — 3598 chars — whole body — ported in Task 8: only what index 14 (and 10, read by the vials) executes. `njs-calls MainframeBonus 14` has no `14==d` branch, so it is the whole body; the live callees in it (101, 102, 104..109, 111, 113..115, 117..120, 8) belong to other indexes (0, 3, 8, 9, 11, 13, 15, 17 and the jewels 100+) and are not reached. Index 14 is the steady-state `LabMFbonuses[14]` that TalentCalc(-7) filled: the Emporium (items 8..11) decides whether LabMainBonus has a row 14, and the row is [5] when connected, [4] when not. The connection (GenINFO[92], the Laboratory actor's live walk) is an ASSUMPTION: counted as connected, shown in the trace
 - [~] MainframeBonus(15) — depth 2 — 3598 chars — whole body — not reached for ArtifactBonus 3 and 32: only the l in {2,10,18,20,999} branch of the pass calls it
 
 ## Thingies
 
-- [ ] Thingies("LoreEpiBon",3,0) — depth 1 — 1352 chars
+- [x] Thingies("LoreEpiBon",3,0) — depth 1 — 1352 chars — ported in Task 8 (any episode 0..10): the replay of one iteration of the DNSM.LoreEpiBon fill; the Tome score is the envelope's (GameState.tomePoints), the rebuild (-1) throws NotPorted
 - [x] Thingies("Have_ban_i",0,0) — depth 2 — 67 chars — ported in Task 6
 - [x] Thingies("EmperorBon",8,0) — depth 2 — 1769 chars — ported in Task 6
 - [x] Thingies("LegendPTS_bonus",11,0) — depth 2 — 154 chars — ported in Task 4 (Ruling C); only this sub-case
@@ -272,120 +272,120 @@ Do not edit by hand: regenerate it when N.js changes. Tick a row when its sub-ca
 
 ## attrs
 
-- [ ] `AchieveReg` — whole body only
-- [ ] `ArcadeUpg` — whole body only
-- [ ] `Atoms`
-- [ ] `Boats`
-- [ ] `Breeding`
-- [ ] `BribeStatus` — whole body only
-- [ ] `Bubba`
-- [ ] `BundlesReceived`
-- [ ] `Captains` — whole body only
-- [ ] `Cards`
-- [ ] `CauldronInfo`
-- [ ] `CharacterClass`
-- [ ] `Compass` — whole body only
-- [ ] `CurrentMap` — whole body only
-- [ ] `CustomLists`
-- [ ] `CustomMaps`
-- [ ] `DNSM`
-- [ ] `Divinity`
-- [ ] `Dream`
-- [ ] `DummyNumbersStatManager` — whole body only
-- [ ] `EquipmentMap` — whole body only
-- [ ] `EquipmentOrder` — whole body only
-- [ ] `FarmUpg`
-- [ ] `Gaming`
-- [ ] `GemItemsPurchased`
-- [ ] `GetPlayersUsernames`
-- [ ] `GuildTasks` — whole body only
-- [ ] `Holes`
-- [ ] `ItemDefinitionsGET` — whole body only
-- [ ] `KillsLeft2Advance`
-- [ ] `Lv0`
-- [ ] `Meals`
-- [ ] `Menagerie`
+- [x] `AchieveReg` — whole body only — read by lib/game/njs/AchieveStatus
+- [x] `ArcadeUpg` — whole body only — read by lib/game/njs/ArcadeBonus
+- [~] `Atoms` — not reached: no ported path reads it; it comes from the rows marked [~] (WorkbenchStuff, TotalStats, ReturnClasses, SlabboBonus_AllMulti, AtomCollider, Bubbastuff, StampBonusOfTypeX...), from a whole body, or from the Laboratory's connection walk (ASSUMED, see MainframeBonus(14))
+- [x] `Boats` — read by lib/game/njs/MenagerieStuff, Sailing
+- [x] `Breeding` — read by lib/game/njs/Breeding
+- [x] `BribeStatus` — whole body only — read by lib/game/njs/GetBribeBonus
+- [~] `Bubba` — not reached: no ported path reads it; it comes from the rows marked [~] (WorkbenchStuff, TotalStats, ReturnClasses, SlabboBonus_AllMulti, AtomCollider, Bubbastuff, StampBonusOfTypeX...), from a whole body, or from the Laboratory's connection walk (ASSUMED, see MainframeBonus(14))
+- [x] `BundlesReceived` — read by lib/game/njs/Thingies
+- [x] `Captains` — whole body only — read by lib/game/njs/CaptBonusCalc, NONdummies
+- [~] `Cards` — not reached: no ported path reads it; it comes from the rows marked [~] (WorkbenchStuff, TotalStats, ReturnClasses, SlabboBonus_AllMulti, AtomCollider, Bubbastuff, StampBonusOfTypeX...), from a whole body, or from the Laboratory's connection walk (ASSUMED, see MainframeBonus(14))
+- [x] `CauldronInfo` — read by lib/game/njs/CauldronStats
+- [~] `CharacterClass` — not reached: no ported path reads it; it comes from the rows marked [~] (WorkbenchStuff, TotalStats, ReturnClasses, SlabboBonus_AllMulti, AtomCollider, Bubbastuff, StampBonusOfTypeX...), from a whole body, or from the Laboratory's connection walk (ASSUMED, see MainframeBonus(14))
+- [~] `Compass` — whole body only — not reached: no ported path reads it; it comes from the rows marked [~] (WorkbenchStuff, TotalStats, ReturnClasses, SlabboBonus_AllMulti, AtomCollider, Bubbastuff, StampBonusOfTypeX...), from a whole body, or from the Laboratory's connection walk (ASSUMED, see MainframeBonus(14))
+- [x] `CurrentMap` — whole body only — ctx.map (Ruling in Task 2: the engine takes the map, it does not read the attribute)
+- [x] `CustomLists` — game data: lib/game/data (customlists.js)
+- [x] `CustomMaps` — game data: lib/game/data/maps.ts (NjEQ, EquipmentSets)
+- [x] `DNSM` — ported as functions: DNSM_CompanionBon/LVz, DNSM_StarSigns, DNSM_AlchVials and the replays in each module (Ruling A)
+- [~] `Divinity` — not reached: no ported path reads it; it comes from the rows marked [~] (WorkbenchStuff, TotalStats, ReturnClasses, SlabboBonus_AllMulti, AtomCollider, Bubbastuff, StampBonusOfTypeX...), from a whole body, or from the Laboratory's connection walk (ASSUMED, see MainframeBonus(14))
+- [x] `Dream` — read by lib/game/njs/Summoning2
+- [~] `DummyNumbersStatManager` — whole body only — not reached: no ported path reads it; it comes from the rows marked [~] (WorkbenchStuff, TotalStats, ReturnClasses, SlabboBonus_AllMulti, AtomCollider, Bubbastuff, StampBonusOfTypeX...), from a whole body, or from the Laboratory's connection walk (ASSUMED, see MainframeBonus(14))
+- [~] `EquipmentMap` — whole body only — not reached: no ported path reads it; it comes from the rows marked [~] (WorkbenchStuff, TotalStats, ReturnClasses, SlabboBonus_AllMulti, AtomCollider, Bubbastuff, StampBonusOfTypeX...), from a whole body, or from the Laboratory's connection walk (ASSUMED, see MainframeBonus(14))
+- [x] `EquipmentOrder` — whole body only — read by lib/game/njs/GetSetBonus
+- [x] `FarmUpg` — read by lib/game/njs/FarmingStuffs
+- [x] `Gaming` — read by lib/game/njs/GamingStatType
+- [x] `GemItemsPurchased` — read by lib/game/njs/Sailing, Summoning
+- [x] `GetPlayersUsernames` — the character is ctx.player (withPlayer); GameState.charNames holds the names
+- [~] `GuildTasks` — whole body only — not reached: no ported path reads it; it comes from the rows marked [~] (WorkbenchStuff, TotalStats, ReturnClasses, SlabboBonus_AllMulti, AtomCollider, Bubbastuff, StampBonusOfTypeX...), from a whole body, or from the Laboratory's connection walk (ASSUMED, see MainframeBonus(14))
+- [x] `Holes` — read by lib/game/njs/Holes, Holes2
+- [~] `ItemDefinitionsGET` — whole body only — not reached: no ported path reads it; it comes from the rows marked [~] (WorkbenchStuff, TotalStats, ReturnClasses, SlabboBonus_AllMulti, AtomCollider, Bubbastuff, StampBonusOfTypeX...), from a whole body, or from the Laboratory's connection walk (ASSUMED, see MainframeBonus(14))
+- [x] `KillsLeft2Advance` — read by lib/game/njs/Summoning2
+- [x] `Lv0` — read by lib/game/njs/Companions, DNSM, Sailing
+- [~] `Meals` — not reached: no ported path reads it; it comes from the rows marked [~] (WorkbenchStuff, TotalStats, ReturnClasses, SlabboBonus_AllMulti, AtomCollider, Bubbastuff, StampBonusOfTypeX...), from a whole body, or from the Laboratory's connection walk (ASSUMED, see MainframeBonus(14))
+- [x] `Menagerie` — read by lib/game/njs/MenagerieStuff
 - [x] `NONdummies` — NONdummies60 (lib/game/njs/NONdummies.ts)
-- [ ] `Ninja`
-- [ ] `Number2Letter`
-- [ ] `OptionsListAccount`
-- [ ] `PetsStored` — whole body only
-- [ ] `PixelHelperActor`
-- [ ] `PlayerDATABASE`
-- [ ] `Research`
-- [ ] `Sailing`
-- [ ] `ServerGemsReceived` — whole body only
-- [ ] `Spelunk`
-- [ ] `StampLevel` — whole body only
-- [ ] `Summon`
-- [ ] `Sushi`
-- [ ] `Tasks`
-- [ ] `TowerInfo`
-- [ ] `UpgVault`
-- [ ] `UserInfo`
-- [ ] `WeeklyBoss`
+- [x] `Ninja` — read by lib/game/njs/Ninja
+- [x] `Number2Letter` — game data: lib/game/data/maps.ts (Ruling I)
+- [x] `OptionsListAccount` — read by lib/game/njs/Breeding, DNSM, GetSetBonus, Minehead, RandomEvent, Summoning, Summoning2, Thingies
+- [~] `PetsStored` — whole body only — not reached: no ported path reads it; it comes from the rows marked [~] (WorkbenchStuff, TotalStats, ReturnClasses, SlabboBonus_AllMulti, AtomCollider, Bubbastuff, StampBonusOfTypeX...), from a whole body, or from the Laboratory's connection walk (ASSUMED, see MainframeBonus(14))
+- [x] `PixelHelperActor` — the actors' live state, replayed from the save where a ported path reads it: the Tome score (GameState.tomePoints), the Gold Crown vials (CauldronStats), the Lab connection (ASSUMED connected, MainframeBonus)
+- [x] `PlayerDATABASE` — the other characters are withPlayer(ctx, ci) on the same GameState
+- [x] `Research` — read by lib/game/njs/FarmingStuffs, JellyOperation, ResearchStuff
+- [x] `Sailing` — read by lib/game/njs/Sailing
+- [~] `ServerGemsReceived` — whole body only — not reached: no ported path reads it; it comes from the rows marked [~] (WorkbenchStuff, TotalStats, ReturnClasses, SlabboBonus_AllMulti, AtomCollider, Bubbastuff, StampBonusOfTypeX...), from a whole body, or from the Laboratory's connection walk (ASSUMED, see MainframeBonus(14))
+- [x] `Spelunk` — read by lib/game/njs/FarmingStuffs, GamingStatType, Spelunk, Thingies
+- [~] `StampLevel` — whole body only — not reached: no ported path reads it; it comes from the rows marked [~] (WorkbenchStuff, TotalStats, ReturnClasses, SlabboBonus_AllMulti, AtomCollider, Bubbastuff, StampBonusOfTypeX...), from a whole body, or from the Laboratory's connection walk (ASSUMED, see MainframeBonus(14))
+- [x] `Summon` — read by lib/game/njs/Summoning
+- [x] `Sushi` — read by lib/game/njs/SushiStuff
+- [x] `Tasks` — read by lib/game/njs/Summoning
+- [~] `TowerInfo` — not reached: no ported path reads it; it comes from the rows marked [~] (WorkbenchStuff, TotalStats, ReturnClasses, SlabboBonus_AllMulti, AtomCollider, Bubbastuff, StampBonusOfTypeX...), from a whole body, or from the Laboratory's connection walk (ASSUMED, see MainframeBonus(14))
+- [x] `UpgVault` — read by lib/game/njs/Summoning
+- [x] `UserInfo` — the current player is ctx.player (chipBonuses, DNSM_StarSigns)
+- [x] `WeeklyBoss` — read by lib/game/njs/Dreamstuff
 
 ## dnsm
 
-- [ ] `AlchBubbles`
-- [ ] `AlchVials`
+- [~] `AlchBubbles` — not reached: no ported path reads it; it comes from the rows marked [~], from a whole body of a function no ported path calls, or from the Laboratory's connection walk (ASSUMED, see MainframeBonus(14))
+- [x] `AlchVials` — DNSM_AlchVials (lib/game/njs/DNSM.ts): the replay of the TalentCalc(-2) fill @4495601, one key
 - [x] `ArcadBonDL` — whole body only — a local in ArcadeBonus
 - [x] `ArcadBonDNz` — whole body only — a local in ArcadeBonus
-- [ ] `AtomBonCalc1`
-- [ ] `AtomBonCalc2`
-- [ ] `AtomBonDN`
-- [ ] `BoxRewards` — whole body only
-- [ ] `Bubba_RoG_all`
-- [ ] `Button_Bonsuz`
-- [ ] `CalcTalentMAP`
-- [ ] `CapeVineBonTOT` — whole body only
+- [~] `AtomBonCalc1` — not reached: no ported path reads it; it comes from the rows marked [~], from a whole body of a function no ported path calls, or from the Laboratory's connection walk (ASSUMED, see MainframeBonus(14))
+- [~] `AtomBonCalc2` — not reached: no ported path reads it; it comes from the rows marked [~], from a whole body of a function no ported path calls, or from the Laboratory's connection walk (ASSUMED, see MainframeBonus(14))
+- [~] `AtomBonDN` — not reached: no ported path reads it; it comes from the rows marked [~], from a whole body of a function no ported path calls, or from the Laboratory's connection walk (ASSUMED, see MainframeBonus(14))
+- [~] `BoxRewards` — whole body only — not reached: no ported path reads it; it comes from the rows marked [~], from a whole body of a function no ported path calls, or from the Laboratory's connection walk (ASSUMED, see MainframeBonus(14))
+- [~] `Bubba_RoG_all` — not reached: no ported path reads it; it comes from the rows marked [~], from a whole body of a function no ported path calls, or from the Laboratory's connection walk (ASSUMED, see MainframeBonus(14))
+- [x] `Button_Bonsuz` — Minehead Button_Bonuses (lib/game/njs/Minehead.ts): the replay of the fill, the 9 slots
+- [~] `CalcTalentMAP` — not reached: no ported path reads it; it comes from the rows marked [~], from a whole body of a function no ported path calls, or from the Laboratory's connection walk (ASSUMED, see MainframeBonus(14))
+- [~] `CapeVineBonTOT` — whole body only — not reached: no ported path reads it; it comes from the rows marked [~], from a whole body of a function no ported path calls, or from the Laboratory's connection walk (ASSUMED, see MainframeBonus(14))
 - [x] `CaptnBonuz` — whole body only — a local in CaptBonusCalc
 - [x] `CompanionBon` — whole body only — DNSM_CompanionBon (lib/game/njs/DNSM.ts)
 - [x] `CompanionLVz` — whole body only — DNSM_CompanionLVz (lib/game/njs/DNSM.ts)
-- [ ] `DropRateLUK` — whole body only
-- [ ] `DropRateLUK2` — whole body only
+- [~] `DropRateLUK` — whole body only — not reached: no ported path reads it; it comes from the rows marked [~], from a whole body of a function no ported path calls, or from the Laboratory's connection walk (ASSUMED, see MainframeBonus(14))
+- [~] `DropRateLUK2` — whole body only — not reached: no ported path reads it; it comes from the rows marked [~], from a whole body of a function no ported path calls, or from the Laboratory's connection walk (ASSUMED, see MainframeBonus(14))
 - [x] `EmperorBon` — emperorBonTable (lib/game/njs/Thingies.ts): the replay of the fill
 - [x] `ExoticFarmBon` — exoticBonusQTY (lib/game/njs/FarmingStuffs.ts): the replay of the fill, one entry
 - [~] `ExoticFarmDN` — not reached for ExoticBonusQTY 45: only the total entry (b == 99) reads it
-- [ ] `FamBonusQTYs` — whole body only
+- [~] `FamBonusQTYs` — whole body only — not reached: no ported path reads it; it comes from the rows marked [~], from a whole body of a function no ported path calls, or from the Laboratory's connection walk (ASSUMED, see MainframeBonus(14))
 - [x] `FountBonT` — fountainBonTOT (lib/game/njs/Holes2.ts): the replay of the fill, one entry
 - [x] `FountBonTdn` — the loop index of the fill; the fountain b of the call in the replay
 - [x] `FracIsBn` — fractalIslandBonus (lib/game/njs/RandomEvent.ts): the replay of the fill
-- [ ] `GalleryNametagBonTOT` — whole body only
-- [ ] `GalleryTrophyBonTOT` — whole body only
-- [ ] `GlimboTOT`
+- [~] `GalleryNametagBonTOT` — whole body only — not reached: no ported path reads it; it comes from the rows marked [~], from a whole body of a function no ported path calls, or from the Laboratory's connection walk (ASSUMED, see MainframeBonus(14))
+- [~] `GalleryTrophyBonTOT` — whole body only — not reached: no ported path reads it; it comes from the rows marked [~], from a whole body of a function no ported path calls, or from the Laboratory's connection walk (ASSUMED, see MainframeBonus(14))
+- [~] `GlimboTOT` — not reached: only Minehead GlimboTotalTrades, itself [~] above
 - [x] `HoleozDN` — a local in Holes MonumentROGbonuses
-- [ ] `LabMFbonuses` — whole body only
-- [ ] `LoreEpiBon`
+- [x] `LabMFbonuses` — whole body only — MainframeBonus (lib/game/njs/MainframeBonus.ts): the steady-state value TalentCalc(-7) @4511431 stored for 10 and 14; the connection is assumed
+- [x] `LoreEpiBon` — Thingies LoreEpiBon (lib/game/njs/Thingies.ts): the replay of one entry of the fill
 - [x] `NghMrTOT` — a local in MenagerieStuff NightmarinerTotLV
 - [x] `PaletteBonz` — a local in GamingStatType PaletteBonus
 - [x] `PaletteDNz` — a local in GamingStatType PaletteBonus
 - [x] `PetszzBrDN1` — a local in Breeding SpecialPassives
 - [x] `PetszzBrDN2` — a local in Breeding ShinyBonusS
 - [x] `PetszzBrDNq` — a local in Breeding ShinyBonusS
-- [ ] `PremHatBonTOT` — whole body only
+- [~] `PremHatBonTOT` — whole body only — not reached: no ported path reads it; it comes from the rows marked [~], from a whole body of a function no ported path calls, or from the Laboratory's connection walk (ASSUMED, see MainframeBonus(14))
 - [x] `SWinBonDN` — a local in Summoning WinBonus (summWinBonus)
 - [x] `SWinBonDN2` — a local in Summoning WinBonus (summWinBonus)
-- [ ] `SailzArtiBonusDN`
-- [ ] `SailzArtiBonusL`
+- [x] `SailzArtiBonusDN` — the scratch of the SailzArtiBonusL fill; the replay needs none
+- [x] `SailzArtiBonusL` — Sailing ArtifactBonus (lib/game/njs/Sailing.ts): the replay of the fill, Task 4
 - [x] `SetBonusTOTz` — whole body only — GetSetBonus "Bonus": the asked set is computed from the character's equipment, as the fill does
 - [x] `SetzuDN1` — whole body only — a local in GetSetBonus PartsOn
 - [x] `SetzuDN2` — whole body only — a local in GetSetBonus PartsOn
 - [x] `ShinyBonusS` — a local in Breeding ShinyBonusS
-- [ ] `Sp_bn_l` — whole body only
-- [ ] `StampBonuses_Map_Of_Val` — whole body only
-- [ ] `StarSigns`
+- [~] `Sp_bn_l` — whole body only — not reached: no ported path reads it; it comes from the rows marked [~], from a whole body of a function no ported path calls, or from the Laboratory's connection walk (ASSUMED, see MainframeBonus(14))
+- [~] `StampBonuses_Map_Of_Val` — whole body only — not reached: no ported path reads it; it comes from the rows marked [~], from a whole body of a function no ported path calls, or from the Laboratory's connection walk (ASSUMED, see MainframeBonus(14))
+- [x] `StarSigns` — DNSM_StarSigns (lib/game/njs/DNSM.ts): the replay of _customBlock_StarSigns @6540622, key "61"
 - [x] `Stuff6q` — a local in Thingies EmperorBon
 - [x] `SummWinBonus` — summWinBonus (lib/game/njs/Summoning.ts): the replay of the fill
 - [~] `TotOccFnd` — not reached for Grid_Bonus 109, 106 and (68, 2): only TotalOccurrencesFound (square 112) reads it
 - [~] `TotOccLVz` — not reached for Grid_Bonus 109, 106 and (68, 2): only TotalObsLVs (square 94) reads it
-- [ ] `TotStatMAP` — whole body only
-- [ ] `TotalStatsDM` — whole body only
-- [ ] `TotalStatsDN2` — whole body only
-- [ ] `TotalStatsDT2` — whole body only
-- [ ] `TotalStatsETCmap` — whole body only
-- [ ] `TotalStatsETCmap2List` — whole body only
+- [~] `TotStatMAP` — whole body only — not reached: no ported path reads it; it comes from the rows marked [~], from a whole body of a function no ported path calls, or from the Laboratory's connection walk (ASSUMED, see MainframeBonus(14))
+- [~] `TotalStatsDM` — whole body only — not reached: no ported path reads it; it comes from the rows marked [~], from a whole body of a function no ported path calls, or from the Laboratory's connection walk (ASSUMED, see MainframeBonus(14))
+- [~] `TotalStatsDN2` — whole body only — not reached: no ported path reads it; it comes from the rows marked [~], from a whole body of a function no ported path calls, or from the Laboratory's connection walk (ASSUMED, see MainframeBonus(14))
+- [~] `TotalStatsDT2` — whole body only — not reached: no ported path reads it; it comes from the rows marked [~], from a whole body of a function no ported path calls, or from the Laboratory's connection walk (ASSUMED, see MainframeBonus(14))
+- [~] `TotalStatsETCmap` — whole body only — not reached: no ported path reads it; it comes from the rows marked [~], from a whole body of a function no ported path calls, or from the Laboratory's connection walk (ASSUMED, see MainframeBonus(14))
+- [~] `TotalStatsETCmap2List` — whole body only — not reached: no ported path reads it; it comes from the rows marked [~], from a whole body of a function no ported path calls, or from the Laboratory's connection walk (ASSUMED, see MainframeBonus(14))
 - [x] `UNQ_sushi` — a local in SushiStuff UniqueSushi
-- [ ] `VaultKillzDN3`
-- [ ] `VaultKillzDN4`
-- [ ] `VaultKillzTOT`
+- [~] `VaultKillzDN3` — not reached: no ported path reads it; it comes from the rows marked [~], from a whole body of a function no ported path calls, or from the Laboratory's connection walk (ASSUMED, see MainframeBonus(14))
+- [~] `VaultKillzDN4` — not reached: no ported path reads it; it comes from the rows marked [~], from a whole body of a function no ported path calls, or from the Laboratory's connection walk (ASSUMED, see MainframeBonus(14))
+- [~] `VaultKillzTOT` — not reached: no ported path reads it; it comes from the rows marked [~], from a whole body of a function no ported path calls, or from the Laboratory's connection walk (ASSUMED, see MainframeBonus(14))

@@ -207,7 +207,7 @@ describe("NotPorted", () => {
 const INVENTORY = "../docs/superpowers/plans/2026-11-04-artifact-find-inventory.md";
 const inventoryAttrs = (): string[] => {
   const section = readFileSync(INVENTORY, "utf8").split(/^## attrs$/m)[1].split(/^## /m)[0];
-  return [...section.matchAll(/^- \[[ x]\] `(\w+)`/gm)].map((m) => m[1]);
+  return [...section.matchAll(/^- \[[ x~]\] `(\w+)`/gm)].map((m) => m[1]);
 };
 /** Loaded by the N.js loader: an entry of its own, or one per element (`Tasks[0]`…). */
 const isSaveAttr = (name: string) => Object.keys(SAVE_ATTRS).some((k) => k === name || k.startsWith(`${name}[`));
