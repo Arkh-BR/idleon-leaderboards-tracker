@@ -1,9 +1,14 @@
 // Task 9: Sailing("BoatArtiMulti", 0) and the Artifact Find adapter (lib/game/trackers/artifactFind.ts).
 //
-// BoatArtiMulti is one expression of the ported blocks; the adapter turns the ONE traced call into the page's tree. So the tests are:
-// the expression against N.js's text and calls, the total against lib/arkh over every real save and character (minus KNOWN_ARKH_DIFFS),
-// the tree's names, formats and source values against lib/arkh's (the page's Biggest Gains and Observed Max key on them), the groups
-// recombining to the total (display and value agree), the per-character terms, and the number the game showed for the owner's save.
+// BoatArtiMulti is one expression of the ported blocks; the adapter turns the ONE traced call into the page's tree. The file tests:
+// - the expression: N.js's text token for token, its calls, the boat argument, the strict Boats row, the tracker registry;
+// - the display config moved to lib/artifactFind/groups, and that no file under lib/game imports lib/arkh (the data re-exports aside);
+// - the totals against lib/arkh over every real save and character (minus KNOWN_ARKH_DIFFS), each source leaf against lib/arkh's, the
+//   groups recombining to the total (display and value agree), and the pinned Ruling E refusals (pre-migration saves throw);
+// - the page's tree stays within 2x of lib/arkh's node count and keeps every runtime:/assumed: note of the full trace (Ruling L);
+// - the tree on the 2026-11-01 save: shape, names/formats/notes equal to lib/arkh's, the trace children, the recombination guard
+//   (TreeTotalMismatch), and the number the game showed for it (167Q);
+// - switching character: only the per-character terms move.
 import { describe, it, expect } from "vitest";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { basename } from "node:path";
@@ -22,7 +27,6 @@ import { TRACKERS } from "@/lib/game/trackers";
 import type { StatResult } from "@/lib/statTracker/config";
 import { callDiff, njsCalls, njsFunction, njsNamedBlocks, traceCalls } from "@/lib/diagnose/njsCalls";
 import { loadNjs } from "@/scripts/njs-calls";
-import { flattenTree } from "@/lib/dropRate/treeFlatten";
 import { GOLDEN_SAVES, KNOWN_ARKH_DIFFS, arkhArtifactLeaf, arkhArtifactTree, gameCtx } from "../support/arkhOracle";
 
 const rel = (got: number, want: number) => Math.abs(got - want) <= 1e-9 * Math.max(1, Math.abs(want));
@@ -170,6 +174,84 @@ describe("the display config", () => {
     expect(files.length).toBeGreaterThan(40); // the scan found the engine
     expect(imports.filter((i) => !ALLOWED.some((a) => i.startsWith(`${a}:`)))).toEqual([]);
     expect(imports.some((i) => i.startsWith("lib/game/data/index.ts:"))).toBe(true); // the exception list is not stale
+  });
+});
+
+// ── the totals ──────────────────────────────────────────────────────────────────────────────────
+// Ruling E: a save missing a key the current N.js loader maps stays a strict MissingSaveKey, so the adapter refuses it (it throws; Task 10
+// decides what the page shows). Every one is a pre-migration save (below the current CSver, checked in the loop). The first key the
+// expression reads that they lack is `Menagerie` (CSver 34) on all 31: the term tests pin the same list for starSign61, which reads it
+// first. The saves HourZero (no Spelunk/Research/Sushi) and 5OhTree (no Sushi), and the eight whose Tome is partial (IncompleteTome), are
+// among them: the Menagerie is read before any of those keys.
+const CURRENT_CSVER = 34.05;
+const REFUSED_SAVES = ["01010111001.json","0celot8.json","0xEXCEED.json","100Cotton.json","1st_Giri.json","24632463.json","26515665165165.json","5OhTree.json","B0schi.json","Brokami.json","Dragonlzl.json","Exrom.json","FenrirAdra.json","Frans813.json","GIM_SSS.json","Grandesz.json","HourZero.json","Jrod11.json","MarleyLongbott.json","Pepega777.json","Pontinhas.json","Rinkzate.json","TinTim.json","arkhe-2026-09-23.json","arkhe-it-profile-2026-09-24.json","arkhe-live-2026-09-23.json","arkhe-live-2026-09-24.json","breakinbrad.json","dida123.json","joelok.json","ryujinsan.json"].map((f) => `${f}: Menagerie`).sort();
+const csverOf = (file: string): number => JSON.parse(readFileSync(GOLDEN_SAVES.find((p) => basename(p) === file)!, "utf8")).data.CSver;
+
+describe.skipIf(noSaves)("computeGameArtifactFind against lib/arkh on every real save and character", () => {
+  it("the total, every source leaf and the group display agree with lib/arkh (and with itself)", () => {
+    const t0 = performance.now();
+    const mismatches: string[] = [];
+    const leafMismatches: string[] = [];
+    const display: string[] = [];
+    const refused = new Set<string>();
+    const seenTotals = new Set<number>();
+    let pairs = 0;
+    let known = 0;
+    let refusedPairs = 0;
+    let worst = 0;
+    for (const path of GOLDEN_SAVES) {
+      const file = basename(path);
+      for (let ci = 0; ci < stateOf(path).chars; ci++) {
+        const r = run(path, ci);
+        if ("refused" in r) {
+          refused.add(`${file}: ${r.refused}`);
+          refusedPairs++;
+          continue;
+        }
+        // display and value agree: the groups recombine, the way lib/arkh combines them (its own groupVal / applyGroupStep), to the call's total
+        let rebuilt = 1;
+        ARTI_GROUPS.forEach((g, gi) => {
+          const vals = g.sources.map((id) => r.vals[id]);
+          if (!rel(r.groups[gi], groupVal(g, vals))) display.push(`${file}#${ci}: group ${g.key} shows ${r.groups[gi]}, its sources give ${groupVal(g, vals)}`);
+          rebuilt = applyGroupStep(g, vals, rebuilt);
+        });
+        if (!rel(rebuilt, r.total)) display.push(`${file}#${ci}: groups give ${rebuilt}, the call ${r.total}`);
+        if (r.root !== r.total) display.push(`${file}#${ci}: root ${r.root} is not the total ${r.total}`);
+        // the leaf of each source is lib/arkh's leaf (the page's Biggest Gains and Observed Max work on those), except the known rows
+        for (const id of IDS) {
+          if (KNOWN_ARKH_DIFFS.some((d) => d.save === file && (d.ci ?? ci) === ci && d.source === id)) continue;
+          const want = arkhArtifactLeaf(path, ci, id);
+          if (!rel(r.vals[id], want)) leafMismatches.push(`${file}#${ci} ${id}: game ${r.vals[id]}, arkh ${want}`);
+        }
+        if (KNOWN_ARKH_DIFFS.some((d) => d.save === file && (d.ci ?? ci) === ci)) {
+          known++;
+          continue; // the total differs from lib/arkh's where N.js proves lib/arkh wrong
+        }
+        const want = arkhArtifactTree(path, ci).val;
+        pairs++;
+        seenTotals.add(r.total);
+        worst = Math.max(worst, relErr(r.total, want));
+        if (!rel(r.total, want)) mismatches.push(`${file}#${ci}: game ${r.total}, arkh ${want}`);
+      }
+    }
+    const refusals = [...refused].sort();
+    console.info(
+      `[artifactFind] ${pairs} totals compared (worst relative difference ${worst.toExponential(2)}), ${known} known-diff pairs, ${refusedPairs} refused pairs in ${refused.size} saves, ${seenTotals.size} distinct totals, ${Math.round(performance.now() - t0)} ms`
+    );
+    expect(mismatches).toEqual([]);
+    expect(leafMismatches).toEqual([]);
+    expect(display).toEqual([]);
+    expect(pairs).toBeGreaterThan(500); // a loop over nothing would pass
+    expect(seenTotals.size).toBeGreaterThan(100); // nor would one number everywhere
+    expect(known).toBeGreaterThan(0);
+    expect(refusals).toEqual(REFUSED_SAVES);
+    for (const f of refusals) expect(csverOf(f.split(": ")[0]), `${f} is pre-migration`).toBeLessThan(CURRENT_CSVER);
+  }, 600_000);
+
+  it("a refused save throws instead of answering a number", () => {
+    const hour = GOLDEN_SAVES.find((p) => basename(p) === "HourZero.json");
+    expect(hour).toBeDefined();
+    expect(() => computeGameArtifactFind(JSON.parse(readFileSync(hour!, "utf8")), 0)).toThrow(MissingSaveKey);
   });
 });
 
