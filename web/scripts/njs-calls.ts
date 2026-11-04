@@ -3,7 +3,8 @@
 //   npx tsx scripts/njs-calls.ts <Block> [<NamedBlock>] [<n>]
 //
 // Reads the live N.js (scripts/updater/.cache/N.new.js) and prints the calls inside
-// `_customBlock_<Block>`; with <NamedBlock>, only inside its `if("<NamedBlock>"==d)` block;
+// `_customBlock_<Block>`; with <NamedBlock>, only inside its `if("<NamedBlock>"==d)` or
+// `"<NamedBlock>"==d?(…):` block;
 // with <n> too, only inside that block's `<n>==b` branch. E.g. `Sailing ArtifactBonus 25` is
 // the Artifact 25 formula. Compare with what ours calls via callDiff (lib/diagnose/njsCalls).
 // A name used by several blocks of the function (TotalStats has 6 calcEtcBonuses) reads all of them.

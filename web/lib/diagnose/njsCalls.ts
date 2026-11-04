@@ -120,23 +120,58 @@ function statementEnd(s: string, i: number): number {
   return s.length;
 }
 
-/** Every block `if("<name>"==<v>)…` inside `text`, in order. */
+/**
+ * Index of the `:` that closes the ternary consequent starting at `from` (just after its `?`):
+ * the first `:` at bracket depth 0 not claimed by a nested `?`, string-aware. -1 when the
+ * enclosing bracket closes or the text ends first, i.e. nothing to bound the consequent by.
+ */
+function ternaryEnd(s: string, from: number): number {
+  let depth = 0;
+  let nested = 0;
+  let quote: string | null = null;
+  for (let k = from; k < s.length; k++) {
+    const c = s[k];
+    if (quote) {
+      if (c === "\\") k++;
+      else if (c === quote) quote = null;
+    } else if (c === '"' || c === "'") quote = c;
+    else if (c === "(" || c === "[" || c === "{") depth++;
+    else if (c === ")" || c === "]" || c === "}") {
+      if (--depth < 0) return -1;
+    } else if (depth === 0 && c === "?") nested++;
+    else if (depth === 0 && c === ":") {
+      if (nested-- === 0) return k;
+    }
+  }
+  return -1;
+}
+
+/**
+ * Every block `if("<name>"==<v>)…` or `"<name>"==<v>?…:` inside `text`, in order. The `if` may
+ * test other names too (`if("BaseDmg"==d||"BaseHP"==d)`). The ternary form (TotalStats("STR"),
+ * about 550 sites in the live N.js) is the consequent, from after the `?` to its matching `:`
+ * (ternaryEnd); one it cannot bound is skipped, not guessed. The `&&` form (`"LUK"==d&&(…)`, the
+ * tail of such a chain) is not read: a node that lands only there has no slice (unchecked).
+ */
 export function njsNamedBlocks(text: string, name: string): string[] {
   if (!/^\w+$/.test(name)) return [];
-  const re = new RegExp(String.raw`if\("${name}"==[A-Za-z]\)`, "g");
+  const cmp = String.raw`"\w+"==[A-Za-z]`;
+  const re = new RegExp(String.raw`if\((?:${cmp}\|\|)*"${name}"==[A-Za-z](?:\|\|${cmp})*\)|"${name}"==[A-Za-z]\?`, "g");
   const blocks: string[] = [];
-  while (re.exec(text)) {
-    const end = statementEnd(text, re.lastIndex);
-    blocks.push(text.slice(re.lastIndex, end));
+  for (let m; (m = re.exec(text)); ) {
+    const from = re.lastIndex;
+    const end = m[0].endsWith("?") ? ternaryEnd(text, from) : statementEnd(text, from);
+    if (end < 0) continue;
+    blocks.push(text.slice(from, end));
     re.lastIndex = end;
   }
   return blocks;
 }
 
 /**
- * The named block(s) `if("<name>"==<v>)…` inside `text`, joined by "\n", or undefined. A
- * function can hold several blocks of one name (TotalStats has 6 `calcEtcBonuses`) and the game
- * runs every one when the name matches, so all of them are returned.
+ * The named block(s) `if("<name>"==<v>)…` or `"<name>"==<v>?…:` inside `text`, joined by "\n", or
+ * undefined. A function can hold several blocks of one name (TotalStats has 6 `calcEtcBonuses`)
+ * and the game runs every one when the name matches, so all of them are returned.
  */
 export function njsNamedBlock(text: string, name: string): string | undefined {
   const blocks = njsNamedBlocks(text, name);
@@ -158,4 +193,17 @@ export function njsNumericBranch(text: string, n: number, params: string[]): str
   const from = start.index + start[0].length;
   const next = new RegExp(String.raw`(?<![\w$.-])\d+==${start[1]}(?![\w$])`).exec(text.slice(from));
   return text.slice(start.index, next ? from + next.index : text.length);
+}
+
+/**
+ * The N.js text a trace node stands for: the whole function when its first argument is not a
+ * string; else the named block that string picks; with a number next, that block's numeric
+ * branch, or the whole named block when the branch is not there (Summoning("VaultUpgBonus",20,0)
+ * has no `20==b`). undefined when the function has no such named block: nothing to compare.
+ */
+export function njsSlice(fn: { params: string[]; body: string }, args: unknown[]): string | undefined {
+  const [a0, a1] = args;
+  if (typeof a0 !== "string") return fn.body;
+  const named = njsNamedBlock(fn.body, a0);
+  return (typeof a1 === "number" && named !== undefined ? njsNumericBranch(named, a1, fn.params) : undefined) ?? named;
 }

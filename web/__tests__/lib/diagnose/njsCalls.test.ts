@@ -1,6 +1,6 @@
 import { beforeAll, describe, it, expect } from "vitest";
 import { existsSync, readFileSync } from "node:fs";
-import { callDiff, njsCalls, njsFunction, njsNamedBlock, njsNamedBlocks, njsNumericBranch, traceCalls } from "@/lib/diagnose/njsCalls";
+import { callDiff, njsCalls, njsFunction, njsNamedBlock, njsNamedBlocks, njsNumericBranch, njsSlice, traceCalls } from "@/lib/diagnose/njsCalls";
 import type { TraceNode } from "@/lib/game/trace";
 import { normalizeBundle } from "@/scripts/updater/extract";
 
@@ -216,16 +216,98 @@ describe("njsNamedBlocks / njsNamedBlock with a name used by several blocks of o
   });
 });
 
+describe("njsNamedBlocks with the ternary dispatch (\"X\"==d?(...):...)", () => {
+  // The chain TotalStats uses: each consequent runs from after `?` to the `:` that matches it.
+  const tern = njsFunction(
+    [
+      `m._customBlock_Tern=function(d){`,
+      `"STR"==d?(b=x._customBlock_A(1),e=k._customBlock_B("a?:b")):"AGI"==d?(x._customBlock_C(2)):`,
+      `"WIS"==d?g?x._customBlock_E(4):x._customBlock_F(5):"LUK"==d&&(x._customBlock_D(3));`,
+      `if("STR"==d)k._customBlock_IfForm(9);`,
+      `return"Last"==d?x._customBlock_G(7):0};`,
+    ].join(""),
+    "Tern"
+  )!;
+
+  it("slices the consequent up to its matching colon, string-aware", () => {
+    expect(njsNamedBlocks(tern.body, "AGI")).toEqual([`(x._customBlock_C(2))`]);
+    expect(njsNamedBlocks(tern.body, "Last")).toEqual([`x._customBlock_G(7)`]);
+    expect(njsCalls(njsNamedBlock(tern.body, "STR")!)).toEqual([
+      { block: "A", arg0: 1 },
+      { block: "B", arg0: "a?:b" },
+      { block: "IfForm", arg0: 9 },
+    ]);
+  });
+
+  it("skips nested ?: pairs of the consequent, so its colon is not taken for the end", () => {
+    expect(njsNamedBlocks(tern.body, "WIS")).toEqual([`g?x._customBlock_E(4):x._customBlock_F(5)`]);
+  });
+
+  it("returns the if-form and the ternary form of one name together, in source order", () => {
+    expect(njsNamedBlocks(tern.body, "STR").map((b) => njsCalls(b).map((c) => c.block))).toEqual([["A", "B"], ["IfForm"]]);
+  });
+
+  it("does not read the `&&` tail of a chain (\"LUK\"==d&&(...)), and never guesses a ternary it cannot close", () => {
+    expect(njsNamedBlocks(tern.body, "LUK")).toEqual([]);
+    expect(njsNamedBlocks(`return"X"==d?x._customBlock_A(1)}`, "X")).toEqual([]); // no colon before the block closes
+    expect(njsNamedBlocks(`"X"==d?x._customBlock_A(1)`, "X")).toEqual([]); // nor before the text ends
+  });
+});
+
+describe("njsNamedBlocks with an if that tests several names", () => {
+  const multi = `if("A"==d||"B"==d||"C"==d)b=x._customBlock_One(1),e=k._customBlock_Two(2);k._customBlock_After();`;
+
+  it("finds the block under each of the names, ending at its statement", () => {
+    for (const name of ["A", "B", "C"]) expect(njsNamedBlocks(multi, name)).toEqual(["b=x._customBlock_One(1),e=k._customBlock_Two(2);"]);
+    expect(njsNamedBlocks(multi, "D")).toEqual([]);
+  });
+});
+
+describe("njsSlice (the N.js text a trace node stands for)", () => {
+  const fn = njsFunction(
+    [
+      `m._customBlock_Sl=function(d,b,e){`,
+      `if("Named"==d){if(7==b)k._customBlock_Seven();25==b&&k._customBlock_TwentyFive()}`,
+      `"Tern"==d?k._customBlock_T(1):0;`,
+      `return 1};`,
+    ].join(""),
+    "Sl"
+  )!;
+
+  it("a non-string first argument is the whole function", () => {
+    expect(njsSlice(fn, [3])).toBe(fn.body);
+    expect(njsSlice(fn, [])).toBe(fn.body);
+  });
+
+  it("a string and a number is the numeric branch of the named block", () => {
+    expect(njsCalls(njsSlice(fn, ["Named", 25])!).map((c) => c.block)).toEqual(["TwentyFive"]);
+  });
+
+  it("falls back to the whole named block when the numeric branch is missing (Summoning(\"VaultUpgBonus\",20,0) has no 20==b)", () => {
+    expect(njsCalls(njsSlice(fn, ["Named", 99, 0])!).map((c) => c.block)).toEqual(["Seven", "TwentyFive"]);
+    expect(njsCalls(njsSlice(fn, ["Named"])!).map((c) => c.block)).toEqual(["Seven", "TwentyFive"]);
+  });
+
+  it("reads a ternary-dispatched name, and has no slice for a name the function never dispatches on", () => {
+    expect(njsCalls(njsSlice(fn, ["Tern"])!)).toEqual([{ block: "T", arg0: 1 }]);
+    expect(njsSlice(fn, ["Nope", 1])).toBeUndefined();
+  });
+});
+
 // The live bundle is 25 MB: read and normalize it once for the file.
 const NJS = "scripts/updater/.cache/N.new.js";
 describe.skipIf(!existsSync(NJS))("the live N.js", () => {
   let sailing: NonNullable<ReturnType<typeof njsFunction>>;
   let totalStats: NonNullable<ReturnType<typeof njsFunction>>;
+  let summoning: NonNullable<ReturnType<typeof njsFunction>>;
+  let stampBonus: NonNullable<ReturnType<typeof njsFunction>>;
   const artifact25 = () => njsNumericBranch(njsNamedBlock(sailing.body, "ArtifactBonus")!, 25, sailing.params)!;
   beforeAll(() => {
     const norm = normalizeBundle(readFileSync(NJS, "utf8"));
     sailing = njsFunction(norm, "Sailing")!;
     totalStats = njsFunction(norm, "TotalStats")!;
+    summoning = njsFunction(norm, "Summoning")!;
+    stampBonus = njsFunction(norm, "StampBonusOfTypeX")!;
   }, 120_000);
 
   it("holds _customBlock_Sailing(d,b,e)", () => {
@@ -250,6 +332,20 @@ describe.skipIf(!existsSync(NJS))("the live N.js", () => {
     expect(blocks.length).toBeGreaterThan(1);
     expect(njsCalls(blocks[0])).toEqual([]);
     expect(njsCalls(njsNamedBlock(totalStats.body, "calcEtcBonuses")!).length).toBeGreaterThan(0);
+  });
+
+  it("reads the ternary dispatch of _customBlock_TotalStats (\"STR\"==d?...): the STR block makes calls", () => {
+    const calls = njsCalls(njsNamedBlock(totalStats.body, "STR")!);
+    expect(calls.length).toBeGreaterThan(0);
+    expect(calls).toContainEqual({ block: "StampBonusOfTypeX", arg0: "PctSTR" });
+  });
+
+  it("has a slice for Summoning(\"VaultUpgBonus\",20,0) though the block has no 20==b branch, and for StampBonusOfTypeX(\"BaseDmg\")", () => {
+    const named = njsNamedBlock(summoning.body, "VaultUpgBonus")!;
+    expect(njsNumericBranch(named, 20, summoning.params)).toBeUndefined();
+    expect(njsSlice(summoning, ["VaultUpgBonus", 20, 0])).toBe(named);
+    // an `if("BaseDmg"==d||"BaseHP"==d||…)`, not a ternary
+    expect(njsCalls(njsSlice(stampBonus, ["BaseDmg"])!)).toContainEqual({ block: "Summoning", arg0: "VaultUpgBonus" });
   });
 
   it("a synthetic trace of Artifact 25 without TotalStats reports it missing, and with it does not", () => {
