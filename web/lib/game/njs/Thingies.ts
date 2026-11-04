@@ -1,9 +1,9 @@
 import { asNum, asNumber, attr, SAVE_ATTRS } from "../attr";
 import { block, type Ctx } from "../ctx";
-import { EmperorBon, LegendTalents, Spelunky } from "../data";
+import { EmperorBon, LegendTalents, Spelunky, ZenithMarket } from "../data";
 import { NotPorted } from "../errors";
 import { hString } from "../hstring";
-import { listAt } from "../lists";
+import { contains, listAt } from "../lists";
 import { opt } from "../state";
 import { traceNode } from "../trace";
 import { ArcadeBonus } from "./ArcadeBonus";
@@ -14,8 +14,8 @@ import { JellyOperation } from "./JellyOperation";
 import { Summoning } from "./Summoning";
 import { range, type Ported } from "../ported";
 
-/** N.js `_customBlock_Thingies(d, b, e)` @10955095. Only the sub-cases the Artifact Find port reaches. */
-export const Thingies = block("Thingies", (ctx, d: string, b: number, e: number) => {
+/** N.js `_customBlock_Thingies(d, b, e)` @10955095. Only the sub-cases the Artifact Find port and the character stats reach. */
+export const Thingies: (ctx: Ctx, d: string, b: number, e: number) => number = block("Thingies", (ctx, d: string, b: number, e: number) => {
   switch (d) {
     // @10970802: Spelunk legend talent `b` (talent level x the talent's per-level value, rounded)
     case "LegendPTS_bonus":
@@ -31,6 +31,30 @@ export const Thingies = block("Thingies", (ctx, d: string, b: number, e: number)
     // @10974601
     case "LoreEpiBon":
       return loreEpiBon(ctx, b);
+    // @10978795, the next one: the Bundles ban_m and ban_o were bought (Ruling H, as Have_ban_i)
+    // @10977895: 10 once the World 6 trophy (Trophy23) is in the card collection list Cards[1]. The game's cache check
+    // (`D.mapContainsValue(DNSM, "STw6tr")`, a value test of a key name) never holds, so it is read again every call.
+    case "HaveW6Trophy":
+      return contains(attr(ctx, "Cards", 1), "Trophy23") ? 10 : 0;
+    case "Have_ban_m":
+      return haveBan(ctx, "ban_m");
+    case "Have_ban_o":
+      return haveBan(ctx, "ban_o");
+    // @10972290: the levels a super talent gets, 50 + the legend talent 7 + the Zenith Market upgrade 5
+    case "SuperTalentPTS_LVgiven":
+      return Math.round(50 + (Thingies(ctx, "LegendPTS_bonus", 7, 0) + Thingies(ctx, "ZenithMarketBonus", 5, 0)));
+    // @10959337: Zenith Market upgrade b, its value ZenithMarket[b][4] x its level Spelunk[45][b], rounded down
+    case "ZenithMarketBonus": {
+      const row = (ZenithMarket as unknown as readonly (readonly unknown[])[])[b | 0];
+      // the game indexes ZenithMarket[b][4] directly and would throw on an upgrade it does not have
+      if (!row) throw new RangeError(`Thingies ZenithMarketBonus: no upgrade ${b} in ZenithMarket`);
+      listAt(ctx, "Spelunk", 45); // the game indexes Spelunk[45][b] directly
+      return Math.floor(asNumber(row[4]) * asNum(ctx, "Spelunk", 45, b | 0));
+    }
+    // @10963823: Coral Kid upgrade b, from OptionsListAccount[427 + b]
+    case "CoralKidUpgBonus":
+      if (b !== 3) throw new NotPorted("Thingies", `CoralKidUpgBonus:b=${b}`);
+      return Math.round(asNum(ctx, "OptionsListAccount", Math.round(427 + b)));
     default:
       throw new NotPorted("Thingies", d);
   }
@@ -63,11 +87,14 @@ function emperorBon(ctx: Ctx, b: number): number {
  * the trace shows it as an `(absent)` leaf instead of a silent zero.
  */
 function haveBanI(ctx: Ctx): number {
+  return haveBan(ctx, "ban_i");
+}
+function haveBan(ctx: Ctx, bundle: string): number {
   if (opt(ctx.state, SAVE_ATTRS.BundlesReceived.key) === undefined) {
     if (ctx.trace) ctx.trace.children.push(traceNode(ctx.trace, ctx.player, "(absent)", ["BundlesReceived"], 0, 'absent: getLoadMap("BundlesReceived") @19927310 → {}'));
     return 0;
   }
-  return 1 == attr(ctx, "BundlesReceived", "ban_i") ? 1 : 0;
+  return 1 == attr(ctx, "BundlesReceived", bundle) ? 1 : 0;
 }
 
 /**
@@ -94,4 +121,7 @@ function loreEpiBon(ctx: Ctx, b: number): number {
 }
 
 /** What this module covers (lib/game/ported.ts). */
-export const PORTED: Ported = { LegendPTS_bonus: true, Have_ban_i: true, ClamWorkBonus: true, EmperorBon: true, LoreEpiBon: range(0, 30) };
+export const PORTED: Ported = {
+  LegendPTS_bonus: true, Have_ban_i: true, ClamWorkBonus: true, EmperorBon: true, LoreEpiBon: range(0, 30),
+  HaveW6Trophy: true, Have_ban_m: true, Have_ban_o: true, SuperTalentPTS_LVgiven: true, ZenithMarketBonus: true, CoralKidUpgBonus: [3],
+};

@@ -191,10 +191,19 @@ export const MIGRATIONS: readonly Step[] = Object.freeze([
   loaderInit("Bubba", 28, 19944326, 6585875),
   loaderInit("Research", 29, 19944419, 6585918),
   assumedEmpty("Sushi", 30, 19944518, "initialize3 (@6326856)"),
+  loaderInit("CookMaster", 32, 19944713, 6586030),
   loaderInit("RoyalG", 33, 19944816, 6586076),
   loaderInit("RoyalMaps", 33, 19944816, 6586120),
   loaderInit("Menagerie", 34, 19944986, 6586152),
   // ── 2. initialize1..4 ──
+  // initialize1 turns every null of OptionsListAccount into 0 (HourZero has three; the Tome reads them)
+  pad("initialize1", "OptionsListAccount nulls set to 0", 6192268, (l) => {
+    const ola = present(l, "OptionsListAccount");
+    if (!ola) return false;
+    let changed = false;
+    for (let b = 0; b < ola.length; b++) if (null == ola[b]) (ola[b] = 0), (changed = true);
+    return changed;
+  }),
   initFill("initialize3", "Compass", 6297143, () => [[], [], [], [], []]),
   pad("initialize3", "Compass[0] and [1] padded to CompassUpg and Titans", 6297424, (l) => {
     const compass = present(l, "Compass");
@@ -247,6 +256,7 @@ export const MIGRATIONS: readonly Step[] = Object.freeze([
     for (const i of [50, 65, 51, 66, 52, 67, 53, 68, 54, 69]) sushi[1][i] = 0;
     return sushi;
   }),
+  initFill("initialize3", "CookMaster", 6330480, () => [filled(100, 0), filled(30, 0), filled(6, 0), filled(10, 0)]),
   initFill("initialize4", "RoyalG", 6332042, () => ROYALG_ROWS.map((n) => filled(n, 0))),
   initFill("initialize4", "RoyalMaps", 6335691, () => {
     const maps: unknown[] = Array.from({ length: 400 }, () => []);
@@ -387,6 +397,11 @@ export const MIGRATIONS: readonly Step[] = Object.freeze([
     if (54 > spelunk.length) spelunk.push([]);
     list(l, "Menagerie", 0)[6] = 1;
   }),
+  // the Cape Vine's list, Spelunk[54] (the Gallery reads it, TotalStats through it)
+  once("OnPlayStart4", 399, 399.1, 6468343, (l) => {
+    const spelunk = present(l, "Spelunk");
+    if (spelunk && 54 == spelunk.length) spelunk.push([]);
+  }),
 ]);
 
 /**
@@ -434,10 +449,10 @@ export function migrate(
 
 // Not ported: Artifact Find (its terms and lib/tome's rows) reads nothing they write, or they never run on a real save. Each one that
 // runs on a real save was applied by hand to every real save it runs on, the state rebuilt, every character's total compared: none moved.
-//   - the loader: Tess (CSver 26; not reset by ClearLocalData, so it would need an assumption; initialize3 fills it with [[], []]),
-//     GreenStacks (31) and CookMaster (32, and its initialize3 fill);
+//   - the loader: Tess (CSver 26; not reset by ClearLocalData, so it would need an assumption; initialize3 fills it with [[], []]) and
+//     GreenStacks (31);
 //   - initialize1: GemItemsPurchased padded to 300; OptionsListAccount padded to 17..70 and its 51..59 splice (no real save is that
-//     short), its null -> 0 pass (no real save has a null), its pads to 201..601 (only in the Tutorial scene); the starter star signs
+//     short), its pads to 201..601 (only in the Tutorial scene); the starter star signs
 //     of an empty StarSignsUnlocked and the task progress of a new account (no real save has either); CauldronJobs1 per character;
 //     PostOfficeInfo[3]; the CauldronInfo pads (to AlchemyCoords and AlchemyDescription); every character's StatueLevels to StatueInfo;
 //     Tasks[3] to TaskUnlocks; the chat, NonCloudsave and displayData lists (session state);
@@ -462,6 +477,6 @@ export function migrate(
 //     "Player_" slots to "Blank"), 370 (CookMaster ranks), 374 (OptionsListAccount[602] + 2), 375 (Holes[11] null -> 0: lib/tome reads
 //     Number(null) = 0 alike), 385 (Ribbon), 386 (five Research lists after the 14th: nothing reads past Research[12]), 389
 //     (Sushi[4][8] = 0, Research[7][10] = 3), 390 (Holes[28] to 60), 398 (OptionsListAccount and GemItemsPurchased resets,
-//     Research[13], cleanMarkedFiles), 399 (a 55th Spelunk list: nothing reads past Spelunk[50]); the rest of 380 (each Royal Guardian
+//     Research[13], cleanMarkedFiles); the rest of 380 (each Royal Guardian
 //     outpost map without a list gets [0] through RoyalG("HasOutpost"), which the Tome's outpost count, lists of 3 fields or more,
 //     does not count; every LockedSlots padded to 112).

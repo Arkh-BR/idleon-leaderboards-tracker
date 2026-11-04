@@ -1,21 +1,31 @@
 import { asNum, asNumber, attr } from "../attr";
 import { block, type Ctx } from "../ctx";
-import { MarketExoticInfo, Research as CustomResearch } from "../data";
+import { MarketExoticInfo, NinjaInfo, Research as CustomResearch } from "../data";
 import { NotPorted } from "../errors";
 import { contains, listAt } from "../lists";
 import { GamingStatType } from "./GamingStatType";
+import { getbonus2 } from "./getbonus2";
 import { MenagerieStuff } from "./MenagerieStuff";
 import { ResearchStuff } from "./ResearchStuff";
 import { Summoning } from "./Summoning";
 import { range, type Ported } from "../ported";
 
 /** N.js `_customBlock_FarmingStuffs(d, b, e)` @10817671. Only the sub-cases the Artifact Find port reaches. */
-export const FarmingStuffs = block("FarmingStuffs", (ctx, d: string, b: number, e: number) => {
+export const FarmingStuffs: (ctx: Ctx, d: string, b: number, e: number) => number = block("FarmingStuffs", (ctx, d: string, b: number, e: number) => {
   switch (d) {
     case "StickerBonus":
       return stickerBonus(ctx, b, e);
     case "ExoticBonusQTY":
       return exoticBonusQTY(ctx, b);
+    // @10823067: Land Rank upgrade b, its level FarmRank[2][b] times its value NinjaInfo[36][b] (the upgrades 4, 9, 14 and 19 as it is,
+    // the others 1.7 x value x level / (level + 80)), times the best talent 207 (at least 1) and 1 + Exotic 14 / 100
+    case "LankRankUpgBonus": {
+      listAt(ctx, "FarmRank", 2); // the game indexes FarmRank[2][b] directly
+      const lv = asNum(ctx, "FarmRank", 2, b | 0);
+      const value = asNumber((NinjaInfo as unknown as readonly (readonly unknown[])[])[36][b | 0]);
+      const boost = Math.max(1, getbonus2(ctx, 1, 207, -1)) * (1 + FarmingStuffs(ctx, "ExoticBonusQTY", 14, 0) / 100);
+      return 4 == b || 9 == b || 14 == b || 19 == b ? boost * value * lv : boost * ((1.7 * value * lv) / (lv + 80));
+    }
     default:
       throw new NotPorted("FarmingStuffs", d);
   }
@@ -53,4 +63,4 @@ function exoticBonusQTY(ctx: Ctx, b: number): number {
 }
 
 /** What this module covers (lib/game/ported.ts). */
-export const PORTED: Ported = { StickerBonus: true, ExoticBonusQTY: range(0, 80) };
+export const PORTED: Ported = { StickerBonus: true, ExoticBonusQTY: range(0, 80), LankRankUpgBonus: true };

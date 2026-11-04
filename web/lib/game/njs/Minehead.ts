@@ -1,6 +1,8 @@
 import { asNum, asNumber } from "../attr";
 import { block, type Ctx } from "../ctx";
+import { Research } from "../data";
 import { NotPorted } from "../errors";
+import { listAt } from "../lists";
 import { Companions } from "./Companions";
 import { ResearchStuff } from "./ResearchStuff";
 import type { Ported } from "../ported";
@@ -16,6 +18,10 @@ export const Minehead: (ctx: Ctx, d: string, b: number, e: number) => number = b
     // @11204526: the bonus of one press on button slot b
     case "Button_BonusPerTime":
       return asNumber("2 3 2 2 4 5 4 25 5".split(" ")[b | 0]);
+    // @11194007: Research bonus b, Research[20][b] once Research[7][4] is past b (or e == 99)
+    case "BonusQTY":
+      listAt(ctx, "Research", 7); // the game indexes Research[7][4] directly
+      return asNum(ctx, "Research", 7, 4) > b || 99 == _e ? asNumber((Research as unknown as readonly (readonly unknown[])[])[20][b | 0]) : 0;
     // @11204610: what the companion 147 and the Research grid square 125 add to every press
     case "Button_BonusMULTI":
       return (1 + Companions(ctx, 147) / 100) * (1 + ResearchStuff(ctx, "Grid_Bonus", 125, 0) / 100);
@@ -51,4 +57,4 @@ function buttonBonuses(ctx: Ctx, b: number): number {
 }
 
 /** What this module covers (lib/game/ported.ts). */
-export const PORTED: Ported = { Button_Bonuses: true, Button_BonusPerTime: true, Button_BonusMULTI: true };
+export const PORTED: Ported = { Button_Bonuses: true, Button_BonusPerTime: true, Button_BonusMULTI: true, BonusQTY: true };

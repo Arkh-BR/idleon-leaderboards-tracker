@@ -141,8 +141,11 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("RandomEvent (N.js @10777743)", () =>
     expect(killroy(300)).toBe(1.5);
     expect(killroy(900)).toBe(1.75);
   });
-  it("the other Killroy upgrades are not ported", () => {
-    for (const b of [1, 2, 3, 7, 8]) expect(() => RandomEvent(variant(() => {}), "KillroyBonuses", b, 0)).toThrow(NotPorted);
+  it("Killroy upgrade 3 (the Gallery's) is 10 x P / (200 + P), P = OptionsListAccount[467]; the others are not ported", () => {
+    const k3 = (p: number) => RandomEvent(variant((d) => setIn(d, "OptLacc", (o) => (o[467] = p))), "KillroyBonuses", 3, 0);
+    expect(k3(0)).toBe(0);
+    expect(k3(200)).toBe(5);
+    for (const b of [1, 2, 7, 8]) expect(() => RandomEvent(variant(() => {}), "KillroyBonuses", b, 0)).toThrow(NotPorted);
   });
   // DNSM.FracIsBn[f] = (OptionsListAccount[184] >= GenINFO[25][f]) with the thresholds 24, 200, 750, 2500, 1e4, 2e4, 4e4, 6e4 (@11694238)
   const fractal = (points: number, b = 3) => RandomEvent(variant((d) => setIn(d, "OptLacc", (o) => (o[184] = points))), "FractalIslandBonus", b, 999);
@@ -161,8 +164,8 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("RandomEvent (N.js @10777743)", () =>
     expect(() => fractal(1e9, -1)).toThrow(RangeError);
   });
   it("a save whose OptionsListAccount[184] is missing counts 0 points (c.asNumber), shown in the trace as an (absent) leaf", () => {
-    expect(fractal(undefined as unknown as number, 0)).toBe(0);
-    const c = variant((d) => setIn(d, "OptLacc", (o) => (o[184] = undefined)), { trace: true });
+    expect(fractal(undefined as unknown as number, 0)).toBe(0); // a null in the save: initialize1 makes it 0 (@6192268)
+    const c = variant((d) => setIn(d, "OptLacc", (o) => (o.length = 184)), { trace: true });
     expect(RandomEvent(c, "FractalIslandBonus", 3, 999)).toBe(0);
     expect(absentLeaves(c.trace!)).toEqual(["OptionsListAccount[184]"]);
   });
@@ -686,9 +689,9 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("WinBonus (N.js @10927394)", () => {
       12
     );
   });
-  it("-1 is 0; 19 and 20..33 (but 22, 24, 31) have shapes of their own: not ported", () => {
+  it("-1 is 0; 19 and 20..33 (but 20, 22, 24, 31) have shapes of their own, ported: 0 with no Summoning win", () => {
     expect(win({ beaten: [ratB] }, -1)).toBe(0);
-    for (const b of [19, 21, 23, 25, 30, 33]) expect(() => win({}, b), `bonus ${b}`).toThrow(NotPorted);
+    for (const b of [19, 21, 23, 25, 30, 33]) expect(win({}, b), `bonus ${b}`).toBe(0);
     expect(win({}, 20)).toBe(0);
     expect(win({}, 24)).toBe(0);
   });

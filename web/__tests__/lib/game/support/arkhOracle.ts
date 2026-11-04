@@ -15,6 +15,9 @@ import { saveData } from "@/lib/arkh/state";
 import { computeAccuracy } from "@/lib/arkh/stats/systems/common/derived-damage";
 import { computePlayerHPmax, computePlayerMPmax } from "@/lib/arkh/stats/systems/common/derived-stats";
 import { computeTotalStat } from "@/lib/arkh/stats/systems/common/stats";
+import { goldFoodBonuses } from "@/lib/arkh/stats/systems/common/goldenFood";
+import { talent as talentResolver } from "@/lib/arkh/stats/systems/common/talent";
+import { votingBonusz } from "@/lib/arkh/stats/systems/w2/voting";
 import type { ArkhNode } from "@/lib/arkh/node";
 import { makeCtx, type Ctx } from "@/lib/game/ctx";
 import { buildGameState, type GameEnvelope } from "@/lib/game/state";
@@ -290,6 +293,79 @@ const TOME_AFTER_RESET = `${TOME_SOURCE}. On top of that, this save runs the loa
 const GODSHARD_WORN = "GetSetBonus Bonus @11098422 gives the God Shard set's bonus (15) to a set worn whole (PartsOn 11 >= PartsReq 11) as well as to one permanently unlocked in OptionsListAccount[379]; lib/arkh's WinBonus counts it only when OptionsListAccount[379] names it, and this account's is 0. N.js builds that table (DNSM.SetBonusTOTz) once per session from the equipment of whichever character asks first and rebuilds it only from UI code (GetSetBonus(..., -1) @7032277, @12633316), so the game shows this only when the session's first read was on that character: lib/game models the cache as built for the current character";
 
 /**
+ * The character stats (Task 3): why lib/arkh's STR differs, by reason. Each reason is also a "seed" (statSeeds below): the lib/arkh number
+ * for the one term, which, put in lib/game's cache in place of its own, makes lib/game equal lib/arkh (stats.test.ts checks every pair).
+ */
+export const STAT_WHY: Record<string, string> = {
+  vote2:
+    `lib/arkh's AllStatPCT adds votingBonusz(2, undefined), the vote's bare value; N.js ArbitraryCode("AllStatPCT") @4061538 adds Summoning("VotingBonusz",2,0), which is NinjaInfo[38][1 + 3b] times VotingBonuszMulti while the vote is active (@10953438)`,
+  gfood:
+    `lib/arkh's golden food multi has min(4 x CardLv(cropfallEvent1) + 5 x CardLv(anni5Event1), 50) and the vote 26 without its multi; N.js GoldFoodBonuses @5056708 has min(4 x CardLv(cropfallEvent1), 50) + min(5 x CardLv(anni5Event1), 50) (@5057838) and Summoning("VotingBonusz",26,0) (@10953438)`,
+  fam68:
+    `N.js AllTalentLV @4085148 reads DNSM.FamBonusQTYs["68"] as TalentCalc(-3) @4496063 leaves it (lib/arkh's own computeFamBonusQTYs gives the same number); lib/arkh's talent resolver applies the Family Guy (talent 144) buff to it a second time for the character's own talents, one more talent level`,
+  tomeW8:
+    "the Tome Strength bubble W8 is times floor(max(0, Tome - 5000) / 2000) (TalentCalc(-2) @4489669); lib/arkh's Tome total is IdleonToolbox's parsedData, lib/game's is lib/tome (Ruling K)",
+  signs:
+    "lib/arkh's STR star signs (computeStarSignStatBonuses, its own comment says it counts every listed sign) count a sign the Rift enables that StarSignsUnlocked lacks; N.js StarSigns @6540624 adds sign k of the first enabledStarSigns only when StarSignsUnlocked has StarSigns[k][0]",
+  comp0: COMPANION_0_GATE,
+};
+
+/** [save, reason, characters (absent = all)], found by seeding each mismatch (stats.test.ts proves each). */
+const STAT_DIFFS: readonly (readonly [save: string, reason: string, cis?: readonly number[]])[] = [
+  ["100Cotton.json", "vote2"],
+  ["Ash_EB.json", "fam68", [0]],
+  ["AvacadoSqueeze.json", "gfood"],
+  ["B0schi.json", "gfood"],
+  ["BopeBrancis.json", "gfood"],
+  ["Chalalaa.json", "gfood"],
+  ["Crezar.json", "gfood"],
+  ["Einyen.json", "gfood"],
+  ["Fanmail.json", "gfood"],
+  ["FenrirAdra.json", "gfood"],
+  ["Flipper143.json", "tomeW8"],
+  ["Flipper143.json", "gfood"],
+  ["Fluffle_Puff.json", "gfood"],
+  ["Frans813.json", "gfood"],
+  ["Frostymart.json", "fam68", [0]],
+  ["FrozenBody.json", "fam68", [1]],
+  ["Glaives.json", "signs"],
+  ["Glaives.json", "gfood"],
+  ["GoddessFreia.json", "gfood"],
+  ["Jrod11.json", "vote2"],
+  ["Jrod11.json", "fam68", [4, 7]],
+  ["Koweabooo.json", "tomeW8"],
+  ["Koweabooo.json", "fam68", [8]],
+  ["Koweabooo.json", "comp0", [10]],
+  ["MarleyLongbott.json", "gfood"],
+  ["Maspoofio.json", "gfood"],
+  ["Maspoofio.json", "fam68", [7]],
+  ["PerkOne.json", "gfood"],
+  ["Rinkzate.json", "vote2"],
+  ["Shironee.json", "gfood"],
+  ["Snowyzxd.json", "gfood"],
+  ["TinTim.json", "gfood"],
+  ["TomerBuff.json", "gfood"],
+  ["Yosh6400.json", "gfood"],
+  ["airbolt.json", "gfood"],
+  ["astarm.json", "gfood"],
+  ["big_guy69123.json", "signs"],
+  ["big_guy69123.json", "gfood"],
+  ["big_guy69123.json", "fam68", [5]],
+  ["biggums3.json", "gfood"],
+  ["kONYYY.json", "gfood"],
+  ["liiiiiiiiiiiig.json", "gfood"],
+  ["ryujinsan.json", "gfood"],
+  ["zadavi.json", "gfood"],
+  ["01010111001.json", "vote2"],
+  ["0xEXCEED.json", "vote2"],
+  ["0xEXCEED.json", "fam68", [5]],
+  ["26515665165165.json", "vote2"],
+  ["26515665165165.json", "gfood"],
+  ["arkhe-2026-09-23.json", "tomeW8"],
+  ["arkhe-it-profile-2026-09-24.json", "vote2"]
+];
+
+/**
  * Where N.js proves lib/arkh wrong and lib/game keeps the N.js value. `save` is the file name of the
  * GOLDEN_SAVES entry, `ci` omitted means every character; `why` cites the `@offset` evidence.
  */
@@ -315,4 +391,37 @@ export const KNOWN_ARKH_DIFFS: {
   { save: "5OhTree.json", source: "loreEpi3", why: TOME_AFTER_RESET },
   { save: "HourZero.json", ci: 1, source: "win3", why: GODSHARD_WORN },
   { save: "HourZero.json", ci: 9, source: "win3", why: GODSHARD_WORN },
+  ...STAT_DIFFS.flatMap(([save, source, cis]) =>
+    (cis ?? [undefined]).map((ci) => ({ stat: "str" as const, save, ...(ci === undefined ? {} : { ci }), source, why: STAT_WHY[source] }))
+  ),
 ];
+
+/**
+ * The lib/arkh numbers behind each STAT_WHY reason, as lib/game `block` calls to seed (block name, its args, lib/arkh's value): put in the
+ * cache of a fresh lib/game Ctx for character `ci`, they make lib/game compute what lib/arkh does. lib/arkh is run on the save at `path`.
+ */
+export function arkhStatSeeds(path: string, ci: number, reasons: readonly string[]): [name: string, args: (string | number)[], value: number][] {
+  loadSaveData(JSON.parse(readFileSync(path, "utf8")));
+  const ctx = { saveData, charIdx: ci, activeCharIdx: ci } as never;
+  const tree = computeTotalStat("STR", ci, ctx).tree;
+  const find = (n: ArkhNode, test: (n: ArkhNode) => boolean): ArkhNode | undefined => (test(n) ? n : (n.children ?? []).map((k) => find(k, test)).find(Boolean));
+  const at = (name: string) => {
+    const n = find(tree, (x) => x.name === name);
+    if (!n) throw new Error(`arkhStatSeeds: no "${name}" in lib/arkh's STR tree`);
+    return n.val;
+  };
+  const out: [string, (string | number)[], number][] = [];
+  for (const r of reasons) {
+    if (r === "vote2") out.push(["Summoning", ["VotingBonusz", 2, 0], votingBonusz(2, undefined, saveData)]);
+    else if (r === "gfood") out.push(["GoldFoodBonuses", ["AllStatz"], goldFoodBonuses("AllStatz", ci, undefined, saveData).total]);
+    else if (r === "tomeW8") out.push(["DNSM.AlchBubbles", ["W8"], at("AlchBubble W8")]);
+    else if (r === "signs") out.push(["DNSM.StarSigns", ["STR"], at("StarSigns.STR")], ["DNSM.StarSigns", ["pctSTR"], at("StarSigns.pctSTR")]);
+    else if (r === "comp0") out.push(["Companions", [0], 1]);
+    else if (r === "fam68") {
+      const n = find(talentResolver.resolve(10, ctx), (x) => x.name.startsWith("Family Bonus 68"));
+      if (!n) throw new Error("arkhStatSeeds: no Family Bonus 68 in lib/arkh's talent 10");
+      out.push(["DNSM.FamBonusQTYs", ["68"], n.val]);
+    } else throw new Error(`arkhStatSeeds: no seed for ${r}`);
+  }
+  return out;
+}

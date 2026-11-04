@@ -11,10 +11,13 @@ export const RiftStuff = block("RiftStuff", (ctx, d: string, _b: number) => {
     // Shiny bonus 3
     case "enabledStarSigns":
       return 10 > asNum(ctx, "Rift", 0) ? 0 : 5 + Breeding(ctx, "ShinyBonusS", "Nah", 3, -1);
+    // @10791078: the fifth card star, from Rift 45
+    case "5starCards":
+      return 45 > asNum(ctx, "Rift", 0) ? 0 : 1;
     default:
       throw new NotPorted("RiftStuff", d);
   }
 });
 
 /** What this module covers (lib/game/ported.ts). */
-export const PORTED: Ported = { enabledStarSigns: true };
+export const PORTED: Ported = { enabledStarSigns: true, "5starCards": true };

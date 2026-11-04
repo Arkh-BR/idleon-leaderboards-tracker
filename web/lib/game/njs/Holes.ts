@@ -1,13 +1,13 @@
 import { asNum, asNumber, attr } from "../attr";
 import { block, type Ctx } from "../ctx";
-import { CosmoUpgrades, HolesInfo } from "../data";
+import { CosmoUpgrades, GodsInfo, HolesInfo } from "../data";
 import { InvalidSaveValue, NotPorted } from "../errors";
 import { listAt } from "../lists";
 import { getLOG } from "./getLOG";
 import { Holes2 } from "./Holes2";
 import type { Ported } from "../ported";
 
-/** N.js `_customBlock_Holes(d, b, e)` @10990457. Only the sub-cases the Artifact Find port reaches. */
+/** N.js `_customBlock_Holes(d, b, e)` @10990457. Only the sub-cases the Artifact Find port and the character stats reach. */
 export const Holes: (ctx: Ctx, d: string, b: number, e: number) => number = block("Holes", (ctx, d: string, b: number, e: number) => {
   switch (d) {
     // @10996050: Bolaia upgrade `b`
@@ -26,6 +26,19 @@ export const Holes: (ctx: Ctx, d: string, b: number, e: number) => number = bloc
     // @11014436: monument (b, e)
     case "MonumentROGbonuses":
       return monumentROGbonuses(ctx, b, e);
+    // @10991634: the god of minor bonus kind b is in a pocket: the first pocket (Holes[11][29]) with Cosmo (2, 0) above 0, the second
+    // ([11][30]) with it above 1
+    case "PocketDivOwned": {
+      listAt(ctx, "Holes", 11); // the game indexes Holes[11][29] directly
+      const kind = (slot: number) => {
+        const god = (GodsInfo as unknown as readonly (readonly unknown[])[])[asNum(ctx, "Holes", 11, slot) | 0];
+        // the game indexes GodsInfo[g][13] directly and would throw on a god it does not have
+        if (!god) throw new RangeError(`Holes PocketDivOwned: no god ${asNum(ctx, "Holes", 11, slot)} in GodsInfo`);
+        return asNumber(god[13]);
+      };
+      if (kind(29) == b && 0 < Holes(ctx, "CosmoBonusQTY", 2, 0)) return 1;
+      return kind(30) == b && 1 < Holes(ctx, "CosmoBonusQTY", 2, 0) ? 1 : 0;
+    }
     default:
       throw new NotPorted("Holes", d);
   }
@@ -71,4 +84,4 @@ function monumentROGbonuses(ctx: Ctx, b: number, e: number): number {
 }
 
 /** What this module covers (lib/game/ported.ts). */
-export const PORTED: Ported = { B_UPG: [55], CosmoBonusQTY: true, MonumentROGbonuses: true };
+export const PORTED: Ported = { B_UPG: [55], CosmoBonusQTY: true, MonumentROGbonuses: true, PocketDivOwned: true };

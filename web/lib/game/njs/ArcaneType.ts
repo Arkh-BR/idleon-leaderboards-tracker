@@ -2,13 +2,33 @@ import { asNum, asNumber } from "../attr";
 import { block, type Ctx } from "../ctx";
 import { ArcaneUpg } from "../data";
 import { NotPorted } from "../errors";
+import { ArcadeBonus } from "./ArcadeBonus";
+import { Companions } from "./Companions";
+import { FarmingStuffs } from "./FarmingStuffs";
+import { GamingStatType } from "./GamingStatType";
+import { JellyOperation } from "./JellyOperation";
+import { Labb } from "./Labb";
+import { SushiStuff } from "./SushiStuff";
+import { Thingies } from "./Thingies";
 import type { Ported } from "../ported";
 
-/** N.js `_customBlock_ArcaneType(d, b, e)` @11083241. Only the sub-cases the Artifact Find port reaches. */
-export const ArcaneType = block("ArcaneType", (ctx, d: string, b: number, e: number) => {
+/** N.js `_customBlock_ArcaneType(d, b, e)` @11083241. Only the sub-cases the Artifact Find port and the character stats reach. */
+export const ArcaneType: (ctx: Ctx, d: string, b: number, e: number) => number = block("ArcaneType", (ctx, d: string, b: number, e: number) => {
   switch (d) {
     case "ArcaneUpgBonus":
       return arcaneUpgBonus(ctx, b, e);
+    // @11086203: what a Prisma bubble is multiplied by, 2 + the boosts / 100, at most 5
+    case "PrismaBonusMult":
+      return Math.min(
+        5,
+        2 +
+          (ArcaneType(ctx, "ArcaneUpgBonus", 45, 0) +
+            (ArcadeBonus(ctx, 54) + (SushiStuff(ctx, "RoG_BonusQTY", 23, 0) + JellyOperation(ctx, "RoG_BonusQTY", 36, 0)) +
+              (Thingies(ctx, "HaveW6Trophy", 0, 0) +
+                (GamingStatType(ctx, "PaletteBonus", 28, 0) + (0.2 * Labb(ctx, "TotalPurpleSigils", "0", 0, 0) + FarmingStuffs(ctx, "ExoticBonusQTY", 48, 0))))) +
+            (Thingies(ctx, "LegendPTS_bonus", 36, 0) + 50 * Companions(ctx, 88))) /
+            100
+      );
     default:
       throw new NotPorted("ArcaneType", d);
   }
@@ -28,4 +48,4 @@ function arcaneUpgBonus(ctx: Ctx, b: number, e: number): number {
 }
 
 /** What this module covers (lib/game/ported.ts). */
-export const PORTED: Ported = { ArcaneUpgBonus: [...ARCANE_PLAIN] };
+export const PORTED: Ported = { ArcaneUpgBonus: [...ARCANE_PLAIN], PrismaBonusMult: true };

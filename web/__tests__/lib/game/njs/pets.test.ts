@@ -266,7 +266,7 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("nightmariner (MenagerieStuff Nightma
   it("an empty Menagerie list is never read as such: the game's load fills it (initialize4 @6336662) before the head guard `0 == Menagerie.length` (@5176140) could see it", () => {
     // `[]` in a save is a synthetic edge (the attribute starts as `[]`, and the fill runs on every load)
     const empty = () => variant((d) => (d.Menagerie = []));
-    expect(empty().state.migrations).toEqual(["Menagerie filled (initialize4 @6336662)"]);
+    expect(empty().state.migrations.filter((m) => !m.includes("DoOnceREAL < 399"))).toEqual(["Menagerie filled (initialize4 @6336662)"]); // 399 runs on a save from before it
     expect(MenagerieStuff(empty(), "UnlockOwned", 13, 0)).toBe(0); // the fill owns no unlock
     expect(MenagerieStuff(empty(), "NightmarinerTotLV", 0, 0)).toBe(MenagerieStuff(variant(() => {}), "NightmarinerTotLV", 0, 0)); // the boats' total, not the guard's 0
     expect(MenagerieStuff(empty(), "NightmarinerTotLV", 0, 0)).toBeGreaterThan(0);

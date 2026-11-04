@@ -31,10 +31,44 @@ export const Summoning2: (ctx: Ctx, d: string, b: number, e: number) => number =
       return votingBonusz(ctx, b);
     case "VotingBonuszMulti":
       return votingBonuszMulti(ctx);
+    // @10948857: Owl megafeather b is owned while OptionsListAccount[262] is past b; the ninth counts every one from 9 on
+    case "OwlMegafeather":
+      return asNum(ctx, "OptionsListAccount", 262) > b ? (9 == b ? asNum(ctx, "OptionsListAccount", 262) - 9 : 1) : 0;
+    case "OwlBonuses":
+      return owlBonuses(ctx, b);
+    // @10935349: Cook Master meal b's multiplier, 1 + its level / (level + 5)
+    case "BonusMultiCook": {
+      listAt(ctx, "CookMaster", 0); // the game indexes CookMaster[0][b] directly
+      const lv = asNum(ctx, "CookMaster", 0, b | 0);
+      return 1 + (100 * lv) / (lv + 5) / 100;
+    }
     default:
       throw new NotPorted("Summoning2", d);
   }
 });
+
+/** `DNSM.OwlBonus`'s six bonuses: base value and position in the cycle of OptionsListAccount[255] upgrades (@10950288). */
+const OWL = [5, 10, 2, 4, 1, 2];
+
+/**
+ * `OwlBonuses` @10950288: Owl bonus `b` of `DNSM.OwlBonus`, a list the game fills on the first call (and when `b == -1`; here it is built
+ * from the save each time). Bonus i is OWL[i] x (1 + legend talent 26 / 100) x (1 + Companion 51) x (1 + the megafeathers' total / 100)
+ * x max(0, ceil((OptionsListAccount[255] - i) / 6)), the total 100 each for megafeathers 1, 3, 5, 7, 100 for the first of the ninth and 50
+ * for each one past it. `b == -1` answers 0 (the rebuild).
+ */
+function owlBonuses(ctx: Ctx, b: number): number {
+  if (-1 == b) return 0;
+  const all = // DNSM.OwlBonusAll
+    100 * Summoning(ctx, "OwlMegafeather", 1, 0) +
+    (100 * Summoning(ctx, "OwlMegafeather", 3, 0) +
+      (100 * Summoning(ctx, "OwlMegafeather", 5, 0) +
+        (100 * Summoning(ctx, "OwlMegafeather", 7, 0) + (100 * Math.min(1, Summoning(ctx, "OwlMegafeather", 9, 0)) + 50 * Math.max(0, Summoning(ctx, "OwlMegafeather", 9, 0) - 1)))));
+  const i = b | 0;
+  // the game answers undefined for a bonus past the six, which the caller would turn into NaN
+  if (!(0 <= i && i < OWL.length)) throw new RangeError(`Summoning2 OwlBonuses: no Owl bonus ${b}`);
+  const upgrades = asNum(ctx, "OptionsListAccount", 255);
+  return OWL[i] * (1 + Thingies(ctx, "LegendPTS_bonus", 26, 0) / 100) * (1 + Companions(ctx, 51)) * (1 + all / 100) * Math.max(0, Math.ceil((upgrades - i) / 6));
+}
 
 /** `MeritocBonusz` @10932012: Meritoc bonus `b` is NinjaInfo[41][1 + 3b] x the Meritoc multi while it is the one in force (OptionsListAccount[453] == b), else 0. */
 function meritocBonusz(ctx: Ctx, b: number): number {
@@ -119,4 +153,7 @@ export const PORTED: Ported = {
   MeritocBonuszMulti: true,
   VotingBonusz: [0, ...range(2, 40)], // not 1 (NotPorted); 40 is past the vote categories the game lists
   VotingBonuszMulti: true,
+  OwlMegafeather: true,
+  OwlBonuses: range(-1, 6),
+  BonusMultiCook: true,
 };

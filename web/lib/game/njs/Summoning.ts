@@ -5,7 +5,9 @@ import { NotPorted } from "../errors";
 import { hString } from "../hstring";
 import { listAt } from "../lists";
 import { AchieveStatus } from "./AchieveStatus";
+import { Dreamstuff } from "./Dreamstuff";
 import { GetSetBonus } from "./GetSetBonus";
+import { JellyOperation } from "./JellyOperation";
 import { Ninja } from "./Ninja";
 import { Sailing } from "./Sailing";
 import { PORTED as Summoning2PORTED, Summoning2 } from "./Summoning2";
@@ -48,6 +50,15 @@ export const Summoning: (ctx: Ctx, d: string, b: number, e: number) => number = 
       return grimoireUpgBonus(ctx, b);
     case "WinBonus":
       return winBonus(ctx, b);
+    // @10880964: the Ribbon of tier b's multiplier
+    case "RibbonBonus":
+      return (
+        1 +
+        (Math.floor(5 * b + Math.floor(b / 2) * (4 + 6.5 * Math.floor(b / 5))) +
+          (Math.floor(b / 4) * (GetSetBonus(ctx, "EMPEROR_SET", "Bonus", 0, 0) / 4) +
+            (Math.floor(b / 10) * Dreamstuff(ctx, "CloudBonus", 73) + Math.floor(b / 20) * JellyOperation(ctx, "RoG_BonusQTY", 60, 0)))) /
+          100
+      );
     default:
       if (SUMMONING_OWN_NAMES.has(d)) throw new NotPorted("Summoning", d);
       return Summoning2(ctx, d, b, e); // @10931948: the tail of the chain
@@ -120,8 +131,9 @@ function summWinBonus(ctx: Ctx): number[] {
 }
 
 /**
- * `WinBonus` @10927394: Winner Bonus `b`. b == -1 is 0. The buckets 20, 22, 24 and 31 are the table's value as it is. Bonus 19 and
- * 20..33 have shapes of their own (NotPorted). Every other bonus, b = 3 among them, is the bucket x 3.5 x the Ninja pristine charm 8
+ * `WinBonus` @10927394: Winner Bonus `b`. b == -1 is 0. The buckets 20, 22, 24 and 31 are the table's value as it is. Bonus 19 is
+ * x 3.5 without the boosts Winner Bonus 31 and Emperor 8; 20..33 are without the x 3.5. Every other bonus, b = 3 among them, is the
+ * bucket x 3.5 x the Ninja pristine charm 8
  * x the gem-shop purchase 11 x (1 + the winner-bonus boosts / 100), those being Artifact 32, Tasks[2][5][4] (capped at 10), the
  * achievements 379 and 373, the Winner Bonus 31 bucket, the Emperor bonus 8, the God Shard set and the Bundle ban_i.
  */
@@ -129,29 +141,53 @@ function winBonus(ctx: Ctx, b: number): number {
   const table = summWinBonus(ctx);
   if (-1 == b) return 0;
   if (20 == b || 22 == b || 24 == b || 31 == b) return table[b | 0];
-  if (19 == b || (20 <= b && 33 >= b)) throw new NotPorted("Summoning", `WinBonus:b=${b}`);
   listAt(ctx, "Tasks", 2, 5); // the game indexes Tasks[2][5][4] directly
-  return (
-    3.5 * asNumber(table[b | 0]) *
-    (1 + Ninja(ctx, "PristineBon", 8, 0) / 100) *
-    (1 + (10 * asNum(ctx, "GemItemsPurchased", 11)) / 100) *
-    (1 +
-      (Sailing(ctx, "ArtifactBonus", 32, 0) +
-        (Math.min(10, asNum(ctx, "Tasks", 2, 5, 4)) +
-          (AchieveStatus(ctx, 379) +
-            (AchieveStatus(ctx, 373) +
-              (Summoning(ctx, "WinBonus", 31, 0) +
-                (Thingies(ctx, "EmperorBon", 8, 0) +
-                  (GetSetBonus(ctx, "GODSHARD_SET", "Bonus", 0, 0) + 50 * Thingies(ctx, "Have_ban_i", 0, 0)))))))) /
-        100)
-  );
+  const common = () => (1 + Ninja(ctx, "PristineBon", 8, 0) / 100) * (1 + (10 * asNum(ctx, "GemItemsPurchased", 11)) / 100);
+  // 19: no Winner Bonus 31 and no Emperor bonus 8 in the boosts
+  if (19 == b)
+    return (
+      3.5 * asNumber(table[b | 0]) *
+      common() *
+      (1 +
+        (Sailing(ctx, "ArtifactBonus", 32, 0) +
+          (Math.min(10, asNum(ctx, "Tasks", 2, 5, 4)) +
+            (AchieveStatus(ctx, 379) + (AchieveStatus(ctx, 373) + (GetSetBonus(ctx, "GODSHARD_SET", "Bonus", 0, 0) + 50 * Thingies(ctx, "Have_ban_i", 0, 0)))))) /
+          100)
+    );
+  const boosts = () =>
+    1 +
+    (Sailing(ctx, "ArtifactBonus", 32, 0) +
+      (Math.min(10, asNum(ctx, "Tasks", 2, 5, 4)) +
+        (AchieveStatus(ctx, 379) +
+          (AchieveStatus(ctx, 373) +
+            (Summoning(ctx, "WinBonus", 31, 0) +
+              (Thingies(ctx, "EmperorBon", 8, 0) + (GetSetBonus(ctx, "GODSHARD_SET", "Bonus", 0, 0) + 50 * Thingies(ctx, "Have_ban_i", 0, 0)))))))) /
+      100;
+  // 20..33 (but 20, 22, 24, 31): without the 3.5
+  if (20 <= b && 33 >= b) return asNumber(table[b | 0]) * common() * boosts();
+  return 3.5 * asNumber(table[b | 0]) * common() * boosts();
 }
 
-/** What this module covers (lib/game/ported.ts). */
-export const PORTED: Ported = {
+type Entries = Record<string, true | readonly number[]>;
+const OWN_PORTED: Entries = {
   VaultUpgBonus: [...VAULT_PLAIN, ...range(61, 1000)], // 61..88 times VaultUpgBonus 89, from 89 on 0 when not plain (999 is plain),
   EventShopOwned: true,
   GrimoireUpgBonus: [...GRIMOIRE_PLAIN],
-  WinBonus: [-1, ...range(0, 19), 20, 22, 24, 31], // the game has 32 buckets; 19 and 21, 23, 25..30, 32, 33 are NotPorted
-  ...(Summoning2PORTED as Record<string, true | readonly number[]>), // the tail of the chain is Summoning2's
+  WinBonus: range(-1, 34),
+  RibbonBonus: true,
 };
+
+/**
+ * What this module covers (lib/game/ported.ts): its own sub-cases, then the tail of the chain, Summoning2's. Summoning and Summoning2
+ * import each other, so Summoning2's declaration may not exist yet when this module is evaluated (the importer decides the order): it is
+ * read when PORTED is read, through a Proxy, instead of copied here.
+ */
+export const PORTED: Ported = new Proxy(OWN_PORTED, {
+  get: (t, k) => (Object.hasOwn(t, k) ? t[k as string] : (Summoning2PORTED as Entries)[k as string]),
+  has: (t, k) => Object.hasOwn(t, k) || k in (Summoning2PORTED as Entries),
+  ownKeys: (t) => [...new Set([...Reflect.ownKeys(t), ...Reflect.ownKeys(Summoning2PORTED as Entries)])],
+  getOwnPropertyDescriptor: (t, k) => {
+    const value = Object.hasOwn(t, k) ? t[k as string] : (Summoning2PORTED as Entries)[k as string];
+    return value === undefined ? undefined : { value, writable: true, enumerable: true, configurable: true };
+  },
+});

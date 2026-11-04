@@ -13,7 +13,7 @@ Regenerate it when N.js or a module's `PORTED` changes. With `--mark`, `[x]` is 
 - attrs and dnsm are the reads in every slice listed. One marked "whole body only" is read only inside a whole-body function (all its branches, not just the one this formula takes). `DNSM` is runtime-only (it is never loaded from the save): port it as `DNSM_*` functions, not as a save attribute. The dnsm list also holds the scratch keys a formula writes and reads back in the same slice (`CaptnBonuz`, `AtomBonCalc1`); the inputs are the caches the game fills elsewhere (`StarSigns`, `AlchVials`, `FamBonusQTYs`…).
 - Depth stops at 6.
 
-**67 functions, 669 sub-cases (rows), 204 whole body, 0 not found, 95 attrs, 120 dnsm.** **173 ported `[x]`, 496 open.**
+**67 functions, 669 sub-cases (rows), 204 whole body, 0 not found, 95 attrs, 120 dnsm.** **431 ported `[x]`, 238 open.**
 
 Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("AGI")`, R4 = `TotalStats("WIS")`, R5 = `TotalStats("LUK")`, R6 = `PlayerHPmax()`, R7 = `PlayerMPmax()`, R8 = `PlayerAccTot()`.
 
@@ -33,14 +33,14 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 
 - [ ] RoyalG("RatDMG",0,0) — depth 1 — 109 chars — roots: R1
 - [ ] RoyalG("StatueBon",0,0) — depth 1 — 327 chars — roots: R1
-- [ ] RoyalG("ArmoryUpgBonus",35,0) — depth 2 — 136 chars — roots: R1
-- [ ] RoyalG("ArmoryUpgBonus",36,0) — depth 2 — 136 chars — roots: R1
-- [ ] RoyalG("ArmoryUpgBonus",45,0) — depth 2 — 136 chars — roots: R1
+- [x] RoyalG("ArmoryUpgBonus",35,0) — depth 2 — 136 chars — roots: R1
+- [x] RoyalG("ArmoryUpgBonus",36,0) — depth 2 — 136 chars — roots: R1
+- [x] RoyalG("ArmoryUpgBonus",45,0) — depth 2 — 136 chars — roots: R1
 
 ## Summoning
 
 - [ ] Summoning("Grimoire_DMG",0,0) — depth 1 — 1129 chars — roots: R1
-- [ ] Summoning("OwlBonuses",1,0) — depth 1 — 2745 chars — via Summoning2 — roots: R1
+- [x] Summoning("OwlBonuses",1,0) — depth 1 — 2745 chars — via Summoning2 — roots: R1
 - [ ] Summoning("VaultUpgBonus",0,0) — depth 1 — 448 chars — roots: R1
 - [ ] Summoning("VaultUpgBonus",20,0) — depth 1 — 2241 chars — roots: R1
 - [ ] Summoning("VaultKillzTotal",5,0) — depth 1 — 3929 chars — roots: R1
@@ -48,7 +48,7 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 - [ ] Summoning("VaultKillzTotal",6,0) — depth 1 — 3929 chars — roots: R1
 - [ ] Summoning("VaultUpgBonus",15,0) — depth 1 — 2241 chars — roots: R1
 - [ ] Summoning("VaultUpgBonus",10,0) — depth 1 — 2241 chars — roots: R1
-- [ ] Summoning("OwlBonuses",2,0) — depth 1 — 2745 chars — via Summoning2 — roots: R1
+- [x] Summoning("OwlBonuses",2,0) — depth 1 — 2745 chars — via Summoning2 — roots: R1
 - [ ] Summoning("RooBonuses",4,0) — depth 1 — 3104 chars — roots: R1
 - [x] Summoning("VaultUpgBonus",80,0) — depth 1 — 2241 chars — roots: R1
 - [x] Summoning("WinBonus",0,0) — depth 1 — 3535 chars — roots: R1
@@ -72,11 +72,11 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 - [ ] Summoning("GrimoireUpgBonus",31,0) — depth 2 — 399 chars — roots: R1
 - [ ] Summoning("GrimoireUpgBonus",18,0) — depth 2 — 399 chars — roots: R1
 - [ ] Summoning("GrimoireUpgTotal",0,0) — depth 2 — 462 chars — roots: R1 R6 R8
-- [ ] Summoning("OwlMegafeather",1,0) — depth 2 — 142 chars — via Summoning2 — roots: R1 R2 R3 R4 R5 R6 R7 R8
-- [ ] Summoning("OwlMegafeather",3,0) — depth 2 — 142 chars — via Summoning2 — roots: R1 R2 R3 R4 R5 R6 R7 R8
-- [ ] Summoning("OwlMegafeather",5,0) — depth 2 — 142 chars — via Summoning2 — roots: R1 R2 R3 R4 R5 R6 R7 R8
-- [ ] Summoning("OwlMegafeather",7,0) — depth 2 — 142 chars — via Summoning2 — roots: R1 R2 R3 R4 R5 R6 R7 R8
-- [ ] Summoning("OwlMegafeather",9,0) — depth 2 — 75 chars — via Summoning2 — roots: R1 R2 R3 R4 R5 R6 R7 R8
+- [x] Summoning("OwlMegafeather",1,0) — depth 2 — 142 chars — via Summoning2 — roots: R1 R2 R3 R4 R5 R6 R7 R8
+- [x] Summoning("OwlMegafeather",3,0) — depth 2 — 142 chars — via Summoning2 — roots: R1 R2 R3 R4 R5 R6 R7 R8
+- [x] Summoning("OwlMegafeather",5,0) — depth 2 — 142 chars — via Summoning2 — roots: R1 R2 R3 R4 R5 R6 R7 R8
+- [x] Summoning("OwlMegafeather",7,0) — depth 2 — 142 chars — via Summoning2 — roots: R1 R2 R3 R4 R5 R6 R7 R8
+- [x] Summoning("OwlMegafeather",9,0) — depth 2 — 75 chars — via Summoning2 — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [x] Summoning("VaultUpgBonus",32,0) — depth 2 — 7 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [x] Summoning("VaultUpgBonus",61,0) — depth 2 — 7 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [x] Summoning("VaultUpgBonus",89,0) — depth 2 — 7 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
@@ -91,7 +91,7 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 - [x] Summoning("WinBonus",31,0) — depth 2 — 60 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [ ] Summoning("SummUpgBonus",78,0) — depth 2 — 907 chars — roots: R1
 - [x] Summoning("GrimoireUpgBonus",36,0) — depth 2 — 7 chars — roots: R1 R6 R8
-- [ ] Summoning("OwlBonuses",5,0) — depth 1 — 2745 chars — via Summoning2 — roots: R1 R2 R3 R4 R5 R6 R7 R8
+- [x] Summoning("OwlBonuses",5,0) — depth 1 — 2745 chars — via Summoning2 — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [x] Summoning("GrimoireUpgBonus",17,0) — depth 2 — 7 chars — roots: R1
 - [x] Summoning("VotingBonuszMulti",0,0) — depth 2 — 557 chars — via Summoning2 — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [x] Summoning("EventShopOwned",0,0) — depth 2 — 152 chars — roots: R1
@@ -133,62 +133,62 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 ## Windwalker
 
 - [ ] Windwalker("Compass_DMG",0,0) — depth 1 — 2518 chars — roots: R1
-- [ ] Windwalker("CompassBonus",48,0) — depth 1 — 711 chars — roots: R1
-- [ ] Windwalker("CompassBonus",14,0) — depth 2 — 711 chars — roots: R1
-- [ ] Windwalker("CompassBonus",15,0) — depth 2 — 711 chars — roots: R1
-- [ ] Windwalker("CompassBonus",24,0) — depth 2 — 711 chars — roots: R1
-- [ ] Windwalker("CompassBonus",60,0) — depth 2 — 711 chars — roots: R1
-- [ ] Windwalker("CompassBonus",81,0) — depth 2 — 711 chars — roots: R1
-- [ ] Windwalker("CompassBonus",23,0) — depth 2 — 711 chars — roots: R1
-- [ ] Windwalker("CompassBonus",26,0) — depth 2 — 711 chars — roots: R1
-- [ ] Windwalker("CompassBonus",6,0) — depth 2 — 711 chars — roots: R1 R8
-- [ ] Windwalker("CompassBonus",119,0) — depth 2 — 711 chars — roots: R1
-- [ ] Windwalker("CompassBonus",10,0) — depth 2 — 711 chars — roots: R1
-- [ ] Windwalker("CompassBonus",121,0) — depth 2 — 711 chars — roots: R1
-- [ ] Windwalker("CompassBonus",122,0) — depth 2 — 711 chars — roots: R1
-- [ ] Windwalker("CompassBonus",123,0) — depth 2 — 711 chars — roots: R1
-- [ ] Windwalker("CompassBonus",126,0) — depth 2 — 711 chars — roots: R1
-- [ ] Windwalker("CompassBonus",127,0) — depth 2 — 711 chars — roots: R1
-- [ ] Windwalker("CompassBonus",129,0) — depth 2 — 711 chars — roots: R1
-- [ ] Windwalker("CompassBonus",130,0) — depth 2 — 711 chars — roots: R1
-- [ ] Windwalker("CompassBonus",132,0) — depth 2 — 711 chars — roots: R1
-- [ ] Windwalker("CompassBonus",135,0) — depth 2 — 711 chars — roots: R1
-- [ ] Windwalker("CompassBonus",64,0) — depth 2 — 711 chars — roots: R1
-- [ ] Windwalker("CompassBonus",78,0) — depth 2 — 711 chars — roots: R1
+- [x] Windwalker("CompassBonus",48,0) — depth 1 — 711 chars — roots: R1
+- [x] Windwalker("CompassBonus",14,0) — depth 2 — 711 chars — roots: R1
+- [x] Windwalker("CompassBonus",15,0) — depth 2 — 711 chars — roots: R1
+- [x] Windwalker("CompassBonus",24,0) — depth 2 — 711 chars — roots: R1
+- [x] Windwalker("CompassBonus",60,0) — depth 2 — 711 chars — roots: R1
+- [x] Windwalker("CompassBonus",81,0) — depth 2 — 711 chars — roots: R1
+- [x] Windwalker("CompassBonus",23,0) — depth 2 — 711 chars — roots: R1
+- [x] Windwalker("CompassBonus",26,0) — depth 2 — 711 chars — roots: R1
+- [x] Windwalker("CompassBonus",6,0) — depth 2 — 711 chars — roots: R1 R8
+- [x] Windwalker("CompassBonus",119,0) — depth 2 — 711 chars — roots: R1
+- [x] Windwalker("CompassBonus",10,0) — depth 2 — 711 chars — roots: R1
+- [x] Windwalker("CompassBonus",121,0) — depth 2 — 711 chars — roots: R1
+- [x] Windwalker("CompassBonus",122,0) — depth 2 — 711 chars — roots: R1
+- [x] Windwalker("CompassBonus",123,0) — depth 2 — 711 chars — roots: R1
+- [x] Windwalker("CompassBonus",126,0) — depth 2 — 711 chars — roots: R1
+- [x] Windwalker("CompassBonus",127,0) — depth 2 — 711 chars — roots: R1
+- [x] Windwalker("CompassBonus",129,0) — depth 2 — 711 chars — roots: R1
+- [x] Windwalker("CompassBonus",130,0) — depth 2 — 711 chars — roots: R1
+- [x] Windwalker("CompassBonus",132,0) — depth 2 — 711 chars — roots: R1
+- [x] Windwalker("CompassBonus",135,0) — depth 2 — 711 chars — roots: R1
+- [x] Windwalker("CompassBonus",64,0) — depth 2 — 711 chars — roots: R1
+- [x] Windwalker("CompassBonus",78,0) — depth 2 — 711 chars — roots: R1
 - [ ] Windwalker("Compass_HP",0,0) — depth 1 — 262 chars — roots: R1 R6 R8
-- [ ] Windwalker("CompassBonus",85,0) — depth 2 — 711 chars — roots: R1
-- [ ] Windwalker("CompassBonus",94,0) — depth 2 — 711 chars — roots: R1
+- [x] Windwalker("CompassBonus",85,0) — depth 2 — 711 chars — roots: R1
+- [x] Windwalker("CompassBonus",94,0) — depth 2 — 711 chars — roots: R1
 - [ ] Windwalker("CompassTempest",0,0) — depth 1 — 289 chars — roots: R1 R6 R8
 - [ ] Windwalker("Compass_MoveSpeed",0,0) — depth 2 — 151 chars — roots: R1 R8
-- [ ] Windwalker("CompassBonus",39,0) — depth 2 — 711 chars — roots: R1 R6 R8
-- [ ] Windwalker("CompassBonus",80,0) — depth 2 — 711 chars — roots: R1 R6 R8
-- [ ] Windwalker("CompassBonus",28,0) — depth 2 — 711 chars — roots: R1 R6 R8
-- [ ] Windwalker("CompassBonus",87,0) — depth 2 — 711 chars — roots: R1 R6 R8
-- [ ] Windwalker("CompassBonus",140,0) — depth 2 — 711 chars — roots: R1 R6 R8
-- [ ] Windwalker("CompassBonus",146,0) — depth 2 — 711 chars — roots: R1 R6 R8
-- [ ] Windwalker("CompassBonus",92,0) — depth 2 — 711 chars — roots: R1 R6 R8
-- [ ] Windwalker("CompassBonus",35,0) — depth 3 — 711 chars — roots: R1 R8
-- [ ] Windwalker("CompassBonus",141,0) — depth 3 — 711 chars — roots: R1 R8
-- [ ] Windwalker("CompassBonus",62,0) — depth 3 — 711 chars — roots: R1 R8
+- [x] Windwalker("CompassBonus",39,0) — depth 2 — 711 chars — roots: R1 R6 R8
+- [x] Windwalker("CompassBonus",80,0) — depth 2 — 711 chars — roots: R1 R6 R8
+- [x] Windwalker("CompassBonus",28,0) — depth 2 — 711 chars — roots: R1 R6 R8
+- [x] Windwalker("CompassBonus",87,0) — depth 2 — 711 chars — roots: R1 R6 R8
+- [x] Windwalker("CompassBonus",140,0) — depth 2 — 711 chars — roots: R1 R6 R8
+- [x] Windwalker("CompassBonus",146,0) — depth 2 — 711 chars — roots: R1 R6 R8
+- [x] Windwalker("CompassBonus",92,0) — depth 2 — 711 chars — roots: R1 R6 R8
+- [x] Windwalker("CompassBonus",35,0) — depth 3 — 711 chars — roots: R1 R8
+- [x] Windwalker("CompassBonus",141,0) — depth 3 — 711 chars — roots: R1 R8
+- [x] Windwalker("CompassBonus",62,0) — depth 3 — 711 chars — roots: R1 R8
 - [ ] Windwalker("Compass_ACC",0,0) — depth 1 — 1219 chars — roots: R1 R8
-- [ ] Windwalker("CompassBonus",17,0) — depth 2 — 711 chars — roots: R1 R8
-- [ ] Windwalker("CompassBonus",19,0) — depth 2 — 711 chars — roots: R1 R8
-- [ ] Windwalker("CompassBonus",25,0) — depth 2 — 711 chars — roots: R1 R8
-- [ ] Windwalker("CompassBonus",61,0) — depth 2 — 711 chars — roots: R1 R8
+- [x] Windwalker("CompassBonus",17,0) — depth 2 — 711 chars — roots: R1 R8
+- [x] Windwalker("CompassBonus",19,0) — depth 2 — 711 chars — roots: R1 R8
+- [x] Windwalker("CompassBonus",25,0) — depth 2 — 711 chars — roots: R1 R8
+- [x] Windwalker("CompassBonus",61,0) — depth 2 — 711 chars — roots: R1 R8
 - [ ] Windwalker("CompassUpgTotal",0,0) — depth 2 — 458 chars — roots: R1 R8
-- [ ] Windwalker("CompassBonus",22,0) — depth 2 — 711 chars — roots: R1 R8
-- [ ] Windwalker("CompassBonus",120,0) — depth 2 — 711 chars — roots: R1 R8
-- [ ] Windwalker("CompassBonus",124,0) — depth 2 — 711 chars — roots: R1 R8
-- [ ] Windwalker("CompassBonus",125,0) — depth 2 — 711 chars — roots: R1 R8
-- [ ] Windwalker("CompassBonus",128,0) — depth 2 — 711 chars — roots: R1 R8
-- [ ] Windwalker("CompassBonus",131,0) — depth 2 — 711 chars — roots: R1 R8
-- [ ] Windwalker("CompassBonus",133,0) — depth 2 — 711 chars — roots: R1 R8
-- [ ] Windwalker("CompassBonus",134,0) — depth 2 — 711 chars — roots: R1 R8
-- [ ] Windwalker("CompassBonus",136,0) — depth 2 — 711 chars — roots: R1 R8
-- [ ] Windwalker("CompassBonus",147,0) — depth 2 — 711 chars — roots: R1 R8
-- [ ] Windwalker("CompassBonus",84,0) — depth 2 — 711 chars — roots: R1 R8
-- [ ] Windwalker("CompassBonus",79,0) — depth 2 — 711 chars — roots: R1 R8
-- [ ] Windwalker("CompassBonus",90,0) — depth 2 — 711 chars — roots: R1 R8
+- [x] Windwalker("CompassBonus",22,0) — depth 2 — 711 chars — roots: R1 R8
+- [x] Windwalker("CompassBonus",120,0) — depth 2 — 711 chars — roots: R1 R8
+- [x] Windwalker("CompassBonus",124,0) — depth 2 — 711 chars — roots: R1 R8
+- [x] Windwalker("CompassBonus",125,0) — depth 2 — 711 chars — roots: R1 R8
+- [x] Windwalker("CompassBonus",128,0) — depth 2 — 711 chars — roots: R1 R8
+- [x] Windwalker("CompassBonus",131,0) — depth 2 — 711 chars — roots: R1 R8
+- [x] Windwalker("CompassBonus",133,0) — depth 2 — 711 chars — roots: R1 R8
+- [x] Windwalker("CompassBonus",134,0) — depth 2 — 711 chars — roots: R1 R8
+- [x] Windwalker("CompassBonus",136,0) — depth 2 — 711 chars — roots: R1 R8
+- [x] Windwalker("CompassBonus",147,0) — depth 2 — 711 chars — roots: R1 R8
+- [x] Windwalker("CompassBonus",84,0) — depth 2 — 711 chars — roots: R1 R8
+- [x] Windwalker("CompassBonus",79,0) — depth 2 — 711 chars — roots: R1 R8
+- [x] Windwalker("CompassBonus",90,0) — depth 2 — 711 chars — roots: R1 R8
 
 ## ArcaneType
 
@@ -227,7 +227,7 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 
 - [ ] TotalStats() — depth 1 — 40703 chars — whole body — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [ ] TotalStats("Weapon_Power") — depth 1 — 1677 chars — roots: R1
-- [ ] TotalStats("STR") — depth 0 — 2333 chars — roots: R1 R2 R6
+- [x] TotalStats("STR") — depth 0 — 2333 chars — roots: R1 R2 R6
 - [ ] TotalStats("LUK") — depth 0 — 2031 chars — roots: R1 R5
 - [ ] TotalStats("AGI") — depth 0 — 2297 chars — roots: R1 R3 R8
 - [ ] TotalStats("WIS") — depth 0 — 2296 chars — roots: R1 R4 R6 R7
@@ -236,86 +236,86 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 
 ## GetTalentNumber
 
-- [ ] GetTalentNumber(1,95) — depth 1 — 605 chars — roots: R1 R6
-- [ ] GetTalentNumber(1,455) — depth 1 — 605 chars — roots: R1
-- [ ] GetTalentNumber(1,20) — depth 1 — 605 chars — roots: R1
-- [ ] GetTalentNumber(1,97) — depth 1 — 605 chars — roots: R1
-- [ ] GetTalentNumber(1,277) — depth 1 — 605 chars — roots: R1
-- [ ] GetTalentNumber(1,457) — depth 1 — 605 chars — roots: R1
-- [ ] GetTalentNumber(1,5) — depth 1 — 605 chars — roots: R1
-- [ ] GetTalentNumber(1,113) — depth 1 — 605 chars — roots: R1
-- [ ] GetTalentNumber(1,86) — depth 1 — 605 chars — roots: R1
-- [ ] GetTalentNumber(1,446) — depth 1 — 605 chars — roots: R1
-- [ ] GetTalentNumber(1,284) — depth 1 — 605 chars — roots: R1
-- [ ] GetTalentNumber(2,463) — depth 1 — 1535 chars — whole body — roots: R1
-- [ ] GetTalentNumber(1,125) — depth 1 — 605 chars — roots: R1
-- [ ] GetTalentNumber(1,290) — depth 1 — 605 chars — roots: R1
-- [ ] GetTalentNumber(1,649) — depth 1 — 605 chars — roots: R1
-- [ ] GetTalentNumber(1,638) — depth 1 — 605 chars — roots: R1
-- [ ] GetTalentNumber(1,658) — depth 1 — 605 chars — roots: R1
-- [ ] GetTalentNumber(1,6) — depth 1 — 605 chars — roots: R1
-- [ ] GetTalentNumber(1,24) — depth 1 — 605 chars — roots: R1
-- [ ] GetTalentNumber(1,195) — depth 2 — 605 chars — roots: R1
-- [ ] GetTalentNumber(1,200) — depth 2 — 605 chars — roots: R1 R8
-- [ ] GetTalentNumber(1,420) — depth 2 — 605 chars — roots: R1
-- [ ] GetTalentNumber(1,590) — depth 2 — 605 chars — roots: R1
-- [ ] GetTalentNumber(1,585) — depth 2 — 605 chars — roots: R1
-- [ ] GetTalentNumber(1,140) — depth 2 — 605 chars — roots: R1
-- [ ] GetTalentNumber(1,170) — depth 2 — 605 chars — roots: R1
-- [ ] GetTalentNumber(1,320) — depth 2 — 605 chars — roots: R1
-- [ ] GetTalentNumber(1,500) — depth 2 — 605 chars — roots: R1
-- [ ] GetTalentNumber(1,365) — depth 2 — 605 chars — roots: R1
-- [ ] GetTalentNumber(1,530) — depth 2 — 605 chars — roots: R1
-- [ ] GetTalentNumber(1,0) — depth 1 — 605 chars — roots: R1 R6
-- [ ] GetTalentNumber(1,642) — depth 1 — 605 chars — roots: R1 R6
-- [ ] GetTalentNumber(1,92) — depth 1 — 605 chars — roots: R1 R6
-- [ ] GetTalentNumber(1,272) — depth 1 — 605 chars — roots: R1 R6 R7
-- [ ] GetTalentNumber(1,266) — depth 2 — 605 chars — roots: R1 R8
-- [ ] GetTalentNumber(1,77) — depth 2 — 605 chars — roots: R1 R8
-- [ ] GetTalentNumber(1,641) — depth 2 — 605 chars — roots: R1 R8
-- [ ] GetTalentNumber(1,1) — depth 1 — 605 chars — roots: R1 R7
-- [ ] GetTalentNumber(1,452) — depth 1 — 605 chars — roots: R1 R7
-- [ ] GetTalentNumber(1,31) — depth 2 — 605 chars — roots: R1
-- [ ] GetTalentNumber(1,110) — depth 2 — 605 chars — roots: R1
-- [ ] GetTalentNumber(1,485) — depth 2 — 605 chars — roots: R1
-- [ ] GetTalentNumber(1,305) — depth 2 — 605 chars — roots: R1
-- [ ] GetTalentNumber(1,470) — depth 2 — 605 chars — roots: R1
-- [ ] GetTalentNumber(1,656) — depth 2 — 605 chars — roots: R1
-- [ ] GetTalentNumber(1,96) — depth 1 — 605 chars — roots: R1 R2 R6
-- [ ] GetTalentNumber(1,111) — depth 1 — 605 chars — roots: R1 R2 R6
-- [ ] GetTalentNumber(1,652) — depth 1 — 605 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
-- [ ] GetTalentNumber(1,143) — depth 1 — 605 chars — roots: R1 R2 R6
-- [ ] GetTalentNumber(1,10) — depth 1 — 605 chars — roots: R1 R2 R6
-- [ ] GetTalentNumber(1,98) — depth 1 — 605 chars — roots: R1 R2 R6
-- [ ] GetTalentNumber(1,203) — depth 1 — 605 chars — roots: R1 R2 R6
-- [ ] GetTalentNumber(2,142) — depth 1 — 1535 chars — whole body — roots: R1 R2 R6
-- [ ] GetTalentNumber(1,36) — depth 1 — 605 chars — roots: R1 R5
-- [ ] GetTalentNumber(1,13) — depth 1 — 605 chars — roots: R1 R5
-- [ ] GetTalentNumber(1,618) — depth 1 — 605 chars — roots: R1 R5
-- [ ] GetTalentNumber(1,23) — depth 1 — 605 chars — roots: R1 R5
-- [ ] GetTalentNumber(1,276) — depth 1 — 605 chars — roots: R1 R3 R8
-- [ ] GetTalentNumber(1,291) — depth 1 — 605 chars — roots: R1 R3 R8
-- [ ] GetTalentNumber(1,368) — depth 1 — 605 chars — roots: R1 R3 R8
-- [ ] GetTalentNumber(1,11) — depth 1 — 605 chars — roots: R1 R3 R8
-- [ ] GetTalentNumber(1,278) — depth 1 — 605 chars — roots: R1 R3 R8
-- [ ] GetTalentNumber(1,428) — depth 1 — 605 chars — roots: R1 R3 R8
-- [ ] GetTalentNumber(2,367) — depth 1 — 1535 chars — whole body — roots: R1 R3 R8
-- [ ] GetTalentNumber(1,456) — depth 1 — 605 chars — roots: R1 R4 R6 R7
-- [ ] GetTalentNumber(1,486) — depth 1 — 605 chars — roots: R1 R4 R6 R7
-- [ ] GetTalentNumber(1,533) — depth 1 — 605 chars — roots: R1 R4 R6 R7
-- [ ] GetTalentNumber(1,12) — depth 1 — 605 chars — roots: R1 R4 R6 R7
-- [ ] GetTalentNumber(1,459) — depth 1 — 605 chars — roots: R1 R4 R6 R7
-- [ ] GetTalentNumber(1,593) — depth 1 — 605 chars — roots: R1 R4 R6 R7
-- [ ] GetTalentNumber(2,532) — depth 1 — 1535 chars — whole body — roots: R1 R4 R6 R7
-- [ ] GetTalentNumber(1,616) — depth 3 — 605 chars — roots: R1
-- [ ] GetTalentNumber(1,201) — depth 2 — 605 chars — roots: R1 R6
-- [ ] GetTalentNumber(2,641) — depth 1 — 1535 chars — whole body — roots: R1 R8
-- [ ] GetTalentNumber(1,653) — depth 2 — 605 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
-- [ ] GetTalentNumber(1,620) — depth 2 — 605 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
-- [ ] GetTalentNumber(1,617) — depth 3 — 605 chars — roots: R1
-- [ ] GetTalentNumber(1,646) — depth 3 — 605 chars — roots: R1
-- [ ] GetTalentNumber(1,425) — depth 2 — 605 chars — roots: R1 R8
-- [ ] GetTalentNumber(1,591) — depth 2 — 605 chars — roots: R1 R8
+- [x] GetTalentNumber(1,95) — depth 1 — 605 chars — roots: R1 R6
+- [x] GetTalentNumber(1,455) — depth 1 — 605 chars — roots: R1
+- [x] GetTalentNumber(1,20) — depth 1 — 605 chars — roots: R1
+- [x] GetTalentNumber(1,97) — depth 1 — 605 chars — roots: R1
+- [x] GetTalentNumber(1,277) — depth 1 — 605 chars — roots: R1
+- [x] GetTalentNumber(1,457) — depth 1 — 605 chars — roots: R1
+- [x] GetTalentNumber(1,5) — depth 1 — 605 chars — roots: R1
+- [x] GetTalentNumber(1,113) — depth 1 — 605 chars — roots: R1
+- [x] GetTalentNumber(1,86) — depth 1 — 605 chars — roots: R1
+- [x] GetTalentNumber(1,446) — depth 1 — 605 chars — roots: R1
+- [x] GetTalentNumber(1,284) — depth 1 — 605 chars — roots: R1
+- [x] GetTalentNumber(2,463) — depth 1 — 1535 chars — whole body — roots: R1
+- [x] GetTalentNumber(1,125) — depth 1 — 605 chars — roots: R1
+- [x] GetTalentNumber(1,290) — depth 1 — 605 chars — roots: R1
+- [x] GetTalentNumber(1,649) — depth 1 — 605 chars — roots: R1
+- [x] GetTalentNumber(1,638) — depth 1 — 605 chars — roots: R1
+- [x] GetTalentNumber(1,658) — depth 1 — 605 chars — roots: R1
+- [x] GetTalentNumber(1,6) — depth 1 — 605 chars — roots: R1
+- [x] GetTalentNumber(1,24) — depth 1 — 605 chars — roots: R1
+- [x] GetTalentNumber(1,195) — depth 2 — 605 chars — roots: R1
+- [x] GetTalentNumber(1,200) — depth 2 — 605 chars — roots: R1 R8
+- [x] GetTalentNumber(1,420) — depth 2 — 605 chars — roots: R1
+- [x] GetTalentNumber(1,590) — depth 2 — 605 chars — roots: R1
+- [x] GetTalentNumber(1,585) — depth 2 — 605 chars — roots: R1
+- [x] GetTalentNumber(1,140) — depth 2 — 605 chars — roots: R1
+- [x] GetTalentNumber(1,170) — depth 2 — 605 chars — roots: R1
+- [x] GetTalentNumber(1,320) — depth 2 — 605 chars — roots: R1
+- [x] GetTalentNumber(1,500) — depth 2 — 605 chars — roots: R1
+- [x] GetTalentNumber(1,365) — depth 2 — 605 chars — roots: R1
+- [x] GetTalentNumber(1,530) — depth 2 — 605 chars — roots: R1
+- [x] GetTalentNumber(1,0) — depth 1 — 605 chars — roots: R1 R6
+- [x] GetTalentNumber(1,642) — depth 1 — 605 chars — roots: R1 R6
+- [x] GetTalentNumber(1,92) — depth 1 — 605 chars — roots: R1 R6
+- [x] GetTalentNumber(1,272) — depth 1 — 605 chars — roots: R1 R6 R7
+- [x] GetTalentNumber(1,266) — depth 2 — 605 chars — roots: R1 R8
+- [x] GetTalentNumber(1,77) — depth 2 — 605 chars — roots: R1 R8
+- [x] GetTalentNumber(1,641) — depth 2 — 605 chars — roots: R1 R8
+- [x] GetTalentNumber(1,1) — depth 1 — 605 chars — roots: R1 R7
+- [x] GetTalentNumber(1,452) — depth 1 — 605 chars — roots: R1 R7
+- [x] GetTalentNumber(1,31) — depth 2 — 605 chars — roots: R1
+- [x] GetTalentNumber(1,110) — depth 2 — 605 chars — roots: R1
+- [x] GetTalentNumber(1,485) — depth 2 — 605 chars — roots: R1
+- [x] GetTalentNumber(1,305) — depth 2 — 605 chars — roots: R1
+- [x] GetTalentNumber(1,470) — depth 2 — 605 chars — roots: R1
+- [x] GetTalentNumber(1,656) — depth 2 — 605 chars — roots: R1
+- [x] GetTalentNumber(1,96) — depth 1 — 605 chars — roots: R1 R2 R6
+- [x] GetTalentNumber(1,111) — depth 1 — 605 chars — roots: R1 R2 R6
+- [x] GetTalentNumber(1,652) — depth 1 — 605 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
+- [x] GetTalentNumber(1,143) — depth 1 — 605 chars — roots: R1 R2 R6
+- [x] GetTalentNumber(1,10) — depth 1 — 605 chars — roots: R1 R2 R6
+- [x] GetTalentNumber(1,98) — depth 1 — 605 chars — roots: R1 R2 R6
+- [x] GetTalentNumber(1,203) — depth 1 — 605 chars — roots: R1 R2 R6
+- [x] GetTalentNumber(2,142) — depth 1 — 1535 chars — whole body — roots: R1 R2 R6
+- [x] GetTalentNumber(1,36) — depth 1 — 605 chars — roots: R1 R5
+- [x] GetTalentNumber(1,13) — depth 1 — 605 chars — roots: R1 R5
+- [x] GetTalentNumber(1,618) — depth 1 — 605 chars — roots: R1 R5
+- [x] GetTalentNumber(1,23) — depth 1 — 605 chars — roots: R1 R5
+- [x] GetTalentNumber(1,276) — depth 1 — 605 chars — roots: R1 R3 R8
+- [x] GetTalentNumber(1,291) — depth 1 — 605 chars — roots: R1 R3 R8
+- [x] GetTalentNumber(1,368) — depth 1 — 605 chars — roots: R1 R3 R8
+- [x] GetTalentNumber(1,11) — depth 1 — 605 chars — roots: R1 R3 R8
+- [x] GetTalentNumber(1,278) — depth 1 — 605 chars — roots: R1 R3 R8
+- [x] GetTalentNumber(1,428) — depth 1 — 605 chars — roots: R1 R3 R8
+- [x] GetTalentNumber(2,367) — depth 1 — 1535 chars — whole body — roots: R1 R3 R8
+- [x] GetTalentNumber(1,456) — depth 1 — 605 chars — roots: R1 R4 R6 R7
+- [x] GetTalentNumber(1,486) — depth 1 — 605 chars — roots: R1 R4 R6 R7
+- [x] GetTalentNumber(1,533) — depth 1 — 605 chars — roots: R1 R4 R6 R7
+- [x] GetTalentNumber(1,12) — depth 1 — 605 chars — roots: R1 R4 R6 R7
+- [x] GetTalentNumber(1,459) — depth 1 — 605 chars — roots: R1 R4 R6 R7
+- [x] GetTalentNumber(1,593) — depth 1 — 605 chars — roots: R1 R4 R6 R7
+- [x] GetTalentNumber(2,532) — depth 1 — 1535 chars — whole body — roots: R1 R4 R6 R7
+- [x] GetTalentNumber(1,616) — depth 3 — 605 chars — roots: R1
+- [x] GetTalentNumber(1,201) — depth 2 — 605 chars — roots: R1 R6
+- [x] GetTalentNumber(2,641) — depth 1 — 1535 chars — whole body — roots: R1 R8
+- [x] GetTalentNumber(1,653) — depth 2 — 605 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
+- [x] GetTalentNumber(1,620) — depth 2 — 605 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
+- [x] GetTalentNumber(1,617) — depth 3 — 605 chars — roots: R1
+- [x] GetTalentNumber(1,646) — depth 3 — 605 chars — roots: R1
+- [x] GetTalentNumber(1,425) — depth 2 — 605 chars — roots: R1 R8
+- [x] GetTalentNumber(1,591) — depth 2 — 605 chars — roots: R1 R8
 
 ## Holes
 
@@ -323,7 +323,7 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 - [ ] Holes("B_UPG",57,0) — depth 1 — 97 chars — roots: R1
 - [x] Holes("MonumentROGbonuses",0,6) — depth 1 — 172 chars — roots: R1
 - [ ] Holes("B_UPG",84,100) — depth 1 — 65 chars — roots: R1
-- [ ] Holes("PocketDivOwned") — depth 2 — 361 chars — roots: R1 R8
+- [x] Holes("PocketDivOwned") — depth 2 — 361 chars — roots: R1 R8
 - [x] Holes("CosmoBonusQTY",2,0) — depth 2 — 279 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [ ] Holes("B_UPG",49,15) — depth 3 — 335 chars — roots: R1
 - [x] Holes("CosmoBonusQTY",2,3) — depth 3 — 279 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
@@ -337,7 +337,7 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 - [ ] GoldFoodBonuses("BaseDamage") — depth 1 — 46 chars — roots: R1
 - [ ] GoldFoodBonuses("Damage") — depth 1 — 3942 chars — whole body — roots: R1
 - [ ] GoldFoodBonuses("MaxHPpct") — depth 1 — 3942 chars — whole body — roots: R1 R6
-- [ ] GoldFoodBonuses("AllStatz") — depth 2 — 46 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
+- [x] GoldFoodBonuses("AllStatz") — depth 2 — 46 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [ ] GoldFoodBonuses("BaseAcc") — depth 2 — 46 chars — roots: R1 R8
 
 ## ArcadeBonus
@@ -356,51 +356,51 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 
 ## StampBonusOfTypeX
 
-- [ ] StampBonusOfTypeX("BaseDmg") — depth 1 — 241 chars — roots: R1
-- [ ] StampBonusOfTypeX("PctDmg") — depth 1 — 4661 chars — whole body — roots: R1
-- [ ] StampBonusOfTypeX("BaseHP") — depth 1 — 241 chars — roots: R1 R6
-- [ ] StampBonusOfTypeX("PctMoveSpd") — depth 2 — 4661 chars — whole body — roots: R1 R8
-- [ ] StampBonusOfTypeX("BaseMP") — depth 1 — 4661 chars — whole body — roots: R1 R7
-- [ ] StampBonusOfTypeX("PctSTR") — depth 1 — 4661 chars — whole body — roots: R1 R2 R6
-- [ ] StampBonusOfTypeX("BaseSTR") — depth 1 — 4661 chars — whole body — roots: R1 R2 R6
-- [ ] StampBonusOfTypeX("BaseAllStat") — depth 1 — 4661 chars — whole body — roots: R1 R2 R3 R4 R5 R6 R7 R8
-- [ ] StampBonusOfTypeX("BaseLUK") — depth 1 — 4661 chars — whole body — roots: R1 R5
-- [ ] StampBonusOfTypeX("PctAGI") — depth 1 — 4661 chars — whole body — roots: R1 R3 R8
-- [ ] StampBonusOfTypeX("BaseAGI") — depth 1 — 4661 chars — whole body — roots: R1 R3 R8
-- [ ] StampBonusOfTypeX("PctWIS") — depth 1 — 4661 chars — whole body — roots: R1 R4 R6 R7
-- [ ] StampBonusOfTypeX("BaseWIS") — depth 1 — 4661 chars — whole body — roots: R1 R4 R6 R7
-- [ ] StampBonusOfTypeX("BuildProd") — depth 3 — 4661 chars — whole body — roots: R1 R2 R3 R4 R5 R6 R7 R8
-- [ ] StampBonusOfTypeX("AllStatPct") — depth 2 — 4661 chars — whole body — roots: R1 R2 R3 R4 R5 R6 R7 R8
-- [ ] StampBonusOfTypeX("BaseAcc") — depth 2 — 241 chars — roots: R1 R8
+- [x] StampBonusOfTypeX("BaseDmg") — depth 1 — 241 chars — roots: R1
+- [x] StampBonusOfTypeX("PctDmg") — depth 1 — 4661 chars — whole body — roots: R1
+- [x] StampBonusOfTypeX("BaseHP") — depth 1 — 241 chars — roots: R1 R6
+- [x] StampBonusOfTypeX("PctMoveSpd") — depth 2 — 4661 chars — whole body — roots: R1 R8
+- [x] StampBonusOfTypeX("BaseMP") — depth 1 — 4661 chars — whole body — roots: R1 R7
+- [x] StampBonusOfTypeX("PctSTR") — depth 1 — 4661 chars — whole body — roots: R1 R2 R6
+- [x] StampBonusOfTypeX("BaseSTR") — depth 1 — 4661 chars — whole body — roots: R1 R2 R6
+- [x] StampBonusOfTypeX("BaseAllStat") — depth 1 — 4661 chars — whole body — roots: R1 R2 R3 R4 R5 R6 R7 R8
+- [x] StampBonusOfTypeX("BaseLUK") — depth 1 — 4661 chars — whole body — roots: R1 R5
+- [x] StampBonusOfTypeX("PctAGI") — depth 1 — 4661 chars — whole body — roots: R1 R3 R8
+- [x] StampBonusOfTypeX("BaseAGI") — depth 1 — 4661 chars — whole body — roots: R1 R3 R8
+- [x] StampBonusOfTypeX("PctWIS") — depth 1 — 4661 chars — whole body — roots: R1 R4 R6 R7
+- [x] StampBonusOfTypeX("BaseWIS") — depth 1 — 4661 chars — whole body — roots: R1 R4 R6 R7
+- [x] StampBonusOfTypeX("BuildProd") — depth 3 — 4661 chars — whole body — roots: R1 R2 R3 R4 R5 R6 R7 R8
+- [x] StampBonusOfTypeX("AllStatPct") — depth 2 — 4661 chars — whole body — roots: R1 R2 R3 R4 R5 R6 R7 R8
+- [x] StampBonusOfTypeX("BaseAcc") — depth 2 — 241 chars — roots: R1 R8
 
 ## EtcBonuses
 
-- [ ] EtcBonuses("16") — depth 1 — 329 chars — whole body — roots: R1
-- [ ] EtcBonuses("45") — depth 1 — 329 chars — whole body — roots: R1
-- [ ] EtcBonuses("72") — depth 1 — 329 chars — whole body — roots: R1
-- [ ] EtcBonuses("75") — depth 1 — 329 chars — whole body — roots: R1
-- [ ] EtcBonuses("104") — depth 1 — 329 chars — whole body — roots: R1
-- [ ] EtcBonuses("32") — depth 2 — 329 chars — whole body — roots: R1
-- [ ] EtcBonuses("86") — depth 2 — 329 chars — whole body — roots: R1
-- [ ] EtcBonuses("93") — depth 2 — 329 chars — whole body — roots: R1
-- [ ] EtcBonuses("15") — depth 1 — 329 chars — whole body — roots: R1 R6
-- [ ] EtcBonuses("1") — depth 2 — 329 chars — whole body — roots: R1 R8
-- [ ] EtcBonuses("57") — depth 1 — 329 chars — whole body — roots: R1 R2 R6
-- [ ] EtcBonuses("46") — depth 1 — 329 chars — whole body — roots: R1 R2 R3 R4 R5 R6 R7 R8
-- [ ] EtcBonuses("51") — depth 1 — 329 chars — whole body — roots: R1 R2 R6
-- [ ] EtcBonuses("17") — depth 1 — 329 chars — whole body — roots: R1 R5
-- [ ] EtcBonuses("54") — depth 1 — 329 chars — whole body — roots: R1 R5
-- [ ] EtcBonuses("25") — depth 1 — 329 chars — whole body — roots: R1 R3 R8
-- [ ] EtcBonuses("52") — depth 1 — 329 chars — whole body — roots: R1 R3 R8
-- [ ] EtcBonuses("58") — depth 1 — 329 chars — whole body — roots: R1 R4 R6 R7
-- [ ] EtcBonuses("53") — depth 1 — 329 chars — whole body — roots: R1 R4 R6 R7
-- [ ] EtcBonuses("37") — depth 2 — 329 chars — whole body — roots: R1 R6
-- [ ] EtcBonuses("38") — depth 2 — 329 chars — whole body — roots: R1 R7
-- [ ] EtcBonuses("36") — depth 3 — 329 chars — whole body — roots: R1 R8
-- [ ] EtcBonuses("30") — depth 3 — 329 chars — whole body — roots: R1 R2 R3 R4 R5 R6 R7 R8
-- [ ] EtcBonuses("48") — depth 3 — 329 chars — whole body — roots: R1
-- [ ] EtcBonuses("94") — depth 2 — 329 chars — whole body — roots: R1 R8
-- [ ] EtcBonuses("28") — depth 2 — 329 chars — whole body — roots: R1 R8
+- [x] EtcBonuses("16") — depth 1 — 329 chars — whole body — roots: R1
+- [x] EtcBonuses("45") — depth 1 — 329 chars — whole body — roots: R1
+- [x] EtcBonuses("72") — depth 1 — 329 chars — whole body — roots: R1
+- [x] EtcBonuses("75") — depth 1 — 329 chars — whole body — roots: R1
+- [x] EtcBonuses("104") — depth 1 — 329 chars — whole body — roots: R1
+- [x] EtcBonuses("32") — depth 2 — 329 chars — whole body — roots: R1
+- [x] EtcBonuses("86") — depth 2 — 329 chars — whole body — roots: R1
+- [x] EtcBonuses("93") — depth 2 — 329 chars — whole body — roots: R1
+- [x] EtcBonuses("15") — depth 1 — 329 chars — whole body — roots: R1 R6
+- [x] EtcBonuses("1") — depth 2 — 329 chars — whole body — roots: R1 R8
+- [x] EtcBonuses("57") — depth 1 — 329 chars — whole body — roots: R1 R2 R6
+- [x] EtcBonuses("46") — depth 1 — 329 chars — whole body — roots: R1 R2 R3 R4 R5 R6 R7 R8
+- [x] EtcBonuses("51") — depth 1 — 329 chars — whole body — roots: R1 R2 R6
+- [x] EtcBonuses("17") — depth 1 — 329 chars — whole body — roots: R1 R5
+- [x] EtcBonuses("54") — depth 1 — 329 chars — whole body — roots: R1 R5
+- [x] EtcBonuses("25") — depth 1 — 329 chars — whole body — roots: R1 R3 R8
+- [x] EtcBonuses("52") — depth 1 — 329 chars — whole body — roots: R1 R3 R8
+- [x] EtcBonuses("58") — depth 1 — 329 chars — whole body — roots: R1 R4 R6 R7
+- [x] EtcBonuses("53") — depth 1 — 329 chars — whole body — roots: R1 R4 R6 R7
+- [x] EtcBonuses("37") — depth 2 — 329 chars — whole body — roots: R1 R6
+- [x] EtcBonuses("38") — depth 2 — 329 chars — whole body — roots: R1 R7
+- [x] EtcBonuses("36") — depth 3 — 329 chars — whole body — roots: R1 R8
+- [x] EtcBonuses("30") — depth 3 — 329 chars — whole body — roots: R1 R2 R3 R4 R5 R6 R7 R8
+- [x] EtcBonuses("48") — depth 3 — 329 chars — whole body — roots: R1
+- [x] EtcBonuses("94") — depth 2 — 329 chars — whole body — roots: R1 R8
+- [x] EtcBonuses("28") — depth 2 — 329 chars — whole body — roots: R1 R8
 
 ## ArbitraryCode
 
@@ -409,8 +409,8 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 - [ ] ArbitraryCode("TotalQuestsComplete") — depth 1 — 387 chars — roots: R1 R5
 - [ ] ArbitraryCode("StatueBonusGiven4") — depth 1 — 53319 chars — whole body — roots: R1 R6
 - [ ] ArbitraryCode("StatueBonusGiven1") — depth 2 — 53319 chars — whole body — roots: R1 R8
-- [ ] ArbitraryCode("AllStatPCT") — depth 1 — 950 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
-- [ ] ArbitraryCode("AllStat") — depth 1 — 143 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
+- [x] ArbitraryCode("AllStatPCT") — depth 1 — 950 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
+- [x] ArbitraryCode("AllStat") — depth 1 — 143 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [ ] ArbitraryCode("StatueBonusGiven14") — depth 1 — 53319 chars — whole body — roots: R1 R8
 
 ## getLOG
@@ -435,46 +435,46 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 
 ## CardBonusREAL
 
-- [ ] CardBonusREAL(4) — depth 1 — 283 chars — whole body — roots: R1
-- [ ] CardBonusREAL(42) — depth 1 — 283 chars — whole body — roots: R1
-- [ ] CardBonusREAL(96) — depth 1 — 283 chars — whole body — roots: R1
-- [ ] CardBonusREAL(63) — depth 2 — 283 chars — whole body — roots: R1
-- [ ] CardBonusREAL(72) — depth 2 — 283 chars — whole body — roots: R1
-- [ ] CardBonusREAL(18) — depth 2 — 283 chars — whole body — roots: R1
-- [ ] CardBonusREAL(1) — depth 1 — 283 chars — whole body — roots: R1 R6
-- [ ] CardBonusREAL(8) — depth 1 — 283 chars — whole body — roots: R1 R6
-- [ ] CardBonusREAL(6) — depth 2 — 283 chars — whole body — roots: R1 R8
-- [ ] CardBonusREAL(3) — depth 1 — 283 chars — whole body — roots: R1 R7
-- [ ] CardBonusREAL(29) — depth 1 — 283 chars — whole body — roots: R1 R7
-- [ ] CardBonusREAL(9) — depth 1 — 283 chars — whole body — roots: R1 R2 R6
-- [ ] CardBonusREAL(2) — depth 1 — 283 chars — whole body — roots: R1 R5
-- [ ] CardBonusREAL(7) — depth 1 — 283 chars — whole body — roots: R1 R3 R8
-- [ ] CardBonusREAL(5) — depth 1 — 283 chars — whole body — roots: R1 R4 R6 R7
-- [ ] CardBonusREAL(68) — depth 2 — 283 chars — whole body — roots: R1 R6
-- [ ] CardBonusREAL(61) — depth 2 — 283 chars — whole body — roots: R1 R7
-- [ ] CardBonusREAL(86) — depth 3 — 283 chars — whole body — roots: R1 R8
-- [ ] CardBonusREAL(17) — depth 1 — 283 chars — whole body — roots: R1 R8
-- [ ] CardBonusREAL(82) — depth 2 — 283 chars — whole body — roots: R1 R2 R3 R4 R5 R6 R7 R8
-- [ ] CardBonusREAL(84) — depth 3 — 283 chars — whole body — roots: R1
-- [ ] CardBonusREAL(23) — depth 2 — 283 chars — whole body — roots: R1 R8
+- [x] CardBonusREAL(4) — depth 1 — 283 chars — whole body — roots: R1
+- [x] CardBonusREAL(42) — depth 1 — 283 chars — whole body — roots: R1
+- [x] CardBonusREAL(96) — depth 1 — 283 chars — whole body — roots: R1
+- [x] CardBonusREAL(63) — depth 2 — 283 chars — whole body — roots: R1
+- [x] CardBonusREAL(72) — depth 2 — 283 chars — whole body — roots: R1
+- [x] CardBonusREAL(18) — depth 2 — 283 chars — whole body — roots: R1
+- [x] CardBonusREAL(1) — depth 1 — 283 chars — whole body — roots: R1 R6
+- [x] CardBonusREAL(8) — depth 1 — 283 chars — whole body — roots: R1 R6
+- [x] CardBonusREAL(6) — depth 2 — 283 chars — whole body — roots: R1 R8
+- [x] CardBonusREAL(3) — depth 1 — 283 chars — whole body — roots: R1 R7
+- [x] CardBonusREAL(29) — depth 1 — 283 chars — whole body — roots: R1 R7
+- [x] CardBonusREAL(9) — depth 1 — 283 chars — whole body — roots: R1 R2 R6
+- [x] CardBonusREAL(2) — depth 1 — 283 chars — whole body — roots: R1 R5
+- [x] CardBonusREAL(7) — depth 1 — 283 chars — whole body — roots: R1 R3 R8
+- [x] CardBonusREAL(5) — depth 1 — 283 chars — whole body — roots: R1 R4 R6 R7
+- [x] CardBonusREAL(68) — depth 2 — 283 chars — whole body — roots: R1 R6
+- [x] CardBonusREAL(61) — depth 2 — 283 chars — whole body — roots: R1 R7
+- [x] CardBonusREAL(86) — depth 3 — 283 chars — whole body — roots: R1 R8
+- [x] CardBonusREAL(17) — depth 1 — 283 chars — whole body — roots: R1 R8
+- [x] CardBonusREAL(82) — depth 2 — 283 chars — whole body — roots: R1 R2 R3 R4 R5 R6 R7 R8
+- [x] CardBonusREAL(84) — depth 3 — 283 chars — whole body — roots: R1
+- [x] CardBonusREAL(23) — depth 2 — 283 chars — whole body — roots: R1 R8
 
 ## Labb
 
-- [ ] Labb("SigilBonus","Blank",4,0) — depth 1 — 1287 chars — roots: R1
+- [x] Labb("SigilBonus","Blank",4,0) — depth 1 — 1287 chars — roots: R1
 - [ ] Labb("TotalGreenSigils","0",0,0) — depth 1 — 438 chars — roots: R1
-- [ ] Labb("SigilBonus","Blank",17,0) — depth 2 — 1287 chars — roots: R1
-- [ ] Labb("SigilBonus","Blank",13,0) — depth 2 — 1287 chars — roots: R1 R8
-- [ ] Labb("SigilBonus","Blank",0,0) — depth 1 — 1287 chars — roots: R1 R2 R6
-- [ ] Labb("SigilBonus","Blank",3,0) — depth 1 — 1287 chars — roots: R1 R5
-- [ ] Labb("SigilBonus","Blank",1,0) — depth 1 — 1287 chars — roots: R1 R3 R8
-- [ ] Labb("SigilBonus","Blank",2,0) — depth 1 — 1287 chars — roots: R1 R4 R6 R7
+- [x] Labb("SigilBonus","Blank",17,0) — depth 2 — 1287 chars — roots: R1
+- [x] Labb("SigilBonus","Blank",13,0) — depth 2 — 1287 chars — roots: R1 R8
+- [x] Labb("SigilBonus","Blank",0,0) — depth 1 — 1287 chars — roots: R1 R2 R6
+- [x] Labb("SigilBonus","Blank",3,0) — depth 1 — 1287 chars — roots: R1 R5
+- [x] Labb("SigilBonus","Blank",1,0) — depth 1 — 1287 chars — roots: R1 R3 R8
+- [x] Labb("SigilBonus","Blank",2,0) — depth 1 — 1287 chars — roots: R1 R4 R6 R7
 
 ## RunCodeOfTypeXforThingY
 
-- [ ] RunCodeOfTypeXforThingY("CardLv","fallEvent2") — depth 1 — 1302 chars — roots: R1
-- [ ] RunCodeOfTypeXforThingY("CardLv","Crystal6") — depth 1 — 1302 chars — roots: R1
-- [ ] RunCodeOfTypeXforThingY("CardLv","w5b2") — depth 2 — 1302 chars — roots: R1
-- [ ] RunCodeOfTypeXforThingY("CardLv","Crystal4") — depth 3 — 1302 chars — roots: R1
+- [x] RunCodeOfTypeXforThingY("CardLv","fallEvent2") — depth 1 — 1302 chars — roots: R1
+- [x] RunCodeOfTypeXforThingY("CardLv","Crystal6") — depth 1 — 1302 chars — roots: R1
+- [x] RunCodeOfTypeXforThingY("CardLv","w5b2") — depth 2 — 1302 chars — roots: R1
+- [x] RunCodeOfTypeXforThingY("CardLv","Crystal4") — depth 3 — 1302 chars — roots: R1
 
 ## FoodBonuses
 
@@ -488,14 +488,14 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 
 ## FarmingStuffs
 
-- [ ] FarmingStuffs("LankRankUpgBonus",14,0) — depth 1 — 7 chars — roots: R1
+- [x] FarmingStuffs("LankRankUpgBonus",14,0) — depth 1 — 7 chars — roots: R1
 - [ ] FarmingStuffs("CropSCbonus",0,0) — depth 1 — 168 chars — roots: R1
 - [x] FarmingStuffs("ExoticBonusQTY",41,0) — depth 1 — 1661 chars — roots: R1
 - [ ] FarmingStuffs("StickerDMGmulti",0,0) — depth 1 — 179 chars — roots: R1
 - [ ] FarmingStuffs("CropSCbonMulti",0,0) — depth 2 — 209 chars — roots: R1
 - [ ] FarmingStuffs("TotalStickers",0,0) — depth 2 — 481 chars — roots: R1
 - [x] FarmingStuffs("ExoticBonusQTY",40,0) — depth 3 — 1661 chars — roots: R1
-- [ ] FarmingStuffs("LankRankUpgBonus",19,0) — depth 2 — 553 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
+- [x] FarmingStuffs("LankRankUpgBonus",19,0) — depth 2 — 553 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [x] FarmingStuffs("ExoticBonusQTY",14,0) — depth 3 — 1661 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
 
 ## Bubbastuff
@@ -511,7 +511,7 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 ## Spelunk
 
 - [ ] Spelunk("ShopUpgBonus",64,0) — depth 1 — 5584 chars — roots: R1
-- [ ] Spelunk("6starCards",0,0) — depth 2 — 69 chars — roots: R1
+- [x] Spelunk("6starCards",0,0) — depth 2 — 69 chars — roots: R1
 - [ ] Spelunk("ShopUpgBonus") — depth 2 — 5584 chars — roots: R1
 - [ ] Spelunk("GrandDiscoveries_Total",0,0) — depth 2 — 372 chars — roots: R1
 - [x] Spelunk("DoWeHaveLoreN1",8,0) — depth 2 — 71 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
@@ -526,14 +526,14 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 - [ ] TalentCalc(470) — depth 1 — 126 chars — roots: R1
 - [ ] TalentCalc(656) — depth 1 — 116 chars — roots: R1
 - [ ] TalentCalc(616) — depth 2 — 141 chars — roots: R1
-- [ ] TalentCalc(620) — depth 1 — 141 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
+- [x] TalentCalc(620) — depth 1 — 141 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
 
 ## Divinity
 
-- [ ] Divinity("Bonus_Minor") — depth 1 — 3194 chars — roots: R1 R8
+- [x] Divinity("Bonus_Minor") — depth 1 — 3194 chars — roots: R1 R8
 - [ ] Divinity("BlesssBonus",7,0) — depth 1 — 1026 chars — roots: R1
 - [ ] Divinity("BlesssBonus",8,0) — depth 1 — 1026 chars — roots: R1
-- [ ] Divinity("DivMinorBonus") — depth 2 — 1153 chars — roots: R1 R8
+- [x] Divinity("DivMinorBonus") — depth 2 — 1153 chars — roots: R1 R8
 
 ## WorkbenchStuff
 
@@ -548,7 +548,7 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 - [ ] RiftStuff("eclipseSkulls",0) — depth 1 — 1724 chars — roots: R1
 - [ ] RiftStuff("RiftSkillETC",0) — depth 1 — 951 chars — roots: R1
 - [ ] RiftStuff("KillroyDMG",0) — depth 1 — 896 chars — roots: R1
-- [ ] RiftStuff("5starCards",0) — depth 2 — 63 chars — roots: R1
+- [x] RiftStuff("5starCards",0) — depth 2 — 63 chars — roots: R1
 - [ ] RiftStuff() — depth 2 — 7650 chars — whole body — roots: R1
 - [ ] RiftStuff("riftBonus",3) — depth 3 — 69 chars — roots: R1
 - [ ] RiftStuff("RiftSkillETC",2) — depth 3 — 951 chars — roots: R1
@@ -596,7 +596,7 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 - [ ] GetBuffBonuses(615,1) — depth 2 — 9 chars — roots: R1
 - [ ] GetBuffBonuses(108,1) — depth 1 — 363 chars — whole body — roots: R1 R6
 - [ ] GetBuffBonuses(273,1) — depth 2 — 363 chars — whole body — roots: R1 R8
-- [ ] GetBuffBonuses(94,1) — depth 1 — 363 chars — whole body — roots: R1 R2 R6
+- [x] GetBuffBonuses(94,1) — depth 1 — 363 chars — whole body — roots: R1 R2 R6
 - [ ] GetBuffBonuses(195,1) — depth 2 — 363 chars — whole body — roots: R1 R6 R8
 - [ ] GetBuffBonuses(420,1) — depth 2 — 363 chars — whole body — roots: R1 R6 R8
 - [ ] GetBuffBonuses(288,2) — depth 1 — 363 chars — whole body — roots: R1 R8
@@ -617,7 +617,7 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 - [ ] Thingies("FriendBonusSlots",0,0) — depth 2 — 196 chars — roots: R1
 - [ ] Thingies("FriendBonusQTY") — depth 2 — 661 chars — roots: R1
 - [ ] Thingies("FriendBonusXtraMulti",0,0) — depth 2 — 79 chars — roots: R1
-- [ ] Thingies("CoralKidUpgBonus",3,0) — depth 3 — 96 chars — roots: R1 R8
+- [x] Thingies("CoralKidUpgBonus",3,0) — depth 3 — 96 chars — roots: R1 R8
 - [x] Thingies("LegendPTS_bonus",28,0) — depth 3 — 154 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [ ] Thingies("FriendBonusStatz",2,0) — depth 3 — 1262 chars — roots: R1
 - [x] Thingies("LegendPTS_bonus",22,0) — depth 3 — 154 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
@@ -626,16 +626,16 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 
 ## getbonus2
 
-- [ ] getbonus2(1,507,-1) — depth 1 — 2523 chars — whole body — roots: R1
-- [ ] getbonus2(1,50,-1) — depth 1 — 2523 chars — whole body — roots: R1
-- [ ] getbonus2(1,508,-1) — depth 2 — 2523 chars — whole body — roots: R1
-- [ ] getbonus2(1,208,-1) — depth 2 — 2523 chars — whole body — roots: R1
-- [ ] getbonus2(1,597,-1) — depth 2 — 2523 chars — whole body — roots: R1
-- [ ] getbonus2(1,51,-1) — depth 1 — 2523 chars — whole body — roots: R1 R2 R6
-- [ ] getbonus2(1,54,-1) — depth 1 — 2523 chars — whole body — roots: R1 R5
-- [ ] getbonus2(1,52,-1) — depth 1 — 2523 chars — whole body — roots: R1 R3 R8
-- [ ] getbonus2(1,53,-1) — depth 1 — 2523 chars — whole body — roots: R1 R4 R6 R7
-- [ ] getbonus2(1,207,-1) — depth 3 — 2523 chars — whole body — roots: R1 R2 R3 R4 R5 R6 R7 R8
+- [x] getbonus2(1,507,-1) — depth 1 — 2523 chars — whole body — roots: R1
+- [x] getbonus2(1,50,-1) — depth 1 — 2523 chars — whole body — roots: R1
+- [x] getbonus2(1,508,-1) — depth 2 — 2523 chars — whole body — roots: R1
+- [x] getbonus2(1,208,-1) — depth 2 — 2523 chars — whole body — roots: R1
+- [x] getbonus2(1,597,-1) — depth 2 — 2523 chars — whole body — roots: R1
+- [x] getbonus2(1,51,-1) — depth 1 — 2523 chars — whole body — roots: R1 R2 R6
+- [x] getbonus2(1,54,-1) — depth 1 — 2523 chars — whole body — roots: R1 R5
+- [x] getbonus2(1,52,-1) — depth 1 — 2523 chars — whole body — roots: R1 R3 R8
+- [x] getbonus2(1,53,-1) — depth 1 — 2523 chars — whole body — roots: R1 R4 R6 R7
+- [x] getbonus2(1,207,-1) — depth 3 — 2523 chars — whole body — roots: R1 R2 R3 R4 R5 R6 R7 R8
 
 ## GetSetBonus
 
@@ -666,8 +666,8 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 
 ## AtomCollider
 
-- [ ] AtomCollider("AtomBonuses",9,0) — depth 1 — 1531 chars — roots: R1
-- [ ] AtomCollider("AtomBonuses",1,0) — depth 3 — 1531 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
+- [x] AtomCollider("AtomBonuses",9,0) — depth 1 — 1531 chars — roots: R1
+- [x] AtomCollider("AtomBonuses",1,0) — depth 3 — 1531 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
 
 ## Breeding
 
@@ -683,7 +683,7 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 
 ## Dreamstuff
 
-- [ ] Dreamstuff("AllShimmerBonuses",0) — depth 1 — 86 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
+- [x] Dreamstuff("AllShimmerBonuses",0) — depth 1 — 86 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [x] Dreamstuff("CloudBonus",71) — depth 3 — 64 chars — roots: R1 R8
 - [x] Dreamstuff("CloudBonus",72) — depth 3 — 64 chars — roots: R1 R8
 - [x] Dreamstuff("CloudBonus",76) — depth 3 — 64 chars — roots: R1 R8
@@ -715,11 +715,11 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 - [ ] MainframeBonus(107) — depth 2 — 3598 chars — whole body — roots: R1
 - [ ] MainframeBonus(108) — depth 2 — 3598 chars — whole body — roots: R1
 - [ ] MainframeBonus(109) — depth 2 — 3598 chars — whole body — roots: R1
-- [ ] MainframeBonus(8) — depth 2 — 464 chars — roots: R1
+- [x] MainframeBonus(8) — depth 2 — 464 chars — roots: R1
 - [ ] MainframeBonus(17) — depth 3 — 117 chars — roots: R1
 - [ ] MainframeBonus(118) — depth 3 — 3598 chars — whole body — roots: R1 R2 R3 R4 R5 R6 R7 R8
-- [ ] MainframeBonus(104) — depth 2 — 3598 chars — whole body — roots: R1 R2 R3 R4 R5 R6 R7 R8
-- [ ] MainframeBonus(119) — depth 3 — 289 chars — roots: R1
+- [x] MainframeBonus(104) — depth 2 — 3598 chars — whole body — roots: R1 R2 R3 R4 R5 R6 R7 R8
+- [x] MainframeBonus(119) — depth 3 — 289 chars — roots: R1
 - [ ] MainframeBonus(120) — depth 4 — 3598 chars — whole body — roots: R1
 
 ## Companions
@@ -760,10 +760,10 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 
 ## MealBonus
 
-- [ ] MealBonus("TotDmg") — depth 1 — 257 chars — whole body — roots: R1
-- [ ] MealBonus("TotAcc") — depth 1 — 257 chars — whole body — roots: R1 R8
-- [ ] MealBonus("Stat") — depth 2 — 257 chars — whole body — roots: R1 R2 R3 R4 R5 R6 R7 R8
-- [ ] MealBonus("Seff") — depth 3 — 257 chars — whole body — roots: R1
+- [x] MealBonus("TotDmg") — depth 1 — 257 chars — whole body — roots: R1
+- [x] MealBonus("TotAcc") — depth 1 — 257 chars — whole body — roots: R1 R8
+- [x] MealBonus("Stat") — depth 2 — 257 chars — whole body — roots: R1 R2 R3 R4 R5 R6 R7 R8
+- [x] MealBonus("Seff") — depth 3 — 257 chars — whole body — roots: R1
 
 ## AchieveStatus
 
@@ -795,9 +795,9 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 
 ## Minehead
 
-- [ ] Minehead("BonusQTY",0,0) — depth 1 — 147 chars — roots: R1
+- [x] Minehead("BonusQTY",0,0) — depth 1 — 147 chars — roots: R1
 - [ ] Minehead("WepPowDmgPCT",0,0) — depth 1 — 277 chars — roots: R1
-- [ ] Minehead("BonusQTY",4,0) — depth 2 — 147 chars — roots: R1
+- [x] Minehead("BonusQTY",4,0) — depth 2 — 147 chars — roots: R1
 - [ ] Minehead("GlimboTotalTrades",0,0) — depth 2 — 481 chars — roots: R1 R8
 
 ## JellyOperation
@@ -862,14 +862,14 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 
 ## GuildBonuses
 
-- [ ] GuildBonuses(3) — depth 2 — 338 chars — whole body — roots: R1
-- [ ] GuildBonuses(5) — depth 3 — 338 chars — whole body — roots: R1 R2 R3 R4 R5 R6 R7 R8
-- [ ] GuildBonuses(1) — depth 2 — 338 chars — whole body — roots: R1 R2 R3 R4 R5 R6 R7 R8
-- [ ] GuildBonuses(6) — depth 3 — 338 chars — whole body — roots: R1
+- [x] GuildBonuses(3) — depth 2 — 338 chars — whole body — roots: R1
+- [x] GuildBonuses(5) — depth 3 — 338 chars — whole body — roots: R1 R2 R3 R4 R5 R6 R7 R8
+- [x] GuildBonuses(1) — depth 2 — 338 chars — whole body — roots: R1 R2 R3 R4 R5 R6 R7 R8
+- [x] GuildBonuses(6) — depth 3 — 338 chars — whole body — roots: R1
 
 ## Dungon
 
-- [ ] Dungon() — depth 1 — 287 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
+- [x] Dungon() — depth 1 — 287 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
 
 ## PlayerAccTot
 
