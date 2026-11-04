@@ -1,4 +1,5 @@
 import { block } from "../ctx";
+import type { Ported } from "../ported";
 
 /**
  * N.js `_customBlock_ArbitraryCode5Inputs(a, b, c, f, g, h)` @4101084: the game's shared curve formulas. `a` names the curve, `b` and
@@ -39,3 +40,6 @@ export const ArbitraryCode5Inputs = block("ArbitraryCode5Inputs", (_ctx, a: stri
                               ? (((b + c) / c + 0.5 * (f - 1)) / (b / c)) * f * b - c * f
                               : 0
 );
+
+/** What this module covers (lib/game/ported.ts). */
+export const PORTED: Ported = "generic";

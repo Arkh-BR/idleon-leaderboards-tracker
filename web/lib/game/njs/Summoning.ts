@@ -8,8 +8,9 @@ import { AchieveStatus } from "./AchieveStatus";
 import { GetSetBonus } from "./GetSetBonus";
 import { Ninja } from "./Ninja";
 import { Sailing } from "./Sailing";
-import { Summoning2 } from "./Summoning2";
+import { PORTED as Summoning2PORTED, Summoning2 } from "./Summoning2";
 import { Thingies } from "./Thingies";
+import { range, type Ported } from "../ported";
 
 /**
  * The names `Summoning` answers itself (`"X"==d` in its chain, @10878764 to @10931948; 71 of them). Any other name is handed to `Summoning2`; a name from
@@ -145,3 +146,12 @@ function winBonus(ctx: Ctx, b: number): number {
         100)
   );
 }
+
+/** What this module covers (lib/game/ported.ts). */
+export const PORTED: Ported = {
+  VaultUpgBonus: [...VAULT_PLAIN, ...range(61, 1000)], // 61..88 times VaultUpgBonus 89, from 89 on 0 when not plain (999 is plain),
+  EventShopOwned: true,
+  GrimoireUpgBonus: [...GRIMOIRE_PLAIN],
+  WinBonus: [-1, ...range(0, 19), 20, 22, 24, 31], // the game has 32 buckets; 19 and 21, 23, 25..30, 32, 33 are NotPorted
+  ...(Summoning2PORTED as Record<string, true | readonly number[]>), // the tail of the chain is Summoning2's
+};

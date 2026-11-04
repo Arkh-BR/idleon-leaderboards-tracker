@@ -6,6 +6,7 @@ import { hString } from "../hstring";
 import { listAt } from "../lists";
 import { Spelunk } from "./Spelunk";
 import { Thingies } from "./Thingies";
+import type { Ported } from "../ported";
 
 /**
  * N.js `_customBlock_GamingStatType(d, b, e)` @10732554: one function, a chain of named sub-cases. Only the sub-cases the Artifact
@@ -67,3 +68,6 @@ function paletteBonus(ctx: Ctx, b: number): number {
   if (v === undefined) throw new RangeError(`GamingStatType PaletteBonus: no shade ${b}`);
   return v;
 }
+
+/** What this module covers (lib/game/ported.ts). */
+export const PORTED: Ported = { PaletteBonus: true, SuperBitType: true };

@@ -264,7 +264,7 @@ export function njsClosure(
   norm: string,
   fn: string,
   args: (string | number)[]
-): { calls: ClosureCall[]; attrs: string[]; dnsm: string[]; loose: { attrs: string[]; dnsm: string[] }; capped: number } {
+): { calls: ClosureCall[]; attrs: string[]; dnsm: string[]; loose: { attrs: string[]; dnsm: string[] }; capped: number; unwalked: string[] } {
   const calls: ClosureCall[] = [];
   const exact = { attrs: new Set<string>(), dnsm: new Set<string>() };
   const whole = { attrs: new Set<string>(), dnsm: new Set<string>() };
@@ -350,5 +350,7 @@ export function njsClosure(
     dnsm: sorted(exact.dnsm, whole.dnsm),
     loose: { attrs: looseOnly(whole.attrs, exact.attrs), dnsm: looseOnly(whole.dnsm, exact.dnsm) },
     capped: unwalked.size,
+    /** The calls left unwalked at the depth cap, as `Fn[args]` (JSON), so a merge can drop those another root walked. */
+    unwalked: [...unwalked],
   };
 }

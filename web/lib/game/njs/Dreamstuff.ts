@@ -1,6 +1,7 @@
 import { attr } from "../attr";
 import { block } from "../ctx";
 import { NotPorted } from "../errors";
+import type { Ported } from "../ported";
 
 /** N.js `_customBlock_Dreamstuff(d, b)` @10809949. Only the sub-cases the Artifact Find port reaches. */
 export const Dreamstuff = block("Dreamstuff", (ctx, d: string, b: number) => {
@@ -12,3 +13,6 @@ export const Dreamstuff = block("Dreamstuff", (ctx, d: string, b: number) => {
       throw new NotPorted("Dreamstuff", d);
   }
 });
+
+/** What this module covers (lib/game/ported.ts). */
+export const PORTED: Ported = { CloudBonus: true };

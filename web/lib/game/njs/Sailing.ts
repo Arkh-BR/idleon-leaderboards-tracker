@@ -25,6 +25,7 @@ import { Stuff2 } from "./Stuff2";
 import { SushiStuff } from "./SushiStuff";
 import { Summoning } from "./Summoning";
 import { Thingies } from "./Thingies";
+import { range, type Ported } from "../ported";
 
 /**
  * N.js `_customBlock_Sailing(d, b, e)` @10690910: one function, a chain of named sub-cases. Only the
@@ -147,3 +148,6 @@ function boatArtiMulti(ctx: Ctx, b: number): number {
       Math.max(1, Math.pow(1.02, listAt(ctx, "Spelunk", 6).length) * GamingStatType(ctx, "SuperBitType", 26, 0))
   );
 }
+
+/** What this module covers (lib/game/ported.ts). */
+export const PORTED: Ported = { ArtifactBonus: range(0, ArtifactInfo.length).filter((b) => !OWN_MULTIPLIER.has(b)), BoatArtiMulti: true, DaveyJonesBonus: true };

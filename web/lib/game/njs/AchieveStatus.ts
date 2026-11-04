@@ -1,5 +1,6 @@
 import { attr } from "../attr";
 import { block } from "../ctx";
+import type { Ported } from "../ported";
 
 /**
  * N.js `_customBlock_AchieveStatus(c)` @7792603: what achievement `c` is worth once it is done (AchieveReg[c] is -1, loose): 5 for a few,
@@ -16,3 +17,6 @@ export const AchieveStatus = block("AchieveStatus", (ctx, c: number) =>
           : 1
     : 0
 );
+
+/** What this module covers (lib/game/ported.ts). */
+export const PORTED: Ported = "generic";

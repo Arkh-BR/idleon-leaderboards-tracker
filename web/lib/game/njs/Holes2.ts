@@ -3,6 +3,7 @@ import { block, type Ctx } from "../ctx";
 import { HoleFountUPG } from "../data";
 import { NotPorted } from "../errors";
 import { listAt } from "../lists";
+import type { Ported } from "../ported";
 
 /** N.js `_customBlock_Holes2(d, b, e)` @11035686. Only the sub-cases the Artifact Find port reaches. */
 export const Holes2: (ctx: Ctx, d: string, b: number, e: number) => number = block("Holes2", (ctx, d: string, b: number, e: number) => {
@@ -39,3 +40,6 @@ function fountainBonTOT(ctx: Ctx, b: number, e: number): number {
   const upgrade = (HoleFountUPG as unknown as readonly (readonly (readonly unknown[])[])[])[b][e];
   return Math.round(marble * asNum(ctx, "Holes", 31, b, e) * asNumber(upgrade[6]));
 }
+
+/** What this module covers (lib/game/ported.ts). */
+export const PORTED: Ported = { Fountain_BonTOT: [0, 1, 2], Fountain_MarbleBon: true };

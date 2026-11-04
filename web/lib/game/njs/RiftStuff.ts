@@ -2,6 +2,7 @@ import { asNum } from "../attr";
 import { block } from "../ctx";
 import { NotPorted } from "../errors";
 import { Breeding } from "./Breeding";
+import type { Ported } from "../ported";
 
 /** N.js `_customBlock_RiftStuff(d, b)` @10789971. Only the sub-cases the Artifact Find port reaches. */
 export const RiftStuff = block("RiftStuff", (ctx, d: string, _b: number) => {
@@ -14,3 +15,6 @@ export const RiftStuff = block("RiftStuff", (ctx, d: string, _b: number) => {
       throw new NotPorted("RiftStuff", d);
   }
 });
+
+/** What this module covers (lib/game/ported.ts). */
+export const PORTED: Ported = { enabledStarSigns: true };

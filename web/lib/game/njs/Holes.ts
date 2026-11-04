@@ -5,6 +5,7 @@ import { InvalidSaveValue, NotPorted } from "../errors";
 import { listAt } from "../lists";
 import { getLOG } from "./getLOG";
 import { Holes2 } from "./Holes2";
+import type { Ported } from "../ported";
 
 /** N.js `_customBlock_Holes(d, b, e)` @10990457. Only the sub-cases the Artifact Find port reaches. */
 export const Holes: (ctx: Ctx, d: string, b: number, e: number) => number = block("Holes", (ctx, d: string, b: number, e: number) => {
@@ -68,3 +69,6 @@ function monumentROGbonuses(ctx: Ctx, b: number, e: number): number {
   if (30 > k) return level * k * Math.max(1, multi);
   return 0.1 * Math.ceil(10 * (level / (250 + level)) * k * Math.max(1, multi));
 }
+
+/** What this module covers (lib/game/ported.ts). */
+export const PORTED: Ported = { B_UPG: [55], CosmoBonusQTY: true, MonumentROGbonuses: true };

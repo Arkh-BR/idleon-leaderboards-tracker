@@ -6,6 +6,7 @@ import { listAt } from "../lists";
 import { Companions } from "./Companions";
 import { Dreamstuff } from "./Dreamstuff";
 import { SushiStuff } from "./SushiStuff";
+import type { Ported } from "../ported";
 
 /** N.js `_customBlock_ResearchStuff(d, b, e)` @11163957. Only the sub-cases the Artifact Find port reaches. */
 export const ResearchStuff: (ctx: Ctx, d: string, b: number, e: number) => number = block("ResearchStuff", (ctx, d: string, b: number, e: number) => {
@@ -49,3 +50,6 @@ function gridBonus(ctx: Ctx, b: number, e: number): number {
   const pct = (CustomResearch as unknown as readonly (readonly unknown[])[])[5][asNum(ctx, "Research", 1, b | 0) | 0];
   return asNumber(square[2]) * asNum(ctx, "Research", 0, b | 0) * (1 + asNumber(pct) / 100) * Math.max(1, ResearchStuff(ctx, "Grid_Bonus_Allmulti", 0, 0));
 }
+
+/** What this module covers (lib/game/ported.ts). */
+export const PORTED: Ported = { Grid_Bonus: true, "Grid_Bonus@e2": [67, 68, 107], Grid_Bonus_Allmulti: true };

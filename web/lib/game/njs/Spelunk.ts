@@ -2,6 +2,7 @@ import { asNum } from "../attr";
 import { block } from "../ctx";
 import { NotPorted } from "../errors";
 import { listAt } from "../lists";
+import type { Ported } from "../ported";
 
 /** N.js `_customBlock_Spelunk(d, b, e)` @11099923. Only the sub-cases the Artifact Find port reaches. */
 export const Spelunk = block("Spelunk", (ctx, d: string, b: number, _e: number) => {
@@ -14,3 +15,6 @@ export const Spelunk = block("Spelunk", (ctx, d: string, b: number, _e: number) 
       throw new NotPorted("Spelunk", d);
   }
 });
+
+/** What this module covers (lib/game/ported.ts). */
+export const PORTED: Ported = { DoWeHaveLoreN1: true };

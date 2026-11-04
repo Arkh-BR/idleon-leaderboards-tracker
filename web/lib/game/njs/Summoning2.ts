@@ -11,6 +11,7 @@ import { JellyOperation } from "./JellyOperation";
 import { SushiStuff } from "./SushiStuff";
 import { Summoning } from "./Summoning";
 import { Thingies } from "./Thingies";
+import { range, type Ported } from "../ported";
 
 /**
  * N.js `_customBlock_Summoning2(d, b, e)` @10931969: where `Summoning` hands every name it does not answer itself. Only the
@@ -110,3 +111,12 @@ function votingBonuszMulti(ctx: Ctx): number {
         100)
   );
 }
+
+/** What this module covers (lib/game/ported.ts). */
+export const PORTED: Ported = {
+  MeritocBonusz: true,
+  MeritocCanVote: true,
+  MeritocBonuszMulti: true,
+  VotingBonusz: [0, ...range(2, 40)], // not 1 (NotPorted); 40 is past the vote categories the game lists
+  VotingBonuszMulti: true,
+};

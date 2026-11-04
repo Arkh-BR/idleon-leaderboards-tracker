@@ -3,6 +3,7 @@ import { assumed, block, type Ctx } from "../ctx";
 import { LabMainBonus, NinjaInfo } from "../data";
 import { NotPorted } from "../errors";
 import { Ninja } from "./Ninja";
+import type { Ported } from "../ported";
 
 type Row = readonly unknown[];
 
@@ -57,3 +58,6 @@ export const MainframeBonus = block("MainframeBonus", (ctx, d: number) => {
   const row = list[d];
   return asNumber(labNodeConnected(ctx, d) ? row[5] : row[4]);
 });
+
+/** What this module covers (lib/game/ported.ts). */
+export const PORTED: Ported = [10, 14];

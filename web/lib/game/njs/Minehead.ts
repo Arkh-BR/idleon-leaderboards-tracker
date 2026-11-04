@@ -3,6 +3,7 @@ import { block, type Ctx } from "../ctx";
 import { NotPorted } from "../errors";
 import { Companions } from "./Companions";
 import { ResearchStuff } from "./ResearchStuff";
+import type { Ported } from "../ported";
 
 /**
  * N.js `_customBlock_Minehead(d, b, e)` @11186658: one function, a chain of named sub-cases. Only the sub-cases the Artifact Find port
@@ -48,3 +49,6 @@ function buttonBonuses(ctx: Ctx, b: number): number {
   if (!(0 <= (b | 0) && (b | 0) < slots.length)) throw new RangeError(`Minehead Button_Bonuses: no button slot ${b}`);
   return slots[b | 0];
 }
+
+/** What this module covers (lib/game/ported.ts). */
+export const PORTED: Ported = { Button_Bonuses: true, Button_BonusPerTime: true, Button_BonusMULTI: true };

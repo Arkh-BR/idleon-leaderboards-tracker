@@ -12,9 +12,11 @@ import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { pathToFileURL } from "node:url";
 import { njsClosure, njsFunction } from "@/lib/diagnose/njsCalls";
+import { readdirSync } from "node:fs";
+import type { Ported } from "@/lib/game/ported";
 import { loadNjs } from "@/scripts/njs-calls";
 
-const USAGE = "usage: npx tsx scripts/njs-closure.ts <Fn> [args…]   (e.g. Sailing BoatArtiMulti 0)";
+const USAGE = "usage: npx tsx scripts/njs-closure.ts [--mark] <Fn> [args…] [+ <Fn> [args…]]   (e.g. Sailing BoatArtiMulti 0)";
 const NJS = "scripts/updater/.cache/N.new.js";
 
 type Closure = ReturnType<typeof njsClosure>;
@@ -24,20 +26,54 @@ type Merged = Omit<Closure, "calls"> & { calls: Row[] };
 
 const fmt = (fn: string, args: unknown[]) => `${fn}(${args.map((a) => JSON.stringify(a)).join(",")})`;
 
+/**
+ * Is this row covered by the module's declared coverage (`PORTED`, lib/game/ported.ts)? No declaration is no coverage. A row with no
+ * literal index (`ResearchStuff("Grid_Bonus")`) is covered only by a `true` entry.
+ */
+export function isPorted(c: { args: (string | number)[] }, p: Ported | undefined): boolean {
+  if (p === undefined) return false;
+  if (p === "generic") return true;
+  const [a0, a1] = c.args;
+  if (Array.isArray(p)) return typeof a0 === "number" && p.includes(a0);
+  const rec = p as Record<string, true | readonly (number | string)[]>;
+  const at = [a0, a1].findIndex((a) => typeof a === "string" && Object.hasOwn(rec, a)); // GetSetBonus(set, "Bonus"): the name is second
+  if (at < 0) return false;
+  const name = c.args[at] as string;
+  const e = c.args[at + 2];
+  if (e === undefined && Object.hasOwn(rec, `${name}@e2`)) return false; // an unknown `e` may be the 2 that has its own rule
+  const entry = e === 2 && Object.hasOwn(rec, `${name}@e2`) ? rec[`${name}@e2`] : rec[name];
+  if (entry === true) return true;
+  const idx = c.args[at + 1];
+  return idx !== undefined && entry.includes(idx);
+}
+
+/** `lib/game/njs/<Fn>.ts` -> its `PORTED`, for the modules that declare one. */
+export async function loadPorted(): Promise<Record<string, Ported>> {
+  const out: Record<string, Ported> = {};
+  for (const f of readdirSync("lib/game/njs")) {
+    const n = f.replace(/\.ts$/, "");
+    const m = await import(`@/lib/game/njs/${n}`);
+    if (m.PORTED) out[n] = m.PORTED;
+  }
+  return out;
+}
+
 /** The checklist: `header`, a counts line, one `## Fn` group per function, then the attrs and dnsm sections. */
-export function renderInventory(r: Merged & { roots?: string[] }, header: string): string {
+export function renderInventory(r: Merged & { roots?: string[] }, header: string, ported?: Record<string, Ported>): string {
   const groups = new Map<string, Row[]>();
   for (const c of r.calls) groups.set(c.fn, [...(groups.get(c.fn) ?? []), c]);
   const flagged = (flag: string) => r.calls.filter((c) => c.flag === flag).length;
+  const done = ported ? r.calls.filter((c) => isPorted(c, ported[c.fn])).length : 0;
   const counts =
     `**${groups.size} functions, ${r.calls.length} sub-cases (rows), ${flagged("whole body")} whole body, ${flagged("not found")} not found, ` +
     `${r.attrs.length} attrs, ${r.dnsm.length} dnsm.**` +
-    (r.capped ? ` **Depth cap hit: ${r.capped} calls were not walked.**` : "");
+    (ported ? ` **${done} ported \`[x]\`, ${r.calls.length - done} open.**` : "") +
+    (r.capped ? ` **Depth cap hit: ${r.capped} call${r.capped === 1 ? " was" : "s were"} not walked.**` : "");
   const out = [header, "", counts];
   if (r.roots && r.roots.length > 1) out.push("", `Roots: ${r.roots.map((x, i) => `R${i + 1} = \`${x}\``).join(", ")}.`);
   for (const [fn, rows] of groups) {
     out.push("", `## ${fn}`, "");
-    for (const c of rows) out.push(`- [ ] ${fmt(c.fn, c.args)} — depth ${c.depth} — ${c.chars} chars${c.flag ? ` — ${c.flag}` : ""}${c.via ? ` — via ${c.via}` : ""}${c.roots ? ` — roots: ${c.roots.map((x) => `R${(r.roots ?? []).indexOf(x) + 1}`).join(" ")}` : ""}`);
+    for (const c of rows) out.push(`- [${ported && isPorted(c, ported[c.fn]) ? "x" : " "}] ${fmt(c.fn, c.args)} — depth ${c.depth} — ${c.chars} chars${c.flag ? ` — ${c.flag}` : ""}${c.via ? ` — via ${c.via}` : ""}${c.roots ? ` — roots: ${c.roots.map((x) => `R${(r.roots ?? []).indexOf(x) + 1}`).join(" ")}` : ""}`);
   }
   const names = (all: string[], loose: string[]) => all.map((a) => `- [ ] \`${a}\`${loose.includes(a) ? " — whole body only" : ""}`);
   out.push("", "## attrs", "", ...names(r.attrs, r.loose.attrs));
@@ -70,7 +106,7 @@ export function runClosures(norm: string, argv: string[]): Merged & { roots: str
   for (const run of runs) {
     const label = fmt(run.fn, run.args);
     for (const c of run.calls) {
-      const k = fmt(c.fn, c.args);
+      const k = c.fn + JSON.stringify(c.args);
       const prev = rows.get(k);
       if (!prev) rows.set(k, { ...c, roots: [label] });
       else {
@@ -95,19 +131,24 @@ export function runClosures(norm: string, argv: string[]): Merged & { roots: str
     attrs,
     dnsm,
     loose: { attrs: looseIn(attrs, (r) => r.attrs, (r) => r.loose.attrs), dnsm: looseIn(dnsm, (r) => r.dnsm, (r) => r.loose.dnsm) },
-    capped: Math.max(...runs.map((r) => r.capped)),
+    // a call one root left at the depth cap is walked, at a shallower depth, when another root reaches it
+    unwalked: [],
+    capped: new Set(runs.flatMap((r) => r.unwalked).filter((k) => !rows.has(k))).size,
   };
 }
 
-function main(argv: string[]) {
+async function main(argv: string[]) {
+  const mark = argv[0] === "--mark";
+  if (mark) argv = argv.slice(1);
   const { roots, fn, args, ...r } = runClosures(loadNjs(), argv);
-  const command = `cd web && npx tsx scripts/njs-closure.ts ${argv.join(" ")}`;
+  const command = `cd web && npx tsx scripts/njs-closure.ts ${mark ? "--mark " : ""}${argv.join(" ")}`;
   const sha = createHash("sha256").update(readFileSync(NJS)).digest("hex").slice(0, 12);
   const header = [
     `# Port inventory: ${roots.join(" + ")}`,
     "",
     `Generated by \`${command}\` (redirect stdout to this file) from the live N.js (\`web/${NJS}\`, sha256 ${sha}…).`,
-    "Do not edit by hand: regenerate it when N.js changes. Tick a row when its sub-case is ported or marked `runtime()`.",
+    "Regenerate it when N.js or a module's `PORTED` changes. With `--mark`, `[x]` is what the module declares in its `PORTED` (lib/game/ported.ts; a guard test keeps the declarations honest): do not tick rows by hand. Rows ported to `runtime()`/assumed stay `[ ]` until their module declares them. `[~]` (Ruling F, a row proven unreachable) is the only mark written by hand: keep it when regenerating.",
+    "- `[x]` on a whole-body row of a generic function (`ArcadeBonus(46)`, `Companions(154)`) means the module's generic path covers every index. A whole-body row does not list its callees: a porting task opens it with `npx tsx scripts/njs-calls.ts <Fn> [<sub>] [<n>]` to see what it calls.",
     "",
     "- A row is one N.js call with its literal args up to the first non-literal one (`Sailing(\"DaveyJonesBonus\",b,0)` is `Sailing(\"DaveyJonesBonus\")`). The chars are the length of its N.js slice (`njsSlice`). With a number after the name and no `<n>==` branch for it, the slice is the whole sub-case (`Sailing(\"ArtifactBonus\",3,0)` is 8323 chars): the calls of other numbers' branches in it are in this list too.",
     "- With several roots (`Fn args + Fn2 args`) the rows are merged, each once, and say which roots reach it (`roots:`).",
@@ -118,14 +159,12 @@ function main(argv: string[]) {
     "- attrs and dnsm are the reads in every slice listed. One marked \"whole body only\" is read only inside a whole-body function (all its branches, not just the one this formula takes). `DNSM` is runtime-only (it is never loaded from the save): port it as `DNSM_*` functions, not as a save attribute. The dnsm list also holds the scratch keys a formula writes and reads back in the same slice (`CaptnBonuz`, `AtomBonCalc1`); the inputs are the caches the game fills elsewhere (`StarSigns`, `AlchVials`, `FamBonusQTYs`…).",
     "- Depth stops at 6.",
   ].join("\n");
-  process.stdout.write(renderInventory({ ...r, roots }, header));
+  process.stdout.write(renderInventory({ ...r, roots }, header, mark ? await loadPorted() : undefined));
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  try {
-    main(process.argv.slice(2));
-  } catch (e) {
+  main(process.argv.slice(2)).catch((e) => {
     console.error(e instanceof Error ? e.message : e);
     process.exit(1);
-  }
+  });
 }

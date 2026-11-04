@@ -1,6 +1,7 @@
 import { asNum, attr } from "../attr";
 import { block, type Ctx } from "../ctx";
 import { MissingSaveKey, NotPorted } from "../errors";
+import type { Ported } from "../ported";
 
 /**
  * N.js `_customBlock_MenagerieStuff(d, b, e)` @5176140: one function, a chain of named sub-cases. Only the sub-cases the Artifact Find port reaches.
@@ -47,3 +48,6 @@ function nightmarinerTotLV(ctx: Ctx): number {
   }
   return total;
 }
+
+/** What this module covers (lib/game/ported.ts). */
+export const PORTED: Ported = { UnlockOwned: true, NightmarinerBon: [0], NightmarinerTotLV: true };

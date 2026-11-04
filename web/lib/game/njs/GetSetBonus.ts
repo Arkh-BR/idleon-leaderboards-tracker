@@ -4,6 +4,7 @@ import { EquipmentSets } from "../data";
 import { NotPorted } from "../errors";
 import { hString } from "../hstring";
 import { contains } from "../lists";
+import type { Ported } from "../ported";
 
 type EquipmentSet = readonly (readonly unknown[])[];
 
@@ -59,3 +60,6 @@ export const GetSetBonus: (ctx: Ctx, d: string, b: string, e: number, f: number)
     }
   }
 );
+
+/** What this module covers (lib/game/ported.ts). */
+export const PORTED: Ported = { PartsOn: true, PartsReq: true, Bonus: true };

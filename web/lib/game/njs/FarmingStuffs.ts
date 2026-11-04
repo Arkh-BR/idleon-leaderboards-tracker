@@ -7,6 +7,7 @@ import { GamingStatType } from "./GamingStatType";
 import { MenagerieStuff } from "./MenagerieStuff";
 import { ResearchStuff } from "./ResearchStuff";
 import { Summoning } from "./Summoning";
+import { range, type Ported } from "../ported";
 
 /** N.js `_customBlock_FarmingStuffs(d, b, e)` @10817671. Only the sub-cases the Artifact Find port reaches. */
 export const FarmingStuffs = block("FarmingStuffs", (ctx, d: string, b: number, e: number) => {
@@ -50,3 +51,6 @@ function exoticBonusQTY(ctx: Ctx, b: number): number {
   if (39 == b) v = Math.min(50, v);
   return v;
 }
+
+/** What this module covers (lib/game/ported.ts). */
+export const PORTED: Ported = { StickerBonus: true, ExoticBonusQTY: range(0, 80) };

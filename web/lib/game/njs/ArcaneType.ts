@@ -2,6 +2,7 @@ import { asNum, asNumber } from "../attr";
 import { block, type Ctx } from "../ctx";
 import { ArcaneUpg } from "../data";
 import { NotPorted } from "../errors";
+import type { Ported } from "../ported";
 
 /** N.js `_customBlock_ArcaneType(d, b, e)` @11083241. Only the sub-cases the Artifact Find port reaches. */
 export const ArcaneType = block("ArcaneType", (ctx, d: string, b: number, e: number) => {
@@ -25,3 +26,6 @@ function arcaneUpgBonus(ctx: Ctx, b: number, e: number): number {
   if (!row) throw new RangeError(`ArcaneType ArcaneUpgBonus: no upgrade ${b} in ArcaneUpg`);
   return asNum(ctx, "Arcane", b | 0) * asNumber(row[5]);
 }
+
+/** What this module covers (lib/game/ported.ts). */
+export const PORTED: Ported = { ArcaneUpgBonus: [...ARCANE_PLAIN] };

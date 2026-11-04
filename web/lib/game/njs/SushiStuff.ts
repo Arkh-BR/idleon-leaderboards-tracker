@@ -3,6 +3,7 @@ import { block, type Ctx } from "../ctx";
 import { Research as ResearchLists } from "../data";
 import { NotPorted } from "../errors";
 import { listAt } from "../lists";
+import type { Ported } from "../ported";
 
 /**
  * N.js `_customBlock_SushiStuff(d, b, e)` @11205992: one function, a chain of named sub-cases. Only the sub-cases the Artifact Find
@@ -38,3 +39,6 @@ function uniqueSushi(ctx: Ctx): number {
   }
   return Math.round(found);
 }
+
+/** What this module covers (lib/game/ported.ts). */
+export const PORTED: Ported = { MaxTier: true, UniqueSushi: true, RoG_BonusQTY: true };

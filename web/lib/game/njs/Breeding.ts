@@ -3,6 +3,7 @@ import { block, type Ctx } from "../ctx";
 import { PetStats, RANDOlist } from "../data";
 import { MissingSaveKey, NotPorted } from "../errors";
 import { MenagerieStuff } from "./MenagerieStuff";
+import type { Ported } from "../ported";
 
 /**
  * N.js `_customBlock_Breeding(d, b, e, f)` @7929099: one function, a chain of named sub-cases. Only the
@@ -76,3 +77,6 @@ function totPetsFound(ctx: Ctx): number {
   for (let i = 0; i < (worlds | 0); i++) total += asNum(ctx, "Breeding", 1, i);
   return total;
 }
+
+/** What this module covers (lib/game/ported.ts). */
+export const PORTED: Ported = { ShinyBonusS: true, SpecialPassives: ["Lv"], TotPetsFound: true };

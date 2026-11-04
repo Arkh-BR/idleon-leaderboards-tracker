@@ -12,6 +12,7 @@ import { DNSM_TomeQTYtot } from "./DNSM";
 import { GetSetBonus } from "./GetSetBonus";
 import { JellyOperation } from "./JellyOperation";
 import { Summoning } from "./Summoning";
+import { range, type Ported } from "../ported";
 
 /** N.js `_customBlock_Thingies(d, b, e)` @10955095. Only the sub-cases the Artifact Find port reaches. */
 export const Thingies = block("Thingies", (ctx, d: string, b: number, e: number) => {
@@ -91,3 +92,6 @@ function loreEpiBon(ctx: Ctx, b: number): number {
   const p = Math.pow(Math.floor(Math.max(0, tome - asNumber(from)) / 100), 0.7);
   return (1 + (Summoning(ctx, "GrimoireUpgBonus", 17, 0) + GetSetBonus(ctx, "TROLL_SET", "Bonus", 0, 0)) / 100) * asNumber(value) * Math.max(0, p / (25 + p));
 }
+
+/** What this module covers (lib/game/ported.ts). */
+export const PORTED: Ported = { LegendPTS_bonus: true, Have_ban_i: true, ClamWorkBonus: true, EmperorBon: true, LoreEpiBon: range(0, 30) };
