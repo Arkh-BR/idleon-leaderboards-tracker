@@ -17,22 +17,42 @@ if (!g.window) g.window = g;
 
 const WEB = resolve(__dirname, "../../../..");
 
+const DEFAULT_DIRS = ["scripts/updater/golden/.cache", "scripts/updater/.cache/saves-fresh"];
+
+// A save envelope has a `charNames` array and a `data` object. The folders are mixed drop folders
+// (golden/.cache also has `readings/` and other captures), so anything else is not a save.
+function isEnvelope(path: string): boolean {
+  try {
+    const j = JSON.parse(readFileSync(path, "utf8"));
+    return Array.isArray(j?.charNames) && j.data !== null && typeof j.data === "object";
+  } catch {
+    return false; // not JSON at all
+  }
+}
+
 /**
- * Every real save envelope on this machine: the top-level `*.json` of `scripts/updater/golden/.cache`
- * (its `readings/` subfolder holds other captures, not saves) and of `scripts/updater/.cache/saves-fresh`,
- * sorted by path. Both folders are gitignored, so this is `[]` when they are absent (CI): tests that use
- * it must `describe.skipIf(GOLDEN_SAVES.length === 0)`. Six names appear in both folders with identical
- * content (ARKHE, Arlong, ...), so those saves are listed twice.
+ * The save envelopes in `dirs` (default: the two real-save folders): the top-level `*.json` files that
+ * parse to an envelope, as absolute paths, sorted. Subfolders (`readings/`) and any other JSON are left
+ * out. A missing folder contributes nothing. Costs one JSON.parse per file, so about 0.5 s for the 106
+ * real saves.
  */
-export const GOLDEN_SAVES: string[] = [
-  "scripts/updater/golden/.cache",
-  "scripts/updater/.cache/saves-fresh",
-]
-  .map((d) => resolve(WEB, d))
-  .flatMap((dir) =>
-    existsSync(dir) ? readdirSync(dir).filter((f) => f.endsWith(".json")).map((f) => join(dir, f)) : []
-  )
-  .sort();
+export function goldenSaves(dirs: string[] = DEFAULT_DIRS): string[] {
+  return dirs
+    .map((d) => resolve(WEB, d))
+    .flatMap((dir) =>
+      existsSync(dir) ? readdirSync(dir).filter((f) => f.endsWith(".json")).map((f) => join(dir, f)) : []
+    )
+    .filter(isEnvelope)
+    .sort();
+}
+
+/**
+ * Every real save envelope on this machine: `goldenSaves()` over `scripts/updater/golden/.cache` and
+ * `scripts/updater/.cache/saves-fresh`. Both folders are gitignored, so this is `[]` when they are absent
+ * (CI): tests that use it must `describe.skipIf(GOLDEN_SAVES.length === 0)`. Six names appear in both
+ * folders with identical content (ARKHE, Arlong, ...), so those saves are listed twice.
+ */
+export const GOLDEN_SAVES: string[] = goldenSaves();
 
 // Ruling D: lib/arkh holds module-level state and the many per-source tests all read the same few
 // trees, so a tree is computed once per (save, ci). A path is keyed by the path; an object by identity.
@@ -49,7 +69,8 @@ function treeOf(save: unknown, ci: number): ArkhNode {
   let perCi = byObject.get(save as object);
   if (!perCi) byObject.set(save as object, (perCi = new Map()));
   let tree = perCi.get(ci);
-  // lib/arkh writes into the envelope it is given; a clone keeps the caller's save clean for lib/game.
+  // Defensive copy: lib/arkh is built to write into the envelope it is given (none of the 106 real saves
+  // is touched by Artifact Find today), and the caller may feed the same save to gameCtx.
   if (!tree) perCi.set(ci, (tree = computeArkhArtifactFind(structuredClone(save), ci).tree));
   return tree;
 }
@@ -61,7 +82,7 @@ function treeOf(save: unknown, ci: number): ArkhNode {
  *
  * `save` is a parsed envelope or the PATH of a save file (a GOLDEN_SAVES entry, parsed on first use).
  * Prefer the path in loops over many sources. An object is cached by identity: do not edit it between
- * calls, pass a new object instead.
+ * calls. Pass a fresh object per synthetic variant; objects are cached by identity.
  */
 export function arkhArtifactLeaf(save: unknown, ci: number, sourceId: string): number {
   const gi = ARTI_GROUPS.findIndex((grp) => grp.sources.includes(sourceId));

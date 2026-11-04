@@ -1,10 +1,11 @@
 import { describe, it, expect, vi } from "vitest";
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { basename, join } from "node:path";
 import { computeArkhArtifactFind } from "@/lib/arkh/computeArtifactFind";
 import { ARTI_GROUPS } from "@/lib/arkh/stats/defs/artifact-find";
-import { GOLDEN_SAVES, KNOWN_ARKH_DIFFS, arkhArtifactLeaf, gameCtx } from "./support/arkhOracle";
+import { applyGroupStep, groupVal } from "@/lib/arkh/stats/defs/grouped";
+import { GOLDEN_SAVES, KNOWN_ARKH_DIFFS, arkhArtifactLeaf, gameCtx, goldenSaves } from "./support/arkhOracle";
 
 // Spy on the engine so the cache tests can count real computes; the original still runs.
 vi.mock("@/lib/arkh/computeArtifactFind", async (importOriginal) => {
@@ -38,6 +39,23 @@ describe.skipIf(!ARKHE)("arkhArtifactLeaf on a golden save", () => {
     expect(JSON.stringify(save)).toBe(before);
   });
 
+  // Pins the group/index slot of EVERY source id, not only the additive pool's: rebuild each group's
+  // factor and the total from the leaves alone, the way lib/arkh combines them (its own groupVal and
+  // applyGroupStep), and compare with lib/arkh's tree. A source read from the wrong slot gives another
+  // factor; the per-group check also catches two same-kind groups swapped, which leaves the product alone.
+  it("every ARTI_GROUPS source reads its own slot (leaves recombine to lib/arkh's groups and total)", () => {
+    const { tree, total } = computeArkhArtifactFind(JSON.parse(readFileSync(ARKHE!, "utf8")), 8);
+    const rel = (a: number, b: number) => Math.abs(a - b) / Math.abs(b);
+    let rebuilt = 1;
+    ARTI_GROUPS.forEach((grp, gi) => {
+      const leaves = grp.sources.map((id) => arkhArtifactLeaf(ARKHE, 8, id));
+      expect(rel(groupVal(grp, leaves), tree.children![gi].val), grp.key).toBeLessThan(1e-9);
+      rebuilt = applyGroupStep(grp, leaves, rebuilt);
+    });
+    expect(total).toBeGreaterThan(1); // an all-neutral save would match by accident
+    expect(rel(rebuilt, total)).toBeLessThan(1e-9);
+  });
+
   it("gameCtx builds the lib/game Ctx for a real save", () => {
     const save = JSON.parse(readFileSync(ARKHE!, "utf8"));
     const ctx = gameCtx(save, 8);
@@ -54,7 +72,29 @@ describe("GOLDEN_SAVES", () => {
     expect([...GOLDEN_SAVES].sort()).toEqual(GOLDEN_SAVES);
     for (const p of GOLDEN_SAVES) {
       expect(p).toMatch(/\.json$/);
-      expect(p).not.toMatch(/[\/]readings[\/]/); // the readings/ subfolder holds non-save captures
+      expect(p).not.toMatch(/[\\/]readings[\\/]/); // the readings/ subfolder holds non-save captures
+    }
+  });
+});
+
+describe("goldenSaves", () => {
+  it("lists only top-level envelopes: a charNames array and a data object", () => {
+    const dir = mkdtempSync(join(tmpdir(), "arkh-golden-"));
+    try {
+      const envelope = JSON.stringify({ charNames: ["A"], data: {} });
+      writeFileSync(join(dir, "b-save.json"), envelope);
+      writeFileSync(join(dir, "a-save.json"), envelope);
+      writeFileSync(join(dir, "stray.json"), JSON.stringify({ hello: "world" }));
+      writeFileSync(join(dir, "no-chars.json"), JSON.stringify({ data: {} }));
+      writeFileSync(join(dir, "chars-not-array.json"), JSON.stringify({ charNames: "A", data: {} }));
+      writeFileSync(join(dir, "data-null.json"), JSON.stringify({ charNames: ["A"], data: null }));
+      writeFileSync(join(dir, "broken.json"), "{ not json");
+      writeFileSync(join(dir, "notes.txt"), envelope);
+      mkdirSync(join(dir, "readings"));
+      writeFileSync(join(dir, "readings", "nested.json"), envelope);
+      expect(goldenSaves([dir, join(dir, "absent")]).map((p) => basename(p))).toEqual(["a-save.json", "b-save.json"]);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
     }
   });
 });
