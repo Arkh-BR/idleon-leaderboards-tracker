@@ -2,6 +2,7 @@
 // Sailing("BoatArtiMulti", 0) — the Artifact Find line of the Skill Info.
 
 import { CURRENT_CSVER, MissingSaveKey, TreeTotalMismatch } from "@/lib/game/errors";
+import { UNPORTED_STEPS } from "@/lib/game/migrations";
 import type { StatPageConfig } from "@/lib/statTracker/config";
 import { groupedGainsModel } from "@/lib/statTracker/biggestGains";
 import { formatArtifactFind } from "./format";
@@ -16,6 +17,8 @@ export function pageError(save: unknown, e: unknown): unknown {
   const csver = (save as { data?: { CSver?: unknown } } | null)?.data?.CSver;
   // MissingSaveKey includes IncompleteTome. A current save that lacks a key is not "old": that is a bug, so the engine's message stays.
   if (e instanceof MissingSaveKey && typeof csver === "number" && csver < CURRENT_CSVER) {
+    // older than the game's load steps lib/game replays: no key is missing, the tracker cannot bring the save up to date
+    if (e.key === UNPORTED_STEPS) return new Error("This save is from an older game version that this tracker can't update yet. Sign in or paste a fresh save.");
     return new Error(`This save is from an older game version (missing ${e.key}). Sign in or paste a fresh save.`);
   }
   if (e instanceof TreeTotalMismatch) return new Error("Artifact Find is incomplete for this save (internal check failed). Please report it.");

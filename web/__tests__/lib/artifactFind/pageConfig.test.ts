@@ -43,9 +43,9 @@ describe("what the page shows when the engine refuses a save", () => {
     const e = pageError(OLD, new MissingSaveKey("Spelunk[49]"));
     expect(e).toBeInstanceOf(Error);
     expect((e as Error).message).toBe("This save is from an older game version (missing Spelunk[49]). Sign in or paste a fresh save.");
-    // the refusal the real older saves still get: older than the game's load steps lib/game replays
+    // a save older than the game's load steps lib/game replays: said in words, no internal name
     expect((pageError(OLD, new MissingSaveKey(UNPORTED_STEPS)) as Error).message).toBe(
-      "This save is from an older game version (missing the game's load steps for DoOnceREAL < 367). Sign in or paste a fresh save."
+      "This save is from an older game version that this tracker can't update yet. Sign in or paste a fresh save."
     );
   });
 
