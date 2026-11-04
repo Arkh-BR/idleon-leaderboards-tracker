@@ -138,6 +138,18 @@ describe("classify", () => {
     expect(new IncompleteTome([]).name).toBe("IncompleteTome");
   });
 
+  it("with a list of keys a stat may be refused for, a refusal for any other key is unexplained", () => {
+    const keys = (k: string) => /^(Tome rows |Spelunk(\[|$)|Research(\[|$))/.test(k);
+    const refusal = (name: string, message: string) => row({ ci: 0, b: undefined, rel: undefined, errB: { name, message } });
+    expect(classify(refusal("MissingSaveKey", "Spelunk[49]"), [], 33.05, keys)).toBe("refused");
+    expect(classify(refusal("MissingSaveKey", "Research"), [], 33.05, keys)).toBe("refused");
+    // IncompleteTome's message is "<key>: <what each row looked for>"; the key is what comes before the colon
+    expect(classify(refusal("IncompleteTome", "Tome rows 107,108: #107 \"x\" (y)"), [], 33.05, keys)).toBe("refused");
+    expect(classify(refusal("MissingSaveKey", "Menagerie"), [], 33.05, keys)).toBe("unexplained");
+    expect(classify(refusal("MissingSaveKey", "SpelunkX"), [], 33.05, keys)).toBe("unexplained");
+    expect(classify(refusal("MissingSaveKey", "Menagerie"), [], 33.05)).toBe("refused"); // no list: any key
+  });
+
   it("only MissingSaveKey on the lib/game side is a refusal", () => {
     const old = (err: Row["errB"], errA?: Row["errA"]) => row({ b: undefined, rel: undefined, errA, errB: err });
     expect(classify(old({ name: "NotPorted", message: "x" }), [], 23.05)).toBe("unexplained");

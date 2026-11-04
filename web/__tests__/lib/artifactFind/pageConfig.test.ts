@@ -39,20 +39,18 @@ describe("what the page shows when the engine refuses a save", () => {
   const CURRENT = { data: { CSver: 34.05 } };
 
   it("tells an old save (below CSver 34.05) to be reloaded, naming the missing key", () => {
-    const e = pageError(OLD, new MissingSaveKey("Menagerie"));
+    const e = pageError(OLD, new MissingSaveKey("Spelunk[49]"));
     expect(e).toBeInstanceOf(Error);
-    expect((e as Error).message).toBe(
-      "This save is from an older game version (missing Menagerie). Log in or load a fresh save to compute Artifact Find."
-    );
+    expect((e as Error).message).toBe("This save is from an older game version (missing Spelunk[49]). Sign in or paste a fresh save.");
   });
 
   it("does the same for a partial Tome (IncompleteTome is a MissingSaveKey)", () => {
     const e = pageError({ data: { CSver: 34 } }, new IncompleteTome([{ idx: 107, task: "x", source: "y" }]));
-    expect((e as Error).message).toMatch(/^This save is from an older game version \(missing Tome rows 107\)\. Log in or load a fresh save/);
+    expect((e as Error).message).toBe("This save is from an older game version (missing Tome rows 107). Sign in or paste a fresh save.");
   });
 
   it("does not call a current save old: a missing key there passes through as the engine said it", () => {
-    const miss = new MissingSaveKey("Spelunk[6]");
+    const miss = new MissingSaveKey("Menagerie"); // a 34.05 save has it: its absence is a gap, not age
     expect(pageError(CURRENT, miss)).toBe(miss);
     expect(pageError({ data: {} }, miss)).toBe(miss); // no CSver: nothing says it is old
     expect(pageError(null, miss)).toBe(miss);
@@ -73,9 +71,9 @@ describe("what the page shows when the engine refuses a save", () => {
     expect(await withPageErrors(async () => ok)(CURRENT, 0, 0)).toBe(ok);
     await expect(
       withPageErrors(async () => {
-        throw new MissingSaveKey("Menagerie");
+        throw new MissingSaveKey("Spelunk[49]");
       })(OLD, 0, 0)
-    ).rejects.toThrow(/older game version \(missing Menagerie\)/);
+    ).rejects.toThrow(/older game version \(missing Spelunk\[49\]\)/);
     const other = new NotPorted("Sailing", "x");
     await expect(
       withPageErrors(() => {

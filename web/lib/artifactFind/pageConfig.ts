@@ -16,7 +16,7 @@ export function pageError(save: unknown, e: unknown): unknown {
   const csver = (save as { data?: { CSver?: unknown } } | null)?.data?.CSver;
   // MissingSaveKey includes IncompleteTome. A current save that lacks a key is not "old": that is a bug, so the engine's message stays.
   if (e instanceof MissingSaveKey && typeof csver === "number" && csver < CURRENT_CSVER) {
-    return new Error(`This save is from an older game version (missing ${e.key}). Log in or load a fresh save to compute Artifact Find.`);
+    return new Error(`This save is from an older game version (missing ${e.key}). Sign in or paste a fresh save.`);
   }
   if (e instanceof TreeTotalMismatch) return new Error("Artifact Find is incomplete for this save (internal check failed). Please report it.");
   return e;

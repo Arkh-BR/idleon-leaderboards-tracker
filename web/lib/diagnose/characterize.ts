@@ -94,21 +94,34 @@ export function characterize(saves: string[], a: Engine, b: Engine): Characteriz
 
 /**
  * known: the oracle's diff list names this save and character (N.js evidence there); refused: lib/game (`b`) throws
- * MissingSaveKey on a pre-migration save, which the game itself migrates on load (Ruling E); shared: both engines throw;
+ * MissingSaveKey on a pre-migration save (for a key the stat may be refused for), which the game itself migrates on load (Ruling E); shared: both engines throw;
  * unexplained: anything else, which blocks the switch.
  */
 export type Verdict = "known" | "refused" | "shared" | "unexplained";
+
+/** The key a refusal names: the message up to the first colon or line break (`Tome rows 107,108: #107 ...` is `Tome rows 107,108`). */
+export const refusedKey = (e: Err): string => e.message.split(/[:\n]/)[0];
 
 const REFUSALS = new Set(["MissingSaveKey", "IncompleteTome"]); // IncompleteTome is a MissingSaveKey (lib/game/errors.ts)
 
 /**
  * `known` is the oracle's KNOWN_ARKH_DIFFS ({save: file name, ci?: omitted = every character}); `csver` is the save's `data.CSver`.
  * A diff-list entry explains a difference of numbers only, never an error, and only the `b` (lib/game) side can refuse.
+ * `refusable` (default: any key) says which keys the stat may be refused for; a refusal for another key is a gap, not age, so it is
+ * unexplained. The key is what `MissingSaveKey` carries, or what comes before the colon in an IncompleteTome message.
  */
-export function classify(row: Row, known: readonly { save: string; ci?: number }[], csver: number | undefined): Verdict {
+export function classify(
+  row: Row,
+  known: readonly { save: string; ci?: number }[],
+  csver: number | undefined,
+  refusable: (key: string) => boolean = () => true
+): Verdict {
   if (row.errA && row.errB) return "shared";
   if (row.errA) return "unexplained"; // lib/arkh fails where lib/game answers: nothing explains that yet
-  if (row.errB) return REFUSALS.has(row.errB.name) && csver !== undefined && csver < CURRENT_CSVER ? "refused" : "unexplained";
+  if (row.errB) {
+    const refused = REFUSALS.has(row.errB.name) && csver !== undefined && csver < CURRENT_CSVER && refusable(refusedKey(row.errB));
+    return refused ? "refused" : "unexplained";
+  }
   const file = row.save.split(/[\\/]/).pop();
   return known.some((d) => d.save === file && (d.ci ?? row.ci) === row.ci) ? "known" : "unexplained";
 }

@@ -4,8 +4,9 @@
 //
 // Runs both engines on every character of every save envelope (golden/.cache + saves-fresh), writes
 // reports/characterize-<stat>.md, and exits 1 when the spec's switch criteria are not met: a row that is
-// neither in the oracle's KNOWN_ARKH_DIFFS, a pre-migration refusal (MissingSaveKey below CSver 34.05) nor an
-// error lib/arkh has too; or lib/game slower than lib/arkh (spec risk "Desempenho").
+// neither in the oracle's KNOWN_ARKH_DIFFS, a pre-migration refusal (MissingSaveKey below CSver 34.05, for one of the
+// keys the stat may be refused for) nor an error lib/arkh has too. The time of the two engines is reported, not judged:
+// the user accepted lib/game's cost on 2026-11-04 (warm-switch parity, spec risk "Desempenho").
 // The known-diff list lives in a test-support file: this is a script, not app code, so it imports it from there.
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { basename } from "node:path";
@@ -17,8 +18,11 @@ import { characterize, classify, type Engine, type Row, type Verdict } from "@/l
 import { CURRENT_CSVER } from "@/lib/game/errors";
 import { computeGameArtifactFind } from "@/lib/game/trackers/artifactFind";
 
-const ENGINES: Record<string, { arkh: Engine; game: Engine }> = {
-  artifactFind: { arkh: computeArkhArtifactFind, game: computeGameArtifactFind },
+/** The keys a pre-migration save may be refused for, per stat: any other missing key on an old save is a gap, not age. */
+const ARTIFACT_FIND_REFUSABLE = (key: string) => /^(Tome rows |(Spelunk|Research|Sushi|Holes)(\[|$))/.test(key);
+
+const ENGINES: Record<string, { arkh: Engine; game: Engine; refusable?: (key: string) => boolean }> = {
+  artifactFind: { arkh: computeArkhArtifactFind, game: computeGameArtifactFind, refusable: ARTIFACT_FIND_REFUSABLE },
 };
 
 const USAGE = `usage: npx tsx scripts/characterize.ts <stat>   (${Object.keys(ENGINES).join(", ")})`;
@@ -52,13 +56,12 @@ function main(argv: string[]): number {
 
   const { rows, pairs, msA, msB } = characterize(saves, engines.arkh, engines.game);
 
-  const verdicts = rows.map((r) => ({ r, v: classify(r, KNOWN_ARKH_DIFFS, csverOf(r.save)) }));
+  const verdicts = rows.map((r) => ({ r, v: classify(r, KNOWN_ARKH_DIFFS, csverOf(r.save), engines.refusable) }));
   const of = (v: Verdict) => verdicts.filter((x) => x.v === v).map((x) => x.r);
   const known = of("known");
   const refused = of("refused");
   const shared = of("shared");
   const unexplained = of("unexplained");
-  const slower = msB > msA;
 
   const at = (r: Row) => `${basename(r.save)}#${r.ci}`;
   const out: string[] = [];
@@ -67,10 +70,10 @@ function main(argv: string[]): number {
   h("Criteria");
   out.push(
     `- known diffs: ${known.length} pairs (each in KNOWN_ARKH_DIFFS with its N.js evidence)`,
-    `- refused: ${refused.length} pairs in ${new Set(refused.map((r) => r.save)).size} saves (lib/game MissingSaveKey on a save below CSver 34.05, Ruling E)`,
+    `- refused: ${refused.length} pairs in ${new Set(refused.map((r) => r.save)).size} saves (lib/game MissingSaveKey on a save below CSver 34.05, for a key the stat may be refused for, Ruling E)`,
     `- shared errors (both engines throw): ${shared.length}`,
     `- unexplained: ${unexplained.length}${unexplained.length ? "  <- BLOCKS THE SWITCH" : ""}`,
-    `- time over all pairs: lib/arkh ${msA.toFixed(0)} ms, lib/game ${msB.toFixed(0)} ms (game/arkh = ${(msB / msA).toFixed(2)})${slower ? "  <- lib/game IS SLOWER: BLOCKS THE SWITCH" : ""}`,
+    `- time over all pairs: lib/arkh ${msA.toFixed(0)} ms, lib/game ${msB.toFixed(0)} ms (game/arkh = ${(msB / msA).toFixed(2)}; informational, the cost was accepted on 2026-11-04)`,
     `- matching pairs (relative difference <= 1e-9): ${pairs - rows.length}`
   );
   if (unexplained.length) {
@@ -105,7 +108,7 @@ function main(argv: string[]): number {
     `${file}: ${pairs} pairs, ${known.length} known, ${refused.length} refused (${bySave.size} saves), ${shared.length} shared, ${unexplained.length} unexplained; ` +
       `lib/arkh ${msA.toFixed(0)} ms, lib/game ${msB.toFixed(0)} ms (x${(msB / msA).toFixed(2)})`
   );
-  return unexplained.length || slower ? 1 : 0;
+  return unexplained.length ? 1 : 0;
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
