@@ -11,6 +11,7 @@ import { buildGameState, type GameEnvelope } from "@/lib/game/state";
 import { TotalStats } from "@/lib/game/njs/TotalStats";
 import { PlayerMPmax } from "@/lib/game/njs/PlayerMPmax";
 import { PlayerHPmax } from "@/lib/game/njs/PlayerHPmax";
+import { PlayerAccTot } from "@/lib/game/njs/PlayerAccTot";
 import { formatGameValue } from "@/lib/readings/format";
 import { READINGS_DIR, loadReadings, readingSave } from "@/lib/readings/registry";
 import type { StatKey } from "@/lib/readings/types";
@@ -23,6 +24,7 @@ const STATS: Partial<Record<ArkhStat, (c: Ctx) => number>> = {
   luk: (c) => TotalStats(c, "LUK"),
   maxMp: (c) => PlayerMPmax(c),
   maxHp: (c) => PlayerHPmax(c),
+  accuracy: (c) => PlayerAccTot(c),
 };
 
 const MAP = 251; // a plain map: no dungeon (Dungon() is -1), no arena

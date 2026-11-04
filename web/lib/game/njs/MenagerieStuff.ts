@@ -1,10 +1,11 @@
 import { asNum, attr } from "../attr";
 import { block, type Ctx } from "../ctx";
 import { MissingSaveKey, NotPorted } from "../errors";
+import { listAt } from "../lists";
 import type { Ported } from "../ported";
 
 /**
- * N.js `_customBlock_MenagerieStuff(d, b, e)` @5176140: one function, a chain of named sub-cases. Only the sub-cases the Artifact Find port reaches.
+ * N.js `_customBlock_MenagerieStuff(d, b, e)` @5176140: one function, a chain of named sub-cases. Only the sub-cases the Artifact Find port and the character stats reach.
  * It opens with `if (0 == Menagerie.length) return 0`, the guard for the empty list the attribute starts as (@6586152). The game
  * never calculates on that list: right after the load, initialize4 fills an empty Menagerie with lists of zeros (@6336662), and
  * lib/game/migrations does the same when the state is built, so the guard is never reached through a GameState.
@@ -29,6 +30,10 @@ export const MenagerieStuff: (ctx: Ctx, d: string, b: number, e: number) => numb
     // @5184248: DNSM.NghMrTOT
     case "NightmarinerTotLV":
       return nightmarinerTotLV(ctx);
+    // @5186027: what the obols' stats other than STR/AGI/WIS/LUK are multiplied by (TotalStats)
+    case "ObolMISCmulti":
+      listAt(ctx, "Menagerie", 0); // the game indexes Menagerie[0][9] directly
+      return 1 + asNum(ctx, "Menagerie", 0, 9) / 100;
     default:
       throw new NotPorted("MenagerieStuff", d);
   }
@@ -50,4 +55,4 @@ function nightmarinerTotLV(ctx: Ctx): number {
 }
 
 /** What this module covers (lib/game/ported.ts). */
-export const PORTED: Ported = { UnlockOwned: true, NightmarinerBon: [0], NightmarinerTotLV: true };
+export const PORTED: Ported = { UnlockOwned: true, NightmarinerBon: [0], NightmarinerTotLV: true, ObolMISCmulti: true };

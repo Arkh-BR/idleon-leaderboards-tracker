@@ -5,6 +5,7 @@ import { NotPorted } from "../errors";
 import { hString } from "../hstring";
 import { listAt } from "../lists";
 import { AchieveStatus } from "./AchieveStatus";
+import { Companions } from "./Companions";
 import { Dreamstuff } from "./Dreamstuff";
 import { GetSetBonus } from "./GetSetBonus";
 import { JellyOperation } from "./JellyOperation";
@@ -60,6 +61,11 @@ export const Summoning: (ctx: Ctx, d: string, b: number, e: number) => number = 
             (Math.floor(b / 10) * Dreamstuff(ctx, "CloudBonus", 73) + Math.floor(b / 20) * JellyOperation(ctx, "RoG_BonusQTY", 60, 0)))) /
           100
       );
+    // @10906704: Roo megafeather b is owned while OptionsListAccount[279] is past b; the eleventh counts every one from 11 on
+    case "RooMegafeather":
+      return asNum(ctx, "OptionsListAccount", 279) > b ? (11 == b ? asNum(ctx, "OptionsListAccount", 279) - 11 : 1) : 0;
+    case "RooBonuses":
+      return rooBonuses(ctx, b);
     default:
       if (SUMMONING_OWN_NAMES.has(d)) throw new NotPorted("Summoning", d);
       return Summoning2(ctx, d, b, e); // @10931948: the tail of the chain
@@ -182,6 +188,28 @@ function winBonus(ctx: Ctx, b: number): number {
   return 3.5 * asNumber(table[b | 0]) * common() * boosts();
 }
 
+/** `DNSM.RooBonus`'s seven bonuses' base values (@10906879). */
+const ROO = [3, 3, 5, 2, 2, 0.5, 3];
+
+/**
+ * `RooBonuses` @10906879: Roo bonus `b` of `DNSM.RooBonus`, a list the game fills on the first call (and when `b == -1`; here it is built
+ * from the save each time). Bonus i is ROO[i] x (1 + legend talent 26 / 100) x (1 + Companion 51) x (1 + the megafeathers' total / 100)
+ * x max(0, ceil((OptionsListAccount[271] - i) / 7)), the total 50 each for megafeathers 1, 3, 6, 8, 50 for the first of the eleventh and
+ * 25 for each one past it. `b == -1` answers 0 (the rebuild).
+ */
+function rooBonuses(ctx: Ctx, b: number): number {
+  if (-1 == b) return 0;
+  const all = // DNSM.RooBonusAll
+    50 * Summoning(ctx, "RooMegafeather", 1, 0) +
+    (50 * Summoning(ctx, "RooMegafeather", 3, 0) +
+      (50 * Summoning(ctx, "RooMegafeather", 6, 0) +
+        (50 * Summoning(ctx, "RooMegafeather", 8, 0) + (50 * Math.min(1, Summoning(ctx, "RooMegafeather", 11, 0)) + 25 * Math.max(0, Summoning(ctx, "RooMegafeather", 11, 0) - 1)))));
+  const i = b | 0;
+  // the game answers undefined for a bonus past the seven, which the caller would turn into NaN
+  if (!(0 <= i && i < ROO.length)) throw new RangeError(`Summoning RooBonuses: no Roo bonus ${b}`);
+  return ROO[i] * (1 + Thingies(ctx, "LegendPTS_bonus", 26, 0) / 100) * (1 + Companions(ctx, 51)) * (1 + all / 100) * Math.max(0, Math.ceil((asNum(ctx, "OptionsListAccount", 271) - i) / 7));
+}
+
 /** What this module covers (lib/game/ported.ts): its own sub-cases, then the tail of the chain, Summoning2's. */
 export const PORTED: Ported = {
   ...(Summoning2PORTED as Record<string, true | readonly number[]>),
@@ -190,4 +218,6 @@ export const PORTED: Ported = {
   GrimoireUpgBonus: [...GRIMOIRE_PLAIN],
   WinBonus: range(-1, 34),
   RibbonBonus: true,
+  RooMegafeather: true,
+  RooBonuses: range(-1, 7),
 };

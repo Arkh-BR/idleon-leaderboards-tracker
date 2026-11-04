@@ -11,7 +11,7 @@ import { Breeding } from "./Breeding";
 import { CardBonusREAL } from "./CardBonusREAL";
 import { chipBonuses } from "./chipBonuses";
 import { Companions } from "./Companions";
-import { DNSM_AlchBubbles, DNSM_BoxRewards, DNSM_FamBonusQTYs, DNSM_StarSigns } from "./DNSM";
+import { DNSM_AlchBubbles, DNSM_AlchVials, DNSM_BoxRewards, DNSM_FamBonusQTYs, DNSM_StarSigns } from "./DNSM";
 import { Dreamstuff } from "./Dreamstuff";
 import { Dungon } from "./Dungon";
 import { EtcBonuses } from "./EtcBonuses";
@@ -20,7 +20,9 @@ import { GamingStatType } from "./GamingStatType";
 import { GetBuffBonuses } from "./GetBuffBonuses";
 import { getbonus2 } from "./getbonus2";
 import { GetTalentNumber } from "./GetTalentNumber";
+import { GoldFoodBonuses } from "./GoldFoodBonuses";
 import { Labb } from "./Labb";
+import { MenagerieStuff } from "./MenagerieStuff";
 import { Ninja } from "./Ninja";
 import { ResearchStuff } from "./ResearchStuff";
 import { ObolStats } from "./ScrollCircleINFO";
@@ -68,8 +70,8 @@ type Head = { dn: number; etc: Map<string, number> | null };
  *  2. @4164328: the Gallery's trophy and nametag bonuses, the Hatrack's and the Cape Vine's (Gallery.ts), each when its system is on;
  *  3. @4171970 (not in a dungeon): STR/AGI/WIS/LUK times 1 + (their % talent + their % stamp) / 100;
  *  4. @4172893 (not in a dungeon): the obols' total of `d` (ScrollCircleINFO.ts), times 1 + (their obol talent + 40 x Super Bit 2) / 100
- *     for STR/AGI/WIS/LUK and times MenagerieStuff("ObolMISCmulti") for any other stat; for "calcEtcBonuses" the obols' stats named in
- *     IDforETCbonus go into the ETC map.
+ *     for STR/AGI/WIS/LUK and times MenagerieStuff("ObolMISCmulti") for any other stat (@4175537); for "calcEtcBonuses" the obols' stats
+ *     named in IDforETCbonus go into the ETC map.
  * The "Power" stats (Weapon_Power, the tool powers) take another rule in step 1, not ported.
  */
 function head(ctx: Ctx, d: string): Head {
@@ -131,9 +133,9 @@ function head(ctx: Ctx, d: string): Head {
     }
     const obol = OBOL[d];
     // ponytail: the ETC map ignores TotalStatsDN (TotalStats("calcEtcBonuses") answers 0), so its obol multiplier
-    // (MenagerieStuff("ObolMISCmulti")) is not computed for it; port it with the first non-main stat
+    // (MenagerieStuff("ObolMISCmulti")) is not computed for it
     if (obol !== undefined) dn2 = dn2 * (1 + (GetTalentNumber(ctx, 1, obol) + 40 * GamingStatType(ctx, "SuperBitType", 2, 0)) / 100);
-    else if (!calcEtc) throw new NotPorted("TotalStats", d);
+    else if (!calcEtc) dn2 = dn2 * MenagerieStuff(ctx, "ObolMISCmulti", 0, 0);
     dn = dn + dn2;
   }
   return { dn, etc };
@@ -160,7 +162,7 @@ export function TotalStatsETCmap(ctx: Ctx): ReadonlyMap<string, number> {
 
 /**
  * N.js `_customBlock_TotalStats(d)` @4156192: the character's total of stat `d`, cached in `DNSM.TotStatMAP` (here the `block` cache).
- * Only STR, AGI, WIS and LUK are ported. Outside a dungeon each is
+ * Only STR, AGI, WIS, LUK and Accuracy are ported. Outside a dungeon each main stat is
  * floor(the TotalSTR bubble + talent 652 + Companion 8 + (1 + pct / 100) x (equipment + base + the flat sources)), @4174547.
  */
 export const TotalStats = block("TotalStats", (ctx, d: string) => {
@@ -277,10 +279,22 @@ export const TotalStats = block("TotalStats", (ctx, d: string) => {
                                 (DNSM_AlchBubbles(ctx, "A4") + (Breeding(ctx, "ShinyBonusS", "Nah", 9, -1) + (ArcadeBonus(ctx, 22) + Summoning(ctx, "OwlBonuses", 5, 0))))))))))))))
       );
     }
+    // @4185692: no floor, and no dungeon rule of its own (the head keeps only the dungeon items there)
+    case "Accuracy": {
+      const { dn } = head(ctx, d);
+      return (
+        2 +
+        DNSM_AlchVials(ctx, "baseACC") +
+        (DNSM_BoxRewards(ctx, "acc") +
+          (CardBonusREAL(ctx, 23) + EtcBonuses(ctx, "28") + GoldFoodBonuses(ctx, "BaseAcc")) +
+          (StampBonusOfTypeX(ctx, "BaseAcc") + Summoning(ctx, "VaultUpgBonus", 4, 0))) +
+        dn
+      );
+    }
     default:
       throw new NotPorted("TotalStats", d);
   }
 });
 
 /** What this module covers (lib/game/ported.ts). */
-export const PORTED: Ported = { STR: true, AGI: true, WIS: true, LUK: true };
+export const PORTED: Ported = { STR: true, AGI: true, WIS: true, LUK: true, Accuracy: true };

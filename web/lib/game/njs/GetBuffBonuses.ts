@@ -20,14 +20,18 @@ function buffIDsOn(ctx: Ctx): unknown[] {
 
 /**
  * N.js `_customBlock_GetBuffBonuses(c, b)` @4279371: the bonus of the active buff `c` (a talent): its talent number, curve `b`, while
- * the buff runs, else 0. Only buff 94 (the STR one) is ported, and 108 and 124 as not counted; 615 and 46 have rules of their own.
+ * the buff runs, else 0. Ported for the buffs the character stats read (94, the STR one; 273, move speed; 288, accuracy), and 108 and 124
+ * as not counted; 615 and 46 have rules of their own.
  */
 export const GetBuffBonuses = block("GetBuffBonuses", (ctx, c: number, b: number) => {
   // a product decision of the Damage page (the plan's Global Constraints): the active buffs 108 and 124 are not counted
   if (108 === c || 124 === c) return runtime(ctx, `GetBuffBonuses(${c})`, "active buff, not counted");
-  if (94 !== c) throw new NotPorted("GetBuffBonuses", `c=${c}`);
+  if (!COUNTED.includes(c)) throw new NotPorted("GetBuffBonuses", `c=${c}`);
   return contains(buffIDsOn(ctx), c) ? GetTalentNumber(ctx, b, c) : 0;
 });
 
+/** The buffs ported to the generic rule. */
+const COUNTED = [94, 273, 288];
+
 /** What this module covers (lib/game/ported.ts). */
-export const PORTED: Ported = [94, 108, 124];
+export const PORTED: Ported = [...COUNTED, 108, 124];

@@ -10,16 +10,21 @@ import { computeArkhArtifactFind } from "@/lib/arkh/computeArtifactFind";
 import { ARTI_GROUPS } from "@/lib/arkh/stats/defs/artifact-find";
 import { computeArkhDamage, DMG_COLLECTOR_MAP } from "@/lib/arkh/computeDamage";
 import { DMG_LAYERS, DMG_MASTERY, DMG_RAT } from "@/lib/arkh/stats/defs/damage";
+import { charClassData } from "@/lib/arkh/save/data";
 import { loadSaveData } from "@/lib/arkh/save/loader";
 import { saveData } from "@/lib/arkh/state";
 import { computeAccuracy } from "@/lib/arkh/stats/systems/common/derived-damage";
 import { computePlayerHPmax, computePlayerMPmax } from "@/lib/arkh/stats/systems/common/derived-stats";
 import { computeStatueBonusGiven, computeTotalStat } from "@/lib/arkh/stats/systems/common/stats";
 import { goldFoodBonuses, gfoodBonusMULTIBreakdown } from "@/lib/arkh/stats/systems/common/goldenFood";
+import { computePrayerReal } from "@/lib/arkh/stats/systems/w3/prayer";
+import { computeSummUpgBonus } from "@/lib/arkh/stats/systems/w6/summoning";
 import { talent as talentResolver } from "@/lib/arkh/stats/systems/common/talent";
 import { votingBonusz } from "@/lib/arkh/stats/systems/w2/voting";
 import type { ArkhNode } from "@/lib/arkh/node";
 import { makeCtx, type Ctx } from "@/lib/game/ctx";
+import { ClassStatTypes } from "@/lib/game/data";
+import { ReturnClasses } from "@/lib/game/njs/ReturnClasses";
 import { buildGameState, type GameEnvelope } from "@/lib/game/state";
 
 // lib/arkh reads `window` when it runs; the happy-dom env has one, a bare node env does not.
@@ -313,6 +318,12 @@ export const STAT_WHY: Record<string, string> = {
   comp0: COMPANION_0_GATE,
   statues:
     "N.js ArbitraryCode StatueBonusGiven<n> @4039757 reads GA(\"StatueLevels\")[n][0], the current character's (the load fills it from StatueLevels_<player>); lib/arkh's computeStatueBonusGiven reads one account-wide list (statueData). They differ on a save whose characters' statue levels differ (1st_Giri, CSver 33)",
+  pray6:
+    "lib/arkh's accuracy reads computePrayerReal(6, 0), the equipped-prayer branch only; N.js prayersReal @7829537 has a second branch: with the Super Bit 9 or 39 and no prayer equipped (DNSM.PrayNonEq, every PrayersActive slot -1), every unlocked prayer but 5 gives round((.2 x SB9 + .2 x SB39 + .2 x SB53) x PrayerInfo[d][3] x max(1, 1 + (lv - 1) / 10)) (lib/arkh's own prayersReal has it; its accuracy does not call it)",
+  vault4:
+    "N.js TotalStats(\"Accuracy\") @4185692 adds Summoning(\"VaultUpgBonus\",4,0), the Vault's Bullseye (UpgVault[4] x UpgradeVault[4][5] x (1 + vault 32 / 100), @10893206); lib/arkh's accuracy adds computeSummUpgBonus(4), the Summoning upgrade 4 (Summon[0][4] x SummonUPG[4][6]), another table. It shows only where TotalStats(\"Accuracy\") is not lost below 1e-9 of the (DN / 4)^1.4 term",
+  buff288:
+    "lib/arkh's accuracy stubs GetBuffBonuses(288,2) to 0 (\"runtime buff, not in save\"); N.js GetBuffBonuses @4279371 reads _BuffIDsOn, which the HUD actor fills from the save's BuffsActive (@4931241), so a character whose saved BuffsActive has 288 running gets its talent number (curve 2), as for buff 94",
   buff108:
     "a product decision of the Damage page (the plan's Global Constraints): the active buff 108 is not counted, a runtime leaf in lib/game; lib/arkh counts it while the saved BuffsActive has it, and N.js PlayerHPmax @4147120 multiplies the % by 1 - GetBuffBonuses(108,1) / 100",
 };
@@ -535,6 +546,96 @@ const STAT_DIFFS: Partial<Record<ArkhStat, readonly DiffRow[]>> = {
     ["26515665165165.json", "gfood"],
     ["arkhe-it-profile-2026-09-24.json", "vote2"],
   ],
+  // Accuracy is built on the class's second stat (PlayerAccTot @4151358): that stat's reasons reach only the characters whose second stat
+  // it is, so the rows name them; then accuracy's own (pray6, vault4, buff288, statues). Found by seeding each mismatch, one reason at a time
+  accuracy: [
+    ["100Cotton.json", "vote2"],
+    ["100Cotton.json", "buff288", [9]],
+    ["1st_Giri.json", "statues", [3, 10]],
+    ["Ash_EB.json", "fam68", [0]],
+    ["Ash_EB.json", "pray6"],
+    ["AvacadoSqueeze.json", "gfood"],
+    ["AvacadoSqueeze.json", "buff288", [9]],
+    ["Azza2Bad.json", "buff288", [2]],
+    ["B0schi.json", "gfood"],
+    ["BopeBrancis.json", "gfood"],
+    ["Brokami.json", "pray6", [10]],
+    ["Chalalaa.json", "gfood"],
+    ["Crezar.json", "gfood"],
+    ["Crezar.json", "pray6", [1, 4]],
+    ["Dandy2009.json", "signs", [0, 3, 6]],
+    ["Dandy2009.json", "vault4"],
+    ["Dandy2009.json", "pray6", [10]],
+    ["Dasvidanya.json", "signs", [1, 4, 6, 7, 10]],
+    ["Drukez.json", "buff288", [4]],
+    ["Einyen.json", "gfood"],
+    ["Fanmail.json", "gfood"],
+    ["FenrirAdra.json", "gfood"],
+    ["Flipper143.json", "gfood"],
+    ["Flipper143.json", "tomeW8", [0, 1, 2, 3, 4, 5, 7, 8, 9]],
+    ["Flipper143.json", "pray6", [10]],
+    ["Fluffle_Puff.json", "gfood"],
+    ["Frans813.json", "gfood"],
+    ["Frostymart.json", "fam68", [0]],
+    ["Frostymart.json", "pray6", [9]],
+    ["FrozenBody.json", "pray6"],
+    ["FrozenBody.json", "vault4", [0, 1, 3, 4, 5, 6, 7, 8, 9, 10]],
+    ["FrozenBody.json", "fam68", [1]],
+    ["FrozenBody.json", "signs", [8]],
+    ["GIM_SSS.json", "signs", [0, 2, 7]],
+    ["Glaives.json", "gfoodSign69"],
+    ["Glaives.json", "signs"],
+    ["Glaives.json", "pray6"],
+    ["Glaives.json", "buff288", [1]],
+    ["GoddessFreia.json", "gfood"],
+    ["Grandesz.json", "buff288", [3]],
+    ["Jrod11.json", "vote2"],
+    ["Jrod11.json", "fam68", [4, 7]],
+    ["Jrod11.json", "pray6", [10]],
+    ["Koweabooo.json", "tomeW8", [0, 1, 2, 3, 4, 5, 6, 8, 9]],
+    ["Koweabooo.json", "fam68", [8]],
+    ["Koweabooo.json", "comp0", [10]],
+    ["MarleyLongbott.json", "gfood"],
+    ["Maspoofio.json", "gfood"],
+    ["Maspoofio.json", "fam68", [7]],
+    ["PerkOne.json", "gfood"],
+    ["PulseIRL.json", "signs", [0, 3, 4, 5]],
+    ["Rinkzate.json", "vote2"],
+    ["Rinkzate.json", "buff288", [1]],
+    ["Shironee.json", "gfood"],
+    ["Snowyzxd.json", "gfood"],
+    ["TinTim.json", "gfood"],
+    ["TomerBuff.json", "gfood"],
+    ["Yosh6400.json", "gfood"],
+    ["airbolt.json", "gfood"],
+    ["astarm.json", "gfood"],
+    ["big_guy69123.json", "gfoodSign69"],
+    ["big_guy69123.json", "signs"],
+    ["big_guy69123.json", "vault4"],
+    ["big_guy69123.json", "pray6", [4, 8, 10]],
+    ["big_guy69123.json", "fam68", [5]],
+    ["biggums3.json", "gfood"],
+    ["bluestar3112.json", "buff288", [6]],
+    ["kONYYY.json", "gfood"],
+    ["liiiiiiiiiiiig.json", "gfood"],
+    ["ryujinsan.json", "gfood"],
+    ["ryujinsan.json", "buff288", [9]],
+    ["suk69.json", "buff288", [2]],
+    ["zadavi.json", "gfood"],
+    ["01010111001.json", "vote2"],
+    ["01010111001.json", "vault4"],
+    ["01010111001.json", "buff288", [3]],
+    ["0celot8.json", "vault4"],
+    ["0xEXCEED.json", "vote2"],
+    ["0xEXCEED.json", "fam68", [5]],
+    ["26515665165165.json", "vote2"],
+    ["26515665165165.json", "gfood"],
+    ["arkhe-2026-09-23.json", "tomeW8", [0, 1, 2, 3, 4, 5, 7, 8, 9, 10]],
+    ["arkhe-2026-09-23.json", "buff288", [9]],
+    ["arkhe-it-profile-2026-09-24.json", "vote2"],
+    ["arkhe-live-2026-09-23.json", "buff288", [9]],
+    ["arkhe-live-2026-09-24.json", "buff288", [9]],
+  ],
 };
 
 /** Max HP's own reasons: the characters whose saved BuffsActive has the buff 108 running, and the per-character statue levels. */
@@ -587,12 +688,17 @@ export const KNOWN_ARKH_DIFFS: {
  * The lib/arkh numbers behind each STAT_WHY reason, as lib/game `block` calls to seed (block name, its args, lib/arkh's value): put in the
  * cache of a fresh lib/game Ctx for character `ci`, they make lib/game compute what lib/arkh does. lib/arkh is run on the save at `path`.
  */
-/** The main stat whose lib/arkh terms a stat's KNOWN reasons seed: Max MP is built on WIS (PlayerMPmax @4150047), Max HP on STR (@4147120). */
-export const SEED_STAT: Partial<Record<ArkhStat, keyof typeof MAIN_STATS>> = { str: "str", agi: "agi", wis: "wis", luk: "luk", maxMp: "wis", maxHp: "str" };
+/**
+ * The main stat whose lib/arkh terms a stat's KNOWN reasons seed: Max MP is built on WIS (PlayerMPmax @4150047), Max HP on STR (@4147120),
+ * Accuracy on the class's second stat (PlayerAccTot @4151358, ClassStatTypes[first class][1]), worked out per character.
+ */
+export const SEED_STAT: Partial<Record<ArkhStat, keyof typeof MAIN_STATS | "accuracy">> = { str: "str", agi: "agi", wis: "wis", luk: "luk", maxMp: "wis", maxHp: "str", accuracy: "accuracy" };
 
-export function arkhStatSeeds(path: string, ci: number, reasons: readonly string[], stat: keyof typeof MAIN_STATS = "str"): [name: string, args: (string | number)[], value: number][] {
+export function arkhStatSeeds(path: string, ci: number, reasons: readonly string[], seedStat: keyof typeof MAIN_STATS | "accuracy" = "str"): [name: string, args: (string | number)[], value: number][] {
   loadSaveData(JSON.parse(readFileSync(path, "utf8")));
   const ctx = { saveData, charIdx: ci, activeCharIdx: ci } as never;
+  const second = ClassStatTypes[`${ReturnClasses(Number(charClassData[ci]))[0]}`]?.[1];
+  const stat = seedStat !== "accuracy" ? seedStat : (Object.keys(MAIN_STATS) as (keyof typeof MAIN_STATS)[]).find((k) => MAIN_STATS[k] === second)!;
   const STAT = MAIN_STATS[stat];
   const tree = computeTotalStat(STAT, ci, ctx).tree;
   const tomeBubble = ({ str: "W8", agi: "A9", wis: "M9" } as Record<string, string>)[stat];
@@ -607,6 +713,7 @@ export function arkhStatSeeds(path: string, ci: number, reasons: readonly string
     if (r === "vote2") out.push(["Summoning", ["VotingBonusz", 2, 0], votingBonusz(2, undefined, saveData)]);
     else if (r === "gfood") {
       out.push(["GoldFoodBonuses", ["AllStatz"], goldFoodBonuses("AllStatz", ci, undefined, saveData).total]);
+      out.push(["GoldFoodBonuses", ["BaseAcc"], goldFoodBonuses("BaseAcc", ci, undefined, saveData).total]); // accuracy's own golden food
       // the same golden food multi feeds Max HP's MaxHPpct food (a factor there): lib/arkh's number for it
       const hp = find(computePlayerHPmax(ci, ctx) as unknown as ArkhNode, (x) => x.name === "Golden Food MaxHPpct");
       if (hp) out.push(["GoldFoodBonuses", ["MaxHPpct"], hp.val]);
@@ -619,12 +726,15 @@ export function arkhStatSeeds(path: string, ci: number, reasons: readonly string
     else if (r === "tomeW8") out.push(["DNSM.AlchBubbles", [tomeBubble], at(`AlchBubble ${tomeBubble}`)]);
     else if (r === "signs") out.push(["DNSM.StarSigns", [STAT], at(`StarSigns.${STAT}`)], ["DNSM.StarSigns", [`pct${STAT}`], at(`StarSigns.pct${STAT}`)]);
     else if (r === "comp0") out.push(["Companions", [0], 1]);
-    else if (r === "statues") for (const n of [3, 4]) out.push(["ArbitraryCode", [`StatueBonusGiven${n}`], computeStatueBonusGiven(n, ci, saveData).val]);
+    else if (r === "statues") for (const n of [3, 4, 14]) out.push(["ArbitraryCode", [`StatueBonusGiven${n}`], computeStatueBonusGiven(n, ci, saveData).val]);
     else if (r === "buff108") {
       const n = find(computePlayerHPmax(ci, ctx) as unknown as ArkhNode, (x) => !!x.name?.startsWith("Buff 108"));
       if (!n) throw new Error("arkhStatSeeds: no Buff 108 in lib/arkh's Max HP");
       out.push(["GetBuffBonuses", [108, 1], -n.val]);
     }
+    else if (r === "pray6") out.push(["prayersReal", [6, 0], computePrayerReal(6, 0, ci, saveData).val]);
+    else if (r === "vault4") out.push(["Summoning", ["VaultUpgBonus", 4, 0], computeSummUpgBonus(4, saveData, ci).val]);
+    else if (r === "buff288") out.push(["GetBuffBonuses", [288, 2], 0]);
     else if (r === "fam68") {
       const n = find(talentResolver.resolve(10, ctx), (x) => x.name.startsWith("Family Bonus 68"));
       if (!n) throw new Error("arkhStatSeeds: no Family Bonus 68 in lib/arkh's talent 10");

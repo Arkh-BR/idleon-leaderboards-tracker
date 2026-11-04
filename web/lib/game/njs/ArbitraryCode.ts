@@ -106,4 +106,11 @@ export const ArbitraryCode: (ctx: Ctx, d: string) => number = block("ArbitraryCo
 });
 
 /** What this module covers (lib/game/ported.ts). */
-export const PORTED: Ported = { AllStat: true, AllStatPCT: true, TotalQuestsComplete: true, StatueBonusGiven: true };
+export const PORTED: Ported = {
+  AllStat: true,
+  AllStatPCT: true,
+  TotalQuestsComplete: true,
+  StatueBonusGiven: true,
+  // the name carries the statue (`StatueBonusGiven14`): one entry per statue, so the inventory marks each call
+  ...Object.fromEntries((StatueInfo as unknown as readonly unknown[]).map((_, n) => [`StatueBonusGiven${n}`, true as const])),
+};
