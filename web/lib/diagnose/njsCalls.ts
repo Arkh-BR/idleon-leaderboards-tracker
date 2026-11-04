@@ -7,19 +7,26 @@
 import type { TraceNode } from "@/lib/game/trace";
 import { readBody } from "@/scripts/updater/extract-formulas";
 
-export type Call = { block: string; arg0?: string | number };
+/** `args`: the literal arguments up to the first one that is not (arg0 is the first of them). */
+export type Call = { block: string; arg0?: string | number; args?: (string | number)[] };
 
 // `<receiver>._customBlock_X(`, or a bare `k.X(` with a PascalCase X (the engine's own helpers,
-// c.asNumber and the like, are camelCase). Then, if the first argument is a lone literal, it.
-const CALL_RE =
-  /(?:_customBlock_([A-Za-z0-9_]+)|(?<![\w$.])[A-Za-z]\.([A-Z][A-Za-z0-9]*))\((?:(?:"((?:[^"\\]|\\.)*)"|(-?\d*\.?\d+))(?=[,)]))?/g;
+// c.asNumber and the like, are camelCase). The literal arguments are read after it (LITERAL_ARG).
+const CALL_RE = /(?:_customBlock_([A-Za-z0-9_]+)|(?<![\w$.])[A-Za-z]\.([A-Z][A-Za-z0-9]*))\(/g;
+const LITERAL_ARG = /(?:"((?:[^"\\]|\\.)*)"|(-?\d*\.?\d+))(?=[,)])/y;
 
 /** Every call in a piece of N.js, one entry per call site, in source order. */
 export function njsCalls(body: string): Call[] {
   return [...body.matchAll(CALL_RE)].map((m) => {
     const block = m[1] ?? m[2];
-    const arg0 = m[3] ?? (m[4] === undefined ? undefined : Number(m[4]));
-    return arg0 === undefined ? { block } : { block, arg0 };
+    const args: (string | number)[] = [];
+    LITERAL_ARG.lastIndex = m.index + m[0].length;
+    for (let a; (a = LITERAL_ARG.exec(body)); ) {
+      args.push(a[1] ?? Number(a[2]));
+      if (body[LITERAL_ARG.lastIndex] !== ",") break;
+      LITERAL_ARG.lastIndex++;
+    }
+    return args.length ? { block, arg0: args[0], args } : { block };
   });
 }
 
@@ -206,4 +213,109 @@ export function njsSlice(fn: { params: string[]; body: string }, args: unknown[]
   if (typeof a0 !== "string") return fn.body;
   const named = njsNamedBlock(fn.body, a0);
   return (typeof a1 === "number" && named !== undefined ? njsNumericBranch(named, a1, fn.params) : undefined) ?? named;
+}
+
+export type ClosureCall = {
+  fn: string;
+  args: (string | number)[];
+  depth: number;
+  /** Length of the N.js text this row stands for (0 when not found). */
+  chars: number;
+  /**
+   * "whole body": the first argument is not a literal name, so njsSlice gives the whole function
+   * and the walk stops here. "not found": no slice.
+   */
+  flag?: "whole body" | "not found";
+  /** The function that holds the sub-case when `fn` hands it on (`Summoning` -> `Summoning2`). */
+  via?: string;
+};
+
+const MAX_DEPTH = 6;
+const ATTR_RE = /getGameAttribute\("(\w+)"\)|gameAttributes\.h\.(\w+)/g;
+const DNSM_RE = /getGameAttribute\("DNSM"\)\.h\.(\w+)/g;
+
+/**
+ * The function a long one hands the rest to: `Summoning` ends `…:m._customBlock_Summoning2(d,b,e)`,
+ * its own parameters unchanged, so a sub-case it does not hold ("VotingBonusz") is in Summoning2.
+ */
+function delegate(def: { params: string[]; body: string }, name: string): string | undefined {
+  if (!def.params.length) return undefined;
+  const re = new RegExp(String.raw`_customBlock_(\w+)\(${def.params.join(",")}\)`, "g");
+  return [...def.body.matchAll(re)].map((m) => m[1]).filter((n) => n !== name).pop();
+}
+
+/**
+ * Everything the game's `fn(...args)` reaches: its exact slice (njsSlice with the full args), the
+ * calls in it with their literal args, and so on breadth first, each (fn, args) once at its
+ * shallowest depth. Depth stops at 6; `capped` counts the calls left unwalked there.
+ *
+ * A first argument that is not a literal name (`Companions(154)`, `MainframeBonus(14)`) gives the
+ * whole function, which for a numeric dispatcher holds every branch: that row is flagged and its
+ * calls are NOT walked (TotalStats-sized bodies would explode the closure). Its attribute and DNSM
+ * reads are still collected, but they are over-approximate, so they are also listed in `loose`
+ * (names read only by whole-body rows).
+ */
+export function njsClosure(
+  norm: string,
+  fn: string,
+  args: (string | number)[]
+): { calls: ClosureCall[]; attrs: string[]; dnsm: string[]; loose: { attrs: string[]; dnsm: string[] }; capped: number } {
+  const calls: ClosureCall[] = [];
+  const exact = { attrs: new Set<string>(), dnsm: new Set<string>() };
+  const whole = { attrs: new Set<string>(), dnsm: new Set<string>() };
+  const unwalked = new Set<string>();
+  const defs = new Map<string, ReturnType<typeof njsFunction>>();
+  const defOf = (name: string) => defs.get(name) ?? (defs.set(name, njsFunction(norm, name)), defs.get(name));
+  const key = (f: string, a: unknown[]) => f + JSON.stringify(a);
+  const seen = new Set([key(fn, args)]);
+  const queue = [{ fn, args, depth: 0 }];
+  const reads = (text: string, into: typeof exact) => {
+    for (const m of text.matchAll(ATTR_RE)) into.attrs.add(m[1] ?? m[2]);
+    for (const m of text.matchAll(DNSM_RE)) into.dnsm.add(m[1]);
+  };
+
+  for (const { fn: f, args: a, depth } of queue) {
+    let name = f;
+    let def = defOf(name);
+    let slice = def && njsSlice(def, a);
+    for (const tried = new Set([f]); def && slice === undefined; ) {
+      const next = delegate(def, name);
+      if (!next || tried.has(next)) break;
+      tried.add(next);
+      name = next;
+      def = defOf(name);
+      slice = def && njsSlice(def, a);
+    }
+    if (def === undefined || slice === undefined) {
+      calls.push({ fn: f, args: a, depth, chars: 0, flag: "not found" });
+      continue;
+    }
+    const via = name === f ? {} : { via: name };
+    if (typeof a[0] !== "string") {
+      calls.push({ fn: f, args: a, depth, chars: slice.length, flag: "whole body", ...via });
+      reads(slice, whole);
+      continue;
+    }
+    calls.push({ fn: f, args: a, depth, chars: slice.length, ...via });
+    reads(slice, exact);
+    for (const c of njsCalls(slice)) {
+      const next = { fn: c.block, args: c.args ?? [], depth: depth + 1 };
+      const k = key(next.fn, next.args);
+      if (seen.has(k)) continue;
+      if (next.depth > MAX_DEPTH) unwalked.add(k);
+      else {
+        seen.add(k);
+        queue.push(next);
+      }
+    }
+  }
+  const sorted = (...sets: Set<string>[]) => [...new Set(sets.flatMap((x) => [...x]))].sort();
+  const looseOnly = (w: Set<string>, e: Set<string>) => sorted(w).filter((x) => !e.has(x));
+  return {
+    calls,
+    attrs: sorted(exact.attrs, whole.attrs),
+    dnsm: sorted(exact.dnsm, whole.dnsm),
+    loose: { attrs: looseOnly(whole.attrs, exact.attrs), dnsm: looseOnly(whole.dnsm, exact.dnsm) },
+    capped: unwalked.size,
+  };
 }

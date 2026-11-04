@@ -97,13 +97,13 @@ describe("notPorted", () => {
 
   it("reports a game call the node's children lack", () => {
     const trace = root(node("Foo", ["X"], [node("Bar")]));
-    expect(notPorted(trace, text)).toEqual([{ block: "Foo", missing: [{ block: "TotalStats", arg0: "STR" }] }]);
+    expect(notPorted(trace, text)).toEqual([{ block: "Foo", missing: [{ block: "TotalStats", arg0: "STR", args: ["STR"] }] }]);
   });
 
   it("reports nothing when the children make the call (matching its argument)", () => {
     expect(notPorted(root(node("Foo", [], [node("TotalStats", ["STR"]), node("Bar")])), text)).toEqual([]);
     expect(notPorted(root(node("Foo", [], [node("TotalStats", ["AGI"]), node("Bar")])), text)).toEqual([
-      { block: "Foo", missing: [{ block: "TotalStats", arg0: "STR" }] },
+      { block: "Foo", missing: [{ block: "TotalStats", arg0: "STR", args: ["STR"] }] },
     ]);
   });
 
@@ -117,7 +117,7 @@ describe("notPorted", () => {
   it("skips cached and runtime nodes, at any depth", () => {
     const trace = root(cached("Foo"), runtime("Foo"), node("Wrap", [], [node("Foo", ["deep"])]));
     expect(notPorted(trace, text).filter((e) => e.block === "Foo")).toEqual([
-      { block: "Foo", missing: [{ block: "TotalStats", arg0: "STR" }, { block: "Bar" }] },
+      { block: "Foo", missing: [{ block: "TotalStats", arg0: "STR", args: ["STR"] }, { block: "Bar" }] },
     ]);
   });
 
@@ -126,7 +126,7 @@ describe("notPorted", () => {
     expect(notPorted(trace, text)).toEqual([
       { block: "Nope", missing: [], unchecked: true },
       { block: "Void", missing: [], unchecked: true },
-      { block: "Foo", missing: [{ block: "TotalStats", arg0: "STR" }, { block: "Bar" }] },
+      { block: "Foo", missing: [{ block: "TotalStats", arg0: "STR", args: ["STR"] }, { block: "Bar" }] },
       { block: "Nope", missing: [], unchecked: true }, // other arguments: its own entry
     ]);
     expect(notPorted(root(node("Foo", [], [node("TotalStats", ["STR"]), node("Bar")])), text)).toEqual([]); // checked and clean

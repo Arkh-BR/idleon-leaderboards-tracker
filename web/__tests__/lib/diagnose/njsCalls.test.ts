@@ -17,28 +17,39 @@ describe("njsCalls", () => {
   it("reads a _customBlock_ call with its first literal argument, in source order", () => {
     const body = `"VaultUpgBonus"==d?m._customBlock_Summoning("VaultUpgBonus",20,0)*x._customBlock_TotalStats("STR"):0`;
     expect(njsCalls(body)).toEqual([
-      { block: "Summoning", arg0: "VaultUpgBonus" },
-      { block: "TotalStats", arg0: "STR" },
+      { block: "Summoning", arg0: "VaultUpgBonus", args: ["VaultUpgBonus", 20, 0] },
+      { block: "TotalStats", arg0: "STR", args: ["STR"] },
     ]);
   });
 
   it("reads a bare k.GetTalentNumber(1,95) and its _customBlock_ spelling as the same call, with a numeric arg0", () => {
-    expect(njsCalls("k.GetTalentNumber(1,95)")).toEqual([{ block: "GetTalentNumber", arg0: 1 }]);
-    expect(njsCalls("k._customBlock_GetTalentNumber(1,95)")).toEqual([{ block: "GetTalentNumber", arg0: 1 }]);
+    expect(njsCalls("k.GetTalentNumber(1,95)")).toEqual([{ block: "GetTalentNumber", arg0: 1, args: [1, 95] }]);
+    expect(njsCalls("k._customBlock_GetTalentNumber(1,95)")).toEqual([{ block: "GetTalentNumber", arg0: 1, args: [1, 95] }]);
   });
 
   it("has no arg0 when the first argument is not a lone literal, and still finds calls nested in it", () => {
     const calls = njsCalls(`x._customBlock_TotalStats(""+h.string(f.h[v][0]))+k._customBlock_Foo(1+n)+k._customBlock_Bar()`);
     expect(calls).toStrictEqual([{ block: "TotalStats" }, { block: "Foo" }, { block: "Bar" }]);
-    expect(njsCalls(`m._customBlock_A(m._customBlock_B("s"),2)`)).toEqual([{ block: "A" }, { block: "B", arg0: "s" }]);
+    expect(njsCalls(`m._customBlock_A(m._customBlock_B("s"),2)`)).toEqual([{ block: "A" }, { block: "B", arg0: "s", args: ["s"] }]);
+  });
+
+  it("carries the literal arguments up to the first non-literal one, arg0 being the first", () => {
+    expect(njsCalls(`m._customBlock_Summoning("VaultUpgBonus",63,0)`)).toEqual([
+      { block: "Summoning", arg0: "VaultUpgBonus", args: ["VaultUpgBonus", 63, 0] },
+    ]);
+    expect(njsCalls(`m._customBlock_Sailing("ArtifactBonus",b,0)+k.GetTalentNumber(1,-2.5,"a,b",f.x,7)`)).toEqual([
+      { block: "Sailing", arg0: "ArtifactBonus", args: ["ArtifactBonus"] },
+      { block: "GetTalentNumber", arg0: 1, args: [1, -2.5, "a,b"] },
+    ]);
+    expect(njsCalls(`m._customBlock_A(1+n,2)`)).toStrictEqual([{ block: "A" }]); // not a lone literal: no args at all
   });
 
   it("reads negative and decimal numbers, and an empty string", () => {
     expect(njsCalls(`k._customBlock_A(-1,0)+k._customBlock_B(.5)+k._customBlock_C(2.25)+k._customBlock_D("")`)).toEqual([
-      { block: "A", arg0: -1 },
-      { block: "B", arg0: 0.5 },
-      { block: "C", arg0: 2.25 },
-      { block: "D", arg0: "" },
+      { block: "A", arg0: -1, args: [-1, 0] },
+      { block: "B", arg0: 0.5, args: [0.5] },
+      { block: "C", arg0: 2.25, args: [2.25] },
+      { block: "D", arg0: "", args: [""] },
     ]);
   });
 
@@ -149,7 +160,7 @@ describe("njsFunction / njsNamedBlock / njsNumericBranch on a synthetic bundle",
   });
 
   it("finds a named block inside the requested function, so a name shared by two functions does not collide", () => {
-    expect(njsCalls(njsNamedBlock(njsFunction(norm, "First")!.body, "Bonus")!)).toEqual([{ block: "Other", arg0: 1 }]);
+    expect(njsCalls(njsNamedBlock(njsFunction(norm, "First")!.body, "Bonus")!)).toEqual([{ block: "Other", arg0: 1, args: [1] }]);
     expect(njsCalls(bonus).map((c) => c.block)).toEqual(["One", "Loop", "Neg", "Two", "TwentyFive", "TotalStats", "Thirty"]);
     expect(njsNamedBlock(njsFunction(norm, "Third")!.body, "Bonus")).toBeUndefined();
     expect(njsNamedBlock(second.body, "Missing")).toBeUndefined();
@@ -159,8 +170,8 @@ describe("njsFunction / njsNamedBlock / njsNumericBranch on a synthetic bundle",
   it("slices a numeric sub-branch from n==v to the next <digits>==v", () => {
     const slice = njsNumericBranch(bonus, 25, second.params)!;
     expect(slice.startsWith("25==b&&")).toBe(true);
-    expect(njsCalls(slice)).toEqual([{ block: "TwentyFive", arg0: 3 }, { block: "TotalStats" }]);
-    expect(njsCalls(njsNumericBranch(bonus, 2, second.params)!)).toEqual([{ block: "Two", arg0: "t" }]);
+    expect(njsCalls(slice)).toEqual([{ block: "TwentyFive", arg0: 3, args: [3] }, { block: "TotalStats" }]);
+    expect(njsCalls(njsNumericBranch(bonus, 2, second.params)!)).toEqual([{ block: "Two", arg0: "t", args: ["t"] }]);
   });
 
   it("slices the last branch to the end of the enclosing block", () => {
@@ -207,10 +218,10 @@ describe("njsNamedBlocks / njsNamedBlock with a name used by several blocks of o
 
   it("njsNamedBlock joins them, so the calls of all are found", () => {
     expect(njsCalls(njsNamedBlock(multi.body, "Etc")!)).toEqual([
-      { block: "A", arg0: 1 },
-      { block: "B", arg0: "a;}b" },
-      { block: "C", arg0: 3 },
-      { block: "D", arg0: 4 },
+      { block: "A", arg0: 1, args: [1] },
+      { block: "B", arg0: "a;}b", args: ["a;}b"] },
+      { block: "C", arg0: 3, args: [3] },
+      { block: "D", arg0: 4, args: [4] },
     ]);
     expect(njsNamedBlocks(multi.body, "Missing")).toEqual([]);
   });
@@ -233,9 +244,9 @@ describe("njsNamedBlocks with the ternary dispatch (\"X\"==d?(...):...)", () => 
     expect(njsNamedBlocks(tern.body, "AGI")).toEqual([`(x._customBlock_C(2))`]);
     expect(njsNamedBlocks(tern.body, "Last")).toEqual([`x._customBlock_G(7)`]);
     expect(njsCalls(njsNamedBlock(tern.body, "STR")!)).toEqual([
-      { block: "A", arg0: 1 },
-      { block: "B", arg0: "a?:b" },
-      { block: "IfForm", arg0: 9 },
+      { block: "A", arg0: 1, args: [1] },
+      { block: "B", arg0: "a?:b", args: ["a?:b"] },
+      { block: "IfForm", arg0: 9, args: [9] },
     ]);
   });
 
@@ -289,7 +300,7 @@ describe("njsSlice (the N.js text a trace node stands for)", () => {
   });
 
   it("reads a ternary-dispatched name, and has no slice for a name the function never dispatches on", () => {
-    expect(njsCalls(njsSlice(fn, ["Tern"])!)).toEqual([{ block: "T", arg0: 1 }]);
+    expect(njsCalls(njsSlice(fn, ["Tern"])!)).toEqual([{ block: "T", arg0: 1, args: [1] }]);
     expect(njsSlice(fn, ["Nope", 1])).toBeUndefined();
   });
 });
@@ -337,7 +348,7 @@ describe.skipIf(!existsSync(NJS))("the live N.js", () => {
   it("reads the ternary dispatch of _customBlock_TotalStats (\"STR\"==d?...): the STR block makes calls", () => {
     const calls = njsCalls(njsNamedBlock(totalStats.body, "STR")!);
     expect(calls.length).toBeGreaterThan(0);
-    expect(calls).toContainEqual({ block: "StampBonusOfTypeX", arg0: "PctSTR" });
+    expect(calls).toContainEqual(expect.objectContaining({ block: "StampBonusOfTypeX", arg0: "PctSTR" }));
   });
 
   it("has a slice for Summoning(\"VaultUpgBonus\",20,0) though the block has no 20==b branch, and for StampBonusOfTypeX(\"BaseDmg\")", () => {
@@ -345,7 +356,7 @@ describe.skipIf(!existsSync(NJS))("the live N.js", () => {
     expect(njsNumericBranch(named, 20, summoning.params)).toBeUndefined();
     expect(njsSlice(summoning, ["VaultUpgBonus", 20, 0])).toBe(named);
     // an `if("BaseDmg"==d||"BaseHP"==d||…)`, not a ternary
-    expect(njsCalls(njsSlice(stampBonus, ["BaseDmg"])!)).toContainEqual({ block: "Summoning", arg0: "VaultUpgBonus" });
+    expect(njsCalls(njsSlice(stampBonus, ["BaseDmg"])!)).toContainEqual(expect.objectContaining({ block: "Summoning", arg0: "VaultUpgBonus" }));
   });
 
   it("a synthetic trace of Artifact 25 without TotalStats reports it missing, and with it does not", () => {
