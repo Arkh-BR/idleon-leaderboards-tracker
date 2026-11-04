@@ -26,8 +26,9 @@ Do not edit by hand: regenerate it when N.js changes. Tick a row when its sub-ca
 
 ## Breeding
 
-- [ ] Breeding("ShinyBonusS","Nah",21,-1) — depth 1 — 1411 chars
-- [ ] Breeding("SpecialPassives","Lv") — depth 2 — 668 chars
+- [x] Breeding("ShinyBonusS","Nah",21,-1) — depth 1 — 1411 chars — ported in Task 5 (any passive `e`)
+- [x] Breeding("SpecialPassives","Lv") — depth 2 — 668 chars — ported in Task 5; the "Lv" form only, "REQ" throws NotPorted
+- [x] Breeding("TotPetsFound","0",0,0) — not in the generated list: the d == 0 branch of MainframeBonus's whole body calls it; ported in Task 5 (the breeding actor's GenINFO[110], a sum over Breeding[1])
 
 ## RandomEvent
 
@@ -97,28 +98,29 @@ Do not edit by hand: regenerate it when N.js changes. Tick a row when its sub-ca
 
 ## MenagerieStuff
 
-- [ ] MenagerieStuff("NightmarinerBon",0,0) — depth 1 — 280 chars
-- [ ] MenagerieStuff("UnlockOwned",22,0) — depth 2 — 73 chars
-- [ ] MenagerieStuff("NightmarinerTotLV",0,0) — depth 2 — 443 chars
-- [ ] MenagerieStuff("UnlockOwned",11,0) — depth 3 — 73 chars
+- [x] MenagerieStuff("NightmarinerBon",0,0) — depth 1 — 280 chars — ported in Task 5; b == 0 only
+- [x] MenagerieStuff("UnlockOwned",22,0) — depth 2 — 73 chars — ported in Task 5 (any unlock index)
+- [x] MenagerieStuff("NightmarinerTotLV",0,0) — depth 2 — 443 chars — ported in Task 5
+- [x] MenagerieStuff("UnlockOwned",11,0) — depth 3 — 73 chars — ported in Task 5
 
 ## Companions
 
-- [ ] Companions(154) — depth 1 — 344 chars — whole body
-- [ ] Companions(43) — depth 1 — 344 chars — whole body
-- [ ] Companions(56) — depth 1 — 344 chars — whole body
-- [ ] Companions(55) — depth 3 — 344 chars — whole body
-- [ ] Companions(0) — depth 3 — 344 chars — whole body
-- [ ] Companions(147) — depth 3 — 344 chars — whole body
-- [ ] Companions(161) — depth 3 — 344 chars — whole body
-- [ ] Companions(41) — depth 3 — 344 chars — whole body
-- [ ] Companions(19) — depth 3 — 344 chars — whole body
+- [x] Companions(154) — depth 1 — 344 chars — whole body — ported in Task 5 (one block, any id; data = envelope companion.l + OptionsListAccount[606], see DNSM.ts)
+- [x] Companions(43) — depth 1 — 344 chars — whole body — ported in Task 5 (the same block as Companions(154))
+- [x] Companions(56) — depth 1 — 344 chars — whole body — ported in Task 5 (the same block as Companions(154))
+- [x] Companions(55) — depth 3 — 344 chars — whole body — ported in Task 5 (the same block as Companions(154))
+- [x] Companions(0) — depth 3 — 344 chars — whole body — ported in Task 5 (the same block as Companions(154))
+- [x] Companions(147) — depth 3 — 344 chars — whole body — ported in Task 5 (the same block as Companions(154))
+- [x] Companions(161) — depth 3 — 344 chars — whole body — ported in Task 5 (the same block as Companions(154))
+- [x] Companions(41) — depth 3 — 344 chars — whole body — ported in Task 5 (the same block as Companions(154))
+- [x] Companions(19) — depth 3 — 344 chars — whole body — ported in Task 5 (the same block as Companions(154))
 - [~] Companions(51) — depth 4 — 344 chars — whole body — not reached for ArtifactBonus 3 and 32: only Bubbastuff("BubbaRoG_Bonuses",1,0) calls it, which is not reached (via WorkbenchStuff("PlayerBuildSpd"))
-- [ ] Companions(39) — depth 5 — 344 chars — whole body
+- [x] Companions(39) — depth 5 — 344 chars — whole body — ported in Task 5 (the same block as Companions(154))
+- [x] Companions(27) — not in the generated list: ArcadeBonus(32) calls it inside its whole body; Companions is one block for any id, ported in Task 5
 
 ## CompLV2
 
-- [ ] CompLV2(154) — depth 1 — 280 chars — whole body
+- [x] CompLV2(154) — depth 1 — 280 chars — whole body — ported in Task 5
 
 ## Minehead
 
@@ -335,8 +337,8 @@ Do not edit by hand: regenerate it when N.js changes. Tick a row when its sub-ca
 - [ ] `CalcTalentMAP`
 - [ ] `CapeVineBonTOT` — whole body only
 - [x] `CaptnBonuz` — whole body only — a local in CaptBonusCalc
-- [ ] `CompanionBon` — whole body only
-- [ ] `CompanionLVz` — whole body only
+- [x] `CompanionBon` — whole body only — DNSM_CompanionBon (lib/game/njs/DNSM.ts)
+- [x] `CompanionLVz` — whole body only — DNSM_CompanionLVz (lib/game/njs/DNSM.ts)
 - [ ] `DropRateLUK` — whole body only
 - [ ] `DropRateLUK2` — whole body only
 - [ ] `EmperorBon`
@@ -352,12 +354,12 @@ Do not edit by hand: regenerate it when N.js changes. Tick a row when its sub-ca
 - [ ] `HoleozDN`
 - [ ] `LabMFbonuses` — whole body only
 - [ ] `LoreEpiBon`
-- [ ] `NghMrTOT`
+- [x] `NghMrTOT` — a local in MenagerieStuff NightmarinerTotLV
 - [ ] `PaletteBonz`
 - [ ] `PaletteDNz`
-- [ ] `PetszzBrDN1`
-- [ ] `PetszzBrDN2`
-- [ ] `PetszzBrDNq`
+- [x] `PetszzBrDN1` — a local in Breeding SpecialPassives
+- [x] `PetszzBrDN2` — a local in Breeding ShinyBonusS
+- [x] `PetszzBrDNq` — a local in Breeding ShinyBonusS
 - [ ] `PremHatBonTOT` — whole body only
 - [ ] `SWinBonDN`
 - [ ] `SWinBonDN2`
@@ -366,7 +368,7 @@ Do not edit by hand: regenerate it when N.js changes. Tick a row when its sub-ca
 - [ ] `SetBonusTOTz` — whole body only
 - [ ] `SetzuDN1` — whole body only
 - [ ] `SetzuDN2` — whole body only
-- [ ] `ShinyBonusS`
+- [x] `ShinyBonusS` — a local in Breeding ShinyBonusS
 - [ ] `Sp_bn_l` — whole body only
 - [ ] `StampBonuses_Map_Of_Val` — whole body only
 - [ ] `StarSigns`
