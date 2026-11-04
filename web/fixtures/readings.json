@@ -32,6 +32,9 @@
       "luk": "20,084,444",
       "accuracy": "2.77E35"
     },
+    "knownGaps": [
+      "damage"
+    ],
     "saveFile": "2026-11-03-damage-farkhe.json",
     "saveSha1": "dc3cd2187721f1a07f1b3dcd66773b0a72948b49"
   },

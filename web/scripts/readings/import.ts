@@ -1,4 +1,4 @@
-// Usage (from web/): npx tsx scripts/readings/import.ts <bundle.json>…
+// Usage (from web/): npx tsx scripts/readings/import.ts <bundle.json>…  (the output paths do not depend on the cwd)
 // bundle = { reading: Omit<Reading, "saveFile" | "saveSha1">, envelope }
 import { createHash } from "node:crypto";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -10,7 +10,11 @@ import type { Reading } from "../../lib/readings/types";
 
 export type Bundle = { reading: Omit<Reading, "saveFile" | "saveSha1">; envelope: unknown };
 
-/** Writes the envelope to `dir/<id>.json` and upserts the metadata into `index`, sorted by id. */
+/**
+ * Writes the envelope to `dir/<id>.json` and upserts the metadata into `index`, sorted by id. The
+ * bundle replaces the entry, except `knownGaps`: the capture form never sends it, so a re-import
+ * keeps the existing entry's unless the bundle names its own.
+ */
 export function importBundle(
   { reading, envelope }: Bundle,
   dir = READINGS_DIR,
@@ -21,8 +25,15 @@ export function importBundle(
   const saveFile = `${reading.id}.json`;
   mkdirSync(dir, { recursive: true });
   writeFileSync(join(dir, saveFile), json);
-  const entry: Reading = { ...reading, saveFile, saveSha1: createHash("sha1").update(json).digest("hex") };
-  const all = loadReadings(index)
+  const known = loadReadings(index);
+  const knownGaps = reading.knownGaps ?? known.find((r) => r.id === reading.id)?.knownGaps;
+  const entry: Reading = {
+    ...reading,
+    ...(knownGaps && { knownGaps }),
+    saveFile,
+    saveSha1: createHash("sha1").update(json).digest("hex"),
+  };
+  const all = known
     .filter((r) => r.id !== entry.id)
     .concat(entry)
     .sort((a, b) => (a.id < b.id ? -1 : 1));

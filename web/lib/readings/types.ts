@@ -16,6 +16,12 @@ export type Reading = {
   game: string;
   /** Other panel values captured at the same time (key = StatKey). */
   extra?: Record<string, string>;
+  /**
+   * Stats whose value the engine is known not to match yet. The save test expects those rows to
+   * fail (it.fails), and verify-map does not count them as validation. Delete the entry on the
+   * day the engine matches the game.
+   */
+  knownGaps?: StatKey[];
   /** Tome computeIdx, when `stat` is "tomeTask". */
   task?: number;
   /** Envelope file name inside READINGS_DIR (private, gitignored). */

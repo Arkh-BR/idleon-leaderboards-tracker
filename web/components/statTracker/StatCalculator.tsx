@@ -285,6 +285,7 @@ export default function StatCalculator({
         {totalPanel}
         {config.readingStat && save && (
           <RecordReading
+            key={`${charIdx}:${effMapIdx}`}
             stat={config.readingStat}
             label={config.statName}
             save={save}
