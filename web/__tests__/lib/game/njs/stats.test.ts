@@ -4,11 +4,12 @@
 import { afterAll, describe, it, expect } from "vitest";
 import { existsSync, readFileSync } from "node:fs";
 import { basename, join } from "node:path";
-import { GOLDEN_SAVES, KNOWN_ARKH_DIFFS, arkhStat, arkhStatSeeds, type ArkhStat } from "../support/arkhOracle";
+import { GOLDEN_SAVES, KNOWN_ARKH_DIFFS, SEED_STAT, arkhStat, arkhStatSeeds, type ArkhStat } from "../support/arkhOracle";
 import { MissingSaveKey } from "@/lib/game/errors";
 import { makeCtx, withPlayer, type Ctx } from "@/lib/game/ctx";
 import { buildGameState, type GameEnvelope } from "@/lib/game/state";
 import { TotalStats } from "@/lib/game/njs/TotalStats";
+import { PlayerMPmax } from "@/lib/game/njs/PlayerMPmax";
 import { formatGameValue } from "@/lib/readings/format";
 import { READINGS_DIR, loadReadings, readingSave } from "@/lib/readings/registry";
 import type { StatKey } from "@/lib/readings/types";
@@ -19,6 +20,7 @@ const STATS: Partial<Record<ArkhStat, (c: Ctx) => number>> = {
   agi: (c) => TotalStats(c, "AGI"),
   wis: (c) => TotalStats(c, "WIS"),
   luk: (c) => TotalStats(c, "LUK"),
+  maxMp: (c) => PlayerMPmax(c),
 };
 
 const MAP = 251; // a plain map: no dungeon (Dungon() is -1), no arena
@@ -73,7 +75,7 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("lib/game character stats against lib
           const reasons = KNOWN_ARKH_DIFFS.filter((d) => d.stat === stat && d.save === basename(path) && (d.ci ?? ci) === ci).map((d) => d.source);
           if (reasons.length) {
             const c = makeCtx(ctx.state, { player: ci, map: MAP });
-            for (const [name, args, v] of arkhStatSeeds(path, ci, reasons, stat as "str")) c.cache.set(`${ci}|${MAP}|${name}${JSON.stringify(args)}`, v);
+            for (const [name, args, v] of arkhStatSeeds(path, ci, reasons, SEED_STAT[stat]!)) c.cache.set(`${ci}|${MAP}|${name}${JSON.stringify(args)}`, v);
             const seeded = term(c);
             if (rel(seeded, want)) {
               known++;

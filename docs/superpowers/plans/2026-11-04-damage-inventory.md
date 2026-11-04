@@ -13,7 +13,7 @@ Regenerate it when N.js or a module's `PORTED` changes. With `--mark`, `[x]` is 
 - attrs and dnsm are the reads in every slice listed. One marked "whole body only" is read only inside a whole-body function (all its branches, not just the one this formula takes). `DNSM` is runtime-only (it is never loaded from the save): port it as `DNSM_*` functions, not as a save attribute. The dnsm list also holds the scratch keys a formula writes and reads back in the same slice (`CaptnBonuz`, `AtomBonCalc1`); the inputs are the caches the game fills elsewhere (`StarSigns`, `AlchVials`, `FamBonusQTYs`…).
 - Depth stops at 6.
 
-**67 functions, 669 sub-cases (rows), 204 whole body, 0 not found, 95 attrs, 120 dnsm.** **435 ported `[x]`, 234 open.**
+**67 functions, 669 sub-cases (rows), 204 whole body, 0 not found, 95 attrs, 120 dnsm.** **436 ported `[x]`, 233 open.**
 
 Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("AGI")`, R4 = `TotalStats("WIS")`, R5 = `TotalStats("LUK")`, R6 = `PlayerHPmax()`, R7 = `PlayerMPmax()`, R8 = `PlayerAccTot()`.
 
@@ -431,7 +431,7 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 
 ## PlayerMPmax
 
-- [ ] PlayerMPmax() — depth 0 — 1270 chars — roots: R1 R7
+- [x] PlayerMPmax() — depth 0 — 1270 chars — roots: R1 R7
 
 ## CardBonusREAL
 

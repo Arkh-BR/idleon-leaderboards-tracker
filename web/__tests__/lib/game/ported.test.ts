@@ -39,7 +39,7 @@ const notPorted = (fn: (c: Ctx, ...a: any[]) => number, args: (string | number)[
 const GENERIC: Record<string, (string | number)[]> = {
   ArcadeBonus: [0], Companions: [0], AchieveStatus: [0], CompLV2: [44], getLOG: [10], GetBribeBonus: ["30"], chipBonuses: ["dmg"],
   ArbitraryCode5Inputs: ["x", 0, 0, 0, 0, 0], Dungon: [], GetTalentNumber: [1, 10], getbonus2: [1, 51, -1], FamilyBonsuesREAL: [7, 0, 100],
-  EtcBonuses: ["46"], CardBonusREAL: [9], StampBonusOfTypeX: ["BaseSTR"], MealBonus: ["Stat"], GuildBonuses: [1],
+  EtcBonuses: ["46"], CardBonusREAL: [9], StampBonusOfTypeX: ["BaseSTR"], MealBonus: ["Stat"], GuildBonuses: [1], PlayerMPmax: [],
 };
 // the argument list of a call to `name` with index `idx` and `e`; most modules are (sub, b, e), GetSetBonus (set, what, e, f), Breeding (sub, string b, e, f)
 const call = (fn: string, name: string, idx: number | string | undefined, e = 0): (string | number)[] =>

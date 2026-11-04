@@ -557,7 +557,7 @@ export const KNOWN_ARKH_DIFFS: {
   { save: "5OhTree.json", source: "loreEpi3", why: TOME_AFTER_RESET },
   { save: "HourZero.json", ci: 1, source: "win3", why: GODSHARD_WORN },
   { save: "HourZero.json", ci: 9, source: "win3", why: GODSHARD_WORN },
-  ...(Object.entries(STAT_DIFFS) as [ArkhStat, (typeof STAT_DIFFS)[ArkhStat]][]).flatMap(([stat, rows]) =>
+  ...(Object.entries({ ...STAT_DIFFS, maxMp: STAT_DIFFS.wis }) as [ArkhStat, (typeof STAT_DIFFS)[ArkhStat]][]).flatMap(([stat, rows]) =>
     rows!.flatMap(([save, source, cis]) => (cis ?? [undefined]).map((ci) => ({ stat, save, ...(ci === undefined ? {} : { ci }), source, why: STAT_WHY[source] })))
   ),
 ];
@@ -566,6 +566,9 @@ export const KNOWN_ARKH_DIFFS: {
  * The lib/arkh numbers behind each STAT_WHY reason, as lib/game `block` calls to seed (block name, its args, lib/arkh's value): put in the
  * cache of a fresh lib/game Ctx for character `ci`, they make lib/game compute what lib/arkh does. lib/arkh is run on the save at `path`.
  */
+/** The main stat whose lib/arkh terms a stat's KNOWN reasons seed: Max MP is built on WIS (PlayerMPmax @4150047). */
+export const SEED_STAT: Partial<Record<ArkhStat, keyof typeof MAIN_STATS>> = { str: "str", agi: "agi", wis: "wis", luk: "luk", maxMp: "wis" };
+
 export function arkhStatSeeds(path: string, ci: number, reasons: readonly string[], stat: keyof typeof MAIN_STATS = "str"): [name: string, args: (string | number)[], value: number][] {
   loadSaveData(JSON.parse(readFileSync(path, "utf8")));
   const ctx = { saveData, charIdx: ci, activeCharIdx: ci } as never;
