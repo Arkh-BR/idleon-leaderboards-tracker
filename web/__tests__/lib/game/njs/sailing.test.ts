@@ -222,9 +222,9 @@ describe("ports stay on their boundary", () => {
     // BoatArtiMulti is Task 9's; SlabboBonus_AllMulti is only reached by artifacts 2/10/18/20, which are not ported
     for (const d of ["BoatArtiMulti", "SlabboBonus_AllMulti", "Nope"]) expect(() => Sailing(c(), d, 0, 0)).toThrow(NotPorted);
   });
-  it("Thingies / ResearchStuff: only what Davey Jones needs", () => {
+  it("Thingies / ResearchStuff: only what the ported terms need", () => {
     expect(() => Thingies(c(), "LoreEpiBon", 3, 0)).toThrow(NotPorted);
-    expect(() => ResearchStuff(c(), "Grid_Bonus", 106, 0)).toThrow(NotPorted);
+    expect(() => ResearchStuff(c(), "Grid_Bonus", 31, 2)).toThrow(NotPorted); // the e == 2 squares other than 67, 68 and 107 (Task 7)
     expect(() => ResearchStuff(c(), "TotalObsLVs", 0, 0)).toThrow(NotPorted);
   });
 });

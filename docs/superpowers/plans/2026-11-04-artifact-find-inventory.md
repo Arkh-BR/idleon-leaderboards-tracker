@@ -41,36 +41,36 @@ Do not edit by hand: regenerate it when N.js changes. Tick a row when its sub-ca
 
 ## ArcadeBonus
 
-- [x] ArcadeBonus(32) — depth 1 — 1017 chars — whole body — ported in Task 6 (one block, any upgrade)
-- [x] ArcadeBonus(66) — depth 1 — 1017 chars — whole body — ported in Task 6 (one block, any upgrade)
+- [x] ArcadeBonus(32) — depth 1 — 1017 chars — whole body — ported in Task 6 (one block, any upgrade); also the oracle term arcade32 in Task 7
+- [x] ArcadeBonus(66) — depth 1 — 1017 chars — whole body — ported in Task 6 (one block, any upgrade); also the oracle term arcade66 in Task 7
 - [~] ArcadeBonus(44) — depth 3 — 1017 chars — whole body — not reached for ArtifactBonus 3 and 32: only WorkbenchStuff("PlayerBuildSpd") calls it (the l=8 branch), which is not reached
 - [x] ArcadeBonus(51) — depth 3 — 1017 chars — whole body — ported in Task 6 (one block, any upgrade)
 - [x] ArcadeBonus(59) — depth 5 — 1017 chars — whole body — ported in Task 6 (one block, any upgrade)
 
 ## Holes
 
-- [ ] Holes("B_UPG",55,0) — depth 1 — 98 chars
-- [ ] Holes("MonumentROGbonuses",1,2) — depth 1 — 172 chars
+- [x] Holes("B_UPG",55,0) — depth 1 — 98 chars — ported in Task 7: the head guard (any b) and b == 55 only; the other b throw NotPorted
+- [x] Holes("MonumentROGbonuses",1,2) — depth 1 — 172 chars — ported in Task 7 (any b, e): the recursion on (b, 9), Cosmo (0, 0) and the fountain Holes2("Fountain_BonTOT") column 13; HoleozDN is a local
 - [x] Holes("CosmoBonusQTY",2,3) — depth 3 — 279 chars — ported in Task 6 (any Cosmo upgrade)
 
 ## FarmingStuffs
 
-- [ ] FarmingStuffs("StickerBonus",2,99) — depth 1 — 448 chars
-- [ ] FarmingStuffs("StickerBonus",2,100) — depth 1 — 448 chars
-- [ ] FarmingStuffs("ExoticBonusQTY",45,0) — depth 1 — 1661 chars
+- [x] FarmingStuffs("StickerBonus",2,99) — depth 1 — 448 chars — ported in Task 7 (any sticker b, any slot e): the Menagerie unlock 22 picks 99 or 100
+- [x] FarmingStuffs("StickerBonus",2,100) — depth 1 — 448 chars — ported in Task 7: the same block as slot 99
+- [x] FarmingStuffs("ExoticBonusQTY",45,0) — depth 1 — 1661 chars — ported in Task 7 for the 80 upgrades (0..79): the replay of one iteration of the DNSM.ExoticFarmBon fill; the total (99) and the rebuild (-1) throw NotPorted
 
 ## ResearchStuff
 
-- [ ] ResearchStuff("Grid_Bonus",109,0) — depth 1 — 1304 chars
-- [ ] ResearchStuff("Grid_Bonus",106,0) — depth 1 — 1304 chars
-- [ ] ResearchStuff("Grid_Bonus",68,2) — depth 2 — 7 chars
-- [ ] ResearchStuff("Grid_Bonus") — depth 2 — 1304 chars
-- [ ] ResearchStuff("TotalObsLVs",0,0) — depth 2 — 511 chars
-- [ ] ResearchStuff("TotalOccurrencesFound",0,0) — depth 2 — 472 chars
-- [ ] ResearchStuff("Grid_Bonus_Allmulti",0,0) — depth 2 — 330 chars
+- [x] ResearchStuff("Grid_Bonus",109,0) — depth 1 — 1304 chars — ported in Task 7: the e == 0 path (any b other than the e == 2 squares); e == 1 is Task 4's
+- [x] ResearchStuff("Grid_Bonus",106,0) — depth 1 — 1304 chars — ported in Task 7: the e == 0 path, the same block as 109
+- [x] ResearchStuff("Grid_Bonus",68,2) — depth 2 — 7 chars — ported in Task 7: e == 2 for the squares 67, 68 and 107 only (Grid_Bonus(b, 0) x Research[11].length); 31, 94, 112, 151, 168 and the rest of e == 2 throw NotPorted
+- [x] ResearchStuff("Grid_Bonus") — depth 2 — 1304 chars — ported in Task 7: e == 1 (Task 4), e == 2 for 67/68/107, and every other e as the e == 0 path
+- [~] ResearchStuff("TotalObsLVs",0,0) — depth 2 — 511 chars — not reached for Grid_Bonus 109, 106 and (68, 2): only the e == 2 branch of square 94 calls it
+- [~] ResearchStuff("TotalOccurrencesFound",0,0) — depth 2 — 472 chars — not reached for Grid_Bonus 109, 106 and (68, 2): only the e == 2 branch of square 112 calls it
+- [x] ResearchStuff("Grid_Bonus_Allmulti",0,0) — depth 2 — 330 chars — ported in Task 7
 - [x] ResearchStuff("Grid_Bonus",105,1) — depth 2 — 1304 chars — ported in Task 4 (Ruling C); only the 1==e branch
-- [ ] ResearchStuff("OccurrencesToBeFound",0,0) — depth 3 — 385 chars
-- [ ] ResearchStuff("Grid_Bonus",125,0) — depth 3 — 1304 chars
+- [~] ResearchStuff("OccurrencesToBeFound",0,0) — depth 3 — 385 chars — not reached for Grid_Bonus 109, 106 and (68, 2): only TotalObsLVs and TotalOccurrencesFound call it
+- [x] ResearchStuff("Grid_Bonus",125,0) — depth 3 — 1304 chars — ported in Task 7: the e == 0 path serves it (its caller, Minehead Button_BonusMULTI, is Task 8's)
 
 ## Summoning
 
@@ -200,7 +200,7 @@ Do not edit by hand: regenerate it when N.js changes. Tick a row when its sub-ca
 
 ## getLOG
 
-- [ ] getLOG() — depth 2 — 40 chars — whole body
+- [x] getLOG() — depth 2 — 40 chars — whole body — ported in Task 7 (the whole function)
 
 ## AchieveStatus
 
@@ -218,8 +218,8 @@ Do not edit by hand: regenerate it when N.js changes. Tick a row when its sub-ca
 
 ## Holes2
 
-- [ ] Holes2("Fountain_BonTOT",1,13) — depth 2 — 1092 chars
-- [ ] Holes2("Fountain_MarbleBon") — depth 3 — 121 chars
+- [x] Holes2("Fountain_BonTOT",1,13) — depth 2 — 1092 chars — ported in Task 7 for the 3 x 20 table (b 0..2, e 0..19): the replay of one iteration of the DNSM.FountBonT fill; the rebuild (b == -1) throws NotPorted
+- [x] Holes2("Fountain_MarbleBon") — depth 3 — 121 chars — ported in Task 7 (any b, e)
 
 ## Spelunk
 
@@ -262,9 +262,9 @@ Do not edit by hand: regenerate it when N.js changes. Tick a row when its sub-ca
 
 ## Dreamstuff
 
-- [ ] Dreamstuff("CloudBonus",71) — depth 3 — 64 chars
-- [ ] Dreamstuff("CloudBonus",72) — depth 3 — 64 chars
-- [ ] Dreamstuff("CloudBonus",76) — depth 3 — 64 chars
+- [x] Dreamstuff("CloudBonus",71) — depth 3 — 64 chars — ported in Task 7 (any cloud)
+- [x] Dreamstuff("CloudBonus",72) — depth 3 — 64 chars — ported in Task 7 (the same sub-case)
+- [x] Dreamstuff("CloudBonus",76) — depth 3 — 64 chars — ported in Task 7 (the same sub-case)
 
 ## ArcaneType
 
@@ -345,16 +345,16 @@ Do not edit by hand: regenerate it when N.js changes. Tick a row when its sub-ca
 - [ ] `DropRateLUK` — whole body only
 - [ ] `DropRateLUK2` — whole body only
 - [x] `EmperorBon` — emperorBonTable (lib/game/njs/Thingies.ts): the replay of the fill
-- [ ] `ExoticFarmBon`
-- [ ] `ExoticFarmDN`
+- [x] `ExoticFarmBon` — exoticBonusQTY (lib/game/njs/FarmingStuffs.ts): the replay of the fill, one entry
+- [~] `ExoticFarmDN` — not reached for ExoticBonusQTY 45: only the total entry (b == 99) reads it
 - [ ] `FamBonusQTYs` — whole body only
-- [ ] `FountBonT`
-- [ ] `FountBonTdn`
+- [x] `FountBonT` — fountainBonTOT (lib/game/njs/Holes2.ts): the replay of the fill, one entry
+- [x] `FountBonTdn` — the loop index of the fill; the fountain b of the call in the replay
 - [x] `FracIsBn` — fractalIslandBonus (lib/game/njs/RandomEvent.ts): the replay of the fill
 - [ ] `GalleryNametagBonTOT` — whole body only
 - [ ] `GalleryTrophyBonTOT` — whole body only
 - [ ] `GlimboTOT`
-- [ ] `HoleozDN`
+- [x] `HoleozDN` — a local in Holes MonumentROGbonuses
 - [ ] `LabMFbonuses` — whole body only
 - [ ] `LoreEpiBon`
 - [x] `NghMrTOT` — a local in MenagerieStuff NightmarinerTotLV
@@ -377,8 +377,8 @@ Do not edit by hand: regenerate it when N.js changes. Tick a row when its sub-ca
 - [ ] `StarSigns`
 - [x] `Stuff6q` — a local in Thingies EmperorBon
 - [x] `SummWinBonus` — summWinBonus (lib/game/njs/Summoning.ts): the replay of the fill
-- [ ] `TotOccFnd`
-- [ ] `TotOccLVz`
+- [~] `TotOccFnd` — not reached for Grid_Bonus 109, 106 and (68, 2): only TotalOccurrencesFound (square 112) reads it
+- [~] `TotOccLVz` — not reached for Grid_Bonus 109, 106 and (68, 2): only TotalObsLVs (square 94) reads it
 - [ ] `TotStatMAP` — whole body only
 - [ ] `TotalStatsDM` — whole body only
 - [ ] `TotalStatsDN2` — whole body only

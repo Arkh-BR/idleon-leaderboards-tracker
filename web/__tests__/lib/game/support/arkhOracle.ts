@@ -96,8 +96,16 @@ export function arkhArtifactLeaf(save: unknown, ci: number, sourceId: string): n
 export const gameCtx = (save: unknown, ci: number, trace?: boolean): Ctx =>
   makeCtx(buildGameState(save as GameEnvelope), { player: ci, map: 0, trace });
 
+const COMPANION_0_GATE =
+  "Companions(0) @10799980 is 0 below Lv0[14] = 2 (`0==d&&2>c.asNumber(Lv0[14])?0:…`); Koweabooo#10 has Lv0_10[14] = 1. lib/arkh's companionBonus has no such gate, so its Grid_Bonus_Allmulti @11179174 keeps the +5 of `5*min(1, Research[0][173]*Companions(0))` (game 1.16, arkh 1.21). Raising Lv0_10[14] to 2 makes lib/game equal lib/arkh (accountUpgrades.test.ts)";
+
 /**
  * Where N.js proves lib/arkh wrong and lib/game keeps the N.js value. `save` is the file name of the
  * GOLDEN_SAVES entry, `ci` omitted means every character; `why` cites the `@offset` evidence.
  */
-export const KNOWN_ARKH_DIFFS: { save: string; ci?: number; source: string; why: string }[] = [];
+export const KNOWN_ARKH_DIFFS: { save: string; ci?: number; source: string; why: string }[] = [
+  { save: "Koweabooo.json", ci: 10, source: "grid109", why: COMPANION_0_GATE },
+  { save: "Koweabooo.json", ci: 10, source: "grid106", why: COMPANION_0_GATE },
+  { save: "Koweabooo.json", ci: 10, source: "sticker2add", why: COMPANION_0_GATE },
+  { save: "Koweabooo.json", ci: 10, source: "sticker2mult", why: COMPANION_0_GATE }, // 0 on every real save; differs only with Menagerie unlock 22 forced
+];

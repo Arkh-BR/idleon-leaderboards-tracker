@@ -14,3 +14,13 @@ export function listAt(ctx: Ctx, name: string, ...idx: (string | number)[]): rea
   if (!Array.isArray(v)) throw new InvalidSaveValue(address, "an array", v);
   return v;
 }
+
+/**
+ * N.js `D.contains(list, x)` @2160529: loose `==` against every element; a missing list contains nothing. The save keeps some
+ * lists as `{"0": …}` maps, so an object is read by its values.
+ */
+export function contains(list: unknown, x: unknown): boolean {
+  if (list == null) return false;
+  const values: unknown[] = Array.isArray(list) ? list : Object.values(list as object);
+  return values.some((v) => v == x);
+}

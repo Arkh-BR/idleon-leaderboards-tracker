@@ -3,6 +3,7 @@ import { block, type Ctx } from "../ctx";
 import { EquipmentSets } from "../data";
 import { NotPorted } from "../errors";
 import { hString } from "../hstring";
+import { contains } from "../lists";
 
 type EquipmentSet = readonly (readonly unknown[])[];
 
@@ -11,13 +12,6 @@ function setOf(d: string): EquipmentSet {
   const set = (EquipmentSets as Record<string, EquipmentSet>)[d];
   if (!set) throw new RangeError(`GetSetBonus: no set ${d} in EquipmentSets`);
   return set;
-}
-
-/** N.js `D.contains(list, x)` @2160529: loose `==` against every element; a missing list contains nothing. The save keeps the lists as `{"0": …}` maps. */
-function contains(list: unknown, x: unknown): boolean {
-  if (list == null) return false;
-  const values: unknown[] = Array.isArray(list) ? list : Object.values(list as object);
-  return values.some((v) => v == x);
 }
 
 /**

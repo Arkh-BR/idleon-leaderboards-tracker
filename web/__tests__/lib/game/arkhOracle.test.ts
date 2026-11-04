@@ -144,7 +144,12 @@ describe("arkhArtifactLeaf cache and errors", () => {
 });
 
 describe("KNOWN_ARKH_DIFFS", () => {
-  it("starts empty", () => {
-    expect(KNOWN_ARKH_DIFFS).toEqual([]);
+  it("every entry names a real source and cites its N.js evidence (an @offset)", () => {
+    const sources = new Set(ARTI_GROUPS.flatMap((g) => g.sources));
+    for (const d of KNOWN_ARKH_DIFFS) {
+      expect(sources.has(d.source), d.source).toBe(true);
+      expect(d.save).toMatch(/\.json$/);
+      expect(d.why).toMatch(/@\d+/);
+    }
   });
 });
