@@ -284,12 +284,12 @@ export function renderSaveAttrs(r: Extracted, sha: string): string {
 const NJS = "scripts/updater/.cache/N.new.js"; // relative to web/, the cwd of `npx tsx`
 const OUT = join(dirname(fileURLToPath(import.meta.url)), "../../lib/game/data/saveAttrs.gen.ts");
 
-function main() {
-  const src = readFileSync(NJS, "utf8");
+/** Writes lib/game/data/saveAttrs.gen.ts from the raw N.js text (the updater's `--write-game-data` calls this with the one it just read). */
+export function writeSaveAttrs(src: string): void {
   const sha = createHash("sha256").update(src).digest("hex").slice(0, 12);
   const r = extractSaveAttrs(src);
   writeFileSync(OUT, renderSaveAttrs(r, sha), "utf8");
   console.log(`${Object.keys(r.attrs).length} attributes written, ${r.unmapped.length} loader calls not mapped -> lib/game/data/saveAttrs.gen.ts`);
 }
 
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) main();
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) writeSaveAttrs(readFileSync(NJS, "utf8"));

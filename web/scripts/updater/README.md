@@ -33,7 +33,13 @@ o updater **regenera** esses arquivos a partir do N.js live, fazendo um **merge*
 sobre os existentes (atualiza chaves, adiciona itens novos, nunca remove uma
 chave; em `customlists.js` emite só os nomes já presentes, o que filtra o ruído
 de getters de libs). Assim a mudança detectada chega de fato às ferramentas.
-Detalhes em `emit-game-data.ts`.
+Detalhes em `emit-game-data.ts`. Também regenera `web/lib/game/data/saveAttrs.gen.ts`
+(a chave do save de onde o jogo carrega cada atributo; `gen-save-attrs.ts`).
+
+O registro de fórmulas (`registry/gen-registry.ts`) mapeia bloco do N.js → módulo
+sem tags nos módulos de `lib/game/njs`: `block("<Fn>")` é `_customBlock_<Fn>` e cada
+`case "<Sub>":` do seu despachante é o bloco nomeado `<Sub>`. Rode
+`npx tsx scripts/updater/registry/gen-registry.ts` depois de mexer em um módulo.
 
 ## Como funciona
 
