@@ -33,8 +33,9 @@ export const SUMMONING_OWN_NAMES: ReadonlySet<string> = new Set([
  * Artifact Find port reaches. A name the chain does not answer is handed to `Summoning2(d, b, e)` (@10931948), where
  * `VotingBonusz`, `VotingBonuszMulti` and the `Meritoc…` sub-cases live.
  *
- * The scene gates the game has in some of these (`-1 != getCurrentSceneName().indexOf("Tutorial")` in VaultUpgBonus and
- * WinBonus) are not modelled: the scene is the running game's, and a tracked account is in the world, not the Tutorial.
+ * The Tutorial scene gates the game has in two of these are not modelled: VaultUpgBonus is `-1 == getCurrentSceneName().indexOf("Tutorial")
+ * ? value : 0` and WinBonus opens with `if (-1 != getCurrentSceneName().indexOf("Tutorial")) return 0`. The scene is the running game's,
+ * and a tracked account is in the world, not the Tutorial.
  */
 export const Summoning: (ctx: Ctx, d: string, b: number, e: number) => number = block("Summoning", (ctx, d: string, b: number, e: number) => {
   switch (d) {

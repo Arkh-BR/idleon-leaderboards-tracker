@@ -1,4 +1,4 @@
-import { asNumber, attr } from "../attr";
+import { asNum, asNumber } from "../attr";
 import { block, type Ctx } from "../ctx";
 import { Research as ResearchLists } from "../data";
 import { NotPorted } from "../errors";
@@ -33,7 +33,7 @@ function uniqueSushi(ctx: Ctx): number {
   listAt(ctx, "Sushi", 5); // the game indexes Sushi[5][t] directly
   let found = 0;
   for (let t = 0, n = Math.round(SushiStuff(ctx, "MaxTier", 0, 0) + 1); t < n; t++) {
-    if (0 <= asNumber(attr(ctx, "Sushi", 5, t))) found = t + 1;
+    if (0 <= asNum(ctx, "Sushi", 5, t)) found = t + 1;
     else break;
   }
   return Math.round(found);

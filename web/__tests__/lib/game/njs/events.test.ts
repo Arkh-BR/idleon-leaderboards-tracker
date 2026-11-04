@@ -138,6 +138,8 @@ const setIn = (d: Data, key: string, fn: (v: any) => void) => {
   d[key] = v;
 };
 const num = (x: unknown) => Number(x);
+/** The addresses of the (absent) leaves in a trace: the reads where the game's c.asNumber(null) = 0 stood in for an index the save lacks. */
+const absentLeaves = (n: TraceNode): string[] => [...(n.block === "(absent)" ? [String(n.args[0])] : []), ...n.children.flatMap(absentLeaves)];
 
 describe.skipIf(GOLDEN_SAVES.length === 0)("RandomEvent (N.js @10777743)", () => {
   const killroy = (p: number) => RandomEvent(variant((d) => setIn(d, "OptLacc", (o) => (o[228] = p))), "KillroyBonuses", 0, 0);
@@ -165,8 +167,11 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("RandomEvent (N.js @10777743)", () =>
     expect(() => fractal(1e9, 8)).toThrow(RangeError);
     expect(() => fractal(1e9, -1)).toThrow(RangeError);
   });
-  it("a save whose OptionsListAccount[184] is missing counts 0 points (c.asNumber)", () => {
+  it("a save whose OptionsListAccount[184] is missing counts 0 points (c.asNumber), shown in the trace as an (absent) leaf", () => {
     expect(fractal(undefined as unknown as number, 0)).toBe(0);
+    const c = variant((d) => setIn(d, "OptLacc", (o) => (o[184] = undefined)), { trace: true });
+    expect(RandomEvent(c, "FractalIslandBonus", 3, 999)).toBe(0);
+    expect(absentLeaves(c.trace!)).toEqual(["OptionsListAccount[184]"]);
   });
 });
 
@@ -378,6 +383,10 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("ArcaneType / Spelunk / Holes / Jelly
     expect(unique([0, 1, 5, -1, 3])).toBe(3); // 0 counts, the -1 stops it
     expect(unique([-1])).toBe(0);
     expect(unique([])).toBe(64); // a tier the list lacks is asNumber(null) = 0, which is >= 0
+    // ... and that zero is visible: an (absent) leaf per tier read
+    const c = variant((d) => setIn(d, "Sushi", (s) => (s[5] = [0, 1])), { trace: true });
+    expect(SushiStuff(c, "UniqueSushi", 0, 0)).toBe(64);
+    expect(absentLeaves(c.trace!)).toEqual(Array.from({ length: 62 }, (_, i) => `Sushi[5][${i + 2}]`));
     expect(unique(Array(100).fill(1))).toBe(64);
   });
   it("Super Bit b is owned when its letter is in Gaming[12]", () => {
@@ -693,10 +702,10 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("WinBonus (N.js @10927394)", () => {
   it("Tasks[2][5] missing is refused, as the game indexes Tasks[2][5][4]", () => {
     expect(() => Summoning(variant((d) => setIn(d, "TaskZZ2", (t) => (t.length = 5))), "WinBonus", 3, 0)).toThrow(MissingSaveKey);
   });
-  it("calls what N.js calls", () => {
-    if (!existsSync("scripts/updater/.cache/N.new.js")) return;
+  it.skipIf(!existsSync("scripts/updater/.cache/N.new.js"))("calls what N.js calls", () => {
     const fn = njsFunction(loadNjs(), "Summoning")!;
     const expected = njsCalls(njsNamedBlocks(fn.body, "WinBonus").join("\n"));
+    expect(expected.length).toBeGreaterThan(0); // an empty expectation would pass anything
     const c = variant(() => {}, { trace: true });
     Summoning(c, "WinBonus", 3, 0);
     expect(callDiff(expected, traceCalls(c.trace!)).missing).toEqual([]);
@@ -878,10 +887,66 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("VotingBonusz / VotingBonuszMulti / M
   it.skipIf(!existsSync("scripts/updater/.cache/N.new.js"))("calls what N.js calls (vote 20 in force)", () => {
     const fn = njsFunction(loadNjs(), "Summoning2")!;
     const expected = njsCalls(njsNamedBlocks(fn.body, "VotingBonuszMulti").join("\n"));
+    expect(expected.length).toBeGreaterThan(0); // an empty expectation would pass anything
     const c = vote([20], { trace: true });
     multi(c);
     expect(callDiff(expected, traceCalls(c.trace!)).missing).toEqual([]);
   }, 120_000);
+});
+
+// ── the vote forced on every save ───────────────────────────────────────────────────────────────
+// The vote20 loop above only reaches the files where the server had vote 20 in force (42 of 106), and 8 inputs of the multi are constant
+// on them (Meritoc 9 is never active, for one). Here vote 20 is forced on every save, on a fresh clone per save (the oracle caches by
+// identity), and the game's VotingBonusz is compared with lib/arkh's on that same forced object.
+describe.skipIf(GOLDEN_SAVES.length === 0)("vote 20 forced on every real save, against lib/arkh", () => {
+  /** Zero-pads Spelunk[49] when the save lacks it. A TEST DEVICE, not a game default: the older saves would otherwise be refused at the Palette before the rest of the multi is read. */
+  const padSpelunk49 = (data: Data) => {
+    const text = typeof data.Spelunk === "string";
+    const spelunk = text ? JSON.parse(data.Spelunk) : data.Spelunk;
+    if (spelunk && spelunk[49] == null) {
+      spelunk[49] = Array(37).fill(0);
+      data.Spelunk = text ? JSON.stringify(spelunk) : spelunk;
+    }
+  };
+  it("vote20", () => {
+    const t0 = performance.now();
+    const mismatches: string[] = [];
+    const refused = new Set<string>();
+    const seen = new Set<number>();
+    let pairs = 0;
+    let meritocActive = 0;
+    for (const path of GOLDEN_SAVES) {
+      const env = JSON.parse(readFileSync(path, "utf8"));
+      env.serverVars = { ...(env.serverVars ?? {}), voteCategories: [20, 24, 27, 32] };
+      padSpelunk49(env.data);
+      const ctx = gameCtx(env, 0);
+      for (let ci = 0; ci < env.charNames.length; ci++) {
+        if (KNOWN_ARKH_DIFFS.some((d) => d.save === basename(path) && (d.ci ?? ci) === ci && d.source === "vote20")) continue;
+        const c = withPlayer(ctx, ci);
+        let got: number;
+        try {
+          got = Summoning(c, "VotingBonusz", 20, 0);
+        } catch (e) {
+          if (!(e instanceof MissingSaveKey)) throw e;
+          expect(e.key in env.data, `${basename(path)} has ${e.key}`).toBe(false); // refused for a key the save really lacks
+          refused.add(`${basename(path)}: ${e.key}`);
+          continue;
+        }
+        if (Summoning2(c, "MeritocBonusz", 9, 0) > 0) meritocActive++;
+        const want = arkhArtifactLeaf(env, ci, "vote20");
+        pairs++;
+        seen.add(want);
+        if (!rel(got, want)) mismatches.push(`${basename(path)}#${ci}: game ${got}, arkh ${want}`);
+      }
+    }
+    console.info(`[events vote20 forced] ${pairs} pairs checked, ${mismatches.length} mismatches, ${refused.size} saves refused, ${seen.size} distinct values, ${meritocActive} pairs with Meritoc 9 active, ${Math.round(performance.now() - t0)} ms`);
+    expect(mismatches).toEqual([]);
+    expect(pairs).toBeGreaterThan(1000); // a loop over nothing would pass
+    expect(seen.size).toBeGreaterThan(50); // nor would a multi that is the same on every save
+    expect(meritocActive).toBeGreaterThan(0); // the Meritoc 9 chain, which no real server answer reaches, is exercised on real data here
+    // Ruling E, pinned per save and key: HourZero (CSver 23.05) has no Spelunk at all, 5OhTree (29.05) no Sushi
+    expect([...refused].sort()).toEqual(["5OhTree.json: Sushi", "HourZero.json: Spelunk"]);
+  }, 300_000);
 });
 
 // ── every call the N.js sub-case makes is made by the port ──────────────────────────────────────

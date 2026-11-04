@@ -1,4 +1,4 @@
-import { asNum, asNumber, attr } from "../attr";
+import { asNum } from "../attr";
 import { block, type Ctx } from "../ctx";
 import { NotPorted } from "../errors";
 
@@ -31,5 +31,5 @@ const FRACTAL_THRESHOLDS = [24, 200, 750, 2500, 1e4, 2e4, 4e4, 6e4];
 function fractalIslandBonus(ctx: Ctx, b: number): number {
   const i = b | 0;
   if (i < 0 || i >= FRACTAL_THRESHOLDS.length) throw new RangeError(`RandomEvent FractalIslandBonus: no Fractal Island bonus ${b} (the game reads undefined)`);
-  return asNumber(attr(ctx, "OptionsListAccount", 184)) >= FRACTAL_THRESHOLDS[i] ? 1 : 0;
+  return asNum(ctx, "OptionsListAccount", 184) >= FRACTAL_THRESHOLDS[i] ? 1 : 0;
 }
