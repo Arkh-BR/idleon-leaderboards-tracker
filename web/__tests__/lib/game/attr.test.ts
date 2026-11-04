@@ -91,18 +91,25 @@ describe("attr", () => {
     expect(() => attr(ctx, "NoSuchAttribute")).toThrow("NoSuchAttribute");
     expect(() => attr(ctx, "constructor")).toThrow(UnknownAttribute); // never an Object.prototype member
     expect(() => attr(ctx, "Tasks", 9)).toThrow("Tasks[9]"); // an element the loader has no key for
-    expect(() => attr(ctx, "Tasks")).toThrow(UnknownAttribute); // loaded element by element: name the element
+  });
+
+  it("tells an attribute loaded element by element which elements there are", () => {
+    const ctx = ctxOf(data);
+    expect(() => attr(ctx, "Tasks")).toThrow(UnknownAttribute);
+    expect(() => attr(ctx, "Tasks")).toThrow("Tasks is loaded per element: Tasks[0..5]");
+    expect(() => attr(ctx, "Tasks", 9)).toThrow("Tasks[9]: Tasks is loaded per element: Tasks[0..5]");
+    expect(() => attr(ctx, "Cards")).toThrow("Cards[0..3]");
+    expect(() => attr(ctx, "NoSuchAttribute")).not.toThrow("loaded per element");
   });
 
   it("says why a runtime-only attribute is not here", () => {
     const ctx = ctxOf(data);
     expect(() => attr(ctx, "CurrentMap")).toThrow(/ctx\.map/);
     expect(() => attr(ctx, "NONdummies")).toThrow(UnknownAttribute);
-    try {
-      attr(ctx, "DNSM");
-    } catch (e) {
-      expect((e as UnknownAttribute).attribute).toBe("DNSM");
-    }
+    expect(() => attr(ctx, "DNSM")).toThrow(UnknownAttribute);
+    expect(() => attr(ctx, "DNSM")).toThrow(/^DNSM: session runtime/);
+    expect(() => attr(ctx, "DNSM", "StarSigns")).toThrow(/^DNSM: session runtime/);
+    expect(() => attr(ctx, "DNSM")).toThrow(expect.objectContaining({ attribute: "DNSM" }));
   });
 
   it("throws MissingSaveKey, naming the save key, when the save lacks it", () => {

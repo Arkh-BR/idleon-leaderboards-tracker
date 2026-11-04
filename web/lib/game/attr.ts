@@ -7,9 +7,13 @@
 //   - `perPlayer: true`: one key per character, read as `<key>_<ctx.player>` (`Lv0` = `Lv0_3`).
 //   - `Attr[i]`: the loader fills element i of the attribute from its own key (`Tasks[2]` = `TaskZZ2`),
 //     so the first index of `attr(ctx, "Tasks", 2, ...)` picks the key.
-// The game rewrites a few attributes after loading them (`CauldronInfo[8]` is rebuilt from `CauldUpgXPs`
-// and `CauldUpgLVs`, `OptionsList[11]` and `[13]` come from `OptL2_<player>`): `attr` returns what the
-// loader read, so a port that needs those parts reads the keys the generated file lists as unmapped.
+// The game changes a few attributes after loading them, and `attr` returns what the loader read:
+//   - `CauldronInfo[8]` is rebuilt from `CauldUpgXPs` and `CauldUpgLVs`;
+//   - `GemsOwned` becomes `GemsOwned + max(ServerGems - ServerGemsReceived, 0)` and `ServerGemsReceived`
+//     becomes `max(ServerGemsReceived, ServerGems)`, right after the load (`ServerGems` is the key `ServerGems`);
+//   - `OptionsList[11]` and `[13]` come from `OptL2_<player>`.
+// The generated file lists these writes ("Written again after the load") and the keys it did not map; a
+// port that needs the changed value rebuilds it from those keys.
 import type { Ctx } from "./ctx";
 import { SAVE_ATTRS } from "./data/saveAttrs.gen";
 import { UnknownAttribute } from "./errors";
@@ -49,7 +53,17 @@ function resolve(name: string, idx: readonly Idx[]) {
   if (Object.hasOwn(SAVE_ATTRS, name)) return { entry: SAVE_ATTRS[name], rest: idx };
   const element = idx.length ? `${name}[${idx[0]}]` : undefined;
   if (element !== undefined && Object.hasOwn(SAVE_ATTRS, element)) return { entry: SAVE_ATTRS[element], rest: idx.slice(1) };
-  throw new UnknownAttribute(element ?? name, runtimeReason.get(name));
+  throw new UnknownAttribute(...unknownWhy(name, element));
+}
+
+/** What `UnknownAttribute` says: the runtime reason, else the elements it does have, else nothing. */
+function unknownWhy(name: string, element: string | undefined): [string, string?] {
+  const reason = runtimeReason.get(name);
+  if (reason) return [name, reason];
+  const n = Object.keys(SAVE_ATTRS).flatMap((k) => (k.startsWith(`${name}[`) ? [Number(k.slice(name.length + 1, -1))] : [])).sort((a, b) => a - b);
+  if (!n.length) return [element ?? name];
+  const range = n.every((v, i) => v === n[0] + i) ? `${name}[${n[0]}..${n[n.length - 1]}]` : n.map((v) => `${name}[${v}]`).join(", ");
+  return [element ?? name, `${name} is loaded per element: ${range}`];
 }
 
 /**

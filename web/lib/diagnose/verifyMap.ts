@@ -17,8 +17,12 @@ export type VerifyRow =
 
 const isRuntime = (n: TraceNode) => n.note?.startsWith("runtime:") === true;
 
-/** Every node under `trace` (not the root), depth-first in call order. */
-export const traceNodes = (trace: TraceNode): TraceNode[] => trace.children.flatMap((n) => [n, ...traceNodes(n)]);
+/**
+ * Every node under `trace` (not the root), depth-first in call order. Not the `(absent)` leaves of `asNum`
+ * (an absent index read as 0): they are no N.js block, so they are neither a row nor a node to check.
+ */
+export const traceNodes = (trace: TraceNode): TraceNode[] =>
+  trace.children.filter((n) => !n.note?.startsWith("absent:")).flatMap((n) => [n, ...traceNodes(n)]);
 
 /** One row per block, in order of first appearance. Runtime wins only if every appearance is runtime. */
 export function verifyMap(

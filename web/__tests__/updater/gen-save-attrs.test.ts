@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { beforeAll, describe, it, expect } from "vitest";
 import { existsSync, readFileSync } from "node:fs";
 import { extractSaveAttrs, renderSaveAttrs } from "@/scripts/updater/gen-save-attrs";
 import { SAVE_ATTRS } from "@/lib/game/data/saveAttrs.gen";
@@ -27,6 +27,9 @@ const SYNTH =
   `f=a.engine.getGameAttribute("CurrenciesOwned"),p=u.getLoadList("CY"+e),f.h[""+e]=p;` +
   `a.engine.getGameAttribute("PlayerDATABASE").h[""+e].h.OptionsList[11]=u.getLoadList("OptL2_"+this._pID)[0];` +
   `q=a.engine;p=u.getLoadMap("SL_"+this._pID);q.gameAttributes.h.DummyMap=p;` +
+  // written again after the load: a whole attribute, and an element of one
+  `q=a.engine;p=a.engine.getGameAttribute("GemsOwned")+Math.max(1,0);q.gameAttributes.h.GemsOwned=p;` +
+  `a.engine.getGameAttribute("Boats")[3]=[];` +
   `}};` +
   `k._customBlock_LoadPlayerInfo=function(d){var b=a.engine;d=a.engine.getGameAttribute("DummyMap").h.Lv0;b.gameAttributes.h.Lv0=d;` +
   `b=a.engine;d=c.asNumber(a.engine.getGameAttribute("DummyMap").h.CurrentMap);b.gameAttributes.h.CurrentMap=d;` +
@@ -85,6 +88,17 @@ describe("extractSaveAttrs on a synthetic N.js", () => {
     expect(r.unmapped.map((u) => u.key)).not.toContain("CSver");
   });
 
+  it("lists what the game writes again after loading it (attr returns what the loader read)", () => {
+    const names = r.rewritten.map((w) => w.name);
+    expect(names).toContain("GemsOwned"); // a second gameAttributes.h.GemsOwned=
+    expect(names).toContain("Boats[3]"); // an element written into a loaded attribute
+    expect(names).not.toContain("OptionsListAccount"); // its only write is the load itself
+    expect(names).not.toContain("PostOfficeInfo[1]"); // an element loaded from its own key is the load
+    const w = r.rewritten.find((x) => x.name === "GemsOwned")!;
+    expect(SYNTH.startsWith("gameAttributes.h.GemsOwned=", w.at)).toBe(true);
+    expect(w.at).toBeGreaterThan(r.attrs.GemsOwned.at);
+  });
+
   it("throws when the loader is not there", () => {
     expect(() => extractSaveAttrs("nothing")).toThrow(/LoadAllData/);
   });
@@ -95,14 +109,19 @@ describe("extractSaveAttrs on a synthetic N.js", () => {
     expect(text).toContain("cd web && npx tsx scripts/updater/gen-save-attrs.ts");
     expect(text).toContain("deadbeef0000");
     expect(text).toContain(`"OptionsListAccount": { key: "OptLacc", perPlayer: false }, // @${r.attrs.OptionsListAccount.at}`);
+    expect(text).toMatch(/Written again after the load[^\n]*\n(\/\/[^\n]*\n)*\/\/ +@\d+ GemsOwned/);
   });
 });
 
 const NJS = "scripts/updater/.cache/N.new.js";
 describe.skipIf(!existsSync(NJS))("extractSaveAttrs on the live N.js", () => {
-  const src = readFileSync(NJS, "utf8");
-  const r = extractSaveAttrs(src);
-  const a = Object.fromEntries(Object.entries(r.attrs).map(([k, v]) => [k, { key: v.key, perPlayer: v.perPlayer }]));
+  // read in beforeAll: skipIf does not stop vitest from running this body, and the cache is gitignored
+  let r: ReturnType<typeof extractSaveAttrs>;
+  let a: Record<string, { key: string; perPlayer: boolean }>;
+  beforeAll(() => {
+    r = extractSaveAttrs(readFileSync(NJS, "utf8"));
+    a = Object.fromEntries(Object.entries(r.attrs).map(([k, v]) => [k, { key: v.key, perPlayer: v.perPlayer }]));
+  }, 60_000);
 
   it("finds the account and per-player attributes, with the elements named Attr[i]", () => {
     expect(a.OptionsListAccount).toEqual({ key: "OptLacc", perPlayer: false });
@@ -121,6 +140,12 @@ describe.skipIf(!existsSync(NJS))("extractSaveAttrs on the live N.js", () => {
   it("never maps a scratch attribute or the live map", () => {
     expect(Object.keys(a).filter((k) => /^Dummy/.test(k))).toEqual([]);
     expect(a).not.toHaveProperty("CurrentMap");
+  });
+
+  it("finds the rewrites after the load: the gems, and the cauldron element the game rebuilds", () => {
+    const names = r.rewritten.map((w) => w.name);
+    expect(names).toEqual(expect.arrayContaining(["GemsOwned", "ServerGemsReceived", "CauldronInfo[8]"]));
+    expect(names).not.toContain("OptionsListAccount");
   });
 
   it("is what is committed in lib/game/data/saveAttrs.gen.ts (regenerate it when N.js changes)", () => {

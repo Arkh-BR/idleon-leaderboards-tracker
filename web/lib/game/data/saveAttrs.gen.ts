@@ -7,6 +7,11 @@
 //   `Attr[i]`: an element loaded from its own key; attr(ctx, "Attr", i, ...) reads it.
 // Offsets (@) are those of the loader call in the raw N.js.
 //
+// Written again after the load (attr returns what the loader read, which the game then changes):
+//   @19930888 CauldronInfo[8]
+//   @19945299 GemsOwned
+//   @19945417 ServerGemsReceived
+//
 // Loader calls that are not here (dynamic key, computed index, scratch map, live value):
 //   @19920866 CurrentMap_<player>: live at runtime: read ctx.map
 //   @19923448 OptL2_<player>: indexed result

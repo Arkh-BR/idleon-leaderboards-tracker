@@ -33,6 +33,8 @@ export type Extracted = {
   /** Attribute (or `Attr[i]`) -> save key, with the N.js offset of the loader call. */
   attrs: Record<string, SaveAttr & { at: number }>;
   unmapped: Unmapped[];
+  /** Attributes (or elements) the loader function writes again after loading them: the game then changes what `attr` returns. */
+  rewritten: { name: string; at: number }[];
   /** Offsets of the two functions read (where their names start). */
   load: number;
   player: number;
@@ -94,7 +96,7 @@ function bodyAt(src: string, head: string, what: string): { text: string; from: 
   return { text: body.text, from, at };
 }
 
-type Dest = { kind: "attr" | "field"; name: string; element?: number };
+type Dest = { kind: "attr" | "field"; name: string; element?: number; storeAt?: number };
 
 /** Where the current character's field ends up (LoadPlayerInfo): field -> attribute, or one element of it. */
 function playerCopies(text: string): Map<string, { name: string; element?: number }> {
@@ -141,7 +143,35 @@ function destination(text: string, callStart: number, callEnd: number): Dest | {
   const scope = again ? rest.slice(0, again.index) : rest;
   const store = new RegExp(String.raw`(?:(gameAttributes)\.)?h\.(\w+)=\s*${name}(?![\w$])`).exec(scope);
   if (!store) return { why: "no attribute stores it" };
-  return { kind: store[1] ? "attr" : "field", name: store[2] };
+  return { kind: store[1] ? "attr" : "field", name: store[2], storeAt: callEnd + 1 + store.index };
+}
+
+/**
+ * The writes to a loaded attribute that are not its load: a second `gameAttributes.h.X=` (GemsOwned
+ * becomes `GemsOwned + ServerGems - ServerGemsReceived`), or an element or sub-element written into it
+ * (`CauldronInfo[8]=[]`). `stores` are the offsets of the loads' own stores. One entry per name, first write.
+ */
+function rewrites(load: { text: string; from: number }, attrs: Extracted["attrs"], stores: Set<number>): Extracted["rewritten"] {
+  const mapped = new Set(Object.keys(attrs).map((k) => k.split("[")[0]));
+  const out: Extracted["rewritten"] = [];
+  const note = (name: string, i: number) => {
+    if (!out.some((w) => w.name === name)) out.push({ name, at: load.from + i });
+  };
+  for (const m of load.text.matchAll(/gameAttributes\.h\.(\w+)=(?!=)/g)) {
+    if (mapped.has(m[1]) && !stores.has(m.index)) note(m[1], m.index);
+  }
+  const loads = new RegExp(String.raw`^\s*${IDENT}\.getLoad`); // `…[2]=u.getLoadList("TaskZZ2")`: the element's own load
+  for (const m of load.text.matchAll(/getGameAttribute\("(\w+)"\)((?:\[[^\]]*\])+)=(?!=)/g)) {
+    if (!mapped.has(m[1])) continue;
+    const first = /^\[(\d+)\]/.exec(m[2])?.[1];
+    const isLoad =
+      first !== undefined &&
+      m[2] === `[${first}]` &&
+      Object.hasOwn(attrs, `${m[1]}[${first}]`) &&
+      loads.test(load.text.slice(m.index + m[0].length));
+    if (!isLoad) note(first === undefined ? m[1] : `${m[1]}[${first}]`, m.index);
+  }
+  return out.sort((a, b) => a.at - b.at);
 }
 
 /** Every loader call of the live N.js mapped to the attribute it feeds. `src` is the raw N.js. */
@@ -153,6 +183,7 @@ export function extractSaveAttrs(src: string): Extracted {
 
   const attrs: Extracted["attrs"] = {};
   const clash = new Set<string>();
+  const stores = new Set<number>(); // where the loader stores what it read (`gameAttributes.h.X=p`)
   const unmapped: Unmapped[] = [];
   const add = (name: string, e: SaveAttr, at: number) => {
     const old = Object.hasOwn(attrs, name) ? attrs[name] : undefined;
@@ -177,6 +208,7 @@ export function extractSaveAttrs(src: string): Extracted {
       note(k.key, k.perPlayer, dest.why);
       continue;
     }
+    if (dest.storeAt !== undefined) stores.add(dest.storeAt);
     if (/^Dummy/.test(dest.name)) {
       note(k.key, k.perPlayer, `scratch (${dest.name}) folded into other attributes`);
       continue;
@@ -216,7 +248,7 @@ export function extractSaveAttrs(src: string): Extracted {
     unmapped.push({ at: attrs[name].at, key: attrs[name].key, perPlayer: attrs[name].perPlayer, why: `${name}: two keys feed it` });
     delete attrs[name];
   }
-  return { attrs, unmapped, load: load.at, player: player.at };
+  return { attrs, unmapped, rewritten: rewrites(load, attrs, stores), load: load.at, player: player.at };
 }
 
 /** The text of lib/game/data/saveAttrs.gen.ts. `sha` is the N.js version it was read from. */
@@ -235,6 +267,9 @@ export function renderSaveAttrs(r: Extracted, sha: string): string {
     "//   perPlayer: the key is `<key>_<character index>` (lib/game/state charKey).",
     "//   `Attr[i]`: an element loaded from its own key; attr(ctx, \"Attr\", i, ...) reads it.",
     "// Offsets (@) are those of the loader call in the raw N.js.",
+    "//",
+    "// Written again after the load (attr returns what the loader read, which the game then changes):",
+    ...r.rewritten.map((w) => `//   @${w.at} ${w.name}`),
     "//",
     "// Loader calls that are not here (dynamic key, computed index, scratch map, live value):",
     ...skipped,
