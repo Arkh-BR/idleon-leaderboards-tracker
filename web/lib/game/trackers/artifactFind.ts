@@ -148,5 +148,17 @@ export function gameArtifactFind(state: GameState, charIdx: number): StatResult 
   return { tree: { name: ARTI_ROOT, val: total, fmt: "x", children: groups }, total };
 }
 
+// The page calls compute(save, charIdx) with the same parsed save object on every character switch (StatCalculator keeps it in state), so
+// the state (a deep clone + freeze, and the Tome score kept on it) is built once per envelope object. Each call still gets its own Ctx and
+// memo: the memo keys include the player, so a shared one would reuse nothing across characters, and a second call for the same character
+// would find BoatArtiMulti already cached and have no trace to read the tree from. The state is immutable; the envelope is assumed not to
+// change between calls (the page parses it once per load; lib/arkh, which wrote into it, is out of this path).
+const states = new WeakMap<object, GameState>();
+
 /** `computeArkhArtifactFind`'s counterpart: the envelope of a save and a character index. */
-export const computeGameArtifactFind = (save: unknown, charIdx: number): StatResult => gameArtifactFind(buildGameState(save as GameEnvelope), charIdx);
+export function computeGameArtifactFind(save: unknown, charIdx: number): StatResult {
+  const known = typeof save === "object" && save !== null ? states.get(save) : undefined;
+  const state = known ?? buildGameState(save as GameEnvelope);
+  if (!known && typeof save === "object" && save !== null) states.set(save, state); // after the build: an envelope it refuses is not kept
+  return gameArtifactFind(state, charIdx);
+}
