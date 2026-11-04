@@ -136,8 +136,11 @@ const TOME_AFTER_RESET = `${TOME_SOURCE}. On top of that, this save runs the loa
  * HourZero's characters 1 and 9 wear all 11 parts of the God Shard set, which the account never unlocked for good (OptionsListAccount[379]
  * is 0, [380] is 0). N.js's GetSetBonus("GODSHARD_SET", "Bonus") gives the set's bonus to a set worn whole (`PartsOn >= PartsReq`,
  * @11098422) as well as to one named in OptionsListAccount[379]; lib/arkh's Winner Bonus counts it only when it is named there.
+ * Session cache: the game builds DNSM.SetBonusTOTz once per session, from the equipment of whichever character asks first, and rebuilds
+ * it only from UI code (`GetSetBonus(..., -1)` @7032277, @12633316), so the game shows this value only if that first read was on the
+ * character; lib/game models "the cache as built for the current character" (see GetSetBonus.ts), as Minehead.ts does for button3.
  */
-const GODSHARD_WORN = "GetSetBonus Bonus @11098422 gives the God Shard set's bonus (15) to a set worn whole (PartsOn 11 >= PartsReq 11) as well as to one permanently unlocked in OptionsListAccount[379]; lib/arkh's WinBonus counts it only when OptionsListAccount[379] names it, and this account's is 0";
+const GODSHARD_WORN = "GetSetBonus Bonus @11098422 gives the God Shard set's bonus (15) to a set worn whole (PartsOn 11 >= PartsReq 11) as well as to one permanently unlocked in OptionsListAccount[379]; lib/arkh's WinBonus counts it only when OptionsListAccount[379] names it, and this account's is 0. N.js builds that table (DNSM.SetBonusTOTz) once per session from the equipment of whichever character asks first and rebuilds it only from UI code (GetSetBonus(..., -1) @7032277, @12633316), so the game shows this only when the session's first read was on that character: lib/game models the cache as built for the current character";
 
 /**
  * Where N.js proves lib/arkh wrong and lib/game keeps the N.js value. `save` is the file name of the

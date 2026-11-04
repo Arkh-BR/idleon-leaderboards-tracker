@@ -175,8 +175,9 @@ export const DNSM_TomeQTYtot = block("DNSM.TomeQTYtot", (ctx) => {
   const total = assumed(
     ctx,
     "Tome.totalPoints",
-    `Tome score from lib/tome computeTome (an N.js port, validated in game 2026-11-03; ${score.covered} of ${score.rows} rows computed): the Tome actor's GenInfo[84] is runtime state (Ruling K)`,
-    score.total
+    "Tome score from our own Tome calculation",
+    score.total,
+    `Tome score from lib/tome computeTome (an N.js port, validated in game 2026-11-03; ${score.covered} of ${score.rows} rows computed): the Tome actor's GenInfo[84] is runtime state (Ruling K)`
   );
   // the Tome reads the whole save: every assumption the load steps made is part of its score (block 378's DROP_RATE_RECORD among them)
   if (ctx.trace) for (const a of ctx.state.assumed) assumedLeaf(ctx.trace, ctx.player, a);

@@ -11,7 +11,9 @@
 // to a `runtime:` or `assumed:` note, which spec section 5 wants visible. The whole trace is still there for debugging: run
 // Sailing(ctx, "BoatArtiMulti", 0, 0) on a Ctx made with `trace: true` (gameArtifactFind does exactly that and trims what it hands the page).
 //
-// The type of the result is the page's own (lib/statTracker/config StatResult: type-only, nothing of lib/arkh runs here).
+// The type of the result is the page's own (lib/statTracker/config StatResult: type-only). lib/game imports no lib/arkh, but one call
+// still runs it: DNSM.TomeQTYtot calls lib/tome's computeTome (Ruling K), which imports about 20 lib/arkh modules until the Tome moves
+// to lib/game.
 //
 // Performance, user decision 2026-11-04: the page switched to this engine at warm-character-switch parity with lib/arkh (about 2 ms); a
 // loaded save costs about 24 ms once (state build + Tome) against lib/arkh's 2 ms, accepted as "no perceptible slowdown".
@@ -148,8 +150,10 @@ export function gameArtifactFind(state: GameState, charIdx: number): StatResult 
   // outer Math.max(1, ...) is applied to the product, as N.js does.
   const rebuilt = Math.max(1, groups.reduce((t, g) => t * g.val, 1));
   if (!(Math.abs(rebuilt - total) <= 1e-9 * Math.max(1, Math.abs(total)))) throw new TreeTotalMismatch(total, rebuilt);
-  // An older save is computed after the game's own load steps (lib/game/migrations): the root says which ran, like the trace's notes
-  const migrated = state.migrations.length ? { note: `migrated: the game's load steps ran on this older save: ${state.migrations.join("; ")}` } : {};
+  // An older save is computed after the game's own load steps (lib/game/migrations): the root says so in a few words; which steps ran is
+  // `state.migrations` (the page shows a count, not their ids)
+  const n = state.migrations.length;
+  const migrated = n ? { note: `migrated from an older game version (${n} load step${n === 1 ? "" : "s"})` } : {};
   return { tree: { name: ARTI_ROOT, val: total, fmt: "x", ...migrated, children: groups }, total };
 }
 

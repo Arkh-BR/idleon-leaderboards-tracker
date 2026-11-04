@@ -3,8 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { ARTIFACT_FIND_REFUSABLE, characterize, classify, type Row } from "@/lib/diagnose/characterize";
-import { IncompleteTome, MissingSaveKey } from "@/lib/game/errors";
-import { UNPORTED_STEPS } from "@/lib/game/migrations";
+import { IncompleteTome, MissingSaveKey, UNPORTED_STEPS } from "@/lib/game/errors";
 import type { StatResult } from "@/lib/statTracker/config";
 
 // Synthetic saves: two characters each, the "total" is read straight off the data so the fake engines are one line.

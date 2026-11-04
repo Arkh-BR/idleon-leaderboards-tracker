@@ -1,8 +1,8 @@
+import { existsSync, readFileSync } from "node:fs";
 import { describe, it, expect } from "vitest";
 import { ARTIFACT_PAGE, pageError, withPageErrors } from "@/lib/artifactFind/pageConfig";
 import { ARTI_GROUPS, ARTI_ROOT, ARTI_VOTE_NAME } from "@/lib/arkh/stats/defs/artifact-find";
-import { IncompleteTome, MissingSaveKey, NotPorted, TreeTotalMismatch } from "@/lib/game/errors";
-import { UNPORTED_STEPS } from "@/lib/game/migrations";
+import { IncompleteTome, MissingSaveKey, NotPorted, TreeTotalMismatch, UNPORTED_STEPS } from "@/lib/game/errors";
 import type { StatResult } from "@/lib/statTracker/config";
 
 describe("Artifact Find page config", () => {
@@ -85,5 +85,30 @@ describe("what the page shows when the engine refuses a save", () => {
         throw other; // a synchronous throw too
       })(OLD, 0, 0)
     ).rejects.toBe(other);
+  });
+});
+
+// The engine stays behind the page's dynamic import(): what pageConfig pulls in statically (its static chunk) holds nothing of lib/game
+// but errors.ts, a file with no imports. (A type-only import is erased and does not count.)
+describe("the page's static imports", () => {
+  const local = (spec: string, from: string): string | null => {
+    const base = spec.startsWith("@/") ? spec.slice(2) : spec.startsWith(".") ? `${from.replace(/[^/]*$/, "")}${spec}` : null;
+    if (base === null) return null;
+    const path = base.split("/").reduce<string[]>((a, p) => (p === ".." ? a.slice(0, -1) : p === "." ? a : [...a, p]), []).join("/");
+    return [`${path}.ts`, `${path}.tsx`, `${path}/index.ts`].find(existsSync) ?? null;
+  };
+  it("reach nothing of lib/game except errors.ts", () => {
+    const seen = new Set<string>();
+    const walk = (file: string) => {
+      if (seen.has(file)) return;
+      seen.add(file);
+      for (const m of readFileSync(file, "utf8").matchAll(/^(?:import|export)\s+(?!type[ {])[^;]*?from\s*["']([^"']+)["']/gm)) {
+        const next = local(m[1], file);
+        if (next) walk(next);
+      }
+    };
+    walk("lib/artifactFind/pageConfig.ts");
+    expect(seen.size).toBeGreaterThan(3); // the walk followed the page's imports
+    expect([...seen].filter((f) => f.startsWith("lib/game/"))).toEqual(["lib/game/errors.ts"]);
   });
 });

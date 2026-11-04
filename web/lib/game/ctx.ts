@@ -102,8 +102,11 @@ export function runtime(ctx: Ctx, name: string, note: string): number {
  * 0 would make the number wrong and a decision has been made to count something else (the Laboratory's connection, the Tome actor's
  * score). Like a `runtime` leaf it stands for no N.js function: `traceCalls` skips it and `verifyMap` reports a block that only
  * appears this way as "runtime".
+ *
+ * `note` is what a page shows: one short sentence in plain English. `detail` is the full reason (offsets, the engine's own names), kept
+ * on the trace node for debugging.
  */
-export function assumed(ctx: Ctx, name: string, note: string, value: number): number {
-  if (ctx.trace) ctx.trace.children.push(traceNode(ctx.trace, ctx.player, name, [], value, `assumed: ${note}`));
+export function assumed(ctx: Ctx, name: string, note: string, value: number, detail?: string): number {
+  if (ctx.trace) ctx.trace.children.push(traceNode(ctx.trace, ctx.player, name, [], value, `assumed: ${note}`, detail));
   return value;
 }

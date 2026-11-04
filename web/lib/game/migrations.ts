@@ -28,14 +28,17 @@
 import { asNumber } from "./attr";
 import { CompassUpg, MapAFKtarget, MapDetails, Titans } from "./data";
 import { SAVE_ATTRS } from "./data/saveAttrs.gen";
-import { InvalidSaveValue, MissingSaveKey } from "./errors";
+import { InvalidSaveValue, MissingSaveKey, OLDEST_GATE, UNPORTED_STEPS } from "./errors";
 
 type Data = Record<string, unknown>;
 type Corrupt = Readonly<Record<string, string>>;
 /** The save being loaded: its parsed keys (changed in place), the corrupt ones, and the number of characters (PlayerDATABASE). */
 type Load = { readonly d: Data; readonly corrupt: Corrupt; readonly players: number };
-/** What a step assumes when the save cannot give a value: `key` is the save key (or address) it is about, `value` the one used if a number. */
-export type Assumption = { readonly key: string; readonly note: string; readonly value?: number };
+/**
+ * What a step assumes when the save cannot give a value: `key` is the save key (or address) it is about, `value` the one used if a number.
+ * `note` is what a page shows (one short sentence); `detail` the full reason, with the N.js offsets, kept on the trace.
+ */
+export type Assumption = { readonly key: string; readonly note: string; readonly detail?: string; readonly value?: number };
 
 /** A load step: changes the save in place and says whether its gate let it run. `id` names it and its N.js offset. */
 type Step = { readonly id: string; readonly assumes?: Assumption; readonly run: (l: Load) => boolean };
@@ -103,7 +106,8 @@ const assumedEmpty = (name: string, minCSver: number, gateAt: number, then: stri
   id: `${name} = [] assumed (loader: CSver < ${minCSver} @${gateAt}; no ClearLocalData reset)`,
   assumes: {
     key: keyOf(name),
-    note: `${name}: the loader reads it only from CSver ${minCSver} (@${gateAt}) and ClearLocalData does not reset it, so it is the attribute's default from game.mbs (outside N.js), assumed empty: ${then} fills it`,
+    note: `${name} counted as empty on a save this old (the game's own default is not in its code)`,
+    detail: `${name}: the loader reads it only from CSver ${minCSver} (@${gateAt}) and ClearLocalData does not reset it, so it is the attribute's default from game.mbs (outside N.js), assumed empty: ${then} fills it`,
   },
   run: ({ d }) => {
     if (d.CSver === undefined || d.CSver === null || minCSver <= Number(d.CSver)) return false;
@@ -154,15 +158,6 @@ const eachPlayer = (l: Load, name: string, f: (v: unknown[]) => void) => {
 };
 
 /**
- * The oldest block examined: every block from here on is ported or accounted for at the end of the file. A save below it would also
- * run older blocks, which nothing here replays, so its state would be half migrated: it is refused. No real save is.
- */
-export const OLDEST_GATE = 248;
-
-/** The refusal of a save below OLDEST_GATE (the page says it in words). */
-export const UNPORTED_STEPS = `the game's load steps for DoOnceREAL < ${OLDEST_GATE}`;
-
-/**
  * Block 378's reset of the account's highest Drop Rate: the Tome reads it (TomeQTY[18] = OptionsListAccount[200] @5746828) only after
  * raising it to the live Drop Rate (`TotalStats("Drop_Rarity") > OLA[200] && 216 != CurrentMap && (OLA[200] = …)` @5739715, in
  * `_customEvent_TomeQTY` @5739147), which this engine does not compute.
@@ -170,7 +165,8 @@ export const UNPORTED_STEPS = `the game's load steps for DoOnceREAL < ${OLDEST_G
 export const DROP_RATE_RECORD: Assumption = Object.freeze({
   key: "OptLacc[200]",
   value: 1,
-  note: "TomeQTY raises OptionsListAccount[200] to the live TotalStats(Drop_Rarity) first (@5739715), not ported: the load step DoOnceREAL < 378 reset it to 1, and that value is used",
+  note: "Tome counts the Drop Rate record at 1, where the game scores the live Drop Rate",
+  detail: "TomeQTY raises OptionsListAccount[200] to the live TotalStats(Drop_Rarity) first (@5739715), not ported: the load step DoOnceREAL < 378 reset it to 1, and that value is used",
 });
 
 // The starting lists of the init fills (lists of one value by length; 0 is an empty list). The test reads each fill back from N.js.

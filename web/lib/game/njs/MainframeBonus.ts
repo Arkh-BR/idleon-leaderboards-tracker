@@ -33,8 +33,9 @@ function labNodeConnected(ctx: Ctx, d: number): boolean {
   const connected = assumed(
     ctx,
     `GenINFO[92][${d}]`,
-    "the Laboratory's connection walk (ActorEvents_548 @10069277) is not ported; the node is counted as connected (Ruling J)",
-    1
+    "lab node counted as connected (the game checks it live)",
+    1,
+    "the Laboratory's connection walk (ActorEvents_548 @10069277) is not ported; the node is counted as connected (Ruling J)"
   );
   return 1 == connected;
 }

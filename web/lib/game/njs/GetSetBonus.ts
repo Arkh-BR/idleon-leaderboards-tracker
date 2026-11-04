@@ -42,6 +42,12 @@ export const GetSetBonus: (ctx: Ctx, d: string, b: string, e: number, f: number)
       // The game fills DNSM.SetBonusTOTz for every set the first time it is asked (and when f == -1) and, for a set worn whole while
       // OptionsListAccount[380] == 1, writes the set's name into OptionsListAccount[379]. That write never changes the value of this call
       // (the set is then unlocked, with the same bonus), so only the asked set is computed.
+      // The cache is per session, not per character: the game builds DNSM.SetBonusTOTz once, from the equipment of whichever character
+      // asks first, rebuilds it only from UI code (the `GetSetBonus(..., -1)` calls @7032277 and @12633316), and keeps it across a character
+      // switch (DNSM is only swapped around LocalSave @6064029/@6068047 and cleared at logout @22164148). This replay models "the cache as
+      // built for the current character", so the game shows this value only if the session's first read was on that character; for a set
+      // that a character wears whole and another does not (the God Shard set), what another character's session shows can differ. It is
+      // not a per-character term in the game.
       case "Bonus": {
         const set = setOf(d);
         const bonus = asNumber(set[3][2]);

@@ -13,8 +13,8 @@ import { basename } from "node:path";
 import { attr } from "@/lib/game/attr";
 import { block, makeCtx, type TraceNode } from "@/lib/game/ctx";
 import { MapAFKtarget } from "@/lib/game/data";
-import { InvalidSaveValue, MissingSaveKey } from "@/lib/game/errors";
-import { DROP_RATE_RECORD, MIGRATIONS, OLDEST_GATE, UNPORTED_STEPS, migrate } from "@/lib/game/migrations";
+import { InvalidSaveValue, MissingSaveKey, OLDEST_GATE, UNPORTED_STEPS } from "@/lib/game/errors";
+import { DROP_RATE_RECORD, MIGRATIONS, migrate } from "@/lib/game/migrations";
 import { DNSM_TomeQTYtot } from "@/lib/game/njs/DNSM";
 import { buildGameState, type GameEnvelope } from "@/lib/game/state";
 import { gameArtifactFind } from "@/lib/game/trackers/artifactFind";
@@ -81,7 +81,8 @@ describe("the loader: an attribute it reads only from a save version keeps its i
     expect(sushi[1].slice(48, 72)).toEqual([-1, -1, 0, 0, 0, 0, 0, ...Array(10).fill(-1), 0, 0, 0, 0, 0, -1, -1]);
     expect(s.migrations.filter((m) => m.startsWith("Sushi"))).toEqual(["Sushi = [] assumed (loader: CSver < 30 @19944518; no ClearLocalData reset)", "Sushi filled (initialize3 @6326856)"]);
     expect(s.assumed.map((a) => a.key)).toEqual(["Sushi"]);
-    expect(s.assumed[0].note).toMatch(/^Sushi: the loader reads it only from CSver 30 .* game\.mbs \(outside N\.js\), assumed empty/);
+    expect(s.assumed[0].note).toBe("Sushi counted as empty on a save this old (the game's own default is not in its code)"); // what a page shows
+    expect(s.assumed[0].detail).toMatch(/^Sushi: the loader reads it only from CSver 30 .* game\.mbs \(outside N\.js\), assumed empty/); // the debugging detail
   });
   it("below CSver 24, every gated attribute an older save needs: Compass, Arcane, MapBon (assumed), Spelunk, Bubba, Research, Sushi (assumed)", () => {
     const s = buildGameState(env({ CSver: 23.05, OptLacc: zeros(401), Lv0_0: zeros(25) }));
@@ -266,7 +267,7 @@ describe("an assumption shows in the trace where it is read", () => {
     const leaves = read({ CSver: 29.05 });
     expect(leaves).toHaveLength(1);
     expect(leaves[0][0]).toBe("Sushi");
-    expect(leaves[0][1]).toMatch(/^assumed: Sushi: the loader reads it only from CSver 30/);
+    expect(leaves[0][1]).toBe("assumed: Sushi counted as empty on a save this old (the game's own default is not in its code)");
     expect(read({ CSver: 34.05, Sushi: [[], [], [], [], [0], [0]] })).toEqual([]);
     const off = makeCtx(buildGameState(env({ CSver: 29.05 })), { player: 0, map: 0 });
     expect(off.trace).toBeNull(); // nothing to say when not tracing
@@ -287,7 +288,8 @@ describe("an assumption shows in the trace where it is read", () => {
     expect(reset.children.filter((c) => c.block === "(assumed)").map((c) => [c.args[0], c.value, c.note])).toEqual([
       ["OptLacc[200]", 1, `assumed: ${DROP_RATE_RECORD.note}`],
     ]);
-    expect(DROP_RATE_RECORD.note).toMatch(/TomeQTY raises OptionsListAccount\[200\] to the live TotalStats\(Drop_Rarity\) first \(@5739715\), not ported/);
+    expect(reset.children.find((c) => c.block === "(assumed)")!.detail).toBe(DROP_RATE_RECORD.detail); // the full reason stays on the trace node
+    expect(DROP_RATE_RECORD.detail).toMatch(/TomeQTY raises OptionsListAccount\[200\] to the live TotalStats\(Drop_Rarity\) first \(@5739715\), not ported/);
     expect(assumedLeaves(tome(() => {}))).toEqual([]);
   }, 60_000);
 });
@@ -454,7 +456,7 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("the real saves", () => {
   });
 
   it("the assumptions show on the page's tree: Sushi (and the reset Drop Rate record) on 5OhTree, the reset record on 0celot8, none on a current save", () => {
-    const sushi = /^assumed: Sushi: the loader reads it only from CSver 30/;
+    const sushi = /^assumed: Sushi counted as empty on a save this old/;
     const record = `assumed: ${DROP_RATE_RECORD.note}`;
     expect(state("5OhTree.json").assumed.map((a) => a.key)).toEqual(["Sushi", "OptLacc[200]"]);
     const t5 = notes(gameArtifactFind(state("5OhTree.json"), 0).tree);

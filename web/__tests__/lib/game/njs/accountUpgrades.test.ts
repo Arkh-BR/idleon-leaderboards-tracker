@@ -1,7 +1,7 @@
 // Task 7: account upgrades of Sailing("BoatArtiMulti", 0): arcade32, arcade66, bUpg55, sticker2add, sticker2mult, grid109,
 // grid106, monument1_2, exotic45. Each term is the expression as BoatArtiMulti uses it (before the /100 of a `pct` group),
 // compared with lib/arkh over every real save and every character; then one synthetic edge at a time on a real envelope.
-import { describe, it, expect } from "vitest";
+import { afterAll, describe, it, expect } from "vitest";
 import { existsSync, readFileSync } from "node:fs";
 import { basename } from "node:path";
 import { GOLDEN_SAVES, KNOWN_ARKH_DIFFS, UNPORTED_REFUSALS, arkhArtifactLeaf, gameCtx } from "../support/arkhOracle";
@@ -42,6 +42,7 @@ const csverOf = (file: string): number => JSON.parse(readFileSync(GOLDEN_SAVES.f
 
 // One GameState per save, shared by all its characters (withPlayer) and by the tests.
 const states = new Map<string, { ctx: Ctx; chars: number }>();
+afterAll(() => states.clear()); // the built states of the real saves are big: not kept past this file (a full run keeps its workers alive)
 function stateOf(path: string) {
   let s = states.get(path);
   if (!s) {

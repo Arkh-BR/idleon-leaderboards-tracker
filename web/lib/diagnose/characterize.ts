@@ -4,8 +4,7 @@
 // or it is unexplained, which blocks the switch. The engines are any two `(save, ci) => StatResult`, so this is
 // reusable by the next tracker; the CLI is scripts/characterize.ts.
 import { readFileSync } from "node:fs";
-import { CURRENT_CSVER } from "@/lib/game/errors";
-import { UNPORTED_STEPS } from "@/lib/game/migrations";
+import { CURRENT_CSVER, UNPORTED_STEPS } from "@/lib/game/errors";
 import type { StatResult } from "@/lib/statTracker/config";
 
 export type Engine = (save: unknown, ci: number) => StatResult;

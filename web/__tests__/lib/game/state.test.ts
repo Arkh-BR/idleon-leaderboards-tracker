@@ -1,8 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { GameState, buildGameState, charKey, num, opt, type GameEnvelope } from "@/lib/game/state";
-import { InvalidSaveValue, MissingSaveKey } from "@/lib/game/errors";
-import { OLDEST_GATE, UNPORTED_STEPS } from "@/lib/game/migrations";
+import { InvalidSaveValue, MissingSaveKey, OLDEST_GATE, UNPORTED_STEPS } from "@/lib/game/errors";
 
 const env = (data: Record<string, unknown>, extra: Partial<GameEnvelope> = {}): GameEnvelope => ({
   data,

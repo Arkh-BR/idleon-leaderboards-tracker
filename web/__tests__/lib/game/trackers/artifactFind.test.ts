@@ -9,7 +9,7 @@
 // - the tree on the 2026-11-01 save: shape, names/formats/notes equal to lib/arkh's, the trace children, the recombination guard
 //   (TreeTotalMismatch), and the number the game showed for it (167Q);
 // - switching character: only the per-character terms move.
-import { describe, it, expect } from "vitest";
+import { afterAll, describe, it, expect } from "vitest";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { basename } from "node:path";
 import * as arkhDef from "@/lib/arkh/stats/defs/artifact-find";
@@ -18,10 +18,9 @@ import { ARTI_GROUPS, ARTI_ROOT, ARTI_VOTE_NAME } from "@/lib/artifactFind/group
 import { formatArtifactFind } from "@/lib/artifactFind/format";
 import { asNum } from "@/lib/game/attr";
 import { makeCtx, withPlayer, type TraceNode } from "@/lib/game/ctx";
-import { MissingSaveKey, TreeTotalMismatch } from "@/lib/game/errors";
+import { MissingSaveKey, OLDEST_GATE, TreeTotalMismatch, UNPORTED_STEPS } from "@/lib/game/errors";
 import { Companions } from "@/lib/game/njs/Companions";
 import { GetSetBonus } from "@/lib/game/njs/GetSetBonus";
-import { OLDEST_GATE, UNPORTED_STEPS } from "@/lib/game/migrations";
 import { Sailing } from "@/lib/game/njs/Sailing";
 import { buildGameState, type GameEnvelope, type GameState } from "@/lib/game/state";
 import { computeGameArtifactFind, gameArtifactFind } from "@/lib/game/trackers/artifactFind";
@@ -42,6 +41,7 @@ const BASE = GOLDEN_SAVES.find((p) => basename(p) === "ARKHE.json") ?? GOLDEN_SA
 
 // One GameState per save, shared by all its characters: the adapter makes a Ctx (cache, trace) of its own for each one.
 const states = new Map<string, { state: GameState; chars: number }>();
+afterAll(() => states.clear()); // the built states of the real saves are big: not kept past this file (a full run keeps its workers alive)
 function stateOf(path: string) {
   let s = states.get(path);
   if (!s) {
@@ -62,6 +62,7 @@ const count = (n: StatResult["tree"]): number => 1 + (n.children ?? []).reduce((
 /** What the loops keep of one (save, character): the numbers, not the trace (1163 trees with their traces would be a lot of memory). */
 type Light = { total: number; root: number; groups: number[]; vals: Record<string, number>; nodes: number };
 const lights = new Map<string, Light | { refused: string }>();
+afterAll(() => lights.clear()); // the built states of the real saves are big: not kept past this file (a full run keeps its workers alive)
 /** The adapter's result for a pair, or the key the save lacks (Ruling E: a MissingSaveKey is a refusal, anything else is a bug). */
 function run(path: string, ci: number): Light | { refused: string } {
   const key = `${path}#${ci}`;
@@ -161,7 +162,9 @@ describe("the display config", () => {
   });
 
   // lib/game must be able to outlive lib/arkh: no file under it imports lib/arkh (by alias or by a relative path), except the two data
-  // re-exports that say so themselves ("The files still live under lib/arkh; a later plan moves them here").
+  // re-exports that say so themselves ("The files still live under lib/arkh; a later plan moves them here"). What this does not check is
+  // the transitive reach: DNSM.TomeQTYtot calls lib/tome's computeTome (Ruling K), and lib/tome imports about 20 lib/arkh modules. That
+  // is the one known exception, until the Tome moves to lib/game (the next test names it).
   it("no file under lib/game imports lib/arkh, except the data re-exports", () => {
     const ALLOWED = ["lib/game/data/index.ts", "lib/game/data/maps.ts"];
     const files = readdirSync("lib/game", { recursive: true })
@@ -177,6 +180,17 @@ describe("the display config", () => {
     expect(files.length).toBeGreaterThan(40); // the scan found the engine
     expect(imports.filter((i) => !ALLOWED.some((a) => i.startsWith(`${a}:`)))).toEqual([]);
     expect(imports.some((i) => i.startsWith("lib/game/data/index.ts:"))).toBe(true); // the exception list is not stale
+  });
+
+  // What the test above does not check: the transitive reach. DNSM.TomeQTYtot calls lib/tome's computeTome (Ruling K) and lib/tome imports
+  // lib/arkh modules of its own, so a run of lib/game still reaches lib/arkh through it. That is the one known exception, until the Tome
+  // moves to lib/game; this pins it (the call exists, the reach is lib/tome's), so a second path cannot appear unseen.
+  it("lib/tome is the known transitive exception: lib/game calls it, and it imports lib/arkh", () => {
+    expect(readFileSync("lib/game/njs/DNSM.ts", "utf8")).toMatch(/from "@\/lib\/tome\/compute"/);
+    const tomeArkh = readdirSync("lib/tome", { recursive: true })
+      .filter((f) => /\.tsx?$/.test(String(f)))
+      .flatMap((f) => [...readFileSync(`lib/tome/${f}`, "utf8").matchAll(/from\s*["'](@\/lib\/arkh[^"']*|[./]+\/arkh[^"']*)["']/g)].map((m) => m[1]));
+    expect(new Set(tomeArkh).size).toBeGreaterThan(10);
   });
 });
 
@@ -262,7 +276,7 @@ describe.skipIf(noSaves)("computeGameArtifactFind against lib/arkh on every real
     const steps = ["Menagerie = [] (loader: CSver < 34 @19944986, init @6586152)", "Menagerie filled (initialize4 @6336662)", "OnPlayStart4 DoOnceREAL < 395 @6465133"];
     expect(stateOf(path!).state.migrations).toEqual(steps);
     const { tree } = gameArtifactFind(stateOf(path!).state, 0);
-    expect(tree.note).toBe(`migrated: the game's load steps ran on this older save: ${steps.join("; ")}`);
+    expect(tree.note).toBe("migrated from an older game version (3 load steps)"); // a count in words, not the step ids (they are state.migrations)
     expect(gameArtifactFind(stateOf(ARKHE_11_01).state, 0).tree.note).toBeUndefined(); // a current save: nothing ran
   });
 
@@ -326,6 +340,31 @@ describe.skipIf(noSaves)("the page's tree stays small", () => {
     expect(lost).toEqual([]);
     expect(flags).toBeGreaterThan(0); // the lab-connection assumption is in every trace: not a comparison of two empty lists
   }, 120_000);
+
+  // The page prints every note of the tree it gets: plain English, no offsets, rulings or file paths (those are the trace's `detail`).
+  it("shows plain English notes only: no ruling, offset, file path or internal name, on a current save and on the most migrated one", () => {
+    const INTERNAL = /Ruling|lib\/|@\d{4,}|game\.mbs|ActorEvents|computeTome|N\.js|DNSM|GenINFO\[|OptionsListAccount|OptLacc/;
+    const saves = [BASE, GOLDEN_SAVES.find((p) => basename(p) === "HourZero.json")!, GOLDEN_SAVES.find((p) => basename(p) === "0celot8.json")!];
+    const seen: string[] = [];
+    const walk = (n: StatResult["tree"]) => {
+      if (n.note && /^(assumed|runtime|migrated)/.test(n.note)) seen.push(n.note);
+      for (const c of n.children ?? []) walk(c);
+    };
+    for (const path of saves) {
+      walk(gameArtifactFind(stateOf(path).state, 0).tree);
+    }
+    expect(seen.length).toBeGreaterThan(3); // lab, Tome, migrated, the Sushi/MapBon/Drop Rate assumptions: not a pass over nothing
+    expect(seen.filter((n) => INTERNAL.test(n) || n.length > 120)).toEqual([]);
+    expect(seen).toContain("assumed: lab node counted as connected (the game checks it live)");
+    expect(seen).toContain("assumed: Tome score from our own Tome calculation");
+    // the full trace keeps the detail the page leaves out
+    const full = makeCtx(stateOf(saves[0]).state, { player: 0, map: 0, trace: true });
+    Sailing(full, "BoatArtiMulti", 0, 0);
+    const details: string[] = [];
+    const dig = (n: TraceNode) => (n.detail && details.push(n.detail), n.children.forEach(dig));
+    dig(full.trace!);
+    expect(details.some((d) => /ActorEvents_548 @10069277/.test(d))).toBe(true);
+  });
 
   it("keeps the evidence of a source whose call was a memo hit, and drops the unflagged subtree below a call", () => {
     const state = stateOf(BASE).state;

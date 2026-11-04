@@ -1,7 +1,7 @@
 // Task 8: the W7 systems and the DNSM caches of Sailing("BoatArtiMulti", 0): button3, sushi7, jelly19, mainframe14, loreEpi3, pristine2,
 // palette5, spelunkBit26, starSign61, vialTurtle. Each term is the expression as BoatArtiMulti @10700072 uses it (before the /100 of a
 // `pct` group), compared with lib/arkh over every real save and every character; then one synthetic edge at a time on a real envelope.
-import { describe, it, expect } from "vitest";
+import { afterAll, describe, it, expect } from "vitest";
 import { existsSync, readFileSync } from "node:fs";
 import { basename } from "node:path";
 import { GOLDEN_SAVES, KNOWN_ARKH_DIFFS, UNPORTED_REFUSALS, arkhArtifactLeaf, gameCtx } from "../support/arkhOracle";
@@ -53,6 +53,7 @@ const csverOf = (file: string): number => JSON.parse(readFileSync(GOLDEN_SAVES.f
 
 // One GameState per save, shared by all its characters (withPlayer) and by the tests.
 const states = new Map<string, { ctx: Ctx; chars: number }>();
+afterAll(() => states.clear()); // the built states of the real saves are big: not kept past this file (a full run keeps its workers alive)
 function stateOf(path: string) {
   let s = states.get(path);
   if (!s) {
@@ -225,7 +226,8 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("Ninja EmporiumBonus (N.js @10845956)
     expect(mf(c)).toBe(50);
     const leaf = c.trace!.children[0].children.find((n) => n.block === "GenINFO[92][14]");
     expect(leaf).toMatchObject({ value: 1, args: [] });
-    expect(leaf!.note).toMatch(/^assumed: .*not ported/);
+    expect(leaf!.note).toBe("assumed: lab node counted as connected (the game checks it live)"); // what a page shows
+    expect(leaf!.detail).toMatch(/connection walk \(ActorEvents_548 @10069277\) is not ported/); // the full reason stays on the trace
     const none = emporium([], true);
     mf(none);
     expect(JSON.stringify(none.trace)).not.toContain("assumed"); // nothing to connect
@@ -308,11 +310,10 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("Thingies LoreEpiBon (N.js @10974601)
   it("the Tome score is a leaf that says where it comes from, and is no N.js call", () => {
     const c = lore({ trace: true });
     term(c);
-    const text = JSON.stringify(c.trace);
-    expect(text).toContain("assumed: Tome score from lib/tome computeTome");
-    expect(text).toMatch(/\d+ of \d+ rows computed/);
     const leaf = c.trace!.children[0].children.find((n) => n.block === "DNSM.TomeQTYtot")!.children[0];
-    expect(leaf).toMatchObject({ block: "Tome.totalPoints", value: DNSM_TomeQTYtot(c) });
+    expect(leaf).toMatchObject({ block: "Tome.totalPoints", value: DNSM_TomeQTYtot(c), note: "assumed: Tome score from our own Tome calculation" });
+    expect(leaf.detail).toContain("Tome score from lib/tome computeTome"); // the full reason (and the row count) stays on the trace node
+    expect(leaf.detail).toMatch(/\d+ of \d+ rows computed/);
     expect(traceCalls(c.trace!).map((x) => x.block)).not.toContain("Tome.totalPoints");
   });
   it("each save KNOWN_ARKH_DIFFS lists for loreEpi3 has a Tome total of lib/tome that is not IdleonToolbox's: the source differs, nothing else", () => {

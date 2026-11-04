@@ -87,7 +87,7 @@ export function attr(ctx: Ctx, name: string, ...idx: Idx[]): unknown {
 /** An `(assumed)` leaf for a load step's assumption, under `node` once (a block that reads the key twice says it once). */
 export function assumedLeaf(node: TraceNode, player: number, a: Assumption): void {
   if (node.children.some((c) => c.block === "(assumed)" && c.args[0] === a.key)) return;
-  node.children.push(traceNode(node, player, "(assumed)", [a.key], a.value ?? 0, `assumed: ${a.note}`));
+  node.children.push(traceNode(node, player, "(assumed)", [a.key], a.value ?? 0, `assumed: ${a.note}`, a.detail));
 }
 
 /**

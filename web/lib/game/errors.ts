@@ -1,5 +1,8 @@
 // Strict mode (spec, "Modo estrito"): the engine never answers a missing or broken
 // save value with 0. It throws one of these, carrying the save address.
+//
+// "Ruling A".."Ruling P" in the comments of lib/game are defined in the spec, section "Decisões da migração do Artifact Find (2026-11-04)":
+// docs/superpowers/specs/2026-11-03-game-engine-rewrite-design.md.
 
 /**
  * The save version (`data.CSver`) the N.js loader maps in full (Menagerie, Spelunk, Research...). A save below it is pre-migration:
@@ -7,6 +10,16 @@
  * MissingSaveKey (Ruling E), what they do not give.
  */
 export const CURRENT_CSVER = 34.05;
+
+/**
+ * The oldest load block examined (lib/game/migrations): every block from here on is ported or accounted for at the end of that file. A
+ * save below it would also run older blocks, which nothing there replays, so its state would be half migrated: it is refused. No real
+ * save is. Kept here with CURRENT_CSVER so the page can tell the two apart without loading the engine.
+ */
+export const OLDEST_GATE = 248;
+
+/** The refusal of a save below OLDEST_GATE (the page says it in words). */
+export const UNPORTED_STEPS = `the game's load steps for DoOnceREAL < ${OLDEST_GATE}`;
 
 /** A save key, or an index inside it, is absent. `key` is the full address, e.g. `Lv0_3[0]`. */
 export class MissingSaveKey extends Error {

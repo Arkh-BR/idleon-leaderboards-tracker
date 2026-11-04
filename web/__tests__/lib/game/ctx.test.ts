@@ -318,6 +318,14 @@ describe("assumed", () => {
     ]);
   });
 
+  it("keeps the full reason in `detail`, apart from the short `note` a page shows; no detail, no field", () => {
+    const ctx = makeCtx(state, { player: 0, map: 0, trace: true });
+    assumed(ctx, "A", "short words", 7, "the long reason @123456");
+    assumed(ctx, "B", "short words", 7);
+    expect(ctx.trace!.children[0]).toMatchObject({ note: "assumed: short words", detail: "the long reason @123456" });
+    expect("detail" in ctx.trace!.children[1]).toBe(false);
+  });
+
   it("nests under the block that asked for it; the player is on the block that differs, not repeated on its leaf", () => {
     const f = block("F", (c) => 5 + assumed(c, "GenINFO", "not saved", 1));
     const ctx = makeCtx(state, { player: 0, map: 0, trace: true });

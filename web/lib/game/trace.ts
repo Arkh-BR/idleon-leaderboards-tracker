@@ -19,6 +19,11 @@ export type TraceNode = {
    */
   note?: string;
   /**
+   * The full reason behind `note`: the N.js offsets and the engine's own names, for debugging. `note` is what a page shows (short, in
+   * plain English); a tracker that persists the trace keeps `note` and leaves `detail` in the full trace.
+   */
+  detail?: string;
+  /**
    * Which character ran this call, set only where it differs from the parent's (`withPlayer`
    * shares the trace, so a cross-character call would otherwise look like the parent's own).
    * The root always carries the base player.
@@ -44,10 +49,12 @@ export function traceNode(
   block: string,
   args: unknown[],
   value = 0,
-  note?: string
+  note?: string,
+  detail?: string
 ): TraceNode {
   const node: TraceNode = { block, args, value, children: [] };
   if (note !== undefined) node.note = note;
+  if (detail !== undefined) node.detail = detail;
   if (player !== playerOf.get(parent)) node.player = player;
   playerOf.set(node, player);
   return node;

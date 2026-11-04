@@ -1,8 +1,7 @@
 // Artifact Find page: the statTracker kit's config for N.js
 // Sailing("BoatArtiMulti", 0) — the Artifact Find line of the Skill Info.
 
-import { CURRENT_CSVER, MissingSaveKey, TreeTotalMismatch } from "@/lib/game/errors";
-import { UNPORTED_STEPS } from "@/lib/game/migrations";
+import { CURRENT_CSVER, MissingSaveKey, TreeTotalMismatch, UNPORTED_STEPS } from "@/lib/game/errors";
 import type { StatPageConfig } from "@/lib/statTracker/config";
 import { groupedGainsModel } from "@/lib/statTracker/biggestGains";
 import { formatArtifactFind } from "./format";
