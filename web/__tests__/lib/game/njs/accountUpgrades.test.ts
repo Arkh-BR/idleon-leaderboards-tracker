@@ -678,7 +678,8 @@ describe("ports stay on their boundary", () => {
     expect(() => ResearchStuff(c(), "AFKgainsRatePCT", 0, 0)).toThrow(NotPorted);
     expect(() => ResearchStuff(c(), "Grid_Bonus", 168, 2)).toThrow(NotPorted);
   });
-  it("InvalidSaveValue is the answer for a list that is not a list", () => {
+  // variant() edits a real save, so this needs the private saves (absent in CI)
+  it.skipIf(!BASE)("InvalidSaveValue is the answer for a list that is not a list", () => {
     const bad = variant((d) => (d.Holes = 5));
     expect(() => Holes(bad, "B_UPG", 55, 0)).toThrow(InvalidSaveValue);
   });

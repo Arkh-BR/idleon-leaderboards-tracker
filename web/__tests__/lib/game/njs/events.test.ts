@@ -2,7 +2,7 @@
 // Each term is the expression as BoatArtiMulti uses it (before the /100 of the additive pool; the whole factor for a factor
 // group), compared with lib/arkh over every real save and every character. The synthetic tests below pin each edge on top of one
 // real envelope, and the cross-family callees (the Winner and Voting bonuses reach Ninja, Arcade, Gaming, Holes, Sushi...) too.
-import { afterAll, describe, it, expect } from "vitest";
+import { afterAll, beforeAll, describe, it, expect } from "vitest";
 import { existsSync, readFileSync } from "node:fs";
 import { basename } from "node:path";
 import { GOLDEN_SAVES, KNOWN_ARKH_DIFFS, UNPORTED_REFUSALS, arkhArtifactLeaf, gameCtx } from "../support/arkhOracle";
@@ -934,7 +934,11 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("vote 20 forced on every real save, a
 
 // ── every call the N.js sub-case makes is made by the port ──────────────────────────────────────
 describe.skipIf(GOLDEN_SAVES.length === 0 || !existsSync("scripts/updater/.cache/N.new.js"))("calls what N.js calls", () => {
-  const njs = loadNjs();
+  // read lazily: skipIf does not stop the describe body from running, and CI has no N.js cache
+  let njs = "";
+  beforeAll(() => {
+    njs = loadNjs();
+  }, 120_000);
   const expectedOf = (fn: string, sub?: string) => {
     const f = njsFunction(njs, fn)!;
     return njsCalls(sub ? njsNamedBlocks(f.body, sub).join("\n") : f.body);

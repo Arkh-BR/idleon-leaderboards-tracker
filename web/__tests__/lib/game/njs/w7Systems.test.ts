@@ -776,7 +776,8 @@ describe("ports stay on their boundary", () => {
     expect(() => DNSM_AlchVials(c(), "6turtle")).toThrow(MissingSaveKey);
     expect(() => DNSM_StarSigns(c(), "61")).toThrow(MissingSaveKey);
   });
-  it("InvalidSaveValue is the answer for a list that is not a list", () => {
+  // variant() edits a real save, so this needs the private saves (absent in CI)
+  it.skipIf(!BASE)("InvalidSaveValue is the answer for a list that is not a list", () => {
     const bad = variant((d) => (d.Lab = 5));
     expect(() => chipBonuses(bad, "star")).toThrow(InvalidSaveValue);
   });
