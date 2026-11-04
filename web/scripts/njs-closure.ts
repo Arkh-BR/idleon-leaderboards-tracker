@@ -11,7 +11,7 @@
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { pathToFileURL } from "node:url";
-import { njsClosure } from "@/lib/diagnose/njsCalls";
+import { njsClosure, njsFunction } from "@/lib/diagnose/njsCalls";
 import { loadNjs } from "@/scripts/njs-calls";
 
 const USAGE = "usage: npx tsx scripts/njs-closure.ts <Fn> [args…]   (e.g. Sailing BoatArtiMulti 0)";
@@ -44,11 +44,17 @@ export function renderInventory(r: Closure, header: string): string {
 /** `0`, `-1`, `2.5` are numbers (N.js literals); everything else is a string. */
 const parseArg = (s: string) => (/^-?\d*\.?\d+$/.test(s) ? Number(s) : s);
 
-function main(argv: string[]) {
+/** The closure of the root call `argv` names (`Fn args…`). Throws a usage or "no such function" message. */
+export function runClosure(norm: string, argv: string[]) {
   const [fn, ...rest] = argv;
   if (!fn) throw new Error(USAGE);
+  if (!njsFunction(norm, fn)) throw new Error(`no _customBlock_${fn} in the live N.js`);
   const args = rest.map(parseArg);
-  const r = njsClosure(loadNjs(), fn, args);
+  return { fn, args, ...njsClosure(norm, fn, args) };
+}
+
+function main(argv: string[]) {
+  const { fn, args, ...r } = runClosure(loadNjs(), argv);
   if (r.capped) console.warn(`warning: depth cap hit, ${r.capped} calls were not walked`);
   const command = `cd web && npx tsx scripts/njs-closure.ts ${argv.join(" ")}`;
   const sha = createHash("sha256").update(readFileSync(NJS)).digest("hex").slice(0, 12);
@@ -59,9 +65,9 @@ function main(argv: string[]) {
     "Do not edit by hand: regenerate it when N.js changes. Tick a row when its sub-case is ported or marked `runtime()`.",
     "",
     "- A row is one N.js call with its literal args up to the first non-literal one (`Sailing(\"DaveyJonesBonus\",b,0)` is `Sailing(\"DaveyJonesBonus\")`). The chars are the length of its N.js slice (`njsSlice`). With a number after the name and no `<n>==` branch for it, the slice is the whole sub-case (`Sailing(\"ArtifactBonus\",3,0)` is 8323 chars): the calls of other numbers' branches in it are in this list too.",
-    "- **whole body**: the first argument is not a literal name, so the slice is the whole function (`MainframeBonus(14)`, `Companions(154)`). The walk stops there: the calls inside it are NOT in this list. Read it with `npx tsx scripts/njs-calls.ts <Fn> [<sub>] [<n>]`.",
+    "- **whole body**: the slice is the whole function. Either the first argument is not a literal name (`MainframeBonus(14)`, `Companions(154)`), or the function has no sub-case of that name: the string is a data key (`GetBribeBonus(\"34\")`, `EtcBonuses(\"30\")`, `StampBonusOfTypeX(\"BuildProd\")`), the function dispatches on its second argument (`GetSetBonus(\"GODSHARD_SET\",\"Bonus\")`), or the sub-case is in a form `njsNamedBlocks` does not read (the `&&` tail of a chain). The walk stops there: the calls inside it are NOT in this list. Read it with `npx tsx scripts/njs-calls.ts <Fn> [<sub>] [<n>]`.",
     "- **via Fn2**: the function hands the sub-case on to `Fn2` (`Summoning` ends in `Summoning2(d,b,e)`); the slice is in `Fn2`.",
-    "- **not found**: no slice. Either the string is data and not a sub-case name (`GetBribeBonus(\"34\")`, `EtcBonuses(\"30\")`, `StampBonusOfTypeX(\"BuildProd\")`; `GetSetBonus(\"GODSHARD_SET\",\"Bonus\")` dispatches on its second argument), or the sub-case is in a form `njsNamedBlocks` does not read (the `&&` tail of a chain). Read it by hand.",
+    "- **not found**: the function is not in N.js.",
     "- attrs and dnsm are the reads in every slice listed. One marked \"whole body only\" is read only inside a whole-body function (all its branches, not just the one this formula takes). `DNSM` is runtime-only (it is never loaded from the save): port it as `DNSM_*` functions, not as a save attribute. The dnsm list also holds the scratch keys a formula writes and reads back in the same slice (`CaptnBonuz`, `AtomBonCalc1`); the inputs are the caches the game fills elsewhere (`StarSigns`, `AlchVials`, `FamBonusQTYs`…).",
     "- Depth stops at 6.",
   ].join("\n");

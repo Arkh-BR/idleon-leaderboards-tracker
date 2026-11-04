@@ -222,8 +222,9 @@ export type ClosureCall = {
   /** Length of the N.js text this row stands for (0 when not found). */
   chars: number;
   /**
-   * "whole body": the first argument is not a literal name, so njsSlice gives the whole function
-   * and the walk stops here. "not found": no slice.
+   * "whole body": the slice is the whole function (the first argument is not a literal name, or
+   * the function has no sub-case of that name: a data key, or a dispatch on another argument) and
+   * the walk stops here. "not found": the function is not in N.js.
    */
   flag?: "whole body" | "not found";
   /** The function that holds the sub-case when `fn` hands it on (`Summoning` -> `Summoning2`). */
@@ -250,10 +251,11 @@ function delegate(def: { params: string[]; body: string }, name: string): string
  * shallowest depth. Depth stops at 6; `capped` counts the calls left unwalked there.
  *
  * A first argument that is not a literal name (`Companions(154)`, `MainframeBonus(14)`) gives the
- * whole function, which for a numeric dispatcher holds every branch: that row is flagged and its
- * calls are NOT walked (TotalStats-sized bodies would explode the closure). Its attribute and DNSM
- * reads are still collected, but they are over-approximate, so they are also listed in `loose`
- * (names read only by whole-body rows).
+ * whole function, which for a numeric dispatcher holds every branch; so does a function with no
+ * sub-case of the name given (`GetBribeBonus("34")`, `GetSetBonus("GODSHARD_SET","Bonus")`). That row
+ * is flagged and its calls are NOT walked (TotalStats-sized bodies would explode the closure). Its
+ * attribute and DNSM reads are still collected, but they are over-approximate, so they are also
+ * listed in `loose` (names read only by whole-body rows). Only a function N.js lacks is "not found".
  */
 export function njsClosure(
   norm: string,
@@ -275,8 +277,9 @@ export function njsClosure(
   };
 
   for (const { fn: f, args: a, depth } of queue) {
+    const own = defOf(f);
     let name = f;
-    let def = defOf(name);
+    let def = own;
     let slice = def && njsSlice(def, a);
     for (const tried = new Set([f]); def && slice === undefined; ) {
       const next = delegate(def, name);
@@ -286,8 +289,14 @@ export function njsClosure(
       def = defOf(name);
       slice = def && njsSlice(def, a);
     }
-    if (def === undefined || slice === undefined) {
+    if (own === undefined) {
       calls.push({ fn: f, args: a, depth, chars: 0, flag: "not found" });
+      continue;
+    }
+    if (def === undefined || slice === undefined) {
+      // the function exists but no sub-case slice does (njsSlice, nor the function it hands on to): all of it
+      calls.push({ fn: f, args: a, depth, chars: own.body.length, flag: "whole body" });
+      reads(own.body, whole);
       continue;
     }
     const via = name === f ? {} : { via: name };

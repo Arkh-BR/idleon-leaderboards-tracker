@@ -1,8 +1,8 @@
 import { beforeAll, describe, expect, it } from "vitest";
 import { existsSync } from "node:fs";
-import { njsClosure } from "@/lib/diagnose/njsCalls";
+import { njsClosure, njsFunction } from "@/lib/diagnose/njsCalls";
 import { loadNjs } from "@/scripts/njs-calls";
-import { renderInventory } from "@/scripts/njs-closure";
+import { renderInventory, runClosure } from "@/scripts/njs-closure";
 
 // A tiny bundle in the shape of the normalized N.js: one named sub-case that calls a numeric
 // branch, a literal-arg stop, a whole-body call, a missing function and a read of attributes.
@@ -31,7 +31,7 @@ describe("njsClosure on a synthetic bundle", () => {
     expect(r.calls.some((c) => c.fn === "Unreached")).toBe(false); // the other sub-case and the 5== branch
   });
 
-  it("flags a whole-body slice and does not walk into it, and flags a function it cannot find", () => {
+  it("flags a whole-body slice and does not walk into it, and flags a function that does not exist", () => {
     expect(row("Whole")).toMatchObject({ flag: "whole body" });
     expect(row("Gone")).toMatchObject({ flag: "not found", chars: 0 });
     expect(r.calls.some((c) => c.fn === "Hidden")).toBe(false);
@@ -47,18 +47,23 @@ describe("njsClosure on a synthetic bundle", () => {
 
   it("finds a sub-case in the function the first one hands its own params to (Summoning -> Summoning2)", () => {
     const dlg = [
-      `m._customBlock_Dlg=function(d,b){if("near"==d)return 1;return k._customBlock_Dlg2(d,b)};`,
+      `m._customBlock_Dlg=function(d,b){if("near"==d)return 1;return k._customBlock_Dlg2(d,b)+a.engine.getGameAttribute("Lazy")+a.engine.getGameAttribute("DNSM").h.Scratch};`,
       `m._customBlock_Dlg2=function(d,b){if("far"==d)return k._customBlock_End("e")};`,
       `m._customBlock_End=function(d){if("e"==d)return 2};`,
       `m._customBlock_Top=function(d){if("t"==d)return k._customBlock_Dlg("far")+k._customBlock_Dlg("near")+k._customBlock_Dlg("none")};`,
     ].join("");
-    expect(njsClosure(dlg, "Top", ["t"]).calls.map((c) => [c.fn, c.args, c.flag, c.via])).toEqual([
+    const r = njsClosure(dlg, "Top", ["t"]);
+    expect(r.calls.map((c) => [c.fn, c.args, c.flag, c.via])).toEqual([
       ["Top", ["t"], undefined, undefined],
       ["Dlg", ["far"], undefined, "Dlg2"],
       ["Dlg", ["near"], undefined, undefined],
-      ["Dlg", ["none"], "not found", undefined],
+      ["Dlg", ["none"], "whole body", undefined], // no slice anywhere: the function exists, so its whole body
       ["End", ["e"], undefined, undefined],
     ]);
+    // ...with the size and the loose reads of that body, and none of its callees walked (Dlg2 is only the "far" row's)
+    expect(r.calls[3].chars).toBe(njsFunction(dlg, "Dlg")!.body.length);
+    expect(r.loose).toEqual({ attrs: ["DNSM", "Lazy"], dnsm: ["Scratch"] });
+    expect(r.calls.filter((c) => c.fn === "Dlg2")).toEqual([]);
   });
 
   it("walks a cycle once", () => {
@@ -72,6 +77,17 @@ describe("njsClosure on a synthetic bundle", () => {
     expect(capped.calls.map((c) => c.depth)).toEqual([0, 1, 2, 3, 4, 5, 6]);
     expect(capped.capped).toBe(1);
     expect(r.capped).toBe(0);
+  });
+});
+
+describe("runClosure (the CLI's work)", () => {
+  it("parses numeric args as numbers and walks the root", () => {
+    expect(runClosure(synthetic, ["Mid", "Sub", "2"]).calls.map((c) => [c.fn, c.args])).toEqual([["Mid", ["Sub", 2]], ["Leaf", ["L"]]]);
+  });
+
+  it("refuses a root function that is not in N.js, and a missing name", () => {
+    expect(() => runClosure(synthetic, ["Nope", "x"])).toThrow("no _customBlock_Nope in the live N.js");
+    expect(() => runClosure(synthetic, [])).toThrow(/usage/);
   });
 });
 
@@ -106,6 +122,15 @@ describe.skipIf(!existsSync(NJS))("the closure of Sailing(\"BoatArtiMulti\", 0) 
   it("finds VotingBonusz in Summoning2, where Summoning hands it on", () => {
     expect(r.calls.find((c) => c.fn === "Summoning" && c.args[0] === "VotingBonusz" && c.args[1] === 20)).toMatchObject({ via: "Summoning2" });
     expect(r.calls.filter((c) => c.flag === "not found").map((c) => c.fn)).not.toContain("Summoning");
+  });
+
+  it("keeps a function with no sub-case slice as a whole-body row, with its attributes (GetBribeBonus(\"34\") reads BribeStatus)", () => {
+    const bribe = r.calls.find((c) => c.fn === "GetBribeBonus")!;
+    expect(bribe).toMatchObject({ flag: "whole body" });
+    expect(bribe.chars).toBeGreaterThan(0);
+    expect(r.calls.filter((c) => c.flag === "not found")).toEqual([]); // every function it calls exists
+    expect(r.attrs).toEqual(expect.arrayContaining(["BribeStatus", "StampLevel"]));
+    expect(r.loose.attrs).toEqual(expect.arrayContaining(["BribeStatus", "StampLevel"]));
   });
 
   it("reads the Captains and Boats attributes and the StarSigns and AlchVials DNSM keys", () => {
