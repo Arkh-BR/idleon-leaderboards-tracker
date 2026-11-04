@@ -13,7 +13,7 @@ Regenerate it when N.js or a module's `PORTED` changes. With `--mark`, `[x]` is 
 - attrs and dnsm are the reads in every slice listed. One marked "whole body only" is read only inside a whole-body function (all its branches, not just the one this formula takes). `DNSM` is runtime-only (it is never loaded from the save): port it as `DNSM_*` functions, not as a save attribute. The dnsm list also holds the scratch keys a formula writes and reads back in the same slice (`CaptnBonuz`, `AtomBonCalc1`); the inputs are the caches the game fills elsewhere (`StarSigns`, `AlchVials`, `FamBonusQTYs`…).
 - Depth stops at 6.
 
-**67 functions, 669 sub-cases (rows), 204 whole body, 0 not found, 95 attrs, 120 dnsm.** **491 ported `[x]`, 178 open.**
+**67 functions, 669 sub-cases (rows), 204 whole body, 0 not found, 95 attrs, 120 dnsm.** **491 ported `[x]`, 172 open, 6 `[~]` (hand-marked, Ruling F).**
 
 Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("AGI")`, R4 = `TotalStats("WIS")`, R5 = `TotalStats("LUK")`, R6 = `PlayerHPmax()`, R7 = `PlayerMPmax()`, R8 = `PlayerAccTot()`.
 
@@ -116,7 +116,7 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 - [x] Summoning("WinBonus",13,0) — depth 3 — 3535 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [x] Summoning("WinBonus",18,0) — depth 2 — 3535 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [x] Summoning("VotingBonusz",2,0) — depth 2 — 917 chars — via Summoning2 — roots: R1 R2 R3 R4 R5 R6 R7 R8
-- [ ] Summoning("TomeBonus",1,0) — depth 3 — 350 chars — roots: R1
+- [~] Summoning("TomeBonus",1,0) — depth 3 — 350 chars — roots: R1 — not reached: its only call site is in SkillStats("AllEfficiencies") (@4197489), which is not reached
 - [x] Summoning("WinBonus",14,0) — depth 3 — 3535 chars — roots: R1
 - [x] Summoning("WinBonus",22,0) — depth 3 — 7 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [x] Summoning("EventShopOwned",7,0) — depth 3 — 152 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
@@ -325,7 +325,7 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 - [ ] Holes("B_UPG",84,100) — depth 1 — 65 chars — roots: R1
 - [x] Holes("PocketDivOwned") — depth 2 — 361 chars — roots: R1 R8
 - [x] Holes("CosmoBonusQTY",2,0) — depth 2 — 279 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
-- [ ] Holes("B_UPG",49,15) — depth 3 — 335 chars — roots: R1
+- [~] Holes("B_UPG",49,15) — depth 3 — 335 chars — roots: R1 — not reached: its only call site is in SkillStats("AllEfficiencies") (@4197780), which is not reached
 - [x] Holes("CosmoBonusQTY",2,3) — depth 3 — 279 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [ ] Holes("B_UPG",50,1) — depth 4 — 2722 chars — roots: R1
 - [ ] Holes("B_UPG",79,1) — depth 4 — 2722 chars — roots: R1
@@ -551,7 +551,7 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 - [x] RiftStuff("5starCards",0) — depth 2 — 63 chars — roots: R1
 - [ ] RiftStuff() — depth 2 — 7650 chars — whole body — roots: R1
 - [ ] RiftStuff("riftBonus",3) — depth 3 — 69 chars — roots: R1
-- [ ] RiftStuff("RiftSkillETC",2) — depth 3 — 951 chars — roots: R1
+- [~] RiftStuff("RiftSkillETC",2) — depth 3 — 951 chars — roots: R1 — not reached: its only call site is in SkillStats("AllEfficiencies") (@4197736), which is not reached
 
 ## GamingStatType
 
@@ -601,7 +601,7 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 - [ ] GetBuffBonuses(420,1) — depth 2 — 363 chars — whole body — roots: R1 R6 R8
 - [x] GetBuffBonuses(288,2) — depth 1 — 363 chars — whole body — roots: R1 R8
 - [x] GetBuffBonuses(124,1) — depth 1 — 363 chars — whole body — roots: R1 R8
-- [ ] GetBuffBonuses(40,2) — depth 3 — 363 chars — whole body — roots: R1
+- [~] GetBuffBonuses(40,2) — depth 3 — 363 chars — whole body — roots: R1 — not reached: its only call site is in SkillStats("AllEfficiencies") (@4198250), which is not reached
 - [ ] GetBuffBonuses(585,1) — depth 2 — 363 chars — whole body — roots: R1 R8
 
 ## Thingies
@@ -619,7 +619,7 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 - [ ] Thingies("FriendBonusXtraMulti",0,0) — depth 2 — 79 chars — roots: R1
 - [x] Thingies("CoralKidUpgBonus",3,0) — depth 3 — 96 chars — roots: R1 R8
 - [x] Thingies("LegendPTS_bonus",28,0) — depth 3 — 154 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
-- [ ] Thingies("FriendBonusStatz",2,0) — depth 3 — 1262 chars — roots: R1
+- [~] Thingies("FriendBonusStatz",2,0) — depth 3 — 1262 chars — roots: R1 — not reached: its only call site is in SkillStats("AllEfficiencies") (@4197685), which is not reached
 - [x] Thingies("LegendPTS_bonus",22,0) — depth 3 — 154 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [x] Thingies("ClamWorkBonus",3,0) — depth 3 — 78 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [x] Thingies("LegendPTS_bonus",24,0) — depth 3 — 154 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
@@ -877,7 +877,7 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 
 ## SkillStats
 
-- [ ] SkillStats("AllEfficiencies") — depth 2 — 1256 chars — roots: R1
+- [~] SkillStats("AllEfficiencies") — depth 2 — 1256 chars — roots: R1 — not reached for Divinity("BlesssBonus",7) and (8): only BlesssBonus's b == 2 branch (@10758317) calls it
 
 ## CompLV2
 

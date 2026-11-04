@@ -13,7 +13,7 @@ import { DMG_LAYERS, DMG_MASTERY, DMG_RAT } from "@/lib/arkh/stats/defs/damage";
 import { charClassData } from "@/lib/arkh/save/data";
 import { loadSaveData } from "@/lib/arkh/save/loader";
 import { saveData } from "@/lib/arkh/state";
-import { computeAccuracy } from "@/lib/arkh/stats/systems/common/derived-damage";
+import { computeAccuracy, computePlayerSpeed, computeStarSignBonus } from "@/lib/arkh/stats/systems/common/derived-damage";
 import { computePlayerHPmax, computePlayerMPmax } from "@/lib/arkh/stats/systems/common/derived-stats";
 import { computeStatueBonusGiven, computeTotalStat } from "@/lib/arkh/stats/systems/common/stats";
 import { goldFoodBonuses, gfoodBonusMULTIBreakdown } from "@/lib/arkh/stats/systems/common/goldenFood";
@@ -261,6 +261,15 @@ export const arkhStats = (save: unknown, ci: number): Record<ArkhStat, number> =
 
 export const arkhStat = (save: unknown, ci: number, stat: ArkhStat): number => arkhStats(save, ci)[stat];
 
+/**
+ * lib/arkh's move speed for character `ci` of the save at `path`, as a whole % (computePlayerSpeed keeps two decimals): what
+ * PlayerSpeedBonus @4139326 returns. Not one of the cached stats: computed from a fresh load each call.
+ */
+export function arkhSpeed(path: string, ci: number): number {
+  loadSaveData(JSON.parse(readFileSync(path, "utf8")));
+  return Math.round(100 * computePlayerSpeed(ci, { saveData, charIdx: ci, activeCharIdx: ci } as never));
+}
+
 /** The lib/game Ctx for character `ci` of a parsed save, on map 0 (what Artifact Find uses). */
 export const gameCtx = (save: unknown, ci: number, trace?: boolean): Ctx =>
   makeCtx(buildGameState(save as GameEnvelope), { player: ci, map: 0, trace });
@@ -317,11 +326,15 @@ export const STAT_WHY: Record<string, string> = {
     "lib/arkh's STR star signs (computeStarSignStatBonuses, its own comment says it counts every listed sign) count a sign the Rift enables that StarSignsUnlocked lacks; N.js StarSigns @6540624 adds sign k of the first enabledStarSigns only when StarSignsUnlocked has StarSigns[k][0]",
   comp0: COMPANION_0_GATE,
   statues:
-    "N.js ArbitraryCode StatueBonusGiven<n> @4039757 reads GA(\"StatueLevels\")[n][0], the current character's (the load fills it from StatueLevels_<player>); lib/arkh's computeStatueBonusGiven reads one account-wide list (statueData). They differ on a save whose characters' statue levels differ (1st_Giri, CSver 33)",
+    "N.js ArbitraryCode StatueBonusGiven<n> @4039757 reads GA(\"StatueLevels\")[n][0], the current character's (the load fills it from StatueLevels_<player>); lib/arkh's computeStatueBonusGiven reads one account-wide list (statueData). They differ on a save whose characters' statue levels differ (1st_Giri, CSver 33; 24632463's statue 1)",
   pray6:
     "lib/arkh's accuracy reads computePrayerReal(6, 0), the equipped-prayer branch only; N.js prayersReal @7829537 has a second branch: with the Super Bit 9 or 39 and no prayer equipped (DNSM.PrayNonEq, every PrayersActive slot -1), every unlocked prayer but 5 gives round((.2 x SB9 + .2 x SB39 + .2 x SB53) x PrayerInfo[d][3] x max(1, 1 + (lv - 1) / 10)) (lib/arkh's own prayersReal has it; its accuracy does not call it)",
   vault4:
     "N.js TotalStats(\"Accuracy\") @4185692 adds Summoning(\"VaultUpgBonus\",4,0), the Vault's Bullseye (UpgVault[4] x UpgradeVault[4][5] x (1 + vault 32 / 100), @10893206); lib/arkh's accuracy adds computeSummUpgBonus(4), the Summoning upgrade 4 (Summon[0][4] x SummonUPG[4][6]), another table. It shows only where TotalStats(\"Accuracy\") is not lost below 1e-9 of the (DN / 4)^1.4 term",
+  buff273:
+    "lib/arkh's computePlayerSpeed has no GetBuffBonuses(273,1); N.js PlayerSpeedBonus @4139326 adds it (@4140733) with talent 266, the PctMoveSpd stamp and OptionsListAccount[438], and GetBuffBonuses @4279371 reads _BuffIDsOn, which the HUD actor fills from the save's BuffsActive (@4931241): a character whose saved BuffsActive has 273 (Strafe) running gets its talent number",
+  signsSpeed:
+    "lib/arkh's MoveSpd star signs (computeStarSignBonus) count a sign the Rift enables that StarSignsUnlocked lacks; N.js StarSigns @6540624 adds sign k of the first enabledStarSigns only when StarSignsUnlocked has StarSigns[k][0] (PlayerSpeedBonus reads DNSM.StarSigns.MoveSpd)",
   buff288:
     "lib/arkh's accuracy stubs GetBuffBonuses(288,2) to 0 (\"runtime buff, not in save\"); N.js GetBuffBonuses @4279371 reads _BuffIDsOn, which the HUD actor fills from the save's BuffsActive (@4931241), so a character whose saved BuffsActive has 288 running gets its talent number (curve 2), as for buff 94",
   buff108:
@@ -330,7 +343,7 @@ export const STAT_WHY: Record<string, string> = {
 
 /** [save, reason, characters (absent = all)], found by seeding each mismatch (stats.test.ts proves each). */
 type DiffRow = readonly [save: string, reason: string, cis?: readonly number[]];
-const STAT_DIFFS: Partial<Record<ArkhStat, readonly DiffRow[]>> = {
+const STAT_DIFFS: Partial<Record<ArkhStat | "speed", readonly DiffRow[]>> = {
   str: [
   ["100Cotton.json", "vote2"],
   ["Ash_EB.json", "fam68", [0]],
@@ -636,6 +649,85 @@ const STAT_DIFFS: Partial<Record<ArkhStat, readonly DiffRow[]>> = {
     ["arkhe-live-2026-09-23.json", "buff288", [9]],
     ["arkhe-live-2026-09-24.json", "buff288", [9]],
   ],
+  // The move speed (PlayerSpeedBonus @4139326): AGI's reasons where they move the whole %, and its own (buff273, signsSpeed, statues)
+  speed: [
+    ["100Cotton.json", "buff273", [4, 9]],
+    ["1st_Giri.json", "statues", [3, 10]],
+    ["1st_Giri.json", "buff273", [4]],
+    ["ARKHE.json", "buff273", [9]],
+    ["Ash_EB.json", "buff273", [8]],
+    ["AvacadoSqueeze.json", "buff273", [9]],
+    ["Azza2Bad.json", "buff273", [2]],
+    ["B0schi.json", "buff273", [5]],
+    ["Baker333.json", "buff273", [4]],
+    ["Bangada.json", "buff273", [0]],
+    ["BopeBrancis.json", "buff273", [2]],
+    ["Brokami.json", "buff273", [6]],
+    ["Bubbafrumps.json", "buff273", [2, 5]],
+    ["Chalalaa.json", "buff273", [5]],
+    ["Crezar.json", "buff273", [2, 6]],
+    ["Dragami.json", "buff273", [2]],
+    ["Dragonlzl.json", "buff273", [6]],
+    ["Drukez.json", "buff273", [4]],
+    ["FenrirAdra.json", "buff273", [1, 5, 9]],
+    ["Flipper143.json", "buff273", [5]],
+    ["FlipsyThEVicti.json", "buff273", [1, 7, 9]],
+    ["Fluffle_Puff.json", "buff273", [3]],
+    ["Frostymart.json", "buff273", [2, 7, 10]],
+    ["FrozenBody.json", "buff273", [2]],
+    ["GIM_SSS.json", "buff273", [4, 9]],
+    ["Glaives.json", "buff273", [1]],
+    ["GoddessFreia.json", "buff273", [0]],
+    ["Grandesz.json", "buff273", [0, 3]],
+    ["Hyucan.json", "buff273", [5]],
+    ["Jrod11.json", "buff273", [6]],
+    ["Koweabooo.json", "buff273", [1]],
+    ["MarleyLongbott.json", "buff273", [5]],
+    ["Maspoofio.json", "buff273", [2, 4]],
+    ["Pontinhas.json", "buff273", [1, 4]],
+    ["PulseIRL.json", "buff273", [2]],
+    ["Riltin.json", "buff273", [1, 4]],
+    ["Rinkzate.json", "buff273", [1, 4]],
+    ["Scotchz.json", "buff273", [4]],
+    ["Seavik.json", "buff273", [2]],
+    ["Shadow_x_Vanish.json", "buff273", [10]],
+    ["Snowyzxd.json", "buff273", [3, 7]],
+    ["TheSpease.json", "buff273", [7]],
+    ["TinTim.json", "buff273", [2, 6, 9]],
+    ["TomerBuff.json", "buff273", [5]],
+    ["WarSkepp.json", "buff273", [5]],
+    ["airbolt.json", "buff273", [5]],
+    ["astarm.json", "buff273", [9]],
+    ["big_guy69123.json", "signs", [0, 7]],
+    ["big_guy69123.json", "signsSpeed"],
+    ["biggums3.json", "buff273", [0, 3]],
+    ["blickter.json", "buff273", [2]],
+    ["bluestar3112.json", "buff273", [4]],
+    ["breakinbrad.json", "buff273", [2, 6]],
+    ["dida123.json", "buff273", [1, 4]],
+    ["enilyn.json", "buff273", [2]],
+    ["joelok.json", "buff273", [5]],
+    ["liiiiiiiiiiiig.json", "buff273", [3, 5]],
+    ["ryujinsan.json", "buff273", [3, 5, 9]],
+    ["suk69.json", "buff273", [2, 9]],
+    ["xBlackpearl.json", "buff273", [5]],
+    ["01010111001.json", "buff273", [3, 8]],
+    ["0xEXCEED.json", "buff273", [4]],
+    ["24632463.json", "buff273", [1, 4]],
+    ["24632463.json", "statues", [3]],
+    ["26515665165165.json", "buff273", [2, 5]],
+    ["5OhTree.json", "buff273", [7, 9]],
+    ["arkhe-2026-09-23.json", "buff273", [9]],
+    ["arkhe-live-2026-09-23.json", "buff273", [9]],
+    ["arkhe-live-2026-09-24.json", "buff273", [9]],
+    ["arkhe-live-2026-10-30.json", "buff273", [9]],
+    ["arkhe-live-2026-11-01-postupdate.json", "buff273", [9]],
+    ["arkhe-live-2026-11-01.json", "buff273", [9]],
+    ["arkhe-live-2026-11-03-arkhe.json", "buff273", [9]],
+    ["arkhe-live-2026-11-03-farkhe.json", "buff273", [9]],
+    ["arkhe-live-2026-11-03-markhe-noweapon.json", "buff273", [9]],
+    ["arkhe-live-2026-11-03-markhe-weapon.json", "buff273", [9]],
+  ],
 };
 
 /** Max HP's own reasons: the characters whose saved BuffsActive has the buff 108 running, and the per-character statue levels. */
@@ -658,7 +750,7 @@ const BUFF_108: readonly DiffRow[] = [
  */
 export const KNOWN_ARKH_DIFFS: {
   /** Which tracker `source` belongs to; absent = "artifactFind". For "damage", `source` is a Damage source id. */
-  stat?: "artifactFind" | "damage" | ArkhStat;
+  stat?: "artifactFind" | "damage" | ArkhStat | "speed";
   save: string;
   ci?: number;
   source: string;
@@ -679,7 +771,7 @@ export const KNOWN_ARKH_DIFFS: {
   { save: "HourZero.json", ci: 1, source: "win3", why: GODSHARD_WORN },
   { save: "HourZero.json", ci: 9, source: "win3", why: GODSHARD_WORN },
   // Max MP is built on WIS and Max HP on STR: their reasons carry over, and HP adds the active buff 108 where a character has it running
-  ...(Object.entries({ ...STAT_DIFFS, maxMp: STAT_DIFFS.wis, maxHp: [...STAT_DIFFS.str!, ...BUFF_108] }) as [ArkhStat, (typeof STAT_DIFFS)[ArkhStat]][]).flatMap(([stat, rows]) =>
+  ...(Object.entries({ ...STAT_DIFFS, maxMp: STAT_DIFFS.wis, maxHp: [...STAT_DIFFS.str!, ...BUFF_108] }) as [ArkhStat | "speed", readonly DiffRow[]][]).flatMap(([stat, rows]) =>
     rows!.flatMap(([save, source, cis]) => (cis ?? [undefined]).map((ci) => ({ stat, save, ...(ci === undefined ? {} : { ci }), source, why: STAT_WHY[source] })))
   ),
 ];
@@ -692,7 +784,7 @@ export const KNOWN_ARKH_DIFFS: {
  * The main stat whose lib/arkh terms a stat's KNOWN reasons seed: Max MP is built on WIS (PlayerMPmax @4150047), Max HP on STR (@4147120),
  * Accuracy on the class's second stat (PlayerAccTot @4151358, ClassStatTypes[first class][1]), worked out per character.
  */
-export const SEED_STAT: Partial<Record<ArkhStat, keyof typeof MAIN_STATS | "accuracy">> = { str: "str", agi: "agi", wis: "wis", luk: "luk", maxMp: "wis", maxHp: "str", accuracy: "accuracy" };
+export const SEED_STAT: Partial<Record<ArkhStat | "speed", keyof typeof MAIN_STATS | "accuracy">> = { str: "str", agi: "agi", wis: "wis", luk: "luk", maxMp: "wis", maxHp: "str", accuracy: "accuracy", speed: "agi" };
 
 export function arkhStatSeeds(path: string, ci: number, reasons: readonly string[], seedStat: keyof typeof MAIN_STATS | "accuracy" = "str"): [name: string, args: (string | number)[], value: number][] {
   loadSaveData(JSON.parse(readFileSync(path, "utf8")));
@@ -726,7 +818,7 @@ export function arkhStatSeeds(path: string, ci: number, reasons: readonly string
     else if (r === "tomeW8") out.push(["DNSM.AlchBubbles", [tomeBubble], at(`AlchBubble ${tomeBubble}`)]);
     else if (r === "signs") out.push(["DNSM.StarSigns", [STAT], at(`StarSigns.${STAT}`)], ["DNSM.StarSigns", [`pct${STAT}`], at(`StarSigns.pct${STAT}`)]);
     else if (r === "comp0") out.push(["Companions", [0], 1]);
-    else if (r === "statues") for (const n of [3, 4, 14]) out.push(["ArbitraryCode", [`StatueBonusGiven${n}`], computeStatueBonusGiven(n, ci, saveData).val]);
+    else if (r === "statues") for (const n of [1, 3, 4, 14]) out.push(["ArbitraryCode", [`StatueBonusGiven${n}`], computeStatueBonusGiven(n, ci, saveData).val]);
     else if (r === "buff108") {
       const n = find(computePlayerHPmax(ci, ctx) as unknown as ArkhNode, (x) => !!x.name?.startsWith("Buff 108"));
       if (!n) throw new Error("arkhStatSeeds: no Buff 108 in lib/arkh's Max HP");
@@ -735,6 +827,8 @@ export function arkhStatSeeds(path: string, ci: number, reasons: readonly string
     else if (r === "pray6") out.push(["prayersReal", [6, 0], computePrayerReal(6, 0, ci, saveData).val]);
     else if (r === "vault4") out.push(["Summoning", ["VaultUpgBonus", 4, 0], computeSummUpgBonus(4, saveData, ci).val]);
     else if (r === "buff288") out.push(["GetBuffBonuses", [288, 2], 0]);
+    else if (r === "buff273") out.push(["GetBuffBonuses", [273, 1], 0]);
+    else if (r === "signsSpeed") out.push(["DNSM.StarSigns", ["MoveSpd"], computeStarSignBonus("MoveSpd", ci, saveData)]);
     else if (r === "fam68") {
       const n = find(talentResolver.resolve(10, ctx), (x) => x.name.startsWith("Family Bonus 68"));
       if (!n) throw new Error("arkhStatSeeds: no Family Bonus 68 in lib/arkh's talent 10");

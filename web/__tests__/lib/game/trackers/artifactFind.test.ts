@@ -243,7 +243,8 @@ describe.skipIf(noSaves)("computeGameArtifactFind against lib/arkh on every real
           const want = arkhArtifactLeaf(path, ci, id);
           if (!rel(r.vals[id], want)) leafMismatches.push(`${file}#${ci} ${id}: game ${r.vals[id]}, arkh ${want}`);
         }
-        if (KNOWN_ARKH_DIFFS.some((d) => d.save === file && (d.ci ?? ci) === ci)) {
+        // only Artifact Find's own entries (a stat's KNOWN row says nothing about this total)
+        if (KNOWN_ARKH_DIFFS.some((d) => (d.stat ?? "artifactFind") === "artifactFind" && d.save === file && (d.ci ?? ci) === ci)) {
           known++;
           continue; // the total differs from lib/arkh's where N.js proves lib/arkh wrong
         }

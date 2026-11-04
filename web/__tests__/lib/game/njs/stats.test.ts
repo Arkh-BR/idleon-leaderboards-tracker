@@ -1,10 +1,10 @@
 // Task 3 (Damage plan): the character stats STR/AGI/WIS/LUK, HP, MP and Accuracy, the shared base Damage and the later trackers read.
 // Each stat is compared with lib/arkh over every real save and character (relative 1e-9), and with the game's own text on the 4 Damage
-// readings, in the Player Info display format.
+// readings, in the Player Info display format. The move speed (PlayerSpeedBonus, which Damage also reads) is compared with lib/arkh too.
 import { afterAll, describe, it, expect } from "vitest";
 import { existsSync, readFileSync } from "node:fs";
 import { basename, join } from "node:path";
-import { GOLDEN_SAVES, KNOWN_ARKH_DIFFS, SEED_STAT, arkhStat, arkhStatSeeds, type ArkhStat } from "../support/arkhOracle";
+import { GOLDEN_SAVES, KNOWN_ARKH_DIFFS, SEED_STAT, arkhSpeed, arkhStat, arkhStatSeeds, type ArkhStat } from "../support/arkhOracle";
 import { MissingSaveKey } from "@/lib/game/errors";
 import { makeCtx, withPlayer, type Ctx } from "@/lib/game/ctx";
 import { buildGameState, type GameEnvelope } from "@/lib/game/state";
@@ -12,12 +12,13 @@ import { TotalStats } from "@/lib/game/njs/TotalStats";
 import { PlayerMPmax } from "@/lib/game/njs/PlayerMPmax";
 import { PlayerHPmax } from "@/lib/game/njs/PlayerHPmax";
 import { PlayerAccTot } from "@/lib/game/njs/PlayerAccTot";
+import { PlayerSpeedBonus } from "@/lib/game/njs/PlayerSpeedBonus";
 import { formatGameValue } from "@/lib/readings/format";
 import { READINGS_DIR, loadReadings, readingSave } from "@/lib/readings/registry";
 import type { StatKey } from "@/lib/readings/types";
 
-/** The lib/game value of each stat, as the Player Info panel shows it (before its display format). */
-const STATS: Partial<Record<ArkhStat, (c: Ctx) => number>> = {
+/** The lib/game value of each stat, as the Player Info panel shows it (before its display format); `speed` is the move speed Damage reads. */
+const STATS: Partial<Record<ArkhStat | "speed", (c: Ctx) => number>> = {
   str: (c) => TotalStats(c, "STR"),
   agi: (c) => TotalStats(c, "AGI"),
   wis: (c) => TotalStats(c, "WIS"),
@@ -25,6 +26,7 @@ const STATS: Partial<Record<ArkhStat, (c: Ctx) => number>> = {
   maxMp: (c) => PlayerMPmax(c),
   maxHp: (c) => PlayerHPmax(c),
   accuracy: (c) => PlayerAccTot(c),
+  speed: (c) => PlayerSpeedBonus(c),
 };
 
 const MAP = 251; // a plain map: no dungeon (Dungon() is -1), no arena
@@ -51,7 +53,7 @@ function stateOf(path: string) {
 }
 
 describe.skipIf(GOLDEN_SAVES.length === 0)("lib/game character stats against lib/arkh on every real save and character", () => {
-  for (const stat of Object.keys(STATS) as ArkhStat[]) {
+  for (const stat of Object.keys(STATS) as (ArkhStat | "speed")[]) {
     it(stat, () => {
       const term = STATS[stat]!;
       const t0 = performance.now();
@@ -72,7 +74,7 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("lib/game character stats against lib
             refused.add(`${basename(path)}: ${e.key}`);
             continue;
           }
-          const want = arkhStat(path, ci, stat);
+          const want = stat === "speed" ? arkhSpeed(path, ci) : arkhStat(path, ci, stat);
           pairs++;
           seen.add(want);
           const covered = KNOWN_ARKH_DIFFS.some((d) => d.stat === stat && d.save === basename(path) && (d.ci ?? ci) === ci);
