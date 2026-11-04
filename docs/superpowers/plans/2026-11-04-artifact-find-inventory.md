@@ -32,26 +32,26 @@ Do not edit by hand: regenerate it when N.js changes. Tick a row when its sub-ca
 
 ## RandomEvent
 
-- [ ] RandomEvent("FractalIslandBonus",3,999) — depth 1 — 148 chars
-- [ ] RandomEvent("KillroyBonuses",0,0) — depth 1 — 143 chars
+- [x] RandomEvent("FractalIslandBonus",3,999) — depth 1 — 148 chars — ported in Task 6: the replay of DNSM.FracIsBn (ActorEvents_623's Create @11694238); b in 0..7
+- [x] RandomEvent("KillroyBonuses",0,0) — depth 1 — 143 chars — ported in Task 6; b == 0 only
 
 ## GetBribeBonus
 
-- [ ] GetBribeBonus("34") — depth 1 — 184 chars — whole body
+- [x] GetBribeBonus("34") — depth 1 — 184 chars — whole body — ported in Task 6 (any bribe)
 
 ## ArcadeBonus
 
-- [ ] ArcadeBonus(32) — depth 1 — 1017 chars — whole body
-- [ ] ArcadeBonus(66) — depth 1 — 1017 chars — whole body
+- [x] ArcadeBonus(32) — depth 1 — 1017 chars — whole body — ported in Task 6 (one block, any upgrade)
+- [x] ArcadeBonus(66) — depth 1 — 1017 chars — whole body — ported in Task 6 (one block, any upgrade)
 - [~] ArcadeBonus(44) — depth 3 — 1017 chars — whole body — not reached for ArtifactBonus 3 and 32: only WorkbenchStuff("PlayerBuildSpd") calls it (the l=8 branch), which is not reached
-- [ ] ArcadeBonus(51) — depth 3 — 1017 chars — whole body
-- [ ] ArcadeBonus(59) — depth 5 — 1017 chars — whole body
+- [x] ArcadeBonus(51) — depth 3 — 1017 chars — whole body — ported in Task 6 (one block, any upgrade)
+- [x] ArcadeBonus(59) — depth 5 — 1017 chars — whole body — ported in Task 6 (one block, any upgrade)
 
 ## Holes
 
 - [ ] Holes("B_UPG",55,0) — depth 1 — 98 chars
 - [ ] Holes("MonumentROGbonuses",1,2) — depth 1 — 172 chars
-- [ ] Holes("CosmoBonusQTY",2,3) — depth 3 — 279 chars
+- [x] Holes("CosmoBonusQTY",2,3) — depth 3 — 279 chars — ported in Task 6 (any Cosmo upgrade)
 
 ## FarmingStuffs
 
@@ -74,27 +74,27 @@ Do not edit by hand: regenerate it when N.js changes. Tick a row when its sub-ca
 
 ## Summoning
 
-- [ ] Summoning("VaultUpgBonus",63,0) — depth 1 — 2241 chars
-- [ ] Summoning("WinBonus",3,0) — depth 1 — 3535 chars
-- [ ] Summoning("VotingBonusz",20,0) — depth 1 — 917 chars — via Summoning2
-- [ ] Summoning("EventShopOwned",37,0) — depth 2 — 152 chars
-- [ ] Summoning("VaultUpgBonus",32,0) — depth 2 — 7 chars
-- [ ] Summoning("VaultUpgBonus",61,0) — depth 2 — 7 chars
-- [ ] Summoning("VaultUpgBonus",89,0) — depth 2 — 7 chars
-- [ ] Summoning("EventShopOwned",48,0) — depth 2 — 152 chars
-- [ ] Summoning("WinBonus",31,0) — depth 2 — 60 chars
-- [ ] Summoning("GrimoireUpgBonus",17,0) — depth 2 — 7 chars
-- [ ] Summoning("VotingBonuszMulti",0,0) — depth 2 — 557 chars — via Summoning2
+- [x] Summoning("VaultUpgBonus",63,0) — depth 1 — 2241 chars — ported in Task 6; the plain vaults and 61..88; the vaults below 61 that are not plain throw NotPorted
+- [x] Summoning("WinBonus",3,0) — depth 1 — 3535 chars — ported in Task 6; b = -1, 20, 22, 24, 31 and every b outside 19 and 20..33; 19 and the rest of 20..33 throw NotPorted
+- [x] Summoning("VotingBonusz",20,0) — depth 1 — 917 chars — via Summoning2 — ported in Task 6 in Summoning2; the vote in force is serverVars.voteCategories[0]; vote 1 throws NotPorted
+- [x] Summoning("EventShopOwned",37,0) — depth 2 — 152 chars — ported in Task 6 (any item)
+- [~] Summoning("VaultUpgBonus",32,0) — depth 2 — 7 chars — not reached for VaultUpgBonus 63 (its 89>b branch calls only (89)); the plain-vault line serves it if asked
+- [~] Summoning("VaultUpgBonus",61,0) — depth 2 — 7 chars — not reached for VaultUpgBonus 63 (its 89>b branch calls only (89)); the plain-vault line serves it if asked
+- [x] Summoning("VaultUpgBonus",89,0) — depth 2 — 7 chars — ported in Task 6 (a plain vault)
+- [x] Summoning("EventShopOwned",48,0) — depth 2 — 152 chars — ported in Task 6 (any item)
+- [x] Summoning("WinBonus",31,0) — depth 2 — 60 chars — ported in Task 6
+- [x] Summoning("GrimoireUpgBonus",17,0) — depth 2 — 7 chars — ported in Task 6 (the plain upgrades only; reached from Thingies LoreEpiBon, Task 8)
+- [x] Summoning("VotingBonuszMulti",0,0) — depth 2 — 557 chars — via Summoning2 — ported in Task 6 in Summoning2
 - [~] Summoning("VaultUpgBonus",74,0) — depth 3 — 7 chars — not reached for ArtifactBonus 3 and 32: only Sailing("SlabboBonus_AllMulti") calls it, which is not reached
 - [~] Summoning("VotingBonusz",18,0) — depth 3 — 917 chars — via Summoning2 — not reached for ArtifactBonus 3 and 32: only WorkbenchStuff("PlayerBuildSpd") calls it (the l=8 branch), which is not reached
 - [~] Summoning("VaultUpgBonus",48,0) — depth 3 — 2241 chars — not reached for ArtifactBonus 3 and 32: only WorkbenchStuff("PlayerBuildSpd") calls it (the l=8 branch), which is not reached
 - [~] Summoning("VaultKillzTotal",11,0) — depth 3 — 3929 chars — not reached for ArtifactBonus 3 and 32: only WorkbenchStuff("PlayerBuildSpd") calls it (the l=8 branch), which is not reached
 - [~] Summoning("WinBonus",13,0) — depth 3 — 3535 chars — not reached for ArtifactBonus 3 and 32: only WorkbenchStuff("PlayerBuildSpd") calls it (the l=8 branch), which is not reached
-- [ ] Summoning("WinBonus",22,0) — depth 3 — 7 chars
-- [ ] Summoning("EventShopOwned",7,0) — depth 3 — 152 chars
-- [ ] Summoning("EventShopOwned",16,0) — depth 3 — 152 chars
-- [ ] Summoning("MeritocBonuszMulti",0,0) — depth 4 — 519 chars — via Summoning2
-- [ ] Summoning("EventShopOwned",23,0) — depth 5 — 152 chars
+- [x] Summoning("WinBonus",22,0) — depth 3 — 7 chars — ported in Task 6
+- [x] Summoning("EventShopOwned",7,0) — depth 3 — 152 chars — ported in Task 6 (any item)
+- [x] Summoning("EventShopOwned",16,0) — depth 3 — 152 chars — ported in Task 6 (any item)
+- [x] Summoning("MeritocBonuszMulti",0,0) — depth 4 — 519 chars — via Summoning2 — ported in Task 6 in Summoning2
+- [x] Summoning("EventShopOwned",23,0) — depth 5 — 152 chars — ported in Task 6 (any item)
 
 ## MenagerieStuff
 
@@ -131,22 +131,22 @@ Do not edit by hand: regenerate it when N.js changes. Tick a row when its sub-ca
 
 ## Stuff2
 
-- [ ] Stuff2("PurpleChestSlugsOwned",0,0) — depth 1 — 59 chars
+- [x] Stuff2("PurpleChestSlugsOwned",0,0) — depth 1 — 59 chars — ported in Task 6
 
 ## SushiStuff
 
-- [ ] SushiStuff("RoG_BonusQTY",7,0) — depth 1 — 128 chars
-- [ ] SushiStuff("UniqueSushi",0,0) — depth 2 — 421 chars
-- [ ] SushiStuff("RoG_BonusQTY",53,0) — depth 3 — 128 chars
-- [ ] SushiStuff("MaxTier",0,0) — depth 3 — 10 chars
-- [ ] SushiStuff("RoG_BonusQTY",50,0) — depth 3 — 128 chars
-- [ ] SushiStuff("RoG_BonusQTY",51,0) — depth 5 — 128 chars
+- [x] SushiStuff("RoG_BonusQTY",7,0) — depth 1 — 128 chars — ported in Task 6 (any upgrade)
+- [x] SushiStuff("UniqueSushi",0,0) — depth 2 — 421 chars — ported in Task 6
+- [x] SushiStuff("RoG_BonusQTY",53,0) — depth 3 — 128 chars — ported in Task 6 (any upgrade)
+- [x] SushiStuff("MaxTier",0,0) — depth 3 — 10 chars — ported in Task 6
+- [x] SushiStuff("RoG_BonusQTY",50,0) — depth 3 — 128 chars — ported in Task 6 (any upgrade)
+- [x] SushiStuff("RoG_BonusQTY",51,0) — depth 5 — 128 chars — ported in Task 6 (any upgrade)
 
 ## JellyOperation
 
-- [ ] JellyOperation("RoG_BonusQTY",19,0) — depth 1 — 287 chars
-- [ ] JellyOperation("RoG_BonusQTY",28,0) — depth 3 — 287 chars
-- [ ] JellyOperation("RoG_BonusQTY",33,0) — depth 5 — 287 chars
+- [x] JellyOperation("RoG_BonusQTY",19,0) — depth 1 — 287 chars — ported in Task 6 (any upgrade)
+- [x] JellyOperation("RoG_BonusQTY",28,0) — depth 3 — 287 chars — ported in Task 6 (any upgrade)
+- [x] JellyOperation("RoG_BonusQTY",33,0) — depth 5 — 287 chars — ported in Task 6 (any upgrade)
 
 ## MainframeBonus
 
@@ -156,34 +156,34 @@ Do not edit by hand: regenerate it when N.js changes. Tick a row when its sub-ca
 ## Thingies
 
 - [ ] Thingies("LoreEpiBon",3,0) — depth 1 — 1352 chars
-- [ ] Thingies("Have_ban_i",0,0) — depth 2 — 67 chars
-- [ ] Thingies("EmperorBon",8,0) — depth 2 — 1769 chars
+- [x] Thingies("Have_ban_i",0,0) — depth 2 — 67 chars — ported in Task 6
+- [x] Thingies("EmperorBon",8,0) — depth 2 — 1769 chars — ported in Task 6
 - [x] Thingies("LegendPTS_bonus",11,0) — depth 2 — 154 chars — ported in Task 4 (Ruling C); only this sub-case
-- [ ] Thingies("LegendPTS_bonus",10,0) — depth 2 — 154 chars
+- [x] Thingies("LegendPTS_bonus",10,0) — depth 2 — 154 chars — ported in Task 6: Task 4's sub-case, any talent
 - [~] Thingies("LegendPTS_bonus",28,0) — depth 3 — 154 chars — not reached for ArtifactBonus 3 and 32: only Sailing("SlabboBonus_AllMulti") calls it, which is not reached
-- [ ] Thingies("LegendPTS_bonus",22,0) — depth 3 — 154 chars
-- [ ] Thingies("ClamWorkBonus",3,0) — depth 5 — 78 chars
-- [ ] Thingies("LegendPTS_bonus",24,0) — depth 5 — 154 chars
+- [x] Thingies("LegendPTS_bonus",22,0) — depth 3 — 154 chars — ported in Task 6: Task 4's sub-case, any talent
+- [x] Thingies("ClamWorkBonus",3,0) — depth 5 — 78 chars — ported in Task 6
+- [x] Thingies("LegendPTS_bonus",24,0) — depth 5 — 154 chars — ported in Task 6: Task 4's sub-case, any talent
 
 ## Ninja
 
-- [ ] Ninja("PristineBon",2,0) — depth 1 — 132 chars
-- [ ] Ninja("PristineBon",8,0) — depth 2 — 132 chars
+- [x] Ninja("PristineBon",2,0) — depth 1 — 132 chars — ported in Task 6 (any charm)
+- [x] Ninja("PristineBon",8,0) — depth 2 — 132 chars — ported in Task 6 (any charm)
 
 ## GamingStatType
 
-- [ ] GamingStatType("PaletteBonus",5,0) — depth 1 — 2130 chars
-- [ ] GamingStatType("SuperBitType",26,0) — depth 1 — 139 chars
-- [ ] GamingStatType("SuperBitType",62,0) — depth 2 — 139 chars
-- [ ] GamingStatType("SuperBitType",49,0) — depth 2 — 139 chars
-- [ ] GamingStatType("SuperBitType",51,0) — depth 2 — 139 chars
-- [ ] GamingStatType("SuperBitType",52,0) — depth 2 — 139 chars
-- [ ] GamingStatType("SuperBitType",54,0) — depth 2 — 139 chars
-- [ ] GamingStatType("SuperBitType",58,0) — depth 2 — 139 chars
-- [ ] GamingStatType("SuperBitType",61,0) — depth 2 — 139 chars
-- [ ] GamingStatType("SuperBitType",59,0) — depth 2 — 139 chars
+- [x] GamingStatType("PaletteBonus",5,0) — depth 1 — 2130 chars — ported in Task 6 (any shade)
+- [x] GamingStatType("SuperBitType",26,0) — depth 1 — 139 chars — ported in Task 6 (any Super Bit)
+- [x] GamingStatType("SuperBitType",62,0) — depth 2 — 139 chars — ported in Task 6 (any Super Bit)
+- [x] GamingStatType("SuperBitType",49,0) — depth 2 — 139 chars — ported in Task 6 (any Super Bit)
+- [x] GamingStatType("SuperBitType",51,0) — depth 2 — 139 chars — ported in Task 6 (any Super Bit)
+- [x] GamingStatType("SuperBitType",52,0) — depth 2 — 139 chars — ported in Task 6 (any Super Bit)
+- [x] GamingStatType("SuperBitType",54,0) — depth 2 — 139 chars — ported in Task 6 (any Super Bit)
+- [x] GamingStatType("SuperBitType",58,0) — depth 2 — 139 chars — ported in Task 6 (any Super Bit)
+- [x] GamingStatType("SuperBitType",61,0) — depth 2 — 139 chars — ported in Task 6 (any Super Bit)
+- [x] GamingStatType("SuperBitType",59,0) — depth 2 — 139 chars — ported in Task 6 (any Super Bit)
 - [~] GamingStatType("PaletteBonus",25,0) — depth 3 — 2130 chars — not reached for ArtifactBonus 3 and 32: only WorkbenchStuff("PlayerBuildSpd") calls it (the l=8 branch), which is not reached
-- [ ] GamingStatType("PaletteBonus",32,0) — depth 3 — 2130 chars
+- [x] GamingStatType("PaletteBonus",32,0) — depth 3 — 2130 chars — ported in Task 6 (any shade)
 
 ## ReturnClasses
 
@@ -204,14 +204,17 @@ Do not edit by hand: regenerate it when N.js changes. Tick a row when its sub-ca
 
 ## AchieveStatus
 
-- [ ] AchieveStatus(379) — depth 2 — 147 chars — whole body
-- [ ] AchieveStatus(373) — depth 2 — 147 chars — whole body
+- [x] AchieveStatus(379) — depth 2 — 147 chars — whole body — ported in Task 6 (any achievement)
+- [x] AchieveStatus(373) — depth 2 — 147 chars — whole body — ported in Task 6 (any achievement)
 - [~] AchieveStatus(153) — depth 3 — 147 chars — whole body — not reached for ArtifactBonus 3 and 32: only WorkbenchStuff("PlayerBuildSpd") calls it (the l=8 branch), which is not reached
 
 ## GetSetBonus
 
-- [ ] GetSetBonus("GODSHARD_SET","Bonus",0,0) — depth 2 — 3305 chars — whole body
-- [ ] GetSetBonus("TROLL_SET","Bonus",0,0) — depth 2 — 3305 chars — whole body
+- [x] GetSetBonus("GODSHARD_SET","Bonus",0,0) — depth 2 — 3305 chars — whole body — ported in Task 6 (any set; the "Bonus", "PartsOn" and "PartsReq" asks)
+- [x] GetSetBonus("TROLL_SET","Bonus",0,0) — depth 2 — 3305 chars — whole body — ported in Task 6 (any set)
+- [x] GetSetBonus("GODSHARD_SET","PartsOn",0,0) — not in the generated list: the whole body of "Bonus" calls it for every set; ported in Task 6
+- [x] GetSetBonus("GODSHARD_SET","PartsReq",0,0) — not in the generated list: the whole body of "Bonus" calls it for every set; ported in Task 6
+- [~] GetSetBonus("N","PermaUnlock",0,0) — not in the generated list: reached, but only to decide a write of the set's name into OptionsListAccount[379], which never changes a "Bonus" value (the set is then unlocked with the same bonus); throws NotPorted
 
 ## Holes2
 
@@ -220,13 +223,13 @@ Do not edit by hand: regenerate it when N.js changes. Tick a row when its sub-ca
 
 ## Spelunk
 
-- [ ] Spelunk("DoWeHaveLoreN1",8,0) — depth 2 — 71 chars
+- [x] Spelunk("DoWeHaveLoreN1",8,0) — depth 2 — 71 chars — ported in Task 6 (any lore note)
 
 ## Summoning2
 
 - [~] Summoning2("MeritocBonusz",23,0) — depth 3 — 330 chars — not reached for ArtifactBonus 3 and 32: only Sailing("SlabboBonus_AllMulti") calls it, which is not reached
-- [ ] Summoning2("MeritocBonusz",9,0) — depth 3 — 330 chars
-- [ ] Summoning2("MeritocCanVote",0,0) — depth 5 — 67 chars
+- [x] Summoning2("MeritocBonusz",9,0) — depth 3 — 330 chars — ported in Task 6 (any bonus)
+- [x] Summoning2("MeritocCanVote",0,0) — depth 5 — 67 chars — ported in Task 6
 
 ## StampBonusOfTypeX
 
@@ -251,7 +254,7 @@ Do not edit by hand: regenerate it when N.js changes. Tick a row when its sub-ca
 
 ## ArbitraryCode5Inputs
 
-- [ ] ArbitraryCode5Inputs() — depth 3 — 551 chars — whole body
+- [x] ArbitraryCode5Inputs() — depth 3 — 551 chars — whole body — ported in Task 6 (the whole function)
 
 ## AtomCollider
 
@@ -265,7 +268,7 @@ Do not edit by hand: regenerate it when N.js changes. Tick a row when its sub-ca
 
 ## ArcaneType
 
-- [ ] ArcaneType("ArcaneUpgBonus",48,0) — depth 3 — 7 chars
+- [x] ArcaneType("ArcaneUpgBonus",48,0) — depth 3 — 7 chars — ported in Task 6; the plain upgrades only, the others throw NotPorted
 
 ## attrs
 
@@ -326,8 +329,8 @@ Do not edit by hand: regenerate it when N.js changes. Tick a row when its sub-ca
 
 - [ ] `AlchBubbles`
 - [ ] `AlchVials`
-- [ ] `ArcadBonDL` — whole body only
-- [ ] `ArcadBonDNz` — whole body only
+- [x] `ArcadBonDL` — whole body only — a local in ArcadeBonus
+- [x] `ArcadBonDNz` — whole body only — a local in ArcadeBonus
 - [ ] `AtomBonCalc1`
 - [ ] `AtomBonCalc2`
 - [ ] `AtomBonDN`
@@ -341,13 +344,13 @@ Do not edit by hand: regenerate it when N.js changes. Tick a row when its sub-ca
 - [x] `CompanionLVz` — whole body only — DNSM_CompanionLVz (lib/game/njs/DNSM.ts)
 - [ ] `DropRateLUK` — whole body only
 - [ ] `DropRateLUK2` — whole body only
-- [ ] `EmperorBon`
+- [x] `EmperorBon` — emperorBonTable (lib/game/njs/Thingies.ts): the replay of the fill
 - [ ] `ExoticFarmBon`
 - [ ] `ExoticFarmDN`
 - [ ] `FamBonusQTYs` — whole body only
 - [ ] `FountBonT`
 - [ ] `FountBonTdn`
-- [ ] `FracIsBn`
+- [x] `FracIsBn` — fractalIslandBonus (lib/game/njs/RandomEvent.ts): the replay of the fill
 - [ ] `GalleryNametagBonTOT` — whole body only
 - [ ] `GalleryTrophyBonTOT` — whole body only
 - [ ] `GlimboTOT`
@@ -355,25 +358,25 @@ Do not edit by hand: regenerate it when N.js changes. Tick a row when its sub-ca
 - [ ] `LabMFbonuses` — whole body only
 - [ ] `LoreEpiBon`
 - [x] `NghMrTOT` — a local in MenagerieStuff NightmarinerTotLV
-- [ ] `PaletteBonz`
-- [ ] `PaletteDNz`
+- [x] `PaletteBonz` — a local in GamingStatType PaletteBonus
+- [x] `PaletteDNz` — a local in GamingStatType PaletteBonus
 - [x] `PetszzBrDN1` — a local in Breeding SpecialPassives
 - [x] `PetszzBrDN2` — a local in Breeding ShinyBonusS
 - [x] `PetszzBrDNq` — a local in Breeding ShinyBonusS
 - [ ] `PremHatBonTOT` — whole body only
-- [ ] `SWinBonDN`
-- [ ] `SWinBonDN2`
+- [x] `SWinBonDN` — a local in Summoning WinBonus (summWinBonus)
+- [x] `SWinBonDN2` — a local in Summoning WinBonus (summWinBonus)
 - [ ] `SailzArtiBonusDN`
 - [ ] `SailzArtiBonusL`
-- [ ] `SetBonusTOTz` — whole body only
-- [ ] `SetzuDN1` — whole body only
-- [ ] `SetzuDN2` — whole body only
+- [x] `SetBonusTOTz` — whole body only — GetSetBonus "Bonus": the asked set is computed from the character's equipment, as the fill does
+- [x] `SetzuDN1` — whole body only — a local in GetSetBonus PartsOn
+- [x] `SetzuDN2` — whole body only — a local in GetSetBonus PartsOn
 - [x] `ShinyBonusS` — a local in Breeding ShinyBonusS
 - [ ] `Sp_bn_l` — whole body only
 - [ ] `StampBonuses_Map_Of_Val` — whole body only
 - [ ] `StarSigns`
-- [ ] `Stuff6q`
-- [ ] `SummWinBonus`
+- [x] `Stuff6q` — a local in Thingies EmperorBon
+- [x] `SummWinBonus` — summWinBonus (lib/game/njs/Summoning.ts): the replay of the fill
 - [ ] `TotOccFnd`
 - [ ] `TotOccLVz`
 - [ ] `TotStatMAP` — whole body only
@@ -382,7 +385,7 @@ Do not edit by hand: regenerate it when N.js changes. Tick a row when its sub-ca
 - [ ] `TotalStatsDT2` — whole body only
 - [ ] `TotalStatsETCmap` — whole body only
 - [ ] `TotalStatsETCmap2List` — whole body only
-- [ ] `UNQ_sushi`
+- [x] `UNQ_sushi` — a local in SushiStuff UniqueSushi
 - [ ] `VaultKillzDN3`
 - [ ] `VaultKillzDN4`
 - [ ] `VaultKillzTOT`

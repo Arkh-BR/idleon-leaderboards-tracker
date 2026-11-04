@@ -5,9 +5,7 @@ import { asNumber, attr } from "../attr";
 import { runtime, type Ctx } from "../ctx";
 import { CompanionDB } from "../data";
 import { InvalidSaveValue, MissingSaveKey, NotPorted } from "../errors";
-
-/** Haxe `Std.string` of a value the game concatenates to "": null (and undefined) print as "null". */
-const hString = (v: unknown): string => (v == null ? "null" : String(v));
+import { hString } from "../hstring";
 
 /**
  * `u.getCompanionInfoMe()` @10650052: the account's companion list, one "id,x,x,x,stage2" entry each,
