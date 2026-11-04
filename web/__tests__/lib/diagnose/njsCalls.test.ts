@@ -92,6 +92,16 @@ describe("traceCalls", () => {
     expect(callDiff([{ block: "TotalStats" }], traceCalls(trace)).missing).toEqual([{ block: "TotalStats" }]);
   });
 
+  it("skips assumed values like runtime ones: not N.js calls, and one named after a block would mask a missing call", () => {
+    const trace = root(
+      node("TotalStats", ["STR"], [], "assumed: the lab is connected"),
+      node("Summoning", ["V"], [node("Inner", [1]), node("GenINFO", [], [], "assumed: x")]),
+      node("Stamp", [4], [], "cached")
+    );
+    expect(traceCalls(trace)).toEqual([{ block: "Summoning", arg0: "V" }, { block: "Inner", arg0: 1 }, { block: "Stamp", arg0: 4 }]);
+    expect(callDiff([{ block: "TotalStats" }], traceCalls(trace)).missing).toEqual([{ block: "TotalStats" }]);
+  });
+
   it("skips (absent) leaves, an asNumber(null) = 0 that is not an N.js call, but keeps the calls around them", () => {
     const trace = root(
       node("Summoning", ["V", 20, 0], [node("(absent)", ["Lv0[9]"], [], "absent: asNumber(null) = 0"), node("Stamp", [4])]),

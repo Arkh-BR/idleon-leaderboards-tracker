@@ -99,6 +99,15 @@ export const gameCtx = (save: unknown, ci: number, trace?: boolean): Ctx =>
 const COMPANION_0_GATE =
   "Companions(0) @10799980 is 0 below Lv0[14] = 2 (`0==d&&2>c.asNumber(Lv0[14])?0:…`); Koweabooo#10 has Lv0_10[14] = 1. lib/arkh's companionBonus has no such gate, so its Grid_Bonus_Allmulti @11179174 keeps the +5 of `5*min(1, Research[0][173]*Companions(0))` (game 1.16, arkh 1.21). Raising Lv0_10[14] to 2 makes lib/game equal lib/arkh (accountUpgrades.test.ts)";
 
+const TOME_SOURCE =
+  "lib/arkh reads IdleonToolbox's parsedData tome total; lib/game uses lib/tome (N.js port, validated in game 2026-11-03) for the Tome actor's GenInfo[84] @5778865 (the Lore Episode reads it). With the total forced to IdleonToolbox's number for this save, lib/game equals lib/arkh (loreEpi.test.ts)";
+/** The saves whose loreEpi3 differs only because the Tome total of lib/tome is not the one IdleonToolbox stamped (checked in loreEpi.test.ts). */
+const TOME_SOURCE_SAVES = [
+  "0celot8.json", "1st_Giri.json", "24632463.json", "5OhTree.json", "Dragonlzl.json", "Exrom.json", "FenrirAdra.json", "Flipper143.json",
+  "GIM_SSS.json", "Grandesz.json", "Koweabooo.json", "Pontinhas.json", "arkhe-2026-09-23.json", "bluestar3112.json", "breakinbrad.json",
+  "hellzd4nt3.json", "joelok.json",
+];
+
 /**
  * Where N.js proves lib/arkh wrong and lib/game keeps the N.js value. `save` is the file name of the
  * GOLDEN_SAVES entry, `ci` omitted means every character; `why` cites the `@offset` evidence.
@@ -110,4 +119,6 @@ export const KNOWN_ARKH_DIFFS: { save: string; ci?: number; source: string; why:
   { save: "Koweabooo.json", ci: 10, source: "sticker2mult", why: COMPANION_0_GATE }, // 0 on every real save; differs only with Menagerie unlock 22 forced
   // Task 8: the Minehead presses are multiplied by 1 + Grid_Bonus(125, 0) / 100, whose Grid_Bonus_Allmulti has the same Companions(0) term
   { save: "Koweabooo.json", ci: 10, source: "button3", why: COMPANION_0_GATE },
+  // Ruling K: the Tome score of the Lore Episode is lib/tome's, not IdleonToolbox's (ci omitted: every character)
+  ...TOME_SOURCE_SAVES.map((save) => ({ save, source: "loreEpi3", why: TOME_SOURCE })),
 ];

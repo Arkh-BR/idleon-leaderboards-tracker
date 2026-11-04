@@ -13,7 +13,7 @@ import { Breeding } from "@/lib/game/njs/Breeding";
 import { CauldronStats } from "@/lib/game/njs/CauldronStats";
 import { chipBonuses } from "@/lib/game/njs/chipBonuses";
 import { Companions } from "@/lib/game/njs/Companions";
-import { DNSM_AlchVials, DNSM_StarSigns } from "@/lib/game/njs/DNSM";
+import { DNSM_AlchVials, DNSM_StarSigns, DNSM_TomeQTYtot } from "@/lib/game/njs/DNSM";
 import { GamingStatType } from "@/lib/game/njs/GamingStatType";
 import { GetSetBonus } from "@/lib/game/njs/GetSetBonus";
 import { JellyOperation } from "@/lib/game/njs/JellyOperation";
@@ -27,6 +27,7 @@ import { Summoning } from "@/lib/game/njs/Summoning";
 import { Summoning2 } from "@/lib/game/njs/Summoning2";
 import { Thingies } from "@/lib/game/njs/Thingies";
 import { callDiff, njsCalls, njsFunction, njsNamedBlocks, njsSlice, traceCalls } from "@/lib/diagnose/njsCalls";
+import { computeTome } from "@/lib/tome/compute";
 import { loadNjs } from "@/scripts/njs-calls";
 
 // The terms, written the way BoatArtiMulti writes them. spelunkBit26 is the factor inside `Math.max(1, …)` (the group applies the
@@ -233,15 +234,17 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("Ninja EmporiumBonus (N.js @10845956)
     expect(mf(c, 10)).toBe(2);
     expect(mf(emporium([], true), 14)).toBe(0);
   });
-  it("the connection (the Laboratory's GenINFO[92], live) is the one assumption: counted as connected, and shown in the trace", () => {
+  it("the connection (the Laboratory's GenINFO[92], live) is a declared assumption (Ruling J): counted as connected, an `assumed:` leaf in the trace", () => {
     const c = emporium([8], true);
     expect(mf(c)).toBe(50);
-    const text = JSON.stringify(c.trace);
-    expect(text).toContain("assumed");
-    expect(text).toContain("GenINFO[92]");
+    const leaf = c.trace!.children[0].children.find((n) => n.block === "GenINFO[92][14]");
+    expect(leaf).toMatchObject({ value: 1, args: [] });
+    expect(leaf!.note).toMatch(/^assumed: .*not ported/);
     const none = emporium([], true);
     mf(none);
     expect(JSON.stringify(none.trace)).not.toContain("assumed"); // nothing to connect
+    // and it is not an N.js call: it does not show among the calls the trace makes
+    expect(traceCalls(c.trace!).map((x) => x.block)).not.toContain("GenINFO[92][14]");
   });
   it("a save without Ninja[102] is refused (the game indexes Ninja[102][9])", () => {
     expect(() => mf(variant((d) => setIn(d, "Ninja", (n) => (n[102] = null))))).toThrow(MissingSaveKey);
@@ -260,22 +263,11 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("Ninja EmporiumBonus (N.js @10845956)
 });
 
 // ── Thingies LoreEpiBon ──────────────────────────────────────────────────────────────────────────
-describe.skipIf(GOLDEN_SAVES.length === 0)("Thingies LoreEpiBon (N.js @10974601)", () => {
+// The formula is checked at controlled Tome scores in loreEpi.test.ts (it mocks lib/tome); here the score is lib/tome's own.
+describe.skipIf(GOLDEN_SAVES.length === 0)("Thingies LoreEpiBon (N.js @10974601) and DNSM.TomeQTYtot", () => {
   // Spelunky[21][3] = '100|3000': value 100, starts at 3000 Tome points. Spelunk[13][2] is how many lore episodes are unlocked.
-  const lore = (o: { tome?: number | null; unlocked?: number; parsed?: boolean; trace?: boolean } = {}) =>
-    variant(
-      (d) => setIn(d, "Spelunk", (s) => (s[13][2] = o.unlocked ?? 10)),
-      {
-        trace: o.trace,
-        env: (e) => {
-          delete e.extraData;
-          delete e.parsedData;
-          if (o.tome === null) return;
-          if (o.parsed) e.parsedData = { totalTomePoints: o.tome ?? 13000 };
-          else e.extraData = { totalTomePoints: o.tome ?? 13000 };
-        },
-      }
-    );
+  const lore = (o: { unlocked?: number; trace?: boolean; env?: (e: any) => void } = {}) =>
+    variant((d) => setIn(d, "Spelunk", (s) => (s[13][2] = o.unlocked ?? 10)), { trace: o.trace, env: o.env });
   const term = (c: Ctx, b = 3) => Thingies(c, "LoreEpiBon", b, 0);
   const boost = (c: Ctx) => 1 + (Summoning(c, "GrimoireUpgBonus", 17, 0) + GetSetBonus(c, "TROLL_SET", "Bonus", 0, 0)) / 100;
   const shape = (tome: number, from: number) => {
@@ -285,31 +277,59 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("Thingies LoreEpiBon (N.js @10974601)
 
   it("is (1 + (Grimoire 17 + TROLL set) / 100) x a x p / (25 + p), p = floor((Tome - b) / 100) ^ .7, for the entry 'a|b'", () => {
     expect((Spelunky as any)[21][3]).toBe("100|3000");
-    const c = lore({ tome: 13000 });
-    expect(term(c)).toBeCloseTo(boost(c) * 100 * shape(13000, 3000), 12);
+    const c = lore();
+    const tome = DNSM_TomeQTYtot(c);
+    expect(tome).toBeGreaterThan(3000);
+    expect(term(c)).toBeCloseTo(boost(c) * 100 * shape(tome, 3000), 12);
     expect(term(c)).toBeGreaterThan(0);
-    expect(term(lore({ tome: 103000 }))).toBeCloseTo(boost(c) * 100 * shape(103000, 3000), 12);
   });
   it("is the entry b asked: 'a|b' of Spelunky[21][b]", () => {
-    const c = lore({ tome: 20000 });
+    const c = lore();
     const [a, from] = String((Spelunky as any)[21][0]).split("|").map(Number);
-    expect(term(c, 0)).toBeCloseTo(boost(c) * a * shape(20000, from), 12);
+    expect(term(c, 0)).toBeCloseTo(boost(c) * a * shape(DNSM_TomeQTYtot(c), from), 12);
   });
-  it("is 0 below the entry's start (the power of 0), and for a lore episode that is not unlocked yet (Spelunk[13][2] <= b)", () => {
-    expect(term(lore({ tome: 3050 }))).toBe(0);
-    expect(term(lore({ tome: 0 }))).toBe(0);
-    expect(term(lore({ tome: 13000, unlocked: 3 }))).toBe(0);
-    expect(term(lore({ tome: 13000, unlocked: 4 }))).toBeGreaterThan(0);
+  it("is 0 for a lore episode that is not unlocked yet (Spelunk[13][2] <= b)", () => {
+    expect(term(lore({ unlocked: 3 }))).toBe(0);
+    expect(term(lore({ unlocked: 4 }))).toBeGreaterThan(0);
   });
-  it("the Tome score is the envelope's: extraData.totalTomePoints, else parsedData.totalTomePoints", () => {
-    expect(term(lore({ tome: 13000, parsed: true }))).toBe(term(lore({ tome: 13000 })));
+  it("the Tome score is lib/tome's own computeTome on the save; what IdleonToolbox stamped on the envelope (extraData, parsedData) is never read (Ruling K)", () => {
+    const plain = lore();
+    const stamped = lore({
+      env: (e) => {
+        e.extraData = { totalTomePoints: 1 };
+        e.parsedData = { totalTomePoints: 1e9, tomePoints: new Array(124).fill(1e6) };
+      },
+    });
+    expect(DNSM_TomeQTYtot(stamped)).toBe(DNSM_TomeQTYtot(plain));
+    expect(term(stamped)).toBe(term(plain));
+    const env = JSON.parse(readFileSync(BASE, "utf8"));
+    delete env.extraData;
+    delete env.parsedData;
+    setIn(env.data, "Spelunk", (s) => (s[13][2] = 10));
+    expect(DNSM_TomeQTYtot(plain)).toBe(computeTome(env).totalPts);
   });
-  it("an envelope without a Tome score counts nothing and says so (runtime), instead of a silent 0", () => {
-    const c = lore({ tome: null, trace: true });
-    expect(term(c)).toBe(0);
-    expect(JSON.stringify(c.trace)).toContain("runtime");
-    expect(JSON.stringify(c.trace)).toContain("Tome");
+  it("the Tome score is a leaf that says where it comes from, and is no N.js call", () => {
+    const c = lore({ trace: true });
+    term(c);
+    const text = JSON.stringify(c.trace);
+    expect(text).toContain("assumed: Tome score from lib/tome computeTome");
+    expect(text).toMatch(/\d+ of \d+ rows computed/);
+    const leaf = c.trace!.children[0].children.find((n) => n.block === "DNSM.TomeQTYtot")!.children[0];
+    expect(leaf).toMatchObject({ block: "Tome.totalPoints", value: DNSM_TomeQTYtot(c) });
+    expect(traceCalls(c.trace!).map((x) => x.block)).not.toContain("Tome.totalPoints");
   });
+  it("each save KNOWN_ARKH_DIFFS lists for loreEpi3 has a Tome total of lib/tome that is not IdleonToolbox's: the source differs, nothing else", () => {
+    const known = KNOWN_ARKH_DIFFS.filter((d) => d.source === "loreEpi3");
+    expect(known.length).toBeGreaterThan(10);
+    expect(new Set(known.map((d) => d.save)).size).toBe(known.length);
+    for (const d of known) {
+      expect(d.why).toContain("IdleonToolbox");
+      const path = GOLDEN_SAVES.find((p) => basename(p) === d.save)!;
+      const env = JSON.parse(readFileSync(path, "utf8"));
+      const itTotal = env.extraData?.totalTomePoints ?? env.parsedData?.totalTomePoints;
+      expect(DNSM_TomeQTYtot(gameCtx(env, 0)), d.save).not.toBe(itTotal);
+    }
+  }, 120_000);
   it("a lore episode the list does not have, and the cache rebuild (-1), are not ported", () => {
     const c = lore();
     expect(() => term(c, 11)).toThrow(RangeError);
@@ -321,7 +341,7 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("Thingies LoreEpiBon (N.js @10974601)
   it.skipIf(noNjs)("calls what N.js calls", () => {
     const expected = njsCalls(njsNamedBlocks(njsFunction(loadNjs(), "Thingies")!.body, "LoreEpiBon").join("\n"));
     expect(expected.length).toBeGreaterThan(0); // an empty expectation would pass anything
-    const c = lore({ tome: 13000, trace: true });
+    const c = lore({ trace: true });
     term(c);
     expect(callDiff(expected, traceCalls(c.trace!)).missing).toEqual([]);
   }, 120_000);
@@ -676,18 +696,6 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("variants forced on every real save, 
     expect(r.mismatches).toEqual([]);
     expect(r.pairs).toBeGreaterThan(1000);
     expect(r.seen.size).toBeGreaterThan(2); // every real vial 74 is at its level 13: the values differ by Vault 42 and the Meritoc vote only
-  }, 300_000);
-  it("the Lore Episode 3 at other Tome scores", () => {
-    for (const tome of [0, 3000, 3100, 13000, 250000, 5e7]) {
-      const r = forced("loreEpi3", (env) => {
-        delete env.parsedData;
-        env.extraData = { totalTomePoints: tome };
-      });
-      console.info(`[w7 loreEpi3 Tome ${tome}] ${r.pairs} pairs, ${r.mismatches.length} mismatches, ${r.seen.size} distinct`);
-      expect(r.mismatches, `Tome ${tome}`).toEqual([]);
-      expect(r.pairs).toBeGreaterThan(1000);
-      if (tome >= 13000) expect(r.seen.size).toBeGreaterThan(5);
-    }
   }, 300_000);
   it("the Artifact Attraction through the Emporium: item 8 missing, then none of the four", () => {
     const strip = (items: number[]) => (env: any) =>

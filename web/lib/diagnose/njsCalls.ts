@@ -32,13 +32,13 @@ export function njsCalls(body: string): Call[] {
 
 /**
  * Every call under `trace` (not the node itself), depth-first in call order, cached and threw
- * nodes included. Runtime values are not: they are not N.js calls, and one named after a block
- * would hide that the block's real call is missing. Nor are the `(absent)` leaves `asNum` leaves
+ * nodes included. Runtime and assumed values are not: they are not N.js calls, and one named after a
+ * block would hide that the block's real call is missing. Nor are the `(absent)` leaves `asNum` leaves
  * for a `c.asNumber(null)` (an absent index read as 0): they stand for no N.js function.
  */
 export function traceCalls(trace: TraceNode): Call[] {
   return trace.children.flatMap((n) => {
-    if (n.note?.startsWith("runtime:") || n.note?.startsWith("absent:")) return [];
+    if (n.note?.startsWith("runtime:") || n.note?.startsWith("assumed:") || n.note?.startsWith("absent:")) return [];
     const a = n.args[0];
     return [typeof a === "string" || typeof a === "number" ? { block: n.block, arg0: a } : { block: n.block }, ...traceCalls(n)];
   });

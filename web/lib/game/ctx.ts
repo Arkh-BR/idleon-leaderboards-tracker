@@ -95,3 +95,15 @@ export function runtime(ctx: Ctx, name: string, note: string): number {
   if (ctx.trace) ctx.trace.children.push(traceNode(ctx.trace, ctx.player, name, [], 0, `runtime: ${note}`));
   return 0;
 }
+
+/**
+ * A stand-in for state the game has only at runtime and the save cannot give, stated openly: it returns `value` (the assumption) and shows
+ * in the trace as `assumed: <note>` carrying that value. The second sanctioned non-save value, next to `runtime()`: use it where counting
+ * 0 would make the number wrong and a decision has been made to count something else (the Laboratory's connection, the Tome actor's
+ * score). Like a `runtime` leaf it stands for no N.js function: `traceCalls` skips it and `verifyMap` reports a block that only
+ * appears this way as "runtime".
+ */
+export function assumed(ctx: Ctx, name: string, note: string, value: number): number {
+  if (ctx.trace) ctx.trace.children.push(traceNode(ctx.trace, ctx.player, name, [], value, `assumed: ${note}`));
+  return value;
+}

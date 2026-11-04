@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { buildGameState, type GameEnvelope } from "@/lib/game/state";
 import { NonFiniteResult } from "@/lib/game/errors";
-import { block, makeCtx, runtime, withPlayer, type Ctx } from "@/lib/game/ctx";
+import { assumed, block, makeCtx, runtime, withPlayer, type Ctx } from "@/lib/game/ctx";
 
 const state = buildGameState({
   data: { Lv0_0: [1] },
@@ -290,5 +290,43 @@ describe("runtime", () => {
     const ctx = makeCtx(state, { player: 0, map: 0, trace: true });
     expect(f(ctx)).toBe(5);
     expect(ctx.trace!.children[0].children[0]).toMatchObject({ block: "GenINFO", note: "runtime: not saved" });
+  });
+});
+
+describe("assumed", () => {
+  it("returns the value it is given and leaves a noted node carrying it when tracing", () => {
+    const ctx = makeCtx(state, { player: 0, map: 0, trace: true });
+    expect(assumed(ctx, "GenINFO[92][14]", "the lab is connected", 1)).toBe(1);
+    expect(ctx.trace!.children).toEqual([
+      { block: "GenINFO[92][14]", args: [], value: 1, children: [], note: "assumed: the lab is connected" },
+    ]);
+  });
+
+  it("returns the value without a trace and allocates nothing", () => {
+    const ctx = makeCtx(state, { player: 0, map: 0 });
+    expect(assumed(ctx, "Tome", "x", 54321.5)).toBe(54321.5);
+    expect(ctx.trace).toBeNull();
+  });
+
+  it("is not a runtime value: the note says assumed, the value is the assumption (runtime is always 0)", () => {
+    const ctx = makeCtx(state, { player: 0, map: 0, trace: true });
+    assumed(ctx, "A", "why", 7);
+    runtime(ctx, "R", "why");
+    expect(ctx.trace!.children.map((n) => [n.block, n.value, n.note])).toEqual([
+      ["A", 7, "assumed: why"],
+      ["R", 0, "runtime: why"],
+    ]);
+  });
+
+  it("nests under the block that asked for it; the player is on the block that differs, not repeated on its leaf", () => {
+    const f = block("F", (c) => 5 + assumed(c, "GenINFO", "not saved", 1));
+    const ctx = makeCtx(state, { player: 0, map: 0, trace: true });
+    expect(f(withPlayer(ctx, 3))).toBe(6);
+    expect(ctx.trace!.children[0]).toMatchObject({ block: "F", player: 3 });
+    expect(ctx.trace!.children[0].children[0]).toMatchObject({ block: "GenINFO", value: 1, note: "assumed: not saved" });
+    expect(ctx.trace!.children[0].children[0].player).toBeUndefined();
+    // a leaf asked for directly by another player carries it
+    assumed(withPlayer(ctx, 4), "Direct", "x", 2);
+    expect(ctx.trace!.children[1].player).toBe(4);
   });
 });

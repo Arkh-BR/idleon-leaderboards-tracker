@@ -12,6 +12,8 @@ const node = (block: string, args: unknown[] = [], children: TraceNode[] = [], n
 });
 const root = (...children: TraceNode[]) => node("(root)", [], children);
 const runtime = (block: string) => node(block, [], [], "runtime: buff");
+// a stand-in for runtime-only state, stated openly (ctx.ts assumed): it is no N.js block either
+const assumed = (block: string) => node(block, [], [], "assumed: the lab is connected");
 const cached = (block: string, args: unknown[] = []) => node(block, args, [], "cached");
 // an asNum on an index the save lacks: not an N.js call, so it is no block of the map
 const absent = (address: string) => node("(absent)", [address], [], "absent: asNumber(null) = 0");
@@ -59,6 +61,15 @@ describe("verifyMap", () => {
     );
     const status = Object.fromEntries(verifyMap(trace, [], coveredBy({})).map((r) => [r.block, r.status]));
     expect(status).toEqual({ Always: "runtime", Mixed: "derived", Other: "derived", Hit: "derived" });
+  });
+
+  it("an assumed value is runtime, whatever readings cover it; it is derived when the block also appears as a normal call", () => {
+    const trace = root(assumed("GenINFO[92][14]"), assumed("Both"), node("Both"));
+    expect(verifyMap(trace, [reading("r1", "damage")], coveredBy({ "GenINFO[92][14]": ["damage"], Both: ["damage"] }))).toEqual([
+      { block: "GenINFO[92][14]", status: "runtime" },
+      { block: "Both", status: "validated", readings: ["r1"] },
+    ]);
+    expect(verifyMap(trace, [], coveredBy({})).map((r) => r.status)).toEqual(["runtime", "derived"]);
   });
 
   it("a reading validates through its extra values too (maxHp, str...), not only its main stat", () => {
@@ -120,6 +131,11 @@ describe("notPorted", () => {
     expect(notPorted(deep, text)).toHaveLength(1);
     expect(notPorted(root(node("Foo", [], [cached("TotalStats", ["STR"]), node("Bar")])), text)).toEqual([]);
     expect(notPorted(root(node("Foo", [], [runtime("TotalStats"), node("Bar")])), text)).toHaveLength(1);
+  });
+
+  it("skips assumed nodes like runtime ones: not a ported block to check, not unchecked, and one named like a block covers nothing", () => {
+    expect(notPorted(root(node("Foo", [], [assumed("TotalStats"), node("Bar")])), text)).toHaveLength(1);
+    expect(notPorted(root(assumed("Nope")), text)).toEqual([]); // no N.js slice, and not reported as unchecked
   });
 
   it("skips (absent) leaves: neither a missing call nor an unchecked node (they have no N.js slice)", () => {

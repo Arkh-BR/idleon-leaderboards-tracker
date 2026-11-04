@@ -154,21 +154,6 @@ describe("buildGameState parsing", () => {
     expect("parsedData" in s).toBe(false);
   });
 
-  it("tomePoints is the Tome score the envelope carries: extraData first, then parsedData; undefined when neither has one", () => {
-    expect(buildGameState({ ...env({}), extraData: { totalTomePoints: 5 } } as GameEnvelope).tomePoints).toBe(5);
-    expect(buildGameState({ ...env({}), parsedData: { totalTomePoints: 7 } } as GameEnvelope).tomePoints).toBe(7);
-    expect(buildGameState({ ...env({}), extraData: { totalTomePoints: 5 }, parsedData: { totalTomePoints: 7 } } as GameEnvelope).tomePoints).toBe(5);
-    expect(buildGameState({ ...env({}), extraData: { totalTomePoints: 0 }, parsedData: { totalTomePoints: 7 } } as GameEnvelope).tomePoints).toBe(0); // a 0 is a score
-    expect(buildGameState(env({})).tomePoints).toBeUndefined();
-    expect(buildGameState({ ...env({}), extraData: { dropRate: 2 }, parsedData: { junk: 1 } } as GameEnvelope).tomePoints).toBeUndefined();
-    expect(buildGameState({ ...env({}), extraData: { totalTomePoints: null } } as unknown as GameEnvelope).tomePoints).toBeUndefined();
-  });
-
-  it("a Tome score that is not a finite number is refused, naming where it is", () => {
-    expect(() => buildGameState({ ...env({}), extraData: { totalTomePoints: "5" } } as unknown as GameEnvelope)).toThrow(InvalidSaveValue);
-    expect(() => buildGameState({ ...env({}), parsedData: { totalTomePoints: Number.NaN } } as unknown as GameEnvelope)).toThrow(/parsedData\.totalTomePoints/);
-  });
-
   it("extraData, companion and serverVars may be absent/null", () => {
     expect(buildGameState(env({})).extraData).toBeUndefined();
     expect(buildGameState(env({}, { extraData: undefined })).extraData).toBeUndefined();

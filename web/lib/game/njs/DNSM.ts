@@ -2,12 +2,13 @@
 // reads is a function that replays the code that fills it. Only the caches Artifact Find reads from here;
 // the other DNSM keys are ported where their function is (ShinyBonusS in Breeding, NghMrTOT in MenagerieStuff).
 import { asNum, asNumber, attr } from "../attr";
-import { block, runtime, type Ctx } from "../ctx";
+import { assumed, block, runtime, type Ctx } from "../ctx";
 import { AlchemyDescription, CompanionDB, StarSigns } from "../data";
 import { InvalidSaveValue, MissingSaveKey, NotPorted } from "../errors";
 import { hString } from "../hstring";
 import { contains } from "../lists";
-import { charKey, opt } from "../state";
+import { charKey, opt, type GameState } from "../state";
+import { computeTome } from "@/lib/tome/compute";
 import { CauldronStats } from "./CauldronStats";
 import { chipBonuses } from "./chipBonuses";
 import { RiftStuff } from "./RiftStuff";
@@ -135,4 +136,37 @@ export const DNSM_AlchVials = block("DNSM.AlchVials", (ctx, key: string) => {
     total = CauldronStats(ctx, "VialBonus", 4, g, 0) + asNumber(total);
   }
   return asNumber(total);
+});
+
+/** The Tome score of a state: `computeTome` is heavy (118 rows), the state is immutable and the score is the account's, so once per state. */
+const tomeScores = new WeakMap<GameState, { total: number; covered: number; rows: number }>();
+
+/**
+ * `DNSM.TomeQTYtot`, the account's Tome score: the Tome actor's `GenInfo[84]` (ActorEvents_229), which sums `Summoning("TomePTS", g)`
+ * over `DNSM.TomeQTY` @5779007 and keeps it in `TomeQTYtot` @5778865. It is runtime state this engine does not replay, so it stands in
+ * with our own port of the Tome, `computeTome` (lib/tome, written from the N.js, validated in the game on 2026-11-03), run on the save
+ * (Ruling K). Nothing IdleonToolbox computed is read: the envelope is rebuilt without `parsedData` and `extraData`, which would make
+ * `computeTome` take IT's per-task points. A task `computeTome` cannot compute counts as no points (the leaf says how many rows it
+ * computed); an error from it is not caught.
+ */
+export const DNSM_TomeQTYtot = block("DNSM.TomeQTYtot", (ctx) => {
+  let score = tomeScores.get(ctx.state);
+  if (!score) {
+    const s = ctx.state;
+    const result = computeTome({
+      data: structuredClone(s.data), // computeTome writes into the save it is given; the state is frozen
+      charNames: [...s.charNames],
+      companion: structuredClone(s.companion),
+      guildData: structuredClone(s.guildData),
+      tournament: structuredClone(s.tournament),
+      serverVars: structuredClone(s.serverVars),
+    } as unknown as Parameters<typeof computeTome>[0]);
+    tomeScores.set(s, (score = { total: result.totalPts, covered: result.coveredCount, rows: result.rows.length }));
+  }
+  return assumed(
+    ctx,
+    "Tome.totalPoints",
+    `Tome score from lib/tome computeTome (an N.js port, validated in game 2026-11-03; ${score.covered} of ${score.rows} rows computed): the Tome actor's GenInfo[84] is runtime state (Ruling K)`,
+    score.total
+  );
 });

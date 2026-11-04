@@ -150,12 +150,12 @@ Do not edit by hand: regenerate it when N.js changes. Tick a row when its sub-ca
 
 ## MainframeBonus
 
-- [x] MainframeBonus(14) — depth 1 — 3598 chars — whole body — ported in Task 8: only what index 14 (and 10, read by the vials) executes. `njs-calls MainframeBonus 14` has no `14==d` branch, so it is the whole body; the live callees in it (101, 102, 104..109, 111, 113..115, 117..120, 8) belong to other indexes (0, 3, 8, 9, 11, 13, 15, 17 and the jewels 100+) and are not reached. Index 14 is the steady-state `LabMFbonuses[14]` that TalentCalc(-7) filled: the Emporium (items 8..11) decides whether LabMainBonus has a row 14, and the row is [5] when connected, [4] when not. The connection (GenINFO[92], the Laboratory actor's live walk) is an ASSUMPTION: counted as connected, shown in the trace
+- [x] MainframeBonus(14) — depth 1 — 3598 chars — whole body — ported in Task 8: only what index 14 (and 10, read by the vials) executes. `njs-calls MainframeBonus 14` has no `14==d` branch, so it is the whole body; the live callees in it (101, 102, 104..109, 111, 113..115, 117..120, 8) belong to other indexes (0, 3, 8, 9, 11, 13, 15, 17 and the jewels 100+) and are not reached. Index 14 is the steady-state `LabMFbonuses[14]` that TalentCalc(-7) filled: the Emporium (items 8..11) decides whether LabMainBonus has a row 14, and the row is [5] when connected, [4] when not. The connection (GenINFO[92], the Laboratory actor's live walk) is a declared ASSUMPTION (Ruling J, `assumed()`): counted as connected, shown in the trace
 - [~] MainframeBonus(15) — depth 2 — 3598 chars — whole body — not reached for ArtifactBonus 3 and 32: only the l in {2,10,18,20,999} branch of the pass calls it
 
 ## Thingies
 
-- [x] Thingies("LoreEpiBon",3,0) — depth 1 — 1352 chars — ported in Task 8 (any episode 0..10): the replay of one iteration of the DNSM.LoreEpiBon fill; the Tome score is the envelope's (GameState.tomePoints), the rebuild (-1) throws NotPorted
+- [x] Thingies("LoreEpiBon",3,0) — depth 1 — 1352 chars — ported in Task 8 (any episode 0..10): the replay of one iteration of the DNSM.LoreEpiBon fill; the Tome score is DNSM_TomeQTYtot, lib/tome's computeTome standing in for the Tome actor's runtime GenInfo[84] (Ruling K), the rebuild (-1) throws NotPorted
 - [x] Thingies("Have_ban_i",0,0) — depth 2 — 67 chars — ported in Task 6
 - [x] Thingies("EmperorBon",8,0) — depth 2 — 1769 chars — ported in Task 6
 - [x] Thingies("LegendPTS_bonus",11,0) — depth 2 — 154 chars — ported in Task 4 (Ruling C); only this sub-case
@@ -310,7 +310,7 @@ Do not edit by hand: regenerate it when N.js changes. Tick a row when its sub-ca
 - [x] `Number2Letter` — game data: lib/game/data/maps.ts (Ruling I)
 - [x] `OptionsListAccount` — read by lib/game/njs/Breeding, DNSM, GetSetBonus, Minehead, RandomEvent, Summoning, Summoning2, Thingies
 - [~] `PetsStored` — whole body only — not reached: no ported path reads it; it comes from the rows marked [~] (WorkbenchStuff, TotalStats, ReturnClasses, SlabboBonus_AllMulti, AtomCollider, Bubbastuff, StampBonusOfTypeX...), from a whole body, or from the Laboratory's connection walk (ASSUMED, see MainframeBonus(14))
-- [x] `PixelHelperActor` — the actors' live state, replayed from the save where a ported path reads it: the Tome score (GameState.tomePoints), the Gold Crown vials (CauldronStats), the Lab connection (ASSUMED connected, MainframeBonus)
+- [x] `PixelHelperActor` — the actors' live state, replayed from the save where a ported path reads it: the Tome score (DNSM_TomeQTYtot: lib/tome's computeTome, an `assumed()` leaf), the Gold Crown vials (CauldronStats), the Lab connection (ASSUMED connected by `assumed()`, MainframeBonus)
 - [x] `PlayerDATABASE` — the other characters are withPlayer(ctx, ci) on the same GameState
 - [x] `Research` — read by lib/game/njs/FarmingStuffs, JellyOperation, ResearchStuff
 - [x] `Sailing` — read by lib/game/njs/Sailing

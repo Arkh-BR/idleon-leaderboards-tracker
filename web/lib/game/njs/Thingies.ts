@@ -1,5 +1,5 @@
 import { asNum, asNumber, attr, SAVE_ATTRS } from "../attr";
-import { block, runtime, type Ctx } from "../ctx";
+import { block, type Ctx } from "../ctx";
 import { EmperorBon, LegendTalents, Spelunky } from "../data";
 import { NotPorted } from "../errors";
 import { hString } from "../hstring";
@@ -8,6 +8,7 @@ import { opt } from "../state";
 import { traceNode } from "../trace";
 import { ArcadeBonus } from "./ArcadeBonus";
 import { ArcaneType } from "./ArcaneType";
+import { DNSM_TomeQTYtot } from "./DNSM";
 import { GetSetBonus } from "./GetSetBonus";
 import { JellyOperation } from "./JellyOperation";
 import { Summoning } from "./Summoning";
@@ -74,9 +75,8 @@ function haveBanI(ctx: Ctx): number {
  * (`Spelunk[13][2] > g` is false), else, for Spelunky[21][g] = "a|from" and p = floor(max(0, Tome - from) / 100) ^ .7,
  * (1 + (Grimoire upgrade 17 + the TROLL set bonus) / 100) x a x max(0, p / (25 + p)).
  *
- * Tome is the Tome actor's `GenInfo[84]` (ActorEvents_229, @5778865), the account's Tome score: the sum of `Summoning("TomePTS", g)` over
- * `DNSM.TomeQTY` @5779007, which this engine does not compute. It reads the score the envelope carries (`GameState.tomePoints`); an
- * envelope with none counts as 0 points and shows as a runtime leaf.
+ * Tome is the Tome actor's `GenInfo[84]` (ActorEvents_229), the account's Tome score: `DNSM_TomeQTYtot`, our own `computeTome` standing in
+ * for that runtime value (Ruling K).
  */
 function loreEpiBon(ctx: Ctx, b: number): number {
   if (b < 0) throw new NotPorted("Thingies", `LoreEpiBon:${b}`); // the rebuild (-1) and the clamp Math.max(0, b)
@@ -87,7 +87,7 @@ function loreEpiBon(ctx: Ctx, b: number): number {
   listAt(ctx, "Spelunk", 13); // the game indexes Spelunk[13][2] directly
   if (!(asNum(ctx, "Spelunk", 13, 2) > g)) return 0;
   const [value, from] = hString((Spelunky as unknown as readonly (readonly unknown[])[])[21][g]).split("|");
-  const tome = ctx.state.tomePoints ?? runtime(ctx, "Tome.totalPoints", "the envelope has no Tome score (extraData.totalTomePoints, parsedData.totalTomePoints)");
+  const tome = DNSM_TomeQTYtot(ctx);
   const p = Math.pow(Math.floor(Math.max(0, tome - asNumber(from)) / 100), 0.7);
   return (1 + (Summoning(ctx, "GrimoireUpgBonus", 17, 0) + GetSetBonus(ctx, "TROLL_SET", "Bonus", 0, 0)) / 100) * asNumber(value) * Math.max(0, p / (25 + p));
 }
