@@ -1,6 +1,6 @@
 import { beforeAll, describe, it, expect } from "vitest";
 import { existsSync, readFileSync } from "node:fs";
-import { callDiff, njsCalls, njsFunction, njsNamedBlock, njsNumericBranch, traceCalls } from "@/lib/diagnose/njsCalls";
+import { callDiff, njsCalls, njsFunction, njsNamedBlock, njsNamedBlocks, njsNumericBranch, traceCalls } from "@/lib/diagnose/njsCalls";
 import type { TraceNode } from "@/lib/game/trace";
 import { normalizeBundle } from "@/scripts/updater/extract";
 
@@ -68,6 +68,17 @@ describe("traceCalls", () => {
       { block: "B" },
       { block: "C" },
     ]);
+  });
+
+  it("skips Runtime values (not N.js calls, and one named after a block would mask a missing call), keeps cached and threw nodes", () => {
+    const trace = root(
+      node("TotalStats", ["STR"], [], "runtime: not in the save"),
+      node("Stamp", [4], [], "cached"),
+      node("Summoning", ["V"], [node("Inner", [1])], "threw: boom")
+    );
+    expect(traceCalls(trace)).toEqual([{ block: "Stamp", arg0: 4 }, { block: "Summoning", arg0: "V" }, { block: "Inner", arg0: 1 }]);
+    // so a Runtime stand-in for TotalStats does not cover the game's TotalStats call
+    expect(callDiff([{ block: "TotalStats" }], traceCalls(trace)).missing).toEqual([{ block: "TotalStats" }]);
   });
 });
 
@@ -173,13 +184,48 @@ describe("njsFunction / njsNamedBlock / njsNumericBranch on a synthetic bundle",
   });
 });
 
+describe("njsNamedBlocks / njsNamedBlock with a name used by several blocks of one function", () => {
+  // The game runs every `if("Etc"==d)` block when the name matches. Three body shapes: a brace block,
+  // a `for` statement (inside another block, with a tail after it that runs whatever the name),
+  // and an `if/else` statement, each followed by code that is not part of the block.
+  const multi = njsFunction(
+    [
+      `m._customBlock_Multi=function(d){`,
+      `if("Etc"==d){x._customBlock_A(1);k=2}`,
+      `if(1==m._customBlock_Gate("g")){if("Etc"==d)for(i=0;i<3;)k._customBlock_B("a;}b"),i++;x._customBlock_Shared()}`,
+      `if("Etc"==d)if(z)k._customBlock_C(3);else{k._customBlock_D(4)}`,
+      `k._customBlock_After()};`,
+    ].join(""),
+    "Multi"
+  )!;
+
+  it("returns every block, each ending where its statement ends", () => {
+    const blocks = njsNamedBlocks(multi.body, "Etc");
+    expect(blocks.map((b) => njsCalls(b).map((c) => c.block))).toEqual([["A"], ["B"], ["C", "D"]]);
+    expect(blocks[1]).toBe(`for(i=0;i<3;)k._customBlock_B("a;}b"),i++;`);
+  });
+
+  it("njsNamedBlock joins them, so the calls of all are found", () => {
+    expect(njsCalls(njsNamedBlock(multi.body, "Etc")!)).toEqual([
+      { block: "A", arg0: 1 },
+      { block: "B", arg0: "a;}b" },
+      { block: "C", arg0: 3 },
+      { block: "D", arg0: 4 },
+    ]);
+    expect(njsNamedBlocks(multi.body, "Missing")).toEqual([]);
+  });
+});
+
 // The live bundle is 25 MB: read and normalize it once for the file.
 const NJS = "scripts/updater/.cache/N.new.js";
 describe.skipIf(!existsSync(NJS))("the live N.js", () => {
   let sailing: NonNullable<ReturnType<typeof njsFunction>>;
+  let totalStats: NonNullable<ReturnType<typeof njsFunction>>;
   const artifact25 = () => njsNumericBranch(njsNamedBlock(sailing.body, "ArtifactBonus")!, 25, sailing.params)!;
   beforeAll(() => {
-    sailing = njsFunction(normalizeBundle(readFileSync(NJS, "utf8")), "Sailing")!;
+    const norm = normalizeBundle(readFileSync(NJS, "utf8"));
+    sailing = njsFunction(norm, "Sailing")!;
+    totalStats = njsFunction(norm, "TotalStats")!;
   }, 120_000);
 
   it("holds _customBlock_Sailing(d,b,e)", () => {
@@ -199,7 +245,14 @@ describe.skipIf(!existsSync(NJS))("the live N.js", () => {
     expect(calls.find((c) => c.block === "TotalStats")).toStrictEqual({ block: "TotalStats" });
   });
 
-  it("would have caught the old bug: a trace of Artifact 25 without TotalStats misses it", () => {
+  it("reads every calcEtcBonuses block of _customBlock_TotalStats, not only the first (a 0-call brace block)", () => {
+    const blocks = njsNamedBlocks(totalStats.body, "calcEtcBonuses");
+    expect(blocks.length).toBeGreaterThan(1);
+    expect(njsCalls(blocks[0])).toEqual([]);
+    expect(njsCalls(njsNamedBlock(totalStats.body, "calcEtcBonuses")!).length).toBeGreaterThan(0);
+  });
+
+  it("a synthetic trace of Artifact 25 without TotalStats reports it missing, and with it does not", () => {
     const ours = traceCalls(root(node("ReturnClasses", [])));
     expect(callDiff(njsCalls(artifact25()), ours).missing).toContainEqual({ block: "TotalStats" });
     expect(callDiff(njsCalls(artifact25()), [...ours, ...traceCalls(root(node("TotalStats", ["STR"])))]).missing).not.toContainEqual({ block: "TotalStats" });

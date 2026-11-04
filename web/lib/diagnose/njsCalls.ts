@@ -23,9 +23,14 @@ export function njsCalls(body: string): Call[] {
   });
 }
 
-/** Every call under `trace` (not the node itself), depth-first in call order, cached leaves included. */
+/**
+ * Every call under `trace` (not the node itself), depth-first in call order, cached and threw
+ * nodes included. Runtime values are not: they are not N.js calls, and one named after a block
+ * would hide that the block's real call is missing.
+ */
 export function traceCalls(trace: TraceNode): Call[] {
   return trace.children.flatMap((n) => {
+    if (n.note?.startsWith("runtime:")) return [];
     const a = n.args[0];
     return [typeof a === "string" || typeof a === "number" ? { block: n.block, arg0: a } : { block: n.block }, ...traceCalls(n)];
   });
@@ -39,9 +44,11 @@ const distinct = (cs: Call[]) => [...new Map(cs.map((c) => [callKey(c), c])).val
 /**
  * What the game calls that we do not (`missing`) and what we call that the game does not
  * (`extra`), each call once. A game call with no literal argument is covered by any call of
- * that block; one with a literal argument only by the same argument. `missing` is the useful
- * side: the game side is one piece of N.js text, ours the whole nested trace, so `extra` also
- * holds what our callees call.
+ * that block; one with a literal argument only by the same argument. Static text against a
+ * dynamic trace, so read it with care:
+ * - `missing` can list calls in branches the trace did not take (another artifact, a false
+ *   condition); the last numeric branch (njsNumericBranch) also includes the block's shared tail.
+ * - `extra` also holds what our callees call (the text is one function, the trace is nested).
  */
 export function callDiff(expected: Call[], actual: Call[]): { missing: Call[]; extra: Call[] } {
   const covers = (e: Call, a: Call) => e.block === a.block && (e.arg0 === undefined || e.arg0 === a.arg0);
@@ -67,11 +74,73 @@ export function njsFunction(norm: string, name: string): { params: string[]; bod
   return { params: norm.slice(i + head.length, norm.lastIndexOf(")", open)).split(",").filter(Boolean), body };
 }
 
-/** The named block `if("<name>"==<v>)…` inside `text`, or undefined. */
+/** Index of the bracket that closes the one at `i` (string-aware); `s.length` if it never closes. */
+function closeOf(s: string, i: number): number {
+  let depth = 0;
+  let quote: string | null = null;
+  for (let k = i; k < s.length; k++) {
+    const c = s[k];
+    if (quote) {
+      if (c === "\\") k++;
+      else if (c === quote) quote = null;
+    } else if (c === '"' || c === "'") quote = c;
+    else if (c === "(" || c === "[" || c === "{") depth++;
+    else if ((c === ")" || c === "]" || c === "}") && --depth === 0) return k;
+  }
+  return s.length;
+}
+
+/**
+ * End (exclusive) of the statement starting at `i`, for the shapes N.js gives a named block:
+ * `{…}`, `for(…)stmt`, `while(…)stmt`, `if(…)stmt[else stmt]`, or an expression up to its `;`.
+ */
+function statementEnd(s: string, i: number): number {
+  if (s[i] === "{") return Math.min(closeOf(s, i) + 1, s.length);
+  const kw = /^(?:for|while|if)\(/.exec(s.slice(i, i + 6));
+  if (kw) {
+    let j = statementEnd(s, closeOf(s, i + kw[0].length - 1) + 1);
+    if (kw[0] === "if(" && s.startsWith("else", j)) j = statementEnd(s, s[j + 4] === " " ? j + 5 : j + 4);
+    return j;
+  }
+  let depth = 0;
+  let quote: string | null = null;
+  for (let k = i; k < s.length; k++) {
+    const c = s[k];
+    if (quote) {
+      if (c === "\\") k++;
+      else if (c === quote) quote = null;
+    } else if (c === '"' || c === "'") quote = c;
+    else if (c === "(" || c === "[" || c === "{") depth++;
+    else if (c === ")" || c === "]" || c === "}") {
+      if (depth === 0) return k; // the enclosing block's own closer
+      // a block statement (switch, try...) closed: the next statement starts here, not at a `;`
+      if (--depth === 0 && c === "}" && /[A-Za-z_$]/.test(s[k + 1] ?? "") && !s.startsWith("else", k + 1)) return k + 1;
+    } else if (c === ";" && depth === 0) return k + 1;
+  }
+  return s.length;
+}
+
+/** Every block `if("<name>"==<v>)…` inside `text`, in order. */
+export function njsNamedBlocks(text: string, name: string): string[] {
+  if (!/^\w+$/.test(name)) return [];
+  const re = new RegExp(String.raw`if\("${name}"==[A-Za-z]\)`, "g");
+  const blocks: string[] = [];
+  while (re.exec(text)) {
+    const end = statementEnd(text, re.lastIndex);
+    blocks.push(text.slice(re.lastIndex, end));
+    re.lastIndex = end;
+  }
+  return blocks;
+}
+
+/**
+ * The named block(s) `if("<name>"==<v>)…` inside `text`, joined by "\n", or undefined. A
+ * function can hold several blocks of one name (TotalStats has 6 `calcEtcBonuses`) and the game
+ * runs every one when the name matches, so all of them are returned.
+ */
 export function njsNamedBlock(text: string, name: string): string | undefined {
-  if (!/^\w+$/.test(name)) return undefined;
-  const m = new RegExp(String.raw`if\("${name}"==[A-Za-z]\)`).exec(text);
-  return m ? readBody(text, m.index + m[0].length)?.text : undefined;
+  const blocks = njsNamedBlocks(text, name);
+  return blocks.length ? blocks.join("\n") : undefined;
 }
 
 /**
