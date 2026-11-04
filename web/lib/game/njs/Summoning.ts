@@ -69,14 +69,27 @@ export const Summoning: (ctx: Ctx, d: string, b: number, e: number) => number = 
 const VAULT_PLAIN = new Set([32, 1, 6, 7, 8, 9, 13, 999, 33, 36, 40, 42, 43, 44, 49, 51, 52, 53, 57, 61, 89, 64, 70, 73, 74, 76, 79, 85, 86, 88]);
 
 /**
- * `VaultUpgBonus` @10893206. A plain vault is `UpgVault[b] x UpgradeVault[b][5]`. Every other vault 61..88 is that times
- * (1 + VaultUpgBonus(89) / 100); the ones below 61 (0, 60 and the rest) are times VaultUpgBonus 32 or 61 and have their own
- * shapes, which nothing here reaches: NotPorted. From 89 on, a vault that is not plain is 0.
+ * `VaultUpgBonus` @10893206. A plain vault is `UpgVault[b] x UpgradeVault[b][5]`. Vault 0 adds a level past 25, 50 and 100, vault 60 past 25,
+ * 50 and (x2..x10) 100..450 and times 1 + floor(level / 25) / 5; then every other vault is that level x value times 1 + VaultUpgBonus(32)
+ * / 100 below 32, (61) below 61, (89) below 89 (vault 0 by 32, vault 60 by 61). From 89 on, a vault that is not plain is 0.
  */
 function vaultUpgBonus(ctx: Ctx, b: number): number {
-  const level = () => asNum(ctx, "UpgVault", Math.round(b)) * asNumber(vaultRow(b)[5]);
+  const lv = () => asNum(ctx, "UpgVault", Math.round(b));
+  const level = () => lv() * asNumber(vaultRow(b)[5]);
   if (VAULT_PLAIN.has(b)) return level();
-  if (b < 61) throw new NotPorted("Summoning", `VaultUpgBonus:b=${b}`);
+  if (0 == b) return (level() + (Math.max(0, lv() - 25) + (Math.max(0, lv() - 50) + Math.max(0, lv() - 100)))) * (1 + Summoning(ctx, "VaultUpgBonus", 32, 0) / 100);
+  if (60 == b) {
+    const v = asNum(ctx, "UpgVault", 60);
+    return (
+      (v * asNumber(vaultRow(60)[5]) +
+        (Math.max(0, v - 25) +
+          (Math.max(0, v - 50) + (2 * Math.max(0, v - 100) + (3 * Math.max(0, v - 200) + (5 * Math.max(0, v - 300) + (7 * Math.max(0, v - 400) + 10 * Math.max(0, v - 450)))))))) *
+      (1 + Math.floor(v / 25) / 5) *
+      (1 + Summoning(ctx, "VaultUpgBonus", 61, 0) / 100)
+    );
+  }
+  if (32 > b) return level() * (1 + Summoning(ctx, "VaultUpgBonus", 32, 0) / 100);
+  if (61 > b) return level() * (1 + Summoning(ctx, "VaultUpgBonus", 61, 0) / 100);
   if (89 > b) return level() * (1 + Summoning(ctx, "VaultUpgBonus", 89, 0) / 100);
   return 0;
 }
@@ -170,7 +183,7 @@ function winBonus(ctx: Ctx, b: number): number {
 
 type Entries = Record<string, true | readonly number[]>;
 const OWN_PORTED: Entries = {
-  VaultUpgBonus: [...VAULT_PLAIN, ...range(61, 1000)], // 61..88 times VaultUpgBonus 89, from 89 on 0 when not plain (999 is plain),
+  VaultUpgBonus: range(0, 1000), // every vault; from 89 on 0 when not plain (999 is plain)
   EventShopOwned: true,
   GrimoireUpgBonus: [...GRIMOIRE_PLAIN],
   WinBonus: range(-1, 34),

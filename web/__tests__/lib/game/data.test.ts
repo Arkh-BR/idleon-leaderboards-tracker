@@ -39,7 +39,7 @@ describe.skipIf(!HAVE_NJS)("lib/game data maps against the live N.js", () => {
     const fn = new Function("l", `return (${njs.slice(start + `Ma.${name}=`.length, end)})`)(function (this: { h: object }) { this.h = {}; });
     return (fn() as { h: unknown }).h;
   };
-  it.each(["IDforETCbonus", "IDforCardBonus", "ClassStatTypes"])("%s is what N.js builds", (name) => {
+  it.each(["IDforETCbonus", "IDforCardBonus", "IDforCardSETbonus", "ClassStatTypes"])("%s is what N.js builds", (name) => {
     expect((DATA as Record<string, unknown>)[name]).toEqual(built(name));
   });
 });

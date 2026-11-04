@@ -1,7 +1,6 @@
 import { asNum, asNumber, attr } from "../attr";
 import { block } from "../ctx";
 import { NinjaInfo } from "../data";
-import { NotPorted } from "../errors";
 import { hString } from "../hstring";
 import { listAt } from "../lists";
 import { AchieveStatus } from "./AchieveStatus";
@@ -34,10 +33,9 @@ const AS_IS = new Set(["BaseDamage", "Defence", "SkillExp", "BaseAcc", "AllStatz
  * (FoodSlotsOwned of EquipmentOrder[2]) holding a GOLDEN_FOOD of effect `d` sets the bonus to its Amount x the multi x .05 x
  * getLOG(1 + its quantity) x (1 + that log / 2.14): the last such slot is the one that counts, not a sum, as the game has it. With the
  * Emporium item 1, the first golden food of the Emporium (NinjaInfo[29]) of effect `d` adds the same of 1000 x 10^Ninja[104][e] when
- * that level is above 0. Only "AllStatz" is ported.
+ * that level is above 0.
  */
 export const GoldFoodBonuses = block("GoldFoodBonuses", (ctx, d: string) => {
-  if ("AllStatz" !== d) throw new NotPorted("GoldFoodBonuses", d);
   const multi = // DNSM.GfoodBonusMULTI
     (1 + (GetSetBonus(ctx, "SECRET_SET", "Bonus", 0, 0) + 50 * Companions(ctx, 174)) / 100) *
     (Math.max(DNSM_FamBonusQTYs(ctx, "66"), 1) +
@@ -86,8 +84,8 @@ export const GoldFoodBonuses = block("GoldFoodBonuses", (ctx, d: string) => {
       break;
     }
   }
-  return AS_IS.has(d) ? bonus : "Filler" == (d as string) ? bonus / 100 : 1 + bonus / 100;
+  return AS_IS.has(d) ? bonus : "Filler" == d ? bonus / 100 : 1 + bonus / 100;
 });
 
 /** What this module covers (lib/game/ported.ts). */
-export const PORTED: Ported = { AllStatz: true };
+export const PORTED: Ported = "generic";

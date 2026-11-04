@@ -13,7 +13,7 @@ Regenerate it when N.js or a module's `PORTED` changes. With `--mark`, `[x]` is 
 - attrs and dnsm are the reads in every slice listed. One marked "whole body only" is read only inside a whole-body function (all its branches, not just the one this formula takes). `DNSM` is runtime-only (it is never loaded from the save): port it as `DNSM_*` functions, not as a save attribute. The dnsm list also holds the scratch keys a formula writes and reads back in the same slice (`CaptnBonuz`, `AtomBonCalc1`); the inputs are the caches the game fills elsewhere (`StarSigns`, `AlchVials`, `FamBonusQTYs`…).
 - Depth stops at 6.
 
-**67 functions, 669 sub-cases (rows), 204 whole body, 0 not found, 95 attrs, 120 dnsm.** **436 ported `[x]`, 233 open.**
+**67 functions, 669 sub-cases (rows), 204 whole body, 0 not found, 95 attrs, 120 dnsm.** **462 ported `[x]`, 207 open.**
 
 Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("AGI")`, R4 = `TotalStats("WIS")`, R5 = `TotalStats("LUK")`, R6 = `PlayerHPmax()`, R7 = `PlayerMPmax()`, R8 = `PlayerAccTot()`.
 
@@ -41,20 +41,20 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 
 - [ ] Summoning("Grimoire_DMG",0,0) — depth 1 — 1129 chars — roots: R1
 - [x] Summoning("OwlBonuses",1,0) — depth 1 — 2745 chars — via Summoning2 — roots: R1
-- [ ] Summoning("VaultUpgBonus",0,0) — depth 1 — 448 chars — roots: R1
-- [ ] Summoning("VaultUpgBonus",20,0) — depth 1 — 2241 chars — roots: R1
+- [x] Summoning("VaultUpgBonus",0,0) — depth 1 — 448 chars — roots: R1
+- [x] Summoning("VaultUpgBonus",20,0) — depth 1 — 2241 chars — roots: R1
 - [ ] Summoning("VaultKillzTotal",5,0) — depth 1 — 3929 chars — roots: R1
-- [ ] Summoning("VaultUpgBonus",27,0) — depth 1 — 2241 chars — roots: R1
+- [x] Summoning("VaultUpgBonus",27,0) — depth 1 — 2241 chars — roots: R1
 - [ ] Summoning("VaultKillzTotal",6,0) — depth 1 — 3929 chars — roots: R1
-- [ ] Summoning("VaultUpgBonus",15,0) — depth 1 — 2241 chars — roots: R1
-- [ ] Summoning("VaultUpgBonus",10,0) — depth 1 — 2241 chars — roots: R1
+- [x] Summoning("VaultUpgBonus",15,0) — depth 1 — 2241 chars — roots: R1
+- [x] Summoning("VaultUpgBonus",10,0) — depth 1 — 2241 chars — roots: R1
 - [x] Summoning("OwlBonuses",2,0) — depth 1 — 2745 chars — via Summoning2 — roots: R1
 - [ ] Summoning("RooBonuses",4,0) — depth 1 — 3104 chars — roots: R1
 - [x] Summoning("VaultUpgBonus",80,0) — depth 1 — 2241 chars — roots: R1
 - [x] Summoning("WinBonus",0,0) — depth 1 — 3535 chars — roots: R1
 - [ ] Summoning("SummUpgBonus",79,0) — depth 1 — 907 chars — roots: R1
 - [ ] Summoning("GrimoireUpgBonus",35,0) — depth 1 — 399 chars — roots: R1
-- [ ] Summoning("VaultUpgBonus",41,0) — depth 1 — 2241 chars — roots: R1
+- [x] Summoning("VaultUpgBonus",41,0) — depth 1 — 2241 chars — roots: R1
 - [ ] Summoning("TomeBonus",0,0) — depth 1 — 277 chars — roots: R1
 - [ ] Summoning("VotingBonusz",1,0) — depth 1 — 880 chars — via Summoning2 — roots: R1
 - [ ] Summoning("TomeBonus",6,0) — depth 1 — 328 chars — roots: R1
@@ -80,7 +80,7 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 - [x] Summoning("VaultUpgBonus",32,0) — depth 2 — 7 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [x] Summoning("VaultUpgBonus",61,0) — depth 2 — 7 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [x] Summoning("VaultUpgBonus",89,0) — depth 2 — 7 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
-- [ ] Summoning("VaultUpgBonus",16,0) — depth 2 — 2241 chars — roots: R1 R6 R8
+- [x] Summoning("VaultUpgBonus",16,0) — depth 2 — 2241 chars — roots: R1 R6 R8
 - [ ] Summoning("GrimoireWraith",0,0) — depth 1 — 241 chars — roots: R1 R6 R8
 - [ ] Summoning("Grimoire_HP",0,0) — depth 1 — 426 chars — roots: R1 R6
 - [ ] Summoning("RooMegafeather",1,0) — depth 2 — 152 chars — roots: R1 R8
@@ -111,7 +111,7 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 - [x] Summoning("VaultUpgBonus",79,0) — depth 3 — 7 chars — roots: R1
 - [x] Summoning("VaultUpgBonus",74,0) — depth 3 — 7 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [x] Summoning("VotingBonusz",18,0) — depth 3 — 917 chars — via Summoning2 — roots: R1 R2 R3 R4 R5 R6 R7 R8
-- [ ] Summoning("VaultUpgBonus",48,0) — depth 3 — 2241 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
+- [x] Summoning("VaultUpgBonus",48,0) — depth 3 — 2241 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [ ] Summoning("VaultKillzTotal",11,0) — depth 3 — 3929 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [x] Summoning("WinBonus",13,0) — depth 3 — 3535 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [x] Summoning("WinBonus",18,0) — depth 2 — 3535 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
@@ -128,7 +128,7 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 - [ ] Summoning("GrimoireUpgBonus",37,0) — depth 2 — 399 chars — roots: R1 R8
 - [ ] Summoning("GrimoireUpgBonus",47,0) — depth 2 — 399 chars — roots: R1 R8
 - [ ] Summoning("GrimoireUpgBonus",41,0) — depth 2 — 399 chars — roots: R1 R8
-- [ ] Summoning("VaultUpgBonus",4,0) — depth 2 — 2241 chars — roots: R1 R8
+- [x] Summoning("VaultUpgBonus",4,0) — depth 2 — 2241 chars — roots: R1 R8
 
 ## Windwalker
 
@@ -334,11 +334,11 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 
 ## GoldFoodBonuses
 
-- [ ] GoldFoodBonuses("BaseDamage") — depth 1 — 46 chars — roots: R1
-- [ ] GoldFoodBonuses("Damage") — depth 1 — 3942 chars — whole body — roots: R1
-- [ ] GoldFoodBonuses("MaxHPpct") — depth 1 — 3942 chars — whole body — roots: R1 R6
+- [x] GoldFoodBonuses("BaseDamage") — depth 1 — 46 chars — roots: R1
+- [x] GoldFoodBonuses("Damage") — depth 1 — 3942 chars — whole body — roots: R1
+- [x] GoldFoodBonuses("MaxHPpct") — depth 1 — 3942 chars — whole body — roots: R1 R6
 - [x] GoldFoodBonuses("AllStatz") — depth 2 — 46 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
-- [ ] GoldFoodBonuses("BaseAcc") — depth 2 — 46 chars — roots: R1 R8
+- [x] GoldFoodBonuses("BaseAcc") — depth 2 — 46 chars — roots: R1 R8
 
 ## ArcadeBonus
 
@@ -419,7 +419,7 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 
 ## PlayerHPmax
 
-- [ ] PlayerHPmax() — depth 0 — 2884 chars — roots: R1 R6
+- [x] PlayerHPmax() — depth 0 — 2884 chars — roots: R1 R6
 
 ## Log2
 
@@ -478,7 +478,7 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 
 ## FoodBonuses
 
-- [ ] FoodBonuses() — depth 1 — 1258 chars — whole body — roots: R1 R8
+- [x] FoodBonuses() — depth 1 — 1258 chars — whole body — roots: R1 R8
 
 ## GetBribeBonus
 
@@ -591,16 +591,16 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 
 ## GetBuffBonuses
 
-- [ ] GetBuffBonuses(108,2) — depth 1 — 363 chars — whole body — roots: R1
-- [ ] GetBuffBonuses(124,2) — depth 1 — 363 chars — whole body — roots: R1
+- [x] GetBuffBonuses(108,2) — depth 1 — 363 chars — whole body — roots: R1
+- [x] GetBuffBonuses(124,2) — depth 1 — 363 chars — whole body — roots: R1
 - [ ] GetBuffBonuses(615,1) — depth 2 — 9 chars — roots: R1
-- [ ] GetBuffBonuses(108,1) — depth 1 — 363 chars — whole body — roots: R1 R6
+- [x] GetBuffBonuses(108,1) — depth 1 — 363 chars — whole body — roots: R1 R6
 - [ ] GetBuffBonuses(273,1) — depth 2 — 363 chars — whole body — roots: R1 R8
 - [x] GetBuffBonuses(94,1) — depth 1 — 363 chars — whole body — roots: R1 R2 R6
 - [ ] GetBuffBonuses(195,1) — depth 2 — 363 chars — whole body — roots: R1 R6 R8
 - [ ] GetBuffBonuses(420,1) — depth 2 — 363 chars — whole body — roots: R1 R6 R8
 - [ ] GetBuffBonuses(288,2) — depth 1 — 363 chars — whole body — roots: R1 R8
-- [ ] GetBuffBonuses(124,1) — depth 1 — 363 chars — whole body — roots: R1 R8
+- [x] GetBuffBonuses(124,1) — depth 1 — 363 chars — whole body — roots: R1 R8
 - [ ] GetBuffBonuses(40,2) — depth 3 — 363 chars — whole body — roots: R1
 - [ ] GetBuffBonuses(585,1) — depth 2 — 363 chars — whole body — roots: R1 R8
 
@@ -647,8 +647,8 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 
 ## Shrine
 
-- [ ] Shrine(0) — depth 1 — 1086 chars — whole body — roots: R1
-- [ ] Shrine(1) — depth 1 — 1086 chars — whole body — roots: R1 R6
+- [x] Shrine(0) — depth 1 — 1086 chars — whole body — roots: R1
+- [x] Shrine(1) — depth 1 — 1086 chars — whole body — roots: R1 R6
 
 ## Sailing
 
@@ -746,9 +746,9 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 
 ## CardSetBonuses
 
-- [ ] CardSetBonuses(0,"5") — depth 1 — 307 chars — whole body — roots: R1
-- [ ] CardSetBonuses(0,"4") — depth 1 — 307 chars — whole body — roots: R1 R8
-- [ ] CardSetBonuses(0,"2") — depth 3 — 307 chars — whole body — roots: R1
+- [x] CardSetBonuses(0,"5") — depth 1 — 307 chars — whole body — roots: R1
+- [x] CardSetBonuses(0,"4") — depth 1 — 307 chars — whole body — roots: R1 R8
+- [x] CardSetBonuses(0,"2") — depth 3 — 307 chars — whole body — roots: R1
 
 ## chipBonuses
 
@@ -857,8 +857,8 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 
 ## TotalFoodBonuses
 
-- [ ] TotalFoodBonuses("WeaponPowerBoosts") — depth 2 — 934 chars — whole body — roots: R1
-- [ ] TotalFoodBonuses("HpBaseBoosts") — depth 1 — 934 chars — whole body — roots: R1 R6
+- [x] TotalFoodBonuses("WeaponPowerBoosts") — depth 2 — 934 chars — whole body — roots: R1
+- [x] TotalFoodBonuses("HpBaseBoosts") — depth 1 — 934 chars — whole body — roots: R1 R6
 
 ## GuildBonuses
 

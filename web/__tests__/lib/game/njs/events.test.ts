@@ -243,8 +243,14 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("VaultUpgBonus (N.js @10893206)", () 
   it("a vault from 89 up that is not plain is 0", () => {
     expect(Summoning(vault({ 90: 5 }), "VaultUpgBonus", 90, 0)).toBe(0);
   });
-  it("the vaults below 61 that are not plain are times Vault 32 or 61: not ported", () => {
-    for (const b of [0, 2, 3, 5, 10, 31, 60]) expect(() => Summoning(vault({}), "VaultUpgBonus", b, 0), `vault ${b}`).toThrow(NotPorted);
+  it("the vaults below 61 that are not plain are times Vault 32 (below 32) or 61; 0 and 60 add levels past their steps", () => {
+    const value = (b: number) => Number(UpgradeVault[b][5]);
+    const none = { 32: 0, 61: 0, 89: 0 }; // no multiplier vaults
+    expect(Summoning(vault({ ...none, 2: 10 }), "VaultUpgBonus", 2, 0)).toBeCloseTo(10 * value(2), 12);
+    expect(Summoning(vault({ ...none, 2: 10, 32: 4 }), "VaultUpgBonus", 2, 0)).toBeCloseTo(10 * value(2) * (1 + (4 * value(32)) / 100), 12);
+    expect(Summoning(vault({ ...none, 45: 10, 61: 4 }), "VaultUpgBonus", 45, 0)).toBeCloseTo(10 * value(45) * (1 + (4 * value(61)) / 100), 12);
+    expect(Summoning(vault({ ...none, 0: 60 }), "VaultUpgBonus", 0, 0)).toBeCloseTo(60 * value(0) + 35 + 10, 12); // past 25 and 50
+    expect(Summoning(vault({ ...none, 60: 0 }), "VaultUpgBonus", 60, 0)).toBe(0);
   });
   it("a vault outside UpgradeVault is refused (the game reads its row)", () => {
     expect(() => Summoning(vault({}), "VaultUpgBonus", 999, 0)).toThrow(RangeError);

@@ -14,7 +14,7 @@ import { loadSaveData } from "@/lib/arkh/save/loader";
 import { saveData } from "@/lib/arkh/state";
 import { computeAccuracy } from "@/lib/arkh/stats/systems/common/derived-damage";
 import { computePlayerHPmax, computePlayerMPmax } from "@/lib/arkh/stats/systems/common/derived-stats";
-import { computeTotalStat } from "@/lib/arkh/stats/systems/common/stats";
+import { computeStatueBonusGiven, computeTotalStat } from "@/lib/arkh/stats/systems/common/stats";
 import { goldFoodBonuses } from "@/lib/arkh/stats/systems/common/goldenFood";
 import { talent as talentResolver } from "@/lib/arkh/stats/systems/common/talent";
 import { votingBonusz } from "@/lib/arkh/stats/systems/w2/voting";
@@ -309,6 +309,10 @@ export const STAT_WHY: Record<string, string> = {
   signs:
     "lib/arkh's STR star signs (computeStarSignStatBonuses, its own comment says it counts every listed sign) count a sign the Rift enables that StarSignsUnlocked lacks; N.js StarSigns @6540624 adds sign k of the first enabledStarSigns only when StarSignsUnlocked has StarSigns[k][0]",
   comp0: COMPANION_0_GATE,
+  statues:
+    "N.js ArbitraryCode StatueBonusGiven<n> @4039757 reads GA(\"StatueLevels\")[n][0], the current character's (the load fills it from StatueLevels_<player>); lib/arkh's computeStatueBonusGiven reads one account-wide list (statueData). They differ on a save whose characters' statue levels differ (1st_Giri, CSver 33)",
+  buff108:
+    "a product decision of the Damage page (the plan's Global Constraints): the active buff 108 is not counted, a runtime leaf in lib/game; lib/arkh counts it while the saved BuffsActive has it, and N.js PlayerHPmax @4147120 multiplies the % by 1 - GetBuffBonuses(108,1) / 100",
 };
 
 /** [save, reason, characters (absent = all)], found by seeding each mismatch (stats.test.ts proves each). */
@@ -531,6 +535,20 @@ const STAT_DIFFS: Partial<Record<ArkhStat, readonly DiffRow[]>> = {
   ],
 };
 
+/** Max HP's own reasons: the characters whose saved BuffsActive has the buff 108 running, and the per-character statue levels. */
+const BUFF_108: readonly DiffRow[] = [
+    ["1st_Giri.json", "statues", [3, 10]],
+    ["100Cotton.json", "buff108", [0]],
+    ["Baker333.json", "buff108", [3]],
+    ["Bubbafrumps.json", "buff108", [3]],
+    ["Riltin.json", "buff108", [0]],
+    ["Shadow_x_Vanish.json", "buff108", [7]],
+    ["joelok.json", "buff108", [0]],
+    ["ryujinsan.json", "buff108", [0]],
+    ["01010111001.json", "buff108", [2]],
+    ["26515665165165.json", "buff108", [3]],
+];
+
 /**
  * Where N.js proves lib/arkh wrong and lib/game keeps the N.js value. `save` is the file name of the
  * GOLDEN_SAVES entry, `ci` omitted means every character; `why` cites the `@offset` evidence.
@@ -557,7 +575,8 @@ export const KNOWN_ARKH_DIFFS: {
   { save: "5OhTree.json", source: "loreEpi3", why: TOME_AFTER_RESET },
   { save: "HourZero.json", ci: 1, source: "win3", why: GODSHARD_WORN },
   { save: "HourZero.json", ci: 9, source: "win3", why: GODSHARD_WORN },
-  ...(Object.entries({ ...STAT_DIFFS, maxMp: STAT_DIFFS.wis }) as [ArkhStat, (typeof STAT_DIFFS)[ArkhStat]][]).flatMap(([stat, rows]) =>
+  // Max MP is built on WIS and Max HP on STR: their reasons carry over, and HP adds the active buff 108 where a character has it running
+  ...(Object.entries({ ...STAT_DIFFS, maxMp: STAT_DIFFS.wis, maxHp: [...STAT_DIFFS.str!, ...BUFF_108] }) as [ArkhStat, (typeof STAT_DIFFS)[ArkhStat]][]).flatMap(([stat, rows]) =>
     rows!.flatMap(([save, source, cis]) => (cis ?? [undefined]).map((ci) => ({ stat, save, ...(ci === undefined ? {} : { ci }), source, why: STAT_WHY[source] })))
   ),
 ];
@@ -566,8 +585,8 @@ export const KNOWN_ARKH_DIFFS: {
  * The lib/arkh numbers behind each STAT_WHY reason, as lib/game `block` calls to seed (block name, its args, lib/arkh's value): put in the
  * cache of a fresh lib/game Ctx for character `ci`, they make lib/game compute what lib/arkh does. lib/arkh is run on the save at `path`.
  */
-/** The main stat whose lib/arkh terms a stat's KNOWN reasons seed: Max MP is built on WIS (PlayerMPmax @4150047). */
-export const SEED_STAT: Partial<Record<ArkhStat, keyof typeof MAIN_STATS>> = { str: "str", agi: "agi", wis: "wis", luk: "luk", maxMp: "wis" };
+/** The main stat whose lib/arkh terms a stat's KNOWN reasons seed: Max MP is built on WIS (PlayerMPmax @4150047), Max HP on STR (@4147120). */
+export const SEED_STAT: Partial<Record<ArkhStat, keyof typeof MAIN_STATS>> = { str: "str", agi: "agi", wis: "wis", luk: "luk", maxMp: "wis", maxHp: "str" };
 
 export function arkhStatSeeds(path: string, ci: number, reasons: readonly string[], stat: keyof typeof MAIN_STATS = "str"): [name: string, args: (string | number)[], value: number][] {
   loadSaveData(JSON.parse(readFileSync(path, "utf8")));
@@ -584,10 +603,21 @@ export function arkhStatSeeds(path: string, ci: number, reasons: readonly string
   const out: [string, (string | number)[], number][] = [];
   for (const r of reasons) {
     if (r === "vote2") out.push(["Summoning", ["VotingBonusz", 2, 0], votingBonusz(2, undefined, saveData)]);
-    else if (r === "gfood") out.push(["GoldFoodBonuses", ["AllStatz"], goldFoodBonuses("AllStatz", ci, undefined, saveData).total]);
+    else if (r === "gfood") {
+      out.push(["GoldFoodBonuses", ["AllStatz"], goldFoodBonuses("AllStatz", ci, undefined, saveData).total]);
+      // the same golden food multi feeds Max HP's MaxHPpct food (a factor there): lib/arkh's number for it
+      const hp = find(computePlayerHPmax(ci, ctx) as unknown as ArkhNode, (x) => x.name === "Golden Food MaxHPpct");
+      if (hp) out.push(["GoldFoodBonuses", ["MaxHPpct"], hp.val]);
+    }
     else if (r === "tomeW8") out.push(["DNSM.AlchBubbles", [tomeBubble], at(`AlchBubble ${tomeBubble}`)]);
     else if (r === "signs") out.push(["DNSM.StarSigns", [STAT], at(`StarSigns.${STAT}`)], ["DNSM.StarSigns", [`pct${STAT}`], at(`StarSigns.pct${STAT}`)]);
     else if (r === "comp0") out.push(["Companions", [0], 1]);
+    else if (r === "statues") for (const n of [3, 4]) out.push(["ArbitraryCode", [`StatueBonusGiven${n}`], computeStatueBonusGiven(n, ci, saveData).val]);
+    else if (r === "buff108") {
+      const n = find(computePlayerHPmax(ci, ctx) as unknown as ArkhNode, (x) => !!x.name?.startsWith("Buff 108"));
+      if (!n) throw new Error("arkhStatSeeds: no Buff 108 in lib/arkh's Max HP");
+      out.push(["GetBuffBonuses", [108, 1], -n.val]);
+    }
     else if (r === "fam68") {
       const n = find(talentResolver.resolve(10, ctx), (x) => x.name.startsWith("Family Bonus 68"));
       if (!n) throw new Error("arkhStatSeeds: no Family Bonus 68 in lib/arkh's talent 10");

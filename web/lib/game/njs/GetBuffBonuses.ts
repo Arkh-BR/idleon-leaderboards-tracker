@@ -1,5 +1,5 @@
 import { attr } from "../attr";
-import { block, type Ctx } from "../ctx";
+import { block, runtime, type Ctx } from "../ctx";
 import { InvalidSaveValue, NotPorted } from "../errors";
 import { contains } from "../lists";
 import { Dungon } from "./Dungon";
@@ -20,13 +20,14 @@ function buffIDsOn(ctx: Ctx): unknown[] {
 
 /**
  * N.js `_customBlock_GetBuffBonuses(c, b)` @4279371: the bonus of the active buff `c` (a talent): its talent number, curve `b`, while
- * the buff runs, else 0. Only buff 94 (the STR one) is ported: 615 and 46 have rules of their own, and the active buffs the Damage page
- * does not count (108, 124) are a product decision of their own task.
+ * the buff runs, else 0. Only buff 94 (the STR one) is ported, and 108 and 124 as not counted; 615 and 46 have rules of their own.
  */
 export const GetBuffBonuses = block("GetBuffBonuses", (ctx, c: number, b: number) => {
+  // a product decision of the Damage page (the plan's Global Constraints): the active buffs 108 and 124 are not counted
+  if (108 === c || 124 === c) return runtime(ctx, `GetBuffBonuses(${c})`, "active buff, not counted");
   if (94 !== c) throw new NotPorted("GetBuffBonuses", `c=${c}`);
   return contains(buffIDsOn(ctx), c) ? GetTalentNumber(ctx, b, c) : 0;
 });
 
 /** What this module covers (lib/game/ported.ts). */
-export const PORTED: Ported = [94];
+export const PORTED: Ported = [94, 108, 124];

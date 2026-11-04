@@ -73,7 +73,7 @@ export const MainframeBonus: (ctx: Ctx, d: number) => number = block("MainframeB
   return 119 == d ? asNumber(jewel[12]) : asNumber(jewel[12]) * MainframeBonus(ctx, 8);
 });
 
-const PORTED_SET = new Set([7, 8, 10, 14, 104, 116, 119]);
+const PORTED_SET = new Set([5, 7, 8, 10, 14, 104, 116, 119]);
 
 /** What this module covers (lib/game/ported.ts). */
 export const PORTED: Ported = [...PORTED_SET];
