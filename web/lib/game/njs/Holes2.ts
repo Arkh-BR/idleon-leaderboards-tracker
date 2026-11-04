@@ -29,7 +29,7 @@ export const Holes2: (ctx: Ctx, d: string, b: number, e: number) => number = blo
  * Holes[32] of all 3 fountains, so it throws (and the port refuses) when any of the 6 is missing, whichever entry is asked.
  */
 function fountainBonTOT(ctx: Ctx, b: number, e: number): number {
-  if (!Number.isInteger(b) || !Number.isInteger(e) || b < 0 || b > 2 || e < 0 || e > 19) throw new NotPorted("Holes2", `Fountain_BonTOT:${b},${e}`);
+  if (!Number.isInteger(b) || !Number.isInteger(e) || b < 0 || b > 2 || e < 0 || e > 19) throw new NotPorted("Holes2", `Fountain_BonTOT:b=${b},e=${e}`);
   for (let d = 0; d < 3; d++) {
     // the fill indexes Holes[31][d][f] and Holes[32][d][f] directly
     listAt(ctx, "Holes", 31, d);

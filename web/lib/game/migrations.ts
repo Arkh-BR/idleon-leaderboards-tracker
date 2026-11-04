@@ -409,7 +409,7 @@ function bundle(l: Load, b: string): unknown {
 
 /**
  * Runs every step on the parsed save (changed in place), in order: the ids of the steps that ran, what they assumed, and the refusal of
- * the first step that could not run (the steps after it do not run; GameState then refuses every read).
+ * the first step that could not run (the steps after it do not run; buildGameState throws it).
  */
 export function migrate(
   d: Data,

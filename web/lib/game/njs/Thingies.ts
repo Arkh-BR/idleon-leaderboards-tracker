@@ -79,7 +79,7 @@ function haveBanI(ctx: Ctx): number {
  * for that runtime value (Ruling K).
  */
 function loreEpiBon(ctx: Ctx, b: number): number {
-  if (b < 0) throw new NotPorted("Thingies", `LoreEpiBon:${b}`); // the rebuild (-1) and the clamp Math.max(0, b)
+  if (b < 0) throw new NotPorted("Thingies", `LoreEpiBon:b=${b}`); // the rebuild (-1) and the clamp Math.max(0, b)
   const episodes = (Spelunky as unknown as readonly (readonly unknown[])[])[20].length;
   const g = Math.max(0, b) | 0;
   // the game answers undefined for an episode past the list, which the caller would turn into NaN

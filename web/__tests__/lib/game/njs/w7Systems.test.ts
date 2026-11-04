@@ -764,12 +764,12 @@ describe("ports stay on their boundary", () => {
   const c = () => gameCtx({ data: {}, charNames: [], companion: null, guildData: {}, serverVars: null, tournament: {}, accountCreateTime: 1, lastUpdated: 1 }, 0);
   it("Minehead / MainframeBonus / Ninja / Thingies / RiftStuff / CauldronStats: only the ported sub-cases", () => {
     expect(() => Minehead(c(), "GlimboTotalTrades", 0, 0)).toThrow(NotPorted);
-    expect(() => MainframeBonus(c(), 15)).toThrow(NotPorted);
+    expect(() => MainframeBonus(c(), 15)).toThrow(expect.objectContaining({ name: "NotPorted", sub: "d=15" }));
     expect(() => Ninja(c(), "Nope", 0, 0)).toThrow(NotPorted);
     expect(() => Thingies(c(), "Nope", 0, 0)).toThrow(NotPorted);
     expect(() => RiftStuff(c(), "Nope", 0)).toThrow(NotPorted);
     expect(() => CauldronStats(c(), "Nope", 0, 0, 0)).toThrow(NotPorted);
-    expect(() => DNSM_StarSigns(c(), "Drop")).toThrow(NotPorted);
+    expect(() => DNSM_StarSigns(c(), "Drop")).toThrow(expect.objectContaining({ name: "NotPorted", sub: "StarSigns:key=Drop" }));
   });
   it("an empty save is refused with MissingSaveKey, never read as zeros", () => {
     expect(() => Minehead(c(), "Button_Bonuses", 3, 0)).toThrow(MissingSaveKey);

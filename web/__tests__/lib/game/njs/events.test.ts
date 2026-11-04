@@ -252,7 +252,7 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("GrimoireUpgBonus (N.js @10885504)", 
   it("a plain grimoire upgrade is level x value; the others are times upgrade 36 (not ported)", () => {
     const c = variant((d) => setIn(d, "Grimoire", (g) => (g[17] = 4)));
     expect(Summoning(c, "GrimoireUpgBonus", 17, 0)).toBe(4 * num(GrimoireUpg[17][5]));
-    expect(() => Summoning(c, "GrimoireUpgBonus", 2, 0)).toThrow(NotPorted);
+    expect(() => Summoning(c, "GrimoireUpgBonus", 2, 0)).toThrow(expect.objectContaining({ name: "NotPorted", sub: "GrimoireUpgBonus:b=2" }));
   });
 });
 
@@ -741,7 +741,7 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("VotingBonusz / VotingBonuszMulti / M
     expect(v20(vote([]))).toBe(0);
   });
   it("vote 1 has a rule of its own (the world a character has reached): not ported", () => {
-    expect(() => Summoning(vote([1]), "VotingBonusz", 1, 0)).toThrow(NotPorted);
+    expect(() => Summoning(vote([1]), "VotingBonusz", 1, 0)).toThrow(expect.objectContaining({ name: "NotPorted", sub: "VotingBonusz:b=1" }));
   });
   it("without a server answer (serverVars null) no vote is known to be in force: 0, shown in the trace as not counted", () => {
     const c = variant(() => {}, { trace: true, env: (e) => (e.serverVars = null) });
@@ -1009,7 +1009,7 @@ describe("ports stay on their boundary", () => {
     expect(() => Ninja(c(), "FloorsUnlocked", 0, 0)).toThrow(NotPorted);
     expect(() => Spelunk(c(), "CavesUnlocked", 0, 0)).toThrow(NotPorted);
     expect(() => Holes(c(), "VillagersOwned", 0, 0)).toThrow(NotPorted);
-    expect(() => Thingies(c(), "LoreEpiBon", -1, 0)).toThrow(NotPorted); // the cache rebuild (Task 8 ported the entries 0..10)
+    expect(() => Thingies(c(), "LoreEpiBon", -1, 0)).toThrow(expect.objectContaining({ name: "NotPorted", sub: "LoreEpiBon:b=-1" })); // the cache rebuild (Task 8 ported the entries 0..10)
     expect(() => ArcaneType(c(), "TesseractArcanist", 0, 0)).toThrow(NotPorted);
     expect(() => GamingStatType(c(), "LVupChance", 0, 0)).toThrow(NotPorted);
     expect(() => JellyOperation(c(), "SlotUnlocked", 0, 0)).toThrow(NotPorted);

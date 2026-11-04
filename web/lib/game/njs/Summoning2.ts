@@ -85,7 +85,7 @@ function activeVote(ctx: Ctx): unknown {
  * has a rule of its own (it also counts while a character has not reached the world the vote in force asks for): NotPorted.
  */
 function votingBonusz(ctx: Ctx, b: number): number {
-  if (1 == b) throw new NotPorted("Summoning2", "VotingBonusz:1");
+  if (1 == b) throw new NotPorted("Summoning2", "VotingBonusz:b=1");
   return b == activeVote(ctx) ? asNumber(NinjaInfo[38][Math.round(1 + 3 * b)]) * Summoning(ctx, "VotingBonuszMulti", 0, 0) : 0;
 }
 

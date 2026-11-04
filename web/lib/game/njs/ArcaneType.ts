@@ -18,7 +18,7 @@ const ARCANE_PLAIN = new Set([3, 7, 8, 10, 13, 16, 20, 25, 26, 28, 33, 35, 39, 4
 
 /** `ArcaneUpgBonus` @11084516: Arcane[b] x ArcaneUpg[b][5]; e == 999 is the game's way to ask for something else (0 here). */
 function arcaneUpgBonus(ctx: Ctx, b: number, e: number): number {
-  if (!ARCANE_PLAIN.has(b)) throw new NotPorted("ArcaneType", `ArcaneUpgBonus:${b}`);
+  if (!ARCANE_PLAIN.has(b)) throw new NotPorted("ArcaneType", `ArcaneUpgBonus:b=${b}`);
   if (999 == e) return 0;
   const row = ArcaneUpg[b | 0];
   // the game indexes ArcaneUpg[b][5] directly

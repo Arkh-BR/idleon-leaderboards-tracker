@@ -61,7 +61,7 @@ const TIER_WORD = [, , "doubled", "tripled", "quadrupled", "quintupled", "sixtup
  */
 function artifactBonus(ctx: Ctx, b: number, e: number): number {
   if (e === 1) throw new NotPorted("Sailing", "ArtifactBonus:e=1"); // the 1==e branch: the tier's description number
-  if (b < 0 || OWN_MULTIPLIER.has(b)) throw new NotPorted("Sailing", `ArtifactBonus:${b}`);
+  if (b < 0 || OWN_MULTIPLIER.has(b)) throw new NotPorted("Sailing", `ArtifactBonus:b=${b}`);
   const info = ArtifactInfo[b];
   if (!info) throw new RangeError(`Sailing ArtifactBonus: no artifact ${b} in ArtifactInfo`);
   // N.js tests the raw element, `0==Sailing[3][l]` (loose): a null element is not 0, so it takes the base (and, being no tier,

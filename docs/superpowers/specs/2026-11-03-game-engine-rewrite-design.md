@@ -217,8 +217,10 @@ Cada linha: o que, por quê, custo se errada.
 - **O:** camada de migrações de load: ao montar o estado, repete literalmente, com offsets e na ordem do jogo, os blocos do N.js que um save antigo não rodou (gates `DoOnceREAL` e CSver); o estado guarda a lista aplicada e as assunções, e a árvore as mostra. Por quê: o jogo nunca calcula num save como está armazenado. Custo: o escopo da camada; só o que o Artifact Find lê está portado, e o fim do arquivo lista cada passo examinado que não foi.
 - **P:** uma onda final de correções: o registro do updater cobre `lib/game`, as rulings e decisões entram no git (esta seção), a suíte completa roda em Node 22, a página não carrega o motor estaticamente, o cache de God Shard está documentado, o comentário falso sobre `lib/arkh` foi corrigido e a página mostra textos simples. Custo: nenhum, é limpeza.
 
+- **Q (era M5):** `buildGameState` lança a recusa das migrações (`MissingSaveKey`/`InvalidSaveValue`) na construção; não existe `GameState` meio válido, e `data` é um campo comum congelado. Por quê: ler `data` já não esconde um estado recusado. Custo: quem monta o estado captura o erro na construção (o cache por envelope do Artifact Find já não guarda um envelope recusado).
+- **R (era M6):** um cache do DNSM que as fórmulas leem por chave (`DNSM.StarSigns["61"]`) é um `block("DNSM.<Nome>")` por chave que devolve número; um cache cujos consumidores já são blocos por id (`Companions`) pode ficar como função que devolve um `Map`. A regra está no cabeçalho de `njs/DNSM.ts`. Custo: nenhum, só convenção.
+- **S (era M7):** `NotPorted.sub` é sempre texto: `"<Sub>"` para um sub-caso nomeado, `"<Sub>:<arg>=<valor>"` para um argumento fora do portado (`"VaultUpgBonus:b=5"`; sem sub nomeado, só `"d=15"`) e `"<estado>"` para uma condição do jogo (`"CurrentMap=41"`). `__tests__/lib/game/conventions.test.ts` confere todos os pontos de chamada. Custo: as mensagens mudaram.
+
 ### Adiado para o plano do Coin Multi
 
-- **M5:** a recusa de um save é guardada no `GameState` e lançada só na leitura de `data`; simplificar.
-- **M6:** dois padrões para os caches do jogo em `lib/game/njs` (`DNSM.X` e `DNSM_X`); unificar.
-- **M7:** `NotPorted.sub` mistura formatos (`"ArtifactBonus"`, `"ArtifactBonus:3"`, número); padronizar.
+- **M5, M6 e M7:** feitos no plano do Damage (Tarefa 0), em Q, R e S abaixo.

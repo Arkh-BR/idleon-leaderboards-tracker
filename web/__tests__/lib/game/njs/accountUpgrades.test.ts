@@ -229,7 +229,7 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("Holes2 Fountain_BonTOT / Fountain_Ma
   });
   it("only the 3 fountains x 20 upgrades the cache fill covers; the cache rebuild (b == -1) and the rest throw NotPorted", () => {
     const c = variant(() => {});
-    for (const [b, e] of [[-1, 0], [3, 0], [0, 20], [0, -1], [1.5, 2]]) expect(() => Holes2(c, "Fountain_BonTOT", b, e), `(${b}, ${e})`).toThrow(NotPorted);
+    for (const [b, e] of [[-1, 0], [3, 0], [0, 20], [0, -1], [1.5, 2]]) expect(() => Holes2(c, "Fountain_BonTOT", b, e), `(${b}, ${e})`).toThrow(expect.objectContaining({ name: "NotPorted", sub: `Fountain_BonTOT:b=${b},e=${e}` }));
     expect(() => Holes2(c, "JarRupieTypeGiven", 0, 0)).toThrow(NotPorted);
   });
   it.skipIf(noNjs)("calls what N.js calls", () => {

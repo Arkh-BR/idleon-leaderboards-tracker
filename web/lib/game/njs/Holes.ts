@@ -40,7 +40,7 @@ function bUpg(ctx: Ctx, b: number): number {
   if (0 == holes.length) return 0;
   listAt(ctx, "Holes", 13); // the game indexes Holes[13][b] directly
   if (0 == attr(ctx, "Holes", 13, b | 0)) return 0;
-  if (55 != b) throw new NotPorted("Holes", `B_UPG:${b}`);
+  if (55 != b) throw new NotPorted("Holes", `B_UPG:b=${b}`);
   listAt(ctx, "Holes", 9);
   return 10 * Math.floor(getLOG(ctx, asNum(ctx, "Holes", 9, 11)));
 }

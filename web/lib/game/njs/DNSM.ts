@@ -1,6 +1,12 @@
 // DNSM is the game's cache of computed values. It is not in the save (Ruling A), so each cache the port
 // reads is a function that replays the code that fills it. Only the caches Artifact Find reads from here;
 // the other DNSM keys are ported where their function is (ShinyBonusS in Breeding, NghMrTOT in MenagerieStuff).
+//
+// DNSM convention (one rule, two shapes):
+//  - a cache the game's formulas read BY KEY (`DNSM.StarSigns["61"]`, `DNSM.AlchVials["6turtle"]`, `DNSM.TomeQTYtot[n]`) is a per-key
+//    `block("DNSM.<Name>", (ctx, key) => number)`: the trace shows each read and an unported key throws NotPorted;
+//  - a cache whose only consumers are already per-id blocks (`Companions(ctx, id)` reads CompanionLVz/CompanionBon) may stay a plain
+//    function that returns the Map, because the block that consumes it is what the trace shows.
 import { asNum, asNumber, assumedLeaf, attr } from "../attr";
 import { assumed, block, runtime, type Ctx } from "../ctx";
 import { AlchemyDescription, CompanionDB, StarSigns } from "../data";
@@ -50,7 +56,7 @@ export const DNSM_CompanionLVz = (ctx: Ctx): Map<string, number> => stage2Of(com
  * (@10651111), and rewrites OptionsListAccount[606]; the Artifact Find map is 0, so that is not ported.
  */
 export function DNSM_CompanionBon(ctx: Ctx): Map<string, number> {
-  if (ctx.map === 41) throw new NotPorted("DNSM.CompanionBon", "CurrentMap 41");
+  if (ctx.map === 41) throw new NotPorted("DNSM.CompanionBon", "CurrentMap=41");
   const entries = companionEntries(ctx);
   const lvz = stage2Of(entries);
   const owned = new Set(entries.map((p) => asNumber(p[0])));
@@ -96,7 +102,7 @@ function equippedSignsText(ctx: Ctx): string {
  * signs' lines of the same function.
  */
 export const DNSM_StarSigns = block("DNSM.StarSigns", (ctx, key: string) => {
-  if (key !== "61") throw new NotPorted("DNSM.StarSigns", key);
+  if (key !== "61") throw new NotPorted("DNSM.StarSigns", `StarSigns:key=${key}`);
   const equipped = () => equippedSignsText(ctx).split(",");
   const unlocked = attr(ctx, "StarSignsUnlocked");
   if (unlocked === null || typeof unlocked !== "object" || Array.isArray(unlocked)) throw new InvalidSaveValue("StarSignsUnlocked", "a map", unlocked);

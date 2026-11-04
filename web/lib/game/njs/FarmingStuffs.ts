@@ -42,7 +42,7 @@ function stickerBonus(ctx: Ctx, b: number, e: number): number {
  * (b == -1) and anything past the 80 upgrades are not ported.
  */
 function exoticBonusQTY(ctx: Ctx, b: number): number {
-  if (!Number.isInteger(b) || b < 0 || b > 79) throw new NotPorted("FarmingStuffs", `ExoticBonusQTY:${b}`);
+  if (!Number.isInteger(b) || b < 0 || b > 79) throw new NotPorted("FarmingStuffs", `ExoticBonusQTY:b=${b}`);
   const info = (MarketExoticInfo as unknown as readonly (readonly unknown[])[])[b];
   const farm = asNum(ctx, "FarmUpg", Math.round(20 + b));
   let v = 1 == asNumber(info[4]) ? asNumber(info[3]) * (farm / (1e3 + farm)) : asNumber(info[3]) * farm;

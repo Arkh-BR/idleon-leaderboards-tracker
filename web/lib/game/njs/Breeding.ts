@@ -14,7 +14,7 @@ export const Breeding = block("Breeding", (ctx, d: string, b: string, e: number,
       return shinyBonusS(ctx, e);
     // @7937936: the `"Lv"` form, the level of pet `f` of group `e`; the `"REQ"` form is not ported
     case "SpecialPassives":
-      if (b !== "Lv") throw new NotPorted("Breeding", `SpecialPassives:${b}`);
+      if (b !== "Lv") throw new NotPorted("Breeding", `SpecialPassives:b=${b}`);
       return specialPassivesLv(ctx, e, f);
     // @7932815: reads the breeding actor's GenINFO[110], which it fills from the save
     case "TotPetsFound":

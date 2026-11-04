@@ -51,7 +51,7 @@ function labNodeConnected(ctx: Ctx, d: number): boolean {
  * of LabMainBonus the answer is 0, so bonus 14 is 0 for an account that owns none of the four Emporium items.
  */
 export const MainframeBonus = block("MainframeBonus", (ctx, d: number) => {
-  if (d !== 10 && d !== 14) throw new NotPorted("MainframeBonus", d);
+  if (d !== 10 && d !== 14) throw new NotPorted("MainframeBonus", `d=${d}`);
   const list = labMainBonus(ctx);
   if (d >= list.length && 99 > d) return 0;
   const row = list[d];

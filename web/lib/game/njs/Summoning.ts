@@ -64,7 +64,7 @@ const VAULT_PLAIN = new Set([32, 1, 6, 7, 8, 9, 13, 999, 33, 36, 40, 42, 43, 44,
 function vaultUpgBonus(ctx: Ctx, b: number): number {
   const level = () => asNum(ctx, "UpgVault", Math.round(b)) * asNumber(vaultRow(b)[5]);
   if (VAULT_PLAIN.has(b)) return level();
-  if (b < 61) throw new NotPorted("Summoning", `VaultUpgBonus:${b}`);
+  if (b < 61) throw new NotPorted("Summoning", `VaultUpgBonus:b=${b}`);
   if (89 > b) return level() * (1 + Summoning(ctx, "VaultUpgBonus", 89, 0) / 100);
   return 0;
 }
@@ -83,7 +83,7 @@ function eventShopOwned(ctx: Ctx, b: number): number {
 /** The grimoire upgrades that are plain level x value (`9==b||11==b||…` @10885504). The others are times GrimoireUpgBonus 36: NotPorted. */
 const GRIMOIRE_PLAIN = new Set([9, 11, 26, 36, 39, 17, 32, 45]);
 function grimoireUpgBonus(ctx: Ctx, b: number): number {
-  if (!GRIMOIRE_PLAIN.has(b)) throw new NotPorted("Summoning", `GrimoireUpgBonus:${b}`);
+  if (!GRIMOIRE_PLAIN.has(b)) throw new NotPorted("Summoning", `GrimoireUpgBonus:b=${b}`);
   const row = GrimoireUpg[b | 0];
   // the game indexes GrimoireUpg[b][5] directly
   if (!row) throw new RangeError(`Summoning GrimoireUpgBonus: no upgrade ${b} in GrimoireUpg`);
@@ -128,7 +128,7 @@ function winBonus(ctx: Ctx, b: number): number {
   const table = summWinBonus(ctx);
   if (-1 == b) return 0;
   if (20 == b || 22 == b || 24 == b || 31 == b) return table[b | 0];
-  if (19 == b || (20 <= b && 33 >= b)) throw new NotPorted("Summoning", `WinBonus:${b}`);
+  if (19 == b || (20 <= b && 33 >= b)) throw new NotPorted("Summoning", `WinBonus:b=${b}`);
   listAt(ctx, "Tasks", 2, 5); // the game indexes Tasks[2][5][4] directly
   return (
     3.5 * asNumber(table[b | 0]) *

@@ -161,7 +161,7 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("Companions / CompLV2 (N.js @10799980
   });
   it("map 41 (the token clean-up of the map-load code) is not ported", () => {
     const c = withCompanions(["43,1,0,5,0"]);
-    expect(() => Companions({ ...c, map: 41, cache: new Map() }, 43)).toThrow(NotPorted);
+    expect(() => Companions({ ...c, map: 41, cache: new Map() }, 43)).toThrow(expect.objectContaining({ name: "NotPorted", sub: "CurrentMap=41" })); // a game-state condition
   });
 });
 
@@ -288,7 +288,7 @@ describe("ports stay on their boundary", () => {
   const withMenagerie = () => gameCtx(env({ Menagerie: [[], [], [1]] }), 0); // the head guard returns 0 on an empty list, before any sub-case
   it("Breeding: only ShinyBonusS, SpecialPassives Lv and TotPetsFound", () => {
     for (const d of ["PetUpgBONUS", "ShinySpdMulti", "Nope"]) expect(() => Breeding(c(), d, "0", 0, 0)).toThrow(NotPorted);
-    expect(() => Breeding(c(), "SpecialPassives", "REQ", 0, 0)).toThrow(NotPorted);
+    expect(() => Breeding(c(), "SpecialPassives", "REQ", 0, 0)).toThrow(expect.objectContaining({ name: "NotPorted", sub: "SpecialPassives:b=REQ" }));
   });
   it("MenagerieStuff: only NightmarinerBon (boat 0), NightmarinerTotLV and UnlockOwned", () => {
     for (const d of ["Nope", "UnlockCost"]) expect(() => MenagerieStuff(withMenagerie(), d, 0, 0)).toThrow(NotPorted);

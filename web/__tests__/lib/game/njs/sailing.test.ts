@@ -173,9 +173,9 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("artifact3 (Sailing ArtifactBonus 3, 
     const c = at(3);
     expect(Sailing(c, "ArtifactBonus", 32, 0)).toBe(75);
     for (const b of [1, 2, 5, 8, 10, 11, 13, 18, 20, 23, 25, 27, 29, -1]) {
-      expect(() => Sailing(c, "ArtifactBonus", b, 0), `artifact ${b}`).toThrow(NotPorted);
+      expect(() => Sailing(c, "ArtifactBonus", b, 0), `artifact ${b}`).toThrow(expect.objectContaining({ name: "NotPorted", sub: `ArtifactBonus:b=${b}` }));
     }
-    expect(() => Sailing(c, "ArtifactBonus", 3, 1)).toThrow(NotPorted); // the 1==e branch
+    expect(() => Sailing(c, "ArtifactBonus", 3, 1)).toThrow(expect.objectContaining({ name: "NotPorted", sub: "ArtifactBonus:e=1" })); // the 1==e branch
   });
 });
 

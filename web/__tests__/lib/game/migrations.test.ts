@@ -203,34 +203,30 @@ describe("the OnPlayStart blocks: each runs when its gate is above DoOnceREAL, r
     expect(run(100, 0)).toEqual(["GODSHARD_SET", 0]);
   });
   it("reads DoOnceREAL -1 as the loader does: the init 0 stays", () => {
-    expect(buildGameState(env(at389({ DoOnceREAL: -1 }))).refusal?.key).toBe(UNPORTED_STEPS);
+    expect(() => buildGameState(env(at389({ DoOnceREAL: -1 })))).toThrow(UNPORTED_STEPS);
   });
   it("runs no block on a save without DoOnceREAL (synthetic), and refuses one that is not a number", () => {
     const { DoOnceREAL: _, ...noDoOnce } = at389();
     expect(buildGameState(env(noDoOnce)).migrations).toEqual([]);
-    expect(buildGameState(env(at389({ DoOnceREAL: "389.1" }))).refusal).toBeInstanceOf(InvalidSaveValue);
+    expect(() => buildGameState(env(at389({ DoOnceREAL: "389.1" })))).toThrow(InvalidSaveValue);
   });
 });
 
 describe("strictness: a step never guesses, and a save it cannot replay reads nothing", () => {
-  it("a block that needs a key the save lacks refuses the save: every read throws that MissingSaveKey", () => {
+  it("a block that needs a key the save lacks refuses the save: buildGameState throws that MissingSaveKey, no state exists", () => {
     const { Spelunk: _, ...noSpelunk } = at389();
-    const s = buildGameState(env(noSpelunk));
-    expect(s.refusal).toMatchObject({ name: "MissingSaveKey", key: "Spelunk" });
-    expect(() => s.data).toThrow(MissingSaveKey);
-    expect(() => s.get("CSver")).toThrow("Spelunk");
-    expect(buildGameState(env(at389({ Ninja: [] }))).refusal?.key).toBe("Ninja[103]");
-    expect(buildGameState(env(at389({ Menagerie: [] }))).refusal).toBeUndefined(); // filled first (initialize4), then [0][6] is set
-    expect(buildGameState(env(at389({ Spelunk: '[["a"' }))).refusal).toBeInstanceOf(InvalidSaveValue); // a corrupt key is not read
-    expect(buildGameState(env({ CSver: 23.05 })).refusal?.key).toBe("Lv0_0"); // the Spelunk fill writes every character's Lv0[19]
+    expect(() => buildGameState(env(noSpelunk))).toThrow(MissingSaveKey);
+    expect(() => buildGameState(env(noSpelunk))).toThrow("Spelunk");
+    expect(() => buildGameState(env(at389({ Ninja: [] })))).toThrow(expect.objectContaining({ key: "Ninja[103]" }));
+    expect(() => buildGameState(env(at389({ Menagerie: [] })))).not.toThrow(); // filled first (initialize4), then [0][6] is set
+    expect(() => buildGameState(env(at389({ Spelunk: '[["a"' })))).toThrow(InvalidSaveValue); // a corrupt key is not read
+    expect(() => buildGameState(env({ CSver: 23.05 }))).toThrow(expect.objectContaining({ key: "Lv0_0" })); // the Spelunk fill writes every character's Lv0[19]
   });
   it(`a save older than the oldest block examined (DoOnceREAL < ${OLDEST_GATE}) is refused, naming that`, () => {
     for (const DoOnceREAL of [0, 100, 247.9]) {
-      const s = buildGameState(env(at389({ DoOnceREAL })));
-      expect(s.refusal).toMatchObject({ name: "MissingSaveKey", key: UNPORTED_STEPS });
-      expect(() => s.data).toThrow(UNPORTED_STEPS);
+      expect(() => buildGameState(env(at389({ DoOnceREAL })))).toThrow(expect.objectContaining({ name: "MissingSaveKey", key: UNPORTED_STEPS }));
     }
-    expect(buildGameState(env(at389({ DoOnceREAL: OLDEST_GATE }))).refusal?.key).not.toBe(UNPORTED_STEPS); // 248 itself runs from 251 on
+    expect(() => buildGameState(env(at389({ DoOnceREAL: OLDEST_GATE })))).not.toThrow(UNPORTED_STEPS); // 248 itself runs from 251 on
     expect(UNPORTED_STEPS).toBe("the game's load steps for DoOnceREAL < 248");
   });
   it("leaves the caller's envelope as it was and freezes what it built; every state gets lists of its own", () => {
@@ -432,13 +428,21 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("the real saves", () => {
   it("a current save runs no step; each older one runs the steps of its version", () => {
     const seen = new Map<string, string[]>();
     for (const { file, data, path } of saves) {
-      const s = buildGameState(JSON.parse(readFileSync(path, "utf8")));
+      let s: ReturnType<typeof buildGameState>;
+      try {
+        s = buildGameState(JSON.parse(readFileSync(path, "utf8")));
+      } catch (e) {
+        if (!(e instanceof MissingSaveKey || e instanceof InvalidSaveValue)) throw e;
+        const group = `refused: ${e.key}`;
+        seen.set(group, [...(seen.get(group) ?? []), file].sort());
+        continue;
+      }
       if (data.CSver >= 34.05) {
         expect(s.migrations, file).toEqual([]);
         expect(s.assumed, file).toEqual([]);
         continue;
       }
-      const group = s.refusal ? `refused: ${s.refusal.key}` : `CSver ${data.CSver}, DoOnceREAL ${data.DoOnceREAL}: ${s.migrations.length} steps`;
+      const group = `CSver ${data.CSver}, DoOnceREAL ${data.DoOnceREAL}: ${s.migrations.length} steps`;
       seen.set(group, [...(seen.get(group) ?? []), file].sort());
     }
     expect(Object.fromEntries(seen)).toEqual({

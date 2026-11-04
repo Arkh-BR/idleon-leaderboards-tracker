@@ -268,14 +268,12 @@ describe.skipIf(saves.length === 0)("every golden save builds a GameState", () =
 
   it.each(saves)("%s", (f) => {
     const { raw } = load(f);
-    const s = buildGameState(raw);
     if (raw.data.DoOnceREAL < OLDEST_GATE) {
-      // older than the game's load steps ported (lib/game/migrations): every read is refused
-      expect(s.refusal?.key).toBe(UNPORTED_STEPS);
-      expect(() => s.data).toThrow(MissingSaveKey);
+      // older than the game's load steps ported (lib/game/migrations): refused at build
+      expect(() => buildGameState(raw)).toThrow(expect.objectContaining({ name: "MissingSaveKey", key: UNPORTED_STEPS }));
       return;
     }
-    expect(s.refusal).toBeUndefined();
+    const s = buildGameState(raw);
     // every save key is there, plus the attributes the game's load gives an older save (a loader step that ran)
     for (const k of Object.keys(raw.data)) expect(Object.hasOwn(s.data, k), k).toBe(true);
     for (const k of Object.keys(s.data).filter((k) => !Object.hasOwn(raw.data, k))) expect(s.migrations.some((m) => m.startsWith(`${k} = [] `)), k).toBe(true);
