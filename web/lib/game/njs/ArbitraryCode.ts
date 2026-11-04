@@ -1,5 +1,7 @@
-import { asNum } from "../attr";
-import { block } from "../ctx";
+import { asNum, attr } from "../attr";
+import { block, withPlayer } from "../ctx";
+import { SceneNPCquestOrder } from "../data";
+import { hString } from "../hstring";
 import { NotPorted } from "../errors";
 import { AchieveStatus } from "./AchieveStatus";
 import { CardBonusREAL } from "./CardBonusREAL";
@@ -47,10 +49,25 @@ export const ArbitraryCode = block("ArbitraryCode", (ctx, d: string) => {
                               (FarmingStuffs(ctx, "LankRankUpgBonus", 19, 0) + (Summoning(ctx, "VotingBonusz", 2, 0) + GetSetBonus(ctx, "MARBIGLASS_SET", "Bonus", 0, 0))))))))))))
         )
       );
+    // @4060967: the quests done, `DNSM.TomeQTY[4]` once the Tome actor's _customEvent_TomeQTY has run (every session, the Tome being
+    // open or not: it fills the account's Tome counts), else the HUD's quest list. That count @5742563: the quests of SceneNPCquestOrder
+    // any character has done (its QuestComplete is 1); replayed from the save
+    case "TotalQuestsComplete": {
+      let n = 0; // this._DummyNumber
+      for (const q of SceneNPCquestOrder as unknown as readonly unknown[]) {
+        for (let b = 0; b < ctx.state.charNames.length; b++) {
+          if (1 == attr(withPlayer(ctx, b), "QuestComplete", hString(q))) {
+            n += 1;
+            break;
+          }
+        }
+      }
+      return n;
+    }
     default:
       throw new NotPorted("ArbitraryCode", d);
   }
 });
 
 /** What this module covers (lib/game/ported.ts). */
-export const PORTED: Ported = { AllStat: true, AllStatPCT: true };
+export const PORTED: Ported = { AllStat: true, AllStatPCT: true, TotalQuestsComplete: true };

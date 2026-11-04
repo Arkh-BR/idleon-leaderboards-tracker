@@ -160,7 +160,7 @@ export function TotalStatsETCmap(ctx: Ctx): ReadonlyMap<string, number> {
 
 /**
  * N.js `_customBlock_TotalStats(d)` @4156192: the character's total of stat `d`, cached in `DNSM.TotStatMAP` (here the `block` cache).
- * Only STR is ported. Outside a dungeon it is
+ * Only STR, AGI, WIS and LUK are ported. Outside a dungeon each is
  * floor(the TotalSTR bubble + talent 652 + Companion 8 + (1 + pct / 100) x (equipment + base + the flat sources)), @4174547.
  */
 export const TotalStats = block("TotalStats", (ctx, d: string) => {
@@ -193,10 +193,94 @@ export const TotalStats = block("TotalStats", (ctx, d: string) => {
                               (Breeding(ctx, "ShinyBonusS", "Nah", 6, -1) + (ArcadeBonus(ctx, 19) + Summoning(ctx, "OwlBonuses", 5, 0))))))))))))
       );
     }
+    // @4174547 on, the next sub-case
+    case "AGI": {
+      const { dn } = head(ctx, d);
+      if (-1 != Dungon(ctx)) return Math.floor(dn);
+      return Math.floor(
+        DNSM_AlchBubbles(ctx, "TotalAGI") +
+          (GetTalentNumber(ctx, 1, 652) + Companions(ctx, 8)) +
+          (1 +
+            (GetTalentNumber(ctx, 1, 368) +
+              EtcBonuses(ctx, "25") +
+              (EtcBonuses(ctx, "46") + (ArbitraryCode(ctx, "AllStatPCT") + Ninja(ctx, "PristineBon", 1, 0)) + (DNSM_StarSigns(ctx, "pctAGI") + DNSM_AlchBubbles(ctx, "A9")))) /
+              100) *
+            (dn +
+              (GetTalentNumber(ctx, 1, 11) + getbonus2(ctx, 1, 52, -1) + (StampBonusOfTypeX(ctx, "BaseAGI") + EtcBonuses(ctx, "52"))) +
+              (GetTalentNumber(ctx, 1, 278) + GetTalentNumber(ctx, 1, 428) + asNum(ctx, "OptionsListAccount", 175) * Dreamstuff(ctx, "AllShimmerBonuses", 0)) +
+              (DNSM_FamBonusQTYs(ctx, "38") +
+                (DNSM_StarSigns(ctx, "AGI") +
+                  DNSM_BoxRewards(ctx, "21b") +
+                  (TalentCalc(ctx, 620) +
+                    (CardBonusREAL(ctx, 7) +
+                      (StampBonusOfTypeX(ctx, "BaseAllStat") +
+                        (ArbitraryCode(ctx, "AllStat") +
+                          (Labb(ctx, "SigilBonus", "Blank", 1, 0) +
+                            (GetTalentNumber(ctx, 2, 367) +
+                              (DNSM_AlchBubbles(ctx, "A4") +
+                                (Breeding(ctx, "ShinyBonusS", "Nah", 7, -1) + (ArcadeBonus(ctx, 20) + Summoning(ctx, "OwlBonuses", 5, 0)))))))))))))
+      );
+    }
+    case "WIS": {
+      const { dn } = head(ctx, d);
+      if (-1 != Dungon(ctx)) return Math.floor(dn);
+      return Math.floor(
+        DNSM_AlchBubbles(ctx, "TotalWIS") +
+          (GetTalentNumber(ctx, 1, 652) + Companions(ctx, 8)) +
+          (1 +
+            (GetTalentNumber(ctx, 1, 533) +
+              EtcBonuses(ctx, "58") +
+              (EtcBonuses(ctx, "46") + (ArbitraryCode(ctx, "AllStatPCT") + Ninja(ctx, "PristineBon", 10, 0)) + (DNSM_StarSigns(ctx, "pctWIS") + DNSM_AlchBubbles(ctx, "M9")))) /
+              100) *
+            (dn +
+              (GetTalentNumber(ctx, 1, 12) + getbonus2(ctx, 1, 53, -1) + (StampBonusOfTypeX(ctx, "BaseWIS") + EtcBonuses(ctx, "53"))) +
+              (GetTalentNumber(ctx, 1, 459) + asNum(ctx, "OptionsListAccount", 176) * Dreamstuff(ctx, "AllShimmerBonuses", 0)) +
+              DNSM_FamBonusQTYs(ctx, "62") +
+              (DNSM_StarSigns(ctx, "WIS") +
+                DNSM_BoxRewards(ctx, "22b") +
+                (GetTalentNumber(ctx, 1, 593) +
+                  TalentCalc(ctx, 620) +
+                  (CardBonusREAL(ctx, 5) +
+                    (StampBonusOfTypeX(ctx, "BaseAllStat") +
+                      (ArbitraryCode(ctx, "AllStat") +
+                        (Labb(ctx, "SigilBonus", "Blank", 2, 0) +
+                          (GetTalentNumber(ctx, 2, 532) +
+                            (DNSM_AlchBubbles(ctx, "M4") +
+                              (Breeding(ctx, "ShinyBonusS", "Nah", 8, -1) + (ArcadeBonus(ctx, 21) + Summoning(ctx, "OwlBonuses", 5, 0))))))))))))
+      );
+    }
+    case "LUK": {
+      const { dn } = head(ctx, d);
+      if (-1 != Dungon(ctx)) return Math.floor(dn);
+      // the quests term is min(quests, talent 618): with the talent at 0 it is 0 whatever the count (a count is never below 0), so the
+      // count, the Tome's TomeQTY[4], is only read when the talent has a level
+      const t618 = GetTalentNumber(ctx, 1, 618);
+      const quests = 0 >= t618 ? t618 : Math.min(ArbitraryCode(ctx, "TotalQuestsComplete"), t618);
+      return Math.floor(
+        DNSM_AlchBubbles(ctx, "TotalLUK") +
+          (GetTalentNumber(ctx, 1, 652) + Companions(ctx, 8)) +
+          (1 + (EtcBonuses(ctx, "17") + (EtcBonuses(ctx, "46") + (ArbitraryCode(ctx, "AllStatPCT") + Ninja(ctx, "PristineBon", 5, 0)) + DNSM_StarSigns(ctx, "pctLUK"))) / 100) *
+            (dn +
+              (GetTalentNumber(ctx, 1, 13) +
+                getbonus2(ctx, 1, 54, -1) +
+                (StampBonusOfTypeX(ctx, "BaseLUK") + DNSM_BoxRewards(ctx, "15c") + (EtcBonuses(ctx, "54") + asNum(ctx, "OptionsListAccount", 177) * Dreamstuff(ctx, "AllShimmerBonuses", 0)))) +
+              (DNSM_BoxRewards(ctx, "LUK") +
+                (DNSM_FamBonusQTYs(ctx, "4") +
+                  DNSM_StarSigns(ctx, "LUK") +
+                  (quests +
+                    (TalentCalc(ctx, 620) +
+                      (CardBonusREAL(ctx, 2) +
+                        (GetTalentNumber(ctx, 1, 23) +
+                          (StampBonusOfTypeX(ctx, "BaseAllStat") +
+                            (ArbitraryCode(ctx, "AllStat") +
+                              (Labb(ctx, "SigilBonus", "Blank", 3, 0) +
+                                (DNSM_AlchBubbles(ctx, "A4") + (Breeding(ctx, "ShinyBonusS", "Nah", 9, -1) + (ArcadeBonus(ctx, 22) + Summoning(ctx, "OwlBonuses", 5, 0))))))))))))))
+      );
+    }
     default:
       throw new NotPorted("TotalStats", d);
   }
 });
 
 /** What this module covers (lib/game/ported.ts). */
-export const PORTED: Ported = { STR: true };
+export const PORTED: Ported = { STR: true, AGI: true, WIS: true, LUK: true };

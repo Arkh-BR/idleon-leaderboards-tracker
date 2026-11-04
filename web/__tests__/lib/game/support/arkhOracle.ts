@@ -295,6 +295,7 @@ const GODSHARD_WORN = "GetSetBonus Bonus @11098422 gives the God Shard set's bon
 /**
  * The character stats (Task 3): why lib/arkh's STR differs, by reason. Each reason is also a "seed" (statSeeds below): the lib/arkh number
  * for the one term, which, put in lib/game's cache in place of its own, makes lib/game equal lib/arkh (stats.test.ts checks every pair).
+ * "tomeW8" is the stat's Tome bubble (W8, A9, M9), "signs" its two star-sign keys.
  */
 export const STAT_WHY: Record<string, string> = {
   vote2:
@@ -311,7 +312,9 @@ export const STAT_WHY: Record<string, string> = {
 };
 
 /** [save, reason, characters (absent = all)], found by seeding each mismatch (stats.test.ts proves each). */
-const STAT_DIFFS: readonly (readonly [save: string, reason: string, cis?: readonly number[]])[] = [
+type DiffRow = readonly [save: string, reason: string, cis?: readonly number[]];
+const STAT_DIFFS: Partial<Record<ArkhStat, readonly DiffRow[]>> = {
+  str: [
   ["100Cotton.json", "vote2"],
   ["Ash_EB.json", "fam68", [0]],
   ["AvacadoSqueeze.json", "gfood"],
@@ -363,7 +366,170 @@ const STAT_DIFFS: readonly (readonly [save: string, reason: string, cis?: readon
   ["26515665165165.json", "gfood"],
   ["arkhe-2026-09-23.json", "tomeW8"],
   ["arkhe-it-profile-2026-09-24.json", "vote2"]
-];
+  ],
+  agi: [
+    ["100Cotton.json", "vote2"],
+    ["Ash_EB.json", "fam68", [0]],
+    ["AvacadoSqueeze.json", "gfood"],
+    ["B0schi.json", "gfood"],
+    ["BopeBrancis.json", "gfood"],
+    ["Chalalaa.json", "gfood"],
+    ["Crezar.json", "gfood"],
+    ["Einyen.json", "gfood"],
+    ["Fanmail.json", "gfood"],
+    ["FenrirAdra.json", "gfood"],
+    ["Flipper143.json", "gfood"],
+    ["Flipper143.json", "tomeW8"],
+    ["Fluffle_Puff.json", "gfood"],
+    ["Frans813.json", "gfood"],
+    ["Frostymart.json", "fam68", [0]],
+    ["FrozenBody.json", "fam68", [1]],
+    ["Glaives.json", "gfood"],
+    ["Glaives.json", "signs"],
+    ["GoddessFreia.json", "gfood"],
+    ["Jrod11.json", "vote2"],
+    ["Jrod11.json", "fam68", [4, 7]],
+    ["Koweabooo.json", "tomeW8"],
+    ["Koweabooo.json", "fam68", [8]],
+    ["Koweabooo.json", "comp0", [10]],
+    ["MarleyLongbott.json", "gfood"],
+    ["Maspoofio.json", "gfood"],
+    ["Maspoofio.json", "fam68", [7]],
+    ["PerkOne.json", "gfood"],
+    ["Rinkzate.json", "vote2"],
+    ["Shironee.json", "gfood"],
+    ["Snowyzxd.json", "gfood"],
+    ["TinTim.json", "gfood"],
+    ["TomerBuff.json", "gfood"],
+    ["Yosh6400.json", "gfood"],
+    ["airbolt.json", "gfood"],
+    ["astarm.json", "gfood"],
+    ["big_guy69123.json", "gfood"],
+    ["big_guy69123.json", "signs"],
+    ["big_guy69123.json", "fam68", [5]],
+    ["biggums3.json", "gfood"],
+    ["kONYYY.json", "gfood"],
+    ["liiiiiiiiiiiig.json", "gfood"],
+    ["ryujinsan.json", "gfood"],
+    ["zadavi.json", "gfood"],
+    ["01010111001.json", "vote2"],
+    ["0xEXCEED.json", "vote2"],
+    ["0xEXCEED.json", "fam68", [5]],
+    ["26515665165165.json", "vote2"],
+    ["26515665165165.json", "gfood"],
+    ["arkhe-2026-09-23.json", "tomeW8"],
+    ["arkhe-it-profile-2026-09-24.json", "vote2"],
+  ],
+  wis: [
+    ["100Cotton.json", "vote2"],
+    ["Ash_EB.json", "fam68", [0]],
+    ["AvacadoSqueeze.json", "gfood"],
+    ["B0schi.json", "gfood"],
+    ["BopeBrancis.json", "gfood"],
+    ["Chalalaa.json", "gfood"],
+    ["Crezar.json", "gfood"],
+    ["Dandy2009.json", "signs"],
+    ["Dasvidanya.json", "signs"],
+    ["Einyen.json", "gfood"],
+    ["Fanmail.json", "gfood"],
+    ["FenrirAdra.json", "gfood"],
+    ["Flipper143.json", "gfood"],
+    ["Flipper143.json", "tomeW8"],
+    ["Fluffle_Puff.json", "gfood"],
+    ["Frans813.json", "gfood"],
+    ["Frostymart.json", "fam68", [0]],
+    ["FrozenBody.json", "fam68", [1]],
+    ["GIM_SSS.json", "signs"],
+    ["Glaives.json", "gfood"],
+    ["Glaives.json", "signs"],
+    ["GoddessFreia.json", "gfood"],
+    ["Jrod11.json", "vote2"],
+    ["Jrod11.json", "fam68", [4, 7]],
+    ["Koweabooo.json", "tomeW8"],
+    ["Koweabooo.json", "fam68", [8]],
+    ["Koweabooo.json", "comp0", [10]],
+    ["MarleyLongbott.json", "gfood"],
+    ["Maspoofio.json", "gfood"],
+    ["Maspoofio.json", "fam68", [7]],
+    ["PerkOne.json", "gfood"],
+    ["PulseIRL.json", "signs"],
+    ["Rinkzate.json", "vote2"],
+    ["Shironee.json", "gfood"],
+    ["Snowyzxd.json", "gfood"],
+    ["TinTim.json", "gfood"],
+    ["TomerBuff.json", "gfood"],
+    ["Yosh6400.json", "gfood"],
+    ["airbolt.json", "gfood"],
+    ["astarm.json", "gfood"],
+    ["big_guy69123.json", "gfood"],
+    ["big_guy69123.json", "signs"],
+    ["big_guy69123.json", "fam68", [5]],
+    ["biggums3.json", "gfood"],
+    ["kONYYY.json", "gfood"],
+    ["liiiiiiiiiiiig.json", "gfood"],
+    ["ryujinsan.json", "gfood"],
+    ["zadavi.json", "gfood"],
+    ["01010111001.json", "vote2"],
+    ["0xEXCEED.json", "vote2"],
+    ["0xEXCEED.json", "fam68", [5]],
+    ["26515665165165.json", "vote2"],
+    ["26515665165165.json", "gfood"],
+    ["arkhe-2026-09-23.json", "tomeW8"],
+    ["arkhe-it-profile-2026-09-24.json", "vote2"],
+  ],
+  luk: [
+    ["100Cotton.json", "vote2"],
+    ["Ash_EB.json", "fam68", [0]],
+    ["AvacadoSqueeze.json", "gfood"],
+    ["B0schi.json", "gfood"],
+    ["BopeBrancis.json", "gfood"],
+    ["Chalalaa.json", "gfood"],
+    ["Crezar.json", "gfood"],
+    ["Dasvidanya.json", "signs"],
+    ["Einyen.json", "gfood"],
+    ["Fanmail.json", "gfood"],
+    ["FenrirAdra.json", "gfood"],
+    ["Flipper143.json", "gfood"],
+    ["Fluffle_Puff.json", "gfood"],
+    ["Frans813.json", "gfood"],
+    ["Frostymart.json", "fam68", [0]],
+    ["FrozenBody.json", "signs"],
+    ["FrozenBody.json", "fam68", [1]],
+    ["Glaives.json", "gfood"],
+    ["Glaives.json", "signs"],
+    ["GoddessFreia.json", "gfood"],
+    ["Jrod11.json", "vote2"],
+    ["Jrod11.json", "fam68", [4, 7]],
+    ["Koweabooo.json", "fam68", [8]],
+    ["Koweabooo.json", "comp0", [10]],
+    ["MarleyLongbott.json", "gfood"],
+    ["Maspoofio.json", "gfood"],
+    ["Maspoofio.json", "fam68", [7]],
+    ["PerkOne.json", "gfood"],
+    ["Rinkzate.json", "vote2"],
+    ["Shironee.json", "gfood"],
+    ["Snowyzxd.json", "gfood"],
+    ["TinTim.json", "gfood"],
+    ["TomerBuff.json", "gfood"],
+    ["Yosh6400.json", "gfood"],
+    ["airbolt.json", "gfood"],
+    ["astarm.json", "gfood"],
+    ["big_guy69123.json", "gfood"],
+    ["big_guy69123.json", "signs"],
+    ["big_guy69123.json", "fam68", [5]],
+    ["biggums3.json", "gfood"],
+    ["kONYYY.json", "gfood"],
+    ["liiiiiiiiiiiig.json", "gfood"],
+    ["ryujinsan.json", "gfood"],
+    ["zadavi.json", "gfood"],
+    ["01010111001.json", "vote2"],
+    ["0xEXCEED.json", "vote2"],
+    ["0xEXCEED.json", "fam68", [5]],
+    ["26515665165165.json", "vote2"],
+    ["26515665165165.json", "gfood"],
+    ["arkhe-it-profile-2026-09-24.json", "vote2"],
+  ],
+};
 
 /**
  * Where N.js proves lib/arkh wrong and lib/game keeps the N.js value. `save` is the file name of the
@@ -391,8 +557,8 @@ export const KNOWN_ARKH_DIFFS: {
   { save: "5OhTree.json", source: "loreEpi3", why: TOME_AFTER_RESET },
   { save: "HourZero.json", ci: 1, source: "win3", why: GODSHARD_WORN },
   { save: "HourZero.json", ci: 9, source: "win3", why: GODSHARD_WORN },
-  ...STAT_DIFFS.flatMap(([save, source, cis]) =>
-    (cis ?? [undefined]).map((ci) => ({ stat: "str" as const, save, ...(ci === undefined ? {} : { ci }), source, why: STAT_WHY[source] }))
+  ...(Object.entries(STAT_DIFFS) as [ArkhStat, (typeof STAT_DIFFS)[ArkhStat]][]).flatMap(([stat, rows]) =>
+    rows!.flatMap(([save, source, cis]) => (cis ?? [undefined]).map((ci) => ({ stat, save, ...(ci === undefined ? {} : { ci }), source, why: STAT_WHY[source] })))
   ),
 ];
 
@@ -400,10 +566,12 @@ export const KNOWN_ARKH_DIFFS: {
  * The lib/arkh numbers behind each STAT_WHY reason, as lib/game `block` calls to seed (block name, its args, lib/arkh's value): put in the
  * cache of a fresh lib/game Ctx for character `ci`, they make lib/game compute what lib/arkh does. lib/arkh is run on the save at `path`.
  */
-export function arkhStatSeeds(path: string, ci: number, reasons: readonly string[]): [name: string, args: (string | number)[], value: number][] {
+export function arkhStatSeeds(path: string, ci: number, reasons: readonly string[], stat: keyof typeof MAIN_STATS = "str"): [name: string, args: (string | number)[], value: number][] {
   loadSaveData(JSON.parse(readFileSync(path, "utf8")));
   const ctx = { saveData, charIdx: ci, activeCharIdx: ci } as never;
-  const tree = computeTotalStat("STR", ci, ctx).tree;
+  const STAT = MAIN_STATS[stat];
+  const tree = computeTotalStat(STAT, ci, ctx).tree;
+  const tomeBubble = ({ str: "W8", agi: "A9", wis: "M9" } as Record<string, string>)[stat];
   const find = (n: ArkhNode, test: (n: ArkhNode) => boolean): ArkhNode | undefined => (test(n) ? n : (n.children ?? []).map((k) => find(k, test)).find(Boolean));
   const at = (name: string) => {
     const n = find(tree, (x) => x.name === name);
@@ -414,8 +582,8 @@ export function arkhStatSeeds(path: string, ci: number, reasons: readonly string
   for (const r of reasons) {
     if (r === "vote2") out.push(["Summoning", ["VotingBonusz", 2, 0], votingBonusz(2, undefined, saveData)]);
     else if (r === "gfood") out.push(["GoldFoodBonuses", ["AllStatz"], goldFoodBonuses("AllStatz", ci, undefined, saveData).total]);
-    else if (r === "tomeW8") out.push(["DNSM.AlchBubbles", ["W8"], at("AlchBubble W8")]);
-    else if (r === "signs") out.push(["DNSM.StarSigns", ["STR"], at("StarSigns.STR")], ["DNSM.StarSigns", ["pctSTR"], at("StarSigns.pctSTR")]);
+    else if (r === "tomeW8") out.push(["DNSM.AlchBubbles", [tomeBubble], at(`AlchBubble ${tomeBubble}`)]);
+    else if (r === "signs") out.push(["DNSM.StarSigns", [STAT], at(`StarSigns.${STAT}`)], ["DNSM.StarSigns", [`pct${STAT}`], at(`StarSigns.pct${STAT}`)]);
     else if (r === "comp0") out.push(["Companions", [0], 1]);
     else if (r === "fam68") {
       const n = find(talentResolver.resolve(10, ctx), (x) => x.name.startsWith("Family Bonus 68"));

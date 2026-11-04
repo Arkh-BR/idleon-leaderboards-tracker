@@ -16,6 +16,9 @@ import type { StatKey } from "@/lib/readings/types";
 /** The lib/game value of each stat, as the Player Info panel shows it (before its display format). */
 const STATS: Partial<Record<ArkhStat, (c: Ctx) => number>> = {
   str: (c) => TotalStats(c, "STR"),
+  agi: (c) => TotalStats(c, "AGI"),
+  wis: (c) => TotalStats(c, "WIS"),
+  luk: (c) => TotalStats(c, "LUK"),
 };
 
 const MAP = 251; // a plain map: no dungeon (Dungon() is -1), no arena
@@ -70,7 +73,7 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("lib/game character stats against lib
           const reasons = KNOWN_ARKH_DIFFS.filter((d) => d.stat === stat && d.save === basename(path) && (d.ci ?? ci) === ci).map((d) => d.source);
           if (reasons.length) {
             const c = makeCtx(ctx.state, { player: ci, map: MAP });
-            for (const [name, args, v] of arkhStatSeeds(path, ci, reasons)) c.cache.set(`${ci}|${MAP}|${name}${JSON.stringify(args)}`, v);
+            for (const [name, args, v] of arkhStatSeeds(path, ci, reasons, stat as "str")) c.cache.set(`${ci}|${MAP}|${name}${JSON.stringify(args)}`, v);
             const seeded = term(c);
             if (rel(seeded, want)) {
               known++;

@@ -13,7 +13,7 @@ Regenerate it when N.js or a module's `PORTED` changes. With `--mark`, `[x]` is 
 - attrs and dnsm are the reads in every slice listed. One marked "whole body only" is read only inside a whole-body function (all its branches, not just the one this formula takes). `DNSM` is runtime-only (it is never loaded from the save): port it as `DNSM_*` functions, not as a save attribute. The dnsm list also holds the scratch keys a formula writes and reads back in the same slice (`CaptnBonuz`, `AtomBonCalc1`); the inputs are the caches the game fills elsewhere (`StarSigns`, `AlchVials`, `FamBonusQTYs`…).
 - Depth stops at 6.
 
-**67 functions, 669 sub-cases (rows), 204 whole body, 0 not found, 95 attrs, 120 dnsm.** **431 ported `[x]`, 238 open.**
+**67 functions, 669 sub-cases (rows), 204 whole body, 0 not found, 95 attrs, 120 dnsm.** **435 ported `[x]`, 234 open.**
 
 Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("AGI")`, R4 = `TotalStats("WIS")`, R5 = `TotalStats("LUK")`, R6 = `PlayerHPmax()`, R7 = `PlayerMPmax()`, R8 = `PlayerAccTot()`.
 
@@ -228,9 +228,9 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 - [ ] TotalStats() — depth 1 — 40703 chars — whole body — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [ ] TotalStats("Weapon_Power") — depth 1 — 1677 chars — roots: R1
 - [x] TotalStats("STR") — depth 0 — 2333 chars — roots: R1 R2 R6
-- [ ] TotalStats("LUK") — depth 0 — 2031 chars — roots: R1 R5
-- [ ] TotalStats("AGI") — depth 0 — 2297 chars — roots: R1 R3 R8
-- [ ] TotalStats("WIS") — depth 0 — 2296 chars — roots: R1 R4 R6 R7
+- [x] TotalStats("LUK") — depth 0 — 2031 chars — roots: R1 R5
+- [x] TotalStats("AGI") — depth 0 — 2297 chars — roots: R1 R3 R8
+- [x] TotalStats("WIS") — depth 0 — 2296 chars — roots: R1 R4 R6 R7
 - [ ] TotalStats("Dung_Power") — depth 3 — 193 chars — roots: R1
 - [ ] TotalStats("Accuracy") — depth 1 — 531 chars — roots: R1 R8
 
@@ -406,7 +406,7 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 
 - [ ] ArbitraryCode("StatueBonusGiven0") — depth 1 — 53319 chars — whole body — roots: R1
 - [ ] ArbitraryCode("StatueBonusGiven22") — depth 1 — 53319 chars — whole body — roots: R1
-- [ ] ArbitraryCode("TotalQuestsComplete") — depth 1 — 387 chars — roots: R1 R5
+- [x] ArbitraryCode("TotalQuestsComplete") — depth 1 — 387 chars — roots: R1 R5
 - [ ] ArbitraryCode("StatueBonusGiven4") — depth 1 — 53319 chars — whole body — roots: R1 R6
 - [ ] ArbitraryCode("StatueBonusGiven1") — depth 2 — 53319 chars — whole body — roots: R1 R8
 - [x] ArbitraryCode("AllStatPCT") — depth 1 — 950 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
