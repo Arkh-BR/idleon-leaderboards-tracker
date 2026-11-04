@@ -1,6 +1,12 @@
 // Strict mode (spec, "Modo estrito"): the engine never answers a missing or broken
 // save value with 0. It throws one of these, carrying the save address.
 
+/**
+ * The save version (`data.CSver`) the N.js loader maps in full (Menagerie, Spelunk, Research...). A save below it is pre-migration:
+ * the game migrates it on load, this engine refuses it with a MissingSaveKey (Ruling E).
+ */
+export const CURRENT_CSVER = 34.05;
+
 /** A save key, or an index inside it, is absent. `key` is the full address, e.g. `Lv0_3[0]`. */
 export class MissingSaveKey extends Error {
   readonly key: string;

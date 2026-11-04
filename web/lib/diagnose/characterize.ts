@@ -1,0 +1,114 @@
+// Characterization of two engines of the same stat (spec, "Critérios pra trocar um tracker"): both run on every
+// character of every save, and the pairs that differ, or where one of them throws, come back as rows. A row is
+// then explained by `classify` (an entry of the oracle's known-diff list, a pre-migration refusal, a shared error)
+// or it is unexplained, which blocks the switch. The engines are any two `(save, ci) => StatResult`, so this is
+// reusable by the next tracker; the CLI is scripts/characterize.ts.
+import { readFileSync } from "node:fs";
+import { CURRENT_CSVER } from "@/lib/game/errors";
+import type { StatResult } from "@/lib/statTracker/config";
+
+export type Engine = (save: unknown, ci: number) => StatResult;
+export type Err = { name: string; message: string };
+
+/** One pair that differs (relative > 1e-9, or a non-finite number) or where an engine threw. `a`/`b` are the totals. */
+export type Row = {
+  save: string;
+  ci: number;
+  a?: number;
+  b?: number;
+  rel?: number;
+  /** What `a` / `b` threw. */
+  errA?: Err;
+  errB?: Err;
+  /** `errA` / `errB` as one line: "b threw MissingSaveKey: Menagerie". */
+  error?: string;
+};
+
+export type Characterization = {
+  rows: Row[];
+  /** The (save, character) pairs run. */
+  pairs: number;
+  /** Time spent inside each engine over all pairs, in ms (parsing the saves is not counted). */
+  msA: number;
+  msB: number;
+};
+
+const REL = 1e-9;
+const relDiff = (a: number, b: number): number => (a === b ? 0 : Math.abs(a - b) / Math.max(Math.abs(a), Math.abs(b)));
+const errOf = (e: unknown): Err => (e instanceof Error ? { name: e.name, message: e.message } : { name: "Error", message: String(e) });
+
+function readEnvelope(path: string): { charNames: unknown[] } {
+  const save = JSON.parse(readFileSync(path, "utf8"));
+  if (!Array.isArray(save?.charNames) || save.data === null || typeof save.data !== "object") throw new Error(`${path}: not a save envelope`);
+  return save;
+}
+
+/**
+ * Runs `a` and `b` on every character of every save in `saves` (paths of envelopes). Each engine gets its own parse of
+ * the save, so one that writes into it cannot change the other's answer. Only the engine calls are timed.
+ */
+export function characterize(saves: string[], a: Engine, b: Engine): Characterization {
+  const rows: Row[] = [];
+  let pairs = 0;
+  let msA = 0;
+  let msB = 0;
+  const call = (engine: Engine, save: unknown, ci: number): { total: number; ms: number } | { err: Err; ms: number } => {
+    const t0 = performance.now();
+    try {
+      const total = engine(save, ci).total;
+      return { total, ms: performance.now() - t0 };
+    } catch (e) {
+      return { err: errOf(e), ms: performance.now() - t0 };
+    }
+  };
+  for (const path of saves) {
+    const forA = readEnvelope(path);
+    const forB = readEnvelope(path);
+    for (let ci = 0; ci < forA.charNames.length; ci++) {
+      pairs++;
+      const ra = call(a, forA, ci);
+      const rb = call(b, forB, ci);
+      msA += ra.ms;
+      msB += rb.ms;
+      if ("err" in ra || "err" in rb) {
+        const errA = "err" in ra ? ra.err : undefined;
+        const errB = "err" in rb ? rb.err : undefined;
+        const says = (side: string, e?: Err) => (e ? [`${side} threw ${e.name}: ${e.message}`] : []);
+        rows.push({
+          save: path,
+          ci,
+          ...("total" in ra && { a: ra.total }),
+          ...("total" in rb && { b: rb.total }),
+          ...(errA && { errA }),
+          ...(errB && { errB }),
+          error: [...says("a", errA), ...says("b", errB)].join("; "),
+        });
+        continue;
+      }
+      const rel = relDiff(ra.total, rb.total);
+      if (!(rel <= REL)) rows.push({ save: path, ci, a: ra.total, b: rb.total, rel });
+    }
+  }
+  return { rows, pairs, msA, msB };
+}
+
+/**
+ * known: the oracle's diff list names this save and character (N.js evidence there); refused: lib/game (`b`) throws
+ * MissingSaveKey on a pre-migration save, which the game itself migrates on load (Ruling E); shared: both engines throw;
+ * unexplained: anything else, which blocks the switch.
+ */
+export type Verdict = "known" | "refused" | "shared" | "unexplained";
+
+const REFUSALS = new Set(["MissingSaveKey", "IncompleteTome"]); // IncompleteTome is a MissingSaveKey (lib/game/errors.ts)
+
+/**
+ * `known` is the oracle's KNOWN_ARKH_DIFFS ({save: file name, ci?: omitted = every character}); `csver` is the save's `data.CSver`.
+ * A diff-list entry explains a difference of numbers only, never an error, and only the `b` (lib/game) side can refuse.
+ */
+export function classify(row: Row, known: readonly { save: string; ci?: number }[], csver: number | undefined): Verdict {
+  if (row.errA && row.errB) return "shared";
+  if (row.errA) return "unexplained"; // lib/arkh fails where lib/game answers: nothing explains that yet
+  if (row.errB) return REFUSALS.has(row.errB.name) && csver !== undefined && csver < CURRENT_CSVER ? "refused" : "unexplained";
+  const file = row.save.split(/[\\/]/).pop();
+  return known.some((d) => d.save === file && (d.ci ?? row.ci) === row.ci) ? "known" : "unexplained";
+}
