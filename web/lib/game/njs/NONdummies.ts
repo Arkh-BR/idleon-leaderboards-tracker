@@ -2,7 +2,7 @@
 // save (Ruling A), so each slot the port reads is a function that replays the loading code.
 import { attr } from "../attr";
 import { block } from "../ctx";
-import { InvalidSaveValue } from "../errors";
+import { InvalidSaveValue, MissingSaveKey } from "../errors";
 
 /**
  * NONdummies[60] @10634225: how many of the first 30 captains are of type 6. The game counts them in the
@@ -15,6 +15,8 @@ export const NONdummies60 = block("NONdummies.60", (ctx) => {
   if (!Array.isArray(captains)) throw new InvalidSaveValue("Captains", "an array", captains);
   let n = 0;
   for (let g = 0, end = Math.min(30, captains.length) | 0; g < end; g++) {
+    // the game indexes Captains[g] directly and would throw on a missing row
+    if (attr(ctx, "Captains", g) === undefined) throw new MissingSaveKey(`Captains[${g}]`);
     if (attr(ctx, "Captains", g, 0) == 6) n++; // N.js `6==Captains[g][0]`: loose equality
   }
   return n;

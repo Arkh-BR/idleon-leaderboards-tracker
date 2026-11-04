@@ -1,7 +1,7 @@
 import { asNum, asNumber, attr } from "../attr";
 import { block, type Ctx } from "../ctx";
 import { ArtifactInfo } from "../data";
-import { MissingSaveKey, NotPorted } from "../errors";
+import { InvalidSaveValue, MissingSaveKey, NotPorted } from "../errors";
 import { ResearchStuff } from "./ResearchStuff";
 import { Thingies } from "./Thingies";
 
@@ -41,9 +41,14 @@ function artifactBonus(ctx: Ctx, b: number, e: number): number {
   if (b < 0 || OWN_MULTIPLIER.has(b)) throw new NotPorted("Sailing", `ArtifactBonus:${b}`);
   const info = ArtifactInfo[b];
   if (!info) throw new RangeError(`Sailing ArtifactBonus: no artifact ${b} in ArtifactInfo`);
-  // The game pads Sailing[3] with 0 up to 60 right after the load (@6437706, @6443117): an index past the end of the save's list is 0.
-  const tier = asNum(ctx, "Sailing", 3, b);
-  let v = tier === 0 ? 0 : asNumber(info[3]);
+  // N.js tests the raw element, `0==Sailing[3][l]` (loose): a null element is not 0, so it takes the base (and, being no tier,
+  // no multiplier below). attr reads a null element as undefined. An index past the end of the list is a 0, not a null: the
+  // game pads Sailing[3] with 0 up to 60 right after the load (@6437706, @6443117).
+  const list = attr(ctx, "Sailing", 3);
+  if (!Array.isArray(list)) throw new InvalidSaveValue("Sailing[3]", "an array", list);
+  const cell = b < list.length ? attr(ctx, "Sailing", 3, b) : 0;
+  const tier = asNumber(cell);
+  let v = cell == 0 ? 0 : asNumber(info[3]);
   if (b === 3) v *= asNum(ctx, "Lv0", 13);
   const word = TIER_WORD[tier];
   if (word !== undefined && info[2 * tier + 1] === `The_artifact's_main_bonus_is_${word}!`) v *= tier;

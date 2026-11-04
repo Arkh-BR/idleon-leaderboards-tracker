@@ -17,7 +17,7 @@ Do not edit by hand: regenerate it when N.js changes. Tick a row when its sub-ca
 - [ ] Sailing("BoatArtiMulti",0) — depth 0 — 2016 chars
 - [x] Sailing("ArtifactBonus",3,0) — depth 1 — 8323 chars
 - [x] Sailing("DaveyJonesBonus") — depth 1 — 342 chars
-- [x] Sailing("SlabboBonus_AllMulti",0,0) — depth 2 — 166 chars — NOT PORTED: dead for artifacts 3 and 32 (only the iterations l in {2,10,18,20,999} call it); throws NotPorted
+- [~] Sailing("SlabboBonus_AllMulti",0,0) — depth 2 — 166 chars — not reached for ArtifactBonus 3 and 32: only the pass iterations l in {2,10,18,20,999} call it
 - [x] Sailing("ArtifactBonus",32,0) — depth 2 — 8323 chars — plain path only (base x tier); the artifacts with a multiplier of their own throw NotPorted
 
 ## CaptBonusCalc
@@ -42,7 +42,7 @@ Do not edit by hand: regenerate it when N.js changes. Tick a row when its sub-ca
 
 - [ ] ArcadeBonus(32) — depth 1 — 1017 chars — whole body
 - [ ] ArcadeBonus(66) — depth 1 — 1017 chars — whole body
-- [ ] ArcadeBonus(44) — depth 3 — 1017 chars — whole body
+- [~] ArcadeBonus(44) — depth 3 — 1017 chars — whole body — not reached for ArtifactBonus 3 and 32: only WorkbenchStuff("PlayerBuildSpd") calls it (the l=8 branch), which is not reached
 - [ ] ArcadeBonus(51) — depth 3 — 1017 chars — whole body
 - [ ] ArcadeBonus(59) — depth 5 — 1017 chars — whole body
 
@@ -84,11 +84,11 @@ Do not edit by hand: regenerate it when N.js changes. Tick a row when its sub-ca
 - [ ] Summoning("WinBonus",31,0) — depth 2 — 60 chars
 - [ ] Summoning("GrimoireUpgBonus",17,0) — depth 2 — 7 chars
 - [ ] Summoning("VotingBonuszMulti",0,0) — depth 2 — 557 chars — via Summoning2
-- [ ] Summoning("VaultUpgBonus",74,0) — depth 3 — 7 chars
-- [ ] Summoning("VotingBonusz",18,0) — depth 3 — 917 chars — via Summoning2
-- [ ] Summoning("VaultUpgBonus",48,0) — depth 3 — 2241 chars
-- [ ] Summoning("VaultKillzTotal",11,0) — depth 3 — 3929 chars
-- [ ] Summoning("WinBonus",13,0) — depth 3 — 3535 chars
+- [~] Summoning("VaultUpgBonus",74,0) — depth 3 — 7 chars — not reached for ArtifactBonus 3 and 32: only Sailing("SlabboBonus_AllMulti") calls it, which is not reached
+- [~] Summoning("VotingBonusz",18,0) — depth 3 — 917 chars — via Summoning2 — not reached for ArtifactBonus 3 and 32: only WorkbenchStuff("PlayerBuildSpd") calls it (the l=8 branch), which is not reached
+- [~] Summoning("VaultUpgBonus",48,0) — depth 3 — 2241 chars — not reached for ArtifactBonus 3 and 32: only WorkbenchStuff("PlayerBuildSpd") calls it (the l=8 branch), which is not reached
+- [~] Summoning("VaultKillzTotal",11,0) — depth 3 — 3929 chars — not reached for ArtifactBonus 3 and 32: only WorkbenchStuff("PlayerBuildSpd") calls it (the l=8 branch), which is not reached
+- [~] Summoning("WinBonus",13,0) — depth 3 — 3535 chars — not reached for ArtifactBonus 3 and 32: only WorkbenchStuff("PlayerBuildSpd") calls it (the l=8 branch), which is not reached
 - [ ] Summoning("WinBonus",22,0) — depth 3 — 7 chars
 - [ ] Summoning("EventShopOwned",7,0) — depth 3 — 152 chars
 - [ ] Summoning("EventShopOwned",16,0) — depth 3 — 152 chars
@@ -113,7 +113,7 @@ Do not edit by hand: regenerate it when N.js changes. Tick a row when its sub-ca
 - [ ] Companions(161) — depth 3 — 344 chars — whole body
 - [ ] Companions(41) — depth 3 — 344 chars — whole body
 - [ ] Companions(19) — depth 3 — 344 chars — whole body
-- [ ] Companions(51) — depth 4 — 344 chars — whole body
+- [~] Companions(51) — depth 4 — 344 chars — whole body — not reached for ArtifactBonus 3 and 32: only Bubbastuff("BubbaRoG_Bonuses",1,0) calls it, which is not reached (via WorkbenchStuff("PlayerBuildSpd"))
 - [ ] Companions(39) — depth 5 — 344 chars — whole body
 
 ## CompLV2
@@ -149,7 +149,7 @@ Do not edit by hand: regenerate it when N.js changes. Tick a row when its sub-ca
 ## MainframeBonus
 
 - [ ] MainframeBonus(14) — depth 1 — 3598 chars — whole body
-- [ ] MainframeBonus(15) — depth 2 — 3598 chars — whole body
+- [~] MainframeBonus(15) — depth 2 — 3598 chars — whole body — not reached for ArtifactBonus 3 and 32: only the l in {2,10,18,20,999} branch of the pass calls it
 
 ## Thingies
 
@@ -158,7 +158,7 @@ Do not edit by hand: regenerate it when N.js changes. Tick a row when its sub-ca
 - [ ] Thingies("EmperorBon",8,0) — depth 2 — 1769 chars
 - [x] Thingies("LegendPTS_bonus",11,0) — depth 2 — 154 chars — ported in Task 4 (Ruling C); only this sub-case
 - [ ] Thingies("LegendPTS_bonus",10,0) — depth 2 — 154 chars
-- [ ] Thingies("LegendPTS_bonus",28,0) — depth 3 — 154 chars
+- [~] Thingies("LegendPTS_bonus",28,0) — depth 3 — 154 chars — not reached for ArtifactBonus 3 and 32: only Sailing("SlabboBonus_AllMulti") calls it, which is not reached
 - [ ] Thingies("LegendPTS_bonus",22,0) — depth 3 — 154 chars
 - [ ] Thingies("ClamWorkBonus",3,0) — depth 5 — 78 chars
 - [ ] Thingies("LegendPTS_bonus",24,0) — depth 5 — 154 chars
@@ -180,21 +180,21 @@ Do not edit by hand: regenerate it when N.js changes. Tick a row when its sub-ca
 - [ ] GamingStatType("SuperBitType",58,0) — depth 2 — 139 chars
 - [ ] GamingStatType("SuperBitType",61,0) — depth 2 — 139 chars
 - [ ] GamingStatType("SuperBitType",59,0) — depth 2 — 139 chars
-- [ ] GamingStatType("PaletteBonus",25,0) — depth 3 — 2130 chars
+- [~] GamingStatType("PaletteBonus",25,0) — depth 3 — 2130 chars — not reached for ArtifactBonus 3 and 32: only WorkbenchStuff("PlayerBuildSpd") calls it (the l=8 branch), which is not reached
 - [ ] GamingStatType("PaletteBonus",32,0) — depth 3 — 2130 chars
 
 ## ReturnClasses
 
-- [x] ReturnClasses() — depth 2 — 2411 chars — whole body — NOT PORTED: only ArtifactBonus 25 calls it (dead for artifact 3); module not created
+- [~] ReturnClasses() — depth 2 — 2411 chars — whole body — not reached for ArtifactBonus 3 and 32: only the l=25 branch of the pass calls it
 
 ## TotalStats
 
-- [ ] TotalStats() — depth 2 — 40703 chars — whole body
+- [~] TotalStats() — depth 2 — 40703 chars — whole body — not reached for ArtifactBonus 3 and 32: only the l=25 branch of the pass calls it
 
 ## WorkbenchStuff
 
-- [ ] WorkbenchStuff("PlayerBuildSpd") — depth 2 — 3041 chars
-- [ ] WorkbenchStuff("ConstMasteryBonus",2,0) — depth 3 — 297 chars
+- [~] WorkbenchStuff("PlayerBuildSpd") — depth 2 — 3041 chars — not reached for ArtifactBonus 3 and 32: only the l=8 branch of the pass calls it
+- [~] WorkbenchStuff("ConstMasteryBonus",2,0) — depth 3 — 297 chars — not reached for ArtifactBonus 3 and 32: only WorkbenchStuff("PlayerBuildSpd") calls it (the l=8 branch), which is not reached
 
 ## getLOG
 
@@ -204,7 +204,7 @@ Do not edit by hand: regenerate it when N.js changes. Tick a row when its sub-ca
 
 - [ ] AchieveStatus(379) — depth 2 — 147 chars — whole body
 - [ ] AchieveStatus(373) — depth 2 — 147 chars — whole body
-- [ ] AchieveStatus(153) — depth 3 — 147 chars — whole body
+- [~] AchieveStatus(153) — depth 3 — 147 chars — whole body — not reached for ArtifactBonus 3 and 32: only WorkbenchStuff("PlayerBuildSpd") calls it (the l=8 branch), which is not reached
 
 ## GetSetBonus
 
@@ -222,30 +222,30 @@ Do not edit by hand: regenerate it when N.js changes. Tick a row when its sub-ca
 
 ## Summoning2
 
-- [ ] Summoning2("MeritocBonusz",23,0) — depth 3 — 330 chars
+- [~] Summoning2("MeritocBonusz",23,0) — depth 3 — 330 chars — not reached for ArtifactBonus 3 and 32: only Sailing("SlabboBonus_AllMulti") calls it, which is not reached
 - [ ] Summoning2("MeritocBonusz",9,0) — depth 3 — 330 chars
 - [ ] Summoning2("MeritocCanVote",0,0) — depth 5 — 67 chars
 
 ## StampBonusOfTypeX
 
-- [ ] StampBonusOfTypeX("BuildProd") — depth 3 — 4661 chars — whole body
+- [~] StampBonusOfTypeX("BuildProd") — depth 3 — 4661 chars — whole body — not reached for ArtifactBonus 3 and 32: only WorkbenchStuff("PlayerBuildSpd") calls it (the l=8 branch), which is not reached
 
 ## GuildBonuses
 
-- [ ] GuildBonuses(5) — depth 3 — 338 chars — whole body
+- [~] GuildBonuses(5) — depth 3 — 338 chars — whole body — not reached for ArtifactBonus 3 and 32: only WorkbenchStuff("PlayerBuildSpd") calls it (the l=8 branch), which is not reached
 
 ## EtcBonuses
 
-- [ ] EtcBonuses("30") — depth 3 — 329 chars — whole body
+- [~] EtcBonuses("30") — depth 3 — 329 chars — whole body — not reached for ArtifactBonus 3 and 32: only WorkbenchStuff("PlayerBuildSpd") calls it (the l=8 branch), which is not reached
 
 ## Bubbastuff
 
-- [ ] Bubbastuff("BubbaRoG_Bonuses",1,0) — depth 3 — 594 chars
-- [ ] Bubbastuff("MegafleshOwned",1,0) — depth 4 — 120 chars
-- [ ] Bubbastuff("MegafleshOwned",3,0) — depth 4 — 120 chars
-- [ ] Bubbastuff("MegafleshOwned",6,0) — depth 4 — 120 chars
-- [ ] Bubbastuff("MegafleshOwned",9,0) — depth 4 — 120 chars
-- [ ] Bubbastuff("MegafleshOwned",11,0) — depth 4 — 65 chars
+- [~] Bubbastuff("BubbaRoG_Bonuses",1,0) — depth 3 — 594 chars — not reached for ArtifactBonus 3 and 32: only WorkbenchStuff("PlayerBuildSpd") calls it (the l=8 branch), which is not reached
+- [~] Bubbastuff("MegafleshOwned",1,0) — depth 4 — 120 chars — not reached for ArtifactBonus 3 and 32: only Bubbastuff("BubbaRoG_Bonuses",1,0) calls it, which is not reached (via WorkbenchStuff("PlayerBuildSpd"))
+- [~] Bubbastuff("MegafleshOwned",3,0) — depth 4 — 120 chars — not reached for ArtifactBonus 3 and 32: only Bubbastuff("BubbaRoG_Bonuses",1,0) calls it, which is not reached (via WorkbenchStuff("PlayerBuildSpd"))
+- [~] Bubbastuff("MegafleshOwned",6,0) — depth 4 — 120 chars — not reached for ArtifactBonus 3 and 32: only Bubbastuff("BubbaRoG_Bonuses",1,0) calls it, which is not reached (via WorkbenchStuff("PlayerBuildSpd"))
+- [~] Bubbastuff("MegafleshOwned",9,0) — depth 4 — 120 chars — not reached for ArtifactBonus 3 and 32: only Bubbastuff("BubbaRoG_Bonuses",1,0) calls it, which is not reached (via WorkbenchStuff("PlayerBuildSpd"))
+- [~] Bubbastuff("MegafleshOwned",11,0) — depth 4 — 65 chars — not reached for ArtifactBonus 3 and 32: only Bubbastuff("BubbaRoG_Bonuses",1,0) calls it, which is not reached (via WorkbenchStuff("PlayerBuildSpd"))
 
 ## ArbitraryCode5Inputs
 
@@ -253,7 +253,7 @@ Do not edit by hand: regenerate it when N.js changes. Tick a row when its sub-ca
 
 ## AtomCollider
 
-- [ ] AtomCollider("AtomBonuses",1,0) — depth 3 — 1531 chars
+- [~] AtomCollider("AtomBonuses",1,0) — depth 3 — 1531 chars — not reached for ArtifactBonus 3 and 32: only WorkbenchStuff("PlayerBuildSpd") calls it (the l=8 branch), which is not reached
 
 ## Dreamstuff
 

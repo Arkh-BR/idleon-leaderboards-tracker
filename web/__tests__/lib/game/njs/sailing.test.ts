@@ -111,6 +111,11 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("captains6 (NONdummies[60], N.js @106
   it("ignores other types", () => {
     expect(NONdummies60(withCaptains([6, 1, 6, 2, 3]))).toBe(2);
   });
+  it("a missing row below the cap throws, as the game's Captains[g][0] does; past the cap it is never read", () => {
+    const row = [6, 1, 0, 10, 0, 1, 1];
+    expect(() => NONdummies60(variant((d) => (d.Captains = [row, null, row])))).toThrow(MissingSaveKey);
+    expect(NONdummies60(variant((d) => (d.Captains = [...Array(30).fill(row), null])))).toBe(30);
+  });
 });
 
 describe.skipIf(GOLDEN_SAVES.length === 0)("captain (CaptBonusCalc, N.js @10731821)", () => {
@@ -151,6 +156,13 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("artifact3 (Sailing ArtifactBonus 3, 
   });
   it("follows the character's own Sailing level", () => {
     expect(art(withTier(2, 70, 1))).toBe(140);
+  });
+  it("a null element is not 0 in N.js (loose ==): it takes the base, and 2==null is false so no multiplier", () => {
+    const c = variant((d) => {
+      setIn(d, "Sailing", (s) => (s[3][3] = null));
+      setIn(d, "Lv0_0", (l) => (l[13] = 50));
+    });
+    expect(art(c)).toBe(50);
   });
   it("a tier whose text the game's data does not carry gets no multiplier (the chain tests the text)", () => {
     expect(art(withTier(8))).toBe(50);
