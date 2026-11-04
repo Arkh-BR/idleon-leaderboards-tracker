@@ -4,6 +4,8 @@ import { label } from "../../entity-names";
 import { votingBonusValue, votingWorldReq } from "../../data/common/voting";
 import { buffsActiveData, klaData, optionsListData } from "../../../save/data";
 import { totalTitanKills } from "../w6/upg-totals";
+import { votingMulti } from "../coin/votingMulti";
+import type { SystemCtx } from "../../registry";
 import type { SaveData } from "../../../state";
 
 type Ctx = {
@@ -84,16 +86,14 @@ export const voting = {
         { note: "voting " + id }
       );
     }
-    const vm = ctx.resolve ? ctx.resolve("voting-multi") : null;
-    const multi = vm ? vm.val : 1;
-    const multiChildren = vm ? vm.children : undefined;
+    const multi = votingMulti(ctx as SystemCtx);
     const val = data.base * multi;
     return node(
       data.name,
       val,
       [
         node("Base", data.base, null, { fmt: "raw" }),
-        node("Voting Multi", multi, multiChildren, { fmt: "x" }),
+        node("Voting Multi", multi, null, { fmt: "x" }),
       ],
       { fmt: "+", note: "voting " + id }
     );

@@ -184,8 +184,8 @@ function resolveDr2(id: string, ctx: SystemCtx): ArkhNode {
       const r = starSignBonusReal("Drop", ci, s);
       return node("Star Signs: Drop Rate", r.val, r.children, { fmt: "+", note: "StarSigns.Drop: Pirate Booty (14), Druipi Major (76), × Seraph" });
     }
-    // VotingBonusz(27) = NinjaInfo base × VotingBonuszMulti (V1's resolver
-    // leaves the multi at 1); only the week's winning vote counts.
+    // VotingBonusz(27) = NinjaInfo base × VotingBonuszMulti; only the week's
+    // winning vote counts.
     case "vote27": {
       const multi = votingMulti(ctx);
       return node(DR2_VOTE_NAME, votingBonusz(27, multi, s), [node("Voting multi", multi, null, { fmt: "x" })], { fmt: "+", note: "Only counts the week vote 27 wins" });
