@@ -12,6 +12,7 @@ export type TraceNode = {
    * `"cached"`: a memo hit (a leaf: the subtree is on the first call of the same name+args).
    * `"runtime: <why>"`: a value the save cannot give, counted as 0.
    * `"assumed: <why>"`: a value the save cannot give, stood in for by a stated assumption (`assumed()` in ctx.ts); `value` is that value.
+   *   An `(assumed)` leaf is the same for a value a load step assumed (lib/game/migrations, `GameState.assumed`), left where it is read.
    * `"threw: <message>"`: the call threw (rethrown to the caller; never cached).
    * `"absent: asNumber(null) = 0"`: an `(absent)` leaf for an index the save lacks, read through `asNum`
    * (lib/game/attr) as N.js reads it, `c.asNumber(null)`: 0, but visible here instead of a silent zero.

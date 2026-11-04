@@ -11,7 +11,7 @@
 //     `opt` included. `opt(...) ?? fallback` can therefore never hide bad data.
 import type { SaveEnvelope } from "@/lib/gameAuth/envelope";
 import { InvalidSaveValue, MissingSaveKey } from "./errors";
-import { migrate } from "./migrations";
+import { migrate, type Assumption } from "./migrations";
 
 /** The save envelope. `extraData` is only stamped on some saves, so it is optional. */
 export type GameEnvelope = Omit<SaveEnvelope, "extraData"> & {
@@ -44,6 +44,8 @@ export class GameState {
   readonly migrations: readonly string[];
   /** Why the load steps could not be replayed on this save (a key they need is absent, or the save is older than the steps ported). */
   readonly refusal: MissingSaveKey | InvalidSaveValue | undefined;
+  /** What the load steps had to assume (a value the save cannot give): reads of these keys show it in the trace (`attr`, the Tome). */
+  readonly assumed: readonly Assumption[];
 
   /**
    * Validates the envelope, then builds a frozen private copy of it (the caller's
@@ -62,12 +64,13 @@ export class GameState {
       data[k] = parsed.value;
       if (parsed.corrupt) corrupt[k] = parsed.value as string;
     }
-    const loaded = migrate(data, corrupt);
+    this.charNames = frozenCopy(field(e, "charNames", "an array", Array.isArray)) as string[];
+    const loaded = migrate(data, corrupt, this.charNames.length);
     this.migrations = Object.freeze(loaded.steps);
+    this.assumed = Object.freeze(loaded.assumed);
     this.refusal = loaded.refusal;
     this.#data = deepFreeze(data);
     this.corrupt = Object.freeze(corrupt);
-    this.charNames = frozenCopy(field(e, "charNames", "an array", Array.isArray)) as string[];
     this.companion = frozenCopy(field(e, "companion", "an object or null", () => true));
     this.guildData = frozenCopy(field(e, "guildData", "an object", isRecord)) as GameEnvelope["guildData"];
     this.serverVars = frozenCopy(

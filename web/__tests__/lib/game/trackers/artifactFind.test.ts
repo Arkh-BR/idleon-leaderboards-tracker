@@ -20,6 +20,8 @@ import { asNum } from "@/lib/game/attr";
 import { makeCtx, withPlayer, type TraceNode } from "@/lib/game/ctx";
 import { MissingSaveKey, TreeTotalMismatch } from "@/lib/game/errors";
 import { Companions } from "@/lib/game/njs/Companions";
+import { GetSetBonus } from "@/lib/game/njs/GetSetBonus";
+import { OLDEST_GATE, UNPORTED_STEPS } from "@/lib/game/migrations";
 import { Sailing } from "@/lib/game/njs/Sailing";
 import { buildGameState, type GameEnvelope, type GameState } from "@/lib/game/state";
 import { computeGameArtifactFind, gameArtifactFind } from "@/lib/game/trackers/artifactFind";
@@ -181,11 +183,11 @@ describe("the display config", () => {
 // ── the totals ──────────────────────────────────────────────────────────────────────────────────
 // Ruling E: a save missing a key the current N.js loader maps stays a strict MissingSaveKey, so the adapter refuses it (it throws; Task 10
 // decides what the page shows). An older save is computed after the game's own load steps (lib/game/migrations, Task 12): the 31 saves below
-// CSver 34.05 lacked Menagerie, Spelunk[49] (and [47..48]) or the Royal Guardian lists of the Tome, which the load gives them. Only the saves
-// older than the steps ported stay refused (UNPORTED_REFUSALS), below the current CSver (checked in the loop).
+// CSver 34.05 lacked Menagerie, Spelunk[49] (and [47..48]), the Royal Guardian lists of the Tome, or (5OhTree, HourZero) Sushi, Research,
+// Spelunk, Arcane..., which the load gives them. No real save is refused any more (UNPORTED_REFUSALS is empty).
 const CURRENT_CSVER = 34.05;
-/** The real saves below the current CSver that compute now, through the load steps (Task 12): 29 names, 31 files. */
-const MIGRATED = ["01010111001.json","0celot8.json","0xEXCEED.json","100Cotton.json","1st_Giri.json","24632463.json","26515665165165.json","B0schi.json","Brokami.json","Dragonlzl.json","Exrom.json","FenrirAdra.json","Frans813.json","GIM_SSS.json","Grandesz.json","Jrod11.json","MarleyLongbott.json","Pepega777.json","Pontinhas.json","Rinkzate.json","TinTim.json","arkhe-2026-09-23.json","arkhe-it-profile-2026-09-24.json","arkhe-live-2026-09-23.json","arkhe-live-2026-09-24.json","breakinbrad.json","dida123.json","joelok.json","ryujinsan.json"];
+/** The real saves below the current CSver that compute now, through the load steps (Task 12): all 31 names (33 files). */
+const MIGRATED = ["01010111001.json","0celot8.json","0xEXCEED.json","100Cotton.json","1st_Giri.json","24632463.json","26515665165165.json","5OhTree.json","B0schi.json","Brokami.json","Dragonlzl.json","Exrom.json","FenrirAdra.json","Frans813.json","GIM_SSS.json","Grandesz.json","HourZero.json","Jrod11.json","MarleyLongbott.json","Pepega777.json","Pontinhas.json","Rinkzate.json","TinTim.json","arkhe-2026-09-23.json","arkhe-it-profile-2026-09-24.json","arkhe-live-2026-09-23.json","arkhe-live-2026-09-24.json","breakinbrad.json","dida123.json","joelok.json","ryujinsan.json"];
 const csverOf = (file: string): number => JSON.parse(readFileSync(GOLDEN_SAVES.find((p) => basename(p) === file)!, "utf8")).data.CSver;
 
 describe.skipIf(noSaves)("computeGameArtifactFind against lib/arkh on every real save and character", () => {
@@ -265,9 +267,11 @@ describe.skipIf(noSaves)("computeGameArtifactFind against lib/arkh on every real
   });
 
   it("a refused save throws instead of answering a number", () => {
-    const hour = GOLDEN_SAVES.find((p) => basename(p) === "HourZero.json");
-    expect(hour).toBeDefined();
-    expect(() => computeGameArtifactFind(JSON.parse(readFileSync(hour!, "utf8")), 0)).toThrow(MissingSaveKey);
+    // no real save is refused now: one older than the load steps ported (DoOnceREAL < OLDEST_GATE) stands in
+    const env = JSON.parse(readFileSync(BASE, "utf8"));
+    env.data.DoOnceREAL = OLDEST_GATE - 1;
+    expect(() => computeGameArtifactFind(env, 0)).toThrow(MissingSaveKey);
+    expect(() => computeGameArtifactFind(env, 0)).toThrow(UNPORTED_STEPS);
   });
 });
 
@@ -449,6 +453,13 @@ describe.skipIf(!existsSync(ARKHE_11_01))("the tree the adapter builds, on the 2
 // left out: the game keeps DNSM.Button_Bonsuz for the session, built with the gate of whichever character asked first, so it is not a
 // per-character value there; lib/game models it as "the cache built for the current character" (Minehead.ts), so it follows the gate here.
 const PER_CHARACTER = ["artifact3", "starSign61"];
+// win3 carries the God Shard set's bonus when the account has not unlocked the set for good and the character wears all of it (GetSetBonus
+// "Bonus" @11098422 counts the parts in the character's EquipmentOrder): then it moves with the character too (HourZero #1 and #9)
+const SET_WORN = ["win3"];
+const wearsGodShard = (state: GameState, ci: number) => {
+  const c = withPlayer(makeCtx(state, { player: 0, map: 0 }), ci);
+  return GetSetBonus(c, "GODSHARD_SET", "PartsOn", 0, 0) >= GetSetBonus(c, "GODSHARD_SET", "PartsReq", 0, 0);
+};
 const COMPANION_0_GATED = ["grid109", "grid106", "sticker2add", "sticker2mult"];
 const gateOf = (state: GameState, ci: number) => asNum(withPlayer(makeCtx(state, { player: 0, map: 0 }), ci), "Lv0", 14);
 
@@ -457,6 +468,7 @@ describe.skipIf(noSaves)("switching character on one save", () => {
     const unexpected: string[] = [];
     const plain = new Set<string>();
     const gated = new Set<string>();
+    const worn = new Set<string>();
     let compared = 0;
     for (const path of GOLDEN_SAVES) {
       const { state, chars } = stateOf(path);
@@ -466,11 +478,13 @@ describe.skipIf(noSaves)("switching character on one save", () => {
         const r = run(path, ci);
         if ("refused" in r) throw new Error(`${basename(path)}: character 0 is computed and ${ci} is refused: ${r.refused}`);
         const low = gateOf(state, 0) < 2 || gateOf(state, ci) < 2;
+        const setDiffers = wearsGodShard(state, 0) !== wearsGodShard(state, ci);
         const changed = IDS.filter((id) => id !== "button3" && r.vals[id] !== base.vals[id]);
         compared++;
         for (const id of changed) {
-          (low ? gated : plain).add(id);
-          if (!PER_CHARACTER.includes(id) && !(low && COMPANION_0_GATED.includes(id))) unexpected.push(`${basename(path)} 0 vs ${ci}: ${id}`);
+          if (setDiffers && SET_WORN.includes(id)) worn.add(id);
+          else (low ? gated : plain).add(id);
+          if (!PER_CHARACTER.includes(id) && !(low && COMPANION_0_GATED.includes(id)) && !(setDiffers && SET_WORN.includes(id))) unexpected.push(`${basename(path)} 0 vs ${ci}: ${id}`);
         }
       }
     }
@@ -479,6 +493,7 @@ describe.skipIf(noSaves)("switching character on one save", () => {
     expect(compared).toBeGreaterThan(500);
     expect([...plain].sort()).toEqual([...PER_CHARACTER].sort()); // both really move where the gate is not involved: the check is not vacuous
     expect([...gated].filter((id) => COMPANION_0_GATED.includes(id)).length).toBeGreaterThan(0); // and the gate really bites on a real save (Koweabooo #10)
+    expect([...worn]).toEqual(SET_WORN); // and the worn set too (HourZero)
   }, 120_000);
 
   it("a character with Lv0[14] < 2 moves the Companion(0)-gated terms (the 2026-11-01 save, character 1 edited)", () => {

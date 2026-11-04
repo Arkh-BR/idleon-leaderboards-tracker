@@ -3,8 +3,8 @@
 // `njsBlock` cuts one statement out of the bundle by its head (`if(395>a.engine.getGameAttribute("DoOnceREAL")){`, …): the tests pin
 // what each ported migration does by its text, found by its gate, never by its offset. `runFill` reads the lists a fill block builds:
 // those blocks are long runs of one grammar (`DummyList2 = []`, `DummyList2.push(<literal>)`, `<X>.push(DummyList2)`,
-// `<X>[i] = DummyList2`, `for (e = 0; N > e;) e++, …`), so they are interpreted here, statement by statement, and anything else in
-// them throws: the test then fails instead of reading a block it does not understand.
+// `<X>[i] = DummyList2`, `<X>[i][j] = <literal>`, `for (e = 0; N > e;) e++, …`, `a, b` lists), so they are interpreted here, statement by
+// statement, and anything else in them throws: the test then fails instead of reading a block it does not understand.
 
 /** The index just past the bracket that closes the one at `i` (strings skipped). */
 function close(s: string, i: number): number {
@@ -81,7 +81,8 @@ export function compact(block: string): string {
 }
 
 const GA = /^a\.engine\.getGameAttribute\("(\w+)"\)$/;
-const literal = (v: string): unknown => (/^-?[\d.]+(e\d+)?$/.test(v) ? Number(v) : /^"[^"]*"$/.test(v) ? v.slice(1, -1) : (() => { throw new Error(`not a literal: ${v}`); })());
+const literal = (v: string): unknown =>
+  /^-?[\d.]+(e\d+)?$/.test(v) ? Number(v) : /^"[^"]*"$/.test(v) ? v.slice(1, -1) : v === "[]" ? [] : (() => { throw new Error(`not a literal: ${v}`); })();
 
 /**
  * Runs the statements of a fill block (the body inside its braces) on `attrs` (attribute name -> list, changed in place) and returns
@@ -112,7 +113,8 @@ export function runFill(body: string, attrs: Record<string, unknown[]>): Record<
       let target = attr(m[1].match(GA)![1]) as unknown[];
       for (const i of path.slice(0, -1)) target = target[i] as unknown[];
       target[path[path.length - 1]] = m[3].match(GA)?.[1] === "DummyList2" ? dummy : literal(m[3]);
-    } else throw new Error(`fill statement not understood: ${stmt.slice(0, 120)}`);
+    } else if (split(stmt, ",").length > 1) split(stmt, ",").forEach(run); // `a, b, c` (the `0 == X.length && (…)` form)
+    else throw new Error(`fill statement not understood: ${stmt.slice(0, 120)}`);
   };
   split(body, ";").forEach(run);
   return attrs;

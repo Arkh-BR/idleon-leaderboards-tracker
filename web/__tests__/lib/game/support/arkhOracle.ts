@@ -9,7 +9,6 @@ import { computeArkhArtifactFind } from "@/lib/arkh/computeArtifactFind";
 import { ARTI_GROUPS } from "@/lib/arkh/stats/defs/artifact-find";
 import type { ArkhNode } from "@/lib/arkh/node";
 import { makeCtx, type Ctx } from "@/lib/game/ctx";
-import { UNPORTED_STEPS } from "@/lib/game/migrations";
 import { buildGameState, type GameEnvelope } from "@/lib/game/state";
 
 // lib/arkh reads `window` when it runs; the happy-dom env has one, a bare node env does not.
@@ -101,12 +100,11 @@ export function arkhArtifactLeaf(save: unknown, ci: number, sourceId: string): n
 }
 
 /**
- * What every lib/game loop over the real saves refuses (Ruling E), as `<file>: <key>`, sorted: the game's load steps are replayed on an
- * older save (lib/game/migrations), so a save is refused only when it is older than the oldest step ported (DoOnceREAL below
- * OLDEST_GATE), and then for every read. Two real saves are; neither could compute anyway (their Sushi, below CSver 30, is the
- * game's attribute default, which N.js does not hold).
+ * What every lib/game loop over the real saves refuses (Ruling E), as `<file>: <key>`, sorted: nothing. The game's load steps are
+ * replayed on an older save (lib/game/migrations), back to the oldest real one (HourZero, DoOnceREAL 248.3); a save older than the
+ * steps ported (DoOnceREAL < OLDEST_GATE) would be refused for every read, and no real save is.
  */
-export const UNPORTED_REFUSALS: readonly string[] = ["5OhTree.json", "HourZero.json"].map((f) => `${f}: ${UNPORTED_STEPS}`);
+export const UNPORTED_REFUSALS: readonly string[] = [];
 
 /** The lib/game Ctx for character `ci` of a parsed save, on map 0 (what Artifact Find uses). */
 export const gameCtx = (save: unknown, ci: number, trace?: boolean): Ctx =>
@@ -126,12 +124,20 @@ const TOME_SOURCE_SAVES = [
 // rows (107..109) the load gives them, and it stamped its number on the save as stored
 
 /**
- * 0celot8 (DoOnceREAL 367.1) runs the load step DoOnceREAL < 378 (@6459191), which resets OptionsListAccount[200], the account's highest
- * Drop Rate (the Tome's row 31 "Highest Drop Rate Multi"), to 1: lib/tome scores the save after it (raw 1, 38 points); IdleonToolbox's
- * number scored the stored record (251.24, 458 points). The game raises the record again from the live Drop Rate as soon as a character
- * plays (@5739878), which is runtime.
+ * 0celot8 (DoOnceREAL 367.1) and 5OhTree (340.1) run the load step DoOnceREAL < 378 (@6459191), which resets OptionsListAccount[200], the
+ * account's highest Drop Rate, to 1. The Tome's TomeQTY[18] reads it (@5746828) only after `_customEvent_TomeQTY` raised it to the live
+ * `TotalStats("Drop_Rarity")` (@5739715), so the game never scores the reset 1: it scores the live Drop Rate, which this engine does not
+ * compute. lib/game keeps the reset value and says so in an `assumed:` leaf (DROP_RATE_RECORD, lib/game/migrations); IdleonToolbox scored
+ * the stored record (0celot8: 251.24, 458 points against lib/tome's 38).
  */
-const TOME_AFTER_RESET = `${TOME_SOURCE}. On top of that, this save runs the load step DoOnceREAL < 378 (@6459191), which resets the highest Drop Rate (OptionsListAccount[200], the Tome's row 31) to 1; IdleonToolbox scored the stored record. The game raises it again from the live Drop Rate when a character plays (@5739878, runtime)`;
+const TOME_AFTER_RESET = `${TOME_SOURCE}. On top of that, this save runs the load step DoOnceREAL < 378 (@6459191), which resets OptionsListAccount[200] (the highest Drop Rate) to 1: TomeQTY[18] reads it (@5746828) only after _customEvent_TomeQTY raised it to the live TotalStats("Drop_Rarity") (@5739715), which is not ported, so lib/game scores the reset value under an assumed: leaf and IdleonToolbox the stored record; the game scores the live Drop Rate`;
+
+/**
+ * HourZero's characters 1 and 9 wear all 11 parts of the God Shard set, which the account never unlocked for good (OptionsListAccount[379]
+ * is 0, [380] is 0). N.js's GetSetBonus("GODSHARD_SET", "Bonus") gives the set's bonus to a set worn whole (`PartsOn >= PartsReq`,
+ * @11098422) as well as to one named in OptionsListAccount[379]; lib/arkh's Winner Bonus counts it only when it is named there.
+ */
+const GODSHARD_WORN = "GetSetBonus Bonus @11098422 gives the God Shard set's bonus (15) to a set worn whole (PartsOn 11 >= PartsReq 11) as well as to one permanently unlocked in OptionsListAccount[379]; lib/arkh's WinBonus counts it only when OptionsListAccount[379] names it, and this account's is 0";
 
 /**
  * Where N.js proves lib/arkh wrong and lib/game keeps the N.js value. `save` is the file name of the
@@ -149,4 +155,7 @@ export const KNOWN_ARKH_DIFFS: { save: string; ci?: number; source: string; why:
   // Ruling K: the Tome score of the Lore Episode is lib/tome's, not IdleonToolbox's (ci omitted: every character)
   ...TOME_SOURCE_SAVES.map((save) => ({ save, source: "loreEpi3", why: TOME_SOURCE })),
   { save: "0celot8.json", source: "loreEpi3", why: TOME_AFTER_RESET },
+  { save: "5OhTree.json", source: "loreEpi3", why: TOME_AFTER_RESET },
+  { save: "HourZero.json", ci: 1, source: "win3", why: GODSHARD_WORN },
+  { save: "HourZero.json", ci: 9, source: "win3", why: GODSHARD_WORN },
 ];

@@ -14,7 +14,8 @@
 //   - `OptionsList[11]` and `[13]` come from `OptL2_<player>`.
 // The generated file lists these writes ("Written again after the load") and the keys it did not map; a
 // port that needs the changed value rebuilds it from those keys.
-import type { Ctx } from "./ctx";
+import type { Ctx, TraceNode } from "./ctx";
+import type { Assumption } from "./migrations";
 import { SAVE_ATTRS } from "./data/saveAttrs.gen";
 import { UnknownAttribute } from "./errors";
 import { charKey, opt } from "./state";
@@ -72,13 +73,21 @@ function unknownWhy(name: string, element: string | undefined): [string, string?
  * key) when the save lacks the key, `InvalidSaveValue` when something on the path cannot be
  * indexed; an index the save does not have gives `undefined` (the caller decides: `asNum` is 0).
  * The save is read after the game's load steps (lib/game/migrations): an attribute an older save lacks that the game itself fills
- * in on load (Menagerie below CSver 34...) is there.
+ * in on load (Menagerie below CSver 34...) is there. When a load step had to assume the key's value (`GameState.assumed`), the read
+ * leaves an `(assumed)` leaf saying so, once per calling block.
  */
 export function attr(ctx: Ctx, name: string, ...idx: Idx[]): unknown {
   const { entry, rest } = resolve(name, idx);
   const key = entry.perPlayer ? charKey(entry.key, ctx.player) : entry.key;
   const whole = ctx.state.get(key);
+  if (ctx.trace) for (const a of ctx.state.assumed) if (a.key === key) assumedLeaf(ctx.trace, ctx.player, a);
   return rest.length ? opt(ctx.state, key, ...rest) : whole;
+}
+
+/** An `(assumed)` leaf for a load step's assumption, under `node` once (a block that reads the key twice says it once). */
+export function assumedLeaf(node: TraceNode, player: number, a: Assumption): void {
+  if (node.children.some((c) => c.block === "(assumed)" && c.args[0] === a.key)) return;
+  node.children.push(traceNode(node, player, "(assumed)", [a.key], a.value ?? 0, `assumed: ${a.note}`));
 }
 
 /**

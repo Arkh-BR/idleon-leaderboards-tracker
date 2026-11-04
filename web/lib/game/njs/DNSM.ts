@@ -1,7 +1,7 @@
 // DNSM is the game's cache of computed values. It is not in the save (Ruling A), so each cache the port
 // reads is a function that replays the code that fills it. Only the caches Artifact Find reads from here;
 // the other DNSM keys are ported where their function is (ShinyBonusS in Breeding, NghMrTOT in MenagerieStuff).
-import { asNum, asNumber, attr } from "../attr";
+import { asNum, asNumber, assumedLeaf, attr } from "../attr";
 import { assumed, block, runtime, type Ctx } from "../ctx";
 import { AlchemyDescription, CompanionDB, StarSigns } from "../data";
 import { IncompleteTome, InvalidSaveValue, MissingSaveKey, NotPorted } from "../errors";
@@ -172,10 +172,13 @@ export const DNSM_TomeQTYtot = block("DNSM.TomeQTYtot", (ctx) => {
     tomeScores.set(s, score);
   }
   if (score instanceof IncompleteTome) throw score;
-  return assumed(
+  const total = assumed(
     ctx,
     "Tome.totalPoints",
     `Tome score from lib/tome computeTome (an N.js port, validated in game 2026-11-03; ${score.covered} of ${score.rows} rows computed): the Tome actor's GenInfo[84] is runtime state (Ruling K)`,
     score.total
   );
+  // the Tome reads the whole save: every assumption the load steps made is part of its score (block 378's DROP_RATE_RECORD among them)
+  if (ctx.trace) for (const a of ctx.state.assumed) assumedLeaf(ctx.trace, ctx.player, a);
+  return total;
 });
