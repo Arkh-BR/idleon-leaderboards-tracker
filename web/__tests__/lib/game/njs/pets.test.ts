@@ -69,21 +69,11 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("lib/game pets and companions terms a
       expect(mismatches).toEqual([]);
       expect(pairs).toBeGreaterThan(100); // a loop over nothing would pass
       expect(seen.size).toBeGreaterThan(minSeen); // nor would a term that is the same number everywhere
-      // strict mode: a save the game never gave this key (CSver < 2x: no Menagerie) is refused, not read as 0
-      expect(new Set(refused.map((r) => r.split(": ")[1]))).toEqual(REFUSED_KEYS[id]);
+      // no save is refused: the pre-34 saves lack Menagerie, and the game loading them keeps its init `[]` (LOADER_DEFAULTS)
+      expect(refused).toEqual([]);
     }, 120_000);
   }
 });
-
-// Which keys a save can lack (Ruling E): companions need only the envelope and OptionsListAccount, so no save is refused;
-// the Nightmariner and the shiny levels read Menagerie[2] (unlocks 13 and 11), which older saves do not have.
-const REFUSED_KEYS: Record<string, Set<string>> = {
-  shiny21: new Set(["Menagerie"]),
-  comp154: new Set(),
-  comp43: new Set(),
-  comp56: new Set(),
-  nightmariner: new Set(["Menagerie"]),
-};
 
 // ── synthetic saves: one edge each, on top of a real envelope ───────────────────────────────────
 const BASE = GOLDEN_SAVES.find((p) => basename(p) === "ARKHE.json") ?? GOLDEN_SAVES[0];

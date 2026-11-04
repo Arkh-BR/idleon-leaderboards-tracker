@@ -13,6 +13,8 @@ export type TraceNode = {
    * `"runtime: <why>"`: a value the save cannot give, counted as 0.
    * `"assumed: <why>"`: a value the save cannot give, stood in for by a stated assumption (`assumed()` in ctx.ts); `value` is that value.
    * `"threw: <message>"`: the call threw (rethrown to the caller; never cached).
+   * `"absent: loader default <name> (CSver < <n>) @<offsets>"`: an `(absent)` leaf for an attribute an older save lacks and the game
+   * fills in itself (`LOADER_DEFAULTS` in lib/game/attr); the value read is the game's, not the save's.
    * `"absent: asNumber(null) = 0"`: an `(absent)` leaf for an index the save lacks, read through `asNum`
    * (lib/game/attr) as N.js reads it, `c.asNumber(null)`: 0, but visible here instead of a silent zero.
    */

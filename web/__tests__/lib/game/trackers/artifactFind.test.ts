@@ -179,12 +179,22 @@ describe("the display config", () => {
 
 // ── the totals ──────────────────────────────────────────────────────────────────────────────────
 // Ruling E: a save missing a key the current N.js loader maps stays a strict MissingSaveKey, so the adapter refuses it (it throws; Task 10
-// decides what the page shows). Every one is a pre-migration save (below the current CSver, checked in the loop). The first key the
-// expression reads that they lack is `Menagerie` (CSver 34) on all 31: the term tests pin the same list for starSign61, which reads it
-// first. The saves HourZero (no Spelunk/Research/Sushi) and 5OhTree (no Sushi), and the eight whose Tome is partial (IncompleteTome), are
-// among them: the Menagerie is read before any of those keys.
+// decides what the page shows). Every one is a pre-migration save (below the current CSver, checked in the loop). Menagerie (CSver 34) is no
+// longer a reason: the game fills it in itself (LOADER_DEFAULTS, Task 11). The 31 saves that lacked it are still refused, now for the next
+// key the expression reads that they lack, pinned exactly (the first key, in the order the expression reads them):
+//   - Spelunk[49]: the list the game adds to an older Spelunk in its DoOnceREAL migration (@6465395, `50 > Spelunk.length`), which no loader
+//     default covers (22 saves, among them the four 09/23 and 09/24 saves of ARKHE);
+//   - Tome rows 107,108,109: lib/tome cannot compute the Royal Guardian rows of a save below CSver 34 (IncompleteTome, 7 saves);
+//   - 5OhTree has no Sushi, HourZero no Research.
+const NO_SPELUNK49 = ["01010111001.json","0xEXCEED.json","1st_Giri.json","26515665165165.json","B0schi.json","Dragonlzl.json","FenrirAdra.json","Frans813.json","Grandesz.json","Jrod11.json","MarleyLongbott.json","Pepega777.json","Rinkzate.json","TinTim.json","arkhe-2026-09-23.json","arkhe-it-profile-2026-09-24.json","arkhe-live-2026-09-23.json","arkhe-live-2026-09-24.json","breakinbrad.json","dida123.json","joelok.json","ryujinsan.json"];
+const TOME_PARTIAL = ["0celot8.json","100Cotton.json","24632463.json","Brokami.json","Exrom.json","GIM_SSS.json","Pontinhas.json"];
 const CURRENT_CSVER = 34.05;
-const REFUSED_SAVES = ["01010111001.json","0celot8.json","0xEXCEED.json","100Cotton.json","1st_Giri.json","24632463.json","26515665165165.json","5OhTree.json","B0schi.json","Brokami.json","Dragonlzl.json","Exrom.json","FenrirAdra.json","Frans813.json","GIM_SSS.json","Grandesz.json","HourZero.json","Jrod11.json","MarleyLongbott.json","Pepega777.json","Pontinhas.json","Rinkzate.json","TinTim.json","arkhe-2026-09-23.json","arkhe-it-profile-2026-09-24.json","arkhe-live-2026-09-23.json","arkhe-live-2026-09-24.json","breakinbrad.json","dida123.json","joelok.json","ryujinsan.json"].map((f) => `${f}: Menagerie`).sort();
+const REFUSED_SAVES = [
+  ...NO_SPELUNK49.map((f) => `${f}: Spelunk[49]`),
+  ...TOME_PARTIAL.map((f) => `${f}: Tome rows 107,108,109`),
+  "5OhTree.json: Sushi",
+  "HourZero.json: Research",
+].sort();
 const csverOf = (file: string): number => JSON.parse(readFileSync(GOLDEN_SAVES.find((p) => basename(p) === file)!, "utf8")).data.CSver;
 
 describe.skipIf(noSaves)("computeGameArtifactFind against lib/arkh on every real save and character", () => {

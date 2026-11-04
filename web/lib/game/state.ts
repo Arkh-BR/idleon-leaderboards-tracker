@@ -129,7 +129,7 @@ const address = (key: string, idx: readonly Idx[]): string => key + idx.map((i) 
  * a corrupt key, a step into a non-container (indexing a string would silently
  * yield a character), or a string index on an array (`"0"`, `"length"`).
  */
-function lookup(state: GameState, key: string, idx: readonly Idx[]): unknown {
+function lookup(state: Pick<GameState, "data" | "corrupt">, key: string, idx: readonly Idx[]): unknown {
   if (Object.hasOwn(state.corrupt, key)) {
     throw new InvalidSaveValue(key, "valid JSON", state.corrupt[key]);
   }
@@ -161,7 +161,10 @@ export function num(state: GameState, key: string, ...idx: Idx[]): number {
   return v;
 }
 
-/** The explicit "may be absent" accessor: the value, or `undefined` when the address is absent. Wrong-shape data still throws. */
-export function opt(state: GameState, key: string, ...idx: Idx[]): unknown {
+/**
+ * The explicit "may be absent" accessor: the value, or `undefined` when the address is absent. Wrong-shape data still throws.
+ * It reads any `{ data, corrupt }` pair, so a value that is not in the save (a loader default, `attr`) is walked the same way.
+ */
+export function opt(state: Pick<GameState, "data" | "corrupt">, key: string, ...idx: Idx[]): unknown {
   return lookup(state, key, idx);
 }

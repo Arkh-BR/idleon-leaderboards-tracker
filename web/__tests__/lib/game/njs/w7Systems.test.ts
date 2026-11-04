@@ -65,9 +65,10 @@ function stateOf(path: string) {
 // Ruling E: a save missing a key the current N.js loader maps stays a strict MissingSaveKey. `save: key` pairs, pinned exactly per
 // term; every one is a pre-migration save (below the current CSver, checked in the loop).
 const CURRENT_CSVER = 34.05;
-// Sushi is loaded from CSver 30, Research from 29, Spelunk from 27, Menagerie from 34; Spelunk[49] is a list the Spelunk of the older saves
+// Sushi is loaded from CSver 30, Research from 29, Spelunk from 27, Arcane from 25; Spelunk[49] is a list the Spelunk of the older saves
 // does not have yet (Spelunk itself loads from CSver 27). starSign61 reads the Breeding's Shiny bonus 3 through the Menagerie (unlock 11)
-// whenever the Rift enables star signs (Rift 10+, every real save).
+// whenever the Rift enables star signs (Rift 10+, every real save). Menagerie loads from CSver 34, but a save below it is not refused: the game
+// fills in its own lists (LOADER_DEFAULTS), so the 31 saves without it compute (unlock 0) and equal lib/arkh.
 // loreEpi3 also reads the Tome score: lib/tome cannot compute the Royal Guardian rows (107..109, and 120 Unique Sushi on 5OhTree) of the saves
 // below CSver 34, and a partial score is refused (IncompleteTome). HourZero has no Spelunk, which is read first.
 const LORE_REFUSED = [
@@ -81,7 +82,6 @@ const LORE_REFUSED = [
   "HourZero.json: Spelunk",
   "Pontinhas.json: Tome rows 107,108,109",
 ];
-const NO_MENAGERIE = ["01010111001.json: Menagerie","0celot8.json: Menagerie","0xEXCEED.json: Menagerie","100Cotton.json: Menagerie","1st_Giri.json: Menagerie","24632463.json: Menagerie","26515665165165.json: Menagerie","5OhTree.json: Menagerie","B0schi.json: Menagerie","Brokami.json: Menagerie","Dragonlzl.json: Menagerie","Exrom.json: Menagerie","FenrirAdra.json: Menagerie","Frans813.json: Menagerie","GIM_SSS.json: Menagerie","Grandesz.json: Menagerie","HourZero.json: Menagerie","Jrod11.json: Menagerie","MarleyLongbott.json: Menagerie","Pepega777.json: Menagerie","Pontinhas.json: Menagerie","Rinkzate.json: Menagerie","TinTim.json: Menagerie","arkhe-2026-09-23.json: Menagerie","arkhe-it-profile-2026-09-24.json: Menagerie","arkhe-live-2026-09-23.json: Menagerie","arkhe-live-2026-09-24.json: Menagerie","breakinbrad.json: Menagerie","dida123.json: Menagerie","joelok.json: Menagerie","ryujinsan.json: Menagerie"];
 const NO_SPELUNK49 = ["01010111001.json: Spelunk[49]","0celot8.json: Spelunk[49]","0xEXCEED.json: Spelunk[49]","100Cotton.json: Spelunk[49]","1st_Giri.json: Spelunk[49]","24632463.json: Spelunk[49]","26515665165165.json: Spelunk[49]","5OhTree.json: Spelunk[49]","B0schi.json: Spelunk[49]","Brokami.json: Spelunk[49]","Dragonlzl.json: Spelunk[49]","Exrom.json: Spelunk[49]","FenrirAdra.json: Spelunk[49]","Frans813.json: Spelunk[49]","GIM_SSS.json: Spelunk[49]","Grandesz.json: Spelunk[49]","HourZero.json: Spelunk","Jrod11.json: Spelunk[49]","MarleyLongbott.json: Spelunk[49]","Pepega777.json: Spelunk[49]","Pontinhas.json: Spelunk[49]","Rinkzate.json: Spelunk[49]","TinTim.json: Spelunk[49]","arkhe-2026-09-23.json: Spelunk[49]","arkhe-it-profile-2026-09-24.json: Spelunk[49]","arkhe-live-2026-09-23.json: Spelunk[49]","arkhe-live-2026-09-24.json: Spelunk[49]","breakinbrad.json: Spelunk[49]","dida123.json: Spelunk[49]","joelok.json: Spelunk[49]","ryujinsan.json: Spelunk[49]"];
 const REFUSED: Record<string, string[]> = {
   button3: [],
@@ -92,7 +92,7 @@ const REFUSED: Record<string, string[]> = {
   pristine2: [],
   palette5: NO_SPELUNK49,
   spelunkBit26: ["HourZero.json: Spelunk"],
-  starSign61: NO_MENAGERIE,
+  starSign61: ["HourZero.json: Arcane"],
   vialTurtle: [],
 };
 
@@ -738,8 +738,8 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("variants forced on every real save, 
     const r = forced("starSign61", (env) => env.charNames.forEach((_: string, i: number) => (dataOf(env)[`PVtStarSign_${i}`] = "61,_,_,")));
     console.info(`[w7 starSign61 worn] ${r.pairs} pairs, ${r.mismatches.length} mismatches, ${r.seen.size} distinct`);
     expect(r.mismatches).toEqual([]);
-    expect(r.pairs).toBeGreaterThan(700); // the 31 saves without a Menagerie are refused (REFUSED.starSign61)
-    expect([...new Set(r.refused)].sort()).toEqual(NO_MENAGERIE);
+    expect(r.pairs).toBeGreaterThan(1000); // the 31 saves without a Menagerie compute too; only HourZero is refused (REFUSED.starSign61)
+    expect([...new Set(r.refused)].sort()).toEqual(["HourZero.json: Arcane"]);
     expect(r.seen.size).toBeGreaterThan(3);
     expect(r.seen.has(0)).toBe(false); // really worn everywhere
   }, 300_000);

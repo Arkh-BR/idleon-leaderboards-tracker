@@ -54,16 +54,15 @@ function stateOf(path: string) {
 // Ruling E: a save missing a key the current N.js loader maps stays a strict MissingSaveKey. Every key these terms read is CSver-gated in the
 // loader (ArcadeUpg 6.7, FarmUpg 14, Holes 19, Spelunk 27, Research 29, Sushi 30, Menagerie 34), so the refusals are the pre-migration saves
 // (below the current CSver, checked in the loop). `save: key` pairs, pinned exactly per term. Holes[31][0] is a list the Holes of the older
-// saves does not have yet (Holes itself loads from CSver 19). The stickers read Menagerie[2][22] before anything else, so they are refused
-// on every save without it.
+// saves does not have yet (Holes itself loads from CSver 19). Menagerie is the exception: a save below CSver 34 lacks it and the game fills in
+// its own lists (LOADER_DEFAULTS), so the 31 saves that used to be refused for it now compute, and equal lib/arkh like the others.
 const CURRENT_CSVER = 34.05;
-const NO_MENAGERIE = ["01010111001.json: Menagerie","0celot8.json: Menagerie","0xEXCEED.json: Menagerie","100Cotton.json: Menagerie","1st_Giri.json: Menagerie","24632463.json: Menagerie","26515665165165.json: Menagerie","5OhTree.json: Menagerie","B0schi.json: Menagerie","Brokami.json: Menagerie","Dragonlzl.json: Menagerie","Exrom.json: Menagerie","FenrirAdra.json: Menagerie","Frans813.json: Menagerie","GIM_SSS.json: Menagerie","Grandesz.json: Menagerie","HourZero.json: Menagerie","Jrod11.json: Menagerie","MarleyLongbott.json: Menagerie","Pepega777.json: Menagerie","Pontinhas.json: Menagerie","Rinkzate.json: Menagerie","TinTim.json: Menagerie","arkhe-2026-09-23.json: Menagerie","arkhe-it-profile-2026-09-24.json: Menagerie","arkhe-live-2026-09-23.json: Menagerie","arkhe-live-2026-09-24.json: Menagerie","breakinbrad.json: Menagerie","dida123.json: Menagerie","joelok.json: Menagerie","ryujinsan.json: Menagerie"];
 const REFUSED: Record<string, string[]> = {
   arcade32: [],
   arcade66: [],
   bUpg55: [],
-  sticker2add: NO_MENAGERIE,
-  sticker2mult: NO_MENAGERIE,
+  sticker2add: ["5OhTree.json: Sushi", "HourZero.json: Research"],
+  sticker2mult: [],
   grid109: ["5OhTree.json: Sushi", "HourZero.json: Research"],
   grid106: ["5OhTree.json: Sushi", "HourZero.json: Research"],
   monument1_2: ["5OhTree.json: Holes[31][0]", "HourZero.json: Holes[31][0]"],
@@ -517,6 +516,12 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("FarmingStuffs StickerBonus (N.js @10
     expect(sticker2(c, 99)).toBeGreaterThan(0);
     expect(sticker2(c, 100)).toBe(0);
   });
+  it("a save below CSver 34 has no Menagerie: the game's own lists give unlock 0 (slot 99), and the trace says so", () => {
+    const c = variant((d) => { delete d.Menagerie; d.CSver = 33.05; }, { trace: true });
+    expect(sticker2(c, 99)).toBeGreaterThan(0);
+    expect(sticker2(c, 100)).toBe(0);
+    expect(JSON.stringify(c.trace)).toContain("absent: loader default Menagerie (CSver < 34)");
+  });
   it("sticker 1 follows the same rule; any other sticker (b = 0) has no slot rule", () => {
     const c = sticker(0);
     expect(sticker2(c, 99, 1)).toBeGreaterThan(0);
@@ -621,7 +626,7 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("Menagerie unlock 22 forced on every 
     const refusedForced: string[] = [];
     for (const path of GOLDEN_SAVES) {
       const env = JSON.parse(readFileSync(path, "utf8"));
-      if (env.data.Menagerie === undefined) continue; // pre-migration: refused, there is no unlock to force
+      if (env.data.Menagerie === undefined) continue; // pre-34: the game ignores the key there, there is no unlock to force
       setIn(env.data, "Menagerie", (m) => (m[2][22] = 1));
       const ctx = gameCtx(env, 0);
       for (let ci = 0; ci < env.charNames.length; ci++) {
