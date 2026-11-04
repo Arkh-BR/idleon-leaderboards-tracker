@@ -14,12 +14,9 @@ import { pathToFileURL } from "node:url";
 // first: the oracle sets the `window` shim lib/arkh reads
 import { KNOWN_ARKH_DIFFS, goldenSaves } from "@/__tests__/lib/game/support/arkhOracle";
 import { computeArkhArtifactFind } from "@/lib/arkh/computeArtifactFind";
-import { characterize, classify, type Engine, type Row, type Verdict } from "@/lib/diagnose/characterize";
+import { ARTIFACT_FIND_REFUSABLE, characterize, classify, type Engine, type Row, type Verdict } from "@/lib/diagnose/characterize";
 import { CURRENT_CSVER } from "@/lib/game/errors";
 import { computeGameArtifactFind } from "@/lib/game/trackers/artifactFind";
-
-/** The keys a pre-migration save may be refused for, per stat: any other missing key on an old save is a gap, not age. */
-const ARTIFACT_FIND_REFUSABLE = (key: string) => /^(Tome rows |(Spelunk|Research|Sushi|Holes)(\[|$))/.test(key);
 
 const ENGINES: Record<string, { arkh: Engine; game: Engine; refusable?: (key: string) => boolean }> = {
   artifactFind: { arkh: computeArkhArtifactFind, game: computeGameArtifactFind, refusable: ARTIFACT_FIND_REFUSABLE },

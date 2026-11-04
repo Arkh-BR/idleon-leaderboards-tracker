@@ -27,6 +27,7 @@ import { TRACKERS } from "@/lib/game/trackers";
 import type { StatResult } from "@/lib/statTracker/config";
 import { callDiff, njsCalls, njsFunction, njsNamedBlocks, traceCalls } from "@/lib/diagnose/njsCalls";
 import { loadNjs } from "@/scripts/njs-calls";
+import { ARTIFACT_FIND_REFUSABLE } from "@/lib/diagnose/characterize";
 import { GOLDEN_SAVES, KNOWN_ARKH_DIFFS, UNPORTED_REFUSALS, arkhArtifactLeaf, arkhArtifactTree, gameCtx } from "../support/arkhOracle";
 
 const rel = (got: number, want: number) => Math.abs(got - want) <= 1e-9 * Math.max(1, Math.abs(want));
@@ -248,8 +249,9 @@ describe.skipIf(noSaves)("computeGameArtifactFind against lib/arkh on every real
     expect(known).toBeGreaterThan(0);
     expect(refusals).toEqual(UNPORTED_REFUSALS);
     for (const f of refusals) expect(csverOf(f.split(": ")[0]), `${f} is pre-migration`).toBeLessThan(CURRENT_CSVER);
-    // the older saves the load steps make computable
+    // the older saves the load steps make computable, and characterize accepts only the refusals left
     expect([...migrated].sort()).toEqual(MIGRATED);
+    for (const f of refusals) expect(ARTIFACT_FIND_REFUSABLE(f.slice(f.indexOf(": ") + 2)), f).toBe(true);
   }, 600_000);
 
   it("an older save is computed after the game's load steps, and the root of its tree says which ran", () => {

@@ -2,8 +2,9 @@ import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { characterize, classify, type Row } from "@/lib/diagnose/characterize";
+import { ARTIFACT_FIND_REFUSABLE, characterize, classify, type Row } from "@/lib/diagnose/characterize";
 import { IncompleteTome, MissingSaveKey } from "@/lib/game/errors";
+import { UNPORTED_STEPS } from "@/lib/game/migrations";
 import type { StatResult } from "@/lib/statTracker/config";
 
 // Synthetic saves: two characters each, the "total" is read straight off the data so the fake engines are one line.
@@ -148,6 +149,9 @@ describe("classify", () => {
     expect(classify(refusal("MissingSaveKey", "Menagerie"), [], 33.05, keys)).toBe("unexplained");
     expect(classify(refusal("MissingSaveKey", "SpelunkX"), [], 33.05, keys)).toBe("unexplained");
     expect(classify(refusal("MissingSaveKey", "Menagerie"), [], 33.05)).toBe("refused"); // no list: any key
+    // Artifact Find's list: only a save older than the game's load steps lib/game replays; a key the load gives (Spelunk[49]) is a gap
+    expect(classify(refusal("MissingSaveKey", UNPORTED_STEPS), [], 29.05, ARTIFACT_FIND_REFUSABLE)).toBe("refused");
+    for (const k of ["Spelunk[49]", "Tome rows 107,108,109", "Sushi", "Menagerie"]) expect(classify(refusal("MissingSaveKey", k), [], 33.05, ARTIFACT_FIND_REFUSABLE), k).toBe("unexplained");
   });
 
   it("only MissingSaveKey on the lib/game side is a refusal", () => {

@@ -5,6 +5,7 @@
 // reusable by the next tracker; the CLI is scripts/characterize.ts.
 import { readFileSync } from "node:fs";
 import { CURRENT_CSVER } from "@/lib/game/errors";
+import { UNPORTED_STEPS } from "@/lib/game/migrations";
 import type { StatResult } from "@/lib/statTracker/config";
 
 export type Engine = (save: unknown, ci: number) => StatResult;
@@ -103,6 +104,13 @@ export type Verdict = "known" | "refused" | "shared" | "unexplained";
 export const refusedKey = (e: Err): string => e.message.split(/[:\n]/)[0];
 
 const REFUSALS = new Set(["MissingSaveKey", "IncompleteTome"]); // IncompleteTome is a MissingSaveKey (lib/game/errors.ts)
+
+/**
+ * The keys an older save may be refused for by Artifact Find (`classify`'s `refusable`): lib/game replays the game's load steps on an older
+ * save (lib/game/migrations), so the only refusal left is a save older than the steps ported. Any other missing key on an old save is a
+ * gap, not age. The tracker test checks it against the refusals it pins.
+ */
+export const ARTIFACT_FIND_REFUSABLE = (key: string): boolean => key === UNPORTED_STEPS;
 
 /**
  * `known` is the oracle's KNOWN_ARKH_DIFFS ({save: file name, ci?: omitted = every character}); `csver` is the save's `data.CSver`.

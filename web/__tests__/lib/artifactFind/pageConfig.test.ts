@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { ARTIFACT_PAGE, pageError, withPageErrors } from "@/lib/artifactFind/pageConfig";
 import { ARTI_GROUPS, ARTI_ROOT, ARTI_VOTE_NAME } from "@/lib/arkh/stats/defs/artifact-find";
 import { IncompleteTome, MissingSaveKey, NotPorted, TreeTotalMismatch } from "@/lib/game/errors";
+import { UNPORTED_STEPS } from "@/lib/game/migrations";
 import type { StatResult } from "@/lib/statTracker/config";
 
 describe("Artifact Find page config", () => {
@@ -42,6 +43,10 @@ describe("what the page shows when the engine refuses a save", () => {
     const e = pageError(OLD, new MissingSaveKey("Spelunk[49]"));
     expect(e).toBeInstanceOf(Error);
     expect((e as Error).message).toBe("This save is from an older game version (missing Spelunk[49]). Sign in or paste a fresh save.");
+    // the refusal the real older saves still get: older than the game's load steps lib/game replays
+    expect((pageError(OLD, new MissingSaveKey(UNPORTED_STEPS)) as Error).message).toBe(
+      "This save is from an older game version (missing the game's load steps for DoOnceREAL < 367). Sign in or paste a fresh save."
+    );
   });
 
   it("does the same for a partial Tome (IncompleteTome is a MissingSaveKey)", () => {
