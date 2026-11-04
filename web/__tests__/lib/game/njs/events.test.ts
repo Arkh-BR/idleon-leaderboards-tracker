@@ -55,8 +55,9 @@ const TERMS: Record<string, Term> = {
   vault63: { term: (c) => Summoning(c, "VaultUpgBonus", 63, 0), minSeen: 5 },
   killroy: { term: (c) => Math.max(1, RandomEvent(c, "KillroyBonuses", 0, 0)), want: (l) => Math.max(1, l), minSeen: 5 },
   slugs: { term: (c) => Math.max(1, Math.pow(1.5, Stuff2(c, "PurpleChestSlugsOwned", 0, 0))), want: (l) => Math.max(1, l), minSeen: 2 },
-  // the Winner Bonus reads Arcane (Emperor bonus 8) and then BundlesReceived (ban_i), both missing from older saves
-  win3: { term: (c) => Summoning(c, "WinBonus", 3, 0), minSeen: 5, blockers: [lacksKey("Arcane"), lacksKey("BundlesReceived")] },
+  // the Winner Bonus reads Arcane (Emperor bonus 8), missing from pre-migration saves. BundlesReceived (ban_i) is no blocker: an absent key
+  // is an account that never bought a bundle, read as the loader's empty map (Ruling H)
+  win3: { term: (c) => Summoning(c, "WinBonus", 3, 0), minSeen: 5, blockers: [lacksKey("Arcane")] },
   // the vote reads its multi only while vote 20 is the one in force; the Palette then reads Spelunk[9] and Spelunk[49]
   vote20: {
     term: (c) => Summoning(c, "VotingBonusz", 20, 0),
@@ -438,8 +439,25 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("Thingies (N.js @10955095)", () => {
     expect(ban({ ban_j: 1 })).toBe(0);
     expect(ban({})).toBe(0);
   });
-  it("a save without the BundlesReceived key is refused (Ruling E)", () => {
-    expect(() => Thingies(variant((d) => delete d.BundlesReceived), "Have_ban_i", 0, 0)).toThrow(MissingSaveKey);
+  // Ruling H: the loader getLoadMap("BundlesReceived") @19927310 has no CSver gate, so a save without the key is an account that never bought
+  // a bundle: the empty map, which holds no ban_i. Only this read does that; Ruling E still refuses the CSver-gated keys.
+  it("a save without the BundlesReceived key is the loader's empty map: ban_i is not received, shown in the trace as an absent leaf", () => {
+    const c = variant((d) => delete d.BundlesReceived, { trace: true });
+    expect(Thingies(c, "Have_ban_i", 0, 0)).toBe(0);
+    const leaf = (n: TraceNode): TraceNode | undefined => n.children.find((x) => x.block === "(absent)") ?? n.children.map(leaf).find(Boolean);
+    expect(leaf(c.trace!)?.note).toBe('absent: getLoadMap("BundlesReceived") @19927310 → {}');
+    // a present map leaves no such leaf
+    const present = variant((d) => (d.BundlesReceived = { ban_i: 1 }), { trace: true });
+    expect(Thingies(present, "Have_ban_i", 0, 0)).toBe(1);
+    expect(leaf(present.trace!)).toBeUndefined();
+  });
+  it("the win3 Winner Bonus follows: no BundlesReceived key gives the bonus with ban_i at 0", () => {
+    const without = variant((d) => delete d.BundlesReceived);
+    const withEmpty = variant((d) => (d.BundlesReceived = {}));
+    expect(Summoning(without, "WinBonus", 3, 0)).toBe(Summoning(withEmpty, "WinBonus", 3, 0));
+  });
+  it("other keys stay strict: a CSver-gated key (Arcane) is still refused", () => {
+    expect(() => Summoning(variant((d) => delete d.Arcane), "WinBonus", 3, 0)).toThrow(MissingSaveKey);
   });
   it("ClamWorkBonus b is on while OptionsListAccount[464] is past b (@10969070)", () => {
     const clam = (v: number) => Thingies(variant((d) => setIn(d, "OptLacc", (o) => (o[464] = v))), "ClamWorkBonus", 3, 0);

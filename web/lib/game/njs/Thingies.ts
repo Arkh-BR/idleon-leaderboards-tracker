@@ -1,7 +1,9 @@
-import { asNum, asNumber, attr } from "../attr";
+import { asNum, asNumber, attr, SAVE_ATTRS } from "../attr";
 import { block, type Ctx } from "../ctx";
 import { EmperorBon, LegendTalents } from "../data";
 import { NotPorted } from "../errors";
+import { opt } from "../state";
+import { traceNode } from "../trace";
 import { ArcadeBonus } from "./ArcadeBonus";
 import { ArcaneType } from "./ArcaneType";
 import { JellyOperation } from "./JellyOperation";
@@ -14,7 +16,7 @@ export const Thingies = block("Thingies", (ctx, d: string, b: number, e: number)
       return Math.round(asNum(ctx, "Spelunk", 18, b | 0) * asNumber(LegendTalents[b | 0][2]));
     // @10978278: the Bundle ban_i was bought
     case "Have_ban_i":
-      return 1 == attr(ctx, "BundlesReceived", "ban_i") ? 1 : 0;
+      return haveBanI(ctx);
     // @10969070: Clam Work bonus b is on while OptionsListAccount[464] is past b
     case "ClamWorkBonus":
       return asNum(ctx, "OptionsListAccount", 464) > b ? 1 : 0;
@@ -43,4 +45,18 @@ function emperorBonTable(ctx: Ctx): number[] {
 /** `EmperorBon` @10979748: bucket b of that table, times 1 + (Arcane upgrade 48 + Arcade 51 + Jelly upgrade 28) / 100, rounded down. */
 function emperorBon(ctx: Ctx, b: number): number {
   return Math.floor(asNumber(emperorBonTable(ctx)[b | 0]) * (1 + (ArcaneType(ctx, "ArcaneUpgBonus", 48, 0) + (ArcadeBonus(ctx, 51) + JellyOperation(ctx, "RoG_BonusQTY", 28, 0))) / 100));
+}
+
+/**
+ * `1 == BundlesReceived.h.ban_i` @10978278. Ruling H: a save without the `BundlesReceived` key is an account that never bought a
+ * bundle, not a pre-migration save. The loader `u.getLoadMap("BundlesReceived")` @19927310 has no CSver gate, so it always gives a map,
+ * and an absent key gives the empty one. Only here is that read as the empty map (Ruling E still holds for the CSver-gated keys);
+ * the trace shows it as an `(absent)` leaf instead of a silent zero.
+ */
+function haveBanI(ctx: Ctx): number {
+  if (opt(ctx.state, SAVE_ATTRS.BundlesReceived.key) === undefined) {
+    if (ctx.trace) ctx.trace.children.push(traceNode(ctx.trace, ctx.player, "(absent)", ["BundlesReceived"], 0, 'absent: getLoadMap("BundlesReceived") @19927310 → {}'));
+    return 0;
+  }
+  return 1 == attr(ctx, "BundlesReceived", "ban_i") ? 1 : 0;
 }
