@@ -1,0 +1,324 @@
+// Task 9: Sailing("BoatArtiMulti", 0) and the Artifact Find adapter (lib/game/trackers/artifactFind.ts).
+//
+// BoatArtiMulti is one expression of the ported blocks; the adapter turns the ONE traced call into the page's tree. So the tests are:
+// the expression against N.js's text and calls, the total against lib/arkh over every real save and character (minus KNOWN_ARKH_DIFFS),
+// the tree's names, formats and source values against lib/arkh's (the page's Biggest Gains and Observed Max key on them), the groups
+// recombining to the total (display and value agree), the per-character terms, and the number the game showed for the owner's save.
+import { describe, it, expect } from "vitest";
+import { existsSync, readFileSync } from "node:fs";
+import { basename } from "node:path";
+import * as arkhDef from "@/lib/arkh/stats/defs/artifact-find";
+import { applyGroupStep, groupVal } from "@/lib/arkh/stats/defs/grouped";
+import { ARTI_GROUPS, ARTI_ROOT, ARTI_VOTE_NAME } from "@/lib/artifactFind/groups";
+import { formatArtifactFind } from "@/lib/artifactFind/format";
+import { asNum } from "@/lib/game/attr";
+import { makeCtx, withPlayer } from "@/lib/game/ctx";
+import { MissingSaveKey } from "@/lib/game/errors";
+import { Sailing } from "@/lib/game/njs/Sailing";
+import { buildGameState, type GameEnvelope, type GameState } from "@/lib/game/state";
+import { computeGameArtifactFind, gameArtifactFind } from "@/lib/game/trackers/artifactFind";
+import { TRACKERS } from "@/lib/game/trackers";
+import type { StatResult } from "@/lib/statTracker/config";
+import { callDiff, njsCalls, njsFunction, njsNamedBlocks, traceCalls } from "@/lib/diagnose/njsCalls";
+import { loadNjs } from "@/scripts/njs-calls";
+import { GOLDEN_SAVES, KNOWN_ARKH_DIFFS, arkhArtifactLeaf, arkhArtifactTree, gameCtx } from "../support/arkhOracle";
+
+const rel = (got: number, want: number) => Math.abs(got - want) <= 1e-9 * Math.max(1, Math.abs(want));
+const relErr = (got: number, want: number) => Math.abs(got - want) / Math.max(1, Math.abs(want));
+const IDS = ARTI_GROUPS.flatMap((g) => g.sources);
+const noSaves = GOLDEN_SAVES.length === 0;
+const noNjs = !existsSync("scripts/updater/.cache/N.new.js");
+const ARKHE_11_01 = "scripts/updater/golden/.cache/arkhe-live-2026-11-01.json";
+const BASE = GOLDEN_SAVES.find((p) => basename(p) === "ARKHE.json") ?? GOLDEN_SAVES[0];
+
+// One GameState per save, shared by all its characters: the adapter makes a Ctx (cache, trace) of its own for each one.
+const states = new Map<string, { state: GameState; chars: number }>();
+function stateOf(path: string) {
+  let s = states.get(path);
+  if (!s) {
+    const env = JSON.parse(readFileSync(path, "utf8"));
+    states.set(path, (s = { state: buildGameState(env as GameEnvelope), chars: env.charNames.length }));
+  }
+  return s;
+}
+
+/** The node of source `id` in a tree the adapter built: its group by ARTI_GROUPS, then its place in the group. */
+const sourceNode = (tree: StatResult["tree"], id: string) => {
+  const gi = ARTI_GROUPS.findIndex((g) => g.sources.includes(id));
+  return tree.children![gi].children![ARTI_GROUPS[gi].sources.indexOf(id)];
+};
+
+/** What the loops keep of one (save, character): the numbers, not the trace (1163 trees with their traces would be a lot of memory). */
+type Light = { total: number; root: number; groups: number[]; vals: Record<string, number> };
+const lights = new Map<string, Light | { refused: string }>();
+/** The adapter's result for a pair, or the key the save lacks (Ruling E: a MissingSaveKey is a refusal, anything else is a bug). */
+function run(path: string, ci: number): Light | { refused: string } {
+  const key = `${path}#${ci}`;
+  let l = lights.get(key);
+  if (!l) {
+    try {
+      const { tree, total } = gameArtifactFind(stateOf(path).state, ci);
+      l = { total, root: tree.val, groups: tree.children!.map((g) => g.val), vals: Object.fromEntries(IDS.map((id) => [id, sourceNode(tree, id).val])) };
+    } catch (e) {
+      if (!(e instanceof MissingSaveKey)) throw e; // IncompleteTome is one too
+      l = { refused: e.key };
+    }
+    lights.set(key, l);
+  }
+  return l;
+}
+
+// ── BoatArtiMulti itself ────────────────────────────────────────────────────────────────────────
+describe.skipIf(noSaves)("Sailing BoatArtiMulti (N.js @10700072) and the tracker registry", () => {
+  const ctx = (trace = false) => gameCtx(JSON.parse(readFileSync(BASE, "utf8")), 0, trace);
+
+  it("TRACKERS.artifactFind is Sailing(ctx, 'BoatArtiMulti', 0, 0)", () => {
+    expect(TRACKERS.artifactFind).toBeTypeOf("function");
+    expect(TRACKERS.artifactFind!(ctx())).toBe(Sailing(ctx(), "BoatArtiMulti", 0, 0));
+  });
+
+  // The port is the game's text with the calls spelled the way lib/game spells them: same factors, same order, same parentheses, so the
+  // floats are the game's. Whitespace aside, the only differences are the call syntax and the six raw reads below.
+  it.skipIf(noNjs)("is N.js's expression token for token (calls and reads spelled as lib/game spells them)", () => {
+    const fn = njsFunction(loadNjs(), "Sailing")!;
+    const njs = njsNamedBlocks(fn.body, "BoatArtiMulti")[0]
+      .replace(/^return /, "")
+      .replace(/;$/, "")
+      .replace(/[mpq]\._customBlock_(\w+)\(/g, "$1(ctx,")
+      .replace('c.asNumber(a.engine.getGameAttribute("Boats")[b|0][0])', 'asNum(ctx,"Boats",b|0,0)')
+      .replace('c.asNumber(a.engine.getGameAttribute("NONdummies")[60])', "NONdummies60(ctx)")
+      .replace('c.asNumber(a.engine.getGameAttribute("DNSM").h.StarSigns.h["61"])', 'DNSM_StarSigns(ctx,"61")')
+      .replace('c.asNumber(a.engine.getGameAttribute("DNSM").h.AlchVials.h["6turtle"])', 'DNSM_AlchVials(ctx,"6turtle")')
+      .replace('a.engine.getGameAttribute("Spelunk")[6].length', 'listAt(ctx,"Spelunk",6).length');
+    const src = readFileSync("lib/game/njs/Sailing.ts", "utf8").replace(/\r/g, "");
+    const body = src.slice(src.indexOf("function boatArtiMulti"));
+    const port = body.slice(body.indexOf("return ") + "return ".length, body.indexOf(");\n}") + 1).replace(/\s+/g, "");
+    expect(port).toBe(njs.replace(/\s+/g, ""));
+  });
+
+  it.skipIf(noNjs)("calls what N.js calls", () => {
+    const fn = njsFunction(loadNjs(), "Sailing")!;
+    const expected = njsCalls(njsNamedBlocks(fn.body, "BoatArtiMulti").join("\n"));
+    const c = ctx(true);
+    Sailing(c, "BoatArtiMulti", 0, 0);
+    expect(callDiff(expected, traceCalls(c.trace!)).missing).toEqual([]);
+  }, 120_000);
+
+  it("the boat is the argument: boat 1 reads Boats[1][0] for the captain and Davey Jones of boat 1", () => {
+    const c = ctx(true);
+    Sailing(c, "BoatArtiMulti", 1, 0);
+    const boat = c.trace!.children[0];
+    expect(boat).toMatchObject({ block: "Sailing", args: ["BoatArtiMulti", 1, 0] });
+    const capt = boat.children.find((n) => n.block === "CaptBonusCalc")!;
+    expect(capt.args).toEqual([3, asNum(c, "Boats", 1, 0)]);
+    expect(boat.children.some((n) => n.block === "Sailing" && n.args[0] === "DaveyJonesBonus" && n.args[1] === 1)).toBe(true);
+  });
+});
+
+// ── the display config moved out of lib/arkh ────────────────────────────────────────────────────
+describe("the display config", () => {
+  it("lives in lib/artifactFind/groups and lib/arkh's def re-exports the very same objects", () => {
+    expect(arkhDef.ARTI_GROUPS).toBe(ARTI_GROUPS);
+    expect(arkhDef.ARTI_ROOT).toBe(ARTI_ROOT);
+    expect(arkhDef.ARTI_VOTE_NAME).toBe(ARTI_VOTE_NAME);
+    expect(ARTI_GROUPS).toHaveLength(24);
+    expect(IDS).toHaveLength(35);
+  });
+
+  it("lib/game does not import lib/arkh in the engine files of this task", () => {
+    for (const f of ["lib/game/trackers/artifactFind.ts", "lib/game/trackers/index.ts", "lib/game/njs/Sailing.ts"]) {
+      expect(readFileSync(f, "utf8"), f).not.toMatch(/from\s+["']@\/lib\/arkh/);
+    }
+  });
+});
+
+// ── the totals ──────────────────────────────────────────────────────────────────────────────────
+// Ruling E: a save missing a key the current N.js loader maps stays a strict MissingSaveKey, so the adapter refuses it (it throws; Task 10
+// decides what the page shows). Every one is a pre-migration save (below the current CSver, checked in the loop). The first key the
+// expression reads that they lack is `Menagerie` (CSver 34) on all 31: the term tests pin the same list for starSign61, which reads it
+// first. The saves HourZero (no Spelunk/Research/Sushi) and 5OhTree (no Sushi), and the eight whose Tome is partial (IncompleteTome), are
+// among them: the Menagerie is read before any of those keys.
+const CURRENT_CSVER = 34.05;
+const REFUSED_SAVES = ["01010111001.json","0celot8.json","0xEXCEED.json","100Cotton.json","1st_Giri.json","24632463.json","26515665165165.json","5OhTree.json","B0schi.json","Brokami.json","Dragonlzl.json","Exrom.json","FenrirAdra.json","Frans813.json","GIM_SSS.json","Grandesz.json","HourZero.json","Jrod11.json","MarleyLongbott.json","Pepega777.json","Pontinhas.json","Rinkzate.json","TinTim.json","arkhe-2026-09-23.json","arkhe-it-profile-2026-09-24.json","arkhe-live-2026-09-23.json","arkhe-live-2026-09-24.json","breakinbrad.json","dida123.json","joelok.json","ryujinsan.json"].map((f) => `${f}: Menagerie`).sort();
+const csverOf = (file: string): number => JSON.parse(readFileSync(GOLDEN_SAVES.find((p) => basename(p) === file)!, "utf8")).data.CSver;
+
+describe.skipIf(noSaves)("computeGameArtifactFind against lib/arkh on every real save and character", () => {
+  it("the total, every source leaf and the group display agree with lib/arkh (and with itself)", () => {
+    const t0 = performance.now();
+    const mismatches: string[] = [];
+    const leafMismatches: string[] = [];
+    const display: string[] = [];
+    const refused = new Set<string>();
+    const seenTotals = new Set<number>();
+    let pairs = 0;
+    let known = 0;
+    let refusedPairs = 0;
+    let worst = 0;
+    for (const path of GOLDEN_SAVES) {
+      const file = basename(path);
+      for (let ci = 0; ci < stateOf(path).chars; ci++) {
+        const r = run(path, ci);
+        if ("refused" in r) {
+          refused.add(`${file}: ${r.refused}`);
+          refusedPairs++;
+          continue;
+        }
+        // display and value agree: the groups recombine, the way lib/arkh combines them (its own groupVal / applyGroupStep), to the call's total
+        let rebuilt = 1;
+        ARTI_GROUPS.forEach((g, gi) => {
+          const vals = g.sources.map((id) => r.vals[id]);
+          if (!rel(r.groups[gi], groupVal(g, vals))) display.push(`${file}#${ci}: group ${g.key} shows ${r.groups[gi]}, its sources give ${groupVal(g, vals)}`);
+          rebuilt = applyGroupStep(g, vals, rebuilt);
+        });
+        if (!rel(rebuilt, r.total)) display.push(`${file}#${ci}: groups give ${rebuilt}, the call ${r.total}`);
+        if (r.root !== r.total) display.push(`${file}#${ci}: root ${r.root} is not the total ${r.total}`);
+        // the leaf of each source is lib/arkh's leaf (the page's Biggest Gains and Observed Max work on those), except the known rows
+        for (const id of IDS) {
+          if (KNOWN_ARKH_DIFFS.some((d) => d.save === file && (d.ci ?? ci) === ci && d.source === id)) continue;
+          const want = arkhArtifactLeaf(path, ci, id);
+          if (!rel(r.vals[id], want)) leafMismatches.push(`${file}#${ci} ${id}: game ${r.vals[id]}, arkh ${want}`);
+        }
+        if (KNOWN_ARKH_DIFFS.some((d) => d.save === file && (d.ci ?? ci) === ci)) {
+          known++;
+          continue; // the total differs from lib/arkh's where N.js proves lib/arkh wrong
+        }
+        const want = arkhArtifactTree(path, ci).val;
+        pairs++;
+        seenTotals.add(r.total);
+        worst = Math.max(worst, relErr(r.total, want));
+        if (!rel(r.total, want)) mismatches.push(`${file}#${ci}: game ${r.total}, arkh ${want}`);
+      }
+    }
+    const refusals = [...refused].sort();
+    console.info(
+      `[artifactFind] ${pairs} totals compared (worst relative difference ${worst.toExponential(2)}), ${known} known-diff pairs, ${refusedPairs} refused pairs in ${refused.size} saves, ${seenTotals.size} distinct totals, ${Math.round(performance.now() - t0)} ms`
+    );
+    expect(mismatches).toEqual([]);
+    expect(leafMismatches).toEqual([]);
+    expect(display).toEqual([]);
+    expect(pairs).toBeGreaterThan(500); // a loop over nothing would pass
+    expect(seenTotals.size).toBeGreaterThan(100); // nor would one number everywhere
+    expect(known).toBeGreaterThan(0);
+    expect(refusals).toEqual(REFUSED_SAVES);
+    for (const f of refusals) expect(csverOf(f.split(": ")[0]), `${f} is pre-migration`).toBeLessThan(CURRENT_CSVER);
+  }, 600_000);
+
+  it("a refused save throws instead of answering a number", () => {
+    const hour = GOLDEN_SAVES.find((p) => basename(p) === "HourZero.json");
+    expect(hour).toBeDefined();
+    expect(() => computeGameArtifactFind(JSON.parse(readFileSync(hour!, "utf8")), 0)).toThrow(MissingSaveKey);
+  });
+});
+
+// ── the tree ────────────────────────────────────────────────────────────────────────────────────
+describe.skipIf(!existsSync(ARKHE_11_01))("the tree the adapter builds, on the 2026-11-01 save", () => {
+  const env = () => JSON.parse(readFileSync(ARKHE_11_01, "utf8"));
+  const markhe = () => env().charNames.indexOf("Markhe");
+  const result = () => computeGameArtifactFind(env(), markhe());
+
+  it("has lib/arkh's shape: root, one node per ARTI_GROUPS group in order, one per source in order", () => {
+    const { tree, total } = result();
+    expect(markhe()).toBe(8);
+    expect(tree).toMatchObject({ name: ARTI_ROOT, fmt: "x", val: total });
+    expect(tree.children!.map((g) => g.name)).toEqual(ARTI_GROUPS.map((g) => g.name));
+    ARTI_GROUPS.forEach((g, gi) => expect(tree.children![gi].children!.map((_, si) => g.sources[si])).toEqual(g.sources));
+  });
+
+  it("names, formats and notes of every group and source equal lib/arkh's (the Observed Max data is keyed by them)", () => {
+    const { tree } = result();
+    const arkh = arkhArtifactTree(ARKHE_11_01, markhe());
+    const shape = (n: StatResult["tree"]) => ({ name: n.name, fmt: n.fmt, note: n.note });
+    expect(shape(tree)).toEqual(shape(arkh));
+    ARTI_GROUPS.forEach((g, gi) => {
+      expect(shape(tree.children![gi]), g.key).toEqual(shape(arkh.children![gi]));
+      expect(tree.children![gi].children!.length, g.key).toBe(arkh.children![gi].children!.length);
+      g.sources.forEach((id, si) => expect(shape(tree.children![gi].children![si]), id).toEqual(shape(arkh.children![gi].children![si])));
+    });
+    expect(sourceNode(tree, "vote20").name).toBe(ARTI_VOTE_NAME);
+  });
+
+  it("every source carries the N.js trace of its term as children, named by block and arguments", () => {
+    const { tree } = result();
+    const art = sourceNode(tree, "artifact3");
+    expect(art.children![0]).toMatchObject({ name: 'Sailing("ArtifactBonus", 3, 0)', fmt: "raw", val: art.val });
+    for (const id of IDS) expect(sourceNode(tree, id).children?.length, id).toBeGreaterThan(0);
+    // a trace node is a plain node: a name, a number, an optional note
+    const walk = (n: StatResult["tree"]) => {
+      expect(typeof n.name).toBe("string");
+      expect(Number.isFinite(n.val)).toBe(true);
+      n.children?.forEach(walk);
+    };
+    walk(tree);
+  });
+
+  it("a source made of two calls (Glimbo) carries both traces and combines them as BoatArtiMulti does", () => {
+    const glimbo = sourceNode(result().tree, "comp154");
+    expect(glimbo.children!.map((c) => c.name)).toEqual(["Companions(154)", "CompLV2(154)"]);
+    expect(glimbo.val).toBe(Math.min(2, 1 + 2 * glimbo.children![0].val) + glimbo.children![1].val);
+  });
+
+  it("the total comes from the one BoatArtiMulti call", () => {
+    const state = buildGameState(env() as GameEnvelope);
+    const direct = Sailing(makeCtx(state, { player: markhe(), map: 0 }), "BoatArtiMulti", 0, 0);
+    expect(gameArtifactFind(state, markhe()).total).toBe(direct);
+    expect(computeGameArtifactFind(env(), markhe()).total).toBe(direct);
+  });
+
+  it("reads 167Q, the number the game showed for this save (2026-11-01)", () => {
+    const { total } = result();
+    console.info(`[artifactFind] ${ARKHE_11_01} Markhe: ${total} -> ${formatArtifactFind(total)}`);
+    expect(formatArtifactFind(total)).toBe("167Q");
+  });
+});
+
+// ── switching character ─────────────────────────────────────────────────────────────────────────
+// Only artifact3 (x the character's Sailing level) and starSign61 (the character's own star signs) belong to the character; for a character
+// whose Lv0[14] < 2 the live Companion(0)-gated terms follow (Companions(0) @10799980 is 0 below it, inside Grid_Bonus_Allmulti). button3 is
+// left out: the game keeps DNSM.Button_Bonsuz for the session, built with the gate of whichever character asked first, so it is not a
+// per-character value there; lib/game models it as "the cache built for the current character" (Minehead.ts), so it follows the gate here.
+const PER_CHARACTER = ["artifact3", "starSign61"];
+const COMPANION_0_GATED = ["grid109", "grid106", "sticker2add", "sticker2mult"];
+const gateOf = (state: GameState, ci: number) => asNum(withPlayer(makeCtx(state, { player: 0, map: 0 }), ci), "Lv0", 14);
+
+describe.skipIf(noSaves)("switching character on one save", () => {
+  it("changes only artifact3 and starSign61, plus the Companion(0)-gated terms for a character with Lv0[14] < 2 (every real save)", () => {
+    const unexpected: string[] = [];
+    const plain = new Set<string>();
+    const gated = new Set<string>();
+    let compared = 0;
+    for (const path of GOLDEN_SAVES) {
+      const { state, chars } = stateOf(path);
+      const base = run(path, 0);
+      if ("refused" in base) continue;
+      for (let ci = 1; ci < chars; ci++) {
+        const r = run(path, ci);
+        if ("refused" in r) throw new Error(`${basename(path)}: character 0 is computed and ${ci} is refused: ${r.refused}`);
+        const low = gateOf(state, 0) < 2 || gateOf(state, ci) < 2;
+        const changed = IDS.filter((id) => id !== "button3" && r.vals[id] !== base.vals[id]);
+        compared++;
+        for (const id of changed) {
+          (low ? gated : plain).add(id);
+          if (!PER_CHARACTER.includes(id) && !(low && COMPANION_0_GATED.includes(id))) unexpected.push(`${basename(path)} 0 vs ${ci}: ${id}`);
+        }
+      }
+    }
+    console.info(`[artifactFind] character switches: ${compared} comparisons; moved where the gate is not involved: ${[...plain].sort()}; where it is: ${[...gated].sort()}`);
+    expect(unexpected).toEqual([]);
+    expect(compared).toBeGreaterThan(500);
+    expect([...plain].sort()).toEqual([...PER_CHARACTER].sort()); // both really move where the gate is not involved: the check is not vacuous
+    expect([...gated].filter((id) => COMPANION_0_GATED.includes(id)).length).toBeGreaterThan(0); // and the gate really bites on a real save (Koweabooo #10)
+  }, 120_000);
+
+  it("a character with Lv0[14] < 2 moves the Companion(0)-gated terms (the 2026-11-01 save, character 1 edited)", () => {
+    const env = JSON.parse(readFileSync(existsSync(ARKHE_11_01) ? ARKHE_11_01 : BASE, "utf8"));
+    const lv = typeof env.data.Lv0_1 === "string" ? env.data.Lv0_1.split(",").map(Number) : env.data.Lv0_1;
+    lv[14] = 1;
+    env.data.Lv0_1 = lv;
+    const state = buildGameState(env as GameEnvelope);
+    const t0 = gameArtifactFind(state, 0).tree;
+    const t1 = gameArtifactFind(state, 1).tree;
+    const changed = IDS.filter((id) => id !== "button3" && sourceNode(t0, id).val !== sourceNode(t1, id).val);
+    expect(changed.filter((id) => ![...PER_CHARACTER, ...COMPANION_0_GATED].includes(id))).toEqual([]);
+    expect(changed.filter((id) => COMPANION_0_GATED.includes(id)).length).toBeGreaterThan(0); // the gate really bites
+  });
+});

@@ -76,6 +76,13 @@ function treeOf(save: unknown, ci: number): ArkhNode {
 }
 
 /**
+ * lib/arkh's whole Artifact Find tree for character `ci` (root = the total, then the groups, then the sources), cached like
+ * `arkhArtifactLeaf` and shared with it: the tracker adapter test compares names, formats, notes and the total against it.
+ * Do not edit the returned tree. Same `save` rules as `arkhArtifactLeaf`.
+ */
+export const arkhArtifactTree = (save: unknown, ci: number): ArkhNode => treeOf(save, ci);
+
+/**
  * The `val` of source `sourceId` in lib/arkh's Artifact Find tree for character `ci`: the group in
  * `ARTI_GROUPS`, then the index of the source in that group's `sources`. That is the term as
  * `BoatArtiMulti` uses it: before the `/100` for a `pct` group, the whole factor for a `mult` group.

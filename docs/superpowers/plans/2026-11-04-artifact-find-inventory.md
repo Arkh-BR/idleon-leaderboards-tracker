@@ -14,7 +14,7 @@ Do not edit by hand: regenerate it when N.js changes. Tick a row when its sub-ca
 
 ## Sailing
 
-- [ ] Sailing("BoatArtiMulti",0) — depth 0 — 2016 chars
+- [x] Sailing("BoatArtiMulti",0) — depth 0 — 2016 chars — ported in Task 9 (njs/Sailing.ts, the expression of @10700072 token for token; the tracker adapter is lib/game/trackers/artifactFind.ts)
 - [x] Sailing("ArtifactBonus",3,0) — depth 1 — 8323 chars
 - [x] Sailing("DaveyJonesBonus") — depth 1 — 342 chars
 - [~] Sailing("SlabboBonus_AllMulti",0,0) — depth 2 — 166 chars — not reached for ArtifactBonus 3 and 32: only the pass iterations l in {2,10,18,20,999} call it

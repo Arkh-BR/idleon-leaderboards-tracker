@@ -2,17 +2,40 @@ import { asNum, asNumber, attr } from "../attr";
 import { block, type Ctx } from "../ctx";
 import { ArtifactInfo } from "../data";
 import { InvalidSaveValue, MissingSaveKey, NotPorted } from "../errors";
+import { listAt } from "../lists";
+import { ArcadeBonus } from "./ArcadeBonus";
+import { Breeding } from "./Breeding";
+import { CaptBonusCalc } from "./CaptBonusCalc";
+import { CompLV2 } from "./CompLV2";
+import { Companions } from "./Companions";
+import { DNSM_AlchVials, DNSM_StarSigns } from "./DNSM";
+import { FarmingStuffs } from "./FarmingStuffs";
+import { GamingStatType } from "./GamingStatType";
+import { GetBribeBonus } from "./GetBribeBonus";
+import { Holes } from "./Holes";
+import { JellyOperation } from "./JellyOperation";
+import { MainframeBonus } from "./MainframeBonus";
+import { MenagerieStuff } from "./MenagerieStuff";
+import { Minehead } from "./Minehead";
+import { NONdummies60 } from "./NONdummies";
+import { Ninja } from "./Ninja";
+import { RandomEvent } from "./RandomEvent";
 import { ResearchStuff } from "./ResearchStuff";
+import { Stuff2 } from "./Stuff2";
+import { SushiStuff } from "./SushiStuff";
+import { Summoning } from "./Summoning";
 import { Thingies } from "./Thingies";
 
 /**
  * N.js `_customBlock_Sailing(d, b, e)` @10690910: one function, a chain of named sub-cases. Only the
  * sub-cases (and, inside ArtifactBonus, the artifact indices) the Artifact Find port reaches.
  */
-export const Sailing = block("Sailing", (ctx, d: string, b: number, e: number) => {
+export const Sailing: (ctx: Ctx, d: string, b: number, e: number) => number = block("Sailing", (ctx, d: string, b: number, e: number) => {
   switch (d) {
     case "ArtifactBonus":
       return artifactBonus(ctx, b, e);
+    case "BoatArtiMulti":
+      return boatArtiMulti(ctx, b);
     case "DaveyJonesBonus":
       return daveyJonesBonus(ctx, b);
     default:
@@ -67,4 +90,54 @@ function daveyJonesBonus(ctx: Ctx, b: number): number {
   const upgrades = asNum(ctx, "Boats", i, 3) + asNum(ctx, "Boats", i, 5);
   const reached = Math.floor((upgrades + 99600) / 1e5) * ResearchStuff(ctx, "Grid_Bonus", 105, 1);
   return first * (1 + 2 * Math.max(0, Math.min(1, reached)));
+}
+
+/**
+ * `BoatArtiMulti` @10700072 for boat `b`, the Artifact Find the Skill Info shows (the page reads boat 0): one additive pool, then 23
+ * factors, in N.js order and with N.js's parentheses, so the floats are the game's:
+ *   max(1, (1 + pool / 100) x star sign 61 x ... x max(1, 1.02 ^ Spelunk[6].length x Super Bit 26)).
+ * Every term is the call the game makes, with its literal arguments (the adapter in trackers/artifactFind.ts finds each one in the trace by
+ * them). `DNSM.StarSigns["61"]` and `DNSM.AlchVials["6turtle"]` are the game's caches, ported as DNSM_StarSigns / DNSM_AlchVials;
+ * `NONdummies[60]` is NONdummies60; `Spelunk[6].length` is a strict read (the game would throw without the list).
+ */
+function boatArtiMulti(ctx: Ctx, b: number): number {
+  return Math.max(
+    1,
+    (1 +
+      (Sailing(ctx, "ArtifactBonus", 3, 0) +
+        (CaptBonusCalc(ctx, 3, asNum(ctx, "Boats", b | 0, 0)) +
+          (Breeding(ctx, "ShinyBonusS", "Nah", 21, -1) +
+            (20 * RandomEvent(ctx, "FractalIslandBonus", 3, 999) +
+              (GetBribeBonus(ctx, "34") +
+                (25 * Math.min(30, NONdummies60(ctx)) +
+                  (ArcadeBonus(ctx, 32) +
+                    ArcadeBonus(ctx, 66) +
+                    (Holes(ctx, "B_UPG", 55, 0) +
+                      (FarmingStuffs(ctx, "StickerBonus", 2, 99) +
+                        (ResearchStuff(ctx, "Grid_Bonus", 109, 0) + Summoning(ctx, "VaultUpgBonus", 63, 0))))))))))) /
+        100) *
+      (1 + DNSM_StarSigns(ctx, "61") / 100) *
+      (1 + FarmingStuffs(ctx, "StickerBonus", 2, 100) / 100) *
+      MenagerieStuff(ctx, "NightmarinerBon", 0, 0) *
+      Math.max(1, Math.min(2, 1 + 2 * Companions(ctx, 154)) + CompLV2(ctx, 154)) *
+      Math.max(1, RandomEvent(ctx, "KillroyBonuses", 0, 0)) *
+      (1 + Minehead(ctx, "Button_Bonuses", 3, 0) / 100) *
+      (1 + ResearchStuff(ctx, "Grid_Bonus", 106, 0) / 100) *
+      (1 + DNSM_AlchVials(ctx, "6turtle") / 100) *
+      Math.max(1, Math.pow(1.5, Stuff2(ctx, "PurpleChestSlugsOwned", 0, 0))) *
+      (1 + SushiStuff(ctx, "RoG_BonusQTY", 7, 0) / 100) *
+      (1 + Summoning(ctx, "WinBonus", 3, 0) / 100) *
+      (1 + JellyOperation(ctx, "RoG_BonusQTY", 19, 0) / 100) *
+      Sailing(ctx, "DaveyJonesBonus", b, 0) *
+      (1 + MainframeBonus(ctx, 14) / 100) *
+      (1 + Thingies(ctx, "LoreEpiBon", 3, 0) / 100) *
+      (1 + Ninja(ctx, "PristineBon", 2, 0) / 100) *
+      (1 + Summoning(ctx, "VotingBonusz", 20, 0) / 100) *
+      (1 + Companions(ctx, 43)) *
+      Math.max(1, Companions(ctx, 56) / 5) *
+      (1 + Holes(ctx, "MonumentROGbonuses", 1, 2) / 100) *
+      (1 + FarmingStuffs(ctx, "ExoticBonusQTY", 45, 0) / 100) *
+      (1 + GamingStatType(ctx, "PaletteBonus", 5, 0) / 100) *
+      Math.max(1, Math.pow(1.02, listAt(ctx, "Spelunk", 6).length) * GamingStatType(ctx, "SuperBitType", 26, 0))
+  );
 }

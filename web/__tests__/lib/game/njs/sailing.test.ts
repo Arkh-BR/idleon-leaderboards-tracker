@@ -219,8 +219,8 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("davey (Sailing DaveyJonesBonus, N.js
 describe("ports stay on their boundary", () => {
   const c = () => gameCtx({ data: {}, charNames: [], companion: null, guildData: {}, serverVars: null, tournament: {}, accountCreateTime: 1, lastUpdated: 1 }, 0);
   it("Sailing: only the ported sub-cases", () => {
-    // BoatArtiMulti is Task 9's; SlabboBonus_AllMulti is only reached by artifacts 2/10/18/20, which are not ported
-    for (const d of ["BoatArtiMulti", "SlabboBonus_AllMulti", "Nope"]) expect(() => Sailing(c(), d, 0, 0)).toThrow(NotPorted);
+    // BoatArtiMulti is ported (trackers/artifactFind.test.ts); SlabboBonus_AllMulti is only reached by artifacts 2/10/18/20, which are not ported
+    for (const d of ["SlabboBonus_AllMulti", "Nope"]) expect(() => Sailing(c(), d, 0, 0)).toThrow(NotPorted);
   });
   it("Thingies / ResearchStuff: only what the ported terms need", () => {
     expect(() => Thingies(c(), "LoreEpiBon", -1, 0)).toThrow(NotPorted); // the cache rebuild (Task 8 ported the entries 0..10)
