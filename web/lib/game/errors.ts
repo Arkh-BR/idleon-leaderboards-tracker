@@ -87,3 +87,18 @@ export class NotPorted extends Error {
     this.sub = sub;
   }
 }
+
+/**
+ * A tracker's tree does not add up to the number the engine computed (the page's groups, recombined, differ from the one call's total):
+ * some term is computed twice and one copy is stale. There is no honest tree to show, so this is thrown instead of a pair that disagrees.
+ */
+export class TreeTotalMismatch extends Error {
+  readonly total: number;
+  readonly rebuilt: number;
+  constructor(total: number, rebuilt: number) {
+    super(`the groups give ${rebuilt}, the call ${total}`);
+    this.name = "TreeTotalMismatch";
+    this.total = total;
+    this.rebuilt = rebuilt;
+  }
+}

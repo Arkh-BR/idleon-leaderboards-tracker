@@ -92,20 +92,26 @@ function daveyJonesBonus(ctx: Ctx, b: number): number {
   return first * (1 + 2 * Math.max(0, Math.min(1, reached)));
 }
 
+/** `c.asNumber(Boats[b|0][0])`: the captain of boat `b`. The game indexes `Boats[b]` directly and would throw on a missing row; the cell is a c.asNumber (an absent one is 0). */
+function boatCaptain(ctx: Ctx, b: number): number {
+  listAt(ctx, "Boats", b | 0);
+  return asNum(ctx, "Boats", b | 0, 0);
+}
+
 /**
  * `BoatArtiMulti` @10700072 for boat `b`, the Artifact Find the Skill Info shows (the page reads boat 0): one additive pool, then 23
  * factors, in N.js order and with N.js's parentheses, so the floats are the game's:
  *   max(1, (1 + pool / 100) x star sign 61 x ... x max(1, 1.02 ^ Spelunk[6].length x Super Bit 26)).
  * Every term is the call the game makes, with its literal arguments (the adapter in trackers/artifactFind.ts finds each one in the trace by
  * them). `DNSM.StarSigns["61"]` and `DNSM.AlchVials["6turtle"]` are the game's caches, ported as DNSM_StarSigns / DNSM_AlchVials;
- * `NONdummies[60]` is NONdummies60; `Spelunk[6].length` is a strict read (the game would throw without the list).
+ * `NONdummies[60]` is NONdummies60; `Boats[b|0][0]` is boatCaptain (a strict row, then the cell); `Spelunk[6].length` is a strict read (the game would throw without the list).
  */
 function boatArtiMulti(ctx: Ctx, b: number): number {
   return Math.max(
     1,
     (1 +
       (Sailing(ctx, "ArtifactBonus", 3, 0) +
-        (CaptBonusCalc(ctx, 3, asNum(ctx, "Boats", b | 0, 0)) +
+        (CaptBonusCalc(ctx, 3, boatCaptain(ctx, b)) +
           (Breeding(ctx, "ShinyBonusS", "Nah", 21, -1) +
             (20 * RandomEvent(ctx, "FractalIslandBonus", 3, 999) +
               (GetBribeBonus(ctx, "34") +

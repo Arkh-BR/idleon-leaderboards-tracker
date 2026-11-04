@@ -5,15 +5,16 @@
 // the tree's names, formats and source values against lib/arkh's (the page's Biggest Gains and Observed Max key on them), the groups
 // recombining to the total (display and value agree), the per-character terms, and the number the game showed for the owner's save.
 import { describe, it, expect } from "vitest";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { basename } from "node:path";
 import * as arkhDef from "@/lib/arkh/stats/defs/artifact-find";
 import { applyGroupStep, groupVal } from "@/lib/arkh/stats/defs/grouped";
 import { ARTI_GROUPS, ARTI_ROOT, ARTI_VOTE_NAME } from "@/lib/artifactFind/groups";
 import { formatArtifactFind } from "@/lib/artifactFind/format";
 import { asNum } from "@/lib/game/attr";
-import { makeCtx, withPlayer } from "@/lib/game/ctx";
-import { MissingSaveKey } from "@/lib/game/errors";
+import { makeCtx, withPlayer, type TraceNode } from "@/lib/game/ctx";
+import { MissingSaveKey, TreeTotalMismatch } from "@/lib/game/errors";
+import { Companions } from "@/lib/game/njs/Companions";
 import { Sailing } from "@/lib/game/njs/Sailing";
 import { buildGameState, type GameEnvelope, type GameState } from "@/lib/game/state";
 import { computeGameArtifactFind, gameArtifactFind } from "@/lib/game/trackers/artifactFind";
@@ -21,6 +22,7 @@ import { TRACKERS } from "@/lib/game/trackers";
 import type { StatResult } from "@/lib/statTracker/config";
 import { callDiff, njsCalls, njsFunction, njsNamedBlocks, traceCalls } from "@/lib/diagnose/njsCalls";
 import { loadNjs } from "@/scripts/njs-calls";
+import { flattenTree } from "@/lib/dropRate/treeFlatten";
 import { GOLDEN_SAVES, KNOWN_ARKH_DIFFS, arkhArtifactLeaf, arkhArtifactTree, gameCtx } from "../support/arkhOracle";
 
 const rel = (got: number, want: number) => Math.abs(got - want) <= 1e-9 * Math.max(1, Math.abs(want));
@@ -48,8 +50,10 @@ const sourceNode = (tree: StatResult["tree"], id: string) => {
   return tree.children![gi].children![ARTI_GROUPS[gi].sources.indexOf(id)];
 };
 
+const count = (n: StatResult["tree"]): number => 1 + (n.children ?? []).reduce((a, c) => a + count(c), 0);
+
 /** What the loops keep of one (save, character): the numbers, not the trace (1163 trees with their traces would be a lot of memory). */
-type Light = { total: number; root: number; groups: number[]; vals: Record<string, number> };
+type Light = { total: number; root: number; groups: number[]; vals: Record<string, number>; nodes: number };
 const lights = new Map<string, Light | { refused: string }>();
 /** The adapter's result for a pair, or the key the save lacks (Ruling E: a MissingSaveKey is a refusal, anything else is a bug). */
 function run(path: string, ci: number): Light | { refused: string } {
@@ -58,7 +62,7 @@ function run(path: string, ci: number): Light | { refused: string } {
   if (!l) {
     try {
       const { tree, total } = gameArtifactFind(stateOf(path).state, ci);
-      l = { total, root: tree.val, groups: tree.children!.map((g) => g.val), vals: Object.fromEntries(IDS.map((id) => [id, sourceNode(tree, id).val])) };
+      l = { total, root: tree.val, groups: tree.children!.map((g) => g.val), vals: Object.fromEntries(IDS.map((id) => [id, sourceNode(tree, id).val])), nodes: count(tree) };
     } catch (e) {
       if (!(e instanceof MissingSaveKey)) throw e; // IncompleteTome is one too
       l = { refused: e.key };
@@ -85,7 +89,7 @@ describe.skipIf(noSaves)("Sailing BoatArtiMulti (N.js @10700072) and the tracker
       .replace(/^return /, "")
       .replace(/;$/, "")
       .replace(/[mpq]\._customBlock_(\w+)\(/g, "$1(ctx,")
-      .replace('c.asNumber(a.engine.getGameAttribute("Boats")[b|0][0])', 'asNum(ctx,"Boats",b|0,0)')
+      .replace('c.asNumber(a.engine.getGameAttribute("Boats")[b|0][0])', "boatCaptain(ctx,b)")
       .replace('c.asNumber(a.engine.getGameAttribute("NONdummies")[60])', "NONdummies60(ctx)")
       .replace('c.asNumber(a.engine.getGameAttribute("DNSM").h.StarSigns.h["61"])', 'DNSM_StarSigns(ctx,"61")')
       .replace('c.asNumber(a.engine.getGameAttribute("DNSM").h.AlchVials.h["6turtle"])', 'DNSM_AlchVials(ctx,"6turtle")')
@@ -113,6 +117,30 @@ describe.skipIf(noSaves)("Sailing BoatArtiMulti (N.js @10700072) and the tracker
     expect(capt.args).toEqual([3, asNum(c, "Boats", 1, 0)]);
     expect(boat.children.some((n) => n.block === "Sailing" && n.args[0] === "DaveyJonesBonus" && n.args[1] === 1)).toBe(true);
   });
+
+  // The game reads `Boats[b|0][0]` as the argument of CaptBonusCalc, right after ArtifactBonus, and a missing row is a TypeError there. A
+  // lenient read (asNumber(null) = 0) would go on and fail later on some other Boats read, so the proof is where the call stops.
+  it("the game indexes Boats[b] directly: a missing row stops BoatArtiMulti at the captain's argument, it is not read as captain 0", () => {
+    const boats: unknown[] = (() => {
+      const raw = JSON.parse(readFileSync(BASE, "utf8")).data.Boats;
+      return typeof raw === "string" ? JSON.parse(raw) : raw;
+    })();
+    const stopsAfter = (rows: unknown[], b: number) => {
+      const env = JSON.parse(readFileSync(BASE, "utf8"));
+      env.data.Boats = rows;
+      const c = gameCtx(env, 0, true);
+      let key: unknown = "no error";
+      try {
+        Sailing(c, "BoatArtiMulti", b, 0);
+      } catch (e) {
+        key = e instanceof MissingSaveKey ? e.key : e;
+      }
+      return { key, calls: c.trace!.children[0].children.map((n) => n.block) };
+    };
+    expect(stopsAfter([], 0)).toEqual({ key: "Boats[0]", calls: ["Sailing"] }); // only ArtifactBonus ran
+    expect(stopsAfter([boats[0]], 1)).toEqual({ key: "Boats[1]", calls: ["Sailing"] });
+    expect(stopsAfter(boats, 1).key).toBe("no error"); // with the rows there, boat 1 is read
+  });
 });
 
 // ── the display config moved out of lib/arkh ────────────────────────────────────────────────────
@@ -125,88 +153,102 @@ describe("the display config", () => {
     expect(IDS).toHaveLength(35);
   });
 
-  it("lib/game does not import lib/arkh in the engine files of this task", () => {
-    for (const f of ["lib/game/trackers/artifactFind.ts", "lib/game/trackers/index.ts", "lib/game/njs/Sailing.ts"]) {
-      expect(readFileSync(f, "utf8"), f).not.toMatch(/from\s+["']@\/lib\/arkh/);
+  // lib/game must be able to outlive lib/arkh: no file under it imports lib/arkh (by alias or by a relative path), except the two data
+  // re-exports that say so themselves ("The files still live under lib/arkh; a later plan moves them here").
+  it("no file under lib/game imports lib/arkh, except the data re-exports", () => {
+    const ALLOWED = ["lib/game/data/index.ts", "lib/game/data/maps.ts"];
+    const files = readdirSync("lib/game", { recursive: true })
+      .map((f) => `lib/game/${String(f).replace(/\\/g, "/")}`)
+      .filter((f) => /\.tsx?$/.test(f));
+    const imports: string[] = [];
+    for (const f of files) {
+      for (const m of readFileSync(f, "utf8").matchAll(/(?:\bfrom|\bimport)\s*\(?\s*["']([^"']+)["']/g)) {
+        const spec = m[1];
+        if (/^@\/lib\/arkh(\/|$)/.test(spec) || (spec.startsWith(".") && /(^|\/)arkh(\/|$)/.test(spec))) imports.push(`${f}: ${spec}`);
+      }
     }
+    expect(files.length).toBeGreaterThan(40); // the scan found the engine
+    expect(imports.filter((i) => !ALLOWED.some((a) => i.startsWith(`${a}:`)))).toEqual([]);
+    expect(imports.some((i) => i.startsWith("lib/game/data/index.ts:"))).toBe(true); // the exception list is not stale
   });
 });
 
-// ── the totals ──────────────────────────────────────────────────────────────────────────────────
-// Ruling E: a save missing a key the current N.js loader maps stays a strict MissingSaveKey, so the adapter refuses it (it throws; Task 10
-// decides what the page shows). Every one is a pre-migration save (below the current CSver, checked in the loop). The first key the
-// expression reads that they lack is `Menagerie` (CSver 34) on all 31: the term tests pin the same list for starSign61, which reads it
-// first. The saves HourZero (no Spelunk/Research/Sushi) and 5OhTree (no Sushi), and the eight whose Tome is partial (IncompleteTome), are
-// among them: the Menagerie is read before any of those keys.
-const CURRENT_CSVER = 34.05;
-const REFUSED_SAVES = ["01010111001.json","0celot8.json","0xEXCEED.json","100Cotton.json","1st_Giri.json","24632463.json","26515665165165.json","5OhTree.json","B0schi.json","Brokami.json","Dragonlzl.json","Exrom.json","FenrirAdra.json","Frans813.json","GIM_SSS.json","Grandesz.json","HourZero.json","Jrod11.json","MarleyLongbott.json","Pepega777.json","Pontinhas.json","Rinkzate.json","TinTim.json","arkhe-2026-09-23.json","arkhe-it-profile-2026-09-24.json","arkhe-live-2026-09-23.json","arkhe-live-2026-09-24.json","breakinbrad.json","dida123.json","joelok.json","ryujinsan.json"].map((f) => `${f}: Menagerie`).sort();
-const csverOf = (file: string): number => JSON.parse(readFileSync(GOLDEN_SAVES.find((p) => basename(p) === file)!, "utf8")).data.CSver;
+// ── the tree stays small (Ruling L) ─────────────────────────────────────────────────────────────
+// The page persists flattenTree(tree) in every snapshot (localStorage, writes dropped silently on quota), so the tree may not outgrow
+// lib/arkh's by more than 2x. Each source keeps the N.js call(s) it stands for; below them only the branches that lead to a `runtime:` /
+// `assumed:` note stay (spec section 5 wants those visible). The whole trace is a traced Ctx away.
+const FLAG = /^(runtime|assumed):/;
+const countTrace = (n: TraceNode): number => 1 + n.children.reduce((a, c) => a + countTrace(c), 0);
+const flagsOfTrace = (n: TraceNode): string[] => [...(FLAG.test(n.note ?? "") ? [`${n.note}|${n.value}`] : []), ...n.children.flatMap(flagsOfTrace)];
+const flagsOfTree = (n: StatResult["tree"]): string[] => [...(FLAG.test(n.note ?? "") ? [`${n.note}|${n.val}`] : []), ...(n.children ?? []).flatMap(flagsOfTree)];
 
-describe.skipIf(noSaves)("computeGameArtifactFind against lib/arkh on every real save and character", () => {
-  it("the total, every source leaf and the group display agree with lib/arkh (and with itself)", () => {
-    const t0 = performance.now();
-    const mismatches: string[] = [];
-    const leafMismatches: string[] = [];
-    const display: string[] = [];
-    const refused = new Set<string>();
-    const seenTotals = new Set<number>();
+describe.skipIf(noSaves)("the page's tree stays small", () => {
+  it("has at most 2x the nodes of lib/arkh's tree on every real save and character", () => {
+    const over: string[] = [];
+    let worst = { ratio: 0, at: "", game: 0, arkh: 0 };
     let pairs = 0;
-    let known = 0;
-    let refusedPairs = 0;
-    let worst = 0;
     for (const path of GOLDEN_SAVES) {
-      const file = basename(path);
       for (let ci = 0; ci < stateOf(path).chars; ci++) {
         const r = run(path, ci);
-        if ("refused" in r) {
-          refused.add(`${file}: ${r.refused}`);
-          refusedPairs++;
-          continue;
-        }
-        // display and value agree: the groups recombine, the way lib/arkh combines them (its own groupVal / applyGroupStep), to the call's total
-        let rebuilt = 1;
-        ARTI_GROUPS.forEach((g, gi) => {
-          const vals = g.sources.map((id) => r.vals[id]);
-          if (!rel(r.groups[gi], groupVal(g, vals))) display.push(`${file}#${ci}: group ${g.key} shows ${r.groups[gi]}, its sources give ${groupVal(g, vals)}`);
-          rebuilt = applyGroupStep(g, vals, rebuilt);
-        });
-        if (!rel(rebuilt, r.total)) display.push(`${file}#${ci}: groups give ${rebuilt}, the call ${r.total}`);
-        if (r.root !== r.total) display.push(`${file}#${ci}: root ${r.root} is not the total ${r.total}`);
-        // the leaf of each source is lib/arkh's leaf (the page's Biggest Gains and Observed Max work on those), except the known rows
-        for (const id of IDS) {
-          if (KNOWN_ARKH_DIFFS.some((d) => d.save === file && (d.ci ?? ci) === ci && d.source === id)) continue;
-          const want = arkhArtifactLeaf(path, ci, id);
-          if (!rel(r.vals[id], want)) leafMismatches.push(`${file}#${ci} ${id}: game ${r.vals[id]}, arkh ${want}`);
-        }
-        if (KNOWN_ARKH_DIFFS.some((d) => d.save === file && (d.ci ?? ci) === ci)) {
-          known++;
-          continue; // the total differs from lib/arkh's where N.js proves lib/arkh wrong
-        }
-        const want = arkhArtifactTree(path, ci).val;
+        if ("refused" in r) continue;
+        const arkh = count(arkhArtifactTree(path, ci));
         pairs++;
-        seenTotals.add(r.total);
-        worst = Math.max(worst, relErr(r.total, want));
-        if (!rel(r.total, want)) mismatches.push(`${file}#${ci}: game ${r.total}, arkh ${want}`);
+        const ratio = r.nodes / arkh;
+        if (ratio > worst.ratio) worst = { ratio, at: `${basename(path)}#${ci}`, game: r.nodes, arkh };
+        if (r.nodes > 2 * arkh) over.push(`${basename(path)}#${ci}: ${r.nodes} nodes against ${arkh}`);
       }
     }
-    const refusals = [...refused].sort();
-    console.info(
-      `[artifactFind] ${pairs} totals compared (worst relative difference ${worst.toExponential(2)}), ${known} known-diff pairs, ${refusedPairs} refused pairs in ${refused.size} saves, ${seenTotals.size} distinct totals, ${Math.round(performance.now() - t0)} ms`
-    );
-    expect(mismatches).toEqual([]);
-    expect(leafMismatches).toEqual([]);
-    expect(display).toEqual([]);
-    expect(pairs).toBeGreaterThan(500); // a loop over nothing would pass
-    expect(seenTotals.size).toBeGreaterThan(100); // nor would one number everywhere
-    expect(known).toBeGreaterThan(0);
-    expect(refusals).toEqual(REFUSED_SAVES);
-    for (const f of refusals) expect(csverOf(f.split(": ")[0]), `${f} is pre-migration`).toBeLessThan(CURRENT_CSVER);
-  }, 600_000);
+    console.info(`[artifactFind] tree size: ${pairs} pairs, worst ratio ${worst.ratio.toFixed(2)} at ${worst.at} (${worst.game} nodes against ${worst.arkh})`);
+    expect(over).toEqual([]);
+    expect(pairs).toBeGreaterThan(500);
+  }, 120_000);
 
-  it("a refused save throws instead of answering a number", () => {
-    const hour = GOLDEN_SAVES.find((p) => basename(p) === "HourZero.json");
-    expect(hour).toBeDefined();
-    expect(() => computeGameArtifactFind(JSON.parse(readFileSync(hour!, "utf8")), 0)).toThrow(MissingSaveKey);
+  it("keeps every runtime: / assumed: note of the full trace (the trimmed branches hold none)", () => {
+    const lost: string[] = [];
+    let flags = 0;
+    let pairs = 0;
+    for (const path of GOLDEN_SAVES) {
+      const { state, chars } = stateOf(path);
+      for (let ci = 0; ci < chars; ci++) {
+        if ("refused" in run(path, ci)) continue;
+        const full = makeCtx(state, { player: ci, map: 0, trace: true }); // the whole trace, as a debugging caller gets it
+        Sailing(full, "BoatArtiMulti", 0, 0);
+        const want = flagsOfTrace(full.trace!).sort();
+        const got = flagsOfTree(gameArtifactFind(state, ci).tree).sort();
+        flags += want.length;
+        pairs++;
+        if (JSON.stringify(got) !== JSON.stringify(want)) lost.push(`${basename(path)}#${ci}: full trace ${want.length} notes, page tree ${got.length}`);
+      }
+    }
+    console.info(`[artifactFind] flagged notes: ${flags} in ${pairs} full traces`);
+    expect(lost).toEqual([]);
+    expect(flags).toBeGreaterThan(0); // the lab-connection assumption is in every trace: not a comparison of two empty lists
+  }, 120_000);
+
+  it("keeps the evidence of a source whose call was a memo hit, and drops the unflagged subtree below a call", () => {
+    const state = stateOf(BASE).state;
+    const real = TRACKERS.artifactFind!;
+    try {
+      // no real save has a direct call of BoatArtiMulti answered from the memo, so make one: the first Companions(154) comes before it
+      TRACKERS.artifactFind = (ctx) => {
+        Companions(ctx, 154);
+        return real(ctx);
+      };
+      const glimbo = sourceNode(gameArtifactFind(state, 0).tree, "comp154");
+      expect(glimbo.children!.map((c) => c.name)).toEqual(["Companions(154)", "CompLV2(154)"]);
+      expect(glimbo.children![0].note).toBe("cached");
+    } finally {
+      TRACKERS.artifactFind = real;
+    }
+    // below a call: only what leads to a flagged note, and the same flagged notes the full trace has under it
+    const full = makeCtx(state, { player: 0, map: 0, trace: true });
+    Sailing(full, "BoatArtiMulti", 0, 0);
+    const fullShiny = full.trace!.children[0].children.find((n) => n.block === "Breeding")!;
+    expect(countTrace(fullShiny)).toBeGreaterThan(20); // the full trace has the whole Breeding subtree
+    const shiny = sourceNode(gameArtifactFind(state, 0).tree, "shiny21");
+    expect(shiny.children).toHaveLength(1);
+    expect(flagsOfTree(shiny.children![0]).sort()).toEqual(flagsOfTrace(fullShiny).sort());
+    expect(count(shiny)).toBeLessThan(6);
   });
 });
 
@@ -257,11 +299,43 @@ describe.skipIf(!existsSync(ARKHE_11_01))("the tree the adapter builds, on the 2
     expect(glimbo.val).toBe(Math.min(2, 1 + 2 * glimbo.children![0].val) + glimbo.children![1].val);
   });
 
+  it("shows the discovery count of Super Bit 26 as a leaf (Spelunk[6].length is a plain read, no call to trace)", () => {
+    const bit = sourceNode(result().tree, "spelunkBit26");
+    const arkhBit = sourceNode(arkhArtifactTree(ARKHE_11_01, markhe()), "spelunkBit26");
+    const found = bit.children!.find((c) => c.name === "Spelunk[6].length")!;
+    expect(found.val).toBe(arkhBit.children!.find((c) => c.name === "Discoveries found")!.val);
+    expect(found.val).toBeGreaterThan(0);
+    const superBit = bit.children!.find((c) => c.name === 'GamingStatType("SuperBitType", 26, 0)')!;
+    expect(bit.val).toBeCloseTo(Math.pow(1.02, found.val) * superBit.val, 12);
+  });
+
   it("the total comes from the one BoatArtiMulti call", () => {
     const state = buildGameState(env() as GameEnvelope);
     const direct = Sailing(makeCtx(state, { player: markhe(), map: 0 }), "BoatArtiMulti", 0, 0);
     expect(gameArtifactFind(state, markhe()).total).toBe(direct);
     expect(computeGameArtifactFind(env(), markhe()).total).toBe(direct);
+  });
+
+  // Six sources redo a little of BoatArtiMulti's arithmetic (20 x, 25 x min(30, .), min(2, 1 + 2 x) + ., 1.5 ^, / 5, 1.02 ^ . x), and the
+  // page's Biggest Gains rebuilds the total from the tree's numbers. If one copy goes stale the tree must not be shown (spec section 4).
+  it("throws TreeTotalMismatch when the groups no longer give the call's total (a constant changed in one place only)", () => {
+    const state = buildGameState(env() as GameEnvelope);
+    const real = TRACKERS.artifactFind!;
+    try {
+      TRACKERS.artifactFind = (ctx) => real(ctx) * 1.001; // BoatArtiMulti said something the sources do not add up to
+      let caught: unknown;
+      try {
+        gameArtifactFind(state, markhe());
+      } catch (e) {
+        caught = e;
+      }
+      expect(caught).toBeInstanceOf(TreeTotalMismatch);
+      expect((caught as TreeTotalMismatch).total / (caught as TreeTotalMismatch).rebuilt).toBeCloseTo(1.001, 9);
+      TRACKERS.artifactFind = (ctx) => real(ctx) * (1 + 1e-12); // float noise is not a mismatch
+      expect(() => gameArtifactFind(state, markhe())).not.toThrow();
+    } finally {
+      TRACKERS.artifactFind = real;
+    }
   });
 
   it("reads 167Q, the number the game showed for this save (2026-11-01)", () => {

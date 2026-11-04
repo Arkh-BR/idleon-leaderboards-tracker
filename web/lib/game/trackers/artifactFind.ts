@@ -6,10 +6,16 @@
 // lib/arkh's tree has: the page's Biggest Gains and the Observed Max data are keyed by them); a group's value is only the factor it
 // shows, so the total never comes from the tree.
 //
+// The page persists the flattened tree in every snapshot (localStorage), so the trace below a source is trimmed (Ruling L): the source keeps
+// the N.js call(s) it stands for (the evidence of its value, even when the call was a memo hit), and below them only the branches that lead
+// to a `runtime:` or `assumed:` note, which spec section 5 wants visible. The whole trace is still there for debugging: run
+// Sailing(ctx, "BoatArtiMulti", 0, 0) on a Ctx made with `trace: true` (gameArtifactFind does exactly that and trims what it hands the page).
+//
 // The type of the result is the page's own (lib/statTracker/config StatResult: type-only, nothing of lib/arkh runs here).
 import type { StatResult } from "@/lib/statTracker/config";
 import { ARTI_GROUPS, ARTI_ROOT, ARTI_VOTE_NAME } from "@/lib/artifactFind/groups";
 import { makeCtx, type Ctx, type TraceNode } from "../ctx";
+import { TreeTotalMismatch } from "../errors";
 import { listAt } from "../lists";
 import { buildGameState, type GameEnvelope, type GameState } from "../state";
 import { TRACKERS } from "./index";
@@ -18,13 +24,15 @@ type Node = StatResult["tree"];
 
 /** The value of a call BoatArtiMulti makes (its block and leading arguments); the call is remembered as this source's trace. */
 type Take = (block: string, ...args: (string | number)[]) => number;
+/** A number the save gives that is no N.js call (a raw read), shown as a leaf of the source; returns it. */
+type Leaf = (name: string, val: number, note: string) => number;
 
 /**
  * One source of the tree. `of` is the term as lib/arkh's tree has it, which is the term as BoatArtiMulti writes it: before the `/100`
  * of a `pct` group, the factor itself for a `mult` group, but before the `max(1, …)` of a `max1` group and without the `1 +` of a
  * `raw` one (the group applies those). Boat 0 is the boat the Skill Info shows.
  */
-type Source = { name: string; fmt: "+" | "x" | "raw"; note?: string; of: (t: Take, ctx: Ctx) => number };
+type Source = { name: string; fmt: "+" | "x" | "raw"; note?: string; of: (t: Take, ctx: Ctx, leaf: Leaf) => number };
 
 const SOURCES: Record<string, Source> = {
   // ── the additive pool ──
@@ -64,18 +72,25 @@ const SOURCES: Record<string, Source> = {
   exotic45: { name: "5 Leaf Clover (Exotic Market 45)", fmt: "+", note: "x Artifact Find Chance", of: (t) => t("FarmingStuffs", "ExoticBonusQTY", 45, 0) },
   palette5: { name: "Bright Cyan (Palette 5)", fmt: "+", note: "x Artifact Find chance", of: (t) => t("GamingStatType", "PaletteBonus", 5, 0) },
   // Spelunk[6].length is a plain read of the save (no call): the same strict read BoatArtiMulti made, which already passed
-  spelunkBit26: { name: "Artifacto Discoveries (Super Bit 26)", fmt: "x", note: "1.02 ^ Spelunk discoveries × Super Bit 26", of: (t, ctx) => Math.pow(1.02, listAt(ctx, "Spelunk", 6).length) * t("GamingStatType", "SuperBitType", 26, 0) },
+  spelunkBit26: { name: "Artifacto Discoveries (Super Bit 26)", fmt: "x", note: "1.02 ^ Spelunk discoveries × Super Bit 26", of: (t, ctx, leaf) => Math.pow(1.02, leaf("Spelunk[6].length", listAt(ctx, "Spelunk", 6).length, "a plain read of the save, not an N.js call")) * t("GamingStatType", "SuperBitType", 26, 0) },
 };
 
-/** A trace node as the page's node: `Sailing("ArtifactBonus", 3, 0)`, its value, its note (cached / runtime / assumed / absent), its calls. */
+/** The branch has a `runtime:` or `assumed:` note (a value the save cannot give, spec section 5): it stays visible in the page's tree. */
+const flagged = (n: TraceNode): boolean => /^(runtime|assumed):/.test(n.note ?? "") || n.children.some(flagged);
+
+/**
+ * A trace node as the page's node: `Sailing("ArtifactBonus", 3, 0)`, its value, its note (cached / runtime / assumed / absent). Its calls
+ * are kept only where they lead to a flagged note (see the header).
+ */
 function traceTree(n: TraceNode): Node {
+  const calls = n.children.filter(flagged);
   const call = n.args.length ? `${n.block}(${n.args.map((a) => JSON.stringify(a)).join(", ")})` : n.block;
   return {
     name: n.player === undefined ? call : `${call} [character ${n.player}]`,
     val: n.value,
     fmt: "raw",
     ...(n.note ? { note: n.note } : {}),
-    ...(n.children.length ? { children: n.children.map(traceTree) } : {}),
+    ...(calls.length ? { children: calls.map(traceTree) } : {}),
   };
 }
 
@@ -98,21 +113,25 @@ function groupOf(g: (typeof ARTI_GROUPS)[number], vals: readonly number[]): { va
 export function gameArtifactFind(state: GameState, charIdx: number): StatResult {
   const ctx = makeCtx(state, { player: charIdx, map: 0, trace: true });
   const total = TRACKERS.artifactFind!(ctx);
-  const boat = ctx.trace!.children[0];
-  if (boat?.block !== "Sailing" || boat.args[0] !== "BoatArtiMulti") throw new Error("Artifact Find: the registered tracker is not Sailing BoatArtiMulti");
+  const boat = ctx.trace!.children.find((c) => c.block === "Sailing" && c.args[0] === "BoatArtiMulti");
+  if (!boat) throw new Error("Artifact Find: the registered tracker made no Sailing BoatArtiMulti call");
 
   const source = (id: string): Node => {
     const def = SOURCES[id];
     if (!def) throw new Error(`Artifact Find: no source "${id}" in the adapter`);
-    const taken: TraceNode[] = [];
+    const kept: Node[] = [];
     const take: Take = (block, ...args) => {
       const n = boat.children.find((c) => c.block === block && args.every((a, i) => c.args[i] === a));
       if (!n) throw new Error(`Artifact Find: BoatArtiMulti made no ${block}(${args.map((a) => JSON.stringify(a)).join(", ")}) call for "${id}"`);
-      taken.push(n);
+      kept.push(traceTree(n));
       return n.value;
     };
-    const val = def.of(take, ctx);
-    return { name: def.name, val, fmt: def.fmt, ...(def.note ? { note: def.note } : {}), children: taken.map(traceTree) };
+    const leaf: Leaf = (name, val, note) => {
+      kept.push({ name, val, fmt: "raw", note });
+      return val;
+    };
+    const val = def.of(take, ctx, leaf);
+    return { name: def.name, val, fmt: def.fmt, ...(def.note ? { note: def.note } : {}), children: kept };
   };
 
   const groups = ARTI_GROUPS.map((g): Node => {
@@ -120,6 +139,12 @@ export function gameArtifactFind(state: GameState, charIdx: number): StatResult 
     const shape = groupOf(g, items.map((i) => i.val));
     return { name: g.name, val: shape.val, fmt: "x", note: g.note ? `${shape.note} · ${g.note}` : shape.note, children: items };
   });
+  // One path for the number (spec section 4): six sources redo a little arithmetic of BoatArtiMulti (see `of`), and Biggest Gains rebuilds the
+  // total from these values. If the groups no longer give the call's total (an N.js constant changed in one place only), there is no honest
+  // tree to show: throw, so the tracker reads "incomplete" (spec section 5) instead of a number the headline does not match. The call's own
+  // outer Math.max(1, ...) is applied to the product, as N.js does.
+  const rebuilt = Math.max(1, groups.reduce((t, g) => t * g.val, 1));
+  if (!(Math.abs(rebuilt - total) <= 1e-9 * Math.max(1, Math.abs(total)))) throw new TreeTotalMismatch(total, rebuilt);
   return { tree: { name: ARTI_ROOT, val: total, fmt: "x", children: groups }, total };
 }
 
