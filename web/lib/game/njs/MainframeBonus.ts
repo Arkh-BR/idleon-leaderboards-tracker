@@ -67,7 +67,7 @@ export const MainframeBonus: (ctx: Ctx, d: number) => number = block("MainframeB
   const jewel = (JewelDesc as unknown as readonly (readonly unknown[])[])[(d - 100) | 0];
   // the game indexes JewelDesc[d - 100][12] directly and would throw on a jewel it does not have
   if (!jewel) throw new RangeError(`MainframeBonus: no jewel ${d - 100} in JewelDesc`);
-  // a jewel is only on the board once the account owns it (Lab[14][j] == 1, which the connection walk checks @9913913); an owned one is
+  // a jewel is only on the board once the account owns it (Lab[14][j] == 1, which the connection walk checks @10071907); an owned one is
   // assumed in reach like the main bonuses (Ruling J)
   if (!(1 == attr(ctx, "Lab", 14, (d - 100) | 0) && labNodeConnected(ctx, d - 100 + list.length))) return 0;
   return 119 == d ? asNumber(jewel[12]) : asNumber(jewel[12]) * MainframeBonus(ctx, 8);

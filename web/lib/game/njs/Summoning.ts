@@ -10,7 +10,8 @@ import { GetSetBonus } from "./GetSetBonus";
 import { JellyOperation } from "./JellyOperation";
 import { Ninja } from "./Ninja";
 import { Sailing } from "./Sailing";
-import { PORTED as Summoning2PORTED, Summoning2 } from "./Summoning2";
+import { Summoning2 } from "./Summoning2";
+import { PORTED as Summoning2PORTED } from "../summoning2Ported";
 import { Thingies } from "./Thingies";
 import { range, type Ported } from "../ported";
 
@@ -181,26 +182,12 @@ function winBonus(ctx: Ctx, b: number): number {
   return 3.5 * asNumber(table[b | 0]) * common() * boosts();
 }
 
-type Entries = Record<string, true | readonly number[]>;
-const OWN_PORTED: Entries = {
+/** What this module covers (lib/game/ported.ts): its own sub-cases, then the tail of the chain, Summoning2's. */
+export const PORTED: Ported = {
+  ...(Summoning2PORTED as Record<string, true | readonly number[]>),
   VaultUpgBonus: range(0, 1000), // every vault; from 89 on 0 when not plain (999 is plain)
   EventShopOwned: true,
   GrimoireUpgBonus: [...GRIMOIRE_PLAIN],
   WinBonus: range(-1, 34),
   RibbonBonus: true,
 };
-
-/**
- * What this module covers (lib/game/ported.ts): its own sub-cases, then the tail of the chain, Summoning2's. Summoning and Summoning2
- * import each other, so Summoning2's declaration may not exist yet when this module is evaluated (the importer decides the order): it is
- * read when PORTED is read, through a Proxy, instead of copied here.
- */
-export const PORTED: Ported = new Proxy(OWN_PORTED, {
-  get: (t, k) => (Object.hasOwn(t, k) ? t[k as string] : (Summoning2PORTED as Entries)[k as string]),
-  has: (t, k) => Object.hasOwn(t, k) || k in (Summoning2PORTED as Entries),
-  ownKeys: (t) => [...new Set([...Reflect.ownKeys(t), ...Reflect.ownKeys(Summoning2PORTED as Entries)])],
-  getOwnPropertyDescriptor: (t, k) => {
-    const value = Object.hasOwn(t, k) ? t[k as string] : (Summoning2PORTED as Entries)[k as string];
-    return value === undefined ? undefined : { value, writable: true, enumerable: true, configurable: true };
-  },
-});

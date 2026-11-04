@@ -283,8 +283,11 @@ describe.skipIf(noSaves)("computeGameArtifactFind against lib/arkh on every real
     expect(tree.note).toBe("migrated from an older game version (4 load steps)"); // a count in words, not the step ids (they are state.migrations)
     // a save from just before the Cape Vine runs its one step
     expect(gameArtifactFind(stateOf(ARKHE_11_01).state, 0).tree.note).toBe("migrated from an older game version (1 load step)");
-    const current = GOLDEN_SAVES.find((p) => basename(p) === "arkhe-live-2026-11-01-postupdate.json"); // DoOnceREAL 399.1
-    if (current) expect(gameArtifactFind(stateOf(current).state, 0).tree.note).toBeUndefined(); // a current save: nothing ran
+  });
+
+  const current = GOLDEN_SAVES.find((p) => basename(p) === "arkhe-live-2026-11-01-postupdate.json"); // DoOnceREAL 399.1
+  it.skipIf(!current)("a current save has no migration note", () => {
+    expect(gameArtifactFind(stateOf(current!).state, 0).tree.note).toBeUndefined(); // nothing ran
   });
 
   it("a refused save throws instead of answering a number", () => {

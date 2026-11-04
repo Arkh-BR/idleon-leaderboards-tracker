@@ -58,6 +58,7 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("lib/game character stats against lib
       let pairs = 0;
       const refused = new Set<string>();
       let known = 0;
+      let entryPairs = 0; // pairs some KNOWN entry covers: every one must really differ, or the entry is stale
       for (const path of GOLDEN_SAVES) {
         const { ctx, chars } = stateOf(path);
         for (let ci = 0; ci < chars; ci++) {
@@ -72,6 +73,8 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("lib/game character stats against lib
           const want = arkhStat(path, ci, stat);
           pairs++;
           seen.add(want);
+          const covered = KNOWN_ARKH_DIFFS.some((d) => d.stat === stat && d.save === basename(path) && (d.ci ?? ci) === ci);
+          if (covered) entryPairs++;
           if (rel(got, want)) continue;
           // a KNOWN difference is proved, not skipped: lib/arkh's number for the term it names, seeded into a fresh Ctx, closes the gap
           const reasons = KNOWN_ARKH_DIFFS.filter((d) => d.stat === stat && d.save === basename(path) && (d.ci ?? ci) === ci).map((d) => d.source);
@@ -89,6 +92,9 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("lib/game character stats against lib
       }
       console.info(`[stats ${stat}] ${pairs} pairs, ${known} known, ${mismatches.length} mismatches, ${refused.size} refused, ${seen.size} distinct, ${Math.round(performance.now() - t0)} ms`);
       expect(mismatches).toEqual([]);
+      expect(known, "KNOWN pairs counted vs pairs the entries cover (a stale entry is one that no longer differs)").toBe(entryPairs);
+      const names = new Set(GOLDEN_SAVES.map((p) => basename(p)));
+      expect(KNOWN_ARKH_DIFFS.filter((d) => d.stat === stat && !names.has(d.save)).map((d) => d.save)).toEqual([]);
       expect(pairs).toBeGreaterThan(100);
       expect(seen.size).toBeGreaterThan(100);
       expect([...refused].sort()).toEqual(STAT_REFUSALS);

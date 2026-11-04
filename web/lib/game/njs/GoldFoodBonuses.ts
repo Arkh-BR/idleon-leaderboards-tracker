@@ -62,7 +62,8 @@ export const GoldFoodBonuses = block("GoldFoodBonuses", (ctx, d: string) => {
                                         (Summoning(ctx, "VaultUpgBonus", 86, 0) + (JellyOperation(ctx, "RoG_BonusQTY", 10, 0) + JellyOperation(ctx, "RoG_BonusQTY", 51, 0)))))))))))))))))))) /
         100);
   let bonus = 0; // DNSM.GfoodBonus
-  for (let f = 0, g = asNum(ctx, "FoodSlotsOwned") | 0; f < g; f++) {
+  // FoodSlotsOwned is read raw (`|0`, no asNumber in N.js)
+  for (let f = 0, g = (attr(ctx, "FoodSlotsOwned") as number) | 0; f < g; f++) {
     const name = attr(ctx, "EquipmentOrder", 2, f);
     if ("Blank" == name) continue;
     const food = itemDef(hString(name)); // DNSM.GfoodMap

@@ -1,5 +1,5 @@
 import { asNum, asNumber, attr } from "../attr";
-import { block, withPlayer, type Ctx } from "../ctx";
+import { assumed, block, withPlayer, type Ctx } from "../ctx";
 import { SceneNPCquestOrder, StatueInfo } from "../data";
 import { listAt } from "../lists";
 import { hString } from "../hstring";
@@ -98,7 +98,7 @@ export const ArbitraryCode: (ctx: Ctx, d: string) => number = block("ArbitraryCo
           }
         }
       }
-      return n;
+      return assumed(ctx, "TotalQuestsComplete", "the game takes DNSM.TomeQTY[4] once the Tome actor has built it (about 100 ms into the session), else the HUD's quest list; the quest replay stands for both", n);
     }
     default:
       throw new NotPorted("ArbitraryCode", d);

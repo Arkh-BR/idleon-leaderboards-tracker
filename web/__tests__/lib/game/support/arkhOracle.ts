@@ -15,7 +15,7 @@ import { saveData } from "@/lib/arkh/state";
 import { computeAccuracy } from "@/lib/arkh/stats/systems/common/derived-damage";
 import { computePlayerHPmax, computePlayerMPmax } from "@/lib/arkh/stats/systems/common/derived-stats";
 import { computeStatueBonusGiven, computeTotalStat } from "@/lib/arkh/stats/systems/common/stats";
-import { goldFoodBonuses } from "@/lib/arkh/stats/systems/common/goldenFood";
+import { goldFoodBonuses, gfoodBonusMULTIBreakdown } from "@/lib/arkh/stats/systems/common/goldenFood";
 import { talent as talentResolver } from "@/lib/arkh/stats/systems/common/talent";
 import { votingBonusz } from "@/lib/arkh/stats/systems/w2/voting";
 import type { ArkhNode } from "@/lib/arkh/node";
@@ -302,8 +302,10 @@ export const STAT_WHY: Record<string, string> = {
     `lib/arkh's AllStatPCT adds votingBonusz(2, undefined), the vote's bare value; N.js ArbitraryCode("AllStatPCT") @4061538 adds Summoning("VotingBonusz",2,0), which is NinjaInfo[38][1 + 3b] times VotingBonuszMulti while the vote is active (@10953438)`,
   gfood:
     `lib/arkh's golden food multi has min(4 x CardLv(cropfallEvent1) + 5 x CardLv(anni5Event1), 50) and the vote 26 without its multi; N.js GoldFoodBonuses @5056708 has min(4 x CardLv(cropfallEvent1), 50) + min(5 x CardLv(anni5Event1), 50) (@5057838) and Summoning("VotingBonusz",26,0) (@10953438)`,
+  gfoodSign69:
+    `GfoodBonusMULTI adds DNSM.StarSigns["69"] (Beanbie_Major; GoldFoodBonuses @5056708). N.js StarSigns @6540624 fills that map only with the signs StarSignsUnlocked has, and this account lacks sign 69, so the term is 0; lib/arkh counts it as 20 (starSignDropVal(69)) without that check. Seeding the key with lib/arkh's number closes the gap on its own`,
   fam68:
-    `N.js AllTalentLV @4085148 reads DNSM.FamBonusQTYs["68"] as TalentCalc(-3) @4496063 leaves it (lib/arkh's own computeFamBonusQTYs gives the same number); lib/arkh's talent resolver applies the Family Guy (talent 144) buff to it a second time for the character's own talents, one more talent level`,
+    `N.js AllTalentLV @4085148 reads DNSM.FamBonusQTYs["68"] as TalentCalc(-3) @4496063 leaves it (lib/arkh's own computeFamBonusQTYs gives the same number). lib/arkh's talent resolver works out the level of talent 144 (Family Guy) for that buff with forceSuperActive: true (talent.ts:1006-1010), which adds the Spelunk super-talent levels although 144 is not in the character's active preset (Spelunk[20+ci+12*preset] has no 144; e.g. 337 vs 222 on Ash_EB#0); N.js AllTalentLV adds AllTalMaxSUPERdn only when the talent is in that list`,
   tomeW8:
     "the Tome Strength bubble W8 is times floor(max(0, Tome - 5000) / 2000) (TalentCalc(-2) @4489669); lib/arkh's Tome total is IdleonToolbox's parsedData, lib/game's is lib/tome (Ruling K)",
   signs:
@@ -336,7 +338,7 @@ const STAT_DIFFS: Partial<Record<ArkhStat, readonly DiffRow[]>> = {
   ["Frostymart.json", "fam68", [0]],
   ["FrozenBody.json", "fam68", [1]],
   ["Glaives.json", "signs"],
-  ["Glaives.json", "gfood"],
+  ["Glaives.json", "gfoodSign69"],
   ["GoddessFreia.json", "gfood"],
   ["Jrod11.json", "vote2"],
   ["Jrod11.json", "fam68", [4, 7]],
@@ -356,7 +358,7 @@ const STAT_DIFFS: Partial<Record<ArkhStat, readonly DiffRow[]>> = {
   ["airbolt.json", "gfood"],
   ["astarm.json", "gfood"],
   ["big_guy69123.json", "signs"],
-  ["big_guy69123.json", "gfood"],
+  ["big_guy69123.json", "gfoodSign69"],
   ["big_guy69123.json", "fam68", [5]],
   ["biggums3.json", "gfood"],
   ["kONYYY.json", "gfood"],
@@ -388,7 +390,7 @@ const STAT_DIFFS: Partial<Record<ArkhStat, readonly DiffRow[]>> = {
     ["Frans813.json", "gfood"],
     ["Frostymart.json", "fam68", [0]],
     ["FrozenBody.json", "fam68", [1]],
-    ["Glaives.json", "gfood"],
+    ["Glaives.json", "gfoodSign69"],
     ["Glaives.json", "signs"],
     ["GoddessFreia.json", "gfood"],
     ["Jrod11.json", "vote2"],
@@ -408,7 +410,7 @@ const STAT_DIFFS: Partial<Record<ArkhStat, readonly DiffRow[]>> = {
     ["Yosh6400.json", "gfood"],
     ["airbolt.json", "gfood"],
     ["astarm.json", "gfood"],
-    ["big_guy69123.json", "gfood"],
+    ["big_guy69123.json", "gfoodSign69"],
     ["big_guy69123.json", "signs"],
     ["big_guy69123.json", "fam68", [5]],
     ["biggums3.json", "gfood"],
@@ -444,7 +446,7 @@ const STAT_DIFFS: Partial<Record<ArkhStat, readonly DiffRow[]>> = {
     ["Frostymart.json", "fam68", [0]],
     ["FrozenBody.json", "fam68", [1]],
     ["GIM_SSS.json", "signs"],
-    ["Glaives.json", "gfood"],
+    ["Glaives.json", "gfoodSign69"],
     ["Glaives.json", "signs"],
     ["GoddessFreia.json", "gfood"],
     ["Jrod11.json", "vote2"],
@@ -465,7 +467,7 @@ const STAT_DIFFS: Partial<Record<ArkhStat, readonly DiffRow[]>> = {
     ["Yosh6400.json", "gfood"],
     ["airbolt.json", "gfood"],
     ["astarm.json", "gfood"],
-    ["big_guy69123.json", "gfood"],
+    ["big_guy69123.json", "gfoodSign69"],
     ["big_guy69123.json", "signs"],
     ["big_guy69123.json", "fam68", [5]],
     ["biggums3.json", "gfood"],
@@ -499,7 +501,7 @@ const STAT_DIFFS: Partial<Record<ArkhStat, readonly DiffRow[]>> = {
     ["Frostymart.json", "fam68", [0]],
     ["FrozenBody.json", "signs"],
     ["FrozenBody.json", "fam68", [1]],
-    ["Glaives.json", "gfood"],
+    ["Glaives.json", "gfoodSign69"],
     ["Glaives.json", "signs"],
     ["GoddessFreia.json", "gfood"],
     ["Jrod11.json", "vote2"],
@@ -518,7 +520,7 @@ const STAT_DIFFS: Partial<Record<ArkhStat, readonly DiffRow[]>> = {
     ["Yosh6400.json", "gfood"],
     ["airbolt.json", "gfood"],
     ["astarm.json", "gfood"],
-    ["big_guy69123.json", "gfood"],
+    ["big_guy69123.json", "gfoodSign69"],
     ["big_guy69123.json", "signs"],
     ["big_guy69123.json", "fam68", [5]],
     ["biggums3.json", "gfood"],
@@ -608,6 +610,11 @@ export function arkhStatSeeds(path: string, ci: number, reasons: readonly string
       // the same golden food multi feeds Max HP's MaxHPpct food (a factor there): lib/arkh's number for it
       const hp = find(computePlayerHPmax(ci, ctx) as unknown as ArkhNode, (x) => x.name === "Golden Food MaxHPpct");
       if (hp) out.push(["GoldFoodBonuses", ["MaxHPpct"], hp.val]);
+    }
+    else if (r === "gfoodSign69") {
+      const n = gfoodBonusMULTIBreakdown(ci, saveData).items.find((i) => i.name.startsWith("Star Sign 69"));
+      if (!n) throw new Error("arkhStatSeeds: no Star Sign 69 in lib/arkh's golden food multi");
+      out.push(["DNSM.StarSigns", ["69"], n.val]);
     }
     else if (r === "tomeW8") out.push(["DNSM.AlchBubbles", [tomeBubble], at(`AlchBubble ${tomeBubble}`)]);
     else if (r === "signs") out.push(["DNSM.StarSigns", [STAT], at(`StarSigns.${STAT}`)], ["DNSM.StarSigns", [`pct${STAT}`], at(`StarSigns.pct${STAT}`)]);
