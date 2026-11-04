@@ -3,11 +3,12 @@
 // lib/arkh already matches the game for Artifact Find, so each lib/game term is compared against
 // it over many real saves. It is a TEST HELPER only: lib/arkh is read for its values, never copied,
 // and N.js stays the only source of truth (see KNOWN_ARKH_DIFFS for where the oracle is wrong).
-import { existsSync, readdirSync, readFileSync } from "node:fs";
-import { join, resolve } from "node:path";
+import { createHash } from "node:crypto";
+import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { dirname, join, relative, resolve } from "node:path";
 import { computeArkhArtifactFind } from "@/lib/arkh/computeArtifactFind";
 import { ARTI_GROUPS } from "@/lib/arkh/stats/defs/artifact-find";
-import { computeArkhDamage } from "@/lib/arkh/computeDamage";
+import { computeArkhDamage, DMG_COLLECTOR_MAP } from "@/lib/arkh/computeDamage";
 import { DMG_LAYERS, DMG_MASTERY, DMG_RAT } from "@/lib/arkh/stats/defs/damage";
 import { loadSaveData } from "@/lib/arkh/save/loader";
 import { saveData } from "@/lib/arkh/state";
@@ -113,27 +114,18 @@ export function arkhArtifactLeaf(save: unknown, ci: number, sourceId: string): n
  */
 export const UNPORTED_REFUSALS: readonly string[] = [];
 
-// ---- Damage ----
-// Same caching rules as Artifact Find (Ruling D), keyed by (save, ci, map): a path parses once, an object is
-// keyed by identity, and lib/arkh runs on a structuredClone. Each compute runs to completion before the next
-// (lib/arkh keeps module-level state).
-const byPathAny = new Map<string, unknown>();
-const byObjectAny = new WeakMap<object, Map<string, unknown>>();
-function cached<T>(save: unknown, key: string, compute: (envelope: any) => T): T {
-  if (typeof save === "string") {
-    const k = `${save}#${key}`;
-    if (!byPathAny.has(k)) byPathAny.set(k, compute(JSON.parse(readFileSync(save, "utf8"))));
-    return byPathAny.get(k) as T;
-  }
-  let perKey = byObjectAny.get(save as object);
-  if (!perKey) byObjectAny.set(save as object, (perKey = new Map()));
-  if (!perKey.has(key)) perKey.set(key, compute(structuredClone(save)));
-  return perKey.get(key) as T;
-}
+// ---- Damage and the stats ----
+// One compute per (save, ci, map) gives every Damage leaf and all 7 stats (Ruling S). A path save is also cached on
+// disk, so a second run (and every porting task's loop) costs no lib/arkh compute: the file is keyed by the sha1 of the
+// save bytes and stores the content hash of web/lib/arkh/**/*.ts (the oracle itself): a lib/arkh change is a miss.
+// An object save stays in memory (identity-keyed, computed on a structuredClone). lib/arkh keeps module-level state,
+// so each compute runs to completion before the next.
 
-/** lib/arkh's whole Damage tree (root = Max; children = the 3 layers, the map-43 arena, Mastery). Do not edit it. */
-export const arkhDamageTree = (save: unknown, ci: number, map: number): ArkhNode =>
-  cached(save, `dmg${ci}@${map}`, (env) => computeArkhDamage(env, ci, map).tree);
+export type ArkhStat = "str" | "agi" | "wis" | "luk" | "maxHp" | "maxMp" | "accuracy";
+const MAIN_STATS = { str: "STR", agi: "AGI", wis: "WIS", luk: "LUK" } as const;
+
+type OracleEntry = { leaves: Record<string, number>; stats: Record<ArkhStat, number> };
+type DiskFile = { arkhHash: string; entries: Record<string, Record<string, OracleEntry>> };
 
 // source id -> where it sits in the tree. Every id is unique across DMG_LAYERS, DMG_MASTERY and DMG_RAT (checked in the test).
 const DMG_SLOT = new Map<string, { child: number; step: number; src: number }>();
@@ -145,34 +137,121 @@ DMG_LAYERS.forEach((layer, child) =>
 DMG_RAT.sources.forEach((id, src) => DMG_SLOT.set(id, { child: DMG_LAYERS.length, step: -1, src }));
 DMG_MASTERY.sources.forEach((id, src) => DMG_SLOT.set(id, { child: DMG_LAYERS.length + 1, step: -1, src }));
 
+function flattenLeaves(tree: ArkhNode): Record<string, number> {
+  const out: Record<string, number> = {};
+  for (const [id, at] of DMG_SLOT) {
+    const top = tree.children![at.child];
+    const leaf = (at.step < 0 ? top : top.children![at.step]).children?.[at.src];
+    if (!leaf) throw new Error(`arkhDamageLeaves: lib/arkh's tree has no node for "${id}"`);
+    out[id] = leaf.val;
+  }
+  return out;
+}
+
+function computeEntry(parsed: any, ci: number, map: number, fresh: () => any): OracleEntry {
+  const leaves = flattenLeaves(computeArkhDamage(parsed, ci, map).tree);
+  loadSaveData(fresh()); // the damage compute may have written into `parsed`: the stats get their own copy
+  const ctx = { saveData, charIdx: ci, activeCharIdx: ci };
+  const stats = {
+    str: computeTotalStat(MAIN_STATS.str, ci, ctx).computed,
+    agi: computeTotalStat(MAIN_STATS.agi, ci, ctx).computed,
+    wis: computeTotalStat(MAIN_STATS.wis, ci, ctx).computed,
+    luk: computeTotalStat(MAIN_STATS.luk, ci, ctx).computed,
+    maxHp: computePlayerHPmax(ci, ctx).val,
+    maxMp: computePlayerMPmax(ci, ctx).val,
+    accuracy: computeAccuracy(ci, ctx),
+  } satisfies Record<ArkhStat, number>;
+  return { leaves, stats };
+}
+
+/** The content hash of web/lib/arkh/**\/*.ts: what the disk cache is valid for. Computed once per process. */
+let arkhHash: string | undefined;
+export function arkhSourceHash(): string {
+  if (arkhHash) return arkhHash;
+  const h = createHash("sha1");
+  const walk = (dir: string) => {
+    for (const e of readdirSync(dir, { withFileTypes: true }).sort((a, b) => (a.name < b.name ? -1 : 1))) {
+      const p = join(dir, e.name);
+      if (e.isDirectory()) walk(p);
+      else if (e.name.endsWith(".ts")) h.update(`${relative(WEB, p)}\0`).update(readFileSync(p)).update("\0");
+    }
+  };
+  walk(join(WEB, "lib/arkh"));
+  return (arkhHash = h.digest("hex"));
+}
+
+let cacheDir: string | null = resolve(WEB, "scripts/updater/golden/.cache/oracle");
+/** Point the disk cache elsewhere (tests), or `null` to turn it off. Drops what was loaded from the old folder. */
+export function setOracleCacheDir(dir: string | null): void {
+  cacheDir = dir;
+  diskByPath.clear();
+}
+/** Pretend lib/arkh's source hash is `h` (tests of the invalidation); `undefined` recomputes it. */
+export function setArkhSourceHash(h: string | undefined): void {
+  arkhHash = h;
+  diskByPath.clear();
+}
+
+const diskByPath = new Map<string, { file: string; data: DiskFile }>();
+const entryByObject = new WeakMap<object, Map<string, OracleEntry>>();
+
+function entryOf(save: unknown, ci: number, map: number): OracleEntry {
+  if (typeof save !== "string") {
+    let per = entryByObject.get(save as object);
+    if (!per) entryByObject.set(save as object, (per = new Map()));
+    const key = `${ci}@${map}`;
+    let e = per.get(key);
+    if (!e) per.set(key, (e = computeEntry(structuredClone(save), ci, map, () => structuredClone(save))));
+    return e;
+  }
+  let d = diskByPath.get(save);
+  if (!d) {
+    const bytes = readFileSync(save);
+    const file = cacheDir ? join(cacheDir, `${createHash("sha1").update(bytes).digest("hex")}.json`) : "";
+    let data: DiskFile = { arkhHash: arkhSourceHash(), entries: {} };
+    if (file && existsSync(file)) {
+      try {
+        const on = JSON.parse(readFileSync(file, "utf8")) as DiskFile;
+        if (on.arkhHash === data.arkhHash) data = on; // a different lib/arkh hash is a miss
+      } catch {
+        /* unreadable cache file: recompute */
+      }
+    }
+    diskByPath.set(save, (d = { file, data }));
+  }
+  const slot = ((d.data.entries[ci] ??= {}) as Record<string, OracleEntry>);
+  let e = slot[map];
+  if (!e) {
+    const text = readFileSync(save, "utf8");
+    e = slot[map] = computeEntry(JSON.parse(text), ci, map, () => JSON.parse(text));
+    if (d.file) {
+      mkdirSync(dirname(d.file), { recursive: true });
+      writeFileSync(d.file, JSON.stringify(d.data));
+    }
+  }
+  return e;
+}
+
 /**
- * The `val` of source `sourceId` in lib/arkh's Damage tree for character `ci` on `map`: the layer, then the step of
- * DMG_LAYERS, then the index in the step's `sources` (Mastery and the arena are groups of their own). Same `save`
- * rules as `arkhArtifactLeaf`. Throws on an id that is not in the descriptor.
+ * Every Damage source's `val` in lib/arkh's tree for character `ci` on `map`, by id: the layer, then the step of
+ * DMG_LAYERS, then the index in the step's `sources` (Mastery and the arena are groups of their own). `save` is a
+ * parsed envelope (memory cache by identity: do not edit it between calls) or the PATH of a save file (also cached on disk).
  */
+export const arkhDamageLeaves = (save: unknown, ci: number, map: number): Record<string, number> => entryOf(save, ci, map).leaves;
+
+/** One source of `arkhDamageLeaves`. Throws on an id that is not in the descriptor. */
 export function arkhDamageLeaf(save: unknown, ci: number, map: number, sourceId: string): number {
-  const at = DMG_SLOT.get(sourceId);
-  if (!at) throw new Error(`arkhDamageLeaf: "${sourceId}" is not a Damage source`);
-  const top = arkhDamageTree(save, ci, map).children![at.child];
-  const leaf = (at.step < 0 ? top : top.children![at.step]).children?.[at.src];
-  if (!leaf) throw new Error(`arkhDamageLeaf: lib/arkh's tree has no node for "${sourceId}"`);
-  return leaf.val;
+  if (!DMG_SLOT.has(sourceId)) throw new Error(`arkhDamageLeaf: "${sourceId}" is not a Damage source`);
+  return arkhDamageLeaves(save, ci, map)[sourceId];
 }
 
-export type ArkhStat = "str" | "agi" | "wis" | "luk" | "maxHp" | "maxMp" | "accuracy";
-const MAIN_STATS = { str: "STR", agi: "AGI", wis: "WIS", luk: "LUK" } as const;
+/**
+ * The 7 stats lib/readings/compute.ts compares the readings with, from ONE loadSaveData (the same lib/arkh calls).
+ * Map-independent: it shares the entry of the collector map (251), so a loop over leaves on 251 computes each character once.
+ */
+export const arkhStats = (save: unknown, ci: number): Record<ArkhStat, number> => entryOf(save, ci, DMG_COLLECTOR_MAP).stats;
 
-/** What lib/readings/compute.ts compares the readings with today (the same lib/arkh calls). Map-independent. */
-export function arkhStat(save: unknown, ci: number, stat: ArkhStat): number {
-  return cached(save, `${stat}${ci}`, (env) => {
-    loadSaveData(env);
-    const ctx = { saveData, charIdx: ci, activeCharIdx: ci };
-    if (stat === "maxHp") return computePlayerHPmax(ci, ctx).val;
-    if (stat === "maxMp") return computePlayerMPmax(ci, ctx).val;
-    if (stat === "accuracy") return computeAccuracy(ci, ctx);
-    return computeTotalStat(MAIN_STATS[stat], ci, ctx).computed;
-  });
-}
+export const arkhStat = (save: unknown, ci: number, stat: ArkhStat): number => arkhStats(save, ci)[stat];
 
 /** The lib/game Ctx for character `ci` of a parsed save, on map 0 (what Artifact Find uses). */
 export const gameCtx = (save: unknown, ci: number, trace?: boolean): Ctx =>

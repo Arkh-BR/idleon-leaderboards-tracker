@@ -1,5 +1,5 @@
-import { describe, it, expect, vi } from "vitest";
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { afterEach, describe, it, expect, vi } from "vitest";
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { basename, join } from "node:path";
 import { computeArkhArtifactFind } from "@/lib/arkh/computeArtifactFind";
@@ -8,8 +8,8 @@ import { applyGroupStep, groupVal } from "@/lib/arkh/stats/defs/grouped";
 import { DMG_LAYERS, DMG_MASTERY, DMG_RAT, dmgLayer } from "@/lib/arkh/stats/defs/damage";
 import { computeArkhDamage, DMG_COLLECTOR_MAP } from "@/lib/arkh/computeDamage";
 import { computeReadingValue } from "@/lib/readings/compute";
-import { loadReadings, readingSave } from "@/lib/readings/registry";
-import { GOLDEN_SAVES, KNOWN_ARKH_DIFFS, arkhArtifactLeaf, arkhDamageLeaf, arkhStat, gameCtx, goldenSaves, type ArkhStat } from "./support/arkhOracle";
+import { READINGS_DIR, loadReadings, readingSave } from "@/lib/readings/registry";
+import { GOLDEN_SAVES, KNOWN_ARKH_DIFFS, arkhArtifactLeaf, arkhDamageLeaf, arkhDamageLeaves, arkhSourceHash, arkhStat, arkhStats, gameCtx, goldenSaves, setArkhSourceHash, setOracleCacheDir, type ArkhStat } from "./support/arkhOracle";
 
 // Spy on the engine so the cache tests can count real computes; the original still runs.
 vi.mock("@/lib/arkh/computeArtifactFind", async (importOriginal) => {
@@ -17,7 +17,13 @@ vi.mock("@/lib/arkh/computeArtifactFind", async (importOriginal) => {
   return { ...m, computeArkhArtifactFind: vi.fn(m.computeArkhArtifactFind) };
 });
 
+vi.mock("@/lib/arkh/computeDamage", async (importOriginal) => {
+  const m = await importOriginal<typeof import("@/lib/arkh/computeDamage")>();
+  return { ...m, computeArkhDamage: vi.fn(m.computeArkhDamage) };
+});
+
 const spy = vi.mocked(computeArkhArtifactFind);
+const dmgSpy = vi.mocked(computeArkhDamage);
 
 // Same lookup as the smoke test: group in ARTI_GROUPS order, then the source in `sources` order.
 const leafOf = (tree: ReturnType<typeof computeArkhArtifactFind>["tree"], id: string): number => {
@@ -187,13 +193,14 @@ describe("arkhDamageLeaf and arkhStat", () => {
   describe.skipIf(!ARKHE)("on ARKHE ci 8, map 251", () => {
     it("the leaves recombine, layer by layer, to lib/arkh's layers and Max", () => {
       const { tree, total } = computeArkhDamage(JSON.parse(readFileSync(ARKHE!, "utf8")), 8, DMG_COLLECTOR_MAP);
-      const steps = DMG_LAYERS.flatMap((l) => l.steps);
-      const valsOf = (key: string) => {
-        const s = steps.find((x) => x.key === key);
-        return s && "sources" in s ? s.sources.map((id) => arkhDamageLeaf(ARKHE, 8, DMG_COLLECTOR_MAP, id)) : [];
-      };
+      const leaves = arkhDamageLeaves(ARKHE, 8, DMG_COLLECTOR_MAP);
       let max = 1;
       DMG_LAYERS.forEach((layer, i) => {
+        // look the step up in THIS layer (a step key could repeat across layers)
+        const valsOf = (key: string) => {
+          const s = layer.steps.find((x) => x.key === key);
+          return s && "sources" in s ? s.sources.map((id) => leaves[id]) : [];
+        };
         const v = dmgLayer(layer, valsOf).val;
         expect(rel(v, tree.children![i].val), layer.key).toBeLessThan(1e-9); // a swapped step breaks its layer
         max *= v;
@@ -219,11 +226,87 @@ describe("arkhDamageLeaf and arkhStat", () => {
     .flatMap((r) => Object.keys(r.extra ?? {}).map((stat) => ({ r, stat: stat as ArkhStat })));
   it("the readings fixture has Damage extras to compare", () => expect(rows.length).toBeGreaterThan(0));
   for (const { r, stat } of rows) {
-    const save = readingSave(r);
-    it.skipIf(!save)(`${r.id} ${stat}: arkhStat = the readings value`, async () => {
+    // collection time: only a file-exists check; the save is parsed inside the test
+    it.skipIf(!existsSync(join(READINGS_DIR, r.saveFile)))(`${r.id} ${stat}: arkhStat = the readings value`, async () => {
+      const save = readingSave(r);
       const want = (await computeReadingValue(r, save, stat)).value;
       expect(want).toBeGreaterThan(0);
       expect(arkhStat(save, r.charIdx, stat)).toBe(want);
     });
   }
+});
+
+describe("the disk cache of arkhDamageLeaves / arkhStats", () => {
+  const dirs: string[] = [];
+  const fresh = () => {
+    const d = mkdtempSync(join(tmpdir(), "arkh-oracle-cache-"));
+    dirs.push(d);
+    setOracleCacheDir(d);
+    return d;
+  };
+  const savePath = (dir: string, name = "s.json") => {
+    const p = join(dir, name);
+    writeFileSync(p, JSON.stringify({ charNames: ["A"], data: { Captains: "[]" } }));
+    return p;
+  };
+  afterEach(() => {
+    setArkhSourceHash(undefined);
+    setOracleCacheDir(null);
+    while (dirs.length) rmSync(dirs.pop()!, { recursive: true, force: true });
+  });
+
+  it("a miss computes once and writes the file; a later process (cleared memory) hits without computing", () => {
+    const cache = fresh();
+    const p = savePath(mkdtempSync(join(tmpdir(), "arkh-oracle-sav-")));
+    dirs.push(join(p, ".."));
+    dmgSpy.mockClear();
+    const first = arkhDamageLeaves(p, 0, 251);
+    arkhStats(p, 0); // same entry: no second compute
+    expect(dmgSpy).toHaveBeenCalledTimes(1);
+    expect(readdirSync(cache)).toHaveLength(1);
+    setOracleCacheDir(cache); // drops the in-memory copy: what a new run sees
+    dmgSpy.mockClear();
+    expect(arkhDamageLeaves(p, 0, 251)).toEqual(first);
+    expect(arkhStats(p, 0).str).toBe(arkhStat(p, 0, "str"));
+    expect(dmgSpy).not.toHaveBeenCalled();
+  });
+
+  it("a changed lib/arkh hash is a miss", () => {
+    const cache = fresh();
+    const p = savePath(mkdtempSync(join(tmpdir(), "arkh-oracle-sav-")));
+    dirs.push(join(p, ".."));
+    arkhDamageLeaves(p, 0, 251);
+    setArkhSourceHash("0".repeat(40));
+    dmgSpy.mockClear();
+    arkhDamageLeaves(p, 0, 251);
+    expect(dmgSpy).toHaveBeenCalledTimes(1);
+    expect(JSON.parse(readFileSync(join(cache, readdirSync(cache)[0]), "utf8")).arkhHash).toBe("0".repeat(40));
+  });
+
+  it("the source hash is a sha1 of lib/arkh's files and is stable", () => {
+    setArkhSourceHash(undefined);
+    expect(arkhSourceHash()).toMatch(/^[0-9a-f]{40}$/);
+    expect(arkhSourceHash()).toBe(arkhSourceHash());
+  });
+
+  it("an object save is memory-only: nothing is written", () => {
+    const cache = fresh();
+    arkhDamageLeaves({ charNames: ["A"], data: {} }, 0, 251);
+    expect(readdirSync(cache)).toHaveLength(0);
+  });
+
+  describe.skipIf(!ARKHE)("on ARKHE", () => {
+    it("leaves read back from the disk equal a fresh compute", () => {
+      fresh();
+      const fromCompute = arkhDamageLeaves(ARKHE, 8, 251); // miss: computed, written
+      const stats = arkhStats(ARKHE, 8);
+      setOracleCacheDir(dirs[0]); // clear memory, keep the folder
+      dmgSpy.mockClear();
+      expect(arkhDamageLeaves(ARKHE, 8, 251)).toEqual(fromCompute);
+      expect(arkhStats(ARKHE, 8)).toEqual(stats);
+      expect(dmgSpy).not.toHaveBeenCalled();
+      const direct = computeArkhDamage(JSON.parse(readFileSync(ARKHE!, "utf8")), 8, 251).tree;
+      expect(fromCompute.wpSquared).toBe(direct.children![0].children![0].children![0].val);
+    });
+  });
 });
