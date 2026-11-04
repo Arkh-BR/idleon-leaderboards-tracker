@@ -15,14 +15,14 @@ Do not edit by hand: regenerate it when N.js changes. Tick a row when its sub-ca
 ## Sailing
 
 - [ ] Sailing("BoatArtiMulti",0) — depth 0 — 2016 chars
-- [ ] Sailing("ArtifactBonus",3,0) — depth 1 — 8323 chars
-- [ ] Sailing("DaveyJonesBonus") — depth 1 — 342 chars
-- [ ] Sailing("SlabboBonus_AllMulti",0,0) — depth 2 — 166 chars
-- [ ] Sailing("ArtifactBonus",32,0) — depth 2 — 8323 chars
+- [x] Sailing("ArtifactBonus",3,0) — depth 1 — 8323 chars
+- [x] Sailing("DaveyJonesBonus") — depth 1 — 342 chars
+- [x] Sailing("SlabboBonus_AllMulti",0,0) — depth 2 — 166 chars — NOT PORTED: dead for artifacts 3 and 32 (only the iterations l in {2,10,18,20,999} call it); throws NotPorted
+- [x] Sailing("ArtifactBonus",32,0) — depth 2 — 8323 chars — plain path only (base x tier); the artifacts with a multiplier of their own throw NotPorted
 
 ## CaptBonusCalc
 
-- [ ] CaptBonusCalc(3) — depth 1 — 689 chars — whole body
+- [x] CaptBonusCalc(3) — depth 1 — 689 chars — whole body
 
 ## Breeding
 
@@ -67,7 +67,7 @@ Do not edit by hand: regenerate it when N.js changes. Tick a row when its sub-ca
 - [ ] ResearchStuff("TotalObsLVs",0,0) — depth 2 — 511 chars
 - [ ] ResearchStuff("TotalOccurrencesFound",0,0) — depth 2 — 472 chars
 - [ ] ResearchStuff("Grid_Bonus_Allmulti",0,0) — depth 2 — 330 chars
-- [ ] ResearchStuff("Grid_Bonus",105,1) — depth 2 — 1304 chars
+- [x] ResearchStuff("Grid_Bonus",105,1) — depth 2 — 1304 chars — ported in Task 4 (Ruling C); only the 1==e branch
 - [ ] ResearchStuff("OccurrencesToBeFound",0,0) — depth 3 — 385 chars
 - [ ] ResearchStuff("Grid_Bonus",125,0) — depth 3 — 1304 chars
 
@@ -156,7 +156,7 @@ Do not edit by hand: regenerate it when N.js changes. Tick a row when its sub-ca
 - [ ] Thingies("LoreEpiBon",3,0) — depth 1 — 1352 chars
 - [ ] Thingies("Have_ban_i",0,0) — depth 2 — 67 chars
 - [ ] Thingies("EmperorBon",8,0) — depth 2 — 1769 chars
-- [ ] Thingies("LegendPTS_bonus",11,0) — depth 2 — 154 chars
+- [x] Thingies("LegendPTS_bonus",11,0) — depth 2 — 154 chars — ported in Task 4 (Ruling C); only this sub-case
 - [ ] Thingies("LegendPTS_bonus",10,0) — depth 2 — 154 chars
 - [ ] Thingies("LegendPTS_bonus",28,0) — depth 3 — 154 chars
 - [ ] Thingies("LegendPTS_bonus",22,0) — depth 3 — 154 chars
@@ -185,7 +185,7 @@ Do not edit by hand: regenerate it when N.js changes. Tick a row when its sub-ca
 
 ## ReturnClasses
 
-- [ ] ReturnClasses() — depth 2 — 2411 chars — whole body
+- [x] ReturnClasses() — depth 2 — 2411 chars — whole body — NOT PORTED: only ArtifactBonus 25 calls it (dead for artifact 3); module not created
 
 ## TotalStats
 
@@ -300,7 +300,7 @@ Do not edit by hand: regenerate it when N.js changes. Tick a row when its sub-ca
 - [ ] `Lv0`
 - [ ] `Meals`
 - [ ] `Menagerie`
-- [ ] `NONdummies`
+- [x] `NONdummies` — NONdummies60 (lib/game/njs/NONdummies.ts)
 - [ ] `Ninja`
 - [ ] `Number2Letter`
 - [ ] `OptionsListAccount`
@@ -334,7 +334,7 @@ Do not edit by hand: regenerate it when N.js changes. Tick a row when its sub-ca
 - [ ] `Button_Bonsuz`
 - [ ] `CalcTalentMAP`
 - [ ] `CapeVineBonTOT` — whole body only
-- [ ] `CaptnBonuz` — whole body only
+- [x] `CaptnBonuz` — whole body only — a local in CaptBonusCalc
 - [ ] `CompanionBon` — whole body only
 - [ ] `CompanionLVz` — whole body only
 - [ ] `DropRateLUK` — whole body only
