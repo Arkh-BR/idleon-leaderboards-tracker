@@ -28,12 +28,20 @@ function describe(v: unknown): string {
   return v === null ? "null" : typeof v;
 }
 
-/** A mirrored N.js function returned NaN or Infinity. `block` refuses to cache or pass it on. */
+/**
+ * NaN or Infinity where `block` needs a finite number: in the value a mirrored N.js
+ * function returned (`got` is that value), or in a numeric argument (`inArg`), which
+ * would also collapse to `null` in the cache key. Never cached, never passed on.
+ */
 export class NonFiniteResult extends Error {
   readonly block: string;
   readonly args: readonly unknown[];
-  constructor(block: string, args: readonly unknown[], got: number) {
-    super(`${block}(${JSON.stringify(args)}) returned ${got}`);
+  constructor(block: string, args: readonly unknown[], got: number, inArg = false) {
+    super(
+      inArg
+        ? `${block}(${JSON.stringify(args)}) called with a non-finite argument (${got})`
+        : `${block}(${JSON.stringify(args)}) returned ${got}`
+    );
     this.name = "NonFiniteResult";
     this.block = block;
     this.args = args;

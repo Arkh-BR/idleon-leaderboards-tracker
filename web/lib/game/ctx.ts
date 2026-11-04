@@ -2,7 +2,7 @@
 // (function, arguments); unlike the game, it can also say how it got there (the trace).
 import type { GameState } from "./state";
 import { NonFiniteResult } from "./errors";
-import { traceRoot, type TraceNode } from "./trace";
+import { traceNode, traceRoot, type TraceNode } from "./trace";
 
 export type { TraceNode } from "./trace";
 
@@ -12,7 +12,7 @@ export type Ctx = {
   readonly player: number;
   /** Map the player stands on (the game's `CurrentMap`). */
   readonly map: number;
-  /** Memo of `block` results for THIS player+map, like N.js TotStatMAP / DNSM. */
+  /** Memo of `block` results, like N.js TotStatMAP / DNSM. Keys include player and map. */
   readonly cache: Map<string, number>;
   /**
    * null = tracing off. Otherwise the node new calls are appended to: the root `makeCtx`
@@ -27,36 +27,49 @@ export const makeCtx = (state: GameState, o: { player: number; map: number; trac
   player: o.player,
   map: o.map,
   cache: new Map(),
-  trace: o.trace ? traceRoot() : null,
+  trace: o.trace ? traceRoot(o.player) : null,
 });
 
 /** Another character on the same save: shares the state and the trace, not the cache. */
 export const withPlayer = (ctx: Ctx, player: number): Ctx => ({ ...ctx, player, cache: new Map() });
 
 /**
- * Wraps a mirrored N.js function. Memoizes on `name + JSON.stringify(args)` (args are
- * strings/numbers), records a TraceNode when tracing (a cache hit is recorded as a leaf
- * noted "cached"), and throws NonFiniteResult instead of passing NaN/Infinity on.
+ * Wraps a mirrored N.js function. Memoizes on player + map + `name + JSON.stringify(args)`
+ * (so a Ctx copy that keeps the cache still never mixes players or maps), records a
+ * TraceNode when tracing (a cache hit is a leaf noted "cached"; a call that throws is kept
+ * noted "threw: ..." and rethrown, never cached), and throws NonFiniteResult instead of
+ * passing NaN/Infinity on, as a result or as a numeric argument (JSON would turn those
+ * into `null` and alias distinct calls). Args are strings/numbers by type.
  * Tracing off allocates no nodes and hands `fn` the caller's own Ctx.
  */
-export function block<A extends unknown[]>(
+export function block<A extends (string | number)[]>(
   name: string,
   fn: (ctx: Ctx, ...a: A) => number
 ): (ctx: Ctx, ...a: A) => number {
   return (ctx, ...a) => {
-    const key = name + JSON.stringify(a);
+    for (const x of a) if (typeof x === "number" && !Number.isFinite(x)) throw new NonFiniteResult(name, a, x, true);
+    const key = `${ctx.player}|${ctx.map}|${name}${JSON.stringify(a)}`;
     const hit = ctx.cache.get(key);
     if (hit !== undefined) {
-      ctx.trace?.children.push({ block: name, args: a, value: hit, children: [], note: "cached" });
+      if (ctx.trace) ctx.trace.children.push(traceNode(ctx.trace, ctx.player, name, a, hit, "cached"));
       return hit;
     }
-    const node: TraceNode | null = ctx.trace && { block: name, args: a, value: 0, children: [] };
-    const value = fn(node ? { ...ctx, trace: node } : ctx, ...a);
-    if (!Number.isFinite(value)) throw new NonFiniteResult(name, a, value);
+    const node = ctx.trace && traceNode(ctx.trace, ctx.player, name, a);
+    let value: number;
+    try {
+      value = fn(node ? { ...ctx, trace: node } : ctx, ...a);
+      if (!Number.isFinite(value)) throw new NonFiniteResult(name, a, value);
+    } catch (e) {
+      if (node) {
+        node.note = `threw: ${e instanceof Error ? e.message : String(e)}`;
+        ctx.trace!.children.push(node); // keep it: a caller may catch, and a later "cached" leaf must have a home
+      }
+      throw e;
+    }
     ctx.cache.set(key, value);
     if (node) {
       node.value = value;
-      ctx.trace!.children.push(node); // after fn: a throw leaves no half-built node behind
+      ctx.trace!.children.push(node); // after fn, so siblings stay in call order
     }
     return value;
   };
@@ -68,6 +81,6 @@ export function block<A extends unknown[]>(
  * sanctioned "not computable from the save" value.
  */
 export function runtime(ctx: Ctx, name: string, note: string): number {
-  ctx.trace?.children.push({ block: name, args: [], value: 0, children: [], note: `runtime: ${note}` });
+  if (ctx.trace) ctx.trace.children.push(traceNode(ctx.trace, ctx.player, name, [], 0, `runtime: ${note}`));
   return 0;
 }

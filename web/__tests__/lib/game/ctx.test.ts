@@ -100,19 +100,151 @@ describe("block trace", () => {
     expect(seen).toBe(off2); // ...tracing off does not
   });
 
-  it("withPlayer keeps nesting under the same trace", () => {
+  it("withPlayer keeps nesting under the same trace, and the node says which player ran it", () => {
     const ctx = makeCtx(state, { player: 0, map: 0, trace: true });
     const p = block("player", (c) => c.player);
     p(withPlayer(ctx, 3));
-    expect(ctx.trace!.children).toEqual([{ block: "player", args: [], value: 3, children: [] }]);
+    expect(ctx.trace!.children).toEqual([{ block: "player", args: [], value: 3, children: [], player: 3 }]);
   });
 
-  it("a throwing block leaves no half-built node behind", () => {
+  it("player is only set where it differs from the parent's", () => {
+    const leaf = block("leaf", (c) => c.player);
+    const mid = block("mid", (c) => leaf(c) + leaf(withPlayer(c, 5)) + leaf(withPlayer(c, 5)));
+    const ctx = makeCtx(state, { player: 2, map: 0, trace: true });
+    mid(ctx);
+    expect(ctx.trace!.player).toBe(2); // the root carries the base player
+    const [m] = ctx.trace!.children;
+    expect(m.player).toBeUndefined(); // same as the root's
+    expect(m.children.map((n) => [n.value, n.player, n.note])).toEqual([
+      [2, undefined, undefined], // same player as `mid`
+      [5, 5, undefined], // another player
+      [5, 5, undefined], // withPlayer made a new cache, so computed again, not a cache hit
+    ]);
+  });
+
+  it("a cached leaf and a runtime node carry player too when it differs", () => {
+    const leaf = block("leaf", () => 1);
+    const ctx = makeCtx(state, { player: 0, map: 0, trace: true });
+    const other = withPlayer(ctx, 4);
+    leaf(other);
+    leaf(other);
+    runtime(other, "Buff", "x");
+    expect(ctx.trace!.children.map((n) => [n.note, n.player])).toEqual([
+      [undefined, 4],
+      ["cached", 4],
+      ["runtime: x", 4],
+    ]);
+  });
+
+  it("a cache hit inside a block is a cached leaf under that block", () => {
+    const twice = block("twice", (c, x: number) => inner(c, x) + inner(c, x));
+    const ctx = makeCtx(state, { player: 0, map: 0, trace: true });
+    expect(twice(ctx, 3)).toBe(12);
+    const [t] = ctx.trace!.children;
+    expect(t.children).toEqual([
+      { block: "inner", args: [3], value: 6, children: [] },
+      { block: "inner", args: [3], value: 6, children: [], note: "cached" },
+    ]);
+  });
+
+  it("a block that throws is recorded as 'threw: ...' (with what ran before) and rethrown", () => {
+    const boom = block("boom", (c) => {
+      inner(c, 1);
+      throw new Error("kaput");
+    });
+    const ctx = makeCtx(state, { player: 0, map: 0, trace: true });
+    expect(() => boom(ctx)).toThrow("kaput");
+    expect(ctx.trace!.children).toEqual([
+      {
+        block: "boom",
+        args: [],
+        value: 0,
+        children: [{ block: "inner", args: [1], value: 2, children: [] }],
+        note: "threw: kaput",
+      },
+    ]);
+  });
+
+  it("an outer block that catches a throwing inner one: node kept, nothing cached, inner reruns", () => {
+    let calls = 0;
+    const flaky = block("flaky", () => {
+      calls++;
+      throw new Error("nope");
+    });
+    const outer2 = block("outer2", (c) => {
+      try {
+        return flaky(c);
+      } catch {
+        return -1;
+      }
+    });
+    const ctx = makeCtx(state, { player: 0, map: 0, trace: true });
+    expect(outer2(ctx)).toBe(-1);
+    expect(ctx.trace!.children[0].children.map((n) => [n.block, n.note])).toEqual([["flaky", "threw: nope"]]);
+    expect(() => flaky(ctx)).toThrow("nope");
+    expect(calls).toBe(2); // the failure was not cached
+    expect(ctx.cache.has("0|0|flaky[]")).toBe(false);
+  });
+
+  it("a non-finite result is recorded as a threw node too", () => {
     const bad = block("bad", () => Number.NaN);
     const ctx = makeCtx(state, { player: 0, map: 0, trace: true });
-    expect(() => bad(ctx)).toThrow();
+    expect(() => bad(ctx)).toThrow(NonFiniteResult);
     inner(ctx, 1);
-    expect(ctx.trace!.children.map((n) => n.block)).toEqual(["inner"]);
+    expect(ctx.trace!.children.map((n) => [n.block, n.note?.startsWith("threw: ")])).toEqual([
+      ["bad", true],
+      ["inner", undefined],
+    ]);
+  });
+});
+
+describe("cache key", () => {
+  it("map is part of the key: a Ctx copy that keeps the cache never returns another map's value", () => {
+    let calls = 0;
+    const atMap = block("atMap", (c) => {
+      calls++;
+      return c.map * 10;
+    });
+    const ctx = makeCtx(state, { player: 0, map: 1 });
+    const elsewhere = { ...ctx, map: 7 }; // same cache object
+    expect(elsewhere.cache).toBe(ctx.cache);
+    expect(atMap(ctx)).toBe(10);
+    expect(atMap(elsewhere)).toBe(70);
+    expect(atMap(ctx)).toBe(10);
+    expect(calls).toBe(2);
+  });
+
+  it("player is part of the key too", () => {
+    const who = block("who", (c) => c.player + 100);
+    const ctx = makeCtx(state, { player: 0, map: 0 });
+    const shared = { ...ctx, player: 2 };
+    expect(who(ctx)).toBe(100);
+    expect(who(shared)).toBe(102);
+    expect(who(ctx)).toBe(100);
+  });
+});
+
+describe("block args", () => {
+  it("a NaN or infinite numeric arg throws NonFiniteResult naming the block, before fn runs", () => {
+    let calls = 0;
+    const f = block("F", (_c, x: number) => {
+      calls++;
+      return x;
+    });
+    const ctx = makeCtx(state, { player: 0, map: 0 });
+    expect(() => f(ctx, Number.NaN)).toThrow(NonFiniteResult);
+    expect(() => f(ctx, Infinity)).toThrow(NonFiniteResult);
+    expect(() => f(ctx, -Infinity)).toThrow("F(");
+    expect(calls).toBe(0);
+    expect(ctx.cache.size).toBe(0);
+  });
+
+  it("args are strings or numbers: anything else is a compile error", () => {
+    // @ts-expect-error a Map would serialize to {} and collide with every other Map
+    block("x", (_c, _m: Map<string, number>) => 1);
+    // @ts-expect-error an optional arg can be undefined, which serializes to null
+    block("y", (_c, _o?: number) => 1);
+    block("ok", (_c, _n: number, _s: string) => 1); // fine
   });
 });
 
