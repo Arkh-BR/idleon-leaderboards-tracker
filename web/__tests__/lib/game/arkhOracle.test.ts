@@ -5,7 +5,11 @@ import { basename, join } from "node:path";
 import { computeArkhArtifactFind } from "@/lib/arkh/computeArtifactFind";
 import { ARTI_GROUPS } from "@/lib/arkh/stats/defs/artifact-find";
 import { applyGroupStep, groupVal } from "@/lib/arkh/stats/defs/grouped";
-import { GOLDEN_SAVES, KNOWN_ARKH_DIFFS, arkhArtifactLeaf, gameCtx, goldenSaves } from "./support/arkhOracle";
+import { DMG_LAYERS, DMG_MASTERY, DMG_RAT, dmgLayer } from "@/lib/arkh/stats/defs/damage";
+import { computeArkhDamage, DMG_COLLECTOR_MAP } from "@/lib/arkh/computeDamage";
+import { computeReadingValue } from "@/lib/readings/compute";
+import { loadReadings, readingSave } from "@/lib/readings/registry";
+import { GOLDEN_SAVES, KNOWN_ARKH_DIFFS, arkhArtifactLeaf, arkhDamageLeaf, arkhStat, gameCtx, goldenSaves, type ArkhStat } from "./support/arkhOracle";
 
 // Spy on the engine so the cache tests can count real computes; the original still runs.
 vi.mock("@/lib/arkh/computeArtifactFind", async (importOriginal) => {
@@ -145,11 +149,81 @@ describe("arkhArtifactLeaf cache and errors", () => {
 
 describe("KNOWN_ARKH_DIFFS", () => {
   it("every entry names a real source and cites its N.js evidence (an @offset)", () => {
-    const sources = new Set(ARTI_GROUPS.flatMap((g) => g.sources));
+    const arti = new Set(ARTI_GROUPS.flatMap((g) => g.sources));
+    const dmg = new Set(dmgIds());
     for (const d of KNOWN_ARKH_DIFFS) {
-      expect(sources.has(d.source), d.source).toBe(true);
+      const stat = d.stat ?? "artifactFind"; // absent = Artifact Find
+      if (stat === "artifactFind") expect(arti.has(d.source), d.source).toBe(true);
+      else if (stat === "damage") expect(dmg.has(d.source), d.source).toBe(true);
       expect(d.save).toMatch(/\.json$/);
       expect(d.why).toMatch(/@\d+/);
     }
   });
+});
+
+function dmgIds(): string[] {
+  return [
+    ...DMG_LAYERS.flatMap((l) => l.steps.flatMap((s) => ("sources" in s ? s.sources : []))),
+    ...DMG_MASTERY.sources,
+    ...DMG_RAT.sources,
+  ];
+}
+
+describe("Damage source ids", () => {
+  it("are unique across every layer, Mastery and the arena (so the id alone keys a leaf)", () => {
+    const ids = dmgIds();
+    expect(ids.length).toBeGreaterThan(100);
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+});
+
+describe("arkhDamageLeaf and arkhStat", () => {
+  const rel = (a: number, b: number) => Math.abs(a - b) / Math.abs(b);
+
+  it("throws on an id that is not a Damage source", () => {
+    expect(() => arkhDamageLeaf({ charNames: ["A"], data: {} }, 0, DMG_COLLECTOR_MAP, "nope")).toThrow(/nope/);
+  });
+
+  describe.skipIf(!ARKHE)("on ARKHE ci 8, map 251", () => {
+    it("the leaves recombine, layer by layer, to lib/arkh's layers and Max", () => {
+      const { tree, total } = computeArkhDamage(JSON.parse(readFileSync(ARKHE!, "utf8")), 8, DMG_COLLECTOR_MAP);
+      const steps = DMG_LAYERS.flatMap((l) => l.steps);
+      const valsOf = (key: string) => {
+        const s = steps.find((x) => x.key === key);
+        return s && "sources" in s ? s.sources.map((id) => arkhDamageLeaf(ARKHE, 8, DMG_COLLECTOR_MAP, id)) : [];
+      };
+      let max = 1;
+      DMG_LAYERS.forEach((layer, i) => {
+        const v = dmgLayer(layer, valsOf).val;
+        expect(rel(v, tree.children![i].val), layer.key).toBeLessThan(1e-9); // a swapped step breaks its layer
+        max *= v;
+      });
+      expect(total).toBeGreaterThan(1);
+      expect(rel(max, total)).toBeLessThan(1e-9);
+      expect(DMG_RAT.sources.map((id) => arkhDamageLeaf(ARKHE, 8, DMG_COLLECTOR_MAP, id))).toEqual([0]); // map 251: arena off
+      expect(DMG_MASTERY.sources.map((id) => arkhDamageLeaf(ARKHE, 8, DMG_COLLECTOR_MAP, id)).some((v) => v !== 0)).toBe(true);
+    });
+
+    it("leaves the caller's save untouched", () => {
+      const save = JSON.parse(readFileSync(ARKHE!, "utf8"));
+      const before = JSON.stringify(save);
+      arkhDamageLeaf(save, 8, DMG_COLLECTOR_MAP, "wpSquared");
+      arkhStat(save, 8, "str");
+      expect(JSON.stringify(save)).toBe(before);
+    });
+  });
+
+  // The Damage readings' extras: arkhStat equals what computeReadingValue (the readings test) gives.
+  const rows = loadReadings()
+    .filter((r) => r.stat === "damage")
+    .flatMap((r) => Object.keys(r.extra ?? {}).map((stat) => ({ r, stat: stat as ArkhStat })));
+  it("the readings fixture has Damage extras to compare", () => expect(rows.length).toBeGreaterThan(0));
+  for (const { r, stat } of rows) {
+    const save = readingSave(r);
+    it.skipIf(!save)(`${r.id} ${stat}: arkhStat = the readings value`, async () => {
+      const want = (await computeReadingValue(r, save, stat)).value;
+      expect(want).toBeGreaterThan(0);
+      expect(arkhStat(save, r.charIdx, stat)).toBe(want);
+    });
+  }
 });

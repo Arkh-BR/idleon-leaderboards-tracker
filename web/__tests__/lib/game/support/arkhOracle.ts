@@ -7,6 +7,13 @@ import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { computeArkhArtifactFind } from "@/lib/arkh/computeArtifactFind";
 import { ARTI_GROUPS } from "@/lib/arkh/stats/defs/artifact-find";
+import { computeArkhDamage } from "@/lib/arkh/computeDamage";
+import { DMG_LAYERS, DMG_MASTERY, DMG_RAT } from "@/lib/arkh/stats/defs/damage";
+import { loadSaveData } from "@/lib/arkh/save/loader";
+import { saveData } from "@/lib/arkh/state";
+import { computeAccuracy } from "@/lib/arkh/stats/systems/common/derived-damage";
+import { computePlayerHPmax, computePlayerMPmax } from "@/lib/arkh/stats/systems/common/derived-stats";
+import { computeTotalStat } from "@/lib/arkh/stats/systems/common/stats";
 import type { ArkhNode } from "@/lib/arkh/node";
 import { makeCtx, type Ctx } from "@/lib/game/ctx";
 import { buildGameState, type GameEnvelope } from "@/lib/game/state";
@@ -106,6 +113,67 @@ export function arkhArtifactLeaf(save: unknown, ci: number, sourceId: string): n
  */
 export const UNPORTED_REFUSALS: readonly string[] = [];
 
+// ---- Damage ----
+// Same caching rules as Artifact Find (Ruling D), keyed by (save, ci, map): a path parses once, an object is
+// keyed by identity, and lib/arkh runs on a structuredClone. Each compute runs to completion before the next
+// (lib/arkh keeps module-level state).
+const byPathAny = new Map<string, unknown>();
+const byObjectAny = new WeakMap<object, Map<string, unknown>>();
+function cached<T>(save: unknown, key: string, compute: (envelope: any) => T): T {
+  if (typeof save === "string") {
+    const k = `${save}#${key}`;
+    if (!byPathAny.has(k)) byPathAny.set(k, compute(JSON.parse(readFileSync(save, "utf8"))));
+    return byPathAny.get(k) as T;
+  }
+  let perKey = byObjectAny.get(save as object);
+  if (!perKey) byObjectAny.set(save as object, (perKey = new Map()));
+  if (!perKey.has(key)) perKey.set(key, compute(structuredClone(save)));
+  return perKey.get(key) as T;
+}
+
+/** lib/arkh's whole Damage tree (root = Max; children = the 3 layers, the map-43 arena, Mastery). Do not edit it. */
+export const arkhDamageTree = (save: unknown, ci: number, map: number): ArkhNode =>
+  cached(save, `dmg${ci}@${map}`, (env) => computeArkhDamage(env, ci, map).tree);
+
+// source id -> where it sits in the tree. Every id is unique across DMG_LAYERS, DMG_MASTERY and DMG_RAT (checked in the test).
+const DMG_SLOT = new Map<string, { child: number; step: number; src: number }>();
+DMG_LAYERS.forEach((layer, child) =>
+  layer.steps.forEach((s, step) => {
+    if ("sources" in s) s.sources.forEach((id, src) => DMG_SLOT.set(id, { child, step, src }));
+  })
+);
+DMG_RAT.sources.forEach((id, src) => DMG_SLOT.set(id, { child: DMG_LAYERS.length, step: -1, src }));
+DMG_MASTERY.sources.forEach((id, src) => DMG_SLOT.set(id, { child: DMG_LAYERS.length + 1, step: -1, src }));
+
+/**
+ * The `val` of source `sourceId` in lib/arkh's Damage tree for character `ci` on `map`: the layer, then the step of
+ * DMG_LAYERS, then the index in the step's `sources` (Mastery and the arena are groups of their own). Same `save`
+ * rules as `arkhArtifactLeaf`. Throws on an id that is not in the descriptor.
+ */
+export function arkhDamageLeaf(save: unknown, ci: number, map: number, sourceId: string): number {
+  const at = DMG_SLOT.get(sourceId);
+  if (!at) throw new Error(`arkhDamageLeaf: "${sourceId}" is not a Damage source`);
+  const top = arkhDamageTree(save, ci, map).children![at.child];
+  const leaf = (at.step < 0 ? top : top.children![at.step]).children?.[at.src];
+  if (!leaf) throw new Error(`arkhDamageLeaf: lib/arkh's tree has no node for "${sourceId}"`);
+  return leaf.val;
+}
+
+export type ArkhStat = "str" | "agi" | "wis" | "luk" | "maxHp" | "maxMp" | "accuracy";
+const MAIN_STATS = { str: "STR", agi: "AGI", wis: "WIS", luk: "LUK" } as const;
+
+/** What lib/readings/compute.ts compares the readings with today (the same lib/arkh calls). Map-independent. */
+export function arkhStat(save: unknown, ci: number, stat: ArkhStat): number {
+  return cached(save, `${stat}${ci}`, (env) => {
+    loadSaveData(env);
+    const ctx = { saveData, charIdx: ci, activeCharIdx: ci };
+    if (stat === "maxHp") return computePlayerHPmax(ci, ctx).val;
+    if (stat === "maxMp") return computePlayerMPmax(ci, ctx).val;
+    if (stat === "accuracy") return computeAccuracy(ci, ctx);
+    return computeTotalStat(MAIN_STATS[stat], ci, ctx).computed;
+  });
+}
+
 /** The lib/game Ctx for character `ci` of a parsed save, on map 0 (what Artifact Find uses). */
 export const gameCtx = (save: unknown, ci: number, trace?: boolean): Ctx =>
   makeCtx(buildGameState(save as GameEnvelope), { player: ci, map: 0, trace });
@@ -146,7 +214,14 @@ const GODSHARD_WORN = "GetSetBonus Bonus @11098422 gives the God Shard set's bon
  * Where N.js proves lib/arkh wrong and lib/game keeps the N.js value. `save` is the file name of the
  * GOLDEN_SAVES entry, `ci` omitted means every character; `why` cites the `@offset` evidence.
  */
-export const KNOWN_ARKH_DIFFS: { save: string; ci?: number; source: string; why: string }[] = [
+export const KNOWN_ARKH_DIFFS: {
+  /** Which tracker `source` belongs to; absent = "artifactFind". For "damage", `source` is a Damage source id. */
+  stat?: "artifactFind" | "damage" | ArkhStat;
+  save: string;
+  ci?: number;
+  source: string;
+  why: string;
+}[] = [
   { save: "Koweabooo.json", ci: 10, source: "grid109", why: COMPANION_0_GATE },
   { save: "Koweabooo.json", ci: 10, source: "grid106", why: COMPANION_0_GATE },
   { save: "Koweabooo.json", ci: 10, source: "sticker2add", why: COMPANION_0_GATE },
