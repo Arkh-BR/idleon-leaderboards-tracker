@@ -103,9 +103,10 @@ que mudou. Folhas que mudaram por mecânica nova são os suspeitos. O caso de
   Meritocracia.
 - `OLA[200]` é o DR **máximo** já visto, não o atual. Não use como alvo.
 - Stats de Sailing (Artifact Find `BoatArtiMulti`, `LootMulti`):
-  `NONdummies[60]` (capitães tier 6, +25% cada) só é calculado dentro de
-  `if(200==CurrentMap)` (mapa 200 = `wLavaaTown`, a cidade do W5). Fora dela o
-  Skill Info mostra um valor menor até a sessão entrar na cidade do W5 —
-  validado em 01/11/2026 no Markhe: 160Q fora vs 167Q na cidade. O tracker
-  segue o valor de fora (decisão do usuário); se um update passar a calcular
-  isso no load, o tracker lerá ~4% a menos.
+  `NONdummies[60]` (capitães tier 6, +25% cada) só é calculado quando um mapa
+  carrega com `200==CurrentMap` (mapa 200 = `wLavaaTown`, a cidade do W5) e
+  fica valendo a sessão toda, em qualquer personagem. Antes disso o Skill Info
+  mostra um valor menor — validado em 01/11/2026 no Markhe: 160Q antes vs 167Q
+  depois da cidade. O tracker conta os capitães (decisão do usuário em
+  03/11/2026): logo após abrir o jogo, antes de entrar no mapa 200, o jogo lê
+  ~4% a menos que o site.
