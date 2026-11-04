@@ -47,3 +47,28 @@ export class NonFiniteResult extends Error {
     this.args = args;
   }
 }
+
+/**
+ * `attr` was asked for a name the N.js loader does not load into an attribute (`SAVE_ATTRS`).
+ * `why` says what to use instead when it is a known runtime-only attribute (`RUNTIME_ATTRS`).
+ */
+export class UnknownAttribute extends Error {
+  readonly attribute: string;
+  constructor(attribute: string, why?: string) {
+    super(why ? `${attribute}: ${why}` : attribute);
+    this.name = "UnknownAttribute";
+    this.attribute = attribute;
+  }
+}
+
+/** A port reached a sub-case of an N.js function that it does not mirror (yet): `Summoning("VaultUpgBonus")`, `ArcadeBonus(66)`. */
+export class NotPorted extends Error {
+  readonly fn: string;
+  readonly sub: string | number;
+  constructor(fn: string, sub: string | number) {
+    super(`${fn}: sub-case ${JSON.stringify(sub)} is not ported`);
+    this.name = "NotPorted";
+    this.fn = fn;
+    this.sub = sub;
+  }
+}

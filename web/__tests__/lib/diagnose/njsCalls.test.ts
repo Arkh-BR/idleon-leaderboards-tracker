@@ -91,6 +91,14 @@ describe("traceCalls", () => {
     // so a Runtime stand-in for TotalStats does not cover the game's TotalStats call
     expect(callDiff([{ block: "TotalStats" }], traceCalls(trace)).missing).toEqual([{ block: "TotalStats" }]);
   });
+
+  it("skips (absent) leaves, an asNumber(null) = 0 that is not an N.js call, but keeps the calls around them", () => {
+    const trace = root(
+      node("Summoning", ["V", 20, 0], [node("(absent)", ["Lv0[9]"], [], "absent: asNumber(null) = 0"), node("Stamp", [4])]),
+      node("(absent)", ["OptionsListAccount[7]"], [], "absent: asNumber(null) = 0")
+    );
+    expect(traceCalls(trace)).toEqual([{ block: "Summoning", arg0: "V" }, { block: "Stamp", arg0: 4 }]);
+  });
 });
 
 describe("callDiff", () => {
