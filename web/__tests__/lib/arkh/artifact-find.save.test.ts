@@ -20,24 +20,25 @@ describe.skipIf(!existsSync(SAVE))("Artifact Find matches the in-game Skill Info
   const save = () => JSON.parse(readFileSync(SAVE, "utf8"));
   const idx = (s: any) => s.charNames.indexOf("Markhe");
 
-  // The tracker follows the Skill Info outside the W5 town: tier-6 captains don't count.
-  it("reads 160Qx without the tier-6 captains term (outside the W5 town)", () => {
+  // User decision (2026-11-03): the tracker follows the Skill Info once any character has
+  // entered the W5 town in the session (the usual state: the Sailing dock is there).
+  it("reads 167Qx with the tier-6 captains term (after the W5 town)", () => {
     const s = save();
     const { total } = computeArkhArtifactFind(s, idx(s));
-    expect(formatArtifactFind(total)).toBe("160Q");
-    expect(total).toBeGreaterThan(159e15);
-    expect(total).toBeLessThanOrEqual(160e15);
+    expect(formatArtifactFind(total)).toBe("167Q");
   });
 
   // The additive pool is the first group and the only one the term feeds, so
-  // adding 25·min(30, n) back scales the total by (pool + that/100) / pool.
-  it("…and 167Qx once the tier-6 captains term is added back (after the W5 town)", () => {
+  // taking 25·min(30, n) out scales the total by (pool − that/100) / pool.
+  it("…and 160Qx without it (before the W5 town)", () => {
     const s = save();
     const { total, tree } = computeArkhArtifactFind(s, idx(s));
     const pool = tree.children![0].val;
     const n = captainsOfType6(saveData); // computeArkhArtifactFind loaded the save into the engine state
     expect(n).toBeGreaterThan(0);
-    const withCaptains = (total * (pool + (25 * Math.min(30, n)) / 100)) / pool;
-    expect(formatArtifactFind(withCaptains)).toBe("167Q");
+    const without = (total * (pool - (25 * Math.min(30, n)) / 100)) / pool;
+    expect(formatArtifactFind(without)).toBe("160Q");
+    expect(without).toBeGreaterThan(159e15);
+    expect(without).toBeLessThanOrEqual(160e15);
   });
 });

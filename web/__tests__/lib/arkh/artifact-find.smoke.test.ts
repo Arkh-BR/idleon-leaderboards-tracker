@@ -17,16 +17,18 @@ describe("Artifact Find smoke test", () => {
     expect(tree.children).toHaveLength(ARTI_GROUPS.length);
   });
 
-  // User decision (2026-11-01): the tracker equals the Skill Info outside the W5 town, where
-  // N.js has not yet filled NONdummies[60] (it does so only under `200 == CurrentMap`). The
-  // type-6 captains stay visible as a count but add nothing. Real-save tests skip in CI.
-  it("shows type-6 captains as a count under a node that adds 0", () => {
-    const two = JSON.stringify([[6, 0, 0, 0, 0, 0, 0], [6, 0, 0, 0, 0, 0, 0]]);
-    const { tree } = computeArkhArtifactFind({ charNames: ["A"], data: { Captains: two } }, 0);
-    const additive = tree.children![0];
-    const capt = additive.children![ARTI_GROUPS[0].sources.indexOf("captains6")];
-    expect(capt.name).toMatch(/^Captains of type 6/);
-    expect(capt.val).toBe(0);
-    expect(capt.children![0].val).toBe(2);
+  // User decision (2026-11-03): N.js fills NONdummies[60] only under `200 == CurrentMap`, and it
+  // lasts the session, so the tracker counts the type-6 captains (+25 each, up to 30) like the
+  // Skill Info after any character entered the W5 town. Real-save tests skip in CI.
+  it("counts type-6 captains at +25 each, up to 30", () => {
+    const capt = (k: number) => {
+      const captains = JSON.stringify(Array.from({ length: k }, () => [6, 0, 0, 0, 0, 0, 0]));
+      const { tree } = computeArkhArtifactFind({ charNames: ["A"], data: { Captains: captains } }, 0);
+      return tree.children![0].children![ARTI_GROUPS[0].sources.indexOf("captains6")];
+    };
+    expect(capt(2).name).toMatch(/^Captains of type 6/);
+    expect(capt(2).val).toBe(50);
+    expect(capt(2).children![0].val).toBe(2);
+    expect(capt(31).val).toBe(750);
   });
 });

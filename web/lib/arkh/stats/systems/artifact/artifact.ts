@@ -67,17 +67,15 @@ function resolveArtifact(id: string, ctx: SystemCtx): ArkhNode {
     }
     case "bribe34":
       return add("Artifact Pilfering (Bribe 34)", getBribeBonus("34", s), "+20% artifact find chance");
-    // 25 × min(30, NONdummies[60]) — but N.js fills NONdummies[60] only inside
-    // `if (200 == CurrentMap)`, so the Skill Info reads 0 for it until the player
-    // enters the W5 town in that session. The tracker follows the Skill Info
-    // outside the town (user decision, in-game readings of 2026-11-01): the term
-    // stays in the tree for the captain count but contributes 0.
+    // 25 × min(30, NONdummies[60]). N.js fills NONdummies[60] only when a map
+    // loads with `200 == CurrentMap` and keeps it for the session, so the Skill
+    // Info shows the term once any character has entered the W5 town. The
+    // tracker counts it (user decision 2026-11-03; readings 160Q before the
+    // town, 167Q after, 2026-11-01).
     case "captains6": {
       const n = captainsOfType6(s);
-      return node("Captains of type 6 (not counted)", 0, [raw("Type-6 captains", n)], {
-        fmt: "+",
-        note: "Skill Info counts it (+25 each, up to 30) only after you enter the W5 town (map 200) in that session — not counted here",
-      });
+      return plus("Captains of type 6", 25 * Math.min(30, n), [raw("Type-6 captains", n)],
+        "+25% each, up to 30. The game adds it once any character enters the W5 town (map 200) in the session");
     }
     case "arcade32":
     case "arcade66": {
