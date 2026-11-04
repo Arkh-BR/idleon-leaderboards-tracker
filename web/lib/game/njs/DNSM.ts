@@ -21,7 +21,7 @@ function companionEntries(ctx: Ctx): string[][] {
     runtime(ctx, "getCompanionInfoMe", "envelope.companion is null: no companion list, so no owned companion");
     return [];
   }
-  const l = c !== null && typeof c === "object" ? (c as { l?: unknown }).l : undefined;
+  const l = typeof c === "object" ? (c as { l?: unknown }).l : undefined;
   if (l === undefined) throw new MissingSaveKey("envelope.companion.l");
   if (!Array.isArray(l)) throw new InvalidSaveValue("envelope.companion.l", "an array", l);
   return l.map((e) => hString(e).split(","));
@@ -53,6 +53,7 @@ export function DNSM_CompanionBon(ctx: Ctx): Map<string, number> {
   for (let f = 0; f < CompanionDB.length; f++) {
     if (owned.has(f)) bon.set(`${f}`, asNumber(CompanionDB[f][lvz.get(`${f}`) == 1 ? 11 : 2]));
   }
+  // OptionsListAccount[606] may be undefined (3 real saves): the game reads it as "null" (Std.string), a token id that sets the harmless key "null"
   for (const id of hString(attr(ctx, "OptionsListAccount", 606)).split(",")) {
     const row = CompanionDB[asNumber(id) | 0]; // NaN | 0 is 0
     // the game indexes CompanionDB[id][2] directly and would throw on an id past the list

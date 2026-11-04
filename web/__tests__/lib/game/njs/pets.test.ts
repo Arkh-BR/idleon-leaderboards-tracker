@@ -271,6 +271,14 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("nightmariner (MenagerieStuff Nightma
     expect(MenagerieStuff(variant((d) => setIn(d, "Menagerie", (m) => (m[2].length = 5))), "UnlockOwned", 13, 0)).toBe(0); // past the list: asNumber(null)
     expect(() => MenagerieStuff(variant((d) => setIn(d, "Menagerie", (m) => (m[2] = null))), "UnlockOwned", 13, 0)).toThrow(MissingSaveKey);
   });
+  it("an empty Menagerie list is a legal state and every sub-case is 0 (the head guard `0 == Menagerie.length`, @5176140)", () => {
+    const empty = () => variant((d) => (d.Menagerie = []));
+    expect(MenagerieStuff(empty(), "UnlockOwned", 13, 0)).toBe(0);
+    expect(MenagerieStuff(empty(), "NightmarinerTotLV", 0, 0)).toBe(0); // not the boats' total, which is non-zero on this save
+    expect(MenagerieStuff(empty(), "NightmarinerBon", 0, 0)).toBe(0); // 0, not 1: the guard returns before the sub-case
+    expect(MenagerieStuff(variant(() => {}), "NightmarinerTotLV", 0, 0)).toBeGreaterThan(0);
+    expect(() => MenagerieStuff(variant((d) => delete d.Menagerie), "UnlockOwned", 13, 0)).toThrow(MissingSaveKey); // a missing key is still refused
+  });
   it.skipIf(!existsSync("scripts/updater/.cache/N.new.js"))("calls what N.js calls", () => {
     const fn = njsFunction(loadNjs(), "MenagerieStuff")!;
     const expected = njsCalls(njsNamedBlocks(fn.body, "NightmarinerBon").join("\n"));
@@ -281,13 +289,15 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("nightmariner (MenagerieStuff Nightma
 });
 
 describe("ports stay on their boundary", () => {
-  const c = () => gameCtx({ data: {}, charNames: [], companion: null, guildData: {}, serverVars: null, tournament: {}, accountCreateTime: 1, lastUpdated: 1 }, 0);
+  const env = (data: Record<string, unknown>) => ({ data, charNames: [], companion: null, guildData: {}, serverVars: null, tournament: {}, accountCreateTime: 1, lastUpdated: 1 });
+  const c = () => gameCtx(env({}), 0);
+  const withMenagerie = () => gameCtx(env({ Menagerie: [[], [], [1]] }), 0); // the head guard returns 0 on an empty list, before any sub-case
   it("Breeding: only ShinyBonusS, SpecialPassives Lv and TotPetsFound", () => {
     for (const d of ["PetUpgBONUS", "ShinySpdMulti", "Nope"]) expect(() => Breeding(c(), d, "0", 0, 0)).toThrow(NotPorted);
     expect(() => Breeding(c(), "SpecialPassives", "REQ", 0, 0)).toThrow(NotPorted);
   });
   it("MenagerieStuff: only NightmarinerBon (boat 0), NightmarinerTotLV and UnlockOwned", () => {
-    for (const d of ["Nope", "UnlockCost"]) expect(() => MenagerieStuff(c(), d, 0, 0)).toThrow(NotPorted);
-    expect(() => MenagerieStuff(c(), "NightmarinerBon", 1, 0)).toThrow(NotPorted); // the other branch (b != 0, 499 instead of 1999) is not reached
+    for (const d of ["Nope", "UnlockCost"]) expect(() => MenagerieStuff(withMenagerie(), d, 0, 0)).toThrow(NotPorted);
+    expect(() => MenagerieStuff(withMenagerie(), "NightmarinerBon", 1, 0)).toThrow(NotPorted); // the other branch (b != 0, 499 instead of 1999) is not reached
   });
 });
