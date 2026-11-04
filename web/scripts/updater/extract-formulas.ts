@@ -19,7 +19,7 @@ const FN_RE = /_customBlock_([A-Za-z0-9_]+)=function\([^)]*\)\{/g;
 /** Reads a `return <expr>;` or a balanced `{<block>}` starting at `start`.
  *  String/paren/brace aware so `;` or `}` inside strings or nested calls
  *  don't terminate it early. Returns the text and the index just past it. */
-function readBody(src: string, start: number): { text: string; end: number } | null {
+export function readBody(src: string, start: number): { text: string; end: number } | null {
   if (src.startsWith("{", start)) {
     let depth = 0, i = start, inStr: string | null = null;
     for (; i < src.length; i++) {
