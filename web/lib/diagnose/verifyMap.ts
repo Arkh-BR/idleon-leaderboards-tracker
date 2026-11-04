@@ -1,7 +1,7 @@
 // Verification map: for each N.js block a tracker reaches, how far do we trust it?
 //   validated: a reading with a value for a stat whose trace contains the block exists (readings =
 //              which); a (reading, stat) pair in the reading's knownGaps does not count
-//   runtime:   every appearance is a value the save cannot give (counted as 0)
+//   runtime:   every appearance is a value the save cannot give (counted as 0, or stood in for by a stated assumption: `assumed:`)
 //   derived:   neither; only ported from the N.js text
 // "Not ported" is a separate question, a block whose N.js calls the trace lacks (notPorted). A node
 // with no N.js slice to compare is "unchecked", reported as such, never as a clean block.
@@ -15,10 +15,14 @@ export type VerifyRow =
   | { block: string; status: "validated"; readings: string[] }
   | { block: string; status: "derived" | "runtime" };
 
-const isRuntime = (n: TraceNode) => n.note?.startsWith("runtime:") === true;
+const isRuntime = (n: TraceNode) => n.note?.startsWith("runtime:") === true || n.note?.startsWith("assumed:") === true;
 
-/** Every node under `trace` (not the root), depth-first in call order. */
-export const traceNodes = (trace: TraceNode): TraceNode[] => trace.children.flatMap((n) => [n, ...traceNodes(n)]);
+/**
+ * Every node under `trace` (not the root), depth-first in call order. Not the `(absent)` leaves of `asNum`
+ * (an absent index read as 0): they are no N.js block, so they are neither a row nor a node to check.
+ */
+export const traceNodes = (trace: TraceNode): TraceNode[] =>
+  trace.children.filter((n) => !n.note?.startsWith("absent:")).flatMap((n) => [n, ...traceNodes(n)]);
 
 /** One row per block, in order of first appearance. Runtime wins only if every appearance is runtime. */
 export function verifyMap(

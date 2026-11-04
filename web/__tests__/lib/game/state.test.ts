@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { GameState, buildGameState, charKey, num, opt, type GameEnvelope } from "@/lib/game/state";
-import { InvalidSaveValue, MissingSaveKey } from "@/lib/game/errors";
+import { InvalidSaveValue, MissingSaveKey, OLDEST_GATE, UNPORTED_STEPS } from "@/lib/game/errors";
 
 const env = (data: Record<string, unknown>, extra: Partial<GameEnvelope> = {}): GameEnvelope => ({
   data,
@@ -269,7 +269,16 @@ describe.skipIf(saves.length === 0)("every golden save builds a GameState", () =
   it.each(saves)("%s", (f) => {
     const { raw } = load(f);
     const s = buildGameState(raw);
-    expect(Object.keys(s.data)).toHaveLength(Object.keys(raw.data).length);
+    if (raw.data.DoOnceREAL < OLDEST_GATE) {
+      // older than the game's load steps ported (lib/game/migrations): every read is refused
+      expect(s.refusal?.key).toBe(UNPORTED_STEPS);
+      expect(() => s.data).toThrow(MissingSaveKey);
+      return;
+    }
+    expect(s.refusal).toBeUndefined();
+    // every save key is there, plus the attributes the game's load gives an older save (a loader step that ran)
+    for (const k of Object.keys(raw.data)) expect(Object.hasOwn(s.data, k), k).toBe(true);
+    for (const k of Object.keys(s.data).filter((k) => !Object.hasOwn(raw.data, k))) expect(s.migrations.some((m) => m.startsWith(`${k} = [] `)), k).toBe(true);
     expect(Object.keys(s.corrupt)).toEqual([]);
     expect(s.charNames.length).toBe(raw.charNames.length);
     expect(s.lastUpdated).toBe(raw.lastUpdated);

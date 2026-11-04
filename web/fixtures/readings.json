@@ -1,5 +1,16 @@
 [
   {
+    "id": "2026-11-01-artifact-find-markhe",
+    "stat": "artifactFind",
+    "charIdx": 8,
+    "charName": "Markhe",
+    "map": 0,
+    "capturedAt": "2026-11-01T03:53:45.628Z",
+    "game": "167Qx",
+    "saveFile": "2026-11-01-artifact-find-markhe.json",
+    "saveSha1": "ca364c4ff8401e95b8643d586600cd448d320ddc"
+  },
+  {
     "id": "2026-11-03-damage-arkhe",
     "stat": "damage",
     "charIdx": 0,

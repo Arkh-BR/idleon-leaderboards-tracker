@@ -20,6 +20,7 @@ import { diffMaps, diffSets, isMapDiffEmpty, type MapDiff } from "./diff";
 import { fetchSteamNews, newsSince, type SteamNews } from "./steam";
 import { buildItemsFile, buildListsFile, buildMonstersFile } from "./emit-game-data";
 import { buildImpactReport } from "./impact";
+import { writeSaveAttrs } from "./gen-save-attrs";
 import { runCases } from "./golden/cases";
 import { FORMULA_REGISTRY } from "./registry/formula-registry.gen";
 
@@ -40,11 +41,13 @@ const WRITE_GAME_DATA = args.has("--write-game-data");
  * Regenerates the arkh engine's committed game-data files from the live data
  * by merging onto the existing files (never drops a committed key). This is
  * what makes the detected changes actually reach the tools (Drop Rate etc.).
+ * It also rewrites lib/game's generated save-attribute table (lib/game/data/saveAttrs.gen.ts) from the same N.js.
  */
 async function writeGameData(
   items: Record<string, Item>,
   lists: Record<string, unknown>,
   monsters: Record<string, Monster>,
+  njs: string,
 ): Promise<void> {
   const itemsPath = resolve(GAME_DIR, "items.js");
   const listsPath = resolve(GAME_DIR, "customlists.js");
@@ -64,6 +67,7 @@ async function writeGameData(
   writeFileSync(itemsPath, it.text, "utf8");
   writeFileSync(listsPath, ls.text, "utf8");
   writeFileSync(monstersPath, mo.text, "utf8");
+  writeSaveAttrs(njs); // lib/game/data/saveAttrs.gen.ts: the save key the game loads each attribute from
   console.log(`[updater] 🛠️  game-data atualizado: items.js (+${it.added} novos, ~${it.updated} alterados, ${it.kept} preservados) · customlists.js (~${ls.updated} alteradas, +${ls.added.length} novas${ls.added.length ? ": " + ls.added.join(", ") : ""}) · monsters.js (+${mo.added} novos, ~${mo.updated} alterados)`);
   if (ls.missing.length) console.log(`[updater]    listas não reextraídas (mantidas do baseline): ${ls.missing.join(", ")}`);
 }
@@ -255,7 +259,7 @@ async function main(): Promise<void> {
     : sinceCheck;
 
   // 4b. Optionally regenerate the engine's committed game-data files.
-  if (WRITE_GAME_DATA) await writeGameData(cur.items, cur.lists, extractMonsters(normalizeBundle(text)));
+  if (WRITE_GAME_DATA) await writeGameData(cur.items, cur.lists, extractMonsters(normalizeBundle(text)), text);
 
   const today = todaySP();
   const reportPath = resolve(REPORT_DIR, `report-${today}.md`);

@@ -1,11 +1,39 @@
 // Artifact Find page: the statTracker kit's config for N.js
 // Sailing("BoatArtiMulti", 0) — the Artifact Find line of the Skill Info.
 
+import { CURRENT_CSVER, MissingSaveKey, TreeTotalMismatch, UNPORTED_STEPS } from "@/lib/game/errors";
 import type { StatPageConfig } from "@/lib/statTracker/config";
 import { groupedGainsModel } from "@/lib/statTracker/biggestGains";
-import { ARTI_GROUPS, ARTI_ROOT, ARTI_VOTE_NAME } from "@/lib/arkh/stats/defs/artifact-find";
 import { formatArtifactFind } from "./format";
+import { ARTI_GROUPS, ARTI_ROOT, ARTI_VOTE_NAME } from "./groups";
 import { TOP_ARTI_GENERATED_AT, TOP_ARTI_PLAYERS_SCANNED } from "./topArtifactFind.meta";
+
+/**
+ * The error the page shows for what the engine threw. The kit prints "<errPrefix>: <message>", so an engine's refusal (Ruling E: a
+ * pre-migration save is refused, never guessed) becomes a sentence for the player; every other error goes through as it is.
+ */
+export function pageError(save: unknown, e: unknown): unknown {
+  const csver = (save as { data?: { CSver?: unknown } } | null)?.data?.CSver;
+  // MissingSaveKey includes IncompleteTome. A current save that lacks a key is not "old": that is a bug, so the engine's message stays.
+  if (e instanceof MissingSaveKey && typeof csver === "number" && csver < CURRENT_CSVER) {
+    // older than the game's load steps lib/game replays: no key is missing, the tracker cannot bring the save up to date
+    if (e.key === UNPORTED_STEPS) return new Error("This save is from an older game version that this tracker can't update yet. Sign in or paste a fresh save.");
+    return new Error(`This save is from an older game version (missing ${e.key}). Sign in or paste a fresh save.`);
+  }
+  if (e instanceof TreeTotalMismatch) return new Error("Artifact Find is incomplete for this save (internal check failed). Please report it.");
+  return e;
+}
+
+/** `compute` with its errors passed through `pageError`. */
+export const withPageErrors =
+  (compute: StatPageConfig["compute"]): StatPageConfig["compute"] =>
+  async (save, charIdx, mapIdx) => {
+    try {
+      return await compute(save, charIdx, mapIdx);
+    } catch (e) {
+      throw pageError(save, e);
+    }
+  };
 
 export const ARTIFACT_PAGE: StatPageConfig = {
   statName: "Artifact Find",
@@ -27,8 +55,9 @@ export const ARTIFACT_PAGE: StatPageConfig = {
     exportPrefix: "artifact-find-snapshots",
     exportLabel: "artifact-find-tracker",
   },
-  compute: (save, charIdx) =>
-    import("@/lib/arkh/computeArtifactFind").then((m) => m.computeArkhArtifactFind(save, charIdx)),
+  compute: withPageErrors((save, charIdx) =>
+    import("@/lib/game/trackers/artifactFind").then((m) => m.computeGameArtifactFind(save, charIdx))
+  ),
   formatTotal: formatArtifactFind,
   gains: groupedGainsModel(ARTI_ROOT, ARTI_GROUPS, { skip: [ARTI_VOTE_NAME] }),
   loadTop: () =>

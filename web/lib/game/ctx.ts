@@ -88,10 +88,25 @@ export function block<A extends (string | number)[]>(
 
 /**
  * A value the game has only at runtime (active buffs, masterclass forms, GenINFO...): 0,
- * and shown in the trace as "not counted" instead of passing as a silent zero. The only
- * sanctioned "not computable from the save" value.
+ * and shown in the trace as "not counted" instead of passing as a silent zero. One of the two
+ * sanctioned "not computable from the save" values, with `assumed()` below.
  */
 export function runtime(ctx: Ctx, name: string, note: string): number {
   if (ctx.trace) ctx.trace.children.push(traceNode(ctx.trace, ctx.player, name, [], 0, `runtime: ${note}`));
   return 0;
+}
+
+/**
+ * A stand-in for state the game has only at runtime and the save cannot give, stated openly: it returns `value` (the assumption) and shows
+ * in the trace as `assumed: <note>` carrying that value. The second sanctioned non-save value, next to `runtime()`: use it where counting
+ * 0 would make the number wrong and a decision has been made to count something else (the Laboratory's connection, the Tome actor's
+ * score). Like a `runtime` leaf it stands for no N.js function: `traceCalls` skips it and `verifyMap` reports a block that only
+ * appears this way as "runtime".
+ *
+ * `note` is what a page shows: one short sentence in plain English. `detail` is the full reason (offsets, the engine's own names), kept
+ * on the trace node for debugging.
+ */
+export function assumed(ctx: Ctx, name: string, note: string, value: number, detail?: string): number {
+  if (ctx.trace) ctx.trace.children.push(traceNode(ctx.trace, ctx.player, name, [], value, `assumed: ${note}`, detail));
+  return value;
 }
