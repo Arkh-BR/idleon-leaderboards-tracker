@@ -124,7 +124,7 @@ Do not edit by hand: regenerate it when N.js changes. Tick a row when its sub-ca
 
 ## Minehead
 
-- [x] Minehead("Button_Bonuses",3,0) — depth 1 — 1219 chars — ported in Task 8 (any slot 0..8): the replay of the DNSM.Button_Bonsuz fill, press by press over OptionsListAccount[594]
+- [x] Minehead("Button_Bonuses",3,0) — depth 1 — 1219 chars — ported in Task 8 (any slot 0..8): the replay of the DNSM.Button_Bonsuz fill, press by press over OptionsListAccount[594]; the game's cache is per session (built with the Companions(0) gate of the character that first asks), modelled here as built for the current character
 - [~] Minehead("GlimboTotalTrades",0,0) — depth 2 — 481 chars — not reached for Button_Bonuses 3 and Grid_Bonus(125, 0): only the e == 2 branch of Grid_Bonus square 168 (and UI code) calls it
 - [x] Minehead("Button_BonusPerTime") — depth 2 — 56 chars — ported in Task 8 (any slot)
 - [x] Minehead("Button_BonusMULTI",0,0) — depth 2 — 102 chars — ported in Task 8
@@ -155,7 +155,7 @@ Do not edit by hand: regenerate it when N.js changes. Tick a row when its sub-ca
 
 ## Thingies
 
-- [x] Thingies("LoreEpiBon",3,0) — depth 1 — 1352 chars — ported in Task 8 (any episode 0..10): the replay of one iteration of the DNSM.LoreEpiBon fill; the Tome score is DNSM_TomeQTYtot, lib/tome's computeTome standing in for the Tome actor's runtime GenInfo[84] (Ruling K), the rebuild (-1) throws NotPorted
+- [x] Thingies("LoreEpiBon",3,0) — depth 1 — 1352 chars — ported in Task 8 (any episode 0..10): the replay of one iteration of the DNSM.LoreEpiBon fill; the Tome score is DNSM_TomeQTYtot, lib/tome's computeTome standing in for the Tome actor's runtime GenInfo[84] (Ruling K), a Tome row lib/tome cannot compute refuses (IncompleteTome, a MissingSaveKey: the saves below CSver 34), the rebuild (-1) throws NotPorted
 - [x] Thingies("Have_ban_i",0,0) — depth 2 — 67 chars — ported in Task 6
 - [x] Thingies("EmperorBon",8,0) — depth 2 — 1769 chars — ported in Task 6
 - [x] Thingies("LegendPTS_bonus",11,0) — depth 2 — 154 chars — ported in Task 4 (Ruling C); only this sub-case

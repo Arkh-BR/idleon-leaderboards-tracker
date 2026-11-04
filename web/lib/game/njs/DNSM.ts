@@ -4,7 +4,7 @@
 import { asNum, asNumber, attr } from "../attr";
 import { assumed, block, runtime, type Ctx } from "../ctx";
 import { AlchemyDescription, CompanionDB, StarSigns } from "../data";
-import { InvalidSaveValue, MissingSaveKey, NotPorted } from "../errors";
+import { IncompleteTome, InvalidSaveValue, MissingSaveKey, NotPorted } from "../errors";
 import { hString } from "../hstring";
 import { contains } from "../lists";
 import { charKey, opt, type GameState } from "../state";
@@ -138,16 +138,19 @@ export const DNSM_AlchVials = block("DNSM.AlchVials", (ctx, key: string) => {
   return asNumber(total);
 });
 
-/** The Tome score of a state: `computeTome` is heavy (118 rows), the state is immutable and the score is the account's, so once per state. */
-const tomeScores = new WeakMap<GameState, { total: number; covered: number; rows: number }>();
+/** The Tome score of a state, or the refusal: `computeTome` is heavy (124 rows), the state is immutable and the score is the account's, so once per state. */
+const tomeScores = new WeakMap<GameState, { total: number; covered: number; rows: number } | IncompleteTome>();
 
 /**
  * `DNSM.TomeQTYtot`, the account's Tome score: the Tome actor's `GenInfo[84]` (ActorEvents_229), which sums `Summoning("TomePTS", g)`
  * over `DNSM.TomeQTY` @5779007 and keeps it in `TomeQTYtot` @5778865. It is runtime state this engine does not replay, so it stands in
  * with our own port of the Tome, `computeTome` (lib/tome, written from the N.js, validated in the game on 2026-11-03), run on the save
  * (Ruling K). Nothing IdleonToolbox computed is read: the envelope is rebuilt without `parsedData` and `extraData`, which would make
- * `computeTome` take IT's per-task points. A task `computeTome` cannot compute counts as no points (the leaf says how many rows it
- * computed); an error from it is not caught.
+ * `computeTome` take IT's per-task points.
+ *
+ * `computeTome` does not throw for a row it cannot compute (the save lacks what it reads): it counts it as no points. That would make a
+ * pre-migration save's score a silent floor, so a result with fewer rows computed than rows is refused (`IncompleteTome`, a
+ * MissingSaveKey, Ruling E) naming the rows. Any other error from it is not caught.
  */
 export const DNSM_TomeQTYtot = block("DNSM.TomeQTYtot", (ctx) => {
   let score = tomeScores.get(ctx.state);
@@ -161,8 +164,14 @@ export const DNSM_TomeQTYtot = block("DNSM.TomeQTYtot", (ctx) => {
       tournament: structuredClone(s.tournament),
       serverVars: structuredClone(s.serverVars),
     } as unknown as Parameters<typeof computeTome>[0]);
-    tomeScores.set(s, (score = { total: result.totalPts, covered: result.coveredCount, rows: result.rows.length }));
+    const uncovered = result.rows.filter((r) => r.pts === null);
+    score =
+      result.coveredCount < result.rows.length || uncovered.length
+        ? new IncompleteTome(uncovered.map((r) => ({ idx: r.idx, task: r.task, source: r.source })))
+        : { total: result.totalPts, covered: result.coveredCount, rows: result.rows.length };
+    tomeScores.set(s, score);
   }
+  if (score instanceof IncompleteTome) throw score;
   return assumed(
     ctx,
     "Tome.totalPoints",

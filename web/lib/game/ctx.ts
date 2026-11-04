@@ -88,8 +88,8 @@ export function block<A extends (string | number)[]>(
 
 /**
  * A value the game has only at runtime (active buffs, masterclass forms, GenINFO...): 0,
- * and shown in the trace as "not counted" instead of passing as a silent zero. The only
- * sanctioned "not computable from the save" value.
+ * and shown in the trace as "not counted" instead of passing as a silent zero. One of the two
+ * sanctioned "not computable from the save" values, with `assumed()` below.
  */
 export function runtime(ctx: Ctx, name: string, note: string): number {
   if (ctx.trace) ctx.trace.children.push(traceNode(ctx.trace, ctx.player, name, [], 0, `runtime: ${note}`));

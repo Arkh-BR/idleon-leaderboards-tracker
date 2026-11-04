@@ -28,6 +28,13 @@ export const Minehead: (ctx: Ctx, d: string, b: number, e: number) => number = b
  * is built from the save each time). The account has pressed OptionsListAccount[594] times; press `f` belongs to slot
  * `floor(f / 5) mod 9` and adds `Button_BonusPerTime(slot) x Button_BonusMULTI`, one press at a time (a float sum, not a product).
  * The game calls the two helpers on every press; they are constants of the loop, so each is called once per slot here.
+ *
+ * The cache is per session, not per character: the game fills `Button_Bonsuz` once, with the Companions(0) gate (`Lv0[14] >= 2`, a
+ * character's level) of whichever character asks first, rebuilds it only from the Minehead UI (the `Button_Bonuses(0, -1)` calls
+ * @13189253, @13417222, @13417985, @13418698), and keeps it across a character switch (DNSM is only swapped around LocalSave
+ * @6064029/@6068047 and cleared at logout @22164148). This replay models "the cache as built for the current character", so the game
+ * shows this value only if the session's first Minehead read was on that character; for a character whose `Lv0[14]` is below 2 it can
+ * differ from what another character's session shows. It is not a per-character term in the game.
  */
 function buttonBonuses(ctx: Ctx, b: number): number {
   const slots: number[] = new Array(9).fill(0);

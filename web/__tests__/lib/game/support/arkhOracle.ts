@@ -103,10 +103,9 @@ const TOME_SOURCE =
   "lib/arkh reads IdleonToolbox's parsedData tome total; lib/game uses lib/tome (N.js port, validated in game 2026-11-03) for the Tome actor's GenInfo[84] @5778865 (the Lore Episode reads it). With the total forced to IdleonToolbox's number for this save, lib/game equals lib/arkh (loreEpi.test.ts)";
 /** The saves whose loreEpi3 differs only because the Tome total of lib/tome is not the one IdleonToolbox stamped (checked in loreEpi.test.ts). */
 const TOME_SOURCE_SAVES = [
-  "0celot8.json", "1st_Giri.json", "24632463.json", "5OhTree.json", "Dragonlzl.json", "Exrom.json", "FenrirAdra.json", "Flipper143.json",
-  "GIM_SSS.json", "Grandesz.json", "Koweabooo.json", "Pontinhas.json", "arkhe-2026-09-23.json", "bluestar3112.json", "breakinbrad.json",
-  "hellzd4nt3.json", "joelok.json",
-];
+  "1st_Giri.json", "Dragonlzl.json", "FenrirAdra.json", "Flipper143.json", "Grandesz.json", "Koweabooo.json", "arkhe-2026-09-23.json",
+  "bluestar3112.json", "breakinbrad.json", "hellzd4nt3.json", "joelok.json",
+]; // only full-coverage saves: a save with a Tome row lib/tome cannot compute is refused (IncompleteTome), not a difference
 
 /**
  * Where N.js proves lib/arkh wrong and lib/game keeps the N.js value. `save` is the file name of the
@@ -118,7 +117,9 @@ export const KNOWN_ARKH_DIFFS: { save: string; ci?: number; source: string; why:
   { save: "Koweabooo.json", ci: 10, source: "sticker2add", why: COMPANION_0_GATE },
   { save: "Koweabooo.json", ci: 10, source: "sticker2mult", why: COMPANION_0_GATE }, // 0 on every real save; differs only with Menagerie unlock 22 forced
   // Task 8: the Minehead presses are multiplied by 1 + Grid_Bonus(125, 0) / 100, whose Grid_Bonus_Allmulti has the same Companions(0) term
-  { save: "Koweabooo.json", ci: 10, source: "button3", why: COMPANION_0_GATE },
+  // The game keeps DNSM.Button_Bonsuz for the whole session, built with the Companions(0) gate of the character that first asks (rebuilt
+  // only from the Minehead UI @13189253, @13417222, @13417985, @13418698): it shows this value only if the first Minehead read was on this character
+  { save: "Koweabooo.json", ci: 10, source: "button3", why: `${COMPANION_0_GATE}. The Minehead cache is per session in the game, not per character: lib/game models it as built for the current character (Minehead.ts), so the game shows this value only if the session's first Minehead read was on this character` },
   // Ruling K: the Tome score of the Lore Episode is lib/tome's, not IdleonToolbox's (ci omitted: every character)
   ...TOME_SOURCE_SAVES.map((save) => ({ save, source: "loreEpi3", why: TOME_SOURCE })),
 ];

@@ -8,7 +8,7 @@ import { basename } from "node:path";
 
 const tome = vi.hoisted(() => ({ total: 13000 }));
 vi.mock("@/lib/tome/compute", () => ({
-  computeTome: () => ({ totalPts: tome.total, coveredCount: 124, missingCount: 0, rows: new Array(124).fill(null), usedParsedTomePoints: false }),
+  computeTome: () => ({ totalPts: tome.total, coveredCount: 124, missingCount: 0, rows: Array.from({ length: 124 }, (_, i) => ({ idx: i + 1, task: "task", source: "src", pts: 1 })), usedParsedTomePoints: false }),
 }));
 
 import { GOLDEN_SAVES, KNOWN_ARKH_DIFFS, arkhArtifactLeaf, gameCtx } from "../support/arkhOracle";

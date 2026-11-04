@@ -1,4 +1,4 @@
-import { asNumber, attr } from "../attr";
+import { asNum, asNumber, attr } from "../attr";
 import { block } from "../ctx";
 import { ChipDesc } from "../data";
 import { hString } from "../hstring";
@@ -16,11 +16,11 @@ export const chipBonuses = block("chipBonuses", (ctx, d: string) => {
   listAt(ctx, "Lab", slots); // the game indexes Lab[1 + player][slot] directly
   let total: number | undefined; // ChipBbonusz[d]: absent until a chip of this kind is added
   for (let h = 0; h < 7; h++) {
-    const cell = attr(ctx, "Lab", slots, h);
-    if (-1 == cell) continue;
-    const chip = (ChipDesc as unknown as readonly (readonly unknown[])[])[asNumber(cell) | 0];
+    if (-1 == attr(ctx, "Lab", slots, h)) continue; // the raw slot, loosely: a null or absent one is not empty
+    const index = asNum(ctx, "Lab", slots, h) | 0; // `ChipDesc[c.asNumber(Lab[1 + p][H]) | 0]`: an absent slot reads chip 0, with an (absent) leaf
+    const chip = (ChipDesc as unknown as readonly (readonly unknown[])[])[index];
     // the game indexes ChipDesc[slot][10] directly and would throw on a chip it does not have
-    if (!chip) throw new RangeError(`chipBonuses: no chip ${asNumber(cell)} in ChipDesc`);
+    if (!chip) throw new RangeError(`chipBonuses: no chip ${index} in ChipDesc`);
     if (hString(chip[10]) === d) total = asNumber(total) + asNumber(chip[11]);
   }
   return asNumber(total);

@@ -6,8 +6,9 @@ import { existsSync, readFileSync } from "node:fs";
 import { basename } from "node:path";
 import { GOLDEN_SAVES, KNOWN_ARKH_DIFFS, arkhArtifactLeaf, gameCtx } from "../support/arkhOracle";
 import { withPlayer, type Ctx } from "@/lib/game/ctx";
-import { InvalidSaveValue, MissingSaveKey, NotPorted } from "@/lib/game/errors";
-import { LabMainBonus, NinjaInfo, Number2Letter, Spelunky, UpgradeVault } from "@/lib/game/data";
+import { IncompleteTome, InvalidSaveValue, MissingSaveKey, NotPorted } from "@/lib/game/errors";
+import { ChipDesc as ChipDescData, LabMainBonus, NinjaInfo, Number2Letter, Spelunky, UpgradeVault } from "@/lib/game/data";
+const ChipDesc = ChipDescData as unknown as string[][];
 import { listAt } from "@/lib/game/lists";
 import { Breeding } from "@/lib/game/njs/Breeding";
 import { CauldronStats } from "@/lib/game/njs/CauldronStats";
@@ -26,7 +27,7 @@ import { SushiStuff } from "@/lib/game/njs/SushiStuff";
 import { Summoning } from "@/lib/game/njs/Summoning";
 import { Summoning2 } from "@/lib/game/njs/Summoning2";
 import { Thingies } from "@/lib/game/njs/Thingies";
-import { callDiff, njsCalls, njsFunction, njsNamedBlocks, njsSlice, traceCalls } from "@/lib/diagnose/njsCalls";
+import { callDiff, njsCalls, njsFunction, njsNamedBlocks, njsNumericBranch, njsSlice, traceCalls } from "@/lib/diagnose/njsCalls";
 import { computeTome } from "@/lib/tome/compute";
 import { loadNjs } from "@/scripts/njs-calls";
 
@@ -67,6 +68,19 @@ const CURRENT_CSVER = 34.05;
 // Sushi is loaded from CSver 30, Research from 29, Spelunk from 27, Menagerie from 34; Spelunk[49] is a list the Spelunk of the older saves
 // does not have yet (Spelunk itself loads from CSver 27). starSign61 reads the Breeding's Shiny bonus 3 through the Menagerie (unlock 11)
 // whenever the Rift enables star signs (Rift 10+, every real save).
+// loreEpi3 also reads the Tome score: lib/tome cannot compute the Royal Guardian rows (107..109, and 120 Unique Sushi on 5OhTree) of the saves
+// below CSver 34, and a partial score is refused (IncompleteTome). HourZero has no Spelunk, which is read first.
+const LORE_REFUSED = [
+  "0celot8.json: Tome rows 107,108,109",
+  "100Cotton.json: Tome rows 107,108,109",
+  "24632463.json: Tome rows 107,108,109",
+  "5OhTree.json: Tome rows 107,108,109,120",
+  "Brokami.json: Tome rows 107,108,109",
+  "Exrom.json: Tome rows 107,108,109",
+  "GIM_SSS.json: Tome rows 107,108,109",
+  "HourZero.json: Spelunk",
+  "Pontinhas.json: Tome rows 107,108,109",
+];
 const NO_MENAGERIE = ["01010111001.json: Menagerie","0celot8.json: Menagerie","0xEXCEED.json: Menagerie","100Cotton.json: Menagerie","1st_Giri.json: Menagerie","24632463.json: Menagerie","26515665165165.json: Menagerie","5OhTree.json: Menagerie","B0schi.json: Menagerie","Brokami.json: Menagerie","Dragonlzl.json: Menagerie","Exrom.json: Menagerie","FenrirAdra.json: Menagerie","Frans813.json: Menagerie","GIM_SSS.json: Menagerie","Grandesz.json: Menagerie","HourZero.json: Menagerie","Jrod11.json: Menagerie","MarleyLongbott.json: Menagerie","Pepega777.json: Menagerie","Pontinhas.json: Menagerie","Rinkzate.json: Menagerie","TinTim.json: Menagerie","arkhe-2026-09-23.json: Menagerie","arkhe-it-profile-2026-09-24.json: Menagerie","arkhe-live-2026-09-23.json: Menagerie","arkhe-live-2026-09-24.json: Menagerie","breakinbrad.json: Menagerie","dida123.json: Menagerie","joelok.json: Menagerie","ryujinsan.json: Menagerie"];
 const NO_SPELUNK49 = ["01010111001.json: Spelunk[49]","0celot8.json: Spelunk[49]","0xEXCEED.json: Spelunk[49]","100Cotton.json: Spelunk[49]","1st_Giri.json: Spelunk[49]","24632463.json: Spelunk[49]","26515665165165.json: Spelunk[49]","5OhTree.json: Spelunk[49]","B0schi.json: Spelunk[49]","Brokami.json: Spelunk[49]","Dragonlzl.json: Spelunk[49]","Exrom.json: Spelunk[49]","FenrirAdra.json: Spelunk[49]","Frans813.json: Spelunk[49]","GIM_SSS.json: Spelunk[49]","Grandesz.json: Spelunk[49]","HourZero.json: Spelunk","Jrod11.json: Spelunk[49]","MarleyLongbott.json: Spelunk[49]","Pepega777.json: Spelunk[49]","Pontinhas.json: Spelunk[49]","Rinkzate.json: Spelunk[49]","TinTim.json: Spelunk[49]","arkhe-2026-09-23.json: Spelunk[49]","arkhe-it-profile-2026-09-24.json: Spelunk[49]","arkhe-live-2026-09-23.json: Spelunk[49]","arkhe-live-2026-09-24.json: Spelunk[49]","breakinbrad.json: Spelunk[49]","dida123.json: Spelunk[49]","joelok.json: Spelunk[49]","ryujinsan.json: Spelunk[49]"];
 const REFUSED: Record<string, string[]> = {
@@ -74,7 +88,7 @@ const REFUSED: Record<string, string[]> = {
   sushi7: ["5OhTree.json: Sushi", "HourZero.json: Sushi"],
   jelly19: ["HourZero.json: Research"],
   mainframe14: [],
-  loreEpi3: ["HourZero.json: Spelunk"],
+  loreEpi3: LORE_REFUSED,
   pristine2: [],
   palette5: NO_SPELUNK49,
   spelunkBit26: ["HourZero.json: Spelunk"],
@@ -255,10 +269,21 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("Ninja EmporiumBonus (N.js @10845956)
     for (const d of [0, 3, 8, 9, 11, 13, 15, 100, 114]) expect(() => mf(c, d), `d=${d}`).toThrow(NotPorted);
     expect(() => Ninja(c, "NotASubcase", 0, 0)).toThrow(NotPorted);
   });
-  it.skipIf(noNjs)("MainframeBonus 14 calls what its one path does: nothing but the Emporium", () => {
+  it("MainframeBonus 10 and 14 call nothing but the Emporium (and the connection assumption)", () => {
     const c = emporium([8], true);
     mf(c);
-    expect(traceCalls(c.trace!).map((x) => x.block)).toContain("Ninja");
+    expect(traceCalls(c.trace!).map((x) => x.block)).toEqual(["MainframeBonus", "Ninja", "Ninja", "Ninja", "Ninja"]); // items 8..11
+    const ten = emporium([8], true);
+    mf(ten, 10);
+    expect(traceCalls(ten.trace!).map((x) => x.block)).toEqual(["MainframeBonus", "Ninja", "Ninja", "Ninja", "Ninja"]);
+  });
+  it.skipIf(noNjs)("N.js has no branch of its own for bonuses 10 and 14, so the generic path (row [5] connected, [4] not) is what they execute", () => {
+    const fn = njsFunction(loadNjs(), "MainframeBonus")!;
+    expect(fn.body.length).toBeGreaterThan(1000);
+    expect(njsNumericBranch(fn.body, 14, fn.params)).toBeUndefined();
+    expect(njsNumericBranch(fn.body, 10, fn.params)).toBeUndefined();
+    // while the bonuses that do have one (0, 3, 8, 9, 11, 13, 15, 17) are found, so the check is not blind
+    for (const d of [0, 3, 9, 11]) expect(njsNumericBranch(fn.body, d, fn.params), `d=${d}`).toBeDefined();
   });
 });
 
@@ -330,6 +355,33 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("Thingies LoreEpiBon (N.js @10974601)
       expect(DNSM_TomeQTYtot(gameCtx(env, 0)), d.save).not.toBe(itTotal);
     }
   }, 120_000);
+  it("a save with a Tome row lib/tome cannot compute is refused, naming the rows, not scored as a floor (Ruling E)", () => {
+    // rows 107..109 read RoyalG and RoyalMaps (the Royal Guardian, from CSver 32): computeTome would count them as no points
+    const noRoyal = () =>
+      variant((d) => {
+        setIn(d, "Spelunk", (sp) => (sp[13][2] = 10));
+        delete d.RoyalG;
+        delete d.RoyalMaps;
+      });
+    const c = noRoyal();
+    let error: unknown;
+    try {
+      term(c);
+    } catch (e) {
+      error = e;
+    }
+    expect(error).toBeInstanceOf(IncompleteTome);
+    expect(error).toBeInstanceOf(MissingSaveKey); // refused like any pre-migration key
+    expect((error as IncompleteTome).key).toBe("Tome rows 107,108,109");
+    expect((error as IncompleteTome).rows.map((r) => r.task)).toEqual(["Total Royal Statue LV", "Royal Guardian Outposts Built", "Total Resource Grade"]);
+    expect((error as IncompleteTome).message).toContain('#107 "Total Royal Statue LV"');
+    expect(() => DNSM_TomeQTYtot(noRoyal())).toThrow(IncompleteTome);
+    expect(() => DNSM_TomeQTYtot(c)).toThrow(IncompleteTome); // the same state again: the refusal is kept, not recomputed into a score
+    // the same save with its Royal data is scored
+    expect(() => term(lore())).not.toThrow();
+    // and a term that does not read the score is not refused by it: an episode that is not unlocked answers 0 first
+    expect(term(variant((d) => (setIn(d, "Spelunk", (sp) => (sp[13][2] = 0)), delete d.RoyalG)))).toBe(0);
+  });
   it("a lore episode the list does not have, and the cache rebuild (-1), are not ported", () => {
     const c = lore();
     expect(() => term(c, 11)).toThrow(RangeError);
@@ -380,10 +432,23 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("RiftStuff enabledStarSigns (N.js @10
     expect(chipBonuses(c, "star")).toBe(1);
     expect(chipBonuses(withPlayer(c, 1), "star")).toBe(0);
   });
-  it("an empty slot is compared loosely with -1 (a null slot is not empty)", () => {
-    // N.js `-1 != Lab[1 + i][H]`: a null slot reads ChipDesc[asNumber(null) | 0] = ChipDesc[0]
-    const c = chips([null as unknown as number, -1, -1, -1, -1, -1, -1]);
-    expect(() => chipBonuses(c, "star")).not.toThrow();
+  it("an empty slot is compared loosely with -1: a null or absent slot is not empty, it reads chip 0 (Grounded Nanochip, 'def', 10), with an (absent) leaf", () => {
+    // N.js `-1 != Lab[1 + p][H]` and `ChipDesc[c.asNumber(Lab[1 + p][H]) | 0]`
+    expect(ChipDesc[0][10]).toBe("def");
+    expect(ChipDesc[0][11]).toBe("10");
+    const nul = variant((d) => setIn(d, "Lab", (l) => (l[1] = [null, -1, -1, -1, -1, -1, -1])), { trace: true });
+    const leaves = (c: Ctx) => c.trace!.children.flatMap((n) => n.children).filter((n) => n.note?.startsWith("absent:")).map((n) => n.args[0]);
+    expect(chipBonuses(nul, "def")).toBe(10);
+    expect(leaves(nul)).toEqual(["Lab[1][0]"]);
+    expect(chipBonuses(variant((d) => setIn(d, "Lab", (l) => (l[1] = [null, -1, -1, -1, -1, -1, -1]))), "star")).toBe(0);
+    // a row shorter than 7: every slot past its end is absent, so each reads chip 0 (4 of them) and leaves a leaf
+    const short = variant((d) => setIn(d, "Lab", (l) => (l[1] = [-1, -1, -1])), { trace: true });
+    expect(chipBonuses(short, "def")).toBe(40);
+    expect(leaves(short)).toEqual(["Lab[1][3]", "Lab[1][4]", "Lab[1][5]", "Lab[1][6]"]);
+    // a -1 stays empty, and a real chip leaves no leaf
+    const real = variant((d) => setIn(d, "Lab", (l) => (l[1] = [15, -1, -1, -1, -1, -1, -1])), { trace: true });
+    expect(chipBonuses(real, "star")).toBe(1);
+    expect(leaves(real)).toEqual([]);
   });
   it("a save without Lab, or without the character's row, is refused", () => {
     expect(() => chipBonuses(variant((d) => delete d.Lab), "star")).toThrow(MissingSaveKey);
@@ -570,8 +635,17 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("CauldronStats VialBonus (N.js @51088
     expect(turtle(vial({ level: 10, array: true }))).toBe(80);
   });
   it("a save without CauldronInfo, UpgVault or Rift is refused", () => {
-    expect(() => turtle(variant((d) => delete d.CauldronInfo))).toThrow(MissingSaveKey);
-    expect(() => turtle(variant((d) => delete d.Rift))).toThrow(MissingSaveKey);
+    const key = (c: Ctx) => {
+      try {
+        turtle(c);
+      } catch (e) {
+        return e instanceof MissingSaveKey ? e.key : String(e);
+      }
+      return "no error";
+    };
+    expect(key(variant((d) => delete d.CauldronInfo))).toBe("CauldronInfo");
+    expect(key(variant((d) => delete d.UpgVault))).toBe("UpgVault");
+    expect(key(variant((d) => delete d.Rift))).toBe("Rift");
   });
   it("only the VialBonus sub-case is ported, and only for an item AlchemyDescription has", () => {
     expect(() => CauldronStats(vial(), "BubbleBonus", 0, 0, 0)).toThrow(NotPorted);
