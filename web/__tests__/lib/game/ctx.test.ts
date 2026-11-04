@@ -36,7 +36,7 @@ describe("block cache", () => {
     expect([a(ctx), b(ctx)]).toEqual([1, 2]);
   });
 
-  it("withPlayer gets its own cache and keeps the same state", () => {
+  it("withPlayer shares the cache (its keys include the player) and keeps the same state", () => {
     let calls = 0;
     const f = block("F", (c) => {
       calls++;
@@ -47,10 +47,11 @@ describe("block cache", () => {
     const other = withPlayer(ctx, 2);
     expect(other.state).toBe(ctx.state);
     expect(other.map).toBe(5);
-    expect(other.cache).not.toBe(ctx.cache);
-    expect(f(other)).toBe(2);
+    expect(other.cache).toBe(ctx.cache);
+    expect(f(other)).toBe(2); // another player: computed, not the first player's value
     expect(calls).toBe(2);
-    expect(f(ctx)).toBe(0); // the original cache still holds its own value
+    expect(f(ctx)).toBe(0); // each player's value stays its own, and is a hit
+    expect(f(withPlayer(ctx, 2))).toBe(2); // a second withPlayer for the same player is a hit too
     expect(calls).toBe(2);
   });
 });
@@ -118,7 +119,7 @@ describe("block trace", () => {
     expect(m.children.map((n) => [n.value, n.player, n.note])).toEqual([
       [2, undefined, undefined], // same player as `mid`
       [5, 5, undefined], // another player
-      [5, 5, undefined], // withPlayer made a new cache, so computed again, not a cache hit
+      [5, 5, "cached"], // withPlayer shares the cache: the second call for player 5 is a hit
     ]);
   });
 

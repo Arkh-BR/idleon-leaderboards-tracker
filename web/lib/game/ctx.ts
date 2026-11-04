@@ -30,12 +30,23 @@ export const makeCtx = (state: GameState, o: { player: number; map: number; trac
   trace: o.trace ? traceRoot(o.player) : null,
 });
 
-/** Another character on the same save: shares the state and the trace, not the cache. */
-export const withPlayer = (ctx: Ctx, player: number): Ctx => ({ ...ctx, player, cache: new Map() });
+/**
+ * Another character on the same save: shares the state, the trace and the cache. The cache keys
+ * include the player, so sharing never mixes values, and a second `withPlayer` for the same
+ * character hits what the first computed.
+ */
+export const withPlayer = (ctx: Ctx, player: number): Ctx => ({ ...ctx, player });
 
 /**
- * Wraps a mirrored N.js function. Memoizes on player + map + `name + JSON.stringify(args)`
- * (so a Ctx copy that keeps the cache still never mixes players or maps), records a
+ * Wraps a mirrored N.js function. Conventions, because the cache key and the call-diff
+ * (lib/diagnose/njsCalls) both read them:
+ * - `name` equals the N.js `_customBlock_<name>` suffix exactly;
+ * - `args` mirror the N.js call literally, trailing literals included: write
+ *   `Summoning(ctx, "VaultUpgBonus", 20, 0)`, not `…, 20)`. Otherwise the same game call
+ *   splits into two cache keys and a call-diff match fails.
+ *
+ * Memoizes on player + map + `name + JSON.stringify(args)`
+ * (so a Ctx copy that shares the cache, like withPlayer, never mixes players or maps), records a
  * TraceNode when tracing (a cache hit is a leaf noted "cached"; a call that throws is kept
  * noted "threw: ..." and rethrown, never cached), and throws NonFiniteResult instead of
  * passing NaN/Infinity on, as a result or as a numeric argument (JSON would turn those
