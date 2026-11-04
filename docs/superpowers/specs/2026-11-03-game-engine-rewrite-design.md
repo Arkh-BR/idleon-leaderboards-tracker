@@ -61,6 +61,7 @@
 - Chave do save ausente, índice fora da lista, `NaN` ou `undefined` viram **erro com nome e endereço** (`state.data.TomeQTY[4] ausente`), nunca 0.
 - Valores que o jogo só tem em runtime, como buffs ativos, são declarados de forma explícita (`Runtime("Buff 108")`) e aparecem na árvore como "não contado", sem se passar por zero silencioso.
 - Em produção, um termo que lança erro marca o tracker como "incompleto" de forma visível, em vez de mostrar um número errado em silêncio.
+- Save de versão anterior: não é recusado de forma estrita. O jogo migra o save ao carregá-lo, e o motor repete essas etapas; só o que elas não dão é recusado. Decisão de 2026-11-04, em "Decisões da migração do Artifact Find (2026-11-04)", no fim deste documento.
 
 ### 6. Dados só do N.js
 
@@ -180,5 +181,44 @@ As ferramentas 1 e 2 funcionam também com o `lib/arkh`, então ajudam já duran
 - **Tamanho:** são várias rodadas. Mitigação: incremental, um tracker por PR, com o site funcionando o tempo todo.
 - **Regressão em números já validados:** DR 462.577, Damage, HP/Accuracy e Tome. Mitigação: o registro de leituras e a caracterização sobre os 106 saves bloqueiam a troca.
 - **Valores de runtime:** buffs, formas de masterclass e `GenINFO`. Mitigação: o tipo `Runtime` explícito e a nota na página.
-- **Desempenho:** o `GameState` com cache deve ficar mais rápido que o motor atual. É medido por tracker, e uma regressão bloqueia a troca.
+- **Desempenho:** o `GameState` com cache deve ficar mais rápido que o motor atual. É medido por tracker. Revisto em 2026-11-04: o que bloqueia a troca é uma lentidão perceptível, não qualquer regressão (ver "Decisões da migração do Artifact Find (2026-11-04)", no fim deste documento).
 - **"Escrito a partir do N.js":** o histórico de commits e a regra de não copiar do `lib/arkh` documentam a origem. Não é parecer jurídico; a decisão de licenciar MIT é do usuário no fim.
+
+## Decisões da migração do Artifact Find (2026-11-04)
+
+Registro do que foi decidido ao migrar o Artifact Find (branch `feat/artifact-find-game`, plano `docs/superpowers/plans/2026-11-04-artifact-find-on-lib-game.md`). O código cita "Ruling A" a "Ruling P"; elas estão definidas aqui. Onde esta seção diverge do texto acima, esta seção vale.
+
+### Decisões do usuário (2026-11-04)
+
+- **Desempenho:** aceito como "sem lentidão perceptível", não como "mais rápido que o motor atual". Com o save já carregado, trocar de personagem custa o mesmo que no `lib/arkh` (cerca de 2 ms, paridade). Carregar um save custa cerca de 24 ms a frio, uma vez por save (montar o `GameState` e o Tome), contra cerca de 2 ms no `lib/arkh`. A regra de desempenho (Riscos e critérios de troca) passa a ler assim.
+- **Saves antigos:** um save de versão anterior usa os padrões de inicialização do jogo e as migrações que o jogo roda ao carregar (`lib/game/migrations.ts`). Um atributo com gate de CSver que o save não tem recebe o valor inicial do jogo (por exemplo, Menagerie), e os blocos `DoOnceREAL` que o save ainda não rodou são repetidos na ordem do jogo. Só o que essas etapas não dão continua recusado (§5), e a página diz isso em palavras. Isso substitui "um save pré-migração é recusado de forma estrita".
+- **Bloco 378 (registro de Drop Rate):** quando o bloco 378 rodou no save (0celot8, 5OhTree), o jogo reajusta `OptionsListAccount[200]` para o Drop Rate vivo antes de o Tome o ler, e o motor não calcula o Drop Rate vivo. Decisão: "número com aviso". O score usa o valor zerado pelo bloco e a folha do Tome fica marcada `assumed:`, visível na página.
+- **Saves abaixo de CSver 30:** portados (o preenchimento do Sushi no `initialize3`, os outros preenchimentos e ajustes de `initialize1..3` que o Artifact Find lê e os blocos 251 a 366), com a premissa de que Sushi e MapBon começam vazios (o valor inicial do jogo vem do `game.mbs`, fora do N.js). A premissa está no código e aparece na árvore como `assumed:`.
+- **`NONdummies[60]`** (capitães de tipo 6): sempre contado, como no PR #71. O jogo só o preenche depois que algum personagem entra no mapa 200 (a cidade do W5) na sessão; a nota da página já diz isso.
+
+### Rulings
+
+Cada linha: o que, por quê, custo se errada.
+
+- **A:** os atributos do save (`SAVE_ATTRS`) são só os que o loader do N.js carrega. Os que existem só em runtime (`NONdummies`, `DNSM`, `CurrentMap`) ficam fora e viram funções (`NONdummies60`, `DNSM_*`) ou entram pelo `Ctx`. Por quê: modo estrito (§5), nada lê como save o que o save não tem. Custo: uma lista de teste.
+- **B:** `ARTI_GROUPS`, `ARTI_ROOT` e `ARTI_VOTE_NAME` moveram para `lib/artifactFind/groups.ts`, e `lib/arkh/stats/defs/artifact-find.ts` os reexporta (não só importa). Por quê: os importadores existentes e o oráculo dos testes seguem funcionando. Custo: caminhos de import.
+- **C:** quem precisa de um sub-caso de função que é de uma tarefa posterior porta esse sub-caso no módulo da função (criando-o se faltar), e a tarefa dona o estende. Por quê: não travar a ordem das tarefas. Custo: um módulo tocado por duas tarefas.
+- **D:** o oráculo dos testes guarda em cache a árvore do `lib/arkh` por (save, personagem), por processo. Por quê: o `lib/arkh` por fonte sobre 1163 pares é lento demais sem isso. Custo: memória no worker de teste.
+- **E:** save sem uma chave que o loader atual mapeia continua `MissingSaveKey` estrito, nunca um chute. Por quê: §5. Hoje o motor repete as etapas de load antes (N, O), então só recusa o que elas não dão (um save com `DoOnceREAL` abaixo de 248, `UNPORTED_STEPS`, ou um Tome incompleto); nenhum save real é recusado. Custo: um save muito antigo mostra erro na página em vez de número.
+- **F:** linhas do inventário inalcançáveis para os argumentos dados ficam `- [~] … não alcançada para <args>: <por quê>`, não marcadas como portadas, e a função lança `NotPorted`. Por quê: um bloco nomeado é uma sobre-aproximação. Custo: o texto do checklist.
+- **G:** a posse de companheiros vem do `companion` do envelope (a resposta capturada de `getCompanionInfoMe`) mais os tokens de `OptionsListAccount[606]`; `null` dá sem companheiros e uma folha `runtime()`; objeto sem `l` dá `MissingSaveKey`. Por quê: runtime só para o que o save não dá (§5). Custo: termos de companheiro 0 em envelope sem o campo.
+- **H:** `BundlesReceived` ausente é a conta que nunca comprou bundle (o loader, `getLoadMap` @19927310, não tem gate de CSver): lê como o mapa vazio, com uma folha `(absent)` citando o loader. Por quê: espelhar o jogo, não ser estrito por reflexo; as chaves com gate de CSver seguem em E. Custo: um save recusado passaria a mostrar valor sem os bônus de bundle.
+- **I:** `Number2Letter` é dado do jogo que o N.js não traz (padrão de atributo fora do bundle): vem da tabela legada, com proveniência no código e um teste de que os usos batem (verificado de forma indireta: slugs e eventshop iguais ao `lib/arkh` em 1163 pares). Por quê: não há outra fonte. Custo: a letra de `EventShopOwned` e `SuperBitType`.
+- **J:** a conexão do nó do Laboratório (`GenINFO[92]`, vivo no jogo) é uma assunção declarada, `assumed()`, não um 0 de runtime: o nó conta como conectado, e a folha diz `assumed:`. Por quê: 0 quebraria o 167Q validado; portar a caminhada do Lab fica para depois. Custo: o dobro do `mainframe14`/vial superestimado para quem não conecta o nó (igual ao `lib/arkh` hoje).
+- **K:** o score de Tome do Lore Episode vem do `computeTome` do `lib/tome` (nosso re-port do N.js, validado no jogo em 03/11), nunca do `parsedData`/`extraData` do IdleonToolbox; as diferenças contra o `lib/arkh` vão para `KNOWN_ARKH_DIFFS` com esse motivo. Por quê: o IdleonToolbox nunca é referência. Custo: `lib/game` depende de `lib/tome` (e, por ele, de cerca de 20 módulos do `lib/arkh`) até o Tome migrar (#9); é a única exceção transitiva a "`lib/game` não importa `lib/arkh`".
+- **L:** tamanho do snapshot. A árvore bruta do adaptador tinha 983 nós contra 98 (cerca de 207 KB contra 8,6 KB por snapshot, e o `localStorage` descarta escrita sem avisar). A página guarda a profundidade por fonte e um rastro aparado (sem `cached` e `(absent)`, só os ramos com `runtime:`/`assumed:`), no máximo 2x os nós do `lib/arkh`; o rastro completo continua num `Ctx` com trace. A nota de cada folha é curta e em inglês simples; o motivo completo (offsets, nomes internos) fica em `detail`, só no rastro completo. Custo: menos detalhe do N.js no detalhamento da página.
+- **M:** otimização sem arrependimento antes de qualquer decisão de spec: o `GameState` fica em cache por objeto de envelope (`WeakMap`), uma vez por save carregado. Um memo compartilhado entre personagens foi descartado (a chave inclui o jogador, não reusaria nada). Custo: uma camada de memo.
+- **N:** padrões de inicialização do loader para atributos com gate de CSver (Menagerie primeiro), listados à mão com os offsets do N.js e testados contra o N.js vivo. Hoje vivem em `lib/game/migrations.ts` (O). Custo: uma entrada de tabela.
+- **O:** camada de migrações de load: ao montar o estado, repete literalmente, com offsets e na ordem do jogo, os blocos do N.js que um save antigo não rodou (gates `DoOnceREAL` e CSver); o estado guarda a lista aplicada e as assunções, e a árvore as mostra. Por quê: o jogo nunca calcula num save como está armazenado. Custo: o escopo da camada; só o que o Artifact Find lê está portado, e o fim do arquivo lista cada passo examinado que não foi.
+- **P:** uma onda final de correções: o registro do updater cobre `lib/game`, as rulings e decisões entram no git (esta seção), a suíte completa roda em Node 22, a página não carrega o motor estaticamente, o cache de God Shard está documentado, o comentário falso sobre `lib/arkh` foi corrigido e a página mostra textos simples. Custo: nenhum, é limpeza.
+
+### Adiado para o plano do Coin Multi
+
+- **M5:** a recusa de um save é guardada no `GameState` e lançada só na leitura de `data`; simplificar.
+- **M6:** dois padrões para os caches do jogo em `lib/game/njs` (`DNSM.X` e `DNSM_X`); unificar.
+- **M7:** `NotPorted.sub` mistura formatos (`"ArtifactBonus"`, `"ArtifactBonus:3"`, número); padronizar.
