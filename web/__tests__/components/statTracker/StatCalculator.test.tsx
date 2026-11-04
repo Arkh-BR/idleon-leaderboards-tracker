@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, afterEach } from "vitest";
 import { render, screen, fireEvent, act } from "@testing-library/react";
 
 type LoaderProps = { onSave: (s: unknown, meta?: { refresh?: boolean }) => void; storageKey: string };
@@ -207,5 +207,42 @@ describe("StatCalculator", () => {
     render(<StatCalculator config={{ ...testConfig, unit: "", compute: async () => ({ tree, total: 12.5 }) }} />);
     act(() => loader!.onSave(save()));
     expect(await screen.findByText("12.50")).toHaveAttribute("title", "1.250000e+1");
+  });
+
+  describe("Record in-game reading (?debug=1)", () => {
+    const REC = "Record in-game reading";
+    afterEach(() => {
+      vi.restoreAllMocks();
+      window.location.search = "";
+    });
+
+    it("offers it only with the flag and a loaded save, and records the effective map", async () => {
+      const blobs: Blob[] = [];
+      URL.createObjectURL = vi.fn((b: Blob | MediaSource) => (blobs.push(b as Blob), "blob:x"));
+      URL.revokeObjectURL = vi.fn();
+      vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {});
+      const cfg = { ...testConfig, readingStat: "coinMulti" as const, noMap: true as const };
+
+      const first = render(<StatCalculator config={cfg} />);
+      act(() => loader!.onSave(save()));
+      expect(screen.queryByRole("button", { name: REC })).toBeNull(); // no flag
+      first.unmount();
+
+      window.location.search = "?debug=1";
+      const { unmount } = render(<StatCalculator config={cfg} />);
+      expect(screen.queryByRole("button", { name: REC })).toBeNull(); // no save yet
+      act(() => loader!.onSave(save()));
+      fireEvent.change(charSelect(), { target: { value: "1" } });
+      fireEvent.click(await screen.findByRole("button", { name: REC }));
+      fireEvent.change(screen.getByLabelText("Test Multi"), { target: { value: "2.00x" } });
+      fireEvent.click(screen.getByRole("button", { name: "Download" }));
+      const { reading } = JSON.parse(await blobs[0].text());
+      expect(reading).toMatchObject({ stat: "coinMulti", charIdx: 1, charName: "Beta", map: 0, game: "2.00x" });
+      unmount();
+
+      render(<StatCalculator config={testConfig} />); // no readingStat: the page is unchanged
+      act(() => loader!.onSave(save()));
+      expect(screen.queryByRole("button", { name: REC })).toBeNull();
+    });
   });
 });

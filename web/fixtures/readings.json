@@ -1,0 +1,99 @@
+[
+  {
+    "id": "2026-11-03-damage-arkhe",
+    "stat": "damage",
+    "charIdx": 0,
+    "charName": "ARKHE",
+    "map": 150,
+    "capturedAt": "2026-11-03T00:34:59.466Z",
+    "game": "💎9030₸~16475₸",
+    "extra": {
+      "maxHp": "396T",
+      "maxMp": "31863341",
+      "str": "92,009,075"
+    },
+    "saveFile": "2026-11-03-damage-arkhe.json",
+    "saveSha1": "43d11203e5ff80c411f6ae89d95bd4d5a2d6b300"
+  },
+  {
+    "id": "2026-11-03-damage-farkhe",
+    "stat": "damage",
+    "charIdx": 3,
+    "charName": "farkhe",
+    "map": 150,
+    "capturedAt": "2026-11-03T00:54:39.093Z",
+    "game": "💎47604339₸~86857861₸",
+    "extra": {
+      "maxHp": "771B",
+      "maxMp": "5.1B",
+      "str": "23,245,932",
+      "agi": "22,527,290",
+      "wis": "69,001,715",
+      "luk": "20,084,444",
+      "accuracy": "2.77E35"
+    },
+    "knownGaps": [
+      "damage"
+    ],
+    "saveFile": "2026-11-03-damage-farkhe.json",
+    "saveSha1": "dc3cd2187721f1a07f1b3dcd66773b0a72948b49"
+  },
+  {
+    "id": "2026-11-03-damage-markhe-noweapon",
+    "stat": "damage",
+    "charIdx": 8,
+    "charName": "Markhe",
+    "map": 150,
+    "capturedAt": "2026-11-03T00:48:05.197Z",
+    "game": "💎13013₸~18171₸",
+    "extra": {
+      "maxHp": "338T",
+      "maxMp": "31940684",
+      "str": "81,085,001",
+      "agi": "23,083,334",
+      "wis": "23,204,437",
+      "luk": "20,777,867",
+      "accuracy": "5.83E35"
+    },
+    "saveFile": "2026-11-03-damage-markhe-noweapon.json",
+    "saveSha1": "04d622bb73011844011daee45ae70fd3b5919b90"
+  },
+  {
+    "id": "2026-11-03-damage-markhe-weapon",
+    "stat": "damage",
+    "charIdx": 8,
+    "charName": "Markhe",
+    "map": 150,
+    "capturedAt": "2026-11-03T00:27:51.476Z",
+    "game": "💎16310₸~22776₸",
+    "extra": {
+      "maxHp": "344T",
+      "maxMp": "31940684"
+    },
+    "saveFile": "2026-11-03-damage-markhe-weapon.json",
+    "saveSha1": "a601da9096be39491f66ea4eaf5366f7ae660c48"
+  },
+  {
+    "id": "2026-11-03-tome-score",
+    "stat": "tomeScore",
+    "charIdx": 0,
+    "charName": "ARKHE",
+    "map": 0,
+    "capturedAt": "2026-11-03T18:51:13.855Z",
+    "game": "55,439 PTS",
+    "saveFile": "2026-11-03-tome-score.json",
+    "saveSha1": "8ec60025d9f6868a56437c4ea25bcc6df1968ea5"
+  },
+  {
+    "id": "2026-11-03-tome-task15",
+    "stat": "tomeTask",
+    "charIdx": 0,
+    "charName": "ARKHE",
+    "map": 0,
+    "capturedAt": "2026-11-03T18:51:13.855Z",
+    "game": "253 PTS",
+    "task": 15,
+    "saveFile": "2026-11-03-tome-task15.json",
+    "saveSha1": "8ec60025d9f6868a56437c4ea25bcc6df1968ea5"
+  }
+]

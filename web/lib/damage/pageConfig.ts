@@ -17,6 +17,7 @@ const full = (x: number) => (Number.isFinite(x) ? Math.ceil(x).toLocaleString("e
 
 export const DAMAGE_PAGE: StatPageConfig = {
   statName: "Damage",
+  readingStat: "damage",
   gainLabel: "Damage",
   emoji: "⚔️",
   calculatorTitle: "Damage Calculator",

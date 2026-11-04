@@ -13,6 +13,7 @@ const ARCANE_GROUP = DR2_GROUPS.find((g) => g.key === "arcane")!;
 
 export const DR2_PAGE: StatPageConfig = {
   statName: "Drop Rate V2",
+  readingStat: "dropRateV2",
   gainLabel: "Drop Rate",
   emoji: "🎲",
   calculatorTitle: "Drop Rate V2 Calculator (beta)",

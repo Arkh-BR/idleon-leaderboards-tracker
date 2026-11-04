@@ -9,6 +9,7 @@ import { TOP_EXP_GENERATED_AT, TOP_EXP_PLAYERS_SCANNED } from "./topExpMulti.met
 
 export const EXP_PAGE: StatPageConfig = {
   statName: "EXP Multi",
+  readingStat: "expMulti",
   gainLabel: "EXP",
   emoji: "✨",
   calculatorTitle: "EXP Multi Calculator",

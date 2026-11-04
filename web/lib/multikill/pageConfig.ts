@@ -16,6 +16,7 @@ const DROP_PREFIXES = [`${MK_ROOT} / ${MK_NODES.tier} / `, `${MK_ROOT} / ${MK_NO
 
 export const MULTIKILL_PAGE: StatPageConfig = {
   statName: "Multikill",
+  readingStat: "multikill",
   gainLabel: "Multikill",
   emoji: "💥",
   calculatorTitle: "Multikill Calculator",
