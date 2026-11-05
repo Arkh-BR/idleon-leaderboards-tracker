@@ -238,9 +238,9 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("Ninja EmporiumBonus (N.js @10845956)
     expect(() => mf(variant((d) => setIn(d, "Ninja", (n) => (n[102] = null))))).toThrow(MissingSaveKey);
     expect(() => mf(variant((d) => delete d.Ninja))).toThrow(MissingSaveKey);
   });
-  it("only bonuses 10 and 14 are ported", () => {
+  it("only bonuses 10 and 14 (and 7, 8, 104, 116, 119 for the character stats, 0, 3, 11, 13, 15, 17 and jewels 101, 107..110, 117, 118, 120 for Damage) are ported", () => {
     const c = emporium([8, 9, 10, 11]);
-    for (const d of [0, 3, 8, 9, 11, 13, 15, 100, 114]) expect(() => mf(c, d), `d=${d}`).toThrow(NotPorted);
+    for (const d of [1, 2, 4, 9, 12, 16, 100, 112, 114]) expect(() => mf(c, d), `d=${d}`).toThrow(NotPorted);
     expect(() => Ninja(c, "NotASubcase", 0, 0)).toThrow(NotPorted);
   });
   it("MainframeBonus 10 and 14 call nothing but the Emporium (and the connection assumption)", () => {
@@ -528,9 +528,10 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("DNSM.StarSigns['61'] (the fill is _c
     expect(() => sign(variant((d) => delete d.StarSg))).toThrow(MissingSaveKey);
     expect(() => sign(variant((d) => delete d.Rift))).toThrow(MissingSaveKey);
   });
-  it("only the key 61 is ported", () => {
+  it("every key is the table's (StarSigns.ts): a key no sign gives is 0", () => {
     const c = variant(() => {});
-    for (const k of ["Drop", "STR", "62"]) expect(() => DNSM_StarSigns(c, k), k).toThrow(NotPorted);
+    for (const k of ["Drop", "STR", "62", "NotAKey"]) expect(DNSM_StarSigns(c, k), k).toBeGreaterThanOrEqual(0);
+    expect(DNSM_StarSigns(c, "NotAKey")).toBe(0);
   });
   it.skipIf(noNjs)("calls what N.js calls (the header, the second pass's condition and the Seraph tail of _customBlock_StarSigns)", () => {
     const norm = loadNjs();
@@ -620,8 +621,8 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("CauldronStats VialBonus (N.js @51088
     expect(key(variant((d) => delete d.UpgVault))).toBe("UpgVault");
     expect(key(variant((d) => delete d.Rift))).toBe("Rift");
   });
-  it("only the VialBonus sub-case is ported, and only for an item AlchemyDescription has", () => {
-    expect(() => CauldronStats(vial(), "BubbleBonus", 0, 0, 0)).toThrow(NotPorted);
+  it("only the VialBonus sub-case (and BubbleBonus / isBubbleSuperr, the character stats') is ported, and only for an item AlchemyDescription has", () => {
+    expect(() => CauldronStats(vial(), "CauldronCosts", 0, 0, 0)).toThrow(NotPorted);
     expect(() => CauldronStats(vial(), "VialBonus", 4, 999, 0)).toThrow(RangeError);
   });
   it.skipIf(noNjs)("calls what N.js calls", () => {
@@ -764,12 +765,11 @@ describe("ports stay on their boundary", () => {
   const c = () => gameCtx({ data: {}, charNames: [], companion: null, guildData: {}, serverVars: null, tournament: {}, accountCreateTime: 1, lastUpdated: 1 }, 0);
   it("Minehead / MainframeBonus / Ninja / Thingies / RiftStuff / CauldronStats: only the ported sub-cases", () => {
     expect(() => Minehead(c(), "GlimboTotalTrades", 0, 0)).toThrow(NotPorted);
-    expect(() => MainframeBonus(c(), 15)).toThrow(NotPorted);
+    expect(() => MainframeBonus(c(), 9)).toThrow(expect.objectContaining({ name: "NotPorted", sub: "d=9" }));
     expect(() => Ninja(c(), "Nope", 0, 0)).toThrow(NotPorted);
     expect(() => Thingies(c(), "Nope", 0, 0)).toThrow(NotPorted);
     expect(() => RiftStuff(c(), "Nope", 0)).toThrow(NotPorted);
     expect(() => CauldronStats(c(), "Nope", 0, 0, 0)).toThrow(NotPorted);
-    expect(() => DNSM_StarSigns(c(), "Drop")).toThrow(NotPorted);
   });
   it("an empty save is refused with MissingSaveKey, never read as zeros", () => {
     expect(() => Minehead(c(), "Button_Bonuses", 3, 0)).toThrow(MissingSaveKey);

@@ -3,6 +3,8 @@ import { block, runtime, type Ctx } from "../ctx";
 import { NinjaInfo } from "../data";
 import { InvalidSaveValue, MissingSaveKey, NotPorted } from "../errors";
 import { listAt } from "../lists";
+import { ArcaneType } from "./ArcaneType";
+import { Windwalker } from "./Windwalker";
 import { ArcadeBonus } from "./ArcadeBonus";
 import { Companions } from "./Companions";
 import { GamingStatType } from "./GamingStatType";
@@ -30,10 +32,44 @@ export const Summoning2: (ctx: Ctx, d: string, b: number, e: number) => number =
       return votingBonusz(ctx, b);
     case "VotingBonuszMulti":
       return votingBonuszMulti(ctx);
+    // @10948857: Owl megafeather b is owned while OptionsListAccount[262] is past b; the ninth counts every one from 9 on
+    case "OwlMegafeather":
+      return asNum(ctx, "OptionsListAccount", 262) > b ? (9 == b ? asNum(ctx, "OptionsListAccount", 262) - 9 : 1) : 0;
+    case "OwlBonuses":
+      return owlBonuses(ctx, b);
+    // @10935349: Cook Master meal b's multiplier, 1 + its level / (level + 5)
+    case "BonusMultiCook": {
+      listAt(ctx, "CookMaster", 0); // the game indexes CookMaster[0][b] directly
+      const lv = asNum(ctx, "CookMaster", 0, b | 0);
+      return 1 + (100 * lv) / (lv + 5) / 100;
+    }
     default:
       throw new NotPorted("Summoning2", d);
   }
 });
+
+/** `DNSM.OwlBonus`'s six bonuses: base value and position in the cycle of OptionsListAccount[255] upgrades (@10950288). */
+const OWL = [5, 10, 2, 4, 1, 2];
+
+/**
+ * `OwlBonuses` @10950288: Owl bonus `b` of `DNSM.OwlBonus`, a list the game fills on the first call (and when `b == -1`; here it is built
+ * from the save each time). Bonus i is OWL[i] x (1 + legend talent 26 / 100) x (1 + Companion 51) x (1 + the megafeathers' total / 100)
+ * x max(0, ceil((OptionsListAccount[255] - i) / 6)), the total 100 each for megafeathers 1, 3, 5, 7, 100 for the first of the ninth and 50
+ * for each one past it. `b == -1` answers 0 (the rebuild).
+ */
+function owlBonuses(ctx: Ctx, b: number): number {
+  if (-1 == b) return 0;
+  const all = // DNSM.OwlBonusAll
+    100 * Summoning(ctx, "OwlMegafeather", 1, 0) +
+    (100 * Summoning(ctx, "OwlMegafeather", 3, 0) +
+      (100 * Summoning(ctx, "OwlMegafeather", 5, 0) +
+        (100 * Summoning(ctx, "OwlMegafeather", 7, 0) + (100 * Math.min(1, Summoning(ctx, "OwlMegafeather", 9, 0)) + 50 * Math.max(0, Summoning(ctx, "OwlMegafeather", 9, 0) - 1)))));
+  const i = b | 0;
+  // the game answers undefined for a bonus past the six, which the caller would turn into NaN
+  if (!(0 <= i && i < OWL.length)) throw new RangeError(`Summoning2 OwlBonuses: no Owl bonus ${b}`);
+  const upgrades = asNum(ctx, "OptionsListAccount", 255);
+  return OWL[i] * (1 + Thingies(ctx, "LegendPTS_bonus", 26, 0) / 100) * (1 + Companions(ctx, 51)) * (1 + all / 100) * Math.max(0, Math.ceil((upgrades - i) / 6));
+}
 
 /** `MeritocBonusz` @10932012: Meritoc bonus `b` is NinjaInfo[41][1 + 3b] x the Meritoc multi while it is the one in force (OptionsListAccount[453] == b), else 0. */
 function meritocBonusz(ctx: Ctx, b: number): number {
@@ -81,12 +117,35 @@ function activeVote(ctx: Ctx): unknown {
 }
 
 /**
- * `VotingBonusz` @10953438: vote `b` is NinjaInfo[38][1 + 3b] x the voting multi while it is the vote in force, else 0. Vote 1
- * has a rule of its own (it also counts while a character has not reached the world the vote in force asks for): NotPorted.
+ * `VotingBonusz` @10953438: vote `b` is NinjaInfo[38][1 + 3b] x the voting multi while it is the vote in force, else 0. Vote 1 also counts
+ * while the character has not reached the world the vote in force asks for: `worldsReached < NinjaInfo[38][2 + 3 max(1, vote)]`.
  */
 function votingBonusz(ctx: Ctx, b: number): number {
-  if (1 == b) throw new NotPorted("Summoning2", "VotingBonusz:1");
+  if (1 == b) {
+    const vote = activeVote(ctx);
+    if (vote === undefined) return 0; // no server answer: no vote is known to be in force (activeVote's runtime leaf says so)
+    return 1 == vote || worldsReached(ctx) < asNumber(NinjaInfo[38][Math.round(2 + 3 * Math.max(1, asNumber(vote)))])
+      ? asNumber(NinjaInfo[38][Math.round(1 + 3 * b)]) * Summoning(ctx, "VotingBonuszMulti", 0, 0)
+      : 0;
+  }
   return b == activeVote(ctx) ? asNumber(NinjaInfo[38][Math.round(1 + 3 * b)]) * Summoning(ctx, "VotingBonuszMulti", 0, 0) : 0;
+}
+
+/**
+ * The portal actor's `ActorEvents_201._GenINFO[58]` (PixelHelperActor[3]), which its init sets (@5542319): 1, then 2..7 for each of the
+ * town portals of maps 0, 50, 100, 150, 200 and 250 whose kills the current character has used up (KillsLeft2Advance[m][0] <= 0), the last
+ * one that holds winning. Under the masterclass forms Compass Tempest and Tesseract Arcanist it reads Windwalker / ArcaneType
+ * CanWeEnterPortal instead; the forms are not counted (the Damage page's product decision), shown as runtime leaves.
+ */
+function worldsReached(ctx: Ctx): number {
+  if (1 == Windwalker(ctx, "CompassTempest", 0, 0)) throw new Error("unreachable");
+  if (1 == ArcaneType(ctx, "TesseractArcanist", 0, 0)) throw new Error("unreachable");
+  let worlds = 1;
+  [0, 50, 100, 150, 200, 250].forEach((m, k) => {
+    listAt(ctx, "KillsLeft2Advance", m); // the game indexes KillsLeft2Advance[m][0] directly
+    if (0 >= asNum(ctx, "KillsLeft2Advance", m, 0)) worlds = k + 2;
+  });
+  return worlds;
 }
 
 /**
@@ -110,3 +169,5 @@ function votingBonuszMulti(ctx: Ctx): number {
         100)
   );
 }
+
+export { PORTED } from "../summoning2Ported";

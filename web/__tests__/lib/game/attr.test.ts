@@ -199,7 +199,7 @@ describe("NotPorted", () => {
     expect(e.message).toBe('Summoning: sub-case "VaultUpgBonus" is not ported');
     expect(e.fn).toBe("Summoning");
     expect(e.sub).toBe("VaultUpgBonus");
-    expect(new NotPorted("ArcadeBonus", 66).message).toBe('ArcadeBonus: sub-case 66 is not ported');
+    expect(new NotPorted("ArcadeBonus", "b=66").message).toBe('ArcadeBonus: sub-case "b=66" is not ported');
   });
 });
 

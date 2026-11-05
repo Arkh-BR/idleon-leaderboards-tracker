@@ -1,8 +1,9 @@
 import { asNum, asNumber, attr } from "../attr";
 import { block, type Ctx } from "../ctx";
-import { HoleFountUPG } from "../data";
+import { HoleFountUPG, RandoListo2 } from "../data";
 import { NotPorted } from "../errors";
 import { listAt } from "../lists";
+import type { Ported } from "../ported";
 
 /** N.js `_customBlock_Holes2(d, b, e)` @11035686. Only the sub-cases the Artifact Find port reaches. */
 export const Holes2: (ctx: Ctx, d: string, b: number, e: number) => number = block("Holes2", (ctx, d: string, b: number, e: number) => {
@@ -15,6 +16,9 @@ export const Holes2: (ctx: Ctx, d: string, b: number, e: number) => number = blo
       listAt(ctx, "Holes", 32, b | 0); // the game indexes Holes[32][b][e] directly
       return 0 == attr(ctx, "Holes", 32, b | 0, e | 0) ? 1 : 1.5 + 0.5 * asNum(ctx, "Holes", 32, b | 0, e | 0);
     }
+    // @11057837: Crystal Glunko upgrade b, its level OptionsListAccount[630 + b] times its value RandoListo2[13][b]
+    case "Cglunko_upgBon":
+      return asNum(ctx, "OptionsListAccount", Math.round(630 + b)) * asNumber((RandoListo2 as unknown as readonly (readonly unknown[])[])[13][b | 0]);
     default:
       throw new NotPorted("Holes2", d);
   }
@@ -29,7 +33,7 @@ export const Holes2: (ctx: Ctx, d: string, b: number, e: number) => number = blo
  * Holes[32] of all 3 fountains, so it throws (and the port refuses) when any of the 6 is missing, whichever entry is asked.
  */
 function fountainBonTOT(ctx: Ctx, b: number, e: number): number {
-  if (!Number.isInteger(b) || !Number.isInteger(e) || b < 0 || b > 2 || e < 0 || e > 19) throw new NotPorted("Holes2", `Fountain_BonTOT:${b},${e}`);
+  if (!Number.isInteger(b) || !Number.isInteger(e) || b < 0 || b > 2 || e < 0 || e > 19) throw new NotPorted("Holes2", `Fountain_BonTOT:b=${b},e=${e}`);
   for (let d = 0; d < 3; d++) {
     // the fill indexes Holes[31][d][f] and Holes[32][d][f] directly
     listAt(ctx, "Holes", 31, d);
@@ -39,3 +43,6 @@ function fountainBonTOT(ctx: Ctx, b: number, e: number): number {
   const upgrade = (HoleFountUPG as unknown as readonly (readonly (readonly unknown[])[])[])[b][e];
   return Math.round(marble * asNum(ctx, "Holes", 31, b, e) * asNumber(upgrade[6]));
 }
+
+/** What this module covers (lib/game/ported.ts). */
+export const PORTED: Ported = { Fountain_BonTOT: [0, 1, 2], Fountain_MarbleBon: true, Cglunko_upgBon: true };

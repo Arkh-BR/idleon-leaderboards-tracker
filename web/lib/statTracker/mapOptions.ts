@@ -29,3 +29,8 @@ export function buildStatMapOptions(save: unknown): StatMapOption[] {
       return { index: i, name, world: worldOf(i), label: `W${worldOf(i)} · ${name}` };
     });
 }
+
+/** The map a character starts on: the one it is on when the picker offers it, else the first option. */
+export function defaultMapIndex(options: StatMapOption[], currentMap: number): number {
+  return options.some((m) => m.index === currentMap) ? currentMap : options[0]?.index ?? 0;
+}

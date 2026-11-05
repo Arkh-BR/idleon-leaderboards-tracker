@@ -1,6 +1,7 @@
 import { asNum } from "../attr";
 import { block } from "../ctx";
 import { DNSM_CompanionBon } from "./DNSM";
+import type { Ported } from "../ported";
 
 /**
  * N.js `_customBlock_Companions(d)` @10799980: companion `d`'s bonus, read from the DNSM.CompanionBon the
@@ -14,3 +15,6 @@ export const Companions = block("Companions", (ctx, d: number) => {
   if (0 == d && 2 > asNum(ctx, "Lv0", 14)) return 0;
   return v;
 });
+
+/** What this module covers (lib/game/ported.ts). */
+export const PORTED: Ported = "generic";

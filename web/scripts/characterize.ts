@@ -1,9 +1,9 @@
 // characterize: do the old and the new engine of a stat agree on every real save? From web/:
 //
-//   npx tsx scripts/characterize.ts <stat>        (stats: artifactFind)
+//   npx tsx scripts/characterize.ts <stat> [--map <n>]        (stats: artifactFind, damage)
 //
-// Runs both engines on every character of every save envelope (golden/.cache + saves-fresh), writes
-// reports/characterize-<stat>.md, and exits 1 when the spec's switch criteria are not met: a row that is
+// Runs both engines on every character of every save envelope (golden/.cache + saves-fresh), on map <n> (default 0; a stat with
+// no map ignores it), writes reports/characterize-<stat>[-<n>].md, and exits 1 when the spec's switch criteria are not met: a row that is
 // neither in the oracle's KNOWN_ARKH_DIFFS, a pre-migration refusal (MissingSaveKey below CSver 34.05, for one of the
 // keys the stat may be refused for) nor an error lib/arkh has too. The time of the two engines is reported, not judged:
 // the user accepted lib/game's cost on 2026-11-04 (warm-switch parity, spec risk "Desempenho").
@@ -13,24 +13,50 @@ import { basename } from "node:path";
 import { pathToFileURL } from "node:url";
 // first: the oracle sets the `window` shim lib/arkh reads
 import { KNOWN_ARKH_DIFFS, goldenSaves } from "@/__tests__/lib/game/support/arkhOracle";
+import { DAMAGE_STATS } from "@/__tests__/lib/game/support/damageProof";
 import { computeArkhArtifactFind } from "@/lib/arkh/computeArtifactFind";
-import { ARTIFACT_FIND_REFUSABLE, characterize, classify, type Engine, type Row, type Verdict } from "@/lib/diagnose/characterize";
+import { computeArkhDamage } from "@/lib/arkh/computeDamage";
+import { ARTIFACT_FIND_REFUSABLE, DAMAGE_REFUSABLE, characterize, classify, type Engine, type Row, type Verdict } from "@/lib/diagnose/characterize";
 import { CURRENT_CSVER } from "@/lib/game/errors";
 import { computeGameArtifactFind } from "@/lib/game/trackers/artifactFind";
+import { computeGameDamage } from "@/lib/game/trackers/damage";
 
-const ENGINES: Record<string, { arkh: Engine; game: Engine; refusable?: (key: string) => boolean }> = {
-  artifactFind: { arkh: computeArkhArtifactFind, game: computeGameArtifactFind, refusable: ARTIFACT_FIND_REFUSABLE },
+type KnownDiff = (typeof KNOWN_ARKH_DIFFS)[number];
+/**
+ * Each stat's two engines on map `map`, the names the report prints, the keys it may be refused for, and which KNOWN_ARKH_DIFFS entries
+ * explain a differing total: the stat's own, and for Damage those of the stats its leaves read too (support/damageProof).
+ */
+const ENGINES: Record<string, (map: number) => { arkh: Engine; game: Engine; names: string; refusable: (key: string) => boolean; known: (d: KnownDiff) => boolean }> = {
+  artifactFind: () => ({
+    arkh: computeArkhArtifactFind,
+    game: computeGameArtifactFind,
+    names: "a = lib/arkh (computeArkhArtifactFind), b = lib/game (computeGameArtifactFind)",
+    refusable: ARTIFACT_FIND_REFUSABLE,
+    known: (d) => (d.stat ?? "artifactFind") === "artifactFind",
+  }),
+  damage: (map) => ({
+    arkh: (save, ci) => computeArkhDamage(save, ci, map),
+    game: (save, ci) => computeGameDamage(save, ci, map),
+    names: `a = lib/arkh (computeArkhDamage), b = lib/game (computeGameDamage), on map ${map}`,
+    refusable: DAMAGE_REFUSABLE,
+    known: (d) => d.stat === "damage" || DAMAGE_STATS.some((s) => s === d.stat),
+  }),
 };
 
-const USAGE = `usage: npx tsx scripts/characterize.ts <stat>   (${Object.keys(ENGINES).join(", ")})`;
+const USAGE = `usage: npx tsx scripts/characterize.ts <stat> [--map <n>]   (${Object.keys(ENGINES).join(", ")})`;
 
 const num = (x: number | undefined) => (x === undefined ? "—" : String(x));
 
 function main(argv: string[]): number {
-  if (argv.length !== 1) throw new Error(USAGE);
-  const stat = argv[0];
-  const engines = ENGINES[stat];
-  if (!engines) throw new Error(`no engines registered for ${stat}\n${USAGE}`);
+  const args = [...argv];
+  const i = args.indexOf("--map");
+  const mapArg = i < 0 ? undefined : args.splice(i, 2)[1];
+  if ((i >= 0 && !/^\d+$/.test(mapArg ?? "")) || args.length !== 1) throw new Error(USAGE);
+  const map = Number(mapArg ?? 0);
+  const stat = args[0];
+  if (!ENGINES[stat]) throw new Error(`no engines registered for ${stat}\n${USAGE}`);
+  const engines = ENGINES[stat](map);
+  const knownDiffs = KNOWN_ARKH_DIFFS.filter(engines.known);
 
   const csvers = new Map<string, number | undefined>();
   const csverOf = (path: string) => {
@@ -53,7 +79,7 @@ function main(argv: string[]): number {
 
   const { rows, pairs, msA, msB } = characterize(saves, engines.arkh, engines.game);
 
-  const verdicts = rows.map((r) => ({ r, v: classify(r, KNOWN_ARKH_DIFFS, csverOf(r.save), engines.refusable) }));
+  const verdicts = rows.map((r) => ({ r, v: classify(r, knownDiffs, csverOf(r.save), engines.refusable) }));
   const of = (v: Verdict) => verdicts.filter((x) => x.v === v).map((x) => x.r);
   const known = of("known");
   const refused = of("refused");
@@ -63,7 +89,7 @@ function main(argv: string[]): number {
   const at = (r: Row) => `${basename(r.save)}#${r.ci}`;
   const out: string[] = [];
   const h = (s: string) => out.push("", `## ${s}`, "");
-  out.push(`# characterize ${stat}`, "", `a = lib/arkh (computeArkhArtifactFind), b = lib/game (computeGameArtifactFind). ${saves.length} saves, ${pairs} (save, character) pairs.`);
+  out.push(`# characterize ${stat}`, "", `${engines.names}. ${saves.length} saves, ${pairs} (save, character) pairs.`);
   h("Criteria");
   out.push(
     `- known diffs: ${known.length} pairs (each in KNOWN_ARKH_DIFFS with its N.js evidence)`,
@@ -79,12 +105,12 @@ function main(argv: string[]): number {
   }
   h("Known diffs");
   for (const r of known) {
-    const sources = KNOWN_ARKH_DIFFS.filter((d) => d.save === basename(r.save) && (d.ci ?? r.ci) === r.ci).map((d) => d.source);
+    const sources = knownDiffs.filter((d) => d.save === basename(r.save) && (d.ci ?? r.ci) === r.ci).map((d) => (d.stat && d.stat !== stat ? `${d.stat}:${d.source}` : d.source));
     out.push(`- ${at(r)}: arkh ${num(r.a)}, game ${num(r.b)}, rel ${r.rel?.toExponential(3)}; sources ${sources.join(", ")}`);
   }
   out.push("", "Evidence per entry (KNOWN_ARKH_DIFFS):", "");
   const why = new Map<string, string[]>();
-  for (const d of KNOWN_ARKH_DIFFS) why.set(d.why, [...(why.get(d.why) ?? []), `${d.save}${d.ci === undefined ? "" : `#${d.ci}`} ${d.source}`]);
+  for (const d of knownDiffs) why.set(d.why, [...(why.get(d.why) ?? []), `${d.save}${d.ci === undefined ? "" : `#${d.ci}`} ${d.source}`]);
   for (const [text, who] of why) out.push(`- ${who.join("; ")}`, `  - ${text}`);
   h("Refused (pre-migration saves)");
   const bySave = new Map<string, Row[]>();
@@ -98,7 +124,7 @@ function main(argv: string[]): number {
     for (const r of shared) out.push(`- ${at(r)}: ${r.error}`);
   }
 
-  const file = `reports/characterize-${stat}.md`; // relative to web/, the cwd of `npx tsx`
+  const file = `reports/characterize-${stat}${mapArg === undefined ? "" : `-${map}`}.md`; // relative to web/, the cwd of `npx tsx`
   mkdirSync("reports", { recursive: true });
   writeFileSync(file, out.join("\n") + "\n");
   console.log(

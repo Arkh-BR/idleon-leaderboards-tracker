@@ -3,6 +3,7 @@ import { block } from "../ctx";
 import { ChipDesc } from "../data";
 import { hString } from "../hstring";
 import { listAt } from "../lists";
+import type { Ported } from "../ported";
 
 /**
  * N.js `_customBlock_chipBonuses(d)` @5163283: `DNSM.ChipBbonusz[d]`, the sum of the chip bonus of the equipped chips whose kind is `d`
@@ -25,3 +26,6 @@ export const chipBonuses = block("chipBonuses", (ctx, d: string) => {
   }
   return asNumber(total);
 });
+
+/** What this module covers (lib/game/ported.ts). */
+export const PORTED: Ported = "generic";

@@ -112,6 +112,13 @@ const REFUSALS = new Set(["MissingSaveKey", "IncompleteTome"]); // IncompleteTom
 export const ARTIFACT_FIND_REFUSABLE = (key: string): boolean => key === UNPORTED_STEPS;
 
 /**
+ * Damage's list: Artifact Find's, plus a Tome lib/tome cannot score on an older save (IncompleteTome, key `Tome rows <ids>`). The stats
+ * Damage reads carry Tome bubbles (Ruling K: the Tome stays lib/tome's until it moves to lib/game). The tracker test checks it against
+ * the refusals it pins.
+ */
+export const DAMAGE_REFUSABLE = (key: string): boolean => ARTIFACT_FIND_REFUSABLE(key) || /^Tome rows \d+(,\d+)*$/.test(key);
+
+/**
  * `known` is the oracle's KNOWN_ARKH_DIFFS ({save: file name, ci?: omitted = every character}); `csver` is the save's `data.CSver`.
  * A diff-list entry explains a difference of numbers only, never an error, and only the `b` (lib/game) side can refuse.
  * `refusable` (default: any key) says which keys the stat may be refused for; a refusal for another key is a gap, not age, so it is

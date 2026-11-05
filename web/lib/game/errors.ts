@@ -96,11 +96,17 @@ export class UnknownAttribute extends Error {
   }
 }
 
-/** A port reached a sub-case of an N.js function that it does not mirror (yet): `Summoning("VaultUpgBonus")`, `ArcadeBonus(66)`. */
+/**
+ * A port reached a sub-case of an N.js function that it does not mirror (yet). One format for `sub`:
+ *  - `"<Sub>"`: a named sub-case (`"VaultUpgBonus"`);
+ *  - `"<Sub>:<arg>=<value>"`: an argument outside the ported set (`"VaultUpgBonus:b=5"`, `"Fountain_BonTOT:b=3,e=0"`); a function with
+ *    no named sub-case says just `"<arg>=<value>"` (`"d=15"`);
+ *  - `"<state>"`: a game-state condition (`"CurrentMap=41"`).
+ */
 export class NotPorted extends Error {
   readonly fn: string;
-  readonly sub: string | number;
-  constructor(fn: string, sub: string | number) {
+  readonly sub: string;
+  constructor(fn: string, sub: string) {
     super(`${fn}: sub-case ${JSON.stringify(sub)} is not ported`);
     this.name = "NotPorted";
     this.fn = fn;

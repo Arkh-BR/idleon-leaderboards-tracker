@@ -1,26 +1,24 @@
-// The site's value for one recorded in-game reading. Every stat is routed to
-// lib/arkh except Artifact Find (its page config computes on lib/game); later
-// plans swap each one to lib/game behind this same function.
-// lib/arkh keeps module-level state (saveData): call this sequentially, never in
-// parallel — the save is reloaded on every call.
+// The site's value for one recorded in-game reading. Artifact Find and Damage go through their page configs (both compute on lib/game),
+// the Player Info stats Damage readings carry (HP, MP, Accuracy, STR/AGI/WIS/LUK) through lib/game's TRACKERS, the Tome through lib/tome,
+// the other kit stats through their page configs; later plans swap each one to lib/game behind this same function.
+// lib/arkh keeps module-level state (saveData): call this sequentially, never in parallel — the save is reloaded on every call.
 
-import { computeArkhDamage } from "@/lib/arkh/computeDamage";
-import { loadSaveData } from "@/lib/arkh/save/loader";
-import { saveData } from "@/lib/arkh/state";
-import { computeAccuracy } from "@/lib/arkh/stats/systems/common/derived-damage";
-import { computePlayerHPmax, computePlayerMPmax } from "@/lib/arkh/stats/systems/common/derived-stats";
-import { computeTotalStat } from "@/lib/arkh/stats/systems/common/stats";
 import { AFK_PAGE } from "@/lib/afkGains/pageConfig";
 import { ARTIFACT_PAGE } from "@/lib/artifactFind/pageConfig";
 import { COIN_PAGE } from "@/lib/coinMulti/pageConfig";
+import { DMG_NODES } from "@/lib/damage/layers";
+import { DAMAGE_PAGE } from "@/lib/damage/pageConfig";
 import { DR2_PAGE } from "@/lib/dropRateV2/pageConfig";
 import { EXP_PAGE } from "@/lib/expMulti/pageConfig";
+import { makeCtx } from "@/lib/game/ctx";
+import { TRACKERS } from "@/lib/game/trackers";
+import { stateOf } from "@/lib/game/trackers/page";
 import { MULTIKILL_PAGE } from "@/lib/multikill/pageConfig";
 import type { StatPageConfig } from "@/lib/statTracker/config";
 import { computeTome } from "@/lib/tome/compute";
 import type { Reading, StatKey } from "./types";
 
-// lib/arkh reads `window` at module scope in places (the tests set the same shim).
+// lib/arkh (and lib/tome, which imports it) reads `window` at module scope in places (the tests set the same shim).
 const g = globalThis as unknown as { window?: unknown };
 if (!g.window) g.window = g;
 
@@ -32,8 +30,6 @@ export const KIT_PAGES: Partial<Record<StatKey, StatPageConfig>> = {
   multikill: MULTIKILL_PAGE,
   artifactFind: ARTIFACT_PAGE,
 };
-
-const MAIN_STATS = { str: "STR", agi: "AGI", wis: "WIS", luk: "LUK" } as const;
 
 /** `stat` of the reading `r` (or one of its `extra` stats), computed from its save. */
 export async function computeReadingValue(
@@ -47,9 +43,9 @@ export async function computeReadingValue(
 
   switch (stat) {
     case "damage": {
-      const d = computeArkhDamage(save, ci, map);
+      const d = await DAMAGE_PAGE.compute(save, ci, map);
       // Player Info's Min = Max × the Mastery (Min) factor.
-      const mastery = d.tree.children!.find((c) => c.name === "Mastery (Min)")!.val;
+      const mastery = d.tree.children!.find((c) => c.name === DMG_NODES.mastery)!.val;
       return { value: d.total, min: d.total * mastery };
     }
     case "tomeScore":
@@ -63,21 +59,11 @@ export async function computeReadingValue(
       if (!row || row.pts === null) throw new Error(`reading ${r.id}: no Tome task ${r.task}`);
       return { value: row.pts };
     }
-    case "maxHp":
-    case "maxMp":
-    case "accuracy":
-    case "str":
-    case "agi":
-    case "wis":
-    case "luk": {
-      loadSaveData(save as never);
-      const ctx = { saveData, charIdx: ci, activeCharIdx: ci };
-      if (stat === "maxHp") return { value: computePlayerHPmax(ci, ctx).val };
-      if (stat === "maxMp") return { value: computePlayerMPmax(ci, ctx).val };
-      if (stat === "accuracy") return { value: computeAccuracy(ci, ctx) };
-      return { value: computeTotalStat(MAIN_STATS[stat], ci, ctx).computed };
+    default: {
+      // a Player Info stat: lib/game's block on the reading's character and map (the state is the one kept per envelope, trackers/page.ts)
+      const tracker = TRACKERS[stat];
+      if (!tracker) throw new Error(`computeReadingValue: no engine for ${stat}`);
+      return { value: tracker(makeCtx(stateOf(save), { player: ci, map })) };
     }
-    default:
-      throw new Error(`computeReadingValue: no engine for ${stat}`);
   }
 }

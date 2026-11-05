@@ -1,20 +1,23 @@
 import { asNum, asNumber, attr, SAVE_ATTRS } from "../attr";
 import { block, type Ctx } from "../ctx";
-import { EmperorBon, LegendTalents, Spelunky } from "../data";
+import { EmperorBon, LegendTalents, Spelunky, ZenithMarket } from "../data";
 import { NotPorted } from "../errors";
 import { hString } from "../hstring";
-import { listAt } from "../lists";
+import { contains, listAt, listOrMapAt } from "../lists";
 import { opt } from "../state";
 import { traceNode } from "../trace";
 import { ArcadeBonus } from "./ArcadeBonus";
 import { ArcaneType } from "./ArcaneType";
+import { Companions } from "./Companions";
+import { CompLV2 } from "./CompLV2";
 import { DNSM_TomeQTYtot } from "./DNSM";
 import { GetSetBonus } from "./GetSetBonus";
 import { JellyOperation } from "./JellyOperation";
 import { Summoning } from "./Summoning";
+import { range, type Ported } from "../ported";
 
-/** N.js `_customBlock_Thingies(d, b, e)` @10955095. Only the sub-cases the Artifact Find port reaches. */
-export const Thingies = block("Thingies", (ctx, d: string, b: number, e: number) => {
+/** N.js `_customBlock_Thingies(d, b, e)` @10955095. Only the sub-cases the Artifact Find port and the character stats reach. */
+export const Thingies: (ctx: Ctx, d: string, b: number, e: number) => number = block("Thingies", (ctx, d: string, b: number, e: number) => {
   switch (d) {
     // @10970802: Spelunk legend talent `b` (talent level x the talent's per-level value, rounded)
     case "LegendPTS_bonus":
@@ -30,6 +33,56 @@ export const Thingies = block("Thingies", (ctx, d: string, b: number, e: number)
     // @10974601
     case "LoreEpiBon":
       return loreEpiBon(ctx, b);
+    // @10978795, the next one: the Bundles ban_m and ban_o were bought (Ruling H, as Have_ban_i)
+    // @10977895: 10 once the World 6 trophy (Trophy23) is in the card collection list Cards[1]. The game's cache check
+    // (`D.mapContainsValue(DNSM, "STw6tr")`, a value test of a key name) never holds, so it is read again every call.
+    case "HaveW6Trophy":
+      return contains(attr(ctx, "Cards", 1), "Trophy23") ? 10 : 0;
+    case "Have_ban_m":
+      return haveBan(ctx, "ban_m");
+    case "Have_ban_o":
+      return haveBan(ctx, "ban_o");
+    // @10972290: the levels a super talent gets, 50 + the legend talent 7 + the Zenith Market upgrade 5
+    case "SuperTalentPTS_LVgiven":
+      return Math.round(50 + (Thingies(ctx, "LegendPTS_bonus", 7, 0) + Thingies(ctx, "ZenithMarketBonus", 5, 0)));
+    // @10959337: Zenith Market upgrade b, its value ZenithMarket[b][4] x its level Spelunk[45][b], rounded down
+    case "ZenithMarketBonus": {
+      const row = (ZenithMarket as unknown as readonly (readonly unknown[])[])[b | 0];
+      // the game indexes ZenithMarket[b][4] directly and would throw on an upgrade it does not have
+      if (!row) throw new RangeError(`Thingies ZenithMarketBonus: no upgrade ${b} in ZenithMarket`);
+      listAt(ctx, "Spelunk", 45); // the game indexes Spelunk[45][b] directly
+      return Math.floor(asNumber(row[4]) * asNum(ctx, "Spelunk", 45, b | 0));
+    }
+    // @10963823: Coral Kid upgrade b: 3 is round(OptionsListAccount[427 + b]), 11 is round(OptionsListAccount[621])
+    case "CoralKidUpgBonus":
+      if (3 == b) return Math.round(asNum(ctx, "OptionsListAccount", Math.round(427 + b)));
+      if (11 == b) return Math.round(asNum(ctx, "OptionsListAccount", 621));
+      throw new NotPorted("Thingies", `CoralKidUpgBonus:b=${b}`);
+    case "FriendBonusStatz":
+      if (0 != b) throw new NotPorted("Thingies", `FriendBonusStatz:b=${b}`); // 2 is [~] (unreached.ts)
+      return friendBonusStatz(ctx, b);
+    // @10955906: the friend slots, round(min(20, 2 + Companion 44 + 2 x Companion 30 + Event Shop items 22 and 67))
+    case "FriendBonusSlots":
+      return Math.round(Math.min(20, 2 + (Companions(ctx, 44) + (2 * Companions(ctx, 30) + Summoning(ctx, "EventShopOwned", 22, 0) + Summoning(ctx, "EventShopOwned", 67, 0)))));
+    // @10962274: friend bonus b for a friend's level e: k x min(1.5, .25 + min(3e4, max(0, e)) / (min(3e4, max(0, e)) + 12e3) x 1.5), k per bonus
+    case "FriendBonusQTY": {
+      const k = [100, 30, 50, 25, 30, 40, 10][b];
+      if (k === undefined) return 0;
+      const lv = Math.min(3e4, Math.max(0, e));
+      return k * Math.min(1.5, 0.25 + (lv / (lv + 12e3)) * 1.5);
+    }
+    // @10960324: 1 + (100 x Companion 30 + 25 x CompLV2 44) / 100
+    case "FriendBonusXtraMulti":
+      return 1 + (100 * Companions(ctx, 30) + 25 * CompLV2(ctx, 44)) / 100;
+    // @10962960: the Unstable Reliquarium (Quest105) is in the current character's inventory. The game keeps the answer for the session
+    // (DNSM.RelqPoz, rebuilt with b == -1); here it is read from the save each time
+    case "ReliquariumInPosession":
+      return contains(attr(ctx, "InventoryOrder"), "Quest105") ? 1 : 0;
+    // @10977138: the best Summoning stone trial of stone b, KRbest["SummzTrz" + b], or 0 when the account has none
+    case "SumStoneTrialz": {
+      const best = listOrMapAt(ctx, "KRbest") as Record<string, unknown>;
+      return Object.hasOwn(best, `SummzTrz${b}`) ? asNum(ctx, "KRbest", `SummzTrz${b}`) : 0;
+    }
     default:
       throw new NotPorted("Thingies", d);
   }
@@ -62,11 +115,14 @@ function emperorBon(ctx: Ctx, b: number): number {
  * the trace shows it as an `(absent)` leaf instead of a silent zero.
  */
 function haveBanI(ctx: Ctx): number {
+  return haveBan(ctx, "ban_i");
+}
+export function haveBan(ctx: Ctx, bundle: string): number {
   if (opt(ctx.state, SAVE_ATTRS.BundlesReceived.key) === undefined) {
     if (ctx.trace) ctx.trace.children.push(traceNode(ctx.trace, ctx.player, "(absent)", ["BundlesReceived"], 0, 'absent: getLoadMap("BundlesReceived") @19927310 → {}'));
     return 0;
   }
-  return 1 == attr(ctx, "BundlesReceived", "ban_i") ? 1 : 0;
+  return 1 == attr(ctx, "BundlesReceived", bundle) ? 1 : 0;
 }
 
 /**
@@ -79,7 +135,7 @@ function haveBanI(ctx: Ctx): number {
  * for that runtime value (Ruling K).
  */
 function loreEpiBon(ctx: Ctx, b: number): number {
-  if (b < 0) throw new NotPorted("Thingies", `LoreEpiBon:${b}`); // the rebuild (-1) and the clamp Math.max(0, b)
+  if (b < 0) throw new NotPorted("Thingies", `LoreEpiBon:b=${b}`); // the rebuild (-1) and the clamp Math.max(0, b)
   const episodes = (Spelunky as unknown as readonly (readonly unknown[])[])[20].length;
   const g = Math.max(0, b) | 0;
   // the game answers undefined for an episode past the list, which the caller would turn into NaN
@@ -91,3 +147,29 @@ function loreEpiBon(ctx: Ctx, b: number): number {
   const p = Math.pow(Math.floor(Math.max(0, tome - asNumber(from)) / 100), 0.7);
   return (1 + (Summoning(ctx, "GrimoireUpgBonus", 17, 0) + GetSetBonus(ctx, "TROLL_SET", "Bonus", 0, 0)) / 100) * asNumber(value) * Math.max(0, p / (25 + p));
 }
+
+/**
+ * `FriendBonusStatz` @10960432: the friends' bonus `b` (of 20): OptionsListAccount[476] lists the friends as "stat,level;stat,level…"; the
+ * first FriendBonusSlots of them with a stat below 18 each set entry `stat` to FriendBonusQTY(stat, level) (a later friend with the same
+ * stat replaces it), and the entry is times FriendBonusXtraMulti. The game keeps the table for the session (DNSM.FrendBonzStatz, rebuilt
+ * with b == -1); here it is built from the save each time.
+ */
+function friendBonusStatz(ctx: Ctx, b: number): number {
+  const table: number[] = new Array(20).fill(0); // DNSM.FrendBonzStatz
+  const list = hString(attr(ctx, "OptionsListAccount", 476));
+  if ("0" != list && "" != list) {
+    const friends = list.split(";");
+    for (let e = 0, f = Math.min(Thingies(ctx, "FriendBonusSlots", 0, 0), friends.length) | 0; e < f; e++) {
+      const [stat, level] = `${friends[e]}`.split(",");
+      if (18 > asNumber(stat)) table[asNumber(stat) | 0] = Thingies(ctx, "FriendBonusQTY", asNumber(stat), asNumber(level));
+    }
+  }
+  return asNumber(table[Math.max(0, b) | 0]) * Thingies(ctx, "FriendBonusXtraMulti", 0, 0);
+}
+
+/** What this module covers (lib/game/ported.ts). */
+export const PORTED: Ported = {
+  LegendPTS_bonus: true, Have_ban_i: true, ClamWorkBonus: true, EmperorBon: true, LoreEpiBon: range(0, 30),
+  HaveW6Trophy: true, Have_ban_m: true, Have_ban_o: true, SuperTalentPTS_LVgiven: true, ZenithMarketBonus: true, CoralKidUpgBonus: [3, 11], SumStoneTrialz: true,
+  FriendBonusStatz: [0] /* 2: only SkillStats AllEfficiencies (unreached.ts) */, FriendBonusSlots: true, FriendBonusQTY: true, FriendBonusXtraMulti: true, ReliquariumInPosession: true,
+};

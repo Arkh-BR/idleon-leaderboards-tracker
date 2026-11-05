@@ -4,6 +4,7 @@ import { ArcadeShopInfo } from "../data";
 import { hString } from "../hstring";
 import { ArbitraryCode5Inputs } from "./ArbitraryCode5Inputs";
 import { Companions } from "./Companions";
+import type { Ported } from "../ported";
 
 /**
  * N.js `_customBlock_ArcadeBonus(d)` @7881530: the bonus of Arcade upgrade `d`, one function for every upgrade. Its curve is
@@ -22,3 +23,6 @@ export const ArcadeBonus = block("ArcadeBonus", (ctx, d: number) => {
   if (1 == Companions(ctx, 27)) multi = 2 * multi;
   return multi * ArbitraryCode5Inputs(ctx, hString(info[3]), asNumber(info[1]), asNumber(info[2]), asNum(ctx, "ArcadeUpg", d | 0), 0, 0);
 });
+
+/** What this module covers (lib/game/ported.ts). */
+export const PORTED: Ported = "generic";

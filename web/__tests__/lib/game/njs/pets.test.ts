@@ -159,10 +159,6 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("Companions / CompLV2 (N.js @10799980
   it("a token outside CompanionDB is refused (the game would throw reading CompanionDB[id][2])", () => {
     expect(() => Companions(withCompanions([], "43,9999"), 43)).toThrow(InvalidSaveValue);
   });
-  it("map 41 (the token clean-up of the map-load code) is not ported", () => {
-    const c = withCompanions(["43,1,0,5,0"]);
-    expect(() => Companions({ ...c, map: 41, cache: new Map() }, 43)).toThrow(NotPorted);
-  });
 });
 
 describe.skipIf(GOLDEN_SAVES.length === 0)("shiny21 (Breeding ShinyBonusS, N.js @7930106; SpecialPassives Lv @7937936)", () => {
@@ -266,7 +262,7 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("nightmariner (MenagerieStuff Nightma
   it("an empty Menagerie list is never read as such: the game's load fills it (initialize4 @6336662) before the head guard `0 == Menagerie.length` (@5176140) could see it", () => {
     // `[]` in a save is a synthetic edge (the attribute starts as `[]`, and the fill runs on every load)
     const empty = () => variant((d) => (d.Menagerie = []));
-    expect(empty().state.migrations).toEqual(["Menagerie filled (initialize4 @6336662)"]);
+    expect(empty().state.migrations.filter((m) => !m.includes("DoOnceREAL < 399"))).toEqual(["Menagerie filled (initialize4 @6336662)"]); // 399 runs on a save from before it
     expect(MenagerieStuff(empty(), "UnlockOwned", 13, 0)).toBe(0); // the fill owns no unlock
     expect(MenagerieStuff(empty(), "NightmarinerTotLV", 0, 0)).toBe(MenagerieStuff(variant(() => {}), "NightmarinerTotLV", 0, 0)); // the boats' total, not the guard's 0
     expect(MenagerieStuff(empty(), "NightmarinerTotLV", 0, 0)).toBeGreaterThan(0);
@@ -288,7 +284,7 @@ describe("ports stay on their boundary", () => {
   const withMenagerie = () => gameCtx(env({ Menagerie: [[], [], [1]] }), 0); // the head guard returns 0 on an empty list, before any sub-case
   it("Breeding: only ShinyBonusS, SpecialPassives Lv and TotPetsFound", () => {
     for (const d of ["PetUpgBONUS", "ShinySpdMulti", "Nope"]) expect(() => Breeding(c(), d, "0", 0, 0)).toThrow(NotPorted);
-    expect(() => Breeding(c(), "SpecialPassives", "REQ", 0, 0)).toThrow(NotPorted);
+    expect(() => Breeding(c(), "SpecialPassives", "REQ", 0, 0)).toThrow(expect.objectContaining({ name: "NotPorted", sub: "SpecialPassives:b=REQ" }));
   });
   it("MenagerieStuff: only NightmarinerBon (boat 0), NightmarinerTotLV and UnlockOwned", () => {
     for (const d of ["Nope", "UnlockCost"]) expect(() => MenagerieStuff(withMenagerie(), d, 0, 0)).toThrow(NotPorted);

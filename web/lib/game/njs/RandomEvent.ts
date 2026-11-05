@@ -1,15 +1,23 @@
 import { asNum } from "../attr";
 import { block, type Ctx } from "../ctx";
 import { NotPorted } from "../errors";
+import type { Ported } from "../ported";
 
 /** N.js `_customBlock_RandomEvent(d, b, e)` @10777743. Only the sub-cases the Artifact Find port reaches. */
 export const RandomEvent = block("RandomEvent", (ctx, d: string, b: number, _e: number) => {
   switch (d) {
     // @10780919: the Killroy Skull Shop upgrade b. Upgrade 0 (Artifact Find): 1 + P / (300 + P), P = OptionsListAccount[228]
+    // b == 3 (the Gallery): 10 x P / (200 + P), P = OptionsListAccount[467]
     case "KillroyBonuses": {
-      if (b !== 0) throw new NotPorted("RandomEvent", `KillroyBonuses:b=${b}`);
-      const p = asNum(ctx, "OptionsListAccount", 228);
-      return 1 + p / (300 + p);
+      if (0 == b) {
+        const p = asNum(ctx, "OptionsListAccount", 228);
+        return 1 + p / (300 + p);
+      }
+      if (3 == b) {
+        const p = asNum(ctx, "OptionsListAccount", 467);
+        return 10 * (p / (200 + p));
+      }
+      throw new NotPorted("RandomEvent", `KillroyBonuses:b=${b}`);
     }
     // @10782126: DNSM.FracIsBn[b|0]
     case "FractalIslandBonus":
@@ -33,3 +41,6 @@ function fractalIslandBonus(ctx: Ctx, b: number): number {
   if (i < 0 || i >= FRACTAL_THRESHOLDS.length) throw new RangeError(`RandomEvent FractalIslandBonus: no Fractal Island bonus ${b} (the game reads undefined)`);
   return asNum(ctx, "OptionsListAccount", 184) >= FRACTAL_THRESHOLDS[i] ? 1 : 0;
 }
+
+/** What this module covers (lib/game/ported.ts). */
+export const PORTED: Ported = { KillroyBonuses: [0, 3], FractalIslandBonus: true };

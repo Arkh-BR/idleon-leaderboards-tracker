@@ -251,8 +251,10 @@ function delegate(def: { params: string[]; body: string }, name: string): string
  * calls in it with their literal args, and so on breadth first, each (fn, args) once at its
  * shallowest depth. Depth stops at 6; `capped` counts the calls left unwalked there.
  *
- * A first argument that is not a literal name (`Companions(154)`, `MainframeBonus(14)`) gives the
- * whole function, which for a numeric dispatcher holds every branch; so does a function with no
+ * A function with no parameters (`PlayerHPmax()`) is its whole body, walked as an exact row.
+ * A numeric first argument (`Companions(154)`, `MainframeBonus(14)`) gives that `<n>==<param>` branch
+ * (njsNumericBranch), walked like a named sub-case; with no such branch, the whole function, as for a
+ * first argument that is neither (`GetTalentNumber(…)` with a variable); so does a function with no
  * sub-case of the name given (`GetBribeBonus("34")`, `GetSetBonus("GODSHARD_SET","Bonus")`). That row
  * is flagged and its calls are NOT walked (TotalStats-sized bodies would explode the closure). Its
  * attribute and DNSM reads are still collected, but they are over-approximate, so they are also
@@ -262,7 +264,7 @@ export function njsClosure(
   norm: string,
   fn: string,
   args: (string | number)[]
-): { calls: ClosureCall[]; attrs: string[]; dnsm: string[]; loose: { attrs: string[]; dnsm: string[] }; capped: number } {
+): { calls: ClosureCall[]; attrs: string[]; dnsm: string[]; loose: { attrs: string[]; dnsm: string[] }; capped: number; unwalked: string[] } {
   const calls: ClosureCall[] = [];
   const exact = { attrs: new Set<string>(), dnsm: new Set<string>() };
   const whole = { attrs: new Set<string>(), dnsm: new Set<string>() };
@@ -275,6 +277,21 @@ export function njsClosure(
   const reads = (text: string, into: typeof exact) => {
     for (const m of text.matchAll(ATTR_RE)) into.attrs.add(m[1] ?? m[2]);
     for (const m of text.matchAll(DNSM_RE)) into.dnsm.add(m[1]);
+  };
+
+  /** Collect the reads of an exact slice and queue its calls. */
+  const walk = (text: string, depth: number, into: typeof exact) => {
+    reads(text, into);
+    for (const c of njsCalls(text)) {
+      const next = { fn: c.block, args: c.args ?? [], depth: depth + 1 };
+      const k = key(next.fn, next.args);
+      if (seen.has(k)) continue;
+      if (next.depth > MAX_DEPTH) unwalked.add(k);
+      else {
+        seen.add(k);
+        queue.push(next);
+      }
+    }
   };
 
   for (const { fn: f, args: a, depth } of queue) {
@@ -301,23 +318,29 @@ export function njsClosure(
       continue;
     }
     const via = name === f ? {} : { via: name };
+    if (!def.params.length) {
+      // PlayerHPmax(): nothing selects a sub-case, so the whole body is exactly the formula: walk it
+      calls.push({ fn: f, args: a, depth, chars: slice.length, ...via });
+      walk(slice, depth, exact);
+      continue;
+    }
+    if (typeof a[0] === "number") {
+      // a numeric dispatcher (MainframeBonus(14)): its `14==d` branch, walked like a named sub-case. No such branch
+      // (a function that computes generically and branches on a few indexes, like ArcadeBonus) leaves the whole body.
+      const branch = njsNumericBranch(slice, a[0], def.params);
+      if (branch !== undefined) {
+        calls.push({ fn: f, args: a, depth, chars: branch.length, ...via });
+        walk(branch, depth, exact);
+        continue;
+      }
+    }
     if (typeof a[0] !== "string") {
       calls.push({ fn: f, args: a, depth, chars: slice.length, flag: "whole body", ...via });
       reads(slice, whole);
       continue;
     }
     calls.push({ fn: f, args: a, depth, chars: slice.length, ...via });
-    reads(slice, exact);
-    for (const c of njsCalls(slice)) {
-      const next = { fn: c.block, args: c.args ?? [], depth: depth + 1 };
-      const k = key(next.fn, next.args);
-      if (seen.has(k)) continue;
-      if (next.depth > MAX_DEPTH) unwalked.add(k);
-      else {
-        seen.add(k);
-        queue.push(next);
-      }
-    }
+    walk(slice, depth, exact);
   }
   const sorted = (...sets: Set<string>[]) => [...new Set(sets.flatMap((x) => [...x]))].sort();
   const looseOnly = (w: Set<string>, e: Set<string>) => sorted(w).filter((x) => !e.has(x));
@@ -327,5 +350,7 @@ export function njsClosure(
     dnsm: sorted(exact.dnsm, whole.dnsm),
     loose: { attrs: looseOnly(whole.attrs, exact.attrs), dnsm: looseOnly(whole.dnsm, exact.dnsm) },
     capped: unwalked.size,
+    /** The calls left unwalked at the depth cap, as `Fn[args]` (JSON), so a merge can drop those another root walked. */
+    unwalked: [...unwalked],
   };
 }

@@ -6,6 +6,7 @@ import { hString } from "../hstring";
 import { listAt } from "../lists";
 import { Spelunk } from "./Spelunk";
 import { Thingies } from "./Thingies";
+import type { Ported } from "../ported";
 
 /**
  * N.js `_customBlock_GamingStatType(d, b, e)` @10732554: one function, a chain of named sub-cases. Only the sub-cases the Artifact
@@ -18,6 +19,16 @@ export const GamingStatType: (ctx: Ctx, d: string, b: number, e: number) => numb
     // @10746582: Super Bit b is owned when its letter (Number2Letter[b]) is in Gaming[12]
     case "SuperBitType":
       return -1 != hString(attr(ctx, "Gaming", 12)).indexOf(hString(Number2Letter[b | 0])) ? 1 : 0;
+    // @10746743: the Worship bonus 0, floor(the totems' waves / 10) once Super Bit 7 is owned. The waves are the construction actor's
+    // _GenINFO[114], its init's sum of TotemInfo[0] (@9087700; the actor is built at the game's start, so its GenINFO is longer than 114)
+    case "MSA_Bonus": {
+      if (0 != b) throw new NotPorted("GamingStatType", `MSA_Bonus:b=${b}`);
+      if (1 != GamingStatType(ctx, "SuperBitType", 7, 0)) return 0;
+      const totems = listAt(ctx, "TotemInfo", 0); // the init reads TotemInfo[0].length
+      let waves = 0; // ActorEvents_481._GenINFO[114]
+      for (let f = 0; f < totems.length; f++) waves = waves + asNum(ctx, "TotemInfo", 0, f);
+      return Math.floor(waves / 10);
+    }
     default:
       throw new NotPorted("GamingStatType", d);
   }
@@ -67,3 +78,6 @@ function paletteBonus(ctx: Ctx, b: number): number {
   if (v === undefined) throw new RangeError(`GamingStatType PaletteBonus: no shade ${b}`);
   return v;
 }
+
+/** What this module covers (lib/game/ported.ts). */
+export const PORTED: Ported = { PaletteBonus: true, SuperBitType: true, MSA_Bonus: [0] };

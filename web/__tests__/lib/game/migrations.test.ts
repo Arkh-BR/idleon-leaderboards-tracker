@@ -140,36 +140,45 @@ describe("the loader: an attribute it reads only from a save version keeps its i
     const full = MapAFKtarget.map((m) => (["Nothing", "Z"].includes(m as string) ? [0] : [1, 2, 3]));
     expect(buildGameState(env({ CSver: 34.05, MapBon: full })).migrations).toEqual([]);
   });
+  it("pads DungUpg to 7 lists (the Flurbo shop's 8 levels are DungUpg[5]); 7 lists, or an empty DungUpg (the unported fill), are left alone", () => {
+    const short = buildGameState(env({ CSver: 34.05, DungUpg: [[1], [2], [3], [4], [5]] }));
+    expect(short.data.DungUpg).toEqual([[1], [2], [3], [4], [5], zeros(8), zeros(10)]);
+    expect(short.migrations).toEqual(["DungUpg padded to 7 lists (initialize2 @6236847)"]);
+    expect(buildGameState(env({ CSver: 34.05, DungUpg: [[1], [2], [3], [4]] })).data.DungUpg).toEqual([[1], [2], [3], [4], zeros(4), zeros(8), zeros(10)]);
+    expect(buildGameState(env({ CSver: 34.05, DungUpg: lists(1, 1, 1, 1, 1, 1, 1) })).migrations).toEqual([]);
+    expect(buildGameState(env({ CSver: 34.05, DungUpg: [] })).data.DungUpg).toEqual([]);
+  });
 });
 
 describe("the OnPlayStart blocks: each runs when its gate is above DoOnceREAL, raises it, and runs once", () => {
   it("395: the Ninja[103] slots, OptionsListAccount[519], the Spelunk lists 49 (37 zeros) to 53, and the Menagerie flag [0][6]", () => {
     const s = buildGameState(env(at389()));
     const spelunk = s.data.Spelunk as unknown[][];
-    expect(spelunk).toHaveLength(54);
+    expect(spelunk).toHaveLength(55); // 395 to 54, then 399 its 55th (the Cape Vine's)
     expect(spelunk[48]).toEqual([1]);
     expect(spelunk[49]).toEqual(zeros(37));
-    expect(spelunk.slice(50)).toEqual([[], [], [], []]);
+    expect(spelunk.slice(50)).toEqual([[], [], [], [], []]);
     expect((s.data.Ninja as unknown[][])[103]).toEqual(zeros(40));
     expect((s.data.OptLacc as number[])[519]).toBe(-1);
     expect((s.data.Menagerie as number[][])[0][6]).toBe(1);
-    expect(s.data.DoOnceREAL).toBe(395.1);
-    expect(s.migrations).toEqual(["OnPlayStart4 DoOnceREAL < 395 @6465133"]);
+    expect(s.data.DoOnceREAL).toBe(399.1);
+    expect(s.migrations).toEqual(["OnPlayStart4 DoOnceREAL < 395 @6465133", "OnPlayStart4 DoOnceREAL < 399 @6468343"]);
   });
   it("does not run a block whose gate is not above DoOnceREAL", () => {
     for (const DoOnceREAL of [395, 395.1, 399.1]) {
       const s = buildGameState(env(at389({ DoOnceREAL })));
-      expect(s.migrations).toEqual([]);
+      // 399 still runs below its gate, and pads nothing: its 55th list needs a Spelunk of 54
+      expect(s.migrations).toEqual(399 > DoOnceREAL ? ["OnPlayStart4 DoOnceREAL < 399 @6468343"] : []);
       expect(s.data.Spelunk as unknown[]).toHaveLength(49);
     }
   });
   it("a Spelunk that already has its 50th list keeps it (`50 > Spelunk.length`), the empty ones still come", () => {
     const s = buildGameState(env(at389({ Spelunk: Array.from({ length: 50 }, () => [1]) })));
-    expect((s.data.Spelunk as unknown[][]).slice(49)).toEqual([[1], [], [], [], []]);
+    expect((s.data.Spelunk as unknown[][]).slice(49)).toEqual([[1], [], [], [], [], []]); // the last one is 399's
   });
-  it("from DoOnceREAL 367.1 on, the blocks run in the game's order: 371, 378, 380, 382, 395", () => {
+  it("from DoOnceREAL 367.1 on, the blocks run in the game's order: 371, 378, 380, 382, 395, 399", () => {
     const s = buildGameState(env(at389({ DoOnceREAL: 367.1, OptLacc: [], Spelunk: Array.from({ length: 47 }, () => [1]), RoyalG: Array.from({ length: 23 }, () => []) })));
-    expect(s.migrations).toEqual([371, 378, 380, 382, 395].map((g) => MIGRATIONS.find((m) => m.id.includes(`DoOnceREAL < ${g} `))!.id));
+    expect(s.migrations).toEqual([371, 378, 380, 382, 395, 399].map((g) => MIGRATIONS.find((m) => m.id.includes(`DoOnceREAL < ${g} `))!.id));
     const ola = s.data.OptLacc as unknown[];
     expect(ola).toHaveLength(701); // 371 pads the list, 378 and 395 write into it
     expect([ola[200], ola[606], ola[519], ola[700]]).toEqual([1, "", -1, 0]);
@@ -177,8 +186,9 @@ describe("the OnPlayStart blocks: each runs when its gate is above DoOnceREAL, r
     expect(spelunk[47]).toEqual(zeros(15)); // 380
     expect(spelunk[48]).toEqual([]); // 380
     expect(spelunk[49]).toEqual(zeros(37)); // 395
+    expect(spelunk[54]).toEqual([]); // 399
     expect((s.data.RoyalG as unknown[][])[23]).toEqual(zeros(15)); // 382
-    expect(s.data.DoOnceREAL).toBe(395.1);
+    expect(s.data.DoOnceREAL).toBe(399.1);
     expect(s.assumed).toEqual([DROP_RATE_RECORD]); // 378 ran
   });
   it("382 adds the 24th RoyalG list only to a RoyalG of 23", () => {
@@ -192,6 +202,15 @@ describe("the OnPlayStart blocks: each runs when its gate is above DoOnceREAL, r
     expect((d.Sailing as unknown[][])[3]).toEqual([1, 5, 5, 5, null]);
     expect(d.DoOnceREAL).toBe(332.1);
   });
+  it("337 turns a null Sailing[3] element into 0 (ArtifactBonus tests the raw element) and leaves a save at 337 or later alone", () => {
+    const d: Record<string, unknown> = { DoOnceREAL: 336, Sailing: [[], [], [], [1, null, 0, null]] };
+    expect(runStep("OnPlayStart4 DoOnceREAL < 337 ", d)).toBe(true);
+    expect((d.Sailing as unknown[][])[3]).toEqual([1, 0, 0, 0]);
+    expect(d.DoOnceREAL).toBe(337.1);
+    const e: Record<string, unknown> = { DoOnceREAL: 337.1, Sailing: [[], [], [], [1, null]] };
+    expect(runStep("OnPlayStart4 DoOnceREAL < 337 ", e)).toBe(false);
+    expect((e.Sailing as unknown[][])[3]).toEqual([1, null]);
+  });
   it("268 clears the permanently unlocked sets of an account that bought few gems, as the game does", () => {
     const run = (sgr: number, ola380: number) => {
       const d: Record<string, unknown> = { DoOnceREAL: 267, ServerGemsReceived: sgr, ServerGems: 0, OptLacc: Object.assign(zeros(400), { 379: "GODSHARD_SET", 380: ola380 }) };
@@ -203,34 +222,30 @@ describe("the OnPlayStart blocks: each runs when its gate is above DoOnceREAL, r
     expect(run(100, 0)).toEqual(["GODSHARD_SET", 0]);
   });
   it("reads DoOnceREAL -1 as the loader does: the init 0 stays", () => {
-    expect(buildGameState(env(at389({ DoOnceREAL: -1 }))).refusal?.key).toBe(UNPORTED_STEPS);
+    expect(() => buildGameState(env(at389({ DoOnceREAL: -1 })))).toThrow(UNPORTED_STEPS);
   });
   it("runs no block on a save without DoOnceREAL (synthetic), and refuses one that is not a number", () => {
     const { DoOnceREAL: _, ...noDoOnce } = at389();
     expect(buildGameState(env(noDoOnce)).migrations).toEqual([]);
-    expect(buildGameState(env(at389({ DoOnceREAL: "389.1" }))).refusal).toBeInstanceOf(InvalidSaveValue);
+    expect(() => buildGameState(env(at389({ DoOnceREAL: "389.1" })))).toThrow(InvalidSaveValue);
   });
 });
 
 describe("strictness: a step never guesses, and a save it cannot replay reads nothing", () => {
-  it("a block that needs a key the save lacks refuses the save: every read throws that MissingSaveKey", () => {
+  it("a block that needs a key the save lacks refuses the save: buildGameState throws that MissingSaveKey, no state exists", () => {
     const { Spelunk: _, ...noSpelunk } = at389();
-    const s = buildGameState(env(noSpelunk));
-    expect(s.refusal).toMatchObject({ name: "MissingSaveKey", key: "Spelunk" });
-    expect(() => s.data).toThrow(MissingSaveKey);
-    expect(() => s.get("CSver")).toThrow("Spelunk");
-    expect(buildGameState(env(at389({ Ninja: [] }))).refusal?.key).toBe("Ninja[103]");
-    expect(buildGameState(env(at389({ Menagerie: [] }))).refusal).toBeUndefined(); // filled first (initialize4), then [0][6] is set
-    expect(buildGameState(env(at389({ Spelunk: '[["a"' }))).refusal).toBeInstanceOf(InvalidSaveValue); // a corrupt key is not read
-    expect(buildGameState(env({ CSver: 23.05 })).refusal?.key).toBe("Lv0_0"); // the Spelunk fill writes every character's Lv0[19]
+    expect(() => buildGameState(env(noSpelunk))).toThrow(MissingSaveKey);
+    expect(() => buildGameState(env(noSpelunk))).toThrow("Spelunk");
+    expect(() => buildGameState(env(at389({ Ninja: [] })))).toThrow(expect.objectContaining({ key: "Ninja[103]" }));
+    expect(() => buildGameState(env(at389({ Menagerie: [] })))).not.toThrow(); // filled first (initialize4), then [0][6] is set
+    expect(() => buildGameState(env(at389({ Spelunk: '[["a"' })))).toThrow(InvalidSaveValue); // a corrupt key is not read
+    expect(() => buildGameState(env({ CSver: 23.05 }))).toThrow(expect.objectContaining({ key: "Lv0_0" })); // the Spelunk fill writes every character's Lv0[19]
   });
   it(`a save older than the oldest block examined (DoOnceREAL < ${OLDEST_GATE}) is refused, naming that`, () => {
     for (const DoOnceREAL of [0, 100, 247.9]) {
-      const s = buildGameState(env(at389({ DoOnceREAL })));
-      expect(s.refusal).toMatchObject({ name: "MissingSaveKey", key: UNPORTED_STEPS });
-      expect(() => s.data).toThrow(UNPORTED_STEPS);
+      expect(() => buildGameState(env(at389({ DoOnceREAL })))).toThrow(expect.objectContaining({ name: "MissingSaveKey", key: UNPORTED_STEPS }));
     }
-    expect(buildGameState(env(at389({ DoOnceREAL: OLDEST_GATE }))).refusal?.key).not.toBe(UNPORTED_STEPS); // 248 itself runs from 251 on
+    expect(() => buildGameState(env(at389({ DoOnceREAL: OLDEST_GATE })))).not.toThrow(UNPORTED_STEPS); // 248 itself runs from 251 on
     expect(UNPORTED_STEPS).toBe("the game's load steps for DoOnceREAL < 248");
   });
   it("leaves the caller's envelope as it was and freezes what it built; every state gets lists of its own", () => {
@@ -352,7 +367,7 @@ describe.skipIf(!existsSync(NJS))("against the live N.js", () => {
     { fn: "initialize3", name: "Spelunk", prefix: 'e=PlayerDATABASE.h;e=Object.keys(e);g=e.length;for(d=0;d<g;)b=e[d++],PlayerDATABASE.h[""+b].h.Lv0[19]=0,PlayerDATABASE.h[""+b].h.Exp0[19]=0,PlayerDATABASE.h[""+b].h.ExpReq0[19]=25;OptionsListAccount[478]=0;' },
     { fn: "initialize3", name: "Bubba" },
     { fn: "initialize3", name: "Research", prefix: 'e=PlayerDATABASE.h;e=Object.keys(e);g=e.length;for(d=0;d<g;)b=e[d++],PlayerDATABASE.h[""+b].h.Lv0[20]=1,PlayerDATABASE.h[""+b].h.Exp0[20]=0,PlayerDATABASE.h[""+b].h.ExpReq0[20]=10;', random: 2 },
-    { fn: "initialize3", name: "Sushi" }, { fn: "initialize4", name: "RoyalG" }, { fn: "initialize4", name: "RoyalMaps" }, { fn: "initialize4", name: "Menagerie" },
+    { fn: "initialize3", name: "Sushi" }, { fn: "initialize3", name: "CookMaster" }, { fn: "initialize4", name: "RoyalG" }, { fn: "initialize4", name: "RoyalMaps" }, { fn: "initialize4", name: "Menagerie" },
   ];
   for (const { fn, name, prefix, random } of FILLS) {
     it(`${fn} fills an empty ${name} with what the step gives (read back statement by statement)`, () => {
@@ -376,6 +391,15 @@ describe.skipIf(!existsSync(NJS))("against the live N.js", () => {
       expect(d[name]).toEqual(game);
     });
   }
+
+  it("initialize2's DungUpg pads are the ones ported", () => {
+    const init2 = "_customBlock_initialize2=function";
+    const pad = (n: number) => compact(njsBlock(src, `${n}>a.engine.getGameAttribute("DungUpg").length&&`, init2));
+    expect(pad(5)).toBe("5>DungUpg.length&&(DummyList2=[],DummyList2.push(0)x4,DungUpg.push(DummyList2));");
+    expect(pad(6)).toBe("6>DungUpg.length&&(DummyList2=[],DummyList2.push(0)x8,DungUpg.push(DummyList2));");
+    expect(pad(7)).toBe("7>DungUpg.length&&(DummyList2=[],DummyList2.push(0)x10,DungUpg.push(DummyList2),DummyList2=[]);");
+    expect(fnText("initialize2")).toContain('if(0==a.engine.getGameAttribute("DungUpg").length){'); // the fill, only of an empty DungUpg
+  });
 
   it("initialize3's pads of Compass and MapBon are the ones ported", () => {
     const init3 = "_customBlock_initialize3=function";
@@ -429,26 +453,34 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("the real saves", () => {
   });
   const state = (file: string) => buildGameState(JSON.parse(readFileSync(saves.find((s) => s.file === file)!.path, "utf8")));
 
-  it("a current save runs no step; each older one runs the steps of its version", () => {
+  it("a current save runs no step but 399 (saved before the Cape Vine: DoOnceREAL 395.1 or 398.1); each older one runs the steps of its version", () => {
     const seen = new Map<string, string[]>();
     for (const { file, data, path } of saves) {
-      const s = buildGameState(JSON.parse(readFileSync(path, "utf8")));
+      let s: ReturnType<typeof buildGameState>;
+      try {
+        s = buildGameState(JSON.parse(readFileSync(path, "utf8")));
+      } catch (e) {
+        if (!(e instanceof MissingSaveKey || e instanceof InvalidSaveValue)) throw e;
+        const group = `refused: ${e.key}`;
+        seen.set(group, [...(seen.get(group) ?? []), file].sort());
+        continue;
+      }
       if (data.CSver >= 34.05) {
-        expect(s.migrations, file).toEqual([]);
+        expect(s.migrations, file).toEqual(399 > data.DoOnceREAL ? ["OnPlayStart4 DoOnceREAL < 399 @6468343"] : []);
         expect(s.assumed, file).toEqual([]);
         continue;
       }
-      const group = s.refusal ? `refused: ${s.refusal.key}` : `CSver ${data.CSver}, DoOnceREAL ${data.DoOnceREAL}: ${s.migrations.length} steps`;
+      const group = `CSver ${data.CSver}, DoOnceREAL ${data.DoOnceREAL}: ${s.migrations.length} steps`;
       seen.set(group, [...(seen.get(group) ?? []), file].sort());
     }
     expect(Object.fromEntries(seen)).toEqual({
-      "CSver 23.05, DoOnceREAL 248.3: 40 steps": ["HourZero.json"],
-      "CSver 29.05, DoOnceREAL 340.1: 16 steps": ["5OhTree.json"],
-      "CSver 30.05, DoOnceREAL 367.1: 11 steps": ["0celot8.json"],
-      "CSver 32.05, DoOnceREAL 378.1: 9 steps": ["100Cotton.json", "100Cotton.json", "24632463.json", "Brokami.json", "Exrom.json", "GIM_SSS.json", "Pontinhas.json"],
-      "CSver 33.05, DoOnceREAL 382.1: 3 steps": ["1st_Giri.json", "1st_Giri.json"],
-      "CSver 33.05, DoOnceREAL 385.1: 3 steps": ["01010111001.json", "0xEXCEED.json", "26515665165165.json", "Jrod11.json", "Rinkzate.json", "arkhe-it-profile-2026-09-24.json"],
-      "CSver 33.05, DoOnceREAL 389.1: 3 steps": [
+      "CSver 23.05, DoOnceREAL 248.3: 45 steps": ["HourZero.json"],
+      "CSver 29.05, DoOnceREAL 340.1: 20 steps": ["5OhTree.json"],
+      "CSver 30.05, DoOnceREAL 367.1: 15 steps": ["0celot8.json"],
+      "CSver 32.05, DoOnceREAL 378.1: 10 steps": ["100Cotton.json", "100Cotton.json", "24632463.json", "Brokami.json", "Exrom.json", "GIM_SSS.json", "Pontinhas.json"],
+      "CSver 33.05, DoOnceREAL 382.1: 4 steps": ["1st_Giri.json", "1st_Giri.json"],
+      "CSver 33.05, DoOnceREAL 385.1: 4 steps": ["01010111001.json", "0xEXCEED.json", "26515665165165.json", "Jrod11.json", "Rinkzate.json", "arkhe-it-profile-2026-09-24.json"],
+      "CSver 33.05, DoOnceREAL 389.1: 4 steps": [
         "B0schi.json", "Dragonlzl.json", "FenrirAdra.json", "Frans813.json", "Grandesz.json", "MarleyLongbott.json", "Pepega777.json", "TinTim.json",
         "arkhe-2026-09-23.json", "arkhe-live-2026-09-23.json", "arkhe-live-2026-09-24.json", "breakinbrad.json", "dida123.json", "joelok.json", "ryujinsan.json",
       ],
@@ -467,7 +499,7 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("the real saves", () => {
     expect(notes(gameArtifactFind(state("ARKHE.json"), 0).tree).filter((n) => sushi.test(n) || n === record)).toEqual([]);
   }, 60_000);
 
-  it.skipIf(!existsSync(NJS))("the loader gates the older saves are below give only what the steps port, and Tess, GreenStacks, CookMaster (never read)", () => {
+  it.skipIf(!existsSync(NJS))("the loader gates the older saves are below give only what the steps port, and Tess (never read)", () => {
     const flat = readFileSync(NJS, "utf8").replace(/\n/g, "");
     const loads = [...flat.matchAll(/([\d.]+)<=u\.getLoad\("CSver"\)&&\(([^;]*?)\)(?=;|\}|[\d.]+<=u)/g)].flatMap((m) =>
       [...m[2].matchAll(/getLoad\w*\("(\w+)"/g)].map((k) => ({ v: Number(m[1]), key: k[1] }))
@@ -476,7 +508,7 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("the real saves", () => {
     const below = new Set<string>();
     for (const { data } of saves) if (data.CSver < 34.05 && data.DoOnceREAL >= OLDEST_GATE) for (const l of loads) if (l.v > data.CSver) below.add(l.key);
     const ported = [...below].filter((k) => MIGRATIONS.some((m) => m.id.startsWith(`${k} = [] `)));
-    expect([...below].filter((k) => !ported.includes(k)).sort()).toEqual(["CookMaster", "GreenStacks", "Tess"]);
-    expect(ported.sort()).toEqual(["Arcane", "Bubba", "Compass", "MapBon", "Menagerie", "Research", "RoyalG", "RoyalMaps", "Spelunk", "Sushi"]);
+    expect([...below].filter((k) => !ported.includes(k)).sort()).toEqual(["Tess"]);
+    expect(ported.sort()).toEqual(["Arcane", "Bubba", "Compass", "CookMaster", "GreenStacks", "MapBon", "Menagerie", "Research", "RoyalG", "RoyalMaps", "Spelunk", "Sushi"]);
   });
 });

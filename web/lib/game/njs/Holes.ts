@@ -1,17 +1,18 @@
 import { asNum, asNumber, attr } from "../attr";
 import { block, type Ctx } from "../ctx";
-import { CosmoUpgrades, HolesInfo } from "../data";
+import { CosmoUpgrades, GodsInfo, HolesInfo } from "../data";
 import { InvalidSaveValue, NotPorted } from "../errors";
 import { listAt } from "../lists";
 import { getLOG } from "./getLOG";
 import { Holes2 } from "./Holes2";
+import type { Ported } from "../ported";
 
-/** N.js `_customBlock_Holes(d, b, e)` @10990457. Only the sub-cases the Artifact Find port reaches. */
+/** N.js `_customBlock_Holes(d, b, e)` @10990457. Only the sub-cases the Artifact Find port and the character stats reach. */
 export const Holes: (ctx: Ctx, d: string, b: number, e: number) => number = block("Holes", (ctx, d: string, b: number, e: number) => {
   switch (d) {
     // @10996050: Bolaia upgrade `b`
     case "B_UPG":
-      return bUpg(ctx, b);
+      return bUpg(ctx, b, e);
     // @11002068: Cosmo upgrade (b, e) of the Holes: level x value, rounded down; (2, 1) is 3 to the level, at least 1
     case "CosmoBonusQTY": {
       const level = Math.round(4 + b);
@@ -25,6 +26,19 @@ export const Holes: (ctx: Ctx, d: string, b: number, e: number) => number = bloc
     // @11014436: monument (b, e)
     case "MonumentROGbonuses":
       return monumentROGbonuses(ctx, b, e);
+    // @10991634: the god of minor bonus kind b is in a pocket: the first pocket (Holes[11][29]) with Cosmo (2, 0) above 0, the second
+    // ([11][30]) with it above 1
+    case "PocketDivOwned": {
+      listAt(ctx, "Holes", 11); // the game indexes Holes[11][29] directly
+      const kind = (slot: number) => {
+        const god = (GodsInfo as unknown as readonly (readonly unknown[])[])[asNum(ctx, "Holes", 11, slot) | 0];
+        // the game indexes GodsInfo[g][13] directly and would throw on a god it does not have
+        if (!god) throw new RangeError(`Holes PocketDivOwned: no god ${asNum(ctx, "Holes", 11, slot)} in GodsInfo`);
+        return asNumber(god[13]);
+      };
+      if (kind(29) == b && 0 < Holes(ctx, "CosmoBonusQTY", 2, 0)) return 1;
+      return kind(30) == b && 1 < Holes(ctx, "CosmoBonusQTY", 2, 0) ? 1 : 0;
+    }
     default:
       throw new NotPorted("Holes", d);
   }
@@ -32,17 +46,28 @@ export const Holes: (ctx: Ctx, d: string, b: number, e: number) => number = bloc
 
 /**
  * `B_UPG` @10996050. It opens with `0 == Holes.length || 0 == Holes[13][b|0]` (the upgrade is not bought: 0; the flag is the raw
- * element, so a null is not 0), then a chain on b; only b == 55 is ported: 10 x floor(getLOG(Holes[9][11])).
+ * element, so a null is not 0), then a chain on b; ported: 55 = 10 x floor(getLOG(Holes[9][11])), 57 = 20 x floor(getLOG(Holes[9][1])),
+ * 82..84 = e x Holes[11][55]. The others are not reached (49 and the 50, 79, 98 it calls only from SkillStats AllEfficiencies).
  */
-function bUpg(ctx: Ctx, b: number): number {
+function bUpg(ctx: Ctx, b: number, e: number): number {
   const holes = attr(ctx, "Holes");
   if (!Array.isArray(holes)) throw new InvalidSaveValue("Holes", "an array", holes);
   if (0 == holes.length) return 0;
   listAt(ctx, "Holes", 13); // the game indexes Holes[13][b] directly
   if (0 == attr(ctx, "Holes", 13, b | 0)) return 0;
-  if (55 != b) throw new NotPorted("Holes", `B_UPG:${b}`);
-  listAt(ctx, "Holes", 9);
-  return 10 * Math.floor(getLOG(ctx, asNum(ctx, "Holes", 9, 11)));
+  if (55 == b) {
+    listAt(ctx, "Holes", 9);
+    return 10 * Math.floor(getLOG(ctx, asNum(ctx, "Holes", 9, 11)));
+  }
+  if (57 == b) {
+    listAt(ctx, "Holes", 9);
+    return 20 * Math.floor(getLOG(ctx, asNum(ctx, "Holes", 9, 1)));
+  }
+  if (82 == b || 83 == b || 84 == b) {
+    listAt(ctx, "Holes", 11);
+    return e * asNum(ctx, "Holes", 11, 55);
+  }
+  throw new NotPorted("Holes", `B_UPG:b=${b}`);
 }
 
 /**
@@ -68,3 +93,6 @@ function monumentROGbonuses(ctx: Ctx, b: number, e: number): number {
   if (30 > k) return level * k * Math.max(1, multi);
   return 0.1 * Math.ceil(10 * (level / (250 + level)) * k * Math.max(1, multi));
 }
+
+/** What this module covers (lib/game/ported.ts). */
+export const PORTED: Ported = { B_UPG: [55, 57, 82, 83, 84], CosmoBonusQTY: true, MonumentROGbonuses: true, PocketDivOwned: true };

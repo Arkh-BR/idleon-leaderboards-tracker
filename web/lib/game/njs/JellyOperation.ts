@@ -3,6 +3,7 @@ import { block } from "../ctx";
 import { Research as ResearchLists } from "../data";
 import { NotPorted } from "../errors";
 import { listAt } from "../lists";
+import type { Ported } from "../ported";
 
 /** N.js `_customBlock_JellyOperation(d, b, e)` @5164037. Only the sub-cases the Artifact Find port reaches. */
 export const JellyOperation = block("JellyOperation", (ctx, d: string, b: number, e: number) => {
@@ -16,3 +17,6 @@ export const JellyOperation = block("JellyOperation", (ctx, d: string, b: number
       throw new NotPorted("JellyOperation", d);
   }
 });
+
+/** What this module covers (lib/game/ported.ts). */
+export const PORTED: Ported = { RoG_BonusQTY: true };

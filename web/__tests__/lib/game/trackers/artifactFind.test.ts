@@ -201,7 +201,8 @@ describe("the display config", () => {
 // Spelunk, Arcane..., which the load gives them. No real save is refused any more (UNPORTED_REFUSALS is empty).
 const CURRENT_CSVER = 34.05;
 /** The real saves below the current CSver that compute now, through the load steps (Task 12): all 31 names (33 files). */
-const MIGRATED = ["01010111001.json","0celot8.json","0xEXCEED.json","100Cotton.json","1st_Giri.json","24632463.json","26515665165165.json","5OhTree.json","B0schi.json","Brokami.json","Dragonlzl.json","Exrom.json","FenrirAdra.json","Frans813.json","GIM_SSS.json","Grandesz.json","HourZero.json","Jrod11.json","MarleyLongbott.json","Pepega777.json","Pontinhas.json","Rinkzate.json","TinTim.json","arkhe-2026-09-23.json","arkhe-it-profile-2026-09-24.json","arkhe-live-2026-09-23.json","arkhe-live-2026-09-24.json","breakinbrad.json","dida123.json","joelok.json","ryujinsan.json"];
+// every save from before the load step DoOnceREAL < 399 (the Cape Vine list, Spelunk[54]) runs it: all but the newest
+const MIGRATED = ["01010111001.json","0celot8.json","0xEXCEED.json","100Cotton.json","1st_Giri.json","21ucky4u.json","24632463.json","26515665165165.json","5OhTree.json","ARKHE.json","AoDCthulhu.json","Arlong.json","Ash_EB.json","AvacadoSqueeze.json","Azza2Bad.json","B0schi.json","Baker333.json","Bangada.json","BopeBrancis.json","Brokami.json","Bubbafrumps.json","Chalalaa.json","Cheap_Jokes_ok.json","Crezar.json","Dandy2009.json","Dasvidanya.json","Dragami.json","Dragonlzl.json","Drukez.json","Einyen.json","Exrom.json","F1N4L_1.json","Fanmail.json","FenrirAdra.json","Flipper143.json","FlipsyThEVicti.json","Fluffle_Puff.json","Frans813.json","Frostymart.json","FrozenBody.json","GIM_SSS.json","Glaives.json","GoddessFreia.json","Grandesz.json","HourZero.json","Hyucan.json","Jrod11.json","Koweabooo.json","MarleyLongbott.json","Maspoofio.json","MeatyLock.json","Norton_Goldman.json","Pepega777.json","PerkOne.json","Pontinhas.json","PulseIRL.json","Riltin.json","Rinkzate.json","Scotchz.json","Seavik.json","Shadow_x_Vanish.json","Shironee.json","Skvimpan.json","Snowyzxd.json","TheSpease.json","TinTim.json","TomerBuff.json","WarSkepp.json","Yosh6400.json","airbolt.json","arkhe-2026-09-23.json","arkhe-it-profile-2026-09-24.json","arkhe-live-2026-09-23.json","arkhe-live-2026-09-24.json","arkhe-live-2026-10-30.json","arkhe-live-2026-11-01.json","astarm.json","big_guy69123.json","biggums3.json","blickter.json","bluestar3112.json","breakinbrad.json","dida123.json","enilyn.json","haki34.json","hellzd4nt3.json","jobenty.json","joelok.json","kONYYY.json","liiiiiiiiiiiig.json","lunaonline.json","ryujinsan.json","suk69.json","xBlackpearl.json","zadavi.json"];
 const csverOf = (file: string): number => JSON.parse(readFileSync(GOLDEN_SAVES.find((p) => basename(p) === file)!, "utf8")).data.CSver;
 
 describe.skipIf(noSaves)("computeGameArtifactFind against lib/arkh on every real save and character", () => {
@@ -242,7 +243,8 @@ describe.skipIf(noSaves)("computeGameArtifactFind against lib/arkh on every real
           const want = arkhArtifactLeaf(path, ci, id);
           if (!rel(r.vals[id], want)) leafMismatches.push(`${file}#${ci} ${id}: game ${r.vals[id]}, arkh ${want}`);
         }
-        if (KNOWN_ARKH_DIFFS.some((d) => d.save === file && (d.ci ?? ci) === ci)) {
+        // only Artifact Find's own entries (a stat's KNOWN row says nothing about this total)
+        if (KNOWN_ARKH_DIFFS.some((d) => (d.stat ?? "artifactFind") === "artifactFind" && d.save === file && (d.ci ?? ci) === ci)) {
           known++;
           continue; // the total differs from lib/arkh's where N.js proves lib/arkh wrong
         }
@@ -273,11 +275,20 @@ describe.skipIf(noSaves)("computeGameArtifactFind against lib/arkh on every real
   it("an older save is computed after the game's load steps, and the root of its tree says which ran", () => {
     const path = GOLDEN_SAVES.find((p) => basename(p) === "arkhe-live-2026-09-23.json"); // CSver 33.05, DoOnceREAL 389.1
     expect(path).toBeDefined();
-    const steps = ["Menagerie = [] (loader: CSver < 34 @19944986, init @6586152)", "Menagerie filled (initialize4 @6336662)", "OnPlayStart4 DoOnceREAL < 395 @6465133"];
+    const steps = [
+      "Menagerie = [] (loader: CSver < 34 @19944986, init @6586152)", "Menagerie filled (initialize4 @6336662)", "OnPlayStart4 DoOnceREAL < 395 @6465133",
+      "OnPlayStart4 DoOnceREAL < 399 @6468343",
+    ];
     expect(stateOf(path!).state.migrations).toEqual(steps);
     const { tree } = gameArtifactFind(stateOf(path!).state, 0);
-    expect(tree.note).toBe("migrated from an older game version (3 load steps)"); // a count in words, not the step ids (they are state.migrations)
-    expect(gameArtifactFind(stateOf(ARKHE_11_01).state, 0).tree.note).toBeUndefined(); // a current save: nothing ran
+    expect(tree.note).toBe("migrated from an older game version (4 load steps)"); // a count in words, not the step ids (they are state.migrations)
+    // a save from just before the Cape Vine runs its one step
+    expect(gameArtifactFind(stateOf(ARKHE_11_01).state, 0).tree.note).toBe("migrated from an older game version (1 load step)");
+  });
+
+  const current = GOLDEN_SAVES.find((p) => basename(p) === "arkhe-live-2026-11-01-postupdate.json"); // DoOnceREAL 399.1
+  it.skipIf(!current)("a current save has no migration note", () => {
+    expect(gameArtifactFind(stateOf(current!).state, 0).tree.note).toBeUndefined(); // nothing ran
   });
 
   it("a refused save throws instead of answering a number", () => {
@@ -411,7 +422,8 @@ describe.skipIf(!existsSync(ARKHE_11_01))("the tree the adapter builds, on the 2
     const { tree } = result();
     const arkh = arkhArtifactTree(ARKHE_11_01, markhe());
     const shape = (n: StatResult["tree"]) => ({ name: n.name, fmt: n.fmt, note: n.note });
-    expect(shape(tree)).toEqual(shape(arkh));
+    // the root of lib/game's tree also says which load steps ran (this save is from before the step 399): lib/arkh has no such note
+    expect({ ...shape(tree), note: tree.note === "migrated from an older game version (1 load step)" ? undefined : tree.note }).toEqual(shape(arkh));
     ARTI_GROUPS.forEach((g, gi) => {
       expect(shape(tree.children![gi]), g.key).toEqual(shape(arkh.children![gi]));
       expect(tree.children![gi].children!.length, g.key).toBe(arkh.children![gi].children!.length);

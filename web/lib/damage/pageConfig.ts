@@ -1,10 +1,13 @@
 // Damage page: the statTracker kit's config for N.js _customBlock_DamageDealed
 // — the Damage line of the Player Info panel (Min ~ Max, Min = Max × Mastery).
-// The headline total is Max; Min comes from the tree's Mastery node.
+// The headline total is Max; Min comes from the tree's Mastery node. It computes on lib/game (trackers/damage.ts); the Observed Max
+// collector (scripts/update-top-damage.ts) stays on lib/arkh.
 
 import type { StatPageConfig } from "@/lib/statTracker/config";
+import { withPageErrors } from "@/lib/statTracker/pageErrors";
 import type { ArkhNode } from "@/lib/arkh/node";
-import { DMG_NODES } from "@/lib/arkh/stats/defs/damage";
+import { DMG_NODES } from "./layers";
+import { loadDamageMapFilter } from "./mapFilter";
 import { formatDamage, formatDamageLine } from "./format";
 import { damageGainsModel } from "./gains";
 import { TOP_DAMAGE_GENERATED_AT, TOP_DAMAGE_PLAYERS_SCANNED } from "./topDamage.meta";
@@ -34,8 +37,10 @@ export const DAMAGE_PAGE: StatPageConfig = {
     exportPrefix: "damage-snapshots",
     exportLabel: "damage-tracker",
   },
-  compute: (save, charIdx, mapIdx) =>
-    import("@/lib/arkh/computeDamage").then((m) => m.computeArkhDamage(save, charIdx, mapIdx)),
+  loadMapFilter: loadDamageMapFilter,
+  compute: withPageErrors("Damage", (save, charIdx, mapIdx) =>
+    import("@/lib/game/trackers/damage").then((m) => m.computeGameDamage(save, charIdx, mapIdx))
+  ),
   formatTotal: formatDamage,
   unit: "",
   headline: (tree, total) => formatDamageLine(minOf(tree, total), total),
@@ -51,7 +56,8 @@ export const DAMAGE_PAGE: StatPageConfig = {
     "HP, MP, move speed); every other source takes the best value across all players. Class talents folded into those " +
     "stats can't be told apart by class, so a family's reference may include a sibling class's talents there. Active buffs (Talents 108/124) and " +
     "masterclass forms (Wraith, Tempest, Tesseract) are not counted, and neither is the dungeon branch. On map 43 the Royal Guardian arena replaces the " +
-    "whole Max, so nothing is ranked there.",
+    "whole Max, so nothing is ranked there. The Observed Max values themselves are still computed by the previous engine, so for a few " +
+    "sources they can differ slightly from your own numbers until they are recomputed.",
   compareTitle: "Compare every Damage source against the best value observed across the top players",
   gainsTabTitle: "Rank your Damage sources by how much Max damage matching the top players would give",
   footer:

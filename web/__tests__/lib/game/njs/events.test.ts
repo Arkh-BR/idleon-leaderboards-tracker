@@ -141,8 +141,11 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("RandomEvent (N.js @10777743)", () =>
     expect(killroy(300)).toBe(1.5);
     expect(killroy(900)).toBe(1.75);
   });
-  it("the other Killroy upgrades are not ported", () => {
-    for (const b of [1, 2, 3, 7, 8]) expect(() => RandomEvent(variant(() => {}), "KillroyBonuses", b, 0)).toThrow(NotPorted);
+  it("Killroy upgrade 3 (the Gallery's) is 10 x P / (200 + P), P = OptionsListAccount[467]; the others are not ported", () => {
+    const k3 = (p: number) => RandomEvent(variant((d) => setIn(d, "OptLacc", (o) => (o[467] = p))), "KillroyBonuses", 3, 0);
+    expect(k3(0)).toBe(0);
+    expect(k3(200)).toBe(5);
+    for (const b of [1, 2, 7, 8]) expect(() => RandomEvent(variant(() => {}), "KillroyBonuses", b, 0)).toThrow(NotPorted);
   });
   // DNSM.FracIsBn[f] = (OptionsListAccount[184] >= GenINFO[25][f]) with the thresholds 24, 200, 750, 2500, 1e4, 2e4, 4e4, 6e4 (@11694238)
   const fractal = (points: number, b = 3) => RandomEvent(variant((d) => setIn(d, "OptLacc", (o) => (o[184] = points))), "FractalIslandBonus", b, 999);
@@ -161,8 +164,8 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("RandomEvent (N.js @10777743)", () =>
     expect(() => fractal(1e9, -1)).toThrow(RangeError);
   });
   it("a save whose OptionsListAccount[184] is missing counts 0 points (c.asNumber), shown in the trace as an (absent) leaf", () => {
-    expect(fractal(undefined as unknown as number, 0)).toBe(0);
-    const c = variant((d) => setIn(d, "OptLacc", (o) => (o[184] = undefined)), { trace: true });
+    expect(fractal(undefined as unknown as number, 0)).toBe(0); // a null in the save: initialize1 makes it 0 (@6192268)
+    const c = variant((d) => setIn(d, "OptLacc", (o) => (o.length = 184)), { trace: true });
     expect(RandomEvent(c, "FractalIslandBonus", 3, 999)).toBe(0);
     expect(absentLeaves(c.trace!)).toEqual(["OptionsListAccount[184]"]);
   });
@@ -240,8 +243,14 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("VaultUpgBonus (N.js @10893206)", () 
   it("a vault from 89 up that is not plain is 0", () => {
     expect(Summoning(vault({ 90: 5 }), "VaultUpgBonus", 90, 0)).toBe(0);
   });
-  it("the vaults below 61 that are not plain are times Vault 32 or 61: not ported", () => {
-    for (const b of [0, 2, 3, 5, 10, 31, 60]) expect(() => Summoning(vault({}), "VaultUpgBonus", b, 0), `vault ${b}`).toThrow(NotPorted);
+  it("the vaults below 61 that are not plain are times Vault 32 (below 32) or 61; 0 and 60 add levels past their steps", () => {
+    const value = (b: number) => Number(UpgradeVault[b][5]);
+    const none = { 32: 0, 61: 0, 89: 0 }; // no multiplier vaults
+    expect(Summoning(vault({ ...none, 2: 10 }), "VaultUpgBonus", 2, 0)).toBeCloseTo(10 * value(2), 12);
+    expect(Summoning(vault({ ...none, 2: 10, 32: 4 }), "VaultUpgBonus", 2, 0)).toBeCloseTo(10 * value(2) * (1 + (4 * value(32)) / 100), 12);
+    expect(Summoning(vault({ ...none, 45: 10, 61: 4 }), "VaultUpgBonus", 45, 0)).toBeCloseTo(10 * value(45) * (1 + (4 * value(61)) / 100), 12);
+    expect(Summoning(vault({ ...none, 0: 60 }), "VaultUpgBonus", 0, 0)).toBeCloseTo(60 * value(0) + 35 + 10, 12); // past 25 and 50
+    expect(Summoning(vault({ ...none, 60: 0 }), "VaultUpgBonus", 60, 0)).toBe(0);
   });
   it("a vault outside UpgradeVault is refused (the game reads its row)", () => {
     expect(() => Summoning(vault({}), "VaultUpgBonus", 999, 0)).toThrow(RangeError);
@@ -249,10 +258,10 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("VaultUpgBonus (N.js @10893206)", () 
 });
 
 describe.skipIf(GOLDEN_SAVES.length === 0)("GrimoireUpgBonus (N.js @10885504)", () => {
-  it("a plain grimoire upgrade is level x value; the others are times upgrade 36 (not ported)", () => {
-    const c = variant((d) => setIn(d, "Grimoire", (g) => (g[17] = 4)));
+  it("a plain grimoire upgrade is level x value; the others are times 1 + upgrade 36 / 100 (Damage Task 7)", () => {
+    const c = variant((d) => setIn(d, "Grimoire", (g) => ((g[17] = 4), (g[2] = 3))));
     expect(Summoning(c, "GrimoireUpgBonus", 17, 0)).toBe(4 * num(GrimoireUpg[17][5]));
-    expect(() => Summoning(c, "GrimoireUpgBonus", 2, 0)).toThrow(NotPorted);
+    expect(Summoning(c, "GrimoireUpgBonus", 2, 0)).toBeCloseTo(3 * num(GrimoireUpg[2][5]) * (1 + Summoning(c, "GrimoireUpgBonus", 36, 0) / 100), 9);
   });
 });
 
@@ -686,9 +695,9 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("WinBonus (N.js @10927394)", () => {
       12
     );
   });
-  it("-1 is 0; 19 and 20..33 (but 22, 24, 31) have shapes of their own: not ported", () => {
+  it("-1 is 0; 19 and 20..33 (but 20, 22, 24, 31) have shapes of their own, ported: 0 with no Summoning win", () => {
     expect(win({ beaten: [ratB] }, -1)).toBe(0);
-    for (const b of [19, 21, 23, 25, 30, 33]) expect(() => win({}, b), `bonus ${b}`).toThrow(NotPorted);
+    for (const b of [19, 21, 23, 25, 30, 33]) expect(win({}, b), `bonus ${b}`).toBe(0);
     expect(win({}, 20)).toBe(0);
     expect(win({}, 24)).toBe(0);
   });
@@ -740,8 +749,8 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("VotingBonusz / VotingBonuszMulti / M
   it("an empty server list leaves the game's default list [1, 2, 3, 4]: vote 1 is in force, so vote 20 is 0", () => {
     expect(v20(vote([]))).toBe(0);
   });
-  it("vote 1 has a rule of its own (the world a character has reached): not ported", () => {
-    expect(() => Summoning(vote([1]), "VotingBonusz", 1, 0)).toThrow(NotPorted);
+  it("vote 1 in force counts it (its world rule is ported in Damage Task 7, accountEdges.test.ts)", () => {
+    expect(Summoning(vote([1]), "VotingBonusz", 1, 0)).toBeGreaterThan(0);
   });
   it("without a server answer (serverVars null) no vote is known to be in force: 0, shown in the trace as not counted", () => {
     const c = variant(() => {}, { trace: true, env: (e) => (e.serverVars = null) });
@@ -1009,14 +1018,14 @@ describe("ports stay on their boundary", () => {
     expect(() => Ninja(c(), "FloorsUnlocked", 0, 0)).toThrow(NotPorted);
     expect(() => Spelunk(c(), "CavesUnlocked", 0, 0)).toThrow(NotPorted);
     expect(() => Holes(c(), "VillagersOwned", 0, 0)).toThrow(NotPorted);
-    expect(() => Thingies(c(), "LoreEpiBon", -1, 0)).toThrow(NotPorted); // the cache rebuild (Task 8 ported the entries 0..10)
-    expect(() => ArcaneType(c(), "TesseractArcanist", 0, 0)).toThrow(NotPorted);
+    expect(() => Thingies(c(), "LoreEpiBon", -1, 0)).toThrow(expect.objectContaining({ name: "NotPorted", sub: "LoreEpiBon:b=-1" })); // the cache rebuild (Task 8 ported the entries 0..10)
+    expect(() => ArcaneType(c(), "Arcane_DMG", 0, 0)).toThrow(NotPorted); // TesseractArcanist is a runtime 0 since Damage Task 8
     expect(() => GamingStatType(c(), "LVupChance", 0, 0)).toThrow(NotPorted);
     expect(() => JellyOperation(c(), "SlotUnlocked", 0, 0)).toThrow(NotPorted);
     expect(() => SushiStuff(c(), "UpgLvREQ", 0, 0)).toThrow(NotPorted);
   });
   it("Summoning: a name Summoning answers itself and does not port is NotPorted('Summoning'); one it hands on and Summoning2 lacks is NotPorted('Summoning2')", () => {
-    for (const d of ["SummUpgBonus", "UnitDMG", "Grimoire_DMG", "RooCost"]) expect(() => Summoning(c(), d, 0, 0), d).toThrow(expect.objectContaining({ name: "NotPorted", fn: "Summoning" }));
+    for (const d of ["UnitDMG", "Grimoire_DMG", "RooCost"]) expect(() => Summoning(c(), d, 0, 0), d).toThrow(expect.objectContaining({ name: "NotPorted", fn: "Summoning" }));
     for (const d of ["ExpReqCook", "Nope"]) expect(() => Summoning(c(), d, 0, 0), d).toThrow(expect.objectContaining({ name: "NotPorted", fn: "Summoning2" }));
     expect(() => Summoning2(c(), "ExpReqCook", 0, 0)).toThrow(NotPorted);
   });

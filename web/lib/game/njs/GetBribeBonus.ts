@@ -1,6 +1,7 @@
 import { asNumber, attr } from "../attr";
 import { block } from "../ctx";
 import { BribeDescriptions } from "../data";
+import type { Ported } from "../ported";
 
 /**
  * N.js `_customBlock_GetBribeBonus(d)` @5061911: the value of bribe `d` (a number given as text, "34") when it is bought,
@@ -14,3 +15,6 @@ export const GetBribeBonus = block("GetBribeBonus", (ctx, d: string) => {
   if (!row) throw new RangeError(`GetBribeBonus: no bribe ${d} in BribeDescriptions`);
   return asNumber(row[5]);
 });
+
+/** What this module covers (lib/game/ported.ts). */
+export const PORTED: Ported = "generic";

@@ -3,6 +3,7 @@
 import { describe, it, expect } from "vitest";
 import { existsSync } from "node:fs";
 import { EquipmentSets, NjEQ, Number2Letter } from "@/lib/game/data";
+import * as DATA from "@/lib/game/data";
 import { loadNjs } from "@/scripts/njs-calls";
 
 const HAVE_NJS = existsSync("scripts/updater/.cache/N.new.js");
@@ -29,6 +30,17 @@ describe.skipIf(!HAVE_NJS)("lib/game data maps against the live N.js", () => {
     const sets = Object.keys(EquipmentSets);
     expect(sets).toContain("GODSHARD_SET");
     for (const k of sets) expect((EquipmentSets as Record<string, unknown>)[k], k).toEqual(assigned(njs, k));
+  });
+  // `Ma.<name>=function(){var a=new l;a.h["1"]=…;return a}`: run the builder with a stand-in for the game's map class
+  const built = (name: string): unknown => {
+    const start = njs.indexOf(`Ma.${name}=function(){`);
+    if (start < 0) throw new Error(`Ma.${name} is not in the live N.js`);
+    const end = njs.indexOf(";return a}", start) + ";return a}".length;
+    const fn = new Function("l", `return (${njs.slice(start + `Ma.${name}=`.length, end)})`)(function (this: { h: object }) { this.h = {}; });
+    return (fn() as { h: unknown }).h;
+  };
+  it.each(["IDforETCbonus", "IDforCardBonus", "IDforCardSETbonus", "ClassStatTypes"])("%s is what N.js builds", (name) => {
+    expect((DATA as Record<string, unknown>)[name]).toEqual(built(name));
   });
 });
 

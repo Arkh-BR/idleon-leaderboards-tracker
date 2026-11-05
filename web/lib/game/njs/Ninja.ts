@@ -4,6 +4,7 @@ import { NjEQ, Number2Letter } from "../data";
 import { NotPorted } from "../errors";
 import { hString } from "../hstring";
 import { listAt } from "../lists";
+import type { Ported } from "../ported";
 
 /** N.js `_customBlock_Ninja(d, b, e)` @10844735. Only the sub-cases the Artifact Find port reaches. */
 export const Ninja = block("Ninja", (ctx, d: string, b: number, _e: number) => {
@@ -25,3 +26,6 @@ export const Ninja = block("Ninja", (ctx, d: string, b: number, _e: number) => {
       throw new NotPorted("Ninja", d);
   }
 });
+
+/** What this module covers (lib/game/ported.ts). */
+export const PORTED: Ported = { EmporiumBonus: true, PristineBon: true };

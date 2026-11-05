@@ -3,6 +3,8 @@ import { block, type Ctx } from "../ctx";
 import { PetStats, RANDOlist } from "../data";
 import { MissingSaveKey, NotPorted } from "../errors";
 import { MenagerieStuff } from "./MenagerieStuff";
+import { DNSM_CalcTalentMAP } from "./TalentCalc";
+import type { Ported } from "../ported";
 
 /**
  * N.js `_customBlock_Breeding(d, b, e, f)` @7929099: one function, a chain of named sub-cases. Only the
@@ -14,11 +16,14 @@ export const Breeding = block("Breeding", (ctx, d: string, b: string, e: number,
       return shinyBonusS(ctx, e);
     // @7937936: the `"Lv"` form, the level of pet `f` of group `e`; the `"REQ"` form is not ported
     case "SpecialPassives":
-      if (b !== "Lv") throw new NotPorted("Breeding", `SpecialPassives:${b}`);
+      if (b !== "Lv") throw new NotPorted("Breeding", `SpecialPassives:b=${b}`);
       return specialPassivesLv(ctx, e, f);
     // @7932815: reads the breeding actor's GenINFO[110], which it fills from the save
     case "TotPetsFound":
       return totPetsFound(ctx);
+    // @7932219: 1 once the Pet Arena waves cleared (CalcTalentMAP "arena") pass e
+    case "PetArenaBonus":
+      return DNSM_CalcTalentMAP(ctx, "arena") > e ? 1 : 0;
     default:
       throw new NotPorted("Breeding", d);
   }
@@ -76,3 +81,6 @@ function totPetsFound(ctx: Ctx): number {
   for (let i = 0; i < (worlds | 0); i++) total += asNum(ctx, "Breeding", 1, i);
   return total;
 }
+
+/** What this module covers (lib/game/ported.ts). */
+export const PORTED: Ported = { ShinyBonusS: true, SpecialPassives: ["Lv"], TotPetsFound: true, PetArenaBonus: true };

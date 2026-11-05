@@ -1,13 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { defaultCharIndex, listCharacters, parseSave, type CharSummary } from "@/lib/dropRate/extract";
 import { getCharClassKey } from "@/lib/talentsLevel/charClass";
 import DeepView, { type DeepViewExtraTab } from "@/components/dropRate/DeepView";
 import ProfileNameLoader from "@/components/ProfileNameLoader";
 import RecordReading from "./RecordReading";
 import { accountAutoLoads } from "@/lib/gameAuth/session";
-import { buildStatMapOptions, type StatMapOption } from "@/lib/statTracker/mapOptions";
+import { buildStatMapOptions, defaultMapIndex, type StatMapOption } from "@/lib/statTracker/mapOptions";
 import type { ArkhNode } from "@/lib/arkh/node";
 import type { FlatTree } from "@/lib/dropRate/treeFlatten";
 import type { StatPageConfig } from "@/lib/statTracker/config";
@@ -60,7 +60,18 @@ export default function StatCalculator({
   const [chars, setChars] = useState<CharSummary[]>([]);
   const [charIdx, setCharIdx] = useState<number>(0);
   const [mapIdx, setMapIdx] = useState<number>(0);
-  const [mapOptions, setMapOptions] = useState<StatMapOption[]>([]);
+  const [rawMapOptions, setMapOptions] = useState<StatMapOption[]>([]);
+  // A page that drops maps (config.loadMapFilter) offers none until the filter is loaded.
+  const [mapKeep, setMapKeep] = useState<((i: number) => boolean) | null>(() => (config.loadMapFilter ? null : () => true)); // the initializer returns the function
+  useEffect(() => {
+    if (!config.loadMapFilter) return;
+    let live = true;
+    config.loadMapFilter().then((f) => live && setMapKeep(() => f));
+    return () => {
+      live = false;
+    };
+  }, [config]);
+  const shownMaps = useMemo(() => (mapKeep ? rawMapOptions.filter((m) => mapKeep(m.index)) : []), [rawMapOptions, mapKeep]);
   const [error, setError] = useState<string | null>(null);
   const [tree, setTree] = useState<ArkhNode | null>(null);
   const [total, setTotal] = useState<number | null>(null);
@@ -101,7 +112,7 @@ export default function StatCalculator({
         setMapOptions(maps);
         const data = (parsed as any)?.data ?? {};
         const currentMap = Number(data[`CurrentMap_${fallbackChar}`]) || 0;
-        const fallback = maps.some((m) => m.index === currentMap) ? currentMap : maps[0]?.index ?? 0;
+        const fallback = defaultMapIndex(maps, currentMap);
         setMapIdx((prev) => (opts.keepView && maps.some((m) => m.index === prev) ? prev : fallback));
         setError(null);
         return true;
@@ -156,8 +167,14 @@ export default function StatCalculator({
     if (keepViewRef.current && !charChanged) return;
     const data = (save as any)?.data ?? {};
     const currentMap = Number(data[`CurrentMap_${charIdx}`]) || 0;
-    setMapIdx(mapOptions.some((m) => m.index === currentMap) ? currentMap : mapOptions[0]?.index ?? 0);
-  }, [charIdx, save, chars.length, mapOptions]);
+    setMapIdx(defaultMapIndex(shownMaps, currentMap));
+  }, [charIdx, save, chars.length, shownMaps]);
+
+  // A refresh that keeps the view may hold a map the filter dropped: back to the character's map, else the first one.
+  useEffect(() => {
+    if (!save || shownMaps.length === 0 || shownMaps.some((m) => m.index === mapIdx)) return;
+    setMapIdx(defaultMapIndex(shownMaps, Number((save as any)?.data?.[`CurrentMap_${charIdx}`]) || 0));
+  }, [save, shownMaps, mapIdx, charIdx]);
 
   useEffect(() => {
     if (!save || chars.length === 0) {
@@ -166,6 +183,8 @@ export default function StatCalculator({
       setComputing(false);
       return;
     }
+    // a page that drops maps computes only on a map it offers (the filter may still be loading)
+    if (config.loadMapFilter && !shownMaps.some((m) => m.index === effMapIdx)) return;
     let cancelled = false;
     setComputing(true);
     (async () => {
@@ -184,12 +203,12 @@ export default function StatCalculator({
     return () => {
       cancelled = true;
     };
-  }, [save, charIdx, effMapIdx, chars.length, config]);
+  }, [save, charIdx, effMapIdx, chars.length, config, shownMaps]);
 
   useEffect(() => {
     if (!onStateChange) return;
     const ch = chars.find((c) => c.charIndex === charIdx);
-    const map = mapOptions.find((m) => m.index === mapIdx);
+    const map = shownMaps.find((m) => m.index === mapIdx);
     onStateChange({
       charIndex: ch ? ch.charIndex : null,
       charName: ch?.charName ?? "",
@@ -202,7 +221,7 @@ export default function StatCalculator({
       tree,
       computeError: error && error.startsWith(config.errPrefix) ? error : null,
     });
-  }, [charIdx, mapIdx, effMapIdx, total, tree, chars, mapOptions, save, onStateChange, error, config]);
+  }, [charIdx, mapIdx, effMapIdx, total, tree, chars, shownMaps, save, onStateChange, error, config]);
 
   const onLoad = (text: string) => {
     if (!text.trim()) {
@@ -254,7 +273,7 @@ export default function StatCalculator({
               title={config.mapTitle}
               className="px-2 py-1.5 text-sm bg-zinc-900 border border-zinc-700 rounded text-sky-300 disabled:opacity-40"
             >
-              {mapOptions.map((m) => (
+              {shownMaps.map((m) => (
                 <option key={m.index} value={m.index}>
                   {m.label}
                 </option>
