@@ -191,6 +191,8 @@ export const MIGRATIONS: readonly Step[] = Object.freeze([
   loaderInit("Bubba", 28, 19944326, 6585875),
   loaderInit("Research", 29, 19944419, 6585918),
   assumedEmpty("Sushi", 30, 19944518, "initialize3 (@6326856)"),
+  // GreenStacks (CSver 31): ClearLocalData resets it to [] (@6585981), so a save below the gate has none; MainframeBonus(11) reads its length
+  loaderInit("GreenStacks", 31, 19944611, 6585981),
   loaderInit("CookMaster", 32, 19944713, 6586030),
   loaderInit("RoyalG", 33, 19944816, 6586076),
   loaderInit("RoyalMaps", 33, 19944816, 6586120),
@@ -477,8 +479,22 @@ export function migrate(
 // DoOnceREAL < 213) and padded to 100 (@6431500, < 291: only indexes past the 74 meals), Ribbon[0..27] capped (@6462400, < 385.1;
 // MealBonus reads Ribbon[28 + g]), Ninja[103]/[105] writes (Ninja[104] is not written). EquipmentOrder, EquipmentQuantity and
 // FoodSlotsOwned have no load-step write. No step ported.
-//   - the loader: Tess (CSver 26; not reset by ClearLocalData, so it would need an assumption; initialize3 fills it with [[], []]) and
-//     GreenStacks (31);
+// Re-audited for the keys the alchemy, stamp, statue, prayer, shrine, lab, atom and Bubba terms read (Damage Task 6: CauldronInfo,
+// CauldronBubbles, CauldronP2W, StampLevel, StatueLevels, Shrine, Lab, Atoms, Bubba, GreenStacks, TowerInfo, SaltLick, PrayersUnlocked,
+// PrayersActive; a write scan of the live N.js, @6184758-6475000 and the loader). One step ported: GreenStacks (loader CSver 31, reset by
+// ClearLocalData @6585981; MainframeBonus(11) reads its length, so it is read now). The rest, none on a real save (DoOnceREAL >= 248.3):
+// CauldronP2W[2][1] cap and CauldronP2W[4][2(b+2)] / [1+2(b+2)] reset (DoOnceREAL < 82 and < 87), StampLevel[2] and StampLevelMAX[2] reset
+// (< 6), SaltLick capped at its level cap (< 18.2), PrayersUnlocked set to PrayerMaxLv (< 74), the Atoms pads (< 134) and zeroing (< 135) and
+// the cap of 13 on atoms past 4 (@6403800, < 173), Lab[14] padded to 25 (< 203); the pads of CauldronInfo, CauldronBubbles, TowerInfo,
+// PrayersActive, Lab and Bubba are initialize fills of empty lists (Bubba's is above). StatueLevels and Shrine have no load-step write (the
+// per-character StatueLevels pad to StatueInfo is in the initialize1 list below). NOT a no-op by reading: StampCheckFR81 (OnPlayStart3
+// @6402394, ungated) rewrites StampLevel[tab][i] and StampLevelMAX to 12 x StampDetails[4] for a stamp over level 5 whose material cost
+// StampCostss(tab, i)[1] x (1 + 20 x min(1, OptionsListAccount[154])) is past 4e12. Read as written it would fire on 10036 of the 12611
+// stamps over level 5 of the real saves (an upper bound of the cost: no atom 0, sigil 6 or Meritoc 14 discount; e.g. BaseDef at 375 costs
+// 3e26 Iron), but those saves are written by the game after that code ran and still hold the levels, and every stamp, STR and Damage
+// reading matches the game with them (StampBonusOfTypeX agrees with lib/arkh on all 1163 pairs): in the game the step does not change
+// them, though how is not understood from N.js alone (StampCostss's branch under DummyText3 "broStampCheckFR81"). Not ported: reported.
+//   - the loader: Tess (CSver 26; not reset by ClearLocalData, so it would need an assumption; initialize3 fills it with [[], []]);
 //   - initialize1: GemItemsPurchased padded to 300; OptionsListAccount padded to 17..70 and its 51..59 splice (no real save is that
 //     short), its pads to 201..601 (only in the Tutorial scene); the starter star signs
 //     of an empty StarSignsUnlocked and the task progress of a new account (no real save has either); CauldronJobs1 per character;

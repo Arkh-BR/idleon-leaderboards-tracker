@@ -238,9 +238,9 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("Ninja EmporiumBonus (N.js @10845956)
     expect(() => mf(variant((d) => setIn(d, "Ninja", (n) => (n[102] = null))))).toThrow(MissingSaveKey);
     expect(() => mf(variant((d) => delete d.Ninja))).toThrow(MissingSaveKey);
   });
-  it("only bonuses 10 and 14 (and 7, 8, 104, 116, 119, the character stats') are ported", () => {
+  it("only bonuses 10 and 14 (and 7, 8, 104, 116, 119 for the character stats, 0, 3, 11, 13, 15, 17 and jewels 101, 107..110, 117, 118, 120 for Damage) are ported", () => {
     const c = emporium([8, 9, 10, 11]);
-    for (const d of [0, 3, 9, 11, 13, 15, 100, 114]) expect(() => mf(c, d), `d=${d}`).toThrow(NotPorted);
+    for (const d of [1, 2, 4, 9, 12, 16, 100, 112, 114]) expect(() => mf(c, d), `d=${d}`).toThrow(NotPorted);
     expect(() => Ninja(c, "NotASubcase", 0, 0)).toThrow(NotPorted);
   });
   it("MainframeBonus 10 and 14 call nothing but the Emporium (and the connection assumption)", () => {
@@ -765,7 +765,7 @@ describe("ports stay on their boundary", () => {
   const c = () => gameCtx({ data: {}, charNames: [], companion: null, guildData: {}, serverVars: null, tournament: {}, accountCreateTime: 1, lastUpdated: 1 }, 0);
   it("Minehead / MainframeBonus / Ninja / Thingies / RiftStuff / CauldronStats: only the ported sub-cases", () => {
     expect(() => Minehead(c(), "GlimboTotalTrades", 0, 0)).toThrow(NotPorted);
-    expect(() => MainframeBonus(c(), 15)).toThrow(expect.objectContaining({ name: "NotPorted", sub: "d=15" }));
+    expect(() => MainframeBonus(c(), 9)).toThrow(expect.objectContaining({ name: "NotPorted", sub: "d=9" }));
     expect(() => Ninja(c(), "Nope", 0, 0)).toThrow(NotPorted);
     expect(() => Thingies(c(), "Nope", 0, 0)).toThrow(NotPorted);
     expect(() => RiftStuff(c(), "Nope", 0)).toThrow(NotPorted);

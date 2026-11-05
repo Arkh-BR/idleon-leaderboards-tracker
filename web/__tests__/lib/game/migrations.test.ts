@@ -465,9 +465,9 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("the real saves", () => {
       seen.set(group, [...(seen.get(group) ?? []), file].sort());
     }
     expect(Object.fromEntries(seen)).toEqual({
-      "CSver 23.05, DoOnceREAL 248.3: 43 steps": ["HourZero.json"],
-      "CSver 29.05, DoOnceREAL 340.1: 19 steps": ["5OhTree.json"],
-      "CSver 30.05, DoOnceREAL 367.1: 14 steps": ["0celot8.json"],
+      "CSver 23.05, DoOnceREAL 248.3: 44 steps": ["HourZero.json"],
+      "CSver 29.05, DoOnceREAL 340.1: 20 steps": ["5OhTree.json"],
+      "CSver 30.05, DoOnceREAL 367.1: 15 steps": ["0celot8.json"],
       "CSver 32.05, DoOnceREAL 378.1: 10 steps": ["100Cotton.json", "100Cotton.json", "24632463.json", "Brokami.json", "Exrom.json", "GIM_SSS.json", "Pontinhas.json"],
       "CSver 33.05, DoOnceREAL 382.1: 4 steps": ["1st_Giri.json", "1st_Giri.json"],
       "CSver 33.05, DoOnceREAL 385.1: 4 steps": ["01010111001.json", "0xEXCEED.json", "26515665165165.json", "Jrod11.json", "Rinkzate.json", "arkhe-it-profile-2026-09-24.json"],
@@ -490,7 +490,7 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("the real saves", () => {
     expect(notes(gameArtifactFind(state("ARKHE.json"), 0).tree).filter((n) => sushi.test(n) || n === record)).toEqual([]);
   }, 60_000);
 
-  it.skipIf(!existsSync(NJS))("the loader gates the older saves are below give only what the steps port, and Tess, GreenStacks (never read)", () => {
+  it.skipIf(!existsSync(NJS))("the loader gates the older saves are below give only what the steps port, and Tess (never read)", () => {
     const flat = readFileSync(NJS, "utf8").replace(/\n/g, "");
     const loads = [...flat.matchAll(/([\d.]+)<=u\.getLoad\("CSver"\)&&\(([^;]*?)\)(?=;|\}|[\d.]+<=u)/g)].flatMap((m) =>
       [...m[2].matchAll(/getLoad\w*\("(\w+)"/g)].map((k) => ({ v: Number(m[1]), key: k[1] }))
@@ -499,7 +499,7 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("the real saves", () => {
     const below = new Set<string>();
     for (const { data } of saves) if (data.CSver < 34.05 && data.DoOnceREAL >= OLDEST_GATE) for (const l of loads) if (l.v > data.CSver) below.add(l.key);
     const ported = [...below].filter((k) => MIGRATIONS.some((m) => m.id.startsWith(`${k} = [] `)));
-    expect([...below].filter((k) => !ported.includes(k)).sort()).toEqual(["GreenStacks", "Tess"]);
-    expect(ported.sort()).toEqual(["Arcane", "Bubba", "Compass", "CookMaster", "MapBon", "Menagerie", "Research", "RoyalG", "RoyalMaps", "Spelunk", "Sushi"]);
+    expect([...below].filter((k) => !ported.includes(k)).sort()).toEqual(["Tess"]);
+    expect(ported.sort()).toEqual(["Arcane", "Bubba", "Compass", "CookMaster", "GreenStacks", "MapBon", "Menagerie", "Research", "RoyalG", "RoyalMaps", "Spelunk", "Sushi"]);
   });
 });

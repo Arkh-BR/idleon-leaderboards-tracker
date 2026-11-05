@@ -19,6 +19,7 @@ import { computeStatueBonusGiven, computeTotalStat } from "@/lib/arkh/stats/syst
 import { computeCardLv } from "@/lib/arkh/stats/systems/common/cards";
 import { goldFoodBonuses, gfoodBonusMULTIBreakdown } from "@/lib/arkh/stats/systems/common/goldenFood";
 import { computePrayerReal, prayersReal } from "@/lib/arkh/stats/systems/w3/prayer";
+import { totalGreenSigils } from "@/lib/arkh/stats/systems/w2/alchemy";
 import { computeSummUpgBonus } from "@/lib/arkh/stats/systems/w6/summoning";
 import { talent as talentResolver } from "@/lib/arkh/stats/systems/common/talent";
 import { votingBonusz } from "@/lib/arkh/stats/systems/w2/voting";
@@ -327,7 +328,7 @@ export const STAT_WHY: Record<string, string> = {
     "lib/arkh's STR star signs (computeStarSignStatBonuses, its own comment says it counts every listed sign) count a sign the Rift enables that StarSignsUnlocked lacks; N.js StarSigns @6540624 adds sign k of the first enabledStarSigns only when StarSignsUnlocked has StarSigns[k][0]",
   comp0: COMPANION_0_GATE,
   statues:
-    "N.js ArbitraryCode StatueBonusGiven<n> @4039757 reads GA(\"StatueLevels\")[n][0], the current character's (the load fills it from StatueLevels_<player>); lib/arkh's computeStatueBonusGiven reads one account-wide list (statueData). They differ on a save whose characters' statue levels differ (1st_Giri, CSver 33; 24632463's statue 1)",
+    "N.js ArbitraryCode StatueBonusGiven<n> @4039757 reads GA(\"StatueLevels\")[n][0], the current character's (the load fills it from StatueLevels_<player>); lib/arkh's computeStatueBonusGiven reads one list for every character (statueData, the first character's StatueLevels_0). They differ on a save whose characters' statue levels differ (1st_Giri, CSver 33; 24632463's statue 1)",
   pray6:
     "lib/arkh's accuracy reads computePrayerReal(6, 0), the equipped-prayer branch only; N.js prayersReal @7829537 has a second branch: with the Super Bit 9 or 39 and no prayer equipped (DNSM.PrayNonEq, every PrayersActive slot -1), every unlocked prayer but 5 gives round((.2 x SB9 + .2 x SB39 + .2 x SB53) x PrayerInfo[d][3] x max(1, 1 + (lv - 1) / 10)) (lib/arkh's own prayersReal has it; its accuracy does not call it)",
   vault4:
@@ -800,6 +801,15 @@ export const KNOWN_ARKH_DIFFS: {
   // Task 5: the meals' Total Damage (MealBonus "TotDmg") carries the Winner bonus in its multi: the God Shard set worn whole, as win3
   { stat: "damage" as const, save: "HourZero.json", ci: 1, source: "mealTotDmg", reason: "godshard", why: GODSHARD_WORN },
   { stat: "damage" as const, save: "HourZero.json", ci: 9, source: "mealTotDmg", reason: "godshard", why: GODSHARD_WORN },
+  // Task 6: the statue leaves carry the stats' `statues` reason (lib/arkh gives every character the first one's statue levels), proved in
+  // alchemy.test.ts by giving the character that list in the state (not by seeding the leaf's own block)
+  ...(
+    [["statue0", "1st_Giri.json", 3], ["statue0", "1st_Giri.json", 10], ["statue0", "24632463.json", 3], ["statue0", "HourZero.json", 8], ["statue22", "HourZero.json", 8]] as const
+  ).map(([source, save, ci]) => ({ stat: "damage" as const, save, ci, source, reason: "statues", why: STAT_WHY.statues })),
+  // Task 6: prayersReal(15, 0) with the Super Bit 9 / 39 and no prayer equipped (the `pray6` reason): lib/arkh's leaf has only the equipped branch
+  ...(
+    [["Ash_EB.json", 0, 11], ["Brokami.json", 10, 1], ["Crezar.json", 1, 1], ["Crezar.json", 4, 1], ["Dandy2009.json", 10, 1], ["Flipper143.json", 10, 1], ["Frostymart.json", 9, 1], ["FrozenBody.json", 0, 11], ["Glaives.json", 0, 11], ["Jrod11.json", 10, 1]] as const
+  ).flatMap(([save, from, n]) => Array.from({ length: n }, (_, k) => ({ stat: "damage" as const, save, ci: from + k, source: "prayer15", reason: "pray6", why: STAT_WHY.pray6 }))),
 ];
 
 /**
@@ -822,6 +832,15 @@ const STATUES_READ: Partial<Record<ArkhStat | "speed", readonly number[]>> = { m
 export function arkhPrayersReal(path: string, ci: number, d: number, b: number): number {
   loadSaveData(JSON.parse(readFileSync(path, "utf8")));
   return prayersReal(d, b, ci, saveData).val;
+}
+
+/**
+ * lib/arkh's Labb("TotalGreenSigils"): the sigils at level >= 4 (its `greenSigils` leaf is 1 + min(100, this x Grid_Bonus(127))/100, whose
+ * Grid_Bonus is the Research port of Task 7, so the count itself is what Task 6 compares).
+ */
+export function arkhTotalGreenSigils(path: string): number {
+  loadSaveData(JSON.parse(readFileSync(path, "utf8")));
+  return totalGreenSigils(saveData);
 }
 
 /**

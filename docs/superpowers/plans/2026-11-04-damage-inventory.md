@@ -13,7 +13,7 @@ Regenerate it when N.js, a module's `PORTED` or `lib/game/unreached.ts` changes.
 - attrs and dnsm are the reads in every slice listed. One marked "whole body only" is read only inside a whole-body function (all its branches, not just the one this formula takes). `DNSM` is runtime-only (it is never loaded from the save): port it as `DNSM_*` functions, not as a save attribute. The dnsm list also holds the scratch keys a formula writes and reads back in the same slice (`CaptnBonuz`, `AtomBonCalc1`); the inputs are the caches the game fills elsewhere (`StarSigns`, `AlchVials`, `FamBonusQTYs`…).
 - Depth stops at 6.
 
-**67 functions, 669 sub-cases (rows), 204 whole body, 0 not found, 95 attrs, 120 dnsm.** **503 ported `[x]`, 6 not reached `[~]`, 160 open.**
+**67 functions, 669 sub-cases (rows), 204 whole body, 0 not found, 95 attrs, 120 dnsm.** **524 ported `[x]`, 6 not reached `[~]`, 139 open.**
 
 Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("AGI")`, R4 = `TotalStats("WIS")`, R5 = `TotalStats("LUK")`, R6 = `PlayerHPmax()`, R7 = `PlayerMPmax()`, R8 = `PlayerAccTot()`.
 
@@ -423,7 +423,7 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 
 ## Log2
 
-- [ ] Log2() — depth 1 — 44 chars — whole body — roots: R1
+- [x] Log2() — depth 1 — 44 chars — whole body — roots: R1
 
 ## PlayerSpeedBonus
 
@@ -461,7 +461,7 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 ## Labb
 
 - [x] Labb("SigilBonus","Blank",4,0) — depth 1 — 1287 chars — roots: R1
-- [ ] Labb("TotalGreenSigils","0",0,0) — depth 1 — 438 chars — roots: R1
+- [x] Labb("TotalGreenSigils","0",0,0) — depth 1 — 438 chars — roots: R1
 - [x] Labb("SigilBonus","Blank",17,0) — depth 2 — 1287 chars — roots: R1
 - [x] Labb("SigilBonus","Blank",13,0) — depth 2 — 1287 chars — roots: R1 R8
 - [x] Labb("SigilBonus","Blank",0,0) — depth 1 — 1287 chars — roots: R1 R2 R6
@@ -500,13 +500,13 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 
 ## Bubbastuff
 
-- [ ] Bubbastuff("BubbaRoG_Bonuses",4,0) — depth 1 — 594 chars — roots: R1
-- [ ] Bubbastuff("MegafleshOwned",1,0) — depth 2 — 120 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
-- [ ] Bubbastuff("MegafleshOwned",3,0) — depth 2 — 120 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
-- [ ] Bubbastuff("MegafleshOwned",6,0) — depth 2 — 120 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
-- [ ] Bubbastuff("MegafleshOwned",9,0) — depth 2 — 120 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
-- [ ] Bubbastuff("MegafleshOwned",11,0) — depth 2 — 65 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
-- [ ] Bubbastuff("BubbaRoG_Bonuses",1,0) — depth 3 — 594 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
+- [x] Bubbastuff("BubbaRoG_Bonuses",4,0) — depth 1 — 594 chars — roots: R1
+- [x] Bubbastuff("MegafleshOwned",1,0) — depth 2 — 120 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
+- [x] Bubbastuff("MegafleshOwned",3,0) — depth 2 — 120 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
+- [x] Bubbastuff("MegafleshOwned",6,0) — depth 2 — 120 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
+- [x] Bubbastuff("MegafleshOwned",9,0) — depth 2 — 120 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
+- [x] Bubbastuff("MegafleshOwned",11,0) — depth 2 — 65 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
+- [x] Bubbastuff("BubbaRoG_Bonuses",1,0) — depth 3 — 594 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
 
 ## Spelunk
 
@@ -706,21 +706,21 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 
 ## MainframeBonus
 
-- [ ] MainframeBonus(0) — depth 1 — 166 chars — roots: R1
-- [ ] MainframeBonus(11) — depth 1 — 117 chars — roots: R1
-- [ ] MainframeBonus(110) — depth 1 — 344 chars — roots: R1
-- [ ] MainframeBonus(15) — depth 2 — 117 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
-- [ ] MainframeBonus(101) — depth 2 — 3598 chars — whole body — roots: R1
-- [ ] MainframeBonus(117) — depth 2 — 3598 chars — whole body — roots: R1
-- [ ] MainframeBonus(107) — depth 2 — 3598 chars — whole body — roots: R1
-- [ ] MainframeBonus(108) — depth 2 — 3598 chars — whole body — roots: R1
-- [ ] MainframeBonus(109) — depth 2 — 3598 chars — whole body — roots: R1
+- [x] MainframeBonus(0) — depth 1 — 166 chars — roots: R1
+- [x] MainframeBonus(11) — depth 1 — 117 chars — roots: R1
+- [x] MainframeBonus(110) — depth 1 — 344 chars — roots: R1
+- [x] MainframeBonus(15) — depth 2 — 117 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
+- [x] MainframeBonus(101) — depth 2 — 3598 chars — whole body — roots: R1
+- [x] MainframeBonus(117) — depth 2 — 3598 chars — whole body — roots: R1
+- [x] MainframeBonus(107) — depth 2 — 3598 chars — whole body — roots: R1
+- [x] MainframeBonus(108) — depth 2 — 3598 chars — whole body — roots: R1
+- [x] MainframeBonus(109) — depth 2 — 3598 chars — whole body — roots: R1
 - [x] MainframeBonus(8) — depth 2 — 464 chars — roots: R1
-- [ ] MainframeBonus(17) — depth 3 — 117 chars — roots: R1
-- [ ] MainframeBonus(118) — depth 3 — 3598 chars — whole body — roots: R1 R2 R3 R4 R5 R6 R7 R8
+- [x] MainframeBonus(17) — depth 3 — 117 chars — roots: R1
+- [x] MainframeBonus(118) — depth 3 — 3598 chars — whole body — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [x] MainframeBonus(104) — depth 2 — 3598 chars — whole body — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [x] MainframeBonus(119) — depth 3 — 289 chars — roots: R1
-- [ ] MainframeBonus(120) — depth 4 — 3598 chars — whole body — roots: R1
+- [x] MainframeBonus(120) — depth 4 — 3598 chars — whole body — roots: R1
 
 ## Companions
 

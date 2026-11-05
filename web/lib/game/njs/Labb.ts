@@ -29,10 +29,17 @@ export const Labb = block("Labb", (ctx, d: string, _b: string, e: number, _f: nu
       for (let f = 0; f < 24; f++) if (3 <= asNum(ctx, "CauldronP2W", 4, 1 + 2 * f)) n = Math.round(n + 1);
       return Math.round(n);
     }
+    // @7986072: the sigils at their green tier (CauldronP2W[4][1 + 2d] >= 4, the Eclectic tier) of the 24; the game counts them once per session
+    case "TotalGreenSigils": {
+      listAt(ctx, "CauldronP2W", 4); // the game indexes CauldronP2W[4][1 + 2d] directly
+      let n = 0; // DNSM.SigTotPup2
+      for (let f = 0; f < 24; f++) if (4 <= asNum(ctx, "CauldronP2W", 4, 1 + 2 * f)) n = Math.round(n + 1);
+      return Math.round(n);
+    }
     default:
       throw new NotPorted("Labb", d);
   }
 });
 
 /** What this module covers (lib/game/ported.ts). */
-export const PORTED: Ported = { SigilBonus: true, TotalPurpleSigils: true };
+export const PORTED: Ported = { SigilBonus: true, TotalPurpleSigils: true, TotalGreenSigils: true };
