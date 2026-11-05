@@ -46,6 +46,8 @@ export type StatPageConfig = {
   totalLabel: string;
   /** Tooltip of the map selector. */
   mapTitle: string;
+  /** Maps the selector drops (the stat has no value there). Loaded lazily: the calculator offers no map until it resolves. */
+  loadMapFilter?: () => Promise<(mapIdx: number) => boolean>;
   /** The stat doesn't depend on a map: the calculator hides the map selector,
    *  labels the row "Character:", calls `compute(save, charIdx, 0)` and
    *  reports the map as "any map" (snapshot notice and history). */
