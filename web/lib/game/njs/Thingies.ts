@@ -59,6 +59,7 @@ export const Thingies: (ctx: Ctx, d: string, b: number, e: number) => number = b
       if (11 == b) return Math.round(asNum(ctx, "OptionsListAccount", 621));
       throw new NotPorted("Thingies", `CoralKidUpgBonus:b=${b}`);
     case "FriendBonusStatz":
+      if (0 != b) throw new NotPorted("Thingies", `FriendBonusStatz:b=${b}`); // 2 is [~] (unreached.ts)
       return friendBonusStatz(ctx, b);
     // @10955906: the friend slots, round(min(20, 2 + Companion 44 + 2 x Companion 30 + Event Shop items 22 and 67))
     case "FriendBonusSlots":
@@ -80,7 +81,7 @@ export const Thingies: (ctx: Ctx, d: string, b: number, e: number) => number = b
     // @10977138: the best Summoning stone trial of stone b, KRbest["SummzTrz" + b], or 0 when the account has none
     case "SumStoneTrialz": {
       const best = listOrMapAt(ctx, "KRbest") as Record<string, unknown>;
-      return Object.hasOwn(best, `SummzTrz${b}`) ? asNumber(best[`SummzTrz${b}`]) : 0;
+      return Object.hasOwn(best, `SummzTrz${b}`) ? asNum(ctx, "KRbest", `SummzTrz${b}`) : 0;
     }
     default:
       throw new NotPorted("Thingies", d);

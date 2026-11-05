@@ -71,7 +71,7 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 - [x] Summoning("GrimoireUpgBonus",21,0) — depth 2 — 399 chars — roots: R1
 - [x] Summoning("GrimoireUpgBonus",31,0) — depth 2 — 399 chars — roots: R1
 - [x] Summoning("GrimoireUpgBonus",18,0) — depth 2 — 399 chars — roots: R1
-- [~] Summoning("GrimoireUpgTotal",0,0) — depth 2 — 462 chars — roots: R1 R6 R8 — not reached: called only by Grimoire_DMG, Grimoire_HP and Grimoire_ACC, the Wraith form's stats, which are not reached (the form is a runtime 0)
+- [~] Summoning("GrimoireUpgTotal",0,0) — depth 2 — 462 chars — roots: R1 R6 R8 — not reached: within the Damage closure called only by Grimoire_DMG, Grimoire_HP and Grimoire_ACC, the Wraith form's stats, which are not reached (the form is a runtime 0); GrimoireUpgUNLOCKED @10884718 and Grimoire_DEF @10888754 also call it, outside the closure
 - [x] Summoning("OwlMegafeather",1,0) — depth 2 — 142 chars — via Summoning2 — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [x] Summoning("OwlMegafeather",3,0) — depth 2 — 142 chars — via Summoning2 — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [x] Summoning("OwlMegafeather",5,0) — depth 2 — 142 chars — via Summoning2 — roots: R1 R2 R3 R4 R5 R6 R7 R8
@@ -798,7 +798,7 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 - [x] Minehead("BonusQTY",0,0) — depth 1 — 147 chars — roots: R1
 - [x] Minehead("WepPowDmgPCT",0,0) — depth 1 — 277 chars — roots: R1
 - [x] Minehead("BonusQTY",4,0) — depth 2 — 147 chars — roots: R1
-- [~] Minehead("GlimboTotalTrades",0,0) — depth 2 — 481 chars — roots: R1 R8 — not reached: its only call site is ResearchStuff("Grid_Bonus")'s 2 == e branch (square 168, @11177849); every Grid_Bonus reached is called with e = 0
+- [~] Minehead("GlimboTotalTrades",0,0) — depth 2 — 481 chars — roots: R1 R8 — not reached: within the Damage closure its only call site is ResearchStuff("Grid_Bonus")'s 2 == e branch (square 168, @11177849); every Grid_Bonus reached is called with e = 0; MenagerieStuff MissionProg @5190039 also calls it, outside the closure
 
 ## JellyOperation
 
@@ -829,11 +829,11 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 - [x] ResearchStuff("Grid_Bonus",173,0) — depth 2 — 1304 chars — roots: R1 R8
 - [x] ResearchStuff("FarmingStickerDMG_unlocked",0,0) — depth 2 — 62 chars — roots: R1
 - [x] ResearchStuff("Grid_Bonus",47,0) — depth 2 — 1304 chars — roots: R1
-- [~] ResearchStuff("Grid_Bonus") — depth 2 — 1304 chars — roots: R1 R8 — not reached: its only call site is ResearchStuff("Grid_Bonus")'s 2 == e branch (the default square, Grid_Bonus(b, 0) times its counter, @11177849); every Grid_Bonus reached is called with e = 0
-- [~] ResearchStuff("TotalObsLVs",0,0) — depth 2 — 511 chars — roots: R1 R8 — not reached: its only call site is ResearchStuff("Grid_Bonus")'s 2 == e branch (square 94, @11177849); every Grid_Bonus reached is called with e = 0
-- [~] ResearchStuff("TotalOccurrencesFound",0,0) — depth 2 — 472 chars — roots: R1 R8 — not reached: its only call site is ResearchStuff("Grid_Bonus")'s 2 == e branch (square 112, @11177849); every Grid_Bonus reached is called with e = 0
+- [~] ResearchStuff("Grid_Bonus") — depth 2 — 1304 chars — roots: R1 R8 — not reached: within the Damage closure its only call site is ResearchStuff("Grid_Bonus")'s 2 == e branch (the default square, Grid_Bonus(b, 0) times its counter, @11177849); every Grid_Bonus reached is called with e = 0
+- [~] ResearchStuff("TotalObsLVs",0,0) — depth 2 — 511 chars — roots: R1 R8 — not reached: within the Damage closure its only call site is ResearchStuff("Grid_Bonus")'s 2 == e branch (square 94, @11177849); every Grid_Bonus reached is called with e = 0
+- [~] ResearchStuff("TotalOccurrencesFound",0,0) — depth 2 — 472 chars — roots: R1 R8 — not reached: within the Damage closure its only call site is ResearchStuff("Grid_Bonus")'s 2 == e branch (square 112, @11177849); every Grid_Bonus reached is called with e = 0
 - [x] ResearchStuff("Grid_Bonus_Allmulti",0,0) — depth 2 — 330 chars — roots: R1 R8
-- [~] ResearchStuff("OccurrencesToBeFound",0,0) — depth 3 — 385 chars — roots: R1 R8 — not reached: called only by TotalObsLVs and TotalOccurrencesFound, which Grid_Bonus calls only when 2 == e (@11177849)
+- [~] ResearchStuff("OccurrencesToBeFound",0,0) — depth 3 — 385 chars — roots: R1 R8 — not reached: within the Damage closure called only by TotalObsLVs and TotalOccurrencesFound, which Grid_Bonus calls only when 2 == e (@11177849); ResearchEXPrateTOT @11169912 also calls it, outside the closure
 
 ## DungeonCalc
 

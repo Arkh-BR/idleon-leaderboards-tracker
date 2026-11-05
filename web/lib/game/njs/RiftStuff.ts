@@ -29,6 +29,7 @@ export const RiftStuff = block("RiftStuff", (ctx, d: string, b: number) => {
     case "eclipseSkulls":
       return eclipseSkulls(ctx);
     case "RiftSkillETC":
+      if (0 != b) throw new NotPorted("RiftStuff", `RiftSkillETC:b=${b}`); // 2 is [~] (unreached.ts)
       return riftSkillETC(ctx, b);
     default:
       throw new NotPorted("RiftStuff", d);
@@ -49,7 +50,7 @@ const mobs = DeathNoteMobs as unknown as readonly (readonly unknown[])[];
 function killroyDMG(ctx: Ctx): number {
   const best = listOrMapAt(ctx, "KRbest") as Record<string, unknown>;
   let total = 0; // DNSM.KilRoDmg
-  for (let d = 0; d < mobs.length; d++) for (let k = 0; k < mobs[d].length; k++) total += asNumber(best[hString(mobs[d][k])]);
+  for (let d = 0; d < mobs.length; d++) for (let k = 0; k < mobs[d].length; k++) total += asNum(ctx, "KRbest", hString(mobs[d][k]));
   return Math.floor(Math.pow(total, 0.4));
 }
 

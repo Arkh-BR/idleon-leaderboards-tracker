@@ -155,7 +155,7 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("artifact3 (Sailing ArtifactBonus 3, 
   it("follows the character's own Sailing level", () => {
     expect(art(withTier(2, 70, 1))).toBe(140);
   });
-  it("a null element is not 0 in N.js (loose ==): it takes the base, and 2==null is false so no multiplier", () => {
+  it("a null element is not 0 in N.js (loose ==): it takes the base, and 2==null is false so no multiplier (block 337 fills a loaded save's nulls with 0; this is the state that migration did not fill)", () => {
     const c = variant((d) => {
       setIn(d, "Sailing", (s) => (s[3][3] = null));
       setIn(d, "Lv0_0", (l) => (l[13] = 50));
