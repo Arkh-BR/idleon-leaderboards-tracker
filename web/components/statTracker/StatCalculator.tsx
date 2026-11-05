@@ -62,7 +62,7 @@ export default function StatCalculator({
   const [mapIdx, setMapIdx] = useState<number>(0);
   const [rawMapOptions, setMapOptions] = useState<StatMapOption[]>([]);
   // A page that drops maps (config.loadMapFilter) offers none until the filter is loaded.
-  const [mapKeep, setMapKeep] = useState<((i: number) => boolean) | null>(config.loadMapFilter ? null : () => true);
+  const [mapKeep, setMapKeep] = useState<((i: number) => boolean) | null>(() => (config.loadMapFilter ? null : () => true)); // the initializer returns the function
   useEffect(() => {
     if (!config.loadMapFilter) return;
     let live = true;
