@@ -30,7 +30,7 @@ import { MissingSaveKey } from "@/lib/game/errors";
 import { makeCtx, withPlayer, type Ctx } from "@/lib/game/ctx";
 import { buildGameState, type GameEnvelope, type GameState } from "@/lib/game/state";
 import { computeTome } from "@/lib/tome/compute";
-import { formatGameValue, normalizeGameText } from "@/lib/readings/format";
+import { formatGameValue, normalizeGameText, parseGameValue } from "@/lib/readings/format";
 import { READINGS_DIR, loadReadings, readingSave } from "@/lib/readings/registry";
 import { ArbitraryCode } from "@/lib/game/njs/ArbitraryCode";
 import { DamageDealed } from "@/lib/game/njs/DamageDealed";
@@ -351,6 +351,14 @@ describe("DamageDealed against the game's own text (the Damage readings, Player 
       const site = formatGameValue("damage", { value: DamageDealed(c, "Max"), min: DamageDealed(c, "Min") });
       expect(normalizeGameText(site)).toBe(normalizeGameText(r.game));
     });
+    // it.fails passes on any throw: a known gap must also stay as small as it is (farkhe: Max and Min ~1.15e-6 under the game)
+    if (r.knownGaps?.includes("damage"))
+      it.skipIf(!existsSync(join(READINGS_DIR, r.saveFile)))(`${r.id}: the known gap stays below 2e-6 relative`, () => {
+        const c = makeCtx(buildGameState(readingSave(r) as GameEnvelope), { player: r.charIdx, map: r.map });
+        const [min, max] = r.game.split("~");
+        expect(Math.abs(DamageDealed(c, "Max") / parseGameValue("damage", max) - 1)).toBeLessThan(2e-6);
+        expect(Math.abs(DamageDealed(c, "Min") / parseGameValue("damage", min) - 1)).toBeLessThan(2e-6);
+      });
   }
 });
 

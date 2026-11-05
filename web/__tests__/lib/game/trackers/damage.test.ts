@@ -27,7 +27,7 @@ import { ReturnClasses } from "@/lib/game/njs/ReturnClasses";
 import { buildGameState, type GameEnvelope, type GameState } from "@/lib/game/state";
 import { TRACKERS } from "@/lib/game/trackers";
 import { computeGameDamage, damageTree, gameDamage } from "@/lib/game/trackers/damage";
-import { formatGameValue, normalizeGameText } from "@/lib/readings/format";
+import { formatGameValue, normalizeGameText, parseGameValue } from "@/lib/readings/format";
 import { READINGS_DIR, loadReadings, readingSave } from "@/lib/readings/registry";
 import type { StatResult } from "@/lib/statTracker/config";
 import { GOLDEN_SAVES, KNOWN_ARKH_DIFFS, arkhDamage, arkhDamageLeaves, type ArkhStat } from "../support/arkhOracle";
@@ -201,8 +201,15 @@ describe("the tree on a synthetic envelope (runs in CI)", () => {
 
   it("no lib/game module tests the dungeon maps itself: every dungeon branch goes through Dungon, so its stand-in covers them all", async () => {
     const { readdirSync } = await import("node:fs");
-    const own = readdirSync("lib/game/njs").filter((f) => f !== "Dungon.ts" && /(?:39|40|70|71|118|119) == ctx\.map/.test(readFileSync(`lib/game/njs/${f}`, "utf8")));
-    expect(own).toEqual([]);
+    // a dungeon map compared with the map (either side, == or ===, != too) or listed in an array the map is looked up in
+    const D = "(?:39|40|70|71|118|119)";
+    const M = "\\w+\\.map\\b(?!\\s*\\()";
+    const test = new RegExp(`\\b${D}\\s*[!=]==?\\s*${M}|${M}\\s*[!=]==?\\s*${D}\\b|\\[[^\\]]*\\b${D}\\b[^\\]]*\\]\\.includes\\(\\s*${M}`);
+    for (const s of ["40 == ctx.map", "ctx.map === 118", "c.map != 71", "119 !== ctx.map", "[39, 70].includes(ctx.map)", "[1, 40, 2].includes(c.map)"]) expect(test.test(s), s).toBe(true);
+    for (const s of ["43 == ctx.map", "ctx.map === 306", "[43, 306].includes(ctx.map)", "140 == ctx.map", "ctx.map == 400", "[40].map(f)"]) expect(test.test(s), s).toBe(false);
+    const files = readdirSync("lib/game", { recursive: true, encoding: "utf8" }).filter((f) => f.endsWith(".ts") && !/(^|[\\/])Dungon\.ts$/.test(f));
+    expect(files.length).toBeGreaterThan(50); // the walk reached lib/game's modules
+    expect(files.filter((f) => test.test(readFileSync(`lib/game/${f}`, "utf8")))).toEqual([]);
   });
 });
 
@@ -393,5 +400,13 @@ describe("the Damage readings, through the adapter (Player Info's Min~Max)", () 
       console.info(`[damage adapter] ${r.id}: game ${r.game}, ours ${site}`);
       expect(normalizeGameText(site)).toBe(normalizeGameText(r.game));
     });
+    // it.fails passes on any throw: a known gap must also stay as small as it is (farkhe: Max and Min ~1.15e-6 under the game)
+    if (r.knownGaps?.includes("damage"))
+      it.skipIf(!existsSync(join(READINGS_DIR, r.saveFile)))(`${r.id}: the known gap stays below 2e-6 relative`, () => {
+        const { tree, total } = computeGameDamage(readingSave(r), r.charIdx, r.map);
+        const [min, max] = r.game.split("~");
+        expect(Math.abs(total / parseGameValue("damage", max) - 1)).toBeLessThan(2e-6);
+        expect(Math.abs((total * byName(tree, DMG_NODES.mastery).val) / parseGameValue("damage", min) - 1)).toBeLessThan(2e-6);
+      });
   }
 });
