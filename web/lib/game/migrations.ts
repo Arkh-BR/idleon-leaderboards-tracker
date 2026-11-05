@@ -490,6 +490,11 @@ export function migrate(
 // StampLevel = StampLevelMAX = 12 x StampDetails[4]) is the tail of OnPlayStart3's `if (168 > DoOnceREAL) { DoOnceREAL = 168.5; ... }`
 // block, which opens @6398034 and closes @6402819 just before `if (173 > DoOnceREAL)` (brace nesting checked): DoOnceREAL < 168, never on a
 // real save, which is why the stamps over that cost stay at their levels (10036 of 12611 stamps over level 5 on the real saves). Not ported.
+// Re-audited for the keys the account systems read (Damage Task 7; a write scan of the live N.js, @6184758-6475000, with each write's
+// DoOnceREAL block found by brace nesting, and the loader), per system:
+//   - Research (Grid_Bonus 127/47/173 read Research[0][b], [1][b]): the initialize3 fill of an empty list (@6320648) and the later blocks
+//     327 (Research[7][8]), 339 (a 14th list), 366 and 398 (Research[13]), 386 (five lists after the 14th), 389 (Research[7][10]); none
+//     writes Research[0] or [1]. No step ported.
 //   - the loader: Tess (CSver 26; not reset by ClearLocalData, so it would need an assumption; initialize3 fills it with [[], []]);
 //   - initialize1: GemItemsPurchased padded to 300; OptionsListAccount padded to 17..70 and its 51..59 splice (no real save is that
 //     short), its pads to 201..601 (only in the Tutorial scene); the starter star signs

@@ -810,6 +810,9 @@ export const KNOWN_ARKH_DIFFS: {
   ...(
     [["Ash_EB.json", 0, 11], ["Brokami.json", 10, 1], ["Crezar.json", 1, 1], ["Crezar.json", 4, 1], ["Dandy2009.json", 10, 1], ["Flipper143.json", 10, 1], ["Frostymart.json", 9, 1], ["FrozenBody.json", 0, 11], ["Glaives.json", 0, 11], ["Jrod11.json", 10, 1]] as const
   ).flatMap(([save, from, n]) => Array.from({ length: n }, (_, k) => ({ stat: "damage" as const, save, ci: from + k, source: "prayer15", reason: "pray6", why: STAT_WHY.pray6 }))),
+  // Task 7: the account-system leaves (accountSystems.test.ts). Grid_Bonus(127) is x max(1, Grid_Bonus_Allmulti), whose Companions(0) term is
+  // gated in N.js and not in lib/arkh (the comp0 reason, Koweabooo#10)
+  { stat: "damage" as const, save: "Koweabooo.json", ci: 10, source: "greenSigils", reason: "comp0", why: COMPANION_0_GATE },
 ];
 
 /**
