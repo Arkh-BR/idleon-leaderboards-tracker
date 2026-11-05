@@ -92,6 +92,16 @@ que mudou. Folhas que mudaram por mecânica nova são os suspeitos. O caso de
 
 ## Armadilhas já pagas
 
+- **Shiny pets: cache de sessão do jogo.** `Breeding("ShinyBonusS")` @7930259
+  preenche `DNSM.ShinyBonusS` só na primeira chamada da sessão e nunca recalcula.
+  Se um shiny sobe de nível com o jogo aberto, o save já tem o nível novo, mas o
+  Player Info do jogo continua com o antigo até o jogo ser reiniciado.
+  - Sintoma: o site fica um pouco acima do jogo em TODOS os stats, em vários
+    personagens, com o mesmo Δ no `AllStatPCT`.
+  - Caso de 05/11/2026: o shiny 20 (meal multi) estava 58 no jogo e 59 no save.
+    Isso deu +0,37% nos stats e +0,16–0,25% no Damage.
+  - Teste: reinicie o jogo e leia de novo.
+
 - **getbonus2 / AllTalentLVz("t|g")**: o super talent conta se `t` estiver em
   *qualquer* preset do jogador `g`. Os outros caminhos olham só o preset
   atual (`talent.ts → superTalentListed`).
