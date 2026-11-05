@@ -1,6 +1,7 @@
 import { attr } from "../attr";
 import { block, runtime } from "../ctx";
 import { NotPorted } from "../errors";
+import { itemsOwned } from "../player";
 import { ArbitraryCode } from "./ArbitraryCode";
 import { CardBonusREAL } from "./CardBonusREAL";
 import { DNSM_AlchBubbles, DNSM_BoxRewards, DNSM_FamBonusQTYs, DNSM_StarSigns } from "./DNSM";
@@ -23,8 +24,8 @@ import type { Ported } from "../ported";
  *    (a debuff), family bonus 18 with card 8, and the star signs' TotalHP;
  *  - 164 on the maps 20..23, else 1.
  * The masterclass forms (Grimoire Wraith, Compass Tempest) replace it with their own HP; they and buff 108 are not counted (the Damage
- * page's product decision), shown as runtime leaves. A dungeon (DungeonStat("HP")) and the beginner quest rule (class 2 without the
- * Cactolyte3 quest, which reads the inventory's Quest47 count) are not ported.
+ * page's product decision), shown as runtime leaves. A dungeon (DungeonStat("HP")) is not ported. A beginner (class 2) carrying the
+ * Elderly Peanut (Quest47) before the Cactolyte quest has every entry set to 1.
  */
 export const PlayerHPmax = block("PlayerHPmax", (ctx) => {
   if (-1 != Dungon(ctx)) throw new NotPorted("PlayerHPmax", `CurrentMap=${ctx.map}`);
@@ -47,7 +48,12 @@ export const PlayerHPmax = block("PlayerHPmax", (ctx) => {
     1,
   ];
   if (19 < ctx.map && 24 > ctx.map) list[2] = 164;
-  if (0 == attr(ctx, "QuestComplete", "Cactolyte3") && 2 == attr(ctx, "CharacterClass")) throw new NotPorted("PlayerHPmax", "CharacterClass=2");
+  // @4149346: a beginner (class 2) carrying the Elderly Peanut (Quest47) before the Cactolyte quest has 1 HP
+  if (0 == attr(ctx, "QuestComplete", "Cactolyte3") && 2 == attr(ctx, "CharacterClass") && 1 <= itemsOwned(ctx, "Quest47")) {
+    list[0] = 1;
+    list[1] = 1;
+    list[2] = 1;
+  }
   return list[0] * list[1] * list[2];
 });
 

@@ -16,10 +16,10 @@ const WRAITH = (fn: string) => `called only ${fn} when Summoning("GrimoireWraith
 const IN_ALL_EFFICIENCIES = (at: number) => `its only call site is in SkillStats("AllEfficiencies") (@${at}), which is not reached`;
 // ResearchStuff("Grid_Bonus") @11177849 calls these only in its `2==e` branch (squares 94, 112, 168 and the default); every Grid_Bonus these
 // roots reach is called with e = 0 (127 @4124114, 47 in StickerDMGmulti, 173 in Grid_Bonus_Allmulti)
-// A dungeon map (Dungon() != -1): DamageDealed answers with DungeonStat("MASTERY"/"DMG") @4106070, a runtime leaf here (the Damage page does
-// not count the dungeon branch), so it never calls DungeonStat; PlayerHPmax (@4147196), PlayerMPmax (@4150123) and PlayerSpeedBonus
-// (@4141907, read by PlayerAccTot) refuse a dungeon map (NotPorted "CurrentMap=<map>") before theirs
-const DUNGEON = (via: string) => `reached only on a dungeon map, ${via}: DamageDealed returns a runtime leaf there (@4106070, the dungeon branch is not counted) and PlayerHPmax, PlayerMPmax and PlayerSpeedBonus refuse a dungeon map (NotPorted CurrentMap=<map>)`;
+// The dungeon branch: DamageDealed (@4106070), PlayerHPmax (@4147196), PlayerMPmax (@4150123) and PlayerSpeedBonus (@4141907, read by
+// PlayerAccTot) call DungeonStat only when Dungon() != -1, and Dungon() answers -1 on every map (Ruling Y: a dungeon map is counted as
+// outside a dungeon, under an assumed: leaf), so no dungeon branch runs
+const DUNGEON = (via: string) => `reached only inside a dungeon, ${via}: Dungon() answers -1 on every map (Ruling Y: a dungeon map is counted as outside a dungeon, an assumed: leaf), so no dungeon branch runs`;
 // The forms' own stats: called only while Windwalker("CompassTempest") (DamageDealed @4106509, PlayerHPmax @4147363, PlayerAccTot @4151577,
 // PlayerSpeedBonus @4142926) or ArcaneType("TesseractArcanist") (DamageDealed @4106688, PlayerAccTot @4151683) is 1, which are runtime 0s
 const FORM = (form: string, via: string) => `called only ${via} while ${form} is 1, a masterclass form, which is a runtime 0 (the Damage page does not count the masterclass forms)`;

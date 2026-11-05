@@ -6,9 +6,7 @@
 // lib/arkh's tree has: the page's Biggest Gains and the Observed Max data are keyed by them); a group's value is only the factor it
 // shows, so the total never comes from the tree.
 //
-// The page persists the flattened tree in every snapshot (localStorage), so the trace below a source is trimmed (Ruling L): the source keeps
-// the N.js call(s) it stands for (the evidence of its value, even when the call was a memo hit), and below them only the branches that lead
-// to a `runtime:` or `assumed:` note, which spec section 5 wants visible. The whole trace is still there for debugging: run
+// The trace below a source is trimmed (Ruling L, trackers/page.ts). The whole trace is still there for debugging: run
 // Sailing(ctx, "BoatArtiMulti", 0, 0) on a Ctx made with `trace: true` (gameArtifactFind does exactly that and trims what it hands the page).
 //
 // The type of the result is the page's own (lib/statTracker/config StatResult: type-only). lib/game imports no lib/arkh, but one call
@@ -19,11 +17,12 @@
 // loaded save costs about 24 ms once (state build + Tome) against lib/arkh's 2 ms, accepted as "no perceptible slowdown".
 import type { StatResult } from "@/lib/statTracker/config";
 import { ARTI_GROUPS, ARTI_ROOT, ARTI_VOTE_NAME } from "@/lib/artifactFind/groups";
-import { makeCtx, type Ctx, type TraceNode } from "../ctx";
+import { makeCtx, type Ctx } from "../ctx";
 import { TreeTotalMismatch } from "../errors";
 import { listAt } from "../lists";
-import { buildGameState, type GameEnvelope, type GameState } from "../state";
+import type { GameState } from "../state";
 import { TRACKERS } from "./index";
+import { migratedNote, stateOf, traceTree } from "./page";
 
 type Node = StatResult["tree"];
 
@@ -80,25 +79,6 @@ const SOURCES: Record<string, Source> = {
   spelunkBit26: { name: "Artifacto Discoveries (Super Bit 26)", fmt: "x", note: "1.02 ^ Spelunk discoveries × Super Bit 26", of: (t, ctx, leaf) => Math.pow(1.02, leaf("Spelunk[6].length", listAt(ctx, "Spelunk", 6).length, "a plain read of the save, not an N.js call")) * t("GamingStatType", "SuperBitType", 26, 0) },
 };
 
-/** The branch has a `runtime:` or `assumed:` note (a value the save cannot give, spec section 5): it stays visible in the page's tree. */
-const flagged = (n: TraceNode): boolean => /^(runtime|assumed):/.test(n.note ?? "") || n.children.some(flagged);
-
-/**
- * A trace node as the page's node: `Sailing("ArtifactBonus", 3, 0)`, its value, its note (cached / runtime / assumed / absent). Its calls
- * are kept only where they lead to a flagged note (see the header).
- */
-function traceTree(n: TraceNode): Node {
-  const calls = n.children.filter(flagged);
-  const call = n.args.length ? `${n.block}(${n.args.map((a) => JSON.stringify(a)).join(", ")})` : n.block;
-  return {
-    name: n.player === undefined ? call : `${call} [character ${n.player}]`,
-    val: n.value,
-    fmt: "raw",
-    ...(n.note ? { note: n.note } : {}),
-    ...(calls.length ? { children: calls.map(traceTree) } : {}),
-  };
-}
-
 /** What a group shows: the factor of its sources and the shape note (lib/arkh's, which the page's tooltip prints). */
 function groupOf(g: (typeof ARTI_GROUPS)[number], vals: readonly number[]): { val: number; note: string } {
   const sum = vals.reduce((a, v) => a + v, 0);
@@ -150,24 +130,12 @@ export function gameArtifactFind(state: GameState, charIdx: number): StatResult 
   // outer Math.max(1, ...) is applied to the product, as N.js does.
   const rebuilt = Math.max(1, groups.reduce((t, g) => t * g.val, 1));
   if (!(Math.abs(rebuilt - total) <= 1e-9 * Math.max(1, Math.abs(total)))) throw new TreeTotalMismatch(total, rebuilt);
-  // An older save is computed after the game's own load steps (lib/game/migrations): the root says so in a few words; which steps ran is
-  // `state.migrations` (the page shows a count, not their ids)
-  const n = state.migrations.length;
-  const migrated = n ? { note: `migrated from an older game version (${n} load step${n === 1 ? "" : "s"})` } : {};
-  return { tree: { name: ARTI_ROOT, val: total, fmt: "x", ...migrated, children: groups }, total };
+  // an older save is computed after the game's own load steps: the root says so (trackers/page.ts)
+  const migrated = migratedNote(state);
+  return { tree: { name: ARTI_ROOT, val: total, fmt: "x", ...(migrated ? { note: migrated } : {}), children: groups }, total };
 }
 
-// The page calls compute(save, charIdx) with the same parsed save object on every character switch (StatCalculator keeps it in state), so
-// the state (a deep clone + freeze, and the Tome score kept on it) is built once per envelope object. Each call still gets its own Ctx and
-// memo: the memo keys include the player, so a shared one would reuse nothing across characters, and a second call for the same character
-// would find BoatArtiMulti already cached and have no trace to read the tree from. The state is immutable; the envelope is assumed not to
-// change between calls (the page parses it once per load; lib/arkh, which wrote into it, is out of this path).
-const states = new WeakMap<object, GameState>();
-
-/** `computeArkhArtifactFind`'s counterpart: the envelope of a save and a character index. */
+/** `computeArkhArtifactFind`'s counterpart: the envelope of a save and a character index (its GameState is kept per envelope, trackers/page.ts). */
 export function computeGameArtifactFind(save: unknown, charIdx: number): StatResult {
-  const known = typeof save === "object" && save !== null ? states.get(save) : undefined;
-  const state = known ?? buildGameState(save as GameEnvelope);
-  if (!known && typeof save === "object" && save !== null) states.set(save, state); // after the build: an envelope it refuses is not kept
-  return gameArtifactFind(state, charIdx);
+  return gameArtifactFind(stateOf(save), charIdx);
 }

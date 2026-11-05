@@ -4,6 +4,7 @@ import { ClassStatTypes } from "../data";
 import { InvalidSaveValue, NotPorted } from "../errors";
 import { hString } from "../hstring";
 import { listAt, listOrMapAt } from "../lists";
+import { itemsOwned } from "../player";
 import { traceNode } from "../trace";
 import { AchieveStatus } from "./AchieveStatus";
 import { ArbitraryCode } from "./ArbitraryCode";
@@ -94,13 +95,9 @@ export const DamageDealed: (ctx: Ctx, d: string) => number = block("DamageDealed
 
 /** @4107133: Max, DN.DamageDealtLIST[0] x [1] x [2]: the base damage, the damage % and the multipliers. */
 function max(ctx: Ctx): number {
-  // @4107309: the primary stat of the character's first class (ClassStatTypes), times its talents and bubbles (DN.DamageDealtSTATtype)
-  const first = `${ReturnClasses(attr(ctx, "CharacterClass") as number)[0]}`;
-  const types = ClassStatTypes[first];
-  // the game indexes ClassStatTypes[class][0] directly and would throw on a class it does not have
-  if (!types) throw new RangeError(`DamageDealed: no class ${first} in ClassStatTypes`);
+  // @4107309: the primary stat of the character's first class, times its talents and bubbles (DN.DamageDealtSTATtype)
   const statType =
-    TotalStats(ctx, hString(types[0])) *
+    TotalStats(ctx, primaryStat(ctx)) *
     (1 +
       (GetTalentNumber(ctx, 1, 95) +
         (GetTalentNumber(ctx, 1, 455) + GetTalentNumber(ctx, 1, 20)) +
@@ -130,20 +127,8 @@ function max(ctx: Ctx): number {
           DNSM_AlchBubbles(ctx, "bdmgSPD") * (Log2(ctx, Math.max(PlayerSpeedBonus(ctx) - 0.1, 0)) / 0.25) +
           (DNSM_AlchBubbles(ctx, "bdmgMP") * getLOG(ctx, Math.max(PlayerMPmax(ctx) - 150, 1)) +
             (CardBonusREAL(ctx, 4) + (Labb(ctx, "SigilBonus", "Blank", 4, 0) + RunCodeOfTypeXforThingY(ctx, "CardLv", "fallEvent2")))))));
-  // @4109718: the soft cap, x^.91 past 4000 and then x^.84 past 15000
-  if (4e3 < L[0]) {
-    L[0] = 4e3 + Math.max(Math.pow(L[0] - 4e3, 0.91), 0);
-    if (15e3 < L[0]) L[0] = 15e3 + Math.max(Math.pow(L[0] - 15e3, 0.84), 0);
-  }
-  // @4110296: the base damage foods, after the cap: TotalFoodBonuses("BaseDmgBoosts") written out in DamageDealed (DN.DDoTdn)
-  let foods = 0;
-  for (let r = 0, g = (attr(ctx, "FoodSlotsOwned") as number) | 0; r < g; r++) {
-    const name = attr(ctx, "EquipmentOrder", 2, r);
-    if (!("Blank" != name && 0 != (attr(ctx, "EquipmentQuantity", 2, r) as number))) continue; // both loose, as the game has them
-    const food = itemDef(hString(name)); // DN.DDoTmap
-    if ("BaseDmgBoosts" == food.Effect) foods = foods + asNumber(food.Amount) * FoodBonuses(ctx, `${hString(food.Effect)}EffectBonus`);
-  }
-  L[0] = L[0] + foods;
+  L[0] = baseCap(L[0]); // @4109718
+  L[0] = L[0] + baseDamageFoods(ctx); // @4110296, after the cap
 
   // @4111563: the damage %
   L.push(
@@ -270,17 +255,8 @@ function max(ctx: Ctx): number {
   // @4119765: a beginner (class 2) carrying the Elderly Peanut (Quest47) before the Cactolyte quest hits half
   if (0 == (attr(ctx, "QuestComplete", "Cactolyte3") as number) && 2 == (attr(ctx, "CharacterClass") as number) && 1 <= itemsOwned(ctx, "Quest47")) L[2] = 0.5 * L[2];
 
-  // @4120180: the soft caps of the damage %: x^.86 past 100, then sqrt past 2e6 and ^.3 past 1e8 of the ratio
-  if (100 < L[1]) L[1] = 100 + Math.max(Math.pow(L[1] - 100, 0.86), 0);
-  if (2e6 < L[1]) L[1] = 2e6 * Math.pow(L[1] / 2e6, 0.5);
-  if (1e8 < L[1]) L[1] = 1e8 * Math.pow(L[1] / 1e8, 0.3);
-  // @4121017: and of the multipliers, past 100, 2e7, 5e8, 2e9, 15e9 and 6e10
-  if (100 < L[2]) L[2] = 100 + Math.max(Math.pow(L[2] - 100, 0.86), 0);
-  if (2e7 < L[2]) L[2] = 2e7 * Math.pow(L[2] / 2e7, 0.8);
-  if (5e8 < L[2]) L[2] = 5e8 * Math.pow(L[2] / 5e8, 0.6);
-  if (2e9 < L[2]) L[2] = 2e9 * Math.pow(L[2] / 2e9, 0.45);
-  if (15e9 < L[2]) L[2] = 15e9 * Math.pow(L[2] / 15e9, 0.36);
-  if (6e10 < L[2]) L[2] = 6e10 * Math.pow(L[2] / 6e10, 0.28);
+  L[1] = pctCap(L[1]); // @4120180
+  L[2] = multCap(L[2]); // @4121017
 
   // @4122686: the multipliers after the caps
   L[2] =
@@ -319,27 +295,65 @@ function max(ctx: Ctx): number {
   return L[0] * L[1] * L[2];
 }
 
+/** @4107309: the primary stat of the character's first class, the TotalStats name ClassStatTypes[ReturnClasses(CharacterClass)[0]][0]. */
+export function primaryStat(ctx: Ctx): string {
+  const first = `${ReturnClasses(attr(ctx, "CharacterClass") as number)[0]}`;
+  const types = ClassStatTypes[first];
+  // the game indexes ClassStatTypes[class][0] directly and would throw on a class it does not have
+  if (!types) throw new RangeError(`DamageDealed: no class ${first} in ClassStatTypes`);
+  return hString(types[0]);
+}
+
+/** @4109718: the base damage's soft cap, x^.91 past 4000 and then x^.84 past 15000. */
+export function baseCap(v: number): number {
+  if (4e3 < v) {
+    v = 4e3 + Math.max(Math.pow(v - 4e3, 0.91), 0);
+    if (15e3 < v) v = 15e3 + Math.max(Math.pow(v - 15e3, 0.84), 0);
+  }
+  return v;
+}
+
+/** @4110296: the base damage foods, added after the cap: TotalFoodBonuses("BaseDmgBoosts") written out in DamageDealed (DN.DDoTdn). */
+export function baseDamageFoods(ctx: Ctx): number {
+  let foods = 0;
+  for (let r = 0, g = (attr(ctx, "FoodSlotsOwned") as number) | 0; r < g; r++) {
+    const name = attr(ctx, "EquipmentOrder", 2, r);
+    if (!("Blank" != name && 0 != (attr(ctx, "EquipmentQuantity", 2, r) as number))) continue; // both loose, as the game has them
+    const food = itemDef(hString(name)); // DN.DDoTmap
+    if ("BaseDmgBoosts" == food.Effect) foods = foods + asNumber(food.Amount) * FoodBonuses(ctx, `${hString(food.Effect)}EffectBonus`);
+  }
+  return foods;
+}
+
+/** @4120180: the damage %'s soft caps: x^.86 past 100, then sqrt past 2e6 and ^.3 past 1e8 of the ratio. */
+export function pctCap(v: number): number {
+  if (100 < v) v = 100 + Math.max(Math.pow(v - 100, 0.86), 0);
+  if (2e6 < v) v = 2e6 * Math.pow(v / 2e6, 0.5);
+  if (1e8 < v) v = 1e8 * Math.pow(v / 1e8, 0.3);
+  return v;
+}
+
+/** @4121017: the multipliers' soft caps: x^.86 past 100, then the brackets 2e7, 5e8, 2e9, 15e9 and 6e10 of the ratio. */
+export function multCap(v: number): number {
+  if (100 < v) v = 100 + Math.max(Math.pow(v - 100, 0.86), 0);
+  if (2e7 < v) v = 2e7 * Math.pow(v / 2e7, 0.8);
+  if (5e8 < v) v = 5e8 * Math.pow(v / 5e8, 0.6);
+  if (2e9 < v) v = 2e9 * Math.pow(v / 2e9, 0.45);
+  if (15e9 < v) v = 15e9 * Math.pow(v / 15e9, 0.36);
+  if (6e10 < v) v = 6e10 * Math.pow(v / 6e10, 0.28);
+  return v;
+}
+
 /**
  * `FamilyValuesMap.MinigameHiscores[b]`. The loader fills each FamilyValuesMap key `e` from the save key "FamVal" + e (`getLoadList` for
  * MinigameHiscores, @19929053), a loop SAVE_ATTRS cannot name: read from FamValMinigameHiscores. The game reads it with c.asNumber.
  */
-function minigameHiscore(ctx: Ctx, b: number): number {
+export function minigameHiscore(ctx: Ctx, b: number): number {
   const key = "FamValMinigameHiscores";
   const list = ctx.state.get(key); // MissingSaveKey when the save lacks it
   if (!Array.isArray(list)) throw new InvalidSaveValue(key, "an array", list);
   if (list[b] === undefined && ctx.trace) ctx.trace.children.push(traceNode(ctx.trace, ctx.player, "(absent)", [`${key}[${b}]`], 0, "absent: asNumber(null) = 0"));
   return asNumber(list[b]);
-}
-
-/**
- * `ActorEvents_29._ItemsOwnedMap[item]`: the current character's inventory (InventoryOrder) summed by name over ItemQuantity, which the
- * inventory actor builds when it starts (@7075609) and again on every change (CountInventory @7042726). The game reads it with c.asNumber.
- */
-function itemsOwned(ctx: Ctx, item: string): number {
-  let n = 0;
-  const order = listAt(ctx, "InventoryOrder");
-  for (let e = 0; e < order.length; e++) if ("Blank" != order[e] && item == hString(order[e])) n = n + asNum(ctx, "ItemQuantity", e);
-  return n;
 }
 
 /** What this module covers (lib/game/ported.ts). */

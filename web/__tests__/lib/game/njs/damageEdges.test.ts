@@ -1,61 +1,18 @@
 // Task 8 (Damage plan): the edges of DamageDealed (@4105019) on a synthetic envelope (no real save, so CI runs them): the map rules (43
 // replaces Max, 306 divides it, any other map is neutral), the soft caps and the Reliquarium exponent at their thresholds as floats in N.js
 // order, the late multipliers, the Mastery path and the runtime leaves. DamageDealed's own arithmetic is what is under test: every block it
-// calls is answered from the Ctx cache (`stubbed`), so each value is set by hand, and only the save reads DamageDealed makes itself are in
-// the save.
+// calls is answered from the Ctx cache (`stubbed`, support/damageStub), so each value is set by hand, and only the save reads DamageDealed
+// makes itself are in the save.
 import { describe, it, expect } from "vitest";
-import { makeCtx, type Ctx } from "@/lib/game/ctx";
-import { buildGameState, type GameEnvelope } from "@/lib/game/state";
+import { makeCtx } from "@/lib/game/ctx";
+import { buildGameState } from "@/lib/game/state";
 import { ArmoryUpg } from "@/lib/game/data";
 import { NotPorted } from "@/lib/game/errors";
 import { DamageDealed } from "@/lib/game/njs/DamageDealed";
+import { PlayerHPmax } from "@/lib/game/njs/PlayerHPmax";
 import type { TraceNode } from "@/lib/game/trace";
+import { env, stubbed, type Data } from "../support/damageStub";
 
-type Data = Record<string, unknown>;
-const env = (data: Data): GameEnvelope =>
-  ({ data, charNames: ["c0"], companion: null, guildData: {}, serverVars: null, tournament: {}, accountCreateTime: 1, lastUpdated: 1 }) as unknown as GameEnvelope;
-
-/** What DamageDealed reads from the save itself: class 1 (its first class is 1, whose primary stat is LUK), no food, nothing else. */
-const BASE: Data = {
-  CharacterClass_0: 1,
-  FoodSlO_0: 0,
-  EquipOrder_0: [[], [], []],
-  EquipQTY_0: [[], [], []],
-  Lv0_0: [],
-  OptLacc: [],
-  Dream: [],
-  Divinity: [],
-  WeeklyBoss: {},
-  QuestComplete_0: {},
-  InventoryOrder_0: [],
-  ItemQTY_0: [],
-  FamValMinigameHiscores: [0],
-  Menagerie: [[], [], [], [], [], [0, 0, 0]],
-};
-
-// The calls that compute instead of being answered: DamageDealed itself, the dungeon test (Dungon reads the map) and the runtime leaves
-const LIVE = /^(DamageDealed|Dungon)\[|^GetBuffBonuses\[(108|124),2\]$|^Summoning\["GrimoireWraith"|^Windwalker\["CompassTempest"|^ArcaneType\["TesseractArcanist"/;
-// The two blocks whose neutral value is 1 (DN.DamageDealtLIST[2] starts at the Workbench's, [1] is times the golden food's multiplier)
-const ONE: Record<string, number> = { 'WorkbenchStuff["AdditionExtraDMG",0,0]': 1, 'GoldFoodBonuses["Damage"]': 1 };
-
-/** The cache key without its `player|map|` head: `<Fn><args as JSON>`. */
-const call = (key: string) => key.slice(key.indexOf("|", key.indexOf("|") + 1) + 1);
-/** A block cache that answers every call DamageDealed makes: `set` (by call) first, then 1 for ONE, else 0; LIVE calls compute. */
-class Stubbed extends Map<string, number> {
-  constructor(private readonly answers: Record<string, number>) {
-    super();
-  }
-  override get(key: string): number | undefined {
-    if (super.has(key)) return super.get(key);
-    const c = call(key);
-    if (LIVE.test(c)) return undefined;
-    return this.answers[c] ?? ONE[c] ?? 0;
-  }
-}
-const stubbed = (set: Record<string, number>, o: { map?: number; data?: Data; trace?: boolean } = {}): Ctx => ({
-  ...makeCtx(buildGameState(env({ ...BASE, ...o.data })), { player: 0, map: o.map ?? 251, trace: o.trace }),
-  cache: new Stubbed(set),
-});
 const max = (set: Record<string, number>, o?: { map?: number; data?: Data }) => DamageDealed(stubbed(set, o), "Max");
 // The base damage (DN.DamageDealtLIST[0]) is ArcadeBonus(0) here, the damage % ([1]) 1 + GetBribeBonus("30") / 100, the multipliers
 // ([2]) the Workbench's AdditionExtraDMG: every other term is neutral
@@ -90,14 +47,21 @@ describe("DamageDealed map rules (synthetic, runs in CI)", () => {
     expect(max(set, { map: 251, data: menagerie(2) })).toBe(max(set)); // only on map 306
   });
 
-  it("a dungeon map answers with the dungeon run's stats: runtime leaves, not a silent 0", () => {
-    const c = stubbed({ [BASE_DMG]: 30 }, { map: 40, trace: true });
-    expect(DamageDealed(c, "Max")).toBe(0);
-    expect(DamageDealed(c, "Mastery")).toBe(0);
-    const notes = JSON.stringify(c.trace);
-    expect(notes).toContain('"block":"DungeonStat(DMG)"');
-    expect(notes).toContain('"block":"DungeonStat(MASTERY)"');
-    expect(notes).toContain("runtime: dungeon stat, not counted");
+  // Ruling Y (user decision 2026-11-05): on a dungeon map the page shows the normal Max with a warning. Dungon() itself answers -1 there
+  // (an assumed: leaf), so DamageDealed's dungeon guard and every other dungeon branch take the normal path
+  it("a dungeon map gives the normal Max under an assumed: note (Ruling Y), the same number as a plain map", () => {
+    for (const map of [39, 40, 70, 71, 118, 119]) {
+      const c = stubbed({ [BASE_DMG]: 30, [MULT]: 2 }, { map, trace: true });
+      expect(DamageDealed(c, "Max"), `map ${map}`).toBe(max({ [BASE_DMG]: 30, [MULT]: 2 }));
+      expect(DamageDealed(c, "Mastery"), `map ${map}`).toBe(DamageDealed(stubbed({ [BASE_DMG]: 30, [MULT]: 2 }), "Mastery"));
+      const notes = JSON.stringify(c.trace);
+      expect(notes, `map ${map}`).toContain("assumed: outside a dungeon");
+      expect(notes, `map ${map}`).not.toContain('"block":"DungeonStat'); // the runtime leaves of the dungeon branch are not reached
+    }
+    // a plain map has no such note
+    const plain = stubbed({ [BASE_DMG]: 30 }, { trace: true });
+    DamageDealed(plain, "Max");
+    expect(JSON.stringify(plain.trace)).not.toContain("outside a dungeon");
   });
 });
 
@@ -247,5 +211,22 @@ describe("DamageDealed late rules, Mastery and runtime leaves (synthetic, runs i
   it("only Min, Max and Mastery are ported ('RNG', one random hit, is not)", () => {
     expect(() => DamageDealed(stubbed({}), "RNG")).toThrow(expect.objectContaining({ name: "NotPorted", sub: "RNG" }));
     expect(() => DamageDealed(stubbed({}), "Avg")).toThrow(NotPorted);
+  });
+});
+
+// Task 9 carry (Task 8 review): N.js PlayerHPmax @4149346 makes the three entries 1 (Max HP 1) only for a beginner (class 2) before the
+// Cactolyte quest who carries the Elderly Peanut (Quest47); every other class-2 character computes the normal HP
+describe("PlayerHPmax's beginner rule (synthetic, runs in CI)", () => {
+  const LIVE_HP = /^(PlayerHPmax|Dungon)\[|^Summoning\["GrimoireWraith"|^Windwalker\["CompassTempest"|^GetBuffBonuses\[108,1\]$/;
+  // the base is 15 + card 1 (100); the % entry is 1 (its golden food's multiplier 1, everything else 0)
+  const set = { "CardBonusREAL[1]": 100, 'GoldFoodBonuses["MaxHPpct"]': 1 };
+  const hp = (cls: number, quest: unknown, qty: number) =>
+    PlayerHPmax(stubbed(set, { live: LIVE_HP, data: { CharacterClass_0: cls, QuestComplete_0: { Cactolyte3: quest }, InventoryOrder_0: ["Quest47", "Blank"], ItemQTY_0: [qty, 0] } }));
+  it("is 1 for class 2 on Cactolyte3 carrying Quest47, else the normal HP", () => {
+    expect(hp(1, 0, 1)).toBe(115); // another class
+    expect(hp(2, 0, 0)).toBe(115); // class 2 without the peanut: not refused, the normal HP
+    expect(hp(2, 1, 1)).toBe(115); // the quest is done
+    expect(hp(2, 0, 1)).toBe(1); // the rule: every entry 1
+    expect(hp(2, 0, 3)).toBe(1);
   });
 });

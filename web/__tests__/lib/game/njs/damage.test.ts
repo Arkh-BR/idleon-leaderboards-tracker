@@ -23,6 +23,7 @@ import {
   type ArkhStat,
   type Seed,
 } from "../support/arkhOracle";
+import { DAMAGE_REFUSALS, EXPECT_TOTAL_KNOWN, clearDamageProofs, damageProof, damageProvedCtx, hasDamageKnown, seededCtx } from "../support/damageProof";
 import { asNum, asNumber, attr } from "@/lib/game/attr";
 import { ClassStatTypes } from "@/lib/game/data";
 import { MissingSaveKey } from "@/lib/game/errors";
@@ -61,8 +62,7 @@ const MAP = 251; // a plain map: no dungeon (Dungon() is -1), no arena
 /** The maps the totals are compared on: map 251, the Royal Guardian arena, the Clamworks and a neutral map (the readings' map). */
 const MAPS = [251, 43, 306, 150] as const;
 const rel = (got: number, want: number) => Math.abs(got - want) <= 1e-9 * Math.max(1, Math.abs(want));
-/** What DamageDealed refuses (Ruling E): the stats read the Tome, which lib/tome cannot score on HourZero (see stats.test.ts). */
-const REFUSALS = ["HourZero.json: Tome rows 21,101,105,106,115,116"];
+const REFUSALS = DAMAGE_REFUSALS;
 
 // ---- the inline terms ----
 
@@ -191,7 +191,7 @@ afterEach(() => ctxs.clear()); // one test's cached blocks are not the next one'
 afterAll(() => {
   states.clear();
   ctxs.clear();
-  proofs.clear();
+  clearDamageProofs();
 });
 function stateOf(path: string): GameState {
   let s = states.get(path);
@@ -204,11 +204,7 @@ function ctxOf(path: string, map: number): Ctx {
   if (!c) ctxs.set(k, (c = makeCtx(stateOf(path), { player: 0, map })));
   return c;
 }
-const seeded = (state: GameState, ci: number, map: number, seeds: readonly Seed[]): Ctx => {
-  const c = makeCtx(state, { player: ci, map });
-  for (const [name, args, v] of seeds) c.cache.set(`${ci}|${map}|${name}${JSON.stringify(args)}`, v);
-  return c;
-};
+const seeded = seededCtx;
 
 describe.skipIf(GOLDEN_SAVES.length === 0)("DamageDealed's inline terms against lib/arkh on every real save and character", () => {
   for (const id of Object.keys(TERMS)) {
@@ -285,57 +281,7 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("DamageDealed's inline terms against 
 
 // ---- the totals ----
 
-const STATS: readonly (ArkhStat | "speed")[] = ["str", "agi", "wis", "luk", "maxHp", "maxMp", "accuracy", "speed"];
-
-/**
- * Every KNOWN cause of character `ci`'s Damage: the reasons of its Damage leaves (`stat: "damage"` rows) and of the stats they read (the
- * stats' rows), proved together: the patches (a save read lib/arkh makes differently) applied to one fresh state, the seeds (lib/arkh's
- * number for each cause, on the narrowest block) put in its cache. Map-independent, so computed once per pair.
- */
-type Proof = { reasons: string[]; seeds: Seed[]; patches: string[] };
-const proofs = new Map<string, Proof>();
-function proofOf(path: string, ci: number): Proof {
-  const k = `${path}#${ci}`;
-  let p = proofs.get(k);
-  if (p) return p;
-  const rows = KNOWN_ARKH_DIFFS.filter((d) => d.save === basename(path) && (d.ci ?? ci) === ci && (d.stat === "damage" || STATS.includes(d.stat as ArkhStat)));
-  p = { reasons: [], seeds: [], patches: [] };
-  // lib/arkh's numbers come from one load of the save per call (arkhStatSeeds): the reasons whose seed does not depend on the stat go in one
-  // call; only the stat's own star signs and Tome bubble ("signs", "tomeW8") are asked per stat
-  const anyStat = new Set<string>();
-  const perStat = new Map<ArkhStat | "speed", Set<string>>();
-  const own = new Set<string>(); // the Damage reasons damageReasonSeeds proves itself (tome, pray6, powerSuffix)
-  for (const d of rows) {
-    const damage = d.stat === "damage";
-    const reason = damage ? d.reason! : d.source;
-    p.reasons.push(`${damage ? d.source : d.stat}:${reason}`);
-    // the weapon power's suffix rule is seeded on TotalStats("Weapon_Power") here: its patch may have to move the power onto the weapon,
-    // whose own power Minehead("WepPowDmgPCT") reads too
-    if (damage && reason === "powerSuffix") own.add(reason);
-    else if (PROOF_PATCHES[reason]) {
-      if (!p.patches.includes(reason)) p.patches.push(reason);
-    } else if (damage && (reason === "tome" || reason === "pray6")) own.add(reason);
-    else if (!damage && (reason === "signs" || reason === "tomeW8")) (perStat.get(d.stat as ArkhStat) ?? perStat.set(d.stat as ArkhStat, new Set()).get(d.stat as ArkhStat)!).add(reason);
-    else anyStat.add(reason);
-  }
-  for (const r of own) p.seeds.push(...damageReasonSeeds(path, ci, r));
-  if (anyStat.size) p.seeds.push(...arkhStatSeeds(path, ci, [...anyStat], "str"));
-  for (const [stat, reasons] of perStat) p.seeds.push(...arkhStatSeeds(path, ci, [...reasons], stat));
-  proofs.set(k, p);
-  return p;
-}
-function provedCtx(path: string, ci: number, map: number, proof: Proof): Ctx {
-  let state = stateOf(path);
-  if (proof.patches.length) {
-    const env = JSON.parse(readFileSync(path, "utf8")) as GameEnvelope;
-    for (const r of proof.patches) PROOF_PATCHES[r](env.data as Record<string, unknown>, ci, state.charNames.length);
-    state = buildGameState(env);
-  }
-  return seeded(state, ci, map, proof.seeds);
-}
-
-/** The pairs per map whose total differs and the KNOWN entries close (an exact count: a stale entry or a new difference fails). */
-const EXPECT_TOTAL_KNOWN: Record<number, { max: number; mastery: number }> = { 251: { max: 656, mastery: 0 }, 43: { max: 0, mastery: 0 }, 306: { max: 656, mastery: 0 }, 150: { max: 656, mastery: 0 } };
+// The KNOWN propagation (proofs, expected counts) lives in support/damageProof: the adapter test (trackers/damage.test.ts) runs the same one.
 
 describe.skipIf(GOLDEN_SAVES.length === 0)("DamageDealed Max and Mastery against lib/arkh on every real save and character", () => {
   for (const map of MAPS) {
@@ -363,10 +309,10 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("DamageDealed Max and Mastery against
           if (map === 306 && asNum(c, "Menagerie", 5, 2) > 0) divided++;
           const want = arkhDamage(path, ci, map);
           // a pair whose leaves or stats have KNOWN entries and whose total still matches lib/arkh (a cause that does not reach the total)
-          if (rel(got.max, want.max) && KNOWN_ARKH_DIFFS.some((d) => d.save === basename(path) && (d.ci ?? ci) === ci && (d.stat === "damage" || STATS.includes(d.stat as ArkhStat)))) absorbed++;
+          if (rel(got.max, want.max) && hasDamageKnown(path, ci)) absorbed++;
           for (const what of ["max", "mastery"] as const) {
             if (rel(got[what], want[what])) continue;
-            const proof = proofOf(path, ci);
+            const proof = damageProof(path, ci);
             const at = `${basename(path)}#${ci}@${map} ${what}: game ${got[what]}, arkh ${want[what]}`;
             if (!proof.reasons.length) {
               mismatches.push(at);
@@ -374,7 +320,7 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("DamageDealed Max and Mastery against
             }
             // negative controls: no seed is DamageDealed itself, and the proof changes the value
             for (const [name] of proof.seeds) expect(name, at).not.toBe("DamageDealed");
-            const proved = DamageDealed(provedCtx(path, ci, map, proof), what === "max" ? "Max" : "Mastery");
+            const proved = DamageDealed(damageProvedCtx(path, ci, map, proof, state), what === "max" ? "Max" : "Mastery");
             expect(rel(proved, got[what]), `${at}: the proof changed nothing`).toBe(false);
             if (rel(proved, want[what])) known[what]++;
             else mismatches.push(`${at}, with ${proof.reasons.join(" ")} ${proved}`);
@@ -436,7 +382,12 @@ describe.skipIf(!ARKHE)("two characters in one Ctx (ARKHE #0 and #8)", () => {
     expect(computed.every((k) => k.startsWith("8|"))).toBe(true);
     expect(computed.some((k) => firstKeys.has(k))).toBe(false);
     // its class, talents and equipment give other values (per-character terms); the account's systems give the same ones
-    const value = (p: number, call: string) => ctx.cache.get(`${p}|${MAP}|${call}`);
+    // both characters computed the call (a key neither has would pass toBe(undefined) and not.toBe on undefined vacuously)
+    const value = (p: number, call: string) => {
+      const v = ctx.cache.get(`${p}|${MAP}|${call}`);
+      expect(v, `${call} for character ${p}`).toBeDefined();
+      return v;
+    };
     for (const call of ['TotalStats["STR"]', 'TotalStats["Weapon_Power"]', "GetTalentNumber[1,95]", "PlayerHPmax[]"]) expect(value(8, call), call).not.toBe(value(0, call));
     for (const call of ["ArcadeBonus[0]", 'Summoning["VaultUpgBonus",0,0]', "Companions[12]", 'Sailing["ArtifactBonus",2,0]']) expect(value(8, call), call).toBe(value(0, call));
     // the account's heavy parts are built once: the state (one GameState for both) and the Tome score (computeTome, once per state)

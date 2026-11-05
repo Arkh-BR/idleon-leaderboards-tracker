@@ -23,11 +23,11 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 
 ## DungeonStat
 
-- [~] DungeonStat("DMG") — depth 1 — 2601 chars — roots: R1 — not reached: reached only on a dungeon map, by DamageDealed (@4106182): DamageDealed returns a runtime leaf there (@4106070, the dungeon branch is not counted) and PlayerHPmax, PlayerMPmax and PlayerSpeedBonus refuse a dungeon map (NotPorted CurrentMap=<map>)
-- [~] DungeonStat("HP") — depth 1 — 1008 chars — roots: R1 R6 — not reached: reached only on a dungeon map, by PlayerHPmax (@4147196) and DungeonStat("DMG"): DamageDealed returns a runtime leaf there (@4106070, the dungeon branch is not counted) and PlayerHPmax, PlayerMPmax and PlayerSpeedBonus refuse a dungeon map (NotPorted CurrentMap=<map>)
-- [~] DungeonStat("Weapon_Power") — depth 2 — 47 chars — roots: R1 — not reached: reached only on a dungeon map, by DungeonStat("DMG") (@7837921): DamageDealed returns a runtime leaf there (@4106070, the dungeon branch is not counted) and PlayerHPmax, PlayerMPmax and PlayerSpeedBonus refuse a dungeon map (NotPorted CurrentMap=<map>)
-- [~] DungeonStat("MP") — depth 1 — 733 chars — roots: R1 R7 — not reached: reached only on a dungeon map, by PlayerMPmax (@4150123) and DungeonStat("DMG"): DamageDealed returns a runtime leaf there (@4106070, the dungeon branch is not counted) and PlayerHPmax, PlayerMPmax and PlayerSpeedBonus refuse a dungeon map (NotPorted CurrentMap=<map>)
-- [~] DungeonStat("SPEED") — depth 2 — 316 chars — roots: R1 R8 — not reached: reached only on a dungeon map, by PlayerSpeedBonus (@4141907): DamageDealed returns a runtime leaf there (@4106070, the dungeon branch is not counted) and PlayerHPmax, PlayerMPmax and PlayerSpeedBonus refuse a dungeon map (NotPorted CurrentMap=<map>)
+- [~] DungeonStat("DMG") — depth 1 — 2601 chars — roots: R1 — not reached: reached only inside a dungeon, by DamageDealed (@4106182): Dungon() answers -1 on every map (Ruling Y: a dungeon map is counted as outside a dungeon, an assumed: leaf), so no dungeon branch runs
+- [~] DungeonStat("HP") — depth 1 — 1008 chars — roots: R1 R6 — not reached: reached only inside a dungeon, by PlayerHPmax (@4147196) and DungeonStat("DMG"): Dungon() answers -1 on every map (Ruling Y: a dungeon map is counted as outside a dungeon, an assumed: leaf), so no dungeon branch runs
+- [~] DungeonStat("Weapon_Power") — depth 2 — 47 chars — roots: R1 — not reached: reached only inside a dungeon, by DungeonStat("DMG") (@7837921): Dungon() answers -1 on every map (Ruling Y: a dungeon map is counted as outside a dungeon, an assumed: leaf), so no dungeon branch runs
+- [~] DungeonStat("MP") — depth 1 — 733 chars — roots: R1 R7 — not reached: reached only inside a dungeon, by PlayerMPmax (@4150123) and DungeonStat("DMG"): Dungon() answers -1 on every map (Ruling Y: a dungeon map is counted as outside a dungeon, an assumed: leaf), so no dungeon branch runs
+- [~] DungeonStat("SPEED") — depth 2 — 316 chars — roots: R1 R8 — not reached: reached only inside a dungeon, by PlayerSpeedBonus (@4141907): Dungon() answers -1 on every map (Ruling Y: a dungeon map is counted as outside a dungeon, an assumed: leaf), so no dungeon branch runs
 
 ## RoyalG
 
@@ -231,7 +231,7 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 - [x] TotalStats("LUK") — depth 0 — 2031 chars — roots: R1 R5
 - [x] TotalStats("AGI") — depth 0 — 2297 chars — roots: R1 R3 R8
 - [x] TotalStats("WIS") — depth 0 — 2296 chars — roots: R1 R4 R6 R7
-- [~] TotalStats("Dung_Power") — depth 3 — 193 chars — roots: R1 — not reached: reached only on a dungeon map, by DungeonStat("Weapon_Power") (@7835355): DamageDealed returns a runtime leaf there (@4106070, the dungeon branch is not counted) and PlayerHPmax, PlayerMPmax and PlayerSpeedBonus refuse a dungeon map (NotPorted CurrentMap=<map>)
+- [~] TotalStats("Dung_Power") — depth 3 — 193 chars — roots: R1 — not reached: reached only inside a dungeon, by DungeonStat("Weapon_Power") (@7835355): Dungon() answers -1 on every map (Ruling Y: a dungeon map is counted as outside a dungeon, an assumed: leaf), so no dungeon branch runs
 - [x] TotalStats("Accuracy") — depth 1 — 531 chars — roots: R1 R8
 
 ## GetTalentNumber
@@ -837,14 +837,14 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 
 ## DungeonCalc
 
-- [~] DungeonCalc("TraitBonus",7) — depth 2 — 65 chars — roots: R1 — not reached: reached only on a dungeon map, by DungeonStat (@7831416), the dungeon run's stats: DamageDealed returns a runtime leaf there (@4106070, the dungeon branch is not counted) and PlayerHPmax, PlayerMPmax and PlayerSpeedBonus refuse a dungeon map (NotPorted CurrentMap=<map>)
-- [~] DungeonCalc("TraitBonus",9) — depth 2 — 65 chars — roots: R1 — not reached: reached only on a dungeon map, by DungeonStat (@7831416), the dungeon run's stats: DamageDealed returns a runtime leaf there (@4106070, the dungeon branch is not counted) and PlayerHPmax, PlayerMPmax and PlayerSpeedBonus refuse a dungeon map (NotPorted CurrentMap=<map>)
-- [~] DungeonCalc("TraitBonus",1) — depth 2 — 65 chars — roots: R1 — not reached: reached only on a dungeon map, by DungeonStat (@7831416), the dungeon run's stats: DamageDealed returns a runtime leaf there (@4106070, the dungeon branch is not counted) and PlayerHPmax, PlayerMPmax and PlayerSpeedBonus refuse a dungeon map (NotPorted CurrentMap=<map>)
-- [~] DungeonCalc("TraitBonus",0) — depth 2 — 65 chars — roots: R1 R6 — not reached: reached only on a dungeon map, by DungeonStat (@7831416), the dungeon run's stats: DamageDealed returns a runtime leaf there (@4106070, the dungeon branch is not counted) and PlayerHPmax, PlayerMPmax and PlayerSpeedBonus refuse a dungeon map (NotPorted CurrentMap=<map>)
-- [~] DungeonCalc("TraitBonus",24) — depth 2 — 65 chars — roots: R1 R6 — not reached: reached only on a dungeon map, by DungeonStat (@7831416), the dungeon run's stats: DamageDealed returns a runtime leaf there (@4106070, the dungeon branch is not counted) and PlayerHPmax, PlayerMPmax and PlayerSpeedBonus refuse a dungeon map (NotPorted CurrentMap=<map>)
-- [~] DungeonCalc("TraitBonus",8) — depth 2 — 65 chars — roots: R1 R7 — not reached: reached only on a dungeon map, by DungeonStat (@7831416), the dungeon run's stats: DamageDealed returns a runtime leaf there (@4106070, the dungeon branch is not counted) and PlayerHPmax, PlayerMPmax and PlayerSpeedBonus refuse a dungeon map (NotPorted CurrentMap=<map>)
-- [~] DungeonCalc("TraitBonus",2) — depth 2 — 65 chars — roots: R1 R7 — not reached: reached only on a dungeon map, by DungeonStat (@7831416), the dungeon run's stats: DamageDealed returns a runtime leaf there (@4106070, the dungeon branch is not counted) and PlayerHPmax, PlayerMPmax and PlayerSpeedBonus refuse a dungeon map (NotPorted CurrentMap=<map>)
-- [~] DungeonCalc("TraitBonus",26) — depth 2 — 65 chars — roots: R1 R7 — not reached: reached only on a dungeon map, by DungeonStat (@7831416), the dungeon run's stats: DamageDealed returns a runtime leaf there (@4106070, the dungeon branch is not counted) and PlayerHPmax, PlayerMPmax and PlayerSpeedBonus refuse a dungeon map (NotPorted CurrentMap=<map>)
+- [~] DungeonCalc("TraitBonus",7) — depth 2 — 65 chars — roots: R1 — not reached: reached only inside a dungeon, by DungeonStat (@7831416), the dungeon run's stats: Dungon() answers -1 on every map (Ruling Y: a dungeon map is counted as outside a dungeon, an assumed: leaf), so no dungeon branch runs
+- [~] DungeonCalc("TraitBonus",9) — depth 2 — 65 chars — roots: R1 — not reached: reached only inside a dungeon, by DungeonStat (@7831416), the dungeon run's stats: Dungon() answers -1 on every map (Ruling Y: a dungeon map is counted as outside a dungeon, an assumed: leaf), so no dungeon branch runs
+- [~] DungeonCalc("TraitBonus",1) — depth 2 — 65 chars — roots: R1 — not reached: reached only inside a dungeon, by DungeonStat (@7831416), the dungeon run's stats: Dungon() answers -1 on every map (Ruling Y: a dungeon map is counted as outside a dungeon, an assumed: leaf), so no dungeon branch runs
+- [~] DungeonCalc("TraitBonus",0) — depth 2 — 65 chars — roots: R1 R6 — not reached: reached only inside a dungeon, by DungeonStat (@7831416), the dungeon run's stats: Dungon() answers -1 on every map (Ruling Y: a dungeon map is counted as outside a dungeon, an assumed: leaf), so no dungeon branch runs
+- [~] DungeonCalc("TraitBonus",24) — depth 2 — 65 chars — roots: R1 R6 — not reached: reached only inside a dungeon, by DungeonStat (@7831416), the dungeon run's stats: Dungon() answers -1 on every map (Ruling Y: a dungeon map is counted as outside a dungeon, an assumed: leaf), so no dungeon branch runs
+- [~] DungeonCalc("TraitBonus",8) — depth 2 — 65 chars — roots: R1 R7 — not reached: reached only inside a dungeon, by DungeonStat (@7831416), the dungeon run's stats: Dungon() answers -1 on every map (Ruling Y: a dungeon map is counted as outside a dungeon, an assumed: leaf), so no dungeon branch runs
+- [~] DungeonCalc("TraitBonus",2) — depth 2 — 65 chars — roots: R1 R7 — not reached: reached only inside a dungeon, by DungeonStat (@7831416), the dungeon run's stats: Dungon() answers -1 on every map (Ruling Y: a dungeon map is counted as outside a dungeon, an assumed: leaf), so no dungeon branch runs
+- [~] DungeonCalc("TraitBonus",26) — depth 2 — 65 chars — roots: R1 R7 — not reached: reached only inside a dungeon, by DungeonStat (@7831416), the dungeon run's stats: Dungon() answers -1 on every map (Ruling Y: a dungeon map is counted as outside a dungeon, an assumed: leaf), so no dungeon branch runs
 
 ## ArbitraryCode5Inputs
 

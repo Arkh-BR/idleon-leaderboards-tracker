@@ -1,8 +1,10 @@
 // The game's per-character attributes that the cloud loader assembles from scratch keys instead of mapping one save key to one
-// attribute (SAVE_ATTRS leaves them out), and the walk over `PlayerDATABASE`.
+// attribute (SAVE_ATTRS leaves them out), the walk over `PlayerDATABASE`, and the inventory actor's item count.
 import type { Ctx } from "./ctx";
-import { asNumber } from "./attr";
+import { asNum, asNumber } from "./attr";
 import { InvalidSaveValue, MissingSaveKey } from "./errors";
+import { hString } from "./hstring";
+import { listAt } from "./lists";
 import { charKey, opt } from "./state";
 
 /**
@@ -21,3 +23,14 @@ export function skillLevel(ctx: Ctx, i: number, player: number = ctx.player): nu
 
 /** `D.mapCount(PlayerDATABASE)`: one entry per character, in character order (the keys are the names, inserted by the load). */
 export const playerCount = (ctx: Ctx): number => ctx.state.charNames.length;
+
+/**
+ * `ActorEvents_29._ItemsOwnedMap[item]`: the current character's inventory (InventoryOrder) summed by name over ItemQuantity, which the
+ * inventory actor builds when it starts (@7075609) and again on every change (CountInventory @7042726). The game reads it with c.asNumber.
+ */
+export function itemsOwned(ctx: Ctx, item: string): number {
+  let n = 0;
+  const order = listAt(ctx, "InventoryOrder");
+  for (let e = 0; e < order.length; e++) if ("Blank" != order[e] && item == hString(order[e])) n = n + asNum(ctx, "ItemQuantity", e);
+  return n;
+}
