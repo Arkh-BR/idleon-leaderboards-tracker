@@ -9,14 +9,15 @@ import { dirname, join, relative, resolve } from "node:path";
 import { computeArkhArtifactFind } from "@/lib/arkh/computeArtifactFind";
 import { ARTI_GROUPS } from "@/lib/arkh/stats/defs/artifact-find";
 import { computeArkhDamage, DMG_COLLECTOR_MAP } from "@/lib/arkh/computeDamage";
-import { DMG_LAYERS, DMG_MASTERY, DMG_RAT } from "@/lib/arkh/stats/defs/damage";
+import { DMG_LAYERS, DMG_MASTERY, DMG_RAT, dmgMastery, dmgMax } from "@/lib/arkh/stats/defs/damage";
 import { charClassData } from "@/lib/arkh/save/data";
 import { loadSaveData } from "@/lib/arkh/save/loader";
 import { saveData } from "@/lib/arkh/state";
-import { computeAccuracy, computePlayerSpeed, computeStarSignBonus, rval } from "@/lib/arkh/stats/systems/common/derived-damage";
+import { computeAccuracy, computePlayerSpeed, computeStarSignBonus, computeWeaponPower, rval } from "@/lib/arkh/stats/systems/common/derived-damage";
 import { computePlayerHPmax, computePlayerMPmax } from "@/lib/arkh/stats/systems/common/derived-stats";
 import { computeStatueBonusGiven, computeTotalStat } from "@/lib/arkh/stats/systems/common/stats";
 import { computeCardLv } from "@/lib/arkh/stats/systems/common/cards";
+import { SIGN_BONUSES } from "@/lib/arkh/stats/systems/common/starSign";
 import { goldFoodBonuses, gfoodBonusMULTIBreakdown } from "@/lib/arkh/stats/systems/common/goldenFood";
 import { computePrayerReal, prayersReal } from "@/lib/arkh/stats/systems/w3/prayer";
 import { totalGreenSigils } from "@/lib/arkh/stats/systems/w2/alchemy";
@@ -25,7 +26,7 @@ import { talent as talentResolver } from "@/lib/arkh/stats/systems/common/talent
 import { votingBonusz } from "@/lib/arkh/stats/systems/w2/voting";
 import type { ArkhNode } from "@/lib/arkh/node";
 import { makeCtx, type Ctx } from "@/lib/game/ctx";
-import { ClassStatTypes } from "@/lib/game/data";
+import { ClassStatTypes, ITEMS, PowerSuffixes } from "@/lib/game/data";
 import { ReturnClasses } from "@/lib/game/njs/ReturnClasses";
 import { buildGameState, type GameEnvelope } from "@/lib/game/state";
 
@@ -255,6 +256,27 @@ export function arkhDamageLeaf(save: unknown, ci: number, map: number, sourceId:
   return arkhDamageLeaves(save, ci, map)[sourceId];
 }
 
+// every pool key of the descriptor (layers, Mastery, the arena) -> its source ids; keys are unique (arkhOracle.test checks it)
+const DMG_POOL = new Map<string, readonly string[]>([
+  ...DMG_LAYERS.flatMap((l) => l.steps.flatMap((s) => ("sources" in s ? [[s.key, s.sources] as const] : []))),
+  [DMG_MASTERY.key, DMG_MASTERY.sources],
+  [DMG_RAT.key, DMG_RAT.sources],
+]);
+
+/** Every step key of the descriptor, with Mastery's and the arena's (what arkhOracle.test checks for duplicates). */
+export const arkhDamagePoolKeys = (): string[] => [...DMG_LAYERS.flatMap((l) => l.steps.map((s) => s.key)), DMG_MASTERY.key, DMG_RAT.key];
+
+/**
+ * lib/arkh's Max damage and Mastery for character `ci` on `map`: its own dmgMax / dmgMastery (what its combine() returns) over the
+ * leaves of arkhDamageLeaves, so a total costs no lib/arkh compute once the leaves are on disk (arkhOracle.test checks it against
+ * computeArkhDamage). `save` as in arkhDamageLeaves.
+ */
+export function arkhDamage(save: unknown, ci: number, map: number): { max: number; mastery: number } {
+  const leaves = arkhDamageLeaves(save, ci, map);
+  const valsOf = (key: string) => (DMG_POOL.get(key) ?? []).map((id) => leaves[id]);
+  return { max: dmgMax(valsOf), mastery: dmgMastery(valsOf) };
+}
+
 /**
  * The 7 stats lib/readings/compute.ts compares the readings with, from ONE loadSaveData (the same lib/arkh calls).
  * Map-independent: it shares the entry of the collector map (251), so a loop over leaves on 251 computes each character once.
@@ -341,6 +363,10 @@ export const STAT_WHY: Record<string, string> = {
     "lib/arkh's accuracy stubs GetBuffBonuses(288,2) to 0 (\"runtime buff, not in save\"); N.js GetBuffBonuses @4279371 reads _BuffIDsOn, which the HUD actor fills from the save's BuffsActive (@4931241), so a character whose saved BuffsActive has 288 running gets its talent number (curve 2), as for buff 94",
   redox:
     "N.js counts the items of _ItemsAndStorageOWNED (ActorEvents_232 @5989516) from the current character's inventory (CountInventory @7042726 reads InventoryOrder) plus the storage chest; lib/arkh's invStorageOwned (stats/systems/w6/upg-totals.ts:79) adds every character's inventory",
+  powerSuffix:
+    "N.js TotalStats @4158761 counts a power stat item by item: on the equipment (EquipmentOrder[0]) an item whose name contains one of PowerSuffixes (Mining, Choppin, Fishing, Catching, Trapping, Worship, Dung) gives its Weapon_Power to that skill's power only (@4159070: \"YESstats\" when the suffix is the power's own), so a choppin hat or a fishing ring adds nothing to Weapon_Power; lib/arkh's computeWeaponPower (derived-damage.ts:220) adds every equipped item's Weapon_Power",
+  signsDmg:
+    "lib/arkh's computeStarSignBonus (starSign.ts:48) adds every sign of its SIGN_BONUSES table for the key (PctDmg: signs 0, 32, 51, 53, 54, 70), skipping only negative values below the enabled count; N.js StarSigns @6540624 adds a sign only when it is worn or is one of the first RiftStuff(\"enabledStarSigns\") whose name StarSignsUnlocked has (the same cause as \"signs\", for the Damage % key)",
   buff108:
     "a product decision of the Damage page (the plan's Global Constraints): the active buff 108 is not counted, a runtime leaf in lib/game; lib/arkh counts it while the saved BuffsActive has it, and N.js PlayerHPmax @4147120 multiplies the % by 1 - GetBuffBonuses(108,1) / 100",
 };
@@ -838,6 +864,18 @@ export const KNOWN_ARKH_DIFFS: {
   // character's inventory: Einyen's character 8 carries 2e8 of them, so every other character differs (accountSystems.test.ts gives the
   // current character the others' salts and lib/game equals lib/arkh)
   ...[0, 1, 2, 3, 4, 5, 6, 7, 9, 10].map((ci) => ({ stat: "damage" as const, save: "Einyen.json", ci, source: "artifact8", reason: "redox", why: STAT_WHY.redox })),
+  // Task 8: DamageDealed's own terms (damage.test.ts). The talents read with getbonus2 / GetTalentNumber carry the fam68 of AllTalentLV, on
+  // the characters of the tc470 rows (and Maspoofio#7, as in the golden food), the base damage's weapon power too
+  ...(["wpSquared", "talent463", "divinity507", "talent6"] as const).flatMap((source) =>
+    (
+      [["Ash_EB.json", 0], ["Frostymart.json", 0], ["FrozenBody.json", 1], ["Jrod11.json", 4], ["Jrod11.json", 7], ["Koweabooo.json", 8], ["big_guy69123.json", 5], ["0xEXCEED.json", 5], ...(source === "talent6" ? [] : [["Maspoofio.json", 7] as const])] as const
+    ).map(([save, ci]) => ({ stat: "damage" as const, save, ci, source, reason: "fam68", why: STAT_WHY.fam68 }))
+  ),
+  // the weapon power: a suffixed item (a choppin hat, fishing rings) counts for its skill's power only; and the boost foods' statue 3
+  ...([["Dandy2009.json", 3], ["Norton_Goldman.json", 7], ["big_guy69123.json", 8], ["bluestar3112.json", 1], ["FrozenBody.json", 1]] as const).map(([save, ci]) => ({ stat: "damage" as const, save, ci, source: "wpSquared", reason: "powerSuffix", why: STAT_WHY.powerSuffix })),
+  ...[3, 5, 10].map((ci) => ({ stat: "damage" as const, save: "1st_Giri.json", ci, source: "wpSquared", reason: "statues", why: `${STAT_WHY.statues}. TotalFoodBonuses("WeaponPowerBoosts") multiplies each food by FoodBonuses, whose boost foods read StatueBonusGiven3` })),
+  // the Damage % star signs: lib/arkh counts every sign of its table
+  ...["Dasvidanya.json", "Glaives.json", "big_guy69123.json"].map((save) => ({ stat: "damage" as const, save, source: "starSignPctDmg", reason: "signsDmg", why: STAT_WHY.signsDmg })),
 ];
 
 /**
@@ -953,4 +991,73 @@ export function arkhStatSeeds(path: string, ci: number, reasons: readonly string
     } else throw new Error(`arkhStatSeeds: no seed for ${r}`);
   }
   return out;
+}
+
+export type Seed = [name: string, args: (string | number)[], value: number];
+/** A KNOWN reason proved on the save instead of the cache (its cause is a save read, not a block): the save's `data` edited in place. */
+export type Patch = (data: Record<string, unknown>, ci: number, chars: number) => void;
+
+/**
+ * The KNOWN reasons proved on the save: edited so lib/game reads what lib/arkh does, then a fresh state is built from it.
+ *  - statues: character `ci` gets the first character's statue levels, the one list lib/arkh reads for every character (STAT_WHY.statues);
+ *  - redox: the current character also carries every other character's Redox Salts (Refinery1), as lib/arkh counts every inventory
+ *    (STAT_WHY.redox);
+ *  - powerSuffix: the Weapon_Power of the equipped items whose name has a power suffix is moved onto the first other counted item (not
+ *    the weapon, whose own power Minehead("WepPowDmgPCT") reads, unless it is the only one), where N.js counts it, as lib/arkh counts every
+ *    item (STAT_WHY.powerSuffix);
+ *  - signsDmg: character `ci` also wears every sign lib/arkh's table gives the Damage % key, so each is active (STAT_WHY.signsDmg).
+ */
+export const PROOF_PATCHES: Record<string, Patch> = {
+  statues: (d, ci) => {
+    d[`StatueLevels_${ci}`] = d["StatueLevels_0"];
+  },
+  redox: (d, ci, chars) => {
+    const get = (k: string) => (typeof d[k] === "string" ? JSON.parse(d[k] as string) : d[k]) as unknown[];
+    let others = 0;
+    for (let c = 0; c < chars; c++) if (c !== ci) get(`InventoryOrder_${c}`).forEach((x, i) => x === "Refinery1" && (others += Number(get(`ItemQTY_${c}`)[i])));
+    d[`InventoryOrder_${ci}`] = [...get(`InventoryOrder_${ci}`), "Refinery1"];
+    d[`ItemQTY_${ci}`] = [...get(`ItemQTY_${ci}`), others];
+  },
+  powerSuffix: (d, ci) => {
+    const get = (k: string) => (typeof d[k] === "string" ? JSON.parse(d[k] as string) : d[k]) as Record<string, any>;
+    const order = get(`EquipOrder_${ci}`)[0] as Record<string, string>;
+    const own = get(`EMm0_${ci}`) ?? {};
+    const suffixed = (n: string) => (PowerSuffixes as readonly string[]).some((x) => n.includes(x));
+    let moved = 0;
+    for (let O = 0; O < 16; O++) if (order[O] && order[O] !== "Blank" && suffixed(order[O])) moved += Number((ITEMS as any)[order[O]]?.Weapon_Power ?? 0) + Number(own[O]?.Weapon_Power ?? 0);
+    // slots 8, 10, 12 and 14 can be skipped (the Hatrack, the Gallery, the Cape Vine): take a plain slot, the weapon (1) only when no other is
+    const to = [0, 2, 3, 4, 5, 6, 7, 9, 11, 13, 15, 1].find((O) => order[O] && order[O] !== "Blank" && !suffixed(order[O]));
+    if (to === undefined) throw new Error(`powerSuffix: no other item to carry the power on character ${ci}`);
+    own[to] = { ...(own[to] ?? {}), Weapon_Power: Number(own[to]?.Weapon_Power ?? 0) + moved };
+    d[`EMm0_${ci}`] = own;
+  },
+  signsDmg: (d, ci) => {
+    const k = `PVtStarSign_${ci}`;
+    d[k] = `${d[k] ?? ""}${Object.keys(SIGN_BONUSES.PctDmg).join(",")},`;
+  },
+};
+
+/**
+ * The seeds that prove a Damage source's KNOWN `reason` (a `stat: "damage"` row) on character `ci`: lib/arkh's number for the cause, on the
+ * narrowest block it names. The reasons a patch proves (PROOF_PATCHES) have none.
+ *  - tome (TOME_SOURCE, Ruling K): the Tome score lib/arkh reads, IdleonToolbox's total stamped on the file, in place of lib/tome's;
+ *  - powerSuffix, for a term that reads the weapon power through other blocks (the total): lib/arkh's weapon power on TotalStats("Weapon_Power")
+ *    (a term that reads that block itself, wpSquared, is proved by PROOF_PATCHES.powerSuffix instead);
+ *  - pray6: no Super Bit 9 / 39, which makes N.js prayersReal take the equipped-prayer branch, the only one lib/arkh's leaf has;
+ *  - every other reason: arkhStatSeeds' (comp0, godshard, fam68, and the golden food's gfoodVote26 / gfoodCap / gfoodSign69).
+ */
+export function damageReasonSeeds(path: string, ci: number, reason: string): Seed[] {
+  if (reason === "powerSuffix") {
+    loadSaveData(JSON.parse(readFileSync(path, "utf8")));
+    return [["TotalStats", ["Weapon_Power"], computeWeaponPower(ci, { saveData, charIdx: ci, activeCharIdx: ci } as never)]];
+  }
+  if (PROOF_PATCHES[reason]) return [];
+  if (reason === "tome") {
+    const env = JSON.parse(readFileSync(path, "utf8"));
+    const it = Number(env.extraData?.totalTomePoints ?? env.parsedData?.totalTomePoints);
+    if (!Number.isFinite(it)) throw new Error(`${path}: no IdleonToolbox Tome total`);
+    return [["DNSM.TomeQTYtot", [], it]];
+  }
+  if (reason === "pray6") return [["GamingStatType", ["SuperBitType", 9, 0], 0], ["GamingStatType", ["SuperBitType", 39, 0], 0]];
+  return arkhStatSeeds(path, ci, [reason], "str");
 }

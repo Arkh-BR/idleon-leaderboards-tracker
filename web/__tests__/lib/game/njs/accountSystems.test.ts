@@ -5,7 +5,7 @@
 import { afterAll, afterEach, describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { basename } from "node:path";
-import { GOLDEN_SAVES, KNOWN_ARKH_DIFFS, arkhDamageLeaf, arkhStatSeeds, type ArkhStat } from "../support/arkhOracle";
+import { GOLDEN_SAVES, KNOWN_ARKH_DIFFS, PROOF_PATCHES, arkhDamageLeaf, arkhStatSeeds, damageReasonSeeds, type ArkhStat, type Seed } from "../support/arkhOracle";
 import { ClassStatTypes } from "@/lib/game/data";
 import { ReturnClasses } from "@/lib/game/njs/ReturnClasses";
 import { MissingSaveKey } from "@/lib/game/errors";
@@ -39,7 +39,6 @@ import { JellyOperation } from "@/lib/game/njs/JellyOperation";
 import { SushiStuff } from "@/lib/game/njs/SushiStuff";
 
 const MAP = 251; // a plain map: no dungeon (Dungon() is -1), no arena
-type Seed = [name: string, args: (string | number)[], value: number];
 const rel = (got: number, want: number) => Math.abs(got - want) <= 1e-9 * Math.max(1, Math.abs(want));
 
 /** The lib/game term of each lib/arkh leaf, as DamageDealed uses it (the leaf of a factor source is the factor). Offsets: DamageDealed @4105019. */
@@ -199,37 +198,6 @@ const REFUSED: Record<string, string[]> = Object.fromEntries(["tome0", "tome6", 
 /** The maps a term is compared on (map 251 when absent). */
 const MAPS: Record<string, (c: Ctx) => number[]> = {};
 
-/** The seeds that prove a KNOWN reason on one pair: lib/arkh's number for the cause, on the narrowest block it names. */
-const SEEDS: Record<string, (path: string, ci: number) => Seed[]> = {
-  // COMPANION_0_GATE: lib/arkh counts Companions(0) below Lv0[14] = 2, where N.js @10799980 is 0
-  comp0: () => [["Companions", [0], 1]],
-  // GODSHARD_WORN: lib/arkh counts the God Shard set only when OptionsListAccount[379] names it
-  godshard: () => [["GetSetBonus", ["GODSHARD_SET", "Bonus", 0, 0], 0]],
-  // fam68: lib/arkh's Family Bonus 68 (forceSuperActive), the input of AllTalentLV(z)
-  fam68: (path, ci) => arkhStatSeeds(path, ci, ["fam68"], "str"),
-  // TOME_SOURCE (Ruling K): the Tome score lib/arkh reads, IdleonToolbox's number stamped on the file, in place of lib/tome's
-  tome: (path) => {
-    const env = JSON.parse(readFileSync(path, "utf8"));
-    const it = Number(env.extraData?.totalTomePoints ?? env.parsedData?.totalTomePoints);
-    if (!Number.isFinite(it)) throw new Error(`${basename(path)}: no IdleonToolbox Tome total`);
-    return [["DNSM.TomeQTYtot", [], it]];
-  },
-};
-
-/**
- * The KNOWN reasons proved on the state instead of the cache (the cause is a save read, not a block): the save edited so that lib/game reads
- * what lib/arkh does. redox: the current character also carries every other character's Redox Salts (lib/arkh counts every inventory).
- */
-const PATCHES: Record<string, (d: Record<string, unknown>, ci: number, chars: number) => void> = {
-  redox: (d, ci, chars) => {
-    const get = (k: string) => (typeof d[k] === "string" ? JSON.parse(d[k] as string) : d[k]) as unknown[];
-    let others = 0;
-    for (let c = 0; c < chars; c++) if (c !== ci) get(`InventoryOrder_${c}`).forEach((x, i) => x === "Refinery1" && (others += Number(get(`ItemQTY_${c}`)[i])));
-    d[`InventoryOrder_${ci}`] = [...get(`InventoryOrder_${ci}`), "Refinery1"];
-    d[`ItemQTY_${ci}`] = [...get(`ItemQTY_${ci}`), others];
-  },
-};
-
 /** The leaves built on a stat the stats' KNOWN rows cover: a pair that differs through the stat carries the stat's reasons (their seeds close it). */
 const MAIN: Record<string, ArkhStat> = { STR: "str", AGI: "agi", WIS: "wis", LUK: "luk" };
 const INHERIT: Record<string, (c: Ctx) => ArkhStat[]> = {
@@ -289,15 +257,14 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("account-system terms against lib/ark
             const seeds: Seed[] = [];
             let proofState = state;
             for (const r of entries.map((d) => d.reason!)) {
-              if (PATCHES[r]) {
+              // the shared proofs (support/arkhOracle): a patch for a cause that is a save read, else lib/arkh's number seeded
+              if (PROOF_PATCHES[r]) {
                 const env = JSON.parse(readFileSync(path, "utf8")) as GameEnvelope;
-                PATCHES[r](env.data as Record<string, unknown>, ci, state.charNames.length);
+                PROOF_PATCHES[r](env.data as Record<string, unknown>, ci, state.charNames.length);
                 proofState = buildGameState(env);
                 continue;
               }
-              const s = SEEDS[r];
-              if (!s) throw new Error(`accountSystems.test: no seed for reason ${r}`);
-              seeds.push(...s(path, ci));
+              seeds.push(...damageReasonSeeds(path, ci, r));
             }
             for (const stat of INHERIT[id]?.(withPlayer(ctxOf(path, map), ci)) ?? []) {
               const reasons = [...new Set(KNOWN_ARKH_DIFFS.filter((d) => d.stat === stat && d.save === basename(path) && (d.ci ?? ci) === ci).map((d) => d.source))];

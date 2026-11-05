@@ -9,7 +9,7 @@ import { DMG_LAYERS, DMG_MASTERY, DMG_RAT, dmgLayer } from "@/lib/arkh/stats/def
 import { computeArkhDamage, DMG_COLLECTOR_MAP } from "@/lib/arkh/computeDamage";
 import { computeReadingValue } from "@/lib/readings/compute";
 import { READINGS_DIR, loadReadings, readingSave } from "@/lib/readings/registry";
-import { GOLDEN_SAVES, KNOWN_ARKH_DIFFS, arkhArtifactLeaf, arkhDamageLeaf, arkhDamageLeaves, arkhSourceHash, arkhStat, arkhStats, gameCtx, goldenSaves, setArkhSourceHash, setOracleCacheDir, type ArkhStat } from "./support/arkhOracle";
+import { GOLDEN_SAVES, KNOWN_ARKH_DIFFS, arkhArtifactLeaf, arkhDamage, arkhDamagePoolKeys, arkhDamageLeaf, arkhDamageLeaves, arkhSourceHash, arkhStat, arkhStats, gameCtx, goldenSaves, setArkhSourceHash, setOracleCacheDir, type ArkhStat } from "./support/arkhOracle";
 
 // Spy on the engine so the cache tests can count real computes; the original still runs.
 vi.mock("@/lib/arkh/computeArtifactFind", async (importOriginal) => {
@@ -176,6 +176,10 @@ function dmgIds(): string[] {
 }
 
 describe("Damage source ids", () => {
+  it("the pool keys arkhDamage recombines are unique too", () => {
+    const keys = arkhDamagePoolKeys();
+    expect(new Set(keys).size).toBe(keys.length);
+  });
   it("are unique across every layer, Mastery and the arena (so the id alone keys a leaf)", () => {
     const ids = dmgIds();
     expect(ids.length).toBeGreaterThan(100);
@@ -209,6 +213,20 @@ describe("arkhDamageLeaf and arkhStat", () => {
       expect(rel(max, total)).toBeLessThan(1e-9);
       expect(DMG_RAT.sources.map((id) => arkhDamageLeaf(ARKHE, 8, DMG_COLLECTOR_MAP, id))).toEqual([0]); // map 251: arena off
       expect(DMG_MASTERY.sources.map((id) => arkhDamageLeaf(ARKHE, 8, DMG_COLLECTOR_MAP, id)).some((v) => v !== 0)).toBe(true);
+    });
+
+    // arkhDamage recombines the cached leaves with lib/arkh's own dmgMax / dmgMastery: it must be what computeArkhDamage itself returns,
+    // on a plain map, on the arena (the rat replaces Max, Mastery is .2) and on the Clamworks
+    it("arkhDamage is computeArkhDamage's total and Mastery node, on maps 251, 43 and 306", () => {
+      for (const map of [DMG_COLLECTOR_MAP, 43, 306]) {
+        const { tree, total } = computeArkhDamage(JSON.parse(readFileSync(ARKHE!, "utf8")), 8, map);
+        const mastery = tree.children!.find((c) => c.name === "Mastery (Min)")!.val;
+        const got = arkhDamage(ARKHE, 8, map);
+        expect(total, `map ${map}`).toBeGreaterThan(1);
+        expect(rel(got.max, total), `map ${map}`).toBeLessThan(1e-12);
+        expect(got.mastery, `map ${map}`).toBe(mastery);
+      }
+      expect(arkhDamage(ARKHE, 8, 43).mastery).toBe(0.2);
     });
 
     it("leaves the caller's save untouched", () => {

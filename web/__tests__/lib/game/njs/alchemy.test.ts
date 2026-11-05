@@ -4,7 +4,7 @@
 import { afterAll, afterEach, describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { basename } from "node:path";
-import { GOLDEN_SAVES, KNOWN_ARKH_DIFFS, arkhDamageLeaf, arkhStatSeeds, arkhTotalGreenSigils, type ArkhStat } from "../support/arkhOracle";
+import { GOLDEN_SAVES, KNOWN_ARKH_DIFFS, PROOF_PATCHES, arkhDamageLeaf, arkhStatSeeds, arkhTotalGreenSigils, damageReasonSeeds, type ArkhStat, type Seed } from "../support/arkhOracle";
 import { MissingSaveKey } from "@/lib/game/errors";
 import { makeCtx, withPlayer, type Ctx } from "@/lib/game/ctx";
 import { buildGameState, type GameEnvelope, type GameState } from "@/lib/game/state";
@@ -30,7 +30,6 @@ import { chipBonuses } from "@/lib/game/njs/chipBonuses";
 import { asNum } from "@/lib/game/attr";
 
 const MAP = 251; // a plain map: no dungeon (Dungon() is -1), no arena
-type Seed = [name: string, args: (string | number)[], value: number];
 type StatKey = ArkhStat | "speed";
 const rel = (got: number, want: number) => Math.abs(got - want) <= 1e-9 * Math.max(1, Math.abs(want));
 const bubble = (k: string) => (c: Ctx) => DNSM_AlchBubbles(c, k);
@@ -141,11 +140,10 @@ function ctxOf(path: string, map: number): Ctx {
   if (!c) ctxs.set(k, (c = makeCtx(stateOf(path), { player: 0, map })));
   return c;
 }
-/** The save with character `ci` given the first character's statue levels: what lib/arkh reads for every character (the `statues` reason). */
-function withChar0Statues(path: string, ci: number, map: number): Ctx {
+/** The save with the patch of KNOWN reason `r` (support/arkhOracle PROOF_PATCHES: `statues` gives `ci` the first character's statue levels). */
+function patched(path: string, r: string, ci: number, map: number): Ctx {
   const env = JSON.parse(readFileSync(path, "utf8")) as GameEnvelope;
-  const d = env.data as Record<string, unknown>;
-  d[`StatueLevels_${ci}`] = d["StatueLevels_0"];
+  PROOF_PATCHES[r](env.data as Record<string, unknown>, ci, env.charNames.length);
   return makeCtx(buildGameState(env), { player: ci, map });
 }
 
@@ -181,19 +179,19 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("alchemy, stamp, statue, prayer, shri
             // a KNOWN difference is proved, not skipped: lib/arkh's number for the cause it names, put in a fresh Ctx, closes the gap
             const seeds: Seed[] = [];
             let ctx = makeCtx(state, { player: ci, map });
-            let patched = false;
+            let isPatched = false;
             for (const r of entries.map((d) => d.reason!)) {
-              if (r === "statues") {
-                ctx = withChar0Statues(path, ci, map);
-                patched = true;
-              } else if (r === "pray6") seeds.push(["GamingStatType", ["SuperBitType", 9, 0], 0], ["GamingStatType", ["SuperBitType", 39, 0], 0]);
-              else throw new Error(`alchemy.test: no seed for reason ${r}`);
+              // the shared proofs (support/arkhOracle): a patch for a cause that is a save read, else lib/arkh's number seeded
+              if (PROOF_PATCHES[r]) {
+                ctx = patched(path, r, ci, map);
+                isPatched = true;
+              } else seeds.push(...damageReasonSeeds(path, ci, r));
             }
             for (const stat of INHERIT[id] ?? []) {
               const reasons = [...new Set(KNOWN_ARKH_DIFFS.filter((d) => d.stat === stat && d.save === basename(path) && (d.ci ?? ci) === ci).map((d) => d.source))];
               if (reasons.length) seeds.push(...arkhStatSeeds(path, ci, reasons, stat));
             }
-            if (!seeds.length && !patched) {
+            if (!seeds.length && !isPatched) {
               mismatches.push(`${basename(path)}#${ci}@${map}: game ${got}, arkh ${want}`);
               continue;
             }
