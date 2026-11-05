@@ -1,6 +1,8 @@
 // Task 4 (Damage plan): the talent and buff terms DamageDealed("Max") reads, TalentCalc(31, 110, 125, 485, 305, 470, 656, 616) and the
 // buffs 195, 420, 585 and 615 of GetBuffBonuses. Each TalentCalc term is compared with lib/arkh's leaf of the same name over every real
 // save and character (relative 1e-9); N.js's own text is the truth (a difference is a KNOWN entry with its evidence, or a mismatch).
+import { afkTarget } from "@/lib/game/afkTarget";
+import { MapAFKtarget, MapAFKtargetSide, MapName } from "@/lib/game/data";
 import { afterAll, describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { basename } from "node:path";
@@ -184,11 +186,8 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("TalentCalc(125): the Refinery ranks 
     c.cache.set(`0|${MAP}|PlayerAccTot[]`, acc);
     return TalentCalc(c, 125);
   };
-  const refinery = (() => {
-    const r = (JSON.parse(readFileSync(GOLDEN_SAVES[0], "utf8")) as GameEnvelope & { data: Record<string, any> }).data.Refinery as number[][];
-    return r;
-  })();
   it("is 0 below the gate and the six ranks Refinery[3..8][1] at or above it", () => {
+    const refinery = (JSON.parse(readFileSync(GOLDEN_SAVES[0], "utf8")) as GameEnvelope & { data: Record<string, any> }).data.Refinery as number[][];
     const sum = refinery.slice(3, 9).reduce((a, row) => a + Number(row[1] ?? 0), 0);
     expect(sum).toBeGreaterThan(0);
     expect(gate(0)).toBe(0);
@@ -215,5 +214,29 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("GetBuffBonuses 195, 420, 585, 615: t
   });
   it("a buff nobody ported still throws NotPorted", () => {
     expect(() => GetBuffBonuses(withBuff(null, 0), 46, 1)).toThrow(NotPorted);
+  });
+});
+
+describe.skipIf(GOLDEN_SAVES.length === 0)("AFKtarget follows ctx.map through the scene-load rule (Ruling V, N.js @15291900)", () => {
+  const at = (map: number, saved: string, savedMap = 5) => {
+    const save = JSON.parse(readFileSync(GOLDEN_SAVES[0], "utf8")) as GameEnvelope & { data: Record<string, any> };
+    save.data.AFKtarget_0 = saved;
+    save.data.CurrentMap_0 = savedMap;
+    return afkTarget(makeCtx(buildGameState(save), { player: 0, map }));
+  };
+  const side = (MapAFKtargetSide as unknown as string[][]).findIndex((l, m) => m > 5 && l.some((x) => x !== "_"));
+  it("is the saved target on the saved map", () => expect(at(5, "Whatever", 5)).toBe("Whatever"));
+  it("is MapAFKtarget[map] on another map when the target is not a side target", () => expect(at(side, "Whatever")).toBe((MapAFKtarget as unknown as string[])[side]));
+  it("is kept on another map when it is a side target of that map", () => {
+    const t = (MapAFKtargetSide as unknown as string[][])[side].find((x) => x !== "_")!;
+    expect(at(side, t)).toBe(t);
+  });
+  it("keeps Cooking only in xSpaceaaTown, and plank replaces the target in ForestBOSS", () => {
+    const names = (MapName as unknown as string[]);
+    const town = names.indexOf("xSpaceaaTown");
+    const boss = names.indexOf("ForestBOSS");
+    expect(at(town, "Cooking")).toBe("Cooking");
+    expect(at(side, "Cooking")).not.toBe("Cooking");
+    if (boss >= 0) expect(at(boss, "Whatever")).toBe("plank");
   });
 });

@@ -1,7 +1,8 @@
-import { asNum, asNumber, attr } from "../attr";
+import { afkTarget } from "../afkTarget";
+import { asNum, asNumber } from "../attr";
 import { block, withPlayer, type Ctx } from "../ctx";
 import { DreamChallenge, MapAFKtarget, MapDetails, MONSTERS } from "../data";
-import { NotPorted } from "../errors";
+import { InvalidSaveValue, NotPorted } from "../errors";
 import { hString } from "../hstring";
 import { listAt, listOrMapAt } from "../lists";
 import { GetTalentNumber } from "./GetTalentNumber";
@@ -13,16 +14,16 @@ import type { Ported } from "../ported";
 const lengthOf = (l: object): number => (Array.isArray(l) ? l.length : asNumber((l as { length?: unknown }).length));
 
 /**
- * The four counts of the maps whose monster is a FIGHTING one (the loop @4474411 inside `TalentCalc(d <= 0)`): over MapAFKtarget while the
+ * Two of the four counts (the others feed keys Damage does not read) of the maps whose monster is a FIGHTING one (the loop @4474411 inside `TalentCalc(d <= 0)`): over MapAFKtarget while the
  * map is in the current character's KillsLeft2Advance (a map with no monster is skipped; the first one past the list ends the loop), a map
- * adds to `dn1` at 1e5 kills of the current character (MapDetails[g][0][0] minus its KillsLeft2Advance[g][0]) and to `dn2` at 1e6; for the
- * last character whose fourth class step is 10 (`who`, DNSM.CalcTalentDT1; none: no count) it adds to `dn3` at 1e8 and to `dn4` at 1e9.
+ * adds to `dn1` at 1e5 kills of the current character (MapDetails[g][0][0] minus its KillsLeft2Advance[g][0]); for the
+ * last character whose fourth class step is 10 (`who`, DNSM.CalcTalentDT1; none: no count) it adds to `dn4` at 1e9.
  */
-function fightingMaps(ctx: Ctx): { dn1: number; dn2: number; dn3: number; dn4: number } {
+function fightingMaps(ctx: Ctx): { dn1: number; dn4: number } {
   let who = -1; // DNSM.CalcTalentDT1 ("No")
   for (let t = 0, n = ctx.state.charNames.length; t < n; t++) if (10 == ReturnClasses(asNum(withPlayer(ctx, t), "CharacterClass"))[3] && (-1 == who || t > who)) who = t;
   const kills = listAt(ctx, "KillsLeft2Advance").length;
-  const out = { dn1: 0, dn2: 0, dn3: 0, dn4: 0 };
+  const out = { dn1: 0, dn4: 0 };
   const targets = MapAFKtarget as unknown as readonly unknown[];
   for (let g = 0; g < targets.length; g++) {
     const mob = (MONSTERS as Record<string, Readonly<Record<string, unknown>>>)[hString(targets[g])];
@@ -31,9 +32,7 @@ function fightingMaps(ctx: Ctx): { dn1: number; dn2: number; dn3: number; dn4: n
     if ("FIGHTING" != mob.AFKtype) continue;
     const total = asNumber((MapDetails as unknown as readonly (readonly (readonly unknown[])[])[])[g][0][0]);
     if (1e5 <= total - asNum(ctx, "KillsLeft2Advance", g, 0)) out.dn1 += 1;
-    if (1e6 <= total - asNum(ctx, "KillsLeft2Advance", g, 0)) out.dn2 += 1;
     if (-1 != who) {
-      if (1e8 <= total - asNum(withPlayer(ctx, who), "KillsLeft2Advance", g, 0)) out.dn3 += 1;
       if (1e9 <= total - asNum(withPlayer(ctx, who), "KillsLeft2Advance", g, 0)) out.dn4 += 1;
     }
   }
@@ -70,8 +69,8 @@ export const DNSM_CalcTalentMAP = block("DNSM.CalcTalentMAP", (ctx, key: string)
     case "305": {
       const list = listAt(ctx, "Cards", 1).slice(); // u.deepCopyList (the cards are strings)
       let dn1 = 0; // DNSM.CalcTalentDN1: still the Royal Guardian sum
-      const royal = listAt(ctx, "RoyalG", 0);
-      for (let g = 0; 8 > g; g++) dn1 += asNumber(royal[g]);
+      listAt(ctx, "RoyalG", 0); // the game indexes RoyalG[0][g] directly
+      for (let g = 0; 8 > g; g++) dn1 += asNum(ctx, "RoyalG", 0, g);
       for (let f = 0, t = list.length; f < t; ) {
         const g = f++;
         const at = list[(g - dn1) | 0];
@@ -134,13 +133,13 @@ export const TalentCalc = block("TalentCalc", (ctx, d: number) => {
     // @4516114: the six Refinery ranks (Refinery[3..8][1]) when the accuracy is at least 2.25 times the Defence of the monster of the
     // character's AFK target, else 0 (DamageDealed multiplies it by talent 125)
     case 125: {
-      const target = hString(attr(ctx, "AFKtarget"));
+      const target = afkTarget(ctx); // the target on ctx.map (Ruling V)
       const mob = (MONSTERS as Record<string, Readonly<Record<string, unknown>>>)[target];
       // the game reads MonsterDefinitionsGET[AFKtarget].Defence directly and would throw on a target it does not have
-      if (!mob) throw new RangeError(`TalentCalc(125): no monster ${target} in MonsterDefinitions`);
+      if (!mob) throw new InvalidSaveValue("AFKtarget", "a MonsterDefinitions key", target);
       if (PlayerAccTot(ctx) >= 2.25 * asNumber(mob.Defence)) {
         let sum = 0; // DNSM.CalcTalentDN1
-        for (let g = 0; 6 > g; g++) sum += asNumber(listAt(ctx, "Refinery", 3 + g)[1]);
+        for (let g = 0; 6 > g; g++) { listAt(ctx, "Refinery", 3 + g); /* the game indexes Refinery[3 + g][1] directly */ sum += asNum(ctx, "Refinery", 3 + g, 1); }
         return sum;
       }
       return 0;

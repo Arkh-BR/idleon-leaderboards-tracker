@@ -808,7 +808,8 @@ export function arkhPrayersReal(path: string, ci: number, d: number, b: number):
 /**
  * TalentCalc(616) as lib/arkh computes it, one value per character: min(talent 616, floor(the highest level among the characters whose
  * class is below 6 / 10)). lib/arkh folds it into its Weapon Power leaf (derived-damage.ts, "TalentCalc(616)"), so the term has no leaf
- * of its own: this is that very expression, built from lib/arkh's own talent resolver.
+ * of its own: this is that very expression, built from lib/arkh's own talent resolver. It is a COPY of derived-damage.ts:338-353 (the
+ * class < 6 walk and the floor(level / 10) cap): update it with them. It drops lib/arkh's try/catch to 0 (a throw here fails the test).
  */
 export function arkhTc616(path: string): number[] {
   loadSaveData(JSON.parse(readFileSync(path, "utf8")));

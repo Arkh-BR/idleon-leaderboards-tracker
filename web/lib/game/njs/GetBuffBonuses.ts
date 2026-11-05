@@ -20,10 +20,10 @@ function buffIDsOn(ctx: Ctx): unknown[] {
 
 /**
  * N.js `_customBlock_GetBuffBonuses(c, b)` @4279371: the bonus of the active buff `c` (a talent): its talent number, curve `b`, while
- * the buff runs, else 0. Ported for the buffs the character stats read (94, the STR one; 273, move speed; 288, accuracy), and 108 and 124
- * as not counted; 615 is 1 while it runs, and 46 has a rule of its own. 195, 420 and 585 (the masterclass forms Wraith, Tempest, Tesseract
- * read them) and 615 (the dungeon branch) are only the generic rule here: the forms and the dungeon are not counted by the Damage page, in the
- * functions that read these.
+ * the buff runs, else 0. Ported: 94 (STR), 273 (move speed), 288 (accuracy); 195, 420 and 585 (read by the masterclass forms Wraith,
+ * Tempest and Tesseract) and 615 (read by the dungeon branch) by the generic rule, except that 615 is 1, not a talent number
+ * (`615 == c ? 1`); 108 and 124 as not counted. 46 has a rule of its own and is not ported. The forms and the dungeon are not counted
+ * by the Damage page, in the functions that read these buffs.
  */
 export const GetBuffBonuses = block("GetBuffBonuses", (ctx, c: number, b: number) => {
   // a product decision of the Damage page (the plan's Global Constraints): the active buffs 108 and 124 are not counted
