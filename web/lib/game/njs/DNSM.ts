@@ -58,11 +58,11 @@ export const DNSM_CompanionLVz = (ctx: Ctx): Map<string, number> => stage2Of(com
  * Pet-Bonus Token in OptionsListAccount[606] (a comma list of ids) sets CompanionDB[id][2], over what
  * ownership gave: a token for a companion at stage 2 takes it back to the stage-1 value.
  *
- * With `CurrentMap == 41` the game first drops from the token list the ids owned and a fixed list
- * (@10651111), and rewrites OptionsListAccount[606]; the Artifact Find map is 0, so that is not ported.
+ * With `CurrentMap == 41` (Pet Park) the game first drops from the token list, walking it from the end, every id that is owned
+ * (`D.contains(GenINFO[167], c.asNumber(id))`) or one of "11 150 151 152 164 165 166" (@10651111), and writes the rest back to
+ * OptionsListAccount[606] (the save is not written here: the state is immutable and this is the only reader of the list).
  */
 export function DNSM_CompanionBon(ctx: Ctx): Map<string, number> {
-  if (ctx.map === 41) throw new NotPorted("DNSM.CompanionBon", "CurrentMap=41");
   const entries = companionEntries(ctx);
   const lvz = stage2Of(entries);
   const owned = new Set(entries.map((p) => asNumber(p[0])));
@@ -71,7 +71,14 @@ export function DNSM_CompanionBon(ctx: Ctx): Map<string, number> {
     if (owned.has(f)) bon.set(`${f}`, asNumber(CompanionDB[f][lvz.get(`${f}`) == 1 ? 11 : 2]));
   }
   // OptionsListAccount[606] may be undefined (3 real saves): the game reads it as "null" (Std.string), a token id that sets the harmless key "null"
-  for (const id of hString(attr(ctx, "OptionsListAccount", 606)).split(",")) {
+  let tokens = hString(attr(ctx, "OptionsListAccount", 606)).split(",");
+  if (ctx.map == 41) {
+    // @10651111: the splice loop, then the rebuild of the comma list ("" when nothing is left, which splits back to [""]: id 0's key "")
+    const ownedIds = entries.map((p) => asNumber(p[0])); // GenINFO[167]
+    const kept = tokens.filter((t) => !(contains(ownedIds, asNumber(t)) || contains("11 150 151 152 164 165 166".split(" "), t)));
+    tokens = kept.join(",").split(",");
+  }
+  for (const id of tokens) {
     const row = CompanionDB[asNumber(id) | 0]; // NaN | 0 is 0
     // the game indexes CompanionDB[id][2] directly and would throw on an id past the list
     if (!row) throw new InvalidSaveValue("OptionsListAccount[606]", "ids of CompanionDB", id);

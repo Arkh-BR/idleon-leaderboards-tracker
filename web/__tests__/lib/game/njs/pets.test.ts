@@ -159,10 +159,6 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("Companions / CompLV2 (N.js @10799980
   it("a token outside CompanionDB is refused (the game would throw reading CompanionDB[id][2])", () => {
     expect(() => Companions(withCompanions([], "43,9999"), 43)).toThrow(InvalidSaveValue);
   });
-  it("map 41 (the token clean-up of the map-load code) is not ported", () => {
-    const c = withCompanions(["43,1,0,5,0"]);
-    expect(() => Companions({ ...c, map: 41, cache: new Map() }, 43)).toThrow(expect.objectContaining({ name: "NotPorted", sub: "CurrentMap=41" })); // a game-state condition
-  });
 });
 
 describe.skipIf(GOLDEN_SAVES.length === 0)("shiny21 (Breeding ShinyBonusS, N.js @7930106; SpecialPassives Lv @7937936)", () => {
