@@ -13,7 +13,7 @@ Regenerate it when N.js, a module's `PORTED` or `lib/game/unreached.ts` changes.
 - attrs and dnsm are the reads in every slice listed. One marked "whole body only" is read only inside a whole-body function (all its branches, not just the one this formula takes). `DNSM` is runtime-only (it is never loaded from the save): port it as `DNSM_*` functions, not as a save attribute. The dnsm list also holds the scratch keys a formula writes and reads back in the same slice (`CaptnBonuz`, `AtomBonCalc1`); the inputs are the caches the game fills elsewhere (`StarSigns`, `AlchVials`, `FamBonusQTYs`…).
 - Depth stops at 6.
 
-**67 functions, 669 sub-cases (rows), 204 whole body, 0 not found, 95 attrs, 120 dnsm.** **608 ported `[x]`, 61 not reached `[~]`, 0 open.**
+**69 functions, 707 sub-cases (rows), 219 whole body, 0 not found, 95 attrs, 120 dnsm.** **644 ported `[x]`, 61 not reached `[~]`, 2 open.**
 
 Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("AGI")`, R4 = `TotalStats("WIS")`, R5 = `TotalStats("LUK")`, R6 = `PlayerHPmax()`, R7 = `PlayerMPmax()`, R8 = `PlayerAccTot()`.
 
@@ -23,11 +23,11 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 
 ## DungeonStat
 
-- [~] DungeonStat("DMG") — depth 1 — 2601 chars — roots: R1 — not reached: reached only inside a dungeon, by DamageDealed (@4106182): Dungon() answers -1 on every map (Ruling Y: a dungeon map is counted as outside a dungeon, an assumed: leaf), so no dungeon branch runs
-- [~] DungeonStat("HP") — depth 1 — 1008 chars — roots: R1 R6 — not reached: reached only inside a dungeon, by PlayerHPmax (@4147196) and DungeonStat("DMG"): Dungon() answers -1 on every map (Ruling Y: a dungeon map is counted as outside a dungeon, an assumed: leaf), so no dungeon branch runs
-- [~] DungeonStat("Weapon_Power") — depth 2 — 47 chars — roots: R1 — not reached: reached only inside a dungeon, by DungeonStat("DMG") (@7837921): Dungon() answers -1 on every map (Ruling Y: a dungeon map is counted as outside a dungeon, an assumed: leaf), so no dungeon branch runs
-- [~] DungeonStat("MP") — depth 1 — 733 chars — roots: R1 R7 — not reached: reached only inside a dungeon, by PlayerMPmax (@4150123) and DungeonStat("DMG"): Dungon() answers -1 on every map (Ruling Y: a dungeon map is counted as outside a dungeon, an assumed: leaf), so no dungeon branch runs
-- [~] DungeonStat("SPEED") — depth 2 — 316 chars — roots: R1 R8 — not reached: reached only inside a dungeon, by PlayerSpeedBonus (@4141907): Dungon() answers -1 on every map (Ruling Y: a dungeon map is counted as outside a dungeon, an assumed: leaf), so no dungeon branch runs
+- [~] DungeonStat("DMG") — depth 1 — 2771 chars — roots: R1 — not reached: reached only inside a dungeon, by DamageDealed (@4106182): Dungon() answers -1 on every map (Ruling Y: a dungeon map is counted as outside a dungeon, an assumed: leaf), so no dungeon branch runs
+- [~] DungeonStat("HP") — depth 1 — 1178 chars — roots: R1 R6 — not reached: reached only inside a dungeon, by PlayerHPmax (@4147196) and DungeonStat("DMG"): Dungon() answers -1 on every map (Ruling Y: a dungeon map is counted as outside a dungeon, an assumed: leaf), so no dungeon branch runs
+- [~] DungeonStat("Weapon_Power") — depth 2 — 217 chars — roots: R1 — not reached: reached only inside a dungeon, by DungeonStat("DMG") (@7837921): Dungon() answers -1 on every map (Ruling Y: a dungeon map is counted as outside a dungeon, an assumed: leaf), so no dungeon branch runs
+- [~] DungeonStat("MP") — depth 1 — 903 chars — roots: R1 R7 — not reached: reached only inside a dungeon, by PlayerMPmax (@4150123) and DungeonStat("DMG"): Dungon() answers -1 on every map (Ruling Y: a dungeon map is counted as outside a dungeon, an assumed: leaf), so no dungeon branch runs
+- [~] DungeonStat("SPEED") — depth 2 — 486 chars — roots: R1 R8 — not reached: reached only inside a dungeon, by PlayerSpeedBonus (@4141907): Dungon() answers -1 on every map (Ruling Y: a dungeon map is counted as outside a dungeon, an assumed: leaf), so no dungeon branch runs
 
 ## RoyalG
 
@@ -72,6 +72,8 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 - [x] Summoning("GrimoireUpgBonus",31,0) — depth 2 — 399 chars — roots: R1
 - [x] Summoning("GrimoireUpgBonus",18,0) — depth 2 — 399 chars — roots: R1
 - [~] Summoning("GrimoireUpgTotal",0,0) — depth 2 — 462 chars — roots: R1 R6 R8 — not reached: within the Damage closure called only by Grimoire_DMG, Grimoire_HP and Grimoire_ACC, the Wraith form's stats, which are not reached (the form is a runtime 0); GrimoireUpgUNLOCKED @10884718 and Grimoire_DEF @10888754 also call it, outside the closure
+- [x] Summoning("VotingBonusz",26,0) — depth 2 — 917 chars — via Summoning2 — roots: R1 R2 R3 R4 R5 R6 R7 R8
+- [x] Summoning("VaultUpgBonus",86,0) — depth 2 — 7 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [x] Summoning("OwlMegafeather",1,0) — depth 2 — 142 chars — via Summoning2 — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [x] Summoning("OwlMegafeather",3,0) — depth 2 — 142 chars — via Summoning2 — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [x] Summoning("OwlMegafeather",5,0) — depth 2 — 142 chars — via Summoning2 — roots: R1 R2 R3 R4 R5 R6 R7 R8
@@ -96,6 +98,7 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 - [x] Summoning("VotingBonuszMulti",0,0) — depth 2 — 557 chars — via Summoning2 — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [x] Summoning("EventShopOwned",0,0) — depth 2 — 152 chars — roots: R1
 - [x] Summoning("MeritocBonuszMulti",0,0) — depth 2 — 519 chars — via Summoning2 — roots: R1 R2 R3 R4 R5 R6 R7 R8
+- [x] Summoning("EventShopOwned",18,0) — depth 3 — 152 chars — roots: R1 R6 R8
 - [x] Summoning("GrimoireUpgBonus",3,0) — depth 2 — 399 chars — roots: R1 R6
 - [x] Summoning("GrimoireUpgBonus",19,0) — depth 2 — 399 chars — roots: R1 R6
 - [x] Summoning("GrimoireUpgBonus",34,0) — depth 2 — 399 chars — roots: R1 R6
@@ -158,6 +161,7 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 - [~] Windwalker("Compass_HP",0,0) — depth 1 — 262 chars — roots: R1 R6 R8 — not reached: called only by PlayerHPmax (@4147418) and Compass_DMG / Compass_ACC (@11068128, @11069410) while Windwalker("CompassTempest") is 1, a masterclass form, which is a runtime 0 (the Damage page does not count the masterclass forms)
 - [x] Windwalker("CompassBonus",85,0) — depth 2 — 711 chars — roots: R1
 - [x] Windwalker("CompassBonus",94,0) — depth 2 — 711 chars — roots: R1
+- [x] Windwalker("StampDoubler",0,0) — depth 2 — 590 chars — roots: R1 R6 R8
 - [x] Windwalker("CompassTempest",0,0) — depth 1 — 289 chars — roots: R1 R6 R8
 - [~] Windwalker("Compass_MoveSpeed",0,0) — depth 2 — 151 chars — roots: R1 R8 — not reached: called only by PlayerSpeedBonus (@4143036) while Windwalker("CompassTempest") is 1, a masterclass form, which is a runtime 0 (the Damage page does not count the masterclass forms)
 - [x] Windwalker("CompassBonus",39,0) — depth 2 — 711 chars — roots: R1 R6 R8
@@ -167,6 +171,7 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 - [x] Windwalker("CompassBonus",140,0) — depth 2 — 711 chars — roots: R1 R6 R8
 - [x] Windwalker("CompassBonus",146,0) — depth 2 — 711 chars — roots: R1 R6 R8
 - [x] Windwalker("CompassBonus",92,0) — depth 2 — 711 chars — roots: R1 R6 R8
+- [x] Windwalker("CompassBonus",76,0) — depth 3 — 711 chars — roots: R1 R6 R8
 - [x] Windwalker("CompassBonus",35,0) — depth 3 — 711 chars — roots: R1 R8
 - [x] Windwalker("CompassBonus",141,0) — depth 3 — 711 chars — roots: R1 R8
 - [x] Windwalker("CompassBonus",62,0) — depth 3 — 711 chars — roots: R1 R8
@@ -226,13 +231,13 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 ## TotalStats
 
 - [x] TotalStats() — depth 1 — 40703 chars — whole body — roots: R1 R2 R3 R4 R5 R6 R7 R8
-- [x] TotalStats("Weapon_Power") — depth 1 — 1677 chars — roots: R1
-- [x] TotalStats("STR") — depth 0 — 2333 chars — roots: R1 R2 R6
-- [x] TotalStats("LUK") — depth 0 — 2031 chars — roots: R1 R5
-- [x] TotalStats("AGI") — depth 0 — 2297 chars — roots: R1 R3 R8
-- [x] TotalStats("WIS") — depth 0 — 2296 chars — roots: R1 R4 R6 R7
-- [~] TotalStats("Dung_Power") — depth 3 — 193 chars — roots: R1 — not reached: reached only inside a dungeon, by DungeonStat("Weapon_Power") (@7835355): Dungon() answers -1 on every map (Ruling Y: a dungeon map is counted as outside a dungeon, an assumed: leaf), so no dungeon branch runs
-- [x] TotalStats("Accuracy") — depth 1 — 531 chars — roots: R1 R8
+- [x] TotalStats("Weapon_Power") — depth 1 — 2121 chars — roots: R1
+- [x] TotalStats("STR") — depth 0 — 2777 chars — roots: R1 R2 R6
+- [x] TotalStats("LUK") — depth 0 — 2475 chars — roots: R1 R5
+- [x] TotalStats("AGI") — depth 0 — 2741 chars — roots: R1 R3 R8
+- [x] TotalStats("WIS") — depth 0 — 2740 chars — roots: R1 R4 R6 R7
+- [~] TotalStats("Dung_Power") — depth 3 — 637 chars — roots: R1 — not reached: reached only inside a dungeon, by DungeonStat("Weapon_Power") (@7835355): Dungon() answers -1 on every map (Ruling Y: a dungeon map is counted as outside a dungeon, an assumed: leaf), so no dungeon branch runs
+- [x] TotalStats("Accuracy") — depth 1 — 975 chars — roots: R1 R8
 
 ## GetTalentNumber
 
@@ -266,6 +271,8 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 - [x] GetTalentNumber(1,500) — depth 2 — 605 chars — roots: R1
 - [x] GetTalentNumber(1,365) — depth 2 — 605 chars — roots: R1
 - [x] GetTalentNumber(1,530) — depth 2 — 605 chars — roots: R1
+- [x] GetTalentNumber(1,99) — depth 2 — 605 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
+- [x] GetTalentNumber(1,625) — depth 2 — 605 chars — roots: R1 R6 R8
 - [x] GetTalentNumber(1,0) — depth 1 — 605 chars — roots: R1 R6
 - [x] GetTalentNumber(1,642) — depth 1 — 605 chars — roots: R1 R6
 - [x] GetTalentNumber(1,92) — depth 1 — 605 chars — roots: R1 R6
@@ -334,11 +341,11 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 
 ## GoldFoodBonuses
 
-- [x] GoldFoodBonuses("BaseDamage") — depth 1 — 46 chars — roots: R1
+- [x] GoldFoodBonuses("BaseDamage") — depth 1 — 3221 chars — roots: R1
 - [x] GoldFoodBonuses("Damage") — depth 1 — 3942 chars — whole body — roots: R1
 - [x] GoldFoodBonuses("MaxHPpct") — depth 1 — 3942 chars — whole body — roots: R1 R6
-- [x] GoldFoodBonuses("AllStatz") — depth 2 — 46 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
-- [x] GoldFoodBonuses("BaseAcc") — depth 2 — 46 chars — roots: R1 R8
+- [x] GoldFoodBonuses("AllStatz") — depth 2 — 3221 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
+- [x] GoldFoodBonuses("BaseAcc") — depth 2 — 3221 chars — roots: R1 R8
 
 ## ArcadeBonus
 
@@ -356,9 +363,10 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 
 ## StampBonusOfTypeX
 
-- [x] StampBonusOfTypeX("BaseDmg") — depth 1 — 241 chars — roots: R1
+- [x] StampBonusOfTypeX("BaseDmg") — depth 1 — 4033 chars — roots: R1
 - [x] StampBonusOfTypeX("PctDmg") — depth 1 — 4661 chars — whole body — roots: R1
-- [x] StampBonusOfTypeX("BaseHP") — depth 1 — 241 chars — roots: R1 R6
+- [x] StampBonusOfTypeX("GFood") — depth 2 — 4661 chars — whole body — roots: R1 R2 R3 R4 R5 R6 R7 R8
+- [x] StampBonusOfTypeX("BaseHP") — depth 1 — 4033 chars — roots: R1 R6
 - [x] StampBonusOfTypeX("PctMoveSpd") — depth 2 — 4661 chars — whole body — roots: R1 R8
 - [x] StampBonusOfTypeX("BaseMP") — depth 1 — 4661 chars — whole body — roots: R1 R7
 - [x] StampBonusOfTypeX("PctSTR") — depth 1 — 4661 chars — whole body — roots: R1 R2 R6
@@ -371,7 +379,7 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 - [x] StampBonusOfTypeX("BaseWIS") — depth 1 — 4661 chars — whole body — roots: R1 R4 R6 R7
 - [x] StampBonusOfTypeX("BuildProd") — depth 3 — 4661 chars — whole body — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [x] StampBonusOfTypeX("AllStatPct") — depth 2 — 4661 chars — whole body — roots: R1 R2 R3 R4 R5 R6 R7 R8
-- [x] StampBonusOfTypeX("BaseAcc") — depth 2 — 241 chars — roots: R1 R8
+- [x] StampBonusOfTypeX("BaseAcc") — depth 2 — 4033 chars — roots: R1 R8
 
 ## EtcBonuses
 
@@ -383,6 +391,7 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 - [x] EtcBonuses("32") — depth 2 — 329 chars — whole body — roots: R1
 - [x] EtcBonuses("86") — depth 2 — 329 chars — whole body — roots: R1
 - [x] EtcBonuses("93") — depth 2 — 329 chars — whole body — roots: R1
+- [x] EtcBonuses("8") — depth 2 — 329 chars — whole body — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [x] EtcBonuses("15") — depth 1 — 329 chars — whole body — roots: R1 R6
 - [x] EtcBonuses("1") — depth 2 — 329 chars — whole body — roots: R1 R8
 - [x] EtcBonuses("57") — depth 1 — 329 chars — whole body — roots: R1 R2 R6
@@ -463,6 +472,7 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 - [x] Labb("SigilBonus","Blank",4,0) — depth 1 — 1287 chars — roots: R1
 - [x] Labb("TotalGreenSigils","0",0,0) — depth 1 — 438 chars — roots: R1
 - [x] Labb("SigilBonus","Blank",17,0) — depth 2 — 1287 chars — roots: R1
+- [x] Labb("SigilBonus","Blank",14,0) — depth 2 — 1287 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [x] Labb("SigilBonus","Blank",13,0) — depth 2 — 1287 chars — roots: R1 R8
 - [x] Labb("SigilBonus","Blank",0,0) — depth 1 — 1287 chars — roots: R1 R2 R6
 - [x] Labb("SigilBonus","Blank",3,0) — depth 1 — 1287 chars — roots: R1 R5
@@ -474,6 +484,8 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 - [x] RunCodeOfTypeXforThingY("CardLv","fallEvent2") — depth 1 — 1302 chars — roots: R1
 - [x] RunCodeOfTypeXforThingY("CardLv","Crystal6") — depth 1 — 1302 chars — roots: R1
 - [x] RunCodeOfTypeXforThingY("CardLv","w5b2") — depth 2 — 1302 chars — roots: R1
+- [x] RunCodeOfTypeXforThingY("CardLv","cropfallEvent1") — depth 2 — 1302 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
+- [x] RunCodeOfTypeXforThingY("CardLv","anni5Event1") — depth 2 — 1302 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [x] RunCodeOfTypeXforThingY("CardLv","Crystal4") — depth 3 — 1302 chars — roots: R1
 
 ## FoodBonuses
@@ -484,6 +496,7 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 
 - [x] GetBribeBonus("30") — depth 1 — 184 chars — whole body — roots: R1
 - [x] GetBribeBonus("20") — depth 1 — 184 chars — whole body — roots: R1
+- [x] GetBribeBonus("36") — depth 2 — 184 chars — whole body — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [x] GetBribeBonus("21") — depth 1 — 184 chars — whole body — roots: R1 R8
 
 ## FarmingStuffs
@@ -494,6 +507,7 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 - [x] FarmingStuffs("StickerDMGmulti",0,0) — depth 1 — 179 chars — roots: R1
 - [x] FarmingStuffs("CropSCbonMulti",0,0) — depth 2 — 209 chars — roots: R1
 - [x] FarmingStuffs("TotalStickers",0,0) — depth 2 — 481 chars — roots: R1
+- [x] FarmingStuffs("ExoticBonusQTY",49,0) — depth 3 — 1661 chars — roots: R1 R6 R8
 - [x] FarmingStuffs("ExoticBonusQTY",40,0) — depth 3 — 1661 chars — roots: R1
 - [x] FarmingStuffs("LankRankUpgBonus",19,0) — depth 2 — 553 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [x] FarmingStuffs("ExoticBonusQTY",14,0) — depth 3 — 1661 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
@@ -511,7 +525,7 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 ## Spelunk
 
 - [x] Spelunk("ShopUpgBonus",64,0) — depth 1 — 5584 chars — roots: R1
-- [x] Spelunk("6starCards",0,0) — depth 2 — 69 chars — roots: R1
+- [x] Spelunk("6starCards",0,0) — depth 2 — 69 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [x] Spelunk("ShopUpgBonus") — depth 2 — 5584 chars — roots: R1
 - [x] Spelunk("GrandDiscoveries_Total",0,0) — depth 2 — 372 chars — roots: R1
 - [x] Spelunk("DoWeHaveLoreN1",8,0) — depth 2 — 71 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
@@ -548,7 +562,7 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 - [x] RiftStuff("eclipseSkulls",0) — depth 1 — 1724 chars — roots: R1
 - [x] RiftStuff("RiftSkillETC",0) — depth 1 — 951 chars — roots: R1
 - [x] RiftStuff("KillroyDMG",0) — depth 1 — 896 chars — roots: R1
-- [x] RiftStuff("5starCards",0) — depth 2 — 63 chars — roots: R1
+- [x] RiftStuff("5starCards",0) — depth 2 — 63 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [x] RiftStuff() — depth 2 — 7650 chars — whole body — roots: R1
 - [x] RiftStuff("riftBonus",3) — depth 3 — 69 chars — roots: R1
 - [~] RiftStuff("RiftSkillETC",2) — depth 3 — 951 chars — roots: R1 — not reached: its only call site is in SkillStats("AllEfficiencies") (@4197736), which is not reached
@@ -567,6 +581,7 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 - [x] GamingStatType("SuperBitType",59,0) — depth 2 — 139 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [x] GamingStatType("SuperBitType",7,0) — depth 2 — 139 chars — roots: R1
 - [x] GamingStatType("SuperBitType",2,0) — depth 1 — 139 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
+- [x] GamingStatType("PaletteBonus",23,0) — depth 3 — 2130 chars — roots: R1 R6 R8
 - [x] GamingStatType("PaletteBonus",25,0) — depth 3 — 2130 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [x] GamingStatType("PaletteBonus",10,0) — depth 3 — 2130 chars — roots: R1
 - [x] GamingStatType("PaletteBonus",32,0) — depth 3 — 2130 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
@@ -574,6 +589,8 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 ## Ninja
 
 - [x] Ninja("PristineBon",0,0) — depth 1 — 132 chars — roots: R1
+- [x] Ninja("PristineBon",14,0) — depth 2 — 132 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
+- [x] Ninja("EmporiumBonus",1,0) — depth 2 — 142 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [x] Ninja("PristineBon",8,0) — depth 2 — 132 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [x] Ninja("EmporiumBonus",27,0) — depth 2 — 142 chars — roots: R1
 - [x] Ninja("PristineBon",4,0) — depth 1 — 132 chars — roots: R1 R2 R6
@@ -581,6 +598,7 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 - [x] Ninja("PristineBon",1,0) — depth 1 — 132 chars — roots: R1 R3 R8
 - [x] Ninja("PristineBon",10,0) — depth 1 — 132 chars — roots: R1 R4 R6 R7
 - [x] Ninja("EmporiumBonus",33,0) — depth 2 — 142 chars — roots: R1
+- [x] Ninja("PristineBon",20,0) — depth 3 — 132 chars — roots: R1 R6 R8
 
 ## Holes2
 
@@ -609,6 +627,7 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 - [x] Thingies("FriendBonusStatz",0,0) — depth 1 — 1262 chars — roots: R1
 - [x] Thingies("CoralKidUpgBonus",11,0) — depth 1 — 85 chars — roots: R1
 - [x] Thingies("ReliquariumInPosession",0,0) — depth 1 — 311 chars — roots: R1
+- [x] Thingies("LegendPTS_bonus",25,0) — depth 2 — 154 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [x] Thingies("LegendPTS_bonus",26,0) — depth 2 — 154 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [x] Thingies("Have_ban_i",0,0) — depth 2 — 67 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [x] Thingies("EmperorBon",8,0) — depth 2 — 1769 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
@@ -617,6 +636,7 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 - [x] Thingies("FriendBonusSlots",0,0) — depth 2 — 196 chars — roots: R1
 - [x] Thingies("FriendBonusQTY") — depth 2 — 661 chars — roots: R1
 - [x] Thingies("FriendBonusXtraMulti",0,0) — depth 2 — 79 chars — roots: R1
+- [x] Thingies("LegendPTS_bonus",36,0) — depth 3 — 154 chars — roots: R1 R6 R8
 - [x] Thingies("CoralKidUpgBonus",3,0) — depth 3 — 96 chars — roots: R1 R8
 - [x] Thingies("LegendPTS_bonus",28,0) — depth 3 — 154 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [~] Thingies("FriendBonusStatz",2,0) — depth 3 — 1262 chars — roots: R1 — not reached: its only call site is in SkillStats("AllEfficiencies") (@4197685), which is not reached
@@ -628,6 +648,7 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 
 - [x] getbonus2(1,507,-1) — depth 1 — 2523 chars — whole body — roots: R1
 - [x] getbonus2(1,50,-1) — depth 1 — 2523 chars — whole body — roots: R1
+- [x] getbonus2(1,209,-1) — depth 2 — 2523 chars — whole body — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [x] getbonus2(1,508,-1) — depth 2 — 2523 chars — whole body — roots: R1
 - [x] getbonus2(1,208,-1) — depth 2 — 2523 chars — whole body — roots: R1
 - [x] getbonus2(1,597,-1) — depth 2 — 2523 chars — whole body — roots: R1
@@ -640,8 +661,10 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 ## GetSetBonus
 
 - [x] GetSetBonus("LUSTRE_SET","Bonus",0,0) — depth 1 — 3305 chars — whole body — roots: R1
+- [x] GetSetBonus("SECRET_SET","Bonus",0,0) — depth 2 — 3305 chars — whole body — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [x] GetSetBonus("GODSHARD_SET","Bonus",0,0) — depth 2 — 3305 chars — whole body — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [x] GetSetBonus("TROLL_SET","Bonus",0,0) — depth 2 — 3305 chars — whole body — roots: R1
+- [x] GetSetBonus("EMPEROR_SET","Bonus",0,0) — depth 3 — 3305 chars — whole body — roots: R1 R6 R8
 - [x] GetSetBonus("AMAROK_SET","Bonus",0,0) — depth 1 — 3305 chars — whole body — roots: R1 R8
 - [x] GetSetBonus("MARBIGLASS_SET","Bonus",0,0) — depth 2 — 3305 chars — whole body — roots: R1 R2 R3 R4 R5 R6 R7 R8
 
@@ -667,6 +690,7 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 ## AtomCollider
 
 - [x] AtomCollider("AtomBonuses",9,0) — depth 1 — 1531 chars — roots: R1
+- [x] AtomCollider("AtomBonuses",12,0) — depth 3 — 1531 chars — roots: R1 R6 R8
 - [x] AtomCollider("AtomBonuses",1,0) — depth 3 — 1531 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
 
 ## Breeding
@@ -709,6 +733,7 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 - [x] MainframeBonus(0) — depth 1 — 166 chars — roots: R1
 - [x] MainframeBonus(11) — depth 1 — 117 chars — roots: R1
 - [x] MainframeBonus(110) — depth 1 — 344 chars — roots: R1
+- [x] MainframeBonus(7) — depth 2 — 3598 chars — whole body — roots: R1 R6 R8
 - [x] MainframeBonus(15) — depth 2 — 117 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [x] MainframeBonus(101) — depth 2 — 3598 chars — whole body — roots: R1
 - [x] MainframeBonus(117) — depth 2 — 3598 chars — whole body — roots: R1
@@ -731,6 +756,9 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 - [x] Companions(160) — depth 1 — 344 chars — whole body — roots: R1
 - [x] Companions(168) — depth 1 — 344 chars — whole body — roots: R1
 - [x] Companions(170) — depth 1 — 344 chars — whole body — roots: R1
+- [x] Companions(174) — depth 2 — 344 chars — whole body — roots: R1 R2 R3 R4 R5 R6 R7 R8
+- [x] Companions(48) — depth 2 — 344 chars — whole body — roots: R1 R2 R3 R4 R5 R6 R7 R8
+- [x] Companions(155) — depth 2 — 344 chars — whole body — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [x] Companions(51) — depth 2 — 344 chars — whole body — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [x] Companions(0) — depth 2 — 121 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [x] Companions(8) — depth 1 — 344 chars — whole body — roots: R1 R2 R3 R4 R5 R6 R7 R8
@@ -761,6 +789,7 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 ## MealBonus
 
 - [x] MealBonus("TotDmg") — depth 1 — 257 chars — whole body — roots: R1
+- [x] MealBonus("zGoldFood") — depth 2 — 257 chars — whole body — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [x] MealBonus("TotAcc") — depth 1 — 257 chars — whole body — roots: R1 R8
 - [x] MealBonus("Stat") — depth 2 — 257 chars — whole body — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [x] MealBonus("Seff") — depth 3 — 257 chars — whole body — roots: R1
@@ -787,6 +816,9 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 - [x] AchieveStatus(375) — depth 1 — 147 chars — whole body — roots: R1
 - [x] AchieveStatus(371) — depth 1 — 147 chars — whole body — roots: R1
 - [x] AchieveStatus(384) — depth 1 — 147 chars — whole body — roots: R1
+- [x] AchieveStatus(37) — depth 2 — 7 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
+- [x] AchieveStatus(380) — depth 2 — 147 chars — whole body — roots: R1 R2 R3 R4 R5 R6 R7 R8
+- [x] AchieveStatus(383) — depth 2 — 147 chars — whole body — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [x] AchieveStatus(379) — depth 2 — 147 chars — whole body — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [x] AchieveStatus(373) — depth 2 — 147 chars — whole body — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [x] AchieveStatus(153) — depth 3 — 147 chars — whole body — roots: R1 R2 R3 R4 R5 R6 R7 R8
@@ -803,6 +835,9 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 ## JellyOperation
 
 - [x] JellyOperation("RoG_BonusQTY",37,0) — depth 1 — 287 chars — roots: R1
+- [x] JellyOperation("RoG_BonusQTY",10,0) — depth 2 — 287 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
+- [x] JellyOperation("RoG_BonusQTY",51,0) — depth 2 — 287 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
+- [x] JellyOperation("RoG_BonusQTY",50,0) — depth 3 — 287 chars — roots: R1 R6 R8
 - [x] JellyOperation("RoG_BonusQTY",28,0) — depth 3 — 287 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [x] JellyOperation("RoG_BonusQTY",33,0) — depth 3 — 287 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
 
@@ -810,8 +845,9 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 
 - [x] SushiStuff("RoG_BonusQTY",49,0) — depth 1 — 128 chars — roots: R1
 - [x] SushiStuff("UniqueSushi",0,0) — depth 2 — 421 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
+- [x] SushiStuff("RoG_BonusQTY",17,0) — depth 3 — 128 chars — roots: R1 R6 R8
 - [x] SushiStuff("RoG_BonusQTY",50,0) — depth 3 — 128 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
-- [x] SushiStuff("MaxTier",0,0) — depth 3 — 10 chars — roots: R1 R2 R3 R4 R5 R8
+- [x] SushiStuff("MaxTier",0,0) — depth 3 — 10 chars — roots: R1 R2 R3 R4 R5 R6 R8
 - [x] SushiStuff("RoG_BonusQTY",51,0) — depth 3 — 128 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [x] SushiStuff("RoG_BonusQTY",53,0) — depth 3 — 128 chars — roots: R1 R8
 
@@ -867,6 +903,14 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 - [x] GuildBonuses(1) — depth 2 — 338 chars — whole body — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [x] GuildBonuses(6) — depth 3 — 338 chars — whole body — roots: R1
 
+## StampDetails
+
+- [ ] StampDetails() — depth 2 — 461 chars — whole body — roots: R1 R6 R8
+
+## StampOverLevel
+
+- [ ] StampOverLevel() — depth 2 — 2259 chars — whole body — roots: R1 R6 R8
+
 ## Dungon
 
 - [x] Dungon() — depth 1 — 287 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
@@ -885,7 +929,7 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 
 ## MenagerieStuff
 
-- [x] MenagerieStuff("UnlockOwned",11,0) — depth 3 — 73 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
+- [x] MenagerieStuff("UnlockOwned",11,0) — depth 3 — 135 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
 
 ## attrs
 
@@ -972,7 +1016,7 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 - [ ] `ShrineInfo` — whole body only
 - [ ] `SkillLevels` — whole body only
 - [ ] `Spelunk`
-- [ ] `StampLevel` — whole body only
+- [ ] `StampLevel`
 - [ ] `StatueG` — whole body only
 - [ ] `StatueLevels` — whole body only
 - [ ] `Summon`
@@ -1027,8 +1071,8 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 - [ ] `GalleryNametagBonTOT` — whole body only
 - [ ] `GalleryTrophyBonTOT` — whole body only
 - [ ] `GfoodBonus`
-- [ ] `GfoodBonusMULTI` — whole body only
-- [ ] `GfoodMap` — whole body only
+- [ ] `GfoodBonusMULTI`
+- [ ] `GfoodMap`
 - [ ] `GlimboTOT`
 - [ ] `GrimoireTotLV`
 - [ ] `GurtBonuzzDN` — whole body only
@@ -1067,11 +1111,11 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 - [ ] `ShinyBonusS`
 - [ ] `ShrineStuffz723` — whole body only
 - [ ] `SigTotPup2`
-- [ ] `Sp_bn_l` — whole body only
+- [ ] `Sp_bn_l`
 - [ ] `SpelunkyGrD`
 - [ ] `SpelunkyUpgDN`
 - [ ] `SpelunkyUpgTOT`
-- [ ] `StampBonuses_Map_Of_Val` — whole body only
+- [ ] `StampBonuses_Map_Of_Val`
 - [ ] `StarSigns`
 - [ ] `StatueOnyxOwned` — whole body only
 - [ ] `StatueZenithOwned` — whole body only

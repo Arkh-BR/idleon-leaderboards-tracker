@@ -1,6 +1,6 @@
 import { beforeAll, describe, it, expect } from "vitest";
 import { existsSync, readFileSync } from "node:fs";
-import { callDiff, njsCalls, njsFunction, njsNamedBlock, njsNamedBlocks, njsNumericBranch, njsSlice, traceCalls } from "@/lib/diagnose/njsCalls";
+import { callDiff, njsCalls, njsFunction, njsNamedBlock, njsNamedBlocks, njsNumericBranch, njsPrelude, njsSlice, traceCalls } from "@/lib/diagnose/njsCalls";
 import type { TraceNode } from "@/lib/game/trace";
 import { normalizeBundle } from "@/scripts/updater/extract";
 
@@ -323,12 +323,27 @@ describe("njsSlice (the N.js text a trace node stands for)", () => {
   });
 });
 
+describe("njsSlice keeps the prelude (what the game runs before the dispatch)", () => {
+  const fn = njsFunction(`m._customBlock_Pre=function(d){x=k._customBlock_F(1);if("A"==d)return k._customBlock_G(x);if("B"==d)return k._customBlock_H()};`, "Pre")!;
+
+  it("a named sub-case holds the prelude and its own block, not another sub-case", () => {
+    expect(njsCalls(njsSlice(fn, ["A"])!).map((c) => c.block)).toEqual(["F", "G"]);
+    expect(njsCalls(njsSlice(fn, ["B"])!).map((c) => c.block)).toEqual(["F", "H"]);
+  });
+
+  it("a ternary-first function has no prelude: its slice is the named block alone", () => {
+    const t = njsFunction(`m._customBlock_T=function(d){return"A"==d?k._customBlock_G(1):0};`, "T")!;
+    expect(njsPrelude(t)).toBe("");
+  });
+});
+
 // The live bundle is 25 MB: read and normalize it once for the file.
 const NJS = "scripts/updater/.cache/N.new.js";
 describe.skipIf(!existsSync(NJS))("the live N.js", () => {
   let sailing: NonNullable<ReturnType<typeof njsFunction>>;
   let totalStats: NonNullable<ReturnType<typeof njsFunction>>;
   let summoning: NonNullable<ReturnType<typeof njsFunction>>;
+  let afk: NonNullable<ReturnType<typeof njsFunction>>;
   let stampBonus: NonNullable<ReturnType<typeof njsFunction>>;
   const artifact25 = () => njsNumericBranch(njsNamedBlock(sailing.body, "ArtifactBonus")!, 25, sailing.params)!;
   beforeAll(() => {
@@ -337,6 +352,7 @@ describe.skipIf(!existsSync(NJS))("the live N.js", () => {
     totalStats = njsFunction(norm, "TotalStats")!;
     summoning = njsFunction(norm, "Summoning")!;
     stampBonus = njsFunction(norm, "StampBonusOfTypeX")!;
+    afk = njsFunction(norm, "AFKgainrates")!;
   }, 120_000);
 
   it("holds _customBlock_Sailing(d,b,e)", () => {
@@ -375,6 +391,12 @@ describe.skipIf(!existsSync(NJS))("the live N.js", () => {
     expect(njsSlice(summoning, ["VaultUpgBonus", 20, 0])).toBe(named);
     // an `if("BaseDmg"==d||"BaseHP"==d||…)`, not a ternary
     expect(njsCalls(njsSlice(stampBonus, ["BaseDmg"])!)).toContainEqual(expect.objectContaining({ block: "Summoning", arg0: "VaultUpgBonus" }));
+  });
+
+  it("AFKgainrates(\"Fighting\") reaches the calls the game makes before its dispatch", () => {
+    const calls = njsCalls(njsSlice(afk, ["Fighting"])!);
+    for (const [block, arg0] of [["TalentEnh", 79], ["Divinity", "Bonus_MAJOR"], ["ArcaneType", "ArcaneMapMulti_bon"], ["EtcBonuses", "92"], ["Summoning", "VotingBonusz"]] as const)
+      expect(calls, `${block}(${arg0})`).toContainEqual(expect.objectContaining({ block, arg0 }));
   });
 
   it("a synthetic trace of Artifact 25 without TotalStats reports it missing, and with it does not", () => {
