@@ -9,6 +9,8 @@ import { dirname, join, relative, resolve } from "node:path";
 import { computeArkhArtifactFind } from "@/lib/arkh/computeArtifactFind";
 import { ARTI_GROUPS } from "@/lib/arkh/stats/defs/artifact-find";
 import { computeArkhDamage, DMG_COLLECTOR_MAP } from "@/lib/arkh/computeDamage";
+import { computeArkhAfkGains } from "@/lib/arkh/computeAfk";
+import { AFK_POOLS, afkRate } from "@/lib/arkh/stats/defs/afk-gains";
 import { DMG_LAYERS, DMG_MASTERY, DMG_RAT, dmgMastery, dmgMax } from "@/lib/arkh/stats/defs/damage";
 import { charClassData } from "@/lib/arkh/save/data";
 import { loadSaveData } from "@/lib/arkh/save/loader";
@@ -136,7 +138,8 @@ export type ArkhStat = "str" | "agi" | "wis" | "luk" | "maxHp" | "maxMp" | "accu
 const MAIN_STATS = { str: "STR", agi: "AGI", wis: "WIS", luk: "LUK" } as const;
 
 type OracleEntry = { leaves: Record<string, number>; stats: Record<ArkhStat, number> };
-type DiskFile = { arkhHash: string; entries: Record<string, Record<string, OracleEntry>> };
+// `afk` (character -> map -> leaves) is a section of its own: the AFK leaves never touch the Damage entries.
+type DiskFile = { arkhHash: string; entries: Record<string, Record<string, OracleEntry>>; afk?: Record<string, Record<string, Record<string, number>>> };
 
 // source id -> where it sits in the tree. Every id is unique across DMG_LAYERS, DMG_MASTERY and DMG_RAT (checked in the test).
 const DMG_SLOT = new Map<string, { child: number; step: number; src: number }>();
@@ -206,15 +209,7 @@ export function setArkhSourceHash(h: string | undefined): void {
 const diskByPath = new Map<string, { file: string; data: DiskFile }>();
 const entryByObject = new WeakMap<object, Map<string, OracleEntry>>();
 
-function entryOf(save: unknown, ci: number, map: number): OracleEntry {
-  if (typeof save !== "string") {
-    let per = entryByObject.get(save as object);
-    if (!per) entryByObject.set(save as object, (per = new Map()));
-    const key = `${ci}@${map}`;
-    let e = per.get(key);
-    if (!e) per.set(key, (e = computeEntry(structuredClone(save), ci, map, () => structuredClone(save))));
-    return e;
-  }
+function diskOf(save: string): { file: string; data: DiskFile } {
   let d = diskByPath.get(save);
   if (!d) {
     const bytes = readFileSync(save);
@@ -230,15 +225,31 @@ function entryOf(save: unknown, ci: number, map: number): OracleEntry {
     }
     diskByPath.set(save, (d = { file, data }));
   }
+  return d;
+}
+
+function persist(d: { file: string; data: DiskFile }): void {
+  if (!d.file) return;
+  mkdirSync(dirname(d.file), { recursive: true });
+  writeFileSync(d.file, JSON.stringify(d.data));
+}
+
+function entryOf(save: unknown, ci: number, map: number): OracleEntry {
+  if (typeof save !== "string") {
+    let per = entryByObject.get(save as object);
+    if (!per) entryByObject.set(save as object, (per = new Map()));
+    const key = `${ci}@${map}`;
+    let e = per.get(key);
+    if (!e) per.set(key, (e = computeEntry(structuredClone(save), ci, map, () => structuredClone(save))));
+    return e;
+  }
+  const d = diskOf(save);
   const slot = ((d.data.entries[ci] ??= {}) as Record<string, OracleEntry>);
   let e = slot[map];
   if (!e) {
     const text = readFileSync(save, "utf8");
     e = slot[map] = computeEntry(JSON.parse(text), ci, map, () => JSON.parse(text));
-    if (d.file) {
-      mkdirSync(dirname(d.file), { recursive: true });
-      writeFileSync(d.file, JSON.stringify(d.data));
-    }
+    persist(d);
   }
   return e;
 }
@@ -1054,4 +1065,65 @@ export function damageReasonSeeds(path: string, ci: number, reason: string): See
   }
   if (reason === "pray6") return [["GamingStatType", ["SuperBitType", 9, 0], 0], ["GamingStatType", ["SuperBitType", 39, 0], 0]];
   return arkhStatSeeds(path, ci, [reason], "str");
+}
+
+// ---- AFK Gains ----
+// Same cache design as Damage: a path save is cached on disk (the `afk` section of the sha1-keyed file), an object save in memory.
+const afkByObject = new WeakMap<object, Map<string, Record<string, number>>>();
+const AFK_FIGHT_ALL = [...AFK_POOLS[0].sources, ...AFK_POOLS[1].sources];
+
+// The tree of computeArkhAfkGains: [0] = the fight + ALL pool (its children, in AFK_POOLS order), [1] = arcane, [2] = etc92 (each
+// holds its source node only when the value is non-zero), then the three rules nodes (clam, cove, type), always present.
+function afkLeavesOf(parsed: any, ci: number, map: number): Record<string, number> {
+  const kids = computeArkhAfkGains(parsed, ci, map).tree.children!;
+  const pool = kids[0].children!;
+  if (pool.length !== AFK_FIGHT_ALL.length) throw new Error(`arkhAfkLeaves: lib/arkh's pool has ${pool.length} sources, AFK_POOLS has ${AFK_FIGHT_ALL.length}`);
+  const out: Record<string, number> = {};
+  AFK_FIGHT_ALL.forEach((id, i) => (out[id] = pool[i].val));
+  out.arcaneMapAfk = kids[1].children?.[0]?.val ?? 0;
+  out.etc92 = kids[2].children?.[0]?.val ?? 0;
+  [out.clamworks306, out.cglunkoCove, out.afkType] = [kids[3].val, kids[4].val, kids[5].val];
+  return out;
+}
+
+/**
+ * Every AFK source's `val` in lib/arkh's Fighting AFK tree for character `ci` on `map`, by AFK_POOLS source id: the 19 `fight` and 19
+ * `ALL` sources (the Σ pool, the 40 base included), then the five nodes the rate multiplies in, whose ids are AFK_POOLS's too:
+ *   arcaneMapAfk  the arcane map bonus slot 2, in % (G2 = 1 + it / 100)
+ *   etc92         the AFK Gains Multi equipment bonus, in % (G3 = 1 + it / 100)
+ *   clamworks306  R1, 0.2 on map 306 else 1
+ *   cglunkoCove   R2, the Cove's rate on map 216 in cavern 17 (replaces everything), else 0
+ *   afkType       R3, 1 for a fight (or the Cove), 0 when the map's AFK target is not a fight
+ * `arkhAfkRate` rebuilds the total from these with lib/arkh's own `afkRate`. `save` as in arkhDamageLeaves.
+ */
+export function arkhAfkLeaves(save: unknown, ci: number, map: number): Record<string, number> {
+  if (typeof save !== "string") {
+    let per = afkByObject.get(save as object);
+    if (!per) afkByObject.set(save as object, (per = new Map()));
+    const key = `${ci}@${map}`;
+    let l = per.get(key);
+    if (!l) per.set(key, (l = afkLeavesOf(structuredClone(save), ci, map)));
+    return l;
+  }
+  const d = diskOf(save);
+  const slot = ((d.data.afk ??= {})[ci] ??= {});
+  let l = slot[map];
+  if (!l) {
+    l = slot[map] = afkLeavesOf(JSON.parse(readFileSync(save, "utf8")), ci, map);
+    persist(d);
+  }
+  return l;
+}
+
+/** lib/arkh's AFK gains rate (a fraction: 1.5 = 150%, before the panel's floor(100 x)): its own `afkRate` over `arkhAfkLeaves`. */
+export function arkhAfkRate(save: unknown, ci: number, map: number): number {
+  const l = arkhAfkLeaves(save, ci, map);
+  return afkRate({
+    sum: AFK_FIGHT_ALL.reduce((a, id) => a + l[id], 0),
+    arcane: l.arcaneMapAfk,
+    etc92: l.etc92,
+    clam: l.clamworks306,
+    cove: l.cglunkoCove,
+    type: l.afkType,
+  });
 }
