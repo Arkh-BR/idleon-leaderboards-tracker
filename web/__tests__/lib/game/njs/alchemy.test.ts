@@ -1,7 +1,7 @@
 // Task 6 (Damage plan): the alchemy, stamp, statue, prayer, shrine, lab, atom and Bubba terms DamageDealed("Max") and ("Mastery") read. Each is
 // compared with lib/arkh's leaf of the same id over every real save and character (relative 1e-9); N.js is the truth, so a difference is a
 // KNOWN entry with its evidence and a seeded proof, or a mismatch.
-import { afterAll, describe, it, expect } from "vitest";
+import { afterAll, afterEach, describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { basename } from "node:path";
 import { GOLDEN_SAVES, KNOWN_ARKH_DIFFS, arkhDamageLeaf, arkhStatSeeds, arkhTotalGreenSigils, type ArkhStat } from "../support/arkhOracle";
@@ -125,6 +125,7 @@ const MAPS: Record<string, (c: Ctx) => number[]> = { shrine0: (c) => [MAP, asNum
 
 const states = new Map<string, GameState>();
 const ctxs = new Map<string, Ctx>();
+afterEach(() => ctxs.clear()); // a leaf's cached blocks are not the next one's: keeps the worker's memory flat
 afterAll(() => {
   states.clear();
   ctxs.clear();
