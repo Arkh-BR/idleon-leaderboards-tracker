@@ -468,9 +468,8 @@ export function migrate(
 // Task 4: Cards[1], RoyalG[0], StampLevelMAX, CauldronInfo[4], WeeklyBoss, Refinery[3..8][1], KillsLeft2Advance, AFKtarget, Lv0,
 // CharacterClass, BuffsActive; a write scan of the live N.js): no load step writes them on a real save (DoOnceREAL >= 248.3). The writes found:
 // the Cards[1] fills of initialize2 (@6210607, an empty list) and OnPlayStart3 (@6398533, DoOnceREAL < 168.5; @6416156, < 235), the
-// Refinery[3..5][1] cap of 27 (@6385099, DoOnceREAL < 129.5), and the StampCheckFR81 of OnPlayStart3 @6402587 (a stamp whose cost is
-// past 4e12 gets StampLevelMAX = 12 x its details[4], a positive number; the step fires only on stamps with 5 < StampLevel (@6401500),
-// and a stamp that high has StampLevelMAX >= its level, already above .5, so the count that talent 470 reads does not move). Runtime writes (the attack, the brew UI, the AFK and buff handlers) are not load steps.
+// Refinery[3..5][1] cap of 27 (@6385099, DoOnceREAL < 129.5), and the StampCheckFR81 of OnPlayStart3 (@6402394, the tail of the DoOnceREAL < 168 block, see the Damage Task 6 audit below; it
+// never runs on a real save). Runtime writes (the attack, the brew UI, the AFK and buff handlers) are not load steps.
 // Re-audited for the keys the equipment, cards, sets, food and meals read (Damage Task 5: Cards[0], [2], [3], EquipmentOrder,
 // EquipmentQuantity, Meals[0], Ribbon, Ninja[104], CookMaster, FoodSlotsOwned; a write scan of the live N.js, @6184758-6475000): no step
 // changes what they read on a real save (DoOnceREAL >= 248.3). The writes found: Cards[2] = 12 x "B" only inside initialize2's empty-Cards
@@ -487,13 +486,10 @@ export function migrate(
 // (< 6), SaltLick capped at its level cap (< 18.2), PrayersUnlocked set to PrayerMaxLv (< 74), the Atoms pads (< 134) and zeroing (< 135) and
 // the cap of 13 on atoms past 4 (@6403800, < 173), Lab[14] padded to 25 (< 203); the pads of CauldronInfo, CauldronBubbles, TowerInfo,
 // PrayersActive, Lab and Bubba are initialize fills of empty lists (Bubba's is above). StatueLevels and Shrine have no load-step write (the
-// per-character StatueLevels pad to StatueInfo is in the initialize1 list below). NOT a no-op by reading: StampCheckFR81 (OnPlayStart3
-// @6402394, ungated) rewrites StampLevel[tab][i] and StampLevelMAX to 12 x StampDetails[4] for a stamp over level 5 whose material cost
-// StampCostss(tab, i)[1] x (1 + 20 x min(1, OptionsListAccount[154])) is past 4e12. Read as written it would fire on 10036 of the 12611
-// stamps over level 5 of the real saves (an upper bound of the cost: no atom 0, sigil 6 or Meritoc 14 discount; e.g. BaseDef at 375 costs
-// 3e26 Iron), but those saves are written by the game after that code ran and still hold the levels, and every stamp, STR and Damage
-// reading matches the game with them (StampBonusOfTypeX agrees with lib/arkh on all 1163 pairs): in the game the step does not change
-// them, though how is not understood from N.js alone (StampCostss's branch under DummyText3 "broStampCheckFR81"). Not ported: reported.
+// per-character StatueLevels pad to StatueInfo is in the initialize1 list below). StampCheckFR81 (OnPlayStart3 @6402394: a stamp over level 5 whose material cost is past 4e12 gets
+// StampLevel = StampLevelMAX = 12 x StampDetails[4]) is the tail of OnPlayStart3's `if (168 > DoOnceREAL) { DoOnceREAL = 168.5; ... }`
+// block, which opens @6398034 and closes @6402819 just before `if (173 > DoOnceREAL)` (brace nesting checked): DoOnceREAL < 168, never on a
+// real save, which is why the stamps over that cost stay at their levels (10036 of 12611 stamps over level 5 on the real saves). Not ported.
 //   - the loader: Tess (CSver 26; not reset by ClearLocalData, so it would need an assumption; initialize3 fills it with [[], []]);
 //   - initialize1: GemItemsPurchased padded to 300; OptionsListAccount padded to 17..70 and its 51..59 splice (no real save is that
 //     short), its pads to 201..601 (only in the Tutorial scene); the starter star signs

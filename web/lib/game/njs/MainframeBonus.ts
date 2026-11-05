@@ -62,11 +62,10 @@ export const MainframeBonus: (ctx: Ctx, d: number) => number = block("MainframeB
   if (100 > d) {
     const row = list[d];
     if (!labNodeConnected(ctx, d)) return asNumber(row[4]);
-    // @7990420: the bonuses with a rule of their own add a jewel under them (0 also times the pets found, 8 a hundredth of 119); 5, 7, 10,
-    // 13 and 14 have none. TalentCalc(-7) @4511431 then times the stored 11 by the GreenStacks the account has (the "YES" pass).
+    // @7990420: the bonuses with a rule of their own add a jewel under them (0 also times the pets found, 8 a hundredth of 119); 5, 7, 10
+    // and 14 have none. TalentCalc(-7) @4511431 then times the stored 11 by the GreenStacks the account has (the "YES" pass).
     const v = asNumber(row[5]);
     if (0 == d) return (v + MainframeBonus(ctx, 101)) * Breeding(ctx, "TotPetsFound", "0", 0, 0);
-    if (3 == d) return v + MainframeBonus(ctx, 107);
     if (11 == d) return (v + MainframeBonus(ctx, 117)) * listAt(ctx, "GreenStacks").length;
     if (15 == d) return v + MainframeBonus(ctx, 118);
     if (17 == d) return v + MainframeBonus(ctx, 120);
@@ -86,7 +85,7 @@ export const MainframeBonus: (ctx: Ctx, d: number) => number = block("MainframeB
   return 110 == d && 0 < MainframeBonus(ctx, 107) && 0 < MainframeBonus(ctx, 108) && 0 < MainframeBonus(ctx, 109) ? 2 * j : j;
 });
 
-const PORTED_SET = new Set([0, 3, 5, 7, 8, 10, 11, 13, 14, 15, 17, 101, 104, 107, 108, 109, 110, 116, 117, 118, 119, 120]);
+const PORTED_SET = new Set([0, 5, 7, 8, 10, 11, 14, 15, 17, 101, 104, 107, 108, 109, 110, 116, 117, 118, 119, 120]);
 
 /** What this module covers (lib/game/ported.ts). */
 export const PORTED: Ported = [...PORTED_SET];

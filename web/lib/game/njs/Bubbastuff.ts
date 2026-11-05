@@ -16,8 +16,8 @@ export const Bubbastuff: (ctx: Ctx, d: string, b: number, e: number) => number =
     case "BubbaRoG_Bonuses": {
       const all = 20 * Bubbastuff(ctx, "MegafleshOwned", 1, 0) + (20 * Bubbastuff(ctx, "MegafleshOwned", 3, 0) + (20 * Bubbastuff(ctx, "MegafleshOwned", 6, 0) + (20 * Bubbastuff(ctx, "MegafleshOwned", 9, 0) + 20 * Bubbastuff(ctx, "MegafleshOwned", 11, 0))));
       const row = (Spelunky as unknown as readonly (readonly unknown[])[])[33];
-      // the game indexes Spelunky[33][round(b)] directly
-      if (!row || !(Math.round(b) in row)) throw new RangeError(`Bubbastuff BubbaRoG_Bonuses: no slot ${b} in Spelunky[33]`);
+      // the game indexes Spelunky[33] directly (and would throw without it); the element goes through c.asNumber, 0 when absent
+      if (!row) throw new RangeError("Bubbastuff BubbaRoG_Bonuses: no Spelunky[33]");
       return Math.max(0, (1 + all / 100) * (1 + Companions(ctx, 51)) * asNumber(row[Math.round(b)]) * Math.ceil((asNum(ctx, "Bubba", 1, 3) - (b - 1)) / 7));
     }
     // @11163213: milestone b is owned when Bubba[1][8] is past it; the 11th counts each one past it
