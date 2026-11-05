@@ -13,7 +13,7 @@ Regenerate it when N.js, a module's `PORTED` or `lib/game/unreached.ts` changes.
 - attrs and dnsm are the reads in every slice listed. One marked "whole body only" is read only inside a whole-body function (all its branches, not just the one this formula takes). `DNSM` is runtime-only (it is never loaded from the save): port it as `DNSM_*` functions, not as a save attribute. The dnsm list also holds the scratch keys a formula writes and reads back in the same slice (`CaptnBonuz`, `AtomBonCalc1`); the inputs are the caches the game fills elsewhere (`StarSigns`, `AlchVials`, `FamBonusQTYs`…).
 - Depth stops at 6.
 
-**67 functions, 669 sub-cases (rows), 204 whole body, 0 not found, 95 attrs, 120 dnsm.** **524 ported `[x]`, 11 not reached `[~]`, 134 open.**
+**67 functions, 669 sub-cases (rows), 204 whole body, 0 not found, 95 attrs, 120 dnsm.** **564 ported `[x]`, 19 not reached `[~]`, 86 open.**
 
 Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("AGI")`, R4 = `TotalStats("WIS")`, R5 = `TotalStats("LUK")`, R6 = `PlayerHPmax()`, R7 = `PlayerMPmax()`, R8 = `PlayerAccTot()`.
 
@@ -39,39 +39,39 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 
 ## Summoning
 
-- [ ] Summoning("Grimoire_DMG",0,0) — depth 1 — 1129 chars — roots: R1
+- [~] Summoning("Grimoire_DMG",0,0) — depth 1 — 1129 chars — roots: R1 — not reached: called only by DamageDealed (@4106332) when Summoning("GrimoireWraith") is 1, the Wraith form, which is a runtime 0 (the Damage page does not count the masterclass forms)
 - [x] Summoning("OwlBonuses",1,0) — depth 1 — 2745 chars — via Summoning2 — roots: R1
 - [x] Summoning("VaultUpgBonus",0,0) — depth 1 — 448 chars — roots: R1
 - [x] Summoning("VaultUpgBonus",20,0) — depth 1 — 2241 chars — roots: R1
-- [ ] Summoning("VaultKillzTotal",5,0) — depth 1 — 3929 chars — roots: R1
+- [x] Summoning("VaultKillzTotal",5,0) — depth 1 — 3929 chars — roots: R1
 - [x] Summoning("VaultUpgBonus",27,0) — depth 1 — 2241 chars — roots: R1
-- [ ] Summoning("VaultKillzTotal",6,0) — depth 1 — 3929 chars — roots: R1
+- [x] Summoning("VaultKillzTotal",6,0) — depth 1 — 3929 chars — roots: R1
 - [x] Summoning("VaultUpgBonus",15,0) — depth 1 — 2241 chars — roots: R1
 - [x] Summoning("VaultUpgBonus",10,0) — depth 1 — 2241 chars — roots: R1
 - [x] Summoning("OwlBonuses",2,0) — depth 1 — 2745 chars — via Summoning2 — roots: R1
 - [x] Summoning("RooBonuses",4,0) — depth 1 — 3104 chars — roots: R1
 - [x] Summoning("VaultUpgBonus",80,0) — depth 1 — 2241 chars — roots: R1
 - [x] Summoning("WinBonus",0,0) — depth 1 — 3535 chars — roots: R1
-- [ ] Summoning("SummUpgBonus",79,0) — depth 1 — 907 chars — roots: R1
-- [ ] Summoning("GrimoireUpgBonus",35,0) — depth 1 — 399 chars — roots: R1
+- [x] Summoning("SummUpgBonus",79,0) — depth 1 — 907 chars — roots: R1
+- [x] Summoning("GrimoireUpgBonus",35,0) — depth 1 — 399 chars — roots: R1
 - [x] Summoning("VaultUpgBonus",41,0) — depth 1 — 2241 chars — roots: R1
-- [ ] Summoning("TomeBonus",0,0) — depth 1 — 277 chars — roots: R1
-- [ ] Summoning("VotingBonusz",1,0) — depth 1 — 880 chars — via Summoning2 — roots: R1
-- [ ] Summoning("TomeBonus",6,0) — depth 1 — 328 chars — roots: R1
-- [ ] Summoning("GrimoireUpgBonus",0,0) — depth 2 — 399 chars — roots: R1
-- [ ] Summoning("GrimoireUpgBonus",6,0) — depth 2 — 399 chars — roots: R1
-- [ ] Summoning("GrimoireUpgBonus",16,0) — depth 2 — 399 chars — roots: R1
-- [ ] Summoning("GrimoireUpgBonus",33,0) — depth 2 — 399 chars — roots: R1
-- [ ] Summoning("GrimoireUpgBonus",46,0) — depth 2 — 399 chars — roots: R1
-- [ ] Summoning("GrimoireUpgBonus",8,0) — depth 2 — 399 chars — roots: R1
-- [ ] Summoning("GrimoireUpgBonus",28,0) — depth 2 — 399 chars — roots: R1
-- [ ] Summoning("GrimoireUpgBonus",43,0) — depth 2 — 399 chars — roots: R1
-- [ ] Summoning("GrimoireUpgBonus",50,0) — depth 2 — 399 chars — roots: R1
-- [ ] Summoning("GrimoireUpgBonus",13,0) — depth 2 — 399 chars — roots: R1
-- [ ] Summoning("GrimoireUpgBonus",21,0) — depth 2 — 399 chars — roots: R1
-- [ ] Summoning("GrimoireUpgBonus",31,0) — depth 2 — 399 chars — roots: R1
-- [ ] Summoning("GrimoireUpgBonus",18,0) — depth 2 — 399 chars — roots: R1
-- [ ] Summoning("GrimoireUpgTotal",0,0) — depth 2 — 462 chars — roots: R1 R6 R8
+- [x] Summoning("TomeBonus",0,0) — depth 1 — 277 chars — roots: R1
+- [x] Summoning("VotingBonusz",1,0) — depth 1 — 880 chars — via Summoning2 — roots: R1
+- [x] Summoning("TomeBonus",6,0) — depth 1 — 328 chars — roots: R1
+- [x] Summoning("GrimoireUpgBonus",0,0) — depth 2 — 399 chars — roots: R1
+- [x] Summoning("GrimoireUpgBonus",6,0) — depth 2 — 399 chars — roots: R1
+- [x] Summoning("GrimoireUpgBonus",16,0) — depth 2 — 399 chars — roots: R1
+- [x] Summoning("GrimoireUpgBonus",33,0) — depth 2 — 399 chars — roots: R1
+- [x] Summoning("GrimoireUpgBonus",46,0) — depth 2 — 399 chars — roots: R1
+- [x] Summoning("GrimoireUpgBonus",8,0) — depth 2 — 399 chars — roots: R1
+- [x] Summoning("GrimoireUpgBonus",28,0) — depth 2 — 399 chars — roots: R1
+- [x] Summoning("GrimoireUpgBonus",43,0) — depth 2 — 399 chars — roots: R1
+- [x] Summoning("GrimoireUpgBonus",50,0) — depth 2 — 399 chars — roots: R1
+- [x] Summoning("GrimoireUpgBonus",13,0) — depth 2 — 399 chars — roots: R1
+- [x] Summoning("GrimoireUpgBonus",21,0) — depth 2 — 399 chars — roots: R1
+- [x] Summoning("GrimoireUpgBonus",31,0) — depth 2 — 399 chars — roots: R1
+- [x] Summoning("GrimoireUpgBonus",18,0) — depth 2 — 399 chars — roots: R1
+- [~] Summoning("GrimoireUpgTotal",0,0) — depth 2 — 462 chars — roots: R1 R6 R8 — not reached: called only by Grimoire_DMG, Grimoire_HP and Grimoire_ACC, the Wraith form's stats, which are not reached (the form is a runtime 0)
 - [x] Summoning("OwlMegafeather",1,0) — depth 2 — 142 chars — via Summoning2 — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [x] Summoning("OwlMegafeather",3,0) — depth 2 — 142 chars — via Summoning2 — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [x] Summoning("OwlMegafeather",5,0) — depth 2 — 142 chars — via Summoning2 — roots: R1 R2 R3 R4 R5 R6 R7 R8
@@ -81,38 +81,38 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 - [x] Summoning("VaultUpgBonus",61,0) — depth 2 — 7 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [x] Summoning("VaultUpgBonus",89,0) — depth 2 — 7 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [x] Summoning("VaultUpgBonus",16,0) — depth 2 — 2241 chars — roots: R1 R6 R8
-- [ ] Summoning("GrimoireWraith",0,0) — depth 1 — 241 chars — roots: R1 R6 R8
-- [ ] Summoning("Grimoire_HP",0,0) — depth 1 — 426 chars — roots: R1 R6
+- [x] Summoning("GrimoireWraith",0,0) — depth 1 — 241 chars — roots: R1 R6 R8
+- [~] Summoning("Grimoire_HP",0,0) — depth 1 — 426 chars — roots: R1 R6 — not reached: called only by PlayerHPmax (@4147227) when Summoning("GrimoireWraith") is 1, the Wraith form, which is a runtime 0 (the Damage page does not count the masterclass forms)
 - [x] Summoning("RooMegafeather",1,0) — depth 2 — 152 chars — roots: R1 R8
 - [x] Summoning("RooMegafeather",3,0) — depth 2 — 152 chars — roots: R1 R8
 - [x] Summoning("RooMegafeather",6,0) — depth 2 — 152 chars — roots: R1 R8
 - [x] Summoning("RooMegafeather",8,0) — depth 2 — 152 chars — roots: R1 R8
 - [x] Summoning("RooMegafeather",11,0) — depth 2 — 78 chars — roots: R1 R8
 - [x] Summoning("WinBonus",31,0) — depth 2 — 60 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
-- [ ] Summoning("SummUpgBonus",78,0) — depth 2 — 907 chars — roots: R1
+- [x] Summoning("SummUpgBonus",78,0) — depth 2 — 907 chars — roots: R1
 - [x] Summoning("GrimoireUpgBonus",36,0) — depth 2 — 7 chars — roots: R1 R6 R8
 - [x] Summoning("OwlBonuses",5,0) — depth 1 — 2745 chars — via Summoning2 — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [x] Summoning("GrimoireUpgBonus",17,0) — depth 2 — 7 chars — roots: R1
 - [x] Summoning("VotingBonuszMulti",0,0) — depth 2 — 557 chars — via Summoning2 — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [x] Summoning("EventShopOwned",0,0) — depth 2 — 152 chars — roots: R1
 - [x] Summoning("MeritocBonuszMulti",0,0) — depth 2 — 519 chars — via Summoning2 — roots: R1 R2 R3 R4 R5 R6 R7 R8
-- [ ] Summoning("GrimoireUpgBonus",3,0) — depth 2 — 399 chars — roots: R1 R6
-- [ ] Summoning("GrimoireUpgBonus",19,0) — depth 2 — 399 chars — roots: R1 R6
-- [ ] Summoning("GrimoireUpgBonus",34,0) — depth 2 — 399 chars — roots: R1 R6
-- [ ] Summoning("GrimoireUpgBonus",42,0) — depth 2 — 399 chars — roots: R1 R6
-- [ ] Summoning("GrimoireUpgBonus",7,0) — depth 2 — 399 chars — roots: R1 R6 R8
-- [ ] Summoning("GrimoireUpgBonus",38,0) — depth 2 — 399 chars — roots: R1 R6 R8
-- [ ] Summoning("Grimoire_ACC",0,0) — depth 1 — 623 chars — roots: R1 R8
+- [x] Summoning("GrimoireUpgBonus",3,0) — depth 2 — 399 chars — roots: R1 R6
+- [x] Summoning("GrimoireUpgBonus",19,0) — depth 2 — 399 chars — roots: R1 R6
+- [x] Summoning("GrimoireUpgBonus",34,0) — depth 2 — 399 chars — roots: R1 R6
+- [x] Summoning("GrimoireUpgBonus",42,0) — depth 2 — 399 chars — roots: R1 R6
+- [x] Summoning("GrimoireUpgBonus",7,0) — depth 2 — 399 chars — roots: R1 R6 R8
+- [x] Summoning("GrimoireUpgBonus",38,0) — depth 2 — 399 chars — roots: R1 R6 R8
+- [~] Summoning("Grimoire_ACC",0,0) — depth 1 — 623 chars — roots: R1 R8 — not reached: called only by PlayerAccTot (@4151440) when Summoning("GrimoireWraith") is 1, the Wraith form, which is a runtime 0 (the Damage page does not count the masterclass forms)
 - [x] Summoning("RooBonuses",3,0) — depth 1 — 3104 chars — roots: R1 R8
 - [x] Summoning("VotingBonusz",3,0) — depth 1 — 917 chars — via Summoning2 — roots: R1 R8
 - [x] Summoning("EventShopOwned",22,0) — depth 3 — 152 chars — roots: R1
 - [x] Summoning("EventShopOwned",67,0) — depth 3 — 152 chars — roots: R1
-- [ ] Summoning("GrimoireUpgBonus",22,0) — depth 3 — 399 chars — roots: R1
+- [x] Summoning("GrimoireUpgBonus",22,0) — depth 3 — 399 chars — roots: R1
 - [x] Summoning("VaultUpgBonus",79,0) — depth 3 — 7 chars — roots: R1
 - [x] Summoning("VaultUpgBonus",74,0) — depth 3 — 7 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [x] Summoning("VotingBonusz",18,0) — depth 3 — 917 chars — via Summoning2 — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [x] Summoning("VaultUpgBonus",48,0) — depth 3 — 2241 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
-- [ ] Summoning("VaultKillzTotal",11,0) — depth 3 — 3929 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
+- [x] Summoning("VaultKillzTotal",11,0) — depth 3 — 3929 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [x] Summoning("WinBonus",13,0) — depth 3 — 3535 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [x] Summoning("WinBonus",18,0) — depth 2 — 3535 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [x] Summoning("VotingBonusz",2,0) — depth 2 — 917 chars — via Summoning2 — roots: R1 R2 R3 R4 R5 R6 R7 R8
@@ -122,12 +122,12 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 - [x] Summoning("EventShopOwned",7,0) — depth 3 — 152 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [x] Summoning("EventShopOwned",16,0) — depth 3 — 152 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [x] Summoning("EventShopOwned",23,0) — depth 3 — 152 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
-- [ ] Summoning("GrimoireUpgBonus",1,0) — depth 2 — 399 chars — roots: R1 R8
-- [ ] Summoning("GrimoireUpgBonus",12,0) — depth 2 — 399 chars — roots: R1 R8
-- [ ] Summoning("GrimoireUpgBonus",25,0) — depth 2 — 399 chars — roots: R1 R8
-- [ ] Summoning("GrimoireUpgBonus",37,0) — depth 2 — 399 chars — roots: R1 R8
-- [ ] Summoning("GrimoireUpgBonus",47,0) — depth 2 — 399 chars — roots: R1 R8
-- [ ] Summoning("GrimoireUpgBonus",41,0) — depth 2 — 399 chars — roots: R1 R8
+- [x] Summoning("GrimoireUpgBonus",1,0) — depth 2 — 399 chars — roots: R1 R8
+- [x] Summoning("GrimoireUpgBonus",12,0) — depth 2 — 399 chars — roots: R1 R8
+- [x] Summoning("GrimoireUpgBonus",25,0) — depth 2 — 399 chars — roots: R1 R8
+- [x] Summoning("GrimoireUpgBonus",37,0) — depth 2 — 399 chars — roots: R1 R8
+- [x] Summoning("GrimoireUpgBonus",47,0) — depth 2 — 399 chars — roots: R1 R8
+- [x] Summoning("GrimoireUpgBonus",41,0) — depth 2 — 399 chars — roots: R1 R8
 - [x] Summoning("VaultUpgBonus",4,0) — depth 2 — 2241 chars — roots: R1 R8
 
 ## Windwalker
@@ -320,17 +320,17 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 ## Holes
 
 - [x] Holes("CosmoBonusQTY",2,4) — depth 1 — 279 chars — roots: R1
-- [ ] Holes("B_UPG",57,0) — depth 1 — 97 chars — roots: R1
+- [x] Holes("B_UPG",57,0) — depth 1 — 97 chars — roots: R1
 - [x] Holes("MonumentROGbonuses",0,6) — depth 1 — 172 chars — roots: R1
-- [ ] Holes("B_UPG",84,100) — depth 1 — 65 chars — roots: R1
+- [x] Holes("B_UPG",84,100) — depth 1 — 65 chars — roots: R1
 - [x] Holes("PocketDivOwned") — depth 2 — 361 chars — roots: R1 R8
 - [x] Holes("CosmoBonusQTY",2,0) — depth 2 — 279 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [~] Holes("B_UPG",49,15) — depth 3 — 335 chars — roots: R1 — not reached: its only call site is in SkillStats("AllEfficiencies") (@4197780), which is not reached
 - [x] Holes("CosmoBonusQTY",2,3) — depth 3 — 279 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
-- [ ] Holes("B_UPG",50,1) — depth 4 — 2722 chars — roots: R1
-- [ ] Holes("B_UPG",79,1) — depth 4 — 2722 chars — roots: R1
-- [ ] Holes("B_UPG",98,1) — depth 4 — 2722 chars — roots: R1
-- [ ] Holes("StudyBolaiaBonuses",0,0) — depth 5 — 666 chars — via Holes2 — roots: R1
+- [~] Holes("B_UPG",50,1) — depth 4 — 2722 chars — roots: R1 — not reached: called only in B_UPG's b == 49 branch (@10996050), and B_UPG(49) only from SkillStats("AllEfficiencies"), which is not reached
+- [~] Holes("B_UPG",79,1) — depth 4 — 2722 chars — roots: R1 — not reached: called only in B_UPG's b == 49 branch (@10996050), and B_UPG(49) only from SkillStats("AllEfficiencies"), which is not reached
+- [~] Holes("B_UPG",98,1) — depth 4 — 2722 chars — roots: R1 — not reached: called only in B_UPG's b == 49 branch (@10996050), and B_UPG(49) only from SkillStats("AllEfficiencies"), which is not reached
+- [~] Holes("StudyBolaiaBonuses",0,0) — depth 5 — 666 chars — via Holes2 — roots: R1 — not reached: called only in B_UPG's b == 14 branch (@10996050); Damage reaches B_UPG with 57 and 84 (and 50, 79, 98, themselves not reached)
 
 ## GoldFoodBonuses
 
@@ -584,7 +584,7 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 
 ## Holes2
 
-- [ ] Holes2("Cglunko_upgBon",19,0) — depth 1 — 154 chars — roots: R1
+- [x] Holes2("Cglunko_upgBon",19,0) — depth 1 — 154 chars — roots: R1
 - [x] Holes2("Fountain_BonTOT",1,16) — depth 1 — 1092 chars — roots: R1
 - [x] Holes2("Fountain_BonTOT",0,13) — depth 2 — 1092 chars — roots: R1
 - [x] Holes2("Fountain_MarbleBon") — depth 2 — 121 chars — roots: R1
@@ -613,7 +613,7 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 - [x] Thingies("Have_ban_i",0,0) — depth 2 — 67 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [x] Thingies("EmperorBon",8,0) — depth 2 — 1769 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [x] Thingies("LegendPTS_bonus",10,0) — depth 2 — 154 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
-- [ ] Thingies("SumStoneTrialz") — depth 2 — 154 chars — roots: R1
+- [x] Thingies("SumStoneTrialz") — depth 2 — 154 chars — roots: R1
 - [ ] Thingies("FriendBonusSlots",0,0) — depth 2 — 196 chars — roots: R1
 - [ ] Thingies("FriendBonusQTY") — depth 2 — 661 chars — roots: R1
 - [ ] Thingies("FriendBonusXtraMulti",0,0) — depth 2 — 79 chars — roots: R1

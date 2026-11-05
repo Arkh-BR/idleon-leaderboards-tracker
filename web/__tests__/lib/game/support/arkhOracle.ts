@@ -813,6 +813,14 @@ export const KNOWN_ARKH_DIFFS: {
   // Task 7: the account-system leaves (accountSystems.test.ts). Grid_Bonus(127) is x max(1, Grid_Bonus_Allmulti), whose Companions(0) term is
   // gated in N.js and not in lib/arkh (the comp0 reason, Koweabooo#10)
   { stat: "damage" as const, save: "Koweabooo.json", ci: 10, source: "greenSigils", reason: "comp0", why: COMPANION_0_GATE },
+  // Summoning("WinBonus",0): its boosts have GetSetBonus("GODSHARD_SET"), the God Shard set worn whole (as win3)
+  { stat: "damage" as const, save: "HourZero.json", ci: 1, source: "win0", reason: "godshard", why: GODSHARD_WORN },
+  { stat: "damage" as const, save: "HourZero.json", ci: 9, source: "win0", reason: "godshard", why: GODSHARD_WORN },
+  // Summoning("TomeBonus",0) and (6) are powers of the Tome score (Ruling K): lib/tome's against IdleonToolbox's stamped total. tome6 moves
+  // only where floor(Tome / 1000) differs; big_guy69123's lore episodes do not move, its Tome bonus 0 does
+  ...[...TOME_SOURCE_SAVES, "big_guy69123.json"].map((save) => ({ stat: "damage" as const, save, source: "tome0", reason: "tome", why: TOME_SOURCE })),
+  ...["0celot8.json", "5OhTree.json"].map((save) => ({ stat: "damage" as const, save, source: "tome0", reason: "tome", why: TOME_AFTER_RESET })),
+  ...["Flipper143.json", "Koweabooo.json", "arkhe-2026-09-23.json"].map((save) => ({ stat: "damage" as const, save, source: "tome6", reason: "tome", why: TOME_SOURCE })),
 ];
 
 /**

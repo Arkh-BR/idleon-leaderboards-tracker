@@ -3,7 +3,7 @@ import { block, type Ctx } from "../ctx";
 import { EmperorBon, LegendTalents, Spelunky, ZenithMarket } from "../data";
 import { NotPorted } from "../errors";
 import { hString } from "../hstring";
-import { contains, listAt } from "../lists";
+import { contains, listAt, listOrMapAt } from "../lists";
 import { opt } from "../state";
 import { traceNode } from "../trace";
 import { ArcadeBonus } from "./ArcadeBonus";
@@ -55,6 +55,11 @@ export const Thingies: (ctx: Ctx, d: string, b: number, e: number) => number = b
     case "CoralKidUpgBonus":
       if (b !== 3) throw new NotPorted("Thingies", `CoralKidUpgBonus:b=${b}`);
       return Math.round(asNum(ctx, "OptionsListAccount", Math.round(427 + b)));
+    // @10977138: the best Summoning stone trial of stone b, KRbest["SummzTrz" + b], or 0 when the account has none
+    case "SumStoneTrialz": {
+      const best = listOrMapAt(ctx, "KRbest") as Record<string, unknown>;
+      return Object.hasOwn(best, `SummzTrz${b}`) ? asNumber(best[`SummzTrz${b}`]) : 0;
+    }
     default:
       throw new NotPorted("Thingies", d);
   }
@@ -123,5 +128,5 @@ function loreEpiBon(ctx: Ctx, b: number): number {
 /** What this module covers (lib/game/ported.ts). */
 export const PORTED: Ported = {
   LegendPTS_bonus: true, Have_ban_i: true, ClamWorkBonus: true, EmperorBon: true, LoreEpiBon: range(0, 30),
-  HaveW6Trophy: true, Have_ban_m: true, Have_ban_o: true, SuperTalentPTS_LVgiven: true, ZenithMarketBonus: true, CoralKidUpgBonus: [3],
+  HaveW6Trophy: true, Have_ban_m: true, Have_ban_o: true, SuperTalentPTS_LVgiven: true, ZenithMarketBonus: true, CoralKidUpgBonus: [3], SumStoneTrialz: true,
 };

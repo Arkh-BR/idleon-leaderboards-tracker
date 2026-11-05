@@ -1,12 +1,15 @@
 import { asNum, asNumber, attr } from "../attr";
-import { block, type Ctx } from "../ctx";
-import { GrimoireUpg, Number2Letter, SummonEnemies, UpgradeVault } from "../data";
+import { block, runtime, withPlayer, type Ctx } from "../ctx";
+import { GrimoireUpg, MapDetails, Number2Letter, SummonEnemies, SummonUPG, UpgradeVault } from "../data";
 import { NotPorted } from "../errors";
 import { hString } from "../hstring";
-import { listAt } from "../lists";
+import { contains, lengthOf, listAt, listOrMapAt } from "../lists";
 import { AchieveStatus } from "./AchieveStatus";
 import { Companions } from "./Companions";
+import { DNSM_TomeQTYtot } from "./DNSM";
 import { Dreamstuff } from "./Dreamstuff";
+import { getbonus2 } from "./getbonus2";
+import { getLOG } from "./getLOG";
 import { GetSetBonus } from "./GetSetBonus";
 import { JellyOperation } from "./JellyOperation";
 import { Ninja } from "./Ninja";
@@ -66,6 +69,16 @@ export const Summoning: (ctx: Ctx, d: string, b: number, e: number) => number = 
       return asNum(ctx, "OptionsListAccount", 279) > b ? (11 == b ? asNum(ctx, "OptionsListAccount", 279) - 11 : 1) : 0;
     case "RooBonuses":
       return rooBonuses(ctx, b);
+    case "VaultKillzTotal":
+      return vaultKillzTotal(ctx, b);
+    case "SummUpgBonus":
+      return summUpgBonus(ctx, b);
+    case "TomeBonus":
+      return tomeBonus(ctx, b);
+    // @10880494: the Wraith form, `1 <= GetBuffBonuses(195,1) ? (100 < its BuffsActive timer ? 1 : 0) : 0`. The masterclass forms are not
+    // counted (the Damage page's product decision), as in PlayerHPmax and PlayerAccTot
+    case "GrimoireWraith":
+      return runtime(ctx, "Summoning(GrimoireWraith)", "masterclass form, not counted");
     default:
       if (SUMMONING_OWN_NAMES.has(d)) throw new NotPorted("Summoning", d);
       return Summoning2(ctx, d, b, e); // @10931948: the tail of the chain
@@ -112,14 +125,14 @@ function eventShopOwned(ctx: Ctx, b: number): number {
   return -1 != hString(attr(ctx, "OptionsListAccount", 311)).indexOf(hString(Number2Letter[b | 0])) ? 1 : 0;
 }
 
-/** The grimoire upgrades that are plain level x value (`9==b||11==b||…` @10885504). The others are times GrimoireUpgBonus 36: NotPorted. */
+/** The grimoire upgrades that are plain level x value (`9==b||11==b||…` @10885504); every other one is times 1 + GrimoireUpgBonus(36) / 100. */
 const GRIMOIRE_PLAIN = new Set([9, 11, 26, 36, 39, 17, 32, 45]);
 function grimoireUpgBonus(ctx: Ctx, b: number): number {
-  if (!GRIMOIRE_PLAIN.has(b)) throw new NotPorted("Summoning", `GrimoireUpgBonus:b=${b}`);
   const row = GrimoireUpg[b | 0];
   // the game indexes GrimoireUpg[b][5] directly
   if (!row) throw new RangeError(`Summoning GrimoireUpgBonus: no upgrade ${b} in GrimoireUpg`);
-  return asNum(ctx, "Grimoire", Math.round(b)) * asNumber(row[5]);
+  const level = asNum(ctx, "Grimoire", Math.round(b)) * asNumber(row[5]);
+  return GRIMOIRE_PLAIN.has(b) ? level : level * (1 + Summoning(ctx, "GrimoireUpgBonus", 36, 0) / 100);
 }
 
 /**
@@ -210,14 +223,94 @@ function rooBonuses(ctx: Ctx, b: number): number {
   return ROO[i] * (1 + Thingies(ctx, "LegendPTS_bonus", 26, 0) / 100) * (1 + Companions(ctx, 51)) * (1 + all / 100) * Math.max(0, Math.ceil((asNum(ctx, "OptionsListAccount", 271) - i) / 7));
 }
 
+/** Kills on map `m` by one character: MapDetails[m][0][0] (the kills the map's portal needs) minus its KillsLeft2Advance[m][0]. */
+function killsOn(ctx: Ctx, m: number): number {
+  listAt(ctx, "KillsLeft2Advance", m); // the game indexes KillsLeft2Advance[m][0] directly
+  return asNumber((MapDetails as unknown as readonly (readonly (readonly unknown[])[])[])[m][0][0]) - asNum(ctx, "KillsLeft2Advance", m, 0);
+}
+/** The account's kills on map `m`: the current character's, then every other character's (PlayerDATABASE but UserInfo[0]). */
+function accountKillsOn(ctx: Ctx, m: number): number {
+  let total = killsOn(ctx, m); // DNSM.VaultKillzDN4
+  for (let t = 0, n = ctx.state.charNames.length; t < n; t++) if (t !== ctx.player) total = total + killsOn(withPlayer(ctx, t), m);
+  return total;
+}
+
+/**
+ * `VaultKillzTotal` @10895474: entry `b` of `DNSM.VaultKillzTOT`, a list the game builds on the first call of the session and keeps (it
+ * reads only save data, so here it is built from the save each time):
+ *  - 0..3: the account's kills on the maps 14, 24, 13 and 8;
+ *  - 4..7: floor(getLOG(those)), 0 below 10 kills;
+ *  - 8: the Tasks[3][0..3] entries equal to 1 (one running count over the four worlds);
+ *  - 9: the sum of min(100, level) over the bubbles of the cauldrons 0..3 (CauldronInfo[0..3]), rounded at each step;
+ *  - 10: the account's kills on map 101, 11: floor(getLOG(those)) (no 10-kill floor).
+ */
+function vaultKillzTotal(ctx: Ctx, b: number): number {
+  const tot: number[] = []; // DNSM.VaultKillzTOT
+  for (const m of [14, 24, 13, 8]) tot.push(accountKillsOn(ctx, m));
+  for (let g = 0; g < 4; g++) tot.push(10 > tot[g] ? 0 : Math.floor(getLOG(ctx, tot[g])));
+  let dn4 = 0;
+  for (let g = 0; g < 4; g++) {
+    const tasks = listOrMapAt(ctx, "Tasks", 3, g) as Record<number, unknown>; // the game reads Tasks[3][g].length
+    for (let l = 0, n = lengthOf(tasks); l < n; l++) if (1 == tasks[l]) dn4 = dn4 + 1;
+  }
+  tot.push(dn4);
+  dn4 = 0;
+  for (let g = 0; g < 4; g++) {
+    const bubbles = listOrMapAt(ctx, "CauldronInfo", g); // the game reads CauldronInfo[g].length (the cloud keeps it as a map)
+    for (let l = 0, n = lengthOf(bubbles); l < n; l++) dn4 = Math.round(dn4 + Math.min(100, asNum(ctx, "CauldronInfo", g, l)));
+  }
+  tot.push(dn4);
+  dn4 = accountKillsOn(ctx, 101);
+  tot.push(dn4);
+  tot.push(Math.floor(getLOG(ctx, dn4)));
+  // the game answers undefined past the twelve entries, which the caller would turn into NaN
+  if (!(0 <= (b | 0) && (b | 0) < tot.length)) throw new RangeError(`Summoning VaultKillzTotal: no entry ${b}`);
+  return tot[b | 0];
+}
+
+/**
+ * `SummUpgBonus` @10921822: Summoning upgrade `b` is DNSM.SumUpgMoltoz x Summon[0][b] x SummonUPG[b][6]. The multi is 1, or for an upgrade
+ * Holes[28] lists, 2 + max(0, getbonus2(1, 597, -1) / 100 - 1) + SummUpgBonus(78) / 100; then, while the Summoning stone trial of the
+ * upgrade's stone (KRbest["SummzTrz" + SummonUPG[b][2]]) is above 0 and SummonUPG[b][10] is 1, times 1 + that trial.
+ */
+function summUpgBonus(ctx: Ctx, b: number): number {
+  const row = (SummonUPG as unknown as readonly (readonly unknown[])[])[b | 0];
+  // the game indexes SummonUPG[b][2], [6] and [10] directly
+  if (!row) throw new RangeError(`Summoning SummUpgBonus: no upgrade ${b} in SummonUPG`);
+  let multi = 1; // DNSM.SumUpgMoltoz
+  listAt(ctx, "Holes"); // D.contains(Holes[28], b): a missing Holes[28] contains nothing, a missing Holes throws
+  if (contains(attr(ctx, "Holes", 28), b)) multi = 2 + (Math.max(0, getbonus2(ctx, 1, 597, -1) / 100 - 1) + Summoning(ctx, "SummUpgBonus", 78, 0) / 100);
+  const stone = asNumber(row[2]);
+  if (0 < Thingies(ctx, "SumStoneTrialz", stone, 0) && 1 == asNumber(row[10])) multi = multi * (1 + Thingies(ctx, "SumStoneTrialz", stone, 0));
+  listAt(ctx, "Summon", 0); // the game indexes Summon[0][b] directly
+  return multi * asNum(ctx, "Summon", 0, b | 0) * asNumber(row[6]);
+}
+
+/**
+ * `TomeBonus` @10911395, Tome bonus `b`: 0 = 10 x floor(Tome / 100)^.7, 6 = 4 x floor(Tome / 1000)^.4 once Event Shop item 0 is owned,
+ * each times 1 + (Grimoire upgrade 17 + the TROLL set bonus) / 100. The others are not ported (1 is reached only from SkillStats
+ * AllEfficiencies). Tome is the Tome actor's GenInfo[84], DNSM_TomeQTYtot (Ruling K); the game answers 0 while that actor's GenInfo is
+ * null, which it is only before the actor is built (its constructor sets it, @5770597), so it is never null here.
+ */
+function tomeBonus(ctx: Ctx, b: number): number {
+  const boost = () => 1 + (Summoning(ctx, "GrimoireUpgBonus", 17, 0) + GetSetBonus(ctx, "TROLL_SET", "Bonus", 0, 0)) / 100;
+  if (0 == b) return 10 * Math.pow(Math.floor(DNSM_TomeQTYtot(ctx) / 100), 0.7) * boost();
+  if (6 == b) return 1 == Summoning(ctx, "EventShopOwned", 0, 0) ? 4 * Math.pow(Math.floor(DNSM_TomeQTYtot(ctx) / 1e3), 0.4) * boost() : 0;
+  throw new NotPorted("Summoning", `TomeBonus:b=${b}`);
+}
+
 /** What this module covers (lib/game/ported.ts): its own sub-cases, then the tail of the chain, Summoning2's. */
 export const PORTED: Ported = {
   ...(Summoning2PORTED as Record<string, true | readonly number[]>),
   VaultUpgBonus: range(0, 1000), // every vault; from 89 on 0 when not plain (999 is plain)
   EventShopOwned: true,
-  GrimoireUpgBonus: [...GRIMOIRE_PLAIN],
+  GrimoireUpgBonus: range(0, GrimoireUpg.length),
   WinBonus: range(-1, 34),
   RibbonBonus: true,
   RooMegafeather: true,
   RooBonuses: range(-1, 7),
+  VaultKillzTotal: range(0, 12),
+  SummUpgBonus: range(0, SummonUPG.length),
+  TomeBonus: [0, 6],
+  GrimoireWraith: true, // runtime(): the masterclass form is not counted
 };

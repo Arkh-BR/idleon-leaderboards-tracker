@@ -4,14 +4,13 @@ import { block, withPlayer, type Ctx } from "../ctx";
 import { DreamChallenge, MapAFKtarget, MapDetails, MONSTERS } from "../data";
 import { InvalidSaveValue, NotPorted } from "../errors";
 import { hString } from "../hstring";
-import { listAt, listOrMapAt } from "../lists";
+import { lengthOf, listAt, listOrMapAt } from "../lists";
 import { GetTalentNumber } from "./GetTalentNumber";
 import { PlayerAccTot } from "./PlayerAccTot";
 import { ReturnClasses } from "./ReturnClasses";
 import type { Ported } from "../ported";
 
 /** The length of a list the save keeps as a list or as a {"0": …, "length": n} map (the cloud's sparse lists: CauldronInfo[4], StampLevelMAX[t]). */
-const lengthOf = (l: object): number => (Array.isArray(l) ? l.length : asNumber((l as { length?: unknown }).length));
 
 /**
  * Two of the four counts (the others feed keys Damage does not read) of the maps whose monster is a FIGHTING one (the loop @4474411 inside `TalentCalc(d <= 0)`): over MapAFKtarget while the

@@ -11,6 +11,13 @@ import { makeCtx, withPlayer, type Ctx } from "@/lib/game/ctx";
 import { buildGameState, type GameEnvelope, type GameState } from "@/lib/game/state";
 import { Labb } from "@/lib/game/njs/Labb";
 import { ResearchStuff } from "@/lib/game/njs/ResearchStuff";
+import { Summoning } from "@/lib/game/njs/Summoning";
+import { Summoning2 } from "@/lib/game/njs/Summoning2";
+import { AchieveStatus } from "@/lib/game/njs/AchieveStatus";
+import { getLOG } from "@/lib/game/njs/getLOG";
+import { asNum } from "@/lib/game/attr";
+import { Holes } from "@/lib/game/njs/Holes";
+import { Holes2 } from "@/lib/game/njs/Holes2";
 
 const MAP = 251; // a plain map: no dungeon (Dungon() is -1), no arena
 type Seed = [name: string, args: (string | number)[], value: number];
@@ -18,21 +25,68 @@ const rel = (got: number, want: number) => Math.abs(got - want) <= 1e-9 * Math.m
 
 /** The lib/game term of each lib/arkh leaf, as DamageDealed uses it (the leaf of a factor source is the factor). Offsets: DamageDealed @4105019. */
 const TERMS: Record<string, (c: Ctx) => number> = {
+  // Summoning (@10878764) and Summoning2 (@10931969)
+  owl1: (c) => Summoning(c, "OwlBonuses", 1, 0), // base damage, @4105019+... (DamageDealtLIST[0])
+  vault0: (c) => Summoning(c, "VaultUpgBonus", 0, 0),
+  vault20: (c) => Summoning(c, "VaultUpgBonus", 20, 0) * Summoning(c, "VaultKillzTotal", 5, 0),
+  vault27: (c) => Summoning(c, "VaultUpgBonus", 27, 0) * Summoning(c, "VaultKillzTotal", 6, 0), // damage %, DamageDealtLIST[1]
+  vault15: (c) => Summoning(c, "VaultUpgBonus", 15, 0) * asNum(c, "OptionsListAccount", 338),
+  vault10: (c) => 0.4 * Summoning(c, "VaultUpgBonus", 10, 0),
+  owl2: (c) => Summoning(c, "OwlBonuses", 2, 0),
+  roo4: (c) => Summoning(c, "RooBonuses", 4, 0),
+  vault80: (c) => Summoning(c, "VaultUpgBonus", 80, 0),
+  win0: (c) => Summoning(c, "WinBonus", 0, 0), // x (1 + it / 100)
+  summUpg79: (c) => 1 + Summoning(c, "SummUpgBonus", 79, 0) / 100, // multipliers, DamageDealtLIST[2]
+  grimoire35: (c) => Summoning(c, "GrimoireUpgBonus", 35, 0),
+  vault41: (c) => Summoning(c, "VaultUpgBonus", 41, 0) * getLOG(c, asNum(c, "OptionsListAccount", 346)),
+  tome0: (c) => Summoning(c, "TomeBonus", 0, 0),
+  voting1: (c) => 1 + Summoning(c, "VotingBonusz", 1, 0) / 100,
+  tome6: (c) => 1 + (Summoning(c, "TomeBonus", 6, 0) + (AchieveStatus(c, 371) + AchieveStatus(c, 384))) / 100,
+  meritoc5: (c) => 1 + Summoning2(c, "MeritocBonusz", 5, 0) / 100,
+  // Holes (@10990457) and Holes2 (@11035686)
+  bUpg57: (c) => Holes(c, "B_UPG", 57, 0), // damage %, the talents' sum
+  monument06: (c) => Holes(c, "MonumentROGbonuses", 0, 6),
+  bUpg84: (c) => Holes(c, "B_UPG", 84, 100),
+  cglunko19: (c) => 1 + Holes2(c, "Cglunko_upgBon", 19, 0) / 100,
+  fountain16: (c) => 1 + Holes2(c, "Fountain_BonTOT", 1, 16) / 100,
   // @4124114: x (1 + min(100, TotalGreenSigils x Grid_Bonus(127)) / 100)
   greenSigils: (c) => 1 + Math.min(100, Labb(c, "TotalGreenSigils", "0", 0, 0) * ResearchStuff(c, "Grid_Bonus", 127, 0)) / 100,
 };
 
 /** The block key(s) each term reads directly (`<Fn><args as JSON>`): what a seed must never be (the proof would hold by construction). */
 const OWN: Record<string, string[]> = {
+  owl1: ['Summoning["OwlBonuses",1,0]'],
+  vault0: ['Summoning["VaultUpgBonus",0,0]'],
+  vault20: ['Summoning["VaultUpgBonus",20,0]', 'Summoning["VaultKillzTotal",5,0]'],
+  vault27: ['Summoning["VaultUpgBonus",27,0]', 'Summoning["VaultKillzTotal",6,0]'],
+  vault15: ['Summoning["VaultUpgBonus",15,0]'],
+  vault10: ['Summoning["VaultUpgBonus",10,0]'],
+  owl2: ['Summoning["OwlBonuses",2,0]'],
+  roo4: ['Summoning["RooBonuses",4,0]'],
+  vault80: ['Summoning["VaultUpgBonus",80,0]'],
+  win0: ['Summoning["WinBonus",0,0]'],
+  summUpg79: ['Summoning["SummUpgBonus",79,0]'],
+  grimoire35: ['Summoning["GrimoireUpgBonus",35,0]'],
+  vault41: ['Summoning["VaultUpgBonus",41,0]'],
+  tome0: ['Summoning["TomeBonus",0,0]'],
+  voting1: ['Summoning["VotingBonusz",1,0]'],
+  tome6: ['Summoning["TomeBonus",6,0]', "AchieveStatus[371]", "AchieveStatus[384]"],
+  meritoc5: ['Summoning2["MeritocBonusz",5,0]'],
+  bUpg57: ['Holes["B_UPG",57,0]'],
+  monument06: ['Holes["MonumentROGbonuses",0,6]'],
+  bUpg84: ['Holes["B_UPG",84,100]'],
+  cglunko19: ['Holes2["Cglunko_upgBon",19,0]'],
+  fountain16: ['Holes2["Fountain_BonTOT",1,16]'],
   greenSigils: ['Labb["TotalGreenSigils","0",0,0]', 'ResearchStuff["Grid_Bonus",127,0]'],
 };
 Object.freeze(OWN);
 
 /** The KNOWN pairs each leaf has, exactly (a stale entry or a new difference fails). */
-const EXPECT_KNOWN: Record<string, number> = { greenSigils: 1 };
+const EXPECT_KNOWN: Record<string, number> = { greenSigils: 1, win0: 2, tome0: 196, tome6: 33 };
 
 /** What each term refuses (Ruling E), as `<file>: <key>`. */
-const REFUSED: Record<string, string[]> = {};
+const HOURZERO = ["HourZero.json: Tome rows 21,101,105,106,115,116"]; // lib/tome cannot score HourZero (see stats.test.ts)
+const REFUSED: Record<string, string[]> = { tome0: HOURZERO, tome6: HOURZERO };
 
 /** The maps a term is compared on (map 251 when absent). */
 const MAPS: Record<string, (c: Ctx) => number[]> = {};
@@ -41,6 +95,15 @@ const MAPS: Record<string, (c: Ctx) => number[]> = {};
 const SEEDS: Record<string, (path: string, ci: number) => Seed[]> = {
   // COMPANION_0_GATE: lib/arkh counts Companions(0) below Lv0[14] = 2, where N.js @10799980 is 0
   comp0: () => [["Companions", [0], 1]],
+  // GODSHARD_WORN: lib/arkh counts the God Shard set only when OptionsListAccount[379] names it
+  godshard: () => [["GetSetBonus", ["GODSHARD_SET", "Bonus", 0, 0], 0]],
+  // TOME_SOURCE (Ruling K): the Tome score lib/arkh reads, IdleonToolbox's number stamped on the file, in place of lib/tome's
+  tome: (path) => {
+    const env = JSON.parse(readFileSync(path, "utf8"));
+    const it = Number(env.extraData?.totalTomePoints ?? env.parsedData?.totalTomePoints);
+    if (!Number.isFinite(it)) throw new Error(`${basename(path)}: no IdleonToolbox Tome total`);
+    return [["DNSM.TomeQTYtot", [], it]];
+  },
 };
 
 const states = new Map<string, GameState>();
@@ -118,6 +181,7 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("account-system terms against lib/ark
         }
       }
       console.info(`[account ${id}] ${pairs} pairs, ${nonZero} not neutral, ${known} known, ${mismatches.length} mismatches, ${refused.size} refused, ${Math.round(performance.now() - t0)} ms`);
+      if (mismatches.length) console.info(`[account ${id}] mismatched saves: ${[...new Set(mismatches.map((m) => m.split("#")[0]))].join(" ")}`);
       expect(mismatches.slice(0, 20)).toEqual([]);
       expect(directClosed, "pairs a KNOWN entry covers vs those that differ and are closed (a stale entry no longer differs)").toBe(direct);
       expect(known, "KNOWN pairs").toBe(EXPECT_KNOWN[id] ?? 0);

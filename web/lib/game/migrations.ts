@@ -495,6 +495,16 @@ export function migrate(
 //   - Research (Grid_Bonus 127/47/173 read Research[0][b], [1][b]): the initialize3 fill of an empty list (@6320648) and the later blocks
 //     327 (Research[7][8]), 339 (a 14th list), 366 and 398 (Research[13]), 386 (five lists after the 14th), 389 (Research[7][10]); none
 //     writes Research[0] or [1]. No step ported.
+//   - Summoning (Grimoire, UpgVault, Summon[0], KRbest, Holes[28], KillsLeft2Advance, Tasks[3], CauldronInfo[0..3]): initialize fills of empty
+//     lists (Grimoire, UpgVault, Summon, Tasks, Holes) and Tasks[3][b] padded with 0 to TaskUnlocks (initialize1, read as entries == 1: no
+//     change); Summon[0] gets zeros at DoOnceREAL < 214, < 226 and < 282 (the last one ported above; zeros read as the absent 0 anyway),
+//     UpgVault padded with 0 to 100 (< 242), Holes[28] padded with -1 to 60 (< 390: SummUpgBonus asks whether it contains b >= 0, no
+//     change), KillsLeft2Advance[17] (< 11.2) and [300..314] (294, ported above). KRbest and CauldronInfo[0..3] have no load-step write.
+//     No step ported.
+//   - Holes (B_UPG 57 / 84 read Holes[9][1], [11][55], [13][b]; MonumentROGbonuses and Fountain_BonTOT Holes[15], [31], [32]; Cglunko
+//     OptionsListAccount[649]): the initialize3 fill of an empty Holes, the blocks 251, 262 and 366 (ported above), 247 (< 247.3, no real
+//     save), 254, 367, 375 (Holes[11] null -> 0: read through asNumber alike) and 390 (Holes[28]); no step writes OptionsListAccount[649].
+//     No step ported.
 //   - the loader: Tess (CSver 26; not reset by ClearLocalData, so it would need an assumption; initialize3 fills it with [[], []]);
 //   - initialize1: GemItemsPurchased padded to 300; OptionsListAccount padded to 17..70 and its 51..59 splice (no real save is that
 //     short), its pads to 201..601 (only in the Tutorial scene); the starter star signs

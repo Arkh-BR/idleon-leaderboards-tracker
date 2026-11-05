@@ -1,4 +1,4 @@
-import { attr } from "./attr";
+import { asNumber, attr } from "./attr";
 import type { Ctx } from "./ctx";
 import { InvalidSaveValue, MissingSaveKey } from "./errors";
 
@@ -36,3 +36,6 @@ export function listOrMapAt(ctx: Ctx, name: string, ...idx: (string | number)[])
   if (v === null || typeof v !== "object") throw new InvalidSaveValue(address, "an array or a map", v);
   return v;
 }
+
+/** The game's `.length` of a list `listOrMapAt` gave: a `{"0": …}` map from the cloud keeps it under its own "length" key. */
+export const lengthOf = (l: object): number => (Array.isArray(l) ? l.length : asNumber((l as { length?: unknown }).length));

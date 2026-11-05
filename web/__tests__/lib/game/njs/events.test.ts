@@ -258,10 +258,10 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("VaultUpgBonus (N.js @10893206)", () 
 });
 
 describe.skipIf(GOLDEN_SAVES.length === 0)("GrimoireUpgBonus (N.js @10885504)", () => {
-  it("a plain grimoire upgrade is level x value; the others are times upgrade 36 (not ported)", () => {
-    const c = variant((d) => setIn(d, "Grimoire", (g) => (g[17] = 4)));
+  it("a plain grimoire upgrade is level x value; the others are times 1 + upgrade 36 / 100 (Damage Task 7)", () => {
+    const c = variant((d) => setIn(d, "Grimoire", (g) => ((g[17] = 4), (g[2] = 3))));
     expect(Summoning(c, "GrimoireUpgBonus", 17, 0)).toBe(4 * num(GrimoireUpg[17][5]));
-    expect(() => Summoning(c, "GrimoireUpgBonus", 2, 0)).toThrow(expect.objectContaining({ name: "NotPorted", sub: "GrimoireUpgBonus:b=2" }));
+    expect(Summoning(c, "GrimoireUpgBonus", 2, 0)).toBeCloseTo(3 * num(GrimoireUpg[2][5]) * (1 + Summoning(c, "GrimoireUpgBonus", 36, 0) / 100), 9);
   });
 });
 
@@ -749,8 +749,8 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("VotingBonusz / VotingBonuszMulti / M
   it("an empty server list leaves the game's default list [1, 2, 3, 4]: vote 1 is in force, so vote 20 is 0", () => {
     expect(v20(vote([]))).toBe(0);
   });
-  it("vote 1 has a rule of its own (the world a character has reached): not ported", () => {
-    expect(() => Summoning(vote([1]), "VotingBonusz", 1, 0)).toThrow(expect.objectContaining({ name: "NotPorted", sub: "VotingBonusz:b=1" }));
+  it("vote 1 in force counts it (its world rule is ported in Damage Task 7, accountEdges.test.ts)", () => {
+    expect(Summoning(vote([1]), "VotingBonusz", 1, 0)).toBeGreaterThan(0);
   });
   it("without a server answer (serverVars null) no vote is known to be in force: 0, shown in the trace as not counted", () => {
     const c = variant(() => {}, { trace: true, env: (e) => (e.serverVars = null) });
@@ -1025,7 +1025,7 @@ describe("ports stay on their boundary", () => {
     expect(() => SushiStuff(c(), "UpgLvREQ", 0, 0)).toThrow(NotPorted);
   });
   it("Summoning: a name Summoning answers itself and does not port is NotPorted('Summoning'); one it hands on and Summoning2 lacks is NotPorted('Summoning2')", () => {
-    for (const d of ["SummUpgBonus", "UnitDMG", "Grimoire_DMG", "RooCost"]) expect(() => Summoning(c(), d, 0, 0), d).toThrow(expect.objectContaining({ name: "NotPorted", fn: "Summoning" }));
+    for (const d of ["UnitDMG", "Grimoire_DMG", "RooCost"]) expect(() => Summoning(c(), d, 0, 0), d).toThrow(expect.objectContaining({ name: "NotPorted", fn: "Summoning" }));
     for (const d of ["ExpReqCook", "Nope"]) expect(() => Summoning(c(), d, 0, 0), d).toThrow(expect.objectContaining({ name: "NotPorted", fn: "Summoning2" }));
     expect(() => Summoning2(c(), "ExpReqCook", 0, 0)).toThrow(NotPorted);
   });

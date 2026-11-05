@@ -6,7 +6,7 @@ export const PORTED: Ported = {
   MeritocBonusz: true,
   MeritocCanVote: true,
   MeritocBonuszMulti: true,
-  VotingBonusz: [0, ...range(2, 40)], // not 1 (NotPorted); 40 is past the vote categories the game lists
+  VotingBonusz: range(0, 40), // 40 is past the vote categories the game lists
   VotingBonuszMulti: true,
   OwlMegafeather: true,
   OwlBonuses: range(-1, 6),

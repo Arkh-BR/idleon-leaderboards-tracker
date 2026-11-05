@@ -115,12 +115,35 @@ function activeVote(ctx: Ctx): unknown {
 }
 
 /**
- * `VotingBonusz` @10953438: vote `b` is NinjaInfo[38][1 + 3b] x the voting multi while it is the vote in force, else 0. Vote 1
- * has a rule of its own (it also counts while a character has not reached the world the vote in force asks for): NotPorted.
+ * `VotingBonusz` @10953438: vote `b` is NinjaInfo[38][1 + 3b] x the voting multi while it is the vote in force, else 0. Vote 1 also counts
+ * while the character has not reached the world the vote in force asks for: `worldsReached < NinjaInfo[38][2 + 3 max(1, vote)]`.
  */
 function votingBonusz(ctx: Ctx, b: number): number {
-  if (1 == b) throw new NotPorted("Summoning2", "VotingBonusz:b=1");
+  if (1 == b) {
+    const vote = activeVote(ctx);
+    if (vote === undefined) return 0; // no server answer: no vote is known to be in force (activeVote's runtime leaf says so)
+    return 1 == vote || worldsReached(ctx) < asNumber(NinjaInfo[38][Math.round(2 + 3 * Math.max(1, asNumber(vote)))])
+      ? asNumber(NinjaInfo[38][Math.round(1 + 3 * b)]) * Summoning(ctx, "VotingBonuszMulti", 0, 0)
+      : 0;
+  }
   return b == activeVote(ctx) ? asNumber(NinjaInfo[38][Math.round(1 + 3 * b)]) * Summoning(ctx, "VotingBonuszMulti", 0, 0) : 0;
+}
+
+/**
+ * The portal actor's `ActorEvents_201._GenINFO[58]` (PixelHelperActor[3]), which its init sets (@5542319): 1, then 2..7 for each of the
+ * town portals of maps 0, 50, 100, 150, 200 and 250 whose kills the current character has used up (KillsLeft2Advance[m][0] <= 0), the last
+ * one that holds winning. Under the masterclass forms Compass Tempest and Tesseract Arcanist it reads Windwalker / ArcaneType
+ * CanWeEnterPortal instead; the forms are not counted (the Damage page's product decision), shown as runtime leaves.
+ */
+function worldsReached(ctx: Ctx): number {
+  if (1 == runtime(ctx, "Windwalker(CompassTempest)", "masterclass form, not counted")) throw new Error("unreachable");
+  if (1 == runtime(ctx, "ArcaneType(TesseractArcanist)", "masterclass form, not counted")) throw new Error("unreachable");
+  let worlds = 1;
+  [0, 50, 100, 150, 200, 250].forEach((m, k) => {
+    listAt(ctx, "KillsLeft2Advance", m); // the game indexes KillsLeft2Advance[m][0] directly
+    if (0 >= asNum(ctx, "KillsLeft2Advance", m, 0)) worlds = k + 2;
+  });
+  return worlds;
 }
 
 /**

@@ -12,7 +12,7 @@ export const Holes: (ctx: Ctx, d: string, b: number, e: number) => number = bloc
   switch (d) {
     // @10996050: Bolaia upgrade `b`
     case "B_UPG":
-      return bUpg(ctx, b);
+      return bUpg(ctx, b, e);
     // @11002068: Cosmo upgrade (b, e) of the Holes: level x value, rounded down; (2, 1) is 3 to the level, at least 1
     case "CosmoBonusQTY": {
       const level = Math.round(4 + b);
@@ -46,17 +46,28 @@ export const Holes: (ctx: Ctx, d: string, b: number, e: number) => number = bloc
 
 /**
  * `B_UPG` @10996050. It opens with `0 == Holes.length || 0 == Holes[13][b|0]` (the upgrade is not bought: 0; the flag is the raw
- * element, so a null is not 0), then a chain on b; only b == 55 is ported: 10 x floor(getLOG(Holes[9][11])).
+ * element, so a null is not 0), then a chain on b; ported: 55 = 10 x floor(getLOG(Holes[9][11])), 57 = 20 x floor(getLOG(Holes[9][1])),
+ * 82..84 = e x Holes[11][55]. The others are not reached (49 and the 50, 79, 98 it calls only from SkillStats AllEfficiencies).
  */
-function bUpg(ctx: Ctx, b: number): number {
+function bUpg(ctx: Ctx, b: number, e: number): number {
   const holes = attr(ctx, "Holes");
   if (!Array.isArray(holes)) throw new InvalidSaveValue("Holes", "an array", holes);
   if (0 == holes.length) return 0;
   listAt(ctx, "Holes", 13); // the game indexes Holes[13][b] directly
   if (0 == attr(ctx, "Holes", 13, b | 0)) return 0;
-  if (55 != b) throw new NotPorted("Holes", `B_UPG:b=${b}`);
-  listAt(ctx, "Holes", 9);
-  return 10 * Math.floor(getLOG(ctx, asNum(ctx, "Holes", 9, 11)));
+  if (55 == b) {
+    listAt(ctx, "Holes", 9);
+    return 10 * Math.floor(getLOG(ctx, asNum(ctx, "Holes", 9, 11)));
+  }
+  if (57 == b) {
+    listAt(ctx, "Holes", 9);
+    return 20 * Math.floor(getLOG(ctx, asNum(ctx, "Holes", 9, 1)));
+  }
+  if (82 == b || 83 == b || 84 == b) {
+    listAt(ctx, "Holes", 11);
+    return e * asNum(ctx, "Holes", 11, 55);
+  }
+  throw new NotPorted("Holes", `B_UPG:b=${b}`);
 }
 
 /**
@@ -84,4 +95,4 @@ function monumentROGbonuses(ctx: Ctx, b: number, e: number): number {
 }
 
 /** What this module covers (lib/game/ported.ts). */
-export const PORTED: Ported = { B_UPG: [55], CosmoBonusQTY: true, MonumentROGbonuses: true, PocketDivOwned: true };
+export const PORTED: Ported = { B_UPG: [55, 57, 82, 83, 84], CosmoBonusQTY: true, MonumentROGbonuses: true, PocketDivOwned: true };
