@@ -3,6 +3,8 @@ import { block, runtime, type Ctx } from "../ctx";
 import { NinjaInfo } from "../data";
 import { InvalidSaveValue, MissingSaveKey, NotPorted } from "../errors";
 import { listAt } from "../lists";
+import { ArcaneType } from "./ArcaneType";
+import { Windwalker } from "./Windwalker";
 import { ArcadeBonus } from "./ArcadeBonus";
 import { Companions } from "./Companions";
 import { GamingStatType } from "./GamingStatType";
@@ -136,8 +138,8 @@ function votingBonusz(ctx: Ctx, b: number): number {
  * CanWeEnterPortal instead; the forms are not counted (the Damage page's product decision), shown as runtime leaves.
  */
 function worldsReached(ctx: Ctx): number {
-  if (1 == runtime(ctx, "Windwalker(CompassTempest)", "masterclass form, not counted")) throw new Error("unreachable");
-  if (1 == runtime(ctx, "ArcaneType(TesseractArcanist)", "masterclass form, not counted")) throw new Error("unreachable");
+  if (1 == Windwalker(ctx, "CompassTempest", 0, 0)) throw new Error("unreachable");
+  if (1 == ArcaneType(ctx, "TesseractArcanist", 0, 0)) throw new Error("unreachable");
   let worlds = 1;
   [0, 50, 100, 150, 200, 250].forEach((m, k) => {
     listAt(ctx, "KillsLeft2Advance", m); // the game indexes KillsLeft2Advance[m][0] directly

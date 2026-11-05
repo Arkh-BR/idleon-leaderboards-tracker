@@ -1,6 +1,7 @@
 import { asNumber } from "./attr";
 import type { Ctx } from "./ctx";
 import { MapAFKtarget, MapAFKtargetSide, MapName } from "./data";
+import { MissingSaveKey } from "./errors";
 import { hString } from "./hstring";
 import { contains } from "./lists";
 import { charKey, opt } from "./state";
@@ -15,7 +16,10 @@ import { charKey, opt } from "./state";
  */
 export function afkTarget(ctx: Ctx): string {
   const saved = hString(opt(ctx.state, charKey("AFKtarget", ctx.player)));
-  if (asNumber(opt(ctx.state, charKey("CurrentMap", ctx.player))) === ctx.map) return saved;
+  // the map the save says the character is on: a save without it cannot say where its AFK target was kept
+  const savedMap = opt(ctx.state, charKey("CurrentMap", ctx.player));
+  if (savedMap === undefined || savedMap === null) throw new MissingSaveKey(charKey("CurrentMap", ctx.player));
+  if (asNumber(savedMap) === ctx.map) return saved;
   const scene = hString((MapName as unknown as readonly unknown[])[ctx.map]);
   const side = (MapAFKtargetSide as unknown as readonly unknown[][])[ctx.map];
   const keep =

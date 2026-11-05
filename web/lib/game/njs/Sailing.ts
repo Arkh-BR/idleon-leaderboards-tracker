@@ -1,13 +1,13 @@
 import { asNum, asNumber, attr } from "../attr";
 import { block, type Ctx } from "../ctx";
-import { ArtifactInfo, ClassStatTypes } from "../data";
+import { ArtifactInfo } from "../data";
 import { InvalidSaveValue, MissingSaveKey, NotPorted } from "../errors";
-import { hString } from "../hstring";
 import { lengthOf, listAt, listOrMapAt } from "../lists";
 import { ArcadeBonus } from "./ArcadeBonus";
 import { Breeding } from "./Breeding";
 import { CaptBonusCalc } from "./CaptBonusCalc";
 import { CompLV2 } from "./CompLV2";
+import { primaryStat } from "./DamageDealed";
 import { Companions } from "./Companions";
 import { DNSM_AlchVials, DNSM_StarSigns } from "./DNSM";
 import { FarmingStuffs } from "./FarmingStuffs";
@@ -22,7 +22,6 @@ import { Minehead } from "./Minehead";
 import { NONdummies60 } from "./NONdummies";
 import { Ninja } from "./Ninja";
 import { RandomEvent } from "./RandomEvent";
-import { ReturnClasses } from "./ReturnClasses";
 import { ResearchStuff } from "./ResearchStuff";
 import { Stuff2 } from "./Stuff2";
 import { SushiStuff } from "./SushiStuff";
@@ -102,14 +101,6 @@ function artifactBonus(ctx: Ctx, b: number, e: number): number {
   const word = TIER_WORD[tier];
   if (word !== undefined && info[2 * tier + 1] === `The_artifact's_main_bonus_is_${word}!`) v *= tier;
   return v;
-}
-
-/** The class's primary stat, `ClassStatTypes[ReturnClasses(CharacterClass)[0]][0]` (the game indexes it directly). */
-function primaryStat(ctx: Ctx): string {
-  const first = `${ReturnClasses(attr(ctx, "CharacterClass") as number)[0]}`;
-  const types = ClassStatTypes[first];
-  if (!types) throw new RangeError(`Sailing ArtifactBonus: no class ${first} in ClassStatTypes`);
-  return hString(types[0]);
 }
 
 /**

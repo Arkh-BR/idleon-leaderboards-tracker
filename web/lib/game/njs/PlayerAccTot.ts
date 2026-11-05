@@ -1,6 +1,8 @@
 import { attr } from "../attr";
 import { block, runtime } from "../ctx";
 import { ClassStatTypes } from "../data";
+import { ArcaneType } from "./ArcaneType";
+import { Windwalker } from "./Windwalker";
 import { ArbitraryCode } from "./ArbitraryCode";
 import { ArcadeBonus } from "./ArcadeBonus";
 import { CardBonusREAL } from "./CardBonusREAL";
@@ -35,9 +37,9 @@ import type { Ported } from "../ported";
  */
 export const PlayerAccTot = block("PlayerAccTot", (ctx) => {
   if (-1 != Dungon(ctx)) return 999999;
-  if (1 == runtime(ctx, "Summoning(GrimoireWraith)", "masterclass form, not counted")) throw new Error("unreachable");
-  if (1 == runtime(ctx, "Windwalker(CompassTempest)", "masterclass form, not counted")) throw new Error("unreachable");
-  if (1 == runtime(ctx, "ArcaneType(TesseractArcanist)", "masterclass form, not counted")) throw new Error("unreachable");
+  if (1 == Summoning(ctx, "GrimoireWraith", 0, 0)) throw new Error("unreachable");
+  if (1 == Windwalker(ctx, "CompassTempest", 0, 0)) throw new Error("unreachable");
+  if (1 == ArcaneType(ctx, "TesseractArcanist", 0, 0)) throw new Error("unreachable");
   const first = `${ReturnClasses(attr(ctx, "CharacterClass") as number)[0]}`;
   const types = ClassStatTypes[first];
   // the game indexes ClassStatTypes[class][1] directly and would throw on a class it does not have

@@ -2,6 +2,7 @@ import { asNum, asNumber, attr } from "../attr";
 import { block, runtime } from "../ctx";
 import { NotPorted } from "../errors";
 import { hString } from "../hstring";
+import { Windwalker } from "./Windwalker";
 import { ArbitraryCode } from "./ArbitraryCode";
 import { CardBonusREAL } from "./CardBonusREAL";
 import { chipBonuses } from "./chipBonuses";
@@ -47,7 +48,7 @@ export const PlayerSpeedBonus = block("PlayerSpeedBonus", (ctx) => {
     if (1.75 < dn || -1 != Dungon(ctx)) dn = Math.min(2, Math.floor(100 * (dn + GetTalentNumber(ctx, 1, 641) / 100)) / 100);
     else dn = Math.min(1.75, Math.floor(100 * (dn + (SaltLick(ctx, 7) + chipBonuses(ctx, "move") + (GetTalentNumber(ctx, 1, 641) + Labb(ctx, "SigilBonus", "Blank", 13, 0))) / 100)) / 100);
   }
-  if (1 == runtime(ctx, "Windwalker(CompassTempest)", "masterclass form, not counted")) throw new Error("unreachable");
+  if (1 == Windwalker(ctx, "CompassTempest", 0, 0)) throw new Error("unreachable");
   if (266 == ctx.map) dn = 1.75;
   return Math.floor(100 * dn) / 100;
 });

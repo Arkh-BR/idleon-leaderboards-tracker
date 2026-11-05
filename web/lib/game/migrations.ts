@@ -198,7 +198,8 @@ export const MIGRATIONS: readonly Step[] = Object.freeze([
   loaderInit("RoyalMaps", 33, 19944816, 6586120),
   loaderInit("Menagerie", 34, 19944986, 6586152),
   // ── 2. initialize1..4 ──
-  // initialize1 turns every null of OptionsListAccount into 0 (HourZero has three; the Tome reads them)
+  // initialize1 turns every null of OptionsListAccount into 0 (the Tome reads them). No real save has one, so the step never fires on one; the
+  // three nulls of the HourZero save are holes that step 351's OptionsListAccount[449] = 0 creates later, after this step
   pad("initialize1", "OptionsListAccount nulls set to 0", 6192268, (l) => {
     const ola = present(l, "OptionsListAccount");
     if (!ola) return false;

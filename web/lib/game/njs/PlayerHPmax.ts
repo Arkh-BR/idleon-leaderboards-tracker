@@ -2,6 +2,8 @@ import { attr } from "../attr";
 import { block, runtime } from "../ctx";
 import { NotPorted } from "../errors";
 import { itemsOwned } from "../player";
+import { Windwalker } from "./Windwalker";
+import { Summoning } from "./Summoning";
 import { ArbitraryCode } from "./ArbitraryCode";
 import { CardBonusREAL } from "./CardBonusREAL";
 import { DNSM_AlchBubbles, DNSM_BoxRewards, DNSM_FamBonusQTYs, DNSM_StarSigns } from "./DNSM";
@@ -29,8 +31,8 @@ import type { Ported } from "../ported";
  */
 export const PlayerHPmax = block("PlayerHPmax", (ctx) => {
   if (-1 != Dungon(ctx)) throw new NotPorted("PlayerHPmax", `CurrentMap=${ctx.map}`);
-  if (1 == runtime(ctx, "Summoning(GrimoireWraith)", "masterclass form, not counted")) throw new Error("unreachable");
-  if (1 == runtime(ctx, "Windwalker(CompassTempest)", "masterclass form, not counted")) throw new Error("unreachable");
+  if (1 == Summoning(ctx, "GrimoireWraith", 0, 0)) throw new Error("unreachable");
+  if (1 == Windwalker(ctx, "CompassTempest", 0, 0)) throw new Error("unreachable");
   const boosts = TotalFoodBonuses(ctx, "HpBaseBoosts") + ArbitraryCode(ctx, "StatueBonusGiven4"); // DN.PlayerHPmaxDN
   const list = [
     15 +
