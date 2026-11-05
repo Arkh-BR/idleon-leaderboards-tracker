@@ -140,6 +140,14 @@ describe("the loader: an attribute it reads only from a save version keeps its i
     const full = MapAFKtarget.map((m) => (["Nothing", "Z"].includes(m as string) ? [0] : [1, 2, 3]));
     expect(buildGameState(env({ CSver: 34.05, MapBon: full })).migrations).toEqual([]);
   });
+  it("pads DungUpg to 7 lists (the Flurbo shop's 8 levels are DungUpg[5]); 7 lists, or an empty DungUpg (the unported fill), are left alone", () => {
+    const short = buildGameState(env({ CSver: 34.05, DungUpg: [[1], [2], [3], [4], [5]] }));
+    expect(short.data.DungUpg).toEqual([[1], [2], [3], [4], [5], zeros(8), zeros(10)]);
+    expect(short.migrations).toEqual(["DungUpg padded to 7 lists (initialize2 @6236847)"]);
+    expect(buildGameState(env({ CSver: 34.05, DungUpg: [[1], [2], [3], [4]] })).data.DungUpg).toEqual([[1], [2], [3], [4], zeros(4), zeros(8), zeros(10)]);
+    expect(buildGameState(env({ CSver: 34.05, DungUpg: lists(1, 1, 1, 1, 1, 1, 1) })).migrations).toEqual([]);
+    expect(buildGameState(env({ CSver: 34.05, DungUpg: [] })).data.DungUpg).toEqual([]);
+  });
 });
 
 describe("the OnPlayStart blocks: each runs when its gate is above DoOnceREAL, raises it, and runs once", () => {
@@ -374,6 +382,15 @@ describe.skipIf(!existsSync(NJS))("against the live N.js", () => {
       expect(d[name]).toEqual(game);
     });
   }
+
+  it("initialize2's DungUpg pads are the ones ported", () => {
+    const init2 = "_customBlock_initialize2=function";
+    const pad = (n: number) => compact(njsBlock(src, `${n}>a.engine.getGameAttribute("DungUpg").length&&`, init2));
+    expect(pad(5)).toBe("5>DungUpg.length&&(DummyList2=[],DummyList2.push(0)x4,DungUpg.push(DummyList2));");
+    expect(pad(6)).toBe("6>DungUpg.length&&(DummyList2=[],DummyList2.push(0)x8,DungUpg.push(DummyList2));");
+    expect(pad(7)).toBe("7>DungUpg.length&&(DummyList2=[],DummyList2.push(0)x10,DungUpg.push(DummyList2),DummyList2=[]);");
+    expect(fnText("initialize2")).toContain('if(0==a.engine.getGameAttribute("DungUpg").length){'); // the fill, only of an empty DungUpg
+  });
 
   it("initialize3's pads of Compass and MapBon are the ones ported", () => {
     const init3 = "_customBlock_initialize3=function";

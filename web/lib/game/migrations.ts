@@ -10,8 +10,8 @@
 //      `<N> > DoOnceREAL` that raise DoOnceREAL (to N.1...), so each runs once per account, in order; the next save stores the result
 //      (CloudSAVE writes CSver 34.05 and DoOnceREAL every time, @6473294).
 // `migrate` replays those steps on the parsed save, in the game's order, before the state is frozen, so an older save reads what the
-// game reads. Only the steps (or the parts of a step) whose result Artifact Find reads (its terms and the Tome score of its Lore Episode)
-// are ported, each with its gate and its offset in the live N.js; they were found by running the refused real saves (each next missing
+// game reads. Only the steps (or the parts of a step) whose result Artifact Find or the Damage plan's ports read (Artifact Find's terms
+// and the Tome score of its Lore Episode; the character stats) are ported, each with its gate and its offset in the live N.js; they were found by running the refused real saves (each next missing
 // key led to the step that creates it) and by reading every other step those saves pass, which the list at the end of the file accounts
 // for (each of those was also applied by hand to every real save that passes it: no total moved).
 //
@@ -202,6 +202,16 @@ export const MIGRATIONS: readonly Step[] = Object.freeze([
     if (!ola) return false;
     let changed = false;
     for (let b = 0; b < ola.length; b++) if (null == ola[b]) (ola[b] = 0), (changed = true);
+    return changed;
+  }),
+  // initialize2 pads DungUpg to 7 lists (@6236847): a 5th of 4 zeros, a 6th of 8 (the Flurbo shop, FlurboShop reads it) and a 7th of
+  // 10, each only when the list is shorter. An empty DungUpg gets initialize2's fill of 7 lists first (@6233677, not ported: no real save
+  // lacks it), which these pads then leave alone: here an empty one is left to the reads
+  pad("initialize2", "DungUpg padded to 7 lists", 6236847, (l) => {
+    const dung = present(l, "DungUpg");
+    if (!dung || 0 == dung.length) return false;
+    let changed = false;
+    for (const [n, zeros] of [[5, 4], [6, 8], [7, 10]] as const) if (n > dung.length) dung.push(filled(zeros, 0)), (changed = true);
     return changed;
   }),
   initFill("initialize3", "Compass", 6297143, () => [[], [], [], [], []]),
@@ -447,8 +457,12 @@ export function migrate(
   return { steps, assumed };
 }
 
-// Not ported: Artifact Find (its terms and lib/tome's rows) reads nothing they write, or they never run on a real save. Each one that
-// runs on a real save was applied by hand to every real save it runs on, the state rebuilt, every character's total compared: none moved.
+// Not ported: Artifact Find (its terms and lib/tome's rows) and the Damage plan's ports read nothing they write, or they never run on a
+// real save. Each one that runs on a real save was applied by hand to every real save it runs on, the state rebuilt, every character's
+// Artifact Find total compared: none moved. Re-audited for the keys the character stats read (Damage Task 3): OptionsListAccount,
+// Spelunk, CookMaster (round 1: their steps are above; the OptionsListAccount writes below are of indexes no stat reads), then
+// PrayersActive, PrayersUnlocked, SaltLick, BuffsActive, FoodSlotsOwned, UpgVault, DungUpg (its pads are above), Menagerie[0] and
+// OptionsListAccount[271], [279], [438] (round 2): nothing below writes them.
 //   - the loader: Tess (CSver 26; not reset by ClearLocalData, so it would need an assumption; initialize3 fills it with [[], []]) and
 //     GreenStacks (31);
 //   - initialize1: GemItemsPurchased padded to 300; OptionsListAccount padded to 17..70 and its 51..59 splice (no real save is that
@@ -457,7 +471,7 @@ export function migrate(
 //     PostOfficeInfo[3]; the CauldronInfo pads (to AlchemyCoords and AlchemyDescription); every character's StatueLevels to StatueInfo;
 //     Tasks[3] to TaskUnlocks; the chat, NonCloudsave and displayData lists (session state);
 //   - initialize2: Cards, NONdummies (session runtime, Ruling A), StarSignProg to StarQuests, PldTraps, MaxCarryCap, PrinterXtra to 264,
-//     CurrenciesOwned.NPC, StatueG to 60, DungUpg 5..7, AchieveReg to 420, ArcadeUpg to ArcadeShopInfo, one more Cooking slot, Pets to
+//     CurrenciesOwned.NPC, StatueG to 60, the DungUpg fill of an empty list, AchieveReg to 420, ArcadeUpg to ArcadeShopInfo, one more Cooking slot, Pets to
 //     150, Territory to 26, and the resets of a save below DoOnceREAL 71.2 (no real save);
 //   - initialize3: the Breeding pads to PetStats, Ribbon to 28 + MealINFO, the resets below DoOnceREAL 122 and 195 (no real save), the
 //     fills of Grimoire, Ribbon, UpgVault, Breeding, Lab... (no real save lacks them); inside the Research fill, Research[5] and [6]
