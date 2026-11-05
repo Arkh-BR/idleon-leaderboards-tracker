@@ -363,6 +363,11 @@ export const MIGRATIONS: readonly Step[] = Object.freeze([
     const artifacts = list(l, "Sailing", 3);
     for (let b = 0; b < artifacts.length; b++) if (6 <= asNumber(artifacts[b])) artifacts[b] = 5;
   }),
+  // a null Sailing[3] element is not a 0: ArtifactBonus tests the raw element (null takes the base), a 0 gives 0
+  once("OnPlayStart4", 337, 337.1, 6441027, (l) => {
+    const artifacts = list(l, "Sailing", 3);
+    for (let b = 0; b < artifacts.length; b++) if (artifacts[b] == null) artifacts[b] = 0;
+  }, "Sailing[3] null -> 0 part"),
   once("OnPlayStart4", 351, 351.1, 6442863, (l) => {
     list(l, "Sushi", 4)[0] = 40;
     list(l, "OptionsListAccount")[449] = 0;
@@ -511,8 +516,8 @@ export function migrate(
 //     4, 5, 6, 44, 47]): the initialize fills of empty lists (TowerInfo, Rift, Divinity...), then blocks no real save runs (DoOnceREAL >=
 //     248.3): TowerInfo zeroed (< 14.5), OptionsListAccount[89] capped (< 80.5), Rift[0..4] reset and Sailing[3] 3 -> 2 (< 150.5), Gaming[12]
 //     and Rift[2] reset (< 152.5), the Divinity resets (< 127, < 129), Divinity[39] = 0 and Sailing[1] capped (< 173), Divinity[24] (< 243);
-//     the blocks ported above (262: TotemInfo, 331: Sailing[3] past 5, 301, 310, 380, 395, 399: the Spelunk lists); and 337 (Sailing[3] null
-//     -> 0: ArtifactBonus tests the raw element, but the one real save below 337, HourZero, has no null there), 327 and 389 (Research[7][8],
+//     the blocks ported above (262: TotemInfo, 331: Sailing[3] past 5, 301, 310, 380, 395, 399: the Spelunk lists); 337 (Sailing[3] null -> 0,
+//     ported above), 327 and 389 (Research[7][8],
 //     [7][10]: not read). KRbest, FarmCrop, ChestOrder/ChestQuantity, InventoryOrder and EquipmentOrder have no load-step write. No step ported.
 //   - the loader: Tess (CSver 26; not reset by ClearLocalData, so it would need an assumption; initialize3 fills it with [[], []]);
 //   - initialize1: GemItemsPurchased padded to 300; OptionsListAccount padded to 17..70 and its 51..59 splice (no real save is that
@@ -535,7 +540,7 @@ export function migrate(
 //     ShopStock); the rest of 294 (Exp0 / ExpReq0[19], OptionsListAccount[464]); 306 (OptionsListAccount[266, 330..393, 489]); the rest
 //     of 310 (Gaming[13]) and 313 (OptionsListAccount[26], cleanMarkedFiles); 314, 315 (OptionsListAccount[484]); 316 (achievement
 //     area checks, host calls on Electron); the rest of 327 (OptionsListAccount[493/496], Gaming[6] and [11], GamingSprout[33],
-//     CogOrder, CogMap and FlagUnlock to 252, Research[7][8]); 337 (OptionsListAccount[523/590], Sailing[3] null -> 0, the Cooking
+//     CogOrder, CogMap and FlagUnlock to 252, Research[7][8]); the rest of 337 (OptionsListAccount[523/590], the Cooking
 //     caps); 339 (a 14th Research list, OptionsListAccount[520]); 352 (OptionsListAccount[325], GemsOwned); the rest of 366
 //     (Research[13][0..1], OptionsListAccount[449/519], Holes[11][82]); 367 (Holes[29] null -> 0, Holes[26/27][15/16]); 369 (CogOrder
 //     "Player_" slots to "Blank"), 370 (CookMaster ranks), 374 (OptionsListAccount[602] + 2), 375 (Holes[11] null -> 0: lib/tome reads

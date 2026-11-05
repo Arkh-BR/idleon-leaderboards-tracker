@@ -202,6 +202,15 @@ describe("the OnPlayStart blocks: each runs when its gate is above DoOnceREAL, r
     expect((d.Sailing as unknown[][])[3]).toEqual([1, 5, 5, 5, null]);
     expect(d.DoOnceREAL).toBe(332.1);
   });
+  it("337 turns a null Sailing[3] element into 0 (ArtifactBonus tests the raw element) and leaves a save at 337 or later alone", () => {
+    const d: Record<string, unknown> = { DoOnceREAL: 336, Sailing: [[], [], [], [1, null, 0, null]] };
+    expect(runStep("OnPlayStart4 DoOnceREAL < 337 ", d)).toBe(true);
+    expect((d.Sailing as unknown[][])[3]).toEqual([1, 0, 0, 0]);
+    expect(d.DoOnceREAL).toBe(337.1);
+    const e: Record<string, unknown> = { DoOnceREAL: 337.1, Sailing: [[], [], [], [1, null]] };
+    expect(runStep("OnPlayStart4 DoOnceREAL < 337 ", e)).toBe(false);
+    expect((e.Sailing as unknown[][])[3]).toEqual([1, null]);
+  });
   it("268 clears the permanently unlocked sets of an account that bought few gems, as the game does", () => {
     const run = (sgr: number, ola380: number) => {
       const d: Record<string, unknown> = { DoOnceREAL: 267, ServerGemsReceived: sgr, ServerGems: 0, OptLacc: Object.assign(zeros(400), { 379: "GODSHARD_SET", 380: ola380 }) };
@@ -465,7 +474,7 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("the real saves", () => {
       seen.set(group, [...(seen.get(group) ?? []), file].sort());
     }
     expect(Object.fromEntries(seen)).toEqual({
-      "CSver 23.05, DoOnceREAL 248.3: 44 steps": ["HourZero.json"],
+      "CSver 23.05, DoOnceREAL 248.3: 45 steps": ["HourZero.json"],
       "CSver 29.05, DoOnceREAL 340.1: 20 steps": ["5OhTree.json"],
       "CSver 30.05, DoOnceREAL 367.1: 15 steps": ["0celot8.json"],
       "CSver 32.05, DoOnceREAL 378.1: 10 steps": ["100Cotton.json", "100Cotton.json", "24632463.json", "Brokami.json", "Exrom.json", "GIM_SSS.json", "Pontinhas.json"],
