@@ -17,7 +17,7 @@ import { computeAccuracy, computePlayerSpeed, computeStarSignBonus } from "@/lib
 import { computePlayerHPmax, computePlayerMPmax } from "@/lib/arkh/stats/systems/common/derived-stats";
 import { computeStatueBonusGiven, computeTotalStat } from "@/lib/arkh/stats/systems/common/stats";
 import { goldFoodBonuses, gfoodBonusMULTIBreakdown } from "@/lib/arkh/stats/systems/common/goldenFood";
-import { computePrayerReal } from "@/lib/arkh/stats/systems/w3/prayer";
+import { computePrayerReal, prayersReal } from "@/lib/arkh/stats/systems/w3/prayer";
 import { computeSummUpgBonus } from "@/lib/arkh/stats/systems/w6/summoning";
 import { talent as talentResolver } from "@/lib/arkh/stats/systems/common/talent";
 import { votingBonusz } from "@/lib/arkh/stats/systems/w2/voting";
@@ -262,12 +262,12 @@ export const arkhStats = (save: unknown, ci: number): Record<ArkhStat, number> =
 export const arkhStat = (save: unknown, ci: number, stat: ArkhStat): number => arkhStats(save, ci)[stat];
 
 /**
- * lib/arkh's move speed for character `ci` of the save at `path`, as a whole % (computePlayerSpeed keeps two decimals): what
- * PlayerSpeedBonus @4139326 returns. Not one of the cached stats: computed from a fresh load each call.
+ * lib/arkh's move speed for character `ci` of the save at `path`, a multiplier to two decimals (1.75 = 175%), as PlayerSpeedBonus
+ * @4139326 returns it. Not one of the cached stats: computed from a fresh load each call.
  */
 export function arkhSpeed(path: string, ci: number): number {
   loadSaveData(JSON.parse(readFileSync(path, "utf8")));
-  return Math.round(100 * computePlayerSpeed(ci, { saveData, charIdx: ci, activeCharIdx: ci } as never));
+  return computePlayerSpeed(ci, { saveData, charIdx: ci, activeCharIdx: ci } as never);
 }
 
 /** The lib/game Ctx for character `ci` of a parsed save, on map 0 (what Artifact Find uses). */
@@ -786,7 +786,20 @@ export const KNOWN_ARKH_DIFFS: {
  */
 export const SEED_STAT: Partial<Record<ArkhStat | "speed", keyof typeof MAIN_STATS | "accuracy">> = { str: "str", agi: "agi", wis: "wis", luk: "luk", maxMp: "wis", maxHp: "str", accuracy: "accuracy", speed: "agi" };
 
-export function arkhStatSeeds(path: string, ci: number, reasons: readonly string[], seedStat: keyof typeof MAIN_STATS | "accuracy" = "str"): [name: string, args: (string | number)[], value: number][] {
+/** The statues each stat reads (StatueBonusGiven<n>): HP's 4 and, through its boost foods (FoodBonuses @4125641), 3; the move speed's 1 and 3; accuracy's 14 and the move speed's. */
+const STATUES_READ: Partial<Record<ArkhStat | "speed", readonly number[]>> = { maxHp: [3, 4], speed: [1, 3], accuracy: [1, 3, 14] };
+
+/**
+ * lib/arkh's own prayersReal(d, b), the one with both branches (the Super Bit one included): what the pray6 reason says lib/arkh's
+ * accuracy should have called.
+ */
+export function arkhPrayersReal(path: string, ci: number, d: number, b: number): number {
+  loadSaveData(JSON.parse(readFileSync(path, "utf8")));
+  return prayersReal(d, b, ci, saveData).val;
+}
+
+export function arkhStatSeeds(path: string, ci: number, reasons: readonly string[], forStat: ArkhStat | "speed"): [name: string, args: (string | number)[], value: number][] {
+  const seedStat = SEED_STAT[forStat] ?? "str";
   loadSaveData(JSON.parse(readFileSync(path, "utf8")));
   const ctx = { saveData, charIdx: ci, activeCharIdx: ci } as never;
   const second = ClassStatTypes[`${ReturnClasses(Number(charClassData[ci]))[0]}`]?.[1];
@@ -818,8 +831,11 @@ export function arkhStatSeeds(path: string, ci: number, reasons: readonly string
     else if (r === "tomeW8") out.push(["DNSM.AlchBubbles", [tomeBubble], at(`AlchBubble ${tomeBubble}`)]);
     else if (r === "signs") out.push(["DNSM.StarSigns", [STAT], at(`StarSigns.${STAT}`)], ["DNSM.StarSigns", [`pct${STAT}`], at(`StarSigns.pct${STAT}`)]);
     else if (r === "comp0") out.push(["Companions", [0], 1]);
-    else if (r === "statues") for (const n of [1, 3, 4, 14]) out.push(["ArbitraryCode", [`StatueBonusGiven${n}`], computeStatueBonusGiven(n, ci, saveData).val]);
-    else if (r === "buff108") {
+    else if (r === "statues") {
+      const read = STATUES_READ[forStat];
+      if (!read) throw new Error(`arkhStatSeeds: ${forStat} reads no statue`);
+      for (const n of read) out.push(["ArbitraryCode", [`StatueBonusGiven${n}`], computeStatueBonusGiven(n, ci, saveData).val]);
+    } else if (r === "buff108") {
       const n = find(computePlayerHPmax(ci, ctx) as unknown as ArkhNode, (x) => !!x.name?.startsWith("Buff 108"));
       if (!n) throw new Error("arkhStatSeeds: no Buff 108 in lib/arkh's Max HP");
       out.push(["GetBuffBonuses", [108, 1], -n.val]);

@@ -18,7 +18,8 @@ import { itemDef, TotalStats } from "./TotalStats";
 import type { Ported } from "../ported";
 
 /**
- * N.js `_customBlock_PlayerSpeedBonus()` @4139326: the character's move speed, as a whole % (floor(100 x DN.PlayerSpeedBonusDN)). DN is
+ * N.js `_customBlock_PlayerSpeedBonus()` @4139326: the character's move speed, a multiplier to two decimals (1.75 = 175%, what Player Info
+ * shows as round(100 x it) % @6716046): floor(100 x DN.PlayerSpeedBonusDN) / 100. DN is
  * 1 + (the move-speed foods (FoodSlotsOwned of EquipmentOrder[2], each Amount x its food multiplier), talent 266, the PctMoveSpd stamp,
  * buff 273, OptionsListAccount[438], statue 1, the MoveSpd star signs, unique stat 1, card 6, talent 77) / 100 + the AGI term / 2.2, the
  * AGI term being (AGI + 1)^.4 - 1) / 40 below 1000 AGI, else .5 (AGI - 1000) / (AGI + 2500) + .371. At 2 or less it is capped: past 1.75
@@ -48,7 +49,7 @@ export const PlayerSpeedBonus = block("PlayerSpeedBonus", (ctx) => {
   }
   if (1 == runtime(ctx, "Windwalker(CompassTempest)", "masterclass form, not counted")) throw new Error("unreachable");
   if (266 == ctx.map) dn = 1.75;
-  return Math.floor(100 * dn);
+  return Math.floor(100 * dn) / 100;
 });
 
 /** What this module covers (lib/game/ported.ts). */

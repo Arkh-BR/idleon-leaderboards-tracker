@@ -27,7 +27,7 @@ import type { Ported } from "../ported";
  * N.js `_customBlock_PlayerAccTot()` @4151358: the character's accuracy. DN.PlayerACCDN is the class's second stat (ClassStatTypes of its
  * first class: WIS for a warrior, STR for an archer, AGI for a mage, LUK for a beginner) x (1 + the AccPct bubble / 100) x (1 + (buff 288,
  * card 17, the AccPct star signs, buff 124, statue 14, arcade 2, Flurbo 5, bribe 21, companion 23) / 100), then x (1 + talent 641 / 100)
- * when the move speed is above 1.99 (PlayerSpeedBonus is a whole %, so that is any speed from 2%). The accuracy is
+ * when the move speed is above 199% (PlayerSpeedBonus is a multiplier: 1.99 < it). The accuracy is
  * ((DN / 4)^1.4 + DN + TotalStats("Accuracy")) x (1 + (DN + 2 x card set 4) / 200) x max(.1, 1 + (prayer 6 - the curses of 15 and 16) / 100)
  * x (1 + (the acc chips, the TotAcc meals, Roo 3, vote 3, the Amarok set) / 100) x (1 + the kind-0 divinity minor bonus / 100).
  * A dungeon answers 999999. The masterclass forms (Grimoire Wraith, Compass Tempest, Tesseract Arcanist) replace it with their own and
