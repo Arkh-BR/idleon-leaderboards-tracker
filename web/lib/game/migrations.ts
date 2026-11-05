@@ -519,6 +519,14 @@ export function migrate(
 //     the blocks ported above (262: TotemInfo, 331: Sailing[3] past 5, 301, 310, 380, 395, 399: the Spelunk lists); 337 (Sailing[3] null -> 0,
 //     ported above), 327 and 389 (Research[7][8],
 //     [7][10]: not read). KRbest, FarmCrop, ChestOrder/ChestQuantity, InventoryOrder and EquipmentOrder have no load-step write. No step ported.
+// Re-audited for the keys DamageDealed and TotalStats("Weapon_Power") read themselves (Damage Task 8: CharacterClass, Lv0[0, 2, 10..15],
+// OptionsListAccount[71, 161, 178, 232, 338, 346, 419, 435, 473], Dream[6], Divinity[25], WeeklyBoss.g, QuestComplete.Cactolyte3,
+// InventoryOrder / ItemQuantity, Menagerie[5][2], BundlesReceived.bon_a, FamilyValuesMap.MinigameHiscores (FamValMinigameHiscores),
+// PetsStored[0][2], RoyalG[0][0]; a write scan of the live N.js, @6184758-6475000, each write's DoOnceREAL block found by brace nesting):
+// nothing changes them on a real save (DoOnceREAL >= 248.3). The writes found: OptionsListAccount[71] = 0 (@6360814, DoOnceREAL < 40), the
+// Divinity[25] caps (@6384086, < 127; @6385787, < 129), Dream reset and WeeklyBoss "d_" keys deleted (@6407514, < 187), Menagerie[0][6]
+// (@6466363, block 395, above: [5] is not written), and the initialize fills of empty Menagerie, RoyalG and PetsStored lists (above).
+// CharacterClass, Lv0, QuestComplete, BundlesReceived and FamilyValuesMap have no load-step write. No step ported.
 //   - the loader: Tess (CSver 26; not reset by ClearLocalData, so it would need an assumption; initialize3 fills it with [[], []]);
 //   - initialize1: GemItemsPurchased padded to 300; OptionsListAccount padded to 17..70 and its 51..59 splice (no real save is that
 //     short), its pads to 201..601 (only in the Tutorial scene); the starter star signs

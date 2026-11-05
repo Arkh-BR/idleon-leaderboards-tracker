@@ -1,5 +1,5 @@
 import { asNum, asNumber } from "../attr";
-import { block, type Ctx } from "../ctx";
+import { block, runtime, type Ctx } from "../ctx";
 import { CompassUpg } from "../data";
 import { NotPorted } from "../errors";
 import { listAt } from "../lists";
@@ -14,7 +14,7 @@ import { SushiStuff } from "./SushiStuff";
 import { Thingies } from "./Thingies";
 import type { Ported } from "../ported";
 
-/** N.js `_customBlock_Windwalker(d, b, e)` @11059720: one function, a chain of named sub-cases. Only the sub-cases the character stats reach. */
+/** N.js `_customBlock_Windwalker(d, b, e)` @11059720: one function, a chain of named sub-cases. Only the sub-cases the character stats and Damage reach. */
 export const Windwalker: (ctx: Ctx, d: string, b: number, e: number) => number = block("Windwalker", (ctx, d: string, b: number, _e: number) => {
   switch (d) {
     // @11077842: Compass upgrade b, its level Compass[0][b] times its value CompassUpg[b][5]; the upgrades with [9] == 1 also times
@@ -41,10 +41,14 @@ export const Windwalker: (ctx: Ctx, d: string, b: number, e: number) => number =
                   (GamingStatType(ctx, "PaletteBonus", 23, 0) + (FarmingStuffs(ctx, "ExoticBonusQTY", 49, 0) + Math.round(asNum(ctx, "Spelunk", 4, 3))))))))) +
         (Thingies(ctx, "LegendPTS_bonus", 36, 0) + (SushiStuff(ctx, "RoG_BonusQTY", 17, 0) + JellyOperation(ctx, "RoG_BonusQTY", 50, 0) / 100))
       );
+    // @11062351: the Compass Tempest form, `.1 <= GetBuffBonuses(420,1) ? (1 == NONdummies[67] && 100 < its BuffsActive timer ? 1 : 0) : 0`.
+    // The masterclass forms are not counted (the Damage page's product decision), as in PlayerHPmax and PlayerAccTot
+    case "CompassTempest":
+      return runtime(ctx, "Windwalker(CompassTempest)", "masterclass form, not counted");
     default:
       throw new NotPorted("Windwalker", d);
   }
 });
 
 /** What this module covers (lib/game/ported.ts). */
-export const PORTED: Ported = { CompassBonus: true, StampDoubler: true };
+export const PORTED: Ported = { CompassBonus: true, StampDoubler: true, CompassTempest: true };

@@ -1019,7 +1019,7 @@ describe("ports stay on their boundary", () => {
     expect(() => Spelunk(c(), "CavesUnlocked", 0, 0)).toThrow(NotPorted);
     expect(() => Holes(c(), "VillagersOwned", 0, 0)).toThrow(NotPorted);
     expect(() => Thingies(c(), "LoreEpiBon", -1, 0)).toThrow(expect.objectContaining({ name: "NotPorted", sub: "LoreEpiBon:b=-1" })); // the cache rebuild (Task 8 ported the entries 0..10)
-    expect(() => ArcaneType(c(), "TesseractArcanist", 0, 0)).toThrow(NotPorted);
+    expect(() => ArcaneType(c(), "Arcane_DMG", 0, 0)).toThrow(NotPorted); // TesseractArcanist is a runtime 0 since Damage Task 8
     expect(() => GamingStatType(c(), "LVupChance", 0, 0)).toThrow(NotPorted);
     expect(() => JellyOperation(c(), "SlotUnlocked", 0, 0)).toThrow(NotPorted);
     expect(() => SushiStuff(c(), "UpgLvREQ", 0, 0)).toThrow(NotPorted);

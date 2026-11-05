@@ -117,7 +117,7 @@ function emperorBon(ctx: Ctx, b: number): number {
 function haveBanI(ctx: Ctx): number {
   return haveBan(ctx, "ban_i");
 }
-function haveBan(ctx: Ctx, bundle: string): number {
+export function haveBan(ctx: Ctx, bundle: string): number {
   if (opt(ctx.state, SAVE_ATTRS.BundlesReceived.key) === undefined) {
     if (ctx.trace) ctx.trace.children.push(traceNode(ctx.trace, ctx.player, "(absent)", ["BundlesReceived"], 0, 'absent: getLoadMap("BundlesReceived") @19927310 → {}'));
     return 0;

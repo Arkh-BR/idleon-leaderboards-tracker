@@ -13,26 +13,26 @@ Regenerate it when N.js, a module's `PORTED` or `lib/game/unreached.ts` changes.
 - attrs and dnsm are the reads in every slice listed. One marked "whole body only" is read only inside a whole-body function (all its branches, not just the one this formula takes). `DNSM` is runtime-only (it is never loaded from the save): port it as `DNSM_*` functions, not as a save attribute. The dnsm list also holds the scratch keys a formula writes and reads back in the same slice (`CaptnBonuz`, `AtomBonCalc1`); the inputs are the caches the game fills elsewhere (`StarSigns`, `AlchVials`, `FamBonusQTYs`…).
 - Depth stops at 6.
 
-**67 functions, 669 sub-cases (rows), 204 whole body, 0 not found, 95 attrs, 120 dnsm.** **600 ported `[x]`, 19 not reached `[~]`, 50 open.**
+**67 functions, 669 sub-cases (rows), 204 whole body, 0 not found, 95 attrs, 120 dnsm.** **608 ported `[x]`, 61 not reached `[~]`, 0 open.**
 
 Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("AGI")`, R4 = `TotalStats("WIS")`, R5 = `TotalStats("LUK")`, R6 = `PlayerHPmax()`, R7 = `PlayerMPmax()`, R8 = `PlayerAccTot()`.
 
 ## DamageDealed
 
-- [ ] DamageDealed("Max") — depth 0 — 18654 chars — roots: R1
+- [x] DamageDealed("Max") — depth 0 — 18654 chars — roots: R1
 
 ## DungeonStat
 
-- [ ] DungeonStat("DMG") — depth 1 — 2601 chars — roots: R1
-- [ ] DungeonStat("HP") — depth 1 — 1008 chars — roots: R1 R6
-- [ ] DungeonStat("Weapon_Power") — depth 2 — 47 chars — roots: R1
-- [ ] DungeonStat("MP") — depth 1 — 733 chars — roots: R1 R7
-- [ ] DungeonStat("SPEED") — depth 2 — 316 chars — roots: R1 R8
+- [~] DungeonStat("DMG") — depth 1 — 2601 chars — roots: R1 — not reached: reached only on a dungeon map, by DamageDealed (@4106182): DamageDealed returns a runtime leaf there (@4106070, the dungeon branch is not counted) and PlayerHPmax, PlayerMPmax and PlayerSpeedBonus refuse a dungeon map (NotPorted CurrentMap=<map>)
+- [~] DungeonStat("HP") — depth 1 — 1008 chars — roots: R1 R6 — not reached: reached only on a dungeon map, by PlayerHPmax (@4147196) and DungeonStat("DMG"): DamageDealed returns a runtime leaf there (@4106070, the dungeon branch is not counted) and PlayerHPmax, PlayerMPmax and PlayerSpeedBonus refuse a dungeon map (NotPorted CurrentMap=<map>)
+- [~] DungeonStat("Weapon_Power") — depth 2 — 47 chars — roots: R1 — not reached: reached only on a dungeon map, by DungeonStat("DMG") (@7837921): DamageDealed returns a runtime leaf there (@4106070, the dungeon branch is not counted) and PlayerHPmax, PlayerMPmax and PlayerSpeedBonus refuse a dungeon map (NotPorted CurrentMap=<map>)
+- [~] DungeonStat("MP") — depth 1 — 733 chars — roots: R1 R7 — not reached: reached only on a dungeon map, by PlayerMPmax (@4150123) and DungeonStat("DMG"): DamageDealed returns a runtime leaf there (@4106070, the dungeon branch is not counted) and PlayerHPmax, PlayerMPmax and PlayerSpeedBonus refuse a dungeon map (NotPorted CurrentMap=<map>)
+- [~] DungeonStat("SPEED") — depth 2 — 316 chars — roots: R1 R8 — not reached: reached only on a dungeon map, by PlayerSpeedBonus (@4141907): DamageDealed returns a runtime leaf there (@4106070, the dungeon branch is not counted) and PlayerHPmax, PlayerMPmax and PlayerSpeedBonus refuse a dungeon map (NotPorted CurrentMap=<map>)
 
 ## RoyalG
 
-- [ ] RoyalG("RatDMG",0,0) — depth 1 — 109 chars — roots: R1
-- [ ] RoyalG("StatueBon",0,0) — depth 1 — 327 chars — roots: R1
+- [x] RoyalG("RatDMG",0,0) — depth 1 — 109 chars — roots: R1
+- [x] RoyalG("StatueBon",0,0) — depth 1 — 327 chars — roots: R1
 - [x] RoyalG("ArmoryUpgBonus",35,0) — depth 2 — 136 chars — roots: R1
 - [x] RoyalG("ArmoryUpgBonus",36,0) — depth 2 — 136 chars — roots: R1
 - [x] RoyalG("ArmoryUpgBonus",45,0) — depth 2 — 136 chars — roots: R1
@@ -132,7 +132,7 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 
 ## Windwalker
 
-- [ ] Windwalker("Compass_DMG",0,0) — depth 1 — 2518 chars — roots: R1
+- [~] Windwalker("Compass_DMG",0,0) — depth 1 — 2518 chars — roots: R1 — not reached: called only by DamageDealed (@4106667) while Windwalker("CompassTempest") is 1, a masterclass form, which is a runtime 0 (the Damage page does not count the masterclass forms)
 - [x] Windwalker("CompassBonus",48,0) — depth 1 — 711 chars — roots: R1
 - [x] Windwalker("CompassBonus",14,0) — depth 2 — 711 chars — roots: R1
 - [x] Windwalker("CompassBonus",15,0) — depth 2 — 711 chars — roots: R1
@@ -155,11 +155,11 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 - [x] Windwalker("CompassBonus",135,0) — depth 2 — 711 chars — roots: R1
 - [x] Windwalker("CompassBonus",64,0) — depth 2 — 711 chars — roots: R1
 - [x] Windwalker("CompassBonus",78,0) — depth 2 — 711 chars — roots: R1
-- [ ] Windwalker("Compass_HP",0,0) — depth 1 — 262 chars — roots: R1 R6 R8
+- [~] Windwalker("Compass_HP",0,0) — depth 1 — 262 chars — roots: R1 R6 R8 — not reached: called only by PlayerHPmax (@4147418) and Compass_DMG / Compass_ACC (@11068128, @11069410) while Windwalker("CompassTempest") is 1, a masterclass form, which is a runtime 0 (the Damage page does not count the masterclass forms)
 - [x] Windwalker("CompassBonus",85,0) — depth 2 — 711 chars — roots: R1
 - [x] Windwalker("CompassBonus",94,0) — depth 2 — 711 chars — roots: R1
-- [ ] Windwalker("CompassTempest",0,0) — depth 1 — 289 chars — roots: R1 R6 R8
-- [ ] Windwalker("Compass_MoveSpeed",0,0) — depth 2 — 151 chars — roots: R1 R8
+- [x] Windwalker("CompassTempest",0,0) — depth 1 — 289 chars — roots: R1 R6 R8
+- [~] Windwalker("Compass_MoveSpeed",0,0) — depth 2 — 151 chars — roots: R1 R8 — not reached: called only by PlayerSpeedBonus (@4143036) while Windwalker("CompassTempest") is 1, a masterclass form, which is a runtime 0 (the Damage page does not count the masterclass forms)
 - [x] Windwalker("CompassBonus",39,0) — depth 2 — 711 chars — roots: R1 R6 R8
 - [x] Windwalker("CompassBonus",80,0) — depth 2 — 711 chars — roots: R1 R6 R8
 - [x] Windwalker("CompassBonus",28,0) — depth 2 — 711 chars — roots: R1 R6 R8
@@ -170,12 +170,12 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 - [x] Windwalker("CompassBonus",35,0) — depth 3 — 711 chars — roots: R1 R8
 - [x] Windwalker("CompassBonus",141,0) — depth 3 — 711 chars — roots: R1 R8
 - [x] Windwalker("CompassBonus",62,0) — depth 3 — 711 chars — roots: R1 R8
-- [ ] Windwalker("Compass_ACC",0,0) — depth 1 — 1219 chars — roots: R1 R8
+- [~] Windwalker("Compass_ACC",0,0) — depth 1 — 1219 chars — roots: R1 R8 — not reached: called only by PlayerAccTot (@4151632) while Windwalker("CompassTempest") is 1, a masterclass form, which is a runtime 0 (the Damage page does not count the masterclass forms)
 - [x] Windwalker("CompassBonus",17,0) — depth 2 — 711 chars — roots: R1 R8
 - [x] Windwalker("CompassBonus",19,0) — depth 2 — 711 chars — roots: R1 R8
 - [x] Windwalker("CompassBonus",25,0) — depth 2 — 711 chars — roots: R1 R8
 - [x] Windwalker("CompassBonus",61,0) — depth 2 — 711 chars — roots: R1 R8
-- [ ] Windwalker("CompassUpgTotal",0,0) — depth 2 — 458 chars — roots: R1 R8
+- [~] Windwalker("CompassUpgTotal",0,0) — depth 2 — 458 chars — roots: R1 R8 — not reached: called only within the Damage closure by Compass_ACC (@11068592) while Windwalker("CompassTempest") is 1, a masterclass form, which is a runtime 0 (the Damage page does not count the masterclass forms); Compass_DEF, TempestMultishotPCT, EffectAmount and ProgressStarsign also call it, outside the closure
 - [x] Windwalker("CompassBonus",22,0) — depth 2 — 711 chars — roots: R1 R8
 - [x] Windwalker("CompassBonus",120,0) — depth 2 — 711 chars — roots: R1 R8
 - [x] Windwalker("CompassBonus",124,0) — depth 2 — 711 chars — roots: R1 R8
@@ -192,46 +192,46 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 
 ## ArcaneType
 
-- [ ] ArcaneType("Arcane_DMG",0,0) — depth 1 — 1353 chars — roots: R1
-- [ ] ArcaneType("ArcaneUpgBonus",0,0) — depth 2 — 467 chars — roots: R1
-- [ ] ArcaneType("ArcaneUpgBonus",6,0) — depth 2 — 467 chars — roots: R1
-- [ ] ArcaneType("ArcaneUpgBonus",15,0) — depth 2 — 467 chars — roots: R1
-- [ ] ArcaneType("ArcaneUpgBonus",36,0) — depth 2 — 467 chars — roots: R1
-- [ ] ArcaneType("ArcaneUpgBonus",50,0) — depth 2 — 467 chars — roots: R1
-- [ ] ArcaneType("ArcaneUpgTotal",0,0) — depth 2 — 448 chars — roots: R1 R8
-- [ ] ArcaneType("ArcaneUpgBonus",12,0) — depth 2 — 467 chars — roots: R1
-- [ ] ArcaneType("ArcaneUpgBonus",4,0) — depth 2 — 467 chars — roots: R1
-- [ ] ArcaneType("ArcaneUpgBonus",24,0) — depth 2 — 467 chars — roots: R1
-- [ ] ArcaneType("ArcaneUpgBonus",31,0) — depth 2 — 467 chars — roots: R1
-- [ ] ArcaneType("ArcaneUpgBonus",42,0) — depth 2 — 467 chars — roots: R1
-- [ ] ArcaneType("ArcaneUpgBonus",53,0) — depth 2 — 467 chars — roots: R1
+- [~] ArcaneType("Arcane_DMG",0,0) — depth 1 — 1353 chars — roots: R1 — not reached: called only by DamageDealed (@4106847) while ArcaneType("TesseractArcanist") is 1, a masterclass form, which is a runtime 0 (the Damage page does not count the masterclass forms)
+- [~] ArcaneType("ArcaneUpgBonus",0,0) — depth 2 — 467 chars — roots: R1 — not reached: called only by Arcane_DMG (@11088565) while ArcaneType("TesseractArcanist") is 1, a masterclass form, which is a runtime 0 (the Damage page does not count the masterclass forms)
+- [~] ArcaneType("ArcaneUpgBonus",6,0) — depth 2 — 467 chars — roots: R1 — not reached: called only by Arcane_DMG (@11088565) while ArcaneType("TesseractArcanist") is 1, a masterclass form, which is a runtime 0 (the Damage page does not count the masterclass forms)
+- [~] ArcaneType("ArcaneUpgBonus",15,0) — depth 2 — 467 chars — roots: R1 — not reached: called only by Arcane_DMG (@11088565) while ArcaneType("TesseractArcanist") is 1, a masterclass form, which is a runtime 0 (the Damage page does not count the masterclass forms)
+- [~] ArcaneType("ArcaneUpgBonus",36,0) — depth 2 — 467 chars — roots: R1 — not reached: called only by Arcane_DMG (@11088565) while ArcaneType("TesseractArcanist") is 1, a masterclass form, which is a runtime 0 (the Damage page does not count the masterclass forms)
+- [~] ArcaneType("ArcaneUpgBonus",50,0) — depth 2 — 467 chars — roots: R1 — not reached: called only by Arcane_DMG (@11088565) while ArcaneType("TesseractArcanist") is 1, a masterclass form, which is a runtime 0 (the Damage page does not count the masterclass forms)
+- [~] ArcaneType("ArcaneUpgTotal",0,0) — depth 2 — 448 chars — roots: R1 R8 — not reached: called only within the Damage closure by Arcane_DMG and Arcane_ACC (@11089334, @11090277) while ArcaneType("TesseractArcanist") is 1, a masterclass form, which is a runtime 0 (the Damage page does not count the masterclass forms); ArcaneUpgUNLOCKED, Arcane_DEF and Arcane_AttackSpdPCT also call it, outside the closure
+- [~] ArcaneType("ArcaneUpgBonus",12,0) — depth 2 — 467 chars — roots: R1 — not reached: called only by Arcane_DMG (@11088565) while ArcaneType("TesseractArcanist") is 1, a masterclass form, which is a runtime 0 (the Damage page does not count the masterclass forms)
+- [~] ArcaneType("ArcaneUpgBonus",4,0) — depth 2 — 467 chars — roots: R1 — not reached: called only by Arcane_DMG (@11088565) while ArcaneType("TesseractArcanist") is 1, a masterclass form, which is a runtime 0 (the Damage page does not count the masterclass forms)
+- [~] ArcaneType("ArcaneUpgBonus",24,0) — depth 2 — 467 chars — roots: R1 — not reached: called only by Arcane_DMG (@11088565) while ArcaneType("TesseractArcanist") is 1, a masterclass form, which is a runtime 0 (the Damage page does not count the masterclass forms)
+- [~] ArcaneType("ArcaneUpgBonus",31,0) — depth 2 — 467 chars — roots: R1 — not reached: called only by Arcane_DMG (@11088565) while ArcaneType("TesseractArcanist") is 1, a masterclass form, which is a runtime 0 (the Damage page does not count the masterclass forms)
+- [~] ArcaneType("ArcaneUpgBonus",42,0) — depth 2 — 467 chars — roots: R1 — not reached: called only by Arcane_DMG (@11088565) while ArcaneType("TesseractArcanist") is 1, a masterclass form, which is a runtime 0 (the Damage page does not count the masterclass forms)
+- [~] ArcaneType("ArcaneUpgBonus",53,0) — depth 2 — 467 chars — roots: R1 — not reached: called only by Arcane_DMG (@11088565) while ArcaneType("TesseractArcanist") is 1, a masterclass form, which is a runtime 0 (the Damage page does not count the masterclass forms)
 - [x] ArcaneType("ArcaneUpgBonus",39,0) — depth 3 — 7 chars — roots: R1 R8
 - [x] ArcaneType("ArcaneUpgBonus",48,0) — depth 3 — 7 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
-- [ ] ArcaneType("TesseractArcanist",0,0) — depth 1 — 289 chars — roots: R1 R8
-- [ ] ArcaneType("Arcane_ACC",0,0) — depth 1 — 698 chars — roots: R1 R8
-- [ ] ArcaneType("ArcaneUpgBonus",1,0) — depth 2 — 467 chars — roots: R1 R8
-- [ ] ArcaneType("ArcaneUpgBonus",9,0) — depth 2 — 467 chars — roots: R1 R8
-- [ ] ArcaneType("ArcaneUpgBonus",19,0) — depth 2 — 467 chars — roots: R1 R8
-- [ ] ArcaneType("ArcaneUpgBonus",38,0) — depth 2 — 467 chars — roots: R1 R8
-- [ ] ArcaneType("ArcaneUpgBonus",52,0) — depth 2 — 467 chars — roots: R1 R8
-- [ ] ArcaneType("ArcaneUpgBonus",22,0) — depth 2 — 467 chars — roots: R1 R8
-- [ ] ArcaneType("ArcaneUpgBonus",44,0) — depth 2 — 467 chars — roots: R1 R8
-- [ ] ArcaneType("ArcaneUpgBonus",55,0) — depth 2 — 467 chars — roots: R1 R8
-- [ ] ArcaneType("ArcaneUpgBonus",27,0) — depth 2 — 467 chars — roots: R1 R8
+- [x] ArcaneType("TesseractArcanist",0,0) — depth 1 — 289 chars — roots: R1 R8
+- [~] ArcaneType("Arcane_ACC",0,0) — depth 1 — 698 chars — roots: R1 R8 — not reached: called only by PlayerAccTot (@4151741) while ArcaneType("TesseractArcanist") is 1, a masterclass form, which is a runtime 0 (the Damage page does not count the masterclass forms)
+- [~] ArcaneType("ArcaneUpgBonus",1,0) — depth 2 — 467 chars — roots: R1 R8 — not reached: called only within the Damage closure by Arcane_ACC (@11089938) while ArcaneType("TesseractArcanist") is 1, a masterclass form, which is a runtime 0 (the Damage page does not count the masterclass forms)
+- [~] ArcaneType("ArcaneUpgBonus",9,0) — depth 2 — 467 chars — roots: R1 R8 — not reached: called only within the Damage closure by Arcane_ACC (@11089938) while ArcaneType("TesseractArcanist") is 1, a masterclass form, which is a runtime 0 (the Damage page does not count the masterclass forms)
+- [~] ArcaneType("ArcaneUpgBonus",19,0) — depth 2 — 467 chars — roots: R1 R8 — not reached: called only within the Damage closure by Arcane_ACC (@11089938) while ArcaneType("TesseractArcanist") is 1, a masterclass form, which is a runtime 0 (the Damage page does not count the masterclass forms)
+- [~] ArcaneType("ArcaneUpgBonus",38,0) — depth 2 — 467 chars — roots: R1 R8 — not reached: called only within the Damage closure by Arcane_ACC (@11089938) while ArcaneType("TesseractArcanist") is 1, a masterclass form, which is a runtime 0 (the Damage page does not count the masterclass forms)
+- [~] ArcaneType("ArcaneUpgBonus",52,0) — depth 2 — 467 chars — roots: R1 R8 — not reached: called only within the Damage closure by Arcane_ACC (@11089938) while ArcaneType("TesseractArcanist") is 1, a masterclass form, which is a runtime 0 (the Damage page does not count the masterclass forms)
+- [~] ArcaneType("ArcaneUpgBonus",22,0) — depth 2 — 467 chars — roots: R1 R8 — not reached: called only within the Damage closure by Arcane_ACC (@11089938) while ArcaneType("TesseractArcanist") is 1, a masterclass form, which is a runtime 0 (the Damage page does not count the masterclass forms)
+- [~] ArcaneType("ArcaneUpgBonus",44,0) — depth 2 — 467 chars — roots: R1 R8 — not reached: called only within the Damage closure by Arcane_ACC (@11089938) while ArcaneType("TesseractArcanist") is 1, a masterclass form, which is a runtime 0 (the Damage page does not count the masterclass forms)
+- [~] ArcaneType("ArcaneUpgBonus",55,0) — depth 2 — 467 chars — roots: R1 R8 — not reached: called only within the Damage closure by Arcane_ACC (@11089938) while ArcaneType("TesseractArcanist") is 1, a masterclass form, which is a runtime 0 (the Damage page does not count the masterclass forms)
+- [~] ArcaneType("ArcaneUpgBonus",27,0) — depth 2 — 467 chars — roots: R1 R8 — not reached: called only within the Damage closure by Arcane_ACC (@11089938) while ArcaneType("TesseractArcanist") is 1, a masterclass form, which is a runtime 0 (the Damage page does not count the masterclass forms)
 
 ## ReturnClasses
 
-- [ ] ReturnClasses() — depth 1 — 2411 chars — whole body — roots: R1 R2 R3 R4 R5 R6 R7 R8
+- [x] ReturnClasses() — depth 1 — 2411 chars — whole body — roots: R1 R2 R3 R4 R5 R6 R7 R8
 
 ## TotalStats
 
-- [ ] TotalStats() — depth 1 — 40703 chars — whole body — roots: R1 R2 R3 R4 R5 R6 R7 R8
-- [ ] TotalStats("Weapon_Power") — depth 1 — 1677 chars — roots: R1
+- [x] TotalStats() — depth 1 — 40703 chars — whole body — roots: R1 R2 R3 R4 R5 R6 R7 R8
+- [x] TotalStats("Weapon_Power") — depth 1 — 1677 chars — roots: R1
 - [x] TotalStats("STR") — depth 0 — 2333 chars — roots: R1 R2 R6
 - [x] TotalStats("LUK") — depth 0 — 2031 chars — roots: R1 R5
 - [x] TotalStats("AGI") — depth 0 — 2297 chars — roots: R1 R3 R8
 - [x] TotalStats("WIS") — depth 0 — 2296 chars — roots: R1 R4 R6 R7
-- [ ] TotalStats("Dung_Power") — depth 3 — 193 chars — roots: R1
+- [~] TotalStats("Dung_Power") — depth 3 — 193 chars — roots: R1 — not reached: reached only on a dungeon map, by DungeonStat("Weapon_Power") (@7835355): DamageDealed returns a runtime leaf there (@4106070, the dungeon branch is not counted) and PlayerHPmax, PlayerMPmax and PlayerSpeedBonus refuse a dungeon map (NotPorted CurrentMap=<map>)
 - [x] TotalStats("Accuracy") — depth 1 — 531 chars — roots: R1 R8
 
 ## GetTalentNumber
@@ -837,14 +837,14 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 
 ## DungeonCalc
 
-- [ ] DungeonCalc("TraitBonus",7) — depth 2 — 65 chars — roots: R1
-- [ ] DungeonCalc("TraitBonus",9) — depth 2 — 65 chars — roots: R1
-- [ ] DungeonCalc("TraitBonus",1) — depth 2 — 65 chars — roots: R1
-- [ ] DungeonCalc("TraitBonus",0) — depth 2 — 65 chars — roots: R1 R6
-- [ ] DungeonCalc("TraitBonus",24) — depth 2 — 65 chars — roots: R1 R6
-- [ ] DungeonCalc("TraitBonus",8) — depth 2 — 65 chars — roots: R1 R7
-- [ ] DungeonCalc("TraitBonus",2) — depth 2 — 65 chars — roots: R1 R7
-- [ ] DungeonCalc("TraitBonus",26) — depth 2 — 65 chars — roots: R1 R7
+- [~] DungeonCalc("TraitBonus",7) — depth 2 — 65 chars — roots: R1 — not reached: reached only on a dungeon map, by DungeonStat (@7831416), the dungeon run's stats: DamageDealed returns a runtime leaf there (@4106070, the dungeon branch is not counted) and PlayerHPmax, PlayerMPmax and PlayerSpeedBonus refuse a dungeon map (NotPorted CurrentMap=<map>)
+- [~] DungeonCalc("TraitBonus",9) — depth 2 — 65 chars — roots: R1 — not reached: reached only on a dungeon map, by DungeonStat (@7831416), the dungeon run's stats: DamageDealed returns a runtime leaf there (@4106070, the dungeon branch is not counted) and PlayerHPmax, PlayerMPmax and PlayerSpeedBonus refuse a dungeon map (NotPorted CurrentMap=<map>)
+- [~] DungeonCalc("TraitBonus",1) — depth 2 — 65 chars — roots: R1 — not reached: reached only on a dungeon map, by DungeonStat (@7831416), the dungeon run's stats: DamageDealed returns a runtime leaf there (@4106070, the dungeon branch is not counted) and PlayerHPmax, PlayerMPmax and PlayerSpeedBonus refuse a dungeon map (NotPorted CurrentMap=<map>)
+- [~] DungeonCalc("TraitBonus",0) — depth 2 — 65 chars — roots: R1 R6 — not reached: reached only on a dungeon map, by DungeonStat (@7831416), the dungeon run's stats: DamageDealed returns a runtime leaf there (@4106070, the dungeon branch is not counted) and PlayerHPmax, PlayerMPmax and PlayerSpeedBonus refuse a dungeon map (NotPorted CurrentMap=<map>)
+- [~] DungeonCalc("TraitBonus",24) — depth 2 — 65 chars — roots: R1 R6 — not reached: reached only on a dungeon map, by DungeonStat (@7831416), the dungeon run's stats: DamageDealed returns a runtime leaf there (@4106070, the dungeon branch is not counted) and PlayerHPmax, PlayerMPmax and PlayerSpeedBonus refuse a dungeon map (NotPorted CurrentMap=<map>)
+- [~] DungeonCalc("TraitBonus",8) — depth 2 — 65 chars — roots: R1 R7 — not reached: reached only on a dungeon map, by DungeonStat (@7831416), the dungeon run's stats: DamageDealed returns a runtime leaf there (@4106070, the dungeon branch is not counted) and PlayerHPmax, PlayerMPmax and PlayerSpeedBonus refuse a dungeon map (NotPorted CurrentMap=<map>)
+- [~] DungeonCalc("TraitBonus",2) — depth 2 — 65 chars — roots: R1 R7 — not reached: reached only on a dungeon map, by DungeonStat (@7831416), the dungeon run's stats: DamageDealed returns a runtime leaf there (@4106070, the dungeon branch is not counted) and PlayerHPmax, PlayerMPmax and PlayerSpeedBonus refuse a dungeon map (NotPorted CurrentMap=<map>)
+- [~] DungeonCalc("TraitBonus",26) — depth 2 — 65 chars — roots: R1 R7 — not reached: reached only on a dungeon map, by DungeonStat (@7831416), the dungeon run's stats: DamageDealed returns a runtime leaf there (@4106070, the dungeon branch is not counted) and PlayerHPmax, PlayerMPmax and PlayerSpeedBonus refuse a dungeon map (NotPorted CurrentMap=<map>)
 
 ## ArbitraryCode5Inputs
 

@@ -1,3 +1,5 @@
+import type { Ported } from "../ported";
+
 /**
  * N.js `_customBlock_ReturnClasses(d)` @4153735: the classes class `d` has been on its way to it, itself last (it returns a list, so it is
  * a plain function, not a `block`). Below 6 (the beginner classes) it is 1..d. Else, with `base` the first class of its tree
@@ -18,3 +20,6 @@ export function ReturnClasses(d: number): number[] {
   list.push(d);
   return list;
 }
+
+/** What this module covers (lib/game/ported.ts): the whole function, for any class. */
+export const PORTED: Ported = "generic";

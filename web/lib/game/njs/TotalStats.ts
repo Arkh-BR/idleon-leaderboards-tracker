@@ -1,9 +1,9 @@
 import { asNum, asNumber, attr } from "../attr";
 import { block, type Ctx } from "../ctx";
-import { IDforETCbonus, ITEMS } from "../data";
+import { IDforETCbonus, ITEMS, PowerSuffixes } from "../data";
 import { InvalidSaveValue, MissingSaveKey, NotPorted } from "../errors";
 import { hString } from "../hstring";
-import { contains } from "../lists";
+import { contains, listAt } from "../lists";
 import { charKey, opt } from "../state";
 import { ArbitraryCode } from "./ArbitraryCode";
 import { ArcadeBonus } from "./ArcadeBonus";
@@ -15,20 +15,25 @@ import { DNSM_AlchBubbles, DNSM_AlchVials, DNSM_BoxRewards, DNSM_FamBonusQTYs, D
 import { Dreamstuff } from "./Dreamstuff";
 import { Dungon } from "./Dungon";
 import { EtcBonuses } from "./EtcBonuses";
+import { FlurboShop } from "./FlurboShop";
 import { Gallery, GalleryBonTOT } from "./Gallery";
 import { GamingStatType } from "./GamingStatType";
 import { GetBuffBonuses } from "./GetBuffBonuses";
 import { getbonus2 } from "./getbonus2";
+import { getLOG } from "./getLOG";
 import { GetTalentNumber } from "./GetTalentNumber";
 import { GoldFoodBonuses } from "./GoldFoodBonuses";
+import { GuildBonuses } from "./GuildBonuses";
 import { Labb } from "./Labb";
 import { MenagerieStuff } from "./MenagerieStuff";
 import { Ninja } from "./Ninja";
 import { ResearchStuff } from "./ResearchStuff";
+import { RunCodeOfTypeXforThingY } from "./RunCodeOfTypeXforThingY";
 import { ObolStats } from "./ScrollCircleINFO";
 import { StampBonusOfTypeX } from "./StampBonusOfTypeX";
 import { Summoning } from "./Summoning";
 import { TalentCalc } from "./TalentCalc";
+import { TotalFoodBonuses } from "./TotalFoodBonuses";
 import type { Ported } from "../ported";
 
 type Item = Readonly<Record<string, unknown>>;
@@ -72,10 +77,9 @@ type Head = { dn: number; etc: Map<string, number> | null };
  *  4. @4172893 (not in a dungeon): the obols' total of `d` (ScrollCircleINFO.ts), times 1 + (their obol talent + 40 x Super Bit 2) / 100
  *     for STR/AGI/WIS/LUK and times MenagerieStuff("ObolMISCmulti") for any other stat (@4175537); for "calcEtcBonuses" the obols' stats
  *     named in IDforETCbonus go into the ETC map.
- * The "Power" stats (Weapon_Power, the tool powers) take another rule in step 1, not ported.
+ * The "Power" stats (Weapon_Power, the tool powers, Dung_Power) take another rule in step 1 (powerCounts below), @4158761.
  */
 function head(ctx: Ctx, d: string): Head {
-  if (-1 != d.indexOf("Power")) throw new NotPorted("TotalStats", d);
   const calcEtc = "calcEtcBonuses" == d;
   const etc = calcEtc ? new Map<string, number>() : null; // DNSM.TotalStatsETCmap
   const etcAdd = (k: string, v: number) => etc!.set(k, asNumber(etc!.get(k)) + v);
@@ -94,6 +98,14 @@ function head(ctx: Ctx, d: string): Head {
         (-1 != Dungon(ctx) && (-1 == Dungon(ctx) || -1 == hString(name).indexOf("Dung"))) ||
         "Blank" == name;
       if (skip) continue;
+      if (-1 != d.indexOf("Power")) {
+        // @4160167: a power stat adds the item's Weapon_Power (whatever the power), its own one too when it has it
+        if (!powerCounts(d, f, O, hString(name))) continue;
+        const def = itemDef(hString(name));
+        const own = equipMap(ctx, f, O);
+        dn = Object.hasOwn(own, "Weapon_Power") ? dn + (asNumber(def.Weapon_Power) + asNumber(own.Weapon_Power)) : dn + asNumber(def.Weapon_Power);
+        continue; // the ETC map below is for "calcEtcBonuses", which is not a power
+      }
       const def = itemDef(hString(name));
       const own = equipMap(ctx, f, O);
       dn = Object.hasOwn(own, d) ? dn + (asNumber(def[d]) + asNumber(own[d])) : dn + asNumber(def[d]);
@@ -141,6 +153,27 @@ function head(ctx: Ctx, d: string): Head {
   return { dn, etc };
 }
 
+/**
+ * Step 1's power rule, @4158761: whether the item `name` in slot O of EquipmentOrder[f] counts for the power `d` (DN.TotalStatsDT2 =
+ * "YESstats"). With DT the power's name before "_" ("Weapon" for Weapon_Power): on the equipment (f = 0) the first of PowerSuffixes the
+ * item's name contains decides (it counts only when that suffix is DT), and an item that contains none counts for Weapon only; on the
+ * tools (f = 1) only the slot at DT's index in PowerSuffixes counts (none for Weapon, which is not in the list).
+ */
+function powerCounts(d: string, f: number, O: number, name: string): boolean {
+  const DT = d.substring(0, d.indexOf("_")); // DN.TotalStatsDT
+  const suffixes = PowerSuffixes as readonly unknown[];
+  let yes = false;
+  if (0 == f) {
+    for (let I = 0; I < suffixes.length; I++) {
+      if (-1 != name.indexOf(hString(suffixes[I]))) {
+        if (suffixes[I] == DT) yes = true;
+        break;
+      } else if (I + 1 == suffixes.length && "Weapon" == DT) yes = true;
+    }
+  } else if (suffixes.indexOf(DT) == O) yes = true;
+  return yes;
+}
+
 /** Step 3's talent and stamp, @4171970. */
 const PCT: Readonly<Record<string, { talent: number; stamp: string }>> = {
   STR: { talent: 96, stamp: "PctSTR" },
@@ -162,7 +195,7 @@ export function TotalStatsETCmap(ctx: Ctx): ReadonlyMap<string, number> {
 
 /**
  * N.js `_customBlock_TotalStats(d)` @4156192: the character's total of stat `d`, cached in `DNSM.TotStatMAP` (here the `block` cache).
- * Only STR, AGI, WIS, LUK and Accuracy are ported. Outside a dungeon each main stat is
+ * Only STR, AGI, WIS, LUK, Accuracy and Weapon_Power are ported. Outside a dungeon each main stat is
  * floor(the TotalSTR bubble + talent 652 + Companion 8 + (1 + pct / 100) x (equipment + base + the flat sources)), @4174547.
  */
 export const TotalStats = block("TotalStats", (ctx, d: string) => {
@@ -291,10 +324,35 @@ export const TotalStats = block("TotalStats", (ctx, d: string) => {
         dn
       );
     }
+    // @4186239: no floor; DN is the head's equipment, Gallery and obol power
+    case "Weapon_Power": {
+      const { dn } = head(ctx, d);
+      listAt(ctx, "PetsStored", 0); // the game indexes PetsStored[0][2] directly
+      return (
+        5 +
+        DNSM_BoxRewards(ctx, "12a") +
+        FlurboShop(ctx, 0) +
+        TotalFoodBonuses(ctx, "WeaponPowerBoosts") +
+        (CardBonusREAL(ctx, 18) + RunCodeOfTypeXforThingY(ctx, "CardLv", "w5b2") + (GuildBonuses(ctx, 3) + Labb(ctx, "SigilBonus", "Blank", 17, 0))) +
+        (dn * (1 + (chipBonuses(ctx, "weppow") + (DNSM_AlchBubbles(ctx, "W1") + (DNSM_AlchBubbles(ctx, "A1") + DNSM_AlchBubbles(ctx, "M1")))) / 100) +
+          TalentCalc(ctx, 616) +
+          (DNSM_AlchVials(ctx, "WeaponPOW") +
+            (DNSM_FamBonusQTYs(ctx, "16") +
+              (DNSM_StarSigns(ctx, "WepPow") +
+                (ArcadeBonus(ctx, 17) +
+                  (GetTalentNumber(ctx, 1, 140) * Math.floor(asNum(ctx, "Lv0", 10) / 10) +
+                    (GetTalentNumber(ctx, 1, 170) * Math.floor(asNum(ctx, "Lv0", 15) / 10) +
+                      (GetTalentNumber(ctx, 1, 320) * Math.floor(asNum(ctx, "Lv0", 13) / 10) + GetTalentNumber(ctx, 1, 500) * Math.floor(asNum(ctx, "Lv0", 14) / 10))) +
+                    (GetTalentNumber(ctx, 1, 365) * getLOG(ctx, asNum(ctx, "PetsStored", 0, 2)) + GetTalentNumber(ctx, 1, 530) * Math.floor(asNum(ctx, "Lv0", 12) / 10))))))))
+      );
+    }
     default:
       throw new NotPorted("TotalStats", d);
   }
 });
 
-/** What this module covers (lib/game/ported.ts). */
-export const PORTED: Ported = { STR: true, AGI: true, WIS: true, LUK: true, Accuracy: true };
+/**
+ * What this module covers (lib/game/ported.ts). `"()"` is the call with a computed name: DamageDealed's and ArtifactBonus 25's
+ * TotalStats(ClassStatTypes[first class][0]), PlayerAccTot's [1], always a main stat.
+ */
+export const PORTED: Ported = { STR: true, AGI: true, WIS: true, LUK: true, Accuracy: true, Weapon_Power: true, "()": ["STR", "AGI", "WIS", "LUK"] };

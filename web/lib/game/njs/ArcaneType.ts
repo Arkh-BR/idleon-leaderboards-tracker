@@ -1,5 +1,5 @@
 import { asNum, asNumber } from "../attr";
-import { block, type Ctx } from "../ctx";
+import { block, runtime, type Ctx } from "../ctx";
 import { ArcaneUpg } from "../data";
 import { NotPorted } from "../errors";
 import { ArcadeBonus } from "./ArcadeBonus";
@@ -12,7 +12,7 @@ import { SushiStuff } from "./SushiStuff";
 import { Thingies } from "./Thingies";
 import type { Ported } from "../ported";
 
-/** N.js `_customBlock_ArcaneType(d, b, e)` @11083241. Only the sub-cases the Artifact Find port and the character stats reach. */
+/** N.js `_customBlock_ArcaneType(d, b, e)` @11083241. Only the sub-cases the Artifact Find port, the character stats and Damage reach. */
 export const ArcaneType: (ctx: Ctx, d: string, b: number, e: number) => number = block("ArcaneType", (ctx, d: string, b: number, e: number) => {
   switch (d) {
     case "ArcaneUpgBonus":
@@ -29,6 +29,10 @@ export const ArcaneType: (ctx: Ctx, d: string, b: number, e: number) => number =
             (Thingies(ctx, "LegendPTS_bonus", 36, 0) + 50 * Companions(ctx, 88))) /
             100
       );
+    // @11083284: the Tesseract Arcanist form, `.1 <= GetBuffBonuses(585,1) ? (1 == NONdummies[68] && 100 < its BuffsActive timer ? 1 : 0) : 0`.
+    // The masterclass forms are not counted (the Damage page's product decision), as in PlayerAccTot
+    case "TesseractArcanist":
+      return runtime(ctx, "ArcaneType(TesseractArcanist)", "masterclass form, not counted");
     default:
       throw new NotPorted("ArcaneType", d);
   }
@@ -48,4 +52,4 @@ function arcaneUpgBonus(ctx: Ctx, b: number, e: number): number {
 }
 
 /** What this module covers (lib/game/ported.ts). */
-export const PORTED: Ported = { ArcaneUpgBonus: [...ARCANE_PLAIN], PrismaBonusMult: true };
+export const PORTED: Ported = { ArcaneUpgBonus: [...ARCANE_PLAIN], PrismaBonusMult: true, TesseractArcanist: true };
