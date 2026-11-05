@@ -39,6 +39,8 @@ const MAP = 251; // a plain map: no dungeon (Dungon() is -1), no arena
  * missing. Not changed here: lib/tome is the Tome tracker's (Ruling K).
  */
 const STAT_REFUSALS = ["HourZero.json: Tome rows 21,101,105,106,115,116"];
+/** The cache keys of the stats under test (a seed on one of them would prove nothing). */
+const OWN = ['TotalStats["STR"]', 'TotalStats["AGI"]', 'TotalStats["WIS"]', 'TotalStats["LUK"]', "PlayerMPmax[]", "PlayerHPmax[]", "PlayerAccTot[]", "PlayerSpeedBonus[]"];
 const rel = (got: number, want: number) => Math.abs(got - want) <= 1e-9 * Math.max(1, Math.abs(want));
 
 // One GameState per save, shared by all its characters (withPlayer) and by the tests.
@@ -85,8 +87,16 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("lib/game character stats against lib
           const reasons = KNOWN_ARKH_DIFFS.filter((d) => d.stat === stat && d.save === basename(path) && (d.ci ?? ci) === ci).map((d) => d.source);
           if (reasons.length) {
             const c = makeCtx(ctx.state, { player: ci, map: MAP });
-            for (const [name, args, v] of arkhStatSeeds(path, ci, reasons, stat)) c.cache.set(`${ci}|${MAP}|${name}${JSON.stringify(args)}`, v);
+            const seeds = arkhStatSeeds(path, ci, reasons, stat);
+            // negative controls: a seed is never the cache key of a stat under test, nor a whole golden food value (the narrow seeds only)...
+            for (const [name, args] of seeds) {
+              expect(OWN, `${stat}: seeded on its own key ${name}${JSON.stringify(args)}`).not.toContain(`${name}${JSON.stringify(args)}`);
+              expect(name, `${stat}: a whole golden food value seeded`).not.toBe("GoldFoodBonuses");
+            }
+            for (const [name, args, v] of seeds) c.cache.set(`${ci}|${MAP}|${name}${JSON.stringify(args)}`, v);
             const seeded = term(c);
+            // ...and the seeds do something: the seeded value is not the unseeded one
+            expect(rel(seeded, got), `${stat} ${basename(path)}#${ci}: the seeds changed nothing`).toBe(false);
             if (rel(seeded, want)) {
               known++;
               continue;

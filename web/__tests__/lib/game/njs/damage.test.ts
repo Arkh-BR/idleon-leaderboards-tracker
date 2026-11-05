@@ -16,14 +16,13 @@ import {
   GOLDEN_SAVES,
   KNOWN_ARKH_DIFFS,
   PROOF_PATCHES,
-  arkhDamage,
   arkhDamageLeaf,
   arkhStatSeeds,
   damageReasonSeeds,
   type ArkhStat,
   type Seed,
 } from "../support/arkhOracle";
-import { DAMAGE_REFUSALS, EXPECT_TOTAL_KNOWN, clearDamageProofs, damageProof, damageProvedCtx, hasDamageKnown, seededCtx } from "../support/damageProof";
+import { DAMAGE_REFUSALS, clearDamageProofs, seededCtx } from "../support/damageProof";
 import { asNum, asNumber, attr } from "@/lib/game/attr";
 import { ClassStatTypes } from "@/lib/game/data";
 import { MissingSaveKey } from "@/lib/game/errors";
@@ -59,8 +58,6 @@ vi.mock("@/lib/tome/compute", async (orig) => {
 });
 
 const MAP = 251; // a plain map: no dungeon (Dungon() is -1), no arena
-/** The maps the totals are compared on: map 251, the Royal Guardian arena, the Clamworks and a neutral map (the readings' map). */
-const MAPS = [251, 43, 306, 150] as const;
 const rel = (got: number, want: number) => Math.abs(got - want) <= 1e-9 * Math.max(1, Math.abs(want));
 const REFUSALS = DAMAGE_REFUSALS;
 
@@ -283,60 +280,8 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("DamageDealed's inline terms against 
 
 // The KNOWN propagation (proofs, expected counts) lives in support/damageProof: the adapter test (trackers/damage.test.ts) runs the same one.
 
-describe.skipIf(GOLDEN_SAVES.length === 0)("DamageDealed Max and Mastery against lib/arkh on every real save and character", () => {
-  for (const map of MAPS) {
-    it(`map ${map}`, () => {
-      const t0 = performance.now();
-      const mismatches: string[] = [];
-      let pairs = 0;
-      const known = { max: 0, mastery: 0 };
-      let divided = 0; // pairs map 306 really divides (Menagerie[5][2] > 0)
-      let absorbed = 0;
-      const refused = new Set<string>();
-      for (const path of GOLDEN_SAVES) {
-        const state = stateOf(path);
-        for (let ci = 0; ci < state.charNames.length; ci++) {
-          const c = withPlayer(ctxOf(path, map), ci);
-          let got: { max: number; mastery: number };
-          try {
-            got = { max: DamageDealed(c, "Max"), mastery: DamageDealed(c, "Mastery") };
-          } catch (e) {
-            if (!(e instanceof MissingSaveKey)) throw e;
-            refused.add(`${basename(path)}: ${e.key}`);
-            continue;
-          }
-          pairs++;
-          if (map === 306 && asNum(c, "Menagerie", 5, 2) > 0) divided++;
-          const want = arkhDamage(path, ci, map);
-          // a pair whose leaves or stats have KNOWN entries and whose total still matches lib/arkh (a cause that does not reach the total)
-          if (rel(got.max, want.max) && hasDamageKnown(path, ci)) absorbed++;
-          for (const what of ["max", "mastery"] as const) {
-            if (rel(got[what], want[what])) continue;
-            const proof = damageProof(path, ci);
-            const at = `${basename(path)}#${ci}@${map} ${what}: game ${got[what]}, arkh ${want[what]}`;
-            if (!proof.reasons.length) {
-              mismatches.push(at);
-              continue;
-            }
-            // negative controls: no seed is DamageDealed itself, and the proof changes the value
-            for (const [name] of proof.seeds) expect(name, at).not.toBe("DamageDealed");
-            const proved = DamageDealed(damageProvedCtx(path, ci, map, proof, state), what === "max" ? "Max" : "Mastery");
-            expect(rel(proved, got[what]), `${at}: the proof changed nothing`).toBe(false);
-            if (rel(proved, want[what])) known[what]++;
-            else mismatches.push(`${at}, with ${proof.reasons.join(" ")} ${proved}`);
-          }
-        }
-      }
-      console.info(`[damage total @${map}] ${pairs} pairs, known max ${known.max} / mastery ${known.mastery}, ${absorbed} with KNOWN causes that do not reach Max, ${mismatches.length} mismatches, ${refused.size} refused${map === 306 ? `, ${divided} divided` : ""}, ${Math.round(performance.now() - t0)} ms`);
-      if (mismatches.length) console.info(`[damage total @${map}] mismatched: ${mismatches.slice(0, 30).join("\n")}`);
-      expect(mismatches.slice(0, 20)).toEqual([]);
-      expect(pairs).toBeGreaterThan(1000);
-      expect(known, "KNOWN pairs").toEqual(EXPECT_TOTAL_KNOWN[map] ?? { max: 0, mastery: 0 });
-      // the arena reads only its rat damage, so HourZero (whose stats read the Tome) is not refused there
-      expect([...refused].sort()).toEqual(map === 43 ? [] : REFUSALS);
-    }, 1_800_000);
-  }
-});
+// The totals themselves (Max and Mastery on every real save, character and map, with the KNOWN propagation and refusals) are checked once, by the
+// adapter test (trackers/damage.test.ts, maps 251/43/306/150/40): it computes the same DamageDealed calls, so a second loop only doubled the ~2 min per map.
 
 // ---- the game's own text ----
 

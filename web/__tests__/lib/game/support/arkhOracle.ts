@@ -339,7 +339,7 @@ export const STAT_WHY: Record<string, string> = {
   vote2:
     `lib/arkh's AllStatPCT adds votingBonusz(2, undefined), the vote's bare value; N.js ArbitraryCode("AllStatPCT") @4061538 adds Summoning("VotingBonusz",2,0), which is NinjaInfo[38][1 + 3b] times VotingBonuszMulti while the vote is active (@10953438)`,
   gfood:
-    `lib/arkh's golden food multi has min(4 x CardLv(cropfallEvent1) + 5 x CardLv(anni5Event1), 50) and the vote 26 without its multi; N.js GoldFoodBonuses @5056708 has min(4 x CardLv(cropfallEvent1), 50) + min(5 x CardLv(anni5Event1), 50) (@5057838) and Summoning("VotingBonusz",26,0) (@10953438)`,
+    `lib/arkh's golden food multi has min(4 x CardLv(cropfallEvent1) + 5 x CardLv(anni5Event1), 50) and the vote 26 without its multi; N.js GoldFoodBonuses @5056708 has min(4 x CardLv(cropfallEvent1), 50) + min(5 x CardLv(anni5Event1), 50) (@5057838) and Summoning("VotingBonusz",26,0) (@10953438). Seeded as two causes on their own inputs, gfoodCap (the card term) and gfoodVote26 (the vote), never as the whole GoldFoodBonuses value; the golden food multi's other differences are their own reasons: gfoodSign69 (star sign 69, below) and fam68 (Family Bonus 68, a factor of the talent 144 term)`,
   gfoodSign69:
     `GfoodBonusMULTI adds DNSM.StarSigns["69"] (Beanbie_Major; GoldFoodBonuses @5056708). N.js StarSigns @6540624 fills that map only with the signs StarSignsUnlocked has, and this account lacks sign 69, so the term is 0; lib/arkh counts it as 20 (starSignDropVal(69)) without that check. Seeding the key with lib/arkh's number closes the gap on its own`,
   fam68:
@@ -941,15 +941,9 @@ export function arkhStatSeeds(path: string, ci: number, reasons: readonly string
     return n.val;
   };
   const out: [string, (string | number)[], number][] = [];
-  for (const r of reasons) {
+  // "gfood" is two causes (gfoodVote26 + gfoodCap, STAT_WHY.gfood), each seeded on its own input: never the whole GoldFoodBonuses value
+  for (const r of reasons.flatMap((x) => (x === "gfood" ? ["gfoodVote26", "gfoodCap"] : [x]))) {
     if (r === "vote2") out.push(["Summoning", ["VotingBonusz", 2, 0], votingBonusz(2, undefined, saveData)]);
-    else if (r === "gfood") {
-      out.push(["GoldFoodBonuses", ["AllStatz"], goldFoodBonuses("AllStatz", ci, undefined, saveData).total]);
-      out.push(["GoldFoodBonuses", ["BaseAcc"], goldFoodBonuses("BaseAcc", ci, undefined, saveData).total]); // accuracy's own golden food
-      // the same golden food multi feeds Max HP's MaxHPpct food (a factor there): lib/arkh's number for it
-      const hp = find(computePlayerHPmax(ci, ctx) as unknown as ArkhNode, (x) => x.name === "Golden Food MaxHPpct");
-      if (hp) out.push(["GoldFoodBonuses", ["MaxHPpct"], hp.val]);
-    }
     // Damage's golden food leaves (Task 5) are the leaf under test, so they are NOT seeded with their own value: the two causes of "gfood" are
     // seeded on their own inputs, lib/arkh's number for each. The vote 26 as lib/arkh reads it (without its multi), and the card term: lib/arkh
     // caps the SUM min(4 x CardLv(cropfallEvent1) + 5 x CardLv(anni5Event1), 50); N.js caps each term, so a CardLv(cropfallEvent1) of
