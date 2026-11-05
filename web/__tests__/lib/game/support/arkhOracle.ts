@@ -13,7 +13,7 @@ import { DMG_LAYERS, DMG_MASTERY, DMG_RAT } from "@/lib/arkh/stats/defs/damage";
 import { charClassData } from "@/lib/arkh/save/data";
 import { loadSaveData } from "@/lib/arkh/save/loader";
 import { saveData } from "@/lib/arkh/state";
-import { computeAccuracy, computePlayerSpeed, computeStarSignBonus } from "@/lib/arkh/stats/systems/common/derived-damage";
+import { computeAccuracy, computePlayerSpeed, computeStarSignBonus, rval } from "@/lib/arkh/stats/systems/common/derived-damage";
 import { computePlayerHPmax, computePlayerMPmax } from "@/lib/arkh/stats/systems/common/derived-stats";
 import { computeStatueBonusGiven, computeTotalStat } from "@/lib/arkh/stats/systems/common/stats";
 import { goldFoodBonuses, gfoodBonusMULTIBreakdown } from "@/lib/arkh/stats/systems/common/goldenFood";
@@ -754,6 +754,8 @@ export const KNOWN_ARKH_DIFFS: {
   save: string;
   ci?: number;
   source: string;
+  /** The STAT_WHY reason whose lib/arkh number (arkhStatSeeds) closes the gap: set on a Damage source, whose `source` is the leaf id. */
+  reason?: string;
   why: string;
 }[] = [
   { save: "Koweabooo.json", ci: 10, source: "grid109", why: COMPANION_0_GATE },
@@ -774,6 +776,11 @@ export const KNOWN_ARKH_DIFFS: {
   ...(Object.entries({ ...STAT_DIFFS, maxMp: STAT_DIFFS.wis, maxHp: [...STAT_DIFFS.str!, ...BUFF_108] }) as [ArkhStat | "speed", readonly DiffRow[]][]).flatMap(([stat, rows]) =>
     rows!.flatMap(([save, source, cis]) => (cis ?? [undefined]).map((ci) => ({ stat, save, ...(ci === undefined ? {} : { ci }), source, why: STAT_WHY[source] })))
   ),
+  // Task 4: tc470 = GTN(1,470) x stamps / 10. The stamp count agrees; the talent's level carries lib/arkh's fam68 error (Family Bonus 68 in
+  // AllTalentLV), which the other TalentCalc terms hide on these characters only because their curves are saturated or the talent is unlearned
+  ...(
+    [["Ash_EB.json", 0], ["Frostymart.json", 0], ["FrozenBody.json", 1], ["Jrod11.json", 4], ["Jrod11.json", 7], ["Koweabooo.json", 8], ["big_guy69123.json", 5], ["0xEXCEED.json", 5]] as const
+  ).map(([save, ci]) => ({ stat: "damage" as const, save, ci, source: "tc470", reason: "fam68", why: STAT_WHY.fam68 })),
 ];
 
 /**
@@ -796,6 +803,21 @@ const STATUES_READ: Partial<Record<ArkhStat | "speed", readonly number[]>> = { m
 export function arkhPrayersReal(path: string, ci: number, d: number, b: number): number {
   loadSaveData(JSON.parse(readFileSync(path, "utf8")));
   return prayersReal(d, b, ci, saveData).val;
+}
+
+/**
+ * TalentCalc(616) as lib/arkh computes it, one value per character: min(talent 616, floor(the highest level among the characters whose
+ * class is below 6 / 10)). lib/arkh folds it into its Weapon Power leaf (derived-damage.ts, "TalentCalc(616)"), so the term has no leaf
+ * of its own: this is that very expression, built from lib/arkh's own talent resolver.
+ */
+export function arkhTc616(path: string): number[] {
+  loadSaveData(JSON.parse(readFileSync(path, "utf8")));
+  const lv0 = (saveData as any).lv0AllData;
+  let top = 0;
+  charClassData.forEach((cls, i) => {
+    if (Number(cls) < 6 && (Number(lv0?.[i]?.[0]) || 0) > top) top = Number(lv0[i][0]);
+  });
+  return charClassData.map((_, ci) => (top > 0 ? Math.min(rval(talentResolver, 616, { saveData, charIdx: ci, activeCharIdx: ci }), Math.floor(top / 10)) : 0));
 }
 
 export function arkhStatSeeds(path: string, ci: number, reasons: readonly string[], forStat: ArkhStat | "speed"): [name: string, args: (string | number)[], value: number][] {

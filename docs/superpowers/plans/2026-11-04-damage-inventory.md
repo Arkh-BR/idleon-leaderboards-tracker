@@ -13,7 +13,7 @@ Regenerate it when N.js, a module's `PORTED` or `lib/game/unreached.ts` changes.
 - attrs and dnsm are the reads in every slice listed. One marked "whole body only" is read only inside a whole-body function (all its branches, not just the one this formula takes). `DNSM` is runtime-only (it is never loaded from the save): port it as `DNSM_*` functions, not as a save attribute. The dnsm list also holds the scratch keys a formula writes and reads back in the same slice (`CaptnBonuz`, `AtomBonCalc1`); the inputs are the caches the game fills elsewhere (`StarSigns`, `AlchVials`, `FamBonusQTYs`…).
 - Depth stops at 6.
 
-**67 functions, 669 sub-cases (rows), 204 whole body, 0 not found, 95 attrs, 120 dnsm.** **491 ported `[x]`, 6 not reached `[~]`, 172 open.**
+**67 functions, 669 sub-cases (rows), 204 whole body, 0 not found, 95 attrs, 120 dnsm.** **503 ported `[x]`, 6 not reached `[~]`, 160 open.**
 
 Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("AGI")`, R4 = `TotalStats("WIS")`, R5 = `TotalStats("LUK")`, R6 = `PlayerHPmax()`, R7 = `PlayerMPmax()`, R8 = `PlayerAccTot()`.
 
@@ -518,14 +518,14 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 
 ## TalentCalc
 
-- [ ] TalentCalc(31) — depth 1 — 137 chars — roots: R1
-- [ ] TalentCalc(110) — depth 1 — 126 chars — roots: R1
-- [ ] TalentCalc(125) — depth 1 — 493 chars — roots: R1
-- [ ] TalentCalc(485) — depth 1 — 126 chars — roots: R1
-- [ ] TalentCalc(305) — depth 1 — 126 chars — roots: R1
-- [ ] TalentCalc(470) — depth 1 — 126 chars — roots: R1
-- [ ] TalentCalc(656) — depth 1 — 116 chars — roots: R1
-- [ ] TalentCalc(616) — depth 2 — 141 chars — roots: R1
+- [x] TalentCalc(31) — depth 1 — 137 chars — roots: R1
+- [x] TalentCalc(110) — depth 1 — 126 chars — roots: R1
+- [x] TalentCalc(125) — depth 1 — 493 chars — roots: R1
+- [x] TalentCalc(485) — depth 1 — 126 chars — roots: R1
+- [x] TalentCalc(305) — depth 1 — 126 chars — roots: R1
+- [x] TalentCalc(470) — depth 1 — 126 chars — roots: R1
+- [x] TalentCalc(656) — depth 1 — 116 chars — roots: R1
+- [x] TalentCalc(616) — depth 2 — 141 chars — roots: R1
 - [x] TalentCalc(620) — depth 1 — 141 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
 
 ## Divinity
@@ -593,16 +593,16 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 
 - [x] GetBuffBonuses(108,2) — depth 1 — 363 chars — whole body — roots: R1
 - [x] GetBuffBonuses(124,2) — depth 1 — 363 chars — whole body — roots: R1
-- [ ] GetBuffBonuses(615,1) — depth 2 — 9 chars — roots: R1
+- [x] GetBuffBonuses(615,1) — depth 2 — 9 chars — roots: R1
 - [x] GetBuffBonuses(108,1) — depth 1 — 363 chars — whole body — roots: R1 R6
 - [x] GetBuffBonuses(273,1) — depth 2 — 363 chars — whole body — roots: R1 R8
 - [x] GetBuffBonuses(94,1) — depth 1 — 363 chars — whole body — roots: R1 R2 R6
-- [ ] GetBuffBonuses(195,1) — depth 2 — 363 chars — whole body — roots: R1 R6 R8
-- [ ] GetBuffBonuses(420,1) — depth 2 — 363 chars — whole body — roots: R1 R6 R8
+- [x] GetBuffBonuses(195,1) — depth 2 — 363 chars — whole body — roots: R1 R6 R8
+- [x] GetBuffBonuses(420,1) — depth 2 — 363 chars — whole body — roots: R1 R6 R8
 - [x] GetBuffBonuses(288,2) — depth 1 — 363 chars — whole body — roots: R1 R8
 - [x] GetBuffBonuses(124,1) — depth 1 — 363 chars — whole body — roots: R1 R8
 - [~] GetBuffBonuses(40,2) — depth 3 — 363 chars — whole body — roots: R1 — not reached: its only call site is in SkillStats("AllEfficiencies") (@4198250), which is not reached
-- [ ] GetBuffBonuses(585,1) — depth 2 — 363 chars — whole body — roots: R1 R8
+- [x] GetBuffBonuses(585,1) — depth 2 — 363 chars — whole body — roots: R1 R8
 
 ## Thingies
 

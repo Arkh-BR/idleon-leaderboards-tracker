@@ -462,7 +462,13 @@ export function migrate(
 // Artifact Find total compared: none moved. Re-audited for the keys the character stats read (Damage Task 3): OptionsListAccount,
 // Spelunk, CookMaster (round 1: their steps are above; the OptionsListAccount writes below are of indexes no stat reads), then
 // PrayersActive, PrayersUnlocked, SaltLick, BuffsActive, FoodSlotsOwned, UpgVault, DungUpg (its pads are above), Menagerie[0] and
-// OptionsListAccount[271], [279], [438] (round 2): nothing below writes them.
+// OptionsListAccount[271], [279], [438] (round 2): nothing below writes them. Re-audited for the keys the talents and buffs read (Damage
+// Task 4: Cards[1], RoyalG[0], StampLevelMAX, CauldronInfo[4], WeeklyBoss, Refinery[3..8][1], KillsLeft2Advance, AFKtarget, Lv0,
+// CharacterClass, BuffsActive; a write scan of the live N.js): no load step writes them on a real save (DoOnceREAL >= 248.3). The writes found:
+// the Cards[1] fills of initialize2 (@6210607, an empty list) and OnPlayStart3 (@6398533, DoOnceREAL < 168.5; @6416156, < 235), the
+// Refinery[3..5][1] cap of 27 (@6385099, DoOnceREAL < 129.5), and the StampCheckFR81 of OnPlayStart3 @6402587 (a stamp whose cost is
+// past 4e12 gets StampLevelMAX = 12 x its details[4], a positive number, so the count of maxes above .5 that talent 470 reads does not
+// move). Runtime writes (the attack, the brew UI, the AFK and buff handlers) are not load steps.
 //   - the loader: Tess (CSver 26; not reset by ClearLocalData, so it would need an assumption; initialize3 fills it with [[], []]) and
 //     GreenStacks (31);
 //   - initialize1: GemItemsPurchased padded to 300; OptionsListAccount padded to 17..70 and its 51..59 splice (no real save is that

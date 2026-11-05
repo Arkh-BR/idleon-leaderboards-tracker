@@ -21,17 +21,20 @@ function buffIDsOn(ctx: Ctx): unknown[] {
 /**
  * N.js `_customBlock_GetBuffBonuses(c, b)` @4279371: the bonus of the active buff `c` (a talent): its talent number, curve `b`, while
  * the buff runs, else 0. Ported for the buffs the character stats read (94, the STR one; 273, move speed; 288, accuracy), and 108 and 124
- * as not counted; 615 and 46 have rules of their own.
+ * as not counted; 615 is 1 while it runs, and 46 has a rule of its own. 195, 420 and 585 (the masterclass forms Wraith, Tempest, Tesseract
+ * read them) and 615 (the dungeon branch) are only the generic rule here: the forms and the dungeon are not counted by the Damage page, in the
+ * functions that read these.
  */
 export const GetBuffBonuses = block("GetBuffBonuses", (ctx, c: number, b: number) => {
   // a product decision of the Damage page (the plan's Global Constraints): the active buffs 108 and 124 are not counted
   if (108 === c || 124 === c) return runtime(ctx, `GetBuffBonuses(${c})`, "active buff, not counted");
   if (!COUNTED.includes(c)) throw new NotPorted("GetBuffBonuses", `c=${c}`);
+  if (615 === c) return contains(buffIDsOn(ctx), c) ? 1 : 0; // @4279371
   return contains(buffIDsOn(ctx), c) ? GetTalentNumber(ctx, b, c) : 0;
 });
 
 /** The buffs ported to the generic rule. */
-const COUNTED = [94, 273, 288];
+const COUNTED = [94, 273, 288, 195, 420, 585, 615];
 
 /** What this module covers (lib/game/ported.ts). */
 export const PORTED: Ported = [...COUNTED, 108, 124];
