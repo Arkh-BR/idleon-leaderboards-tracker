@@ -46,6 +46,15 @@ const TERMS: Record<string, (c: Ctx) => number> = {
   mealTotDmg: (c) => MealBonus(c, "TotDmg"),
 };
 
+/** The block key(s) each term reads directly (`<Fn><args as JSON>`): what a seed must never be. */
+const OWN: Record<string, string[]> = {
+  etc16: ['EtcBonuses["16"]'], etc45: ['EtcBonuses["45"]'], etc21: ['EtcBonuses["21"]'], etc72: ['EtcBonuses["72"]'], etc75: ['EtcBonuses["75"]'], etc104: ['EtcBonuses["104"]'],
+  card4: ["CardBonusREAL[4]"], card42: ["CardBonusREAL[42]"], card21: ["CardBonusREAL[21]"], card96: ["CardBonusREAL[96]"],
+  cardSet5: ['CardSetBonuses[0,"5"]'], cardFallEvent2: ['RunCodeOfTypeXforThingY["CardLv","fallEvent2"]'], lustreSet: ['GetSetBonus["LUSTRE_SET","Bonus",0,0]'],
+  foodBaseDmg: ['TotalFoodBonuses["BaseDmgBoosts"]'], goldFoodBase: ['GoldFoodBonuses["BaseDamage"]'], goldFoodDmg: ['GoldFoodBonuses["Damage"]'], mealTotDmg: ['MealBonus["TotDmg"]'],
+};
+Object.freeze(OWN);
+
 const states = new Map<string, { ctx: Ctx; chars: number }>();
 afterAll(() => states.clear());
 function stateOf(path: string) {
@@ -89,8 +98,13 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("equipment, card, set, food and meal 
           // a KNOWN difference is proved, not skipped: lib/arkh's number for the term it names, seeded into a fresh Ctx, closes the gap
           if (entries.length) {
             const c = makeCtx(ctx.state, { player: ci, map: MAP });
-            for (const [name, args, v] of arkhStatSeeds(path, ci, entries.map((d) => d.reason!), "str")) c.cache.set(`${ci}|${MAP}|${name}${JSON.stringify(args)}`, v);
+            const seeds = arkhStatSeeds(path, ci, entries.map((d) => d.reason!), "str");
+            // negative controls: a seed is never the cache key of the leaf under test (the proof would hold by construction)...
+            for (const [name, args] of seeds) expect(OWN[id], `${id} seeded on its own key ${name}${JSON.stringify(args)}`).not.toContain(`${name}${JSON.stringify(args)}`);
+            for (const [name, args, v] of seeds) c.cache.set(`${ci}|${MAP}|${name}${JSON.stringify(args)}`, v);
             const seeded = TERMS[id](c);
+            // ...and the seeds do something: the seeded value is not the unseeded one
+            expect(rel(seeded, got), `${id} ${basename(path)}#${ci}: the seeds changed nothing`).toBe(false);
             if (rel(seeded, want)) {
               known++;
               continue;

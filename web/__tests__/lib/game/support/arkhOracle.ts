@@ -16,6 +16,7 @@ import { saveData } from "@/lib/arkh/state";
 import { computeAccuracy, computePlayerSpeed, computeStarSignBonus, rval } from "@/lib/arkh/stats/systems/common/derived-damage";
 import { computePlayerHPmax, computePlayerMPmax } from "@/lib/arkh/stats/systems/common/derived-stats";
 import { computeStatueBonusGiven, computeTotalStat } from "@/lib/arkh/stats/systems/common/stats";
+import { computeCardLv } from "@/lib/arkh/stats/systems/common/cards";
 import { goldFoodBonuses, gfoodBonusMULTIBreakdown } from "@/lib/arkh/stats/systems/common/goldenFood";
 import { computePrayerReal, prayersReal } from "@/lib/arkh/stats/systems/w3/prayer";
 import { computeSummUpgBonus } from "@/lib/arkh/stats/systems/w6/summoning";
@@ -784,13 +785,16 @@ export const KNOWN_ARKH_DIFFS: {
   // Task 5: the golden food terms (GoldFoodBonuses "BaseDamage" and "Damage") share the stats' golden food multi, so they carry its three reasons
   // (each proved by seeding lib/arkh's number, equipCards.test.ts): the cap grouping and the vote 26 (the saves the STR rows name "gfood",
   // every character), the star sign 69 (Glaives; big_guy69123 where it has a golden food of the effect), and the fam68 of GetTalentNumber(1,209) x
-  // CalcTalentMAP(209) in the multi (the characters of the tc470 rows, as AllTalentLV feeds that talent too)
+  // CalcTalentMAP(209) in the multi (the characters of the tc470 rows, as AllTalentLV feeds that talent too, and Maspoofio#7, where it is the
+  // residue of the two "gfood" causes: 869987.0191 seeded vs lib/arkh's 869987.8146, closed to 1e-15 by fam68)
   ...(["goldFoodBase", "goldFoodDmg"] as const).flatMap((source) => [
-    ...[...new Set(STAT_DIFFS.str!.filter(([, r]) => r === "gfood").map(([save]) => save))].map((save) => ({ stat: "damage" as const, save, source, reason: "gfood", why: STAT_WHY.gfood })),
+    ...[...new Set(STAT_DIFFS.str!.filter(([, r]) => r === "gfood").map(([save]) => save))].flatMap((save) =>
+      (["gfoodVote26", "gfoodCap"] as const).map((reason) => ({ stat: "damage" as const, save, source, reason, why: STAT_WHY.gfood }))
+    ),
     { stat: "damage" as const, save: "Glaives.json", source, reason: "gfoodSign69", why: STAT_WHY.gfoodSign69 },
     ...(source === "goldFoodBase" ? [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10] : [3, 4]).map((ci) => ({ stat: "damage" as const, save: "big_guy69123.json", ci, source, reason: "gfoodSign69", why: STAT_WHY.gfoodSign69 })),
     ...(
-      [["Ash_EB.json", 0], ["Frostymart.json", 0], ["FrozenBody.json", 1], ["Jrod11.json", 4], ["Jrod11.json", 7], ["Koweabooo.json", 8], ["big_guy69123.json", 5], ["0xEXCEED.json", 5]] as const
+      [["Ash_EB.json", 0], ["Frostymart.json", 0], ["FrozenBody.json", 1], ["Jrod11.json", 4], ["Jrod11.json", 7], ["Koweabooo.json", 8], ["big_guy69123.json", 5], ["0xEXCEED.json", 5], ["Maspoofio.json", 7]] as const
     ).filter(([save]) => source === "goldFoodBase" || save !== "big_guy69123.json").map(([save, ci]) => ({ stat: "damage" as const, save, ci, source, reason: "fam68", why: STAT_WHY.fam68 })),
   ]),
   // Task 5: the meals' Total Damage (MealBonus "TotDmg") carries the Winner bonus in its multi: the God Shard set worn whole, as win3
@@ -860,9 +864,16 @@ export function arkhStatSeeds(path: string, ci: number, reasons: readonly string
       // the same golden food multi feeds Max HP's MaxHPpct food (a factor there): lib/arkh's number for it
       const hp = find(computePlayerHPmax(ci, ctx) as unknown as ArkhNode, (x) => x.name === "Golden Food MaxHPpct");
       if (hp) out.push(["GoldFoodBonuses", ["MaxHPpct"], hp.val]);
-      // Damage's own two (Task 5): BaseDamage is read as it is, Damage as 1 + total / 100 (N.js GoldFoodBonuses @5056708 answers a bonus as is for BaseDamage)
-      out.push(["GoldFoodBonuses", ["BaseDamage"], goldFoodBonuses("BaseDamage", ci, undefined, saveData).total]);
-      out.push(["GoldFoodBonuses", ["Damage"], 1 + goldFoodBonuses("Damage", ci, undefined, saveData).total / 100]);
+    }
+    // Damage's golden food leaves (Task 5) are the leaf under test, so they are NOT seeded with their own value: the two causes of "gfood" are
+    // seeded on their own inputs, lib/arkh's number for each. The vote 26 as lib/arkh reads it (without its multi), and the card term: lib/arkh
+    // caps the SUM min(4 x CardLv(cropfallEvent1) + 5 x CardLv(anni5Event1), 50); N.js caps each term, so a CardLv(cropfallEvent1) of
+    // (lib/arkh's capped sum) / 4 with CardLv(anni5Event1) at 0 gives lib/game that very sum
+    else if (r === "gfoodVote26") out.push(["Summoning", ["VotingBonusz", 26, 0], votingBonusz(26, undefined, saveData)]);
+    else if (r === "gfoodCap") {
+      loadSaveData(JSON.parse(readFileSync(path, "utf8")));
+      const capped = Math.min(4 * computeCardLv("cropfallEvent1", saveData) + 5 * computeCardLv("anni5Event1", saveData), 50);
+      out.push(["RunCodeOfTypeXforThingY", ["CardLv", "cropfallEvent1"], capped / 4], ["RunCodeOfTypeXforThingY", ["CardLv", "anni5Event1"], 0]);
     }
     else if (r === "gfoodSign69") {
       const n = gfoodBonusMULTIBreakdown(ci, saveData).items.find((i) => i.name.startsWith("Star Sign 69"));
