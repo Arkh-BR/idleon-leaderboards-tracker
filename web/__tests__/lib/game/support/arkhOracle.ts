@@ -781,6 +781,21 @@ export const KNOWN_ARKH_DIFFS: {
   ...(
     [["Ash_EB.json", 0], ["Frostymart.json", 0], ["FrozenBody.json", 1], ["Jrod11.json", 4], ["Jrod11.json", 7], ["Koweabooo.json", 8], ["big_guy69123.json", 5], ["0xEXCEED.json", 5]] as const
   ).map(([save, ci]) => ({ stat: "damage" as const, save, ci, source: "tc470", reason: "fam68", why: STAT_WHY.fam68 })),
+  // Task 5: the golden food terms (GoldFoodBonuses "BaseDamage" and "Damage") share the stats' golden food multi, so they carry its three reasons
+  // (each proved by seeding lib/arkh's number, equipCards.test.ts): the cap grouping and the vote 26 (the saves the STR rows name "gfood",
+  // every character), the star sign 69 (Glaives; big_guy69123 where it has a golden food of the effect), and the fam68 of GetTalentNumber(1,209) x
+  // CalcTalentMAP(209) in the multi (the characters of the tc470 rows, as AllTalentLV feeds that talent too)
+  ...(["goldFoodBase", "goldFoodDmg"] as const).flatMap((source) => [
+    ...[...new Set(STAT_DIFFS.str!.filter(([, r]) => r === "gfood").map(([save]) => save))].map((save) => ({ stat: "damage" as const, save, source, reason: "gfood", why: STAT_WHY.gfood })),
+    { stat: "damage" as const, save: "Glaives.json", source, reason: "gfoodSign69", why: STAT_WHY.gfoodSign69 },
+    ...(source === "goldFoodBase" ? [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10] : [3, 4]).map((ci) => ({ stat: "damage" as const, save: "big_guy69123.json", ci, source, reason: "gfoodSign69", why: STAT_WHY.gfoodSign69 })),
+    ...(
+      [["Ash_EB.json", 0], ["Frostymart.json", 0], ["FrozenBody.json", 1], ["Jrod11.json", 4], ["Jrod11.json", 7], ["Koweabooo.json", 8], ["big_guy69123.json", 5], ["0xEXCEED.json", 5]] as const
+    ).filter(([save]) => source === "goldFoodBase" || save !== "big_guy69123.json").map(([save, ci]) => ({ stat: "damage" as const, save, ci, source, reason: "fam68", why: STAT_WHY.fam68 })),
+  ]),
+  // Task 5: the meals' Total Damage (MealBonus "TotDmg") carries the Winner bonus in its multi: the God Shard set worn whole, as win3
+  { stat: "damage" as const, save: "HourZero.json", ci: 1, source: "mealTotDmg", reason: "godshard", why: GODSHARD_WORN },
+  { stat: "damage" as const, save: "HourZero.json", ci: 9, source: "mealTotDmg", reason: "godshard", why: GODSHARD_WORN },
 ];
 
 /**
@@ -845,6 +860,9 @@ export function arkhStatSeeds(path: string, ci: number, reasons: readonly string
       // the same golden food multi feeds Max HP's MaxHPpct food (a factor there): lib/arkh's number for it
       const hp = find(computePlayerHPmax(ci, ctx) as unknown as ArkhNode, (x) => x.name === "Golden Food MaxHPpct");
       if (hp) out.push(["GoldFoodBonuses", ["MaxHPpct"], hp.val]);
+      // Damage's own two (Task 5): BaseDamage is read as it is, Damage as 1 + total / 100 (N.js GoldFoodBonuses @5056708 answers a bonus as is for BaseDamage)
+      out.push(["GoldFoodBonuses", ["BaseDamage"], goldFoodBonuses("BaseDamage", ci, undefined, saveData).total]);
+      out.push(["GoldFoodBonuses", ["Damage"], 1 + goldFoodBonuses("Damage", ci, undefined, saveData).total / 100]);
     }
     else if (r === "gfoodSign69") {
       const n = gfoodBonusMULTIBreakdown(ci, saveData).items.find((i) => i.name.startsWith("Star Sign 69"));
@@ -863,6 +881,8 @@ export function arkhStatSeeds(path: string, ci: number, reasons: readonly string
       if (!n) throw new Error("arkhStatSeeds: no Buff 108 in lib/arkh's Max HP");
       out.push(["GetBuffBonuses", [108, 1], -n.val]);
     }
+    // lib/arkh counts the God Shard set only when OptionsListAccount[379] names it (GODSHARD_WORN): 0 on the accounts that wear it whole without it
+    else if (r === "godshard") out.push(["GetSetBonus", ["GODSHARD_SET", "Bonus", 0, 0], 0]);
     else if (r === "pray6") out.push(["prayersReal", [6, 0], computePrayerReal(6, 0, ci, saveData).val]);
     else if (r === "vault4") out.push(["Summoning", ["VaultUpgBonus", 4, 0], computeSummUpgBonus(4, saveData, ci).val]);
     else if (r === "buff288") out.push(["GetBuffBonuses", [288, 2], 0]);
