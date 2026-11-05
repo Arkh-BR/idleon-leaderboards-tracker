@@ -469,6 +469,14 @@ export function migrate(
 // Refinery[3..5][1] cap of 27 (@6385099, DoOnceREAL < 129.5), and the StampCheckFR81 of OnPlayStart3 @6402587 (a stamp whose cost is
 // past 4e12 gets StampLevelMAX = 12 x its details[4], a positive number; the step fires only on stamps with 5 < StampLevel (@6401500),
 // and a stamp that high has StampLevelMAX >= its level, already above .5, so the count that talent 470 reads does not move). Runtime writes (the attack, the brew UI, the AFK and buff handlers) are not load steps.
+// Re-audited for the keys the equipment, cards, sets, food and meals read (Damage Task 5: Cards[0], [2], [3], EquipmentOrder,
+// EquipmentQuantity, Meals[0], Ribbon, Ninja[104], CookMaster, FoodSlotsOwned; a write scan of the live N.js, @6184758-6475000): no step
+// changes what they read on a real save (DoOnceREAL >= 248.3). The writes found: Cards[2] = 12 x "B" only inside initialize2's empty-Cards
+// fill (@6211354); initialize2 @6212308 splices Cards[3] out and pushes an empty map on every load (the character's CSetEq goes back in when
+// the character is picked, which the per-player state models, cardSet5 matches lib/arkh on every pair); Meals[0] capped at 90 (@6412306,
+// DoOnceREAL < 213) and padded to 100 (@6431500, < 291: only indexes past the 74 meals), Ribbon[0..27] capped (@6462400, < 385.1;
+// MealBonus reads Ribbon[28 + g]), Ninja[103]/[105] writes (Ninja[104] is not written). EquipmentOrder, EquipmentQuantity and
+// FoodSlotsOwned have no load-step write. No step ported.
 //   - the loader: Tess (CSver 26; not reset by ClearLocalData, so it would need an assumption; initialize3 fills it with [[], []]) and
 //     GreenStacks (31);
 //   - initialize1: GemItemsPurchased padded to 300; OptionsListAccount padded to 17..70 and its 51..59 splice (no real save is that
