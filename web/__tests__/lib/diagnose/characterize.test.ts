@@ -2,7 +2,7 @@ import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { ARTIFACT_FIND_REFUSABLE, characterize, classify, type Row } from "@/lib/diagnose/characterize";
+import { ARTIFACT_FIND_REFUSABLE, DAMAGE_REFUSABLE, characterize, classify, type Row } from "@/lib/diagnose/characterize";
 import { IncompleteTome, MissingSaveKey, UNPORTED_STEPS } from "@/lib/game/errors";
 import type { StatResult } from "@/lib/statTracker/config";
 
@@ -151,6 +151,10 @@ describe("classify", () => {
     // Artifact Find's list: only a save older than the game's load steps lib/game replays; a key the load gives (Spelunk[49]) is a gap
     expect(classify(refusal("MissingSaveKey", UNPORTED_STEPS), [], 29.05, ARTIFACT_FIND_REFUSABLE)).toBe("refused");
     for (const k of ["Spelunk[49]", "Tome rows 107,108,109", "Sushi", "Menagerie"]) expect(classify(refusal("MissingSaveKey", k), [], 33.05, ARTIFACT_FIND_REFUSABLE), k).toBe("unexplained");
+    // Damage's list adds a Tome lib/tome cannot score; any other key is still a gap
+    expect(classify(refusal("MissingSaveKey", UNPORTED_STEPS), [], 29.05, DAMAGE_REFUSABLE)).toBe("refused");
+    expect(classify(refusal("IncompleteTome", "Tome rows 21,101,105: #21 \"x\" (y)"), [], 23.05, DAMAGE_REFUSABLE)).toBe("refused");
+    for (const k of ["Spelunk[49]", "Tome rows", "Tome rows x", "Sushi", "Menagerie"]) expect(classify(refusal("MissingSaveKey", k), [], 33.05, DAMAGE_REFUSABLE), k).toBe("unexplained");
   });
 
   it("only MissingSaveKey on the lib/game side is a refusal", () => {

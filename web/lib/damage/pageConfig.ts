@@ -1,10 +1,12 @@
 // Damage page: the statTracker kit's config for N.js _customBlock_DamageDealed
 // — the Damage line of the Player Info panel (Min ~ Max, Min = Max × Mastery).
-// The headline total is Max; Min comes from the tree's Mastery node.
+// The headline total is Max; Min comes from the tree's Mastery node. It computes on lib/game (trackers/damage.ts); the Observed Max
+// collector (scripts/update-top-damage.ts) stays on lib/arkh.
 
 import type { StatPageConfig } from "@/lib/statTracker/config";
+import { withPageErrors } from "@/lib/statTracker/pageErrors";
 import type { ArkhNode } from "@/lib/arkh/node";
-import { DMG_NODES } from "@/lib/arkh/stats/defs/damage";
+import { DMG_NODES } from "./layers";
 import { formatDamage, formatDamageLine } from "./format";
 import { damageGainsModel } from "./gains";
 import { TOP_DAMAGE_GENERATED_AT, TOP_DAMAGE_PLAYERS_SCANNED } from "./topDamage.meta";
@@ -34,8 +36,9 @@ export const DAMAGE_PAGE: StatPageConfig = {
     exportPrefix: "damage-snapshots",
     exportLabel: "damage-tracker",
   },
-  compute: (save, charIdx, mapIdx) =>
-    import("@/lib/arkh/computeDamage").then((m) => m.computeArkhDamage(save, charIdx, mapIdx)),
+  compute: withPageErrors("Damage", (save, charIdx, mapIdx) =>
+    import("@/lib/game/trackers/damage").then((m) => m.computeGameDamage(save, charIdx, mapIdx))
+  ),
   formatTotal: formatDamage,
   unit: "",
   headline: (tree, total) => formatDamageLine(minOf(tree, total), total),

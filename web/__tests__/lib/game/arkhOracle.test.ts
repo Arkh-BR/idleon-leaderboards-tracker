@@ -7,7 +7,7 @@ import { ARTI_GROUPS } from "@/lib/arkh/stats/defs/artifact-find";
 import { applyGroupStep, groupVal } from "@/lib/arkh/stats/defs/grouped";
 import { DMG_LAYERS, DMG_MASTERY, DMG_RAT, dmgLayer } from "@/lib/arkh/stats/defs/damage";
 import { computeArkhDamage, DMG_COLLECTOR_MAP } from "@/lib/arkh/computeDamage";
-import { computeReadingValue } from "@/lib/readings/compute";
+import { formatGameValue } from "@/lib/readings/format";
 import { READINGS_DIR, loadReadings, readingSave } from "@/lib/readings/registry";
 import { GOLDEN_SAVES, KNOWN_ARKH_DIFFS, arkhArtifactLeaf, arkhDamage, arkhDamagePoolKeys, arkhDamageLeaf, arkhDamageLeaves, arkhSourceHash, arkhStat, arkhStats, gameCtx, goldenSaves, setArkhSourceHash, setOracleCacheDir, type ArkhStat } from "./support/arkhOracle";
 
@@ -238,18 +238,16 @@ describe("arkhDamageLeaf and arkhStat", () => {
     });
   });
 
-  // The Damage readings' extras: arkhStat equals what computeReadingValue (the readings test) gives.
+  // The Damage readings' extras: arkhStat shows what the game showed (the readings test ran these on lib/arkh until the Damage page moved
+  // to lib/game; the oracle keeps lib/arkh's own check against the game's text).
   const rows = loadReadings()
     .filter((r) => r.stat === "damage")
-    .flatMap((r) => Object.keys(r.extra ?? {}).map((stat) => ({ r, stat: stat as ArkhStat })));
+    .flatMap((r) => Object.entries(r.extra ?? {}).map(([stat, game]) => ({ r, stat: stat as ArkhStat, game })));
   it("the readings fixture has Damage extras to compare", () => expect(rows.length).toBeGreaterThan(0));
-  for (const { r, stat } of rows) {
+  for (const { r, stat, game } of rows) {
     // collection time: only a file-exists check; the save is parsed inside the test
-    it.skipIf(!existsSync(join(READINGS_DIR, r.saveFile)))(`${r.id} ${stat}: arkhStat = the readings value`, async () => {
-      const save = readingSave(r);
-      const want = (await computeReadingValue(r, save, stat)).value;
-      expect(want).toBeGreaterThan(0);
-      expect(arkhStat(save, r.charIdx, stat)).toBe(want);
+    it.skipIf(!existsSync(join(READINGS_DIR, r.saveFile)))(`${r.id} ${stat}: arkhStat = the game's ${game}`, () => {
+      expect(formatGameValue(stat, { value: arkhStat(readingSave(r), r.charIdx, stat) })).toBe(game);
     });
   }
 });

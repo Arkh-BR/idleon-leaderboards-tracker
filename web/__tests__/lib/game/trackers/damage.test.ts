@@ -21,6 +21,7 @@ import { asNum } from "@/lib/game/attr";
 import { makeCtx, withPlayer, type TraceNode } from "@/lib/game/ctx";
 import { MissingSaveKey, TreeTotalMismatch } from "@/lib/game/errors";
 import { ClassStatTypes } from "@/lib/game/data";
+import { DAMAGE_REFUSABLE } from "@/lib/diagnose/characterize";
 import { DamageDealed } from "@/lib/game/njs/DamageDealed";
 import { ReturnClasses } from "@/lib/game/njs/ReturnClasses";
 import { buildGameState, type GameEnvelope, type GameState } from "@/lib/game/state";
@@ -82,6 +83,16 @@ describe("the display config and the registry", () => {
     const c = stubbed({ "ArcadeBonus[0]": 30 });
     expect(TRACKERS.damage!(c)).toBe(DamageDealed(stubbed({ "ArcadeBonus[0]": 30 }), "Max"));
     expect(TRACKERS.damage!(c)).toBe(30);
+  });
+
+  it("TRACKERS has the Player Info stats the Damage readings carry, each its N.js block (lib/readings/compute dispatches on it)", () => {
+    const calls = { maxHp: "PlayerHPmax[]", maxMp: "PlayerMPmax[]", accuracy: "PlayerAccTot[]", str: 'TotalStats["STR"]', agi: 'TotalStats["AGI"]', wis: 'TotalStats["WIS"]', luk: 'TotalStats["LUK"]' } as const;
+    Object.entries(calls).forEach(([stat, call], i) => expect(TRACKERS[stat as keyof typeof calls]!(stubbed({ [call]: 7 + i })), stat).toBe(7 + i));
+    expect(Object.keys(TRACKERS).sort()).toEqual(["accuracy", "agi", "artifactFind", "damage", "luk", "maxHp", "maxMp", "str", "wis"]);
+  });
+
+  it("characterize accepts exactly the refusals the real-save loops pin (DAMAGE_REFUSABLE)", () => {
+    for (const f of DAMAGE_REFUSALS) expect(DAMAGE_REFUSABLE(f.slice(f.indexOf(": ") + 2)), f).toBe(true);
   });
 });
 

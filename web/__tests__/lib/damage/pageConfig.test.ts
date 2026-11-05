@@ -3,9 +3,12 @@ import { existsSync, readFileSync } from "node:fs";
 import { DAMAGE_PAGE } from "@/lib/damage/pageConfig";
 import { damageGainsModel } from "@/lib/damage/gains";
 import { formatDamage, formatDamageLine } from "@/lib/damage/format";
+import { DMG_NODES, DMG_RAT } from "@/lib/damage/layers";
 import { computeArkhDamage } from "@/lib/arkh/computeDamage";
-import { DMG_NODES } from "@/lib/arkh/stats/defs/damage";
 import type { ArkhNode } from "@/lib/arkh/node";
+import { flattenTree } from "@/lib/dropRate/treeFlatten";
+import { computeGameDamage } from "@/lib/game/trackers/damage";
+import { getCharClassKey } from "@/lib/talentsLevel/charClass";
 
 const g = globalThis as unknown as { window?: unknown };
 if (!g.window) g.window = g;
@@ -59,6 +62,12 @@ describe("Damage page config", () => {
     expect(DAMAGE_PAGE.methodologyNote).toMatch(/Active buffs \(Talents 108\/124\) and masterclass forms \(Wraith, Tempest, Tesseract\) are not counted/);
   });
 
+  it("compute passes lib/game's refusals through the page's wrapper (an older save is told in words)", async () => {
+    await expect(DAMAGE_PAGE.compute({ charNames: ["a"], data: { CSver: 23.05 } }, 0, 251)).rejects.toThrow(
+      /^This save is from an older game version \(missing Lv0_0\)\. Sign in or paste a fresh save\.$/
+    );
+  });
+
   const tree = (max: number, mastery: number): ArkhNode => ({
     name: "Damage",
     val: max,
@@ -99,15 +108,31 @@ describe.skipIf(!existsSync(SAVE))("Damage page config on a real save", () => {
     save = JSON.parse(readFileSync(SAVE, "utf8").replace(/^﻿/, ""));
   });
 
-  it("compute is computeArkhDamage, and the headline reads Mastery off its tree", async () => {
+  it("compute is lib/game's computeGameDamage, and the headline reads Mastery off its tree", async () => {
     const ci = save.charNames.indexOf("ARKHE");
     const r = await DAMAGE_PAGE.compute(save, ci, 0);
-    expect(r.total).toBe(computeArkhDamage(save, ci, 0).total);
+    expect(JSON.stringify(r)).toBe(JSON.stringify(computeGameDamage(save, ci, 0)));
     const mastery = r.tree.children!.find((c) => c.name === DMG_NODES.mastery)!.val;
     expect(mastery).toBeGreaterThan(0);
     expect(DAMAGE_PAGE.headline!(r.tree, r.total)).toBe(formatDamageLine(r.total * mastery, r.total));
     // The arena fixes Mastery at 0.2.
     const arena = await DAMAGE_PAGE.compute(save, ci, 43);
     expect(arena.tree.children!.find((c) => c.name === DMG_NODES.mastery)!.val).toBeCloseTo(0.2, 12);
+  });
+
+  // The Compare tab looks up each row's path in the Observed Max (collected on lib/arkh). lib/game's tree keeps lib/arkh's names down to
+  // the sources, so every row the reference has at that level is still there; below a source, lib/game shows the N.js calls, which the
+  // reference (lib/arkh's leaf names) does not have.
+  it("keeps every Compare row of the Observed Max down to the sources (the layers' sources, the arena and Mastery's)", async () => {
+    const top = await DAMAGE_PAGE.loadTop();
+    const sourceDepth = (p: string) => (p.startsWith(`Damage / ${DMG_NODES.mastery}`) || p.startsWith(`Damage / ${DMG_RAT.name}`) ? 3 : 4);
+    for (const ci of [0, save.charNames.indexOf("ARKHE")]) {
+      const ref = top.flatForClass(getCharClassKey(save, ci));
+      const arkh = flattenTree(computeArkhDamage(structuredClone(save), ci, 251).tree);
+      const game = flattenTree((await DAMAGE_PAGE.compute(save, ci, 251)).tree);
+      const rows = Object.keys(arkh).filter((p) => p in ref && p.split(" / ").length <= sourceDepth(p));
+      expect(rows.length, `character ${ci}`).toBeGreaterThan(150);
+      expect(rows.filter((p) => !(p in game)), `character ${ci}`).toEqual([]);
+    }
   });
 });

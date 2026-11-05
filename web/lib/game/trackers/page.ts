@@ -43,7 +43,8 @@ export function migratedNote(state: GameState): string | undefined {
 // the state (a deep clone + freeze, and the Tome score kept on it) is built once per envelope object, and shared by every tracker. Each call
 // still gets its own Ctx and memo: the memo keys include the player, so a shared one would reuse nothing across characters, and a second call
 // for the same character would find the tracker's call already cached and have no trace to read the tree from. The state is immutable; the
-// envelope is assumed not to change between calls (the page parses it once per load; lib/arkh, which wrote into it, is out of this path).
+// envelope is assumed not to change between calls (the page parses it once per load and computes only on lib/game; lib/arkh, were it run on
+// the same envelope, leaves it as it found it: trackers/damageState.test.ts runs both in either order).
 const states = new WeakMap<object, GameState>();
 
 /** The GameState of an envelope, built once per envelope object. An envelope the build refuses throws, and is not kept. */
