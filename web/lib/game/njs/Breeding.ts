@@ -3,6 +3,7 @@ import { block, type Ctx } from "../ctx";
 import { PetStats, RANDOlist } from "../data";
 import { MissingSaveKey, NotPorted } from "../errors";
 import { MenagerieStuff } from "./MenagerieStuff";
+import { DNSM_CalcTalentMAP } from "./TalentCalc";
 import type { Ported } from "../ported";
 
 /**
@@ -20,6 +21,9 @@ export const Breeding = block("Breeding", (ctx, d: string, b: string, e: number,
     // @7932815: reads the breeding actor's GenINFO[110], which it fills from the save
     case "TotPetsFound":
       return totPetsFound(ctx);
+    // @7932219: 1 once the Pet Arena waves cleared (CalcTalentMAP "arena") pass e
+    case "PetArenaBonus":
+      return DNSM_CalcTalentMAP(ctx, "arena") > e ? 1 : 0;
     default:
       throw new NotPorted("Breeding", d);
   }
@@ -79,4 +83,4 @@ function totPetsFound(ctx: Ctx): number {
 }
 
 /** What this module covers (lib/game/ported.ts). */
-export const PORTED: Ported = { ShinyBonusS: true, SpecialPassives: ["Lv"], TotPetsFound: true };
+export const PORTED: Ported = { ShinyBonusS: true, SpecialPassives: ["Lv"], TotPetsFound: true, PetArenaBonus: true };

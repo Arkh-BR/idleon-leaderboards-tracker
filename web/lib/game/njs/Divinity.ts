@@ -6,6 +6,7 @@ import { skillLevel } from "../player";
 import { Companions } from "./Companions";
 import { DNSM_AlchBubbles } from "./DNSM";
 import { Holes } from "./Holes";
+import { Ninja } from "./Ninja";
 import { ResearchStuff } from "./ResearchStuff";
 import { Thingies } from "./Thingies";
 import { withPlayer } from "../ctx";
@@ -28,6 +29,11 @@ export const Divinity: (ctx: Ctx, d: string, b: number, e: number) => number = b
       return bonusMinor(ctx, b, e);
     case "DivMinorBonus":
       return divMinorBonus(ctx, b, e);
+    // @10758317: god b's blessing, Divinity[28 + b] x GodsInfo[b][14] x (1 + .05 x Emporium 33 x max(0, Divinity[25] - 10)); b == 2 has a rule
+    // of its own (SkillStats AllEfficiencies) that is not ported
+    case "BlesssBonus":
+      if (2 == b) throw new NotPorted("Divinity", "BlesssBonus:b=2");
+      return asNum(ctx, "Divinity", (28 + b) | 0) * asNumber(god(b)[14]) * (1 + 0.05 * Ninja(ctx, "EmporiumBonus", 33, 0) * Math.max(0, asNum(ctx, "Divinity", 25) - 10));
     default:
       throw new NotPorted("Divinity", d);
   }
@@ -76,4 +82,4 @@ function divMinorBonus(ctx: Ctx, b: number, e: number): number {
 }
 
 /** What this module covers (lib/game/ported.ts). */
-export const PORTED: Ported = { Bonus_Minor: true, DivMinorBonus: true };
+export const PORTED: Ported = { Bonus_Minor: true, DivMinorBonus: true, BlesssBonus: [0, 1, 3, 4, 5, 6, 7, 8, 9] };

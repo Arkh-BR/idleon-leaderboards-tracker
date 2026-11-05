@@ -1,8 +1,9 @@
 import { asNum, asNumber, attr } from "../attr";
 import { block, type Ctx } from "../ctx";
-import { ArtifactInfo } from "../data";
+import { ArtifactInfo, ClassStatTypes } from "../data";
 import { InvalidSaveValue, MissingSaveKey, NotPorted } from "../errors";
-import { listAt } from "../lists";
+import { hString } from "../hstring";
+import { lengthOf, listAt, listOrMapAt } from "../lists";
 import { ArcadeBonus } from "./ArcadeBonus";
 import { Breeding } from "./Breeding";
 import { CaptBonusCalc } from "./CaptBonusCalc";
@@ -12,6 +13,7 @@ import { DNSM_AlchVials, DNSM_StarSigns } from "./DNSM";
 import { FarmingStuffs } from "./FarmingStuffs";
 import { GamingStatType } from "./GamingStatType";
 import { GetBribeBonus } from "./GetBribeBonus";
+import { getLOG } from "./getLOG";
 import { Holes } from "./Holes";
 import { JellyOperation } from "./JellyOperation";
 import { MainframeBonus } from "./MainframeBonus";
@@ -20,11 +22,15 @@ import { Minehead } from "./Minehead";
 import { NONdummies60 } from "./NONdummies";
 import { Ninja } from "./Ninja";
 import { RandomEvent } from "./RandomEvent";
+import { ReturnClasses } from "./ReturnClasses";
 import { ResearchStuff } from "./ResearchStuff";
 import { Stuff2 } from "./Stuff2";
 import { SushiStuff } from "./SushiStuff";
 import { Summoning } from "./Summoning";
+import { Summoning2 } from "./Summoning2";
 import { Thingies } from "./Thingies";
+import { TotalStats } from "./TotalStats";
+import { WorkbenchStuff } from "./WorkbenchStuff";
 import { range, type Ported } from "../ported";
 
 /**
@@ -39,6 +45,9 @@ export const Sailing: (ctx: Ctx, d: string, b: number, e: number) => number = bl
       return boatArtiMulti(ctx, b);
     case "DaveyJonesBonus":
       return daveyJonesBonus(ctx, b);
+    // @10723714: the Slabbo multi, (1 + Meritoc 23 / 100) x (1 + legend talent 28 / 100) x (1 + vault 74 / 100)
+    case "SlabboBonus_AllMulti":
+      return (1 + Summoning2(ctx, "MeritocBonusz", 23, 0) / 100) * (1 + Thingies(ctx, "LegendPTS_bonus", 28, 0) / 100) * (1 + Summoning(ctx, "VaultUpgBonus", 74, 0) / 100);
     default:
       throw new NotPorted("Sailing", d);
   }
@@ -46,23 +55,28 @@ export const Sailing: (ctx: Ctx, d: string, b: number, e: number) => number = bl
 
 /** The artifacts whose value the game computes with a multiplier of its own besides the tier (`l` in the pass below). */
 const OWN_MULTIPLIER = new Set([1, 2, 5, 8, 10, 11, 13, 18, 20, 23, 25, 27, 29, 999]);
+/** Of those, the ones ported (Damage reads 2, 8, 25, 27 and 29; 10, 18, 20 and 999 share 2's rule). */
+const OWN_PORTED = new Set([2, 10, 18, 20, 999, 8, 25, 27, 29]);
 
 /** Index 2..7 of the tier, the word in the artifact's text: `The_artifact's_main_bonus_is_<word>!` (ArtifactInfo[l][5], [7] ... [15]). */
 const TIER_WORD = [, , "doubled", "tripled", "quadrupled", "quintupled", "sixtupled", "seventupled"];
 
 /**
- * `ArtifactBonus` @10714975, for `e == 0` and an artifact with no multiplier of its own besides the
- * tier, plus artifact 3 (which scales with the player's level).
+ * `ArtifactBonus` @10714975, for `e == 0`.
  *
  * With `b >= 0` the game does not compute anything here: it returns `DNSM.SailzArtiBonusL[b]`, a list
  * the pass `Sailing("ArtifactBonus", -1, 0)` fills for every artifact (called by TalentCalc(-9)
  * @4515107, and again whenever the player's data changes). That pass is the writer of the cache, so
  * this replays its iteration `l = b` for the current player: 0 when the artifact is not found, else
- * the base in ArtifactInfo[l][3], x Lv0[13] for artifact 3, x the tier where the artifact's text carries it.
+ * the base in ArtifactInfo[l][3], times the artifact's own multiplier, times the tier where the artifact's text carries it. Artifact 25
+ * is computed again on every call (its primary stat moves), by the same rule. The own multipliers ported:
+ *  - 2, 10, 18, 20, 999: (1 + lab bonus 15 / 100) x SlabboBonus_AllMulti x floor(max(0, Cards[1].length - 500) / 10);
+ *  - 3: Lv0[13]; 8: getLOG of every character's build speed summed (WorkbenchStuff PlayerBuildSpd);
+ *  - 25: floor(the class's primary stat (TotalStats of ClassStatTypes[first class][0]) / 100); 27: getLOG(Sailing[1][0]); 29: getLOG(Divinity[39]).
  */
 function artifactBonus(ctx: Ctx, b: number, e: number): number {
   if (e === 1) throw new NotPorted("Sailing", "ArtifactBonus:e=1"); // the 1==e branch: the tier's description number
-  if (b < 0 || OWN_MULTIPLIER.has(b)) throw new NotPorted("Sailing", `ArtifactBonus:b=${b}`);
+  if (b < 0 || (OWN_MULTIPLIER.has(b) && !OWN_PORTED.has(b))) throw new NotPorted("Sailing", `ArtifactBonus:b=${b}`);
   const info = ArtifactInfo[b];
   if (!info) throw new RangeError(`Sailing ArtifactBonus: no artifact ${b} in ArtifactInfo`);
   // N.js tests the raw element, `0==Sailing[3][l]` (loose): a null element is not 0, so it takes the base (and, being no tier,
@@ -73,10 +87,29 @@ function artifactBonus(ctx: Ctx, b: number, e: number): number {
   const cell = b < list.length ? attr(ctx, "Sailing", 3, b) : 0;
   const tier = asNumber(cell);
   let v = cell == 0 ? 0 : asNumber(info[3]);
-  if (b === 3) v *= asNum(ctx, "Lv0", 13);
+  if (2 == b || 10 == b || 18 == b || 20 == b || 999 == b)
+    v = v * (1 + MainframeBonus(ctx, 15) / 100) * Sailing(ctx, "SlabboBonus_AllMulti", 0, 0) * Math.floor(Math.max(0, lengthOf(listOrMapAt(ctx, "Cards", 1)) - 500) / 10);
+  else if (3 == b) v = v * asNum(ctx, "Lv0", 13);
+  else if (25 == b) v = v * Math.floor(TotalStats(ctx, primaryStat(ctx)) / 100);
+  else if (8 == b) {
+    let speed = 0; // DNSM.SailzArtiBonusDN
+    for (let g = 0, n = ctx.state.charNames.length; g < n; g++) speed = speed + WorkbenchStuff(ctx, "PlayerBuildSpd", g, 0);
+    v = v * getLOG(ctx, speed);
+  } else if (27 == b) {
+    listAt(ctx, "Sailing", 1); // the game indexes Sailing[1][0] directly
+    v = v * getLOG(ctx, asNum(ctx, "Sailing", 1, 0));
+  } else if (29 == b) v = v * getLOG(ctx, asNum(ctx, "Divinity", 39));
   const word = TIER_WORD[tier];
   if (word !== undefined && info[2 * tier + 1] === `The_artifact's_main_bonus_is_${word}!`) v *= tier;
   return v;
+}
+
+/** The class's primary stat, `ClassStatTypes[ReturnClasses(CharacterClass)[0]][0]` (the game indexes it directly). */
+function primaryStat(ctx: Ctx): string {
+  const first = `${ReturnClasses(attr(ctx, "CharacterClass") as number)[0]}`;
+  const types = ClassStatTypes[first];
+  if (!types) throw new RangeError(`Sailing ArtifactBonus: no class ${first} in ClassStatTypes`);
+  return hString(types[0]);
 }
 
 /**
@@ -150,4 +183,4 @@ function boatArtiMulti(ctx: Ctx, b: number): number {
 }
 
 /** What this module covers (lib/game/ported.ts). */
-export const PORTED: Ported = { ArtifactBonus: range(0, ArtifactInfo.length).filter((b) => !OWN_MULTIPLIER.has(b)), BoatArtiMulti: true, DaveyJonesBonus: true };
+export const PORTED: Ported = { ArtifactBonus: range(0, ArtifactInfo.length).filter((b) => !OWN_MULTIPLIER.has(b) || OWN_PORTED.has(b)), BoatArtiMulti: true, DaveyJonesBonus: true, SlabboBonus_AllMulti: true };

@@ -70,6 +70,11 @@ describe("PORTED declarations", () => {
       const rec = p as Record<string, true | readonly (number | string)[]>;
       expect(notPorted(fn, call(name, "__undeclared__", 0)), `${name} sub-case __undeclared__`).toBe(true);
       for (const [key, entry] of Object.entries(rec)) {
+        if (key === "()") {
+          // the computed names: each example must be answered
+          for (const n of entry as readonly string[]) expect(notPorted(fn, call(name, n, 0)), `${name}("${n}")`).toBe(false);
+          continue;
+        }
         const [sub, e] = key.endsWith("@e2") ? [key.slice(0, -3), 2] : [key, 0];
         if (entry === true) {
           expect(notPorted(fn, call(name, sub, undefined, e)), `${name}.${key}`).toBe(false);

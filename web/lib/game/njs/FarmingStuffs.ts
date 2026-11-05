@@ -1,11 +1,13 @@
 import { asNum, asNumber, attr } from "../attr";
 import { block, type Ctx } from "../ctx";
 import { MarketExoticInfo, NinjaInfo, Research as CustomResearch } from "../data";
-import { NotPorted } from "../errors";
+import { InvalidSaveValue, MissingSaveKey, NotPorted } from "../errors";
 import { contains, listAt } from "../lists";
 import { GamingStatType } from "./GamingStatType";
 import { getbonus2 } from "./getbonus2";
+import { MainframeBonus } from "./MainframeBonus";
 import { MenagerieStuff } from "./MenagerieStuff";
+import { Ninja } from "./Ninja";
 import { ResearchStuff } from "./ResearchStuff";
 import { Summoning } from "./Summoning";
 import { range, type Ported } from "../ported";
@@ -26,6 +28,21 @@ export const FarmingStuffs: (ctx: Ctx, d: string, b: number, e: number) => numbe
       const boost = Math.max(1, getbonus2(ctx, 1, 207, -1)) * (1 + FarmingStuffs(ctx, "ExoticBonusQTY", 14, 0) / 100);
       return 4 == b || 9 == b || 14 == b || 19 == b ? boost * value * lv : boost * ((1.7 * value * lv) / (lv + 80));
     }
+    // @10824612: the Crop Scientist's multi, (1 + lab bonus 17 / 100) x (1 + (Grimoire 22 + Exotic 40 + vault 79) / 100)
+    case "CropSCbonMulti":
+      return (1 + MainframeBonus(ctx, 17) / 100) * (1 + (Summoning(ctx, "GrimoireUpgBonus", 22, 0) + (FarmingStuffs(ctx, "ExoticBonusQTY", 40, 0) + Summoning(ctx, "VaultUpgBonus", 79, 0))) / 100);
+    case "CropSCbonus":
+      return cropSCbonus(ctx, b);
+    // @10817923: the stickers found, Research[9] summed (rounded at each step). The game caches it for the session (DNSM.TotStickrz)
+    case "TotalStickers": {
+      const stickers = listAt(ctx, "Research", 9); // the game reads Research[9].length
+      let total = 0; // DNSM.TotStickrz
+      for (let e = 0; e < stickers.length; e++) total = Math.round(total + asNum(ctx, "Research", 9, e));
+      return Math.round(total);
+    }
+    // @10818423: 1 + grid square 47 x the stickers found / 100 once square 47 has a level, else 1
+    case "StickerDMGmulti":
+      return 1 == ResearchStuff(ctx, "FarmingStickerDMG_unlocked", 0, 0) ? 1 + (ResearchStuff(ctx, "Grid_Bonus", 47, 0) * FarmingStuffs(ctx, "TotalStickers", 0, 0)) / 100 : 1;
     default:
       throw new NotPorted("FarmingStuffs", d);
   }
@@ -62,5 +79,18 @@ function exoticBonusQTY(ctx: Ctx, b: number): number {
   return v;
 }
 
+/**
+ * `CropSCbonus` @10824845, Crop Scientist bonus `b`, from the crops found (D.mapCount(FarmCrop), the keys of the map): 0 = 20 x crops x
+ * CropSCbonMulti once the Emporium item 27 is owned, else 0 (the chain's other branches need b of 1..9). Only b = 0 is ported.
+ */
+function cropSCbonus(ctx: Ctx, b: number): number {
+  if (0 != b) throw new NotPorted("FarmingStuffs", `CropSCbonus:b=${b}`);
+  if (1 != Ninja(ctx, "EmporiumBonus", 27, 0)) return 0;
+  const crops = attr(ctx, "FarmCrop");
+  if (crops === undefined) throw new MissingSaveKey("FarmCrop");
+  if (crops === null || typeof crops !== "object") throw new InvalidSaveValue("FarmCrop", "a map", crops);
+  return 20 * Math.round(Object.keys(crops).length) * FarmingStuffs(ctx, "CropSCbonMulti", 0, 0);
+}
+
 /** What this module covers (lib/game/ported.ts). */
-export const PORTED: Ported = { StickerBonus: true, ExoticBonusQTY: range(0, 80), LankRankUpgBonus: true };
+export const PORTED: Ported = { StickerBonus: true, ExoticBonusQTY: range(0, 80), LankRankUpgBonus: true, CropSCbonMulti: true, CropSCbonus: [0], TotalStickers: true, StickerDMGmulti: true };

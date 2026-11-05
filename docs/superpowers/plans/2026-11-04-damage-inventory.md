@@ -13,7 +13,7 @@ Regenerate it when N.js, a module's `PORTED` or `lib/game/unreached.ts` changes.
 - attrs and dnsm are the reads in every slice listed. One marked "whole body only" is read only inside a whole-body function (all its branches, not just the one this formula takes). `DNSM` is runtime-only (it is never loaded from the save): port it as `DNSM_*` functions, not as a save attribute. The dnsm list also holds the scratch keys a formula writes and reads back in the same slice (`CaptnBonuz`, `AtomBonCalc1`); the inputs are the caches the game fills elsewhere (`StarSigns`, `AlchVials`, `FamBonusQTYs`…).
 - Depth stops at 6.
 
-**67 functions, 669 sub-cases (rows), 204 whole body, 0 not found, 95 attrs, 120 dnsm.** **564 ported `[x]`, 19 not reached `[~]`, 86 open.**
+**67 functions, 669 sub-cases (rows), 204 whole body, 0 not found, 95 attrs, 120 dnsm.** **600 ported `[x]`, 19 not reached `[~]`, 50 open.**
 
 Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("AGI")`, R4 = `TotalStats("WIS")`, R5 = `TotalStats("LUK")`, R6 = `PlayerHPmax()`, R7 = `PlayerMPmax()`, R8 = `PlayerAccTot()`.
 
@@ -489,11 +489,11 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 ## FarmingStuffs
 
 - [x] FarmingStuffs("LankRankUpgBonus",14,0) — depth 1 — 7 chars — roots: R1
-- [ ] FarmingStuffs("CropSCbonus",0,0) — depth 1 — 168 chars — roots: R1
+- [x] FarmingStuffs("CropSCbonus",0,0) — depth 1 — 168 chars — roots: R1
 - [x] FarmingStuffs("ExoticBonusQTY",41,0) — depth 1 — 1661 chars — roots: R1
-- [ ] FarmingStuffs("StickerDMGmulti",0,0) — depth 1 — 179 chars — roots: R1
-- [ ] FarmingStuffs("CropSCbonMulti",0,0) — depth 2 — 209 chars — roots: R1
-- [ ] FarmingStuffs("TotalStickers",0,0) — depth 2 — 481 chars — roots: R1
+- [x] FarmingStuffs("StickerDMGmulti",0,0) — depth 1 — 179 chars — roots: R1
+- [x] FarmingStuffs("CropSCbonMulti",0,0) — depth 2 — 209 chars — roots: R1
+- [x] FarmingStuffs("TotalStickers",0,0) — depth 2 — 481 chars — roots: R1
 - [x] FarmingStuffs("ExoticBonusQTY",40,0) — depth 3 — 1661 chars — roots: R1
 - [x] FarmingStuffs("LankRankUpgBonus",19,0) — depth 2 — 553 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [x] FarmingStuffs("ExoticBonusQTY",14,0) — depth 3 — 1661 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
@@ -510,10 +510,10 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 
 ## Spelunk
 
-- [ ] Spelunk("ShopUpgBonus",64,0) — depth 1 — 5584 chars — roots: R1
+- [x] Spelunk("ShopUpgBonus",64,0) — depth 1 — 5584 chars — roots: R1
 - [x] Spelunk("6starCards",0,0) — depth 2 — 69 chars — roots: R1
-- [ ] Spelunk("ShopUpgBonus") — depth 2 — 5584 chars — roots: R1
-- [ ] Spelunk("GrandDiscoveries_Total",0,0) — depth 2 — 372 chars — roots: R1
+- [x] Spelunk("ShopUpgBonus") — depth 2 — 5584 chars — roots: R1
+- [x] Spelunk("GrandDiscoveries_Total",0,0) — depth 2 — 372 chars — roots: R1
 - [x] Spelunk("DoWeHaveLoreN1",8,0) — depth 2 — 71 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
 
 ## TalentCalc
@@ -531,32 +531,32 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 ## Divinity
 
 - [x] Divinity("Bonus_Minor") — depth 1 — 3194 chars — roots: R1 R8
-- [ ] Divinity("BlesssBonus",7,0) — depth 1 — 1026 chars — roots: R1
-- [ ] Divinity("BlesssBonus",8,0) — depth 1 — 1026 chars — roots: R1
+- [x] Divinity("BlesssBonus",7,0) — depth 1 — 1026 chars — roots: R1
+- [x] Divinity("BlesssBonus",8,0) — depth 1 — 1026 chars — roots: R1
 - [x] Divinity("DivMinorBonus") — depth 2 — 1153 chars — roots: R1 R8
 
 ## WorkbenchStuff
 
-- [ ] WorkbenchStuff("AdditionExtraDMG",0,0) — depth 1 — 261 chars — roots: R1
-- [ ] WorkbenchStuff("ConstMasteryBonus",1,0) — depth 1 — 297 chars — roots: R1
-- [ ] WorkbenchStuff("DeathNoteRank") — depth 2 — 189 chars — roots: R1
-- [ ] WorkbenchStuff("PlayerBuildSpd") — depth 2 — 3041 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
-- [ ] WorkbenchStuff("ConstMasteryBonus",2,0) — depth 3 — 297 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
+- [x] WorkbenchStuff("AdditionExtraDMG",0,0) — depth 1 — 261 chars — roots: R1
+- [x] WorkbenchStuff("ConstMasteryBonus",1,0) — depth 1 — 297 chars — roots: R1
+- [x] WorkbenchStuff("DeathNoteRank") — depth 2 — 189 chars — roots: R1
+- [x] WorkbenchStuff("PlayerBuildSpd") — depth 2 — 3041 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
+- [x] WorkbenchStuff("ConstMasteryBonus",2,0) — depth 3 — 297 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
 
 ## RiftStuff
 
-- [ ] RiftStuff("eclipseSkulls",0) — depth 1 — 1724 chars — roots: R1
-- [ ] RiftStuff("RiftSkillETC",0) — depth 1 — 951 chars — roots: R1
-- [ ] RiftStuff("KillroyDMG",0) — depth 1 — 896 chars — roots: R1
+- [x] RiftStuff("eclipseSkulls",0) — depth 1 — 1724 chars — roots: R1
+- [x] RiftStuff("RiftSkillETC",0) — depth 1 — 951 chars — roots: R1
+- [x] RiftStuff("KillroyDMG",0) — depth 1 — 896 chars — roots: R1
 - [x] RiftStuff("5starCards",0) — depth 2 — 63 chars — roots: R1
-- [ ] RiftStuff() — depth 2 — 7650 chars — whole body — roots: R1
-- [ ] RiftStuff("riftBonus",3) — depth 3 — 69 chars — roots: R1
+- [x] RiftStuff() — depth 2 — 7650 chars — whole body — roots: R1
+- [x] RiftStuff("riftBonus",3) — depth 3 — 69 chars — roots: R1
 - [~] RiftStuff("RiftSkillETC",2) — depth 3 — 951 chars — roots: R1 — not reached: its only call site is in SkillStats("AllEfficiencies") (@4197736), which is not reached
 
 ## GamingStatType
 
 - [x] GamingStatType("PaletteBonus",34,0) — depth 1 — 2130 chars — roots: R1
-- [ ] GamingStatType("MSA_Bonus",0,0) — depth 1 — 213 chars — roots: R1
+- [x] GamingStatType("MSA_Bonus",0,0) — depth 1 — 213 chars — roots: R1
 - [x] GamingStatType("SuperBitType",64,0) — depth 1 — 139 chars — roots: R1
 - [x] GamingStatType("SuperBitType",49,0) — depth 2 — 139 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [x] GamingStatType("SuperBitType",51,0) — depth 2 — 139 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
@@ -606,17 +606,17 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 
 ## Thingies
 
-- [ ] Thingies("FriendBonusStatz",0,0) — depth 1 — 1262 chars — roots: R1
-- [ ] Thingies("CoralKidUpgBonus",11,0) — depth 1 — 85 chars — roots: R1
-- [ ] Thingies("ReliquariumInPosession",0,0) — depth 1 — 311 chars — roots: R1
+- [x] Thingies("FriendBonusStatz",0,0) — depth 1 — 1262 chars — roots: R1
+- [x] Thingies("CoralKidUpgBonus",11,0) — depth 1 — 85 chars — roots: R1
+- [x] Thingies("ReliquariumInPosession",0,0) — depth 1 — 311 chars — roots: R1
 - [x] Thingies("LegendPTS_bonus",26,0) — depth 2 — 154 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [x] Thingies("Have_ban_i",0,0) — depth 2 — 67 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [x] Thingies("EmperorBon",8,0) — depth 2 — 1769 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [x] Thingies("LegendPTS_bonus",10,0) — depth 2 — 154 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [x] Thingies("SumStoneTrialz") — depth 2 — 154 chars — roots: R1
-- [ ] Thingies("FriendBonusSlots",0,0) — depth 2 — 196 chars — roots: R1
-- [ ] Thingies("FriendBonusQTY") — depth 2 — 661 chars — roots: R1
-- [ ] Thingies("FriendBonusXtraMulti",0,0) — depth 2 — 79 chars — roots: R1
+- [x] Thingies("FriendBonusSlots",0,0) — depth 2 — 196 chars — roots: R1
+- [x] Thingies("FriendBonusQTY") — depth 2 — 661 chars — roots: R1
+- [x] Thingies("FriendBonusXtraMulti",0,0) — depth 2 — 79 chars — roots: R1
 - [x] Thingies("CoralKidUpgBonus",3,0) — depth 3 — 96 chars — roots: R1 R8
 - [x] Thingies("LegendPTS_bonus",28,0) — depth 3 — 154 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [~] Thingies("FriendBonusStatz",2,0) — depth 3 — 1262 chars — roots: R1 — not reached: its only call site is in SkillStats("AllEfficiencies") (@4197685), which is not reached
@@ -652,15 +652,15 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 
 ## Sailing
 
-- [ ] Sailing("ArtifactBonus",25,0) — depth 1 — 2412 chars — roots: R1
-- [ ] Sailing("ArtifactBonus",2,0) — depth 1 — 8323 chars — roots: R1
-- [ ] Sailing("ArtifactBonus",8,0) — depth 1 — 8323 chars — roots: R1
-- [ ] Sailing("ArtifactBonus",27,0) — depth 1 — 8323 chars — roots: R1
-- [ ] Sailing("ArtifactBonus",29,0) — depth 1 — 8323 chars — roots: R1
+- [x] Sailing("ArtifactBonus",25,0) — depth 1 — 2412 chars — roots: R1
+- [x] Sailing("ArtifactBonus",2,0) — depth 1 — 8323 chars — roots: R1
+- [x] Sailing("ArtifactBonus",8,0) — depth 1 — 8323 chars — roots: R1
+- [x] Sailing("ArtifactBonus",27,0) — depth 1 — 8323 chars — roots: R1
+- [x] Sailing("ArtifactBonus",29,0) — depth 1 — 8323 chars — roots: R1
 - [x] Sailing("ArtifactBonus",16,0) — depth 2 — 8323 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [x] Sailing("ArtifactBonus",32,0) — depth 2 — 8323 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [x] Sailing("ArtifactBonus",31,0) — depth 2 — 8323 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
-- [ ] Sailing("SlabboBonus_AllMulti",0,0) — depth 2 — 166 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
+- [x] Sailing("SlabboBonus_AllMulti",0,0) — depth 2 — 166 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [x] Sailing("ArtifactBonus",28,0) — depth 2 — 8323 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [x] Sailing("ArtifactBonus",15,0) — depth 3 — 8323 chars — roots: R1
 
@@ -672,8 +672,8 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 ## Breeding
 
 - [x] Breeding("ShinyBonusS","Nah",5,-1) — depth 1 — 1411 chars — roots: R1
-- [ ] Breeding("PetArenaBonus","0",2,0) — depth 1 — 83 chars — roots: R1
-- [ ] Breeding("PetArenaBonus","0",15,0) — depth 1 — 83 chars — roots: R1
+- [x] Breeding("PetArenaBonus","0",2,0) — depth 1 — 83 chars — roots: R1
+- [x] Breeding("PetArenaBonus","0",15,0) — depth 1 — 83 chars — roots: R1
 - [x] Breeding("SpecialPassives","Lv") — depth 2 — 668 chars — roots: R1 R2 R3 R4 R5 R6 R7 R8
 - [x] Breeding("ShinyBonusS","Nah",6,-1) — depth 1 — 1411 chars — roots: R1 R2 R6
 - [x] Breeding("ShinyBonusS","Nah",9,-1) — depth 1 — 1411 chars — roots: R1 R5
@@ -796,7 +796,7 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 ## Minehead
 
 - [x] Minehead("BonusQTY",0,0) — depth 1 — 147 chars — roots: R1
-- [ ] Minehead("WepPowDmgPCT",0,0) — depth 1 — 277 chars — roots: R1
+- [x] Minehead("WepPowDmgPCT",0,0) — depth 1 — 277 chars — roots: R1
 - [x] Minehead("BonusQTY",4,0) — depth 2 — 147 chars — roots: R1
 - [~] Minehead("GlimboTotalTrades",0,0) — depth 2 — 481 chars — roots: R1 R8 — not reached: its only call site is ResearchStuff("Grid_Bonus")'s 2 == e branch (square 168, @11177849); every Grid_Bonus reached is called with e = 0
 
@@ -827,7 +827,7 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 
 - [x] ResearchStuff("Grid_Bonus",127,0) — depth 1 — 1304 chars — roots: R1
 - [x] ResearchStuff("Grid_Bonus",173,0) — depth 2 — 1304 chars — roots: R1 R8
-- [ ] ResearchStuff("FarmingStickerDMG_unlocked",0,0) — depth 2 — 62 chars — roots: R1
+- [x] ResearchStuff("FarmingStickerDMG_unlocked",0,0) — depth 2 — 62 chars — roots: R1
 - [x] ResearchStuff("Grid_Bonus",47,0) — depth 2 — 1304 chars — roots: R1
 - [~] ResearchStuff("Grid_Bonus") — depth 2 — 1304 chars — roots: R1 R8 — not reached: its only call site is ResearchStuff("Grid_Bonus")'s 2 == e branch (the default square, Grid_Bonus(b, 0) times its counter, @11177849); every Grid_Bonus reached is called with e = 0
 - [~] ResearchStuff("TotalObsLVs",0,0) — depth 2 — 511 chars — roots: R1 R8 — not reached: its only call site is ResearchStuff("Grid_Bonus")'s 2 == e branch (square 94, @11177849); every Grid_Bonus reached is called with e = 0

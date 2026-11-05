@@ -1,15 +1,17 @@
-import { asNum, asNumber } from "../attr";
+import { asNum, asNumber, attr } from "../attr";
 import { block, type Ctx } from "../ctx";
 import { Research } from "../data";
 import { NotPorted } from "../errors";
-import { listAt } from "../lists";
+import { hString } from "../hstring";
+import { listAt, listOrMapAt } from "../lists";
 import { Companions } from "./Companions";
 import { ResearchStuff } from "./ResearchStuff";
+import { equipMap, itemDef } from "./TotalStats";
 import type { Ported } from "../ported";
 
 /**
  * N.js `_customBlock_Minehead(d, b, e)` @11186658: one function, a chain of named sub-cases. Only the sub-cases the Artifact Find port
- * reaches (`GlimboTotalTrades` @11198303 is only reached from `Grid_Bonus` square 168 with `e == 2`, which throws NotPorted).
+ * and Damage reach (`GlimboTotalTrades` @11198303 is only reached from `Grid_Bonus` square 168 with `e == 2`: unreached.ts).
  */
 export const Minehead: (ctx: Ctx, d: string, b: number, e: number) => number = block("Minehead", (ctx, d: string, b: number, _e: number) => {
   switch (d) {
@@ -25,6 +27,13 @@ export const Minehead: (ctx: Ctx, d: string, b: number, e: number) => number = b
     // @11204610: what the companion 147 and the Research grid square 125 add to every press
     case "Button_BonusMULTI":
       return (1 + Companions(ctx, 147) / 100) * (1 + ResearchStuff(ctx, "Grid_Bonus", 125, 0) / 100);
+    // @11194172: Research bonus 4 times the weapon's Weapon Power, its definition's plus its own (EquipmentMap[0][1])
+    case "WepPowDmgPCT": {
+      const bonus = Minehead(ctx, "BonusQTY", 4, 0);
+      listOrMapAt(ctx, "EquipmentOrder", 0); // the game indexes EquipmentOrder[0][1] directly (the cloud keeps it as a map)
+      const weapon = hString(attr(ctx, "EquipmentOrder", 0, 1));
+      return bonus * (asNumber(itemDef(weapon).Weapon_Power) + asNumber(equipMap(ctx, 0, 1).Weapon_Power));
+    }
     default:
       throw new NotPorted("Minehead", d);
   }
@@ -57,4 +66,4 @@ function buttonBonuses(ctx: Ctx, b: number): number {
 }
 
 /** What this module covers (lib/game/ported.ts). */
-export const PORTED: Ported = { Button_Bonuses: true, Button_BonusPerTime: true, Button_BonusMULTI: true, BonusQTY: true };
+export const PORTED: Ported = { Button_Bonuses: true, Button_BonusPerTime: true, Button_BonusMULTI: true, BonusQTY: true, WepPowDmgPCT: true };

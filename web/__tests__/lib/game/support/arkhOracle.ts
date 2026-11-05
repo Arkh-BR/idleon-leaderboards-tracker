@@ -339,6 +339,8 @@ export const STAT_WHY: Record<string, string> = {
     "lib/arkh's MoveSpd star signs (computeStarSignBonus) count a sign the Rift enables that StarSignsUnlocked lacks; N.js StarSigns @6540624 adds sign k of the first enabledStarSigns only when StarSignsUnlocked has StarSigns[k][0] (PlayerSpeedBonus reads DNSM.StarSigns.MoveSpd)",
   buff288:
     "lib/arkh's accuracy stubs GetBuffBonuses(288,2) to 0 (\"runtime buff, not in save\"); N.js GetBuffBonuses @4279371 reads _BuffIDsOn, which the HUD actor fills from the save's BuffsActive (@4931241), so a character whose saved BuffsActive has 288 running gets its talent number (curve 2), as for buff 94",
+  redox:
+    "N.js counts the items of _ItemsAndStorageOWNED (ActorEvents_232 @5989516) from the current character's inventory (CountInventory @7042726 reads InventoryOrder) plus the storage chest; lib/arkh's invStorageOwned (stats/systems/w6/upg-totals.ts:79) adds every character's inventory",
   buff108:
     "a product decision of the Damage page (the plan's Global Constraints): the active buff 108 is not counted, a runtime leaf in lib/game; lib/arkh counts it while the saved BuffsActive has it, and N.js PlayerHPmax @4147120 multiplies the % by 1 - GetBuffBonuses(108,1) / 100",
 };
@@ -821,6 +823,21 @@ export const KNOWN_ARKH_DIFFS: {
   ...[...TOME_SOURCE_SAVES, "big_guy69123.json"].map((save) => ({ stat: "damage" as const, save, source: "tome0", reason: "tome", why: TOME_SOURCE })),
   ...["0celot8.json", "5OhTree.json"].map((save) => ({ stat: "damage" as const, save, source: "tome0", reason: "tome", why: TOME_AFTER_RESET })),
   ...["Flipper143.json", "Koweabooo.json", "arkhe-2026-09-23.json"].map((save) => ({ stat: "damage" as const, save, source: "tome6", reason: "tome", why: TOME_SOURCE })),
+  // getbonus2(1, b, -1), the best over every character, adds the "all talent levels" (AllTalentLVz), which read DNSM.FamBonusQTYs["68"]: the
+  // fam68 reason on the characters of the tc470 rows (Maspoofio#7 as in the golden food; big_guy69123#5 moves only the Workbench's talents)
+  ...(["lankRank14", "workbench"] as const).flatMap((source) =>
+    (
+      [["Ash_EB.json", 0], ["Frostymart.json", 0], ["FrozenBody.json", 1], ["Jrod11.json", 4], ["Jrod11.json", 7], ["Koweabooo.json", 8], ["Maspoofio.json", 7], ["0xEXCEED.json", 5], ...(source === "workbench" ? [["big_guy69123.json", 5] as const] : [])] as const
+    ).map(([save, ci]) => ({ stat: "damage" as const, save, ci, source, reason: "fam68", why: STAT_WHY.fam68 }))
+  ),
+  // Bonus_Minor and Grid_Bonus_Allmulti (through StickerDMGmulti's Grid_Bonus(47)) carry the Companions(0) gate
+  ...(["divMinor7", "sticker"] as const).map((source) => ({ stat: "damage" as const, save: "Koweabooo.json", ci: 10, source, reason: "comp0", why: COMPANION_0_GATE })),
+  // Sailing("ArtifactBonus",8) is getLOG of every character's WorkbenchStuff("PlayerBuildSpd"), whose talent 131 term counts the Redox Salts
+  // (Refinery1) of the storage actor's _ItemsAndStorageOWNED (@5989516): the CURRENT character's inventory (ActorEvents_29._ItemsOwnedMap,
+  // CountInventory @7042726 reads InventoryOrder) plus the storage chest. lib/arkh's invStorageOwned (w6/upg-totals.ts:79) sums EVERY
+  // character's inventory: Einyen's character 8 carries 2e8 of them, so every other character differs (accountSystems.test.ts gives the
+  // current character the others' salts and lib/game equals lib/arkh)
+  ...[0, 1, 2, 3, 4, 5, 6, 7, 9, 10].map((ci) => ({ stat: "damage" as const, save: "Einyen.json", ci, source: "artifact8", reason: "redox", why: STAT_WHY.redox })),
 ];
 
 /**

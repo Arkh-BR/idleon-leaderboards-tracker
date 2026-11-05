@@ -1,7 +1,7 @@
 import { afkTarget } from "../afkTarget";
 import { asNum, asNumber } from "../attr";
 import { block, withPlayer, type Ctx } from "../ctx";
-import { DreamChallenge, MapAFKtarget, MapDetails, MONSTERS } from "../data";
+import { DreamChallenge, MapAFKtarget, MapDetails, MONSTERS, RANDOlist } from "../data";
 import { InvalidSaveValue, NotPorted } from "../errors";
 import { hString } from "../hstring";
 import { lengthOf, listAt, listOrMapAt } from "../lists";
@@ -51,6 +51,7 @@ function fightingMaps(ctx: Ctx): { dn1: number; dn4: number } {
  *  - "485" @4479149: the vials (CauldronInfo[4]) above level 3;
  *  - "616" @4479621: the highest Lv0[0] over the characters whose class is below 6 (the beginner line);
  *  - "620" @4480414: the account's highest character level (Lv0[0] over PlayerDATABASE, from 0);
+ *  - "arena" @4467173: the Pet Arena waves cleared in a row by the best wave (OptionsListAccount[89] against RANDOlist[53][g]);
  *  - "656" @4481319: the DreamChallenge entries whose WeeklyBoss "d_<n>" is -1 (the loop is skipped in the Tutorial scene, which a tracked
  *    account is not in).
  */
@@ -105,6 +106,15 @@ export const DNSM_CalcTalentMAP = block("DNSM.CalcTalentMAP", (ctx, key: string)
       let top = 0;
       for (let t = 0, n = ctx.state.charNames.length; t < n; t++) if (asNum(withPlayer(ctx, t), "Lv0", 0) > top) top = asNum(withPlayer(ctx, t), "Lv0", 0);
       return top;
+    }
+    // @4467173: how many Pet Arena waves the best one (OptionsListAccount[89]) clears in a row, RANDOlist[53][0..15]
+    case "arena": {
+      let n = 0;
+      for (let g = 0; 16 > g; g++) {
+        if (asNum(ctx, "OptionsListAccount", 89) >= asNumber((RANDOlist as unknown as readonly (readonly unknown[])[])[53][g])) n = g + 1;
+        else break;
+      }
+      return n;
     }
     case "656": {
       let n = 0;

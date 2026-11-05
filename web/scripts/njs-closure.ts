@@ -37,6 +37,7 @@ export function isPorted(c: { args: (string | number)[] }, p: Ported | undefined
   const [a0, a1] = c.args;
   if (Array.isArray(p)) return typeof a0 === "number" && p.includes(a0);
   const rec = p as Record<string, true | readonly (number | string)[]>;
+  if (!c.args.length) return Object.hasOwn(rec, "()"); // a computed first argument: the module declares the names it answers under "()"
   const at = [a0, a1].findIndex((a) => typeof a === "string" && Object.hasOwn(rec, a)); // GetSetBonus(set, "Bonus"): the name is second
   if (at < 0) return false;
   const name = c.args[at] as string;

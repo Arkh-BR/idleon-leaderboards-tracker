@@ -8,6 +8,8 @@ import { opt } from "../state";
 import { traceNode } from "../trace";
 import { ArcadeBonus } from "./ArcadeBonus";
 import { ArcaneType } from "./ArcaneType";
+import { Companions } from "./Companions";
+import { CompLV2 } from "./CompLV2";
 import { DNSM_TomeQTYtot } from "./DNSM";
 import { GetSetBonus } from "./GetSetBonus";
 import { JellyOperation } from "./JellyOperation";
@@ -51,10 +53,30 @@ export const Thingies: (ctx: Ctx, d: string, b: number, e: number) => number = b
       listAt(ctx, "Spelunk", 45); // the game indexes Spelunk[45][b] directly
       return Math.floor(asNumber(row[4]) * asNum(ctx, "Spelunk", 45, b | 0));
     }
-    // @10963823: Coral Kid upgrade b, from OptionsListAccount[427 + b]
+    // @10963823: Coral Kid upgrade b: 3 is round(OptionsListAccount[427 + b]), 11 is round(OptionsListAccount[621])
     case "CoralKidUpgBonus":
-      if (b !== 3) throw new NotPorted("Thingies", `CoralKidUpgBonus:b=${b}`);
-      return Math.round(asNum(ctx, "OptionsListAccount", Math.round(427 + b)));
+      if (3 == b) return Math.round(asNum(ctx, "OptionsListAccount", Math.round(427 + b)));
+      if (11 == b) return Math.round(asNum(ctx, "OptionsListAccount", 621));
+      throw new NotPorted("Thingies", `CoralKidUpgBonus:b=${b}`);
+    case "FriendBonusStatz":
+      return friendBonusStatz(ctx, b);
+    // @10955906: the friend slots, round(min(20, 2 + Companion 44 + 2 x Companion 30 + Event Shop items 22 and 67))
+    case "FriendBonusSlots":
+      return Math.round(Math.min(20, 2 + (Companions(ctx, 44) + (2 * Companions(ctx, 30) + Summoning(ctx, "EventShopOwned", 22, 0) + Summoning(ctx, "EventShopOwned", 67, 0)))));
+    // @10962274: friend bonus b for a friend's level e: k x min(1.5, .25 + min(3e4, max(0, e)) / (min(3e4, max(0, e)) + 12e3) x 1.5), k per bonus
+    case "FriendBonusQTY": {
+      const k = [100, 30, 50, 25, 30, 40, 10][b];
+      if (k === undefined) return 0;
+      const lv = Math.min(3e4, Math.max(0, e));
+      return k * Math.min(1.5, 0.25 + (lv / (lv + 12e3)) * 1.5);
+    }
+    // @10960324: 1 + (100 x Companion 30 + 25 x CompLV2 44) / 100
+    case "FriendBonusXtraMulti":
+      return 1 + (100 * Companions(ctx, 30) + 25 * CompLV2(ctx, 44)) / 100;
+    // @10962960: the Unstable Reliquarium (Quest105) is in the current character's inventory. The game keeps the answer for the session
+    // (DNSM.RelqPoz, rebuilt with b == -1); here it is read from the save each time
+    case "ReliquariumInPosession":
+      return contains(attr(ctx, "InventoryOrder"), "Quest105") ? 1 : 0;
     // @10977138: the best Summoning stone trial of stone b, KRbest["SummzTrz" + b], or 0 when the account has none
     case "SumStoneTrialz": {
       const best = listOrMapAt(ctx, "KRbest") as Record<string, unknown>;
@@ -125,8 +147,28 @@ function loreEpiBon(ctx: Ctx, b: number): number {
   return (1 + (Summoning(ctx, "GrimoireUpgBonus", 17, 0) + GetSetBonus(ctx, "TROLL_SET", "Bonus", 0, 0)) / 100) * asNumber(value) * Math.max(0, p / (25 + p));
 }
 
+/**
+ * `FriendBonusStatz` @10960432: the friends' bonus `b` (of 20): OptionsListAccount[476] lists the friends as "stat,level;stat,level…"; the
+ * first FriendBonusSlots of them with a stat below 18 each set entry `stat` to FriendBonusQTY(stat, level) (a later friend with the same
+ * stat replaces it), and the entry is times FriendBonusXtraMulti. The game keeps the table for the session (DNSM.FrendBonzStatz, rebuilt
+ * with b == -1); here it is built from the save each time.
+ */
+function friendBonusStatz(ctx: Ctx, b: number): number {
+  const table: number[] = new Array(20).fill(0); // DNSM.FrendBonzStatz
+  const list = hString(attr(ctx, "OptionsListAccount", 476));
+  if ("0" != list && "" != list) {
+    const friends = list.split(";");
+    for (let e = 0, f = Math.min(Thingies(ctx, "FriendBonusSlots", 0, 0), friends.length) | 0; e < f; e++) {
+      const [stat, level] = `${friends[e]}`.split(",");
+      if (18 > asNumber(stat)) table[asNumber(stat) | 0] = Thingies(ctx, "FriendBonusQTY", asNumber(stat), asNumber(level));
+    }
+  }
+  return asNumber(table[Math.max(0, b) | 0]) * Thingies(ctx, "FriendBonusXtraMulti", 0, 0);
+}
+
 /** What this module covers (lib/game/ported.ts). */
 export const PORTED: Ported = {
   LegendPTS_bonus: true, Have_ban_i: true, ClamWorkBonus: true, EmperorBon: true, LoreEpiBon: range(0, 30),
-  HaveW6Trophy: true, Have_ban_m: true, Have_ban_o: true, SuperTalentPTS_LVgiven: true, ZenithMarketBonus: true, CoralKidUpgBonus: [3], SumStoneTrialz: true,
+  HaveW6Trophy: true, Have_ban_m: true, Have_ban_o: true, SuperTalentPTS_LVgiven: true, ZenithMarketBonus: true, CoralKidUpgBonus: [3, 11], SumStoneTrialz: true,
+  FriendBonusStatz: [0] /* 2: only SkillStats AllEfficiencies (unreached.ts) */, FriendBonusSlots: true, FriendBonusQTY: true, FriendBonusXtraMulti: true, ReliquariumInPosession: true,
 };

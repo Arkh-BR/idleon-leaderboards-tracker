@@ -45,7 +45,7 @@ export function itemDef(name: string): Item {
  * list of `EMmLENGTH<f>` slots (`getLoadSparseList`), so a slot the save does not have is an empty map. Past that length the game reads
  * undefined and would throw.
  */
-function equipMap(ctx: Ctx, f: number, slot: number): Item {
+export function equipMap(ctx: Ctx, f: number, slot: number): Item {
   const lengthKey = charKey(`EMmLENGTH${f}`, ctx.player);
   const length = opt(ctx.state, lengthKey);
   if (length === undefined) throw new MissingSaveKey(lengthKey);

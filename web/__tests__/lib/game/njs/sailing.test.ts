@@ -165,14 +165,14 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("artifact3 (Sailing ArtifactBonus 3, 
   it("a tier whose text the game's data does not carry gets no multiplier (the chain tests the text)", () => {
     expect(art(withTier(8))).toBe(50);
   });
-  it("plain artifacts (index 32) take base x tier from the same loop; ones with their own multiplier are not ported", () => {
+  it("plain artifacts (index 32) take base x tier from the same loop; of the ones with their own multiplier, those Damage does not read are not ported", () => {
     expect(ArtifactInfo[32][3]).toBe("25");
     const at = (tier: number) => variant((d) => setIn(d, "Sailing", (s) => (s[3][32] = tier)));
     expect(Sailing(at(0), "ArtifactBonus", 32, 0)).toBe(0);
     expect(Sailing(at(1), "ArtifactBonus", 32, 0)).toBe(25);
     const c = at(3);
     expect(Sailing(c, "ArtifactBonus", 32, 0)).toBe(75);
-    for (const b of [1, 2, 5, 8, 10, 11, 13, 18, 20, 23, 25, 27, 29, -1]) {
+    for (const b of [1, 5, 11, 13, 23, -1]) { // 2, 8, 10, 18, 20, 25, 27, 29: Damage Task 7 (accountSystems.test.ts)
       expect(() => Sailing(c, "ArtifactBonus", b, 0), `artifact ${b}`).toThrow(expect.objectContaining({ name: "NotPorted", sub: `ArtifactBonus:b=${b}` }));
     }
     expect(() => Sailing(c, "ArtifactBonus", 3, 1)).toThrow(expect.objectContaining({ name: "NotPorted", sub: "ArtifactBonus:e=1" })); // the 1==e branch
@@ -217,8 +217,8 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("davey (Sailing DaveyJonesBonus, N.js
 describe("ports stay on their boundary", () => {
   const c = () => gameCtx({ data: {}, charNames: [], companion: null, guildData: {}, serverVars: null, tournament: {}, accountCreateTime: 1, lastUpdated: 1 }, 0);
   it("Sailing: only the ported sub-cases", () => {
-    // BoatArtiMulti is ported (trackers/artifactFind.test.ts); SlabboBonus_AllMulti is only reached by artifacts 2/10/18/20, which are not ported
-    for (const d of ["SlabboBonus_AllMulti", "Nope"]) expect(() => Sailing(c(), d, 0, 0)).toThrow(NotPorted);
+    // BoatArtiMulti is ported (trackers/artifactFind.test.ts); SlabboBonus_AllMulti with the artifacts 2/10/18/20 (Damage Task 7)
+    for (const d of ["SailingExpMulti", "Nope"]) expect(() => Sailing(c(), d, 0, 0)).toThrow(NotPorted);
   });
   it("Thingies / ResearchStuff: only what the ported terms need", () => {
     expect(() => Thingies(c(), "LoreEpiBon", -1, 0)).toThrow(NotPorted); // the cache rebuild (Task 8 ported the entries 0..10)

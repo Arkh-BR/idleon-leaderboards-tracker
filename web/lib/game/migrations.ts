@@ -505,6 +505,15 @@ export function migrate(
 //     OptionsListAccount[649]): the initialize3 fill of an empty Holes, the blocks 251, 262 and 366 (ported above), 247 (< 247.3, no real
 //     save), 254, 367, 375 (Holes[11] null -> 0: read through asNumber alike) and 390 (Holes[28]); no step writes OptionsListAccount[649].
 //     No step ported.
+//   - Farming, Workbench, Rift, Gaming, Thingies, Sailing, Breeding, Minehead, Spelunk and Divinity (FarmCrop, FarmUpg, Research[7][4] and
+//     [9], TowerInfo, Rift[0], KRbest, Gaming[12], TotemInfo[0], OptionsListAccount[89, 152, 178, 329, 473, 476, 621], InventoryOrder,
+//     ItemQuantity, ChestOrder/ChestQuantity, Cards[1], Sailing[1][0] and [3], Divinity[25, 28 + b, 39], EquipmentOrder[0][1], Spelunk[1, 2,
+//     4, 5, 6, 44, 47]): the initialize fills of empty lists (TowerInfo, Rift, Divinity...), then blocks no real save runs (DoOnceREAL >=
+//     248.3): TowerInfo zeroed (< 14.5), OptionsListAccount[89] capped (< 80.5), Rift[0..4] reset and Sailing[3] 3 -> 2 (< 150.5), Gaming[12]
+//     and Rift[2] reset (< 152.5), the Divinity resets (< 127, < 129), Divinity[39] = 0 and Sailing[1] capped (< 173), Divinity[24] (< 243);
+//     the blocks ported above (262: TotemInfo, 331: Sailing[3] past 5, 301, 310, 380, 395, 399: the Spelunk lists); and 337 (Sailing[3] null
+//     -> 0: ArtifactBonus tests the raw element, but the one real save below 337, HourZero, has no null there), 327 and 389 (Research[7][8],
+//     [7][10]: not read). KRbest, FarmCrop, ChestOrder/ChestQuantity, InventoryOrder and EquipmentOrder have no load-step write. No step ported.
 //   - the loader: Tess (CSver 26; not reset by ClearLocalData, so it would need an assumption; initialize3 fills it with [[], []]);
 //   - initialize1: GemItemsPurchased padded to 300; OptionsListAccount padded to 17..70 and its 51..59 splice (no real save is that
 //     short), its pads to 201..601 (only in the Tutorial scene); the starter star signs

@@ -11,7 +11,7 @@ import type { Ported } from "../ported";
  * `PostOfficeInfo[3][b][0]`, the current player's level of Post Office box `b`: the load @19923540 writes `POu_<player>[B]` into it for
  * every B the save has, over a list of 36 boxes the game starts at [0] (@6194400). A box the save does not list is that 0.
  */
-function boxLevel(ctx: Ctx, b: number): number {
+export function boxLevel(ctx: Ctx, b: number): number {
   const key = charKey("POu", ctx.player);
   const list = opt(ctx.state, key);
   if (list === undefined) throw new MissingSaveKey(key);

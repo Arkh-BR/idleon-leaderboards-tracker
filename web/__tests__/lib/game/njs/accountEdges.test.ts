@@ -3,11 +3,20 @@
 import { describe, it, expect } from "vitest";
 import { makeCtx, type Ctx } from "@/lib/game/ctx";
 import { buildGameState, type GameEnvelope } from "@/lib/game/state";
-import { GrimoireUpg, MapDetails, NinjaInfo, RandoListo2, SummonUPG } from "@/lib/game/data";
+import { GodsInfo, GrimoireUpg, MapDetails, NinjaInfo, RANDOlist, RandoListo2, SpelunkUpg, SummonUPG } from "@/lib/game/data";
 import { Summoning } from "@/lib/game/njs/Summoning";
 import { getLOG } from "@/lib/game/njs/getLOG";
 import { Holes } from "@/lib/game/njs/Holes";
 import { Holes2 } from "@/lib/game/njs/Holes2";
+import { Thingies } from "@/lib/game/njs/Thingies";
+import { WorkbenchStuff } from "@/lib/game/njs/WorkbenchStuff";
+import { RiftStuff } from "@/lib/game/njs/RiftStuff";
+import { FarmingStuffs } from "@/lib/game/njs/FarmingStuffs";
+import { GamingStatType } from "@/lib/game/njs/GamingStatType";
+import { Divinity } from "@/lib/game/njs/Divinity";
+import { Breeding } from "@/lib/game/njs/Breeding";
+import { Spelunk } from "@/lib/game/njs/Spelunk";
+import { NotPorted } from "@/lib/game/errors";
 
 type Data = Record<string, unknown>;
 const seed = (c: Ctx, name: string, args: (string | number)[], v: number) => c.cache.set(`${c.player}|${c.map}|${name}${JSON.stringify(args)}`, v);
@@ -145,5 +154,111 @@ describe("Task 7 Holes edges on a synthetic save (run in CI)", () => {
     const ola = Array<number>(700).fill(0);
     ola[649] = 3;
     expect(Holes2(synth({ OptLacc: ola }), "Cglunko_upgBon", 19, 0)).toBe(3 * cell(RandoListo2, 13, 19));
+  });
+});
+
+describe("Task 7 Thingies, Workbench, Rift, Farming, Gaming, Divinity, Breeding and Spelunk edges on a synthetic save (run in CI)", () => {
+  const ola = (at: Record<number, unknown>) => Object.assign(Array<unknown>(700).fill(0), at);
+  it("CoralKidUpgBonus 11 is round(OptionsListAccount[621]); the Reliquarium is Quest105 in the current inventory", () => {
+    expect(Thingies(synth({ OptLacc: ola({ 621: 4.6 }) }), "CoralKidUpgBonus", 11, 0)).toBe(5);
+    expect(Thingies(synth({ InventoryOrder_0: ["Copper", "Quest105"] }), "ReliquariumInPosession", 0, 0)).toBe(1);
+    expect(Thingies(synth({ InventoryOrder_0: ["Copper"] }), "ReliquariumInPosession", 0, 0)).toBe(0);
+  });
+
+  it("FriendBonusStatz: the first FriendBonusSlots friends, a stat below 18, a later friend of the same stat replacing it, times the extra multi", () => {
+    const at = (list: string, slots: number, b: number) => {
+      const c = synth({ OptLacc: ola({ 476: list }) });
+      seed(c, "Thingies", ["FriendBonusSlots", 0, 0], slots);
+      seed(c, "Thingies", ["FriendBonusXtraMulti", 0, 0], 2);
+      return Thingies(c, "FriendBonusStatz", b, 0);
+    };
+    const qty = (lv: number) => 100 * Math.min(1.5, 0.25 + (Math.min(3e4, lv) / (Math.min(3e4, lv) + 12e3)) * 1.5);
+    expect(at("0,1000;0,6000", 2, 0)).toBeCloseTo(2 * qty(6000), 12); // the second friend replaces the first
+    expect(at("0,1000;0,6000", 1, 0)).toBeCloseTo(2 * qty(1000), 12); // one slot: only the first
+    expect(at("18,1000", 2, 0)).toBe(0); // stat 18 and up is not a friend bonus
+    expect(at("0", 2, 0)).toBe(0);
+    expect(Thingies(synth({}), "FriendBonusQTY", 7, 100)).toBe(0); // past the seven bonuses
+  });
+
+  it("DeathNoteRank: the e == 7842 table and the other one, 20 only past 1e9 kills with the Rift bonus 3", () => {
+    const rank = (kills: number, rift: number, e = 0) => WorkbenchStuff(synth({ Rift: [rift] }), "DeathNoteRank", kills, e);
+    expect([0, 25e3, 1e5, 25e4, 5e5, 1e6, 5e6, 1e8].map((k) => rank(k, 0))).toEqual([0, 1, 2, 3, 4, 5, 7, 10]);
+    expect(rank(2e9, 19)).toBe(10);
+    expect(rank(2e9, 20)).toBe(20);
+    expect([99, 100, 250, 1e3, 5e3, 25e3, 1e5, 1e6].map((k) => rank(k, 0, 7842))).toEqual([0, 1, 2, 3, 4, 5, 7, 10]);
+  });
+
+  it("ConstMasteryBonus: 0 below Rift 40; 1 is 2 x floor((towers - 750) / 10), 2 is 5 x floor((towers - 1250) / 10), at least 0", () => {
+    const at = (rift: number, each: number, b: number) => WorkbenchStuff(synth({ Rift: [rift], Tower: Array<number>(27).fill(each) }), "ConstMasteryBonus", b, 0);
+    expect(at(39, 100, 1)).toBe(0);
+    expect(at(40, 100, 1)).toBe(2 * Math.floor((2700 - 750) / 10));
+    expect(at(40, 100, 2)).toBe(5 * Math.floor((2700 - 1250) / 10));
+    expect(at(40, 10, 1)).toBe(0);
+    expect(() => at(40, 10, 3)).toThrow(NotPorted);
+  });
+
+  it("RiftSkillETC 0 is 7 + 5 per skill (but 0, 2, 3, 5, 6, 8) whose account rank is above 2; RiftSkillBonus is 0 below Rift 15", () => {
+    const lv0 = Array<number>(30).fill(0);
+    lv0[2] = 400; // skill 1: rank 4
+    lv0[3] = 400; // skill 2: rank 4, but skill 2 does not count
+    expect(RiftStuff(synth({ Rift: [15], Lv0_0: lv0 }), "RiftSkillETC", 0)).toBe(7 + 5);
+    expect(RiftStuff(synth({ Rift: [14], Lv0_0: lv0 }), "RiftSkillETC", 0)).toBe(7);
+  });
+
+  it("CropSCbonus 0 is 20 x the crops found x the multi once Emporium 27 is owned; StickerDMGmulti is 1 until grid 47 has a level", () => {
+    const crop = (owned: number) => {
+      const c = synth({ FarmCrop: { 0: 5, 1: 9, 2: 1 } });
+      seed(c, "Ninja", ["EmporiumBonus", 27, 0], owned);
+      seed(c, "FarmingStuffs", ["CropSCbonMulti", 0, 0], 1.5);
+      return FarmingStuffs(c, "CropSCbonus", 0, 0);
+    };
+    expect(crop(1)).toBe(20 * 3 * 1.5);
+    expect(crop(0)).toBe(0);
+    const sticker = (grid: number) => {
+      const c = synth({ Research: [[], [], [], [], [], [], [], [], [], [3, 4.6, 2]] });
+      seed(c, "ResearchStuff", ["Grid_Bonus", 47, 0], grid);
+      return FarmingStuffs(c, "StickerDMGmulti", 0, 0);
+    };
+    expect(sticker(0)).toBe(1);
+    expect(sticker(2)).toBeCloseTo(1 + (2 * Math.round(Math.round(3 + 4.6) + 2)) / 100, 12);
+  });
+
+  it("MSA_Bonus 0 is floor(the totem waves / 10) once Super Bit 7 is owned", () => {
+    const at = (bit: number) => {
+      const c = synth({ TotemInfo: [[12, 30, 5]] });
+      seed(c, "GamingStatType", ["SuperBitType", 7, 0], bit);
+      return GamingStatType(c, "MSA_Bonus", 0, 0);
+    };
+    expect(at(1)).toBe(4);
+    expect(at(0)).toBe(0);
+  });
+
+  it("BlesssBonus is Divinity[28 + b] x GodsInfo[b][14] x (1 + .05 x Emporium 33 x max(0, Divinity[25] - 10)); b == 2 is not ported", () => {
+    const div = Array<number>(45).fill(0);
+    div[25] = 14;
+    div[35] = 3;
+    const c = synth({ Divinity: div });
+    seed(c, "Ninja", ["EmporiumBonus", 33, 0], 1);
+    expect(Divinity(c, "BlesssBonus", 7, 0)).toBeCloseTo(3 * cell(GodsInfo, 7, 14) * (1 + 0.05 * 4), 12);
+    expect(() => Divinity(c, "BlesssBonus", 2, 0)).toThrow(NotPorted);
+  });
+
+  it("PetArenaBonus is 1 once the arena waves cleared in a row (OptionsListAccount[89] against RANDOlist[53]) pass e", () => {
+    const req = (g: number) => cell(RANDOlist, 53, g);
+    const c = synth({ OptLacc: ola({ 89: req(2) }) }); // clears waves 0, 1, 2: 3
+    expect(Breeding(c, "PetArenaBonus", "0", 2, 0)).toBe(1);
+    expect(Breeding(c, "PetArenaBonus", "0", 3, 0)).toBe(0);
+  });
+
+  it("Spelunk ShopUpgBonus: e == 1 is SpelunkUpg[b][4] x max(0, level); the table then fixes entries (25 is 1 + its value)", () => {
+    const n = (SpelunkUpg as unknown as unknown[]).length;
+    const spelunk: unknown[][] = Array.from({ length: 50 }, () => []);
+    spelunk[5] = Array<number>(n).fill(2);
+    spelunk[4] = Array<number>(10).fill(1);
+    const c = synth({ Spelunk: spelunk, Lv0_0: Array<number>(25).fill(0) });
+    expect(Spelunk(c, "ShopUpgBonus", 64, 1)).toBe(cell(SpelunkUpg, 64, 4) * 2);
+    expect(Spelunk(c, "ShopUpgBonus", 64, 0)).toBe(cell(SpelunkUpg, 64, 4) * 2);
+    expect(Spelunk(c, "ShopUpgBonus", 25, 0)).toBe(1 + cell(SpelunkUpg, 25, 4) * 2);
+    expect(Spelunk(c, "ShopUpgBonus", 0, 0)).toBe(0); // times every character's Lv0[19], 0 here
   });
 });
