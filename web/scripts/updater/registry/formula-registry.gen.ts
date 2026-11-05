@@ -2,7 +2,8 @@
 // Maps each N.js formula / mirrored-constant (@njs annotations, and the blocks of lib/game/njs) to the ported file(s).
 export const FORMULA_REGISTRY: Record<string, string[]> = {
   "AllShimmerBonuses": [
-    "lib/arkh/stats/systems/exp/exp.ts"
+    "lib/arkh/stats/systems/exp/exp.ts",
+    "lib/game/njs/Dreamstuff.ts"
   ],
   "ArcaneMapMulti_bon": [
     "lib/arkh/stats/systems/exp/exp.ts"
@@ -11,14 +12,16 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/game/njs/ArcaneType.ts"
   ],
   "ArmoryUpgBonus": [
-    "lib/arkh/stats/data/w7/royalG.ts"
+    "lib/arkh/stats/data/w7/royalG.ts",
+    "lib/game/njs/RoyalG.ts"
   ],
   "ArtifactBonus": [
     "lib/arkh/stats/systems/w5/sailing.ts",
     "lib/game/njs/Sailing.ts"
   ],
   "AtomBonuses": [
-    "lib/arkh/stats/systems/damage/damage.ts"
+    "lib/arkh/stats/systems/damage/damage.ts",
+    "lib/game/njs/AtomCollider.ts"
   ],
   "B_UPG": [
     "lib/arkh/stats/systems/artifact/terms.ts",
@@ -30,7 +33,8 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/arkh/stats/systems/exp/exp.ts"
   ],
   "BlesssBonus": [
-    "lib/arkh/stats/systems/w5/divinity.ts"
+    "lib/arkh/stats/systems/w5/divinity.ts",
+    "lib/game/njs/Divinity.ts"
   ],
   "BoatArtiMulti": [
     "lib/arkh/stats/systems/artifact/artifact.ts",
@@ -39,16 +43,29 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   "Bonus": [
     "lib/game/njs/GetSetBonus.ts"
   ],
+  "BonusAmount": [
+    "lib/game/njs/PostOfficeINFO.ts"
+  ],
+  "BonusMultiCook": [
+    "lib/game/njs/Summoning2.ts"
+  ],
+  "BonusQTY": [
+    "lib/game/njs/Minehead.ts"
+  ],
   "Bonus_MAJOR": [
     "lib/arkh/stats/systems/w5/divinity.ts"
   ],
   "Bonus_Minor": [
     "lib/arkh/stats/systems/coin/divinityMinor.ts",
-    "lib/arkh/stats/systems/exp/exp.ts"
+    "lib/arkh/stats/systems/exp/exp.ts",
+    "lib/game/njs/Divinity.ts"
   ],
   "BoostQTY": [
     "lib/arkh/stats/data/w7/menagerie.ts",
     "lib/arkh/stats/systems/exp/exp.ts"
+  ],
+  "BubbleBonus": [
+    "lib/game/njs/CauldronStats.ts"
   ],
   "Button_BonusMULTI": [
     "lib/game/njs/Minehead.ts"
@@ -62,14 +79,17 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/game/njs/Minehead.ts"
   ],
   "CapevineBonusMulti": [
-    "lib/arkh/stats/systems/w7/gallery.ts"
+    "lib/arkh/stats/systems/w7/gallery.ts",
+    "lib/game/njs/Gallery.ts"
   ],
   "CapevineBonusesSystemON": [
-    "lib/arkh/stats/systems/w7/gallery.ts"
+    "lib/arkh/stats/systems/w7/gallery.ts",
+    "lib/game/njs/Gallery.ts"
   ],
   "CardLv": [
     "lib/arkh/stats/systems/common/cards.ts",
-    "lib/arkh/stats/systems/exp/exp.ts"
+    "lib/arkh/stats/systems/exp/exp.ts",
+    "lib/game/njs/RunCodeOfTypeXforThingY.ts"
   ],
   "CardsCollected": [
     "lib/arkh/stats/systems/coin/accountKills.ts"
@@ -88,24 +108,35 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/game/njs/Dreamstuff.ts"
   ],
   "CompassBonus": [
-    "lib/arkh/stats/systems/exp/exp.ts"
+    "lib/arkh/stats/systems/exp/exp.ts",
+    "lib/game/njs/Windwalker.ts"
+  ],
+  "CompassTempest": [
+    "lib/game/njs/Windwalker.ts"
   ],
   "ConstMasteryBonus": [
     "lib/arkh/stats/systems/damage/damage.ts",
-    "lib/arkh/stats/systems/w3/construction.ts"
+    "lib/arkh/stats/systems/w3/construction.ts",
+    "lib/game/njs/WorkbenchStuff.ts"
+  ],
+  "CookingMealBonusMultioo": [
+    "lib/game/njs/CookingR.ts"
   ],
   "CoralKidUpgBonus": [
     "lib/arkh/stats/systems/damage/damage.ts",
-    "lib/arkh/stats/systems/exp/exp.ts"
+    "lib/arkh/stats/systems/exp/exp.ts",
+    "lib/game/njs/Thingies.ts"
   ],
   "CosmoBonusQTY": [
     "lib/game/njs/Holes.ts"
   ],
   "CropSCbonMulti": [
-    "lib/arkh/stats/systems/w6/farming.ts"
+    "lib/arkh/stats/systems/w6/farming.ts",
+    "lib/game/njs/FarmingStuffs.ts"
   ],
   "CropSCbonus": [
-    "lib/arkh/stats/systems/damage/damage.ts"
+    "lib/arkh/stats/systems/damage/damage.ts",
+    "lib/game/njs/FarmingStuffs.ts"
   ],
   "DancingCoralBonus": [
     "lib/arkh/stats/systems/exp/dancingCoral.ts",
@@ -120,10 +151,12 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/tome/tasks.ts"
   ],
   "DeathNoteRank": [
-    "lib/arkh/stats/systems/coin/gambit.ts"
+    "lib/arkh/stats/systems/coin/gambit.ts",
+    "lib/game/njs/WorkbenchStuff.ts"
   ],
   "DivMinorBonus": [
-    "lib/arkh/stats/systems/coin/divinityMinor.ts"
+    "lib/arkh/stats/systems/coin/divinityMinor.ts",
+    "lib/game/njs/Divinity.ts"
   ],
   "DoWeHaveLoreN1": [
     "lib/game/njs/Spelunk.ts"
@@ -143,7 +176,8 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/game/njs/FarmingStuffs.ts"
   ],
   "FarmingStickerDMG_unlocked": [
-    "lib/arkh/stats/systems/w6/farming.ts"
+    "lib/arkh/stats/systems/w6/farming.ts",
+    "lib/game/njs/ResearchStuff.ts"
   ],
   "Fountain_BonTOT": [
     "lib/arkh/stats/data/w5/fountain.ts",
@@ -156,23 +190,29 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/game/njs/RandomEvent.ts"
   ],
   "FriendBonusQTY": [
-    "lib/arkh/stats/systems/common/friend.ts"
+    "lib/arkh/stats/systems/common/friend.ts",
+    "lib/game/njs/Thingies.ts"
   ],
   "FriendBonusSlots": [
-    "lib/arkh/stats/systems/common/friend.ts"
+    "lib/arkh/stats/systems/common/friend.ts",
+    "lib/game/njs/Thingies.ts"
   ],
   "FriendBonusStatz": [
-    "lib/arkh/stats/systems/exp/exp.ts"
+    "lib/arkh/stats/systems/exp/exp.ts",
+    "lib/game/njs/Thingies.ts"
   ],
   "FriendBonusXtraMulti": [
-    "lib/arkh/stats/systems/common/friend.ts"
+    "lib/arkh/stats/systems/common/friend.ts",
+    "lib/game/njs/Thingies.ts"
   ],
   "GalleryBonusMulti": [
-    "lib/arkh/stats/systems/w7/gallery.ts"
+    "lib/arkh/stats/systems/w7/gallery.ts",
+    "lib/game/njs/Gallery.ts"
   ],
   "GalleryBonusSystemON": [
     "lib/arkh/stats/systems/common/stats.ts",
-    "lib/arkh/stats/systems/w7/gallery.ts"
+    "lib/arkh/stats/systems/w7/gallery.ts",
+    "lib/game/njs/Gallery.ts"
   ],
   "GambitBonuses": [
     "lib/arkh/stats/systems/coin/gambit.ts"
@@ -186,6 +226,9 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   "GambitPtsREQ": [
     "lib/arkh/stats/systems/coin/gambit.ts"
   ],
+  "GrandDiscoveries_Total": [
+    "lib/game/njs/Spelunk.ts"
+  ],
   "Grid_Bonus": [
     "lib/arkh/stats/systems/exp/exp.ts",
     "lib/game/njs/ResearchStuff.ts"
@@ -197,24 +240,49 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/arkh/stats/systems/exp/exp.ts",
     "lib/game/njs/Summoning.ts"
   ],
+  "GrimoireWraith": [
+    "lib/game/njs/Summoning.ts"
+  ],
   "HatrackBonusMulti": [
-    "lib/arkh/stats/systems/w7/gallery.ts"
+    "lib/arkh/stats/systems/w7/gallery.ts",
+    "lib/game/njs/Gallery.ts"
+  ],
+  "HaveW6Trophy": [
+    "lib/game/njs/Thingies.ts"
   ],
   "Have_ban_i": [
     "lib/game/njs/Thingies.ts"
   ],
+  "Have_ban_m": [
+    "lib/game/njs/Thingies.ts"
+  ],
   "Have_ban_o": [
-    "lib/arkh/stats/systems/w7/gallery.ts"
+    "lib/arkh/stats/systems/w7/gallery.ts",
+    "lib/game/njs/Thingies.ts"
   ],
   "InitializeCapeBonuses": [
-    "lib/arkh/stats/systems/w7/gallery.ts"
+    "lib/arkh/stats/systems/w7/gallery.ts",
+    "lib/game/njs/Gallery.ts"
+  ],
+  "InitializeNametagBonuses": [
+    "lib/game/njs/Gallery.ts"
+  ],
+  "InitializePremHatBonuses": [
+    "lib/game/njs/Gallery.ts"
+  ],
+  "InitializeTrophyBonuses": [
+    "lib/game/njs/Gallery.ts"
   ],
   "KillroyBonuses": [
     "lib/arkh/stats/systems/artifact/terms.ts",
     "lib/game/njs/RandomEvent.ts"
   ],
   "KillroyDMG": [
-    "lib/arkh/stats/systems/w4/rift.ts"
+    "lib/arkh/stats/systems/w4/rift.ts",
+    "lib/game/njs/RiftStuff.ts"
+  ],
+  "LankRankUpgBonus": [
+    "lib/game/njs/FarmingStuffs.ts"
   ],
   "LegendPTS_bonus": [
     "lib/game/njs/Thingies.ts"
@@ -226,7 +294,8 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   "MSA_Bonus": [
     "lib/arkh/stats/systems/damage/damage.ts",
     "lib/arkh/stats/systems/exp/exp.ts",
-    "lib/arkh/stats/systems/exp/msa.ts"
+    "lib/arkh/stats/systems/exp/msa.ts",
+    "lib/game/njs/GamingStatType.ts"
   ],
   "Max": [
     "lib/arkh/stats/systems/common/derived-damage.ts",
@@ -284,7 +353,8 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/game/njs/MenagerieStuff.ts"
   ],
   "ObolMISCmulti": [
-    "lib/arkh/stats/data/w7/menagerie.ts"
+    "lib/arkh/stats/data/w7/menagerie.ts",
+    "lib/game/njs/MenagerieStuff.ts"
   ],
   "OverkillQTY": [
     "lib/arkh/stats/systems/coin/gambit.ts"
@@ -303,7 +373,8 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/game/njs/GetSetBonus.ts"
   ],
   "PetArenaBonus": [
-    "lib/arkh/stats/systems/damage/damage.ts"
+    "lib/arkh/stats/systems/damage/damage.ts",
+    "lib/game/njs/Breeding.ts"
   ],
   "PetArenaCrucBonus": [
     "lib/arkh/stats/systems/exp/exp.ts",
@@ -311,20 +382,31 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   ],
   "PlayerBuildSpd": [
     "lib/arkh/stats/systems/w3/construction.ts",
-    "lib/arkh/stats/systems/w5/sailing.ts"
+    "lib/arkh/stats/systems/w5/sailing.ts",
+    "lib/game/njs/WorkbenchStuff.ts"
   ],
   "PocketDivOwned": [
-    "lib/arkh/stats/systems/coin/divinityMinor.ts"
+    "lib/arkh/stats/systems/coin/divinityMinor.ts",
+    "lib/game/njs/Holes.ts"
+  ],
+  "PodiumsOwned_Lv2": [
+    "lib/game/njs/Gallery.ts"
+  ],
+  "PodiumsOwned_Lv3": [
+    "lib/game/njs/Gallery.ts"
   ],
   "PodiumsOwned_Lv4": [
-    "lib/arkh/stats/systems/w7/gallery.ts"
+    "lib/arkh/stats/systems/w7/gallery.ts",
+    "lib/game/njs/Gallery.ts"
   ],
   "PremHatBonusesSystemON": [
     "lib/arkh/stats/systems/common/stats.ts",
-    "lib/arkh/stats/systems/w7/gallery.ts"
+    "lib/arkh/stats/systems/w7/gallery.ts",
+    "lib/game/njs/Gallery.ts"
   ],
   "PrismaBonusMult": [
-    "lib/arkh/stats/systems/w2/alchemy.ts"
+    "lib/arkh/stats/systems/w2/alchemy.ts",
+    "lib/game/njs/ArcaneType.ts"
   ],
   "PristineBon": [
     "lib/game/njs/Ninja.ts"
@@ -339,17 +421,23 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/arkh/stats/systems/common/cookingMastery.ts"
   ],
   "RatDMG": [
-    "lib/arkh/stats/systems/damage/damage.ts"
+    "lib/arkh/stats/systems/damage/damage.ts",
+    "lib/game/njs/RoyalG.ts"
   ],
   "RecalcChipBonuses": [
     "lib/arkh/stats/systems/w4/lab.ts"
   ],
   "ReliquariumInPosession": [
-    "lib/arkh/stats/systems/damage/damage.ts"
+    "lib/arkh/stats/systems/damage/damage.ts",
+    "lib/game/njs/Thingies.ts"
+  ],
+  "RibbonBonus": [
+    "lib/game/njs/Summoning.ts"
   ],
   "RiftSkillETC": [
     "lib/arkh/stats/systems/common/derived-stats.ts",
-    "lib/arkh/stats/systems/w4/rift.ts"
+    "lib/arkh/stats/systems/w4/rift.ts",
+    "lib/game/njs/RiftStuff.ts"
   ],
   "RoG_BonusQTY": [
     "lib/arkh/stats/data/w7/jelly.ts",
@@ -358,19 +446,30 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/game/njs/SushiStuff.ts"
   ],
   "RooBonuses": [
-    "lib/arkh/stats/systems/coin/roo.ts"
+    "lib/arkh/stats/systems/coin/roo.ts",
+    "lib/game/njs/Summoning.ts"
+  ],
+  "RooMegafeather": [
+    "lib/game/njs/Summoning.ts"
   ],
   "ShinyBonusS": [
     "lib/arkh/stats/systems/exp/exp.ts",
     "lib/game/njs/Breeding.ts"
   ],
+  "ShopUpgBonus": [
+    "lib/game/njs/Spelunk.ts"
+  ],
   "SpecialPassives": [
     "lib/arkh/stats/systems/w4/breeding.ts",
     "lib/game/njs/Breeding.ts"
   ],
+  "StampDoubler": [
+    "lib/game/njs/Windwalker.ts"
+  ],
   "StatueBon": [
     "lib/arkh/stats/data/w7/royalG.ts",
-    "lib/arkh/stats/systems/exp/exp.ts"
+    "lib/arkh/stats/systems/exp/exp.ts",
+    "lib/game/njs/RoyalG.ts"
   ],
   "StickerBonus": [
     "lib/arkh/stats/systems/exp/exp.ts",
@@ -378,11 +477,30 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/game/njs/FarmingStuffs.ts"
   ],
   "StickerDMGmulti": [
-    "lib/arkh/stats/systems/w6/farming.ts"
+    "lib/arkh/stats/systems/w6/farming.ts",
+    "lib/game/njs/FarmingStuffs.ts"
+  ],
+  "SumStoneTrialz": [
+    "lib/game/njs/Thingies.ts"
+  ],
+  "SummUpgBonus": [
+    "lib/game/njs/Summoning.ts"
   ],
   "SuperBitType": [
     "lib/arkh/stats/systems/exp/exp.ts",
     "lib/game/njs/GamingStatType.ts"
+  ],
+  "SuperTalentPTS_LVgiven": [
+    "lib/game/njs/Thingies.ts"
+  ],
+  "TalentBannedforAllLV": [
+    "lib/game/njs/RunCodeOfTypeXforThingY.ts"
+  ],
+  "TesseractArcanist": [
+    "lib/game/njs/ArcaneType.ts"
+  ],
+  "TomeBonus": [
+    "lib/game/njs/Summoning.ts"
   ],
   "TomePCT": [
     "lib/tome/math.ts"
@@ -395,13 +513,18 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/game/njs/Breeding.ts"
   ],
   "TotalGreenSigils": [
-    "lib/arkh/stats/systems/w2/alchemy.ts"
+    "lib/arkh/stats/systems/w2/alchemy.ts",
+    "lib/game/njs/Labb.ts"
+  ],
+  "TotalPurpleSigils": [
+    "lib/game/njs/Labb.ts"
   ],
   "TotalStatz": [
     "lib/arkh/stats/data/w7/royalG.ts"
   ],
   "TotalStickers": [
     "lib/arkh/stats/systems/w6/farming.ts",
+    "lib/game/njs/FarmingStuffs.ts",
     "lib/tome/extractors.ts"
   ],
   "TotalTitanKills": [
@@ -416,7 +539,8 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/game/njs/MenagerieStuff.ts"
   ],
   "VaultKillzTotal": [
-    "lib/arkh/stats/systems/coin/accountKills.ts"
+    "lib/arkh/stats/systems/coin/accountKills.ts",
+    "lib/game/njs/Summoning.ts"
   ],
   "VaultUpgBonus": [
     "lib/arkh/stats/systems/exp/exp.ts",
@@ -425,13 +549,20 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   "VialBonus": [
     "lib/game/njs/CauldronStats.ts"
   ],
+  "Weapon_Power": [
+    "lib/game/njs/TotalStats.ts"
+  ],
+  "WepPowDmgPCT": [
+    "lib/game/njs/Minehead.ts"
+  ],
   "WinBonus": [
     "lib/arkh/stats/systems/exp/exp.ts",
     "lib/arkh/stats/systems/w6/summoning.ts",
     "lib/game/njs/Summoning.ts"
   ],
   "ZenithMarketBonus": [
-    "lib/arkh/stats/systems/exp/exp.ts"
+    "lib/arkh/stats/systems/exp/exp.ts",
+    "lib/game/njs/Thingies.ts"
   ],
   "_customBlock_AFKgainrates": [
     "lib/arkh/stats/systems/afk/afk.ts"
@@ -440,7 +571,8 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/game/njs/AchieveStatus.ts"
   ],
   "_customBlock_ArbitraryCode": [
-    "lib/arkh/save/loader.ts"
+    "lib/arkh/save/loader.ts",
+    "lib/game/njs/ArbitraryCode.ts"
   ],
   "_customBlock_ArbitraryCode5Inputs": [
     "lib/game/njs/ArbitraryCode5Inputs.ts"
@@ -452,13 +584,25 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/arkh/stats/systems/w2/voting.ts",
     "lib/game/njs/ArcaneType.ts"
   ],
+  "_customBlock_AtomCollider": [
+    "lib/game/njs/AtomCollider.ts"
+  ],
   "_customBlock_Breeding": [
     "lib/game/njs/Breeding.ts",
     "lib/tome/extractors.ts"
   ],
+  "_customBlock_Bubbastuff": [
+    "lib/game/njs/Bubbastuff.ts"
+  ],
   "_customBlock_CaptBonusCalc": [
     "lib/arkh/stats/systems/w5/sailing.ts",
     "lib/game/njs/CaptBonusCalc.ts"
+  ],
+  "_customBlock_CardBonusREAL": [
+    "lib/game/njs/CardBonusREAL.ts"
+  ],
+  "_customBlock_CardSetBonuses": [
+    "lib/game/njs/CardSetBonuses.ts"
   ],
   "_customBlock_CauldronStats": [
     "lib/game/njs/CauldronStats.ts"
@@ -470,25 +614,46 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/arkh/stats/data/common/companions.ts",
     "lib/game/njs/Companions.ts"
   ],
+  "_customBlock_CookingR": [
+    "lib/game/njs/CookingR.ts"
+  ],
   "_customBlock_DamageDealed": [
     "lib/arkh/stats/defs/damage.ts",
-    "lib/arkh/stats/systems/damage/damage.ts"
+    "lib/arkh/stats/systems/damage/damage.ts",
+    "lib/game/njs/DamageDealed.ts"
+  ],
+  "_customBlock_Divinity": [
+    "lib/game/njs/Divinity.ts"
   ],
   "_customBlock_Dreamstuff": [
     "lib/game/njs/Dreamstuff.ts"
   ],
+  "_customBlock_Dungon": [
+    "lib/game/njs/Dungon.ts"
+  ],
+  "_customBlock_EtcBonuses": [
+    "lib/game/njs/EtcBonuses.ts"
+  ],
   "_customBlock_ExpMulti": [
     "lib/arkh/stats/systems/exp/exp.ts"
+  ],
+  "_customBlock_FamilyBonsuesREAL": [
+    "lib/game/njs/FamilyBonsuesREAL.ts"
   ],
   "_customBlock_FarmingStuffs": [
     "lib/game/njs/FarmingStuffs.ts"
   ],
   "_customBlock_FlurboShop": [
-    "lib/arkh/stats/systems/coin/flurbo.ts"
+    "lib/arkh/stats/systems/coin/flurbo.ts",
+    "lib/game/njs/FlurboShop.ts"
   ],
   "_customBlock_FoodBonuses": [
     "lib/arkh/stats/systems/common/derived-damage.ts",
-    "lib/arkh/stats/systems/damage/damage.ts"
+    "lib/arkh/stats/systems/damage/damage.ts",
+    "lib/game/njs/FoodBonuses.ts"
+  ],
+  "_customBlock_Gallery": [
+    "lib/game/njs/Gallery.ts"
   ],
   "_customBlock_GamingStatType": [
     "lib/game/njs/GamingStatType.ts"
@@ -497,11 +662,21 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/game/njs/GetBribeBonus.ts"
   ],
   "_customBlock_GetBuffBonuses": [
-    "lib/arkh/stats/systems/common/buffs.ts"
+    "lib/arkh/stats/systems/common/buffs.ts",
+    "lib/game/njs/GetBuffBonuses.ts"
   ],
   "_customBlock_GetSetBonus": [
     "lib/arkh/stats/systems/w3/setBonus.ts",
     "lib/game/njs/GetSetBonus.ts"
+  ],
+  "_customBlock_GetTalentNumber": [
+    "lib/game/njs/GetTalentNumber.ts"
+  ],
+  "_customBlock_GoldFoodBonuses": [
+    "lib/game/njs/GoldFoodBonuses.ts"
+  ],
+  "_customBlock_GuildBonuses": [
+    "lib/game/njs/GuildBonuses.ts"
   ],
   "_customBlock_Holes": [
     "lib/game/njs/Holes.ts"
@@ -518,9 +693,18 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/arkh/stats/data/w7/jelly.ts",
     "lib/game/njs/JellyOperation.ts"
   ],
+  "_customBlock_Labb": [
+    "lib/game/njs/Labb.ts"
+  ],
+  "_customBlock_Log2": [
+    "lib/game/njs/Log2.ts"
+  ],
   "_customBlock_MainframeBonus": [
     "lib/arkh/stats/systems/w4/lab.ts",
     "lib/game/njs/MainframeBonus.ts"
+  ],
+  "_customBlock_MealBonus": [
+    "lib/game/njs/MealBonus.ts"
   ],
   "_customBlock_MenagerieStuff": [
     "lib/game/njs/MenagerieStuff.ts"
@@ -535,10 +719,21 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/coinMulti/format.ts"
   ],
   "_customBlock_PlayerAccTot": [
-    "lib/arkh/stats/systems/common/derived-damage.ts"
+    "lib/arkh/stats/systems/common/derived-damage.ts",
+    "lib/game/njs/PlayerAccTot.ts"
   ],
   "_customBlock_PlayerHPmax": [
-    "lib/arkh/stats/systems/common/derived-stats.ts"
+    "lib/arkh/stats/systems/common/derived-stats.ts",
+    "lib/game/njs/PlayerHPmax.ts"
+  ],
+  "_customBlock_PlayerMPmax": [
+    "lib/game/njs/PlayerMPmax.ts"
+  ],
+  "_customBlock_PlayerSpeedBonus": [
+    "lib/game/njs/PlayerSpeedBonus.ts"
+  ],
+  "_customBlock_PostOfficeINFO": [
+    "lib/game/njs/PostOfficeINFO.ts"
   ],
   "_customBlock_RandomEvent": [
     "lib/game/njs/RandomEvent.ts"
@@ -549,24 +744,36 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   "_customBlock_RiftStuff": [
     "lib/game/njs/RiftStuff.ts"
   ],
+  "_customBlock_RoyalG": [
+    "lib/game/njs/RoyalG.ts"
+  ],
   "_customBlock_RunCodeOfTypeXforThingY": [
-    "lib/arkh/stats/systems/common/talent.ts"
+    "lib/arkh/stats/systems/common/talent.ts",
+    "lib/game/njs/RunCodeOfTypeXforThingY.ts"
   ],
   "_customBlock_Sailing": [
     "lib/game/njs/Sailing.ts"
   ],
   "_customBlock_SaltLick": [
-    "lib/arkh/stats/systems/exp/saltLick.ts"
+    "lib/arkh/stats/systems/exp/saltLick.ts",
+    "lib/game/njs/SaltLick.ts"
   ],
   "_customBlock_Shrine": [
     "lib/arkh/stats/systems/afk/afk.ts",
     "lib/arkh/stats/systems/common/derived-stats.ts",
     "lib/arkh/stats/systems/damage/damage.ts",
     "lib/arkh/stats/systems/exp/exp.ts",
-    "lib/arkh/stats/systems/w3/construction.ts"
+    "lib/arkh/stats/systems/w3/construction.ts",
+    "lib/game/njs/Shrine.ts"
   ],
   "_customBlock_Spelunk": [
     "lib/game/njs/Spelunk.ts"
+  ],
+  "_customBlock_StampBonusOfTypeX": [
+    "lib/game/njs/StampBonusOfTypeX.ts"
+  ],
+  "_customBlock_StampOverLevel": [
+    "lib/game/njs/StampBonusOfTypeX.ts"
   ],
   "_customBlock_StarSigns": [
     "lib/arkh/stats/systems/common/starSign.ts"
@@ -589,25 +796,32 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   "_customBlock_TalentCalc": [
     "lib/arkh/stats/systems/common/derived-damage.ts",
     "lib/arkh/stats/systems/common/stats.ts",
-    "lib/arkh/stats/systems/w4/lab.ts"
+    "lib/arkh/stats/systems/w4/lab.ts",
+    "lib/game/njs/TalentCalc.ts"
   ],
   "_customBlock_Thingies": [
     "lib/game/njs/Thingies.ts"
+  ],
+  "_customBlock_TotalFoodBonuses": [
+    "lib/game/njs/TotalFoodBonuses.ts"
   ],
   "_customBlock_TotalStats": [
     "lib/arkh/stats/defs/drop-rate-v2.ts",
     "lib/arkh/stats/systems/common/derived-damage.ts",
     "lib/arkh/stats/systems/common/stats.ts",
-    "lib/arkh/stats/systems/dr2/dr2.ts"
+    "lib/arkh/stats/systems/dr2/dr2.ts",
+    "lib/game/njs/TotalStats.ts"
   ],
   "_customBlock_TotalTalentPoints": [
     "lib/tome/extractors.ts"
   ],
   "_customBlock_Windwalker": [
-    "lib/arkh/stats/systems/w2/voting.ts"
+    "lib/arkh/stats/systems/w2/voting.ts",
+    "lib/game/njs/Windwalker.ts"
   ],
   "_customBlock_WorkbenchStuff": [
-    "lib/arkh/stats/systems/damage/damage.ts"
+    "lib/arkh/stats/systems/damage/damage.ts",
+    "lib/game/njs/WorkbenchStuff.ts"
   ],
   "_customBlock_chipBonuses": [
     "lib/arkh/stats/systems/w4/lab.ts",
@@ -617,16 +831,27 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/game/njs/getLOG.ts",
     "lib/tome/math.ts"
   ],
+  "_customBlock_getbonus2": [
+    "lib/game/njs/getbonus2.ts"
+  ],
   "_customBlock_prayersReal": [
-    "lib/arkh/stats/systems/w3/prayer.ts"
+    "lib/arkh/stats/systems/w3/prayer.ts",
+    "lib/game/njs/prayersReal.ts"
   ],
   "_customBlock_totalcointypes": [
     "lib/coinMulti/wallet.ts"
   ],
   "eclipseSkulls": [
-    "lib/arkh/stats/systems/w4/rift.ts"
+    "lib/arkh/stats/systems/w4/rift.ts",
+    "lib/game/njs/RiftStuff.ts"
   ],
   "enabledStarSigns": [
+    "lib/game/njs/RiftStuff.ts"
+  ],
+  "isBubbleSuperr": [
+    "lib/game/njs/CauldronStats.ts"
+  ],
+  "riftBonus": [
     "lib/game/njs/RiftStuff.ts"
   ],
   "skillLvRanks": [
