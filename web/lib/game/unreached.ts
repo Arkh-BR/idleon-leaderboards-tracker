@@ -29,9 +29,6 @@ const GRID_E2 = (sq: string) => `within the Damage closure its only call site is
 
 // The AFK page's root (docs/superpowers/plans/2026-11-05-afk-gains-inventory.md): the Fighting rate only (the page's product decision)
 const AFK = 'AFKgainrates("Fighting")';
-// AFKgainrates opens (@4444275) with `if ("Fighting" != d) { ... }`, the ALL terms of the skill rates (TalentEnh(79), CardBonusREAL(46), GuildBonuses(7),
-// CardSetBonuses(0, "7"), the sigil and chip "safk", EtcBonuses("24"), ...): the Fighting rate does not run it
-const SKIP_FIGHTING = (at: number) => `its only call site (@${at}) is in the first block of AFKgainrates, \`if ("Fighting" != d)\` @4444275, which the Fighting rate skips`;
 // TalentCalc(d) @4464686 guards everything with `if (-7044.5 != d) { ... return 1 }`: past it, @4520409, is the item sell price table (ItemzzSellPricesz) the
 // game builds for the shop. The walk of TalentCalc(650) (its 650 == d branch @4520200 is the last of the function) runs into it; a talent id never does.
 const SELL_TABLE = "called only in the table of item sell prices that follows TalentCalc's `-7044.5 != d` block (@4520409, run for d == -7044.5); the AFK rate's call is TalentCalc(650), whose branch ends at @4520200 (the walk reads on to the end of the function)";
@@ -40,7 +37,6 @@ const SELL_TABLE = "called only in the table of item sell prices that follows Ta
 const AFK_GRID_E2 = (sq: string) => `within the AFK closure its only call site is ResearchStuff("Grid_Bonus")'s 2 == e branch (${sq}, @11177849); the only Grid_Bonus AFK reaches is Grid_Bonus(173, 0) (Divinity Bonus_Minor and Bonus_MAJOR), called with e = 0`;
 
 export const UNREACHED: readonly Unreached[] = [
-  { row: "TalentEnh(79)", roots: [AFK], why: SKIP_FIGHTING(4444575) },
   { row: 'RunCodeOfTypeXforThingY("SellPrice")', roots: [AFK], why: SELL_TABLE },
   { row: 'ActionBlock("InitItemDefinitions","no",0,0)', roots: [AFK], why: SELL_TABLE },
   { row: "Language()", roots: [AFK], why: SELL_TABLE },

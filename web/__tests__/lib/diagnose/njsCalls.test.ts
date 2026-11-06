@@ -331,6 +331,15 @@ describe("njsSlice keeps the prelude (what the game runs before the dispatch)", 
     expect(njsCalls(njsSlice(fn, ["B"])!).map((c) => c.block)).toEqual(["F", "H"]);
   });
 
+  it("a block guarded by a negated test of the sub-case's own name leaves its prelude; another name's stays", () => {
+    const n = njsFunction(`m._customBlock_N=function(d){x=k._customBlock_F();if("A"!=d){k._customBlock_G()}if("A"==d)return k._customBlock_H(x);if("B"==d)return 0};`, "N")!;
+    expect(njsCalls(njsSlice(n, ["A"])!).map((c) => c.block)).toEqual(["F", "H"]);
+    const m = njsFunction(`m._customBlock_N=function(d){x=k._customBlock_F();if("A"!=d){k._customBlock_G()}if("B"==d)return k._customBlock_H(x)};`, "N")!;
+    expect(njsCalls(njsSlice(m, ["B"])!).map((c) => c.block)).toEqual(["F", "G", "H"]);
+    const c = njsFunction(`m._customBlock_N=function(d){if("A"!=d&&q){k._customBlock_G()}if("A"==d)return k._customBlock_H()};`, "N")!;
+    expect(njsCalls(njsSlice(c, ["A"])!).map((x) => x.block)).toEqual(["G", "H"]);
+  });
+
   it("a ternary-first function has no prelude: its slice is the named block alone", () => {
     const t = njsFunction(`m._customBlock_T=function(d){return"A"==d?k._customBlock_G(1):0};`, "T")!;
     expect(njsPrelude(t)).toBe("");
@@ -398,9 +407,15 @@ describe.skipIf(!existsSync(NJS))("the live N.js", () => {
     expect(njsCalls(njsSlice(stampBonus, ["BaseDmg"])!)).toContainEqual(expect.objectContaining({ block: "Summoning", arg0: "VaultUpgBonus" }));
   });
 
+  it("AFKgainrates(\"Fighting\") skips the `\"Fighting\"!=d` block", () => {
+    const calls = njsCalls(njsSlice(afk, ["Fighting"])!);
+    for (const [block, arg0] of [["TalentEnh", 79], ["CardBonusREAL", 46], ["GuildBonuses", 7], ["chipBonuses", "safk"], ["EtcBonuses", "24"]] as const)
+      expect(calls, `${block}(${arg0})`).not.toContainEqual(expect.objectContaining({ block, arg0 }));
+  });
+
   it("AFKgainrates(\"Fighting\") reaches the calls the game makes before its dispatch", () => {
     const calls = njsCalls(njsSlice(afk, ["Fighting"])!);
-    for (const [block, arg0] of [["TalentEnh", 79], ["Divinity", "Bonus_MAJOR"], ["ArcaneType", "ArcaneMapMulti_bon"], ["EtcBonuses", "92"], ["Summoning", "VotingBonusz"]] as const)
+    for (const [block, arg0] of [["Divinity", "Bonus_MAJOR"], ["ArcaneType", "ArcaneMapMulti_bon"], ["EtcBonuses", "92"], ["Summoning", "VotingBonusz"]] as const)
       expect(calls, `${block}(${arg0})`).toContainEqual(expect.objectContaining({ block, arg0 }));
   });
 

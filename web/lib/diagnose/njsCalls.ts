@@ -215,7 +215,7 @@ export function njsSlice(fn: { params: string[]; body: string }, args: unknown[]
   const named = njsNamedBlock(fn.body, a0);
   if (named === undefined) return undefined;
   const slice = (typeof a1 === "number" ? njsNumericBranch(named, a1, fn.params) : undefined) ?? named;
-  const pre = njsPrelude(fn);
+  const pre = njsPrelude(fn, a0);
   return pre ? `${pre}
 ${slice}` : slice;
 }
@@ -224,12 +224,24 @@ ${slice}` : slice;
  * What the game runs before it dispatches on the name: the body up to its first named dispatch
  * (`if("X"==d` / `"X"==d?` on a parameter; AFKgainrates holds 29 calls there). "" when the first
  * dispatch opens the body (only its `{` before it), so such a function's slice is unchanged.
+ * For the sub-case `name`, a block guarded by `if("<name>"!=<param>)` is dropped: it never runs
+ * for it (AFKgainrates' `if("Fighting"!=d){…}`). One guarded by `"Y"!=d` for another Y stays, and
+ * so does a negated test combined with `&&`/`||` (over-reporting is the safe direction).
  */
-export function njsPrelude(fn: { params: string[]; body: string }): string {
+export function njsPrelude(fn: { params: string[]; body: string }, name?: string): string {
   const v = fn.params.filter((p) => /^[A-Za-z]$/.test(p)).join("|");
   if (!v) return "";
   const at = new RegExp(String.raw`if\("\w+"==(?:${v})(?![\w$])|"\w+"==(?:${v})(?![\w$])\?`).exec(fn.body)?.index ?? 0;
-  return fn.body.slice(0, at).replace(/^\{/, "").replace(/(?:^|[;{}])return$/, "");
+  let pre = fn.body.slice(0, at).replace(/^\{/, "").replace(/(?:^|[;{}])return$/, "");
+  if (name !== undefined && /^\w+$/.test(name)) {
+    const neg = new RegExp(String.raw`if\("${name}"!=(?:${v})\)`, "g");
+    for (let m; (m = neg.exec(pre)); ) {
+      const end = statementEnd(pre, neg.lastIndex);
+      pre = pre.slice(0, m.index) + pre.slice(end);
+      neg.lastIndex = m.index;
+    }
+  }
+  return pre;
 }
 
 export type ClosureCall = {
