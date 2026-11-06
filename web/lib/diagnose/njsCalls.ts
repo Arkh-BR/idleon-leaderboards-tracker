@@ -213,7 +213,23 @@ export function njsSlice(fn: { params: string[]; body: string }, args: unknown[]
   const [a0, a1] = args;
   if (typeof a0 !== "string") return fn.body;
   const named = njsNamedBlock(fn.body, a0);
-  return (typeof a1 === "number" && named !== undefined ? njsNumericBranch(named, a1, fn.params) : undefined) ?? named;
+  if (named === undefined) return undefined;
+  const slice = (typeof a1 === "number" ? njsNumericBranch(named, a1, fn.params) : undefined) ?? named;
+  const pre = njsPrelude(fn);
+  return pre ? `${pre}
+${slice}` : slice;
+}
+
+/**
+ * What the game runs before it dispatches on the name: the body up to its first named dispatch
+ * (`if("X"==d` / `"X"==d?` on a parameter; AFKgainrates holds 29 calls there). "" when the first
+ * dispatch opens the body (only its `{` before it), so such a function's slice is unchanged.
+ */
+export function njsPrelude(fn: { params: string[]; body: string }): string {
+  const v = fn.params.filter((p) => /^[A-Za-z]$/.test(p)).join("|");
+  if (!v) return "";
+  const at = new RegExp(String.raw`if\("\w+"==(?:${v})(?![\w$])|"\w+"==(?:${v})(?![\w$])\?`).exec(fn.body)?.index ?? 0;
+  return fn.body.slice(0, at).replace(/^\{/, "").replace(/(?:^|[;{}])return$/, "");
 }
 
 export type ClosureCall = {

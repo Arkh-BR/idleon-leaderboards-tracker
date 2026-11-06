@@ -1,10 +1,10 @@
 import { afkTarget } from "../afkTarget";
-import { asNum, asNumber } from "../attr";
+import { asNum, asNumber, attr } from "../attr";
 import { block, withPlayer, type Ctx } from "../ctx";
 import { DreamChallenge, MapAFKtarget, MapDetails, MONSTERS, RANDOlist } from "../data";
 import { InvalidSaveValue, NotPorted } from "../errors";
 import { hString } from "../hstring";
-import { lengthOf, listAt, listOrMapAt } from "../lists";
+import { contains, lengthOf, listAt, listOrMapAt } from "../lists";
 import { GetTalentNumber } from "./GetTalentNumber";
 import { PlayerAccTot } from "./PlayerAccTot";
 import { ReturnClasses } from "./ReturnClasses";
@@ -52,6 +52,7 @@ function fightingMaps(ctx: Ctx): { dn1: number; dn4: number } {
  *  - "616" @4479621: the highest Lv0[0] over the characters whose class is below 6 (the beginner line);
  *  - "620" @4480414: the account's highest character level (Lv0[0] over PlayerDATABASE, from 0);
  *  - "arena" @4467173: the Pet Arena waves cleared in a row by the best wave (OptionsListAccount[89] against RANDOlist[53][g]);
+ *  - "650" @4480714: how many of the items RANDOlist[82..86] lists (hats, rings, tools, obols) the account has found (Cards[1]); an item counts once;
  *  - "656" @4481319: the DreamChallenge entries whose WeeklyBoss "d_<n>" is -1 (the loop is skipped in the Tutorial scene, which a tracked
  *    account is not in).
  */
@@ -116,6 +117,12 @@ export const DNSM_CalcTalentMAP = block("DNSM.CalcTalentMAP", (ctx, key: string)
       }
       return n;
     }
+    case "650": {
+      const owned = attr(ctx, "Cards", 1);
+      let n = 0;
+      for (let g = 0; 5 > g; g++) for (const card of (RANDOlist as unknown as readonly (readonly unknown[])[])[82 + g]) if (contains(owned, card)) n += 1; // D.contains
+      return n;
+    }
     case "656": {
       let n = 0;
       for (let g = 0, len = (DreamChallenge as unknown as readonly unknown[]).length; g < len; g++) if (-1 == asNum(ctx, "WeeklyBoss", `d_${g}`)) n += 1;
@@ -162,6 +169,10 @@ export const TalentCalc = block("TalentCalc", (ctx, d: number) => {
     // @4517290: talent 470 times its stamps
     case 470:
       return GetTalentNumber(ctx, 1, 470) * DNSM_CalcTalentMAP(ctx, "470");
+    // @4520200: talent 650 times the items of RANDOlist[82..86] found (the `d == -7044.5` branch @4466996 after it, the item sell price
+    // table, is not reached by a talent id)
+    case 650:
+      return GetTalentNumber(ctx, 1, 650) * DNSM_CalcTalentMAP(ctx, "650");
     // @4519089: talent 656 times its dream challenges
     case 656:
       return GetTalentNumber(ctx, 1, 656) * DNSM_CalcTalentMAP(ctx, "656");
@@ -177,4 +188,4 @@ export const TalentCalc = block("TalentCalc", (ctx, d: number) => {
 });
 
 /** What this module covers (lib/game/ported.ts). */
-export const PORTED: Ported = [31, 110, 125, 485, 305, 470, 656, 616, 620];
+export const PORTED: Ported = [31, 110, 125, 485, 305, 470, 650, 656, 616, 620];

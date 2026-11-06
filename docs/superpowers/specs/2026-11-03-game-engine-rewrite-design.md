@@ -251,3 +251,25 @@ Cada linha: o que, por quê, custo se errada.
 - **Y:** nos mapas de dungeon, o `lib/game` calcula o Max normal e a árvore mostra o aviso. Fica no próprio `Dungon()` (`njs/Dungon.ts`, @7831096): nesses mapas ele responde -1 por `assumed("outside a dungeon …")`, então todo ramo de dungeon de todo bloco (o do `DamageDealed` @4106070, os de `PlayerHPmax`, `PlayerMPmax`, `PlayerSpeedBonus`, `FoodBonuses`, `GetTalentNumber`, `TotalStats`…) vê um mapa normal, e cada chamador continua literal. Vale para o motor inteiro: qualquer stat calculado num mapa de dungeon. Um tracker que conte a corrida de dungeon porta o `DungeonStat` (@7831416) e tira a assunção. Por quê: decisão do usuário; uma assunção só nos quatro guardas do Damage deixaria o `FoodBonuses` lançando. Custo: num mapa de dungeon o Max mostrado não é o da corrida (igual ao de hoje).
 - **Z:** no mapa 43 a árvore da página é só a arena e a Mastery (0,2), fiel ao N.js @4106216 (o `DamageDealed` devolve o `RatDMG` antes de calcular o resto); ali o "mesmo formato do `lib/arkh`" cede. Por quê: decisão do usuário; mostrar as camadas exigiria uma segunda chamada que o jogo não faz. Custo: o detalhamento e as linhas do Compare ficam ausentes no 43 (os valores nunca afetavam o total).
 - **Referência do Observed Max (decisão do usuário, 05/11):** o Compare e o Biggest Gains do Damage seguem usando a referência dos top players (`web/lib/damage/topDamage.ts`), gerada pelo coletor sobre o `lib/arkh` (`scripts/update-top-damage.ts`), com os bugs já provados nos `KNOWN_ARKH_DIFFS` (gfood, pray6, tome, fam68, powerSuffix, signsDmg, statues, comp0). Fica documentado na nota de metodologia da página, e **a migração do coletor para o `lib/game` é o próximo passo**. Por quê: a revisão final achou a diferença e o usuário preferiu documentar a migrar junto com o PR. Custo: até lá, a referência de algumas fontes pode diferir um pouco do que o `lib/game` calcularia.
+
+## Decisões da migração do AFK Gains (2026-11-06)
+
+Registro do que foi decidido ao migrar o AFK Gains (branch `feat/afk-game`, plano `docs/superpowers/plans/2026-11-05-afk-gains-on-lib-game.md`). O código cita "Ruling AA" a "Ruling GG"; elas estão definidas aqui. As rulings A a Z (acima) continuam valendo.
+
+### Decisões do usuário
+
+- **O que o AFK Gains conta (decisão de produto da página, mantida):** só o AFK de luta; o arcane é o slot 2; o mapa 306 (Clamworks) dá ×0,2; no mapa 216 com caverna 17 a taxa da Cove substitui tudo; o voto semanal aparece e não entra no ranking.
+- **Tipo do alvo (06/11, "Alvo salvo, como o jogo"):** no mapa do próprio personagem o tipo vem do alvo AFK salvo (Ruling V), não do padrão do mapa. A spec da página (A9) foi emendada. Ver GG.
+- **Desempenho:** "sem lentidão perceptível" (ver Artifact Find). Ver FF.
+- **Referência do Observed Max:** o coletor continua no `lib/arkh` (como no Damage). O Compare e o Biggest Gains do AFK usam a referência gerada por ele; só a página calcula no `lib/game`.
+- **Leituras do jogo:** o usuário ainda não mandou os prints (EE); o PR declara se nenhuma foi registrada.
+
+### Rulings
+
+- **AA:** a Etapa 5 da Tarefa 1 (leituras do jogo) é do controlador com o usuário, antes da Tarefa 4; sem leitura, o teste de leituras pula. Custo: nenhum.
+- **BB:** `StampDetails`/`StampOverLevel` entram em `PORTED` (ou `unreached`) para o inventário do Damage mostrar 0 abertas; sem mudança de comportamento. Custo: só o inventário.
+- **CC:** vale a decisão A9 da página: alvo de skill dá a taxa de luta com nota; `Nothing`/`Paying_Respect`/sem definição dão 0. O "×0 se não é luta" do plano era um resumo com perda. Custo: mapas de skill mostram a taxa de luta (como hoje).
+- **DD:** num mapa cujo alvo A9 dá 0, a árvore da página é só a folha A9, total 0, sem linhas de fonte; igual à Ruling Z (mapa 43 do Damage). O jogo nunca calcula a taxa ali. Custo: o Compare não mostra fontes nesses mapas.
+- **EE:** a Tarefa 5 segue sem leituras do jogo; o teste continua pulando se a fixture não existe e o controlador registra ao menos uma antes do merge. Custo: a revisão do PR vem antes da conferência no jogo.
+- **FF:** desempenho aceito: troca de personagem em paridade com o `lib/arkh` (cerca de 22 ms) e carga a frio uma vez por save (cerca de 56 ms contra 23 ms). Custo: troca um pouco mais lenta; o cache de conta da Ruling X é o caminho de melhora.
+- **GG:** o tipo do alvo A9 segue a Ruling V (alvo salvo no mapa do próprio personagem, regra de carga de cena nos demais), por decisão do usuário de 06/11. Em saves reais isso muda 350 personagens de 0 para a taxa de luta com nota (cidades de Lab/Div/Cooking/Spelunk) e 56 de 0 para luta (cavernas do 216), contra o `lib/arkh`. Custo: nenhum.

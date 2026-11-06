@@ -7,9 +7,11 @@ import { ARTI_GROUPS } from "@/lib/arkh/stats/defs/artifact-find";
 import { applyGroupStep, groupVal } from "@/lib/arkh/stats/defs/grouped";
 import { DMG_LAYERS, DMG_MASTERY, DMG_RAT, dmgLayer } from "@/lib/arkh/stats/defs/damage";
 import { computeArkhDamage, DMG_COLLECTOR_MAP } from "@/lib/arkh/computeDamage";
+import { computeArkhAfkGains } from "@/lib/arkh/computeAfk";
+import { AFK_POOLS } from "@/lib/arkh/stats/defs/afk-gains";
 import { formatGameValue } from "@/lib/readings/format";
 import { READINGS_DIR, loadReadings, readingSave } from "@/lib/readings/registry";
-import { GOLDEN_SAVES, KNOWN_ARKH_DIFFS, arkhArtifactLeaf, arkhDamage, arkhDamagePoolKeys, arkhDamageLeaf, arkhDamageLeaves, arkhSourceHash, arkhStat, arkhStats, gameCtx, goldenSaves, setArkhSourceHash, setOracleCacheDir, type ArkhStat } from "./support/arkhOracle";
+import { GOLDEN_SAVES, KNOWN_ARKH_DIFFS, arkhArtifactLeaf, arkhDamage, arkhDamagePoolKeys, arkhDamageLeaf, arkhDamageLeaves, arkhAfkLeaves, arkhAfkRate, arkhSourceHash, arkhStat, arkhStats, gameCtx, goldenSaves, setArkhSourceHash, setOracleCacheDir, type ArkhStat } from "./support/arkhOracle";
 
 // Spy on the engine so the cache tests can count real computes; the original still runs.
 vi.mock("@/lib/arkh/computeArtifactFind", async (importOriginal) => {
@@ -157,10 +159,12 @@ describe("KNOWN_ARKH_DIFFS", () => {
   it("every entry names a real source and cites its N.js evidence (an @offset)", () => {
     const arti = new Set(ARTI_GROUPS.flatMap((g) => g.sources));
     const dmg = new Set(dmgIds());
+    const afk = new Set(AFK_POOLS.flatMap((g) => g.sources)); // the leaves of AFKgainrates("Fighting"): the Σ pool, the multipliers and the rules
     for (const d of KNOWN_ARKH_DIFFS) {
       const stat = d.stat ?? "artifactFind"; // absent = Artifact Find
       if (stat === "artifactFind") expect(arti.has(d.source), d.source).toBe(true);
       else if (stat === "damage") expect(dmg.has(d.source), d.source).toBe(true);
+      else if (stat === "afk") expect(afk.has(d.source), d.source).toBe(true);
       expect(d.save).toMatch(/\.json$/);
       expect(d.why).toMatch(/@\d+/);
     }
@@ -325,4 +329,35 @@ describe("the disk cache of arkhDamageLeaves / arkhStats", () => {
       expect(fromCompute.wpSquared).toBe(direct.children![0].children![0].children![0].val);
     });
   });
+});
+
+describe.skipIf(!ARKHE)("arkhAfkLeaves / arkhAfkRate", () => {
+  const rel = (a: number, b: number) => Math.abs(a - b) / Math.max(Math.abs(b), 1e-12);
+  const ids = AFK_POOLS.flatMap((g) => g.sources);
+
+  it.each([251, 306, 216])("ARKHE ci 8 map %i: the leaves rebuild lib/arkh's total", (map) => {
+    const direct = computeArkhAfkGains(JSON.parse(readFileSync(ARKHE!, "utf8")), 8, map).total;
+    const leaves = arkhAfkLeaves(ARKHE, 8, map);
+    expect(Object.keys(leaves).sort()).toEqual([...ids].sort());
+    expect(rel(arkhAfkRate(ARKHE, 8, map), direct)).toBeLessThan(1e-9);
+    if (map === 251) expect(arkhAfkRate(ARKHE, 8, map)).toBeGreaterThan(0); // 216 is 0 outside the Cove (not a fight): a vacuous check there
+  });
+
+  it("an object save gives the same leaves and is left untouched", () => {
+    const save = JSON.parse(readFileSync(ARKHE!, "utf8"));
+    const before = JSON.stringify(save);
+    expect(arkhAfkLeaves(save, 8, 251)).toEqual(arkhAfkLeaves(ARKHE, 8, 251));
+    expect(JSON.stringify(save)).toBe(before);
+  });
+
+  it("every golden save, first and last character, on map 251 rebuilds lib/arkh's total", () => {
+    for (const p of GOLDEN_SAVES) {
+      const n = JSON.parse(readFileSync(p, "utf8")).charNames.length;
+      // ponytail: first and last character only; a full sweep recomputes lib/arkh 5 times (about 95 s)
+      for (const ci of new Set([0, n - 1])) {
+        const direct = computeArkhAfkGains(JSON.parse(readFileSync(p, "utf8")), ci, 251).total;
+        expect(rel(arkhAfkRate(p, ci, 251), direct), `${basename(p)}#${ci}`).toBeLessThan(1e-9);
+      }
+    }
+  }, 900_000);
 });

@@ -39,7 +39,7 @@ const notPorted = (fn: (c: Ctx, ...a: any[]) => number, args: (string | number)[
 const GENERIC: Record<string, (string | number)[]> = {
   ArcadeBonus: [0], Companions: [0], AchieveStatus: [0], CompLV2: [44], getLOG: [10], GetBribeBonus: ["30"], chipBonuses: ["dmg"],
   ArbitraryCode5Inputs: ["x", 0, 0, 0, 0, 0], Dungon: [], GetTalentNumber: [1, 10], getbonus2: [1, 51, -1], FamilyBonsuesREAL: [7, 0, 100],
-  EtcBonuses: ["46"], CardBonusREAL: [9], ReturnClasses: [], StampBonusOfTypeX: ["BaseSTR"], MealBonus: ["Stat"], GuildBonuses: [1], PlayerMPmax: [], PlayerHPmax: [], CardSetBonuses: [0, "1"], FoodBonuses: ["HealthEffectBonus"], TotalFoodBonuses: ["HpBaseBoosts"], Shrine: [1], GoldFoodBonuses: ["AllStatz"],
+  EtcBonuses: ["46"], CardBonusREAL: [9], ReturnClasses: [], StampBonusOfTypeX: ["BaseSTR"], MealBonus: ["Stat"], GuildBonuses: [1], PlayerMPmax: [], PlayerHPmax: [], CardSetBonuses: [0, "1"], FoodBonuses: ["HealthEffectBonus"], TotalFoodBonuses: ["HpBaseBoosts"], Shrine: [1], GoldFoodBonuses: ["AllStatz"], StampDetails: [0], StampOverLevel: [0],
 };
 // the argument list of a call to `name` with index `idx` and `e`; most modules are (sub, b, e), GetSetBonus (set, what, e, f), Breeding (sub, string b, e, f)
 const call = (fn: string, name: string, idx: number | string | undefined, e = 0): (string | number)[] =>
@@ -75,7 +75,11 @@ describe("PORTED declarations", () => {
           for (const n of entry as readonly string[]) expect(notPorted(fn, call(name, n, 0)), `${name}("${n}")`).toBe(false);
           continue;
         }
-        const [sub, e] = key.endsWith("@e2") ? [key.slice(0, -3), 2] : [key, 0];
+        const at = /^(.*)@e(\d+)$/.exec(key);
+        const [sub, e] = at ? [at[1], Number(at[2])] : [key, 0];
+        // an empty `@e<n>` entry is a negative declaration ("not ported for e = n"): the probe's mocked reads return before the throw
+        // (Companions(0) reads as owned), so it is pinned by the marker test below and by afkEdges.test.ts (Bonus_MAJOR e = 6 / 8 throw)
+        if (at && Array.isArray(entry) && entry.length === 0) continue;
         if (entry === true) {
           expect(notPorted(fn, call(name, sub, undefined, e)), `${name}.${key}`).toBe(false);
           continue;
@@ -113,6 +117,14 @@ describe("isPorted (the marker)", () => {
     expect(isPorted({ args: ["Grid_Bonus", 68, 2] }, research)).toBe(true);
     expect(isPorted({ args: ["Grid_Bonus"] }, research)).toBe(false);
     expect(isPorted({ args: ["B_UPG"] }, holes)).toBe(false);
+  });
+
+  it("a negative @e<n> entry unticks only that e: Divinity Bonus_MAJOR with e = 6 or 8 is not covered, with e = 0 or no literal e it is", async () => {
+    const div = (await load("Divinity")).PORTED!;
+    expect(isPorted({ args: ["Bonus_MAJOR"] }, div)).toBe(true);
+    expect(isPorted({ args: ["Bonus_MAJOR", 0, 0] }, div)).toBe(true);
+    for (const e of [6, 8]) expect(isPorted({ args: ["Bonus_MAJOR", 0, e] }, div), `e ${e}`).toBe(false);
+    expect(isPorted({ args: ["Bonus_Minor", -1, 5] }, div)).toBe(true);
     expect(isPorted({ args: [14] }, undefined)).toBe(false);
   });
 });

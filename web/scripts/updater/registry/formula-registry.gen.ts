@@ -5,8 +5,12 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/arkh/stats/systems/exp/exp.ts",
     "lib/game/njs/Dreamstuff.ts"
   ],
+  "ArcaneMapMulti": [
+    "lib/game/njs/ArcaneType.ts"
+  ],
   "ArcaneMapMulti_bon": [
-    "lib/arkh/stats/systems/exp/exp.ts"
+    "lib/arkh/stats/systems/exp/exp.ts",
+    "lib/game/njs/ArcaneType.ts"
   ],
   "ArcaneUpgBonus": [
     "lib/game/njs/ArcaneType.ts"
@@ -53,7 +57,8 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/game/njs/Minehead.ts"
   ],
   "Bonus_MAJOR": [
-    "lib/arkh/stats/systems/w5/divinity.ts"
+    "lib/arkh/stats/systems/w5/divinity.ts",
+    "lib/game/njs/Divinity.ts"
   ],
   "Bonus_Minor": [
     "lib/arkh/stats/systems/coin/divinityMinor.ts",
@@ -549,6 +554,9 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   "VialBonus": [
     "lib/game/njs/CauldronStats.ts"
   ],
+  "W7divChosen": [
+    "lib/game/njs/Divinity.ts"
+  ],
   "Weapon_Power": [
     "lib/game/njs/TotalStats.ts"
   ],
@@ -565,7 +573,8 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/game/njs/Thingies.ts"
   ],
   "_customBlock_AFKgainrates": [
-    "lib/arkh/stats/systems/afk/afk.ts"
+    "lib/arkh/stats/systems/afk/afk.ts",
+    "lib/game/njs/AFKgainrates.ts"
   ],
   "_customBlock_AchieveStatus": [
     "lib/game/njs/AchieveStatus.ts"
@@ -773,7 +782,7 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/game/njs/StampBonusOfTypeX.ts"
   ],
   "_customBlock_StampOverLevel": [
-    "lib/game/njs/StampBonusOfTypeX.ts"
+    "lib/game/njs/StampOverLevel.ts"
   ],
   "_customBlock_StarSigns": [
     "lib/arkh/stats/systems/common/starSign.ts"

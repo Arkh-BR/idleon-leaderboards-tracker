@@ -54,3 +54,27 @@ export function stateOf(save: unknown): GameState {
   if (!known && typeof save === "object" && save !== null) states.set(save, state); // after the build: an envelope it refuses is not kept
   return state;
 }
+
+/** The value of a call the tracked block makes (its block and arguments): the page's sources are built from these. */
+export type Take = (block: string, ...args: (string | number)[]) => number;
+
+/** The direct call of `from` with this block and these arguments (all of them, or only the leading ones when `exact` is false), not one in `used`. */
+export const findCall = (from: TraceNode, block: string, args: readonly (string | number)[], used?: Set<TraceNode>, exact = true): TraceNode | undefined =>
+  from.children.find((n) => n.block === block && (!exact || n.args.length === args.length) && args.every((a, i) => n.args[i] === a) && !used?.has(n));
+
+/**
+ * A `Take` over the direct calls of `from`: it finds the call (each call once when `used` is given), pushes it, trimmed, to `kept` (the source's
+ * children) and returns its value. No such call throws, naming `who` (the tracker's message) and the source `id`.
+ */
+export function takeFrom(from: TraceNode, used: Set<TraceNode> | undefined, kept: Node[], who: string, id: string, exact = true): Take {
+  return (block, ...args) => {
+    const n = findCall(from, block, args, used, exact);
+    if (!n) throw new Error(`${who} made no${used ? " (further)" : ""} ${block}(${args.map((a) => JSON.stringify(a)).join(", ")}) call for "${id}"`);
+    used?.add(n);
+    kept.push(traceTree(n));
+    return n.value;
+  };
+}
+
+/** `a` equals `b` to a relative 1e-9: the tree must give the call's total (spec section 4). */
+export const near = (a: number, b: number) => Math.abs(a - b) <= 1e-9 * Math.max(1, Math.abs(b));

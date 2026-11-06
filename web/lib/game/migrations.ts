@@ -528,6 +528,14 @@ export function migrate(
 // Divinity[25] caps (@6384086, < 127; @6385787, < 129), Dream reset and WeeklyBoss "d_" keys deleted (@6407514, < 187), Menagerie[0][6]
 // (@6466363, block 395, above: [5] is not written), and the initialize fills of empty Menagerie, RoyalG and PetsStored lists (above).
 // CharacterClass, Lv0, QuestComplete, BundlesReceived and FamilyValuesMap have no load-step write. No step ported.
+// Re-audited for the keys the AFK ports read (AFK plan Task 2: MapBon (the Arcane map bonus), Cards[1] (talent 650), OptionsListAccount[425]
+// (the World 7 god), Divinity[12..23] (each character's linked god) and [25], GemItemsPurchased[9], SkillLevels[505], Tasks[2][1][2] (the merit),
+// BundlesReceived.bun_u; a write scan of the live N.js, @6184758-6475000, each write's DoOnceREAL block found by brace nesting): MapBon has the
+// two steps ported above (initialize3's pad @6297857, block 366 @6443478: the pad and the reset of MapBon[0] / [1]); Cards[1] and Divinity[25] are
+// as audited above (Damage Tasks 4 and 8); Divinity[0..11] and [24] are reset only in the blocks below DoOnceREAL 127 and 129 (@6384042, @6385743)
+// and [24] at 243 (@6417681), none on a real save, and [12..23] (the linked gods) have no write besides the initialize fill of an empty list.
+// OptionsListAccount[425], GemItemsPurchased[9], SkillLevels[505], Tasks[2][1][2] and BundlesReceived.bun_u have no load-step write
+// (Tasks[2][1][5] is reset below DoOnceREAL 11.2 and BundlesReceived is only read, @6427708, @6467209). No step ported.
 //   - the loader: Tess (CSver 26; not reset by ClearLocalData, so it would need an assumption; initialize3 fills it with [[], []]);
 //   - initialize1: GemItemsPurchased padded to 300; OptionsListAccount padded to 17..70 and its 51..59 splice (no real save is that
 //     short), its pads to 201..601 (only in the Tutorial scene); the starter star signs
