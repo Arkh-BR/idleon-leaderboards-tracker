@@ -19,7 +19,7 @@ export const GamingStatType: (ctx: Ctx, d: string, b: number, e: number) => numb
     // @10746582: Super Bit b is owned when its letter (Number2Letter[b]) is in Gaming[12]
     case "SuperBitType":
       return -1 != hString(attr(ctx, "Gaming", 12)).indexOf(hString(Number2Letter[b | 0])) ? 1 : 0;
-    // @10746743: the Worship bonuses, a function of the totems' waves once the bonus's Super Bit is owned: 0 (Super Bit 7) is
+    // @10727986: the Worship bonuses, a function of the totems' waves once the bonus's Super Bit is owned: 0 (Super Bit 7) is
     // floor(waves / 10), 4 (Super Bit 11, the Class EXP one) is 1.12 x floor(waves / 10). The waves are the construction actor's
     // _GenINFO[114], its init's sum of TotemInfo[0] (@9087700; the actor is built at the game's start, so its GenINFO is longer than 114)
     case "MSA_Bonus": {

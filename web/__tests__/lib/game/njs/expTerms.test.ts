@@ -6,7 +6,7 @@
 import { afterAll, describe, it, expect } from "vitest";
 import { readFileSync, writeFileSync } from "node:fs";
 import { basename } from "node:path";
-import { GOLDEN_SAVES, KNOWN_ARKH_DIFFS, PROOF_PATCHES, arkhExpLeaves, damageReasonSeeds, type Seed } from "../support/arkhOracle";
+import { GOLDEN_SAVES, KNOWN_ARKH_DIFFS, PROOF_PATCHES, arkhExpLeaves, damageReasonSeeds, patchLukSnapshot, type Seed } from "../support/arkhOracle";
 import { EXP_GROUPS } from "@/lib/arkh/stats/defs/exp-multi";
 import { MissingSaveKey } from "@/lib/game/errors";
 import { asNum, attr } from "@/lib/game/attr";
@@ -145,7 +145,7 @@ const TERMS: Record<string, (c: Ctx) => number> = {
   vault12: (c) => (lowestLevel(c) ? Summoning(c, "VaultUpgBonus", 12, 0) : 0),
   cardSet0: (c) => (50 > asNum(c, "Lv0", 0) ? CardSetBonuses(c, 0, "0") : 0),
   mealClexp: (c) => (120 > asNum(c, "Lv0", 0) ? MealBonus(c, "Clexp") : 0),
-  weeklyBoss: (c) => (attr(c, "WeeklyBoss", "c") !== undefined ? Math.min(150, asNum(c, "WeeklyBoss", "c")) : 0),
+  weeklyBoss: (c) => (Object.hasOwn(attr(c, "WeeklyBoss") as object, "c") ? Math.min(150, asNum(c, "WeeklyBoss", "c")) : 0),
   newbie: (c) => (10 > asNum(c, "Lv0", 0) ? 150 : 30 > asNum(c, "Lv0", 0) ? 100 : 50 > asNum(c, "Lv0", 0) ? 50 : 0),
   divMinor4: (c) => Divinity(c, "Bonus_Minor", c.player, 4),
   cardSet5: (c) => CardSetBonuses(c, 0, "5"),
@@ -198,9 +198,10 @@ const TERMS: Record<string, (c: Ctx) => number> = {
 
 /** The block key(s) each term reads directly (`<Fn><args as JSON>`): what a seed must never be. */
 const OWN: Record<string, string[]> = {
-  statue10: ['ArbitraryCode["StatueBonusGiven10"]'],
-  talent35: ["GetTalentNumber[1,35]"], talent632: ["GetTalentNumber[1,632]"], talent55: ["getbonus2[1,55,-1]"], talent434: ["getbonus2[1,434,-1]"],
-  goldFood: ['GoldFoodBonuses["ClassEXPz"]'], divMinor4: ['Divinity["Bonus_Minor",0,4]'],
+  statue10: ['ArbitraryCode["StatueBonusGiven10"]'], starSignMainXP: ['DNSM.StarSigns["MainXP"]'],
+  luk: ['TotalStats["LUK"]'],
+  talent35: ["GetTalentNumber[1,35]", 'TotalStats["LUK"]'], talent632: ["GetTalentNumber[1,632]"], talent55: ["getbonus2[1,55,-1]"], talent434: ["getbonus2[1,434,-1]"],
+  goldFood: ['GoldFoodBonuses["ClassEXPz"]'], divMinor4: Array.from({ length: 12 }, (_, ci) => `Divinity["Bonus_Minor",${ci},4]`), // the current character's index (its only KNOWN pair is Koweabooo#10)
 };
 Object.freeze(OWN);
 
@@ -213,6 +214,8 @@ const EXPECT_KNOWN: Record<string, number> = {
   workbench: 9, talent434: 9, medallion429: 41, gridExp: 1, sticker0: 1, divMinor4: 1, button8: 1, win23: 2, statue10: 10, starSignMainXP: 33,
   prayer0: 43, prayer2: 43, goldFood: 337, luk: 1121, talent35: 107,
 };
+/** The pairs per leaf: 106 saves x characters (1163 on map 251), less HourZero's 10 characters where a term refuses, plus the extra maps of the map-dependent ones. */
+const PAIRS: Record<string, number> = { workbench: 1153, luk: 1153, talent35: 1153, divMinor4: 1153, goldFood: 1153, bubbleExp: 1153, statue10: 1160, medallion429: 5742, arcane1: 5108, shrine5: 2326 };
 const REFUSALS = (id: string): string[] => (TOME_TERMS.has(id) ? HOURZERO : []);
 
 /**
@@ -289,6 +292,19 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("ExpMulti(0) terms against lib/arkh o
             if (entries.length) entryPairs++;
             if (rel(got, want)) continue;
             // a KNOWN difference is proved, not skipped: lib/arkh's number for the term it names, seeded into a fresh Ctx, closes the gap
+            // lukSnapshot is proved on lib/arkh's side: its envelope gets lib/game's TotalStats("LUK") in PVStatList_<ci>[3], and its leaf must then be lib/game's
+            if (entries.length && entries.every((d) => d.reason === "lukSnapshot")) {
+              const env = JSON.parse(readFileSync(path, "utf8")) as GameEnvelope;
+              patchLukSnapshot(env.data as Record<string, unknown>, ci, TotalStats(withPlayer(ctx, ci), "LUK"));
+              const patched = arkhExpLeaves(env, ci, map)[id];
+              expect(rel(patched, want), `${id} ${basename(path)}#${ci}: the patch changed nothing`).toBe(false);
+              if (rel(patched, got)) {
+                known++;
+                continue;
+              }
+              mismatches.push(`${id} ${basename(path)}#${ci}@${map}: game ${got}, arkh ${want}, with the snapshot patched ${patched}`);
+              continue;
+            }
             if (entries.length) {
               // the cause is either a save patch (PROOF_PATCHES: the statues) or lib/arkh's number for it, seeded
               const seeds: Seed[] = [];
@@ -323,7 +339,7 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("ExpMulti(0) terms against lib/arkh o
       expect(mismatches.slice(0, Number(process.env.EXP_MAX ?? 20))).toEqual([]);
       expect(known, "KNOWN pairs vs pairs the entries cover (a stale entry is one that no longer differs)").toBe(entryPairs);
       expect(known, "KNOWN pairs, literally").toBe(EXPECT_KNOWN[id] ?? 0);
-      expect(pairs).toBeGreaterThan(500); // saves x characters (about 1150 on 251)
+      expect(pairs, "saves x characters x maps").toBe(PAIRS[id] ?? 1163);
       expect([...refused].sort()).toEqual(REFUSALS(id));
       const names = new Set(GOLDEN_SAVES.map((p) => basename(p)));
       expect(KNOWN_ARKH_DIFFS.filter((d) => d.stat === "exp" && d.source === id && !names.has(d.save)).map((d) => d.save)).toEqual([]);

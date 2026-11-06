@@ -194,12 +194,12 @@ Regenerate it when N.js, a module's `PORTED` or `lib/game/unreached.ts` changes.
 - [x] ResearchStuff("Grid_Bonus",132,0) — depth 1 — 1304 chars
 - [x] ResearchStuff("Grid_Bonus",152,0) — depth 1 — 1304 chars
 - [x] ResearchStuff("Grid_Bonus",173,0) — depth 2 — 1304 chars
-- [~] ResearchStuff("Grid_Bonus") — depth 2 — 1304 chars — not reached: within the EXP closure its only call site is ResearchStuff("Grid_Bonus")'s 2 == e branch (the default square, Grid_Bonus(b, 0) times its counter, @11177849); every Grid_Bonus reached is called with e = 0 but (68, 2), a ported branch
-- [~] ResearchStuff("TotalObsLVs",0,0) — depth 2 — 511 chars — not reached: within the EXP closure its only call site is ResearchStuff("Grid_Bonus")'s 2 == e branch (square 94, @11177849); every Grid_Bonus reached is called with e = 0 but (68, 2), a ported branch
-- [~] ResearchStuff("TotalOccurrencesFound",0,0) — depth 2 — 472 chars — not reached: within the EXP closure its only call site is ResearchStuff("Grid_Bonus")'s 2 == e branch (square 112, @11177849); every Grid_Bonus reached is called with e = 0 but (68, 2), a ported branch
+- [~] ResearchStuff("Grid_Bonus") — depth 2 — 1304 chars — not reached: the call with a computed square, which the generator cannot match to the PORTED declaration: within the EXP closure it is only Grid_Bonus(b, 0) inside Grid_Bonus's own `2 == e` branch (@11158271) and Grid_Bonus(68, 0), which the ported (68, 2) branch of StickerBonus (FarmingStuffs @10801195, run via @11158464) makes and ResearchStuff.ts ports (Grid_Bonus: true); no other computed square is called with e other than 0
+- [~] ResearchStuff("TotalObsLVs",0,0) — depth 2 — 511 chars — not reached: within the EXP closure its only call site is ResearchStuff("Grid_Bonus")'s 2 == e branch (square 94, @11158271); every Grid_Bonus reached is called with e = 0 but (68, 2), a ported branch
+- [~] ResearchStuff("TotalOccurrencesFound",0,0) — depth 2 — 472 chars — not reached: within the EXP closure its only call site is ResearchStuff("Grid_Bonus")'s 2 == e branch (square 112, @11158271); every Grid_Bonus reached is called with e = 0 but (68, 2), a ported branch
 - [x] ResearchStuff("Grid_Bonus_Allmulti",0,0) — depth 2 — 330 chars
 - [x] ResearchStuff("Grid_Bonus",68,2) — depth 2 — 7 chars
-- [~] ResearchStuff("OccurrencesToBeFound",0,0) — depth 3 — 385 chars — not reached: within the EXP closure called only by TotalObsLVs and TotalOccurrencesFound, which Grid_Bonus calls only when 2 == e (@11177849); ResearchEXPrateTOT @11150376 also calls it, outside the closure
+- [~] ResearchStuff("OccurrencesToBeFound",0,0) — depth 3 — 385 chars — not reached: within the EXP closure called only by TotalObsLVs and TotalOccurrencesFound, which Grid_Bonus calls only when 2 == e (@11158271); ResearchEXPrateTOT @11150376 also calls it, outside the closure
 - [x] ResearchStuff("Grid_Bonus",125,0) — depth 3 — 1304 chars
 
 ## FarmingStuffs
@@ -348,7 +348,7 @@ Regenerate it when N.js, a module's `PORTED` or `lib/game/unreached.ts` changes.
 ## Minehead
 
 - [x] Minehead("Button_Bonuses",8,0) — depth 1 — 1219 chars
-- [~] Minehead("GlimboTotalTrades",0,0) — depth 2 — 481 chars — not reached: within the EXP closure its only call site is ResearchStuff("Grid_Bonus")'s 2 == e branch (square 168, @11177849); every Grid_Bonus reached is called with e = 0 but (68, 2), a ported branch; MenagerieStuff MissionProg @5181951 also calls it, outside the closure
+- [~] Minehead("GlimboTotalTrades",0,0) — depth 2 — 481 chars — not reached: within the EXP closure its only call site is ResearchStuff("Grid_Bonus")'s 2 == e branch (square 168, @11158271); every Grid_Bonus reached is called with e = 0 but (68, 2), a ported branch; MenagerieStuff MissionProg @5181951 also calls it, outside the closure
 - [x] Minehead("Button_BonusPerTime") — depth 2 — 56 chars
 - [x] Minehead("Button_BonusMULTI",0,0) — depth 2 — 102 chars
 
