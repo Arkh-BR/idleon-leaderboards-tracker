@@ -25,13 +25,14 @@ const HOURZERO = ["HourZero.json: Tome rows 21,101,105,106,115,116"]; // Ruling 
  * lib/arkh's `arkhAfkRate` (`moved`, of which `skill` have a skill target: lib/arkh gives them 0, lib/game the Fighting rate, as the page
  * decides; the rest have a FIGHTING target; a saved "Paying_Respect" is 0 on both sides and moves nothing), what is refused and how many
  * pairs are 0. A map with nothing to fight is 0 and refuses nothing: the target is checked before the rate is computed.
- *  251 plain, 306 Clamworks, 216 "Nothing" (0 unless the character's saved target is kept there), 0 "Nothing", 33 no monster, 6 mining (a skill
+ *  251 plain, 306 Clamworks, 150 a town (default "Nothing": lib/arkh gives 0, the kept skill target shows the Fighting rate with the A9 note), 216 "Nothing" (0 unless the character's saved target is kept there), 0 "Nothing", 33 no monster, 6 mining (a skill
  *  target shows the Fighting rate, as lib/arkh does).
  */
 const MAPS: Record<number, { known: number; moved: number; skill: number; refused: string[]; zero: "none" | "all" | "some" }> = {
   251: { known: 338, moved: 0, skill: 0, refused: HOURZERO, zero: "none" },
   306: { known: 338, moved: 0, skill: 0, refused: HOURZERO, zero: "none" },
   216: { known: 21, moved: 79, skill: 24, refused: HOURZERO, zero: "some" },
+  150: { known: 32, moved: 206, skill: 206, refused: HOURZERO, zero: "some" }, // a town (xSpaceaaTown): the saved skill target is kept, lib/arkh gives 0 from the map default
   0: { known: 0, moved: 0, skill: 0, refused: [], zero: "all" },
   33: { known: 0, moved: 0, skill: 0, refused: [], zero: "all" },
   6: { known: 338, moved: 0, skill: 0, refused: HOURZERO, zero: "none" },
@@ -72,6 +73,7 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("afkFightRate against lib/arkh on eve
       let known = 0;
       let moved = 0;
       let movedSkill = 0;
+      let fromZero = 0; // moved pairs where lib/arkh gives 0 (its map default has nothing to fight): the direction of the town maps
       for (const path of GOLDEN_SAVES) {
         const state = stateOf(path);
         for (let ci = 0; ci < state.charNames.length; ci++) {
@@ -93,6 +95,7 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("afkFightRate against lib/arkh on eve
           // the pairs where the game's target makes the answer differ from lib/arkh's own (default target) rate
           if (kept && !rel(want, arkhAfkRate(path, ci, map))) {
             moved++;
+            if (rel(arkhAfkRate(path, ci, map), 0)) fromZero++;
             if ("FIGHTING" !== (MONSTERS as unknown as Record<string, { AFKtype?: string }>)[target]?.AFKtype) movedSkill++;
           }
           if (rel(got, want)) continue;
@@ -119,6 +122,8 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("afkFightRate against lib/arkh on eve
       expect(known, "KNOWN pairs (a stale entry or a new difference fails)").toBe(MAPS[map].known);
       expect({ moved, skill: movedSkill }, "pairs where the saved AFK target the game keeps makes lib/game differ from arkhAfkRate").toEqual({ moved: MAPS[map].moved, skill: MAPS[map].skill });
       expect([...refused].sort()).toEqual(MAPS[map].refused);
+      // a town (xSpaceaaTown): every moved pair is lib/arkh 0 -> the Fighting rate of the saved skill target
+      if (map === 150) expect(fromZero, "moved pairs where lib/arkh gives 0").toBe(moved);
       // not vacuous: a map with something to fight has rates, one without has none
       const z = MAPS[map].zero;
       if (z === "all") expect(nonZero).toBe(0);

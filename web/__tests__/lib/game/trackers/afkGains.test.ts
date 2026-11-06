@@ -3,7 +3,7 @@
 // - the display config moved to lib/afkGains/layers (Ruling B), lib/arkh re-exporting the very same objects; the tracker registry;
 // - on a synthetic envelope (CI): the tree's shape, the recombination guard (TreeTotalMismatch), decision A9's notes (a map with nothing to
 //   fight, a skill target), the Cove, the Clamworks, Ruling V's saved target;
-// - on every real save, character and map (251, 306, 216, 0, 33, 6 and the dungeon 40): the total against lib/arkh (a difference is a KNOWN
+// - on every real save, character and map (251, 306, 216, 150, 0, 33, 6 and the dungeon 40): the total against lib/arkh (a difference is a KNOWN
 //   row of the pair, or the saved AFK target the game keeps, Ruling V; njs/afkGains.test.ts proves the exact values), every source leaf
 //   against lib/arkh's, the page's Biggest Gains model giving the total back from the flat tree, the size (Ruling L, at most 2x lib/arkh's
 //   nodes) and every runtime: / assumed: note of the full trace kept;
@@ -230,16 +230,16 @@ describe("the tree on a synthetic envelope (runs in CI)", () => {
 
 // ── every real save, character and map ──────────────────────────────────────────────────────────
 /**
- * The maps: the plain fight, the Clamworks, the Cove's map (Nothing), a Nothing map, a no-monster map, a skill map and a dungeon (Ruling Y).
+ * The maps: the plain fight, the Clamworks, the Cove's map (Nothing), a town (150, the saved skill target is kept), a Nothing map, a no-monster map, a skill map and a dungeon (Ruling Y).
  * `explained`: pairs whose total differs from lib/arkh's and has an explanation (a KNOWN row of the pair, or the saved target the game keeps:
  * njs/afkGains.test.ts proves the exact values with the same pairs: 338 KNOWN on the fight maps, the 79 pairs the saved target moves on map 216);
  * the pairs with nothing to fight are 0 on both sides.
  */
 const MAPS: Record<number, { explained: number; kept: number }> = {
-  251: { explained: 338, kept: 0 }, 306: { explained: 338, kept: 0 }, 216: { explained: 79, kept: 58 }, 0: { explained: 0, kept: 0 }, 33: { explained: 0, kept: 0 }, 6: { explained: 338, kept: 0 }, 40: { explained: 338, kept: 0 },
+  251: { explained: 338, kept: 0 }, 306: { explained: 338, kept: 0 }, 216: { explained: 79, kept: 58 }, 150: { explained: 206, kept: 174 }, 0: { explained: 0, kept: 0 }, 33: { explained: 0, kept: 0 }, 6: { explained: 338, kept: 0 }, 40: { explained: 338, kept: 0 },
 };
 const HOURZERO = ["HourZero.json: Tome rows 21,101,105,106,115,116"]; // Ruling E (njs/afkTerms.test.ts)
-const REFUSED: Record<number, string[]> = { 251: HOURZERO, 306: HOURZERO, 216: HOURZERO, 0: [], 33: [], 6: HOURZERO, 40: HOURZERO };
+const REFUSED: Record<number, string[]> = { 251: HOURZERO, 306: HOURZERO, 216: HOURZERO, 150: HOURZERO, 0: [], 33: [], 6: HOURZERO, 40: HOURZERO };
 
 const states = new Map<string, ReturnType<typeof buildGameState>>();
 afterAll(() => states.clear());
@@ -352,6 +352,7 @@ describe.skipIf(noSaves)("computeGameAfkGains against lib/arkh on every real sav
       expect([...refused].sort()).toEqual(REFUSED[map]);
       // not vacuous: a map with nothing to fight is the A9 leaf alone
       if (map === 0 || map === 33) expect(shortTrees).toBe(pairs);
+      else if (map === 150) expect(shortTrees, "town: the 206 pairs with a kept skill target show the Fighting rate, the other 956 are the A9 leaf alone").toBe(956);
       else if (map !== 216) expect(shortTrees).toBe(0);
       // Ruling Y: a dungeon map reads Dungon's assumed: leaf in every tree (inside a talent), and no other map does
       expect(dungeon, "pairs with the dungeon stand-in").toBe(map === 40 ? pairs : 0);
