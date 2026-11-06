@@ -24,7 +24,7 @@ export const Breeding = block("Breeding", (ctx, d: string, b: string, e: number,
     // @7932219: 1 once the Pet Arena waves cleared (CalcTalentMAP "arena") pass e
     case "PetArenaBonus":
       return DNSM_CalcTalentMAP(ctx, "arena") > e ? 1 : 0;
-    // @7919047, the next one: 1 once the Crucible waves cleared (CalcTalentMAP "arenaCruc") pass e; b ("0") is not read
+    // @7932401, the next one: 1 once the Crucible waves cleared (CalcTalentMAP "arenaCruc") pass e; b ("0") is not read
     case "PetArenaCrucBonus":
       return DNSM_CalcTalentMAP(ctx, "arenaCruc") > e ? 1 : 0;
     default:

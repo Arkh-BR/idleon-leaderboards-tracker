@@ -35,7 +35,7 @@ export const MenagerieStuff: (ctx: Ctx, d: string, b: number, e: number) => numb
     case "ObolMISCmulti":
       listAt(ctx, "Menagerie", 0); // the game indexes Menagerie[0][9] directly
       return 1 + asNum(ctx, "Menagerie", 0, 9) / 100;
-    // @5174772: Menagerie boost b: its value Research[58][b] (CustomLists) times its level Menagerie[3][b]
+    // @5182868: Menagerie boost b: its value Research[58][b] (CustomLists) times its level Menagerie[3][b]
     case "BoostQTY":
       listAt(ctx, "Menagerie", 3); // the game indexes Menagerie[3][b] directly
       return asNumber((Research as unknown as readonly (readonly unknown[])[])[58][b | 0]) * asNum(ctx, "Menagerie", 3, b | 0);

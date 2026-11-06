@@ -31,7 +31,7 @@ export const WorkbenchStuff: (ctx: Ctx, d: string, b: number, e: number) => numb
         (1 + (getbonus2(ctx, 1, 508, -1) * getLOG(ctx, asNum(ctx, "OptionsListAccount", 152))) / 100) *
         (1 + (getbonus2(ctx, 1, 208, -1) * getLOG(ctx, asNum(ctx, "OptionsListAccount", 329))) / 100)
       );
-    // @7811755: 1 + best talent 328 x getLOG(OptionsListAccount[139]) / 100, the Class EXP and Drop Rate multiplier of the Workbench
+    // @7824907: 1 + best talent 328 x getLOG(OptionsListAccount[139]) / 100, the Class EXP and Drop Rate multiplier of the Workbench
     case "AdditionExtraEXPnDR":
       return 1 + (getbonus2(ctx, 1, 328, -1) * getLOG(ctx, asNum(ctx, "OptionsListAccount", 139))) / 100;
     case "ConstMasteryBonus":

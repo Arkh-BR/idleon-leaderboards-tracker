@@ -53,11 +53,11 @@ export const Thingies: (ctx: Ctx, d: string, b: number, e: number) => number = b
       listAt(ctx, "Spelunk", 45); // the game indexes Spelunk[45][b] directly
       return Math.floor(asNumber(row[4]) * asNum(ctx, "Spelunk", 45, b | 0));
     }
-    // @10946237: Dancing Coral b: with e == 999 its value Spelunky[24][b] (CustomLists); else that times the levels the Tower (TowerInfo[18 + b]) is past 200
+    // @10965410: Dancing Coral b: with e == 999 its value Spelunky[24][b] (CustomLists); else that times the levels the Tower (TowerInfo[18 + b]) is past 200
     case "DancingCoralBonus":
       if (999 == e) return asNumber((Spelunky as unknown as readonly (readonly unknown[])[])[24][b | 0]);
       return Thingies(ctx, "DancingCoralBonus", b, 999) * Math.max(0, asNum(ctx, "TowerInfo", Math.round(18 + b)) - 200);
-    // @10963823: Coral Kid upgrade b: 2 is 20 x o / (25 + o) (o = OptionsListAccount[427 + b]), 3 is round(OptionsListAccount[427 + b]), 11 is round(OptionsListAccount[621])
+    // @10983030: Coral Kid upgrade b: 2 is 20 x o / (25 + o) (o = OptionsListAccount[427 + b]), 3 is round(OptionsListAccount[427 + b]), 11 is round(OptionsListAccount[621])
     case "CoralKidUpgBonus":
       if (2 == b) return 20 * (asNum(ctx, "OptionsListAccount", Math.round(427 + b)) / (25 + asNum(ctx, "OptionsListAccount", Math.round(427 + b))));
       if (3 == b) return Math.round(asNum(ctx, "OptionsListAccount", Math.round(427 + b)));

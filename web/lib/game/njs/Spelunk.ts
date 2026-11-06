@@ -27,7 +27,7 @@ export const Spelunk: (ctx: Ctx, d: string, b: number, e: number) => number = bl
       for (let f = 0; f < SpelunkRocks.length; f++) total = Math.round(total + asNum(ctx, "Spelunk", 44, f));
       return total;
     }
-    // @11113246: entry b of DNSM.BigFishBon, the table the game builds on the first call of the session (and when b == -1; here it is built
+    // @11132738: entry b of DNSM.BigFishBon, the table the game builds on the first call of the session (and when b == -1; here it is built
     // from the save each time): for each Big Fish g of Spelunky[18], its level Spelunk[11][g] over (100 + level), times the third field of its row
     case "BigFishBonuses": {
       listAt(ctx, "Spelunk", 11); // the game indexes Spelunk[11][g] directly

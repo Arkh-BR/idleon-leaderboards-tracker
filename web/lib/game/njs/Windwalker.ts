@@ -45,7 +45,7 @@ export const Windwalker: (ctx: Ctx, d: string, b: number, e: number) => number =
     // The masterclass forms are not counted (the Damage page's product decision), as in PlayerHPmax and PlayerAccTot
     case "CompassTempest":
       return runtime(ctx, "Windwalker(CompassTempest)", "masterclass form, not counted");
-    // @11054074: DNSM.TotalTitanKills, the Titans killed: the entries of Compass[1] equal to 1. The game counts them on the first call and
+    // @11073453: DNSM.TotalTitanKills, the Titans killed: the entries of Compass[1] equal to 1. The game counts them on the first call and
     // keeps the number for the session; here it is counted from the save each time
     case "TotalTitanKills": {
       const titans = listAt(ctx, "Compass", 1); // the game reads Compass[1].length

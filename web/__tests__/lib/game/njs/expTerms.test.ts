@@ -1,4 +1,4 @@
-// Task 2 (EXP plan): every leaf of ExpMulti(0) (N.js _customBlock_ExpMulti(0) @4254289, the Class EXP multiplier), by EXP_GROUPS source id, against lib/arkh's leaf
+// Task 2 (EXP plan): every leaf of ExpMulti(0) (N.js _customBlock_ExpMulti(0) @4260536, the Class EXP multiplier), by EXP_GROUPS source id, against lib/arkh's leaf
 // of the same id (arkhExpLeaves) over every real save and character (relative 1e-9). Each term below is the N.js sub-expression of its source, written
 // in the representation the leaf has in its group: a FACTOR for the mult groups (`1 + Companions(37) x 9`), the % points a pct group sums (g02, g09, g10).
 // The EXP page's own total (the ExpMulti block, the map rules) is Task 3: here the map is plain (251) except where the term reads it. N.js is the
@@ -64,7 +64,7 @@ import { Labb } from "@/lib/game/njs/Labb";
 const MAP = 251; // a plain map: no dungeon, no arena
 const rel = (got: number, want: number) => Math.abs(got - want) <= 1e-9 * Math.max(1, Math.abs(want));
 
-/** The loop @4254823 of ExpMulti: Tasks[2][0][2] > 0 and every other character's level above this one's (a strict `<`; the last index runs the block). */
+/** The loop @4261156 of ExpMulti: Tasks[2][0][2] > 0 and every other character's level above this one's (a strict `<`; the last index runs the block). */
 function lowestLevel(c: Ctx): boolean {
   if (!(0 < asNum(c, "Tasks", 2, 0, 2))) return false;
   for (let e = 0, n = c.state.charNames.length; e < n; e++) {
@@ -88,7 +88,7 @@ const TERMS: Record<string, (c: Ctx) => number> = {
   // g02: ExpGainLUK3 (the % points of (1 + ExpGainLUK3 / 100))
   bunQ: (c) => (1 == haveBan(c, "bun_q") ? 20 : 0),
   superbit19: (c) => (lowestLevel(c) && 1 == GamingStatType(c, "SuperBitType", 19, 0) ? 50 : 0),
-  // g03 @4258149: GenINFO[17] of the map actor (ActorEvents_713) is 1 when Compass[3] holds the monster of MapAFKtarget[CurrentMap] (set once per map load, @13119523)
+  // g03 @4264489: GenINFO[17] of the map actor (ActorEvents_713) is 1 when Compass[3] holds the monster of MapAFKtarget[CurrentMap] (set once per map load, @13142888)
   medallion429: (c) => (contains(attr(c, "Compass", 3), (MapAFKtarget as unknown as readonly unknown[])[c.map | 0]) ? Math.max(1, getbonus2(c, 1, 429, -1)) : 1),
   // g04
   comp37: (c) => 1 + 9 * comp(c, 37),

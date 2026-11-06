@@ -539,11 +539,11 @@ export function migrate(
 // Re-audited for the keys the EXP ports read (EXP plan Task 2: Compass[1] (the Titans), Compass[3] (the Shiny Medallions), Menagerie[2] and [3],
 // Holes[11][26] and [13], TowerInfo[18..21], Spelunk[11] (the Big Fish), Tasks[2][0][2] (the merit), WeeklyBoss.c, TotemInfo[0], and
 // OptionsListAccount[139, 179, 345, 421, 427..431, 476, 628]; a write scan of the live N.js, @6184758-6475000, each write's DoOnceREAL block found by
-// brace nesting): Compass[1] is only padded with zeros to Titans.length (initialize3 @6287470: the count of 1s is unchanged); Menagerie, Spelunk and
-// Tasks have the initialize fills of empty lists and Menagerie[0][6] (block 395, above; [2] and [3] are not written); Holes[11] gets [82] (@6286362, a
-// fill) and [62] (@6408591, an earlier block), never [26], and Holes[13] has no write; TowerInfo is zeroed only below DoOnceREAL 14.5 (@6340917);
+// brace nesting): Compass[1] is only padded with zeros to Titans.length (initialize3 @6297705: the count of 1s is unchanged); Menagerie, Spelunk and
+// Tasks have the initialize fills of empty lists and Menagerie[0][6] (block 395, above; [2] and [3] are not written); Holes[11] gets [82] (@6296595, a
+// fill) and [62] (@6419057, an earlier block), never [26], and Holes[13] has no write; TowerInfo is zeroed only below DoOnceREAL 14.5 (@6351253);
 // TotemInfo[0] is as above; no load step writes OptionsListAccount at those indexes or WeeklyBoss.c. The one write to a key an EXP term reads that can
-// run on a real save is Compass[3]: block 265 (OnPlayStart4, @6416100, `265 > DoOnceREAL`) removes the medallions RANDOlist[112] does not list. It
+// run on a real save is Compass[3]: block 265 (OnPlayStart4, @6426580, `265 > DoOnceREAL`) removes the medallions RANDOlist[112] does not list. It
 // runs on HourZero (DoOnceREAL 248.3) only, and no real save has a Compass[3] entry outside RANDOlist[112], so it removes nothing (checked on all
 // 106 real saves). No step ported.
 //   - the loader: Tess (CSver 26; not reset by ClearLocalData, so it would need an assumption; initialize3 fills it with [[], []]);
