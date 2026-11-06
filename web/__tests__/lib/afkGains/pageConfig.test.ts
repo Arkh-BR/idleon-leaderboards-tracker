@@ -49,6 +49,15 @@ describe("AFK Gains page config", () => {
 
   it("prints a dash for a non-finite value", () => expect(formatAfkGains(NaN)).toBe("—"));
 
+  it("compute passes lib/game's refusals through the page's wrapper (an older save is told in words)", async () => {
+    await expect(AFK_PAGE.compute({ charNames: ["a"], data: { CSver: 23.05 } }, 0, 251)).rejects.toThrow(
+      /^This save is from an older game version \(missing .+\)\. Sign in or paste a fresh save\.$/
+    );
+  });
+
+  it("documents that the Observed Max still comes from the previous engine", () =>
+    expect(AFK_PAGE.methodologyNote).toMatch(/Observed Max values themselves are still computed by the previous engine/));
+
   it("loads the Observed Max for a class", async () => {
     const top = await AFK_PAGE.loadTop();
     expect(Object.keys(top.flatForClass(null)).length).toBeGreaterThan(0);

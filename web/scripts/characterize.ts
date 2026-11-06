@@ -1,6 +1,6 @@
 // characterize: do the old and the new engine of a stat agree on every real save? From web/:
 //
-//   npx tsx scripts/characterize.ts <stat> [--map <n>]        (stats: artifactFind, damage)
+//   npx tsx scripts/characterize.ts <stat> [--map <n>]        (stats: artifactFind, damage, afkGains)
 //
 // Runs both engines on every character of every save envelope (golden/.cache + saves-fresh), on map <n> (default 0; a stat with
 // no map ignores it), writes reports/characterize-<stat>[-<n>].md, and exits 1 when the spec's switch criteria are not met: a row that is
@@ -14,10 +14,16 @@ import { pathToFileURL } from "node:url";
 // first: the oracle sets the `window` shim lib/arkh reads
 import { KNOWN_ARKH_DIFFS, goldenSaves } from "@/__tests__/lib/game/support/arkhOracle";
 import { DAMAGE_STATS } from "@/__tests__/lib/game/support/damageProof";
+import { computeArkhAfkGains } from "@/lib/arkh/computeAfk";
 import { computeArkhArtifactFind } from "@/lib/arkh/computeArtifactFind";
 import { computeArkhDamage } from "@/lib/arkh/computeDamage";
-import { ARTIFACT_FIND_REFUSABLE, DAMAGE_REFUSABLE, characterize, classify, type Engine, type Row, type Verdict } from "@/lib/diagnose/characterize";
+import { AFK_REFUSABLE, ARTIFACT_FIND_REFUSABLE, DAMAGE_REFUSABLE, characterize, classify, type Engine, type Row, type Verdict } from "@/lib/diagnose/characterize";
 import { CURRENT_CSVER } from "@/lib/game/errors";
+import { MapAFKtarget } from "@/lib/game/data";
+import { afkTarget } from "@/lib/game/afkTarget";
+import { makeCtx } from "@/lib/game/ctx";
+import { stateOf } from "@/lib/game/trackers/page";
+import { computeGameAfkGains } from "@/lib/game/trackers/afkGains";
 import { computeGameArtifactFind } from "@/lib/game/trackers/artifactFind";
 import { computeGameDamage } from "@/lib/game/trackers/damage";
 
@@ -26,7 +32,7 @@ type KnownDiff = (typeof KNOWN_ARKH_DIFFS)[number];
  * Each stat's two engines on map `map`, the names the report prints, the keys it may be refused for, and which KNOWN_ARKH_DIFFS entries
  * explain a differing total: the stat's own, and for Damage those of the stats its leaves read too (support/damageProof).
  */
-const ENGINES: Record<string, (map: number) => { arkh: Engine; game: Engine; names: string; refusable: (key: string) => boolean; known: (d: KnownDiff) => boolean }> = {
+const ENGINES: Record<string, (map: number) => { arkh: Engine; game: Engine; names: string; refusable: (key: string) => boolean; known: (d: KnownDiff) => boolean; explains?: (row: Row) => string | undefined }> = {
   artifactFind: () => ({
     arkh: computeArkhArtifactFind,
     game: computeGameArtifactFind,
@@ -40,6 +46,19 @@ const ENGINES: Record<string, (map: number) => { arkh: Engine; game: Engine; nam
     names: `a = lib/arkh (computeArkhDamage), b = lib/game (computeGameDamage), on map ${map}`,
     refusable: DAMAGE_REFUSABLE,
     known: (d) => d.stat === "damage" || DAMAGE_STATS.some((s) => s === d.stat),
+  }),
+  afkGains: (map) => ({
+    arkh: (save, ci) => computeArkhAfkGains(save, ci, map),
+    game: (save, ci) => computeGameAfkGains(save, ci, map),
+    names: `a = lib/arkh (computeArkhAfkGains), b = lib/game (computeGameAfkGains), on map ${map}`,
+    refusable: AFK_REFUSABLE,
+    known: (d) => d.stat === "afk",
+    // Ruling V: the AFK target follows the map unless the character's saved target is kept (the Cove's map 216 names Nothing, so a
+    // character fighting elsewhere keeps its fight): lib/arkh uses the map's target, so the two differ by design
+    explains: (r) => {
+      const t = afkTarget(makeCtx(stateOf(JSON.parse(readFileSync(r.save, "utf8"))), { player: r.ci, map }));
+      return t !== String((MapAFKtarget as unknown as readonly unknown[])[map]) ? `kept AFK target ${t} (Ruling V)` : undefined;
+    },
   }),
 };
 
@@ -79,7 +98,13 @@ function main(argv: string[]): number {
 
   const { rows, pairs, msA, msB } = characterize(saves, engines.arkh, engines.game);
 
-  const verdicts = rows.map((r) => ({ r, v: classify(r, knownDiffs, csverOf(r.save), engines.refusable) }));
+  const keptNote = new Map<Row, string>();
+  const verdicts = rows.map((r) => {
+    let v = classify(r, knownDiffs, csverOf(r.save), engines.refusable);
+    const note = v === "unexplained" && !r.error ? engines.explains?.(r) : undefined;
+    if (note) (v = "known"), keptNote.set(r, note);
+    return { r, v };
+  });
   const of = (v: Verdict) => verdicts.filter((x) => x.v === v).map((x) => x.r);
   const known = of("known");
   const refused = of("refused");
@@ -106,7 +131,7 @@ function main(argv: string[]): number {
   h("Known diffs");
   for (const r of known) {
     const sources = knownDiffs.filter((d) => d.save === basename(r.save) && (d.ci ?? r.ci) === r.ci).map((d) => (d.stat && d.stat !== stat ? `${d.stat}:${d.source}` : d.source));
-    out.push(`- ${at(r)}: arkh ${num(r.a)}, game ${num(r.b)}, rel ${r.rel?.toExponential(3)}; sources ${sources.join(", ")}`);
+    out.push(`- ${at(r)}: arkh ${num(r.a)}, game ${num(r.b)}, rel ${r.rel?.toExponential(3)}; sources ${[...sources, keptNote.get(r)].filter(Boolean).join(", ")}`);
   }
   out.push("", "Evidence per entry (KNOWN_ARKH_DIFFS):", "");
   const why = new Map<string, string[]>();

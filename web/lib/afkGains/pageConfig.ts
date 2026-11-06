@@ -1,8 +1,10 @@
 // AFK Gains Rate page: the statTracker kit's config for N.js
-// AFKgainrates("Fighting") — the AFK Info panel's AFK GAINS RATE line.
+// AFKgainrates("Fighting") — the AFK Info panel's AFK GAINS RATE line. It computes on lib/game (trackers/afkGains.ts); the Observed Max
+// collector (scripts/update-top-afk.ts) stays on lib/arkh.
 
 import type { GainSource, GainsModel, StatPageConfig } from "@/lib/statTracker/config";
 import { directChildren } from "@/lib/statTracker/biggestGains";
+import { withPageErrors } from "@/lib/statTracker/pageErrors";
 import { AFK_NODES, AFK_ROOT, AFK_VOTE_NAME, afkRate } from "./layers";
 import { TOP_AFK_GENERATED_AT, TOP_AFK_PLAYERS_SCANNED } from "./topAfkGains.meta";
 
@@ -68,8 +70,9 @@ export const AFK_PAGE: StatPageConfig = {
     exportPrefix: "afk-gains-snapshots",
     exportLabel: "afk-gains-tracker",
   },
-  compute: (save, charIdx, mapIdx) =>
-    import("@/lib/arkh/computeAfk").then((m) => m.computeArkhAfkGains(save, charIdx, mapIdx)),
+  compute: withPageErrors("AFK Gains", (save, charIdx, mapIdx) =>
+    import("@/lib/game/trackers/afkGains").then((m) => m.computeGameAfkGains(save, charIdx, mapIdx))
+  ),
   formatTotal: formatAfkGains,
   unit: "%",
   gains: afkGainsModel,
@@ -82,7 +85,9 @@ export const AFK_PAGE: StatPageConfig = {
     "AFK gain = how much your AFK Gains Rate would rise if this source matched the Observed Max — the best value " +
     "of each source among the top players — recomputed through the game's formula. Values are a ceiling, not a one-level step. " +
     "Each top player is measured on their best Arcane AFK map (slot 2), so that row reflects the map " +
-    "choice too. The weekly vote isn't ranked: it's server-wide and changes every week.",
+    "choice too. The weekly vote isn't ranked: it's server-wide and changes every week. " +
+    "The Observed Max values themselves are still computed by the previous engine, so for a few sources they can differ slightly " +
+    "from your own numbers until they are recomputed.",
   compareTitle: "Compare every AFK gains source against the best value observed across the top players",
   gainsTabTitle: "Rank your AFK sources by how much AFK Gains Rate matching the top players would give",
   footer:

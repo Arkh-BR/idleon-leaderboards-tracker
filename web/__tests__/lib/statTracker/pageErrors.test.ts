@@ -72,7 +72,7 @@ describe("the static imports of the pages on lib/game", () => {
     const path = base.split("/").reduce<string[]>((a, p) => (p === ".." ? a.slice(0, -1) : p === "." ? a : [...a, p]), []).join("/");
     return [`${path}.ts`, `${path}.tsx`, `${path}/index.ts`].find(existsSync) ?? null;
   };
-  it.each(["lib/artifactFind/pageConfig.ts", "lib/damage/pageConfig.ts"])("%s reaches nothing of lib/game except errors.ts", (page) => {
+  it.each(["lib/artifactFind/pageConfig.ts", "lib/damage/pageConfig.ts", "lib/afkGains/pageConfig.ts"])("%s reaches nothing of lib/game except errors.ts", (page) => {
     const seen = new Set<string>();
     const walk = (file: string) => {
       if (seen.has(file)) return;

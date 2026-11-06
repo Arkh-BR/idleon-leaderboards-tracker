@@ -15,6 +15,10 @@
 // and Nothing, Paying_Respect or a target with no definition gives 0; the Cove (map 216, cavern 17) counts as a fight whatever its target says;
 // Ruling V, the AFK target follows ctx.map (lib/game/afkTarget.ts); Ruling Y, a dungeon map counts as outside a dungeon.
 //
+// Performance, measured when the page switched (scripts/perf-afk.ts; 5 real saves, Node, median): a character switch on a loaded save is
+// about 23 ms against lib/arkh's 10 ms, a map switch 22 ms against 12 ms, and the first call on a save (state build + Tome) 76 ms against
+// 12 ms. Both are well under a perceptible delay; lib/game pays for the trace its tree is read from.
+//
 // The type of the result is the page's own (lib/statTracker/config StatResult: type-only). lib/game imports no lib/arkh.
 import type { StatResult } from "@/lib/statTracker/config";
 import { AFK_NODES, AFK_ROOT, afkRate } from "@/lib/afkGains/layers";
