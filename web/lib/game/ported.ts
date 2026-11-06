@@ -7,7 +7,8 @@
 // - a record by sub-case name (the first literal string of the call; for GetSetBonus the second): `true` covers the sub-case for any
 //   index, a list covers only those indexes (the first literal argument after the name: `Holes("B_UPG", 55)`). A sub-case with
 //   another rule for one value of `e` is declared twice, the second under `"<name>@e2"` (ResearchStuff Grid_Bonus, e = 2). An `"<name>@e<n>": []` entry
-//   declares the opposite: the sub-case throws for e = n and is not ported there (Divinity Bonus_MAJOR, e = 6 and 8).
+//   declares the opposite: the sub-case throws for e = n and is not ported there (Divinity Bonus_MAJOR, e = 6 and 8). It leaves a row whose `e` is not a
+//   literal ticked: sound today (the e = 6/8 Bonus_MAJOR calls all have a literal b = 0), but a future non-literal call would be wrongly [x].
 // - `"()"`: the call with a computed first argument (`RiftStuff("RiftSkillBonus," + f, …)`, a row with no literal argument), listing
 //   example names it answers (the guard test calls each).
 // Anything not declared throws NotPorted (Ruling E); the guard test checks that in both directions.
