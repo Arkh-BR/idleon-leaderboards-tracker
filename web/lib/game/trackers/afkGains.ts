@@ -55,7 +55,9 @@ export function afkFightRate(ctx: Ctx): number {
     assumed(
       ctx,
       TARGET_LEAF,
-      undefined === type ? `${target} has no monster to fight: this page shows 0` : `the AFK target ${target} (${type}) has nothing to fight: this page shows 0`,
+      undefined === type
+        ? `${target} has no monster to fight: this page shows 0`
+        : `the AFK target ${target}${type === target ? "" : ` (${type})`} has nothing to fight: this page shows 0`,
       0,
       `page decision A9 (docs/superpowers/specs/2026-09-24-afk-gains-page-design.md:53): map ${ctx.map}, target ${target}, AFKtype ${type ?? "no definition"}`
     );
@@ -160,17 +162,33 @@ const near = (a: number, b: number) => Math.abs(a - b) <= 1e-9 * Math.max(1, Mat
 /**
  * The page's result for the character and map of a traced Ctx (nothing computed on it yet): runs `afkFightRate` once, then reads the tree out
  * of the AFKgainrates call it made. A save the game would not have the keys for (Ruling E) throws what the engine throws (MissingSaveKey...).
- * A map whose AFK target has nothing to fight is 0, but its tree still shows the sources (as lib/arkh's does), so the call is made for it.
+ * A map whose AFK target has nothing to fight is 0 and its tree is the A9 leaf alone (Ruling DD): AFKgainrates is not called.
  */
 export function afkTree(ctx: Ctx): StatResult {
   if (!ctx.trace) throw new Error("AFK Gains: the tree is read from the trace, and this Ctx has none");
   const state = ctx.state;
   const total = afkFightRate(ctx);
-  AFKgainrates(ctx, "Fighting"); // a memo hit when afkFightRate made it
   const root = ctx.trace;
+  const targetLeaf = root.children.find((n) => TARGET_LEAF === n.block);
+  // Ruling DD: a target with nothing to fight is the game's literal "0%" (the AFK Info panel never calls AFKgainrates, @3803934): the tree is
+  // the A9 leaf alone under the type node (as Damage's arena-only tree, Ruling Z), total 0, no source rows. afkRate over it (type 0) gives 0.
+  if (targetLeaf && 0 === targetLeaf.value) {
+    const target = afkTarget(ctx);
+    const migrated = migratedNote(state);
+    return {
+      tree: {
+        name: AFK_ROOT,
+        val: 0,
+        fmt: "x",
+        note: `max(1%, ·)${migrated ? ` · ${migrated}` : ""}`,
+        children: [{ name: AFK_NODES.type, val: 0, fmt: "x", note: `Map ${ctx.map} · ${target} · ${typeOf(target) ?? "no definition"}`, children: [traceTree(targetLeaf)] }],
+      },
+      total: 0,
+    };
+  }
+  AFKgainrates(ctx, "Fighting"); // a memo hit when afkFightRate made it
   const call = root.children.find((n) => n.block === "AFKgainrates" && "cached" !== n.note);
   if (!call) throw new Error('AFK Gains: no AFKgainrates("Fighting") call in the trace');
-  const targetLeaf = root.children.find((n) => TARGET_LEAF === n.block);
   const plain: Ctx = { ...ctx, trace: null }; // the adapter's own save reads leave nothing in the trace
   const used = new Set<TraceNode>();
 

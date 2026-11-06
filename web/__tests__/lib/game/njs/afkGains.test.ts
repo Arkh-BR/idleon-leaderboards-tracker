@@ -35,6 +35,7 @@ const MAPS: Record<number, { known: number; moved: number; skill: number; refuse
   0: { known: 0, moved: 0, skill: 0, refused: [], zero: "all" },
   33: { known: 0, moved: 0, skill: 0, refused: [], zero: "all" },
   6: { known: 338, moved: 0, skill: 0, refused: HOURZERO, zero: "none" },
+  40: { known: 338, moved: 0, skill: 0, refused: HOURZERO, zero: "none" }, // a dungeon map (Ruling Y): the plain fight, Dungon's assumption inside
 };
 
 /** lib/arkh's own rule for a target (afk.ts `afkType`): nothing to fight (no definition, "Nothing", "Paying_Respect") is 0, anything else 1. */

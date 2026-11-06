@@ -135,11 +135,16 @@ describe("the tree on a synthetic envelope (runs in CI)", () => {
     expect(byName(t, AFK_NODES.type)).toEqual({ name: AFK_NODES.type, val: 1, fmt: "x", note: "Map 251 · w6a1 · FIGHTING" });
   });
 
-  it("a target of type Nothing (map 0) and a target with no definition (map 33) give 0, with the A9 note, and the sources still show", () => {
-    for (const [map, why] of [[0, "(Nothing) has nothing to fight"], [33, "has no monster to fight"]] as const) {
-      const { tree: t, total } = tree({}, { map });
+  // Ruling DD: the game's AFK Info panel prints a literal 0% for such a target and never calls AFKgainrates, so the tree is the A9 leaf alone
+  // under the type node (as Damage's arena-only tree), the total 0, and no source rows.
+  it("a target of type Nothing (map 0) and a target with no definition (map 33) give 0: the A9 leaf alone, AFKgainrates is not called", () => {
+    for (const [map, why] of [[0, "the AFK target Nothing has nothing to fight"], [33, "has no monster to fight"]] as const) {
+      const c = synth({}, { seeds: SET, map, trace: true });
+      const { tree: t, total } = afkTree(c);
       expect(total, `map ${map}`).toBe(0);
+      expect(c.trace!.children.some((n) => n.block === "AFKgainrates")).toBe(false);
       expect(t.val).toBe(0);
+      expect(t.children!.map((k) => k.name)).toEqual([AFK_NODES.type]);
       const type = byName(t, AFK_NODES.type);
       expect(type.val).toBe(0);
       expect(type.note).toBe(`Map ${map} · ${target(map)} · ${map === 0 ? "Nothing" : "no definition"}`);
@@ -148,10 +153,11 @@ describe("the tree on a synthetic envelope (runs in CI)", () => {
       expect(type.children![0].note).toMatch(/^assumed: /);
       expect(type.children![0].note).toContain(why);
       expect(type.children![0].note).toContain("this page shows 0");
-      // lib/arkh's tree shows every source on such a map: so does this one (and its pool still gives a rate)
-      expect(byName(byName(t, AFK_NODES.pool), "Voidwalker Family Bonus").val).toBe(60);
+      // the recombination guard and the page's Biggest Gains model both give 0 on it (no group rows, type 0)
       expect(afkGainsModel.totalFromFlat(flattenTree(t))).toBe(0);
       expect(flagsOfTree(t)).toEqual([`${type.children![0].note}|0`]);
+      // the registry's number and the adapter's agree
+      expect(TRACKERS.afkGains!(synth({}, { seeds: SET, map }))).toBe(0);
     }
   });
 
@@ -194,10 +200,14 @@ describe("the tree on a synthetic envelope (runs in CI)", () => {
     expect(cove.children![2].val).toBe(1);
     expect(byName(on.tree, AFK_NODES.type)).toEqual({ name: AFK_NODES.type, val: 1, fmt: "x", note: "Map 216 · Crystal Glunko Cove · FIGHTING" });
     expect(afkGainsModel.totalFromFlat(flattenTree(on.tree))).toBeCloseTo(0.65, 12);
-    // another cavern: map 216's own target (Nothing) gives 0, the Cove node is inactive
+    // another cavern: map 216's own target (Nothing) gives 0, the tree is the A9 leaf alone (Ruling DD), no Cove node
     const off = afkTree(synth({ Holes: [[16]] }, { seeds, map: 216, trace: true }));
     expect(off.total).toBe(0);
-    expect(byName(off.tree, AFK_NODES.cove)).toEqual({
+    expect(off.tree.children!.map((k) => k.name)).toEqual([AFK_NODES.type]);
+    expect(byName(off.tree, AFK_NODES.type).note).toBe("Map 216 · Nothing · Nothing");
+    // on a fight map the inactive Cove node says why
+    const plain = afkTree(synth({ Holes: [[16]] }, { seeds, map: 251, trace: true }));
+    expect(byName(plain.tree, AFK_NODES.cove)).toEqual({
       name: AFK_NODES.cove,
       val: 0,
       fmt: "x",
@@ -210,7 +220,7 @@ describe("the tree on a synthetic envelope (runs in CI)", () => {
       const c = synth({}, { seeds: SET, map, trace: true });
       const { total } = afkTree(c);
       expect(total, `map ${map}`).toBe(afkFightRate(synth({}, { seeds: SET, map })));
-      expect(c.trace!.children.filter((n) => n.block === "AFKgainrates" && n.note !== "cached")).toHaveLength(1);
+      expect(c.trace!.children.filter((n) => n.block === "AFKgainrates" && n.note !== "cached")).toHaveLength(map === 0 ? 0 : 1); // Ruling DD: none on map 0
     }
     // the tree is read from the trace: a Ctx without one is refused
     expect(() => afkTree(synth({}, { seeds: SET }))).toThrow(/no trace|has none/);
@@ -228,6 +238,7 @@ const MAPS: Record<number, { explained: number }> = {
   251: { explained: 338 }, 306: { explained: 338 }, 216: { explained: 79 }, 0: { explained: 0 }, 33: { explained: 0 }, 6: { explained: 338 }, 40: { explained: 338 },
 };
 const HOURZERO = ["HourZero.json: Tome rows 21,101,105,106,115,116"]; // Ruling E (njs/afkTerms.test.ts)
+const REFUSED: Record<number, string[]> = { 251: HOURZERO, 306: HOURZERO, 216: HOURZERO, 0: [], 33: [], 6: HOURZERO, 40: HOURZERO };
 
 const states = new Map<string, ReturnType<typeof buildGameState>>();
 afterAll(() => states.clear());
@@ -252,9 +263,13 @@ describe.skipIf(noSaves)("computeGameAfkGains against lib/arkh on every real sav
       let flags = 0;
       let dungeon = 0;
       let worst = 0;
+      let shortTrees = 0;
+      let worstRatio = 0;
+      const over: string[] = [];
       for (const path of GOLDEN_SAVES) {
         const file = basename(path);
         const state = stateOf(path);
+        const env = JSON.parse(readFileSync(path, "utf8"));
         for (let ci = 0; ci < state.charNames.length; ci++) {
           const ctx = makeCtx(state, { player: ci, map, trace: true });
           let r: StatResult;
@@ -268,6 +283,12 @@ describe.skipIf(noSaves)("computeGameAfkGains against lib/arkh on every real sav
           pairs++;
           const tree = r.tree;
           const at = `${file}#${ci}@${map}`;
+          const short = tree.children!.length === 1 && tree.children![0].name === AFK_NODES.type && r.total === 0; // Ruling DD
+          if (short) shortTrees++;
+          // the size (Ruling L): at most 2x lib/arkh's nodes (an upper bound: on a short-circuited tree lib/arkh's is bigger)
+          const arkhNodes = count(computeArkhAfkGains(structuredClone(env), ci, map).tree);
+          worstRatio = Math.max(worstRatio, count(tree) / arkhNodes);
+          if (count(tree) > 2 * arkhNodes) over.push(`${at}: ${count(tree)} nodes against ${arkhNodes}`);
           // the total is lib/arkh's, or the pair's KNOWN rows / the saved target the game keeps explain the difference
           const want = arkhAfkRate(path, ci, map);
           if (!rel(r.total, want)) {
@@ -279,6 +300,15 @@ describe.skipIf(noSaves)("computeGameAfkGains against lib/arkh on every real sav
               // the adapter adds nothing to the number: a fresh Ctx's afkFightRate gives the same
               if (r.total !== afkFightRate(makeCtx(state, { player: ci, map }))) mismatches.push(`${at}: the tree's total is not afkFightRate's`);
             }
+          }
+          const full = flagsOfTrace(ctx.trace!).sort();
+          flags += full.length;
+          if (full.some((f) => f.includes("outside a dungeon"))) dungeon++;
+          if (JSON.stringify(flagsOfTree(tree).sort()) !== JSON.stringify(full)) lost.push(`${at}: full trace ${full.length} notes, page tree ${flagsOfTree(tree).length}`);
+          if (short) {
+            if (!rel(want, 0)) mismatches.push(`${at}: lib/arkh gives ${want} where the game prints 0%`);
+            if (afkGainsModel.totalFromFlat(flattenTree(tree)) !== 0) display.push(`${at}: the flat tree of a short-circuited pair is not 0`);
+            continue;
           }
           // every source leaf is lib/arkh's, except where the pair has a KNOWN row of that source
           const leaves = tree.children![0].children!;
@@ -301,61 +331,27 @@ describe.skipIf(noSaves)("computeGameAfkGains against lib/arkh on every real sav
           worst = Math.max(worst, Math.abs(fromFlat - r.total) / Math.max(1, Math.abs(r.total)));
           if (!rel(fromFlat, r.total)) display.push(`${at}: the flat tree gives ${fromFlat}, the call ${r.total}`);
           if (tree.val !== r.total) display.push(`${at}: root ${tree.val} is not the total ${r.total}`);
-          // every runtime: / assumed: note of the full trace (the same traced Ctx) is in the tree (Ruling L trims only the rest)
-          const full = flagsOfTrace(ctx.trace!).sort();
-          flags += full.length;
-          if (full.some((f) => f.includes("outside a dungeon"))) dungeon++;
-          if (JSON.stringify(flagsOfTree(tree).sort()) !== JSON.stringify(full)) lost.push(`${at}: full trace ${full.length} notes, page tree ${flagsOfTree(tree).length}`);
         }
       }
       console.info(
-        `[afk adapter @${map}] ${pairs} pairs, ${explained} explained, ${leafKnown} known leaves, ${mismatches.length} total and ${leafMismatches.length} leaf mismatches, ${flags} flagged notes (${dungeon} pairs with the dungeon stand-in), worst flat-tree error ${worst.toExponential(2)}, ${refused.size} refused, ${Math.round(performance.now() - t0)} ms`
+        `[afk adapter @${map}] ${pairs} pairs, ${explained} explained, ${leafKnown} known leaves, ${mismatches.length} total and ${leafMismatches.length} leaf mismatches, ${flags} flagged notes (${dungeon} pairs with the dungeon stand-in), worst flat-tree error ${worst.toExponential(2)}, ${shortTrees} short-circuited, worst size ratio ${worstRatio.toFixed(2)}, ${refused.size} refused, ${Math.round(performance.now() - t0)} ms`
       );
+      expect(over).toEqual([]);
       expect(mismatches.slice(0, 20)).toEqual([]);
       expect(leafMismatches.slice(0, 20)).toEqual([]);
       expect(display.slice(0, 20)).toEqual([]);
       expect(lost.slice(0, 20)).toEqual([]);
       expect(pairs).toBeGreaterThan(1000);
       expect(explained, "pairs whose total differs from lib/arkh's and is explained").toBe(MAPS[map].explained);
-      // the Tome refusal behind the talents (Ruling E): the tree reads the sources on every map, so the maps with nothing to fight refuse it too
-      expect([...refused].sort()).toEqual(HOURZERO);
-      // not vacuous: a map with nothing to fight still has its A9 leaf in the tree
-      if (map === 0 || map === 33) expect(flags).toBeGreaterThanOrEqual(pairs);
+      // the Tome refusal behind the talents (Ruling E): a map with nothing to fight reads no source (Ruling DD), so it refuses nothing
+      expect([...refused].sort()).toEqual(REFUSED[map]);
+      // not vacuous: a map with nothing to fight is the A9 leaf alone
+      if (map === 0 || map === 33) expect(shortTrees).toBe(pairs);
+      else if (map !== 216) expect(shortTrees).toBe(0);
       // Ruling Y: a dungeon map reads Dungon's assumed: leaf in every tree (inside a talent), and no other map does
       expect(dungeon, "pairs with the dungeon stand-in").toBe(map === 40 ? pairs : 0);
     }, 1_800_000);
   }
-});
-
-// ── the tree's size (Ruling L) ──────────────────────────────────────────────────────────────────
-// The page persists flattenTree(tree) in every snapshot (localStorage, writes dropped silently on quota), so the tree may not outgrow
-// lib/arkh's by more than 2x.
-describe.skipIf(noSaves)("the page's tree stays small", () => {
-  it("has at most 2x the nodes of lib/arkh's tree on every real save and character (map 251)", () => {
-    const over: string[] = [];
-    let worst = { ratio: 0, at: "", game: 0, arkh: 0 };
-    let pairs = 0;
-    for (const path of GOLDEN_SAVES) {
-      const state = stateOf(path);
-      const env = JSON.parse(readFileSync(path, "utf8"));
-      for (let ci = 0; ci < state.charNames.length; ci++) {
-        let game: number;
-        try {
-          game = count(afkTree(makeCtx(state, { player: ci, map: 251, trace: true })).tree);
-        } catch (e) {
-          if (e instanceof MissingSaveKey) continue;
-          throw e;
-        }
-        const arkh = count(computeArkhAfkGains(structuredClone(env), ci, 251).tree);
-        pairs++;
-        if (game / arkh > worst.ratio) worst = { ratio: game / arkh, at: `${basename(path)}#${ci}`, game, arkh };
-        if (game > 2 * arkh) over.push(`${basename(path)}#${ci}: ${game} nodes against ${arkh}`);
-      }
-    }
-    console.info(`[afk adapter] tree size: ${pairs} pairs, worst ratio ${worst.ratio.toFixed(2)} at ${worst.at} (${worst.game} nodes against ${worst.arkh})`);
-    expect(over).toEqual([]);
-    expect(pairs).toBeGreaterThan(1000);
-  }, 1_800_000);
 });
 
 // ── the tree on real saves: lib/arkh's names ────────────────────────────────────────────────────
@@ -372,6 +368,11 @@ describe.skipIf(!ARKHE || !ARLONG)("the tree's names, formats and notes equal li
       const { tree } = computeGameAfkGains(env, ci, map);
       expect({ ...shape(tree), note: tree.note?.replace(/ · migrated from an older game version \(\d+ load steps?\)$/, "") }, at).toEqual(shape(arkh));
       // lib/arkh's six children, in its order, then only reads that lead to a runtime: / assumed: note
+      if (tree.children!.length === 1 && tree.val === 0) {
+        // Ruling DD: the A9 leaf alone under the type node, whose shape is lib/arkh's
+        expect(shape(tree.children![0]), at).toEqual(shape(byName(arkh, AFK_NODES.type)));
+        continue;
+      }
       expect(tree.children!.slice(0, 6).map((c) => c.name), at).toEqual(ROOT_CHILDREN);
       for (const extra of tree.children!.slice(6)) expect(flagsOfTree(extra).length, `${at} ${extra.name}`).toBeGreaterThan(0);
       for (const name of ROOT_CHILDREN) {

@@ -138,7 +138,7 @@ describe("afkFightRate: 0 when the map's AFK target has nothing to fight (synthe
     };
     let r = at(0);
     expect(r.rate).toBe(0);
-    expect(leaves(r.c)).toEqual([[0, "assumed: the AFK target Nothing (Nothing) has nothing to fight: this page shows 0"]]);
+    expect(leaves(r.c)).toEqual([[0, "assumed: the AFK target Nothing has nothing to fight: this page shows 0"]]);
     r = at(33);
     expect(leaves(r.c)).toEqual([[0, "assumed: Z has no monster to fight: this page shows 0"]]);
     r = at(6);
