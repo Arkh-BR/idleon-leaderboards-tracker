@@ -38,20 +38,20 @@ const AFK_GRID_E2 = (sq: string) => `within the AFK closure its only call site i
 
 // The EXP page's root (docs/superpowers/plans/2026-11-06-exp-multi-inventory.md): ExpMulti(0), the Class EXP multiplier of a character
 const EXP = "ExpMulti(0)";
-// within the EXP closure Grid_Bonus is called with e = 0 only: 130, 131, 132, 152 in ExpMulti (@4258907) and 173 and 125 below them (Divinity
-// Bonus_Minor, Minehead Button_BonusMULTI); the one e = 2 call in the closure is Grid_Bonus(68, 2) (@10801222), ported. The calls below are in Grid_Bonus's `2==e` branch only
-const EXP_GRID_E2 = (sq: string) => `within the EXP closure its only call site is ResearchStuff("Grid_Bonus")'s 2 == e branch (${sq}, @11158271); every Grid_Bonus reached is called with e = 0 but (68, 2), a ported branch`;
+// within the EXP closure Grid_Bonus is called with e = 0 only: 130, 131, 132, 152 in ExpMulti (@4265248) and 173 and 125 below them (Divinity
+// Bonus_Minor, Minehead Button_BonusMULTI); the one e = 2 call in the closure is Grid_Bonus(68, 2) (@10820119), ported. The calls below are in Grid_Bonus's `2==e` branch only
+const EXP_GRID_E2 = (sq: string) => `within the EXP closure its only call site is ResearchStuff("Grid_Bonus")'s 2 == e branch (${sq}, @11177849); every Grid_Bonus reached is called with e = 0 but (68, 2), a ported branch`;
 
 export const UNREACHED: readonly Unreached[] = [
   { row: 'RunCodeOfTypeXforThingY("SellPrice")', roots: [AFK], why: SELL_TABLE },
   { row: 'ActionBlock("InitItemDefinitions","no",0,0)', roots: [AFK], why: SELL_TABLE },
   { row: "Language()", roots: [AFK], why: SELL_TABLE },
   // the row is the call with a computed square (`Grid_Bonus(b, 0)`): in the EXP closure that is the default branch of the ported (68, 2) branch, i.e. Grid_Bonus(68, 0), which ResearchStuff.ts ports
-  { row: 'ResearchStuff("Grid_Bonus")', roots: [EXP], why: "the call with a computed square, which the generator cannot match to the PORTED declaration: within the EXP closure it is only Grid_Bonus(b, 0) inside Grid_Bonus's own `2 == e` branch (@11158271) and Grid_Bonus(68, 0), which the ported (68, 2) branch of StickerBonus (FarmingStuffs @10801195, run via @11158464) makes and ResearchStuff.ts ports (Grid_Bonus: true); no other computed square is called with e other than 0" },
+  { row: 'ResearchStuff("Grid_Bonus")', roots: [EXP], why: "the call with a computed square, which the generator cannot match to the PORTED declaration: within the EXP closure it is only Grid_Bonus(b, 0) inside Grid_Bonus's own `2 == e` branch (@11177849) and Grid_Bonus(68, 0), which the ported (68, 2) branch of StickerBonus (FarmingStuffs @10801195, run via @11158464) makes and ResearchStuff.ts ports (Grid_Bonus: true); no other computed square is called with e other than 0" },
   { row: 'ResearchStuff("TotalObsLVs",0,0)', roots: [EXP], why: EXP_GRID_E2("square 94") },
   { row: 'ResearchStuff("TotalOccurrencesFound",0,0)', roots: [EXP], why: EXP_GRID_E2("square 112") },
-  { row: 'ResearchStuff("OccurrencesToBeFound",0,0)', roots: [EXP], why: "within the EXP closure called only by TotalObsLVs and TotalOccurrencesFound, which Grid_Bonus calls only when 2 == e (@11158271); ResearchEXPrateTOT @11150376 also calls it, outside the closure" },
-  { row: 'Minehead("GlimboTotalTrades",0,0)', roots: [EXP], why: EXP_GRID_E2("square 168") + "; MenagerieStuff MissionProg @5181951 also calls it, outside the closure" },
+  { row: 'ResearchStuff("OccurrencesToBeFound",0,0)', roots: [EXP], why: "within the EXP closure called only by TotalObsLVs and TotalOccurrencesFound, which Grid_Bonus calls only when 2 == e (@11177849); ResearchEXPrateTOT @11169939 also calls it, outside the closure" },
+  { row: 'Minehead("GlimboTotalTrades",0,0)', roots: [EXP], why: EXP_GRID_E2("square 168") + "; MenagerieStuff MissionProg @5190061 also calls it, outside the closure" },
   { row: 'ResearchStuff("Grid_Bonus")', roots: [AFK], why: AFK_GRID_E2("the default square, Grid_Bonus(b, 0) times its counter") },
   { row: 'ResearchStuff("TotalObsLVs",0,0)', roots: [AFK], why: AFK_GRID_E2("square 94") },
   { row: 'ResearchStuff("TotalOccurrencesFound",0,0)', roots: [AFK], why: AFK_GRID_E2("square 112") },

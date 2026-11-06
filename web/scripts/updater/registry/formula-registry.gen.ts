@@ -649,7 +649,8 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/game/njs/EtcBonuses.ts"
   ],
   "_customBlock_ExpMulti": [
-    "lib/arkh/stats/systems/exp/exp.ts"
+    "lib/arkh/stats/systems/exp/exp.ts",
+    "lib/game/njs/ExpMulti.ts"
   ],
   "_customBlock_FamilyBonsuesREAL": [
     "lib/game/njs/FamilyBonsuesREAL.ts"
