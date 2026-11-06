@@ -191,6 +191,8 @@ export function arkhSourceHash(): string {
     }
   };
   walk(join(WEB, "lib/arkh"));
+  // Ruling B moved the oracle's shape and ids into these two display configs: a change there invalidates the cache too
+  for (const f of ["lib/afkGains/layers.ts", "lib/damage/layers.ts"]) h.update(`${f}\0`).update(readFileSync(join(WEB, f))).update("\0");
   return (arkhHash = h.digest("hex"));
 }
 
