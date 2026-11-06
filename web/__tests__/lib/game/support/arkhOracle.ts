@@ -383,6 +383,10 @@ export const STAT_WHY: Record<string, string> = {
     "N.js TotalStats @4158761 counts a power stat item by item: on the equipment (EquipmentOrder[0]) an item whose name contains one of PowerSuffixes (Mining, Choppin, Fishing, Catching, Trapping, Worship, Dung) gives its Weapon_Power to that skill's power only (@4159070: \"YESstats\" when the suffix is the power's own), so a choppin hat or a fishing ring adds nothing to Weapon_Power; lib/arkh's computeWeaponPower (derived-damage.ts:220) adds every equipped item's Weapon_Power",
   signsDmg:
     "lib/arkh's computeStarSignBonus (starSign.ts:48) adds every sign of its SIGN_BONUSES table for the key (PctDmg: signs 0, 32, 51, 53, 54, 70), skipping only negative values below the enabled count; N.js StarSigns @6540624 adds a sign only when it is worn or is one of the first RiftStuff(\"enabledStarSigns\") whose name StarSignsUnlocked has (the same cause as \"signs\", for the Damage % key)",
+  signsExp:
+    "lib/arkh's Main EXP star signs (computeStarSignBonus(\"MainXP\")) count a sign the Rift enables that StarSignsUnlocked lacks; N.js StarSigns @6540624 adds sign k of the first enabledStarSigns only when StarSignsUnlocked has StarSigns[k][0] (ExpMulti(0) @4254289 reads DNSM.StarSigns.MainXP): the cause of `signs` and `signsSpeed` on the Main EXP key",
+  lukBase:
+    "N.js ExpMulti(0) @4254289 starts from `x._customBlock_TotalStats(\"LUK\")` (the character's total LUK) for the LUK curve (and for the curve x talent 35 term); lib/arkh's exp.ts `luk` and `talent35` read `statList[ci][3]`, PVStatList_<ci>[3], the base LUK points the character put in, which is below the total (items, bubbles, stamps...)",
   buff108:
     "a product decision of the Damage page (the plan's Global Constraints): the active buff 108 is not counted, a runtime leaf in lib/game; lib/arkh counts it while the saved BuffsActive has it, and N.js PlayerHPmax @4147120 multiplies the % by 1 - GetBuffBonuses(108,1) / 100",
 };
@@ -790,15 +794,33 @@ const BUFF_108: readonly DiffRow[] = [
     ["26515665165165.json", "buff108", [3]],
 ];
 
+/** The golden food multi's causes (STAT_WHY.gfood, gfoodSign69, fam68) for a GoldFoodBonuses leaf of `stat`: the cap grouping and the vote 26 on the saves the STR rows name "gfood", the star sign 69, the fam68 of the tc470 rows. */
+const GOLDFOOD_ROWS = (stat: "afk" | "exp", source: string) => [
+  ...[...new Set(STAT_DIFFS.str!.filter(([, r]) => r === "gfood").map(([save]) => save))].flatMap((save) =>
+    (["gfoodVote26", "gfoodCap"] as const).map((reason) => ({ stat, save, source, reason, why: STAT_WHY.gfood }))
+  ),
+  { stat, save: "Glaives.json", source, reason: "gfoodSign69", why: STAT_WHY.gfoodSign69 },
+  ...[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((ci) => ({ stat, save: "big_guy69123.json", ci, source, reason: "gfoodSign69", why: STAT_WHY.gfoodSign69 })),
+  ...([["Ash_EB.json", 0], ["Frostymart.json", 0], ["FrozenBody.json", 1], ["Jrod11.json", 4], ["Jrod11.json", 7], ["Koweabooo.json", 8], ["big_guy69123.json", 5], ["0xEXCEED.json", 5], ["Maspoofio.json", 7]] as const).map(([save, ci]) => ({
+    stat, save, ci, source, reason: "fam68", why: STAT_WHY.fam68,
+  })),
+];
+
+/** [save, characters] whose EXP LUK curve differs from lib/arkh's (found by running expTerms.test.ts without the entries; the test proves each by seeding the base LUK). */
+const LUK_BASE_ROWS: readonly (readonly [string, readonly number[]])[] = [["100Cotton.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["1st_Giri.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["21ucky4u.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["ARKHE.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["AoDCthulhu.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Arlong.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Ash_EB.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["AvacadoSqueeze.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Azza2Bad.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["B0schi.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Baker333.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Bangada.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["BopeBrancis.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Brokami.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Bubbafrumps.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Chalalaa.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Cheap_Jokes_ok.json", [0, 1, 2, 3, 5, 6, 7, 8, 9, 10]], ["Crezar.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Dandy2009.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Dasvidanya.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Dragami.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Dragonlzl.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Drukez.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Einyen.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Exrom.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["F1N4L_1.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Fanmail.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["FenrirAdra.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]], ["Flipper143.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["FlipsyThEVicti.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Fluffle_Puff.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Frans813.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Frostymart.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["FrozenBody.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["GIM_SSS.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Glaives.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["GoddessFreia.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Grandesz.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Hyucan.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Jrod11.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Koweabooo.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["MarleyLongbott.json", [0, 1, 2, 4, 5, 6, 7, 8, 9, 10]], ["Maspoofio.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["MeatyLock.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Norton_Goldman.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Pepega777.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["PerkOne.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Pontinhas.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["PulseIRL.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Riltin.json", [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Rinkzate.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Scotchz.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Seavik.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Shadow_x_Vanish.json", [0, 3, 4, 5, 7, 8, 9, 10]], ["Shironee.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Skvimpan.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Snowyzxd.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["TheSpease.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["TinTim.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["TomerBuff.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["WarSkepp.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Yosh6400.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["airbolt.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["astarm.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["big_guy69123.json", [0, 3, 7]], ["biggums3.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["blickter.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["bluestar3112.json", [0, 1, 3, 4, 5, 6, 7, 8, 9, 10]], ["breakinbrad.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["dida123.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["enilyn.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["haki34.json", [2, 3, 4, 5, 6, 7, 8, 9, 10]], ["hellzd4nt3.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["jobenty.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["joelok.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["kONYYY.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["liiiiiiiiiiiig.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["lunaonline.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["ryujinsan.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["suk69.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["xBlackpearl.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["zadavi.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["01010111001.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["0celot8.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]], ["0xEXCEED.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["24632463.json", [0, 1, 2, 4, 5, 6, 7, 8, 9, 10]], ["26515665165165.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["5OhTree.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]], ["arkhe-2026-09-23.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["arkhe-it-profile-2026-09-24.json", [1, 4, 6, 7, 8, 9]], ["arkhe-live-2026-09-23.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["arkhe-live-2026-09-24.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]], ["arkhe-live-2026-10-30.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["arkhe-live-2026-11-01-postupdate.json", [0, 1, 2, 3, 4, 5, 6, 7, 9, 10]], ["arkhe-live-2026-11-01.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["arkhe-live-2026-11-03-arkhe.json", [0, 1, 2, 3, 4, 5, 6, 7, 9, 10]], ["arkhe-live-2026-11-03-farkhe.json", [1, 2, 3, 4, 5, 6, 7, 9, 10]], ["arkhe-live-2026-11-03-markhe-noweapon.json", [1, 2, 3, 4, 5, 6, 7, 9, 10]], ["arkhe-live-2026-11-03-markhe-weapon.json", [0, 1, 2, 3, 4, 5, 6, 7, 9, 10]]];
+const T35_BASE_ROWS: readonly (readonly [string, readonly number[]])[] = [["100Cotton.json", [6]], ["1st_Giri.json", [6]], ["21ucky4u.json", [6]], ["ARKHE.json", [6]], ["AoDCthulhu.json", [9]], ["Arlong.json", [6]], ["Ash_EB.json", [6]], ["AvacadoSqueeze.json", [4]], ["Azza2Bad.json", [6]], ["B0schi.json", [7]], ["Baker333.json", [9]], ["Bangada.json", [6]], ["BopeBrancis.json", [6]], ["Brokami.json", [5]], ["Bubbafrumps.json", [7]], ["Cheap_Jokes_ok.json", [9]], ["Crezar.json", [3]], ["Dandy2009.json", [9]], ["Dasvidanya.json", [6]], ["Dragami.json", [6]], ["Dragonlzl.json", [3]], ["Drukez.json", [6]], ["Einyen.json", [4]], ["Exrom.json", [6]], ["F1N4L_1.json", [6]], ["Fanmail.json", [9]], ["FenrirAdra.json", [6]], ["Flipper143.json", [6]], ["FlipsyThEVicti.json", [6]], ["Fluffle_Puff.json", [6]], ["Frans813.json", [7]], ["Frostymart.json", [6, 8]], ["FrozenBody.json", [8]], ["GIM_SSS.json", [6]], ["Glaives.json", [6]], ["GoddessFreia.json", [8]], ["Grandesz.json", [7]], ["Hyucan.json", [7]], ["Jrod11.json", [3]], ["Koweabooo.json", [7]], ["MarleyLongbott.json", [6]], ["Maspoofio.json", [9]], ["MeatyLock.json", [9]], ["Norton_Goldman.json", [9]], ["Pepega777.json", [7]], ["PerkOne.json", [6]], ["Pontinhas.json", [6]], ["PulseIRL.json", [7]], ["Riltin.json", [6]], ["Rinkzate.json", [6]], ["Scotchz.json", [6]], ["Seavik.json", [6]], ["Shironee.json", [6]], ["Skvimpan.json", [8]], ["Snowyzxd.json", [6]], ["TheSpease.json", [6]], ["TinTim.json", [4, 8]], ["TomerBuff.json", [8]], ["WarSkepp.json", [6]], ["Yosh6400.json", [7]], ["airbolt.json", [7]], ["astarm.json", [6]], ["big_guy69123.json", [7]], ["biggums3.json", [5]], ["blickter.json", [6, 8]], ["bluestar3112.json", [7]], ["breakinbrad.json", [4]], ["dida123.json", [9]], ["enilyn.json", [5]], ["haki34.json", [9]], ["hellzd4nt3.json", [7]], ["jobenty.json", [2]], ["joelok.json", [7]], ["kONYYY.json", [6]], ["liiiiiiiiiiiig.json", [6]], ["lunaonline.json", [9]], ["ryujinsan.json", [6]], ["suk69.json", [8, 10]], ["xBlackpearl.json", [7]], ["zadavi.json", [5]], ["01010111001.json", [7]], ["0celot8.json", [6]], ["0xEXCEED.json", [8]], ["24632463.json", [8]], ["26515665165165.json", [6]], ["5OhTree.json", [4]], ["arkhe-2026-09-23.json", [6]], ["arkhe-it-profile-2026-09-24.json", [6]], ["arkhe-live-2026-09-23.json", [6]], ["arkhe-live-2026-09-24.json", [6]], ["arkhe-live-2026-10-30.json", [6]], ["arkhe-live-2026-11-01-postupdate.json", [6]], ["arkhe-live-2026-11-01.json", [6]], ["arkhe-live-2026-11-03-arkhe.json", [6]], ["arkhe-live-2026-11-03-farkhe.json", [6]], ["arkhe-live-2026-11-03-markhe-noweapon.json", [6]], ["arkhe-live-2026-11-03-markhe-weapon.json", [6]]];
+
 /**
  * Where N.js proves lib/arkh wrong and lib/game keeps the N.js value. `save` is the file name of the
  * GOLDEN_SAVES entry, `ci` omitted means every character; `why` cites the `@offset` evidence.
  */
 export const KNOWN_ARKH_DIFFS: {
   /** Which tracker `source` belongs to; absent = "artifactFind". For "damage", `source` is a Damage source id; for "afk", an AFK source id (arkhAfkLeaves). */
-  stat?: "artifactFind" | "damage" | "afk" | ArkhStat | "speed";
+  stat?: "artifactFind" | "damage" | "afk" | "exp" | ArkhStat | "speed";
   save: string;
   ci?: number;
+  /** The maps the entry covers (absent = every map the term is checked on): a map-dependent EXP term (the medallion gate) differs only on some. */
+  maps?: readonly number[];
   source: string;
   /** The STAT_WHY reason whose lib/arkh number (arkhStatSeeds) closes the gap: set on a Damage source, whose `source` is the leaf id. */
   reason?: string;
@@ -903,16 +925,45 @@ export const KNOWN_ARKH_DIFFS: {
   ...([1, 9] as const).map((ci) => ({ stat: "afk" as const, save: "HourZero.json", ci, source: "winBonus11", reason: "godshard", why: GODSHARD_WORN })),
   // Divinity("Bonus_Minor", -1, 5) counts Companions(0) (@10761439), the gate of Koweabooo#10
   { stat: "afk" as const, save: "Koweabooo.json", ci: 10, source: "divMinor5", reason: "comp0", why: COMPANION_0_GATE },
-  // GoldFoodBonuses("AllAFK") has the stats' golden food multi: the same four causes as goldFoodBase (the cap grouping and the vote 26 on the
-  // saves the STR rows name "gfood", the star sign 69, the fam68 of the tc470 rows)
-  ...[...new Set(STAT_DIFFS.str!.filter(([, r]) => r === "gfood").map(([save]) => save))].flatMap((save) =>
-    (["gfoodVote26", "gfoodCap"] as const).map((reason) => ({ stat: "afk" as const, save, source: "goldFoodAllAFK", reason, why: STAT_WHY.gfood }))
+  // GoldFoodBonuses("AllAFK") has the stats' golden food multi: the same four causes as goldFoodBase (see GOLDFOOD_ROWS)
+  ...GOLDFOOD_ROWS("afk", "goldFoodAllAFK"),
+  // Task 2 (EXP plan): the leaves of ExpMulti(0) (expTerms.test.ts), by EXP source id, proved as the AFK ones are
+  ...GOLDFOOD_ROWS("exp", "goldFood"),
+  // the fam68 of AllTalentLV: getbonus2(1, b, -1), the best over every character, adds the "all talent levels" of each, which read DNSM.FamBonusQTYs["68"];
+  // the characters of the tc470 rows (Maspoofio#7 and big_guy69123#5 included: their Workbench and Titan talents are not saturated)
+  ...(["workbench", "talent434"] as const).flatMap((source) =>
+    ([["Ash_EB.json", [0]], ["Frostymart.json", [0]], ["FrozenBody.json", [1]], ["Jrod11.json", [4, 7]], ["Koweabooo.json", [8]], ["Maspoofio.json", [7]], ["big_guy69123.json", [5]], ["0xEXCEED.json", [5]]] as const).flatMap(([save, cis]) =>
+      cis.map((ci) => ({ stat: "exp" as const, save, ci, source, reason: "fam68", why: STAT_WHY.fam68 }))
+    )
   ),
-  { stat: "afk" as const, save: "Glaives.json", source: "goldFoodAllAFK", reason: "gfoodSign69", why: STAT_WHY.gfoodSign69 },
-  ...[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((ci) => ({ stat: "afk" as const, save: "big_guy69123.json", ci, source: "goldFoodAllAFK", reason: "gfoodSign69", why: STAT_WHY.gfoodSign69 })),
-  ...([["Ash_EB.json", 0], ["Frostymart.json", 0], ["FrozenBody.json", 1], ["Jrod11.json", 4], ["Jrod11.json", 7], ["Koweabooo.json", 8], ["big_guy69123.json", 5], ["0xEXCEED.json", 5], ["Maspoofio.json", 7]] as const).map(([save, ci]) => ({
-    stat: "afk" as const, save, ci, source: "goldFoodAllAFK", reason: "fam68", why: STAT_WHY.fam68,
-  })),
+  // the Shiny Medallion factor, max(1, getbonus2(1, 429, -1)), only where the map's monster has its medallion: the same fam68 characters (big_guy69123#5 only on map 59,
+  // where the account holds the medallion; on 251 both are 1)
+  ...([["Ash_EB.json", [0], [251, 1, 2, 8, 9]], ["Frostymart.json", [0], [251, 1, 2, 8, 9]], ["FrozenBody.json", [1], [251, 1, 2, 14, 16]], ["Jrod11.json", [4, 7], [251, 1, 2, 8, 9]], ["Koweabooo.json", [8], [251, 1, 2, 8, 9]], ["Maspoofio.json", [7], [251, 1, 2, 8, 9]], ["big_guy69123.json", [5], [59]], ["0xEXCEED.json", [5], [251, 1, 2, 8, 9]]] as const).flatMap(([save, cis, maps]) =>
+    cis.map((ci) => ({ stat: "exp" as const, save, ci, maps, source: "medallion429", reason: "fam68", why: STAT_WHY.fam68 }))
+  ),
+  // the EXP page's Companions(0) gate (Koweabooo#10): Grid_Bonus_Allmulti under the research squares and the Sticker, Divinity Bonus_Minor and the Minehead presses
+  ...(["gridExp", "sticker0", "divMinor4", "button8"] as const).map((source) => ({ stat: "exp" as const, save: "Koweabooo.json", ci: 10, source, reason: "comp0", why: COMPANION_0_GATE })),
+  // Summoning("WinBonus",23): the boosts have GetSetBonus("GODSHARD_SET"), the God Shard set worn whole (as win0, win3, winBonus11)
+  ...([1, 9] as const).map((ci) => ({ stat: "exp" as const, save: "HourZero.json", ci, source: "win23", reason: "godshard", why: GODSHARD_WORN })),
+  // ArbitraryCode("StatueBonusGiven10"): the statue bonus scales with talents (the fam68 of the tc470 rows, as workbench), and HourZero#8 has its own
+  // statue levels (the statues reason: lib/arkh reads the first character statue list)
+  ...([["Ash_EB.json", [0]], ["Frostymart.json", [0]], ["FrozenBody.json", [1]], ["Jrod11.json", [4, 7]], ["Koweabooo.json", [8]], ["Maspoofio.json", [7]], ["big_guy69123.json", [5]], ["0xEXCEED.json", [5]]] as const).flatMap(([save, cis]) =>
+    cis.map((ci) => ({ stat: "exp" as const, save, ci, source: "statue10", reason: "fam68", why: STAT_WHY.fam68 }))
+  ),
+  { stat: "exp" as const, save: "HourZero.json", ci: 8, source: "statue10", reason: "statues", why: STAT_WHY.statues },
+  // StarSigns.MainXP: lib/arkh counts every sign the Rift enables (the signs reason, on the Main EXP key)
+  ...["Drukez.json", "Glaives.json", "big_guy69123.json"].map((save) => ({ stat: "exp" as const, save, source: "starSignMainXP", reason: "signsExp", why: STAT_WHY.signsExp })),
+  // prayersReal(0, 0) and (2, 0): the Super Bit 9 / 39 branch with no prayer equipped (the pray6 reason, as Damage's prayer15)
+  ...(["prayer0", "prayer2"] as const).flatMap((source) =>
+    ([["Ash_EB.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Brokami.json", [10]], ["Crezar.json", [1, 4]], ["Dandy2009.json", [10]], ["Flipper143.json", [10]], ["Frostymart.json", [9]], ["FrozenBody.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Glaives.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Jrod11.json", [10]], ["big_guy69123.json", [4, 8, 10]]] as const).flatMap(([save, cis]) =>
+      cis.map((ci) => ({ stat: "exp" as const, save, ci, source, reason: "pray6", why: STAT_WHY.pray6 }))
+    )
+  ),
+  // the LUK curve: the character's base LUK where N.js takes TotalStats("LUK") (STAT_WHY.lukBase). Every pair whose curve moves; talent35 is the same curve times
+  // talent 35, so it differs where the class has the talent
+  ...(["luk", "talent35"] as const).flatMap((source) =>
+    (source === "luk" ? LUK_BASE_ROWS : T35_BASE_ROWS).flatMap(([save, cis]) => cis.map((ci) => ({ stat: "exp" as const, save, ci, source, reason: "lukBase", why: STAT_WHY.lukBase })))
+  ),
 ];
 
 /**
@@ -1009,6 +1060,9 @@ export function arkhStatSeeds(path: string, ci: number, reasons: readonly string
       out.push(["GetBuffBonuses", [108, 1], -n.val]);
     }
     // lib/arkh counts the God Shard set only when OptionsListAccount[379] names it (GODSHARD_WORN): 0 on the accounts that wear it whole without it
+    else if (r === "signsExp") out.push(["DNSM.StarSigns", ["MainXP"], computeStarSignBonus("MainXP", ci, saveData)]);
+    // lib/arkh's EXP LUK curve reads the base LUK, statList[ci][3] (STAT_WHY.lukBase): the total LUK lib/game computes is replaced by it
+    else if (r === "lukBase") out.push(["TotalStats", ["LUK"], Number((saveData.statList as number[][])[ci][3])]);
     else if (r === "godshard") out.push(["GetSetBonus", ["GODSHARD_SET", "Bonus", 0, 0], 0]);
     else if (r === "pray6") out.push(["prayersReal", [6, 0], computePrayerReal(6, 0, ci, saveData).val]);
     else if (r === "vault4") out.push(["Summoning", ["VaultUpgBonus", 4, 0], computeSummUpgBonus(4, saveData, ci).val]);
