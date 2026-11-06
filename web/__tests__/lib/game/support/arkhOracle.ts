@@ -10,6 +10,8 @@ import { computeArkhArtifactFind } from "@/lib/arkh/computeArtifactFind";
 import { ARTI_GROUPS } from "@/lib/arkh/stats/defs/artifact-find";
 import { computeArkhDamage, DMG_COLLECTOR_MAP } from "@/lib/arkh/computeDamage";
 import { computeArkhAfkGains } from "@/lib/arkh/computeAfk";
+import { computeArkhExpMulti } from "@/lib/arkh/computeExp";
+import { EXP_GROUPS } from "@/lib/arkh/stats/defs/exp-multi";
 import { AFK_POOLS, afkRate } from "@/lib/arkh/stats/defs/afk-gains";
 import { DMG_LAYERS, DMG_MASTERY, DMG_RAT, dmgMastery, dmgMax } from "@/lib/arkh/stats/defs/damage";
 import { charClassData } from "@/lib/arkh/save/data";
@@ -139,7 +141,8 @@ const MAIN_STATS = { str: "STR", agi: "AGI", wis: "WIS", luk: "LUK" } as const;
 
 type OracleEntry = { leaves: Record<string, number>; stats: Record<ArkhStat, number> };
 // `afk` (character -> map -> leaves) is a section of its own: the AFK leaves never touch the Damage entries.
-type DiskFile = { arkhHash: string; entries: Record<string, Record<string, OracleEntry>>; afk?: Record<string, Record<string, Record<string, number>>> };
+type DiskFile = { arkhHash: string; entries: Record<string, Record<string, OracleEntry>>; afk?: Record<string, Record<string, Record<string, number>>>; exp?: Record<string, Record<string, ExpEntry>> };
+type ExpEntry = { leaves: Record<string, number>; total: number };
 
 // source id -> where it sits in the tree. Every id is unique across DMG_LAYERS, DMG_MASTERY and DMG_RAT (checked in the test).
 const DMG_SLOT = new Map<string, { child: number; step: number; src: number }>();
@@ -1149,4 +1152,53 @@ export function arkhAfkRate(save: unknown, ci: number, map: number): number {
     cove: l.cglunkoCove,
     type: l.afkType,
   });
+}
+
+// ---- EXP Multi ----
+// Same cache design as AFK: the `exp` section of the sha1-keyed file (path save), identity-keyed memory (object save).
+const expByObject = new WeakMap<object, Map<string, ExpEntry>>();
+
+// The tree of computeArkhExpMulti: one child per EXP_GROUPS group, whose children are its sources in order (a grouped descriptor).
+function expEntryOf(parsed: any, ci: number, map: number): ExpEntry {
+  const { tree, total } = computeArkhExpMulti(parsed, ci, map);
+  const leaves: Record<string, number> = {};
+  EXP_GROUPS.forEach((g, i) => {
+    const kids = tree.children![i].children!;
+    if (kids.length !== g.sources.length) throw new Error(`arkhExpLeaves: lib/arkh's ${g.key} has ${kids.length} sources, EXP_GROUPS has ${g.sources.length}`);
+    g.sources.forEach((id, k) => (leaves[id] = kids[k].val));
+  });
+  return { leaves, total };
+}
+
+function expEntry(save: unknown, ci: number, map: number): ExpEntry {
+  if (typeof save !== "string") {
+    let per = expByObject.get(save as object);
+    if (!per) expByObject.set(save as object, (per = new Map()));
+    const key = `${ci}@${map}`;
+    let e = per.get(key);
+    if (!e) per.set(key, (e = expEntryOf(structuredClone(save), ci, map)));
+    return e;
+  }
+  const d = diskOf(save);
+  const slot = ((d.data.exp ??= {})[ci] ??= {});
+  let e = slot[map];
+  if (!e) {
+    e = slot[map] = expEntryOf(JSON.parse(readFileSync(save, "utf8")), ci, map);
+    persist(d);
+  }
+  return e;
+}
+
+/**
+ * Every EXP source's `val` in lib/arkh's EXP Multi tree for character `ci` on `map`, by EXP_GROUPS source id (as the tree holds it:
+ * a factor for the `mult` groups, a percentage for the `pct` ones). Recombine with `applyGroupStep` over EXP_GROUPS (mult / pct,
+ * max1 on g04) to get lib/arkh's total. `save` as in arkhDamageLeaves.
+ */
+export function arkhExpLeaves(save: unknown, ci: number, map: number): Record<string, number> {
+  return expEntry(save, ci, map).leaves;
+}
+
+/** lib/arkh's own EXP Multi total (computeArkhExpMulti(...).total): the oracle for the whole tree. */
+export function arkhExpMulti(save: unknown, ci: number, map: number): number {
+  return expEntry(save, ci, map).total;
 }

@@ -9,9 +9,15 @@ import { DMG_LAYERS, DMG_MASTERY, DMG_RAT, dmgLayer } from "@/lib/arkh/stats/def
 import { computeArkhDamage, DMG_COLLECTOR_MAP } from "@/lib/arkh/computeDamage";
 import { computeArkhAfkGains } from "@/lib/arkh/computeAfk";
 import { AFK_POOLS } from "@/lib/arkh/stats/defs/afk-gains";
+import { computeArkhExpMulti } from "@/lib/arkh/computeExp";
+import { EXP_GROUPS } from "@/lib/arkh/stats/defs/exp-multi";
+import { medallionList } from "@/lib/arkh/stats/systems/exp/medallions";
+import { MapAFKtarget } from "@/lib/arkh/stats/data/game/customlists.js";
+import { loadSaveData } from "@/lib/arkh/save/loader";
+import { saveData } from "@/lib/arkh/state";
 import { formatGameValue } from "@/lib/readings/format";
 import { READINGS_DIR, loadReadings, readingSave } from "@/lib/readings/registry";
-import { GOLDEN_SAVES, KNOWN_ARKH_DIFFS, arkhArtifactLeaf, arkhDamage, arkhDamagePoolKeys, arkhDamageLeaf, arkhDamageLeaves, arkhAfkLeaves, arkhAfkRate, arkhSourceHash, arkhStat, arkhStats, gameCtx, goldenSaves, setArkhSourceHash, setOracleCacheDir, type ArkhStat } from "./support/arkhOracle";
+import { GOLDEN_SAVES, KNOWN_ARKH_DIFFS, arkhArtifactLeaf, arkhDamage, arkhDamagePoolKeys, arkhDamageLeaf, arkhDamageLeaves, arkhAfkLeaves, arkhAfkRate, arkhExpLeaves, arkhExpMulti, arkhSourceHash, arkhStat, arkhStats, gameCtx, goldenSaves, setArkhSourceHash, setOracleCacheDir, type ArkhStat } from "./support/arkhOracle";
 
 // Spy on the engine so the cache tests can count real computes; the original still runs.
 vi.mock("@/lib/arkh/computeArtifactFind", async (importOriginal) => {
@@ -357,6 +363,57 @@ describe.skipIf(!ARKHE)("arkhAfkLeaves / arkhAfkRate", () => {
       for (const ci of new Set([0, n - 1])) {
         const direct = computeArkhAfkGains(JSON.parse(readFileSync(p, "utf8")), ci, 251).total;
         expect(rel(arkhAfkRate(p, ci, 251), direct), `${basename(p)}#${ci}`).toBeLessThan(1e-9);
+      }
+    }
+  }, 900_000);
+});
+
+describe.skipIf(!ARKHE)("arkhExpLeaves / arkhExpMulti", () => {
+  const rel = (a: number, b: number) => Math.abs(a - b) / Math.max(Math.abs(b), 1e-12);
+  const ids = EXP_GROUPS.flatMap((g) => g.sources);
+  // the groups recombined from the leaves, as groupedDescriptor does (mult / pct / max1 through applyGroupStep)
+  const recombine = (l: Record<string, number>) => EXP_GROUPS.reduce((t, g) => applyGroupStep(g, g.sources.map((id) => l[id]), t), 1);
+  // a map whose default monster's medallion the character owns (the Shiny Medallions term applies there)
+  const medalMap = () => {
+    loadSaveData(JSON.parse(readFileSync(ARKHE!, "utf8")));
+    const owned = medallionList(saveData as any);
+    const m = (MapAFKtarget as unknown as string[]).findIndex((t) => owned.includes(String(t)));
+    if (m < 0) throw new Error("ARKHE owns no medallion for any map");
+    return m;
+  };
+
+  it("ARKHE ci 8 map 251: the leaves rebuild lib/arkh's total", () => {
+    const direct = computeArkhExpMulti(JSON.parse(readFileSync(ARKHE!, "utf8")), 8, 251).total;
+    const leaves = arkhExpLeaves(ARKHE, 8, 251);
+    expect(Object.keys(leaves).sort()).toEqual([...ids].sort());
+    expect(direct).toBeGreaterThan(1);
+    expect(rel(recombine(leaves), direct)).toBeLessThan(1e-9);
+    expect(arkhExpMulti(ARKHE, 8, 251)).toBe(direct);
+  });
+
+  it("ARKHE ci 8 on a medallion map: the medallion term applies and the leaves rebuild the total", () => {
+    const map = medalMap();
+    const direct = computeArkhExpMulti(JSON.parse(readFileSync(ARKHE!, "utf8")), 8, map).total;
+    const leaves = arkhExpLeaves(ARKHE, 8, map);
+    expect(leaves.medallion429, `map ${map}`).toBeGreaterThan(1);
+    expect(rel(recombine(leaves), direct)).toBeLessThan(1e-9);
+    expect(arkhExpMulti(ARKHE, 8, map)).toBe(direct);
+  });
+
+  it("an object save gives the same leaves and is left untouched", () => {
+    const save = JSON.parse(readFileSync(ARKHE!, "utf8"));
+    const before = JSON.stringify(save);
+    expect(arkhExpLeaves(save, 8, 251)).toEqual(arkhExpLeaves(ARKHE, 8, 251));
+    expect(arkhExpMulti(save, 8, 251)).toBe(arkhExpMulti(ARKHE, 8, 251));
+    expect(JSON.stringify(save)).toBe(before);
+  });
+
+  it("every golden save, first and last character, on map 251 rebuilds lib/arkh's total", () => {
+    for (const p of GOLDEN_SAVES) {
+      const n = JSON.parse(readFileSync(p, "utf8")).charNames.length;
+      for (const ci of new Set([0, n - 1])) {
+        const direct = computeArkhExpMulti(JSON.parse(readFileSync(p, "utf8")), ci, 251).total;
+        expect(rel(recombine(arkhExpLeaves(p, ci, 251)), direct), `${basename(p)}#${ci}`).toBeLessThan(1e-9);
       }
     }
   }, 900_000);
