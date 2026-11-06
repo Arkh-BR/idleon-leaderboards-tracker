@@ -23,8 +23,10 @@ describe.skipIf(!existsSync(NJS)).each(Object.entries(INVENTORIES))("the %s inve
 
   it("has every row lib/game/unreached.ts declares, as [~]", () => {
     const md = readFileSync(INVENTORY, "utf8");
-    // unreached.ts rows are per root (Damage's); the equality test above covers the AFK inventory
-    if (name !== "Damage") return;
-    for (const u of UNREACHED) expect(md, u.row).toContain(`- [~] ${u.row} —`);
+    // an entry is per root: it belongs to the inventories whose title (`# Port inventory: R1 + R2`) names every root it lists
+    const roots = md.match(/^# Port inventory: (.+)$/m)![1].split(" + ");
+    const mine = UNREACHED.filter((u) => u.roots.every((r) => roots.includes(r)));
+    expect(mine.length, `${name}: entries for its roots`).toBeGreaterThan(0);
+    for (const u of mine) expect(md, u.row).toContain(`- [~] ${u.row} —`);
   });
 });

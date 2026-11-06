@@ -790,8 +790,8 @@ const BUFF_108: readonly DiffRow[] = [
  * GOLDEN_SAVES entry, `ci` omitted means every character; `why` cites the `@offset` evidence.
  */
 export const KNOWN_ARKH_DIFFS: {
-  /** Which tracker `source` belongs to; absent = "artifactFind". For "damage", `source` is a Damage source id. */
-  stat?: "artifactFind" | "damage" | ArkhStat | "speed";
+  /** Which tracker `source` belongs to; absent = "artifactFind". For "damage", `source` is a Damage source id; for "afk", an AFK source id (arkhAfkLeaves). */
+  stat?: "artifactFind" | "damage" | "afk" | ArkhStat | "speed";
   save: string;
   ci?: number;
   source: string;
@@ -887,6 +887,27 @@ export const KNOWN_ARKH_DIFFS: {
   ...[3, 5, 10].map((ci) => ({ stat: "damage" as const, save: "1st_Giri.json", ci, source: "wpSquared", reason: "statues", why: `${STAT_WHY.statues}. TotalFoodBonuses("WeaponPowerBoosts") multiplies each food by FoodBonuses, whose boost foods read StatueBonusGiven3` })),
   // the Damage % star signs: lib/arkh counts every sign of its table
   ...["Dasvidanya.json", "Glaives.json", "big_guy69123.json"].map((save) => ({ stat: "damage" as const, save, source: "starSignPctDmg", reason: "signsDmg", why: STAT_WHY.signsDmg })),
+  // Task 2 (AFK plan): the leaves of AFKgainrates("Fighting") (afkTerms.test.ts), by AFK source id. Each is proved by seeding lib/arkh's number
+  // for the reason into a fresh Ctx; the reasons are the ones the Damage and stat rows above already carry.
+  // GetTalentNumber(1,448) (Fighting AFK talent): the fam68 of AllTalentLV, on the characters of the tc470 rows (the other AFK talents are
+  // saturated or unlearned on them)
+  ...([["Ash_EB.json", 0], ["Frostymart.json", 0], ["FrozenBody.json", 1], ["Jrod11.json", 4], ["Jrod11.json", 7], ["Koweabooo.json", 8], ["big_guy69123.json", 5], ["0xEXCEED.json", 5]] as const).map(([save, ci]) => ({
+    stat: "afk" as const, save, ci, source: "talent448", reason: "fam68", why: STAT_WHY.fam68,
+  })),
+  // Summoning("WinBonus",11): the boosts have GetSetBonus("GODSHARD_SET"), the God Shard set worn whole (as win0 and win3)
+  ...([1, 9] as const).map((ci) => ({ stat: "afk" as const, save: "HourZero.json", ci, source: "winBonus11", reason: "godshard", why: GODSHARD_WORN })),
+  // Divinity("Bonus_Minor", -1, 5) counts Companions(0) (@10761439), the gate of Koweabooo#10
+  { stat: "afk" as const, save: "Koweabooo.json", ci: 10, source: "divMinor5", reason: "comp0", why: COMPANION_0_GATE },
+  // GoldFoodBonuses("AllAFK") has the stats' golden food multi: the same four causes as goldFoodBase (the cap grouping and the vote 26 on the
+  // saves the STR rows name "gfood", the star sign 69, the fam68 of the tc470 rows)
+  ...[...new Set(STAT_DIFFS.str!.filter(([, r]) => r === "gfood").map(([save]) => save))].flatMap((save) =>
+    (["gfoodVote26", "gfoodCap"] as const).map((reason) => ({ stat: "afk" as const, save, source: "goldFoodAllAFK", reason, why: STAT_WHY.gfood }))
+  ),
+  { stat: "afk" as const, save: "Glaives.json", source: "goldFoodAllAFK", reason: "gfoodSign69", why: STAT_WHY.gfoodSign69 },
+  ...[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((ci) => ({ stat: "afk" as const, save: "big_guy69123.json", ci, source: "goldFoodAllAFK", reason: "gfoodSign69", why: STAT_WHY.gfoodSign69 })),
+  ...([["Ash_EB.json", 0], ["Frostymart.json", 0], ["FrozenBody.json", 1], ["Jrod11.json", 4], ["Jrod11.json", 7], ["Koweabooo.json", 8], ["big_guy69123.json", 5], ["0xEXCEED.json", 5], ["Maspoofio.json", 7]] as const).map(([save, ci]) => ({
+    stat: "afk" as const, save, ci, source: "goldFoodAllAFK", reason: "fam68", why: STAT_WHY.fam68,
+  })),
 ];
 
 /**

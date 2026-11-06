@@ -19,6 +19,9 @@ export const Holes2: (ctx: Ctx, d: string, b: number, e: number) => number = blo
     // @11057837: Crystal Glunko upgrade b, its level OptionsListAccount[630 + b] times its value RandoListo2[13][b]
     case "Cglunko_upgBon":
       return asNum(ctx, "OptionsListAccount", Math.round(630 + b)) * asNumber((RandoListo2 as unknown as readonly (readonly unknown[])[])[13][b | 0]);
+    // @11057363: the Cove's AFK gains rate, (10 + the Crystal Glunko upgrades 8 and 13) / 100
+    case "Cglunko_AFKgains":
+      return (10 + (Holes2(ctx, "Cglunko_upgBon", 8, 0) + Holes2(ctx, "Cglunko_upgBon", 13, 0))) / 100;
     default:
       throw new NotPorted("Holes2", d);
   }
@@ -45,4 +48,4 @@ function fountainBonTOT(ctx: Ctx, b: number, e: number): number {
 }
 
 /** What this module covers (lib/game/ported.ts). */
-export const PORTED: Ported = { Fountain_BonTOT: [0, 1, 2], Fountain_MarbleBon: true, Cglunko_upgBon: true };
+export const PORTED: Ported = { Fountain_BonTOT: [0, 1, 2], Fountain_MarbleBon: true, Cglunko_upgBon: true, Cglunko_AFKgains: true };

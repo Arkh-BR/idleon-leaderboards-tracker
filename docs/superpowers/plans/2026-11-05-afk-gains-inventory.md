@@ -13,7 +13,7 @@ Regenerate it when N.js, a module's `PORTED` or `lib/game/unreached.ts` changes.
 - attrs and dnsm are the reads in every slice listed. One marked "whole body only" is read only inside a whole-body function (all its branches, not just the one this formula takes). `DNSM` is runtime-only (it is never loaded from the save): port it as `DNSM_*` functions, not as a save attribute. The dnsm list also holds the scratch keys a formula writes and reads back in the same slice (`CaptnBonuz`, `AtomBonCalc1`); the inputs are the caches the game fills elsewhere (`StarSigns`, `AlchVials`, `FamBonusQTYs`…).
 - Depth stops at 6.
 
-**51 functions, 162 sub-cases (rows), 47 whole body, 0 not found, 57 attrs, 75 dnsm.** **145 ported `[x]`, 0 not reached `[~]`, 17 open.**
+**51 functions, 162 sub-cases (rows), 47 whole body, 0 not found, 57 attrs, 75 dnsm.** **152 ported `[x]`, 9 not reached `[~]`, 1 open.**
 
 ## AFKgainrates
 
@@ -37,7 +37,7 @@ Regenerate it when N.js, a module's `PORTED` or `lib/game/unreached.ts` changes.
 
 ## TalentEnh
 
-- [ ] TalentEnh(79) — depth 1 — 2264 chars — whole body
+- [~] TalentEnh(79) — depth 1 — 2264 chars — whole body — not reached: its only call site (@4444575) is in the first block of AFKgainrates, `if ("Fighting" != d)` @4444275, which the Fighting rate skips
 
 ## Labb
 
@@ -85,9 +85,9 @@ Regenerate it when N.js, a module's `PORTED` or `lib/game/unreached.ts` changes.
 
 ## Divinity
 
-- [ ] Divinity("Bonus_MAJOR") — depth 1 — 1799 chars
+- [x] Divinity("Bonus_MAJOR") — depth 1 — 1799 chars
 - [x] Divinity("Bonus_Minor",-1,5) — depth 1 — 2924 chars
-- [ ] Divinity("W7divChosen",0,0) — depth 2 — 228 chars
+- [x] Divinity("W7divChosen",0,0) — depth 2 — 228 chars
 - [x] Divinity("DivMinorBonus") — depth 2 — 1153 chars
 
 ## Companions
@@ -108,7 +108,7 @@ Regenerate it when N.js, a module's `PORTED` or `lib/game/unreached.ts` changes.
 
 ## TalentCalc
 
-- [ ] TalentCalc(650) — depth 1 — 3616 chars
+- [x] TalentCalc(650) — depth 1 — 3616 chars
 
 ## Summoning
 
@@ -146,13 +146,13 @@ Regenerate it when N.js, a module's `PORTED` or `lib/game/unreached.ts` changes.
 
 - [x] RunCodeOfTypeXforThingY("CardLv","w6d3") — depth 1 — 1302 chars
 - [x] RunCodeOfTypeXforThingY("CardLv","w6d1") — depth 1 — 1302 chars
-- [ ] RunCodeOfTypeXforThingY("SellPrice") — depth 2 — 475 chars
+- [~] RunCodeOfTypeXforThingY("SellPrice") — depth 2 — 475 chars — not reached: called only in the table of item sell prices that follows TalentCalc's `-7044.5 != d` block (@4520409, run for d == -7044.5); the AFK rate's call is TalentCalc(650), whose branch ends at @4520200 (the walk reads on to the end of the function)
 
 ## ArcaneType
 
-- [ ] ArcaneType("ArcaneMapMulti_bon",2,0) — depth 1 — 1093 chars
-- [ ] ArcaneType("ArcaneMapMulti_bonMAX",0,0) — depth 2 — 104 chars
-- [ ] ArcaneType("ArcaneMapMulti") — depth 2 — 190 chars
+- [x] ArcaneType("ArcaneMapMulti_bon",2,0) — depth 1 — 1093 chars
+- [x] ArcaneType("ArcaneMapMulti_bonMAX",0,0) — depth 2 — 104 chars
+- [x] ArcaneType("ArcaneMapMulti") — depth 2 — 190 chars
 - [x] ArcaneType("ArcaneUpgBonus",48,0) — depth 3 — 7 chars
 - [x] ArcaneType("ArcaneUpgBonus",58,0) — depth 3 — 337 chars
 - [x] ArcaneType("ArcaneUpgBonus",39,0) — depth 4 — 7 chars
@@ -173,7 +173,7 @@ Regenerate it when N.js, a module's `PORTED` or `lib/game/unreached.ts` changes.
 
 ## Holes2
 
-- [ ] Holes2("Cglunko_AFKgains",0,0) — depth 1 — 99 chars
+- [x] Holes2("Cglunko_AFKgains",0,0) — depth 1 — 99 chars
 - [x] Holes2("Cglunko_upgBon",8,0) — depth 2 — 154 chars
 - [x] Holes2("Cglunko_upgBon",13,0) — depth 2 — 154 chars
 
@@ -199,19 +199,19 @@ Regenerate it when N.js, a module's `PORTED` or `lib/game/unreached.ts` changes.
 ## ResearchStuff
 
 - [x] ResearchStuff("Grid_Bonus",173,0) — depth 2 — 1304 chars
-- [ ] ResearchStuff("Grid_Bonus") — depth 3 — 1304 chars
-- [ ] ResearchStuff("TotalObsLVs",0,0) — depth 3 — 511 chars
-- [ ] ResearchStuff("TotalOccurrencesFound",0,0) — depth 3 — 472 chars
+- [~] ResearchStuff("Grid_Bonus") — depth 3 — 1304 chars — not reached: within the AFK closure its only call site is ResearchStuff("Grid_Bonus")'s 2 == e branch (the default square, Grid_Bonus(b, 0) times its counter, @11177849); the only Grid_Bonus AFK reaches is Grid_Bonus(173, 0) (Divinity Bonus_Minor and Bonus_MAJOR), called with e = 0
+- [~] ResearchStuff("TotalObsLVs",0,0) — depth 3 — 511 chars — not reached: within the AFK closure its only call site is ResearchStuff("Grid_Bonus")'s 2 == e branch (square 94, @11177849); the only Grid_Bonus AFK reaches is Grid_Bonus(173, 0) (Divinity Bonus_Minor and Bonus_MAJOR), called with e = 0
+- [~] ResearchStuff("TotalOccurrencesFound",0,0) — depth 3 — 472 chars — not reached: within the AFK closure its only call site is ResearchStuff("Grid_Bonus")'s 2 == e branch (square 112, @11177849); the only Grid_Bonus AFK reaches is Grid_Bonus(173, 0) (Divinity Bonus_Minor and Bonus_MAJOR), called with e = 0
 - [x] ResearchStuff("Grid_Bonus_Allmulti",0,0) — depth 3 — 330 chars
-- [ ] ResearchStuff("OccurrencesToBeFound",0,0) — depth 4 — 385 chars
+- [~] ResearchStuff("OccurrencesToBeFound",0,0) — depth 4 — 385 chars — not reached: within the AFK closure called only by TotalObsLVs and TotalOccurrencesFound, which Grid_Bonus calls only when 2 == e (@11177849)
 
 ## ActionBlock
 
-- [ ] ActionBlock("InitItemDefinitions","no",0,0) — depth 2 — 966 chars
+- [~] ActionBlock("InitItemDefinitions","no",0,0) — depth 2 — 966 chars — not reached: called only in the table of item sell prices that follows TalentCalc's `-7044.5 != d` block (@4520409, run for d == -7044.5); the AFK rate's call is TalentCalc(650), whose branch ends at @4520200 (the walk reads on to the end of the function)
 
 ## Language
 
-- [ ] Language() — depth 2 — 169 chars
+- [~] Language() — depth 2 — 169 chars — not reached: called only in the table of item sell prices that follows TalentCalc's `-7044.5 != d` block (@4520409, run for d == -7044.5); the AFK rate's call is TalentCalc(650), whose branch ends at @4520200 (the walk reads on to the end of the function)
 
 ## Ninja
 
@@ -272,7 +272,7 @@ Regenerate it when N.js, a module's `PORTED` or `lib/game/unreached.ts` changes.
 
 ## Minehead
 
-- [ ] Minehead("GlimboTotalTrades",0,0) — depth 3 — 481 chars
+- [~] Minehead("GlimboTotalTrades",0,0) — depth 3 — 481 chars — not reached: within the AFK closure its only call site is ResearchStuff("Grid_Bonus")'s 2 == e branch (square 168, @11177849); the only Grid_Bonus AFK reaches is Grid_Bonus(173, 0) (Divinity Bonus_Minor and Bonus_MAJOR), called with e = 0
 
 ## JellyOperation
 

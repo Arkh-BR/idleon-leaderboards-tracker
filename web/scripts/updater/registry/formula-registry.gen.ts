@@ -5,8 +5,12 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/arkh/stats/systems/exp/exp.ts",
     "lib/game/njs/Dreamstuff.ts"
   ],
+  "ArcaneMapMulti": [
+    "lib/game/njs/ArcaneType.ts"
+  ],
   "ArcaneMapMulti_bon": [
-    "lib/arkh/stats/systems/exp/exp.ts"
+    "lib/arkh/stats/systems/exp/exp.ts",
+    "lib/game/njs/ArcaneType.ts"
   ],
   "ArcaneUpgBonus": [
     "lib/game/njs/ArcaneType.ts"
@@ -53,7 +57,8 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/game/njs/Minehead.ts"
   ],
   "Bonus_MAJOR": [
-    "lib/arkh/stats/systems/w5/divinity.ts"
+    "lib/arkh/stats/systems/w5/divinity.ts",
+    "lib/game/njs/Divinity.ts"
   ],
   "Bonus_Minor": [
     "lib/arkh/stats/systems/coin/divinityMinor.ts",
@@ -548,6 +553,9 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   ],
   "VialBonus": [
     "lib/game/njs/CauldronStats.ts"
+  ],
+  "W7divChosen": [
+    "lib/game/njs/Divinity.ts"
   ],
   "Weapon_Power": [
     "lib/game/njs/TotalStats.ts"
