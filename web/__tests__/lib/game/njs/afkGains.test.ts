@@ -20,18 +20,20 @@ const rel = (got: number, want: number) => Math.abs(got - want) <= 1e-9 * Math.m
 const HOURZERO = ["HourZero.json: Tome rows 21,101,105,106,115,116"]; // Ruling E: the Tome refusal behind the talents (afkTerms.test.ts)
 
 /**
- * Per map: the pairs whose total the KNOWN entries close (exact), the pairs the game's saved AFK target moves (below), what is refused and
- * how many pairs are 0. A map with nothing to fight is 0 and refuses nothing: the target is checked before the rate is computed.
+ * Per map: the pairs whose total the KNOWN entries close (exact), the pairs where the game's saved AFK target makes lib/game differ from
+ * lib/arkh's `arkhAfkRate` (`moved`, of which `skill` have a skill target: lib/arkh gives them 0, lib/game the Fighting rate, as the page
+ * decides; the rest have a FIGHTING target; a saved "Paying_Respect" is 0 on both sides and moves nothing), what is refused and how many
+ * pairs are 0. A map with nothing to fight is 0 and refuses nothing: the target is checked before the rate is computed.
  *  251 plain, 306 Clamworks, 216 "Nothing" (0 unless the character's saved target is kept there), 0 "Nothing", 33 no monster, 6 mining (a skill
  *  target shows the Fighting rate, as lib/arkh does).
  */
-const MAPS: Record<number, { known: number; retargeted: number; refused: string[]; zero: "none" | "all" | "some" }> = {
-  251: { known: 338, retargeted: 0, refused: HOURZERO, zero: "none" },
-  306: { known: 338, retargeted: 0, refused: HOURZERO, zero: "none" },
-  216: { known: 21, retargeted: 124, refused: HOURZERO, zero: "some" },
-  0: { known: 0, retargeted: 0, refused: [], zero: "all" },
-  33: { known: 0, retargeted: 0, refused: [], zero: "all" },
-  6: { known: 338, retargeted: 0, refused: HOURZERO, zero: "none" },
+const MAPS: Record<number, { known: number; moved: number; skill: number; refused: string[]; zero: "none" | "all" | "some" }> = {
+  251: { known: 338, moved: 0, skill: 0, refused: HOURZERO, zero: "none" },
+  306: { known: 338, moved: 0, skill: 0, refused: HOURZERO, zero: "none" },
+  216: { known: 21, moved: 79, skill: 24, refused: HOURZERO, zero: "some" },
+  0: { known: 0, moved: 0, skill: 0, refused: [], zero: "all" },
+  33: { known: 0, moved: 0, skill: 0, refused: [], zero: "all" },
+  6: { known: 338, moved: 0, skill: 0, refused: HOURZERO, zero: "none" },
 };
 
 /** lib/arkh's own rule for a target (afk.ts `afkType`): nothing to fight (no definition, "Nothing", "Paying_Respect") is 0, anything else 1. */
@@ -66,7 +68,8 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("afkFightRate against lib/arkh on eve
       let pairs = 0;
       let nonZero = 0;
       let known = 0;
-      let retargeted = 0;
+      let moved = 0;
+      let movedSkill = 0;
       for (const path of GOLDEN_SAVES) {
         const state = stateOf(path);
         for (let ci = 0; ci < state.charNames.length; ci++) {
@@ -84,8 +87,12 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("afkFightRate against lib/arkh on eve
           // the character stands on this map with a saved target other than its default: the game keeps it (Ruling V), lib/arkh does not
           const target = afkTarget(ctx);
           const kept = target !== (MapAFKtarget as unknown as string[])[map];
-          if (kept) retargeted++;
           const want = kept ? arkhRateWithTarget(path, ci, map, target) : arkhAfkRate(path, ci, map);
+          // the pairs where the game's target makes the answer differ from lib/arkh's own (default target) rate
+          if (kept && !rel(want, arkhAfkRate(path, ci, map))) {
+            moved++;
+            if ("FIGHTING" !== (MONSTERS as unknown as Record<string, { AFKtype?: string }>)[target]?.AFKtype) movedSkill++;
+          }
           if (rel(got, want)) continue;
           // a KNOWN difference is proved, not skipped: lib/arkh's number for each cause the pair's leaves name, seeded into a fresh Ctx
           const reasons = [...new Set(KNOWN_ARKH_DIFFS.filter((d) => d.stat === "afk" && d.save === basename(path) && (d.ci ?? ci) === ci).map((d) => d.reason!))];
@@ -104,11 +111,11 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("afkFightRate against lib/arkh on eve
           else mismatches.push(`${basename(path)}#${ci}@${map}: game ${got}, arkh ${want}, with lib/arkh's ${reasons.join("+")} ${seeded}`);
         }
       }
-      console.info(`[afkGains @${map}] ${pairs} pairs, ${nonZero} nonzero, ${known} known, ${retargeted} retargeted, ${mismatches.length} mismatches, ${refused.size} refused, ${Math.round(performance.now() - t0)} ms`);
+      console.info(`[afkGains @${map}] ${pairs} pairs, ${nonZero} nonzero, ${known} known, ${moved} moved (${movedSkill} skill), ${mismatches.length} mismatches, ${refused.size} refused, ${Math.round(performance.now() - t0)} ms`);
       expect(mismatches.slice(0, 20)).toEqual([]);
       expect(pairs).toBeGreaterThan(500);
       expect(known, "KNOWN pairs (a stale entry or a new difference fails)").toBe(MAPS[map].known);
-      expect(retargeted, "pairs whose saved AFK target the game keeps").toBe(MAPS[map].retargeted);
+      expect({ moved, skill: movedSkill }, "pairs where the saved AFK target the game keeps makes lib/game differ from arkhAfkRate").toEqual({ moved: MAPS[map].moved, skill: MAPS[map].skill });
       expect([...refused].sort()).toEqual(MAPS[map].refused);
       // not vacuous: a map with something to fight has rates, one without has none
       const z = MAPS[map].zero;

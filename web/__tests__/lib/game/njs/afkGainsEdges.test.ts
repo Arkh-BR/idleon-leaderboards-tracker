@@ -63,6 +63,27 @@ describe("AFKgainrates(\"Fighting\") (synthetic, runs in CI)", () => {
     expect(rate({}, { seeds: { 'RunCodeOfTypeXforThingY["CardLv","w6d1"]': 10 } })).toBeCloseTo(0.4 + 0.1, 12); // x1, in the Fighting sum
   });
 
+  // Carried minor (Task 3 review): N.js's parentheses decide the float rounding (the panel shows floor(100 x rate)). These seeds give
+  // 1.2665864999999998 / 1.217 with N.js's nesting and 1.2665865 / 1.2169999999999999 summed flat; the expected values were evaluated
+  // from N.js's text, not from the port.
+  it("the ALL list and the Fighting sum add in N.js's parenthesis nesting (float-exact)", () => {
+    const all: Seeds = {
+      "ArcadeBonus[6]": 1.6539, 'Windwalker["CompassBonus",57,0]': 2.0313, 'GetSetBonus["VOID_SET","Bonus",0,0]': 0.7992, "FlurboShop[7]": 2.75,
+      'Divinity["Bonus_MAJOR",0,0]': 0.14, 'Divinity["Bonus_Minor",-1,5]': 6.95, "Companions[6]": 0.25529999999999997, "Companions[25]": 1.52,
+      "Shrine[8]": 1.7908, "TalentCalc[650]": 4.16, 'Summoning["WinBonus",11,0]': 0.5476, 'GoldFoodBonuses["AllAFK"]': 3.59,
+      'RunCodeOfTypeXforThingY["CardLv","w6d3"]': 3.4817, 'Summoning["RooBonuses",5,0]': 9.03, 'Summoning["VotingBonusz",6,0]': 0.8140000000000001,
+      'Summoning["EventShopOwned",5,0]': 1.7057, 'Summoning["VaultUpgBonus",23,0]': 7.23,
+    };
+    expect(rate({}, { seeds: all })).toBe(1.2665864999999998);
+    const fight: Seeds = {
+      'DNSM.FamBonusQTYs["8"]': 3.54, 'DNSM.BoxRewards["fightAFK"]': 4.92, "GetTalentNumber[1,88]": 9.06, 'GetBribeBonus["3"]': 2.45,
+      "GetTalentNumber[1,268]": 4.67, 'CardSetBonuses[0,"10"]': 7.31, "GetTalentNumber[1,448]": 4.53, "GetTalentNumber[1,621]": 5.43,
+      "CardBonusREAL[43]": 4.05, "GetTalentNumber[1,79]": 4.61, 'EtcBonuses["20"]': 7.86, 'EtcBonuses["59"]': 8.79, 'DNSM.StarSigns["FightAFK"]': 3.36,
+      "GuildBonuses[4]": 5.97, "prayersReal[4,0]": 5.13, "prayersReal[12,1]": 6.7, 'chipBonuses["fafk"]': 2.03, 'RunCodeOfTypeXforThingY["CardLv","w6d1"]': 4.69,
+    };
+    expect(rate({}, { seeds: fight })).toBe(1.217);
+  });
+
   it("a negative Σ (the Ruck Sack curse) is the curse subtracted", () => {
     expect(rate({}, { seeds: { "prayersReal[4,0]": 50, "prayersReal[12,1]": 20 } })).toBeCloseTo(0.4 + 0.3, 12);
   });
@@ -91,6 +112,14 @@ describe("AFKgainrates(\"Fighting\") (synthetic, runs in CI)", () => {
     const seeds: Seeds = { 'Holes2["Cglunko_AFKgains",0,0]': 0.5, 'DNSM.FamBonusQTYs["8"]': 9999, 'EtcBonuses["92"]': 100 };
     expect(rate(cavern(17), { seeds, map: 216 })).toBe(0.5);
     expect(rate({ ...cavern(17), BundlesReceived: { bun_u: 1 } }, { seeds, map: 216 })).toBeCloseTo(0.65, 12);
+    // N.js reads Math.min(1, c.asNumber(bun_u)) there, not `1 == bun_u`: a fraction counts as itself, more than 1 as 1, an absent map as 0
+    const half = rate({ ...cavern(17), BundlesReceived: { bun_u: 0.5 } }, { seeds, map: 216 });
+    expect(half).toBeCloseTo(0.5 * 1.15, 12);
+    expect(rate({ ...cavern(17), BundlesReceived: { bun_u: 2 } }, { seeds, map: 216 })).toBeCloseTo(0.65, 12);
+    expect(rate({ ...cavern(17), BundlesReceived: {} }, { seeds, map: 216 })).toBe(0.5);
+    // while the ALL list's +30 is `1 == bun_u`: 0.5 and 2 are not the bundle
+    expect(rate({ BundlesReceived: { bun_u: 0.5 } })).toBe(0.4);
+    expect(rate({ BundlesReceived: { bun_u: 2 } })).toBe(0.4);
     // another cavern, or the right cavern on another map, is the plain rate
     expect(rate(cavern(16), { seeds, map: 216 })).toBeCloseTo((0.4 + 99.99) * 2, 9);
     expect(rate(cavern(17), { seeds, map: 251 })).toBeCloseTo((0.4 + 99.99) * 2, 9);

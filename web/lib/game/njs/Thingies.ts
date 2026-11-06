@@ -118,11 +118,20 @@ function haveBanI(ctx: Ctx): number {
   return haveBan(ctx, "ban_i");
 }
 export function haveBan(ctx: Ctx, bundle: string): number {
-  if (opt(ctx.state, SAVE_ATTRS.BundlesReceived.key) === undefined) {
-    if (ctx.trace) ctx.trace.children.push(traceNode(ctx.trace, ctx.player, "(absent)", ["BundlesReceived"], 0, 'absent: getLoadMap("BundlesReceived") @19927310 → {}'));
-    return 0;
-  }
+  if (bundlesAbsent(ctx)) return 0;
   return 1 == attr(ctx, "BundlesReceived", bundle) ? 1 : 0;
+}
+
+/** `c.asNumber(BundlesReceived.h[bundle])` (the Cove's `Math.min(1, ...)` in AFKgainrates @4447xxx); an absent BundlesReceived is the empty map: 0 (Ruling H). */
+export function bundleAsNum(ctx: Ctx, bundle: string): number {
+  if (bundlesAbsent(ctx)) return 0;
+  return asNum(ctx, "BundlesReceived", bundle);
+}
+
+function bundlesAbsent(ctx: Ctx): boolean {
+  if (opt(ctx.state, SAVE_ATTRS.BundlesReceived.key) !== undefined) return false;
+  if (ctx.trace) ctx.trace.children.push(traceNode(ctx.trace, ctx.player, "(absent)", ["BundlesReceived"], 0, 'absent: getLoadMap("BundlesReceived") @19927310 → {}'));
+  return true;
 }
 
 /**
