@@ -122,7 +122,7 @@ export function haveBan(ctx: Ctx, bundle: string): number {
   return 1 == attr(ctx, "BundlesReceived", bundle) ? 1 : 0;
 }
 
-/** `c.asNumber(BundlesReceived.h[bundle])` (the Cove's `Math.min(1, ...)` in AFKgainrates @4447xxx); an absent BundlesReceived is the empty map: 0 (Ruling H). */
+/** `c.asNumber(BundlesReceived.h[bundle])` (the Cove's `Math.min(1, ...)` in AFKgainrates @4448129); an absent BundlesReceived is the empty map: 0 (Ruling H). */
 export function bundleAsNum(ctx: Ctx, bundle: string): number {
   if (bundlesAbsent(ctx)) return 0;
   return asNum(ctx, "BundlesReceived", bundle);

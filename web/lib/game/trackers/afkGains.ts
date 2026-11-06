@@ -15,13 +15,13 @@
 // and Nothing, Paying_Respect or a target with no definition gives 0; the Cove (map 216, cavern 17) counts as a fight whatever its target says;
 // Ruling V, the AFK target follows ctx.map (lib/game/afkTarget.ts); Ruling Y, a dungeon map counts as outside a dungeon.
 //
-// Performance, measured when the page switched (scripts/perf-afk.ts; 5 real saves, Node, median): a character switch on a loaded save is
-// about 23 ms against lib/arkh's 10 ms, a map switch 22 ms against 12 ms, and the first call on a save (state build + Tome) 76 ms against
-// 12 ms. Both are well under a perceptible delay; lib/game pays for the trace its tree is read from.
+// Performance, measured when the page switched (scripts/perf-afk.ts; real saves, Node, median): lib/arkh 23 ms cold / 18 ms a character
+// switch / 23 ms a map switch, lib/game 56 / 22 / 22 ms. A switch is at parity; the first call on a save (state build + Tome) costs about
+// 33 ms more, once per save. Both are well under a perceptible delay (Ruling FF); lib/game pays for the trace its tree is read from.
 //
 // The type of the result is the page's own (lib/statTracker/config StatResult: type-only). lib/game imports no lib/arkh.
 import type { StatResult } from "@/lib/statTracker/config";
-import { AFK_NODES, AFK_ROOT, afkRate } from "@/lib/afkGains/layers";
+import { AFK_NODES, AFK_POOLS, AFK_ROOT, afkRate } from "@/lib/afkGains/layers";
 import { asNum, attr } from "../attr";
 import { afkTarget } from "../afkTarget";
 import { assumed, makeCtx, type Ctx, type TraceNode } from "../ctx";
@@ -30,11 +30,11 @@ import { TreeTotalMismatch } from "../errors";
 import { AFKgainrates } from "../njs/AFKgainrates";
 import { bundleAsNum, haveBan } from "../njs/Thingies";
 import type { GameState } from "../state";
-import { flagged, migratedNote, stateOf, traceTree } from "./page";
+import { flagged, migratedNote, near, stateOf, takeFrom, traceTree, type Take } from "./page";
 
 type Node = StatResult["tree"];
 
-/** The Cove: map 216 with the character in cavern 17 (Holes[0][character]), where its rate replaces everything (AFKgainrates @4447xxx). */
+/** The Cove: map 216 with the character in cavern 17 (Holes[0][character]), where its rate replaces everything (AFKgainrates @4448129). */
 const inCove = (ctx: Ctx): boolean => 216 == ctx.map && 17 == attr(ctx, "Holes", 0, ctx.player);
 const typeOf = (target: string): string | undefined => (MONSTERS as unknown as Record<string, { AFKtype?: string } | undefined>)[target]?.AFKtype;
 /** The block name of the A9 trace leaf (it stands for no N.js function: `assumed()` leaves are no calls). */
@@ -78,8 +78,6 @@ export function afkFightRate(ctx: Ctx): number {
   return AFKgainrates(ctx, "Fighting");
 }
 
-/** The value of a call AFKgainrates makes (its block and arguments, each call taken once); the call is kept as the source's trace. */
-type Take = (block: string, ...args: (string | number)[]) => number;
 /** What a source computes from: `t` takes a call, `leaf` shows a number that is no call of its own, `c` reads the save (no trace). */
 type Ops = { t: Take; leaf: (name: string, val: number, note?: string) => number; c: Ctx };
 /** One source of the tree: its name and note as lib/arkh's tree has them, and `of`, the term as AFKgainrates adds it (in percent). */
@@ -89,7 +87,7 @@ const READ = "a plain read of the save, not an N.js call";
 const gtn = (t: Take, n: number) => t("GetTalentNumber", 1, n);
 const card = (t: Take, id: string) => t("RunCodeOfTypeXforThingY", "CardLv", id);
 
-// Offsets: AFKgainrates @4443869 (the ALL terms @4445xxx, the Fighting sum @4446xxx; map 306, the Cove and the floor at the end)
+// Offsets: AFKgainrates @4443869 (the ALL terms @4444944, the MULTI factor @4445843, bun_u @4445985, the Fighting sum @4446123, map 306 @4447108, the Cove @4448129, the floor @4448512)
 const SOURCES: Record<string, Source> = {
   // ── Fighting terms ──
   base: { name: "Base fighting rate (40%)", of: () => 40 }, // N.js adds the .4 outside Σ/100: shown as a 40% source
@@ -158,10 +156,9 @@ const SOURCES: Record<string, Source> = {
   etc92: { name: "AFK Gains Multi (Equipment)", note: "EtcBonuses(92) = %_AFK_GAINS_MULTI", of: ({ t }) => t("EtcBonuses", "92") },
 };
 
-const FIGHT_IDS = ["base", "fam8", "boxFightAFK", "talent88", "bribe3", "talent268", "cardSet10", "talent448", "talent621", "card43", "talent79", "etc20", "etc59", "starFightAFK", "guild4", "prayer4", "curse12", "chipFafk", "cardW6d1"] as const;
-const ALL_IDS = ["merit", "arcade6", "compass57", "voidSet", "flurbo7", "divMajor", "divMinor5", "comp6", "comp25", "shrine8", "talent650", "winBonus11", "goldFoodAllAFK", "cardW6d3", "roo5", "vote6", "eventShop5", "vault23", "bunU"] as const;
-
-const near = (a: number, b: number) => Math.abs(a - b) <= 1e-9 * Math.max(1, Math.abs(b));
+// the ids of the pools, in N.js order: lib/afkGains/layers.ts has the one list (as damage.ts reads DMG_LAYERS)
+const FIGHT_IDS = AFK_POOLS[0].sources;
+const ALL_IDS = AFK_POOLS[1].sources;
 
 /**
  * The page's result for the character and map of a traced Ctx (nothing computed on it yet): runs `afkFightRate` once, then reads the tree out
@@ -190,7 +187,6 @@ export function afkTree(ctx: Ctx): StatResult {
       total: 0,
     };
   }
-  AFKgainrates(ctx, "Fighting"); // a memo hit when afkFightRate made it
   const call = root.children.find((n) => n.block === "AFKgainrates" && "cached" !== n.note);
   if (!call) throw new Error('AFK Gains: no AFKgainrates("Fighting") call in the trace');
   const plain: Ctx = { ...ctx, trace: null }; // the adapter's own save reads leave nothing in the trace
@@ -199,13 +195,7 @@ export function afkTree(ctx: Ctx): StatResult {
   const source = (id: string): Node => {
     const def = SOURCES[id];
     const kept: Node[] = [];
-    const t: Take = (block, ...args) => {
-      const n = call.children.find((k) => k.block === block && k.args.length === args.length && args.every((a, i) => k.args[i] === a) && !used.has(k));
-      if (!n) throw new Error(`AFK Gains: AFKgainrates made no (further) ${block}(${args.map((a) => JSON.stringify(a)).join(", ")}) call for "${id}"`);
-      used.add(n);
-      kept.push(traceTree(n));
-      return n.value;
-    };
+    const t = takeFrom(call, used, kept, "AFK Gains: AFKgainrates", id);
     const leaf = (name: string, val: number, note = READ) => (kept.push({ name, val, fmt: "raw", note }), val);
     const val = def.of({ t, leaf, c: plain });
     return { name: def.name, val, fmt: "+", ...(def.note ? { note: def.note } : {}), ...(kept.length ? { children: kept } : {}) };

@@ -22,12 +22,11 @@ import { TreeTotalMismatch } from "../errors";
 import { listAt } from "../lists";
 import type { GameState } from "../state";
 import { TRACKERS } from "./index";
-import { migratedNote, stateOf, traceTree } from "./page";
+import { migratedNote, near, stateOf, takeFrom, traceTree, type Take } from "./page";
 
 type Node = StatResult["tree"];
 
 /** The value of a call BoatArtiMulti makes (its block and leading arguments); the call is remembered as this source's trace. */
-type Take = (block: string, ...args: (string | number)[]) => number;
 /** A number the save gives that is no N.js call (a raw read), shown as a leaf of the source; returns it. */
 type Leaf = (name: string, val: number, note: string) => number;
 
@@ -105,12 +104,7 @@ export function gameArtifactFind(state: GameState, charIdx: number): StatResult 
     const def = SOURCES[id];
     if (!def) throw new Error(`Artifact Find: no source "${id}" in the adapter`);
     const kept: Node[] = [];
-    const take: Take = (block, ...args) => {
-      const n = boat.children.find((c) => c.block === block && args.every((a, i) => c.args[i] === a));
-      if (!n) throw new Error(`Artifact Find: BoatArtiMulti made no ${block}(${args.map((a) => JSON.stringify(a)).join(", ")}) call for "${id}"`);
-      kept.push(traceTree(n));
-      return n.value;
-    };
+    const take = takeFrom(boat, undefined, kept, "Artifact Find: BoatArtiMulti", id);
     const leaf: Leaf = (name, val, note) => {
       kept.push({ name, val, fmt: "raw", note });
       return val;
@@ -129,7 +123,7 @@ export function gameArtifactFind(state: GameState, charIdx: number): StatResult 
   // tree to show: throw, so the tracker reads "incomplete" (spec section 5) instead of a number the headline does not match. The call's own
   // outer Math.max(1, ...) is applied to the product, as N.js does.
   const rebuilt = Math.max(1, groups.reduce((t, g) => t * g.val, 1));
-  if (!(Math.abs(rebuilt - total) <= 1e-9 * Math.max(1, Math.abs(total)))) throw new TreeTotalMismatch(total, rebuilt);
+  if (!near(rebuilt, total)) throw new TreeTotalMismatch(total, rebuilt);
   // an older save is computed after the game's own load steps: the root says so (trackers/page.ts)
   const migrated = migratedNote(state);
   return { tree: { name: ARTI_ROOT, val: total, fmt: "x", ...(migrated ? { note: migrated } : {}), children: groups }, total };

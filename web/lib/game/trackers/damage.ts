@@ -29,12 +29,10 @@ import { baseDamageFoods, DamageDealed, minigameHiscore, pctCap, multCap, baseCa
 import { haveBan } from "../njs/Thingies";
 import type { GameState } from "../state";
 import { TRACKERS } from "./index";
-import { flagged, migratedNote, stateOf, traceTree } from "./page";
+import { findCall, flagged, migratedNote, near, stateOf, takeFrom, traceTree, type Take } from "./page";
 
 type Node = StatResult["tree"];
 
-/** The value of a call DamageDealed makes (its block and arguments, each call taken once); the call is kept as the source's trace. */
-type Take = (block: string, ...args: (string | number)[]) => number;
 /**
  * What a source computes from: `t` takes a call, `all` every remaining call of a block and arguments (a loop's), `peek` reads a call
  * another source took, `leaf` shows a number that is no call of its own (a raw save read, unless `note` says otherwise), `c` reads the save.
@@ -325,8 +323,6 @@ function layerOf(layer: DmgLayer, source: (id: string) => Node): { node: Node; v
   return { node: { name: layer.node, val, fmt: layer.key === "base" ? "raw" : "x", children: steps }, val };
 }
 
-const near = (a: number, b: number) => Math.abs(a - b) <= 1e-9 * Math.max(1, Math.abs(b));
-
 /**
  * The page's result for character `charIdx` on map `mapIdx` of a built state: runs DamageDealed("Max") once, then ("Mastery"), with the
  * trace on, and reads the tree out of them. A save the game would not have the keys for (Ruling E) throws what the engine throws
@@ -354,15 +350,8 @@ export function damageTree(ctx: Ctx): StatResult {
     const def = SOURCES[id];
     if (!def) throw new Error(`Damage: no source "${id}" in the adapter`);
     const kept: Node[] = [];
-    const find = (block: string, args: (string | number)[], free: boolean) =>
-      from.children.find((n) => n.block === block && n.args.length === args.length && args.every((a, i) => n.args[i] === a) && !(free && used.has(n)));
-    const t: Take = (block, ...args) => {
-      const n = find(block, args, true);
-      if (!n) throw new Error(`Damage: DamageDealed made no (further) ${block}(${args.map((a) => JSON.stringify(a)).join(", ")}) call for "${id}"`);
-      used.add(n);
-      kept.push(traceTree(n));
-      return n.value;
-    };
+    const find = (block: string, args: (string | number)[], free: boolean) => findCall(from, block, args, free ? used : undefined);
+    const t = takeFrom(from, used, kept, "Damage: DamageDealed", id);
     const all = (block: string, ...args: (string | number)[]) => {
       const vals: number[] = [];
       for (let n = find(block, args, true); n; n = find(block, args, true)) {
