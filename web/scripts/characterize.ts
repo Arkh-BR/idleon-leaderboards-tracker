@@ -20,6 +20,7 @@ import { computeArkhDamage } from "@/lib/arkh/computeDamage";
 import { AFK_REFUSABLE, ARTIFACT_FIND_REFUSABLE, DAMAGE_REFUSABLE, characterize, classify, type Engine, type Row, type Verdict } from "@/lib/diagnose/characterize";
 import { CURRENT_CSVER } from "@/lib/game/errors";
 import { MapAFKtarget } from "@/lib/game/data";
+import { keptTargetCloses } from "@/__tests__/lib/game/support/afkKept";
 import { afkTarget } from "@/lib/game/afkTarget";
 import { makeCtx } from "@/lib/game/ctx";
 import { stateOf } from "@/lib/game/trackers/page";
@@ -54,10 +55,13 @@ const ENGINES: Record<string, (map: number) => { arkh: Engine; game: Engine; nam
     refusable: AFK_REFUSABLE,
     known: (d) => d.stat === "afk",
     // Ruling V: the AFK target follows the map unless the character's saved target is kept (the Cove's map 216 names Nothing, so a
-    // character fighting elsewhere keeps its fight): lib/arkh uses the map's target, so the two differ by design
+    // character fighting elsewhere keeps its fight): lib/arkh uses the map's target, so the two differ by design. Explained only when
+    // forcing the map's target makes lib/game equal lib/arkh (support/afkKept): a second difference stays unexplained.
     explains: (r) => {
-      const t = afkTarget(makeCtx(stateOf(JSON.parse(readFileSync(r.save, "utf8"))), { player: r.ci, map }));
-      return t !== String((MapAFKtarget as unknown as readonly unknown[])[map]) ? `kept AFK target ${t} (Ruling V)` : undefined;
+      const env = JSON.parse(readFileSync(r.save, "utf8"));
+      const t = afkTarget(makeCtx(stateOf(env), { player: r.ci, map }));
+      if (t === String((MapAFKtarget as unknown as readonly unknown[])[map])) return undefined;
+      return r.a !== undefined && keptTargetCloses(env, r.ci, map, r.a) ? `kept AFK target ${t} (Ruling V)` : undefined;
     },
   }),
 };

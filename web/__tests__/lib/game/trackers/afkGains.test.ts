@@ -29,6 +29,7 @@ import { afkFightRate, afkTree, computeGameAfkGains } from "@/lib/game/trackers/
 import { formatGameValue, normalizeGameText } from "@/lib/readings/format";
 import { READINGS_DIR, loadReadings, readingSave } from "@/lib/readings/registry";
 import type { StatResult } from "@/lib/statTracker/config";
+import { keptTargetCloses } from "../support/afkKept";
 import { GOLDEN_SAVES, KNOWN_ARKH_DIFFS, arkhAfkLeaves, arkhAfkRate } from "../support/arkhOracle";
 import { synth, type Seeds } from "../support/afkStub";
 
@@ -234,8 +235,8 @@ describe("the tree on a synthetic envelope (runs in CI)", () => {
  * njs/afkGains.test.ts proves the exact values with the same pairs: 338 KNOWN on the fight maps, the 79 pairs the saved target moves on map 216);
  * the pairs with nothing to fight are 0 on both sides.
  */
-const MAPS: Record<number, { explained: number }> = {
-  251: { explained: 338 }, 306: { explained: 338 }, 216: { explained: 79 }, 0: { explained: 0 }, 33: { explained: 0 }, 6: { explained: 338 }, 40: { explained: 338 },
+const MAPS: Record<number, { explained: number; kept: number }> = {
+  251: { explained: 338, kept: 0 }, 306: { explained: 338, kept: 0 }, 216: { explained: 79, kept: 58 }, 0: { explained: 0, kept: 0 }, 33: { explained: 0, kept: 0 }, 6: { explained: 338, kept: 0 }, 40: { explained: 338, kept: 0 },
 };
 const HOURZERO = ["HourZero.json: Tome rows 21,101,105,106,115,116"]; // Ruling E (njs/afkTerms.test.ts)
 const REFUSED: Record<number, string[]> = { 251: HOURZERO, 306: HOURZERO, 216: HOURZERO, 0: [], 33: [], 6: HOURZERO, 40: HOURZERO };
@@ -259,6 +260,7 @@ describe.skipIf(noSaves)("computeGameAfkGains against lib/arkh on every real sav
       const refused = new Set<string>();
       let pairs = 0;
       let explained = 0;
+      let keptProven = 0; // differs from lib/arkh and closes once the map's target is forced (Ruling V alone)
       let leafKnown = 0;
       let flags = 0;
       let dungeon = 0;
@@ -295,7 +297,9 @@ describe.skipIf(noSaves)("computeGameAfkGains against lib/arkh on every real sav
             const kept = afkTarget(ctx) !== target(map);
             const known = KNOWN_ARKH_DIFFS.some((d) => d.stat === "afk" && d.save === file && (d.ci ?? ci) === ci);
             if (!kept && !known) mismatches.push(`${at}: game ${r.total}, arkh ${want}`);
+            else if (!known && !keptTargetCloses(env, ci, map, want)) mismatches.push(`${at}: the kept target does not explain it alone (forcing the map's target leaves it off lib/arkh's ${want})`);
             else {
+              if (!known) keptProven++;
               explained++;
               // the adapter adds nothing to the number: a fresh Ctx's afkFightRate gives the same
               if (r.total !== afkFightRate(makeCtx(state, { player: ci, map }))) mismatches.push(`${at}: the tree's total is not afkFightRate's`);
@@ -334,7 +338,7 @@ describe.skipIf(noSaves)("computeGameAfkGains against lib/arkh on every real sav
         }
       }
       console.info(
-        `[afk adapter @${map}] ${pairs} pairs, ${explained} explained, ${leafKnown} known leaves, ${mismatches.length} total and ${leafMismatches.length} leaf mismatches, ${flags} flagged notes (${dungeon} pairs with the dungeon stand-in), worst flat-tree error ${worst.toExponential(2)}, ${shortTrees} short-circuited, worst size ratio ${worstRatio.toFixed(2)}, ${refused.size} refused, ${Math.round(performance.now() - t0)} ms`
+        `[afk adapter @${map}] ${pairs} pairs, ${explained} explained (${keptProven} by the kept target alone), ${leafKnown} known leaves, ${mismatches.length} total and ${leafMismatches.length} leaf mismatches, ${flags} flagged notes (${dungeon} pairs with the dungeon stand-in), worst flat-tree error ${worst.toExponential(2)}, ${shortTrees} short-circuited, worst size ratio ${worstRatio.toFixed(2)}, ${refused.size} refused, ${Math.round(performance.now() - t0)} ms`
       );
       expect(over).toEqual([]);
       expect(mismatches.slice(0, 20)).toEqual([]);
@@ -343,6 +347,7 @@ describe.skipIf(noSaves)("computeGameAfkGains against lib/arkh on every real sav
       expect(lost.slice(0, 20)).toEqual([]);
       expect(pairs).toBeGreaterThan(1000);
       expect(explained, "pairs whose total differs from lib/arkh's and is explained").toBe(MAPS[map].explained);
+      expect(keptProven, "pairs explained by the kept target alone").toBe(MAPS[map].kept);
       // the Tome refusal behind the talents (Ruling E): a map with nothing to fight reads no source (Ruling DD), so it refuses nothing
       expect([...refused].sort()).toEqual(REFUSED[map]);
       // not vacuous: a map with nothing to fight is the A9 leaf alone
