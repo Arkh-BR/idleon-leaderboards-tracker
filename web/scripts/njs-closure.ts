@@ -42,8 +42,9 @@ export function isPorted(c: { args: (string | number)[] }, p: Ported | undefined
   if (at < 0) return false;
   const name = c.args[at] as string;
   const e = c.args[at + 2];
-  if (e === undefined && Object.hasOwn(rec, `${name}@e2`)) return false; // an unknown `e` may be the 2 that has its own rule
-  const entry = e === 2 && Object.hasOwn(rec, `${name}@e2`) ? rec[`${name}@e2`] : rec[name];
+  // an unknown `e` may be one that has its own rule; an `@e<n>: []` entry only says "e = n is not ported" and leaves the other e alone
+  if (e === undefined && Object.entries(rec).some(([k, v]) => k.startsWith(`${name}@e`) && (v === true || v.length > 0))) return false;
+  const entry = e !== undefined && Object.hasOwn(rec, `${name}@e${e}`) ? rec[`${name}@e${e}`] : rec[name];
   if (entry === true) return true;
   const idx = c.args[at + 1];
   return idx !== undefined && entry.includes(idx);

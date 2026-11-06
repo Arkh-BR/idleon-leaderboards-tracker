@@ -53,8 +53,10 @@ export const ArcaneType: (ctx: Ctx, d: string, b: number, e: number) => number =
 
 /**
  * `ArcaneMapMulti_bon` @11087291: 0 when the current map's MapBon row has fewer than 3 slots, else min(cap, ArcaneMapMulti(MapBon[map][b])). The game
- * keeps the three values in DNSM.ArcMultBon, built at the first call of a session (and rebuilt on e == 99) and read back for `b`; a save has no
- * session, so this is the list for ctx.map (what e == 99 builds), computed for slot `b` only.
+ * keeps the three values in DNSM.ArcMultBon, a cache it refills on every scene load (the HUD actor's init @13125719, called @13134922), every
+ * 10 s while the Tesseract Arcanist form is on (@13145961) and on each draw of the stats panel (@3802185), so it follows the map the character
+ * is on. A save has no session, so this is that fill for ctx.map (what e == 99 builds), computed for slot `b` only. Accepted gap: the game shows
+ * the last refill, while the save's kills (MapBon[map][2]) have kept growing since; the page shows the save's.
  */
 function arcaneMapMultiBon(ctx: Ctx, b: number, _e: number): number {
   if (3 > listAt(ctx, "MapBon", ctx.map).length) return 0;

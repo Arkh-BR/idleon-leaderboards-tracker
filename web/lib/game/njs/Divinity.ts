@@ -125,4 +125,6 @@ function divMinorBonus(ctx: Ctx, b: number, e: number): number {
 }
 
 /** What this module covers (lib/game/ported.ts). */
-export const PORTED: Ported = { Bonus_Minor: true, Bonus_MAJOR: true, W7divChosen: true, DivMinorBonus: true, BlesssBonus: [0, 1, 3, 4, 5, 6, 7, 8, 9] };
+// Bonus_MAJOR is ported for e = 0 (and the others the AFK rate reads); e = 6 and 8 read the Gen actor's runtime GenINFO and throw, so a row
+// `("Bonus_MAJOR", b, 6 | 8)` would not be ticked (`@e<n>: []`, lib/game/ported.ts)
+export const PORTED: Ported = { Bonus_Minor: true, Bonus_MAJOR: true, "Bonus_MAJOR@e6": [], "Bonus_MAJOR@e8": [], W7divChosen: true, DivMinorBonus: true, BlesssBonus: [0, 1, 3, 4, 5, 6, 7, 8, 9] };

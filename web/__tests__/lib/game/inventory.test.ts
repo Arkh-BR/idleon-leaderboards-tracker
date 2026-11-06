@@ -30,3 +30,12 @@ describe.skipIf(!existsSync(NJS)).each(Object.entries(INVENTORIES))("the %s inve
     for (const u of mine) expect(md, u.row).toContain(`- [~] ${u.row} —`);
   });
 });
+
+describe("lib/game/unreached.ts", () => {
+  // the per-inventory check above only looks at the entries an inventory names: an entry whose roots match none would hide here for ever
+  it("has no orphan: every entry's roots are all named by the title of some inventory", () => {
+    const titles = Object.values(INVENTORIES).map((f) => readFileSync(f, "utf8").match(/^# Port inventory: (.+)$/m)![1].split(" + "));
+    const orphans = UNREACHED.filter((u) => !titles.some((roots) => u.roots.every((r) => roots.includes(r)))).map((u) => u.row);
+    expect(orphans).toEqual([]);
+  });
+});

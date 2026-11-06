@@ -139,12 +139,10 @@ describe("Divinity Bonus_Minor(-1, e), the total over the 12 character slots (sy
     seed(c, "Divinity", ["DivMinorBonus", 1, gE], 4);
     expect(Divinity(c, "Bonus_Minor", -1, E)).toBe(8);
     // kind 4 is not 3 or 5: the linked-god rule applies whatever OptionsListAccount[425] says
-    const g4 = godOfKind(4);
-    if (g4 >= 0) {
-      const d = synth(divSave({ w7: 5, divinity: [...Array<number>(12).fill(0), ...Array<number>(12).fill(-1), 0, 0] }), { chars: 2 });
-      neutral(d, 4);
-      expect(Divinity(d, "Bonus_Minor", -1, 4)).toBe(0);
-    }
+    expect(godOfKind(4), "a god of kind 4 exists").toBeGreaterThanOrEqual(0);
+    const d = synth(divSave({ w7: 5, divinity: [...Array<number>(12).fill(0), ...Array<number>(12).fill(-1), 0, 0] }), { chars: 2 });
+    neutral(d, 4);
+    expect(Divinity(d, "Bonus_Minor", -1, 4)).toBe(0);
   });
 });
 
@@ -199,13 +197,13 @@ describe("Holes2 Cglunko_AFKgains and TalentCalc(650) (synthetic, runs in CI)", 
     expect(Holes2(synth({ OptLacc: Array<number>(660).fill(0) }), "Cglunko_AFKgains", 0, 0)).toBe(0.1);
   });
 
-  it("TalentCalc(650): talent 650 times the cards of RANDOlist[82..86] in Cards[1], each card once", () => {
+  it("TalentCalc(650): talent 650 times the items of RANDOlist[82..86] (hats, rings, tools, obols) found in Cards[1], each item once", () => {
     const lists = [82, 83, 84, 85, 86].map((i) => (RANDOlist as unknown as string[][])[i]);
     const owned = [lists[0][0], lists[2][0], lists[4][lists[4].length - 1], "NotACard"];
     const c = synth({ Cards1: owned });
     seed(c, "GetTalentNumber", [1, 650], 2.5);
     expect(TalentCalc(c, 650)).toBe(2.5 * 3);
-    // a card named twice in Cards[1] counts once, an empty list gives 0
+    // an item named twice in Cards[1] counts once, an empty list gives 0
     const dup = synth({ Cards1: [lists[0][0], lists[0][0]] });
     seed(dup, "GetTalentNumber", [1, 650], 1);
     expect(TalentCalc(dup, 650)).toBe(1);

@@ -103,6 +103,8 @@ const HOURZERO = ["HourZero.json: Tome rows 21,101,105,106,115,116"];
 // the same Tome refusal reaches every term built on the talent levels (AllTalentLV -> FamBonusQTYs, the Tome bubble W8): the family bonus 8,
 // the fight talents and the Divinity god levels (Bonus_Minor)
 const TOME_TERMS = new Set(["goldFoodAllAFK", "fam8", "talent88", "talent268", "talent448", "talent79", "divMinor5"]);
+/** The pairs per leaf whose difference a KNOWN entry closes, as a literal (a stale entry or a new difference fails): the totals of the report. */
+const EXPECT_KNOWN: Record<string, number> = { talent448: 8, winBonus11: 2, divMinor5: 1, goldFoodAllAFK: 337 };
 const REFUSALS = (id: string): string[] => (TOME_TERMS.has(id) ? HOURZERO : []);
 
 /**
@@ -147,13 +149,8 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("AFKgainrates Fighting terms against 
         const { state, chars } = stateOf(path);
         for (let ci = 0; ci < chars; ci++) {
           const base = makeCtx(state, { player: ci, map: MAP });
-          let maps: number[];
-          try {
-            maps = mapsOf(id, base);
-          } catch (e) {
-            if (!(e instanceof MissingSaveKey)) throw e;
-            maps = [MAP];
-          }
+          // the extra maps come from the save (ShrineInfo, MapBon): a save without them fails here, it is not checked on 251 alone
+          const maps = mapsOf(id, base);
           for (const map of maps) {
             const ctx = makeCtx(state, { player: ci, map });
             let got: number;
@@ -195,7 +192,8 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("AFKgainrates Fighting terms against 
       console.info(`[afkTerms ${id}] ${pairs} pairs, ${nonZero} nonzero, ${known} known, ${mismatches.length} mismatches, ${refused.size} refused, ${seen.size} distinct, ${Math.round(performance.now() - t0)} ms`);
       expect(mismatches.slice(0, Number(process.env.AFK_MAX ?? 20))).toEqual([]);
       expect(known, "KNOWN pairs vs pairs the entries cover (a stale entry is one that no longer differs)").toBe(entryPairs);
-      expect(pairs).toBeGreaterThan(500); // saves x characters (548 on 251)
+      expect(known, "KNOWN pairs, literally").toBe(EXPECT_KNOWN[id] ?? 0);
+      expect(pairs).toBeGreaterThan(500); // saves x characters (about 1150 on 251)
       expect([...refused].sort()).toEqual(REFUSALS(id));
       const names = new Set(GOLDEN_SAVES.map((p) => basename(p)));
       expect(KNOWN_ARKH_DIFFS.filter((d) => d.stat === "afk" && d.source === id && !names.has(d.save)).map((d) => d.save)).toEqual([]);

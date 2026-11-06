@@ -159,10 +159,12 @@ describe("KNOWN_ARKH_DIFFS", () => {
   it("every entry names a real source and cites its N.js evidence (an @offset)", () => {
     const arti = new Set(ARTI_GROUPS.flatMap((g) => g.sources));
     const dmg = new Set(dmgIds());
+    const afk = new Set(AFK_POOLS.flatMap((g) => g.sources)); // the leaves of AFKgainrates("Fighting"): the Σ pool, the multipliers and the rules
     for (const d of KNOWN_ARKH_DIFFS) {
       const stat = d.stat ?? "artifactFind"; // absent = Artifact Find
       if (stat === "artifactFind") expect(arti.has(d.source), d.source).toBe(true);
       else if (stat === "damage") expect(dmg.has(d.source), d.source).toBe(true);
+      else if (stat === "afk") expect(afk.has(d.source), d.source).toBe(true);
       expect(d.save).toMatch(/\.json$/);
       expect(d.why).toMatch(/@\d+/);
     }
