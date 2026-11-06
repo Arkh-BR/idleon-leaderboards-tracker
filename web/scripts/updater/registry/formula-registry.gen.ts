@@ -781,7 +781,7 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/game/njs/StampBonusOfTypeX.ts"
   ],
   "_customBlock_StampOverLevel": [
-    "lib/game/njs/StampBonusOfTypeX.ts"
+    "lib/game/njs/StampOverLevel.ts"
   ],
   "_customBlock_StarSigns": [
     "lib/arkh/stats/systems/common/starSign.ts"

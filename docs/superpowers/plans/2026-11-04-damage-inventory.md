@@ -13,7 +13,7 @@ Regenerate it when N.js, a module's `PORTED` or `lib/game/unreached.ts` changes.
 - attrs and dnsm are the reads in every slice listed. One marked "whole body only" is read only inside a whole-body function (all its branches, not just the one this formula takes). `DNSM` is runtime-only (it is never loaded from the save): port it as `DNSM_*` functions, not as a save attribute. The dnsm list also holds the scratch keys a formula writes and reads back in the same slice (`CaptnBonuz`, `AtomBonCalc1`); the inputs are the caches the game fills elsewhere (`StarSigns`, `AlchVials`, `FamBonusQTYs`…).
 - Depth stops at 6.
 
-**69 functions, 707 sub-cases (rows), 219 whole body, 0 not found, 95 attrs, 120 dnsm.** **644 ported `[x]`, 61 not reached `[~]`, 2 open.**
+**69 functions, 707 sub-cases (rows), 219 whole body, 0 not found, 95 attrs, 120 dnsm.** **646 ported `[x]`, 61 not reached `[~]`, 0 open.**
 
 Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("AGI")`, R4 = `TotalStats("WIS")`, R5 = `TotalStats("LUK")`, R6 = `PlayerHPmax()`, R7 = `PlayerMPmax()`, R8 = `PlayerAccTot()`.
 
@@ -905,11 +905,11 @@ Roots: R1 = `DamageDealed("Max")`, R2 = `TotalStats("STR")`, R3 = `TotalStats("A
 
 ## StampDetails
 
-- [ ] StampDetails() — depth 2 — 461 chars — whole body — roots: R1 R6 R8
+- [x] StampDetails() — depth 2 — 461 chars — whole body — roots: R1 R6 R8
 
 ## StampOverLevel
 
-- [ ] StampOverLevel() — depth 2 — 2259 chars — whole body — roots: R1 R6 R8
+- [x] StampOverLevel() — depth 2 — 2259 chars — whole body — roots: R1 R6 R8
 
 ## Dungon
 
