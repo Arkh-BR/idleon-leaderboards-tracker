@@ -104,7 +104,7 @@ export function gameArtifactFind(state: GameState, charIdx: number): StatResult 
     const def = SOURCES[id];
     if (!def) throw new Error(`Artifact Find: no source "${id}" in the adapter`);
     const kept: Node[] = [];
-    const take = takeFrom(boat, undefined, kept, "Artifact Find: BoatArtiMulti", id);
+    const take = takeFrom(boat, undefined, kept, "Artifact Find: BoatArtiMulti", id, false); // leading arguments, as its sources spell them
     const leaf: Leaf = (name, val, note) => {
       kept.push({ name, val, fmt: "raw", note });
       return val;
