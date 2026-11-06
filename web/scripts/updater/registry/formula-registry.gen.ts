@@ -34,7 +34,8 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/game/njs/Holes.ts"
   ],
   "BigFishBonuses": [
-    "lib/arkh/stats/systems/exp/exp.ts"
+    "lib/arkh/stats/systems/exp/exp.ts",
+    "lib/game/njs/Spelunk.ts"
   ],
   "BlesssBonus": [
     "lib/arkh/stats/systems/w5/divinity.ts",
@@ -67,7 +68,8 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   ],
   "BoostQTY": [
     "lib/arkh/stats/data/w7/menagerie.ts",
-    "lib/arkh/stats/systems/exp/exp.ts"
+    "lib/arkh/stats/systems/exp/exp.ts",
+    "lib/game/njs/MenagerieStuff.ts"
   ],
   "BubbleBonus": [
     "lib/game/njs/CauldronStats.ts"
@@ -145,7 +147,8 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   ],
   "DancingCoralBonus": [
     "lib/arkh/stats/systems/exp/dancingCoral.ts",
-    "lib/arkh/stats/systems/exp/exp.ts"
+    "lib/arkh/stats/systems/exp/exp.ts",
+    "lib/game/njs/Thingies.ts"
   ],
   "DaveyJonesBonus": [
     "lib/arkh/stats/systems/w5/sailing.ts",
@@ -383,7 +386,8 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   ],
   "PetArenaCrucBonus": [
     "lib/arkh/stats/systems/exp/exp.ts",
-    "lib/arkh/stats/systems/exp/petArenaCruc.ts"
+    "lib/arkh/stats/systems/exp/petArenaCruc.ts",
+    "lib/game/njs/Breeding.ts"
   ],
   "PlayerBuildSpd": [
     "lib/arkh/stats/systems/w3/construction.ts",
@@ -533,7 +537,8 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/tome/extractors.ts"
   ],
   "TotalTitanKills": [
-    "lib/arkh/stats/systems/exp/exp.ts"
+    "lib/arkh/stats/systems/exp/exp.ts",
+    "lib/game/njs/Windwalker.ts"
   ],
   "UniqueSushi": [
     "lib/arkh/stats/systems/w7/sushi.ts",

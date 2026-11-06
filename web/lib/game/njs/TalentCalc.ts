@@ -6,6 +6,7 @@ import { InvalidSaveValue, NotPorted } from "../errors";
 import { hString } from "../hstring";
 import { contains, lengthOf, listAt, listOrMapAt } from "../lists";
 import { GetTalentNumber } from "./GetTalentNumber";
+import { MenagerieStuff } from "./MenagerieStuff";
 import { PlayerAccTot } from "./PlayerAccTot";
 import { ReturnClasses } from "./ReturnClasses";
 import type { Ported } from "../ported";
@@ -52,6 +53,7 @@ function fightingMaps(ctx: Ctx): { dn1: number; dn4: number } {
  *  - "616" @4479621: the highest Lv0[0] over the characters whose class is below 6 (the beginner line);
  *  - "620" @4480414: the account's highest character level (Lv0[0] over PlayerDATABASE, from 0);
  *  - "arena" @4467173: the Pet Arena waves cleared in a row by the best wave (OptionsListAccount[89] against RANDOlist[53][g]);
+ *  - "arenaCruc" @4460738: the same for the Crucible (OptionsListAccount[628] against RANDOlist[115][g]), 0 without the Menagerie unlock 8;
  *  - "650" @4480714: how many of the items RANDOlist[82..86] lists (hats, rings, tools, obols) the account has found (Cards[1]); an item counts once;
  *  - "656" @4481319: the DreamChallenge entries whose WeeklyBoss "d_<n>" is -1 (the loop is skipped in the Tutorial scene, which a tracked
  *    account is not in).
@@ -114,6 +116,18 @@ export const DNSM_CalcTalentMAP = block("DNSM.CalcTalentMAP", (ctx, key: string)
       for (let g = 0; 16 > g; g++) {
         if (asNum(ctx, "OptionsListAccount", 89) >= asNumber((RANDOlist as unknown as readonly (readonly unknown[])[])[53][g])) n = g + 1;
         else break;
+      }
+      return n;
+    }
+    // @4460738 (the lines after "arena"): the Pet Arena Crucible waves cleared in a row by the best one (OptionsListAccount[628] against
+    // RANDOlist[115][g]), 0 unless the Menagerie unlock 8 is owned
+    case "arenaCruc": {
+      let n = 0;
+      if (1 == MenagerieStuff(ctx, "UnlockOwned", 8, 0)) {
+        for (let g = 0; 16 > g; g++) {
+          if (asNum(ctx, "OptionsListAccount", 628) >= asNumber((RANDOlist as unknown as readonly (readonly unknown[])[])[115][g])) n = g + 1;
+          else break;
+        }
       }
       return n;
     }

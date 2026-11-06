@@ -53,13 +53,18 @@ export const Thingies: (ctx: Ctx, d: string, b: number, e: number) => number = b
       listAt(ctx, "Spelunk", 45); // the game indexes Spelunk[45][b] directly
       return Math.floor(asNumber(row[4]) * asNum(ctx, "Spelunk", 45, b | 0));
     }
-    // @10963823: Coral Kid upgrade b: 3 is round(OptionsListAccount[427 + b]), 11 is round(OptionsListAccount[621])
+    // @10946237: Dancing Coral b: with e == 999 its value Spelunky[24][b] (CustomLists); else that times the levels the Tower (TowerInfo[18 + b]) is past 200
+    case "DancingCoralBonus":
+      if (999 == e) return asNumber((Spelunky as unknown as readonly (readonly unknown[])[])[24][b | 0]);
+      return Thingies(ctx, "DancingCoralBonus", b, 999) * Math.max(0, asNum(ctx, "TowerInfo", Math.round(18 + b)) - 200);
+    // @10963823: Coral Kid upgrade b: 2 is 20 x o / (25 + o) (o = OptionsListAccount[427 + b]), 3 is round(OptionsListAccount[427 + b]), 11 is round(OptionsListAccount[621])
     case "CoralKidUpgBonus":
+      if (2 == b) return 20 * (asNum(ctx, "OptionsListAccount", Math.round(427 + b)) / (25 + asNum(ctx, "OptionsListAccount", Math.round(427 + b))));
       if (3 == b) return Math.round(asNum(ctx, "OptionsListAccount", Math.round(427 + b)));
       if (11 == b) return Math.round(asNum(ctx, "OptionsListAccount", 621));
       throw new NotPorted("Thingies", `CoralKidUpgBonus:b=${b}`);
     case "FriendBonusStatz":
-      if (0 != b) throw new NotPorted("Thingies", `FriendBonusStatz:b=${b}`); // 2 is [~] (unreached.ts)
+      if (0 != b && 1 != b) throw new NotPorted("Thingies", `FriendBonusStatz:b=${b}`); // 2 is [~] (unreached.ts)
       return friendBonusStatz(ctx, b);
     // @10955906: the friend slots, round(min(20, 2 + Companion 44 + 2 x Companion 30 + Event Shop items 22 and 67))
     case "FriendBonusSlots":
@@ -179,6 +184,6 @@ function friendBonusStatz(ctx: Ctx, b: number): number {
 /** What this module covers (lib/game/ported.ts). */
 export const PORTED: Ported = {
   LegendPTS_bonus: true, Have_ban_i: true, ClamWorkBonus: true, EmperorBon: true, LoreEpiBon: range(0, 30),
-  HaveW6Trophy: true, Have_ban_m: true, Have_ban_o: true, SuperTalentPTS_LVgiven: true, ZenithMarketBonus: true, CoralKidUpgBonus: [3, 11], SumStoneTrialz: true,
-  FriendBonusStatz: [0] /* 2: only SkillStats AllEfficiencies (unreached.ts) */, FriendBonusSlots: true, FriendBonusQTY: true, FriendBonusXtraMulti: true, ReliquariumInPosession: true,
+  HaveW6Trophy: true, Have_ban_m: true, Have_ban_o: true, SuperTalentPTS_LVgiven: true, ZenithMarketBonus: true, CoralKidUpgBonus: [2, 3, 11], DancingCoralBonus: true, SumStoneTrialz: true,
+  FriendBonusStatz: [0, 1] /* 2: only SkillStats AllEfficiencies (unreached.ts) */, FriendBonusSlots: true, FriendBonusQTY: true, FriendBonusXtraMulti: true, ReliquariumInPosession: true,
 };

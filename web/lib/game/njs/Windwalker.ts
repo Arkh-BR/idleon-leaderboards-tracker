@@ -1,4 +1,4 @@
-import { asNum, asNumber } from "../attr";
+import { asNum, asNumber, attr } from "../attr";
 import { block, runtime, type Ctx } from "../ctx";
 import { CompassUpg } from "../data";
 import { NotPorted } from "../errors";
@@ -45,10 +45,18 @@ export const Windwalker: (ctx: Ctx, d: string, b: number, e: number) => number =
     // The masterclass forms are not counted (the Damage page's product decision), as in PlayerHPmax and PlayerAccTot
     case "CompassTempest":
       return runtime(ctx, "Windwalker(CompassTempest)", "masterclass form, not counted");
+    // @11054074: DNSM.TotalTitanKills, the Titans killed: the entries of Compass[1] equal to 1. The game counts them on the first call and
+    // keeps the number for the session; here it is counted from the save each time
+    case "TotalTitanKills": {
+      const titans = listAt(ctx, "Compass", 1); // the game reads Compass[1].length
+      let total = 0;
+      for (let l = 0; l < titans.length; l++) if (1 == attr(ctx, "Compass", 1, l)) total = total + 1;
+      return total;
+    }
     default:
       throw new NotPorted("Windwalker", d);
   }
 });
 
 /** What this module covers (lib/game/ported.ts). */
-export const PORTED: Ported = { CompassBonus: true, StampDoubler: true, CompassTempest: true };
+export const PORTED: Ported = { CompassBonus: true, StampDoubler: true, CompassTempest: true, TotalTitanKills: true };

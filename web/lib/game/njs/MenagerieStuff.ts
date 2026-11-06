@@ -1,5 +1,6 @@
-import { asNum, attr } from "../attr";
+import { asNum, asNumber, attr } from "../attr";
 import { block, type Ctx } from "../ctx";
+import { Research } from "../data";
 import { MissingSaveKey, NotPorted } from "../errors";
 import { listAt } from "../lists";
 import type { Ported } from "../ported";
@@ -34,6 +35,10 @@ export const MenagerieStuff: (ctx: Ctx, d: string, b: number, e: number) => numb
     case "ObolMISCmulti":
       listAt(ctx, "Menagerie", 0); // the game indexes Menagerie[0][9] directly
       return 1 + asNum(ctx, "Menagerie", 0, 9) / 100;
+    // Menagerie boost b: its value Research[58][b] (CustomLists) times its level Menagerie[3][b]
+    case "BoostQTY":
+      listAt(ctx, "Menagerie", 3); // the game indexes Menagerie[3][b] directly
+      return asNumber((Research as unknown as readonly (readonly unknown[])[])[58][b | 0]) * asNum(ctx, "Menagerie", 3, b | 0);
     default:
       throw new NotPorted("MenagerieStuff", d);
   }
@@ -55,4 +60,4 @@ function nightmarinerTotLV(ctx: Ctx): number {
 }
 
 /** What this module covers (lib/game/ported.ts). */
-export const PORTED: Ported = { UnlockOwned: true, NightmarinerBon: [0], NightmarinerTotLV: true, ObolMISCmulti: true };
+export const PORTED: Ported = { UnlockOwned: true, NightmarinerBon: [0], NightmarinerTotLV: true, ObolMISCmulti: true, BoostQTY: true };

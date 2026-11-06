@@ -13,7 +13,7 @@ Regenerate it when N.js, a module's `PORTED` or `lib/game/unreached.ts` changes.
 - attrs and dnsm are the reads in every slice listed. One marked "whole body only" is read only inside a whole-body function (all its branches, not just the one this formula takes). `DNSM` is runtime-only (it is never loaded from the save): port it as `DNSM_*` functions, not as a save attribute. The dnsm list also holds the scratch keys a formula writes and reads back in the same slice (`CaptnBonuz`, `AtomBonCalc1`); the inputs are the caches the game fills elsewhere (`StarSigns`, `AlchVials`, `FamBonusQTYs`…).
 - Depth stops at 6.
 
-**57 functions, 295 sub-cases (rows), 101 whole body, 0 not found, 86 attrs, 101 dnsm.** **277 ported `[x]`, 0 not reached `[~]`, 18 open.**
+**57 functions, 295 sub-cases (rows), 101 whole body, 0 not found, 86 attrs, 101 dnsm.** **288 ported `[x]`, 5 not reached `[~]`, 2 open.**
 
 ## ExpMulti
 
@@ -69,7 +69,7 @@ Regenerate it when N.js, a module's `PORTED` or `lib/game/unreached.ts` changes.
 - [x] GamingStatType("SuperBitType",19,0) — depth 1 — 139 chars
 - [x] GamingStatType("SuperBitType",63,0) — depth 1 — 139 chars
 - [x] GamingStatType("SuperBitType",24,0) — depth 1 — 139 chars
-- [ ] GamingStatType("MSA_Bonus",4,0) — depth 1 — 219 chars
+- [x] GamingStatType("MSA_Bonus",4,0) — depth 1 — 219 chars
 - [x] GamingStatType("SuperBitType",2,0) — depth 2 — 139 chars
 - [x] GamingStatType("SuperBitType",62,0) — depth 2 — 139 chars
 - [x] GamingStatType("SuperBitType",11,0) — depth 2 — 139 chars
@@ -103,13 +103,13 @@ Regenerate it when N.js, a module's `PORTED` or `lib/game/unreached.ts` changes.
 ## Windwalker
 
 - [x] Windwalker("CompassBonus",51,0) — depth 1 — 711 chars
-- [ ] Windwalker("TotalTitanKills",0,0) — depth 1 — 455 chars
+- [x] Windwalker("TotalTitanKills",0,0) — depth 1 — 455 chars
 - [x] Windwalker("CompassBonus",39,0) — depth 2 — 711 chars
 - [x] Windwalker("CompassBonus",80,0) — depth 2 — 711 chars
 
 ## Holes
 
-- [ ] Holes("B_UPG",47,0) — depth 1 — 64 chars
+- [x] Holes("B_UPG",47,0) — depth 1 — 64 chars
 - [x] Holes("B_UPG",83,40) — depth 1 — 7 chars
 - [x] Holes("MonumentROGbonuses",1,6) — depth 1 — 172 chars
 - [x] Holes("PocketDivOwned") — depth 2 — 361 chars
@@ -162,14 +162,14 @@ Regenerate it when N.js, a module's `PORTED` or `lib/game/unreached.ts` changes.
 
 ## Breeding
 
-- [ ] Breeding("PetArenaCrucBonus","0",15,0) — depth 1 — 87 chars
+- [x] Breeding("PetArenaCrucBonus","0",15,0) — depth 1 — 87 chars
 - [x] Breeding("ShinyBonusS","Nah",1,-1) — depth 1 — 1411 chars
 - [x] Breeding("ShinyBonusS","Nah",9,-1) — depth 2 — 1411 chars
 - [x] Breeding("SpecialPassives","Lv") — depth 2 — 668 chars
 
 ## MenagerieStuff
 
-- [ ] MenagerieStuff("BoostQTY",23,0) — depth 1 — 201 chars
+- [x] MenagerieStuff("BoostQTY",23,0) — depth 1 — 201 chars
 - [x] MenagerieStuff("UnlockOwned",22,0) — depth 2 — 135 chars
 - [x] MenagerieStuff("UnlockOwned",11,0) — depth 3 — 135 chars
 
@@ -194,12 +194,12 @@ Regenerate it when N.js, a module's `PORTED` or `lib/game/unreached.ts` changes.
 - [x] ResearchStuff("Grid_Bonus",132,0) — depth 1 — 1304 chars
 - [x] ResearchStuff("Grid_Bonus",152,0) — depth 1 — 1304 chars
 - [x] ResearchStuff("Grid_Bonus",173,0) — depth 2 — 1304 chars
-- [ ] ResearchStuff("Grid_Bonus") — depth 2 — 1304 chars
-- [ ] ResearchStuff("TotalObsLVs",0,0) — depth 2 — 511 chars
-- [ ] ResearchStuff("TotalOccurrencesFound",0,0) — depth 2 — 472 chars
+- [~] ResearchStuff("Grid_Bonus") — depth 2 — 1304 chars — not reached: within the EXP closure its only call site is ResearchStuff("Grid_Bonus")'s 2 == e branch (the default square, Grid_Bonus(b, 0) times its counter, @11177849); every Grid_Bonus reached is called with e = 0 but (68, 2), a ported branch
+- [~] ResearchStuff("TotalObsLVs",0,0) — depth 2 — 511 chars — not reached: within the EXP closure its only call site is ResearchStuff("Grid_Bonus")'s 2 == e branch (square 94, @11177849); every Grid_Bonus reached is called with e = 0 but (68, 2), a ported branch
+- [~] ResearchStuff("TotalOccurrencesFound",0,0) — depth 2 — 472 chars — not reached: within the EXP closure its only call site is ResearchStuff("Grid_Bonus")'s 2 == e branch (square 112, @11177849); every Grid_Bonus reached is called with e = 0 but (68, 2), a ported branch
 - [x] ResearchStuff("Grid_Bonus_Allmulti",0,0) — depth 2 — 330 chars
 - [x] ResearchStuff("Grid_Bonus",68,2) — depth 2 — 7 chars
-- [ ] ResearchStuff("OccurrencesToBeFound",0,0) — depth 3 — 385 chars
+- [~] ResearchStuff("OccurrencesToBeFound",0,0) — depth 3 — 385 chars — not reached: within the EXP closure called only by TotalObsLVs and TotalOccurrencesFound, which Grid_Bonus calls only when 2 == e (@11177849); ResearchEXPrateTOT @11150376 also calls it, outside the closure
 - [x] ResearchStuff("Grid_Bonus",125,0) — depth 3 — 1304 chars
 
 ## FarmingStuffs
@@ -212,10 +212,10 @@ Regenerate it when N.js, a module's `PORTED` or `lib/game/unreached.ts` changes.
 ## Thingies
 
 - [x] Thingies("ZenithMarketBonus",9,0) — depth 1 — 153 chars
-- [ ] Thingies("DancingCoralBonus",3,0) — depth 1 — 223 chars
-- [ ] Thingies("CoralKidUpgBonus",2,0) — depth 1 — 173 chars
-- [ ] Thingies("FriendBonusStatz",1,0) — depth 1 — 1262 chars
-- [ ] Thingies("DancingCoralBonus") — depth 2 — 223 chars
+- [x] Thingies("DancingCoralBonus",3,0) — depth 1 — 223 chars
+- [x] Thingies("CoralKidUpgBonus",2,0) — depth 1 — 173 chars
+- [x] Thingies("FriendBonusStatz",1,0) — depth 1 — 1262 chars
+- [x] Thingies("DancingCoralBonus") — depth 2 — 223 chars
 - [x] Thingies("LegendPTS_bonus",26,0) — depth 2 — 154 chars
 - [x] Thingies("FriendBonusSlots",0,0) — depth 2 — 196 chars
 - [x] Thingies("FriendBonusQTY") — depth 2 — 661 chars
@@ -268,7 +268,7 @@ Regenerate it when N.js, a module's `PORTED` or `lib/game/unreached.ts` changes.
 
 ## Spelunk
 
-- [ ] Spelunk("BigFishBonuses",4,0) — depth 1 — 597 chars
+- [x] Spelunk("BigFishBonuses",4,0) — depth 1 — 597 chars
 - [x] Spelunk("6starCards",0,0) — depth 2 — 69 chars
 - [x] Spelunk("DoWeHaveLoreN1",8,0) — depth 4 — 71 chars
 
@@ -348,13 +348,13 @@ Regenerate it when N.js, a module's `PORTED` or `lib/game/unreached.ts` changes.
 ## Minehead
 
 - [x] Minehead("Button_Bonuses",8,0) — depth 1 — 1219 chars
-- [ ] Minehead("GlimboTotalTrades",0,0) — depth 2 — 481 chars
+- [~] Minehead("GlimboTotalTrades",0,0) — depth 2 — 481 chars — not reached: within the EXP closure its only call site is ResearchStuff("Grid_Bonus")'s 2 == e branch (square 168, @11177849); every Grid_Bonus reached is called with e = 0 but (68, 2), a ported branch; MenagerieStuff MissionProg @5181951 also calls it, outside the closure
 - [x] Minehead("Button_BonusPerTime") — depth 2 — 56 chars
 - [x] Minehead("Button_BonusMULTI",0,0) — depth 2 — 102 chars
 
 ## WorkbenchStuff
 
-- [ ] WorkbenchStuff("AdditionExtraEXPnDR",0,0) — depth 1 — 128 chars
+- [x] WorkbenchStuff("AdditionExtraEXPnDR",0,0) — depth 1 — 128 chars
 - [x] WorkbenchStuff("PlayerBuildSpd") — depth 3 — 3041 chars
 - [x] WorkbenchStuff("ConstMasteryBonus",2,0) — depth 4 — 297 chars
 
