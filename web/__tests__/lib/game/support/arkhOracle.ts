@@ -384,9 +384,9 @@ export const STAT_WHY: Record<string, string> = {
   signsDmg:
     "lib/arkh's computeStarSignBonus (starSign.ts:48) adds every sign of its SIGN_BONUSES table for the key (PctDmg: signs 0, 32, 51, 53, 54, 70), skipping only negative values below the enabled count; N.js StarSigns @6540624 adds a sign only when it is worn or is one of the first RiftStuff(\"enabledStarSigns\") whose name StarSignsUnlocked has (the same cause as \"signs\", for the Damage % key)",
   signsExp:
-    "lib/arkh's Main EXP star signs (computeStarSignBonus(\"MainXP\")) count a sign the Rift enables that StarSignsUnlocked lacks; N.js StarSigns @6540624 adds sign k of the first enabledStarSigns only when StarSignsUnlocked has StarSigns[k][0] (ExpMulti(0) @4254204 reads DNSM.StarSigns.MainXP; proved by PROOF_PATCHES.signsExp, the missing sign names added to the character): the cause of `signs` and `signsSpeed` on the Main EXP key",
+    "lib/arkh's Main EXP star signs (computeStarSignBonus(\"MainXP\")) count a sign the Rift enables that StarSignsUnlocked lacks; N.js StarSigns @6540624 adds sign k of the first enabledStarSigns only when StarSignsUnlocked has StarSigns[k][0] (ExpMulti(0) @4260536 reads DNSM.StarSigns.MainXP; proved by PROOF_PATCHES.signsExp, the missing sign names added to the character): the cause of `signs` and `signsSpeed` on the Main EXP key",
   lukSnapshot:
-    "N.js ExpMulti(0) @4254204 starts from a live `x._customBlock_TotalStats(\"LUK\")` for the LUK curve (and the curve x talent 35 term); lib/arkh's exp.ts `luk` and `talent35` read `statList[ci][3]`, PVStatList_<ci>[3], which the game writes at save time as `PersonalValuesMap.StatList = [TotalStats(\"STR\"), TotalStats(\"AGI\"), TotalStats(\"WIS\"), TotalStats(\"LUK\"), Lv0[0]]` (@15049689): a snapshot of the total, equal to lib/game's value on a fresh save and stale on an older one. Proved by giving lib/arkh's envelope lib/game's TotalStats(\"LUK\") in PVStatList_<ci>[3]",
+    "N.js ExpMulti(0) @4260536 starts from a live `x._customBlock_TotalStats(\"LUK\")` for the LUK curve (and the curve x talent 35 term); lib/arkh's exp.ts `luk` and `talent35` read `statList[ci][3]`, PVStatList_<ci>[3], which the game writes at save time as `PersonalValuesMap.StatList = [TotalStats(\"STR\"), TotalStats(\"AGI\"), TotalStats(\"WIS\"), TotalStats(\"LUK\"), Lv0[0]]` (@15076361): a snapshot of the total, equal to lib/game's value on a fresh save and stale on an older one. Proved by giving lib/arkh's envelope lib/game's TotalStats(\"LUK\") in PVStatList_<ci>[3]",
   buff108:
     "a product decision of the Damage page (the plan's Global Constraints): the active buff 108 is not counted, a runtime leaf in lib/game; lib/arkh counts it while the saved BuffsActive has it, and N.js PlayerHPmax @4147120 multiplies the % by 1 - GetBuffBonuses(108,1) / 100",
 };
@@ -1223,6 +1223,108 @@ export function arkhAfkRate(save: unknown, ci: number, map: number): number {
 // Same cache design as AFK: the `exp` section of the sha1-keyed file (path save), identity-keyed memory (object save).
 const expByObject = new WeakMap<object, Map<string, ExpEntry>>();
 
+/** The name lib/arkh gives each EXP source node (stable across the real saves): expEntryOf checks the tree against it, so a reorder inside a group of the same length fails loudly. */
+const EXP_SOURCE_NAMES: Record<string, string> = {
+  workbench: "Archlord Of The Pirates (Talent 328)",
+  bunQ: "EXP Bundle",
+  superbit19: "Noobie Gains (Super Bit 19)",
+  medallion429: "Shiny Medallions (Talent 429)",
+  comp37: "Whallamus (Companion 37)",
+  comp33: "Chippy (Companion 33)",
+  comp160: "Glunko The Massive (Companion 160)",
+  comp32: "Whale (Companion 32)",
+  arenaCruc15: "1.20x Class EXP (Pet Arena Crucible 15)",
+  menagerie23: "Menagerie Boost: Class EXP gain (Boost 23)",
+  comp168: "Crystal Glunko (Companion 168)",
+  comp34: "Bunny (Companion 34)",
+  comp145: "Eggroll (Companion 145)",
+  jelly30: "Surrage (Jelly Obstruction 31)",
+  jelly62: "Tribunal Helmet (Jelly Obstruction 63)",
+  comp128: "Baby Troll (Companion 128)",
+  gridExp: "Legendary Fevers (Research Grid 130·131·132·152)",
+  sticker0: "Mega Mongo Sticker (Sticker 0)",
+  superbit63: "Experienced Gamer (Super Bit 63)",
+  zenith9: "Classy Gogo (Zenith Market 9)",
+  comp50: "Santa Snake (Companion 50)",
+  etc84: "Bonus Class EXP (Equipment)",
+  card100: "Class EXP Multi Cards (Card Type 100)",
+  arcade60: "Class XP Multi Arcade Bonus (Arcade 60)",
+  vialClassExp: "Crabomayse (Vial 83)",
+  talent434: "Slayer Abominator (Talent 434)",
+  arcane1: "Arcane Map Bonus: Class EXP",
+  bigFish4: "Advice on Being Smart (Big Fish 4)",
+  dancingCoral3: "Class EXP (Dancing Coral 3)",
+  coralKid: "Coral Kid Upgrade 2",
+  cardSet12: "Class EXP Multi Set Bonus (Card Set 12)",
+  bubba6: "XP Multi (Bubba RoG 6)",
+  sushi15: "Tobiko Temaki (Sushi Tier 16)",
+  cloud70: "Palette Lv. 100 (Equinox Challenge 70)",
+  fountain16: "Class EXP Boost (Fountain 16)",
+  royalStatue3: "Royal Statue: Class Exp",
+  classy: "Classy Discoveries",
+  etc78: "Class EXP Multi (Equipment)",
+  luk: "LUK Scaling (Class EXP)",
+  talent35: "Lucky Charms (Talent 35)",
+  etc4: "XP from Monsters (Equipment)",
+  boxMonsterExp: "Box of Unwanted Stats (Post Office 3c)",
+  food: "Food (Class EXP)",
+  starSignMainXP: "Star Signs: Main EXP",
+  vialMonsterExp: "Mimicraugh (Vial 17)",
+  bubbleExp: "Grind Time (Kazam Cauldron)",
+  card44: "Monster EXP Cards (Card Type 44)",
+  merit3: "Merit: EXP for Lowest-Level Character",
+  vault12: "Baby on Board (Vault 12)",
+  cardSet0: "EXP if below Lv 50 Set Bonus (Card Set 0)",
+  mealClexp: "Class EXP Meals (below Lv 120)",
+  weeklyBoss: "Weekly Boss",
+  newbie: "Newbie Bracket",
+  divMinor4: "Class EXP (Divinity Minor Bonus 4)",
+  cardSet5: "Card Set 5 (Damage · Drop · EXP)",
+  statue10: "EXP Statue (Statue 10)",
+  talent632: "Just EXP (Talent 632)",
+  shrine5: "Summereading Shrine (Shrine 5)",
+  saltLick3: "Class EXP and Skill EXP (Salt Lick 3)",
+  prayer0: "Big Brain Time (Prayer 0)",
+  prayer2: "Unending Energy (Prayer 2)",
+  prayer9: "The Royal Sampler (Prayer 9) (curse)",
+  flurbo2: "Class Exp (Flurbo Shop 2)",
+  ach57: "Dungeon Pinch (Achievement 57)",
+  ach357: "Unreal Overgrowth (Achievement 357)",
+  ach61: "2 Minute Meal (Achievement 61)",
+  ach124: "Dungeon Slap (Achievement 124)",
+  ach188: "Capitalist Win (Achievement 188)",
+  arcade12: "Class EXP Gain Arcade Bonus (Arcade 12)",
+  sigil8: "Metal Exterior Sigil (Sigil 8)",
+  ach286: "No Krakens? ): (Achievement 286)",
+  shiny1: "Class EXP Shiny Pet (Breeding 1)",
+  msa4: "MSA Totalizer (Class EXP)",
+  talent55: "EXP Cultivation (Talent 55)",
+  cardSpring: "Bubbulyte (Card springEvent1)",
+  comp3: "Crystal Custard (Companion 3)",
+  comp50add: "Santa Snake (Companion 50)",
+  shimmer179: "Island Shimmer",
+  goldFood: "Golden Nigiri (Golden Food)",
+  owl0: "Bonuses of Orion (Owl Upgrade 0)",
+  vote15: "Class EXP from Monsters (Weekly Vote 15)",
+  monument1_6: "Justice Monument: Class EXP Gain",
+  compass51: "Moon of Experience (Compass 51)",
+  hole47: "Gloomie Expie (Cavern Upgrade 47)",
+  win23: "Class EXP (Winner Bonus 23)",
+  grimoire24: "Skull of Major Experience (Grimoire 24)",
+  vault3: "Wicked Smart (Vault 3)",
+  vault35: "Schoolin' the Fish (Vault 35)",
+  hole83: "Sanctum of EXP (Cavern Upgrade 83)",
+  ironSet: "Iron Set",
+  exotic50: "Intelleaf (Exotic Market 50)",
+  ola421: "Class EXP from Monsters (Hoops Shop 2)",
+  stampClassxp: "Gud EXP Stamp (Stamp A44)",
+  friend1: "Class EXP Gain (Friend Bonus 1)",
+  comp47: "Baby Boa (Companion 47)",
+  comp111: "Clammie (Companion 111)",
+  button8: "Class XP (Minehead Button 8)",
+  comp128add: "Baby Troll (Companion 128)",
+};
+
 // The tree of computeArkhExpMulti: one child per EXP_GROUPS group, whose children are its sources in order (a grouped descriptor).
 function expEntryOf(parsed: any, ci: number, map: number): ExpEntry {
   const { tree, total } = computeArkhExpMulti(parsed, ci, map);
@@ -1230,7 +1332,11 @@ function expEntryOf(parsed: any, ci: number, map: number): ExpEntry {
   EXP_GROUPS.forEach((g, i) => {
     const kids = tree.children![i].children!;
     if (kids.length !== g.sources.length) throw new Error(`arkhExpLeaves: lib/arkh's ${g.key} has ${kids.length} sources, EXP_GROUPS has ${g.sources.length}`);
-    g.sources.forEach((id, k) => (leaves[id] = kids[k].val));
+    g.sources.forEach((id, k) => {
+      // by name too, not by index alone: a same-length reorder of a group in lib/arkh would otherwise pair the wrong leaves
+      if (kids[k].name !== EXP_SOURCE_NAMES[id]) throw new Error(`arkhExpLeaves: lib/arkh's ${g.key}[${k}] is "${kids[k].name}", EXP_GROUPS expects ${id} ("${EXP_SOURCE_NAMES[id]}")`);
+      leaves[id] = kids[k].val;
+    });
   });
   return { leaves, total };
 }
