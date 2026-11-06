@@ -335,6 +335,11 @@ describe("njsSlice keeps the prelude (what the game runs before the dispatch)", 
     const t = njsFunction(`m._customBlock_T=function(d){return"A"==d?k._customBlock_G(1):0};`, "T")!;
     expect(njsPrelude(t)).toBe("");
   });
+
+  it("a local named like the parameter (`dd`) does not end the prelude", () => {
+    const t = njsFunction(`m._customBlock_L=function(d){var dd=2;if("A"==dd)x=k._customBlock_G(1);if("B"==d)return k._customBlock_H()};`, "L")!;
+    expect(njsPrelude(t)).toBe(`var dd=2;if("A"==dd)x=k._customBlock_G(1);`);
+  });
 });
 
 // The live bundle is 25 MB: read and normalize it once for the file.

@@ -228,7 +228,7 @@ ${slice}` : slice;
 export function njsPrelude(fn: { params: string[]; body: string }): string {
   const v = fn.params.filter((p) => /^[A-Za-z]$/.test(p)).join("|");
   if (!v) return "";
-  const at = new RegExp(String.raw`if\("\w+"==(?:${v})|"\w+"==(?:${v})\?`).exec(fn.body)?.index ?? 0;
+  const at = new RegExp(String.raw`if\("\w+"==(?:${v})(?![\w$])|"\w+"==(?:${v})(?![\w$])\?`).exec(fn.body)?.index ?? 0;
   return fn.body.slice(0, at).replace(/^\{/, "").replace(/(?:^|[;{}])return$/, "");
 }
 
