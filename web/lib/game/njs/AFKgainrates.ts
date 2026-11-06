@@ -1,8 +1,6 @@
 import { asNum, attr } from "../attr";
 import { block, type Ctx } from "../ctx";
-import { MONSTERS } from "../data";
 import { NotPorted } from "../errors";
-import { afkTarget } from "../afkTarget";
 import type { Ported } from "../ported";
 import { ArcadeBonus } from "./ArcadeBonus";
 import { ArcaneType } from "./ArcaneType";
@@ -36,7 +34,7 @@ import { Windwalker } from "./Windwalker";
  * the Fighting branch: the rate `(.4 + Σ/100) x MULTI`, replaced by `.2 x` that on map 306, and by the Cove's rate on map 216 in cavern 17;
  * the result is never below .01. The three DNSM scratch values are locals here (the game rewrites them on every call).
  *
- * `CurrentMap` is `ctx.map` (Ruling V). The game's panel shows 0% for a target that is not a fight; that rule is `afkFightRate` below.
+ * `CurrentMap` is `ctx.map` (Ruling V). The page's rule for a target that is not a fight (decision A9) is `afkFightRate` in trackers/afkGains.ts.
  */
 export const AFKgainrates: (ctx: Ctx, d: string) => number = block("AFKgainrates", (ctx, d: string) => {
   if ("Fighting" != d) throw new NotPorted("AFKgainrates", d);
@@ -79,20 +77,6 @@ export const AFKgainrates: (ctx: Ctx, d: string) => number = block("AFKgainrates
   if (216 == ctx.map && 17 == attr(ctx, "Holes", 0, ctx.player)) rate = Holes2(ctx, "Cglunko_AFKgains", 0, 0) * (1 + (30 * Math.min(1, bundleAsNum(ctx, "bun_u"))) / 100);
   return Math.max(0.01, rate);
 });
-
-/**
- * The AFK page's rate: `AFKgainrates("Fighting")` on `ctx.map`, or 0 when the AFK target of that map has nothing to fight. The game's AFK
- * panel (@3803300) prints a literal 0% for a target whose MonsterDefinitions AFKtype is "Nothing" or "Paying_Respect"; a target with no
- * MonsterDefinitions entry (the maps whose default target is "Z" or "Filler": no monster) has no panel at all. Those give 0 here. A skill
- * target (MINING, CHOPPIN...) shows that skill's own rate in the game; the page shows the Fighting rate there instead (product decision, kept
- * from lib/arkh: "skill target: this page shows the fighting rate"), so it is not 0.
- * The Cove (map 216, cavern 17) counts as a fight whatever its target says: its rate replaces everything (product decision).
- */
-export function afkFightRate(ctx: Ctx): number {
-  if (216 == ctx.map && 17 == attr(ctx, "Holes", 0, ctx.player)) return AFKgainrates(ctx, "Fighting");
-  const type = (MONSTERS as unknown as Record<string, { AFKtype?: string } | undefined>)[afkTarget(ctx)]?.AFKtype;
-  return undefined === type || "Nothing" == type || "Paying_Respect" == type ? 0 : AFKgainrates(ctx, "Fighting");
-}
 
 /** What this module covers (lib/game/ported.ts). */
 export const PORTED: Ported = { Fighting: true };

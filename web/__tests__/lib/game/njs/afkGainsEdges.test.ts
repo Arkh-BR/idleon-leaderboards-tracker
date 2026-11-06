@@ -1,47 +1,15 @@
 // Task 3 (AFK plan): the edges of AFKgainrates("Fighting") (N.js @4443869) and afkFightRate on a synthetic envelope (no real save, so CI runs
 // them): the rate (.4 + Σ/100) x M, the merit and the bun_u bundle in the ALL terms, the .01 floor, the Clamworks' x0.2 on map 306, the Cove
 // on map 216 in cavern 17 (replacing everything), and the page's 0 for a map with nothing to fight. Every block AFKgainrates calls is answered
-// from the Ctx cache (`seed`), so only the block's own arithmetic and its map rules are under test.
+// from the Ctx cache (support/afkStub), so only the block's own arithmetic and its map rules are under test.
 import { describe, it, expect } from "vitest";
-import { makeCtx, type Ctx } from "@/lib/game/ctx";
-import { buildGameState, type GameEnvelope } from "@/lib/game/state";
 import { MapAFKtarget } from "@/lib/game/data";
 import { NotPorted } from "@/lib/game/errors";
-import { AFKgainrates, afkFightRate } from "@/lib/game/njs/AFKgainrates";
+import { AFKgainrates } from "@/lib/game/njs/AFKgainrates";
+import { afkFightRate } from "@/lib/game/trackers/afkGains";
+import { synth, type Seeds } from "../support/afkStub";
 
-type Data = Record<string, unknown>;
-type Seeds = Record<string, number>;
-
-/** Every call AFKgainrates("Fighting") makes, as the Ctx cache keys it (`name + JSON.stringify(args)`), all 0. */
-const CALLS = [
-  'ArcadeBonus[6]', 'Windwalker["CompassBonus",57,0]', 'GetSetBonus["VOID_SET","Bonus",0,0]', "FlurboShop[7]", 'Divinity["Bonus_MAJOR",0,0]',
-  'Divinity["Bonus_Minor",-1,5]', "Companions[6]", "Companions[25]", "Shrine[8]", "TalentCalc[650]", 'Summoning["WinBonus",11,0]',
-  'GoldFoodBonuses["AllAFK"]', 'RunCodeOfTypeXforThingY["CardLv","w6d3"]', 'RunCodeOfTypeXforThingY["CardLv","w6d1"]', 'Summoning["RooBonuses",5,0]',
-  'Summoning["VotingBonusz",6,0]', 'Summoning["EventShopOwned",5,0]', 'Summoning["VaultUpgBonus",23,0]', 'ArcaneType["ArcaneMapMulti_bon",2,0]',
-  'EtcBonuses["92"]', 'EtcBonuses["20"]', 'EtcBonuses["59"]', 'DNSM.FamBonusQTYs["8"]', 'DNSM.BoxRewards["fightAFK"]', "GetTalentNumber[1,88]",
-  "GetTalentNumber[1,268]", "GetTalentNumber[1,448]", "GetTalentNumber[1,621]", "GetTalentNumber[1,79]", 'GetBribeBonus["3"]', 'CardSetBonuses[0,"10"]',
-  "CardBonusREAL[43]", 'DNSM.StarSigns["FightAFK"]', "GuildBonuses[4]", "prayersReal[4,0]", "prayersReal[12,1]", 'chipBonuses["fafk"]',
-  'Holes2["Cglunko_AFKgains",0,0]',
-];
-
-/** A character 0 on map `map` (`CurrentMap_0`: `at`, default -1: never the map under test, so its saved AFK target is not kept), with `seeds` over all-0 calls. */
-function synth(data: Data, o: { map?: number; at?: number; seeds?: Seeds } = {}): Ctx {
-  const map = o.map ?? 251;
-  const c = makeCtx(
-    buildGameState({
-      data: { CurrentMap_0: o.at ?? -1, AFKtarget_0: "Mush", TaskZZ2: [[], [0, 0, 0]], ...data },
-      charNames: ["c0"], companion: null, guildData: {}, serverVars: null, tournament: {}, accountCreateTime: 1, lastUpdated: 1,
-    } as unknown as GameEnvelope),
-    { player: 0, map }
-  );
-  for (const k of CALLS) c.cache.set(`0|${map}|${k}`, 0);
-  for (const [k, v] of Object.entries(o.seeds ?? {})) {
-    expect(CALLS, `${k} is a call AFKgainrates makes`).toContain(k);
-    c.cache.set(`0|${map}|${k}`, v);
-  }
-  return c;
-}
-const rate = (data: Data, o?: Parameters<typeof synth>[1]) => AFKgainrates(synth(data, o), "Fighting");
+const rate = (data: Record<string, unknown>, o?: Parameters<typeof synth>[1]) => AFKgainrates(synth(data, o), "Fighting");
 const cavern = (n: number) => ({ Holes: [[n]] });
 
 describe("AFKgainrates(\"Fighting\") (synthetic, runs in CI)", () => {
@@ -158,6 +126,29 @@ describe("afkFightRate: 0 when the map's AFK target has nothing to fight (synthe
     expect(afkFightRate(synth({ AFKtarget_0: target(1), CurrentMap_0: 0 }, { seeds, map: 0 }))).toBeCloseTo(1, 12); // map 0's default is Nothing
     // on another map the saved target says nothing
     expect(afkFightRate(synth({ AFKtarget_0: "Nothing", CurrentMap_0: 5 }, { seeds, map: fightMap }))).toBeCloseTo(1, 12);
+  });
+
+  // Carried minor 4: afkFightRate is page product logic (decision A9), not an N.js block, so it lives with the tracker and says what it decided
+  // in the trace: an `assumed:` leaf (a stated stand-in, Ruling J) for the 0 and for the skill target's Fighting rate, none for a plain fight.
+  it("leaves an assumed: A9 leaf in the trace: 0 for a target with nothing to fight, 1 for a skill target, none for a fight or the Cove", () => {
+    const leaves = (c: ReturnType<typeof synth>) => c.trace!.children.filter((n) => n.block === "AFK target").map((n) => [n.value, n.note]);
+    const at = (map: number, data: Record<string, unknown> = {}) => {
+      const c = synth(data, { seeds, map, trace: true });
+      return { c, rate: afkFightRate(c) };
+    };
+    let r = at(0);
+    expect(r.rate).toBe(0);
+    expect(leaves(r.c)).toEqual([[0, "assumed: the AFK target Nothing (Nothing) has nothing to fight: this page shows 0"]]);
+    r = at(33);
+    expect(leaves(r.c)).toEqual([[0, "assumed: Z has no monster to fight: this page shows 0"]]);
+    r = at(6);
+    expect(r.rate).toBeCloseTo(1, 12);
+    expect(leaves(r.c)).toEqual([[1, `assumed: the AFK target ${target(6)} is a MINING skill, whose own rate the game shows: this page shows the Fighting rate`]]);
+    expect(at(fightMap).c.trace!.children.some((n) => n.block === "AFK target")).toBe(false);
+    const cove: Seeds = { ...seeds, 'Holes2["Cglunko_AFKgains",0,0]': 0.5 };
+    const c = synth(cavern(17), { seeds: cove, map: 216, trace: true });
+    expect(afkFightRate(c)).toBe(0.5);
+    expect(c.trace!.children.some((n) => n.block === "AFK target")).toBe(false);
   });
 
   it("the Cove (map 216, cavern 17) counts as a fight whatever its target says; map 216 outside the Cove has nothing to fight", () => {
