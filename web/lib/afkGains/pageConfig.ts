@@ -3,7 +3,7 @@
 
 import type { GainSource, GainsModel, StatPageConfig } from "@/lib/statTracker/config";
 import { directChildren } from "@/lib/statTracker/biggestGains";
-import { AFK_NODES, AFK_ROOT, AFK_VOTE_NAME, afkRate } from "@/lib/arkh/stats/defs/afk-gains";
+import { AFK_NODES, AFK_ROOT, AFK_VOTE_NAME, afkRate } from "./layers";
 import { TOP_AFK_GENERATED_AT, TOP_AFK_PLAYERS_SCANNED } from "./topAfkGains.meta";
 
 /** The AFK Info panel's number (N.js @3790178: ""+Math.floor(100*rate)+"%"),

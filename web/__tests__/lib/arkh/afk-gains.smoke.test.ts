@@ -59,7 +59,7 @@ describe("AFK Gains smoke test", () => {
   });
 
   it("registers the port under N.js's AFKgainrates for the updater", () => {
-    expect(FORMULA_REGISTRY["_customBlock_AFKgainrates"]).toEqual(["lib/arkh/stats/systems/afk/afk.ts"]);
+    expect(FORMULA_REGISTRY["_customBlock_AFKgainrates"]).toContain("lib/arkh/stats/systems/afk/afk.ts"); // and lib/game/njs/AFKgainrates.ts since the port
   });
 });
 
