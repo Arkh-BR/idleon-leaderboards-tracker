@@ -37,6 +37,9 @@ const MAPS: Record<number, { known: number; kept: number; refused: string[]; pai
   40: { known: 510, kept: 0, refused: HOURZERO, pairs: 1153 },
 };
 
+/** The EXP LUK curve (ExpMulti @4260536) of a LUK total. */
+const lukCurve = (luk: number) => (1e3 > luk ? (Math.pow(luk + 1, 0.37) - 1) / 30 : 0.8 * ((luk - 1e3) / (luk + 2500)) + 0.3963);
+
 const states = new Map<string, ReturnType<typeof buildGameState>>();
 afterAll(() => states.clear());
 const stateOf = (path: string) => {
@@ -96,16 +99,18 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("ExpMulti(0) against lib/arkh on ever
           // (a save patch, or lib/arkh's number for the cause seeded into a fresh Ctx), and the totals must then agree
           const seeds: Seed[] = [];
           let proofState = state;
+          const patchEnv = JSON.parse(readFileSync(path, "utf8")) as GameEnvelope; // one envelope for every patch reason of the pair
+          let patched = false;
           for (const r of reasons.filter((x) => x !== "lukSnapshot")) {
             if (r === "signsExp") {
               // at the total the Main EXP sign is seeded (the leaf test proves it by a save patch, which would also move every other sign effect of the pair)
               seeds.push(["DNSM.StarSigns", ["MainXP"], arkhExpLeaves(path, ci, map).starSignMainXP]);
             } else if (PROOF_PATCHES[r]) {
-              const env = JSON.parse(readFileSync(path, "utf8")) as GameEnvelope;
-              PROOF_PATCHES[r](env.data as Record<string, unknown>, ci, state.charNames.length);
-              proofState = buildGameState(env);
+              PROOF_PATCHES[r](patchEnv.data as Record<string, unknown>, ci, state.charNames.length);
+              patched = true;
             } else seeds.push(...damageReasonSeeds(path, ci, r));
           }
+          if (patched) proofState = buildGameState(patchEnv);
           const c = makeCtx(proofState, { player: ci, map });
           // negative control: a seed is never the cache key of the call under test (the proof would hold by construction)
           for (const [name, args] of seeds) expect(`${name}${JSON.stringify(args)}`).not.toBe("ExpMulti[0]");
@@ -115,6 +120,12 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("ExpMulti(0) against lib/arkh on ever
           let wantProved = want;
           // (also when a seed moves the live LUK, e.g. sign 69 through the golden food: lib/arkh's snapshot is the game's own, unseeded, total and does not follow)
           const lukMoved = TotalStats(c, "LUK") !== TotalStats(ctx, "LUK");
+          if (lukMoved && !reasons.includes("lukSnapshot")) {
+            // the re-patch stands on its own: lib/arkh's saved snapshot gives the game's unseeded LUK curve (the luk leaf's own 1e-9 tolerance; a snapshot can be stale by a few LUK, which the curve absorbs)
+            const snap = (JSON.parse(readFileSync(path, "utf8")) as { data: Record<string, unknown> }).data[`PVStatList_${ci}`];
+            const list = (typeof snap === "string" ? JSON.parse(snap) : snap) as number[];
+            expect(rel(lukCurve(list[3]), lukCurve(TotalStats(ctx, "LUK"))), `${basename(path)}#${ci}@${map}: the snapshot is not the unseeded LUK`).toBe(true);
+          }
           if (reasons.includes("lukSnapshot") || lukMoved) {
             const env = JSON.parse(readFileSync(path, "utf8")) as GameEnvelope;
             patchLukSnapshot(env.data as Record<string, unknown>, ci, TotalStats(c, "LUK"));

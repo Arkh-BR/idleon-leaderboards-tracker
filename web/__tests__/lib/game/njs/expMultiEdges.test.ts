@@ -7,7 +7,7 @@ import { describe, it, expect } from "vitest";
 import { type Ctx, makeCtx } from "@/lib/game/ctx";
 import { buildGameState, type GameEnvelope } from "@/lib/game/state";
 import { IDforCardSETbonus, MapAFKtarget, MealINFO, NinjaInfo } from "@/lib/game/data";
-import { NotPorted } from "@/lib/game/errors";
+import { MissingSaveKey, NotPorted } from "@/lib/game/errors";
 import { ExpMulti } from "@/lib/game/njs/ExpMulti";
 import { CardSetBonuses } from "@/lib/game/njs/CardSetBonuses";
 import { MealBonus } from "@/lib/game/njs/MealBonus";
@@ -180,10 +180,14 @@ describe("the groups: the g04 product below 1 is raised to 1 (Math.max(1, ·)), 
     expect(total({}, { "Companions[50]": 100 })).toBeCloseTo(1.01 * (1 + 100 / 100), 12);
   });
   it("a factor below 1 anywhere in g04 is absorbed only while the whole product stays under 1", () => {
-    // .5 x 4 = 2: not raised, the product is 2
-    expect(total({}, { [JELLY]: -50, "Companions[160]": 0.25 })).toBe(0.5 * 2);
+    // .5 x (1 + 4 x .75 = 4) = 2: a factor below 1 inside a product above 1 is kept, the product is 2
+    expect(total({}, { [JELLY]: -50, "Companions[160]": 0.75 })).toBe(0.5 * 4);
     // .5 x 1.5 = .75 -> 1
     expect(total({}, { [JELLY]: -50, 'JellyOperation["RoG_BonusQTY",62,0]': 50 })).toBe(1);
+  });
+  it("a save without WeeklyBoss is refused (MissingSaveKey), not a TypeError", () => {
+    const c = synth({ WeeklyBoss: undefined }, { seeds: WB });
+    expect(() => ExpMulti(c, 0)).toThrow(MissingSaveKey);
   });
   it("the groups outside g04 are plain products: g05 below 1 lowers the total", () => {
     expect(total({}, { 'EtcBonuses["84"]': -50 })).toBe(0.5);

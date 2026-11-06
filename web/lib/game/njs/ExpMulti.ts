@@ -1,7 +1,7 @@
 import { asNum, attr } from "../attr";
 import { block, type Ctx, withPlayer } from "../ctx";
 import { MapAFKtarget } from "../data";
-import { NotPorted } from "../errors";
+import { InvalidSaveValue, MissingSaveKey, NotPorted } from "../errors";
 import { contains, listAt } from "../lists";
 import type { Ported } from "../ported";
 import { AchieveStatus } from "./AchieveStatus";
@@ -88,7 +88,10 @@ export const ExpMulti: (ctx: Ctx, d: number) => number = block("ExpMulti", (ctx,
   }
   if (50 > asNum(c, "Lv0", 0)) exp2 = exp2 + CardSetBonuses(c, 0, "0");
   if (120 > asNum(c, "Lv0", 0)) exp2 = exp2 + MealBonus(c, "Clexp");
-  if (Object.hasOwn(attr(c, "WeeklyBoss") as object, "c")) exp2 = exp2 + Math.min(150, asNum(c, "WeeklyBoss", "c"));
+  const weekly = attr(c, "WeeklyBoss"); // the game reads WeeklyBoss.h directly: a save without it is refused, not a TypeError
+  if (weekly === undefined) throw new MissingSaveKey("WeeklyBoss");
+  if (weekly === null || typeof weekly !== "object") throw new InvalidSaveValue("WeeklyBoss", "a map", weekly);
+  if (Object.hasOwn(weekly, "c")) exp2 = exp2 + Math.min(150, asNum(c, "WeeklyBoss", "c"));
   if (10 > asNum(c, "Lv0", 0)) exp2 = exp2 + 150;
   else if (30 > asNum(c, "Lv0", 0)) exp2 = exp2 + 100;
   else if (50 > asNum(c, "Lv0", 0)) exp2 = exp2 + 50;
