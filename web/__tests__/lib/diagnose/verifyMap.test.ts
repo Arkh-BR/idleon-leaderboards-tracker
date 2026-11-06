@@ -203,3 +203,16 @@ describe("verifyReport", () => {
     expect(verifySummary(rows, [])).toContain("0 nodes unchecked");
   });
 });
+
+describe("notPorted: UNREACHED rows", () => {
+  const text = (n: TraceNode) => (n.block === "Foo" ? `k._customBlock_TotalStats("STR")+k._customBlock_Bar()` : "");
+  const unreached = [{ row: 'TotalStats("STR")', roots: ['Foo("X")'], why: "test" }];
+
+  it("a call the tracked root's UNREACHED row declares is not missing", () => {
+    expect(notPorted(root(node("Foo", ["X"], [node("Bar")])), text, unreached)).toEqual([]);
+  });
+
+  it("a row of another root does not hide it", () => {
+    expect(notPorted(root(node("Foo", ["Y"], [node("Bar")])), text, unreached)).toHaveLength(1);
+  });
+});

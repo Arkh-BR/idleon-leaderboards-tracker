@@ -8,6 +8,7 @@
 
 import { callDiff, callKey, njsCalls, traceCalls, type Call } from "@/lib/diagnose/njsCalls";
 import type { TraceNode } from "@/lib/game/trace";
+import { UNREACHED, type Unreached } from "@/lib/game/unreached";
 import { readingValues } from "@/lib/readings/registry";
 import type { Reading, StatKey } from "@/lib/readings/types";
 
@@ -48,11 +49,15 @@ export type NotPorted = { block: string; missing: Call[]; unchecked?: true };
  * The calls the game's formula makes that a node's own children do not ("not ported"). For each
  * call that ran (not runtime, not cached) with N.js text, the text's calls against its DIRECT
  * children (a cached child counts, a runtime one does not). One entry per block+args; nothing
- * for a node that misses nothing. `njsTextOf` is the node's slice of the N.js, if it has one; a
+ * for a node that misses nothing. A missing call that UNREACHED rows (lib/game/unreached.ts, Ruling F) declare unreachable from the tracked roots
+ * is not missing: the game's text has it, the roots never run it. `njsTextOf` is the node's slice of the N.js, if it has one; a
  * node without one has nothing to compare and comes back as `unchecked: true`, so it cannot pass
  * for a checked-and-clean node.
  */
-export function notPorted(trace: TraceNode, njsTextOf: (node: TraceNode) => string | undefined): NotPorted[] {
+export function notPorted(trace: TraceNode, njsTextOf: (node: TraceNode) => string | undefined, unreached: readonly Unreached[] = UNREACHED): NotPorted[] {
+  const spell = (block: string, args: readonly unknown[]) => `${block}(${args.map((a) => JSON.stringify(a)).join(",")})`; // the inventory's spelling
+  const roots = trace.children.map((n) => spell(n.block, n.args));
+  const skipped = (c: Call) => unreached.some((u) => u.row === spell(c.block, c.args ?? (c.arg0 === undefined ? [] : [c.arg0])) && roots.some((r) => u.roots.includes(r)));
   const seen = new Set<string>();
   const out: NotPorted[] = [];
   for (const n of traceNodes(trace)) {
@@ -66,7 +71,7 @@ export function notPorted(trace: TraceNode, njsTextOf: (node: TraceNode) => stri
       continue;
     }
     const direct = traceCalls({ ...n, children: n.children.map((c) => ({ ...c, children: [] })) });
-    const { missing } = callDiff(njsCalls(text), direct);
+    const missing = callDiff(njsCalls(text), direct).missing.filter((c) => !skipped(c));
     if (missing.length) out.push({ block: n.block, missing });
   }
   return out;
