@@ -13,11 +13,11 @@ Regenerate it when N.js, a module's `PORTED` or `lib/game/unreached.ts` changes.
 - attrs and dnsm are the reads in every slice listed. One marked "whole body only" is read only inside a whole-body function (all its branches, not just the one this formula takes). `DNSM` is runtime-only (it is never loaded from the save): port it as `DNSM_*` functions, not as a save attribute. The dnsm list also holds the scratch keys a formula writes and reads back in the same slice (`CaptnBonuz`, `AtomBonCalc1`); the inputs are the caches the game fills elsewhere (`StarSigns`, `AlchVials`, `FamBonusQTYs`…).
 - Depth stops at 6.
 
-**51 functions, 162 sub-cases (rows), 47 whole body, 0 not found, 57 attrs, 75 dnsm.** **152 ported `[x]`, 9 not reached `[~]`, 1 open.**
+**51 functions, 162 sub-cases (rows), 47 whole body, 0 not found, 57 attrs, 75 dnsm.** **153 ported `[x]`, 9 not reached `[~]`, 0 open.**
 
 ## AFKgainrates
 
-- [ ] AFKgainrates("Fighting") — depth 0 — 4651 chars
+- [x] AFKgainrates("Fighting") — depth 0 — 4651 chars
 
 ## CardBonusREAL
 

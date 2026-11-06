@@ -573,7 +573,8 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/game/njs/Thingies.ts"
   ],
   "_customBlock_AFKgainrates": [
-    "lib/arkh/stats/systems/afk/afk.ts"
+    "lib/arkh/stats/systems/afk/afk.ts",
+    "lib/game/njs/AFKgainrates.ts"
   ],
   "_customBlock_AchieveStatus": [
     "lib/game/njs/AchieveStatus.ts"
