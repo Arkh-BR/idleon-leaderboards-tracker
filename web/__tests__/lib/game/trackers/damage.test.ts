@@ -88,7 +88,7 @@ describe("the display config and the registry", () => {
   it("TRACKERS has the Player Info stats the Damage readings carry, each its N.js block (lib/readings/compute dispatches on it)", () => {
     const calls = { maxHp: "PlayerHPmax[]", maxMp: "PlayerMPmax[]", accuracy: "PlayerAccTot[]", str: 'TotalStats["STR"]', agi: 'TotalStats["AGI"]', wis: 'TotalStats["WIS"]', luk: 'TotalStats["LUK"]' } as const;
     Object.entries(calls).forEach(([stat, call], i) => expect(TRACKERS[stat as keyof typeof calls]!(stubbed({ [call]: 7 + i })), stat).toBe(7 + i));
-    expect(Object.keys(TRACKERS).sort()).toEqual(["accuracy", "afkGains", "agi", "artifactFind", "damage", "expMulti", "luk", "maxHp", "maxMp", "str", "wis"]);
+    expect(Object.keys(TRACKERS).sort()).toEqual(["accuracy", "afkGains", "agi", "artifactFind", "damage", "dropRateV2", "expMulti", "luk", "maxHp", "maxMp", "str", "wis"]);
   });
 
   it("characterize accepts exactly the refusals the real-save loops pin (DAMAGE_REFUSABLE)", () => {
