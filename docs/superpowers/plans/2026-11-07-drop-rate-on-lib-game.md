@@ -29,7 +29,7 @@
   - The map sets the Arcane map multiplier. On map 216, when the character's cavern is 17 (`Holes[0][charIdx]`), the Crystal Glunko Cove (`Holes2("Cglunko_DR")`) replaces the total. N.js reads `CurrentMap`, so that is `ctx.map`.
   - The weekly vote is shown but not ranked (`DR2_VOTE_NAME`).
   - The groups, their order, names and kinds (`pct`, `mult`, `add` with `below`, `max1`, `replace`) stay as `DR2_GROUPS` declares them.
-- **Out of scope:** the V1 page (`/drop-rate`, `lib/arkh/computeDR` and DeepView) stays on lib/arkh. Its fate is the user's decision.
+- **Out of scope:** the V1 page (`/drop-rate`, `lib/arkh/computeDR` and DeepView) stays on lib/arkh here. The user decided on 07/11 that V1 migrates too, in its own plan after this one.
 - **Before opening the PR:** the controller runs the full suite once in a clean worktree with no private saves and no N.js cache, on Node 22 (`npx -y node@22`), as CI does. The classifier refuses Node 22 for subagents.
 
 ## Review Focus
@@ -160,7 +160,7 @@ Resolve each open row: port it, or declare it unreached with N.js evidence.
 ---
 
 Out of this plan:
-- the V1 page (`/drop-rate`), which the user decides to retire or migrate;
+- the V1 page (`/drop-rate`), which migrates in its own plan (user decision, 07/11);
 - the Observed Max collectors on lib/game (Damage, AFK, EXP, DR);
 - Coin and Multikill, in the order the user set on 05/11;
 - the `/stats` explorer.
