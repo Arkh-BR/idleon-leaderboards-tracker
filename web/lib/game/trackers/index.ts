@@ -1,6 +1,7 @@
 import type { Ctx } from "@/lib/game/ctx";
 import { DamageDealed } from "@/lib/game/njs/DamageDealed";
 import { afkFightRate } from "@/lib/game/trackers/afkGains";
+import { ExpMulti } from "@/lib/game/njs/ExpMulti";
 import { PlayerAccTot } from "@/lib/game/njs/PlayerAccTot";
 import { PlayerHPmax } from "@/lib/game/njs/PlayerHPmax";
 import { PlayerMPmax } from "@/lib/game/njs/PlayerMPmax";
@@ -17,6 +18,8 @@ export const TRACKERS: Partial<Record<StatKey, (ctx: Ctx) => number>> = {
   // the AFK GAINS RATE line of the AFK Info panel: AFKgainrates("Fighting") on the Ctx's map, 0 where the AFK target has nothing to fight
   // (decision A9; adapter: trackers/afkGains.ts)
   afkGains: (ctx) => afkFightRate(ctx),
+  // the "Class EXP" line of Player Info: ExpMulti(0) on the Ctx's map (adapter: trackers/expMulti.ts)
+  expMulti: (ctx) => ExpMulti(ctx, 0),
   // the Player Info stats the Damage readings carry as extras (Damage plan, Task 3; Ruling Q: every one equals the game's text)
   maxHp: (ctx) => PlayerHPmax(ctx),
   maxMp: (ctx) => PlayerMPmax(ctx),
