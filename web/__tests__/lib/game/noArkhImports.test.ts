@@ -1,6 +1,6 @@
 // Ruling KK: lib/game must not depend on lib/arkh at runtime (the MIT relicense goal). Walks the static import graph from every
-// lib/game/trackers/*.ts through lib/game itself (lib/game/data excepted), lib/statTracker, lib/*/layers.ts and lib/dropRate/treeFlatten.ts, and
-// fails on any non-type import of lib/arkh. Type-only imports are fine. (lib/tome, which DNSM.TomeQTYtot runs, is outside this walk: Ruling K.)
+// lib/game/trackers/*.ts through every web/lib file they reach (lib/game/data and lib/tome excepted: Ruling K), and fails on any
+// non-type import of lib/arkh. Type-only imports are fine.
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -25,8 +25,8 @@ const runtimeImports = (src: string): string[] => {
   for (const m of src.matchAll(/^\s*import\s+"([^"]+)"/gm)) out.push(m[1]);
   return out;
 };
-const followed = (rel: string) =>
-  (rel.startsWith("lib/game/") && !rel.startsWith("lib/game/data")) || rel.startsWith("lib/statTracker/") || /^lib\/[^/]+\/layers\.ts$/.test(rel) || rel === "lib/dropRate/treeFlatten.ts";
+// every web/lib file the walk reaches is followed; only the game data and lib/tome (which DNSM.TomeQTYtot runs, Ruling K) are outside it
+const followed = (rel: string) => rel.startsWith("lib/") && !rel.startsWith("lib/game/data") && !rel.startsWith("lib/tome/");
 
 describe("lib/game imports no lib/arkh at runtime (Ruling KK)", () => {
   it("through the trackers' static import graph", () => {

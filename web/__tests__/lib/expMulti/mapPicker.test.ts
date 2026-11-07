@@ -10,12 +10,13 @@ import { GOLDEN_SAVES } from "../game/support/arkhOracle";
 
 it("the page drops no map", () => expect(EXP_PAGE.loadMapFilter).toBeUndefined());
 
-// a current-CSver save (an older one is refused by design): ARKHE.json, else the first current one; none = the sweep skips
-const current = (p: string) => existsSync(p) && JSON.parse(readFileSync(p, "utf8")).data?.CSver === CURRENT_CSVER;
-const REAL = [GOLDEN_SAVES.find((p) => p.endsWith("ARKHE.json")), ...GOLDEN_SAVES].find((p) => p && current(p));
-describe.skipIf(!REAL)("every map the EXP picker offers computes (real save, character 0)", () => {
-  it("no throw and a finite multiplier on each", () => {
-    const save = JSON.parse(readFileSync(REAL!, "utf8"));
+// a current-CSver save (an older one is refused by design): ARKHE.json, else the first current one. Only the existence is probed at collection time; the parse is inside `it`.
+const current = (p: string) => JSON.parse(readFileSync(p, "utf8")).data?.CSver === CURRENT_CSVER;
+describe.skipIf(!GOLDEN_SAVES.some((p) => existsSync(p)))("every map the EXP picker offers computes (real save, character 0)", () => {
+  it("no throw and a finite multiplier on each", (ctx) => {
+    const real = [GOLDEN_SAVES.find((p) => p.endsWith("ARKHE.json")), ...GOLDEN_SAVES].find((p) => p && existsSync(p) && current(p));
+    if (!real) return ctx.skip(); // saves present, none at the current CSver
+    const save = JSON.parse(readFileSync(real, "utf8"));
     const maps = buildStatMapOptions(save);
     expect(maps.length).toBeGreaterThan(100); // a loop over nothing would pass
     const bad: string[] = [];
