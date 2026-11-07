@@ -273,3 +273,42 @@ Registro do que foi decidido ao migrar o AFK Gains (branch `feat/afk-game`, plan
 - **EE:** a Tarefa 5 segue sem leituras do jogo; o teste continua pulando se a fixture não existe e o controlador registra ao menos uma antes do merge. Custo: a revisão do PR vem antes da conferência no jogo.
 - **FF:** desempenho aceito: troca de personagem em paridade com o `lib/arkh` (cerca de 22 ms) e carga a frio uma vez por save (cerca de 56 ms contra 23 ms). Custo: troca um pouco mais lenta; o cache de conta da Ruling X é o caminho de melhora.
 - **GG:** o tipo do alvo A9 segue a Ruling V (alvo salvo no mapa do próprio personagem, regra de carga de cena nos demais), por decisão do usuário de 06/11. Em saves reais isso muda 350 personagens de 0 para a taxa de luta com nota (cidades de Lab/Div/Cooking/Spelunk) e 56 de 0 para luta (cavernas do 216), contra o `lib/arkh`. Custo: nenhum.
+
+## Decisões da migração do EXP Multi (2026-11-07)
+
+Registro do que foi decidido ao migrar o EXP Multi (branch `feat/exp-game`, plano `docs/superpowers/plans/2026-11-06-exp-multi-on-lib-game.md`, na main pelo PR #75, `34a643c`; esta seção é o registro feito depois). O código cita "Ruling HH" a "Ruling KK"; elas estão definidas aqui. As rulings A a GG (acima) continuam valendo.
+
+### Decisões do usuário
+
+- **O que o EXP conta (decisão de produto da página, mantida):** a linha "Class EXP" do Player Info; o mapa define o bônus Arcane e qual Shiny Medallion vale; o voto semanal aparece e não entra no ranking; as fontes circunstanciais mantêm o tratamento da página.
+- **LUK ao vivo:** o EXP usa o LUK calculado, como o jogo (o `lib/arkh` lia a foto `PVStatList` do save: `lukSnapshot`).
+- **Notas por save:** as linhas da Workbench (talento 328) e do talento 632 perdem as notas por save do `lib/arkh`; valores e entradas continuam na árvore.
+- **Leitura do jogo:** o usuário conferiu o Class EXP no preview em 07/11 ("tá certinho") antes do merge.
+
+### Rulings
+
+- **HH:** o merge espera a conferência do usuário no jogo (a leitura do Player Info com o jogo aberto do zero, por causa do cache de shiny da sessão); sem leitura gravada, o teste de leituras pula e o PR declara isso. Custo: a revisão do PR vem antes da conferência no jogo.
+- **II:** o Shiny Medallion usa `MapAFKtarget[ctx.map]`, o estático que o N.js lê, e não o alvo AFK salvo (diferente das Rulings V e GG do AFK). Custo: nenhum.
+- **JJ:** os comentários `@offset` citam o offset do `N.new.js` bruto; os revisores às vezes citam as coordenadas normalizadas do `loadNjs()`, que é preciso converter. Custo: nenhum.
+- **KK:** as folds de grupo foram reescritas do zero em `lib/statTracker/groups.ts` (o `lib/arkh` as reexporta), e o guard `noArkhImports.test.ts` proíbe `@/lib/arkh` em runtime alcançado pelos trackers, exceto `lib/game/data` e `lib/tome`. Custo: nenhum.
+
+## Decisões da migração do Drop Rate V2 (2026-11-07)
+
+Registro do que foi decidido ao migrar o Drop Rate V2 (branch `feat/drop-rate-game`, plano `docs/superpowers/plans/2026-11-07-drop-rate-on-lib-game.md`). O código cita "Ruling LL" a "Ruling RR"; elas estão definidas aqui. As rulings A a KK (acima) continuam valendo.
+
+### Decisões do usuário (2026-11-07)
+
+- **Escopo:** migra a página V2 (`/drop-rate-v2`, kit, `TotalStats("Drop_Rarity")` @4190432). A V1 (`/drop-rate`, `computeDR` + DeepView) também migra, num plano próprio depois deste; não vai ser aposentada.
+- **Execução:** subagent-driven.
+- **Notas:** das 12 notas por save do `lib/arkh`, voltam as 6 dos companheiros ("Not owned — would grant +X", companheiros 3, 22, 50, 158, 111 e 132), com o valor tirado dos dados do jogo (`CompanionDB[id][2]`); as outras 6 (o decaimento dos talentos 279, 24 e 655, o log da Workbench, a prece 7 e a conquista 381) somem, como no EXP.
+- **Referência do Observed Max:** o coletor continua no `lib/arkh` (como no Damage, AFK e EXP); só a página calcula no `lib/game`.
+
+### Rulings
+
+- **LL:** a chave do `TRACKERS` é o StatKey `dropRateV2` (o verify-map e as leituras indexam por StatKey). Custo: nenhum.
+- **MM:** leituras do jogo como em HH: a Etapa 6 da Tarefa 1 é do controlador com o usuário, e o merge espera a conferência do Drop Rate no Player Info, com o jogo recém-aberto. Custo: o verify-map não tem leitura de DR até o usuário gravar uma.
+- **NN:** os portes mais largos que o mínimo ficam (`ResearchStuff` `Grid_Bonus` para todo `e`; `Holes` `MeasurementQTYfound` para todo tipo, o que cobre `WorkbenchStuff` `OverkillQTY`): conferidos literalmente contra o N.js bruto, e 15 linhas `[~]` do Damage, AFK e EXP viraram `[x]` sem mudar nenhum valor. Custo: ramos só com teste sintético até um tracker alcançá-los.
+- **OO:** `DungeonStat("DropRarity")` e `DungeonCalc("TraitBonus",6)` ficam `[~]` pela Ruling Y; o ramo dentro da dungeon (@4194067) lança erro em vez de calcular. Custo: se a Ruling Y mudar, esse ramo precisa ser portado.
+- **PP:** quando o bloco não chamou `chipBonuses("dr")` (total ≥ 5), o nó do chip não pode quebrar a página onde o jogo calcula: a leitura é protegida e, se falhar, vira uma folha 0 com nota. Custo: nenhum.
+- **QQ:** desempenho aceito como em FF: carga a frio de cerca de 51 ms contra 16 ms do `lib/arkh` (uma vez por save), troca de personagem e de mapa em paridade (cerca de 17 ms). Custo: o primeiro cálculo pode parecer lento num celular fraco.
+- **RR:** bugs do `lib/arkh` provados no N.js nesta migração, com prova estreita e contagem exata: `luk` (a foto `PVStatList`), `meas15` (o `lib/arkh` pula o passo de carga @6420350 que zera as medições 10 a 15 da HourZero) e `glimbo` (0 no `lib/arkh`, 1 no N.js; o max(1, ·) do grupo esconde a diferença no total), além dos já conhecidos (tome, pray6, gfood, fam68, comp0). Custo: nenhum.
