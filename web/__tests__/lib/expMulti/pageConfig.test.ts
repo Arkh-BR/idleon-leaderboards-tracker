@@ -48,6 +48,15 @@ describe("EXP Multi page config", () => {
     expect(rows.some((r) => r.source === EXP_VOTE_NAME)).toBe(false);
   });
 
+  it("compute passes lib/game's refusals through the page's wrapper (an older save is told in words)", async () => {
+    await expect(EXP_PAGE.compute({ charNames: ["a"], data: { CSver: 23.05 } }, 0, 251)).rejects.toThrow(
+      /^This save is from an older game version \(missing .+\)\. Sign in or paste a fresh save\.$/
+    );
+  });
+
+  it("documents that the Observed Max still comes from the previous engine", () =>
+    expect(EXP_PAGE.methodologyNote).toMatch(/Observed Max values themselves are still computed by the previous engine/));
+
   it("methodology note explains why circumstantial sources aren't ranked", () => {
     expect(EXP_PAGE.methodologyNote).toContain("lowest-level character or below a level cap aren't ranked");
   });

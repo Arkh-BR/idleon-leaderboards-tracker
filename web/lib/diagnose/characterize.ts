@@ -121,6 +121,9 @@ export const DAMAGE_REFUSABLE = (key: string): boolean => ARTIFACT_FIND_REFUSABL
 /** AFK Gains' list: Damage's (the AFK pools read the same Tome-scored bubbles and an older save's steps). */
 export const AFK_REFUSABLE = DAMAGE_REFUSABLE;
 
+/** EXP Multi's list: Damage's too (the talents read the Tome-scored bubbles; HourZero is refused for its Tome rows, Ruling E). */
+export const EXP_REFUSABLE = DAMAGE_REFUSABLE;
+
 /**
  * `known` is the oracle's KNOWN_ARKH_DIFFS ({save: file name, ci?: omitted = every character}); `csver` is the save's `data.CSver`.
  * A diff-list entry explains a difference of numbers only, never an error, and only the `b` (lib/game) side can refuse.

@@ -1,6 +1,8 @@
-// EXP Multi page: the statTracker kit's config for N.js ExpMulti(0).
+// EXP Multi page: the statTracker kit's config for N.js ExpMulti(0). It computes on lib/game (trackers/expMulti.ts); the Observed Max
+// collector (scripts/update-top-exp.ts) stays on lib/arkh.
 
 import type { StatPageConfig } from "@/lib/statTracker/config";
+import { withPageErrors } from "@/lib/statTracker/pageErrors";
 import { groupedGainsModel } from "@/lib/statTracker/biggestGains";
 import { EXP_CIRCUMSTANTIAL_SOURCE_NAMES, EXP_GROUPS, EXP_ROOT, EXP_VOTE_NAME } from "./layers";
 import { formatExpMulti } from "./format";
@@ -25,8 +27,9 @@ export const EXP_PAGE: StatPageConfig = {
     exportPrefix: "exp-multi-snapshots",
     exportLabel: "exp-multi-tracker",
   },
-  compute: (save, charIdx, mapIdx) =>
-    import("@/lib/arkh/computeExp").then((m) => m.computeArkhExpMulti(save, charIdx, mapIdx)),
+  compute: withPageErrors("EXP Multi", (save, charIdx, mapIdx) =>
+    import("@/lib/game/trackers/expMulti").then((m) => m.computeGameExpMulti(save, charIdx, mapIdx))
+  ),
   formatTotal: formatExpMulti,
   gains: groupedGainsModel(EXP_ROOT, EXP_GROUPS, { skip: [...EXP_CIRCUMSTANTIAL_SOURCE_NAMES, EXP_VOTE_NAME] }),
   loadTop: () =>
@@ -40,7 +43,9 @@ export const EXP_PAGE: StatPageConfig = {
     "with LUK, so they're measured within your class family (warrior, archer, mage or beginner line). Values are a ceiling, not a one-level step. " +
     "Each top player is measured on their best EXP map (Arcane map bonus × Shiny Medallions), so those " +
     "two rows reflect that map choice too. Sources that only apply to your lowest-level character or " +
-    "below a level cap aren't ranked. The weekly vote isn't ranked: it's server-wide and changes every week.",
+    "below a level cap aren't ranked. The weekly vote isn't ranked: it's server-wide and changes every week. " +
+    "The Observed Max values themselves are still computed by the previous engine, so for a few sources they can differ slightly " +
+    "from your own numbers until they are recomputed.",
   compareTitle: "Compare every EXP source against the best value observed across the top players (LUK Scaling and Lucky Charms: within your class family)",
   gainsTabTitle: "Rank your EXP sources by how much Class EXP Multi matching the top players would give",
   footer: "EXP Multi is computed locally from your save — every term of the game's Class EXP formula, group by group.",

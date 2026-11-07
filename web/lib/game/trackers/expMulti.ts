@@ -16,6 +16,9 @@
 // dungeon map counts as outside a dungeon (the Dungon stand-in leaves an `assumed:` note inside a talent). EXP has no "no value" map (Ruling DD
 // does not apply): a map whose target is no monster just shuts the medallion gate, and the formula runs as always.
 //
+// Performance, measured when the page switched (scripts/perf-exp.ts; 4 real saves, Node, median): the first call on a save 44 ms against
+// lib/arkh's 25 ms, a character switch 16 ms against 14 ms and a map switch 16 ms against 15 ms: parity when warm, a one-off cost per save.
+//
 // The recombination guard rebuilds the total from the tree with the page's own Biggest Gains model (groupedGainsModel over EXP_GROUPS, one path
 // for the number, spec section 4): if the sources no longer give ExpMulti's total (an N.js constant changed in one place only) it throws
 // TreeTotalMismatch, so the tracker reads "incomplete" instead of showing a number the headline does not match.
