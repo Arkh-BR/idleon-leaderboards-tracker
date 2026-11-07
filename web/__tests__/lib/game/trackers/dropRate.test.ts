@@ -8,7 +8,7 @@
 //   must be covered by a KNOWN row of the pair, and the count is the one that test asserts), every source leaf against lib/arkh's (a difference is a
 //   KNOWN row of that source), the names, formats and notes equal to lib/arkh's, the page's Biggest Gains model giving the total back from the flat
 //   tree, the size (Ruling L, at most 2x lib/arkh's nodes), and every runtime: / assumed: note of the full trace kept;
-// - the Drop Rate readings in the game's display format (skipped until fixtures/readings.json has a dropRateV2 entry, Ruling HH).
+// - the Drop Rate readings in the game's display format (skipped until fixtures/readings.json has a dropRateV2 entry, Ruling MM).
 // A describe body never reads a save: states load lazily inside `it`.
 import { afterAll, describe, it, expect, vi } from "vitest";
 import { existsSync, readFileSync } from "node:fs";
@@ -57,8 +57,11 @@ const shape = (n: Node) => ({ name: n.name, fmt: n.fmt, note: n.note });
 const ALL_IDS = DR2_GROUPS.flatMap((g) => g.sources);
 const gi = (key: string) => DR2_GROUPS.findIndex((g) => g.key === key);
 const noMigrated = (note?: string) => note?.replace(/^migrated from an older game version \(\d+ load steps?\)$/, "") || undefined;
-/** The sources whose note lib/arkh builds from the save (the talents' decay, the Workbench's log term, "Not owned", the prayer): the tree keeps their name and format. */
-const DYNAMIC_NOTE = new Set(["talent279", "talent24", "talent655", "workbench", "prayer7", "comp3", "comp22", "comp50", "comp158", "comp111", "comp132", "ach381"]);
+/**
+ * The sources whose note lib/arkh builds from the save and the tree drops (the talents' decay, the Workbench's log term, the prayer, the achievement):
+ * the tree keeps their name and format. The six companions' "Not owned — would grant +X" is kept (user decision 07/11) and checked as text.
+ */
+const DYNAMIC_NOTE = new Set(["talent279", "talent24", "talent655", "workbench", "prayer7", "ach381"]);
 
 // ── the display config and the registry ─────────────────────────────────────────────────────────
 describe("the display config and the registry", () => {
@@ -143,6 +146,34 @@ describe("the tree on a synthetic envelope (runs in CI)", () => {
     expect(lo.tree.children![gi("chip")].children![0]).toMatchObject({ val: 0.5, children: [{ name: 'chipBonuses("dr")', val: 50 }] }); // called: the call is its child
     expect(lo.total).toBeLessThan(5);
     expect(lo.total - tree({}, { ...flat0, [CHIP]: 0 }).total).toBeCloseTo(0.5, 9); // the chip added, then nothing else moves it
+  });
+
+  it("at a total of 5 or more the chip is read on its own: a read that fails is a noted 0 leaf and the page still computes (Ruling PP)", () => {
+    // chipBonuses left to its code; talent 279 at 500 puts the total over 5, so the block never calls it
+    const run = (data: Data) => dropRateTree(synth({ Dream: dream, ...data }, { seeds: { ...SET, "GetTalentNumber[1,279]": 500 }, real: [...REAL, "chipBonuses["], trace: true }));
+    const chip = (r: StatResult) => r.tree.children![gi("chip")].children![0];
+    const ok = run({ Lab: [[], [3, -1, -1, -1, -1, -1, -1]] }); // chip 3, Grounded Processor: "dr" 60
+    expect(ok.total).toBeGreaterThan(5);
+    expect(chip(ok).val).toBe(0.6); // the read succeeds: lib/arkh's value
+    expect(chip(ok).children).toBeUndefined();
+    // no Lab row for the character (MissingSaveKey), and a chip ChipDesc does not have (RangeError): the game never reads either here
+    for (const data of [{}, { Lab: [[], [9999, -1, -1, -1, -1, -1, -1]] }]) {
+      const r = run(data);
+      expect(r.total).toBe(ok.total);
+      expect(chip(r)).toMatchObject({ val: 0, children: [{ name: 'chipBonuses("dr")', val: 0, fmt: "raw" }] });
+      expect(chip(r).children![0].note).toMatch(/^not read: .+ \(the game makes no chip call at a total of 5 or more\)$/);
+    }
+  });
+
+  it("the six base-group companions carry lib/arkh's \"Not owned\" note with CompanionDB[id][2], and an owned one none", () => {
+    const { tree: t } = tree({}, { "Companions[22]": 15 });
+    const note = (id: string) => t.children![gi("base")].children![DR2_GROUPS[gi("base")].sources.indexOf(id)].note;
+    expect(note("comp3")).toBe("Not owned — would grant +100");
+    expect(note("comp50")).toBeUndefined(); // seeded 25 in SET: owned
+    expect(note("comp22")).toBeUndefined();
+    expect(note("comp158")).toBe("Not owned — would grant +15");
+    expect(note("comp111")).toBe("Not owned — would grant +100");
+    expect(note("comp132")).toBe("Not owned — would grant +100");
   });
 
   it("the Cove replaces the total on map 216 for a character in cavern 17, and its source is 0 elsewhere", () => {
@@ -341,11 +372,11 @@ describe.skipIf(noSaves)("computeGameDropRate against lib/arkh on every real sav
 });
 
 // ── the game's own text ─────────────────────────────────────────────────────────────────────────
-// No Drop Rate in-game reading is recorded yet (the controller records them, Ruling HH): the test skips cleanly while fixtures/readings.json has no
+// No Drop Rate in-game reading is recorded yet (the controller records them, Ruling MM): the test skips cleanly while fixtures/readings.json has no
 // dropRateV2 entry, and runs the day one is added. A row listing "dropRateV2" in `knownGaps` keeps the exact assert and runs through it.fails.
 describe("the Drop Rate readings, through the adapter (the Drop Rate line of Player Info)", () => {
   const rows = loadReadings().filter((r) => r.stat === "dropRateV2");
-  if (rows.length === 0) it.skip("no dropRateV2 reading in fixtures/readings.json yet (Ruling HH)", () => {});
+  if (rows.length === 0) it.skip("no dropRateV2 reading in fixtures/readings.json yet (Ruling MM)", () => {});
   for (const r of rows) {
     const run = !existsSync(join(READINGS_DIR, r.saveFile)) ? it.skip : r.knownGaps?.includes("dropRateV2") ? it.fails : it;
     run(`${r.id}: ${r.game}`, () => {

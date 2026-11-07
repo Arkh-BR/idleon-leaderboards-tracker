@@ -25,8 +25,9 @@ import { groupedGainsModel } from "@/lib/statTracker/biggestGains";
 import { flattenTree } from "@/lib/dropRate/treeFlatten";
 import { DR2_GROUPS, DR2_ROOT, DR2_VOTE_NAME } from "@/lib/dropRateV2/layers";
 import { groupNote, groupVal } from "@/lib/statTracker/groups";
-import { asNum, attr } from "../attr";
+import { asNum, asNumber, attr } from "../attr";
 import { makeCtx, type Ctx, type TraceNode } from "../ctx";
+import { CompanionDB } from "../data";
 import { TreeTotalMismatch } from "../errors";
 import { chipBonuses } from "../njs/chipBonuses";
 import { haveBan } from "../njs/Thingies";
@@ -45,11 +46,30 @@ type Ops = {
   leaf: (name: string, val: number, note?: string) => number;
   c: Ctx;
 };
-/** One source of the tree: its name and note as lib/arkh's tree has them, and `of`, the term as the block uses it (see the header). */
-type Source = { name: string; note?: string | ((c: Ctx) => string); of: (o: Ops) => number };
+/** One source of the tree: its name and note as lib/arkh's tree has them (a function of the save and the source's value), and `of`, the term as the block uses it (see the header). */
+type Source = { name: string; note?: string | ((c: Ctx, val: number) => string | undefined); of: (o: Ops) => number };
 
 /** The Cove line @4196607: `216 == CurrentMap && 17 == Holes[0][<the current character>]` (the raw element, loosely). */
 const inCove = (c: Ctx): boolean => 216 == c.map && 17 == attr(c, "Holes", 0, c.player);
+
+/**
+ * lib/arkh's note on a companion the account neither owns nor has a token for: what it would add, CompanionDB[id][2] (the value of a companion
+ * not at stage 2). Companions(id) is 0 exactly then: it has no CompanionBon entry, and the six companions this note is on all have [2] and [11] above 0.
+ */
+const notOwned = (id: number) => (_c: Ctx, val: number) => (0 === val ? `Not owned — would grant +${asNumber(CompanionDB[id][2])}` : undefined);
+
+/**
+ * The chip when the block made no chipBonuses("dr") call (the total was 5 or more): the tree reads it on its own, as lib/arkh's tree does. The game
+ * makes no such call there, so a read that fails (no Lab row, a chip ChipDesc does not have) must not break the page (Ruling PP): it is a 0 leaf
+ * saying why.
+ */
+const chipUncalled = (leaf: Ops["leaf"], c: Ctx): number => {
+  try {
+    return chipBonuses(c, "dr");
+  } catch (e) {
+    return leaf('chipBonuses("dr")', 0, `not read: ${e instanceof Error ? e.message : String(e)} (the game makes no chip call at a total of 5 or more)`);
+  }
+};
 
 // Offsets (raw N.js): TotalStats "Drop_Rarity" @4190432 (DropRateLUK2 @4190966, the base @4192476, the chip @4193824, outside a dungeon @4194240, the Cove @4196607)
 const SOURCES: Record<string, Source> = {
@@ -70,8 +90,8 @@ const SOURCES: Record<string, Source> = {
   sigil11: { name: "Trove Sigil (Sigil 11)", note: "sigil 11", of: ({ t }) => t("Labb", "SigilBonus", "Blank", 11, 0) },
   shiny0: { name: "Drop Rate Shiny Pet (Breeding 0)", note: "breeding shiny 0", of: ({ t }) => t("Breeding", "ShinyBonusS", "Nah", 0, -1) },
   arcade27: { name: "Drop Rate Arcade Bonus (Arcade 27)", note: "arcade 27", of: ({ t }) => t("ArcadeBonus", 27) },
-  comp3: { name: "Crystal Custard (Companion 3)", of: ({ t }) => t("Companions", 3) },
-  comp50: { name: "Santa Snake (Companion 50)", of: ({ t }) => t("Companions", 50) },
+  comp3: { name: "Crystal Custard (Companion 3)", note: notOwned(3), of: ({ t }) => t("Companions", 3) },
+  comp50: { name: "Santa Snake (Companion 50)", note: notOwned(50), of: ({ t }) => t("Companions", 50) },
   stamp: { name: "Golden Sixes Stamp (Stamp A38)", note: "StampBonusOfTypeX(\"DropRate\")", of: ({ t }) => t("StampBonusOfTypeX", "DropRate") },
   talent655: { name: "Boss Battle Spillover (Talent 655)", of: ({ t, leaf, c }) => t("GetTalentNumber", 1, 655) * leaf("OptionsListAccount[189]", asNum(c, "OptionsListAccount", 189), "Skulls beaten") },
   dream10: { name: "Faux Jewels (Equinox Upgrade 8)", note: "5 × Dream[10], the upgrade's level", of: ({ leaf, c }) => 5 * leaf("Dream[10]", asNum(c, "Dream", 10), "Upgrade level") },
@@ -86,14 +106,14 @@ const SOURCES: Record<string, Source> = {
   ach381: { name: "Big Big Hampter (Achievement 381)", of: ({ t }) => 4 * t("AchieveStatus", 381) },
   owl4: { name: "Super Feather Production (Owl Upgrade 4)", note: "+% Drop Rate (owl bonus 4)", of: ({ t }) => t("Summoning", "OwlBonuses", 4, 0) },
   rank9: { name: "Drop Rate (Farming Rank Upgrade 9)", note: "LankRankUpgBonus(9)", of: ({ t }) => t("FarmingStuffs", "LankRankUpgBonus", 9, 0) },
-  vote27: { name: "Drop Rate (Weekly Vote 27)", note: "Only counts the week vote 27 wins", of: ({ t }) => t("Summoning", "VotingBonusz", 27, 0) },
+  vote27: { name: DR2_VOTE_NAME, note: "Only counts the week vote 27 wins", of: ({ t }) => t("Summoning", "VotingBonusz", 27, 0) },
   hole46: { name: "Gloomie Lootie (Cavern Upgrade 46)", note: "+5% Drop Rate per Gloomie Mushroom colony defeated", of: ({ t }) => t("Holes", "B_UPG", 46, 0) },
   cropSC7: { name: "Crop Depot: Drop Rate (Bonus 7)", note: "+1% Drop Rate per crop after 100 (CropSCbonus(7))", of: ({ t }) => t("FarmingStuffs", "CropSCbonus", 7, 0) },
   grimoire44: { name: "Skull of Major Droprate (Grimoire 44)", note: "grimoire 44", of: ({ t }) => t("Summoning", "GrimoireUpgBonus", 44, 0) },
   vault18: { name: "Drops for Days (Vault 18)", note: "vault 18", of: ({ t }) => t("Summoning", "VaultUpgBonus", 18, 0) },
   meas15: { name: "Drop Rate Measurement (Measurement 15)", note: "hole:meas15", of: ({ t }) => t("Holes", "MeasurementBonusTOTAL", 15, 0) },
-  comp22: { name: "Quenchie (Companion 22)", of: ({ t }) => t("Companions", 22) },
-  comp158: { name: "Lucky Slug (Companion 158)", of: ({ t }) => t("Companions", 158) },
+  comp22: { name: "Quenchie (Companion 22)", note: notOwned(22), of: ({ t }) => t("Companions", 22) },
+  comp158: { name: "Lucky Slug (Companion 158)", note: notOwned(158), of: ({ t }) => t("Companions", 158) },
   hole82: { name: "Sanctum of LOOT (Cavern Upgrade 82)", note: "+20% Drop Rate per Sanctum of Ancient Golems cleared", of: ({ t }) => t("Holes", "B_UPG", 82, 20) },
   monument: { name: "Wisdom Monument: Player Drop Rate", note: "MonumentROGbonuses(2, 6)", of: ({ t }) => t("Holes", "MonumentROGbonuses", 2, 6) },
   emperor11: { name: "Drop Rate (Emperor Bonus 11)", of: ({ t }) => t("Thingies", "EmperorBon", 11, 0) },
@@ -102,11 +122,11 @@ const SOURCES: Record<string, Source> = {
   friend3: { name: "Drop Rate (Friend Bonus 3)", note: "Friend bonus type 3; scales with account level", of: ({ t }) => t("Thingies", "FriendBonusStatz", 3, 0) },
   legend1: { name: "Greatest Drop Party Ever (Legend 1)", note: "legend 1", of: ({ t }) => t("Thingies", "LegendPTS_bonus", 1, 0) },
   spelunk50: { name: "Golden Hardhat (Spelunk Shop 50)", of: ({ t }) => t("Spelunk", "ShopUpgBonus", 50, 0) },
-  comp111: { name: "Clammie (Companion 111)", of: ({ t }) => t("Companions", 111) },
+  comp111: { name: "Clammie (Companion 111)", note: notOwned(111), of: ({ t }) => t("Companions", 111) },
   talent239: { name: "Graded Rate (Talent 239)", note: "× total resource-node grades (RoyalG TotalStatz)", of: ({ t }) => t("GetTalentNumber", 1, 239) * (t("RoyalG", "TotalStatz", 0, 0) / 1) },
   grid173: { name: "Divine Design (Research Grid 173)", of: ({ t }) => t("ResearchStuff", "Grid_Bonus", 173, 0) },
-  comp132: { name: "Mama Troll (Companion 132)", of: ({ t }) => t("Companions", 132) },
-  chip: { name: "Grounded Processor (Lab Chip 3)", note: "chipBonuses(\"dr\") ÷ 100, only while the total is under 5; the active character's chips", of: ({ o, c }) => (o("chipBonuses", "dr") ?? chipBonuses(c, "dr")) / 100 },
+  comp132: { name: "Mama Troll (Companion 132)", note: notOwned(132), of: ({ t }) => t("Companions", 132) },
+  chip: { name: "Grounded Processor (Lab Chip 3)", note: "chipBonuses(\"dr\") ÷ 100, only while the total is under 5; the active character's chips", of: ({ o, leaf, c }) => (o("chipBonuses", "dr") ?? chipUncalled(leaf, c)) / 100 },
   bunV: { name: "Death Bringer Bundle", note: "bun_v: +2 Drop Rate", of: ({ leaf, c }) => 1 == leaf("BundlesReceived.bun_v", haveBan(c, "bun_v"), "Owned") ? 2 : 0 },
   workbench: { name: "Archlord Of The Pirates (Talent 328)", of: ({ t }) => t("WorkbenchStuff", "AdditionExtraEXPnDR", 0, 0) },
   ola232: { name: "Sneaking Mastery", note: "+0.3 once OLA[232] ≥ 1", of: ({ leaf, c }) => 1 <= leaf("OptionsListAccount[232]", asNum(c, "OptionsListAccount", 232), "Sneaking mastery level") ? 0.3 : 0 },
@@ -165,7 +185,7 @@ export function dropRateTree(ctx: Ctx): StatResult {
     };
     const leaf = (name: string, val: number, note = READ) => (kept.push({ name, val, fmt: "raw", note }), val);
     const val = def.of({ t, o, leaf, c: plain });
-    const note = typeof def.note === "function" ? def.note(plain) : def.note;
+    const note = typeof def.note === "function" ? def.note(plain, val) : def.note;
     return { name: def.name, val, fmt, ...(note ? { note } : {}), ...(kept.length ? { children: kept } : {}) };
   };
 

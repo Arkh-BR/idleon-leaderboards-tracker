@@ -1,7 +1,7 @@
 // The Drop Rate V2 page's display config: the root, the weekly vote's node and the groups (ids = the dr2 system's cases, N.js order).
 // Both engines (lib/arkh's descriptor and lib/game's tracker adapter, lib/game/trackers/dropRate.ts) and the page's Biggest Gains model
 // (pageConfig.ts) read this, so it lives here, not in either engine (Ruling B, as lib/expMulti/layers).
-//   N.js _customBlock_TotalStats("Drop_Rarity") (@4188223), outside a dungeon, term by term in game order:
+//   N.js _customBlock_TotalStats("Drop_Rarity") (@4190432), outside a dungeon, term by term in game order:
 //   base  = 1 + 1.4·DropRateLUK + Σ/100 (Σ holds DropRateLUK2 term by term;
 //           the LUK source is 140·DropRateLUK so it lands outside the /100)
 //   chip  : under 5, min(5, total + chipBonuses("dr")/100)
@@ -17,7 +17,6 @@ export const DR2_ROOT = "Drop Rate";
  *  Biggest Gains leaves it out: it isn't something a player raises. */
 export const DR2_VOTE_NAME = "Drop Rate (Weekly Vote 27)";
 
-// @njs _customBlock_TotalStats
 export const DR2_GROUPS: readonly StatGroup[] = [
   {
     key: "base",
