@@ -12,6 +12,8 @@ import { computeArkhDamage, DMG_COLLECTOR_MAP } from "@/lib/arkh/computeDamage";
 import { computeArkhAfkGains } from "@/lib/arkh/computeAfk";
 import { computeArkhExpMulti } from "@/lib/arkh/computeExp";
 import { EXP_GROUPS } from "@/lib/arkh/stats/defs/exp-multi";
+import { computeArkhDropRateV2 } from "@/lib/arkh/computeDropRateV2";
+import { DR2_GROUPS } from "@/lib/arkh/stats/defs/drop-rate-v2";
 import { AFK_POOLS, afkRate } from "@/lib/arkh/stats/defs/afk-gains";
 import { DMG_LAYERS, DMG_MASTERY, DMG_RAT, dmgMastery, dmgMax } from "@/lib/arkh/stats/defs/damage";
 import { charClassData } from "@/lib/arkh/save/data";
@@ -141,7 +143,7 @@ const MAIN_STATS = { str: "STR", agi: "AGI", wis: "WIS", luk: "LUK" } as const;
 
 type OracleEntry = { leaves: Record<string, number>; stats: Record<ArkhStat, number> };
 // `afk` (character -> map -> leaves) is a section of its own: the AFK leaves never touch the Damage entries.
-type DiskFile = { arkhHash: string; entries: Record<string, Record<string, OracleEntry>>; afk?: Record<string, Record<string, Record<string, number>>>; exp?: Record<string, Record<string, ExpEntry>> };
+type DiskFile = { arkhHash: string; entries: Record<string, Record<string, OracleEntry>>; afk?: Record<string, Record<string, Record<string, number>>>; exp?: Record<string, Record<string, ExpEntry>>; dr?: Record<string, Record<string, ExpEntry>> };
 type ExpEntry = { leaves: Record<string, number>; total: number };
 
 // source id -> where it sits in the tree. Every id is unique across DMG_LAYERS, DMG_MASTERY and DMG_RAT (checked in the test).
@@ -1372,4 +1374,51 @@ export function arkhExpLeaves(save: unknown, ci: number, map: number): Record<st
 /** lib/arkh's own EXP Multi total (computeArkhExpMulti(...).total): the oracle for the whole tree. */
 export function arkhExpMulti(save: unknown, ci: number, map: number): number {
   return expEntry(save, ci, map).total;
+}
+
+// ---- Drop Rate (V2): same design as EXP. The tree of computeArkhDropRateV2 has one child per DR2_GROUPS group, whose children are its sources in order.
+const drByObject = new WeakMap<object, Map<string, ExpEntry>>();
+
+function drEntryOf(parsed: any, ci: number, map: number): ExpEntry {
+  const { tree, total } = computeArkhDropRateV2(parsed, ci, map);
+  const leaves: Record<string, number> = {};
+  DR2_GROUPS.forEach((g, i) => {
+    const kids = tree.children![i].children!;
+    if (kids.length !== g.sources.length) throw new Error(`arkhDrLeaves: lib/arkh's ${g.key} has ${kids.length} sources, DR2_GROUPS has ${g.sources.length}`);
+    g.sources.forEach((id, k) => (leaves[id] = kids[k].val));
+  });
+  return { leaves, total };
+}
+
+function drEntry(save: unknown, ci: number, map: number): ExpEntry {
+  if (typeof save !== "string") {
+    let per = drByObject.get(save as object);
+    if (!per) drByObject.set(save as object, (per = new Map()));
+    const key = `${ci}@${map}`;
+    let e = per.get(key);
+    if (!e) per.set(key, (e = drEntryOf(structuredClone(save), ci, map)));
+    return e;
+  }
+  const d = diskOf(save);
+  const slot = ((d.data.dr ??= {})[ci] ??= {});
+  let e = slot[map];
+  if (!e) {
+    e = slot[map] = drEntryOf(JSON.parse(readFileSync(save, "utf8")), ci, map);
+    persist(d);
+  }
+  return e;
+}
+
+/**
+ * Every Drop Rate source's `val` in lib/arkh's DR V2 tree for character `ci` on `map`, by DR2_GROUPS source id (as the tree holds it:
+ * a factor for the `mult` groups, a percentage for the `pct` ones). Recombine with `applyGroupStep` over DR2_GROUPS from 1 to get lib/arkh's total.
+ * `save` as in arkhDamageLeaves.
+ */
+export function arkhDrLeaves(save: unknown, ci: number, map: number): Record<string, number> {
+  return drEntry(save, ci, map).leaves;
+}
+
+/** lib/arkh's own Drop Rate V2 total (computeArkhDropRateV2(...).total): the oracle for the whole tree. */
+export function arkhDropRate(save: unknown, ci: number, map: number): number {
+  return drEntry(save, ci, map).total;
 }
