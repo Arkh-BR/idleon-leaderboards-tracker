@@ -50,6 +50,9 @@ import { TotalStats } from "./TotalStats";
 import { Windwalker } from "./Windwalker";
 import { WorkbenchStuff } from "./WorkbenchStuff";
 
+/** DNSM.ExpGainLUK after its curve (ExpMulti @4260536): `1E3 > LUK ? (pow(LUK + 1, .37) - 1) / 30 : .8 x ((LUK - 1e3) / (LUK + 2500)) + .3963`. */
+export const lukCurve = (luk: number): number => (1e3 > luk ? (Math.pow(luk + 1, 0.37) - 1) / 30 : 0.8 * ((luk - 1e3) / (luk + 2500)) + 0.3963);
+
 /**
  * N.js `_customBlock_ExpMulti(d)` @4260536: the Class EXP multiplier (`d` = 0, the Player Info "Class EXP"); `999` is
  * `Summoning("WinBonus", 23, 0)`, the one other branch the closure reaches. The skill EXP multipliers (d = 1..) are not ported.
@@ -71,7 +74,7 @@ export const ExpMulti: (ctx: Ctx, d: number) => number = block("ExpMulti", (ctx,
   const c = ctx;
   // the LUK curve (TotalStats("LUK") first, then the curve over 1000)
   const luk = TotalStats(c, "LUK");
-  const exp1 = 1e3 > luk ? (Math.pow(luk + 1, 0.37) - 1) / 30 : 0.8 * ((luk - 1e3) / (luk + 2500)) + 0.3963;
+  const exp1 = lukCurve(luk);
   let exp2 = 0;
   let exp3 = 0;
   // the lowest-level loop: Tasks[2][0][2] > 0 and every other character's level above this one's (a strict `<`); the last index runs the block

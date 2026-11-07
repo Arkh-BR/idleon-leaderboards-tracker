@@ -17,7 +17,7 @@ import { contains } from "@/lib/game/lists";
 import { MissingSaveKey } from "@/lib/game/errors";
 import { makeCtx } from "@/lib/game/ctx";
 import { buildGameState, type GameEnvelope } from "@/lib/game/state";
-import { ExpMulti } from "@/lib/game/njs/ExpMulti";
+import { ExpMulti, lukCurve } from "@/lib/game/njs/ExpMulti";
 import { TotalStats } from "@/lib/game/njs/TotalStats";
 
 const rel = (got: number, want: number) => Math.abs(got - want) <= 1e-9 * Math.max(1, Math.abs(want));
@@ -38,7 +38,6 @@ const MAPS: Record<number, { known: number; kept: number; refused: string[]; pai
 };
 
 /** The EXP LUK curve (ExpMulti @4260536) of a LUK total. */
-const lukCurve = (luk: number) => (1e3 > luk ? (Math.pow(luk + 1, 0.37) - 1) / 30 : 0.8 * ((luk - 1e3) / (luk + 2500)) + 0.3963);
 
 const states = new Map<string, ReturnType<typeof buildGameState>>();
 afterAll(() => states.clear());

@@ -34,7 +34,7 @@ import { makeCtx, type Ctx, type TraceNode } from "../ctx";
 import { MapAFKtarget } from "../data";
 import { TreeTotalMismatch } from "../errors";
 import { listAt } from "../lists";
-import { ExpMulti } from "../njs/ExpMulti";
+import { ExpMulti, lukCurve } from "../njs/ExpMulti";
 import { haveBan } from "../njs/Thingies";
 import type { GameState } from "../state";
 import { findCall, flagged, migratedNote, near, stateOf, takeFrom, traceTree, type Take } from "./page";
@@ -58,10 +58,6 @@ type Ops = {
 /** One source of the tree: its name and note as lib/arkh's tree has them, and `of`, the term as ExpMulti uses it (see the header). */
 type Source = { name: string; note?: string | ((c: Ctx) => string); of: (o: Ops) => number };
 
-/** DNSM.ExpGainLUK after its curve (N.js ExpMulti @4260536): `1E3 > LUK ? (pow(LUK + 1, .37) - 1) / 30 : .8 x ((LUK - 1e3) / (LUK + 2500)) + .3963`. */
-const lukCurve = (luk: number): number => {
-  return 1e3 > luk ? (Math.pow(luk + 1, 0.37) - 1) / 30 : 0.8 * ((luk - 1e3) / (luk + 2500)) + 0.3963;
-};
 /** The newbie ladder: an exclusive `Lv0 < 10 ? 150 : Lv0 < 30 ? 100 : Lv0 < 50 ? 50 : 0`. */
 const newbie = (lv: number): number => (10 > lv ? 150 : 30 > lv ? 100 : 50 > lv ? 50 : 0);
 
