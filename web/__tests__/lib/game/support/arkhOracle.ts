@@ -195,7 +195,7 @@ export function arkhSourceHash(): string {
   };
   walk(join(WEB, "lib/arkh"));
   // Ruling B moved the oracle's shape and ids into these two display configs: a change there invalidates the cache too
-  for (const f of ["lib/afkGains/layers.ts", "lib/damage/layers.ts"]) h.update(`${f}\0`).update(readFileSync(join(WEB, f))).update("\0");
+  for (const f of ["lib/afkGains/layers.ts", "lib/damage/layers.ts", "lib/expMulti/layers.ts", "lib/statTracker/groups.ts", "lib/artifactFind/groups.ts"]) h.update(`${f}\0`).update(readFileSync(join(WEB, f))).update("\0");
   return (arkhHash = h.digest("hex"));
 }
 
@@ -945,8 +945,8 @@ export const KNOWN_ARKH_DIFFS: {
       cis.map((ci) => ({ stat: "exp" as const, save, ci, source, reason: "fam68", why: STAT_WHY.fam68 }))
     )
   ),
-  // the Shiny Medallion factor, max(1, getbonus2(1, 429, -1)), only where the map's monster has its medallion: the same fam68 characters (big_guy69123#5 only on map 59, Map 40 (the dungeon frogG, where the gate is open too) is proved by the EXP adapter test (trackers/expMulti.test.ts).
-  // where the account holds the medallion; on 251 both are 1)
+  // the Shiny Medallion factor, max(1, getbonus2(1, 429, -1)), only where the map's monster has its medallion: the same fam68 characters on the maps below
+  // (map 251 included; big_guy69123#5 only on map 59). Map 40 (the dungeon frogG, where the gate is open too) is also proved by the EXP adapter test (trackers/expMulti.test.ts).
   ...([["Ash_EB.json", [0], [251, 1, 2, 8, 9, 40]], ["Frostymart.json", [0], [251, 1, 2, 8, 9, 40]], ["FrozenBody.json", [1], [251, 1, 2, 14, 16, 40]], ["Jrod11.json", [4, 7], [251, 1, 2, 8, 9, 40]], ["Koweabooo.json", [8], [251, 1, 2, 8, 9, 40]], ["Maspoofio.json", [7], [251, 1, 2, 8, 9, 40]], ["big_guy69123.json", [5], [59]], ["0xEXCEED.json", [5], [251, 1, 2, 8, 9, 40]]] as const).flatMap(([save, cis, maps]) =>
     cis.map((ci) => ({ stat: "exp" as const, save, ci, maps, source: "medallion429", reason: "fam68", why: STAT_WHY.fam68 }))
   ),
