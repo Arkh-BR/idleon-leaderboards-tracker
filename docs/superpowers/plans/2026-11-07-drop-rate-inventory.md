@@ -13,7 +13,7 @@ Regenerate it when N.js, a module's `PORTED` or `lib/game/unreached.ts` changes.
 - attrs and dnsm are the reads in every slice listed. One marked "whole body only" is read only inside a whole-body function (all its branches, not just the one this formula takes). `DNSM` is runtime-only (it is never loaded from the save): port it as `DNSM_*` functions, not as a save attribute. The dnsm list also holds the scratch keys a formula writes and reads back in the same slice (`CaptnBonuz`, `AtomBonCalc1`); the inputs are the caches the game fills elsewhere (`StarSigns`, `AlchVials`, `FamBonusQTYs`…).
 - Depth stops at 6.
 
-**54 functions, 300 sub-cases (rows), 88 whole body, 0 not found, 66 attrs, 82 dnsm.** **270 ported `[x]`, 0 not reached `[~]`, 30 open.**
+**54 functions, 300 sub-cases (rows), 88 whole body, 0 not found, 66 attrs, 82 dnsm.** **272 ported `[x]`, 0 not reached `[~]`, 28 open.**
 
 ## TotalStats
 
@@ -56,8 +56,8 @@ Regenerate it when N.js, a module's `PORTED` or `lib/game/unreached.ts` changes.
 - [x] Summoning("GrimoireUpgBonus",44,0) — depth 1 — 399 chars
 - [x] Summoning("VaultUpgBonus",18,0) — depth 1 — 2241 chars
 - [x] Summoning("WinBonus",9,0) — depth 1 — 3535 chars
-- [ ] Summoning("TomeBonus",2,0) — depth 1 — 350 chars
-- [ ] Summoning("TomeBonus",7,0) — depth 1 — 331 chars
+- [x] Summoning("TomeBonus",2,0) — depth 1 — 350 chars
+- [x] Summoning("TomeBonus",7,0) — depth 1 — 331 chars
 - [x] Summoning("OwlBonuses",5,0) — depth 2 — 2745 chars — via Summoning2
 - [x] Summoning("OwlMegafeather",1,0) — depth 2 — 142 chars — via Summoning2
 - [x] Summoning("OwlMegafeather",3,0) — depth 2 — 142 chars — via Summoning2
