@@ -122,7 +122,7 @@ Resolve each open row: port it, or declare it unreached with N.js evidence.
 ### Task 4: Tracker adapter
 
 **Files:**
-- Create `lib/game/trackers/dropRate.ts` and register `TRACKERS.dropRate` (`(ctx) => TotalStats(ctx, "Drop_Rarity")`).
+- Create `lib/game/trackers/dropRate.ts` and register `TRACKERS.dropRateV2` (`(ctx) => TotalStats(ctx, "Drop_Rarity")`; the key is the `StatKey` the readings and verify-map use).
 - Move the display config (`DR2_ROOT`, `DR2_GROUPS`, `DR2_VOTE_NAME`) to `lib/dropRateV2/layers.ts`. lib/arkh re-exports it (Ruling B), and `pageConfig.ts` imports from `layers.ts`.
 - Add `lib/dropRateV2/layers.ts` to the oracle's `arkhSourceHash` file list.
 - Follow `lib/game/trackers/expMulti.ts`. Use the shared `takeFrom`/`near` in `trackers/page.ts`.
@@ -144,8 +144,8 @@ Resolve each open row: port it, or declare it unreached with N.js evidence.
 
 ### Task 5: Characterize and switch
 
-- **Characterize:** run `characterize dropRate --map <m>` on the Task 3 maps. Expect 0 unexplained, with every refusal explained.
-- **verify-map:** run `verify-map dropRate` and document the result.
+- **Characterize:** run `characterize dropRateV2 --map <m>` on the Task 3 maps. Expect 0 unexplained, with every refusal explained.
+- **verify-map:** run `verify-map dropRateV2` and document the result.
 - **Performance:** measure warm and cold against lib/arkh with a committed `web/scripts/perf-dr.ts` that asserts the two engines give equal totals.
 - **Map sweep:** a test runs `computeGameDropRate` over every map the DR V2 picker offers (skipIf, lazy) and expects no throw and a finite value. If a map can't have a value in the game, report it to the user; don't decide.
 - **Switch:**
