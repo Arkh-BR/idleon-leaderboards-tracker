@@ -1,4 +1,4 @@
-// What a page on lib/game shows when the engine refuses a save. Shared by every page whose compute runs lib/game (Artifact Find, Damage, AFK Gains).
+// What a page on lib/game shows when the engine refuses a save. Shared by every page whose compute runs lib/game (Artifact Find, Damage, AFK Gains, EXP Multi).
 // It imports only lib/game/errors (a file with no imports), so a page config that uses it keeps the engine out of its static chunk.
 import { CURRENT_CSVER, MissingSaveKey, TreeTotalMismatch, UNPORTED_STEPS } from "@/lib/game/errors";
 import type { StatPageConfig } from "./config";

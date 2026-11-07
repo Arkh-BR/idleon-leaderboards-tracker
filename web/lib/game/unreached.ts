@@ -29,9 +29,6 @@ const GRID_E2 = (sq: string) => `within the Damage closure its only call site is
 
 // The AFK page's root (docs/superpowers/plans/2026-11-05-afk-gains-inventory.md): the Fighting rate only (the page's product decision)
 const AFK = 'AFKgainrates("Fighting")';
-// AFKgainrates opens (@4444275) with `if ("Fighting" != d) { ... }`, the ALL terms of the skill rates (TalentEnh(79), CardBonusREAL(46), GuildBonuses(7),
-// CardSetBonuses(0, "7"), the sigil and chip "safk", EtcBonuses("24"), ...): the Fighting rate does not run it
-const SKIP_FIGHTING = (at: number) => `its only call site (@${at}) is in the first block of AFKgainrates, \`if ("Fighting" != d)\` @4444275, which the Fighting rate skips`;
 // TalentCalc(d) @4464686 guards everything with `if (-7044.5 != d) { ... return 1 }`: past it, @4520409, is the item sell price table (ItemzzSellPricesz) the
 // game builds for the shop. The walk of TalentCalc(650) (its 650 == d branch @4520200 is the last of the function) runs into it; a talent id never does.
 const SELL_TABLE = "called only in the table of item sell prices that follows TalentCalc's `-7044.5 != d` block (@4520409, run for d == -7044.5); the AFK rate's call is TalentCalc(650), whose branch ends at @4520200 (the walk reads on to the end of the function)";
@@ -39,11 +36,22 @@ const SELL_TABLE = "called only in the table of item sell prices that follows Ta
 // of that sub-case holds the other squares' branches, and the calls below are in its `2 == e` branch only
 const AFK_GRID_E2 = (sq: string) => `within the AFK closure its only call site is ResearchStuff("Grid_Bonus")'s 2 == e branch (${sq}, @11177849); the only Grid_Bonus AFK reaches is Grid_Bonus(173, 0) (Divinity Bonus_Minor and Bonus_MAJOR), called with e = 0`;
 
+// The EXP page's root (docs/superpowers/plans/2026-11-06-exp-multi-inventory.md): ExpMulti(0), the Class EXP multiplier of a character
+const EXP = "ExpMulti(0)";
+// within the EXP closure Grid_Bonus is called with e = 0 only: 130, 131, 132, 152 in ExpMulti (@4265248) and 173 and 125 below them (Divinity
+// Bonus_Minor, Minehead Button_BonusMULTI); the one e = 2 call in the closure is Grid_Bonus(68, 2) (@10820119), ported. The calls below are in Grid_Bonus's `2==e` branch only
+const EXP_GRID_E2 = (sq: string) => `within the EXP closure its only call site is ResearchStuff("Grid_Bonus")'s 2 == e branch (${sq}, @11177849); every Grid_Bonus reached is called with e = 0 but (68, 2), a ported branch`;
+
 export const UNREACHED: readonly Unreached[] = [
-  { row: "TalentEnh(79)", roots: [AFK], why: SKIP_FIGHTING(4444575) },
   { row: 'RunCodeOfTypeXforThingY("SellPrice")', roots: [AFK], why: SELL_TABLE },
   { row: 'ActionBlock("InitItemDefinitions","no",0,0)', roots: [AFK], why: SELL_TABLE },
   { row: "Language()", roots: [AFK], why: SELL_TABLE },
+  // the row is the call with a computed square (`Grid_Bonus(b, 0)`): in the EXP closure that is the default branch of the ported (68, 2) branch, i.e. Grid_Bonus(68, 0), which ResearchStuff.ts ports
+  { row: 'ResearchStuff("Grid_Bonus")', roots: [EXP], why: "the call with a computed square, which the generator cannot match to the PORTED declaration: within the EXP closure it is only Grid_Bonus(b, 0) inside Grid_Bonus's own `2 == e` branch (@11177849) and Grid_Bonus(68, 0), which the ported (68, 2) branch of StickerBonus (FarmingStuffs @10819923, run via @11178042) makes and ResearchStuff.ts ports (Grid_Bonus: true); no other computed square is called with e other than 0" },
+  { row: 'ResearchStuff("TotalObsLVs",0,0)', roots: [EXP], why: EXP_GRID_E2("square 94") },
+  { row: 'ResearchStuff("TotalOccurrencesFound",0,0)', roots: [EXP], why: EXP_GRID_E2("square 112") },
+  { row: 'ResearchStuff("OccurrencesToBeFound",0,0)', roots: [EXP], why: "within the EXP closure called only by TotalObsLVs and TotalOccurrencesFound, which Grid_Bonus calls only when 2 == e (@11177849); ResearchEXPrateTOT @11169939 also calls it, outside the closure" },
+  { row: 'Minehead("GlimboTotalTrades",0,0)', roots: [EXP], why: EXP_GRID_E2("square 168") + "; MenagerieStuff MissionProg @5190061 also calls it, outside the closure" },
   { row: 'ResearchStuff("Grid_Bonus")', roots: [AFK], why: AFK_GRID_E2("the default square, Grid_Bonus(b, 0) times its counter") },
   { row: 'ResearchStuff("TotalObsLVs",0,0)', roots: [AFK], why: AFK_GRID_E2("square 94") },
   { row: 'ResearchStuff("TotalOccurrencesFound",0,0)', roots: [AFK], why: AFK_GRID_E2("square 112") },

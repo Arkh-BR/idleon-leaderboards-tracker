@@ -1,7 +1,8 @@
 import { asNum, asNumber } from "../attr";
 import { block, withPlayer, type Ctx } from "../ctx";
-import { SpelunkRocks, SpelunkUpg } from "../data";
+import { SpelunkRocks, SpelunkUpg, Spelunky } from "../data";
 import { NotPorted } from "../errors";
+import { hString } from "../hstring";
 import { listAt } from "../lists";
 import { getLOG } from "./getLOG";
 import type { Ported } from "../ported";
@@ -25,6 +26,19 @@ export const Spelunk: (ctx: Ctx, d: string, b: number, e: number) => number = bl
       let total = 0; // DNSM.SpelunkyGrD
       for (let f = 0; f < SpelunkRocks.length; f++) total = Math.round(total + asNum(ctx, "Spelunk", 44, f));
       return total;
+    }
+    // @11132738: entry b of DNSM.BigFishBon, the table the game builds on the first call of the session (and when b == -1; here it is built
+    // from the save each time): for each Big Fish g of Spelunky[18], its level Spelunk[11][g] over (100 + level), times the third field of its row
+    case "BigFishBonuses": {
+      listAt(ctx, "Spelunk", 11); // the game indexes Spelunk[11][g] directly
+      const fish = (Spelunky as unknown as readonly (readonly unknown[])[])[18];
+      const table: number[] = [];
+      for (let g = 0; g < fish.length; g++)
+        table.push((asNum(ctx, "Spelunk", 11, g) / (100 + asNum(ctx, "Spelunk", 11, g))) * asNumber(hString(fish[g]).split(",")[2]));
+      const v = table[Math.max(0, b) | 0];
+      // the game answers undefined past the table, which the caller would turn into NaN
+      if (v === undefined) throw new RangeError(`Spelunk BigFishBonuses: no Big Fish ${b} in Spelunky[18]`);
+      return v;
     }
     default:
       throw new NotPorted("Spelunk", d);
@@ -84,4 +98,4 @@ function shopUpgBonus(ctx: Ctx, b: number, e: number): number {
 }
 
 /** What this module covers (lib/game/ported.ts). */
-export const PORTED: Ported = { DoWeHaveLoreN1: true, "6starCards": true, ShopUpgBonus: true, GrandDiscoveries_Total: true };
+export const PORTED: Ported = { DoWeHaveLoreN1: true, "6starCards": true, ShopUpgBonus: true, GrandDiscoveries_Total: true, BigFishBonuses: true };

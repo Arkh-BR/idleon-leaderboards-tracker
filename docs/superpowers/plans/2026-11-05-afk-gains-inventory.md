@@ -13,60 +13,18 @@ Regenerate it when N.js, a module's `PORTED` or `lib/game/unreached.ts` changes.
 - attrs and dnsm are the reads in every slice listed. One marked "whole body only" is read only inside a whole-body function (all its branches, not just the one this formula takes). `DNSM` is runtime-only (it is never loaded from the save): port it as `DNSM_*` functions, not as a save attribute. The dnsm list also holds the scratch keys a formula writes and reads back in the same slice (`CaptnBonuz`, `AtomBonCalc1`); the inputs are the caches the game fills elsewhere (`StarSigns`, `AlchVials`, `FamBonusQTYs`…).
 - Depth stops at 6.
 
-**51 functions, 162 sub-cases (rows), 47 whole body, 0 not found, 57 attrs, 75 dnsm.** **153 ported `[x]`, 9 not reached `[~]`, 0 open.**
+**49 functions, 153 sub-cases (rows), 41 whole body, 0 not found, 56 attrs, 73 dnsm.** **145 ported `[x]`, 8 not reached `[~]`, 0 open.**
 
 ## AFKgainrates
 
-- [x] AFKgainrates("Fighting") — depth 0 — 4651 chars
-
-## CardBonusREAL
-
-- [x] CardBonusREAL(46) — depth 1 — 283 chars — whole body
-- [x] CardBonusREAL(43) — depth 1 — 283 chars — whole body
-
-## GuildBonuses
-
-- [x] GuildBonuses(7) — depth 1 — 338 chars — whole body
-- [x] GuildBonuses(4) — depth 1 — 338 chars — whole body
-- [x] GuildBonuses(5) — depth 4 — 338 chars — whole body
-
-## CardSetBonuses
-
-- [x] CardSetBonuses(0,"7") — depth 1 — 307 chars — whole body
-- [x] CardSetBonuses(0,"10") — depth 1 — 307 chars — whole body
-
-## TalentEnh
-
-- [~] TalentEnh(79) — depth 1 — 2264 chars — whole body — not reached: its only call site (@4444575) is in the first block of AFKgainrates, `if ("Fighting" != d)` @4444275, which the Fighting rate skips
-
-## Labb
-
-- [x] Labb("SigilBonus","Blank",16,0) — depth 1 — 1287 chars
-
-## chipBonuses
-
-- [x] chipBonuses("safk") — depth 1 — 714 chars — whole body
-- [x] chipBonuses("fafk") — depth 1 — 714 chars — whole body
-
-## EtcBonuses
-
-- [x] EtcBonuses("24") — depth 1 — 329 chars — whole body
-- [x] EtcBonuses("59") — depth 1 — 329 chars — whole body
-- [x] EtcBonuses("92") — depth 1 — 329 chars — whole body
-- [x] EtcBonuses("20") — depth 1 — 329 chars — whole body
-- [x] EtcBonuses("30") — depth 4 — 329 chars — whole body
-
-## prayersReal
-
-- [x] prayersReal(4,0) — depth 1 — 1208 chars — whole body
-- [x] prayersReal(12,1) — depth 1 — 1208 chars — whole body
+- [x] AFKgainrates("Fighting") — depth 0 — 4085 chars
 
 ## ArcadeBonus
 
 - [x] ArcadeBonus(6) — depth 1 — 1017 chars — whole body
 - [x] ArcadeBonus(51) — depth 3 — 1017 chars — whole body
 - [x] ArcadeBonus(44) — depth 4 — 1017 chars — whole body
-- [x] ArcadeBonus(59) — depth 4 — 1017 chars — whole body
+- [x] ArcadeBonus(59) — depth 5 — 1017 chars — whole body
 
 ## Windwalker
 
@@ -99,8 +57,8 @@ Regenerate it when N.js, a module's `PORTED` or `lib/game/unreached.ts` changes.
 - [x] Companions(161) — depth 3 — 344 chars — whole body
 - [x] Companions(41) — depth 3 — 344 chars — whole body
 - [x] Companions(19) — depth 3 — 344 chars — whole body
-- [x] Companions(39) — depth 4 — 344 chars — whole body
 - [x] Companions(55) — depth 4 — 344 chars — whole body
+- [x] Companions(39) — depth 5 — 344 chars — whole body
 
 ## Shrine
 
@@ -127,7 +85,6 @@ Regenerate it when N.js, a module's `PORTED` or `lib/game/unreached.ts` changes.
 - [x] Summoning("VaultUpgBonus",32,0) — depth 2 — 7 chars
 - [x] Summoning("VaultUpgBonus",61,0) — depth 2 — 7 chars
 - [x] Summoning("VaultUpgBonus",89,0) — depth 2 — 7 chars
-- [x] Summoning("MeritocBonuszMulti",0,0) — depth 3 — 519 chars — via Summoning2
 - [x] Summoning("WinBonus",22,0) — depth 3 — 7 chars
 - [x] Summoning("EventShopOwned",7,0) — depth 3 — 152 chars
 - [x] Summoning("EventShopOwned",16,0) — depth 3 — 152 chars
@@ -136,7 +93,8 @@ Regenerate it when N.js, a module's `PORTED` or `lib/game/unreached.ts` changes.
 - [x] Summoning("VaultUpgBonus",48,0) — depth 4 — 2241 chars
 - [x] Summoning("VaultKillzTotal",11,0) — depth 4 — 3929 chars
 - [x] Summoning("WinBonus",13,0) — depth 4 — 3535 chars
-- [x] Summoning("EventShopOwned",23,0) — depth 4 — 152 chars
+- [x] Summoning("MeritocBonuszMulti",0,0) — depth 4 — 519 chars — via Summoning2
+- [x] Summoning("EventShopOwned",23,0) — depth 5 — 152 chars
 
 ## GoldFoodBonuses
 
@@ -157,6 +115,13 @@ Regenerate it when N.js, a module's `PORTED` or `lib/game/unreached.ts` changes.
 - [x] ArcaneType("ArcaneUpgBonus",58,0) — depth 3 — 337 chars
 - [x] ArcaneType("ArcaneUpgBonus",39,0) — depth 4 — 7 chars
 
+## EtcBonuses
+
+- [x] EtcBonuses("92") — depth 1 — 329 chars — whole body
+- [x] EtcBonuses("20") — depth 1 — 329 chars — whole body
+- [x] EtcBonuses("59") — depth 1 — 329 chars — whole body
+- [x] EtcBonuses("30") — depth 4 — 329 chars — whole body
+
 ## GetTalentNumber
 
 - [x] GetTalentNumber(1,88) — depth 1 — 605 chars
@@ -171,24 +136,33 @@ Regenerate it when N.js, a module's `PORTED` or `lib/game/unreached.ts` changes.
 - [x] GetBribeBonus("3") — depth 1 — 184 chars — whole body
 - [x] GetBribeBonus("4") — depth 3 — 184 chars — whole body
 
+## CardSetBonuses
+
+- [x] CardSetBonuses(0,"10") — depth 1 — 307 chars — whole body
+
+## CardBonusREAL
+
+- [x] CardBonusREAL(43) — depth 1 — 283 chars — whole body
+
+## GuildBonuses
+
+- [x] GuildBonuses(4) — depth 1 — 338 chars — whole body
+- [x] GuildBonuses(5) — depth 4 — 338 chars — whole body
+
+## prayersReal
+
+- [x] prayersReal(4,0) — depth 1 — 1208 chars — whole body
+- [x] prayersReal(12,1) — depth 1 — 1208 chars — whole body
+
+## chipBonuses
+
+- [x] chipBonuses("fafk") — depth 1 — 714 chars — whole body
+
 ## Holes2
 
 - [x] Holes2("Cglunko_AFKgains",0,0) — depth 1 — 99 chars
 - [x] Holes2("Cglunko_upgBon",8,0) — depth 2 — 154 chars
 - [x] Holes2("Cglunko_upgBon",13,0) — depth 2 — 154 chars
-
-## Sailing
-
-- [x] Sailing("ArtifactBonus",16,0) — depth 2 — 8323 chars
-- [x] Sailing("ArtifactBonus",32,0) — depth 2 — 8323 chars
-- [x] Sailing("SlabboBonus_AllMulti",0,0) — depth 3 — 166 chars
-
-## Summoning2
-
-- [x] Summoning2("MeritocBonusz",21,0) — depth 2 — 330 chars
-- [x] Summoning2("MeritocBonusz",9,0) — depth 3 — 330 chars
-- [x] Summoning2("MeritocBonusz",23,0) — depth 4 — 330 chars
-- [x] Summoning2("MeritocCanVote",0,0) — depth 4 — 67 chars
 
 ## Holes
 
@@ -217,6 +191,11 @@ Regenerate it when N.js, a module's `PORTED` or `lib/game/unreached.ts` changes.
 
 - [x] Ninja("PristineBon",8,0) — depth 2 — 132 chars
 
+## Sailing
+
+- [x] Sailing("ArtifactBonus",32,0) — depth 2 — 8323 chars
+- [x] Sailing("SlabboBonus_AllMulti",0,0) — depth 3 — 166 chars
+
 ## AchieveStatus
 
 - [x] AchieveStatus(379) — depth 2 — 147 chars — whole body
@@ -231,9 +210,9 @@ Regenerate it when N.js, a module's `PORTED` or `lib/game/unreached.ts` changes.
 - [x] Thingies("CoralKidUpgBonus",3,0) — depth 3 — 96 chars
 - [x] Thingies("LegendPTS_bonus",22,0) — depth 3 — 154 chars
 - [x] Thingies("LegendPTS_bonus",28,0) — depth 4 — 154 chars
-- [x] Thingies("ClamWorkBonus",3,0) — depth 4 — 78 chars
-- [x] Thingies("LegendPTS_bonus",24,0) — depth 4 — 154 chars
 - [x] Thingies("LegendPTS_bonus",10,0) — depth 4 — 154 chars
+- [x] Thingies("ClamWorkBonus",3,0) — depth 5 — 78 chars
+- [x] Thingies("LegendPTS_bonus",24,0) — depth 5 — 154 chars
 
 ## RiftStuff
 
@@ -247,6 +226,10 @@ Regenerate it when N.js, a module's `PORTED` or `lib/game/unreached.ts` changes.
 ## ArbitraryCode5Inputs
 
 - [x] ArbitraryCode5Inputs() — depth 2 — 551 chars — whole body
+
+## Minehead
+
+- [~] Minehead("GlimboTotalTrades",0,0) — depth 3 — 481 chars — not reached: within the AFK closure its only call site is ResearchStuff("Grid_Bonus")'s 2 == e branch (square 168, @11177849); the only Grid_Bonus AFK reaches is Grid_Bonus(173, 0) (Divinity Bonus_Minor and Bonus_MAJOR), called with e = 0
 
 ## MainframeBonus
 
@@ -270,14 +253,16 @@ Regenerate it when N.js, a module's `PORTED` or `lib/game/unreached.ts` changes.
 
 - [x] getLOG() — depth 3 — 40 chars — whole body
 
-## Minehead
-
-- [~] Minehead("GlimboTotalTrades",0,0) — depth 3 — 481 chars — not reached: within the AFK closure its only call site is ResearchStuff("Grid_Bonus")'s 2 == e branch (square 168, @11177849); the only Grid_Bonus AFK reaches is Grid_Bonus(173, 0) (Divinity Bonus_Minor and Bonus_MAJOR), called with e = 0
-
 ## JellyOperation
 
 - [x] JellyOperation("RoG_BonusQTY",28,0) — depth 3 — 287 chars
-- [x] JellyOperation("RoG_BonusQTY",33,0) — depth 4 — 287 chars
+- [x] JellyOperation("RoG_BonusQTY",33,0) — depth 5 — 287 chars
+
+## Summoning2
+
+- [x] Summoning2("MeritocBonusz",9,0) — depth 3 — 330 chars
+- [x] Summoning2("MeritocBonusz",23,0) — depth 4 — 330 chars
+- [x] Summoning2("MeritocCanVote",0,0) — depth 5 — 67 chars
 
 ## GamingStatType
 
@@ -294,9 +279,9 @@ Regenerate it when N.js, a module's `PORTED` or `lib/game/unreached.ts` changes.
 ## SushiStuff
 
 - [x] SushiStuff("RoG_BonusQTY",50,0) — depth 3 — 128 chars
-- [x] SushiStuff("RoG_BonusQTY",51,0) — depth 4 — 128 chars
 - [x] SushiStuff("RoG_BonusQTY",53,0) — depth 4 — 128 chars
 - [x] SushiStuff("UniqueSushi",0,0) — depth 4 — 421 chars
+- [x] SushiStuff("RoG_BonusQTY",51,0) — depth 5 — 128 chars
 - [x] SushiStuff("MaxTier",0,0) — depth 5 — 10 chars
 
 ## getbonus2
@@ -306,6 +291,12 @@ Regenerate it when N.js, a module's `PORTED` or `lib/game/unreached.ts` changes.
 ## Log2
 
 - [x] Log2() — depth 3 — 44 chars — whole body
+
+## Dreamstuff
+
+- [x] Dreamstuff("CloudBonus",71) — depth 4 — 64 chars
+- [x] Dreamstuff("CloudBonus",72) — depth 4 — 64 chars
+- [x] Dreamstuff("CloudBonus",76) — depth 4 — 64 chars
 
 ## StampBonusOfTypeX
 
@@ -324,12 +315,6 @@ Regenerate it when N.js, a module's `PORTED` or `lib/game/unreached.ts` changes.
 
 - [x] AtomCollider("AtomBonuses",1,0) — depth 4 — 1531 chars
 
-## Dreamstuff
-
-- [x] Dreamstuff("CloudBonus",71) — depth 4 — 64 chars
-- [x] Dreamstuff("CloudBonus",72) — depth 4 — 64 chars
-- [x] Dreamstuff("CloudBonus",76) — depth 4 — 64 chars
-
 ## attrs
 
 - [ ] `AchieveReg` — whole body only
@@ -341,7 +326,6 @@ Regenerate it when N.js, a module's `PORTED` or `lib/game/unreached.ts` changes.
 - [ ] `BundlesReceived`
 - [ ] `Cards`
 - [ ] `CauldronInfo`
-- [ ] `CauldronP2W`
 - [ ] `CharacterClass`
 - [ ] `Compass`
 - [ ] `CurrentMap`
@@ -419,7 +403,6 @@ Regenerate it when N.js, a module's `PORTED` or `lib/game/unreached.ts` changes.
 - [ ] `DropRateLUK` — whole body only
 - [ ] `DropRateLUK2` — whole body only
 - [ ] `EmperorBon`
-- [ ] `ExpGainLUK` — whole body only
 - [ ] `FamBonusQTYs`
 - [ ] `FlurboStats` — whole body only
 - [ ] `GalleryNametagBonTOT` — whole body only
@@ -452,7 +435,6 @@ Regenerate it when N.js, a module's `PORTED` or `lib/game/unreached.ts` changes.
 - [ ] `StarSigns`
 - [ ] `Stuff6q`
 - [ ] `SummWinBonus`
-- [ ] `TalENHNC` — whole body only
 - [ ] `TotOccFnd`
 - [ ] `TotOccLVz`
 - [ ] `TotStatMAP` — whole body only

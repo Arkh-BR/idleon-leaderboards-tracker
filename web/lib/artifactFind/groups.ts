@@ -5,7 +5,7 @@
 // it lives here, not in either engine.
 //   pct → 1 + Σ/100      raw → 1 + Σ      mult → Π (max1: Math.max(1, Π))
 
-import type { StatGroup } from "@/lib/arkh/stats/defs/grouped";
+import type { StatGroup } from "@/lib/statTracker/groups";
 
 export const ARTI_ROOT = "Artifact Find";
 

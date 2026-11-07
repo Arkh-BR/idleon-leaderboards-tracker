@@ -2,7 +2,7 @@
 // the rate's shape (`afkRate`). Both engines (lib/arkh's descriptor and lib/game's tracker adapter, lib/game/trackers/afkGains.ts) and the page's
 // Biggest Gains model (pageConfig.ts) read this, so it lives here, not in either engine (Ruling B, as lib/damage/layers).
 
-import type { StatGroup } from "@/lib/arkh/stats/defs/grouped";
+import type { StatGroup } from "@/lib/statTracker/groups";
 
 export const AFK_ROOT = "AFK Gains Rate";
 

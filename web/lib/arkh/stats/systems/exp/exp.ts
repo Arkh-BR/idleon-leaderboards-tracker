@@ -43,7 +43,9 @@ import { computeShinyBonusS } from "../w4/breeding";
 import { computeAllShimmerBonuses } from "../w3/equinox";
 import { owl } from "../w1/owl";
 import { votingBonusz } from "../w2/voting";
-import { EXP_VOTE_NAME } from "../../defs/exp-multi";
+import {
+  CARD_SET_0_NAME, EXP_CIRCUMSTANTIAL_SOURCE_NAMES, EXP_VOTE_NAME, MEALS_CLEXP_NAME, MERIT_LOWEST_LEVEL_NAME, NEWBIE_BRACKET_NAME, NOOBIE_GAINS_NAME, VAULT_12_NAME,
+} from "@/lib/expMulti/layers";
 import { computePrayerReal } from "../w3/prayer";
 import { computeShrine } from "../w3/construction";
 import { getSetBonus } from "../w3/setBonus";
@@ -71,32 +73,11 @@ import { petArenaCrucBonus, arenaCrucTier, arenaCrucWave } from "./petArenaCruc"
  *  55/328/429/434 are account-wide (getbonus2), 632 is a star talent. */
 export const EXP_CLASS_TALENTS = [35] as const;
 
-// Node names of the six circumstantial EXP sources: a character can never
-// actually get these unless it's the account's lowest-level char (superbit19,
-// merit3, vault12) or it's still under the relevant level cap (newbie,
-// cardSet0, mealClexp). Biggest Gains excludes them from the ranking (they'd
-// rank a source the viewed character can't reach) — see groupedGainsModel's
-// `skip` option in lib/statTracker/biggestGains.ts. Named constants (reused
-// verbatim inside the matching switch cases below) so the skip list can never
-// drift from the actual node names.
-const NOOBIE_GAINS_NAME = "Noobie Gains (Super Bit 19)";
-const MERIT_LOWEST_LEVEL_NAME = "Merit: EXP for Lowest-Level Character";
-const VAULT_12_NAME = "Baby on Board (Vault 12)";
-const NEWBIE_BRACKET_NAME = "Newbie Bracket";
-const CARD_SET_0_NAME = "EXP if below Lv 50 Set Bonus (Card Set 0)";
-const MEALS_CLEXP_NAME = "Class EXP Meals (below Lv 120)";
-
+// Node names of the six circumstantial EXP sources: lib/expMulti/layers has the one list (Ruling B), re-exported below.
 const CARD_SET_0_NOTE = "Only below level 50";
 const MEALS_CLEXP_NOTE = "MealBonus(\"Clexp\"): no meal in MealINFO carries this key, so it is always 0 (same in N.js)";
 
-export const EXP_CIRCUMSTANTIAL_SOURCE_NAMES = [
-  NOOBIE_GAINS_NAME,
-  MERIT_LOWEST_LEVEL_NAME,
-  VAULT_12_NAME,
-  NEWBIE_BRACKET_NAME,
-  CARD_SET_0_NAME,
-  MEALS_CLEXP_NAME,
-] as const;
+export { EXP_CIRCUMSTANTIAL_SOURCE_NAMES };
 
 const raw = (name: string, v: number, note?: string): ArkhNode => node(name, v, null, { fmt: "raw", note });
 const factor = (name: string, v: number, children?: ArkhNode[] | null, note?: string): ArkhNode =>

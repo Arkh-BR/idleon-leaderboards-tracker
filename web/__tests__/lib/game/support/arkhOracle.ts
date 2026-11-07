@@ -10,6 +10,8 @@ import { computeArkhArtifactFind } from "@/lib/arkh/computeArtifactFind";
 import { ARTI_GROUPS } from "@/lib/arkh/stats/defs/artifact-find";
 import { computeArkhDamage, DMG_COLLECTOR_MAP } from "@/lib/arkh/computeDamage";
 import { computeArkhAfkGains } from "@/lib/arkh/computeAfk";
+import { computeArkhExpMulti } from "@/lib/arkh/computeExp";
+import { EXP_GROUPS } from "@/lib/arkh/stats/defs/exp-multi";
 import { AFK_POOLS, afkRate } from "@/lib/arkh/stats/defs/afk-gains";
 import { DMG_LAYERS, DMG_MASTERY, DMG_RAT, dmgMastery, dmgMax } from "@/lib/arkh/stats/defs/damage";
 import { charClassData } from "@/lib/arkh/save/data";
@@ -139,7 +141,8 @@ const MAIN_STATS = { str: "STR", agi: "AGI", wis: "WIS", luk: "LUK" } as const;
 
 type OracleEntry = { leaves: Record<string, number>; stats: Record<ArkhStat, number> };
 // `afk` (character -> map -> leaves) is a section of its own: the AFK leaves never touch the Damage entries.
-type DiskFile = { arkhHash: string; entries: Record<string, Record<string, OracleEntry>>; afk?: Record<string, Record<string, Record<string, number>>> };
+type DiskFile = { arkhHash: string; entries: Record<string, Record<string, OracleEntry>>; afk?: Record<string, Record<string, Record<string, number>>>; exp?: Record<string, Record<string, ExpEntry>> };
+type ExpEntry = { leaves: Record<string, number>; total: number };
 
 // source id -> where it sits in the tree. Every id is unique across DMG_LAYERS, DMG_MASTERY and DMG_RAT (checked in the test).
 const DMG_SLOT = new Map<string, { child: number; step: number; src: number }>();
@@ -192,7 +195,7 @@ export function arkhSourceHash(): string {
   };
   walk(join(WEB, "lib/arkh"));
   // Ruling B moved the oracle's shape and ids into these two display configs: a change there invalidates the cache too
-  for (const f of ["lib/afkGains/layers.ts", "lib/damage/layers.ts"]) h.update(`${f}\0`).update(readFileSync(join(WEB, f))).update("\0");
+  for (const f of ["lib/afkGains/layers.ts", "lib/damage/layers.ts", "lib/expMulti/layers.ts", "lib/statTracker/groups.ts", "lib/artifactFind/groups.ts"]) h.update(`${f}\0`).update(readFileSync(join(WEB, f))).update("\0");
   return (arkhHash = h.digest("hex"));
 }
 
@@ -380,6 +383,10 @@ export const STAT_WHY: Record<string, string> = {
     "N.js TotalStats @4158761 counts a power stat item by item: on the equipment (EquipmentOrder[0]) an item whose name contains one of PowerSuffixes (Mining, Choppin, Fishing, Catching, Trapping, Worship, Dung) gives its Weapon_Power to that skill's power only (@4159070: \"YESstats\" when the suffix is the power's own), so a choppin hat or a fishing ring adds nothing to Weapon_Power; lib/arkh's computeWeaponPower (derived-damage.ts:220) adds every equipped item's Weapon_Power",
   signsDmg:
     "lib/arkh's computeStarSignBonus (starSign.ts:48) adds every sign of its SIGN_BONUSES table for the key (PctDmg: signs 0, 32, 51, 53, 54, 70), skipping only negative values below the enabled count; N.js StarSigns @6540624 adds a sign only when it is worn or is one of the first RiftStuff(\"enabledStarSigns\") whose name StarSignsUnlocked has (the same cause as \"signs\", for the Damage % key)",
+  signsExp:
+    "lib/arkh's Main EXP star signs (computeStarSignBonus(\"MainXP\")) count a sign the Rift enables that StarSignsUnlocked lacks; N.js StarSigns @6540624 adds sign k of the first enabledStarSigns only when StarSignsUnlocked has StarSigns[k][0] (ExpMulti(0) @4260536 reads DNSM.StarSigns.MainXP; proved by PROOF_PATCHES.signsExp, the missing sign names added to the character): the cause of `signs` and `signsSpeed` on the Main EXP key",
+  lukSnapshot:
+    "N.js ExpMulti(0) @4260536 starts from a live `x._customBlock_TotalStats(\"LUK\")` for the LUK curve (and the curve x talent 35 term); lib/arkh's exp.ts `luk` and `talent35` read `statList[ci][3]`, PVStatList_<ci>[3], which the game writes at save time as `PersonalValuesMap.StatList = [TotalStats(\"STR\"), TotalStats(\"AGI\"), TotalStats(\"WIS\"), TotalStats(\"LUK\"), Lv0[0]]` (@15076361): a snapshot of the total, equal to lib/game's value on a fresh save and stale on an older one. Proved by giving lib/arkh's envelope lib/game's TotalStats(\"LUK\") in PVStatList_<ci>[3]",
   buff108:
     "a product decision of the Damage page (the plan's Global Constraints): the active buff 108 is not counted, a runtime leaf in lib/game; lib/arkh counts it while the saved BuffsActive has it, and N.js PlayerHPmax @4147120 multiplies the % by 1 - GetBuffBonuses(108,1) / 100",
 };
@@ -787,15 +794,42 @@ const BUFF_108: readonly DiffRow[] = [
     ["26515665165165.json", "buff108", [3]],
 ];
 
+/** The golden food multi's causes (STAT_WHY.gfood, gfoodSign69, fam68) for a GoldFoodBonuses leaf of `stat`: the cap grouping and the vote 26 on the saves the STR rows name "gfood", the star sign 69, the fam68 of the tc470 rows. */
+const GOLDFOOD_ROWS = (stat: "afk" | "exp", source: string) => [
+  ...[...new Set(STAT_DIFFS.str!.filter(([, r]) => r === "gfood").map(([save]) => save))].flatMap((save) =>
+    (["gfoodVote26", "gfoodCap"] as const).map((reason) => ({ stat, save, source, reason, why: STAT_WHY.gfood }))
+  ),
+  { stat, save: "Glaives.json", source, reason: "gfoodSign69", why: STAT_WHY.gfoodSign69 },
+  ...[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((ci) => ({ stat, save: "big_guy69123.json", ci, source, reason: "gfoodSign69", why: STAT_WHY.gfoodSign69 })),
+  ...([["Ash_EB.json", 0], ["Frostymart.json", 0], ["FrozenBody.json", 1], ["Jrod11.json", 4], ["Jrod11.json", 7], ["Koweabooo.json", 8], ["big_guy69123.json", 5], ["0xEXCEED.json", 5], ["Maspoofio.json", 7]] as const).map(([save, ci]) => ({
+    stat, save, ci, source, reason: "fam68", why: STAT_WHY.fam68,
+  })),
+];
+
+/** Sets PVStatList_<ci>[3] (lib/arkh's EXP LUK, STAT_WHY.lukSnapshot) of an envelope to `luk`: the proof of lukSnapshot runs lib/arkh on this envelope. */
+export function patchLukSnapshot(data: Record<string, unknown>, ci: number, luk: number): void {
+  const k = `PVStatList_${ci}`;
+  const v = data[k];
+  const list = (typeof v === "string" ? JSON.parse(v) : [...(v as unknown[])]) as unknown[];
+  list[3] = luk;
+  data[k] = typeof v === "string" ? JSON.stringify(list) : list;
+}
+
+/** [save, characters] whose EXP LUK curve differs from lib/arkh's (found by running expTerms.test.ts without the entries; the test proves each by seeding the base LUK). */
+const LUK_BASE_ROWS: readonly (readonly [string, readonly number[]])[] = [["100Cotton.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["1st_Giri.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["21ucky4u.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["ARKHE.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["AoDCthulhu.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Arlong.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Ash_EB.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["AvacadoSqueeze.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Azza2Bad.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["B0schi.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Baker333.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Bangada.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["BopeBrancis.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Brokami.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Bubbafrumps.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Chalalaa.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Cheap_Jokes_ok.json", [0, 1, 2, 3, 5, 6, 7, 8, 9, 10]], ["Crezar.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Dandy2009.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Dasvidanya.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Dragami.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Dragonlzl.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Drukez.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Einyen.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Exrom.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["F1N4L_1.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Fanmail.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["FenrirAdra.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]], ["Flipper143.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["FlipsyThEVicti.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Fluffle_Puff.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Frans813.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Frostymart.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["FrozenBody.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["GIM_SSS.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Glaives.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["GoddessFreia.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Grandesz.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Hyucan.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Jrod11.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Koweabooo.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["MarleyLongbott.json", [0, 1, 2, 4, 5, 6, 7, 8, 9, 10]], ["Maspoofio.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["MeatyLock.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Norton_Goldman.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Pepega777.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["PerkOne.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Pontinhas.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["PulseIRL.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Riltin.json", [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Rinkzate.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Scotchz.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Seavik.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Shadow_x_Vanish.json", [0, 3, 4, 5, 7, 8, 9, 10]], ["Shironee.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Skvimpan.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Snowyzxd.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["TheSpease.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["TinTim.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["TomerBuff.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["WarSkepp.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Yosh6400.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["airbolt.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["astarm.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["big_guy69123.json", [0, 3, 7]], ["biggums3.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["blickter.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["bluestar3112.json", [0, 1, 3, 4, 5, 6, 7, 8, 9, 10]], ["breakinbrad.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["dida123.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["enilyn.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["haki34.json", [2, 3, 4, 5, 6, 7, 8, 9, 10]], ["hellzd4nt3.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["jobenty.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["joelok.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["kONYYY.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["liiiiiiiiiiiig.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["lunaonline.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["ryujinsan.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["suk69.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["xBlackpearl.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["zadavi.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["01010111001.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["0celot8.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]], ["0xEXCEED.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["24632463.json", [0, 1, 2, 4, 5, 6, 7, 8, 9, 10]], ["26515665165165.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["5OhTree.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]], ["arkhe-2026-09-23.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["arkhe-it-profile-2026-09-24.json", [1, 4, 6, 7, 8, 9]], ["arkhe-live-2026-09-23.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["arkhe-live-2026-09-24.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]], ["arkhe-live-2026-10-30.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["arkhe-live-2026-11-01-postupdate.json", [0, 1, 2, 3, 4, 5, 6, 7, 9, 10]], ["arkhe-live-2026-11-01.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["arkhe-live-2026-11-03-arkhe.json", [0, 1, 2, 3, 4, 5, 6, 7, 9, 10]], ["arkhe-live-2026-11-03-farkhe.json", [1, 2, 3, 4, 5, 6, 7, 9, 10]], ["arkhe-live-2026-11-03-markhe-noweapon.json", [1, 2, 3, 4, 5, 6, 7, 9, 10]], ["arkhe-live-2026-11-03-markhe-weapon.json", [0, 1, 2, 3, 4, 5, 6, 7, 9, 10]]];
+const T35_BASE_ROWS: readonly (readonly [string, readonly number[]])[] = [["100Cotton.json", [6]], ["1st_Giri.json", [6]], ["21ucky4u.json", [6]], ["ARKHE.json", [6]], ["AoDCthulhu.json", [9]], ["Arlong.json", [6]], ["Ash_EB.json", [6]], ["AvacadoSqueeze.json", [4]], ["Azza2Bad.json", [6]], ["B0schi.json", [7]], ["Baker333.json", [9]], ["Bangada.json", [6]], ["BopeBrancis.json", [6]], ["Brokami.json", [5]], ["Bubbafrumps.json", [7]], ["Cheap_Jokes_ok.json", [9]], ["Crezar.json", [3]], ["Dandy2009.json", [9]], ["Dasvidanya.json", [6]], ["Dragami.json", [6]], ["Dragonlzl.json", [3]], ["Drukez.json", [6]], ["Einyen.json", [4]], ["Exrom.json", [6]], ["F1N4L_1.json", [6]], ["Fanmail.json", [9]], ["FenrirAdra.json", [6]], ["Flipper143.json", [6]], ["FlipsyThEVicti.json", [6]], ["Fluffle_Puff.json", [6]], ["Frans813.json", [7]], ["Frostymart.json", [6, 8]], ["FrozenBody.json", [8]], ["GIM_SSS.json", [6]], ["Glaives.json", [6]], ["GoddessFreia.json", [8]], ["Grandesz.json", [7]], ["Hyucan.json", [7]], ["Jrod11.json", [3]], ["Koweabooo.json", [7]], ["MarleyLongbott.json", [6]], ["Maspoofio.json", [9]], ["MeatyLock.json", [9]], ["Norton_Goldman.json", [9]], ["Pepega777.json", [7]], ["PerkOne.json", [6]], ["Pontinhas.json", [6]], ["PulseIRL.json", [7]], ["Riltin.json", [6]], ["Rinkzate.json", [6]], ["Scotchz.json", [6]], ["Seavik.json", [6]], ["Shironee.json", [6]], ["Skvimpan.json", [8]], ["Snowyzxd.json", [6]], ["TheSpease.json", [6]], ["TinTim.json", [4, 8]], ["TomerBuff.json", [8]], ["WarSkepp.json", [6]], ["Yosh6400.json", [7]], ["airbolt.json", [7]], ["astarm.json", [6]], ["big_guy69123.json", [7]], ["biggums3.json", [5]], ["blickter.json", [6, 8]], ["bluestar3112.json", [7]], ["breakinbrad.json", [4]], ["dida123.json", [9]], ["enilyn.json", [5]], ["haki34.json", [9]], ["hellzd4nt3.json", [7]], ["jobenty.json", [2]], ["joelok.json", [7]], ["kONYYY.json", [6]], ["liiiiiiiiiiiig.json", [6]], ["lunaonline.json", [9]], ["ryujinsan.json", [6]], ["suk69.json", [8, 10]], ["xBlackpearl.json", [7]], ["zadavi.json", [5]], ["01010111001.json", [7]], ["0celot8.json", [6]], ["0xEXCEED.json", [8]], ["24632463.json", [8]], ["26515665165165.json", [6]], ["5OhTree.json", [4]], ["arkhe-2026-09-23.json", [6]], ["arkhe-it-profile-2026-09-24.json", [6]], ["arkhe-live-2026-09-23.json", [6]], ["arkhe-live-2026-09-24.json", [6]], ["arkhe-live-2026-10-30.json", [6]], ["arkhe-live-2026-11-01-postupdate.json", [6]], ["arkhe-live-2026-11-01.json", [6]], ["arkhe-live-2026-11-03-arkhe.json", [6]], ["arkhe-live-2026-11-03-farkhe.json", [6]], ["arkhe-live-2026-11-03-markhe-noweapon.json", [6]], ["arkhe-live-2026-11-03-markhe-weapon.json", [6]]];
+
 /**
  * Where N.js proves lib/arkh wrong and lib/game keeps the N.js value. `save` is the file name of the
  * GOLDEN_SAVES entry, `ci` omitted means every character; `why` cites the `@offset` evidence.
  */
 export const KNOWN_ARKH_DIFFS: {
   /** Which tracker `source` belongs to; absent = "artifactFind". For "damage", `source` is a Damage source id; for "afk", an AFK source id (arkhAfkLeaves). */
-  stat?: "artifactFind" | "damage" | "afk" | ArkhStat | "speed";
+  stat?: "artifactFind" | "damage" | "afk" | "exp" | ArkhStat | "speed";
   save: string;
   ci?: number;
+  /** The maps the entry covers (absent = every map the term is checked on): a map-dependent EXP term (the medallion gate) differs only on some. */
+  maps?: readonly number[];
   source: string;
   /** The STAT_WHY reason whose lib/arkh number (arkhStatSeeds) closes the gap: set on a Damage source, whose `source` is the leaf id. */
   reason?: string;
@@ -900,16 +934,45 @@ export const KNOWN_ARKH_DIFFS: {
   ...([1, 9] as const).map((ci) => ({ stat: "afk" as const, save: "HourZero.json", ci, source: "winBonus11", reason: "godshard", why: GODSHARD_WORN })),
   // Divinity("Bonus_Minor", -1, 5) counts Companions(0) (@10761439), the gate of Koweabooo#10
   { stat: "afk" as const, save: "Koweabooo.json", ci: 10, source: "divMinor5", reason: "comp0", why: COMPANION_0_GATE },
-  // GoldFoodBonuses("AllAFK") has the stats' golden food multi: the same four causes as goldFoodBase (the cap grouping and the vote 26 on the
-  // saves the STR rows name "gfood", the star sign 69, the fam68 of the tc470 rows)
-  ...[...new Set(STAT_DIFFS.str!.filter(([, r]) => r === "gfood").map(([save]) => save))].flatMap((save) =>
-    (["gfoodVote26", "gfoodCap"] as const).map((reason) => ({ stat: "afk" as const, save, source: "goldFoodAllAFK", reason, why: STAT_WHY.gfood }))
+  // GoldFoodBonuses("AllAFK") has the stats' golden food multi: the same four causes as goldFoodBase (see GOLDFOOD_ROWS)
+  ...GOLDFOOD_ROWS("afk", "goldFoodAllAFK"),
+  // Task 2 (EXP plan): the leaves of ExpMulti(0) (expTerms.test.ts), by EXP source id, proved as the AFK ones are
+  ...GOLDFOOD_ROWS("exp", "goldFood"),
+  // the fam68 of AllTalentLV: getbonus2(1, b, -1), the best over every character, adds the "all talent levels" of each, which read DNSM.FamBonusQTYs["68"];
+  // the characters of the tc470 rows (Maspoofio#7 and big_guy69123#5 included: their Workbench and Titan talents are not saturated)
+  ...(["workbench", "talent434"] as const).flatMap((source) =>
+    ([["Ash_EB.json", [0]], ["Frostymart.json", [0]], ["FrozenBody.json", [1]], ["Jrod11.json", [4, 7]], ["Koweabooo.json", [8]], ["Maspoofio.json", [7]], ["big_guy69123.json", [5]], ["0xEXCEED.json", [5]]] as const).flatMap(([save, cis]) =>
+      cis.map((ci) => ({ stat: "exp" as const, save, ci, source, reason: "fam68", why: STAT_WHY.fam68 }))
+    )
   ),
-  { stat: "afk" as const, save: "Glaives.json", source: "goldFoodAllAFK", reason: "gfoodSign69", why: STAT_WHY.gfoodSign69 },
-  ...[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((ci) => ({ stat: "afk" as const, save: "big_guy69123.json", ci, source: "goldFoodAllAFK", reason: "gfoodSign69", why: STAT_WHY.gfoodSign69 })),
-  ...([["Ash_EB.json", 0], ["Frostymart.json", 0], ["FrozenBody.json", 1], ["Jrod11.json", 4], ["Jrod11.json", 7], ["Koweabooo.json", 8], ["big_guy69123.json", 5], ["0xEXCEED.json", 5], ["Maspoofio.json", 7]] as const).map(([save, ci]) => ({
-    stat: "afk" as const, save, ci, source: "goldFoodAllAFK", reason: "fam68", why: STAT_WHY.fam68,
-  })),
+  // the Shiny Medallion factor, max(1, getbonus2(1, 429, -1)), only where the map's monster has its medallion: the same fam68 characters on the maps below
+  // (map 251 included; big_guy69123#5 only on map 59). Map 40 (the dungeon frogG, where the gate is open too) is also proved by the EXP adapter test (trackers/expMulti.test.ts).
+  ...([["Ash_EB.json", [0], [251, 1, 2, 8, 9, 40]], ["Frostymart.json", [0], [251, 1, 2, 8, 9, 40]], ["FrozenBody.json", [1], [251, 1, 2, 14, 16, 40]], ["Jrod11.json", [4, 7], [251, 1, 2, 8, 9, 40]], ["Koweabooo.json", [8], [251, 1, 2, 8, 9, 40]], ["Maspoofio.json", [7], [251, 1, 2, 8, 9, 40]], ["big_guy69123.json", [5], [59]], ["0xEXCEED.json", [5], [251, 1, 2, 8, 9, 40]]] as const).flatMap(([save, cis, maps]) =>
+    cis.map((ci) => ({ stat: "exp" as const, save, ci, maps, source: "medallion429", reason: "fam68", why: STAT_WHY.fam68 }))
+  ),
+  // the EXP page's Companions(0) gate (Koweabooo#10): Grid_Bonus_Allmulti under the research squares and the Sticker, Divinity Bonus_Minor and the Minehead presses
+  ...(["gridExp", "sticker0", "divMinor4", "button8"] as const).map((source) => ({ stat: "exp" as const, save: "Koweabooo.json", ci: 10, source, reason: "comp0", why: COMPANION_0_GATE })),
+  // Summoning("WinBonus",23): the boosts have GetSetBonus("GODSHARD_SET"), the God Shard set worn whole (as win0, win3, winBonus11)
+  ...([1, 9] as const).map((ci) => ({ stat: "exp" as const, save: "HourZero.json", ci, source: "win23", reason: "godshard", why: GODSHARD_WORN })),
+  // ArbitraryCode("StatueBonusGiven10"): the statue bonus scales with talents (the fam68 of the tc470 rows, as workbench), and HourZero#8 has its own
+  // statue levels (the statues reason: lib/arkh reads the first character statue list)
+  ...([["Ash_EB.json", [0]], ["Frostymart.json", [0]], ["FrozenBody.json", [1]], ["Jrod11.json", [4, 7]], ["Koweabooo.json", [8]], ["Maspoofio.json", [7]], ["big_guy69123.json", [5]], ["0xEXCEED.json", [5]]] as const).flatMap(([save, cis]) =>
+    cis.map((ci) => ({ stat: "exp" as const, save, ci, source: "statue10", reason: "fam68", why: STAT_WHY.fam68 }))
+  ),
+  { stat: "exp" as const, save: "HourZero.json", ci: 8, source: "statue10", reason: "statues", why: STAT_WHY.statues },
+  // StarSigns.MainXP: lib/arkh counts every sign the Rift enables (the signs reason, on the Main EXP key)
+  ...["Drukez.json", "Glaives.json", "big_guy69123.json"].map((save) => ({ stat: "exp" as const, save, source: "starSignMainXP", reason: "signsExp", why: STAT_WHY.signsExp })),
+  // prayersReal(0, 0) and (2, 0): the Super Bit 9 / 39 branch with no prayer equipped (the pray6 reason, as Damage's prayer15)
+  ...(["prayer0", "prayer2"] as const).flatMap((source) =>
+    ([["Ash_EB.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Brokami.json", [10]], ["Crezar.json", [1, 4]], ["Dandy2009.json", [10]], ["Flipper143.json", [10]], ["Frostymart.json", [9]], ["FrozenBody.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Glaives.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Jrod11.json", [10]], ["big_guy69123.json", [4, 8, 10]]] as const).flatMap(([save, cis]) =>
+      cis.map((ci) => ({ stat: "exp" as const, save, ci, source, reason: "pray6", why: STAT_WHY.pray6 }))
+    )
+  ),
+  // the LUK curve: the saved TotalStats("LUK") snapshot where N.js recomputes it live (STAT_WHY.lukSnapshot). Every pair whose curve moves; talent35 is the same curve times
+  // talent 35, so it differs where the class has the talent
+  ...(["luk", "talent35"] as const).flatMap((source) =>
+    (source === "luk" ? LUK_BASE_ROWS : T35_BASE_ROWS).flatMap(([save, cis]) => cis.map((ci) => ({ stat: "exp" as const, save, ci, source, reason: "lukSnapshot", why: STAT_WHY.lukSnapshot })))
+  ),
 ];
 
 /**
@@ -1059,6 +1122,11 @@ export const PROOF_PATCHES: Record<string, Patch> = {
     own[to] = { ...(own[to] ?? {}), Weapon_Power: Number(own[to]?.Weapon_Power ?? 0) + moved };
     d[`EMm0_${ci}`] = own;
   },
+  // signsExp: character `ci` also wears every sign lib/arkh's table gives the Main EXP key (2, 24, 52), so each is active (STAT_WHY.signsExp)
+  signsExp: (d, ci) => {
+    const k = `PVtStarSign_${ci}`;
+    d[k] = `${d[k] ?? ""}${Object.keys(SIGN_BONUSES.MainXP).join(",")},`;
+  },
   signsDmg: (d, ci) => {
     const k = `PVtStarSign_${ci}`;
     d[k] = `${d[k] ?? ""}${Object.keys(SIGN_BONUSES.PctDmg).join(",")},`;
@@ -1149,4 +1217,159 @@ export function arkhAfkRate(save: unknown, ci: number, map: number): number {
     cove: l.cglunkoCove,
     type: l.afkType,
   });
+}
+
+// ---- EXP Multi ----
+// Same cache design as AFK: the `exp` section of the sha1-keyed file (path save), identity-keyed memory (object save).
+const expByObject = new WeakMap<object, Map<string, ExpEntry>>();
+
+/** The name lib/arkh gives each EXP source node (stable across the real saves): expEntryOf checks the tree against it, so a reorder inside a group of the same length fails loudly. */
+const EXP_SOURCE_NAMES: Record<string, string> = {
+  workbench: "Archlord Of The Pirates (Talent 328)",
+  bunQ: "EXP Bundle",
+  superbit19: "Noobie Gains (Super Bit 19)",
+  medallion429: "Shiny Medallions (Talent 429)",
+  comp37: "Whallamus (Companion 37)",
+  comp33: "Chippy (Companion 33)",
+  comp160: "Glunko The Massive (Companion 160)",
+  comp32: "Whale (Companion 32)",
+  arenaCruc15: "1.20x Class EXP (Pet Arena Crucible 15)",
+  menagerie23: "Menagerie Boost: Class EXP gain (Boost 23)",
+  comp168: "Crystal Glunko (Companion 168)",
+  comp34: "Bunny (Companion 34)",
+  comp145: "Eggroll (Companion 145)",
+  jelly30: "Surrage (Jelly Obstruction 31)",
+  jelly62: "Tribunal Helmet (Jelly Obstruction 63)",
+  comp128: "Baby Troll (Companion 128)",
+  gridExp: "Legendary Fevers (Research Grid 130·131·132·152)",
+  sticker0: "Mega Mongo Sticker (Sticker 0)",
+  superbit63: "Experienced Gamer (Super Bit 63)",
+  zenith9: "Classy Gogo (Zenith Market 9)",
+  comp50: "Santa Snake (Companion 50)",
+  etc84: "Bonus Class EXP (Equipment)",
+  card100: "Class EXP Multi Cards (Card Type 100)",
+  arcade60: "Class XP Multi Arcade Bonus (Arcade 60)",
+  vialClassExp: "Crabomayse (Vial 83)",
+  talent434: "Slayer Abominator (Talent 434)",
+  arcane1: "Arcane Map Bonus: Class EXP",
+  bigFish4: "Advice on Being Smart (Big Fish 4)",
+  dancingCoral3: "Class EXP (Dancing Coral 3)",
+  coralKid: "Coral Kid Upgrade 2",
+  cardSet12: "Class EXP Multi Set Bonus (Card Set 12)",
+  bubba6: "XP Multi (Bubba RoG 6)",
+  sushi15: "Tobiko Temaki (Sushi Tier 16)",
+  cloud70: "Palette Lv. 100 (Equinox Challenge 70)",
+  fountain16: "Class EXP Boost (Fountain 16)",
+  royalStatue3: "Royal Statue: Class Exp",
+  classy: "Classy Discoveries",
+  etc78: "Class EXP Multi (Equipment)",
+  luk: "LUK Scaling (Class EXP)",
+  talent35: "Lucky Charms (Talent 35)",
+  etc4: "XP from Monsters (Equipment)",
+  boxMonsterExp: "Box of Unwanted Stats (Post Office 3c)",
+  food: "Food (Class EXP)",
+  starSignMainXP: "Star Signs: Main EXP",
+  vialMonsterExp: "Mimicraugh (Vial 17)",
+  bubbleExp: "Grind Time (Kazam Cauldron)",
+  card44: "Monster EXP Cards (Card Type 44)",
+  merit3: "Merit: EXP for Lowest-Level Character",
+  vault12: "Baby on Board (Vault 12)",
+  cardSet0: "EXP if below Lv 50 Set Bonus (Card Set 0)",
+  mealClexp: "Class EXP Meals (below Lv 120)",
+  weeklyBoss: "Weekly Boss",
+  newbie: "Newbie Bracket",
+  divMinor4: "Class EXP (Divinity Minor Bonus 4)",
+  cardSet5: "Card Set 5 (Damage · Drop · EXP)",
+  statue10: "EXP Statue (Statue 10)",
+  talent632: "Just EXP (Talent 632)",
+  shrine5: "Summereading Shrine (Shrine 5)",
+  saltLick3: "Class EXP and Skill EXP (Salt Lick 3)",
+  prayer0: "Big Brain Time (Prayer 0)",
+  prayer2: "Unending Energy (Prayer 2)",
+  prayer9: "The Royal Sampler (Prayer 9) (curse)",
+  flurbo2: "Class Exp (Flurbo Shop 2)",
+  ach57: "Dungeon Pinch (Achievement 57)",
+  ach357: "Unreal Overgrowth (Achievement 357)",
+  ach61: "2 Minute Meal (Achievement 61)",
+  ach124: "Dungeon Slap (Achievement 124)",
+  ach188: "Capitalist Win (Achievement 188)",
+  arcade12: "Class EXP Gain Arcade Bonus (Arcade 12)",
+  sigil8: "Metal Exterior Sigil (Sigil 8)",
+  ach286: "No Krakens? ): (Achievement 286)",
+  shiny1: "Class EXP Shiny Pet (Breeding 1)",
+  msa4: "MSA Totalizer (Class EXP)",
+  talent55: "EXP Cultivation (Talent 55)",
+  cardSpring: "Bubbulyte (Card springEvent1)",
+  comp3: "Crystal Custard (Companion 3)",
+  comp50add: "Santa Snake (Companion 50)",
+  shimmer179: "Island Shimmer",
+  goldFood: "Golden Nigiri (Golden Food)",
+  owl0: "Bonuses of Orion (Owl Upgrade 0)",
+  vote15: "Class EXP from Monsters (Weekly Vote 15)",
+  monument1_6: "Justice Monument: Class EXP Gain",
+  compass51: "Moon of Experience (Compass 51)",
+  hole47: "Gloomie Expie (Cavern Upgrade 47)",
+  win23: "Class EXP (Winner Bonus 23)",
+  grimoire24: "Skull of Major Experience (Grimoire 24)",
+  vault3: "Wicked Smart (Vault 3)",
+  vault35: "Schoolin' the Fish (Vault 35)",
+  hole83: "Sanctum of EXP (Cavern Upgrade 83)",
+  ironSet: "Iron Set",
+  exotic50: "Intelleaf (Exotic Market 50)",
+  ola421: "Class EXP from Monsters (Hoops Shop 2)",
+  stampClassxp: "Gud EXP Stamp (Stamp A44)",
+  friend1: "Class EXP Gain (Friend Bonus 1)",
+  comp47: "Baby Boa (Companion 47)",
+  comp111: "Clammie (Companion 111)",
+  button8: "Class XP (Minehead Button 8)",
+  comp128add: "Baby Troll (Companion 128)",
+};
+
+// The tree of computeArkhExpMulti: one child per EXP_GROUPS group, whose children are its sources in order (a grouped descriptor).
+function expEntryOf(parsed: any, ci: number, map: number): ExpEntry {
+  const { tree, total } = computeArkhExpMulti(parsed, ci, map);
+  const leaves: Record<string, number> = {};
+  EXP_GROUPS.forEach((g, i) => {
+    const kids = tree.children![i].children!;
+    if (kids.length !== g.sources.length) throw new Error(`arkhExpLeaves: lib/arkh's ${g.key} has ${kids.length} sources, EXP_GROUPS has ${g.sources.length}`);
+    g.sources.forEach((id, k) => {
+      // by name too, not by index alone: a same-length reorder of a group in lib/arkh would otherwise pair the wrong leaves
+      if (kids[k].name !== EXP_SOURCE_NAMES[id]) throw new Error(`arkhExpLeaves: lib/arkh's ${g.key}[${k}] is "${kids[k].name}", EXP_GROUPS expects ${id} ("${EXP_SOURCE_NAMES[id]}")`);
+      leaves[id] = kids[k].val;
+    });
+  });
+  return { leaves, total };
+}
+
+function expEntry(save: unknown, ci: number, map: number): ExpEntry {
+  if (typeof save !== "string") {
+    let per = expByObject.get(save as object);
+    if (!per) expByObject.set(save as object, (per = new Map()));
+    const key = `${ci}@${map}`;
+    let e = per.get(key);
+    if (!e) per.set(key, (e = expEntryOf(structuredClone(save), ci, map)));
+    return e;
+  }
+  const d = diskOf(save);
+  const slot = ((d.data.exp ??= {})[ci] ??= {});
+  let e = slot[map];
+  if (!e) {
+    e = slot[map] = expEntryOf(JSON.parse(readFileSync(save, "utf8")), ci, map);
+    persist(d);
+  }
+  return e;
+}
+
+/**
+ * Every EXP source's `val` in lib/arkh's EXP Multi tree for character `ci` on `map`, by EXP_GROUPS source id (as the tree holds it:
+ * a factor for the `mult` groups, a percentage for the `pct` ones). Recombine with `applyGroupStep` over EXP_GROUPS (mult / pct,
+ * max1 on g04) to get lib/arkh's total. `save` as in arkhDamageLeaves.
+ */
+export function arkhExpLeaves(save: unknown, ci: number, map: number): Record<string, number> {
+  return expEntry(save, ci, map).leaves;
+}
+
+/** lib/arkh's own EXP Multi total (computeArkhExpMulti(...).total): the oracle for the whole tree. */
+export function arkhExpMulti(save: unknown, ci: number, map: number): number {
+  return expEntry(save, ci, map).total;
 }

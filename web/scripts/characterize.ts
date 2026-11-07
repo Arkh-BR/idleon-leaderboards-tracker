@@ -1,6 +1,6 @@
 // characterize: do the old and the new engine of a stat agree on every real save? From web/:
 //
-//   npx tsx scripts/characterize.ts <stat> [--map <n>]        (stats: artifactFind, damage, afkGains)
+//   npx tsx scripts/characterize.ts <stat> [--map <n>]        (stats: artifactFind, damage, afkGains, expMulti)
 //
 // Runs both engines on every character of every save envelope (golden/.cache + saves-fresh), on map <n> (default 0; a stat with
 // no map ignores it), writes reports/characterize-<stat>[-<n>].md, and exits 1 when the spec's switch criteria are not met: a row that is
@@ -17,7 +17,8 @@ import { DAMAGE_STATS } from "@/__tests__/lib/game/support/damageProof";
 import { computeArkhAfkGains } from "@/lib/arkh/computeAfk";
 import { computeArkhArtifactFind } from "@/lib/arkh/computeArtifactFind";
 import { computeArkhDamage } from "@/lib/arkh/computeDamage";
-import { AFK_REFUSABLE, ARTIFACT_FIND_REFUSABLE, DAMAGE_REFUSABLE, characterize, classify, type Engine, type Row, type Verdict } from "@/lib/diagnose/characterize";
+import { computeArkhExpMulti } from "@/lib/arkh/computeExp";
+import { AFK_REFUSABLE, ARTIFACT_FIND_REFUSABLE, DAMAGE_REFUSABLE, EXP_REFUSABLE, characterize, classify, type Engine, type Row, type Verdict } from "@/lib/diagnose/characterize";
 import { CURRENT_CSVER } from "@/lib/game/errors";
 import { MapAFKtarget } from "@/lib/game/data";
 import { keptTargetCloses } from "@/__tests__/lib/game/support/afkKept";
@@ -27,6 +28,7 @@ import { stateOf } from "@/lib/game/trackers/page";
 import { computeGameAfkGains } from "@/lib/game/trackers/afkGains";
 import { computeGameArtifactFind } from "@/lib/game/trackers/artifactFind";
 import { computeGameDamage } from "@/lib/game/trackers/damage";
+import { computeGameExpMulti } from "@/lib/game/trackers/expMulti";
 
 type KnownDiff = (typeof KNOWN_ARKH_DIFFS)[number];
 /**
@@ -63,6 +65,14 @@ const ENGINES: Record<string, (map: number) => { arkh: Engine; game: Engine; nam
       if (t === String((MapAFKtarget as unknown as readonly unknown[])[map])) return undefined;
       return r.a !== undefined && keptTargetCloses(env, r.ci, map, r.a) ? `kept AFK target ${t} (Ruling V)` : undefined;
     },
+  }),
+  expMulti: (map) => ({
+    arkh: (save, ci) => computeArkhExpMulti(save, ci, map),
+    game: (save, ci) => computeGameExpMulti(save, ci, map),
+    names: `a = lib/arkh (computeArkhExpMulti), b = lib/game (computeGameExpMulti), on map ${map}`,
+    refusable: EXP_REFUSABLE,
+    // a KNOWN row that names maps explains only those maps; EXP needs no kept-target waiver (Ruling II: the medallion follows ctx.map)
+    known: (d) => d.stat === "exp" && (d.maps?.includes(map) ?? true),
   }),
 };
 

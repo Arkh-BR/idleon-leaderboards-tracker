@@ -4,7 +4,7 @@
 // group of its own. Both engines (lib/arkh's descriptor and lib/game's tracker adapter) and the page's Biggest Gains model read this list,
 // so it lives here, not in either engine (Ruling B). The math over it (caps, layers, Max) stays with each engine.
 
-import type { StatGroup } from "@/lib/arkh/stats/defs/grouped";
+import type { StatGroup } from "@/lib/statTracker/groups";
 
 export const DMG_ROOT = "Damage";
 
