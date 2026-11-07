@@ -175,7 +175,7 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("Minehead Button_Bonuses (N.js @11204
   it("only slots 0..8 exist, and only the ported sub-cases", () => {
     const c = presses(10);
     for (const b of [9, -1]) expect(() => button(c, b), `b=${b}`).toThrow(RangeError);
-    expect(() => Minehead(c, "GlimboTotalTrades", 0, 0)).toThrow(NotPorted);
+    expect(() => Minehead(c, "Button_Task", 0, 0)).toThrow(NotPorted);
   });
   it("a save without OptionsListAccount is refused", () => {
     expect(() => button(variant((d) => delete d.OptLacc))).toThrow(MissingSaveKey);
@@ -764,7 +764,7 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("variants forced on every real save, 
 describe("ports stay on their boundary", () => {
   const c = () => gameCtx({ data: {}, charNames: [], companion: null, guildData: {}, serverVars: null, tournament: {}, accountCreateTime: 1, lastUpdated: 1 }, 0);
   it("Minehead / MainframeBonus / Ninja / Thingies / RiftStuff / CauldronStats: only the ported sub-cases", () => {
-    expect(() => Minehead(c(), "GlimboTotalTrades", 0, 0)).toThrow(NotPorted);
+    expect(() => Minehead(c(), "Button_Task", 0, 0)).toThrow(NotPorted);
     expect(() => MainframeBonus(c(), 9)).toThrow(expect.objectContaining({ name: "NotPorted", sub: "d=9" }));
     expect(() => Ninja(c(), "Nope", 0, 0)).toThrow(NotPorted);
     expect(() => Thingies(c(), "Nope", 0, 0)).toThrow(NotPorted);

@@ -110,12 +110,15 @@ describe("isPorted (the marker)", () => {
     for (const b of [49, 50, 79, 98]) expect(["[ ]", "[~]"].some((m) => md.includes(`- ${m} Holes("B_UPG",${b},`)), `B_UPG ${b}`).toBe(true);
   });
 
-  it("reads GetSetBonus's name from the second argument, Grid_Bonus's e=2 rule, and an unknown index as not covered", () => {
+  it("reads GetSetBonus's name from the second argument, an `@e<n>` rule, and an unknown index as not covered", () => {
     expect(isPorted({ args: ["LUSTRE_SET", "Bonus", 0, 0] }, setBonus)).toBe(true);
-    expect(isPorted({ args: ["Grid_Bonus", 127, 0] }, research)).toBe(true);
-    expect(isPorted({ args: ["Grid_Bonus", 127, 2] }, research)).toBe(false);
-    expect(isPorted({ args: ["Grid_Bonus", 68, 2] }, research)).toBe(true);
-    expect(isPorted({ args: ["Grid_Bonus"] }, research)).toBe(false);
+    // Grid_Bonus is ported for every e since the Drop Rate plan, so the `@e2` rule is checked on a declaration of its own
+    const e2: Ported = { Grid_Bonus: true, "Grid_Bonus@e2": [68] };
+    expect(isPorted({ args: ["Grid_Bonus", 127, 0] }, e2)).toBe(true);
+    expect(isPorted({ args: ["Grid_Bonus", 127, 2] }, e2)).toBe(false);
+    expect(isPorted({ args: ["Grid_Bonus", 68, 2] }, e2)).toBe(true);
+    expect(isPorted({ args: ["Grid_Bonus"] }, e2)).toBe(false);
+    for (const args of [["Grid_Bonus", 127, 2], ["Grid_Bonus", 168, 2], ["Grid_Bonus"]]) expect(isPorted({ args }, research), JSON.stringify(args)).toBe(true);
     expect(isPorted({ args: ["B_UPG"] }, holes)).toBe(false);
   });
 

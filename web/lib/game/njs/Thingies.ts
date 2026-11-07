@@ -64,7 +64,7 @@ export const Thingies: (ctx: Ctx, d: string, b: number, e: number) => number = b
       if (11 == b) return Math.round(asNum(ctx, "OptionsListAccount", 621));
       throw new NotPorted("Thingies", `CoralKidUpgBonus:b=${b}`);
     case "FriendBonusStatz":
-      if (0 != b && 1 != b) throw new NotPorted("Thingies", `FriendBonusStatz:b=${b}`); // 2 is [~] (unreached.ts)
+      if (0 != b && 1 != b && 3 != b) throw new NotPorted("Thingies", `FriendBonusStatz:b=${b}`); // 2 is [~] (unreached.ts)
       return friendBonusStatz(ctx, b);
     // @10955906: the friend slots, round(min(20, 2 + Companion 44 + 2 x Companion 30 + Event Shop items 22 and 67))
     case "FriendBonusSlots":
@@ -185,5 +185,5 @@ function friendBonusStatz(ctx: Ctx, b: number): number {
 export const PORTED: Ported = {
   LegendPTS_bonus: true, Have_ban_i: true, ClamWorkBonus: true, EmperorBon: true, LoreEpiBon: range(0, 30),
   HaveW6Trophy: true, Have_ban_m: true, Have_ban_o: true, SuperTalentPTS_LVgiven: true, ZenithMarketBonus: true, CoralKidUpgBonus: [2, 3, 11], DancingCoralBonus: true, SumStoneTrialz: true,
-  FriendBonusStatz: [0, 1] /* 2: only SkillStats AllEfficiencies (unreached.ts) */, FriendBonusSlots: true, FriendBonusQTY: true, FriendBonusXtraMulti: true, ReliquariumInPosession: true,
+  FriendBonusStatz: [0, 1, 3] /* 2: only SkillStats AllEfficiencies (unreached.ts) */, FriendBonusSlots: true, FriendBonusQTY: true, FriendBonusXtraMulti: true, ReliquariumInPosession: true,
 };

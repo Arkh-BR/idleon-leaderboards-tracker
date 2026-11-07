@@ -1,5 +1,6 @@
 import { asNum, asNumber } from "../attr";
 import { assumed, block, withPlayer, type Ctx } from "../ctx";
+import { DeathNoteMobs, MapAFKtarget, NinjaInfo } from "../data";
 import { hString } from "../hstring";
 import { NotPorted } from "../errors";
 import { listAt } from "../lists";
@@ -19,10 +20,10 @@ import { GuildBonuses } from "./GuildBonuses";
 import { boxLevel } from "./PostOfficeINFO";
 import { RiftStuff } from "./RiftStuff";
 import { StampBonusOfTypeX } from "./StampBonusOfTypeX";
-import { Summoning } from "./Summoning";
-import type { Ported } from "../ported";
+import { accountKillsOn, Summoning } from "./Summoning";
+import { range, type Ported } from "../ported";
 
-/** N.js `_customBlock_WorkbenchStuff(d, b, e)` @7801627: one function, a chain of named sub-cases. Only the sub-cases Damage reaches. */
+/** N.js `_customBlock_WorkbenchStuff(d, b, e)` @7801627: one function, a chain of named sub-cases. Only the sub-cases Damage and Drop Rate reach. */
 export const WorkbenchStuff: (ctx: Ctx, d: string, b: number, e: number) => number = block("WorkbenchStuff", (ctx, d: string, b: number, e: number) => {
   switch (d) {
     // @7825061: (1 + best talent 508 x getLOG(OptionsListAccount[152]) / 100) x (1 + best talent 208 x getLOG(OptionsListAccount[329]) / 100)
@@ -40,6 +41,8 @@ export const WorkbenchStuff: (ctx: Ctx, d: string, b: number, e: number) => numb
       return deathNoteRank(ctx, b, e);
     case "PlayerBuildSpd":
       return playerBuildSpd(ctx, b);
+    case "OverkillQTY":
+      return overkillQTY(ctx, b);
     default:
       throw new NotPorted("WorkbenchStuff", d);
   }
@@ -71,6 +74,36 @@ function constMasteryBonus(ctx: Ctx, b: number): number {
 function deathNoteRank(ctx: Ctx, b: number, e: number): number {
   if (7842 == e) return 100 > b ? 0 : 250 > b ? 1 : 1e3 > b ? 2 : 5e3 > b ? 3 : 25e3 > b ? 4 : 1e5 > b ? 5 : 1e6 > b ? 7 : 10;
   return 25e3 > b ? 0 : 1e5 > b ? 1 : 25e4 > b ? 2 : 5e5 > b ? 3 : 1e6 > b ? 4 : 5e6 > b ? 5 : 1e8 > b ? 7 : 1e9 < b && 1 == RiftStuff(ctx, "riftBonus", 3) ? 20 : 10;
+}
+
+/**
+ * `OverkillQTY` @7810614: page `b` of the Death Note, entry b of `DNSM.OKqtyZZ`, a table of 8 the game builds on a call that finds it
+ * absent (or with b == -1). Page w < 7 is the sum, over the monsters of DeathNoteMobs[w], of DeathNoteRank(the account's kills on the
+ * monster's map, 0): the map is MapAFKtarget.indexOf(monster), the kills MapDetails[map][0][0] - KillsLeft2Advance[map][0] of the current
+ * character and then of every other one (a monster with no map counts DeathNoteRank(0, 0)); page 7 sums DeathNoteRank(Ninja[105][f], 7842)
+ * over the NinjaInfo[30] minibosses. The call that builds the table answers 0, every later one the entry: the table only reads save data,
+ * so here it is built from the save each time and the entry is given, as a read after the build (the session's first read answers 0).
+ */
+function overkillQTY(ctx: Ctx, b: number): number {
+  const table: number[] = []; // DNSM.OKqtyZZ
+  for (let e = 0; e < 8; e++) {
+    let n = 0; // DummyNumber5
+    if (7 == e) {
+      const minis = (NinjaInfo as unknown as readonly (readonly unknown[])[])[30];
+      listAt(ctx, "Ninja", 105); // the game indexes Ninja[105][f] directly
+      for (let f = 0; f < minis.length; f++) n = n + WorkbenchStuff(ctx, "DeathNoteRank", asNum(ctx, "Ninja", 105, f), 7842);
+    } else {
+      const mobs = (DeathNoteMobs as unknown as readonly (readonly unknown[])[])[e];
+      for (let g = 0; g < mobs.length; g++) {
+        const map = (MapAFKtarget as unknown as readonly unknown[]).indexOf(mobs[g]); // DummyNumber3
+        n = n + WorkbenchStuff(ctx, "DeathNoteRank", 0 <= map ? accountKillsOn(ctx, map) : 0, 0);
+      }
+    }
+    table.push(n);
+  }
+  // the game answers undefined for a page past the 8, which the callers' sums would turn into NaN
+  if (!(0 <= (b | 0) && (b | 0) < table.length)) throw new RangeError(`WorkbenchStuff OverkillQTY: no Death Note page ${b}`);
+  return assumed(ctx, "DNSM.OKqtyZZ", "the Death Note table built from the save (the game's first read of it in a session answers 0)", table[b | 0], "OverkillQTY @7810614: the call that finds DNSM.OKqtyZZ absent builds it and answers 0, every later one reads the entry; counted as a later read");
 }
 
 /**
@@ -121,4 +154,4 @@ function playerBuildSpd(ctx: Ctx, b: number): number {
 }
 
 /** What this module covers (lib/game/ported.ts). */
-export const PORTED: Ported = { AdditionExtraDMG: true, AdditionExtraEXPnDR: true, ConstMasteryBonus: [0, 1, 2], DeathNoteRank: true, PlayerBuildSpd: true };
+export const PORTED: Ported = { AdditionExtraDMG: true, AdditionExtraEXPnDR: true, ConstMasteryBonus: [0, 1, 2], DeathNoteRank: true, PlayerBuildSpd: true, OverkillQTY: range(0, 8) };

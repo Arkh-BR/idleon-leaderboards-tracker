@@ -5,35 +5,52 @@ import { InvalidSaveValue, MissingSaveKey, NotPorted } from "../errors";
 import { hString } from "../hstring";
 import { contains, listAt } from "../lists";
 import { charKey, opt } from "../state";
+import { AchieveStatus } from "./AchieveStatus";
 import { ArbitraryCode } from "./ArbitraryCode";
 import { ArcadeBonus } from "./ArcadeBonus";
+import { ArcaneType } from "./ArcaneType";
 import { Breeding } from "./Breeding";
 import { CardBonusREAL } from "./CardBonusREAL";
+import { CardSetBonuses } from "./CardSetBonuses";
 import { chipBonuses } from "./chipBonuses";
+import { CompLV2 } from "./CompLV2";
 import { Companions } from "./Companions";
 import { DNSM_AlchBubbles, DNSM_AlchVials, DNSM_BoxRewards, DNSM_FamBonusQTYs, DNSM_StarSigns } from "./DNSM";
 import { Dreamstuff } from "./Dreamstuff";
 import { Dungon } from "./Dungon";
 import { EtcBonuses } from "./EtcBonuses";
+import { FarmingStuffs } from "./FarmingStuffs";
 import { FlurboShop } from "./FlurboShop";
 import { Gallery, GalleryBonTOT } from "./Gallery";
 import { GamingStatType } from "./GamingStatType";
 import { GetBuffBonuses } from "./GetBuffBonuses";
 import { getbonus2 } from "./getbonus2";
 import { getLOG } from "./getLOG";
+import { GetSetBonus } from "./GetSetBonus";
 import { GetTalentNumber } from "./GetTalentNumber";
 import { GoldFoodBonuses } from "./GoldFoodBonuses";
 import { GuildBonuses } from "./GuildBonuses";
+import { Holes } from "./Holes";
+import { Holes2 } from "./Holes2";
+import { JellyOperation } from "./JellyOperation";
 import { Labb } from "./Labb";
 import { MenagerieStuff } from "./MenagerieStuff";
+import { Minehead } from "./Minehead";
 import { Ninja } from "./Ninja";
+import { prayersReal } from "./prayersReal";
 import { ResearchStuff } from "./ResearchStuff";
+import { RoyalG } from "./RoyalG";
 import { RunCodeOfTypeXforThingY } from "./RunCodeOfTypeXforThingY";
 import { ObolStats } from "./ScrollCircleINFO";
+import { Shrine } from "./Shrine";
+import { Spelunk } from "./Spelunk";
 import { StampBonusOfTypeX } from "./StampBonusOfTypeX";
 import { Summoning } from "./Summoning";
+import { SushiStuff } from "./SushiStuff";
 import { TalentCalc } from "./TalentCalc";
+import { haveBan, Thingies } from "./Thingies";
 import { TotalFoodBonuses } from "./TotalFoodBonuses";
+import { WorkbenchStuff } from "./WorkbenchStuff";
 import type { Ported } from "../ported";
 
 type Item = Readonly<Record<string, unknown>>;
@@ -195,10 +212,10 @@ export function TotalStatsETCmap(ctx: Ctx): ReadonlyMap<string, number> {
 
 /**
  * N.js `_customBlock_TotalStats(d)` @4156192: the character's total of stat `d`, cached in `DNSM.TotStatMAP` (here the `block` cache).
- * Only STR, AGI, WIS, LUK, Accuracy and Weapon_Power are ported. Outside a dungeon each main stat is
+ * Only STR, AGI, WIS, LUK, Accuracy, Weapon_Power and Drop_Rarity are ported. Outside a dungeon each main stat is
  * floor(the TotalSTR bubble + talent 652 + Companion 8 + (1 + pct / 100) x (equipment + base + the flat sources)), @4174547.
  */
-export const TotalStats = block("TotalStats", (ctx, d: string) => {
+export const TotalStats: (ctx: Ctx, d: string) => number = block("TotalStats", (ctx, d: string) => {
   switch (d) {
     case "STR": {
       const { dn } = head(ctx, d);
@@ -346,13 +363,119 @@ export const TotalStats = block("TotalStats", (ctx, d: string) => {
                     (GetTalentNumber(ctx, 1, 365) * getLOG(ctx, asNum(ctx, "PetsStored", 0, 2)) + GetTalentNumber(ctx, 1, 530) * Math.floor(asNum(ctx, "Lv0", 12) / 10))))))))
       );
     }
+    case "Drop_Rarity":
+      return dropRarity(ctx);
     default:
       throw new NotPorted("TotalStats", d);
   }
 });
 
+/** DNSM.DropRateLUK after its curve (@4190539): `1E3 > LUK ? (pow(LUK + 1, .37) - 1) / 40 : .5 x ((LUK - 1E3) / (LUK + 2500)) + .297`. */
+export const dropRateLuk = (luk: number): number => (1e3 > luk ? (Math.pow(luk + 1, 0.37) - 1) / 40 : 0.5 * ((luk - 1e3) / (luk + 2500)) + 0.297);
+
+/**
+ * `"Drop_Rarity"==d` @4190432, the Player Info "Drop Rate". The game works in DNSM: DropRateLUK (the LUK curve), DropRateLUK2 (a Σ of its own),
+ * TotStatMAP.Drop_Rarity (the total, rewritten step by step) and NormzDR_GlunkC (the total before the Cove, which nothing reads); they are rewritten
+ * on every call, so they are locals here, in the game's order and with its parentheses (the float rounding). After the base 1 + 1.4 x the curve +
+ * Σ / 100: the chip under 5, then (outside a dungeon) bun_v, the Workbench, OptionsListAccount[232], bun_p and the multipliers; last, on map 216
+ * (`CurrentMap`, ctx.map) a character in cavern 17 gets the Cove's own Drop Rate instead. The Arcane factor reads ctx.map too.
+ */
+function dropRarity(ctx: Ctx): number {
+  // @4190490: DropRateLUK, the curve of the live LUK total
+  const luk = dropRateLuk(TotalStats(ctx, "LUK"));
+  // @4190966: DropRateLUK2
+  const luk2 =
+    Math.min(1.5 * RunCodeOfTypeXforThingY(ctx, "CardLv", "mini5a"), 10) +
+    (Math.min(4 * RunCodeOfTypeXforThingY(ctx, "CardLv", "caveC") + 6 * RunCodeOfTypeXforThingY(ctx, "CardLv", "caveD"), 100) +
+      (Math.min(2 * RunCodeOfTypeXforThingY(ctx, "CardLv", "anni4Event1"), 20) + Math.min(3 * RunCodeOfTypeXforThingY(ctx, "CardLv", "luckEvent1"), 25))) +
+    (GoldFoodBonuses(ctx, "DropRatez") +
+      (6 * AchieveStatus(ctx, 377) +
+        4 * AchieveStatus(ctx, 381) +
+        (Summoning(ctx, "OwlBonuses", 4, 0) +
+          (FarmingStuffs(ctx, "LankRankUpgBonus", 9, 0) +
+            (Summoning(ctx, "VotingBonusz", 27, 0) +
+              (Holes(ctx, "B_UPG", 46, 0) +
+                (FarmingStuffs(ctx, "CropSCbonus", 7, 0) +
+                  (Summoning(ctx, "GrimoireUpgBonus", 44, 0) +
+                    (Summoning(ctx, "VaultUpgBonus", 18, 0) +
+                      (Holes(ctx, "MeasurementBonusTOTAL", 15, 0) +
+                        (Companions(ctx, 22) +
+                          Companions(ctx, 158) +
+                          (Holes(ctx, "B_UPG", 82, 20) +
+                            (Holes(ctx, "MonumentROGbonuses", 2, 6) +
+                              (Thingies(ctx, "EmperorBon", 11, 0) +
+                                (GetSetBonus(ctx, "EFAUNT_SET", "Bonus", 0, 0) +
+                                  (FarmingStuffs(ctx, "ExoticBonusQTY", 59, 0) +
+                                    (Thingies(ctx, "FriendBonusStatz", 3, 0) +
+                                      (Thingies(ctx, "LegendPTS_bonus", 1, 0) +
+                                        (Spelunk(ctx, "ShopUpgBonus", 50, 0) + (Companions(ctx, 111) + GetTalentNumber(ctx, 1, 239) * (RoyalG(ctx, "TotalStatz", 0, 0) / 1)))))))))))))))))))));
+  // @4192476: TotStatMAP.Drop_Rarity, 1 + 1.4 x DropRateLUK + Σ / 100 (the curve sits outside the /100)
+  let tot =
+    1 +
+    (1.4 * luk +
+      (GetTalentNumber(ctx, 1, 279) +
+        (DNSM_BoxRewards(ctx, "DropRate") +
+          (EtcBonuses(ctx, "2") +
+            EtcBonuses(ctx, "102") +
+            (DNSM_AlchBubbles(ctx, "DropRate") +
+              (CardBonusREAL(ctx, 10) +
+                (GetTalentNumber(ctx, 1, 24) +
+                  (DNSM_StarSigns(ctx, "Drop") +
+                    (GuildBonuses(ctx, 10) +
+                      (CardSetBonuses(ctx, 0, "5") +
+                        (CardSetBonuses(ctx, 0, "6") +
+                          (Shrine(ctx, 4) +
+                            (prayersReal(ctx, 7, 0) +
+                              (Labb(ctx, "SigilBonus", "Blank", 11, 0) +
+                                (Breeding(ctx, "ShinyBonusS", "Nah", 0, -1) +
+                                  (ArcadeBonus(ctx, 27) +
+                                    (Companions(ctx, 3) +
+                                      Companions(ctx, 50) +
+                                      (StampBonusOfTypeX(ctx, "DropRate") +
+                                        (GetTalentNumber(ctx, 1, 655) * asNum(ctx, "OptionsListAccount", 189) +
+                                          (5 * asNum(ctx, "Dream", 10) +
+                                            (Summoning(ctx, "WinBonus", 9, 0) +
+                                              (Summoning(ctx, "TomeBonus", 2, 0) + (luk2 + (ResearchStuff(ctx, "Grid_Bonus", 173, 0) + Companions(ctx, 132)))))))))))))))))))))))) /
+        100);
+  // @4193824: the chip ("dr"), only under 5 and up to 5
+  if (5 > tot) tot = Math.min(5, tot + chipBonuses(ctx, "dr") / 100);
+  // @4194067: in a dungeon the total is 1 + (LUK + DungeonStat("DropRarity")) / 100; Dungon() answers -1 on every map (Ruling Y), so it is not ported
+  if (-1 != Dungon(ctx)) throw new Error('TotalStats("Drop_Rarity"): Dungon() is not -1, and the in-dungeon branch (@4194067) is not ported: Dungon() answers -1 on every map (Ruling Y), so a stub that leaves it at another value (0) reaches this');
+  // @4194240: outside a dungeon
+  if (-1 == Dungon(ctx)) {
+    if (1 == haveBan(ctx, "bun_v")) tot = tot + 2; // @4194318, an absent BundlesReceived is the loader's empty map (Ruling H)
+    tot = tot * WorkbenchStuff(ctx, "AdditionExtraEXPnDR", 0, 0); // @4194602
+    if (1 <= asNum(ctx, "OptionsListAccount", 232)) tot = tot + 0.3; // @4194678
+    if (1 == haveBan(ctx, "bun_p")) tot = 1.2 * tot; // @4194883
+    // @4195168
+    tot =
+      tot *
+      (1 + ArcaneType(ctx, "ArcaneMapMulti_bon", 0, 0) / 100) *
+      (1 + RoyalG(ctx, "StatueBon", 1, 0) / 100) *
+      (1 + MenagerieStuff(ctx, "BoostQTY", 24, 0) / 100) *
+      (1 + CardBonusREAL(ctx, 101) / 100) *
+      (1 + DNSM_FamBonusQTYs(ctx, "32") / 100) *
+      (1 + 0.3 * Companions(ctx, 168)) *
+      (1 + (Math.min(0.5, Companions(ctx, 132)) + 0.2 * CompLV2(ctx, 132))) *
+      (1 + (SushiStuff(ctx, "RoG_BonusQTY", 48, 0) + JellyOperation(ctx, "RoG_BonusQTY", 14, 0)) / 100) *
+      Math.max(1, Minehead(ctx, "GlimboDRmulti", 0, 0)) *
+      (1 + Summoning(ctx, "TomeBonus", 7, 0) / 100) *
+      (1 + EtcBonuses(ctx, "99") / 100) *
+      (1 + Minehead(ctx, "BonusQTY", 0, 0) / 100) *
+      (1 + (5 * Dreamstuff(ctx, "CloudBonus", 69)) / 100);
+    // @4196045
+    tot = tot * (1 + Ninja(ctx, "PristineBon", 3, 0) / 100) * (1 + EtcBonuses(ctx, "91") / 100) * (1 + DNSM_AlchVials(ctx, "7drMulto") / 100);
+    // @4196312
+    tot = tot * Math.max(1, Math.min(1.3, 1 + Companions(ctx, 26)) * (1 + 0.5 * Companions(ctx, 160))) * Math.max(1, Math.min(1.01, 1 + Companions(ctx, 50) / 2500));
+  }
+  // @4196590: DNSM.NormzDR_GlunkC = the total (written, never read). @4196607: map 216 with the character in cavern 17 (Holes[0][its index], the raw
+  // element, loosely): the Cove's Drop Rate replaces the total
+  if (216 == ctx.map && 17 == attr(ctx, "Holes", 0, ctx.player)) tot = Holes2(ctx, "Cglunko_DR", 0, 0);
+  return tot;
+}
+
 /**
  * What this module covers (lib/game/ported.ts). `"()"` is the call with a computed name: DamageDealed's and ArtifactBonus 25's
  * TotalStats(ClassStatTypes[first class][0]), PlayerAccTot's [1], always a main stat.
  */
-export const PORTED: Ported = { STR: true, AGI: true, WIS: true, LUK: true, Accuracy: true, Weapon_Power: true, "()": ["STR", "AGI", "WIS", "LUK"] };
+export const PORTED: Ported = { STR: true, AGI: true, WIS: true, LUK: true, Accuracy: true, Weapon_Power: true, Drop_Rarity: true, "()": ["STR", "AGI", "WIS", "LUK"] };

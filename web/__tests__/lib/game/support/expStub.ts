@@ -1,6 +1,7 @@
 // A synthetic EXP Ctx (a support module: vitest only collects *.test.ts): no real save, so CI runs what uses it. Every block ExpMulti(0) calls
 // answers 0 from the Ctx cache unless a test seeds it (ZeroCache), so only the block's own arithmetic, its map rules and the page's adapter
-// (trackers/expMulti.ts) are under test. Used by njs/expMultiEdges.test.ts and trackers/expMulti.test.ts.
+// (trackers/expMulti.ts) are under test. Used by njs/expMultiEdges.test.ts and trackers/expMulti.test.ts, and by njs/dropRateEdges.test.ts
+// (TotalStats("Drop_Rarity") and Dungon left to their code through `real`).
 import { makeCtx, type Ctx } from "@/lib/game/ctx";
 import { buildGameState, type GameEnvelope } from "@/lib/game/state";
 

@@ -11,13 +11,15 @@ import { computeArkhAfkGains } from "@/lib/arkh/computeAfk";
 import { AFK_POOLS } from "@/lib/arkh/stats/defs/afk-gains";
 import { computeArkhExpMulti } from "@/lib/arkh/computeExp";
 import { EXP_GROUPS } from "@/lib/arkh/stats/defs/exp-multi";
+import { computeArkhDropRateV2 } from "@/lib/arkh/computeDropRateV2";
+import { DR2_GROUPS } from "@/lib/arkh/stats/defs/drop-rate-v2";
 import { medallionList } from "@/lib/arkh/stats/systems/exp/medallions";
 import { MapAFKtarget } from "@/lib/arkh/stats/data/game/customlists.js";
 import { loadSaveData } from "@/lib/arkh/save/loader";
 import { saveData } from "@/lib/arkh/state";
 import { formatGameValue } from "@/lib/readings/format";
 import { READINGS_DIR, loadReadings, readingSave } from "@/lib/readings/registry";
-import { GOLDEN_SAVES, KNOWN_ARKH_DIFFS, arkhArtifactLeaf, arkhDamage, arkhDamagePoolKeys, arkhDamageLeaf, arkhDamageLeaves, arkhAfkLeaves, arkhAfkRate, arkhExpLeaves, arkhExpMulti, arkhSourceHash, arkhStat, arkhStats, gameCtx, goldenSaves, setArkhSourceHash, setOracleCacheDir, type ArkhStat } from "./support/arkhOracle";
+import { GOLDEN_SAVES, KNOWN_ARKH_DIFFS, arkhArtifactLeaf, arkhDamage, arkhDamagePoolKeys, arkhDamageLeaf, arkhDamageLeaves, arkhAfkLeaves, arkhAfkRate, arkhExpLeaves, arkhExpMulti, arkhDrLeaves, arkhDropRate, arkhSourceHash, arkhStat, arkhStats, gameCtx, goldenSaves, setArkhSourceHash, setOracleCacheDir, type ArkhStat } from "./support/arkhOracle";
 
 // Spy on the engine so the cache tests can count real computes; the original still runs.
 vi.mock("@/lib/arkh/computeArtifactFind", async (importOriginal) => {
@@ -417,4 +419,42 @@ describe.skipIf(!ARKHE)("arkhExpLeaves / arkhExpMulti", () => {
       }
     }
   }, 900_000);
+});
+
+describe.skipIf(!ARKHE)("arkhDrLeaves / arkhDropRate", () => {
+  const rel = (a: number, b: number) => Math.abs(a - b) / Math.max(Math.abs(b), 1e-12);
+  const ids = DR2_GROUPS.flatMap((g) => g.sources);
+  const recombine = (l: Record<string, number>) => DR2_GROUPS.reduce((t, g) => applyGroupStep(g, g.sources.map((id) => l[id]), t), 1);
+  const load = () => JSON.parse(readFileSync(ARKHE!, "utf8"));
+
+  it("ARKHE ci 8 map 251: the key set is the DR2_GROUPS source ids and the leaves rebuild lib/arkh's total", () => {
+    const direct = computeArkhDropRateV2(load(), 8, 251).total;
+    const leaves = arkhDrLeaves(ARKHE, 8, 251);
+    expect(Object.keys(leaves).sort()).toEqual([...ids].sort());
+    expect(direct).toBeGreaterThan(1);
+    expect(rel(recombine(leaves), direct)).toBeLessThan(1e-9);
+    expect(arkhDropRate(ARKHE, 8, 251)).toBe(direct);
+  });
+
+  it("map 216 with the character in cavern 17 (Holes[0] seeded): the Cove replaces the total and the leaves rebuild it", () => {
+    const save = load();
+    // the envelope's data.Holes is a JSON string or an array (parseSaveKey); a copy with Holes[0][8] = 17
+    const str = typeof save.data.Holes === "string";
+    const holes = str ? JSON.parse(save.data.Holes) : save.data.Holes;
+    holes[0][8] = 17;
+    save.data.Holes = str ? JSON.stringify(holes) : holes;
+    const direct = computeArkhDropRateV2(structuredClone(save), 8, 216).total;
+    const leaves = arkhDrLeaves(save, 8, 216);
+    expect(leaves.cove).toBeGreaterThan(0);
+    expect(direct).toBe(leaves.cove);
+    expect(rel(recombine(leaves), direct)).toBeLessThan(1e-9);
+    expect(arkhDropRate(save, 8, 216)).toBe(direct);
+  });
+
+  it("an object save gives the same leaves as the path and is left untouched", () => {
+    const save = load();
+    const before = JSON.stringify(save);
+    expect(arkhDrLeaves(save, 8, 251)).toEqual(arkhDrLeaves(ARKHE, 8, 251));
+    expect(JSON.stringify(save)).toBe(before);
+  });
 });

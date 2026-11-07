@@ -1,6 +1,6 @@
 // characterize: do the old and the new engine of a stat agree on every real save? From web/:
 //
-//   npx tsx scripts/characterize.ts <stat> [--map <n>]        (stats: artifactFind, damage, afkGains, expMulti)
+//   npx tsx scripts/characterize.ts <stat> [--map <n>]        (stats: artifactFind, damage, afkGains, expMulti, dropRateV2)
 //
 // Runs both engines on every character of every save envelope (golden/.cache + saves-fresh), on map <n> (default 0; a stat with
 // no map ignores it), writes reports/characterize-<stat>[-<n>].md, and exits 1 when the spec's switch criteria are not met: a row that is
@@ -17,8 +17,9 @@ import { DAMAGE_STATS } from "@/__tests__/lib/game/support/damageProof";
 import { computeArkhAfkGains } from "@/lib/arkh/computeAfk";
 import { computeArkhArtifactFind } from "@/lib/arkh/computeArtifactFind";
 import { computeArkhDamage } from "@/lib/arkh/computeDamage";
+import { computeArkhDropRateV2 } from "@/lib/arkh/computeDropRateV2";
 import { computeArkhExpMulti } from "@/lib/arkh/computeExp";
-import { AFK_REFUSABLE, ARTIFACT_FIND_REFUSABLE, DAMAGE_REFUSABLE, EXP_REFUSABLE, characterize, classify, type Engine, type Row, type Verdict } from "@/lib/diagnose/characterize";
+import { AFK_REFUSABLE, ARTIFACT_FIND_REFUSABLE, DAMAGE_REFUSABLE, DR_REFUSABLE, EXP_REFUSABLE, characterize, classify, type Engine, type Row, type Verdict } from "@/lib/diagnose/characterize";
 import { CURRENT_CSVER } from "@/lib/game/errors";
 import { MapAFKtarget } from "@/lib/game/data";
 import { keptTargetCloses } from "@/__tests__/lib/game/support/afkKept";
@@ -28,6 +29,7 @@ import { stateOf } from "@/lib/game/trackers/page";
 import { computeGameAfkGains } from "@/lib/game/trackers/afkGains";
 import { computeGameArtifactFind } from "@/lib/game/trackers/artifactFind";
 import { computeGameDamage } from "@/lib/game/trackers/damage";
+import { computeGameDropRate } from "@/lib/game/trackers/dropRate";
 import { computeGameExpMulti } from "@/lib/game/trackers/expMulti";
 
 type KnownDiff = (typeof KNOWN_ARKH_DIFFS)[number];
@@ -73,6 +75,15 @@ const ENGINES: Record<string, (map: number) => { arkh: Engine; game: Engine; nam
     refusable: EXP_REFUSABLE,
     // a KNOWN row that names maps explains only those maps; EXP needs no kept-target waiver (Ruling II: the medallion follows ctx.map)
     known: (d) => d.stat === "exp" && (d.maps?.includes(map) ?? true),
+  }),
+  dropRateV2: (map) => ({
+    arkh: (save, ci) => computeArkhDropRateV2(save, ci, map),
+    game: (save, ci) => computeGameDropRate(save, ci, map),
+    names: `a = lib/arkh (computeArkhDropRateV2), b = lib/game (computeGameDropRate), on map ${map}`,
+    refusable: DR_REFUSABLE,
+    // a KNOWN "dr" row is per source and names no map: it explains the pair on every map (the Cove only replaces the total). A glimboUnleveled
+    // row explains no total (the group is max(1, ·), the total is the same), as in njs/dropRate.test.ts
+    known: (d) => d.stat === "dr" && d.reason !== "glimboUnleveled",
   }),
 };
 

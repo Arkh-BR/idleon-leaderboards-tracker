@@ -234,6 +234,12 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   "GambitPtsREQ": [
     "lib/arkh/stats/systems/coin/gambit.ts"
   ],
+  "GlimboDRmulti": [
+    "lib/game/njs/Minehead.ts"
+  ],
+  "GlimboTotalTrades": [
+    "lib/game/njs/Minehead.ts"
+  ],
   "GrandDiscoveries_Total": [
     "lib/game/njs/Spelunk.ts"
   ],
@@ -313,13 +319,19 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/game/njs/SushiStuff.ts"
   ],
   "MeasurementBaseBonus": [
-    "lib/arkh/stats/systems/coin/gambit.ts"
+    "lib/arkh/stats/systems/coin/gambit.ts",
+    "lib/game/njs/Holes.ts"
   ],
   "MeasurementBonusTOTAL": [
-    "lib/arkh/stats/systems/coin/gambit.ts"
+    "lib/arkh/stats/systems/coin/gambit.ts",
+    "lib/game/njs/Holes.ts"
   ],
   "MeasurementMulti": [
-    "lib/arkh/stats/systems/coin/gambit.ts"
+    "lib/arkh/stats/systems/coin/gambit.ts",
+    "lib/game/njs/Holes.ts"
+  ],
+  "MeasurementQTYfound": [
+    "lib/game/njs/Holes.ts"
   ],
   "MeritocBonusz": [
     "lib/arkh/stats/systems/exp/exp.ts",
@@ -364,8 +376,12 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/arkh/stats/data/w7/menagerie.ts",
     "lib/game/njs/MenagerieStuff.ts"
   ],
+  "OccurrencesToBeFound": [
+    "lib/game/njs/ResearchStuff.ts"
+  ],
   "OverkillQTY": [
-    "lib/arkh/stats/systems/coin/gambit.ts"
+    "lib/arkh/stats/systems/coin/gambit.ts",
+    "lib/game/njs/WorkbenchStuff.ts"
   ],
   "OverkillStuffs": [
     "lib/arkh/stats/systems/common/overkill.ts"
@@ -525,11 +541,18 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/arkh/stats/systems/w2/alchemy.ts",
     "lib/game/njs/Labb.ts"
   ],
+  "TotalObsLVs": [
+    "lib/game/njs/ResearchStuff.ts"
+  ],
+  "TotalOccurrencesFound": [
+    "lib/game/njs/ResearchStuff.ts"
+  ],
   "TotalPurpleSigils": [
     "lib/game/njs/Labb.ts"
   ],
   "TotalStatz": [
-    "lib/arkh/stats/data/w7/royalG.ts"
+    "lib/arkh/stats/data/w7/royalG.ts",
+    "lib/game/njs/RoyalG.ts"
   ],
   "TotalStickers": [
     "lib/arkh/stats/systems/w6/farming.ts",
@@ -821,7 +844,6 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/game/njs/TotalFoodBonuses.ts"
   ],
   "_customBlock_TotalStats": [
-    "lib/arkh/stats/defs/drop-rate-v2.ts",
     "lib/arkh/stats/systems/common/derived-damage.ts",
     "lib/arkh/stats/systems/common/stats.ts",
     "lib/arkh/stats/systems/dr2/dr2.ts",

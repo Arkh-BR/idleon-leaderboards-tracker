@@ -27,7 +27,7 @@
 import type { StatResult } from "@/lib/statTracker/config";
 import { groupedGainsModel } from "@/lib/statTracker/biggestGains";
 import { flattenTree } from "@/lib/dropRate/treeFlatten";
-import { EXP_GROUPS, EXP_ROOT } from "@/lib/expMulti/layers";
+import { EXP_GROUPS, EXP_ROOT, EXP_VOTE_NAME } from "@/lib/expMulti/layers";
 import { groupNote, groupVal } from "@/lib/statTracker/groups";
 import { asNum, attr } from "../attr";
 import { makeCtx, type Ctx, type TraceNode } from "../ctx";
@@ -143,7 +143,7 @@ const SOURCES: Record<string, Source> = {
   shimmer179: { name: "Island Shimmer", note: "OLA[179] × AllShimmerBonuses (The Shim Lantern, Artifact 31)", of: ({ t, leaf, c }) => leaf("OptionsListAccount[179]", asNum(c, "OptionsListAccount", 179), "Shimmer count") * t("Dreamstuff", "AllShimmerBonuses", 0) },
   goldFood: { name: "Golden Nigiri (Golden Food)", note: "Σ of equipped + Emporium golden foods with effect ClassEXPz", of: ({ t }) => t("GoldFoodBonuses", "ClassEXPz") },
   owl0: { name: "Bonuses of Orion (Owl Upgrade 0)", note: "Orion the Horned Owl: permanent +% Class XP (owl bonus 0)", of: ({ t }) => t("Summoning", "OwlBonuses", 0, 0) },
-  vote15: { name: "Class EXP from Monsters (Weekly Vote 15)", note: "Only counts the week vote 15 wins", of: ({ t }) => t("Summoning", "VotingBonusz", 15, 0) },
+  vote15: { name: EXP_VOTE_NAME, note: "Only counts the week vote 15 wins", of: ({ t }) => t("Summoning", "VotingBonusz", 15, 0) },
   monument1_6: { name: "Justice Monument: Class EXP Gain", of: ({ t }) => t("Holes", "MonumentROGbonuses", 1, 6) },
   compass51: { name: "Moon of Experience (Compass 51)", of: ({ t }) => t("Windwalker", "CompassBonus", 51, 0) },
   hole47: { name: "Gloomie Expie (Cavern Upgrade 47)", note: "+25% Class EXP per Gloomie Mushroom colony cleared", of: ({ t }) => t("Holes", "B_UPG", 47, 0) },

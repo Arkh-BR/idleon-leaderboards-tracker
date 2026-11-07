@@ -428,9 +428,7 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("ResearchStuff Grid_Bonus, e == 0 (N.
     const c = variant((d) => setIn(d, "Research", (r) => (r[11] = null)));
     expect(() => ResearchStuff(c, "Grid_Bonus", 68, 2)).toThrow(MissingSaveKey); // the game reads .length of it
   });
-  it("e == 2 for every other square is not ported (31, 94, 112, 151, 168 have formulas of their own)", () => {
-    for (const b of [31, 94, 112, 151, 168, 109]) expect(() => ResearchStuff(variant(() => {}), "Grid_Bonus", b, 2), `b=${b}`).toThrow(NotPorted);
-  });
+  // e == 2 for the other squares (31, 94, 112, 151, 168 and the default) is ported since the Drop Rate plan: drEdges.test.ts
   it("a square the game's data does not have throws, as ResGridSquares[b][2] would", () => {
     expect(() => ResearchStuff(variant(() => {}), "Grid_Bonus", 99999, 0)).toThrow(RangeError);
   });
@@ -438,8 +436,8 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("ResearchStuff Grid_Bonus, e == 0 (N.
     expect(() => ResearchStuff(variant((d) => setIn(d, "Research", (r) => (r[1] = null))), "Grid_Bonus", 109, 0)).toThrow(MissingSaveKey);
     expect(() => ResearchStuff(variant((d) => delete d.Research), "Grid_Bonus", 109, 0)).toThrow(MissingSaveKey);
   });
-  it("the sub-cases only the other squares reach are not ported", () => {
-    for (const d of ["TotalObsLVs", "TotalOccurrencesFound", "OccurrencesToBeFound", "AFKgainsRatePCT"]) expect(() => ResearchStuff(variant(() => {}), d, 0, 0), d).toThrow(NotPorted);
+  it("a sub-case no tracker reaches is not ported (TotalObsLVs, TotalOccurrencesFound, OccurrencesToBeFound are since the Drop Rate plan: drEdges.test.ts)", () => {
+    expect(() => ResearchStuff(variant(() => {}), "AFKgainsRatePCT", 0, 0)).toThrow(NotPorted);
   });
   it.skipIf(noNjs)("calls what N.js calls (Grid_Bonus e == 0 path, and Allmulti)", () => {
     const fn = njsFunction(loadNjs(), "ResearchStuff")!;
@@ -677,7 +675,6 @@ describe("ports stay on their boundary", () => {
     expect(() => FarmingStuffs(c(), "GrowthReq", 0, 0)).toThrow(NotPorted);
     expect(() => Dreamstuff(c(), "CloudX", 1)).toThrow(NotPorted);
     expect(() => ResearchStuff(c(), "AFKgainsRatePCT", 0, 0)).toThrow(NotPorted);
-    expect(() => ResearchStuff(c(), "Grid_Bonus", 168, 2)).toThrow(NotPorted);
   });
   // variant() edits a real save, so this needs the private saves (absent in CI)
   it.skipIf(!BASE)("InvalidSaveValue is the answer for a list that is not a list", () => {

@@ -12,6 +12,8 @@ import { computeArkhDamage, DMG_COLLECTOR_MAP } from "@/lib/arkh/computeDamage";
 import { computeArkhAfkGains } from "@/lib/arkh/computeAfk";
 import { computeArkhExpMulti } from "@/lib/arkh/computeExp";
 import { EXP_GROUPS } from "@/lib/arkh/stats/defs/exp-multi";
+import { computeArkhDropRateV2 } from "@/lib/arkh/computeDropRateV2";
+import { DR2_GROUPS } from "@/lib/arkh/stats/defs/drop-rate-v2";
 import { AFK_POOLS, afkRate } from "@/lib/arkh/stats/defs/afk-gains";
 import { DMG_LAYERS, DMG_MASTERY, DMG_RAT, dmgMastery, dmgMax } from "@/lib/arkh/stats/defs/damage";
 import { charClassData } from "@/lib/arkh/save/data";
@@ -141,7 +143,7 @@ const MAIN_STATS = { str: "STR", agi: "AGI", wis: "WIS", luk: "LUK" } as const;
 
 type OracleEntry = { leaves: Record<string, number>; stats: Record<ArkhStat, number> };
 // `afk` (character -> map -> leaves) is a section of its own: the AFK leaves never touch the Damage entries.
-type DiskFile = { arkhHash: string; entries: Record<string, Record<string, OracleEntry>>; afk?: Record<string, Record<string, Record<string, number>>>; exp?: Record<string, Record<string, ExpEntry>> };
+type DiskFile = { arkhHash: string; entries: Record<string, Record<string, OracleEntry>>; afk?: Record<string, Record<string, Record<string, number>>>; exp?: Record<string, Record<string, ExpEntry>>; dr?: Record<string, Record<string, ExpEntry>> };
 type ExpEntry = { leaves: Record<string, number>; total: number };
 
 // source id -> where it sits in the tree. Every id is unique across DMG_LAYERS, DMG_MASTERY and DMG_RAT (checked in the test).
@@ -194,8 +196,8 @@ export function arkhSourceHash(): string {
     }
   };
   walk(join(WEB, "lib/arkh"));
-  // Ruling B moved the oracle's shape and ids into these two display configs: a change there invalidates the cache too
-  for (const f of ["lib/afkGains/layers.ts", "lib/damage/layers.ts", "lib/expMulti/layers.ts", "lib/statTracker/groups.ts", "lib/artifactFind/groups.ts"]) h.update(`${f}\0`).update(readFileSync(join(WEB, f))).update("\0");
+  // Ruling B moved the oracle's shape and ids into these display configs: a change there invalidates the cache too
+  for (const f of ["lib/afkGains/layers.ts", "lib/damage/layers.ts", "lib/expMulti/layers.ts", "lib/dropRateV2/layers.ts", "lib/statTracker/groups.ts", "lib/artifactFind/groups.ts"]) h.update(`${f}\0`).update(readFileSync(join(WEB, f))).update("\0");
   return (arkhHash = h.digest("hex"));
 }
 
@@ -387,6 +389,10 @@ export const STAT_WHY: Record<string, string> = {
     "lib/arkh's Main EXP star signs (computeStarSignBonus(\"MainXP\")) count a sign the Rift enables that StarSignsUnlocked lacks; N.js StarSigns @6540624 adds sign k of the first enabledStarSigns only when StarSignsUnlocked has StarSigns[k][0] (ExpMulti(0) @4260536 reads DNSM.StarSigns.MainXP; proved by PROOF_PATCHES.signsExp, the missing sign names added to the character): the cause of `signs` and `signsSpeed` on the Main EXP key",
   lukSnapshot:
     "N.js ExpMulti(0) @4260536 starts from a live `x._customBlock_TotalStats(\"LUK\")` for the LUK curve (and the curve x talent 35 term); lib/arkh's exp.ts `luk` and `talent35` read `statList[ci][3]`, PVStatList_<ci>[3], which the game writes at save time as `PersonalValuesMap.StatList = [TotalStats(\"STR\"), TotalStats(\"AGI\"), TotalStats(\"WIS\"), TotalStats(\"LUK\"), Lv0[0]]` (@15076361): a snapshot of the total, equal to lib/game's value on a fresh save and stale on an older one. Proved by giving lib/arkh's envelope lib/game's TotalStats(\"LUK\") in PVStatList_<ci>[3]",
+  holesLoad251:
+    "N.js runs the load step DoOnceREAL < 251.3 (OnPlayStart3 @6420350) on an older save: when Holes[24][0..4] are all above 30 it zeroes Holes[22][10..15], the levels of the measurements 10 to 15 (lib/game/migrations ports it). lib/arkh reads the save as stored: HourZero (DoOnceREAL 248.3) keeps its measurement 15 at level 197 there, while the game has it at 0. Proved by giving lib/arkh's envelope the Holes[22] the load step leaves",
+  glimboUnleveled:
+    "N.js multiplies the Drop Rate by Math.max(1, Minehead(\"GlimboDRmulti\",0,0)) (@4195647), and GlimboDRmulti (@11198811) is `1 <= Grid_Bonus(168, 0) ? 1 + Grid_Bonus(168, 2) / 100 : 1`: 1 while grid square 168 has no value. lib/arkh's leaf is its grid helper's node, 0 for a square below level 1 (stats/systems/w4/lab.ts grid.resolve). The group is max(1, ·), so the total is the same; proved by lib/game's Grid_Bonus(168, 0) being below 1 and lib/arkh's leaf being that 0",
   buff108:
     "a product decision of the Damage page (the plan's Global Constraints): the active buff 108 is not counted, a runtime leaf in lib/game; lib/arkh counts it while the saved BuffsActive has it, and N.js PlayerHPmax @4147120 multiplies the % by 1 - GetBuffBonuses(108,1) / 100",
 };
@@ -794,16 +800,20 @@ const BUFF_108: readonly DiffRow[] = [
     ["26515665165165.json", "buff108", [3]],
 ];
 
-/** The golden food multi's causes (STAT_WHY.gfood, gfoodSign69, fam68) for a GoldFoodBonuses leaf of `stat`: the cap grouping and the vote 26 on the saves the STR rows name "gfood", the star sign 69, the fam68 of the tc470 rows. */
-const GOLDFOOD_ROWS = (stat: "afk" | "exp", source: string) => [
+/**
+ * The golden food multi's causes (STAT_WHY.gfood, gfoodSign69, fam68) for a GoldFoodBonuses leaf of `stat`: the cap grouping and the vote 26 on the saves the STR rows
+ * name "gfood", the star sign 69, the fam68 of the tc470 rows. `bigGuy` is the characters of big_guy69123 whose leaf is not 0 (a golden food of the effect): its
+ * sign 69 and fam68 (character 5) differences show only there.
+ */
+const GOLDFOOD_ROWS = (stat: "afk" | "exp" | "dr", source: string, bigGuy: readonly number[] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]) => [
   ...[...new Set(STAT_DIFFS.str!.filter(([, r]) => r === "gfood").map(([save]) => save))].flatMap((save) =>
     (["gfoodVote26", "gfoodCap"] as const).map((reason) => ({ stat, save, source, reason, why: STAT_WHY.gfood }))
   ),
   { stat, save: "Glaives.json", source, reason: "gfoodSign69", why: STAT_WHY.gfoodSign69 },
-  ...[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((ci) => ({ stat, save: "big_guy69123.json", ci, source, reason: "gfoodSign69", why: STAT_WHY.gfoodSign69 })),
-  ...([["Ash_EB.json", 0], ["Frostymart.json", 0], ["FrozenBody.json", 1], ["Jrod11.json", 4], ["Jrod11.json", 7], ["Koweabooo.json", 8], ["big_guy69123.json", 5], ["0xEXCEED.json", 5], ["Maspoofio.json", 7]] as const).map(([save, ci]) => ({
-    stat, save, ci, source, reason: "fam68", why: STAT_WHY.fam68,
-  })),
+  ...bigGuy.map((ci) => ({ stat, save: "big_guy69123.json", ci, source, reason: "gfoodSign69", why: STAT_WHY.gfoodSign69 })),
+  ...([["Ash_EB.json", 0], ["Frostymart.json", 0], ["FrozenBody.json", 1], ["Jrod11.json", 4], ["Jrod11.json", 7], ["Koweabooo.json", 8], ["big_guy69123.json", 5], ["0xEXCEED.json", 5], ["Maspoofio.json", 7]] as const)
+    .filter(([save, ci]) => save !== "big_guy69123.json" || bigGuy.includes(ci))
+    .map(([save, ci]) => ({ stat, save, ci, source, reason: "fam68", why: STAT_WHY.fam68 })),
 ];
 
 /** Sets PVStatList_<ci>[3] (lib/arkh's EXP LUK, STAT_WHY.lukSnapshot) of an envelope to `luk`: the proof of lukSnapshot runs lib/arkh on this envelope. */
@@ -819,13 +829,17 @@ export function patchLukSnapshot(data: Record<string, unknown>, ci: number, luk:
 const LUK_BASE_ROWS: readonly (readonly [string, readonly number[]])[] = [["100Cotton.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["1st_Giri.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["21ucky4u.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["ARKHE.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["AoDCthulhu.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Arlong.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Ash_EB.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["AvacadoSqueeze.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Azza2Bad.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["B0schi.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Baker333.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Bangada.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["BopeBrancis.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Brokami.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Bubbafrumps.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Chalalaa.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Cheap_Jokes_ok.json", [0, 1, 2, 3, 5, 6, 7, 8, 9, 10]], ["Crezar.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Dandy2009.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Dasvidanya.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Dragami.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Dragonlzl.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Drukez.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Einyen.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Exrom.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["F1N4L_1.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Fanmail.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["FenrirAdra.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]], ["Flipper143.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["FlipsyThEVicti.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Fluffle_Puff.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Frans813.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Frostymart.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["FrozenBody.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["GIM_SSS.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Glaives.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["GoddessFreia.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Grandesz.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Hyucan.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Jrod11.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Koweabooo.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["MarleyLongbott.json", [0, 1, 2, 4, 5, 6, 7, 8, 9, 10]], ["Maspoofio.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["MeatyLock.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Norton_Goldman.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Pepega777.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["PerkOne.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Pontinhas.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["PulseIRL.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Riltin.json", [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Rinkzate.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Scotchz.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Seavik.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Shadow_x_Vanish.json", [0, 3, 4, 5, 7, 8, 9, 10]], ["Shironee.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Skvimpan.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Snowyzxd.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["TheSpease.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["TinTim.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["TomerBuff.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["WarSkepp.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Yosh6400.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["airbolt.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["astarm.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["big_guy69123.json", [0, 3, 7]], ["biggums3.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["blickter.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["bluestar3112.json", [0, 1, 3, 4, 5, 6, 7, 8, 9, 10]], ["breakinbrad.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["dida123.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["enilyn.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["haki34.json", [2, 3, 4, 5, 6, 7, 8, 9, 10]], ["hellzd4nt3.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["jobenty.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["joelok.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["kONYYY.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["liiiiiiiiiiiig.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["lunaonline.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["ryujinsan.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["suk69.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["xBlackpearl.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["zadavi.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["01010111001.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["0celot8.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]], ["0xEXCEED.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["24632463.json", [0, 1, 2, 4, 5, 6, 7, 8, 9, 10]], ["26515665165165.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["5OhTree.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]], ["arkhe-2026-09-23.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["arkhe-it-profile-2026-09-24.json", [1, 4, 6, 7, 8, 9]], ["arkhe-live-2026-09-23.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["arkhe-live-2026-09-24.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]], ["arkhe-live-2026-10-30.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["arkhe-live-2026-11-01-postupdate.json", [0, 1, 2, 3, 4, 5, 6, 7, 9, 10]], ["arkhe-live-2026-11-01.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["arkhe-live-2026-11-03-arkhe.json", [0, 1, 2, 3, 4, 5, 6, 7, 9, 10]], ["arkhe-live-2026-11-03-farkhe.json", [1, 2, 3, 4, 5, 6, 7, 9, 10]], ["arkhe-live-2026-11-03-markhe-noweapon.json", [1, 2, 3, 4, 5, 6, 7, 9, 10]], ["arkhe-live-2026-11-03-markhe-weapon.json", [0, 1, 2, 3, 4, 5, 6, 7, 9, 10]]];
 const T35_BASE_ROWS: readonly (readonly [string, readonly number[]])[] = [["100Cotton.json", [6]], ["1st_Giri.json", [6]], ["21ucky4u.json", [6]], ["ARKHE.json", [6]], ["AoDCthulhu.json", [9]], ["Arlong.json", [6]], ["Ash_EB.json", [6]], ["AvacadoSqueeze.json", [4]], ["Azza2Bad.json", [6]], ["B0schi.json", [7]], ["Baker333.json", [9]], ["Bangada.json", [6]], ["BopeBrancis.json", [6]], ["Brokami.json", [5]], ["Bubbafrumps.json", [7]], ["Cheap_Jokes_ok.json", [9]], ["Crezar.json", [3]], ["Dandy2009.json", [9]], ["Dasvidanya.json", [6]], ["Dragami.json", [6]], ["Dragonlzl.json", [3]], ["Drukez.json", [6]], ["Einyen.json", [4]], ["Exrom.json", [6]], ["F1N4L_1.json", [6]], ["Fanmail.json", [9]], ["FenrirAdra.json", [6]], ["Flipper143.json", [6]], ["FlipsyThEVicti.json", [6]], ["Fluffle_Puff.json", [6]], ["Frans813.json", [7]], ["Frostymart.json", [6, 8]], ["FrozenBody.json", [8]], ["GIM_SSS.json", [6]], ["Glaives.json", [6]], ["GoddessFreia.json", [8]], ["Grandesz.json", [7]], ["Hyucan.json", [7]], ["Jrod11.json", [3]], ["Koweabooo.json", [7]], ["MarleyLongbott.json", [6]], ["Maspoofio.json", [9]], ["MeatyLock.json", [9]], ["Norton_Goldman.json", [9]], ["Pepega777.json", [7]], ["PerkOne.json", [6]], ["Pontinhas.json", [6]], ["PulseIRL.json", [7]], ["Riltin.json", [6]], ["Rinkzate.json", [6]], ["Scotchz.json", [6]], ["Seavik.json", [6]], ["Shironee.json", [6]], ["Skvimpan.json", [8]], ["Snowyzxd.json", [6]], ["TheSpease.json", [6]], ["TinTim.json", [4, 8]], ["TomerBuff.json", [8]], ["WarSkepp.json", [6]], ["Yosh6400.json", [7]], ["airbolt.json", [7]], ["astarm.json", [6]], ["big_guy69123.json", [7]], ["biggums3.json", [5]], ["blickter.json", [6, 8]], ["bluestar3112.json", [7]], ["breakinbrad.json", [4]], ["dida123.json", [9]], ["enilyn.json", [5]], ["haki34.json", [9]], ["hellzd4nt3.json", [7]], ["jobenty.json", [2]], ["joelok.json", [7]], ["kONYYY.json", [6]], ["liiiiiiiiiiiig.json", [6]], ["lunaonline.json", [9]], ["ryujinsan.json", [6]], ["suk69.json", [8, 10]], ["xBlackpearl.json", [7]], ["zadavi.json", [5]], ["01010111001.json", [7]], ["0celot8.json", [6]], ["0xEXCEED.json", [8]], ["24632463.json", [8]], ["26515665165165.json", [6]], ["5OhTree.json", [4]], ["arkhe-2026-09-23.json", [6]], ["arkhe-it-profile-2026-09-24.json", [6]], ["arkhe-live-2026-09-23.json", [6]], ["arkhe-live-2026-09-24.json", [6]], ["arkhe-live-2026-10-30.json", [6]], ["arkhe-live-2026-11-01-postupdate.json", [6]], ["arkhe-live-2026-11-01.json", [6]], ["arkhe-live-2026-11-03-arkhe.json", [6]], ["arkhe-live-2026-11-03-farkhe.json", [6]], ["arkhe-live-2026-11-03-markhe-noweapon.json", [6]], ["arkhe-live-2026-11-03-markhe-weapon.json", [6]]];
 
+/** STAT_WHY.lukSnapshot for the Drop Rate's LUK curve (proved the same way, on lib/arkh's side). */
+const LUK_SNAPSHOT_DR =
+  "N.js TotalStats(\"Drop_Rarity\") starts from a live `x._customBlock_TotalStats(\"LUK\")` for DropRateLUK (@4190488); lib/arkh's DR `luk` (lukScaling, stats/systems/common/stats.ts readRawLuk) reads `statList[ci][3]`, PVStatList_<ci>[3], the TotalStats(\"LUK\") snapshot the game writes at save time (@15076361): equal to lib/game's value on a fresh save and stale on an older one. Proved by giving lib/arkh's envelope lib/game's TotalStats(\"LUK\") in PVStatList_<ci>[3]";
+
 /**
  * Where N.js proves lib/arkh wrong and lib/game keeps the N.js value. `save` is the file name of the
  * GOLDEN_SAVES entry, `ci` omitted means every character; `why` cites the `@offset` evidence.
  */
 export const KNOWN_ARKH_DIFFS: {
-  /** Which tracker `source` belongs to; absent = "artifactFind". For "damage", `source` is a Damage source id; for "afk", an AFK source id (arkhAfkLeaves). */
-  stat?: "artifactFind" | "damage" | "afk" | "exp" | ArkhStat | "speed";
+  /** Which tracker `source` belongs to; absent = "artifactFind". For "damage", `source` is a Damage source id; for "afk", an AFK source id (arkhAfkLeaves); for "dr", a DR2_GROUPS source id (arkhDrLeaves). */
+  stat?: "artifactFind" | "damage" | "afk" | "exp" | "dr" | ArkhStat | "speed";
   save: string;
   ci?: number;
   /** The maps the entry covers (absent = every map the term is checked on): a map-dependent EXP term (the medallion gate) differs only on some. */
@@ -972,6 +986,37 @@ export const KNOWN_ARKH_DIFFS: {
   // talent 35, so it differs where the class has the talent
   ...(["luk", "talent35"] as const).flatMap((source) =>
     (source === "luk" ? LUK_BASE_ROWS : T35_BASE_ROWS).flatMap(([save, cis]) => cis.map((ci) => ({ stat: "exp" as const, save, ci, source, reason: "lukSnapshot", why: STAT_WHY.lukSnapshot })))
+  ),
+  // Task 2 (DR plan): the leaves of TotalStats("Drop_Rarity") (drTerms.test.ts), by DR source id, proved as the EXP ones are
+  // DropRateLUK: the same live TotalStats("LUK") against lib/arkh's PVStatList_<ci>[3] snapshot (its lukScaling, stats/systems/common/stats.ts readRawLuk), on the
+  // same characters as the EXP curve
+  ...LUK_BASE_ROWS.flatMap(([save, cis]) => cis.map((ci) => ({ stat: "dr" as const, save, ci, source: "luk", reason: "lukSnapshot", why: LUK_SNAPSHOT_DR }))),
+  // GoldFoodBonuses("DropRatez"): the golden food multi's four causes; of big_guy69123 only character 7 wears a Drop Rate golden food
+  ...GOLDFOOD_ROWS("dr", "goldFood", [7]),
+  // getbonus2(1, b, -1), the best over every character, carries the fam68 of AllTalentLV: the Land Rank upgrade 9 (talent 207) and the Workbench (talent 328)
+  ...(["rank9", "workbench"] as const).flatMap((source) =>
+    ([["Ash_EB.json", [0]], ["Frostymart.json", [0]], ["FrozenBody.json", [1]], ["Jrod11.json", [4, 7]], ["Koweabooo.json", [8]], ["Maspoofio.json", [7]], ["0xEXCEED.json", [5]], ...(source === "workbench" ? [["big_guy69123.json", [5]] as const] : [])] as const).flatMap(([save, cis]) =>
+      cis.map((ci) => ({ stat: "dr" as const, save, ci, source, reason: "fam68", why: STAT_WHY.fam68 }))
+    )
+  ),
+  // the Companions(0) gate (Koweabooo#10): Grid_Bonus_Allmulti under the grid squares 173 and 168
+  ...(["grid173", "glimbo"] as const).map((source) => ({ stat: "dr" as const, save: "Koweabooo.json", ci: 10, source, reason: "comp0", why: COMPANION_0_GATE })),
+  // Summoning("WinBonus",9): the boosts have GetSetBonus("GODSHARD_SET"), the God Shard set worn whole (as win0, win3, winBonus11, win23)
+  ...([1, 9] as const).map((ci) => ({ stat: "dr" as const, save: "HourZero.json", ci, source: "win9", reason: "godshard", why: GODSHARD_WORN })),
+  // Summoning("TomeBonus",2) and (7) are powers of the Tome score (Ruling K), as tome0 and tome6: 2 reads max(0, Tome - 8000), so it moves on the saves of tome0;
+  // 7 reads floor(Tome / 1000), so on those of tome6
+  ...[...TOME_SOURCE_SAVES, "big_guy69123.json"].map((save) => ({ stat: "dr" as const, save, source: "tome2", reason: "tome", why: TOME_SOURCE })),
+  ...["0celot8.json", "5OhTree.json"].map((save) => ({ stat: "dr" as const, save, source: "tome2", reason: "tome", why: TOME_AFTER_RESET })),
+  ...["Flipper143.json", "Koweabooo.json", "arkhe-2026-09-23.json"].map((save) => ({ stat: "dr" as const, save, source: "tome7", reason: "tome", why: TOME_SOURCE })),
+  // prayersReal(7, 0): the Super Bit 9 / 39 branch with no prayer equipped (the pray6 reason, as EXP's prayer0)
+  ...([["Ash_EB.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Brokami.json", [10]], ["Crezar.json", [1, 4]], ["Dandy2009.json", [10]], ["Flipper143.json", [10]], ["Frostymart.json", [9]], ["FrozenBody.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Glaives.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Jrod11.json", [10]], ["big_guy69123.json", [4, 8, 10]]] as const).flatMap(([save, cis]) =>
+    cis.map((ci) => ({ stat: "dr" as const, save, ci, source: "prayer7", reason: "pray6", why: STAT_WHY.pray6 }))
+  ),
+  // Holes("MeasurementBonusTOTAL",15): HourZero runs the load step that zeroes the measurements 10 to 15
+  ...[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((ci) => ({ stat: "dr" as const, save: "HourZero.json", ci, source: "meas15", reason: "holesLoad251", why: STAT_WHY.holesLoad251 })),
+  // Minehead("GlimboDRmulti"): 1 in N.js where grid square 168 has no value, lib/arkh's grid node 0
+  ...[["HourZero.json", 10], ["big_guy69123.json", 11]].flatMap(([save, n]) =>
+    Array.from({ length: n as number }, (_, ci) => ({ stat: "dr" as const, save: save as string, ci, source: "glimbo", reason: "glimboUnleveled", why: STAT_WHY.glimboUnleveled }))
   ),
 ];
 
@@ -1372,4 +1417,51 @@ export function arkhExpLeaves(save: unknown, ci: number, map: number): Record<st
 /** lib/arkh's own EXP Multi total (computeArkhExpMulti(...).total): the oracle for the whole tree. */
 export function arkhExpMulti(save: unknown, ci: number, map: number): number {
   return expEntry(save, ci, map).total;
+}
+
+// ---- Drop Rate (V2): same design as EXP. The tree of computeArkhDropRateV2 has one child per DR2_GROUPS group, whose children are its sources in order.
+const drByObject = new WeakMap<object, Map<string, ExpEntry>>();
+
+function drEntryOf(parsed: any, ci: number, map: number): ExpEntry {
+  const { tree, total } = computeArkhDropRateV2(parsed, ci, map);
+  const leaves: Record<string, number> = {};
+  DR2_GROUPS.forEach((g, i) => {
+    const kids = tree.children![i].children!;
+    if (kids.length !== g.sources.length) throw new Error(`arkhDrLeaves: lib/arkh's ${g.key} has ${kids.length} sources, DR2_GROUPS has ${g.sources.length}`);
+    g.sources.forEach((id, k) => (leaves[id] = kids[k].val));
+  });
+  return { leaves, total };
+}
+
+function drEntry(save: unknown, ci: number, map: number): ExpEntry {
+  if (typeof save !== "string") {
+    let per = drByObject.get(save as object);
+    if (!per) drByObject.set(save as object, (per = new Map()));
+    const key = `${ci}@${map}`;
+    let e = per.get(key);
+    if (!e) per.set(key, (e = drEntryOf(structuredClone(save), ci, map)));
+    return e;
+  }
+  const d = diskOf(save);
+  const slot = ((d.data.dr ??= {})[ci] ??= {});
+  let e = slot[map];
+  if (!e) {
+    e = slot[map] = drEntryOf(JSON.parse(readFileSync(save, "utf8")), ci, map);
+    persist(d);
+  }
+  return e;
+}
+
+/**
+ * Every Drop Rate source's `val` in lib/arkh's DR V2 tree for character `ci` on `map`, by DR2_GROUPS source id (as the tree holds it:
+ * a factor for the `mult` groups, a percentage for the `pct` ones). Recombine with `applyGroupStep` over DR2_GROUPS from 1 to get lib/arkh's total.
+ * `save` as in arkhDamageLeaves.
+ */
+export function arkhDrLeaves(save: unknown, ci: number, map: number): Record<string, number> {
+  return drEntry(save, ci, map).leaves;
+}
+
+/** lib/arkh's own Drop Rate V2 total (computeArkhDropRateV2(...).total): the oracle for the whole tree. */
+export function arkhDropRate(save: unknown, ci: number, map: number): number {
+  return drEntry(save, ci, map).total;
 }

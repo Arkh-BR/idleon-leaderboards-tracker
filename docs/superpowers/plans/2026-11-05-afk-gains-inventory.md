@@ -13,7 +13,7 @@ Regenerate it when N.js, a module's `PORTED` or `lib/game/unreached.ts` changes.
 - attrs and dnsm are the reads in every slice listed. One marked "whole body only" is read only inside a whole-body function (all its branches, not just the one this formula takes). `DNSM` is runtime-only (it is never loaded from the save): port it as `DNSM_*` functions, not as a save attribute. The dnsm list also holds the scratch keys a formula writes and reads back in the same slice (`CaptnBonuz`, `AtomBonCalc1`); the inputs are the caches the game fills elsewhere (`StarSigns`, `AlchVials`, `FamBonusQTYs`…).
 - Depth stops at 6.
 
-**49 functions, 153 sub-cases (rows), 41 whole body, 0 not found, 56 attrs, 73 dnsm.** **145 ported `[x]`, 8 not reached `[~]`, 0 open.**
+**49 functions, 153 sub-cases (rows), 41 whole body, 0 not found, 56 attrs, 73 dnsm.** **150 ported `[x]`, 3 not reached `[~]`, 0 open.**
 
 ## AFKgainrates
 
@@ -173,11 +173,11 @@ Regenerate it when N.js, a module's `PORTED` or `lib/game/unreached.ts` changes.
 ## ResearchStuff
 
 - [x] ResearchStuff("Grid_Bonus",173,0) — depth 2 — 1304 chars
-- [~] ResearchStuff("Grid_Bonus") — depth 3 — 1304 chars — not reached: within the AFK closure its only call site is ResearchStuff("Grid_Bonus")'s 2 == e branch (the default square, Grid_Bonus(b, 0) times its counter, @11177849); the only Grid_Bonus AFK reaches is Grid_Bonus(173, 0) (Divinity Bonus_Minor and Bonus_MAJOR), called with e = 0
-- [~] ResearchStuff("TotalObsLVs",0,0) — depth 3 — 511 chars — not reached: within the AFK closure its only call site is ResearchStuff("Grid_Bonus")'s 2 == e branch (square 94, @11177849); the only Grid_Bonus AFK reaches is Grid_Bonus(173, 0) (Divinity Bonus_Minor and Bonus_MAJOR), called with e = 0
-- [~] ResearchStuff("TotalOccurrencesFound",0,0) — depth 3 — 472 chars — not reached: within the AFK closure its only call site is ResearchStuff("Grid_Bonus")'s 2 == e branch (square 112, @11177849); the only Grid_Bonus AFK reaches is Grid_Bonus(173, 0) (Divinity Bonus_Minor and Bonus_MAJOR), called with e = 0
+- [x] ResearchStuff("Grid_Bonus") — depth 3 — 1304 chars
+- [x] ResearchStuff("TotalObsLVs",0,0) — depth 3 — 511 chars
+- [x] ResearchStuff("TotalOccurrencesFound",0,0) — depth 3 — 472 chars
 - [x] ResearchStuff("Grid_Bonus_Allmulti",0,0) — depth 3 — 330 chars
-- [~] ResearchStuff("OccurrencesToBeFound",0,0) — depth 4 — 385 chars — not reached: within the AFK closure called only by TotalObsLVs and TotalOccurrencesFound, which Grid_Bonus calls only when 2 == e (@11177849)
+- [x] ResearchStuff("OccurrencesToBeFound",0,0) — depth 4 — 385 chars
 
 ## ActionBlock
 
@@ -229,7 +229,7 @@ Regenerate it when N.js, a module's `PORTED` or `lib/game/unreached.ts` changes.
 
 ## Minehead
 
-- [~] Minehead("GlimboTotalTrades",0,0) — depth 3 — 481 chars — not reached: within the AFK closure its only call site is ResearchStuff("Grid_Bonus")'s 2 == e branch (square 168, @11177849); the only Grid_Bonus AFK reaches is Grid_Bonus(173, 0) (Divinity Bonus_Minor and Bonus_MAJOR), called with e = 0
+- [x] Minehead("GlimboTotalTrades",0,0) — depth 3 — 481 chars
 
 ## MainframeBonus
 

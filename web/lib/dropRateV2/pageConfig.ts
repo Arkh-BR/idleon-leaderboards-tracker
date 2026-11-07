@@ -1,9 +1,11 @@
 // Drop Rate V2 page (beta): the statTracker kit's config for N.js
-// TotalStats("Drop_Rarity") — the Drop Rate line of the character panel.
+// TotalStats("Drop_Rarity") — the Drop Rate line of the character panel. It computes on lib/game (trackers/dropRate.ts); the Observed Max
+// collector (scripts/update-top-dr2.ts) stays on lib/arkh.
 
 import type { StatPageConfig } from "@/lib/statTracker/config";
+import { withPageErrors } from "@/lib/statTracker/pageErrors";
 import { groupedGainsModel } from "@/lib/statTracker/biggestGains";
-import { DR2_GROUPS, DR2_ROOT, DR2_VOTE_NAME } from "@/lib/arkh/stats/defs/drop-rate-v2";
+import { DR2_GROUPS, DR2_ROOT, DR2_VOTE_NAME } from "./layers";
 import { formatDropRateV2 } from "./format";
 import { TOP_DR2_GENERATED_AT, TOP_DR2_PLAYERS_SCANNED } from "./topDropRateV2.meta";
 
@@ -30,8 +32,9 @@ export const DR2_PAGE: StatPageConfig = {
     exportPrefix: "drop-rate-v2-snapshots",
     exportLabel: "drop-rate-v2-tracker",
   },
-  compute: (save, charIdx, mapIdx) =>
-    import("@/lib/arkh/computeDropRateV2").then((m) => m.computeArkhDropRateV2(save, charIdx, mapIdx)),
+  compute: withPageErrors("Drop Rate V2", (save, charIdx, mapIdx) =>
+    import("@/lib/game/trackers/dropRate").then((m) => m.computeGameDropRate(save, charIdx, mapIdx))
+  ),
   formatTotal: formatDropRateV2,
   gains: groupedGainsModel(DR2_ROOT, DR2_GROUPS, { skip: [DR2_VOTE_NAME] }),
   loadTop: () =>
@@ -51,6 +54,8 @@ export const DR2_PAGE: StatPageConfig = {
     "The weekly vote isn't ranked: it's server-wide and changes every week. " +
     "The Arcane Map multiplier depends on the map you farm, so the Include Arcane Map checkbox next to Compare vs Observed Max " +
     "excludes it from the Compare reference (Biggest Gains keeps the full reference). " +
+    "The Observed Max values themselves are still computed by the previous engine, so for a few sources they can differ slightly " +
+    "from your own numbers until they are recomputed. " +
     "This is the beta engine; the original Drop Rate page stays available.",
   compareTitle: "Compare every Drop Rate source against the best value observed across the top players (LUK Scaling: within your class family)",
   gainsTabTitle: "Rank your Drop Rate sources by how much Drop Rate matching the top players would give",

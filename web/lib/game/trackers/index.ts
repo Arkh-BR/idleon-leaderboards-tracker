@@ -20,6 +20,8 @@ export const TRACKERS: Partial<Record<StatKey, (ctx: Ctx) => number>> = {
   afkGains: (ctx) => afkFightRate(ctx),
   // the "Class EXP" line of Player Info: ExpMulti(0) on the Ctx's map (adapter: trackers/expMulti.ts)
   expMulti: (ctx) => ExpMulti(ctx, 0),
+  // the "Drop Rate" line of Player Info: TotalStats("Drop_Rarity") on the Ctx's map (adapter: trackers/dropRate.ts)
+  dropRateV2: (ctx) => TotalStats(ctx, "Drop_Rarity"),
   // the Player Info stats the Damage readings carry as extras (Damage plan, Task 3; Ruling Q: every one equals the game's text)
   maxHp: (ctx) => PlayerHPmax(ctx),
   maxMp: (ctx) => PlayerMPmax(ctx),
