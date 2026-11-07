@@ -276,31 +276,27 @@ describe.skipIf(noSaves)("computeGameExpMulti against lib/arkh on every real sav
           if (full.some((f) => f.includes("outside a dungeon"))) dungeon++;
           if (JSON.stringify(flagsOfTree(tree).sort()) !== JSON.stringify(full)) lost.push(`${at}: full trace ${full.length} notes, page tree ${flagsOfTree(tree).length}`);
           // names, formats, notes: lib/arkh's (the Observed Max data is keyed by them), and every source leaf is lib/arkh's except where the pair has a KNOWN row of that source
-          // The SHAPE (names / formats / notes) is compared on a deterministic sample to keep the file fast: every 10th pair and every pair a KNOWN row
-          // touches. Totals, leaves, size and the notes' survival run on all pairs.
-          const sampled = pairs % 10 === 1 || known;
-          if (sampled && JSON.stringify(shape({ ...tree, note: noMigrated(tree.note) })) !== JSON.stringify(shape(arkh.tree))) shapeMismatches.push(`${at}: root ${JSON.stringify(shape(tree))}`);
+          if (JSON.stringify(shape({ ...tree, note: noMigrated(tree.note) })) !== JSON.stringify(shape(arkh.tree))) shapeMismatches.push(`${at}: root ${JSON.stringify(shape(tree))}`);
           if (tree.children!.length !== EXP_GROUPS.length) shapeMismatches.push(`${at}: ${tree.children!.length} children (extras: ${tree.children!.slice(EXP_GROUPS.length).map((c) => c.name)})`);
           EXP_GROUPS.forEach((g, gi) => {
             const mine = tree.children![gi];
             const theirs = arkh.tree.children![gi];
-            if (sampled && JSON.stringify(shape(mine)) !== JSON.stringify(shape(theirs))) shapeMismatches.push(`${at}: group ${g.key} ${JSON.stringify(shape(mine))} vs ${JSON.stringify(shape(theirs))}`);
+            if (JSON.stringify(shape(mine)) !== JSON.stringify(shape(theirs))) shapeMismatches.push(`${at}: group ${g.key} ${JSON.stringify(shape(mine))} vs ${JSON.stringify(shape(theirs))}`);
             g.sources.forEach((id, k) => {
               const m = mine.children![k];
               const a = theirs.children![k];
               const s1 = shape(m);
               const s2 = shape(a);
-              const sourceShape = sampled;
               if (DYNAMIC_NOTE.has(id)) (s1 as { note?: string }).note = (s2 as { note?: string }).note = undefined;
               // a lib/arkh node that is a renamed copy of a system node (friend, hole upgrades) can carry no format of its own: the tree gives it its group's
               // (the tree's format is the group's, which this asserts: "x" in a mult group, "+" in the others)
-              if (sampled && s2.fmt === undefined) {
+              if (s2.fmt === undefined) {
                 fmtless++;
                 if (s1.fmt !== (g.kind === "mult" ? "x" : "+")) shapeMismatches.push(`${at}: ${id} format ${s1.fmt}, its group's is ${g.kind === "mult" ? "x" : "+"}`);
                 (s1 as { fmt?: string }).fmt = undefined;
               }
-              if (sourceShape && JSON.stringify(s1) !== JSON.stringify(s2)) shapeMismatches.push(`${at}: ${id} ${JSON.stringify(s1)} vs ${JSON.stringify(s2)}`);
-              if (sampled && id === "medallion429" && (m.note ?? "").startsWith(`Map ${map} · `) === false) shapeMismatches.push(`${at}: medallion note ${m.note}`);
+              if (JSON.stringify(s1) !== JSON.stringify(s2)) shapeMismatches.push(`${at}: ${id} ${JSON.stringify(s1)} vs ${JSON.stringify(s2)}`);
+              if (id === "medallion429" && (m.note ?? "").startsWith(`Map ${map} · `) === false) shapeMismatches.push(`${at}: medallion note ${m.note}`);
               const covered = KNOWN_ARKH_DIFFS.some((d) => d.stat === "exp" && d.save === file && (d.ci ?? ci) === ci && d.source === id && (d.maps?.includes(map) ?? true));
               if (covered) entryLeaves++;
               if (rel(m.val, a.val)) return;
