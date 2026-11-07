@@ -165,3 +165,14 @@ describe("Holes2 Cglunko_DR, Cglunko_Bdig, Cglunko_Pdig (synthetic, runs in CI)"
     expect(cell(RandoListo2, 13, 1)).toBeGreaterThan(0); // the table the upgrade values come from is there
   });
 });
+
+// ── Thingies FriendBonusStatz
+describe("Thingies FriendBonusStatz 3 (synthetic, runs in CI)", () => {
+  it("is the friend with stat 3, FriendBonusQTY(3, level) (25 per point) x the extra multi; 2 and 4 are not ported", () => {
+    const c = synth({ OptLacc: ola({ 476: "3,5000;1,100" }) });
+    seed(c, "Thingies", ["FriendBonusSlots", 0, 0], 2);
+    seed(c, "Thingies", ["FriendBonusXtraMulti", 0, 0], 2);
+    expect(Thingies(c, "FriendBonusStatz", 3, 0)).toBeCloseTo(2 * 25 * Math.min(1.5, 0.25 + (5000 / 17000) * 1.5), 12);
+    for (const b of [2, 4]) expect(() => Thingies(c, "FriendBonusStatz", b, 0), `b=${b}`).toThrow(NotPorted);
+  });
+});
