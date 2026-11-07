@@ -30,6 +30,8 @@ const AFK = 'AFKgainrates("Fighting")';
 // game builds for the shop. The walk of TalentCalc(650) (its 650 == d branch @4520200 is the last of the function) runs into it; a talent id never does.
 const SELL_TABLE = "called only in the table of item sell prices that follows TalentCalc's `-7044.5 != d` block (@4520409, run for d == -7044.5); the AFK rate's call is TalentCalc(650), whose branch ends at @4520200 (the walk reads on to the end of the function)";
 
+// The Drop Rate page's root (docs/superpowers/plans/2026-11-07-drop-rate-inventory.md): the Drop Rate of a character, outside a dungeon (Ruling Y)
+const DR = 'TotalStats("Drop_Rarity")';
 
 export const UNREACHED: readonly Unreached[] = [
   { row: 'RunCodeOfTypeXforThingY("SellPrice")', roots: [AFK], why: SELL_TABLE },
@@ -62,6 +64,10 @@ export const UNREACHED: readonly Unreached[] = [
     why: DUNGEON("by DungeonStat (@7831416), the dungeon run's stats"),
   })),
   { row: 'TotalStats("Dung_Power")', roots: [DAMAGE], why: DUNGEON("by DungeonStat(\"Weapon_Power\") (@7835355)") },
+  // the Drop Rate's dungeon branch: TotalStats("Drop_Rarity") calls DungeonStat("DropRarity") (@4194199) only after `-1!=Dungon()` (@4194067), and
+  // DungeonStat("DropRarity") (@7841168) is the only caller of DungeonCalc("TraitBonus",6) (@7841560)
+  { row: 'DungeonStat("DropRarity")', roots: [DR], why: DUNGEON('by TotalStats("Drop_Rarity") (@4194199, after `-1!=Dungon()` @4194067)') },
+  { row: 'DungeonCalc("TraitBonus",6)', roots: [DR], why: DUNGEON('by DungeonStat("DropRarity") (@7841560), its only call site') },
   // Task 8: the Compass Tempest and Tesseract Arcanist forms' stats
   { row: 'Windwalker("Compass_DMG",0,0)', roots: [DAMAGE], why: FORM(TEMPEST, "by DamageDealed (@4106667)") },
   { row: 'Windwalker("Compass_HP",0,0)', roots: [DAMAGE, HP, ACC], why: FORM(TEMPEST, "by PlayerHPmax (@4147418) and Compass_DMG / Compass_ACC (@11068128, @11069410)") },

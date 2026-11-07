@@ -13,7 +13,7 @@ Regenerate it when N.js, a module's `PORTED` or `lib/game/unreached.ts` changes.
 - attrs and dnsm are the reads in every slice listed. One marked "whole body only" is read only inside a whole-body function (all its branches, not just the one this formula takes). `DNSM` is runtime-only (it is never loaded from the save): port it as `DNSM_*` functions, not as a save attribute. The dnsm list also holds the scratch keys a formula writes and reads back in the same slice (`CaptnBonuz`, `AtomBonCalc1`); the inputs are the caches the game fills elsewhere (`StarSigns`, `AlchVials`, `FamBonusQTYs`…).
 - Depth stops at 6.
 
-**54 functions, 300 sub-cases (rows), 88 whole body, 0 not found, 66 attrs, 82 dnsm.** **297 ported `[x]`, 0 not reached `[~]`, 3 open.**
+**54 functions, 300 sub-cases (rows), 88 whole body, 0 not found, 66 attrs, 82 dnsm.** **297 ported `[x]`, 2 not reached `[~]`, 1 open.**
 
 ## TotalStats
 
@@ -284,7 +284,7 @@ Regenerate it when N.js, a module's `PORTED` or `lib/game/unreached.ts` changes.
 
 ## DungeonStat
 
-- [ ] DungeonStat("DropRarity") — depth 1 — 574 chars
+- [~] DungeonStat("DropRarity") — depth 1 — 574 chars — not reached: reached only inside a dungeon, by TotalStats("Drop_Rarity") (@4194199, after `-1!=Dungon()` @4194067): Dungon() answers -1 on every map (Ruling Y: a dungeon map is counted as outside a dungeon, an assumed: leaf), so no dungeon branch runs
 
 ## WorkbenchStuff
 
@@ -437,7 +437,7 @@ Regenerate it when N.js, a module's `PORTED` or `lib/game/unreached.ts` changes.
 
 ## DungeonCalc
 
-- [ ] DungeonCalc("TraitBonus",6) — depth 2 — 65 chars
+- [~] DungeonCalc("TraitBonus",6) — depth 2 — 65 chars — not reached: reached only inside a dungeon, by DungeonStat("DropRarity") (@7841560), its only call site: Dungon() answers -1 on every map (Ruling Y: a dungeon map is counted as outside a dungeon, an assumed: leaf), so no dungeon branch runs
 
 ## MainframeBonus
 
