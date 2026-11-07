@@ -440,7 +440,7 @@ function dropRarity(ctx: Ctx): number {
   // @4193824: the chip ("dr"), only under 5 and up to 5
   if (5 > tot) tot = Math.min(5, tot + chipBonuses(ctx, "dr") / 100);
   // @4194067: in a dungeon the total is 1 + (LUK + DungeonStat("DropRarity")) / 100; Dungon() answers -1 on every map (Ruling Y), so it is not ported
-  if (-1 != Dungon(ctx)) throw new Error("unreachable");
+  if (-1 != Dungon(ctx)) throw new Error('TotalStats("Drop_Rarity"): Dungon() is not -1, and the in-dungeon branch (@4194067) is not ported: Dungon() answers -1 on every map (Ruling Y), so a stub that leaves it at another value (0) reaches this');
   // @4194240: outside a dungeon
   if (-1 == Dungon(ctx)) {
     if (1 == haveBan(ctx, "bun_v")) tot = tot + 2; // @4194318, an absent BundlesReceived is the loader's empty map (Ruling H)

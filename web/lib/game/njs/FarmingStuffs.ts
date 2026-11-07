@@ -99,4 +99,4 @@ export function cropCount(ctx: Ctx): number {
 }
 
 /** What this module covers (lib/game/ported.ts). */
-export const PORTED: Ported = { StickerBonus: true, ExoticBonusQTY: range(0, 80), LankRankUpgBonus: true, CropSCbonMulti: true, CropSCbonus: [0, 7],TotalStickers: true, StickerDMGmulti: true };
+export const PORTED: Ported = { StickerBonus: true, ExoticBonusQTY: range(0, 80), LankRankUpgBonus: true, CropSCbonMulti: true, CropSCbonus: [0, 7], TotalStickers: true, StickerDMGmulti: true };

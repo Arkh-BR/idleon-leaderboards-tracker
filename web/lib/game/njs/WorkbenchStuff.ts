@@ -103,7 +103,7 @@ function overkillQTY(ctx: Ctx, b: number): number {
   }
   // the game answers undefined for a page past the 8, which the callers' sums would turn into NaN
   if (!(0 <= (b | 0) && (b | 0) < table.length)) throw new RangeError(`WorkbenchStuff OverkillQTY: no Death Note page ${b}`);
-  return table[b | 0];
+  return assumed(ctx, "DNSM.OKqtyZZ", "the Death Note table built from the save (the game's first read of it in a session answers 0)", table[b | 0], "OverkillQTY @7810614: the call that finds DNSM.OKqtyZZ absent builds it and answers 0, every later one reads the entry; counted as a later read");
 }
 
 /**

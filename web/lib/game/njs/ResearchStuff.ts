@@ -1,5 +1,5 @@
 import { asNum, asNumber, attr } from "../attr";
-import { block, type Ctx } from "../ctx";
+import { assumed, block, type Ctx } from "../ctx";
 import { Research as CustomResearch, ResGridSquares } from "../data";
 import { NotPorted } from "../errors";
 import { listAt } from "../lists";
@@ -9,7 +9,7 @@ import { Minehead } from "./Minehead";
 import { SushiStuff } from "./SushiStuff";
 import type { Ported } from "../ported";
 
-/** N.js `_customBlock_ResearchStuff(d, b, e)` @11163957. Only the sub-cases the trackers reach. */
+/** N.js `_customBlock_ResearchStuff(d, b, e)` @11163957: the sub-cases in PORTED below (Grid_Bonus for every square and e, Ruling NN); any other throws NotPorted. */
 export const ResearchStuff: (ctx: Ctx, d: string, b: number, e: number) => number = block("ResearchStuff", (ctx, d: string, b: number, e: number) => {
   switch (d) {
     case "Grid_Bonus":
@@ -38,10 +38,10 @@ export const ResearchStuff: (ctx: Ctx, d: string, b: number, e: number) => numbe
     }
     // @11164493: the occurrences found, the first OccurrencesToBeFound entries of Research[2] that are at least 1
     case "TotalOccurrencesFound":
-      return occurrences(ctx, 2, () => 1);
+      return occurrences(ctx, 2, () => 1, "DNSM.TotOccFnd", "occurrences found");
     // @11164996: the observations' levels, the first OccurrencesToBeFound entries of Research[4] that are at least 1, summed
     case "TotalObsLVs":
-      return occurrences(ctx, 4, (lv) => lv);
+      return occurrences(ctx, 4, (lv) => lv, "DNSM.TotOccLVz", "observation levels");
     default:
       throw new NotPorted("ResearchStuff", d);
   }
@@ -51,14 +51,15 @@ export const ResearchStuff: (ctx: Ctx, d: string, b: number, e: number) => numbe
  * The session counters TotalOccurrencesFound (DNSM.TotOccFnd) and TotalObsLVs (DNSM.TotOccLVz): over the first OccurrencesToBeFound
  * (truncated) entries g of Research[row], each one at least 1 adds `add(entry)`. The game fills each once per session (and again from the
  * Research UI, `b == -1` @13177121, @13177190, @13199612), and OccurrencesToBeFound reads the Research level of the character that asks
- * first: here it is built for the current character each time, so the game shows this value only if that first read was on this character.
+ * first: here it is built for the current character each time, so the game shows this value only if that first read was on this character
+ * (stated as an assumption under `name`, the session counter).
  */
-function occurrences(ctx: Ctx, row: number, add: (entry: number) => number): number {
+function occurrences(ctx: Ctx, row: number, add: (entry: number) => number, name: string, what: string): number {
   let total = 0;
   const n = ResearchStuff(ctx, "OccurrencesToBeFound", 0, 0) | 0;
   if (n > 0) listAt(ctx, "Research", row); // the game indexes Research[row][g] directly
   for (let g = 0; g < n; g++) if (1 <= asNum(ctx, "Research", row, g)) total = total + add(asNum(ctx, "Research", row, g));
-  return total;
+  return assumed(ctx, name, `${what} counted for this character (the game counts them once a session, for the first character that asks)`, total, `${name} is filled once per session (and from the Research UI, @13177121, @13177190, @13199612) with OccurrencesToBeFound of the character that reads it first; built here for the current character`);
 }
 
 /**

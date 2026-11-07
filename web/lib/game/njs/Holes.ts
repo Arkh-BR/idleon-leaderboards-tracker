@@ -1,5 +1,5 @@
 import { asNum, asNumber, attr } from "../attr";
-import { block, withPlayer, type Ctx } from "../ctx";
+import { assumed, block, withPlayer, type Ctx } from "../ctx";
 import { CosmoUpgrades, GodsInfo, HolesInfo } from "../data";
 import { InvalidSaveValue, NotPorted } from "../errors";
 import { hString } from "../hstring";
@@ -133,6 +133,7 @@ function measurementQTYfound(ctx: Ctx, b: number, e: number): number {
   if (2 == b) {
     q = 0; // TomeQTY[5] @5742905: every character's Lv0[0]
     for (let g = 0, n = ctx.state.charNames.length; g < n; g++) q = q + asNum(withPlayer(ctx, g), "Lv0", 0);
+    q = assumed(ctx, "DNSM.TomeQTY[5]", "the account's total level, summed from the save (the game reads the Tome's count, 0 until the Tome first runs in the session)", q, "TomeQTY[5] @5742905, filled by the Tome actor's TomeQTY event (@5739323); replayed from the save");
     return 99 == e ? q / 500 : q;
   }
   if (3 == b) {
@@ -142,6 +143,7 @@ function measurementQTYfound(ctx: Ctx, b: number, e: number): number {
   if (4 == b) {
     q = 0; // TomeQTY[11] @5745687: every character's skill levels Lv0[1..21], each at least 0
     for (let g = 0, n = ctx.state.charNames.length; g < n; g++) for (let s = 0; s < 21; s++) q = q + Math.max(0, asNum(withPlayer(ctx, g), "Lv0", s + 1));
+    q = assumed(ctx, "DNSM.TomeQTY[11]", "every skill level, summed from the save (the game reads the Tome's count, 0 until the Tome first runs in the session)", q, "TomeQTY[11] @5745687, filled by the Tome actor's TomeQTY event (@5739323); replayed from the save");
     return 99 == e ? q / 5e3 + Math.max(0, q - 18e3) / 1500 : q;
   }
   if (5 == b) return 0;

@@ -1,7 +1,7 @@
 // Task 2 (DR plan): the edges of the sub-cases this task ported for TotalStats("Drop_Rarity"), on a synthetic envelope (no real save, so CI runs
 // them). Only the keys a test sets are in the save; every other block is answered from the Ctx cache (`seed`). Values come from the data tables.
 import { describe, it, expect } from "vitest";
-import { makeCtx, type Ctx } from "@/lib/game/ctx";
+import { makeCtx, type Ctx, type TraceNode } from "@/lib/game/ctx";
 import { buildGameState, type GameEnvelope } from "@/lib/game/state";
 import { NotPorted } from "@/lib/game/errors";
 import { DeathNoteMobs, MapAFKtarget, MapDetails, NinjaInfo, RandoListo2 } from "@/lib/game/data";
@@ -34,6 +34,13 @@ const synth = (data: Data, chars = 1): Ctx =>
   );
 const ola = (at: Record<number, unknown>) => Object.assign(Array<unknown>(700).fill(0), at);
 const cell = (list: unknown, ...idx: number[]) => Number(idx.reduce<unknown>((v, i) => (v as unknown[])[i], list));
+/** The same Ctx (state and cache) with tracing on. */
+const traced = (c: Ctx): Ctx => ({ ...c, trace: makeCtx(c.state, { player: c.player, map: c.map, trace: true }).trace });
+/** The `assumed:` leaves of a traced Ctx, as [name, value], in call order. */
+const assumedOf = (c: Ctx): [string, number][] => {
+  const walk = (n: TraceNode): [string, number][] => [...(n.note?.startsWith("assumed: ") ? [[n.block, n.value] as [string, number]] : []), ...n.children.flatMap(walk)];
+  return walk(c.trace!);
+};
 /** Holes with 30 rows of 100 zeros, then the rows `at` gives. */
 const holes = (at: Record<number, unknown[]> = {}) => Array.from({ length: 30 }, (_, i) => at[i] ?? Array<number>(100).fill(0));
 
@@ -102,7 +109,7 @@ describe("Holes B_UPG 46, the measurements and WorkbenchStuff OverkillQTY (synth
   });
   it("MeasurementQTYfound: each kind's count, and with e == 99 its scaled value", () => {
     const lv0 = (lv: number, skills: number) => [lv, ...Array<number>(21).fill(skills), -5];
-    const c = synth(
+    const c = traced(synth(
       {
         Holes: holes({ 11: Object.assign(Array<number>(100).fill(0), { 28: 1e3, 63: 1e6 }), 26: [3, 4, 5] }),
         FarmCrop: { 0: 1, 1: 1, 2: 1, 3: 1, 4: 1, 5: 1, 6: 1 },
@@ -112,7 +119,7 @@ describe("Holes B_UPG 46, the measurements and WorkbenchStuff OverkillQTY (synth
         Lv0_1: lv0(50, -1),
       },
       2
-    );
+    ));
     seed(c, "DNSM.TomeQTYtot", [], 5e3);
     for (let w = 0; w < 7; w++) seed(c, "WorkbenchStuff", ["OverkillQTY", w, 0], w + 1);
     expect(Holes(c, "MeasurementQTYfound", 0, 99)).toBe(getLOG(c, 1e3));
@@ -129,6 +136,8 @@ describe("Holes B_UPG 46, the measurements and WorkbenchStuff OverkillQTY (synth
     expect(Holes(c, "MeasurementQTYfound", 10, 0)).toBe(1e6);
     expect(Holes(c, "MeasurementQTYfound", 10, 99)).toBe(Math.max(0, getLOG(c, 1e6) - 2));
     expect(Holes(c, "MeasurementQTYfound", 11, 99)).toBe(0);
+    // kinds 2 and 4 replay the Tome's session counts from the save, and say so (one leaf per call: 2 is asked with e = 0 and 99)
+    expect(assumedOf(c)).toEqual([["DNSM.TomeQTY[5]", 150], ["DNSM.TomeQTY[5]", 150], ["DNSM.TomeQTY[11]", 210]]);
   });
   it("OverkillQTY: page w < 7 sums DeathNoteRank of the account's kills on each monster's map; page 7 the minibosses' Ninja[105] kills (table 7842); no page 8", () => {
     const mob = String((DeathNoteMobs as unknown as string[][])[0][0]);
@@ -140,10 +149,12 @@ describe("Holes B_UPG 46, the measurements and WorkbenchStuff OverkillQTY (synth
     const ninja = Array.from({ length: 106 }, () => [] as number[]);
     ninja[105] = Array<number>(minis).fill(0);
     ninja[105][0] = 300; // rank 2 in the 7842 table
-    const c = synth({ KLA_0: kla(20000), KLA_1: kla(10000), Ninja: ninja, Rift: [0] }, 2);
+    const c = traced(synth({ KLA_0: kla(20000), KLA_1: kla(10000), Ninja: ninja, Rift: [0] }, 2));
     expect(WorkbenchStuff(c, "OverkillQTY", 0, 0)).toBe(same); // 30000 kills: rank 1 per monster of page 0 on map m
     expect(WorkbenchStuff(c, "OverkillQTY", 7, 0)).toBe(2);
     expect(() => WorkbenchStuff(c, "OverkillQTY", 8, 0)).toThrow(RangeError);
+    // the table read as after its build (the session's first read answers 0), and said so
+    expect(assumedOf(c)).toEqual([["DNSM.OKqtyZZ", same], ["DNSM.OKqtyZZ", 2]]);
   });
 });
 
@@ -210,10 +221,12 @@ describe("ResearchStuff Grid_Bonus with e == 2, the occurrence counters and the 
     expect(at(300, 1)).toBe(43);
   });
   it("TotalOccurrencesFound counts and TotalObsLVs sums the first OccurrencesToBeFound entries that are at least 1", () => {
-    const c = synth({ Research: research({ 2: [1, 0, 2, 1, 5], 4: [2, 0.5, 3, 1, 9] }) });
+    const c = traced(synth({ Research: research({ 2: [1, 0, 2, 1, 5], 4: [2, 0.5, 3, 1, 9] }) }));
     seed(c, "ResearchStuff", ["OccurrencesToBeFound", 0, 0], 4);
     expect(ResearchStuff(c, "TotalOccurrencesFound", 0, 0)).toBe(3);
     expect(ResearchStuff(c, "TotalObsLVs", 0, 0)).toBe(6);
+    // the session counters, built for the current character, and said so
+    expect(assumedOf(c)).toEqual([["DNSM.TotOccFnd", 3], ["DNSM.TotOccLVz", 6]]);
   });
   it("GlimboTotalTrades sums Research[12], rounded at each step; GlimboDRmulti is 1 + Grid_Bonus(168, 2) / 100 once square 168 is at least 1, else 1", () => {
     expect(Minehead(synth({ Research: research({ 12: [10.4, 20.6] }) }), "GlimboTotalTrades", 0, 0)).toBe(31);
