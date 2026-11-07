@@ -159,7 +159,7 @@ const TERMS: Record<string, (c: Ctx) => number> = {
 };
 
 /** The leaves whose rows a later family of this task ports: skipped until its commit (the set empties as each family lands). */
-const PENDING = new Set<string>(["cove", "friend3", "talent239", "glimbo"]);
+const PENDING = new Set<string>(["friend3", "talent239", "glimbo"]);
 
 /** The block key(s) each term reads directly (`<Fn><args as JSON>`): what a seed must never be. */
 const OWN: Record<string, string[]> = {
@@ -191,7 +191,7 @@ const EXPECT_KNOWN: Record<string, number> = {
 };
 /** The pairs per leaf: 106 saves x characters (1163 on map 251), less HourZero's 10 characters where a term refuses, plus the extra maps of the map-dependent ones. */
 const PAIRS: Record<string, number> = {
-  luk: 1153, bubble: 1153, goldFood: 1153, tome2: 1153, rank9: 1153, workbench: 1153, family32: 1153, talent279: 1160, talent24: 1162, arcane: 5775, shrine4: 2326,
+  luk: 1153, bubble: 1153, goldFood: 1153, tome2: 1153, rank9: 1153, workbench: 1153, family32: 1153, talent279: 1160, talent24: 1162, arcane: 5775, shrine4: 2326, cove: 2326,
 };
 const REFUSALS = (id: string): string[] => (TOME_TERMS.has(id) ? HOURZERO : []);
 
@@ -321,7 +321,7 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("TotalStats(\"Drop_Rarity\") terms ag
  * No real save has a character in cavern 17, so on map 216 the Cove leaf is 0 on both sides above: the Cove's own value (Holes2("Cglunko_DR"),
  * account-wide) is checked here on every save with character 0 put in cavern 17 (data.Holes[0][0] = 17 on a copy of the envelope), on map 216.
  */
-describe.skipIf(GOLDEN_SAVES.length === 0 || PENDING.has("cove"))("the Cove (Holes2 Cglunko_DR) on every real save, character 0 in cavern 17", () => {
+describe.skipIf(GOLDEN_SAVES.length === 0)("the Cove (Holes2 Cglunko_DR) on every real save, character 0 in cavern 17", () => {
   it("equals lib/arkh's Cove leaf", () => {
     const mismatches: string[] = [];
     const seen = new Set<number>();

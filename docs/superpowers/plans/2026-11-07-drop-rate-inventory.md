@@ -13,7 +13,7 @@ Regenerate it when N.js, a module's `PORTED` or `lib/game/unreached.ts` changes.
 - attrs and dnsm are the reads in every slice listed. One marked "whole body only" is read only inside a whole-body function (all its branches, not just the one this formula takes). `DNSM` is runtime-only (it is never loaded from the save): port it as `DNSM_*` functions, not as a save attribute. The dnsm list also holds the scratch keys a formula writes and reads back in the same slice (`CaptnBonuz`, `AtomBonCalc1`); the inputs are the caches the game fills elsewhere (`StarSigns`, `AlchVials`, `FamBonusQTYs`…).
 - Depth stops at 6.
 
-**54 functions, 300 sub-cases (rows), 88 whole body, 0 not found, 66 attrs, 82 dnsm.** **285 ported `[x]`, 0 not reached `[~]`, 15 open.**
+**54 functions, 300 sub-cases (rows), 88 whole body, 0 not found, 66 attrs, 82 dnsm.** **288 ported `[x]`, 0 not reached `[~]`, 12 open.**
 
 ## TotalStats
 
@@ -361,7 +361,7 @@ Regenerate it when N.js, a module's `PORTED` or `lib/game/unreached.ts` changes.
 
 ## Holes2
 
-- [ ] Holes2("Cglunko_DR",0,0) — depth 1 — 743 chars
+- [x] Holes2("Cglunko_DR",0,0) — depth 1 — 743 chars
 - [x] Holes2("Fountain_BonTOT",2,13) — depth 2 — 1092 chars
 - [x] Holes2("Cglunko_upgBon",1,0) — depth 2 — 154 chars
 - [x] Holes2("Cglunko_upgBon",17,0) — depth 2 — 154 chars
@@ -369,9 +369,9 @@ Regenerate it when N.js, a module's `PORTED` or `lib/game/unreached.ts` changes.
 - [x] Holes2("Cglunko_upgBon",3,0) — depth 2 — 154 chars
 - [x] Holes2("Cglunko_upgBon",12,0) — depth 2 — 154 chars
 - [x] Holes2("Cglunko_upgBon",10,0) — depth 2 — 154 chars
-- [ ] Holes2("Cglunko_Bdig",0,0) — depth 2 — 601 chars
+- [x] Holes2("Cglunko_Bdig",0,0) — depth 2 — 601 chars
 - [x] Holes2("Cglunko_upgBon",22,0) — depth 2 — 154 chars
-- [ ] Holes2("Cglunko_Pdig",0,0) — depth 2 — 601 chars
+- [x] Holes2("Cglunko_Pdig",0,0) — depth 2 — 601 chars
 - [x] Holes2("Cglunko_upgBon",4,0) — depth 2 — 154 chars
 - [x] Holes2("Cglunko_upgBon",18,0) — depth 2 — 154 chars
 - [x] Holes2("Fountain_MarbleBon") — depth 3 — 121 chars

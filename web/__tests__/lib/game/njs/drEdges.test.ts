@@ -146,3 +146,22 @@ describe("Holes B_UPG 46, the measurements and WorkbenchStuff OverkillQTY (synth
     expect(() => WorkbenchStuff(c, "OverkillQTY", 8, 0)).toThrow(RangeError);
   });
 });
+
+// ── Holes2 Cove
+describe("Holes2 Cglunko_DR, Cglunko_Bdig, Cglunko_Pdig (synthetic, runs in CI)", () => {
+  it("Bdig and Pdig sum ceil(getLOG) of the six shape counters (1000 is 3: the game's getLOG is a hair under 3)", () => {
+    const c = synth({ OptLacc: ola({ 654: 1e3, 655: 0, 656: 5, 657: 1, 660: 99, 665: 101 }) });
+    expect(Holes2(c, "Cglunko_Bdig", 0, 0)).toBe(Math.ceil(getLOG(c, 1e3)) + 0 + 1 + 0);
+    expect(Holes2(c, "Cglunko_Pdig", 0, 0)).toBe(2 + 3);
+  });
+  it("Cglunko_DR is the product of the seven upgrade factors, reading OptionsListAccount[668] and [200] through ceil(getLOG)", () => {
+    const c = synth({ OptLacc: ola({ 668: 5e4, 200: 300 }) });
+    const u: Record<number, number> = { 1: 10, 17: 5, 21: 2, 3: 20, 12: 30, 10: 4, 22: 6, 4: 7, 18: 8 };
+    for (const [i, v] of Object.entries(u)) seed(c, "Holes2", ["Cglunko_upgBon", Number(i), 0], v);
+    seed(c, "Holes2", ["Cglunko_Bdig", 0, 0], 9);
+    seed(c, "Holes2", ["Cglunko_Pdig", 0, 0], 11);
+    const want = (1 + 17 / 100) * 1.2 * 1.3 * (1 + 36 / 100) * (1 + 66 / 100) * (1 + (7 * 5) / 100) * (1 + (8 * 3) / 100);
+    expect(Holes2(c, "Cglunko_DR", 0, 0)).toBeCloseTo(want, 12);
+    expect(cell(RandoListo2, 13, 1)).toBeGreaterThan(0); // the table the upgrade values come from is there
+  });
+});
