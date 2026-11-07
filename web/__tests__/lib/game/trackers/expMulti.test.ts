@@ -209,8 +209,8 @@ describe("the tree on a synthetic envelope (runs in CI)", () => {
  * a KNOWN row of that source.
  */
 const MAPS: Record<number, { explained: number; leafKnown: number; fmtless: number }> = {
-  251: { explained: 510, leafKnown: 1723, fmtless: 218 }, 1: { explained: 510, leafKnown: 1723, fmtless: 218 }, 33: { explained: 510, leafKnown: 1715, fmtless: 218 },
-  150: { explained: 510, leafKnown: 1715, fmtless: 218 }, 40: { explained: 510, leafKnown: 1723, fmtless: 218 },
+  251: { explained: 510, leafKnown: 1723, fmtless: 219 }, 1: { explained: 510, leafKnown: 1723, fmtless: 219 }, 33: { explained: 510, leafKnown: 1715, fmtless: 219 },
+  150: { explained: 510, leafKnown: 1715, fmtless: 219 }, 40: { explained: 510, leafKnown: 1723, fmtless: 219 },
 };
 const HOURZERO = ["HourZero.json: Tome rows 21,101,105,106,115,116"]; // Ruling E (njs/expTerms.test.ts)
 
