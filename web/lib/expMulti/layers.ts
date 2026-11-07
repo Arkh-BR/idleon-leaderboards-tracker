@@ -5,7 +5,7 @@
 //         x (1 + LUKcurve*(1 + T35/100)/1.8 + S/100)
 // LUK5 is split into G3-G8. G10 carries the LUK curve as two % sources (luk + talent35) so class gating can zero Lucky Charms alone.
 
-import type { StatGroup } from "@/lib/arkh/stats/defs/grouped";
+import type { StatGroup } from "@/lib/statTracker/groups";
 
 export const EXP_ROOT = "EXP Multi";
 

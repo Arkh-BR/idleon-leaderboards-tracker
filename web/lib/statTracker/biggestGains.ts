@@ -3,7 +3,7 @@
 // gain = new / current − 1. Exact for every formula shape (products,
 // max(1, ·), pow, caps, floors) as long as totalFromFlat mirrors the combine.
 
-import { applyGroupStep, groupVal, type StatGroup } from "@/lib/arkh/stats/defs/grouped";
+import { applyGroupStep, groupVal, type StatGroup } from "./groups";
 import type { GainDisplay, GainSource, GainsModel } from "./config";
 
 export const MINOR_GAIN_THRESHOLD_PCT = 0.05;

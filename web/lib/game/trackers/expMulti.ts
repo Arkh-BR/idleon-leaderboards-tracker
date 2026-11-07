@@ -25,6 +25,7 @@ import type { StatResult } from "@/lib/statTracker/config";
 import { groupedGainsModel } from "@/lib/statTracker/biggestGains";
 import { flattenTree } from "@/lib/dropRate/treeFlatten";
 import { EXP_GROUPS, EXP_ROOT } from "@/lib/expMulti/layers";
+import { groupNote, groupVal } from "@/lib/statTracker/groups";
 import { asNum, attr } from "../attr";
 import { makeCtx, type Ctx, type TraceNode } from "../ctx";
 import { MapAFKtarget } from "../data";
@@ -163,16 +164,6 @@ const SOURCES: Record<string, Source> = {
   comp128add: { name: "Baby Troll (Companion 128)", of: ({ t }) => t("Companions", 128) },
 };
 
-/** A group's shown value and shape note (lib/arkh's `groupVal` / `groupNote`, for the two kinds EXP uses: pct and mult). */
-function groupOf(kind: string, max1: boolean | undefined, vals: readonly number[]): { val: number; note: string } {
-  if (kind === "pct") return { val: 1 + vals.reduce((a, v) => a + v, 0) / 100, note: "× (1 + Σ/100)" };
-  if (kind === "mult") {
-    const p = vals.reduce((a, v) => a * v, 1);
-    return { val: max1 ? Math.max(1, p) : p, note: max1 ? "× max(1, Π)" : "× Π" };
-  }
-  throw new Error(`EXP Multi: group kind "${kind}", which the page does not use`);
-}
-
 // The page's Biggest Gains model: the guard below recombines the tree with it (the one path for the number).
 const MODEL = groupedGainsModel(EXP_ROOT, EXP_GROUPS);
 
@@ -216,8 +207,7 @@ export function expTree(ctx: Ctx): StatResult {
 
   const groups: Node[] = EXP_GROUPS.map((g) => {
     const items = g.sources.map((id) => source(id, g.kind === "mult" ? "x" : "+"));
-    const shape = groupOf(g.kind, g.max1, items.map((i) => i.val));
-    return { name: g.name, val: shape.val, fmt: "x", note: shape.note, children: items };
+    return { name: g.name, val: groupVal(g, items.map((i) => i.val)), fmt: "x", note: groupNote(g), children: items };
   });
 
   const migrated = migratedNote(state);
