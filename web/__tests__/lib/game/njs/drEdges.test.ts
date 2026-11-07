@@ -59,3 +59,19 @@ describe("Summoning TomeBonus 2 and 7 (synthetic, runs in CI)", () => {
     for (const b of [1, 3, 4, 5]) expect(() => Summoning(at({}), "TomeBonus", b, 0), `b=${b}`).toThrow(NotPorted);
   });
 });
+
+// ── FarmingStuffs CropSCbonus
+describe("FarmingStuffs CropSCbonus 7 (synthetic, runs in CI)", () => {
+  const crop = (crops: number, owned: number) => {
+    const c = synth({ FarmCrop: Object.fromEntries(Array.from({ length: crops }, (_, i) => [i, 1])) });
+    seed(c, "Ninja", ["EmporiumBonus", 38, 0], owned);
+    seed(c, "FarmingStuffs", ["CropSCbonMulti", 0, 0], 1.5);
+    return FarmingStuffs(c, "CropSCbonus", 7, 0);
+  };
+  it("is round(max(0, crops - 100)) x the multi once Emporium 38 is owned: 0 up to 100 crops", () => {
+    expect(crop(107, 1)).toBe(7 * 1.5);
+    expect(crop(100, 1)).toBe(0);
+    expect(crop(107, 0)).toBe(0);
+    expect(() => FarmingStuffs(synth({ FarmCrop: {} }), "CropSCbonus", 3, 0)).toThrow(NotPorted);
+  });
+});

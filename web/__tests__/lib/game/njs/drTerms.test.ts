@@ -159,7 +159,7 @@ const TERMS: Record<string, (c: Ctx) => number> = {
 };
 
 /** The leaves whose rows a later family of this task ports: skipped until its commit (the set empties as each family lands). */
-const PENDING = new Set<string>(["cropSC7", "hole46", "meas15", "cove", "friend3", "talent239", "glimbo"]);
+const PENDING = new Set<string>(["hole46", "meas15", "cove", "friend3", "talent239", "glimbo"]);
 
 /** The block key(s) each term reads directly (`<Fn><args as JSON>`): what a seed must never be. */
 const OWN: Record<string, string[]> = {
