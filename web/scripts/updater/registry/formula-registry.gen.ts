@@ -536,7 +536,8 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/game/njs/Labb.ts"
   ],
   "TotalStatz": [
-    "lib/arkh/stats/data/w7/royalG.ts"
+    "lib/arkh/stats/data/w7/royalG.ts",
+    "lib/game/njs/RoyalG.ts"
   ],
   "TotalStickers": [
     "lib/arkh/stats/systems/w6/farming.ts",

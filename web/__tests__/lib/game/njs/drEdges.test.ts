@@ -176,3 +176,12 @@ describe("Thingies FriendBonusStatz 3 (synthetic, runs in CI)", () => {
     for (const b of [2, 4]) expect(() => Thingies(c, "FriendBonusStatz", b, 0), `b=${b}`).toThrow(NotPorted);
   });
 });
+
+// ── RoyalG TotalStatz
+describe("RoyalG TotalStatz 0 (synthetic, runs in CI)", () => {
+  it("is RoyalG[5] summed (through asNumber); the other entries are not ported", () => {
+    const c = synth({ RoyalG: [[], [], [], [], [], [3, 4.5, "2"]] });
+    expect(RoyalG(c, "TotalStatz", 0, 0)).toBe(9.5);
+    expect(() => RoyalG(c, "TotalStatz", 1, 0)).toThrow(NotPorted);
+  });
+});

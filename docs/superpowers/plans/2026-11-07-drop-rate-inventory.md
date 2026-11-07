@@ -13,7 +13,7 @@ Regenerate it when N.js, a module's `PORTED` or `lib/game/unreached.ts` changes.
 - attrs and dnsm are the reads in every slice listed. One marked "whole body only" is read only inside a whole-body function (all its branches, not just the one this formula takes). `DNSM` is runtime-only (it is never loaded from the save): port it as `DNSM_*` functions, not as a save attribute. The dnsm list also holds the scratch keys a formula writes and reads back in the same slice (`CaptnBonuz`, `AtomBonCalc1`); the inputs are the caches the game fills elsewhere (`StarSigns`, `AlchVials`, `FamBonusQTYs`…).
 - Depth stops at 6.
 
-**54 functions, 300 sub-cases (rows), 88 whole body, 0 not found, 66 attrs, 82 dnsm.** **289 ported `[x]`, 0 not reached `[~]`, 11 open.**
+**54 functions, 300 sub-cases (rows), 88 whole body, 0 not found, 66 attrs, 82 dnsm.** **290 ported `[x]`, 0 not reached `[~]`, 10 open.**
 
 ## TotalStats
 
@@ -190,7 +190,7 @@ Regenerate it when N.js, a module's `PORTED` or `lib/game/unreached.ts` changes.
 
 ## RoyalG
 
-- [ ] RoyalG("TotalStatz",0,0) — depth 1 — 242 chars
+- [x] RoyalG("TotalStatz",0,0) — depth 1 — 242 chars
 - [x] RoyalG("StatueBon",1,0) — depth 1 — 327 chars
 - [x] RoyalG("ArmoryUpgBonus",45,0) — depth 2 — 136 chars
 

@@ -5,7 +5,7 @@ import { NotPorted } from "../errors";
 import { listAt } from "../lists";
 import type { Ported } from "../ported";
 
-/** N.js `_customBlock_RoyalG(d, b, e)` @11222521: one function, a chain of named sub-cases. Only the sub-cases the character stats and Damage reach. */
+/** N.js `_customBlock_RoyalG(d, b, e)` @11222521: one function, a chain of named sub-cases. Only the sub-cases the character stats, Damage and Drop Rate reach. */
 export const RoyalG: (ctx: Ctx, d: string, b: number, e: number) => number = block("RoyalG", (ctx, d: string, b: number, _e: number) => {
   switch (d) {
     // @11223320: Royal statue b, 0 while RoyalG[0][b] is 0, else (1 + Armory 45 / 100) x (Research[41][b] + Research[42][b] x (its level - 1))
@@ -26,10 +26,18 @@ export const RoyalG: (ctx: Ctx, d: string, b: number, e: number) => number = blo
     // @11227069: the damage of a hit in the Royal Guardian arena (map 43), where it replaces DamageDealed("Max")
     case "RatDMG":
       return (10 + RoyalG(ctx, "ArmoryUpgBonus", 35, 0)) * (1 + RoyalG(ctx, "ArmoryUpgBonus", 36, 0) / 100);
+    // @11244222: entry b of DNSM.TotKngdSt, a map the game fills key by key when a key is absent (key 0 is dropped when a grade rises,
+    // @5537808); 0 is the resource-node grades, RoyalG[5] summed (it only reads save data, so here it is summed from the save each time)
+    case "TotalStatz": {
+      if (0 != b) throw new NotPorted("RoyalG", `TotalStatz:b=${b}`);
+      let total = 0; // DNSM.TKnS_DN
+      for (let r = 0, n = listAt(ctx, "RoyalG", 5).length; r < n; r++) total = total + asNum(ctx, "RoyalG", 5, r);
+      return total;
+    }
     default:
       throw new NotPorted("RoyalG", d);
   }
 });
 
 /** What this module covers (lib/game/ported.ts). */
-export const PORTED: Ported = { ArmoryUpgBonus: true, StatueBon: true, RatDMG: true };
+export const PORTED: Ported = { ArmoryUpgBonus: true, StatueBon: true, RatDMG: true, TotalStatz: [0] };
