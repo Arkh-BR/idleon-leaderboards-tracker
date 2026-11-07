@@ -391,6 +391,8 @@ export const STAT_WHY: Record<string, string> = {
     "N.js ExpMulti(0) @4260536 starts from a live `x._customBlock_TotalStats(\"LUK\")` for the LUK curve (and the curve x talent 35 term); lib/arkh's exp.ts `luk` and `talent35` read `statList[ci][3]`, PVStatList_<ci>[3], which the game writes at save time as `PersonalValuesMap.StatList = [TotalStats(\"STR\"), TotalStats(\"AGI\"), TotalStats(\"WIS\"), TotalStats(\"LUK\"), Lv0[0]]` (@15076361): a snapshot of the total, equal to lib/game's value on a fresh save and stale on an older one. Proved by giving lib/arkh's envelope lib/game's TotalStats(\"LUK\") in PVStatList_<ci>[3]",
   holesLoad251:
     "N.js runs the load step DoOnceREAL < 251.3 (OnPlayStart3 @6420350) on an older save: when Holes[24][0..4] are all above 30 it zeroes Holes[22][10..15], the levels of the measurements 10 to 15 (lib/game/migrations ports it). lib/arkh reads the save as stored: HourZero (DoOnceREAL 248.3) keeps its measurement 15 at level 197 there, while the game has it at 0. Proved by giving lib/arkh's envelope the Holes[22] the load step leaves",
+  glimboUnleveled:
+    "N.js multiplies the Drop Rate by Math.max(1, Minehead(\"GlimboDRmulti\",0,0)) (@4195647), and GlimboDRmulti (@11198811) is `1 <= Grid_Bonus(168, 0) ? 1 + Grid_Bonus(168, 2) / 100 : 1`: 1 while grid square 168 has no value. lib/arkh's leaf is its grid helper's node, 0 for a square below level 1 (stats/systems/w4/lab.ts grid.resolve). The group is max(1, ·), so the total is the same; proved by lib/game's Grid_Bonus(168, 0) being below 1 and lib/arkh's leaf being that 0",
   buff108:
     "a product decision of the Damage page (the plan's Global Constraints): the active buff 108 is not counted, a runtime leaf in lib/game; lib/arkh counts it while the saved BuffsActive has it, and N.js PlayerHPmax @4147120 multiplies the % by 1 - GetBuffBonuses(108,1) / 100",
 };
@@ -997,8 +999,8 @@ export const KNOWN_ARKH_DIFFS: {
       cis.map((ci) => ({ stat: "dr" as const, save, ci, source, reason: "fam68", why: STAT_WHY.fam68 }))
     )
   ),
-  // the Companions(0) gate (Koweabooo#10): Grid_Bonus_Allmulti under the grid square 173
-  ...(["grid173"] as const).map((source) => ({ stat: "dr" as const, save: "Koweabooo.json", ci: 10, source, reason: "comp0", why: COMPANION_0_GATE })),
+  // the Companions(0) gate (Koweabooo#10): Grid_Bonus_Allmulti under the grid squares 173 and 168
+  ...(["grid173", "glimbo"] as const).map((source) => ({ stat: "dr" as const, save: "Koweabooo.json", ci: 10, source, reason: "comp0", why: COMPANION_0_GATE })),
   // Summoning("WinBonus",9): the boosts have GetSetBonus("GODSHARD_SET"), the God Shard set worn whole (as win0, win3, winBonus11, win23)
   ...([1, 9] as const).map((ci) => ({ stat: "dr" as const, save: "HourZero.json", ci, source: "win9", reason: "godshard", why: GODSHARD_WORN })),
   // Summoning("TomeBonus",2) and (7) are powers of the Tome score (Ruling K), as tome0 and tome6: 2 reads max(0, Tome - 8000), so it moves on the saves of tome0;
@@ -1012,6 +1014,10 @@ export const KNOWN_ARKH_DIFFS: {
   ),
   // Holes("MeasurementBonusTOTAL",15): HourZero runs the load step that zeroes the measurements 10 to 15
   ...[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((ci) => ({ stat: "dr" as const, save: "HourZero.json", ci, source: "meas15", reason: "holesLoad251", why: STAT_WHY.holesLoad251 })),
+  // Minehead("GlimboDRmulti"): 1 in N.js where grid square 168 has no value, lib/arkh's grid node 0
+  ...[["HourZero.json", 10], ["big_guy69123.json", 11]].flatMap(([save, n]) =>
+    Array.from({ length: n as number }, (_, ci) => ({ stat: "dr" as const, save: save as string, ci, source: "glimbo", reason: "glimboUnleveled", why: STAT_WHY.glimboUnleveled }))
+  ),
 ];
 
 /**

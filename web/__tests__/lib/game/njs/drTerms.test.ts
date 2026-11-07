@@ -158,9 +158,6 @@ const TERMS: Record<string, (c: Ctx) => number> = {
   cove: (c) => (inCove(c) ? Holes2(c, "Cglunko_DR", 0, 0) : 0),
 };
 
-/** The leaves whose rows a later family of this task ports: skipped until its commit (the set empties as each family lands). */
-const PENDING = new Set<string>(["glimbo"]);
-
 /** The block key(s) each term reads directly (`<Fn><args as JSON>`): what a seed must never be. */
 const OWN: Record<string, string[]> = {
   luk: ['TotalStats["LUK"]'], starSigns: ['DNSM.StarSigns["Drop"]'], goldFood: ['GoldFoodBonuses["DropRatez"]'], workbench: ['WorkbenchStuff["AdditionExtraEXPnDR",0,0]'],
@@ -187,7 +184,7 @@ const HOURZERO = ["HourZero.json: Tome rows 21,101,105,106,115,116"];
 const TOME_TERMS = new Set(["luk", "bubble", "goldFood", "tome2", "rank9", "workbench", "family32", "talent279", "talent24"]);
 /** The pairs per leaf whose difference a KNOWN entry closes, as a literal (a stale entry or a new difference fails): the totals of the report. */
 const EXPECT_KNOWN: Record<string, number> = {
-  luk: 1121, goldFood: 327, rank9: 8, workbench: 9, grid173: 1, win9: 2, tome2: 196, tome7: 33, prayer7: 43, meas15: 10,
+  luk: 1121, goldFood: 327, rank9: 8, workbench: 9, grid173: 1, glimbo: 22, win9: 2, tome2: 196, tome7: 33, prayer7: 43, meas15: 10,
 };
 /** The pairs per leaf: 106 saves x characters (1163 on map 251), less HourZero's 10 characters where a term refuses, plus the extra maps of the map-dependent ones. */
 const PAIRS: Record<string, number> = {
@@ -230,7 +227,7 @@ describe("the DR term table covers every source of lib/arkh's descriptor", () =>
 
 describe.skipIf(GOLDEN_SAVES.length === 0)("TotalStats(\"Drop_Rarity\") terms against lib/arkh on every real save and character", () => {
   for (const id of Object.keys(TERMS)) {
-    (PENDING.has(id) ? it.skip : it)(id, () => {
+    it(id, () => {
       const t0 = performance.now();
       const mismatches: string[] = [];
       const seen = new Set<number>();
@@ -262,6 +259,13 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("TotalStats(\"Drop_Rarity\") terms ag
             if (entries.length) entryPairs++;
             if (rel(got, want)) continue;
             // a KNOWN difference is proved, not skipped: lib/arkh's number for the term it names, seeded into a fresh Ctx, closes the gap
+            // glimboUnleveled: N.js's GlimboDRmulti is 1 because grid square 168 is below 1 here, and lib/arkh's leaf is its grid node's 0 (STAT_WHY.glimboUnleveled)
+            if (entries.length && entries.every((d) => d.reason === "glimboUnleveled")) {
+              expect(ResearchStuff(withPlayer(ctx, ci), "Grid_Bonus", 168, 0), `${id} ${basename(path)}#${ci}: square 168`).toBeLessThan(1);
+              expect([got, want], `${id} ${basename(path)}#${ci}`).toEqual([1, 0]);
+              known++;
+              continue;
+            }
             // the reasons of ARKH_SIDE are proved on lib/arkh's side: its envelope gets what lib/game reads, and its leaf must then be lib/game's
             if (entries.length && entries.every((d) => ARKH_SIDE[d.reason!])) {
               const env = JSON.parse(readFileSync(path, "utf8")) as GameEnvelope;

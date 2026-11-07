@@ -234,6 +234,12 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   "GambitPtsREQ": [
     "lib/arkh/stats/systems/coin/gambit.ts"
   ],
+  "GlimboDRmulti": [
+    "lib/game/njs/Minehead.ts"
+  ],
+  "GlimboTotalTrades": [
+    "lib/game/njs/Minehead.ts"
+  ],
   "GrandDiscoveries_Total": [
     "lib/game/njs/Spelunk.ts"
   ],
@@ -369,6 +375,9 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   "ObolMISCmulti": [
     "lib/arkh/stats/data/w7/menagerie.ts",
     "lib/game/njs/MenagerieStuff.ts"
+  ],
+  "OccurrencesToBeFound": [
+    "lib/game/njs/ResearchStuff.ts"
   ],
   "OverkillQTY": [
     "lib/arkh/stats/systems/coin/gambit.ts",
@@ -531,6 +540,12 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   "TotalGreenSigils": [
     "lib/arkh/stats/systems/w2/alchemy.ts",
     "lib/game/njs/Labb.ts"
+  ],
+  "TotalObsLVs": [
+    "lib/game/njs/ResearchStuff.ts"
+  ],
+  "TotalOccurrencesFound": [
+    "lib/game/njs/ResearchStuff.ts"
   ],
   "TotalPurpleSigils": [
     "lib/game/njs/Labb.ts"

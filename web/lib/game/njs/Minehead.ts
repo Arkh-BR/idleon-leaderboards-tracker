@@ -10,8 +10,8 @@ import { equipMap, itemDef } from "./TotalStats";
 import type { Ported } from "../ported";
 
 /**
- * N.js `_customBlock_Minehead(d, b, e)` @11186658: one function, a chain of named sub-cases. Only the sub-cases the Artifact Find port
- * and Damage reach (`GlimboTotalTrades` @11198303 is only reached from `Grid_Bonus` square 168 with `e == 2`: unreached.ts).
+ * N.js `_customBlock_Minehead(d, b, e)` @11186658: one function, a chain of named sub-cases. Only the sub-cases the Artifact Find port,
+ * Damage and Drop Rate reach.
  */
 export const Minehead: (ctx: Ctx, d: string, b: number, e: number) => number = block("Minehead", (ctx, d: string, b: number, _e: number) => {
   switch (d) {
@@ -34,6 +34,17 @@ export const Minehead: (ctx: Ctx, d: string, b: number, e: number) => number = b
       const weapon = hString(attr(ctx, "EquipmentOrder", 0, 1));
       return bonus * (asNumber(itemDef(weapon).Weapon_Power) + asNumber(equipMap(ctx, 0, 1).Weapon_Power));
     }
+    // @11198303: the Glimbo trades, Research[12] summed (rounded at each step), DNSM.GlimboTOT: the game fills it once per session (and
+    // with b == -1); it only reads save data, so here it is summed from the save each time
+    case "GlimboTotalTrades": {
+      let total = 0; // DNSM.GlimboTOT
+      for (let f = 0, n = listAt(ctx, "Research", 12).length; f < n; f++) total = Math.round(total + asNum(ctx, "Research", 12, f));
+      return Math.round(total);
+    }
+    // @11198811: the Drop Rate multi of grid square 168 (Glimbo Insider Trading Secrets), 1 + Grid_Bonus(168, 2) / 100 once the square
+    // has a value, else 1
+    case "GlimboDRmulti":
+      return 1 <= ResearchStuff(ctx, "Grid_Bonus", 168, 0) ? 1 + ResearchStuff(ctx, "Grid_Bonus", 168, 2) / 100 : 1;
     default:
       throw new NotPorted("Minehead", d);
   }
@@ -66,4 +77,4 @@ function buttonBonuses(ctx: Ctx, b: number): number {
 }
 
 /** What this module covers (lib/game/ported.ts). */
-export const PORTED: Ported = { Button_Bonuses: true, Button_BonusPerTime: true, Button_BonusMULTI: true, BonusQTY: true, WepPowDmgPCT: true };
+export const PORTED: Ported = { Button_Bonuses: true, Button_BonusPerTime: true, Button_BonusMULTI: true, BonusQTY: true, WepPowDmgPCT: true, GlimboTotalTrades: true, GlimboDRmulti: true };

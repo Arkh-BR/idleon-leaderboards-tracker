@@ -222,7 +222,6 @@ describe("ports stay on their boundary", () => {
   });
   it("Thingies / ResearchStuff: only what the ported terms need", () => {
     expect(() => Thingies(c(), "LoreEpiBon", -1, 0)).toThrow(NotPorted); // the cache rebuild (Task 8 ported the entries 0..10)
-    expect(() => ResearchStuff(c(), "Grid_Bonus", 31, 2)).toThrow(NotPorted); // the e == 2 squares other than 67, 68 and 107 (Task 7)
-    expect(() => ResearchStuff(c(), "TotalObsLVs", 0, 0)).toThrow(NotPorted);
+    expect(() => ResearchStuff(c(), "AFKgainsRatePCT", 0, 0)).toThrow(NotPorted); // Grid_Bonus with e == 2 and its counters are ported since the Drop Rate plan
   });
 });

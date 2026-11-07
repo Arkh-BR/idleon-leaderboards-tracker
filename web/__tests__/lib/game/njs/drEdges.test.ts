@@ -185,3 +185,45 @@ describe("RoyalG TotalStatz 0 (synthetic, runs in CI)", () => {
     expect(() => RoyalG(c, "TotalStatz", 1, 0)).toThrow(NotPorted);
   });
 });
+
+// ── ResearchStuff Grid_Bonus e == 2 and the Glimbo
+describe("ResearchStuff Grid_Bonus with e == 2, the occurrence counters and the Glimbo (synthetic, runs in CI)", () => {
+  const research = (at: Record<number, unknown[]>) => Array.from({ length: 21 }, (_, i) => at[i] ?? Array<number>(200).fill(0));
+  it("e == 2: 31 is 25 x its level; 94, 112, 168 the value times their counter; 151 OptionsListAccount[500]; any other square its value", () => {
+    const c = synth({ Research: research({ 0: Object.assign(Array<number>(200).fill(0), { 31: 3 }) }), OptLacc: ola({ 500: 7 }) });
+    for (const b of [94, 112, 168, 109]) seed(c, "ResearchStuff", ["Grid_Bonus", b, 0], 10);
+    seed(c, "ResearchStuff", ["TotalObsLVs", 0, 0], 4);
+    seed(c, "ResearchStuff", ["TotalOccurrencesFound", 0, 0], 5);
+    seed(c, "Minehead", ["GlimboTotalTrades", 0, 0], 250);
+    expect(ResearchStuff(c, "Grid_Bonus", 31, 2)).toBe(75);
+    expect(ResearchStuff(c, "Grid_Bonus", 94, 2)).toBe(40);
+    expect(ResearchStuff(c, "Grid_Bonus", 112, 2)).toBe(50);
+    expect(ResearchStuff(c, "Grid_Bonus", 151, 2)).toBe(7);
+    expect(ResearchStuff(c, "Grid_Bonus", 168, 2)).toBe(20); // floor(250 / 100) = 2
+    expect(ResearchStuff(c, "Grid_Bonus", 109, 2)).toBe(10);
+  });
+  it("OccurrencesToBeFound: 0 below Research level 1, 1 while Research[2][0] is 0, else min(43, 5 floor((L + 10) / 10) - floor(L / 20) - floor(L / 30) - floor(L / 50))", () => {
+    const at = (lv: number, first: number) => ResearchStuff(synth({ Lv0_0: Object.assign(Array<number>(30).fill(0), { 20: lv }), Research: research({ 2: [first] }) }), "OccurrencesToBeFound", 0, 0);
+    expect(at(0, 1)).toBe(0);
+    expect(at(60, 0)).toBe(1);
+    expect(at(60, 1)).toBe(35 - 3 - 2 - 1);
+    expect(at(300, 1)).toBe(43);
+  });
+  it("TotalOccurrencesFound counts and TotalObsLVs sums the first OccurrencesToBeFound entries that are at least 1", () => {
+    const c = synth({ Research: research({ 2: [1, 0, 2, 1, 5], 4: [2, 0.5, 3, 1, 9] }) });
+    seed(c, "ResearchStuff", ["OccurrencesToBeFound", 0, 0], 4);
+    expect(ResearchStuff(c, "TotalOccurrencesFound", 0, 0)).toBe(3);
+    expect(ResearchStuff(c, "TotalObsLVs", 0, 0)).toBe(6);
+  });
+  it("GlimboTotalTrades sums Research[12], rounded at each step; GlimboDRmulti is 1 + Grid_Bonus(168, 2) / 100 once square 168 is at least 1, else 1", () => {
+    expect(Minehead(synth({ Research: research({ 12: [10.4, 20.6] }) }), "GlimboTotalTrades", 0, 0)).toBe(31);
+    const glimbo = (square: number) => {
+      const c = synth({});
+      seed(c, "ResearchStuff", ["Grid_Bonus", 168, 0], square);
+      seed(c, "ResearchStuff", ["Grid_Bonus", 168, 2], 30);
+      return Minehead(c, "GlimboDRmulti", 0, 0);
+    };
+    expect(glimbo(2)).toBeCloseTo(1.3, 12);
+    expect(glimbo(0.5)).toBe(1);
+  });
+});

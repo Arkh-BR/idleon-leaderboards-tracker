@@ -13,7 +13,7 @@ Regenerate it when N.js, a module's `PORTED` or `lib/game/unreached.ts` changes.
 - attrs and dnsm are the reads in every slice listed. One marked "whole body only" is read only inside a whole-body function (all its branches, not just the one this formula takes). `DNSM` is runtime-only (it is never loaded from the save): port it as `DNSM_*` functions, not as a save attribute. The dnsm list also holds the scratch keys a formula writes and reads back in the same slice (`CaptnBonuz`, `AtomBonCalc1`); the inputs are the caches the game fills elsewhere (`StarSigns`, `AlchVials`, `FamBonusQTYs`…).
 - Depth stops at 6.
 
-**54 functions, 300 sub-cases (rows), 88 whole body, 0 not found, 66 attrs, 82 dnsm.** **290 ported `[x]`, 0 not reached `[~]`, 10 open.**
+**54 functions, 300 sub-cases (rows), 88 whole body, 0 not found, 66 attrs, 82 dnsm.** **297 ported `[x]`, 0 not reached `[~]`, 3 open.**
 
 ## TotalStats
 
@@ -266,13 +266,13 @@ Regenerate it when N.js, a module's `PORTED` or `lib/game/unreached.ts` changes.
 ## ResearchStuff
 
 - [x] ResearchStuff("Grid_Bonus",173,0) — depth 1 — 1304 chars
-- [ ] ResearchStuff("Grid_Bonus") — depth 2 — 1304 chars
-- [ ] ResearchStuff("TotalObsLVs",0,0) — depth 2 — 511 chars
-- [ ] ResearchStuff("TotalOccurrencesFound",0,0) — depth 2 — 472 chars
+- [x] ResearchStuff("Grid_Bonus") — depth 2 — 1304 chars
+- [x] ResearchStuff("TotalObsLVs",0,0) — depth 2 — 511 chars
+- [x] ResearchStuff("TotalOccurrencesFound",0,0) — depth 2 — 472 chars
 - [x] ResearchStuff("Grid_Bonus_Allmulti",0,0) — depth 2 — 330 chars
 - [x] ResearchStuff("Grid_Bonus",168,0) — depth 2 — 760 chars
-- [ ] ResearchStuff("Grid_Bonus",168,2) — depth 2 — 760 chars
-- [ ] ResearchStuff("OccurrencesToBeFound",0,0) — depth 3 — 385 chars
+- [x] ResearchStuff("Grid_Bonus",168,2) — depth 2 — 760 chars
+- [x] ResearchStuff("OccurrencesToBeFound",0,0) — depth 3 — 385 chars
 
 ## chipBonuses
 
@@ -338,9 +338,9 @@ Regenerate it when N.js, a module's `PORTED` or `lib/game/unreached.ts` changes.
 
 ## Minehead
 
-- [ ] Minehead("GlimboDRmulti",0,0) — depth 1 — 116 chars
+- [x] Minehead("GlimboDRmulti",0,0) — depth 1 — 116 chars
 - [x] Minehead("BonusQTY",0,0) — depth 1 — 147 chars
-- [ ] Minehead("GlimboTotalTrades",0,0) — depth 2 — 481 chars
+- [x] Minehead("GlimboTotalTrades",0,0) — depth 2 — 481 chars
 
 ## Dreamstuff
 
