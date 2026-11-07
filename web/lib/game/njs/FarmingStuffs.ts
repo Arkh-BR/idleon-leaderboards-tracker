@@ -91,7 +91,7 @@ function cropSCbonus(ctx: Ctx, b: number): number {
 }
 
 /** `D.mapCount(FarmCrop)`: the crops found, the keys of the FarmCrop map. */
-function cropCount(ctx: Ctx): number {
+export function cropCount(ctx: Ctx): number {
   const crops = attr(ctx, "FarmCrop");
   if (crops === undefined) throw new MissingSaveKey("FarmCrop");
   if (crops === null || typeof crops !== "object") throw new InvalidSaveValue("FarmCrop", "a map", crops);

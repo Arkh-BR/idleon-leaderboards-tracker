@@ -389,6 +389,8 @@ export const STAT_WHY: Record<string, string> = {
     "lib/arkh's Main EXP star signs (computeStarSignBonus(\"MainXP\")) count a sign the Rift enables that StarSignsUnlocked lacks; N.js StarSigns @6540624 adds sign k of the first enabledStarSigns only when StarSignsUnlocked has StarSigns[k][0] (ExpMulti(0) @4260536 reads DNSM.StarSigns.MainXP; proved by PROOF_PATCHES.signsExp, the missing sign names added to the character): the cause of `signs` and `signsSpeed` on the Main EXP key",
   lukSnapshot:
     "N.js ExpMulti(0) @4260536 starts from a live `x._customBlock_TotalStats(\"LUK\")` for the LUK curve (and the curve x talent 35 term); lib/arkh's exp.ts `luk` and `talent35` read `statList[ci][3]`, PVStatList_<ci>[3], which the game writes at save time as `PersonalValuesMap.StatList = [TotalStats(\"STR\"), TotalStats(\"AGI\"), TotalStats(\"WIS\"), TotalStats(\"LUK\"), Lv0[0]]` (@15076361): a snapshot of the total, equal to lib/game's value on a fresh save and stale on an older one. Proved by giving lib/arkh's envelope lib/game's TotalStats(\"LUK\") in PVStatList_<ci>[3]",
+  holesLoad251:
+    "N.js runs the load step DoOnceREAL < 251.3 (OnPlayStart3 @6420350) on an older save: when Holes[24][0..4] are all above 30 it zeroes Holes[22][10..15], the levels of the measurements 10 to 15 (lib/game/migrations ports it). lib/arkh reads the save as stored: HourZero (DoOnceREAL 248.3) keeps its measurement 15 at level 197 there, while the game has it at 0. Proved by giving lib/arkh's envelope the Holes[22] the load step leaves",
   buff108:
     "a product decision of the Damage page (the plan's Global Constraints): the active buff 108 is not counted, a runtime leaf in lib/game; lib/arkh counts it while the saved BuffsActive has it, and N.js PlayerHPmax @4147120 multiplies the % by 1 - GetBuffBonuses(108,1) / 100",
 };
@@ -1008,6 +1010,8 @@ export const KNOWN_ARKH_DIFFS: {
   ...([["Ash_EB.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Brokami.json", [10]], ["Crezar.json", [1, 4]], ["Dandy2009.json", [10]], ["Flipper143.json", [10]], ["Frostymart.json", [9]], ["FrozenBody.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Glaives.json", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], ["Jrod11.json", [10]], ["big_guy69123.json", [4, 8, 10]]] as const).flatMap(([save, cis]) =>
     cis.map((ci) => ({ stat: "dr" as const, save, ci, source: "prayer7", reason: "pray6", why: STAT_WHY.pray6 }))
   ),
+  // Holes("MeasurementBonusTOTAL",15): HourZero runs the load step that zeroes the measurements 10 to 15
+  ...[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((ci) => ({ stat: "dr" as const, save: "HourZero.json", ci, source: "meas15", reason: "holesLoad251", why: STAT_WHY.holesLoad251 })),
 ];
 
 /**

@@ -159,7 +159,7 @@ const TERMS: Record<string, (c: Ctx) => number> = {
 };
 
 /** The leaves whose rows a later family of this task ports: skipped until its commit (the set empties as each family lands). */
-const PENDING = new Set<string>(["hole46", "meas15", "cove", "friend3", "talent239", "glimbo"]);
+const PENDING = new Set<string>(["cove", "friend3", "talent239", "glimbo"]);
 
 /** The block key(s) each term reads directly (`<Fn><args as JSON>`): what a seed must never be. */
 const OWN: Record<string, string[]> = {
@@ -173,6 +173,12 @@ Object.freeze(OWN);
 const ARKH_SIDE: Record<string, (data: Record<string, unknown>, ci: number, c: Ctx) => void> = {
   // PVStatList_<ci>[3] gets lib/game's live TotalStats("LUK") (STAT_WHY.lukSnapshot)
   lukSnapshot: (d, ci, c) => patchLukSnapshot(d, ci, TotalStats(c, "LUK")),
+  // Holes[22] gets the list the game's load steps leave, which lib/game's state holds (STAT_WHY.holesLoad251)
+  holesLoad251: (d, _ci, c) => {
+    const holes = (typeof d.Holes === "string" ? JSON.parse(d.Holes) : d.Holes) as unknown[];
+    holes[22] = [...listAt(c, "Holes", 22)];
+    d.Holes = typeof d.Holes === "string" ? JSON.stringify(holes) : holes;
+  },
 };
 
 /** What each term refuses (Ruling E): lib/tome cannot score HourZero (see stats.test.ts, equipCards.test.ts). */
@@ -181,7 +187,7 @@ const HOURZERO = ["HourZero.json: Tome rows 21,101,105,106,115,116"];
 const TOME_TERMS = new Set(["luk", "bubble", "goldFood", "tome2", "rank9", "workbench", "family32", "talent279", "talent24"]);
 /** The pairs per leaf whose difference a KNOWN entry closes, as a literal (a stale entry or a new difference fails): the totals of the report. */
 const EXPECT_KNOWN: Record<string, number> = {
-  luk: 1121, goldFood: 327, rank9: 8, workbench: 9, grid173: 1, win9: 2, tome2: 196, tome7: 33, prayer7: 43,
+  luk: 1121, goldFood: 327, rank9: 8, workbench: 9, grid173: 1, win9: 2, tome2: 196, tome7: 33, prayer7: 43, meas15: 10,
 };
 /** The pairs per leaf: 106 saves x characters (1163 on map 251), less HourZero's 10 characters where a term refuses, plus the extra maps of the map-dependent ones. */
 const PAIRS: Record<string, number> = {
@@ -342,7 +348,7 @@ describe.skipIf(GOLDEN_SAVES.length === 0 || PENDING.has("cove"))("the Cove (Hol
  * The measurements' kinds the Drop Rate never reads (it reads measurement 15, kind HolesInfo[52][15] = 10): lib/arkh's gambit port has the
  * Death Note pages (WorkbenchStuff("OverkillQTY", w), kind 6) and the measurements 9 (kind 0) and 13 (kind 6), so those are checked here.
  */
-describe.skipIf(GOLDEN_SAVES.length === 0 || PENDING.has("meas15"))("the Death Note and the measurements 9 and 13 against lib/arkh's gambit port", () => {
+describe.skipIf(GOLDEN_SAVES.length === 0)("the Death Note and the measurements 9 and 13 against lib/arkh's gambit port", () => {
   it("equal on every real save", () => {
     const mismatches: string[] = [];
     let nonZero = 0;

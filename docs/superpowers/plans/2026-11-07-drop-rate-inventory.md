@@ -13,7 +13,7 @@ Regenerate it when N.js, a module's `PORTED` or `lib/game/unreached.ts` changes.
 - attrs and dnsm are the reads in every slice listed. One marked "whole body only" is read only inside a whole-body function (all its branches, not just the one this formula takes). `DNSM` is runtime-only (it is never loaded from the save): port it as `DNSM_*` functions, not as a save attribute. The dnsm list also holds the scratch keys a formula writes and reads back in the same slice (`CaptnBonuz`, `AtomBonCalc1`); the inputs are the caches the game fills elsewhere (`StarSigns`, `AlchVials`, `FamBonusQTYs`…).
 - Depth stops at 6.
 
-**54 functions, 300 sub-cases (rows), 88 whole body, 0 not found, 66 attrs, 82 dnsm.** **273 ported `[x]`, 0 not reached `[~]`, 27 open.**
+**54 functions, 300 sub-cases (rows), 88 whole body, 0 not found, 66 attrs, 82 dnsm.** **285 ported `[x]`, 0 not reached `[~]`, 15 open.**
 
 ## TotalStats
 
@@ -103,16 +103,16 @@ Regenerate it when N.js, a module's `PORTED` or `lib/game/unreached.ts` changes.
 
 ## Holes
 
-- [ ] Holes("B_UPG",46,0) — depth 1 — 63 chars
-- [ ] Holes("MeasurementBonusTOTAL",15,0) — depth 1 — 173 chars
+- [x] Holes("B_UPG",46,0) — depth 1 — 63 chars
+- [x] Holes("MeasurementBonusTOTAL",15,0) — depth 1 — 173 chars
 - [x] Holes("B_UPG",82,20) — depth 1 — 7 chars
 - [x] Holes("MonumentROGbonuses",2,6) — depth 1 — 818 chars
-- [ ] Holes("MeasurementBaseBonus") — depth 2 — 559 chars
-- [ ] Holes("MeasurementMulti") — depth 2 — 231 chars
+- [x] Holes("MeasurementBaseBonus") — depth 2 — 559 chars
+- [x] Holes("MeasurementMulti") — depth 2 — 231 chars
 - [x] Holes("CosmoBonusQTY",2,0) — depth 3 — 279 chars
 - [x] Holes("CosmoBonusQTY",2,3) — depth 3 — 279 chars
 - [x] Holes("CosmoBonusQTY",1,3) — depth 3 — 273 chars
-- [ ] Holes("MeasurementQTYfound") — depth 3 — 3200 chars
+- [x] Holes("MeasurementQTYfound") — depth 3 — 3200 chars
 
 ## Companions
 
@@ -290,13 +290,13 @@ Regenerate it when N.js, a module's `PORTED` or `lib/game/unreached.ts` changes.
 
 - [x] WorkbenchStuff("AdditionExtraEXPnDR",0,0) — depth 1 — 128 chars
 - [x] WorkbenchStuff("PlayerBuildSpd") — depth 3 — 3041 chars
-- [ ] WorkbenchStuff("OverkillQTY",0,0) — depth 4 — 2317 chars
-- [ ] WorkbenchStuff("OverkillQTY",1,0) — depth 4 — 2317 chars
-- [ ] WorkbenchStuff("OverkillQTY",2,0) — depth 4 — 2317 chars
-- [ ] WorkbenchStuff("OverkillQTY",3,0) — depth 4 — 2317 chars
-- [ ] WorkbenchStuff("OverkillQTY",4,0) — depth 4 — 2317 chars
-- [ ] WorkbenchStuff("OverkillQTY",5,0) — depth 4 — 2317 chars
-- [ ] WorkbenchStuff("OverkillQTY",6,0) — depth 4 — 2317 chars
+- [x] WorkbenchStuff("OverkillQTY",0,0) — depth 4 — 2317 chars
+- [x] WorkbenchStuff("OverkillQTY",1,0) — depth 4 — 2317 chars
+- [x] WorkbenchStuff("OverkillQTY",2,0) — depth 4 — 2317 chars
+- [x] WorkbenchStuff("OverkillQTY",3,0) — depth 4 — 2317 chars
+- [x] WorkbenchStuff("OverkillQTY",4,0) — depth 4 — 2317 chars
+- [x] WorkbenchStuff("OverkillQTY",5,0) — depth 4 — 2317 chars
+- [x] WorkbenchStuff("OverkillQTY",6,0) — depth 4 — 2317 chars
 - [x] WorkbenchStuff("ConstMasteryBonus",2,0) — depth 4 — 297 chars
 - [x] WorkbenchStuff("DeathNoteRank") — depth 5 — 189 chars
 

@@ -313,13 +313,19 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/game/njs/SushiStuff.ts"
   ],
   "MeasurementBaseBonus": [
-    "lib/arkh/stats/systems/coin/gambit.ts"
+    "lib/arkh/stats/systems/coin/gambit.ts",
+    "lib/game/njs/Holes.ts"
   ],
   "MeasurementBonusTOTAL": [
-    "lib/arkh/stats/systems/coin/gambit.ts"
+    "lib/arkh/stats/systems/coin/gambit.ts",
+    "lib/game/njs/Holes.ts"
   ],
   "MeasurementMulti": [
-    "lib/arkh/stats/systems/coin/gambit.ts"
+    "lib/arkh/stats/systems/coin/gambit.ts",
+    "lib/game/njs/Holes.ts"
+  ],
+  "MeasurementQTYfound": [
+    "lib/game/njs/Holes.ts"
   ],
   "MeritocBonusz": [
     "lib/arkh/stats/systems/exp/exp.ts",
@@ -365,7 +371,8 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/game/njs/MenagerieStuff.ts"
   ],
   "OverkillQTY": [
-    "lib/arkh/stats/systems/coin/gambit.ts"
+    "lib/arkh/stats/systems/coin/gambit.ts",
+    "lib/game/njs/WorkbenchStuff.ts"
   ],
   "OverkillStuffs": [
     "lib/arkh/stats/systems/common/overkill.ts"

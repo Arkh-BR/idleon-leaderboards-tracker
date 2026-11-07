@@ -75,3 +75,74 @@ describe("FarmingStuffs CropSCbonus 7 (synthetic, runs in CI)", () => {
     expect(() => FarmingStuffs(synth({ FarmCrop: {} }), "CropSCbonus", 3, 0)).toThrow(NotPorted);
   });
 });
+
+// ── Holes measurements, B_UPG 46 and the Death Note
+describe("Holes B_UPG 46, the measurements and WorkbenchStuff OverkillQTY (synthetic, runs in CI)", () => {
+  it("B_UPG 46 is 5 x Holes[11][26] once bought", () => {
+    const at = (bought: number) => Holes(synth({ Holes: holes({ 11: Object.assign(Array<number>(100).fill(0), { 26: 4 }), 13: Object.assign(Array<number>(100).fill(0), { 46: bought }) }) }), "B_UPG", 46, 0);
+    expect(at(1)).toBe(20);
+    expect(at(0)).toBe(0);
+  });
+  it("MeasurementBaseBonus: (1 + Cosmo (1, 3) / 100) x v L / (100 + L) for a \"TOT\" value (15: 50TOT), else v x L (1: 2)", () => {
+    const c = synth({ Holes: holes({ 22: Object.assign(Array<number>(100).fill(0), { 1: 7, 15: 50 }) }) });
+    seed(c, "Holes", ["CosmoBonusQTY", 1, 3], 25);
+    expect(Holes(c, "MeasurementBaseBonus", 15, 0)).toBeCloseTo(1.25 * ((50 * 50) / 150), 12);
+    expect(Holes(c, "MeasurementBaseBonus", 1, 0)).toBeCloseTo(1.25 * 2 * 7, 12);
+  });
+  it("MeasurementMulti: 1 + 18 q / 100 below q = 5, 1 + (18 q + 8 (q - 5)) / 100 from it; BonusTOTAL(15) = base(15) x multi(HolesInfo[52][15] = 10)", () => {
+    const at = (q: number) => {
+      const c = synth({});
+      seed(c, "Holes", ["MeasurementQTYfound", 10, 99], q);
+      seed(c, "Holes", ["MeasurementBaseBonus", 15, 0], 30);
+      return c;
+    };
+    expect(Holes(at(3), "MeasurementMulti", 10, 0)).toBeCloseTo(1.54, 12);
+    expect(Holes(at(7), "MeasurementMulti", 10, 0)).toBeCloseTo(1 + (126 + 16) / 100, 12);
+    expect(Holes(at(7), "MeasurementBonusTOTAL", 15, 0)).toBeCloseTo(30 * 2.42, 12);
+  });
+  it("MeasurementQTYfound: each kind's count, and with e == 99 its scaled value", () => {
+    const lv0 = (lv: number, skills: number) => [lv, ...Array<number>(21).fill(skills), -5];
+    const c = synth(
+      {
+        Holes: holes({ 11: Object.assign(Array<number>(100).fill(0), { 28: 1e3, 63: 1e6 }), 26: [3, 4, 5] }),
+        FarmCrop: { 0: 1, 1: 1, 2: 1, 3: 1, 4: 1, 5: 1, 6: 1 },
+        Cards1: ["a", "b", "c"],
+        TaskZZ0: [[], [42]],
+        Lv0_0: lv0(100, 10),
+        Lv0_1: lv0(50, -1),
+      },
+      2
+    );
+    seed(c, "DNSM.TomeQTYtot", [], 5e3);
+    for (let w = 0; w < 7; w++) seed(c, "WorkbenchStuff", ["OverkillQTY", w, 0], w + 1);
+    expect(Holes(c, "MeasurementQTYfound", 0, 99)).toBe(getLOG(c, 1e3));
+    expect(Holes(c, "MeasurementQTYfound", 1, 99)).toBe(7 / 14);
+    expect(Holes(c, "MeasurementQTYfound", 2, 0)).toBe(150); // every character's Lv0[0]
+    expect(Holes(c, "MeasurementQTYfound", 2, 99)).toBe(150 / 500);
+    expect(Holes(c, "MeasurementQTYfound", 3, 99)).toBe(5e3 / 2500);
+    expect(Holes(c, "MeasurementQTYfound", 4, 0)).toBe(210); // the skill levels Lv0[1..21], each at least 0 (the second character's -1s count 0)
+    expect(Holes(c, "MeasurementQTYfound", 5, 99)).toBe(0);
+    expect(Holes(c, "MeasurementQTYfound", 6, 99)).toBe(28 / 125);
+    expect(Holes(c, "MeasurementQTYfound", 7, 99)).toBe(getLOG(c, 42) / 2);
+    expect(Holes(c, "MeasurementQTYfound", 8, 99)).toBe(3 / 150);
+    expect(Holes(c, "MeasurementQTYfound", 9, 99)).toBe(12 / 6);
+    expect(Holes(c, "MeasurementQTYfound", 10, 0)).toBe(1e6);
+    expect(Holes(c, "MeasurementQTYfound", 10, 99)).toBe(Math.max(0, getLOG(c, 1e6) - 2));
+    expect(Holes(c, "MeasurementQTYfound", 11, 99)).toBe(0);
+  });
+  it("OverkillQTY: page w < 7 sums DeathNoteRank of the account's kills on each monster's map; page 7 the minibosses' Ninja[105] kills (table 7842); no page 8", () => {
+    const mob = String((DeathNoteMobs as unknown as string[][])[0][0]);
+    const m = (MapAFKtarget as unknown as string[]).indexOf(mob);
+    const same = (DeathNoteMobs as unknown as string[][])[0].filter((x) => (MapAFKtarget as unknown as string[]).indexOf(x) === m).length;
+    // every map with all its portal kills left (no kills), but map m: 20000 kills by character 0 and 10000 by character 1
+    const kla = (kills: number) => Array.from({ length: (MapDetails as unknown as unknown[]).length }, (_, i) => [cell(MapDetails, i, 0, 0) - (i === m ? kills : 0)]);
+    const minis = (NinjaInfo as unknown as unknown[][])[30].length;
+    const ninja = Array.from({ length: 106 }, () => [] as number[]);
+    ninja[105] = Array<number>(minis).fill(0);
+    ninja[105][0] = 300; // rank 2 in the 7842 table
+    const c = synth({ KLA_0: kla(20000), KLA_1: kla(10000), Ninja: ninja, Rift: [0] }, 2);
+    expect(WorkbenchStuff(c, "OverkillQTY", 0, 0)).toBe(same); // 30000 kills: rank 1 per monster of page 0 on map m
+    expect(WorkbenchStuff(c, "OverkillQTY", 7, 0)).toBe(2);
+    expect(() => WorkbenchStuff(c, "OverkillQTY", 8, 0)).toThrow(RangeError);
+  });
+});

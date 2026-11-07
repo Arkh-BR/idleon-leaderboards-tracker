@@ -229,7 +229,7 @@ function killsOn(ctx: Ctx, m: number): number {
   return asNumber((MapDetails as unknown as readonly (readonly (readonly unknown[])[])[])[m][0][0]) - asNum(ctx, "KillsLeft2Advance", m, 0);
 }
 /** The account's kills on map `m`: the current character's, then every other character's (PlayerDATABASE but UserInfo[0]). */
-function accountKillsOn(ctx: Ctx, m: number): number {
+export function accountKillsOn(ctx: Ctx, m: number): number {
   let total = killsOn(ctx, m); // DNSM.VaultKillzDN4
   for (let t = 0, n = ctx.state.charNames.length; t < n; t++) if (t !== ctx.player) total = total + killsOn(withPlayer(ctx, t), m);
   return total;
