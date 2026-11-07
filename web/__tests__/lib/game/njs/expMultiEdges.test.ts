@@ -4,55 +4,15 @@
 // a saved AFK target that is not the map's), and the one-character case. Every block ExpMulti(0) calls answers 0 unless the test seeds it (ZeroCache);
 // only the block's own arithmetic and its map rules are under test. `REAL` lists the blocks a test leaves to their real code.
 import { describe, it, expect } from "vitest";
-import { type Ctx, makeCtx } from "@/lib/game/ctx";
-import { buildGameState, type GameEnvelope } from "@/lib/game/state";
 import { IDforCardSETbonus, MapAFKtarget, MealINFO, NinjaInfo } from "@/lib/game/data";
 import { MissingSaveKey, NotPorted } from "@/lib/game/errors";
 import { ExpMulti } from "@/lib/game/njs/ExpMulti";
 import { CardSetBonuses } from "@/lib/game/njs/CardSetBonuses";
 import { MealBonus } from "@/lib/game/njs/MealBonus";
 import { Summoning } from "@/lib/game/njs/Summoning";
-
-type Data = Record<string, unknown>;
-type Seeds = Record<string, number>;
-
-/** A Ctx cache that answers 0 for any block not seeded, and leaves `ExpMulti` and the `real` blocks (key prefixes) to their code. */
-class ZeroCache extends Map<string, number> {
-  constructor(private real: readonly string[]) {
-    super();
-  }
-  override get(key: string): number | undefined {
-    if (super.has(key)) return super.get(key);
-    const name = key.slice(key.indexOf("|", key.indexOf("|") + 1) + 1);
-    if (name.startsWith("ExpMulti[") || this.real.some((r) => name.startsWith(r))) return undefined;
-    return 0;
-  }
-}
+import { type Data, type Seeds, synth, WB } from "../support/expStub";
 
 const TASKS = (n: number) => ({ TaskZZ2: [[0, 0, n]] });
-const BASE: Data = {
-  Lv0_0: [100, 0], Lv0_1: [100, 0], WeeklyBoss: {}, Compass: [[], [], [], []], OptLacc: Array<number>(700).fill(0), Divinity: Array<number>(40).fill(0),
-  Spelunk: [[], [], [], [], [], [], []], ...TASKS(0), CSetEq_0: {}, BundlesReceived: {}, Meals: [Array<number>(80).fill(0)], Ribbon: Array<number>(130).fill(0),
-};
-const key = (c: Ctx, name: string, args: (string | number)[]) => `${c.player}|${c.map}|${name}${JSON.stringify(args)}`;
-
-/** A character 0 (and, with `chars` 2, a second one) on `map`, `seeds` over all-0 blocks, the blocks in `real` left to their code. */
-function synth(data: Data, o: { map?: number; chars?: number; seeds?: Seeds; real?: string[]; serverVars?: unknown; player?: number } = {}): Ctx {
-  const map = o.map ?? 251;
-  const chars = o.chars ?? 1;
-  const c = makeCtx(
-    buildGameState({
-      data: { ...BASE, CurrentMap_0: -1, AFKtarget_0: "Mush", ...data },
-      charNames: Array.from({ length: chars }, (_, i) => `c${i}`), companion: null, guildData: {}, serverVars: o.serverVars ?? null, tournament: {}, accountCreateTime: 1, lastUpdated: 1,
-    } as unknown as GameEnvelope),
-    { player: o.player ?? 0, map }
-  );
-  const cache = new ZeroCache(o.real ?? []);
-  for (const [k, v] of Object.entries(o.seeds ?? {})) cache.set(`${c.player}|${map}|${k}`, v);
-  return { ...c, cache };
-}
-/** Workbench 1 over all-0 blocks: the total is 1 + (the flat % points)/100 times the groups, so a test reads one term at a time. */
-const WB: Seeds = { 'WorkbenchStuff["AdditionExtraEXPnDR",0,0]': 1 };
 const lv = (n: number, extra: Data = {}): Data => ({ Lv0_0: [n, 0], ...extra });
 const total = (data: Data, seeds: Seeds = {}, o: Parameters<typeof synth>[1] = {}) => ExpMulti(synth(data, { ...o, seeds: { ...WB, ...seeds } }), 0);
 

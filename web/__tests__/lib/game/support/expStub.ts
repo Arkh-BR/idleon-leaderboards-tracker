@@ -1,6 +1,6 @@
 // A synthetic EXP Ctx (a support module: vitest only collects *.test.ts): no real save, so CI runs what uses it. Every block ExpMulti(0) calls
 // answers 0 from the Ctx cache unless a test seeds it (ZeroCache), so only the block's own arithmetic, its map rules and the page's adapter
-// (trackers/expMulti.ts) are under test. The same stub as njs/expMultiEdges.test.ts, with the trace on. Used by trackers/expMulti.test.ts.
+// (trackers/expMulti.ts) are under test. Used by njs/expMultiEdges.test.ts and trackers/expMulti.test.ts.
 import { makeCtx, type Ctx } from "@/lib/game/ctx";
 import { buildGameState, type GameEnvelope } from "@/lib/game/state";
 
@@ -26,13 +26,13 @@ export const BASE: Data = {
 };
 
 /** A character 0 (and, with `chars` 2, a second one) on `map`, `seeds` over all-0 blocks, the blocks in `real` left to their code. */
-export function synth(data: Data, o: { map?: number; chars?: number; seeds?: Seeds; real?: string[]; player?: number; trace?: boolean } = {}): Ctx {
+export function synth(data: Data, o: { map?: number; chars?: number; seeds?: Seeds; real?: string[]; player?: number; trace?: boolean; serverVars?: unknown } = {}): Ctx {
   const map = o.map ?? 251;
   const chars = o.chars ?? 1;
   const c = makeCtx(
     buildGameState({
       data: { ...BASE, CurrentMap_0: -1, AFKtarget_0: "Mush", ...data },
-      charNames: Array.from({ length: chars }, (_, i) => `c${i}`), companion: null, guildData: {}, serverVars: null, tournament: {}, accountCreateTime: 1, lastUpdated: 1,
+      charNames: Array.from({ length: chars }, (_, i) => `c${i}`), companion: null, guildData: {}, serverVars: o.serverVars ?? null, tournament: {}, accountCreateTime: 1, lastUpdated: 1,
     } as unknown as GameEnvelope),
     { player: o.player ?? 0, map, trace: o.trace }
   );
