@@ -81,8 +81,9 @@ const ENGINES: Record<string, (map: number) => { arkh: Engine; game: Engine; nam
     game: (save, ci) => computeGameDropRate(save, ci, map),
     names: `a = lib/arkh (computeArkhDropRateV2), b = lib/game (computeGameDropRate), on map ${map}`,
     refusable: DR_REFUSABLE,
-    // a KNOWN "dr" row is per source and names no map: it explains the pair on every map (the Cove only replaces the total)
-    known: (d) => d.stat === "dr",
+    // a KNOWN "dr" row is per source and names no map: it explains the pair on every map (the Cove only replaces the total). A glimboUnleveled
+    // row explains no total (the group is max(1, ·), the total is the same), as in njs/dropRate.test.ts
+    known: (d) => d.stat === "dr" && d.reason !== "glimboUnleveled",
   }),
 };
 

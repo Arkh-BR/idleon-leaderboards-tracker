@@ -219,6 +219,17 @@ function stateOf(path: string) {
   return s;
 }
 
+/** lib/arkh's level of research grid square 168 (saveData.gridLevels, what its grid.resolve gates on), once per save. */
+const grid168 = new Map<string, number>();
+function arkhGrid168(path: string): number {
+  let lv = grid168.get(path);
+  if (lv === undefined) {
+    loadSaveData(JSON.parse(readFileSync(path, "utf8")));
+    grid168.set(path, (lv = Number(saveData.gridLevels?.[168]) || 0));
+  }
+  return lv;
+}
+
 describe("the DR term table covers every source of lib/arkh's descriptor", () => {
   it("has one term per DR2_GROUPS source, no more", () => {
     expect(Object.keys(TERMS).sort()).toEqual(DR2_GROUPS.flatMap((g) => g.sources).sort());
@@ -262,6 +273,8 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("TotalStats(\"Drop_Rarity\") terms ag
             // glimboUnleveled: N.js's GlimboDRmulti is 1 because grid square 168 is below 1 here, and lib/arkh's leaf is its grid node's 0 (STAT_WHY.glimboUnleveled)
             if (entries.length && entries.every((d) => d.reason === "glimboUnleveled")) {
               expect(ResearchStuff(withPlayer(ctx, ci), "Grid_Bonus", 168, 0), `${id} ${basename(path)}#${ci}: square 168`).toBeLessThan(1);
+              // both sides: lib/arkh's grid node is 0 because its square-168 level is below 1 (grid.resolve's gate), not for another reason
+              expect(arkhGrid168(path), `${id} ${basename(path)}: lib/arkh's square-168 level`).toBeLessThan(1);
               expect([got, want], `${id} ${basename(path)}#${ci}`).toEqual([1, 0]);
               known++;
               continue;
@@ -322,8 +335,9 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("TotalStats(\"Drop_Rarity\") terms ag
 });
 
 /**
- * No real save has a character in cavern 17, so on map 216 the Cove leaf is 0 on both sides above: the Cove's own value (Holes2("Cglunko_DR"),
- * account-wide) is checked here on every save with character 0 put in cavern 17 (data.Holes[0][0] = 17 on a copy of the envelope), on map 216.
+ * Above, the Cove leaf on map 216 is checked only where a real character is in cavern 17 (123 characters in 40 saves). The Cove's own value
+ * (Holes2("Cglunko_DR"), account-wide) is checked here on every save, with character 0 put in cavern 17 (data.Holes[0][0] = 17 on a copy of
+ * the envelope), on map 216.
  */
 describe.skipIf(GOLDEN_SAVES.length === 0)("the Cove (Holes2 Cglunko_DR) on every real save, character 0 in cavern 17", () => {
   it("equals lib/arkh's Cove leaf", () => {

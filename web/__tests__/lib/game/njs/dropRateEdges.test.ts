@@ -94,6 +94,23 @@ describe("the post-processing factors", () => {
     // Dream Cloud 69 is 5 % a level
     expect(dr({}, { 'Dreamstuff["CloudBonus",69]': 1 })).toBe(1 + (5 * 1) / 100);
   });
+  // each seeded alone at its own value, so a factor that reads another one's key (EtcBonuses "91" where "99" is) leaves its seed unread and fails
+  const FACTORS: [string, number, number][] = [
+    ['MenagerieStuff["BoostQTY",24,0]', 10, 1.1],
+    ["CardBonusREAL[101]", 20, 1.2],
+    ["Companions[168]", 1, 1.3], // 1 + .3 x Companions(168)
+    ['Summoning["TomeBonus",7,0]', 40, 1.4],
+    ['EtcBonuses["99"]', 50, 1.5],
+    ['Minehead["BonusQTY",0,0]', 60, 1.6],
+    ['Ninja["PristineBon",3,0]', 70, 1.7],
+    ['EtcBonuses["91"]', 80, 1.8],
+  ];
+  it.each(FACTORS)("%s at %s alone gives the factor %s", (key, seed, factor) => {
+    expect(dr({}, { [key]: seed })).toBe(factor);
+  });
+  it("all of them at once give the product of their factors (each key read once, none twice)", () => {
+    expect(dr({}, Object.fromEntries(FACTORS.map(([k, v]) => [k, v])))).toBeCloseTo(1.1 * 1.2 * 1.3 * 1.4 * 1.5 * 1.6 * 1.7 * 1.8, 12);
+  });
   it("the Glimbo factor is max(1, GlimboDRmulti): below 1 it is 1", () => {
     expect(dr({}, { 'Minehead["GlimboDRmulti",0,0]': 0.5 })).toBe(1);
     expect(dr({}, { 'Minehead["GlimboDRmulti",0,0]': 2 })).toBe(2);
