@@ -844,7 +844,6 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/game/njs/TotalFoodBonuses.ts"
   ],
   "_customBlock_TotalStats": [
-    "lib/arkh/stats/defs/drop-rate-v2.ts",
     "lib/arkh/stats/systems/common/derived-damage.ts",
     "lib/arkh/stats/systems/common/stats.ts",
     "lib/arkh/stats/systems/dr2/dr2.ts",

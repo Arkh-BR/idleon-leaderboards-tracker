@@ -3,7 +3,7 @@
 
 import type { StatPageConfig } from "@/lib/statTracker/config";
 import { groupedGainsModel } from "@/lib/statTracker/biggestGains";
-import { DR2_GROUPS, DR2_ROOT, DR2_VOTE_NAME } from "@/lib/arkh/stats/defs/drop-rate-v2";
+import { DR2_GROUPS, DR2_ROOT, DR2_VOTE_NAME } from "./layers";
 import { formatDropRateV2 } from "./format";
 import { TOP_DR2_GENERATED_AT, TOP_DR2_PLAYERS_SCANNED } from "./topDropRateV2.meta";
 
