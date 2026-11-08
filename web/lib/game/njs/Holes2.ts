@@ -1,12 +1,16 @@
 import { asNum, asNumber, attr } from "../attr";
 import { block, type Ctx } from "../ctx";
-import { HoleFountUPG, RandoListo2 } from "../data";
+import { HoleFountUPG, HolesInfo, RandoListo2 } from "../data";
 import { NotPorted } from "../errors";
+import { hString } from "../hstring";
 import { listAt } from "../lists";
+import { ArcaneType } from "./ArcaneType";
 import { getLOG } from "./getLOG";
+import { Holes } from "./Holes";
+import { Thingies } from "./Thingies";
 import type { Ported } from "../ported";
 
-/** N.js `_customBlock_Holes2(d, b, e)` @11035686. Only the sub-cases the Artifact Find port, AFK and Drop Rate reach. */
+/** N.js `_customBlock_Holes2(d, b, e)` @11035686. Only the sub-cases the Artifact Find port, AFK, Drop Rate and Coin reach. */
 export const Holes2: (ctx: Ctx, d: string, b: number, e: number) => number = block("Holes2", (ctx, d: string, b: number, e: number) => {
   switch (d) {
     case "Fountain_BonTOT":
@@ -42,6 +46,44 @@ export const Holes2: (ctx: Ctx, d: string, b: number, e: number) => number = blo
     // @11057363: the Cove's AFK gains rate, (10 + the Crystal Glunko upgrades 8 and 13) / 100
     case "Cglunko_AFKgains":
       return (10 + (Holes2(ctx, "Cglunko_upgBon", 8, 0) + Holes2(ctx, "Cglunko_upgBon", 13, 0))) / 100;
+    // @11039204: bonus 7 of the Gambit, 0 below its point requirement, else HolesInfo[71][b] = "value|scale|…": value x getLOG(points) when scale is 1, else value.
+    // (The Tutorial-scene guard is not modelled: a tracked account is in the world. b == 0 has its own formula, not reached by Coin.)
+    case "GambitBonuses": {
+      if (7 != b) throw new NotPorted("Holes2", `GambitBonuses:b=${b}`);
+      if (Holes(ctx, "GambitPts", 777, 0) < Holes(ctx, "GambitPtsREQ", b, 0)) return 0;
+      const [value, scale] = hString((HolesInfo as unknown as readonly (readonly unknown[])[])[71][b | 0]).split("|");
+      return 1 == asNumber(scale) ? asNumber(value) * getLOG(ctx, Holes(ctx, "GambitPts", 777, 0)) : asNumber(value);
+    }
+    // @11039137: the points bonus b needs
+    case "GambitPtsREQ":
+      return 2e3 + 1e3 * (b + 1) * (1 + b / 5) * Math.pow(1.26, b);
+    // @11038274: 99 = the six challenges summed (the last pair first), 777 = that times the multi; else challenge b, from its best v = Holes[11][65 + b]:
+    // 100 (b == 0) or 200 x (v + 3 floor(v / 10) + 10 floor(v / 60))
+    case "GambitPts": {
+      if (99 == b) return Holes(ctx, "GambitPts", 0, 0) + (Holes(ctx, "GambitPts", 1, 0) + (Holes(ctx, "GambitPts", 2, 0) + (Holes(ctx, "GambitPts", 3, 0) + (Holes(ctx, "GambitPts", 4, 0) + Holes(ctx, "GambitPts", 5, 0)))));
+      if (777 == b) return Holes(ctx, "GambitPts", 99, 0) * Holes(ctx, "GambitPTSmulti", 0, 0);
+      listAt(ctx, "Holes", 11); // the game indexes Holes[11][65 + b] directly
+      const v = asNum(ctx, "Holes", 11, Math.round(b + 65));
+      return (0 == b ? 100 : 200) * (v + (3 * Math.floor(v / 10) + 10 * Math.floor(v / 60)));
+    }
+    // @11037796: 1 + (measurement 13 + study 13 + Bolaia upgrade 78 + monument (2, 7) + jars 23 and 30 + Arcane upgrade 47) / 100
+    case "GambitPTSmulti":
+      return (
+        1 +
+        (Holes(ctx, "MeasurementBonusTOTAL", 13, 0) +
+          Holes(ctx, "StudyBolaiaBonuses", 13, 0) +
+          (Holes(ctx, "B_UPG", 78, 10) + (Holes(ctx, "MonumentROGbonuses", 2, 7) + (Holes(ctx, "JarCollectibleBonus", 23, 0) + (Holes(ctx, "JarCollectibleBonus", 30, 0) + ArcaneType(ctx, "ArcaneUpgBonus", 47, 0)))))) /
+          100
+      );
+    // @11041625: study b, Holes[26][b] x HolesInfo[70][b]. The chain's other branches need e == 99, b == 9 or b == 3 (the Tutorial-scene guard is not modelled)
+    case "StudyBolaiaBonuses":
+      if (13 != b || 0 != e) throw new NotPorted("Holes2", `StudyBolaiaBonuses:b=${b},e=${e}`);
+      listAt(ctx, "Holes", 26); // the game indexes Holes[26][b] directly
+      return asNum(ctx, "Holes", 26, b | 0) * asNumber((HolesInfo as unknown as readonly (readonly unknown[])[])[70][b | 0]);
+    // @11036326: jar b, Holes[24][b] x the second field of HolesInfo[67][b] x (1 + legend talent 29 / 100)
+    case "JarCollectibleBonus":
+      listAt(ctx, "Holes", 24); // the game indexes Holes[24][b] directly
+      return asNum(ctx, "Holes", 24, b | 0) * asNumber(hString((HolesInfo as unknown as readonly (readonly unknown[])[])[67][b | 0]).split("|")[1]) * (1 + Thingies(ctx, "LegendPTS_bonus", 29, 0) / 100);
     default:
       throw new NotPorted("Holes2", d);
   }
@@ -74,4 +116,7 @@ function digits6(ctx: Ctx, from: number): number {
 }
 
 /** What this module covers (lib/game/ported.ts). */
-export const PORTED: Ported = { Fountain_BonTOT: [0, 1, 2], Fountain_MarbleBon: true, Cglunko_upgBon: true, Cglunko_AFKgains: true, Cglunko_DR: true, Cglunko_Bdig: true, Cglunko_Pdig: true };
+export const PORTED: Ported = {
+  Fountain_BonTOT: [0, 1, 2], Fountain_MarbleBon: true, Cglunko_upgBon: true, Cglunko_AFKgains: true, Cglunko_DR: true, Cglunko_Bdig: true, Cglunko_Pdig: true,
+  GambitBonuses: [7], GambitPtsREQ: true, GambitPts: true, GambitPTSmulti: true, StudyBolaiaBonuses: [13], JarCollectibleBonus: true,
+};

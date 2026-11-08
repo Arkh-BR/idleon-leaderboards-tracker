@@ -11,7 +11,7 @@ import { Holes2 } from "./Holes2";
 import { WorkbenchStuff } from "./WorkbenchStuff";
 import type { Ported } from "../ported";
 
-/** N.js `_customBlock_Holes(d, b, e)` @10990457. Only the sub-cases the Artifact Find port, the character stats and Drop Rate reach. */
+/** N.js `_customBlock_Holes(d, b, e)` @10990457. Only the sub-cases the Artifact Find port, the character stats, Drop Rate and Coin reach. */
 export const Holes: (ctx: Ctx, d: string, b: number, e: number) => number = block("Holes", (ctx, d: string, b: number, e: number) => {
   switch (d) {
     // @10996050: Bolaia upgrade `b`
@@ -61,6 +61,14 @@ export const Holes: (ctx: Ctx, d: string, b: number, e: number) => number = bloc
       if (kind(29) == b && 0 < Holes(ctx, "CosmoBonusQTY", 2, 0)) return 1;
       return kind(30) == b && 1 < Holes(ctx, "CosmoBonusQTY", 2, 0) ? 1 : 0;
     }
+    // the chain ends by handing every other name to Holes2 (@11035654)
+    case "GambitBonuses":
+    case "GambitPts":
+    case "GambitPtsREQ":
+    case "GambitPTSmulti":
+    case "StudyBolaiaBonuses":
+    case "JarCollectibleBonus":
+      return Holes2(ctx, d, b, e);
     default:
       throw new NotPorted("Holes", d);
   }
@@ -69,7 +77,7 @@ export const Holes: (ctx: Ctx, d: string, b: number, e: number) => number = bloc
 /**
  * `B_UPG` @10996050. It opens with `0 == Holes.length || 0 == Holes[13][b|0]` (the upgrade is not bought: 0; the flag is the raw
  * element, so a null is not 0), then a chain on b; ported: 46 = 5 x Holes[11][26], 47 = 25 x Holes[11][26], 55 = 10 x floor(getLOG(Holes[9][11])), 57 = 20 x floor(getLOG(Holes[9][1])),
- * 82..84 = e x Holes[11][55]. The others are not reached (49 and the 50, 79, 98 it calls only from SkillStats AllEfficiencies).
+ * 82..84 = e x Holes[11][55], and 78, which has no branch: the chain ends `: e`. The others are not reached (49 and the 50, 79, 98 it calls only from SkillStats AllEfficiencies).
  */
 function bUpg(ctx: Ctx, b: number, e: number): number {
   const holes = attr(ctx, "Holes");
@@ -97,6 +105,7 @@ function bUpg(ctx: Ctx, b: number, e: number): number {
     listAt(ctx, "Holes", 11);
     return e * asNum(ctx, "Holes", 11, 55);
   }
+  if (78 == b) return e;
   throw new NotPorted("Holes", `B_UPG:b=${b}`);
 }
 
@@ -203,6 +212,7 @@ function monumentROGbonuses(ctx: Ctx, b: number, e: number): number {
 
 /** What this module covers (lib/game/ported.ts). */
 export const PORTED: Ported = {
-  B_UPG: [46, 47, 55, 57, 82, 83, 84], CosmoBonusQTY: true, MonumentROGbonuses: true, PocketDivOwned: true,
+  B_UPG: [46, 47, 55, 57, 78, 82, 83, 84], CosmoBonusQTY: true, MonumentROGbonuses: true, PocketDivOwned: true,
   MeasurementBonusTOTAL: true, MeasurementBaseBonus: true, MeasurementMulti: true, MeasurementQTYfound: true,
+  GambitBonuses: [7], GambitPts: true, GambitPtsREQ: true, GambitPTSmulti: true, StudyBolaiaBonuses: [13], JarCollectibleBonus: true,
 };

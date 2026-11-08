@@ -876,8 +876,8 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("VotingBonusz / VotingBonuszMulti / M
       expect(merit({ kla: 3 })).toBe(1);
       expect(merit({ kla: -1 })).toBeCloseTo(1 + (nj * 0.25) / 100, 12); // 0 >= -1
     });
-    it("a character without KillsLeft2Advance row 250 is refused, as the game indexes KillsLeft2Advance[250][0]", () => {
-      expect(() => merit({}, { edit: (d) => setIn(d, "KLA_0", (k) => (k.length = 250)) })).toThrow(MissingSaveKey);
+    it("a character without KillsLeft2Advance row 250 gets the template's row on load (AddNewStuff @19916401), with its portal's kills left: 0", () => {
+      expect(merit({}, { edit: (d) => setIn(d, "KLA_0", (k) => (k.length = 250)) })).toBe(1);
     });
     it("MeritocCanVote is OptionsListAccount[472] == 1", () => {
       const can = (v: unknown) => Summoning2(variant((d) => setIn(d, "OptLacc", (o) => (o[472] = v))), "MeritocCanVote", 0, 0);

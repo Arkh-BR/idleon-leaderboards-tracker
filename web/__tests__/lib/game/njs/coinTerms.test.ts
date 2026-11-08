@@ -70,6 +70,7 @@ const TERMS: Record<string, (c: Ctx) => number> = {
   grid169: (c) => ResearchStuff(c, "Grid_Bonus", 169, 0),
   etc100: (c) => EtcBonuses(c, "100"),
   goldSet: (c) => GetSetBonus(c, "GOLD_SET", "Bonus", 0, 0),
+  gambit7: (c) => Holes(c, "GambitBonuses", 7, 0),
   bunY: (c) => 250 * bundleAsNum(c, "bun_y"),
   dustWalker: (c) => Math.max(1, getbonus2(c, 1, 433, -1)) * getLOG(c, asNum(c, "OptionsListAccount", 362)),
   mealCash: (c) => MealBonus(c, "Cash"),
@@ -106,7 +107,7 @@ const TERMS: Record<string, (c: Ctx) => number> = {
   vault70: (c) => vault(c, 70) * Stuff2(c, "CardsCollected", 0, 0),
 };
 /** The sources not ported yet: the guard below names them until their family lands. */
-const OPEN = new Set<string>(["gambit7", "artifact1", "friend5", "mainframe9", "cropSC4", "talent643", "talent644"]);
+const OPEN = new Set<string>(["artifact1", "friend5", "mainframe9", "cropSC4", "talent643", "talent644"]);
 
 /** The block key(s) each term reads directly (`<Fn><args as JSON>`): what a seed must never be. */
 const OWN: Record<string, string[]> = {

@@ -224,16 +224,24 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/game/njs/Gallery.ts"
   ],
   "GambitBonuses": [
-    "lib/arkh/stats/systems/coin/gambit.ts"
+    "lib/arkh/stats/systems/coin/gambit.ts",
+    "lib/game/njs/Holes.ts",
+    "lib/game/njs/Holes2.ts"
   ],
   "GambitPTSmulti": [
-    "lib/arkh/stats/systems/coin/gambit.ts"
+    "lib/arkh/stats/systems/coin/gambit.ts",
+    "lib/game/njs/Holes.ts",
+    "lib/game/njs/Holes2.ts"
   ],
   "GambitPts": [
-    "lib/arkh/stats/systems/coin/gambit.ts"
+    "lib/arkh/stats/systems/coin/gambit.ts",
+    "lib/game/njs/Holes.ts",
+    "lib/game/njs/Holes2.ts"
   ],
   "GambitPtsREQ": [
-    "lib/arkh/stats/systems/coin/gambit.ts"
+    "lib/arkh/stats/systems/coin/gambit.ts",
+    "lib/game/njs/Holes.ts",
+    "lib/game/njs/Holes2.ts"
   ],
   "GlimboDRmulti": [
     "lib/game/njs/Minehead.ts"
@@ -287,6 +295,10 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   ],
   "InitializeTrophyBonuses": [
     "lib/game/njs/Gallery.ts"
+  ],
+  "JarCollectibleBonus": [
+    "lib/game/njs/Holes.ts",
+    "lib/game/njs/Holes2.ts"
   ],
   "KillroyBonuses": [
     "lib/arkh/stats/systems/artifact/terms.ts",
@@ -505,6 +517,10 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   "StickerDMGmulti": [
     "lib/arkh/stats/systems/w6/farming.ts",
     "lib/game/njs/FarmingStuffs.ts"
+  ],
+  "StudyBolaiaBonuses": [
+    "lib/game/njs/Holes.ts",
+    "lib/game/njs/Holes2.ts"
   ],
   "SumStoneTrialz": [
     "lib/game/njs/Thingies.ts"

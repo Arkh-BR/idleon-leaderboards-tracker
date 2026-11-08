@@ -13,7 +13,7 @@ Regenerate it when N.js, a module's `PORTED` or `lib/game/unreached.ts` changes.
 - attrs and dnsm are the reads in every slice listed. One marked "whole body only" is read only inside a whole-body function (all its branches, not just the one this formula takes). `DNSM` is runtime-only (it is never loaded from the save): port it as `DNSM_*` functions, not as a save attribute. The dnsm list also holds the scratch keys a formula writes and reads back in the same slice (`CaptnBonuz`, `AtomBonCalc1`); the inputs are the caches the game fills elsewhere (`StarSigns`, `AlchVials`, `FamBonusQTYs`…).
 - Depth stops at 6.
 
-**52 functions, 321 sub-cases (rows), 96 whole body, 0 not found, 84 attrs, 94 dnsm.** **293 ported `[x]`, 0 not reached `[~]`, 28 open.** **Depth cap hit: 7 calls were not walked.**
+**52 functions, 321 sub-cases (rows), 96 whole body, 0 not found, 84 attrs, 94 dnsm.** **309 ported `[x]`, 4 not reached `[~]`, 8 open.** **Depth cap hit: 7 calls were not walked.**
 
 ## ArbitraryCode
 
@@ -152,32 +152,32 @@ Regenerate it when N.js, a module's `PORTED` or `lib/game/unreached.ts` changes.
 
 ## Holes
 
-- [ ] Holes("GambitBonuses",7,0) — depth 1 — 672 chars — via Holes2
-- [ ] Holes("GambitPts",777,0) — depth 2 — 89 chars — via Holes2
-- [ ] Holes("GambitPtsREQ") — depth 2 — 46 chars — via Holes2
+- [x] Holes("GambitBonuses",7,0) — depth 1 — 672 chars — via Holes2
+- [x] Holes("GambitPts",777,0) — depth 2 — 89 chars — via Holes2
+- [x] Holes("GambitPtsREQ") — depth 2 — 46 chars — via Holes2
 - [x] Holes("PocketDivOwned") — depth 2 — 361 chars
 - [x] Holes("CosmoBonusQTY",2,0) — depth 3 — 279 chars
-- [ ] Holes("GambitPts",99,0) — depth 3 — 242 chars — via Holes2
-- [ ] Holes("GambitPTSmulti",0,0) — depth 3 — 352 chars — via Holes2
+- [x] Holes("GambitPts",99,0) — depth 3 — 242 chars — via Holes2
+- [x] Holes("GambitPTSmulti",0,0) — depth 3 — 352 chars — via Holes2
 - [x] Holes("CosmoBonusQTY",2,3) — depth 3 — 279 chars
-- [ ] Holes("GambitPts",0,0) — depth 4 — 505 chars — via Holes2
-- [ ] Holes("GambitPts",1,0) — depth 4 — 843 chars — via Holes2
-- [ ] Holes("GambitPts",2,0) — depth 4 — 843 chars — via Holes2
-- [ ] Holes("GambitPts",3,0) — depth 4 — 843 chars — via Holes2
-- [ ] Holes("GambitPts",4,0) — depth 4 — 843 chars — via Holes2
-- [ ] Holes("GambitPts",5,0) — depth 4 — 843 chars — via Holes2
+- [x] Holes("GambitPts",0,0) — depth 4 — 505 chars — via Holes2
+- [x] Holes("GambitPts",1,0) — depth 4 — 843 chars — via Holes2
+- [x] Holes("GambitPts",2,0) — depth 4 — 843 chars — via Holes2
+- [x] Holes("GambitPts",3,0) — depth 4 — 843 chars — via Holes2
+- [x] Holes("GambitPts",4,0) — depth 4 — 843 chars — via Holes2
+- [x] Holes("GambitPts",5,0) — depth 4 — 843 chars — via Holes2
 - [x] Holes("MeasurementBonusTOTAL",13,0) — depth 4 — 173 chars
-- [ ] Holes("StudyBolaiaBonuses",13,0) — depth 4 — 666 chars — via Holes2
-- [ ] Holes("B_UPG",78,10) — depth 4 — 2722 chars
+- [x] Holes("StudyBolaiaBonuses",13,0) — depth 4 — 666 chars — via Holes2
+- [x] Holes("B_UPG",78,10) — depth 4 — 2722 chars
 - [x] Holes("MonumentROGbonuses",2,7) — depth 4 — 818 chars
-- [ ] Holes("JarCollectibleBonus",23,0) — depth 4 — 222 chars — via Holes2
-- [ ] Holes("JarCollectibleBonus",30,0) — depth 4 — 222 chars — via Holes2
+- [x] Holes("JarCollectibleBonus",23,0) — depth 4 — 222 chars — via Holes2
+- [x] Holes("JarCollectibleBonus",30,0) — depth 4 — 222 chars — via Holes2
 - [x] Holes("MeasurementBaseBonus") — depth 5 — 559 chars
 - [x] Holes("MeasurementMulti") — depth 5 — 231 chars
-- [ ] Holes("StudyBolaiaBonuses",0,0) — depth 5 — 666 chars — via Holes2
-- [ ] Holes("B_UPG",50,1) — depth 5 — 2722 chars
-- [ ] Holes("B_UPG",79,1) — depth 5 — 2722 chars
-- [ ] Holes("B_UPG",98,1) — depth 5 — 2722 chars
+- [~] Holes("StudyBolaiaBonuses",0,0) — depth 5 — 666 chars — via Holes2 — not reached: called only in B_UPG's b == 14 branch (@10996635); the Coin path asks B_UPG for 78, and the Damage closure under TalentCalc(643) for 57 and 84
+- [~] Holes("B_UPG",50,1) — depth 5 — 2722 chars — not reached: called only in B_UPG's b == 49 branch (@10996050), and B_UPG(49) only from SkillStats (@4197799, @4200334), which the Coin path does not reach: it asks B_UPG for 78, and the Damage closure under TalentCalc(643) for 57 and 84
+- [~] Holes("B_UPG",79,1) — depth 5 — 2722 chars — not reached: called only in B_UPG's b == 49 branch (@10996050), and B_UPG(49) only from SkillStats (@4197799, @4200334), which the Coin path does not reach: it asks B_UPG for 78, and the Damage closure under TalentCalc(643) for 57 and 84
+- [~] Holes("B_UPG",98,1) — depth 5 — 2722 chars — not reached: called only in B_UPG's b == 49 branch (@10996050), and B_UPG(49) only from SkillStats (@4197799, @4200334), which the Coin path does not reach: it asks B_UPG for 78, and the Damage closure under TalentCalc(643) for 57 and 84
 - [x] Holes("CosmoBonusQTY",1,3) — depth 6 — 273 chars
 - [x] Holes("MeasurementQTYfound") — depth 6 — 3200 chars
 
@@ -483,7 +483,7 @@ Regenerate it when N.js, a module's `PORTED` or `lib/game/unreached.ts` changes.
 
 ## ArcaneType
 
-- [ ] ArcaneType("ArcaneUpgBonus",47,0) — depth 4 — 467 chars
+- [x] ArcaneType("ArcaneUpgBonus",47,0) — depth 4 — 467 chars
 - [x] ArcaneType("ArcaneUpgBonus",48,0) — depth 5 — 7 chars
 - [x] ArcaneType("ArcaneUpgBonus",39,0) — depth 5 — 7 chars
 

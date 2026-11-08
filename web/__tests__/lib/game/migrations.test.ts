@@ -401,6 +401,17 @@ describe.skipIf(!existsSync(NJS))("against the live N.js", () => {
     expect(fnText("initialize2")).toContain('if(0==a.engine.getGameAttribute("DungUpg").length){'); // the fill, only of an empty DungUpg
   });
 
+  it("AddNewStuff's KillsLeft2Advance pad and cap are the ones ported, and the template they read is MapDetails[m][0]", () => {
+    const from = flat.indexOf("_customEvent_AddNewStuff:function");
+    const at = flat.indexOf('if(a.engine.getGameAttribute("DummyNumber4")<a.engine.getGameAttribute("KillsLeft2Advance").length)', from);
+    const tail = ".KillsLeft2Advance[17].push(0)";
+    expect(compact(flat.slice(at, flat.indexOf(tail, at) + tail.length))).toBe(
+      'if(DummyNumber4<KillsLeft2Advance.length)for(f=0,p=Math.round(KillsLeft2Advance.length-DummyNumber4);f<p;)g=f++,this._DummyRepeatIndex=g+DummyNumber4,PlayerDATABASE.h[""+e].h.KillsLeft2Advance.push(KillsLeft2Advance[this._DummyRepeatIndex|0]);d=0;for(b=KillsLeft2Advance.length;d<b;)for(this._DummyRepeatIndex=d++,f=0,p=KillsLeft2Advance[this._DummyRepeatIndex|0].length;f<p;)if(n=f++,c.asNumber(KillsLeft2Advance[this._DummyRepeatIndex|0][n])<c.asNumber(PlayerDATABASE.h[""+e].h.KillsLeft2Advance[this._DummyRepeatIndex|0][n]))PlayerDATABASE.h[""+e].h.KillsLeft2Advance[this._DummyRepeatIndex|0][n]=KillsLeft2Advance[this._DummyRepeatIndex|0][n];else if(null==PlayerDATABASE.h[""+e].h.KillsLeft2Advance[this._DummyRepeatIndex|0][n]||"nan"==(""+h.string(PlayerDATABASE.h[""+e].h.KillsLeft2Advance[this._DummyRepeatIndex|0][n])).toLowerCase())PlayerDATABASE.h[""+e].h.KillsLeft2Advance[this._DummyRepeatIndex|0][n]=KillsLeft2Advance[this._DummyRepeatIndex|0][n];1>PlayerDATABASE.h[""+e].h.KillsLeft2Advance[17].length&&PlayerDATABASE.h[""+e].h.KillsLeft2Advance[17].push(0)'
+    );
+    // the attribute is the behaviour's own init fill (@19978967): the event runs later in the same class (@19838535)
+    expect(compact(flat.slice(from, from + 100000))).toContain("this._dummyList.push(CustomLists.h.MapDetails[this._DummyRepeatIndex|0][0][z]);KillsLeft2Advance.push(this._dummyList)");
+  });
+
   it("initialize3's pads of Compass and MapBon are the ones ported", () => {
     const init3 = "_customBlock_initialize3=function";
     expect(compact(njsBlock(src, 'for(;a.engine.getGameAttribute("Compass")[0].length<', init3))).toBe("for(;Compass[0].length<CustomLists.h.CompassUpg.length;)Compass[0].push(0);");
@@ -474,7 +485,7 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("the real saves", () => {
       seen.set(group, [...(seen.get(group) ?? []), file].sort());
     }
     expect(Object.fromEntries(seen)).toEqual({
-      "CSver 23.05, DoOnceREAL 248.3: 45 steps": ["HourZero.json"],
+      "CSver 23.05, DoOnceREAL 248.3: 46 steps": ["HourZero.json"],
       "CSver 29.05, DoOnceREAL 340.1: 20 steps": ["5OhTree.json"],
       "CSver 30.05, DoOnceREAL 367.1: 15 steps": ["0celot8.json"],
       "CSver 32.05, DoOnceREAL 378.1: 10 steps": ["100Cotton.json", "100Cotton.json", "24632463.json", "Brokami.json", "Exrom.json", "GIM_SSS.json", "Pontinhas.json"],
