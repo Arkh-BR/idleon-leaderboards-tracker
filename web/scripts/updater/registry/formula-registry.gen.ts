@@ -106,7 +106,8 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/game/njs/Thingies.ts"
   ],
   "Clamz_HP": [
-    "lib/arkh/stats/systems/common/overkill.ts"
+    "lib/arkh/stats/systems/common/overkill.ts",
+    "lib/game/njs/Thingies.ts"
   ],
   "ClassFamilyBonuses[16]": [
     "lib/arkh/stats/systems/common/familyBonus.ts"
