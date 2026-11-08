@@ -398,7 +398,8 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/game/njs/WorkbenchStuff.ts"
   ],
   "OverkillStuffs": [
-    "lib/arkh/stats/systems/common/overkill.ts"
+    "lib/arkh/stats/systems/common/overkill.ts",
+    "lib/game/njs/RunCodeOfTypeXforThingY.ts"
   ],
   "PaletteBonus": [
     "lib/arkh/stats/systems/w7/spelunking.ts",

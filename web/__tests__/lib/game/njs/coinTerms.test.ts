@@ -99,6 +99,8 @@ const TERMS: Record<string, (c: Ctx) => number> = {
   arcade11: (c) => ArcadeBonus(c, 11),
   box13c: (c) => DNSM_BoxRewards(c, "13c"),
   guild8: (c) => GuildBonuses(c, 8) * (1 + Math.floor(c.map / 50)),
+  talent643: (c) => TalentCalc(c, 643),
+  talent644: (c) => TalentCalc(c, 644),
   goldFood: (c) => GoldFoodBonuses(c, "MonsterCash"),
   vault17: (c) => vault(c, 17) * getLOG(c, asNum(c, "OptionsListAccount", 340)),
   ach235: (c) => 5 * AchieveStatus(c, 235),
@@ -111,7 +113,7 @@ const TERMS: Record<string, (c: Ctx) => number> = {
   vault70: (c) => vault(c, 70) * Stuff2(c, "CardsCollected", 0, 0),
 };
 /** The sources not ported yet: the guard below names them until their family lands. */
-const OPEN = new Set<string>(["talent643", "talent644"]);
+const OPEN = new Set<string>([]);
 
 /** The block key(s) each term reads directly (`<Fn><args as JSON>`): what a seed must never be. */
 const OWN: Record<string, string[]> = {

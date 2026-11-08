@@ -1,6 +1,6 @@
 import { afkTarget } from "../afkTarget";
 import { asNum, asNumber, attr } from "../attr";
-import { block, withPlayer, type Ctx } from "../ctx";
+import { assumed, block, withPlayer, type Ctx } from "../ctx";
 import { DreamChallenge, MapAFKtarget, MapDetails, MONSTERS, RANDOlist } from "../data";
 import { InvalidSaveValue, NotPorted } from "../errors";
 import { hString } from "../hstring";
@@ -9,6 +9,7 @@ import { GetTalentNumber } from "./GetTalentNumber";
 import { MenagerieStuff } from "./MenagerieStuff";
 import { PlayerAccTot } from "./PlayerAccTot";
 import { ReturnClasses } from "./ReturnClasses";
+import { RunCodeOfTypeXforThingY } from "./RunCodeOfTypeXforThingY";
 import type { Ported } from "../ported";
 
 /** The length of a list the save keeps as a list or as a {"0": …, "length": n} map (the cloud's sparse lists: CauldronInfo[4], StampLevelMAX[t]). */
@@ -50,6 +51,7 @@ function fightingMaps(ctx: Ctx): { dn1: number; dn4: number } {
  *    loop) and grows by one per entry dropped: a quirk of the game, ported as it is;
  *  - "470" @4478721: the stamps (StampLevelMAX of the three tabs) above 0.5;
  *  - "485" @4479149: the vials (CauldronInfo[4]) above level 3;
+ *  - "644" @4480598: Lv0[10] / 10, the character's Cooking level;
  *  - "616" @4479621: the highest Lv0[0] over the characters whose class is below 6 (the beginner line);
  *  - "620" @4480414: the account's highest character level (Lv0[0] over PlayerDATABASE, from 0);
  *  - "arena" @4467173: the Pet Arena waves cleared in a row by the best wave (OptionsListAccount[89] against RANDOlist[53][g]);
@@ -99,6 +101,8 @@ export const DNSM_CalcTalentMAP = block("DNSM.CalcTalentMAP", (ctx, key: string)
       for (let g = 0, len = lengthOf(vials); g < len; g++) if (3 < asNum(ctx, "CauldronInfo", 4, g)) n += 1;
       return n;
     }
+    case "644":
+      return asNum(ctx, "Lv0", 10) / 10;
     case "616": {
       let top = 0;
       for (let t = 0, n = ctx.state.charNames.length; t < n; t++)
@@ -150,7 +154,7 @@ export const DNSM_CalcTalentMAP = block("DNSM.CalcTalentMAP", (ctx, key: string)
 /**
  * N.js `_customBlock_TalentCalc(d)` @4464686: `d <= 0` rebuilds the DNSM caches (CalcTalentMAP above; BoxRewards, AlchBubbles,
  * FamBonusQTYs... in DNSM.ts, one cache each); a talent id reads one of them. The function opens with a Tutorial-scene guard, which a
- * tracked account is not on. Only the talents Damage and the character stats reach.
+ * tracked account is not on. Only the talents Damage, the character stats and Coin reach.
  */
 export const TalentCalc = block("TalentCalc", (ctx, d: number) => {
   switch (d) {
@@ -183,6 +187,13 @@ export const TalentCalc = block("TalentCalc", (ctx, d: number) => {
     // @4517290: talent 470 times its stamps
     case 470:
       return GetTalentNumber(ctx, 1, 470) * DNSM_CalcTalentMAP(ctx, "470");
+    // @4519205: talent 643 times its multikill tier. DNSM.CalcTalentMAP["643"] is -11 after every rebuild (@4480476) and the tier the first time this asks, so the game
+    // keeps that tier until the next rebuild (the scene load and the stat panels call TalentCalc(d <= 0)); here it is worked out now for ctx.map, stated as an assumption
+    case 643:
+      return GetTalentNumber(ctx, 1, 643) * assumed(ctx, 'DNSM.CalcTalentMAP["643"]', "multikill tier worked out for this map (the game keeps the one it found at its last stat rebuild)", RunCodeOfTypeXforThingY(ctx, "OverkillStuffs", "2"), "TalentCalc(643) @4519205 stores OverkillStuffs(\"2\") in DNSM.CalcTalentMAP[\"643\"] when it finds -11 (@4480476); the stored tier stays until the next TalentCalc(d <= 0)");
+    // @4519205: talent 644 times the Cooking level / 10
+    case 644:
+      return GetTalentNumber(ctx, 1, 644) * DNSM_CalcTalentMAP(ctx, "644");
     // @4520200: talent 650 times the items of RANDOlist[82..86] found (the `d == -7044.5` branch @4466996 after it, the item sell price
     // table, is not reached by a talent id)
     case 650:
@@ -202,4 +213,4 @@ export const TalentCalc = block("TalentCalc", (ctx, d: number) => {
 });
 
 /** What this module covers (lib/game/ported.ts). */
-export const PORTED: Ported = [31, 110, 125, 485, 305, 470, 650, 656, 616, 620];
+export const PORTED: Ported = [31, 110, 125, 485, 305, 470, 650, 656, 616, 620, 643, 644];
