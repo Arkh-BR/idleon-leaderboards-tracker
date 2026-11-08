@@ -81,6 +81,7 @@ const TERMS: Record<string, (c: Ctx) => number> = {
   friend5: (c) => Thingies(c, "FriendBonusStatz", 5, 0),
   arena14: (c) => Breeding(c, "PetArenaBonus", "0", 14, 0),
   statue19: (c) => ArbitraryCode(c, "StatueBonusGiven19") / 100,
+  mainframe9: (c) => MainframeBonus(c, 9),
   vault34: (c) => vault(c, 34) * kills(c, 8),
   vault37: (c) => vault(c, 37) * kills(c, 9),
   pristine16: (c) => Ninja(c, "PristineBon", 16, 0),
@@ -109,7 +110,7 @@ const TERMS: Record<string, (c: Ctx) => number> = {
   vault70: (c) => vault(c, 70) * Stuff2(c, "CardsCollected", 0, 0),
 };
 /** The sources not ported yet: the guard below names them until their family lands. */
-const OPEN = new Set<string>(["mainframe9", "cropSC4", "talent643", "talent644"]);
+const OPEN = new Set<string>(["cropSC4", "talent643", "talent644"]);
 
 /** The block key(s) each term reads directly (`<Fn><args as JSON>`): what a seed must never be. */
 const OWN: Record<string, string[]> = {
