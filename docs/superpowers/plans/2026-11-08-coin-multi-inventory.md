@@ -13,7 +13,7 @@ Regenerate it when N.js, a module's `PORTED` or `lib/game/unreached.ts` changes.
 - attrs and dnsm are the reads in every slice listed. One marked "whole body only" is read only inside a whole-body function (all its branches, not just the one this formula takes). `DNSM` is runtime-only (it is never loaded from the save): port it as `DNSM_*` functions, not as a save attribute. The dnsm list also holds the scratch keys a formula writes and reads back in the same slice (`CaptnBonuz`, `AtomBonCalc1`); the inputs are the caches the game fills elsewhere (`StarSigns`, `AlchVials`, `FamBonusQTYs`…).
 - Depth stops at 6.
 
-**52 functions, 321 sub-cases (rows), 96 whole body, 0 not found, 84 attrs, 94 dnsm.** **309 ported `[x]`, 4 not reached `[~]`, 8 open.** **Depth cap hit: 7 calls were not walked.**
+**52 functions, 321 sub-cases (rows), 96 whole body, 0 not found, 84 attrs, 94 dnsm.** **310 ported `[x]`, 4 not reached `[~]`, 7 open.** **Depth cap hit: 7 calls were not walked.**
 
 ## ArbitraryCode
 
@@ -202,7 +202,7 @@ Regenerate it when N.js, a module's `PORTED` or `lib/game/unreached.ts` changes.
 
 ## Sailing
 
-- [ ] Sailing("ArtifactBonus",1,0) — depth 1 — 8319 chars
+- [x] Sailing("ArtifactBonus",1,0) — depth 1 — 8319 chars
 - [x] Sailing("SlabboBonus_AllMulti",0,0) — depth 2 — 166 chars
 - [x] Sailing("ArtifactBonus",28,0) — depth 3 — 8323 chars
 - [x] Sailing("ArtifactBonus",31,0) — depth 3 — 8323 chars
