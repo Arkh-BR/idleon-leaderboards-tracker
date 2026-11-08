@@ -37,7 +37,7 @@ import { listAt } from "../lists";
 import { ExpMulti, lukCurve } from "../njs/ExpMulti";
 import { haveBan } from "../njs/Thingies";
 import type { GameState } from "../state";
-import { findCall, flagged, migratedNote, near, stateOf, takeFrom, traceTree, type Take } from "./page";
+import { findCall, flagged, optFrom, migratedNote, near, stateOf, takeFrom, traceTree, type Take } from "./page";
 
 type Node = StatResult["tree"];
 
@@ -185,13 +185,7 @@ export function expTree(ctx: Ctx): StatResult {
     if (!def) throw new Error(`EXP Multi: no source "${id}" in the adapter`);
     const kept: Node[] = [];
     const t = takeFrom(call, used, kept, "EXP Multi: ExpMulti", id);
-    const o = (block: string, ...args: (string | number)[]): number | undefined => {
-      const n = findCall(call, block, args, used);
-      if (!n) return undefined;
-      used.add(n);
-      kept.push(traceTree(n));
-      return n.value;
-    };
+    const o = optFrom(call, used, kept);
     const has = (block: string, ...args: (string | number)[]) => undefined !== findCall(call, block, args);
     const peek: Take = (block, ...args) => {
       const n = findCall(call, block, args);

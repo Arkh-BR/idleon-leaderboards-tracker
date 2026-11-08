@@ -2,7 +2,7 @@
 
 import type { StatPageConfig } from "@/lib/statTracker/config";
 import { groupedGainsModel } from "@/lib/statTracker/biggestGains";
-import { COIN_GROUPS, COIN_ROOT, COIN_VOTE_NAME } from "@/lib/arkh/stats/defs/coin-multi";
+import { COIN_GROUPS, COIN_ROOT, COIN_VOTE_NAME } from "./layers";
 import { formatCoinMulti } from "./format";
 import { TOP_COIN_GENERATED_AT, TOP_COIN_PLAYERS_SCANNED } from "./topCoinMulti.meta";
 

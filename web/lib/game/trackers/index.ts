@@ -1,4 +1,5 @@
 import type { Ctx } from "@/lib/game/ctx";
+import { ArbitraryCode } from "@/lib/game/njs/ArbitraryCode";
 import { DamageDealed } from "@/lib/game/njs/DamageDealed";
 import { afkFightRate } from "@/lib/game/trackers/afkGains";
 import { ExpMulti } from "@/lib/game/njs/ExpMulti";
@@ -22,6 +23,8 @@ export const TRACKERS: Partial<Record<StatKey, (ctx: Ctx) => number>> = {
   expMulti: (ctx) => ExpMulti(ctx, 0),
   // the "Drop Rate" line of Player Info: TotalStats("Drop_Rarity") on the Ctx's map (adapter: trackers/dropRate.ts)
   dropRateV2: (ctx) => TotalStats(ctx, "Drop_Rarity"),
+  // the "Total Coin Bonus from all sources" line of Upgrade Vault 2 (Monster Tax): ArbitraryCode("MonsterCash") on the Ctx's map (adapter: trackers/coinMulti.ts)
+  coinMulti: (ctx) => ArbitraryCode(ctx, "MonsterCash"),
   // the Player Info stats the Damage readings carry as extras (Damage plan, Task 3; Ruling Q: every one equals the game's text)
   maxHp: (ctx) => PlayerHPmax(ctx),
   maxMp: (ctx) => PlayerMPmax(ctx),

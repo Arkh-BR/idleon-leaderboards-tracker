@@ -202,7 +202,7 @@ export function arkhSourceHash(): string {
   };
   walk(join(WEB, "lib/arkh"));
   // Ruling B moved the oracle's shape and ids into these display configs: a change there invalidates the cache too
-  for (const f of ["lib/afkGains/layers.ts", "lib/damage/layers.ts", "lib/expMulti/layers.ts", "lib/dropRateV2/layers.ts", "lib/statTracker/groups.ts", "lib/artifactFind/groups.ts"]) h.update(`${f}\0`).update(readFileSync(join(WEB, f))).update("\0");
+  for (const f of ["lib/afkGains/layers.ts", "lib/damage/layers.ts", "lib/expMulti/layers.ts", "lib/dropRateV2/layers.ts", "lib/coinMulti/layers.ts", "lib/statTracker/groups.ts", "lib/artifactFind/groups.ts"]) h.update(`${f}\0`).update(readFileSync(join(WEB, f))).update("\0");
   return (arkhHash = h.digest("hex"));
 }
 
@@ -1473,15 +1473,26 @@ export function arkhDropRate(save: unknown, ci: number, map: number): number {
 }
 
 // ---- Coin Multi: same design as DR. The tree of computeArkhCoinMulti has one child per COIN_GROUPS group, whose children are its sources in order.
-function coinEntryOf(parsed: any, ci: number, map: number): TreeEntry {
+/** What the tracker adapter test compares of lib/arkh's Coin tree besides its numbers: names, formats and notes (the root, the groups, every source by id) and the node count. */
+export type CoinShape = { root: Shape; groups: Shape[]; sources: Record<string, Shape>; nodes: number };
+type Shape = { name: string; fmt?: string; note?: string };
+const shapeOf = (n: { name: string; fmt?: string; note?: string }): Shape => ({ name: n.name, ...(n.fmt === undefined ? {} : { fmt: n.fmt }), ...(n.note === undefined ? {} : { note: n.note }) });
+const countNodes = (n: { children?: readonly any[] | null }): number => 1 + (n.children ?? []).reduce((a: number, c: any) => a + countNodes(c), 0);
+
+function coinEntryOf(parsed: any, ci: number, map: number): TreeEntry & { shape: CoinShape } {
   const { tree, total } = computeArkhCoinMulti(parsed, ci, map);
   const leaves: Record<string, number> = {};
+  const shape: CoinShape = { root: shapeOf(tree), groups: [], sources: {}, nodes: countNodes(tree) };
   COIN_GROUPS.forEach((g, i) => {
     const kids = tree.children![i].children!;
     if (kids.length !== g.sources.length) throw new Error(`arkhCoinLeaves: lib/arkh's ${g.key} has ${kids.length} sources, COIN_GROUPS has ${g.sources.length}`);
-    g.sources.forEach((id, k) => (leaves[id] = kids[k].val));
+    shape.groups.push(shapeOf(tree.children![i]));
+    g.sources.forEach((id, k) => {
+      leaves[id] = kids[k].val;
+      shape.sources[id] = shapeOf(kids[k]);
+    });
   });
-  return { leaves, total };
+  return { leaves, total, shape };
 }
 
 const coinEntry = sectionCache("coin", coinEntryOf);
@@ -1498,6 +1509,9 @@ export function arkhCoinLeaf(env: any, ci: number, map: number, id: string): num
   loadSaveData(structuredClone(env));
   return coin.resolve(id, statCtx(env, ci, map)).val;
 }
+
+/** lib/arkh's Coin tree's names, formats, notes and node count for character `ci` on `map` (cached with the leaves). `save` as in arkhDamageLeaves. */
+export const arkhCoinShape = (save: unknown, ci: number, map: number): CoinShape => coinEntry(save, ci, map).shape;
 
 /** lib/arkh's own Coin Multi total (computeArkhCoinMulti(...).total): the oracle for the whole tree. */
 export const arkhCoinMulti = (save: unknown, ci: number, map: number): number => coinEntry(save, ci, map).total;

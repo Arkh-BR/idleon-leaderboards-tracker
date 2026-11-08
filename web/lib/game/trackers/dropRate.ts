@@ -33,7 +33,7 @@ import { chipBonuses } from "../njs/chipBonuses";
 import { haveBan } from "../njs/Thingies";
 import { dropRateLuk, TotalStats } from "../njs/TotalStats";
 import type { GameState } from "../state";
-import { findCall, flagged, migratedNote, near, stateOf, takeFrom, traceTree, type Take } from "./page";
+import { flagged, optFrom, migratedNote, near, stateOf, takeFrom, traceTree, type Take } from "./page";
 
 type Node = StatResult["tree"];
 
@@ -176,13 +176,7 @@ export function dropRateTree(ctx: Ctx): StatResult {
     if (!def) throw new Error(`Drop Rate: no source "${id}" in the adapter`);
     const kept: Node[] = [];
     const t = takeFrom(call, used, kept, 'Drop Rate: TotalStats("Drop_Rarity")', id);
-    const o = (block: string, ...args: (string | number)[]): number | undefined => {
-      const n = findCall(call, block, args, used);
-      if (!n) return undefined;
-      used.add(n);
-      kept.push(traceTree(n));
-      return n.value;
-    };
+    const o = optFrom(call, used, kept);
     const leaf = (name: string, val: number, note = READ) => (kept.push({ name, val, fmt: "raw", note }), val);
     const val = def.of({ t, o, leaf, c: plain });
     const note = typeof def.note === "function" ? def.note(plain, val) : def.note;

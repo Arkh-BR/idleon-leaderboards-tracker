@@ -76,5 +76,16 @@ export function takeFrom(from: TraceNode, used: Set<TraceNode> | undefined, kept
   };
 }
 
+/** Like `takeFrom`, but a call the block did not make gives `undefined` instead of throwing (a term read only on some passes: the caller falls back to a noted leaf). */
+export function optFrom(from: TraceNode, used: Set<TraceNode>, kept: Node[]): (block: string, ...args: (string | number)[]) => number | undefined {
+  return (block, ...args) => {
+    const n = findCall(from, block, args, used);
+    if (!n) return undefined;
+    used.add(n);
+    kept.push(traceTree(n));
+    return n.value;
+  };
+}
+
 /** `a` equals `b` to a relative 1e-9: the tree must give the call's total (spec section 4). */
 export const near = (a: number, b: number) => Math.abs(a - b) <= 1e-9 * Math.max(1, Math.abs(b));
