@@ -358,7 +358,8 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/game/njs/Summoning2.ts"
   ],
   "MonsterCash": [
-    "lib/arkh/stats/systems/coin/coin.ts"
+    "lib/arkh/stats/systems/coin/coin.ts",
+    "lib/game/njs/ArbitraryCode.ts"
   ],
   "MonsterRespawnTimeReset": [
     "lib/arkh/stats/systems/common/overkill.ts"

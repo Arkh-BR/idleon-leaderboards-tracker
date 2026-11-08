@@ -5,10 +5,15 @@ import { listAt } from "../lists";
 import { hString } from "../hstring";
 import { NotPorted } from "../errors";
 import { AchieveStatus } from "./AchieveStatus";
+import { ArcadeBonus } from "./ArcadeBonus";
+import { Breeding } from "./Breeding";
 import { CardBonusREAL } from "./CardBonusREAL";
 import { Companions } from "./Companions";
-import { DNSM_AlchVials, DNSM_BoxRewards, DNSM_FamBonusQTYs } from "./DNSM";
+import { Divinity } from "./Divinity";
+import { DNSM_AlchBubbles, DNSM_AlchVials, DNSM_BoxRewards, DNSM_FamBonusQTYs } from "./DNSM";
+import { EtcBonuses } from "./EtcBonuses";
 import { FarmingStuffs } from "./FarmingStuffs";
+import { FlurboShop } from "./FlurboShop";
 import { GetSetBonus } from "./GetSetBonus";
 import { getbonus2 } from "./getbonus2";
 import { getLOG } from "./getLOG";
@@ -18,11 +23,19 @@ import { GuildBonuses } from "./GuildBonuses";
 import { Holes } from "./Holes";
 import { MainframeBonus } from "./MainframeBonus";
 import { MealBonus } from "./MealBonus";
+import { Ninja } from "./Ninja";
+import { prayersReal } from "./prayersReal";
+import { ResearchStuff } from "./ResearchStuff";
+import { RunCodeOfTypeXforThingY } from "./RunCodeOfTypeXforThingY";
 import { Sailing } from "./Sailing";
 import { StampBonusOfTypeX } from "./StampBonusOfTypeX";
+import { Stuff2 } from "./Stuff2";
 import { Summoning } from "./Summoning";
 import { Summoning2 } from "./Summoning2";
-import { Thingies } from "./Thingies";
+import { SushiStuff } from "./SushiStuff";
+import { TalentCalc } from "./TalentCalc";
+import { bundleAsNum, Thingies } from "./Thingies";
+import { TotalStats } from "./TotalStats";
 import type { Ported } from "../ported";
 
 /**
@@ -60,6 +73,56 @@ function statueBonusGiven(ctx: Ctx, n: number): number {
 export const ArbitraryCode: (ctx: Ctx, d: string) => number = block("ArbitraryCode", (ctx, d: string) => {
   if ("StatueBonusGiven" == d.substring(0, 16)) return statueBonusGiven(ctx, Math.round(asNumber(d.substring(16, d.length))));
   switch (d) {
+    // @4047005: the Coin multi of a monster's drop, "Total Coin Bonus from all sources" (Upgrade Vault, upgrade 2): the Cash bubbles, the 21 factors after them, the additive pool last.
+    // The pool's guild term and TalentCalc(643), the multikill tier against the AFK target, are the two terms that read CurrentMap
+    case "MonsterCash":
+      return (
+        (1 + (DNSM_AlchBubbles(ctx, "CashSTR") * Math.floor(TotalStats(ctx, "STR") / 250) + (DNSM_AlchBubbles(ctx, "CashAGI") * Math.floor(TotalStats(ctx, "AGI") / 250) + DNSM_AlchBubbles(ctx, "CashWIS") * Math.floor(TotalStats(ctx, "WIS") / 250))) / 100) *
+        (1 + Math.min(4, Companions(ctx, 24))) *
+        Stuff2(ctx, "CoinDropMulti", 0, 0) *
+        (1 + Math.min(4, Companions(ctx, 45))) *
+        (1 + Math.min(4, Companions(ctx, 159))) *
+        (1 + 0.5 * Summoning(ctx, "EventShopOwned", 9, 0)) *
+        (1 + 0.6 * Summoning(ctx, "EventShopOwned", 20, 0)) *
+        (1 + EtcBonuses(ctx, "77") / 100) *
+        (1 + SushiStuff(ctx, "RoG_BonusQTY", 18, 0) / 100) *
+        (1 + SushiStuff(ctx, "RoG_BonusQTY", 37, 0) / 100) *
+        (1 + (ResearchStuff(ctx, "Grid_Bonus", 149, 0) + ResearchStuff(ctx, "Grid_Bonus", 169, 0)) / 100) *
+        (1 + EtcBonuses(ctx, "100") / 100) *
+        (1 + GetSetBonus(ctx, "GOLD_SET", "Bonus", 0, 0) / 100) *
+        (1 + Holes(ctx, "GambitBonuses", 7, 0) / 100) *
+        (1 + (250 * bundleAsNum(ctx, "bun_y")) / 100) *
+        (1 + (Math.max(1, getbonus2(ctx, 1, 433, -1)) * getLOG(ctx, asNum(ctx, "OptionsListAccount", 362))) / 100) *
+        (1 + (MealBonus(ctx, "Cash") + Sailing(ctx, "ArtifactBonus", 1, 0) + (Summoning(ctx, "RooBonuses", 6, 0) + Summoning(ctx, "VotingBonusz", 34, 0))) / 100) *
+        (1 + (0.5 * Breeding(ctx, "PetArenaBonus", "0", 5, 0) + Thingies(ctx, "FriendBonusStatz", 5, 0) + (Breeding(ctx, "PetArenaBonus", "0", 14, 0) + ArbitraryCode(ctx, "StatueBonusGiven19") / 100))) *
+        (1 + (MainframeBonus(ctx, 9) + (Summoning(ctx, "VaultUpgBonus", 34, 0) * Summoning(ctx, "VaultKillzTotal", 8, 0) + Summoning(ctx, "VaultUpgBonus", 37, 0) * Summoning(ctx, "VaultKillzTotal", 9, 0))) / 100) *
+        (1 + Ninja(ctx, "PristineBon", 16, 0) / 100) *
+        (1 + prayersReal(ctx, 8, 0) / 100) *
+        (1 + (Divinity(ctx, "Bonus_Minor", -1, 3) + FarmingStuffs(ctx, "CropSCbonus", 4, 0)) / 100) *
+        (1 +
+          (GetTalentNumber(ctx, 1, 657) +
+            DNSM_AlchVials(ctx, "MonsterCash") +
+            (EtcBonuses(ctx, "3") +
+              (CardBonusREAL(ctx, 11) +
+                7 * RunCodeOfTypeXforThingY(ctx, "CardLv", "w5b1") +
+                (GetTalentNumber(ctx, 1, 22) +
+                  (FlurboShop(ctx, 4) +
+                    (ArcadeBonus(ctx, 10) + ArcadeBonus(ctx, 11)) +
+                    (DNSM_BoxRewards(ctx, "13c") +
+                      (GuildBonuses(ctx, 8) * (1 + Math.floor(ctx.map / 50)) +
+                        (TalentCalc(ctx, 643) +
+                          (TalentCalc(ctx, 644) +
+                            (GoldFoodBonuses(ctx, "MonsterCash") +
+                              Summoning(ctx, "VaultUpgBonus", 17, 0) * getLOG(ctx, asNum(ctx, "OptionsListAccount", 340)) +
+                              (5 * AchieveStatus(ctx, 235) +
+                                (10 * AchieveStatus(ctx, 350) +
+                                  (20 * AchieveStatus(ctx, 376) +
+                                    (Summoning(ctx, "VaultUpgBonus", 2, 0) +
+                                      (Summoning(ctx, "VaultUpgBonus", 14, 0) * Summoning(ctx, "VaultKillzTotal", 4, 0) +
+                                        (Summoning(ctx, "VaultUpgBonus", 31, 0) * Summoning(ctx, "VaultKillzTotal", 7, 0) +
+                                          (asNum(ctx, "OptionsListAccount", 420) + Summoning(ctx, "VaultUpgBonus", 70, 0) * Stuff2(ctx, "CardsCollected", 0, 0)))))))))))))))))) /
+            100)
+      );
     // @4061380: the flat bonus to every stat, the post office's 20a + the meals' Stat + guild bonus 1, rounded down
     case "AllStat":
       return Math.floor(DNSM_BoxRewards(ctx, "20a") + MealBonus(ctx, "Stat") + GuildBonuses(ctx, 1));
@@ -107,6 +170,7 @@ export const ArbitraryCode: (ctx: Ctx, d: string) => number = block("ArbitraryCo
 
 /** What this module covers (lib/game/ported.ts). */
 export const PORTED: Ported = {
+  MonsterCash: true,
   AllStat: true,
   AllStatPCT: true,
   TotalQuestsComplete: true,

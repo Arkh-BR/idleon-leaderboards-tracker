@@ -1078,8 +1078,8 @@ export const KNOWN_ARKH_DIFFS: {
   ...([1, 9] as const).map((ci) => ({ stat: "coin" as const, save: "HourZero.json", ci, source: "mealCash", reason: "godshard", why: GODSHARD_WORN })),
   // GoldFoodBonuses("MonsterCash"): the golden food multi's causes (no golden food of the effect on big_guy69123's characters: the star sign 69 and fam68 there do not show)
   ...GOLDFOOD_ROWS("coin", "goldFood", []),
-  // talent 643's tier: on map 301 the star signs of the Damage % (signsDmg) alone put lib/arkh's Max past a multikill tier lib/game's does not reach, on this save
-  ...([7, 9] as const).map((ci) => ({ stat: "coin" as const, save: "big_guy69123.json", ci, maps: [301] as const, source: "talent643", reason: "signsDmg", why: `OverkillStuffs("2") @4095676 compares the Max damage (DamageDealed @4105019) with the HP tiers; lib/arkh's Max is higher here because of the Damage % star signs alone (${STAT_WHY.signsDmg}), and it crosses tier 3 where lib/game's stays at 2. Lib/arkh's other Damage causes on this save (tome, gfoodSign69) do not move the tier` })),
+  // talent 643's tier: on maps 301 and 40 the star signs of the Damage % (signsDmg) alone put lib/arkh's Max past a multikill tier lib/game's does not reach, on this save
+  ...([7, 9] as const).map((ci) => ({ stat: "coin" as const, save: "big_guy69123.json", ci, maps: [301, 40] as const, source: "talent643", reason: "signsDmg", why: `OverkillStuffs("2") @4095676 compares the Max damage (DamageDealed @4105019) with the HP tiers; lib/arkh's Max is higher here because of the Damage % star signs alone (${STAT_WHY.signsDmg}), and it crosses a tier lib/game's does not (on map 301, 3 against 2). Lib/arkh's other Damage causes on this save (tome, gfoodSign69) do not move the tier` })),
 ];
 
 /**
