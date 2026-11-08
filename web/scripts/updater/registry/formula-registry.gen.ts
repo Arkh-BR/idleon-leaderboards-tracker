@@ -907,6 +907,9 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   "isBubbleSuperr": [
     "lib/game/njs/CauldronStats.ts"
   ],
+  "mobHP": [
+    "lib/game/njs/RiftStuff.ts"
+  ],
   "riftBonus": [
     "lib/game/njs/RiftStuff.ts"
   ],

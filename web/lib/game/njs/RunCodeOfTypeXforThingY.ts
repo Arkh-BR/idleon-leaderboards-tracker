@@ -50,6 +50,7 @@ export const RunCodeOfTypeXforThingY: (ctx: Ctx, d: string, b: string) => number
  * The HP of the monster the character is AFK on, `MonsterDefinitionsGET[AFKtarget].MonsterHPTotal` (Rulings V and GG: lib/game/afkTarget.ts). The table is the
  * game data as `performETCaction("MonsterRespawnTimeReset")` @6508363 leaves it (each scene load runs it, @15305666): every monster's HP times
  * 1 + (the curses of the prayers 0, 7 and 8) / 100 when any is not 0, then the Clamworks clam's set to Thingies("Clamz_HP"), so the clam is never cursed.
+ * The table it copies has the Rift's monster at RiftStuff("mobHP", 0): the Rift scene writes it there (@20359437) before a character can be AFK on it, so it is cursed like the others.
  * The game would throw on a target the table does not have ("Z", "Filler", ...).
  */
 function monsterHPTotal(ctx: Ctx): number {
@@ -57,8 +58,9 @@ function monsterHPTotal(ctx: Ctx): number {
   const mob = (MONSTERS as Record<string, Readonly<Record<string, unknown>>>)[target];
   if (!mob) throw new InvalidSaveValue("AFKtarget", "a MonsterDefinitions key", target);
   if ("w7a6" == target) return Thingies(ctx, "Clamz_HP", 0, 0);
-  if (0 != prayersReal(ctx, 0, 1) || 0 != prayersReal(ctx, 7, 1) || 0 != prayersReal(ctx, 8, 1)) return asNumber(mob.MonsterHPTotal) * (1 + (prayersReal(ctx, 0, 1) + (prayersReal(ctx, 7, 1) + prayersReal(ctx, 8, 1))) / 100);
-  return asNumber(mob.MonsterHPTotal);
+  const hp = "riftAll" == target ? RiftStuff(ctx, "mobHP", 0) : asNumber(mob.MonsterHPTotal);
+  if (0 != prayersReal(ctx, 0, 1) || 0 != prayersReal(ctx, 7, 1) || 0 != prayersReal(ctx, 8, 1)) return hp * (1 + (prayersReal(ctx, 0, 1) + (prayersReal(ctx, 7, 1) + prayersReal(ctx, 8, 1))) / 100);
+  return hp;
 }
 
 /**

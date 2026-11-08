@@ -16,6 +16,7 @@ import { MainframeBonus } from "@/lib/game/njs/MainframeBonus";
 import { FarmingStuffs } from "@/lib/game/njs/FarmingStuffs";
 import { TalentCalc } from "@/lib/game/njs/TalentCalc";
 import { RunCodeOfTypeXforThingY } from "@/lib/game/njs/RunCodeOfTypeXforThingY";
+import { RiftStuff } from "@/lib/game/njs/RiftStuff";
 
 type Data = Record<string, unknown>;
 const seed = (c: Ctx, name: string, args: (string | number)[], v: number) => c.cache.set(`${c.player}|${c.map}|${name}${JSON.stringify(args)}`, v);
@@ -244,6 +245,20 @@ describe("TalentCalc 643 and 644, OverkillStuffs \"2\" (synthetic, runs in CI)",
     seed(c, "prayersReal", [7, 1], 0);
     seed(c, "prayersReal", [8, 1], 0);
     expect(RunCodeOfTypeXforThingY(c, "OverkillStuffs", "2")).toBe(2);
+  });
+  it("the Rift's monster (map 166) has the HP of the account's Rift level, cursed like the others, not the data table's", () => {
+    const at65 = { Rift: [65] }; // base 1.11 + .02 + .08 + .18 = 1.39, HP 5e6 x 1.39^65, about 9.87e15, so Max 1e20 is 10132 x HP: 13.3 doublings
+    expect(at(166, "riftAll", 1e20, [0, 0, 0], at65)).toBe(13);
+    expect(at(166, "riftAll", 1e20, [50, 30, 20], at65)).toBe(12); // HP x 2
+    expect(hp("riftAll")).toBe(1000); // the data table's value, which would give the ceiling
+  });
+  it("RiftStuff mobHP is 5e6 x base^level, each term of the base capped on its own", () => {
+    const mob = (r: number) => RiftStuff(synth({ Rift: [r] }), "mobHP", 0);
+    expect(mob(0)).toBe(5e6);
+    expect(mob(5) / (5e6 * Math.pow(1.12, 5))).toBeCloseTo(1, 9); // 1.11 + .02 x 5 / 10
+    expect(mob(15) / (5e6 * Math.pow(1.15, 15))).toBeCloseTo(1, 9); // 1.11 + .02 + .08 x 5 / 20
+    expect(mob(43) / (5e6 * Math.pow(1.39, 43))).toBeCloseTo(1, 9); // every term at its cap from 43 on
+    expect(mob(65) / (5e6 * Math.pow(1.39, 65))).toBeCloseTo(1, 9);
   });
   it("there is no check of the kind of map: a target of a town counts like any other", () => {
     const h = hp("Nothing");
