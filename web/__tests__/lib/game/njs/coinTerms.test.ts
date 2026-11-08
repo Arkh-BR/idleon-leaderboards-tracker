@@ -87,6 +87,7 @@ const TERMS: Record<string, (c: Ctx) => number> = {
   pristine16: (c) => Ninja(c, "PristineBon", 16, 0),
   prayer8: (c) => prayersReal(c, 8, 0),
   divMinor3: (c) => Divinity(c, "Bonus_Minor", -1, 3),
+  cropSC4: (c) => FarmingStuffs(c, "CropSCbonus", 4, 0),
   talent657: (c) => GetTalentNumber(c, 1, 657),
   vialCash: (c) => DNSM_AlchVials(c, "MonsterCash"),
   etc3: (c) => EtcBonuses(c, "3"),
@@ -110,7 +111,7 @@ const TERMS: Record<string, (c: Ctx) => number> = {
   vault70: (c) => vault(c, 70) * Stuff2(c, "CardsCollected", 0, 0),
 };
 /** The sources not ported yet: the guard below names them until their family lands. */
-const OPEN = new Set<string>(["cropSC4", "talent643", "talent644"]);
+const OPEN = new Set<string>(["talent643", "talent644"]);
 
 /** The block key(s) each term reads directly (`<Fn><args as JSON>`): what a seed must never be. */
 const OWN: Record<string, string[]> = {

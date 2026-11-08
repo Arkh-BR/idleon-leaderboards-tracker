@@ -81,12 +81,13 @@ function exoticBonusQTY(ctx: Ctx, b: number): number {
 
 /**
  * `CropSCbonus` @10824845, Crop Scientist bonus `b`, from the crops found (D.mapCount(FarmCrop), the keys of the map), times
- * CropSCbonMulti: 0 = 20 x crops once the Emporium item 27 is owned; 7 = round(max(0, crops - 100)) once the Emporium item 38 is; else 0
- * (the chain's other branches need another b, so only the item of b is read). Only b = 0 and 7 are ported.
+ * CropSCbonMulti: 0 = 20 x crops once the Emporium item 27 is owned; 4 = 15 x crops once item 23 is; 7 = round(max(0, crops - 100)) once item 38 is; else 0
+ * (the chain's other branches need another b, so only the item of b is read). Only b = 0, 4 and 7 are ported.
  */
 function cropSCbonus(ctx: Ctx, b: number): number {
-  if (0 != b && 7 != b) throw new NotPorted("FarmingStuffs", `CropSCbonus:b=${b}`);
+  if (0 != b && 4 != b && 7 != b) throw new NotPorted("FarmingStuffs", `CropSCbonus:b=${b}`);
   if (0 == b) return 1 == Ninja(ctx, "EmporiumBonus", 27, 0) ? 20 * Math.round(cropCount(ctx)) * FarmingStuffs(ctx, "CropSCbonMulti", 0, 0) : 0;
+  if (4 == b) return 1 == Ninja(ctx, "EmporiumBonus", 23, 0) ? 15 * Math.round(cropCount(ctx)) * FarmingStuffs(ctx, "CropSCbonMulti", 0, 0) : 0;
   return 1 == Ninja(ctx, "EmporiumBonus", 38, 0) ? Math.round(Math.max(0, cropCount(ctx) - 100)) * FarmingStuffs(ctx, "CropSCbonMulti", 0, 0) : 0;
 }
 
@@ -99,4 +100,4 @@ export function cropCount(ctx: Ctx): number {
 }
 
 /** What this module covers (lib/game/ported.ts). */
-export const PORTED: Ported = { StickerBonus: true, ExoticBonusQTY: range(0, 80), LankRankUpgBonus: true, CropSCbonMulti: true, CropSCbonus: [0, 7], TotalStickers: true, StickerDMGmulti: true };
+export const PORTED: Ported = { StickerBonus: true, ExoticBonusQTY: range(0, 80), LankRankUpgBonus: true, CropSCbonMulti: true, CropSCbonus: [0, 4, 7], TotalStickers: true, StickerDMGmulti: true };
