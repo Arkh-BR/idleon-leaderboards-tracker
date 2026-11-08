@@ -58,6 +58,7 @@ const TERMS: Record<string, (c: Ctx) => number> = {
   bubbleAGI: (c) => cashBubble(c, "CashAGI", "AGI"),
   bubbleWIS: (c) => cashBubble(c, "CashWIS", "WIS"),
   comp24: (c) => Companions(c, 24),
+  comp38: (c) => Stuff2(c, "CoinDropMulti", 0, 0) - 1,
   comp45: (c) => Companions(c, 45),
   comp159: (c) => Companions(c, 159),
   eventShop9: (c) => 0.5 * Summoning(c, "EventShopOwned", 9, 0),
@@ -102,9 +103,10 @@ const TERMS: Record<string, (c: Ctx) => number> = {
   vault14: (c) => vault(c, 14) * kills(c, 4),
   vault31: (c) => vault(c, 31) * kills(c, 7),
   ola420: (c) => asNum(c, "OptionsListAccount", 420),
+  vault70: (c) => vault(c, 70) * Stuff2(c, "CardsCollected", 0, 0),
 };
 /** The sources not ported yet: the guard below names them until their family lands. */
-const OPEN = new Set<string>(["comp38", "vault70", "gambit7", "artifact1", "friend5", "mainframe9", "cropSC4", "talent643", "talent644"]);
+const OPEN = new Set<string>(["gambit7", "artifact1", "friend5", "mainframe9", "cropSC4", "talent643", "talent644"]);
 
 /** The block key(s) each term reads directly (`<Fn><args as JSON>`): what a seed must never be. */
 const OWN: Record<string, string[]> = {

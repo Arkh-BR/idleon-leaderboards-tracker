@@ -99,7 +99,8 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/game/njs/RunCodeOfTypeXforThingY.ts"
   ],
   "CardsCollected": [
-    "lib/arkh/stats/systems/coin/accountKills.ts"
+    "lib/arkh/stats/systems/coin/accountKills.ts",
+    "lib/game/njs/Stuff2.ts"
   ],
   "ClamWorkBonus": [
     "lib/game/njs/Thingies.ts"

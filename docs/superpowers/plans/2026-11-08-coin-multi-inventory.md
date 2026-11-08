@@ -13,7 +13,7 @@ Regenerate it when N.js, a module's `PORTED` or `lib/game/unreached.ts` changes.
 - attrs and dnsm are the reads in every slice listed. One marked "whole body only" is read only inside a whole-body function (all its branches, not just the one this formula takes). `DNSM` is runtime-only (it is never loaded from the save): port it as `DNSM_*` functions, not as a save attribute. The dnsm list also holds the scratch keys a formula writes and reads back in the same slice (`CaptnBonuz`, `AtomBonCalc1`); the inputs are the caches the game fills elsewhere (`StarSigns`, `AlchVials`, `FamBonusQTYs`…).
 - Depth stops at 6.
 
-**52 functions, 321 sub-cases (rows), 96 whole body, 0 not found, 84 attrs, 94 dnsm.** **291 ported `[x]`, 0 not reached `[~]`, 30 open.** **Depth cap hit: 7 calls were not walked.**
+**52 functions, 321 sub-cases (rows), 96 whole body, 0 not found, 84 attrs, 94 dnsm.** **293 ported `[x]`, 0 not reached `[~]`, 28 open.** **Depth cap hit: 7 calls were not walked.**
 
 ## ArbitraryCode
 
@@ -51,8 +51,8 @@ Regenerate it when N.js, a module's `PORTED` or `lib/game/unreached.ts` changes.
 
 ## Stuff2
 
-- [ ] Stuff2("CoinDropMulti",0,0) — depth 1 — 31 chars
-- [ ] Stuff2("CardsCollected",0,0) — depth 1 — 1162 chars
+- [x] Stuff2("CoinDropMulti",0,0) — depth 1 — 31 chars
+- [x] Stuff2("CardsCollected",0,0) — depth 1 — 1162 chars
 
 ## Summoning
 
