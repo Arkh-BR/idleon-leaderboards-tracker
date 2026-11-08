@@ -11,6 +11,8 @@ import { computeArkhAfkGains } from "@/lib/arkh/computeAfk";
 import { AFK_POOLS } from "@/lib/arkh/stats/defs/afk-gains";
 import { computeArkhExpMulti } from "@/lib/arkh/computeExp";
 import { EXP_GROUPS } from "@/lib/arkh/stats/defs/exp-multi";
+import { computeArkhCoinMulti } from "@/lib/arkh/computeCoin";
+import { COIN_GROUPS } from "@/lib/arkh/stats/defs/coin-multi";
 import { computeArkhDropRateV2 } from "@/lib/arkh/computeDropRateV2";
 import { DR2_GROUPS } from "@/lib/arkh/stats/defs/drop-rate-v2";
 import { medallionList } from "@/lib/arkh/stats/systems/exp/medallions";
@@ -19,7 +21,7 @@ import { loadSaveData } from "@/lib/arkh/save/loader";
 import { saveData } from "@/lib/arkh/state";
 import { formatGameValue } from "@/lib/readings/format";
 import { READINGS_DIR, loadReadings, readingSave } from "@/lib/readings/registry";
-import { GOLDEN_SAVES, KNOWN_ARKH_DIFFS, arkhArtifactLeaf, arkhDamage, arkhDamagePoolKeys, arkhDamageLeaf, arkhDamageLeaves, arkhAfkLeaves, arkhAfkRate, arkhExpLeaves, arkhExpMulti, arkhDrLeaves, arkhDropRate, arkhSourceHash, arkhStat, arkhStats, gameCtx, goldenSaves, setArkhSourceHash, setOracleCacheDir, type ArkhStat } from "./support/arkhOracle";
+import { GOLDEN_SAVES, KNOWN_ARKH_DIFFS, arkhArtifactLeaf, arkhDamage, arkhDamagePoolKeys, arkhDamageLeaf, arkhDamageLeaves, arkhAfkLeaves, arkhAfkRate, arkhExpLeaves, arkhExpMulti, arkhDrLeaves, arkhDropRate, arkhCoinLeaves, arkhCoinMulti, arkhSourceHash, arkhStat, arkhStats, gameCtx, goldenSaves, setArkhSourceHash, setOracleCacheDir, type ArkhStat } from "./support/arkhOracle";
 
 // Spy on the engine so the cache tests can count real computes; the original still runs.
 vi.mock("@/lib/arkh/computeArtifactFind", async (importOriginal) => {
@@ -455,6 +457,29 @@ describe.skipIf(!ARKHE)("arkhDrLeaves / arkhDropRate", () => {
     const save = load();
     const before = JSON.stringify(save);
     expect(arkhDrLeaves(save, 8, 251)).toEqual(arkhDrLeaves(ARKHE, 8, 251));
+    expect(JSON.stringify(save)).toBe(before);
+  });
+});
+
+describe.skipIf(!ARKHE)("arkhCoinLeaves / arkhCoinMulti", () => {
+  const rel = (a: number, b: number) => Math.abs(a - b) / Math.max(Math.abs(b), 1e-12);
+  const ids = COIN_GROUPS.flatMap((g) => g.sources);
+  const recombine = (l: Record<string, number>) => COIN_GROUPS.reduce((t, g) => applyGroupStep(g, g.sources.map((id) => l[id]), t), 1);
+  const load = () => JSON.parse(readFileSync(ARKHE!, "utf8"));
+
+  it.each([251, 301])("ARKHE ci 8 map %i: the key set is the COIN_GROUPS source ids and the leaves rebuild lib/arkh's total", (map) => {
+    const direct = computeArkhCoinMulti(load(), 8, map).total;
+    const leaves = arkhCoinLeaves(ARKHE, 8, map);
+    expect(Object.keys(leaves).sort()).toEqual([...ids].sort());
+    expect(direct).toBeGreaterThan(1);
+    expect(rel(recombine(leaves), direct)).toBeLessThan(1e-9);
+    expect(arkhCoinMulti(ARKHE, 8, map)).toBe(direct);
+  });
+
+  it("an object save gives the same leaves as the path and is left untouched", () => {
+    const save = load();
+    const before = JSON.stringify(save);
+    expect(arkhCoinLeaves(save, 8, 251)).toEqual(arkhCoinLeaves(ARKHE, 8, 251));
     expect(JSON.stringify(save)).toBe(before);
   });
 });

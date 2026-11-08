@@ -12,6 +12,8 @@ import { computeArkhDamage, DMG_COLLECTOR_MAP } from "@/lib/arkh/computeDamage";
 import { computeArkhAfkGains } from "@/lib/arkh/computeAfk";
 import { computeArkhExpMulti } from "@/lib/arkh/computeExp";
 import { EXP_GROUPS } from "@/lib/arkh/stats/defs/exp-multi";
+import { computeArkhCoinMulti } from "@/lib/arkh/computeCoin";
+import { COIN_GROUPS } from "@/lib/arkh/stats/defs/coin-multi";
 import { computeArkhDropRateV2 } from "@/lib/arkh/computeDropRateV2";
 import { DR2_GROUPS } from "@/lib/arkh/stats/defs/drop-rate-v2";
 import { AFK_POOLS, afkRate } from "@/lib/arkh/stats/defs/afk-gains";
@@ -143,8 +145,9 @@ const MAIN_STATS = { str: "STR", agi: "AGI", wis: "WIS", luk: "LUK" } as const;
 
 type OracleEntry = { leaves: Record<string, number>; stats: Record<ArkhStat, number> };
 // `afk` (character -> map -> leaves) is a section of its own: the AFK leaves never touch the Damage entries.
-type DiskFile = { arkhHash: string; entries: Record<string, Record<string, OracleEntry>>; afk?: Record<string, Record<string, Record<string, number>>>; exp?: Record<string, Record<string, ExpEntry>>; dr?: Record<string, Record<string, ExpEntry>> };
-type ExpEntry = { leaves: Record<string, number>; total: number };
+type DiskFile = { arkhHash: string; entries: Record<string, Record<string, OracleEntry>>; afk?: Record<string, Record<string, Record<string, number>>>; exp?: Record<string, Record<string, TreeEntry>>; dr?: Record<string, Record<string, TreeEntry>>; coin?: Record<string, Record<string, TreeEntry>> };
+// the leaves of a descriptor's tree by source id, and lib/arkh's own total (EXP, Drop Rate, Coin)
+type TreeEntry = { leaves: Record<string, number>; total: number };
 
 // source id -> where it sits in the tree. Every id is unique across DMG_LAYERS, DMG_MASTERY and DMG_RAT (checked in the test).
 const DMG_SLOT = new Map<string, { child: number; step: number; src: number }>();
@@ -239,6 +242,33 @@ function persist(d: { file: string; data: DiskFile }): void {
   if (!d.file) return;
   mkdirSync(dirname(d.file), { recursive: true });
   writeFileSync(d.file, JSON.stringify(d.data));
+}
+
+/**
+ * The cache every (character, map) section shares: an object save is computed once on a structuredClone and kept by identity, a path
+ * save is stored in the `section` of its sha1-keyed disk file (`{ [ci]: { [map]: T } }`). `compute` gets a parsed copy it may write into.
+ */
+type Section = "afk" | "exp" | "dr" | "coin";
+function sectionCache<T>(section: Section, compute: (parsed: any, ci: number, map: number) => T): (save: unknown, ci: number, map: number) => T {
+  const byObject = new WeakMap<object, Map<string, T>>();
+  return (save, ci, map) => {
+    if (typeof save !== "string") {
+      let per = byObject.get(save as object);
+      if (!per) byObject.set(save as object, (per = new Map()));
+      const key = `${ci}@${map}`;
+      let e = per.get(key);
+      if (!e) per.set(key, (e = compute(structuredClone(save), ci, map)));
+      return e;
+    }
+    const d = diskOf(save);
+    const slot = (((d.data as Record<string, any>)[section] ??= {})[ci] ??= {}) as Record<string, T>;
+    let e = slot[map];
+    if (!e) {
+      e = slot[map] = compute(JSON.parse(readFileSync(save, "utf8")), ci, map);
+      persist(d);
+    }
+    return e;
+  };
 }
 
 function entryOf(save: unknown, ci: number, map: number): OracleEntry {
@@ -1204,8 +1234,7 @@ export function damageReasonSeeds(path: string, ci: number, reason: string): See
 }
 
 // ---- AFK Gains ----
-// Same cache design as Damage: a path save is cached on disk (the `afk` section of the sha1-keyed file), an object save in memory.
-const afkByObject = new WeakMap<object, Map<string, Record<string, number>>>();
+// Same cache design as Damage (sectionCache): a path save is cached on disk (the `afk` section of the sha1-keyed file), an object save in memory.
 const AFK_FIGHT_ALL = [...AFK_POOLS[0].sources, ...AFK_POOLS[1].sources];
 
 // The tree of computeArkhAfkGains: [0] = the fight + ALL pool (its children, in AFK_POOLS order), [1] = arcane, [2] = etc92 (each
@@ -1232,24 +1261,7 @@ function afkLeavesOf(parsed: any, ci: number, map: number): Record<string, numbe
  *   afkType       R3, 1 for a fight (or the Cove), 0 when the map's AFK target is not a fight
  * `arkhAfkRate` rebuilds the total from these with lib/arkh's own `afkRate`. `save` as in arkhDamageLeaves.
  */
-export function arkhAfkLeaves(save: unknown, ci: number, map: number): Record<string, number> {
-  if (typeof save !== "string") {
-    let per = afkByObject.get(save as object);
-    if (!per) afkByObject.set(save as object, (per = new Map()));
-    const key = `${ci}@${map}`;
-    let l = per.get(key);
-    if (!l) per.set(key, (l = afkLeavesOf(structuredClone(save), ci, map)));
-    return l;
-  }
-  const d = diskOf(save);
-  const slot = ((d.data.afk ??= {})[ci] ??= {});
-  let l = slot[map];
-  if (!l) {
-    l = slot[map] = afkLeavesOf(JSON.parse(readFileSync(save, "utf8")), ci, map);
-    persist(d);
-  }
-  return l;
-}
+export const arkhAfkLeaves = sectionCache("afk", afkLeavesOf);
 
 /** lib/arkh's AFK gains rate (a fraction: 1.5 = 150%, before the panel's floor(100 x)): its own `afkRate` over `arkhAfkLeaves`. */
 export function arkhAfkRate(save: unknown, ci: number, map: number): number {
@@ -1266,8 +1278,6 @@ export function arkhAfkRate(save: unknown, ci: number, map: number): number {
 
 // ---- EXP Multi ----
 // Same cache design as AFK: the `exp` section of the sha1-keyed file (path save), identity-keyed memory (object save).
-const expByObject = new WeakMap<object, Map<string, ExpEntry>>();
-
 /** The name lib/arkh gives each EXP source node (stable across the real saves): expEntryOf checks the tree against it, so a reorder inside a group of the same length fails loudly. */
 const EXP_SOURCE_NAMES: Record<string, string> = {
   workbench: "Archlord Of The Pirates (Talent 328)",
@@ -1371,7 +1381,7 @@ const EXP_SOURCE_NAMES: Record<string, string> = {
 };
 
 // The tree of computeArkhExpMulti: one child per EXP_GROUPS group, whose children are its sources in order (a grouped descriptor).
-function expEntryOf(parsed: any, ci: number, map: number): ExpEntry {
+function expEntryOf(parsed: any, ci: number, map: number): TreeEntry {
   const { tree, total } = computeArkhExpMulti(parsed, ci, map);
   const leaves: Record<string, number> = {};
   EXP_GROUPS.forEach((g, i) => {
@@ -1386,24 +1396,7 @@ function expEntryOf(parsed: any, ci: number, map: number): ExpEntry {
   return { leaves, total };
 }
 
-function expEntry(save: unknown, ci: number, map: number): ExpEntry {
-  if (typeof save !== "string") {
-    let per = expByObject.get(save as object);
-    if (!per) expByObject.set(save as object, (per = new Map()));
-    const key = `${ci}@${map}`;
-    let e = per.get(key);
-    if (!e) per.set(key, (e = expEntryOf(structuredClone(save), ci, map)));
-    return e;
-  }
-  const d = diskOf(save);
-  const slot = ((d.data.exp ??= {})[ci] ??= {});
-  let e = slot[map];
-  if (!e) {
-    e = slot[map] = expEntryOf(JSON.parse(readFileSync(save, "utf8")), ci, map);
-    persist(d);
-  }
-  return e;
-}
+const expEntry = sectionCache("exp", expEntryOf);
 
 /**
  * Every EXP source's `val` in lib/arkh's EXP Multi tree for character `ci` on `map`, by EXP_GROUPS source id (as the tree holds it:
@@ -1420,9 +1413,7 @@ export function arkhExpMulti(save: unknown, ci: number, map: number): number {
 }
 
 // ---- Drop Rate (V2): same design as EXP. The tree of computeArkhDropRateV2 has one child per DR2_GROUPS group, whose children are its sources in order.
-const drByObject = new WeakMap<object, Map<string, ExpEntry>>();
-
-function drEntryOf(parsed: any, ci: number, map: number): ExpEntry {
+function drEntryOf(parsed: any, ci: number, map: number): TreeEntry {
   const { tree, total } = computeArkhDropRateV2(parsed, ci, map);
   const leaves: Record<string, number> = {};
   DR2_GROUPS.forEach((g, i) => {
@@ -1433,24 +1424,7 @@ function drEntryOf(parsed: any, ci: number, map: number): ExpEntry {
   return { leaves, total };
 }
 
-function drEntry(save: unknown, ci: number, map: number): ExpEntry {
-  if (typeof save !== "string") {
-    let per = drByObject.get(save as object);
-    if (!per) drByObject.set(save as object, (per = new Map()));
-    const key = `${ci}@${map}`;
-    let e = per.get(key);
-    if (!e) per.set(key, (e = drEntryOf(structuredClone(save), ci, map)));
-    return e;
-  }
-  const d = diskOf(save);
-  const slot = ((d.data.dr ??= {})[ci] ??= {});
-  let e = slot[map];
-  if (!e) {
-    e = slot[map] = drEntryOf(JSON.parse(readFileSync(save, "utf8")), ci, map);
-    persist(d);
-  }
-  return e;
-}
+const drEntry = sectionCache("dr", drEntryOf);
 
 /**
  * Every Drop Rate source's `val` in lib/arkh's DR V2 tree for character `ci` on `map`, by DR2_GROUPS source id (as the tree holds it:
@@ -1465,3 +1439,27 @@ export function arkhDrLeaves(save: unknown, ci: number, map: number): Record<str
 export function arkhDropRate(save: unknown, ci: number, map: number): number {
   return drEntry(save, ci, map).total;
 }
+
+// ---- Coin Multi: same design as DR. The tree of computeArkhCoinMulti has one child per COIN_GROUPS group, whose children are its sources in order.
+function coinEntryOf(parsed: any, ci: number, map: number): TreeEntry {
+  const { tree, total } = computeArkhCoinMulti(parsed, ci, map);
+  const leaves: Record<string, number> = {};
+  COIN_GROUPS.forEach((g, i) => {
+    const kids = tree.children![i].children!;
+    if (kids.length !== g.sources.length) throw new Error(`arkhCoinLeaves: lib/arkh's ${g.key} has ${kids.length} sources, COIN_GROUPS has ${g.sources.length}`);
+    g.sources.forEach((id, k) => (leaves[id] = kids[k].val));
+  });
+  return { leaves, total };
+}
+
+const coinEntry = sectionCache("coin", coinEntryOf);
+
+/**
+ * Every Coin Multi source's `val` in lib/arkh's tree for character `ci` on `map`, by COIN_GROUPS source id (as the tree holds it: the
+ * percentage for a `pct` group, the bare value for `raw` and `min4`). Recombine with `applyGroupStep` over COIN_GROUPS from 1 to get
+ * lib/arkh's total. `save` as in arkhDamageLeaves.
+ */
+export const arkhCoinLeaves = (save: unknown, ci: number, map: number): Record<string, number> => coinEntry(save, ci, map).leaves;
+
+/** lib/arkh's own Coin Multi total (computeArkhCoinMulti(...).total): the oracle for the whole tree. */
+export const arkhCoinMulti = (save: unknown, ci: number, map: number): number => coinEntry(save, ci, map).total;
