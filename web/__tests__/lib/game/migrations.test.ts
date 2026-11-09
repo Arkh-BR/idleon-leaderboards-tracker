@@ -12,7 +12,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { basename } from "node:path";
 import { attr } from "@/lib/game/attr";
 import { block, makeCtx, type TraceNode } from "@/lib/game/ctx";
-import { MapAFKtarget } from "@/lib/game/data";
+import { MapAFKtarget, StatueInfo } from "@/lib/game/data";
 import { InvalidSaveValue, MissingSaveKey, OLDEST_GATE, UNPORTED_STEPS } from "@/lib/game/errors";
 import { DROP_RATE_RECORD, MIGRATIONS, migrate } from "@/lib/game/migrations";
 import { DNSM_TomeQTYtot } from "@/lib/game/njs/DNSM";
@@ -139,6 +139,21 @@ describe("the loader: an attribute it reads only from a save version keeps its i
     expect(short.migrations).toEqual(["MapBon padded to MapAFKtarget (initialize3 @6297857)"]);
     const full = MapAFKtarget.map((m) => (["Nothing", "Z"].includes(m as string) ? [0] : [1, 2, 3]));
     expect(buildGameState(env({ CSver: 34.05, MapBon: full })).migrations).toEqual([]);
+  });
+  it("pads every character's StatueLevels to StatueInfo with [0, 0] rows; a full list, or a save without it, is left alone", () => {
+    const short = buildGameState(env({ CSver: 34.05, StatueLevels_0: [[5, 1]] }));
+    const levels = short.data.StatueLevels_0 as number[][];
+    expect(levels).toHaveLength(StatueInfo.length);
+    expect(levels[0]).toEqual([5, 1]);
+    expect(levels[StatueInfo.length - 1]).toEqual([0, 0]);
+    expect(short.migrations).toEqual(["StatueLevels padded to StatueInfo (initialize1 @6200507)"]);
+    expect(buildGameState(env({ CSver: 34.05, StatueLevels_0: StatueInfo.map(() => [1, 0]) })).migrations).toEqual([]);
+    expect(buildGameState(env({ CSver: 34.05 })).migrations).toEqual([]);
+  });
+  it("AddNewStuff's KillsLeft2Advance: a null row is refused, as the game's `[m][n]` throws on it, and is no raw TypeError", () => {
+    const r = migrate({ KLA_0: [[0], null] }, {}, 1);
+    expect(r.refusal).toBeInstanceOf(MissingSaveKey);
+    expect(r.refusal).toMatchObject({ key: "KLA_0[1]" });
   });
   it("pads DungUpg to 7 lists (the Flurbo shop's 8 levels are DungUpg[5]); 7 lists, or an empty DungUpg (the unported fill), are left alone", () => {
     const short = buildGameState(env({ CSver: 34.05, DungUpg: [[1], [2], [3], [4], [5]] }));
@@ -392,6 +407,12 @@ describe.skipIf(!existsSync(NJS))("against the live N.js", () => {
     });
   }
 
+  it("initialize1's StatueLevels pad is the one ported", () => {
+    expect(compact(njsBlock(src, 'if(a.engine.getGameAttribute("PlayerDATABASE").h[""+n].h.StatueLevels.length<', "_customBlock_initialize1=function"))).toBe(
+      'if(PlayerDATABASE.h[""+n].h.StatueLevels.length<CustomLists.h.StatueInfo.length)for(d=0,f=Math.round(CustomLists.h.StatueInfo.length-PlayerDATABASE.h[""+n].h.StatueLevels.length);d<f;)d++,e=a.engine,b=[],e.gameAttributes.h.DummyList=b,DummyList.push(0),DummyList.push(0),PlayerDATABASE.h[""+n].h.StatueLevels.push(DummyList)'
+    );
+  });
+
   it("initialize2's DungUpg pads are the ones ported", () => {
     const init2 = "_customBlock_initialize2=function";
     const pad = (n: number) => compact(njsBlock(src, `${n}>a.engine.getGameAttribute("DungUpg").length&&`, init2));
@@ -485,7 +506,7 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("the real saves", () => {
       seen.set(group, [...(seen.get(group) ?? []), file].sort());
     }
     expect(Object.fromEntries(seen)).toEqual({
-      "CSver 23.05, DoOnceREAL 248.3: 46 steps": ["HourZero.json"],
+      "CSver 23.05, DoOnceREAL 248.3: 47 steps": ["HourZero.json"],
       "CSver 29.05, DoOnceREAL 340.1: 20 steps": ["5OhTree.json"],
       "CSver 30.05, DoOnceREAL 367.1: 15 steps": ["0celot8.json"],
       "CSver 32.05, DoOnceREAL 378.1: 10 steps": ["100Cotton.json", "100Cotton.json", "24632463.json", "Brokami.json", "Exrom.json", "GIM_SSS.json", "Pontinhas.json"],
