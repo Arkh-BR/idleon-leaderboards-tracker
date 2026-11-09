@@ -1,7 +1,9 @@
 // The game's own display of ArbitraryCode("MonsterCash") (N.js @11794100),
 // kept literal so the in-game validation compares like for like.
 
-import { logOf as getLOG } from "@/lib/game/njs/getLOG";
+// A local copy: this file is in the pages' static chunk, where nothing of lib/game's engine may go.
+// @njs _customBlock_getLOG
+const getLOG = (a: number): number => Math.log(Math.max(a, 1)) / 2.30259;
 
 // @njs _customBlock_NotateNumber
 /** N.js NotateNumber(d, "Big"): the generic ladder (ceil), then e-notation.

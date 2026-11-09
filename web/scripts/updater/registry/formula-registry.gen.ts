@@ -895,6 +895,7 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/game/njs/chipBonuses.ts"
   ],
   "_customBlock_getLOG": [
+    "lib/coinMulti/format.ts",
     "lib/game/njs/getLOG.ts",
     "lib/tome/math.ts"
   ],
