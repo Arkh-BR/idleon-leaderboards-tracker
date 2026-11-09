@@ -373,15 +373,18 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/game/njs/Holes.ts"
   ],
   "MultiKillTOTAL": [
-    "lib/arkh/stats/defs/multikill.ts"
+    "lib/arkh/stats/defs/multikill.ts",
+    "lib/game/njs/WorkbenchStuff.ts"
   ],
   "MultiKill_base": [
     "lib/arkh/stats/defs/multikill.ts",
-    "lib/arkh/stats/systems/multikill/multikill.ts"
+    "lib/arkh/stats/systems/multikill/multikill.ts",
+    "lib/game/njs/WorkbenchStuff.ts"
   ],
   "MultiKill_perTier": [
     "lib/arkh/stats/defs/multikill.ts",
-    "lib/arkh/stats/systems/multikill/multikill.ts"
+    "lib/arkh/stats/systems/multikill/multikill.ts",
+    "lib/game/njs/WorkbenchStuff.ts"
   ],
   "NightmarinerBon": [
     "lib/arkh/stats/systems/artifact/terms.ts",

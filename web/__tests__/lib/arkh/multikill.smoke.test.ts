@@ -55,10 +55,11 @@ describe("Multikill smoke test", () => {
   });
 
   it("registers the port under N.js's names for the updater", () => {
-    expect(FORMULA_REGISTRY["MultiKillTOTAL"]).toEqual(["lib/arkh/stats/defs/multikill.ts"]);
+    expect(FORMULA_REGISTRY["MultiKillTOTAL"]).toEqual(["lib/arkh/stats/defs/multikill.ts", "lib/game/njs/WorkbenchStuff.ts"]);
     expect(FORMULA_REGISTRY["MultiKill_perTier"]).toEqual([
       "lib/arkh/stats/defs/multikill.ts",
       "lib/arkh/stats/systems/multikill/multikill.ts",
+      "lib/game/njs/WorkbenchStuff.ts",
     ]);
   });
 });
