@@ -2,8 +2,8 @@
 // 1:1 port of corgan-source/js/stats/data/w7/gallery.js.
 // Builds NAMETAG_UQ / TROPHY_UQ / HAT_UQ indexes at module load by scanning ITEMS.
 
-import { ITEMS } from "../game/items.js";
-import { IDforETCbonus } from "../game/custommaps.js";
+import { ITEMS } from "@/lib/game/data/generated/items.js";
+import { IDforETCbonus } from "@/lib/game/data/generated/custommaps.js";
 
 type UqEntry = { stat: string; val: number };
 

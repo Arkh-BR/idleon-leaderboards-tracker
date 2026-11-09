@@ -11,7 +11,7 @@ import { getLOG } from "../../../formulas";
 import { optionsListData, currentMapData, numCharacters } from "../../../save/data";
 import { eventShopOwned, emporiumBonus } from "../../../game-helpers";
 import { label } from "../../entity-names";
-import { RANDOlist } from "../../data/game/customlists.js";
+import { RANDOlist } from "@/lib/game/data/generated/customlists.js";
 import { cropSCbonMulti } from "../w6/farming";
 import { vaultKillzTotal, cardsCollected } from "./accountKills";
 import { flurboShop } from "./flurbo";

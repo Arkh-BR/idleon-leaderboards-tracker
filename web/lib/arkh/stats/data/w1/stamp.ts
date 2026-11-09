@@ -1,7 +1,7 @@
 // ===== STAMP DATA (W1) =====
 // 1:1 port of corgan-source/js/stats/data/w1/stamp.js. Builds STAMP_DATA
 // from ITEMS.StampXN entries (e.g. StampA1 = "+{%_Drop_Rate,decay,3,80").
-import { ITEMS } from "../game/items.js";
+import { ITEMS } from "@/lib/game/data/generated/items.js";
 
 const CAT_MAP: Record<string, number> = { A: 0, B: 1, C: 2 };
 

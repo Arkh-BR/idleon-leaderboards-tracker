@@ -14,9 +14,9 @@
 
 import { writeFileSync } from "node:fs";
 import { resolve } from "node:path";
-import * as LISTS from "../lib/arkh/stats/data/game/customlists.js";
-import { ITEMS } from "../lib/arkh/stats/data/game/items.js";
-import { MONSTERS } from "../lib/arkh/stats/data/game/monsters.js";
+import * as LISTS from "@/lib/game/data/generated/customlists.js";
+import { ITEMS } from "@/lib/game/data/generated/items.js";
+import { MONSTERS } from "@/lib/game/data/generated/monsters.js";
 
 type Json = any;
 const L: Json = LISTS;

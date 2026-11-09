@@ -1,7 +1,7 @@
 // ===== MAP / COMBAT DATA =====
 // 1:1 port of corgan-source/js/stats/data/common/maps.js.
 
-import { MapDetails, MapAFKtarget } from "../game/customlists.js";
+import { MapDetails, MapAFKtarget } from "@/lib/game/data/generated/customlists.js";
 
 const _mapDetails = MapDetails as any[];
 const _mapAfk = MapAFKtarget as any[];

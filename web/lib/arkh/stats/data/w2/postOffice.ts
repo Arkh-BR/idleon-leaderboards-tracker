@@ -1,5 +1,5 @@
 // ===== POST OFFICE DATA =====
-import { PostOffUpgradeInfo } from "../game/customlists.js";
+import { PostOffUpgradeInfo } from "@/lib/game/data/generated/customlists.js";
 
 export type PostOfficeSlotParams = {
   x1: number;

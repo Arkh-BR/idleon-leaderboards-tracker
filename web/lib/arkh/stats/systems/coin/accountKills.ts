@@ -4,7 +4,7 @@
 import { mapKillReq } from "../../data/common/maps";
 import { klaData, numCharacters, cauldronInfoData } from "../../../save/data";
 import { getLOG } from "../../../formulas";
-import { CardStuff } from "../../data/game/customlists.js";
+import { CardStuff } from "@/lib/game/data/generated/customlists.js";
 import type { SaveData } from "../../../state";
 
 /** N.js: MapDetails[m][0][0] − KillsLeft2Advance[m][0], summed over every player. */

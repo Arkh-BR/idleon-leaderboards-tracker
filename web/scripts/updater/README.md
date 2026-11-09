@@ -16,8 +16,8 @@ Depois de rodar:
 
 ```bash
 # revise o relatório, o diff dos dados e (se usou --write-game-data) os game-data
-git diff web/data/njs-snapshot web/lib/arkh/stats/data/game
-git add web/data/njs-snapshot web/lib/arkh/stats/data/game && git commit -m "chore: bump game data"
+git diff web/data/njs-snapshot web/lib/game/data/generated
+git add web/data/njs-snapshot web/lib/game/data/generated && git commit -m "chore: bump game data"
 ```
 
 > **Depois do update, o site ficou diferente do jogo?** Siga
@@ -28,7 +28,7 @@ git add web/data/njs-snapshot web/lib/arkh/stats/data/game && git commit -m "cho
 ## Fechando o ciclo: `--write-game-data`
 
 As ferramentas Drop Rate / Talents leem dos arquivos commitados
-`web/lib/arkh/stats/data/game/{items,customlists}.js`. Com `--write-game-data`,
+`web/lib/game/data/generated/{items,customlists}.js`. Com `--write-game-data`,
 o updater **regenera** esses arquivos a partir do N.js live, fazendo um **merge**
 sobre os existentes (atualiza chaves, adiciona itens novos, nunca remove uma
 chave; em `customlists.js` emite só os nomes já presentes, o que filtra o ruído

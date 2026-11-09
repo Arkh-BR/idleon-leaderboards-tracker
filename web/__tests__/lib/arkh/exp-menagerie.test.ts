@@ -4,7 +4,7 @@
 import { describe, it, expect } from "vitest";
 import { computeArkhExpMulti } from "@/lib/arkh/computeExp";
 import { EXP_GROUPS } from "@/lib/arkh/stats/defs/exp-multi";
-import { RANDOlist, Research } from "@/lib/arkh/stats/data/game/customlists.js";
+import { RANDOlist, Research } from "@/lib/game/data/generated/customlists.js";
 
 const g = globalThis as unknown as { window?: unknown };
 if (!g.window) g.window = g;

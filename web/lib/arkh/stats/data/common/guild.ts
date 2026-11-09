@@ -1,5 +1,5 @@
 // ===== GUILD DATA =====
-import { GuildBonuses } from "../game/customlists.js";
+import { GuildBonuses } from "@/lib/game/data/generated/customlists.js";
 
 export type GuildBonusParams = {
   x1: number;

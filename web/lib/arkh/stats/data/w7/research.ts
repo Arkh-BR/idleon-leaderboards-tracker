@@ -6,7 +6,7 @@
 // fallback `|| 25` masked the bug — bonusPerLv was always 25 for every grid
 // node, which inflated glimbo (grid 168) and grid 173 massively.)
 
-import { Research, ResGridSquares } from "../game/customlists.js";
+import { Research, ResGridSquares } from "@/lib/game/data/generated/customlists.js";
 
 const _research = Research as any[];
 const _resGrid = ResGridSquares as any[][];

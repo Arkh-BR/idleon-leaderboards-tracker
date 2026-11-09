@@ -3,7 +3,7 @@ import { node, type ArkhNode } from "../../../node";
 import { gameLabel } from "../../entity-names";
 import { legendPTSbonus } from "./spelunking";
 import { legendTalentPerPt } from "../../data/w7/legendTalent";
-import { LegendTalents } from "../../data/game/customlists.js";
+import { LegendTalents } from "@/lib/game/data/generated/customlists.js";
 import type { SaveData } from "../../../state";
 
 type Ctx = { saveData: SaveData };

@@ -1,6 +1,6 @@
 // ===== CARD DATA =====
 // 1:1 port of corgan-source/js/stats/data/common/cards.js.
-import { CardStuff } from "../game/customlists.js";
+import { CardStuff } from "@/lib/game/data/generated/customlists.js";
 
 export const CARD_BASE_REQ: Record<string, number> = {};
 export const CARD_BONUS: Record<string, { desc: string; val: number }> = {};

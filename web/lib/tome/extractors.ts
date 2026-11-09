@@ -19,7 +19,7 @@ import { getBribeBonus } from "../arkh/stats/systems/w3/bribe";
 import { fractalIslandBonus } from "../arkh/stats/systems/artifact/terms";
 import { vaultUpgBonus } from "../arkh/stats/systems/common/vault";
 import { companions } from "../arkh/stats/systems/common/companions";
-import { CardStuff, DeathNoteMobs, PetStats } from "../arkh/stats/data/game/customlists.js";
+import { CardStuff, DeathNoteMobs, PetStats } from "@/lib/game/data/generated/customlists.js";
 import { menagerieUnlockOwned } from "../arkh/stats/data/w7/menagerie";
 import type { SaveData } from "../arkh/state";
 

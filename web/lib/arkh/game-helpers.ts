@@ -2,7 +2,7 @@
 // 1:1 port of corgan-source/js/game-helpers.js. Pure lookup functions
 // (event shop, super-bits, emporium, ribbon, cloud bonus).
 
-import { N2L } from "./stats/data/game/hardcoded.js";
+import { N2L } from "@/lib/game/data/generated/hardcoded.js";
 import { EMPEROR_SET_BONUS_VAL } from "./stats/data/common/emperor";
 
 export function eventShopOwned(t: number, eventShopStr: string): number {

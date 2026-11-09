@@ -14,7 +14,7 @@ import {
   holesMeasBase,
   holesMonBonus,
 } from "../../data/w5/hole";
-import { HolesInfo } from "../../data/game/customlists.js";
+import { HolesInfo } from "@/lib/game/data/generated/customlists.js";
 import { HOLE_MULTIPLIERS } from "../../data/game-constants";
 import { fountainBonusTotal } from "../../data/w5/fountain";
 import type { SaveData } from "../../../state";

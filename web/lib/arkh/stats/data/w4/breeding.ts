@@ -1,7 +1,7 @@
 // ===== BREEDING DATA =====
 // 1:1 port of corgan-source/js/stats/data/w4/breeding.js.
-import { PetStats as _PetStats, RANDOlist } from "../game/customlists.js";
-import { MONSTERS } from "../game/monsters.js";
+import { PetStats as _PetStats, RANDOlist } from "@/lib/game/data/generated/customlists.js";
+import { MONSTERS } from "@/lib/game/data/generated/monsters.js";
 
 const _petStatsArr = _PetStats as any[][];
 const _monsters = MONSTERS as Record<string, any>;

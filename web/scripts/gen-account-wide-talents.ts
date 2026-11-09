@@ -13,7 +13,7 @@
 
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { TalentIconNames } from "../lib/arkh/stats/data/game/customlists.js";
+import { TalentIconNames } from "@/lib/game/data/generated/customlists.js";
 
 const NJS = resolve(__dirname, "updater", ".cache", "N.new.js");
 const OUT = resolve(__dirname, "..", "lib", "arkh", "stats", "data", "common", "account-wide-talents.gen.ts");

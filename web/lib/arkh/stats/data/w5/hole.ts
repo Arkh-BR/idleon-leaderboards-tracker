@@ -1,5 +1,5 @@
 // ===== HOLE DATA =====
-import { HolesInfo, CosmoUpgrades } from "../game/customlists.js";
+import { HolesInfo, CosmoUpgrades } from "@/lib/game/data/generated/customlists.js";
 
 export function holesMeasBase(idx: number): string | undefined {
   return (HolesInfo as any)[55]?.[idx];

@@ -5,7 +5,7 @@ import { node, treeResult, type ArkhNode, type TreeResult } from "../../../node"
 import { gameName, label } from "../../entity-names";
 import { optionsListData, equipOrderData } from "../../../save/data";
 import { equipSetBonus } from "../../data/common/equipment";
-import { EquipmentSets } from "../../data/game/custommaps.js";
+import { EquipmentSets } from "@/lib/game/data/generated/custommaps.js";
 import type { SaveData } from "../../../state";
 
 type Ctx = { saveData: SaveData; charIdx: number };

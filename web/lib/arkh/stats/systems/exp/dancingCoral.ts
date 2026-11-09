@@ -4,7 +4,7 @@
 // (the b,999 call is the per-level base Spelunky[24][b]). TowerInfo is the
 // save's "Tower" list (N.js load: getLoadJsonList("Tower") → TowerInfo,
 // @19714164; loader towerData).
-import { Spelunky } from "../../data/game/customlists.js";
+import { Spelunky } from "@/lib/game/data/generated/customlists.js";
 import type { SaveData } from "../../../state";
 
 export function dancingCoralTower(idx: number, s: SaveData): number {

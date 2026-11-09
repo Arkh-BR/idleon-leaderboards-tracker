@@ -19,8 +19,8 @@
 import { node, type ArkhNode } from "../../../node";
 import type { SystemCtx } from "../../registry";
 import { getLOG } from "../../../formulas";
-import { ITEMS } from "../../data/game/items.js";
-import { AlchemyDescription, AtomInfo, GodsInfo, GrimoireUpg, RANDOlist } from "../../data/game/customlists.js";
+import { ITEMS } from "@/lib/game/data/generated/items.js";
+import { AlchemyDescription, AtomInfo, GodsInfo, GrimoireUpg, RANDOlist } from "@/lib/game/data/generated/customlists.js";
 import { charClassData, divinityData, dreamData, emmData, equipOrderData, optionsListData } from "../../../save/data";
 import { entityName, label } from "../../entity-names";
 import damageDesc, { dmgMax, type ValsOf } from "../../defs/damage";

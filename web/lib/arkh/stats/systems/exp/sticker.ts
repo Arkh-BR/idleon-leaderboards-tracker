@@ -5,7 +5,7 @@
 // Research[9] = stickers found per type. Grid_Bonus(68,2) (@11085384, the
 // b∈{67,68,107} arm) = Grid_Bonus(68,0) · Research[11].length — Boony Crowns'
 // per-crown % times the King Rat crowns reclaimed.
-import { Research } from "../../data/game/customlists.js";
+import { Research } from "@/lib/game/data/generated/customlists.js";
 import { eventShopOwned, superBitType } from "../../../game-helpers";
 import { menagerieUnlockOwned } from "../../data/w7/menagerie";
 import { gridBonusValue } from "../w4/lab";

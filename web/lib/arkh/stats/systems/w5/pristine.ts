@@ -5,7 +5,7 @@
 import { node, type ArkhNode } from "../../../node";
 import { gameLabel, gameName } from "../../entity-names";
 import { pristineCharmBonus } from "../../data/common/sigils";
-import { NjEQ } from "../../data/game/custommaps.js";
+import { NjEQ } from "@/lib/game/data/generated/custommaps.js";
 import type { SaveData } from "../../../state";
 
 // Name = the game's charm item NjEQ["NjTrP" + id][2] ("Jellypick"), the

@@ -19,11 +19,11 @@ import { exoticBonusQTY } from "../../data/w5/farming";
 import { compassUpgPerLevel } from "../../data/common/compass";
 import { rogBonusQTY, rogLabel } from "../w7/sushi";
 import { legendLabel } from "../w7/legend";
-import { AtomInfo, CompassUpg, MarketExoticInfo } from "../../data/game/customlists.js";
+import { AtomInfo, CompassUpg, MarketExoticInfo } from "@/lib/game/data/generated/customlists.js";
 import { jellyLabel, jellyRoGBonus } from "../../data/w7/jelly";
 import { jellyRoGNode } from "../w7/jelly";
 import { STAMP_DATA } from "../../data/w1/stamp";
-import { ITEMS } from "../../data/game/items.js";
+import { ITEMS } from "@/lib/game/data/generated/items.js";
 import type { SaveData } from "../../../state";
 
 type Ctx = { saveData: SaveData };

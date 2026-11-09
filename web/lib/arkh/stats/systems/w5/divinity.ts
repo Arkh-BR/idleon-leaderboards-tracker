@@ -11,7 +11,7 @@
 //   5. Normal assignment: divinityData[playerIdx + 12]
 
 import { godsType } from "../../data/w4/gods";
-import { GodsInfo } from "../../data/game/customlists.js";
+import { GodsInfo } from "@/lib/game/data/generated/customlists.js";
 import { emporiumBonus } from "../../../game-helpers";
 import { divinityData, optionsListData, skillLvData } from "../../../save/data";
 import type { SaveData } from "../../../state";

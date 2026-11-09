@@ -4,7 +4,7 @@
 // mastery ranks; RiftSkillETC sums the per-skill bonuses one stat reads.
 // "eclipseSkulls" and "KillroyDMG" are Max damage's two Rift factors.
 import { numCharacters } from "../../../save/data";
-import { DeathNoteMobs, MapAFKtarget } from "../../data/game/customlists.js";
+import { DeathNoteMobs, MapAFKtarget } from "@/lib/game/data/generated/customlists.js";
 import { accountMapKills } from "../coin/accountKills";
 import { deathNoteRank } from "../coin/gambit";
 import type { SaveData } from "../../../state";

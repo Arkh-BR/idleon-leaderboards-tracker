@@ -11,7 +11,7 @@ import { node, type ArkhNode } from "../../../node";
 import type { SystemCtx } from "../../registry";
 import { optionsListData, currentMapData } from "../../../save/data";
 import { label } from "../../entity-names";
-import { RandoListo2 } from "../../data/game/customlists.js";
+import { RandoListo2 } from "@/lib/game/data/generated/customlists.js";
 import { MK_NODES, MK_RULES } from "../../defs/multikill";
 import { talent } from "../common/talent";
 import { etcBonus } from "../common/etcBonus";

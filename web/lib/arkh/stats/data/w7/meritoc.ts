@@ -1,5 +1,5 @@
 // ===== MERITOC DATA =====
-import { NinjaInfo } from "../game/customlists.js";
+import { NinjaInfo } from "@/lib/game/data/generated/customlists.js";
 
 export const MERITOC_BASE: number[] = [];
 const _ni41 = (NinjaInfo as any)[41] as any[];

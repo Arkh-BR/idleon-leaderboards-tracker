@@ -7,7 +7,7 @@ import {
   ClassAccountBonus,
   ClassPromotionChoices,
   ClassNames,
-} from "../game/customlists.js";
+} from "@/lib/game/data/generated/customlists.js";
 
 // Build CLASS_TREES from ClassPromotionChoices: each class maps to its talent
 // tab chain. Walk backward (child → parent) to build inheritance.

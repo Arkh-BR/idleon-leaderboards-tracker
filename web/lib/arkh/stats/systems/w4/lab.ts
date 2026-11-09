@@ -18,9 +18,9 @@ import { cloudBonus, emporiumBonus } from "../../../game-helpers";
 import { companionBonus } from "../../data/common/companions";
 import { companionChild } from "../common/companions";
 import { rogBonusQTY } from "../w7/sushi";
-import { ChipDesc, ResGridSquares } from "../../data/game/customlists.js";
+import { ChipDesc, ResGridSquares } from "@/lib/game/data/generated/customlists.js";
 import { labJewelUnlocked } from "../../../save/helpers";
-import { MapAFKtarget } from "../../data/game/customlists.js";
+import { MapAFKtarget } from "@/lib/game/data/generated/customlists.js";
 import { accountMapKills } from "../coin/accountKills";
 import type { SaveData } from "../../../state";
 

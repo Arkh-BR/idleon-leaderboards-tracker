@@ -6,7 +6,7 @@
 // i.e. the count of RANDOlist[115] waves the Crucible's best wave (OLA[628])
 // has reached, only once Menagerie Unlock 8 is bought.
 // ponytail: lives with EXP (its first caller); move to w4/ when another stat needs it.
-import { RANDOlist } from "../../data/game/customlists.js";
+import { RANDOlist } from "@/lib/game/data/generated/customlists.js";
 import { optionsListData } from "../../../save/data";
 import { menagerieUnlockOwned } from "../../data/w7/menagerie";
 import type { SaveData } from "../../../state";

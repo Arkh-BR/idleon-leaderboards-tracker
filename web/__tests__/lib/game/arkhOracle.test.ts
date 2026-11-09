@@ -18,7 +18,7 @@ import { MK_POOLS, mkTotal } from "@/lib/arkh/stats/defs/multikill";
 import { computeArkhDropRateV2 } from "@/lib/arkh/computeDropRateV2";
 import { DR2_GROUPS } from "@/lib/arkh/stats/defs/drop-rate-v2";
 import { medallionList } from "@/lib/arkh/stats/systems/exp/medallions";
-import { MapAFKtarget } from "@/lib/arkh/stats/data/game/customlists.js";
+import { MapAFKtarget } from "@/lib/game/data/generated/customlists.js";
 import { loadSaveData } from "@/lib/arkh/save/loader";
 import { saveData } from "@/lib/arkh/state";
 import { formatGameValue } from "@/lib/readings/format";

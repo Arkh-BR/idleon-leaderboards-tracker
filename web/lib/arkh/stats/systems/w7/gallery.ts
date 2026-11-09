@@ -6,7 +6,7 @@
 import { node, type ArkhNode } from "../../../node";
 import { label } from "../../entity-names";
 import { optionsListData, numCharacters, labData, klaData } from "../../../save/data";
-import { ITEMS } from "../../data/game/items.js";
+import { ITEMS } from "@/lib/game/data/generated/items.js";
 import { computeCardLv } from "../common/cards";
 import { NAMETAG_TIER_SCALE } from "../../data/common/nametag";
 import {

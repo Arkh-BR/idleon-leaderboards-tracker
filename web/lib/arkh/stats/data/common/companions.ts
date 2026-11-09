@@ -7,7 +7,7 @@
 // CompanionDB[id][2] (the loop right after `g.h.CompanionLVz=r` in the bundle;
 // _customBlock_Companions just reads that map). Callers that know the save pass
 // its `companionLv2Ids` so the stage-2 value is used.
-import { CompanionDB } from "../game/customlists.js";
+import { CompanionDB } from "@/lib/game/data/generated/customlists.js";
 
 // @njs _customBlock_Companions
 export function companionBonus(idx: number, lv2Ids?: Set<number> | null): number {

@@ -2,7 +2,7 @@
 // indexed by position, not by name. If you re-sync from the .gs, paste the
 // raw arrays verbatim.
 
-import { CardStuff, DeathNoteMobs, MapAFKtarget, RANDOlist } from "../arkh/stats/data/game/customlists.js";
+import { CardStuff, DeathNoteMobs, MapAFKtarget, RANDOlist } from "@/lib/game/data/generated/customlists.js";
 
 // 124 tome tasks in the EXACT order they appear in-game and on the IT website
 // (NinjaInfo[32] is the game's display→compute map). The 2026-08 Royal

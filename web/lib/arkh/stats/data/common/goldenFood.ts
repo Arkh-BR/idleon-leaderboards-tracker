@@ -1,6 +1,6 @@
 // ===== GOLDEN FOOD DATA =====
 // 1:1 port of corgan-source/js/stats/data/common/goldenFood.js.
-import { ITEMS } from "../game/items.js";
+import { ITEMS } from "@/lib/game/data/generated/items.js";
 
 export const GOLD_FOOD_DR: Record<string, number> = {};
 

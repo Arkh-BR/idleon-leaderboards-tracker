@@ -4,7 +4,7 @@
 // re-exports it for Coin, EXP and AFK.
 import { node, type ArkhNode } from "../../../node";
 import { formulaEval } from "../../../formulas";
-import { DungPassiveStats2 } from "../../data/game/customlists.js";
+import { DungPassiveStats2 } from "@/lib/game/data/generated/customlists.js";
 import type { SaveData } from "../../../state";
 
 /** N.js FlurboShop(idx) (@7827791): DungPassiveStats2[idx] at level

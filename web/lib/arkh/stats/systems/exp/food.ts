@@ -14,7 +14,7 @@
 // Only Health/Boosts/Forge/OreRedux effects would need that multiplier
 // ported before they could call this helper.
 import { equipOrderData, equipQtyData } from "../../../save/data";
-import { ITEMS } from "../../data/game/items.js";
+import { ITEMS } from "@/lib/game/data/generated/items.js";
 import type { SaveData } from "../../../state";
 
 export function foodSlotsOwned(s: SaveData): number {

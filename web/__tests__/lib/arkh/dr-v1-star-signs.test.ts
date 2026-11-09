@@ -5,7 +5,7 @@ import { describe, it, expect } from "vitest";
 import { loadSaveData } from "@/lib/arkh/save/loader";
 import { saveData } from "@/lib/arkh/state";
 import { starSign } from "@/lib/arkh/stats/systems/common/starSign";
-import { StarSigns } from "@/lib/arkh/stats/data/game/customlists.js";
+import { StarSigns } from "@/lib/game/data/generated/customlists.js";
 
 const g = globalThis as unknown as { window?: unknown };
 if (!g.window) g.window = g;

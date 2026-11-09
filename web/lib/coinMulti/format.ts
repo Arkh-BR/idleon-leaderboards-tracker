@@ -1,7 +1,7 @@
 // The game's own display of ArbitraryCode("MonsterCash") (N.js @11794100),
 // kept literal so the in-game validation compares like for like.
 
-import { getLOG } from "@/lib/arkh/formulas";
+import { logOf as getLOG } from "@/lib/game/njs/getLOG";
 
 // @njs _customBlock_NotateNumber
 /** N.js NotateNumber(d, "Big"): the generic ladder (ceil), then e-notation.

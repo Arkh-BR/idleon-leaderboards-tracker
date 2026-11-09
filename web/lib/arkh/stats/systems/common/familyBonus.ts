@@ -10,7 +10,7 @@
 
 import { node, type ArkhNode } from "../../../node";
 import { familyBonusParams } from "../../data/common/talent";
-import { ClassNames } from "../../data/game/customlists.js";
+import { ClassNames } from "@/lib/game/data/generated/customlists.js";
 import { charClassData, numCharacters } from "../../../save/data";
 import { formulaEval } from "../../../formulas";
 import { computeFamBonusQTYs } from "./stats";

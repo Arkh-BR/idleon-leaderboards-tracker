@@ -1,6 +1,6 @@
 // ===== W7 SUMMON DATA =====
 // 1:1 port of corgan-source/js/stats/data/w7/summon.js.
-import { SummonEnemies } from "../game/customlists.js";
+import { SummonEnemies } from "@/lib/game/data/generated/customlists.js";
 
 const _summonEnemies = SummonEnemies as any[][];
 
