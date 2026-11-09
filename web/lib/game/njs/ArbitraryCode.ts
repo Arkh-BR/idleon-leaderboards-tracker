@@ -73,6 +73,13 @@ function statueBonusGiven(ctx: Ctx, n: number): number {
 export const ArbitraryCode: (ctx: Ctx, d: string) => number = block("ArbitraryCode", (ctx, d: string) => {
   if ("StatueBonusGiven" == d.substring(0, 16)) return statueBonusGiven(ctx, Math.round(asNumber(d.substring(16, d.length))));
   switch (d) {
+    // @4043878: how many statues are Onyx (StatueG[n] >= 2), 0 while OptionsListAccount[69], the highest statue tier unlocked, is below 2
+    case "StatueOnyxOwned": {
+      if (2 > asNum(ctx, "OptionsListAccount", 69)) return 0;
+      let n = 0; // DNSM.StatueOnyxOwned
+      for (let e = 0, b = listAt(ctx, "StatueG").length; e < b; e++) if (2 <= asNum(ctx, "StatueG", e)) n = n + 1;
+      return n;
+    }
     // @4047005: the Coin multi of a monster's drop, "Total Coin Bonus from all sources" (Upgrade Vault, upgrade 2): the Cash bubbles, the 21 factors after them, the additive pool last.
     // The pool's guild term and TalentCalc(643), the multikill tier against the AFK target, are the two terms that read CurrentMap
     case "MonsterCash":
@@ -170,6 +177,7 @@ export const ArbitraryCode: (ctx: Ctx, d: string) => number = block("ArbitraryCo
 
 /** What this module covers (lib/game/ported.ts). */
 export const PORTED: Ported = {
+  StatueOnyxOwned: true,
   MonsterCash: true,
   AllStat: true,
   AllStatPCT: true,

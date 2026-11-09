@@ -67,3 +67,18 @@ describe("GetBuffBonuses 45, 46 and 469 (@4279371)", () => {
     expect(() => GetBuffBonuses(synth({ CharacterClass_0: 4, BuffsActive_0: [] }), 40, 2)).toThrow(NotPorted);
   });
 });
+
+describe('ArbitraryCode("StatueOnyxOwned") @4043878', () => {
+  const g = (o: number, list: number[]) => ArbitraryCode(synth({ OptLacc: ola({ 69: o }), StuG: list }), "StatueOnyxOwned");
+  it("counts the statues at tier 2 or above", () => {
+    expect(g(2, [0, 1, 2, 3, 2])).toBe(3);
+    expect(g(3, [3, 3])).toBe(2);
+  });
+  it("is 0 while OptionsListAccount[69] is below 2, whatever the statues are", () => {
+    expect(g(1, [2, 3, 2])).toBe(0);
+    expect(g(0, [2])).toBe(0);
+  });
+  it("counts none on an account whose statues are all below tier 2", () => {
+    expect(g(2, [0, 1, 1])).toBe(0);
+  });
+});

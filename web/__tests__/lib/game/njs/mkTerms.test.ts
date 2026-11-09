@@ -45,6 +45,7 @@ const TERMS: Record<string, (c: Ctx) => number> = {
   ach148: (c) => Math.min(5, AchieveStatus(c, 148)),
   ach122: (c) => 6 * AchieveStatus(c, 122),
   ach123: (c) => 2 * AchieveStatus(c, 123),
+  talent654: (c) => ArbitraryCode(c, "StatueOnyxOwned") * GetTalentNumber(c, 1, 654),
   // MultiKill_perTier @7805748
   vialOverkill: (c) => DNSM_AlchVials(c, "Overkill"),
   buff46: (c) => GetBuffBonuses(c, 46, 2),
