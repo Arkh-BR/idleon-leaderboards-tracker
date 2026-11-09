@@ -15,7 +15,7 @@ import {
   sourceBase,
   yellowTotal,
   type MasteryInputs,
-} from "../arkh/stats/systems/common/cookingMastery";
+} from "./mastery";
 
 export type RoiRow = {
   id: number;
