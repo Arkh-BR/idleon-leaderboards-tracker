@@ -99,13 +99,15 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/game/njs/RunCodeOfTypeXforThingY.ts"
   ],
   "CardsCollected": [
-    "lib/arkh/stats/systems/coin/accountKills.ts"
+    "lib/arkh/stats/systems/coin/accountKills.ts",
+    "lib/game/njs/Stuff2.ts"
   ],
   "ClamWorkBonus": [
     "lib/game/njs/Thingies.ts"
   ],
   "Clamz_HP": [
-    "lib/arkh/stats/systems/common/overkill.ts"
+    "lib/arkh/stats/systems/common/overkill.ts",
+    "lib/game/njs/Thingies.ts"
   ],
   "ClassFamilyBonuses[16]": [
     "lib/arkh/stats/systems/common/familyBonus.ts"
@@ -223,16 +225,24 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/game/njs/Gallery.ts"
   ],
   "GambitBonuses": [
-    "lib/arkh/stats/systems/coin/gambit.ts"
+    "lib/arkh/stats/systems/coin/gambit.ts",
+    "lib/game/njs/Holes.ts",
+    "lib/game/njs/Holes2.ts"
   ],
   "GambitPTSmulti": [
-    "lib/arkh/stats/systems/coin/gambit.ts"
+    "lib/arkh/stats/systems/coin/gambit.ts",
+    "lib/game/njs/Holes.ts",
+    "lib/game/njs/Holes2.ts"
   ],
   "GambitPts": [
-    "lib/arkh/stats/systems/coin/gambit.ts"
+    "lib/arkh/stats/systems/coin/gambit.ts",
+    "lib/game/njs/Holes.ts",
+    "lib/game/njs/Holes2.ts"
   ],
   "GambitPtsREQ": [
-    "lib/arkh/stats/systems/coin/gambit.ts"
+    "lib/arkh/stats/systems/coin/gambit.ts",
+    "lib/game/njs/Holes.ts",
+    "lib/game/njs/Holes2.ts"
   ],
   "GlimboDRmulti": [
     "lib/game/njs/Minehead.ts"
@@ -286,6 +296,10 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   ],
   "InitializeTrophyBonuses": [
     "lib/game/njs/Gallery.ts"
+  ],
+  "JarCollectibleBonus": [
+    "lib/game/njs/Holes.ts",
+    "lib/game/njs/Holes2.ts"
   ],
   "KillroyBonuses": [
     "lib/arkh/stats/systems/artifact/terms.ts",
@@ -344,10 +358,12 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/game/njs/Summoning2.ts"
   ],
   "MonsterCash": [
-    "lib/arkh/stats/systems/coin/coin.ts"
+    "lib/arkh/stats/systems/coin/coin.ts",
+    "lib/game/njs/ArbitraryCode.ts"
   ],
   "MonsterRespawnTimeReset": [
-    "lib/arkh/stats/systems/common/overkill.ts"
+    "lib/arkh/stats/systems/common/overkill.ts",
+    "lib/game/njs/RunCodeOfTypeXforThingY.ts"
   ],
   "MonumentROGbonuses": [
     "lib/arkh/stats/systems/exp/exp.ts",
@@ -384,7 +400,8 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/game/njs/WorkbenchStuff.ts"
   ],
   "OverkillStuffs": [
-    "lib/arkh/stats/systems/common/overkill.ts"
+    "lib/arkh/stats/systems/common/overkill.ts",
+    "lib/game/njs/RunCodeOfTypeXforThingY.ts"
   ],
   "PaletteBonus": [
     "lib/arkh/stats/systems/w7/spelunking.ts",
@@ -504,6 +521,10 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   "StickerDMGmulti": [
     "lib/arkh/stats/systems/w6/farming.ts",
     "lib/game/njs/FarmingStuffs.ts"
+  ],
+  "StudyBolaiaBonuses": [
+    "lib/game/njs/Holes.ts",
+    "lib/game/njs/Holes2.ts"
   ],
   "SumStoneTrialz": [
     "lib/game/njs/Thingies.ts"
@@ -887,6 +908,9 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   ],
   "isBubbleSuperr": [
     "lib/game/njs/CauldronStats.ts"
+  ],
+  "mobHP": [
+    "lib/game/njs/RiftStuff.ts"
   ],
   "riftBonus": [
     "lib/game/njs/RiftStuff.ts"

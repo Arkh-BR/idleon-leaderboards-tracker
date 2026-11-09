@@ -1,17 +1,20 @@
 import { asNum, asNumber, attr } from "../attr";
 import { block, type Ctx } from "../ctx";
-import { CardStuff } from "../data";
-import { NotPorted } from "../errors";
+import { afkTarget } from "../afkTarget";
+import { CardStuff, MONSTERS } from "../data";
+import { InvalidSaveValue, NotPorted } from "../errors";
 import { hString } from "../hstring";
 import { contains, listAt } from "../lists";
 import { AchieveStatus } from "./AchieveStatus";
 import { ArcaneType } from "./ArcaneType";
 import { Companions } from "./Companions";
+import { DamageDealed } from "./DamageDealed";
 import { Divinity } from "./Divinity";
 import { DNSM_FamBonusQTYs } from "./DNSM";
 import { GamingStatType } from "./GamingStatType";
 import { GetSetBonus } from "./GetSetBonus";
 import { GetTalentNumber } from "./GetTalentNumber";
+import { prayersReal } from "./prayersReal";
 import { RiftStuff } from "./RiftStuff";
 import { RoyalG } from "./RoyalG";
 import { Spelunk } from "./Spelunk";
@@ -36,10 +39,46 @@ export const RunCodeOfTypeXforThingY: (ctx: Ctx, d: string, b: string) => number
     case "AllTalentLV":
     case "AllTalentLVz":
       return allTalentLV(ctx, d, b, () => DNSM_FamBonusQTYs(ctx, "68"));
+    case "OverkillStuffs":
+      return overkillStuffs(ctx, b);
     default:
       throw new NotPorted("RunCodeOfTypeXforThingY", d);
   }
 });
+
+// @njs MonsterRespawnTimeReset
+/**
+ * The HP of the monster the character is AFK on, `MonsterDefinitionsGET[AFKtarget].MonsterHPTotal` (Rulings V and GG: lib/game/afkTarget.ts). The table is the
+ * game data as `performETCaction("MonsterRespawnTimeReset")` @6508363 leaves it (each scene load runs it, @15305666): every monster's HP times
+ * 1 + (the curses of the prayers 0, 7 and 8) / 100 when any is not 0, then the Clamworks clam's set to Thingies("Clamz_HP"), so the clam is never cursed.
+ * The table it copies has the Rift's monster at RiftStuff("mobHP", 0): the Rift scene writes it there (@20359437) before a character can be AFK on it, so it is cursed like the others.
+ * The game would throw on a target the table does not have ("Z", "Filler", ...).
+ */
+function monsterHPTotal(ctx: Ctx): number {
+  const target = afkTarget(ctx);
+  const mob = (MONSTERS as Record<string, Readonly<Record<string, unknown>>>)[target];
+  if (!mob) throw new InvalidSaveValue("AFKtarget", "a MonsterDefinitions key", target);
+  if ("w7a6" == target) return Thingies(ctx, "Clamz_HP", 0, 0);
+  const hp = "riftAll" == target ? RiftStuff(ctx, "mobHP", 0) : asNumber(mob.MonsterHPTotal);
+  if (0 != prayersReal(ctx, 0, 1) || 0 != prayersReal(ctx, 7, 1) || 0 != prayersReal(ctx, 8, 1)) return hp * (1 + (prayersReal(ctx, 0, 1) + (prayersReal(ctx, 7, 1) + prayersReal(ctx, 8, 1))) / 100);
+  return hp;
+}
+
+/**
+ * `OverkillStuffs` @4095676 for b == "2", the multikill tier on the AFK target: 1, and f + 2 for every step f < 50 the Max damage reaches (HP x E^(f + 2), in
+ * N.js's order HP x E x E^(f + 1)), stopping at the first it does not, so at most 51. E (DNSM.OverkillEXPONENT) is 5 from map 300 on, else 2. There is no
+ * check of the kind of map: a town or a dungeon whose target the table has counts like any other.
+ */
+function overkillStuffs(ctx: Ctx, b: string): number {
+  if ("2" != b) throw new NotPorted("RunCodeOfTypeXforThingY", `OverkillStuffs:b=${b}`); // N.js: `2 == c.asNumber(b)`; every caller passes a literal string
+  const exponent = 300 <= ctx.map ? 5 : 2; // DNSM.OverkillEXPONENT
+  let tier = 1; // DNSM.S2Nz4
+  for (let f = 0; 50 > f; f++) {
+    if (DamageDealed(ctx, "Max") >= monsterHPTotal(ctx) * exponent * Math.pow(exponent, f + 1)) tier = f + 2;
+    else break;
+  }
+  return tier;
+}
 
 /**
  * The card info map, `ActorEvents_312`'s `GenINFO[45]`: the actor's create @7493547 maps every card name `CardStuff[g][q][0]` to its
@@ -123,4 +162,4 @@ export function allTalentLV(ctx: Ctx, d: string, b: string, fam68: () => number)
 }
 
 /** What this module covers (lib/game/ported.ts). */
-export const PORTED: Ported = { CardLv: true, TalentBannedforAllLV: true, AllTalentLV: true, AllTalentLVz: true };
+export const PORTED: Ported = { CardLv: true, TalentBannedforAllLV: true, AllTalentLV: true, AllTalentLVz: true, OverkillStuffs: ["2"] };

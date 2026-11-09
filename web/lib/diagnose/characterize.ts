@@ -127,6 +127,9 @@ export const EXP_REFUSABLE = DAMAGE_REFUSABLE;
 /** Drop Rate V2's list: Damage's too (the DR reads the Tome-scored sources; HourZero is refused for its Tome rows, as for EXP). */
 export const DR_REFUSABLE = DAMAGE_REFUSABLE;
 
+/** Coin Multi's list: Damage's too (the block's first read, TotalStats("STR"), carries the Tome rows HourZero is refused for). */
+export const COIN_REFUSABLE = DAMAGE_REFUSABLE;
+
 /**
  * `known` is the oracle's KNOWN_ARKH_DIFFS ({save: file name, ci?: omitted = every character}); `csver` is the save's `data.CSver`.
  * A diff-list entry explains a difference of numbers only, never an error, and only the `b` (lib/game) side can refuse.

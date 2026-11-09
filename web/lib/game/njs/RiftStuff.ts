@@ -8,12 +8,17 @@ import { Breeding } from "./Breeding";
 import { WorkbenchStuff } from "./WorkbenchStuff";
 import type { Ported } from "../ported";
 
-/** N.js `_customBlock_RiftStuff(d, b)` @10789971. Only the sub-cases the Artifact Find port and Damage reach. */
+/** N.js `_customBlock_RiftStuff(d, b)` @10789971. Only the sub-cases the Artifact Find port, Damage and Coin reach. */
 export const RiftStuff = block("RiftStuff", (ctx, d: string, b: number) => {
   // @10796299: `0 == d.indexOf("RiftSkillBonus")`, a name with the skill after a comma ("RiftSkillBonus,<f>"): 0 below Rift 15, else 1
   // when the account's rank in skill f (skillLvRanks) is above b
   if (0 == d.indexOf("RiftSkillBonus")) return 15 > rift(ctx) ? 0 : skillLvRanks(ctx)[asNumber(d.split(",")[1]) | 0] > b ? 1 : 0;
   switch (d) {
+    // @10790146: the Rift monster's HP at the account's Rift level r: 5e6 x (1.11 + .02 min(1, r / 10) + .08 min(1, max(0, r - 10) / 20) + .18 min(1, max(0, r - 20) / 23))^r
+    case "mobHP": {
+      const r = rift(ctx);
+      return 5e6 * Math.pow(1.11 + 0.02 * Math.min(1, r / 10) + (0.08 * Math.min(1, Math.max(0, r - 10) / 20) + 0.18 * Math.min(1, Math.max(0, r - 20) / 23)), r);
+    }
     // @10791380: how many star signs the Rift lets the account run without wearing them: none below Rift 10, else 5 + the Breeding's
     // Shiny bonus 3
     case "enabledStarSigns":
@@ -111,4 +116,4 @@ function riftSkillETC(ctx: Ctx, b: number): number {
 }
 
 /** What this module covers (lib/game/ported.ts). `"()"` is the call with a computed name, RiftSkillETC's `"RiftSkillBonus,<f>"`. */
-export const PORTED: Ported = { enabledStarSigns: true, "5starCards": true, riftBonus: true, KillroyDMG: true, eclipseSkulls: true, RiftSkillETC: [0] /* 2: only SkillStats AllEfficiencies (unreached.ts) */, "()": ["RiftSkillBonus,0"] };
+export const PORTED: Ported = { mobHP: true, enabledStarSigns: true, "5starCards": true, riftBonus: true, KillroyDMG: true, eclipseSkulls: true, RiftSkillETC: [0] /* 2: only SkillStats AllEfficiencies (unreached.ts) */, "()": ["RiftSkillBonus,0"] };

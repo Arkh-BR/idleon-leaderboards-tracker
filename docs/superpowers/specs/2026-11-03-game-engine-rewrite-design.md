@@ -312,3 +312,23 @@ Registro do que foi decidido ao migrar o Drop Rate V2 (branch `feat/drop-rate-ga
 - **PP:** quando o bloco não chamou `chipBonuses("dr")` (total ≥ 5), o nó do chip não pode quebrar a página onde o jogo calcula: a leitura é protegida e, se falhar, vira uma folha 0 com nota. Custo: nenhum.
 - **QQ:** desempenho aceito como em FF: carga a frio de cerca de 51 ms contra 16 ms do `lib/arkh` (uma vez por save), troca de personagem e de mapa em paridade (cerca de 17 ms). Custo: o primeiro cálculo pode parecer lento num celular fraco.
 - **RR:** bugs do `lib/arkh` provados no N.js nesta migração, com prova estreita e contagem exata: `luk` (a foto `PVStatList`), `meas15` (o `lib/arkh` pula o passo de carga @6420350 que zera as medições 10 a 15 da HourZero) e `glimbo` (0 no `lib/arkh`, 1 no N.js; o max(1, ·) do grupo esconde a diferença no total), além dos já conhecidos (tome, pray6, gfood, fam68, comp0). Custo: nenhum.
+
+## Decisões da migração do Coin Multi (2026-11-08)
+
+Registro do que foi decidido ao migrar o Coin Multi (branch `feat/coin-game`, plano `docs/superpowers/plans/2026-11-08-coin-multi-on-lib-game.md`). O código cita "Ruling SS" em diante; elas estão definidas aqui. As rulings A a RR (acima) continuam valendo.
+
+### Decisões do usuário (2026-11-08)
+
+- **Ordem e execução:** o Coin vem antes do DR V1, do Multikill e do coletor do Observed Max. Execução subagent-driven.
+- **O que o Coin conta (decisão de produto da página, mantida):** a linha "Total Coin Bonus from all sources" de Upgrade Vault → upgrade 2 "Monster Tax", do personagem logado; o mapa define o termo da guilda e o tier do talento 643; o voto semanal aparece e não entra no ranking.
+- **Referência do Observed Max:** o coletor continua no `lib/arkh`, medido no mapa 301; só a página calcula no `lib/game`.
+
+### Rulings
+
+- **SS:** leitura do jogo como em MM: o merge espera a conferência do usuário na linha do Monster Tax, com o jogo recém-aberto. Custo: o verify-map não tem leitura de Coin até o usuário gravar uma.
+- **TT:** um mapa cujo alvo não tem definição de monstro (o 33 e os alvos "Z", "JungleZ", "Filler") recusa o tier com `InvalidSaveValue`, porque o próprio N.js quebra ali (`OverkillStuffs` @4095676, `TalentCalc(125)` @4516114); o `lib/arkh` dava tier 1. Custo: nenhum no seletor. A varredura do seletor (`__tests__/lib/coinMulti/mapPicker.test.ts`) achou exatamente quatro mapas que recusam: 3, 33, 34 e 35. Por decisão do usuário (08/11), esses quatro saíram do seletor do Coin, como no Damage (`loadMonsterMapFilter`, `lib/statTracker/mapFilter.ts`); o motor continua recusando-os.
+- **UU:** o `lib/game` passa a rodar o passo de carga do KillsLeft2Advance (`_customEvent_AddNewStuff` @19916401) e o `OptionsListAccount[464] = 0` do bloco 294 (@6432744), porque o Coin lê a Death Note pelo Gambit. Nos 106 saves só a HourZero é preenchida, e 4 células com `1` perdido viram 0. Custo: nenhum.
+- **VV:** o HP do monstro da Rift (`riftAll`, mapa 166) vem de `RiftStuff("mobHP",0)` (@10790146), porque o N.js reescreve `MonsterHPTotal` (@20359437); o `lib/arkh` usava o 1000 da tabela. Custo: nenhum.
+- **WW:** notas por save: somem as dos talentos 657, 22, 644 e 643 ("Inactive — talent 0" e os textos de decaimento/cash), seguindo a decisão do DR (07/11); o Coin não tem nota "Not owned". O detalhamento abaixo da fonte sai com a árvore do `lib/arkh` (Ruling L). Custo: tooltips menos detalhados.
+- **XX:** desempenho aceito como em FF e QQ: carga a frio de cerca de 87 ms contra 287 ms do `lib/arkh` (uma vez por save), troca de personagem de 55 ms contra 653 ms e troca de mapa de 54 ms contra 297 ms (mediana de 3 saves; totais iguais em 20 pares). Custo: o primeiro cálculo pode parecer lento num celular fraco.
+- **YY:** bugs do `lib/arkh` provados no N.js nesta migração: `statSnapshot` (os Cash Bubbles leem a foto `PVStatList`, o jogo recalcula STR/AGI/WIS ao vivo, @4047005 contra @15076361), além dos já conhecidos (pray6, comp0, fam68, gold food, statues, godshard, signsDmg no tier). Custo: nenhum.

@@ -26,7 +26,7 @@
 //   - a value the save cannot give is an assumption, named in `assumed` (the state keeps it, the trace shows it);
 //   - a save old enough to run a block that is not examined here (DoOnceREAL below OLDEST_GATE) is refused.
 import { asNumber } from "./attr";
-import { CompassUpg, MapAFKtarget, MapDetails, Titans } from "./data";
+import { CompassUpg, MapAFKtarget, MapDetails, StatueInfo, Titans } from "./data";
 import { SAVE_ATTRS } from "./data/saveAttrs.gen";
 import { InvalidSaveValue, MissingSaveKey, OLDEST_GATE, UNPORTED_STEPS } from "./errors";
 
@@ -207,6 +207,18 @@ export const MIGRATIONS: readonly Step[] = Object.freeze([
     for (let b = 0; b < ola.length; b++) if (null == ola[b]) (ola[b] = 0), (changed = true);
     return changed;
   }),
+  // initialize1 pads every character's StatueLevels to StatueInfo with [0, 0] rows (ArbitraryCode's StatueBonusGiven reads them by index and refuses a statue the list lacks). A list the save
+  // lacks is left to the reads, and a corrupt one too: it is only refused when it is read
+  pad("initialize1", "StatueLevels padded to StatueInfo", 6200507, (l) => {
+    let changed = false;
+    for (let i = 0; i < l.players; i++) {
+      const key = playerKey("StatueLevels", i);
+      if (l.d[key] === undefined || l.d[key] === null || Object.hasOwn(l.corrupt, key)) continue;
+      const levels = listAt(l, key, []);
+      for (; levels.length < StatueInfo.length; changed = true) levels.push([0, 0]);
+    }
+    return changed;
+  }),
   // initialize2 pads DungUpg to 7 lists (@6236847): a 5th of 4 zeros, a 6th of 8 (the Flurbo shop, FlurboShop reads it) and a 7th of
   // 10, each only when the list is shorter. An empty DungUpg gets initialize2's fill of 7 lists first (@6233677, not ported: no real save
   // lacks it), which these pads then leave alone: here an empty one is left to the reads
@@ -278,6 +290,34 @@ export const MIGRATIONS: readonly Step[] = Object.freeze([
   }),
   // MenagerieStuff's own `0 == Menagerie.length` guard never sees the empty list in the game: this fill runs first
   initFill("initialize4", "Menagerie", 6336662, () => MENAGERIE_ROWS.map((n) => filled(n, 0))),
+  // AddNewStuff runs when the server answers (_event_ServerReached @19838535), between the loader's initialize1 chain and WhenUPressPlayButton. Only its
+  // KillsLeft2Advance part is here (the Death Note reads it for every map of its pages, a map past the save's list included). The template is MapDetails[m][0] (the
+  // behaviour's init @19978967). The cap fixes a stray value on a save of any version, so the step reports only the rows it added (the page says "migrated" from `steps`)
+  {
+    id: "KillsLeft2Advance padded and capped to MapDetails (AddNewStuff @19916401)",
+    run: (l) => {
+      let padded = false;
+      const details = MapDetails as unknown as readonly (readonly (readonly unknown[])[])[];
+      for (let i = 0; i < l.players; i++) {
+        const key = playerKey("KillsLeft2Advance", i);
+        if (l.d[key] === undefined || l.d[key] === null) continue; // a pad of a list the save lacks leaves it to the reads
+        const kla = listAt(l, key, []) as unknown[][];
+        for (let m = kla.length; m < details.length; m++) {
+          kla.push([...details[m][0]]);
+          padded = true;
+        }
+        for (let m = 0; m < details.length; m++) {
+          const row = listAt(l, key, [m]); // a null row: the game's `[m][n]` throws there too, so the save is refused (not a raw TypeError past `migrate`'s catch)
+          for (let n = 0; n < details[m][0].length; n++) {
+            const v = row[n];
+            if (asNumber(details[m][0][n]) < asNumber(v) || v === null || v === undefined || "nan" == String(v).toLowerCase()) row[n] = details[m][0][n];
+          }
+        }
+        if (1 > kla[17].length) kla[17].push(0);
+      }
+      return padded;
+    },
+  },
   // ── 3. WhenUPressPlayButton -> OnPlayStart2 -> 3 -> 4 ──
   {
     id: `refuse DoOnceREAL < ${OLDEST_GATE}`,
@@ -341,7 +381,8 @@ export const MIGRATIONS: readonly Step[] = Object.freeze([
       for (let b = 0; b < 15; b++) kla[300 + b] = structuredClone((MapDetails as unknown as unknown[][])[300 + b][0]);
     });
     eachPlayer(l, "Lv0", (lv) => (lv[19] = 0));
-  }, "KillsLeft2Advance and Lv0[19] part"),
+    list(l, "OptionsListAccount")[464] = 0; // the Clamworks level (Thingies Clamz_HP)
+  }, "KillsLeft2Advance, Lv0[19] and OptionsListAccount[464] part"),
   once("OnPlayStart4", 301, 301.3, 6433193, (l) => {
     const spelunk = list(l, "Spelunk");
     if (45 > spelunk.length) spelunk.push(filled(15, 0));
@@ -492,7 +533,7 @@ export function migrate(
 // (< 6), SaltLick capped at its level cap (< 18.2), PrayersUnlocked set to PrayerMaxLv (< 74), the Atoms pads (< 134) and zeroing (< 135) and
 // the cap of 13 on atoms past 4 (@6403800, < 173), Lab[14] padded to 25 (< 203); the pads of CauldronInfo, CauldronBubbles, TowerInfo,
 // PrayersActive, Lab and Bubba are initialize fills of empty lists (Bubba's is above). StatueLevels and Shrine have no load-step write (the
-// per-character StatueLevels pad to StatueInfo is in the initialize1 list below). StampCheckFR81 (OnPlayStart3 @6402394: a stamp over level 5 whose material cost is past 4e12 gets
+// per-character StatueLevels pad to StatueInfo is the initialize1 step above). StampCheckFR81 (OnPlayStart3 @6402394: a stamp over level 5 whose material cost is past 4e12 gets
 // StampLevel = StampLevelMAX = 12 x StampDetails[4]) is the tail of OnPlayStart3's `if (168 > DoOnceREAL) { DoOnceREAL = 168.5; ... }`
 // block, which opens @6398034 and closes @6402819 just before `if (173 > DoOnceREAL)` (brace nesting checked): DoOnceREAL < 168, never on a
 // real save, which is why the stamps over that cost stay at their levels (10036 of 12611 stamps over level 5 on the real saves). Not ported.
@@ -550,7 +591,7 @@ export function migrate(
 //   - initialize1: GemItemsPurchased padded to 300; OptionsListAccount padded to 17..70 and its 51..59 splice (no real save is that
 //     short), its pads to 201..601 (only in the Tutorial scene); the starter star signs
 //     of an empty StarSignsUnlocked and the task progress of a new account (no real save has either); CauldronJobs1 per character;
-//     PostOfficeInfo[3]; the CauldronInfo pads (to AlchemyCoords and AlchemyDescription); every character's StatueLevels to StatueInfo;
+//     PostOfficeInfo[3]; the CauldronInfo pads (to AlchemyCoords and AlchemyDescription);
 //     Tasks[3] to TaskUnlocks; the chat, NonCloudsave and displayData lists (session state);
 //   - initialize2: Cards, NONdummies (session runtime, Ruling A), StarSignProg to StarQuests, PldTraps, MaxCarryCap, PrinterXtra to 264,
 //     CurrenciesOwned.NPC, StatueG to 60, the DungUpg fill of an empty list, AchieveReg to 420, ArcadeUpg to ArcadeShopInfo, one more Cooking slot, Pets to
@@ -576,3 +617,16 @@ export function migrate(
 //     Research[13], cleanMarkedFiles); the rest of 380 (each Royal Guardian
 //     outpost map without a list gets [0] through RoyalG("HasOutpost"), which the Tome's outpost count, lists of 3 fields or more,
 //     does not count; every LockedSlots padded to 112).
+// Re-audited for the keys the Coin Multi ports read (Coin Task 2: Holes[11][65..70], [13], [15], [22], [24], [26], Arcane, Cards[0], FarmCrop, BundlesReceived, Lab[14], Sailing[3], Lv0[10],
+// OptionsListAccount[340, 362, 420, 464, 476]; a write scan of the live N.js, @6184758-6475000 and AddNewStuff): the writes on a real save are the blocks 251 and 262 (Holes, above), the
+// Sailing[3] blocks above, and OptionsListAccount[464] = 0 in block 294, now ported with the rest of it. Lab[14] (< 203), Lv0[10] and the older Sailing[3] writes are below any real save;
+// Arcane, Cards[0], FarmCrop and BundlesReceived have no load-step write. AddNewStuff's KillsLeft2Advance step (above), run by hand on the 1163 characters of the real saves: it pads only
+// HourZero's ten (298 rows to 327) and caps four stray 1s on maps 29 and 66, whose template is 0 (kills -1 to 0); no null, no nan, no empty row 17. The Death Note reads every map its
+// pages name, so HourZero's Death Note answers now (it was refused at KillsLeft2Advance[315]).
+// AddNewStuff's other parts, none ported: SkillLevelsMAX[615..679] set on every character to their highest (@19909622); the quests (a quest of a type 1 or 4 dialogue the first character has no
+// QuestStatus for gets QuestStatus and QuestComplete -1 on each character lacking it, @19911167; Secretkeeper1 copied from the first character, @19913203; a quest of AccountWideQuests any
+// character has done is done on all, with its NPCdialogue, @19913881); AttackCooldowns[g] = 0 for the talents TalentDescriptions[g][3][0] marks (@19912371); OptionsList pushed a 1 while under
+// 34 (@19913856); and its own pad of StatueLevels (@19913024, by the first character's length), which finds nothing left after initialize1's. No port reads SkillLevelsMAX, QuestStatus,
+// NPCdialogue, AttackCooldowns or OptionsList. QuestComplete is read (Cactolyte3 in DamageDealed and PlayerHPmax, the count of TotalQuestsComplete), but none of these writes moves a read:
+// -1 passes neither the `0 ==` nor the `1 ==` they test, as an absent key does not; Cactolyte3 is no AccountWideQuests entry; TotalQuestsComplete counts a quest any character has done, and the
+// syncs only copy a quest a character already has.

@@ -1,10 +1,11 @@
 import { asNumber, attr } from "../attr";
 import { assumed, block, type Ctx } from "../ctx";
-import { JewelDesc, LabMainBonus, NinjaInfo } from "../data";
+import { JewelDesc, LabMainBonus, MapAFKtarget, NinjaInfo } from "../data";
 import { NotPorted } from "../errors";
 import { listAt } from "../lists";
 import { Breeding } from "./Breeding";
 import { Ninja } from "./Ninja";
+import { accountKillsOn } from "./Summoning";
 import type { Ported } from "../ported";
 
 type Row = readonly unknown[];
@@ -46,8 +47,8 @@ function labNodeConnected(ctx: Ctx, d: number): boolean {
 /**
  * N.js `_customBlock_MainframeBonus(d)` @7990420, for the bonuses Artifact Find reaches (14, Artifact Attraction, through the Emporium;
  * 10, My 1st Chemistry Set, read by the vials), the character stats reach (7 for the stamps, 104 for the % to all stats with 8 and
- * 119 under it) and Damage reaches (0 with 101 under it, 11 with 117, jewel 110 with 107..109, and 15 / 17 under the artifact and crop
- * multipliers with 118 / 120). The other bonuses throw NotPorted.
+ * 119 under it), Damage reaches (0 with 101 under it, 11 with 117, jewel 110 with 107..109, and 15 / 17 under the artifact and crop
+ * multipliers with 118 / 120) and Coin reaches (9 with 113 under it). The other bonuses throw NotPorted.
  *
  * The game keeps the values in `DNSM.LabMFbonuses`. Once that map holds "YES" the function returns `LabMFbonuses[d]`, which
  * TalentCalc(-7) @4511431 filled by asking this function for every bonus while the map had no "YES": `1 == GenINFO[92][d] ? row[5] :
@@ -67,6 +68,7 @@ export const MainframeBonus: (ctx: Ctx, d: number) => number = block("MainframeB
     const v = asNumber(row[5]);
     if (0 == d) return (v + MainframeBonus(ctx, 101)) * Breeding(ctx, "TotPetsFound", "0", 0, 0);
     if (11 == d) return (v + MainframeBonus(ctx, 117)) * listAt(ctx, "GreenStacks").length;
+    if (9 == d) return mushroomKills(ctx, v + MainframeBonus(ctx, 113));
     if (15 == d) return v + MainframeBonus(ctx, 118);
     if (17 == d) return v + MainframeBonus(ctx, 120);
     return 8 == d ? v + MainframeBonus(ctx, 119) / 100 : v;
@@ -85,7 +87,18 @@ export const MainframeBonus: (ctx: Ctx, d: number) => number = block("MainframeB
   return 110 == d && 0 < MainframeBonus(ctx, 107) && 0 < MainframeBonus(ctx, 108) && 0 < MainframeBonus(ctx, 109) ? 2 * j : j;
 });
 
-const PORTED_SET = new Set([0, 5, 7, 8, 10, 11, 14, 15, 17, 101, 104, 107, 108, 109, 110, 116, 117, 118, 119, 120]);
+/**
+ * TalentCalc(-7) @4513227: the stored bonus 9, when above 0, times the account's kills of "mushG" (MapAFKtarget.indexOf; a map the game does not have
+ * counts 0), in millions: rounded down below 1e8 millions, whole from there on.
+ */
+function mushroomKills(ctx: Ctx, stored: number): number {
+  if (!(0 < stored)) return stored;
+  const map = (MapAFKtarget as unknown as readonly unknown[]).indexOf("mushG");
+  const kills = 0 <= map ? accountKillsOn(ctx, map) : 0; // DummyNumber4
+  return 1e8 > kills / 1e6 ? stored * Math.floor(kills / 1e6) : stored * (kills / 1e6);
+}
+
+const PORTED_SET = new Set([0, 5, 7, 8, 9, 10, 11, 14, 15, 17, 101, 104, 107, 108, 109, 110, 113, 116, 117, 118, 119, 120]);
 
 /** What this module covers (lib/game/ported.ts). */
 export const PORTED: Ported = [...PORTED_SET];

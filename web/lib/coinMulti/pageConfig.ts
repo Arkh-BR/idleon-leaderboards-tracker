@@ -1,8 +1,11 @@
-// Coin Multi page: the statTracker kit's config for N.js ArbitraryCode("MonsterCash").
+// Coin Multi page: the statTracker kit's config for N.js ArbitraryCode("MonsterCash"). It computes on lib/game (trackers/coinMulti.ts); the Observed Max
+// collector (scripts/update-top-coin.ts) stays on lib/arkh.
 
 import type { StatPageConfig } from "@/lib/statTracker/config";
+import { loadMonsterMapFilter } from "@/lib/statTracker/mapFilter";
+import { withPageErrors } from "@/lib/statTracker/pageErrors";
 import { groupedGainsModel } from "@/lib/statTracker/biggestGains";
-import { COIN_GROUPS, COIN_ROOT, COIN_VOTE_NAME } from "@/lib/arkh/stats/defs/coin-multi";
+import { COIN_GROUPS, COIN_ROOT, COIN_VOTE_NAME } from "./layers";
 import { formatCoinMulti } from "./format";
 import { TOP_COIN_GENERATED_AT, TOP_COIN_PLAYERS_SCANNED } from "./topCoinMulti.meta";
 
@@ -26,8 +29,10 @@ export const COIN_PAGE: StatPageConfig = {
     exportPrefix: "coin-multi-snapshots",
     exportLabel: "coin-multi-tracker",
   },
-  compute: (save, charIdx, mapIdx) =>
-    import("@/lib/arkh/computeCoin").then((m) => m.computeArkhCoinMulti(save, charIdx, mapIdx)),
+  compute: withPageErrors("Coin Multi", (save, charIdx, mapIdx) =>
+    import("@/lib/game/trackers/coinMulti").then((m) => m.computeGameCoinMulti(save, charIdx, mapIdx))
+  ),
+  loadMapFilter: loadMonsterMapFilter,
   formatTotal: formatCoinMulti,
   gains: groupedGainsModel(COIN_ROOT, COIN_GROUPS, { skip: [COIN_VOTE_NAME] }),
   loadTop: () =>
@@ -41,7 +46,9 @@ export const COIN_PAGE: StatPageConfig = {
     "your class family (warrior, archer, mage or beginner line). Every group multiplies the total, so a source's gain is its group's new factor " +
     "over the current one. Values are a ceiling, not a one-level step. The top-player reference is " +
     "measured on map 301 (World 7), so the Guild and Coins For Charon rows reflect that map choice too. " +
-    "The weekly vote isn't ranked: it's server-wide and changes every week.",
+    "The weekly vote isn't ranked: it's server-wide and changes every week. " +
+    "The Observed Max values themselves are still computed by the previous engine, so for a few sources they can differ slightly " +
+    "from your own numbers until they are recomputed.",
   compareTitle: "Compare every coin source against the best value observed across the top players (Cash Bubbles: within your class family)",
   gainsTabTitle: "Rank your coin sources by how much Coin Multi matching the top players would give",
   footer: "Coin Multi is computed locally from your save — every term of the game's coin formula, group by group.",

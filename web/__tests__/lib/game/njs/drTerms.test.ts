@@ -383,7 +383,10 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("the Death Note and the measurements 
     for (const path of GOLDEN_SAVES) {
       const { state } = stateOf(path);
       const ctx = makeCtx(state, { player: 0, map: MAP });
-      loadSaveData(JSON.parse(readFileSync(path, "utf8")));
+      const env = JSON.parse(readFileSync(path, "utf8"));
+      // HourZero runs the load step that zeroes the measurements 10 to 15 (STAT_WHY.holesLoad251): lib/arkh's envelope gets the list lib/game holds
+      if (basename(path) === "HourZero.json") ARKH_SIDE.holesLoad251(env.data as Record<string, unknown>, 0, ctx);
+      loadSaveData(env);
       for (let w = 0; w < 8; w++) {
         const want = overkillQTY(w, saveData);
         if (want !== 0) nonZero++;
@@ -395,7 +398,7 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("the Death Note and the measurements 
     expect(mismatches.slice(0, 20)).toEqual([]);
     expect(nonZero).toBeGreaterThan(0);
     // HourZero (DoOnceREAL 248.3) has KillsLeft2Advance up to map 314: the game pads every character's list to the template's length when the account loads
-    // (_customEvent_AddNewStuff @19909026, the pad @19916401), which lib/game/migrations does not replay, so a Death Note page that reads a map past it is refused (Ruling E)
-    expect([...refused].sort()).toEqual(["HourZero.json: KillsLeft2Advance[315]"]);
+    // (_customEvent_AddNewStuff @19909026, the pad @19916401), and lib/game/migrations replays it: nothing is refused
+    expect([...refused].sort()).toEqual([]);
   }, 600_000);
 });

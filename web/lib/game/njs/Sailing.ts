@@ -27,6 +27,7 @@ import { Stuff2 } from "./Stuff2";
 import { SushiStuff } from "./SushiStuff";
 import { Summoning } from "./Summoning";
 import { Summoning2 } from "./Summoning2";
+import { DNSM_CalcTalentMAP } from "./TalentCalc";
 import { Thingies } from "./Thingies";
 import { TotalStats } from "./TotalStats";
 import { WorkbenchStuff } from "./WorkbenchStuff";
@@ -54,8 +55,8 @@ export const Sailing: (ctx: Ctx, d: string, b: number, e: number) => number = bl
 
 /** The artifacts whose value the game computes with a multiplier of its own besides the tier (`l` in the pass below). */
 const OWN_MULTIPLIER = new Set([1, 2, 5, 8, 10, 11, 13, 18, 20, 23, 25, 27, 29, 999]);
-/** Of those, the ones ported (Damage reads 2, 8, 25, 27 and 29; 10, 18, 20 and 999 share 2's rule). */
-const OWN_PORTED = new Set([2, 10, 18, 20, 999, 8, 25, 27, 29]);
+/** Of those, the ones ported (Damage reads 2, 8, 25, 27 and 29; 10, 18, 20 and 999 share 2's rule; Coin reads 1). */
+const OWN_PORTED = new Set([1, 2, 10, 18, 20, 999, 8, 25, 27, 29]);
 
 /** Index 2..7 of the tier, the word in the artifact's text: `The_artifact's_main_bonus_is_<word>!` (ArtifactInfo[l][5], [7] ... [15]). */
 const TIER_WORD = [, , "doubled", "tripled", "quadrupled", "quintupled", "sixtupled", "seventupled"];
@@ -70,6 +71,7 @@ const TIER_WORD = [, , "doubled", "tripled", "quadrupled", "quintupled", "sixtup
  * the base in ArtifactInfo[l][3], times the artifact's own multiplier, times the tier where the artifact's text carries it. Artifact 25
  * is computed again on every call (its primary stat moves), by the same rule. The own multipliers ported:
  *  - 2, 10, 18, 20, 999: (1 + lab bonus 15 / 100) x SlabboBonus_AllMulti x floor(max(0, Cards[1].length - 500) / 10);
+ *  - 1: DNSM.CalcTalentMAP["620"], the account's highest character level;
  *  - 3: Lv0[13]; 8: getLOG of every character's build speed summed (WorkbenchStuff PlayerBuildSpd);
  *  - 25: floor(the class's primary stat (TotalStats of ClassStatTypes[first class][0]) / 100); 27: getLOG(Sailing[1][0]); 29: getLOG(Divinity[39]).
  */
@@ -88,6 +90,7 @@ function artifactBonus(ctx: Ctx, b: number, e: number): number {
   let v = cell == 0 ? 0 : asNumber(info[3]);
   if (2 == b || 10 == b || 18 == b || 20 == b || 999 == b)
     v = v * (1 + MainframeBonus(ctx, 15) / 100) * Sailing(ctx, "SlabboBonus_AllMulti", 0, 0) * Math.floor(Math.max(0, lengthOf(listOrMapAt(ctx, "Cards", 1)) - 500) / 10);
+  else if (1 == b) v = v * DNSM_CalcTalentMAP(ctx, "620");
   else if (3 == b) v = v * asNum(ctx, "Lv0", 13);
   else if (25 == b) v = v * Math.floor(TotalStats(ctx, primaryStat(ctx)) / 100);
   else if (8 == b) {

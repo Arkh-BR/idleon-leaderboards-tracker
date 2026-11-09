@@ -1,6 +1,6 @@
 // characterize: do the old and the new engine of a stat agree on every real save? From web/:
 //
-//   npx tsx scripts/characterize.ts <stat> [--map <n>]        (stats: artifactFind, damage, afkGains, expMulti, dropRateV2)
+//   npx tsx scripts/characterize.ts <stat> [--map <n>]        (stats: artifactFind, damage, afkGains, expMulti, dropRateV2, coinMulti)
 //
 // Runs both engines on every character of every save envelope (golden/.cache + saves-fresh), on map <n> (default 0; a stat with
 // no map ignores it), writes reports/characterize-<stat>[-<n>].md, and exits 1 when the spec's switch criteria are not met: a row that is
@@ -16,10 +16,11 @@ import { KNOWN_ARKH_DIFFS, goldenSaves } from "@/__tests__/lib/game/support/arkh
 import { DAMAGE_STATS } from "@/__tests__/lib/game/support/damageProof";
 import { computeArkhAfkGains } from "@/lib/arkh/computeAfk";
 import { computeArkhArtifactFind } from "@/lib/arkh/computeArtifactFind";
+import { computeArkhCoinMulti } from "@/lib/arkh/computeCoin";
 import { computeArkhDamage } from "@/lib/arkh/computeDamage";
 import { computeArkhDropRateV2 } from "@/lib/arkh/computeDropRateV2";
 import { computeArkhExpMulti } from "@/lib/arkh/computeExp";
-import { AFK_REFUSABLE, ARTIFACT_FIND_REFUSABLE, DAMAGE_REFUSABLE, DR_REFUSABLE, EXP_REFUSABLE, characterize, classify, type Engine, type Row, type Verdict } from "@/lib/diagnose/characterize";
+import { AFK_REFUSABLE, ARTIFACT_FIND_REFUSABLE, COIN_REFUSABLE, DAMAGE_REFUSABLE, DR_REFUSABLE, EXP_REFUSABLE, characterize, classify, type Engine, type Row, type Verdict } from "@/lib/diagnose/characterize";
 import { CURRENT_CSVER } from "@/lib/game/errors";
 import { MapAFKtarget } from "@/lib/game/data";
 import { keptTargetCloses } from "@/__tests__/lib/game/support/afkKept";
@@ -28,6 +29,7 @@ import { makeCtx } from "@/lib/game/ctx";
 import { stateOf } from "@/lib/game/trackers/page";
 import { computeGameAfkGains } from "@/lib/game/trackers/afkGains";
 import { computeGameArtifactFind } from "@/lib/game/trackers/artifactFind";
+import { computeGameCoinMulti } from "@/lib/game/trackers/coinMulti";
 import { computeGameDamage } from "@/lib/game/trackers/damage";
 import { computeGameDropRate } from "@/lib/game/trackers/dropRate";
 import { computeGameExpMulti } from "@/lib/game/trackers/expMulti";
@@ -84,6 +86,16 @@ const ENGINES: Record<string, (map: number) => { arkh: Engine; game: Engine; nam
     // a KNOWN "dr" row is per source and names no map: it explains the pair on every map (the Cove only replaces the total). A glimboUnleveled
     // row explains no total (the group is max(1, ·), the total is the same), as in njs/dropRate.test.ts
     known: (d) => d.stat === "dr" && d.reason !== "glimboUnleveled",
+  }),
+  coinMulti: (map) => ({
+    arkh: (save, ci) => computeArkhCoinMulti(save, ci, map),
+    game: (save, ci) => computeGameCoinMulti(save, ci, map),
+    names: `a = lib/arkh (computeArkhCoinMulti), b = lib/game (computeGameCoinMulti), on map ${map}`,
+    refusable: COIN_REFUSABLE,
+    // a KNOWN row that names maps explains only those maps (signsDmg: the multikill tier of talent 643). gfoodVote26 moves no Coin total
+    // (njs/coinMulti.test.ts INERT: seeding it leaves all 308 pairs where they are), so it explains nothing. Map 33 has no monster: the
+    // block refuses there (InvalidSaveValue, Ruling TT), which is no age refusal, so it stays unexplained on purpose.
+    known: (d) => d.stat === "coin" && d.reason !== "gfoodVote26" && (d.maps?.includes(map) ?? true),
   }),
 };
 

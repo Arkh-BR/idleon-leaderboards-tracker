@@ -85,8 +85,9 @@ describe("overkillStuffs — the AFK target's live HP", () => {
   });
 
   it("registers the port under N.js's names for the updater", () => {
-    expect(FORMULA_REGISTRY["OverkillStuffs"]).toEqual(["lib/arkh/stats/systems/common/overkill.ts"]);
-    expect(FORMULA_REGISTRY["Clamz_HP"]).toEqual(["lib/arkh/stats/systems/common/overkill.ts"]);
+    // lib/game ports them too since the Coin plan: the updater lists every file
+    expect(FORMULA_REGISTRY["OverkillStuffs"]).toContain("lib/arkh/stats/systems/common/overkill.ts");
+    expect(FORMULA_REGISTRY["Clamz_HP"]).toContain("lib/arkh/stats/systems/common/overkill.ts");
   });
 });
 

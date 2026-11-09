@@ -3,19 +3,19 @@
 import { existsSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { DAMAGE_PAGE } from "@/lib/damage/pageConfig";
-import { loadDamageMapFilter } from "@/lib/damage/mapFilter";
+import { loadMonsterMapFilter } from "@/lib/statTracker/mapFilter";
 import { computeGameDamage } from "@/lib/game/trackers/damage";
 import { buildStatMapOptions, defaultMapIndex } from "@/lib/statTracker/mapOptions";
 import { GOLDEN_SAVES } from "../game/support/arkhOracle";
 
 const offered = async (save: unknown) => {
-  const keep = await loadDamageMapFilter();
+  const keep = await loadMonsterMapFilter();
   return buildStatMapOptions(save).filter((m) => keep(m.index));
 };
 
 describe("the Damage map picker", () => {
   it("is wired into the page config", () => {
-    expect(DAMAGE_PAGE.loadMapFilter).toBe(loadDamageMapFilter);
+    expect(DAMAGE_PAGE.loadMapFilter).toBe(loadMonsterMapFilter);
   });
   it("drops exactly JungleZ (3), 33, Miningg1 (34) and Miningg2 (35): the maps whose MapAFKtarget is not a monster", async () => {
     const all = buildStatMapOptions({ data: {} });

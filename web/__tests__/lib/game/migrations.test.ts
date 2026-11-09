@@ -12,7 +12,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { basename } from "node:path";
 import { attr } from "@/lib/game/attr";
 import { block, makeCtx, type TraceNode } from "@/lib/game/ctx";
-import { MapAFKtarget } from "@/lib/game/data";
+import { MapAFKtarget, StatueInfo } from "@/lib/game/data";
 import { InvalidSaveValue, MissingSaveKey, OLDEST_GATE, UNPORTED_STEPS } from "@/lib/game/errors";
 import { DROP_RATE_RECORD, MIGRATIONS, migrate } from "@/lib/game/migrations";
 import { DNSM_TomeQTYtot } from "@/lib/game/njs/DNSM";
@@ -139,6 +139,21 @@ describe("the loader: an attribute it reads only from a save version keeps its i
     expect(short.migrations).toEqual(["MapBon padded to MapAFKtarget (initialize3 @6297857)"]);
     const full = MapAFKtarget.map((m) => (["Nothing", "Z"].includes(m as string) ? [0] : [1, 2, 3]));
     expect(buildGameState(env({ CSver: 34.05, MapBon: full })).migrations).toEqual([]);
+  });
+  it("pads every character's StatueLevels to StatueInfo with [0, 0] rows; a full list, or a save without it, is left alone", () => {
+    const short = buildGameState(env({ CSver: 34.05, StatueLevels_0: [[5, 1]] }));
+    const levels = short.data.StatueLevels_0 as number[][];
+    expect(levels).toHaveLength(StatueInfo.length);
+    expect(levels[0]).toEqual([5, 1]);
+    expect(levels[StatueInfo.length - 1]).toEqual([0, 0]);
+    expect(short.migrations).toEqual(["StatueLevels padded to StatueInfo (initialize1 @6200507)"]);
+    expect(buildGameState(env({ CSver: 34.05, StatueLevels_0: StatueInfo.map(() => [1, 0]) })).migrations).toEqual([]);
+    expect(buildGameState(env({ CSver: 34.05 })).migrations).toEqual([]);
+  });
+  it("AddNewStuff's KillsLeft2Advance: a null row is refused, as the game's `[m][n]` throws on it, and is no raw TypeError", () => {
+    const r = migrate({ KLA_0: [[0], null] }, {}, 1);
+    expect(r.refusal).toBeInstanceOf(MissingSaveKey);
+    expect(r.refusal).toMatchObject({ key: "KLA_0[1]" });
   });
   it("pads DungUpg to 7 lists (the Flurbo shop's 8 levels are DungUpg[5]); 7 lists, or an empty DungUpg (the unported fill), are left alone", () => {
     const short = buildGameState(env({ CSver: 34.05, DungUpg: [[1], [2], [3], [4], [5]] }));
@@ -392,6 +407,12 @@ describe.skipIf(!existsSync(NJS))("against the live N.js", () => {
     });
   }
 
+  it("initialize1's StatueLevels pad is the one ported", () => {
+    expect(compact(njsBlock(src, 'if(a.engine.getGameAttribute("PlayerDATABASE").h[""+n].h.StatueLevels.length<', "_customBlock_initialize1=function"))).toBe(
+      'if(PlayerDATABASE.h[""+n].h.StatueLevels.length<CustomLists.h.StatueInfo.length)for(d=0,f=Math.round(CustomLists.h.StatueInfo.length-PlayerDATABASE.h[""+n].h.StatueLevels.length);d<f;)d++,e=a.engine,b=[],e.gameAttributes.h.DummyList=b,DummyList.push(0),DummyList.push(0),PlayerDATABASE.h[""+n].h.StatueLevels.push(DummyList)'
+    );
+  });
+
   it("initialize2's DungUpg pads are the ones ported", () => {
     const init2 = "_customBlock_initialize2=function";
     const pad = (n: number) => compact(njsBlock(src, `${n}>a.engine.getGameAttribute("DungUpg").length&&`, init2));
@@ -399,6 +420,17 @@ describe.skipIf(!existsSync(NJS))("against the live N.js", () => {
     expect(pad(6)).toBe("6>DungUpg.length&&(DummyList2=[],DummyList2.push(0)x8,DungUpg.push(DummyList2));");
     expect(pad(7)).toBe("7>DungUpg.length&&(DummyList2=[],DummyList2.push(0)x10,DungUpg.push(DummyList2),DummyList2=[]);");
     expect(fnText("initialize2")).toContain('if(0==a.engine.getGameAttribute("DungUpg").length){'); // the fill, only of an empty DungUpg
+  });
+
+  it("AddNewStuff's KillsLeft2Advance pad and cap are the ones ported, and the template they read is MapDetails[m][0]", () => {
+    const from = flat.indexOf("_customEvent_AddNewStuff:function");
+    const at = flat.indexOf('if(a.engine.getGameAttribute("DummyNumber4")<a.engine.getGameAttribute("KillsLeft2Advance").length)', from);
+    const tail = ".KillsLeft2Advance[17].push(0)";
+    expect(compact(flat.slice(at, flat.indexOf(tail, at) + tail.length))).toBe(
+      'if(DummyNumber4<KillsLeft2Advance.length)for(f=0,p=Math.round(KillsLeft2Advance.length-DummyNumber4);f<p;)g=f++,this._DummyRepeatIndex=g+DummyNumber4,PlayerDATABASE.h[""+e].h.KillsLeft2Advance.push(KillsLeft2Advance[this._DummyRepeatIndex|0]);d=0;for(b=KillsLeft2Advance.length;d<b;)for(this._DummyRepeatIndex=d++,f=0,p=KillsLeft2Advance[this._DummyRepeatIndex|0].length;f<p;)if(n=f++,c.asNumber(KillsLeft2Advance[this._DummyRepeatIndex|0][n])<c.asNumber(PlayerDATABASE.h[""+e].h.KillsLeft2Advance[this._DummyRepeatIndex|0][n]))PlayerDATABASE.h[""+e].h.KillsLeft2Advance[this._DummyRepeatIndex|0][n]=KillsLeft2Advance[this._DummyRepeatIndex|0][n];else if(null==PlayerDATABASE.h[""+e].h.KillsLeft2Advance[this._DummyRepeatIndex|0][n]||"nan"==(""+h.string(PlayerDATABASE.h[""+e].h.KillsLeft2Advance[this._DummyRepeatIndex|0][n])).toLowerCase())PlayerDATABASE.h[""+e].h.KillsLeft2Advance[this._DummyRepeatIndex|0][n]=KillsLeft2Advance[this._DummyRepeatIndex|0][n];1>PlayerDATABASE.h[""+e].h.KillsLeft2Advance[17].length&&PlayerDATABASE.h[""+e].h.KillsLeft2Advance[17].push(0)'
+    );
+    // the attribute is the behaviour's own init fill (@19978967): the event runs later in the same class (@19838535)
+    expect(compact(flat.slice(from, from + 100000))).toContain("this._dummyList.push(CustomLists.h.MapDetails[this._DummyRepeatIndex|0][0][z]);KillsLeft2Advance.push(this._dummyList)");
   });
 
   it("initialize3's pads of Compass and MapBon are the ones ported", () => {
@@ -474,7 +506,7 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("the real saves", () => {
       seen.set(group, [...(seen.get(group) ?? []), file].sort());
     }
     expect(Object.fromEntries(seen)).toEqual({
-      "CSver 23.05, DoOnceREAL 248.3: 45 steps": ["HourZero.json"],
+      "CSver 23.05, DoOnceREAL 248.3: 47 steps": ["HourZero.json"],
       "CSver 29.05, DoOnceREAL 340.1: 20 steps": ["5OhTree.json"],
       "CSver 30.05, DoOnceREAL 367.1: 15 steps": ["0celot8.json"],
       "CSver 32.05, DoOnceREAL 378.1: 10 steps": ["100Cotton.json", "100Cotton.json", "24632463.json", "Brokami.json", "Exrom.json", "GIM_SSS.json", "Pontinhas.json"],

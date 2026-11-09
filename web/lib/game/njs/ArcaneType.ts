@@ -16,7 +16,7 @@ import { SushiStuff } from "./SushiStuff";
 import { Thingies } from "./Thingies";
 import type { Ported } from "../ported";
 
-/** N.js `_customBlock_ArcaneType(d, b, e)` @11083241. Only the sub-cases the Artifact Find port, the character stats and Damage reach. */
+/** N.js `_customBlock_ArcaneType(d, b, e)` @11083241. Only the sub-cases the Artifact Find port, the character stats, Damage and Coin reach. */
 export const ArcaneType: (ctx: Ctx, d: string, b: number, e: number) => number = block("ArcaneType", (ctx, d: string, b: number, e: number) => {
   switch (d) {
     case "ArcaneUpgBonus":
@@ -64,20 +64,22 @@ function arcaneMapMultiBon(ctx: Ctx, b: number, _e: number): number {
   return Math.min(ArcaneType(ctx, "ArcaneMapMulti_bonMAX", 0, 0), ArcaneType(ctx, "ArcaneMapMulti", asNum(ctx, "MapBon", ctx.map, b), 0));
 }
 
-/** The Arcane upgrades whose bonus is plain level x value (`3==b||7==b||…` @11084516). The others are times ArcaneUpgBonus 39: NotPorted. */
+/** The Arcane upgrades whose bonus is plain level x value (`3==b||7==b||…` @11084516). The others are times ArcaneUpgBonus 39: only 47 (Coin) is ported of those. */
 const ARCANE_PLAIN = new Set([3, 7, 8, 10, 13, 16, 20, 25, 26, 28, 33, 35, 39, 40, 43, 45, 48, 57, 58]);
 
-/** `ArcaneUpgBonus` @11084516: Arcane[b] x ArcaneUpg[b][5]; e == 999 is the game's way to ask for something else (0 here). */
+/** `ArcaneUpgBonus` @11084516: Arcane[b] x ArcaneUpg[b][5], the rest also x (1 + ArcaneUpgBonus 39 / 100); e == 999 is the game's way to ask for something else (0 for the plain ones, 69.42 for the rest). */
 function arcaneUpgBonus(ctx: Ctx, b: number, e: number): number {
-  if (!ARCANE_PLAIN.has(b)) throw new NotPorted("ArcaneType", `ArcaneUpgBonus:b=${b}`);
-  if (999 == e) return 0;
+  const plain = ARCANE_PLAIN.has(b);
+  if (!plain && 47 != b) throw new NotPorted("ArcaneType", `ArcaneUpgBonus:b=${b}`);
+  if (999 == e) return plain ? 0 : 69.42;
   const row = ArcaneUpg[b | 0];
   // the game indexes ArcaneUpg[b][5] directly
   if (!row) throw new RangeError(`ArcaneType ArcaneUpgBonus: no upgrade ${b} in ArcaneUpg`);
-  return asNum(ctx, "Arcane", b | 0) * asNumber(row[5]);
+  const v = asNum(ctx, "Arcane", b | 0) * asNumber(row[5]);
+  return plain ? v : v * (1 + ArcaneType(ctx, "ArcaneUpgBonus", 39, 0) / 100);
 }
 
 /** What this module covers (lib/game/ported.ts). */
 export const PORTED: Ported = {
-  ArcaneUpgBonus: [...ARCANE_PLAIN], PrismaBonusMult: true, TesseractArcanist: true, ArcaneMapMulti_bon: [0, 1, 2], ArcaneMapMulti_bonMAX: true, ArcaneMapMulti: true,
+  ArcaneUpgBonus: [...ARCANE_PLAIN, 47], PrismaBonusMult: true, TesseractArcanist: true, ArcaneMapMulti_bon: [0, 1, 2], ArcaneMapMulti_bonMAX: true, ArcaneMapMulti: true,
 };
