@@ -7,7 +7,7 @@
 //   P  = Σ of the 18 MultiKill_perTier terms (@7805748)
 //   T  = OverkillStuffs("2"), the damage tier 1–51
 //   B′, P′ = B and P after the Shimmerfin Deep soft cap (map ≥ 300), or replaced by the Crystal Glunko Cove (map 216 + cavern 17)
-// mkTotal() is the one copy of the formula the page uses: lib/arkh's combine, the Biggest Gains what-if and the Observed Max collector all go through it.
+// mkTotal() is Biggest Gains' what-if copy of the formula (gains.ts); the headline comes from WorkbenchStuff("MultiKillTOTAL") and this is not the formula the page shows.
 
 import type { ArkhNode } from "@/lib/arkh/node";
 

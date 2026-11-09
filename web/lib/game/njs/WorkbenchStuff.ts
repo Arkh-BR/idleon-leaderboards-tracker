@@ -54,6 +54,7 @@ export const WorkbenchStuff: (ctx: Ctx, d: string, b: number, e: number) => numb
     case "PlayerBuildSpd":
       return playerBuildSpd(ctx, b);
     case "OverkillQTY":
+      // domain of this case: page -1 and pages >= 8 throw (RangeError below); a map's page (floor(map / 50), 7) never reaches them
       return overkillQTY(ctx, b);
     case "MultiKill_perTier":
       return multiKillPerTier(ctx, e);

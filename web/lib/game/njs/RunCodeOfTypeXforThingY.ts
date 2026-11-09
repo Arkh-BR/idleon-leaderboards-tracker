@@ -67,8 +67,8 @@ export function monsterHPTotal(ctx: Ctx): number {
 }
 
 /**
- * `MonsterDefinitionsGET[AFKtarget].Defence`: the game data as `performETCaction("MonsterRespawnTimeReset")` leaves it (@6516949): on a save with Holes, the Motherlode's four
- * targets have Holes("MotherlodeEffBase", i, 0) instead, the fish's divided by 4. The other writes of a monster's Defence happen in a running game: the bosses' parts on the maps 29 and 66
+ * `MonsterDefinitionsGET[AFKtarget].Defence`: the game data as `performETCaction("MonsterRespawnTimeReset")` leaves it (the overwrite sits inside `if(0!=Tasks.length)`, @6508441; the Holes statement is @6516967): on a save with Holes, the Motherlode's four
+ * targets have Holes("MotherlodeEffBase", i, 0) instead, the fish's divided by 4. The four writes repeat @12125680 and the second caveA write is @12227187. The other writes of a monster's Defence happen in a running game: the bosses' parts on the maps 29 and 66
  * (@6530517), the crystal mobs' spawn (@4559629) and the Hound caveA while its fight runs (@12130700); no real save has any of them as its AFK target. The game would throw on a target the table does not have.
  */
 export function monsterDefence(ctx: Ctx): number {

@@ -134,7 +134,7 @@ describe('OverkillStuffs "3" (@4097281), whether the multikill applies', () => {
     expect(active({ max: hp * 2, acc: 1e12, curse: 100 })).toBe(0);
     expect(active({ max: hp * 4, acc: 1e12, curse: 100 })).toBe(1);
   });
-  it("the Motherlode's four targets have the Defence MonsterRespawnTimeReset leaves (@6516949), from Holes[11][1 + 2i]", () => {
+  it("the Motherlode's four targets have the Defence MonsterRespawnTimeReset leaves (@6516967), from Holes[11][1 + 2i]", () => {
     const motherlode = (target: string, acc: number, at: Record<number, number>) => active({ target, max: 1e12, acc, holes: [[], [], [], [], [], [], [], [], [], [], [], Object.assign(Array<number>(20).fill(0), at)] });
     // 2e4 x 1.8^(1 + 2) = 116640, against the table's 30000
     expect(motherlode("Motherlode", 1.5 * 116640, { 1: 2 })).toBe(0);
