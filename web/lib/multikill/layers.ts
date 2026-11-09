@@ -1,10 +1,10 @@
 // The Multikill page's display config and its pure formula: the root, the fixed node names, the rule rows, the source ids and ⌊B′ + T × P′⌋.
 // Both engines (lib/arkh's descriptor and lib/game's tracker adapter, lib/game/trackers/multikill.ts) and the page's Biggest Gains model (gains.ts) read this,
 // so it lives here, not in either engine (Ruling B, as lib/coinMulti/layers).
-//   N.js WorkbenchStuff("MultiKillTOTAL") (@7756167): the AFK Info panel's "MULTIKILL: X%" line (spec M1):
+//   N.js WorkbenchStuff("MultiKillTOTAL") (@7810403): the AFK Info panel's "MULTIKILL: X%" line (spec M1):
 //   MK = ⌊ B′ + T × P′ ⌋
-//   B  = Σ of the 9 MultiKill_base terms (@7754109)
-//   P  = Σ of the 18 MultiKill_perTier terms (@7751511)
+//   B  = Σ of the 9 MultiKill_base terms (@7808345)
+//   P  = Σ of the 18 MultiKill_perTier terms (@7805748)
 //   T  = OverkillStuffs("2"), the damage tier 1–51
 //   B′, P′ = B and P after the Shimmerfin Deep soft cap (map ≥ 300), or replaced by the Crystal Glunko Cove (map 216 + cavern 17)
 // mkTotal() is the one copy of the formula the page uses: lib/arkh's combine, the Biggest Gains what-if and the Observed Max collector all go through it.

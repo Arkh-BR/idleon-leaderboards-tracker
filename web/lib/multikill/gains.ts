@@ -42,7 +42,7 @@ const tierCanMove = (flat: Record<string, number>, tp: string) => Number(flat[`$
 /** mkTotal's inputs from a flat tree: B and P are the direct children minus
  *  the rule rows; the soft cap applies when its row exists; the Cove row's
  *  value replaces its half. */
-function partsFromFlat(flat: Record<string, number>): MkParts {
+export function partsFromFlat(flat: Record<string, number>): MkParts {
   const b = half(flat, MK_NODES.base);
   const p = half(flat, MK_NODES.perTier);
   const tp = tierPath(flat);

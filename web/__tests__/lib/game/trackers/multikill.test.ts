@@ -15,7 +15,7 @@ import { basename, join } from "node:path";
 import { GOLDEN_SAVES, KNOWN_ARKH_DIFFS, arkhMkLeaves, arkhMkShape, arkhMultikill, type MkShape } from "../support/arkhOracle"; // first: it sets the `window` shim lib/arkh reads
 import * as arkhDef from "@/lib/arkh/stats/defs/multikill";
 import * as layers from "@/lib/multikill/layers";
-import { multikillGainsModel } from "@/lib/multikill/gains";
+import { multikillGainsModel, partsFromFlat } from "@/lib/multikill/gains";
 import { MULTIKILL_PAGE } from "@/lib/multikill/pageConfig";
 import { flattenTree } from "@/lib/dropRate/treeFlatten";
 import { makeCtx, type Ctx, type TraceNode } from "@/lib/game/ctx";
@@ -47,7 +47,7 @@ vi.mock("@/lib/game/njs/WorkbenchStuff", async (orig) => {
 import { WorkbenchStuff } from "@/lib/game/njs/WorkbenchStuff";
 
 type Node = StatResult["tree"];
-const { MK_NODES, MK_POOLS, MK_ROOT, MK_RULES } = layers;
+const { MK_NODES, MK_POOLS, MK_ROOT, MK_RULES, mkHalves } = layers;
 const rel = (got: number, want: number) => Math.abs(got - want) <= 1e-9 * Math.max(1, Math.abs(want));
 const noSaves = GOLDEN_SAVES.length === 0;
 const count = (n: Node): number => 1 + (n.children ?? []).reduce((a, c) => a + count(c), 0);
@@ -280,6 +280,32 @@ describe("the tree on a synthetic envelope (runs in CI)", () => {
     expect(() => tree()).not.toThrow();
   });
 
+  // N.js nests its additions and the page's model adds left to right: these ten per-tier terms are 176.49999999999997 the first way and 176.5 the other, so 10 + 2 x P floors to 362 and 363 with every term right.
+  it("a floor that differs only by the order of the additions does not fire the guard", () => {
+    const seeds: Seeds = {
+      "SaltLick[8]": 10,
+      'WorkbenchStuff["OverkillQTY",5,0]': 13.1, 'WorkbenchStuff["OverkillQTY",7,0]': 18.7, 'DNSM.AlchVials["Overkill"]': 16.5, "GetBuffBonuses[46,2]": 12.6, "getbonus2[1,58,-1]": 23.8,
+      "ArcadeBonus[8]": 7, 'Sailing["ArtifactBonus",26,0]': 27.8, "GetBuffBonuses[469,2]": 20.2, 'chipBonuses["mkill"]': 15.8, 'EtcBonuses["71"]': 21,
+      'DamageDealed["Max"]': 1.3e10, "PlayerAccTot[]": 1e6,
+    };
+    const { tree: t, total } = multikillTree(synth({ Tower: [0, 0, 0], OptLacc: Object.assign(Array<number>(700).fill(0), { 158: 5 }) }, { seeds, real: REAL, trace: true }));
+    expect(total).toBe(362);
+    expect(multikillGainsModel.totalFromFlat(flattenTree(t))).toBe(363);
+    expect(kid(t, MK_NODES.perTier).val).toBe(176.49999999999997);
+  });
+
+  it.each([["base", "ach123"], ["perTier", "arcade8"]] as const)("a source the %s half lost (%s) throws TreeTotalMismatch: the call's half no longer matches the tree's", (half, id) => {
+    const pools = MK_POOLS as Record<string, readonly string[]>;
+    const whole = pools[half];
+    pools[half] = whole.filter((x) => x !== id);
+    try {
+      expect(() => tree()).toThrow(TreeTotalMismatch);
+    } finally {
+      pools[half] = whole;
+    }
+    expect(() => tree()).not.toThrow();
+  });
+
   it("a map with no monster on its target is refused, as the block refuses it", () => {
     expect(() => tree({}, {}, { map: 33 })).toThrow(InvalidSaveValue);
   });
@@ -342,6 +368,7 @@ describe.skipIf(noSaves)("computeGameMultikill against lib/arkh on every real sa
       let known = 0;
       let leafKnown = 0;
       let motherlode = 0;
+      let floorFlips = 0;
       let flags = 0;
       let worstRatio = 0;
       let nodes = 0;
@@ -406,7 +433,11 @@ describe.skipIf(noSaves)("computeGameMultikill against lib/arkh on every real sa
           check("cove", tree.children![0].children![9]?.name === MK_RULES.cove ? 1 : 0);
           // display and value agree: the page's model gives the total back from the flat tree, and the levers read the tier's rows
           const flat = flattenTree(tree);
-          if (multikillGainsModel.totalFromFlat(flat) !== r.total) display.push(`${at}: the flat tree gives ${multikillGainsModel.totalFromFlat(flat)}, the call ${r.total}`);
+          // the page's own model: the same total, or a floor one apart only when the halves agree (N.js nests its additions, the model adds left to right)
+          const fromFlat = multikillGainsModel.totalFromFlat(flat);
+          const halves = mkHalves(partsFromFlat(flat));
+          if (fromFlat !== r.total) floorFlips++;
+          if (Math.abs(fromFlat - r.total) > 1 || !rel(halves.base, tree.children![0].val) || !rel(halves.perTier, tree.children![2].val)) display.push(`${at}: the flat tree gives ${fromFlat} (halves ${halves.base}, ${halves.perTier}), the call ${r.total}`);
           if (tree.val !== r.total) display.push(`${at}: root ${tree.val} is not the total ${r.total}`);
           for (const row of ["Exponent", "Next tier at", "Max Damage"]) if (typeof flat[`${MK_ROOT} / ${myTier.name} / ${row}`] !== "number") display.push(`${at}: no ${row} row`);
           if (kid(myTier, "Max Damage").val !== TRACKERS.damage!({ ...ctx, trace: null })) display.push(`${at}: Max Damage is not DamageDealed("Max")`);
@@ -414,7 +445,7 @@ describe.skipIf(noSaves)("computeGameMultikill against lib/arkh on every real sa
       }
       states.clear(); // the states (each a deep clone) kept across the maps would pass the heap
       console.info(
-        `[multikill adapter @${map}] ${pairs} pairs, ${known} known, ${leafKnown} known leaves, ${motherlode} Motherlode defences, ${mismatches.length} total, ${leafMismatches.length} leaf, ${shapeMismatches.length} shape and ${valueMismatches.length} value mismatches, ${flags} flagged notes, size ${nodes} nodes against ${arkhNodes} (worst ratio ${worstRatio.toFixed(2)}), ${refused.size} refused, ${Math.round(performance.now() - t0)} ms`
+        `[multikill adapter @${map}] ${pairs} pairs, ${known} known, ${leafKnown} known leaves, ${motherlode} Motherlode defences, ${floorFlips} floor flips, ${mismatches.length} total, ${leafMismatches.length} leaf, ${shapeMismatches.length} shape and ${valueMismatches.length} value mismatches, ${flags} flagged notes, size ${nodes} nodes against ${arkhNodes} (worst ratio ${worstRatio.toFixed(2)}), ${refused.size} refused, ${Math.round(performance.now() - t0)} ms`
       );
       for (const m of [...mismatches.slice(0, 5), ...leafMismatches.slice(0, 10), ...shapeMismatches.slice(0, 10), ...valueMismatches.slice(0, 10)]) console.info(`[multikill adapter @${map}] ${m}`);
       expect(over).toEqual([]);

@@ -10,24 +10,23 @@
 // The "Active in AFK" row is OverkillStuffs("3") and its gates, which MultiKillTOTAL does not call: they run on the root of the trace (so their `runtime:` / `assumed:` notes stay on the page) and each is
 // guarded: a read that throws is a noted 0, never the page's error (the Drop Rate chip's rule, trackers/dropRate.ts). A map with no monster on its AFK target (33) is refused as the block refuses it.
 //
-// The recombination guard rebuilds the total from the tree with the page's own Biggest Gains model (multikillGainsModel): the total is a floored integer, so it must be exact, or TreeTotalMismatch makes the
-// tracker read "incomplete". That also checks the soft cap the page's what-if uses (mkSoftCap) against the block's.
+// The recombination guard rebuilds both halves from the tree the way the page's Biggest Gains model does (partsFromFlat, mkHalves): each must be `near` its call, and the floor of the calls' values must be the
+// total, or TreeTotalMismatch makes the tracker read "incomplete". It compares the halves, not the page's floored total: N.js nests its additions and the model adds left to right, so a sum that lands on an
+// integer can floor one apart with every term right. That also checks the soft cap the page's what-if uses (mkSoftCap) against the block's.
 //
 // The type of the result is the page's own (lib/statTracker/config StatResult: type-only).
-import { flattenTree } from "@/lib/dropRate/treeFlatten";
-import { multikillGainsModel } from "@/lib/multikill/gains";
-import { MK_NODES, MK_POOLS, MK_ROOT, mkRuleRows, type MkParts } from "@/lib/multikill/layers";
+import { multikillGainsModel, partsFromFlat } from "@/lib/multikill/gains";
+import { MK_NODES, MK_POOLS, MK_ROOT, mkHalves, mkRuleRows, type MkParts } from "@/lib/multikill/layers";
 import type { StatResult } from "@/lib/statTracker/config";
 import { afkTarget } from "../afkTarget";
 import { asNum, asNumber } from "../attr";
 import { makeCtx, type Ctx, type TraceNode } from "../ctx";
 import { MONSTERS } from "../data";
-import { TreeTotalMismatch } from "../errors";
 import { hString } from "../hstring";
 import { PlayerAccTot } from "../njs/PlayerAccTot";
 import { monsterDefence, monsterHPTotal, overkillExponent, RunCodeOfTypeXforThingY } from "../njs/RunCodeOfTypeXforThingY";
 import { WorkbenchStuff } from "../njs/WorkbenchStuff";
-import { findCall, flagged, migratedNote, stateOf, takeFrom, traceTree, type Take } from "./page";
+import { findCall, finishTree, flagged, migratedNote, near, stateOf, takeFrom, traceTree, type Take } from "./page";
 
 type Node = StatResult["tree"];
 
@@ -189,13 +188,11 @@ export function multikillTree(ctx: Ctx): StatResult {
     note: `⌊B′ + T × P′⌋${migrated ? ` · ${migrated}` : ""}`,
     children: [half(MK_NODES.base, "B′", baseCall, base, parts.base), tier, half(MK_NODES.perTier, "P′ (× Damage Tier)", perTierCall, perTier, parts.perTier), status],
   };
-  // One path for the number (spec section 4): the page's Biggest Gains rebuilds the total from the tree's values.
-  const rebuilt = multikillGainsModel.totalFromFlat(flattenTree(tree));
-  if (rebuilt !== total) throw new TreeTotalMismatch(total, rebuilt);
-  // The flagged reads no row took, listed under the root.
-  const extras = [...baseCall.children, ...tierCall.children, ...perTierCall.children, ...root.children.filter((n) => n !== call)].filter((n) => !used.has(n) && flagged(n)).map(traceTree);
-  if (extras.length) tree.children = [...tree.children!, ...extras];
-  return { tree, total };
+  const agrees = (flat: Record<string, number>) => {
+    const h = mkHalves(partsFromFlat(flat));
+    return near(h.base, baseCall.value) && near(h.perTier, perTierCall.value) && Math.floor(baseCall.value + T * perTierCall.value) === total;
+  };
+  return finishTree(tree, total, multikillGainsModel, root, call, used, [baseCall, tierCall, perTierCall], agrees);
 }
 
 /** `computeArkhMultikill`'s counterpart: the envelope of a save, a character index and the map to compute on. */

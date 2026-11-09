@@ -5,7 +5,7 @@
 // the N.js call(s) it stands for (the evidence of its value, even when the call was a memo hit), and below them only the branches that lead
 // to a `runtime:` or `assumed:` note, which spec section 5 wants visible. The whole trace is still there for debugging: run the tracker's
 // call on a Ctx made with `trace: true`.
-import { flattenTree } from "@/lib/dropRate/treeFlatten";
+import { flattenTree, type FlatTree } from "@/lib/dropRate/treeFlatten";
 import type { GainsModel, StatResult } from "@/lib/statTracker/config";
 import type { TraceNode } from "../ctx";
 import { TreeTotalMismatch } from "../errors";
@@ -92,12 +92,24 @@ export function optFrom(from: TraceNode, used: Set<TraceNode>, kept: Node[]): (b
 /** `a` equals `b` to a relative 1e-9: the tree must give the call's total (spec section 4). */
 export const near = (a: number, b: number) => Math.abs(a - b) <= 1e-9 * Math.max(1, Math.abs(b));
 
-/** The result of a tracker whose tree is read from its one traced `call`: the guard, then the flagged reads no source took, listed under the root. */
-export function finishTree(tree: Node, total: number, model: Pick<GainsModel, "totalFromFlat">, root: TraceNode, call: TraceNode, used: Set<TraceNode>): StatResult {
+/**
+ * The result of a tracker whose tree is read from its one traced `call`: the guard, then the flagged reads no source took, listed under the root.
+ * `scan` is the calls whose direct reads the sources were taken from (by default `call`'s own), `agrees` the guard (by default the model's total `near` the call's).
+ */
+export function finishTree(
+  tree: Node,
+  total: number,
+  model: Pick<GainsModel, "totalFromFlat">,
+  root: TraceNode,
+  call: TraceNode,
+  used: Set<TraceNode>,
+  scan: readonly TraceNode[] = [call],
+  agrees: (flat: FlatTree) => boolean = (flat) => near(model.totalFromFlat(flat), total)
+): StatResult {
   // One path for the number (spec section 4): the page's Biggest Gains rebuilds the total from the tree's values.
-  const rebuilt = model.totalFromFlat(flattenTree(tree));
-  if (!near(rebuilt, total)) throw new TreeTotalMismatch(total, rebuilt);
-  const extras = [...call.children, ...root.children.filter((n) => n !== call)].filter((n) => !used.has(n) && flagged(n)).map(traceTree);
+  const flat = flattenTree(tree);
+  if (!agrees(flat)) throw new TreeTotalMismatch(total, model.totalFromFlat(flat));
+  const extras = [...scan.flatMap((c) => c.children), ...root.children.filter((n) => n !== call)].filter((n) => !used.has(n) && flagged(n)).map(traceTree);
   if (extras.length) tree.children = [...tree.children!, ...extras];
   return { tree, total };
 }
