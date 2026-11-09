@@ -362,7 +362,8 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/game/njs/ArbitraryCode.ts"
   ],
   "MonsterRespawnTimeReset": [
-    "lib/arkh/stats/systems/common/overkill.ts"
+    "lib/arkh/stats/systems/common/overkill.ts",
+    "lib/game/njs/RunCodeOfTypeXforThingY.ts"
   ],
   "MonumentROGbonuses": [
     "lib/arkh/stats/systems/exp/exp.ts",

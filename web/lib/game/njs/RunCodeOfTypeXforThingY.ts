@@ -46,6 +46,7 @@ export const RunCodeOfTypeXforThingY: (ctx: Ctx, d: string, b: string) => number
   }
 });
 
+// @njs MonsterRespawnTimeReset
 /**
  * The HP of the monster the character is AFK on, `MonsterDefinitionsGET[AFKtarget].MonsterHPTotal` (Rulings V and GG: lib/game/afkTarget.ts). The table is the
  * game data as `performETCaction("MonsterRespawnTimeReset")` @6508363 leaves it (each scene load runs it, @15305666): every monster's HP times

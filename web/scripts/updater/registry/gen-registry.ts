@@ -2,8 +2,9 @@
 // Builds the formula registry. It maps each N.js formula/mirrored-constant name
 // to the file(s) that port it, from two sources:
 //   - `// @njs <name>` annotations across the ported engines (regex scan: simple
-//     and enough for "which file(s) to review");
-//   - lib/game/njs, where the module IS the link (spec §1, no tags): each
+//     and enough for "which file(s) to review"), lib/game/njs included for what a
+//     module mirrors without a block of its own;
+//   - lib/game/njs, where the module IS the link (spec §1): each
 //     `block("<Fn>", …)` is `_customBlock_<Fn>` and each `case "<Sub>":` of its
 //     dispatcher is the named block `<Sub>`.
 // Run via gen() to (re)write the .gen.ts (from web/: npx tsx scripts/updater/registry/gen-registry.ts).
@@ -60,7 +61,7 @@ export function gameNames(file: string, text: string): string[] {
 
 export function buildRegistry(webRoot: string = WEB_ROOT): Record<string, string[]> {
   const map: Record<string, string[]> = {};
-  for (const root of ROOTS) {
+  for (const root of [...ROOTS, GAME_ROOT]) {
     for (const file of walk(join(webRoot, root), [])) {
       const txt = readFileSync(file, "utf8");
       let m: RegExpExecArray | null;

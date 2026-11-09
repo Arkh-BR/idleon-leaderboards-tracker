@@ -52,6 +52,12 @@ describe("buildRegistry over lib/game/njs", () => {
     });
   });
 
+  it("an @njs tag in a lib/game module maps what it mirrors without a block of its own", () => {
+    writeFileSync(join(root, "lib/game/njs/Tagged.ts"), "// @njs Gamma\nexport const y = 1;\n");
+    expect(buildRegistry(root).Gamma).toEqual(["lib/game/njs/Tagged.ts"]);
+    rmSync(join(root, "lib/game/njs/Tagged.ts"));
+  });
+
   it("drops a sub-case the snapshot has no named block for (N.js writes it as a ternary: its scaffold carries the change), never the block", () => {
     writeFileSync(join(root, "data/njs-snapshot/formulas.json"), JSON.stringify({ Alpha: "x" }));
     expect(buildRegistry(root)).toEqual({ _customBlock_Foo: ["lib/game/njs/Foo.ts"], Alpha: ["lib/arkh/old.ts", "lib/game/njs/Foo.ts"] });
@@ -59,6 +65,10 @@ describe("buildRegistry over lib/game/njs", () => {
 });
 
 describe("the committed registry sees lib/game", () => {
+  it("the HP table the multikill tier reads stays on the update net once lib/arkh is gone", () => {
+    expect(FORMULA_REGISTRY.MonsterRespawnTimeReset).toContain("lib/game/njs/RunCodeOfTypeXforThingY.ts");
+  });
+
   it("maps the Sailing sub-cases and the block to lib/game/njs/Sailing.ts", () => {
     for (const name of ["_customBlock_Sailing", "BoatArtiMulti", "ArtifactBonus", "DaveyJonesBonus"]) {
       expect(FORMULA_REGISTRY[name], name).toContain("lib/game/njs/Sailing.ts");
