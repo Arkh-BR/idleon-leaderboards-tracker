@@ -1,7 +1,7 @@
 // ===== COIN MULTI DESCRIPTOR =====
 // N.js ArbitraryCode("MonsterCash") (live sha 6de681a96813): 22 multiplicative
 // factors and one additive group, in game order. Every term is a source of
-// the `coin` system (systems/coin/coin.ts); a group's shape lives here:
+// the `coin` system (systems/coin/coin.ts); a group's shape lives in lib/coinMulti/layers:
 //   pct → 1 + Σ/100      raw → 1 + Σ      min4 → 1 + min(4, Σ)
 
 import type { Descriptor } from "../tree-builder";

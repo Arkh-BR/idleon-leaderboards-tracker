@@ -1,6 +1,6 @@
 // ===== COIN SYSTEM =====
 // One id per term of N.js ArbitraryCode("MonsterCash"). Each returns what the
-// formula adds inside its group; defs/coin-multi.ts owns the group shapes.
+// formula adds inside its group; lib/coinMulti/layers owns the group shapes.
 // Existing helpers are reused as-is; terms the engine never ported live in
 // this folder so the Drop Rate paths stay untouched.
 
