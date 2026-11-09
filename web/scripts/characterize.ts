@@ -1,6 +1,6 @@
 // characterize: do the old and the new engine of a stat agree on every real save? From web/:
 //
-//   npx tsx scripts/characterize.ts <stat> [--map <n>]        (stats: artifactFind, damage, afkGains, expMulti, dropRateV2, coinMulti, multikill)
+//   npx tsx scripts/characterize.ts <stat> [--map <n>] [--recent <n>]        (stats: artifactFind, damage, afkGains, expMulti, dropRateV2, coinMulti, multikill)
 //
 // Runs both engines on every character of every save envelope (golden/.cache + saves-fresh), on map <n> (default 0; a stat with
 // no map ignores it), writes reports/characterize-<stat>[-<n>].md, and exits 1 when the spec's switch criteria are not met: a row that is
@@ -8,7 +8,7 @@
 // keys the stat may be refused for) nor an error lib/arkh has too. The time of the two engines is reported, not judged:
 // the user accepted lib/game's cost on 2026-11-04 (warm-switch parity, spec risk "Desempenho").
 // The known-diff list lives in a test-support file: this is a script, not app code, so it imports it from there.
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { basename } from "node:path";
 import { pathToFileURL } from "node:url";
 // first: the oracle sets the `window` shim lib/arkh reads
@@ -111,7 +111,7 @@ const ENGINES: Record<string, (map: number) => { arkh: Engine; game: Engine; nam
   }),
 };
 
-const USAGE = `usage: npx tsx scripts/characterize.ts <stat> [--map <n>]   (${Object.keys(ENGINES).join(", ")})`;
+const USAGE = `usage: npx tsx scripts/characterize.ts <stat> [--map <n>] [--recent <n>]   (${Object.keys(ENGINES).join(", ")})`;
 
 const num = (x: number | undefined) => (x === undefined ? "—" : String(x));
 
@@ -119,7 +119,9 @@ function main(argv: string[]): number {
   const args = [...argv];
   const i = args.indexOf("--map");
   const mapArg = i < 0 ? undefined : args.splice(i, 2)[1];
-  if ((i >= 0 && !/^\d+$/.test(mapArg ?? "")) || args.length !== 1) throw new Error(USAGE);
+  const r = args.indexOf("--recent");
+  const recentArg = r < 0 ? undefined : args.splice(r, 2)[1];
+  if ((i >= 0 && !/^\d+$/.test(mapArg ?? "")) || (r >= 0 && !/^[1-9]\d*$/.test(recentArg ?? "")) || args.length !== 1) throw new Error(USAGE);
   const map = Number(mapArg ?? 0);
   const stat = args[0];
   if (!ENGINES[stat]) throw new Error(`no engines registered for ${stat}\n${USAGE}`);
@@ -131,7 +133,9 @@ function main(argv: string[]): number {
     if (!csvers.has(path)) csvers.set(path, JSON.parse(readFileSync(path, "utf8")).data?.CSver);
     return csvers.get(path);
   };
-  const saves = goldenSaves();
+  let saves = goldenSaves();
+  // --recent n: only the n most recently modified saves (the newest data)
+  if (recentArg !== undefined) saves = saves.sort((a, b) => statSync(b).mtimeMs - statSync(a).mtimeMs).slice(0, Number(recentArg));
   if (saves.length === 0) throw new Error("no real saves on this machine (scripts/updater/golden/.cache, scripts/updater/.cache/saves-fresh)");
 
   // One call of each engine first (on a current save: an old one is refused before the engine does any work): lazy
@@ -198,7 +202,7 @@ function main(argv: string[]): number {
     for (const r of shared) out.push(`- ${at(r)}: ${r.error}`);
   }
 
-  const file = `reports/characterize-${stat}${mapArg === undefined ? "" : `-${map}`}.md`; // relative to web/, the cwd of `npx tsx`
+  const file = `reports/characterize-${stat}${mapArg === undefined ? "" : `-${map}`}${recentArg === undefined ? "" : `-recent${recentArg}`}.md`; // relative to web/, the cwd of `npx tsx`
   mkdirSync("reports", { recursive: true });
   writeFileSync(file, out.join("\n") + "\n");
   console.log(
