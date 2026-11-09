@@ -10,8 +10,8 @@ vi.mock("@/components/ProfileNameLoader", () => ({
   },
 }));
 // The engine and the (large) Observed Max table aren't under test.
-vi.mock("@/lib/arkh/computeDR", () => ({
-  computeArkhDropRate: () => ({ tree: { name: "Drop Rate", val: 2.5, fmt: "x", children: [] }, total: 2.5 }),
+vi.mock("@/lib/game/trackers/dropRateV1", () => ({
+  computeGameDropRateV1: () => ({ tree: { name: "Drop Rate", val: 2.5, fmt: "x", children: [] }, total: 2.5 }),
 }));
 vi.mock("@/lib/dropRate/topDropRate", () => ({
   topDrFlatForClass: () => ({ "Drop Rate": 5, "Drop Rate / Post-Processing / 🗺️ Arcane Map": 2 }),

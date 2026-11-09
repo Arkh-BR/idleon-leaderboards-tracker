@@ -13,8 +13,8 @@ vi.mock("@/lib/gameAuth/envelope", async (importOriginal) => ({
   ...ev,
 }));
 // The engines aren't under test.
-vi.mock("@/lib/arkh/computeDR", () => ({
-  computeArkhDropRate: () => {
+vi.mock("@/lib/game/trackers/dropRateV1", () => ({
+  computeGameDropRateV1: () => {
     throw new Error("stub");
   },
 }));
