@@ -3,6 +3,7 @@ import type { Ctx } from "@/lib/game/ctx";
 import type { ArkhNode } from "../node";
 import { COLLECTION_EXPLAINERS } from "./collections";
 import { EQUIPMENT_EXPLAINERS } from "./equipment";
+import { SIMPLE_EXPLAINERS } from "./simple";
 import { TALENT_EXPLAINERS } from "./talent";
 import { WORLD67_EXPLAINERS } from "./world67";
 
@@ -10,4 +11,4 @@ import { WORLD67_EXPLAINERS } from "./world67";
 export type Explainer = (ctx: Ctx, value: number) => ArkhNode[];
 
 /** By V1 source id. A source with no entry is a leaf (__tests__/lib/game/support/v1Compare.ts lists those still PENDING). */
-export const EXPLAINERS: Record<string, Explainer> = { ...TALENT_EXPLAINERS, ...EQUIPMENT_EXPLAINERS, ...WORLD67_EXPLAINERS, ...COLLECTION_EXPLAINERS };
+export const EXPLAINERS: Record<string, Explainer> = { ...TALENT_EXPLAINERS, ...EQUIPMENT_EXPLAINERS, ...WORLD67_EXPLAINERS, ...COLLECTION_EXPLAINERS, ...SIMPLE_EXPLAINERS };

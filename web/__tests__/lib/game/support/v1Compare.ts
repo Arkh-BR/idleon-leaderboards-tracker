@@ -13,14 +13,15 @@ export type V1Diff = { missing: string[]; extra: string[]; value: string[]; meta
 /** The V1 sources whose rows are built (lib/dropRate/explain): each family's task adds its ids. */
 const BUILT: readonly string[] = ["talent279", "talent24", "talent655", "talent239", "workbench", "etc2", "etc91", "etc99", "etc102", "efaunt",
   "rank9", "cropSC7", "exotic59", "hole46", "hole82", "meas15", "monument", "caveDR", "grimoire44", "spelunk50", "legend1", "emperor11", "grid173", "glimbo", "minehead0", "menagerie24", "pristine3", "rog", "vial",
-  "card10", "card101", "mini5a", "anni4", "luckEvent", "comp3", "comp50", "comp22", "comp158", "comp111", "comp132", "comp132x", "comp168x", "comp26", "comp160", "comp50x", "goldFood", "stampA38", "bubble", "starSigns", "prayer7", "shiny0", "sigil11", "cardSet5", "cardSet6"];
+  "card10", "card101", "mini5a", "anni4", "luckEvent", "comp3", "comp50", "comp22", "comp158", "comp111", "comp132", "comp132x", "comp168x", "comp26", "comp160", "comp50x", "goldFood", "stampA38", "bubble", "starSigns", "prayer7", "shiny0", "sigil11", "cardSet5", "cardSet6",
+  "lukScaling", "shrine4", "arcade27", "guild10", "postOffice11", "win9", "tome2", "dream10", "ach377", "ach381", "owl4", "vote27", "vault18", "friend3", "chip", "bunV", "ola232", "bunP", "arcane", "statue1", "family32", "tome7", "cloud69"];
 /** V1 source ids whose rows aren't built yet: differences below them are ignored. Task 7 asserts it is empty. */
 export const PENDING = new Set(V1_SOURCES.map((s) => s.id).filter((id) => !BUILT.includes(id)));
 
 /** A path where lib/arkh is wrong, with its N.js evidence. The value of the buckets and totals above such a path differs with it. */
-export const V1_KNOWN: { path: RegExp; why: string }[] = [
+export const V1_KNOWN: { path: RegExp; why: string; /** false: only a row differs, the aggregates above it do not move */ moves?: false }[] = [
   {
-    path: /^Drop Rate \/ LUK Scaling$/,
+    path: /^Drop Rate \/ LUK Scaling(?: \/ .*)?$/, // the row and its children (Total LUK, the curve and its note, × 1.4): all of them move with the LUK
     why: "N.js TotalStats(\"Drop_Rarity\") starts from a live `x._customBlock_TotalStats(\"LUK\")` for DropRateLUK (@4190488); lib/arkh's lukScaling (stats/systems/common/stats.ts readRawLuk) reads PVStatList_<ci>[3], the TotalStats(\"LUK\") the game wrote at save time (@15076361), stale on any save older than the last stat change. dropRateV1.test.ts proves it: with lib/game's LUK in PVStatList_<ci>[3], lib/arkh's row is the game's",
   },
   {
@@ -30,6 +31,11 @@ export const V1_KNOWN: { path: RegExp; why: string }[] = [
   {
     path: / \/ All Multi \/ Dream Challenge (?:71|72|76) \(Cloud Bonus (?:71|72|76)\)$/,
     why: "N.js ResearchStuff(\"Grid_Bonus_Allmulti\") @11179175 adds Dreamstuff(\"CloudBonus\", 71), 72 and 76 (1 each while the weekly boss d_<n> is undefeated) to the multi every grid square gets; lib/arkh's gridAllMulti (systems/w4/lab.ts) adds them to the value but lists no row for them, so the All Multi row of squares 173 and 168 has these children and the rows sum to its value",
+  },
+  {
+    path: / \/ Drop Rate Summoning Win \(Summoning 9\) \/ Winner Multi \/ Bundle ban_i$/,
+    why: "N.js WinBonus @10927394 (@10930921, the branch of the bonuses not 19 or 20..33) adds 50*Thingies(\"Have_ban_i\") (@10978279, BundlesReceived.ban_i == 1) to the winners' boosts; lib/arkh's _winBonusParts (w6/summoning.ts) adds banI to winnerSum but lists no row for it, so Winner Multi's rows do not sum to its value. The game's tree has the row, only while the bundle is owned (the value above it is the same)",
+    moves: false,
   },
 ];
 
@@ -84,7 +90,7 @@ export function compareV1(save: unknown, ci: number, map: number, opts: { chipGa
     const k = V1_KNOWN.find((row) => row.path.test(path));
     if (k) {
       hits.add(k.path);
-      aggregatesMove = true;
+      if (false !== k.moves) aggregatesMove = true;
     }
     return !!k;
   };

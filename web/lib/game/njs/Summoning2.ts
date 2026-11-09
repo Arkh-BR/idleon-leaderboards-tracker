@@ -104,7 +104,7 @@ function meritocBonuszMulti(ctx: Ctx): number {
  * It is a server answer, not a save value: the envelope's `serverVars` is the capture of it. A null `serverVars` is no capture at
  * all: no vote is known to be in force, shown in the trace as not counted. A `serverVars` without `voteCategories` is refused.
  */
-function activeVote(ctx: Ctx): unknown {
+export function activeVote(ctx: Ctx): unknown {
   const vars = ctx.state.serverVars;
   if (vars === null) {
     runtime(ctx, "voteCategories", "envelope.serverVars is null: no server answer, so no vote is known to be in force");

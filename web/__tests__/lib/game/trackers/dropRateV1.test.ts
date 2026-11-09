@@ -54,6 +54,10 @@ const LUK_CURVE = (Math.pow(501, 0.37) - 1) / 40;
 const FIVE = ["LUK Scaling", "Additive Pool", "Total Sum", "Chip Cap-Break", "Post-Processing"];
 
 describe("the V1 tree on a synthetic envelope (runs in CI)", () => {
+  it("every source of the tree has its rows built: nothing is pending", () => {
+    expect([...PENDING]).toEqual([]);
+  });
+
   it("has the page's five rows, in order, and its number is the block's", () => {
     const { tree: t, total } = tree();
     expect(t).toMatchObject({ name: "Drop Rate", val: total, fmt: "x" });
@@ -65,7 +69,11 @@ describe("the V1 tree on a synthetic envelope (runs in CI)", () => {
     const t = tree().tree;
     const luk = kid(t, "LUK Scaling");
     expect(luk).toMatchObject({ val: 1.4 * LUK_CURVE, fmt: "raw", defaultClosed: true });
-    expect(luk.children).toEqual([{ name: "× 1.4", val: 1.4 * LUK_CURVE, fmt: "raw", note: "1.4 × lukScaling" }]);
+    expect(luk.children).toEqual([
+      { name: "🍀 Total LUK", val: 500, fmt: "raw" },
+      { name: "Sub-1000 curve", val: LUK_CURVE, fmt: "raw", note: "(pow(500+1, 0.37)-1)/40" },
+      { name: "× 1.4", val: 1.4 * LUK_CURVE, fmt: "raw", note: "1.4 × lukScaling" },
+    ]);
     const add = kid(t, "Additive Pool");
     expect(add).toMatchObject({ val: 50 + 8 + 10, fmt: "+" }); // talent 279, EtcBonuses("2"), 5 x Dream[10]
     expect(kid(add, "🎯 Talents")).toMatchObject({ val: 50, fmt: "+" });
@@ -86,11 +94,12 @@ describe("the V1 tree on a synthetic envelope (runs in CI)", () => {
     const lo = tree({}, { 'chipBonuses["dr"]': 50 });
     const cap = kid(lo.tree, "Chip Cap-Break");
     expect(cap).toMatchObject({ val: 0.5, fmt: "+", defaultClosed: true, note: "Applies when base < 5×" });
-    expect(cap.children).toEqual([{ name: "Lab Chip DR", val: 50, fmt: "+", note: "chip dr" }]);
+    // the synthetic envelope has no Lab: the chip's slots are a noted leaf, never a page error
+    expect(cap.children).toEqual([{ name: "Lab Chip DR", val: 50, fmt: "+", note: "chip dr", children: [{ name: "Lab Chip DR", val: 0, note: "not read: Lab" }] }]);
     const hi = tree({}, { 'chipBonuses["dr"]': 50, "GetTalentNumber[1,279]": 500 });
     expect(hi.total).toBeGreaterThan(5);
     expect(kid(hi.tree, "Chip Cap-Break")).toMatchObject({ val: 0, note: "Inactive (base ≥ 5× or no chip)" });
-    expect(kid(hi.tree, "Chip Cap-Break").children).toEqual([{ name: "Lab Chip DR", val: 50, fmt: "+", note: "chip dr" }]);
+    expect(kid(hi.tree, "Chip Cap-Break").children).toMatchObject([{ name: "Lab Chip DR", val: 50, fmt: "+", note: "chip dr" }]);
   });
 
   it("Post-Processing: the three steps as buckets, then the multipliers by system", () => {

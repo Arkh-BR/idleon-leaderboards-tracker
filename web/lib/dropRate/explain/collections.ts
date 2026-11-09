@@ -27,10 +27,10 @@ import { jellyRow } from "./world67";
 import { NOT_READ, present, raw, row } from "./talent";
 
 type Table = readonly (readonly unknown[])[];
-const near = (a: number, b: number) => Math.abs(a - b) <= 1e-9 * Math.max(1, Math.abs(b));
+export const near = (a: number, b: number) => Math.abs(a - b) <= 1e-9 * Math.max(1, Math.abs(b));
 
 /** A source's rows, or one leaf saying why the save could not give them. */
-const safe =
+export const safe =
   (name: string, make: (c: Ctx, val: number) => ArkhNode[]): Explainer =>
   (c, val) => {
     try {
@@ -41,7 +41,7 @@ const safe =
   };
 
 /** The rows are out of step with the number the tracker made (a constant of the game's expression moved): one noted leaf, never rows that do not add up. */
-const outOfStep = (name: string, val: number, expected: number): ArkhNode[] => [{ name, val: 0, note: `${NOT_READ}the rows give ${expected}, the block ${val}: the game's constants changed` }];
+export const outOfStep = (name: string, val: number, expected: number): ArkhNode[] => [{ name, val: 0, note: `${NOT_READ}the rows give ${expected}, the block ${val}: the game's constants changed` }];
 
 // ===== Names, as the game lists show them =====
 
@@ -54,16 +54,16 @@ const codename = (s: string): string =>
     .map((w, i) => (i > 0 && SMALL_WORDS.has(w.toLowerCase()) ? w.toLowerCase() : w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()))
     .join(" ");
 /** A name from a game list as the game shows it: "_" is a space, minus the "_製" info marker and the "$" slot. */
-const gameName = (rawName: unknown): string => {
+export const gameName = (rawName: unknown): string => {
   const s = typeof rawName === "string" ? rawName.replace(/_製/g, "").replace(/\$/g, "") : "";
   return /[a-z]/.test(s) ? s.replace(/_/g, " ").trim() : codename(s);
 };
-const gameLabel = (system: string, id: unknown, rawName: unknown, suffix = ""): string => {
+export const gameLabel = (system: string, id: unknown, rawName: unknown, suffix = ""): string => {
   const n = gameName(rawName);
   return n ? `${n} (${system} ${id})${suffix}` : `${system} ${id}${suffix}`;
 };
 /** A monster or sign name, every word capitalised. */
-const title = (s: string): string =>
+export const title = (s: string): string =>
   s
     .replace(/[_|]/g, " ")
     .split(/\s+/)
