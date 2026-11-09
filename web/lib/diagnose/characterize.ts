@@ -130,6 +130,9 @@ export const DR_REFUSABLE = DAMAGE_REFUSABLE;
 /** Coin Multi's list: Damage's too (the block's first read, TotalStats("STR"), carries the Tome rows HourZero is refused for). */
 export const COIN_REFUSABLE = DAMAGE_REFUSABLE;
 
+/** Multikill's list: Damage's too (the tier reads DamageDealed("Max"), whose Tome rows HourZero is refused for, Ruling E). */
+export const MULTIKILL_REFUSABLE = DAMAGE_REFUSABLE;
+
 /**
  * `known` is the oracle's KNOWN_ARKH_DIFFS ({save: file name, ci?: omitted = every character}); `csver` is the save's `data.CSver`.
  * A diff-list entry explains a difference of numbers only, never an error, and only the `b` (lib/game) side can refuse.

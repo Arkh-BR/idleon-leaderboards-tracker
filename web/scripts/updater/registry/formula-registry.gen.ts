@@ -369,16 +369,22 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/arkh/stats/systems/exp/exp.ts",
     "lib/game/njs/Holes.ts"
   ],
+  "MotherlodeEffBase": [
+    "lib/game/njs/Holes.ts"
+  ],
   "MultiKillTOTAL": [
-    "lib/arkh/stats/defs/multikill.ts"
+    "lib/game/njs/WorkbenchStuff.ts",
+    "lib/multikill/layers.ts"
   ],
   "MultiKill_base": [
-    "lib/arkh/stats/defs/multikill.ts",
-    "lib/arkh/stats/systems/multikill/multikill.ts"
+    "lib/arkh/stats/systems/multikill/multikill.ts",
+    "lib/game/njs/WorkbenchStuff.ts",
+    "lib/multikill/layers.ts"
   ],
   "MultiKill_perTier": [
-    "lib/arkh/stats/defs/multikill.ts",
-    "lib/arkh/stats/systems/multikill/multikill.ts"
+    "lib/arkh/stats/systems/multikill/multikill.ts",
+    "lib/game/njs/WorkbenchStuff.ts",
+    "lib/multikill/layers.ts"
   ],
   "NightmarinerBon": [
     "lib/arkh/stats/systems/artifact/terms.ts",
@@ -512,6 +518,9 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/arkh/stats/data/w7/royalG.ts",
     "lib/arkh/stats/systems/exp/exp.ts",
     "lib/game/njs/RoyalG.ts"
+  ],
+  "StatueOnyxOwned": [
+    "lib/game/njs/ArbitraryCode.ts"
   ],
   "StickerBonus": [
     "lib/arkh/stats/systems/exp/exp.ts",

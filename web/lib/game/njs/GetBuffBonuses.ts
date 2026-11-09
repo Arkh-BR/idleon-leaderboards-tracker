@@ -20,21 +20,23 @@ function buffIDsOn(ctx: Ctx): unknown[] {
 
 /**
  * N.js `_customBlock_GetBuffBonuses(c, b)` @4279371: the bonus of the active buff `c` (a talent): its talent number, curve `b`, while
- * the buff runs, else 0. Ported: 94 (STR), 273 (move speed), 288 (accuracy); 195, 420 and 585 (read by the masterclass forms Wraith,
- * Tempest and Tesseract) and 615 (read by the dungeon branch) by the generic rule, except that 615 is 1, not a talent number
- * (`615 == c ? 1`); 108 and 124 as not counted. 46 has a rule of its own and is not ported. The forms and the dungeon are not counted
- * by the Damage page, in the functions that read these buffs.
+ * the buff runs, else 0. Ported: 94 (STR), 273 (move speed), 288 (accuracy), 45, 46 and 469 (Multikill); 195, 420 and 585 (read by the
+ * masterclass forms Wraith, Tempest and Tesseract) and 615 (read by the dungeon branch) by the generic rule, except that 615 is 1, not a
+ * talent number (`615 == c ? 1`), and 46 counts only on the classes 4 and 5 while the buff 45 runs (`46 == c ? (4 == CharacterClass || ...`);
+ * 108 and 124 as not counted. The forms and the dungeon are not counted by the Damage page, in the functions that read these buffs.
  */
-export const GetBuffBonuses = block("GetBuffBonuses", (ctx, c: number, b: number) => {
+export const GetBuffBonuses: (ctx: Ctx, c: number, b: number) => number = block("GetBuffBonuses", (ctx, c: number, b: number) => {
   // a product decision of the Damage page (the plan's Global Constraints): the active buffs 108 and 124 are not counted
   if (108 === c || 124 === c) return runtime(ctx, `GetBuffBonuses(${c})`, "active buff, not counted");
   if (!COUNTED.includes(c)) throw new NotPorted("GetBuffBonuses", `c=${c}`);
-  if (615 === c) return contains(buffIDsOn(ctx), c) ? 1 : 0; // @4279371
-  return contains(buffIDsOn(ctx), c) ? GetTalentNumber(ctx, b, c) : 0;
+  if (!contains(buffIDsOn(ctx), c)) return 0; // @4279371
+  if (615 === c) return 1;
+  if (46 === c) return (4 == (attr(ctx, "CharacterClass") as number) || 5 == (attr(ctx, "CharacterClass") as number)) && 0 < GetBuffBonuses(ctx, 45, 1) ? GetTalentNumber(ctx, b, c) : 0;
+  return GetTalentNumber(ctx, b, c);
 });
 
-/** The buffs ported to the generic rule. */
-const COUNTED = [94, 273, 288, 195, 420, 585, 615];
+/** The buffs ported (46 and 615 with their own rule). */
+const COUNTED = [94, 273, 288, 195, 420, 585, 615, 45, 46, 469];
 
 /** What this module covers (lib/game/ported.ts). */
 export const PORTED: Ported = [...COUNTED, 108, 124];

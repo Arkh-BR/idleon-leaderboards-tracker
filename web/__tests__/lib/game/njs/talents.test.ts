@@ -213,7 +213,7 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("GetBuffBonuses 195, 420, 585, 615: t
     expect(GetBuffBonuses(withBuff(null, 7), 615, 1)).toBe(0);
   });
   it("a buff nobody ported still throws NotPorted", () => {
-    expect(() => GetBuffBonuses(withBuff(null, 0), 46, 1)).toThrow(NotPorted);
+    expect(() => GetBuffBonuses(withBuff(null, 0), 40, 1)).toThrow(NotPorted);
   });
 });
 

@@ -8,6 +8,7 @@ import { PlayerHPmax } from "@/lib/game/njs/PlayerHPmax";
 import { PlayerMPmax } from "@/lib/game/njs/PlayerMPmax";
 import { Sailing } from "@/lib/game/njs/Sailing";
 import { TotalStats } from "@/lib/game/njs/TotalStats";
+import { WorkbenchStuff } from "@/lib/game/njs/WorkbenchStuff";
 import type { StatKey } from "@/lib/readings/types";
 
 // Ported trackers by stat; each migration plan registers its own (scripts/verify-map.ts reads this, lib/readings/compute.ts dispatches on it).
@@ -25,6 +26,8 @@ export const TRACKERS: Partial<Record<StatKey, (ctx: Ctx) => number>> = {
   dropRateV2: (ctx) => TotalStats(ctx, "Drop_Rarity"),
   // the "Total Coin Bonus from all sources" line of Upgrade Vault 2 (Monster Tax): ArbitraryCode("MonsterCash") on the Ctx's map (adapter: trackers/coinMulti.ts)
   coinMulti: (ctx) => ArbitraryCode(ctx, "MonsterCash"),
+  // the "MULTIKILL: X%" line of the AFK Info panel: WorkbenchStuff("MultiKillTOTAL") on the Ctx's map (adapter: trackers/multikill.ts)
+  multikill: (ctx) => WorkbenchStuff(ctx, "MultiKillTOTAL", 0, 0),
   // the Player Info stats the Damage readings carry as extras (Damage plan, Task 3; Ruling Q: every one equals the game's text)
   maxHp: (ctx) => PlayerHPmax(ctx),
   maxMp: (ctx) => PlayerMPmax(ctx),

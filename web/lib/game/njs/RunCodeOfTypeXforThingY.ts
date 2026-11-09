@@ -14,6 +14,8 @@ import { DNSM_FamBonusQTYs } from "./DNSM";
 import { GamingStatType } from "./GamingStatType";
 import { GetSetBonus } from "./GetSetBonus";
 import { GetTalentNumber } from "./GetTalentNumber";
+import { Holes } from "./Holes";
+import { PlayerAccTot } from "./PlayerAccTot";
 import { prayersReal } from "./prayersReal";
 import { RiftStuff } from "./RiftStuff";
 import { RoyalG } from "./RoyalG";
@@ -54,7 +56,7 @@ export const RunCodeOfTypeXforThingY: (ctx: Ctx, d: string, b: string) => number
  * The table it copies has the Rift's monster at RiftStuff("mobHP", 0): the Rift scene writes it there (@20359437) before a character can be AFK on it, so it is cursed like the others.
  * The game would throw on a target the table does not have ("Z", "Filler", ...).
  */
-function monsterHPTotal(ctx: Ctx): number {
+export function monsterHPTotal(ctx: Ctx): number {
   const target = afkTarget(ctx);
   const mob = (MONSTERS as Record<string, Readonly<Record<string, unknown>>>)[target];
   if (!mob) throw new InvalidSaveValue("AFKtarget", "a MonsterDefinitions key", target);
@@ -65,13 +67,32 @@ function monsterHPTotal(ctx: Ctx): number {
 }
 
 /**
+ * `MonsterDefinitionsGET[AFKtarget].Defence`: the game data as `performETCaction("MonsterRespawnTimeReset")` leaves it (the overwrite sits inside `if(0!=Tasks.length)`, @6508441; the Holes statement is @6516967): on a save with Holes, the Motherlode's four
+ * targets have Holes("MotherlodeEffBase", i, 0) instead, the fish's divided by 4. The four writes repeat @12125680 and the second caveA write is @12227187. The other writes of a monster's Defence happen in a running game: the bosses' parts on the maps 29 and 66
+ * (@6530517), the crystal mobs' spawn (@4559629) and the Hound caveA while its fight runs (@12130700); no real save has any of them as its AFK target. The game would throw on a target the table does not have.
+ */
+export function monsterDefence(ctx: Ctx): number {
+  const target = afkTarget(ctx);
+  const mob = (MONSTERS as Record<string, Readonly<Record<string, unknown>>>)[target];
+  if (!mob) throw new InvalidSaveValue("AFKtarget", "a MonsterDefinitions key", target);
+  const at = ["Motherlode", "Bug14", "MotherlodeTREE", "MotherlodeFISH"].indexOf(target);
+  if (0 <= at && 0 != listAt(ctx, "Holes").length) return 3 == at ? Holes(ctx, "MotherlodeEffBase", 3, 0) / 4 : Holes(ctx, "MotherlodeEffBase", at, 0);
+  return asNumber(mob.Defence);
+}
+
+/** `DNSM.OverkillEXPONENT`, which `OverkillStuffs` sets on every call: 5 from map 300 on, else 2. */
+export const overkillExponent = (ctx: Ctx): number => (300 <= ctx.map ? 5 : 2);
+
+/**
  * `OverkillStuffs` @4095676 for b == "2", the multikill tier on the AFK target: 1, and f + 2 for every step f < 50 the Max damage reaches (HP x E^(f + 2), in
  * N.js's order HP x E x E^(f + 1)), stopping at the first it does not, so at most 51. E (DNSM.OverkillEXPONENT) is 5 from map 300 on, else 2. There is no
- * check of the kind of map: a town or a dungeon whose target the table has counts like any other.
+ * check of the kind of map: a town or a dungeon whose target the table has counts like any other. For b == "3" (@4097281), whether the multikill applies at all: the Max damage
+ * reaches HP x E, the Death Note is built (TowerInfo[2] > .5) and PlayerAccTot beats 1.5 x the target's Defence.
  */
 function overkillStuffs(ctx: Ctx, b: string): number {
+  const exponent = overkillExponent(ctx);
+  if ("3" == b) return DamageDealed(ctx, "Max") >= monsterHPTotal(ctx) * exponent && 0.5 < asNum(ctx, "TowerInfo", 2) && PlayerAccTot(ctx) > 1.5 * monsterDefence(ctx) ? 1 : 0;
   if ("2" != b) throw new NotPorted("RunCodeOfTypeXforThingY", `OverkillStuffs:b=${b}`); // N.js: `2 == c.asNumber(b)`; every caller passes a literal string
-  const exponent = 300 <= ctx.map ? 5 : 2; // DNSM.OverkillEXPONENT
   let tier = 1; // DNSM.S2Nz4
   for (let f = 0; 50 > f; f++) {
     if (DamageDealed(ctx, "Max") >= monsterHPTotal(ctx) * exponent * Math.pow(exponent, f + 1)) tier = f + 2;
@@ -162,4 +183,4 @@ export function allTalentLV(ctx: Ctx, d: string, b: string, fam68: () => number)
 }
 
 /** What this module covers (lib/game/ported.ts). */
-export const PORTED: Ported = { CardLv: true, TalentBannedforAllLV: true, AllTalentLV: true, AllTalentLVz: true, OverkillStuffs: ["2"] };
+export const PORTED: Ported = { CardLv: true, TalentBannedforAllLV: true, AllTalentLV: true, AllTalentLVz: true, OverkillStuffs: ["2", "3"] };

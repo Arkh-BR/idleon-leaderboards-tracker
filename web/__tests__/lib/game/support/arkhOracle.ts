@@ -15,6 +15,8 @@ import { EXP_GROUPS } from "@/lib/arkh/stats/defs/exp-multi";
 import { computeArkhCoinMulti } from "@/lib/arkh/computeCoin";
 import { COIN_GROUPS } from "@/lib/arkh/stats/defs/coin-multi";
 import { coin } from "@/lib/arkh/stats/systems/coin/coin";
+import { combineMultikillPools, computeArkhMultikillPools } from "@/lib/arkh/computeMultikill";
+import { MK_NODES, MK_POOLS } from "@/lib/arkh/stats/defs/multikill";
 import { statCtx } from "@/lib/arkh/computeStat";
 import { computeArkhDropRateV2 } from "@/lib/arkh/computeDropRateV2";
 import { DR2_GROUPS } from "@/lib/arkh/stats/defs/drop-rate-v2";
@@ -202,7 +204,7 @@ export function arkhSourceHash(): string {
   };
   walk(join(WEB, "lib/arkh"));
   // Ruling B moved the oracle's shape and ids into these display configs: a change there invalidates the cache too
-  for (const f of ["lib/afkGains/layers.ts", "lib/damage/layers.ts", "lib/expMulti/layers.ts", "lib/dropRateV2/layers.ts", "lib/coinMulti/layers.ts", "lib/statTracker/groups.ts", "lib/artifactFind/groups.ts"]) h.update(`${f}\0`).update(readFileSync(join(WEB, f))).update("\0");
+  for (const f of ["lib/afkGains/layers.ts", "lib/damage/layers.ts", "lib/expMulti/layers.ts", "lib/dropRateV2/layers.ts", "lib/coinMulti/layers.ts", "lib/multikill/layers.ts", "lib/statTracker/groups.ts", "lib/artifactFind/groups.ts"]) h.update(`${f}\0`).update(readFileSync(join(WEB, f))).update("\0");
   return (arkhHash = h.digest("hex"));
 }
 
@@ -250,7 +252,7 @@ function persist(d: { file: string; data: DiskFile }): void {
  * The cache every (character, map) section shares: an object save is computed once on a structuredClone and kept by identity, a path
  * save is stored in the `section` of its sha1-keyed disk file (`{ [ci]: { [map]: T } }`). `compute` gets a parsed copy it may write into.
  */
-type Section = "afk" | "exp" | "dr" | "coin";
+type Section = "afk" | "exp" | "dr" | "coin" | "mk";
 function sectionCache<T>(section: Section, compute: (parsed: any, ci: number, map: number) => T): (save: unknown, ci: number, map: number) => T {
   const byObject = new WeakMap<object, Map<string, T>>();
   return (save, ci, map) => {
@@ -880,7 +882,7 @@ const LUK_SNAPSHOT_DR =
  */
 export const KNOWN_ARKH_DIFFS: {
   /** Which tracker `source` belongs to; absent = "artifactFind". For "damage", `source` is a Damage source id; for "afk", an AFK source id (arkhAfkLeaves); for "dr", a DR2_GROUPS source id (arkhDrLeaves). */
-  stat?: "artifactFind" | "damage" | "afk" | "exp" | "dr" | "coin" | ArkhStat | "speed";
+  stat?: "artifactFind" | "damage" | "afk" | "exp" | "dr" | "coin" | "mk" | ArkhStat | "speed";
   save: string;
   ci?: number;
   /** The maps the entry covers (absent = every map the term is checked on): a map-dependent EXP term (the medallion gate) differs only on some. */
@@ -1080,6 +1082,10 @@ export const KNOWN_ARKH_DIFFS: {
   ...GOLDFOOD_ROWS("coin", "goldFood", []),
   // talent 643's tier: on maps 301 and 40 the star signs of the Damage % (signsDmg) alone put lib/arkh's Max past a multikill tier lib/game's does not reach, on this save
   ...([7, 9] as const).map((ci) => ({ stat: "coin" as const, save: "big_guy69123.json", ci, maps: [301, 40] as const, source: "talent643", reason: "signsDmg", why: `OverkillStuffs("2") @4095676 compares the Max damage (DamageDealed @4105019) with the HP tiers; lib/arkh's Max is higher here because of the Damage % star signs alone (${STAT_WHY.signsDmg}), and it crosses a tier lib/game's does not (on map 301, 3 against 2). Lib/arkh's other Damage causes on this save (tome, gfoodSign69) do not move the tier` })),
+  // Task 2 (Multikill plan): the damage tier. OverkillStuffs("2") @4095676 compares the Max damage (DamageDealed @4105019) with the HP tiers, so lib/arkh's Max causes move it only where they cross one (8 pairs of 4612 on the leaf's maps, 10 more on the maps only the total runs on: 14, 40 and 150); each pair names the cause that closes it on its own (#0@40 needs two, see its second entry)
+  ...([["big_guy69123.json", 0, [40]], ["big_guy69123.json", 1, [14]], ["big_guy69123.json", 2, [40]], ["big_guy69123.json", 4, [14]], ["big_guy69123.json", 5, [40]], ["big_guy69123.json", 6, [251, 216, 150]], ["big_guy69123.json", 7, [301, 40]], ["big_guy69123.json", 8, [251]], ["big_guy69123.json", 9, [301, 40]], ["big_guy69123.json", 10, [251, 216, 14, 150]]] as const).map(([save, ci, maps]) => ({ stat: "mk" as const, save, ci, maps, source: "tier", reason: "signsDmg", why: `lib/arkh's Max is about 1.28 x lib/game's here because of the Damage % star signs (${STAT_WHY.signsDmg}), and it crosses a tier lib/game's does not. It is the one cause that closes every pair of these but #0@40 on its own (the next largest, powerSuffix on character 8, is x 1.04)` })),
+  { stat: "mk" as const, save: "big_guy69123.json", ci: 0, maps: [40] as const, source: "tier", reason: "gfoodSign69", why: `On this pair the signsDmg entry above needs a second cause: lib/arkh's Max crosses tier 49 only with the Damage % star signs and the golden food's sign 69 together (${STAT_WHY.gfoodSign69}); neither alone reaches it` },
+  { stat: "mk" as const, save: "Dandy2009.json", ci: 7, maps: [251] as const, source: "tier", reason: "signs@wis", why: `lib/arkh's Max is 1.006 x lib/game's through the character's WIS (${STAT_WHY.signs.replace(/STR star signs/, "WIS star signs")}) and crosses tier 44, which lib/game's does not reach. Proved by lib/arkh's WIS star sign keys in place of lib/game's` },
 ];
 
 /**
@@ -1247,9 +1253,12 @@ export const PROOF_PATCHES: Record<string, Patch> = {
  *  - powerSuffix, for a term that reads the weapon power through other blocks (the total): lib/arkh's weapon power on TotalStats("Weapon_Power")
  *    (a term that reads that block itself, wpSquared, is proved by PROOF_PATCHES.powerSuffix instead);
  *  - pray6: no Super Bit 9 / 39, which makes N.js prayersReal take the equipped-prayer branch, the only one lib/arkh's leaf has;
+ *  - `<reason>@<stat>` (signs@wis): arkhStatSeeds' for that main stat;
  *  - every other reason: arkhStatSeeds' (comp0, godshard, fam68, and the golden food's gfoodVote26 / gfoodCap / gfoodSign69).
  */
 export function damageReasonSeeds(path: string, ci: number, reason: string): Seed[] {
+  const [own, stat] = reason.split("@"); // `<reason>@<stat>`: a reason asked per main stat (signs, tomeW8), lib/arkh's number on that stat's own keys
+  if (stat) return arkhStatSeeds(path, ci, [own], stat as ArkhStat);
   if (reason === "powerSuffix") {
     loadSaveData(JSON.parse(readFileSync(path, "utf8")));
     return [["TotalStats", ["Weapon_Power"], computeWeaponPower(ci, { saveData, charIdx: ci, activeCharIdx: ci } as never)]];
@@ -1515,3 +1524,42 @@ export const arkhCoinShape = (save: unknown, ci: number, map: number): CoinShape
 
 /** lib/arkh's own Coin Multi total (computeArkhCoinMulti(...).total): the oracle for the whole tree. */
 export const arkhCoinMulti = (save: unknown, ci: number, map: number): number => coinEntry(save, ci, map).total;
+
+// ---- Multikill: lib/arkh's tree is not grouped (root children: Base / Damage Tier / per Tier / Active, rules inside the halves), so the leaves are
+// read from its pools (the sources of each MK_POOLS pool, in order). One buildPools per entry: the tree is its combine(), as computeArkhMultikill's buildTree does.
+/** A node of lib/arkh's Multikill tree as the tracker adapter test compares it: a half's sources stop there (lib/arkh's own detail below them is no contract), the tier's and the status's rows are whole. */
+export type MkShape = Shape & { val: number; children?: MkShape[] };
+type MkEntry = { leaves: Record<string, number>; total: number; shape: MkShape; nodes: number };
+
+const mkShape = (n: ArkhNode, source = false): MkShape => ({
+  ...shapeOf(n),
+  val: n.val,
+  ...(n.children && !source ? { children: n.children.map((c) => mkShape(c, n.name === MK_NODES.base || n.name === MK_NODES.perTier)) } : {}),
+});
+
+function mkEntryOf(parsed: any, ci: number, map: number): MkEntry {
+  const pools = computeArkhMultikillPools(parsed, ci, map);
+  const { tree, total } = combineMultikillPools(pools);
+  const leaves: Record<string, number> = {};
+  for (const [key, ids] of Object.entries(MK_POOLS)) {
+    const items = pools[key].items;
+    if (items.length !== ids.length) throw new Error(`arkhMkLeaves: lib/arkh's ${key} pool has ${items.length} sources, MK_POOLS has ${ids.length}`);
+    ids.forEach((id, k) => (leaves[id] = items[k].val));
+  }
+  return { leaves, total, shape: mkShape(tree), nodes: countNodes(tree) };
+}
+
+const mkEntry = sectionCache("mk", mkEntryOf);
+
+/**
+ * Every Multikill source's `val` in lib/arkh's pools for character `ci` on `map`, by MK_POOLS id (`tier`, `softCap` 0/1, `cove` 0/1 and
+ * `active` included). Recombine with `mkTotal` (sums of the `base` and `perTier` ids, `tier`, `softCap`, `cove`) to get lib/arkh's total; the
+ * Cove's two replacement values are the children of its source and are not leaves. `save` as in arkhDamageLeaves.
+ */
+export const arkhMkLeaves = (save: unknown, ci: number, map: number): Record<string, number> => mkEntry(save, ci, map).leaves;
+
+/** lib/arkh's Multikill tree (see MkShape) and its whole node count for character `ci` on `map` (cached with the leaves). `save` as in arkhDamageLeaves. */
+export const arkhMkShape = (save: unknown, ci: number, map: number): { shape: MkShape; nodes: number } => mkEntry(save, ci, map);
+
+/** lib/arkh's own Multikill total (computeArkhMultikill(...).total): the oracle for the whole tree. */
+export const arkhMultikill = (save: unknown, ci: number, map: number): number => mkEntry(save, ci, map).total;

@@ -33,11 +33,17 @@ const SELL_TABLE = "called only in the table of item sell prices that follows Ta
 // The Drop Rate page's root (docs/superpowers/plans/2026-11-07-drop-rate-inventory.md): the Drop Rate of a character, outside a dungeon (Ruling Y)
 const DR = 'TotalStats("Drop_Rarity")';
 
+// The Multikill page's root (docs/superpowers/plans/2026-11-09-multikill-inventory.md): MultiKillTOTAL's OverkillStuffs("2") walk reaches DamageDealed("Max")
+// and PlayerAccTot(), so it meets the Damage closure's rows, from the same call sites (Divinity("BlesssBonus") with 7 and 8, the masterclass forms, the dungeon branch)
+const MK = 'WorkbenchStuff("MultiKillTOTAL")';
+// the Damage entries Multikill does not reach: Holes("StudyBolaiaBonuses") is only B_UPG's b == 14 branch, and Multikill asks for none of 14
+const NOT_IN_MK = new Set(['Holes("StudyBolaiaBonuses",0,0)']);
+
 // The Coin page's root (docs/superpowers/plans/2026-11-08-coin-multi-inventory.md): the B_UPG slice is the whole sub-case, so the walk reaches the calls of branches
 // the Coin path does not take: it asks B_UPG for 78 (GambitPTSmulti @11037796), and the Damage closure under TalentCalc(643) for 57 and 84
 const COIN = 'ArbitraryCode("MonsterCash")';
 
-export const UNREACHED: readonly Unreached[] = [
+const BASE: readonly Unreached[] = [
   ...[50, 79, 98].map((b) => ({ row: `Holes("B_UPG",${b},1)`, roots: [COIN], why: `called only in B_UPG's b == 49 branch (@10996050), and B_UPG(49) only from SkillStats (@4197799, @4200334), which the Coin path does not reach: it asks B_UPG for 78, and the Damage closure under TalentCalc(643) for 57 and 84` })),
   { row: 'Holes("StudyBolaiaBonuses",0,0)', roots: [COIN], why: "called only in B_UPG's b == 14 branch (@10996635); the Coin path asks B_UPG for 78, and the Damage closure under TalentCalc(643) for 57 and 84" },
   { row: 'RunCodeOfTypeXforThingY("SellPrice")', roots: [AFK], why: SELL_TABLE },
@@ -85,4 +91,10 @@ export const UNREACHED: readonly Unreached[] = [
   { row: 'ArcaneType("ArcaneUpgTotal",0,0)', roots: [DAMAGE, ACC], why: FORM(TESSERACT, "within the Damage closure by Arcane_DMG and Arcane_ACC (@11089334, @11090277)") + "; ArcaneUpgUNLOCKED, Arcane_DEF and Arcane_AttackSpdPCT also call it, outside the closure" },
   ...[0, 6, 15, 36, 50, 12, 4, 24, 31, 42, 53].map((b) => ({ row: `ArcaneType("ArcaneUpgBonus",${b},0)`, roots: [DAMAGE], why: FORM(TESSERACT, "by Arcane_DMG (@11088565)") })),
   ...[1, 9, 19, 38, 52, 22, 44, 55, 27].map((b) => ({ row: `ArcaneType("ArcaneUpgBonus",${b},0)`, roots: [DAMAGE, ACC], why: FORM(TESSERACT, "within the Damage closure by Arcane_ACC (@11089938)") })),
+];
+
+// An entry is per root (inventory.test.ts): each Damage entry is repeated for Multikill's root, its reason as true there as for Damage
+export const UNREACHED: readonly Unreached[] = [
+  ...BASE,
+  ...BASE.filter((u) => u.roots.includes(DAMAGE) && !NOT_IN_MK.has(u.row)).map((u) => ({ ...u, roots: [MK], why: `${u.why}; Multikill reaches the same call sites through OverkillStuffs("2") -> DamageDealed("Max")` })),
 ];

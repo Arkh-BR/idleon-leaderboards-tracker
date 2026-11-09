@@ -27,6 +27,10 @@ export const Holes: (ctx: Ctx, d: string, b: number, e: number) => number = bloc
       if (!upgrade) throw new RangeError(`Holes CosmoBonusQTY: no Cosmo upgrade (${b}, ${e}) in CosmoUpgrades`);
       return Math.floor(asNumber(upgrade[0]) * asNum(ctx, "Holes", level, e | 0));
     }
+    // @11010689: the Defence of the Motherlode target `b`: 2e4 x (1 + 99 floor(b / 3)) x 1.8^(1 + Holes[11][1 + 2b])
+    case "MotherlodeEffBase":
+      listAt(ctx, "Holes", 11); // the game indexes Holes[11][1 + 2b] directly
+      return 2e4 * (1 + 99 * Math.floor(b / 3)) * Math.pow(1.8, 1 + asNum(ctx, "Holes", 11, Math.round(1 + 2 * b)));
     // @11014436: monument (b, e)
     case "MonumentROGbonuses":
       return monumentROGbonuses(ctx, b, e);
@@ -212,7 +216,7 @@ function monumentROGbonuses(ctx: Ctx, b: number, e: number): number {
 
 /** What this module covers (lib/game/ported.ts). */
 export const PORTED: Ported = {
-  B_UPG: [46, 47, 55, 57, 78, 82, 83, 84], CosmoBonusQTY: true, MonumentROGbonuses: true, PocketDivOwned: true,
+  B_UPG: [46, 47, 55, 57, 78, 82, 83, 84], CosmoBonusQTY: true, MotherlodeEffBase: true, MonumentROGbonuses: true, PocketDivOwned: true,
   MeasurementBonusTOTAL: true, MeasurementBaseBonus: true, MeasurementMulti: true, MeasurementQTYfound: true,
   GambitBonuses: [7], GambitPts: true, GambitPtsREQ: true, GambitPTSmulti: true, StudyBolaiaBonuses: [13], JarCollectibleBonus: true,
 };

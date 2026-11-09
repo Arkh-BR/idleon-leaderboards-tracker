@@ -1,4 +1,4 @@
-import { asNum, asNumber } from "../attr";
+import { asNum, asNumber, attr } from "../attr";
 import { assumed, block, withPlayer, type Ctx } from "../ctx";
 import { DeathNoteMobs, MapAFKtarget, NinjaInfo } from "../data";
 import { hString } from "../hstring";
@@ -6,24 +6,36 @@ import { NotPorted } from "../errors";
 import { listAt } from "../lists";
 import { skillLevel } from "../player";
 import { AchieveStatus } from "./AchieveStatus";
+import { ArbitraryCode } from "./ArbitraryCode";
 import { ArbitraryCode5Inputs } from "./ArbitraryCode5Inputs";
 import { ArcadeBonus } from "./ArcadeBonus";
 import { AtomCollider } from "./AtomCollider";
+import { Breeding } from "./Breeding";
 import { Bubbastuff } from "./Bubbastuff";
-import { DNSM_AlchBubbles, DNSM_AlchVials } from "./DNSM";
+import { CardBonusREAL } from "./CardBonusREAL";
+import { CardSetBonuses } from "./CardSetBonuses";
+import { chipBonuses } from "./chipBonuses";
+import { DNSM_AlchBubbles, DNSM_AlchVials, DNSM_BoxRewards, DNSM_StarSigns } from "./DNSM";
 import { EtcBonuses } from "./EtcBonuses";
 import { GamingStatType } from "./GamingStatType";
+import { GetBuffBonuses } from "./GetBuffBonuses";
 import { getbonus2 } from "./getbonus2";
 import { getLOG } from "./getLOG";
-import { talentCurves } from "./GetTalentNumber";
+import { GetTalentNumber, talentCurves } from "./GetTalentNumber";
 import { GuildBonuses } from "./GuildBonuses";
+import { Holes } from "./Holes";
+import { Holes2 } from "./Holes2";
 import { boxLevel } from "./PostOfficeINFO";
+import { prayersReal } from "./prayersReal";
 import { RiftStuff } from "./RiftStuff";
+import { RunCodeOfTypeXforThingY } from "./RunCodeOfTypeXforThingY";
+import { Sailing } from "./Sailing";
+import { SaltLick } from "./SaltLick";
 import { StampBonusOfTypeX } from "./StampBonusOfTypeX";
 import { accountKillsOn, Summoning } from "./Summoning";
-import { range, type Ported } from "../ported";
+import type { Ported } from "../ported";
 
-/** N.js `_customBlock_WorkbenchStuff(d, b, e)` @7801627: one function, a chain of named sub-cases. Only the sub-cases Damage and Drop Rate reach. */
+/** N.js `_customBlock_WorkbenchStuff(d, b, e)` @7801627: one function, a chain of named sub-cases. Only the sub-cases the trackers reach. */
 export const WorkbenchStuff: (ctx: Ctx, d: string, b: number, e: number) => number = block("WorkbenchStuff", (ctx, d: string, b: number, e: number) => {
   switch (d) {
     // @7825061: (1 + best talent 508 x getLOG(OptionsListAccount[152]) / 100) x (1 + best talent 208 x getLOG(OptionsListAccount[329]) / 100)
@@ -42,7 +54,15 @@ export const WorkbenchStuff: (ctx: Ctx, d: string, b: number, e: number) => numb
     case "PlayerBuildSpd":
       return playerBuildSpd(ctx, b);
     case "OverkillQTY":
+      // domain of this case: page -1 and pages >= 8 throw (RangeError below); a map's page (floor(map / 50), 7) never reaches them
       return overkillQTY(ctx, b);
+    case "MultiKill_perTier":
+      return multiKillPerTier(ctx, e);
+    case "MultiKill_base":
+      return multiKillBase(ctx);
+    // @7810403: the "MULTIKILL: X%" line of the AFK Info panel
+    case "MultiKillTOTAL":
+      return Math.floor(WorkbenchStuff(ctx, "MultiKill_base", 0, 0) + RunCodeOfTypeXforThingY(ctx, "OverkillStuffs", "2") * WorkbenchStuff(ctx, "MultiKill_perTier", 0, 0));
     default:
       throw new NotPorted("WorkbenchStuff", d);
   }
@@ -106,6 +126,39 @@ function overkillQTY(ctx: Ctx, b: number): number {
   return assumed(ctx, "DNSM.OKqtyZZ", "the Death Note table built from the save (the game's first read of it in a session answers 0)", table[b | 0], "OverkillQTY @7810614: the call that finds DNSM.OKqtyZZ absent builds it and answers 0, every later one reads the entry; counted as a later read");
 }
 
+// The two halves are the game's text, each with its own copy of the soft cap, so multikillEdges.test.ts compares them with N.js token for token; `f` is the DNSM field N.js keeps them in.
+/**
+ * `MultiKill_perTier` @7805748: the 18 per-tier terms into DNSM.MKtzioDN, the soft cap from map 300 on (a caller's e = 8675309, the W7 notice's raw sum, skips it), then the Crystal
+ * Glunko Cove, which replaces the sum on map 216 in cavern 17.
+ */
+function multiKillPerTier(ctx: Ctx, e: number): number {
+  let f =
+    WorkbenchStuff(ctx, "OverkillQTY", Math.floor(ctx.map / 50), 0) +
+    (WorkbenchStuff(ctx, "OverkillQTY", 7, 0) +
+      (DNSM_AlchVials(ctx, "Overkill") +
+        (GetBuffBonuses(ctx, 46, 2) + getbonus2(ctx, 1, 58, -1) * Math.floor(asNum(ctx, "OptionsListAccount", 158) / 5)) +
+        (ArcadeBonus(ctx, 8) +
+          (Sailing(ctx, "ArtifactBonus", 26, 0) + GetBuffBonuses(ctx, 469, 2)) +
+          (chipBonuses(ctx, "mkill") +
+            (EtcBonuses(ctx, "71") + Holes(ctx, "MeasurementBonusTOTAL", 9, 0) + (CardBonusREAL(ctx, 80) + DNSM_StarSigns(ctx, "78")) + (prayersReal(ctx, 16, 0) + Breeding(ctx, "ShinyBonusS", "Nah", 4, -1)))) +
+          (DNSM_BoxRewards(ctx, "13b") + (DNSM_AlchBubbles(ctx, "MKtierACTIVE") + CardSetBonuses(ctx, 0, "11"))))));
+  300 <= ctx.map && 8675309 != e && (250 <= f ? (f = 98.14 + (f - 250) / 50) : 200 <= f ? (f = 95.6 + (f - 200) / 20) : 150 <= f ? (f = 90.6 + (f - 150) / 10) : 100 <= f ? (f = 80.6 + (f - 100) / 5) : 50 <= f ? (f = 47.3 + (f - 50) / 1.5) : 20 <= f && (f = 20 + (f - 20) / 1.1));
+  216 == ctx.map && 17 == attr(ctx, "Holes", 0, ctx.player) && (f = Holes2(ctx, "Cglunko_MKtier", 0, 0));
+  return f;
+}
+
+/** `MultiKill_base` @7808345: the 9 base terms into DNSM.MKtzioDN2, the same soft cap from map 300 on, then the Cove. */
+function multiKillBase(ctx: Ctx): number {
+  let f =
+    DNSM_StarSigns(ctx, "MultiKill") +
+    SaltLick(ctx, 8) +
+    (StampBonusOfTypeX(ctx, "Overkill") + 2 * asNum(ctx, "TowerInfo", 2)) +
+    (EtcBonuses(ctx, "29") + (Math.min(5, AchieveStatus(ctx, 148)) + (6 * AchieveStatus(ctx, 122) + (2 * AchieveStatus(ctx, 123) + ArbitraryCode(ctx, "StatueOnyxOwned") * GetTalentNumber(ctx, 1, 654)))));
+  300 <= ctx.map && (250 <= f ? (f = 98.14 + (f - 250) / 50) : 200 <= f ? (f = 95.6 + (f - 200) / 20) : 150 <= f ? (f = 90.6 + (f - 150) / 10) : 100 <= f ? (f = 80.6 + (f - 100) / 5) : 50 <= f ? (f = 47.3 + (f - 50) / 1.5) : 20 <= f && (f = 20 + (f - 20) / 1.1));
+  216 == ctx.map && 17 == attr(ctx, "Holes", 0, ctx.player) && (f = Holes2(ctx, "Cglunko_MKbase", 0, 0));
+  return f;
+}
+
 /**
  * The count of `item` in the storage actor's `_ItemsAndStorageOWNED` (ActorEvents_232, PixelHelperActor[5]): the current character's
  * inventory (ActorEvents_29._ItemsOwnedMap, CountInventory @7042726) plus the storage chest, a map the actor rebuilds on its "z" trigger
@@ -154,4 +207,4 @@ function playerBuildSpd(ctx: Ctx, b: number): number {
 }
 
 /** What this module covers (lib/game/ported.ts). */
-export const PORTED: Ported = { AdditionExtraDMG: true, AdditionExtraEXPnDR: true, ConstMasteryBonus: [0, 1, 2], DeathNoteRank: true, PlayerBuildSpd: true, OverkillQTY: range(0, 8) };
+export const PORTED: Ported = { AdditionExtraDMG: true, AdditionExtraEXPnDR: true, ConstMasteryBonus: [0, 1, 2], DeathNoteRank: true, PlayerBuildSpd: true, OverkillQTY: true, MultiKill_perTier: true, MultiKill_base: true, MultiKillTOTAL: true };

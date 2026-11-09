@@ -266,7 +266,7 @@ describe("TalentCalc 643 and 644, OverkillStuffs \"2\" (synthetic, runs in CI)",
   it("a target the game's table does not have is refused, as the game would throw", () => {
     expect(() => at(33, "Z", 1e9)).toThrow(InvalidSaveValue);
   });
-  it("only b == 2 is ported", () => {
+  it("only b == 2 and b == 3 are ported", () => {
     expect(() => RunCodeOfTypeXforThingY(synth({}), "OverkillStuffs", "0")).toThrow(NotPorted);
   });
   it("TalentCalc 643 is talent 643 x the tier, 644 is talent 644 x Lv0[10] / 10", () => {

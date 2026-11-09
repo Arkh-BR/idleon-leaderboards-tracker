@@ -332,3 +332,20 @@ Registro do que foi decidido ao migrar o Coin Multi (branch `feat/coin-game`, pl
 - **WW:** notas por save: somem as dos talentos 657, 22, 644 e 643 ("Inactive — talent 0" e os textos de decaimento/cash), seguindo a decisão do DR (07/11); o Coin não tem nota "Not owned". O detalhamento abaixo da fonte sai com a árvore do `lib/arkh` (Ruling L). Custo: tooltips menos detalhados.
 - **XX:** desempenho aceito como em FF e QQ: carga a frio de cerca de 87 ms contra 287 ms do `lib/arkh` (uma vez por save), troca de personagem de 55 ms contra 653 ms e troca de mapa de 54 ms contra 297 ms (mediana de 3 saves; totais iguais em 20 pares). Custo: o primeiro cálculo pode parecer lento num celular fraco.
 - **YY:** bugs do `lib/arkh` provados no N.js nesta migração: `statSnapshot` (os Cash Bubbles leem a foto `PVStatList`, o jogo recalcula STR/AGI/WIS ao vivo, @4047005 contra @15076361), além dos já conhecidos (pray6, comp0, fam68, gold food, statues, godshard, signsDmg no tier). Custo: nenhum.
+
+## Decisões da migração do Multikill (2026-11-09)
+Branch `feat/multikill-game`, plano `docs/superpowers/plans/2026-11-09-multikill-on-lib-game.md`. O código cita "Ruling ZZ" em diante. As rulings A a YY continuam valendo.
+
+Decisões do usuário (09/11):
+- Multikill antes do DR V1 e do coletor do Observed Max. Execução Subagent-driven.
+- O que o Multikill conta (decisão de produto da página, mantida): a linha "MULTIKILL" do AFK Info, ⌊B′ + T × P′⌋; o mapa define a página do Death Note, o soft cap e a escada ×5 do W7, o HP do alvo e a Crystal Glunko Cove.
+- Referência do Observed Max: o coletor continua no lib/arkh, medido no mapa 251; só a página calcula no lib/game.
+
+Rulings:
+- ZZ: leitura do jogo como MM/SS: o merge espera a conferência do usuário na linha "MULTIKILL" do AFK Info, com o jogo recém-aberto. Custo: o verify-map não tem leitura de Multikill até o usuário gravar uma.
+- AAA: os mapas 3, 33, 34 e 35 saem do seletor do Multikill, a mesma decisão do usuário no Damage e no Coin (`loadMonsterMapFilter`), porque o N.js quebra em `OverkillStuffs` no alvo sem definição de monstro; o lib/game continua recusando. Custo: nenhum no seletor.
+- BBB: as linhas de formas de masterclass e dungeon já provadas para o Damage valem para o Multikill: ele chega nelas só por `OverkillStuffs("2")` → `DamageDealed("Max")` (formas são 0 de runtime; Ruling Y). Custo: se a página de Damage passar a contar formas, estas linhas voltam a abrir.
+- CCC: o guard da árvore compara cada metade (`near` da chamada) e o `floor` das chamadas do próprio bloco, em vez do total do modelo da página, porque `totalFromFlat` soma da esquerda para a direita e o N.js aninha; em 115 de 3000 casos sintéticos o `floor` mudava e a página cairia num erro à toa. Custo: um erro de fonte abaixo de 1e-9 relativo passaria.
+- DDD: o soft cap fica escrito duas vezes em `WorkbenchStuff`, como no N.js (duas funções em campos separados): o guard token a token compara cada sub-caso. Custo: duas edições se o jogo mudar o cap, e o guard acusa as duas.
+- EEE: desempenho: aceito como em FF, QQ e as migrações seguintes: carga a frio de cerca de 73 ms contra 292 ms do `lib/arkh` (uma vez por save), troca de personagem de 45 ms contra 244 ms e troca de mapa de 48 ms contra 293 ms (mediana de 3 saves; totais iguais em 132 pares, `scripts/perf-multikill.ts`). Custo: o primeiro cálculo pode parecer lento num celular fraco.
+- FFF: bugs do lib/arkh provados no N.js nesta migração: a defesa dos alvos Motherlode (tabela crua, o jogo usa `MotherlodeEffBase`, @6516967: 24 personagens no mapa 216, sem virar o status); além dos já conhecidos no tier (`signsDmg`, `signs@wis`, `gfoodSign69`). Custo: nenhum.
