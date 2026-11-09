@@ -47,6 +47,8 @@ const TERMS: Record<string, (c: Ctx) => number> = {
   ach123: (c) => 2 * AchieveStatus(c, 123),
   talent654: (c) => ArbitraryCode(c, "StatueOnyxOwned") * GetTalentNumber(c, 1, 654),
   // MultiKill_perTier @7805748
+  deathNoteWorld: (c) => WorkbenchStuff(c, "OverkillQTY", Math.floor(c.map / 50), 0),
+  deathNoteMini: (c) => WorkbenchStuff(c, "OverkillQTY", 7, 0),
   vialOverkill: (c) => DNSM_AlchVials(c, "Overkill"),
   buff46: (c) => GetBuffBonuses(c, 46, 2),
   talent58: (c) => getbonus2(c, 1, 58, -1) * Math.floor(asNum(c, "OptionsListAccount", 158) / 5),

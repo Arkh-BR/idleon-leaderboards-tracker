@@ -92,3 +92,11 @@ describe("Holes2 Cglunko_MKbase and Cglunko_MKtier (@11057614, @11057485)", () =
     expect(Holes2(c, "Cglunko_MKtier", 0, 0)).toBe(3 * 1);
   });
 });
+
+describe("WorkbenchStuff OverkillQTY: the computed page", () => {
+  it("answers no page past the table's eight, which the game would turn into a NaN", () => {
+    const c = synth({ Ninja: Array.from({ length: 110 }, () => Array(20).fill(0)), KLA_0: [] });
+    seed(c, "WorkbenchStuff", ["DeathNoteRank", 0, 7842], 0);
+    expect(() => WorkbenchStuff(c, "OverkillQTY", 8, 0)).toThrow("no Death Note page 8");
+  });
+});

@@ -13,14 +13,14 @@ Regenerate it when N.js, a module's `PORTED` or `lib/game/unreached.ts` changes.
 - attrs and dnsm are the reads in every slice listed. One marked "whole body only" is read only inside a whole-body function (all its branches, not just the one this formula takes). `DNSM` is runtime-only (it is never loaded from the save): port it as `DNSM_*` functions, not as a save attribute. The dnsm list also holds the scratch keys a formula writes and reads back in the same slice (`CaptnBonuz`, `AtomBonCalc1`); the inputs are the caches the game fills elsewhere (`StarSigns`, `AlchVials`, `FamBonusQTYs`…).
 - Depth stops at 6.
 
-**69 functions, 749 sub-cases (rows), 235 whole body, 0 not found, 96 attrs, 127 dnsm.** **690 ported `[x]`, 55 not reached `[~]`, 4 open.** **Depth cap hit: 1 call was not walked.**
+**69 functions, 749 sub-cases (rows), 235 whole body, 0 not found, 96 attrs, 127 dnsm.** **691 ported `[x]`, 55 not reached `[~]`, 3 open.** **Depth cap hit: 1 call was not walked.**
 
 ## WorkbenchStuff
 
 - [ ] WorkbenchStuff("MultiKillTOTAL") — depth 0 — 187 chars
 - [ ] WorkbenchStuff("MultiKill_base",0,0) — depth 1 — 2031 chars
 - [ ] WorkbenchStuff("MultiKill_perTier",0,0) — depth 1 — 2567 chars
-- [ ] WorkbenchStuff("OverkillQTY") — depth 2 — 2317 chars
+- [x] WorkbenchStuff("OverkillQTY") — depth 2 — 2317 chars
 - [x] WorkbenchStuff("OverkillQTY",7,0) — depth 2 — 2035 chars
 - [x] WorkbenchStuff("AdditionExtraDMG",0,0) — depth 3 — 261 chars
 - [x] WorkbenchStuff("ConstMasteryBonus",1,0) — depth 3 — 297 chars

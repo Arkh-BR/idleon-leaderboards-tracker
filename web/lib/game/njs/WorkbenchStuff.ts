@@ -21,7 +21,7 @@ import { boxLevel } from "./PostOfficeINFO";
 import { RiftStuff } from "./RiftStuff";
 import { StampBonusOfTypeX } from "./StampBonusOfTypeX";
 import { accountKillsOn, Summoning } from "./Summoning";
-import { range, type Ported } from "../ported";
+import type { Ported } from "../ported";
 
 /** N.js `_customBlock_WorkbenchStuff(d, b, e)` @7801627: one function, a chain of named sub-cases. Only the sub-cases Damage and Drop Rate reach. */
 export const WorkbenchStuff: (ctx: Ctx, d: string, b: number, e: number) => number = block("WorkbenchStuff", (ctx, d: string, b: number, e: number) => {
@@ -154,4 +154,4 @@ function playerBuildSpd(ctx: Ctx, b: number): number {
 }
 
 /** What this module covers (lib/game/ported.ts). */
-export const PORTED: Ported = { AdditionExtraDMG: true, AdditionExtraEXPnDR: true, ConstMasteryBonus: [0, 1, 2], DeathNoteRank: true, PlayerBuildSpd: true, OverkillQTY: range(0, 8) };
+export const PORTED: Ported = { AdditionExtraDMG: true, AdditionExtraEXPnDR: true, ConstMasteryBonus: [0, 1, 2], DeathNoteRank: true, PlayerBuildSpd: true, OverkillQTY: true };
