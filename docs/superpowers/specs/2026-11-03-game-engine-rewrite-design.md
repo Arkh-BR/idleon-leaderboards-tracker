@@ -349,3 +349,22 @@ Rulings:
 - DDD: o soft cap fica escrito duas vezes em `WorkbenchStuff`, como no N.js (duas funções em campos separados): o guard token a token compara cada sub-caso. Custo: duas edições se o jogo mudar o cap, e o guard acusa as duas.
 - EEE: desempenho: aceito como em FF, QQ e as migrações seguintes: carga a frio de cerca de 73 ms contra 292 ms do `lib/arkh` (uma vez por save), troca de personagem de 45 ms contra 244 ms e troca de mapa de 48 ms contra 293 ms (mediana de 3 saves; totais iguais em 132 pares, `scripts/perf-multikill.ts`). Custo: o primeiro cálculo pode parecer lento num celular fraco.
 - FFF: bugs do lib/arkh provados no N.js nesta migração: a defesa dos alvos Motherlode (tabela crua, o jogo usa `MotherlodeEffBase`, @6516967: 24 personagens no mapa 216, sem virar o status); além dos já conhecidos no tier (`signsDmg`, `signs@wis`, `gfoodSign69`). Custo: nenhum.
+
+## Decisões da migração do DR V1 (2026-11-09)
+Branch `feat/dr-v1-game`, plano `docs/superpowers/plans/2026-11-09-dr-v1-on-lib-game.md`. O código cita "Ruling GGG" em diante. As rulings A a FFF continuam valendo.
+
+Decisões do usuário (09/11):
+- O V1 continua sendo uma página (`/drop-rate`), agora calculada no lib/game; o DR V2 segue como está.
+- Os 15 níveis da árvore são recriados, não só o total: cada fonte do V1 tem as suas linhas.
+- Um explainer por família de fontes (`lib/dropRate/explain`), e uma troca só no fim: a página só passa para o lib/game quando todas as fontes têm linhas.
+- Validação só nos saves mais novos (os 5 modificados mais recentemente e os mapas 251, 301, 216 e 150); nunca o conjunto inteiro nem um laço sobre todos os saves.
+
+Rulings:
+- GGG: o Post-Processing agrupa por "merge", como o lib/arkh faz; o "runs" do design doc do plano estava errado. Custo: nenhum, a árvore tem os mesmos grupos de antes.
+- HHH: as linhas `runtime:` e `assumed:` ficam sob a raiz, cerca de 2 num save atual. Não são fontes do V1, são declarações do que o motor assumiu (Ruling L); o lib/arkh não tem nada equivalente. Custo: a raiz tem filhos além dos cinco do V1.
+- III: a linha da Cove só existe enquanto está ativa, e o V1 do lib/arkh não tinha Cove. Custo: um save com a Cove ativa mostra uma linha que o V1 antigo não mostrava.
+- JJJ: as linhas de companion do Friend Bonus seguem a soma do N.js (`FriendBonusXtraMulti`) quando os dois estão presentes. Custo: o valor da linha difere do V1 antigo nesse caso, e o total do jogo é o que bate.
+- KKK: as diferenças conhecidas contra o lib/arkh (`V1_KNOWN` em `__tests__/lib/game/support/v1Compare.ts`), cada uma com a evidência no N.js: (1) o LUK Scaling lê o LUK ao vivo (`TotalStats("LUK")` @4190488) e o lib/arkh lê o `PVStatList` gravado no save (@15076361), velho em qualquer save anterior à última mudança de stat; (2) os Super Levels do Family Guy só valem quando o Spelunk[20 + jogador + 12 × preset] lista o talento 144 (@4085148), e o lib/arkh os força ligados (Family Guy Multi 1.3556 contra 1.3484 do jogo); (3) as linhas Dream Challenge 71, 72 e 76 sob o All Multi das casas 173 e 168 (`Grid_Bonus_Allmulti` @11179175), que o lib/arkh soma no valor mas não lista; (4) a linha Bundle ban_i sob o Winner Multi do Summoning Win (`WinBonus` @10927394), que só existe enquanto o bundle é possuído e não move o valor acima. Custo: o V1 novo difere do antigo nesses pontos, a favor do jogo.
+- LLL: os rótulos continuam os do V1. Eles vêm do lib/arkh, que não tem licença: fica como pergunta ao usuário na hora de trocar a licença. Custo: nenhum agora.
+
+Fora desta migração (continuam no lib/arkh): a ferramenta DR Max (`lib/dropRate/maxToolEntry.ts`), os scripts de debug que importam `lib/arkh/computeDR`, a `/talents-level` e o coletor do Observed Max.

@@ -31,7 +31,7 @@ import {
   type CSSProperties,
   type ReactNode,
 } from "react";
-import type { ArkhNode } from "@/lib/arkh/node";
+import type { ArkhNode } from "@/lib/dropRate/node";
 import {
   parseSystemFromBucketName,
   systemWorld,

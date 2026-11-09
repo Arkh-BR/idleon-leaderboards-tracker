@@ -169,9 +169,9 @@ export default function DropRatePageClient() {
         baselineExtra={arcaneToggle}
       />
       <footer className="mt-8 text-[11px] text-zinc-600 text-center border-t border-zinc-900 pt-3">
-        Drop rate is computed locally from your save JSON — pool tree
-        decomposition (LUK Scaling → Main Additive → LUK2 Additive →
-        Post-Processing) matches the in-game value to within ~1%.
+        Drop rate is computed locally from your save JSON, with the game's own
+        formula (LUK Scaling → Main Additive → LUK2 Additive →
+        Post-Processing).
       </footer>
     </main>
   );

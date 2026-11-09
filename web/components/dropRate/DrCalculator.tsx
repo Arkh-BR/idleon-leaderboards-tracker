@@ -11,7 +11,8 @@ import { getCharClassKey } from "@/lib/talentsLevel/charClass";
 import DeepView, { type DeepViewExtraTab } from "./DeepView";
 import ProfileNameLoader from "@/components/ProfileNameLoader";
 import { accountAutoLoads } from "@/lib/gameAuth/session";
-import type { ArkhNode as DrNode } from "@/lib/arkh/node";
+import type { ArkhNode as DrNode } from "@/lib/dropRate/node";
+import { pageError } from "@/lib/statTracker/pageErrors";
 import type { FlatTree } from "@/lib/dropRate/treeFlatten";
 
 const SAVE_KEY = "drop-rate-tracker.last-upload.v1";
@@ -282,9 +283,9 @@ export default function DrCalculator({
     setComputing(true);
     (async () => {
       try {
-        const mod = await import("@/lib/arkh/computeDR");
+        const mod = await import("@/lib/game/trackers/dropRateV1");
         if (cancelled) return;
-        const result = mod.computeArkhDropRate(save, charIdx, mapIdx, {
+        const result = mod.computeGameDropRateV1(save, charIdx, mapIdx, {
           chipGalleryActive,
         });
         setDrTree(result.tree);
@@ -292,8 +293,9 @@ export default function DrCalculator({
         setError(null);
       } catch (e) {
         if (!cancelled) {
+          const err = pageError(save, e, "Drop Rate");
           setError(
-            "Drop rate compute failed: " + (e instanceof Error ? e.message : String(e))
+            "Drop rate compute failed: " + (err instanceof Error ? err.message : String(err))
           );
         }
       } finally {
