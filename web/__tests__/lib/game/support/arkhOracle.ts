@@ -882,7 +882,7 @@ const LUK_SNAPSHOT_DR =
  */
 export const KNOWN_ARKH_DIFFS: {
   /** Which tracker `source` belongs to; absent = "artifactFind". For "damage", `source` is a Damage source id; for "afk", an AFK source id (arkhAfkLeaves); for "dr", a DR2_GROUPS source id (arkhDrLeaves). */
-  stat?: "artifactFind" | "damage" | "afk" | "exp" | "dr" | "coin" | ArkhStat | "speed";
+  stat?: "artifactFind" | "damage" | "afk" | "exp" | "dr" | "coin" | "mk" | ArkhStat | "speed";
   save: string;
   ci?: number;
   /** The maps the entry covers (absent = every map the term is checked on): a map-dependent EXP term (the medallion gate) differs only on some. */
