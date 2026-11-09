@@ -38,9 +38,11 @@ export function bubbleParts(ctx: Ctx, b: number, e: number): { level: number; cu
   // the game indexes AlchemyDescription[b][e][3] directly and would throw on a bubble it does not have
   if (!row) throw new RangeError(`CauldronStats BubbleBonus: no bubble (${b}, ${e}) in AlchemyDescription`);
   listOrMapAt(ctx, "CauldronInfo", b | 0); // the game indexes CauldronInfo[b][e] directly
+  // the game's read order: the Prisma test (and its multiplier), then the level, then the curve
+  const prisma = 1 == CauldronStats(ctx, "isBubbleSuperr", b, e, 0) ? Math.max(1, ArcaneType(ctx, "PrismaBonusMult", 0, 0)) : undefined;
   const level = asNum(ctx, "CauldronInfo", b | 0, e | 0);
   const curve = ArbitraryCode5Inputs(ctx, hString(row[3]), asNumber(row[1]), asNumber(row[2]), level, 0, 0);
-  return { level, curve, prisma: 1 == CauldronStats(ctx, "isBubbleSuperr", b, e, 0) ? Math.max(1, ArcaneType(ctx, "PrismaBonusMult", 0, 0)) : undefined };
+  return { level, curve, prisma };
 }
 
 /**

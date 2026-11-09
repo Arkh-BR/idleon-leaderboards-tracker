@@ -201,7 +201,7 @@ const owl4 = safe("Summoning Owl", (c, val) => {
 /** `VotingBonusz(27)` @10953438: only the week this vote is in force; then its base and the voting multi. */
 const vote27 = safe("Voting Bonus (DR)", (c, val) => {
   const vote = activeVote(c);
-  if (27 != vote) return [raw("Not active vote", 0, `active=${vote}`)];
+  if (27 != vote) return [raw("Not active vote", 0, `active=${vote ?? -1}`)];
   const base = asNumber(NinjaInfo[38][Math.round(1 + 3 * 27)]);
   return [raw("Base", base), row("Voting Multi", val / base, "x")];
 });

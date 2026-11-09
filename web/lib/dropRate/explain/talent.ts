@@ -107,10 +107,11 @@ function winBonus19Kids(c: Ctx): ArkhNode[] {
   const ach379 = AchieveStatus(c, 379);
   const ach373 = AchieveStatus(c, 373);
   const godshard = GetSetBonus(c, "GODSHARD_SET", "Bonus", 0, 0);
+  const banI = 50 * Thingies(c, "Have_ban_i", 0, 0);
   const pristineMult = 1 + pristine8 / 100;
   const gemMult = 1 + (10 * gem11) / 100;
   const higher = pristineMult * gemMult;
-  const winnerMult = 1 + (art32 + task + ach379 + ach373 + godshard + 50 * Thingies(c, "Have_ban_i", 0, 0)) / 100;
+  const winnerMult = 1 + (art32 + task + ach379 + ach373 + godshard + banI) / 100;
   const battles = rawWins * 3.5;
   const total = Summoning(c, "WinBonus", 19, 0);
   return [
@@ -125,6 +126,7 @@ function winBonus19Kids(c: Ctx): ArkhNode[] {
       row("Regalis Achievement (379)", ach379, "+"),
       row("Spectre Stars Achievement (373)", ach373, "+"),
       row("Godshard Set", godshard, "+"),
+      ...(0 < banI ? [raw("Bundle ban_i", banI)] : []),
     ]),
   ];
 }

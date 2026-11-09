@@ -311,6 +311,8 @@ const starSigns = safe("Star Signs", (c, val) => {
   const t = seraphUnlocked(c) ? seraphTerms(c) : undefined;
   const factor = t && 0 < val ? t.chip * t.meritoc * t.cosmos : 1;
   const again = val / factor - first;
+  // the row is the signs counted a second time (the Silkrode chip): only 0 or `first` is something the game does; anything else is a sign this table lacks
+  if (!near(again, 0) && !near(again, first)) return outOfStep("Star Signs", val, 2 * first * factor);
   const names = StarSigns as unknown as Table;
   return [
     ...counted.map(([sign, v]) => row(`${title(String(names[sign][0]))} (Star Sign ${sign})`, v, "+")),

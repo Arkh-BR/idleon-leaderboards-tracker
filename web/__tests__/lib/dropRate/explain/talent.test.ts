@@ -79,6 +79,22 @@ describe("Winner Bonus 19's battles", () => {
   });
 });
 
+describe("Winner Multi (combined)", () => {
+  const multi = (seeds: Seeds) => {
+    const cap = kid(kid(rowOf(talentLevelRows(ctx({}, seeds), 279), "Effective Level"), "Base Level"), "Max Book Lv Cap");
+    return kid(kid(cap, "Summoning Winner Bonus 19"), "Winner Multi (combined)");
+  };
+  it("lists the bundle's 50 as a row, and its children sum to the multi, only for an owner", () => {
+    const sum = (r: ReturnType<typeof multi>) => 1 + r.children!.reduce((a, c) => a + c.val, 0) / 100;
+    const owner = multi({ 'Thingies["Have_ban_i",0,0]': 1 });
+    expect(owner.children!.find((c) => c.name === "Bundle ban_i")).toMatchObject({ val: 50, fmt: "raw" });
+    expect(sum(owner)).toBeCloseTo(owner.val, 9);
+    const none = multi({});
+    expect(none.children!.some((c) => c.name === "Bundle ban_i")).toBe(false);
+    expect(sum(none)).toBeCloseTo(none.val, 9);
+  });
+});
+
 describe("a talent at the book cap", () => {
   it("Base Level stops at the cap, Points Invested is what the save has", () => {
     const eff = rowOf(talentLevelRows(ctx({ SL_0: { 279: 500 } }), 279), "Effective Level");

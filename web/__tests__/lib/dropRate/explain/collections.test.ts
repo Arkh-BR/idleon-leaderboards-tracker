@@ -235,6 +235,12 @@ describe("the prayer, the shiny pets and the star signs", () => {
     expect(names(run("starSigns", ctx(signs("14,", {}), {}), 5))).toEqual(["Pirate Booty (Star Sign 14)"]);
     expect(run("starSigns", ctx(signs("0,", {}), {}), 0)).toEqual([]);
   });
+  it("a second pass that is neither nothing nor the signs again is out of step, not a plug row", () => {
+    const rows = run("starSigns", ctx(signs("14,", {}), {}), 8); // 5 from the table, 3 from something the table lacks
+    expect(rows).toHaveLength(1);
+    expect(rows[0].val).toBe(0);
+    expect(rows[0].note).toMatch(/constants changed/);
+  });
 });
 
 describe("a save the rows cannot read", () => {
