@@ -10,13 +10,13 @@
 // The "Active in AFK" row is OverkillStuffs("3") and its gates, which MultiKillTOTAL does not call: they run on the root of the trace (so their `runtime:` / `assumed:` notes stay on the page) and each is
 // guarded: a read that throws is a noted 0, never the page's error (the Drop Rate chip's rule, trackers/dropRate.ts). A map with no monster on its AFK target (33) is refused as the block refuses it.
 //
-// The recombination guard rebuilds both halves from the tree the way the page's Biggest Gains model does (partsFromFlat, mkHalves): each must be `near` its call, and the floor of the calls' values must be the
+// The recombination guard rebuilds both halves from the tree the way the page's Biggest Gains model does (partsFromFlat, mkSoftCap): each must be `near` its call, and the floor of the calls' values must be the
 // total, or TreeTotalMismatch makes the tracker read "incomplete". It compares the halves, not the page's floored total: N.js nests its additions and the model adds left to right, so a sum that lands on an
 // integer can floor one apart with every term right. That also checks the soft cap the page's what-if uses (mkSoftCap) against the block's.
 //
 // The type of the result is the page's own (lib/statTracker/config StatResult: type-only).
 import { multikillGainsModel, partsFromFlat } from "@/lib/multikill/gains";
-import { MK_NODES, MK_POOLS, MK_ROOT, mkHalves, mkRuleRows, type MkParts } from "@/lib/multikill/layers";
+import { MK_NODES, MK_POOLS, MK_ROOT, mkRuleRows, mkSoftCap, type MkParts } from "@/lib/multikill/layers";
 import type { StatResult } from "@/lib/statTracker/config";
 import { afkTarget } from "../afkTarget";
 import { asNum, asNumber } from "../attr";
@@ -114,10 +114,10 @@ export function multikillTree(ctx: Ctx): StatResult {
   };
 
   /** A read the block did not make: on the root of the trace, its calls' flagged notes kept under the row, and guarded (see the header). */
-  const guarded = (name: string, read: (c: Ctx) => number, note?: string): Node => {
+  const guarded = (name: string, read: (c: Ctx) => number): Node => {
     const from = root.children.length;
     let val = 0;
-    let why = note;
+    let why: string | undefined;
     try {
       val = read(ctx);
     } catch (e) {
@@ -188,9 +188,12 @@ export function multikillTree(ctx: Ctx): StatResult {
     note: `⌊B′ + T × P′⌋${migrated ? ` · ${migrated}` : ""}`,
     children: [half(MK_NODES.base, "B′", baseCall, base, parts.base), tier, half(MK_NODES.perTier, "P′ (× Damage Tier)", perTierCall, perTier, parts.perTier), status],
   };
+  // mkSoftCap jumps at 50, 100 and 250 (0.027, 0.033, 0.04): a sum the page's left-to-right adds put one ulp across a step from N.js's nesting lands in the neighbouring bracket, so a capped half also agrees at its sum ± 1e-12 relative
+  const halfAgrees = (sum: number, call: number, capped: boolean) => near(capped ? mkSoftCap(sum) : sum, call) || (capped && [1 - 1e-12, 1 + 1e-12].some((k) => near(mkSoftCap(sum * k), call)));
   const agrees = (flat: Record<string, number>) => {
-    const h = mkHalves(partsFromFlat(flat));
-    return near(h.base, baseCall.value) && near(h.perTier, perTierCall.value) && Math.floor(baseCall.value + T * perTierCall.value) === total;
+    const p = partsFromFlat(flat);
+    const halves = p.cove ? near(p.cove.base, baseCall.value) && near(p.cove.perTier, perTierCall.value) : halfAgrees(p.base, baseCall.value, p.softCap) && halfAgrees(p.perTier, perTierCall.value, p.softCap);
+    return halves && near(p.tier, T) && Math.floor(baseCall.value + T * perTierCall.value) === total;
   };
   return finishTree(tree, total, multikillGainsModel, root, call, used, [baseCall, tierCall, perTierCall], agrees);
 }

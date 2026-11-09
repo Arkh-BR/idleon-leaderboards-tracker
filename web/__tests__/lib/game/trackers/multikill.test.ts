@@ -88,6 +88,9 @@ const HP_251 = 3e9; // MonsterDefinitions.w6a1
 const SET: Seeds = {
   'DNSM.StarSigns["MultiKill"]': 15, "SaltLick[8]": 30, 'StampBonusOfTypeX["Overkill"]': 2.5, 'EtcBonuses["29"]': 1.5, "AchieveStatus[148]": 7, "AchieveStatus[122]": 1, "AchieveStatus[123]": 1, 'ArbitraryCode["StatueOnyxOwned"]': 3, "GetTalentNumber[1,654]": 4,
   'WorkbenchStuff["OverkillQTY",5,0]': 100, 'WorkbenchStuff["OverkillQTY",7,0]': 8, 'DNSM.AlchVials["Overkill"]': 5, "getbonus2[1,58,-1]": 3, "ArcadeBonus[8]": 2,
+  // the other 13 per-tier sources, each at a value of its own and summing to 0 (so P stays 130): a swap between two of them fails
+  "GetBuffBonuses[46,2]": 0.5, 'Sailing["ArtifactBonus",26,0]': -1, "GetBuffBonuses[469,2]": 1.5, 'chipBonuses["mkill"]': -2, 'EtcBonuses["71"]': 2.5, 'Holes["MeasurementBonusTOTAL",9,0]': -3, "CardBonusREAL[80]": 3.5,
+  'DNSM.StarSigns["78"]': -4, "prayersReal[16,0]": 4.5, 'Breeding["ShinyBonusS","Nah",4,-1]': -5, 'DNSM.BoxRewards["13b"]': 5.5, 'DNSM.AlchBubbles["MKtierACTIVE"]': -6, 'CardSetBonuses[0,"11"]': 3,
   'DamageDealed["Max"]': 1.3e10, "PlayerAccTot[]": 1e6,
 };
 const DATA: Data = { Tower: [0, 0, 5], OptLacc: Object.assign(Array<number>(700).fill(0), { 158: 25 }) };
@@ -112,7 +115,7 @@ describe("the tree on a synthetic envelope (runs in CI)", () => {
     expect(base.children).toHaveLength(9);
     expect(perTier.children).toHaveLength(18);
     expect(base.children!.map((c) => c.val)).toEqual([15, 30, 2.5, 10, 1.5, 5, 6, 2, 12]);
-    expect(perTier.children!.map((c) => c.val)).toEqual([100, 8, 5, 0, 15, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+    expect(perTier.children!.map((c) => c.val)).toEqual([100, 8, 5, 0.5, 15, 2, -1, 1.5, -2, 2.5, -3, 3.5, -4, 4.5, -5, 5.5, -6, 3]);
     expect(base.children![3].children).toEqual([{ name: "TowerInfo[2]", val: 5, fmt: "raw", note: "Building level" }]); // a read of the save is a leaf with a note
     expect(base.children![0].children).toEqual([{ name: 'DNSM.StarSigns("MultiKill")', val: 15, fmt: "raw", note: "cached" }]); // a source carries the call it stands for
     expect(base.children!.concat(perTier.children!).every((c) => c.fmt === "+")).toBe(true);
@@ -280,6 +283,20 @@ describe("the tree on a synthetic envelope (runs in CI)", () => {
     expect(() => tree()).not.toThrow();
   });
 
+  // mkSoftCap jumps at 50 (0.027): these eleven per-tier terms add to 49.99999999999999 in N.js's nesting and 50 left to right, so the page's model lands in the upper bracket and the call in the lower
+  it("a cap step crossed only by the order of the additions does not fire the guard (map 301)", () => {
+    const seeds: Seeds = {
+      'WorkbenchStuff["OverkillQTY",6,0]': 0.9, 'WorkbenchStuff["OverkillQTY",7,0]': 2.3, 'DNSM.AlchVials["Overkill"]': 4.8, "GetBuffBonuses[46,2]": 7.1, "getbonus2[1,58,-1]": 5.1,
+      "ArcadeBonus[8]": 6.9, 'Sailing["ArtifactBonus",26,0]': 7, "GetBuffBonuses[469,2]": 4.6, 'chipBonuses["mkill"]': 1.5, 'EtcBonuses["71"]': 2.4, 'Holes["MeasurementBonusTOTAL",9,0]': 7.4,
+      'DamageDealed["Max"]': 1.3e10, "PlayerAccTot[]": 1e6,
+    };
+    const { tree: t, total } = multikillTree(synth({ Tower: [0, 0, 0], OptLacc: Object.assign(Array<number>(700).fill(0), { 158: 5 }) }, { map: 301, seeds, real: REAL, trace: true }));
+    const perTier = kid(t, MK_NODES.perTier);
+    expect(perTier.children!.slice(0, 11).reduce((a, c) => a + c.val, 0)).toBe(50);
+    expect(perTier.val).toBeCloseTo(20 + 30 / 1.1, 12); // N.js's 49.99999999999999 is under the step
+    expect(total).toBe(47);
+  });
+
   // N.js nests its additions and the page's model adds left to right: these ten per-tier terms are 176.49999999999997 the first way and 176.5 the other, so 10 + 2 x P floors to 362 and 363 with every term right.
   it("a floor that differs only by the order of the additions does not fire the guard", () => {
     const seeds: Seeds = {
@@ -314,7 +331,7 @@ describe("the tree on a synthetic envelope (runs in CI)", () => {
 // ── every real save, character and map ──────────────────────────────────────────────────────────
 /**
  * Exact, per map: `known`, the pairs whose total differs from lib/arkh's and a KNOWN row closes (njs/multikill.test.ts's figure, which proves each); `motherlode`, the pairs whose Target Defence row differs because
- * N.js @6516949 gives the Motherlode's four targets Holes("MotherlodeEffBase", i, 0) as their Defence (the fish's / 4) and lib/arkh's overkillActive reads the table's: each is checked to be exactly those two numbers below.
+ * N.js @6516967 gives the Motherlode's four targets Holes("MotherlodeEffBase", i, 0) as their Defence (the fish's / 4) and lib/arkh's overkillActive reads the table's: each is checked to be exactly those two numbers below.
  */
 const MAPS: Record<number, { known: number; motherlode: number }> = {
   251: { known: 4, motherlode: 0 },
