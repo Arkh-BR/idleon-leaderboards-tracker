@@ -15,6 +15,8 @@ import { EXP_GROUPS } from "@/lib/arkh/stats/defs/exp-multi";
 import { computeArkhCoinMulti } from "@/lib/arkh/computeCoin";
 import { COIN_GROUPS } from "@/lib/arkh/stats/defs/coin-multi";
 import { coin } from "@/lib/arkh/stats/systems/coin/coin";
+import { computeArkhMultikill, computeArkhMultikillPools } from "@/lib/arkh/computeMultikill";
+import { MK_POOLS } from "@/lib/arkh/stats/defs/multikill";
 import { statCtx } from "@/lib/arkh/computeStat";
 import { computeArkhDropRateV2 } from "@/lib/arkh/computeDropRateV2";
 import { DR2_GROUPS } from "@/lib/arkh/stats/defs/drop-rate-v2";
@@ -250,7 +252,7 @@ function persist(d: { file: string; data: DiskFile }): void {
  * The cache every (character, map) section shares: an object save is computed once on a structuredClone and kept by identity, a path
  * save is stored in the `section` of its sha1-keyed disk file (`{ [ci]: { [map]: T } }`). `compute` gets a parsed copy it may write into.
  */
-type Section = "afk" | "exp" | "dr" | "coin";
+type Section = "afk" | "exp" | "dr" | "coin" | "mk";
 function sectionCache<T>(section: Section, compute: (parsed: any, ci: number, map: number) => T): (save: unknown, ci: number, map: number) => T {
   const byObject = new WeakMap<object, Map<string, T>>();
   return (save, ci, map) => {
@@ -1515,3 +1517,31 @@ export const arkhCoinShape = (save: unknown, ci: number, map: number): CoinShape
 
 /** lib/arkh's own Coin Multi total (computeArkhCoinMulti(...).total): the oracle for the whole tree. */
 export const arkhCoinMulti = (save: unknown, ci: number, map: number): number => coinEntry(save, ci, map).total;
+
+// ---- Multikill: lib/arkh's tree is not grouped (root children: Base / Damage Tier / per Tier / Active, rules inside the halves), so the leaves are
+// read from its pools (the sources of each MK_POOLS pool, in order), and the total from computeArkhMultikill.
+type MkEntry = { leaves: Record<string, number>; total: number };
+
+function mkEntryOf(parsed: any, ci: number, map: number): MkEntry {
+  const { total } = computeArkhMultikill(structuredClone(parsed), ci, map);
+  const pools = computeArkhMultikillPools(parsed, ci, map);
+  const leaves: Record<string, number> = {};
+  for (const [key, ids] of Object.entries(MK_POOLS)) {
+    const items = pools[key].items;
+    if (items.length !== ids.length) throw new Error(`arkhMkLeaves: lib/arkh's ${key} pool has ${items.length} sources, MK_POOLS has ${ids.length}`);
+    ids.forEach((id, k) => (leaves[id] = items[k].val));
+  }
+  return { leaves, total };
+}
+
+const mkEntry = sectionCache("mk", mkEntryOf);
+
+/**
+ * Every Multikill source's `val` in lib/arkh's pools for character `ci` on `map`, by MK_POOLS id (`tier`, `softCap` 0/1, `cove` 0/1 and
+ * `active` included). Recombine with `mkTotal` (sums of the `base` and `perTier` ids, `tier`, `softCap`, `cove`) to get lib/arkh's total; the
+ * Cove's two replacement values are the children of its source and are not leaves. `save` as in arkhDamageLeaves.
+ */
+export const arkhMkLeaves = (save: unknown, ci: number, map: number): Record<string, number> => mkEntry(save, ci, map).leaves;
+
+/** lib/arkh's own Multikill total (computeArkhMultikill(...).total): the oracle for the whole tree. */
+export const arkhMultikill = (save: unknown, ci: number, map: number): number => mkEntry(save, ci, map).total;
