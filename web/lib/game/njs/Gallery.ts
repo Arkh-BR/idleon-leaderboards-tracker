@@ -87,6 +87,14 @@ export const Gallery: (ctx: Ctx, d: string, b: number, e: number) => number = bl
 
 const STAT_LIST = "Weapon_Power,STR,AGI,WIS,LUK,Defence".split(","); // DNSM.GalleryDT
 
+/** What the trophy in Spelunk[16][e] counts for, before GalleryBonusMulti: DNSM.GalleryDN2, or from slot 48 on its podium's. */
+export const trophyTier = (ctx: Ctx, e: number): number =>
+  48 > e ? 0.3 : Gallery(ctx, "PodiumsOwned_Lv4", 0, 0) > e - 48 ? 2.5 : Gallery(ctx, "PodiumsOwned_Lv3", 0, 0) > e - 48 ? 2 : Gallery(ctx, "PodiumsOwned_Lv2", 0, 0) > e - 48 ? 1.5 : 1;
+/** What a nametag of Spelunk[17] at `level` (1 or more) counts for, before GalleryBonusMulti. */
+export const nametagTier = (level: number): number => asNumber("1,1.6,2,2.3,2.5".split(",")[Math.min(4, Math.round(level - 1)) | 0]);
+/** The item of Spelunk[17][e]. */
+export const nametagItem = (e: number): string => (6 == e ? "EquipmentNametag6b" : `EquipmentNametag${e}`);
+
 /** An item's two unique stats (when its UQ text is not "0") and its STAT_LIST stats, times `multi`, added into `map` (the caches' step). */
 function addItem(map: Map<string, number>, item: Readonly<Record<string, unknown>>, multi: number, stats: Map<string, number> = map, statsFrom: ReadonlyMap<string, number> = map) {
   for (let b = 0; b < 2; b++) {
@@ -116,11 +124,7 @@ export function GalleryBonTOT(ctx: Ctx, which: "Trophy" | "Nametag" | "PremHat" 
     case "Trophy": {
       const placed = listAt(ctx, "Spelunk", 16);
       for (let e = 0; e < placed.length; e++) {
-        let multi = 0.3; // DNSM.GalleryDN2
-        if (48 <= e)
-          multi =
-            Gallery(ctx, "PodiumsOwned_Lv4", 0, 0) > e - 48 ? 2.5 : Gallery(ctx, "PodiumsOwned_Lv3", 0, 0) > e - 48 ? 2 : Gallery(ctx, "PodiumsOwned_Lv2", 0, 0) > e - 48 ? 1.5 : 1;
-        multi = multi * Gallery(ctx, "GalleryBonusMulti", 0, 0);
+        const multi = trophyTier(ctx, e) * Gallery(ctx, "GalleryBonusMulti", 0, 0);
         if (1 <= asNum(ctx, "Spelunk", 16, e)) addItem(map, itemDef(`Trophy${Math.round(asNum(ctx, "Spelunk", 16, e))}`), multi);
       }
       return map;
@@ -129,8 +133,7 @@ export function GalleryBonTOT(ctx: Ctx, which: "Trophy" | "Nametag" | "PremHat" 
       const tags = listAt(ctx, "Spelunk", 17);
       for (let e = 0; e < tags.length; e++) {
         if (!(1 <= asNum(ctx, "Spelunk", 17, e))) continue;
-        const multi = asNumber("1,1.6,2,2.3,2.5".split(",")[Math.min(4, Math.round(asNum(ctx, "Spelunk", 17, e) - 1)) | 0]) * Gallery(ctx, "GalleryBonusMulti", 0, 0);
-        addItem(map, itemDef(6 == e ? "EquipmentNametag6b" : `EquipmentNametag${e}`), multi);
+        addItem(map, itemDef(nametagItem(e)), nametagTier(asNum(ctx, "Spelunk", 17, e)) * Gallery(ctx, "GalleryBonusMulti", 0, 0));
       }
       return map;
     }

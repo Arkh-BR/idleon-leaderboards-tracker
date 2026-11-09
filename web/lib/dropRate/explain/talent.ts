@@ -31,13 +31,13 @@ import { charKey, opt } from "@/lib/game/state";
 import type { ArkhNode, NodeFmt } from "../node";
 import type { Explainer } from "./index";
 
-const row = (name: string, val: number, fmt?: NodeFmt, note?: string, children?: ArkhNode[]): ArkhNode => ({ name, val, ...(fmt ? { fmt } : {}), ...(note ? { note } : {}), ...(children?.length ? { children } : {}) });
-const raw = (name: string, val: number, note?: string, children?: ArkhNode[]): ArkhNode => row(name, val, "raw", note, children);
+export const row = (name: string, val: number, fmt?: NodeFmt, note?: string, children?: ArkhNode[]): ArkhNode => ({ name, val, ...(fmt ? { fmt } : {}), ...(note ? { note } : {}), ...(children?.length ? { children } : {}) });
+export const raw = (name: string, val: number, note?: string, children?: ArkhNode[]): ArkhNode => row(name, val, "raw", note, children);
 const cell = (list: unknown, ...at: number[]): unknown => at.reduce<unknown>((a, i) => (a as readonly unknown[])[i], list);
 
-const NOT_READ = "not read: ";
+export const NOT_READ = "not read: ";
 /** A row the save may not answer (see the header): a leaf saying why. `read` gives null for a row that does not exist right now. */
-function guarded(name: string, read: () => ArkhNode | null): ArkhNode | null {
+export function guarded(name: string, read: () => ArkhNode | null): ArkhNode | null {
   try {
     return read();
   } catch (e) {
@@ -45,8 +45,8 @@ function guarded(name: string, read: () => ArkhNode | null): ArkhNode | null {
   }
 }
 /** The row only while `val` is above 0, as a talent's bonus levels are listed. */
-const when = (val: number, make: (v: number) => ArkhNode): ArkhNode | null => (0 < val ? make(val) : null);
-const present = (rows: (ArkhNode | null)[]): ArkhNode[] => rows.filter((r): r is ArkhNode => r !== null);
+export const when = (val: number, make: (v: number) => ArkhNode): ArkhNode | null => (0 < val ? make(val) : null);
+export const present = (rows: (ArkhNode | null)[]): ArkhNode[] => rows.filter((r): r is ArkhNode => r !== null);
 
 const ownerName = (c: Ctx, who: number): string => c.state.charNames[who] || `Char ${who}`;
 

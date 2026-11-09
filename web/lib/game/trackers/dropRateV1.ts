@@ -11,7 +11,8 @@ import { categorizePoolItems, decorateSystem } from "@/lib/dropRate/systems";
 import { EXPLAINERS } from "@/lib/dropRate/explain";
 import type { ArkhNode } from "@/lib/dropRate/node";
 import { V1_COVE, V1_SOURCES, type V1Pool, type V1Source } from "@/lib/dropRate/v1Sources";
-import { makeCtx, type Ctx, type TraceNode } from "../ctx";
+import { assumed, makeCtx, seedBlock, type Ctx, type TraceNode } from "../ctx";
+import { chipBonuses } from "../njs/chipBonuses";
 import { TotalStats } from "../njs/TotalStats";
 import { inCove, opsOf, SOURCES } from "./dropRate";
 import { finishTree, migratedNote, near, stateOf } from "./page";
@@ -97,8 +98,17 @@ export function dropRateV1Tree(ctx: Ctx): { tree: ArkhNode; total: number } {
   return finishTree(tree, total, { totalFromFlat: () => expected }, root, call, new Set(), [call], () => near(expected, total));
 }
 
+/** The page's Silkrode Motherboard toggle (undefined: what the character's chips say). The seed is on this Ctx's memo, so it moves this compute only, and the root says so when it differs from the save. */
+export function forceTrophyChip(ctx: Ctx, on: boolean | undefined): void {
+  if (on === undefined || on === 0 < chipBonuses(ctx, "troph")) return;
+  const value = on ? 1 : 0;
+  assumed(ctx, "Silkrode Motherboard (Chip 16)", `the page's chip toggle forces it ${on ? "on" : "off"}: this character ${on ? "does not have" : "has"} it in its lab`, value, 'chipBonuses("troph") @5163283, read by GalleryBonusMulti @11137789 and the trophy slot of TotalStats');
+  seedBlock(ctx, "chipBonuses", ["troph"], value);
+}
+
 /** `computeArkhDropRate`'s counterpart: the envelope of a save, a character index and the map to compute on. */
-export function computeGameDropRateV1(save: unknown, charIdx: number, mapIdx: number, _opts?: { chipGalleryActive?: boolean }): { tree: ArkhNode; total: number } {
-  // ponytail: the chip override is Task 3's (lib/dropRate/explain/equipment): until the Gallery rows exist it has nothing to move
-  return dropRateV1Tree(makeCtx(stateOf(save), { player: charIdx, map: mapIdx, trace: true }));
+export function computeGameDropRateV1(save: unknown, charIdx: number, mapIdx: number, opts?: { chipGalleryActive?: boolean }): { tree: ArkhNode; total: number } {
+  const ctx = makeCtx(stateOf(save), { player: charIdx, map: mapIdx, trace: true });
+  forceTrophyChip(ctx, opts?.chipGalleryActive);
+  return dropRateV1Tree(ctx);
 }

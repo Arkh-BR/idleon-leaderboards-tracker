@@ -81,6 +81,37 @@ export function equipMap(ctx: Ctx, f: number, slot: number): Item {
 /** The pieces of TotalStats' head (DN, and the ETC map when `d` is "calcEtcBonuses"). */
 type Head = { dn: number; etc: Map<string, number> | null };
 
+const galleryOn = (ctx: Ctx) => 1 == Gallery(ctx, "GalleryBonusSystemON", 0, 0);
+const premHatOn = (ctx: Ctx) => 1 == Gallery(ctx, "PremHatBonusesSystemON", 0, 0);
+const capeOn = (ctx: Ctx) => 1 == Gallery(ctx, "CapevineBonusesSystemON", 0, 0);
+
+/** Step 1's skip (@4156881, the head's comment below): slot O of EquipmentOrder[f] adds nothing. */
+export function equipSlotSkipped(ctx: Ctx, f: number, O: number): boolean {
+  const name = attr(ctx, "EquipmentOrder", f, O);
+  return (
+    (galleryOn(ctx) && 0 == f && 10 == O) ||
+    (galleryOn(ctx) && 0 == f && 14 == O) ||
+    (premHatOn(ctx) && 0 == f && 8 == O) ||
+    (capeOn(ctx) && 0 == f && 12 == O) ||
+    (-1 != Dungon(ctx) && (-1 == Dungon(ctx) || -1 == hString(name).indexOf("Dung"))) ||
+    "Blank" == name
+  );
+}
+
+/** Step 1 for "calcEtcBonuses": unique stat e (0 or 1) of the item in a counted slot goes into the ETC map as `multi` x `amount`, under `stat`. */
+export function equipEtcLine(ctx: Ctx, f: number, O: number, e: number): { stat: string; amount: number; multi: number } {
+  const def = itemDef(hString(attr(ctx, "EquipmentOrder", f, O)));
+  const own = equipMap(ctx, f, O);
+  const txt = `UQ${Math.round(e + 1)}txt`;
+  const val = `UQ${Math.round(e + 1)}val`;
+  const ownOnly = "0" == def[txt] ? (0 < asNumber(own[val]) ? Object.hasOwn(own, txt) : false) : false;
+  const doubled = (0 == f && 3 == O && 1 == chipBonuses(ctx, "pend")) || (0 == f && 9 == O && 1 == chipBonuses(ctx, "key1")) || (0 == f && 10 == O && 1 == chipBonuses(ctx, "troph"));
+  const amount = ownOnly ? asNumber(own[val]) : asNumber(def[val]) + asNumber(own[val]);
+  const stat = hString(ownOnly ? own[txt] : def[txt]); // DNSM.TotalStatsDT2
+  const multi = doubled ? 2 : 0 == f && 15 == O && 1 <= ResearchStuff(ctx, "Grid_Bonus", 172, 0) ? 1 + ResearchStuff(ctx, "Grid_Bonus", 172, 0) / 100 : 1;
+  return { stat, amount, multi };
+}
+
 /**
  * The part of `_customBlock_TotalStats(d)` @4156192 every sub-case shares, up to the sub-cases' own chain (@4174547):
  *  1. @4156881: the equipment (EquipmentOrder[0], 16 slots, and [1], the 8 tools): every item but "Blank" adds its stat `d` from its
@@ -100,21 +131,11 @@ function head(ctx: Ctx, d: string): Head {
   const calcEtc = "calcEtcBonuses" == d;
   const etc = calcEtc ? new Map<string, number>() : null; // DNSM.TotalStatsETCmap
   const etcAdd = (k: string, v: number) => etc!.set(k, asNumber(etc!.get(k)) + v);
-  const galleryOn = () => 1 == Gallery(ctx, "GalleryBonusSystemON", 0, 0);
-  const premHatOn = () => 1 == Gallery(ctx, "PremHatBonusesSystemON", 0, 0);
-  const capeOn = () => 1 == Gallery(ctx, "CapevineBonusesSystemON", 0, 0);
   let dn = 0; // DN.TotalStatsDN
   for (let f = 0; f < 2; f++) {
     for (let O = 0, n = Math.round(8 + 8 * (1 - f)); O < n; O++) {
+      if (equipSlotSkipped(ctx, f, O)) continue;
       const name = attr(ctx, "EquipmentOrder", f, O);
-      const skip =
-        (galleryOn() && 0 == f && 10 == O) ||
-        (galleryOn() && 0 == f && 14 == O) ||
-        (premHatOn() && 0 == f && 8 == O) ||
-        (capeOn() && 0 == f && 12 == O) ||
-        (-1 != Dungon(ctx) && (-1 == Dungon(ctx) || -1 == hString(name).indexOf("Dung"))) ||
-        "Blank" == name;
-      if (skip) continue;
       if (-1 != d.indexOf("Power")) {
         // @4160167: a power stat adds the item's Weapon_Power (whatever the power), its own one too when it has it
         if (!powerCounts(d, f, O, hString(name))) continue;
@@ -128,16 +149,8 @@ function head(ctx: Ctx, d: string): Head {
       dn = Object.hasOwn(own, d) ? dn + (asNumber(def[d]) + asNumber(own[d])) : dn + asNumber(def[d]);
       if (!calcEtc) continue;
       for (let e = 0; e < 2; e++) {
-        const txt = `UQ${Math.round(e + 1)}txt`;
-        const val = `UQ${Math.round(e + 1)}val`;
-        const ownOnly = "0" == def[txt] ? (0 < asNumber(own[val]) ? Object.hasOwn(own, txt) : false) : false;
-        const doubled =
-          (0 == f && 3 == O && 1 == chipBonuses(ctx, "pend")) || (0 == f && 9 == O && 1 == chipBonuses(ctx, "key1")) || (0 == f && 10 == O && 1 == chipBonuses(ctx, "troph"));
-        const amount = ownOnly ? asNumber(own[val]) : asNumber(def[val]) + asNumber(own[val]);
-        const key = hString(ownOnly ? own[txt] : def[txt]); // DNSM.TotalStatsDT2
-        if (doubled) etcAdd(key, 2 * amount);
-        else if (0 == f && 15 == O && 1 <= ResearchStuff(ctx, "Grid_Bonus", 172, 0)) etcAdd(key, (1 + ResearchStuff(ctx, "Grid_Bonus", 172, 0) / 100) * amount);
-        else etcAdd(key, amount);
+        const { stat, amount, multi } = equipEtcLine(ctx, f, O, e);
+        etcAdd(stat, multi * amount);
       }
     }
   }
@@ -145,12 +158,12 @@ function head(ctx: Ctx, d: string): Head {
     if (calcEtc) for (const [k, v] of cache) etcAdd(k, v);
     if (cache.has(d)) dn = dn + asNumber(cache.get(d));
   };
-  if (galleryOn()) {
+  if (galleryOn(ctx)) {
     if (1 == Gallery(ctx, "InitializeTrophyBonuses", 0, 0)) fromCache(GalleryBonTOT(ctx, "Trophy"));
     if (1 == Gallery(ctx, "InitializeNametagBonuses", 0, 0)) fromCache(GalleryBonTOT(ctx, "Nametag"));
   }
-  if (premHatOn() && 1 == Gallery(ctx, "InitializePremHatBonuses", 0, 0)) fromCache(GalleryBonTOT(ctx, "PremHat"));
-  if (capeOn() && 1 == Gallery(ctx, "InitializeCapeBonuses", 0, 0)) fromCache(GalleryBonTOT(ctx, "CapeVine"));
+  if (premHatOn(ctx) && 1 == Gallery(ctx, "InitializePremHatBonuses", 0, 0)) fromCache(GalleryBonTOT(ctx, "PremHat"));
+  if (capeOn(ctx) && 1 == Gallery(ctx, "InitializeCapeBonuses", 0, 0)) fromCache(GalleryBonTOT(ctx, "CapeVine"));
   const pct = PCT[d];
   if (-1 == Dungon(ctx) && pct) dn = dn * (1 + (GetTalentNumber(ctx, 1, pct.talent) + StampBonusOfTypeX(ctx, pct.stamp)) / 100);
   if (-1 == Dungon(ctx)) {

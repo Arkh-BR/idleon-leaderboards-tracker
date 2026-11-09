@@ -71,9 +71,9 @@ describe("the V1 tree on a synthetic envelope (runs in CI)", () => {
     expect(kid(add, "🎯 Talents")).toMatchObject({ val: 50, fmt: "+" });
     expect(kid(kid(add, "🎯 Talents"), "Robbing Hood (Talent 279)")).toMatchObject({ val: 50, fmt: "+" });
     expect(kid(kid(add, "💭 Dreams"), "Equinox Symbols (Dream 10)")).toMatchObject({ val: 10, fmt: "+", note: "dream 10" });
-    // the buckets follow the fixed system order (merged), and a row that is one piece of etcBonus stays under Equipment
+    // the buckets follow the fixed system order (merged); an etcBonus row splits in its parts (lib/dropRate/explain/equipment), and a part this save cannot answer is a noted leaf
     expect(add.children!.map((c) => c.name).slice(0, 3)).toEqual(["🎯 Talents", "🃏 Cards", "⭐ Star Signs"]);
-    expect(kid(kid(add, "🎽 Equipment"), "Drop Rate (Equipment) (etcBonus 2)").val).toBe(8);
+    expect(kid(kid(add, "🎽 Equipment"), "Equipment (etcBonus 2)")).toMatchObject({ val: 0, note: expect.stringMatching(/^not read: /) });
   });
 
   it("Total Sum is 1 + 1.4 x the curve + the pool / 100, with its note", () => {
@@ -94,7 +94,7 @@ describe("the V1 tree on a synthetic envelope (runs in CI)", () => {
   });
 
   it("Post-Processing: the three steps as buckets, then the multipliers by system", () => {
-    const seeds = { 'WorkbenchStuff["AdditionExtraEXPnDR",0,0]': 1.5, 'EtcBonuses["99"]': 20, "Companions[168]": 1 };
+    const seeds = { 'WorkbenchStuff["AdditionExtraEXPnDR",0,0]': 1.5, 'Summoning["TomeBonus",7,0]': 20, "Companions[168]": 1 };
     const { tree: t, total } = tree({ OptLacc: Object.assign(Array<number>(700).fill(0), { 232: 1 }), BundlesReceived: { bun_v: 1, bun_p: 1 } }, seeds);
     const post = kid(t, "Post-Processing");
     expect(post.children!.slice(0, 3)).toMatchObject([
@@ -105,7 +105,7 @@ describe("the V1 tree on a synthetic envelope (runs in CI)", () => {
     const paths = Object.keys(flattenTree(t));
     expect(paths).toContain("Drop Rate / Post-Processing / 🎁 Bundles#1 / Explorer Bundle (Bundle bun_p)"); // the second bucket of the name, as snapshots key it
     expect(kid(kid(post, "🐾 Companions"), "Crystal Glunko (Companion 168)")).toMatchObject({ val: 1.3, fmt: "x" });
-    expect(kid(post, "🎽 Equipment")).toMatchObject({ val: 1.2, fmt: "x" }); // 1 + 20 / 100, a `+` row of a multiplicative pool
+    expect(kid(post, "📖 Tome")).toMatchObject({ val: 1.2, fmt: "x" }); // 1 + 20 / 100, a `+` row of a multiplicative pool
     const base = kid(t, "Total Sum").val;
     expect(post.val).toBeCloseTo(total / base, 9);
   });
@@ -132,8 +132,8 @@ describe("the V1 tree on a synthetic envelope (runs in CI)", () => {
 
   it("the %_DROP_CHANCE row exists only while it has a value, and then the total still adds up", () => {
     const names = (s: Seeds) => kid(kid(tree({}, s).tree, "Additive Pool"), "🎽 Equipment").children!.map((c) => c.name);
-    expect(names({})).toEqual(["Drop Rate (Equipment) (etcBonus 2)"]);
-    expect(names({ 'EtcBonuses["102"]': 3 })).toEqual(["Drop Rate (Equipment) (etcBonus 2)", "EtcBonuses(102) (etcBonus 102)"]);
+    expect(names({})).toEqual(["Equipment (etcBonus 2)"]);
+    expect(names({ 'EtcBonuses["102"]': 3 })).toEqual(["Equipment (etcBonus 2)", "Equipment (etcBonus 102)"]);
   });
 
   it("the Cove is a root row only on map 216 in cavern 17, and the total is the game's", () => {

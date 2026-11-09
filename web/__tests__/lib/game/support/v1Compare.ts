@@ -11,7 +11,7 @@ import { computeGameDropRateV1 } from "@/lib/game/trackers/dropRateV1";
 export type V1Diff = { missing: string[]; extra: string[]; value: string[]; meta: string[] };
 
 /** The V1 sources whose rows are built (lib/dropRate/explain): each family's task adds its ids. */
-const BUILT: readonly string[] = ["talent279", "talent24", "talent655", "talent239", "workbench"];
+const BUILT: readonly string[] = ["talent279", "talent24", "talent655", "talent239", "workbench", "etc2", "etc91", "etc99", "etc102", "efaunt"];
 /** V1 source ids whose rows aren't built yet: differences below them are ignored. Task 7 asserts it is empty. */
 export const PENDING = new Set(V1_SOURCES.map((s) => s.id).filter((id) => !BUILT.includes(id)));
 
@@ -51,16 +51,11 @@ const POOLS_AT: Record<string, readonly V1Pool[]> = { "Additive Pool": ["addMain
 const rowId = (top: string, name: string): string | undefined =>
   V1_SOURCES.find((s) => POOLS_AT[top]?.includes(s.pool) && (s.name === name || ALT_NAMES[s.id]?.includes(name)))?.id;
 
-/** The buckets an `(etcBonus N)` row's parts land in (lib/dropRate/systems): while the row is one piece the buckets are not comparable. */
-const ETC_BUCKETS = new Set(["🎽 Equipment", "🪙 Obols", "🖼️ Gallery", "🎩 Hatrack", "🧣 Cape Vine"]);
-const ETC_IDS: Record<string, readonly string[]> = { "Additive Pool": ["etc2"], "Post-Processing": ["etc99", "etc91"] };
-
-/** The path is below a source still pending (or in a bucket its pending etcBonus row spills into). */
+/** The path is below a source still pending. */
 function belowPending(r: Row): boolean {
-  const [, top, bucket] = r.trail;
+  const [, top] = r.trail;
   if (top === "LUK Scaling") return 2 < r.trail.length && PENDING.has("lukScaling");
   if (top === "Chip Cap-Break") return 3 < r.trail.length && PENDING.has("chip");
-  if (ETC_BUCKETS.has(bucket) && ETC_IDS[top]?.some((id) => PENDING.has(id))) return true;
   if (r.trail.length <= 4) return false;
   const id = rowId(top, r.trail[3]);
   return id !== undefined && PENDING.has(id);
@@ -72,9 +67,9 @@ const flags = (n: ArkhNode): boolean => /^(runtime|assumed):/.test(n.note ?? "")
 /** The aggregates a different LUK Scaling moves: the root and what depends on the base. The Additive Pool does not depend on LUK, its rows are compared one by one. */
 const AGGREGATE = (path: string) => /^Drop Rate$|^Drop Rate \/ (Total Sum|Chip Cap-Break|Post-Processing)$/.test(path);
 
-export function compareV1(save: unknown, ci: number, map: number): V1Diff {
-  const mine = computeGameDropRateV1(save, ci, map).tree;
-  const theirs = computeArkhDropRate(structuredClone(save), ci, map, {}).tree;
+export function compareV1(save: unknown, ci: number, map: number, opts: { chipGalleryActive?: boolean } = {}): V1Diff {
+  const mine = computeGameDropRateV1(save, ci, map, opts).tree;
+  const theirs = computeArkhDropRate(structuredClone(save), ci, map, opts).tree;
   const a = rowsOf(mine);
   const b = rowsOf(theirs);
   // the Cove: the game's total replaces lib/arkh's, which has no Cove (N.js @4196607), and the row says so; nothing else changes
