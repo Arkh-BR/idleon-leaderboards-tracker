@@ -1,0 +1,102 @@
+// The Drop Rate V1 tree on lib/game against lib/arkh's, path by path (a support module: vitest only collects *.test.ts). flattenTree's paths are the page's contract: snapshots and the Compare are keyed by them.
+//
+// lib/arkh is the comparison target only: where it is wrong the tree follows N.js and the path goes in V1_KNOWN with the evidence.
+import "./arkhOracle"; // first: it sets the `window` shim lib/arkh reads
+import { computeArkhDropRate } from "@/lib/arkh/computeDR";
+import { type ArkhNode } from "@/lib/dropRate/node";
+import { nodePath } from "@/lib/dropRate/treeFlatten";
+import { V1_COVE, V1_SOURCES, type V1Pool } from "@/lib/dropRate/v1Sources";
+import { computeGameDropRateV1 } from "@/lib/game/trackers/dropRateV1";
+
+export type V1Diff = { missing: string[]; extra: string[]; value: string[]; meta: string[] };
+
+/** V1 source ids whose rows aren't built yet: differences below them are ignored. Each family's task takes its ids out; Task 7 asserts it is empty. */
+export const PENDING = new Set(V1_SOURCES.map((s) => s.id));
+
+/** A path where lib/arkh is wrong, with its N.js evidence. The value of the buckets and totals above such a path differs with it. */
+export const V1_KNOWN: { path: RegExp; why: string }[] = [
+  {
+    path: /^Drop Rate \/ LUK Scaling$/,
+    why: "N.js TotalStats(\"Drop_Rarity\") starts from a live `x._customBlock_TotalStats(\"LUK\")` for DropRateLUK (@4190488); lib/arkh's lukScaling (stats/systems/common/stats.ts readRawLuk) reads PVStatList_<ci>[3], the TotalStats(\"LUK\") the game wrote at save time (@15076361), stale on any save older than the last stat change. dropRateV1.test.ts proves it: with lib/game's LUK in PVStatList_<ci>[3], lib/arkh's row is the game's",
+  },
+];
+
+const hits = new Set<RegExp>();
+/** The V1_KNOWN rows no comparison needed so far: a stale row is one lib/arkh no longer gets wrong. */
+export const knownUnused = (): string[] => V1_KNOWN.filter((k) => !hits.has(k.path)).map((k) => k.path.source);
+
+type Row = { path: string; node: ArkhNode; trail: readonly string[] };
+function rowsOf(root: ArkhNode): Map<string, Row> {
+  const out = new Map<string, Row>();
+  const walk = (node: ArkhNode, parent: string, trail: readonly string[], siblings: ArkhNode[], i: number) => {
+    const path = nodePath(parent, node, siblings, i);
+    const here = [...trail, node.name];
+    out.set(path, { path, node, trail: here });
+    (node.children ?? []).forEach((k, j, all) => walk(k, path, here, all, j));
+  };
+  walk(root, "", [], [root], 0);
+  return out;
+}
+
+const near = (a: number, b: number) => Math.abs(a - b) <= 1e-9 * Math.max(1, Math.abs(b));
+
+const ALT_NAMES: Record<string, string[]> = { glimbo: ["Glimbo DR Multi", "Glimbo Insider Trading Secrets (Grid 168)"] };
+const POOLS_AT: Record<string, readonly V1Pool[]> = { "Additive Pool": ["addMain", "addLUK2"], "Post-Processing": ["postFlat", "postMult"], "Chip Cap-Break": ["chipDR"] };
+const rowId = (top: string, name: string): string | undefined =>
+  V1_SOURCES.find((s) => POOLS_AT[top]?.includes(s.pool) && (s.name === name || ALT_NAMES[s.id]?.includes(name)))?.id;
+
+/** The buckets an `(etcBonus N)` row's parts land in (lib/dropRate/systems): while the row is one piece the buckets are not comparable. */
+const ETC_BUCKETS = new Set(["🎽 Equipment", "🪙 Obols", "🖼️ Gallery", "🎩 Hatrack", "🧣 Cape Vine"]);
+const ETC_IDS: Record<string, readonly string[]> = { "Additive Pool": ["etc2"], "Post-Processing": ["etc99", "etc91"] };
+
+/** The path is below a source still pending (or in a bucket its pending etcBonus row spills into). */
+function belowPending(r: Row): boolean {
+  const [, top, bucket] = r.trail;
+  if (top === "LUK Scaling") return 2 < r.trail.length && PENDING.has("lukScaling");
+  if (top === "Chip Cap-Break") return 3 < r.trail.length && PENDING.has("chip");
+  if (ETC_BUCKETS.has(bucket) && ETC_IDS[top]?.some((id) => PENDING.has(id))) return true;
+  if (r.trail.length <= 4) return false;
+  const id = rowId(top, r.trail[3]);
+  return id !== undefined && PENDING.has(id);
+}
+
+/** A root row of lib/game's own that lib/arkh has no such thing as: the `runtime:` / `assumed:` statements (Ruling L). */
+const flags = (n: ArkhNode): boolean => /^(runtime|assumed):/.test(n.note ?? "") || (n.children ?? []).some(flags);
+
+/** The aggregates above the sources: they move with any source V1_KNOWN explains. */
+const AGGREGATE = (path: string) => /^Drop Rate$|^Drop Rate \/ (Additive Pool|Total Sum|Post-Processing)$/.test(path);
+
+export function compareV1(save: unknown, ci: number, map: number): V1Diff {
+  const mine = computeGameDropRateV1(save, ci, map).tree;
+  const theirs = computeArkhDropRate(structuredClone(save), ci, map, {}).tree;
+  const a = rowsOf(mine);
+  const b = rowsOf(theirs);
+  // the Cove: the game's total replaces lib/arkh's, which has no Cove (N.js @4196607), and the row says so; nothing else changes
+  let aggregatesMove = mine.children!.some((c) => c.name === V1_COVE);
+  const explained = (path: string): boolean => {
+    const k = V1_KNOWN.find((row) => row.path.test(path));
+    if (k) {
+      hits.add(k.path);
+      aggregatesMove = true;
+    }
+    return !!k;
+  };
+  const ownRows = new Set(mine.children!.filter(flags).map((c) => c.name));
+  const out: V1Diff = { missing: [], extra: [], value: [], meta: [] };
+
+  for (const [path, r] of b) if (!a.has(path) && !belowPending(r) && !explained(path)) out.missing.push(path);
+  for (const [path, r] of a) if (!b.has(path) && !belowPending(r) && !ownRows.has(r.trail[1]) && r.trail[1] !== V1_COVE && !explained(path)) out.extra.push(path);
+  for (const [path, r] of a) {
+    const t = b.get(path);
+    if (!t || belowPending(r)) continue;
+    if (!near(r.node.val, t.node.val) && !explained(path)) out.value.push(`${path}: game ${r.node.val}, arkh ${t.node.val}`);
+    if (r.node.fmt !== t.node.fmt && !explained(path)) out.meta.push(`${path}: fmt ${r.node.fmt} vs ${t.node.fmt}`);
+    if (r.node.note !== t.node.note && !explained(path)) out.meta.push(`${path}: note ${JSON.stringify(r.node.note)} vs ${JSON.stringify(t.node.note)}`);
+  }
+  const notAggregate = (line: string) => !AGGREGATE(line.slice(0, line.indexOf(":")));
+  if (aggregatesMove) {
+    out.value = out.value.filter(notAggregate);
+    out.meta = out.meta.filter(notAggregate);
+  }
+  return out;
+}

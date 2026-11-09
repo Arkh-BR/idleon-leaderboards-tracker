@@ -39,7 +39,7 @@ import {
   WORLD_EMOJI,
   type SystemKey,
   type WorldKey,
-} from "@/lib/arkh/stats/categorize";
+} from "@/lib/dropRate/systems";
 import { nodePath, type FlatTree } from "@/lib/dropRate/treeFlatten";
 import { formatNum } from "@/lib/numberFormat";
 import Num from "@/components/Num";

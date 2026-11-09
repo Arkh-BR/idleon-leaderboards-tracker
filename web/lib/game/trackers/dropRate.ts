@@ -38,30 +38,30 @@ type Node = StatResult["tree"];
 const READ = "a plain read of the save, not an N.js call";
 
 /** What a source computes from: `t` takes a call (it must exist), `o` takes it when the block made it, `leaf` shows a number that is no call of its own, `c` reads the save. */
-type Ops = {
+export type Ops = {
   t: Take;
   o: (block: string, ...args: (string | number)[]) => number | undefined;
   leaf: (name: string, val: number, note?: string) => number;
   c: Ctx;
 };
 /** One source of the tree: its name and note as lib/arkh's tree has them (a function of the save and the source's value), and `of`, the term as the block uses it (see the header). */
-type Source = { name: string; note?: string | ((c: Ctx, val: number) => string | undefined); of: (o: Ops) => number };
+export type Source = { name: string; note?: string | ((c: Ctx, val: number) => string | undefined); of: (o: Ops) => number };
 
 /** The Cove line @4196607: `216 == CurrentMap && 17 == Holes[0][<the current character>]` (the raw element, loosely). */
-const inCove = (c: Ctx): boolean => 216 == c.map && 17 == attr(c, "Holes", 0, c.player);
+export const inCove = (c: Ctx): boolean => 216 == c.map && 17 == attr(c, "Holes", 0, c.player);
 
 /**
  * lib/arkh's note on a companion the account neither owns nor has a token for: what it would add, CompanionDB[id][2] (the value of a companion
  * not at stage 2). Companions(id) is 0 exactly then: it has no CompanionBon entry, and the six companions this note is on all have [2] and [11] above 0.
  */
-const notOwned = (id: number) => (_c: Ctx, val: number) => (0 === val ? `Not owned — would grant +${asNumber(CompanionDB[id][2])}` : undefined);
+export const notOwned = (id: number) => (_c: Ctx, val: number) => (0 === val ? `Not owned — would grant +${asNumber(CompanionDB[id][2])}` : undefined);
 
 /**
  * The chip when the block made no chipBonuses("dr") call (the total was 5 or more): the tree reads it on its own, as lib/arkh's tree does. The game
  * makes no such call there, so a read that fails (no Lab row, a chip ChipDesc does not have) must not break the page (Ruling PP): it is a 0 leaf
  * saying why.
  */
-const chipUncalled = (leaf: Ops["leaf"], c: Ctx): number => {
+export const chipUncalled = (leaf: Ops["leaf"], c: Ctx): number => {
   try {
     return chipBonuses(c, "dr");
   } catch (e) {
@@ -70,7 +70,7 @@ const chipUncalled = (leaf: Ops["leaf"], c: Ctx): number => {
 };
 
 // Offsets (raw N.js): TotalStats "Drop_Rarity" @4190432 (DropRateLUK2 @4190966, the base @4192476, the chip @4193824, outside a dungeon @4194240, the Cove @4196607)
-const SOURCES: Record<string, Source> = {
+export const SOURCES: Record<string, Source> = {
   luk: { name: "LUK Scaling (Drop Rate)", note: "1.4 × the LUK curve, outside the /100: 140 × curve as %", of: ({ t }) => 140 * dropRateLuk(t("TotalStats", "LUK")) },
   talent279: { name: "Robbing Hood (Talent 279)", of: ({ t }) => t("GetTalentNumber", 1, 279) },
   box11: { name: "Non Predatory Loot Box (Post Office 11)", note: "post office 11,0", of: ({ t }) => t("DNSM.BoxRewards", "DropRate") },
@@ -152,6 +152,14 @@ const SOURCES: Record<string, Source> = {
   cove: { name: "Crystal Glunko Cove", note: (c) => `Map 216 (The Hole), cavern 17 (The Cove): replaces the whole Drop Rate${inCove(c) ? "" : " · inactive: not map 216 in cavern 17"}`, of: ({ o }) => o("Holes2", "Cglunko_DR", 0, 0) ?? 0 },
 };
 
+/** What a source of the block `call` computes from: the calls it takes (each once) and the leaves it makes go to `kept`. V1's tree reads its sources with these too (trackers/dropRateV1.ts). */
+export const opsOf = (call: TraceNode, used: Set<TraceNode>, kept: Node[], c: Ctx, id: string): Ops => ({
+  t: takeFrom(call, used, kept, 'Drop Rate: TotalStats("Drop_Rarity")', id),
+  o: optFrom(call, used, kept),
+  leaf: (name, val, note = READ) => (kept.push({ name, val, fmt: "raw", note }), val),
+  c,
+});
+
 // The page's Biggest Gains model: the guard below recombines the tree with it (the one path for the number).
 const MODEL = groupedGainsModel(DR2_ROOT, DR2_GROUPS, { skip: [DR2_VOTE_NAME] });
 
@@ -173,10 +181,7 @@ export function dropRateTree(ctx: Ctx): StatResult {
     const def = SOURCES[id];
     if (!def) throw new Error(`Drop Rate: no source "${id}" in the adapter`);
     const kept: Node[] = [];
-    const t = takeFrom(call, used, kept, 'Drop Rate: TotalStats("Drop_Rarity")', id);
-    const o = optFrom(call, used, kept);
-    const leaf = (name: string, val: number, note = READ) => (kept.push({ name, val, fmt: "raw", note }), val);
-    const val = def.of({ t, o, leaf, c: plain });
+    const val = def.of(opsOf(call, used, kept, plain, id));
     const note = typeof def.note === "function" ? def.note(plain, val) : def.note;
     return { name: def.name, val, fmt, ...(note ? { note } : {}), ...(kept.length ? { children: kept } : {}) };
   };

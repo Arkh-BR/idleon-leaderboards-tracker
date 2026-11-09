@@ -3,7 +3,7 @@
 // then explained by `classify` (an entry of the oracle's known-diff list, a pre-migration refusal, a shared error)
 // or it is unexplained, which blocks the switch. The engines are any two `(save, ci) => StatResult`, so this is
 // reusable by the next tracker; the CLI is scripts/characterize.ts.
-import { readFileSync } from "node:fs";
+import { readFileSync, statSync } from "node:fs";
 import { CURRENT_CSVER, UNPORTED_STEPS } from "@/lib/game/errors";
 import type { StatResult } from "@/lib/statTracker/config";
 
@@ -36,6 +36,9 @@ export type Characterization = {
 const REL = 1e-9;
 const relDiff = (a: number, b: number): number => (a === b ? 0 : Math.abs(a - b) / Math.max(Math.abs(a), Math.abs(b)));
 const errOf = (e: unknown): Err => (e instanceof Error ? { name: e.name, message: e.message } : { name: "Error", message: String(e) });
+
+/** The `n` most recently modified of these save paths, newest first (the newest data). */
+export const newestSaves = (saves: string[], n: number): string[] => [...saves].sort((a, b) => statSync(b).mtimeMs - statSync(a).mtimeMs).slice(0, n);
 
 function readEnvelope(path: string): { charNames: unknown[] } {
   const save = JSON.parse(readFileSync(path, "utf8"));
