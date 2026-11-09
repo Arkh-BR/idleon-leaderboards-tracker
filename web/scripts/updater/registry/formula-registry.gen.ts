@@ -369,6 +369,9 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/arkh/stats/systems/exp/exp.ts",
     "lib/game/njs/Holes.ts"
   ],
+  "MotherlodeEffBase": [
+    "lib/game/njs/Holes.ts"
+  ],
   "MultiKillTOTAL": [
     "lib/arkh/stats/defs/multikill.ts"
   ],
@@ -512,6 +515,9 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/arkh/stats/data/w7/royalG.ts",
     "lib/arkh/stats/systems/exp/exp.ts",
     "lib/game/njs/RoyalG.ts"
+  ],
+  "StatueOnyxOwned": [
+    "lib/game/njs/ArbitraryCode.ts"
   ],
   "StickerBonus": [
     "lib/arkh/stats/systems/exp/exp.ts",

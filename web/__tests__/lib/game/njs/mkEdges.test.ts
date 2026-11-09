@@ -100,3 +100,63 @@ describe("WorkbenchStuff OverkillQTY: the computed page", () => {
     expect(() => WorkbenchStuff(c, "OverkillQTY", 8, 0)).toThrow("no Death Note page 8");
   });
 });
+
+describe('OverkillStuffs "3" (@4097281), whether the multikill applies', () => {
+  const stat = (name: string, key: "MonsterHPTotal" | "Defence") => Number((MONSTERS as unknown as Record<string, Record<string, unknown>>)[name][key]);
+  const tgt = "w6a1";
+  const hp = stat(tgt, "MonsterHPTotal");
+  const def = stat(tgt, "Defence");
+  const active = (o: { map?: number; max: number; acc: number; tower?: number; target?: string; holes?: unknown; curse?: number }) => {
+    const map = o.map ?? 251;
+    const c = synth({ CurrentMap_0: map, AFKtarget_0: o.target ?? tgt, Tower: Object.assign(Array<number>(30).fill(0), { 2: o.tower ?? 1 }), ...(o.holes === undefined ? {} : { Holes: o.holes }) }, { map });
+    seed(c, "DamageDealed", ["Max"], o.max);
+    seed(c, "PlayerAccTot", [], o.acc);
+    seed(c, "prayersReal", [0, 1], o.curse ?? 0);
+    seed(c, "prayersReal", [7, 1], 0);
+    seed(c, "prayersReal", [8, 1], 0);
+    return RunCodeOfTypeXforThingY(c, "OverkillStuffs", "3");
+  };
+  it("is 1 with the Max at HP x E, the Death Note built and the accuracy past 1.5 x Defence", () => {
+    expect(active({ max: hp * 2, acc: 1.5 * def + 1 })).toBe(1);
+  });
+  it("is 0 just below each gate", () => {
+    expect(active({ max: hp * 2 - 1, acc: 1.5 * def + 1 })).toBe(0);
+    expect(active({ max: hp * 2, acc: 1.5 * def })).toBe(0); // strictly greater
+    expect(active({ max: hp * 2, acc: 1.5 * def + 1, tower: 0.5 })).toBe(0); // .5 < TowerInfo[2]
+    expect(active({ max: hp * 2, acc: 1.5 * def + 1, tower: 0.51 })).toBe(1);
+  });
+  it("E is 5 from map 300 on", () => {
+    expect(active({ map: 299, max: hp * 2, acc: 1e12 })).toBe(1);
+    expect(active({ map: 300, max: hp * 5 - 1, acc: 1e12 })).toBe(0);
+    expect(active({ map: 300, max: hp * 5, acc: 1e12 })).toBe(1);
+  });
+  it("the curses raise the HP it compares", () => {
+    expect(active({ max: hp * 2, acc: 1e12, curse: 100 })).toBe(0);
+    expect(active({ max: hp * 4, acc: 1e12, curse: 100 })).toBe(1);
+  });
+  it("the Motherlode's four targets have the Defence MonsterRespawnTimeReset leaves (@6516949), from Holes[11][1 + 2i]", () => {
+    const motherlode = (target: string, acc: number, at: Record<number, number>) => active({ target, max: 1e12, acc, holes: [[], [], [], [], [], [], [], [], [], [], [], Object.assign(Array<number>(20).fill(0), at)] });
+    // 2e4 x 1.8^(1 + 2) = 116640, against the table's 30000
+    expect(motherlode("Motherlode", 1.5 * 116640, { 1: 2 })).toBe(0);
+    expect(motherlode("Motherlode", 1.5 * 116640 + 1, { 1: 2 })).toBe(1);
+    expect(motherlode("Bug14", 1.5 * 2e4 * 1.8 * 1.8 + 1, { 3: 1 })).toBe(1); // 2e4 x 1.8^2
+    expect(motherlode("Bug14", 1.5 * 2e4 * 1.8 * 1.8, { 3: 1 })).toBe(0);
+    expect(motherlode("MotherlodeTREE", 1.5 * 2e4 * 1.8 + 1, {})).toBe(1); // level 0: 2e4 x 1.8
+    expect(motherlode("MotherlodeTREE", 1.5 * 2e4 * 1.8, {})).toBe(0);
+    // the fish: i = 3, so 2e4 x (1 + 99) x 1.8 / 4 = 9e5
+    expect(motherlode("MotherlodeFISH", 1.5 * 9e5, {})).toBe(0);
+    expect(motherlode("MotherlodeFISH", 1.5 * 9e5 + 1, {})).toBe(1);
+  });
+  it("on a save whose Holes list is empty the Motherlode keeps the table's Defence (`0 != Holes.length`)", () => {
+    expect(stat("Motherlode", "Defence")).toBe(30000);
+    expect(active({ target: "Motherlode", max: 1e12, acc: 1.5 * 30000, holes: [] })).toBe(0);
+    expect(active({ target: "Motherlode", max: 1e12, acc: 1.5 * 30000 + 1, holes: [] })).toBe(1);
+  });
+  it("a target the game's table does not have is refused, as the game would throw", () => {
+    expect(() => active({ target: "Z", max: 1, acc: 1 })).toThrow(InvalidSaveValue);
+  });
+  it("Holes MotherlodeEffBase is 2e4 x (1 + 99 floor(b / 3)) x 1.8^(1 + Holes[11][1 + 2b])", () => {
+    const c = synth({ Holes: Array.from({ length: 12 }, (_, i) => (i === 11 ? Object.assign(Array<number>(20).fill(0), { 7: 2 }) : [])) });
+    expect(Holes(c, "MotherlodeEffBase", 3, 0)).toBeCloseTo(2e4 * 100 * Math.pow(1.8, 3), 6);
+  });
+});

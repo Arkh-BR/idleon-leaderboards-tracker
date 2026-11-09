@@ -1082,6 +1082,9 @@ export const KNOWN_ARKH_DIFFS: {
   ...GOLDFOOD_ROWS("coin", "goldFood", []),
   // talent 643's tier: on maps 301 and 40 the star signs of the Damage % (signsDmg) alone put lib/arkh's Max past a multikill tier lib/game's does not reach, on this save
   ...([7, 9] as const).map((ci) => ({ stat: "coin" as const, save: "big_guy69123.json", ci, maps: [301, 40] as const, source: "talent643", reason: "signsDmg", why: `OverkillStuffs("2") @4095676 compares the Max damage (DamageDealed @4105019) with the HP tiers; lib/arkh's Max is higher here because of the Damage % star signs alone (${STAT_WHY.signsDmg}), and it crosses a tier lib/game's does not (on map 301, 3 against 2). Lib/arkh's other Damage causes on this save (tome, gfoodSign69) do not move the tier` })),
+  // Task 2 (Multikill plan): the damage tier. OverkillStuffs("2") @4095676 compares the Max damage (DamageDealed @4105019) with the HP tiers, so lib/arkh's Max causes move it only where they cross one (8 pairs of 4612); each pair names the one cause that closes it on its own
+  ...([["big_guy69123.json", 6, [251, 216]], ["big_guy69123.json", 7, [301]], ["big_guy69123.json", 8, [251]], ["big_guy69123.json", 9, [301]], ["big_guy69123.json", 10, [251, 216]]] as const).map(([save, ci, maps]) => ({ stat: "mk" as const, save, ci, maps, source: "tier", reason: "signsDmg", why: `lib/arkh's Max is about 1.28 x lib/game's here because of the Damage % star signs (${STAT_WHY.signsDmg}), and it crosses a tier lib/game's does not. It is the one cause that closes every pair of these on its own (the next largest, powerSuffix on character 8, is x 1.04)` })),
+  { stat: "mk" as const, save: "Dandy2009.json", ci: 7, maps: [251] as const, source: "tier", reason: "signs@wis", why: `lib/arkh's Max is 1.006 x lib/game's through the character's WIS (${STAT_WHY.signs}) and crosses tier 44, which lib/game's does not reach. Proved by lib/arkh's WIS star sign keys in place of lib/game's` },
 ];
 
 /**
@@ -1249,9 +1252,12 @@ export const PROOF_PATCHES: Record<string, Patch> = {
  *  - powerSuffix, for a term that reads the weapon power through other blocks (the total): lib/arkh's weapon power on TotalStats("Weapon_Power")
  *    (a term that reads that block itself, wpSquared, is proved by PROOF_PATCHES.powerSuffix instead);
  *  - pray6: no Super Bit 9 / 39, which makes N.js prayersReal take the equipped-prayer branch, the only one lib/arkh's leaf has;
+ *  - `<reason>@<stat>` (signs@wis): arkhStatSeeds' for that main stat;
  *  - every other reason: arkhStatSeeds' (comp0, godshard, fam68, and the golden food's gfoodVote26 / gfoodCap / gfoodSign69).
  */
 export function damageReasonSeeds(path: string, ci: number, reason: string): Seed[] {
+  const [own, stat] = reason.split("@"); // `<reason>@<stat>`: a reason asked per main stat (signs, tomeW8), lib/arkh's number on that stat's own keys
+  if (stat) return arkhStatSeeds(path, ci, [own], stat as ArkhStat);
   if (reason === "powerSuffix") {
     loadSaveData(JSON.parse(readFileSync(path, "utf8")));
     return [["TotalStats", ["Weapon_Power"], computeWeaponPower(ci, { saveData, charIdx: ci, activeCharIdx: ci } as never)]];

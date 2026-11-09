@@ -65,9 +65,11 @@ const TERMS: Record<string, (c: Ctx) => number> = {
   box13b: (c) => DNSM_BoxRewards(c, "13b"),
   bubbleMKtier: (c) => DNSM_AlchBubbles(c, "MKtierACTIVE"),
   cardSet11: (c) => CardSetBonuses(c, 0, "11"),
+  tier: (c) => RunCodeOfTypeXforThingY(c, "OverkillStuffs", "2"),
   // the map rules, inline in both halves: `300<=CurrentMap` (@7806815, @7808872), `216==CurrentMap&&17==Holes[0][me]` (@7808002, @7810065)
   softCap: (c) => (300 <= c.map ? 1 : 0),
   cove: (c) => (216 == c.map && 17 == (attr(c, "Holes", 0, c.player) as number) ? 1 : 0),
+  active: (c) => RunCodeOfTypeXforThingY(c, "OverkillStuffs", "3"),
 };
 
 /** The block key(s) each term reads directly (`<Fn><args as JSON>`): what a seed must never be. */
@@ -117,6 +119,12 @@ function provedTerm(id: string, path: string, ci: number, map: number, reasons: 
   for (const [name, args, v] of seeds) c.cache.set(`${ci}|${map}|${name}${JSON.stringify(args)}`, v);
   return TERMS[id](withPlayer(c, ci));
 }
+
+describe("the Multikill term table covers every source of lib/arkh's descriptor", () => {
+  it("has one term per MK_POOLS source, no more", () => {
+    expect(Object.keys(TERMS).sort()).toEqual(Object.values(MK_POOLS).flat().sort());
+  });
+});
 
 describe.skipIf(GOLDEN_SAVES.length === 0)('WorkbenchStuff("MultiKillTOTAL") terms against lib/arkh on every real save and character', () => {
   for (const id of Object.keys(TERMS)) {
