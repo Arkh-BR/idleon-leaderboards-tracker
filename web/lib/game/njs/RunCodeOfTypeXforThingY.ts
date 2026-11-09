@@ -111,6 +111,13 @@ const CARD_INFO: ReadonlyMap<string, readonly unknown[]> = (() => {
   return m;
 })();
 
+/** The star tiers of `CardLv`: 4, plus the Rift's fifth (`RiftStuff("5starCards")`) and the sixth Spelunking star, the two terms apart for the rows that show them. */
+export function cardStars(ctx: Ctx): { rift: number; spelunk: number; tiers: number } {
+  const rift = RiftStuff(ctx, "5starCards", 0);
+  const spelunk = Spelunk(ctx, "6starCards", 0, 0);
+  return { rift, spelunk, tiers: Math.round(4 + (rift + spelunk)) };
+}
+
 /**
  * `CardLv` @4083568: the star level of card `b`. 1 once the account has one (`Cards[0][b] > 0`), then f + 2 for every tier f the card
  * count passes: `CardStuff row[2] x (f + 1 + floor(f/3) + 16 floor(f/4) + 100 floor(f/5))^2` (the boss card Boss3B has its own curve,
@@ -121,7 +128,7 @@ const CARD_INFO: ReadonlyMap<string, readonly unknown[]> = (() => {
 function cardLv(ctx: Ctx, b: string): number {
   let lv = 0; // DNSM.cardLvCalco
   if (0 < asNum(ctx, "Cards", 0, b)) lv = 1;
-  for (let f = 0, e = Math.round(4 + (RiftStuff(ctx, "5starCards", 0) + Spelunk(ctx, "6starCards", 0, 0))); f < e; f++) {
+  for (let f = 0, e = cardStars(ctx).tiers; f < e; f++) {
     if ("Boss3B" == b) {
       if (asNum(ctx, "Cards", 0, b) > 1.5 * Math.pow(f + 1 + Math.floor(f / 3), 2)) lv = f + 2;
     } else {

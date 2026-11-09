@@ -46,16 +46,27 @@ function requireShinyRow(ctx: Ctx, q: number): void {
  */
 function shinyBonusS(ctx: Ctx, e: number): number {
   const totals = new Map<string, number>();
+  for (const pet of shinyPets(ctx)) totals.set(pet.key, asNumber(totals.get(pet.key)) + pet.val);
+  return asNumber(totals.get(`${e}`));
+}
+
+/** A pet with a shiny count (Breeding[22 + group][pet] > 0): its passive (the key of `ShinyBonusS`), its level, the value per level RANDOlist[92][passive], and round(level x value). */
+export type ShinyPet = { group: number; pet: number; key: string; exp: number; level: number; per: number; val: number };
+
+/** The pets `ShinyBonusS` adds up, in the game's order (each group `q` 0..3, each pet `g` of PetStats[q]). */
+export function shinyPets(ctx: Ctx): ShinyPet[] {
+  const out: ShinyPet[] = [];
   for (let q = 0; q < 4; q++) {
     requireShinyRow(ctx, q);
     for (let g = 0, n = PetStats[q].length; g < n; g++) {
       if (!(0 < asNum(ctx, "Breeding", 22 + q, g))) continue;
       const passive = asNumber(RANDOlist[90][asNumber(PetStats[q][g][5]) | 0]);
-      const key = `${passive}`;
-      totals.set(key, asNumber(totals.get(key)) + Math.round(Breeding(ctx, "SpecialPassives", "Lv", q, g) * asNumber(RANDOlist[92][passive | 0])));
+      const level = Breeding(ctx, "SpecialPassives", "Lv", q, g);
+      const per = asNumber(RANDOlist[92][passive | 0]);
+      out.push({ group: q, pet: g, key: `${passive}`, exp: asNum(ctx, "Breeding", 22 + q, g), level, per, val: Math.round(level * per) });
     }
   }
-  return asNumber(totals.get(`${e}`));
+  return out;
 }
 
 /**

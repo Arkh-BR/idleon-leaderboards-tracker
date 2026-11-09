@@ -37,14 +37,9 @@ export function equippedSignsText(ctx: Ctx): string {
  * (a new map, no signs) does not happen on a loaded character, whose map the load always fills.
  */
 export function StarSignsMap(ctx: Ctx): Map<string, number> {
-  const unlocked = attr(ctx, "StarSignsUnlocked");
-  if (unlocked === null || typeof unlocked !== "object" || Array.isArray(unlocked)) throw new InvalidSaveValue("StarSignsUnlocked", "a map", unlocked);
+  const unlocked = unlockedSigns(ctx);
   const worn = () => equippedSignsText(ctx).split(",");
-  const signs = STAR_SIGNS as unknown as readonly (readonly unknown[])[];
-  let active = worn(); // DNSM.StarSignsDL
-  for (let f = 0, g = RiftStuff(ctx, "enabledStarSigns", 0) | 0; f < g; f++) {
-    if (f < signs.length && Object.hasOwn(unlocked, hString(signs[f][0]))) active.push(`${f}`);
-  }
+  let active = activeStarSigns(ctx); // DNSM.StarSignsDL
   const map = new Map<string, number>(); // DNSM.StarSigns
   const kept = new Map<string, number>(); // DNSM.StarSignsDL2
   const has = (sign: string) => contains(active, sign);
@@ -335,15 +330,42 @@ export function StarSignsMap(ctx: Ctx): Map<string, number> {
   if (Object.hasOwn(unlocked, "Seraph_Cosmos")) {
     for (const [w, v] of map) {
       if (0 < v) {
-        map.set(
-          w,
-          v *
-            Math.max(1, Math.min(2, 1 + chipBonuses(ctx, "star") * Math.floor((999 + RiftStuff(ctx, "enabledStarSigns", 0)) / 1e3))) *
-            (1 + Summoning2(ctx, "MeritocBonusz", 22, 0) / 100) *
-            Math.min(5, Math.pow(1.1 + Math.min(asNum(ctx, "Arcane", 40), 10) / 100, Math.ceil((asNum(ctx, "Lv0", 18) + 1) / 20)))
-        );
+        const t = seraphTerms(ctx);
+        map.set(w, v * t.chip * t.meritoc * t.cosmos);
       }
     }
   }
   return map;
+}
+
+/** `StarSignsUnlocked`, the map of the sign names the account has unlocked. */
+function unlockedSigns(ctx: Ctx): object {
+  const unlocked = attr(ctx, "StarSignsUnlocked");
+  if (unlocked === null || typeof unlocked !== "object" || Array.isArray(unlocked)) throw new InvalidSaveValue("StarSignsUnlocked", "a map", unlocked);
+  return unlocked;
+}
+
+/** The first pass's list of active signs (`StarSignsDL`): the signs worn and, for each of the first `RiftStuff("enabledStarSigns")` signs the account has unlocked, its index. */
+export function activeStarSigns(ctx: Ctx): string[] {
+  const unlocked = unlockedSigns(ctx);
+  const signs = STAR_SIGNS as unknown as readonly (readonly unknown[])[];
+  const active = equippedSignsText(ctx).split(",");
+  for (let f = 0, g = RiftStuff(ctx, "enabledStarSigns", 0) | 0; f < g; f++) {
+    if (f < signs.length && Object.hasOwn(unlocked, hString(signs[f][0]))) active.push(`${f}`);
+  }
+  return active;
+}
+
+/** The three factors Seraph Cosmos (@6563930) gives every positive value: the Silkrode chip, the Meritoc bonus 22 and the Cosmos itself. */
+export function seraphTerms(ctx: Ctx): { chip: number; meritoc: number; cosmos: number } {
+  return {
+    chip: Math.max(1, Math.min(2, 1 + chipBonuses(ctx, "star") * Math.floor((999 + RiftStuff(ctx, "enabledStarSigns", 0)) / 1e3))),
+    meritoc: 1 + Summoning2(ctx, "MeritocBonusz", 22, 0) / 100,
+    cosmos: Math.min(5, Math.pow(1.1 + Math.min(asNum(ctx, "Arcane", 40), 10) / 100, Math.ceil((asNum(ctx, "Lv0", 18) + 1) / 20))),
+  };
+}
+
+/** Seraph Cosmos is unlocked. */
+export function seraphUnlocked(ctx: Ctx): boolean {
+  return Object.hasOwn(unlockedSigns(ctx), "Seraph_Cosmos");
 }

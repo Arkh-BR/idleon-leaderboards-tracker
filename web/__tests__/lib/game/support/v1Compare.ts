@@ -12,7 +12,8 @@ export type V1Diff = { missing: string[]; extra: string[]; value: string[]; meta
 
 /** The V1 sources whose rows are built (lib/dropRate/explain): each family's task adds its ids. */
 const BUILT: readonly string[] = ["talent279", "talent24", "talent655", "talent239", "workbench", "etc2", "etc91", "etc99", "etc102", "efaunt",
-  "rank9", "cropSC7", "exotic59", "hole46", "hole82", "meas15", "monument", "caveDR", "grimoire44", "spelunk50", "legend1", "emperor11", "grid173", "glimbo", "minehead0", "menagerie24", "pristine3", "rog", "vial"];
+  "rank9", "cropSC7", "exotic59", "hole46", "hole82", "meas15", "monument", "caveDR", "grimoire44", "spelunk50", "legend1", "emperor11", "grid173", "glimbo", "minehead0", "menagerie24", "pristine3", "rog", "vial",
+  "card10", "card101", "mini5a", "anni4", "luckEvent", "comp3", "comp50", "comp22", "comp158", "comp111", "comp132", "comp132x", "comp168x", "comp26", "comp160", "comp50x", "goldFood", "stampA38", "bubble", "starSigns", "prayer7", "shiny0", "sigil11", "cardSet5", "cardSet6"];
 /** V1 source ids whose rows aren't built yet: differences below them are ignored. Task 7 asserts it is empty. */
 export const PENDING = new Set(V1_SOURCES.map((s) => s.id).filter((id) => !BUILT.includes(id)));
 

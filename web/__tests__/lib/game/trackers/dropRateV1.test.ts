@@ -113,12 +113,12 @@ describe("the V1 tree on a synthetic envelope (runs in CI)", () => {
   it("a row follows the save: format and note while it is 0, and the Glimbo row is the grid square until it has a value", () => {
     const { tree: t } = tree();
     const add = kid(t, "Additive Pool");
-    expect(kid(kid(add, "🐾 Companions"), "Crystal Custard (Companion 3)")).toEqual({ name: "Crystal Custard (Companion 3)", val: 0, note: "Not owned — would grant +100" });
-    expect(kid(kid(add, "🙏 Prayers"), "Midas Minded (Prayer 7)")).toEqual({ name: "Midas Minded (Prayer 7)", val: 0, note: "prayer 7" });
+    expect(kid(kid(add, "🐾 Companions"), "Crystal Custard (Companion 3)")).toMatchObject({ name: "Crystal Custard (Companion 3)", val: 0, note: "Not owned — would grant +100" }); // and its rows say what it would grant (explain/collections.test.ts)
+    expect(kid(kid(add, "🙏 Prayers"), "Midas Minded (Prayer 7)")).toMatchObject({ name: "Midas Minded (Prayer 7)", val: 0, note: "prayer 7" }); // its rows are a noted leaf here: the seeded envelope has no Prayers_0
     expect(kid(kid(add, "🏆 Achievements"), "Summoning GM (Achievement 377)").note).toBe("Not completed — would grant +6");
     expect(kid(kid(add, "📜 Stamps"), "Golden Sixes Stamp (Stamp A38)").note).toBe("Level 0 — not collected");
     const owned = kid(kid(kid(tree({}, { "Companions[3]": 130 }).tree, "Additive Pool"), "🐾 Companions"), "Crystal Custard (Companion 3)");
-    expect(owned).toEqual({ name: "Crystal Custard (Companion 3)", val: 130, fmt: "+" });
+    expect(owned).toMatchObject({ name: "Crystal Custard (Companion 3)", val: 130, fmt: "+" });
     const post = kid(t, "Post-Processing");
     expect(kid(kid(post, "🔬 Researching"), "Glimbo Insider Trading Secrets (Grid 168)")).toEqual({ name: "Glimbo Insider Trading Secrets (Grid 168)", val: 0, note: "grid 168" });
     const levelled = kid(tree({}, { 'ResearchStuff["Grid_Bonus",168,0]': 25, 'Minehead["GlimboDRmulti",0,0]': 1.4 }).tree, "Post-Processing");

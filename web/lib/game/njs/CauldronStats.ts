@@ -21,12 +21,8 @@ export const CauldronStats: (ctx: Ctx, d: string, b: number, e: number, f: numbe
     // @5107805: bubble `e` of cauldron `b`: its curve (AlchemyDescription[b][e], name [3], constants [1] and [2]) at its level
     // CauldronInfo[b][e]; a Prisma bubble (isBubbleSuperr) times max(1, the Prisma multiplier)
     case "BubbleBonus": {
-      const row = (AlchemyDescription as unknown as Row[][])[b | 0]?.[e | 0];
-      // the game indexes AlchemyDescription[b][e][3] directly and would throw on a bubble it does not have
-      if (!row) throw new RangeError(`CauldronStats BubbleBonus: no bubble (${b}, ${e}) in AlchemyDescription`);
-      listOrMapAt(ctx, "CauldronInfo", b | 0); // the game indexes CauldronInfo[b][e] directly
-      const curve = () => ArbitraryCode5Inputs(ctx, hString(row[3]), asNumber(row[1]), asNumber(row[2]), asNum(ctx, "CauldronInfo", b | 0, e | 0), 0, 0);
-      return 1 == CauldronStats(ctx, "isBubbleSuperr", b, e, 0) ? Math.max(1, ArcaneType(ctx, "PrismaBonusMult", 0, 0)) * curve() : curve();
+      const p = bubbleParts(ctx, b, e);
+      return p.prisma === undefined ? p.curve : p.prisma * p.curve;
     }
     // @5108674: the bubble is a Prisma bubble, its letter and number ("_3,") in OptionsListAccount[384]
     case "isBubbleSuperr":
@@ -35,6 +31,17 @@ export const CauldronStats: (ctx: Ctx, d: string, b: number, e: number, f: numbe
       throw new NotPorted("CauldronStats", d);
   }
 });
+
+/** What `BubbleBonus` of bubble `e` of cauldron `b` is made of: its level CauldronInfo[b][e], the curve at that level and, for a Prisma bubble, the multiplier max(1, PrismaBonusMult) (absent otherwise). */
+export function bubbleParts(ctx: Ctx, b: number, e: number): { level: number; curve: number; prisma: number | undefined } {
+  const row = (AlchemyDescription as unknown as Row[][])[b | 0]?.[e | 0];
+  // the game indexes AlchemyDescription[b][e][3] directly and would throw on a bubble it does not have
+  if (!row) throw new RangeError(`CauldronStats BubbleBonus: no bubble (${b}, ${e}) in AlchemyDescription`);
+  listOrMapAt(ctx, "CauldronInfo", b | 0); // the game indexes CauldronInfo[b][e] directly
+  const level = asNum(ctx, "CauldronInfo", b | 0, e | 0);
+  const curve = ArbitraryCode5Inputs(ctx, hString(row[3]), asNumber(row[1]), asNumber(row[2]), level, 0, 0);
+  return { level, curve, prisma: 1 == CauldronStats(ctx, "isBubbleSuperr", b, e, 0) ? Math.max(1, ArcaneType(ctx, "PrismaBonusMult", 0, 0)) : undefined };
+}
 
 /**
  * How many vials are at level 13 or more (the "Gold Crown" vials of the Alchemy page): the alchemy actor (ActorEvents_481) counts them

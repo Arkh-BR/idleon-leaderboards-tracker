@@ -169,7 +169,7 @@ const legend1 = safe("Greatest Drop Party Ever", (c, val) => (0 < val ? [raw("Po
 // ===== The Jelly Operator and the Sushi Station =====
 
 /** `JellyOperation("RoG_BonusQTY", idx)` @5168369: unlocked while the successful operations Research[7][9] are past idx. */
-function jellyRow(c: Ctx, idx: number, name: string): ArkhNode {
+export function jellyRow(c: Ctx, idx: number, name: string): ArkhNode {
   const ops = asNum(c, "Research", 7, 9);
   return row(name, JellyOperation(c, "RoG_BonusQTY", idx, 0), "+", `jelly RoG ${idx}`, [raw("Successful Operations", ops), raw("Bonus Value", list(ResearchLists, 47, idx), ops > idx ? "Unlocked" : `Locked (need ${idx + 1} operations)`)]);
 }

@@ -31,16 +31,7 @@ export const Windwalker: (ctx: Ctx, d: string, b: number, e: number) => number =
     }
     // @11078575: the % a doubled stamp gets
     case "StampDoubler":
-      return (
-        100 +
-        (AtomCollider(ctx, "AtomBonuses", 12, 0) +
-          (Ninja(ctx, "PristineBon", 20, 0) +
-            (Windwalker(ctx, "CompassBonus", 76, 0) +
-              (GetSetBonus(ctx, "EMPEROR_SET", "Bonus", 0, 0) +
-                (20 * Summoning(ctx, "EventShopOwned", 18, 0) +
-                  (GamingStatType(ctx, "PaletteBonus", 23, 0) + (FarmingStuffs(ctx, "ExoticBonusQTY", 49, 0) + Math.round(asNum(ctx, "Spelunk", 4, 3))))))))) +
-        (Thingies(ctx, "LegendPTS_bonus", 36, 0) + (SushiStuff(ctx, "RoG_BonusQTY", 17, 0) + JellyOperation(ctx, "RoG_BonusQTY", 50, 0) / 100))
-      );
+      return stampDoublerTerms(ctx).total;
     // @11062351: the Compass Tempest form, `.1 <= GetBuffBonuses(420,1) ? (1 == NONdummies[67] && 100 < its BuffsActive timer ? 1 : 0) : 0`.
     // The masterclass forms are not counted (the Damage page's product decision), as in PlayerHPmax and PlayerAccTot
     case "CompassTempest":
@@ -57,6 +48,25 @@ export const Windwalker: (ctx: Ctx, d: string, b: number, e: number) => number =
       throw new NotPorted("Windwalker", d);
   }
 });
+
+/** The terms of the `StampDoubler` sum (@11078575), each as the game reads it, and the sum itself. */
+export type StampDoublerTerms = { atom12: number; pristine20: number; compass76: number; emperorSet: number; event18: number; palette23: number; exotic49: number; spelunk43: number; legend36: number; sushi17: number; jelly50: number; total: number };
+
+export function stampDoublerTerms(ctx: Ctx): StampDoublerTerms {
+  const atom12 = AtomCollider(ctx, "AtomBonuses", 12, 0);
+  const pristine20 = Ninja(ctx, "PristineBon", 20, 0);
+  const compass76 = Windwalker(ctx, "CompassBonus", 76, 0);
+  const emperorSet = GetSetBonus(ctx, "EMPEROR_SET", "Bonus", 0, 0);
+  const event18 = 20 * Summoning(ctx, "EventShopOwned", 18, 0);
+  const palette23 = GamingStatType(ctx, "PaletteBonus", 23, 0);
+  const exotic49 = FarmingStuffs(ctx, "ExoticBonusQTY", 49, 0);
+  const spelunk43 = Math.round(asNum(ctx, "Spelunk", 4, 3));
+  const legend36 = Thingies(ctx, "LegendPTS_bonus", 36, 0);
+  const sushi17 = SushiStuff(ctx, "RoG_BonusQTY", 17, 0);
+  const jelly50 = JellyOperation(ctx, "RoG_BonusQTY", 50, 0); // the game adds it / 100
+  const total = 100 + (atom12 + (pristine20 + (compass76 + (emperorSet + (event18 + (palette23 + (exotic49 + spelunk43))))))) + (legend36 + (sushi17 + jelly50 / 100));
+  return { atom12, pristine20, compass76, emperorSet, event18, palette23, exotic49, spelunk43, legend36, sushi17, jelly50, total };
+}
 
 /** What this module covers (lib/game/ported.ts). */
 export const PORTED: Ported = { CompassBonus: true, StampDoubler: true, CompassTempest: true, TotalTitanKills: true };
