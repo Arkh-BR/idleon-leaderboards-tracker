@@ -2,21 +2,9 @@
 // 1:1 port of corgan-source/js/stats/node.js. Rendering-agnostic.
 // toRenderNode() in tree-builder converts to _bNode for display.
 
-export type NodeFmt = "raw" | "+" | "x" | "%";
+import type { ArkhNode, NodeFmt } from "@/lib/dropRate/node";
 
-export type ArkhNode = {
-  name: string;
-  val: number;
-  children?: ArkhNode[];
-  fmt?: NodeFmt;
-  note?: string;
-  /** When true, this node starts collapsed in the deep-view regardless of
-   *  the default "depth < N open" heuristic. Used for low-signal branches
-   *  (e.g. Chip Cap-Break when inactive) that would otherwise grab
-   *  vertical space alongside the heavyweight Additive Pool /
-   *  Post-Processing sections. */
-  defaultClosed?: boolean;
-};
+export type { ArkhNode, NodeFmt }; // lib/dropRate/node (Ruling B)
 
 export function node(
   name: string,

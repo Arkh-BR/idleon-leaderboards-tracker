@@ -10,8 +10,8 @@ vi.mock("@/components/ProfileNameLoader", () => ({
   },
 }));
 // The DR engine isn't under test: fail fast instead of computing.
-vi.mock("@/lib/arkh/computeDR", () => ({
-  computeArkhDropRate: () => {
+vi.mock("@/lib/game/trackers/dropRateV1", () => ({
+  computeGameDropRateV1: () => {
     throw new Error("stub");
   },
 }));

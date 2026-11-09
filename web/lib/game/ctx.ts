@@ -37,6 +37,11 @@ export const makeCtx = (state: GameState, o: { player: number; map: number; trac
  */
 export const withPlayer = (ctx: Ctx, player: number): Ctx => ({ ...ctx, player });
 
+const memoKey = (ctx: Ctx, name: string, a: readonly (string | number)[]) => `${ctx.player}|${ctx.map}|${name}${JSON.stringify(a)}`;
+
+/** The call of block `name` with arguments `a` answers `value` on this Ctx's cache (a tracker's what-if: this compute only, stated with `assumed()`). The arguments as the block's callers write them. */
+export const seedBlock = (ctx: Ctx, name: string, a: readonly (string | number)[], value: number): void => void ctx.cache.set(memoKey(ctx, name, a), value);
+
 /**
  * Wraps a mirrored N.js function. Conventions, because the cache key and the call-diff
  * (lib/diagnose/njsCalls) both read them:
@@ -59,7 +64,7 @@ export function block<A extends (string | number)[]>(
 ): (ctx: Ctx, ...a: A) => number {
   return (ctx, ...a) => {
     for (const x of a) if (typeof x === "number" && !Number.isFinite(x)) throw new NonFiniteResult(name, a, x, true);
-    const key = `${ctx.player}|${ctx.map}|${name}${JSON.stringify(a)}`;
+    const key = memoKey(ctx, name, a);
     const hit = ctx.cache.get(key);
     if (hit !== undefined) {
       if (ctx.trace) ctx.trace.children.push(traceNode(ctx.trace, ctx.player, name, a, hit, "cached"));

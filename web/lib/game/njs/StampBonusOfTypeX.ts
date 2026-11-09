@@ -1,5 +1,5 @@
 import { asNumber, attr } from "../attr";
-import { block } from "../ctx";
+import { block, type Ctx } from "../ctx";
 import { Number2Letter, StampBonusIndex, StampDescriptions } from "../data";
 import { hString } from "../hstring";
 import { contains } from "../lists";
@@ -13,6 +13,21 @@ import { StampDetails } from "./StampDetails";
 import { StampOverLevel, stampLevel } from "./StampOverLevel";
 import { Windwalker } from "./Windwalker";
 import type { Ported } from "../ported";
+
+/** Stamp `id` is named in Compass[4] (an exalted stamp: its letter and index, "_37"). */
+export function stampExalted(ctx: Ctx, id: number): boolean {
+  return contains(attr(ctx, "Compass", 4), `${hString(Number2Letter[Math.floor(id / 1e3)])}${Math.round(id - 1e3 * Math.floor(id / 1e3))}`);
+}
+
+/** What stamp `id` adds in `StampBonusOfTypeX`: the level it counts at (floor of StampOverLevel), its curve [1..3] there, the multiplier `StampExalted_double` (1, or 1 + Windwalker StampDoubler / 100 when exalted) and their product. */
+export function stampTerm(ctx: Ctx, id: number): { det: string[]; level: number; base: number; exalted: boolean; doubled: number; val: number } {
+  const exalted = stampExalted(ctx, id);
+  const doubled = exalted ? 1 + Windwalker(ctx, "StampDoubler", 0, 0) / 100 : 1; // DN.StampExalted_double
+  const det = StampDetails(id);
+  const level = Math.floor(StampOverLevel(ctx, id));
+  const base = ArbitraryCode5Inputs(ctx, hString(det[1]), asNumber(det[2]), asNumber(det[3]), level, 0, 0);
+  return { det, level, base, exalted, doubled, val: doubled * base };
+}
 
 /**
  * N.js `_customBlock_StampBonusOfTypeX(d)` @4430061: the total of every stamp whose bonus is of type `d` ("BaseSTR", "AllStatPct"...),
@@ -36,10 +51,7 @@ export const StampBonusOfTypeX = block("StampBonusOfTypeX", (ctx, d: string) => 
   for (let g = 0, n = (StampDescriptions as unknown as readonly unknown[][])[tab].length; g < n; g++) {
     const id = g + 1e3 * tab;
     if (!(-1 != hString(itemDef(`Stamp${letter}${Math.round(g + 1)}`).desc_line1).indexOf(d) && 0 < stampLevel(ctx, id))) continue;
-    let doubled = 1; // DN.StampExalted_double
-    if (contains(attr(ctx, "Compass", 4), `${hString(Number2Letter[Math.floor(id / 1e3)])}${Math.round(id - 1e3 * Math.floor(id / 1e3))}`)) doubled = 1 + Windwalker(ctx, "StampDoubler", 0, 0) / 100;
-    const det = StampDetails(id);
-    total = total + doubled * ArbitraryCode5Inputs(ctx, hString(det[1]), asNumber(det[2]), asNumber(det[3]), Math.floor(StampOverLevel(ctx, id)), 0, 0);
+    total = total + stampTerm(ctx, id).val;
   }
   if (-1 != d.indexOf("Eff")) total = total * Math.max(GetTalentNumber(ctx, 1, 625), 1);
   if (2 == MainframeBonus(ctx, 7) && 2 > tab) total = 2 * total;

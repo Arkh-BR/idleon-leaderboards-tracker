@@ -145,7 +145,7 @@ function grimoireUpgBonus(ctx: Ctx, b: number): number {
  * The indices are taken like the game does, `x | 0` on a JS list, so an enemy that is not in SummonEnemies[0] (indexOf -1) lands on
  * the property "-1" of the array and changes no bucket.
  */
-function summWinBonus(ctx: Ctx): number[] {
+export function summWinBonus(ctx: Ctx): number[] {
   const out: number[] = new Array(32).fill(0);
   const beaten = listAt(ctx, "Summon", 1);
   const [names, , , , , bucketOf, , valueOf, , roundBucket, roundValue] = SummonEnemies as unknown as readonly unknown[][];

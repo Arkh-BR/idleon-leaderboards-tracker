@@ -1,5 +1,5 @@
 import { asNum, asNumber } from "../attr";
-import { block } from "../ctx";
+import { block, type Ctx } from "../ctx";
 import { SigilDesc } from "../data";
 import { NotPorted } from "../errors";
 import { listAt } from "../lists";
@@ -13,14 +13,8 @@ export const Labb = block("Labb", (ctx, d: string, _b: string, e: number, _f: nu
     // @7986539: sigil e at its tier CauldronP2W[4][1 + 2e] (below -.1 none; then the values SigilDesc[e][3], [4], [8], [10], [12] for
     // the tiers 0..4), times 1 + Artifact 16 and 1 + Meritoc bonus 21 / 100. The Tutorial scene answers 50, which a tracked account is not on.
     case "SigilBonus": {
-      const row = (SigilDesc as unknown as readonly (readonly unknown[])[])[e | 0];
-      // the game indexes SigilDesc[e][...] directly and would throw on a sigil it does not have
-      if (!row) throw new RangeError(`Labb SigilBonus: no sigil ${e} in SigilDesc`);
-      listAt(ctx, "CauldronP2W", 4); // the game indexes CauldronP2W[4][1 + 2e] directly
-      const tier = asNum(ctx, "CauldronP2W", 4, (1 + 2 * e) | 0);
-      if (-0.1 > tier) return 0;
-      const value = 0.5 > tier ? row[3] : 1.5 > tier ? row[4] : 2.5 > tier ? row[8] : 3.5 > tier ? row[10] : row[12];
-      return asNumber(value) * (1 + Sailing(ctx, "ArtifactBonus", 16, 0)) * (1 + Summoning2(ctx, "MeritocBonusz", 21, 0) / 100);
+      const p = sigilParts(ctx, e);
+      return p.tier < -0.1 ? 0 : p.base * (1 + p.artifact) * (1 + p.meritoc / 100);
     }
     // @7985612: the sigils at their purple tier (CauldronP2W[4][1 + 2d] >= 3) of the 24; the game counts them once per session
     case "TotalPurpleSigils": {
@@ -40,6 +34,18 @@ export const Labb = block("Labb", (ctx, d: string, _b: string, e: number, _f: nu
       throw new NotPorted("Labb", d);
   }
 });
+
+/** What `SigilBonus` of sigil `e` is made of: its tier CauldronP2W[4][1 + 2e], the base the tier gives (SigilDesc row [3], [4], [8], [10], [12]), Artifact 16 and the Meritoc bonus 21. A tier below -.1 has none. */
+export function sigilParts(ctx: Ctx, e: number): { tier: number; base: number; artifact: number; meritoc: number } {
+  const row = (SigilDesc as unknown as readonly (readonly unknown[])[])[e | 0];
+  // the game indexes SigilDesc[e][...] directly and would throw on a sigil it does not have
+  if (!row) throw new RangeError(`Labb SigilBonus: no sigil ${e} in SigilDesc`);
+  listAt(ctx, "CauldronP2W", 4); // the game indexes CauldronP2W[4][1 + 2e] directly
+  const tier = asNum(ctx, "CauldronP2W", 4, (1 + 2 * e) | 0);
+  if (-0.1 > tier) return { tier, base: 0, artifact: 0, meritoc: 0 };
+  const value = 0.5 > tier ? row[3] : 1.5 > tier ? row[4] : 2.5 > tier ? row[8] : 3.5 > tier ? row[10] : row[12];
+  return { tier, base: asNumber(value), artifact: Sailing(ctx, "ArtifactBonus", 16, 0), meritoc: Summoning2(ctx, "MeritocBonusz", 21, 0) };
+}
 
 /** What this module covers (lib/game/ported.ts). */
 export const PORTED: Ported = { SigilBonus: true, TotalPurpleSigils: true, TotalGreenSigils: true };

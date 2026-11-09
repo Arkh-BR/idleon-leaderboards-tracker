@@ -31,7 +31,7 @@ import {
   type CSSProperties,
   type ReactNode,
 } from "react";
-import type { ArkhNode } from "@/lib/arkh/node";
+import type { ArkhNode } from "@/lib/dropRate/node";
 import {
   parseSystemFromBucketName,
   systemWorld,
@@ -39,7 +39,7 @@ import {
   WORLD_EMOJI,
   type SystemKey,
   type WorldKey,
-} from "@/lib/arkh/stats/categorize";
+} from "@/lib/dropRate/systems";
 import { nodePath, type FlatTree } from "@/lib/dropRate/treeFlatten";
 import { formatNum } from "@/lib/numberFormat";
 import Num from "@/components/Num";

@@ -8,7 +8,7 @@
 // keys the stat may be refused for) nor an error lib/arkh has too. The time of the two engines is reported, not judged:
 // the user accepted lib/game's cost on 2026-11-04 (warm-switch parity, spec risk "Desempenho").
 // The known-diff list lives in a test-support file: this is a script, not app code, so it imports it from there.
-import { mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { basename } from "node:path";
 import { pathToFileURL } from "node:url";
 // first: the oracle sets the `window` shim lib/arkh reads
@@ -21,7 +21,7 @@ import { computeArkhDamage } from "@/lib/arkh/computeDamage";
 import { computeArkhDropRateV2 } from "@/lib/arkh/computeDropRateV2";
 import { computeArkhExpMulti } from "@/lib/arkh/computeExp";
 import { computeArkhMultikill } from "@/lib/arkh/computeMultikill";
-import { AFK_REFUSABLE, ARTIFACT_FIND_REFUSABLE, COIN_REFUSABLE, DAMAGE_REFUSABLE, DR_REFUSABLE, EXP_REFUSABLE, MULTIKILL_REFUSABLE, characterize, classify, type Engine, type Row, type Verdict } from "@/lib/diagnose/characterize";
+import { AFK_REFUSABLE, ARTIFACT_FIND_REFUSABLE, COIN_REFUSABLE, DAMAGE_REFUSABLE, DR_REFUSABLE, EXP_REFUSABLE, MULTIKILL_REFUSABLE, characterize, classify, newestSaves, type Engine, type Row, type Verdict } from "@/lib/diagnose/characterize";
 import { CURRENT_CSVER } from "@/lib/game/errors";
 import { MapAFKtarget } from "@/lib/game/data";
 import { keptTargetCloses } from "@/__tests__/lib/game/support/afkKept";
@@ -135,7 +135,7 @@ function main(argv: string[]): number {
   };
   let saves = goldenSaves();
   // --recent n: only the n most recently modified saves (the newest data)
-  if (recentArg !== undefined) saves = saves.sort((a, b) => statSync(b).mtimeMs - statSync(a).mtimeMs).slice(0, Number(recentArg));
+  if (recentArg !== undefined) saves = newestSaves(saves, Number(recentArg));
   if (saves.length === 0) throw new Error("no real saves on this machine (scripts/updater/golden/.cache, scripts/updater/.cache/saves-fresh)");
 
   // One call of each engine first (on a current save: an old one is refused before the engine does any work): lazy

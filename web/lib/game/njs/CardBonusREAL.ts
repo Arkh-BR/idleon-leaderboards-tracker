@@ -27,17 +27,20 @@ const rewritten = (key: string) =>
   ["Mining", "Choppin", "Fishing", "Catching", "Trapping", "Spelunking"].some((s) => -1 != key.indexOf(s)) ||
   ["+{%_Shiny_Critter_Chance", "+{%_Charge_Rate", "+{_Starting_Pts_in_Worship", "+{%_Max_Charge", "+{%_Card_Drop_Chance"].includes(key);
 
+/** One equipped card that gives a bonus key: its slot (0..9), name, level, per-level value CardStuff row[4], the legend talent 21 factor, whether a card chip doubles it, and what it adds. */
+export type EquippedCard = { slot: number; card: string; level: number; per: number; legend: number; doubled: boolean; val: number };
+
 /**
- * `DNSM.CardBonusS[key]`, the map `TalentCalc(-4)` @4499636 rebuilds for the current player: each of the 10 equipped cards (Cards[2],
- * "B" for an empty slot) adds (1 + legend talent 21 / 100) x its CardLv x its per-level value CardStuff row[4] under its bonus row[3];
- * doubled for the first card with the card1 chip and the eighth with the card2 chip. The keys the Rift and Vault rewrite are refused above.
+ * The equipped cards (Cards[2], "B" for an empty slot) that give the bonus `key`, in slot order, as `TalentCalc(-4)` @4499636 adds them to `DNSM.CardBonusS[key]`:
+ * (1 + legend talent 21 / 100) x CardLv x CardStuff row[4], doubled for the first card with the card1 chip and the eighth with the card2 chip.
+ * The keys the Rift and Vault rewrite are refused (see REWRITTEN).
  */
-function cardBonusS(ctx: Ctx, key: string): number {
+export function equippedCards(ctx: Ctx, key: string): EquippedCard[] {
   if (rewritten(key)) throw new NotPorted("CardBonusREAL", `CardBonusS:key=${key}`);
   const equipped = attr(ctx, "Cards", 2);
   if (equipped === undefined) throw new MissingSaveKey("Cards[2]"); // `null != Cards[2]` is the game's guard; the load always gives the list
   if (!Array.isArray(equipped)) throw new InvalidSaveValue("Cards[2]", "an array", equipped);
-  let total: number | undefined;
+  const out: EquippedCard[] = [];
   for (let g = 0; g < 10; g++) {
     if ("B" == equipped[g]) continue;
     const row = CARD_ROW.get(hString(equipped[g]));
@@ -47,8 +50,16 @@ function cardBonusS(ctx: Ctx, key: string): number {
     const doubled = (0 == g && 1 == chipBonuses(ctx, "card1")) || (7 == g && 1 == chipBonuses(ctx, "card2"));
     const legend = 1 + Thingies(ctx, "LegendPTS_bonus", 21, 0) / 100;
     const level = RunCodeOfTypeXforThingY(ctx, "CardLv", hString(equipped[g]));
-    total = (doubled ? 2 * legend * level * asNumber(row[4]) : legend * level * asNumber(row[4])) + asNumber(total);
+    const per = asNumber(row[4]);
+    out.push({ slot: g, card: hString(equipped[g]), level, per, legend, doubled, val: doubled ? 2 * legend * level * per : legend * level * per });
   }
+  return out;
+}
+
+/** `DNSM.CardBonusS[key]`: the sum of the equipped cards that give it (`equippedCards`), each added in slot order. */
+function cardBonusS(ctx: Ctx, key: string): number {
+  let total: number | undefined;
+  for (const card of equippedCards(ctx, key)) total = card.val + asNumber(total);
   return asNumber(total);
 }
 

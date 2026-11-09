@@ -5,7 +5,7 @@
 // disambiguate same-named siblings). The same path scheme is used by
 // ArkhTree at render time to look up baseline values for the delta column.
 
-import type { ArkhNode } from "@/lib/arkh/node";
+import type { ArkhNode } from "@/lib/dropRate/node";
 
 export type FlatTree = Record<string, number>;
 

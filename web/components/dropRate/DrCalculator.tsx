@@ -11,7 +11,8 @@ import { getCharClassKey } from "@/lib/talentsLevel/charClass";
 import DeepView, { type DeepViewExtraTab } from "./DeepView";
 import ProfileNameLoader from "@/components/ProfileNameLoader";
 import { accountAutoLoads } from "@/lib/gameAuth/session";
-import type { ArkhNode as DrNode } from "@/lib/arkh/node";
+import type { ArkhNode as DrNode } from "@/lib/dropRate/node";
+import { pageError } from "@/lib/statTracker/pageErrors";
 import type { FlatTree } from "@/lib/dropRate/treeFlatten";
 
 const SAVE_KEY = "drop-rate-tracker.last-upload.v1";
@@ -100,8 +101,8 @@ export default function DrCalculator({
   // Deep View is now the only renderer — the previous Detailed/Summary tabs
   // were collapsed in favor of the full-depth view since it strictly
   // supersedes both (every source from Detailed plus the sub-source layers
-  // that Summary couldn't reach). drTree comes from the Arkh-style compute
-  // (computeArkhDropRate) which matches the in-game value to within ~1%.
+  // that Summary couldn't reach). drTree comes from computeGameDropRateV1,
+  // the game's own formula (lib/game), so it is the in-game value.
   const [drTree, setDrTree] = useState<DrNode | null>(null);
   const [drTotal, setDrTotal] = useState<number | null>(null);
   // Loading flag: only true between the moment compute starts and when the
@@ -282,9 +283,9 @@ export default function DrCalculator({
     setComputing(true);
     (async () => {
       try {
-        const mod = await import("@/lib/arkh/computeDR");
+        const mod = await import("@/lib/game/trackers/dropRateV1");
         if (cancelled) return;
-        const result = mod.computeArkhDropRate(save, charIdx, mapIdx, {
+        const result = mod.computeGameDropRateV1(save, charIdx, mapIdx, {
           chipGalleryActive,
         });
         setDrTree(result.tree);
@@ -292,8 +293,11 @@ export default function DrCalculator({
         setError(null);
       } catch (e) {
         if (!cancelled) {
+          setDrTree(null);
+          setDrTotal(null);
+          const err = pageError(save, e, "Drop Rate");
           setError(
-            "Drop rate compute failed: " + (e instanceof Error ? e.message : String(e))
+            "Drop rate compute failed: " + (err instanceof Error ? err.message : String(err))
           );
         }
       } finally {
@@ -465,9 +469,7 @@ export default function DrCalculator({
 
       {totalDr !== null && (
         <p className="text-[11px] text-zinc-600 mb-4 text-center italic leading-snug">
-          ⚠︎ May read ~1% lower than in-game (floating-point rounding through
-          the multiplicative chain). If you spot something missing or wrong, DM
-          me on Discord.
+          If you spot something missing or wrong, DM me on Discord.
         </p>
       )}
 

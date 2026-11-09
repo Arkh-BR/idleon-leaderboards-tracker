@@ -26,6 +26,32 @@ function obolMap(ctx: Ctx, g: number, q: number): Readonly<Record<string, unknow
   return v as Readonly<Record<string, unknown>>;
 }
 
+/** What the obol in slot q of list g reads off: one [stat, value] per STATS entry, the build keeping the positive ones. Nothing for a "Blank" or locked `slot` (ObolEquippedOrder[g][q]). */
+export function obolEntries(ctx: Ctx, g: number, q: number, slot: unknown): unknown[][] {
+  const name = hString(slot);
+  if ("ObolLocked" == name.substring(0, 10) || "Blank" == slot) return [];
+  const def = itemDef(name);
+  const own = obolMap(ctx, g, q);
+  return STATS.map((text, e) => {
+    let entry: unknown[];
+    if (Object.hasOwn(own, text) && 7 > e) entry = [text, asNumber(def[text]) + asNumber(own[text])];
+    else if (7 > e) entry = [text, def[text]];
+    else if ("0" != def[text]) {
+      const valKey = text.replace("txt", "val");
+      entry = Object.hasOwn(own, valKey) ? [def[text], asNumber(def[valKey]) + asNumber(own[valKey])] : [def[text], def[valKey]];
+    } else entry = ["NULL", 0];
+    if (0 == e) {
+      if (-1 != name.indexOf("Mining") || "PICKAXE" == def.Type) entry[0] = "Mining_Power";
+      else if (-1 != name.indexOf("Choppin") || "HATCHET" == def.Type) entry[0] = "Choppin_Power";
+      else if (-1 != name.indexOf("Fishing")) entry[0] = "Fishing_Power";
+      else if (-1 != name.indexOf("Catching")) entry[0] = "Catching_Power";
+      else if (-1 != name.indexOf("Trapping")) entry[0] = "Trapping_Power";
+      else if (-1 != name.indexOf("Worship")) entry[0] = "Worship_Power";
+    }
+    return entry;
+  });
+}
+
 /**
  * The build @7093622: ten rows to start (Weapon_Power, Mining_Power, Choppin_Power, FILLERlol, STR, AGI, WIS, LUK, Defence, Reach), then
  * for the character's obols (g = 0, ObolEquippedOrder[0]) and the family's (g = 1), every obol that is not "Blank" or locked: each stat
@@ -40,27 +66,7 @@ export function ObolStats(ctx: Ctx): ObolRow[] {
   for (let g = 0; g < 2; g++) {
     const order = listAt(ctx, "ObolEquippedOrder", g);
     for (let q = 0; q < order.length; q++) {
-      const name = hString(order[q]);
-      if ("ObolLocked" == name.substring(0, 10) || "Blank" == order[q]) continue;
-      const def = itemDef(name);
-      const own = obolMap(ctx, g, q);
-      for (let e = 0; e < 9; e++) {
-        const text = STATS[e];
-        let entry: unknown[];
-        if (Object.hasOwn(own, text) && 7 > e) entry = [text, asNumber(def[text]) + asNumber(own[text])];
-        else if (7 > e) entry = [text, def[text]];
-        else if ("0" != def[text]) {
-          const valKey = text.replace("txt", "val");
-          entry = Object.hasOwn(own, valKey) ? [def[text], asNumber(def[valKey]) + asNumber(own[valKey])] : [def[text], def[valKey]];
-        } else entry = ["NULL", 0];
-        if (0 == e) {
-          if (-1 != name.indexOf("Mining") || "PICKAXE" == def.Type) entry[0] = "Mining_Power";
-          else if (-1 != name.indexOf("Choppin") || "HATCHET" == def.Type) entry[0] = "Choppin_Power";
-          else if (-1 != name.indexOf("Fishing")) entry[0] = "Fishing_Power";
-          else if (-1 != name.indexOf("Catching")) entry[0] = "Catching_Power";
-          else if (-1 != name.indexOf("Trapping")) entry[0] = "Trapping_Power";
-          else if (-1 != name.indexOf("Worship")) entry[0] = "Worship_Power";
-        }
+      for (const entry of obolEntries(ctx, g, q, order[q])) {
         if (!(0 < asNumber(entry[1]))) continue;
         let i = names.indexOf(entry[0]);
         if (-1 != i) rows[i][g + 1] = asNumber(rows[i][g + 1]) + asNumber(entry[1]);
