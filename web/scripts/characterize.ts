@@ -1,6 +1,6 @@
 // characterize: do the old and the new engine of a stat agree on every real save? From web/:
 //
-//   npx tsx scripts/characterize.ts <stat> [--map <n>]        (stats: artifactFind, damage, afkGains, expMulti, dropRateV2, coinMulti)
+//   npx tsx scripts/characterize.ts <stat> [--map <n>]        (stats: artifactFind, damage, afkGains, expMulti, dropRateV2, coinMulti, multikill)
 //
 // Runs both engines on every character of every save envelope (golden/.cache + saves-fresh), on map <n> (default 0; a stat with
 // no map ignores it), writes reports/characterize-<stat>[-<n>].md, and exits 1 when the spec's switch criteria are not met: a row that is
@@ -20,7 +20,8 @@ import { computeArkhCoinMulti } from "@/lib/arkh/computeCoin";
 import { computeArkhDamage } from "@/lib/arkh/computeDamage";
 import { computeArkhDropRateV2 } from "@/lib/arkh/computeDropRateV2";
 import { computeArkhExpMulti } from "@/lib/arkh/computeExp";
-import { AFK_REFUSABLE, ARTIFACT_FIND_REFUSABLE, COIN_REFUSABLE, DAMAGE_REFUSABLE, DR_REFUSABLE, EXP_REFUSABLE, characterize, classify, type Engine, type Row, type Verdict } from "@/lib/diagnose/characterize";
+import { computeArkhMultikill } from "@/lib/arkh/computeMultikill";
+import { AFK_REFUSABLE, ARTIFACT_FIND_REFUSABLE, COIN_REFUSABLE, DAMAGE_REFUSABLE, DR_REFUSABLE, EXP_REFUSABLE, MULTIKILL_REFUSABLE, characterize, classify, type Engine, type Row, type Verdict } from "@/lib/diagnose/characterize";
 import { CURRENT_CSVER } from "@/lib/game/errors";
 import { MapAFKtarget } from "@/lib/game/data";
 import { keptTargetCloses } from "@/__tests__/lib/game/support/afkKept";
@@ -33,6 +34,7 @@ import { computeGameCoinMulti } from "@/lib/game/trackers/coinMulti";
 import { computeGameDamage } from "@/lib/game/trackers/damage";
 import { computeGameDropRate } from "@/lib/game/trackers/dropRate";
 import { computeGameExpMulti } from "@/lib/game/trackers/expMulti";
+import { computeGameMultikill } from "@/lib/game/trackers/multikill";
 
 type KnownDiff = (typeof KNOWN_ARKH_DIFFS)[number];
 /**
@@ -96,6 +98,16 @@ const ENGINES: Record<string, (map: number) => { arkh: Engine; game: Engine; nam
     // (njs/coinMulti.test.ts INERT: seeding it leaves all 308 pairs where they are), so it explains nothing. Map 33 has no monster: the
     // block refuses there (InvalidSaveValue, Ruling TT), which is no age refusal, so it stays unexplained on purpose.
     known: (d) => d.stat === "coin" && d.reason !== "gfoodVote26" && (d.maps?.includes(map) ?? true),
+  }),
+  multikill: (map) => ({
+    arkh: (save, ci) => computeArkhMultikill(save, ci, map),
+    game: (save, ci) => computeGameMultikill(save, ci, map),
+    names: `a = lib/arkh (computeArkhMultikill), b = lib/game (computeGameMultikill), on map ${map}`,
+    refusable: MULTIKILL_REFUSABLE,
+    // The "mk" rows name their maps and characters; each moves the total on its own pair (njs/multikill.test.ts: inert {} on every map), so
+    // each one explains a differing total. Map 33 (and 3, 34, 35) has no monster: the block refuses there (InvalidSaveValue, Ruling AAA),
+    // which is no age refusal, so it stays unexplained on purpose.
+    known: (d) => d.stat === "mk" && (d.maps?.includes(map) ?? true),
   }),
 };
 
