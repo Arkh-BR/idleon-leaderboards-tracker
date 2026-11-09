@@ -4,7 +4,7 @@
 // `min4` or `raw` group adds to its 1. The Coin page's own total (the ArbitraryCode block, the map rules) is Task 3: here the map is 301 except where
 // the term reads it. N.js is the truth: a difference is a KNOWN entry with its evidence and a seeded proof, or a mismatch.
 import { afterAll, describe, it, expect } from "vitest";
-import { readFileSync, writeFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { basename } from "node:path";
 import { GOLDEN_SAVES, KNOWN_ARKH_DIFFS, PROOF_PATCHES, arkhCoinLeaf, arkhCoinLeaves, damageReasonSeeds, patchLukSnapshot, type Seed } from "../support/arkhOracle";
 import { COIN_GROUPS } from "@/lib/arkh/stats/defs/coin-multi";
@@ -112,9 +112,6 @@ const TERMS: Record<string, (c: Ctx) => number> = {
   ola420: (c) => asNum(c, "OptionsListAccount", 420),
   vault70: (c) => vault(c, 70) * Stuff2(c, "CardsCollected", 0, 0),
 };
-/** The sources not ported yet: the guard below names them until their family lands. */
-const OPEN = new Set<string>([]);
-
 /** The block key(s) each term reads directly (`<Fn><args as JSON>`): what a seed must never be. */
 const OWN: Record<string, string[]> = {
   dustWalker: ["getbonus2[1,433,-1]"], grid149: ['ResearchStuff["Grid_Bonus",149,0]'], grid169: ['ResearchStuff["Grid_Bonus",169,0]'], divMinor3: ['Divinity["Bonus_Minor",-1,3]'], prayer8: ["prayersReal[8,0]"],
@@ -155,7 +152,7 @@ function stateOf(path: string) {
 
 describe("the Coin term table covers every source of lib/arkh's descriptor", () => {
   it("has one term per COIN_GROUPS source, no more", () => {
-    expect([...Object.keys(TERMS), ...OPEN].sort()).toEqual(COIN_GROUPS.flatMap((g) => g.sources).sort());
+    expect(Object.keys(TERMS).sort()).toEqual(COIN_GROUPS.flatMap((g) => g.sources).sort());
   });
 });
 
@@ -232,9 +229,8 @@ describe.skipIf(GOLDEN_SAVES.length === 0)('ArbitraryCode("MonsterCash") terms a
           }
         }
       }
-      if (process.env.COIN_DUMP) writeFileSync(`${process.env.COIN_DUMP}/${id}.txt`, [...mismatches, ...[...refused].map((r) => `refused ${r}`)].join("\n"));
       console.info(`[coinTerms ${id}] ${pairs} pairs, ${nonZero} nonzero, ${known} known, ${mismatches.length} mismatches, ${refused.size} refused, ${seen.size} distinct, ${Math.round(performance.now() - t0)} ms`);
-      expect(mismatches.slice(0, Number(process.env.COIN_MAX ?? 20))).toEqual([]);
+      expect(mismatches.slice(0, 20)).toEqual([]);
       expect(known, "KNOWN pairs vs pairs the entries cover (a stale entry is one that no longer differs)").toBe(entryPairs);
       expect(known, "KNOWN pairs, literally").toBe(EXPECT_KNOWN[id] ?? 0);
       expect(pairs, "saves x characters x maps").toBe(PAIRS[id] ?? 1163);

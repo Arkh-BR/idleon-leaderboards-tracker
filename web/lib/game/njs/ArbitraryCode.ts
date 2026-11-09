@@ -91,8 +91,8 @@ export const ArbitraryCode: (ctx: Ctx, d: string) => number = block("ArbitraryCo
         (1 + EtcBonuses(ctx, "100") / 100) *
         (1 + GetSetBonus(ctx, "GOLD_SET", "Bonus", 0, 0) / 100) *
         (1 + Holes(ctx, "GambitBonuses", 7, 0) / 100) *
-        (1 + (250 * bundleAsNum(ctx, "bun_y")) / 100) *
-        (1 + (Math.max(1, getbonus2(ctx, 1, 433, -1)) * getLOG(ctx, asNum(ctx, "OptionsListAccount", 362))) / 100) *
+        (1 + 250 * bundleAsNum(ctx, "bun_y") / 100) *
+        (1 + Math.max(1, getbonus2(ctx, 1, 433, -1)) * getLOG(ctx, asNum(ctx, "OptionsListAccount", 362)) / 100) *
         (1 + (MealBonus(ctx, "Cash") + Sailing(ctx, "ArtifactBonus", 1, 0) + (Summoning(ctx, "RooBonuses", 6, 0) + Summoning(ctx, "VotingBonusz", 34, 0))) / 100) *
         (1 + (0.5 * Breeding(ctx, "PetArenaBonus", "0", 5, 0) + Thingies(ctx, "FriendBonusStatz", 5, 0) + (Breeding(ctx, "PetArenaBonus", "0", 14, 0) + ArbitraryCode(ctx, "StatueBonusGiven19") / 100))) *
         (1 + (MainframeBonus(ctx, 9) + (Summoning(ctx, "VaultUpgBonus", 34, 0) * Summoning(ctx, "VaultKillzTotal", 8, 0) + Summoning(ctx, "VaultUpgBonus", 37, 0) * Summoning(ctx, "VaultKillzTotal", 9, 0))) / 100) *

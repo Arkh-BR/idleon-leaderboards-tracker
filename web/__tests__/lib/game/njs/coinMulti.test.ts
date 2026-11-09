@@ -37,6 +37,7 @@ const MAPS: Record<number, { known: number; byReason: Record<string, number> }> 
   40: { known: 1140, byReason: { ...EVERY_MAP, signsDmg: 2 } },
 };
 const PAIRS = 1153; // 106 saves x characters (1163), less HourZero's 10
+const NO_MONSTER = 'AFKtarget: expected a MonsterDefinitions key, got string "Z"'; // MapAFKtarget[33]
 /**
  * Listed on the pair, but the pair closes without them on every map, so they explain nothing there. gfoodVote26: seeding lib/arkh's weekly vote 26 leaves the total where it is on all 308.
  * snapshotAGI: Glaives #0, where the gfoodSign69 seed moves lib/game's live AGI (960010 to 960572) into the 250-step of the snapshot (960681), so that bubble agrees unpatched.
@@ -107,8 +108,15 @@ describe.skipIf(GOLDEN_SAVES.length === 0)('ArbitraryCode("MonsterCash") against
             for (const [name, args, v] of seeds) c.cache.set(`${ci}|${map}|${name}${JSON.stringify(args)}`, v);
             const arkh = { ...leaves };
             for (const s of STATS) {
-              // a stat with no entry has the snapshot's floor (coinTerms): it only follows a seed that moves lib/game's live stat (fam68 through the talents)
-              const patch = reasons.includes(`snapshot${s}`) ? rs.includes(`snapshot${s}`) : Math.floor(TotalStats(c, s) / 250) !== Math.floor(TotalStats(ctx, s) / 250);
+              // a stat with no entry has the snapshot's floor (coinTerms): it only follows a seed that moves lib/game's live stat (fam68 through the talents), and
+              // that re-patch stands on its own only if the snapshot is the unseeded stat's floor
+              const moved = Math.floor(TotalStats(c, s) / 250) !== Math.floor(TotalStats(ctx, s) / 250);
+              if (moved && !reasons.includes(`snapshot${s}`)) {
+                const snap = (JSON.parse(readFileSync(path, "utf8")) as { data: Record<string, unknown> }).data[`PVStatList_${ci}`];
+                const list = (typeof snap === "string" ? JSON.parse(snap) : snap) as number[];
+                expect(Math.floor(list[STATS.indexOf(s)] / 250), `${basename(path)}#${ci}@${map}: the snapshot's ${s} floor is not the unseeded stat's`).toBe(Math.floor(TotalStats(ctx, s) / 250));
+              }
+              const patch = reasons.includes(`snapshot${s}`) ? rs.includes(`snapshot${s}`) : moved;
               if (patch) arkh[`bubble${s}`] = bubble(s, TotalStats(c, s));
             }
             return [cash(c), recombine(arkh)];
@@ -157,6 +165,7 @@ describe.skipIf(GOLDEN_SAVES.length === 0)('ArbitraryCode("MonsterCash") against
     }
     console.info(`[coinMulti @33] ${threw} refused (InvalidSaveValue) ${JSON.stringify([...invalid])}, ${refused.size} refused for other reasons, ${answered.length} answered`);
     expect(answered.slice(0, 20)).toEqual([]);
+    expect([...invalid], "the cause: map 33's AFK target, not any other bad value").toEqual([NO_MONSTER]);
     expect(threw).toBe(1153);
     expect([...refused].sort()).toEqual(HOURZERO);
   }, 1_800_000);

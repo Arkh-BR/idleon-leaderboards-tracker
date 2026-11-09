@@ -85,11 +85,10 @@ describe("Holes: the Gambit family and B_UPG 78 (synthetic, runs in CI)", () => 
     const c = synth({});
     for (const [n, a, v] of terms) seed(c, n, a, v);
     expect(Holes(c, "GambitPTSmulti", 0, 0)).toBeCloseTo(1 + 127 / 100, 12);
-    for (const [n, a, v] of terms) {
+    for (const [n, a] of terms) {
       const d = synth({});
       for (const [n2, a2, v2] of terms) seed(d, n2, a2, a2 === a ? v2 + 100 : v2);
       expect(Holes(d, "GambitPTSmulti", 0, 0), `${n}${JSON.stringify(a)}`).toBeCloseTo(1 + (127 + 100) / 100, 12);
-      expect(v).toBeGreaterThan(0);
     }
   });
   it("GambitPtsREQ is 2000 + 1000 (b + 1)(1 + b / 5) 1.26^b", () => {

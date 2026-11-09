@@ -1,12 +1,14 @@
 // Task 3 (Coin plan): the edges of ArbitraryCode("MonsterCash") (N.js @4047005 raw) on a synthetic envelope (no real save, so CI runs them): every
 // factor and every term of the additive pool alone, at a value of its own, so a swapped key or a wrong multiplier fails; the Cash bubbles' floor; the
-// min(4, ·) companions at 3.9, 4 and 4.1; the guild term of ctx.map at 49/50 and 299/300; TalentCalc(643) under and over map 300, at the tier ceiling and
+// min(4, ·) companions at 3.9, 4 and 4.1; the guild term of ctx.map at 49/50, 299/300 and past the last world; TalentCalc(643) under and over map 300, at the tier ceiling and
 // on a map whose target has no monster. Every block the sub-case calls answers 0 unless the test seeds it (expStub's ZeroCache); `real` lists the blocks
 // left to their code.
 import { describe, it, expect } from "vitest";
+import { existsSync, readFileSync } from "node:fs";
+import { njsFunction, njsNamedBlocks } from "@/lib/diagnose/njsCalls";
 import { MONSTERS } from "@/lib/game/data";
-import { InvalidSaveValue } from "@/lib/game/errors";
 import { ArbitraryCode } from "@/lib/game/njs/ArbitraryCode";
+import { loadNjs } from "@/scripts/njs-calls";
 import { type Data, type Seeds, synth } from "../support/expStub";
 
 const REAL = ['ArbitraryCode["MonsterCash"]'];
@@ -175,6 +177,7 @@ describe("the guild term: GuildBonuses(8) x (1 + floor(ctx.map / 50)), in the po
     [50, 1.04],
     [299, 1.12],
     [300, 1.14],
+    [350, 1.16], // past the last world (MapName ends at 326): the floor has no cap
   ])("map %s gives %s", (map, total) => close(cash({}, { "GuildBonuses[8]": 2 }, { map }), total));
 });
 
@@ -195,6 +198,27 @@ describe("TalentCalc(643) in the pool: talent 643 x the multikill tier on ctx.ma
     close(at(299, Number.MAX_VALUE), 1 + (3 * 51) / 100);
   });
   it("on a map whose target has no monster the game throws, so the block refuses", () => {
-    expect(() => cash({}, { 'DamageDealed["Max"]': 1e9, "GetTalentNumber[1,643]": 3 }, { map: 33, real: TIER })).toThrow(InvalidSaveValue);
+    expect(() => cash({}, { 'DamageDealed["Max"]': 1e9, "GetTalentNumber[1,643]": 3 }, { map: 33, real: TIER })).toThrow('AFKtarget: expected a MonsterDefinitions key, got string "Z"');
   });
+});
+
+// The port is the game's text with the calls spelled the way lib/game spells them: same factors, same order, same parentheses, so the floats are the game's.
+describe("the expression", () => {
+  it.skipIf(!existsSync("scripts/updater/.cache/N.new.js"))("is N.js's token for token (calls and reads spelled as lib/game spells them)", () => {
+    const njs = njsNamedBlocks(njsFunction(loadNjs(), "ArbitraryCode")!.body, "MonsterCash")[0]
+      .replace(/^return/, "")
+      .replace(/;$/, "")
+      .replace(/c\.asNumber\(a\.engine\.getGameAttribute\("DNSM"\)\.h\.AlchBubbles\.h\.(\w+)\)/g, 'DNSM_AlchBubbles(ctx,"$1")')
+      .replace('c.asNumber(a.engine.getGameAttribute("DNSM").h.AlchVials.h.MonsterCash)', 'DNSM_AlchVials(ctx,"MonsterCash")')
+      .replace('c.asNumber(a.engine.getGameAttribute("DNSM").h.BoxRewards.h["13c"])', 'DNSM_BoxRewards(ctx,"13c")')
+      .replace('c.asNumber(a.engine.getGameAttribute("BundlesReceived").h.bun_y)', 'bundleAsNum(ctx,"bun_y")')
+      .replace(/c\.asNumber\(a\.engine\.getGameAttribute\("OptionsListAccount"\)\[(\d+)\]\)/g, 'asNum(ctx,"OptionsListAccount",$1)')
+      .replace('a.engine.getGameAttribute("CurrentMap")', "ctx.map")
+      .replace(/\b\w\._customBlock_(\w+)\(/g, "$1(ctx,")
+      .replace(/(?<![\w.])\.(\d)/g, "0.$1");
+    const src = readFileSync("lib/game/njs/ArbitraryCode.ts", "utf8").replace(/\r/g, "");
+    const body = src.slice(src.indexOf('case "MonsterCash":'));
+    const port = body.slice(body.indexOf("return (") + "return (".length, body.indexOf("\n      );"));
+    expect(port.replace(/\s+/g, "")).toBe(njs.replace(/\s+/g, ""));
+  }, 120_000);
 });
