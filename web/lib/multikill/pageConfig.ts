@@ -1,7 +1,10 @@
 // Multikill page: the statTracker kit's config for N.js
-// WorkbenchStuff("MultiKillTOTAL") — the AFK Info panel's MULTIKILL line.
+// WorkbenchStuff("MultiKillTOTAL") — the AFK Info panel's MULTIKILL line. It computes on lib/game (trackers/multikill.ts); the Observed Max
+// collector (scripts/update-top-multikill.ts) stays on lib/arkh.
 
 import type { StatPageConfig } from "@/lib/statTracker/config";
+import { loadMonsterMapFilter } from "@/lib/statTracker/mapFilter";
+import { withPageErrors } from "@/lib/statTracker/pageErrors";
 import { MK_NODES, MK_ROOT } from "./layers";
 import { formatMultikill } from "./format";
 import { multikillGainsModel } from "./gains";
@@ -34,8 +37,11 @@ export const MULTIKILL_PAGE: StatPageConfig = {
     exportPrefix: "multikill-snapshots",
     exportLabel: "multikill-tracker",
   },
-  compute: (save, charIdx, mapIdx) =>
-    import("@/lib/arkh/computeMultikill").then((m) => m.computeArkhMultikill(save, charIdx, mapIdx)),
+  compute: withPageErrors("Multikill", (save, charIdx, mapIdx) =>
+    import("@/lib/game/trackers/multikill").then((m) => m.computeGameMultikill(save, charIdx, mapIdx))
+  ),
+  // maps whose AFK target has no monster definition (3, 33, 34, 35): N.js throws in OverkillStuffs there (Ruling AAA)
+  loadMapFilter: loadMonsterMapFilter,
   formatTotal: formatMultikill,
   unit: "%",
   // The total is already the game's floored percent; the tooltip adds separators.
@@ -58,7 +64,9 @@ export const MULTIKILL_PAGE: StatPageConfig = {
     "not a one-level step. The top players are measured on map 251 (World 6, every endgame character at " +
     "the tier-51 cap), so the Death Note row is only compared on a World 6 map and the damage tier only " +
     "outside World 7. \"+1 damage tier\" is a step, not a reference: it needs ×2 more max damage (×5 in World 7). " +
-    "In the Crystal Glunko Cove the cavern sets the multikill, so no source moves it there.",
+    "In the Crystal Glunko Cove the cavern sets the multikill, so no source moves it there. " +
+    "The Observed Max values themselves are still computed by the previous engine, so for a few sources they can differ slightly " +
+    "from your own numbers until they are recomputed.",
   compareTitle: "Compare every Multikill source against the best value observed across the top players",
   gainsTabTitle: "Rank your Multikill sources by how much Multikill matching the top players would give",
   footer:
