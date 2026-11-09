@@ -7,7 +7,7 @@
 
 import { directChildren, type GainRow } from "@/lib/statTracker/biggestGains";
 import type { GainSource, GainsModel } from "@/lib/statTracker/config";
-import { MK_NODES, MK_ROOT, MK_RULES, mkTotal, type MkParts } from "@/lib/arkh/stats/defs/multikill";
+import { MK_NODES, MK_ROOT, MK_RULES, mkTotal, type MkParts } from "./layers";
 import { formatNum } from "@/lib/numberFormat";
 
 const pathOf = (name: string) => `${MK_ROOT} / ${name}`;

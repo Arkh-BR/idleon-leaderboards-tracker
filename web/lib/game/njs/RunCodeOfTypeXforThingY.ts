@@ -56,7 +56,7 @@ export const RunCodeOfTypeXforThingY: (ctx: Ctx, d: string, b: string) => number
  * The table it copies has the Rift's monster at RiftStuff("mobHP", 0): the Rift scene writes it there (@20359437) before a character can be AFK on it, so it is cursed like the others.
  * The game would throw on a target the table does not have ("Z", "Filler", ...).
  */
-function monsterHPTotal(ctx: Ctx): number {
+export function monsterHPTotal(ctx: Ctx): number {
   const target = afkTarget(ctx);
   const mob = (MONSTERS as Record<string, Readonly<Record<string, unknown>>>)[target];
   if (!mob) throw new InvalidSaveValue("AFKtarget", "a MonsterDefinitions key", target);
@@ -71,7 +71,7 @@ function monsterHPTotal(ctx: Ctx): number {
  * targets have Holes("MotherlodeEffBase", i, 0) instead, the fish's divided by 4. The other writes of a monster's Defence happen in a running game: the bosses' parts on the maps 29 and 66
  * (@6530517), the crystal mobs' spawn (@4559629) and the Hound caveA while its fight runs (@12130700); no real save has any of them as its AFK target. The game would throw on a target the table does not have.
  */
-function monsterDefence(ctx: Ctx): number {
+export function monsterDefence(ctx: Ctx): number {
   const target = afkTarget(ctx);
   const mob = (MONSTERS as Record<string, Readonly<Record<string, unknown>>>)[target];
   if (!mob) throw new InvalidSaveValue("AFKtarget", "a MonsterDefinitions key", target);
@@ -80,6 +80,9 @@ function monsterDefence(ctx: Ctx): number {
   return asNumber(mob.Defence);
 }
 
+/** `DNSM.OverkillEXPONENT`, which `OverkillStuffs` sets on every call: 5 from map 300 on, else 2. */
+export const overkillExponent = (ctx: Ctx): number => (300 <= ctx.map ? 5 : 2);
+
 /**
  * `OverkillStuffs` @4095676 for b == "2", the multikill tier on the AFK target: 1, and f + 2 for every step f < 50 the Max damage reaches (HP x E^(f + 2), in
  * N.js's order HP x E x E^(f + 1)), stopping at the first it does not, so at most 51. E (DNSM.OverkillEXPONENT) is 5 from map 300 on, else 2. There is no
@@ -87,7 +90,7 @@ function monsterDefence(ctx: Ctx): number {
  * reaches HP x E, the Death Note is built (TowerInfo[2] > .5) and PlayerAccTot beats 1.5 x the target's Defence.
  */
 function overkillStuffs(ctx: Ctx, b: string): number {
-  const exponent = 300 <= ctx.map ? 5 : 2; // DNSM.OverkillEXPONENT
+  const exponent = overkillExponent(ctx);
   if ("3" == b) return DamageDealed(ctx, "Max") >= monsterHPTotal(ctx) * exponent && 0.5 < asNum(ctx, "TowerInfo", 2) && PlayerAccTot(ctx) > 1.5 * monsterDefence(ctx) ? 1 : 0;
   if ("2" != b) throw new NotPorted("RunCodeOfTypeXforThingY", `OverkillStuffs:b=${b}`); // N.js: `2 == c.asNumber(b)`; every caller passes a literal string
   let tier = 1; // DNSM.S2Nz4

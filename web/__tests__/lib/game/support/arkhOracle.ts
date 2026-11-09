@@ -15,8 +15,8 @@ import { EXP_GROUPS } from "@/lib/arkh/stats/defs/exp-multi";
 import { computeArkhCoinMulti } from "@/lib/arkh/computeCoin";
 import { COIN_GROUPS } from "@/lib/arkh/stats/defs/coin-multi";
 import { coin } from "@/lib/arkh/stats/systems/coin/coin";
-import { computeArkhMultikill, computeArkhMultikillPools } from "@/lib/arkh/computeMultikill";
-import { MK_POOLS } from "@/lib/arkh/stats/defs/multikill";
+import { combineMultikillPools, computeArkhMultikillPools } from "@/lib/arkh/computeMultikill";
+import { MK_NODES, MK_POOLS } from "@/lib/arkh/stats/defs/multikill";
 import { statCtx } from "@/lib/arkh/computeStat";
 import { computeArkhDropRateV2 } from "@/lib/arkh/computeDropRateV2";
 import { DR2_GROUPS } from "@/lib/arkh/stats/defs/drop-rate-v2";
@@ -204,7 +204,7 @@ export function arkhSourceHash(): string {
   };
   walk(join(WEB, "lib/arkh"));
   // Ruling B moved the oracle's shape and ids into these display configs: a change there invalidates the cache too
-  for (const f of ["lib/afkGains/layers.ts", "lib/damage/layers.ts", "lib/expMulti/layers.ts", "lib/dropRateV2/layers.ts", "lib/coinMulti/layers.ts", "lib/statTracker/groups.ts", "lib/artifactFind/groups.ts"]) h.update(`${f}\0`).update(readFileSync(join(WEB, f))).update("\0");
+  for (const f of ["lib/afkGains/layers.ts", "lib/damage/layers.ts", "lib/expMulti/layers.ts", "lib/dropRateV2/layers.ts", "lib/coinMulti/layers.ts", "lib/multikill/layers.ts", "lib/statTracker/groups.ts", "lib/artifactFind/groups.ts"]) h.update(`${f}\0`).update(readFileSync(join(WEB, f))).update("\0");
   return (arkhHash = h.digest("hex"));
 }
 
@@ -1526,19 +1526,27 @@ export const arkhCoinShape = (save: unknown, ci: number, map: number): CoinShape
 export const arkhCoinMulti = (save: unknown, ci: number, map: number): number => coinEntry(save, ci, map).total;
 
 // ---- Multikill: lib/arkh's tree is not grouped (root children: Base / Damage Tier / per Tier / Active, rules inside the halves), so the leaves are
-// read from its pools (the sources of each MK_POOLS pool, in order), and the total from computeArkhMultikill.
-type MkEntry = { leaves: Record<string, number>; total: number };
+// read from its pools (the sources of each MK_POOLS pool, in order). One buildPools per entry: the tree is its combine(), as computeArkhMultikill's buildTree does.
+/** A node of lib/arkh's Multikill tree as the tracker adapter test compares it: a half's sources stop there (lib/arkh's own detail below them is no contract), the tier's and the status's rows are whole. */
+export type MkShape = Shape & { val: number; children?: MkShape[] };
+type MkEntry = { leaves: Record<string, number>; total: number; shape: MkShape; nodes: number };
+
+const mkShape = (n: ArkhNode, source = false): MkShape => ({
+  ...shapeOf(n),
+  val: n.val,
+  ...(n.children && !source ? { children: n.children.map((c) => mkShape(c, n.name === MK_NODES.base || n.name === MK_NODES.perTier)) } : {}),
+});
 
 function mkEntryOf(parsed: any, ci: number, map: number): MkEntry {
-  const { total } = computeArkhMultikill(structuredClone(parsed), ci, map);
   const pools = computeArkhMultikillPools(parsed, ci, map);
+  const { tree, total } = combineMultikillPools(pools);
   const leaves: Record<string, number> = {};
   for (const [key, ids] of Object.entries(MK_POOLS)) {
     const items = pools[key].items;
     if (items.length !== ids.length) throw new Error(`arkhMkLeaves: lib/arkh's ${key} pool has ${items.length} sources, MK_POOLS has ${ids.length}`);
     ids.forEach((id, k) => (leaves[id] = items[k].val));
   }
-  return { leaves, total };
+  return { leaves, total, shape: mkShape(tree), nodes: countNodes(tree) };
 }
 
 const mkEntry = sectionCache("mk", mkEntryOf);
@@ -1549,6 +1557,9 @@ const mkEntry = sectionCache("mk", mkEntryOf);
  * Cove's two replacement values are the children of its source and are not leaves. `save` as in arkhDamageLeaves.
  */
 export const arkhMkLeaves = (save: unknown, ci: number, map: number): Record<string, number> => mkEntry(save, ci, map).leaves;
+
+/** lib/arkh's Multikill tree (see MkShape) and its whole node count for character `ci` on `map` (cached with the leaves). `save` as in arkhDamageLeaves. */
+export const arkhMkShape = (save: unknown, ci: number, map: number): { shape: MkShape; nodes: number } => mkEntry(save, ci, map);
 
 /** lib/arkh's own Multikill total (computeArkhMultikill(...).total): the oracle for the whole tree. */
 export const arkhMultikill = (save: unknown, ci: number, map: number): number => mkEntry(save, ci, map).total;

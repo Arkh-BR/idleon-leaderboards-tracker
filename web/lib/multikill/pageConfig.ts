@@ -2,7 +2,7 @@
 // WorkbenchStuff("MultiKillTOTAL") — the AFK Info panel's MULTIKILL line.
 
 import type { StatPageConfig } from "@/lib/statTracker/config";
-import { MK_NODES, MK_ROOT } from "@/lib/arkh/stats/defs/multikill";
+import { MK_NODES, MK_ROOT } from "./layers";
 import { formatMultikill } from "./format";
 import { multikillGainsModel } from "./gains";
 import { TOP_MULTIKILL_GENERATED_AT, TOP_MULTIKILL_PLAYERS_SCANNED } from "./topMultikill.meta";
