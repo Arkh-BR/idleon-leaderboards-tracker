@@ -2,6 +2,7 @@
 // collector (scripts/update-top-coin.ts) stays on lib/arkh.
 
 import type { StatPageConfig } from "@/lib/statTracker/config";
+import { loadMonsterMapFilter } from "@/lib/statTracker/mapFilter";
 import { withPageErrors } from "@/lib/statTracker/pageErrors";
 import { groupedGainsModel } from "@/lib/statTracker/biggestGains";
 import { COIN_GROUPS, COIN_ROOT, COIN_VOTE_NAME } from "./layers";
@@ -31,6 +32,7 @@ export const COIN_PAGE: StatPageConfig = {
   compute: withPageErrors("Coin Multi", (save, charIdx, mapIdx) =>
     import("@/lib/game/trackers/coinMulti").then((m) => m.computeGameCoinMulti(save, charIdx, mapIdx))
   ),
+  loadMapFilter: loadMonsterMapFilter,
   formatTotal: formatCoinMulti,
   gains: groupedGainsModel(COIN_ROOT, COIN_GROUPS, { skip: [COIN_VOTE_NAME] }),
   loadTop: () =>

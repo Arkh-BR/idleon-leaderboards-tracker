@@ -7,7 +7,7 @@ import type { StatPageConfig } from "@/lib/statTracker/config";
 import { withPageErrors } from "@/lib/statTracker/pageErrors";
 import type { ArkhNode } from "@/lib/arkh/node";
 import { DMG_NODES } from "./layers";
-import { loadDamageMapFilter } from "./mapFilter";
+import { loadMonsterMapFilter } from "@/lib/statTracker/mapFilter";
 import { formatDamage, formatDamageLine } from "./format";
 import { damageGainsModel } from "./gains";
 import { TOP_DAMAGE_GENERATED_AT, TOP_DAMAGE_PLAYERS_SCANNED } from "./topDamage.meta";
@@ -37,7 +37,7 @@ export const DAMAGE_PAGE: StatPageConfig = {
     exportPrefix: "damage-snapshots",
     exportLabel: "damage-tracker",
   },
-  loadMapFilter: loadDamageMapFilter,
+  loadMapFilter: loadMonsterMapFilter,
   compute: withPageErrors("Damage", (save, charIdx, mapIdx) =>
     import("@/lib/game/trackers/damage").then((m) => m.computeGameDamage(save, charIdx, mapIdx))
   ),
