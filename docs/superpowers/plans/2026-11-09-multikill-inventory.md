@@ -13,7 +13,7 @@ Regenerate it when N.js, a module's `PORTED` or `lib/game/unreached.ts` changes.
 - attrs and dnsm are the reads in every slice listed. One marked "whole body only" is read only inside a whole-body function (all its branches, not just the one this formula takes). `DNSM` is runtime-only (it is never loaded from the save): port it as `DNSM_*` functions, not as a save attribute. The dnsm list also holds the scratch keys a formula writes and reads back in the same slice (`CaptnBonuz`, `AtomBonCalc1`); the inputs are the caches the game fills elsewhere (`StarSigns`, `AlchVials`, `FamBonusQTYs`…).
 - Depth stops at 6.
 
-**69 functions, 749 sub-cases (rows), 235 whole body, 0 not found, 96 attrs, 127 dnsm.** **688 ported `[x]`, 55 not reached `[~]`, 6 open.** **Depth cap hit: 1 call was not walked.**
+**69 functions, 749 sub-cases (rows), 235 whole body, 0 not found, 96 attrs, 127 dnsm.** **690 ported `[x]`, 55 not reached `[~]`, 4 open.** **Depth cap hit: 1 call was not walked.**
 
 ## WorkbenchStuff
 
@@ -239,8 +239,8 @@ Regenerate it when N.js, a module's `PORTED` or `lib/game/unreached.ts` changes.
 
 ## Holes2
 
-- [ ] Holes2("Cglunko_MKbase",0,0) — depth 2 — 44 chars
-- [ ] Holes2("Cglunko_MKtier",0,0) — depth 2 — 43 chars
+- [x] Holes2("Cglunko_MKbase",0,0) — depth 2 — 44 chars
+- [x] Holes2("Cglunko_MKtier",0,0) — depth 2 — 43 chars
 - [x] Holes2("Cglunko_upgBon",15,0) — depth 3 — 154 chars
 - [x] Holes2("Cglunko_upgBon",19,0) — depth 3 — 154 chars
 - [x] Holes2("Fountain_BonTOT",1,16) — depth 3 — 1092 chars

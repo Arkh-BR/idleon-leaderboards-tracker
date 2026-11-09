@@ -82,3 +82,13 @@ describe('ArbitraryCode("StatueOnyxOwned") @4043878', () => {
     expect(g(2, [0, 1, 1])).toBe(0);
   });
 });
+
+describe("Holes2 Cglunko_MKbase and Cglunko_MKtier (@11057614, @11057485)", () => {
+  it("are the Crystal Glunko upgrades 15 and 6: their level in OptionsListAccount times their value", () => {
+    const rows = (RandoListo2 as unknown as readonly (readonly unknown[])[])[13];
+    expect([rows[15], rows[6]].map(Number)).toEqual([100, 1]); // the values the two terms below are written with
+    const c = synth({ OptLacc: ola({ 645: 7, 636: 3 }) });
+    expect(Holes2(c, "Cglunko_MKbase", 0, 0)).toBe(7 * 100);
+    expect(Holes2(c, "Cglunko_MKtier", 0, 0)).toBe(3 * 1);
+  });
+});
