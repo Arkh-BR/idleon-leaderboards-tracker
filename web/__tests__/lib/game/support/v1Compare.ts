@@ -11,7 +11,8 @@ import { computeGameDropRateV1 } from "@/lib/game/trackers/dropRateV1";
 export type V1Diff = { missing: string[]; extra: string[]; value: string[]; meta: string[] };
 
 /** The V1 sources whose rows are built (lib/dropRate/explain): each family's task adds its ids. */
-const BUILT: readonly string[] = ["talent279", "talent24", "talent655", "talent239", "workbench", "etc2", "etc91", "etc99", "etc102", "efaunt"];
+const BUILT: readonly string[] = ["talent279", "talent24", "talent655", "talent239", "workbench", "etc2", "etc91", "etc99", "etc102", "efaunt",
+  "rank9", "cropSC7", "exotic59", "hole46", "hole82", "meas15", "monument", "caveDR", "grimoire44", "spelunk50", "legend1", "emperor11", "grid173", "glimbo", "minehead0", "menagerie24", "pristine3", "rog", "vial"];
 /** V1 source ids whose rows aren't built yet: differences below them are ignored. Task 7 asserts it is empty. */
 export const PENDING = new Set(V1_SOURCES.map((s) => s.id).filter((id) => !BUILT.includes(id)));
 
@@ -24,6 +25,10 @@ export const V1_KNOWN: { path: RegExp; why: string }[] = [
   {
     path: / \/ Family Guy Multi \(×\) — potential buff( \/ Super Levels)?$/,
     why: "N.js TalentCalc(-3) reads GetTalentNumber(1,144) @4498035, whose AllTalentLV @4085148 gives the super levels only when Spelunk[20 + player + 12 x preset] lists 144; lib/arkh forces the super levels on (talent.ts forceSuperActive), for characters that do not have it (Family Guy Multi 1.3556 vs the game's 1.3484 on ARKHE's characters without 144 listed), so its row is above the game's and has a Super Levels row the game has no levels for",
+  },
+  {
+    path: / \/ All Multi \/ Dream Challenge (?:71|72|76) \(Cloud Bonus (?:71|72|76)\)$/,
+    why: "N.js ResearchStuff(\"Grid_Bonus_Allmulti\") @11179175 adds Dreamstuff(\"CloudBonus\", 71), 72 and 76 (1 each while the weekly boss d_<n> is undefeated) to the multi every grid square gets; lib/arkh's gridAllMulti (systems/w4/lab.ts) adds them to the value but lists no row for them, so the All Multi row of squares 173 and 168 has these children and the rows sum to its value",
   },
 ];
 

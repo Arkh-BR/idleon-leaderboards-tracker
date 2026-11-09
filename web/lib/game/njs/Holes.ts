@@ -198,6 +198,17 @@ function measurementQTYfound(ctx: Ctx, b: number, e: number): number {
  * else .1 x ceil(10 x L / (250 + L) x k x max(1, multiplier)).
  */
 function monumentROGbonuses(ctx: Ctx, b: number, e: number): number {
+  const multi = monumentMulti(ctx, b, e);
+  const i = Math.round(10 * b + e);
+  listAt(ctx, "Holes", 15); // the game indexes Holes[15][i] directly
+  const level = asNum(ctx, "Holes", 15, i); // the game reads it up to three times; it is the same value
+  const k = asNumber((HolesInfo as unknown as readonly (readonly unknown[])[])[37][i]);
+  if (30 > k) return level * k * Math.max(1, multi);
+  return 0.1 * Math.ceil(10 * (level / (250 + level)) * k * Math.max(1, multi));
+}
+
+/** The multiplier `MonumentROGbonuses` @11014436 applies (see there), before the `max(1, ...)` the bonus takes it with. */
+export function monumentMulti(ctx: Ctx, b: number, e: number): number {
   let multi = 1;
   if (9 != e) {
     multi = 1 + Holes(ctx, "MonumentROGbonuses", b, 9) / 100;
@@ -206,12 +217,7 @@ function monumentROGbonuses(ctx: Ctx, b: number, e: number): number {
   if (0 == b) multi = multi * (1 + Holes2(ctx, "Fountain_BonTOT", 0, 13) / 100);
   if (1 == b) multi = multi * (1 + Holes2(ctx, "Fountain_BonTOT", 1, 13) / 100);
   if (2 == b) multi = multi * (1 + Holes2(ctx, "Fountain_BonTOT", 2, 13) / 100);
-  const i = Math.round(10 * b + e);
-  listAt(ctx, "Holes", 15); // the game indexes Holes[15][i] directly
-  const level = asNum(ctx, "Holes", 15, i); // the game reads it up to three times; it is the same value
-  const k = asNumber((HolesInfo as unknown as readonly (readonly unknown[])[])[37][i]);
-  if (30 > k) return level * k * Math.max(1, multi);
-  return 0.1 * Math.ceil(10 * (level / (250 + level)) * k * Math.max(1, multi));
+  return multi;
 }
 
 /** What this module covers (lib/game/ported.ts). */

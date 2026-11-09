@@ -101,7 +101,7 @@ export const Thingies: (ctx: Ctx, d: string, b: number, e: number) => number = b
  * OptionsListAccount[369] Emperor fights g, bucket CustomLists.EmperorBon[2][g mod 48] gains CustomLists.EmperorBon[1][that bucket].
  * Here it is built from the save each time.
  */
-function emperorBonTable(ctx: Ctx): number[] {
+export function emperorBonTable(ctx: Ctx): number[] {
   const table: number[] = new Array(12).fill(0);
   const [, gain, bucketOf] = EmperorBon as unknown as readonly unknown[][];
   for (let g = 0, n = asNum(ctx, "OptionsListAccount", 369) | 0; g < n; g++) {

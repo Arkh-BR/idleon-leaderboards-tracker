@@ -16,14 +16,7 @@ export const ResearchStuff: (ctx: Ctx, d: string, b: number, e: number) => numbe
       return gridBonus(ctx, b, e);
     // @11179174: the multiplier every grid square gets (at least 1 where it is used)
     case "Grid_Bonus_Allmulti":
-      listAt(ctx, "Research", 0); // the game indexes Research[0][173] directly
-      return (
-        1 +
-        (Companions(ctx, 55) +
-          (5 * Math.min(1, asNum(ctx, "Research", 0, 173) * Companions(ctx, 0)) +
-            (Dreamstuff(ctx, "CloudBonus", 71) + (Dreamstuff(ctx, "CloudBonus", 72) + (Dreamstuff(ctx, "CloudBonus", 76) + SushiStuff(ctx, "RoG_BonusQTY", 53, 0)))))) /
-          100
-      );
+      return gridAllMulti(ctx);
     // @11184522: the sticker damage of grid square 47 is unlocked once the square has a level
     case "FarmingStickerDMG_unlocked":
       return 1 <= ResearchStuff(ctx, "Grid_Bonus", 47, 0) ? 1 : 0;
@@ -60,6 +53,23 @@ function occurrences(ctx: Ctx, row: number, add: (entry: number) => number, name
   if (n > 0) listAt(ctx, "Research", row); // the game indexes Research[row][g] directly
   for (let g = 0; g < n; g++) if (1 <= asNum(ctx, "Research", row, g)) total = total + add(asNum(ctx, "Research", row, g));
   return assumed(ctx, name, `${what} counted for this character (the game counts them once a session, for the first character that asks)`, total, `${name} is filled once per session (and from the Research UI, @13177121, @13177190, @13199612) with OccurrencesToBeFound of the character that reads it first; built here for the current character`);
+}
+
+/** The terms of `Grid_Bonus_Allmulti` @11179174: 1 + (Companion 55 + (5 x min(1, grid 173 level x Companion 0) + (clouds 71, 72, 76 + Sushi 53))) / 100. */
+export function gridAllMultiTerms(ctx: Ctx) {
+  listAt(ctx, "Research", 0); // the game indexes Research[0][173] directly
+  const comp55 = Companions(ctx, 55);
+  const level173 = asNum(ctx, "Research", 0, 173);
+  const comp0 = Companions(ctx, 0);
+  const cloud71 = Dreamstuff(ctx, "CloudBonus", 71);
+  const cloud72 = Dreamstuff(ctx, "CloudBonus", 72);
+  const cloud76 = Dreamstuff(ctx, "CloudBonus", 76);
+  const sushi53 = SushiStuff(ctx, "RoG_BonusQTY", 53, 0);
+  return { comp55, level173, comp0, grid173: 5 * Math.min(1, level173 * comp0), cloud71, cloud72, cloud76, sushi53 };
+}
+function gridAllMulti(ctx: Ctx): number {
+  const t = gridAllMultiTerms(ctx);
+  return 1 + (t.comp55 + (t.grid173 + (t.cloud71 + (t.cloud72 + (t.cloud76 + t.sushi53))))) / 100;
 }
 
 /**

@@ -50,6 +50,12 @@ function crownVials(ctx: Ctx): number {
   return Math.round(n);
 }
 
+/** The first term of `VialBonus` @5108874 (see there): 2 per Gold Crown vial from Rift 35, plus the Vault upgrade 42. */
+export function vialBoost(ctx: Ctx): number {
+  const crowns = 34 < asNum(ctx, "Rift", 0) ? 2 * crownVials(ctx) : 0;
+  return crowns + Summoning(ctx, "VaultUpgBonus", 42, 0);
+}
+
 /**
  * `VialBonus` @5108874 for the item `e` of the Alchemy list `b` (the vials are list 4): the curve of AlchemyDescription[b][e] (name
  * [3], constants [1] and [2]) at the level CauldronInfo[b][e], times
@@ -62,8 +68,7 @@ function vialBonus(ctx: Ctx, b: number, e: number): number {
   const row = (AlchemyDescription as unknown as Row[][])[b | 0]?.[e | 0];
   // the game indexes AlchemyDescription[b][e][3] directly and would throw on an item it does not have
   if (!row) throw new RangeError(`CauldronStats VialBonus: no item (${b}, ${e}) in AlchemyDescription`);
-  const crowns = 34 < asNum(ctx, "Rift", 0) ? 2 * crownVials(ctx) : 0;
-  const boost = crowns + Summoning(ctx, "VaultUpgBonus", 42, 0);
+  const boost = vialBoost(ctx);
   listOrMapAt(ctx, "CauldronInfo", b | 0); // the game indexes CauldronInfo[b][e] directly
   const curve = () => ArbitraryCode5Inputs(ctx, hString(row[3]), asNumber(row[1]), asNumber(row[2]), asNum(ctx, "CauldronInfo", b | 0, e | 0), 0, 0);
   return 2 == MainframeBonus(ctx, 10)
