@@ -156,6 +156,15 @@ describe("the tree on a synthetic envelope (runs in CI)", () => {
     expect(flagsOfTree(t)).toEqual(flagsOfTree(src)); // and nowhere else
   });
 
+  it("Coins For Charon says the map and the AFK target its tier used, as the map picker showed it; a term of 0 says nothing", () => {
+    const charon = (t: Node) => t.children![gi("g23")].children![COIN_GROUPS[gi("g23")].sources.indexOf("talent643")];
+    const save = { CurrentMap_0: 301, AFKtarget_0: "w7a1" };
+    const on = { "TalentCalc[643]": 6 };
+    expect(charon(tree(save, on, { map: 301 }).tree).note).toBe("Map 301 · target w7a1");
+    expect(charon(tree(save, on, { map: 251 }).tree).note).toBe("Map 251 · target w6a1"); // another map: its own target, not the saved one
+    expect(charon(tree(save, {}, { map: 301 }).tree).note).toBeUndefined();
+  });
+
   it("the total is the one ArbitraryCode(\"MonsterCash\") call: the tree adds no second computation", () => {
     const c = synth(data, { seeds: SET, real: REAL, trace: true });
     const { total } = coinTree(c);
@@ -269,10 +278,10 @@ describe.skipIf(noSaves)("computeGameCoinMulti against lib/arkh on every real sa
               const s1 = shape(m);
               const s2 = shape(arkh.sources[id]);
               if (DYNAMIC_NOTE.has(id)) (s1 as { note?: string }).note = (s2 as { note?: string }).note = undefined;
-              // a lib/arkh node that is a renamed copy of a system node can carry no format of its own: the tree gives it its group's
+              // a lib/arkh node that is a renamed copy of a system node can carry no format of its own: the tree gives it "+", the sources' default
               if (s2.fmt === undefined) {
                 fmtless++;
-                if (s1.fmt !== "+") shapeMismatches.push(`${at}: ${id} format ${s1.fmt}, its group's is ${g.kind}`);
+                if (s1.fmt !== "+") shapeMismatches.push(`${at}: ${id} format ${s1.fmt}, not the default "+"`);
                 (s1 as { fmt?: string }).fmt = undefined;
               }
               if (JSON.stringify(s1) !== JSON.stringify(s2)) shapeMismatches.push(`${at}: ${id} ${JSON.stringify(s1)} vs ${JSON.stringify(s2)}`);
@@ -334,6 +343,7 @@ describe.skipIf(noSaves)("computeGameCoinMulti against lib/arkh on every real sa
     }
     console.info(`[coin adapter @33] ${threw} refused (InvalidSaveValue) ${JSON.stringify([...invalid])}, ${refused.size} refused for other reasons, ${answered.length} answered`);
     expect(answered.slice(0, 20)).toEqual([]);
+    expect([...invalid], "the cause: map 33's AFK target, not any other bad value").toEqual(['AFKtarget: expected a MonsterDefinitions key, got string "Z"']); // MapAFKtarget[33]
     expect(threw).toBe(1153);
     expect([...refused].sort()).toEqual(HOURZERO);
   }, 1_800_000);

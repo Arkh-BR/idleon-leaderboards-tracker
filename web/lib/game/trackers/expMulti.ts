@@ -26,18 +26,16 @@
 // The type of the result is the page's own (lib/statTracker/config StatResult: type-only).
 import type { StatResult } from "@/lib/statTracker/config";
 import { groupedGainsModel } from "@/lib/statTracker/biggestGains";
-import { flattenTree } from "@/lib/dropRate/treeFlatten";
 import { EXP_GROUPS, EXP_ROOT, EXP_VOTE_NAME } from "@/lib/expMulti/layers";
 import { groupNote, groupVal } from "@/lib/statTracker/groups";
 import { asNum, attr } from "../attr";
 import { makeCtx, type Ctx, type TraceNode } from "../ctx";
 import { MapAFKtarget } from "../data";
-import { TreeTotalMismatch } from "../errors";
 import { listAt } from "../lists";
 import { ExpMulti, lukCurve } from "../njs/ExpMulti";
 import { haveBan } from "../njs/Thingies";
 import type { GameState } from "../state";
-import { findCall, flagged, optFrom, migratedNote, near, stateOf, takeFrom, traceTree, type Take } from "./page";
+import { findCall, finishTree, optFrom, migratedNote, stateOf, takeFrom, type Take } from "./page";
 
 type Node = StatResult["tree"];
 
@@ -205,14 +203,7 @@ export function expTree(ctx: Ctx): StatResult {
 
   const migrated = migratedNote(state);
   const tree: Node = { name: EXP_ROOT, val: total, fmt: "x", ...(migrated ? { note: migrated } : {}), children: groups };
-  // One path for the number (spec section 4): the page's Biggest Gains rebuilds the total from the tree's values.
-  const rebuilt = MODEL.totalFromFlat(flattenTree(tree));
-  if (!near(rebuilt, total)) throw new TreeTotalMismatch(total, rebuilt);
-
-  // reads that are no source but lead to a runtime: / assumed: note stay visible, under the root
-  const extras = [...call.children, ...root.children.filter((n) => n !== call)].filter((n) => !used.has(n) && flagged(n)).map(traceTree);
-  if (extras.length) tree.children = [...groups, ...extras];
-  return { tree, total };
+  return finishTree(tree, total, MODEL, root, call, used);
 }
 
 /** `computeArkhExpMulti`'s counterpart on a built state: ExpMulti(0) once, with the trace on, and the tree read out of it. */

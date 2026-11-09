@@ -12,7 +12,7 @@
 // The map (Ruling Y: a dungeon map counts as outside a dungeon) reaches two sources: the guild term reads `ctx.map` (1 + floor(map / 50)) and TalentCalc(643) reads the AFK
 // target through it. A map with no monster on its target (33) is refused as the block refuses it (InvalidSaveValue).
 //
-// The trace below a source is trimmed (Ruling L, trackers/page.ts). The `assumed:` leaves the block reaches (DNSM.CalcTalentMAP["643"] under the Coins For Charon source,
+// The trace below a source is trimmed (Ruling L, trackers/page.ts). The `assumed:` leaves the block reaches (for example DNSM.CalcTalentMAP["643"] under the Coins For Charon source and
 // DNSM.UnqCardzCol under Stuff2("CardsCollected") in the Collection Cashout source) stay on the page: they sit inside the call of their source, which `traceTree` keeps
 // because it leads to a flagged note, exactly as the other trackers show theirs; any that did not would be listed under the root.
 //
@@ -22,25 +22,21 @@
 // The type of the result is the page's own (lib/statTracker/config StatResult: type-only).
 import type { StatResult } from "@/lib/statTracker/config";
 import { groupedGainsModel } from "@/lib/statTracker/biggestGains";
-import { flattenTree } from "@/lib/dropRate/treeFlatten";
 import { COIN_GROUPS, COIN_ROOT, COIN_VOTE_NAME } from "@/lib/coinMulti/layers";
 import { groupNote, groupVal } from "@/lib/statTracker/groups";
+import { afkTarget } from "../afkTarget";
 import { asNum } from "../attr";
 import { makeCtx, type Ctx, type TraceNode } from "../ctx";
-import { TreeTotalMismatch } from "../errors";
 import { ArbitraryCode } from "../njs/ArbitraryCode";
 import { bundleAsNum } from "../njs/Thingies";
-import type { GameState } from "../state";
-import { flagged, migratedNote, near, stateOf, takeFrom, traceTree, type Take } from "./page";
+import { finishTree, migratedNote, stateOf, takeFrom, type Take } from "./page";
 
 type Node = StatResult["tree"];
 
-const READ = "a plain read of the save, not an N.js call";
-
 /** What a source computes from: `t` takes a call (it must exist), `leaf` shows a number that is no call of its own, `c` reads the save. */
-type Ops = { t: Take; leaf: (name: string, val: number, note?: string) => number; c: Ctx };
-/** One source of the tree: its name, format and note as lib/arkh's tree has them, and `of`, the term as the block uses it (see the header). */
-type Source = { name: string; fmt?: "raw"; note?: string; of: (o: Ops) => number };
+type Ops = { t: Take; leaf: (name: string, val: number, note: string) => number; c: Ctx };
+/** One source of the tree: its name, format and note as lib/arkh's tree has them (a function when the note depends on the pass), and `of`, the term as the block uses it (see the header). */
+type Source = { name: string; fmt?: "raw"; note?: string | ((c: Ctx, val: number) => string | undefined); of: (o: Ops) => number };
 
 // Offsets (raw N.js): ArbitraryCode "MonsterCash" @4047005
 const SOURCES: Record<string, Source> = {
@@ -89,7 +85,8 @@ const SOURCES: Record<string, Source> = {
   arcade11: { name: "Cash From Mobs Arcade Bonus (Arcade 11)", of: ({ t }) => t("ArcadeBonus", 11) },
   box13c: { name: "Utilitarian Capsule (Post Office 13c)", note: "% Cash from Mobs (third slot of box 13)", of: ({ t }) => t("DNSM.BoxRewards", "13c") },
   guild8: { name: "Coin Supercharger (Guild 8)", note: "× world number (1 + ⌊map / 50⌋)", of: ({ t, c }) => t("GuildBonuses", 8) * (1 + Math.floor(c.map / 50)) },
-  talent643: { name: "Coins For Charon (Talent 643)", of: ({ t }) => t("TalentCalc", 643) },
+  // the map picker's line: the block's TalentCalc(643) read this target for its tier, so a term above 0 cannot throw here
+  talent643: { name: "Coins For Charon (Talent 643)", note: (c, val) => (0 < val ? `Map ${c.map} · target ${afkTarget(c)}` : undefined), of: ({ t }) => t("TalentCalc", 643) },
   talent644: { name: "American Tipper (Talent 644)", of: ({ t }) => t("TalentCalc", 644) },
   goldFood: { name: "Golden Bread (Golden Food)", note: "Σ of equipped + Emporium golden foods with effect MonsterCash", of: ({ t }) => t("GoldFoodBonuses", "MonsterCash") },
   vault17: { name: "Mining Payday (Vault 17)", note: "× log10(total ores mined) (OLA[340])", of: ({ t, c }) => t("Summoning", "VaultUpgBonus", 17, 0) * t("getLOG", asNum(c, "OptionsListAccount", 340)) },
@@ -125,9 +122,10 @@ export function coinTree(ctx: Ctx): StatResult {
     if (!def) throw new Error(`Coin Multi: no source "${id}" in the adapter`);
     const kept: Node[] = [];
     const t = takeFrom(call, used, kept, 'Coin Multi: ArbitraryCode("MonsterCash")', id);
-    const leaf = (name: string, val: number, note = READ) => (kept.push({ name, val, fmt: "raw", note }), val);
+    const leaf = (name: string, val: number, note: string) => (kept.push({ name, val, fmt: "raw", note }), val);
     const val = def.of({ t, leaf, c: plain });
-    return { name: def.name, val, fmt: def.fmt ?? "+", ...(def.note ? { note: def.note } : {}), ...(kept.length ? { children: kept } : {}) };
+    const note = typeof def.note === "function" ? def.note(plain, val) : def.note;
+    return { name: def.name, val, fmt: def.fmt ?? "+", ...(note ? { note } : {}), ...(kept.length ? { children: kept } : {}) };
   };
 
   const groups: Node[] = COIN_GROUPS.map((g) => {
@@ -137,20 +135,10 @@ export function coinTree(ctx: Ctx): StatResult {
 
   const migrated = migratedNote(state);
   const tree: Node = { name: COIN_ROOT, val: total, fmt: "x", ...(migrated ? { note: migrated } : {}), children: groups };
-  // One path for the number (spec section 4): the page's Biggest Gains rebuilds the total from the tree's values.
-  const rebuilt = MODEL.totalFromFlat(flattenTree(tree));
-  if (!near(rebuilt, total)) throw new TreeTotalMismatch(total, rebuilt);
-
-  // reads that are no source but lead to a runtime: / assumed: note stay visible, under the root
-  const extras = [...call.children, ...root.children.filter((n) => n !== call)].filter((n) => !used.has(n) && flagged(n)).map(traceTree);
-  if (extras.length) tree.children = [...groups, ...extras];
-  return { tree, total };
+  return finishTree(tree, total, MODEL, root, call, used);
 }
-
-/** `computeArkhCoinMulti`'s counterpart on a built state: ArbitraryCode("MonsterCash") once, with the trace on, and the tree read out of it. */
-export const gameCoinMulti = (state: GameState, charIdx: number, mapIdx: number): StatResult => coinTree(makeCtx(state, { player: charIdx, map: mapIdx, trace: true }));
 
 /** `computeArkhCoinMulti`'s counterpart: the envelope of a save, a character index and the map to compute on. */
 export function computeGameCoinMulti(save: unknown, charIdx: number, mapIdx: number): StatResult {
-  return gameCoinMulti(stateOf(save), charIdx, mapIdx);
+  return coinTree(makeCtx(stateOf(save), { player: charIdx, map: mapIdx, trace: true }));
 }

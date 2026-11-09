@@ -5,8 +5,10 @@
 // the N.js call(s) it stands for (the evidence of its value, even when the call was a memo hit), and below them only the branches that lead
 // to a `runtime:` or `assumed:` note, which spec section 5 wants visible. The whole trace is still there for debugging: run the tracker's
 // call on a Ctx made with `trace: true`.
-import type { StatResult } from "@/lib/statTracker/config";
+import { flattenTree } from "@/lib/dropRate/treeFlatten";
+import type { GainsModel, StatResult } from "@/lib/statTracker/config";
 import type { TraceNode } from "../ctx";
+import { TreeTotalMismatch } from "../errors";
 import { buildGameState, type GameEnvelope, type GameState } from "../state";
 
 type Node = StatResult["tree"];
@@ -89,3 +91,13 @@ export function optFrom(from: TraceNode, used: Set<TraceNode>, kept: Node[]): (b
 
 /** `a` equals `b` to a relative 1e-9: the tree must give the call's total (spec section 4). */
 export const near = (a: number, b: number) => Math.abs(a - b) <= 1e-9 * Math.max(1, Math.abs(b));
+
+/** The result of a tracker whose tree is read from its one traced `call`: the guard, then the flagged reads no source took, listed under the root. */
+export function finishTree(tree: Node, total: number, model: Pick<GainsModel, "totalFromFlat">, root: TraceNode, call: TraceNode, used: Set<TraceNode>): StatResult {
+  // One path for the number (spec section 4): the page's Biggest Gains rebuilds the total from the tree's values.
+  const rebuilt = model.totalFromFlat(flattenTree(tree));
+  if (!near(rebuilt, total)) throw new TreeTotalMismatch(total, rebuilt);
+  const extras = [...call.children, ...root.children.filter((n) => n !== call)].filter((n) => !used.has(n) && flagged(n)).map(traceTree);
+  if (extras.length) tree.children = [...tree.children!, ...extras];
+  return { tree, total };
+}
