@@ -4,15 +4,13 @@
 // A row's look follows what the row is: most show no format while they are 0 (not built, not owned) and some say why, so `fmt` and `note` can be functions of the save and the row's value.
 // The rows under a source are lib/dropRate/explain.
 import type { Ctx } from "@/lib/game/ctx";
-import { asNum, asNumber } from "@/lib/game/attr";
-import { hString } from "@/lib/game/hstring";
-import { GetTalentNumber, talentCurves } from "@/lib/game/njs/GetTalentNumber";
+import { asNum } from "@/lib/game/attr";
+import { GetTalentNumber } from "@/lib/game/njs/GetTalentNumber";
 import { getbonus2 } from "@/lib/game/njs/getbonus2";
 import { ResearchStuff } from "@/lib/game/njs/ResearchStuff";
-import { RunCodeOfTypeXforThingY } from "@/lib/game/njs/RunCodeOfTypeXforThingY";
 import { dropRateLuk } from "@/lib/game/njs/TotalStats";
-import { skillLevel } from "@/lib/game/player";
 import { chipUncalled, notOwned, SOURCES, type Ops } from "@/lib/game/trackers/dropRate";
+import { talentNote } from "./explain/talent";
 import type { NodeFmt } from "./node";
 
 export type V1Pool = "base" | "addMain" | "addLUK2" | "chipDR" | "postFlat" | "postMult";
@@ -39,21 +37,6 @@ const plusIfSet = (_c: Ctx, val: number): NodeFmt | undefined => (val ? "+" : un
 /** A note only while the row is 0. */
 const whenZero = (text: string) => (_c: Ctx, val: number) => (val ? undefined : text);
 
-/**
- * `decay(40,65,268)`: the talent's first curve and its level with every "all talent levels" bonus (GetTalentNumber @4463103). `AllTalentLVz` @4085148 because plain `AllTalentLV` is 0 for a talent
- * the character has no point in, and the note still says what it would read. The block makes no such read then, so this one is guarded (only the note's level depends on it).
- */
-const talentNote = (b: number) => (c: Ctx) => {
-  const [x1, x2, curve] = talentCurves(b);
-  let level = 0;
-  try {
-    level = skillLevel(c, b) + RunCodeOfTypeXforThingY(c, "AllTalentLVz", `${b}|${c.player}`);
-  } catch {
-    // only the note's level is lost
-  }
-  return `${hString(curve)}(${asNumber(x1)},${asNumber(x2)},${level})`;
-};
-
 const skullsNote = (c: Ctx, val: number): string => {
   const perSkull = GetTalentNumber(c, 1, 655);
   const skulls = asNum(c, "OptionsListAccount", 189);
@@ -75,8 +58,8 @@ const glimboLevelled = (c: Ctx): boolean => 1 <= ResearchStuff(c, "Grid_Bonus", 
 export const V1_SOURCES: readonly V1Source[] = [
   { id: "lukScaling", pool: "base", name: "LUK Scaling", fmt: "raw", from: ({ t }) => dropRateLuk(t("TotalStats", "LUK")) },
 
-  { id: "talent279", pool: "addMain", name: "Robbing Hood (Talent 279)", fmt: "+", note: talentNote(279), from: "talent279" },
-  { id: "talent24", pool: "addMain", name: "Curse Of Mr Looty Booty (Talent 24)", fmt: "+", note: talentNote(24), from: "talent24" },
+  { id: "talent279", pool: "addMain", name: "Robbing Hood (Talent 279)", fmt: "+", note: (c) => talentNote(c, 279), from: "talent279" },
+  { id: "talent24", pool: "addMain", name: "Curse Of Mr Looty Booty (Talent 24)", fmt: "+", note: (c) => talentNote(c, 24), from: "talent24" },
   { id: "talent655", pool: "addMain", name: "Boss Battle Spillover (Talent 655)", fmt: "+", note: skullsNote, from: "talent655" },
   { id: "stampA38", pool: "addMain", name: "Golden Sixes Stamp (Stamp A38)", fmt: plusIfSet, note: whenZero("Level 0 — not collected"), from: "stamp" },
   { id: "bubble", pool: "addMain", name: "Droppin Loads (Bubble 3,1)", fmt: plusIfSet, note: "bubble DROPPIN_LOADS", from: "bubble" },

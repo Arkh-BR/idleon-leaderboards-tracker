@@ -10,14 +10,20 @@ import { computeGameDropRateV1 } from "@/lib/game/trackers/dropRateV1";
 
 export type V1Diff = { missing: string[]; extra: string[]; value: string[]; meta: string[] };
 
-/** V1 source ids whose rows aren't built yet: differences below them are ignored. Each family's task takes its ids out; Task 7 asserts it is empty. */
-export const PENDING = new Set(V1_SOURCES.map((s) => s.id));
+/** The V1 sources whose rows are built (lib/dropRate/explain): each family's task adds its ids. */
+const BUILT: readonly string[] = ["talent279", "talent24", "talent655", "talent239", "workbench"];
+/** V1 source ids whose rows aren't built yet: differences below them are ignored. Task 7 asserts it is empty. */
+export const PENDING = new Set(V1_SOURCES.map((s) => s.id).filter((id) => !BUILT.includes(id)));
 
 /** A path where lib/arkh is wrong, with its N.js evidence. The value of the buckets and totals above such a path differs with it. */
 export const V1_KNOWN: { path: RegExp; why: string }[] = [
   {
     path: /^Drop Rate \/ LUK Scaling$/,
     why: "N.js TotalStats(\"Drop_Rarity\") starts from a live `x._customBlock_TotalStats(\"LUK\")` for DropRateLUK (@4190488); lib/arkh's lukScaling (stats/systems/common/stats.ts readRawLuk) reads PVStatList_<ci>[3], the TotalStats(\"LUK\") the game wrote at save time (@15076361), stale on any save older than the last stat change. dropRateV1.test.ts proves it: with lib/game's LUK in PVStatList_<ci>[3], lib/arkh's row is the game's",
+  },
+  {
+    path: / \/ Family Guy Multi \(×\) — potential buff( \/ Super Levels)?$/,
+    why: "N.js TalentCalc(-3) reads GetTalentNumber(1,144) @4498035, whose AllTalentLV @4085148 gives the super levels only when Spelunk[20 + player + 12 x preset] lists 144; lib/arkh forces the super levels on (talent.ts forceSuperActive), for characters that do not have it (Family Guy Multi 1.3556 vs the game's 1.3484 on ARKHE's characters without 144 listed), so its row is above the game's and has a Super Levels row the game has no levels for",
   },
 ];
 
@@ -63,8 +69,8 @@ function belowPending(r: Row): boolean {
 /** A root row of lib/game's own that lib/arkh has no such thing as: the `runtime:` / `assumed:` statements (Ruling L). */
 const flags = (n: ArkhNode): boolean => /^(runtime|assumed):/.test(n.note ?? "") || (n.children ?? []).some(flags);
 
-/** The aggregates above the sources: they move with any source V1_KNOWN explains. */
-const AGGREGATE = (path: string) => /^Drop Rate$|^Drop Rate \/ (Additive Pool|Total Sum|Post-Processing)$/.test(path);
+/** The aggregates a different LUK Scaling moves: the root and what depends on the base. The Additive Pool does not depend on LUK, its rows are compared one by one. */
+const AGGREGATE = (path: string) => /^Drop Rate$|^Drop Rate \/ (Total Sum|Chip Cap-Break|Post-Processing)$/.test(path);
 
 export function compareV1(save: unknown, ci: number, map: number): V1Diff {
   const mine = computeGameDropRateV1(save, ci, map).tree;
@@ -81,7 +87,7 @@ export function compareV1(save: unknown, ci: number, map: number): V1Diff {
     }
     return !!k;
   };
-  const ownRows = new Set(mine.children!.filter(flags).map((c) => c.name));
+  const ownRows = new Set(mine.children!.filter((c) => !["LUK Scaling", "Additive Pool", "Total Sum", "Chip Cap-Break", "Post-Processing"].includes(c.name) && flags(c)).map((c) => c.name));
   const out: V1Diff = { missing: [], extra: [], value: [], meta: [] };
 
   for (const [path, r] of b) if (!a.has(path) && !belowPending(r) && !explained(path)) out.missing.push(path);

@@ -14,6 +14,7 @@ import * as arkhCategorize from "@/lib/arkh/stats/categorize";
 import { newestSaves } from "@/lib/diagnose/characterize";
 import type { ArkhNode } from "@/lib/dropRate/node";
 import * as systems from "@/lib/dropRate/systems";
+import { talentLevelRows } from "@/lib/dropRate/explain/talent";
 import { V1_COVE, V1_SOURCES } from "@/lib/dropRate/v1Sources";
 import { flattenTree } from "@/lib/dropRate/treeFlatten";
 import { assumed, makeCtx, type Ctx, type TraceNode } from "@/lib/game/ctx";
@@ -36,12 +37,14 @@ vi.mock("@/lib/game/njs/TotalStats", async (orig) => {
   };
 });
 
+import { RunCodeOfTypeXforThingY } from "@/lib/game/njs/RunCodeOfTypeXforThingY";
 import { TotalStats } from "@/lib/game/njs/TotalStats";
+import { skillLevel } from "@/lib/game/player";
 
 const REAL = ['TotalStats["Drop_Rarity"]', "Dungon["];
 const dream = Object.assign(Array<number>(20).fill(0), { 10: 2 });
 const SET: Seeds = { ...WB, "GetTalentNumber[1,279]": 50, 'TotalStats["LUK"]': 500, 'EtcBonuses["2"]': 8 };
-const tree = (data: Data = {}, seeds: Seeds = {}, o: { map?: number } = {}) => dropRateV1Tree(synth({ Dream: dream, ...data }, { ...o, seeds: { ...SET, ...seeds }, real: REAL, trace: true }));
+const tree = (data: Data = {}, seeds: Seeds = {}, o: { map?: number } = {}) => dropRateV1Tree(synth({ Dream: dream, SL_0: {}, ...data }, { ...o, seeds: { ...SET, ...seeds }, real: REAL, trace: true }));
 const kid = (n: ArkhNode, name: string): ArkhNode => {
   const k = n.children?.find((c) => c.name === name);
   if (!k) throw new Error(`no "${name}" under "${n.name}": ${n.children?.map((c) => c.name)}`);
@@ -123,8 +126,7 @@ describe("the V1 tree on a synthetic envelope (runs in CI)", () => {
   });
 
   it("a talent's note is its curve at the level the game reads it", () => {
-    const seeds = { 'RunCodeOfTypeXforThingY["AllTalentLVz","279|0"]': 200 };
-    const { tree: t } = tree({ SL_0: { 279: 68 } }, seeds);
+    const { tree: t } = tree({ SL_0: { 279: 68 }, Dream: Object.assign(Array<number>(20).fill(0), { 10: 2, 12: 200 }) });
     expect(kid(kid(kid(t, "Additive Pool"), "🎯 Talents"), "Robbing Hood (Talent 279)").note).toBe("decay(40,65,268)");
   });
 
@@ -163,7 +165,7 @@ describe("the V1 tree on a synthetic envelope (runs in CI)", () => {
     const { tree: t } = tree();
     expect(t.children!.map((n) => n.name)).toEqual([...FIVE, "a seeded read"]);
     expect(kid(t, "a seeded read").note).toMatch(/^assumed: /);
-    expect(() => dropRateV1Tree(synth({ Dream: dream }, { seeds: SET, real: REAL }))).toThrow(/has none/);
+    expect(() => dropRateV1Tree(synth({ Dream: dream, SL_0: {} }, { seeds: SET, real: REAL }))).toThrow(/has none/);
   });
 });
 
@@ -279,6 +281,26 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("compareV1 on the 5 newest saves and 
       const { tree: t } = dropRateV1Tree(c);
       expect(ofTree(t).sort()).toEqual(ofTrace(c.trace!).sort());
     }
+  }, 300_000);
+
+  it("the rows' Bonus Levels are the levels the game reads (AllTalentLV, and AllTalentLVz for the best character)", () => {
+    const env = envelope(saves()[0]) as { charNames: string[] };
+    let checked = 0;
+    for (let ci = 0; ci < env.charNames.length; ci++) {
+      const c = makeCtx(stateOf(env), { player: ci, map: 251 });
+      for (const id of [24, 144, 239, 279]) {
+        const level = skillLevel(c, id);
+        if (0 >= level) continue;
+        const eff = talentLevelRows(c, id).find((r) => r.name === "Effective Level")!;
+        expect(eff.val, `${ci}/${id}`).toBe(level + RunCodeOfTypeXforThingY(c, "AllTalentLV", `${id}`));
+        checked++;
+      }
+      const best = talentLevelRows(c, 328, { best: true })[0];
+      const owner = env.charNames.indexOf(best.children![0].note!.split("owner: ")[1]);
+      expect(best.val).toBe(skillLevel(c, 328, owner) + RunCodeOfTypeXforThingY(c, "AllTalentLVz", `328|${owner}`));
+      checked++;
+    }
+    expect(checked).toBeGreaterThan(env.charNames.length);
   }, 300_000);
 
   it("V1_KNOWN's LUK Scaling: lib/arkh gives the game's number once its PVStatList snapshot is the live LUK", () => {
