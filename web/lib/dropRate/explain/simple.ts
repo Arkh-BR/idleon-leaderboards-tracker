@@ -229,10 +229,16 @@ const friend3 = safe("Friend Bonus", (c, val) => {
   }
   const comp30 = Companions(c, 30);
   const comp44 = CompLV2(c, 44);
+  // FriendBonusXtraMulti is ONE sum, 1 + (100 x Companion 30 + 25 x CompLV2 44) / 100: with both present the second row is a term added to the first, not a factor
+  const qty = last?.val ?? 0;
+  if (!near(qty * (1 + (100 * comp30 + 25 * comp44) / 100), val)) return outOfStep("Friend Bonus", val, qty * (1 + (100 * comp30 + 25 * comp44) / 100));
+  const added = 0 < comp30 && 0 < comp44;
   return [
     ...(last ? [last] : []),
     ...(0 < comp30 ? [companionRow(c, 30, 1 + comp30, `companion 30${1 < comp30 ? " — stage 2 (LV2)" : ""}`)] : []),
-    ...(0 < comp44 ? [row("Companion 44 — Stage 2 (LV2)", 1 + (25 * comp44) / 100, "x", "+25% Friend Bonus multi")] : []),
+    ...(0 < comp44
+      ? [added ? row("Companion 44 — Stage 2 (LV2)", (25 * comp44) / 100, "+", "+25% Friend Bonus multi, added to Companion 30's multi (N.js sums them)") : row("Companion 44 — Stage 2 (LV2)", 1 + (25 * comp44) / 100, "x", "+25% Friend Bonus multi")]
+      : []),
   ];
 });
 

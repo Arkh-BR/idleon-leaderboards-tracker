@@ -117,12 +117,17 @@ describe("the additive pool", () => {
   it("Friend Bonus: the last friend with stat 3 within the slots, then the companions' factors", () => {
     const seeds: Seeds = { 'Thingies["FriendBonusSlots",0,0]': 2, 'Thingies["FriendBonusQTY",3,500]': 10, 'Thingies["FriendBonusQTY",3,20]': 7, "Companions[30]": 1.5, "CompLV2[44]": 1 };
     const list = (text: string) => ({ OptLacc: Object.assign(filled(700, {}), { 476: text }) });
-    const rows = run("friend3", ctx(list("1,10,Ann;3,500,Bob;3,20,Cy"), seeds), 40);
+    // the game: 10 x (1 + (100 x 1.5 + 25 x 1) / 100) = 10 x 2.75 = 27.5 (the Pet1 row is 2.5, Companion 44 adds 0.25)
+    const rows = run("friend3", ctx(list("1,10,Ann;3,500,Bob;3,20,Cy"), seeds), 27.5);
     expect(rows.map((r) => [r.name, r.val, r.fmt, r.note])).toEqual([
       ["Bob", 10, "+", undefined],
       ["Mr Pig (Companion 30)", 2.5, "x", "companion 30 — stage 2 (LV2)"],
-      ["Companion 44 — Stage 2 (LV2)", 1.25, "x", "+25% Friend Bonus multi"],
+      ["Companion 44 — Stage 2 (LV2)", 0.25, "+", "+25% Friend Bonus multi, added to Companion 30's multi (N.js sums them)"],
     ]);
+    // Companion 44 alone is a factor of 1.25; Companion 30 alone is its row
+    expect(run("friend3", ctx(list("3,500,Bob"), { ...seeds, "Companions[30]": 0 }), 12.5).map((r) => [r.name, r.val, r.fmt])).toEqual([["Bob", 10, "+"], ["Companion 44 — Stage 2 (LV2)", 1.25, "x"]]);
+    expect(run("friend3", ctx(list("3,500,Bob"), { ...seeds, "CompLV2[44]": 0 }), 25)[1].val).toBe(2.5);
+    expect(run("friend3", ctx(list("3,500,Bob"), seeds), 30)[0].note).toMatch(/^not read: the rows give 27.5, the block 30/);
     expect(rows[0].children).toEqual([{ name: "Score", val: 500, fmt: "raw" }]);
     expect(run("friend3", ctx(list("0"), seeds), 0)).toEqual([]);
   });
