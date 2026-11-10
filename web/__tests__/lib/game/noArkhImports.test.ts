@@ -28,25 +28,35 @@ const runtimeImports = (src: string): string[] => {
 // every web/lib file the walk reaches is followed; only lib/tome (which DNSM.TomeQTYtot runs, Ruling K) is outside it
 const followed = (rel: string) => rel.startsWith("lib/") && !rel.startsWith("lib/tome/");
 
+const walk = (roots: string[]) => {
+  const todo = [...roots];
+  const seen = new Set<string>();
+  const bad: string[] = [];
+  while (todo.length) {
+    const f = todo.pop()!;
+    if (seen.has(f)) continue;
+    seen.add(f);
+    for (const spec of runtimeImports(readFileSync(f, "utf8"))) {
+      const to = resolveFile(f, spec);
+      if (!to) continue;
+      const rel = norm(to);
+      if (rel.startsWith("lib/arkh/")) bad.push(`${norm(f)} -> ${rel}`);
+      else if (followed(rel)) todo.push(to);
+    }
+  }
+  return { seen, bad };
+};
+const tsIn = (dir: string) => readdirSync(dir).filter((f) => f.endsWith(".ts")).map((f) => join(dir, f));
+
 describe("lib/game imports no lib/arkh at runtime (Ruling KK)", () => {
   it("through the trackers' static import graph", () => {
-    const dir = join(ROOT, "lib/game/trackers");
-    const todo = readdirSync(dir).filter((f) => f.endsWith(".ts")).map((f) => join(dir, f));
-    const seen = new Set<string>();
-    const bad: string[] = [];
-    while (todo.length) {
-      const f = todo.pop()!;
-      if (seen.has(f)) continue;
-      seen.add(f);
-      for (const spec of runtimeImports(readFileSync(f, "utf8"))) {
-        const to = resolveFile(f, spec);
-        if (!to) continue;
-        const rel = norm(to);
-        if (rel.startsWith("lib/arkh/")) bad.push(`${norm(f)} -> ${rel}`);
-        else if (followed(rel)) todo.push(to);
-      }
-    }
+    const { seen, bad } = walk(tsIn(join(ROOT, "lib/game/trackers")));
     expect(seen.size).toBeGreaterThan(20); // the walk really walked
+    expect(bad).toEqual([]);
+  });
+  it("through lib/talentsLevel (the Talents page)", () => {
+    const { seen, bad } = walk(tsIn(join(ROOT, "lib/talentsLevel")));
+    expect(seen.size).toBeGreaterThan(5);
     expect(bad).toEqual([]);
   });
 });

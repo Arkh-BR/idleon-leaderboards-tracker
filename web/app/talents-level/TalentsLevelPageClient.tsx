@@ -17,9 +17,10 @@ import {
   getCharClassKey,
   getCharClassLabel,
 } from "@/lib/talentsLevel/charClass";
+import { pageError } from "@/lib/statTracker/pageErrors";
 import { getActivePresetIdx } from "@/lib/talentsLevel/compute";
 import { isAccountWideTalent } from "@/lib/talentsLevel/accountWideTalents";
-import type { ArkhNode } from "@/lib/arkh/node";
+import type { ArkhNode } from "@/lib/dropRate/node";
 import TalentsToMaxView from "@/components/talentsLevel/TalentsToMaxView";
 import type { ToMaxCharGroup } from "@/lib/talentsLevel/toMax";
 import UnbookedView from "@/components/talentsLevel/UnbookedView";
@@ -509,8 +510,9 @@ export default function TalentsLevelPageClient() {
         // instead of the save's current unlocked cap.
         setTree(applyStarCeiling(result.tree, talentId));
         setError(null);
-      } catch (e) {
+      } catch (raw) {
         if (!cancelled) {
+          const e = pageError(save, raw, "Talents");
           setError(
             "Talent compute failed: " +
               (e instanceof Error ? e.message : String(e))
