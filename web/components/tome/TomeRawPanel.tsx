@@ -303,6 +303,11 @@ function TomeRowView({ row: r }: { row: TomeRow }) {
       <td className="px-3 py-1.5 text-right tabular-nums font-semibold">
         {r.pts === null ? (
           <span className="text-zinc-600">—</span>
+        ) : !r.unlocked ? (
+          // TomePCT is 0 below the task's account level, whatever the quantity
+          <span className="text-xs font-normal text-zinc-500 whitespace-nowrap">
+            Locked{r.lvReq !== undefined ? ` (account LV ${r.lvReq})` : ""}
+          </span>
         ) : (
           <span className={r.pts === 0 ? "text-zinc-500" : "text-gold"}>{r.pts}</span>
         )}

@@ -42,3 +42,38 @@ describe("Tome panels apply the page's save", () => {
     expect(tome.computeTome).toHaveBeenLastCalledWith('{"x":1}');
   });
 });
+
+const LOCKED = {
+  idx: 1, task: "Stamp Total LV", rawValue: 9999, pts: 0, source: "raw.StampLv", computeIdx: 0, bonus: [10000, 0, 1000] as const,
+  unlocked: false, lvReq: 500,
+};
+
+describe("Tome panels and the account level", () => {
+  it("a locked task says its level, has no tier and no gain", () => {
+    tome.computeTome.mockReturnValue({ ...RESULT, rows: [LOCKED] });
+    const { container } = render(<BestTomePanel loaded={A} />);
+    expect(screen.getByText("Locked (account LV 500)")).toBeInTheDocument();
+    for (const t of ["Bronze", "Silver", "Gold", "Blue", "tied / ahead"]) expect(container.querySelector("tbody")!.textContent).not.toContain(t);
+    expect(screen.queryByText(/to gain/)).toBeNull();
+  });
+
+  it("Raw tab marks a locked task", () => {
+    tome.computeTome.mockReturnValue({ ...RESULT, rows: [LOCKED] });
+    render(<TomeRawPanel loaded={A} />);
+    expect(screen.getByText("Locked (account LV 500)")).toBeInTheDocument();
+  });
+
+  it("Best Tome still lists the rows on an engine error when IdleonToolbox's points filled them", () => {
+    tome.computeTome.mockReturnValue({ ...RESULT, rows: [{ ...LOCKED, unlocked: true }], error: "Nope.", usedParsedTomePoints: true });
+    render(<BestTomePanel loaded={A} />);
+    expect(screen.getByText(/Nope\./)).toBeInTheDocument();
+    expect(screen.getByText("Stamp Total LV")).toBeInTheDocument();
+  });
+
+  it("Best Tome shows only the error when nothing filled the rows", () => {
+    tome.computeTome.mockReturnValue({ ...RESULT, rows: [{ ...LOCKED, unlocked: true }], error: "Nope." });
+    render(<BestTomePanel loaded={A} />);
+    expect(screen.getByText("Nope.")).toBeInTheDocument();
+    expect(screen.queryByText("Stamp Total LV")).toBeNull();
+  });
+});
