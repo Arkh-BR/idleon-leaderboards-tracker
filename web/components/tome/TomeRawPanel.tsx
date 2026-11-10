@@ -195,9 +195,9 @@ export default function TomeRawPanel({
       </div>
       </details>
 
-      {error && (
+      {(error ?? result?.error) && (
         <div className="bg-red-950/50 border border-red-800 rounded p-3 text-sm">
-          <strong className="text-red-400">Error:</strong> {error}
+          <strong className="text-red-400">Error:</strong> {error ?? result?.error}
         </div>
       )}
 

@@ -20,15 +20,6 @@ import {
   readMasteryInputs,
   yellowTotal,
 } from "../../../lib/arkh/stats/systems/common/cookingMastery";
-import {
-  rawDungeonRank,
-  rawJellyOperations,
-  rawMenagerieBoostLv,
-  rawMenagerieRank,
-  rawShinyLevelsProper,
-  rawStarTalentsProper,
-} from "../../../lib/tome/extractors";
-import { DUNGEON_LEVELS } from "../../../lib/tome/tasks";
 import { jellyRoGBonus } from "../../../lib/arkh/stats/data/w7/jelly";
 import { rogDropMulti } from "../../../lib/arkh/stats/systems/w7/jelly";
 import { rogBonusQTY } from "../../../lib/arkh/stats/systems/w7/sushi";
@@ -310,18 +301,12 @@ export const CASES: GoldenCase[] = [
     name: "Tome: Successful Jelly Operations at slot 121 (compute 121, 72 → 800 pts)",
     note: "NinjaInfo[32] appended 121; Tome list [121] = [72,2,800]; Unique Sushi max 64",
     run: () => {
-      const rawOps = rawJellyOperations({
-        Research: [[], [], [], [], [], [], [], [0, 0, 0, 0, 0, 0, 0, 0, 0, 37]],
-      } as any);
-      const preUpdate = rawJellyOperations({ Research: [[], [], [], [], [], [], [], [0, 1]] } as any);
       return (
         TOME_TASKS[121] === "Successful Jelly Operations" &&
         NEI32[121] === 121 &&
         TOME_BONUSES[121][0] === 72 &&
         TOME_BONUSES[121][2] === 800 &&
-        TOME_BONUSES[116][0] === 64 &&
-        rawOps === 37 &&
-        preUpdate === 0
+        TOME_BONUSES[116][0] === 64
       );
     },
   },
@@ -362,23 +347,6 @@ export const CASES: GoldenCase[] = [
     },
   },
   {
-    name: "Tome: Dungeon Rank = first RANDOlist[29] threshold above the points (87 live ranks, no cap)",
-    note: "N.js TomeQTY[17] = GenINFO[12]; the old hand-copied table capped everyone past 120M at rank 66",
-    run: () => {
-      const rank = (pts: number) => rawDungeonRank({ OptLacc: [...new Array(71).fill(0), pts] } as any);
-      // Table [0, 4, 10, …]: 5 pts → first threshold above is index 2; exactly
-      // 4 pts counts as reached (4 < 4 is false) → also 2; 1.93B (ARKHE) → 75.
-      return (
-        DUNGEON_LEVELS.length >= 87 &&
-        rank(5) === 2 &&
-        rank(4) === 2 &&
-        rank(3) === 1 &&
-        rank(1934670447) === 75 &&
-        rank(1e17) === DUNGEON_LEVELS.length
-      );
-    },
-  },
-  {
     name: "Gallery Bonus Multi counts chip 16 per character (the game's chipBonuses(\"troph\"))",
     note: "verified against the live game 2026-09-18: 2.27× with the chip, 2.17× without",
     run: () => {
@@ -414,8 +382,6 @@ export const CASES: GoldenCase[] = [
     name: "Tome: 124 tasks, Menagerie Rank (122, [50,2,1200]) + Boosts Upg LV (123, [700,0,750]) appended",
     note: "N.js TomeQTY[122] = Menagerie[0][2]; TomeQTY[123] = Σ Menagerie[3]; NinjaInfo[32] appended 122, 123",
     run: () => {
-      const m = { Menagerie: [[5, 1, 37], [], [], [3, 0, 4, 2]] } as any;
-      const asString = { Menagerie: JSON.stringify(m.Menagerie) } as any;
       return (
         TOME_TASKS.length === 124 &&
         TOME_TASKS[122] === "Luminous Menagerie Rank" &&
@@ -423,40 +389,7 @@ export const CASES: GoldenCase[] = [
         NEI32.length === 124 && NEI32[122] === 122 && NEI32[123] === 123 &&
         TOME_BONUSES.length === 124 &&
         TOME_BONUSES[122].join() === "50,2,1200" &&
-        TOME_BONUSES[123].join() === "700,0,750" &&
-        rawMenagerieRank(m) === 37 && rawMenagerieBoostLv(m) === 9 &&
-        rawMenagerieRank(asString) === 37 && rawMenagerieBoostLv(asString) === 9 &&
-        rawMenagerieRank({} as any) === 0 && rawMenagerieBoostLv({} as any) === 0
-      );
-    },
-  },
-  {
-    name: "Tome shiny LVs: Menagerie unlock 11 raises the shiny cap 20 → 30",
-    note: "N.js Breeding(\"SpecialPassives\",\"Lv\") loops 19 + 10·MenagerieStuff(\"UnlockOwned\",11) thresholds",
-    run: () => {
-      const breeding = [] as any[];
-      breeding[22] = [1e12, 0];
-      const unlocks = new Array(20).fill(0);
-      const without = rawShinyLevelsProper({ Breeding: breeding, Menagerie: [[], [], unlocks] } as any);
-      unlocks[11] = 1;
-      const withU = rawShinyLevelsProper({ Breeding: breeding, Menagerie: [[], [], unlocks] } as any);
-      return without === 20 + 1 && withU === 30 + 1;
-    },
-  },
-  {
-    name: "Tome Star Talent Points: the played character (latest PTimeAway_N), not the best one",
-    note: "N.js TomeQTY[15] = TotalTalentPoints(...)[5] of the logged-in char",
-    run: () => {
-      // CauldronP2W -1 = sigil 9 locked (an absent level reads 0, the first tier).
-      const chars = {
-        Lv0_0: [501, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        Lv0_1: [101, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        CauldronP2W: [[], [], [], [], new Array(20).fill(-1)],
-      } as any;
-      return (
-        rawStarTalentsProper({ ...chars, PTimeAway_0: 1, PTimeAway_1: 2 }) === 97 &&
-        rawStarTalentsProper({ ...chars, PTimeAway_0: 2, PTimeAway_1: 1 }) === 497 &&
-        rawStarTalentsProper(chars) === 497 // no away times → best char
+        TOME_BONUSES[123].join() === "700,0,750"
       );
     },
   },

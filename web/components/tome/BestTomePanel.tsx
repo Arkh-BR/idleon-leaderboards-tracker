@@ -389,10 +389,12 @@ export default function BestTomePanel({
     return sortDir === "asc" ? " ▲" : " ▼";
   }
 
-  if (error) {
+  // result.error: the engine refused the save, so every row is MISSING; nothing worth listing.
+  const shownError = error ?? result?.error ?? null;
+  if (shownError) {
     return (
       <div className="bg-red-950/50 border border-red-800 rounded p-3 text-sm">
-        <strong className="text-red-400">Error:</strong> {error}
+        <strong className="text-red-400">Error:</strong> {shownError}
       </div>
     );
   }

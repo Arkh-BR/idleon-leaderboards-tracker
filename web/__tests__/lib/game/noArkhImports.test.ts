@@ -58,4 +58,9 @@ describe("lib/game imports no lib/arkh at runtime (Ruling KK)", () => {
     expect(seen.size).toBeGreaterThan(5);
     expect(bad).toEqual([]);
   });
+  it("through lib/tome (the Tome page)", () => {
+    const { seen, bad } = walk(tsIn(join(ROOT, "lib/tome")));
+    expect(seen.size).toBeGreaterThan(5);
+    expect(bad).toEqual([]);
+  });
 });
