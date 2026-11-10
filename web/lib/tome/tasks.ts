@@ -2,7 +2,7 @@
 // indexed by position, not by name. If you re-sync from the .gs, paste the
 // raw arrays verbatim.
 
-import { CardStuff, DeathNoteMobs, MapAFKtarget, RANDOlist } from "@/lib/game/data/generated/customlists.js";
+import { CardStuff, DeathNoteMobs, MapAFKtarget } from "@/lib/game/data/generated/customlists.js";
 
 // 124 tome tasks in the EXACT order they appear in-game and on the IT website
 // (NinjaInfo[32] is the game's display→compute map). The 2026-08 Royal
@@ -237,16 +237,6 @@ export const CARDS_PER_TIER: Readonly<Record<string, number>> = Object.fromEntri
     .filter((c) => c[0] !== "Blank")
     .map((c) => [c[0], Number(c[2])]),
 );
-
-// Dungeon rank thresholds on OptLacc[71] (dungeon points) — the game's
-// RANDOlist[29], read from the regenerated game data so new ranks flow in
-// with every update. The previous hand-copied table stopped at 100M and was
-// padded with 999999999 sentinels, so every account past ~120M points was
-// capped at rank 66 (ARKHE at 1.93B is rank 75; the live table has 87
-// thresholds up to 1e16).
-export const DUNGEON_LEVELS: readonly number[] = (
-  ((RANDOlist as unknown as unknown[][])[29] as unknown[]) || []
-).map(Number);
 
 // Map index of every deathNote mob, as the game's TomeQTY[38] loop finds it:
 // MapAFKtarget.indexOf(DeathNoteMobs[w][i]), unmapped mobs skipped. Order is
