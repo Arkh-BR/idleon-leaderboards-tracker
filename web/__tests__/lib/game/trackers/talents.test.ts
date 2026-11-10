@@ -17,6 +17,7 @@ import { TALENT_TABS_BY_CLASS } from "@/lib/talentsLevel/talentTabs.gen";
 import { BASE, synth } from "../support/expStub";
 import { asNumber } from "@/lib/game/attr";
 import { TaskShopDesc } from "@/lib/game/data";
+import { capBoosterRow } from "@/lib/talentsLevel/explain/capBoosters";
 import { plainTalent } from "@/lib/talentsLevel/explain/plain";
 
 const SPELUNK = Array.from({ length: 60 }, (_, i) => (18 === i || 45 === i ? Array<number>(10).fill(0) : []));
@@ -100,6 +101,63 @@ describe("the plain talents on a synthetic envelope (runs in CI)", () => {
     const save = envelope({ SL_0: JSON.stringify({ 24: 3 }), PlayerStuff_0: JSON.stringify([0, 0]), SLpre_0: JSON.stringify({ 24: 9 }) });
     expect(presetState(save, 0, 1).get("SL_0")).toEqual({ 24: 9 });
     expect(presetState(save, 0, 1).get("PlayerStuff_0")).toEqual([0, 1]);
+  });
+});
+
+describe("the cap boosters on a synthetic envelope (runs in CI)", () => {
+  const CAULDRON = [[0, 2], [0, 0], [0, 0], [0, 0]];
+  // blocks the booster reads: the talent curve (GetTalentNumber, getbonus2, ArbitraryCode5Inputs) runs for real, every other block (AllTalentLV...) answers 0, so a talent's level is its points
+  const capOf = (data: Record<string, unknown>, id: number): ArkhNode =>
+    capBoosterRow(synth({ CauldronInfo: CAULDRON, Spelunk: SPELUNK, PlayerStuff_0: [0, 0], SL_0: {}, SM_0: {}, ...data }, { map: 0, real: ["GetTalentNumber", "getbonus2", "ArbitraryCode5Inputs"] }), id, 0)!;
+
+  it("the cap is the hardcoded base plus each booster, the source tree under the source's own name", () => {
+    const cap = capOf({ SL_0: { 10: 5, 81: 4 } }, 10);
+    expect(cap.children!.map((k) => k.name)).toEqual(["Base Cap (hardcoded)", "Eternal STR (Tal 51 y-bonus)", "Str Summore (Tal 81 x-bonus)", "Overblown Testosterone (Tal 143 y-bonus)"]);
+    const summore = kid(cap, "Str Summore (Tal 81 x-bonus)");
+    expect(summore.val).toBeGreaterThan(0);
+    expect(summore.note).toBe("per-char");
+    expect(summore.children!.map((k) => k.name)).toEqual(["Talent 81"].map((n) => expect.stringContaining(n)));
+    expect(summore.children![0].note).toBe("per-char emit — full breakdown");
+    expect(summore.children![0].val).toBe(summore.val);
+    expect(cap.val).toBe(cap.children!.reduce((a, k) => a + k.val, 0));
+    expect(kid(cap, "Eternal STR (Tal 51 y-bonus)").note).toBe("account-wide");
+  });
+
+  it("a bubble clamp: min(raw, CauldronInfo[chapter][slot]) with the rows Booster Raw and <label> Lv", () => {
+    const cap = capOf({ SL_0: { 86: 5, 129: 60 } }, 86);
+    const booster = kid(cap, "Blocky Bottles (Tal 129 x-bonus)");
+    const raw = kid(booster, "Booster Raw");
+    expect(raw.val).toBeGreaterThan(2);
+    expect(kid(booster, "Warriors Rule (W1 bubble [0][1]) Lv").val).toBe(2);
+    expect(booster.val).toBe(2);
+    expect(booster.note).toBe("min(raw, bubble Lv) — per-char");
+    expect(cap.val).toBe(102);
+  });
+
+  it("the saved SM is a floor: above the formula it overrides, equal it is verified, 0 leaves the formula with no row", () => {
+    const base = { SL_0: { 10: 5, 81: 4 } };
+    const formula = capOf(base, 10);
+    expect(formula.children!.some((k) => k.name.startsWith("Saved SkillLevelsMAX"))).toBe(false);
+    const over = capOf({ ...base, SM_0: { 10: formula.val + 40 } }, 10);
+    expect(over.val).toBe(formula.val + 40);
+    expect(kid(over, "Saved SkillLevelsMAX (override)").val).toBe(formula.val + 40);
+    const same = capOf({ ...base, SM_0: { 10: formula.val } }, 10);
+    expect(same.val).toBe(formula.val);
+    expect(kid(same, "Saved SkillLevelsMAX (verified)").val).toBe(formula.val);
+    const lower = capOf({ ...base, SM_0: { 10: 1 } }, 10);
+    expect(lower.val).toBe(formula.val);
+    expect(kid(lower, "Saved SkillLevelsMAX (override)").val).toBe(1);
+  });
+
+  it("a talent without a booster entry keeps the Max Book Lv Cap row", () => {
+    expect(capBoosterRow(synth({ SL_0: {}, SM_0: {} }, { map: 0 }), 24, 0)).toBeNull();
+    const t = computeGameTalent(envelope(), 0, 24);
+    expect(kid(kid(kid(t, "Effective Level"), "Base Level"), "Max Book Lv Cap")).toBeDefined();
+  });
+
+  it("the page's tree carries the cap row of a booster target", () => {
+    const t = computeGameTalent(envelope({ CauldronInfo: CAULDRON }), 0, 10);
+    expect(kid(kid(kid(t, "Effective Level"), "Base Level"), "Talent Cap (base + boosters)").val).toBeGreaterThanOrEqual(100);
   });
 });
 

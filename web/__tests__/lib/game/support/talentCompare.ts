@@ -3,16 +3,18 @@
 // lib/arkh is the comparison target only: where it is wrong the tree follows N.js and the path goes in TALENT_KNOWN with the evidence.
 import "./arkhOracle"; // first: it sets the `window` shim lib/arkh reads
 import { computeTalentEffective } from "@/lib/talentsLevel/compute";
-import { TALENT_CAP_BOOSTERS } from "@/lib/arkh/stats/data/common/talent-cap-boosters";
 import { TALENT_FINAL_BONUS_WRAPS } from "@/lib/arkh/stats/data/common/talent-final-bonus-wraps";
-import { computeGameTalent, type TalentOpts } from "@/lib/game/trackers/talents";
+import { talentCurveAt } from "@/lib/game/njs/GetTalentNumber";
+import { makeCtx } from "@/lib/game/ctx";
+import { stateOf } from "@/lib/game/trackers/page";
+import { computeGameTalent, presetState, type TalentOpts } from "@/lib/game/trackers/talents";
 import type { ArkhNode } from "@/lib/dropRate/node";
 import { near, rowsOf, type V1Diff } from "./v1Compare";
 
 /** The talents with a final-bonus wrap (a task of its own builds them): the comparer skips them until it lands. Task 3 and 4 empty it. */
 export const PENDING_WRAPS = new Set<number>(Object.keys(TALENT_FINAL_BONUS_WRAPS).map(Number));
-/** The cap boosters' ids (task 2 builds them). */
-export const PENDING_BOOSTERS = new Set<number>(Object.keys(TALENT_CAP_BOOSTERS).map(Number));
+/** The cap boosters are built (Task 2): nothing is pending. */
+export const PENDING_BOOSTERS = new Set<number>();
 
 /** A path where lib/arkh is wrong, with its N.js evidence (RAW offset). */
 export const TALENT_KNOWN: { path: RegExp; why: string }[] = [
@@ -40,8 +42,19 @@ export function compareTalent(save: unknown, ci: number, id: number, opts: Talen
   // (getbonus2 in talent.ts, getTalentNumber) zeroes the value at level 0 instead and finds no reference at all, so for such a talent the tree has the game's Effective Level chain of the first character, with 0 points.
   if (theirs.children?.length === 1 && NOBODY.test(theirs.children[0].name) && mine.children?.some((k) => k.name === "Effective Level")) {
     const at = (n: ArkhNode | undefined, ...names: string[]): ArkhNode | undefined => names.reduce<ArkhNode | undefined>((k, name) => k?.children?.find((c) => c.name === name), n);
+    // the game's tree must be the one of nobody: no points, the curve at level 0 as the root value, and the first character as the reference (the first above 0 wins and every character reads the same value at level 0)
+    const wrong: string[] = [];
     const points = at(mine, "Effective Level", "Base Level", "Points Invested")?.val;
-    return { missing: [], extra: points === 0 ? [] : [`${mine.name}: arkh finds no reference character, the game's has ${points} points`], value: [], meta: [] };
+    if (points !== 0) wrong.push(`${mine.name}: arkh finds no reference character, the game's has ${points} points`);
+    const state = undefined === opts.presetIdx ? stateOf(save) : presetState(save, ci, opts.presetIdx);
+    // plain: the curve at level 0. forceSuperActive (the Hypothetical what-if) counts the super levels the talent would get, so the curve is read at the Effective Level the tree shows
+    const level = opts.forceSuperActive ? (at(mine, "Effective Level")?.val ?? 0) : 0;
+    const expected = talentCurveAt(makeCtx(state, { player: ci, map: 0 }), 1, id, level);
+    if (!near(mine.val, expected)) wrong.push(`${mine.name}: nobody has points, the root is ${mine.val} but the curve at level ${level} is ${expected}`);
+    const names = (save as { charNames?: string[] }).charNames ?? [];
+    const reference = at(mine, "Effective Level", "Base Level")?.children?.[0]?.name;
+    if (reference !== `Reference Character: ${names[0] || "Char 0"}`) wrong.push(`${mine.name}: reference row is ${JSON.stringify(reference)}, the game's pick is character 0`);
+    return { missing: [], extra: wrong, value: [], meta: [] };
   }
   const a = rowsOf(mine);
   const b = rowsOf(theirs);

@@ -3,6 +3,7 @@
 // The page shows both talent presets. A character's other preset is another save: SL_<i> replaced by SLpre_<i> and PlayerStuff_<i>[1] by the preset, which is where N.js AllTalentLV looks for the super talents
 // (Spelunk[20 + i + 12 x preset]). That envelope is built fresh from a copy of the source and its state is not registered in `stateOf`'s cache: asking for the other preset must not change what the active one answers.
 import type { ArkhNode } from "@/lib/dropRate/node";
+import { capBoosterRow } from "@/lib/talentsLevel/explain/capBoosters";
 import { plainTalent } from "@/lib/talentsLevel/explain/plain";
 import { makeCtx } from "../ctx";
 import { buildGameState, type GameEnvelope, type GameState } from "../state";
@@ -51,5 +52,5 @@ export function presetState(save: unknown, charIdx: number, presetIdx: 0 | 1): G
 /** `computeTalentEffective`'s tree on lib/game: the talent `talentId` of character `charIdx` of a save envelope. The page has no map: the Ctx is on map 0. */
 export function computeGameTalent(save: unknown, charIdx: number, talentId: number, opts: TalentOpts = {}): ArkhNode {
   const state = undefined === opts.presetIdx ? stateOf(save) : presetState(save, charIdx, opts.presetIdx);
-  return plainTalent(makeCtx(state, { player: charIdx, map: 0 }), talentId, { forceSuper: !!opts.forceSuperActive });
+  return plainTalent(makeCtx(state, { player: charIdx, map: 0 }), talentId, { forceSuper: !!opts.forceSuperActive, capOf: capBoosterRow });
 }

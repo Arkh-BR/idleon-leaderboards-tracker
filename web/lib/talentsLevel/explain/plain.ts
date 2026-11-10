@@ -23,7 +23,8 @@ export function curveOf(id: number): readonly [number, number, string] | null {
   }
 }
 
-export type PlainOpts = Pick<TalentRowsOpts, "forceSuper" | "capOf">;
+/** `split: false`: the super levels are a term of the Bonus Levels (the shape a talent has inside a cap booster's row), not a row of their own. */
+export type PlainOpts = Pick<TalentRowsOpts, "forceSuper" | "capOf"> & { split?: boolean };
 
 /** The talents the page reads as the best character's (N.js `getbonus2(1, id, -1)`): the account-wide ones, but 328 and 655 (the Workbench and the skull talent), whose rows have a shape of their own. */
 const bestOf = (id: number): boolean => isAccountWideTalent(id) && 328 !== id && 655 !== id;
@@ -33,7 +34,7 @@ export function plainTalent(c: Ctx, id: number, o: PlainOpts = {}): ArkhNode {
   const name = label("Talent", id);
   const curve = curveOf(id);
   if (!curve) return { name, val: 0, note: "no formula data" };
-  const rows = talentLevelRows(c, id, { ...o, split: true, best: bestOf(id) });
+  const rows = talentLevelRows(c, id, { ...o, split: o.split ?? true, best: bestOf(id) });
   const [x1, x2, formula] = curve;
   if (bestOf(id)) {
     const effective = rows.find((r) => r.name === "Effective Level");
