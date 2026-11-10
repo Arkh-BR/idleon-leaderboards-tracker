@@ -131,10 +131,10 @@ const TOME_TERMS = new Set(["bubbleSTR", "bubbleAGI", "bubbleWIS", "goldFood", "
 const REFUSALS = (id: string): string[] => (TOME_TERMS.has(id) ? HOURZERO : []);
 /** The pairs per leaf whose difference a KNOWN entry closes, as a literal (a stale entry or a new difference fails). */
 const EXPECT_KNOWN: Record<string, number> = {
-  bubbleSTR: 1126, bubbleAGI: 1121, bubbleWIS: 1129, grid149: 1, grid169: 1, dustWalker: 9, mealCash: 2, statue19: 1, prayer8: 43, divMinor3: 1, goldFood: 326, talent643: 2,
+  bubbleSTR: 1126, bubbleAGI: 1121, bubbleWIS: 1129, grid149: 1, grid169: 1, dustWalker: 9, prayer8: 43, divMinor3: 1, goldFood: 326, talent643: 2,
 };
-/** The pairs per leaf: 106 saves x characters (1163 on one map), less the refused ones, plus the extra maps of the map-dependent ones. */
-const PAIRS: Record<string, number> = { bubbleSTR: 1153, bubbleAGI: 1153, bubbleWIS: 1153, goldFood: 1153, divMinor3: 1153, talent22: 1162, guild8: 2326, talent643: 2306 };
+/** The pairs per leaf: 105 saves x characters (1153 on one map; HourZero is out of the parity corpus, PARITY_EXCLUDED), less the refused ones, plus the extra maps of the map-dependent ones. */
+const PAIRS: Record<string, number> = { bubbleSTR: 1153, bubbleAGI: 1153, bubbleWIS: 1153, goldFood: 1153, divMinor3: 1153, talent22: 1152, guild8: 2306, talent643: 2306 };
 
 /** The maps a term is checked on: 301 for all, plus 251 for the two that read CurrentMap (another world for the guild term; E 2 against 5 and another monster for the tier). */
 const mapsOf = (id: string): number[] => (id === "guild8" || id === "talent643" ? [MAP, 251] : [MAP]);

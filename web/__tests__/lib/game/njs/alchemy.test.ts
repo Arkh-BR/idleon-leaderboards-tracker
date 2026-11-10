@@ -114,7 +114,7 @@ const INHERIT: Record<string, StatKey[]> = {
 };
 
 /** The KNOWN pairs each leaf has, exactly (a stale entry or a new difference fails). */
-const EXPECT_KNOWN: Record<string, number> = { statue0: 6, statue22: 1, bubbleHP: 441, bubbleSPD: 121, bubbleMP: 476, bubbleW5: 195, bubbleA5: 105, bubbleM5: 135, prayer15: 40 };
+const EXPECT_KNOWN: Record<string, number> = { statue0: 5, bubbleHP: 441, bubbleSPD: 121, bubbleMP: 476, bubbleW5: 195, bubbleA5: 105, bubbleM5: 135, prayer15: 40 };
 
 /** What each term refuses (Ruling E): the terms built on a stat read the Tome (lib/tome cannot score HourZero, see stats.test.ts). */
 const HOURZERO = ["bubbleHP", "bubbleSPD", "bubbleMP", "bubbleW12", "bubbleA12", "bubbleM12", "pctDmg1", "pctDmg2", "pctDmg3", "bubbleW5", "bubbleA5", "bubbleM5", "bubbleMastery", "statue0", "penalty"];

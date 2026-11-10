@@ -104,7 +104,7 @@ const HOURZERO: string[] = []; // HourZero, the one save lib/tome could not scor
 // the fight talents and the Divinity god levels (Bonus_Minor)
 const TOME_TERMS = new Set(["goldFoodAllAFK", "fam8", "talent88", "talent268", "talent448", "talent79", "divMinor5"]);
 /** The pairs per leaf whose difference a KNOWN entry closes, as a literal (a stale entry or a new difference fails): the totals of the report. */
-const EXPECT_KNOWN: Record<string, number> = { talent448: 8, winBonus11: 2, divMinor5: 1, goldFoodAllAFK: 337 };
+const EXPECT_KNOWN: Record<string, number> = { talent448: 8, divMinor5: 1, goldFoodAllAFK: 337 };
 const REFUSALS = (id: string): string[] => (TOME_TERMS.has(id) ? HOURZERO : []);
 
 /**

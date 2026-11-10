@@ -189,7 +189,7 @@ const OWN: Record<string, string[]> = {
 Object.freeze(OWN);
 
 /** The KNOWN pairs each leaf has, exactly (a stale entry or a new difference fails). */
-const EXPECT_KNOWN: Record<string, number> = { greenSigils: 1, win0: 2, tome0: 196, tome6: 33, lankRank14: 8, workbench: 9, divMinor7: 1, sticker: 1, artifact8: 10, artifact25: 445 };
+const EXPECT_KNOWN: Record<string, number> = { greenSigils: 1, tome0: 196, tome6: 33, lankRank14: 8, workbench: 9, divMinor7: 1, sticker: 1, artifact8: 10, artifact25: 445 };
 
 /** What each term refuses (Ruling E), as `<file>: <key>`. */
 const HOURZERO: string[] = []; // HourZero, the one save lib/tome could not score, is out of the parity corpus (PARITY_EXCLUDED, support/arkhOracle.ts): nothing is refused

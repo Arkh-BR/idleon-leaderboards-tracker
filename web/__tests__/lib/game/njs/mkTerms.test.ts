@@ -90,8 +90,8 @@ const TOME_TERMS = new Set(["bubbleMKtier", "tier", "active"]);
 const REFUSALS = (id: string): string[] => [];
 /** The pairs per leaf and reason whose difference a KNOWN entry closes, as a literal (a stale entry or a new difference fails). */
 const EXPECT_KNOWN: Record<string, Record<string, number>> = { tier: { signsDmg: 7, "signs@wis": 1 } };
-/** The pairs per leaf: 106 saves x characters (1163 on one map), less HourZero's 10 where it is refused, times the maps of the map-dependent ones. */
-const PAIRS = (id: string): number => (1163 - (TOME_TERMS.has(id) ? 10 : 0)) * mapsOf(id).length;
+/** The pairs per leaf: 105 saves x characters (1153 on one map; HourZero is out of the parity corpus, PARITY_EXCLUDED), times the maps of the map-dependent ones. */
+const PAIRS = (id: string): number => 1153 * mapsOf(id).length;
 
 const states = new Map<string, { state: ReturnType<typeof buildGameState>; chars: number }>();
 afterAll(() => states.clear());
