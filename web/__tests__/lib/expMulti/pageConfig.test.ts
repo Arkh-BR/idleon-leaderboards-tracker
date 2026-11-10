@@ -54,8 +54,8 @@ describe("EXP Multi page config", () => {
     );
   });
 
-  it("documents that the Observed Max still comes from the previous engine", () =>
-    expect(EXP_PAGE.methodologyNote).toMatch(/Observed Max values themselves are still computed by the previous engine/));
+  it("documents that the Observed Max comes from the same engine", () =>
+    expect(EXP_PAGE.methodologyNote).toMatch(/computed by the same engine as this page/));
 
   it("methodology note explains why circumstantial sources aren't ranked", () => {
     expect(EXP_PAGE.methodologyNote).toContain("lowest-level character or below a level cap aren't ranked");

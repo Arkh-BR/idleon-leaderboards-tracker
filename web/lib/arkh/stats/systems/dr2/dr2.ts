@@ -63,11 +63,7 @@ import { minehead } from "../w7/minehead";
 import { pristine } from "../w5/pristine";
 import { cglunkoDR, coveActive } from "./cove";
 
-/** The GetTalentNumber(1, …) talents of the formula: they read the viewed
- *  character's own talents, so the Observed Max collector gates them per class
- *  (the node names keep the "(Talent n)" suffix it matches). Workbench's 328 is
- *  getbonus2(1, 328, -1) — the best over every character — so it isn't one. */
-export const DR2_CLASS_TALENTS = [24, 239, 279, 655] as const;
+export { DR2_CLASS_TALENTS } from "@/lib/dropRateV2/layers";
 
 type Resolver = { resolve(id: any, ctx: any, args?: any): ArkhNode };
 /** resolver, id, args, then the tracker's name and note when the helper's own

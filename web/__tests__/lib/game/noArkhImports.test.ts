@@ -64,3 +64,13 @@ describe("lib/game imports no lib/arkh at runtime (Ruling KK)", () => {
     expect(bad).toEqual([]);
   });
 });
+
+describe("the Observed Max collectors import no lib/arkh at runtime", () => {
+  it("scripts/_shared/*.ts and scripts/update-top-*.ts (compare-top-ref.ts is the temporary oracle, excluded)", () => {
+    const dir = join(ROOT, "scripts");
+    const files = [...tsIn(join(dir, "_shared")), ...tsIn(dir).filter((f) => /update-top-[^\\/]*\.ts$/.test(f))];
+    expect(files.length).toBeGreaterThan(8);
+    const { bad } = walk(files); // compare-top-ref.ts never matches the pattern: excluded by name
+    expect(bad).toEqual([]);
+  });
+});

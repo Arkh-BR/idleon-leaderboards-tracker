@@ -1,6 +1,6 @@
 // Drop Rate V2 page (beta): the statTracker kit's config for N.js
 // TotalStats("Drop_Rarity") — the Drop Rate line of the character panel. It computes on lib/game (trackers/dropRate.ts); the Observed Max
-// collector (scripts/update-top-dr2.ts) stays on lib/arkh.
+// collector (scripts/update-top-dr2.ts) runs the same engine.
 
 import type { StatPageConfig } from "@/lib/statTracker/config";
 import { withPageErrors } from "@/lib/statTracker/pageErrors";
@@ -54,8 +54,7 @@ export const DR2_PAGE: StatPageConfig = {
     "The weekly vote isn't ranked: it's server-wide and changes every week. " +
     "The Arcane Map multiplier depends on the map you farm, so the Include Arcane Map checkbox next to Compare vs Observed Max " +
     "excludes it from the Compare reference (Biggest Gains keeps the full reference). " +
-    "The Observed Max values themselves are still computed by the previous engine, so for a few sources they can differ slightly " +
-    "from your own numbers until they are recomputed. " +
+    "The Observed Max values are computed by the same engine as this page. " +
     "This is the beta engine; the original Drop Rate page stays available.",
   compareTitle: "Compare every Drop Rate source against the best value observed across the top players (LUK Scaling: within your class family)",
   gainsTabTitle: "Rank your Drop Rate sources by how much Drop Rate matching the top players would give",

@@ -9,6 +9,10 @@ import type { StatGroup } from "@/lib/statTracker/groups";
 
 export const EXP_ROOT = "EXP Multi";
 
+/** Class talents in the EXP formula (read from the active character): the Observed Max collector gates them per class by their "(Talent n)"
+ *  node names. 55/328/429/434 are account-wide (getbonus2), 632 is a star talent. */
+export const EXP_CLASS_TALENTS = [35] as const;
+
 /** The weekly vote's node. The vote is server-wide and changes every week, so
  *  Biggest Gains leaves it out: it isn't something a player raises. */
 export const EXP_VOTE_NAME = "Class EXP from Monsters (Weekly Vote 15)";

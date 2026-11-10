@@ -60,7 +60,7 @@ describe("Damage page config", () => {
     expect(DAMAGE_PAGE.formatTotal).toBe(formatDamage);
     expect(DAMAGE_PAGE.gains).toBe(damageGainsModel);
     expect(DAMAGE_PAGE.methodologyNote).toMatch(/Active buffs \(Talents 108\/124\) and masterclass forms \(Wraith, Tempest, Tesseract\) are not counted/);
-    expect(DAMAGE_PAGE.methodologyNote).toMatch(/Observed Max values themselves are still computed by the previous engine/); // the known-diff reference, documented
+    expect(DAMAGE_PAGE.methodologyNote).toMatch(/computed by the same engine as this page/); // the known-diff reference, documented
   });
 
   it("compute passes lib/game's refusals through the page's wrapper (an older save is told in words)", async () => {

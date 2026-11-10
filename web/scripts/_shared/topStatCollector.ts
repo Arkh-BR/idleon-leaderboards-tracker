@@ -18,9 +18,9 @@
 
 import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { basename, join } from "node:path";
-import type { Pool } from "../../lib/arkh/stats/tree-builder";
-import type { ArkhNode } from "../../lib/arkh/node";
-import { neutralValue, type StatGroup } from "../../lib/arkh/stats/defs/grouped";
+import type { ArkhNode } from "../../lib/dropRate/node";
+import { neutralValue, type StatGroup } from "../../lib/statTracker/groups";
+import { newestSaves } from "../../lib/diagnose/characterize";
 import { flattenTree } from "../../lib/dropRate/treeFlatten";
 import { listCharacters } from "../../lib/dropRate/extract";
 import { gatherCandidates, fetchProfileSave } from "./itProfiles";
@@ -31,6 +31,9 @@ import { classFamilyOfIndex, classFamilyOfKey, type ClassFamily } from "../../li
 /** "all" = one account-wide reference (cfg.perFamily === false). Stays local to
  *  the collector — ClassFamily itself is not widened. */
 type RefFamily = ClassFamily | "all";
+
+/** One pool of sources. Its items are fixed per pool (never filtered), so the best per position stays aligned across characters. */
+export type Pool = { items: ArkhNode[] };
 
 /** A source split by class family: `group` = pool key; `name` = only the item
  *  with that node name, omitted = the whole group. */
@@ -69,13 +72,13 @@ type Best = { player: string; char: string; total: number };
 export function mergeBest(acc: Record<string, Pool> | null, incoming: Record<string, Pool>): Record<string, Pool> {
   if (!acc) {
     const init: Record<string, Pool> = {};
-    for (const pn in incoming) init[pn] = { items: [...incoming[pn].items], sum: 0, product: 0 };
+    for (const pn in incoming) init[pn] = { items: [...incoming[pn].items] };
     return init;
   }
   for (const pn in incoming) {
     const inc = incoming[pn];
     if (!acc[pn]) {
-      acc[pn] = { items: [...inc.items], sum: 0, product: 0 };
+      acc[pn] = { items: [...inc.items] };
       continue;
     }
     const cur = acc[pn];
@@ -105,7 +108,7 @@ export function withCrossFamilyBest(
         const own = fam[pn]?.items[i];
         return own && ownBest(pn, own.name) ? own : it;
       });
-      pools[pn] = { items, sum: 0, product: 0 };
+      pools[pn] = { items };
     }
     out[f] = pools;
   }
@@ -127,7 +130,7 @@ export function profileFlat(
         ? { ...it, val: neutralValue(kind), children: undefined }
         : { ...it }
     );
-    clone[pn] = { items, sum: 0, product: 0 };
+    clone[pn] = { items };
   }
   const combined = cfg.combine(clone);
   const flat = flattenTree(combined.tree);
@@ -280,54 +283,43 @@ export function renderTopFiles(
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-export async function runTopCollector(cfg: StatCollectorConfig, argv: string[] = process.argv.slice(2)): Promise<void> {
-  const THROTTLE_MS = argv.includes("--slow") ? 1500 : 400;
-  const i = argv.indexOf("--limit");
-  const LIMIT = i >= 0 && argv[i + 1] ? Number(argv[i + 1]) || null : null;
-  // Never publish a shrunken reference (the Tome cron lesson); --limit is a smoke test.
-  const MIN_PLAYERS = LIMIT ? 1 : 20;
+export type Collected = {
+  ref: ReturnType<typeof buildFamilyReference>;
+  /** Best pools across all families, position by position. */
+  best: Record<string, Pool>;
+  bestPlayer: Best | null;
+  scanned: number;
+  /** Players with nothing to scan, with the reason. */
+  skipped: string[];
+  /** "player/char" of every character whose computePools (or combine) threw. */
+  refusedChars: string[];
+  log: string[];
+};
 
-  // --saves-dir <dir>: read already-downloaded profile envelopes (<name>.json)
-  // instead of the network — same hacked-save guard as fetchProfileSave.
-  const d = argv.indexOf("--saves-dir");
-  const savesDir = d >= 0 ? argv[d + 1] : null;
-  const loadSave = savesDir
-    ? async (name: string) => {
-        const j = JSON.parse(readFileSync(join(savesDir, `${name}.json`), "utf8").replace(/^﻿/, ""));
-        return j?.data && Array.isArray(j.charNames) && !hackedSaveReason(j) ? j : null;
-      }
-    : fetchProfileSave;
-
-  console.log(savesDir ? `→ Reading saves from ${savesDir}…` : "→ Gathering candidates from leaderboards…");
-  const candidates = savesDir
-    ? readdirSync(savesDir).filter((f) => f.endsWith(".json")).map((f) => f.slice(0, -5)).slice(0, LIMIT ?? undefined)
-    : await gatherCandidates({ limit: LIMIT ?? undefined, focusBoard: cfg.focusBoard });
-  console.log(`  ✓ ${candidates.length} candidates`);
-
+/** The pure part of a collector run: players' saves in, the reference out. A character the game port refuses is counted and named, never fatal. */
+export function collectReference(cfg: StatCollectorConfig, saves: Iterable<{ name: string; save: unknown }>): Collected {
   const bestByFamily: Partial<Record<RefFamily, Record<string, Pool>>> = {};
   let bestAll: Record<string, Pool> | null = null;
-  let bestTotal: Best | null = null;
+  let bestPlayer: Best | null = null;
   let scanned = 0;
-  let skipped = 0;
+  const skipped: string[] = [];
+  const refusedChars: string[] = [];
+  const log: string[] = [];
 
-  for (let k = 0; k < candidates.length; k++) {
-    const name = candidates[k];
-    process.stdout.write(`  [${k + 1}/${candidates.length}] ${name.padEnd(20)}`);
-    const save = await loadSave(name);
+  for (const { name, save } of saves) {
     let chars: { charIndex: number; charName: string }[] = [];
     try {
-      chars = save ? listCharacters(save) : [];
+      chars = save ? listCharacters(save as any) : [];
     } catch {
       chars = [];
     }
-    if (!save || chars.length === 0) {
-      console.log("  · skipped");
-      skipped++;
-      if (!savesDir && k < candidates.length - 1) await sleep(THROTTLE_MS);
+    if (chars.length === 0) {
+      skipped.push(`${name}: no characters`);
       continue;
     }
     let playerBest = 0;
     let playerBestChar = "";
+    let ok = 0;
     for (const ch of chars) {
       try {
         const pools = cfg.computePools(save, ch.charIndex);
@@ -337,43 +329,107 @@ export async function runTopCollector(cfg: StatCollectorConfig, argv: string[] =
           playerBestChar = ch.charName;
         }
         const family: RefFamily | null =
-          cfg.perFamily === false ? "all" : classFamilyOfIndex(Number(save.data?.[`CharacterClass_${ch.charIndex}`]));
+          cfg.perFamily === false ? "all" : classFamilyOfIndex(Number((save as any).data?.[`CharacterClass_${ch.charIndex}`]));
         if (family) bestByFamily[family] = mergeBest(bestByFamily[family] ?? null, pools);
         bestAll = mergeBest(bestAll, pools);
-      } catch {
-        // skip a char that fails to compute
+        ok++;
+      } catch (e) {
+        const why = e instanceof Error ? e.message.split(/[:\n]/)[0] : String(e);
+        refusedChars.push(`${name}/${ch.charName}`);
+        log.push(`  ! refused ${name}/${ch.charName}: ${why}`);
       }
     }
-    if (!bestTotal || playerBest > bestTotal.total) bestTotal = { player: name, char: playerBestChar, total: playerBest };
+    if (ok === 0) {
+      skipped.push(`${name}: every character refused`);
+      continue;
+    }
+    if (!bestPlayer || playerBest > bestPlayer.total) bestPlayer = { player: name, char: playerBestChar, total: playerBest };
     scanned++;
-    console.log(`  ✓ best ${playerBest.toExponential(3)}x (${playerBestChar})`);
-    if (!savesDir && k < candidates.length - 1) await sleep(THROTTLE_MS);
-  }
-
-  if (!Object.keys(bestByFamily).length || scanned < MIN_PLAYERS) {
-    console.error(`× only ${scanned} players scanned (< ${MIN_PLAYERS}); refusing to publish`);
-    process.exit(1);
+    log.push(`  ✓ ${name} best ${playerBest.toExponential(3)}x (${playerBestChar})`);
   }
 
   let familyPools = bestByFamily;
-  if (cfg.familySources) {
+  if (cfg.familySources && bestAll) {
     // A renamed node would silently fall back to the cross-family best.
     for (const f of cfg.familySources) {
-      if (!bestAll?.[f.group]?.items.some((it) => f.name === undefined || it.name === f.name)) {
+      if (!bestAll[f.group]?.items.some((it) => f.name === undefined || it.name === f.name)) {
         throw new Error(`familySources: no source ${f.group}${f.name ? ` / "${f.name}"` : ""}`);
       }
     }
-    familyPools = withCrossFamilyBest(bestByFamily, bestAll!, cfg.familySources);
+    familyPools = withCrossFamilyBest(bestByFamily, bestAll, cfg.familySources);
   }
   const ref = buildFamilyReference(cfg, familyPools);
+  return { ref, best: bestAll ?? {}, bestPlayer, scanned, skipped, refusedChars, log };
+}
 
-  console.log(`\n✓ Scanned ${scanned} players (${skipped} skipped)`);
+/** The candidates' saves, from the leaderboards (throttled) or --saves-dir's envelopes (--newest N of them), and the player floor below which a collector publishes nothing. */
+export async function loadPlayers(argv: string[], focusBoard: string): Promise<{ loaded: { name: string; save: unknown }[]; minPlayers: number }> {
+  const THROTTLE_MS = argv.includes("--slow") ? 1500 : 400;
+  const num = (flag: string) => {
+    const k = argv.indexOf(flag);
+    return k >= 0 && argv[k + 1] ? Number(argv[k + 1]) || null : null;
+  };
+  const LIMIT = num("--limit");
+  // --newest N: only the N newest saves of --saves-dir (offline validation runs).
+  const NEWEST = num("--newest");
+  // Never publish a shrunken reference (the Tome cron lesson); --limit and --newest are smoke tests.
+  const MIN_PLAYERS = LIMIT || NEWEST ? 1 : 20;
+
+  // --saves-dir <dir>: read already-downloaded profile envelopes (<name>.json)
+  // instead of the network — same hacked-save guard as fetchProfileSave.
+  const d = argv.indexOf("--saves-dir");
+  const savesDir = d >= 0 ? argv[d + 1] : null;
+  if (NEWEST && !savesDir) {
+    console.error("× --newest needs --saves-dir");
+    process.exit(1);
+  }
+  const loadSave = savesDir
+    ? async (name: string) => {
+        const j = JSON.parse(readFileSync(join(savesDir, `${name}.json`), "utf8").replace(/^﻿/, ""));
+        return j?.data && Array.isArray(j.charNames) && !hackedSaveReason(j) ? j : null;
+      }
+    : fetchProfileSave;
+
+  console.log(savesDir ? `→ Reading saves from ${savesDir}…` : "→ Gathering candidates from leaderboards…");
+  let candidates: string[];
+  if (savesDir) {
+    const files = readdirSync(savesDir).filter((f) => f.endsWith(".json")).map((f) => join(savesDir, f));
+    candidates = (NEWEST ? newestSaves(files, NEWEST) : files).map((f) => basename(f).slice(0, -5)).slice(0, LIMIT ?? undefined);
+  } else {
+    candidates = await gatherCandidates({ limit: LIMIT ?? undefined, focusBoard });
+  }
+  console.log(`  ✓ ${candidates.length} candidates`);
+
+  // collectReference is synchronous, so the (throttled) loads come first.
+  const loaded: { name: string; save: unknown }[] = [];
+  for (let k = 0; k < candidates.length; k++) {
+    process.stdout.write(`  [${k + 1}/${candidates.length}] ${candidates[k]}\n`);
+    loaded.push({ name: candidates[k], save: await loadSave(candidates[k]) });
+    if (!savesDir && k < candidates.length - 1) await sleep(THROTTLE_MS);
+  }
+  return { loaded, minPlayers: MIN_PLAYERS };
+}
+
+export async function runTopCollector(cfg: StatCollectorConfig, argv: string[] = process.argv.slice(2)): Promise<void> {
+  const { loaded, minPlayers: MIN_PLAYERS } = await loadPlayers(argv, cfg.focusBoard);
+  const t0 = performance.now();
+  const r = collectReference(cfg, loaded);
+  const ms = performance.now() - t0;
+  for (const l of r.log) console.log(l);
+
+  if (!Object.keys(r.ref.familyFlats).length || r.scanned < MIN_PLAYERS) {
+    console.error(`× only ${r.scanned} players scanned (< ${MIN_PLAYERS}); refusing to publish`);
+    process.exit(1);
+  }
+
+  console.log(`\n✓ Scanned ${r.scanned} players (${r.skipped.length} skipped, ${r.refusedChars.length} characters refused) · ${(ms / Math.max(1, r.scanned)).toFixed(0)} ms/player`);
+  if (r.refusedChars.length) console.log(`  · refused: ${r.refusedChars.join(", ")}`);
   console.log(`  · gated talents: ${cfg.gated.map((x) => x.id).join(", ") || "none"}`);
-  for (const f of Object.keys(ref.familyFlats) as RefFamily[]) console.log(`  · ${f.padEnd(8)} ceiling: ${(ref.familyFlats[f]![cfg.root] || 0).toExponential(3)}x`);
-  console.log(`  · best per-class ceiling: ${ref.maxTotal.toExponential(3)}x`);
-  console.log(`  · best real player: ${bestTotal?.total.toExponential(3)}x by ${bestTotal?.player} (${bestTotal?.char})`);
+  for (const f of Object.keys(r.ref.familyFlats) as RefFamily[]) console.log(`  · ${f.padEnd(8)} ceiling: ${(r.ref.familyFlats[f]![cfg.root] || 0).toExponential(3)}x`);
+  console.log(`  · best per-class ceiling: ${r.ref.maxTotal.toExponential(3)}x`);
+  console.log(`  · best real player: ${r.bestPlayer?.total.toExponential(3)}x by ${r.bestPlayer?.player} (${r.bestPlayer?.char})`);
 
-  const { data, meta } = renderTopFiles(cfg, ref.familyFlats, ref.overrides, ref.classProfile, ref.defaultFamily, bestTotal, ref.maxTotal, scanned, new Date().toISOString());
+  const { data, meta } = renderTopFiles(cfg, r.ref.familyFlats, r.ref.overrides, r.ref.classProfile, r.ref.defaultFamily, r.bestPlayer, r.ref.maxTotal, r.scanned, new Date().toISOString());
   writeFileSync(cfg.metaFile, meta);
   console.log(`\n✓ Wrote ${cfg.metaFile}`);
   writeFileSync(cfg.outputFile, data);

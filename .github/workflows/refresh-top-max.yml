@@ -12,8 +12,8 @@ name: Refresh top DR, DR V2, coin, EXP, AFK, multikill, damage, artifact find & 
 #   • web/lib/artifactFind/topArtifactFind.ts (+ .meta.ts)
 #   • web/lib/talentsLevel/topTalents.ts
 # All nine collectors fetch every top player's raw save straight from the IT
-# profiles endpoint (no browser needed — unlike the Tome refresh), run our
-# arkh engine, and keep the best value of every source across players.
+# profiles endpoint (no browser needed — unlike the Tome refresh), run the same
+# lib/game engine as the pages, and keep the best value of every source across players.
 
 on:
   schedule:
@@ -32,11 +32,14 @@ concurrency:
 jobs:
   refresh:
     runs-on: ubuntu-latest
-    # 114: seven capped steps (Coin + EXP + AFK + Multikill + Damage + Artifact Find + DR V2,
-    # 12 min each = 84, continue-on-error) plus the uncapped DR and Talent steps and checkout/npm ci
-    # (~94 min worst case) must all fit before "Commit refreshed snapshots" runs: a job
+    # 114: eight capped steps (DR + Coin + EXP + AFK + Multikill + Damage + Artifact Find + DR V2,
+    # 12 min each = 96, continue-on-error) plus the uncapped Talent step and checkout/npm ci
+    # (~106 min worst case) must all fit before "Commit refreshed snapshots" runs: a job
     # timeout skips that step and loses every reference of the run.
     timeout-minutes: 114
+    env:
+      # the collectors keep every player's save (and its lib/game state) until the reference is built: ~1-1.5 GB for ~90 players
+      NODE_OPTIONS: --max-old-space-size=4096
     steps:
       - uses: actions/checkout@v4
 
@@ -52,6 +55,8 @@ jobs:
 
       - name: Refresh top-player Drop Rate max
         working-directory: web
+        continue-on-error: true
+        timeout-minutes: 12
         run: npx tsx scripts/update-top-dr.ts
 
       - name: Refresh top-player Coin Multi max

@@ -150,3 +150,10 @@ export const V1_SOURCES: readonly V1Source[] = [
   { id: "comp50x", pool: "postMult", name: "Santa Snake (Companion 50)", fmt: "x", from: "comp50x" },
   { id: "vial", pool: "postMult", name: "Drop Rate Vial", fmt: "+", note: "vial 7drMulto", from: "vial" },
 ];
+
+/**
+ * The class talents the Observed Max collector (scripts/update-top-dr.ts) gates per class, each the row of source `talent<n>`: Robbing Hood (279, the Archer
+ * chain) and Curse of Mr Looty Booty (24, the Journeyman chain), the reference's rule since it was built (user decision B, 2026-11-10). 655 is on every
+ * class's star tabs and 328 is getbonus2(1, 328, -1), the best of every character, so neither is one.
+ */
+export const V1_CLASS_TALENTS = [279, 24] as const;

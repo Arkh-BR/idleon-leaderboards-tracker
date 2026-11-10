@@ -1,7 +1,7 @@
 // Shared helpers for the top-player scrapers: gather the candidate player
 // list from the IT leaderboards API and fetch a public profile's raw save
-// from the IT profiles endpoint (which our arkh engine consumes directly
-// — see memory/it-profiles-save-endpoint).
+// from the IT profiles endpoint (the lib/game collectors read it as a save
+// envelope).
 
 import { CATEGORIES } from "../../lib/registry";
 import { isDenylistedPlayer, hackedSaveReason } from "./hackers";

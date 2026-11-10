@@ -2,30 +2,37 @@ import { describe, it, expect, vi } from "vitest";
 import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { buildFamilyReference, mergeBest, profileFlat, renderTopFiles, runTopCollector, type StatCollectorConfig } from "@/scripts/_shared/topStatCollector";
+import { buildFamilyReference, collectReference, mergeBest, profileFlat, renderTopFiles, runTopCollector, type Pool, type StatCollectorConfig } from "@/scripts/_shared/topStatCollector";
 import { deriveGatedTalentsFor, allClassKeys } from "@/scripts/_shared/classGating";
-import { groupedDescriptor } from "@/lib/arkh/stats/defs/grouped";
-import { combineStatPools } from "@/lib/arkh/computeStat";
-import type { Pool } from "@/lib/arkh/stats/tree-builder";
+import { applyGroupStep, groupVal } from "@/lib/statTracker/groups";
+import { node } from "@/lib/dropRate/node";
 
 const GROUPS = [
   { key: "m", name: "M", kind: "mult" as const, sources: ["t", "u"] },
   { key: "p", name: "P", kind: "pct" as const, sources: ["v"] },
 ];
-const desc = groupedDescriptor({ id: "t", name: "Root", scope: "character", category: "test", system: "none", groups: GROUPS });
+// The product of the groups in order: each group's node holds its sources, the root holds the running total.
+const combine = (pools: Record<string, Pool>) => {
+  let total = 1;
+  const kids = GROUPS.map((g) => {
+    const items = pools[g.key]?.items ?? [];
+    const vals = items.map((i) => i.val);
+    total = applyGroupStep(g, vals, total);
+    return node(g.name, groupVal(g, vals), items);
+  });
+  return { tree: node("Root", total, kids), total };
+};
 const cfg = {
   label: "Test Multi",
   root: "Root",
   groups: GROUPS,
-  combine: (p: Record<string, Pool>) => combineStatPools(desc, p),
+  combine,
   constPrefix: "TOP_TEST",
   flatForClassFn: "topTestFlatForClass",
   scriptName: "scripts/update-top-test.ts",
 } as unknown as StatCollectorConfig;
 const pool = (...items: Array<[string, number]>): Pool => ({
   items: items.map(([name, val]) => ({ name, val, children: [{ name: "d", val }] })),
-  sum: 0,
-  product: 0,
 });
 
 // Evaluates the generated module (types stripped) and returns its lookup function.
@@ -173,6 +180,46 @@ describe("shared Observed Max collector", () => {
 
     it("refuses a familySources entry that names no source", async () => {
       await expect(run({ computePools: lukAndGear, familySources: [{ group: "p", name: "Renamed" }] }, [1, 7])).rejects.toThrow(/familySources/);
+    });
+  });
+
+  describe("collectReference", () => {
+    // Two players, one char each: a warrior (class 7) and a mage (class 31), the pools picked by the save's tag.
+    const save = (klass: number, extra: object = {}) => ({ charNames: ["C"], data: { PVStatList_0: [0, 0, 0, 0, 1], CharacterClass_0: klass }, ...extra });
+    const players = [
+      { name: "a", save: save(7, { w: 1 }) },
+      { name: "b", save: save(31, { w: 2 }) },
+    ];
+    const pools = (s: any) => (s.w === 1 ? { m: pool(["Y", 5], ["Q", 1]), p: pool(["Z", 10]) } : { m: pool(["Y", 2], ["Q", 9]), p: pool(["Z", 4]) });
+    const full = { ...cfg, gated: [], computePools: pools } as unknown as StatCollectorConfig;
+
+    it("gives the best per position and the family split", () => {
+      const r = collectReference(full, players);
+      expect(r.scanned).toBe(2);
+      expect(r.refusedChars).toEqual([]);
+      expect(r.best.m.items.map((i) => i.val)).toEqual([5, 9]); // best across both players, positions aligned
+      expect(r.ref.familyFlats.warrior!["Root / M / Y"]).toBe(5);
+      expect(r.ref.familyFlats.warrior!["Root / M / Q"]).toBe(1); // the warrior's own best
+      expect(r.ref.familyFlats.mage!["Root / M / Q"]).toBe(9);
+    });
+
+    it("sends gated talents to their neutral value", () => {
+      const gated = [{ id: 35, owners: new Set<string>(["Maestro"]) }];
+      const cfg35 = { ...full, gated, computePools: () => ({ m: pool(["X (Talent 35)", 3], ["Y", 5]), p: pool(["Z", 4]) }) } as unknown as StatCollectorConfig;
+      const r = collectReference(cfg35, players);
+      expect(r.ref.familyFlats.warrior!["Root / M / X (Talent 35)"]).toBe(1);
+      expect(r.ref.overrides["beginner:t35"]).toBeUndefined(); // no beginner pools: nothing to add back
+      expect(r.ref.classProfile.Maestro).toBeUndefined();
+    });
+
+    it("counts and names a refusing character and keeps going", () => {
+      const refusing = { ...full, computePools: (s: any) => { if (s.w === 1) throw new Error("MissingSaveKey: x"); return pools(s); } } as unknown as StatCollectorConfig;
+      const r = collectReference(refusing, players);
+      expect(r.refusedChars).toEqual(["a/C"]);
+      expect(r.skipped).toEqual([expect.stringContaining("a")]); // every character of "a" refused → the player is skipped
+      expect(r.scanned).toBe(1);
+      expect(r.ref.familyFlats.mage).toBeDefined();
+      expect(r.ref.familyFlats.warrior).toBeUndefined();
     });
   });
 });

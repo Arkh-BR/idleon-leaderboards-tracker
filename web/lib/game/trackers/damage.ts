@@ -302,8 +302,9 @@ function stepOf(kind: string, vals: readonly number[]): { val: number; fmt: Node
 const CAPS: Record<string, (v: number) => number> = { capBase: baseCap, capPct: pctCap, capMult: multCap };
 const short = (v: number): string => (Math.abs(v) >= 1e6 ? v.toExponential(3) : String(+v.toFixed(3)));
 
-/** A layer's node and value: its steps in game order on the running value (a step of sources, the soft cap, the Reliquarium exponent). */
-function layerOf(layer: DmgLayer, source: (id: string) => Node): { node: Node; val: number } {
+/** A layer's node and value: its steps in game order on the running value (a step of sources, the soft cap, the Reliquarium exponent). The
+ *  Observed Max collector (scripts/update-top-damage.ts) rebuilds its layers with it, from the best source of each. */
+export function layerOf(layer: DmgLayer, source: (id: string) => Node): { node: Node; val: number } {
   let val = layer.start;
   const steps = layer.steps.map((s): Node => {
     if (s.kind === "cap") {

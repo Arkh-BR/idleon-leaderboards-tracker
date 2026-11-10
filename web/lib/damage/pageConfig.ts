@@ -1,7 +1,7 @@
 // Damage page: the statTracker kit's config for N.js _customBlock_DamageDealed
 // — the Damage line of the Player Info panel (Min ~ Max, Min = Max × Mastery).
 // The headline total is Max; Min comes from the tree's Mastery node. It computes on lib/game (trackers/damage.ts); the Observed Max
-// collector (scripts/update-top-damage.ts) stays on lib/arkh.
+// collector (scripts/update-top-damage.ts) runs the same engine.
 
 import type { StatPageConfig } from "@/lib/statTracker/config";
 import { withPageErrors } from "@/lib/statTracker/pageErrors";
@@ -56,8 +56,7 @@ export const DAMAGE_PAGE: StatPageConfig = {
     "HP, MP, move speed); every other source takes the best value across all players. Class talents folded into those " +
     "stats can't be told apart by class, so a family's reference may include a sibling class's talents there. Active buffs (Talents 108/124) and " +
     "masterclass forms (Wraith, Tempest, Tesseract) are not counted, and neither is the dungeon branch. On map 43 the Royal Guardian arena replaces the " +
-    "whole Max, so nothing is ranked there. The Observed Max values themselves are still computed by the previous engine, so for a few " +
-    "sources they can differ slightly from your own numbers until they are recomputed.",
+    "whole Max, so nothing is ranked there. The Observed Max values are computed by the same engine as this page.",
   compareTitle: "Compare every Damage source against the best value observed across the top players",
   gainsTabTitle: "Rank your Damage sources by how much Max damage matching the top players would give",
   footer:

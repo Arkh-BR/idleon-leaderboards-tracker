@@ -1,6 +1,6 @@
 // AFK Gains Rate page: the statTracker kit's config for N.js
 // AFKgainrates("Fighting") — the AFK Info panel's AFK GAINS RATE line. It computes on lib/game (trackers/afkGains.ts); the Observed Max
-// collector (scripts/update-top-afk.ts) stays on lib/arkh.
+// collector (scripts/update-top-afk.ts) runs the same engine.
 
 import type { GainSource, GainsModel, StatPageConfig } from "@/lib/statTracker/config";
 import { directChildren } from "@/lib/statTracker/biggestGains";
@@ -86,8 +86,7 @@ export const AFK_PAGE: StatPageConfig = {
     "of each source among the top players — recomputed through the game's formula. Values are a ceiling, not a one-level step. " +
     "Each top player is measured on their best Arcane AFK map (slot 2), so that row reflects the map " +
     "choice too. The weekly vote isn't ranked: it's server-wide and changes every week. " +
-    "The Observed Max values themselves are still computed by the previous engine, so for a few sources they can differ slightly " +
-    "from your own numbers until they are recomputed.",
+    "The Observed Max values are computed by the same engine as this page.",
   compareTitle: "Compare every AFK gains source against the best value observed across the top players",
   gainsTabTitle: "Rank your AFK sources by how much AFK Gains Rate matching the top players would give",
   footer:

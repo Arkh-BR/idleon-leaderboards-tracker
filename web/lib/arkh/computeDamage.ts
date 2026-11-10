@@ -20,8 +20,4 @@ export function combineDamagePools(pools: Record<string, Pool>): StatResult {
   return combineStatPools(damageDesc, pools);
 }
 
-/** The Observed Max collector measures every character on map 251 (w6a1) — the
- *  same map as the Multikill collector. Max doesn't depend on the map except on
- *  43 (Royal Guardian arena) and 306 (Clamworks), so any other map leaves both
- *  map rules neutral: the reference is the map-independent Max. */
-export const DMG_COLLECTOR_MAP = 251;
+export { DMG_COLLECTOR_MAP } from "@/lib/damage/layers";

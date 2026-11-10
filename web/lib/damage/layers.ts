@@ -179,3 +179,22 @@ export const DMG_MASTERY: StatGroup = {
 
 /** Map 43: RatDMG replaces Max (and Mastery becomes 0.2). The source is 0 elsewhere. */
 export const DMG_RAT: StatGroup = { key: "rat", name: DMG_RULES.rat, kind: "replace", sources: ["ratDmg"] };
+
+const isGroup = (s: DmgStep): s is StatGroup => s.kind !== "cap" && s.kind !== "pow";
+
+/** Every StatGroup of the layers, plus Mastery and the arena: what the Observed Max collector's neutral-value logic iterates. The `pow` pool
+ *  isn't here: the collector treats it as `pct`, whose neutral 0 is the pow's. */
+export const DMG_GROUPS: readonly StatGroup[] = [...DMG_LAYERS.flatMap((l) => l.steps.filter(isGroup)), DMG_MASTERY, DMG_RAT];
+
+/** GetTalentNumber(1|2, …) talents DamageDealed reads on the viewed character: the Observed Max collector gates the ones surfaced as a
+ *  "(Talent n)" node per class (deriveGatedTalentsFor drops the account-wide and universal ones). getbonus2(1, …, -1) — 508/208 (Workbench),
+ *  507, 50 — is the best over every character, so it isn't one. 113/123 include the Mastery reads. */
+export const DMG_CLASS_TALENTS = [
+  95, 455, 20, 97, 277, 457, 5, 113, 86, 446, 284, 463, 31, 110, 125, 485, 305, 470, 290, 656, 649, 638, 658, 6, 24,
+  123,
+] as const;
+
+/** The Observed Max collector measures every character on map 251 (w6a1), as the Multikill collector does. Max doesn't depend on the map
+ *  except on 43 (Royal Guardian arena) and 306 (Clamworks), so any other map leaves both map rules neutral: the reference is the
+ *  map-independent Max. */
+export const DMG_COLLECTOR_MAP = 251;

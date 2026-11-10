@@ -11,6 +11,10 @@ export type CoinGroup = StatGroup & { kind: CoinGroupKind };
 
 export const COIN_ROOT = "Coin Multi";
 
+/** Class talents in the coin formula (per-char GetTalentNumber / TalentCalc): the Observed Max collector gates them per class by their
+ *  "(Talent n)" node names. Talent 433 is account-wide (getbonus2) so it isn't listed. */
+export const COIN_CLASS_TALENTS = [22, 657, 643, 644] as const;
+
 /** The weekly vote's node. The vote is server-wide and changes every week, so
  *  Biggest Gains leaves it out: it isn't something a player raises. */
 export const COIN_VOTE_NAME = "Cash from Monsters (Weekly Vote 34)";

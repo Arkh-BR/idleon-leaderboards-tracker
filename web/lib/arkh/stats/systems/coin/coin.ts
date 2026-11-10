@@ -46,9 +46,7 @@ import { goldFoodBonuses } from "../common/goldenFood";
 import { achieveStatus } from "../common/achievement";
 import { gambitBonus, gambitPoints, deathNoteSkulls } from "./gambit";
 
-/** Class talents in the coin formula (per-char GetTalentNumber / TalentCalc).
- *  Talent 433 is account-wide (getbonus2) so it isn't listed. */
-export const COIN_CLASS_TALENTS = [22, 657, 643, 644] as const;
+export { COIN_CLASS_TALENTS } from "@/lib/coinMulti/layers";
 
 type Tree = { val: number; children: ArkhNode[] | null };
 const add = (name: string, r: Tree, note?: string): ArkhNode =>
