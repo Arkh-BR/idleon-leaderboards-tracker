@@ -34,7 +34,7 @@ export const RiftStuff = block("RiftStuff", (ctx, d: string, b: number) => {
     case "eclipseSkulls":
       return eclipseSkulls(ctx);
     case "RiftSkillETC":
-      if (0 != b) throw new NotPorted("RiftStuff", `RiftSkillETC:b=${b}`); // 2 is [~] (unreached.ts)
+      if (0 != b && 2 != b) throw new NotPorted("RiftStuff", `RiftSkillETC:b=${b}`); // 2: SkillStats AllEfficiencies
       return riftSkillETC(ctx, b);
     default:
       throw new NotPorted("RiftStuff", d);
@@ -115,5 +115,8 @@ function riftSkillETC(ctx: Ctx, b: number): number {
   return v;
 }
 
-/** What this module covers (lib/game/ported.ts). `"()"` is the call with a computed name, RiftSkillETC's `"RiftSkillBonus,<f>"`. */
-export const PORTED: Ported = { mobHP: true, enabledStarSigns: true, "5starCards": true, riftBonus: true, KillroyDMG: true, eclipseSkulls: true, RiftSkillETC: [0] /* 2: only SkillStats AllEfficiencies (unreached.ts) */, "()": ["RiftSkillBonus,0"] };
+/**
+ * What this module covers (lib/game/ported.ts). `"()"` is the call with a computed name, RiftSkillETC's `"RiftSkillBonus,<f>"`; "RiftSkillBonus,3" is
+ * SkillStats FishingEfficiency's literal one (@4219909), the same rule.
+ */
+export const PORTED: Ported = { mobHP: true, enabledStarSigns: true, "5starCards": true, riftBonus: true, KillroyDMG: true, eclipseSkulls: true, RiftSkillETC: [0, 2], "RiftSkillBonus,3": true, "()": ["RiftSkillBonus,0"] };

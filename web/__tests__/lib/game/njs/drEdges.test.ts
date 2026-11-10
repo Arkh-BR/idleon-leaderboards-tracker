@@ -60,10 +60,10 @@ describe("Summoning TomeBonus 2 and 7 (synthetic, runs in CI)", () => {
     expect(Summoning(at({ ola197: 0 }), "TomeBonus", 2, 0)).toBe(0);
     expect(Summoning(at({ tome: 7999 }), "TomeBonus", 2, 0)).toBe(0); // below 8000: max(0, ·) is 0
   });
-  it("7 is 3 x floor(Tome / 1000)^.3 x the boost once Event Shop item 27 is owned; 1 and 3..5 are not ported", () => {
+  it("7 is 3 x floor(Tome / 1000)^.3 x the boost once Event Shop item 27 is owned; 3..5 are not ported", () => {
     expect(Summoning(at({}), "TomeBonus", 7, 0)).toBeCloseTo(3 * Math.pow(12, 0.3) * 1.25, 12);
     expect(Summoning(at({ shop27: 0 }), "TomeBonus", 7, 0)).toBe(0);
-    for (const b of [1, 3, 4, 5]) expect(() => Summoning(at({}), "TomeBonus", b, 0), `b=${b}`).toThrow(NotPorted);
+    for (const b of [3, 4, 5]) expect(() => Summoning(at({}), "TomeBonus", b, 0), `b=${b}`).toThrow(NotPorted);
   });
 });
 
@@ -179,12 +179,12 @@ describe("Holes2 Cglunko_DR, Cglunko_Bdig, Cglunko_Pdig (synthetic, runs in CI)"
 
 // ── Thingies FriendBonusStatz
 describe("Thingies FriendBonusStatz 3 (synthetic, runs in CI)", () => {
-  it("is the friend with stat 3, FriendBonusQTY(3, level) (25 per point) x the extra multi; 2 and 4 are not ported", () => {
+  it("is the friend with stat 3, FriendBonusQTY(3, level) (25 per point) x the extra multi; 4 is not ported", () => {
     const c = synth({ OptLacc: ola({ 476: "3,5000;1,100" }) });
     seed(c, "Thingies", ["FriendBonusSlots", 0, 0], 2);
     seed(c, "Thingies", ["FriendBonusXtraMulti", 0, 0], 2);
     expect(Thingies(c, "FriendBonusStatz", 3, 0)).toBeCloseTo(2 * 25 * Math.min(1.5, 0.25 + (5000 / 17000) * 1.5), 12);
-    for (const b of [2, 4]) expect(() => Thingies(c, "FriendBonusStatz", b, 0), `b=${b}`).toThrow(NotPorted);
+    for (const b of [4]) expect(() => Thingies(c, "FriendBonusStatz", b, 0), `b=${b}`).toThrow(NotPorted);
   });
 });
 

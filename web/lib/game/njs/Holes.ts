@@ -81,7 +81,7 @@ export const Holes: (ctx: Ctx, d: string, b: number, e: number) => number = bloc
 /**
  * `B_UPG` @10996050. It opens with `0 == Holes.length || 0 == Holes[13][b|0]` (the upgrade is not bought: 0; the flag is the raw
  * element, so a null is not 0), then a chain on b; ported: 46 = 5 x Holes[11][26], 47 = 25 x Holes[11][26], 55 = 10 x floor(getLOG(Holes[9][11])), 57 = 20 x floor(getLOG(Holes[9][1])),
- * 82..84 = e x Holes[11][55], and 78, which has no branch: the chain ends `: e`. The others are not reached (49 and the 50, 79, 98 it calls only from SkillStats AllEfficiencies).
+ * 82..84 = e x Holes[11][55], 49 (below), and 78, 50, 79 and 98, which have no branch: the chain ends `: e`. The others are not reached.
  */
 function bUpg(ctx: Ctx, b: number, e: number): number {
   const holes = attr(ctx, "Holes");
@@ -105,11 +105,20 @@ function bUpg(ctx: Ctx, b: number, e: number): number {
     listAt(ctx, "Holes", 9);
     return 20 * Math.floor(getLOG(ctx, asNum(ctx, "Holes", 9, 1)));
   }
+  // @10997439: 49 (SkillStats AllEfficiencies) adds the Bolaia levels Holes[11][1, 3, 5, 7], the last three each times its upgrade (50, 79, 98)
+  if (49 == b) {
+    listAt(ctx, "Holes", 11);
+    return (
+      e *
+      (asNum(ctx, "Holes", 11, 1) +
+        (asNum(ctx, "Holes", 11, 3) * Holes(ctx, "B_UPG", 50, 1) + (asNum(ctx, "Holes", 11, 5) * Holes(ctx, "B_UPG", 79, 1) + asNum(ctx, "Holes", 11, 7) * Holes(ctx, "B_UPG", 98, 1))))
+    );
+  }
   if (82 == b || 83 == b || 84 == b) {
     listAt(ctx, "Holes", 11);
     return e * asNum(ctx, "Holes", 11, 55);
   }
-  if (78 == b) return e;
+  if (78 == b || 50 == b || 79 == b || 98 == b) return e;
   throw new NotPorted("Holes", `B_UPG:b=${b}`);
 }
 
@@ -222,7 +231,7 @@ export function monumentMulti(ctx: Ctx, b: number, e: number): number {
 
 /** What this module covers (lib/game/ported.ts). */
 export const PORTED: Ported = {
-  B_UPG: [46, 47, 55, 57, 78, 82, 83, 84], CosmoBonusQTY: true, MotherlodeEffBase: true, MonumentROGbonuses: true, PocketDivOwned: true,
+  B_UPG: [46, 47, 49, 50, 55, 57, 78, 79, 82, 83, 84, 98], CosmoBonusQTY: true, MotherlodeEffBase: true, MonumentROGbonuses: true, PocketDivOwned: true,
   MeasurementBonusTOTAL: true, MeasurementBaseBonus: true, MeasurementMulti: true, MeasurementQTYfound: true,
   GambitBonuses: [7], GambitPts: true, GambitPtsREQ: true, GambitPTSmulti: true, StudyBolaiaBonuses: [13], JarCollectibleBonus: true,
 };

@@ -4,6 +4,7 @@ import { CardStuff, IDforCardBonus } from "../data";
 import { InvalidSaveValue, MissingSaveKey, NotPorted } from "../errors";
 import { hString } from "../hstring";
 import { chipBonuses } from "./chipBonuses";
+import { RiftStuff } from "./RiftStuff";
 import { RunCodeOfTypeXforThingY } from "./RunCodeOfTypeXforThingY";
 import { Thingies } from "./Thingies";
 import type { Ported } from "../ported";
@@ -19,7 +20,8 @@ const ids = IDforCardBonus as Readonly<Record<string, string>>;
 /**
  * The keys `TalentCalc(-4)` rewrites after the equipped cards, when a Rift skill bonus or Vault 44 is on: it zeroes IDforCardBonus 24, 25,
  * 33, 34 (Rift skill 0), 27, 28, 36, 37 (2), 30, 31, 39, 45 (3), 32, 40, 41, 75 (5), 53, 57, 58 (6), 54, 55, 52 (8), 97, 98, 99 (18) and
- * 12 (Vault 44), and adds every card of the skill those keys name. Not ported: a key read here that is one of them throws.
+ * 12 (Vault 44), and adds every card of the skill those keys name. Not ported but the fishing ones (FISHING below): a key read here that is one of the
+ * others throws.
  */
 const REWRITTEN = new Set(["24", "25", "33", "34", "27", "28", "36", "37", "30", "31", "39", "45", "32", "40", "41", "75", "53", "57", "58", "54", "55", "52", "97", "98", "99", "12"].map((i) => ids[i]));
 const rewritten = (key: string) =>
@@ -37,6 +39,10 @@ export type EquippedCard = { slot: number; card: string; level: number; per: num
  */
 export function equippedCards(ctx: Ctx, key: string): EquippedCard[] {
   if (rewritten(key)) throw new NotPorted("CardBonusREAL", `CardBonusS:key=${key}`);
+  return equippedOf(ctx, key);
+}
+
+function equippedOf(ctx: Ctx, key: string): EquippedCard[] {
   const equipped = attr(ctx, "Cards", 2);
   if (equipped === undefined) throw new MissingSaveKey("Cards[2]"); // `null != Cards[2]` is the game's guard; the load always gives the list
   if (!Array.isArray(equipped)) throw new InvalidSaveValue("Cards[2]", "an array", equipped);
@@ -56,10 +62,22 @@ export function equippedCards(ctx: Ctx, key: string): EquippedCard[] {
   return out;
 }
 
-/** `DNSM.CardBonusS[key]`: the sum of the equipped cards that give it (`equippedCards`), each added in slot order. */
+/**
+ * The fishing keys (IDforCardBonus 30, 31, 39, 45), the one group of REWRITTEN that is ported: with Rift skill bonus 3 above .1, TalentCalc(-4) zeroes them
+ * (@4502652) and then adds, for every card of the card info map whose bonus names "Fishing", CardLv x CardStuff row[4] under its key (@4506958: no
+ * legend talent, no chip); without it they are the equipped cards'.
+ */
+const FISHING = new Set(["30", "31", "39", "45"].map((i) => ids[i]));
+
+/** `DNSM.CardBonusS[key]`: the sum of the equipped cards that give it (`equippedCards`), each added in slot order; a fishing key as FISHING says. */
 function cardBonusS(ctx: Ctx, key: string): number {
   let total: number | undefined;
-  for (const card of equippedCards(ctx, key)) total = card.val + asNumber(total);
+  if (FISHING.has(key) && 0.1 < RiftStuff(ctx, "RiftSkillBonus,3", 2)) {
+    total = 0;
+    for (const [name, row] of CARD_ROW) if (hString(row[3]) === key) total = RunCodeOfTypeXforThingY(ctx, "CardLv", name) * asNumber(row[4]) + total;
+    return total;
+  }
+  for (const card of FISHING.has(key) ? equippedOf(ctx, key) : equippedCards(ctx, key)) total = card.val + asNumber(total);
   return asNumber(total);
 }
 

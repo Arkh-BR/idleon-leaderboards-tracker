@@ -287,16 +287,18 @@ function summUpgBonus(ctx: Ctx, b: number): number {
 }
 
 /**
- * `TomeBonus` @10911395, Tome bonus `b`: 0 = 10 x floor(Tome / 100)^.7; 2 = 2 x floor(max(0, Tome - 8000) / 100)^.7 while
+ * `TomeBonus` @10911395, Tome bonus `b`: 0 = 10 x floor(Tome / 100)^.7; 1 = 4 x floor(max(0, Tome - 4000) / 100)^.7 while OptionsListAccount[196] is 1; 2 = 2 x floor(max(0, Tome - 8000) / 100)^.7 while
  * OptionsListAccount[197] is 1 (the raw element, loosely); 6 = 4 x floor(Tome / 1000)^.4 once Event Shop item 0 is owned; 7 = 3 x
  * floor(Tome / 1000)^.3 once Event Shop item 27 is owned; each times 1 + (Grimoire upgrade 17 + the TROLL set bonus) / 100. The others are
- * not ported (1 is reached only from SkillStats AllEfficiencies). Tome is the Tome actor's GenInfo[84], DNSM_TomeQTYtot (Ruling K); the game
+ * not ported. Tome is the Tome actor's GenInfo[84], DNSM_TomeQTYtot (Ruling K); the game
  * answers 0 while that actor's GenInfo is null, which it is only before the actor is built (its constructor sets it, @5770597), so it is
  * never null here.
  */
 function tomeBonus(ctx: Ctx, b: number): number {
   const boost = () => 1 + (Summoning(ctx, "GrimoireUpgBonus", 17, 0) + GetSetBonus(ctx, "TROLL_SET", "Bonus", 0, 0)) / 100;
   if (0 == b) return 10 * Math.pow(Math.floor(DNSM_TomeQTYtot(ctx) / 100), 0.7) * boost();
+  // @10911815
+  if (1 == b) return 1 == attr(ctx, "OptionsListAccount", 196) ? 4 * Math.pow(Math.floor(Math.max(0, DNSM_TomeQTYtot(ctx) - 4e3) / 100), 0.7) * boost() : 0;
   if (2 == b) return 1 == attr(ctx, "OptionsListAccount", 197) ? 2 * Math.pow(Math.floor(Math.max(0, DNSM_TomeQTYtot(ctx) - 8e3) / 100), 0.7) * boost() : 0;
   if (6 == b) return 1 == Summoning(ctx, "EventShopOwned", 0, 0) ? 4 * Math.pow(Math.floor(DNSM_TomeQTYtot(ctx) / 1e3), 0.4) * boost() : 0;
   if (7 == b) return 1 == Summoning(ctx, "EventShopOwned", 27, 0) ? 3 * Math.pow(Math.floor(DNSM_TomeQTYtot(ctx) / 1e3), 0.3) * boost() : 0;
@@ -315,6 +317,6 @@ export const PORTED: Ported = {
   RooBonuses: range(-1, 7),
   VaultKillzTotal: range(0, 12),
   SummUpgBonus: range(0, SummonUPG.length),
-  TomeBonus: [0, 2, 6, 7],
+  TomeBonus: [0, 1, 2, 6, 7],
   GrimoireWraith: true, // runtime(): the masterclass form is not counted
 };

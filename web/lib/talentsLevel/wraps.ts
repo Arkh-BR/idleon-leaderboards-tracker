@@ -13,7 +13,7 @@ import { asNum, asNumber } from "@/lib/game/attr";
 import { charKey, opt } from "@/lib/game/state";
 import type { Ctx } from "@/lib/game/ctx";
 import { ArcaneUpg, CompassUpg, GrimoireUpg } from "@/lib/game/data";
-import { NonFiniteResult, NotPorted } from "@/lib/game/errors";
+import { NonFiniteResult } from "@/lib/game/errors";
 import { listAt } from "@/lib/game/lists";
 import { ArbitraryCode } from "@/lib/game/njs/ArbitraryCode";
 import { AtomCollider } from "@/lib/game/njs/AtomCollider";
@@ -23,6 +23,7 @@ import { talentCurveAt } from "@/lib/game/njs/GetTalentNumber";
 import { PlayerHPmax } from "@/lib/game/njs/PlayerHPmax";
 import { PlayerMPmax } from "@/lib/game/njs/PlayerMPmax";
 import { PlayerSpeedBonus } from "@/lib/game/njs/PlayerSpeedBonus";
+import { SkillStats } from "@/lib/game/njs/SkillStats";
 import { DNSM_CalcTalentMAP, TalentCalc } from "@/lib/game/njs/TalentCalc";
 import { TotalStats } from "@/lib/game/njs/TotalStats";
 import { Windwalker } from "@/lib/game/njs/Windwalker";
@@ -36,7 +37,7 @@ export type CounterSource =
   | { kind: "PetsStored"; row: number; col: number }
   | { kind: "PlayerHPmax" }
   | { kind: "PlayerMPmax" }
-  | { kind: "SkillStats"; stat: string }
+  | { kind: "SkillStats"; stat: string } // SkillStats(stat + "Efficiency")
   | { kind: "Lv0"; index: number } // the character's Lv0[index]
   | { kind: "TotalStat"; stat: string } // TotalStats(stat)
   | { kind: "GrimoireUpgTotal" }
@@ -49,12 +50,6 @@ export type CounterSource =
   | { kind: "TotalTitanKills" }
   | { kind: "InvStorageOwned"; item: string } // the character's inventory and the storage, as the game counts them
   | { kind: "PlayerSpeedBonus" };
-
-/**
- * 202, whose counter is SkillStats("FishingEfficiency") (consumer @7235759), not on lib/game: it keeps the plain talent shape and its counter throws NotPorted if read. That sub-case reaches the
- * SkillStats preamble (the fishing tool's power, FishingToolkit, TotalStats("Fishing_Power")), AllEfficiencies, AllBaseSkillEff, CalcTalentMAP["43"] and a dozen unported sub-cases of other blocks.
- */
-export const WRAP_COUNTER_PENDING = new Set<number>([202]);
 
 /** Spec for a talent whose final bonus = wrap(the talent's curve value, counter). */
 export type TalentWrapSpec = {
@@ -166,7 +161,7 @@ export const TALENT_WRAPS: Record<number, TalentWrapSpec> = {
   },
   86: { counterLabel: "Max HP", counterSource: { kind: "PlayerHPmax" }, counterNote: "PlayerHPmax() — active char's computed max HP", wrap: logAdd, fmt: "+", noteForActive: addNote("damage"), inactiveVal: 0, inactiveNote: idle("Max HP is 0"), extraBaseKids: coefficient },
   446: { counterLabel: "Max MP", counterSource: { kind: "PlayerMPmax" }, counterNote: "PlayerMPmax() — active char's computed max MP", wrap: logAdd, fmt: "+", noteForActive: addNote("damage"), inactiveVal: 0, inactiveNote: idle("Max MP is 0"), extraBaseKids: coefficient },
-  // N.js @7235759: GetTalentNumber(1,202) x getLOG(SkillStats("FishingEfficiency")); SkillStats is not on lib/game (WRAP_COUNTER_PENDING)
+  // N.js Grimoire_CRITPCT @10888848 (the wraith crit chance): 10 + GrimoireUpgBonus(10) + GetTalentNumber(1,202) x getLOG(SkillStats("FishingEfficiency"))
   202: {
     counterLabel: "Fishing Efficiency",
     counterSource: { kind: "SkillStats", stat: "Fishing" },
@@ -396,7 +391,7 @@ function onSavedMap(c: Ctx): Ctx {
   return undefined === saved || null === saved ? c : { ...c, map: asNumber(saved) };
 }
 
-/** The counter's value for the character of `c`. The pending counter throws NotPorted: nothing reads it (see WRAP_COUNTER_PENDING). */
+/** The counter's value for the character of `c`. */
 export function readCounter(c: Ctx, src: CounterSource): number {
   switch (src.kind) {
     case "OLA":
@@ -434,7 +429,7 @@ export function readCounter(c: Ctx, src: CounterSource): number {
       if (125 === src.talentId) return TalentCalc(onSavedMap(c), 125);
       return DNSM_CalcTalentMAP(643 === src.talentId ? onSavedMap(c) : c, `${src.talentId}`);
     case "SkillStats":
-      throw new NotPorted("TalentWrap", `SkillStats:${src.stat}`);
+      return SkillStats(c, `${src.stat}Efficiency`);
   }
 }
 

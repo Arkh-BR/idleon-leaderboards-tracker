@@ -10,7 +10,7 @@
 import { asNum, asNumber, assumedLeaf, attr } from "../attr";
 import { assumed, block, runtime, withPlayer, type Ctx } from "../ctx";
 import { AlchemyDescription, CompanionDB, Number2Letter, PostOffUpgradeInfo } from "../data";
-import { IncompleteTome, InvalidSaveValue, MissingSaveKey, NotPorted } from "../errors";
+import { IncompleteTome, InvalidSaveValue, MissingSaveKey } from "../errors";
 import { hString } from "../hstring";
 import { contains, listAt, listOrMapAt } from "../lists";
 import { charKey, opt, type GameState } from "../state";
@@ -18,9 +18,12 @@ import { computeTome } from "@/lib/tome/compute";
 import { CauldronStats } from "./CauldronStats";
 import { Companions } from "./Companions";
 import { FamilyBonsuesREAL } from "./FamilyBonsuesREAL";
+import { getLOG } from "./getLOG";
 import { GetSetBonus } from "./GetSetBonus";
 import { talentNumberDuringFamRebuild } from "./GetTalentNumber";
 import { bestTalentDuringFamRebuild } from "./getbonus2";
+import { PlayerHPmax } from "./PlayerHPmax";
+import { PlayerMPmax } from "./PlayerMPmax";
 import { PostOfficeINFO } from "./PostOfficeINFO";
 import { ReturnClasses } from "./ReturnClasses";
 import { Summoning } from "./Summoning";
@@ -214,12 +217,23 @@ export const DNSM_BoxRewards = block("DNSM.BoxRewards", (ctx, key: string) => {
  *     W7/A8/M7 times max(1, floor((Lv0[0] - 500) / 10)); W9/A7/M8AllCharz @4493046 times 1 + 4 L / (L + 1000), L the levels of the
  *     account's warriors / archers / mages; the other trees' W1/A1/M1, W5/A5/M5, W6/A6/M6 set to 0 by class; Y6 @4495550 times the
  *     account's World 7 maps cleared (KillsLeft2Advance[251 + g][0] < 1, every character).
- * MinEff and ChopEff are then times getLOG(PlayerHPmax()) / getLOG(PlayerMPmax()), computed while the map is half rebuilt: not ported.
+ * In step 1, MinEff is times getLOG(PlayerHPmax()) as it is set (@4483715) and ChopEff times getLOG(PlayerMPmax()) (@4484031); the other steps only
+ * multiply them, so here the factor goes on the finished value. The game reads the HP and MP while the map is half rebuilt (the bubbles after these are
+ * not in it yet): they are taken from the finished map, stated with `assumed()`.
  * Tome is the Tome actor's GenInfo[84], DNSM_TomeQTYtot (Ruling K).
  */
 export const DNSM_AlchBubbles = block("DNSM.AlchBubbles", (ctx, key: string) => {
-  if ("MinEff" == key || "ChopEff" == key) throw new NotPorted("DNSM.AlchBubbles", `AlchBubbles:key=${key}`);
-  return asNumber(alchBubbles(ctx).get(key));
+  const v = asNumber(alchBubbles(ctx).get(key));
+  if (0 == v || ("MinEff" != key && "ChopEff" != key)) return v;
+  const [what, max] = "MinEff" == key ? (["HP", PlayerHPmax] as const) : (["MP", PlayerMPmax] as const);
+  const log = assumed(
+    ctx,
+    `getLOG(Player${what}max())`,
+    `log10 of max ${what} after the stat rebuild (the game takes it mid-rebuild)`,
+    getLOG(ctx, max(ctx)),
+    `TalentCalc(-2) multiplies the ${key} bubble by getLOG(Player${what}max()) while it rebuilds DNSM.AlchBubbles (${"MinEff" == key ? "@4483715" : "@4484031"}), so the game's max ${what} misses the bubbles set after it; here it is the max ${what} of the finished map`
+  );
+  return v * log;
 });
 
 const BIG_BUBBLES = [

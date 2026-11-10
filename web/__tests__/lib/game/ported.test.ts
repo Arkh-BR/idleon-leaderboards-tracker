@@ -100,14 +100,14 @@ describe("isPorted (the marker)", () => {
   beforeAll(async () => {
     [holes, setBonus, research] = (await Promise.all(["Holes", "GetSetBonus", "ResearchStuff"].map(load))).map((m) => m.PORTED!);
   });
-  it("marks only the Holes B_UPG ported (55; 57 and 84 since Damage Task 7), not the rows a read-error probe once marked", () => {
-    for (const b of [55, 57, 84]) expect(isPorted({ args: ["B_UPG", b, 0] }, holes), `B_UPG ${b}`).toBe(true);
-    for (const b of [49, 50, 79, 98]) expect(isPorted({ args: ["B_UPG", b, 0] }, holes), `B_UPG ${b}`).toBe(false);
+  it("marks only the Holes B_UPG ported (55; 57 and 84 since Damage Task 7; 49, 50, 79 and 98 since Talents Task 4b), not the rows a read-error probe once marked", () => {
+    for (const b of [49, 50, 55, 57, 79, 84, 98]) expect(isPorted({ args: ["B_UPG", b, 0] }, holes), `B_UPG ${b}`).toBe(true);
+    for (const b of [14, 45, 48, 52]) expect(isPorted({ args: ["B_UPG", b, 0] }, holes), `B_UPG ${b}`).toBe(false);
   });
 
   it("the committed inventory has none of the unported rows ticked (open, or [~] when proven unreachable)", () => {
     const md = readFileSync("../docs/superpowers/plans/2026-11-04-damage-inventory.md", "utf8");
-    for (const b of [49, 50, 79, 98]) expect(["[ ]", "[~]"].some((m) => md.includes(`- ${m} Holes("B_UPG",${b},`)), `B_UPG ${b}`).toBe(true);
+    expect(["[ ]", "[~]"].some((m) => md.includes(`- ${m} Holes("StudyBolaiaBonuses",0,`)), "StudyBolaiaBonuses 0").toBe(true);
   });
 
   it("reads GetSetBonus's name from the second argument, an `@e<n>` rule, and an unknown index as not covered", () => {

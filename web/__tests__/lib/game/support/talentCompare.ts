@@ -3,7 +3,7 @@
 // lib/arkh is the comparison target only: where it is wrong the tree follows N.js and the path goes in TALENT_KNOWN with the evidence.
 import "./arkhOracle"; // first: it sets the `window` shim lib/arkh reads
 import { computeTalentEffective } from "@/lib/talentsLevel/compute";
-import { ASSUMED_643, WRAP_COUNTER_PENDING } from "@/lib/talentsLevel/wraps";
+import { ASSUMED_643 } from "@/lib/talentsLevel/wraps";
 import { talentCurveAt } from "@/lib/game/njs/GetTalentNumber";
 import { makeCtx } from "@/lib/game/ctx";
 import { stateOf } from "@/lib/game/trackers/page";
@@ -11,8 +11,6 @@ import { computeGameTalent, presetState, type TalentOpts } from "@/lib/game/trac
 import type { ArkhNode } from "@/lib/dropRate/node";
 import { near, rowsOf, type V1Diff } from "./v1Compare";
 
-/** 202 (SkillStats FishingEfficiency, not on lib/game), which keeps the plain shape: the comparer skips it. */
-export const PENDING_WRAPS = WRAP_COUNTER_PENDING;
 /** The cap boosters are built (Task 2): nothing is pending. */
 export const PENDING_BOOSTERS = new Set<number>();
 
@@ -89,6 +87,17 @@ export const TALENT_KNOWN: {
     kind: "note",
     noteWhen: (game, arkh) => game === "CalcTalentMAP[470] — count StampLevelMAX[0..2][*] > 0.5" && undefined !== arkh && /\[PROXY\]/.test(arkh),
     why: "N.js CalcTalentMAP[\"470\"] @4478721 counts StampLevelMAX[0..2][a] > .5, which lib/game reads from the save; lib/arkh counts StampLv > 0 and says so in its note ([PROXY]). Only the note: the counts are compared",
+  },
+  {
+    path: /\(Talent 202\)( \/ Fishing Efficiency)?$/,
+    kind: "value",
+    why: "202's counter is N.js SkillStats(\"FishingEfficiency\") @4219909 (consumer Grimoire_CRITPCT @10888848), whose DN is the Fishing preamble @4218273: the rod's power x (1 + ToolW / 100) + 3 + FishingToolkit(\"POW\"), then + TotalStats(\"Fishing_Power\") (statue 8 and the W2/W7 bubbles, @4188943) + min(MinigameHiscores[1], GetTalentNumber(2,116)); no flat 12 and no tool talent, and its per-skill factor is talent 142 + 10 x RiftSkillBonus,3 + Voting 8 + PLATINUM_SET + 15 x bribe 29 + FishEffPerLv x Lv0[4]. lib/arkh's Fishing (derived-stats.ts SKILL_CONFIG) is the Mining shape (ToolG, talent 283, flat 12, talent 355 / EtcBonuses 12 / Voting 9) without the Fishing_Power, toolkit or minigame terms: on ARKHE of the newest save Fishing_Power alone is 2.5e7 (statue 8), and the counter is 6.0e31 against lib/arkh's 1.8e17, so the root (tv x getLOG(counter)) differs too",
+  },
+  {
+    path: /\(Talent 202\)$/,
+    kind: "note",
+    noteWhen: (game, arkh) => undefined !== arkh && undefined !== game && game.replace(/log10\([^)]*\)/, "") === arkh.replace(/log10\([^)]*\)/, ""),
+    why: "Same as the value row: the note prints the Fishing Efficiency counter (log10(<counter>)), which differs; the rest of the note is the same",
   },
   {
     path: /\(Talent 653\)$/,

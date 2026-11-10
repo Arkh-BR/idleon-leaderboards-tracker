@@ -5,11 +5,13 @@ import { DreamChallenge, MapAFKtarget, MapDetails, MONSTERS, RANDOlist } from ".
 import { InvalidSaveValue, NotPorted } from "../errors";
 import { hString } from "../hstring";
 import { contains, lengthOf, listAt, listOrMapAt } from "../lists";
-import { GetTalentNumber } from "./GetTalentNumber";
+import { GetTalentNumber, talentCurveAt } from "./GetTalentNumber";
 import { getbonus2 } from "./getbonus2";
 import { MenagerieStuff } from "./MenagerieStuff";
 import { PlayerAccTot } from "./PlayerAccTot";
 import { ReturnClasses } from "./ReturnClasses";
+import { TalentEnh } from "./TalentEnh";
+import { skillLevel } from "../player";
 import { RunCodeOfTypeXforThingY } from "./RunCodeOfTypeXforThingY";
 import type { Ported } from "../ported";
 
@@ -186,6 +188,24 @@ export const DNSM_CalcTalentMAP = block("DNSM.CalcTalentMAP", (ctx, key: string)
     default:
       throw new NotPorted("DNSM.CalcTalentMAP", `CalcTalentMAP:key=${key}`);
   }
+});
+
+/**
+ * `DNSM.CalcTalentMAP["43"][g]`, the list CalcTalentDL2z that every `TalentCalc(d <= 0)` rebuilds @4468426 (nine 0s, one per skill g, Lv0[g + 1]). DT1
+ * (CalcTalentDT1 @4468613) is the last character whose class is 3..5, "No" with none (the list stays 0s). When DT1 is another character, a skill the
+ * current one is below DT1 in gets talent 43's first curve at DT1's own SkillLevels[43]; when DT1 is the current one, every skill gets twice that while
+ * TalentEnh(43) is 1.
+ */
+export const DNSM_CalcTalentMAP43 = block("DNSM.CalcTalentMAP43", (ctx, g: number) => {
+  let dt1 = -1; // "No"
+  for (let t = 0, n = ctx.state.charNames.length; t < n; t++) {
+    const cls = asNum(withPlayer(ctx, t), "CharacterClass");
+    if (3 <= cls && 6 > cls) dt1 = t;
+  }
+  if (-1 == dt1) return 0;
+  const curve = () => talentCurveAt(ctx, 1, 43, skillLevel(ctx, 43, dt1));
+  if (dt1 != ctx.player) return asNum(ctx, "Lv0", g + 1) < asNum(withPlayer(ctx, dt1), "Lv0", g + 1) ? curve() : 0;
+  return 1 == TalentEnh(ctx, 43) ? 2 * curve() : 0;
 });
 
 /**

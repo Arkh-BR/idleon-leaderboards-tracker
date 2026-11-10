@@ -6,7 +6,7 @@ import { afterAll, describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { basename } from "node:path";
 import { GOLDEN_SAVES, goldenSaves } from "../support/arkhOracle"; // first: it sets the `window` shim lib/arkh reads
-import { compareTalent, compared as comparedIds, resetCompared, PENDING_BOOSTERS, PENDING_WRAPS } from "../support/talentCompare";
+import { compareTalent, compared as comparedIds, resetCompared, PENDING_BOOSTERS } from "../support/talentCompare";
 import { newestSaves } from "@/lib/diagnose/characterize";
 import type { ArkhNode } from "@/lib/dropRate/node";
 import { maxBookLv } from "@/lib/dropRate/explain/talent";
@@ -20,7 +20,7 @@ import { TaskShopDesc } from "@/lib/game/data";
 import { getbonus2 } from "@/lib/game/njs/getbonus2";
 import { capBoosterRow } from "@/lib/talentsLevel/explain/capBoosters";
 import { plainTalent } from "@/lib/talentsLevel/explain/plain";
-import { applyWrap, readCounter, TALENT_WRAPS, WRAP_COUNTER_PENDING } from "@/lib/talentsLevel/wraps";
+import { applyWrap, readCounter, TALENT_WRAPS } from "@/lib/talentsLevel/wraps";
 import { GetTalentNumber, talentCurveAt } from "@/lib/game/njs/GetTalentNumber";
 import { DNSM_CalcTalentMAP, TalentCalc } from "@/lib/game/njs/TalentCalc";
 import { ReturnClasses } from "@/lib/game/njs/ReturnClasses";
@@ -262,12 +262,14 @@ describe("the final-bonus wraps on a synthetic envelope (runs in CI)", () => {
     expect(find(c.trace!, (n) => /^assumed: /.test(n.note ?? "") && n.value === 1500)).toBeDefined();
   });
 
-  it("a wrap whose counter lib/game does not have yet keeps the plain shape, and reading its counter says so: only 202 (SkillStats FishingEfficiency)", () => {
-    expect([...WRAP_COUNTER_PENDING]).toEqual([202]);
-    const t = plainTalent(wrapCtx({ SL_0: { 202: 5 } }), 202);
-    expect(t.children!.map((k) => k.name)).toEqual(["Active", "Effective Level"]);
-    expect(t.note).toMatch(/^[A-Za-z0-9_]+\(/);
-    expect(() => readCounter(wrapCtx({}), TALENT_WRAPS[202].counterSource)).toThrow(/not ported/);
+  it("202: its consumer's term, GetTalentNumber(1,202) x getLOG(SkillStats(\"FishingEfficiency\")) (Grimoire_CRITPCT @10888848)", () => {
+    const t = plainTalent(wrapCtx({ SL_0: { 202: 5 } }, { 'SkillStats["FishingEfficiency"]': 1e6 }), 202);
+    const tv = kid(t, "Talent Value").val;
+    expect(tv).toBeGreaterThan(0);
+    expect(t.val).toBeCloseTo(tv * LOG(1e6), 12);
+    expect(t.note).toBe(`${tv.toFixed(2)} × log10(1000000) % wraith crit chance`);
+    expect(kid(t, "Fishing Efficiency").val).toBe(1e6);
+    expect(plainTalent(wrapCtx({ SL_0: { 202: 5 } }), 202).note).toBe("Inactive — Fishing Efficiency is 0");
   });
 
   it("Lv0 counters are the character's own levels", () => {
@@ -471,7 +473,7 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("compareTalent on the newest save (us
         const cls = TALENT_TABS_BY_CLASS[getCharClassKey(save, ci) ?? ""];
         if (!cls) continue;
         for (const id of cls.tabs.flatMap((t) => t.talents.map((e) => e.id))) {
-          if (PENDING_WRAPS.has(id) || PENDING_BOOSTERS.has(id)) {
+          if (PENDING_BOOSTERS.has(id)) {
             skipped++;
             continue;
           }
@@ -492,7 +494,7 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("compareTalent on the newest save (us
       for (const line of out.slice(0, 30)) console.info(line);
       console.info(`[cap boosters compared, ${force ? "forced" : "plain"}] ` + [10, 11, 12, 23, 75, 79, 86, 87, 266, 267, 446, 447].map((i) => `${i}:${comparedIds.get(i) ?? 0}`).join(" "));
       const byKind = new Map<string, number[]>();
-      for (const [id, spec] of Object.entries(TALENT_WRAPS)) if (!PENDING_WRAPS.has(+id) && comparedIds.has(+id)) byKind.set(spec.counterSource.kind, [...(byKind.get(spec.counterSource.kind) ?? []), +id]);
+      for (const [id, spec] of Object.entries(TALENT_WRAPS)) if (comparedIds.has(+id)) byKind.set(spec.counterSource.kind, [...(byKind.get(spec.counterSource.kind) ?? []), +id]);
       console.info(`[wraps compared, ${force ? "forced" : "plain"}] ` + [...byKind].map(([k, ids]) => `${k}: ${ids.join(",")}`).join(" | "));
       expect(compared).toBeGreaterThan(100);
       expect(out.slice(0, 20)).toEqual([]);

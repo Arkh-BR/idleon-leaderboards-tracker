@@ -123,14 +123,14 @@ describe("Thingies DancingCoralBonus / CoralKidUpgBonus 2 / FriendBonusStatz 1 (
     expect(Thingies(synth({ OptLacc: optl({ 429: 0 }) }), "CoralKidUpgBonus", 2, 0)).toBe(0);
     expect(() => Thingies(synth({ OptLacc: optl({}) }), "CoralKidUpgBonus", 4, 0)).toThrow(NotPorted);
   });
-  it("FriendBonusStatz(1): the friend with stat 1, FriendBonusQTY(1, level) x the extra multi; stats of 18 or more and other stats do not count; 2 is not ported", () => {
+  it("FriendBonusStatz(1): the friend with stat 1, FriendBonusQTY(1, level) x the extra multi; stats of 18 or more and other stats do not count; 4 is not ported", () => {
     const c = synth({ OptLacc: optl({ 476: "1,12000;3,5;18,100" }) });
     seed(c, "Thingies", ["FriendBonusSlots", 0, 0], 3);
     seed(c, "Thingies", ["FriendBonusXtraMulti", 0, 0], 2);
     // FriendBonusQTY(1, 12000): 30 x min(1.5, .25 + 12000 / (12000 + 12000) x 1.5) = 30
     expect(Thingies(c, "FriendBonusStatz", 1, 0)).toBe(60);
     expect(Thingies(c, "FriendBonusStatz", 0, 0)).toBe(0);
-    expect(() => Thingies(c, "FriendBonusStatz", 2, 0)).toThrow(NotPorted);
+    expect(() => Thingies(c, "FriendBonusStatz", 4, 0)).toThrow(NotPorted);
     // a friend past the slots is ignored
     const narrow = synth({ OptLacc: optl({ 476: "3,5;1,12000" }) });
     seed(narrow, "Thingies", ["FriendBonusSlots", 0, 0], 1);
