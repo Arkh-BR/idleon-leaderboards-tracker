@@ -37,6 +37,9 @@ import { MK_COLLECTOR } from "@/scripts/update-top-multikill";
 import { computeGameDropRateV1 } from "@/lib/game/trackers/dropRateV1";
 import { V1_CLASS_TALENTS } from "@/lib/dropRate/v1Sources";
 import { collectDrReference, DR_V1_ENGINE } from "@/scripts/update-top-dr";
+import { buildDrCardInputs, selectTop8DrCards } from "@/scripts/_shared/top8DrCards";
+import { equippedCards } from "@/lib/game/njs/CardBonusREAL";
+import { getCharClassKey } from "@/lib/talentsLevel/charClass";
 
 const DIR = "scripts/updater/golden/.cache";
 const newest = existsSync(DIR) ? newestSaves(readdirSync(DIR).filter((f) => f.endsWith(".json")).map((f) => join(DIR, f)), 1)[0] : undefined;
@@ -118,13 +121,26 @@ describe.skipIf(!save)("the collectors' round trip on the newest save", () => {
     expect(r.overrides.ES["Drop Rate"]).toBeGreaterThan(r.baseFlat["Drop Rate"]);
   });
 
-  // KNOWN GAP (Task 6 review): lib/game's DR tree has no "(Card key) / Star Lv" leaves, so observedStarLvOf() finds nothing, capDrCards() picks 0 cards
-  // and the Observed Max gets +0 from the 8 card slots. it.fails flips to a failure the day the collector reads card levels; then make it a plain it().
-  // The catalog rows exist (value 0); none carries a value.
-  it.fails("DR V1: at least one card row carries a value (currently 0: see the note above)", () => {
-    const r = collectDrReference([{ name: "newest", save }]);
-    const rows = Object.entries(r.baseFlat).filter(([p, v]) => 0 < v &&  /^Drop Rate \/ (Additive Pool|Post-Processing) \/ 🃏 Cards \/ Drop Rate (Multi )?Cards \(Card Type 101?\) \/ .*\(Card [^)]+\)$/.test(p));
-    expect(rows.length).toBeGreaterThan(0);
+  // The 8 slots read the star levels of the DR cards the scanned non-ES characters EQUIP (the tree's "(Card key) / Star Lv" leaves, CardBonusREAL's
+  // CardLv, as lib/arkh's tree had them). ARKHE's saves of 03/11 equip none, so it takes the 5 newest: 01/11's Markhe equips 6.
+  it("DR V1: the card rows carry the best 8 of the equipped cards' game star levels", () => {
+    const five = newestSaves(readdirSync(DIR).filter((f) => f.endsWith(".json")).map((f) => join(DIR, f)), 5).map((f) => ({ name: f, save: JSON.parse(readFileSync(f, "utf8").replace(/^﻿/, "")) }));
+    const r = collectDrReference(five);
+    const lv = new Map<string, number>();
+    for (const { save: s } of five)
+      for (const ch of listCharacters(s)) {
+        if (getCharClassKey(s, ch.charIndex) === "Elemental_Sorcerer") continue;
+        const ctx = makeCtx(stateOf(s), { player: ch.charIndex, map: 0 });
+        for (const key of ["+{%_Total_Drop_Rate", "+{%_Drop_Rate_Multi"]) for (const e of equippedCards(ctx, key)) lv.set(e.card, Math.max(lv.get(e.card) ?? 0, e.level));
+      }
+    const { multi, add } = buildDrCardInputs((k) => lv.get(k) ?? 0);
+    const want = selectTop8DrCards(multi, add);
+    expect(want.picks.length).toBeGreaterThan(0);
+    const ADD = "Drop Rate / Additive Pool / 🃏 Cards / Drop Rate Cards (Card Type 10)";
+    const MUL = "Drop Rate / Post-Processing / 🃏 Cards / Drop Rate Multi Cards (Card Type 101)";
+    const rows = Object.entries(r.baseFlat).filter(([p, v]) => 0 < v && (p.startsWith(ADD + " / ") || p.startsWith(MUL + " / ")) && /\(Card [^)]+\)$/.test(p));
+    expect(rows.map(([p, v]) => [p.match(/\(Card ([^)]+)\)$/)![1], v]).sort()).toEqual(want.picks.map((p) => [p.key, p.effVal]).sort());
+    expect(near(r.baseFlat[ADD], want.additiveSum) && near(r.baseFlat[MUL], want.multiSum)).toBe(true);
   });
 
   it("DR V1: a character the engine refuses is counted and named, and the run goes on", () => {
