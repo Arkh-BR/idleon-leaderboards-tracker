@@ -17,6 +17,7 @@ import { NonFiniteResult } from "@/lib/game/errors";
 import { listAt } from "@/lib/game/lists";
 import { ArbitraryCode } from "@/lib/game/njs/ArbitraryCode";
 import { AtomCollider } from "@/lib/game/njs/AtomCollider";
+import { Breeding } from "@/lib/game/njs/Breeding";
 import { minigameHiscore } from "@/lib/game/njs/DamageDealed";
 import { getLOG } from "@/lib/game/njs/getLOG";
 import { talentCurveAt } from "@/lib/game/njs/GetTalentNumber";
@@ -366,17 +367,15 @@ const arcaneUpgTotal = (c: Ctx): number => sumFirst(ArcaneUpg.length, (e) => asN
 const compassUpgTotal = (c: Ctx): number => sumFirst(CompassUpg.length, (l) => asNum(c, "Compass", 0, l));
 
 /**
- * Windwalker("TotBreedzWWz") @11072274: over the four W6 breeding worlds w (Breeding[13 + w]) and each entry e, an entry above .5 adds min(9, floor((Breeding("2ndMulti","0",w,e) - 1)^.8) + 1) and any other adds 1.
- * Breeding("2ndMulti") @7939419 is 1 + ln(max(1, (Breeding[13 + w][e] + 1)^.725)) once the breeding actor's GenINFO[53][0] is 1 and 1 before. That flag is `0 < Breeding[2][3]` (the actor's constructor @10095007, again
- * at @10021495), read here from the save. (DNSM.TotBreedzWWz keeps the sum from the session's first call.)
+ * Windwalker("TotBreedzWWz") @11072274: over the four W6 breeding worlds w (Breeding[13 + w]) and each entry e, an entry above .5 adds min(9, floor((Breeding("2ndMulti","0",w,e) - 1)^.8) + 1) and any other adds 1
+ * (Breeding("2ndMulti") @7939419, lib/game/njs/Breeding.ts). (DNSM.TotBreedzWWz keeps the sum from the session's first call.)
  */
 function totBreedzWWz(c: Ctx): number {
-  const second = 0 < asNum(c, "Breeding", 2, 3);
   let total = 0;
   for (let w = 0; w < 4; w++) {
     for (let e = 0, n = listAt(c, "Breeding", 13 + w).length; e < n; e++) {
       const v = asNum(c, "Breeding", 13 + w, e);
-      total += 0.5 < v ? Math.min(9, Math.floor(Math.pow((second ? 1 + Math.log(Math.max(1, Math.pow(v + 1, 0.725))) : 1) - 1, 0.8)) + 1) : 1;
+      total += 0.5 < v ? Math.min(9, Math.floor(Math.pow(Breeding(c, "2ndMulti", "0", w, e) - 1, 0.8)) + 1) : 1;
     }
   }
   return total;

@@ -5,7 +5,7 @@
 // and N.js stays the only source of truth (see KNOWN_ARKH_DIFFS for where the oracle is wrong).
 import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
-import { dirname, join, relative, resolve } from "node:path";
+import { basename, dirname, join, relative, resolve } from "node:path";
 import { computeArkhArtifactFind } from "@/lib/arkh/computeArtifactFind";
 import { ARTI_GROUPS } from "@/lib/arkh/stats/defs/artifact-find";
 import { computeArkhDamage, DMG_COLLECTOR_MAP } from "@/lib/arkh/computeDamage";
@@ -65,9 +65,23 @@ function isEnvelope(path: string): boolean {
  * The save envelopes in `dirs` (default: the two real-save folders): the top-level `*.json` files that
  * parse to an envelope, as absolute paths, sorted. Subfolders (`readings/`) and any other JSON are left
  * out. A missing folder contributes nothing. Costs one JSON.parse per file, so about 0.5 s for the 106
- * real saves.
+ * real saves. `GOLDEN_ONLY=a.json,b.json` in the environment keeps only the saves named (a check on a few saves, never the corpus; the
+ * count assertions of a corpus test then fail by design).
  */
 export function goldenSaves(dirs: string[] = DEFAULT_DIRS): string[] {
+  const only = process.env.GOLDEN_ONLY?.split(",").filter(Boolean);
+  if (!only?.length) return goldenSavesIn(dirs).filter((p) => !PARITY_EXCLUDED.includes(basename(p)));
+  return goldenSavesIn(dirs).filter((p) => only.includes(basename(p)));
+}
+
+/**
+ * The saves left out of the lib/arkh parity corpus (GOLDEN_ONLY can still name them). HourZero (CSver 23) was never compared with lib/arkh
+ * (lib/tome could not score it, so the engine refused it), lib/arkh does not replay the game's load steps (the Hatrack's EquipmentHats38,
+ * migrations.ts:394, among them), and these suites go with lib/arkh.
+ */
+export const PARITY_EXCLUDED: readonly string[] = ["HourZero.json"];
+
+function goldenSavesIn(dirs: string[]): string[] {
   return dirs
     .map((d) => resolve(WEB, d))
     .flatMap((dir) =>
@@ -354,12 +368,12 @@ const COMPANION_0_GATE =
   "Companions(0) @10799980 is 0 below Lv0[14] = 2 (`0==d&&2>c.asNumber(Lv0[14])?0:…`); Koweabooo#10 has Lv0_10[14] = 1. lib/arkh's companionBonus has no such gate, so its Grid_Bonus_Allmulti @11179174 keeps the +5 of `5*min(1, Research[0][173]*Companions(0))` (game 1.16, arkh 1.21). Raising Lv0_10[14] to 2 makes lib/game equal lib/arkh (accountUpgrades.test.ts)";
 
 const TOME_SOURCE =
-  "lib/arkh reads IdleonToolbox's parsedData tome total; lib/game uses lib/tome (N.js port, validated in game 2026-11-03) for the Tome actor's GenInfo[84] @5778865 (the Lore Episode reads it). With the total forced to IdleonToolbox's number for this save, lib/game equals lib/arkh (loreEpi.test.ts)";
-/** The saves whose loreEpi3 differs only because the Tome total of lib/tome is not the one IdleonToolbox stamped (checked in loreEpi.test.ts). */
+  "lib/arkh reads IdleonToolbox's parsedData tome total; lib/game uses its own N.js sum (DNSM.TomeQTYtot; the total lib/tome had was validated in game 2026-11-03) for the Tome actor's GenInfo[84] @5778865 (the Lore Episode reads it). With the total forced to IdleonToolbox's number for this save, lib/game equals lib/arkh (loreEpi.test.ts)";
+/** The saves whose loreEpi3 differs only because lib/game's Tome total is not the one IdleonToolbox stamped (checked in loreEpi.test.ts). */
 const TOME_SOURCE_SAVES = [
   "1st_Giri.json", "24632463.json", "Dragonlzl.json", "Exrom.json", "FenrirAdra.json", "Flipper143.json", "GIM_SSS.json", "Grandesz.json",
   "Koweabooo.json", "arkhe-2026-09-23.json", "bluestar3112.json", "breakinbrad.json", "hellzd4nt3.json", "joelok.json",
-]; // only full-coverage saves: a save with a Tome row lib/tome cannot compute is refused (IncompleteTome), not a difference. The older ones
+]; // chosen when lib/tome scored the Tome (a save with a row it could not compute was refused then, not a difference). The older ones
 // (below CSver 34) are scored after the game's load steps (lib/game/migrations): IdleonToolbox's 118 rows have none of the Royal Guardian
 // rows (107..109) the load gives them, and it stamped its number on the save as stored
 
@@ -397,7 +411,7 @@ export const STAT_WHY: Record<string, string> = {
   fam68:
     `N.js AllTalentLV @4085148 reads DNSM.FamBonusQTYs["68"] as TalentCalc(-3) @4496063 leaves it (lib/arkh's own computeFamBonusQTYs gives the same number). lib/arkh's talent resolver works out the level of talent 144 (Family Guy) for that buff with forceSuperActive: true (talent.ts:1006-1010), which adds the Spelunk super-talent levels although 144 is not in the character's active preset (Spelunk[20+ci+12*preset] has no 144; e.g. 337 vs 222 on Ash_EB#0); N.js AllTalentLV adds AllTalMaxSUPERdn only when the talent is in that list`,
   tomeW8:
-    "the Tome Strength bubble W8 is times floor(max(0, Tome - 5000) / 2000) (TalentCalc(-2) @4489669); lib/arkh's Tome total is IdleonToolbox's parsedData, lib/game's is lib/tome (Ruling K)",
+    "the Tome Strength bubble W8 is times floor(max(0, Tome - 5000) / 2000) (TalentCalc(-2) @4489669); lib/arkh's Tome total is IdleonToolbox's parsedData, lib/game's is its own (DNSM.TomeQTYtot, Ruling K)",
   signs:
     "lib/arkh's STR star signs (computeStarSignStatBonuses, its own comment says it counts every listed sign) count a sign the Rift enables that StarSignsUnlocked lacks; N.js StarSigns @6540624 adds sign k of the first enabledStarSigns only when StarSignsUnlocked has StarSigns[k][0]",
   comp0: COMPANION_0_GATE,
@@ -900,7 +914,7 @@ export const KNOWN_ARKH_DIFFS: {
   // The game keeps DNSM.Button_Bonsuz for the whole session, built with the Companions(0) gate of the character that first asks (rebuilt
   // only from the Minehead UI @13189253, @13417222, @13417985, @13418698): it shows this value only if the first Minehead read was on this character
   { save: "Koweabooo.json", ci: 10, source: "button3", why: `${COMPANION_0_GATE}. The Minehead cache is per session in the game, not per character: lib/game models it as built for the current character (Minehead.ts), so the game shows this value only if the session's first Minehead read was on this character` },
-  // Ruling K: the Tome score of the Lore Episode is lib/tome's, not IdleonToolbox's (ci omitted: every character)
+  // Ruling K: the Tome score of the Lore Episode is lib/game's, not IdleonToolbox's (ci omitted: every character)
   ...TOME_SOURCE_SAVES.map((save) => ({ save, source: "loreEpi3", why: TOME_SOURCE })),
   { save: "0celot8.json", source: "loreEpi3", why: TOME_AFTER_RESET },
   { save: "5OhTree.json", source: "loreEpi3", why: TOME_AFTER_RESET },
@@ -948,7 +962,7 @@ export const KNOWN_ARKH_DIFFS: {
   // Summoning("WinBonus",0): its boosts have GetSetBonus("GODSHARD_SET"), the God Shard set worn whole (as win3)
   { stat: "damage" as const, save: "HourZero.json", ci: 1, source: "win0", reason: "godshard", why: GODSHARD_WORN },
   { stat: "damage" as const, save: "HourZero.json", ci: 9, source: "win0", reason: "godshard", why: GODSHARD_WORN },
-  // Summoning("TomeBonus",0) and (6) are powers of the Tome score (Ruling K): lib/tome's against IdleonToolbox's stamped total. tome6 moves
+  // Summoning("TomeBonus",0) and (6) are powers of the Tome score (Ruling K): lib/game's against IdleonToolbox's stamped total. tome6 moves
   // only where floor(Tome / 1000) differs; big_guy69123's lore episodes do not move, its Tome bonus 0 does
   ...[...TOME_SOURCE_SAVES, "big_guy69123.json"].map((save) => ({ stat: "damage" as const, save, source: "tome0", reason: "tome", why: TOME_SOURCE })),
   ...["0celot8.json", "5OhTree.json"].map((save) => ({ stat: "damage" as const, save, source: "tome0", reason: "tome", why: TOME_AFTER_RESET })),
@@ -1086,7 +1100,7 @@ export const KNOWN_ARKH_DIFFS: {
   ...([["big_guy69123.json", 0, [40]], ["big_guy69123.json", 1, [14]], ["big_guy69123.json", 2, [40]], ["big_guy69123.json", 4, [14]], ["big_guy69123.json", 5, [40]], ["big_guy69123.json", 6, [251, 216, 150]], ["big_guy69123.json", 7, [301, 40]], ["big_guy69123.json", 8, [251]], ["big_guy69123.json", 9, [301, 40]], ["big_guy69123.json", 10, [251, 216, 14, 150]]] as const).map(([save, ci, maps]) => ({ stat: "mk" as const, save, ci, maps, source: "tier", reason: "signsDmg", why: `lib/arkh's Max is about 1.28 x lib/game's here because of the Damage % star signs (${STAT_WHY.signsDmg}), and it crosses a tier lib/game's does not. It is the one cause that closes every pair of these but #0@40 on its own (the next largest, powerSuffix on character 8, is x 1.04)` })),
   { stat: "mk" as const, save: "big_guy69123.json", ci: 0, maps: [40] as const, source: "tier", reason: "gfoodSign69", why: `On this pair the signsDmg entry above needs a second cause: lib/arkh's Max crosses tier 49 only with the Damage % star signs and the golden food's sign 69 together (${STAT_WHY.gfoodSign69}); neither alone reaches it` },
   { stat: "mk" as const, save: "Dandy2009.json", ci: 7, maps: [251] as const, source: "tier", reason: "signs@wis", why: `lib/arkh's Max is 1.006 x lib/game's through the character's WIS (${STAT_WHY.signs.replace(/STR star signs/, "WIS star signs")}) and crosses tier 44, which lib/game's does not reach. Proved by lib/arkh's WIS star sign keys in place of lib/game's` },
-];
+].filter((d) => !PARITY_EXCLUDED.includes(d.save) || !!process.env.GOLDEN_ONLY?.split(",").includes(d.save)); // an excluded save's entries wait for GOLDEN_ONLY to name it
 
 /**
  * The lib/arkh numbers behind each STAT_WHY reason, as lib/game `block` calls to seed (block name, its args, lib/arkh's value): put in the
@@ -1249,7 +1263,7 @@ export const PROOF_PATCHES: Record<string, Patch> = {
 /**
  * The seeds that prove a Damage source's KNOWN `reason` (a `stat: "damage"` row) on character `ci`: lib/arkh's number for the cause, on the
  * narrowest block it names. The reasons a patch proves (PROOF_PATCHES) have none.
- *  - tome (TOME_SOURCE, Ruling K): the Tome score lib/arkh reads, IdleonToolbox's total stamped on the file, in place of lib/tome's;
+ *  - tome (TOME_SOURCE, Ruling K): the Tome score lib/arkh reads, IdleonToolbox's total stamped on the file, in place of lib/game's;
  *  - powerSuffix, for a term that reads the weapon power through other blocks (the total): lib/arkh's weapon power on TotalStats("Weapon_Power")
  *    (a term that reads that block itself, wpSquared, is proved by PROOF_PATCHES.powerSuffix instead);
  *  - pray6: no Super Bit 9 / 39, which makes N.js prayersReal take the equipped-prayer branch, the only one lib/arkh's leaf has;

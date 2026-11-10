@@ -199,18 +199,20 @@ export default function BestTomePanel({
     if (!result) return [];
     return result.rows.map((r) => {
       const maxPts = maxPtsForBonus(r.bonus);
+      // A task the account level has not unlocked scores 0 whatever its quantity (TomePCT): no tier, no gain to rank.
+      const locked = !r.unlocked;
       const pct =
-        r.bonus && r.rawValue !== null
+        r.bonus && r.rawValue !== null && !locked
           ? calcPointsPercent(r.bonus, Number(r.rawValue))
           : null;
       const tier = tierForPct(pct);
       const currentPts = r.pts ?? 0;
-      const rawForNextPt = quantityForPts(r.bonus, currentPts + 1);
-      const rawForMaxPts = quantityForPts(r.bonus, maxPts);
-      const ptsGapToMax = Math.max(0, maxPts - currentPts);
+      const rawForNextPt = locked ? null : quantityForPts(r.bonus, currentPts + 1);
+      const rawForMaxPts = locked ? null : quantityForPts(r.bonus, maxPts);
+      const ptsGapToMax = locked ? 0 : Math.max(0, maxPts - currentPts);
       const top = TOP_PLAYERS[r.task] ?? null;
       const ptsGapToTop =
-        top && top.pts !== null ? Math.max(0, top.pts - currentPts) : 0;
+        !locked && top && top.pts !== null ? Math.max(0, top.pts - currentPts) : 0;
       // Auto-Capped ONLY when the user is at (or above) the theoretical
       // maximum points for the task's curve — i.e., literally maxed out.
       // The blue tier (99.9% of asymptote) is NOT enough.
@@ -389,10 +391,12 @@ export default function BestTomePanel({
     return sortDir === "asc" ? " ▲" : " ▼";
   }
 
-  if (error) {
+  // result.error: the engine refused the save, so every row is MISSING; nothing worth listing, unless IT's points filled every row.
+  const shownError = error ?? (result?.usedParsedTomePoints ? null : result?.error) ?? null;
+  if (shownError) {
     return (
       <div className="bg-red-950/50 border border-red-800 rounded p-3 text-sm">
-        <strong className="text-red-400">Error:</strong> {error}
+        <strong className="text-red-400">Error:</strong> {shownError}
       </div>
     );
   }
@@ -410,6 +414,12 @@ export default function BestTomePanel({
 
   return (
     <div className="space-y-4">
+      {result.error && (
+        <div className="bg-red-950/50 border border-red-800 rounded p-3 text-sm">
+          <strong className="text-red-400">Error:</strong> {result.error} The points below are
+          IdleonToolbox&rsquo;s.
+        </div>
+      )}
       <HeroKPIs totals={totals} snapshotAt={snapshot?.savedAt ?? null} />
 
       <div className="flex flex-wrap gap-3 items-center p-3 rounded-lg bg-zinc-900/40 border border-zinc-800/80">
@@ -875,11 +885,17 @@ function BestTomeRow({
         {displayTaskName(r.task)}
       </td>
       <td className="px-3 py-3">
-        <span
-          className={`inline-block text-[11px] font-semibold uppercase tracking-wide rounded-md px-2.5 py-1 border ${meta.bgClass} ${meta.textClass} ${meta.borderClass}`}
-        >
-          {meta.label}
-        </span>
+        {r.unlocked ? (
+          <span
+            className={`inline-block text-[11px] font-semibold uppercase tracking-wide rounded-md px-2.5 py-1 border ${meta.bgClass} ${meta.textClass} ${meta.borderClass}`}
+          >
+            {meta.label}
+          </span>
+        ) : (
+          <span className="text-xs text-zinc-500 whitespace-nowrap">
+            Locked{r.lvReq !== undefined ? ` (account LV ${r.lvReq})` : ""}
+          </span>
+        )}
       </td>
       <td className="px-3 py-3">
         <ClassificationSelect row={r} onChange={onClassChange} />
@@ -958,7 +974,9 @@ function BestTomeRow({
         })()}
       </td>
       <td className="px-3 py-3 text-right tabular-nums">
-        {r.top === null || r.top.pts === null ? (
+        {!r.unlocked ? (
+          <span className="text-zinc-600 text-xs">—</span>
+        ) : r.top === null || r.top.pts === null ? (
           <span className="text-zinc-600 text-xs">no data</span>
         ) : r.ptsGapToTop === 0 ? (
           <span className="text-sky-400 text-xs">tied / ahead</span>

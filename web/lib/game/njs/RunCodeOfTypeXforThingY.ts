@@ -105,7 +105,7 @@ function overkillStuffs(ctx: Ctx, b: string): number {
  * The card info map, `ActorEvents_312`'s `GenINFO[45]`: the actor's create @7493547 maps every card name `CardStuff[g][q][0]` to its
  * row `CardStuff[g][q]` (a later row of the same name replaces an earlier one). Game data only, so built once.
  */
-const CARD_INFO: ReadonlyMap<string, readonly unknown[]> = (() => {
+export const CARD_INFO: ReadonlyMap<string, readonly unknown[]> = (() => {
   const m = new Map<string, readonly unknown[]>();
   for (const group of CardStuff as unknown as readonly (readonly (readonly unknown[])[])[]) for (const row of group) m.set(hString(row[0]), row);
   return m;

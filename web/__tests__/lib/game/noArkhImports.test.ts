@@ -1,6 +1,5 @@
 // Ruling KK: lib/game must not depend on lib/arkh at runtime (the MIT relicense goal). Walks the static import graph from every
-// lib/game/trackers/*.ts through every web/lib file they reach (lib/tome excepted: Ruling K), and fails on any
-// non-type import of lib/arkh. Type-only imports are fine.
+// lib/game/trackers/*.ts through every web/lib file they reach, and fails on any non-type import of lib/arkh. Type-only imports are fine.
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -25,8 +24,8 @@ const runtimeImports = (src: string): string[] => {
   for (const m of src.matchAll(/^\s*import\s+"([^"]+)"/gm)) out.push(m[1]);
   return out;
 };
-// every web/lib file the walk reaches is followed; only lib/tome (which DNSM.TomeQTYtot runs, Ruling K) is outside it
-const followed = (rel: string) => rel.startsWith("lib/") && !rel.startsWith("lib/tome/");
+// every web/lib file the walk reaches is followed (lib/tome too: DNSM.TomeQTYtot no longer runs it, the Tome score is lib/game's own)
+const followed = (rel: string) => rel.startsWith("lib/");
 
 const walk = (roots: string[]) => {
   const todo = [...roots];
@@ -56,6 +55,11 @@ describe("lib/game imports no lib/arkh at runtime (Ruling KK)", () => {
   });
   it("through lib/talentsLevel (the Talents page)", () => {
     const { seen, bad } = walk(tsIn(join(ROOT, "lib/talentsLevel")));
+    expect(seen.size).toBeGreaterThan(5);
+    expect(bad).toEqual([]);
+  });
+  it("through lib/tome (the Tome page)", () => {
+    const { seen, bad } = walk(tsIn(join(ROOT, "lib/tome")));
     expect(seen.size).toBeGreaterThan(5);
     expect(bad).toEqual([]);
   });

@@ -18,7 +18,7 @@ import { Minehead } from "@/lib/game/njs/Minehead";
 import { dropRateLuk, TotalStats } from "@/lib/game/njs/TotalStats";
 
 const rel = (got: number, want: number) => Math.abs(got - want) <= 1e-9 * Math.max(1, Math.abs(want));
-const HOURZERO = ["HourZero.json: Tome rows 21,101,105,106,115,116"]; // Ruling E: the Tome refusal behind TotalStats("LUK") (drTerms.test.ts)
+const HOURZERO: string[] = []; // HourZero, the one save lib/tome could not score, is out of the parity corpus (PARITY_EXCLUDED, support/arkhOracle.ts): nothing is refused
 
 /**
  * Per map: the pairs whose total the KNOWN entries close (exact), the pairs in the Cove (map 216 with the character in cavern 17), the differing

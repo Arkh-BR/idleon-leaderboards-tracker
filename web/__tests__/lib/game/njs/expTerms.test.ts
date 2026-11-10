@@ -206,16 +206,16 @@ const OWN: Record<string, string[]> = {
 Object.freeze(OWN);
 
 /** What each term refuses (Ruling E): lib/tome cannot score HourZero (see stats.test.ts, equipCards.test.ts). */
-const HOURZERO = ["HourZero.json: Tome rows 21,101,105,106,115,116"];
+const HOURZERO: string[] = []; // HourZero, the one save lib/tome could not score, is out of the parity corpus (PARITY_EXCLUDED, support/arkhOracle.ts): nothing is refused
 // the same Tome refusal reaches every term built on the talent levels (AllTalentLV -> FamBonusQTYs, the Tome bubbles) or on a stat (TotalStats LUK): the Workbench talent, the LUK curve and its talent, the Divinity god levels, the statue, the golden food, the Grind Time bubble
 const TOME_TERMS = new Set(["workbench", "luk", "talent35", "divMinor4", "statue10", "goldFood", "bubbleExp"]);
 /** The pairs per leaf whose difference a KNOWN entry closes, as a literal (a stale entry or a new difference fails): the totals of the report. */
 const EXPECT_KNOWN: Record<string, number> = {
-  workbench: 9, talent434: 9, medallion429: 41, gridExp: 1, sticker0: 1, divMinor4: 1, button8: 1, win23: 2, statue10: 10, starSignMainXP: 33,
+  workbench: 9, talent434: 9, medallion429: 41, gridExp: 1, sticker0: 1, divMinor4: 1, button8: 1, statue10: 9, starSignMainXP: 33,
   prayer0: 43, prayer2: 43, goldFood: 337, luk: 1121, talent35: 107,
 };
-/** The pairs per leaf: 106 saves x characters (1163 on map 251), less HourZero's 10 characters where a term refuses, plus the extra maps of the map-dependent ones. */
-const PAIRS: Record<string, number> = { workbench: 1153, luk: 1153, talent35: 1153, divMinor4: 1153, goldFood: 1153, bubbleExp: 1153, statue10: 1160, medallion429: 5742, arcane1: 5108, shrine5: 2326 };
+/** The pairs per leaf: 105 saves x characters (1153 on map 251; HourZero is out of the parity corpus, PARITY_EXCLUDED), plus the extra maps of the map-dependent ones. */
+const PAIRS: Record<string, number> = { workbench: 1153, luk: 1153, talent35: 1153, divMinor4: 1153, goldFood: 1153, bubbleExp: 1153, statue10: 1150, medallion429: 5732, arcane1: 5098, shrine5: 2306 };
 const REFUSALS = (id: string): string[] => (TOME_TERMS.has(id) ? HOURZERO : []);
 
 /**

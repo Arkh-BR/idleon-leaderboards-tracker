@@ -10,11 +10,15 @@
 //      scaffold reflects only logic OUTSIDE them (those are captured granularly
 //      by #1) — avoids redundant churn while still catching number-dispatched
 //      (if(918==d)) and direct-helper logic.
+//   3. Custom events a port replays: <actor>._customEvent_<Name>:function(){<body>}.
+//      Key = "_customEvent_<Name>". Only the names in EVENT_RE (N.js has ~170 events).
 // Input must be the normalized bundle (extractAll passes normalizeBundle()'s
 // output; tests pass clean fixtures).
 
-const NAMED_RE = /if\("([A-Za-z][A-Za-z0-9_]{2,})"==[a-z]\)/g;
+const NAMED_RE = /if\("([A-Za-z0-9][A-Za-z0-9_]{2,})"==[a-z]\)/g; // a digit may lead: "5starCards"
 const FN_RE = /_customBlock_([A-Za-z0-9_]+)=function\([^)]*\)\{/g;
+// ponytail: only the events lib/game replays; add a name to the group when another one is ported
+const EVENT_RE = /_customEvent_(TomeQTY):function\([^)]*\)\{/g;
 
 /** Reads a `return <expr>;` or a balanced `{<block>}` starting at `start`.
  *  String/paren/brace aware so `;` or `}` inside strings or nested calls
@@ -84,6 +88,16 @@ export function extractFormulas(norm: string): Record<string, string> {
     if (body) {
       out["_customBlock_" + m[1]] = collapseNamedBlocks(body.text);
       FN_RE.lastIndex = body.end;
+    }
+  }
+
+  // 3. The custom events a port replays (named-blocks collapsed, as a scaffold's).
+  EVENT_RE.lastIndex = 0;
+  while ((m = EVENT_RE.exec(norm))) {
+    const body = readBody(norm, EVENT_RE.lastIndex - 1); // start at the `{`
+    if (body) {
+      out["_customEvent_" + m[1]] = collapseNamedBlocks(body.text);
+      EVENT_RE.lastIndex = body.end;
     }
   }
 

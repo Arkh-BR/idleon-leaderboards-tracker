@@ -20,7 +20,7 @@ import { TotalStats } from "@/lib/game/njs/TotalStats";
 import { applyGroupStep } from "@/lib/statTracker/groups";
 
 const rel = (got: number, want: number) => Math.abs(got - want) <= 1e-9 * Math.max(1, Math.abs(want));
-const HOURZERO = ["HourZero.json: Tome rows 21,101,105,106,115,116"]; // Ruling E: the Tome refusal behind TotalStats("STR"), the block's first read (coinTerms.test.ts)
+const HOURZERO: string[] = []; // HourZero, the one save lib/tome could not score, is out of the parity corpus (PARITY_EXCLUDED, support/arkhOracle.ts): nothing is refused
 const STATS = ["STR", "AGI", "WIS"] as const;
 const SNAPSHOT = new Set<string>(STATS.map((s) => `snapshot${s}`));
 const cash = (c: Ctx) => ArbitraryCode(c, "MonsterCash");
@@ -36,7 +36,7 @@ const MAPS: Record<number, { known: number; byReason: Record<string, number> }> 
   150: { known: 1139, byReason: EVERY_MAP },
   40: { known: 1140, byReason: { ...EVERY_MAP, signsDmg: 2 } },
 };
-const PAIRS = 1153; // 106 saves x characters (1163), less HourZero's 10
+const PAIRS = 1153; // the parity corpus: 105 saves x characters (HourZero is out, PARITY_EXCLUDED)
 const NO_MONSTER = 'AFKtarget: expected a MonsterDefinitions key, got string "Z"'; // MapAFKtarget[33]
 /**
  * Listed on the pair, but the pair closes without them on every map, so they explain nothing there. gfoodVote26: seeding lib/arkh's weekly vote 26 leaves the total where it is on all 308.

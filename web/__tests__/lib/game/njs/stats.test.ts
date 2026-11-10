@@ -38,7 +38,7 @@ const MAP = 251; // a plain map: no dungeon (Dungon() is -1), no arena
  * (step 351 writes [449] on a 401-long list, step 371 pads from there), which the game reads as asNumber(undefined) = 0 and lib/tome as
  * missing. Not changed here: lib/tome is the Tome tracker's (Ruling K).
  */
-const STAT_REFUSALS = ["HourZero.json: Tome rows 21,101,105,106,115,116"];
+const STAT_REFUSALS: string[] = []; // HourZero, the one save lib/tome could not score, is out of the parity corpus (PARITY_EXCLUDED, support/arkhOracle.ts): nothing is refused
 /** The cache keys of the stats under test (a seed on one of them would prove nothing). */
 const OWN = ['TotalStats["STR"]', 'TotalStats["AGI"]', 'TotalStats["WIS"]', 'TotalStats["LUK"]', "PlayerMPmax[]", "PlayerHPmax[]", "PlayerAccTot[]", "PlayerSpeedBonus[]"];
 const rel = (got: number, want: number) => Math.abs(got - want) <= 1e-9 * Math.max(1, Math.abs(want));

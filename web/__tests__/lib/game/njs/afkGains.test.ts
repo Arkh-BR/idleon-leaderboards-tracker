@@ -18,7 +18,7 @@ import { AFKgainrates } from "@/lib/game/njs/AFKgainrates";
 import { afkFightRate } from "@/lib/game/trackers/afkGains";
 
 const rel = (got: number, want: number) => Math.abs(got - want) <= 1e-9 * Math.max(1, Math.abs(want));
-const HOURZERO = ["HourZero.json: Tome rows 21,101,105,106,115,116"]; // Ruling E: the Tome refusal behind the talents (afkTerms.test.ts)
+const HOURZERO: string[] = []; // HourZero, the one save lib/tome could not score, is out of the parity corpus (PARITY_EXCLUDED, support/arkhOracle.ts): nothing is refused
 
 /**
  * Per map: the pairs whose total the KNOWN entries close (exact), the pairs where the game's saved AFK target makes lib/game differ from

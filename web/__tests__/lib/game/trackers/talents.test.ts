@@ -201,7 +201,7 @@ describe("the cap boosters on a synthetic envelope (runs in CI)", () => {
 
 describe("the final-bonus wraps on a synthetic envelope (runs in CI)", () => {
   // the talent curves and getLOG run for real, every other block answers 0, so a talent's level is its points and a counter is what the test seeds
-  const REAL = ["GetTalentNumber", "getbonus2", "ArbitraryCode5Inputs", "getLOG", "AtomCollider"];
+  const REAL = ["GetTalentNumber", "getbonus2", "ArbitraryCode5Inputs", "getLOG", "AtomCollider", "Breeding"];
   const ola = (m: Record<number, number>) => Object.assign(Array<number>(700).fill(0), m);
   const wrapCtx = (data: Record<string, unknown>, seeds: Record<string, number> = {}, trace = false) =>
     synth({ Spelunk: SPELUNK, PlayerStuff_0: [0, 0], SL_0: {}, SM_0: {}, ...data }, { map: 0, real: REAL, seeds, trace });

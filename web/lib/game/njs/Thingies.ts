@@ -148,7 +148,7 @@ function bundlesAbsent(ctx: Ctx): boolean {
  * (`Spelunk[13][2] > g` is false), else, for Spelunky[21][g] = "a|from" and p = floor(max(0, Tome - from) / 100) ^ .7,
  * (1 + (Grimoire upgrade 17 + the TROLL set bonus) / 100) x a x max(0, p / (25 + p)).
  *
- * Tome is the Tome actor's `GenInfo[84]` (ActorEvents_229), the account's Tome score: `DNSM_TomeQTYtot`, our own `computeTome` standing in
+ * Tome is the Tome actor's `GenInfo[84]` (ActorEvents_229), the account's Tome score: `DNSM_TomeQTYtot`, the N.js sum on the save standing in
  * for that runtime value (Ruling K).
  */
 function loreEpiBon(ctx: Ctx, b: number): number {

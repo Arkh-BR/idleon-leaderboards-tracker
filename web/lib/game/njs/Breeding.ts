@@ -27,6 +27,10 @@ export const Breeding = block("Breeding", (ctx, d: string, b: string, e: number,
     // @7932401, the next one: 1 once the Crucible waves cleared (CalcTalentMAP "arenaCruc") pass e; b ("0") is not read
     case "PetArenaCrucBonus":
       return DNSM_CalcTalentMAP(ctx, "arenaCruc") > e ? 1 : 0;
+    // @7939419: pet f of group e's breedability multi, 1 + ln(max(1, (Breeding[e + 13][f] + 1)^0.725)), once the breeding actor's
+    // GenINFO[53][0] is 1 (its create @10094920: Breeding[2][3] above 0), else 1; b ("0") is not read
+    case "2ndMulti":
+      return secondMulti(ctx, e, f);
     default:
       throw new NotPorted("Breeding", d);
   }
@@ -96,5 +100,13 @@ function totPetsFound(ctx: Ctx): number {
   return total;
 }
 
+/** `2ndMulti` @7939419. The game indexes Breeding[2][3] (the actor's create) and Breeding[e + 13][f] directly and would throw on a missing row. */
+function secondMulti(ctx: Ctx, e: number, f: number): number {
+  if (attr(ctx, "Breeding", 2) === undefined) throw new MissingSaveKey("Breeding[2]");
+  if (!(0 < asNum(ctx, "Breeding", 2, 3))) return 1;
+  if (attr(ctx, "Breeding", (e + 13) | 0) === undefined) throw new MissingSaveKey(`Breeding[${(e + 13) | 0}]`);
+  return 1 + Math.log(Math.max(1, Math.pow(asNum(ctx, "Breeding", (e + 13) | 0, f | 0) + 1, 0.725)));
+}
+
 /** What this module covers (lib/game/ported.ts). */
-export const PORTED: Ported = { ShinyBonusS: true, SpecialPassives: ["Lv"], TotPetsFound: true, PetArenaBonus: true, PetArenaCrucBonus: true };
+export const PORTED: Ported = { ShinyBonusS: true, SpecialPassives: ["Lv"], TotPetsFound: true, PetArenaBonus: true, PetArenaCrucBonus: true, "2ndMulti": true };

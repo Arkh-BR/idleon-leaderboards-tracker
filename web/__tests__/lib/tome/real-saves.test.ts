@@ -23,8 +23,10 @@ const SAVES: Record<string, Pins> = {
       116: [64, 800], // Unique Sushi
     },
   },
+  // CSver 30.05, migrated by lib/game. Against the old engine's 40755: Highest Drop Rate Multi is the live Drop Rate on map 251 (283.99,
+  // 463 pts; the old engine's 251.24 gave 458) +5; Deathnote digits -8; the Royal Guardian rows count +10.
   "0celot8.json": {
-    total: 40755,
+    total: 40762,
     tasks: {
       0: [14602, 1007],
       2: [1195, 890],

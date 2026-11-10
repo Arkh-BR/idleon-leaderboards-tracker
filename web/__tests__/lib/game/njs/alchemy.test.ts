@@ -114,10 +114,8 @@ const INHERIT: Record<string, StatKey[]> = {
 };
 
 /** The KNOWN pairs each leaf has, exactly (a stale entry or a new difference fails). */
-const EXPECT_KNOWN: Record<string, number> = { statue0: 6, statue22: 1, bubbleHP: 441, bubbleSPD: 121, bubbleMP: 476, bubbleW5: 195, bubbleA5: 105, bubbleM5: 135, prayer15: 40 };
+const EXPECT_KNOWN: Record<string, number> = { statue0: 5, bubbleHP: 441, bubbleSPD: 121, bubbleMP: 476, bubbleW5: 195, bubbleA5: 105, bubbleM5: 135, prayer15: 40 };
 
-/** What each term refuses (Ruling E): the terms built on a stat read the Tome (lib/tome cannot score HourZero, see stats.test.ts). */
-const HOURZERO = ["bubbleHP", "bubbleSPD", "bubbleMP", "bubbleW12", "bubbleA12", "bubbleM12", "pctDmg1", "pctDmg2", "pctDmg3", "bubbleW5", "bubbleA5", "bubbleM5", "bubbleMastery", "statue0", "penalty"];
 
 /** Shrine 0 counts on its own map (the save's ShrineInfo[0][0]), on any map of its world with the lab bonus 5, or anywhere with Artifact 0. */
 const MAPS: Record<string, (c: Ctx) => number[]> = { shrine0: (c) => [MAP, asNum(c, "ShrineInfo", 0, 0), asNum(c, "ShrineInfo", 0, 0) + 1] };
@@ -213,7 +211,7 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("alchemy, stamp, statue, prayer, shri
       expect(mismatches.slice(0, 20)).toEqual([]);
       expect(directClosed, "pairs a direct KNOWN entry covers vs those that differ and are closed (a stale entry no longer differs)").toBe(direct);
       expect(known, "KNOWN pairs").toBe(EXPECT_KNOWN[id] ?? 0);
-      expect([...refused].sort()).toEqual(HOURZERO.includes(id) ? ["HourZero.json: Tome rows 21,101,105,106,115,116"] : []);
+      expect([...refused].sort()).toEqual([]);
       const names = new Set(GOLDEN_SAVES.map((p) => basename(p)));
       expect(KNOWN_ARKH_DIFFS.filter((d) => d.stat === "damage" && d.source === id && !names.has(d.save)).map((d) => d.save)).toEqual([]);
     }, 900_000);

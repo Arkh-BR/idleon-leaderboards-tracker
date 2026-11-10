@@ -1,27 +1,40 @@
+// FROZEN ORACLE (test code): lib/tome/extractors.ts as of commit 1d15008, for arkhTome.ts. Verbatim but for the import paths.
+
 // All raw*() extractor functions, ported 1:1 from Code_TomeRaw_v6_1.gs v7.9.
 // Each function pulls a single number out of the IT save object. Returns null
 // if the relevant fields are missing or malformed (matches the .gs behavior).
 
 import { arrSum, arrMax, lavaLog, type RawObj } from "./math";
-import { CARDS_PER_TIER, DEATHNOTE_MOB_IDX, DUNGEON_LEVELS } from "./tasks";
-import { computeCardLv } from "../arkh/stats/systems/common/cards";
-import { loadSaveData } from "../arkh/save/loader";
-import { saveData as engineSave } from "../arkh/state";
-import { talent } from "../arkh/stats/systems/common/talent";
-import { computeFamBonusQTYs } from "../arkh/stats/systems/common/stats";
-import { stamp } from "../arkh/stats/systems/w1/stamp";
-import { guild } from "../arkh/stats/systems/common/guild";
-import { flurboShop } from "../arkh/stats/systems/coin/flurbo";
-import { sigil } from "../arkh/stats/systems/w2/alchemy";
-import { achieveStatus } from "../arkh/stats/systems/common/achievement";
-import { computeShinyBonusS } from "../arkh/stats/systems/w4/breeding";
-import { getBribeBonus } from "../arkh/stats/systems/w3/bribe";
-import { fractalIslandBonus } from "../arkh/stats/systems/artifact/terms";
-import { vaultUpgBonus } from "../arkh/stats/systems/common/vault";
-import { companions } from "../arkh/stats/systems/common/companions";
-import { CardStuff, DeathNoteMobs, PetStats } from "@/lib/game/data/generated/customlists.js";
-import { menagerieUnlockOwned } from "../arkh/stats/data/w7/menagerie";
-import type { SaveData } from "../arkh/state";
+import { CARDS_PER_TIER, DEATHNOTE_MOB_IDX } from "@/lib/tome/tasks";
+import { computeCardLv } from "@/lib/arkh/stats/systems/common/cards";
+import { loadSaveData } from "@/lib/arkh/save/loader";
+import { saveData as engineSave } from "@/lib/arkh/state";
+import { talent } from "@/lib/arkh/stats/systems/common/talent";
+import { computeFamBonusQTYs } from "@/lib/arkh/stats/systems/common/stats";
+import { stamp } from "@/lib/arkh/stats/systems/w1/stamp";
+import { guild } from "@/lib/arkh/stats/systems/common/guild";
+import { flurboShop } from "@/lib/arkh/stats/systems/coin/flurbo";
+import { sigil } from "@/lib/arkh/stats/systems/w2/alchemy";
+import { achieveStatus } from "@/lib/arkh/stats/systems/common/achievement";
+import { computeShinyBonusS } from "@/lib/arkh/stats/systems/w4/breeding";
+import { getBribeBonus } from "@/lib/arkh/stats/systems/w3/bribe";
+import { fractalIslandBonus } from "@/lib/arkh/stats/systems/artifact/terms";
+import { vaultUpgBonus } from "@/lib/arkh/stats/systems/common/vault";
+import { companions } from "@/lib/arkh/stats/systems/common/companions";
+import { CardStuff, DeathNoteMobs, PetStats, RANDOlist } from "@/lib/game/data/generated/customlists.js";
+import { menagerieUnlockOwned } from "@/lib/arkh/stats/data/w7/menagerie";
+import type { SaveData } from "@/lib/arkh/state";
+
+// Dungeon rank thresholds on OptLacc[71] (dungeon points) — the game's
+// RANDOlist[29], read from the regenerated game data so new ranks flow in
+// with every update. The previous hand-copied table stopped at 100M and was
+// padded with 999999999 sentinels, so every account past ~120M points was
+// capped at rank 66 (ARKHE at 1.93B is rank 75; the live table has 87
+// thresholds up to 1e16).
+const DUNGEON_LEVELS: readonly number[] = (
+  ((RANDOlist as unknown as unknown[][])[29] as unknown[]) || []
+).map(Number);
+// (moved here from lib/tome/tasks.ts, where only this oracle read it)
 
 type D = RawObj;
 

@@ -1,6 +1,12 @@
 import { describe, it, expect } from "vitest";
 import { TOME_BONUSES } from "@/lib/tome/tasks";
-import { calcTomePts, maxPtsForBonus, quantityForPts } from "@/lib/tome/math";
+import { calcPointsPercent, maxPtsForBonus, quantityForPts } from "@/lib/tome/math";
+
+// TomePTS = ceil(TomePCT x Tome[3]), 0 for a curve that went negative or non-finite
+const ptsAt = (b: readonly [number, number, number], q: number) => {
+  const pct = calcPointsPercent(b, q);
+  return isFinite(pct) && pct > 0 ? Math.ceil(pct * b[2]) : 0;
+};
 
 describe("Tome curve helpers", () => {
   it("maxPtsForBonus is TomePTS at the top of each curve", () => {
@@ -18,9 +24,9 @@ describe("Tome curve helpers", () => {
       for (const t of [1, Math.ceil(max / 2), max]) {
         const q = quantityForPts(b, t);
         if (q === null) continue; // past what a double can hold (log curve near 1.2)
-        expect(calcTomePts(ci, q)!, `ci ${ci} t ${t}`).toBeGreaterThanOrEqual(t);
+        expect(ptsAt(b, q), `ci ${ci} t ${t}`).toBeGreaterThanOrEqual(t);
         const out = b[1] === 3 ? q + 1 : q - 1; // one step past the edge
-        if (q > 0 && q < 2 ** 53) expect(calcTomePts(ci, out)!, `ci ${ci} t ${t}`).toBeLessThan(t);
+        if (q > 0 && q < 2 ** 53) expect(ptsAt(b, out), `ci ${ci} t ${t}`).toBeLessThan(t);
       }
     });
   });

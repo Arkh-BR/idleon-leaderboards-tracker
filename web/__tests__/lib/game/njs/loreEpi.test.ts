@@ -1,18 +1,14 @@
-// Thingies("LoreEpiBon", 3, 0) at controlled Tome scores. The score comes from lib/tome's computeTome (Ruling K), which is mocked here so
-// the test can put any total in: the formula against a hand computation, against lib/arkh at other scores, and the proof that the
-// KNOWN_ARKH_DIFFS entries of the term come from the Tome source alone (with the total forced to IdleonToolbox's number, lib/game equals
-// lib/arkh on every save). The real computeTome is used in w7Systems.test.ts.
-import { describe, it, expect, vi } from "vitest";
+// Thingies("LoreEpiBon", 3, 0) at controlled Tome scores. The score is DNSM.TomeQTYtot (Ruling K), which is seeded on the Ctx here
+// (seedBlock: a module mock cannot reach it, Thingies -> DNSM -> Summoning -> Thingies is a cycle) so the test can put any total in: the formula against a hand computation, against lib/arkh at other scores, and the proof that the KNOWN_ARKH_DIFFS
+// entries of the term come from the Tome source alone (with the total forced to IdleonToolbox's number, lib/game equals lib/arkh on every
+// save). The real score is used in w7Systems.test.ts.
+import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { basename } from "node:path";
 
-const tome = vi.hoisted(() => ({ total: 13000 }));
-vi.mock("@/lib/tome/compute", () => ({
-  computeTome: () => ({ totalPts: tome.total, coveredCount: 124, missingCount: 0, rows: Array.from({ length: 124 }, (_, i) => ({ idx: i + 1, task: "task", source: "src", pts: 1 })), usedParsedTomePoints: false }),
-}));
 
 import { GOLDEN_SAVES, KNOWN_ARKH_DIFFS, arkhArtifactLeaf, gameCtx } from "../support/arkhOracle";
-import { withPlayer, type Ctx } from "@/lib/game/ctx";
+import { seedBlock, withPlayer, type Ctx } from "@/lib/game/ctx";
 import { MissingSaveKey } from "@/lib/game/errors";
 import { GetSetBonus } from "@/lib/game/njs/GetSetBonus";
 import { Summoning } from "@/lib/game/njs/Summoning";
@@ -21,15 +17,16 @@ import { Thingies } from "@/lib/game/njs/Thingies";
 const rel = (got: number, want: number) => Math.abs(got - want) <= 1e-9 * Math.max(1, Math.abs(want));
 const BASE = GOLDEN_SAVES.find((p) => basename(p) === "ARKHE.json") ?? GOLDEN_SAVES[0];
 
-/** ARKHE with Spelunk[13][2] = `unlocked` lore episodes and the Tome score `score` (a new state each time: the score is cached per state). */
+/** ARKHE with Spelunk[13][2] = `unlocked` lore episodes and the Tome score `score` (a new state each time: the blocks are cached per Ctx). */
 function lore(score: number, unlocked = 10): Ctx {
-  tome.total = score;
   const env = JSON.parse(readFileSync(BASE, "utf8"));
   const spelunk = typeof env.data.Spelunk === "string" ? JSON.parse(env.data.Spelunk) : env.data.Spelunk;
   spelunk[13][2] = unlocked;
   env.data.Spelunk = spelunk;
-  return gameCtx(env, 0);
+  return tomeAt(gameCtx(env, 0), score);
 }
+/** `c` with the Tome score `score` (DNSM.TomeQTYtot of its character and map). */
+const tomeAt = (c: Ctx, score: number): Ctx => (seedBlock(c, "DNSM.TomeQTYtot", [], score), c);
 const term = (c: Ctx, b = 3) => Thingies(c, "LoreEpiBon", b, 0);
 const boost = (c: Ctx) => 1 + (Summoning(c, "GrimoireUpgBonus", 17, 0) + GetSetBonus(c, "TROLL_SET", "Bonus", 0, 0)) / 100;
 
@@ -57,7 +54,7 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("Thingies LoreEpiBon at controlled To
   it("a Tome score of 0 is a score: no episode has anything", () => {
     for (const b of [0, 3, 10]) expect(term(lore(0), b), `b=${b}`).toBe(0);
   });
-  it("the score is the one lib/tome gave, per state", () => {
+  it("the score is the one DNSM.TomeQTYtot gives", () => {
     expect(term(lore(250000))).toBeGreaterThan(term(lore(13000)));
   });
 
@@ -70,12 +67,11 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("Thingies LoreEpiBon at controlled To
         const env = JSON.parse(readFileSync(path, "utf8"));
         delete env.parsedData;
         env.extraData = { totalTomePoints: score }; // what lib/arkh reads
-        tome.total = score; // what lib/game reads
         const ctx = gameCtx(env, 0);
         for (let ci = 0; ci < env.charNames.length; ci++) {
           let got: number;
           try {
-            got = term(withPlayer(ctx, ci));
+            got = term(tomeAt(withPlayer(ctx, ci), score)); // what lib/game reads
           } catch (e) {
             if (!(e instanceof MissingSaveKey)) throw e;
             continue; // the saves older than the load steps ported (UNPORTED_REFUSALS, pinned in w7Systems.test.ts)
@@ -101,12 +97,11 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("Thingies LoreEpiBon at controlled To
       const env = JSON.parse(readFileSync(path, "utf8"));
       const itTotal = Number(env.extraData?.totalTomePoints ?? env.parsedData?.totalTomePoints);
       expect(Number.isFinite(itTotal), basename(path)).toBe(true);
-      tome.total = itTotal; // lib/arkh reads exactly this number from the file
       const ctx = gameCtx(env, 0);
       for (let ci = 0; ci < env.charNames.length; ci++) {
         let got: number;
         try {
-          got = term(withPlayer(ctx, ci));
+          got = term(tomeAt(withPlayer(ctx, ci), itTotal)); // lib/arkh reads exactly this number from the file
         } catch (e) {
           if (!(e instanceof MissingSaveKey)) throw e;
           continue;

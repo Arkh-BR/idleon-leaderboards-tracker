@@ -246,7 +246,7 @@ const MAPS: Record<number, { explained: number; leafKnown: number; fmtless: numb
   40: { explained: 1040, leafKnown: 1750, fmtless: 2044, cove: 0 },
   33: { explained: 1040, leafKnown: 1750, fmtless: 2044, cove: 0 },
 };
-const HOURZERO = ["HourZero.json: Tome rows 21,101,105,106,115,116"]; // Ruling E (njs/drTerms.test.ts)
+const HOURZERO: string[] = []; // HourZero, the one save lib/tome could not score, is out of the parity corpus (PARITY_EXCLUDED, support/arkhOracle.ts): nothing is refused
 
 const states = new Map<string, ReturnType<typeof buildGameState>>();
 afterAll(() => states.clear());

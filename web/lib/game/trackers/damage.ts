@@ -12,12 +12,13 @@
 // forms, and on a dungeon map Dungon's assumption, Ruling Y) are no source: they hang under the root, so their runtime:/assumed: notes stay
 // visible. The whole trace is a Ctx with `trace: true` away (gameDamage makes exactly that and trims what it hands the page).
 //
-// The type of the result is the page's own (lib/statTracker/config StatResult: type-only). lib/game imports no lib/arkh; DNSM.TomeQTYtot
-// still runs lib/tome's computeTome (Ruling K), which imports lib/arkh modules until the Tome moves to lib/game.
+// The type of the result is the page's own (lib/statTracker/config StatResult: type-only). lib/game imports no lib/arkh and reaches none:
+// DNSM.TomeQTYtot, the Tome score (Ruling K), is lib/game's own sum of the Tome's points (njs/TomeQTY.ts, Summoning TomePTS).
 //
 // Performance, measured when the page switched (Task 10, Ruling X; 5 real saves, Node, median): a character switch on a loaded save is
 // about 40 ms against lib/arkh's 220 ms, a map switch 39 ms against 254 ms, and the first call on a save (state build + Tome) 63 ms against
-// 247 ms.
+// 247 ms. With the Tome on lib/game (2026-11-10, counted per character and map): about 63 ms per character and map against lib/arkh's
+// 249 ms (characterize, 5 newest saves, 55 pairs: 3455 ms against 13699 ms).
 import type { StatResult } from "@/lib/statTracker/config";
 import { DMG_LAYERS, DMG_MASTERY, DMG_RAT, DMG_ROOT, type DmgLayer } from "@/lib/damage/layers";
 import { asNum, attr } from "../attr";

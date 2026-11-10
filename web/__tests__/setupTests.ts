@@ -43,3 +43,8 @@ if (typeof AbortSignal.timeout !== "function") {
 beforeEach(() => {
   Object.keys(storage).forEach((k) => delete storage[k]);
 });
+
+// No test reaches the network: a test that needs fetch stubs it (vi.stubGlobal / vi.spyOn), which replaces this guard.
+globalThis.fetch = (() => {
+  throw new Error("network access is blocked in tests");
+}) as typeof fetch;

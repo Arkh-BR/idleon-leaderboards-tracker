@@ -344,7 +344,7 @@ const MAPS: Record<number, { known: number; motherlode: number }> = {
 };
 const MOTHERLODE = ["Motherlode", "Bug14", "MotherlodeTREE", "MotherlodeFISH"];
 const PAIRS = 1153;
-const HOURZERO = ["HourZero.json: Tome rows 21,101,105,106,115,116"]; // Ruling E (njs/multikill.test.ts)
+const HOURZERO: string[] = []; // HourZero, the one save lib/tome could not score, is out of the parity corpus (PARITY_EXCLUDED, support/arkhOracle.ts): nothing is refused
 /** The rows whose number differs between the engines for causes proved elsewhere (the Damage KNOWN rows, lib/arkh's accuracy) or below (the Motherlode's Defence), not for anything of this adapter's. */
 const OWN_NUMBER = new Set(["Max Damage", "Accuracy", "Target Defence"]);
 
