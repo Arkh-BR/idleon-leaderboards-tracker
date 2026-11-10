@@ -388,6 +388,25 @@ describe("DNSM.TomeQTYtot, the N.js sum of every task's TomePTS (runs in CI)", (
   });
 });
 
+describe("one count per state, and its notes (runs in CI)", () => {
+  // every task unlocked (account level 9000), TomeQTY[81]'s read 0 as the event's other blocks
+  const VAULT = { 'Summoning["VaultUpgBonus",57,0]': 0 };
+  it("on a test cache the event is built once, whether the count or a reader asks first", () => {
+    const c = ctxOf({ Lv0_0: [9000, 0] }, { seeds: VAULT, real: ["DNSM.TomeQTYtot", "Summoning", "Breeding"] }); // the count reads every quantity
+    const get = c.cache.get.bind(c.cache);
+    let runs = 0; // the event reads the Crystal Spawn chance once
+    c.cache.get = (k: string) => (k.endsWith('ArbitraryCode["CrystalSpawn"]') && runs++, get(k));
+    TomeQTY(c);
+    expect(runs).toBe(1);
+  });
+  it("the score's notes on a reader's tree leave out the count's own 0 (the score read while counted)", () => {
+    const c = ctxOf({ Lv0_0: [9000, 0] }, { seeds: VAULT, real: ["DNSM.TomeQTYtot", "Summoning", "Breeding"], trace: true });
+    DNSM_TomeQTYtot(c);
+    const notes = (n: TraceNode): string[] => [n.note ?? "", ...n.children.flatMap(notes)];
+    expect(notes(c.trace!).filter((n) => /being counted/.test(n))).toEqual([]);
+  });
+});
+
 describe.skipIf(GOLDEN_SAVES.length === 0)("the Tome score is the state's, whoever asks first", () => {
   it("a Ctx that seeded a block the Tome reads does not decide the score a clean Ctx of the same state reads", () => {
     const save = JSON.parse(readFileSync(newestSaves(goldenSaves(), 1)[0], "utf8"));

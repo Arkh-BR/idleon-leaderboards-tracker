@@ -24,7 +24,7 @@ import { Ninja } from "./Ninja";
 import { ResearchStuff } from "./ResearchStuff";
 import { RoyalG } from "./RoyalG";
 import { CARD_INFO, RunCodeOfTypeXforThingY } from "./RunCodeOfTypeXforThingY";
-import { DNSM_TomeQTYtot } from "./DNSM";
+import { DNSM_TomeQTYtot, tomeOwner } from "./DNSM";
 import { Summoning } from "./Summoning";
 import { SushiStuff } from "./SushiStuff";
 import { Thingies } from "./Thingies";
@@ -365,7 +365,7 @@ function event(ctx: Ctx): number[] {
   return q;
 }
 
-/** The arrays built, per state (per cache for a test's, isTestCache) and then per character and map: the event reads the whole save. */
+/** The arrays built, per state (per test cache, under its overlays: tomeOwner) and then per character and map: the event reads the whole save. */
 const built = new WeakMap<GameState | Map<string, number>, Map<string, readonly number[]>>();
 
 /**
@@ -374,7 +374,7 @@ const built = new WeakMap<GameState | Map<string, number>, Map<string, readonly 
  */
 export function TomeQTY(ctx: Ctx): readonly number[] {
   const test = isTestCache(ctx.cache);
-  const owner = test ? ctx.cache : ctx.state;
+  const owner = tomeOwner(ctx);
   let mine = built.get(owner);
   if (!mine) built.set(owner, (mine = new Map()));
   const key = `${ctx.player}|${ctx.map}`;

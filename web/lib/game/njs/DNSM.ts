@@ -3,7 +3,7 @@
 // the other DNSM keys are ported where their function is (ShinyBonusS in Breeding, NghMrTOT in MenagerieStuff).
 //
 // DNSM convention (one rule, two shapes):
-//  - a cache the game's formulas read BY KEY (`DNSM.StarSigns["61"]`, `DNSM.AlchVials["6turtle"]`, `DNSM.TomeQTYtot[n]`) is a per-key
+//  - a cache the game's formulas read BY KEY (`DNSM.StarSigns["61"]`, `DNSM.AlchVials["6turtle"]`, `DNSM.TomeQTY[n]`) is a per-key
 //    `block("DNSM.<Name>", (ctx, key) => number)`: the trace shows each read and an unported key throws NotPorted;
 //  - a cache whose only consumers are already per-id blocks (`Companions(ctx, id)` reads CompanionLVz/CompanionBon) may stay a plain
 //    function that returns the Map, because the block that consumes it is what the trace shows.
@@ -116,10 +116,13 @@ export const DNSM_AlchVials = block("DNSM.AlchVials", (ctx, key: string) => {
 /** The Tome score per state (per cache for a test's, isTestCache), then per character and map, with the notes of its trace. */
 const tomeTotals = new WeakMap<GameState | Map<string, number>, Map<string, { total: number; notes: TraceNode[] } | "counting">>();
 
-/** The `assumed:` and `runtime:` nodes of a trace, once each (by name and note), as leaves. */
+/**
+ * The `assumed:` and `runtime:` nodes of a trace, once each (by name and note), as leaves. The count's own read of the score (0 while
+ * counted, COUNTING) stays in the count's trace: on a reader's tree it would read as that reader's.
+ */
 function notesIn(node: TraceNode, out: TraceNode[] = []): TraceNode[] {
   for (const c of node.children) {
-    if (/^(assumed|runtime): /.test(c.note ?? "") && !out.some((o) => o.block === c.block && o.note === c.note && String(o.args) === String(c.args))) {
+    if (/^(assumed|runtime): /.test(c.note ?? "") && c.detail !== COUNTING && !out.some((o) => o.block === c.block && o.note === c.note && String(o.args) === String(c.args))) {
       out.push({ ...c, children: [] });
     }
     notesIn(c, out);
@@ -143,6 +146,10 @@ class Overlay extends Map<string, number> {
   }
 }
 
+/** Who keeps the Tome's count and quantities: the state, or a test's own cache under every overlay (isTestCache). */
+export const tomeOwner = (ctx: Ctx): GameState | Map<string, number> =>
+  isTestCache(ctx.cache) ? (ctx.cache instanceof Overlay ? ctx.cache.root : ctx.cache) : ctx.state;
+
 /**
  * `DNSM.TomeQTYtot`, the account's Tome score: `Summoning("TomePTS", g)` summed over every task of `DNSM.TomeQTY` (@5769465, at the end
  * of `_customEvent_TomeQTY`, and @5779131, the Tome actor's create, which keeps it as its `GenInfo[84]`). The game sums it once, at login,
@@ -162,7 +169,7 @@ class Overlay extends Map<string, number> {
  */
 export const DNSM_TomeQTYtot = block("DNSM.TomeQTYtot", (ctx) => {
   const test = isTestCache(ctx.cache);
-  const owner = test ? (ctx.cache instanceof Overlay ? ctx.cache.root : ctx.cache) : ctx.state;
+  const owner = tomeOwner(ctx);
   let mine = tomeTotals.get(owner);
   if (!mine) tomeTotals.set(owner, (mine = new Map()));
   const key = `${ctx.player}|${ctx.map}`;
