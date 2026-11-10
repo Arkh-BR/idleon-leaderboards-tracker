@@ -3,7 +3,7 @@
 // readings into the exact size of the missing term.
 // usage: npx tsx --tsconfig tsconfig.json scripts/dr-debug/bisect.ts <envelope> <charIdx> <map> <gameReading> [foodSlot] [--second <gameReading2>]
 import { readFileSync } from "node:fs";
-import { computeArkhDropRate } from "@/lib/arkh/computeDR";
+import { computeGameDropRateV1 } from "@/lib/game/trackers/dropRateV1";
 
 const args = process.argv.slice(2);
 const secondAt = args.indexOf("--second");
@@ -14,9 +14,9 @@ const raw = readFileSync(envPath, "utf8");
 
 // The game's stats screen shows floor(DR) above 9999 → the true value lies in [read, read+1).
 const run = (env: any) => {
-  const r = computeArkhDropRate(env, ci, map);
-  const pick = (n: string) => r.tree.children.find((c: any) => c.name === n);
-  const gf = pick("Additive Pool").children.find((c: any) => /Golden Food/.test(c.name))?.val ?? 0;
+  const r = computeGameDropRateV1(env, ci, map);
+  const pick = (n: string) => r.tree.children!.find((c) => c.name === n)!; // the V1 rows (trackers/dropRateV1.ts v1Assemble)
+  const gf = pick("Additive Pool").children?.find((c) => /Golden Food/.test(c.name))?.val ?? 0;
   return { total: r.total, S: pick("Total Sum").val, gf };
 };
 const now = run(JSON.parse(raw));

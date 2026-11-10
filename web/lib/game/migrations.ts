@@ -521,7 +521,7 @@ export function migrate(
 // EquipmentQuantity, Meals[0], Ribbon, Ninja[104], CookMaster, FoodSlotsOwned; a write scan of the live N.js, @6184758-6475000): no step
 // changes what they read on a real save (DoOnceREAL >= 248.3). The writes found: Cards[2] = 12 x "B" only inside initialize2's empty-Cards
 // fill (@6211354); initialize2 @6212308 splices Cards[3] out and pushes an empty map on every load (the character's CSetEq goes back in when
-// the character is picked, which the per-player state models, cardSet5 matches lib/arkh on every pair); Meals[0] capped at 90 (@6412306,
+// the character is picked, which the per-player state models, cardSet5 matched lib/arkh on every pair); Meals[0] capped at 90 (@6412306,
 // DoOnceREAL < 213) and padded to 100 (@6431500, < 291: only indexes past the 74 meals), Ribbon[0..27] capped (@6462400, < 385.1;
 // MealBonus reads Ribbon[28 + g]), Ninja[103]/[105] writes (Ninja[104] is not written). EquipmentOrder, EquipmentQuantity and
 // FoodSlotsOwned have no load-step write. No step ported.

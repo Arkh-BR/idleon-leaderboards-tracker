@@ -6,7 +6,7 @@ import { DR2_PAGE } from "@/lib/dropRateV2/pageConfig";
 import { computeGameDropRate } from "@/lib/game/trackers/dropRate";
 import { buildStatMapOptions } from "@/lib/statTracker/mapOptions";
 import { CURRENT_CSVER } from "@/lib/game/errors";
-import { GOLDEN_SAVES } from "../game/support/arkhOracle";
+import { GOLDEN_SAVES } from "../game/support/saves";
 
 it("the page drops no map", () => expect(DR2_PAGE.loadMapFilter).toBeUndefined());
 

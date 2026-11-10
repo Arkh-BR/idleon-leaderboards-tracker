@@ -94,6 +94,7 @@ export const DamageDealed: (ctx: Ctx, d: string) => number = block("DamageDealed
 });
 
 /** @4107133: Max, DN.DamageDealtLIST[0] x [1] x [2]: the base damage, the damage % and the multipliers. */
+// @njs Max
 function max(ctx: Ctx): number {
   // @4107309: the primary stat of the character's first class, times its talents and bubbles (DN.DamageDealtSTATtype)
   const statType =

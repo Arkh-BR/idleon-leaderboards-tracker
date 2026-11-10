@@ -1,36 +1,28 @@
 // Task 4 (AFK plan): the AFK Gains adapter (lib/game/trackers/afkGains.ts), AFKgainrates("Fighting") turned into the page's tree.
 //
-// - the display config moved to lib/afkGains/layers (Ruling B), lib/arkh re-exporting the very same objects; the tracker registry;
+// - the display config in lib/afkGains/layers (Ruling B); the tracker registry;
 // - on a synthetic envelope (CI): the tree's shape, the recombination guard (TreeTotalMismatch), decision A9's notes (a map with nothing to
 //   fight, a skill target), the Cove, the Clamworks, Ruling V's saved target;
-// - on every real save, character and map (251, 306, 216, 150, 0, 33, 6 and the dungeon 40): the total against lib/arkh (a difference is a KNOWN
-//   row of the pair, or the saved AFK target the game keeps, Ruling V; njs/afkGains.test.ts proves the exact values), every source leaf
-//   against lib/arkh's, the page's Biggest Gains model giving the total back from the flat tree, the size (Ruling L, at most 2x lib/arkh's
-//   nodes) and every runtime: / assumed: note of the full trace kept;
-// - the tree on real saves: names, formats and notes equal to lib/arkh's; the AFK readings in the game's display format (skipped until
-//   fixtures/readings.json has an afkGains entry, Ruling AA).
+// - on every real save, character and map (251, 306, 216, 150, 0, 33, 6 and the dungeon 40): the page's Biggest Gains model giving the
+//   total back from the flat tree and every runtime: / assumed: note of the full trace kept;
+// - the AFK readings in the game's display format (skipped until fixtures/readings.json has an afkGains entry, Ruling AA).
 // A describe body never reads a save: states load lazily inside `it`.
 import { afterAll, describe, it, expect } from "vitest";
 import { existsSync, readFileSync } from "node:fs";
 import { basename, join } from "node:path";
-import * as arkhDef from "@/lib/arkh/stats/defs/afk-gains";
-import { computeArkhAfkGains } from "@/lib/arkh/computeAfk";
 import * as layers from "@/lib/afkGains/layers";
 import { afkGainsModel } from "@/lib/afkGains/pageConfig";
 import { flattenTree } from "@/lib/dropRate/treeFlatten";
-import { afkTarget } from "@/lib/game/afkTarget";
 import { MapAFKtarget } from "@/lib/game/data";
 import { makeCtx, type TraceNode } from "@/lib/game/ctx";
 import { MissingSaveKey, TreeTotalMismatch } from "@/lib/game/errors";
-import { AFKgainrates } from "@/lib/game/njs/AFKgainrates";
 import { buildGameState, type GameEnvelope } from "@/lib/game/state";
 import { TRACKERS } from "@/lib/game/trackers";
 import { afkFightRate, afkTree, computeGameAfkGains } from "@/lib/game/trackers/afkGains";
 import { formatGameValue, normalizeGameText } from "@/lib/readings/format";
 import { READINGS_DIR, loadReadings, readingSave } from "@/lib/readings/registry";
 import type { StatResult } from "@/lib/statTracker/config";
-import { keptTargetCloses } from "../support/afkKept";
-import { GOLDEN_SAVES, KNOWN_ARKH_DIFFS, arkhAfkLeaves, arkhAfkRate } from "../support/arkhOracle";
+import { GOLDEN_SAVES } from "../support/saves";
 import { synth, type Seeds } from "../support/afkStub";
 
 type Node = StatResult["tree"];
@@ -47,19 +39,13 @@ const byName = (n: Node, name: string): Node => {
   if (!c) throw new Error(`no "${name}" under "${n.name}"`);
   return c;
 };
-const shape = (n: Node) => ({ name: n.name, fmt: n.fmt, note: n.note });
-/** The root's own children, in lib/arkh's order. */
+/** The root's own children, in the page's order. */
 const ROOT_CHILDREN = [AFK_NODES.pool, AFK_NODES.arcane, AFK_NODES.etc92, AFK_NODES.clam, AFK_NODES.cove, AFK_NODES.type];
 const target = (m: number) => (MapAFKtarget as unknown as string[])[m];
 
 // ── the display config and the registry ─────────────────────────────────────────────────────────
 describe("the display config and the registry", () => {
-  it("lives in lib/afkGains/layers and lib/arkh's def re-exports the very same objects (Ruling B)", () => {
-    expect(arkhDef.AFK_ROOT).toBe(layers.AFK_ROOT);
-    expect(arkhDef.AFK_NODES).toBe(layers.AFK_NODES);
-    expect(arkhDef.AFK_VOTE_NAME).toBe(layers.AFK_VOTE_NAME);
-    expect(arkhDef.AFK_POOLS).toBe(layers.AFK_POOLS);
-    expect(arkhDef.afkRate).toBe(layers.afkRate);
+  it("lives in lib/afkGains/layers: the fight and ALL pools hold 38 distinct sources (Ruling B)", () => {
     expect(POOL_IDS).toHaveLength(38);
     expect(new Set(POOL_IDS).size).toBe(POOL_IDS.length);
   });
@@ -75,7 +61,7 @@ describe("the tree on a synthetic envelope (runs in CI)", () => {
   const SET: Seeds = { 'DNSM.FamBonusQTYs["8"]': 60, "GetTalentNumber[1,88]": 10, "Companions[6]": 7, 'Summoning["EventShopOwned",5,0]': 1, 'ArcaneType["ArcaneMapMulti_bon",2,0]': 100, 'EtcBonuses["92"]': 50 };
   const tree = (data: Record<string, unknown> = {}, o: { map?: number; at?: number; seeds?: Seeds } = {}) => afkTree(synth(data, { seeds: SET, ...o, trace: true }));
 
-  it("has lib/arkh's shape: the pool of 38 sources in AFK_POOLS order, the two multipliers, the three rules", () => {
+  it("has the page's shape: the pool of 38 sources in AFK_POOLS order, the two multipliers, the three rules", () => {
     const { tree: t, total } = tree({ BundlesReceived: { bun_u: 1 }, TaskZZ2: [[], [0, 0, 1]] });
     // (.4 + (60 + 10 + 7 + 20 + 2 merit + 30 bun_u)/100) x (1 + 100/100) x (1 + 50/100)
     expect(total).toBeCloseTo((0.4 + 1.29) * 2 * 1.5, 12);
@@ -229,16 +215,9 @@ describe("the tree on a synthetic envelope (runs in CI)", () => {
 });
 
 // ── every real save, character and map ──────────────────────────────────────────────────────────
-/**
- * The maps: the plain fight, the Clamworks, the Cove's map (Nothing), a town (150, the saved skill target is kept), a Nothing map, a no-monster map, a skill map and a dungeon (Ruling Y).
- * `explained`: pairs whose total differs from lib/arkh's and has an explanation (a KNOWN row of the pair, or the saved target the game keeps:
- * njs/afkGains.test.ts proves the exact values with the same pairs: 338 KNOWN on the fight maps, the 79 pairs the saved target moves on map 216);
- * the pairs with nothing to fight are 0 on both sides.
- */
-const MAPS: Record<number, { explained: number; kept: number }> = {
-  251: { explained: 338, kept: 0 }, 306: { explained: 338, kept: 0 }, 216: { explained: 79, kept: 58 }, 150: { explained: 206, kept: 174 }, 0: { explained: 0, kept: 0 }, 33: { explained: 0, kept: 0 }, 6: { explained: 338, kept: 0 }, 40: { explained: 338, kept: 0 },
-};
-const HOURZERO: string[] = []; // HourZero, the one save lib/tome could not score, is out of the parity corpus (PARITY_EXCLUDED, support/arkhOracle.ts): nothing is refused
+/** The maps: the plain fight, the Clamworks, the Cove's map (Nothing), a town (150, the saved skill target is kept), a Nothing map, a no-monster map, a skill map and a dungeon (Ruling Y). */
+const MAPS = [251, 306, 216, 150, 0, 33, 6, 40];
+const HOURZERO: string[] = []; // HourZero is out of the default corpus (PARITY_EXCLUDED, support/saves.ts): nothing is refused
 const REFUSED: Record<number, string[]> = { 251: HOURZERO, 306: HOURZERO, 216: HOURZERO, 150: HOURZERO, 0: [], 33: [], 6: HOURZERO, 40: HOURZERO };
 
 const states = new Map<string, ReturnType<typeof buildGameState>>();
@@ -249,29 +228,21 @@ const stateOf = (path: string) => {
   return s;
 };
 
-describe.skipIf(noSaves)("computeGameAfkGains against lib/arkh on every real save, character and map", () => {
-  for (const map of Object.keys(MAPS).map(Number)) {
+describe.skipIf(noSaves)("computeGameAfkGains on every real save, character and map", () => {
+  for (const map of MAPS) {
     it(`map ${map}`, () => {
       const t0 = performance.now();
-      const mismatches: string[] = [];
-      const leafMismatches: string[] = [];
       const display: string[] = [];
       const lost: string[] = [];
       const refused = new Set<string>();
       let pairs = 0;
-      let explained = 0;
-      let keptProven = 0; // differs from lib/arkh and closes once the map's target is forced (Ruling V alone)
-      let leafKnown = 0;
       let flags = 0;
       let dungeon = 0;
       let worst = 0;
       let shortTrees = 0;
-      let worstRatio = 0;
-      const over: string[] = [];
       for (const path of GOLDEN_SAVES) {
         const file = basename(path);
         const state = stateOf(path);
-        const env = JSON.parse(readFileSync(path, "utf8"));
         for (let ci = 0; ci < state.charNames.length; ci++) {
           const ctx = makeCtx(state, { player: ci, map, trace: true });
           let r: StatResult;
@@ -287,48 +258,13 @@ describe.skipIf(noSaves)("computeGameAfkGains against lib/arkh on every real sav
           const at = `${file}#${ci}@${map}`;
           const short = tree.children!.length === 1 && tree.children![0].name === AFK_NODES.type && r.total === 0; // Ruling DD
           if (short) shortTrees++;
-          // the size (Ruling L): at most 2x lib/arkh's nodes (an upper bound: on a short-circuited tree lib/arkh's is bigger)
-          const arkhNodes = count(computeArkhAfkGains(structuredClone(env), ci, map).tree);
-          worstRatio = Math.max(worstRatio, count(tree) / arkhNodes);
-          if (count(tree) > 2 * arkhNodes) over.push(`${at}: ${count(tree)} nodes against ${arkhNodes}`);
-          // the total is lib/arkh's, or the pair's KNOWN rows / the saved target the game keeps explain the difference
-          const want = arkhAfkRate(path, ci, map);
-          if (!rel(r.total, want)) {
-            const kept = afkTarget(ctx) !== target(map);
-            const known = KNOWN_ARKH_DIFFS.some((d) => d.stat === "afk" && d.save === file && (d.ci ?? ci) === ci);
-            if (!kept && !known) mismatches.push(`${at}: game ${r.total}, arkh ${want}`);
-            else if (!known && !keptTargetCloses(env, ci, map, want)) mismatches.push(`${at}: the kept target does not explain it alone (forcing the map's target leaves it off lib/arkh's ${want})`);
-            else {
-              if (!known) keptProven++;
-              explained++;
-              // the adapter adds nothing to the number: a fresh Ctx's afkFightRate gives the same
-              if (r.total !== afkFightRate(makeCtx(state, { player: ci, map }))) mismatches.push(`${at}: the tree's total is not afkFightRate's`);
-            }
-          }
           const full = flagsOfTrace(ctx.trace!).sort();
           flags += full.length;
           if (full.some((f) => f.includes("outside a dungeon"))) dungeon++;
           if (JSON.stringify(flagsOfTree(tree).sort()) !== JSON.stringify(full)) lost.push(`${at}: full trace ${full.length} notes, page tree ${flagsOfTree(tree).length}`);
           if (short) {
-            if (!rel(want, 0)) mismatches.push(`${at}: lib/arkh gives ${want} where the game prints 0%`);
             if (afkGainsModel.totalFromFlat(flattenTree(tree)) !== 0) display.push(`${at}: the flat tree of a short-circuited pair is not 0`);
             continue;
-          }
-          // every source leaf is lib/arkh's, except where the pair has a KNOWN row of that source
-          const leaves = tree.children![0].children!;
-          const arkhLeaves = arkhAfkLeaves(path, ci, map);
-          const mine: Record<string, number> = {
-            arcaneMapAfk: tree.children![1].children![0].val,
-            etc92: tree.children![2].children![0].val,
-            clamworks306: tree.children![3].val,
-            cglunkoCove: tree.children![4].val,
-          };
-          POOL_IDS.forEach((id, k) => (mine[id] = leaves[k].val));
-          for (const [id, v] of Object.entries(mine)) {
-            if (rel(v, arkhLeaves[id])) continue;
-            const covered = KNOWN_ARKH_DIFFS.some((d) => d.stat === "afk" && d.save === file && (d.ci ?? ci) === ci && d.source === id);
-            if (covered) leafKnown++;
-            else leafMismatches.push(`${at} ${id}: game ${v}, arkh ${arkhLeaves[id]}`);
           }
           // display and value agree: the page's Biggest Gains model gives the total back from the flat tree
           const fromFlat = afkGainsModel.totalFromFlat(flattenTree(tree));
@@ -338,16 +274,11 @@ describe.skipIf(noSaves)("computeGameAfkGains against lib/arkh on every real sav
         }
       }
       console.info(
-        `[afk adapter @${map}] ${pairs} pairs, ${explained} explained (${keptProven} by the kept target alone), ${leafKnown} known leaves, ${mismatches.length} total and ${leafMismatches.length} leaf mismatches, ${flags} flagged notes (${dungeon} pairs with the dungeon stand-in), worst flat-tree error ${worst.toExponential(2)}, ${shortTrees} short-circuited, worst size ratio ${worstRatio.toFixed(2)}, ${refused.size} refused, ${Math.round(performance.now() - t0)} ms`
+        `[afk adapter @${map}] ${pairs} pairs, ${flags} flagged notes (${dungeon} pairs with the dungeon stand-in), worst flat-tree error ${worst.toExponential(2)}, ${shortTrees} short-circuited, ${refused.size} refused, ${Math.round(performance.now() - t0)} ms`
       );
-      expect(over).toEqual([]);
-      expect(mismatches.slice(0, 20)).toEqual([]);
-      expect(leafMismatches.slice(0, 20)).toEqual([]);
       expect(display.slice(0, 20)).toEqual([]);
       expect(lost.slice(0, 20)).toEqual([]);
       expect(pairs).toBeGreaterThan(1000);
-      expect(explained, "pairs whose total differs from lib/arkh's and is explained").toBe(MAPS[map].explained);
-      expect(keptProven, "pairs explained by the kept target alone").toBe(MAPS[map].kept);
       // the Tome refusal behind the talents (Ruling E): a map with nothing to fight reads no source (Ruling DD), so it refuses nothing
       expect([...refused].sort()).toEqual(REFUSED[map]);
       // not vacuous: a map with nothing to fight is the A9 leaf alone
@@ -358,57 +289,6 @@ describe.skipIf(noSaves)("computeGameAfkGains against lib/arkh on every real sav
       expect(dungeon, "pairs with the dungeon stand-in").toBe(map === 40 ? pairs : 0);
     }, 1_800_000);
   }
-});
-
-// ── the tree on real saves: lib/arkh's names ────────────────────────────────────────────────────
-const ARKHE = GOLDEN_SAVES.find((p) => basename(p) === "ARKHE.json");
-const ARLONG = GOLDEN_SAVES.find((p) => basename(p) === "Arlong.json");
-
-describe.skipIf(!ARKHE || !ARLONG)("the tree's names, formats and notes equal lib/arkh's (the Observed Max data is keyed by them)", () => {
-  const cases = (): [string, number, number][] => [[ARKHE!, 0, 251], [ARKHE!, 8, 251], [ARKHE!, 0, 306], [ARKHE!, 0, 6], [ARKHE!, 0, 0], [ARKHE!, 0, 216], [ARLONG!, 0, 251], [ARLONG!, 0, 33]];
-  it("on the root, the groups, every source and the rules", () => {
-    for (const [path, ci, map] of cases()) {
-      const at = `${basename(path)}#${ci}@${map}`;
-      const env = JSON.parse(readFileSync(path, "utf8"));
-      const arkh = computeArkhAfkGains(structuredClone(env), ci, map).tree;
-      const { tree } = computeGameAfkGains(env, ci, map);
-      expect({ ...shape(tree), note: tree.note?.replace(/ · migrated from an older game version \(\d+ load steps?\)$/, "") }, at).toEqual(shape(arkh));
-      // lib/arkh's six children, in its order, then only reads that lead to a runtime: / assumed: note
-      if (tree.children!.length === 1 && tree.val === 0) {
-        // Ruling DD: the A9 leaf alone under the type node, whose shape is lib/arkh's
-        expect(shape(tree.children![0]), at).toEqual(shape(byName(arkh, AFK_NODES.type)));
-        continue;
-      }
-      expect(tree.children!.slice(0, 6).map((c) => c.name), at).toEqual(ROOT_CHILDREN);
-      for (const extra of tree.children!.slice(6)) expect(flagsOfTree(extra).length, `${at} ${extra.name}`).toBeGreaterThan(0);
-      for (const name of ROOT_CHILDREN) {
-        const g = byName(tree, name);
-        const a = byName(arkh, name);
-        // the type node's note names the target the game has (Ruling V keeps a saved one); lib/arkh's is the map's default
-        if (name === AFK_NODES.type && afkTarget(makeCtx(stateOf(path), { player: ci, map })) !== target(map)) continue;
-        expect(shape(g), `${at} ${name}`).toEqual(shape(a));
-      }
-      // every source: name, format, note (the pool's 38, the two multipliers' one each)
-      const sources = (n: Node) => (n.children ?? []).map(shape);
-      expect(sources(byName(tree, AFK_NODES.pool)), `${at} pool`).toEqual(sources(byName(arkh, AFK_NODES.pool)));
-      expect(sources(byName(tree, AFK_NODES.arcane)), `${at} arcane`).toEqual(sources(byName(arkh, AFK_NODES.arcane)));
-      expect(sources(byName(tree, AFK_NODES.etc92)), `${at} etc92`).toEqual(sources(byName(arkh, AFK_NODES.etc92)));
-    }
-  }, 120_000);
-
-  it("the Cove node and the type node of a character in cavern 17 on map 216 equal lib/arkh's", () => {
-    const env = JSON.parse(readFileSync(ARKHE!, "utf8")) as GameEnvelope & { data: Record<string, unknown> };
-    const raw = env.data.Holes;
-    const holes = (typeof raw === "string" ? JSON.parse(raw) : structuredClone(raw)) as number[][];
-    holes[0][0] = 17;
-    env.data.Holes = typeof raw === "string" ? JSON.stringify(holes) : holes;
-    const arkh = computeArkhAfkGains(structuredClone(env), 0, 216).tree;
-    const { tree, total } = computeGameAfkGains(env, 0, 216);
-    for (const name of [AFK_NODES.cove, AFK_NODES.type]) expect(shape(byName(tree, name))).toEqual(shape(byName(arkh, name)));
-    expect(byName(tree, AFK_NODES.cove).val).toBeCloseTo(byName(arkh, AFK_NODES.cove).val, 9);
-    expect(total).toBe(computeArkhAfkGains(structuredClone(env), 0, 216).total);
-    expect(total).toBe(AFKgainrates(makeCtx(buildGameState(structuredClone(env)), { player: 0, map: 216 }), "Fighting"));
-  }, 120_000);
 });
 
 // ── the game's own text ─────────────────────────────────────────────────────────────────────────

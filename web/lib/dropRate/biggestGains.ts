@@ -38,7 +38,7 @@ export const MINOR_GAIN_THRESHOLD_PCT = 0.05;
  *     that depends on the selected map, not something the player "levels up".
  *   - `🎁 Bundles` (Death Bringer Bundle, +2) and `🥷 Sneaking Mastery` (+0.3)
  *     are flat ADDITIONS to the Post-Processing running total — not factors
- *     (see arkh/stats/defs/drop-rate.ts: both are `wrapInBucket(..., "+")`).
+ *     (the V1 tree's Post-Processing steps, lib/game/trackers/dropRateV1.ts: both are `fmt: "+"` buckets).
  *     This module models every Post-Processing child as a multiplier, which
  *     would report a bogus `(ref/yours − 1)×100` for them (e.g. +100% when
  *     below max). Their real impact on total DR is sub-0.05% noise, so they

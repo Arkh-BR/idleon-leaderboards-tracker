@@ -1,10 +1,5 @@
-// The rows of the remaining sources of the Drop Rate V1 tree (lib/dropRate/explain/simple.ts). On a synthetic save every block is a seed (ZeroCache), so the numbers are worked out by hand; on the newest real save
-// the whole tree matches lib/arkh's path by path (user decision 09/11: the newest saves only; loaded inside `it`).
+// The rows of the remaining sources of the Drop Rate V1 tree (lib/dropRate/explain/simple.ts). On a synthetic save every block is a seed (ZeroCache), so the numbers are worked out by hand.
 import { describe, expect, it } from "vitest";
-import { readFileSync } from "node:fs";
-import { GOLDEN_SAVES, goldenSaves } from "../../game/support/arkhOracle"; // first: it sets the `window` shim lib/arkh reads
-import { compareV1, PENDING } from "../../game/support/v1Compare";
-import { newestSaves } from "@/lib/diagnose/characterize";
 import { EXPLAINERS } from "@/lib/dropRate/explain";
 import { SIMPLE_EXPLAINERS } from "@/lib/dropRate/explain/simple";
 import { ChipDesc, NinjaInfo, PostOffUpgradeInfo, Research, SummonEnemies, UpgradeVault } from "@/lib/game/data";
@@ -19,9 +14,8 @@ const shape = (rows: { name: string; val: number; fmt?: string; note?: string }[
 
 const IDS = ["lukScaling", "shrine4", "arcade27", "guild10", "postOffice11", "win9", "tome2", "dream10", "ach377", "ach381", "owl4", "vote27", "vault18", "friend3", "chip", "bunV", "ola232", "bunP", "arcane", "statue1", "family32", "tome7", "cloud69"];
 describe("every remaining source has rows", () => {
-  it("is registered, and nothing is pending", () => {
+  it("is registered", () => {
     for (const id of IDS) expect(SIMPLE_EXPLAINERS[id], id).toBeTypeOf("function");
-    expect(PENDING.size).toBe(0);
   });
 });
 
@@ -200,11 +194,4 @@ describe("a save the rows cannot read", () => {
     expect(rows[0]).toMatchObject({ name: "Gold Charm (Guild 10)", val: 0 });
     expect(rows[0].note).toMatch(/^not read: /);
   });
-});
-
-describe.skipIf(GOLDEN_SAVES.length === 0)("on the newest save (user decision 09/11)", () => {
-  it("the tree matches lib/arkh's, path by path, but for V1_KNOWN", () => {
-    const env = JSON.parse(readFileSync(newestSaves(goldenSaves(), 1)[0], "utf8")) as { charNames: unknown[] };
-    for (const ci of [0, 8]) for (const map of [251, 301, 216, 150]) expect(compareV1(env, ci, map), `${ci}/${map}`).toEqual({ missing: [], extra: [], value: [], meta: [] });
-  }, 300_000);
 });

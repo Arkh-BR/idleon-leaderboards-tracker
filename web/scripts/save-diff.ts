@@ -6,7 +6,6 @@
 // Prints the save keys that changed (path, before, after). With --stat it also
 // computes that tracker's tree on both saves and prints the leaves that moved.
 // Each list is capped at --limit lines; the total is always printed.
-// lib/arkh is a singleton: the two computes run one after the other.
 
 import { readFileSync } from "node:fs";
 import { pathToFileURL } from "node:url";

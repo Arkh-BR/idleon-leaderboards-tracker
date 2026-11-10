@@ -3,7 +3,7 @@
 // - The bubble targets ratchet: SkillLevelsMAX[86] = max(100 + min(GetTalentNumber(1,129), CauldronInfo[0][1]), SkillLevelsMAX[86]) @4377334; [87] @4377104, [266] @4377631, [446] @4378162 (and 267, 447 beside them).
 // - 79 is a bubble clamp that does NOT ratchet: SkillLevelsMAX[79] = max(100 + min(GetTalentNumber(1,39), CauldronInfo[3][0]), 100) @4378692, the inner max is the literal 100, not the saved value.
 // So the saved SM raises the cap only for the entries with `ratchet`; for the others it is information (the game recomputes it). A booster of kind "y" on a per-char source reads the second curve (tab 2); an account-wide one is
-// always getbonus2(1, src, -1) (tab 1), whatever its kind. Rows, order, formats and notes are the page's (lib/arkh emitBaseLevelNode), because the Hypothetical tab compares by path.
+// always getbonus2(1, src, -1) (tab 1), whatever its kind. Rows, order, formats and notes are the page's (the deleted lib/arkh's emitBaseLevelNode had them), because the Hypothetical tab compares by path.
 import { asNum, asNumber } from "@/lib/game/attr";
 import { withPlayer, type Ctx } from "@/lib/game/ctx";
 import { getbonus2 } from "@/lib/game/njs/getbonus2";

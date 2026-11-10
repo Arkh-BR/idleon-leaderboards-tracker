@@ -4,7 +4,7 @@
 // The number is TRACKERS.damage (DamageDealed "Max", njs/DamageDealed.ts). The tree is read out of the trace: each source finds the call(s)
 // it stands for among DamageDealed's direct calls (by block and arguments, each call once, in call order), takes their values, and carries
 // the calls' own N.js trace as children; a number DamageDealed reads from the save itself (no call) is a leaf. The layers, steps and names
-// are display (lib/damage/layers.ts and the table below, the names lib/arkh's tree has: the page's Biggest Gains and the Observed Max data
+// are display (lib/damage/layers.ts and the table below, the names lib/arkh's tree had: the page's Biggest Gains and the Observed Max data
 // are keyed by them); a step's value is only what it shows, so the total never comes from the tree. On map 43 the Royal Guardian arena
 // replaces Max before anything else is computed (@4106216): the tree is the arena and Mastery only.
 //
@@ -12,7 +12,7 @@
 // forms, and on a dungeon map Dungon's assumption, Ruling Y) are no source: they hang under the root, so their runtime:/assumed: notes stay
 // visible. The whole trace is a Ctx with `trace: true` away (gameDamage makes exactly that and trims what it hands the page).
 //
-// The type of the result is the page's own (lib/statTracker/config StatResult: type-only). lib/game imports no lib/arkh and reaches none:
+// The type of the result is the page's own (lib/statTracker/config StatResult: type-only). lib/game imports no lib/tome:
 // DNSM.TomeQTYtot, the Tome score (Ruling K), is lib/game's own sum of the Tome's points (njs/TomeQTY.ts, Summoning TomePTS).
 //
 // Performance, measured when the page switched (Task 10, Ruling X; 5 real saves, Node, median): a character switch on a loaded save is
@@ -40,7 +40,7 @@ type Node = StatResult["tree"];
  */
 type Ops = { t: Take; all: (block: string, ...args: (string | number)[]) => number[]; peek: Take; leaf: (name: string, val: number, note?: string) => number; c: Ctx };
 /**
- * One source of the tree. `of` is the term as lib/arkh's tree has it, which is the term as DamageDealed writes it: the summed term of an
+ * One source of the tree. `of` is the term as lib/arkh's tree had it, which is the term as DamageDealed writes it: the summed term of an
  * add / pct step (before the step's `/100`), the factor itself for a mult step (1 + x/100 where the game writes it so), the exponent for
  * the Reliquarium (0 when not carried), the rat damage for the arena (0 off map 43).
  */
@@ -291,7 +291,7 @@ const SOURCES: Record<string, Source> = {
   etc21: { name: "Mastery (Equipment)", fmt: "+", note: "EtcBonuses(21)", of: ({ t }) => t("EtcBonuses", "21") },
 };
 
-/** A step's shown value, display format and shape note (lib/arkh's, which the page's tooltip prints). */
+/** A step's shown value, display format and shape note (lib/arkh's, kept: the page's tooltip prints it). */
 function stepOf(kind: string, vals: readonly number[]): { val: number; fmt: Node["fmt"]; note: string } {
   if (kind === "add") return { val: vals.reduce((a, v) => a + v, 0), fmt: "+", note: "+ Σ" };
   if (kind === "pct") return { val: 1 + vals.reduce((a, v) => a + v, 0) / 100, fmt: "x", note: "× (1 + Σ/100)" };

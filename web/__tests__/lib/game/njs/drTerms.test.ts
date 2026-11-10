@@ -1,23 +1,12 @@
 // Task 2 (DR plan): every leaf of TotalStats("Drop_Rarity") (N.js _customBlock_TotalStats "Drop_Rarity" @4190432, outside a dungeon: Ruling Y),
-// by DR2_GROUPS source id, against lib/arkh's leaf of the same id (arkhDrLeaves) over every real save and character (relative 1e-9). Each term
-// below is the N.js sub-expression of its source, written in the representation the leaf has in its group: the % points a pct group sums
-// (the Σ of `1 + (1.4 DropRateLUK + Σ) / 100`, the post-processing `1 + x / 100` factors), a FACTOR for the mult groups, the amount an add
-// group adds, the new total of the Cove (0 when it does not replace). The DR page's own total (the TotalStats block, the chip cap, the map
-// rules) is Task 3: here the map is plain (251) except where the term reads it. N.js is the truth: a difference is a KNOWN entry with its
-// evidence and a seeded proof, or a mismatch.
-import { afterAll, describe, it, expect } from "vitest";
-import { readFileSync, writeFileSync } from "node:fs";
-import { basename } from "node:path";
-import { GOLDEN_SAVES, KNOWN_ARKH_DIFFS, PROOF_PATCHES, arkhDrLeaves, damageReasonSeeds, patchLukSnapshot, type Seed } from "../support/arkhOracle";
-import { DR2_GROUPS } from "@/lib/arkh/stats/defs/drop-rate-v2";
-import { loadSaveData } from "@/lib/arkh/save/loader";
-import { saveData } from "@/lib/arkh/state";
-import { measurementBonusTotal, overkillQTY } from "@/lib/arkh/stats/systems/coin/gambit";
-import { MissingSaveKey } from "@/lib/game/errors";
+// by DR2_GROUPS source id. Each term below is the N.js sub-expression of its source, written in the representation the leaf has in its group:
+// the % points a pct group sums (the Σ of `1 + (1.4 DropRateLUK + Σ) / 100`, the post-processing `1 + x / 100` factors), a FACTOR for the mult
+// groups, the amount an add group adds, the new total of the Cove (0 when it does not replace). The table covers every source of the page's
+// descriptor.
+import { describe, it, expect } from "vitest";
+import { DR2_GROUPS } from "@/lib/dropRateV2/layers";
 import { asNum, attr } from "@/lib/game/attr";
-import { makeCtx, withPlayer, type Ctx } from "@/lib/game/ctx";
-import { buildGameState, type GameEnvelope } from "@/lib/game/state";
-import { listAt } from "@/lib/game/lists";
+import { type Ctx } from "@/lib/game/ctx";
 import { DNSM_AlchBubbles, DNSM_AlchVials, DNSM_BoxRewards, DNSM_FamBonusQTYs, DNSM_StarSigns } from "@/lib/game/njs/DNSM";
 import { GetTalentNumber } from "@/lib/game/njs/GetTalentNumber";
 import { CardSetBonuses } from "@/lib/game/njs/CardSetBonuses";
@@ -54,10 +43,7 @@ import { JellyOperation } from "@/lib/game/njs/JellyOperation";
 import { Minehead } from "@/lib/game/njs/Minehead";
 import { Dreamstuff } from "@/lib/game/njs/Dreamstuff";
 import { Ninja } from "@/lib/game/njs/Ninja";
-
-const MAP = 251; // a plain map: no dungeon (Dungon() is -1), not 216
 const COVE_MAP = 216;
-const rel = (got: number, want: number) => Math.abs(got - want) <= 1e-9 * Math.max(1, Math.abs(want));
 
 /** DNSM.DropRateLUK after its curve @4190432: `1E3 > LUK ? (pow(LUK + 1, .37) - 1) / 40 : .5 x ((LUK - 1e3) / (LUK + 2500)) + .297`. */
 function lukCurve(c: Ctx): number {
@@ -69,7 +55,7 @@ const cardLv = (c: Ctx, card: string) => RunCodeOfTypeXforThingY(c, "CardLv", ca
 /** The Cove line @4196607: `216 == CurrentMap && 17 == Holes[0][<the current character>]` (the raw element, loosely) replaces the total. */
 const inCove = (c: Ctx) => COVE_MAP == c.map && 17 == attr(c, "Holes", 0, c.player);
 
-/** The lib/game term of each lib/arkh leaf, as TotalStats("Drop_Rarity") uses it. */
+/** The lib/game term of each source, as TotalStats("Drop_Rarity") uses it. */
 const TERMS: Record<string, (c: Ctx) => number> = {
   // base: 1 + (1.4 x DropRateLUK + Σ) / 100 as a pct group, so the LUK source is 140 x the curve
   luk: (c) => 140 * lukCurve(c),
@@ -158,247 +144,8 @@ const TERMS: Record<string, (c: Ctx) => number> = {
   cove: (c) => (inCove(c) ? Holes2(c, "Cglunko_DR", 0, 0) : 0),
 };
 
-/** The block key(s) each term reads directly (`<Fn><args as JSON>`): what a seed must never be. */
-const OWN: Record<string, string[]> = {
-  luk: ['TotalStats["LUK"]'], starSigns: ['DNSM.StarSigns["Drop"]'], goldFood: ['GoldFoodBonuses["DropRatez"]'], workbench: ['WorkbenchStuff["AdditionExtraEXPnDR",0,0]'],
-  tome2: ['Summoning["TomeBonus",2,0]'], tome7: ['Summoning["TomeBonus",7,0]'], family32: ['DNSM.FamBonusQTYs["32"]'], shiny0: ['Breeding["ShinyBonusS","Nah",0,-1]'],
-  talent239: ["GetTalentNumber[1,239]", 'RoyalG["TotalStatz",0,0]'], prayer7: ["prayersReal[7,0]"],
-};
-Object.freeze(OWN);
-
-/** The KNOWN reasons proved on lib/arkh's side (as lukSnapshot in expTerms.test.ts): what each writes into lib/arkh's envelope for character `ci`. */
-const ARKH_SIDE: Record<string, (data: Record<string, unknown>, ci: number, c: Ctx) => void> = {
-  // PVStatList_<ci>[3] gets lib/game's live TotalStats("LUK") (STAT_WHY.lukSnapshot)
-  lukSnapshot: (d, ci, c) => patchLukSnapshot(d, ci, TotalStats(c, "LUK")),
-  // Holes[22] gets the list the game's load steps leave, which lib/game's state holds (STAT_WHY.holesLoad251)
-  holesLoad251: (d, _ci, c) => {
-    const holes = (typeof d.Holes === "string" ? JSON.parse(d.Holes) : d.Holes) as unknown[];
-    holes[22] = [...listAt(c, "Holes", 22)];
-    d.Holes = typeof d.Holes === "string" ? JSON.stringify(holes) : holes;
-  },
-};
-
-/** What each term refuses (Ruling E): lib/tome cannot score HourZero (see stats.test.ts, equipCards.test.ts). */
-const HOURZERO: string[] = []; // HourZero, the one save lib/tome could not score, is out of the parity corpus (PARITY_EXCLUDED, support/arkhOracle.ts): nothing is refused
-// the Tome refusal reaches every term built on the talent levels (AllTalentLV -> FamBonusQTYs, the Tome bubbles) or on a stat (TotalStats LUK)
-const TOME_TERMS = new Set(["luk", "bubble", "goldFood", "tome2", "rank9", "workbench", "family32", "talent279", "talent24"]);
-/** The pairs per leaf whose difference a KNOWN entry closes, as a literal (a stale entry or a new difference fails): the totals of the report. */
-const EXPECT_KNOWN: Record<string, number> = {
-  luk: 1121, goldFood: 327, rank9: 8, workbench: 9, grid173: 1, glimbo: 12, tome2: 196, tome7: 33, prayer7: 43,
-};
-/** The pairs per leaf: 105 saves x characters (1153 on map 251; HourZero is out of the parity corpus, PARITY_EXCLUDED), plus the extra maps of the map-dependent ones. */
-const PAIRS: Record<string, number> = {
-  luk: 1153, bubble: 1153, goldFood: 1153, tome2: 1153, rank9: 1153, workbench: 1153, family32: 1153, talent279: 1150, talent24: 1152, arcane: 5765, shrine4: 2306, cove: 2306,
-};
-const REFUSALS = (id: string): string[] => (TOME_TERMS.has(id) ? HOURZERO : []);
-
-/**
- * The maps a term is checked on: 251 for all, plus, for the map-dependent ones, the maps that make them differ: the Arcane map bonus reads
- * MapBon[map][0] (slot 0, Drop Rate), Shrine(4) the shrine's own map (ShrineInfo[4][0]), and the Cove map 216.
- */
-function mapsOf(id: string, ctx: Ctx): number[] {
-  if (id === "shrine4") return [...new Set([MAP, asNum(ctx, "ShrineInfo", 4, 0)])];
-  if (id === "cove") return [MAP, COVE_MAP];
-  if (id === "arcane") {
-    const out = [MAP];
-    const rows = listAt(ctx, "MapBon");
-    for (let m = 0; m < rows.length && out.length < 5; m++) if (asNum(ctx, "MapBon", m, 0) > 0) out.push(m);
-    return out;
-  }
-  return [MAP];
-}
-
-const states = new Map<string, { state: ReturnType<typeof buildGameState>; chars: number }>();
-afterAll(() => states.clear());
-function stateOf(path: string) {
-  let s = states.get(path);
-  if (!s) {
-    const save = JSON.parse(readFileSync(path, "utf8")) as GameEnvelope;
-    states.set(path, (s = { state: buildGameState(save), chars: save.charNames.length }));
-  }
-  return s;
-}
-
-/** lib/arkh's level of research grid square 168 (saveData.gridLevels, what its grid.resolve gates on), once per save. */
-const grid168 = new Map<string, number>();
-function arkhGrid168(path: string): number {
-  let lv = grid168.get(path);
-  if (lv === undefined) {
-    loadSaveData(JSON.parse(readFileSync(path, "utf8")));
-    grid168.set(path, (lv = Number(saveData.gridLevels?.[168]) || 0));
-  }
-  return lv;
-}
-
-describe("the DR term table covers every source of lib/arkh's descriptor", () => {
+describe("the DR term table covers every source of the page's descriptor", () => {
   it("has one term per DR2_GROUPS source, no more", () => {
     expect(Object.keys(TERMS).sort()).toEqual(DR2_GROUPS.flatMap((g) => g.sources).sort());
   });
-});
-
-describe.skipIf(GOLDEN_SAVES.length === 0)("TotalStats(\"Drop_Rarity\") terms against lib/arkh on every real save and character", () => {
-  for (const id of Object.keys(TERMS)) {
-    it(id, () => {
-      const t0 = performance.now();
-      const mismatches: string[] = [];
-      const seen = new Set<number>();
-      let pairs = 0;
-      let nonZero = 0;
-      let known = 0;
-      let entryPairs = 0; // pairs some KNOWN entry covers: every one must really differ, or the entry is stale
-      const refused = new Set<string>();
-      for (const path of GOLDEN_SAVES) {
-        const { state, chars } = stateOf(path);
-        for (let ci = 0; ci < chars; ci++) {
-          // the extra maps come from the save (ShrineInfo, MapBon): a save without them fails here, it is not checked on 251 alone
-          const maps = mapsOf(id, makeCtx(state, { player: ci, map: MAP }));
-          for (const map of maps) {
-            const ctx = makeCtx(state, { player: ci, map });
-            let got: number;
-            try {
-              got = TERMS[id](withPlayer(ctx, ci));
-            } catch (e) {
-              if (!(e instanceof MissingSaveKey)) throw e;
-              refused.add(`${basename(path)}: ${e.key}`);
-              continue;
-            }
-            const want = arkhDrLeaves(path, ci, map)[id];
-            pairs++;
-            seen.add(want);
-            if (want !== 0) nonZero++;
-            const entries = KNOWN_ARKH_DIFFS.filter((d) => d.stat === "dr" && d.source === id && d.save === basename(path) && (d.ci ?? ci) === ci && (d.maps?.includes(map) ?? true));
-            if (entries.length) entryPairs++;
-            if (rel(got, want)) continue;
-            // a KNOWN difference is proved, not skipped: lib/arkh's number for the term it names, seeded into a fresh Ctx, closes the gap
-            // glimboUnleveled: N.js's GlimboDRmulti is 1 because grid square 168 is below 1 here, and lib/arkh's leaf is its grid node's 0 (STAT_WHY.glimboUnleveled)
-            if (entries.length && entries.every((d) => d.reason === "glimboUnleveled")) {
-              expect(ResearchStuff(withPlayer(ctx, ci), "Grid_Bonus", 168, 0), `${id} ${basename(path)}#${ci}: square 168`).toBeLessThan(1);
-              // both sides: lib/arkh's grid node is 0 because its square-168 level is below 1 (grid.resolve's gate), not for another reason
-              expect(arkhGrid168(path), `${id} ${basename(path)}: lib/arkh's square-168 level`).toBeLessThan(1);
-              expect([got, want], `${id} ${basename(path)}#${ci}`).toEqual([1, 0]);
-              known++;
-              continue;
-            }
-            // the reasons of ARKH_SIDE are proved on lib/arkh's side: its envelope gets what lib/game reads, and its leaf must then be lib/game's
-            if (entries.length && entries.every((d) => ARKH_SIDE[d.reason!])) {
-              const env = JSON.parse(readFileSync(path, "utf8")) as GameEnvelope;
-              for (const d of entries) ARKH_SIDE[d.reason!](env.data as Record<string, unknown>, ci, withPlayer(ctx, ci));
-              const patched = arkhDrLeaves(env, ci, map)[id];
-              expect(rel(patched, want), `${id} ${basename(path)}#${ci}: the patch changed nothing`).toBe(false);
-              if (rel(patched, got)) {
-                known++;
-                continue;
-              }
-              mismatches.push(`${id} ${basename(path)}#${ci}@${map}: game ${got}, arkh ${want}, with lib/arkh's envelope patched ${patched}`);
-              continue;
-            }
-            if (entries.length) {
-              // the cause is either a save patch (PROOF_PATCHES) or lib/arkh's number for it, seeded
-              const seeds: Seed[] = [];
-              let proofState = state;
-              for (const r of entries.map((d) => d.reason!)) {
-                if (PROOF_PATCHES[r]) {
-                  const env = JSON.parse(readFileSync(path, "utf8")) as GameEnvelope;
-                  PROOF_PATCHES[r](env.data as Record<string, unknown>, ci, state.charNames.length);
-                  proofState = buildGameState(env);
-                } else seeds.push(...damageReasonSeeds(path, ci, r));
-              }
-              const c = makeCtx(proofState, { player: ci, map });
-              // negative controls: a seed is never the cache key of the leaf under test (the proof would hold by construction)...
-              for (const [name, args] of seeds) expect(OWN[id] ?? [], `${id} seeded on its own key ${name}${JSON.stringify(args)}`).not.toContain(`${name}${JSON.stringify(args)}`);
-              for (const [name, args, v] of seeds) c.cache.set(`${ci}|${map}|${name}${JSON.stringify(args)}`, v);
-              const seeded = TERMS[id](withPlayer(c, ci));
-              // ...and the seeds do something: the seeded value is not the unseeded one
-              expect(rel(seeded, got), `${id} ${basename(path)}#${ci}: the seeds changed nothing`).toBe(false);
-              if (rel(seeded, want)) {
-                known++;
-                continue;
-              }
-              mismatches.push(`${id} ${basename(path)}#${ci}@${map}: game ${got}, arkh ${want}, with lib/arkh's ${entries.map((d) => d.reason).join("+")} ${seeded}`);
-              continue;
-            }
-            mismatches.push(`${id} ${basename(path)}#${ci}@${map}: game ${got}, arkh ${want}`);
-          }
-        }
-      }
-      if (process.env.DR_DUMP) writeFileSync(`${process.env.DR_DUMP}/${id}.txt`, [...mismatches, ...[...refused].map((r) => `refused ${r}`)].join("\n"));
-      console.info(`[drTerms ${id}] ${pairs} pairs, ${nonZero} nonzero, ${known} known, ${mismatches.length} mismatches, ${refused.size} refused, ${seen.size} distinct, ${Math.round(performance.now() - t0)} ms`);
-      expect(mismatches.slice(0, Number(process.env.DR_MAX ?? 20))).toEqual([]);
-      expect(known, "KNOWN pairs vs pairs the entries cover (a stale entry is one that no longer differs)").toBe(entryPairs);
-      expect(known, "KNOWN pairs, literally").toBe(EXPECT_KNOWN[id] ?? 0);
-      expect(pairs, "saves x characters x maps").toBe(PAIRS[id] ?? 1163);
-      expect([...refused].sort()).toEqual(REFUSALS(id));
-      const names = new Set(GOLDEN_SAVES.map((p) => basename(p)));
-      expect(KNOWN_ARKH_DIFFS.filter((d) => d.stat === "dr" && d.source === id && !names.has(d.save)).map((d) => d.save)).toEqual([]);
-    }, 600_000);
-  }
-});
-
-/**
- * Above, the Cove leaf on map 216 is checked only where a real character is in cavern 17 (123 characters in 40 saves). The Cove's own value
- * (Holes2("Cglunko_DR"), account-wide) is checked here on every save, with character 0 put in cavern 17 (data.Holes[0][0] = 17 on a copy of
- * the envelope), on map 216.
- */
-describe.skipIf(GOLDEN_SAVES.length === 0)("the Cove (Holes2 Cglunko_DR) on every real save, character 0 in cavern 17", () => {
-  it("equals lib/arkh's Cove leaf", () => {
-    const mismatches: string[] = [];
-    const seen = new Set<number>();
-    for (const path of GOLDEN_SAVES) {
-      const env = JSON.parse(readFileSync(path, "utf8")) as GameEnvelope;
-      const data = env.data as Record<string, unknown>;
-      const holes = (typeof data.Holes === "string" ? JSON.parse(data.Holes) : data.Holes) as unknown[][] | undefined;
-      if (!holes?.[0]) continue; // a save before the Hole has no caverns: the Cove line reads Holes[0] and is not reached there
-      holes[0][0] = 17;
-      data.Holes = typeof data.Holes === "string" ? JSON.stringify(holes) : holes;
-      const ctx = makeCtx(buildGameState(env), { player: 0, map: COVE_MAP });
-      const got = TERMS.cove(ctx);
-      const want = arkhDrLeaves(env, 0, COVE_MAP).cove;
-      seen.add(want);
-      if (!rel(got, want)) mismatches.push(`${basename(path)}: game ${got}, arkh ${want}`);
-    }
-    console.info(`[drTerms cove@17] ${seen.size} distinct`);
-    expect(mismatches).toEqual([]);
-    expect(seen.size, "the saves give more than one Cove value").toBeGreaterThan(1);
-  }, 600_000);
-});
-
-/**
- * The measurements' kinds the Drop Rate never reads (it reads measurement 15, kind HolesInfo[52][15] = 10): lib/arkh's gambit port has the
- * Death Note pages (WorkbenchStuff("OverkillQTY", w), kind 6) and the measurements 9 (kind 0) and 13 (kind 6), so those are checked here.
- */
-describe.skipIf(GOLDEN_SAVES.length === 0)("the Death Note and the measurements 9 and 13 against lib/arkh's gambit port", () => {
-  it("equal on every real save", () => {
-    const mismatches: string[] = [];
-    let nonZero = 0;
-    const refused = new Set<string>();
-    const check = (path: string, what: string, got: () => number, want: number) => {
-      try {
-        const g = got();
-        if (!rel(g, want)) mismatches.push(`${basename(path)} ${what}: game ${g}, arkh ${want}`);
-      } catch (e) {
-        if (!(e instanceof MissingSaveKey)) throw e;
-        refused.add(`${basename(path)}: ${e.key}`);
-      }
-    };
-    for (const path of GOLDEN_SAVES) {
-      const { state } = stateOf(path);
-      const ctx = makeCtx(state, { player: 0, map: MAP });
-      const env = JSON.parse(readFileSync(path, "utf8"));
-      // HourZero runs the load step that zeroes the measurements 10 to 15 (STAT_WHY.holesLoad251): lib/arkh's envelope gets the list lib/game holds
-      if (basename(path) === "HourZero.json") ARKH_SIDE.holesLoad251(env.data as Record<string, unknown>, 0, ctx);
-      loadSaveData(env);
-      for (let w = 0; w < 8; w++) {
-        const want = overkillQTY(w, saveData);
-        if (want !== 0) nonZero++;
-        check(path, `OverkillQTY ${w}`, () => WorkbenchStuff(ctx, "OverkillQTY", w, 0), want);
-      }
-      for (const i of [9, 13]) check(path, `MeasurementBonusTOTAL ${i}`, () => Holes(ctx, "MeasurementBonusTOTAL", i, 0), measurementBonusTotal(i, saveData));
-    }
-    console.info(`[drTerms deathNote] ${nonZero} nonzero pages`);
-    expect(mismatches.slice(0, 20)).toEqual([]);
-    expect(nonZero).toBeGreaterThan(0);
-    // HourZero (DoOnceREAL 248.3) has KillsLeft2Advance up to map 314: the game pads every character's list to the template's length when the account loads
-    // (_customEvent_AddNewStuff @19909026, the pad @19916401), and lib/game/migrations replays it: nothing is refused
-    expect([...refused].sort()).toEqual([]);
-  }, 600_000);
 });

@@ -3,7 +3,7 @@
 // The number is TRACKERS.multikill. The block is ⌊MultiKill_base + OverkillStuffs("2") × MultiKill_perTier⌋, so the tree is read out of the three calls it makes, as the other trackers read theirs
 // (trackers/coinMulti.ts): each source of a half finds the call(s) it stands for among that half's direct calls and carries them as children (Ruling L, trackers/page.ts); the tier's rows come from
 // what OverkillStuffs("2") read. The tree is not grouped: the halves with their rule rows, the tier, the status row (lib/multikill/layers). A half's value is the call's, so the tree shows B′ and P′ as the
-// game has them. The names, formats and notes are lib/arkh's, which the page's Biggest Gains and the Observed Max data are keyed by.
+// game has them. The names, formats and notes are the deleted lib/arkh's, which the page's Biggest Gains and the Observed Max data are keyed by.
 //
 // The tier's rows the block has no call for: the Target HP is the function the block used (monsterHPTotal), the static HP is game data, and the two thresholds are OverkillStuffs("0") and ("1") @4095677
 // (HP at tier 1, else HP × E × E^(T-1); HP × E × E^T), which only the game's purple bar reads: two products here rather than two more ported sub-cases.
@@ -32,7 +32,7 @@ type Node = StatResult["tree"];
 
 /** What a source computes from: `t` takes a call its half made (it must exist), `leaf` shows a number that is no call of its own, `c` reads the save. */
 type Ops = { t: Take; leaf: (name: string, val: number, note: string) => number; c: Ctx };
-/** One source of a half: its name and note as lib/arkh's tree has them, and `of`, the term as the half adds it. */
+/** One source of a half: its name and note as lib/arkh's tree had them, and `of`, the term as the half adds it. */
 type Source = { name: string | ((c: Ctx) => string); note?: string; of: (o: Ops) => number };
 
 // Offsets (raw N.js): MultiKill_perTier @7805748, MultiKill_base @7808345, MultiKillTOTAL @7810403. The keys are MK_POOLS's ids.

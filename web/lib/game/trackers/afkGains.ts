@@ -5,7 +5,7 @@
 // has nothing to fight is 0). The tree is read out of the trace, as the Damage tracker does (trackers/damage.ts): each source finds the call it
 // stands for among AFKgainrates's direct calls (by block and arguments, each call once), takes its value and carries the call's own N.js trace
 // as its child; a number AFKgainrates reads from the save itself (the W2 merit, the bun_u bundle) or fixes (the .4 base) is a leaf. The node
-// names, formats and notes are display (lib/afkGains/layers.ts and the table below: the names lib/arkh's tree has, which the page's Biggest
+// names, formats and notes are display (lib/afkGains/layers.ts and the table below: the names lib/arkh's tree had, which the page's Biggest
 // Gains and the Observed Max data are keyed by); a node's value is only what it shows, and the total never comes from the tree.
 //
 // The trace below a source is trimmed (Ruling L, trackers/page.ts). The reads that are no source but lead to a `runtime:` / `assumed:` note
@@ -15,11 +15,11 @@
 // and Nothing, Paying_Respect or a target with no definition gives 0; the Cove (map 216, cavern 17) counts as a fight whatever its target says;
 // Ruling V, the AFK target follows ctx.map (lib/game/afkTarget.ts); Ruling Y, a dungeon map counts as outside a dungeon.
 //
-// Performance, measured when the page switched (scripts/perf-afk.ts; real saves, Node, median): lib/arkh 23 ms cold / 18 ms a character
+// Performance, measured when the page switched (a one-off perf script, since deleted; real saves, Node, median): lib/arkh 23 ms cold / 18 ms a character
 // switch / 23 ms a map switch, lib/game 56 / 22 / 22 ms. A switch is at parity; the first call on a save (state build + Tome) costs about
 // 33 ms more, once per save. Both are well under a perceptible delay (Ruling FF); lib/game pays for the trace its tree is read from.
 //
-// The type of the result is the page's own (lib/statTracker/config StatResult: type-only). lib/game imports no lib/arkh.
+// The type of the result is the page's own (lib/statTracker/config StatResult: type-only).
 import type { StatResult } from "@/lib/statTracker/config";
 import { AFK_NODES, AFK_POOLS, AFK_ROOT, afkRate } from "@/lib/afkGains/layers";
 import { asNum, attr } from "../attr";
@@ -80,7 +80,7 @@ export function afkFightRate(ctx: Ctx): number {
 
 /** What a source computes from: `t` takes a call, `leaf` shows a number that is no call of its own, `c` reads the save (no trace). */
 type Ops = { t: Take; leaf: (name: string, val: number, note?: string) => number; c: Ctx };
-/** One source of the tree: its name and note as lib/arkh's tree has them, and `of`, the term as AFKgainrates adds it (in percent). */
+/** One source of the tree: its name and note as lib/arkh's tree had them, and `of`, the term as AFKgainrates adds it (in percent). */
 type Source = { name: string; note?: string; of: (o: Ops) => number };
 
 const READ = "a plain read of the save, not an N.js call";

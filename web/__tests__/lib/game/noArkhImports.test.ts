@@ -1,76 +1,31 @@
-// Ruling KK: lib/game must not depend on lib/arkh at runtime (the MIT relicense goal). Walks the static import graph from every
-// lib/game/trackers/*.ts through every web/lib file they reach, and fails on any non-type import of lib/arkh. Type-only imports are fine.
-import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
-import { dirname, join, relative, resolve } from "node:path";
+// lib/arkh is deleted (the MIT relicense): the directory stays gone and no committed file of the app, the scripts or the tests imports it,
+// type-only imports and dynamic import() included, by the @/ alias or by a relative path.
+import { execFileSync } from "node:child_process";
+import { existsSync, readFileSync } from "node:fs";
+import { join, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 const ROOT = resolve(__dirname, "../../../");
-const norm = (p: string) => relative(ROOT, p).replace(/\\/g, "/");
-const resolveFile = (from: string, spec: string): string | null => {
-  const base = spec.startsWith("@/") ? join(ROOT, spec.slice(2)) : spec.startsWith(".") ? resolve(dirname(from), spec) : null;
-  if (!base) return null;
-  for (const c of [`${base}.ts`, `${base}.tsx`, join(base, "index.ts")]) if (existsSync(c) && statSync(c).isFile()) return c;
-  return null;
-};
-/** The runtime import specifiers of a source file: `import type ...` and imports whose every specifier is `type X` are erased and skipped. */
-const runtimeImports = (src: string): string[] => {
-  const out: string[] = [];
-  for (const m of src.matchAll(/^\s*(?:import|export)\s+(type\s+)?([^;]*?)\s+from\s+"([^"]+)"/gms)) {
-    if (m[1]) continue;
-    const named = /^\{([^}]*)\}$/.exec(m[2].trim());
-    if (named && named[1].split(",").map((s) => s.trim()).filter(Boolean).every((s) => s.startsWith("type "))) continue;
-    out.push(m[3]);
-  }
-  for (const m of src.matchAll(/^\s*import\s+"([^"]+)"/gm)) out.push(m[1]);
-  return out;
-};
-// every web/lib file the walk reaches is followed (lib/tome too: DNSM.TomeQTYtot no longer runs it, the Tome score is lib/game's own)
-const followed = (rel: string) => rel.startsWith("lib/");
+const DIRS = ["lib", "app", "components", "scripts", "__tests__"];
+// the committed files only: the user's own untracked scripts under scripts/ may still import it (accepted when lib/arkh went)
+const tracked = (): string[] =>
+  execFileSync("git", ["ls-files", "-z", "--", ...DIRS], { cwd: ROOT, encoding: "utf8" })
+    .split("\0")
+    .filter((f) => /\.(ts|tsx|js|mjs|cjs)$/.test(f))
+    .map((f) => join(ROOT, f))
+    .filter((f) => existsSync(f));
+// an import, export…from, import() or require() whose specifier names lib/arkh, or a relative path into a directory named arkh under lib
+const ARKH = /(?:\bfrom\s+|\bimport\s*\(\s*|\brequire\s*\(\s*|^\s*import\s+)["'](?:[^"']*\blib\/arkh\b|\.{1,2}\/(?:\.\.\/)*arkh\/)[^"']*["']/m;
 
-const walk = (roots: string[]) => {
-  const todo = [...roots];
-  const seen = new Set<string>();
-  const bad: string[] = [];
-  while (todo.length) {
-    const f = todo.pop()!;
-    if (seen.has(f)) continue;
-    seen.add(f);
-    for (const spec of runtimeImports(readFileSync(f, "utf8"))) {
-      const to = resolveFile(f, spec);
-      if (!to) continue;
-      const rel = norm(to);
-      if (rel.startsWith("lib/arkh/")) bad.push(`${norm(f)} -> ${rel}`);
-      else if (followed(rel)) todo.push(to);
-    }
-  }
-  return { seen, bad };
-};
-const tsIn = (dir: string) => readdirSync(dir).filter((f) => f.endsWith(".ts")).map((f) => join(dir, f));
+describe("lib/arkh is gone", () => {
+  it("the directory does not exist", () => {
+    expect(existsSync(join(ROOT, "lib/arkh"))).toBe(false);
+  });
 
-describe("lib/game imports no lib/arkh at runtime (Ruling KK)", () => {
-  it("through the trackers' static import graph", () => {
-    const { seen, bad } = walk(tsIn(join(ROOT, "lib/game/trackers")));
-    expect(seen.size).toBeGreaterThan(20); // the walk really walked
-    expect(bad).toEqual([]);
-  });
-  it("through lib/talentsLevel (the Talents page)", () => {
-    const { seen, bad } = walk(tsIn(join(ROOT, "lib/talentsLevel")));
-    expect(seen.size).toBeGreaterThan(5);
-    expect(bad).toEqual([]);
-  });
-  it("through lib/tome (the Tome page)", () => {
-    const { seen, bad } = walk(tsIn(join(ROOT, "lib/tome")));
-    expect(seen.size).toBeGreaterThan(5);
-    expect(bad).toEqual([]);
-  });
-});
-
-describe("the Observed Max collectors import no lib/arkh at runtime", () => {
-  it("scripts/_shared/*.ts and scripts/update-top-*.ts (compare-top-ref.ts is the temporary oracle, excluded)", () => {
-    const dir = join(ROOT, "scripts");
-    const files = [...tsIn(join(dir, "_shared")), ...tsIn(dir).filter((f) => /update-top-[^\\/]*\.ts$/.test(f))];
-    expect(files.length).toBeGreaterThan(8);
-    const { bad } = walk(files); // compare-top-ref.ts never matches the pattern: excluded by name
+  it("nothing in lib, app, components, scripts or __tests__ imports it", () => {
+    const all = tracked();
+    expect(all.length).toBeGreaterThan(500); // the walk really walked
+    const bad = all.filter((f) => f !== __filename && ARKH.test(readFileSync(f, "utf8")));
     expect(bad).toEqual([]);
   });
 });

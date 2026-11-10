@@ -1,12 +1,10 @@
 // The Tome on lib/game: its quantities (njs/TomeQTY.ts, `_customEvent_TomeQTY` @5739147), its points (Summoning TomePCT/TomePTS
 // @10913628) and the engine's total (DNSM.TomeQTYtot):
 // - on a synthetic envelope (CI): one assertion per quantity, per points curve and for the total, worked out from the N.js expression;
-// - on the 5 newest real saves (skipIf): compareTome against the frozen computeTome, no difference outside TOME_KNOWN.
+// - on the newest real save (skipIf): the Tome score is the state's, whoever asks first.
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
-import { basename } from "node:path";
-import { GOLDEN_SAVES, goldenSaves } from "../support/arkhOracle"; // first: it sets the `window` shim lib/arkh reads
-import { compareTome } from "../support/tomeCompare";
+import { GOLDEN_SAVES, goldenSaves } from "../support/saves";
 import { newestSaves } from "@/lib/diagnose/characterize";
 import { makeCtx, seedBlock } from "@/lib/game/ctx";
 import { stateOf } from "@/lib/game/trackers/page";
@@ -419,14 +417,4 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("the Tome score is the state's, whoev
     expect(DNSM_TomeQTYtot(makeCtx(state, { player: 0, map: 251 }))).toBe(clean);
     expect(TomeQTY(makeCtx(state, { player: 0, map: 251 }))[15]).not.toBe(1e9);
   }, 120_000);
-});
-
-describe.skipIf(GOLDEN_SAVES.length === 0)("compareTome on the 5 newest saves", () => {
-  for (const p of newestSaves(goldenSaves(), 5)) {
-    it(`${basename(p)}: no quantity, task's points or total outside TOME_KNOWN differs from the frozen computeTome`, () => {
-      const { qty, pts } = compareTome(JSON.parse(readFileSync(p, "utf8")));
-      expect(qty).toEqual([]);
-      expect(pts).toEqual([]);
-    });
-  }
 });

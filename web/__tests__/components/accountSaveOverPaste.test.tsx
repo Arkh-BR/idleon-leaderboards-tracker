@@ -18,7 +18,6 @@ vi.mock("@/lib/game/trackers/dropRateV1", () => ({
     throw new Error("stub");
   },
 }));
-vi.mock("@/lib/arkh/computeCoin", () => ({ computeArkhCoinMulti: () => { throw new Error("stub"); } }));
 vi.mock("@/lib/talentsLevel/compute", () => ({
   getActivePresetIdx: () => 0,
   computeTalentEffective: () => {

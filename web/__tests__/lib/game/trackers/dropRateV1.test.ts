@@ -1,16 +1,14 @@
-// The Drop Rate V1 tree on lib/game (lib/game/trackers/dropRateV1.ts): the page's five top rows, its buckets and the path-by-path comparison against lib/arkh.
+// The Drop Rate V1 tree on lib/game (lib/game/trackers/dropRateV1.ts): the page's five top rows and its buckets.
 //
 // - on a synthetic envelope (CI): the root's rows, the additive pool and its buckets, Total Sum, the chip, Post-Processing's steps, the rows that follow the save, the Cove, the guard;
-// - lib/dropRate/systems (lib/arkh re-exports it): buckets and the etcBonus split; newestSaves;
-// - on the newest real saves: compareV1 (user decision 09/11: the newest saves only). A describe body never reads a save: they load inside `it`.
+// - lib/dropRate/systems: buckets and the etcBonus split; newestSaves;
+// - on the newest real saves (user decision 09/11: the newest saves only): the trace's notes on the page, the talents' Bonus Levels. A describe
+//   body never reads a save: they load inside `it`.
 import { afterAll, describe, expect, it, vi } from "vitest";
 import { mkdtempSync, readFileSync, rmSync, utimesSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { basename, join } from "node:path";
-import { GOLDEN_SAVES, goldenSaves, patchLukSnapshot } from "../support/arkhOracle"; // first: it sets the `window` shim lib/arkh reads
-import { compareV1, PENDING, V1_KNOWN, knownUnused } from "../support/v1Compare";
-import { computeArkhDropRate } from "@/lib/arkh/computeDR";
-import * as arkhCategorize from "@/lib/arkh/stats/categorize";
+import { GOLDEN_SAVES, goldenSaves } from "../support/saves";
 import { newestSaves } from "@/lib/diagnose/characterize";
 import type { ArkhNode } from "@/lib/dropRate/node";
 import * as systems from "@/lib/dropRate/systems";
@@ -18,9 +16,9 @@ import { talentLevelRows } from "@/lib/dropRate/explain/talent";
 import { V1_COVE, V1_SOURCES, type V1Pool } from "@/lib/dropRate/v1Sources";
 import { flattenTree } from "@/lib/dropRate/treeFlatten";
 import { assumed, makeCtx, type Ctx, type TraceNode } from "@/lib/game/ctx";
-import { MissingSaveKey, TreeTotalMismatch } from "@/lib/game/errors";
+import { TreeTotalMismatch } from "@/lib/game/errors";
 import { near, stateOf } from "@/lib/game/trackers/page";
-import { computeGameDropRateV1, dropRateV1Tree, v1Assemble, v1Rows } from "@/lib/game/trackers/dropRateV1";
+import { dropRateV1Tree, v1Assemble, v1Rows } from "@/lib/game/trackers/dropRateV1";
 import { type Data, type Seeds, synth, WB } from "../support/expStub";
 
 // the guard test makes the block disagree with its own sources once (a hook, not vi.fn: see trackers/dropRate.test.ts)
@@ -38,7 +36,6 @@ vi.mock("@/lib/game/njs/TotalStats", async (orig) => {
 });
 
 import { RunCodeOfTypeXforThingY } from "@/lib/game/njs/RunCodeOfTypeXforThingY";
-import { TotalStats } from "@/lib/game/njs/TotalStats";
 import { skillLevel } from "@/lib/game/player";
 
 const REAL = ['TotalStats["Drop_Rarity"]', "Dungon["];
@@ -54,9 +51,6 @@ const LUK_CURVE = (Math.pow(501, 0.37) - 1) / 40;
 const FIVE = ["LUK Scaling", "Additive Pool", "Total Sum", "Chip Cap-Break", "Post-Processing"];
 
 describe("the V1 tree on a synthetic envelope (runs in CI)", () => {
-  it("every source of the tree has its rows built: nothing is pending", () => {
-    expect([...PENDING]).toEqual([]);
-  });
 
   it("v1Rows keeps every source's row at its position, shown or not; v1Assemble drops the unshown and builds the page's rows", () => {
     const { rows, total } = v1Rows(synth({ Dream: dream, SL_0: {} }, { seeds: SET, real: REAL, trace: true }));
@@ -190,11 +184,6 @@ describe("the V1 tree on a synthetic envelope (runs in CI)", () => {
 });
 
 describe("lib/dropRate/systems", () => {
-  it("lib/arkh re-exports the very same functions (Ruling B)", () => {
-    expect(arkhCategorize.categorizePoolItems).toBe(systems.categorizePoolItems);
-    expect(arkhCategorize.classifySystem).toBe(systems.classifySystem);
-    expect(arkhCategorize.SYSTEM_EMOJI).toBe(systems.SYSTEM_EMOJI);
-  });
 
   it("a row's system is read from its name; a bucket name goes back to its system", () => {
     expect(systems.classifySystem("Robbing Hood (Talent 279)")).toBe("Talents");
@@ -255,9 +244,7 @@ describe("newestSaves", () => {
     }
   });
 });
-
-const MAPS = [251, 301, 216, 150];
-describe.skipIf(GOLDEN_SAVES.length === 0)("compareV1 on the 5 newest saves and 4 maps (user decision 09/11)", () => {
+describe.skipIf(GOLDEN_SAVES.length === 0)("on the 5 newest saves (user decision 09/11)", () => {
   const saves = () => newestSaves(goldenSaves(), 5);
   const envelopes = new Map<string, unknown>();
   const envelope = (p: string) => {
@@ -265,31 +252,6 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("compareV1 on the 5 newest saves and 
     return envelopes.get(p);
   };
   afterAll(() => envelopes.clear());
-  let pairs = 0;
-
-  for (const map of MAPS) {
-    it(`map ${map}: no difference outside PENDING and V1_KNOWN`, () => {
-      const out: string[] = [];
-      const refused = new Set<string>();
-      for (const path of saves()) {
-        const env = envelope(path) as { charNames: unknown[] };
-        for (let ci = 0; ci < env.charNames.length; ci++) {
-          try {
-            const d = compareV1(env, ci, map);
-            pairs++;
-            for (const [kind, list] of Object.entries(d)) for (const line of list) out.push(`${basename(path)}#${ci}@${map} ${kind}: ${line}`);
-          } catch (e) {
-            if (!(e instanceof MissingSaveKey)) throw e;
-            refused.add(`${basename(path)}: ${e.key}`);
-          }
-        }
-      }
-      console.info(`[v1 compare @${map}] ${pairs} pairs so far, ${out.length} differences, ${PENDING.size} sources pending, ${refused.size} refused`);
-      for (const line of out.slice(0, 30)) console.info(line);
-      expect(out.slice(0, 20)).toEqual([]);
-      expect([...refused]).toEqual([]);
-    }, 900_000);
-  }
 
   it("every `runtime:` / `assumed:` note of the block's trace is on the page", () => {
     const FLAG = /^(runtime|assumed):/;
@@ -322,26 +284,4 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("compareV1 on the 5 newest saves and 
     }
     expect(checked).toBeGreaterThan(env.charNames.length);
   }, 300_000);
-
-  it("V1_KNOWN's LUK Scaling: lib/arkh gives the game's number once its PVStatList snapshot is the live LUK", () => {
-    const path = saves()[0];
-    const env = envelope(path) as { charNames: unknown[]; data: Record<string, unknown> };
-    let moved = 0;
-    for (let ci = 0; ci < env.charNames.length; ci++) {
-      const game = computeGameDropRateV1(env, ci, 251).tree;
-      const row = (t: ArkhNode) => kid(t, "LUK Scaling").val;
-      const stale = computeArkhDropRate(structuredClone(env), ci, 251, {}).tree;
-      if (Math.abs(row(stale) - row(game)) > 1e-9) moved++;
-      const fixed = structuredClone(env);
-      patchLukSnapshot(fixed.data, ci, TotalStats(makeCtx(stateOf(env), { player: ci, map: 251 }), "LUK"));
-      expect(row(computeArkhDropRate(fixed, ci, 251, {}).tree), `${basename(path)}#${ci}`).toBeCloseTo(row(game), 9);
-    }
-    expect(moved).toBeGreaterThan(0);
-  }, 300_000);
-
-  it("every V1_KNOWN row was needed", () => {
-    expect(pairs).toBeGreaterThan(0);
-    expect(knownUnused()).toEqual([]);
-    expect(V1_KNOWN.every((k) => k.why.includes("@") || k.why.includes("N.js"))).toBe(true);
-  });
 });

@@ -1,15 +1,15 @@
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { ARTIFACT_FIND_REFUSABLE, DAMAGE_REFUSABLE, characterize, classify, type Row } from "@/lib/diagnose/characterize";
+import { ARTIFACT_FIND_REFUSABLE, DAMAGE_REFUSABLE, characterize, classify, flaggedLeaves, realSaves, type Row } from "@/lib/diagnose/characterize";
 import { MissingSaveKey, UNPORTED_STEPS } from "@/lib/game/errors";
 import type { StatResult } from "@/lib/statTracker/config";
 
-// Synthetic saves: two characters each, the "total" is read straight off the data so the fake engines are one line.
+// Synthetic saves: two characters each, the "total" is read straight off the data so the fake engine is one line.
 let dir: string;
-const file = (name: string, data: object, chars = 2) => {
-  const p = join(dir, name);
+const file = (name: string, data: object, chars = 2, at = dir) => {
+  const p = join(at, name);
   writeFileSync(p, JSON.stringify({ charNames: Array.from({ length: chars }, (_, i) => `c${i}`), data }));
   return p;
 };
@@ -22,150 +22,135 @@ beforeAll(() => {
 });
 afterAll(() => rmSync(dir, { recursive: true, force: true }));
 
-const result = (total: number): StatResult => ({ total, tree: { name: "t", val: total, fmt: "x" } });
+type Tree = StatResult["tree"];
+const result = (total: number, tree: Tree = { name: "t", val: total, fmt: "x" }): StatResult => ({ total, tree });
 // v + character index: every (save, ci) has its own number
-const engine = (bias = (_s: number, _ci: number) => 0) => (save: unknown, ci: number) => {
-  const v = (save as { data: { v: number } }).data.v;
-  return result(v + ci + bias(v, ci));
-};
+const engine = (save: unknown, ci: number) => result((save as { data: { v: number } }).data.v + ci);
 
 describe("characterize", () => {
-  it("has one row per (save, character) pair that differs, and none when the engines agree", () => {
-    const same = characterize([A, B, ONE], engine(), engine());
-    expect(same.rows).toEqual([]);
-    expect(same.pairs).toBe(5); // A: 2, B: 2, One: 1
-
-    const diff = characterize([A, B, ONE], engine(), engine((v, ci) => (v === 20 && ci === 1 ? 2.1 : 0)));
-    expect(diff.rows).toHaveLength(1);
-    expect(diff.rows[0]).toMatchObject({ save: B, ci: 1, a: 21, b: 23.1 });
-    expect(diff.rows[0].rel).toBeCloseTo(2.1 / 23.1, 12);
-    expect(diff.rows[0].errA).toBeUndefined();
-    expect(diff.rows[0].errB).toBeUndefined();
+  it("has one row per (save, character) pair, with its total", () => {
+    const { rows } = characterize([A, B, ONE], engine);
+    expect(rows.map((r) => [r.ci, r.total])).toEqual([[0, 10], [1, 11], [0, 20], [1, 21], [0, 5]]);
+    expect(rows.every((r) => r.err === undefined && r.flagged.length === 0)).toBe(true);
   });
 
-  it("ignores a relative difference of 1e-9 or less, and reports a bigger one", () => {
-    const tiny = characterize([B], engine(), engine((v) => v * 1e-10));
-    expect(tiny.rows).toEqual([]);
-    const big = characterize([B], engine(), engine((v) => v * 1e-8));
-    expect(big.rows.map((r) => r.ci)).toEqual([0, 1]);
-  });
-
-  it("a row for an engine that throws names the error class and message", () => {
+  it("a row for a pair that throws names the error class and message", () => {
     const boom = (save: unknown, ci: number) => {
       if ((save as { data: { v: number } }).data.v === 10 && ci === 1) throw new MissingSaveKey("Menagerie");
       return result(1);
     };
-    const { rows } = characterize([A, B], (_s, _ci) => result(1), boom);
-    expect(rows).toHaveLength(1);
-    expect(rows[0]).toMatchObject({ save: A, ci: 1, a: 1, errB: { name: "MissingSaveKey", message: "Menagerie" } });
-    expect(rows[0].b).toBeUndefined();
-    expect(rows[0].errA).toBeUndefined();
-    expect(rows[0].error).toBe("b threw MissingSaveKey: Menagerie");
+    const { rows } = characterize([A], boom);
+    expect(rows[0]).toMatchObject({ ci: 0, total: 1 });
+    expect(rows[1]).toMatchObject({ save: A, ci: 1, err: { name: "MissingSaveKey", message: "Menagerie" }, flagged: [] });
+    expect(rows[1].total).toBeUndefined();
   });
 
-  it("an engine that throws on both sides is one row with both errors", () => {
-    const { rows } = characterize([ONE], () => { throw new Error("x"); }, () => { throw new TypeError("y"); });
-    expect(rows).toHaveLength(1);
-    expect(rows[0]).toMatchObject({ errA: { name: "Error", message: "x" }, errB: { name: "TypeError", message: "y" } });
-    expect(rows[0].error).toBe("a threw Error: x; b threw TypeError: y");
+  it("keeps the tree's runtime / assumed leaves, with their paths, and no other note", () => {
+    const tree: Tree = {
+      name: "Damage", val: 1, fmt: "x", children: [
+        { name: "a", val: 0, fmt: "raw", note: "runtime: active buff, not counted" },
+        { name: "b", val: 1, fmt: "raw", note: "cached", children: [{ name: "c", val: 1, fmt: "raw", note: "assumed: lab node counted as connected" }] },
+      ],
+    };
+    expect(flaggedLeaves(tree)).toEqual([
+      { leaf: "a", note: "runtime: active buff, not counted", path: "Damage / a" },
+      { leaf: "c", note: "assumed: lab node counted as connected", path: "Damage / b / c" },
+    ]);
+    expect(characterize([ONE], () => result(1, tree)).rows[0].flagged).toHaveLength(2);
   });
 
-  it("a non-finite number never equals a finite one", () => {
-    expect(characterize([ONE], engine(), () => result(Number.NaN)).rows).toHaveLength(1);
-    expect(characterize([ONE], () => result(Infinity), () => result(Infinity)).rows).toEqual([]);
-  });
-
-  it("times each engine over all pairs", () => {
-    const spin = (ms: number) => (save: unknown, ci: number) => {
+  it("times the engine over all pairs", () => {
+    const spin = (save: unknown, ci: number) => {
       const t = performance.now();
-      while (performance.now() - t < ms);
-      return engine()(save, ci);
+      while (performance.now() - t < 2);
+      return engine(save, ci);
     };
-    const out = characterize([A, B, ONE], spin(2), spin(0));
-    expect(out.msA).toBeGreaterThanOrEqual(5 * 2);
-    expect(out.msB).toBeLessThan(out.msA);
+    expect(characterize([A, B, ONE], spin).ms).toBeGreaterThanOrEqual(5 * 2);
   });
 
-  it("gives each engine its own parse of the save (one engine writing into it cannot change the other's answer)", () => {
-    const writer = (save: unknown) => {
-      (save as { data: { v: number } }).data.v = 99;
-      return result(99);
+  it("gives each pair its own parse of the save (an engine writing into it cannot change the next pair's answer)", () => {
+    const writer = (save: unknown, ci: number) => {
+      const s = save as { data: { v: number } };
+      const v = s.data.v + ci;
+      s.data.v = 99;
+      return result(v);
     };
-    const { rows } = characterize([ONE], writer, engine());
-    expect(rows).toHaveLength(1);
-    expect(rows[0]).toMatchObject({ a: 99, b: 5 });
+    expect(characterize([A], writer).rows.map((r) => r.total)).toEqual([10, 11]);
   });
 
   it("a save that is not an envelope is an error, not a skipped file", () => {
     const bad = join(dir, "bad.json");
     writeFileSync(bad, JSON.stringify({ nope: 1 }));
-    expect(() => characterize([bad], engine(), engine())).toThrow(/bad\.json/);
+    expect(() => characterize([bad], engine)).toThrow(/bad\.json/);
+  });
+});
+
+describe("realSaves", () => {
+  it("lists the envelopes at the top of the two real-save folders, sorted; other JSON, subfolders and missing folders give nothing", () => {
+    const web = mkdtempSync(join(tmpdir(), "realsaves-"));
+    try {
+      expect(realSaves(web)).toEqual([]);
+      const golden = join(web, "scripts/updater/golden/.cache");
+      const fresh = join(web, "scripts/updater/.cache/saves-fresh");
+      mkdirSync(join(golden, "readings"), { recursive: true });
+      mkdirSync(fresh, { recursive: true });
+      const z = file("Z.json", { v: 1 }, 1, golden);
+      const y = file("Y.json", { v: 1 }, 1, fresh);
+      file("R.json", { v: 1 }, 1, join(golden, "readings"));
+      writeFileSync(join(golden, "notes.json"), "{}");
+      writeFileSync(join(golden, "broken.json"), "{");
+      expect(realSaves(web)).toEqual([y, z].sort());
+    } finally {
+      rmSync(web, { recursive: true, force: true });
+    }
   });
 });
 
 describe("classify", () => {
-  const row = (over: Partial<Row>): Row => ({ save: join("x", "folder", "Koweabooo.json"), ci: 10, a: 1.21, b: 1.16, rel: 0.04, ...over });
-  const KNOWN = [{ save: "Koweabooo.json", ci: 10 }, { save: "Tome.json" }];
+  const row = (over: Partial<Row>): Row => ({ save: join("x", "folder", "Koweabooo.json"), ci: 10, total: 1.21, flagged: [], ...over });
+  const leaf = { leaf: "a", note: "runtime: x", path: "t / a" };
 
-  it("is known when the diff list names the save's file name and character", () => {
-    expect(classify(row({}), KNOWN, 34.05)).toBe("known");
-    expect(classify(row({ ci: 9 }), KNOWN, 34.05)).toBe("unexplained"); // another character of the same save
-    expect(classify(row({ save: "Other.json" }), KNOWN, 34.05)).toBe("unexplained");
+  it("is clean with a total and no flagged leaf, flagged with one", () => {
+    expect(classify(row({}), 34.05)).toBe("clean");
+    expect(classify(row({ flagged: [leaf] }), 34.05)).toBe("flagged");
   });
 
-  it("an entry without a character covers every character; the path's folders do not matter (either separator)", () => {
-    expect(classify(row({ save: "C:\\saves\\fresh\\Tome.json", ci: 3 }), KNOWN, 34.05)).toBe("known");
-    expect(classify(row({ save: "/a/b/Tome.json", ci: 0 }), KNOWN, 34.05)).toBe("known");
-  });
-
-  it("a diff-list entry never covers an error row", () => {
-    const err = { name: "TypeError", message: "x" };
-    expect(classify(row({ b: undefined, rel: undefined, errB: err }), KNOWN, 34.05)).toBe("unexplained");
+  it("a non-finite total is an error", () => {
+    expect(classify(row({ total: Number.NaN }), 34.05)).toBe("error");
+    expect(classify(row({ total: Infinity, flagged: [leaf] }), 34.05)).toBe("error");
   });
 
   it("is refused when lib/game throws MissingSaveKey on a save below CSver 34.05", () => {
-    const r = row({ ci: 0, b: undefined, rel: undefined, errB: { name: "MissingSaveKey", message: "Menagerie" } });
-    expect(classify(r, [], 34.04)).toBe("refused");
-    expect(classify(r, [], 23.05)).toBe("refused");
-    expect(classify(r, [], 34.05)).toBe("unexplained"); // a current save that lacks a key is a bug, not a pre-migration save
-    expect(classify(r, [], undefined)).toBe("unexplained");
+    const r = row({ ci: 0, total: undefined, err: { name: "MissingSaveKey", message: "Menagerie" } });
+    expect(classify(r, 34.04)).toBe("refused");
+    expect(classify(r, 23.05)).toBe("refused");
+    expect(classify(r, 34.05)).toBe("error"); // a current save that lacks a key is a bug, not a pre-migration save
+    expect(classify(r, undefined)).toBe("error");
     // the same class as the real error (its name is what the row carries)
     expect(new MissingSaveKey("k").name).toBe("MissingSaveKey");
   });
 
-  it("with a list of keys a stat may be refused for, a refusal for any other key is unexplained", () => {
+  it("with a list of keys a stat may be refused for, a refusal for any other key is an error", () => {
     const keys = (k: string) => /^(Spelunk(\[|$)|Research(\[|$))/.test(k);
-    const refusal = (name: string, message: string) => row({ ci: 0, b: undefined, rel: undefined, errB: { name, message } });
-    expect(classify(refusal("MissingSaveKey", "Spelunk[49]"), [], 33.05, keys)).toBe("refused");
-    expect(classify(refusal("MissingSaveKey", "Research"), [], 33.05, keys)).toBe("refused");
+    const refusal = (name: string, message: string) => row({ ci: 0, total: undefined, err: { name, message } });
+    expect(classify(refusal("MissingSaveKey", "Spelunk[49]"), 33.05, keys)).toBe("refused");
+    expect(classify(refusal("MissingSaveKey", "Research"), 33.05, keys)).toBe("refused");
     // a message "<key>: <more>" is refused for its key, what comes before the colon
-    expect(classify(refusal("MissingSaveKey", "Spelunk[49]: more"), [], 33.05, keys)).toBe("refused");
-    expect(classify(refusal("MissingSaveKey", "Menagerie"), [], 33.05, keys)).toBe("unexplained");
-    expect(classify(refusal("MissingSaveKey", "SpelunkX"), [], 33.05, keys)).toBe("unexplained");
-    expect(classify(refusal("MissingSaveKey", "Menagerie"), [], 33.05)).toBe("refused"); // no list: any key
+    expect(classify(refusal("MissingSaveKey", "Spelunk[49]: more"), 33.05, keys)).toBe("refused");
+    expect(classify(refusal("MissingSaveKey", "Menagerie"), 33.05, keys)).toBe("error");
+    expect(classify(refusal("MissingSaveKey", "SpelunkX"), 33.05, keys)).toBe("error");
+    expect(classify(refusal("MissingSaveKey", "Menagerie"), 33.05)).toBe("refused"); // no list: any key
     // Artifact Find's list: only a save older than the game's load steps lib/game replays; a key the load gives (Spelunk[49]) is a gap
-    expect(classify(refusal("MissingSaveKey", UNPORTED_STEPS), [], 29.05, ARTIFACT_FIND_REFUSABLE)).toBe("refused");
-    for (const k of ["Spelunk[49]", "Tome rows 107,108,109", "Sushi", "Menagerie"]) expect(classify(refusal("MissingSaveKey", k), [], 33.05, ARTIFACT_FIND_REFUSABLE), k).toBe("unexplained");
+    expect(classify(refusal("MissingSaveKey", UNPORTED_STEPS), 29.05, ARTIFACT_FIND_REFUSABLE)).toBe("refused");
+    for (const k of ["Spelunk[49]", "Tome rows 107,108,109", "Sushi", "Menagerie"]) expect(classify(refusal("MissingSaveKey", k), 33.05, ARTIFACT_FIND_REFUSABLE), k).toBe("error");
     // Damage's list is Artifact Find's: the Tome is lib/game's own, refused for the same keys (no "Tome rows" refusal any more)
-    expect(classify(refusal("MissingSaveKey", UNPORTED_STEPS), [], 29.05, DAMAGE_REFUSABLE)).toBe("refused");
-    for (const k of ["Spelunk[49]", "Tome rows 21,101,105", "Sushi", "Menagerie"]) expect(classify(refusal("MissingSaveKey", k), [], 33.05, DAMAGE_REFUSABLE), k).toBe("unexplained");
+    expect(classify(refusal("MissingSaveKey", UNPORTED_STEPS), 29.05, DAMAGE_REFUSABLE)).toBe("refused");
+    for (const k of ["Spelunk[49]", "Tome rows 21,101,105", "Sushi", "Menagerie"]) expect(classify(refusal("MissingSaveKey", k), 33.05, DAMAGE_REFUSABLE), k).toBe("error");
   });
 
-  it("only MissingSaveKey on the lib/game side is a refusal", () => {
-    const old = (err: Row["errB"], errA?: Row["errA"]) => row({ b: undefined, rel: undefined, errA, errB: err });
-    expect(classify(old({ name: "NotPorted", message: "x" }), [], 23.05)).toBe("unexplained");
-    expect(classify(old({ name: "TreeTotalMismatch", message: "x" }), [], 23.05)).toBe("unexplained");
-    // it is lib/arkh's own refusal (the `a` side) that does not count
-    expect(classify(row({ a: undefined, rel: undefined, b: 1, errA: { name: "MissingSaveKey", message: "k" } }), [], 23.05)).toBe("unexplained");
-  });
-
-  it("is shared when both engines throw (lib/game has no error that lib/arkh lacks)", () => {
-    const both = row({ a: undefined, b: undefined, rel: undefined, errA: { name: "TypeError", message: "x" }, errB: { name: "NotPorted", message: "y" } });
-    expect(classify(both, [], 34.05)).toBe("shared");
-  });
-
-  it("is unexplained when only lib/arkh throws, or the numbers differ without an entry", () => {
-    expect(classify(row({ b: 1, errA: { name: "TypeError", message: "x" }, a: undefined, rel: undefined }), [], 34.05)).toBe("unexplained");
-    expect(classify(row({ save: "Other.json" }), [], 34.05)).toBe("unexplained");
+  it("only MissingSaveKey is a refusal", () => {
+    const old = (name: string) => row({ total: undefined, err: { name, message: "x" } });
+    expect(classify(old("NotPorted"), 23.05)).toBe("error");
+    expect(classify(old("TreeTotalMismatch"), 23.05)).toBe("error");
   });
 });

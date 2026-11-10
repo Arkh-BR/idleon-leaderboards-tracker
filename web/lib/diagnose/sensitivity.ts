@@ -3,7 +3,7 @@
 // total from a (modified) flat tree, soft caps included. Generic over every
 // kit tracker — nothing here knows a formula.
 
-import type { ArkhNode } from "@/lib/arkh/node";
+import type { ArkhNode } from "@/lib/dropRate/node";
 import { nodePath, type FlatTree } from "@/lib/dropRate/treeFlatten";
 
 export type TotalFromFlat = (flat: FlatTree) => number;

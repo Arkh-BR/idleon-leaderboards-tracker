@@ -4,13 +4,13 @@
 // running total) as locals, so the tree is read out of the trace, as the EXP, AFK and Damage trackers do (trackers/expMulti.ts): each source finds the
 // call(s) it stands for among the block's direct calls (by block and arguments, each call once, in call order), takes their values and carries the calls'
 // own N.js trace as children. A number the block reads from the save itself (the bundles, OptionsListAccount, Dream) is a leaf. The source's value is the
-// term as lib/arkh's tree has it and the game writes it: the % points in a `pct` group (the LUK source is 140 x the curve, outside the /100), the FACTOR in a
+// term as lib/arkh's tree had it and the game writes it: the % points in a `pct` group (the LUK source is 140 x the curve, outside the /100), the FACTOR in a
 // `mult` group, the amount an `add` group adds, the new total of the Cove (0 when the character is not in it). The groups, ids and names are display
-// (lib/dropRateV2/layers.ts and the table below: the names lib/arkh's tree has, which the page's Biggest Gains and the Observed Max data are keyed by); a
+// (lib/dropRateV2/layers.ts and the table below: the names lib/arkh's tree had, which the page's Biggest Gains and the Observed Max data are keyed by); a
 // node's value is only what it shows, and the total never comes from the tree.
 //
 // Two terms are no call of the block in every pass: the chip (chipBonuses("dr"), only called while the total is under 5; the tree shows it anyway, as
-// lib/arkh does, and the `add` group's `below` applies it) and the Cove (Holes2("Cglunko_DR"), only called on map 216 in cavern 17; 0 elsewhere).
+// lib/arkh did, and the `add` group's `below` applies it) and the Cove (Holes2("Cglunko_DR"), only called on map 216 in cavern 17; 0 elsewhere).
 //
 // The trace below a source is trimmed (Ruling L, trackers/page.ts). The reads that are no source but lead to a `runtime:` / `assumed:` note stay visible
 // under the root. Ruling Y: a dungeon map counts as outside a dungeon (the in-dungeon branch is unreachable).
@@ -44,7 +44,7 @@ export type Ops = {
   leaf: (name: string, val: number, note?: string) => number;
   c: Ctx;
 };
-/** One source of the tree: its name and note as lib/arkh's tree has them (a function of the save and the source's value), and `of`, the term as the block uses it (see the header). */
+/** One source of the tree: its name and note as lib/arkh's tree had them (a function of the save and the source's value), and `of`, the term as the block uses it (see the header). */
 export type Source = { name: string; note?: string | ((c: Ctx, val: number) => string | undefined); of: (o: Ops) => number };
 
 /** The Cove line @4196607: `216 == CurrentMap && 17 == Holes[0][<the current character>]` (the raw element, loosely). */
@@ -57,7 +57,7 @@ export const inCove = (c: Ctx): boolean => 216 == c.map && 17 == attr(c, "Holes"
 export const notOwned = (id: number) => (_c: Ctx, val: number) => (0 === val ? `Not owned — would grant +${asNumber(CompanionDB[id][2])}` : undefined);
 
 /**
- * The chip when the block made no chipBonuses("dr") call (the total was 5 or more): the tree reads it on its own, as lib/arkh's tree does. The game
+ * The chip when the block made no chipBonuses("dr") call (the total was 5 or more): the tree reads it on its own, as lib/arkh's tree did. The game
  * makes no such call there, so a read that fails (no Lab row, a chip ChipDesc does not have) must not break the page (Ruling PP): it is a 0 leaf
  * saying why.
  */

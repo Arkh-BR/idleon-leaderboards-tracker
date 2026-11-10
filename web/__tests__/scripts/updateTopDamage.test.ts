@@ -5,9 +5,6 @@ import { poolsOf } from "@/scripts/_shared/gamePools";
 import { computeGameDamage } from "@/lib/game/trackers/damage";
 import { DMG_COLLECTOR_MAP } from "@/lib/damage/layers";
 
-const g = globalThis as unknown as { window?: unknown };
-if (!g.window) g.window = g;
-
 const SAVE = "scripts/updater/golden/.cache/arkhe-live-2026-11-01-postupdate.json";
 
 describe.skipIf(!existsSync(SAVE))("update-top-damage computePools on a real save", () => {

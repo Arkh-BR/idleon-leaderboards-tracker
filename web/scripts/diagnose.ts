@@ -9,11 +9,11 @@
 // what each top hypothesis predicts the game shows after that action — the
 // reading to take next. Candidate terms are the page's gains.sources();
 // --all-leaves uses every node of the tree. --pairs adds 2-term fits.
-// Damage compares on Max. lib/arkh is a singleton: computes run one at a time.
+// Damage compares on Max.
 
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
-import type { ArkhNode } from "@/lib/arkh/node";
+import type { ArkhNode } from "@/lib/dropRate/node";
 import { DAMAGE_PAGE } from "@/lib/damage/pageConfig";
 import { rankHypotheses, rankPairs, ratio, type DiagReading } from "@/lib/diagnose/hypotheses";
 import { alerts, elasticities, totalWith, whatIf, type Mutation } from "@/lib/diagnose/sensitivity";

@@ -24,7 +24,7 @@ Trabalhe a partir da raiz do repo `idleon-leaderboards-tracker` (o app fica em `
 Para cada uma:
 - Pegue a expressão nova autoritativa em `web/data/njs-snapshot/formulas.json` (N.js live) e, pra leitura, o TS correspondente em `web/scripts/it-source/` (clone do IdleonToolbox).
 - Compare **termo a termo** contra o nosso port (o arquivo apontado pelo registry / relatório). Registry: `web/scripts/updater/registry/formula-registry.gen.ts`.
-- Corrija a divergência. Engines: DR `web/lib/arkh/`, Tome `web/lib/tome/`, Cooking `web/lib/cookingMastery/`, Talents `web/lib/talentsLevel/`.
+- Corrija a divergência. Engines: DR e os stats `web/lib/game/` (blocos do N.js em `njs/`, trackers em `trackers/`), Tome `web/lib/tome/`, Cooking `web/lib/cookingMastery/`, Talents `web/lib/talentsLevel/`.
 - **Regra de ouro:** nunca commite uma fórmula que você não conseguiu verificar. Na dúvida, deixe o código como está e registre no PR `⚠️ precisa de humano: <fórmula> — <motivo>`.
 - Metodologia de referência: o fix do **Cards Total LV** (termo do spelunking no `maxStars`) — extrair a expr do N.js, diffar contra o port, corrigir; e atenção a **constantes hardcoded** (ex. `CARDS_PER_TIER`, `MASTERY_COEF`, `fountain.ts`) que mudanças de lista não pegam sozinhas.
 

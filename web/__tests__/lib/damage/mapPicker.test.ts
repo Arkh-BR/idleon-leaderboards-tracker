@@ -6,7 +6,7 @@ import { DAMAGE_PAGE } from "@/lib/damage/pageConfig";
 import { loadMonsterMapFilter } from "@/lib/statTracker/mapFilter";
 import { computeGameDamage } from "@/lib/game/trackers/damage";
 import { buildStatMapOptions, defaultMapIndex } from "@/lib/statTracker/mapOptions";
-import { GOLDEN_SAVES } from "../game/support/arkhOracle";
+import { GOLDEN_SAVES } from "../game/support/saves";
 
 const offered = async (save: unknown) => {
   const keep = await loadMonsterMapFilter();

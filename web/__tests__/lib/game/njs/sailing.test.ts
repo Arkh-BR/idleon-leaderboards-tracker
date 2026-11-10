@@ -1,12 +1,11 @@
-// Task 4: the Sailing family of Sailing("BoatArtiMulti", 0): artifact3, captain, captains6, davey.
-// Each term is the expression as BoatArtiMulti uses it (before the /100 of the additive pool; the
-// whole factor for Davey Jones), compared with lib/arkh over every real save and every character.
-import { afterAll, describe, it, expect } from "vitest";
+// Task 4: the Sailing family of Sailing("BoatArtiMulti", 0): artifact3, captain, captains6, davey, as BoatArtiMulti uses them (before the
+// /100 of the additive pool; the whole factor for Davey Jones), one synthetic edge at a time on a real envelope.
+import { describe, it, expect } from "vitest";
 import { existsSync, readFileSync } from "node:fs";
 import { basename } from "node:path";
-import { GOLDEN_SAVES, KNOWN_ARKH_DIFFS, UNPORTED_REFUSALS, arkhArtifactLeaf, gameCtx } from "../support/arkhOracle";
+import { GOLDEN_SAVES, gameCtx } from "../support/saves";
 import { asNum } from "@/lib/game/attr";
-import { withPlayer, type Ctx } from "@/lib/game/ctx";
+import { type Ctx } from "@/lib/game/ctx";
 import { MissingSaveKey, NotPorted } from "@/lib/game/errors";
 import { ArtifactInfo } from "@/lib/game/data";
 import { CaptBonusCalc } from "@/lib/game/njs/CaptBonusCalc";
@@ -24,56 +23,6 @@ const TERMS: Record<string, (c: Ctx) => number> = {
   captains6: (c) => 25 * Math.min(30, NONdummies60(c)),
   davey: (c) => Sailing(c, "DaveyJonesBonus", 0, 0),
 };
-
-const rel = (got: number, want: number) => Math.abs(got - want) <= 1e-9 * Math.max(1, Math.abs(want));
-
-// One GameState per save, shared by all its characters (withPlayer) and by the four tests.
-const states = new Map<string, { ctx: Ctx; chars: number }>();
-afterAll(() => states.clear()); // the built states of the real saves are big: not kept past this file (a full run keeps its workers alive)
-function stateOf(path: string) {
-  let s = states.get(path);
-  if (!s) {
-    const save = JSON.parse(readFileSync(path, "utf8"));
-    states.set(path, (s = { ctx: gameCtx(save, 0), chars: save.charNames.length }));
-  }
-  return s;
-}
-
-describe.skipIf(GOLDEN_SAVES.length === 0)("lib/game Sailing terms against lib/arkh on every real save and character", () => {
-  for (const id of Object.keys(TERMS)) {
-    it(id, () => {
-      const t0 = performance.now();
-      const mismatches: string[] = [];
-      const refused: string[] = [];
-      const seen = new Set<number>();
-      let pairs = 0;
-      for (const path of GOLDEN_SAVES) {
-        const { ctx, chars } = stateOf(path);
-        for (let ci = 0; ci < chars; ci++) {
-          if (KNOWN_ARKH_DIFFS.some((d) => d.save === basename(path) && (d.ci ?? ci) === ci && d.source === id)) continue;
-          let got: number;
-          try {
-            got = TERMS[id](withPlayer(ctx, ci));
-          } catch (e) {
-            if (!(e instanceof MissingSaveKey)) throw e;
-            refused.push(`${basename(path)}#${ci}: ${e.key}`);
-            continue;
-          }
-          const want = arkhArtifactLeaf(path, ci, id);
-          pairs++;
-          seen.add(want);
-          if (!rel(got, want)) mismatches.push(`${basename(path)}#${ci}: game ${got}, arkh ${want}`);
-        }
-      }
-      console.info(`[sailing ${id}] ${pairs} pairs checked, ${mismatches.length} mismatches, ${refused.length} refused, ${Math.round(performance.now() - t0)} ms`);
-      expect(mismatches).toEqual([]);
-      expect(pairs).toBeGreaterThan(100); // a loop over nothing would pass
-      expect(seen.size).toBeGreaterThan(5); // nor would a term that is the same number everywhere
-      // strict mode: an older save is read after the game's load steps (lib/game/migrations); one older than the steps ported is refused
-      expect([...new Set(refused.map((r) => r.replace(/#\d+: /, ": ")))].sort()).toEqual(UNPORTED_REFUSALS);
-    }, 120_000);
-  }
-});
 
 // ── synthetic saves: one edge each, on top of a real envelope ───────────────────────────────────
 const BASE = GOLDEN_SAVES.find((p) => basename(p) === "ARKHE.json") ?? GOLDEN_SAVES[0];

@@ -2,7 +2,7 @@
 // never reads a save: each test builds its state inside `it`.
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
-import { GOLDEN_SAVES } from "../support/arkhOracle";
+import { GOLDEN_SAVES } from "../support/saves";
 import { makeCtx, type Ctx } from "@/lib/game/ctx";
 import { buildGameState, type GameEnvelope } from "@/lib/game/state";
 import { JewelDesc, LabMainBonus, NinjaInfo, Spelunky } from "@/lib/game/data";

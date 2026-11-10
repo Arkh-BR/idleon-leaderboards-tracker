@@ -4,8 +4,8 @@
 // The number is TRACKERS.coinMulti (ArbitraryCode(ctx, "MonsterCash"), njs/ArbitraryCode.ts). The block is one expression: it keeps no working values, so the tree is
 // read out of the trace as the Drop Rate and EXP trackers do (trackers/dropRate.ts): each source finds the call(s) it stands for among the block's direct calls (by block
 // and arguments, each call once), takes their values and carries the calls' own N.js trace as children. A number the block reads from the save itself (the Hoops shop
-// level, the bundle) is a leaf. A source's value is the term as lib/arkh's tree has it and the game writes it: the % points in a `pct` group (the sum of `1 + sum/100`),
-// the amount a `raw` or `min4` group adds to its 1. The groups, ids and names are display (lib/coinMulti/layers.ts and the table below: the names lib/arkh's tree has,
+// level, the bundle) is a leaf. A source's value is the term as lib/arkh's tree had it and the game writes it: the % points in a `pct` group (the sum of `1 + sum/100`),
+// the amount a `raw` or `min4` group adds to its 1. The groups, ids and names are display (lib/coinMulti/layers.ts and the table below: the names lib/arkh's tree had,
 // which the page's Biggest Gains and the Observed Max data are keyed by); a node's value is only what it shows, and the total never comes from the tree.
 //
 // Every source is a call the block makes on every pass (it is a single expression with no branch), so none needs the guarded read the Drop Rate chip does (chipUncalled).
@@ -35,7 +35,7 @@ type Node = StatResult["tree"];
 
 /** What a source computes from: `t` takes a call (it must exist), `leaf` shows a number that is no call of its own, `c` reads the save. */
 type Ops = { t: Take; leaf: (name: string, val: number, note: string) => number; c: Ctx };
-/** One source of the tree: its name, format and note as lib/arkh's tree has them (a function when the note depends on the pass), and `of`, the term as the block uses it (see the header). */
+/** One source of the tree: its name, format and note as lib/arkh's tree had them (a function when the note depends on the pass), and `of`, the term as the block uses it (see the header). */
 type Source = { name: string; fmt?: "raw"; note?: string | ((c: Ctx, val: number) => string | undefined); of: (o: Ops) => number };
 
 // Offsets (raw N.js): ArbitraryCode "MonsterCash" @4047005

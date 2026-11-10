@@ -6,9 +6,6 @@ import { MK_COLLECTOR } from "@/scripts/update-top-multikill";
 import { topMultikillFlatForClass } from "@/lib/multikill/topMultikill";
 import { TOP_MULTIKILL_PLAYERS_SCANNED } from "@/lib/multikill/topMultikill.meta";
 
-const g = globalThis as unknown as { window?: unknown };
-if (!g.window) g.window = g;
-
 const P = (...items: Array<[string, number]>): Pool => ({ items: items.map(([name, val]) => ({ name, val })) });
 const T46 = `${MK_ROOT} / ${MK_NODES.perTier} / Void Radius (Talent 46)`;
 const T469 = `${MK_ROOT} / ${MK_NODES.perTier} / Mana Is Life (Talent 469)`;

@@ -1,7 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { EXP_PAGE } from "@/lib/expMulti/pageConfig";
-import { EXP_GROUPS, EXP_ROOT, EXP_VOTE_NAME } from "@/lib/arkh/stats/defs/exp-multi";
-import { EXP_CIRCUMSTANTIAL_SOURCE_NAMES } from "@/lib/arkh/stats/systems/exp/exp";
+import { EXP_CIRCUMSTANTIAL_SOURCE_NAMES, EXP_GROUPS, EXP_ROOT, EXP_VOTE_NAME } from "@/lib/expMulti/layers";
 
 describe("EXP Multi page config", () => {
   it("uses its own storage keys", () => {

@@ -1,22 +1,17 @@
 // Task 4 (EXP plan): the EXP Multi adapter (lib/game/trackers/expMulti.ts), ExpMulti(0) turned into the page's tree.
 //
-// - the display config moved to lib/expMulti/layers (Ruling B), lib/arkh re-exporting the very same objects; the tracker registry;
+// - the display config in lib/expMulti/layers (Ruling B); the tracker registry;
 // - on a synthetic envelope (CI): the tree's shape, the sources' values, the medallion gate (Ruling II), the recombination guard
 //   (TreeTotalMismatch), the page's Biggest Gains model giving the total back;
-// - on every real save, character and map (251, 1, 33, 150 and the dungeon 40, the maps of njs/expMulti.test.ts): the total against lib/arkh (a
-//   difference is a KNOWN row of the pair; njs/expMulti.test.ts proves the exact values), every source leaf against lib/arkh's, the page's Biggest
-//   Gains model giving the total back from the flat tree, the size (Ruling L, at most 2x lib/arkh's nodes), and every runtime: / assumed: note of the
+// - on every real save, character and map (251, 1, 33, 150 and the dungeon 40): the total is the one ExpMulti(0) call, one tree node per group,
+//   the medallion's map note, the page's Biggest Gains model giving the total back from the flat tree, and every runtime: / assumed: note of the
 //   full trace kept;
-// - the tree's names, formats and notes equal to lib/arkh's; the EXP readings in the game's display format (skipped until fixtures/readings.json
-//   has an expMulti entry, Ruling HH).
+// - the EXP readings in the game's display format (skipped until fixtures/readings.json has an expMulti entry, Ruling HH).
 // A describe body never reads a save: states load lazily inside `it`.
 import { afterAll, describe, it, expect, vi } from "vitest";
 import { existsSync, readFileSync } from "node:fs";
 import { basename, join } from "node:path";
-import { GOLDEN_SAVES, KNOWN_ARKH_DIFFS } from "../support/arkhOracle"; // first: it sets the `window` shim lib/arkh reads
-import * as arkhDef from "@/lib/arkh/stats/defs/exp-multi";
-import * as arkhExp from "@/lib/arkh/stats/systems/exp/exp";
-import { computeArkhExpMulti } from "@/lib/arkh/computeExp";
+import { GOLDEN_SAVES } from "../support/saves";
 import * as layers from "@/lib/expMulti/layers";
 import { EXP_PAGE } from "@/lib/expMulti/pageConfig";
 import { flattenTree } from "@/lib/dropRate/treeFlatten";
@@ -60,21 +55,13 @@ const byName = (n: Node, name: string): Node => {
   if (!c) throw new Error(`no "${name}" under "${n.name}"`);
   return c;
 };
-const shape = (n: Node) => ({ name: n.name, fmt: n.fmt, note: n.note });
 const ALL_IDS = EXP_GROUPS.flatMap((g) => g.sources);
-/** The sources whose note lib/arkh builds from the save (the workbench's log term, the star talent's decay): the tree keeps their name and format. */
-const DYNAMIC_NOTE = new Set(["workbench", "talent632"]);
-const idAt = (gi: number, k: number) => EXP_GROUPS[gi].sources[k];
 const target = (m: number) => (MapAFKtarget as unknown as string[])[m];
 const noMigrated = (note?: string) => note?.replace(/^migrated from an older game version \(\d+ load steps?\)$/, "") || undefined;
 
 // ── the display config and the registry ─────────────────────────────────────────────────────────
 describe("the display config and the registry", () => {
-  it("lives in lib/expMulti/layers and lib/arkh re-exports the very same objects (Ruling B)", () => {
-    expect(arkhDef.EXP_ROOT).toBe(layers.EXP_ROOT);
-    expect(arkhDef.EXP_GROUPS).toBe(layers.EXP_GROUPS);
-    expect(arkhDef.EXP_VOTE_NAME).toBe(layers.EXP_VOTE_NAME);
-    expect(arkhExp.EXP_CIRCUMSTANTIAL_SOURCE_NAMES).toBe(layers.EXP_CIRCUMSTANTIAL_SOURCE_NAMES);
+  it("lives in lib/expMulti/layers: 98 distinct sources, 6 circumstantial ones (Ruling B)", () => {
     expect(ALL_IDS).toHaveLength(98);
     expect(new Set(ALL_IDS).size).toBe(ALL_IDS.length);
     expect(layers.EXP_CIRCUMSTANTIAL_SOURCE_NAMES).toHaveLength(6);
@@ -100,10 +87,10 @@ describe("the tree on a synthetic envelope (runs in CI)", () => {
   };
   const tree = (data: Record<string, unknown> = {}, o: { map?: number; seeds?: Seeds; chars?: number } = {}) => expTree(synth(data, { seeds: SET, ...o, trace: true }));
 
-  it("has lib/arkh's shape: the 10 groups in EXP_GROUPS order, each with its sources in order", () => {
+  it("has the page's shape: the 10 groups in EXP_GROUPS order, each with its sources in order", () => {
     const { tree: t, total } = tree();
     expect(t).toMatchObject({ name: EXP_ROOT, val: total, fmt: "x" });
-    expect(noMigrated(t.note)).toBeUndefined(); // lib/arkh's root has no note (the synthetic envelope is an older save: the migrated note only)
+    expect(noMigrated(t.note)).toBeUndefined(); // the root has no note (the synthetic envelope is an older save: the migrated note only)
     expect(t.children!.map((c) => c.name)).toEqual(EXP_GROUPS.map((g) => g.name));
     EXP_GROUPS.forEach((g, i) => expect(t.children![i].children, g.key).toHaveLength(g.sources.length));
     expect(t.children!.map((g) => g.note)).toEqual(EXP_GROUPS.map((g) => (g.kind === "pct" ? "× (1 + Σ/100)" : g.max1 ? "× max(1, Π)" : "× Π")));
@@ -204,15 +191,12 @@ describe("the tree on a synthetic envelope (runs in CI)", () => {
 // ── every real save, character and map ──────────────────────────────────────────────────────────
 /**
  * The maps of njs/expMulti.test.ts: plain, a medallion map (mushG), a no-monster map (Z), a town (Nothing, where the saved skill target is kept)
- * and the dungeon 40 (Ruling Y). `explained`: pairs whose total differs from lib/arkh's and is closed by a KNOWN row of the pair
- * (njs/expMulti.test.ts proves the exact values with the same pairs); `leafKnown`: leaves of those pairs that differ from lib/arkh's and are covered by
- * a KNOWN row of that source.
+ * and the dungeon 40 (Ruling Y).
  */
-const MAPS: Record<number, { explained: number; leafKnown: number; fmtless: number }> = {
-  251: { explained: 510, leafKnown: 1723, fmtless: 219 }, 1: { explained: 510, leafKnown: 1723, fmtless: 219 }, 33: { explained: 510, leafKnown: 1715, fmtless: 219 },
-  150: { explained: 510, leafKnown: 1715, fmtless: 219 }, 40: { explained: 510, leafKnown: 1723, fmtless: 219 },
-};
-const HOURZERO: string[] = []; // HourZero, the one save lib/tome could not score, is out of the parity corpus (PARITY_EXCLUDED, support/arkhOracle.ts): nothing is refused
+const MAPS = [251, 1, 33, 150, 40];
+const HOURZERO: string[] = []; // HourZero is out of the default corpus (PARITY_EXCLUDED, support/saves.ts): nothing is refused
+/** Where the medallion source sits: its group, and its place in it. */
+const MEDALLION = ((g) => [g, EXP_GROUPS[g].sources.indexOf("medallion429")])(EXP_GROUPS.findIndex((g) => g.sources.includes("medallion429")));
 
 const states = new Map<string, ReturnType<typeof buildGameState>>();
 afterAll(() => states.clear());
@@ -222,31 +206,23 @@ const stateOf = (path: string) => {
   return s;
 };
 
-describe.skipIf(noSaves)("computeGameExpMulti against lib/arkh on every real save, character and map", () => {
-  for (const map of Object.keys(MAPS).map(Number)) {
+describe.skipIf(noSaves)("computeGameExpMulti on every real save, character and map", () => {
+  for (const map of MAPS) {
     it(`map ${map}`, () => {
       const t0 = performance.now();
       const mismatches: string[] = [];
-      const leafMismatches: string[] = [];
       const shapeMismatches: string[] = [];
       const display: string[] = [];
       const lost: string[] = [];
-      const over: string[] = [];
       const refused = new Set<string>();
       let pairs = 0;
-      let explained = 0;
-      let leafKnown = 0;
-      let entryLeaves = 0; // leaves a KNOWN row covers: every one must really differ (leafKnown), or the row is stale
-      let fmtless = 0;
       let flags = 0;
       let dungeon = 0;
       let worst = 0;
-      let worstRatio = 0;
       let open = 0;
       for (const path of GOLDEN_SAVES) {
         const file = basename(path);
         const state = stateOf(path);
-        const env = JSON.parse(readFileSync(path, "utf8"));
         for (let ci = 0; ci < state.charNames.length; ci++) {
           const ctx = makeCtx(state, { player: ci, map, trace: true });
           let r: StatResult;
@@ -260,53 +236,15 @@ describe.skipIf(noSaves)("computeGameExpMulti against lib/arkh on every real sav
           pairs++;
           const tree = r.tree;
           const at = `${file}#${ci}@${map}`;
-          const arkh = computeArkhExpMulti(structuredClone(env), ci, map);
-          // the size (Ruling L): at most 2x lib/arkh's nodes
-          worstRatio = Math.max(worstRatio, count(tree) / count(arkh.tree));
-          if (count(tree) > 2 * count(arkh.tree)) over.push(`${at}: ${count(tree)} nodes against ${count(arkh.tree)}`);
-          // the total is the call's (the adapter adds nothing), and lib/arkh's, or a KNOWN row of the pair explains the difference
+          // the total is the call's (the adapter adds nothing)
           if (r.total !== TRACKERS.expMulti!(makeCtx(state, { player: ci, map }))) mismatches.push(`${at}: the tree's total is not ExpMulti(0)'s`);
-          const known = KNOWN_ARKH_DIFFS.some((d) => d.stat === "exp" && d.save === file && (d.ci ?? ci) === ci && (d.maps?.includes(map) ?? true));
-          if (!rel(r.total, arkh.total)) {
-            if (!known) mismatches.push(`${at}: game ${r.total}, arkh ${arkh.total}`);
-            else explained++;
-          }
           const full = flagsOfTrace(ctx.trace!).sort();
           flags += full.length;
           if (full.some((f) => f.includes("outside a dungeon"))) dungeon++;
           if (JSON.stringify(flagsOfTree(tree).sort()) !== JSON.stringify(full)) lost.push(`${at}: full trace ${full.length} notes, page tree ${flagsOfTree(tree).length}`);
-          // names, formats, notes: lib/arkh's (the Observed Max data is keyed by them), and every source leaf is lib/arkh's except where the pair has a KNOWN row of that source
-          if (JSON.stringify(shape({ ...tree, note: noMigrated(tree.note) })) !== JSON.stringify(shape(arkh.tree))) shapeMismatches.push(`${at}: root ${JSON.stringify(shape(tree))}`);
           if (tree.children!.length !== EXP_GROUPS.length) shapeMismatches.push(`${at}: ${tree.children!.length} children (extras: ${tree.children!.slice(EXP_GROUPS.length).map((c) => c.name)})`);
-          EXP_GROUPS.forEach((g, gi) => {
-            const mine = tree.children![gi];
-            const theirs = arkh.tree.children![gi];
-            if (JSON.stringify(shape(mine)) !== JSON.stringify(shape(theirs))) shapeMismatches.push(`${at}: group ${g.key} ${JSON.stringify(shape(mine))} vs ${JSON.stringify(shape(theirs))}`);
-            g.sources.forEach((id, k) => {
-              const m = mine.children![k];
-              const a = theirs.children![k];
-              const s1 = shape(m);
-              const s2 = shape(a);
-              if (DYNAMIC_NOTE.has(id)) (s1 as { note?: string }).note = (s2 as { note?: string }).note = undefined;
-              // a lib/arkh node that is a renamed copy of a system node (friend, hole upgrades) can carry no format of its own: the tree gives it its group's
-              // (the tree's format is the group's, which this asserts: "x" in a mult group, "+" in the others)
-              if (s2.fmt === undefined) {
-                fmtless++;
-                if (s1.fmt !== (g.kind === "mult" ? "x" : "+")) shapeMismatches.push(`${at}: ${id} format ${s1.fmt}, its group's is ${g.kind === "mult" ? "x" : "+"}`);
-                (s1 as { fmt?: string }).fmt = undefined;
-              }
-              if (JSON.stringify(s1) !== JSON.stringify(s2)) shapeMismatches.push(`${at}: ${id} ${JSON.stringify(s1)} vs ${JSON.stringify(s2)}`);
-              if (id === "medallion429" && (m.note ?? "").startsWith(`Map ${map} · `) === false) shapeMismatches.push(`${at}: medallion note ${m.note}`);
-              const covered = KNOWN_ARKH_DIFFS.some((d) => d.stat === "exp" && d.save === file && (d.ci ?? ci) === ci && d.source === id && (d.maps?.includes(map) ?? true));
-              if (covered) entryLeaves++;
-              if (rel(m.val, a.val)) return;
-              if (covered) {
-                leafKnown++;
-                return;
-              }
-              leafMismatches.push(`${at} ${id}: game ${m.val}, arkh ${a.val}`);
-            });
-          });
+          const medallion = tree.children![MEDALLION[0]].children![MEDALLION[1]];
+          if (!(medallion.note ?? "").startsWith(`Map ${map} · `)) shapeMismatches.push(`${at}: medallion note ${medallion.note}`);
           if (tree.children![2].children![0].val > 1) open++;
           // display and value agree: the page's Biggest Gains model gives the total back from the flat tree
           const fromFlat = EXP_PAGE.gains.totalFromFlat(flattenTree(tree));
@@ -317,19 +255,13 @@ describe.skipIf(noSaves)("computeGameExpMulti against lib/arkh on every real sav
       }
       states.clear(); // 106 states (each a deep clone) kept across the five maps would pass the heap
       console.info(
-        `[exp adapter @${map}] ${pairs} pairs, ${explained} explained, ${leafKnown} known leaves (${entryLeaves} covered), ${fmtless} format-less lib/arkh nodes, ${mismatches.length} total, ${leafMismatches.length} leaf and ${shapeMismatches.length} shape mismatches, ${flags} flagged notes (${dungeon} pairs with the dungeon stand-in), worst flat-tree error ${worst.toExponential(2)}, worst size ratio ${worstRatio.toFixed(2)}, medallion open on ${open}, ${refused.size} refused, ${Math.round(performance.now() - t0)} ms`
+        `[exp adapter @${map}] ${pairs} pairs, ${mismatches.length} total and ${shapeMismatches.length} shape mismatches, ${flags} flagged notes (${dungeon} pairs with the dungeon stand-in), worst flat-tree error ${worst.toExponential(2)}, medallion open on ${open}, ${refused.size} refused, ${Math.round(performance.now() - t0)} ms`
       );
-      expect(over).toEqual([]);
       expect(mismatches.slice(0, 20)).toEqual([]);
-      expect(leafMismatches.slice(0, 20)).toEqual([]);
       expect(shapeMismatches.slice(0, 20)).toEqual([]);
       expect(display.slice(0, 20)).toEqual([]);
       expect(lost.slice(0, 20)).toEqual([]);
       expect(pairs).toBeGreaterThan(1000);
-      expect(explained, "pairs whose total differs from lib/arkh's and a KNOWN row closes").toBe(MAPS[map].explained);
-      expect(leafKnown, "leaves that differ from lib/arkh's and a KNOWN row of that source covers").toBe(MAPS[map].leafKnown);
-      expect(leafKnown, "KNOWN leaves vs leaves the rows cover (a stale row is one that no longer differs)").toBe(entryLeaves);
-      expect(fmtless, "lib/arkh nodes with no format (hole upgrades 47 and 83 of big_guy69123, friend bonus)").toBe(MAPS[map].fmtless);
       // the Tome refusal behind the talents (Ruling E): HourZero on every map (EXP has no no-value map, Ruling DD does not apply)
       expect([...refused].sort()).toEqual(HOURZERO);
       // not vacuous: the medallion gate is open on a medallion map and shut on a no-monster map

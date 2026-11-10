@@ -2,9 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  buildMapOptions,
   type MapOption,
-} from "@/lib/dropRate/arcaneBonus";
+} from "@/lib/dropRate/mapOptions";
 import { formatIdleon } from "@/lib/format";
 import { defaultCharIndex, listCharacters, parseSave, type CharSummary } from "@/lib/dropRate/extract";
 import { getCharClassKey } from "@/lib/talentsLevel/charClass";
@@ -151,16 +150,19 @@ export default function DrCalculator({
         setCharIdx((prev) =>
           opts.keepView ? (list.some((c) => c.charIndex === prev) ? prev : list[0].charIndex) : fallbackChar
         );
-        const opts2 = buildMapOptions(parsed);
-        setMapOptions(opts2);
-        // Default to character's current map if available, else Town — unless
-        // this is a refresh and the user's map is still on the list.
-        const data = (parsed as any)?.data ?? {};
-        const currentMap = Number(data[`CurrentMap_${fallbackChar}`]) || 0;
-        const fallback = opts2.some((m) => m.index === currentMap) ? currentMap : 0;
-        setMapIdx((prev) =>
-          opts.keepView && opts2.some((m) => m.index === prev) ? prev : fallback
-        );
+        // The map list reads lib/game (the Arcane map bonus): loaded on demand, so the engine stays out of the page's first chunk.
+        void import("@/lib/dropRate/mapOptions").then(({ buildMapOptions }) => {
+          const opts2 = buildMapOptions(parsed);
+          setMapOptions(opts2);
+          // Default to character's current map if available, else Town — unless
+          // this is a refresh and the user's map is still on the list.
+          const data = (parsed as any)?.data ?? {};
+          const currentMap = Number(data[`CurrentMap_${fallbackChar}`]) || 0;
+          const fallback = opts2.some((m) => m.index === currentMap) ? currentMap : 0;
+          setMapIdx((prev) =>
+            opts.keepView && opts2.some((m) => m.index === prev) ? prev : fallback
+          );
+        });
         setError(null);
         return true;
       } catch (e) {

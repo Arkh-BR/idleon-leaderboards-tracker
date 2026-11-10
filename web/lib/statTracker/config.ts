@@ -2,7 +2,7 @@
 // renders a whole page from: copy, storage keys, the engine entry point, the
 // game's number format, the Biggest Gains model and the Observed Max loader.
 
-import type { ArkhNode } from "@/lib/arkh/node";
+import type { ArkhNode } from "@/lib/dropRate/node";
 import type { StatKey } from "@/lib/readings/types";
 import type { GainRow } from "./biggestGains";
 

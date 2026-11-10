@@ -9,26 +9,6 @@ vi.mock("@/components/ProfileNameLoader", () => ({
     return null;
   },
 }));
-vi.mock("@/lib/arkh/computeExp", () => ({
-  computeArkhExpMulti: () => {
-    throw new Error("stub");
-  },
-}));
-vi.mock("@/lib/arkh/computeCoin", () => ({
-  computeArkhCoinMulti: () => {
-    throw new Error("stub");
-  },
-}));
-vi.mock("@/lib/arkh/computeAfk", () => ({
-  computeArkhAfkGains: () => {
-    throw new Error("stub");
-  },
-}));
-vi.mock("@/lib/arkh/computeMultikill", () => ({
-  computeArkhMultikill: () => {
-    throw new Error("stub");
-  },
-}));
 
 import StatCalculator from "@/components/statTracker/StatCalculator";
 import { testConfig } from "./testConfig";

@@ -1,8 +1,8 @@
 // The Damage page's display config: the root, the root's children, the rule rows, and the layers with their steps and source ids.
 // N.js DamageDealed("Max") is Base Damage x Damage % x Damage Multipliers, each layer run step by step in game order (a group of
 // sources, a soft cap, the Reliquarium exponent); the Royal Guardian arena (map 43) replaces Max; Mastery (Min = Max x Mastery) is a
-// group of its own. Both engines (lib/arkh's descriptor and lib/game's tracker adapter) and the page's Biggest Gains model read this list,
-// so it lives here, not in either engine (Ruling B). The math over it (caps, layers, Max) stays with each engine.
+// group of its own. The engine (lib/game's tracker adapter) and the page's Biggest Gains model read this list,
+// so it lives here, not in the engine (Ruling B). The math over it (caps, layers, Max) is lib/damage/math.
 
 import type { StatGroup } from "@/lib/statTracker/groups";
 

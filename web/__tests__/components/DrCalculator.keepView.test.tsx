@@ -28,6 +28,11 @@ const save = () => ({
     CurrentMap_1: 3,
   },
 });
+// The map list loads lib/game on demand (DrCalculator imports lib/dropRate/mapOptions dynamically): wait for it.
+const load = async (fn: () => void) => {
+  act(fn);
+  await act(() => vi.dynamicImportSettled());
+};
 const mapSelect = () => screen.getAllByRole("combobox")[1] as HTMLSelectElement;
 const charSelect = () => screen.getAllByRole("combobox")[0] as HTMLSelectElement;
 
@@ -48,27 +53,27 @@ const onlineSave = () => {
 };
 
 describe("DrCalculator — defaults to the online character", () => {
-  it("a fresh load defaults to the character that's online now, and their map", () => {
+  it("a fresh load defaults to the character that's online now, and their map", async () => {
     render(<DrCalculator />);
-    act(() => loader!.onSave(onlineSave()));
+    await load(() => loader!.onSave(onlineSave()));
     expect(charSelect().value).toBe("1");
     expect(mapSelect().value).toBe("3"); // char 1's current map
   });
 
-  it("a refresh keeps the user's switch away from the online character", () => {
+  it("a refresh keeps the user's switch away from the online character", async () => {
     render(<DrCalculator />);
-    act(() => loader!.onSave(onlineSave()));
+    await load(() => loader!.onSave(onlineSave()));
     expect(charSelect().value).toBe("1");
     fireEvent.change(charSelect(), { target: { value: "0" } });
-    act(() => loader!.onSave(onlineSave(), { refresh: true }));
+    await load(() => loader!.onSave(onlineSave(), { refresh: true }));
     expect(charSelect().value).toBe("0");
   });
 });
 
 describe("DrCalculator — account refresh keeps the view", () => {
-  it("keeps map + chip on refresh, re-derives them on a fresh load", () => {
+  it("keeps map + chip on refresh, re-derives them on a fresh load", async () => {
     render(<DrCalculator />);
-    act(() => loader!.onSave(save()));
+    await load(() => loader!.onSave(save()));
     expect(mapSelect().value).toBe("2"); // char 0's current map
 
     fireEvent.change(mapSelect(), { target: { value: "3" } });
@@ -76,16 +81,16 @@ describe("DrCalculator — account refresh keeps the view", () => {
     expect(mapSelect().value).toBe("3");
     expect(screen.getByRole("button", { name: /Chip Gallery ON/ })).toBeInTheDocument();
 
-    act(() => loader!.onSave(save(), { refresh: true }));
+    await load(() => loader!.onSave(save(), { refresh: true }));
     expect(mapSelect().value).toBe("3");
     expect(screen.getByRole("button", { name: /Chip Gallery ON/ })).toBeInTheDocument();
 
-    act(() => loader!.onSave(save()));
+    await load(() => loader!.onSave(save()));
     expect(mapSelect().value).toBe("2");
     expect(screen.getByRole("button", { name: /Chip Gallery AUTO/ })).toBeInTheDocument();
   });
 
-  it("falls back to selected character's map on refresh when their previous map disappears", () => {
+  it("falls back to selected character's map on refresh when their previous map disappears", async () => {
     const save3chars = () => ({
       charNames: ["Alpha", "Beta", "Gamma"],
       data: {
@@ -100,7 +105,7 @@ describe("DrCalculator — account refresh keeps the view", () => {
     const charSelect = () => screen.getAllByRole("combobox")[0] as HTMLSelectElement;
 
     render(<DrCalculator />);
-    act(() => loader!.onSave(save3chars()));
+    await load(() => loader!.onSave(save3chars()));
     expect(charSelect().value).toBe("0");
     expect(mapSelect().value).toBe("2");
 
@@ -125,7 +130,7 @@ describe("DrCalculator — account refresh keeps the view", () => {
       },
     });
 
-    act(() => loader!.onSave(save3charsUpdated(), { refresh: true }));
+    await load(() => loader!.onSave(save3charsUpdated(), { refresh: true }));
     // Without the fix, mapIdx would reset to Alpha's current map (2) because
     // applyParsedSave always uses list[0].charIndex.
     // With the fix, it falls back to Beta's current map (3).

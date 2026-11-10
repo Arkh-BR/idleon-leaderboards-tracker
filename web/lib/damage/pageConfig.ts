@@ -5,7 +5,7 @@
 
 import type { StatPageConfig } from "@/lib/statTracker/config";
 import { withPageErrors } from "@/lib/statTracker/pageErrors";
-import type { ArkhNode } from "@/lib/arkh/node";
+import type { ArkhNode } from "@/lib/dropRate/node";
 import { DMG_NODES } from "./layers";
 import { loadMonsterMapFilter } from "@/lib/statTracker/mapFilter";
 import { formatDamage, formatDamageLine } from "./format";

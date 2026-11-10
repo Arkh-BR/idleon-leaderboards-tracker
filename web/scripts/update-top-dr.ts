@@ -391,7 +391,7 @@ async function main(argv: string[]) {
   console.log(`✓ Wrote ${OUTPUT_FILE}`);
 }
 
-// Imported by the round-trip test and compare-top-ref without running the collector.
+// Imported by the round-trip test without running the collector.
 if (require.main === module) main(process.argv.slice(2)).catch((e) => {
   console.error(e);
   process.exit(1);

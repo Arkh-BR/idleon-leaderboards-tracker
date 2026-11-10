@@ -41,6 +41,22 @@ sem tags nos módulos de `lib/game/njs`: `block("<Fn>")` é `_customBlock_<Fn>` 
 `case "<Sub>":` do seu despachante é o bloco nomeado `<Sub>`. Rode
 `npx tsx scripts/updater/registry/gen-registry.ts` depois de mexer em um módulo.
 
+## Golden harness (`golden/`)
+
+Confere os totais do engine do site, `lib/game`, depois de um update:
+`npx tsx scripts/updater/golden/run.ts` (baixa perfis de referência; o cache
+`golden/.cache/` é privado e gitignored).
+
+- `engines.ts`: Tome (`computeTome`, por tarefa), DR (`computeGameDropRateV1`,
+  melhor personagem no mapa 0), Cooking (`expRateTree`) e Talents
+  (`computeTalentTreesForChars`), todos do `lib/game`.
+- `run.ts`: Tome contra os `tomePoints` embutidos no save (±1; vermelho além
+  disso); DR só informativo (a referência é o personagem e o mapa ativos).
+- `cases.ts`: casos sintéticos, um bloco do `lib/game` num envelope mínimo
+  (`synth` de `__tests__/lib/game/support/expStub.ts`) com os números das
+  tabelas do jogo. Uma fórmula ou tabela que muda deixa o caso vermelho. Rodam
+  também, sem rede, em `__tests__/updater/golden.test.ts`.
+
 ## Como funciona
 
 Diffar o `N.js` cru (25 MB, minificado pelo Closure Compiler) é inútil: os

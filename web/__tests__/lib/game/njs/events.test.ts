@@ -1,11 +1,10 @@
-// Task 6: events, shops and votes of Sailing("BoatArtiMulti", 0): fractal3, bribe34, vault63, killroy, slugs, win3, vote20.
-// Each term is the expression as BoatArtiMulti uses it (before the /100 of the additive pool; the whole factor for a factor
-// group), compared with lib/arkh over every real save and every character. The synthetic tests below pin each edge on top of one
-// real envelope, and the cross-family callees (the Winner and Voting bonuses reach Ninja, Arcade, Gaming, Holes, Sushi...) too.
-import { afterAll, beforeAll, describe, it, expect } from "vitest";
+// Task 6: events, shops and votes of Sailing("BoatArtiMulti", 0): fractal3, bribe34, vault63, killroy, slugs, win3, vote20, as
+// BoatArtiMulti uses them (before the /100 of the additive pool; the whole factor for a factor group). The synthetic tests below pin each
+// edge on top of one real envelope, and the cross-family callees (the Winner and Voting bonuses reach Ninja, Arcade, Gaming, Holes, Sushi...) too.
+import { beforeAll, describe, it, expect } from "vitest";
 import { existsSync, readFileSync } from "node:fs";
 import { basename } from "node:path";
-import { GOLDEN_SAVES, KNOWN_ARKH_DIFFS, UNPORTED_REFUSALS, arkhArtifactLeaf, gameCtx } from "../support/arkhOracle";
+import { GOLDEN_SAVES, gameCtx } from "../support/saves";
 import { withPlayer, type Ctx, type TraceNode } from "@/lib/game/ctx";
 import { hString } from "@/lib/game/hstring";
 import { InvalidSaveValue, MissingSaveKey, NotPorted } from "@/lib/game/errors";
@@ -32,87 +31,9 @@ import { callDiff, njsCalls, njsFunction, njsNamedBlocks, traceCalls } from "@/l
 import { loadNjs } from "@/scripts/njs-calls";
 
 // ── the terms, written the way BoatArtiMulti writes them ────────────────────────────────────────
-// `want` turns lib/arkh's leaf into the same term (the leaf of a `max1` group is the raw factor, the group clamps it).
 // Ruling E: an older save is read after the game's load steps (lib/game/migrations), so a term refuses only the saves older than the steps
-// ported (UNPORTED_REFUSALS), and only when it reads the save at all: `needs` says when (the vote is lazy: nothing of its multi is read
-// unless vote 20 is in force).
+// ported (UNPORTED_REFUSALS, support/saves.ts).
 type Data = Record<string, any>;
-type Term = {
-  term: (c: Ctx) => number;
-  want?: (leaf: number) => number;
-  minSeen: number;
-  needs?: (env: any) => boolean;
-};
-const TERMS: Record<string, Term> = {
-  fractal3: { term: (c) => 20 * RandomEvent(c, "FractalIslandBonus", 3, 999), minSeen: 2 },
-  bribe34: { term: (c) => GetBribeBonus(c, "34"), minSeen: 1 },
-  vault63: { term: (c) => Summoning(c, "VaultUpgBonus", 63, 0), minSeen: 5 },
-  killroy: { term: (c) => Math.max(1, RandomEvent(c, "KillroyBonuses", 0, 0)), want: (l) => Math.max(1, l), minSeen: 5 },
-  slugs: { term: (c) => Math.max(1, Math.pow(1.5, Stuff2(c, "PurpleChestSlugsOwned", 0, 0))), want: (l) => Math.max(1, l), minSeen: 2 },
-  // the Winner Bonus reads Arcane (Emperor bonus 8). BundlesReceived (ban_i) is no gap: an absent key is an account that never bought a
-  // bundle, read as the loader's empty map (Ruling H)
-  win3: { term: (c) => Summoning(c, "WinBonus", 3, 0), minSeen: 5 },
-  // the vote reads its multi only while vote 20 is the one in force; the Palette then reads Spelunk[9] and Spelunk[49]
-  vote20: {
-    term: (c) => Summoning(c, "VotingBonusz", 20, 0),
-    minSeen: 2,
-    needs: (env) => env.serverVars?.voteCategories?.[0] == 20,
-  },
-};
-
-const rel = (got: number, want: number) => Math.abs(got - want) <= 1e-9 * Math.max(1, Math.abs(want));
-
-// One GameState per save, shared by all its characters (withPlayer) and by the tests.
-const states = new Map<string, { ctx: Ctx; chars: number; env: any }>();
-afterAll(() => states.clear()); // the built states of the real saves are big: not kept past this file (a full run keeps its workers alive)
-function stateOf(path: string) {
-  let s = states.get(path);
-  if (!s) {
-    const save = JSON.parse(readFileSync(path, "utf8"));
-    states.set(path, (s = { ctx: gameCtx(save, 0), chars: save.charNames.length, env: save }));
-  }
-  return s;
-}
-
-describe.skipIf(GOLDEN_SAVES.length === 0)("lib/game events, shops and votes terms against lib/arkh on every real save and character", () => {
-  for (const id of Object.keys(TERMS)) {
-    it(id, () => {
-      const { term, want: toWant = (l: number) => l, minSeen, needs = () => true } = TERMS[id];
-      const t0 = performance.now();
-      const mismatches: string[] = [];
-      const refused = new Set<string>();
-      const expectedRefused = new Set<string>();
-      const seen = new Set<number>();
-      let pairs = 0;
-      for (const path of GOLDEN_SAVES) {
-        const { ctx, chars, env } = stateOf(path);
-        const unported = UNPORTED_REFUSALS.find((r) => r.startsWith(`${basename(path)}: `));
-        if (unported && needs(env)) expectedRefused.add(unported);
-        for (let ci = 0; ci < chars; ci++) {
-          if (KNOWN_ARKH_DIFFS.some((d) => d.save === basename(path) && (d.ci ?? ci) === ci && d.source === id)) continue;
-          let got: number;
-          try {
-            got = term(withPlayer(ctx, ci));
-          } catch (e) {
-            if (!(e instanceof MissingSaveKey)) throw e;
-            refused.add(`${basename(path)}: ${e.key}`);
-            continue;
-          }
-          const want = toWant(arkhArtifactLeaf(path, ci, id));
-          pairs++;
-          seen.add(want);
-          if (!rel(got, want)) mismatches.push(`${basename(path)}#${ci}: game ${got}, arkh ${want}`);
-        }
-      }
-      console.info(`[events ${id}] ${pairs} pairs checked, ${mismatches.length} mismatches, ${refused.size} saves refused, ${seen.size} distinct values (${[...seen].sort((a, b) => a - b).slice(0, 6).map((v) => +v.toPrecision(6)).join(", ")}${seen.size > 6 ? ", …" : ""}), ${Math.round(performance.now() - t0)} ms`);
-      expect(mismatches).toEqual([]);
-      expect(pairs).toBeGreaterThan(100); // a loop over nothing would pass
-      expect(seen.size).toBeGreaterThanOrEqual(minSeen); // nor would a term that is the same number everywhere
-      expect([...refused].sort()).toEqual([...expectedRefused].sort());
-      if (id === "win3" || id === "vote20") expect([...seen].some((v) => v > 0)).toBe(true);
-    }, 300_000);
-  }
-});
 
 // ── synthetic saves: one edge each, on top of a real envelope ───────────────────────────────────
 const BASE = GOLDEN_SAVES.find((p) => basename(p) === "ARKHE.json") ?? GOLDEN_SAVES[0];
@@ -894,51 +815,6 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("VotingBonusz / VotingBonuszMulti / M
     multi(c);
     expect(callDiff(expected, traceCalls(c.trace!)).missing).toEqual([]);
   }, 120_000);
-});
-
-// ── the vote forced on every save ───────────────────────────────────────────────────────────────
-// The vote20 loop above only reaches the files where the server had vote 20 in force (42 of 106), and 8 inputs of the multi are constant
-// on them (Meritoc 9 is never active, for one). Here vote 20 is forced on every save, on a fresh clone per save (the oracle caches by
-// identity), and the game's VotingBonusz is compared with lib/arkh's on that same forced object.
-describe.skipIf(GOLDEN_SAVES.length === 0)("vote 20 forced on every real save, against lib/arkh", () => {
-  it("vote20", () => {
-    const t0 = performance.now();
-    const mismatches: string[] = [];
-    const refused = new Set<string>();
-    const seen = new Set<number>();
-    let pairs = 0;
-    let meritocActive = 0;
-    for (const path of GOLDEN_SAVES) {
-      const env = JSON.parse(readFileSync(path, "utf8"));
-      env.serverVars = { ...(env.serverVars ?? {}), voteCategories: [20, 24, 27, 32] };
-      const ctx = gameCtx(env, 0);
-      for (let ci = 0; ci < env.charNames.length; ci++) {
-        if (KNOWN_ARKH_DIFFS.some((d) => d.save === basename(path) && (d.ci ?? ci) === ci && d.source === "vote20")) continue;
-        const c = withPlayer(ctx, ci);
-        let got: number;
-        try {
-          got = Summoning(c, "VotingBonusz", 20, 0);
-        } catch (e) {
-          if (!(e instanceof MissingSaveKey)) throw e;
-          expect(e.key in env.data, `${basename(path)} has ${e.key}`).toBe(false); // refused for a key the save really lacks
-          refused.add(`${basename(path)}: ${e.key}`);
-          continue;
-        }
-        if (Summoning2(c, "MeritocBonusz", 9, 0) > 0) meritocActive++;
-        const want = arkhArtifactLeaf(env, ci, "vote20");
-        pairs++;
-        seen.add(want);
-        if (!rel(got, want)) mismatches.push(`${basename(path)}#${ci}: game ${got}, arkh ${want}`);
-      }
-    }
-    console.info(`[events vote20 forced] ${pairs} pairs checked, ${mismatches.length} mismatches, ${refused.size} saves refused, ${seen.size} distinct values, ${meritocActive} pairs with Meritoc 9 active, ${Math.round(performance.now() - t0)} ms`);
-    expect(mismatches).toEqual([]);
-    expect(pairs).toBeGreaterThan(1000); // a loop over nothing would pass
-    expect(seen.size).toBeGreaterThan(50); // nor would a multi that is the same on every save
-    expect(meritocActive).toBeGreaterThan(0); // the Meritoc 9 chain, which no real server answer reaches, is exercised on real data here
-    // Ruling E: the older saves are read after the game's load steps (their Spelunk[49] included); only the two older than the steps ported are refused
-    expect([...refused].sort()).toEqual(UNPORTED_REFUSALS);
-  }, 300_000);
 });
 
 // ── every call the N.js sub-case makes is made by the port ──────────────────────────────────────

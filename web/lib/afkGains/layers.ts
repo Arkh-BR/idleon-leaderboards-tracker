@@ -1,6 +1,6 @@
 // The AFK Gains page's display config: the root, the node names, the source pools (ids = the afk system's cases, N.js order) and the one copy of
-// the rate's shape (`afkRate`). Both engines (lib/arkh's descriptor and lib/game's tracker adapter, lib/game/trackers/afkGains.ts) and the page's
-// Biggest Gains model (pageConfig.ts) read this, so it lives here, not in either engine (Ruling B, as lib/damage/layers).
+// the rate's shape (`afkRate`). The engine (lib/game's tracker adapter, lib/game/trackers/afkGains.ts) and the page's
+// Biggest Gains model (pageConfig.ts) read this, so it lives here, not in the engine (Ruling B, as lib/damage/layers).
 
 import type { StatGroup } from "@/lib/statTracker/groups";
 

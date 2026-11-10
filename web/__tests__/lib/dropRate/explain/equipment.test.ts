@@ -1,9 +1,8 @@
 // The EtcBonuses and set rows of the Drop Rate V1 tree (lib/dropRate/explain/equipment.ts) and the chip toggle: on a synthetic save every other block is a seed (ZeroCache), so the numbers are worked out by hand. On the newest real save, the
-// parts add up to the game's EtcBonuses and the toggle matches what lib/arkh does (user decision 09/11: the newest saves only; loaded inside `it`).
+// parts add up to the game's EtcBonuses and the toggle moves the total only when it differs from the save (user decision 09/11: the newest saves only; loaded inside `it`).
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
-import { GOLDEN_SAVES, goldenSaves } from "../../game/support/arkhOracle"; // first: it sets the `window` shim lib/arkh reads
-import { compareV1 } from "../../game/support/v1Compare";
+import { GOLDEN_SAVES, goldenSaves } from "../../game/support/saves";
 import { newestSaves } from "@/lib/diagnose/characterize";
 import type { ArkhNode } from "@/lib/dropRate/node";
 import { EXPLAINERS } from "@/lib/dropRate/explain";
@@ -281,13 +280,12 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("on the newest save (user decision 09
       }
     }
   }, 300_000);
-  it("the toggle matches lib/arkh's rows, moves the total only when it differs from the save, and leaves no trace in the next compute", () => {
+  it("the toggle moves the total only when it differs from the save, and leaves no trace in the next compute", () => {
     const env = load();
     for (const ci of [0, 8]) {
       const auto = computeGameDropRateV1(env, ci, 251).total;
       const has = 0 < chipBonuses(makeCtx(stateOf(env), { player: ci, map: 251 }), "troph");
       for (const on of [true, false]) {
-        expect(compareV1(env, ci, 251, { chipGalleryActive: on }), `${ci}/${on}`).toEqual({ missing: [], extra: [], value: [], meta: [] });
         const forced = computeGameDropRateV1(env, ci, 251, { chipGalleryActive: on }).total;
         if (on === has) expect(forced).toBe(auto);
         else expect(forced).not.toBe(auto);

@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { COIN_PAGE } from "@/lib/coinMulti/pageConfig";
-import { COIN_GROUPS, COIN_ROOT, COIN_VOTE_NAME } from "@/lib/arkh/stats/defs/coin-multi";
+import { COIN_GROUPS, COIN_ROOT, COIN_VOTE_NAME } from "@/lib/coinMulti/layers";
 
 describe("Coin Multi page config (migration keeps every key and string)", () => {
   it("keeps the old storage keys and the legacy snapshot field", () => {

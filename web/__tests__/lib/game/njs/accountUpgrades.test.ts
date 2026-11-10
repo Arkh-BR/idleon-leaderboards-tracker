@@ -1,11 +1,10 @@
 // Task 7: account upgrades of Sailing("BoatArtiMulti", 0): arcade32, arcade66, bUpg55, sticker2add, sticker2mult, grid109,
-// grid106, monument1_2, exotic45. Each term is the expression as BoatArtiMulti uses it (before the /100 of a `pct` group),
-// compared with lib/arkh over every real save and every character; then one synthetic edge at a time on a real envelope.
-import { afterAll, describe, it, expect } from "vitest";
+// grid106, monument1_2, exotic45: one synthetic edge at a time on a real envelope.
+import { describe, it, expect } from "vitest";
 import { existsSync, readFileSync } from "node:fs";
 import { basename } from "node:path";
-import { GOLDEN_SAVES, KNOWN_ARKH_DIFFS, UNPORTED_REFUSALS, arkhArtifactLeaf, gameCtx } from "../support/arkhOracle";
-import { withPlayer, type Ctx } from "@/lib/game/ctx";
+import { GOLDEN_SAVES, gameCtx } from "../support/saves";
+import { type Ctx } from "@/lib/game/ctx";
 import { InvalidSaveValue, MissingSaveKey, NotPorted } from "@/lib/game/errors";
 import { HoleFountUPG, MarketExoticInfo, Research, ResGridSquares } from "@/lib/game/data";
 import { ArcadeBonus } from "@/lib/game/njs/ArcadeBonus";
@@ -21,78 +20,6 @@ import { SushiStuff } from "@/lib/game/njs/SushiStuff";
 import { Summoning } from "@/lib/game/njs/Summoning";
 import { callDiff, njsCalls, njsFunction, njsNamedBlocks, njsSlice, traceCalls } from "@/lib/diagnose/njsCalls";
 import { loadNjs } from "@/scripts/njs-calls";
-
-// The terms, written the way BoatArtiMulti writes them.
-type Term = { term: (c: Ctx) => number; minSeen: number };
-const TERMS: Record<string, Term> = {
-  arcade32: { term: (c) => ArcadeBonus(c, 32), minSeen: 5 },
-  arcade66: { term: (c) => ArcadeBonus(c, 66), minSeen: 5 },
-  bUpg55: { term: (c) => Holes(c, "B_UPG", 55, 0), minSeen: 5 },
-  sticker2add: { term: (c) => FarmingStuffs(c, "StickerBonus", 2, 99), minSeen: 5 },
-  sticker2mult: { term: (c) => FarmingStuffs(c, "StickerBonus", 2, 100), minSeen: 0 }, // 0 on every real save (none owns Menagerie unlock 22): the forced-unlock loop below covers it
-  grid109: { term: (c) => ResearchStuff(c, "Grid_Bonus", 109, 0), minSeen: 5 },
-  grid106: { term: (c) => ResearchStuff(c, "Grid_Bonus", 106, 0), minSeen: 5 },
-  monument1_2: { term: (c) => Holes(c, "MonumentROGbonuses", 1, 2), minSeen: 5 },
-  exotic45: { term: (c) => FarmingStuffs(c, "ExoticBonusQTY", 45, 0), minSeen: 5 },
-};
-
-const rel = (got: number, want: number) => Math.abs(got - want) <= 1e-9 * Math.max(1, Math.abs(want));
-
-const csverOf = (file: string): number => JSON.parse(readFileSync(GOLDEN_SAVES.find((p) => basename(p) === file)!, "utf8")).data.CSver;
-
-// One GameState per save, shared by all its characters (withPlayer) and by the tests.
-const states = new Map<string, { ctx: Ctx; chars: number }>();
-afterAll(() => states.clear()); // the built states of the real saves are big: not kept past this file (a full run keeps its workers alive)
-function stateOf(path: string) {
-  let s = states.get(path);
-  if (!s) {
-    const save = JSON.parse(readFileSync(path, "utf8"));
-    states.set(path, (s = { ctx: gameCtx(save, 0), chars: save.charNames.length }));
-  }
-  return s;
-}
-
-// Ruling E: a save missing a key the current N.js loader maps stays a strict MissingSaveKey. An older save is read after the game's own load
-// steps (lib/game/migrations: Menagerie below CSver 34, the Spelunk lists of DoOnceREAL 380 and 395...), so the refusals are the saves older
-// than the steps ported, the same for every term (UNPORTED_REFUSALS), all below the current CSver (checked in the loop).
-const CURRENT_CSVER = 34.05;
-
-describe.skipIf(GOLDEN_SAVES.length === 0)("lib/game account-upgrade terms against lib/arkh on every real save and character", () => {
-  for (const id of Object.keys(TERMS)) {
-    it(id, () => {
-      const { term, minSeen } = TERMS[id];
-      const t0 = performance.now();
-      const mismatches: string[] = [];
-      const refused = new Set<string>();
-      const seen = new Set<number>();
-      let pairs = 0;
-      for (const path of GOLDEN_SAVES) {
-        const { ctx, chars } = stateOf(path);
-        for (let ci = 0; ci < chars; ci++) {
-          if (KNOWN_ARKH_DIFFS.some((d) => d.save === basename(path) && (d.ci ?? ci) === ci && d.source === id)) continue;
-          let got: number;
-          try {
-            got = term(withPlayer(ctx, ci));
-          } catch (e) {
-            if (!(e instanceof MissingSaveKey)) throw e;
-            refused.add(`${basename(path)}: ${e.key}`);
-            continue;
-          }
-          const want = arkhArtifactLeaf(path, ci, id);
-          pairs++;
-          seen.add(want);
-          if (!rel(got, want)) mismatches.push(`${basename(path)}#${ci}: game ${got}, arkh ${want}`);
-        }
-      }
-      console.info(`[account ${id}] ${pairs} pairs checked, ${mismatches.length} mismatches, ${refused.size} save/key refusals, ${seen.size} distinct values, ${Math.round(performance.now() - t0)} ms`);
-      expect(mismatches).toEqual([]);
-      expect(pairs).toBeGreaterThan(100); // a loop over nothing would pass
-      expect(seen.size).toBeGreaterThan(minSeen); // nor would a term that is the same number everywhere
-      expect([...refused].sort()).toEqual(UNPORTED_REFUSALS);
-      for (const r of refused) expect(csverOf(r.split(": ")[0]), `${r} is pre-migration`).toBeLessThan(CURRENT_CSVER);
-    }, 120_000);
-  }
-});
 
 // ── synthetic saves: one edge each, on top of a real envelope ───────────────────────────────────
 const BASE = GOLDEN_SAVES.find((p) => basename(p) === "ARKHE.json") ?? GOLDEN_SAVES[0];
@@ -600,53 +527,8 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("FarmingStuffs ExoticBonusQTY (N.js @
   });
 });
 
-// ── the sticker slot forced on every save ───────────────────────────────────────────────────────
-// No real save owns Menagerie unlock 22, so the real loop above sees sticker2mult = 0 everywhere and never the slot swap. Here the unlock
-// is forced on a fresh clone of every save that has a Menagerie, and the game is compared with lib/arkh on that same forced object.
-describe.skipIf(GOLDEN_SAVES.length === 0)("Menagerie unlock 22 forced on every real save, against lib/arkh", () => {
-  it("sticker2add falls to 0 and sticker2mult takes the value", () => {
-    const t0 = performance.now();
-    const mismatches: string[] = [];
-    const seenMult = new Set<number>();
-    let pairs = 0;
-    let swapped = 0;
-    const refusedForced: string[] = [];
-    for (const path of GOLDEN_SAVES) {
-      const env = JSON.parse(readFileSync(path, "utf8"));
-      if (env.data.Menagerie === undefined) continue; // pre-34: the game ignores the key there, there is no unlock to force
-      setIn(env.data, "Menagerie", (m) => (m[2][22] = 1));
-      const ctx = gameCtx(env, 0);
-      for (let ci = 0; ci < env.charNames.length; ci++) {
-        const c = withPlayer(ctx, ci);
-        for (const [id, e] of [["sticker2add", 99], ["sticker2mult", 100]] as const) {
-          if (KNOWN_ARKH_DIFFS.some((d) => d.save === basename(path) && (d.ci ?? ci) === ci && d.source === id)) continue;
-          let got: number;
-          try {
-            got = FarmingStuffs(c, "StickerBonus", 2, e);
-          } catch (err) {
-            if (!(err instanceof MissingSaveKey)) throw err;
-            refusedForced.push(`${basename(path)}: ${err.key}`);
-            continue;
-          }
-          const want = arkhArtifactLeaf(env, ci, id);
-          pairs++;
-          if (id === "sticker2mult") seenMult.add(want);
-          if (id === "sticker2add" && got === 0) swapped++;
-          if (!rel(got, want)) mismatches.push(`${basename(path)}#${ci} ${id}: game ${got}, arkh ${want}`);
-        }
-      }
-    }
-    console.info(`[account sticker slot forced] ${pairs} pairs checked, ${mismatches.length} mismatches, ${seenMult.size} distinct sticker2mult, ${swapped} sticker2add at 0, ${Math.round(performance.now() - t0)} ms`);
-    expect(mismatches).toEqual([]);
-    expect(pairs).toBeGreaterThan(1000); // a loop over nothing would pass
-    expect(seenMult.size).toBeGreaterThan(5); // nor would a value that is the same everywhere
-    expect(swapped).toBeGreaterThan(500); // sticker2add really is the slot that went to 0
-    expect(refusedForced).toEqual([]); // every save that has a Menagerie has what the sticker reads
-  }, 300_000);
-});
-
-// ── the proven lib/arkh difference (KNOWN_ARKH_DIFFS) ───────────────────────────────────────────
-describe.skipIf(GOLDEN_SAVES.length === 0)("Koweabooo#10: Companions(0) needs Lv0[14] >= 2 (N.js @10799980), lib/arkh has no such gate", () => {
+// ── the Companion 0 gate ────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+describe.skipIf(GOLDEN_SAVES.length === 0)("Koweabooo#10: Companions(0) needs Lv0[14] >= 2 (N.js @10799980)", () => {
   const path = GOLDEN_SAVES.find((p) => basename(p) === "Koweabooo.json");
   /** Koweabooo as saved (lv null) or with the character's Lv0[14] set to `lv`. */
   const at = (lv: number | null) => {
@@ -657,13 +539,6 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("Koweabooo#10: Companions(0) needs Lv
   it.skipIf(!path)("the character is at Lv0[14] = 1, where the game's Companion 0 is 0", () => {
     expect(Companions(at(null), 0)).toBe(0);
     expect(Companions(at(2), 0)).toBeGreaterThan(0);
-  });
-  it.skipIf(!path)("with Lv0[14] raised to 2 the terms equal lib/arkh's, which ignores it; as saved, the game is lower", () => {
-    const c = at(2);
-    expect(rel(ResearchStuff(c, "Grid_Bonus", 109, 0), arkhArtifactLeaf(path!, 10, "grid109"))).toBe(true);
-    expect(rel(ResearchStuff(c, "Grid_Bonus", 106, 0), arkhArtifactLeaf(path!, 10, "grid106"))).toBe(true);
-    expect(rel(FarmingStuffs(c, "StickerBonus", 2, 99), arkhArtifactLeaf(path!, 10, "sticker2add"))).toBe(true);
-    expect(ResearchStuff(at(null), "Grid_Bonus", 109, 0)).toBeLessThan(arkhArtifactLeaf(path!, 10, "grid109"));
   });
 });
 

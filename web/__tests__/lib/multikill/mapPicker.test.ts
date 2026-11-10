@@ -7,7 +7,7 @@ import { CURRENT_CSVER, InvalidSaveValue } from "@/lib/game/errors";
 import { computeGameMultikill } from "@/lib/game/trackers/multikill";
 import { loadMonsterMapFilter } from "@/lib/statTracker/mapFilter";
 import { buildStatMapOptions } from "@/lib/statTracker/mapOptions";
-import { GOLDEN_SAVES } from "../game/support/arkhOracle";
+import { GOLDEN_SAVES } from "../game/support/saves";
 
 it("the page uses the shared monster-map filter", () => expect(MULTIKILL_PAGE.loadMapFilter).toBe(loadMonsterMapFilter));
 

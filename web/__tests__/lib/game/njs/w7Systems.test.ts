@@ -1,10 +1,10 @@
 // Task 8: the W7 systems and the DNSM caches of Sailing("BoatArtiMulti", 0): button3, sushi7, jelly19, mainframe14, loreEpi3, pristine2,
-// palette5, spelunkBit26, starSign61, vialTurtle. Each term is the expression as BoatArtiMulti @10700072 uses it (before the /100 of a
-// `pct` group), compared with lib/arkh over every real save and every character; then one synthetic edge at a time on a real envelope.
-import { afterAll, describe, it, expect } from "vitest";
+// palette5, spelunkBit26, starSign61, vialTurtle, as BoatArtiMulti @10700072 uses them (before the /100 of a `pct` group): one synthetic
+// edge at a time on a real envelope.
+import { describe, it, expect } from "vitest";
 import { existsSync, readFileSync } from "node:fs";
 import { basename } from "node:path";
-import { GOLDEN_SAVES, KNOWN_ARKH_DIFFS, UNPORTED_REFUSALS, arkhArtifactLeaf, gameCtx } from "../support/arkhOracle";
+import { GOLDEN_SAVES, gameCtx } from "../support/saves";
 import { withPlayer, type Ctx } from "@/lib/game/ctx";
 import { InvalidSaveValue, MissingSaveKey, NotPorted } from "@/lib/game/errors";
 import { ChipDesc as ChipDescData, LabMainBonus, NinjaInfo, Number2Letter, Spelunky, Tome, UpgradeVault } from "@/lib/game/data";
@@ -27,83 +27,24 @@ import { SushiStuff } from "@/lib/game/njs/SushiStuff";
 import { Summoning } from "@/lib/game/njs/Summoning";
 import { Summoning2 } from "@/lib/game/njs/Summoning2";
 import { Thingies } from "@/lib/game/njs/Thingies";
-import { callDiff, njsCalls, njsFunction, njsNamedBlocks, njsNumericBranch, njsSlice, traceCalls } from "@/lib/diagnose/njsCalls";
+import { callDiff, njsCalls, njsFunction, njsNamedBlocks, njsNumericBranch, traceCalls } from "@/lib/diagnose/njsCalls";
 import { loadNjs } from "@/scripts/njs-calls";
 
 // The terms, written the way BoatArtiMulti writes them. spelunkBit26 is the factor inside `Math.max(1, …)` (the group applies the
 // max); its `.length` is a raw read of Spelunk[6], so a save without that list is refused.
-type Term = { term: (c: Ctx) => number; minSeen: number };
+type Term = { term: (c: Ctx) => number };
 const TERMS: Record<string, Term> = {
-  button3: { term: (c) => Minehead(c, "Button_Bonuses", 3, 0), minSeen: 5 },
-  sushi7: { term: (c) => SushiStuff(c, "RoG_BonusQTY", 7, 0), minSeen: 1 }, // 0 or 30 on every real save
-  jelly19: { term: (c) => JellyOperation(c, "RoG_BonusQTY", 19, 0), minSeen: 1 }, // 0 or 20
-  mainframe14: { term: (c) => MainframeBonus(c, 14), minSeen: 0 }, // 50 on every real save: every one owns the 4 Emporium items
-  loreEpi3: { term: (c) => Thingies(c, "LoreEpiBon", 3, 0), minSeen: 5 },
-  pristine2: { term: (c) => Ninja(c, "PristineBon", 2, 0), minSeen: 1 }, // 0 or 40
-  palette5: { term: (c) => GamingStatType(c, "PaletteBonus", 5, 0), minSeen: 5 },
-  spelunkBit26: { term: (c) => Math.pow(1.02, listAt(c, "Spelunk", 6).length) * GamingStatType(c, "SuperBitType", 26, 0), minSeen: 5 },
-  starSign61: { term: (c) => DNSM_StarSigns(c, "61"), minSeen: 3 }, // the real saves wear or enable it nearly everywhere: 0, 15 x Seraph in a few values; the forced loops below vary it
-  vialTurtle: { term: (c) => DNSM_AlchVials(c, "6turtle"), minSeen: 5 },
+  button3: { term: (c) => Minehead(c, "Button_Bonuses", 3, 0) },
+  sushi7: { term: (c) => SushiStuff(c, "RoG_BonusQTY", 7, 0) }, // 0 or 30 on every real save
+  jelly19: { term: (c) => JellyOperation(c, "RoG_BonusQTY", 19, 0) }, // 0 or 20
+  mainframe14: { term: (c) => MainframeBonus(c, 14) }, // 50 on every real save: every one owns the 4 Emporium items
+  loreEpi3: { term: (c) => Thingies(c, "LoreEpiBon", 3, 0) },
+  pristine2: { term: (c) => Ninja(c, "PristineBon", 2, 0) }, // 0 or 40
+  palette5: { term: (c) => GamingStatType(c, "PaletteBonus", 5, 0) },
+  spelunkBit26: { term: (c) => Math.pow(1.02, listAt(c, "Spelunk", 6).length) * GamingStatType(c, "SuperBitType", 26, 0) },
+  starSign61: { term: (c) => DNSM_StarSigns(c, "61") }, // the real saves wear or enable it nearly everywhere: 0, 15 x Seraph in a few values; the forced loops below vary it
+  vialTurtle: { term: (c) => DNSM_AlchVials(c, "6turtle") },
 };
-
-const rel = (got: number, want: number) => Math.abs(got - want) <= 1e-9 * Math.max(1, Math.abs(want));
-
-const csverOf = (file: string): number => JSON.parse(readFileSync(GOLDEN_SAVES.find((p) => basename(p) === file)!, "utf8")).data.CSver;
-
-// One GameState per save, shared by all its characters (withPlayer) and by the tests.
-const states = new Map<string, { ctx: Ctx; chars: number }>();
-afterAll(() => states.clear()); // the built states of the real saves are big: not kept past this file (a full run keeps its workers alive)
-function stateOf(path: string) {
-  let s = states.get(path);
-  if (!s) {
-    const save = JSON.parse(readFileSync(path, "utf8"));
-    states.set(path, (s = { ctx: gameCtx(save, 0), chars: save.charNames.length }));
-  }
-  return s;
-}
-
-// Ruling E: a save missing a key the current N.js loader maps stays a strict MissingSaveKey. An older save is read after the game's own load
-// steps (lib/game/migrations): Menagerie below CSver 34, the Spelunk lists Spelunk[47..53] (DoOnceREAL 380 and 395), the Royal Guardian
-// lists of the Tome's rows 107..109 below CSver 33. So the refusals are the saves older than the steps ported, the same for every term
-// (UNPORTED_REFUSALS), all below the current CSver (checked in the loop).
-const CURRENT_CSVER = 34.05;
-
-describe.skipIf(GOLDEN_SAVES.length === 0)("lib/game W7 and DNSM terms against lib/arkh on every real save and character", () => {
-  for (const id of Object.keys(TERMS)) {
-    it(id, () => {
-      const { term, minSeen } = TERMS[id];
-      const t0 = performance.now();
-      const mismatches: string[] = [];
-      const refused = new Set<string>();
-      const seen = new Set<number>();
-      let pairs = 0;
-      for (const path of GOLDEN_SAVES) {
-        const { ctx, chars } = stateOf(path);
-        for (let ci = 0; ci < chars; ci++) {
-          if (KNOWN_ARKH_DIFFS.some((d) => d.save === basename(path) && (d.ci ?? ci) === ci && d.source === id)) continue;
-          let got: number;
-          try {
-            got = term(withPlayer(ctx, ci));
-          } catch (e) {
-            if (!(e instanceof MissingSaveKey)) throw e;
-            refused.add(`${basename(path)}: ${e.key}`);
-            continue;
-          }
-          const want = arkhArtifactLeaf(path, ci, id);
-          pairs++;
-          seen.add(want);
-          if (!rel(got, want)) mismatches.push(`${basename(path)}#${ci}: game ${got}, arkh ${want}`);
-        }
-      }
-      console.info(`[w7 ${id}] ${pairs} pairs checked, ${mismatches.length} mismatches, ${refused.size} save/key refusals, ${seen.size} distinct values, ${Math.round(performance.now() - t0)} ms`);
-      expect(mismatches).toEqual([]);
-      expect(pairs).toBeGreaterThan(100); // a loop over nothing would pass
-      expect(seen.size).toBeGreaterThan(minSeen); // nor would a term that is the same number everywhere
-      expect([...refused].sort()).toEqual(UNPORTED_REFUSALS);
-      for (const r of refused) expect(csverOf(r.split(": ")[0]), `${r} is pre-migration`).toBeLessThan(CURRENT_CSVER);
-    }, 300_000);
-  }
-});
 
 // ── synthetic saves: one edge each, on top of a real envelope ───────────────────────────────────
 const BASE = GOLDEN_SAVES.find((p) => basename(p) === "ARKHE.json") ?? GOLDEN_SAVES[0];
@@ -313,18 +254,6 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("Thingies LoreEpiBon (N.js @10974601)
     expect(leaf.detail).toContain('Σ Summoning("TomePTS", g)'); // the full reason stays on the trace node
     expect(traceCalls(c.trace!).map((x) => x.block)).not.toContain("Tome.totalPoints");
   });
-  it("each save KNOWN_ARKH_DIFFS lists for loreEpi3 has a Tome total of lib/tome that is not IdleonToolbox's: the source differs, nothing else", () => {
-    const known = KNOWN_ARKH_DIFFS.filter((d) => d.source === "loreEpi3");
-    expect(known.length).toBeGreaterThan(10);
-    expect(new Set(known.map((d) => d.save)).size).toBe(known.length);
-    for (const d of known) {
-      expect(d.why).toContain("IdleonToolbox");
-      const path = GOLDEN_SAVES.find((p) => basename(p) === d.save)!;
-      const env = JSON.parse(readFileSync(path, "utf8"));
-      const itTotal = env.extraData?.totalTomePoints ?? env.parsedData?.totalTomePoints;
-      expect(DNSM_TomeQTYtot(gameCtx(env, 0)), d.save).not.toBe(itTotal);
-    }
-  }, 120_000);
   it("a save without what a Tome quantity reads is refused for that key, not scored as a floor (Ruling E)", () => {
     // TomeQTY[118] reads RoyalG[0] (the Royal Guardian, from CSver 32), [119] RoyalMaps
     const noRoyal = () =>
@@ -633,20 +562,6 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("CauldronStats VialBonus (N.js @51088
   }, 120_000);
 });
 
-// ── the proven lib/arkh difference (KNOWN_ARKH_DIFFS, found in Task 7) also reaches the Minehead button ────────
-describe.skipIf(GOLDEN_SAVES.length === 0)("Koweabooo#10: Companions(0) needs Lv0[14] >= 2 (N.js @10799980) also in the Minehead presses (Grid_Bonus 125)", () => {
-  const path = GOLDEN_SAVES.find((p) => basename(p) === "Koweabooo.json");
-  const at = (lv: number | null) => {
-    const env = JSON.parse(readFileSync(path!, "utf8"));
-    if (lv !== null) setIn(env.data, "Lv0_10", (l) => (l[14] = lv));
-    return gameCtx(env, 10);
-  };
-  it.skipIf(!path)("with Lv0[14] raised to 2 button3 equals lib/arkh's, which ignores it; as saved, the game is lower", () => {
-    expect(rel(Minehead(at(2), "Button_Bonuses", 3, 0), arkhArtifactLeaf(path!, 10, "button3"))).toBe(true);
-    expect(Minehead(at(null), "Button_Bonuses", 3, 0)).toBeLessThan(arkhArtifactLeaf(path!, 10, "button3"));
-  });
-});
-
 // ── Spelunk[6].length and Super Bit 26 ───────────────────────────────────────────────────────────
 describe.skipIf(GOLDEN_SAVES.length === 0)("the Spelunk discoveries factor: 1.02 ^ Spelunk[6].length x Super Bit 26", () => {
   // Super Bit 26 is owned when its letter, Number2Letter[26], is in Gaming[12]
@@ -668,91 +583,6 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("the Spelunk discoveries factor: 1.02
     expect(() => TERMS.spelunkBit26.term(variant((d) => delete d.Spelunk))).toThrow(MissingSaveKey);
     expect(() => TERMS.spelunkBit26.term(bit(true, 5))).toThrow(InvalidSaveValue);
   });
-});
-
-// ── variants forced on every save ────────────────────────────────────────────────────────────────
-// The real saves leave some inputs constant (every one owns the Emporium items, is past Rift 34, has no ineffective star sign...).
-// Each variant is applied to a fresh clone of every save and the game is compared with lib/arkh on that same clone.
-type Forced = { pairs: number; mismatches: string[]; seen: Set<number>; refused: string[] };
-function forced(id: string, edit: (env: any) => void, only?: (env: any) => boolean): Forced {
-  const out: Forced = { pairs: 0, mismatches: [], seen: new Set(), refused: [] };
-  for (const path of GOLDEN_SAVES) {
-    const env = JSON.parse(readFileSync(path, "utf8"));
-    if (only && !only(env)) continue;
-    edit(env);
-    const ctx = gameCtx(env, 0);
-    for (let ci = 0; ci < env.charNames.length; ci++) {
-      if (KNOWN_ARKH_DIFFS.some((d) => d.save === basename(path) && (d.ci ?? ci) === ci && d.source === id)) continue;
-      let got: number;
-      try {
-        got = TERMS[id].term(withPlayer(ctx, ci));
-      } catch (err) {
-        if (!(err instanceof MissingSaveKey)) throw err;
-        out.refused.push(`${basename(path)}: ${err.key}`);
-        continue;
-      }
-      const want = arkhArtifactLeaf(env, ci, id);
-      out.pairs++;
-      out.seen.add(want);
-      if (!rel(got, want)) out.mismatches.push(`${basename(path)}#${ci}: game ${got}, arkh ${want}`);
-    }
-  }
-  return out;
-}
-const dataOf = (env: any) => env.data as Data;
-
-describe.skipIf(GOLDEN_SAVES.length === 0)("variants forced on every real save, against lib/arkh", () => {
-  it("Artifosho worn by every character, with the Rift as saved", () => {
-    const r = forced("starSign61", (env) => env.charNames.forEach((_: string, i: number) => (dataOf(env)[`PVtStarSign_${i}`] = "61,_,_,")));
-    console.info(`[w7 starSign61 worn] ${r.pairs} pairs, ${r.mismatches.length} mismatches, ${r.seen.size} distinct`);
-    expect(r.mismatches).toEqual([]);
-    expect(r.pairs).toBeGreaterThan(1000); // the saves without a Menagerie compute too (the load fills it in)
-    expect([...new Set(r.refused)].sort()).toEqual(UNPORTED_REFUSALS);
-    expect(r.seen.size).toBeGreaterThan(3);
-    expect(r.seen.has(0)).toBe(false); // really worn everywhere
-  }, 300_000);
-  it("Artifosho worn and the Rift below 10: only the equipped signs, with the Silkrode chip's second pass", () => {
-    const r = forced("starSign61", (env) => {
-      env.charNames.forEach((_: string, i: number) => (dataOf(env)[`PVtStarSign_${i}`] = "61,_,_,"));
-      setIn(dataOf(env), "Rift", (x) => (x[0] = 5));
-    });
-    console.info(`[w7 starSign61 worn, Rift 5] ${r.pairs} pairs, ${r.mismatches.length} mismatches, ${r.seen.size} distinct`);
-    expect(r.mismatches).toEqual([]);
-    expect(r.pairs).toBeGreaterThan(1000);
-    expect(r.seen.size).toBeGreaterThan(3);
-  }, 300_000);
-  it("Artifosho worn, the Rift at 5 and the chip on every character: the second pass everywhere", () => {
-    const r = forced("starSign61", (env) => {
-      const d = dataOf(env);
-      env.charNames.forEach((_: string, i: number) => (d[`PVtStarSign_${i}`] = "61,_,_,"));
-      setIn(d, "Rift", (x) => (x[0] = 5));
-      setIn(d, "Lab", (l) => env.charNames.forEach((_: string, i: number) => (l[1 + i] = [15, -1, -1, -1, -1, -1, -1])));
-    });
-    console.info(`[w7 starSign61 chip, Rift 5] ${r.pairs} pairs, ${r.mismatches.length} mismatches, ${r.seen.size} distinct`);
-    expect(r.mismatches).toEqual([]);
-    expect(r.pairs).toBeGreaterThan(1000);
-  }, 300_000);
-  it("a Rift just under the Vial crowns (34): the vial without the Gold Crown boost", () => {
-    const r = forced("vialTurtle", (env) => setIn(dataOf(env), "Rift", (x) => (x[0] = 34)));
-    console.info(`[w7 vialTurtle Rift 34] ${r.pairs} pairs, ${r.mismatches.length} mismatches, ${r.seen.size} distinct`);
-    expect(r.mismatches).toEqual([]);
-    expect(r.pairs).toBeGreaterThan(1000);
-    expect(r.seen.size).toBeGreaterThan(2); // every real vial 74 is at its level 13: the values differ by Vault 42 and the Meritoc vote only
-  }, 300_000);
-  it("the Artifact Attraction through the Emporium: item 8 missing, then none of the four", () => {
-    const strip = (items: number[]) => (env: any) =>
-      setIn(dataOf(env), "Ninja", (n) => {
-        n[102][9] = String(n[102][9]).replace(new RegExp(`[${items.map((i) => String((Number2Letter as any)[i])).join("")}]`, "g"), "");
-      });
-    const second = forced("mainframe14", strip([8]));
-    expect(second.mismatches).toEqual([]);
-    expect(second.pairs).toBeGreaterThan(1000);
-    expect([...second.seen]).toEqual([25]);
-    const none = forced("mainframe14", strip([8, 9, 10, 11]));
-    expect(none.mismatches).toEqual([]);
-    expect(none.pairs).toBeGreaterThan(1000);
-    expect([...none.seen]).toEqual([0]);
-  }, 300_000);
 });
 
 describe("ports stay on their boundary", () => {

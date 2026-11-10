@@ -39,15 +39,15 @@ describe("buildRegistry over lib/game/njs", () => {
   const root = mkdtempSync(join(tmpdir(), "registry-"));
   afterAll(() => rmSync(root, { recursive: true, force: true }));
   mkdirSync(join(root, "lib/game/njs"), { recursive: true });
-  mkdirSync(join(root, "lib/arkh"), { recursive: true });
+  mkdirSync(join(root, "lib/tome"), { recursive: true });
   mkdirSync(join(root, "data/njs-snapshot"), { recursive: true });
   writeFileSync(join(root, "lib/game/njs/Foo.ts"), 'export const Foo = block("Foo", (c, d: string) => { switch (d) { case "Alpha": return 1; case "Ternary": return 2; } return 0; });');
-  writeFileSync(join(root, "lib/arkh/old.ts"), "// @njs Alpha\nexport const x = 1;\n");
+  writeFileSync(join(root, "lib/tome/old.ts"), "// @njs Alpha\nexport const x = 1;\n");
 
   it("maps both to the module, next to the @njs tags of the other roots", () => {
     expect(buildRegistry(root)).toEqual({
       _customBlock_Foo: ["lib/game/njs/Foo.ts"],
-      Alpha: ["lib/arkh/old.ts", "lib/game/njs/Foo.ts"],
+      Alpha: ["lib/game/njs/Foo.ts", "lib/tome/old.ts"],
       Ternary: ["lib/game/njs/Foo.ts"],
     });
   });
@@ -60,12 +60,12 @@ describe("buildRegistry over lib/game/njs", () => {
 
   it("drops a sub-case the snapshot has no named block for (N.js writes it as a ternary: its scaffold carries the change), never the block", () => {
     writeFileSync(join(root, "data/njs-snapshot/formulas.json"), JSON.stringify({ Alpha: "x" }));
-    expect(buildRegistry(root)).toEqual({ _customBlock_Foo: ["lib/game/njs/Foo.ts"], Alpha: ["lib/arkh/old.ts", "lib/game/njs/Foo.ts"] });
+    expect(buildRegistry(root)).toEqual({ _customBlock_Foo: ["lib/game/njs/Foo.ts"], Alpha: ["lib/game/njs/Foo.ts", "lib/tome/old.ts"] });
   });
 });
 
 describe("the committed registry sees lib/game", () => {
-  it("the HP table the multikill tier reads stays on the update net once lib/arkh is gone", () => {
+  it("the HP table the multikill tier reads stays on the update net without lib/arkh", () => {
     expect(FORMULA_REGISTRY.MonsterRespawnTimeReset).toContain("lib/game/njs/RunCodeOfTypeXforThingY.ts");
   });
 

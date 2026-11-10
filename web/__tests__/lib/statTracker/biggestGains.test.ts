@@ -1,11 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { computeGains, splitGains, groupedGainsModel } from "@/lib/statTracker/biggestGains";
-import { combineStatPools } from "@/lib/arkh/computeStat";
-import { flattenTree } from "@/lib/dropRate/treeFlatten";
-import { groupedDescriptor } from "@/lib/arkh/stats/defs/grouped";
-import type { Pool } from "@/lib/arkh/stats/tree-builder";
 import type { GainsModel } from "@/lib/statTracker/config";
-import type { StatGroup } from "@/lib/arkh/stats/defs/grouped";
+import type { StatGroup } from "@/lib/statTracker/groups";
 
 const GROUPS: StatGroup[] = [
   { key: "p", name: "P", kind: "pct", sources: ["a", "b"] },
@@ -102,9 +98,10 @@ describe("add / replace steps — the what-if total mirrors the tree", () => {
     { key: "d", name: "D", kind: "add", below: 5, sources: ["d1"] },
     { key: "e", name: "E", kind: "replace", sources: ["e1"] },
   ];
-  const desc = groupedDescriptor({ id: "s", name: "Steps", scope: "character", category: "test", system: "none", groups: STEPS });
   const stepsModel = groupedGainsModel("Steps", STEPS);
-  const pool = (...vals: number[]): Pool => ({ items: vals.map((v, i) => ({ name: `s${i}`, val: v })), sum: 0, product: 0 });
+  /** The flat tree of the sources: `Steps / <group> / s<i>`, the paths the page's tree gives them. */
+  const flatOf = (p: Record<string, readonly number[]>) =>
+    Object.fromEntries(STEPS.flatMap((g) => (p[g.key] ?? []).map((v, i) => [`Steps / ${g.name} / s${i}`, v])));
 
   it.each([
     ["plain chain", { a: [50], b: [1, 1], c: [1.2], d: [], e: [] }, 4.2],
@@ -115,9 +112,7 @@ describe("add / replace steps — the what-if total mirrors the tree", () => {
     ["inactive replace as NaN", { a: [50], b: [1, 1], c: [1.2], d: [0.3], e: [NaN] }, 4.5],
     ["inactive replace as 0", { a: [50], b: [1, 1], c: [1.2], d: [0.3], e: [0] }, 4.5],
   ] as const)("%s", (_n, p, expected) => {
-    const r = combineStatPools(desc, Object.fromEntries(Object.entries(p).map(([k, v]) => [k, pool(...v)])));
-    expect(r.total).toBeCloseTo(expected, 12);
-    expect(stepsModel.totalFromFlat(flattenTree(r.tree))).toBeCloseTo(r.total, 12);
+    expect(stepsModel.totalFromFlat(flatOf(p))).toBeCloseTo(expected, 12);
   });
 
   it("ranks an add source by the new total over the old one", () => {

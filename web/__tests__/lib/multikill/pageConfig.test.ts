@@ -1,19 +1,11 @@
-import { describe, it, expect, beforeAll } from "vitest";
-import { existsSync, readFileSync } from "node:fs";
+import { describe, it, expect } from "vitest";
 import { MULTIKILL_PAGE } from "@/lib/multikill/pageConfig";
 import { multikillGainsModel } from "@/lib/multikill/gains";
 import { formatMultikill } from "@/lib/multikill/format";
-import { MK_NODES, MK_ROOT, MK_RULES } from "@/lib/arkh/stats/defs/multikill";
-import { combineMultikillPools, computeArkhMultikill } from "@/lib/arkh/computeMultikill";
+import { MK_NODES, MK_ROOT, mkHalves, mkRuleRows, mkTotal, type MkParts } from "@/lib/multikill/layers";
 import { computeGains } from "@/lib/statTracker/biggestGains";
 import { flattenTree } from "@/lib/dropRate/treeFlatten";
-import type { ArkhNode } from "@/lib/arkh/node";
-import type { Pool } from "@/lib/arkh/stats/tree-builder";
-
-const g = globalThis as unknown as { window?: unknown };
-if (!g.window) g.window = g;
-
-const SAVE = "scripts/updater/golden/.cache/arkhe-live-2026-09-23.json";
+import type { ArkhNode } from "@/lib/dropRate/node";
 
 describe("Multikill page config", () => {
   it("uses its own storage keys, the % unit and the game's format", () => {
@@ -59,21 +51,27 @@ describe("Multikill page config", () => {
 
 describe("Multikill what-if gains model (synthetic)", () => {
   const n = (name: string, val: number, children?: ArkhNode[]): ArkhNode => ({ name, val, ...(children ? { children } : {}) });
-  const pool = (...items: ArkhNode[]): Pool => ({ items, sum: 0, product: 0 });
   type Opt = { base?: number; perTier?: number; tier?: number; w7?: boolean; cove?: [number, number] };
-  const flatOf = (o: Opt = {}) =>
-    flattenTree(
-      combineMultikillPools({
-        base: pool(n("Base A", 600), n("Base B", (o.base ?? 1063.45) - 600)),
-        perTier: pool(n("Death Note (W1 page)", 300), n("Per tier X", (o.perTier ?? 1581.2331135382508) - 300)),
-        tier: pool(n(o.w7 ? MK_NODES.tierW7 : MK_NODES.tier, o.tier ?? 51, [n("Exponent", o.w7 ? 5 : 2), n("Next tier at", 1.5e31)])),
-        rules: pool(
-          n(MK_RULES.softCap, o.w7 ? 1 : 0),
-          n(MK_RULES.cove, o.cove ? 1 : 0, [n("base", o.cove?.[0] ?? 0), n("perTier", o.cove?.[1] ?? 0)])
-        ),
-        status: pool(n(MK_NODES.active, 1)),
-      }).tree
-    );
+  // the page's tree: the base half, the tier, the per-tier half (each half with its rule row), the status (lib/game/trackers/multikill.ts)
+  const flatOf = (o: Opt = {}) => {
+    const base = [n("Base A", 600), n("Base B", (o.base ?? 1063.45) - 600)];
+    const perTier = [n("Death Note (W1 page)", 300), n("Per tier X", (o.perTier ?? 1581.2331135382508) - 300)];
+    const tier = n(o.w7 ? MK_NODES.tierW7 : MK_NODES.tier, o.tier ?? 51, [n("Exponent", o.w7 ? 5 : 2), n("Next tier at", 1.5e31)]);
+    const sum = (xs: ArkhNode[]) => xs.reduce((a, it) => a + it.val, 0);
+    const p: MkParts = { base: sum(base), perTier: sum(perTier), tier: tier.val, softCap: !!o.w7, cove: o.cove ? { base: o.cove[0], perTier: o.cove[1] } : null };
+    const h = mkHalves(p);
+    return flattenTree({
+      name: MK_ROOT,
+      val: mkTotal(p),
+      fmt: "%",
+      children: [
+        { name: MK_NODES.base, val: h.base, fmt: "+", children: [...base, ...mkRuleRows(p, p.base, h.base)] },
+        tier,
+        { name: MK_NODES.perTier, val: h.perTier, fmt: "+", children: [...perTier, ...mkRuleRows(p, p.perTier, h.perTier)] },
+        n(MK_NODES.active, 1),
+      ],
+    });
+  };
   const W7: Opt = { perTier: 1741.2331135382508, tier: 24, w7: true };
   const A = `${MK_ROOT} / ${MK_NODES.base} / Base A`;
   const X = `${MK_ROOT} / ${MK_NODES.perTier} / Per tier X`;
@@ -140,61 +138,5 @@ describe("Multikill what-if gains model (synthetic)", () => {
     const flat = flatOf();
     expect(computeGains(multikillGainsModel, flat, { [DN(6)]: 280 }).comparableSources).toBe(0);
     expect(computeGains(multikillGainsModel, flat, { [DN(1)]: 300 }).comparableSources).toBe(1);
-  });
-});
-
-describe.skipIf(!existsSync(SAVE))("Multikill what-if on the ARKHE save", () => {
-  let save: any;
-  beforeAll(() => {
-    save = JSON.parse(readFileSync(SAVE, "utf8"));
-  });
-  const markhe = () => save.charNames.indexOf("Markhe");
-
-  // tier 27→29 (301) and 7→9 (306): max damage completed (damage tracker)
-  // tier 29→30 (301) and 9→10 (306): max damage completed (damage tracker)
-  it.each<[number, number]>([
-    [14, 81706],
-    [301, 3953],
-    [306, 1394],
-    [251, 80686],
-  ])("Markhe on map %i: totalFromFlat = the tree = %i", (map, want) => {
-    const t = computeArkhMultikill(save, markhe(), map).tree;
-    expect(t.val).toBe(want);
-    expect(multikillGainsModel.totalFromFlat(flattenTree(t))).toBe(want);
-  });
-
-  it("the Cove copy (ARKHE in cavern 17): totalFromFlat = 6146", () => {
-    const copy = JSON.parse(JSON.stringify(save));
-    const holes = typeof copy.data.Holes === "string" ? JSON.parse(copy.data.Holes) : copy.data.Holes;
-    holes[0][0] = 17;
-    copy.data.Holes = typeof copy.data.Holes === "string" ? JSON.stringify(holes) : holes;
-    const t = computeArkhMultikill(copy, 0, 216).tree;
-    expect(multikillGainsModel.totalFromFlat(flattenTree(t))).toBe(6146);
-  });
-
-  // Engine pins (tiers from arkh's max damage). 2026-11-01 fix round: max damage now reads
-  // the full EtcBonuses("72"/"75"/"104") (nametags/trophies/Hat Rack were
-  // dropped for string ids) and Companions(168)/(170): tier 24 → 27, 3185 → 3569.
-  // tier 27→29: max damage completed (damage tracker)
-  // tier 29→30: max damage completed (damage tracker)
-  it("Markhe on map 301: +1 damage tier, 30 → 31, is +3.2%", () => {
-    const [lever] = multikillGainsModel.levers!(flattenTree(computeArkhMultikill(save, markhe(), 301).tree));
-    expect(lever).toMatchObject({ you: 30, max: 31 });
-    expect(lever.gainPct).toBeCloseTo((4081 / 3953 - 1) * 100, 9);
-    // 2.086E31 / 6.48E30: max damage counts Briar Patch (exotic 41, +5083%) and
-    // Royal Statue 0 (+200%) since 2026-10 — both in N.js `Max`, both stubbed
-    // before (the old ×3.47 came from that incomplete engine). 2026-11-01:
-    // ×3.22 → ×2.56 — the update's green-sigil factor, ×(1 + min(100, 21
-    // Eclectic sigils × Grid 127's 1.23)/100) = ×1.2583, raises max damage
-    // (the Cape Vine rule doesn't move it at this precision). Engine pin, not
-    // a game reading.
-    // Fix round: ×2.56 → ×2.26 (next tier at 2.608E33), same causes as above.
-    // Damage tracker: the max damage gained its already-ported terms (fountain
-    // 16, Rift skills, vault kills…): tier 29, ×2.33 to the next (6.519E34).
-    // Then its four new ports (blessings 7/8, eclipse skulls, Killroy,
-    // sticker): tier 30, ×1.12 to the next (3.260E35).
-    // Artifact 25 fix (damage tracker): ×1.12 → ×1.07.
-    // Mainframe 0/11 fix (damage tracker): ×1.07 → ×1.05.
-    expect(lever.group).toMatch(/^needs ×1\.05 more max damage \(next tier at 3\.260E35\)/);
   });
 });

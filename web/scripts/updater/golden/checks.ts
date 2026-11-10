@@ -6,7 +6,7 @@ export type EngineSummary = {
   tomeByTask: number[];
   /** Sum of tomeByTask, for regression. */
   tomeTotal: number;
-  /** Arkh DR multiplier for the reference char. */
+  /** lib/game DR V1 multiplier (computeGameDropRateV1), the best character on map 0. */
   drTotal: number;
   /** Cooking Mastery exp-rate (expRateTree.val). */
   cookingExp: number;

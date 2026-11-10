@@ -1,40 +1,37 @@
-// Characterization of two engines of the same stat (spec, "Critérios pra trocar um tracker"): both run on every
-// character of every save, and the pairs that differ, or where one of them throws, come back as rows. A row is
-// then explained by `classify` (an entry of the oracle's known-diff list, a pre-migration refusal, a shared error)
-// or it is unexplained, which blocks the switch. The engines are any two `(save, ci) => StatResult`, so this is
-// reusable by the next tracker; the CLI is scripts/characterize.ts.
-import { readFileSync, statSync } from "node:fs";
+// Characterization of a lib/game tracker over the real saves: the tracker runs on every character of every save, and each pair comes back
+// as a row: its total, or the error it threw, and the trace's flagged leaves (`runtime:` / `assumed:` notes, values the save cannot give,
+// lib/game/trace.ts). `classify` then says what the row is: clean, flagged, a pre-migration refusal (Ruling E) or an error. The engine is
+// any `(save, ci) => StatResult`, so this serves every tracker; the CLI is scripts/characterize.ts.
+// (It used to compare lib/game against lib/arkh pair by pair; lib/arkh is gone, the game's own readings are the check now:
+// __tests__/readings/readings.save.test.ts, scripts/verify-map.ts.)
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
+import { join } from "node:path";
 import { CURRENT_CSVER, UNPORTED_STEPS } from "@/lib/game/errors";
 import type { StatResult } from "@/lib/statTracker/config";
 
 export type Engine = (save: unknown, ci: number) => StatResult;
 export type Err = { name: string; message: string };
+type Node = StatResult["tree"];
 
-/** One pair that differs (relative > 1e-9, or a non-finite number) or where an engine threw. `a`/`b` are the totals. */
+/** One (save, character) pair: the total, or what the engine threw. */
 export type Row = {
   save: string;
   ci: number;
-  a?: number;
-  b?: number;
-  rel?: number;
-  /** What `a` / `b` threw. */
-  errA?: Err;
-  errB?: Err;
-  /** `errA` / `errB` as one line: "b threw MissingSaveKey: Menagerie". */
-  error?: string;
+  total?: number;
+  err?: Err;
+  /** The tree's nodes with a `runtime:` or `assumed:` note. */
+  flagged: Flagged[];
 };
+
+/** A flagged node: its name, its note and its path from the root (the node names joined by " / "). */
+export type Flagged = { leaf: string; note: string; path: string };
 
 export type Characterization = {
   rows: Row[];
-  /** The (save, character) pairs run. */
-  pairs: number;
-  /** Time spent inside each engine over all pairs, in ms (parsing the saves is not counted). */
-  msA: number;
-  msB: number;
+  /** Time spent inside the engine over all pairs, in ms (parsing the saves is not counted). */
+  ms: number;
 };
 
-const REL = 1e-9;
-const relDiff = (a: number, b: number): number => (a === b ? 0 : Math.abs(a - b) / Math.max(Math.abs(a), Math.abs(b)));
 const errOf = (e: unknown): Err => (e instanceof Error ? { name: e.name, message: e.message } : { name: "Error", message: String(e) });
 
 /** The `n` most recently modified of these save paths, newest first (the newest data). */
@@ -46,61 +43,66 @@ function readEnvelope(path: string): { charNames: unknown[] } {
   return save;
 }
 
+const isEnvelope = (path: string): boolean => {
+  try {
+    readEnvelope(path);
+    return true;
+  } catch {
+    return false; // not JSON, or not an envelope (golden/.cache also holds other captures)
+  }
+};
+
 /**
- * Runs `a` and `b` on every character of every save in `saves` (paths of envelopes). Each engine gets its own parse of
- * the save, so one that writes into it cannot change the other's answer. Only the engine calls are timed.
+ * The save envelopes in the two real-save folders under `web` (scripts/updater/golden/.cache, scripts/updater/.cache/saves-fresh, both
+ * gitignored): their top-level `*.json` files that are envelopes, sorted. A missing folder gives nothing.
  */
-export function characterize(saves: string[], a: Engine, b: Engine): Characterization {
-  const rows: Row[] = [];
-  let pairs = 0;
-  let msA = 0;
-  let msB = 0;
-  const call = (engine: Engine, save: unknown, ci: number): { total: number; ms: number } | { err: Err; ms: number } => {
-    const t0 = performance.now();
-    try {
-      const total = engine(save, ci).total;
-      return { total, ms: performance.now() - t0 };
-    } catch (e) {
-      return { err: errOf(e), ms: performance.now() - t0 };
-    }
+export const realSaves = (web: string): string[] =>
+  ["scripts/updater/golden/.cache", "scripts/updater/.cache/saves-fresh"]
+    .map((d) => join(web, d))
+    .flatMap((dir) => (existsSync(dir) ? readdirSync(dir).filter((f) => f.endsWith(".json")).map((f) => join(dir, f)) : []))
+    .filter(isEnvelope)
+    .sort();
+
+/** The nodes of `tree` whose note is `runtime:` or `assumed:` (trackers/page.ts keeps them in the page's tree, Ruling L). */
+export function flaggedLeaves(tree: Node): Flagged[] {
+  const out: Flagged[] = [];
+  const walk = (n: Node, path: string) => {
+    const at = path ? `${path} / ${n.name}` : n.name;
+    if (n.note && /^(runtime|assumed):/.test(n.note)) out.push({ leaf: n.name, note: n.note, path: at });
+    for (const c of n.children ?? []) walk(c, at);
   };
+  walk(tree, "");
+  return out;
+}
+
+/** Runs `engine` on every character of every save in `saves` (paths of envelopes), each on its own parse of the save. Only the engine calls are timed. */
+export function characterize(saves: string[], engine: Engine): Characterization {
+  const rows: Row[] = [];
+  let ms = 0;
   for (const path of saves) {
-    const forA = readEnvelope(path);
-    const forB = readEnvelope(path);
-    for (let ci = 0; ci < forA.charNames.length; ci++) {
-      pairs++;
-      const ra = call(a, forA, ci);
-      const rb = call(b, forB, ci);
-      msA += ra.ms;
-      msB += rb.ms;
-      if ("err" in ra || "err" in rb) {
-        const errA = "err" in ra ? ra.err : undefined;
-        const errB = "err" in rb ? rb.err : undefined;
-        const says = (side: string, e?: Err) => (e ? [`${side} threw ${e.name}: ${e.message}`] : []);
-        rows.push({
-          save: path,
-          ci,
-          ...("total" in ra && { a: ra.total }),
-          ...("total" in rb && { b: rb.total }),
-          ...(errA && { errA }),
-          ...(errB && { errB }),
-          error: [...says("a", errA), ...says("b", errB)].join("; "),
-        });
-        continue;
+    const n = readEnvelope(path).charNames.length;
+    for (let ci = 0; ci < n; ci++) {
+      const save = readEnvelope(path);
+      const t0 = performance.now();
+      try {
+        const r = engine(save, ci);
+        ms += performance.now() - t0;
+        rows.push({ save: path, ci, total: r.total, flagged: flaggedLeaves(r.tree) });
+      } catch (e) {
+        ms += performance.now() - t0;
+        rows.push({ save: path, ci, err: errOf(e), flagged: [] });
       }
-      const rel = relDiff(ra.total, rb.total);
-      if (!(rel <= REL)) rows.push({ save: path, ci, a: ra.total, b: rb.total, rel });
     }
   }
-  return { rows, pairs, msA, msB };
+  return { rows, ms };
 }
 
 /**
- * known: the oracle's diff list names this save and character (N.js evidence there); refused: lib/game (`b`) throws
- * MissingSaveKey on a pre-migration save (for a key the stat may be refused for), which the game itself migrates on load (Ruling E); shared: both engines throw;
- * unexplained: anything else, which blocks the switch.
+ * clean: a finite total and no flagged leaf; flagged: a finite total that counts a value the save cannot give (its leaves say which);
+ * refused: MissingSaveKey on a pre-migration save (for a key the stat may be refused for), which the game itself migrates on load
+ * (Ruling E); error: anything else (another error, a refusal on a current save, a non-finite total).
  */
-export type Verdict = "known" | "refused" | "shared" | "unexplained";
+export type Verdict = "clean" | "flagged" | "refused" | "error";
 
 /** The key a refusal names: the message up to the first colon or line break. */
 export const refusedKey = (e: Err): string => e.message.split(/[:\n]/)[0];
@@ -136,23 +138,14 @@ export const COIN_REFUSABLE = DAMAGE_REFUSABLE;
 export const MULTIKILL_REFUSABLE = DAMAGE_REFUSABLE;
 
 /**
- * `known` is the oracle's KNOWN_ARKH_DIFFS ({save: file name, ci?: omitted = every character}); `csver` is the save's `data.CSver`.
- * A diff-list entry explains a difference of numbers only, never an error, and only the `b` (lib/game) side can refuse.
- * `refusable` (default: any key) says which keys the stat may be refused for; a refusal for another key is a gap, not age, so it is
- * unexplained. The key is what `MissingSaveKey` carries.
+ * `csver` is the save's `data.CSver`. `refusable` (default: any key) says which keys the stat may be refused for; a refusal for another
+ * key is a gap, not age, so it is an error. The key is what `MissingSaveKey` carries.
  */
-export function classify(
-  row: Row,
-  known: readonly { save: string; ci?: number }[],
-  csver: number | undefined,
-  refusable: (key: string) => boolean = () => true
-): Verdict {
-  if (row.errA && row.errB) return "shared";
-  if (row.errA) return "unexplained"; // lib/arkh fails where lib/game answers: nothing explains that yet
-  if (row.errB) {
-    const refused = REFUSALS.has(row.errB.name) && csver !== undefined && csver < CURRENT_CSVER && refusable(refusedKey(row.errB));
-    return refused ? "refused" : "unexplained";
+export function classify(row: Row, csver: number | undefined, refusable: (key: string) => boolean = () => true): Verdict {
+  if (row.err) {
+    const refused = REFUSALS.has(row.err.name) && csver !== undefined && csver < CURRENT_CSVER && refusable(refusedKey(row.err));
+    return refused ? "refused" : "error";
   }
-  const file = row.save.split(/[\\/]/).pop();
-  return known.some((d) => d.save === file && (d.ci ?? row.ci) === row.ci) ? "known" : "unexplained";
+  if (!Number.isFinite(row.total)) return "error";
+  return row.flagged.length ? "flagged" : "clean";
 }

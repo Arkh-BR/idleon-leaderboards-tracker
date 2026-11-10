@@ -38,7 +38,7 @@ const DRY = args.has("--dry");
 const WRITE_GAME_DATA = args.has("--write-game-data");
 
 /**
- * Regenerates the arkh engine's committed game-data files from the live data
+ * Regenerates lib/game's committed game-data files (lib/game/data/generated) from the live data
  * by merging onto the existing files (never drops a committed key). This is
  * what makes the detected changes actually reach the tools (Drop Rate etc.).
  * It also rewrites lib/game's generated save-attribute table (lib/game/data/saveAttrs.gen.ts) from the same N.js.

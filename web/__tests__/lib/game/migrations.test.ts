@@ -19,7 +19,7 @@ import { DNSM_TomeQTYtot } from "@/lib/game/njs/DNSM";
 import { buildGameState, type GameEnvelope } from "@/lib/game/state";
 import { gameArtifactFind } from "@/lib/game/trackers/artifactFind";
 import type { StatResult } from "@/lib/statTracker/config";
-import { GOLDEN_SAVES } from "./support/arkhOracle";
+import { GOLDEN_SAVES } from "./support/saves";
 import { compact, njsBlock, runFill } from "./support/njsBlocks";
 import { PORTED_BLOCKS } from "./support/portedBlocks";
 

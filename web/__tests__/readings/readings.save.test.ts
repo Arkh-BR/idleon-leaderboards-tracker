@@ -5,8 +5,7 @@ import { loadReadings, readingSave, readingValues } from "@/lib/readings/registr
 
 // Every recorded in-game reading (the main stat and each `extra`) in the game's
 // own display format. Saves are private (gitignored): a reading without its save
-// is skipped, so a green run without them proves little. lib/arkh is a
-// singleton, so the rows run one after another and each reloads its save.
+// is skipped, so a green run without them proves little.
 //
 // Known engine gaps (`knownGaps` in fixtures/readings.json) keep the exact assert and run
 // through it.fails: the row stays green while the engine is off, and turns red the day it

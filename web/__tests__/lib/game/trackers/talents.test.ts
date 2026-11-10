@@ -1,19 +1,10 @@
-// The /talents-level tree on lib/game (lib/game/trackers/talents.ts): the plain talents, the presets and the path-by-path comparison against lib/arkh.
-//
-// - on a synthetic envelope (CI): an unknown id, a talent the character does not have, the star caps, the preset envelope;
-// - on the newest real save (user decision 09/11: the newest save only): compareTalent for every non-pending talent of each character's class, both presets.
-import { afterAll, describe, expect, it } from "vitest";
-import { readFileSync } from "node:fs";
-import { basename } from "node:path";
-import { GOLDEN_SAVES, goldenSaves } from "../support/arkhOracle"; // first: it sets the `window` shim lib/arkh reads
-import { compareTalent, compared as comparedIds, resetCompared } from "../support/talentCompare";
-import { newestSaves } from "@/lib/diagnose/characterize";
+// The /talents-level tree on lib/game (lib/game/trackers/talents.ts): the plain talents, the presets, the cap boosters, the final-bonus wraps and the
+// TalentCalc counters, on a synthetic envelope (CI): an unknown id, a talent the character does not have, the star caps, the preset envelope.
+import { describe, expect, it } from "vitest";
 import type { ArkhNode } from "@/lib/dropRate/node";
 import { maxBookLv } from "@/lib/dropRate/explain/talent";
 import { computeGameTalent, presetState } from "@/lib/game/trackers/talents";
 import { stateOf } from "@/lib/game/trackers/page";
-import { getCharClassKey } from "@/lib/talentsLevel/charClass";
-import { TALENT_TABS_BY_CLASS } from "@/lib/talentsLevel/talentTabs.gen";
 import { BASE, synth } from "../support/expStub";
 import { asNumber } from "@/lib/game/attr";
 import { TaskShopDesc } from "@/lib/game/data";
@@ -463,46 +454,4 @@ describe("the TalentCalc counters and their wraps on a synthetic envelope (runs 
     expect(t.fmt).toBe("+");
     expect(t.note).toBe(`pow(min(1.012, 1 + ${kid(t, "Talent Value").val.toFixed(2)}/100), 100) % cooking spd`);
   });
-});
-
-describe.skipIf(GOLDEN_SAVES.length === 0)("compareTalent on the newest save (user decision 09/11)", () => {
-  const path = () => newestSaves(goldenSaves(), 1)[0];
-  const env = new Map<string, { charNames: string[] }>();
-  afterAll(() => env.clear());
-
-  for (const force of [false, true]) {
-    it(`${force ? "forceSuperActive" : "plain"}: no difference outside TALENT_KNOWN`, () => {
-      const p = path();
-      if (!env.has(p)) env.set(p, JSON.parse(readFileSync(p, "utf8")));
-      const save = env.get(p)!;
-      const out: string[] = [];
-      resetCompared();
-      let compared = 0;
-      for (let ci = 0; ci < save.charNames.length; ci++) {
-        const cls = TALENT_TABS_BY_CLASS[getCharClassKey(save, ci) ?? ""];
-        if (!cls) continue;
-        for (const id of cls.tabs.flatMap((t) => t.talents.map((e) => e.id))) {
-          for (const presetIdx of [0, 1] as const) {
-            const d = compareTalent(save, ci, id, { presetIdx, forceSuperActive: force });
-            compared++;
-            for (const [kind, list] of Object.entries(d)) for (const line of list) out.push(`${basename(p)}#${ci} talent ${id} preset ${presetIdx} ${kind}: ${line}`);
-          }
-        }
-      }
-      console.info(`[talent compare${force ? " forced" : ""}] ${compared} talents compared, ${out.length} differences`);
-      const sig = new Map<string, number>();
-      for (const line of out) {
-        const k = line.replace(/^\S+#\d+ talent (\d+) preset \d (\w+): /, "$1 $2: ").replace(/(\d+(\.\d+)?)/g, (m, _a, _b, off, str) => (str.slice(0, off).includes(": game") || /note|vs/.test(str.slice(0, off)) ? "N" : m));
-        sig.set(k.slice(0, 260), (sig.get(k.slice(0, 260)) ?? 0) + 1);
-      }
-      for (const [k, n] of sig) console.info(`${n}x ${k}`);
-      for (const line of out.slice(0, 30)) console.info(line);
-      console.info(`[cap boosters compared, ${force ? "forced" : "plain"}] ` + [10, 11, 12, 23, 75, 79, 86, 87, 266, 267, 446, 447].map((i) => `${i}:${comparedIds.get(i) ?? 0}`).join(" "));
-      const byKind = new Map<string, number[]>();
-      for (const [id, spec] of Object.entries(TALENT_WRAPS)) if (comparedIds.has(+id)) byKind.set(spec.counterSource.kind, [...(byKind.get(spec.counterSource.kind) ?? []), +id]);
-      console.info(`[wraps compared, ${force ? "forced" : "plain"}] ` + [...byKind].map(([k, ids]) => `${k}: ${ids.join(",")}`).join(" | "));
-      expect(compared).toBeGreaterThan(100);
-      expect(out.slice(0, 20)).toEqual([]);
-    }, 900_000);
-  }
 });

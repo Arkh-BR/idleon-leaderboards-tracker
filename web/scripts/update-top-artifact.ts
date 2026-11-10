@@ -37,7 +37,7 @@ export const ARTIFACT_COLLECTOR: StatCollectorConfig = {
   scriptName: "scripts/update-top-artifact.ts",
 };
 
-// Imported by the round-trip test and compare-top-ref without running the collector.
+// Imported by the round-trip test without running the collector.
 if (require.main === module) runTopCollector(ARTIFACT_COLLECTOR).catch((e) => {
   console.error(e);
   process.exit(1);

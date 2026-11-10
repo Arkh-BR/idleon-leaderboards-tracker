@@ -89,6 +89,7 @@ function eclipseSkulls(ctx: Ctx): number {
  * `skillLvRanks` @10794492: for each of the 24 skills, the account's total level (Lv0[f + 1] summed over every character) ranked 0..7 at
  * 150, 200, 300, 400, 500, 750 and 1000. The game builds it once (DNSM.skillLvRanks, when RiftSkillBonus first asks).
  */
+// @njs skillLvRanks
 function skillLvRanks(ctx: Ctx): number[] {
   const ranks: number[] = [];
   for (let f = 0; f < 24; f++) {
