@@ -5,7 +5,7 @@
 // and N.js stays the only source of truth (see KNOWN_ARKH_DIFFS for where the oracle is wrong).
 import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
-import { dirname, join, relative, resolve } from "node:path";
+import { basename, dirname, join, relative, resolve } from "node:path";
 import { computeArkhArtifactFind } from "@/lib/arkh/computeArtifactFind";
 import { ARTI_GROUPS } from "@/lib/arkh/stats/defs/artifact-find";
 import { computeArkhDamage, DMG_COLLECTOR_MAP } from "@/lib/arkh/computeDamage";
@@ -65,14 +65,17 @@ function isEnvelope(path: string): boolean {
  * The save envelopes in `dirs` (default: the two real-save folders): the top-level `*.json` files that
  * parse to an envelope, as absolute paths, sorted. Subfolders (`readings/`) and any other JSON are left
  * out. A missing folder contributes nothing. Costs one JSON.parse per file, so about 0.5 s for the 106
- * real saves.
+ * real saves. `GOLDEN_ONLY=a.json,b.json` in the environment keeps only the saves named (a check on a few saves, never the corpus; the
+ * count assertions of a corpus test then fail by design).
  */
 export function goldenSaves(dirs: string[] = DEFAULT_DIRS): string[] {
+  const only = process.env.GOLDEN_ONLY?.split(",").filter(Boolean);
   return dirs
     .map((d) => resolve(WEB, d))
     .flatMap((dir) =>
       existsSync(dir) ? readdirSync(dir).filter((f) => f.endsWith(".json")).map((f) => join(dir, f)) : []
     )
+    .filter((p) => !only || only.includes(basename(p)))
     .filter(isEnvelope)
     .sort();
 }
@@ -359,6 +362,7 @@ const TOME_SOURCE =
 const TOME_SOURCE_SAVES = [
   "1st_Giri.json", "24632463.json", "Dragonlzl.json", "Exrom.json", "FenrirAdra.json", "Flipper143.json", "GIM_SSS.json", "Grandesz.json",
   "Koweabooo.json", "arkhe-2026-09-23.json", "bluestar3112.json", "breakinbrad.json", "hellzd4nt3.json", "joelok.json",
+  "HourZero.json", // refused while lib/tome scored it (Tome rows 21,101,105,106,115,116); lib/game's 35443..35454 against IT's stamped 35870
 ]; // chosen when lib/tome scored the Tome (a save with a row it could not compute was refused then, not a difference). The older ones
 // (below CSver 34) are scored after the game's load steps (lib/game/migrations): IdleonToolbox's 118 rows have none of the Royal Guardian
 // rows (107..109) the load gives them, and it stamped its number on the save as stored

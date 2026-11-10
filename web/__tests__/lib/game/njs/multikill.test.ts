@@ -15,9 +15,9 @@ import { WorkbenchStuff } from "@/lib/game/njs/WorkbenchStuff";
 
 const OWN = 'WorkbenchStuff["MultiKillTOTAL",0,0]';
 const total = (c: Ctx) => WorkbenchStuff(c, "MultiKillTOTAL", 0, 0);
-const HOURZERO = ["HourZero.json: Tome rows 21,101,105,106,115,116"]; // Ruling E: the Tome refusal behind the tier's DamageDealed (mkTerms.test.ts)
+const HOURZERO: string[] = []; // HourZero (CSver 23) was refused while lib/tome scored the Tome (rows it could not compute); lib/game scores it, so nothing is refused
 const NO_MONSTER = 'AFKtarget: expected a MonsterDefinitions key, got string "Z"'; // MapAFKtarget[33]
-const PAIRS = 1153; // 106 saves x characters (1163), less HourZero's 10
+const PAIRS = 1163; // 106 saves x characters (1163)
 
 /** Per map: the pairs whose total the KNOWN entries close, and how many each reason really explains. */
 const MAPS: Record<number, { known: number; byReason: Record<string, number> }> = {

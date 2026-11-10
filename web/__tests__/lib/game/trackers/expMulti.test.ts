@@ -212,7 +212,7 @@ const MAPS: Record<number, { explained: number; leafKnown: number; fmtless: numb
   251: { explained: 510, leafKnown: 1723, fmtless: 219 }, 1: { explained: 510, leafKnown: 1723, fmtless: 219 }, 33: { explained: 510, leafKnown: 1715, fmtless: 219 },
   150: { explained: 510, leafKnown: 1715, fmtless: 219 }, 40: { explained: 510, leafKnown: 1723, fmtless: 219 },
 };
-const HOURZERO = ["HourZero.json: Tome rows 21,101,105,106,115,116"]; // Ruling E (njs/expTerms.test.ts)
+const HOURZERO: string[] = []; // HourZero (CSver 23) was refused while lib/tome scored the Tome (rows it could not compute); lib/game scores it, so nothing is refused
 
 const states = new Map<string, ReturnType<typeof buildGameState>>();
 afterAll(() => states.clear());

@@ -8,6 +8,8 @@ import { basename } from "node:path";
 import { GOLDEN_SAVES, goldenSaves } from "../support/arkhOracle"; // first: it sets the `window` shim lib/arkh reads
 import { compareTome } from "../support/tomeCompare";
 import { newestSaves } from "@/lib/diagnose/characterize";
+import { makeCtx, seedBlock } from "@/lib/game/ctx";
+import { stateOf } from "@/lib/game/trackers/page";
 import { DeathNoteMobs, MapDetails, NinjaInfo, PetStats, RANDOlist, SceneNPCquestOrder, Tome } from "@/lib/game/data";
 import { DNSM_TomeQTYtot } from "@/lib/game/njs/DNSM";
 import { getLOG } from "@/lib/game/njs/getLOG";
@@ -301,10 +303,10 @@ describe("the TomeQTY event on a synthetic envelope (runs in CI)", () => {
   });
   it("[123] Menagerie[3]", () => expect(q(123, { Menagerie: [[0, 0, 0], [], [], [1, 2, "3"]] })).toBe(6));
 
-  it("every quantity is ported; the event's array is built once per state and character", () => {
+  it("every quantity is ported; the event's array is built once per cache and character (a test's cache: its stubs are its own)", () => {
     const c = ctxOf({}, { real: ["Breeding"] }); // 2ndMulti is at least 1 (a stub's 0 would make [51] NaN)
     for (let i = 0; i < Tome.length; i++) expect(Number.isFinite(tomeQty(c, i)), `TomeQTY[${i}]`).toBe(true);
-    expect(TomeQTY(c)).toBe(TomeQTY({ ...c, cache: new Map() }));
+    expect(TomeQTY(c)).toBe(TomeQTY({ ...c }));
     expect(TomeQTY(c)).toHaveLength(Tome.length);
   });
 });
@@ -368,13 +370,14 @@ describe("DNSM.TomeQTYtot, the N.js sum of every task's TomePTS (runs in CI)", (
     const c = ctxOf({}, { seeds, real: ["DNSM.TomeQTYtot"] });
     expect(DNSM_TomeQTYtot(c)).toBe(123); // every other task answers 0 (ZeroCache)
   });
-  it("is the sum of the points the curves give, once per state", () => {
+  it("is the sum of the points the curves give, counted once", () => {
     const c = pts(9000, { 0: 5000, 2: 672 }, { real: ["DNSM.TomeQTYtot", "Breeding"] }); // the other tasks from the event (2ndMulti at least 1)
     let sum = 0;
     for (let g = 0; g < Tome.length; g++) sum += PTS(c, g);
     expect(sum).toBeGreaterThanOrEqual(672 + 500);
     expect(DNSM_TomeQTYtot(c)).toBe(sum);
-    expect(DNSM_TomeQTYtot({ ...c, cache: new Map() })).toBe(sum); // the same state: not rebuilt from a cold cache
+    c.cache.delete(`0|251|DNSM.TomeQTYtot[]`);
+    expect(DNSM_TomeQTYtot(c)).toBe(sum); // the block's memo gone, the count's is kept
   });
   it("is an assumed: leaf that says it is the game's sum", () => {
     const c = ctxOf({}, { seeds: { 'Summoning["TomePTS",0,0]': 7 }, real: ["DNSM.TomeQTYtot"], trace: true });
@@ -383,6 +386,20 @@ describe("DNSM.TomeQTYtot, the N.js sum of every task's TomePTS (runs in CI)", (
     expect(node.children[0]).toMatchObject({ block: "Tome.totalPoints", value: 7, note: "assumed: Tome score summed from the save the way the game does" });
     expect(node.children[0].detail).toMatch(/TomePTS/);
   });
+});
+
+describe.skipIf(GOLDEN_SAVES.length === 0)("the Tome score is the state's, whoever asks first", () => {
+  it("a Ctx that seeded a block the Tome reads does not decide the score a clean Ctx of the same state reads", () => {
+    const save = JSON.parse(readFileSync(newestSaves(goldenSaves(), 1)[0], "utf8"));
+    const clean = DNSM_TomeQTYtot(makeCtx(stateOf(structuredClone(save)), { player: 0, map: 251 }));
+    const state = stateOf(save);
+    const seeded = makeCtx(state, { player: 0, map: 251 });
+    seedBlock(seeded, "TotalTalentPoints", [5], 1e9); // TomeQTY[15], what a what-if could seed
+    seedBlock(seeded, "Summoning", ["TomePTS", 0, 0], 1e6);
+    expect(DNSM_TomeQTYtot(seeded)).toBe(clean); // counted on a fresh cache: the seeds are not the save's
+    expect(DNSM_TomeQTYtot(makeCtx(state, { player: 0, map: 251 }))).toBe(clean);
+    expect(TomeQTY(makeCtx(state, { player: 0, map: 251 }))[15]).not.toBe(1e9);
+  }, 120_000);
 });
 
 describe.skipIf(GOLDEN_SAVES.length === 0)("compareTome on the 5 newest saves", () => {

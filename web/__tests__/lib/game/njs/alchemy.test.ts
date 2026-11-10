@@ -213,7 +213,7 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("alchemy, stamp, statue, prayer, shri
       expect(mismatches.slice(0, 20)).toEqual([]);
       expect(directClosed, "pairs a direct KNOWN entry covers vs those that differ and are closed (a stale entry no longer differs)").toBe(direct);
       expect(known, "KNOWN pairs").toBe(EXPECT_KNOWN[id] ?? 0);
-      expect([...refused].sort()).toEqual(HOURZERO.includes(id) ? ["HourZero.json: Tome rows 21,101,105,106,115,116"] : []);
+      expect([...refused].sort()).toEqual(HOURZERO.includes(id) ? [] : []);
       const names = new Set(GOLDEN_SAVES.map((p) => basename(p)));
       expect(KNOWN_ARKH_DIFFS.filter((d) => d.stat === "damage" && d.source === id && !names.has(d.save)).map((d) => d.save)).toEqual([]);
     }, 900_000);

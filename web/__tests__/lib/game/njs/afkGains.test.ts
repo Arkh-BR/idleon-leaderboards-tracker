@@ -18,7 +18,7 @@ import { AFKgainrates } from "@/lib/game/njs/AFKgainrates";
 import { afkFightRate } from "@/lib/game/trackers/afkGains";
 
 const rel = (got: number, want: number) => Math.abs(got - want) <= 1e-9 * Math.max(1, Math.abs(want));
-const HOURZERO = ["HourZero.json: Tome rows 21,101,105,106,115,116"]; // Ruling E: the Tome refusal behind the talents (afkTerms.test.ts)
+const HOURZERO: string[] = []; // HourZero (CSver 23) was refused while lib/tome scored the Tome (rows it could not compute); lib/game scores it, so nothing is refused
 
 /**
  * Per map: the pairs whose total the KNOWN entries close (exact), the pairs where the game's saved AFK target makes lib/game differ from

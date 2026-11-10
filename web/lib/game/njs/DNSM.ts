@@ -8,7 +8,7 @@
 //  - a cache whose only consumers are already per-id blocks (`Companions(ctx, id)` reads CompanionLVz/CompanionBon) may stay a plain
 //    function that returns the Map, because the block that consumes it is what the trace shows.
 import { asNum, asNumber, assumedLeaf, attr } from "../attr";
-import { assumed, block, runtime, withPlayer, type Ctx } from "../ctx";
+import { assumed, block, isTestCache, runtime, withPlayer, type Ctx } from "../ctx";
 import { AlchemyDescription, CompanionDB, Number2Letter, PostOffUpgradeInfo, Tome } from "../data";
 import { InvalidSaveValue, MissingSaveKey } from "../errors";
 import { hString } from "../hstring";
@@ -113,8 +113,8 @@ export const DNSM_AlchVials = block("DNSM.AlchVials", (ctx, key: string) => {
   return asNumber(total);
 });
 
-/** The Tome score per state, then per character and map (the quantities are the current character's), with the notes of its trace. */
-const tomeTotals = new WeakMap<GameState, Map<string, { total: number; notes: TraceNode[] } | "counting">>();
+/** The Tome score per state (per cache for a test's, isTestCache), then per character and map, with the notes of its trace. */
+const tomeTotals = new WeakMap<GameState | Map<string, number>, Map<string, { total: number; notes: TraceNode[] } | "counting">>();
 
 /** The `assumed:` and `runtime:` nodes of a trace, once each (by name and note), as leaves. */
 function notesIn(node: TraceNode, out: TraceNode[] = []): TraceNode[] {
@@ -130,7 +130,7 @@ function notesIn(node: TraceNode, out: TraceNode[] = []): TraceNode[] {
 const COUNTING =
   "the Tome actor's GenInfo[84], which _customEvent_TomeQTY's blocks read, is 0 until the event's first count ends (the actor's create pushes 0 @5778657 and runs the event 100 ms later @5779249)";
 
-/** A cache that reads through to `parent` (its seeds, what it already computed) and keeps its own writes: what the Tome computes stays there. */
+/** A test's cache for the count: it reads through to `parent` (its stubs and seeds) and keeps its own writes, so the count stays there. */
 class Overlay extends Map<string, number> {
   constructor(private readonly parent: Map<string, number>) {
     super();
@@ -143,8 +143,10 @@ class Overlay extends Map<string, number> {
 /**
  * `DNSM.TomeQTYtot`, the account's Tome score: `Summoning("TomePTS", g)` summed over every task of `DNSM.TomeQTY` (@5769465, at the end
  * of `_customEvent_TomeQTY`, and @5779131, the Tome actor's create, which keeps it as its `GenInfo[84]`). The game sums it once, at login,
- * for the character logged in; here it is that sum, on the save, for the current character and map (TomeQTY.ts replays the event), so
- * once per state, character and map. It stays an `assumed:` leaf (Ruling K): the game's number is session state, this one is the save's.
+ * for the character logged in, so the score here is the current character's count, on the save (TomeQTY.ts replays the event): a few
+ * quantities are the character's own (its statues, star talents, inventory), and the totals of an account's characters differ by a few
+ * points. Once per state, character and map. It stays an `assumed:` leaf (Ruling K): the game's number is session state, this one is the
+ * save's.
  *
  * The sum runs on a trace of its own (124 tasks and the whole event would bury the tree that reads the score); what it assumed or
  * counted as 0 is hung under the score, with what the load steps assumed (the Tome reads the whole save).
@@ -152,19 +154,21 @@ class Overlay extends Map<string, number> {
  * The quantities read blocks that read the score back (TotalTalentPoints, TomeQTY[15], reaches DNSM.AlchBubbles through the Divinity
  * minor bonus, and the map multiplies W8/A9/M9 by the score). In the game that read sees the Tome actor's GenInfo[84] as it is while the
  * event runs: 0 at login (the actor's create pushes 0 and runs the event 100 ms later, @5779249). So a read of the score while it is being
- * counted is 0, under an `assumed:` leaf, and what the count computes stays in a cache of its own: a value built on that 0 never reaches
- * the caller's cache.
+ * counted is 0, under an `assumed:` leaf. The count runs on a fresh cache (isTestCache): a value built on that 0 never reaches the
+ * caller's cache, and what the caller seeded never reaches the score every Ctx of the state reads.
  */
 export const DNSM_TomeQTYtot = block("DNSM.TomeQTYtot", (ctx) => {
-  let mine = tomeTotals.get(ctx.state);
-  if (!mine) tomeTotals.set(ctx.state, (mine = new Map()));
+  const test = isTestCache(ctx.cache);
+  const owner = test ? ctx.cache : ctx.state;
+  let mine = tomeTotals.get(owner);
+  if (!mine) tomeTotals.set(owner, (mine = new Map()));
   const key = `${ctx.player}|${ctx.map}`;
   let score = mine.get(key);
   if ("counting" === score) return assumed(ctx, "Tome.totalPoints", "Tome score read while the Tome is being counted: 0", 0, COUNTING);
   if (!score) {
     mine.set(key, "counting");
     try {
-      const own = { ...ctx, trace: traceRoot(ctx.player), cache: new Overlay(ctx.cache) };
+      const own = { ...ctx, trace: traceRoot(ctx.player), cache: test ? new Overlay(ctx.cache) : new Map<string, number>() };
       let total = 0;
       for (let g = 0; g < Tome.length; g++) total += Summoning(own, "TomePTS", g, 0); // DNSM.TomeQTY.length is Tome.length
       mine.set(key, (score = { total, notes: notesIn(own.trace) }));

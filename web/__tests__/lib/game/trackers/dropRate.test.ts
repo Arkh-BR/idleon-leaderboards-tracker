@@ -246,7 +246,7 @@ const MAPS: Record<number, { explained: number; leafKnown: number; fmtless: numb
   40: { explained: 1040, leafKnown: 1750, fmtless: 2044, cove: 0 },
   33: { explained: 1040, leafKnown: 1750, fmtless: 2044, cove: 0 },
 };
-const HOURZERO = ["HourZero.json: Tome rows 21,101,105,106,115,116"]; // Ruling E (njs/drTerms.test.ts)
+const HOURZERO: string[] = []; // HourZero (CSver 23) was refused while lib/tome scored the Tome (rows it could not compute); lib/game scores it, so nothing is refused
 
 const states = new Map<string, ReturnType<typeof buildGameState>>();
 afterAll(() => states.clear());
@@ -359,7 +359,7 @@ describe.skipIf(noSaves)("computeGameDropRate against lib/arkh on every real sav
       expect(shapeMismatches.slice(0, 20)).toEqual([]);
       expect(display.slice(0, 20)).toEqual([]);
       expect(lost.slice(0, 20)).toEqual([]);
-      expect(pairs, "saves x characters, less the refused").toBe(1153);
+      expect(pairs, "saves x characters, less the refused").toBe(1163);
       expect(explained, "pairs whose total differs from lib/arkh's and a KNOWN row closes (njs/dropRate.test.ts's figure)").toBe(MAPS[map].explained);
       expect(leafKnown, "leaves that differ from lib/arkh's and a KNOWN row of that source covers").toBe(MAPS[map].leafKnown);
       expect(leafKnown, "KNOWN leaves vs leaves the rows cover (a stale row is one that no longer differs)").toBe(entryLeaves);

@@ -87,11 +87,11 @@ const mapsOf = (id: string): number[] => MAPS_OF[id] ?? [MAP];
 
 /** What each term refuses (Ruling E): lib/tome cannot score HourZero (see stats.test.ts, equipCards.test.ts): the Tome reaches the bubbles' table and, through the stats, DamageDealed and PlayerAccTot. */
 const TOME_TERMS = new Set(["bubbleMKtier", "tier", "active"]);
-const REFUSALS = (id: string): string[] => (TOME_TERMS.has(id) ? ["HourZero.json: Tome rows 21,101,105,106,115,116"] : []);
+const REFUSALS = (id: string): string[] => (TOME_TERMS.has(id) ? [] : []);
 /** The pairs per leaf and reason whose difference a KNOWN entry closes, as a literal (a stale entry or a new difference fails). */
 const EXPECT_KNOWN: Record<string, Record<string, number>> = { tier: { signsDmg: 7, "signs@wis": 1 } };
-/** The pairs per leaf: 106 saves x characters (1163 on one map), less HourZero's 10 where it is refused, times the maps of the map-dependent ones. */
-const PAIRS = (id: string): number => (1163 - (TOME_TERMS.has(id) ? 10 : 0)) * mapsOf(id).length;
+/** The pairs per leaf: 106 saves x characters (1163 on one map) where it is refused, times the maps of the map-dependent ones. */
+const PAIRS = (id: string): number => 1163 * mapsOf(id).length;
 
 const states = new Map<string, { state: ReturnType<typeof buildGameState>; chars: number }>();
 afterAll(() => states.clear());

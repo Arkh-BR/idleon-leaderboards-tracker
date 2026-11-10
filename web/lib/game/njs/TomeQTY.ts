@@ -6,7 +6,7 @@
 // Drop Rate, [202] to the Crystal Spawn chance, [224] to the Greenstacks): the save is immutable, so the raised record is kept in memory. The Drop Rate is not raised (an `assumed:` on TomeQTY[18], like the load step DoOnceREAL < 378). The scene gate
 // (`"utorial"`) does not apply: a tracked account is in the world.
 import { asNum, asNumber, attr } from "../attr";
-import { assumed, block, withPlayer, type Ctx } from "../ctx";
+import { assumed, block, isTestCache, withPlayer, type Ctx } from "../ctx";
 import { DeathNoteMobs, MapAFKtarget, MapDetails, NinjaInfo, PetStats, RANDOlist, SceneNPCquestOrder, Tome } from "../data";
 import { InvalidSaveValue } from "../errors";
 import { hString } from "../hstring";
@@ -359,16 +359,21 @@ function event(ctx: Ctx): number[] {
   return q;
 }
 
-/** The arrays built, per state and then per character and map: the event reads the whole save, so it runs once for each. */
-const built = new WeakMap<GameState, Map<string, readonly number[]>>();
+/** The arrays built, per state (per cache for a test's, isTestCache) and then per character and map: the event reads the whole save. */
+const built = new WeakMap<GameState | Map<string, number>, Map<string, readonly number[]>>();
 
-/** `DNSM.TomeQTY`, the event's quantities for the current character and map. Built once per state. */
+/**
+ * `DNSM.TomeQTY`, the event's quantities for the current character and map. Built once per state, on a cache of its own: a caller's seeds
+ * never reach the array every Ctx of the state reads. A test's cache keeps its stubs and seeds, and its own array.
+ */
 export function TomeQTY(ctx: Ctx): readonly number[] {
-  let mine = built.get(ctx.state);
-  if (!mine) built.set(ctx.state, (mine = new Map()));
+  const test = isTestCache(ctx.cache);
+  const owner = test ? ctx.cache : ctx.state;
+  let mine = built.get(owner);
+  if (!mine) built.set(owner, (mine = new Map()));
   const key = `${ctx.player}|${ctx.map}`;
   let q = mine.get(key);
-  if (!q) mine.set(key, (q = Object.freeze(event(ctx))));
+  if (!q) mine.set(key, (q = Object.freeze(event(test ? ctx : { ...ctx, cache: new Map() }))));
   return q;
 }
 

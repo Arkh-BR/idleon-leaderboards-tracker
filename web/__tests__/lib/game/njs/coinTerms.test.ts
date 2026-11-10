@@ -125,7 +125,7 @@ const ARKH_SIDE: Record<string, (data: Record<string, unknown>, ci: number, c: C
 );
 
 /** What each term refuses (Ruling E): lib/tome cannot score HourZero (see stats.test.ts, equipCards.test.ts). */
-const HOURZERO = ["HourZero.json: Tome rows 21,101,105,106,115,116"];
+const HOURZERO: string[] = []; // HourZero (CSver 23) was refused while lib/tome scored the Tome (rows it could not compute); lib/game scores it, so nothing is refused
 // the Tome refusal reaches every term built on a talent level (AllTalentLV -> FamBonusQTYs) or on a stat (TotalStats, DamageDealed)
 const TOME_TERMS = new Set(["bubbleSTR", "bubbleAGI", "bubbleWIS", "goldFood", "divMinor3", "talent22", "talent643"]);
 const REFUSALS = (id: string): string[] => (TOME_TERMS.has(id) ? HOURZERO : []);
@@ -134,7 +134,7 @@ const EXPECT_KNOWN: Record<string, number> = {
   bubbleSTR: 1126, bubbleAGI: 1121, bubbleWIS: 1129, grid149: 1, grid169: 1, dustWalker: 9, mealCash: 2, statue19: 1, prayer8: 43, divMinor3: 1, goldFood: 326, talent643: 2,
 };
 /** The pairs per leaf: 106 saves x characters (1163 on one map), less the refused ones, plus the extra maps of the map-dependent ones. */
-const PAIRS: Record<string, number> = { bubbleSTR: 1153, bubbleAGI: 1153, bubbleWIS: 1153, goldFood: 1153, divMinor3: 1153, talent22: 1162, guild8: 2326, talent643: 2306 };
+const PAIRS: Record<string, number> = { bubbleSTR: 1163, bubbleAGI: 1163, bubbleWIS: 1163, goldFood: 1163, divMinor3: 1163, talent22: 1162, guild8: 2326, talent643: 2306 };
 
 /** The maps a term is checked on: 301 for all, plus 251 for the two that read CurrentMap (another world for the guild term; E 2 against 5 and another monster for the tier). */
 const mapsOf = (id: string): number[] => (id === "guild8" || id === "talent643" ? [MAP, 251] : [MAP]);

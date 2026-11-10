@@ -17,7 +17,8 @@
 //
 // Performance, measured when the page switched (Task 10, Ruling X; 5 real saves, Node, median): a character switch on a loaded save is
 // about 40 ms against lib/arkh's 220 ms, a map switch 39 ms against 254 ms, and the first call on a save (state build + Tome) 63 ms against
-// 247 ms.
+// 247 ms. With the Tome on lib/game (2026-11-10, counted per character and map): about 63 ms per character and map against lib/arkh's
+// 249 ms (characterize, 5 newest saves, 55 pairs: 3455 ms against 13699 ms).
 import type { StatResult } from "@/lib/statTracker/config";
 import { DMG_LAYERS, DMG_MASTERY, DMG_RAT, DMG_ROOT, type DmgLayer } from "@/lib/damage/layers";
 import { asNum, attr } from "../attr";

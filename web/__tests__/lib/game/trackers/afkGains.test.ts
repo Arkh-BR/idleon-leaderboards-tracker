@@ -238,7 +238,7 @@ describe("the tree on a synthetic envelope (runs in CI)", () => {
 const MAPS: Record<number, { explained: number; kept: number }> = {
   251: { explained: 338, kept: 0 }, 306: { explained: 338, kept: 0 }, 216: { explained: 79, kept: 58 }, 150: { explained: 206, kept: 174 }, 0: { explained: 0, kept: 0 }, 33: { explained: 0, kept: 0 }, 6: { explained: 338, kept: 0 }, 40: { explained: 338, kept: 0 },
 };
-const HOURZERO = ["HourZero.json: Tome rows 21,101,105,106,115,116"]; // Ruling E (njs/afkTerms.test.ts)
+const HOURZERO: string[] = []; // HourZero (CSver 23) was refused while lib/tome scored the Tome (rows it could not compute); lib/game scores it, so nothing is refused
 const REFUSED: Record<number, string[]> = { 251: HOURZERO, 306: HOURZERO, 216: HOURZERO, 150: HOURZERO, 0: [], 33: [], 6: HOURZERO, 40: HOURZERO };
 
 const states = new Map<string, ReturnType<typeof buildGameState>>();

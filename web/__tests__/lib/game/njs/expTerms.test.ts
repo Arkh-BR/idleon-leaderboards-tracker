@@ -206,7 +206,7 @@ const OWN: Record<string, string[]> = {
 Object.freeze(OWN);
 
 /** What each term refuses (Ruling E): lib/tome cannot score HourZero (see stats.test.ts, equipCards.test.ts). */
-const HOURZERO = ["HourZero.json: Tome rows 21,101,105,106,115,116"];
+const HOURZERO: string[] = []; // HourZero (CSver 23) was refused while lib/tome scored the Tome (rows it could not compute); lib/game scores it, so nothing is refused
 // the same Tome refusal reaches every term built on the talent levels (AllTalentLV -> FamBonusQTYs, the Tome bubbles) or on a stat (TotalStats LUK): the Workbench talent, the LUK curve and its talent, the Divinity god levels, the statue, the golden food, the Grind Time bubble
 const TOME_TERMS = new Set(["workbench", "luk", "talent35", "divMinor4", "statue10", "goldFood", "bubbleExp"]);
 /** The pairs per leaf whose difference a KNOWN entry closes, as a literal (a stale entry or a new difference fails): the totals of the report. */
@@ -214,8 +214,8 @@ const EXPECT_KNOWN: Record<string, number> = {
   workbench: 9, talent434: 9, medallion429: 41, gridExp: 1, sticker0: 1, divMinor4: 1, button8: 1, win23: 2, statue10: 10, starSignMainXP: 33,
   prayer0: 43, prayer2: 43, goldFood: 337, luk: 1121, talent35: 107,
 };
-/** The pairs per leaf: 106 saves x characters (1163 on map 251), less HourZero's 10 characters where a term refuses, plus the extra maps of the map-dependent ones. */
-const PAIRS: Record<string, number> = { workbench: 1153, luk: 1153, talent35: 1153, divMinor4: 1153, goldFood: 1153, bubbleExp: 1153, statue10: 1160, medallion429: 5742, arcane1: 5108, shrine5: 2326 };
+/** The pairs per leaf: 106 saves x characters (1163 on map 251), plus the extra maps of the map-dependent ones. */
+const PAIRS: Record<string, number> = { workbench: 1163, luk: 1163, talent35: 1163, divMinor4: 1163, goldFood: 1163, bubbleExp: 1163, statue10: 1160, medallion429: 5742, arcane1: 5108, shrine5: 2326 };
 const REFUSALS = (id: string): string[] => (TOME_TERMS.has(id) ? HOURZERO : []);
 
 /**

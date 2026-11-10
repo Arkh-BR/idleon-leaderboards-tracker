@@ -39,6 +39,13 @@ export const withPlayer = (ctx: Ctx, player: number): Ctx => ({ ...ctx, player }
 
 const memoKey = (ctx: Ctx, name: string, a: readonly (string | number)[]) => `${ctx.player}|${ctx.map}|${name}${JSON.stringify(a)}`;
 
+/**
+ * A test's cache (a Map subclass, such as the synthetic stubs that answer 0): a value the engine keeps per state (the Tome, which the game
+ * counts once per session) is computed on it and kept per cache instead. Any other cache is a plain Map, and such a value is computed on
+ * a fresh one, so what a caller seeded (`seedBlock`) or computed never decides what every other Ctx of the state reads.
+ */
+export const isTestCache = (cache: Map<string, number>): boolean => cache.constructor !== Map;
+
 /** The call of block `name` with arguments `a` answers `value` on this Ctx's cache (a tracker's what-if: this compute only, stated with `assumed()`). The arguments as the block's callers write them. */
 export const seedBlock = (ctx: Ctx, name: string, a: readonly (string | number)[], value: number): void => void ctx.cache.set(memoKey(ctx, name, a), value);
 
