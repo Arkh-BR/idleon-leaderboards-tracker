@@ -238,7 +238,7 @@ describe("the tree on a synthetic envelope (runs in CI)", () => {
 const MAPS: Record<number, { explained: number; kept: number }> = {
   251: { explained: 338, kept: 0 }, 306: { explained: 338, kept: 0 }, 216: { explained: 79, kept: 58 }, 150: { explained: 206, kept: 174 }, 0: { explained: 0, kept: 0 }, 33: { explained: 0, kept: 0 }, 6: { explained: 338, kept: 0 }, 40: { explained: 338, kept: 0 },
 };
-const HOURZERO: string[] = []; // HourZero (CSver 23) was refused while lib/tome scored the Tome (rows it could not compute); lib/game scores it, so nothing is refused
+const HOURZERO: string[] = []; // HourZero, the one save lib/tome could not score, is out of the parity corpus (PARITY_EXCLUDED, support/arkhOracle.ts): nothing is refused
 const REFUSED: Record<number, string[]> = { 251: HOURZERO, 306: HOURZERO, 216: HOURZERO, 150: HOURZERO, 0: [], 33: [], 6: HOURZERO, 40: HOURZERO };
 
 const states = new Map<string, ReturnType<typeof buildGameState>>();

@@ -20,14 +20,14 @@ import { TotalStats } from "@/lib/game/njs/TotalStats";
 import { applyGroupStep } from "@/lib/statTracker/groups";
 
 const rel = (got: number, want: number) => Math.abs(got - want) <= 1e-9 * Math.max(1, Math.abs(want));
-const HOURZERO: string[] = []; // HourZero (CSver 23) was refused while lib/tome scored the Tome (rows it could not compute); lib/game scores it, so nothing is refused
+const HOURZERO: string[] = []; // HourZero, the one save lib/tome could not score, is out of the parity corpus (PARITY_EXCLUDED, support/arkhOracle.ts): nothing is refused
 const STATS = ["STR", "AGI", "WIS"] as const;
 const SNAPSHOT = new Set<string>(STATS.map((s) => `snapshot${s}`));
 const cash = (c: Ctx) => ArbitraryCode(c, "MonsterCash");
 /** lib/arkh's combine() over its leaves: asserted equal to its own total on every pair it is used on. */
 const recombine = (leaves: Record<string, number>) => COIN_GROUPS.reduce((t, g) => applyGroupStep(g, g.sources.map((id) => leaves[id]), t), 1);
 
-/** The pairs each reason explains on every map (the per-leaf counts of coinTerms.test.ts, less INERT). */
+/** The pairs each reason explains on every map (the per-leaf counts of coinTerms.test.ts, less HourZero and INERT). */
 const EVERY_MAP = { snapshotSTR: 1126, snapshotAGI: 1120, snapshotWIS: 1129, fam68: 9, pray6: 43, gfoodCap: 308, gfoodSign69: 11, comp0: 1 };
 /** Per map: the pairs whose total the KNOWN entries close and how many of them each reason really explains. signsDmg is the multikill tier of big_guy69123 #7 and #9, on the maps where it crosses one. */
 const MAPS: Record<number, { known: number; byReason: Record<string, number> }> = {
@@ -36,7 +36,7 @@ const MAPS: Record<number, { known: number; byReason: Record<string, number> }> 
   150: { known: 1139, byReason: EVERY_MAP },
   40: { known: 1140, byReason: { ...EVERY_MAP, signsDmg: 2 } },
 };
-const PAIRS = 1163; // 106 saves x characters (1163)
+const PAIRS = 1153; // 106 saves x characters (1163), less HourZero's 10
 const NO_MONSTER = 'AFKtarget: expected a MonsterDefinitions key, got string "Z"'; // MapAFKtarget[33]
 /**
  * Listed on the pair, but the pair closes without them on every map, so they explain nothing there. gfoodVote26: seeding lib/arkh's weekly vote 26 leaves the total where it is on all 308.
@@ -166,7 +166,7 @@ describe.skipIf(GOLDEN_SAVES.length === 0)('ArbitraryCode("MonsterCash") against
     console.info(`[coinMulti @33] ${threw} refused (InvalidSaveValue) ${JSON.stringify([...invalid])}, ${refused.size} refused for other reasons, ${answered.length} answered`);
     expect(answered.slice(0, 20)).toEqual([]);
     expect([...invalid], "the cause: map 33's AFK target, not any other bad value").toEqual([NO_MONSTER]);
-    expect(threw).toBe(1163);
+    expect(threw).toBe(1153);
     expect([...refused].sort()).toEqual(HOURZERO);
   }, 1_800_000);
 });

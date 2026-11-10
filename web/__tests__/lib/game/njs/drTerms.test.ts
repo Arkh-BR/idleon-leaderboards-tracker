@@ -179,16 +179,16 @@ const ARKH_SIDE: Record<string, (data: Record<string, unknown>, ci: number, c: C
 };
 
 /** What each term refuses (Ruling E): lib/tome cannot score HourZero (see stats.test.ts, equipCards.test.ts). */
-const HOURZERO: string[] = []; // HourZero (CSver 23) was refused while lib/tome scored the Tome (rows it could not compute); lib/game scores it, so nothing is refused
+const HOURZERO: string[] = []; // HourZero, the one save lib/tome could not score, is out of the parity corpus (PARITY_EXCLUDED, support/arkhOracle.ts): nothing is refused
 // the Tome refusal reaches every term built on the talent levels (AllTalentLV -> FamBonusQTYs, the Tome bubbles) or on a stat (TotalStats LUK)
 const TOME_TERMS = new Set(["luk", "bubble", "goldFood", "tome2", "rank9", "workbench", "family32", "talent279", "talent24"]);
 /** The pairs per leaf whose difference a KNOWN entry closes, as a literal (a stale entry or a new difference fails): the totals of the report. */
 const EXPECT_KNOWN: Record<string, number> = {
-  luk: 1121, goldFood: 327, rank9: 8, workbench: 9, grid173: 1, glimbo: 22, win9: 2, tome2: 206, tome7: 33, prayer7: 43, meas15: 10,
+  luk: 1121, goldFood: 327, rank9: 8, workbench: 9, grid173: 1, glimbo: 22, win9: 2, tome2: 196, tome7: 33, prayer7: 43, meas15: 10,
 };
-/** The pairs per leaf: 106 saves x characters (1163 on map 251), plus the extra maps of the map-dependent ones. */
+/** The pairs per leaf: 106 saves x characters (1163 on map 251), less HourZero's 10 characters where a term refuses, plus the extra maps of the map-dependent ones. */
 const PAIRS: Record<string, number> = {
-  luk: 1163, bubble: 1163, goldFood: 1163, tome2: 1163, rank9: 1163, workbench: 1163, family32: 1163, talent279: 1160, talent24: 1162, arcane: 5775, shrine4: 2326, cove: 2326,
+  luk: 1153, bubble: 1153, goldFood: 1153, tome2: 1153, rank9: 1153, workbench: 1153, family32: 1153, talent279: 1160, talent24: 1162, arcane: 5775, shrine4: 2326, cove: 2326,
 };
 const REFUSALS = (id: string): string[] => (TOME_TERMS.has(id) ? HOURZERO : []);
 

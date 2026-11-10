@@ -15,7 +15,7 @@ export const DAMAGE_STATS: readonly (ArkhStat | "speed")[] = ["str", "agi", "wis
 export const EXPECT_TOTAL_KNOWN: Record<number, { max: number; mastery: number }> = { 251: { max: 656, mastery: 0 }, 43: { max: 0, mastery: 0 }, 306: { max: 656, mastery: 0 }, 150: { max: 656, mastery: 0 } };
 
 /** What DamageDealed refuses (Ruling E): the stats read the Tome, which lib/tome cannot score on HourZero (see stats.test.ts). */
-export const DAMAGE_REFUSALS: string[] = []; // HourZero (CSver 23) was refused while lib/tome scored the Tome (rows it could not compute); lib/game scores it, so nothing is refused
+export const DAMAGE_REFUSALS: string[] = []; // HourZero, the one save lib/tome could not score, is out of the parity corpus (PARITY_EXCLUDED, support/arkhOracle.ts): nothing is refused
 
 /** Character `ci` of the save has a KNOWN row of a Damage leaf or of a stat the leaves read. */
 export const hasDamageKnown = (path: string, ci: number): boolean =>

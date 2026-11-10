@@ -18,7 +18,7 @@ import { NotPorted } from "@/lib/game/errors";
 
 const MAP = 251; // a plain map: no dungeon (Dungon() is -1), no arena
 /** What the terms refuse (Ruling E), as in the character stats: HourZero (CSver 23) has Tome rows lib/tome cannot score (see stats.test.ts). */
-const REFUSALS: string[] = []; // HourZero (CSver 23) was refused while lib/tome scored the Tome (rows it could not compute); lib/game scores it, so nothing is refused
+const REFUSALS: string[] = []; // HourZero, the one save lib/tome could not score, is out of the parity corpus (PARITY_EXCLUDED, support/arkhOracle.ts): nothing is refused
 const rel = (got: number, want: number) => Math.abs(got - want) <= 1e-9 * Math.max(1, Math.abs(want));
 
 /** The lib/game term of each lib/arkh leaf, as DamageDealed uses it (@4107308: TalentCalc(31) + TalentCalc(110) + GTN(1,125) x TalentCalc(125) + ...). */

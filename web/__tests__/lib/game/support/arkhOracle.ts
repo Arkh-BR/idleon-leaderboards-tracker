@@ -70,12 +70,23 @@ function isEnvelope(path: string): boolean {
  */
 export function goldenSaves(dirs: string[] = DEFAULT_DIRS): string[] {
   const only = process.env.GOLDEN_ONLY?.split(",").filter(Boolean);
+  if (!only) return goldenSavesIn(dirs).filter((p) => !PARITY_EXCLUDED.includes(basename(p)));
+  return goldenSavesIn(dirs).filter((p) => only.includes(basename(p)));
+}
+
+/**
+ * The saves left out of the lib/arkh parity corpus (GOLDEN_ONLY can still name them). HourZero (CSver 23) was never compared with lib/arkh
+ * (lib/tome could not score it, so the engine refused it), lib/arkh does not replay the game's load steps (the Hatrack's EquipmentHats38,
+ * migrations.ts:394, among them), and these suites go with lib/arkh.
+ */
+export const PARITY_EXCLUDED: readonly string[] = ["HourZero.json"];
+
+function goldenSavesIn(dirs: string[]): string[] {
   return dirs
     .map((d) => resolve(WEB, d))
     .flatMap((dir) =>
       existsSync(dir) ? readdirSync(dir).filter((f) => f.endsWith(".json")).map((f) => join(dir, f)) : []
     )
-    .filter((p) => !only || only.includes(basename(p)))
     .filter(isEnvelope)
     .sort();
 }
@@ -362,7 +373,6 @@ const TOME_SOURCE =
 const TOME_SOURCE_SAVES = [
   "1st_Giri.json", "24632463.json", "Dragonlzl.json", "Exrom.json", "FenrirAdra.json", "Flipper143.json", "GIM_SSS.json", "Grandesz.json",
   "Koweabooo.json", "arkhe-2026-09-23.json", "bluestar3112.json", "breakinbrad.json", "hellzd4nt3.json", "joelok.json",
-  "HourZero.json", // refused while lib/tome scored it (Tome rows 21,101,105,106,115,116); lib/game's 35443..35454 against IT's stamped 35870
 ]; // chosen when lib/tome scored the Tome (a save with a row it could not compute was refused then, not a difference). The older ones
 // (below CSver 34) are scored after the game's load steps (lib/game/migrations): IdleonToolbox's 118 rows have none of the Royal Guardian
 // rows (107..109) the load gives them, and it stamped its number on the save as stored
@@ -1090,7 +1100,7 @@ export const KNOWN_ARKH_DIFFS: {
   ...([["big_guy69123.json", 0, [40]], ["big_guy69123.json", 1, [14]], ["big_guy69123.json", 2, [40]], ["big_guy69123.json", 4, [14]], ["big_guy69123.json", 5, [40]], ["big_guy69123.json", 6, [251, 216, 150]], ["big_guy69123.json", 7, [301, 40]], ["big_guy69123.json", 8, [251]], ["big_guy69123.json", 9, [301, 40]], ["big_guy69123.json", 10, [251, 216, 14, 150]]] as const).map(([save, ci, maps]) => ({ stat: "mk" as const, save, ci, maps, source: "tier", reason: "signsDmg", why: `lib/arkh's Max is about 1.28 x lib/game's here because of the Damage % star signs (${STAT_WHY.signsDmg}), and it crosses a tier lib/game's does not. It is the one cause that closes every pair of these but #0@40 on its own (the next largest, powerSuffix on character 8, is x 1.04)` })),
   { stat: "mk" as const, save: "big_guy69123.json", ci: 0, maps: [40] as const, source: "tier", reason: "gfoodSign69", why: `On this pair the signsDmg entry above needs a second cause: lib/arkh's Max crosses tier 49 only with the Damage % star signs and the golden food's sign 69 together (${STAT_WHY.gfoodSign69}); neither alone reaches it` },
   { stat: "mk" as const, save: "Dandy2009.json", ci: 7, maps: [251] as const, source: "tier", reason: "signs@wis", why: `lib/arkh's Max is 1.006 x lib/game's through the character's WIS (${STAT_WHY.signs.replace(/STR star signs/, "WIS star signs")}) and crosses tier 44, which lib/game's does not reach. Proved by lib/arkh's WIS star sign keys in place of lib/game's` },
-];
+].filter((d) => !PARITY_EXCLUDED.includes(d.save) || !!process.env.GOLDEN_ONLY?.split(",").includes(d.save)); // an excluded save's entries wait for GOLDEN_ONLY to name it
 
 /**
  * The lib/arkh numbers behind each STAT_WHY reason, as lib/game `block` calls to seed (block name, its args, lib/arkh's value): put in the

@@ -18,18 +18,18 @@ import { Minehead } from "@/lib/game/njs/Minehead";
 import { dropRateLuk, TotalStats } from "@/lib/game/njs/TotalStats";
 
 const rel = (got: number, want: number) => Math.abs(got - want) <= 1e-9 * Math.max(1, Math.abs(want));
-const HOURZERO: string[] = []; // HourZero (CSver 23) was refused while lib/tome scored the Tome (rows it could not compute); lib/game scores it, so nothing is refused
+const HOURZERO: string[] = []; // HourZero, the one save lib/tome could not score, is out of the parity corpus (PARITY_EXCLUDED, support/arkhOracle.ts): nothing is refused
 
 /**
  * Per map: the pairs whose total the KNOWN entries close (exact), the pairs in the Cove (map 216 with the character in cavern 17), the differing
  * pairs whose glimboUnleveled entry was checked to leave the Glimbo factor alone, what is refused, and the pairs (saves x characters, less the refused).
  */
 const MAPS: Record<number, { known: number; cove: number; glimbo: number; refused: string[]; pairs: number }> = {
-  251: { known: 1040, cove: 0, glimbo: 11, refused: HOURZERO, pairs: 1163 },
-  216: { known: 921, cove: 123, glimbo: 11, refused: HOURZERO, pairs: 1163 },
-  150: { known: 1040, cove: 0, glimbo: 11, refused: HOURZERO, pairs: 1163 },
-  40: { known: 1040, cove: 0, glimbo: 11, refused: HOURZERO, pairs: 1163 },
-  33: { known: 1040, cove: 0, glimbo: 11, refused: HOURZERO, pairs: 1163 },
+  251: { known: 1040, cove: 0, glimbo: 11, refused: HOURZERO, pairs: 1153 },
+  216: { known: 921, cove: 123, glimbo: 11, refused: HOURZERO, pairs: 1153 },
+  150: { known: 1040, cove: 0, glimbo: 11, refused: HOURZERO, pairs: 1153 },
+  40: { known: 1040, cove: 0, glimbo: 11, refused: HOURZERO, pairs: 1153 },
+  33: { known: 1040, cove: 0, glimbo: 11, refused: HOURZERO, pairs: 1153 },
 };
 
 /** The KNOWN reasons proved on lib/arkh's side (drTerms.test.ts's ARKH_SIDE): what each writes into lib/arkh's envelope for character `ci`, from lib/game's `c`. */

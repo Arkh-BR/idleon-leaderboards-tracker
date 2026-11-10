@@ -212,7 +212,7 @@ const MAPS: Record<number, { explained: number; leafKnown: number; fmtless: numb
   251: { explained: 510, leafKnown: 1723, fmtless: 219 }, 1: { explained: 510, leafKnown: 1723, fmtless: 219 }, 33: { explained: 510, leafKnown: 1715, fmtless: 219 },
   150: { explained: 510, leafKnown: 1715, fmtless: 219 }, 40: { explained: 510, leafKnown: 1723, fmtless: 219 },
 };
-const HOURZERO: string[] = []; // HourZero (CSver 23) was refused while lib/tome scored the Tome (rows it could not compute); lib/game scores it, so nothing is refused
+const HOURZERO: string[] = []; // HourZero, the one save lib/tome could not score, is out of the parity corpus (PARITY_EXCLUDED, support/arkhOracle.ts): nothing is refused
 
 const states = new Map<string, ReturnType<typeof buildGameState>>();
 afterAll(() => states.clear());

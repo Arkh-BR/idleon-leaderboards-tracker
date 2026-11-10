@@ -202,7 +202,7 @@ const MAPS: Record<number, { explained: number; leafKnown: number; fmtless: numb
   150: { explained: 1139, leafKnown: 3757, fmtless: 494 },
   40: { explained: 1140, leafKnown: 3759, fmtless: 494 },
 };
-const HOURZERO: string[] = []; // HourZero (CSver 23) was refused while lib/tome scored the Tome (rows it could not compute); lib/game scores it, so nothing is refused
+const HOURZERO: string[] = []; // HourZero, the one save lib/tome could not score, is out of the parity corpus (PARITY_EXCLUDED, support/arkhOracle.ts): nothing is refused
 
 const states = new Map<string, ReturnType<typeof buildGameState>>();
 afterAll(() => states.clear());
@@ -312,7 +312,7 @@ describe.skipIf(noSaves)("computeGameCoinMulti against lib/arkh on every real sa
       expect(shapeMismatches.slice(0, 20)).toEqual([]);
       expect(display.slice(0, 20)).toEqual([]);
       expect(lost.slice(0, 20)).toEqual([]);
-      expect(pairs, "saves x characters, less the refused").toBe(1163);
+      expect(pairs, "saves x characters, less the refused").toBe(1153);
       expect(explained, "pairs whose total differs from lib/arkh's and a KNOWN row closes (njs/coinMulti.test.ts's figure)").toBe(MAPS[map].explained);
       expect(leafKnown, "leaves that differ from lib/arkh's and a KNOWN row of that source covers").toBe(MAPS[map].leafKnown);
       expect(leafKnown, "KNOWN leaves vs leaves the rows cover (a stale row is one that no longer differs)").toBe(entryLeaves);
@@ -344,7 +344,7 @@ describe.skipIf(noSaves)("computeGameCoinMulti against lib/arkh on every real sa
     console.info(`[coin adapter @33] ${threw} refused (InvalidSaveValue) ${JSON.stringify([...invalid])}, ${refused.size} refused for other reasons, ${answered.length} answered`);
     expect(answered.slice(0, 20)).toEqual([]);
     expect([...invalid], "the cause: map 33's AFK target, not any other bad value").toEqual(['AFKtarget: expected a MonsterDefinitions key, got string "Z"']); // MapAFKtarget[33]
-    expect(threw).toBe(1163);
+    expect(threw).toBe(1153);
     expect([...refused].sort()).toEqual(HOURZERO);
   }, 1_800_000);
 });

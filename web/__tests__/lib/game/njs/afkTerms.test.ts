@@ -99,7 +99,7 @@ const OWN: Record<string, string[]> = {
 Object.freeze(OWN);
 
 /** What each term refuses (Ruling E), by leaf id: lib/tome cannot score HourZero (see stats.test.ts, equipCards.test.ts). */
-const HOURZERO: string[] = []; // HourZero (CSver 23) was refused while lib/tome scored the Tome (rows it could not compute); lib/game scores it, so nothing is refused
+const HOURZERO: string[] = []; // HourZero, the one save lib/tome could not score, is out of the parity corpus (PARITY_EXCLUDED, support/arkhOracle.ts): nothing is refused
 // the same Tome refusal reaches every term built on the talent levels (AllTalentLV -> FamBonusQTYs, the Tome bubble W8): the family bonus 8,
 // the fight talents and the Divinity god levels (Bonus_Minor)
 const TOME_TERMS = new Set(["goldFoodAllAFK", "fam8", "talent88", "talent268", "talent448", "talent79", "divMinor5"]);

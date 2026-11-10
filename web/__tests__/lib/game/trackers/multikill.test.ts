@@ -343,8 +343,8 @@ const MAPS: Record<number, { known: number; motherlode: number }> = {
   40: { known: 5, motherlode: 0 },
 };
 const MOTHERLODE = ["Motherlode", "Bug14", "MotherlodeTREE", "MotherlodeFISH"];
-const PAIRS = 1163;
-const HOURZERO: string[] = []; // HourZero (CSver 23) was refused while lib/tome scored the Tome (rows it could not compute); lib/game scores it, so nothing is refused
+const PAIRS = 1153;
+const HOURZERO: string[] = []; // HourZero, the one save lib/tome could not score, is out of the parity corpus (PARITY_EXCLUDED, support/arkhOracle.ts): nothing is refused
 /** The rows whose number differs between the engines for causes proved elsewhere (the Damage KNOWN rows, lib/arkh's accuracy) or below (the Motherlode's Defence), not for anything of this adapter's. */
 const OWN_NUMBER = new Set(["Max Damage", "Accuracy", "Target Defence"]);
 

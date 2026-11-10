@@ -21,7 +21,7 @@ import { ExpMulti, lukCurve } from "@/lib/game/njs/ExpMulti";
 import { TotalStats } from "@/lib/game/njs/TotalStats";
 
 const rel = (got: number, want: number) => Math.abs(got - want) <= 1e-9 * Math.max(1, Math.abs(want));
-const HOURZERO: string[] = []; // HourZero (CSver 23) was refused while lib/tome scored the Tome (rows it could not compute); lib/game scores it, so nothing is refused
+const HOURZERO: string[] = []; // HourZero, the one save lib/tome could not score, is out of the parity corpus (PARITY_EXCLUDED, support/arkhOracle.ts): nothing is refused
 
 /**
  * Per map: the pairs whose total the KNOWN entries close (exact), the pairs where the character's saved AFK target is kept on the map (`kept`;
@@ -30,11 +30,11 @@ const HOURZERO: string[] = []; // HourZero (CSver 23) was refused while lib/tome
  * 150 a town, 40 a dungeon (Dungon assumes -1, Ruling Y).
  */
 const MAPS: Record<number, { known: number; kept: number; refused: string[]; pairs: number }> = {
-  251: { known: 510, kept: 0, refused: HOURZERO, pairs: 1163 },
-  1: { known: 510, kept: 0, refused: HOURZERO, pairs: 1163 },
-  33: { known: 510, kept: 0, refused: HOURZERO, pairs: 1163 },
-  150: { known: 510, kept: 206, refused: HOURZERO, pairs: 1163 },
-  40: { known: 510, kept: 0, refused: HOURZERO, pairs: 1163 },
+  251: { known: 510, kept: 0, refused: HOURZERO, pairs: 1153 },
+  1: { known: 510, kept: 0, refused: HOURZERO, pairs: 1153 },
+  33: { known: 510, kept: 0, refused: HOURZERO, pairs: 1153 },
+  150: { known: 510, kept: 206, refused: HOURZERO, pairs: 1153 },
+  40: { known: 510, kept: 0, refused: HOURZERO, pairs: 1153 },
 };
 
 /** The EXP LUK curve (ExpMulti @4260536) of a LUK total. */
