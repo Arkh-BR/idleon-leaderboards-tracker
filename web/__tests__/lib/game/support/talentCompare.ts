@@ -26,6 +26,14 @@ export const TALENT_KNOWN: { path: RegExp; why: string }[] = [
     path: / \/ Winner Multi \(combined\) \/ Bundle ban_i$/,
     why: "N.js WinBonus @10927394 (@10930921, the branch of the bonuses not 19 or 20..33) adds 50*Thingies(\"Have_ban_i\") (@10978279, BundlesReceived.ban_i == 1) to the winners' boosts; lib/arkh's _winBonusParts (w6/summoning.ts) adds banI to winnerSum but lists no row for it, so Winner Multi's rows do not sum to its value. The game's tree has the row (under the Max Book Lv Cap's Winner Bonus 19), only while the bundle is owned; the value above it is the same",
   },
+  {
+    path: /\(Talent (10|11|12|23|75)\) \/ Effective Level \/ Base Level( \/ Talent Cap \(base \+ boosters\)( \/ Saved SkillLevelsMAX \(override\))?)?$/,
+    why: "N.js TotalTalentPoints reassigns SkillLevelsMAX[10] = 100 + GetTalentNumber(1,81) + GetTalentNumber(2,143) + getbonus2(1,51,-1) @4376078, with no max against the saved value; 11 and 12 (gated on SM > 5), 75 (@4376759, gated on Lv0[0] > 10) and 23 (@4376913) likewise. lib/arkh takes max(formula, saved SM) for them, so where the save's SM is above the formula (a stale SM the game rewrites) its cap and the Base Level under it are higher, and its notes say ratchet. The game's tree is the formula, the Saved SkillLevelsMAX row only information. Only the cap, the Base Level and the Saved row of these five ids move; the booster rows under the cap are still compared",
+  },
+  {
+    path: /\(Talent 79\) \/ Effective Level \/ Base Level( \/ Talent Cap \(base \+ boosters\)( \/ Saved SkillLevelsMAX \(override\))?)?$/,
+    why: "N.js SkillLevelsMAX[79] = Math.max(100 + Math.min(GetTalentNumber(1,39), CauldronInfo[3][0]), 100) @4378692: the inner max is the literal 100, not the saved SM, so 79 does not ratchet (the other bubble targets do: [87] @4377104, [86] @4377334, [266] @4377631, [446] @4378162). lib/arkh ratchets it and says so in the notes",
+  },
 ];
 
 const hits = new Set<RegExp>();
@@ -35,7 +43,12 @@ export const knownUnused = (): string[] => TALENT_KNOWN.filter((k) => !hits.has(
 /** lib/arkh's tree for an account-wide talent no character has points in: one `Reference Character: Char -1` row. */
 const NOBODY = /^Reference Character: Char -1$/;
 
+/** How many times each talent id was compared (the test logs the cap boosters' counts, so a "0 differences" is not vacuous). */
+export const compared = new Map<number, number>();
+export const resetCompared = (): void => compared.clear();
+
 export function compareTalent(save: unknown, ci: number, id: number, opts: TalentOpts): V1Diff {
+  compared.set(id, (compared.get(id) ?? 0) + 1);
   const mine = computeGameTalent(save, ci, id, opts);
   const theirs = computeTalentEffective(structuredClone(save), ci, id, opts).tree;
   // N.js getbonus2 @7987852, with e == -1: a character without the talent still gives the curve at level 0 (its else branch reads ArbitraryCode5Inputs at SkillLevels[b], 0), and the first of them above 0 is the reference. lib/arkh
@@ -47,10 +60,17 @@ export function compareTalent(save: unknown, ci: number, id: number, opts: Talen
     const points = at(mine, "Effective Level", "Base Level", "Points Invested")?.val;
     if (points !== 0) wrong.push(`${mine.name}: arkh finds no reference character, the game's has ${points} points`);
     const state = undefined === opts.presetIdx ? stateOf(save) : presetState(save, ci, opts.presetIdx);
-    // plain: the curve at level 0. forceSuperActive (the Hypothetical what-if) counts the super levels the talent would get, so the curve is read at the Effective Level the tree shows
-    const level = opts.forceSuperActive ? (at(mine, "Effective Level")?.val ?? 0) : 0;
-    const expected = talentCurveAt(makeCtx(state, { player: ci, map: 0 }), 1, id, level);
-    if (!near(mine.val, expected)) wrong.push(`${mine.name}: nobody has points, the root is ${mine.val} but the curve at level ${level} is ${expected}`);
+    if (opts.forceSuperActive) {
+      // the what-if: Base Level 0, and the Effective Level is the sum of its bonus and super rows (the root is the curve at that level by construction, so it is not asserted)
+      const eff = at(mine, "Effective Level");
+      const base = at(eff, "Base Level")?.val;
+      const parts = (eff?.children ?? []).filter((k) => k.name !== "Base Level").reduce((a, k) => a + k.val, 0);
+      if (base !== 0) wrong.push(`${mine.name}: nobody has points, Base Level is ${base}`);
+      if (!near(eff?.val ?? NaN, parts)) wrong.push(`${mine.name}: Effective Level ${eff?.val} is not the sum of its bonus and super rows ${parts}`);
+    } else {
+      const expected = talentCurveAt(makeCtx(state, { player: ci, map: 0 }), 1, id, 0);
+      if (!near(mine.val, expected)) wrong.push(`${mine.name}: nobody has points, the root is ${mine.val} but the curve at level 0 is ${expected}`);
+    }
     const names = (save as { charNames?: string[] }).charNames ?? [];
     const reference = at(mine, "Effective Level", "Base Level")?.children?.[0]?.name;
     if (reference !== `Reference Character: ${names[0] || "Char 0"}`) wrong.push(`${mine.name}: reference row is ${JSON.stringify(reference)}, the game's pick is character 0`);

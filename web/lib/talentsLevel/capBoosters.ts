@@ -64,7 +64,7 @@ export type CapBoosterEntry = {
   /** When true, the computed cap is taken as max(formula, savedSM[id]).
    *  Mirrors N.js: SkillLevelsMAX ratchets UPWARD only — once a bubble
    *  was leveled high, the cap stays even if the bubble is unleveled.
-   *  Used for the 7 bubble-capped targets (79, 86, 87, 266, 267, 446,
+   *  Used for the 6 ratcheting bubble targets (86, 87, 266, 267, 446,
    *  447); the stat targets (10/11/12/23/75) reassign without max(). */
   ratchet?: boolean;
 };
@@ -125,11 +125,10 @@ export const TALENT_CAP_BOOSTERS: Record<number, CapBoosterEntry> = {
   // cap never decreases — ratchet=true mirrors that.
 
   // Tal 79 (SLEEPIN_ON_THE_JOB). N.js: max(100 + min(GTN(1,39), CauldronInfo[3][0]), 100).
-  // Inner max is 100, not the saved SM — but the outer SM[79] clamp on the
-  // assignment line means cap still ratchets if SM was previously higher.
+  // Inner max is the literal 100, not the saved SM (@4378692): 79 does not ratchet.
   79: {
     baseCap: 100,
-    ratchet: true,
+    ratchet: false, // N.js @4378692: max(100 + min(..), 100), the inner max is the literal 100
     boosters: [
       {
         sourceTalent: 39,

@@ -6,7 +6,7 @@ import { afterAll, describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { basename } from "node:path";
 import { GOLDEN_SAVES, goldenSaves } from "../support/arkhOracle"; // first: it sets the `window` shim lib/arkh reads
-import { compareTalent, PENDING_BOOSTERS, PENDING_WRAPS } from "../support/talentCompare";
+import { compareTalent, compared as comparedIds, resetCompared, PENDING_BOOSTERS, PENDING_WRAPS } from "../support/talentCompare";
 import { newestSaves } from "@/lib/diagnose/characterize";
 import type { ArkhNode } from "@/lib/dropRate/node";
 import { maxBookLv } from "@/lib/dropRate/explain/talent";
@@ -17,6 +17,7 @@ import { TALENT_TABS_BY_CLASS } from "@/lib/talentsLevel/talentTabs.gen";
 import { BASE, synth } from "../support/expStub";
 import { asNumber } from "@/lib/game/attr";
 import { TaskShopDesc } from "@/lib/game/data";
+import { getbonus2 } from "@/lib/game/njs/getbonus2";
 import { capBoosterRow } from "@/lib/talentsLevel/explain/capBoosters";
 import { plainTalent } from "@/lib/talentsLevel/explain/plain";
 
@@ -134,19 +135,39 @@ describe("the cap boosters on a synthetic envelope (runs in CI)", () => {
     expect(cap.val).toBe(102);
   });
 
-  it("the saved SM is a floor: above the formula it overrides, equal it is verified, 0 leaves the formula with no row", () => {
+  it("a stat target is reassigned by the game: a saved SM above the formula changes nothing, the Saved row is information", () => {
     const base = { SL_0: { 10: 5, 81: 4 } };
     const formula = capOf(base, 10);
     expect(formula.children!.some((k) => k.name.startsWith("Saved SkillLevelsMAX"))).toBe(false);
     const over = capOf({ ...base, SM_0: { 10: formula.val + 40 } }, 10);
-    expect(over.val).toBe(formula.val + 40);
-    expect(kid(over, "Saved SkillLevelsMAX (override)").val).toBe(formula.val + 40);
+    expect(over.val).toBe(formula.val);
+    const row = kid(over, "Saved SkillLevelsMAX (override)");
+    expect(row.val).toBe(formula.val + 40);
+    expect(row.note).toMatch(/the formula wins/);
+    expect(row.note).not.toMatch(/using max/);
+    expect(over.note).not.toMatch(/ratchets/);
     const same = capOf({ ...base, SM_0: { 10: formula.val } }, 10);
     expect(same.val).toBe(formula.val);
     expect(kid(same, "Saved SkillLevelsMAX (verified)").val).toBe(formula.val);
-    const lower = capOf({ ...base, SM_0: { 10: 1 } }, 10);
-    expect(lower.val).toBe(formula.val);
-    expect(kid(lower, "Saved SkillLevelsMAX (override)").val).toBe(1);
+  });
+
+  it("a ratcheting bubble target keeps a saved SM above the formula; 79 does not (its inner max is the literal 100)", () => {
+    const formula = capOf({ SL_0: { 86: 5, 129: 60 } }, 86);
+    const over = capOf({ SL_0: { 86: 5, 129: 60 }, SM_0: { 86: 150 } }, 86);
+    expect(formula.val).toBe(102);
+    expect(over.val).toBe(150);
+    expect(kid(over, "Saved SkillLevelsMAX (override)").note).toMatch(/using max\(\)/);
+    expect(capOf({ SL_0: { 79: 5, 39: 60 }, SM_0: { 79: 150 } }, 79).val).toBe(100);
+  });
+
+  it("the boosters are read as the owner of the cap (who), not the current player; an account-wide one is tab 1", () => {
+    const data = { SL_0: {}, SL_1: { 10: 5, 81: 4 }, SM_1: {}, CurrentMap_1: -1, PlayerStuff_1: [0, 0], Lv0_1: [100, 0] };
+    const c = synth({ CauldronInfo: CAULDRON, Spelunk: SPELUNK, PlayerStuff_0: [0, 0], SM_0: {}, ...data }, { map: 0, chars: 2, real: ["GetTalentNumber", "getbonus2", "ArbitraryCode5Inputs"] });
+    expect(kid(capBoosterRow(c, 10, 1)!, "Str Summore (Tal 81 x-bonus)").val).toBeGreaterThan(0);
+    expect(kid(capBoosterRow(c, 10, 0)!, "Str Summore (Tal 81 x-bonus)").val).toBe(0);
+    // Eternal STR is getbonus2(1, 51, -1) whatever its kind says: the root value equals the curve of tab 1
+    const eternal = capOf({ SL_0: { 10: 5, 51: 3 } }, 10);
+    expect(kid(eternal, "Eternal STR (Tal 51 y-bonus)").val).toBe(getbonus2(synth({ SL_0: { 51: 3 }, Spelunk: SPELUNK, PlayerStuff_0: [0, 0], SM_0: {} }, { map: 0, real: ["getbonus2", "ArbitraryCode5Inputs"] }), 1, 51, -1));
   });
 
   it("a talent without a booster entry keeps the Max Book Lv Cap row", () => {
@@ -172,6 +193,7 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("compareTalent on the newest save (us
       if (!env.has(p)) env.set(p, JSON.parse(readFileSync(p, "utf8")));
       const save = env.get(p)!;
       const out: string[] = [];
+      resetCompared();
       let compared = 0;
       let skipped = 0;
       for (let ci = 0; ci < save.charNames.length; ci++) {
@@ -191,6 +213,7 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("compareTalent on the newest save (us
       }
       console.info(`[talent compare${force ? " forced" : ""}] ${compared} talents compared, ${skipped} skipped (wrap/booster), ${out.length} differences`);
       for (const line of out.slice(0, 30)) console.info(line);
+      console.info(`[cap boosters compared, ${force ? "forced" : "plain"}] ` + [10, 11, 12, 23, 75, 79, 86, 87, 266, 267, 446, 447].map((i) => `${i}:${comparedIds.get(i) ?? 0}`).join(" "));
       expect(compared).toBeGreaterThan(100);
       expect(out.slice(0, 20)).toEqual([]);
     }, 900_000);
