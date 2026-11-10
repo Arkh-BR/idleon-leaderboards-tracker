@@ -9,6 +9,10 @@ import type { StatPageConfig } from "./config";
  */
 export function pageError(save: unknown, e: unknown, stat: string): unknown {
   const csver = (save as { data?: { CSver?: unknown } } | null)?.data?.CSver;
+  // the envelope's own fields (lib/game/state.ts): a bare save, or an envelope a tool cut down
+  if (e instanceof MissingSaveKey && e.key.startsWith("envelope.")) {
+    return new Error(`This doesn't look like a full save envelope (missing ${e.key.slice(9)}). Use "Copy for Support" or sign in.`);
+  }
   // A current save that lacks a key is not "old": that is a bug, so the engine's message stays.
   if (e instanceof MissingSaveKey && typeof csver === "number" && csver < CURRENT_CSVER) {
     // older than the game's load steps lib/game replays: no key is missing, the tracker cannot bring the save up to date

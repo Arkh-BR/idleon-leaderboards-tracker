@@ -28,6 +28,14 @@ describe("what the page shows when the engine refuses a save", () => {
     expect(pageError(null, miss, AF)).toBe(miss);
   });
 
+  it("tells a bare save or an envelope missing a side key what to paste instead (old or not)", () => {
+    for (const save of [OLD, CURRENT, {}]) {
+      expect((pageError(save, new MissingSaveKey("envelope.tournament"), AF) as Error).message).toBe(
+        "This doesn't look like a full save envelope (missing tournament). Use \"Copy for Support\" or sign in."
+      );
+    }
+  });
+
   it("says the tree is incomplete when it no longer adds up to the total", () => {
     expect((pageError(CURRENT, new TreeTotalMismatch(2, 3), AF) as Error).message).toBe(
       "Artifact Find is incomplete for this save (internal check failed). Please report it."

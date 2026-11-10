@@ -53,7 +53,7 @@ export async function computeReadingValue(
       // parsedData dropped so the site's own Tome computation is what's measured.
       const env = { ...(save as object) } as { parsedData?: unknown };
       delete env.parsedData;
-      const tome = computeTome(env as never);
+      const tome = computeTome(env as never, { player: ci, map }); // the reading's character and map, as the other stats
       if (stat === "tomeScore") return { value: tome.totalPts };
       const row = tome.rows.find((x) => x.computeIdx === r.task);
       if (!row || row.pts === null) throw new Error(`reading ${r.id}: no Tome task ${r.task}`);

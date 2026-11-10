@@ -10,6 +10,7 @@ import { DNSM_TomeQTYtot } from "@/lib/game/njs/DNSM";
 import { Summoning } from "@/lib/game/njs/Summoning";
 import { tomeQty } from "@/lib/game/njs/TomeQTY";
 import { stateOf } from "@/lib/game/trackers/page";
+import { tomeWhere } from "@/lib/tome/compute";
 import { near } from "./v1Compare";
 
 /**
@@ -38,31 +39,18 @@ export const TOME_KNOWN: { line: RegExp; why: string; tol?: number }[] = [
 ];
 
 /**
- * The character the oracle computes the Tome for: the latest PTimeAway (computeTome's playedChar). The game computes TomeQTY for the
- * character logged in, which a save marks the same way.
- */
-function played(data: Record<string, unknown>, chars: number): number {
-  let best = 0;
-  let at = 0;
-  for (let c = 0; c < chars; c++) {
-    const away = Number(data[`PTimeAway_${c}`]) || 0;
-    if (away > at) [at, best] = [away, c];
-  }
-  return best;
-}
-
-/**
  * Every TomeQTY[i] against the oracle's rawValue of the row whose computeIdx is i (1e-9), and every Summoning("TomePTS", i) against the
  * row's pts; then DNSM.TomeQTYtot against totalPts (as line "total", in `pts`). A row the oracle leaves null (MISSING) is a difference too.
  * Lines outside TOME_KNOWN only. The oracle runs without what IdleonToolbox stamped on the envelope (parsedData, extraData), which would
- * make it take IT's per-task points. The map is 251, the one characterize uses: of the quantities only the Crystal Spawn record reads it
- * (Shrine 6), under the saved record.
+ * make it take IT's per-task points. The character and map are the page's (tomeWhere: the logged-in character, on its
+ * CurrentMap, else 251): the quantities that read the map are the Crystal Spawn record (Shrine 6) and the Highest Drop Rate record, raised
+ * to the live Drop Rate off map 216; the frozen computeTome reads both saved records.
  */
 export function compareTome(save: unknown): { qty: string[]; pts: string[] } {
-  const env = save as { data: Record<string, unknown>; charNames: string[] };
-  const { parsedData: _p, extraData: _e, ...plain } = structuredClone(env) as Record<string, unknown>;
+  const { parsedData: _p, extraData: _e, ...plain } = structuredClone(save) as Record<string, unknown>;
   const oracle = computeTome(plain as never);
-  const ctx = makeCtx(stateOf(save), { player: played(env.data, env.charNames.length), map: 251 });
+  const state = stateOf(save);
+  const ctx = makeCtx(state, tomeWhere(state));
   const known = (line: string, game: number, arkh: number | null) =>
     (arkh !== null && near(game, arkh)) || TOME_KNOWN.some((k) => k.line.test(line) && (k.tol === undefined || (arkh !== null && Math.abs(game - arkh) <= k.tol)));
   const qty: string[] = [];

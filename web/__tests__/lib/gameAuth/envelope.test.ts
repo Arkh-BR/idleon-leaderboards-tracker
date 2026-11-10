@@ -22,8 +22,7 @@ function mockGame(routes: Record<string, unknown>) {
   return f;
 }
 
-// >100 keys so computeTome unwraps the envelope — and would write side
-// fields into `data` if it weren't handed a copy.
+// >100 keys: computeTome reads it as an envelope, and must leave `data` as it is.
 const bigSave = {
   Guild: { stringValue: "[1,2]" },
   Lv0_0: int(5),
@@ -48,7 +47,7 @@ describe("fetchSaveEnvelope", () => {
     const env = await fetchSaveEnvelope("u1", "tok");
     expect(env.charNames).toEqual(["Alpha", "Beta"]);
     expect(env.data.Lv0_0).toBe(5);
-    expect(env.data).not.toHaveProperty("companion"); // computeTome got a copy
+    expect(env.data).not.toHaveProperty("companion"); // computeTome wrote nothing into the save
     expect(env.companion).toEqual({ l: [1] });
     expect(env.guildData).toEqual({ id: "G1", stats: [1, 2], members: [{ n: "Alpha" }], points: 42 });
     expect(env.serverVars).toEqual({ X: 1 });
