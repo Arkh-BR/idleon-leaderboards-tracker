@@ -169,7 +169,6 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/game/njs/Sailing.ts"
   ],
   "DeathNoteMobs": [
-    "lib/tome/extractors.ts",
     "lib/tome/tasks.ts"
   ],
   "DeathNoteRank": [
@@ -621,8 +620,7 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   ],
   "TotalStickers": [
     "lib/arkh/stats/systems/w6/farming.ts",
-    "lib/game/njs/FarmingStuffs.ts",
-    "lib/tome/extractors.ts"
+    "lib/game/njs/FarmingStuffs.ts"
   ],
   "TotalTitanKills": [
     "lib/arkh/stats/systems/exp/exp.ts",
@@ -690,8 +688,7 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/game/njs/AtomCollider.ts"
   ],
   "_customBlock_Breeding": [
-    "lib/game/njs/Breeding.ts",
-    "lib/tome/extractors.ts"
+    "lib/game/njs/Breeding.ts"
   ],
   "_customBlock_Bubbastuff": [
     "lib/game/njs/Bubbastuff.ts"
@@ -924,8 +921,7 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/game/njs/TotalStats.ts"
   ],
   "_customBlock_TotalTalentPoints": [
-    "lib/game/njs/TotalTalentPoints.ts",
-    "lib/tome/extractors.ts"
+    "lib/game/njs/TotalTalentPoints.ts"
   ],
   "_customBlock_Windwalker": [
     "lib/arkh/stats/systems/w2/voting.ts",
