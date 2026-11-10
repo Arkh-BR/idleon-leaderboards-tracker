@@ -3,7 +3,7 @@
 // replayed on the save, without its side effects.
 //
 // Before the quantities the event raises four account records to their live value (OptionsListAccount[198] to MoneyBANK, [200] to the
-// Drop Rate, [202] to the Crystal Spawn chance, [224] to the Greenstacks): the save is immutable, so the raised record is kept in memory. The Drop Rate is not raised (an `assumed:` on TomeQTY[18], like the load step DoOnceREAL < 378). The scene gate
+// Drop Rate, [202] to the Crystal Spawn chance, [224] to the Greenstacks): the save is immutable, so the raised record is kept in memory. [200] is raised too (TotalStats(Drop_Rarity), off map 216; an `assumed:` on TomeQTY[18] for the map). The scene gate
 // (`"utorial"`) does not apply: a tracked account is in the world.
 import { asNum, asNumber, attr } from "../attr";
 import { assumed, block, isTestCache, withPlayer, type Ctx } from "../ctx";
@@ -11,7 +11,6 @@ import { DeathNoteMobs, MapAFKtarget, MapDetails, NinjaInfo, PetStats, RANDOlist
 import { InvalidSaveValue } from "../errors";
 import { hString } from "../hstring";
 import { contains, lengthOf, listAt, listOrMapAt } from "../lists";
-import { DROP_RATE_RECORD } from "../migrations";
 import { currency, skillLevelsMax } from "../player";
 import { range } from "../ported";
 import type { GameState } from "../state";
@@ -25,9 +24,11 @@ import { Ninja } from "./Ninja";
 import { ResearchStuff } from "./ResearchStuff";
 import { RoyalG } from "./RoyalG";
 import { CARD_INFO, RunCodeOfTypeXforThingY } from "./RunCodeOfTypeXforThingY";
+import { DNSM_TomeQTYtot } from "./DNSM";
 import { Summoning } from "./Summoning";
 import { SushiStuff } from "./SushiStuff";
 import { Thingies } from "./Thingies";
+import { TotalStats } from "./TotalStats";
 import { TotalTalentPoints } from "./TotalTalentPoints";
 
 /** Σ asNumber(list[i]) over a list the save may keep as a `{i, length}` map (the game's loader gives a list). */
@@ -114,6 +115,10 @@ function event(ctx: Ctx): number[] {
   // 11 is above 0 (MainframeBonus(11) is that bonus times the same count: above 0 together)
   const grStk = 0 < MainframeBonus(ctx, 11) ? listAt(ctx, "GreenStacks").length : 0;
   const ola224 = grStk > ola(224) ? grStk : ola(224);
+  // @5739896: OptionsListAccount[200] raised to the live Drop Rate off map 216 (in memory). The Drop Rate reads the Tome score, which is 0 while
+  // the Tome is counted (DNSM_TomeQTYtot's guard), as at login in the game.
+  const live = 216 != ctx.map ? TotalStats(ctx, "Drop_Rarity") : 0;
+  const ola200 = 216 != ctx.map && live > ola(200) ? live : ola(200);
 
   // [0] @5740553: the stamp actor's GenINFO[106] (ActorEvents_481's create @9085872), every StampLevel of the three tabs
   q[0] = sumOf(ctx, "StampLevel", 0) + sumOf(ctx, "StampLevel", 1) + sumOf(ctx, "StampLevel", 2);
@@ -176,7 +181,7 @@ function event(ctx: Ctx): number[] {
       break;
     }
   }
-  q[18] = ola(200); // @5746788, under an assumed: in tomeQty
+  q[18] = ola200; // @5746788, under an assumed: in tomeQty (the map)
   // [19] @5747053: the constellations done
   q[19] = 0;
   for (let g = 0, n = listAt(ctx, "StarSignProg").length; g < n; g++) if (1 == attr(ctx, "StarSignProg", g, 1)) q[19] += 1;
@@ -373,6 +378,12 @@ export function TomeQTY(ctx: Ctx): readonly number[] {
   if (!mine) built.set(owner, (mine = new Map()));
   const key = `${ctx.player}|${ctx.map}`;
   let q = mine.get(key);
+  if (!q) {
+    // The count builds the array (its read of the score is 0, as at login): the event runs inside it, so the Drop Rate raise sees the
+    // score at 0 for every caller. A read during the count finds it guarded and builds here.
+    DNSM_TomeQTYtot(ctx);
+    q = mine.get(key);
+  }
   if (!q) mine.set(key, (q = Object.freeze(event(test ? ctx : { ...ctx, cache: new Map() }))));
   return q;
 }
@@ -384,9 +395,9 @@ export const tomeQty = block("DNSM.TomeQTY", (ctx, i: number) => {
   if (18 != i) return v;
   return assumed(
     ctx,
-    DROP_RATE_RECORD.key,
-    "Tome counts the saved Drop Rate record, where the game raises it to the live Drop Rate first",
+    "Tome.dropRateMap",
+    "Tome counts the Drop Rate of the map the character stands on",
     v,
-    "TomeQTY[18] = OptionsListAccount[200] @5746788, which the event first raises to the live TotalStats(Drop_Rarity) off map 216 (@5739896): not ported, the saved record is used (the load step DoOnceREAL < 378 resets it to 1)"
+    "TomeQTY[18] = OptionsListAccount[200] @5746788, raised first to the live TotalStats(Drop_Rarity) off map 216 (@5739896): the live value is that of the map the character is on, session state; the saved record (the load step DoOnceREAL < 378 resets it to 1) is the floor"
   );
 });
