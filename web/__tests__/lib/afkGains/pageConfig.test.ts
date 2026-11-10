@@ -55,8 +55,8 @@ describe("AFK Gains page config", () => {
     );
   });
 
-  it("documents that the Observed Max still comes from the previous engine", () =>
-    expect(AFK_PAGE.methodologyNote).toMatch(/Observed Max values themselves are still computed by the previous engine/));
+  it("documents that the Observed Max comes from the same engine", () =>
+    expect(AFK_PAGE.methodologyNote).toMatch(/computed by the same engine as this page/));
 
   it("loads the Observed Max for a class", async () => {
     const top = await AFK_PAGE.loadTop();

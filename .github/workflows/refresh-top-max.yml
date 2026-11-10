@@ -37,6 +37,9 @@ jobs:
     # (~106 min worst case) must all fit before "Commit refreshed snapshots" runs: a job
     # timeout skips that step and loses every reference of the run.
     timeout-minutes: 114
+    env:
+      # the collectors keep every player's save (and its lib/game state) until the reference is built: ~1-1.5 GB for ~90 players
+      NODE_OPTIONS: --max-old-space-size=4096
     steps:
       - uses: actions/checkout@v4
 
