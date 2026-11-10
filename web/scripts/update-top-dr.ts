@@ -24,6 +24,7 @@ const g = globalThis as any;
 if (!g.window) g.window = g;
 
 import { gatherCandidates, fetchProfileSave } from "./_shared/itProfiles";
+import dropRateDesc from "../lib/arkh/stats/defs/drop-rate";
 import { computeArkhDRPools, combineDRPools } from "../lib/arkh/computeDR";
 import type { Pool } from "../lib/arkh/stats/tree-builder";
 import { flattenTree } from "../lib/dropRate/treeFlatten";
@@ -32,7 +33,7 @@ import { getCharClassKey } from "../lib/talentsLevel/charClass";
 import { buildMapOptions } from "../lib/dropRate/arcaneBonus";
 import { capDrCardsInPools, patchCardFlatDisplay } from "./_shared/top8DrCards";
 import {
-  deriveGatedTalents,
+  deriveGatedTalentsFor,
   allClassKeys,
   profileKey,
   findTalentNodePath,
@@ -234,7 +235,12 @@ async function main() {
   const ADDITIVE_POOL = "Drop Rate / Additive Pool";
   const TOTAL_SUM = "Drop Rate / Total Sum";
   const flat = nonRes.flat;
-  const gated = deriveGatedTalents();
+  // DR-pool talents (Task 5 replaces this with the lib/game DR source list; kept here so _shared/ imports nothing from lib/arkh).
+  const drTalentIds = new Set<number>();
+  for (const pool of Object.values(dropRateDesc.pools)) {
+    for (const s of pool as Array<{ system: string; id?: unknown }>) if (s.system === "talent" && typeof s.id === "number") drTalentIds.add(s.id);
+  }
+  const gated = deriveGatedTalentsFor([...drTalentIds]);
   const talPaths = new Map<number, { value: number; paths: string[] }>();
   for (const g of gated) {
     const np = findTalentNodePath(flat, g.id);

@@ -9,28 +9,14 @@
 // every char and universal star talents (655) are on every class, so neither
 // is gated.
 
-import dropRateDesc from "../../lib/arkh/stats/defs/drop-rate";
 import { TALENT_TABS_BY_CLASS } from "../../lib/talentsLevel/talentTabs.gen";
-import { isAccountWideTalent } from "../../lib/arkh/stats/data/common/account-wide-talents";
+import { isAccountWideTalent } from "../../lib/talentsLevel/accountWideTalents";
 
 export const SEP = " / ";
 
 export type GatedTalent = { id: number; owners: Set<string> };
 
-/** DR-pool talents that are class-specific: not account-wide (those
- *  propagate) and not owned by every class (those are universal star
- *  talents). Returns each with the set of class keys whose tabs include it. */
-export function deriveGatedTalents(): GatedTalent[] {
-  const ids = new Set<number>();
-  for (const pool of Object.values(dropRateDesc.pools)) {
-    for (const s of pool as Array<{ system: string; id?: unknown }>) {
-      if (s.system === "talent" && typeof s.id === "number") ids.add(s.id);
-    }
-  }
-  return deriveGatedTalentsFor([...ids]);
-}
-
-/** deriveGatedTalents over an explicit talent list (Coin Multi, EXP Multi…). */
+/** The class-specific talents among `ids` (not account-wide, not owned by every class), each with the class keys whose tabs include it. */
 export function deriveGatedTalentsFor(ids: readonly number[]): GatedTalent[] {
   const classKeys = Object.keys(TALENT_TABS_BY_CLASS);
   const out: GatedTalent[] = [];

@@ -13,8 +13,6 @@
 //      that trips any sentinel is discarded WHOLE, since a cheater rarely
 //      inflates just one value.
 
-import { parseSaveKey } from "../../lib/arkh/save/helpers";
-
 /** Known hacked/cheated profiles (compared lowercased). */
 const HACKER_DENYLIST = new Set<string>([
   // OLA[262] = 100,010 megafeathers → Megafeather Bonus 50006x → broke the
@@ -42,7 +40,14 @@ export function hackedSaveReason(rawEnvelope: any): string | null {
   const save = (rawEnvelope?.data ?? rawEnvelope) as Record<string, unknown>;
   if (!save || typeof save !== "object") return null;
 
-  const ola = (parseSaveKey(save, "OptLacc") as any[]) || [];
+  const raw = save.OptLacc;
+  let ola: any[] = [];
+  try {
+    ola = (typeof raw === "string" ? JSON.parse(raw) : raw) as any[];
+  } catch {
+    // an unparseable OptLacc trips no sentinel
+  }
+  ola ||= [];
   const megafeathers = Number(ola?.[262]) || 0;
   if (megafeathers > MEGAFEATHER_SANITY_CAP) {
     return `megafeathers=${megafeathers} > ${MEGAFEATHER_SANITY_CAP} (OLA[262])`;
