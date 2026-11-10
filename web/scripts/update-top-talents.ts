@@ -41,7 +41,7 @@ import { flattenTree, nodePath } from "../lib/dropRate/treeFlatten";
 import { listCharacters } from "../lib/dropRate/extract";
 import { getCharClassKey } from "../lib/talentsLevel/charClass";
 import { starCeilingsOf } from "./_shared/starCeilings";
-import type { ArkhNode } from "../lib/arkh/node";
+import type { ArkhNode } from "../lib/dropRate/node";
 
 const HEALTH_BOOSTER = 0; // plain simple talent, no cap-booster
 const ES_CLASS_KEY = "Elemental_Sorcerer";
@@ -281,7 +281,7 @@ function emitFile(
     `// Snapshot generated: ${now}`,
     `// Players scanned: ${scanned}`,
     "",
-    'import type { ArkhNode } from "../arkh/node";',
+    'import type { ArkhNode } from "../dropRate/node";',
     "",
     `export const HYPO_TALENTS_GENERATED_AT = ${JSON.stringify(now)};`,
     `export const HYPO_TALENTS_PLAYERS_SCANNED = ${scanned};`,
@@ -310,7 +310,7 @@ function emitFile(
   console.log(`\n✓ Wrote ${OUTPUT_FILE}`);
 }
 
-main().catch((e) => {
+if (require.main === module) main().catch((e) => {
   console.error(e);
   process.exit(1);
 });

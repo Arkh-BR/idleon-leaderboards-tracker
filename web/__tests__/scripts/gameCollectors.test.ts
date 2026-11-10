@@ -118,6 +118,15 @@ describe.skipIf(!save)("the collectors' round trip on the newest save", () => {
     expect(r.overrides.ES["Drop Rate"]).toBeGreaterThan(r.baseFlat["Drop Rate"]);
   });
 
+  // KNOWN GAP (Task 6 review): lib/game's DR tree has no "(Card key) / Star Lv" leaves, so observedStarLvOf() finds nothing, capDrCards() picks 0 cards
+  // and the Observed Max gets +0 from the 8 card slots. it.fails flips to a failure the day the collector reads card levels; then make it a plain it().
+  // The catalog rows exist (value 0); none carries a value.
+  it.fails("DR V1: at least one card row carries a value (currently 0: see the note above)", () => {
+    const r = collectDrReference([{ name: "newest", save }]);
+    const rows = Object.entries(r.baseFlat).filter(([p, v]) => 0 < v &&  /^Drop Rate \/ (Additive Pool|Post-Processing) \/ 🃏 Cards \/ Drop Rate (Multi )?Cards \(Card Type 101?\) \/ .*\(Card [^)]+\)$/.test(p));
+    expect(rows.length).toBeGreaterThan(0);
+  });
+
   it("DR V1: a character the engine refuses is counted and named, and the run goes on", () => {
     const engine = { ...DR_V1_ENGINE, computePools: (s: unknown, ci: number) => (ci === chars[1].charIndex ? (() => { throw new Error("MissingSaveKey: test"); })() : DR_V1_ENGINE.computePools(s, ci)) };
     const r = collectDrReference([{ name: "newest", save }], engine);

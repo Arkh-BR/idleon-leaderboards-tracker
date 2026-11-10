@@ -1,5 +1,5 @@
 // Coin Multi page: the statTracker kit's config for N.js ArbitraryCode("MonsterCash"). It computes on lib/game (trackers/coinMulti.ts); the Observed Max
-// collector (scripts/update-top-coin.ts) stays on lib/arkh.
+// collector (scripts/update-top-coin.ts) runs the same engine.
 
 import type { StatPageConfig } from "@/lib/statTracker/config";
 import { loadMonsterMapFilter } from "@/lib/statTracker/mapFilter";
@@ -47,8 +47,7 @@ export const COIN_PAGE: StatPageConfig = {
     "over the current one. Values are a ceiling, not a one-level step. The top-player reference is " +
     "measured on map 301 (World 7), so the Guild and Coins For Charon rows reflect that map choice too. " +
     "The weekly vote isn't ranked: it's server-wide and changes every week. " +
-    "The Observed Max values themselves are still computed by the previous engine, so for a few sources they can differ slightly " +
-    "from your own numbers until they are recomputed.",
+    "The Observed Max values are computed by the same engine as this page.",
   compareTitle: "Compare every coin source against the best value observed across the top players (Cash Bubbles: within your class family)",
   gainsTabTitle: "Rank your coin sources by how much Coin Multi matching the top players would give",
   footer: "Coin Multi is computed locally from your save — every term of the game's coin formula, group by group.",

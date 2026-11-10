@@ -1,6 +1,6 @@
 // Multikill page: the statTracker kit's config for N.js
 // WorkbenchStuff("MultiKillTOTAL") — the AFK Info panel's MULTIKILL line. It computes on lib/game (trackers/multikill.ts); the Observed Max
-// collector (scripts/update-top-multikill.ts) stays on lib/arkh.
+// collector (scripts/update-top-multikill.ts) runs the same engine.
 
 import type { StatPageConfig } from "@/lib/statTracker/config";
 import { loadMonsterMapFilter } from "@/lib/statTracker/mapFilter";
@@ -65,8 +65,7 @@ export const MULTIKILL_PAGE: StatPageConfig = {
     "the tier-51 cap), so the Death Note row is only compared on a World 6 map and the damage tier only " +
     "outside World 7. \"+1 damage tier\" is a step, not a reference: it needs ×2 more max damage (×5 in World 7). " +
     "In the Crystal Glunko Cove the cavern sets the multikill, so no source moves it there. " +
-    "The Observed Max values themselves are still computed by the previous engine, so for a few sources they can differ slightly " +
-    "from your own numbers until they are recomputed.",
+    "The Observed Max values are computed by the same engine as this page.",
   compareTitle: "Compare every Multikill source against the best value observed across the top players",
   gainsTabTitle: "Rank your Multikill sources by how much Multikill matching the top players would give",
   footer:

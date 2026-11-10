@@ -248,7 +248,7 @@ async function main() {
   console.log(`\n✓ Wrote ${OUTPUT_FILE}`);
 }
 
-main().catch((e) => {
+if (require.main === module) main().catch((e) => {
   console.error(e);
   process.exit(1);
 });
