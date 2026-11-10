@@ -102,6 +102,7 @@ function careerSummonWins(ctx: Ctx): number {
 }
 
 /** The event on this character and map, in the game's order. */
+// @njs _customEvent_TomeQTY
 function event(ctx: Ctx): number[] {
   const q = Array<number>(Tome.length).fill(NaN);
   const ola = (i: number) => asNum(ctx, "OptionsListAccount", i);

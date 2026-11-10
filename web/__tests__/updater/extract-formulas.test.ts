@@ -56,6 +56,26 @@ describe("extractFormulas", () => {
 });
 
 import { extractAll } from "../../scripts/updater/extract";
+import { diffMaps } from "../../scripts/updater/diff";
+
+describe("the Tome event and digit-led names", () => {
+  const tome = (body: string) => `x={_customEvent_TomeQTY:function(){var d=1;${body}},_customEvent_Other:function(){return 2}}`;
+
+  it("captures _customEvent_TomeQTY (and no other event)", () => {
+    const f = extractFormulas(tome("d.TomeQTY[0]=5"));
+    expect(f["_customEvent_TomeQTY"]).toBe("{var d=1;d.TomeQTY[0]=5}");
+    expect("_customEvent_Other" in f).toBe(false);
+  });
+
+  it("a changed TomeQTY body is a formula change", () => {
+    const d = diffMaps(extractFormulas(tome("d.TomeQTY[0]=5")), extractFormulas(tome("d.TomeQTY[0]=6")));
+    expect(d.changed.map((c) => c.key)).toEqual(["_customEvent_TomeQTY"]);
+  });
+
+  it("captures a named block whose name starts with a digit", () => {
+    expect(extractFormulas(`z._cb=function(d){if("2ndMulti"==d)return 3;}`)["2ndMulti"]).toBe("3");
+  });
+});
 
 describe("extractAll", () => {
   it("includes a formulas map", () => {
