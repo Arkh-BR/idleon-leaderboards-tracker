@@ -15,7 +15,7 @@
 // and Nothing, Paying_Respect or a target with no definition gives 0; the Cove (map 216, cavern 17) counts as a fight whatever its target says;
 // Ruling V, the AFK target follows ctx.map (lib/game/afkTarget.ts); Ruling Y, a dungeon map counts as outside a dungeon.
 //
-// Performance, measured when the page switched (scripts/perf-afk.ts; real saves, Node, median): lib/arkh 23 ms cold / 18 ms a character
+// Performance, measured when the page switched (a one-off perf script, since deleted; real saves, Node, median): lib/arkh 23 ms cold / 18 ms a character
 // switch / 23 ms a map switch, lib/game 56 / 22 / 22 ms. A switch is at parity; the first call on a save (state build + Tome) costs about
 // 33 ms more, once per save. Both are well under a perceptible delay (Ruling FF); lib/game pays for the trace its tree is read from.
 //
