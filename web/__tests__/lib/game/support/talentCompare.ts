@@ -2,7 +2,7 @@
 //
 // lib/arkh is the comparison target only: where it is wrong the tree follows N.js and the path goes in TALENT_KNOWN with the evidence.
 import "./arkhOracle"; // first: it sets the `window` shim lib/arkh reads
-import { computeTalentEffective } from "@/lib/talentsLevel/compute";
+import { computeTalentEffective } from "./arkhTalent"; // the lib/arkh oracle, not the page's compute
 import { ASSUMED_643 } from "@/lib/talentsLevel/wraps";
 import { talentCurveAt } from "@/lib/game/njs/GetTalentNumber";
 import { makeCtx } from "@/lib/game/ctx";
