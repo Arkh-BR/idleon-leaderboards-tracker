@@ -108,11 +108,13 @@ See [`CONTRIBUTING.md`](CONTRIBUTING.md) for setup, testing, and PR guidelines.
 
 ## License
 
-GNU General Public License v3.0 — see [`LICENSE`](LICENSE).
+MIT — see [`LICENSE`](LICENSE).
 
-Parts of the code and data were originally ported or adapted from
-[Idleon Toolbox](https://github.com/Morta1/IdleonToolbox) (GPL-3.0) and have
-since been modified; the comments at those places say so.
+Earlier versions of this repository were published under the GNU General
+Public License v3.0, when they contained code ported from
+[Idleon Toolbox](https://github.com/Morta1/IdleonToolbox). That code has been
+removed: the stat engine (`web/lib/game`) is written from the game's own code,
+and the game data tables are generated from it.
 
 ---
 

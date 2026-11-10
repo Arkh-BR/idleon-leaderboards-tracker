@@ -265,7 +265,7 @@ Run pattern: `globalThis.window = globalThis; loadSaveData(JSON of "../save
 
 Regenerate artifacts after lib changes:
 ```
-npx tsx scripts/build-dr-bundle.ts     # data/dr-compute-bundle.js
+# (the DR Max research tool and its bundle were removed in 2026-11)
 npx tsx scripts/gen-source-catalog.ts  # data/dr-source-catalog.json + public/dr-max-values.html
 ```
 
