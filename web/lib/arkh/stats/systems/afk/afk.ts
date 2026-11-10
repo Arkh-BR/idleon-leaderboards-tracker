@@ -39,9 +39,7 @@ import { starSignBonusReal } from "../common/starSign";
 import { setBonus } from "../w3/setBonus";
 import { bonusMajorReal } from "../w5/divinity";
 
-/** Class talents of the formula (per-character GetTalentNumber) — spec A10.
- *  621 (Tick Tock) and 650 (Rando Event Looty) are star talents of every class. */
-export const AFK_CLASS_TALENTS = [79, 88, 268, 448] as const;
+export { AFK_CLASS_TALENTS } from "@/lib/afkGains/layers";
 
 // Name + tooltip of the two EtcBonuses sources that share a case (the game's names; jargon goes in the tooltip).
 const ETC_NAMES: Record<string, [string, string]> = {

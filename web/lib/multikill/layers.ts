@@ -30,6 +30,14 @@ export const MK_RULES = {
   cove: "Crystal Glunko Cove",
 } as const;
 
+/** Class talents of the formula (per-character buffs) — spec M16: the Observed Max collector gates them per class by their "(Talent n)"
+ *  node names. 654 is a star talent (every class) and 58 is account-wide, so neither is gated. */
+export const MK_CLASS_TALENTS = [46, 469] as const;
+
+/** Spec M7: the Observed Max collector measures every character on map 251 (w6a1). Every endgame character is at the tier-51 cap there, so
+ *  the reference doesn't depend on the max damage. */
+export const MK_COLLECTOR_MAP = 251;
+
 /** Source ids of the `multikill` system, N.js order. */
 export const MK_POOLS: Record<"base" | "perTier" | "tier" | "rules" | "status", readonly string[]> = {
   base: ["sign47", "saltLick8", "stampC19", "deathNoteBuilding", "etc29", "ach148", "ach122", "ach123", "talent654"],

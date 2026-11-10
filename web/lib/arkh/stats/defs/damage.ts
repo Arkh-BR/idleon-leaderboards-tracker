@@ -17,18 +17,13 @@
 import type { ArkhNode } from "../../node";
 import type { Descriptor, SourceSpec } from "../tree-builder";
 import { applyGroupStep, groupNote, groupVal, type StatGroup } from "./grouped";
-import { DMG_LAYERS, DMG_MASTERY, DMG_NODES, DMG_RAT, DMG_ROOT, type DmgLayer, type DmgStep } from "@/lib/damage/layers";
+import { DMG_LAYERS, DMG_MASTERY, DMG_NODES, DMG_RAT, DMG_ROOT } from "@/lib/damage/layers";
 
 // The display config (names, layers, steps, source ids) lives in lib/damage/layers (Ruling B): re-exported, so every importer of
 // this file keeps working. The math over it (caps, dmgLayer, dmgMax, dmgMastery, combine) stays here.
 export { DMG_KEYS, DMG_LAYERS, DMG_MASTERY, DMG_NODES, DMG_RAT, DMG_ROOT, DMG_RULES, type DmgLayer, type DmgStep } from "@/lib/damage/layers";
 
-const isGroup = (s: DmgStep): s is StatGroup => s.kind !== "cap" && s.kind !== "pow";
-
-/** Every StatGroup of the descriptor (layers + mastery + rat): what the
- *  Observed Max collector and the neutral-value logic iterate. The `pow` pool
- *  isn't here — the collector treats it as `pct`, whose neutral 0 is the pow's. */
-export const DMG_GROUPS: readonly StatGroup[] = [...DMG_LAYERS.flatMap((l) => l.steps.filter(isGroup)), DMG_MASTERY, DMG_RAT];
+export { DMG_GROUPS } from "@/lib/damage/layers";
 
 export { capBase, capMult, capPct, dmgLayer, dmgMastery, dmgMax, type ValsOf } from "@/lib/damage/math";
 import { dmgLayer, dmgMastery, dmgMax, powExp, ratActive, type ValsOf } from "@/lib/damage/math";

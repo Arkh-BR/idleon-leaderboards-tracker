@@ -25,14 +25,32 @@ import { COIN_COLLECTOR } from "./update-top-coin";
 import { EXP_COLLECTOR } from "./update-top-exp";
 import { DR2_COLLECTOR } from "./update-top-dr2";
 import { ARTIFACT_COLLECTOR } from "./update-top-artifact";
+import { combineDamagePools, computeArkhDamagePools } from "../lib/arkh/computeDamage";
+import { combineAfkPools, computeArkhAfkPools } from "../lib/arkh/computeAfk";
+import { combineMultikillPools, computeArkhMultikillPools } from "../lib/arkh/computeMultikill";
+import { DMG_COLLECTOR_MAP } from "../lib/damage/layers";
+import { MK_COLLECTOR_MAP } from "../lib/multikill/layers";
+import { DMG_COLLECTOR } from "./update-top-damage";
+import { AFK_COLLECTOR } from "./update-top-afk";
+import { MK_COLLECTOR } from "./update-top-multikill";
+
+/** The old Damage collector's pools: lib/arkh's, with the Reliquarium forced off (val 0, "Carried" 0). */
+function oldDamagePools(save: unknown, ci: number) {
+  const pools = computeArkhDamagePools(save, ci, DMG_COLLECTOR_MAP);
+  pools.l2relic = { items: pools.l2relic.items.map((it) => ({ ...it, val: 0, children: it.children?.map((c) => (c.name === "Carried" ? { ...c, val: 0 } : c)) })) };
+  return pools;
+}
 
 /** stat -> its collector config on each engine: the new one is the collector's own, the old one the same config with lib/arkh's pools and combine
- *  (what the update-top-* scripts ran before). Tasks 4-5 add theirs. */
+ *  (what the update-top-* scripts ran before). Task 5 adds DR V1. */
 const STATS: Record<string, { old: StatCollectorConfig; neu: StatCollectorConfig }> = {
   coin: { neu: COIN_COLLECTOR, old: { ...COIN_COLLECTOR, computePools: (s, ci) => computeArkhCoinPools(s, ci, 301), combine: combineCoinPools } },
   exp: { neu: EXP_COLLECTOR, old: { ...EXP_COLLECTOR, computePools: (s, ci) => computeArkhExpPools(s, ci, bestExpMapIdx(s, ci)), combine: combineExpPools } },
   dr2: { neu: DR2_COLLECTOR, old: { ...DR2_COLLECTOR, computePools: (s, ci) => computeArkhDropRateV2Pools(s, ci, bestDrMapIdx(s, ci)), combine: combineDropRateV2Pools } },
   artifact: { neu: ARTIFACT_COLLECTOR, old: { ...ARTIFACT_COLLECTOR, computePools: computeArkhArtifactPools, combine: combineArtifactPools } },
+  damage: { neu: DMG_COLLECTOR, old: { ...DMG_COLLECTOR, computePools: oldDamagePools, combine: combineDamagePools } },
+  afk: { neu: AFK_COLLECTOR, old: { ...AFK_COLLECTOR, computePools: (s, ci) => computeArkhAfkPools(s, ci, bestAfkMapIdx(s, ci)), combine: combineAfkPools } },
+  multikill: { neu: MK_COLLECTOR, old: { ...MK_COLLECTOR, computePools: (s, ci) => computeArkhMultikillPools(s, ci, MK_COLLECTOR_MAP), combine: combineMultikillPools } },
 };
 
 const argv = process.argv.slice(2);

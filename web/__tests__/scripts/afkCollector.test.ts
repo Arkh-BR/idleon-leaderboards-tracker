@@ -1,7 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { deriveGatedTalentsFor } from "@/scripts/_shared/classGating";
-import { AFK_CLASS_TALENTS } from "@/lib/arkh/stats/systems/afk/afk";
-import { AFK_NODES, AFK_ROOT } from "@/lib/arkh/stats/defs/afk-gains";
+import { AFK_CLASS_TALENTS, AFK_NODES, AFK_ROOT } from "@/lib/afkGains/layers";
 import { topAfkFlatForClass } from "@/lib/afkGains/topAfkGains";
 import { TOP_AFK_PLAYERS_SCANNED } from "@/lib/afkGains/topAfkGains.meta";
 

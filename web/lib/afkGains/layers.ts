@@ -21,6 +21,10 @@ export const AFK_NODES = {
   type: "🎯 AFK target type",
 } as const;
 
+/** Class talents of the formula (per-character GetTalentNumber) — spec A10: the Observed Max collector gates them per class by their
+ *  "(Talent n)" node names. 621 (Tick Tock) and 650 (Rando Event Looty) are star talents of every class. */
+export const AFK_CLASS_TALENTS = [79, 88, 268, 448] as const;
+
 /** Source pools (ids = the afk system's cases, N.js order). `fight` and `all`
  *  both land in G1; they stay separate so a future skill selector only swaps
  *  `fight`. `kind` only feeds the collector's neutral value for a zeroed

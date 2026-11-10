@@ -95,15 +95,7 @@ import { jellyRoGBonus } from "../../data/w7/jelly";
 import { royalStatueBon, armoryUpgBonus } from "../../data/w7/royalG";
 import { superBitType, emporiumBonus } from "../../../game-helpers";
 
-/** GetTalentNumber(1|2, …) talents the block reads on the viewed character,
- *  each surfaced as a "(Talent n)" node: the Observed Max collector gates them
- *  per class (deriveGatedTalentsFor drops the account-wide and universal ones).
- *  getbonus2(1, …, -1) — 508/208 (Workbench), 507, 50 — is the best over every
- *  character, so it isn't one. 113/123 include the Mastery reads. */
-export const DMG_CLASS_TALENTS = [
-  95, 455, 20, 97, 277, 457, 5, 113, 86, 446, 284, 463, 31, 110, 125, 485, 305, 470, 290, 656, 649, 638, 658, 6, 24,
-  123,
-] as const;
+export { DMG_CLASS_TALENTS } from "@/lib/damage/layers";
 
 const raw = (name: string, v: number, note?: string): ArkhNode => node(name, v, null, { fmt: "raw", note });
 const pct = (name: string, v: number, children?: ArkhNode[] | null, note?: string): ArkhNode =>

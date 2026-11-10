@@ -31,9 +31,7 @@ import { saltLick, saltLickLevel } from "../exp/saltLick";
 import { starSignBonusReal } from "../common/starSign";
 import { getBuffBonuses } from "../common/buffs";
 
-/** Class talents of the formula (per-character buffs) — spec M16. 654 is a
- *  star talent (every class) and 58 is account-wide, so neither is gated. */
-export const MK_CLASS_TALENTS = [46, 469] as const;
+export { MK_CLASS_TALENTS } from "@/lib/multikill/layers";
 
 const raw = (name: string, v: number, note?: string): ArkhNode => node(name, v, null, { fmt: "raw", note });
 const factor = (name: string, v: number, children?: ArkhNode[] | null): ArkhNode =>
