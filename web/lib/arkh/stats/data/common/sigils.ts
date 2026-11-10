@@ -1,7 +1,7 @@
 // ===== SIGIL & CHARM DATA =====
 // 1:1 port of corgan-source/js/stats/data/common/sigils.js.
-import { SigilDesc } from "../game/customlists.js";
-import { NjEQ } from "../game/custommaps.js";
+import { SigilDesc } from "@/lib/game/data/generated/customlists.js";
+import { NjEQ } from "@/lib/game/data/generated/custommaps.js";
 
 export function sigilTiers(
   idx: number

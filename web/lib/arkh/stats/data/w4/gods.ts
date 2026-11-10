@@ -1,6 +1,6 @@
 // ===== GODS DATA =====
 // 1:1 port of corgan-source/js/stats/data/w4/gods.js.
-import { GodsInfo } from "../game/customlists.js";
+import { GodsInfo } from "@/lib/game/data/generated/customlists.js";
 
 const _gods = GodsInfo as any[];
 

@@ -4,8 +4,8 @@
 // Ported 1:1 from N.js _customBlock_Summoning/Windwalker/ArcaneType
 // "...UpgTotal" branches.
 
-import { GrimoireUpg, ArcaneUpg, CompassUpg, AtomInfo, MapAFKtarget } from "../../data/game/customlists.js";
-import { MONSTERS } from "../../data/game/monsters.js";
+import { GrimoireUpg, ArcaneUpg, CompassUpg, AtomInfo, MapAFKtarget } from "@/lib/game/data/generated/customlists.js";
+import { MONSTERS } from "@/lib/game/data/generated/monsters.js";
 import { mapKillReq } from "../../data/common/maps";
 import { optionsListData, klaData } from "../../../save/data";
 import type { SaveData } from "../../../state";

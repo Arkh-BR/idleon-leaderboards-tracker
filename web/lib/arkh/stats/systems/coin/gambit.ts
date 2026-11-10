@@ -2,7 +2,7 @@
 // Port of N.js Holes("GambitBonuses", b) and its point pipeline, the Death
 // Note pages (WorkbenchStuff OverkillQTY) and Measurements 9 and 13.
 
-import { HolesInfo, DeathNoteMobs, MapAFKtarget, NinjaInfo } from "../../data/game/customlists.js";
+import { HolesInfo, DeathNoteMobs, MapAFKtarget, NinjaInfo } from "@/lib/game/data/generated/customlists.js";
 import { getLOG } from "../../../formulas";
 import { legendPTSbonus } from "../w7/spelunking";
 import { computeMonumentROGbonus, cosmoBonus } from "../w5/hole";

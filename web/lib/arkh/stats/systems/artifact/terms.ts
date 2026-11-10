@@ -6,7 +6,7 @@
 
 import { optionsListData } from "../../../save/data";
 import { getLOG } from "../../../formulas";
-import { Spelunky, GrimoireUpg } from "../../data/game/customlists.js";
+import { Spelunky, GrimoireUpg } from "@/lib/game/data/generated/customlists.js";
 import { menagerieUnlockOwned } from "../../data/w7/menagerie";
 import { grimoireUpgBonus } from "../mc/grimoire";
 import { getSetBonus } from "../w3/setBonus";

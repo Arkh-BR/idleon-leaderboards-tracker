@@ -6,7 +6,7 @@ import { node, treeResult, type ArkhNode, type TreeResult } from "../../../node"
 import { gameName, label } from "../../entity-names";
 import { artifactBase } from "../../data/w5/sailing";
 import { equipSetBonus } from "../../data/common/equipment";
-import { SummonEnemies, SummonUPG } from "../../data/game/customlists.js";
+import { SummonEnemies, SummonUPG } from "@/lib/game/data/generated/customlists.js";
 import {
   SUMMON_ENDLESS_TYPE,
   SUMMON_ENDLESS_VAL,

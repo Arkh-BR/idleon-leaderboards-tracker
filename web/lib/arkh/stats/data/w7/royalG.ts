@@ -7,7 +7,7 @@
 // RoyalG (verified on a live profile): [0] = Royal Statue levels, [1] =
 // resource amounts, [2] = Armory upgrade levels, [5] = resource-node Grades.
 // RoyalMaps[i] = the outpost on map i — an entry with ≥ 3 fields is built.
-import { ArmoryUpg, Research } from "../game/customlists.js";
+import { ArmoryUpg, Research } from "@/lib/game/data/generated/customlists.js";
 
 type RG = { royalGData?: any[]; royalMapsData?: any[] };
 

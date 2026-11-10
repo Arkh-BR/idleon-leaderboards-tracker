@@ -9,7 +9,7 @@ import { label } from "../../entity-names";
 import { labData, starSignData } from "../../../save/data";
 import { computeMeritocBonusz } from "../w7/meritoc";
 import { computeShinyBonusS } from "../w4/breeding";
-import { StarSigns } from "../../data/game/customlists.js";
+import { StarSigns } from "@/lib/game/data/generated/customlists.js";
 import { chipBonuses } from "../w4/lab";
 import type { SaveData } from "../../../state";
 

@@ -1,6 +1,6 @@
 // ===== W5 DIVINITY DATA =====
 // 1:1 port of corgan-source/js/stats/data/w5/divinity.js.
-import { GodsInfo } from "../game/customlists.js";
+import { GodsInfo } from "@/lib/game/data/generated/customlists.js";
 
 const _gods = GodsInfo as any[];
 

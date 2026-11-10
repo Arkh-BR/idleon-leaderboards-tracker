@@ -1,6 +1,6 @@
 // ===== COMPASS DATA =====
 // 1:1 port of corgan-source/js/stats/data/common/compass.js.
-import { CompassUpg } from "../game/customlists.js";
+import { CompassUpg } from "@/lib/game/data/generated/customlists.js";
 
 const _CompassUpg = CompassUpg as any[];
 

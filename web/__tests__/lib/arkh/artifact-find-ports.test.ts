@@ -12,7 +12,7 @@ import {
   holesBUpg55,
   loreEpiBon,
 } from "@/lib/arkh/stats/systems/artifact/terms";
-import { StarSigns } from "@/lib/arkh/stats/data/game/customlists.js";
+import { StarSigns } from "@/lib/game/data/generated/customlists.js";
 import {
   captBonusCalc,
   captainsOfType6,

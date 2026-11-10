@@ -4,7 +4,7 @@ import { loadSaveData } from "@/lib/arkh/save/loader";
 import { saveData } from "@/lib/arkh/state";
 import { talent } from "@/lib/arkh/stats/systems/common/talent";
 import { talentCalcTerms } from "@/lib/arkh/stats/systems/common/derived-damage";
-import { MapDetails } from "@/lib/arkh/stats/data/game/customlists.js";
+import { MapDetails } from "@/lib/game/data/generated/customlists.js";
 
 const g = globalThis as unknown as { window?: unknown };
 if (!g.window) g.window = g;

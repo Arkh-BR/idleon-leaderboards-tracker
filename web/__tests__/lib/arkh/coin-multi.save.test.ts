@@ -9,7 +9,7 @@ import { computeMaxDamage } from "@/lib/arkh/stats/systems/damage/damage";
 import { talent } from "@/lib/arkh/stats/systems/common/talent";
 import { isFightingMap } from "@/lib/arkh/stats/data/common/maps";
 import { currentMapData } from "@/lib/arkh/save/data";
-import { MONSTERS } from "@/lib/arkh/stats/data/game/monsters.js";
+import { MONSTERS } from "@/lib/game/data/generated/monsters.js";
 import { formatCoinMulti } from "@/lib/coinMulti/format";
 import { computeTalentEffective, computeTalentTreesForChars } from "@/lib/talentsLevel/compute";
 

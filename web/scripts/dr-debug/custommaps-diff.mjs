@@ -1,4 +1,4 @@
-// Compare lib/arkh/stats/data/game/custommaps.js with the live N.js CustomMaps builders
+// Compare lib/game/data/generated/custommaps.js with the live N.js CustomMaps builders
 // (`.NAME=function(){var a=new l;a.h.K=<literal>;…;return a}`). The updater does NOT regenerate this
 // file, so data changes there (sets, card / etc-bonus ids, pristine charms…) need a manual port.
 // usage (from web/): node scripts/dr-debug/custommaps-diff.mjs
@@ -7,7 +7,7 @@ import { pathToFileURL } from "node:url";
 import { resolve } from "node:path";
 
 const src = readFileSync("scripts/updater/.cache/N.new.js", "utf8");
-const ours = await import(pathToFileURL(resolve("lib/arkh/stats/data/game/custommaps.js")).href);
+const ours = await import(pathToFileURL(resolve("lib/game/data/generated/custommaps.js")).href);
 const readLiteral = (s, start) => {
   let depth = 0, i = start, inStr = null;
   for (; i < s.length; i++) {

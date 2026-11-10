@@ -6,7 +6,7 @@ import expMultiDesc from "./stats/defs/exp-multi";
 import { computeStatTree, computeStatPools, combineStatPools, statCtx, type StatResult } from "./computeStat";
 import type { Pool } from "./stats/tree-builder";
 import { loadSaveData } from "./save/loader";
-import { MapAFKtarget } from "./stats/data/game/customlists.js";
+import { MapAFKtarget } from "@/lib/game/data/generated/customlists.js";
 import { computeArcaneMapMultiBon } from "./stats/systems/mc/tesseract";
 import { talent } from "./stats/systems/common/talent";
 import { medallionList } from "./stats/systems/exp/medallions";

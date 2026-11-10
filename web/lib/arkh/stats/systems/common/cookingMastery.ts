@@ -11,7 +11,7 @@ import type { SaveData } from "../../../state";
 import { gridBonusValue } from "../w4/lab";
 import { arcadeBonus } from "../w2/arcade";
 import { computeVialByKey } from "../w2/alchemy";
-import { SaltLicks } from "../../data/game/customlists";
+import { SaltLicks } from "@/lib/game/data/generated/customlists.js";
 import { fountainBonusTotal } from "../../data/w5/fountain";
 import { eventShopOwned } from "../../../game-helpers";
 import { companionBonus } from "../../data/common/companions";

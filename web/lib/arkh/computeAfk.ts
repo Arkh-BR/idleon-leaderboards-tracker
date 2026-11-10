@@ -8,8 +8,8 @@ import { computeStatTree, computeStatPools, combineStatPools, statCtx, type Stat
 import type { Pool } from "./stats/tree-builder";
 import { loadSaveData } from "./save/loader";
 import { currentMapData } from "./save/data";
-import { MapAFKtarget } from "./stats/data/game/customlists.js";
-import { MONSTERS } from "./stats/data/game/monsters.js";
+import { MapAFKtarget } from "@/lib/game/data/generated/customlists.js";
+import { MONSTERS } from "@/lib/game/data/generated/monsters.js";
 import { computeArcaneMapMultiBon } from "./stats/systems/mc/tesseract";
 
 export function computeArkhAfkGains(rawEnvelope: any, charIdx: number, mapIdx: number = 0): StatResult {

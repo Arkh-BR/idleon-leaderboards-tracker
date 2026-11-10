@@ -16,7 +16,7 @@
 import type { ArkhNode } from "../../../node";
 import type { SaveData } from "../../../state";
 import { getLOG } from "../../../formulas";
-import { ITEMS } from "../../data/game/items.js";
+import { ITEMS } from "@/lib/game/data/generated/items.js";
 import {
   charClassData,
   optionsListData,

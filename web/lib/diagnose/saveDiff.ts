@@ -2,8 +2,19 @@
 // envelope.data, e.g. before/after removing a weapon) and the tracker-tree
 // leaves that moved as a result.
 
-import { parseSaveKey } from "@/lib/arkh/save/helpers";
 import type { FlatTree } from "@/lib/dropRate/treeFlatten";
+
+/** A save key as the game reads it: JSON strings are parsed, a plain string stays as it is. */
+function parseSaveKey(save: Record<string, unknown>, key: string): unknown {
+  const raw = save[key];
+  if (raw == null) return null;
+  if (typeof raw !== "string") return raw;
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return raw;
+  }
+}
 
 export type SaveChange = { path: string; before: unknown; after: unknown };
 
@@ -20,18 +31,10 @@ function walk(a: unknown, b: unknown, path: string, out: SaveChange[]) {
   } else if (a !== b) out.push({ path, before: a, after: b }); // a leaf, an added/removed value, or a type change
 }
 
-/** Keys the loader sees: `envelope.data`, each JSON-string value parsed by the
- *  engine's own parseSaveKey (which warns on every plain string such as
- *  "AFKtarget_0" = "Laboratory" — silenced, those stay strings). */
+/** Keys the loader sees: `envelope.data`, each JSON-string value parsed. */
 function parsed(env: unknown): Map<string, unknown> {
   const data = ((env as { data?: object })?.data ?? env) as Record<string, unknown>;
-  const warn = console.warn;
-  console.warn = () => {};
-  try {
-    return new Map(Object.keys(data).map((k) => [k, parseSaveKey(data, k)]));
-  } finally {
-    console.warn = warn;
-  }
+  return new Map(Object.keys(data).map((k) => [k, parseSaveKey(data, k)]));
 }
 
 /** Deep diff of two save envelopes over `data`, in path order. Paths read like

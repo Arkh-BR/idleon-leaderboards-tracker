@@ -1,8 +1,8 @@
 // ===== EQUIPMENT / ITEM DATA =====
 // 1:1 port of corgan-source/js/stats/data/common/equipment.js (replaces
 // the Stage 2 stub).
-import { ITEMS } from "../game/items.js";
-import { IDforETCbonus, EquipmentSets } from "../game/custommaps.js";
+import { ITEMS } from "@/lib/game/data/generated/items.js";
+import { IDforETCbonus, EquipmentSets } from "@/lib/game/data/generated/custommaps.js";
 
 const _items = ITEMS as Record<string, any>;
 const _idForEtc = IDforETCbonus as Record<string, string>;

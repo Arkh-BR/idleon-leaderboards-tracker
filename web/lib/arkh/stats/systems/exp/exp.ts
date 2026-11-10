@@ -10,7 +10,7 @@ import { optionsListData, currentMapData, divinityData } from "../../../save/dat
 import { superBitType, cloudBonus } from "../../../game-helpers";
 import { getLOG } from "../../../formulas";
 import { label } from "../../entity-names";
-import { MapAFKtarget, ZenithMarket, GrimoireUpg } from "../../data/game/customlists.js";
+import { MapAFKtarget, ZenithMarket, GrimoireUpg } from "@/lib/game/data/generated/customlists.js";
 
 import { talent } from "../common/talent";
 import { companions } from "../common/companions";

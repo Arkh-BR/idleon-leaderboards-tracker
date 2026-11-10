@@ -11,8 +11,8 @@
 // viewed map) and the Multikill page (spec M5). computeOverkillTier at the
 // bottom is the older port (MapAFKtarget + a FIGHTING gate, no curses).
 
-import { MapAFKtarget } from "../../data/game/customlists.js";
-import { MONSTERS } from "../../data/game/monsters.js";
+import { MapAFKtarget } from "@/lib/game/data/generated/customlists.js";
+import { MONSTERS } from "@/lib/game/data/generated/monsters.js";
 import { optionsListData, currentMapData } from "../../../save/data";
 import { prayersReal } from "../w3/prayer";
 import { computeAccuracy } from "./derived-damage";

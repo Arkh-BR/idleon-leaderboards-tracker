@@ -12,7 +12,7 @@ import {
   Spelunky,
   SpelunkUpg,
   SpelunkChapters,
-} from "../../data/game/customlists.js";
+} from "@/lib/game/data/generated/customlists.js";
 import { superBitType } from "../../../game-helpers";
 import { formulaEval } from "../../../formulas";
 import type { SaveData } from "../../../state";

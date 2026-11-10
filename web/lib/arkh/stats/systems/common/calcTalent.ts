@@ -36,8 +36,8 @@ import {
   RANDOlist,
   DreamChallenge,
   MapAFKtarget,
-} from "../../data/game/customlists.js";
-import { MONSTERS } from "../../data/game/monsters.js";
+} from "@/lib/game/data/generated/customlists.js";
+import { MONSTERS } from "@/lib/game/data/generated/monsters.js";
 import { apocalypseMapsOver } from "../w6/upg-totals";
 import { talentParams, CLASS_TREES } from "../../data/common/talent";
 import { formulaEval } from "../../../formulas";

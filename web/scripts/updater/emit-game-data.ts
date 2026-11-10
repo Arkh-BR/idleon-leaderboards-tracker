@@ -1,6 +1,6 @@
 // ===== Idleon updater — game-data emitters =====
 // Regenerates the committed data files the arkh engine reads
-// (web/lib/arkh/stats/data/game/{items,customlists}.js) from the live N.js.
+// (web/lib/game/data/generated/{items,customlists}.js) from the live N.js.
 //
 // Strategy: MERGE onto the committed file, never regenerate blind —
 //   - items.js: update existing keys with live values, append genuinely new

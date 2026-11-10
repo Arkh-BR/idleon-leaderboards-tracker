@@ -1,5 +1,5 @@
 // ===== SHRINE DATA =====
-import { ShrineInfo } from "../game/customlists.js";
+import { ShrineInfo } from "@/lib/game/data/generated/customlists.js";
 
 export function shrineBase(idx: number): number {
   return Number((ShrineInfo as any)[idx]?.[2]) || 0;

@@ -4,7 +4,7 @@
 //   [5] / [7] = per-feature levels read by Clamworks / Ninja knowledge.
 // N.js _customBlock_MenagerieStuff returns 0 for everything when the save
 // has no Menagerie yet (`if (0 == Menagerie.length) return 0`).
-import { Research } from "../game/customlists.js";
+import { Research } from "@/lib/game/data/generated/customlists.js";
 import type { SaveData } from "../../../state";
 
 const _research = Research as any[];

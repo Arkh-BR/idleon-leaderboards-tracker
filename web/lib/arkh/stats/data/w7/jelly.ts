@@ -7,7 +7,7 @@
 // N.js _customBlock_JellyOperation("RoG_BonusQTY", b, e):
 //   Research[7][9] > b || e == 99 ? CustomLists.Research[47][b] : 0
 // i.e. obstruction b (0-based) is active once MORE than b have been defeated.
-import { Research } from "../game/customlists.js";
+import { Research } from "@/lib/game/data/generated/customlists.js";
 import type { SaveData } from "../../../state";
 
 const _research = Research as any[];

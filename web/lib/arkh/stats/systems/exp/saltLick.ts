@@ -4,7 +4,7 @@
 // SaltLick is the save's per-upgrade level list (N.js load: getLoadJsonList
 // ("SaltLick"), @19714362 → loader saltLickData). Generic by index: EXP reads
 // 3 (Class EXP), other stats read their own row.
-import { SaltLicks } from "../../data/game/customlists.js";
+import { SaltLicks } from "@/lib/game/data/generated/customlists.js";
 import type { SaveData } from "../../../state";
 
 export function saltLickLevel(idx: number, s: SaveData): number {

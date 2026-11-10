@@ -15,7 +15,7 @@
 import { node, type ArkhNode } from "../../../node";
 import { label } from "../../entity-names";
 import type { SaveData } from "../../../state";
-import { ITEMS } from "../../data/game/items.js";
+import { ITEMS } from "@/lib/game/data/generated/items.js";
 import {
   equipOrderData,
   equipQtyData,

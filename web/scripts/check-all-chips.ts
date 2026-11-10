@@ -1,4 +1,4 @@
-import { ChipDesc } from "../lib/arkh/stats/data/game/customlists.js";
+import { ChipDesc } from "@/lib/game/data/generated/customlists.js";
 import { readFileSync } from "node:fs";
 import { loadSaveData } from "../lib/arkh/save/loader";
 import { saveData } from "../lib/arkh/state";

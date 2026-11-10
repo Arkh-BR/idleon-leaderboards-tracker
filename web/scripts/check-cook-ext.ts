@@ -6,7 +6,7 @@ import { saveData } from "../lib/arkh/state";
 import { gridBonusValue } from "../lib/arkh/stats/systems/w4/lab";
 import { arcadeBonus } from "../lib/arkh/stats/systems/w2/arcade";
 import { computeVialByKey } from "../lib/arkh/stats/systems/w2/alchemy";
-import * as cl from "../lib/arkh/stats/data/game/customlists";
+import * as cl from "@/lib/game/data/generated/customlists.js";
 
 const g = globalThis as any;
 if (!g.window) g.window = g;

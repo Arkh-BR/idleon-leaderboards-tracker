@@ -17,7 +17,7 @@
 import { writeFileSync, mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import * as LISTS from "../lib/arkh/stats/data/game/customlists.js";
+import * as LISTS from "@/lib/game/data/generated/customlists.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const REPO = join(__dirname, "..", "..");

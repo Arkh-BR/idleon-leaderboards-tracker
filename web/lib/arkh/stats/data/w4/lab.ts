@@ -4,7 +4,7 @@ import {
   LabMainBonus,
   NinjaInfo,
   JewelDesc,
-} from "../game/customlists.js";
+} from "@/lib/game/data/generated/customlists.js";
 
 const _lmb = LabMainBonus as any[][];
 const _ni = NinjaInfo as any[][];

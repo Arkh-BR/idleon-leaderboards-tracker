@@ -2,7 +2,7 @@
 // Real port replacing Stage 2 stub. Uses MarketExoticInfo and NinjaInfo
 // from game-data; exoticParams reads the per-idx exotic data, ninjaInfo
 // reads NinjaInfo[idx] for rank/upgrade tables.
-import { MarketExoticInfo, NinjaInfo } from "../game/customlists.js";
+import { MarketExoticInfo, NinjaInfo } from "@/lib/game/data/generated/customlists.js";
 import type { SaveData } from "../../../state";
 
 export type ExoticParams = {

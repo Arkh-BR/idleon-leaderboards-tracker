@@ -93,7 +93,7 @@ import {
   cardEquipData,
   buffsActiveData,
 } from "../../../save/data";
-import { ITEMS } from "../../data/game/items.js";
+import { ITEMS } from "@/lib/game/data/generated/items.js";
 import { superBitType, eventShopOwned, ribbonBonusAt } from "../../../game-helpers";
 import {
   isBubblePrismad,
@@ -118,9 +118,9 @@ import {
   StatueInfo,
   ZenithMarket,
   MealINFO,
-} from "../../data/game/customlists.js";
+} from "@/lib/game/data/generated/customlists.js";
 import { CARD_BONUS } from "../../data/common/cards";
-import { IDforCardBonus } from "../../data/game/custommaps.js";
+import { IDforCardBonus } from "@/lib/game/data/generated/custommaps.js";
 import { computeCardLv } from "./cards";
 import { computeSeraphMulti } from "./starSign";
 import { legendPTSbonus } from "../w7/spelunking";

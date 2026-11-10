@@ -11,7 +11,7 @@
 // Additive picks feed the additive pool (Σ); multi picks feed the multi pool
 // (Σ, applied as 1+Σ/100).
 
-import { MONSTERS } from "../../lib/arkh/stats/data/game/monsters.js";
+import { MONSTERS } from "@/lib/game/data/generated/monsters.js";
 import { CARD_DR_BONUS, CARD_DR_MULTI } from "../../lib/arkh/stats/data/common/cards";
 import type { Pool } from "../../lib/arkh/stats/tree-builder";
 import { label } from "../../lib/arkh/stats/entity-names";

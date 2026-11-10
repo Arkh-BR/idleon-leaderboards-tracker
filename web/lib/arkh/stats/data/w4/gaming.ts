@@ -1,6 +1,6 @@
 // ===== GAMING PALETTE DATA =====
 // 1:1 port of corgan-source/js/stats/data/w4/gaming.js.
-import { GamingPalette } from "../game/customlists.js";
+import { GamingPalette } from "@/lib/game/data/generated/customlists.js";
 
 export type PaletteParams = { denom: number; coeff: number; isDecay: boolean };
 

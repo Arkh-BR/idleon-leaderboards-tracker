@@ -1,6 +1,6 @@
 // ===== MINEHEAD DATA =====
 // 1:1 port of corgan-source/js/stats/data/w7/minehead.js (DR-relevant slice).
-import { MineheadUPG as _RAW_UPG, Research } from "../game/customlists.js";
+import { MineheadUPG as _RAW_UPG, Research } from "@/lib/game/data/generated/customlists.js";
 
 const _research = Research as any[];
 const _rawUpg = _RAW_UPG as any[];

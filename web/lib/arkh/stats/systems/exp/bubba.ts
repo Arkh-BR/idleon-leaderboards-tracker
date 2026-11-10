@@ -6,7 +6,7 @@
 // MegafleshOwned(k) (same function, right after):
 //   Bubba[1][8] > k ? (k == 11 ? Bubba[1][8] − 11 : 1) : 0
 // Bubba is the save's "Bubba" list (N.js load @19722843; loader bubbaData).
-import { Spelunky } from "../../data/game/customlists.js";
+import { Spelunky } from "@/lib/game/data/generated/customlists.js";
 import { companions } from "../common/companions";
 import type { SaveData } from "../../../state";
 

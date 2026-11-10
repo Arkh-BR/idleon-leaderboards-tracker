@@ -9,7 +9,8 @@
 import { directChildren, GROUP_DISPLAY } from "@/lib/statTracker/biggestGains";
 import type { GainSource, GainsModel } from "@/lib/statTracker/config";
 import { groupVal, type StatGroup } from "@/lib/statTracker/groups";
-import { DMG_KEYS, DMG_LAYERS, DMG_RAT, DMG_ROOT, dmgMax, type ValsOf } from "@/lib/arkh/stats/defs/damage";
+import { DMG_KEYS, DMG_LAYERS, DMG_RAT, DMG_ROOT } from "./layers";
+import { dmgMax, type ValsOf } from "./math";
 
 /** Buff 108 is an active buff the save doesn't hold: always 0, never offered. */
 const BUFF_108 = "Buff 108 (active buff only)";

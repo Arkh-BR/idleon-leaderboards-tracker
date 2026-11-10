@@ -4,7 +4,7 @@ import { node, type ArkhNode } from "../../../node";
 import { gameLabel } from "../../entity-names";
 import { VAULT_NO_MASTERY } from "../../data/game-constants";
 import { vaultUpgPerLevel } from "../../data/common/vault";
-import { UpgradeVault } from "../../data/game/customlists.js";
+import { UpgradeVault } from "@/lib/game/data/generated/customlists.js";
 import type { SaveData } from "../../../state";
 
 type Ctx = { saveData: SaveData };

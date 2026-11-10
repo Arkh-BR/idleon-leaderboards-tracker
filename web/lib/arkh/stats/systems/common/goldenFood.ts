@@ -46,7 +46,7 @@ import { klaData } from "../../../save/data";
 import { bubbleParams } from "../../data/w2/alchemy";
 import { isBubblePrismad, getPrismaBonusMult } from "../w2/alchemy";
 import { starSignDropVal } from "../../data/common/starSign";
-import { ACHIEVE_STATUS } from "../../data/game/hardcoded.js";
+import { ACHIEVE_STATUS } from "@/lib/game/data/generated/hardcoded.js";
 import { etcBonus } from "./etcBonus";
 import { isExalted, computeStampDoublerSources } from "../w1/stamp";
 import { jellyLabel, jellyRoGBonus } from "../../data/w7/jelly";

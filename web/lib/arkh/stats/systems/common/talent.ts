@@ -29,8 +29,8 @@ import {
   _winBonusParts,
   decomposeWinBonusRaw,
 } from "../w6/summoning";
-import { DreamUpg } from "../../data/game/customlists.js";
-import { SaltLicks, TaskShopDesc } from "../../data/game/customlists.js";
+import { DreamUpg } from "@/lib/game/data/generated/customlists.js";
+import { SaltLicks, TaskShopDesc } from "@/lib/game/data/generated/customlists.js";
 import { artifactBase } from "../../data/w5/sailing";
 import { hasBonusMajor } from "../w5/divinity";
 import { label, entityName } from "../../entity-names";
@@ -45,7 +45,7 @@ import {
   TALENT_CAP_BOOSTERS,
   hasTalentCapBoosters,
 } from "../../data/common/talent-cap-boosters";
-import { ClassNames } from "../../data/game/customlists.js";
+import { ClassNames } from "@/lib/game/data/generated/customlists.js";
 import { companionBonus } from "../../data/common/companions";
 import { companionChild } from "./companions";
 import { bubbleValByKey } from "../w2/alchemy";

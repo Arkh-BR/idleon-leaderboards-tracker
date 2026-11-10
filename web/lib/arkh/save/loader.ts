@@ -14,7 +14,7 @@ import { computeUniqueSushi } from "../stats/systems/w7/sushi";
 import { LAB_BONUS_BASE, LAB_BONUS_DYNAMIC, JEWEL_DESC } from "../stats/data/w4/lab";
 import { computeLabConnectivity } from "../stats/systems/w4/lab";
 import { emporiumBonus } from "../game-helpers";
-import { SceneNPCquestOrder } from "../stats/data/game/customlists.js";
+import { SceneNPCquestOrder } from "@/lib/game/data/generated/customlists.js";
 
 type RawEnvelope = {
   data?: Record<string, unknown>;

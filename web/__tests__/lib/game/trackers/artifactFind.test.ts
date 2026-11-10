@@ -161,12 +161,10 @@ describe("the display config", () => {
     expect(IDS).toHaveLength(35);
   });
 
-  // lib/game must be able to outlive lib/arkh: no file under it imports lib/arkh (by alias or by a relative path), except the two data
-  // re-exports that say so themselves ("The files still live under lib/arkh; a later plan moves them here"). What this does not check is
+  // lib/game must be able to outlive lib/arkh: no file under it imports lib/arkh (by alias or by a relative path). What this does not check is
   // the transitive reach: DNSM.TomeQTYtot calls lib/tome's computeTome (Ruling K), and lib/tome imports about 20 lib/arkh modules. That
   // is the one known exception, until the Tome moves to lib/game (the next test names it).
-  it("no file under lib/game imports lib/arkh, except the data re-exports", () => {
-    const ALLOWED = ["lib/game/data/index.ts", "lib/game/data/maps.ts"];
+  it("no file under lib/game imports lib/arkh", () => {
     const files = readdirSync("lib/game", { recursive: true })
       .map((f) => `lib/game/${String(f).replace(/\\/g, "/")}`)
       .filter((f) => /\.tsx?$/.test(f));
@@ -178,8 +176,7 @@ describe("the display config", () => {
       }
     }
     expect(files.length).toBeGreaterThan(40); // the scan found the engine
-    expect(imports.filter((i) => !ALLOWED.some((a) => i.startsWith(`${a}:`)))).toEqual([]);
-    expect(imports.some((i) => i.startsWith("lib/game/data/index.ts:"))).toBe(true); // the exception list is not stale
+    expect(imports).toEqual([]);
   });
 
   // What the test above does not check: the transitive reach. DNSM.TomeQTYtot calls lib/tome's computeTome (Ruling K) and lib/tome imports

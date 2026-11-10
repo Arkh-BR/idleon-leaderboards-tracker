@@ -4,7 +4,7 @@ import { node, type ArkhNode } from "../../../node";
 import { gameLabel } from "../../entity-names";
 import { grimoireUpgPerLevel } from "../../data/mc/grimoire";
 import { GRIMOIRE_NO_MULTI } from "../../data/game-constants";
-import { GrimoireUpg } from "../../data/game/customlists.js";
+import { GrimoireUpg } from "@/lib/game/data/generated/customlists.js";
 import type { SaveData } from "../../../state";
 
 type Ctx = { saveData: SaveData };

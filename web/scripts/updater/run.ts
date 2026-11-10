@@ -30,7 +30,7 @@ const SNAP_DIR = resolve(REPO_ROOT, "web/data/njs-snapshot");
 const REPORT_DIR = resolve(SNAP_DIR, "reports");
 const CACHE_DIR = resolve(__dirname, ".cache");
 const ROOT_NJS = resolve(REPO_ROOT, "N.js");
-const GAME_DIR = resolve(REPO_ROOT, "web/lib/arkh/stats/data/game");
+const GAME_DIR = resolve(REPO_ROOT, "web/lib/game/data/generated");
 
 const args = new Set(process.argv.slice(2));
 const NO_FETCH = args.has("--no-fetch");

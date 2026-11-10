@@ -4,7 +4,7 @@
 import { describe, it, expect } from "vitest";
 import { saveData, type SaveData } from "@/lib/arkh/state";
 import { assignSaveData } from "@/lib/arkh/save/data";
-import { RandoListo2 } from "@/lib/arkh/stats/data/game/customlists.js";
+import { RandoListo2 } from "@/lib/game/data/generated/customlists.js";
 import { cglunkoDR, cglunkoUpgBon, coveActive } from "@/lib/arkh/stats/systems/dr2/cove";
 import { bestDrMapIdx } from "@/lib/arkh/stats/systems/dr2/maps";
 import { isFightingMap } from "@/lib/arkh/stats/data/common/maps";

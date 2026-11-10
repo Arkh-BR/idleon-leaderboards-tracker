@@ -8,7 +8,7 @@
 
 import { optionsListData } from "../../../save/data";
 import { getLOG } from "../../../formulas";
-import { RandoListo2 } from "../../data/game/customlists.js";
+import { RandoListo2 } from "@/lib/game/data/generated/customlists.js";
 import type { SaveData } from "../../../state";
 
 const ola = (i: number) => Number((optionsListData as any[])?.[i]) || 0;

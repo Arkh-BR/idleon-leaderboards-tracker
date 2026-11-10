@@ -9,12 +9,12 @@ import { node, treeResult, type ArkhNode, type TreeResult } from "../../../node"
 import { label } from "../../entity-names";
 import { cardEquipData, csetEqData } from "../../../save/data";
 import { CARD_BASE_REQ, CARD_DR_BONUS, CARD_DR_MULTI } from "../../data/common/cards";
-import { IDforCardSETbonus } from "../../data/game/custommaps.js";
-import { MONSTERS } from "../../data/game/monsters.js";
+import { IDforCardSETbonus } from "@/lib/game/data/generated/custommaps.js";
+import { MONSTERS } from "@/lib/game/data/generated/monsters.js";
 import { legendPTSbonus } from "../w7/spelunking";
 import { legendLabel } from "../w7/legend";
 import { charHasChip } from "../w4/lab";
-import { RANDOlist } from "../../data/game/customlists.js";
+import { RANDOlist } from "@/lib/game/data/generated/customlists.js";
 import type { SaveData } from "../../../state";
 
 type Ctx = { saveData: SaveData; charIdx: number };

@@ -1,7 +1,7 @@
 // ===== EMPEROR DATA =====
 // 1:1 port of corgan-source/js/stats/data/common/emperor.js.
-import { EmperorBon } from "../game/customlists.js";
-import { EquipmentSets } from "../game/custommaps.js";
+import { EmperorBon } from "@/lib/game/data/generated/customlists.js";
+import { EquipmentSets } from "@/lib/game/data/generated/custommaps.js";
 
 export function emperorBonVal(idx: number): number {
   return Number((EmperorBon as any)[1]?.[idx]) || 0;

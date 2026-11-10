@@ -5,7 +5,7 @@ import { saveData } from "@/lib/arkh/state";
 import { talent, maxTalentBonus } from "@/lib/arkh/stats/systems/common/talent";
 import { computeCalcTalent } from "@/lib/arkh/stats/systems/common/calcTalent";
 import { computeArkhDropRate } from "@/lib/arkh/computeDR";
-import { MapDetails } from "@/lib/arkh/stats/data/game/customlists.js";
+import { MapDetails } from "@/lib/game/data/generated/customlists.js";
 import type { ArkhNode } from "@/lib/arkh/node";
 
 const g = globalThis as unknown as { window?: unknown };

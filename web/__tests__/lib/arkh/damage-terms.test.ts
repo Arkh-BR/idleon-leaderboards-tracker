@@ -4,7 +4,7 @@ import { loadSaveData } from "@/lib/arkh/save/loader";
 import { saveData } from "@/lib/arkh/state";
 import { charClassData, optionsListData } from "@/lib/arkh/save/data";
 import { superBitType, emporiumBonus } from "@/lib/arkh/game-helpers";
-import { RANDOlist } from "@/lib/arkh/stats/data/game/customlists.js";
+import { RANDOlist } from "@/lib/game/data/generated/customlists.js";
 import { damage, computeMaxDamage } from "@/lib/arkh/stats/systems/damage/damage";
 import { computeArkhDamagePools, combineDamagePools } from "@/lib/arkh/computeDamage";
 import { computeWeaponPower, foodBoostMulti, gtn, mapDamageDivisor } from "@/lib/arkh/stats/systems/common/derived-damage";

@@ -21,7 +21,7 @@ import { exoticBonusQTY } from "../../data/w5/farming";
 import { sigilTiers, sigilCodename } from "../../data/common/sigils";
 import { rogBonusQTY } from "../w7/sushi";
 import { bubbleParams } from "../../data/w2/alchemy";
-import { AlchemyDescription } from "../../data/game/customlists.js";
+import { AlchemyDescription } from "@/lib/game/data/generated/customlists.js";
 import { mainframeBonus } from "../w4/lab";
 import { N2L } from "../../data/common/encoding";
 import { companionBonus } from "../../data/common/companions";

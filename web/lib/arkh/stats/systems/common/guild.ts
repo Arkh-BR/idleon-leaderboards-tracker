@@ -3,7 +3,7 @@ import { node, type ArkhNode } from "../../../node";
 import { gameLabel } from "../../entity-names";
 import { formulaEval } from "../../../formulas";
 import { guildBonusParams } from "../../data/common/guild";
-import { GuildBonuses } from "../../data/game/customlists.js";
+import { GuildBonuses } from "@/lib/game/data/generated/customlists.js";
 import type { SaveData } from "../../../state";
 
 type Ctx = { saveData: SaveData };

@@ -685,8 +685,8 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/game/njs/CookingR.ts"
   ],
   "_customBlock_DamageDealed": [
-    "lib/arkh/stats/defs/damage.ts",
     "lib/arkh/stats/systems/damage/damage.ts",
+    "lib/damage/math.ts",
     "lib/game/njs/DamageDealed.ts"
   ],
   "_customBlock_Divinity": [
@@ -895,6 +895,7 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/game/njs/chipBonuses.ts"
   ],
   "_customBlock_getLOG": [
+    "lib/coinMulti/format.ts",
     "lib/game/njs/getLOG.ts",
     "lib/tome/math.ts"
   ],

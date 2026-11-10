@@ -16,8 +16,8 @@
 
 import { writeFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { ITEMS } from "../lib/arkh/stats/data/game/items.js";
-import { DungKEYCHAINS } from "../lib/arkh/stats/data/game/customlists.js";
+import { ITEMS } from "@/lib/game/data/generated/items.js";
+import { DungKEYCHAINS } from "@/lib/game/data/generated/customlists.js";
 
 type Json = any;
 

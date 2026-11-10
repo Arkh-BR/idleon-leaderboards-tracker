@@ -1,6 +1,6 @@
 // ===== W2 ALCHEMY DATA =====
 // 1:1 port of corgan-source/js/stats/data/w2/alchemy.js.
-import { AlchemyDescription } from "../game/customlists.js";
+import { AlchemyDescription } from "@/lib/game/data/generated/customlists.js";
 
 export type BubbleParams = {
   name: string;

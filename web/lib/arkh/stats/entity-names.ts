@@ -11,7 +11,7 @@
 //   the friendly name first.
 
 import { ENTITY_NAMES } from "./data/entity-names.gen";
-import { TalentIconNames } from "./data/game/customlists.js";
+import { TalentIconNames } from "@/lib/game/data/generated/customlists.js";
 
 // "GRADED_RATE" → "Graded Rate", "PIT_O'_PAGES" → "Pit O' Pages". Used for
 // talents the generated table doesn't know yet (a game update landed in
