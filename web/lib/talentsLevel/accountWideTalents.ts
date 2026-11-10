@@ -14,7 +14,7 @@
 // — Spelunk[...].indexOf(rawLv) almost never finds a hit, so super
 // contribution is effectively zero in cross-char queries.
 //
-// This file lives in arkh/ (not talentsLevel/) so talent.resolve can
+// This file lives in talentsLevel/ (lib/arkh re-exports it) so talent.resolve can
 // auto-detect account-wide ids and switch to mode="max" without the
 // caller having to opt in. /talents-level and /drop-rate then share
 // the same compute path.

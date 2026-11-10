@@ -18,12 +18,12 @@
 // Lightweight: pure SM lookups + one maxBookLv computation. No presets —
 // there's a single SkillLevelsMAX per char (no SMpre).
 
-import { loadSaveData } from "../arkh/save/loader";
-import { saveData } from "../arkh/state";
-import { skillLvMaxData } from "../arkh/save/data";
-import { computeMaxBookLv } from "../arkh/stats/systems/common/talent";
-import { hasTalentCapBoosters } from "../arkh/stats/data/common/talent-cap-boosters";
-import { entityName } from "../arkh/stats/entity-names";
+import { makeCtx } from "@/lib/game/ctx";
+import { charKey, opt } from "@/lib/game/state";
+import { stateOf } from "@/lib/game/trackers/page";
+import { maxBookLv as accountMaxBookLv } from "../dropRate/explain/talent";
+import { hasTalentCapBoosters } from "./capBoosters";
+import { entityName } from "./entityNames";
 import { TALENT_TABS_BY_CLASS } from "./talentTabs.gen";
 import { getCharClassKey, getCharClassLabel } from "./charClass";
 import { listCharacters } from "../dropRate/extract";
@@ -75,12 +75,6 @@ function prettifyName(raw: string): string {
     .join(" ");
 }
 
-function readLevel(perChar: any, talentId: number): number {
-  if (!perChar) return 0;
-  const v = perChar[talentId] ?? perChar[String(talentId)];
-  return Number(v) || 0;
-}
-
 /**
  * Scan the whole account and return, per character, the regular talents
  * whose cap can still be raised with books (current cap < maxBookLv).
@@ -88,8 +82,8 @@ function readLevel(perChar: any, talentId: number): number {
  * @param rawEnvelope The parsed "Copy for Support" save.
  */
 export function computeUnbooked(rawEnvelope: any): UnbookedCharGroup[] {
-  loadSaveData(rawEnvelope);
-  const maxBookLv = computeMaxBookLv(saveData);
+  const state = stateOf(rawEnvelope);
+  const maxBookLv = accountMaxBookLv(makeCtx(state, { player: 0, map: 0 }));
   const chars = listCharacters(rawEnvelope);
 
   const groups: UnbookedCharGroup[] = [];
@@ -99,8 +93,6 @@ export function computeUnbooked(rawEnvelope: any): UnbookedCharGroup[] {
     if (!classKey) continue;
     const cls = TALENT_TABS_BY_CLASS[classKey];
     if (!cls) continue;
-
-    const sm = skillLvMaxData[ci];
 
     const items: UnbookedItem[] = [];
     const seen = new Set<number>();
@@ -119,7 +111,7 @@ export function computeUnbooked(rawEnvelope: any): UnbookedCharGroup[] {
         if (hasTalentCapBoosters(t.id)) continue;
         totalScanned++;
 
-        const currentCap = readLevel(sm, t.id);
+        const currentCap = Number(opt(state, charKey("SM", ci), t.id)) || 0 /* absent = no cap recorded */;
         // Skip talents with no recorded cap (0 = not active for this char)
         // and those already at/above the ceiling.
         if (currentCap <= 0 || currentCap >= maxBookLv) continue;
