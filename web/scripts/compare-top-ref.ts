@@ -3,7 +3,7 @@
 // pickers and gamePools' bestMap give each character.
 //
 // Run (from web/):  npx tsx scripts/compare-top-ref.ts [stat ...] [--maps] --saves-dir scripts/updater/golden/.cache --newest 5
-// The stats are the keys of STATS; none given = all of them.
+// The stats are the keys of STATS and "dr" (Drop Rate V1, its own runner: per profile instead of per family); none given = all of them.
 import { readdirSync, readFileSync } from "node:fs";
 import { basename, join } from "node:path";
 
@@ -33,6 +33,35 @@ import { MK_COLLECTOR_MAP } from "../lib/multikill/layers";
 import { DMG_COLLECTOR } from "./update-top-damage";
 import { AFK_COLLECTOR } from "./update-top-afk";
 import { MK_COLLECTOR } from "./update-top-multikill";
+import { collectDrReference, type DrV1Engine } from "./update-top-dr";
+import { combineDRPools, computeArkhDRPools } from "../lib/arkh/computeDR";
+import { buildMapOptions } from "../lib/dropRate/arcaneBonus";
+import { V1_SOURCES } from "../lib/dropRate/v1Sources";
+
+/** lib/arkh has no etc102 row (lib/game's is there only while it is not 0): its place in addMain, padded with a 0 so positions are v1Rows'. */
+const ETC102 = V1_SOURCES.filter((s) => s.pool === "addMain").findIndex((s) => s.id === "etc102");
+/** The old DR V1 collector's engine: lib/arkh's pools on the save's highest-arcane-factor map (lib/dropRate/arcaneBonus), chip gallery on. */
+export const ARKH_DR_V1: DrV1Engine = {
+  computePools: (save, ci) => {
+    const maps = buildMapOptions(save);
+    const map = maps.reduce((a, b) => (b.factor > a.factor ? b : a), maps[0]).index;
+    const pools = computeArkhDRPools(save, ci, map, { chipGalleryActive: true });
+    if (pools.addMain.items.length !== V1_SOURCES.filter((s) => s.pool === "addMain").length - 1) throw new Error("lib/arkh's addMain moved");
+    const out: Record<string, { items: any[] }> = {};
+    for (const pn in pools) out[pn] = { items: [...pools[pn].items] };
+    out.addMain.items.splice(ETC102, 0, { name: "EtcBonuses(102) (etcBonus 102)", val: 0 });
+    return out;
+  },
+  combine: (pools) => {
+    const p: Record<string, any> = {};
+    for (const pn in pools) {
+      const items = pn === "addMain" ? pools[pn].items.filter((_, i) => i !== ETC102) : [...pools[pn].items];
+      const vals = items.map((it) => Number(it.val) || 0);
+      p[pn] = { items, sum: vals.reduce((a, v) => a + v, 0), product: vals.reduce((a, v) => a * (v !== 0 ? v : 1), 1) };
+    }
+    return combineDRPools(p);
+  },
+};
 
 /** The old Damage collector's pools: lib/arkh's, with the Reliquarium forced off (val 0, "Carried" 0). */
 function oldDamagePools(save: unknown, ci: number) {
@@ -42,7 +71,7 @@ function oldDamagePools(save: unknown, ci: number) {
 }
 
 /** stat -> its collector config on each engine: the new one is the collector's own, the old one the same config with lib/arkh's pools and combine
- *  (what the update-top-* scripts ran before). Task 5 adds DR V1. */
+ *  (what the update-top-* scripts ran before). DR V1 ("dr") has its own runner: ARKH_DR_V1 against update-top-dr's engine. */
 const STATS: Record<string, { old: StatCollectorConfig; neu: StatCollectorConfig }> = {
   coin: { neu: COIN_COLLECTOR, old: { ...COIN_COLLECTOR, computePools: (s, ci) => computeArkhCoinPools(s, ci, 301), combine: combineCoinPools } },
   exp: { neu: EXP_COLLECTOR, old: { ...EXP_COLLECTOR, computePools: (s, ci) => computeArkhExpPools(s, ci, bestExpMapIdx(s, ci)), combine: combineExpPools } },
@@ -53,87 +82,121 @@ const STATS: Record<string, { old: StatCollectorConfig; neu: StatCollectorConfig
   multikill: { neu: MK_COLLECTOR, old: { ...MK_COLLECTOR, computePools: (s, ci) => computeArkhMultikillPools(s, ci, MK_COLLECTOR_MAP), combine: combineMultikillPools } },
 };
 
-const argv = process.argv.slice(2);
-const flag = (f: string) => {
-  const k = argv.indexOf(f);
-  return k >= 0 ? argv[k + 1] : undefined;
-};
-const dir = flag("--saves-dir");
-const newest = Number(flag("--newest"));
-if (!dir || !(newest > 0)) {
-  console.error("× needs --saves-dir <dir> --newest <N> (local saves only)");
-  process.exit(1);
-}
-const values = new Set([dir, flag("--newest")]);
-const asked = argv.filter((a) => !a.startsWith("--") && !values.has(a));
-const unknown = asked.filter((s) => !STATS[s]);
-if (unknown.length) {
-  console.error(`× unknown stat(s): ${unknown.join(", ")} (known: ${Object.keys(STATS).join(", ") || "none yet"})`);
-  process.exit(1);
-}
-
-const files = newestSaves(readdirSync(dir).filter((f) => f.endsWith(".json")).map((f) => join(dir, f)), newest);
-const saves = files
-  .map((f) => ({ name: basename(f, ".json"), save: JSON.parse(readFileSync(f, "utf8").replace(/^﻿/, "")) }))
-  .filter(({ save }) => save?.data && Array.isArray(save.charNames) && !hackedSaveReason(save));
-console.log(`→ ${saves.length} saves: ${saves.map((s) => s.name).join(", ")}`);
-const chars = saves.reduce((n, s) => n + listCharacters(s.save).length, 0);
-
-if (argv.includes("--maps")) {
-  const pickers = {
-    dr2: bestDrMapIdx,
-    afk: bestAfkMapIdx,
-    exp: bestExpMapIdx,
-  } satisfies Record<keyof typeof MAP_PICKS, (save: any, ci: number) => number>;
-  for (const [stat, arkh] of Object.entries(pickers) as [keyof typeof MAP_PICKS, (s: unknown, ci: number) => number][]) {
-    const { score, accept } = MAP_PICKS[stat];
-    let ms = 0;
-    for (const { name, save } of saves) {
-      const row: string[] = [];
-      for (const ch of listCharacters(save)) {
-        const old = arkh(save, ch.charIndex);
-        const t0 = performance.now();
-        let neu: number | string;
-        try {
-          neu = bestMap(save, ch.charIndex, score, accept);
-        } catch (e) {
-          neu = `refused (${e instanceof Error ? e.message : e})`;
-        }
-        ms += performance.now() - t0;
-        row.push(old === neu ? `${ch.charName} ${neu}` : `${ch.charName} ${old} ≠ ${neu}`);
-      }
-      console.log(`  ${stat} ${name}: ${row.join(" · ")}`);
-    }
-    console.log(`  ${stat} bestMap: ${(ms / chars).toFixed(0)} ms/character`);
-  }
-}
-
-const flatOf = (r: ReturnType<typeof collectReference>, f: string) => (r.ref.familyFlats as Record<string, Record<string, number>>)[f] ?? {};
-const rel = (a: number, b: number) => Math.abs(a - b) / Math.max(Math.abs(a), Math.abs(b), 1e-300);
-
-const stats = asked.length ? asked : Object.keys(STATS);
-if (!stats.length && !argv.includes("--maps")) console.log("  no stat configured yet (Tasks 3-5 add them to STATS)");
-for (const stat of stats) {
-  const { old, neu } = STATS[stat];
-  const run = (cfg: StatCollectorConfig) => {
-    const t0 = performance.now();
-    const r = collectReference(cfg, saves);
-    return { r, msPerChar: (performance.now() - t0) / chars };
+function main() {
+  const argv = process.argv.slice(2);
+  const flag = (f: string) => {
+    const k = argv.indexOf(f);
+    return k >= 0 ? argv[k + 1] : undefined;
   };
-  const a = run(old);
-  const b = run(neu);
-  console.log(`\n== ${stat}: old ${a.msPerChar.toFixed(0)} ms/character, new ${b.msPerChar.toFixed(0)} ms/character · refused old ${a.r.refusedChars.length}, new ${b.r.refusedChars.length}`);
-  for (const l of b.r.log.filter((l) => l.includes("refused"))) console.log(`  new${l}`);
-  const families = [...new Set([...Object.keys(a.r.ref.familyFlats), ...Object.keys(b.r.ref.familyFlats)])].sort();
-  for (const f of families) {
-    const fa = flatOf(a.r, f);
-    const fb = flatOf(b.r, f);
-    console.log(`  ${f.padEnd(8)} ceiling old ${(fa[old.root] ?? NaN).toExponential(4)} · new ${(fb[neu.root] ?? NaN).toExponential(4)}`);
-    const onlyOld = Object.keys(fa).filter((p) => !(p in fb));
-    const onlyNew = Object.keys(fb).filter((p) => !(p in fa));
-    const differ = Object.keys(fa).filter((p) => p in fb && rel(fa[p], fb[p]) > 1e-9);
-    for (const p of onlyOld) console.log(`    only old: ${p} = ${fa[p]}`);
-    for (const p of onlyNew) console.log(`    only new: ${p} = ${fb[p]}`);
-    for (const p of differ) console.log(`    differs:  ${p}: old ${fa[p]} · new ${fb[p]}`);
+  const dir = flag("--saves-dir");
+  const newest = Number(flag("--newest"));
+  if (!dir || !(newest > 0)) {
+    console.error("× needs --saves-dir <dir> --newest <N> (local saves only)");
+    process.exit(1);
+  }
+  const values = new Set([dir, flag("--newest")]);
+  const asked = argv.filter((a) => !a.startsWith("--") && !values.has(a));
+  const unknown = asked.filter((s) => !STATS[s] && s !== "dr");
+  if (unknown.length) {
+    console.error(`× unknown stat(s): ${unknown.join(", ")} (known: ${Object.keys(STATS).join(", ") || "none yet"})`);
+    process.exit(1);
+  }
+
+  const files = newestSaves(readdirSync(dir).filter((f) => f.endsWith(".json")).map((f) => join(dir, f)), newest);
+  const saves = files
+    .map((f) => ({ name: basename(f, ".json"), save: JSON.parse(readFileSync(f, "utf8").replace(/^﻿/, "")) }))
+    .filter(({ save }) => save?.data && Array.isArray(save.charNames) && !hackedSaveReason(save));
+  console.log(`→ ${saves.length} saves: ${saves.map((s) => s.name).join(", ")}`);
+  const chars = saves.reduce((n, s) => n + listCharacters(s.save).length, 0);
+
+  if (argv.includes("--maps")) {
+    const pickers = {
+      dr2: bestDrMapIdx,
+      afk: bestAfkMapIdx,
+      exp: bestExpMapIdx,
+    } satisfies Record<keyof typeof MAP_PICKS, (save: any, ci: number) => number>;
+    for (const [stat, arkh] of Object.entries(pickers) as [keyof typeof MAP_PICKS, (s: unknown, ci: number) => number][]) {
+      const { score, accept } = MAP_PICKS[stat];
+      let ms = 0;
+      for (const { name, save } of saves) {
+        const row: string[] = [];
+        for (const ch of listCharacters(save)) {
+          const old = arkh(save, ch.charIndex);
+          const t0 = performance.now();
+          let neu: number | string;
+          try {
+            neu = bestMap(save, ch.charIndex, score, accept);
+          } catch (e) {
+            neu = `refused (${e instanceof Error ? e.message : e})`;
+          }
+          ms += performance.now() - t0;
+          row.push(old === neu ? `${ch.charName} ${neu}` : `${ch.charName} ${old} ≠ ${neu}`);
+        }
+        console.log(`  ${stat} ${name}: ${row.join(" · ")}`);
+      }
+      console.log(`  ${stat} bestMap: ${(ms / chars).toFixed(0)} ms/character`);
+    }
+    // DR V1's old rule: the save's highest-arcane-factor map (lib/dropRate/arcaneBonus), one for every character
+    for (const { name, save } of saves) {
+      const maps = buildMapOptions(save);
+      const old = maps.reduce((a, b) => (b.factor > a.factor ? b : a), maps[0]).index;
+      const row = listCharacters(save).map((ch) => {
+        const neu = bestMap(save, ch.charIndex, MAP_PICKS.dr2.score, MAP_PICKS.dr2.accept, MAP_PICKS.dr2.fallback);
+        return old === neu ? `${ch.charName} ${neu}` : `${ch.charName} ${old} ≠ ${neu}`;
+      });
+      console.log(`  dr (V1) ${name}: ${row.join(" · ")}`);
+    }
+  }
+
+  const flatOf = (r: ReturnType<typeof collectReference>, f: string) => (r.ref.familyFlats as Record<string, Record<string, number>>)[f] ?? {};
+  const rel = (a: number, b: number) => Math.abs(a - b) / Math.max(Math.abs(a), Math.abs(b), 1e-300);
+
+  const stats = asked.length ? asked : [...Object.keys(STATS), "dr"];
+  const diff = (fa: Record<string, number>, fb: Record<string, number>) => {
+    for (const p of Object.keys(fa).filter((p) => !(p in fb))) console.log(`    only old: ${p} = ${fa[p]}`);
+    for (const p of Object.keys(fb).filter((p) => !(p in fa))) console.log(`    only new: ${p} = ${fb[p]}`);
+    for (const p of Object.keys(fa).filter((p) => p in fb && rel(fa[p], fb[p]) > 1e-9)) console.log(`    differs:  ${p}: old ${fa[p]} · new ${fb[p]}`);
+  };
+  for (const stat of stats) {
+    if (stat === "dr") {
+      // Drop Rate V1: per talent profile (base, t24, t279, ES), each the base merged with its override, as topDrFlatForClass does
+      const run = (engine?: DrV1Engine) => {
+        const t0 = performance.now();
+        const r = collectDrReference(saves, engine);
+        return { r, msPerChar: (performance.now() - t0) / chars };
+      };
+      const a = run(ARKH_DR_V1);
+      const b = run();
+      console.log(`
+== dr (V1): old ${a.msPerChar.toFixed(0)} ms/character, new ${b.msPerChar.toFixed(0)} ms/character · refused old ${a.r.refusedChars.length}, new ${b.r.refusedChars.length} · FB68 grafted old ${a.r.fbGrafted}, new ${b.r.fbGrafted}`);
+      for (const l of b.r.log.filter((l) => l.includes("refused"))) console.log(`  new${l}`);
+      for (const k of ["base", ...new Set([...Object.keys(a.r.overrides), ...Object.keys(b.r.overrides)])].sort()) {
+        const fa = { ...a.r.baseFlat, ...(k === "base" ? {} : (a.r.overrides[k] ?? {})) };
+        const fb = { ...b.r.baseFlat, ...(k === "base" ? {} : (b.r.overrides[k] ?? {})) };
+        console.log(`  ${k.padEnd(8)} ceiling old ${(fa["Drop Rate"] ?? NaN).toFixed(4)} · new ${(fb["Drop Rate"] ?? NaN).toFixed(4)}`);
+        diff(fa, fb);
+      }
+      continue;
+    }
+    const { old, neu } = STATS[stat];
+    const run = (cfg: StatCollectorConfig) => {
+      const t0 = performance.now();
+      const r = collectReference(cfg, saves);
+      return { r, msPerChar: (performance.now() - t0) / chars };
+    };
+    const a = run(old);
+    const b = run(neu);
+    console.log(`\n== ${stat}: old ${a.msPerChar.toFixed(0)} ms/character, new ${b.msPerChar.toFixed(0)} ms/character · refused old ${a.r.refusedChars.length}, new ${b.r.refusedChars.length}`);
+    for (const l of b.r.log.filter((l) => l.includes("refused"))) console.log(`  new${l}`);
+    const families = [...new Set([...Object.keys(a.r.ref.familyFlats), ...Object.keys(b.r.ref.familyFlats)])].sort();
+    for (const f of families) {
+      const fa = flatOf(a.r, f);
+      const fb = flatOf(b.r, f);
+      console.log(`  ${f.padEnd(8)} ceiling old ${(fa[old.root] ?? NaN).toExponential(4)} · new ${(fb[neu.root] ?? NaN).toExponential(4)}`);
+      diff(fa, fb);
+    }
   }
 }
+
+// ARKH_DR_V1 is imported by a scratch proof without running the comparison.
+if (require.main === module) main();

@@ -34,6 +34,9 @@ import { MK_CLASS_TALENTS, MK_COLLECTOR_MAP } from "@/lib/multikill/layers";
 import { DMG_COLLECTOR } from "@/scripts/update-top-damage";
 import { AFK_COLLECTOR } from "@/scripts/update-top-afk";
 import { MK_COLLECTOR } from "@/scripts/update-top-multikill";
+import { computeGameDropRateV1 } from "@/lib/game/trackers/dropRateV1";
+import { V1_CLASS_TALENTS } from "@/lib/dropRate/v1Sources";
+import { collectDrReference, DR_V1_ENGINE } from "@/scripts/update-top-dr";
 
 const DIR = "scripts/updater/golden/.cache";
 const newest = existsSync(DIR) ? newestSaves(readdirSync(DIR).filter((f) => f.endsWith(".json")).map((f) => join(DIR, f)), 1)[0] : undefined;
@@ -59,6 +62,8 @@ const CASES: Case[] = [
   { name: "Damage (map 251)", cfg: DMG_COLLECTOR, tracker: (s, ci) => computeGameDamage(s, ci, DMG_COLLECTOR_MAP), depth: 3, talents: DMG_CLASS_TALENTS.filter((t) => ![95, 455, 20, 97, 277, 457, 5, 24].includes(t)) },
   { name: "AFK Gains (best AFK map)", cfg: AFK_COLLECTOR, tracker: (s, ci) => computeGameAfkGains(s, ci, pickMap(s, ci, MAP_PICKS.afk)), depth: 2, talents: AFK_CLASS_TALENTS },
   { name: "Multikill (map 251)", cfg: MK_COLLECTOR, tracker: (s, ci) => computeGameMultikill(s, ci, MK_COLLECTOR_MAP), depth: 2, talents: MK_CLASS_TALENTS },
+  // the rows sit under a bucket (Additive Pool / 🎯 Talents / …) or a root row (Chip Cap-Break / Lab Chip DR)
+  { name: "Drop Rate V1 (best DR map, chip on)", cfg: DR_V1_ENGINE, tracker: (s, ci) => computeGameDropRateV1(s, ci, pickMap(s, ci, MAP_PICKS.dr2), { chipGalleryActive: true }), depth: 3, talents: V1_CLASS_TALENTS },
 ];
 
 describe.skipIf(!save)("the collectors' round trip on the newest save", () => {
@@ -88,6 +93,36 @@ describe.skipIf(!save)("the collectors' round trip on the newest save", () => {
     const got = combine(poolsOf(want.tree, parents));
     expect(near(got.total, want.total)).toBe(true);
     expect(upTo(flattenTree(got.tree), 2)).toEqual(upTo(flattenTree(want.tree), 2));
+  });
+
+  it("DR V1 keeps its rules: 279 / 24 gated into profiles, at most 8 cards, the ES profile with the Family Bonus 68 graft", () => {
+    const r = collectDrReference([{ name: "newest", save }]);
+    expect(r.scanned).toBe(1);
+    expect(r.refusedChars).toEqual([]);
+    expect(r.gated.map((g) => g.id).sort()).toEqual([24, 279]);
+    const has = (m: Record<string, number>, id: number) => Object.keys(m).some((p) => p.endsWith(`(Talent ${id})`));
+    expect(has(r.baseFlat, 279) || has(r.baseFlat, 24)).toBe(false);
+    expect(has(r.overrides.t279, 279) && !has(r.overrides.t279, 24)).toBe(true);
+    expect(has(r.overrides.t24, 24)).toBe(true);
+    expect(r.overrides.t279["Drop Rate"]).toBeGreaterThan(r.baseFlat["Drop Rate"]);
+    // the 8 slots: the two card nodes carry at most 8 valued cards, and the additive node is their sum
+    const ADD = "Drop Rate / Additive Pool / 🃏 Cards / Drop Rate Cards (Card Type 10)";
+    const MUL = "Drop Rate / Post-Processing / 🃏 Cards / Drop Rate Multi Cards (Card Type 101)";
+    const cards = (node: string) => Object.entries(r.baseFlat).filter(([p, v]) => p.startsWith(node + " / ") && /\(Card [^)]+\)$/.test(p) && 0 < v);
+    expect(cards(ADD).length + cards(MUL).length).toBeLessThanOrEqual(8);
+    expect(near(cards(ADD).reduce((a, [, v]) => a + v, 0), r.baseFlat[ADD])).toBe(true);
+    // ARKHE's save has two Elemental Sorcerers: their buffed Family Bonus 68 makes the ES profile
+    expect(r.classProfile.Elemental_Sorcerer).toBe("ES");
+    expect(r.fbGrafted).toBeGreaterThan(0);
+    expect(Object.keys(r.overrides.ES).some((p) => p.endsWith("Family Bonus 68 (Mage)"))).toBe(true);
+    expect(r.overrides.ES["Drop Rate"]).toBeGreaterThan(r.baseFlat["Drop Rate"]);
+  });
+
+  it("DR V1: a character the engine refuses is counted and named, and the run goes on", () => {
+    const engine = { ...DR_V1_ENGINE, computePools: (s: unknown, ci: number) => (ci === chars[1].charIndex ? (() => { throw new Error("MissingSaveKey: test"); })() : DR_V1_ENGINE.computePools(s, ci)) };
+    const r = collectDrReference([{ name: "newest", save }], engine);
+    expect(r.refusedChars).toEqual([`newest/${chars[1].charName}`]);
+    expect(r.scanned).toBe(1);
   });
 
   it("bestMap picks an accepted map no other accepted map outscores (DR V2)", () => {

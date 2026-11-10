@@ -11,10 +11,19 @@
 // Additive picks feed the additive pool (Σ); multi picks feed the multi pool
 // (Σ, applied as 1+Σ/100).
 
-import { MONSTERS } from "@/lib/game/data/generated/monsters.js";
-import { CARD_DR_BONUS, CARD_DR_MULTI } from "../../lib/arkh/stats/data/common/cards";
-import type { Pool } from "../../lib/arkh/stats/tree-builder";
-import { label } from "../../lib/arkh/stats/entity-names";
+import { CardStuff, IDforCardBonus, MONSTERS } from "../../lib/game/data";
+import { label } from "../../lib/talentsLevel/entityNames";
+
+/** Card key -> its bonus per star, for the cards whose bonus is IDforCardBonus[type] (CardStuff rows: [0] key, [3] bonus, [4] per star). */
+const cardsOfType = (type: number): Record<string, number> => {
+  const out: Record<string, number> = {};
+  for (const group of CardStuff as unknown as readonly (readonly unknown[])[][])
+    for (const card of group) if (card[3] === IDforCardBonus[`${type}`]) out[String(card[0])] = Number(card[4]);
+  return out;
+};
+/** "+{%_Total_Drop_Rate" (type 10) and "+{%_Drop_Rate_Multi" (type 101). */
+export const CARD_DR_BONUS = cardsOfType(10);
+export const CARD_DR_MULTI = cardsOfType(101);
 
 const LEGEND = 1.75; // ponytail: Flopping a Full House (Legend 21) ceiling — every endgamer caps it
 const CHIP = 2; // slots 1 & 8 chip double (card1/card2)
@@ -124,20 +133,10 @@ export function observedStarLvOf(
   return (k) => m.get(k) ?? 0;
 }
 
-/** Rebuild the two card pool items (drives the total) from the best-8 pick. */
-export function capDrCardsInPools(grp: {
-  bestPools: Record<string, Pool> | null;
-  bestFlat: Record<string, number>;
-}): Top8Result {
-  const { multi, add } = buildDrCardInputs(observedStarLvOf(grp.bestFlat));
-  const sel = selectTop8DrCards(multi, add);
-  const setItem = (pool: string, name: string, val: number) => {
-    const it = grp.bestPools?.[pool]?.items.find((i) => i.name === name);
-    if (it) it.val = val;
-  };
-  setItem("addMain", ADD_CARD_ITEM, sel.additiveSum);
-  setItem("postMult", MULTI_CARD_ITEM, sel.multiSum);
-  return sel;
+/** The best-8 pick from the star levels observed in a best-per-path map. Its sums are the two card rows' values (card10 → additiveSum, card101 → multiSum): the collector writes them. */
+export function capDrCards(bestFlat: Record<string, number>): Top8Result {
+  const { multi, add } = buildDrCardInputs(observedStarLvOf(bestFlat));
+  return selectTop8DrCards(multi, add);
 }
 
 const MULTI_CARD_PATH =

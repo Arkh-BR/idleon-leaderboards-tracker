@@ -3,11 +3,12 @@ import {
   selectTop8DrCards,
   obtainableDrCards,
   buildDrCardInputs,
-  capDrCardsInPools,
+  capDrCards,
   patchCardFlatDisplay,
+  CARD_DR_BONUS,
+  CARD_DR_MULTI,
   type DrCardIn,
 } from "../../scripts/_shared/top8DrCards";
-import { CARD_DR_BONUS, CARD_DR_MULTI } from "@/lib/arkh/stats/data/common/cards";
 
 const M = (key: string, val: number): DrCardIn => ({ key, type: "multi", val });
 const A = (key: string, val: number): DrCardIn => ({ key, type: "add", val });
@@ -99,7 +100,16 @@ describe("buildDrCardInputs (observed stars)", () => {
   });
 });
 
-describe("capDrCardsInPools + patchCardFlatDisplay (generator glue)", () => {
+describe("the card tables (CardStuff rows whose bonus is IDforCardBonus 10 / 101)", () => {
+  it("hold the per-star value of each Drop Rate card, additive and multi apart", () => {
+    expect(CARD_DR_BONUS.Crystal0).toBe(5);
+    expect(CARD_DR_MULTI.w7a12).toBe(1);
+    expect(CARD_DR_BONUS.w7a12).toBeUndefined();
+    expect(Object.keys(CARD_DR_BONUS).length).toBeGreaterThan(5);
+  });
+});
+
+describe("capDrCards + patchCardFlatDisplay (generator glue)", () => {
   const ADD_NODE =
     "Drop Rate / Additive Pool / 🃏 Cards / Drop Rate Cards (Card Type 10)";
   // 9 additive + 2 multi observed at star lv 7 (the naive node summed all 9)
@@ -118,35 +128,19 @@ describe("capDrCardsInPools + patchCardFlatDisplay (generator glue)", () => {
     f["Drop Rate / Total Sum"] = 50;
     return f;
   };
-  const mkPools = () =>
-    ({
-      addMain: {
-        items: [{ name: "Drop Rate Cards (Card Type 10)", val: 741.125 }],
-        sum: 0,
-        product: 0,
-      },
-      postMult: {
-        items: [{ name: "Drop Rate Multi Cards (Card Type 101)", val: 49 }],
-        sum: 0,
-        product: 0,
-      },
-    }) as any;
 
-  it("caps pool items to the best-8 sums (fewer than the 9 observed)", () => {
-    const grp = { bestFlat: mkFlat(), bestPools: mkPools() };
-    const sel = capDrCardsInPools(grp);
+  it("caps the cards to the best-8 sums (fewer than the 9 observed)", () => {
+    const sel = capDrCards(mkFlat());
     expect(sel.picks.length).toBeLessThanOrEqual(8);
-    expect(grp.bestPools.addMain.items[0].val).toBeCloseTo(sel.additiveSum, 9);
-    expect(grp.bestPools.postMult.items[0].val).toBeCloseTo(sel.multiSum, 9);
+    expect(sel.additiveSum).toBeCloseTo(sel.picks.filter((p) => p.type === "add").reduce((a, p) => a + p.effVal, 0), 9);
     expect(sel.additiveSum).toBeLessThan(741.125); // was 9 additives, now ≤6
     expect(sel.picks.filter((p) => p.boosted).every((p) => p.type === "multi")).toBe(true);
   });
 
   it("shows the FULL additive catalog: picks valued, rest +0; ancestors shift by delta", () => {
     const flat = mkFlat();
-    const grp = { bestFlat: flat, bestPools: mkPools() };
     const beforePool = flat["Drop Rate / Additive Pool"];
-    const sel = capDrCardsInPools(grp);
+    const sel = capDrCards(flat);
     patchCardFlatDisplay(flat, sel);
     const delta = sel.additiveSum - 741.125;
     expect(flat[ADD_NODE]).toBeCloseTo(sel.additiveSum, 9);
@@ -166,8 +160,7 @@ describe("capDrCardsInPools + patchCardFlatDisplay (generator glue)", () => {
     const flat = mkFlat();
     flat[MULTI_NODE] = 49;
     flat[MULTI_NODE + " / Coralcave Guardian (Card w7a12)"] = 24.5; // stale
-    const grp = { bestFlat: flat, bestPools: mkPools() };
-    const sel = capDrCardsInPools(grp);
+    const sel = capDrCards(flat);
     patchCardFlatDisplay(flat, sel);
     const kids = Object.keys(flat).filter((p) => p.startsWith(MULTI_NODE + " / "));
     expect(kids).toHaveLength(Object.keys(obtainableDrCards(CARD_DR_MULTI)).length);

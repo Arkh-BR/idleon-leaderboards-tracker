@@ -362,7 +362,8 @@ export function collectReference(cfg: StatCollectorConfig, saves: Iterable<{ nam
   return { ref, best: bestAll ?? {}, bestPlayer, scanned, skipped, refusedChars, log };
 }
 
-export async function runTopCollector(cfg: StatCollectorConfig, argv: string[] = process.argv.slice(2)): Promise<void> {
+/** The candidates' saves, from the leaderboards (throttled) or --saves-dir's envelopes (--newest N of them), and the player floor below which a collector publishes nothing. */
+export async function loadPlayers(argv: string[], focusBoard: string): Promise<{ loaded: { name: string; save: unknown }[]; minPlayers: number }> {
   const THROTTLE_MS = argv.includes("--slow") ? 1500 : 400;
   const num = (flag: string) => {
     const k = argv.indexOf(flag);
@@ -395,7 +396,7 @@ export async function runTopCollector(cfg: StatCollectorConfig, argv: string[] =
     const files = readdirSync(savesDir).filter((f) => f.endsWith(".json")).map((f) => join(savesDir, f));
     candidates = (NEWEST ? newestSaves(files, NEWEST) : files).map((f) => basename(f).slice(0, -5)).slice(0, LIMIT ?? undefined);
   } else {
-    candidates = await gatherCandidates({ limit: LIMIT ?? undefined, focusBoard: cfg.focusBoard });
+    candidates = await gatherCandidates({ limit: LIMIT ?? undefined, focusBoard });
   }
   console.log(`  ✓ ${candidates.length} candidates`);
 
@@ -406,6 +407,11 @@ export async function runTopCollector(cfg: StatCollectorConfig, argv: string[] =
     loaded.push({ name: candidates[k], save: await loadSave(candidates[k]) });
     if (!savesDir && k < candidates.length - 1) await sleep(THROTTLE_MS);
   }
+  return { loaded, minPlayers: MIN_PLAYERS };
+}
+
+export async function runTopCollector(cfg: StatCollectorConfig, argv: string[] = process.argv.slice(2)): Promise<void> {
+  const { loaded, minPlayers: MIN_PLAYERS } = await loadPlayers(argv, cfg.focusBoard);
   const t0 = performance.now();
   const r = collectReference(cfg, loaded);
   const ms = performance.now() - t0;

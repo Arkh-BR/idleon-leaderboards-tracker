@@ -23,8 +23,16 @@ const ofRow = <T,>(v: T | ((c: Ctx, val: number) => T), c: Ctx, val: number): T 
 /** One of Post-Processing's first three steps, as a bucket of its own (the chain after them is grouped by system). */
 const stepBucket = (row: ArkhNode, name: string, fmt: "+" | "x", note: string): ArkhNode => ({ name, val: row.val || (fmt === "x" ? 1 : 0), fmt, note, children: [row] });
 
-/** The page's result for the character and map of a traced Ctx (nothing computed on it yet). A save the game would not have the keys for (Ruling E) throws what the engine throws. */
-export function dropRateV1Tree(ctx: Ctx): { tree: ArkhNode; total: number } {
+export type V1Rows = Record<V1Pool, ArkhNode[]>;
+
+/** V1_SOURCES by pool, in order: position i of a pool's rows is its i-th source. */
+const BY_POOL = V1_SOURCES.reduce((m, s) => (m[s.pool].push(s), m), { base: [], addMain: [], addLUK2: [], chipDR: [], postFlat: [], postMult: [] } as Record<V1Pool, V1Source[]>);
+
+/**
+ * Every V1 source's row, by pool in V1_SOURCES' order, read out of a traced Ctx's one TotalStats("Drop_Rarity") call. None is dropped (`shown` is v1Assemble's), so a row's position is its source for every character: the
+ * Observed Max collector takes the best per position. A save the game would not have the keys for (Ruling E) throws what the engine throws.
+ */
+export function v1Rows(ctx: Ctx): { rows: V1Rows; total: number; cove?: number; root: TraceNode; call: TraceNode } {
   if (!ctx.trace) throw new Error("Drop Rate: the tree is read from the trace, and this Ctx has none");
   const total = TotalStats(ctx, "Drop_Rarity"); // the one call
   const root = ctx.trace;
@@ -33,23 +41,25 @@ export function dropRateV1Tree(ctx: Ctx): { tree: ArkhNode; total: number } {
   const plain: Ctx = { ...ctx, trace: null }; // the rows' own reads leave nothing in the trace
   const used = new Set<TraceNode>();
 
-  const pools: Record<V1Pool, ArkhNode[]> = { base: [], addMain: [], addLUK2: [], chipDR: [], postFlat: [], postMult: [] };
-  const rowOf = (s: V1Source): ArkhNode | null => {
+  const rowOf = (s: V1Source): ArkhNode => {
     const kept: ArkhNode[] = [];
     const ops = opsOf(call, used, kept, plain, s.id);
     const val = typeof s.from === "string" ? SOURCES[s.from].of(ops) : s.from(ops);
-    if (s.shown && !s.shown(val)) return null;
     const fmt = ofRow(s.fmt, plain, val);
     const note = ofRow(s.note, plain, val);
     // the block's calls are not V1's rows: only a read that failed stays, saying so
     const children = [...(EXPLAINERS[s.id]?.(plain, val) ?? []), ...kept.filter((k) => k.note?.startsWith("not read"))];
     return { name: ofRow(s.name, plain, val), val, ...(fmt ? { fmt } : {}), ...(note ? { note } : {}), ...(children.length ? { children } : {}) };
   };
-  for (const s of V1_SOURCES) {
-    const row = rowOf(s);
-    if (row) pools[s.pool].push(row);
-  }
+  const rows = Object.fromEntries(Object.keys(BY_POOL).map((p) => [p, [] as ArkhNode[]])) as V1Rows;
+  for (const s of V1_SOURCES) rows[s.pool].push(rowOf(s));
+  const cove = inCove(plain) ? SOURCES.cove.of(opsOf(call, used, [], plain, "cove")) : undefined;
+  return { rows, total, cove, root, call };
+}
 
+/** The page's rows under the root from v1Rows' rows (or the collector's best per position): `shown` drops a row, then V1's buckets. `expected`: the total the rows rebuild, the Cove's while it applies. */
+export function v1Assemble(all: V1Rows, cove?: number): { children: ArkhNode[]; expected: number } {
+  const pools = Object.fromEntries(Object.entries(all).map(([p, rows]) => [p, rows.filter((r, i) => BY_POOL[p as V1Pool][i]?.shown?.(r.val) ?? true)])) as V1Rows;
   const luk = pools.base[0];
   const lukC = 1.4 * luk.val;
   const addSum = sum(pools.addMain) + sum(pools.addLUK2);
@@ -63,7 +73,6 @@ export function dropRateV1Tree(ctx: Ctx): { tree: ArkhNode; total: number } {
   let rebuilt = (base + bunV.val) * workbench.val + ola232.val;
   for (const r of chain) rebuilt *= r.fmt === "x" ? r.val : 1 + r.val / 100;
 
-  const coveVal = inCove(plain) ? SOURCES.cove.of(opsOf(call, used, [], plain, "cove")) : undefined;
   const children: ArkhNode[] = [
     {
       name: "LUK Scaling",
@@ -88,13 +97,18 @@ export function dropRateV1Tree(ctx: Ctx): { tree: ArkhNode; total: number } {
         ...categorizePoolItems(chain, "multiplicative", "merge"),
       ],
     },
-    ...(coveVal === undefined ? [] : [{ name: V1_COVE, val: coveVal, fmt: "raw" as const, note: "Map 216 (The Hole), cavern 17 (The Cove): replaces the whole Drop Rate" }]),
+    ...(cove === undefined ? [] : [{ name: V1_COVE, val: cove, fmt: "raw" as const, note: "Map 216 (The Hole), cavern 17 (The Cove): replaces the whole Drop Rate" }]),
   ];
+  return { children, expected: cove ?? rebuilt };
+}
 
+/** The page's result for the character and map of a traced Ctx (nothing computed on it yet). */
+export function dropRateV1Tree(ctx: Ctx): { tree: ArkhNode; total: number } {
+  const { rows, total, cove, root, call } = v1Rows(ctx);
+  const { children, expected } = v1Assemble(rows, cove);
   const migrated = migratedNote(ctx.state);
   const tree: ArkhNode = { name: "Drop Rate", val: total, fmt: "x", ...(migrated ? { note: migrated } : {}), children };
   // every flagged call goes under the root: V1's rows have no place for a call's own note (the empty set: `used` here only says which call a source took)
-  const expected = coveVal ?? rebuilt;
   return finishTree(tree, total, { totalFromFlat: () => expected }, root, call, new Set(), [call], () => near(expected, total));
 }
 
@@ -108,7 +122,12 @@ export function forceTrophyChip(ctx: Ctx, on: boolean | undefined): void {
 
 /** `computeArkhDropRate`'s counterpart: the envelope of a save, a character index and the map to compute on. */
 export function computeGameDropRateV1(save: unknown, charIdx: number, mapIdx: number, opts?: { chipGalleryActive?: boolean }): { tree: ArkhNode; total: number } {
+  return dropRateV1Tree(v1Ctx(save, charIdx, mapIdx, opts));
+}
+
+/** The traced Ctx computeGameDropRateV1 reads (v1Rows' input for the Observed Max collector). */
+export function v1Ctx(save: unknown, charIdx: number, mapIdx: number, opts?: { chipGalleryActive?: boolean }): Ctx {
   const ctx = makeCtx(stateOf(save), { player: charIdx, map: mapIdx, trace: true });
   forceTrophyChip(ctx, opts?.chipGalleryActive);
-  return dropRateV1Tree(ctx);
+  return ctx;
 }

@@ -15,12 +15,12 @@ import { newestSaves } from "@/lib/diagnose/characterize";
 import type { ArkhNode } from "@/lib/dropRate/node";
 import * as systems from "@/lib/dropRate/systems";
 import { talentLevelRows } from "@/lib/dropRate/explain/talent";
-import { V1_COVE, V1_SOURCES } from "@/lib/dropRate/v1Sources";
+import { V1_COVE, V1_SOURCES, type V1Pool } from "@/lib/dropRate/v1Sources";
 import { flattenTree } from "@/lib/dropRate/treeFlatten";
 import { assumed, makeCtx, type Ctx, type TraceNode } from "@/lib/game/ctx";
 import { MissingSaveKey, TreeTotalMismatch } from "@/lib/game/errors";
-import { stateOf } from "@/lib/game/trackers/page";
-import { computeGameDropRateV1, dropRateV1Tree } from "@/lib/game/trackers/dropRateV1";
+import { near, stateOf } from "@/lib/game/trackers/page";
+import { computeGameDropRateV1, dropRateV1Tree, v1Assemble, v1Rows } from "@/lib/game/trackers/dropRateV1";
 import { type Data, type Seeds, synth, WB } from "../support/expStub";
 
 // the guard test makes the block disagree with its own sources once (a hook, not vi.fn: see trackers/dropRate.test.ts)
@@ -56,6 +56,17 @@ const FIVE = ["LUK Scaling", "Additive Pool", "Total Sum", "Chip Cap-Break", "Po
 describe("the V1 tree on a synthetic envelope (runs in CI)", () => {
   it("every source of the tree has its rows built: nothing is pending", () => {
     expect([...PENDING]).toEqual([]);
+  });
+
+  it("v1Rows keeps every source's row at its position, shown or not; v1Assemble drops the unshown and builds the page's rows", () => {
+    const { rows, total } = v1Rows(synth({ Dream: dream, SL_0: {} }, { seeds: SET, real: REAL, trace: true }));
+    for (const p of Object.keys(rows) as V1Pool[]) expect(rows[p].map((r) => r.name), p).toHaveLength(V1_SOURCES.filter((s) => s.pool === p).length);
+    expect(rows.addMain.find((r) => r.name === "EtcBonuses(102) (etcBonus 102)")?.val).toBe(0); // the Collector's positions keep it
+    const { children, expected } = v1Assemble(rows);
+    const page = tree();
+    expect(near(expected, total)).toBe(true);
+    expect(JSON.stringify(children)).not.toContain("EtcBonuses(102)");
+    expect(children).toEqual(page.tree.children!.slice(0, children.length));
   });
 
   it("has the page's five rows, in order, and its number is the block's", () => {
