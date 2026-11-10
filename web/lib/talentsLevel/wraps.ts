@@ -12,7 +12,7 @@
 import { asNum } from "@/lib/game/attr";
 import type { Ctx } from "@/lib/game/ctx";
 import { ArcaneUpg, CompassUpg, GrimoireUpg } from "@/lib/game/data";
-import { NotPorted } from "@/lib/game/errors";
+import { NonFiniteResult, NotPorted } from "@/lib/game/errors";
 import { listAt } from "@/lib/game/lists";
 import { ArbitraryCode } from "@/lib/game/njs/ArbitraryCode";
 import { AtomCollider } from "@/lib/game/njs/AtomCollider";
@@ -48,7 +48,7 @@ export type CounterSource =
   | { kind: "InvStorageOwned"; item: string } // the character's inventory and the storage, as the game counts them
   | { kind: "PlayerSpeedBonus" };
 
-/** The wraps whose counter is not on lib/game yet: they keep the plain talent shape and their counter throws NotPorted if read. Task 4 (TalentCalc) removes the CalcTalent ones; SkillStats("FishingEfficiency") is a block of its own. */
+/** The 18 CalcTalent ids plus 202 (SkillStats("FishingEfficiency"), not on lib/game): they keep the plain talent shape and their counter throws NotPorted if read. All of them are Task 4's. */
 export const WRAP_COUNTER_PENDING = new Set<number>([31, 57, 59, 110, 125, 146, 202, 209, 305, 430, 470, 485, 595, 616, 620, 643, 644, 650, 656]);
 
 /** Spec for a talent whose final bonus = wrap(the talent's curve value, counter). */
@@ -64,6 +64,8 @@ export type TalentWrapSpec = {
   wrapWithLv?: (rawTalentVal: number, counter: number, effectiveLv: number, c: Ctx) => number;
   /** Takes precedence over `wrapWithLv` and `wrap` when the final bonus reads a second value of the character (the Atom 1 term of the inventory talents, the move speed of Speedna). */
   wrapWithSave?: (rawTalentVal: number, counter: number, c: Ctx) => number;
+  /** The consumer applies the wrap with a counter of 0 too (the inventory talents add the Atom term to getLOG(0) = 0; 313's exponent is 1 at Trapping 0): only a curve value of 0 is inactive. */
+  zeroCounterApplies?: true;
   /** "x" (a multiplier) or "+" (additive). */
   fmt: "x" | "+";
   /** The root's note when active, from the curve value and the counter. */
@@ -116,6 +118,7 @@ const invAtom = (item: string, itemLabel: string, effectWord: string): TalentWra
   counterNote: `ItemsAndStorageOWNED.${item} — assumed: this character's inventory plus the storage, counted as the game does after an inventory change (the game's own map is empty until the session's first one)`,
   wrap: (tv, n, c) => tv * getLOG(c, n),
   wrapWithSave: (tv, n, c) => tv * (getLOG(c, n) + AtomCollider(c, "AtomBonuses", 1, 0)),
+  zeroCounterApplies: true, // N.js @4204412: 1 + GetTalentNumber(1,101) x (AtomCollider("AtomBonuses",1,0) + getLOG(owned)) / 100, with getLOG(0) = 0 (@4461003)
   fmt: "+",
   noteForActive: (tv, n) => `${two(tv)} × (log10(${n}) + Atom1) % ${effectWord}`,
   inactiveVal: 0,
@@ -133,13 +136,14 @@ export const TALENT_WRAPS: Record<number, TalentWrapSpec> = {
   328: olaLog({ label: "Plunderous Kills", index: 139, note: "OLA[139] — kills of plunderous mobs", what: "no Plunderous Kills (OLA[139])", wrap: logMul, fmt: "x", active: mulNote, inactiveVal: 1 }),
   433: olaLog({ label: "Dust Collected", index: 362, note: "OLA[362] — dust ever collected", what: "no Dust (OLA[362])", wrap: logMul, fmt: "x", active: mulNote, inactiveVal: 1 }),
   508: olaLog({ label: "Wormhole Kills", index: 152, note: "OLA[152] — kills of wormhole mobs", what: "no Wormhole Kills (OLA[152])", wrap: logMul, fmt: "x", active: mulNote, inactiveVal: 1 }),
-  // N.js @7239184: the tooltip is GetTalentNumber(1,598) x getLOG(OLA[394]) in "%_Chance", with no /100 (lib/arkh divided it)
+  // N.js @15151232: the chance is getbonus2(1,598,-1) x getLOG(OLA[394]) / 100 (gate @11095487), so the talent's % is tv x log10(OLA[394]); lib/arkh divided that % by 100 again
   598: olaLog({ label: "Tachyons", index: 394, note: "OLA[394] — tachyons collected", what: "no Tachyons (OLA[394])", wrap: logAdd, fmt: "+", active: addNote("chance"), inactiveVal: 0 }),
 
   // ===== log additive ("+") =====
   638: olaLog({ label: "Dungeon Credits", index: 71, note: "OLA[71] — dungeon credits earned", what: "no Dungeon Credits (OLA[71])", wrap: logAdd, fmt: "+", active: addNote("damage"), inactiveVal: 0 }),
   649: olaLog({ label: "Garbage", index: 161, note: "OLA[161] — garbage collected", what: "no Garbage (OLA[161])", wrap: logAdd, fmt: "+", active: addNote("damage"), inactiveVal: 0 }),
-  653: olaLog({ label: "Best Target Dummy DPS", index: 172, note: "OLA[172] — best DPS ever on the Target Dummy", what: "no Target Dummy DPS (OLA[172])", wrap: logAdd, fmt: "+", active: addNote("all stat"), inactiveVal: 0 }),
+  // N.js @4062188 (TotalStats): Math.min(15, getLOG(OptionsListAccount[172]) x GetTalentNumber(1,653)); the tooltip draws it uncapped, the consumer is the headline
+  653: olaLog({ label: "Best Target Dummy DPS", index: 172, note: "OLA[172] — best DPS ever on the Target Dummy", what: "no Target Dummy DPS (OLA[172])", wrap: (tv, n, c) => Math.min(15, logAdd(tv, n, c)), fmt: "+", active: (tv, n) => `${two(tv)} × log10(${n}) % all stat (max 15)`, inactiveVal: 0 }),
   365: {
     counterLabel: "Stored Pet Mob Power",
     counterSource: { kind: "PetsStored", row: 0, col: 2 },
@@ -180,7 +184,7 @@ export const TALENT_WRAPS: Record<number, TalentWrapSpec> = {
     extraBaseKids: (perSkull) => [rawRow("Per Skull", perSkull)],
   },
   58: linear({ label: "Speedrun Highscore Maps", source: { kind: "OLA", index: 158 }, note: "OLA[158] — speedrun highscore (maps cleared)", what: "no Speedrun highscore (OLA[158])", shape: (n) => Math.floor(n / 5), show: (tv, n) => `${two(tv)} × floor(${n}/5) % multikill` }),
-  // N.js @7242888: the tooltip is GetTalentNumber(1,103) x (Lv0[1] / 10) in %, no /100 (lib/arkh divided it)
+  // N.js @4202284 (SkillStats): x (1 + GetTalentNumber(1,103) x (Lv0[1] / 10) / 100), so the talent's % is tv x (Lv0[1] / 10); lib/arkh divided that % by 100 again
   103: linear({ label: "Mining Level", source: { kind: "Lv0", index: 1 }, note: "Lv0[1] — mining skill level", what: "Mining Lv 0", shape: (n) => n / 10, show: (tv, n) => `${two(tv)} × (${n}/10) % mining power` }),
   140: lv10("Cooking Level", 10, "cooking", "weapon power"),
   141: stat1000("STR"),
@@ -197,14 +201,14 @@ export const TALENT_WRAPS: Record<number, TalentWrapSpec> = {
   201: grimoire("wraith def/hp"),
   425: compass("tempest def/acc"),
   426: compass("tempest elem dmg"),
-  // N.js @11072274: not the count of unlocked breeds lib/arkh took, see totBreedzWWz
+  // N.js @11070551 (Compass_CRITPCT): GetTalentNumber(1,427) x floor(Windwalker("TotBreedzWWz") / 25); the total is not the count of unlocked breeds lib/arkh took, see totBreedzWWz (@11072274)
   427: linear({ label: "Breeds Unlocked (WW)", source: { kind: "TotBreedzWWz" }, note: "TotBreedzWWz — the W6 breeds, each unlocked one weighted by its 2nd multiplier, as the game sums them", what: "no breeds unlocked", shape: (n) => Math.floor(n / 25), show: (tv, n) => `${two(tv)} × floor(${n}/25) % tempest crit` }),
   591: linear({ label: "Arcane Upgrade Total", source: { kind: "ArcaneUpgTotal" }, note: "Σ Arcane[] — total arcane (tesseract) upgrade levels", what: "no Arcane upgrades", shape: (n) => n / 100, show: (tv, n) => `${two(tv)} × (${n}/100) % arcanist acc/def` }),
   463: linear({ label: "Minigame Highscore", source: { kind: "MinigameHiscore", index: 0 }, note: "FamValMinigameHiscores[0] — chopping minigame highscore", what: "no minigame highscore", shape: (n) => Math.floor(n / 25), show: (tv, n) => `${two(tv)} × floor(${n}/25) % dmg` }),
   654: linear({ label: "Onyx Statues Owned", source: { kind: "StatueOnyx" }, note: "count of unique Onyx statues (StatueG[e] >= 2, gated by OLA[69])", what: "no Onyx statues", shape: (n) => n, show: (tv, n) => `${two(tv)} × ${n} onyx statues % multikill` }),
-  // N.js @7244583: the tooltip is GetTalentNumber(1,177) x Lv0[15] in "%_Bit_Gain", with no /100 (lib/arkh divided it); the game's own bits formula also multiplies by the Gaming multiplier, which the tooltip does not
+  // N.js @10745916 (the bits): x (1 + getbonus2(1,177,-1) x Lv0[15] / 100) x ..., so the talent's % is tv x Lv0[15]; lib/arkh divided that % by 100 again. The Gaming multiplier of the same product is not in the row
   177: linear({ label: "Gaming Level", source: { kind: "Lv0", index: 15 }, note: "Lv0[15] — gaming level (× GamingPOINGmulti omitted)", what: "Gaming Lv 0", shape: (n) => n, show: (tv, n) => `${two(tv)} × ${n} % bits (×gaming mult omitted)` }),
-  // N.js @7251833: the tooltip is GetTalentNumber(1,590) x (ArcaneUpgTotal / 100) in "%_DMG", with the second /100 lib/arkh had missing
+  // N.js @11089284 (Arcane_DMG): x (1 + GetTalentNumber(1,590) x (ArcaneUpgTotal / 100) / 100), so the talent's % is tv x (total / 100); lib/arkh divided that % by 100 again
   590: linear({ label: "Arcane Upgrade Total", source: { kind: "ArcaneUpgTotal" }, note: "Σ Arcane[] — total arcane upgrade levels (×pow(1.04,ACzWepAtk) omitted)", what: "no Arcane upgrades", shape: (n) => n / 100, show: (tv, n) => `${two(tv)} × (${n}/100) % arcanist dmg (×ACzWepAtk pow omitted)` }),
 
   // ===== CalcTalentMAP-scaled talents: the wrap shape is the game's, the counter is Task 4's (WRAP_COUNTER_PENDING) =====
@@ -269,8 +273,9 @@ export const TALENT_WRAPS: Record<number, TalentWrapSpec> = {
   476: invAtom("Soul1", "Forest Souls", "worship efficiency"),
 
   // ===== power forms ("x") =====
-  // N.js @7779456: pow(max(1, GetTalentNumber(1,313)), 1 + floor(Lv0[7] / 10)), the shiny chance, again every 10 Trapping levels
+  // N.js @7779456 (the shiny chance): Math.pow(Math.max(1, GetTalentNumber(1,313)), 1 + Math.floor(Lv0[7] / 10)), so Trapping 0 still gives max(1, tv)
   313: {
+    zeroCounterApplies: true,
     counterLabel: "Trapping Level",
     counterSource: { kind: "Lv0", index: 7 },
     counterNote: "Lv0[7] — Trapping skill level (exponent = 1 + floor(LV/10))",
@@ -281,12 +286,12 @@ export const TALENT_WRAPS: Record<number, TalentWrapSpec> = {
     inactiveNote: (_tv, n) => (n <= 0 ? "Inactive — Trapping LV 0 → pow(..,1)" : "Inactive — talent 0"),
     extraBaseKids: tvKid("formula(effective_lv) — base x-multiplier (per 10 Trapping LV)"),
   },
-  // N.js @7249456: pow(GetTalentNumber(1,434), Windwalker("TotalTitanKills"))
+  // N.js @4265761 (the class EXP): Math.pow(Math.max(1, getbonus2(1,434,-1)), Windwalker("TotalTitanKills"))
   434: {
     counterLabel: "Abominations Killed",
     counterSource: { kind: "TotalTitanKills" },
     counterNote: "Σ Compass[1][l] === 1 — titans/abominations killed (exponent)",
-    wrap: (tv, n) => Math.pow(tv, n),
+    wrap: (tv, n) => Math.pow(Math.max(1, tv), n),
     fmt: "x",
     noteForActive: (tv, n) => `pow(${tv.toFixed(4)}, ${n}) class EXP`,
     inactiveVal: 1,
@@ -308,8 +313,7 @@ export const TALENT_WRAPS: Record<number, TalentWrapSpec> = {
     inactiveNote: idle("AGI 0"),
     extraBaseKids: tvKid("formula(effective_lv) — % exp per 250 AGI (capped by tab-2)"),
   },
-  // N.js @4113631 (the Damage sum): GetTalentNumber(1,290) x floor(min(PlayerSpeedBonus() - 1, 10) / .15), the speed above 100% in steps of 15%, at most 1000%. The counter row is the speed over 100% in %, as the tooltip
-  // (@7247288) draws it before its ceil
+  // N.js @4113631 (the Damage sum): GetTalentNumber(1,290) x floor(min(PlayerSpeedBonus() - 1, 10) / .15), the speed above 100% in steps of 15%, at most 1000%. The counter row is the speed over 100% in %
   290: {
     counterLabel: "Movement Speed % over 100",
     counterSource: { kind: "PlayerSpeedBonus" },
@@ -401,9 +405,10 @@ export function readCounter(c: Ctx, src: CounterSource): number {
 export function applyWrap(c: Ctx, spec: TalentWrapSpec, name: string, rawTalentVal: number, baseKids: ArkhNode[], effectiveLv: number): ArkhNode {
   const counter = readCounter(c, spec.counterSource);
   const kids = [...baseKids, ...(spec.extraBaseKids?.(rawTalentVal, c) ?? []), rawRow(spec.counterLabel, counter, spec.counterNote)];
-  if (rawTalentVal > 0 && counter > 0) {
+  if (rawTalentVal > 0 && (counter > 0 || spec.zeroCounterApplies)) {
     const val = spec.wrapWithSave ? spec.wrapWithSave(rawTalentVal, counter, c) : spec.wrapWithLv ? spec.wrapWithLv(rawTalentVal, counter, effectiveLv, c) : spec.wrap(rawTalentVal, counter, c);
-    return row(name, val || 0, spec.fmt, spec.noteForActive(rawTalentVal, counter), kids);
+    if (!Number.isFinite(val)) throw new NonFiniteResult(`TalentWrap ${name}`, [rawTalentVal, counter], val);
+    return row(name, val, spec.fmt, spec.noteForActive(rawTalentVal, counter), kids);
   }
   return row(name, spec.inactiveVal, spec.fmt, spec.inactiveNote(rawTalentVal, counter), kids);
 }

@@ -20,7 +20,7 @@ import { TaskShopDesc } from "@/lib/game/data";
 import { getbonus2 } from "@/lib/game/njs/getbonus2";
 import { capBoosterRow } from "@/lib/talentsLevel/explain/capBoosters";
 import { plainTalent } from "@/lib/talentsLevel/explain/plain";
-import { readCounter, TALENT_WRAPS, WRAP_COUNTER_PENDING } from "@/lib/talentsLevel/wraps";
+import { applyWrap, readCounter, TALENT_WRAPS, WRAP_COUNTER_PENDING } from "@/lib/talentsLevel/wraps";
 import { talentCurveAt } from "@/lib/game/njs/GetTalentNumber";
 import type { TraceNode } from "@/lib/game/trace";
 
@@ -267,10 +267,71 @@ describe("the final-bonus wraps on a synthetic envelope (runs in CI)", () => {
     expect(() => readCounter(wrapCtx({}), TALENT_WRAPS[202].counterSource)).toThrow(/not ported/);
   });
 
-  it("every other wrap reads its counter from the save", () => {
+  it("Lv0 counters are the character's own levels", () => {
     const c = wrapCtx({ Lv0_0: [100, 77, 0, 0, 0, 0, 0, 55] });
     expect(readCounter(c, TALENT_WRAPS[103].counterSource)).toBe(77);
     expect(readCounter(c, TALENT_WRAPS[313].counterSource)).toBe(55);
+  });
+
+  // the root paths below are hidden from the real-save compare by TALENT_KNOWN: these assertions are what would fail if the arithmetic broke
+  it("103: the talent's % is tv x (Lv0[1] / 10), with no further /100 (consumer @4202284)", () => {
+    const t = plainTalent(wrapCtx({ SL_0: { 103: 5 }, Lv0_0: [100, 77] }), 103);
+    const tv = kid(t, "Talent Value").val;
+    expect(tv).toBeGreaterThan(0);
+    expect(t.val).toBeCloseTo(tv * 7.7, 12);
+  });
+
+  it("290: a step per 15% of speed over 100%, floored (speed 1.29 is one step, @4113631)", () => {
+    const t = plainTalent(wrapCtx({ SL_0: { 290: 5 } }, { "PlayerSpeedBonus[]": 1.29 }), 290);
+    const tv = kid(t, "Talent Value").val;
+    expect(tv).toBeGreaterThan(0);
+    expect(t.val).toBeCloseTo(tv * 1, 12); // not tv x 29 / 15
+    expect(plainTalent(wrapCtx({ SL_0: { 290: 5 } }, { "PlayerSpeedBonus[]": 1.14 }), 290).val).toBe(0);
+    expect(plainTalent(wrapCtx({ SL_0: { 290: 5 } }, { "PlayerSpeedBonus[]": 20 }), 290).val).toBeCloseTo(tv * Math.floor(10 / 0.15), 9); // at most 1000%
+  });
+
+  it("427: every Breeding[13 + w] entry counts, the bred ones weighted by 2ndMulti while Breeding[2][3] > 0 (@11072274)", () => {
+    const rows = (flag: number) => [[], [], [0, 0, 0, flag], [], [], [], [], [], [], [], [], [], [], [0, 0.4, 3, ...Array<number>(18).fill(0)], [9999], [], []];
+    const second = (v: number) => Math.min(9, Math.floor(Math.pow(Math.log(Math.max(1, Math.pow(v + 1, 0.725))), 0.8)) + 1);
+    expect(second(3)).toBe(2);
+    expect(second(9999)).toBe(5);
+    const on = plainTalent(wrapCtx({ SL_0: { 427: 5 }, Breeding: rows(1) }), 427);
+    expect(kid(on, "Breeds Unlocked (WW)").val).toBe(1 + 1 + 2 + 18 + 5);
+    expect(on.val).toBeCloseTo(kid(on, "Talent Value").val * 1, 12); // floor(27 / 25)
+    expect(kid(plainTalent(wrapCtx({ SL_0: { 427: 5 }, Breeding: rows(0) }), 427), "Breeds Unlocked (WW)").val).toBe(21 + 1);
+  });
+
+  it("653: capped at 15 (consumer @4062188), the note says so", () => {
+    const hi = plainTalent(wrapCtx({ SL_0: { 653: 1e6 }, OptLacc: ola({ 172: 1e300 }) }), 653);
+    expect(kid(hi, "Talent Value").val * LOG(1e300)).toBeGreaterThan(15);
+    expect(hi.val).toBe(15);
+    expect(hi.note).toMatch(/\(max 15\)$/);
+    const lo = plainTalent(wrapCtx({ SL_0: { 653: 1e6 }, OptLacc: ola({ 172: 10 }) }), 653);
+    expect(lo.val).toBeCloseTo(Math.min(15, kid(lo, "Talent Value").val * LOG(10)), 12);
+  });
+
+  it("the inventory talents at a count of 0 still give coefficient x Atom 1 (getLOG(0) = 0, consumer @4204412)", () => {
+    const t = plainTalent(wrapCtx({ SL_0: { 101: 5 }, InventoryOrder_0: [], ItemQTY_0: [], ChestOrder: [], ChestQuantity: [], Atoms: [0, 3, 0] }), 101);
+    const atom = kid(t, "Atom Bonus (Helium)").val;
+    expect(atom).toBeGreaterThan(0);
+    expect(kid(t, "Copper Ore Owned (inv+storage)").val).toBe(0);
+    expect(t.val).toBeCloseTo(kid(t, "Talent Value").val * atom, 12);
+    expect(t.note).not.toMatch(/^Inactive/);
+  });
+
+  it("313 at Trapping 0 is max(1, tv) (exponent 1), 434 is pow(max(1, tv), kills)", () => {
+    const t = plainTalent(wrapCtx({ SL_0: { 313: 5 }, Lv0_0: [100, 0, 0, 0, 0, 0, 0, 0] }), 313);
+    expect(t.val).toBe(Math.max(1, kid(t, "Talent Value").val));
+    expect(t.note).toMatch(/^pow\(max\(1,/);
+    const c = wrapCtx({});
+    expect(TALENT_WRAPS[434].wrap(0.5, 3, c)).toBe(1);
+    expect(TALENT_WRAPS[434].wrap(2, 3, c)).toBe(8);
+  });
+
+  it("a wrap that comes out non-finite throws instead of reading 0", () => {
+    const c = wrapCtx({ SL_0: { 638: 5 }, OptLacc: ola({ 71: 1000 }) });
+    const spec = { ...TALENT_WRAPS[638], wrap: () => NaN };
+    expect(() => applyWrap(c, spec, "x", 1, [], 0)).toThrow(/returned NaN/);
   });
 });
 
