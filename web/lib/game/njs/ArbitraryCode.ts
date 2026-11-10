@@ -21,6 +21,8 @@ import { GetTalentNumber } from "./GetTalentNumber";
 import { GoldFoodBonuses } from "./GoldFoodBonuses";
 import { GuildBonuses } from "./GuildBonuses";
 import { Holes } from "./Holes";
+import { JellyOperation } from "./JellyOperation";
+import { Shrine } from "./Shrine";
 import { MainframeBonus } from "./MainframeBonus";
 import { MealBonus } from "./MealBonus";
 import { Ninja } from "./Ninja";
@@ -170,6 +172,17 @@ export const ArbitraryCode: (ctx: Ctx, d: string) => number = block("ArbitraryCo
       }
       return assumed(ctx, "TotalQuestsComplete", "the game takes DNSM.TomeQTY[4] once the Tome actor has built it (about 100 ms into the session), else the HUD's quest list; the quest replay stands for both", n);
     }
+    // @4054444: the chance a kill spawns a crystal mob, read by the Tome's record of it (OptionsListAccount[202] @5740104)
+    case "CrystalSpawn":
+      return (
+        (5 * Summoning(ctx, "EventShopOwned", 42, 0) +
+          (1 + GetTalentNumber(ctx, 1, 26) / 100) *
+            (1 + (DNSM_BoxRewards(ctx, "CrystalSpawn") + (Shrine(ctx, 6) + (Companions(ctx, 171) + JellyOperation(ctx, "RoG_BonusQTY", 8, 0)))) / 100) *
+            (1 + GetTalentNumber(ctx, 1, 619) / 100) *
+            (1 + StampBonusOfTypeX(ctx, "CrySpawn") / 100) *
+            (1 + CardBonusREAL(ctx, 14) / 100)) /
+        2e3
+      );
     default:
       throw new NotPorted("ArbitraryCode", d);
   }
@@ -182,6 +195,7 @@ export const PORTED: Ported = {
   AllStat: true,
   AllStatPCT: true,
   TotalQuestsComplete: true,
+  CrystalSpawn: true,
   StatueBonusGiven: true,
   // the name carries the statue (`StatueBonusGiven14`): one entry per statue, so the inventory marks each call
   ...Object.fromEntries((StatueInfo as unknown as readonly unknown[]).map((_, n) => [`StatueBonusGiven${n}`, true as const])),

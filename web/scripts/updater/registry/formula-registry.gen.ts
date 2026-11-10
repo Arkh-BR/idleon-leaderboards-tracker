@@ -156,6 +156,9 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/arkh/stats/systems/damage/damage.ts",
     "lib/game/njs/FarmingStuffs.ts"
   ],
+  "CrystalSpawn": [
+    "lib/game/njs/ArbitraryCode.ts"
+  ],
   "DancingCoralBonus": [
     "lib/arkh/stats/systems/exp/dancingCoral.ts",
     "lib/arkh/stats/systems/exp/exp.ts",
@@ -907,6 +910,7 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/game/njs/TotalStats.ts"
   ],
   "_customBlock_TotalTalentPoints": [
+    "lib/game/njs/TotalTalentPoints.ts",
     "lib/tome/extractors.ts"
   ],
   "_customBlock_Windwalker": [
