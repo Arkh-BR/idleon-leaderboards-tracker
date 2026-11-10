@@ -20,6 +20,9 @@ import { TaskShopDesc } from "@/lib/game/data";
 import { getbonus2 } from "@/lib/game/njs/getbonus2";
 import { capBoosterRow } from "@/lib/talentsLevel/explain/capBoosters";
 import { plainTalent } from "@/lib/talentsLevel/explain/plain";
+import { readCounter, TALENT_WRAPS, WRAP_COUNTER_PENDING } from "@/lib/talentsLevel/wraps";
+import { talentCurveAt } from "@/lib/game/njs/GetTalentNumber";
+import type { TraceNode } from "@/lib/game/trace";
 
 const SPELUNK = Array.from({ length: 60 }, (_, i) => (18 === i || 45 === i ? Array<number>(10).fill(0) : []));
 const envelope = (data: Record<string, unknown> = {}, chars = 1) =>
@@ -182,6 +185,95 @@ describe("the cap boosters on a synthetic envelope (runs in CI)", () => {
   });
 });
 
+describe("the final-bonus wraps on a synthetic envelope (runs in CI)", () => {
+  // the talent curves and getLOG run for real, every other block answers 0, so a talent's level is its points and a counter is what the test seeds
+  const REAL = ["GetTalentNumber", "getbonus2", "ArbitraryCode5Inputs", "getLOG", "AtomCollider"];
+  const ola = (m: Record<number, number>) => Object.assign(Array<number>(700).fill(0), m);
+  const wrapCtx = (data: Record<string, unknown>, seeds: Record<string, number> = {}, trace = false) =>
+    synth({ Spelunk: SPELUNK, PlayerStuff_0: [0, 0], SL_0: {}, SM_0: {}, ...data }, { map: 0, real: REAL, seeds, trace });
+  const LOG = (n: number) => Math.log(Math.max(n, 1)) / 2.30259;
+  const find = (n: TraceNode, pred: (t: TraceNode) => boolean): TraceNode | undefined => (pred(n) ? n : n.children.map((k) => find(k, pred)).find(Boolean));
+
+  it("a log multiplier: 1 + coefficient x log10(counter) / 100 when active, 1 and the reason when not", () => {
+    const on = plainTalent(wrapCtx({ SL_0: { 178: 5 }, OptLacc: ola({ 138: 1000 }) }), 178);
+    const tv = kid(on, "Talent Value").val;
+    expect(tv).toBeGreaterThan(0);
+    expect(on.fmt).toBe("x");
+    expect(on.val).toBeCloseTo(1 + (tv * LOG(1000)) / 100, 12);
+    expect(on.note).toBe(`1 + (${tv.toFixed(2)} × log10(1000)) / 100`);
+    expect(kid(on, "Rememberance Orb Kills")).toMatchObject({ val: 1000, fmt: "raw", note: "OLA[138] — kills with the rememberance orb" });
+    expect(on.children!.map((k) => k.name)).toEqual(["Effective Level", "Talent Value", "Rememberance Orb Kills"]);
+    const off = plainTalent(wrapCtx({ SL_0: { 178: 5 } }), 178);
+    expect(off.val).toBe(1);
+    expect(off.note).toBe("Inactive — no Rememberance Orb Kills (OLA[138])");
+    expect(kid(off, "Rememberance Orb Kills").val).toBe(0);
+  });
+
+  it("a talent the character has not got is inactive whatever the counter is", () => {
+    const t = plainTalent(wrapCtx({ OptLacc: ola({ 71: 1000 }) }), 638);
+    expect(t.val).toBe(0);
+    expect(t.note).toBe("Inactive — talent 0");
+    expect(kid(t, "Dungeon Credits").val).toBe(1000);
+  });
+
+  it("328 is the best character's: Effective Level under it, no Active, the Workbench multiplier's own coefficient", () => {
+    const t = plainTalent(wrapCtx({ SL_0: { 328: 5 }, OptLacc: ola({ 139: 100 }) }), 328);
+    expect(t.children!.map((k) => k.name)).toEqual(["Effective Level", "Talent Value", "Plunderous Kills"]);
+    expect(t.val).toBeCloseTo(1 + (kid(t, "Talent Value").val * LOG(100)) / 100, 12);
+    expect(t.val).toBeCloseTo(1 + (getbonus2(wrapCtx({ SL_0: { 328: 5 } }), 1, 328, -1) * LOG(100)) / 100, 12);
+  });
+
+  it("655 is the character's own: Per Skull times Skulls Beaten under its Level rows", () => {
+    const t = plainTalent(wrapCtx({ SL_0: { 655: 3 }, SM_0: { 655: 9 }, OptLacc: ola({ 189: 40 }) }), 655);
+    expect(t.children!.map((k) => k.name)).toEqual(["Active", "Level", "Max Level", "Per Skull", "Skulls Beaten"]);
+    const per = kid(t, "Per Skull").val;
+    expect(per).toBeGreaterThan(0);
+    expect(t.val).toBeCloseTo(per * 40, 12);
+    expect(t.note).toBe(`${per.toFixed(2)} per skull × 40 skulls`);
+  });
+
+  it("a wrap with the effective level: Tal 282 clamps its linear term against its tab-2 curve (wrapWithLv)", () => {
+    const low = wrapCtx({ SL_0: { 282: 5 } }, { 'TotalStats["AGI"]': 500 });
+    const t = plainTalent(low, 282);
+    const tv = kid(t, "Talent Value").val;
+    const cap = talentCurveAt(low, 2, 282, kid(t, "Effective Level").val);
+    expect(cap).toBeGreaterThan(0);
+    expect(tv * 2).toBeLessThan(cap);
+    expect(t.val).toBeCloseTo(tv * 2, 12);
+    const high = plainTalent(wrapCtx({ SL_0: { 282: 5 } }, { 'TotalStats["AGI"]': 1e9 }), 282);
+    expect(high.val).toBeCloseTo(cap, 12);
+    expect(TALENT_WRAPS[282].wrapWithLv).toBeDefined();
+  });
+
+  it("InvStorageOwned counts the character's inventory and the storage through assumed:, and adds the Atom 1 bonus to the power of 10", () => {
+    const c = wrapCtx({ SL_0: { 101: 5 }, InventoryOrder_0: ["Copper", "Blank", "Copper"], ItemQTY_0: [1000, 0, 200], ChestOrder: ["Copper", "OakTree"], ChestQuantity: [300, 7], Atoms: [0, 3, 0] }, {}, true);
+    const t = plainTalent(c, 101);
+    const tv = kid(t, "Talent Value").val;
+    const atom = kid(t, "Atom Bonus (Helium)").val;
+    expect(atom).toBeGreaterThan(0);
+    const owned = kid(t, "Copper Ore Owned (inv+storage)");
+    expect(owned.val).toBe(1500);
+    expect(owned.note).toMatch(/assumed:/);
+    expect(t.val).toBeCloseTo(tv * (LOG(1500) + atom), 12);
+    expect(find(c.trace!, (n) => /^assumed: /.test(n.note ?? "") && n.value === 1500)).toBeDefined();
+  });
+
+  it("a wrap whose counter lib/game does not have yet keeps the plain shape, and reading its counter says so", () => {
+    for (const id of [31, 202, 643]) expect(WRAP_COUNTER_PENDING.has(id)).toBe(true);
+    const t = plainTalent(wrapCtx({ SL_0: { 31: 5 } }), 31);
+    expect(t.children!.map((k) => k.name)).toEqual(["Active", "Effective Level"]);
+    expect(t.note).toMatch(/^[A-Za-z0-9_]+\(/);
+    expect(() => readCounter(wrapCtx({}), TALENT_WRAPS[31].counterSource)).toThrow(/not ported/);
+    expect(() => readCounter(wrapCtx({}), TALENT_WRAPS[202].counterSource)).toThrow(/not ported/);
+  });
+
+  it("every other wrap reads its counter from the save", () => {
+    const c = wrapCtx({ Lv0_0: [100, 77, 0, 0, 0, 0, 0, 55] });
+    expect(readCounter(c, TALENT_WRAPS[103].counterSource)).toBe(77);
+    expect(readCounter(c, TALENT_WRAPS[313].counterSource)).toBe(55);
+  });
+});
+
 describe.skipIf(GOLDEN_SAVES.length === 0)("compareTalent on the newest save (user decision 09/11)", () => {
   const path = () => newestSaves(goldenSaves(), 1)[0];
   const env = new Map<string, { charNames: string[] }>();
@@ -212,8 +304,17 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("compareTalent on the newest save (us
         }
       }
       console.info(`[talent compare${force ? " forced" : ""}] ${compared} talents compared, ${skipped} skipped (wrap/booster), ${out.length} differences`);
+      const sig = new Map<string, number>();
+      for (const line of out) {
+        const k = line.replace(/^\S+#\d+ talent (\d+) preset \d (\w+): /, "$1 $2: ").replace(/(\d+(\.\d+)?)/g, (m, _a, _b, off, str) => (str.slice(0, off).includes(": game") || /note|vs/.test(str.slice(0, off)) ? "N" : m));
+        sig.set(k.slice(0, 260), (sig.get(k.slice(0, 260)) ?? 0) + 1);
+      }
+      for (const [k, n] of sig) console.info(`${n}x ${k}`);
       for (const line of out.slice(0, 30)) console.info(line);
       console.info(`[cap boosters compared, ${force ? "forced" : "plain"}] ` + [10, 11, 12, 23, 75, 79, 86, 87, 266, 267, 446, 447].map((i) => `${i}:${comparedIds.get(i) ?? 0}`).join(" "));
+      const byKind = new Map<string, number[]>();
+      for (const [id, spec] of Object.entries(TALENT_WRAPS)) if (!PENDING_WRAPS.has(+id) && comparedIds.has(+id)) byKind.set(spec.counterSource.kind, [...(byKind.get(spec.counterSource.kind) ?? []), +id]);
+      console.info(`[wraps compared, ${force ? "forced" : "plain"}] ` + [...byKind].map(([k, ids]) => `${k}: ${ids.join(",")}`).join(" | "));
       expect(compared).toBeGreaterThan(100);
       expect(out.slice(0, 20)).toEqual([]);
     }, 900_000);

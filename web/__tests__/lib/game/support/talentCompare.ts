@@ -3,7 +3,7 @@
 // lib/arkh is the comparison target only: where it is wrong the tree follows N.js and the path goes in TALENT_KNOWN with the evidence.
 import "./arkhOracle"; // first: it sets the `window` shim lib/arkh reads
 import { computeTalentEffective } from "@/lib/talentsLevel/compute";
-import { TALENT_FINAL_BONUS_WRAPS } from "@/lib/arkh/stats/data/common/talent-final-bonus-wraps";
+import { WRAP_COUNTER_PENDING } from "@/lib/talentsLevel/wraps";
 import { talentCurveAt } from "@/lib/game/njs/GetTalentNumber";
 import { makeCtx } from "@/lib/game/ctx";
 import { stateOf } from "@/lib/game/trackers/page";
@@ -11,8 +11,8 @@ import { computeGameTalent, presetState, type TalentOpts } from "@/lib/game/trac
 import type { ArkhNode } from "@/lib/dropRate/node";
 import { near, rowsOf, type V1Diff } from "./v1Compare";
 
-/** The talents with a final-bonus wrap (a task of its own builds them): the comparer skips them until it lands. Task 3 and 4 empty it. */
-export const PENDING_WRAPS = new Set<number>(Object.keys(TALENT_FINAL_BONUS_WRAPS).map(Number));
+/** The wrapped talents whose counter is not on lib/game yet (they keep the plain shape): the comparer skips them. Task 4 empties it by emptying WRAP_COUNTER_PENDING. */
+export const PENDING_WRAPS = WRAP_COUNTER_PENDING;
 /** The cap boosters are built (Task 2): nothing is pending. */
 export const PENDING_BOOSTERS = new Set<number>();
 
@@ -34,11 +34,34 @@ export const TALENT_KNOWN: { path: RegExp; why: string }[] = [
     path: /\(Talent 79\) \/ Effective Level \/ Base Level( \/ Talent Cap \(base \+ boosters\)( \/ Saved SkillLevelsMAX \(override\))?)?$/,
     why: "N.js SkillLevelsMAX[79] = Math.max(100 + Math.min(GetTalentNumber(1,39), CauldronInfo[3][0]), 100) @4378692: the inner max is the literal 100, not the saved SM, so 79 does not ratchet (the other bubble targets do: [87] @4377104, [86] @4377334, [266] @4377631, [446] @4378162). lib/arkh ratchets it and says so in the notes",
   },
+  {
+    path: /\((Talent (101|131|295|311|461|476))\) \/ [A-Za-z' ]+ Owned \(inv\+storage\)$/,
+    why: "N.js _ItemsAndStorageOWNED (ActorEvents_232, rebuilt @5989516) is the CURRENT character's inventory (ActorEvents_29._ItemsOwnedMap, CountInventory @7042726) plus the storage chest, which the talent tooltip reads (@7235759 region: PixelHelperActor[5]._ItemsAndStorageOWNED.h.<item>); lib/arkh's invStorageOwned sums EVERY character's inventory, so its count is above the game's where another character carries the item (Oak Logs of character 1: 1.05e9 vs 1.53e9). The row's note also says it is an assumed value: the game's own map is empty until the session's first inventory change",
+  },
+  {
+    path: /\(Talent (101|131|295|311|461|476)\)$/,
+    why: "the root of the inventory talents is coefficient x (getLOG(items owned) + Atom 1) @7235759 region; where the items owned differ (the row above) so does the root, and its note prints the count",
+  },
+  {
+    path: /\(Talent (103|177|590|598)\)$/,
+    why: "N.js talent tooltips (TalentPow10Disp / TalentMultiDisp, draw event): 103 @7242888 is GetTalentNumber(1,103) x (Lv0[1] / 10) in %, 177 @7244583 is GetTalentNumber(1,177) x Lv0[15] in %_Bit_Gain, 590 @7251833 is GetTalentNumber(1,590) x (ArcaneUpgTotal / 100) in %_DMG and 598 @7239184 is GetTalentNumber(1,598) x getLOG(OLA[394]) in %_Chance; lib/arkh's wraps divide each by a further 100 (103 on character 0 of the newest save: 15.09 x (250 / 10) = 377.2 in the game's %, 3.77 in lib/arkh). The SkillStats consumer of 103 (1 + GetTalentNumber(1,103) x (LV / 10) / 100) does its own /100",
+  },
+  {
+    path: /\(Talent 290\)$/,
+    why: "N.js @4113631 (the Damage sum) adds GetTalentNumber(1,290) x Math.floor(Math.min(PlayerSpeedBonus() - 1, 10) / .15), a step per 15% of speed over 100%; lib/arkh's wrap is the plain product tv x (min(1000, 100 x (speed - 1)) / 15), the tooltip's @7247288 unfloored form",
+  },
+  {
+    path: /\(Talent 427\)( \/ Breeds Unlocked \(WW\))?$/,
+    why: "N.js Windwalker TotBreedzWWz @11072274 sums over the four W6 breeding worlds and EVERY entry of Breeding[13 + w]: an entry above .5 adds min(9, floor((Breeding(\"2ndMulti\") - 1)^.8) + 1) (2ndMulti @7939419 = 1 + ln(max(1, (Breeding[13 + w][e] + 1)^.725)) while Breeding[2][3] > 0, @10095007), every other adds 1; lib/arkh counts only the entries above .5, once each",
+  },
 ];
 
 const hits = new Set<RegExp>();
 /** The TALENT_KNOWN rows no comparison needed so far: a stale row is one lib/arkh no longer gets wrong. */
 export const knownUnused = (): string[] => TALENT_KNOWN.filter((k) => !hits.has(k.path)).map((k) => k.path.source);
+
+/** A note with its long decimals cut to 12 digits: lib/game and lib/arkh sum the same terms in another order, so a counter prints with another last digit (a number of 15 digits or more, or with 8 decimals, is compared to 12). */
+const floats = (note: string | undefined): string | undefined => note?.replace(/\d{15,}(\.\d+)?|\d+\.\d{8,}/g, (m) => String(Number(m).toPrecision(12)));
 
 /** lib/arkh's tree for an account-wide talent no character has points in: one `Reference Character: Char -1` row. */
 const NOBODY = /^Reference Character: Char -1$/;
@@ -91,7 +114,7 @@ export function compareTalent(save: unknown, ci: number, id: number, opts: Talen
     if (!t) continue;
     if (!near(r.node.val, t.node.val) && !explained(path)) out.value.push(`${path}: game ${r.node.val}, arkh ${t.node.val}`);
     if (r.node.fmt !== t.node.fmt && !explained(path)) out.meta.push(`${path}: fmt ${r.node.fmt} vs ${t.node.fmt}`);
-    if (r.node.note !== t.node.note && !explained(path)) out.meta.push(`${path}: note ${JSON.stringify(r.node.note)} vs ${JSON.stringify(t.node.note)}`);
+    if (floats(r.node.note) !== floats(t.node.note) && !explained(path)) out.meta.push(`${path}: note ${JSON.stringify(r.node.note)} vs ${JSON.stringify(t.node.note)}`);
   }
   return out;
 }

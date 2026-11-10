@@ -165,7 +165,7 @@ function multiKillBase(ctx: Ctx): number {
  * (@5989516), which every inventory and storage change fires. The constructor leaves it empty (@6071985) until the first one: that is
  * runtime state, stood in by the count as it stands after one (Ruling J).
  */
-function itemsAndStorageOwned(ctx: Ctx, item: string): number {
+export function itemsAndStorageOwned(ctx: Ctx, item: string): number {
   let n = 0;
   const order = listAt(ctx, "InventoryOrder");
   for (let e = 0; e < order.length; e++) if ("Blank" != order[e] && item == hString(order[e])) n += asNum(ctx, "ItemQuantity", e);
