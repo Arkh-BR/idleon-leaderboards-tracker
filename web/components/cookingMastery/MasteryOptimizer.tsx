@@ -1,12 +1,10 @@
 "use client";
 
 import { useMemo } from "react";
-import { loadSaveData } from "@/lib/arkh/save/loader";
-import { saveData } from "@/lib/arkh/state";
-import {
-  readMasteryInputs,
-  masteryExpReq,
-} from "@/lib/arkh/stats/systems/common/cookingMastery";
+import { makeCtx } from "@/lib/game/ctx";
+import { stateOf } from "@/lib/game/trackers/page";
+import { readMasteryInputs, masteryExpReq } from "@/lib/cookingMastery/mastery";
+import { pageError } from "@/lib/statTracker/pageErrors";
 import { optimize, type RoiRow, type OptimizeResult } from "@/lib/cookingMastery/optimize";
 import { expRateTree } from "@/lib/cookingMastery/tree";
 import DeepView from "@/components/dropRate/DeepView";
@@ -62,12 +60,14 @@ export default function MasteryOptimizer({
   const computed = useMemo(() => {
     if (!envelope) return null;
     try {
-      loadSaveData(envelope as never);
-      const inp = readMasteryInputs(saveData);
+      // Everything here is account-wide, so any character works as the current one.
+      const ctx = makeCtx(stateOf(envelope), { player: 0, map: 0 });
+      const inp = readMasteryInputs(ctx);
       const result = optimize(inp, { calibrateExpRate: ingameExpRate });
-      const tree = expRateTree(saveData);
+      const tree = expRateTree(ctx);
       return { inp, result, tree, error: null as string | null };
-    } catch (e) {
+    } catch (err) {
+      const e = pageError(envelope, err, "Cooking Mastery");
       return {
         inp: null,
         result: null,

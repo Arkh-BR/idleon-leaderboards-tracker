@@ -4,6 +4,8 @@ import { computeTalentTreesForChars } from "../../../lib/talentsLevel/compute";
 import { loadSaveData } from "../../../lib/arkh/save/loader";
 import { saveData } from "../../../lib/arkh/state";
 import { expRateTree } from "../../../lib/cookingMastery/tree";
+import { makeCtx } from "../../../lib/game/ctx";
+import { stateOf } from "../../../lib/game/trackers/page";
 import type { EngineSummary } from "./checks";
 
 // Fixed talent probe (char 0): DR talents — stable across saves, enough to
@@ -46,9 +48,8 @@ export function summarize(save: any): EngineSummary {
     }
   }
 
-  // Cooking exp-rate (expRateTree needs the arkh state loaded).
-  loadSaveData(save);
-  const cookingExp = expRateTree(saveData).val;
+  // Cooking exp-rate (account-wide: any character works).
+  const cookingExp = expRateTree(makeCtx(stateOf(save), { player: 0, map: 0 })).val;
 
   // Talents: sum effective levels over the probe set.
   let talentsTotal = 0;

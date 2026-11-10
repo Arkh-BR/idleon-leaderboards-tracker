@@ -8,7 +8,11 @@
 //   └── External multiplier (×)
 //       ├── Research Grid / Zuperbit / Companion (×)
 //       └── Vial + Arcade + Salt Lick (×)  →  the three additive %s
-import { node, type ArkhNode } from "../arkh/node";
+import type { Ctx } from "@/lib/game/ctx";
+import { TreeTotalMismatch } from "@/lib/game/errors";
+import { Summoning2 } from "@/lib/game/njs/Summoning2";
+import { near } from "@/lib/game/trackers/page";
+import { node, type ArkhNode } from "../dropRate/node";
 import {
   readMasteryInputs,
   sourceBase,
@@ -20,8 +24,7 @@ import {
   UPGRADE_NAMES,
   type ExternalBreakdown,
   type MasteryInputs,
-} from "../arkh/stats/systems/common/cookingMastery";
-import type { SaveData } from "../arkh/state";
+} from "./mastery";
 
 /** Compact magnitude for notes. */
 function k(n: number): string {
@@ -50,11 +53,12 @@ function baseNote(b: number, inp: MasteryInputs): string {
   }
 }
 
-export function expRateTree(s: SaveData): ArkhNode {
-  const inp = readMasteryInputs(s);
-  const ext: ExternalBreakdown & { menagerieBoost21?: number } = externalExpMulti(s);
+export function expRateTree(ctx: Ctx): ArkhNode {
+  const inp = readMasteryInputs(ctx);
+  const ext: ExternalBreakdown = externalExpMulti(ctx);
   const core = expRateCore(inp, inp.purple);
-  const total = core * ext.val;
+  const total = Summoning2(ctx, "ExpRateCook", 0, 0);
+  if (!near(core * ext.val, total)) throw new TreeTotalMismatch(total, core * ext.val);
 
   // Core branch: base 2 × ∏ (1 + base·coef·pts/100) over the Exp/h upgrades.
   const coreChildren: ArkhNode[] = [node("Base value", 2, null, { fmt: "x" })];
@@ -105,16 +109,10 @@ export function expRateTree(s: SaveData): ArkhNode {
         ? `+${ext.fountainCookMaxxing.toFixed(0)}%`
         : "not owned",
     }),
-    // ExpRateCook ×(1 + MenagerieStuff("BoostQTY",21)/100) (2026-10-16). Listed
-    // once externalExpMulti reports it, so the children always multiply to ext.val.
-    ...(ext.menagerieBoost21 === undefined
-      ? []
-      : [
-          node("Menagerie Boost: Cooking Mastery EXP (#21)", 1 + ext.menagerieBoost21 / 100, null, {
-            fmt: "x",
-            note: ext.menagerieBoost21 ? `+${ext.menagerieBoost21}%` : "not upgraded",
-          }),
-        ]),
+    node("Menagerie Boost: Cooking Mastery EXP (#21)", 1 + ext.menagerieBoost21 / 100, null, {
+      fmt: "x",
+      note: ext.menagerieBoost21 ? `+${ext.menagerieBoost21}%` : "not upgraded",
+    }),
     node(
       "Vial + Arcade + Salt Lick",
       1 + slSum / 100,

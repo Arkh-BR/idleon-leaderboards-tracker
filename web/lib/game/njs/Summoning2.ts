@@ -1,15 +1,22 @@
 import { asNum, asNumber, attr } from "../attr";
-import { block, runtime, type Ctx } from "../ctx";
-import { NinjaInfo } from "../data";
+import { block, runtime, withPlayer, type Ctx } from "../ctx";
+import { NinjaInfo, RandoListo2 } from "../data";
 import { InvalidSaveValue, MissingSaveKey, NotPorted } from "../errors";
 import { listAt } from "../lists";
+import { playerCount } from "../player";
 import { ArcaneType } from "./ArcaneType";
 import { Windwalker } from "./Windwalker";
 import { ArcadeBonus } from "./ArcadeBonus";
 import { Companions } from "./Companions";
+import { DNSM_AlchVials } from "./DNSM";
 import { GamingStatType } from "./GamingStatType";
+import { getLOG } from "./getLOG";
 import { Holes } from "./Holes";
+import { Holes2 } from "./Holes2";
 import { JellyOperation } from "./JellyOperation";
+import { MenagerieStuff } from "./MenagerieStuff";
+import { ResearchStuff } from "./ResearchStuff";
+import { SaltLick } from "./SaltLick";
 import { SushiStuff } from "./SushiStuff";
 import { Summoning } from "./Summoning";
 import { Thingies } from "./Thingies";
@@ -20,8 +27,12 @@ import { Thingies } from "./Thingies";
  * (`"GemShop"==getCurrentSceneName()`, the Tutorial and the character-select scene) are not modelled: the scene is the running
  * game's, and a tracked account is in the world.
  */
-export const Summoning2: (ctx: Ctx, d: string, b: number, e: number) => number = block("Summoning2", (ctx, d: string, b: number, _e: number) => {
+export const Summoning2: (ctx: Ctx, d: string, b: number, e: number) => number = block("Summoning2", (ctx, d: string, b: number, e: number) => {
   switch (d) {
+    case "ExpRateCook":
+      return expRateCook(ctx);
+    case "BonusAmountcook":
+      return bonusAmountCook(ctx, b, e);
     case "MeritocBonusz":
       return meritocBonusz(ctx, b);
     case "MeritocCanVote":
@@ -47,6 +58,51 @@ export const Summoning2: (ctx: Ctx, d: string, b: number, e: number) => number =
       throw new NotPorted("Summoning2", d);
   }
 });
+
+/** `ExpRateCook` @10934618: Cooking Mastery Exp/h. The factors in the game's order. */
+function expRateCook(ctx: Ctx): number {
+  return (
+    2 *
+    (1 + Summoning2(ctx, "BonusAmountcook", 0, 99) / 100) *
+    (1 + Summoning2(ctx, "BonusAmountcook", 1, 99) / 100) *
+    (1 + Summoning2(ctx, "BonusAmountcook", 2, 99) / 100) *
+    (1 + MenagerieStuff(ctx, "BoostQTY", 21, 0) / 100) *
+    (1 + Summoning2(ctx, "BonusAmountcook", 4, 99) / 100) *
+    (1 + ResearchStuff(ctx, "Grid_Bonus", 190, 0) / 100) *
+    (1 + (40 * GamingStatType(ctx, "SuperBitType", 68, 0)) / 100) *
+    (1 + Summoning2(ctx, "BonusAmountcook", 5, 99) / 100) *
+    (1 + 2 * Companions(ctx, 87)) *
+    (1 + Holes2(ctx, "Fountain_BonTOT", 2, 17) / 100) *
+    (1 + (DNSM_AlchVials(ctx, "7cookmastery") + (ArcadeBonus(ctx, 69) + SaltLick(ctx, 10))) / 100)
+  );
+}
+
+/**
+ * `BonusAmountcook` @10935566: with `e == 99` upgrade b's bonus, its per-point value times what it scales with; otherwise that per-point value,
+ * RandoListo2[8][b] x CookMaster[2][b]. The two totals are the game's `DNSM.CkMst_AcLvT` and `CkMst_RbLvT`, filled once per session and built
+ * here from the save.
+ */
+function bonusAmountCook(ctx: Ctx, b: number, e: number): number {
+  if (99 != e) {
+    listAt(ctx, "CookMaster", 2); // the game indexes CookMaster[2][b] directly
+    return asNumber((RandoListo2 as unknown as readonly (readonly unknown[])[])[8][b | 0]) * asNum(ctx, "CookMaster", 2, b | 0);
+  }
+  const perPoint = Summoning2(ctx, "BonusAmountcook", b, 0);
+  if (0 == b) return getLOG(ctx, asNum(ctx, "CookMaster", 1, 3)) * perPoint;
+  if (1 == b) {
+    let levels = 0;
+    for (let c = 0, n = playerCount(ctx); c < n; c++) levels += asNum(withPlayer(ctx, c), "Lv0", 10);
+    return Math.max(0, levels - 1e3) * perPoint;
+  }
+  if (2 == b) return Math.max(0, asNum(ctx, "Meals", 0, 73) - 75) * perPoint;
+  if (3 == b) return 250 * (perPoint / (25 + perPoint));
+  if (4 == b) {
+    let ranks = 0;
+    for (let f = 0, n = listAt(ctx, "Ribbon").length - 28; f < n; f++) ranks += asNum(ctx, "Ribbon", 28 + f);
+    return ranks * perPoint;
+  }
+  return (asNum(ctx, "CookMaster", 1, 0) + 1) * perPoint;
+}
 
 /** `DNSM.OwlBonus`'s six bonuses: base value and position in the cycle of OptionsListAccount[255] upgrades (@10950288). */
 const OWL = [5, 10, 2, 4, 1, 2];

@@ -11,4 +11,6 @@ export const PORTED: Ported = {
   OwlMegafeather: true,
   OwlBonuses: range(-1, 6),
   BonusMultiCook: true,
+  ExpRateCook: true,
+  BonusAmountcook: true,
 };

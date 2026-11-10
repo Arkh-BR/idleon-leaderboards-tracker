@@ -51,6 +51,9 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   "BonusAmount": [
     "lib/game/njs/PostOfficeINFO.ts"
   ],
+  "BonusAmountcook": [
+    "lib/game/njs/Summoning2.ts"
+  ],
   "BonusMultiCook": [
     "lib/game/njs/Summoning2.ts"
   ],
@@ -184,6 +187,9 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/arkh/stats/data/w5/farming.ts",
     "lib/arkh/stats/systems/exp/exp.ts",
     "lib/game/njs/FarmingStuffs.ts"
+  ],
+  "ExpRateCook": [
+    "lib/game/njs/Summoning2.ts"
   ],
   "FarmingStickerDMG_unlocked": [
     "lib/arkh/stats/systems/w6/farming.ts",
@@ -460,13 +466,16 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
     "lib/game/njs/Ninja.ts"
   ],
   "PtsLeftCook_P": [
-    "lib/arkh/stats/systems/common/cookingMastery.ts"
+    "lib/arkh/stats/systems/common/cookingMastery.ts",
+    "lib/cookingMastery/mastery.ts"
   ],
   "PtsLeftCook_Y": [
-    "lib/arkh/stats/systems/common/cookingMastery.ts"
+    "lib/arkh/stats/systems/common/cookingMastery.ts",
+    "lib/cookingMastery/mastery.ts"
   ],
   "RandoListo2[8]": [
-    "lib/arkh/stats/systems/common/cookingMastery.ts"
+    "lib/arkh/stats/systems/common/cookingMastery.ts",
+    "lib/cookingMastery/mastery.ts"
   ],
   "RatDMG": [
     "lib/arkh/stats/systems/damage/damage.ts",

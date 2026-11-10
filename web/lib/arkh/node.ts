@@ -5,22 +5,7 @@
 import type { ArkhNode, NodeFmt } from "@/lib/dropRate/node";
 
 export type { ArkhNode, NodeFmt }; // lib/dropRate/node (Ruling B)
-
-export function node(
-  name: string,
-  val: number | null | undefined,
-  children?: ArkhNode[] | null,
-  opts?: { fmt?: NodeFmt; note?: string; defaultClosed?: boolean }
-): ArkhNode {
-  const r: ArkhNode = { name, val: val || 0 };
-  if (children && children.length) r.children = children;
-  if (opts) {
-    if (opts.fmt) r.fmt = opts.fmt;
-    if (opts.note) r.note = opts.note;
-    if (opts.defaultClosed) r.defaultClosed = true;
-  }
-  return r;
-}
+export { node } from "@/lib/dropRate/node";
 
 /** A copy of `n` under a stat tracker's own name and note. The shared helpers
  *  (etcBonus, friend, owl, holes…) also feed Drop Rate, so a tracker renames
