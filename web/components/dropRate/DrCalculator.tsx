@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import {
   buildMapOptions,
   type MapOption,
-} from "@/lib/dropRate/arcaneBonus";
+} from "@/lib/dropRate/mapOptions";
 import { formatIdleon } from "@/lib/format";
 import { defaultCharIndex, listCharacters, parseSave, type CharSummary } from "@/lib/dropRate/extract";
 import { getCharClassKey } from "@/lib/talentsLevel/charClass";
