@@ -37,6 +37,10 @@ export const V1_KNOWN: { path: RegExp; why: string; /** false: only a row differ
     why: "N.js WinBonus @10927394 (@10930921, the branch of the bonuses not 19 or 20..33) adds 50*Thingies(\"Have_ban_i\") (@10978279, BundlesReceived.ban_i == 1) to the winners' boosts; lib/arkh's _winBonusParts (w6/summoning.ts) adds banI to winnerSum but lists no row for it (Winner Multi (combined) under Winner Bonus 19 is the same), so Winner Multi's rows do not sum to its value. The game's tree has the row, only while the bundle is owned (the value above it is the same)",
     moves: false,
   },
+  {
+    path: / \/ Drop Rate (?:Additive \(Tome 2\)|Multi \(Tome 7\)) \/ Tome Score$/,
+    why: "lib/game's Tome score is the N.js sum, DNSM.TomeQTYtot @5769465 / @5779131 (TomeQTY.ts and the Summoning TomePCT/TomePTS cases, per character); lib/arkh's computeTome sums its own quantities, which differ from N.js by a few points: TOME_KNOWN in tomeCompare.ts lists them (qty[3], qty[26], qty[38], qty[82] and the live Drop Rate raise of task 18; ARKHE's saves of 03/11: 55298 vs 55295). Only the Tome Score row of the two Tome bonuses; their bonus values and everything above them are compared as before",
+  },
 ];
 
 const hits = new Set<RegExp>();
