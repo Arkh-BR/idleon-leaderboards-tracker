@@ -70,7 +70,7 @@ function isEnvelope(path: string): boolean {
  */
 export function goldenSaves(dirs: string[] = DEFAULT_DIRS): string[] {
   const only = process.env.GOLDEN_ONLY?.split(",").filter(Boolean);
-  if (!only) return goldenSavesIn(dirs).filter((p) => !PARITY_EXCLUDED.includes(basename(p)));
+  if (!only?.length) return goldenSavesIn(dirs).filter((p) => !PARITY_EXCLUDED.includes(basename(p)));
   return goldenSavesIn(dirs).filter((p) => only.includes(basename(p)));
 }
 

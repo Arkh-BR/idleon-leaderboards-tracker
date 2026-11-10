@@ -36,7 +36,7 @@ const MAPS: Record<number, { known: number; byReason: Record<string, number> }> 
   150: { known: 1139, byReason: EVERY_MAP },
   40: { known: 1140, byReason: { ...EVERY_MAP, signsDmg: 2 } },
 };
-const PAIRS = 1153; // 106 saves x characters (1163), less HourZero's 10
+const PAIRS = 1153; // the parity corpus: 105 saves x characters (HourZero is out, PARITY_EXCLUDED)
 const NO_MONSTER = 'AFKtarget: expected a MonsterDefinitions key, got string "Z"'; // MapAFKtarget[33]
 /**
  * Listed on the pair, but the pair closes without them on every map, so they explain nothing there. gfoodVote26: seeding lib/arkh's weekly vote 26 leaves the total where it is on all 308.

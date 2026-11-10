@@ -86,7 +86,6 @@ const MAPS_OF: Record<string, number[]> = { deathNoteWorld: [MAP, 301, 216], tie
 const mapsOf = (id: string): number[] => MAPS_OF[id] ?? [MAP];
 
 /** What each term refuses (Ruling E): lib/tome cannot score HourZero (see stats.test.ts, equipCards.test.ts): the Tome reaches the bubbles' table and, through the stats, DamageDealed and PlayerAccTot. */
-const TOME_TERMS = new Set(["bubbleMKtier", "tier", "active"]);
 const REFUSALS = (id: string): string[] => [];
 /** The pairs per leaf and reason whose difference a KNOWN entry closes, as a literal (a stale entry or a new difference fails). */
 const EXPECT_KNOWN: Record<string, Record<string, number>> = { tier: { signsDmg: 7, "signs@wis": 1 } };

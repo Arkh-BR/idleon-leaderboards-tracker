@@ -132,8 +132,11 @@ const COUNTING =
 
 /** A test's cache for the count: it reads through to `parent` (its stubs and seeds) and keeps its own writes, so the count stays there. */
 class Overlay extends Map<string, number> {
+  /** The test's own cache under every overlay: the Tome's "counting" mark is kept there, so a read from inside the count sees it. */
+  readonly root: Map<string, number>;
   constructor(private readonly parent: Map<string, number>) {
     super();
+    this.root = parent instanceof Overlay ? parent.root : parent;
   }
   override get(key: string): number | undefined {
     return super.has(key) ? super.get(key) : this.parent.get(key);
@@ -159,7 +162,7 @@ class Overlay extends Map<string, number> {
  */
 export const DNSM_TomeQTYtot = block("DNSM.TomeQTYtot", (ctx) => {
   const test = isTestCache(ctx.cache);
-  const owner = test ? ctx.cache : ctx.state;
+  const owner = test ? (ctx.cache instanceof Overlay ? ctx.cache.root : ctx.cache) : ctx.state;
   let mine = tomeTotals.get(owner);
   if (!mine) tomeTotals.set(owner, (mine = new Map()));
   const key = `${ctx.player}|${ctx.map}`;

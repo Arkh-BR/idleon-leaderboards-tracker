@@ -42,7 +42,8 @@ const memoKey = (ctx: Ctx, name: string, a: readonly (string | number)[]) => `${
 /**
  * A test's cache (a Map subclass, such as the synthetic stubs that answer 0): a value the engine keeps per state (the Tome, which the game
  * counts once per session) is computed on it and kept per cache instead. Any other cache is a plain Map, and such a value is computed on
- * a fresh one, so what a caller seeded (`seedBlock`) or computed never decides what every other Ctx of the state reads.
+ * a fresh one, so what a caller seeded (`seedBlock`) or computed never decides what every other Ctx of the state reads. Production code
+ * must never subclass Map for a Ctx cache: it would make that value per cache.
  */
 export const isTestCache = (cache: Map<string, number>): boolean => cache.constructor !== Map;
 
