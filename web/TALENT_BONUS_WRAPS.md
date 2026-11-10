@@ -264,10 +264,7 @@ Run pattern: `globalThis.window = globalThis; loadSaveData(JSON of "../save
 25-21-16.json"); talent.resolve(id, {saveData, charIdx, activeCharIdx})`.
 
 Regenerate artifacts after lib changes:
-```
-# (the DR Max research tool and its bundle were removed in 2026-11)
-npx tsx scripts/gen-source-catalog.ts  # data/dr-source-catalog.json + public/dr-max-values.html
-```
+The DR Max research tool, its bundle and its source catalog were removed in 2026-11.
 
 ---
 
