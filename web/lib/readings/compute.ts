@@ -53,7 +53,10 @@ export async function computeReadingValue(
       // parsedData dropped so the site's own Tome computation is what's measured.
       const env = { ...(save as object) } as { parsedData?: unknown };
       delete env.parsedData;
-      const tome = computeTome(env as never, { player: ci, map }); // the reading's character and map, as the other stats
+      // The game counts the Tome for the character logged in (TomeQTY[15] is its star talents, @5746384), whatever character the
+      // reading names: the save's latest PTimeAway and its map (tomeWhere), as the page does. The 2026-11-03 save was on character 10
+      // while the reading says 0; counted on 0 the star talents give 256 PTS, not the game's 253.
+      const tome = computeTome(env as never);
       if (stat === "tomeScore") return { value: tome.totalPts };
       const row = tome.rows.find((x) => x.computeIdx === r.task);
       if (!row || row.pts === null) throw new Error(`reading ${r.id}: no Tome task ${r.task}`);
