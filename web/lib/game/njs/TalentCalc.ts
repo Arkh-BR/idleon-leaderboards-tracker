@@ -45,6 +45,14 @@ function fightingMaps(ctx: Ctx): { dn1: number; dn2: number; dn4: number } {
 }
 
 /**
+ * The multikill tier TalentCalc(643) multiplies by, stated as an assumption (`DNSM_CalcTalentMAP` "643" says why). Not a `block`: TalentCalc(643) calls it directly so the Coin Multi tree
+ * keeps the rows and paths it had before the /talents-level wraps read the same key through DNSM_CalcTalentMAP (snapshots and Compare are keyed by path).
+ */
+function tier643(ctx: Ctx): number {
+  return assumed(ctx, 'DNSM.CalcTalentMAP["643"]', "multikill tier worked out for this map (the game keeps the one it found at its last stat rebuild)", RunCodeOfTypeXforThingY(ctx, "OverkillStuffs", "2"), "TalentCalc(643) @4519205 stores OverkillStuffs(\"2\") in DNSM.CalcTalentMAP[\"643\"] when it finds -11 (@4480476); the stored tier stays until the next TalentCalc(d <= 0)");
+}
+
+/**
  * `DNSM.CalcTalentMAP[key]`, the counts every `TalentCalc(d <= 0)` rebuilds (@4467058) that the talents scale with. Only the keys the trackers
  * and /talents-level's wraps reach:
  *  - "31" @4468257: the lowest of the current character's nine skill levels (Lv0[1..9], from 1000);
@@ -107,7 +115,7 @@ export const DNSM_CalcTalentMAP = block("DNSM.CalcTalentMAP", (ctx, key: string)
     // the game finds -11 here after every rebuild and stores the tier the first time TalentCalc(643) asks (@4519205), keeping it until the next rebuild (the scene load and the stat panels call
     // TalentCalc(d <= 0)); here it is worked out now for ctx.map, stated as an assumption
     case "643":
-      return assumed(ctx, 'DNSM.CalcTalentMAP["643"]', "multikill tier worked out for this map (the game keeps the one it found at its last stat rebuild)", RunCodeOfTypeXforThingY(ctx, "OverkillStuffs", "2"), "TalentCalc(643) @4519205 stores OverkillStuffs(\"2\") in DNSM.CalcTalentMAP[\"643\"] when it finds -11 (@4480476); the stored tier stays until the next TalentCalc(d <= 0)");
+      return tier643(ctx);
     case "209":
       return fightingMaps(ctx).dn4;
     case "305": {
@@ -265,7 +273,7 @@ export const TalentCalc = block("TalentCalc", (ctx, d: number) => {
       return GetTalentNumber(ctx, 1, 470) * DNSM_CalcTalentMAP(ctx, "470");
     // @4519205: talent 643 times its multikill tier (DNSM_CalcTalentMAP "643" says why that tier is an assumption)
     case 643:
-      return GetTalentNumber(ctx, 1, 643) * DNSM_CalcTalentMAP(ctx, "643");
+      return GetTalentNumber(ctx, 1, 643) * tier643(ctx);
     // @4519205: talent 644 times the Cooking level / 10
     case 644:
       return GetTalentNumber(ctx, 1, 644) * DNSM_CalcTalentMAP(ctx, "644");

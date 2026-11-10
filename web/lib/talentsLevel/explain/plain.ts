@@ -10,6 +10,7 @@ import type { ArkhNode } from "@/lib/dropRate/node";
 import { talentLevelRows, type TalentRowsOpts } from "@/lib/dropRate/explain/talent";
 import { isAccountWideTalent } from "../accountWideTalents";
 import { label } from "../entityNames";
+import { TALENT_WRAPS } from "../wraps";
 import { wrapRow } from "./wraps";
 
 /** The talent's first curve `[x1, x2, formula]`; null when it has none (an id the game has no description for, or a text-only talent). */
@@ -38,7 +39,9 @@ export function plainTalent(c: Ctx, id: number, o: PlainOpts = {}): ArkhNode {
   const name = label("Talent", id);
   const curve = curveOf(id);
   if (!curve) return { name, val: 0, note: "no formula data" };
-  const rows = talentLevelRows(c, id, { ...o, split: o.split ?? true, best: bestOf(id) });
+  // an `ownFirst` wrap takes the character's own value for the headline (wrapRow): the rows are then that character's chain, not the best one's
+  const ownHeadline = !o.forceSuper && !!TALENT_WRAPS[id]?.ownFirst && 0 < GetTalentNumber(c, 1, id);
+  const rows = talentLevelRows(c, id, { ...o, split: o.split ?? true, best: bestOf(id) && !ownHeadline });
   const [x1, x2, formula] = curve;
   if (bestOf(id)) {
     const effective = rows.find((r) => r.name === "Effective Level");

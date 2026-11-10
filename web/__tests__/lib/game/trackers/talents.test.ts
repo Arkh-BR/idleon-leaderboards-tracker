@@ -6,7 +6,7 @@ import { afterAll, describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { basename } from "node:path";
 import { GOLDEN_SAVES, goldenSaves } from "../support/arkhOracle"; // first: it sets the `window` shim lib/arkh reads
-import { compareTalent, compared as comparedIds, resetCompared, PENDING_BOOSTERS } from "../support/talentCompare";
+import { compareTalent, compared as comparedIds, resetCompared } from "../support/talentCompare";
 import { newestSaves } from "@/lib/diagnose/characterize";
 import type { ArkhNode } from "@/lib/dropRate/node";
 import { maxBookLv } from "@/lib/dropRate/explain/talent";
@@ -67,6 +67,15 @@ describe("the plain talents on a synthetic envelope (runs in CI)", () => {
     expect(kid(t, "Effective Level").val).toBe(5 + sup.val + kid(kid(t, "Effective Level"), "Bonus Levels").val);
   });
 
+  it("ownFirst talent 59: with the character's own level below the best's, the rows are the character's own chain (the headline's)", () => {
+    const data = { SL_0: { 59: 10 }, SL_1: { 59: 100 }, PlayerStuff_1: [0, 0], SM_1: {}, SLpre_1: {} };
+    const own = computeGameTalent(envelope(data, 2), 0, 59);
+    const best = computeGameTalent(envelope(data, 2), 1, 59);
+    const base = (t: ArkhNode) => kid(kid(kid(t, "Effective Level"), "Base Level"), "Points Invested").val;
+    expect(base(own)).toBe(10);
+    expect(base(best)).toBe(100);
+  });
+
   it("star 627: Max Level is 5 x (Tasks[2][0][3] + 1) over a lower saved SM", () => {
     const data = { SL_0: { 627: 3 }, SM_0: { 627: 10 }, TaskZZ2: [[0, 0, 0, 7]] };
     expect(kid(computeGameTalent(envelope(data), 0, 627), "Max Level").val).toBe(40);
@@ -91,6 +100,7 @@ describe("the plain talents on a synthetic envelope (runs in CI)", () => {
     expect(stateOf(save)).toBe(active);
     expect(active.get("SL_0")).toEqual({ 24: 3 });
     expect(presetState(save, 0, 0)).toBe(active); // the active preset is the cached state
+    expect(presetState(save, 0, 1)).toBe(other); // the derived one is built once per save
     // asking the other, then the active one: the first answer again
     const opts = { forceSuperActive: true };
     const pointsOf = (t: ArkhNode) => kid(kid(kid(t, "Effective Level"), "Base Level"), "Points Invested").val;
@@ -419,7 +429,7 @@ describe("the TalentCalc counters and their wraps on a synthetic envelope (runs 
     595: (c) => 1 + (getbonus2(c, 1, 595, -1) * Math.max(0, Math.floor(DNSM_CalcTalentMAP(c, "595") / 100))) / 100, // the divisor of Summoning("UpgCost") @10923070
     616: (c) => TalentCalc(c, 616), // @4186963
     620: (c) => TalentCalc(c, 620), // @4177260
-    643: (c) => TalentCalc(c, 643), // @4049671
+    643: (c) => GetTalentNumber(c, 1, 643) * DNSM_CalcTalentMAP(c, "643"), // @4049671; TalentCalc(643) reads the same tier through its own call, not the block, so the Coin tree keeps its paths
     644: (c) => TalentCalc(c, 644), // @4049703
     650: (c) => TalentCalc(c, 650), // @4445380
     656: (c) => TalentCalc(c, 656), // @4113722
@@ -461,22 +471,17 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("compareTalent on the newest save (us
   afterAll(() => env.clear());
 
   for (const force of [false, true]) {
-    it(`${force ? "forceSuperActive" : "plain"}: no difference outside PENDING and TALENT_KNOWN`, () => {
+    it(`${force ? "forceSuperActive" : "plain"}: no difference outside TALENT_KNOWN`, () => {
       const p = path();
       if (!env.has(p)) env.set(p, JSON.parse(readFileSync(p, "utf8")));
       const save = env.get(p)!;
       const out: string[] = [];
       resetCompared();
       let compared = 0;
-      let skipped = 0;
       for (let ci = 0; ci < save.charNames.length; ci++) {
         const cls = TALENT_TABS_BY_CLASS[getCharClassKey(save, ci) ?? ""];
         if (!cls) continue;
         for (const id of cls.tabs.flatMap((t) => t.talents.map((e) => e.id))) {
-          if (PENDING_BOOSTERS.has(id)) {
-            skipped++;
-            continue;
-          }
           for (const presetIdx of [0, 1] as const) {
             const d = compareTalent(save, ci, id, { presetIdx, forceSuperActive: force });
             compared++;
@@ -484,7 +489,7 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("compareTalent on the newest save (us
           }
         }
       }
-      console.info(`[talent compare${force ? " forced" : ""}] ${compared} talents compared, ${skipped} skipped (wrap/booster), ${out.length} differences`);
+      console.info(`[talent compare${force ? " forced" : ""}] ${compared} talents compared, ${out.length} differences`);
       const sig = new Map<string, number>();
       for (const line of out) {
         const k = line.replace(/^\S+#\d+ talent (\d+) preset \d (\w+): /, "$1 $2: ").replace(/(\d+(\.\d+)?)/g, (m, _a, _b, off, str) => (str.slice(0, off).includes(": game") || /note|vs/.test(str.slice(0, off)) ? "N" : m));

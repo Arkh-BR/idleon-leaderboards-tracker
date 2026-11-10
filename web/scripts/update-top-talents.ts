@@ -40,14 +40,11 @@ import { computeTalentTreesForChars } from "../lib/talentsLevel/compute";
 import { flattenTree, nodePath } from "../lib/dropRate/treeFlatten";
 import { listCharacters } from "../lib/dropRate/extract";
 import { getCharClassKey } from "../lib/talentsLevel/charClass";
-import { skillLvMaxData } from "../lib/arkh/save/data";
+import { starCeilingsOf } from "./_shared/starCeilings";
 import type { ArkhNode } from "../lib/arkh/node";
 
 const HEALTH_BOOSTER = 0; // plain simple talent, no cap-booster
 const ES_CLASS_KEY = "Elemental_Sorcerer";
-// Star talent skill-index range (the "Special Talent" / Star tabs).
-const STAR_MIN = 615;
-const STAR_MAX = 658;
 
 const argv = process.argv.slice(2);
 const SLOW = argv.includes("--slow");
@@ -228,22 +225,9 @@ async function main() {
       const isES = getCharClassKey(save, charIdx) === ES_CLASS_KEY;
       if (foldIntoPool(isES ? es : nonES, tree)) touched++;
     }
-    // Star talent ceilings — computeTalentTreesForChars loaded this save, so
-    // skillLvMaxData now holds its per-char SkillLevelsMAX. Keep the max.
-    const smAll = skillLvMaxData as any[];
-    if (Array.isArray(smAll)) {
-      for (const cm of smAll) {
-        if (!cm) continue;
-        for (let id = STAR_MIN; id <= STAR_MAX; id++) {
-          // 625 (Toilet Paper Postage) is the live cauldron-liquid count — a
-          // per-account value with no fixed ceiling (ranges into the tens of
-          // thousands), so a global max is meaningless. Skip it.
-          if (id === 625) continue;
-          const v = Number(cm[id] ?? cm[String(id)]) || 0;
-          if (v > (starCeiling[id] || 0)) starCeiling[id] = v;
-        }
-      }
-    }
+    // Star talent ceilings: the saved per-char cap (SM_<ci>), max over every save.
+    const caps = starCeilingsOf(save, chars.map((c) => c.charIndex));
+    for (const [id, v] of Object.entries(caps)) if (v > (starCeiling[+id] || 0)) starCeiling[+id] = v;
     scanned++;
     console.log(`  ✓ ${touched} chars`);
     if (i < candidates.length - 1) await sleep(THROTTLE_MS);

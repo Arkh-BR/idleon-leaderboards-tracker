@@ -23,9 +23,12 @@ import type { UnbookedCharGroup, UnbookedItem } from "@/lib/talentsLevel/unbooke
 export default function UnbookedView({
   groups,
   loading,
+  error,
 }: {
   groups: UnbookedCharGroup[] | null;
   loading: boolean;
+  /** The scan's failure (an old or corrupt save), shown in place of the list. */
+  error?: string | null;
 }) {
   const [search, setSearch] = useState("");
   const [showNotes, setShowNotes] = useState(false);
@@ -75,6 +78,7 @@ export default function UnbookedView({
   if (loading) {
     return <p className="text-sm text-zinc-500 italic px-2 py-4">Computing…</p>;
   }
+  if (error) return <p className="text-xs text-red-300 px-2 py-4">{error}</p>;
   if (!groups) {
     return (
       <p className="text-sm text-zinc-500 italic px-2 py-4">

@@ -11,9 +11,6 @@ import { computeGameTalent, presetState, type TalentOpts } from "@/lib/game/trac
 import type { ArkhNode } from "@/lib/dropRate/node";
 import { near, rowsOf, type V1Diff } from "./v1Compare";
 
-/** The cap boosters are built (Task 2): nothing is pending. */
-export const PENDING_BOOSTERS = new Set<number>();
-
 /** A path where lib/arkh is wrong, with its N.js evidence (RAW offset). */
 /** `kind`: which difference the row excuses (default every one); `when`: only where this holds for the game's and lib/arkh's values at the path; `noteWhen`: the same for their notes. */
 export const TALENT_KNOWN: {
@@ -23,6 +20,10 @@ export const TALENT_KNOWN: {
   when?: (game: number, arkh: number) => boolean;
   noteWhen?: (game: string | undefined, arkh: string | undefined) => boolean;
 }[] = [
+  {
+    path: /\(Talent (59|430)\) \/ (Active|Effective Level( \/ Base Level \/ Reference Character: [^/]*)?)$/,
+    why: "The headline of 59 and 430 is the CHARACTER's own GetTalentNumber(1,id) when it is above 0 (TalentCalc(59) @4515654 and TalentCalc(430) @4516984 read the character's own level, not getbonus2(1,id,-1)). lib/arkh builds their rows as the best character's chain (a Reference Character row, no Active); the page now builds the rows of the same character the headline is (wraps.ts ownFirst), so for a character that holds the talent its Active row is there and the Reference Character row is not",
+  },
   {
     path: / \/ Family Guy Multi \(×\) — potential buff( \/ Super Levels)?$/,
     why: "N.js TalentCalc(-3) reads GetTalentNumber(1,144) @4498035, whose AllTalentLV @4085148 gives the super levels only when Spelunk[20 + player + 12 x preset] lists 144; lib/arkh forces the super levels on for it (talent.ts forceSuperActive, the family bonus 68 term), for characters that do not have it listed (Family Guy Multi 1.3556 vs the game's 1.3484 on ARKHE's characters without 144 listed), so its row is above the game's and has a Super Levels row the game has no levels for. Same ruling as V1_KNOWN",

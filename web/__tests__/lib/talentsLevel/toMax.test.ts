@@ -38,6 +38,13 @@ describe("computeTalentsToMax", () => {
     expect(mine[0]).toMatchObject({ cap: 90, investedP1: 40, investedP2: 90 });
     expect(g.items.some((i) => star.includes(i.talentId))).toBe(false);
   });
+  it("with preset 2 active, investedP1 and investedP2 swap", () => {
+    const base = { sl: { [b]: 40 }, slpre: { [b]: 90 }, sm: { [b]: 90 } };
+    const p1 = computeTalentsToMax(save({ ...base, active: 0 }))[0].items.find((i) => i.talentId === b)!;
+    const p2 = computeTalentsToMax(save({ ...base, active: 1 }))[0].items.find((i) => i.talentId === b)!;
+    expect(p1).toMatchObject({ investedP1: 40, investedP2: 90 });
+    expect(p2).toMatchObject({ investedP1: 90, investedP2: 40 });
+  });
   it("falls back to maxBookLv when SM is 0 or absent", () => {
     const s = save({ sl: { [a]: 1 }, sm: { [a]: 0 } });
     const it = computeTalentsToMax(s)[0].items.find((i) => i.talentId === a)!;

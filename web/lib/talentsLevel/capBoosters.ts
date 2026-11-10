@@ -1,28 +1,13 @@
 // ===== TALENT CAP BOOSTERS =====
-// Some "target" talents have a HARDCODED low base cap (typically 100) but
-// get raised by other talents' x/y bonuses. The boosters are documented
-// in the source talent's description text (e.g. ETERNAL_STR's desc:
-// "Also +} max LV to 'Fist_of_Rage'").
-//
-// Discovered via empirical match against SkillLevelsMAX (SM_{ci}[id]) from
-// real saves — for a target talent, SM[id] = baseCap + Σ booster
-// contributions. Once we mirror the formula, the in-game cap shown on
-// /talents-level matches what the player sees in the talent tooltip.
+// Some "target" talents have a hardcoded base cap (100) that N.js raises in TotalTalentPoints with other talents' bonuses
+// (SkillLevelsMAX[id] = 100 + ..., e.g. [10] = 100 + GetTalentNumber(1,81) + GetTalentNumber(2,143) + getbonus2(1,51,-1) @4376078). The table below
+// mirrors those assignments; lib/talentsLevel/explain/capBoosters.ts evaluates it on lib/game and says which targets ratchet.
 //
 // Two scopes:
-//   - "account-wide": cross-char max — pick the best owner-class char and
-//     use their bonus. ETERNAL_STR/AGI/WIS/LUK propagate across the
-//     account for their Max LV effect, even though IT's
-//     `getHighestTalentByClass` doesn't list them (the Max LV mechanic
-//     uses a different game path than getbonus2). Implemented via
-//     talent.resolve(srcId, ctx, { tab, mode: "max" }).
-//   - "per-char": the active char's own investment in the source talent.
-//     Implemented via talent.resolve(srcId, ctx, { tab }) — falls through
-//     to the default per-char branch.
+//   - "account-wide": getbonus2(1, src, -1) @7987852, the highest over every character (ETERNAL_STR/AGI/WIS/LUK).
+//   - "per-char": GetTalentNumber(tab, src) of the character whose cap it is (tab 2 for kind "y").
 //
-// "kind: 'y'" means use the source talent's Y-bonus (funcY/y1/y2 params);
-// "kind: 'x'" means the X-bonus (funcX/x1/x2). Resolved at runtime by
-// passing tab: 2 (y) or omitting tab (x) to talent.resolve.
+// "kind: 'y'" is the source talent's second curve (funcY/y1/y2), "kind: 'x'" the first (funcX/x1/x2).
 
 export type CapBoosterScope = "account-wide" | "per-char";
 

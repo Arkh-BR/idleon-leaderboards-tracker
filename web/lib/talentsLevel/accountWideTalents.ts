@@ -4,20 +4,9 @@
 // character and uses the highest contributor. The ids are generated from
 // N.js (account-wide-talents.gen.ts, scripts/gen-account-wide-talents.ts).
 //
-// IMPORTANT — Super Talent does NOT propagate via these talents.
-// N.js line 5415's _customBlock_RunCodeOfTypeXforThingY("AllTalentLVz")
-// reads the Spelunk super array using the ACTIVE character's index AND
-// preset:
-//   Spelunk[20 + UserInfo[0].idx + 12 * PlayerStuff[1]]
-// AND the getbonus2(1, id, -1) call at N.js line 12551 passes the
-// talent's rawLv (not its talentIdx) as the lookup key into that array
-// — Spelunk[...].indexOf(rawLv) almost never finds a hit, so super
-// contribution is effectively zero in cross-char queries.
-//
-// This file lives in talentsLevel/ (lib/arkh re-exports it) so talent.resolve can
-// auto-detect account-wide ids and switch to mode="max" without the
-// caller having to opt in. /talents-level and /drop-rate then share
-// the same compute path.
+// getbonus2(d, id, -1) @7987852 reads every character's own level of the talent and keeps the highest curve value. For an id from 100 on, each
+// character g also gets AllTalentLVz("id|g") @4085148, whose super-talent term reads both presets of g (Spelunk[20 + g] and Spelunk[32 + g]):
+// the super levels DO propagate into these talents. The page reads them through lib/game's getbonus2 (lib/game/njs/getbonus2.ts).
 
 import { GETBONUS2_BEST_ACROSS_CHARS_IDS } from "@/lib/game/data/generated/account-wide-talents.gen";
 

@@ -1,6 +1,6 @@
 // The final-bonus wraps of /talents-level, read from lib/game. For most talents the curve IS the bonus (Eternal STR's +792 is +792 STR). A few give only a coefficient, "+X% per power of 10 of <a counter>", and the
-// bonus is that coefficient times the counter (or its log10): the tooltip the game draws for them (N.js TalentPow10Disp / TalentMultiDisp, @7235759..@7255309 of the talent panel's draw event) is the shape each wrap
-// follows, and the Damage / Drop Rate / Multikill code that consumes them agrees. The tree of a wrapped talent is
+// bonus is that coefficient times the counter (or its log10): each wrap follows the talent's consumer (the Damage / Drop Rate / Multikill code that applies it), not the tooltip the game draws for it
+// (N.js TalentPow10Disp / TalentMultiDisp, @7235759..@7255309 of the talent panel's draw event). The tree of a wrapped talent is
 //
 //   Talent X = <final bonus>
 //   |- the talent's own rows (Active / Effective Level, or Level / Max Level for a star)
