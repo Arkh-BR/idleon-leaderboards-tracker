@@ -1,10 +1,9 @@
-// Task 5: pets and companions of Sailing("BoatArtiMulti", 0): shiny21, comp154, comp43, comp56, nightmariner.
-// Each term is the expression as BoatArtiMulti uses it (before the /100 of the additive pool; the whole
-// factor for a factor group), compared with lib/arkh over every real save and every character.
-import { afterAll, describe, it, expect } from "vitest";
+// Task 5: pets and companions of Sailing("BoatArtiMulti", 0): shiny21, comp154, comp43, comp56, nightmariner, as BoatArtiMulti uses
+// them (before the /100 of the additive pool; the whole factor for a factor group), one synthetic edge at a time on a real envelope.
+import { describe, it, expect } from "vitest";
 import { existsSync, readFileSync } from "node:fs";
 import { basename } from "node:path";
-import { GOLDEN_SAVES, KNOWN_ARKH_DIFFS, UNPORTED_REFUSALS, arkhArtifactLeaf, gameCtx } from "../support/arkhOracle";
+import { GOLDEN_SAVES, gameCtx } from "../support/saves";
 import { withPlayer, type Ctx, type TraceNode } from "@/lib/game/ctx";
 import { InvalidSaveValue, MissingSaveKey, NotPorted } from "@/lib/game/errors";
 import { Breeding } from "@/lib/game/njs/Breeding";
@@ -14,68 +13,15 @@ import { MenagerieStuff } from "@/lib/game/njs/MenagerieStuff";
 import { callDiff, njsCalls, njsFunction, njsNamedBlocks, traceCalls } from "@/lib/diagnose/njsCalls";
 import { loadNjs } from "@/scripts/njs-calls";
 
-// The terms, written the way BoatArtiMulti writes them. `want` turns lib/arkh's leaf into the same term:
-// the leaf of a `max1` group is the raw factor (the group clamps it), and a `raw` group's leaf lacks the 1.
-type Term = { term: (c: Ctx) => number; want?: (leaf: number) => number; minSeen: number };
+// The terms, written the way BoatArtiMulti writes them.
+type Term = { term: (c: Ctx) => number };
 const TERMS: Record<string, Term> = {
-  shiny21: { term: (c) => Breeding(c, "ShinyBonusS", "Nah", 21, -1), minSeen: 5 },
-  comp154: { term: (c) => Math.max(1, Math.min(2, 1 + 2 * Companions(c, 154)) + CompLV2(c, 154)), want: (l) => Math.max(1, l), minSeen: 1 },
-  comp43: { term: (c) => 1 + Companions(c, 43), want: (l) => 1 + l, minSeen: 1 },
-  comp56: { term: (c) => Math.max(1, Companions(c, 56) / 5), want: (l) => Math.max(1, l), minSeen: 2 },
-  nightmariner: { term: (c) => MenagerieStuff(c, "NightmarinerBon", 0, 0), minSeen: 5 },
+  shiny21: { term: (c) => Breeding(c, "ShinyBonusS", "Nah", 21, -1) },
+  comp154: { term: (c) => Math.max(1, Math.min(2, 1 + 2 * Companions(c, 154)) + CompLV2(c, 154)) },
+  comp43: { term: (c) => 1 + Companions(c, 43) },
+  comp56: { term: (c) => Math.max(1, Companions(c, 56) / 5) },
+  nightmariner: { term: (c) => MenagerieStuff(c, "NightmarinerBon", 0, 0) },
 };
-
-const rel = (got: number, want: number) => Math.abs(got - want) <= 1e-9 * Math.max(1, Math.abs(want));
-
-// One GameState per save, shared by all its characters (withPlayer) and by the tests.
-const states = new Map<string, { ctx: Ctx; chars: number }>();
-afterAll(() => states.clear()); // the built states of the real saves are big: not kept past this file (a full run keeps its workers alive)
-function stateOf(path: string) {
-  let s = states.get(path);
-  if (!s) {
-    const save = JSON.parse(readFileSync(path, "utf8"));
-    states.set(path, (s = { ctx: gameCtx(save, 0), chars: save.charNames.length }));
-  }
-  return s;
-}
-
-describe.skipIf(GOLDEN_SAVES.length === 0)("lib/game pets and companions terms against lib/arkh on every real save and character", () => {
-  for (const id of Object.keys(TERMS)) {
-    it(id, () => {
-      const { term, want: toWant = (l: number) => l, minSeen } = TERMS[id];
-      const t0 = performance.now();
-      const mismatches: string[] = [];
-      const refused: string[] = [];
-      const seen = new Set<number>();
-      let pairs = 0;
-      for (const path of GOLDEN_SAVES) {
-        const { ctx, chars } = stateOf(path);
-        for (let ci = 0; ci < chars; ci++) {
-          if (KNOWN_ARKH_DIFFS.some((d) => d.save === basename(path) && (d.ci ?? ci) === ci && d.source === id)) continue;
-          let got: number;
-          try {
-            got = term(withPlayer(ctx, ci));
-          } catch (e) {
-            if (!(e instanceof MissingSaveKey)) throw e;
-            refused.push(`${basename(path)}#${ci}: ${e.key}`);
-            continue;
-          }
-          const want = toWant(arkhArtifactLeaf(path, ci, id));
-          pairs++;
-          seen.add(want);
-          if (!rel(got, want)) mismatches.push(`${basename(path)}#${ci}: game ${got}, arkh ${want}`);
-        }
-      }
-      console.info(`[pets ${id}] ${pairs} pairs checked, ${mismatches.length} mismatches, ${refused.length} refused, ${seen.size} distinct values, ${Math.round(performance.now() - t0)} ms`);
-      expect(mismatches).toEqual([]);
-      expect(pairs).toBeGreaterThan(100); // a loop over nothing would pass
-      expect(seen.size).toBeGreaterThan(minSeen); // nor would a term that is the same number everywhere
-      // the pre-34 saves lack Menagerie: the game's load fills in its own lists (lib/game/migrations), so only the saves older than the
-      // load steps ported are refused
-      expect([...new Set(refused.map((r) => r.replace(/#\d+: /, ": ")))].sort()).toEqual(UNPORTED_REFUSALS);
-    }, 120_000);
-  }
-});
 
 // ── synthetic saves: one edge each, on top of a real envelope ───────────────────────────────────
 const BASE = GOLDEN_SAVES.find((p) => basename(p) === "ARKHE.json") ?? GOLDEN_SAVES[0];

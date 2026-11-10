@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { basename } from "node:path";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { GOLDEN_SAVES } from "../support/arkhOracle";
+import { GOLDEN_SAVES } from "../support/saves";
 import { buildGameState } from "@/lib/game/state";
 import { computeGameArtifactFind, gameArtifactFind } from "@/lib/game/trackers/artifactFind";
 

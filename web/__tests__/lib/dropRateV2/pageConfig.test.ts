@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { DR2_PAGE } from "@/lib/dropRateV2/pageConfig";
-import { DR2_GROUPS, DR2_ROOT, DR2_VOTE_NAME } from "@/lib/arkh/stats/defs/drop-rate-v2";
+import { DR2_GROUPS, DR2_ROOT, DR2_VOTE_NAME } from "@/lib/dropRateV2/layers";
 
 // V1's localStorage keys (components/dropRate/{DrCalculator,SnapshotSection}.tsx, lib/dropRate/storage.ts).
 const V1_KEYS = [

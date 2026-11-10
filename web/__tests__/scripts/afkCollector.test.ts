@@ -4,9 +4,6 @@ import { AFK_CLASS_TALENTS, AFK_NODES, AFK_ROOT } from "@/lib/afkGains/layers";
 import { topAfkFlatForClass } from "@/lib/afkGains/topAfkGains";
 import { TOP_AFK_PLAYERS_SCANNED } from "@/lib/afkGains/topAfkGains.meta";
 
-const g = globalThis as unknown as { window?: unknown };
-if (!g.window) g.window = g;
-
 const T88 = `${AFK_ROOT} / ${AFK_NODES.pool} / Idle Brawling (Talent 88)`;
 
 describe("AFK Gains Observed Max", () => {

@@ -1,17 +1,10 @@
-// Task 2 (EXP plan): every leaf of ExpMulti(0) (N.js _customBlock_ExpMulti(0) @4260536, the Class EXP multiplier), by EXP_GROUPS source id, against lib/arkh's leaf
-// of the same id (arkhExpLeaves) over every real save and character (relative 1e-9). Each term below is the N.js sub-expression of its source, written
-// in the representation the leaf has in its group: a FACTOR for the mult groups (`1 + Companions(37) x 9`), the % points a pct group sums (g02, g09, g10).
-// The EXP page's own total (the ExpMulti block, the map rules) is Task 3: here the map is plain (251) except where the term reads it. N.js is the
-// truth: a difference is a KNOWN entry with its evidence and a seeded proof, or a mismatch.
-import { afterAll, describe, it, expect } from "vitest";
-import { readFileSync, writeFileSync } from "node:fs";
-import { basename } from "node:path";
-import { GOLDEN_SAVES, KNOWN_ARKH_DIFFS, PROOF_PATCHES, arkhExpLeaves, damageReasonSeeds, patchLukSnapshot, type Seed } from "../support/arkhOracle";
-import { EXP_GROUPS } from "@/lib/arkh/stats/defs/exp-multi";
-import { MissingSaveKey } from "@/lib/game/errors";
+// Task 2 (EXP plan): every leaf of ExpMulti(0) (N.js _customBlock_ExpMulti(0) @4260536, the Class EXP multiplier), by EXP_GROUPS source id. Each
+// term below is the N.js sub-expression of its source, written in the representation the leaf has in its group: a FACTOR for the mult groups
+// (`1 + Companions(37) x 9`), the % points a pct group sums (g02, g09, g10). The table covers every source of the page's descriptor.
+import { describe, it, expect } from "vitest";
+import { EXP_GROUPS } from "@/lib/expMulti/layers";
 import { asNum, attr } from "@/lib/game/attr";
-import { makeCtx, withPlayer, type Ctx } from "@/lib/game/ctx";
-import { buildGameState, type GameEnvelope } from "@/lib/game/state";
+import { withPlayer, type Ctx } from "@/lib/game/ctx";
 import { contains, listAt } from "@/lib/game/lists";
 import { MapAFKtarget } from "@/lib/game/data";
 import { DNSM_AlchBubbles, DNSM_AlchVials, DNSM_BoxRewards, DNSM_StarSigns } from "@/lib/game/njs/DNSM";
@@ -61,9 +54,6 @@ import { SaltLick } from "@/lib/game/njs/SaltLick";
 import { AchieveStatus } from "@/lib/game/njs/AchieveStatus";
 import { Labb } from "@/lib/game/njs/Labb";
 
-const MAP = 251; // a plain map: no dungeon, no arena
-const rel = (got: number, want: number) => Math.abs(got - want) <= 1e-9 * Math.max(1, Math.abs(want));
-
 /** The loop @4261156 of ExpMulti: Tasks[2][0][2] > 0 and every other character's level above this one's (a strict `<`; the last index runs the block). */
 function lowestLevel(c: Ctx): boolean {
   if (!(0 < asNum(c, "Tasks", 2, 0, 2))) return false;
@@ -81,7 +71,7 @@ function lukCurve(c: Ctx): number {
 }
 const comp = (c: Ctx, n: number) => Companions(c, n);
 
-/** The lib/game term of each lib/arkh leaf, as ExpMulti(0) uses it. */
+/** The lib/game term of each source, as ExpMulti(0) uses it. */
 const TERMS: Record<string, (c: Ctx) => number> = {
   // g01
   workbench: (c) => WorkbenchStuff(c, "AdditionExtraEXPnDR", 0, 0),
@@ -196,153 +186,8 @@ const TERMS: Record<string, (c: Ctx) => number> = {
   comp128add: (c) => comp(c, 128),
 };
 
-/** The block key(s) each term reads directly (`<Fn><args as JSON>`): what a seed must never be. */
-const OWN: Record<string, string[]> = {
-  statue10: ['ArbitraryCode["StatueBonusGiven10"]'], starSignMainXP: ['DNSM.StarSigns["MainXP"]'],
-  luk: ['TotalStats["LUK"]'],
-  talent35: ["GetTalentNumber[1,35]", 'TotalStats["LUK"]'], talent632: ["GetTalentNumber[1,632]"], talent55: ["getbonus2[1,55,-1]"], talent434: ["getbonus2[1,434,-1]"],
-  goldFood: ['GoldFoodBonuses["ClassEXPz"]'], divMinor4: Array.from({ length: 12 }, (_, ci) => `Divinity["Bonus_Minor",${ci},4]`), // the current character's index (its only KNOWN pair is Koweabooo#10)
-};
-Object.freeze(OWN);
-
-/** What each term refuses (Ruling E): lib/tome cannot score HourZero (see stats.test.ts, equipCards.test.ts). */
-const HOURZERO: string[] = []; // HourZero, the one save lib/tome could not score, is out of the parity corpus (PARITY_EXCLUDED, support/arkhOracle.ts): nothing is refused
-// the same Tome refusal reaches every term built on the talent levels (AllTalentLV -> FamBonusQTYs, the Tome bubbles) or on a stat (TotalStats LUK): the Workbench talent, the LUK curve and its talent, the Divinity god levels, the statue, the golden food, the Grind Time bubble
-const TOME_TERMS = new Set(["workbench", "luk", "talent35", "divMinor4", "statue10", "goldFood", "bubbleExp"]);
-/** The pairs per leaf whose difference a KNOWN entry closes, as a literal (a stale entry or a new difference fails): the totals of the report. */
-const EXPECT_KNOWN: Record<string, number> = {
-  workbench: 9, talent434: 9, medallion429: 41, gridExp: 1, sticker0: 1, divMinor4: 1, button8: 1, statue10: 9, starSignMainXP: 33,
-  prayer0: 43, prayer2: 43, goldFood: 337, luk: 1121, talent35: 107,
-};
-/** The pairs per leaf: 105 saves x characters (1153 on map 251; HourZero is out of the parity corpus, PARITY_EXCLUDED), plus the extra maps of the map-dependent ones. */
-const PAIRS: Record<string, number> = { workbench: 1153, luk: 1153, talent35: 1153, divMinor4: 1153, goldFood: 1153, bubbleExp: 1153, statue10: 1150, medallion429: 5732, arcane1: 5098, shrine5: 2306 };
-const REFUSALS = (id: string): string[] => (TOME_TERMS.has(id) ? HOURZERO : []);
-
-/**
- * The maps a term is checked on: 251 for all, plus, for the map-dependent ones, the maps that make them differ: the Shiny Medallion gate reads
- * MapAFKtarget[map] against Compass[3] (a map whose monster the account holds a medallion of), the Arcane map bonus MapBon[map][1] (slot 1,
- * kills), and Shrine(5) the shrine's own map (ShrineInfo[5][0]).
- */
-function mapsOf(id: string, ctx: Ctx): number[] {
-  if (id === "shrine5") return [...new Set([MAP, asNum(ctx, "ShrineInfo", 5, 0)])];
-  if (id === "arcane1") {
-    const out = [MAP];
-    const rows = listAt(ctx, "MapBon");
-    for (let m = 0; m < rows.length && out.length < 5; m++) if (asNum(ctx, "MapBon", m, 1) > 0) out.push(m);
-    return out;
-  }
-  if (id === "medallion429") {
-    const out = [MAP];
-    const targets = MapAFKtarget as unknown as readonly unknown[];
-    for (let m = 0; m < targets.length && out.length < 5; m++) if (m !== MAP && contains(attr(ctx, "Compass", 3), targets[m])) out.push(m);
-    return out;
-  }
-  return [MAP];
-}
-
-const states = new Map<string, { state: ReturnType<typeof buildGameState>; chars: number }>();
-afterAll(() => states.clear());
-function stateOf(path: string) {
-  let s = states.get(path);
-  if (!s) {
-    const save = JSON.parse(readFileSync(path, "utf8")) as GameEnvelope;
-    states.set(path, (s = { state: buildGameState(save), chars: save.charNames.length }));
-  }
-  return s;
-}
-
-describe("the EXP term table covers every source of lib/arkh's descriptor", () => {
+describe("the EXP term table covers every source of the page's descriptor", () => {
   it("has one term per EXP_GROUPS source, no more", () => {
     expect(Object.keys(TERMS).sort()).toEqual(EXP_GROUPS.flatMap((g) => g.sources).sort());
   });
-});
-
-describe.skipIf(GOLDEN_SAVES.length === 0)("ExpMulti(0) terms against lib/arkh on every real save and character", () => {
-  for (const id of Object.keys(TERMS)) {
-    it(id, () => {
-      const t0 = performance.now();
-      const mismatches: string[] = [];
-      const seen = new Set<number>();
-      let pairs = 0;
-      let nonZero = 0;
-      let known = 0;
-      let entryPairs = 0; // pairs some KNOWN entry covers: every one must really differ, or the entry is stale
-      const refused = new Set<string>();
-      for (const path of GOLDEN_SAVES) {
-        const { state, chars } = stateOf(path);
-        for (let ci = 0; ci < chars; ci++) {
-          const base = makeCtx(state, { player: ci, map: MAP });
-          // the extra maps come from the save (ShrineInfo, MapBon, Compass): a save without them fails here, it is not checked on 251 alone
-          const maps = mapsOf(id, base);
-          for (const map of maps) {
-            const ctx = makeCtx(state, { player: ci, map });
-            let got: number;
-            try {
-              got = TERMS[id](withPlayer(ctx, ci));
-            } catch (e) {
-              if (!(e instanceof MissingSaveKey)) throw e;
-              refused.add(`${basename(path)}: ${e.key}`);
-              continue;
-            }
-            const want = arkhExpLeaves(path, ci, map)[id];
-            pairs++;
-            seen.add(want);
-            if (want !== 0) nonZero++;
-            const entries = KNOWN_ARKH_DIFFS.filter((d) => d.stat === "exp" && d.source === id && d.save === basename(path) && (d.ci ?? ci) === ci && (d.maps?.includes(map) ?? true));
-            if (entries.length) entryPairs++;
-            if (rel(got, want)) continue;
-            // a KNOWN difference is proved, not skipped: lib/arkh's number for the term it names, seeded into a fresh Ctx, closes the gap
-            // lukSnapshot is proved on lib/arkh's side: its envelope gets lib/game's TotalStats("LUK") in PVStatList_<ci>[3], and its leaf must then be lib/game's
-            if (entries.length && entries.every((d) => d.reason === "lukSnapshot")) {
-              const env = JSON.parse(readFileSync(path, "utf8")) as GameEnvelope;
-              patchLukSnapshot(env.data as Record<string, unknown>, ci, TotalStats(withPlayer(ctx, ci), "LUK"));
-              const patched = arkhExpLeaves(env, ci, map)[id];
-              expect(rel(patched, want), `${id} ${basename(path)}#${ci}: the patch changed nothing`).toBe(false);
-              if (rel(patched, got)) {
-                known++;
-                continue;
-              }
-              mismatches.push(`${id} ${basename(path)}#${ci}@${map}: game ${got}, arkh ${want}, with the snapshot patched ${patched}`);
-              continue;
-            }
-            if (entries.length) {
-              // the cause is either a save patch (PROOF_PATCHES: the statues) or lib/arkh's number for it, seeded
-              const seeds: Seed[] = [];
-              let proofState = state;
-              for (const r of entries.map((d) => d.reason!)) {
-                if (PROOF_PATCHES[r]) {
-                  const env = JSON.parse(readFileSync(path, "utf8")) as GameEnvelope;
-                  PROOF_PATCHES[r](env.data as Record<string, unknown>, ci, state.charNames.length);
-                  proofState = buildGameState(env);
-                } else seeds.push(...damageReasonSeeds(path, ci, r));
-              }
-              const c = makeCtx(proofState, { player: ci, map });
-              // negative controls: a seed is never the cache key of the leaf under test (the proof would hold by construction)...
-              for (const [name, args] of seeds) expect(OWN[id] ?? [], `${id} seeded on its own key ${name}${JSON.stringify(args)}`).not.toContain(`${name}${JSON.stringify(args)}`);
-              for (const [name, args, v] of seeds) c.cache.set(`${ci}|${map}|${name}${JSON.stringify(args)}`, v);
-              const seeded = TERMS[id](withPlayer(c, ci));
-              // ...and the seeds do something: the seeded value is not the unseeded one
-              expect(rel(seeded, got), `${id} ${basename(path)}#${ci}: the seeds changed nothing`).toBe(false);
-              if (rel(seeded, want)) {
-                known++;
-                continue;
-              }
-              mismatches.push(`${id} ${basename(path)}#${ci}@${map}: game ${got}, arkh ${want}, with lib/arkh's ${entries.map((d) => d.reason).join("+")} ${seeded}`);
-              continue;
-            }
-            mismatches.push(`${id} ${basename(path)}#${ci}@${map}: game ${got}, arkh ${want}`);
-          }
-        }
-      }
-      if (process.env.EXP_DUMP) writeFileSync(`${process.env.EXP_DUMP}/${id}.txt`, mismatches.join("\n"));
-      console.info(`[expTerms ${id}] ${pairs} pairs, ${nonZero} nonzero, ${known} known, ${mismatches.length} mismatches, ${refused.size} refused, ${seen.size} distinct, ${Math.round(performance.now() - t0)} ms`);
-      expect(mismatches.slice(0, Number(process.env.EXP_MAX ?? 20))).toEqual([]);
-      expect(known, "KNOWN pairs vs pairs the entries cover (a stale entry is one that no longer differs)").toBe(entryPairs);
-      expect(known, "KNOWN pairs, literally").toBe(EXPECT_KNOWN[id] ?? 0);
-      expect(pairs, "saves x characters x maps").toBe(PAIRS[id] ?? 1163);
-      expect([...refused].sort()).toEqual(REFUSALS(id));
-      const names = new Set(GOLDEN_SAVES.map((p) => basename(p)));
-      expect(KNOWN_ARKH_DIFFS.filter((d) => d.stat === "exp" && d.source === id && !names.has(d.save)).map((d) => d.save)).toEqual([]);
-    }, 600_000);
-  }
 });

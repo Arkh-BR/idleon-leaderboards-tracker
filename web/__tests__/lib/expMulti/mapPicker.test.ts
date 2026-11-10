@@ -6,7 +6,7 @@ import { EXP_PAGE } from "@/lib/expMulti/pageConfig";
 import { computeGameExpMulti } from "@/lib/game/trackers/expMulti";
 import { buildStatMapOptions } from "@/lib/statTracker/mapOptions";
 import { CURRENT_CSVER } from "@/lib/game/errors";
-import { GOLDEN_SAVES } from "../game/support/arkhOracle";
+import { GOLDEN_SAVES } from "../game/support/saves";
 
 it("the page drops no map", () => expect(EXP_PAGE.loadMapFilter).toBeUndefined());
 

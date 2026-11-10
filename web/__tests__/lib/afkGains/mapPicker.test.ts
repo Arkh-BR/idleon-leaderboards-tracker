@@ -5,7 +5,7 @@ import { AFK_PAGE } from "@/lib/afkGains/pageConfig";
 import { computeGameAfkGains } from "@/lib/game/trackers/afkGains";
 import { buildStatMapOptions } from "@/lib/statTracker/mapOptions";
 import { CURRENT_CSVER } from "@/lib/game/errors";
-import { GOLDEN_SAVES } from "../game/support/arkhOracle";
+import { GOLDEN_SAVES } from "../game/support/saves";
 
 it("the page drops no map", () => expect(AFK_PAGE.loadMapFilter).toBeUndefined());
 

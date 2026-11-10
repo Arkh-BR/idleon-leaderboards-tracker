@@ -1,19 +1,16 @@
 // Task 4 (Multikill plan): the Multikill adapter (lib/game/trackers/multikill.ts), WorkbenchStuff("MultiKillTOTAL") turned into the page's tree.
 //
-// - the display config and the page's pure formula moved to lib/multikill/layers (Ruling B), lib/arkh re-exporting the very same objects; the tracker registry;
+// - the display config and the page's pure formula in lib/multikill/layers (Ruling B); the tracker registry;
 // - on a synthetic envelope (CI): the tree's shape, the sources' values, the tier's rows (the curses, the clam), the rule rows (the soft cap, the Cove), the status row and its guarded reads,
 //   the `assumed:` leaves kept on the page, the recombination guard (TreeTotalMismatch), the page's model giving the total back and its levers resolving;
-// - on every real save, character and map (251, 301, 306, 216, 14, 150, 40 and 33: the maps of njs/multikill.test.ts): the total is the one call (that test proves it against lib/arkh, pair by pair, with
-//   the exact KNOWN proofs; here a total that differs from lib/arkh's must be covered by a KNOWN row of the pair, and the count is the one that test asserts), every source and every diagnostic row against
-//   lib/arkh's, the names, formats and notes equal to lib/arkh's, the page's model giving the total back from the flat tree, the size (Ruling L, at most 2x lib/arkh's nodes), and every runtime: / assumed:
-//   note of the full trace kept;
+// - on every real save, character and map (251, 301, 306, 216, 14, 150, 40 and 33: the maps of njs/multikill.test.ts): the total is the one call, the Motherlode's Defence, the page's model giving
+//   the total back from the flat tree and its tier rows, and every runtime: / assumed: note of the full trace kept;
 // - the Multikill readings in the game's display format (skipped until fixtures/readings.json has a multikill entry, Ruling MM).
 // A describe body never reads a save: states load lazily inside `it`.
 import { afterAll, describe, it, expect, vi } from "vitest";
 import { existsSync, readFileSync } from "node:fs";
 import { basename, join } from "node:path";
-import { GOLDEN_SAVES, KNOWN_ARKH_DIFFS, arkhMkLeaves, arkhMkShape, arkhMultikill, type MkShape } from "../support/arkhOracle"; // first: it sets the `window` shim lib/arkh reads
-import * as arkhDef from "@/lib/arkh/stats/defs/multikill";
+import { GOLDEN_SAVES } from "../support/saves";
 import * as layers from "@/lib/multikill/layers";
 import { multikillGainsModel, partsFromFlat } from "@/lib/multikill/gains";
 import { MULTIKILL_PAGE } from "@/lib/multikill/pageConfig";
@@ -63,14 +60,7 @@ const kid = (n: Node, name: string) => {
 
 // ── the display config and the registry ─────────────────────────────────────────────────────────
 describe("the display config and the registry", () => {
-  it("lives in lib/multikill/layers and lib/arkh re-exports the very same objects (Ruling B)", () => {
-    expect(arkhDef.MK_ROOT).toBe(layers.MK_ROOT);
-    expect(arkhDef.MK_NODES).toBe(layers.MK_NODES);
-    expect(arkhDef.MK_RULES).toBe(layers.MK_RULES);
-    expect(arkhDef.MK_POOLS).toBe(layers.MK_POOLS);
-    expect(arkhDef.mkSoftCap).toBe(layers.mkSoftCap);
-    expect(arkhDef.mkHalves).toBe(layers.mkHalves);
-    expect(arkhDef.mkTotal).toBe(layers.mkTotal);
+  it("lives in lib/multikill/layers: 9 base and 18 per-tier sources (Ruling B)", () => {
     expect(MK_POOLS.base).toHaveLength(9);
     expect(MK_POOLS.perTier).toHaveLength(18);
   });
@@ -101,7 +91,7 @@ const tree = (extra: Data = {}, seeds: Seeds = {}, o: { map?: number; real?: str
 const B = 84;
 const P = 130;
 describe("the tree on a synthetic envelope (runs in CI)", () => {
-  it("has lib/arkh's shape: the halves, the tier and the status, each source in MK_POOLS order and a value of its own", () => {
+  it("has the page's shape: the halves, the tier and the status, each source in MK_POOLS order and a value of its own", () => {
     const { tree: t, total } = tree();
     expect(total).toBe(B + 2 * P);
     expect(t).toMatchObject({ name: MK_ROOT, val: total, fmt: "%" });
@@ -329,24 +319,12 @@ describe("the tree on a synthetic envelope (runs in CI)", () => {
 });
 
 // ── every real save, character and map ──────────────────────────────────────────────────────────
-/**
- * Exact, per map: `known`, the pairs whose total differs from lib/arkh's and a KNOWN row closes (njs/multikill.test.ts's figure, which proves each); `motherlode`, the pairs whose Target Defence row differs because
- * N.js @6516967 gives the Motherlode's four targets Holes("MotherlodeEffBase", i, 0) as their Defence (the fish's / 4) and lib/arkh's overkillActive reads the table's: each is checked to be exactly those two numbers below.
- */
-const MAPS: Record<number, { known: number; motherlode: number }> = {
-  251: { known: 4, motherlode: 0 },
-  301: { known: 2, motherlode: 0 },
-  306: { known: 0, motherlode: 0 },
-  216: { known: 2, motherlode: 24 },
-  14: { known: 3, motherlode: 0 },
-  150: { known: 2, motherlode: 0 },
-  40: { known: 5, motherlode: 0 },
-};
+/** The maps of njs/multikill.test.ts: the Observed Max reference, the W7 ladder (306 is Clamworks), the Cove, 14, a town and a dungeon. Map 33 is refused, below. */
+const MAPS = [251, 301, 306, 216, 14, 150, 40];
+/** N.js @6516967 gives the Motherlode's four targets Holes("MotherlodeEffBase", i, 0) as their Defence (the fish's / 4), not the table's. */
 const MOTHERLODE = ["Motherlode", "Bug14", "MotherlodeTREE", "MotherlodeFISH"];
 const PAIRS = 1153;
-const HOURZERO: string[] = []; // HourZero, the one save lib/tome could not score, is out of the parity corpus (PARITY_EXCLUDED, support/arkhOracle.ts): nothing is refused
-/** The rows whose number differs between the engines for causes proved elsewhere (the Damage KNOWN rows, lib/arkh's accuracy) or below (the Motherlode's Defence), not for anything of this adapter's. */
-const OWN_NUMBER = new Set(["Max Damage", "Accuracy", "Target Defence"]);
+const HOURZERO: string[] = []; // HourZero is out of the default corpus (PARITY_EXCLUDED, support/saves.ts): nothing is refused
 
 const states = new Map<string, ReturnType<typeof buildGameState>>();
 afterAll(() => states.clear());
@@ -356,40 +334,19 @@ const stateOf = (path: string) => {
   return s;
 };
 
-/** Names, formats, notes (and, with `vals`, the numbers) of a tree against lib/arkh's. A row lib/arkh gives no children keeps the calls Ruling L hangs under it. */
-function compare(mine: Node, theirs: MkShape, at: string, shapes: string[], values: string[], vals: boolean): void {
-  const s = (n: { name: string; fmt?: string; note?: string }) => JSON.stringify([n.name, n.fmt, n.note]);
-  if (s(mine) !== s(theirs)) shapes.push(`${at}: ${s(mine)} vs ${s(theirs)}`);
-  if (vals && !OWN_NUMBER.has(mine.name) && !rel(mine.val, theirs.val)) values.push(`${at} ${mine.name}: game ${mine.val}, arkh ${theirs.val}`);
-  if (!theirs.children) return;
-  if (mine.children?.length !== theirs.children.length) {
-    shapes.push(`${at} ${mine.name}: ${mine.children?.length} children vs ${theirs.children.length}: ${mine.children?.map((c) => c.name)}`);
-    return;
-  }
-  theirs.children.forEach((c, i) => compare(mine.children![i], c, at, shapes, values, vals));
-}
-
-describe.skipIf(noSaves)("computeGameMultikill against lib/arkh on every real save, character and map", () => {
-  for (const map of Object.keys(MAPS).map(Number)) {
+describe.skipIf(noSaves)("computeGameMultikill on every real save, character and map", () => {
+  for (const map of MAPS) {
     it(`map ${map}`, () => {
       const t0 = performance.now();
       const mismatches: string[] = [];
-      const leafMismatches: string[] = [];
-      const shapeMismatches: string[] = [];
       const valueMismatches: string[] = [];
       const display: string[] = [];
       const lost: string[] = [];
-      const over: string[] = [];
       const refused = new Set<string>();
       let pairs = 0;
-      let known = 0;
-      let leafKnown = 0;
       let motherlode = 0;
       let floorFlips = 0;
       let flags = 0;
-      let worstRatio = 0;
-      let nodes = 0;
-      let arkhNodes = 0;
       for (const path of GOLDEN_SAVES) {
         const file = basename(path);
         const state = stateOf(path);
@@ -406,48 +363,20 @@ describe.skipIf(noSaves)("computeGameMultikill against lib/arkh on every real sa
           pairs++;
           const tree = r.tree;
           const at = `${file}#${ci}@${map}`;
-          const arkh = arkhMkShape(path, ci, map);
-          // the size (Ruling L): at most 2x lib/arkh's nodes
-          nodes += count(tree);
-          arkhNodes += arkh.nodes;
-          worstRatio = Math.max(worstRatio, count(tree) / arkh.nodes);
-          if (count(tree) > 2 * arkh.nodes) over.push(`${at}: ${count(tree)} nodes against ${arkh.nodes}`);
-          // the total is the call's (the adapter adds nothing), and lib/arkh's, or a KNOWN row of the pair explains the difference
+          // the total is the call's (the adapter adds nothing)
           if (r.total !== TRACKERS.multikill!({ ...ctx, trace: null })) mismatches.push(`${at}: the tree's total is not MultiKillTOTAL's`);
-          const rows = KNOWN_ARKH_DIFFS.filter((d) => d.stat === "mk" && d.save === file && (d.ci ?? ci) === ci && (d.maps?.includes(map) ?? true));
-          const want = arkhMultikill(path, ci, map);
-          if (r.total !== want) {
-            if (!rows.length) mismatches.push(`${at}: game ${r.total}, arkh ${want}`);
-            else known++;
-          }
           // every flagged note of the full trace is on the page
           const full = flagsOfTrace(ctx.trace!).sort();
           flags += full.length;
           if (JSON.stringify(flagsOfTree(tree).sort()) !== JSON.stringify(full)) lost.push(`${at}: full trace ${full.length} notes, page tree ${flagsOfTree(tree).length}`);
-          // names, formats, notes, values: lib/arkh's (the Observed Max data is keyed by them). The migrated note is lib/game's alone. A pair whose tier a KNOWN row explains has its thresholds on another step: its numbers are not compared.
           const myTier = tree.children![1];
-          compare({ ...tree, note: noMigrated(tree.note) }, arkh.shape, at, shapeMismatches, valueMismatches, !rows.length);
+          // a Motherlode target's Defence is its Holes value, not the table's
           const myDefence = kid(kid(tree.children![3], "Accuracy beats the target's Defence"), "Target Defence").val;
-          const theirDefence = arkh.shape.children![3].children![2].children![1].val;
-          if (!rel(myDefence, theirDefence)) {
-            const target = myTier.note!.split(" · ")[1];
-            const i = MOTHERLODE.indexOf(target);
-            const table = (MONSTERS as unknown as Record<string, { Defence: number }>)[target].Defence;
-            if (0 <= i && theirDefence === table && myDefence === Holes({ ...ctx, trace: null }, "MotherlodeEffBase", i, 0) / (3 === i ? 4 : 1)) motherlode++;
-            else valueMismatches.push(`${at} Target Defence: game ${myDefence}, arkh ${theirDefence}, target ${target}`);
+          const i = MOTHERLODE.indexOf(myTier.note!.split(" · ")[1]);
+          if (0 <= i) {
+            motherlode++;
+            if (myDefence !== Holes({ ...ctx, trace: null }, "MotherlodeEffBase", i, 0) / (3 === i ? 4 : 1)) valueMismatches.push(`${at} Target Defence: game ${myDefence}, target ${MOTHERLODE[i]}`);
           }
-          const leaves = arkhMkLeaves(path, ci, map);
-          const check = (id: string, mine: number) => {
-            if (rel(mine, leaves[id])) return;
-            if (rows.some((d) => d.source === id)) leafKnown++;
-            else leafMismatches.push(`${at} ${id}: game ${mine}, arkh ${leaves[id]}`);
-          };
-          MK_POOLS.base.forEach((id, k) => check(id, tree.children![0].children![k].val));
-          MK_POOLS.perTier.forEach((id, k) => check(id, tree.children![2].children![k].val));
-          check("tier", myTier.val);
-          check("active", tree.children![3].val);
-          check("softCap", tree.children![0].children![9]?.name === MK_RULES.softCap ? 1 : 0);
-          check("cove", tree.children![0].children![9]?.name === MK_RULES.cove ? 1 : 0);
           // display and value agree: the page's model gives the total back from the flat tree, and the levers read the tier's rows
           const flat = flattenTree(tree);
           // the page's own model: the same total, or a floor one apart only when the halves agree (N.js nests its additions, the model adds left to right)
@@ -462,20 +391,13 @@ describe.skipIf(noSaves)("computeGameMultikill against lib/arkh on every real sa
       }
       states.clear(); // the states (each a deep clone) kept across the maps would pass the heap
       console.info(
-        `[multikill adapter @${map}] ${pairs} pairs, ${known} known, ${leafKnown} known leaves, ${motherlode} Motherlode defences, ${floorFlips} floor flips, ${mismatches.length} total, ${leafMismatches.length} leaf, ${shapeMismatches.length} shape and ${valueMismatches.length} value mismatches, ${flags} flagged notes, size ${nodes} nodes against ${arkhNodes} (worst ratio ${worstRatio.toFixed(2)}), ${refused.size} refused, ${Math.round(performance.now() - t0)} ms`
+        `[multikill adapter @${map}] ${pairs} pairs, ${motherlode} Motherlode targets, ${floorFlips} floor flips, ${mismatches.length} total and ${valueMismatches.length} value mismatches, ${flags} flagged notes, ${refused.size} refused, ${Math.round(performance.now() - t0)} ms`
       );
-      for (const m of [...mismatches.slice(0, 5), ...leafMismatches.slice(0, 10), ...shapeMismatches.slice(0, 10), ...valueMismatches.slice(0, 10)]) console.info(`[multikill adapter @${map}] ${m}`);
-      expect(over).toEqual([]);
       expect(mismatches.slice(0, 20)).toEqual([]);
-      expect(leafMismatches.slice(0, 20)).toEqual([]);
-      expect(shapeMismatches.slice(0, 20)).toEqual([]);
       expect(valueMismatches.slice(0, 20)).toEqual([]);
       expect(display.slice(0, 20)).toEqual([]);
       expect(lost.slice(0, 20)).toEqual([]);
       expect(pairs, "saves x characters, less the refused").toBe(PAIRS);
-      expect(known, "pairs whose total differs from lib/arkh's and a KNOWN row closes (njs/multikill.test.ts's figure)").toBe(MAPS[map].known);
-      expect(leafKnown, "the tier leaves those pairs differ on").toBe(MAPS[map].known);
-      expect(motherlode, "pairs whose Target Defence is the Motherlode's and lib/arkh's the table's").toBe(MAPS[map].motherlode);
       expect([...refused].sort()).toEqual(HOURZERO);
     }, 3_600_000);
   }

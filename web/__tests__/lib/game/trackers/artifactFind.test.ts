@@ -2,18 +2,17 @@
 //
 // BoatArtiMulti is one expression of the ported blocks; the adapter turns the ONE traced call into the page's tree. The file tests:
 // - the expression: N.js's text token for token, its calls, the boat argument, the strict Boats row, the tracker registry;
-// - the display config moved to lib/artifactFind/groups, and that no file under lib/game imports lib/arkh (the data re-exports aside);
-// - the totals against lib/arkh over every real save and character (minus KNOWN_ARKH_DIFFS), each source leaf against lib/arkh's, the
-//   groups recombining to the total (display and value agree), and the pinned Ruling E refusals (pre-migration saves throw);
-// - the page's tree stays within 2x of lib/arkh's node count and keeps every runtime:/assumed: note of the full trace (Ruling L);
-// - the tree on the 2026-11-01 save: shape, names/formats/notes equal to lib/arkh's, the trace children, the recombination guard
-//   (TreeTotalMismatch), and the number the game showed for it (167Q);
+// - the display config in lib/artifactFind/groups, and that no file under lib/game imports lib/arkh or lib/tome;
+// - over every real save and character: the groups recombining to the total (display and value agree), and the pinned Ruling E refusals
+//   (pre-migration saves throw);
+// - the page's tree keeps every runtime:/assumed: note of the full trace (Ruling L);
+// - the tree on the 2026-11-01 save: shape, the trace children, the recombination guard (TreeTotalMismatch), and the number the game showed
+//   for it (167Q);
 // - switching character: only the per-character terms move.
 import { afterAll, describe, it, expect } from "vitest";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { basename } from "node:path";
-import * as arkhDef from "@/lib/arkh/stats/defs/artifact-find";
-import { applyGroupStep, groupVal } from "@/lib/arkh/stats/defs/grouped";
+import { applyGroupStep, groupVal } from "@/lib/statTracker/groups";
 import { ARTI_GROUPS, ARTI_ROOT, ARTI_VOTE_NAME } from "@/lib/artifactFind/groups";
 import { formatArtifactFind } from "@/lib/artifactFind/format";
 import { asNum } from "@/lib/game/attr";
@@ -29,10 +28,9 @@ import type { StatResult } from "@/lib/statTracker/config";
 import { callDiff, njsCalls, njsFunction, njsNamedBlocks, traceCalls } from "@/lib/diagnose/njsCalls";
 import { loadNjs } from "@/scripts/njs-calls";
 import { ARTIFACT_FIND_REFUSABLE } from "@/lib/diagnose/characterize";
-import { GOLDEN_SAVES, KNOWN_ARKH_DIFFS, UNPORTED_REFUSALS, arkhArtifactLeaf, arkhArtifactTree, gameCtx } from "../support/arkhOracle";
+import { GOLDEN_SAVES, UNPORTED_REFUSALS, gameCtx } from "../support/saves";
 
 const rel = (got: number, want: number) => Math.abs(got - want) <= 1e-9 * Math.max(1, Math.abs(want));
-const relErr = (got: number, want: number) => Math.abs(got - want) / Math.max(1, Math.abs(want));
 const IDS = ARTI_GROUPS.flatMap((g) => g.sources);
 const noSaves = GOLDEN_SAVES.length === 0;
 const noNjs = !existsSync("scripts/updater/.cache/N.new.js");
@@ -60,7 +58,7 @@ const sourceNode = (tree: StatResult["tree"], id: string) => {
 const count = (n: StatResult["tree"]): number => 1 + (n.children ?? []).reduce((a, c) => a + count(c), 0);
 
 /** What the loops keep of one (save, character): the numbers, not the trace (1163 trees with their traces would be a lot of memory). */
-type Light = { total: number; root: number; groups: number[]; vals: Record<string, number>; nodes: number };
+type Light = { total: number; root: number; groups: number[]; vals: Record<string, number> };
 const lights = new Map<string, Light | { refused: string }>();
 afterAll(() => lights.clear()); // the built states of the real saves are big: not kept past this file (a full run keeps its workers alive)
 /** The adapter's result for a pair, or the key the save lacks (Ruling E: a MissingSaveKey is a refusal, anything else is a bug). */
@@ -70,7 +68,7 @@ function run(path: string, ci: number): Light | { refused: string } {
   if (!l) {
     try {
       const { tree, total } = gameArtifactFind(stateOf(path).state, ci);
-      l = { total, root: tree.val, groups: tree.children!.map((g) => g.val), vals: Object.fromEntries(IDS.map((id) => [id, sourceNode(tree, id).val])), nodes: count(tree) };
+      l = { total, root: tree.val, groups: tree.children!.map((g) => g.val), vals: Object.fromEntries(IDS.map((id) => [id, sourceNode(tree, id).val])) };
     } catch (e) {
       if (!(e instanceof MissingSaveKey)) throw e;
       l = { refused: e.key };
@@ -151,12 +149,9 @@ describe.skipIf(noSaves)("Sailing BoatArtiMulti (N.js @10700072) and the tracker
   });
 });
 
-// ── the display config moved out of lib/arkh ────────────────────────────────────────────────────
+// ── the display config ──────────────────────────────────────────────────────────────────────────
 describe("the display config", () => {
-  it("lives in lib/artifactFind/groups and lib/arkh's def re-exports the very same objects", () => {
-    expect(arkhDef.ARTI_GROUPS).toBe(ARTI_GROUPS);
-    expect(arkhDef.ARTI_ROOT).toBe(ARTI_ROOT);
-    expect(arkhDef.ARTI_VOTE_NAME).toBe(ARTI_VOTE_NAME);
+  it("lives in lib/artifactFind/groups: 24 groups, 35 sources", () => {
     expect(ARTI_GROUPS).toHaveLength(24);
     expect(IDS).toHaveLength(35);
   });
@@ -201,19 +196,15 @@ const CURRENT_CSVER = 34.05;
 const MIGRATED = ["01010111001.json","0celot8.json","0xEXCEED.json","100Cotton.json","1st_Giri.json","21ucky4u.json","24632463.json","26515665165165.json","5OhTree.json","ARKHE.json","AoDCthulhu.json","Arlong.json","Ash_EB.json","AvacadoSqueeze.json","Azza2Bad.json","B0schi.json","Baker333.json","Bangada.json","BopeBrancis.json","Brokami.json","Bubbafrumps.json","Chalalaa.json","Cheap_Jokes_ok.json","Crezar.json","Dandy2009.json","Dasvidanya.json","Dragami.json","Dragonlzl.json","Drukez.json","Einyen.json","Exrom.json","F1N4L_1.json","Fanmail.json","FenrirAdra.json","Flipper143.json","FlipsyThEVicti.json","Fluffle_Puff.json","Frans813.json","Frostymart.json","FrozenBody.json","GIM_SSS.json","Glaives.json","GoddessFreia.json","Grandesz.json","HourZero.json","Hyucan.json","Jrod11.json","Koweabooo.json","MarleyLongbott.json","Maspoofio.json","MeatyLock.json","Norton_Goldman.json","Pepega777.json","PerkOne.json","Pontinhas.json","PulseIRL.json","Riltin.json","Rinkzate.json","Scotchz.json","Seavik.json","Shadow_x_Vanish.json","Shironee.json","Skvimpan.json","Snowyzxd.json","TheSpease.json","TinTim.json","TomerBuff.json","WarSkepp.json","Yosh6400.json","airbolt.json","arkhe-2026-09-23.json","arkhe-it-profile-2026-09-24.json","arkhe-live-2026-09-23.json","arkhe-live-2026-09-24.json","arkhe-live-2026-10-30.json","arkhe-live-2026-11-01.json","astarm.json","big_guy69123.json","biggums3.json","blickter.json","bluestar3112.json","breakinbrad.json","dida123.json","enilyn.json","haki34.json","hellzd4nt3.json","jobenty.json","joelok.json","kONYYY.json","liiiiiiiiiiiig.json","lunaonline.json","ryujinsan.json","suk69.json","xBlackpearl.json","zadavi.json"];
 const csverOf = (file: string): number => JSON.parse(readFileSync(GOLDEN_SAVES.find((p) => basename(p) === file)!, "utf8")).data.CSver;
 
-describe.skipIf(noSaves)("computeGameArtifactFind against lib/arkh on every real save and character", () => {
-  it("the total, every source leaf and the group display agree with lib/arkh (and with itself)", () => {
+describe.skipIf(noSaves)("computeGameArtifactFind on every real save and character", () => {
+  it("the group display agrees with the total", () => {
     const t0 = performance.now();
-    const mismatches: string[] = [];
-    const leafMismatches: string[] = [];
     const display: string[] = [];
     const refused = new Set<string>();
     const migrated = new Set<string>();
     const seenTotals = new Set<number>();
     let pairs = 0;
-    let known = 0;
     let refusedPairs = 0;
-    let worst = 0;
     for (const path of GOLDEN_SAVES) {
       const file = basename(path);
       for (let ci = 0; ci < stateOf(path).chars; ci++) {
@@ -224,7 +215,7 @@ describe.skipIf(noSaves)("computeGameArtifactFind against lib/arkh on every real
           continue;
         }
         if (stateOf(path).state.migrations.length) migrated.add(file);
-        // display and value agree: the groups recombine, the way lib/arkh combines them (its own groupVal / applyGroupStep), to the call's total
+        // display and value agree: the groups recombine (groupVal / applyGroupStep, the page's own math) to the call's total
         let rebuilt = 1;
         ARTI_GROUPS.forEach((g, gi) => {
           const vals = g.sources.map((id) => r.vals[id]);
@@ -233,34 +224,17 @@ describe.skipIf(noSaves)("computeGameArtifactFind against lib/arkh on every real
         });
         if (!rel(rebuilt, r.total)) display.push(`${file}#${ci}: groups give ${rebuilt}, the call ${r.total}`);
         if (r.root !== r.total) display.push(`${file}#${ci}: root ${r.root} is not the total ${r.total}`);
-        // the leaf of each source is lib/arkh's leaf (the page's Biggest Gains and Observed Max work on those), except the known rows
-        for (const id of IDS) {
-          if (KNOWN_ARKH_DIFFS.some((d) => d.save === file && (d.ci ?? ci) === ci && d.source === id)) continue;
-          const want = arkhArtifactLeaf(path, ci, id);
-          if (!rel(r.vals[id], want)) leafMismatches.push(`${file}#${ci} ${id}: game ${r.vals[id]}, arkh ${want}`);
-        }
-        // only Artifact Find's own entries (a stat's KNOWN row says nothing about this total)
-        if (KNOWN_ARKH_DIFFS.some((d) => (d.stat ?? "artifactFind") === "artifactFind" && d.save === file && (d.ci ?? ci) === ci)) {
-          known++;
-          continue; // the total differs from lib/arkh's where N.js proves lib/arkh wrong
-        }
-        const want = arkhArtifactTree(path, ci).val;
         pairs++;
         seenTotals.add(r.total);
-        worst = Math.max(worst, relErr(r.total, want));
-        if (!rel(r.total, want)) mismatches.push(`${file}#${ci}: game ${r.total}, arkh ${want}`);
       }
     }
     const refusals = [...refused].sort();
     console.info(
-      `[artifactFind] ${pairs} totals compared (worst relative difference ${worst.toExponential(2)}), ${known} known-diff pairs, ${refusedPairs} refused pairs in ${refused.size} saves, ${seenTotals.size} distinct totals, ${Math.round(performance.now() - t0)} ms`
+      `[artifactFind] ${pairs} totals, ${refusedPairs} refused pairs in ${refused.size} saves, ${seenTotals.size} distinct totals, ${Math.round(performance.now() - t0)} ms`
     );
-    expect(mismatches).toEqual([]);
-    expect(leafMismatches).toEqual([]);
     expect(display).toEqual([]);
     expect(pairs).toBeGreaterThan(500); // a loop over nothing would pass
     expect(seenTotals.size).toBeGreaterThan(100); // nor would one number everywhere
-    expect(known).toBeGreaterThan(0);
     expect(refusals).toEqual(UNPORTED_REFUSALS);
     for (const f of refusals) expect(csverOf(f.split(": ")[0]), `${f} is pre-migration`).toBeLessThan(CURRENT_CSVER);
     // the older saves the load steps make computable, and characterize accepts only the refusals left
@@ -297,35 +271,14 @@ describe.skipIf(noSaves)("computeGameArtifactFind against lib/arkh on every real
 });
 
 // ── the tree stays small (Ruling L) ─────────────────────────────────────────────────────────────
-// The page persists flattenTree(tree) in every snapshot (localStorage, writes dropped silently on quota), so the tree may not outgrow
-// lib/arkh's by more than 2x. Each source keeps the N.js call(s) it stands for; below them only the branches that lead to a `runtime:` /
-// `assumed:` note stay (spec section 5 wants those visible). The whole trace is a traced Ctx away.
+// The page persists flattenTree(tree) in every snapshot (localStorage, writes dropped silently on quota), so the tree stays small. Each
+// source keeps the N.js call(s) it stands for; below them only the branches that lead to a `runtime:` / `assumed:` note stay (spec section 5 wants those visible). The whole trace is a traced Ctx away.
 const FLAG = /^(runtime|assumed):/;
 const countTrace = (n: TraceNode): number => 1 + n.children.reduce((a, c) => a + countTrace(c), 0);
 const flagsOfTrace = (n: TraceNode): string[] => [...(FLAG.test(n.note ?? "") ? [`${n.note}|${n.value}`] : []), ...n.children.flatMap(flagsOfTrace)];
 const flagsOfTree = (n: StatResult["tree"]): string[] => [...(FLAG.test(n.note ?? "") ? [`${n.note}|${n.val}`] : []), ...(n.children ?? []).flatMap(flagsOfTree)];
 
 describe.skipIf(noSaves)("the page's tree stays small", () => {
-  it("has at most 2x the nodes of lib/arkh's tree on every real save and character", () => {
-    const over: string[] = [];
-    let worst = { ratio: 0, at: "", game: 0, arkh: 0 };
-    let pairs = 0;
-    for (const path of GOLDEN_SAVES) {
-      for (let ci = 0; ci < stateOf(path).chars; ci++) {
-        const r = run(path, ci);
-        if ("refused" in r) continue;
-        const arkh = count(arkhArtifactTree(path, ci));
-        pairs++;
-        const ratio = r.nodes / arkh;
-        if (ratio > worst.ratio) worst = { ratio, at: `${basename(path)}#${ci}`, game: r.nodes, arkh };
-        if (r.nodes > 2 * arkh) over.push(`${basename(path)}#${ci}: ${r.nodes} nodes against ${arkh}`);
-      }
-    }
-    console.info(`[artifactFind] tree size: ${pairs} pairs, worst ratio ${worst.ratio.toFixed(2)} at ${worst.at} (${worst.game} nodes against ${worst.arkh})`);
-    expect(over).toEqual([]);
-    expect(pairs).toBeGreaterThan(500);
-  }, 120_000);
-
   it("keeps every runtime: / assumed: note of the full trace (the trimmed branches hold none)", () => {
     const lost: string[] = [];
     let flags = 0;
@@ -406,25 +359,12 @@ describe.skipIf(!existsSync(ARKHE_11_01))("the tree the adapter builds, on the 2
   const markhe = () => env().charNames.indexOf("Markhe");
   const result = () => computeGameArtifactFind(env(), markhe());
 
-  it("has lib/arkh's shape: root, one node per ARTI_GROUPS group in order, one per source in order", () => {
+  it("has the page's shape: root, one node per ARTI_GROUPS group in order, one per source in order", () => {
     const { tree, total } = result();
     expect(markhe()).toBe(8);
     expect(tree).toMatchObject({ name: ARTI_ROOT, fmt: "x", val: total });
     expect(tree.children!.map((g) => g.name)).toEqual(ARTI_GROUPS.map((g) => g.name));
     ARTI_GROUPS.forEach((g, gi) => expect(tree.children![gi].children!.map((_, si) => g.sources[si])).toEqual(g.sources));
-  });
-
-  it("names, formats and notes of every group and source equal lib/arkh's (the Observed Max data is keyed by them)", () => {
-    const { tree } = result();
-    const arkh = arkhArtifactTree(ARKHE_11_01, markhe());
-    const shape = (n: StatResult["tree"]) => ({ name: n.name, fmt: n.fmt, note: n.note });
-    // the root of lib/game's tree also says which load steps ran (this save is from before the step 399): lib/arkh has no such note
-    expect({ ...shape(tree), note: tree.note === "migrated from an older game version (1 load step)" ? undefined : tree.note }).toEqual(shape(arkh));
-    ARTI_GROUPS.forEach((g, gi) => {
-      expect(shape(tree.children![gi]), g.key).toEqual(shape(arkh.children![gi]));
-      expect(tree.children![gi].children!.length, g.key).toBe(arkh.children![gi].children!.length);
-      g.sources.forEach((id, si) => expect(shape(tree.children![gi].children![si]), id).toEqual(shape(arkh.children![gi].children![si])));
-    });
     expect(sourceNode(tree, "vote20").name).toBe(ARTI_VOTE_NAME);
   });
 
@@ -450,9 +390,7 @@ describe.skipIf(!existsSync(ARKHE_11_01))("the tree the adapter builds, on the 2
 
   it("shows the discovery count of Super Bit 26 as a leaf (Spelunk[6].length is a plain read, no call to trace)", () => {
     const bit = sourceNode(result().tree, "spelunkBit26");
-    const arkhBit = sourceNode(arkhArtifactTree(ARKHE_11_01, markhe()), "spelunkBit26");
     const found = bit.children!.find((c) => c.name === "Spelunk[6].length")!;
-    expect(found.val).toBe(arkhBit.children!.find((c) => c.name === "Discoveries found")!.val);
     expect(found.val).toBeGreaterThan(0);
     const superBit = bit.children!.find((c) => c.name === 'GamingStatType("SuperBitType", 26, 0)')!;
     expect(bit.val).toBeCloseTo(Math.pow(1.02, found.val) * superBit.val, 12);

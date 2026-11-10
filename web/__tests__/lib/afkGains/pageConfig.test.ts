@@ -1,17 +1,8 @@
-import { describe, it, expect, beforeAll } from "vitest";
-import { existsSync, readFileSync } from "node:fs";
+import { describe, it, expect } from "vitest";
 import { AFK_PAGE, afkGainsModel, formatAfkGains } from "@/lib/afkGains/pageConfig";
-import { AFK_NODES, AFK_ROOT, AFK_VOTE_NAME } from "@/lib/arkh/stats/defs/afk-gains";
-import { combineAfkPools, computeArkhAfkGains } from "@/lib/arkh/computeAfk";
+import { AFK_NODES, AFK_ROOT, AFK_VOTE_NAME, afkRate } from "@/lib/afkGains/layers";
 import { computeGains } from "@/lib/statTracker/biggestGains";
 import { flattenTree } from "@/lib/dropRate/treeFlatten";
-import type { Pool } from "@/lib/arkh/stats/tree-builder";
-
-const g = globalThis as unknown as { window?: unknown };
-if (!g.window) g.window = g;
-
-const SAVE = "scripts/updater/golden/.cache/arkhe-live-2026-09-23.json";
-const SAVE_0924 = "scripts/updater/golden/.cache/arkhe-live-2026-09-24.json";
 
 describe("AFK Gains page config", () => {
   it("uses its own storage keys and the % unit", () => {
@@ -71,16 +62,23 @@ describe("AFK what-if gains model (synthetic)", () => {
     expect(rows.map((r) => r.source)).toEqual(["Other"]);
   });
 
-  const P = (...items: Array<[string, number]>): Pool => ({ items: items.map(([name, val]) => ({ name, val })), sum: 0, product: 0 });
-  const flatOf = (clam: number, cove: number, type: number) =>
-    flattenTree(
-      combineAfkPools({
-        fight: P(["Base fighting rate (40%)", 40], ["A", 100]),
-        all: P(["B", 60]),
-        multi: P(["Arcane", 0], ["Etc 92", 0]),
-        rules: P([AFK_NODES.clam, clam], [AFK_NODES.cove, cove], [AFK_NODES.type, type]),
-      }).tree
-    );
+  // the page's tree: the pool (the fight sources, then the ALL ones), the two multipliers, the three rules (lib/game/trackers/afkGains.ts)
+  const flatOf = (clam: number, cove: number, type: number) => {
+    const pool = ([["Base fighting rate (40%)", 40], ["A", 100], ["B", 60]] as const).map(([name, val]) => ({ name, val }));
+    const sum = pool.reduce((a, it) => a + it.val, 0);
+    return flattenTree({
+      name: AFK_ROOT,
+      val: afkRate({ sum, arcane: 0, etc92: 0, clam, cove, type }),
+      children: [
+        { name: AFK_NODES.pool, val: sum / 100, fmt: "x", children: pool },
+        { name: AFK_NODES.arcane, val: 1, fmt: "x", children: [{ name: "Arcane", val: 0 }] },
+        { name: AFK_NODES.etc92, val: 1, fmt: "x", children: [{ name: "Etc 92", val: 0 }] },
+        { name: AFK_NODES.clam, val: clam },
+        { name: AFK_NODES.cove, val: cove },
+        { name: AFK_NODES.type, val: type },
+      ],
+    });
+  };
   const A = `${AFK_ROOT} / ${AFK_NODES.pool} / A`;
 
   it("ranks a pool source by the rate it would add", () => {
@@ -105,45 +103,5 @@ describe("AFK what-if gains model (synthetic)", () => {
       const flat = flatOf(clam, cove, type);
       expect(afkGainsModel.totalFromFlat(flat)).toBeCloseTo(flat[AFK_ROOT], 12);
     }
-  });
-});
-
-describe.skipIf(!existsSync(SAVE))("AFK what-if gains on the ARKHE save (Markhe)", () => {
-  let save: any;
-  let ci: number;
-  beforeAll(() => {
-    save = JSON.parse(readFileSync(SAVE, "utf8"));
-    ci = save.charNames.indexOf("Markhe");
-  });
-
-  it.each([14, 1, 306, 0])("totalFromFlat = the tree's total on map %i", (map) => {
-    const t = computeArkhAfkGains(save, ci, map).tree;
-    expect(Math.abs(afkGainsModel.totalFromFlat(flattenTree(t)) - t.val)).toBeLessThanOrEqual(1e-12 * Math.max(1, t.val));
-  });
-
-  it.each([14, 306])("+100 pts on a fighting-pool source is +100/Σ on map %i", (map) => {
-    const flat = flattenTree(computeArkhAfkGains(save, ci, map).tree);
-    const path = `${AFK_ROOT} / ${AFK_NODES.pool} / Golden Dumpling (Golden Food)`;
-    const { rows } = computeGains(afkGainsModel, flat, { [path]: flat[path] + 100 });
-    expect(rows[0].gainPct).toBeCloseTo((100 / 8503.975457682378) * 100, 9); // +1.1759%
-  });
-
-  it("a town leaves Biggest Gains empty", () => {
-    const town = flattenTree(computeArkhAfkGains(save, ci, 0).tree);
-    const ref = flattenTree(computeArkhAfkGains(save, ci, 14).tree);
-    const r = computeGains(afkGainsModel, town, ref);
-    expect(r.rows).toEqual([]);
-    expect(r.comparableSources).toBe(0);
-  });
-});
-
-// Regression guard (controller note): the what-if engine's totalFromFlat must
-// keep mirroring the descriptor's combine() on a second, independent capture.
-describe.skipIf(!existsSync(SAVE_0924))("AFK what-if gains on the ARKHE save (2026-09-24, Markhe)", () => {
-  it("totalFromFlat = the tree's total on map 14", () => {
-    const save = JSON.parse(readFileSync(SAVE_0924, "utf8"));
-    const ci = save.charNames.indexOf("Markhe");
-    const t = computeArkhAfkGains(save, ci, 14).tree;
-    expect(Math.abs(afkGainsModel.totalFromFlat(flattenTree(t)) - t.val)).toBeLessThanOrEqual(1e-12 * Math.max(1, t.val));
   });
 });

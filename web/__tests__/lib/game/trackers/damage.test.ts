@@ -1,43 +1,35 @@
 // Task 9 (Damage plan): the Damage adapter (lib/game/trackers/damage.ts), DamageDealed("Max") and ("Mastery") turned into the page's tree.
 //
-// - the display config moved to lib/damage/layers (Ruling B), lib/arkh re-exporting the very same objects; the tracker registry;
+// - the display config in lib/damage/layers (Ruling B); the tracker registry;
 // - on a synthetic envelope (CI): the tree's shape, the recombination guard (TreeTotalMismatch), the arena's tree, a dungeon map (Ruling Y:
 //   the normal Max with the assumed: note in the tree) and the forms' runtime: notes;
-// - on every real save, character and map (251, the arena 43, the Clamworks 306, the readings' 150 and the dungeon 40): the total and
-//   Mastery against lib/arkh (a difference closed by the KNOWN propagation of njs/damage.test.ts, support/damageProof), every source leaf
-//   against lib/arkh's, the steps recombining as lib/arkh's own math (the page's Biggest Gains) does, the size (Ruling L, at most 2x lib/arkh's
-//   nodes) and every runtime: / assumed: note of the full trace kept;
-// - the tree on real saves: names, formats and notes equal to lib/arkh's; the 4 Damage readings in the game's display format.
+// - on every real save, character and map (251, the arena 43, the Clamworks 306, the readings' 150 and the dungeon 40): the steps
+//   recombining to the total (the page's Biggest Gains) and every runtime: / assumed: note of the full trace kept;
+// - the tree's root on real saves; the 4 Damage readings in the game's display format.
 // A describe body never reads a save: states load lazily inside `it`.
 import { afterAll, describe, it, expect } from "vitest";
 import { existsSync, readFileSync } from "node:fs";
 import { basename, join } from "node:path";
-import * as arkhDef from "@/lib/arkh/stats/defs/damage";
-import { computeArkhDamage } from "@/lib/arkh/computeDamage";
-import * as layers from "@/lib/damage/layers";
+import { DMG_LAYERS, DMG_MASTERY, DMG_NODES, DMG_RAT, DMG_ROOT, DMG_RULES } from "@/lib/damage/layers";
 import { damageGainsModel } from "@/lib/damage/gains";
 import { flattenTree } from "@/lib/dropRate/treeFlatten";
-import { asNum } from "@/lib/game/attr";
-import { makeCtx, withPlayer, type TraceNode } from "@/lib/game/ctx";
+import { makeCtx, type TraceNode } from "@/lib/game/ctx";
 import { MissingSaveKey, TreeTotalMismatch } from "@/lib/game/errors";
-import { ClassStatTypes } from "@/lib/game/data";
 import { DAMAGE_REFUSABLE } from "@/lib/diagnose/characterize";
 import { DamageDealed } from "@/lib/game/njs/DamageDealed";
-import { ReturnClasses } from "@/lib/game/njs/ReturnClasses";
 import { buildGameState, type GameEnvelope, type GameState } from "@/lib/game/state";
 import { TRACKERS } from "@/lib/game/trackers";
-import { computeGameDamage, damageTree, gameDamage } from "@/lib/game/trackers/damage";
+import { computeGameDamage, damageTree } from "@/lib/game/trackers/damage";
 import { formatGameValue, normalizeGameText, parseGameValue } from "@/lib/readings/format";
 import { READINGS_DIR, loadReadings, readingSave } from "@/lib/readings/registry";
 import type { StatResult } from "@/lib/statTracker/config";
-import { GOLDEN_SAVES, KNOWN_ARKH_DIFFS, arkhDamage, arkhDamageLeaves, type ArkhStat } from "../support/arkhOracle";
-import { DAMAGE_REFUSALS, EXPECT_TOTAL_KNOWN, clearDamageProofs, damageProof, damageProvedCtx, hasDamageKnown } from "../support/damageProof";
+import { GOLDEN_SAVES } from "../support/saves";
 import { stubbed } from "../support/damageStub";
 
 type Node = StatResult["tree"];
-const { DMG_KEYS, DMG_LAYERS, DMG_MASTERY, DMG_NODES, DMG_RAT, DMG_ROOT, DMG_RULES } = layers;
 const rel = (got: number, want: number) => Math.abs(got - want) <= 1e-9 * Math.max(1, Math.abs(want));
 const noSaves = GOLDEN_SAVES.length === 0;
+const DAMAGE_REFUSALS: string[] = []; // what the real-save loops refuse: HourZero is out of the default corpus (PARITY_EXCLUDED, support/saves.ts), so nothing
 const IDS = [...DMG_LAYERS.flatMap((l) => l.steps.flatMap((s) => ("sources" in s ? s.sources : []))), ...DMG_RAT.sources, ...DMG_MASTERY.sources];
 const count = (n: Node): number => 1 + (n.children ?? []).reduce((a, c) => a + count(c), 0);
 const FLAG = /^(runtime|assumed):/;
@@ -62,19 +54,12 @@ function sourcesOf(tree: Node): Record<string, Node> {
   byName(tree, DMG_MASTERY.name).children?.forEach((n, k) => (out[DMG_MASTERY.sources[k]] = n));
   return out;
 }
-/** The root's own children, as lib/arkh's tree has them (the layers, the arena, Mastery): what comes after are the head guards' traces. */
+/** The root's own children (the layers, the arena, Mastery): what comes after are the head guards' traces. */
 const ROOT_CHILDREN = [DMG_NODES.base, DMG_NODES.pct, DMG_NODES.mult, DMG_RULES.rat, DMG_NODES.mastery];
 
 // ── the display config and the registry ─────────────────────────────────────────────────────────
 describe("the display config and the registry", () => {
-  it("lives in lib/damage/layers and lib/arkh's def re-exports the very same objects (Ruling B)", () => {
-    expect(arkhDef.DMG_LAYERS).toBe(DMG_LAYERS);
-    expect(arkhDef.DMG_NODES).toBe(DMG_NODES);
-    expect(arkhDef.DMG_RULES).toBe(DMG_RULES);
-    expect(arkhDef.DMG_ROOT).toBe(DMG_ROOT);
-    expect(arkhDef.DMG_RAT).toBe(DMG_RAT);
-    expect(arkhDef.DMG_KEYS).toBe(DMG_KEYS);
-    expect(arkhDef.DMG_MASTERY).toBe(DMG_MASTERY);
+  it("lives in lib/damage/layers: 155 distinct source ids (Ruling B)", () => {
     expect(IDS).toHaveLength(155);
     expect(new Set(IDS).size).toBe(IDS.length);
   });
@@ -102,7 +87,7 @@ describe("the tree on a synthetic envelope (runs in CI)", () => {
   const SET = { "ArcadeBonus[0]": 30, 'GetBribeBonus["30"]': 50, 'WorkbenchStuff["AdditionExtraDMG",0,0]': 2, 'EtcBonuses["21"]': 10 };
   const tree = (map = 251, set: Record<string, number> = SET) => damageTree(stubbed(set, { map, trace: true }));
 
-  it("has lib/arkh's shape: the three layers with their steps and sources, the arena, Mastery; then the forms' traces", () => {
+  it("has the page's shape: the three layers with their steps and sources, the arena, Mastery; then the forms' traces", () => {
     const { tree: t, total } = tree();
     expect(total).toBe(30 * 1.5 * 2);
     expect(t).toMatchObject({ name: DMG_ROOT, val: total, fmt: "raw", note: "Min ~ Max · Min = Max × Mastery" });
@@ -214,39 +199,25 @@ describe("the tree on a synthetic envelope (runs in CI)", () => {
 });
 
 // ── every real save, character and map ──────────────────────────────────────────────────────────
-/** The maps: map 251, the Royal Guardian arena, the Clamworks, the readings' map and a dungeon (Ruling Y: the normal Max, as lib/arkh's). */
+/** The maps: map 251, the Royal Guardian arena, the Clamworks, the readings' map and a dungeon (Ruling Y: the normal Max). */
 const MAPS = [251, 43, 306, 150, 40] as const;
-const MAIN: Record<string, ArkhStat> = { STR: "str", AGI: "agi", WIS: "wis", LUK: "luk" };
-/** The stats a source is built on (the INHERIT tables of the family tests): a KNOWN row of the stat explains the source's difference. */
-const READS: Record<string, (primary: ArkhStat) => (ArkhStat | "speed")[]> = {
-  statType: (p) => [p], statPow: (p) => [p], statWpFloor: (p) => [p], artifact25: (p) => [p],
-  talent86: () => ["maxHp"], bubbleHP: () => ["maxHp"], talent446: () => ["maxMp"], bubbleMP: () => ["maxMp"], talent290: () => ["speed"], bubbleSPD: () => ["speed"],
-  bubbleW5: () => ["str", "luk"], bubbleA5: () => ["agi"], bubbleM5: () => ["wis"],
-};
 
 const states = new Map<string, GameState>();
-afterAll(() => {
-  states.clear();
-  clearDamageProofs();
-});
+afterAll(() => states.clear());
 function stateOf(path: string): GameState {
   let s = states.get(path);
   if (!s) states.set(path, (s = buildGameState(JSON.parse(readFileSync(path, "utf8")) as GameEnvelope)));
   return s;
 }
 
-describe.skipIf(noSaves)("computeGameDamage against lib/arkh on every real save, character and map", () => {
+describe.skipIf(noSaves)("computeGameDamage on every real save, character and map", () => {
   for (const map of MAPS) {
     it(`map ${map}`, () => {
       const t0 = performance.now();
-      const mismatches: string[] = [];
-      const leafMismatches: string[] = [];
       const display: string[] = [];
       const lost: string[] = [];
       const refused = new Set<string>();
-      const known = { max: 0, mastery: 0 };
       let pairs = 0;
-      let leafKnown = 0;
       let flags = 0;
       let worst = 0;
       for (const path of GOLDEN_SAVES) {
@@ -264,35 +235,7 @@ describe.skipIf(noSaves)("computeGameDamage against lib/arkh on every real save,
           }
           pairs++;
           const tree = r.tree;
-          const mastery = byName(tree, DMG_NODES.mastery).val;
-          // the total and Mastery are lib/arkh's, or the pair's KNOWN causes close the difference (njs/damage.test.ts's propagation)
-          const want = arkhDamage(path, ci, map);
-          for (const [what, got] of [["max", r.total], ["mastery", mastery]] as const) {
-            if (rel(got, want[what])) continue;
-            const at = `${file}#${ci}@${map} ${what}: game ${got}, arkh ${want[what]}`;
-            const proof = damageProof(path, ci);
-            if (!proof.reasons.length) {
-              mismatches.push(at);
-              continue;
-            }
-            const proved = DamageDealed(damageProvedCtx(path, ci, map, proof, state), what === "max" ? "Max" : "Mastery");
-            expect(rel(proved, got), `${at}: the proof changed nothing`).toBe(false);
-            if (rel(proved, want[what])) known[what]++;
-            else mismatches.push(`${at}, with ${proof.reasons.join(" ")} ${proved}`);
-          }
-          // every source leaf is lib/arkh's, except where the pair has a KNOWN row of the leaf or of a stat it is built on
-          const leaves = sourcesOf(tree);
-          const arkhLeaves = arkhDamageLeaves(path, ci, map);
-          const c = withPlayer(makeCtx(state, { player: 0, map }), ci);
-          const primary = MAIN[`${ClassStatTypes[`${ReturnClasses(asNum(c, "CharacterClass"))[0]}`][0]}`];
-          for (const [id, n] of Object.entries(leaves)) {
-            if (rel(n.val, arkhLeaves[id])) continue;
-            const reads = READS[id]?.(primary) ?? [];
-            const covered = KNOWN_ARKH_DIFFS.some((d) => d.save === file && (d.ci ?? ci) === ci && ((d.stat === "damage" && d.source === id) || reads.includes(d.stat as ArkhStat)));
-            if (covered) leafKnown++;
-            else leafMismatches.push(`${file}#${ci}@${map} ${id}: game ${n.val}, arkh ${arkhLeaves[id]}`);
-          }
-          // display and value agree: the page's Biggest Gains (lib/arkh's dmgMax over the flat tree) gives the total back
+          // display and value agree: the page's Biggest Gains (dmgMax over the flat tree) gives the total back
           const fromFlat = damageGainsModel.totalFromFlat(flattenTree(tree));
           worst = Math.max(worst, Math.abs(fromFlat - r.total) / Math.max(1, Math.abs(r.total)));
           if (!rel(fromFlat, r.total)) display.push(`${file}#${ci}@${map}: the flat tree gives ${fromFlat}, the call ${r.total}`);
@@ -304,84 +247,32 @@ describe.skipIf(noSaves)("computeGameDamage against lib/arkh on every real save,
         }
       }
       console.info(
-        `[damage adapter @${map}] ${pairs} pairs, known max ${known.max} / mastery ${known.mastery}, ${leafKnown} known leaves, ${mismatches.length} total and ${leafMismatches.length} leaf mismatches, ${flags} flagged notes, worst flat-tree error ${worst.toExponential(2)}, ${refused.size} refused, ${Math.round(performance.now() - t0)} ms`
+        `[damage adapter @${map}] ${pairs} pairs, ${flags} flagged notes, worst flat-tree error ${worst.toExponential(2)}, ${refused.size} refused, ${Math.round(performance.now() - t0)} ms`
       );
-      expect(mismatches.slice(0, 20)).toEqual([]);
-      expect(leafMismatches.slice(0, 20)).toEqual([]);
       expect(display.slice(0, 20)).toEqual([]);
       expect(lost.slice(0, 20)).toEqual([]);
       expect(pairs).toBeGreaterThan(1000);
-      // not vacuous: the forms' three runtime notes in every trace, and leaves that differ where a KNOWN row says so (the arena computes neither)
+      // not vacuous: the forms' three runtime notes in every trace (the arena computes none)
       if (map !== 43) expect(flags).toBeGreaterThan(3 * pairs);
-      if (map !== 43) expect(leafKnown).toBeGreaterThan(0);
-      expect(known, "KNOWN pairs").toEqual(EXPECT_TOTAL_KNOWN[map] ?? EXPECT_TOTAL_KNOWN[251]);
       // the arena reads only its rat damage, so HourZero (whose stats read the Tome) is not refused there
       expect([...refused].sort()).toEqual(map === 43 ? [] : DAMAGE_REFUSALS);
     }, 1_800_000);
   }
 });
 
-// ── the tree's size (Ruling L) ──────────────────────────────────────────────────────────────────
-// The page persists flattenTree(tree) in every snapshot (localStorage, writes dropped silently on quota), so the tree may not outgrow
-// lib/arkh's by more than 2x. The Task 8 probe measured 301 trimmed trace nodes against lib/arkh's 1332: this is that measure, committed.
-describe.skipIf(noSaves)("the page's tree stays small", () => {
-  it("has at most 2x the nodes of lib/arkh's tree on every real save and character (map 251)", () => {
-    const over: string[] = [];
-    let worst = { ratio: 0, at: "", game: 0, arkh: 0 };
-    let pairs = 0;
-    for (const path of GOLDEN_SAVES) {
-      const state = stateOf(path);
-      const env = JSON.parse(readFileSync(path, "utf8"));
-      for (let ci = 0; ci < state.charNames.length; ci++) {
-        let game: number;
-        try {
-          game = count(gameDamage(state, ci, 251).tree);
-        } catch (e) {
-          if (e instanceof MissingSaveKey) continue;
-          throw e;
-        }
-        const arkh = count(computeArkhDamage(structuredClone(env), ci, 251).tree);
-        pairs++;
-        if (game / arkh > worst.ratio) worst = { ratio: game / arkh, at: `${basename(path)}#${ci}`, game, arkh };
-        if (game > 2 * arkh) over.push(`${basename(path)}#${ci}: ${game} nodes against ${arkh}`);
-      }
-    }
-    console.info(`[damage adapter] tree size: ${pairs} pairs, worst ratio ${worst.ratio.toFixed(2)} at ${worst.at} (${worst.game} nodes against ${worst.arkh})`);
-    expect(over).toEqual([]);
-    expect(pairs).toBeGreaterThan(1000);
-  }, 1_800_000);
-});
-
-// ── the tree on real saves: lib/arkh's names ────────────────────────────────────────────────────
+// ── the tree on real saves ──────────────────────────────────────────────────────────────────────
 const ARKHE = GOLDEN_SAVES.find((p) => basename(p) === "ARKHE.json");
 const ARLONG = GOLDEN_SAVES.find((p) => basename(p) === "Arlong.json"); // Menagerie[5][2] > 0: map 306 really divides
 
-describe.skipIf(!ARKHE || !ARLONG)("the tree's names, formats and notes equal lib/arkh's (the Observed Max data is keyed by them)", () => {
-  const shape = (n: Node) => ({ name: n.name, fmt: n.fmt, note: n.note });
+describe.skipIf(!ARKHE || !ARLONG)("the tree's root on real saves", () => {
   const cases = (): [string, number, number][] => [[ARKHE!, 0, 251], [ARKHE!, 8, 251], [ARKHE!, 8, 306], [ARLONG!, 0, 306], [ARKHE!, 0, 43]];
-  it("on the root, the layers, the steps and every source", () => {
+  it("the layers, the arena and Mastery (on the arena only the arena and Mastery), then the head guards' traces, each with a runtime: / assumed: note", () => {
     for (const [path, ci, map] of cases()) {
       const at = `${basename(path)}#${ci}@${map}`;
-      const env = JSON.parse(readFileSync(path, "utf8"));
-      const arkh = computeArkhDamage(structuredClone(env), ci, map).tree;
-      const { tree } = computeGameDamage(env, ci, map);
-      expect({ ...shape(tree), note: tree.note?.replace(/ · migrated from an older game version \(\d+ load steps?\)$/, "") }, at).toEqual(shape(arkh));
-      // the root's children are lib/arkh's (on the arena only the arena and Mastery: the game computes nothing else there), then the head
-      // guards' traces, each carrying a runtime: / assumed: note
+      const { tree } = computeGameDamage(JSON.parse(readFileSync(path, "utf8")), ci, map);
       const own = tree.children!.filter((c) => ROOT_CHILDREN.includes(c.name as never));
       expect(own.map((c) => c.name), at).toEqual(map === 43 ? [DMG_RULES.rat, DMG_NODES.mastery] : ROOT_CHILDREN);
       for (const extra of tree.children!.slice(own.length)) expect(flagsOfTree(extra).length, `${at} ${extra.name}`).toBeGreaterThan(0);
-      for (const n of own) {
-        const a = byName(arkh, n.name);
-        expect(shape(n), `${at} ${n.name}`).toEqual(shape(a));
-        if (n.name === DMG_NODES.mastery && map === 43) continue; // no Mastery source on the arena
-        n.children!.forEach((step, si) => {
-          // a step of the layers, or a source of the arena / Mastery: name, format, note; a step's own sources too
-          expect(shape(step), `${at} ${n.name} / ${step.name}`).toEqual(shape(a.children![si]));
-          if (ROOT_CHILDREN.slice(0, 3).includes(n.name as never))
-            step.children?.forEach((src, k) => expect(shape(src), `${at} ${step.name} / ${src.name}`).toEqual(shape(a.children![si].children![k])));
-        });
-      }
     }
   }, 120_000);
 });

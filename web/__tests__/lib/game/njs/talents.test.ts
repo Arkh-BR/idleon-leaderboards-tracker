@@ -1,37 +1,18 @@
 // Task 4 (Damage plan): the talent and buff terms DamageDealed("Max") reads, TalentCalc(31, 110, 125, 485, 305, 470, 656, 616) and the
-// buffs 195, 420, 585 and 615 of GetBuffBonuses. Each TalentCalc term is compared with lib/arkh's leaf of the same name over every real
-// save and character (relative 1e-9); N.js's own text is the truth (a difference is a KNOWN entry with its evidence, or a mismatch).
+// buffs 195, 420, 585 and 615 of GetBuffBonuses, on hand-built saves and real envelopes. N.js's own text is the truth.
 import { afkTarget } from "@/lib/game/afkTarget";
 import { MapAFKtarget, MapAFKtargetSide, MapName } from "@/lib/game/data";
 import { afterAll, describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
-import { basename } from "node:path";
-import { GOLDEN_SAVES, KNOWN_ARKH_DIFFS, arkhDamageLeaf, arkhStatSeeds, arkhTc616 } from "../support/arkhOracle";
-import { MissingSaveKey } from "@/lib/game/errors";
+import { GOLDEN_SAVES } from "../support/saves";
 import { listAt } from "@/lib/game/lists";
-import { makeCtx, withPlayer, type Ctx } from "@/lib/game/ctx";
+import { makeCtx, type Ctx } from "@/lib/game/ctx";
 import { buildGameState, type GameEnvelope } from "@/lib/game/state";
-import { GetTalentNumber } from "@/lib/game/njs/GetTalentNumber";
 import { GetBuffBonuses } from "@/lib/game/njs/GetBuffBonuses";
 import { DNSM_CalcTalentMAP, TalentCalc } from "@/lib/game/njs/TalentCalc";
 import { NotPorted } from "@/lib/game/errors";
 
 const MAP = 251; // a plain map: no dungeon (Dungon() is -1), no arena
-/** What the terms refuse (Ruling E), as in the character stats: HourZero (CSver 23) has Tome rows lib/tome cannot score (see stats.test.ts). */
-const REFUSALS: string[] = []; // HourZero, the one save lib/tome could not score, is out of the parity corpus (PARITY_EXCLUDED, support/arkhOracle.ts): nothing is refused
-const rel = (got: number, want: number) => Math.abs(got - want) <= 1e-9 * Math.max(1, Math.abs(want));
-
-/** The lib/game term of each lib/arkh leaf, as DamageDealed uses it (@4107308: TalentCalc(31) + TalentCalc(110) + GTN(1,125) x TalentCalc(125) + ...). */
-const TERMS: Record<string, (c: Ctx) => number> = {
-  tc31: (c) => TalentCalc(c, 31),
-  tc110: (c) => TalentCalc(c, 110),
-  tc125: (c) => GetTalentNumber(c, 1, 125) * TalentCalc(c, 125),
-  tc485: (c) => TalentCalc(c, 485),
-  tc305: (c) => TalentCalc(c, 305) / 50,
-  tc470: (c) => TalentCalc(c, 470) / 10,
-  tc656: (c) => TalentCalc(c, 656),
-  tc616: (c) => TalentCalc(c, 616),
-};
 
 const states = new Map<string, { ctx: Ctx; chars: number }>();
 afterAll(() => states.clear());
@@ -43,65 +24,6 @@ function stateOf(path: string) {
   }
   return s;
 }
-
-describe.skipIf(GOLDEN_SAVES.length === 0)("TalentCalc terms against lib/arkh on every real save and character", () => {
-  for (const id of Object.keys(TERMS)) {
-    it(id, () => {
-      const t0 = performance.now();
-      const mismatches: string[] = [];
-      const seen = new Set<number>();
-      let pairs = 0;
-      let nonZero = 0;
-      let known = 0;
-      let entryPairs = 0; // pairs some KNOWN entry covers: every one must really differ, or the entry is stale
-      const refused = new Set<string>();
-      for (const path of GOLDEN_SAVES) {
-        const { ctx, chars } = stateOf(path);
-        const tc616 = id === "tc616" ? arkhTc616(path) : [];
-        for (let ci = 0; ci < chars; ci++) {
-          let got: number;
-          try {
-            got = TERMS[id](withPlayer(ctx, ci));
-          } catch (e) {
-            if (!(e instanceof MissingSaveKey)) throw e;
-            refused.add(`${basename(path)}: ${e.key}`);
-            continue;
-          }
-          const want = id === "tc616" ? tc616[ci] : arkhDamageLeaf(path, ci, MAP, id);
-          pairs++;
-          seen.add(want);
-          if (want !== 0) nonZero++;
-          const covered = KNOWN_ARKH_DIFFS.some((d) => d.stat === "damage" && d.source === id && d.save === basename(path) && (d.ci ?? ci) === ci);
-          if (covered) entryPairs++;
-          if (rel(got, want)) continue;
-          // a KNOWN difference is proved, not skipped: lib/arkh's number for the term it names, seeded into a fresh Ctx, closes the gap
-          const reasons = KNOWN_ARKH_DIFFS.filter((d) => d.stat === "damage" && d.source === id && d.save === basename(path) && (d.ci ?? ci) === ci).map((d) => d.reason!);
-          if (reasons.length) {
-            const c = makeCtx(ctx.state, { player: ci, map: MAP });
-            for (const [name, args, v] of arkhStatSeeds(path, ci, reasons, "str")) c.cache.set(`${ci}|${MAP}|${name}${JSON.stringify(args)}`, v);
-            const seeded = TERMS[id](c);
-            if (rel(seeded, want)) {
-              known++;
-              continue;
-            }
-            mismatches.push(`${basename(path)}#${ci}: game ${got}, arkh ${want}, with lib/arkh's ${reasons.join("+")} ${seeded}`);
-            continue;
-          }
-          mismatches.push(`${basename(path)}#${ci}: game ${got}, arkh ${want}`);
-        }
-      }
-      console.info(`[talents ${id}] ${pairs} pairs, ${nonZero} nonzero, ${known} known, ${mismatches.length} mismatches, ${refused.size} refused, ${seen.size} distinct, ${Math.round(performance.now() - t0)} ms`);
-      expect(mismatches.slice(0, 20)).toEqual([]);
-      expect(known, "KNOWN pairs vs pairs the entries cover (a stale entry is one that no longer differs)").toBe(entryPairs);
-      expect(pairs).toBeGreaterThan(1000);
-      expect(nonZero, `${id} must be nonzero on many characters`).toBeGreaterThan(30);
-      expect(seen.size).toBeGreaterThan(10);
-      expect([...refused].sort()).toEqual(id === "tc656" || id === "tc616" ? [] : REFUSALS);
-      const names = new Set(GOLDEN_SAVES.map((p) => basename(p)));
-      expect(KNOWN_ARKH_DIFFS.filter((d) => d.stat === "damage" && d.source === id && !names.has(d.save)).map((d) => d.save)).toEqual([]);
-    }, 600_000);
-  }
-});
 
 describe.skipIf(GOLDEN_SAVES.length === 0)("CalcTalentMAP keys, N.js @4467058, on hand-built saves", () => {
   // a fresh envelope per variant (the state is built from a clone): the first real save with its Cards, RoyalG... replaced

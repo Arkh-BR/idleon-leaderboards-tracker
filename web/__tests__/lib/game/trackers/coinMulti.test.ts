@@ -1,20 +1,16 @@
 // Task 4 (Coin plan): the Coin Multi adapter (lib/game/trackers/coinMulti.ts), ArbitraryCode("MonsterCash") turned into the page's tree.
 //
-// - the display config moved to lib/coinMulti/layers (Ruling B), lib/arkh re-exporting the very same objects; the tracker registry;
+// - the display config in lib/coinMulti/layers (Ruling B); the tracker registry;
 // - on a synthetic envelope (CI): the tree's shape, the sources' values (the map-dependent guild term, the sources that read the save), the `assumed:` leaves kept
 //   on the page, the recombination guard (TreeTotalMismatch), the page's Biggest Gains model giving the total back;
-// - on every real save, character and map (301, 251, 150, 40 and 33: the maps of njs/coinMulti.test.ts): the total is the one ArbitraryCode("MonsterCash") call
-//   (njs/coinMulti.test.ts proves that call against lib/arkh, pair by pair, with the exact KNOWN proofs; here a total that differs from lib/arkh's must be covered by
-//   a KNOWN row of the pair, and the count is the one that test asserts), every source leaf against lib/arkh's (a difference is a KNOWN row of that source), the names,
-//   formats and notes equal to lib/arkh's, the page's Biggest Gains model giving the total back from the flat tree, the size (Ruling L, at most 2x lib/arkh's nodes),
-//   and every runtime: / assumed: note of the full trace kept;
+// - on every real save, character and map (301, 251, 150, 40 and 33: the maps of njs/coinMulti.test.ts): the total is the one ArbitraryCode("MonsterCash") call,
+//   one tree node per group, the page's Biggest Gains model giving the total back from the flat tree, and every runtime: / assumed: note of the full trace kept;
 // - the Coin Multi readings in the game's display format (skipped until fixtures/readings.json has a coinMulti entry, Ruling MM).
 // A describe body never reads a save: states load lazily inside `it`.
 import { afterAll, describe, it, expect, vi } from "vitest";
 import { existsSync, readFileSync } from "node:fs";
 import { basename, join } from "node:path";
-import { GOLDEN_SAVES, KNOWN_ARKH_DIFFS, arkhCoinLeaves, arkhCoinMulti, arkhCoinShape } from "../support/arkhOracle"; // first: it sets the `window` shim lib/arkh reads
-import * as arkhDef from "@/lib/arkh/stats/defs/coin-multi";
+import { GOLDEN_SAVES } from "../support/saves";
 import * as layers from "@/lib/coinMulti/layers";
 import { COIN_PAGE } from "@/lib/coinMulti/pageConfig";
 import { flattenTree } from "@/lib/dropRate/treeFlatten";
@@ -52,22 +48,13 @@ const count = (n: Node): number => 1 + (n.children ?? []).reduce((a, c) => a + c
 const FLAG = /^(runtime|assumed):/;
 const flagsOfTrace = (n: TraceNode): string[] => [...(FLAG.test(n.note ?? "") ? [`${n.note}|${n.value}`] : []), ...n.children.flatMap(flagsOfTrace)];
 const flagsOfTree = (n: Node): string[] => [...(FLAG.test(n.note ?? "") ? [`${n.note}|${n.val}`] : []), ...(n.children ?? []).flatMap(flagsOfTree)];
-const shape = (n: { name: string; fmt?: string; note?: string }) => ({ name: n.name, fmt: n.fmt, note: n.note });
 const ALL_IDS = COIN_GROUPS.flatMap((g) => g.sources);
 const gi = (key: string) => COIN_GROUPS.findIndex((g) => g.key === key);
 const noMigrated = (note?: string) => note?.replace(/^migrated from an older game version \(\d+ load steps?\)$/, "") || undefined;
-/**
- * The sources whose note lib/arkh builds from the save and the tree drops: the three class talents' (the decay formula with the talent's level, "A × B % cash" with
- * the bonus, "Inactive — talent 0") and Coins For Charon's ("Inactive — talent 0" when the talent is 0). The tree keeps their name and format.
- */
-const DYNAMIC_NOTE = new Set(["talent657", "talent22", "talent644", "talent643"]);
 
 // ── the display config and the registry ─────────────────────────────────────────────────────────
 describe("the display config and the registry", () => {
-  it("lives in lib/coinMulti/layers and lib/arkh re-exports the very same objects (Ruling B)", () => {
-    expect(arkhDef.COIN_ROOT).toBe(layers.COIN_ROOT);
-    expect(arkhDef.COIN_GROUPS).toBe(layers.COIN_GROUPS);
-    expect(arkhDef.COIN_VOTE_NAME).toBe(layers.COIN_VOTE_NAME);
+  it("lives in lib/coinMulti/layers: 23 groups, 57 distinct sources (Ruling B)", () => {
     expect(COIN_GROUPS).toHaveLength(23);
     expect(ALL_IDS).toHaveLength(57);
     expect(new Set(ALL_IDS).size).toBe(ALL_IDS.length);
@@ -100,7 +87,7 @@ describe("the tree on a synthetic envelope (runs in CI)", () => {
     coinTree(synth({ ...data, ...extra }, { map: o.map, seeds: { ...SET, ...seeds }, real: [...REAL, ...(o.real ?? [])], trace: true }));
   const val = (t: Node, group: string, id: string) => t.children![gi(group)].children![COIN_GROUPS[gi(group)].sources.indexOf(id)].val;
 
-  it("has lib/arkh's shape: the groups in COIN_GROUPS order, each with its sources in order", () => {
+  it("has the page's shape: the groups in COIN_GROUPS order, each with its sources in order", () => {
     const { tree: t, total } = tree();
     expect(t).toMatchObject({ name: COIN_ROOT, val: total, fmt: "x" });
     expect(noMigrated(t.note)).toBeUndefined();
@@ -135,7 +122,7 @@ describe("the tree on a synthetic envelope (runs in CI)", () => {
     expect(COIN_PAGE.gains.totalFromFlat(flattenTree(t))).toBeCloseTo(total, 12);
   });
 
-  it("the guild term follows the map: GuildBonuses(8) x (1 + floor(map / 50)), and the formats are lib/arkh's", () => {
+  it("the guild term follows the map: GuildBonuses(8) x (1 + floor(map / 50)), and the formats are the page's", () => {
     for (const [map, world] of [[301, 7], [251, 6], [150, 4], [40, 1], [0, 1]] as const) {
       const { tree: t, total } = tree({}, {}, { map });
       expect(val(t, "g23", "guild8"), `map ${map}`).toBe(2 * world);
@@ -191,18 +178,9 @@ describe("the tree on a synthetic envelope (runs in CI)", () => {
 });
 
 // ── every real save, character and map ──────────────────────────────────────────────────────────
-/**
- * The maps of njs/coinMulti.test.ts: the Observed Max reference, plain, a town, a dungeon (Ruling Y). `explained`: pairs whose total differs from lib/arkh's and is
- * closed by a KNOWN row of the pair (the figure njs/coinMulti.test.ts asserts: it proves each pair's exact values); `leafKnown`: leaves of those pairs that differ from
- * lib/arkh's and are covered by a KNOWN row of that source; `fmtless`: lib/arkh nodes with no format. Map 33 has no monster on its target: refused, below.
- */
-const MAPS: Record<number, { explained: number; leafKnown: number; fmtless: number }> = {
-  301: { explained: 1140, leafKnown: 3759, fmtless: 494 },
-  251: { explained: 1139, leafKnown: 3757, fmtless: 494 },
-  150: { explained: 1139, leafKnown: 3757, fmtless: 494 },
-  40: { explained: 1140, leafKnown: 3759, fmtless: 494 },
-};
-const HOURZERO: string[] = []; // HourZero, the one save lib/tome could not score, is out of the parity corpus (PARITY_EXCLUDED, support/arkhOracle.ts): nothing is refused
+/** The maps of njs/coinMulti.test.ts: the Observed Max reference, plain, a town, a dungeon (Ruling Y). Map 33 has no monster on its target: refused, below. */
+const MAPS = [301, 251, 150, 40];
+const HOURZERO: string[] = []; // HourZero is out of the default corpus (PARITY_EXCLUDED, support/saves.ts): nothing is refused
 
 const states = new Map<string, ReturnType<typeof buildGameState>>();
 afterAll(() => states.clear());
@@ -212,27 +190,18 @@ const stateOf = (path: string) => {
   return s;
 };
 
-describe.skipIf(noSaves)("computeGameCoinMulti against lib/arkh on every real save, character and map", () => {
-  for (const map of Object.keys(MAPS).map(Number)) {
+describe.skipIf(noSaves)("computeGameCoinMulti on every real save, character and map", () => {
+  for (const map of MAPS) {
     it(`map ${map}`, () => {
       const t0 = performance.now();
       const mismatches: string[] = [];
-      const leafMismatches: string[] = [];
       const shapeMismatches: string[] = [];
       const display: string[] = [];
       const lost: string[] = [];
-      const over: string[] = [];
       const refused = new Set<string>();
       let pairs = 0;
-      let explained = 0;
-      let leafKnown = 0;
-      let entryLeaves = 0; // leaves a KNOWN row covers: every one must really differ (leafKnown), or the row is stale
-      let fmtless = 0;
       let flags = 0;
       let worst = 0;
-      let worstRatio = 0;
-      let nodes = 0;
-      let arkhNodes = 0;
       for (const path of GOLDEN_SAVES) {
         const file = basename(path);
         const state = stateOf(path);
@@ -249,52 +218,12 @@ describe.skipIf(noSaves)("computeGameCoinMulti against lib/arkh on every real sa
           pairs++;
           const tree = r.tree;
           const at = `${file}#${ci}@${map}`;
-          const arkh = arkhCoinShape(path, ci, map);
-          // the size (Ruling L): at most 2x lib/arkh's nodes
-          nodes += count(tree);
-          arkhNodes += arkh.nodes;
-          worstRatio = Math.max(worstRatio, count(tree) / arkh.nodes);
-          if (count(tree) > 2 * arkh.nodes) over.push(`${at}: ${count(tree)} nodes against ${arkh.nodes}`);
-          // the total is the call's (the adapter adds nothing), and lib/arkh's, or a KNOWN row of the pair explains the difference
+          // the total is the call's (the adapter adds nothing)
           if (r.total !== TRACKERS.coinMulti!(makeCtx(state, { player: ci, map }))) mismatches.push(`${at}: the tree's total is not ArbitraryCode("MonsterCash")'s`);
-          const rows = KNOWN_ARKH_DIFFS.filter((d) => d.stat === "coin" && d.save === file && (d.ci ?? ci) === ci && (d.maps?.includes(map) ?? true));
-          const want = arkhCoinMulti(path, ci, map);
-          if (!rel(r.total, want)) {
-            if (!rows.length) mismatches.push(`${at}: game ${r.total}, arkh ${want}`);
-            else explained++;
-          }
           const full = flagsOfTrace(ctx.trace!).sort();
           flags += full.length;
           if (JSON.stringify(flagsOfTree(tree).sort()) !== JSON.stringify(full)) lost.push(`${at}: full trace ${full.length} notes, page tree ${flagsOfTree(tree).length}`);
-          // names, formats, notes: lib/arkh's (the Observed Max data is keyed by them), and every source leaf is lib/arkh's except where the pair has a KNOWN row of that source
-          if (JSON.stringify(shape({ ...tree, note: noMigrated(tree.note) })) !== JSON.stringify(shape(arkh.root))) shapeMismatches.push(`${at}: root ${JSON.stringify(shape(tree))}`);
           if (tree.children!.length !== COIN_GROUPS.length) shapeMismatches.push(`${at}: ${tree.children!.length} children (extras: ${tree.children!.slice(COIN_GROUPS.length).map((c) => c.name)})`);
-          const leaves = arkhCoinLeaves(path, ci, map);
-          COIN_GROUPS.forEach((g, i) => {
-            const mine = tree.children![i];
-            if (JSON.stringify(shape(mine)) !== JSON.stringify(shape(arkh.groups[i]))) shapeMismatches.push(`${at}: group ${g.key} ${JSON.stringify(shape(mine))} vs ${JSON.stringify(shape(arkh.groups[i]))}`);
-            g.sources.forEach((id, k) => {
-              const m = mine.children![k];
-              const s1 = shape(m);
-              const s2 = shape(arkh.sources[id]);
-              if (DYNAMIC_NOTE.has(id)) (s1 as { note?: string }).note = (s2 as { note?: string }).note = undefined;
-              // a lib/arkh node that is a renamed copy of a system node can carry no format of its own: the tree gives it "+", the sources' default
-              if (s2.fmt === undefined) {
-                fmtless++;
-                if (s1.fmt !== "+") shapeMismatches.push(`${at}: ${id} format ${s1.fmt}, not the default "+"`);
-                (s1 as { fmt?: string }).fmt = undefined;
-              }
-              if (JSON.stringify(s1) !== JSON.stringify(s2)) shapeMismatches.push(`${at}: ${id} ${JSON.stringify(s1)} vs ${JSON.stringify(s2)}`);
-              const covered = rows.some((d) => d.source === id);
-              if (covered) entryLeaves++;
-              if (rel(m.val, leaves[id])) return;
-              if (covered) {
-                leafKnown++;
-                return;
-              }
-              leafMismatches.push(`${at} ${id}: game ${m.val}, arkh ${leaves[id]}`);
-            });
-          });
           // display and value agree: the page's Biggest Gains model gives the total back from the flat tree
           const fromFlat = COIN_PAGE.gains.totalFromFlat(flattenTree(tree));
           worst = Math.max(worst, Math.abs(fromFlat - r.total) / Math.max(1, Math.abs(r.total)));
@@ -304,19 +233,13 @@ describe.skipIf(noSaves)("computeGameCoinMulti against lib/arkh on every real sa
       }
       states.clear(); // 106 states (each a deep clone) kept across the maps would pass the heap
       console.info(
-        `[coin adapter @${map}] ${pairs} pairs, ${explained} explained, ${leafKnown} known leaves (${entryLeaves} covered), ${fmtless} format-less lib/arkh nodes, ${mismatches.length} total, ${leafMismatches.length} leaf and ${shapeMismatches.length} shape mismatches, ${flags} flagged notes, worst flat-tree error ${worst.toExponential(2)}, size ${nodes} nodes against ${arkhNodes} (worst ratio ${worstRatio.toFixed(2)}), ${refused.size} refused, ${Math.round(performance.now() - t0)} ms`
+        `[coin adapter @${map}] ${pairs} pairs, ${mismatches.length} total and ${shapeMismatches.length} shape mismatches, ${flags} flagged notes, worst flat-tree error ${worst.toExponential(2)}, ${refused.size} refused, ${Math.round(performance.now() - t0)} ms`
       );
-      expect(over).toEqual([]);
       expect(mismatches.slice(0, 20)).toEqual([]);
-      expect(leafMismatches.slice(0, 20)).toEqual([]);
       expect(shapeMismatches.slice(0, 20)).toEqual([]);
       expect(display.slice(0, 20)).toEqual([]);
       expect(lost.slice(0, 20)).toEqual([]);
       expect(pairs, "saves x characters, less the refused").toBe(1153);
-      expect(explained, "pairs whose total differs from lib/arkh's and a KNOWN row closes (njs/coinMulti.test.ts's figure)").toBe(MAPS[map].explained);
-      expect(leafKnown, "leaves that differ from lib/arkh's and a KNOWN row of that source covers").toBe(MAPS[map].leafKnown);
-      expect(leafKnown, "KNOWN leaves vs leaves the rows cover (a stale row is one that no longer differs)").toBe(entryLeaves);
-      expect(fmtless, "lib/arkh nodes with no format").toBe(MAPS[map].fmtless);
       // the Tome refusal behind TotalStats("STR") (Ruling E): HourZero on every map
       expect([...refused].sort()).toEqual(HOURZERO);
     }, 3_600_000);

@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { alerts, elasticities, requiredFactor, whatIf } from "@/lib/diagnose/sensitivity";
 import { rankHypotheses, rankPairs, ratio, type DiagReading } from "@/lib/diagnose/hypotheses";
 import { prepare } from "@/scripts/diagnose";
-import { node } from "@/lib/arkh/node";
+import { node } from "@/lib/dropRate/node";
 import type { Reading } from "@/lib/readings/types";
 
 type Flat = Record<string, number>;

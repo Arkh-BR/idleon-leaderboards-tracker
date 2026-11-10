@@ -1,21 +1,16 @@
 // Task 4 (DR plan): the Drop Rate adapter (lib/game/trackers/dropRate.ts), TotalStats("Drop_Rarity") turned into the page's tree.
 //
-// - the display config moved to lib/dropRateV2/layers (Ruling B), lib/arkh re-exporting the very same objects; the tracker registry;
+// - the display config in lib/dropRateV2/layers (Ruling B); the tracker registry;
 // - on a synthetic envelope (CI): the tree's shape, the sources' values, the chip (an `add` group under 5) and the Cove (a `replace` group), the
 //   recombination guard (TreeTotalMismatch), the page's Biggest Gains model giving the total back, the refToggle group path still resolving;
-// - on every real save, character and map (251, 216, 150, 40, 33: the maps of njs/dropRate.test.ts): the total is the one TotalStats("Drop_Rarity")
-//   call (njs/dropRate.test.ts proves that call against lib/arkh, pair by pair, with the exact KNOWN proofs; here a total that differs from lib/arkh's
-//   must be covered by a KNOWN row of the pair, and the count is the one that test asserts), every source leaf against lib/arkh's (a difference is a
-//   KNOWN row of that source), the names, formats and notes equal to lib/arkh's, the page's Biggest Gains model giving the total back from the flat
-//   tree, the size (Ruling L, at most 2x lib/arkh's nodes), and every runtime: / assumed: note of the full trace kept;
+// - on every real save, character and map (251, 216, 150, 40, 33): the total is the one TotalStats("Drop_Rarity") call, one tree node per group,
+//   the page's Biggest Gains model giving the total back from the flat tree, and every runtime: / assumed: note of the full trace kept;
 // - the Drop Rate readings in the game's display format (skipped until fixtures/readings.json has a dropRateV2 entry, Ruling MM).
 // A describe body never reads a save: states load lazily inside `it`.
 import { afterAll, describe, it, expect, vi } from "vitest";
 import { existsSync, readFileSync } from "node:fs";
 import { basename, join } from "node:path";
-import { GOLDEN_SAVES, KNOWN_ARKH_DIFFS } from "../support/arkhOracle"; // first: it sets the `window` shim lib/arkh reads
-import * as arkhDef from "@/lib/arkh/stats/defs/drop-rate-v2";
-import { computeArkhDropRateV2 } from "@/lib/arkh/computeDropRateV2";
+import { GOLDEN_SAVES } from "../support/saves";
 import * as layers from "@/lib/dropRateV2/layers";
 import { DR2_PAGE } from "@/lib/dropRateV2/pageConfig";
 import { flattenTree } from "@/lib/dropRate/treeFlatten";
@@ -53,22 +48,13 @@ const count = (n: Node): number => 1 + (n.children ?? []).reduce((a, c) => a + c
 const FLAG = /^(runtime|assumed):/;
 const flagsOfTrace = (n: TraceNode): string[] => [...(FLAG.test(n.note ?? "") ? [`${n.note}|${n.value}`] : []), ...n.children.flatMap(flagsOfTrace)];
 const flagsOfTree = (n: Node): string[] => [...(FLAG.test(n.note ?? "") ? [`${n.note}|${n.val}`] : []), ...(n.children ?? []).flatMap(flagsOfTree)];
-const shape = (n: Node) => ({ name: n.name, fmt: n.fmt, note: n.note });
 const ALL_IDS = DR2_GROUPS.flatMap((g) => g.sources);
 const gi = (key: string) => DR2_GROUPS.findIndex((g) => g.key === key);
 const noMigrated = (note?: string) => note?.replace(/^migrated from an older game version \(\d+ load steps?\)$/, "") || undefined;
-/**
- * The sources whose note lib/arkh builds from the save and the tree drops (the talents' decay, the Workbench's log term, the prayer, the achievement):
- * the tree keeps their name and format. The six companions' "Not owned — would grant +X" is kept (user decision 07/11) and checked as text.
- */
-const DYNAMIC_NOTE = new Set(["talent279", "talent24", "talent655", "workbench", "prayer7", "ach381"]);
 
 // ── the display config and the registry ─────────────────────────────────────────────────────────
 describe("the display config and the registry", () => {
-  it("lives in lib/dropRateV2/layers and lib/arkh re-exports the very same objects (Ruling B)", () => {
-    expect(arkhDef.DR2_ROOT).toBe(layers.DR2_ROOT);
-    expect(arkhDef.DR2_GROUPS).toBe(layers.DR2_GROUPS);
-    expect(arkhDef.DR2_VOTE_NAME).toBe(layers.DR2_VOTE_NAME);
+  it("lives in lib/dropRateV2/layers: 79 distinct sources (Ruling B)", () => {
     expect(ALL_IDS).toHaveLength(79);
     expect(new Set(ALL_IDS).size).toBe(ALL_IDS.length);
   });
@@ -101,7 +87,7 @@ describe("the tree on a synthetic envelope (runs in CI)", () => {
     dropRateTree(synth({ Dream: dream, ...data }, { ...o, seeds: { ...SET, ...seeds }, real: REAL, trace: true }));
   const val = (t: Node, group: string, id: string) => t.children![gi(group)].children![DR2_GROUPS[gi(group)].sources.indexOf(id)].val;
 
-  it("has lib/arkh's shape: the groups in DR2_GROUPS order, each with its sources in order", () => {
+  it("has the page's shape: the groups in DR2_GROUPS order, each with its sources in order", () => {
     const { tree: t, total } = tree();
     expect(t).toMatchObject({ name: DR2_ROOT, val: total, fmt: "x" });
     expect(noMigrated(t.note)).toBeUndefined();
@@ -154,7 +140,7 @@ describe("the tree on a synthetic envelope (runs in CI)", () => {
     const chip = (r: StatResult) => r.tree.children![gi("chip")].children![0];
     const ok = run({ Lab: [[], [3, -1, -1, -1, -1, -1, -1]] }); // chip 3, Grounded Processor: "dr" 60
     expect(ok.total).toBeGreaterThan(5);
-    expect(chip(ok).val).toBe(0.6); // the read succeeds: lib/arkh's value
+    expect(chip(ok).val).toBe(0.6); // the read succeeds
     expect(chip(ok).children).toBeUndefined();
     // no Lab row for the character (MissingSaveKey), and a chip ChipDesc does not have (RangeError): the game never reads either here
     for (const data of [{}, { Lab: [[], [9999, -1, -1, -1, -1, -1, -1]] }]) {
@@ -165,7 +151,7 @@ describe("the tree on a synthetic envelope (runs in CI)", () => {
     }
   });
 
-  it("the six base-group companions carry lib/arkh's \"Not owned\" note with CompanionDB[id][2], and an owned one none", () => {
+  it("the six base-group companions carry the \"Not owned\" note with CompanionDB[id][2], and an owned one none", () => {
     const { tree: t } = tree({}, { "Companions[22]": 15 });
     const note = (id: string) => t.children![gi("base")].children![DR2_GROUPS[gi("base")].sources.indexOf(id)].note;
     expect(note("comp3")).toBe("Not owned — would grant +100");
@@ -234,19 +220,9 @@ describe("the tree on a synthetic envelope (runs in CI)", () => {
 });
 
 // ── every real save, character and map ──────────────────────────────────────────────────────────
-/**
- * The maps of njs/dropRate.test.ts: plain, the Cove map, a town, a dungeon (Ruling Y) and a no-monster map. `explained`: pairs whose total differs from
- * lib/arkh's and is closed by a KNOWN row of the pair (the same figure njs/dropRate.test.ts asserts: it proves each pair's exact values); `leafKnown`:
- * leaves of those pairs that differ from lib/arkh's and are covered by a KNOWN row of that source; `fmtless`: lib/arkh nodes with no format.
- */
-const MAPS: Record<number, { explained: number; leafKnown: number; fmtless: number; cove: number }> = {
-  251: { explained: 1040, leafKnown: 1750, fmtless: 2044, cove: 0 },
-  216: { explained: 921, leafKnown: 1750, fmtless: 2044, cove: 123 },
-  150: { explained: 1040, leafKnown: 1750, fmtless: 2044, cove: 0 },
-  40: { explained: 1040, leafKnown: 1750, fmtless: 2044, cove: 0 },
-  33: { explained: 1040, leafKnown: 1750, fmtless: 2044, cove: 0 },
-};
-const HOURZERO: string[] = []; // HourZero, the one save lib/tome could not score, is out of the parity corpus (PARITY_EXCLUDED, support/arkhOracle.ts): nothing is refused
+/** The maps of njs/dropRate.test.ts: plain, the Cove map, a town, a dungeon (Ruling Y) and a no-monster map; `cove`: the pairs in the Cove. */
+const MAPS: Record<number, { cove: number }> = { 251: { cove: 0 }, 216: { cove: 123 }, 150: { cove: 0 }, 40: { cove: 0 }, 33: { cove: 0 } };
+const HOURZERO: string[] = []; // HourZero is out of the default corpus (PARITY_EXCLUDED, support/saves.ts): nothing is refused
 
 const states = new Map<string, ReturnType<typeof buildGameState>>();
 afterAll(() => states.clear());
@@ -256,32 +232,22 @@ const stateOf = (path: string) => {
   return s;
 };
 
-describe.skipIf(noSaves)("computeGameDropRate against lib/arkh on every real save, character and map", () => {
+describe.skipIf(noSaves)("computeGameDropRate on every real save, character and map", () => {
   for (const map of Object.keys(MAPS).map(Number)) {
     it(`map ${map}`, () => {
       const t0 = performance.now();
       const mismatches: string[] = [];
-      const leafMismatches: string[] = [];
       const shapeMismatches: string[] = [];
       const display: string[] = [];
       const lost: string[] = [];
-      const over: string[] = [];
       const refused = new Set<string>();
       let pairs = 0;
-      let explained = 0;
-      let leafKnown = 0;
-      let entryLeaves = 0; // leaves a KNOWN row covers: every one must really differ (leafKnown), or the row is stale
-      let fmtless = 0;
       let flags = 0;
       let cove = 0;
       let worst = 0;
-      let worstRatio = 0;
-      let nodes = 0;
-      let arkhNodes = 0;
       for (const path of GOLDEN_SAVES) {
         const file = basename(path);
         const state = stateOf(path);
-        const env = JSON.parse(readFileSync(path, "utf8"));
         for (let ci = 0; ci < state.charNames.length; ci++) {
           const ctx = makeCtx(state, { player: ci, map, trace: true });
           let r: StatResult;
@@ -295,53 +261,13 @@ describe.skipIf(noSaves)("computeGameDropRate against lib/arkh on every real sav
           pairs++;
           const tree = r.tree;
           const at = `${file}#${ci}@${map}`;
-          const arkh = computeArkhDropRateV2(structuredClone(env), ci, map);
-          // the size (Ruling L): at most 2x lib/arkh's nodes
-          nodes += count(tree);
-          arkhNodes += count(arkh.tree);
-          worstRatio = Math.max(worstRatio, count(tree) / count(arkh.tree));
-          if (count(tree) > 2 * count(arkh.tree)) over.push(`${at}: ${count(tree)} nodes against ${count(arkh.tree)}`);
-          // the total is the call's (the adapter adds nothing), and lib/arkh's, or a KNOWN row of the pair explains the difference
+          // the total is the call's (the adapter adds nothing)
           if (r.total !== TRACKERS.dropRateV2!(makeCtx(state, { player: ci, map }))) mismatches.push(`${at}: the tree's total is not TotalStats("Drop_Rarity")'s`);
-          const rows = KNOWN_ARKH_DIFFS.filter((d) => d.stat === "dr" && d.save === file && (d.ci ?? ci) === ci && (d.maps?.includes(map) ?? true));
-          if (!rel(r.total, arkh.total)) {
-            if (!rows.some((d) => d.reason !== "glimboUnleveled")) mismatches.push(`${at}: game ${r.total}, arkh ${arkh.total}`);
-            else explained++;
-          }
           if (tree.children![gi("cove")].children![0].val > 0) cove++;
           const full = flagsOfTrace(ctx.trace!).sort();
           flags += full.length;
           if (JSON.stringify(flagsOfTree(tree).sort()) !== JSON.stringify(full)) lost.push(`${at}: full trace ${full.length} notes, page tree ${flagsOfTree(tree).length}`);
-          // names, formats, notes: lib/arkh's (the Observed Max data is keyed by them), and every source leaf is lib/arkh's except where the pair has a KNOWN row of that source
-          if (JSON.stringify(shape({ ...tree, note: noMigrated(tree.note) })) !== JSON.stringify(shape(arkh.tree))) shapeMismatches.push(`${at}: root ${JSON.stringify(shape(tree))}`);
           if (tree.children!.length !== DR2_GROUPS.length) shapeMismatches.push(`${at}: ${tree.children!.length} children (extras: ${tree.children!.slice(DR2_GROUPS.length).map((c) => c.name)})`);
-          DR2_GROUPS.forEach((g, i) => {
-            const mine = tree.children![i];
-            const theirs = arkh.tree.children![i];
-            if (JSON.stringify(shape(mine)) !== JSON.stringify(shape(theirs))) shapeMismatches.push(`${at}: group ${g.key} ${JSON.stringify(shape(mine))} vs ${JSON.stringify(shape(theirs))}`);
-            g.sources.forEach((id, k) => {
-              const m = mine.children![k];
-              const a = theirs.children![k];
-              const s1 = shape(m);
-              const s2 = shape(a);
-              if (DYNAMIC_NOTE.has(id)) (s1 as { note?: string }).note = (s2 as { note?: string }).note = undefined;
-              // a lib/arkh node that is a renamed copy of a system node can carry no format of its own: the tree gives it its group's
-              if (s2.fmt === undefined) {
-                fmtless++;
-                if (s1.fmt !== (g.kind === "mult" || g.kind === "replace" ? "x" : "+")) shapeMismatches.push(`${at}: ${id} format ${s1.fmt}, its group's is ${g.kind}`);
-                (s1 as { fmt?: string }).fmt = undefined;
-              }
-              if (JSON.stringify(s1) !== JSON.stringify(s2)) shapeMismatches.push(`${at}: ${id} ${JSON.stringify(s1)} vs ${JSON.stringify(s2)}`);
-              const covered = rows.some((d) => d.source === id);
-              if (covered) entryLeaves++;
-              if (rel(m.val, a.val)) return;
-              if (covered) {
-                leafKnown++;
-                return;
-              }
-              leafMismatches.push(`${at} ${id}: game ${m.val}, arkh ${a.val}`);
-            });
-          });
           // display and value agree: the page's Biggest Gains model gives the total back from the flat tree
           const fromFlat = DR2_PAGE.gains.totalFromFlat(flattenTree(tree));
           worst = Math.max(worst, Math.abs(fromFlat - r.total) / Math.max(1, Math.abs(r.total)));
@@ -351,19 +277,13 @@ describe.skipIf(noSaves)("computeGameDropRate against lib/arkh on every real sav
       }
       states.clear(); // 106 states (each a deep clone) kept across the five maps would pass the heap
       console.info(
-        `[dr adapter @${map}] ${pairs} pairs, ${explained} explained, ${leafKnown} known leaves (${entryLeaves} covered), ${fmtless} format-less lib/arkh nodes, ${mismatches.length} total, ${leafMismatches.length} leaf and ${shapeMismatches.length} shape mismatches, ${flags} flagged notes, worst flat-tree error ${worst.toExponential(2)}, size ${nodes} nodes against ${arkhNodes} (worst ratio ${worstRatio.toFixed(2)}), ${cove} in the Cove, ${refused.size} refused, ${Math.round(performance.now() - t0)} ms`
+        `[dr adapter @${map}] ${pairs} pairs, ${mismatches.length} total and ${shapeMismatches.length} shape mismatches, ${flags} flagged notes, worst flat-tree error ${worst.toExponential(2)}, ${cove} in the Cove, ${refused.size} refused, ${Math.round(performance.now() - t0)} ms`
       );
-      expect(over).toEqual([]);
       expect(mismatches.slice(0, 20)).toEqual([]);
-      expect(leafMismatches.slice(0, 20)).toEqual([]);
       expect(shapeMismatches.slice(0, 20)).toEqual([]);
       expect(display.slice(0, 20)).toEqual([]);
       expect(lost.slice(0, 20)).toEqual([]);
       expect(pairs, "saves x characters, less the refused").toBe(1153);
-      expect(explained, "pairs whose total differs from lib/arkh's and a KNOWN row closes (njs/dropRate.test.ts's figure)").toBe(MAPS[map].explained);
-      expect(leafKnown, "leaves that differ from lib/arkh's and a KNOWN row of that source covers").toBe(MAPS[map].leafKnown);
-      expect(leafKnown, "KNOWN leaves vs leaves the rows cover (a stale row is one that no longer differs)").toBe(entryLeaves);
-      expect(fmtless, "lib/arkh nodes with no format").toBe(MAPS[map].fmtless);
       expect(cove, "pairs in the Cove (the Cove source is above 0)").toBe(MAPS[map].cove);
       // the Tome refusal behind TotalStats("LUK") (Ruling E): HourZero on every map
       expect([...refused].sort()).toEqual(HOURZERO);

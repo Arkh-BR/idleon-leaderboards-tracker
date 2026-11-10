@@ -1,10 +1,5 @@
-// The cards, companions, food and small account rows of the Drop Rate V1 tree (lib/dropRate/explain/collections.ts). On a synthetic save every block is a seed (ZeroCache), so the numbers are worked out by hand; on the newest real save the
-// tree matches lib/arkh's path by path (user decision 09/11: the newest saves only; loaded inside `it`).
+// The cards, companions, food and small account rows of the Drop Rate V1 tree (lib/dropRate/explain/collections.ts). On a synthetic save every block is a seed (ZeroCache), so the numbers are worked out by hand.
 import { describe, expect, it } from "vitest";
-import { readFileSync } from "node:fs";
-import { GOLDEN_SAVES, goldenSaves } from "../../game/support/arkhOracle"; // first: it sets the `window` shim lib/arkh reads
-import { compareV1, PENDING } from "../../game/support/v1Compare";
-import { newestSaves } from "@/lib/diagnose/characterize";
 import type { ArkhNode } from "@/lib/dropRate/node";
 import { EXPLAINERS } from "@/lib/dropRate/explain";
 import { AlchemyDescription, CardStuff, CompanionDB, IDforCardBonus, ITEMS, NinjaInfo, PetStats, PrayerInfo, RANDOlist, SigilDesc } from "@/lib/game/data";
@@ -24,9 +19,8 @@ function ctx(data: Data = {}, seeds: Seeds = {}, companions?: string[]) {
 const run = (id: string, c: ReturnType<typeof ctx>, val = 0) => EXPLAINERS[id](c, val);
 
 describe("every source of the family has rows", () => {
-  it("is registered, and not pending (the two card sets are leaves, as lib/arkh's)", () => {
+  it("is registered (the two card sets are leaves)", () => {
     for (const id of SOURCES) expect(EXPLAINERS[id], id).toBeTypeOf("function");
-    for (const id of [...SOURCES, "cardSet5", "cardSet6"]) expect(PENDING.has(id), id).toBe(false);
   });
 });
 
@@ -250,11 +244,4 @@ describe("a save the rows cannot read", () => {
     expect(rows[0]).toMatchObject({ name: "Droppin Loads (Bubble 3,1)", val: 0 });
     expect(rows[0].note).toMatch(/^not read: /);
   });
-});
-
-describe.skipIf(GOLDEN_SAVES.length === 0)("on the newest save (user decision 09/11)", () => {
-  it("the tree matches lib/arkh's, path by path", () => {
-    const env = JSON.parse(readFileSync(newestSaves(goldenSaves(), 1)[0], "utf8")) as { charNames: unknown[] };
-    for (const ci of [0, 8]) for (const map of [251, 301, 216, 150]) expect(compareV1(env, ci, map), `${ci}/${map}`).toEqual({ missing: [], extra: [], value: [], meta: [] });
-  }, 300_000);
 });

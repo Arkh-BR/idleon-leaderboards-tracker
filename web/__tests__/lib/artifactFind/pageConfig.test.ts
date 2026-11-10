@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { ARTIFACT_PAGE } from "@/lib/artifactFind/pageConfig";
-import { ARTI_GROUPS, ARTI_ROOT, ARTI_VOTE_NAME } from "@/lib/arkh/stats/defs/artifact-find";
+import { ARTI_GROUPS, ARTI_ROOT, ARTI_VOTE_NAME } from "@/lib/artifactFind/groups";
 
 describe("Artifact Find page config", () => {
   it("uses its own storage keys", () => {

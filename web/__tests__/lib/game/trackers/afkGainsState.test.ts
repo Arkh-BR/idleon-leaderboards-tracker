@@ -1,8 +1,7 @@
 import { readFileSync } from "node:fs";
 import { basename } from "node:path";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { GOLDEN_SAVES } from "../support/arkhOracle"; // first: it sets the `window` shim lib/arkh reads
-import { computeArkhAfkGains } from "@/lib/arkh/computeAfk";
+import { GOLDEN_SAVES } from "../support/saves";
 import { buildGameState } from "@/lib/game/state";
 import { computeGameAfkGains, gameAfk } from "@/lib/game/trackers/afkGains";
 import { computeGameDamage } from "@/lib/game/trackers/damage";
@@ -54,28 +53,5 @@ describe("computeGameAfkGains keeps the GameState per envelope object", () => {
     }
     expect(JSON.stringify(again)).toBe(JSON.stringify(kept[3]));
     expect(new Set(kept.map((r) => r.total)).size).toBeGreaterThan(1); // the characters really differ
-  }, 120_000);
-
-  // The page computes only on lib/game; lib/arkh (the Observed Max collector's engine, scripts/update-top-afk.ts) runs offline on its own
-  // parse. Were both run on one envelope, lib/game's answer must not depend on the order: lib/arkh leaves the envelope as it found it, and
-  // stateOf deep-clones it on the first build.
-  it.skipIf(!path)("gives the same results on an envelope lib/arkh computed on, before or after it", () => {
-    const read = () => JSON.parse(readFileSync(path!, "utf8"));
-    const cases = [[0, 251], [3, 306], [3, 6], [5, 251]] as const;
-    const game = (env: unknown) => cases.map(([ci, map]) => JSON.stringify(computeGameAfkGains(env, ci, map)));
-    const arkh = (env: unknown) => cases.forEach(([ci, map]) => computeArkhAfkGains(env, ci, map));
-
-    const a = read(); // lib/arkh first
-    const raw = JSON.stringify(a);
-    arkh(a);
-    expect(JSON.stringify(a)).toBe(raw);
-    const afterArkh = game(a);
-
-    const b = read(); // lib/game first, then lib/arkh, then lib/game again
-    const first = game(b);
-    arkh(b);
-    expect(game(b)).toEqual(first);
-    expect(afterArkh).toEqual(first);
-    expect(new Set(first).size).toBeGreaterThan(1); // the cases really differ
   }, 120_000);
 });
