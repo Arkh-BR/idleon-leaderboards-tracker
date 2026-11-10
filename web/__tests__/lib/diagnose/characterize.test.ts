@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { ARTIFACT_FIND_REFUSABLE, DAMAGE_REFUSABLE, characterize, classify, type Row } from "@/lib/diagnose/characterize";
-import { IncompleteTome, MissingSaveKey, UNPORTED_STEPS } from "@/lib/game/errors";
+import { MissingSaveKey, UNPORTED_STEPS } from "@/lib/game/errors";
 import type { StatResult } from "@/lib/statTracker/config";
 
 // Synthetic saves: two characters each, the "total" is read straight off the data so the fake engines are one line.
@@ -123,38 +123,32 @@ describe("classify", () => {
     expect(classify(row({ b: undefined, rel: undefined, errB: err }), KNOWN, 34.05)).toBe("unexplained");
   });
 
-  it("is refused when lib/game throws MissingSaveKey (or IncompleteTome) on a save below CSver 34.05", () => {
-    const missing = { name: "MissingSaveKey", message: "Menagerie" };
-    const tome = { name: "IncompleteTome", message: "Tome rows 107" };
-    for (const err of [missing, tome]) {
-      const r = row({ ci: 0, b: undefined, rel: undefined, errB: err });
-      expect(classify(r, [], 34.04)).toBe("refused");
-      expect(classify(r, [], 23.05)).toBe("refused");
-      expect(classify(r, [], 34.05)).toBe("unexplained"); // a current save that lacks a key is a bug, not a pre-migration save
-      expect(classify(r, [], undefined)).toBe("unexplained");
-    }
-    // the same classes as the real errors (their name is what the row carries)
+  it("is refused when lib/game throws MissingSaveKey on a save below CSver 34.05", () => {
+    const r = row({ ci: 0, b: undefined, rel: undefined, errB: { name: "MissingSaveKey", message: "Menagerie" } });
+    expect(classify(r, [], 34.04)).toBe("refused");
+    expect(classify(r, [], 23.05)).toBe("refused");
+    expect(classify(r, [], 34.05)).toBe("unexplained"); // a current save that lacks a key is a bug, not a pre-migration save
+    expect(classify(r, [], undefined)).toBe("unexplained");
+    // the same class as the real error (its name is what the row carries)
     expect(new MissingSaveKey("k").name).toBe("MissingSaveKey");
-    expect(new IncompleteTome([]).name).toBe("IncompleteTome");
   });
 
   it("with a list of keys a stat may be refused for, a refusal for any other key is unexplained", () => {
-    const keys = (k: string) => /^(Tome rows |Spelunk(\[|$)|Research(\[|$))/.test(k);
+    const keys = (k: string) => /^(Spelunk(\[|$)|Research(\[|$))/.test(k);
     const refusal = (name: string, message: string) => row({ ci: 0, b: undefined, rel: undefined, errB: { name, message } });
     expect(classify(refusal("MissingSaveKey", "Spelunk[49]"), [], 33.05, keys)).toBe("refused");
     expect(classify(refusal("MissingSaveKey", "Research"), [], 33.05, keys)).toBe("refused");
-    // IncompleteTome's message is "<key>: <what each row looked for>"; the key is what comes before the colon
-    expect(classify(refusal("IncompleteTome", "Tome rows 107,108: #107 \"x\" (y)"), [], 33.05, keys)).toBe("refused");
+    // a message "<key>: <more>" is refused for its key, what comes before the colon
+    expect(classify(refusal("MissingSaveKey", "Spelunk[49]: more"), [], 33.05, keys)).toBe("refused");
     expect(classify(refusal("MissingSaveKey", "Menagerie"), [], 33.05, keys)).toBe("unexplained");
     expect(classify(refusal("MissingSaveKey", "SpelunkX"), [], 33.05, keys)).toBe("unexplained");
     expect(classify(refusal("MissingSaveKey", "Menagerie"), [], 33.05)).toBe("refused"); // no list: any key
     // Artifact Find's list: only a save older than the game's load steps lib/game replays; a key the load gives (Spelunk[49]) is a gap
     expect(classify(refusal("MissingSaveKey", UNPORTED_STEPS), [], 29.05, ARTIFACT_FIND_REFUSABLE)).toBe("refused");
     for (const k of ["Spelunk[49]", "Tome rows 107,108,109", "Sushi", "Menagerie"]) expect(classify(refusal("MissingSaveKey", k), [], 33.05, ARTIFACT_FIND_REFUSABLE), k).toBe("unexplained");
-    // Damage's list adds a Tome lib/tome cannot score; any other key is still a gap
+    // Damage's list is Artifact Find's: the Tome is lib/game's own, refused for the same keys (no "Tome rows" refusal any more)
     expect(classify(refusal("MissingSaveKey", UNPORTED_STEPS), [], 29.05, DAMAGE_REFUSABLE)).toBe("refused");
-    expect(classify(refusal("IncompleteTome", "Tome rows 21,101,105: #21 \"x\" (y)"), [], 23.05, DAMAGE_REFUSABLE)).toBe("refused");
-    for (const k of ["Spelunk[49]", "Tome rows", "Tome rows x", "Sushi", "Menagerie"]) expect(classify(refusal("MissingSaveKey", k), [], 33.05, DAMAGE_REFUSABLE), k).toBe("unexplained");
+    for (const k of ["Spelunk[49]", "Tome rows 21,101,105", "Sushi", "Menagerie"]) expect(classify(refusal("MissingSaveKey", k), [], 33.05, DAMAGE_REFUSABLE), k).toBe("unexplained");
   });
 
   it("only MissingSaveKey on the lib/game side is a refusal", () => {

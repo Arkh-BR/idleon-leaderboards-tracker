@@ -284,6 +284,9 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   "Grid_Bonus_Allmulti": [
     "lib/game/njs/ResearchStuff.ts"
   ],
+  "Grid_PTSspent": [
+    "lib/game/njs/ResearchStuff.ts"
+  ],
   "GrimoireUpgBonus": [
     "lib/arkh/stats/systems/exp/exp.ts",
     "lib/game/njs/Summoning.ts"
@@ -584,10 +587,15 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   "TomeBonus": [
     "lib/game/njs/Summoning.ts"
   ],
+  "TomeLvReq": [
+    "lib/game/njs/Summoning.ts"
+  ],
   "TomePCT": [
+    "lib/game/njs/Summoning.ts",
     "lib/tome/math.ts"
   ],
   "TomePTS": [
+    "lib/game/njs/Summoning.ts",
     "lib/tome/math.ts"
   ],
   "TotPetsFound": [
@@ -955,6 +963,9 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   ],
   "isBubbleSuperr": [
     "lib/game/njs/CauldronStats.ts"
+  ],
+  "isTomeUnlocked": [
+    "lib/game/njs/Summoning.ts"
   ],
   "mobHP": [
     "lib/game/njs/RiftStuff.ts"

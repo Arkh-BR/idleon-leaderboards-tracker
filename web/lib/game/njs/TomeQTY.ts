@@ -8,7 +8,7 @@
 import { asNum, asNumber, attr } from "../attr";
 import { assumed, block, withPlayer, type Ctx } from "../ctx";
 import { DeathNoteMobs, MapAFKtarget, MapDetails, NinjaInfo, PetStats, RANDOlist, SceneNPCquestOrder, Tome } from "../data";
-import { InvalidSaveValue, NotPorted } from "../errors";
+import { InvalidSaveValue } from "../errors";
 import { hString } from "../hstring";
 import { contains, lengthOf, listAt, listOrMapAt } from "../lists";
 import { DROP_RATE_RECORD } from "../migrations";
@@ -18,23 +18,37 @@ import type { GameState } from "../state";
 import { ArbitraryCode } from "./ArbitraryCode";
 import { Breeding } from "./Breeding";
 import { minigameHiscore } from "./DamageDealed";
+import { FarmingStuffs } from "./FarmingStuffs";
 import { getLOG } from "./getLOG";
 import { MainframeBonus } from "./MainframeBonus";
 import { Ninja } from "./Ninja";
+import { ResearchStuff } from "./ResearchStuff";
+import { RoyalG } from "./RoyalG";
 import { CARD_INFO, RunCodeOfTypeXforThingY } from "./RunCodeOfTypeXforThingY";
 import { Summoning } from "./Summoning";
+import { SushiStuff } from "./SushiStuff";
+import { Thingies } from "./Thingies";
 import { TotalTalentPoints } from "./TotalTalentPoints";
-
-/** The quantities ported so far: 0..83 and 107 (counted in the same loop as 10 and 21). */
-const PORTED_QTY: ReadonlySet<number> = new Set([...range(0, 84), 107]);
-/** The quantities not ported yet: `tomeQty` throws NotPorted for them. */
-export const PENDING_QTY: ReadonlySet<number> = new Set(range(0, Tome.length).filter((i) => !PORTED_QTY.has(i)));
 
 /** Σ asNumber(list[i]) over a list the save may keep as a `{i, length}` map (the game's loader gives a list). */
 function sumOf(ctx: Ctx, name: string, ...idx: number[]): number {
   let s = 0;
   for (let i = 0, n = lengthOf(listOrMapAt(ctx, name, ...idx)); i < n; i++) s += asNum(ctx, name, ...idx, i);
   return s;
+}
+
+/** Σ Math.round(Math.max(0, asNumber(list[i]))), the game's loop over a list's whole length. */
+function roundedSum(ctx: Ctx, name: string, ...idx: number[]): number {
+  let s = 0;
+  for (let i = 0, n = listAt(ctx, name, ...idx).length; i < n; i++) s += Math.round(Math.max(0, asNum(ctx, name, ...idx, i)));
+  return s;
+}
+
+/** The best asNumber(list[i]), from 0 (a value replaces it only when above it). */
+function bestOf(ctx: Ctx, name: string, ...idx: number[]): number {
+  let best = 0;
+  for (let i = 0, n = listAt(ctx, name, ...idx).length; i < n; i++) if (asNum(ctx, name, ...idx, i) > best) best = asNum(ctx, name, ...idx, i);
+  return best;
 }
 
 /**
@@ -86,7 +100,7 @@ function careerSummonWins(ctx: Ctx): number {
   return Math.round(total + asNum(ctx, "OptionsListAccount", 319));
 }
 
-/** The event on this character and map, in the game's order. A quantity not ported yet is NaN. */
+/** The event on this character and map, in the game's order. */
 function event(ctx: Ctx): number[] {
   const q = Array<number>(Tome.length).fill(NaN);
   const ola = (i: number) => asNum(ctx, "OptionsListAccount", i);
@@ -288,13 +302,67 @@ function event(ctx: Ctx): number[] {
   q[82] = gambit(65) + (gambit(66) + (gambit(67) + (gambit(68) + (gambit(69) + gambit(70))))); // @5761706
   q[83] = 0; // @5762283: the digits of the cavern resources
   for (let g = 0, n = listAt(ctx, "Holes", 9).length; g < n; g++) q[83] += Math.ceil(getLOG(ctx, asNum(ctx, "Holes", 9, g)));
+  // From here the event stores some elements as they are (TomeQTY[85] = OptionsListAccount[262]); TomePCT reads each one through
+  // c.asNumber, so the element's asNumber is kept, the same number to every reader. Its list is indexed directly, as the game does.
+  q[84] = roundedSum(ctx, "Holes", 1); // @5762529
+  q[85] = ola(262); // @5762595
+  q[86] = ola(279);
+  listAt(ctx, "Holes", 11); // the game indexes Holes[11][i] directly
+  q[87] = asNum(ctx, "Holes", 11, 73);
+  q[88] = asNum(ctx, "Holes", 11, 74);
+  q[89] = asNum(ctx, "Holes", 11, 75);
+  q[90] = ola(356);
+  q[91] = asNum(ctx, "Holes", 11, 8); // @5763172
+  const layer = (i: number) => Math.round(Math.max(0, asNum(ctx, "Holes", 11, i)));
+  q[92] = layer(1) + layer(3) + (layer(5) + layer(7)); // @5763673
+  q[93] = roundedSum(ctx, "Holes", 7); // @5763920
+  q[94] = Math.round(Math.min(12, ola(353)) + 1); // @5763986
+  q[95] = Math.round(ola(369)); // @5764126
+  q[96] = 0; // @5764970: the nine Summoning stones' best trials
+  for (let g = 0; g < 9; g++) q[96] += Math.round(Thingies(ctx, "SumStoneTrialz", g, 0));
+  listAt(ctx, "Spelunk", 13); // the game indexes Spelunk[13][0..5] directly
+  q[97] = 0; // @5765510
+  for (let g = 0; g < 6; g++) q[97] += asNum(ctx, "Spelunk", 13, g);
+  q[98] = bestOf(ctx, "Spelunk", 1); // @5765812
+  q[99] = 0; // @5766038
+  for (let g = 0, n = listAt(ctx, "Ninja", 103).length; g < n; g++) q[99] += asNum(ctx, "Ninja", 103, g);
+  q[100] = ola(445); // @5766104
+  q[101] = ola(446);
+  q[102] = bestOf(ctx, "Spelunk", 2); // @5766544
+  q[103] = 0; // @5766783
+  for (let g = 0, n = listAt(ctx, "Spelunk", 5).length; g < n; g++) q[103] += Math.max(0, asNum(ctx, "Spelunk", 5, g));
+  q[104] = listAt(ctx, "Spelunk", 6).length; // @5766851
+  q[105] = 0; // @5767366: the best Lv0[19] of every character (PlayerDATABASE)
+  for (let g = 0; g < players; g++) if (asNum(withPlayer(ctx, g), "Lv0", 19) > q[105]) q[105] = asNum(withPlayer(ctx, g), "Lv0", 19);
+  q[106] = ola(443); // @5767433
+  listAt(ctx, "Bubba", 1); // the game indexes Bubba[1][8] directly
+  q[108] = asNum(ctx, "Bubba", 1, 8); // @5767535
+  q[109] = listAt(ctx, "Spelunk", 46).length; // @5767625
+  listAt(ctx, "Research", 7); // the game indexes Research[7][i] directly
+  q[110] = asNum(ctx, "Research", 7, 4); // @5767722
+  q[111] = listAt(ctx, "Research", 11).length; // @5767815
+  q[112] = FarmingStuffs(ctx, "TotalStickers", 0, 0); // @5767914
+  q[113] = ola(498); // @5768013
+  q[114] = ResearchStuff(ctx, "Grid_PTSspent", 0, 0); // @5768115
+  q[115] = roundedSum(ctx, "Research", 12); // @5768403
+  q[116] = SushiStuff(ctx, "UniqueSushi", 0, 0); // @5768470
+  q[117] = ola(594); // @5768564
+  q[118] = 0; // @5768836
+  for (let g = 0, n = listAt(ctx, "RoyalG", 0).length; g < n; g++) q[118] += Math.max(0, asNum(ctx, "RoyalG", 0, g));
+  q[119] = RoyalG(ctx, "TotalStatz", 4, 0); // @5768903
+  q[120] = RoyalG(ctx, "TotalStatz", 0, 0); // @5768993
+  q[121] = asNum(ctx, "Research", 7, 9); // @5769082
+  listAt(ctx, "Menagerie", 0); // the game indexes Menagerie[0][2] directly
+  q[122] = asNum(ctx, "Menagerie", 0, 2); // @5769175
+  q[123] = 0; // @5769433
+  for (let g = 0, n = listAt(ctx, "Menagerie", 3).length; g < n; g++) q[123] += asNum(ctx, "Menagerie", 3, g);
   return q;
 }
 
 /** The arrays built, per state and then per character and map: the event reads the whole save, so it runs once for each. */
 const built = new WeakMap<GameState, Map<string, readonly number[]>>();
 
-/** `DNSM.TomeQTY`, the event's quantities for the current character and map (NaN where not ported yet). Built once per state. */
+/** `DNSM.TomeQTY`, the event's quantities for the current character and map. Built once per state. */
 export function TomeQTY(ctx: Ctx): readonly number[] {
   let mine = built.get(ctx.state);
   if (!mine) built.set(ctx.state, (mine = new Map()));
@@ -304,10 +372,9 @@ export function TomeQTY(ctx: Ctx): readonly number[] {
   return q;
 }
 
-/** `DNSM.TomeQTY[i]`, read by key: a quantity not ported yet throws NotPorted. */
+/** `DNSM.TomeQTY[i]`, read by key. */
 export const tomeQty = block("DNSM.TomeQTY", (ctx, i: number) => {
   if (!(0 <= i && i < Tome.length)) throw new RangeError(`DNSM.TomeQTY: no task ${i} in CustomLists.Tome`);
-  if (PENDING_QTY.has(i)) throw new NotPorted("TomeQTY", `i=${i}`);
   const v = TomeQTY(ctx)[i];
   if (18 != i) return v;
   return assumed(

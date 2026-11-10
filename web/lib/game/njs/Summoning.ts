@@ -1,6 +1,6 @@
 import { asNum, asNumber, attr } from "../attr";
 import { block, runtime, withPlayer, type Ctx } from "../ctx";
-import { GrimoireUpg, MapDetails, Number2Letter, SummonEnemies, SummonUPG, UpgradeVault } from "../data";
+import { GrimoireUpg, MapDetails, NinjaInfo, Number2Letter, SummonEnemies, SummonUPG, Tome, UpgradeVault } from "../data";
 import { NotPorted } from "../errors";
 import { hString } from "../hstring";
 import { contains, lengthOf, listAt, listOrMapAt } from "../lists";
@@ -17,6 +17,7 @@ import { Sailing } from "./Sailing";
 import { Summoning2 } from "./Summoning2";
 import { PORTED as Summoning2PORTED } from "../summoning2Ported";
 import { Thingies } from "./Thingies";
+import { tomeQty } from "./TomeQTY";
 import { range, type Ported } from "../ported";
 
 /**
@@ -75,6 +76,17 @@ export const Summoning: (ctx: Ctx, d: string, b: number, e: number) => number = 
       return summUpgBonus(ctx, b);
     case "TomeBonus":
       return tomeBonus(ctx, b);
+    // @10911273: the account level the Tome's k-th task (in NinjaInfo[32]'s order) unlocks at
+    case "TomeLvReq":
+      return 350 + (40 * b + (5 * Math.max(0, b - 35) + (10 * Math.max(0, b - 60) + (10 * Math.max(0, b - 80) + 15 * Math.max(0, b - 100)))));
+    // @10913354: task b counts once the Tome actor's GenInfo[83] reaches TomeLvReq of b's place in NinjaInfo[32]
+    case "isTomeUnlocked":
+      return tomeAccountLevel(ctx) >= Summoning(ctx, "TomeLvReq", (NinjaInfo as unknown as readonly (readonly unknown[])[])[32].indexOf(`${b}`), 0) ? 1 : 0;
+    case "TomePCT":
+      return tomePct(ctx, b);
+    // @10915591
+    case "TomePTS":
+      return Math.ceil(Summoning(ctx, "TomePCT", b, 0) * asNumber(tomeRow(b)[3]));
     // @10880494: the Wraith form, `1 <= GetBuffBonuses(195,1) ? (100 < its BuffsActive timer ? 1 : 0) : 0`. The masterclass forms are not
     // counted (the Damage page's product decision), as in PlayerHPmax and PlayerAccTot
     case "GrimoireWraith":
@@ -305,6 +317,41 @@ function tomeBonus(ctx: Ctx, b: number): number {
   throw new NotPorted("Summoning", `TomeBonus:b=${b}`);
 }
 
+/**
+ * The Tome actor's GenInfo[83] (ActorEvents_229's create @5778355): Lv0[0] of every character, the one logged in at its live level (the
+ * same number in a save). The game keeps it from the actor's create; here it is summed from the save.
+ */
+function tomeAccountLevel(ctx: Ctx): number {
+  let level = 0;
+  for (let g = 0, n = ctx.state.charNames.length; g < n; g++) level += asNum(withPlayer(ctx, g), "Lv0", 0);
+  return level;
+}
+
+/** CustomLists.Tome[b | 0], which the game indexes directly. */
+function tomeRow(b: number): readonly unknown[] {
+  const row = (Tome as unknown as readonly (readonly unknown[])[])[b | 0];
+  if (!row) throw new RangeError(`Summoning Tome: no task ${b} in CustomLists.Tome`);
+  return row;
+}
+
+/**
+ * `TomePCT` @10913628, the share of task b's points its quantity q = DNSM.TomeQTY[b] earns, on the curve Tome[b][2] with x = Tome[b][1]:
+ * 0, (1.7 q / (q + x))^.7 (0 below 0); 1, 2.4 getLOG(q) / (2 getLOG(q) + x); 2, min(1, q / x); 3 (fewer is better), 0 past 5x, else
+ * (1.2 (6x - q) / (7x - q))^5; 4, (2 min(x, q) / (min(x, q) + x))^.7; any other 0. A task not unlocked yet (isTomeUnlocked) is 0. The
+ * game answers 0 while DNSM has no TomeQTY (before the event first ran); here the event is replayed on the save, so it always has it.
+ */
+function tomePct(ctx: Ctx, b: number): number {
+  if (0 == Summoning(ctx, "isTomeUnlocked", b, 0)) return 0;
+  const row = tomeRow(b);
+  const [x, curve, q] = [asNumber(row[1]), asNumber(row[2]), tomeQty(ctx, b | 0)];
+  if (0 == curve) return 0 > q ? 0 : Math.pow((1.7 * q) / (q + x), 0.7);
+  if (1 == curve) return (2.4 * getLOG(ctx, q)) / (2 * getLOG(ctx, q) + x);
+  if (2 == curve) return Math.min(1, q / x);
+  if (3 == curve) return q > 5 * x ? 0 : Math.pow((1.2 * (6 * x - q)) / (7 * x - q), 5);
+  if (4 == curve) return Math.pow((2 * Math.min(x, q)) / (Math.min(x, q) + x), 0.7);
+  return 0;
+}
+
 /** What this module covers (lib/game/ported.ts): its own sub-cases, then the tail of the chain, Summoning2's. */
 export const PORTED: Ported = {
   ...(Summoning2PORTED as Record<string, true | readonly number[]>),
@@ -318,5 +365,9 @@ export const PORTED: Ported = {
   VaultKillzTotal: range(0, 12),
   SummUpgBonus: range(0, SummonUPG.length),
   TomeBonus: [0, 1, 2, 6, 7],
+  TomeLvReq: true,
+  isTomeUnlocked: range(0, Tome.length),
+  TomePCT: range(0, Tome.length),
+  TomePTS: range(0, Tome.length),
   GrimoireWraith: true, // runtime(): the masterclass form is not counted
 };

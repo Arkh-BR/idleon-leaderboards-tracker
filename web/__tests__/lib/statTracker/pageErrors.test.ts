@@ -1,6 +1,6 @@
 import { existsSync, readFileSync } from "node:fs";
 import { describe, it, expect } from "vitest";
-import { IncompleteTome, MissingSaveKey, NotPorted, TreeTotalMismatch, UNPORTED_STEPS } from "@/lib/game/errors";
+import { MissingSaveKey, NotPorted, TreeTotalMismatch, UNPORTED_STEPS } from "@/lib/game/errors";
 import type { StatResult } from "@/lib/statTracker/config";
 import { pageError, withPageErrors } from "@/lib/statTracker/pageErrors";
 
@@ -19,11 +19,6 @@ describe("what the page shows when the engine refuses a save", () => {
     expect((pageError(OLD, new MissingSaveKey(UNPORTED_STEPS), AF) as Error).message).toBe(
       "This save is from an older game version that this tracker can't update yet. Sign in or paste a fresh save."
     );
-  });
-
-  it("does the same for a partial Tome (IncompleteTome is a MissingSaveKey)", () => {
-    const e = pageError({ data: { CSver: 34 } }, new IncompleteTome([{ idx: 107, task: "x", source: "y" }]), AF);
-    expect((e as Error).message).toBe("This save is from an older game version (missing Tome rows 107). Sign in or paste a fresh save.");
   });
 
   it("does not call a current save old: a missing key there passes through as the engine said it", () => {

@@ -1015,7 +1015,7 @@ describe("ports stay on their boundary", () => {
   it("RandomEvent / Stuff2 / Ninja / Spelunk / Holes / Thingies / ArcaneType: only the ported sub-cases", () => {
     expect(() => RandomEvent(c(), "EventType", 0, 0)).toThrow(NotPorted);
     expect(() => Stuff2(c(), "UniqueCardsInGame", 0, 0)).toThrow(NotPorted);
-    expect(() => Ninja(c(), "FloorsUnlocked", 0, 0)).toThrow(NotPorted);
+    expect(() => Ninja(c(), "EmporiumCost", 0, 0)).toThrow(NotPorted);
     expect(() => Spelunk(c(), "CavesUnlocked", 0, 0)).toThrow(NotPorted);
     expect(() => Holes(c(), "VillagersOwned", 0, 0)).toThrow(NotPorted);
     expect(() => Thingies(c(), "LoreEpiBon", -1, 0)).toThrow(expect.objectContaining({ name: "NotPorted", sub: "LoreEpiBon:b=-1" })); // the cache rebuild (Task 8 ported the entries 0..10)

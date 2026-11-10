@@ -31,20 +31,6 @@ export class MissingSaveKey extends Error {
   }
 }
 
-/**
- * `computeTome` (lib/tome) could not compute some Tome rows because the save lacks what they read (a pre-migration save): a
- * MissingSaveKey, so it is refused like any other (Ruling E), whose key is the row numbers (`Tome rows 107,108,109`) and whose
- * message names each row and where it looked. A partial score would be a silent floor.
- */
-export class IncompleteTome extends MissingSaveKey {
-  readonly rows: readonly { idx: number; task: string; source: string }[];
-  constructor(rows: readonly { idx: number; task: string; source: string }[]) {
-    super(`Tome rows ${rows.map((r) => r.idx).join(",")}`);
-    this.name = "IncompleteTome";
-    this.rows = rows;
-    this.message = `${this.key}: ${rows.map((r) => `#${r.idx} "${r.task}" (${r.source})`).join("; ")}`;
-  }
-}
 
 /** The address exists but holds something the caller cannot use (NaN, a string where a number is needed). */
 export class InvalidSaveValue extends Error {

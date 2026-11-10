@@ -33,6 +33,13 @@ export const ResearchStuff: (ctx: Ctx, d: string, b: number, e: number) => numbe
     case "TotalOccurrencesFound":
       return occurrences(ctx, 2, () => 1, "DNSM.TotOccFnd", "occurrences found");
     // @11164996: the observations' levels, the first OccurrencesToBeFound entries of Research[4] that are at least 1, summed
+    // @11177185: the grid points spent, Research[0] summed (rounded at each step). The game keeps it in DNSM.Grid_PTSspent from the first
+    // call (b == -1 refreshes it); here it is summed from the save each time
+    case "Grid_PTSspent": {
+      let spent = 0; // DNSM.Grid_PTSspent
+      for (let g = 0, n = listAt(ctx, "Research", 0).length; g < n; g++) spent = Math.round(spent + asNum(ctx, "Research", 0, g));
+      return Math.round(spent);
+    }
     case "TotalObsLVs":
       return occurrences(ctx, 4, (lv) => lv, "DNSM.TotOccLVz", "observation levels");
     default:
@@ -104,5 +111,5 @@ function gridBonus(ctx: Ctx, b: number, e: number): number {
 
 /** What this module covers (lib/game/ported.ts). */
 export const PORTED: Ported = {
-  Grid_Bonus: true, Grid_Bonus_Allmulti: true, FarmingStickerDMG_unlocked: true, OccurrencesToBeFound: true, TotalOccurrencesFound: true, TotalObsLVs: true,
+  Grid_Bonus: true, Grid_Bonus_Allmulti: true, FarmingStickerDMG_unlocked: true, OccurrencesToBeFound: true, TotalOccurrencesFound: true, TotalObsLVs: true, Grid_PTSspent: true,
 };

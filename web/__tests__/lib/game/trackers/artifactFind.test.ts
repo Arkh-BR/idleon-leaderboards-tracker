@@ -72,7 +72,7 @@ function run(path: string, ci: number): Light | { refused: string } {
       const { tree, total } = gameArtifactFind(stateOf(path).state, ci);
       l = { total, root: tree.val, groups: tree.children!.map((g) => g.val), vals: Object.fromEntries(IDS.map((id) => [id, sourceNode(tree, id).val])), nodes: count(tree) };
     } catch (e) {
-      if (!(e instanceof MissingSaveKey)) throw e; // IncompleteTome is one too
+      if (!(e instanceof MissingSaveKey)) throw e;
       l = { refused: e.key };
     }
     lights.set(key, l);
@@ -161,9 +161,8 @@ describe("the display config", () => {
     expect(IDS).toHaveLength(35);
   });
 
-  // lib/game must be able to outlive lib/arkh: no file under it imports lib/arkh (by alias or by a relative path). What this does not check is
-  // the transitive reach: DNSM.TomeQTYtot calls lib/tome's computeTome (Ruling K), and lib/tome imports about 20 lib/arkh modules. That
-  // is the one known exception, until the Tome moves to lib/game (the next test names it).
+  // lib/game must be able to outlive lib/arkh: no file under it imports lib/arkh (by alias or by a relative path). The transitive reach is
+  // the next test's (and noArkhImports.test.ts walks the whole graph).
   it("no file under lib/game imports lib/arkh", () => {
     const files = readdirSync("lib/game", { recursive: true })
       .map((f) => `lib/game/${String(f).replace(/\\/g, "/")}`)
@@ -179,15 +178,15 @@ describe("the display config", () => {
     expect(imports).toEqual([]);
   });
 
-  // What the test above does not check: the transitive reach. DNSM.TomeQTYtot calls lib/tome's computeTome (Ruling K) and lib/tome imports
-  // lib/arkh modules of its own, so a run of lib/game still reaches lib/arkh through it. That is the one known exception, until the Tome
-  // moves to lib/game; this pins it (the call exists, the reach is lib/tome's), so a second path cannot appear unseen.
-  it("lib/tome is the known transitive exception: lib/game calls it, and it imports lib/arkh", () => {
-    expect(readFileSync("lib/game/njs/DNSM.ts", "utf8")).toMatch(/from "@\/lib\/tome\/compute"/);
-    const tomeArkh = readdirSync("lib/tome", { recursive: true })
-      .filter((f) => /\.tsx?$/.test(String(f)))
-      .flatMap((f) => [...readFileSync(`lib/tome/${f}`, "utf8").matchAll(/from\s*["'](@\/lib\/arkh[^"']*|[./]+\/arkh[^"']*)["']/g)].map((m) => m[1]));
-    expect(new Set(tomeArkh).size).toBeGreaterThan(10);
+  // The transitive reach had one known exception, lib/tome: DNSM.TomeQTYtot called its computeTome (Ruling K), which imports lib/arkh. The
+  // Tome score is lib/game's own now (njs/TomeQTY.ts, Summoning TomePTS), so no file under lib/game imports lib/tome either.
+  it("no file under lib/game imports lib/tome (the Tome score is lib/game's own)", () => {
+    const files = readdirSync("lib/game", { recursive: true })
+      .map((f) => `lib/game/${String(f).replace(/\\/g, "/")}`)
+      .filter((f) => /\.tsx?$/.test(f));
+    const imports = files.flatMap((f) => [...readFileSync(f, "utf8").matchAll(/(?:\bfrom|\bimport)\s*\(?\s*["'](@\/lib\/tome[^"']*)["']/g)].map((m) => `${f}: ${m[1]}`));
+    expect(files.length).toBeGreaterThan(40);
+    expect(imports).toEqual([]);
   });
 });
 
@@ -364,7 +363,7 @@ describe.skipIf(noSaves)("the page's tree stays small", () => {
     expect(seen.length).toBeGreaterThan(3); // lab, Tome, migrated, the Sushi/MapBon/Drop Rate assumptions: not a pass over nothing
     expect(seen.filter((n) => INTERNAL.test(n) || n.length > 120)).toEqual([]);
     expect(seen).toContain("assumed: lab node counted as connected (the game checks it live)");
-    expect(seen).toContain("assumed: Tome score from our own Tome calculation");
+    expect(seen).toContain("assumed: Tome score summed from the save the way the game does");
     // the full trace keeps the detail the page leaves out
     const full = makeCtx(stateOf(saves[0]).state, { player: 0, map: 0, trace: true });
     Sailing(full, "BoatArtiMulti", 0, 0);

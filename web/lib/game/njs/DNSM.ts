@@ -9,12 +9,12 @@
 //    function that returns the Map, because the block that consumes it is what the trace shows.
 import { asNum, asNumber, assumedLeaf, attr } from "../attr";
 import { assumed, block, runtime, withPlayer, type Ctx } from "../ctx";
-import { AlchemyDescription, CompanionDB, Number2Letter, PostOffUpgradeInfo } from "../data";
-import { IncompleteTome, InvalidSaveValue, MissingSaveKey } from "../errors";
+import { AlchemyDescription, CompanionDB, Number2Letter, PostOffUpgradeInfo, Tome } from "../data";
+import { InvalidSaveValue, MissingSaveKey } from "../errors";
 import { hString } from "../hstring";
 import { contains, listAt, listOrMapAt } from "../lists";
 import { charKey, opt, type GameState } from "../state";
-import { computeTome } from "@/lib/tome/compute";
+import { traceNode, traceRoot, type TraceNode } from "../trace";
 import { CauldronStats } from "./CauldronStats";
 import { Companions } from "./Companions";
 import { FamilyBonsuesREAL } from "./FamilyBonsuesREAL";
@@ -113,49 +113,77 @@ export const DNSM_AlchVials = block("DNSM.AlchVials", (ctx, key: string) => {
   return asNumber(total);
 });
 
-/** The Tome score of a state, or the refusal: `computeTome` is heavy (124 rows), the state is immutable and the score is the account's, so once per state. */
-const tomeScores = new WeakMap<GameState, { total: number; covered: number; rows: number } | IncompleteTome>();
+/** The Tome score per state, then per character and map (the quantities are the current character's), with the notes of its trace. */
+const tomeTotals = new WeakMap<GameState, Map<string, { total: number; notes: TraceNode[] } | "counting">>();
+
+/** The `assumed:` and `runtime:` nodes of a trace, once each (by name and note), as leaves. */
+function notesIn(node: TraceNode, out: TraceNode[] = []): TraceNode[] {
+  for (const c of node.children) {
+    if (/^(assumed|runtime): /.test(c.note ?? "") && !out.some((o) => o.block === c.block && o.note === c.note && String(o.args) === String(c.args))) {
+      out.push({ ...c, children: [] });
+    }
+    notesIn(c, out);
+  }
+  return out;
+}
+
+const COUNTING =
+  "the Tome actor's GenInfo[84], which _customEvent_TomeQTY's blocks read, is 0 until the event's first count ends (the actor's create pushes 0 @5778657 and runs the event 100 ms later @5779249)";
+
+/** A cache that reads through to `parent` (its seeds, what it already computed) and keeps its own writes: what the Tome computes stays there. */
+class Overlay extends Map<string, number> {
+  constructor(private readonly parent: Map<string, number>) {
+    super();
+  }
+  override get(key: string): number | undefined {
+    return super.has(key) ? super.get(key) : this.parent.get(key);
+  }
+}
 
 /**
- * `DNSM.TomeQTYtot`, the account's Tome score: the Tome actor's `GenInfo[84]` (ActorEvents_229), which sums `Summoning("TomePTS", g)`
- * over `DNSM.TomeQTY` @5779007 and keeps it in `TomeQTYtot` @5778865. It is runtime state this engine does not replay, so it stands in
- * with our own port of the Tome, `computeTome` (lib/tome, written from the N.js, validated in the game on 2026-11-03), run on the save
- * as the state holds it, after the game's load steps (lib/game/migrations) (Ruling K). Nothing IdleonToolbox computed is read: the
- * envelope is rebuilt without `parsedData` and `extraData`, which would make `computeTome` take IT's per-task points.
+ * `DNSM.TomeQTYtot`, the account's Tome score: `Summoning("TomePTS", g)` summed over every task of `DNSM.TomeQTY` (@5769465, at the end
+ * of `_customEvent_TomeQTY`, and @5779131, the Tome actor's create, which keeps it as its `GenInfo[84]`). The game sums it once, at login,
+ * for the character logged in; here it is that sum, on the save, for the current character and map (TomeQTY.ts replays the event), so
+ * once per state, character and map. It stays an `assumed:` leaf (Ruling K): the game's number is session state, this one is the save's.
  *
- * `computeTome` does not throw for a row it cannot compute (the save lacks what it reads): it counts it as no points. That would make a
- * pre-migration save's score a silent floor, so a result with fewer rows computed than rows is refused (`IncompleteTome`, a
- * MissingSaveKey, Ruling E) naming the rows. Any other error from it is not caught.
+ * The sum runs on a trace of its own (124 tasks and the whole event would bury the tree that reads the score); what it assumed or
+ * counted as 0 is hung under the score, with what the load steps assumed (the Tome reads the whole save).
+ *
+ * The quantities read blocks that read the score back (TotalTalentPoints, TomeQTY[15], reaches DNSM.AlchBubbles through the Divinity
+ * minor bonus, and the map multiplies W8/A9/M9 by the score). In the game that read sees the Tome actor's GenInfo[84] as it is while the
+ * event runs: 0 at login (the actor's create pushes 0 and runs the event 100 ms later, @5779249). So a read of the score while it is being
+ * counted is 0, under an `assumed:` leaf, and what the count computes stays in a cache of its own: a value built on that 0 never reaches
+ * the caller's cache.
  */
 export const DNSM_TomeQTYtot = block("DNSM.TomeQTYtot", (ctx) => {
-  let score = tomeScores.get(ctx.state);
+  let mine = tomeTotals.get(ctx.state);
+  if (!mine) tomeTotals.set(ctx.state, (mine = new Map()));
+  const key = `${ctx.player}|${ctx.map}`;
+  let score = mine.get(key);
+  if ("counting" === score) return assumed(ctx, "Tome.totalPoints", "Tome score read while the Tome is being counted: 0", 0, COUNTING);
   if (!score) {
-    const s = ctx.state;
-    const result = computeTome({
-      data: structuredClone(s.data), // computeTome writes into the save it is given; the state is frozen
-      charNames: [...s.charNames],
-      companion: structuredClone(s.companion),
-      guildData: structuredClone(s.guildData),
-      tournament: structuredClone(s.tournament),
-      serverVars: structuredClone(s.serverVars),
-    } as unknown as Parameters<typeof computeTome>[0]);
-    const uncovered = result.rows.filter((r) => r.pts === null);
-    score =
-      result.coveredCount < result.rows.length || uncovered.length
-        ? new IncompleteTome(uncovered.map((r) => ({ idx: r.idx, task: r.task, source: r.source })))
-        : { total: result.totalPts, covered: result.coveredCount, rows: result.rows.length };
-    tomeScores.set(s, score);
+    mine.set(key, "counting");
+    try {
+      const own = { ...ctx, trace: traceRoot(ctx.player), cache: new Overlay(ctx.cache) };
+      let total = 0;
+      for (let g = 0; g < Tome.length; g++) total += Summoning(own, "TomePTS", g, 0); // DNSM.TomeQTY.length is Tome.length
+      mine.set(key, (score = { total, notes: notesIn(own.trace) }));
+    } catch (e) {
+      mine.delete(key);
+      throw e;
+    }
   }
-  if (score instanceof IncompleteTome) throw score;
   const total = assumed(
     ctx,
     "Tome.totalPoints",
-    "Tome score from our own Tome calculation",
+    "Tome score summed from the save the way the game does",
     score.total,
-    `Tome score from lib/tome computeTome (an N.js port, validated in game 2026-11-03; ${score.covered} of ${score.rows} rows computed): the Tome actor's GenInfo[84] is runtime state (Ruling K)`
+    'DNSM.TomeQTYtot = Σ Summoning("TomePTS", g) over DNSM.TomeQTY (@5769465, @5779131): the N.js sum, on _customEvent_TomeQTY replayed on the save (lib/game/njs/TomeQTY.ts); the game\'s own is session state, the Tome actor\'s GenInfo[84] (Ruling K)'
   );
-  // the Tome reads the whole save: every assumption the load steps made is part of its score (block 378's DROP_RATE_RECORD among them)
-  if (ctx.trace) for (const a of ctx.state.assumed) assumedLeaf(ctx.trace, ctx.player, a);
+  if (ctx.trace) {
+    for (const n of score.notes) ctx.trace.children.push(traceNode(ctx.trace, ctx.player, n.block, n.args, n.value, n.note, n.detail));
+    for (const a of ctx.state.assumed) assumedLeaf(ctx.trace, ctx.player, a); // a load step's, once (the Tome reads the whole save)
+  }
   return total;
 });
 

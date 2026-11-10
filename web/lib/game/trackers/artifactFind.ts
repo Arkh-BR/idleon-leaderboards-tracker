@@ -9,9 +9,8 @@
 // The trace below a source is trimmed (Ruling L, trackers/page.ts). The whole trace is still there for debugging: run
 // Sailing(ctx, "BoatArtiMulti", 0, 0) on a Ctx made with `trace: true` (gameArtifactFind does exactly that and trims what it hands the page).
 //
-// The type of the result is the page's own (lib/statTracker/config StatResult: type-only). lib/game imports no lib/arkh, but one call
-// still runs it: DNSM.TomeQTYtot calls lib/tome's computeTome (Ruling K), which imports about 20 lib/arkh modules until the Tome moves
-// to lib/game.
+// The type of the result is the page's own (lib/statTracker/config StatResult: type-only). lib/game imports no lib/arkh and reaches none:
+// DNSM.TomeQTYtot, the Tome score (Ruling K), is lib/game's own sum of the Tome's points (njs/TomeQTY.ts, Summoning TomePTS).
 //
 // Performance, user decision 2026-11-04: the page switched to this engine at warm-character-switch parity with lib/arkh (about 2 ms); a
 // loaded save costs about 24 ms once (state build + Tome) against lib/arkh's 2 ms, accepted as "no perceptible slowdown".

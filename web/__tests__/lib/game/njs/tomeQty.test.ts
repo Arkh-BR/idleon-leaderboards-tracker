@@ -1,15 +1,18 @@
-// The Tome's quantities on lib/game (njs/TomeQTY.ts), `_customEvent_TomeQTY` @5739147:
-// - on a synthetic envelope (CI): one assertion per ported quantity, its value worked out from the N.js expression;
+// The Tome on lib/game: its quantities (njs/TomeQTY.ts, `_customEvent_TomeQTY` @5739147), its points (Summoning TomePCT/TomePTS
+// @10913628) and the engine's total (DNSM.TomeQTYtot):
+// - on a synthetic envelope (CI): one assertion per quantity, per points curve and for the total, worked out from the N.js expression;
 // - on the 5 newest real saves (skipIf): compareTome against the frozen computeTome, no difference outside TOME_KNOWN.
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { basename } from "node:path";
 import { GOLDEN_SAVES, goldenSaves } from "../support/arkhOracle"; // first: it sets the `window` shim lib/arkh reads
-import { compareTome, PENDING_QTY } from "../support/tomeCompare";
+import { compareTome } from "../support/tomeCompare";
 import { newestSaves } from "@/lib/diagnose/characterize";
 import { DeathNoteMobs, MapDetails, NinjaInfo, PetStats, RANDOlist, SceneNPCquestOrder, Tome } from "@/lib/game/data";
-import { NotPorted } from "@/lib/game/errors";
+import { DNSM_TomeQTYtot } from "@/lib/game/njs/DNSM";
+import { getLOG } from "@/lib/game/njs/getLOG";
 import { Ninja } from "@/lib/game/njs/Ninja";
+import { Summoning } from "@/lib/game/njs/Summoning";
 import { TomeQTY, tomeQty } from "@/lib/game/njs/TomeQTY";
 import type { TraceNode } from "@/lib/game/trace";
 import { synth, type Data, type Seeds } from "../support/expStub";
@@ -37,6 +40,10 @@ const TOME: Data = {
   FamValColosseumHighscores: [], FamValMinigameHiscores: [], Boats: [], GamingSprout: Array.from({ length: 33 }, () => [0, 0]), Sailing: [[], [0], [], []],
   Captains: Array.from({ length: 20 }, () => [0, 0, 0, 0]), Gaming: Array<number>(9).fill(0), FarmCrop: {}, Ninja: NINJA(), Summon: [[], [], [], [], []],
   PrayOwned: [], FarmRank: [[]], ArcadeUpg: [], Holes: Array.from({ length: 12 }, () => []),
+  // and every key quantities 84..123 read
+  Spelunk: Array.from({ length: 47 }, (_, i) => (13 == i ? Array<number>(6).fill(0) : [])), KRbest: {}, Bubba: [[], Array<number>(9).fill(0)],
+  Research: Array.from({ length: 13 }, (_, i) => (7 == i ? Array<number>(10).fill(0) : [])), Sushi: Array.from({ length: 6 }, (_, i) => (5 == i ? [-1] : [])),
+  RoyalG: Array.from({ length: 6 }, () => []), RoyalMaps: [], Menagerie: [[0, 0, 0], [], [], []],
 };
 const ctxOf = (data: Data, o: { seeds?: Seeds; real?: string[]; trace?: boolean } = {}) =>
   synth({ ...TOME, ...data }, { chars: 2, seeds: o.seeds, real: ["DNSM.TomeQTY", ...(o.real ?? [])], trace: o.trace });
@@ -235,20 +242,155 @@ describe("the TomeQTY event on a synthetic envelope (runs in CI)", () => {
     expect([q(82, { Holes: holes }), q(83, { Holes: holes }, { real: ["getLOG"] })]).toEqual([21, 6]);
   });
 
-  it("a quantity not ported yet throws NotPorted; the event's array is built once per state and character", () => {
-    const pending = [...PENDING_QTY][0];
-    expect(PENDING_QTY.size).toBe(Tome.length - 85);
-    const c = ctxOf({});
-    expect(() => tomeQty(c, pending)).toThrow(NotPorted);
+  it("[84] [93] Holes[1], Holes[7], each round(max(0, v)) @5762283", () => {
+    const holes: unknown[] = Array.from({ length: 12 }, () => []);
+    holes[1] = [1.4, 2.6, -5];
+    holes[7] = [3, "4.5", -1];
+    expect([q(84, { Holes: holes }), q(93, { Holes: holes })]).toEqual([4, 8]);
+  });
+  it("[85] [86] [90] [100] [101] [106] [113] [117] OptionsListAccount[262], [279], [356], [445], [446], [443], [498], [594]", () => {
+    const at = { 85: 262, 86: 279, 90: 356, 100: 445, 101: 446, 106: 443, 113: 498, 117: 594 };
+    const c = ctxOf({ OptLacc: OLA(Object.fromEntries(Object.values(at).map((o) => [o, o + 0.5]))) });
+    for (const [i, o] of Object.entries(at)) expect(tomeQty(c, Number(i)), `TomeQTY[${i}]`).toBe(o + 0.5);
+  });
+  it("[87] [88] [89] [91] Holes[11][73], [74], [75], [8]; [92] Holes[11][1, 3, 5, 7], each round(max(0, v))", () => {
+    const holes: unknown[] = Array.from({ length: 12 }, () => []);
+    holes[11] = Object.assign(Array<number>(76).fill(0), { 1: 1.6, 3: -4, 5: 2, 7: 0.4, 8: 9, 73: 10, 74: 11, 75: 12 });
+    const c = ctxOf({ Holes: holes });
+    expect([87, 88, 89, 91, 92].map((i) => tomeQty(c, i))).toEqual([10, 11, 12, 9, 4]);
+  });
+  it("[94] round(min(12, OptionsListAccount[353]) + 1), [95] round(OptionsListAccount[369])", () => {
+    expect([q(94, { OptLacc: OLA({ 353: 5 }) }), q(94, { OptLacc: OLA({ 353: 40 }) }), q(95, { OptLacc: OLA({ 369: 7.6 }) })]).toEqual([6, 13, 8]);
+  });
+  it('[96] the nine stones, round(Thingies("SumStoneTrialz", g)) each (KRbest["SummzTrz" + g])', () =>
+    expect(q(96, { KRbest: { SummzTrz0: 1.4, SummzTrz8: 2.6, SummzTrz9: 100, Other: 5 } }, { real: ["Thingies"] })).toBe(4));
+  it("[97] Spelunk[13][0..5], [98] the best Spelunk[1], [102] the best Spelunk[2], [103] Spelunk[5] each at least 0, [104] [109] Spelunk[6], [46] lengths", () => {
+    const sp: unknown[] = Array.from({ length: 47 }, () => []);
+    sp[13] = [1, 2, 3, 4, 5, 6, 100];
+    sp[1] = [3, 9, 4];
+    sp[2] = [-2, -1];
+    sp[5] = [2, -3, 5];
+    sp[6] = ["a", "b"];
+    sp[46] = ["h", "h", "h"];
+    const c = ctxOf({ Spelunk: sp });
+    expect([97, 98, 102, 103, 104, 109].map((i) => tomeQty(c, i))).toEqual([21, 9, 0, 7, 2, 3]);
+  });
+  it("[99] Ninja[103]", () => expect(q(99, { Ninja: Object.assign(NINJA(), { 103: [1, 2, 3] }) })).toBe(6));
+  it("[105] the best Lv0[19] of the account's characters", () =>
+    expect(q(105, { Lv0_0: Object.assign(Array<number>(20).fill(0), { 19: 40 }), Lv0_1: Object.assign(Array<number>(20).fill(0), { 19: 55 }) })).toBe(55));
+  it("[108] Bubba[1][8], [110] Research[7][4], [111] Research[11].length, [121] Research[7][9], [122] Menagerie[0][2]", () => {
+    const research: unknown[] = Array.from({ length: 13 }, () => []);
+    research[7] = [0, 0, 0, 0, 6, 0, 0, 0, 0, 8];
+    research[11] = ["x", "y"];
+    const c = ctxOf({ Bubba: [[], [0, 0, 0, 0, 0, 0, 0, 0, 7]], Research: research, Menagerie: [[0, 0, 9], [], [], []] });
+    expect([108, 110, 111, 121, 122].map((i) => tomeQty(c, i))).toEqual([7, 6, 2, 8, 9]);
+  });
+  it('[112] FarmingStuffs("TotalStickers"), [114] ResearchStuff("Grid_PTSspent"), [115] Research[12] each round(max(0, v))', () => {
+    const research: unknown[] = Array.from({ length: 13 }, (_, i) => (7 == i ? Array<number>(10).fill(0) : []));
+    research[9] = [1, 2, 3];
+    research[0] = [1.4, 1.4, 5]; // round(round(round(0 + 1.4) + 1.4) + 5) = 7
+    research[12] = [1.6, -2, 3];
+    const c = ctxOf({ Research: research }, { real: ["FarmingStuffs", "ResearchStuff"] });
+    expect([112, 114, 115].map((i) => tomeQty(c, i))).toEqual([6, 7, 5]);
+  });
+  it('[116] SushiStuff("UniqueSushi")', () => expect(q(116, {}, { seeds: { 'SushiStuff["UniqueSushi",0,0]': 12 } })).toBe(12));
+  it('[118] RoyalG[0] each at least 0, [119] RoyalG("TotalStatz", 4): the RoyalMaps entries of 3 fields or more, [120] TotalStatz 0: RoyalG[5]', () => {
+    const royal = [[2, -1, 3], [], [], [], [], [4, 5]];
+    const c = ctxOf({ RoyalG: royal, RoyalMaps: [[1, 2, 3], [1, 2], [1, 2, 3, 4], []] }, { real: ["RoyalG"] });
+    expect([118, 119, 120].map((i) => tomeQty(c, i))).toEqual([5, 2, 9]);
+  });
+  it("[123] Menagerie[3]", () => expect(q(123, { Menagerie: [[0, 0, 0], [], [], [1, 2, "3"]] })).toBe(6));
+
+  it("every quantity is ported; the event's array is built once per state and character", () => {
+    const c = ctxOf({}, { real: ["Breeding"] }); // 2ndMulti is at least 1 (a stub's 0 would make [51] NaN)
+    for (let i = 0; i < Tome.length; i++) expect(Number.isFinite(tomeQty(c, i)), `TomeQTY[${i}]`).toBe(true);
     expect(TomeQTY(c)).toBe(TomeQTY({ ...c, cache: new Map() }));
     expect(TomeQTY(c)).toHaveLength(Tome.length);
   });
 });
 
+/** Two characters whose levels add up to `level` (the Tome actor's GenInfo[83]), and the quantities `qty` (by task) in place of the event. */
+const pts = (level: number, qty: Record<number, number>, o: { real?: string[] } = {}) =>
+  ctxOf(
+    { Lv0_0: [level - 1, 0], Lv0_1: [1, 0] },
+    {
+      // the event's own Summoning read (TomeQTY[81]) answers 0, as every other block of the event does
+      seeds: { 'Summoning["VaultUpgBonus",57,0]': 0, ...Object.fromEntries(Object.entries(qty).map(([i, v]) => [`DNSM.TomeQTY[${i}]`, v])) },
+      real: ["Summoning", "getLOG", ...(o.real ?? [])],
+    }
+  );
+const PTS = (c: ReturnType<typeof pts>, i: number) => Summoning(c, "TomePTS", i, 0);
+
+describe("the Tome points, Summoning TomePCT @10913628 and TomePTS @10915591 = ceil(TomePCT x Tome[g][3]) (runs in CI)", () => {
+  it("curve 0 (task 0, Stamp Total LV: 10000, 1000 pts): (1.7 q / (q + 10000))^.7, 0 below 0", () => {
+    expect(PTS(pts(9000, { 0: 5000 }), 0)).toBe(672); // ceil(0.5667^.7 x 1000)
+    expect(PTS(pts(9000, { 0: -1 }), 0)).toBe(0);
+  });
+  it("curve 1 (task 8, Most Money held: 25, 500 pts): 2.4 getLOG(q) / (2 getLOG(q) + 25)", () => {
+    const L = Math.log(1e10) / 2.30259;
+    expect(getLOG(pts(9000, {}), 1e10)).toBe(L);
+    expect(PTS(pts(9000, { 8: 1e10 }), 8)).toBe(Math.ceil(((2.4 * L) / (2 * L + 25)) * 500));
+    expect(PTS(pts(9000, { 8: 1e10 }), 8)).toBe(267);
+    expect(PTS(pts(9000, { 8: 0.5 }), 8)).toBe(0); // getLOG clamps at 1
+  });
+  it("curve 2 (task 2, Cards Total LV: 1344, 1000 pts): min(1, q / 1344)", () => {
+    expect(PTS(pts(9000, { 2: 672 }), 2)).toBe(500);
+    expect(PTS(pts(9000, { 2: 5000 }), 2)).toBe(1000);
+  });
+  it("curve 3 (task 16, kills for a Crystal Spawn: 30, 350 pts, fewer is better): 0 past 5 x 30, else (1.2 (180 - q) / (210 - q))^5", () => {
+    expect(PTS(pts(9000, { 16: 31 }), 16)).toBe(Math.ceil(Math.pow((1.2 * 149) / 179, 5) * 350));
+    expect(PTS(pts(9000, { 16: 31 }), 16)).toBe(349);
+    expect(PTS(pts(9000, { 16: 0 }), 16)).toBe(403); // above the task's points: the curve passes 1 below q = 30
+    expect(PTS(pts(9000, { 16: 150 }), 16)).toBeGreaterThan(0);
+    expect(PTS(pts(9000, { 16: 151 }), 16)).toBe(0);
+  });
+  it("curve 4 (task 22, Total Bubble LV: 1e6, 1750 pts): (2 min(1e6, q) / (min(1e6, q) + 1e6))^.7", () => {
+    expect(PTS(pts(9000, { 22: 5e5 }), 22)).toBe(Math.ceil(Math.pow(1e6 / 1.5e6, 0.7) * 1750));
+    expect(PTS(pts(9000, { 22: 2e6 }), 22)).toBe(1750);
+  });
+  it("a task counts once the account's levels (Lv0[0] of every character) reach TomeLvReq of its place in NinjaInfo[32]", () => {
+    const order = (NinjaInfo as unknown as unknown[][])[32].map(String);
+    const [first, second] = [Number(order[0]), Number(order[1])]; // tasks 5 and 11: 350 and 390 levels
+    expect([first, second]).toEqual([5, 11]);
+    const c = pts(350, { 5: 7000, 11: 18000 });
+    expect([PTS(c, first), PTS(c, second)]).toEqual([Math.ceil(Math.pow(0.85, 0.7) * 1500), 0]);
+    expect(Summoning(c, "isTomeUnlocked", second, 0)).toBe(0);
+    expect(PTS(pts(390, { 11: 18000 }), second)).toBe(Math.ceil(Math.pow(0.85, 0.7) * 1200));
+    expect(PTS(pts(349, { 5: 7000 }), first)).toBe(0);
+    const k = 123;
+    expect(Summoning(c, "TomeLvReq", k, 0)).toBe(350 + 40 * k + 5 * (k - 35) + 10 * (k - 60) + 10 * (k - 80) + 15 * (k - 100));
+  });
+});
+
+describe("DNSM.TomeQTYtot, the N.js sum of every task's TomePTS (runs in CI)", () => {
+  it('sums Summoning("TomePTS", g) over every task of CustomLists.Tome', () => {
+    const seeds = { 'Summoning["TomePTS",0,0]': 100, 'Summoning["TomePTS",57,0]': 20, [`Summoning["TomePTS",${Tome.length - 1},0]`]: 3 };
+    const c = ctxOf({}, { seeds, real: ["DNSM.TomeQTYtot"] });
+    expect(DNSM_TomeQTYtot(c)).toBe(123); // every other task answers 0 (ZeroCache)
+  });
+  it("is the sum of the points the curves give, once per state", () => {
+    const c = pts(9000, { 0: 5000, 2: 672 }, { real: ["DNSM.TomeQTYtot", "Breeding"] }); // the other tasks from the event (2ndMulti at least 1)
+    let sum = 0;
+    for (let g = 0; g < Tome.length; g++) sum += PTS(c, g);
+    expect(sum).toBeGreaterThanOrEqual(672 + 500);
+    expect(DNSM_TomeQTYtot(c)).toBe(sum);
+    expect(DNSM_TomeQTYtot({ ...c, cache: new Map() })).toBe(sum); // the same state: not rebuilt from a cold cache
+  });
+  it("is an assumed: leaf that says it is the game's sum", () => {
+    const c = ctxOf({}, { seeds: { 'Summoning["TomePTS",0,0]': 7 }, real: ["DNSM.TomeQTYtot"], trace: true });
+    DNSM_TomeQTYtot(c);
+    const node = c.trace!.children.find((n) => n.block === "DNSM.TomeQTYtot")!;
+    expect(node.children[0]).toMatchObject({ block: "Tome.totalPoints", value: 7, note: "assumed: Tome score summed from the save the way the game does" });
+    expect(node.children[0].detail).toMatch(/TomePTS/);
+  });
+});
+
 describe.skipIf(GOLDEN_SAVES.length === 0)("compareTome on the 5 newest saves", () => {
   for (const p of newestSaves(goldenSaves(), 5)) {
-    it(`${basename(p)}: no quantity outside TOME_KNOWN differs from the frozen computeTome`, () => {
-      expect(compareTome(JSON.parse(readFileSync(p, "utf8"))).qty).toEqual([]);
+    it(`${basename(p)}: no quantity, task's points or total outside TOME_KNOWN differs from the frozen computeTome`, () => {
+      const { qty, pts } = compareTome(JSON.parse(readFileSync(p, "utf8")));
+      expect(qty).toEqual([]);
+      expect(pts).toEqual([]);
     });
   }
 });

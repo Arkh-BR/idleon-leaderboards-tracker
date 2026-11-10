@@ -102,10 +102,10 @@ export function characterize(saves: string[], a: Engine, b: Engine): Characteriz
  */
 export type Verdict = "known" | "refused" | "shared" | "unexplained";
 
-/** The key a refusal names: the message up to the first colon or line break (`Tome rows 107,108: #107 ...` is `Tome rows 107,108`). */
+/** The key a refusal names: the message up to the first colon or line break. */
 export const refusedKey = (e: Err): string => e.message.split(/[:\n]/)[0];
 
-const REFUSALS = new Set(["MissingSaveKey", "IncompleteTome"]); // IncompleteTome is a MissingSaveKey (lib/game/errors.ts)
+const REFUSALS = new Set(["MissingSaveKey"]);
 
 /**
  * The keys an older save may be refused for by Artifact Find (`classify`'s `refusable`): lib/game replays the game's load steps on an older
@@ -115,32 +115,31 @@ const REFUSALS = new Set(["MissingSaveKey", "IncompleteTome"]); // IncompleteTom
 export const ARTIFACT_FIND_REFUSABLE = (key: string): boolean => key === UNPORTED_STEPS;
 
 /**
- * Damage's list: Artifact Find's, plus a Tome lib/tome cannot score on an older save (IncompleteTome, key `Tome rows <ids>`). The stats
- * Damage reads carry Tome bubbles (Ruling K: the Tome stays lib/tome's until it moves to lib/game). The tracker test checks it against
- * the refusals it pins.
+ * Damage's list: Artifact Find's. The stats Damage reads carry Tome bubbles, and the Tome is lib/game's own (DNSM.TomeQTYtot), refused for
+ * the same keys as everything else. The tracker test checks it against the refusals it pins.
  */
-export const DAMAGE_REFUSABLE = (key: string): boolean => ARTIFACT_FIND_REFUSABLE(key) || /^Tome rows \d+(,\d+)*$/.test(key);
+export const DAMAGE_REFUSABLE = ARTIFACT_FIND_REFUSABLE;
 
 /** AFK Gains' list: Damage's (the AFK pools read the same Tome-scored bubbles and an older save's steps). */
 export const AFK_REFUSABLE = DAMAGE_REFUSABLE;
 
-/** EXP Multi's list: Damage's too (the talents read the Tome-scored bubbles; HourZero is refused for its Tome rows, Ruling E). */
+/** EXP Multi's list: Damage's too (the talents read the Tome-scored bubbles). */
 export const EXP_REFUSABLE = DAMAGE_REFUSABLE;
 
-/** Drop Rate V2's list: Damage's too (the DR reads the Tome-scored sources; HourZero is refused for its Tome rows, as for EXP). */
+/** Drop Rate V2's list: Damage's too (the DR reads the Tome-scored sources). */
 export const DR_REFUSABLE = DAMAGE_REFUSABLE;
 
-/** Coin Multi's list: Damage's too (the block's first read, TotalStats("STR"), carries the Tome rows HourZero is refused for). */
+/** Coin Multi's list: Damage's too (the block's first read, TotalStats("STR"), carries the Tome bubbles). */
 export const COIN_REFUSABLE = DAMAGE_REFUSABLE;
 
-/** Multikill's list: Damage's too (the tier reads DamageDealed("Max"), whose Tome rows HourZero is refused for, Ruling E). */
+/** Multikill's list: Damage's too (the tier reads DamageDealed("Max")). */
 export const MULTIKILL_REFUSABLE = DAMAGE_REFUSABLE;
 
 /**
  * `known` is the oracle's KNOWN_ARKH_DIFFS ({save: file name, ci?: omitted = every character}); `csver` is the save's `data.CSver`.
  * A diff-list entry explains a difference of numbers only, never an error, and only the `b` (lib/game) side can refuse.
  * `refusable` (default: any key) says which keys the stat may be refused for; a refusal for another key is a gap, not age, so it is
- * unexplained. The key is what `MissingSaveKey` carries, or what comes before the colon in an IncompleteTome message.
+ * unexplained. The key is what `MissingSaveKey` carries.
  */
 export function classify(
   row: Row,

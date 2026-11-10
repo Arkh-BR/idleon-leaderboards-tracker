@@ -9,7 +9,7 @@
 //  3. The 4 in-game Damage readings, in the game's display format.
 //  4. Two characters in one Ctx.
 // A describe body never reads a save: states load lazily inside `it`.
-import { afterAll, afterEach, describe, it, expect, vi } from "vitest";
+import { afterAll, afterEach, describe, it, expect } from "vitest";
 import { existsSync, readFileSync } from "node:fs";
 import { basename, join } from "node:path";
 import {
@@ -28,7 +28,6 @@ import { ClassStatTypes } from "@/lib/game/data";
 import { MissingSaveKey } from "@/lib/game/errors";
 import { makeCtx, withPlayer, type Ctx } from "@/lib/game/ctx";
 import { buildGameState, type GameEnvelope, type GameState } from "@/lib/game/state";
-import { computeTome } from "@/lib/tome/compute";
 import { formatGameValue, normalizeGameText, parseGameValue } from "@/lib/readings/format";
 import { READINGS_DIR, loadReadings, readingSave } from "@/lib/readings/registry";
 import { ArbitraryCode } from "@/lib/game/njs/ArbitraryCode";
@@ -51,11 +50,6 @@ import { Windwalker } from "@/lib/game/njs/Windwalker";
 import { listAt, listOrMapAt } from "@/lib/game/lists";
 import { hString } from "@/lib/game/hstring";
 
-// count computeTome's runs (the account's Tome score, one per state): the original still runs
-vi.mock("@/lib/tome/compute", async (orig) => {
-  const m = await orig<typeof import("@/lib/tome/compute")>();
-  return { ...m, computeTome: vi.fn(m.computeTome) };
-});
 
 const MAP = 251; // a plain map: no dungeon (Dungon() is -1), no arena
 const rel = (got: number, want: number) => Math.abs(got - want) <= 1e-9 * Math.max(1, Math.abs(want));
@@ -312,9 +306,8 @@ describe("DamageDealed against the game's own text (the Damage readings, Player 
 const ARKHE = GOLDEN_SAVES.find((p) => basename(p) === "ARKHE.json");
 
 describe.skipIf(!ARKHE)("two characters in one Ctx (ARKHE #0 and #8)", () => {
-  it("the second character's terms are computed for it, nothing mixes, and the account's state and Tome score are built once", () => {
+  it("the second character's terms are computed for it, nothing mixes, and the account's state is built once", () => {
     const state = buildGameState(JSON.parse(readFileSync(ARKHE!, "utf8")) as GameEnvelope);
-    vi.mocked(computeTome).mockClear();
     const ctx = makeCtx(state, { player: 0, map: MAP });
     const computed: string[] = [];
     const set = ctx.cache.set.bind(ctx.cache);
@@ -343,8 +336,10 @@ describe.skipIf(!ARKHE)("two characters in one Ctx (ARKHE #0 and #8)", () => {
     };
     for (const call of ['TotalStats["STR"]', 'TotalStats["Weapon_Power"]', "GetTalentNumber[1,95]", "PlayerHPmax[]"]) expect(value(8, call), call).not.toBe(value(0, call));
     for (const call of ["ArcadeBonus[0]", 'Summoning["VaultUpgBonus",0,0]', "Companions[12]", 'Sailing["ArtifactBonus",2,0]']) expect(value(8, call), call).toBe(value(0, call));
-    // the account's heavy parts are built once: the state (one GameState for both) and the Tome score (computeTome, once per state)
+    // the account's heavy part is built once: the state (one GameState for both). The Tome score is the current character's (the game
+    // counts it for the one logged in), each counted on a cache of its own: none of its 124 tasks' points reach the caller's cache
     expect(withPlayer(ctx, 8).state).toBe(ctx.state);
-    expect(vi.mocked(computeTome)).toHaveBeenCalledTimes(1);
+    for (const p of [0, 8]) expect(ctx.cache.get(`${p}|${MAP}|DNSM.TomeQTYtot[]`), `Tome for ${p}`).toBeGreaterThan(3000);
+    expect([...ctx.cache.keys()].some((k) => k.includes('Summoning["TomePTS"'))).toBe(false);
   }, 120_000);
 });

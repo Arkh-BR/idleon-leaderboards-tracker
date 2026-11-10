@@ -6,8 +6,8 @@ import { existsSync, readFileSync } from "node:fs";
 import { basename } from "node:path";
 import { GOLDEN_SAVES, KNOWN_ARKH_DIFFS, UNPORTED_REFUSALS, arkhArtifactLeaf, gameCtx } from "../support/arkhOracle";
 import { withPlayer, type Ctx } from "@/lib/game/ctx";
-import { IncompleteTome, InvalidSaveValue, MissingSaveKey, NotPorted } from "@/lib/game/errors";
-import { ChipDesc as ChipDescData, LabMainBonus, NinjaInfo, Number2Letter, Spelunky, UpgradeVault } from "@/lib/game/data";
+import { InvalidSaveValue, MissingSaveKey, NotPorted } from "@/lib/game/errors";
+import { ChipDesc as ChipDescData, LabMainBonus, NinjaInfo, Number2Letter, Spelunky, Tome, UpgradeVault } from "@/lib/game/data";
 const ChipDesc = ChipDescData as unknown as string[][];
 import { listAt } from "@/lib/game/lists";
 import { Breeding } from "@/lib/game/njs/Breeding";
@@ -28,7 +28,6 @@ import { Summoning } from "@/lib/game/njs/Summoning";
 import { Summoning2 } from "@/lib/game/njs/Summoning2";
 import { Thingies } from "@/lib/game/njs/Thingies";
 import { callDiff, njsCalls, njsFunction, njsNamedBlocks, njsNumericBranch, njsSlice, traceCalls } from "@/lib/diagnose/njsCalls";
-import { computeTome } from "@/lib/tome/compute";
 import { loadNjs } from "@/scripts/njs-calls";
 
 // The terms, written the way BoatArtiMulti writes them. spelunkBit26 is the factor inside `Math.max(1, …)` (the group applies the
@@ -262,7 +261,7 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("Ninja EmporiumBonus (N.js @10845956)
 });
 
 // ── Thingies LoreEpiBon ──────────────────────────────────────────────────────────────────────────
-// The formula is checked at controlled Tome scores in loreEpi.test.ts (it mocks lib/tome); here the score is lib/tome's own.
+// The formula is checked at controlled Tome scores in loreEpi.test.ts (it mocks DNSM.TomeQTYtot); here the score is lib/game's own.
 describe.skipIf(GOLDEN_SAVES.length === 0)("Thingies LoreEpiBon (N.js @10974601) and DNSM.TomeQTYtot", () => {
   // Spelunky[21][3] = '100|3000': value 100, starts at 3000 Tome points. Spelunk[13][2] is how many lore episodes are unlocked.
   const lore = (o: { unlocked?: number; trace?: boolean; env?: (e: any) => void } = {}) =>
@@ -291,7 +290,7 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("Thingies LoreEpiBon (N.js @10974601)
     expect(term(lore({ unlocked: 3 }))).toBe(0);
     expect(term(lore({ unlocked: 4 }))).toBeGreaterThan(0);
   });
-  it("the Tome score is lib/tome's own computeTome on the save; what IdleonToolbox stamped on the envelope (extraData, parsedData) is never read (Ruling K)", () => {
+  it("the Tome score is lib/game's own sum of the Tome's points on the save; what IdleonToolbox stamped on the envelope (extraData, parsedData) is never read (Ruling K)", () => {
     const plain = lore();
     const stamped = lore({
       env: (e) => {
@@ -301,19 +300,17 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("Thingies LoreEpiBon (N.js @10974601)
     });
     expect(DNSM_TomeQTYtot(stamped)).toBe(DNSM_TomeQTYtot(plain));
     expect(term(stamped)).toBe(term(plain));
-    const env = JSON.parse(readFileSync(BASE, "utf8"));
-    delete env.extraData;
-    delete env.parsedData;
-    setIn(env.data, "Spelunk", (s) => (s[13][2] = 10));
-    expect(DNSM_TomeQTYtot(plain)).toBe(computeTome(env).totalPts);
+    let sum = 0;
+    for (let g = 0; g < Tome.length; g++) sum += Summoning(plain, "TomePTS", g, 0);
+    expect(DNSM_TomeQTYtot(plain)).toBe(sum);
+    expect(sum).toBeGreaterThan(3000);
   });
   it("the Tome score is a leaf that says where it comes from, and is no N.js call", () => {
     const c = lore({ trace: true });
     term(c);
     const leaf = c.trace!.children[0].children.find((n) => n.block === "DNSM.TomeQTYtot")!.children[0];
-    expect(leaf).toMatchObject({ block: "Tome.totalPoints", value: DNSM_TomeQTYtot(c), note: "assumed: Tome score from our own Tome calculation" });
-    expect(leaf.detail).toContain("Tome score from lib/tome computeTome"); // the full reason (and the row count) stays on the trace node
-    expect(leaf.detail).toMatch(/\d+ of \d+ rows computed/);
+    expect(leaf).toMatchObject({ block: "Tome.totalPoints", value: DNSM_TomeQTYtot(c), note: "assumed: Tome score summed from the save the way the game does" });
+    expect(leaf.detail).toContain('Σ Summoning("TomePTS", g)'); // the full reason stays on the trace node
     expect(traceCalls(c.trace!).map((x) => x.block)).not.toContain("Tome.totalPoints");
   });
   it("each save KNOWN_ARKH_DIFFS lists for loreEpi3 has a Tome total of lib/tome that is not IdleonToolbox's: the source differs, nothing else", () => {
@@ -328,28 +325,25 @@ describe.skipIf(GOLDEN_SAVES.length === 0)("Thingies LoreEpiBon (N.js @10974601)
       expect(DNSM_TomeQTYtot(gameCtx(env, 0)), d.save).not.toBe(itTotal);
     }
   }, 120_000);
-  it("a save with a Tome row lib/tome cannot compute is refused, naming the rows, not scored as a floor (Ruling E)", () => {
-    // rows 107..109 read RoyalG and RoyalMaps (the Royal Guardian, from CSver 32): computeTome would count them as no points
+  it("a save without what a Tome quantity reads is refused for that key, not scored as a floor (Ruling E)", () => {
+    // TomeQTY[118] reads RoyalG[0] (the Royal Guardian, from CSver 32), [119] RoyalMaps
     const noRoyal = () =>
       variant((d) => {
         setIn(d, "Spelunk", (sp) => (sp[13][2] = 10));
         delete d.RoyalG;
         delete d.RoyalMaps;
       });
-    const c = noRoyal();
     let error: unknown;
     try {
-      term(c);
+      term(noRoyal());
     } catch (e) {
       error = e;
     }
-    expect(error).toBeInstanceOf(IncompleteTome);
-    expect(error).toBeInstanceOf(MissingSaveKey); // refused like any pre-migration key
-    expect((error as IncompleteTome).key).toBe("Tome rows 107,108,109");
-    expect((error as IncompleteTome).rows.map((r) => r.task)).toEqual(["Total Royal Statue LV", "Royal Guardian Outposts Built", "Total Resource Grade"]);
-    expect((error as IncompleteTome).message).toContain('#107 "Total Royal Statue LV"');
-    expect(() => DNSM_TomeQTYtot(noRoyal())).toThrow(IncompleteTome);
-    expect(() => DNSM_TomeQTYtot(c)).toThrow(IncompleteTome); // the same state again: the refusal is kept, not recomputed into a score
+    expect(error).toBeInstanceOf(MissingSaveKey);
+    expect((error as MissingSaveKey).key).toBe("RoyalG");
+    const c = noRoyal();
+    expect(() => DNSM_TomeQTYtot(c)).toThrow(MissingSaveKey);
+    expect(() => DNSM_TomeQTYtot(c)).toThrow(MissingSaveKey); // the same state again: refused again, never a score
     // the same save with its Royal data is scored
     expect(() => term(lore())).not.toThrow();
     // and a term that does not read the score is not refused by it: an episode that is not unlocked answers 0 first
