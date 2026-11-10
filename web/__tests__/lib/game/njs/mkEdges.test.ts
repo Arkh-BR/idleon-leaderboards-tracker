@@ -64,7 +64,7 @@ describe("GetBuffBonuses 45, 46 and 469 (@4279371)", () => {
     expect(GetBuffBonuses(c, 45, 1)).toBe(3);
   });
   it("another buff stays not ported", () => {
-    expect(() => GetBuffBonuses(synth({ CharacterClass_0: 4, BuffsActive_0: [] }), 40, 2)).toThrow(NotPorted);
+    expect(() => GetBuffBonuses(synth({ CharacterClass_0: 4, BuffsActive_0: [] }), 41, 2)).toThrow(NotPorted);
   });
 });
 

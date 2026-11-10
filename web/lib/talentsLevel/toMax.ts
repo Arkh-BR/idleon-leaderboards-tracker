@@ -16,15 +16,16 @@
 // Star talents (the "Special Talent" tabs) are pool-capped and have no Max
 // Book Lv Cap, so they're skipped entirely.
 
-import { loadSaveData } from "../arkh/save/loader";
-import { saveData } from "../arkh/state";
-import { skillLvData, skillLvMaxData } from "../arkh/save/data";
-import { computeMaxBookLv } from "../arkh/stats/systems/common/talent";
-import { entityName } from "../arkh/stats/entity-names";
+import { makeCtx } from "@/lib/game/ctx";
+import { charKey, opt } from "@/lib/game/state";
+import { stateOf } from "@/lib/game/trackers/page";
+import { maxBookLv as accountMaxBookLv } from "../dropRate/explain/talent";
+import { entityName } from "./entityNames";
 import { TALENT_TABS_BY_CLASS } from "./talentTabs.gen";
 import { getCharClassKey, getCharClassLabel } from "./charClass";
 import { getActivePresetIdx } from "./compute";
 import { listCharacters } from "../dropRate/extract";
+import type { GameState } from "@/lib/game/state";
 import { isAccountWideTalent } from "./accountWideTalents";
 
 export type ToMaxItem = {
@@ -75,25 +76,9 @@ function prettifyName(raw: string): string {
     .join(" ");
 }
 
-function readLevel(perChar: any, talentId: number): number {
-  if (!perChar) return 0;
-  const v = perChar[talentId] ?? perChar[String(talentId)];
-  return Number(v) || 0;
-}
-
-/** Read a per-char save field that may be a JSON string or already parsed
- *  (mirrors compute.ts readField). Used for SLpre_{ci}, which the loader
- *  doesn't expose. */
-function readField(rawData: any, key: string): any {
-  const v = rawData?.[key];
-  if (typeof v === "string") {
-    try {
-      return JSON.parse(v);
-    } catch {
-      return null;
-    }
-  }
-  return v;
+/** The level saved for a talent under `key_ci` (SL, SM, SLpre); an absent map or entry reads as 0. */
+function readLevel(state: GameState, key: string, ci: number, talentId: number): number {
+  return Number(opt(state, charKey(key, ci), talentId)) || 0;
 }
 
 /**
@@ -104,10 +89,9 @@ function readField(rawData: any, key: string): any {
  *   page already holds as `save`).
  */
 export function computeTalentsToMax(rawEnvelope: any): ToMaxCharGroup[] {
-  loadSaveData(rawEnvelope);
-  const maxBookLv = computeMaxBookLv(saveData);
+  const state = stateOf(rawEnvelope);
+  const maxBookLv = accountMaxBookLv(makeCtx(state, { player: 0, map: 0 }));
   const chars = listCharacters(rawEnvelope);
-  const data = rawEnvelope?.data ?? rawEnvelope;
 
   const groups: ToMaxCharGroup[] = [];
   for (const ch of chars) {
@@ -121,11 +105,8 @@ export function computeTalentsToMax(rawEnvelope: any): ToMaxCharGroup[] {
     // Map both onto Preset 1 / Preset 2 by the active-preset index so the
     // labels line up with what the player sees in-game.
     const activePreset = getActivePresetIdx(rawEnvelope, ci);
-    const slActive = skillLvData[ci];
-    const slInactive = readField(data, `SLpre_${ci}`);
-    const slP1 = activePreset === 0 ? slActive : slInactive;
-    const slP2 = activePreset === 1 ? slActive : slInactive;
-    const sm = skillLvMaxData[ci];
+    const keyP1 = activePreset === 0 ? "SL" : "SLpre";
+    const keyP2 = activePreset === 1 ? "SL" : "SLpre";
 
     const items: ToMaxItem[] = [];
     const seen = new Set<number>();
@@ -140,12 +121,12 @@ export function computeTalentsToMax(rawEnvelope: any): ToMaxCharGroup[] {
         seen.add(t.id);
         totalScanned++;
 
-        const investedP1 = readLevel(slP1, t.id);
-        const investedP2 = readLevel(slP2, t.id);
+        const investedP1 = readLevel(state, keyP1, ci, t.id);
+        const investedP2 = readLevel(state, keyP2, ci, t.id);
         // SM holds the live in-game cap (incl. cap-booster raises for the
         // stat talents). When it's missing/zero the game hasn't written a
         // cap for this talent yet → fall back to the account-wide formula.
-        const savedCap = readLevel(sm, t.id);
+        const savedCap = readLevel(state, "SM", ci, t.id);
         const cap = savedCap > 0 ? savedCap : maxBookLv;
         // Keep it only if it's still below cap in at least one preset.
         if (investedP1 >= cap && investedP2 >= cap) continue;

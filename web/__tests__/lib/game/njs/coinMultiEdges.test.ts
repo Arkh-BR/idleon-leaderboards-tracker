@@ -182,7 +182,7 @@ describe("the guild term: GuildBonuses(8) x (1 + floor(ctx.map / 50)), in the po
 });
 
 describe("TalentCalc(643) in the pool: talent 643 x the multikill tier on ctx.map's target (E = 2 under map 300, 5 from it)", () => {
-  const TIER = ["TalentCalc[643]", 'RunCodeOfTypeXforThingY["OverkillStuffs"'];
+  const TIER = ["TalentCalc[643]", 'DNSM.CalcTalentMAP["643"]', 'RunCodeOfTypeXforThingY["OverkillStuffs"'];
   const tgt = "mushG";
   const hp = Number((MONSTERS as unknown as Record<string, { MonsterHPTotal: unknown }>)[tgt].MonsterHPTotal);
   const at = (map: number, max: number) => cash({ CurrentMap_0: map, AFKtarget_0: tgt }, { "GetTalentNumber[1,643]": 3, 'DamageDealed["Max"]': max }, { map, real: TIER });

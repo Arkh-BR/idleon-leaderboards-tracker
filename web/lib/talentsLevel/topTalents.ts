@@ -16,7 +16,7 @@
 // Snapshot generated: 2026-10-31T10:48:06.849Z
 // Players scanned: 84
 
-import type { ArkhNode } from "../arkh/node";
+import type { ArkhNode } from "../dropRate/node";
 
 export const HYPO_TALENTS_GENERATED_AT = "2026-10-31T10:48:06.849Z";
 export const HYPO_TALENTS_PLAYERS_SCANNED = 84;

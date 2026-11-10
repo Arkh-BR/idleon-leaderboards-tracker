@@ -17,9 +17,10 @@ import {
   getCharClassKey,
   getCharClassLabel,
 } from "@/lib/talentsLevel/charClass";
+import { pageError } from "@/lib/statTracker/pageErrors";
 import { getActivePresetIdx } from "@/lib/talentsLevel/compute";
 import { isAccountWideTalent } from "@/lib/talentsLevel/accountWideTalents";
-import type { ArkhNode } from "@/lib/arkh/node";
+import type { ArkhNode } from "@/lib/dropRate/node";
 import TalentsToMaxView from "@/components/talentsLevel/TalentsToMaxView";
 import type { ToMaxCharGroup } from "@/lib/talentsLevel/toMax";
 import UnbookedView from "@/components/talentsLevel/UnbookedView";
@@ -153,12 +154,14 @@ type TalentSummary = {
    *  via computeAllTalentLVz returning 0 for idx > 614). */
   bonusLevels: number;
   /** Spelunk Super Talent contribution, exposed as a separate row on
-   *  /talents-level (see ctx.splitSuperLevels in compute.ts). 0 when the
+   *  /talents-level (the "Super Levels" row of the tree). 0 when the
    *  talent isn't super-active for the active char's preset OR when it
    *  can't be super at all (49-59 / 149 / 374 / 539 / 505 / >614, plus
    *  any talent the game's UI restricts from the Spelunking 4D slot). */
   superLevels: number;
 };
+
+const errorText = (e: unknown): string => (e instanceof Error ? e.message : String(e));
 
 function getChildByName(node: ArkhNode, name: string): ArkhNode | null {
   if (!node.children) return null;
@@ -318,12 +321,14 @@ export default function TalentsLevelPageClient() {
   // when the save changes.
   const [toMaxGroups, setToMaxGroups] = useState<ToMaxCharGroup[] | null>(null);
   const [toMaxLoading, setToMaxLoading] = useState(false);
+  const [toMaxError, setToMaxError] = useState<string | null>(null);
   // "Unbooked" scan — talents whose cap (SM) is still below maxBookLv, i.e.
   // can still be raised with books. Also save-driven, recomputed on change.
   const [unbookedGroups, setUnbookedGroups] = useState<
     UnbookedCharGroup[] | null
   >(null);
   const [unbookedLoading, setUnbookedLoading] = useState(false);
+  const [unbookedError, setUnbookedError] = useState<string | null>(null);
   // The active char's Health Booster (talent 0) Effective Level subtree —
   // the generic per-talent breakdown rendered on the Hypothetical tab,
   // compared against the bundled hypothetical max.
@@ -489,7 +494,7 @@ export default function TalentsLevelPageClient() {
   const currentTab: TalentTab | null = tabs[tabIdx] ?? null;
 
   // Whenever save/char/talent changes, recompute the FULL talent tree.
-  // Lazy-imported so the arkh bundle stays out of the initial page load.
+  // Lazy-imported so lib/game stays out of the initial page load.
   useEffect(() => {
     if (!save || chars.length === 0) {
       setTree(null);
@@ -509,12 +514,11 @@ export default function TalentsLevelPageClient() {
         // instead of the save's current unlocked cap.
         setTree(applyStarCeiling(result.tree, talentId));
         setError(null);
-      } catch (e) {
+      } catch (raw) {
         if (!cancelled) {
-          setError(
-            "Talent compute failed: " +
-              (e instanceof Error ? e.message : String(e))
-          );
+          const e = pageError(save, raw, "Talents");
+          // pageError rewrote it (an old save, a failed check): its message already says what to do
+          setError(e === raw ? "Talent compute failed: " + errorText(e) : errorText(e));
         }
       } finally {
         if (!cancelled) setComputing(false);
@@ -561,7 +565,7 @@ export default function TalentsLevelPageClient() {
   }, [save, charIdx, chars.length, presetIdx]);
 
   // Compute the account-wide "Faltando p/ Max" scan whenever the save
-  // changes. Lazy-imported (keeps the arkh bundle off the initial load)
+  // changes. Lazy-imported (keeps lib/game off the initial load)
   // and cheap — pure SL/SM lookups, no per-talent tree resolve.
   useEffect(() => {
     if (!save || chars.length === 0) {
@@ -576,9 +580,13 @@ export default function TalentsLevelPageClient() {
         const mod = await import("@/lib/talentsLevel/toMax");
         if (cancelled) return;
         setToMaxGroups(mod.computeTalentsToMax(save));
-      } catch {
-        // Non-fatal: leave the list empty rather than blocking the page.
-        if (!cancelled) setToMaxGroups(null);
+        setToMaxError(null);
+      } catch (raw) {
+        // Non-fatal: the view shows the reason (an old or corrupt save) rather than blocking the page.
+        if (!cancelled) {
+          setToMaxGroups(null);
+          setToMaxError(errorText(pageError(save, raw, "Talents")));
+        }
       } finally {
         if (!cancelled) setToMaxLoading(false);
       }
@@ -603,8 +611,12 @@ export default function TalentsLevelPageClient() {
         const mod = await import("@/lib/talentsLevel/unbooked");
         if (cancelled) return;
         setUnbookedGroups(mod.computeUnbooked(save));
-      } catch {
-        if (!cancelled) setUnbookedGroups(null);
+        setUnbookedError(null);
+      } catch (raw) {
+        if (!cancelled) {
+          setUnbookedGroups(null);
+          setUnbookedError(errorText(pageError(save, raw, "Talents")));
+        }
       } finally {
         if (!cancelled) setUnbookedLoading(false);
       }
@@ -977,6 +989,7 @@ export default function TalentsLevelPageClient() {
                   <TalentsToMaxView
                     groups={toMaxGroups}
                     loading={toMaxLoading}
+                    error={toMaxError}
                   />
                 ),
               },
@@ -989,6 +1002,7 @@ export default function TalentsLevelPageClient() {
                   <UnbookedView
                     groups={unbookedGroups}
                     loading={unbookedLoading}
+                    error={unbookedError}
                   />
                 ),
               },

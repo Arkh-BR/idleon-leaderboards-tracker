@@ -2,7 +2,7 @@
 // gen-account-wide-talents.ts — the talent ids the game reads "best across all
 // characters": every `_customBlock_getbonus2(line, id, -1)` call in the live
 // N.js (getbonus2 with -1 loops PlayerDATABASE and keeps the highest value).
-// Output: web/lib/arkh/stats/data/common/account-wide-talents.gen.ts
+// Output: web/lib/game/data/generated/account-wide-talents.gen.ts
 //
 // Reads the full game code the updater downloads (scripts/updater/.cache/
 // N.new.js); the formulas snapshot misses the calls that sit in scene code
@@ -16,7 +16,7 @@ import { resolve } from "node:path";
 import { TalentIconNames } from "@/lib/game/data/generated/customlists.js";
 
 const NJS = resolve(__dirname, "updater", ".cache", "N.new.js");
-const OUT = resolve(__dirname, "..", "lib", "arkh", "stats", "data", "common", "account-wide-talents.gen.ts");
+const OUT = resolve(__dirname, "..", "lib", "game", "data", "generated", "account-wide-talents.gen.ts");
 
 if (!existsSync(NJS)) {
   console.error(`Missing ${NJS} — run the updater (scripts/updater/run.ts) first.`);

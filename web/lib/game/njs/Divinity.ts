@@ -8,7 +8,9 @@ import { DNSM_AlchBubbles } from "./DNSM";
 import { Holes } from "./Holes";
 import { Ninja } from "./Ninja";
 import { ResearchStuff } from "./ResearchStuff";
+import { SkillStats } from "./SkillStats";
 import { Thingies } from "./Thingies";
+import { TotalStats } from "./TotalStats";
 import { withPlayer } from "../ctx";
 import type { Ported } from "../ported";
 
@@ -35,14 +37,31 @@ export const Divinity: (ctx: Ctx, d: string, b: number, e: number) => number = b
     case "Bonus_MAJOR":
       return bonusMajor(ctx, b, e);
     // @10758317: god b's blessing, Divinity[28 + b] x GodsInfo[b][14] x (1 + .05 x Emporium 33 x max(0, Divinity[25] - 10)); b == 2 has a rule
-    // of its own (SkillStats AllEfficiencies) that is not ported
+    // of its own (@10758393)
     case "BlesssBonus":
-      if (2 == b) throw new NotPorted("Divinity", "BlesssBonus:b=2");
+      if (2 == b) return blessing2(ctx);
       return asNum(ctx, "Divinity", (28 + b) | 0) * asNumber(god(b)[14]) * (1 + 0.05 * Ninja(ctx, "EmporiumBonus", 33, 0) * Math.max(0, asNum(ctx, "Divinity", 25) - 10));
     default:
       throw new NotPorted("Divinity", d);
   }
 });
+
+/**
+ * BlesssBonus 2 @10758393: Divinity[30] x GodsInfo[2][14] x min(1.8, max(.1, 4 x (.01 x (DN + 1e4) / max(10 DN + 10, 1))^2)), DN (DNSM.BlessyBunDN) =
+ * max(1, SkillStats("AllEfficiencies") + ((the MinEff + ChopEff bubbles) / 100)^2 + ((STR + AGI + WIS) / 3)^.5 / 7).
+ */
+function blessing2(ctx: Ctx): number {
+  const lv = asNum(ctx, "Divinity", 30);
+  // ponytail: at blessing level 0 the product is 0 whatever DN is (always finite), so DN, which reads the Tome and the skills, is not computed
+  if (0 == lv) return 0;
+  const dn = Math.max(
+    1,
+    SkillStats(ctx, "AllEfficiencies") +
+      Math.pow((DNSM_AlchBubbles(ctx, "MinEff") + DNSM_AlchBubbles(ctx, "ChopEff")) / 100, 2) +
+      Math.pow((TotalStats(ctx, "STR") + (TotalStats(ctx, "AGI") + TotalStats(ctx, "WIS"))) / 3, 0.5) / 7
+  );
+  return lv * asNumber(god(2)[14]) * Math.min(1.8, Math.max(0.1, 4 * Math.pow(0.01 * ((dn + 1e4) / Math.max(10 * dn + 10, 1)), 2)));
+}
 
 /**
  * `Bonus_MAJOR` @10759616 for character `b` and the major bonus kind `e` (GodsInfo[g][13]): 1 when Companion 0, the pocket god of that kind
@@ -127,4 +146,4 @@ function divMinorBonus(ctx: Ctx, b: number, e: number): number {
 /** What this module covers (lib/game/ported.ts). */
 // Bonus_MAJOR is ported for e = 0 (and the others the AFK rate reads); e = 6 and 8 read the Gen actor's runtime GenINFO and throw, so a row
 // `("Bonus_MAJOR", b, 6 | 8)` would not be ticked (`@e<n>: []`, lib/game/ported.ts)
-export const PORTED: Ported = { Bonus_Minor: true, Bonus_MAJOR: true, "Bonus_MAJOR@e6": [], "Bonus_MAJOR@e8": [], W7divChosen: true, DivMinorBonus: true, BlesssBonus: [0, 1, 3, 4, 5, 6, 7, 8, 9] };
+export const PORTED: Ported = { Bonus_Minor: true, Bonus_MAJOR: true, "Bonus_MAJOR@e6": [], "Bonus_MAJOR@e8": [], W7divChosen: true, DivMinorBonus: true, BlesssBonus: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] };

@@ -225,7 +225,7 @@ export function TotalStatsETCmap(ctx: Ctx): ReadonlyMap<string, number> {
 
 /**
  * N.js `_customBlock_TotalStats(d)` @4156192: the character's total of stat `d`, cached in `DNSM.TotStatMAP` (here the `block` cache).
- * Only STR, AGI, WIS, LUK, Accuracy, Weapon_Power and Drop_Rarity are ported. Outside a dungeon each main stat is
+ * Only STR, AGI, WIS, LUK, Accuracy, Weapon_Power, Fishing_Power and Drop_Rarity are ported. Outside a dungeon each main stat is
  * floor(the TotalSTR bubble + talent 652 + Companion 8 + (1 + pct / 100) x (equipment + base + the flat sources)), @4174547.
  */
 export const TotalStats: (ctx: Ctx, d: string) => number = block("TotalStats", (ctx, d: string) => {
@@ -376,6 +376,11 @@ export const TotalStats: (ctx: Ctx, d: string) => number = block("TotalStats", (
                     (GetTalentNumber(ctx, 1, 365) * getLOG(ctx, asNum(ctx, "PetsStored", 0, 2)) + GetTalentNumber(ctx, 1, 530) * Math.floor(asNum(ctx, "Lv0", 12) / 10))))))))
       );
     }
+    // @4188943: DN (the head: the fishing tool slot, the Gallery and the obols) + statue 8 + the W2 and W7 bubbles
+    case "Fishing_Power": {
+      const { dn } = head(ctx, d);
+      return dn + (ArbitraryCode(ctx, "StatueBonusGiven8") + (DNSM_AlchBubbles(ctx, "W2") + DNSM_AlchBubbles(ctx, "W7")));
+    }
     case "Drop_Rarity":
       return dropRarity(ctx);
     default:
@@ -491,4 +496,4 @@ function dropRarity(ctx: Ctx): number {
  * What this module covers (lib/game/ported.ts). `"()"` is the call with a computed name: DamageDealed's and ArtifactBonus 25's
  * TotalStats(ClassStatTypes[first class][0]), PlayerAccTot's [1], always a main stat.
  */
-export const PORTED: Ported = { STR: true, AGI: true, WIS: true, LUK: true, Accuracy: true, Weapon_Power: true, Drop_Rarity: true, "()": ["STR", "AGI", "WIS", "LUK"] };
+export const PORTED: Ported = { STR: true, AGI: true, WIS: true, LUK: true, Accuracy: true, Weapon_Power: true, Fishing_Power: true, Drop_Rarity: true, "()": ["STR", "AGI", "WIS", "LUK"] };

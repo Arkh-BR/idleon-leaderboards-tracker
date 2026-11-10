@@ -233,14 +233,13 @@ describe("Task 7 Thingies, Workbench, Rift, Farming, Gaming, Divinity, Breeding 
     expect(at(0)).toBe(0);
   });
 
-  it("BlesssBonus is Divinity[28 + b] x GodsInfo[b][14] x (1 + .05 x Emporium 33 x max(0, Divinity[25] - 10)); b == 2 is not ported", () => {
+  it("BlesssBonus is Divinity[28 + b] x GodsInfo[b][14] x (1 + .05 x Emporium 33 x max(0, Divinity[25] - 10)); b == 2 has a rule of its own (skillStats.test.ts)", () => {
     const div = Array<number>(45).fill(0);
     div[25] = 14;
     div[35] = 3;
     const c = synth({ Divinity: div });
     seed(c, "Ninja", ["EmporiumBonus", 33, 0], 1);
     expect(Divinity(c, "BlesssBonus", 7, 0)).toBeCloseTo(3 * cell(GodsInfo, 7, 14) * (1 + 0.05 * 4), 12);
-    expect(() => Divinity(c, "BlesssBonus", 2, 0)).toThrow(NotPorted);
   });
 
   it("PetArenaBonus is 1 once the arena waves cleared in a row (OptionsListAccount[89] against RANDOlist[53]) pass e", () => {

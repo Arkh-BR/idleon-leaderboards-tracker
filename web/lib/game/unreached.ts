@@ -13,7 +13,6 @@ const MP = "PlayerMPmax()";
 // The Wraith form's own stats: DamageDealed (@4106332), PlayerHPmax (@4147227) and PlayerAccTot (@4151440) call them only when
 // Summoning("GrimoireWraith") is 1, and the masterclass forms are not counted (the Damage page's product decision: a runtime 0)
 const WRAITH = (fn: string) => `called only ${fn} when Summoning("GrimoireWraith") is 1, the Wraith form, which is a runtime 0 (the Damage page does not count the masterclass forms)`;
-const IN_ALL_EFFICIENCIES = (at: number) => `its only call site is in SkillStats("AllEfficiencies") (@${at}), which is not reached`;
 // The dungeon branch: DamageDealed (@4106070), PlayerHPmax (@4147196), PlayerMPmax (@4150123) and PlayerSpeedBonus (@4141907, read by
 // PlayerAccTot) call DungeonStat only when Dungon() != -1, and Dungon() answers -1 on every map (Ruling Y: a dungeon map is counted as
 // outside a dungeon, under an assumed: leaf), so no dungeon branch runs
@@ -44,26 +43,16 @@ const NOT_IN_MK = new Set(['Holes("StudyBolaiaBonuses",0,0)']);
 const COIN = 'ArbitraryCode("MonsterCash")';
 
 const BASE: readonly Unreached[] = [
-  ...[50, 79, 98].map((b) => ({ row: `Holes("B_UPG",${b},1)`, roots: [COIN], why: `called only in B_UPG's b == 49 branch (@10996050), and B_UPG(49) only from SkillStats (@4197799, @4200334), which the Coin path does not reach: it asks B_UPG for 78, and the Damage closure under TalentCalc(643) for 57 and 84` })),
   { row: 'Holes("StudyBolaiaBonuses",0,0)', roots: [COIN], why: "called only in B_UPG's b == 14 branch (@10996635); the Coin path asks B_UPG for 78, and the Damage closure under TalentCalc(643) for 57 and 84" },
   { row: 'RunCodeOfTypeXforThingY("SellPrice")', roots: [AFK], why: SELL_TABLE },
   { row: 'ActionBlock("InitItemDefinitions","no",0,0)', roots: [AFK], why: SELL_TABLE },
   { row: "Language()", roots: [AFK], why: SELL_TABLE },
-  // Divinity("BlesssBonus") @10758317 reads SkillStats("AllEfficiencies") only in its `2==b` branch; DamageDealed calls it with 7 and 8
-  { row: 'SkillStats("AllEfficiencies")', roots: [DAMAGE], why: 'Damage calls Divinity("BlesssBonus") with 7 and 8, and only its b == 2 branch (@10758317) calls it' },
-  { row: 'Summoning("TomeBonus",1,0)', roots: [DAMAGE], why: IN_ALL_EFFICIENCIES(4197489) },
-  { row: 'Holes("B_UPG",49,15)', roots: [DAMAGE], why: IN_ALL_EFFICIENCIES(4197780) },
-  { row: 'RiftStuff("RiftSkillETC",2)', roots: [DAMAGE], why: IN_ALL_EFFICIENCIES(4197736) },
-  { row: "GetBuffBonuses(40,2)", roots: [DAMAGE], why: IN_ALL_EFFICIENCIES(4198250) },
-  { row: 'Thingies("FriendBonusStatz",2,0)', roots: [DAMAGE], why: IN_ALL_EFFICIENCIES(4197685) },
   { row: 'Summoning("Grimoire_DMG",0,0)', roots: [DAMAGE], why: WRAITH("by DamageDealed (@4106332)") },
   { row: 'Summoning("Grimoire_HP",0,0)', roots: [DAMAGE, HP], why: WRAITH("by PlayerHPmax (@4147227)") },
   { row: 'Summoning("Grimoire_ACC",0,0)', roots: [DAMAGE, ACC], why: WRAITH("by PlayerAccTot (@4151440)") },
   { row: 'Summoning("GrimoireUpgTotal",0,0)', roots: [DAMAGE, HP, ACC], why: "within the Damage closure called only by Grimoire_DMG, Grimoire_HP and Grimoire_ACC, the Wraith form's stats, which are not reached (the form is a runtime 0); GrimoireUpgUNLOCKED @10884718 and Grimoire_DEF @10888754 also call it, outside the closure" },
-  // Holes("B_UPG") @10996050: 49 calls 50, 79 and 98 (e = 1), and only 14 calls StudyBolaiaBonuses; the B_UPG slice is the whole sub-case,
-  // so the walk reaches them from any B_UPG, but the only B_UPG that calls 49 is SkillStats("AllEfficiencies") (above)
-  ...[50, 79, 98].map((b) => ({ row: `Holes("B_UPG",${b},1)`, roots: [DAMAGE], why: `called only in B_UPG's b == 49 branch (@10996050), and B_UPG(49) only from SkillStats("AllEfficiencies"), which is not reached` })),
-  { row: 'Holes("StudyBolaiaBonuses",0,0)', roots: [DAMAGE], why: "called only in B_UPG's b == 14 branch (@10996050); Damage reaches B_UPG with 57 and 84 (and 50, 79, 98, themselves not reached)" },
+  // Holes("B_UPG") @10996050: only its b == 14 branch calls StudyBolaiaBonuses; the B_UPG slice is the whole sub-case, so the walk reaches it from any B_UPG
+  { row: 'Holes("StudyBolaiaBonuses",0,0)', roots: [DAMAGE], why: "called only in B_UPG's b == 14 branch (@10996050); Damage reaches B_UPG with 57 and 84, and 49, 50, 79 and 98 under SkillStats(\"AllEfficiencies\") (Divinity(\"BlesssBonus\")'s b == 2 branch, which Damage does not take)" },
   // Task 8: the dungeon branch (DungeonStat @7831416 and the DungeonCalc traits it reads, @7841913)
   { row: 'DungeonStat("DMG")', roots: [DAMAGE], why: DUNGEON("by DamageDealed (@4106182)") },
   { row: 'DungeonStat("HP")', roots: [DAMAGE, HP], why: DUNGEON("by PlayerHPmax (@4147196) and DungeonStat(\"DMG\")") },

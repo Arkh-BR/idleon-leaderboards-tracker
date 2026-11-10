@@ -13,7 +13,7 @@ Regenerate it when N.js, a module's `PORTED` or `lib/game/unreached.ts` changes.
 - attrs and dnsm are the reads in every slice listed. One marked "whole body only" is read only inside a whole-body function (all its branches, not just the one this formula takes). `DNSM` is runtime-only (it is never loaded from the save): port it as `DNSM_*` functions, not as a save attribute. The dnsm list also holds the scratch keys a formula writes and reads back in the same slice (`CaptnBonuz`, `AtomBonCalc1`); the inputs are the caches the game fills elsewhere (`StarSigns`, `AlchVials`, `FamBonusQTYs`…).
 - Depth stops at 6.
 
-**69 functions, 749 sub-cases (rows), 235 whole body, 0 not found, 96 attrs, 127 dnsm.** **694 ported `[x]`, 55 not reached `[~]`, 0 open.** **Depth cap hit: 1 call was not walked.**
+**69 functions, 749 sub-cases (rows), 235 whole body, 0 not found, 96 attrs, 127 dnsm.** **703 ported `[x]`, 46 not reached `[~]`, 0 open.** **Depth cap hit: 1 call was not walked.**
 
 ## WorkbenchStuff
 
@@ -272,7 +272,7 @@ Regenerate it when N.js, a module's `PORTED` or `lib/game/unreached.ts` changes.
 - [x] GetBuffBonuses(195,1) — depth 4 — 363 chars — whole body
 - [x] GetBuffBonuses(420,1) — depth 4 — 363 chars — whole body
 - [x] GetBuffBonuses(585,1) — depth 4 — 363 chars — whole body
-- [~] GetBuffBonuses(40,2) — depth 5 — 363 chars — whole body — not reached: its only call site is in SkillStats("AllEfficiencies") (@4198250), which is not reached; Multikill reaches the same call sites through OverkillStuffs("2") -> DamageDealed("Max")
+- [x] GetBuffBonuses(40,2) — depth 5 — 363 chars — whole body
 
 ## getbonus2
 
@@ -341,11 +341,11 @@ Regenerate it when N.js, a module's `PORTED` or `lib/game/unreached.ts` changes.
 - [x] Holes("CosmoBonusQTY",1,3) — depth 4 — 273 chars
 - [x] Holes("MeasurementQTYfound") — depth 4 — 3200 chars
 - [x] Holes("CosmoBonusQTY",2,0) — depth 5 — 279 chars
-- [~] Holes("B_UPG",49,15) — depth 5 — 335 chars — not reached: its only call site is in SkillStats("AllEfficiencies") (@4197780), which is not reached; Multikill reaches the same call sites through OverkillStuffs("2") -> DamageDealed("Max")
+- [x] Holes("B_UPG",49,15) — depth 5 — 335 chars
 - [x] Holes("CosmoBonusQTY",2,3) — depth 5 — 279 chars
-- [~] Holes("B_UPG",50,1) — depth 6 — 2722 chars — not reached: called only in B_UPG's b == 49 branch (@10996050), and B_UPG(49) only from SkillStats("AllEfficiencies"), which is not reached; Multikill reaches the same call sites through OverkillStuffs("2") -> DamageDealed("Max")
-- [~] Holes("B_UPG",79,1) — depth 6 — 2722 chars — not reached: called only in B_UPG's b == 49 branch (@10996050), and B_UPG(49) only from SkillStats("AllEfficiencies"), which is not reached; Multikill reaches the same call sites through OverkillStuffs("2") -> DamageDealed("Max")
-- [~] Holes("B_UPG",98,1) — depth 6 — 2722 chars — not reached: called only in B_UPG's b == 49 branch (@10996050), and B_UPG(49) only from SkillStats("AllEfficiencies"), which is not reached; Multikill reaches the same call sites through OverkillStuffs("2") -> DamageDealed("Max")
+- [x] Holes("B_UPG",50,1) — depth 6 — 2722 chars
+- [x] Holes("B_UPG",79,1) — depth 6 — 2722 chars
+- [x] Holes("B_UPG",98,1) — depth 6 — 2722 chars
 
 ## CardBonusREAL
 
@@ -514,7 +514,7 @@ Regenerate it when N.js, a module's `PORTED` or `lib/game/unreached.ts` changes.
 - [x] Summoning("VaultUpgBonus",79,0) — depth 5 — 7 chars
 - [x] Summoning("WinBonus",18,0) — depth 5 — 3535 chars
 - [x] Summoning("VotingBonusz",2,0) — depth 5 — 917 chars — via Summoning2
-- [~] Summoning("TomeBonus",1,0) — depth 5 — 350 chars — not reached: its only call site is in SkillStats("AllEfficiencies") (@4197489), which is not reached; Multikill reaches the same call sites through OverkillStuffs("2") -> DamageDealed("Max")
+- [x] Summoning("TomeBonus",1,0) — depth 5 — 350 chars
 - [x] Summoning("WinBonus",14,0) — depth 5 — 3535 chars
 - [x] Summoning("WinBonus",22,0) — depth 5 — 7 chars
 - [x] Summoning("EventShopOwned",7,0) — depth 5 — 152 chars
@@ -736,7 +736,7 @@ Regenerate it when N.js, a module's `PORTED` or `lib/game/unreached.ts` changes.
 - [x] RiftStuff("5starCards",0) — depth 4 — 63 chars
 - [x] RiftStuff() — depth 4 — 7650 chars — whole body
 - [x] RiftStuff("riftBonus",3) — depth 4 — 69 chars
-- [~] RiftStuff("RiftSkillETC",2) — depth 5 — 951 chars — not reached: its only call site is in SkillStats("AllEfficiencies") (@4197736), which is not reached; Multikill reaches the same call sites through OverkillStuffs("2") -> DamageDealed("Max")
+- [x] RiftStuff("RiftSkillETC",2) — depth 5 — 951 chars
 
 ## GamingStatType
 
@@ -788,7 +788,7 @@ Regenerate it when N.js, a module's `PORTED` or `lib/game/unreached.ts` changes.
 - [x] Thingies("LegendPTS_bonus",28,0) — depth 4 — 154 chars
 - [x] Thingies("LegendPTS_bonus",36,0) — depth 5 — 154 chars
 - [x] Thingies("CoralKidUpgBonus",3,0) — depth 5 — 96 chars
-- [~] Thingies("FriendBonusStatz",2,0) — depth 5 — 1262 chars — not reached: its only call site is in SkillStats("AllEfficiencies") (@4197685), which is not reached; Multikill reaches the same call sites through OverkillStuffs("2") -> DamageDealed("Max")
+- [x] Thingies("FriendBonusStatz",2,0) — depth 5 — 1262 chars
 - [x] Thingies("LegendPTS_bonus",22,0) — depth 5 — 154 chars
 - [x] Thingies("ClamWorkBonus",3,0) — depth 5 — 78 chars
 - [x] Thingies("LegendPTS_bonus",24,0) — depth 5 — 154 chars
@@ -961,7 +961,7 @@ Regenerate it when N.js, a module's `PORTED` or `lib/game/unreached.ts` changes.
 
 ## SkillStats
 
-- [~] SkillStats("AllEfficiencies") — depth 4 — 1256 chars — not reached: Damage calls Divinity("BlesssBonus") with 7 and 8, and only its b == 2 branch (@10758317) calls it; Multikill reaches the same call sites through OverkillStuffs("2") -> DamageDealed("Max")
+- [x] SkillStats("AllEfficiencies") — depth 4 — 1256 chars
 
 ## MenagerieStuff
 

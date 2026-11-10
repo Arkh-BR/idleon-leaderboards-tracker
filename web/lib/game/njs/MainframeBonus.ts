@@ -1,4 +1,4 @@
-import { asNumber, attr } from "../attr";
+import { asNum, asNumber, attr } from "../attr";
 import { assumed, block, type Ctx } from "../ctx";
 import { JewelDesc, LabMainBonus, MapAFKtarget, NinjaInfo } from "../data";
 import { NotPorted } from "../errors";
@@ -48,7 +48,8 @@ function labNodeConnected(ctx: Ctx, d: number): boolean {
  * N.js `_customBlock_MainframeBonus(d)` @7990420, for the bonuses Artifact Find reaches (14, Artifact Attraction, through the Emporium;
  * 10, My 1st Chemistry Set, read by the vials), the character stats reach (7 for the stamps, 104 for the % to all stats with 8 and
  * 119 under it), Damage reaches (0 with 101 under it, 11 with 117, jewel 110 with 107..109, and 15 / 17 under the artifact and crop
- * multipliers with 118 / 120) and Coin reaches (9 with 113 under it). The other bonuses throw NotPorted.
+ * multipliers with 118 / 120), Coin reaches (9 with 113 under it) and SkillStats AllBaseSkillEff reaches (jewel 112 with 111, 113..115). The other
+ * bonuses throw NotPorted.
  *
  * The game keeps the values in `DNSM.LabMFbonuses`. Once that map holds "YES" the function returns `LabMFbonuses[d]`, which
  * TalentCalc(-7) @4511431 filled by asking this function for every bonus while the map had no "YES": `1 == GenINFO[92][d] ? row[5] :
@@ -80,12 +81,40 @@ export const MainframeBonus: (ctx: Ctx, d: number) => number = block("MainframeB
   if (!jewel) throw new RangeError(`MainframeBonus: no jewel ${d - 100} in JewelDesc`);
   // a jewel is only on the board once the account owns it (Lab[14][j] == 1, which the connection walk checks @10071907); an owned one is
   // assumed in reach like the main bonuses (Ruling J)
-  if (!(1 == attr(ctx, "Lab", 14, (d - 100) | 0) && labNodeConnected(ctx, d - 100 + list.length))) return 0;
+  if (!jewelOn(ctx, d, list)) return 0;
   if (119 == d) return asNumber(jewel[12]);
   const j = asNumber(jewel[12]) * MainframeBonus(ctx, 8);
   // jewel 110 is doubled when jewels 107, 108 and 109 are all above 0
-  return 110 == d && 0 < MainframeBonus(ctx, 107) && 0 < MainframeBonus(ctx, 108) && 0 < MainframeBonus(ctx, 109) ? 2 * j : j;
+  if (110 == d) return 0 < MainframeBonus(ctx, 107) && 0 < MainframeBonus(ctx, 108) && 0 < MainframeBonus(ctx, 109) ? 2 * j : j;
+  // @7993392: jewel 112 is doubled when 111, 113, 114 and 115 are above 0. TalentCalc(-7) asks for 112 before its "YES" pass, so the 114 it checks is the
+  // jewel's own value, not the stored one that pass multiplies
+  if (112 == d) {
+    const j114 = jewelOn(ctx, 114, list) ? asNumber((JewelDesc as unknown as readonly (readonly unknown[])[])[14][12]) * MainframeBonus(ctx, 8) : 0;
+    return 0 < MainframeBonus(ctx, 111) && 0 < MainframeBonus(ctx, 113) && 0 < j114 && 0 < MainframeBonus(ctx, 115) ? 2 * j : j;
+  }
+  // TalentCalc(-7) @4512086: the stored 114, when above 0, times floor((the kitchens' levels + .5) / 25)
+  if (114 == d && 0 < j) return j * Math.floor((kitchenLevels(ctx) + 0.5) / 25);
+  return j;
 });
+
+/** Jewel `d` (d - 100 of JewelDesc) is on the board: owned (Lab[14][j] == 1, which the connection walk checks @10071907) and in reach (assumed, Ruling J). */
+const jewelOn = (ctx: Ctx, d: number, list: Row[]): boolean => 1 == attr(ctx, "Lab", 14, (d - 100) | 0) && labNodeConnected(ctx, d - 100 + list.length);
+
+/**
+ * TalentCalc(-7) @4512086: Σ Cooking[f][6] + [7] + [8] over the kitchens f = 0..9, up to the first whose [0] is 0 (the loose compare: a missing [0] is
+ * not 0 and counts).
+ */
+function kitchenLevels(ctx: Ctx): number {
+  let sum = 0; // DNSM.CalcTalentDN2
+  for (let f = 0; f < 10; f++) {
+    listAt(ctx, "Cooking", f); // the game indexes Cooking[f][0] directly
+    if (0 == attr(ctx, "Cooking", f, 0)) break;
+    sum = sum + asNum(ctx, "Cooking", f, 6);
+    sum = sum + asNum(ctx, "Cooking", f, 7);
+    sum = sum + asNum(ctx, "Cooking", f, 8);
+  }
+  return sum;
+}
 
 /**
  * TalentCalc(-7) @4513227: the stored bonus 9, when above 0, times the account's kills of "mushG" (MapAFKtarget.indexOf; a map the game does not have
@@ -98,7 +127,7 @@ function mushroomKills(ctx: Ctx, stored: number): number {
   return 1e8 > kills / 1e6 ? stored * Math.floor(kills / 1e6) : stored * (kills / 1e6);
 }
 
-const PORTED_SET = new Set([0, 5, 7, 8, 9, 10, 11, 14, 15, 17, 101, 104, 107, 108, 109, 110, 113, 116, 117, 118, 119, 120]);
+const PORTED_SET = new Set([0, 5, 7, 8, 9, 10, 11, 14, 15, 17, 101, 104, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120]);
 
 /** What this module covers (lib/game/ported.ts). */
 export const PORTED: Ported = [...PORTED_SET];
