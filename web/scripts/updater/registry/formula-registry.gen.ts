@@ -183,6 +183,9 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   "DoWeHaveLoreN1": [
     "lib/game/njs/Spelunk.ts"
   ],
+  "DoorMaxHP": [
+    "lib/game/njs/Ninja.ts"
+  ],
   "EmperorBon": [
     "lib/game/njs/Thingies.ts"
   ],
@@ -206,6 +209,9 @@ export const FORMULA_REGISTRY: Record<string, string[]> = {
   ],
   "FishingEfficiency": [
     "lib/game/njs/SkillStats.ts"
+  ],
+  "FloorsUnlocked": [
+    "lib/game/njs/Ninja.ts"
   ],
   "Fountain_BonTOT": [
     "lib/arkh/stats/data/w5/fountain.ts",

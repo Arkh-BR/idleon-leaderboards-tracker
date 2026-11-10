@@ -2,28 +2,31 @@
 // of CustomLists.Tome, in its order (the task index of the Tome list). It is session state, not in the save (Ruling A): here it is the event
 // replayed on the save, without its side effects.
 //
-// Before the quantities the event raises three account records to their live value (OptionsListAccount[198] to MoneyBANK, [200] to the
-// Drop Rate, [202] to the Crystal Spawn chance; [224], to the Greenstacks, comes with task 44): the save is immutable, so the raised record
-// is kept in memory. The Drop Rate is not raised (an `assumed:` on TomeQTY[18], like the load step DoOnceREAL < 378). The scene gate
+// Before the quantities the event raises four account records to their live value (OptionsListAccount[198] to MoneyBANK, [200] to the
+// Drop Rate, [202] to the Crystal Spawn chance, [224] to the Greenstacks): the save is immutable, so the raised record is kept in memory. The Drop Rate is not raised (an `assumed:` on TomeQTY[18], like the load step DoOnceREAL < 378). The scene gate
 // (`"utorial"`) does not apply: a tracked account is in the world.
 import { asNum, asNumber, attr } from "../attr";
 import { assumed, block, withPlayer, type Ctx } from "../ctx";
-import { DeathNoteMobs, MapAFKtarget, MapDetails, NinjaInfo, RANDOlist, SceneNPCquestOrder, Tome } from "../data";
-import { NotPorted } from "../errors";
+import { DeathNoteMobs, MapAFKtarget, MapDetails, NinjaInfo, PetStats, RANDOlist, SceneNPCquestOrder, Tome } from "../data";
+import { InvalidSaveValue, NotPorted } from "../errors";
 import { hString } from "../hstring";
-import { lengthOf, listAt, listOrMapAt } from "../lists";
+import { contains, lengthOf, listAt, listOrMapAt } from "../lists";
 import { DROP_RATE_RECORD } from "../migrations";
 import { currency, skillLevelsMax } from "../player";
 import { range } from "../ported";
 import type { GameState } from "../state";
 import { ArbitraryCode } from "./ArbitraryCode";
+import { Breeding } from "./Breeding";
+import { minigameHiscore } from "./DamageDealed";
 import { getLOG } from "./getLOG";
+import { MainframeBonus } from "./MainframeBonus";
 import { Ninja } from "./Ninja";
 import { CARD_INFO, RunCodeOfTypeXforThingY } from "./RunCodeOfTypeXforThingY";
+import { Summoning } from "./Summoning";
 import { TotalTalentPoints } from "./TotalTalentPoints";
 
-/** The quantities ported so far: 0..41 and 107 (counted in the same loop as 10 and 21). */
-const PORTED_QTY: ReadonlySet<number> = new Set([...range(0, 42), 107]);
+/** The quantities ported so far: 0..83 and 107 (counted in the same loop as 10 and 21). */
+const PORTED_QTY: ReadonlySet<number> = new Set([...range(0, 84), 107]);
 /** The quantities not ported yet: `tomeQty` throws NotPorted for them. */
 export const PENDING_QTY: ReadonlySet<number> = new Set(range(0, Tome.length).filter((i) => !PORTED_QTY.has(i)));
 
@@ -32,6 +35,55 @@ function sumOf(ctx: Ctx, name: string, ...idx: number[]): number {
   let s = 0;
   for (let i = 0, n = lengthOf(listOrMapAt(ctx, name, ...idx)); i < n; i++) s += asNum(ctx, name, ...idx, i);
   return s;
+}
+
+/**
+ * `FamilyValuesMap[name]`: the loader fills each FamilyValuesMap key from the save key "FamVal" + name (@19929053, a loop SAVE_ATTRS cannot
+ * name), as DamageDealed's `minigameHiscore` reads it.
+ */
+function famVal(ctx: Ctx, name: string): readonly unknown[] {
+  const key = `FamVal${name}`;
+  const list = ctx.state.get(key); // MissingSaveKey when the save lacks it
+  if (!Array.isArray(list)) throw new InvalidSaveValue(key, "an array", list);
+  return list;
+}
+
+/**
+ * [49] and [51] @5754837: per pet name of the breeding actor's GenINFO[76] (ActorEvents_548's create @10096594: the names of PetStats[0..4]
+ * that are not "_"), its group b and index f in GenINFO[65] (@10095586: the names of PetStats[0..8], the first group holding it): Σ its
+ * SpecialPassives level, and Σ min(9, floor((2ndMulti - 1)^0.8) + 1).
+ */
+function petLevels(ctx: Ctx): [number, number] {
+  const groups = PetStats as unknown as readonly (readonly (readonly unknown[])[])[];
+  const byGroup = range(0, 9).map((b) => groups[b].map((pet) => pet[0])); // GenINFO[65]
+  const names = range(0, 5).flatMap((b) => groups[b].map((pet) => pet[0]).filter((name) => "_" != name)); // GenINFO[76]
+  let [shiny, breedability] = [0, 0];
+  for (const name of names) {
+    const text = hString(name); // DummyText
+    const b = byGroup.findIndex((list) => -1 != list.indexOf(text));
+    if (-1 == b) continue;
+    const f = byGroup[b].indexOf(text);
+    shiny += Breeding(ctx, "SpecialPassives", "Lv", b, f);
+    breedability += Math.min(9, Math.floor(Math.pow(Breeding(ctx, "2ndMulti", "0", b, f) - 1, 0.8)) + 1);
+  }
+  return [shiny, breedability];
+}
+
+/**
+ * [71] @5759469: the Summoning actor's GenINFO[143][9] (ActorEvents_623; its create runs the "x" trigger @11711289, @11662944): per entry of
+ * Summon[1], the Pet wins in [0], else one in [g + 1] for each DeathNoteMobs[g] that has it; then round(Σ [0..8] + OptionsListAccount[319]).
+ */
+function careerSummonWins(ctx: Ctx): number {
+  const mobs = DeathNoteMobs as unknown as readonly (readonly unknown[])[];
+  const wins = Array<number>(Math.max(9, mobs.length + 1)).fill(0); // GenINFO[143]
+  for (let i = 0, n = listAt(ctx, "Summon", 1).length; i < n; i++) {
+    const won = attr(ctx, "Summon", 1, i);
+    if (0 == hString(won).indexOf("Pet")) wins[0] += 1;
+    else for (let g = 0; g < mobs.length; g++) if (contains(mobs[g], won)) wins[g + 1] += 1;
+  }
+  let total = 0; // DN1
+  for (let k = 0; k < 9; k++) total = Math.round(total + wins[k]);
+  return Math.round(total + asNum(ctx, "OptionsListAccount", 319));
 }
 
 /** The event on this character and map, in the game's order. A quantity not ported yet is NaN. */
@@ -44,6 +96,10 @@ function event(ctx: Ctx): number[] {
   const ola198 = money > ola(198) ? money : ola(198);
   const crystal = ArbitraryCode(ctx, "CrystalSpawn");
   const ola202 = crystal > ola(202) ? crystal : ola(202);
+  // @5740254: DNSM.LabMFbonuses.GrStk, which TalentCalc(-7) @4514715 sets to the GreenStacks the account has when the stored mainframe bonus
+  // 11 is above 0 (MainframeBonus(11) is that bonus times the same count: above 0 together)
+  const grStk = 0 < MainframeBonus(ctx, 11) ? listAt(ctx, "GreenStacks").length : 0;
+  const ola224 = grStk > ola(224) ? grStk : ola(224);
 
   // [0] @5740553: the stamp actor's GenINFO[106] (ActorEvents_481's create @9085872), every StampLevel of the three tabs
   q[0] = sumOf(ctx, "StampLevel", 0) + sumOf(ctx, "StampLevel", 1) + sumOf(ctx, "StampLevel", 2);
@@ -160,6 +216,78 @@ function event(ctx: Ctx): number[] {
   for (let s = 3; s <= 8; s++) q[40] += asNumber(listAt(ctx, "Refinery", s)[1]);
   q[41] = 0; // @5753272: the atoms' levels
   for (let g = 0, n = listAt(ctx, "Atoms").length; g < n; g++) q[41] += asNum(ctx, "Atoms", g);
+  // [42] @5753339: the stamp actor's GenINFO[111] (its create @9087150), TowerInfo[0..26]
+  listAt(ctx, "TowerInfo"); // the game indexes TowerInfo[f] directly
+  q[42] = 0;
+  for (let f = 0; f < 27; f++) q[42] += asNum(ctx, "TowerInfo", f);
+  // [43] @5753730: the storage's Critter11A
+  const chest = listAt(ctx, "ChestOrder").indexOf("Critter11A");
+  q[43] = 0;
+  if (-1 != chest) q[43] = asNumber(listAt(ctx, "ChestQuantity")[chest]);
+  q[44] = ola224; // @5753796
+  q[45] = asNumber(listAt(ctx, "Rift")[0]); // @5753897
+  // [46] @5754429: the best Pets[g][2], then PetsStored[g][2]
+  q[46] = 0;
+  for (const pets of ["Pets", "PetsStored"]) {
+    for (let g = 0, n = listAt(ctx, pets).length; g < n; g++) {
+      const power = asNumber(listAt(ctx, pets, g)[2]);
+      if (power > q[46]) q[46] = power;
+    }
+  }
+  q[47] = 1e3 - ola(220); // @5754495
+  // [48] @5754837: Cooking[g][6] + [7] + [8] of the ten kitchens
+  q[48] = 0;
+  for (let g = 0; g < 10; g++) {
+    listAt(ctx, "Cooking", g); // the game indexes Cooking[g][6] directly
+    q[48] += asNum(ctx, "Cooking", g, 6) + (asNum(ctx, "Cooking", g, 7) + asNum(ctx, "Cooking", g, 8));
+  }
+  [q[49], q[51]] = petLevels(ctx); // @5756149, @5756215
+  q[50] = sumOf(ctx, "Meals", 0); // @5756439
+  q[52] = 0; // @5756671: Lab[15], each at least 0
+  for (let g = 0, n = listAt(ctx, "Lab", 15).length; g < n; g++) q[52] += Math.max(asNum(ctx, "Lab", 15, g), 0);
+  q[53] = 0; // @5756952
+  for (const v of famVal(ctx, "ColosseumHighscores")) q[53] += asNumber(v);
+  q[54] = ola(217); // @5757018
+  q[55] = ArbitraryCode(ctx, "StatueOnyxOwned"); // @5757119
+  q[56] = 1e3 - ola(218); // @5757215
+  q[57] = 0; // @5757539: Boats[g][3] + [5]
+  for (let g = 0, n = listAt(ctx, "Boats").length; g < n; g++) {
+    listAt(ctx, "Boats", g); // the game indexes Boats[g][3] directly
+    q[57] += asNum(ctx, "Boats", g, 3) + asNum(ctx, "Boats", g, 5);
+  }
+  q[58] = Math.max(0, asNumber(listAt(ctx, "Divinity")[25]) - 10); // @5757605
+  q[59] = asNumber(listAt(ctx, "GamingSprout", 28)[1]); // @5757722
+  q[60] = sumOf(ctx, "Sailing", 3); // @5757980
+  q[61] = asNumber(listAt(ctx, "Sailing", 1)[0]); // @5758046
+  q[62] = 0; // @5758277: the best Captains[g][3] of the first 20
+  for (let g = 0; g < 20; g++) q[62] = Math.max(q[62], asNumber(listAt(ctx, "Captains", g)[3]));
+  q[63] = Math.max(asNumber(listAt(ctx, "GamingSprout", 32)[1]), ola(210)); // @5758343
+  q[64] = asNumber(listAt(ctx, "Gaming")[8]); // @5758528
+  q[65] = listAt(ctx, "Cards", 1).length; // @5758615
+  q[66] = asNumber(listAt(ctx, "Gaming")[0]); // @5758708
+  q[67] = Math.pow(2, ola(219)); // @5758795
+  q[68] = Object.keys(listOrMapAt(ctx, "FarmCrop")).length; // @5758920, D.mapCount
+  q[69] = sumOf(ctx, "Ninja", 104); // @5759179
+  q[70] = sumOf(ctx, "Summon", 0); // @5759403
+  q[71] = careerSummonWins(ctx);
+  q[72] = 0 < ola(232) ? 12 * ola(232) : Ninja(ctx, "FloorsUnlocked", 0, 0); // @5759706
+  q[74] = hString(listAt(ctx, "Ninja", 102)[9]).length; // @5759913, the Emporium letters
+  // [73] @5760203: Σ Summon[4][g] x (1 x 3 x 4 x ... x (g + 2)) over g < 9
+  listAt(ctx, "Summon", 4); // the game indexes Summon[4][g] directly
+  q[73] = 0;
+  for (let g = 0, w = 1; g < 9; w *= g + 3, g++) q[73] += w * asNum(ctx, "Summon", 4, g);
+  // [75] @5760439, then [76] @5760874 (its sum is taken just before)
+  q[75] = minigameHiscore(ctx, 0) + (minigameHiscore(ctx, 1) + (minigameHiscore(ctx, 2) + (minigameHiscore(ctx, 3) + ola(99))));
+  q[76] = sumOf(ctx, "PrayersUnlocked");
+  q[77] = sumOf(ctx, "FarmRank", 0); // @5761103
+  q[78] = ola(221); // @5761169
+  q[79] = ola(222); // @5761270
+  q[80] = sumOf(ctx, "ArcadeUpg"); // @5761529
+  q[81] = Math.min(1500, Summoning(ctx, "VaultUpgBonus", 57, 0)); // @5761595
+  const gambit = (i: number) => asNumber(listAt(ctx, "Holes", 11)[i]);
+  q[82] = gambit(65) + (gambit(66) + (gambit(67) + (gambit(68) + (gambit(69) + gambit(70))))); // @5761706
+  q[83] = 0; // @5762283: the digits of the cavern resources
+  for (let g = 0, n = listAt(ctx, "Holes", 9).length; g < n; g++) q[83] += Math.ceil(getLOG(ctx, asNum(ctx, "Holes", 9, g)));
   return q;
 }
 

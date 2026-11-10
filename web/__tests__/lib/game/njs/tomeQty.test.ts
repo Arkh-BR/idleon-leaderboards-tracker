@@ -7,8 +7,9 @@ import { basename } from "node:path";
 import { GOLDEN_SAVES, goldenSaves } from "../support/arkhOracle"; // first: it sets the `window` shim lib/arkh reads
 import { compareTome, PENDING_QTY } from "../support/tomeCompare";
 import { newestSaves } from "@/lib/diagnose/characterize";
-import { MapDetails, NinjaInfo, RANDOlist, SceneNPCquestOrder, Tome } from "@/lib/game/data";
+import { DeathNoteMobs, MapDetails, NinjaInfo, PetStats, RANDOlist, SceneNPCquestOrder, Tome } from "@/lib/game/data";
 import { NotPorted } from "@/lib/game/errors";
+import { Ninja } from "@/lib/game/njs/Ninja";
 import { TomeQTY, tomeQty } from "@/lib/game/njs/TomeQTY";
 import type { TraceNode } from "@/lib/game/trace";
 import { synth, type Data, type Seeds } from "../support/expStub";
@@ -19,7 +20,9 @@ const OLA = (set: Record<number, unknown> = {}) => {
   for (const [i, v] of Object.entries(set)) o[Number(i)] = v;
   return o;
 };
-/** Every key quantities 0..41 read, empty, for two characters; a test overrides the keys of the quantity it checks. */
+/** Ninja with the rows the event indexes: [102][9] the Emporium letters, [104] the beanstacks, [100] the doors' damage. */
+const NINJA = (): unknown[] => Array.from({ length: 108 }, (_, i) => (102 == i ? Array<string>(10).fill("") : []));
+/** Every key quantities 0..83 read, empty, for two characters; a test overrides the keys of the quantity it checks. */
 const TOME: Data = {
   StampLv: [[], [], []], StatueLevels_0: [], Cards0: {}, Cards1: [], SM_0: {}, SM_1: {}, QuestComplete_0: {}, QuestComplete_1: {},
   TaskZZ0: [[0, 0, 0]], TaskZZ1: [], AchieveReg: [], MoneyBANK: 0, OptLacc: OLA(), InventoryOrder_0: [], ItemQTY_0: [], SSprog: [],
@@ -28,6 +31,12 @@ const TOME: Data = {
   // every map's kills at 0: the kills left to advance are the whole requirement MapDetails[map][0][0]
   KLA_0: (MapDetails as unknown as unknown[][][]).map((m) => [Number(m[0][0])]),
   KLA_1: (MapDetails as unknown as unknown[][][]).map((m) => [Number(m[0][0])]),
+  // and every key quantities 42..83 read
+  Tower: Array<number>(27).fill(0), ChestOrder: [], ChestQuantity: [], GreenStacks: [], Rift: [0], Pets: [], PetsStored: [],
+  Cooking: Array.from({ length: 10 }, () => Array<number>(9).fill(0)), Breeding: Array.from({ length: 27 }, () => []), Lab: Array.from({ length: 16 }, () => []),
+  FamValColosseumHighscores: [], FamValMinigameHiscores: [], Boats: [], GamingSprout: Array.from({ length: 33 }, () => [0, 0]), Sailing: [[], [0], [], []],
+  Captains: Array.from({ length: 20 }, () => [0, 0, 0, 0]), Gaming: Array<number>(9).fill(0), FarmCrop: {}, Ninja: NINJA(), Summon: [[], [], [], [], []],
+  PrayOwned: [], FarmRank: [[]], ArcadeUpg: [], Holes: Array.from({ length: 12 }, () => []),
 };
 const ctxOf = (data: Data, o: { seeds?: Seeds; real?: string[]; trace?: boolean } = {}) =>
   synth({ ...TOME, ...data }, { chars: 2, seeds: o.seeds, real: ["DNSM.TomeQTY", ...(o.real ?? [])], trace: o.trace });
@@ -114,7 +123,7 @@ describe("the TomeQTY event on a synthetic envelope (runs in CI)", () => {
   it("[38] the Death Note digits @5752210: ceil(getLOG(kills)) per mob, every character's kills summed, + the miniboss kills with Emporium 7", () => {
     const req = (MapDetails as unknown as unknown[][][]).map((m) => Number(m[0][0]));
     const kla = (k: number) => req.map((r, i) => [1 == i ? r - k : r]); // map 1 is mushG, DeathNoteMobs[0][0]
-    const d = { KLA_0: kla(1000), KLA_1: kla(234), Ninja: Object.assign([], { 105: [99999, ...Array<number>((NinjaInfo as unknown as unknown[][])[30].length - 1).fill(0)] }) };
+    const d = { KLA_0: kla(1000), KLA_1: kla(234), Ninja: Object.assign(NINJA(), { 105: [99999, ...Array<number>((NinjaInfo as unknown as unknown[][])[30].length - 1).fill(0)] }) };
     expect(q(38, d, { real: ["getLOG"] })).toBe(4); // getLOG(1234) = 3.09
     expect(q(38, d, { real: ["getLOG"], seeds: { 'Ninja["EmporiumBonus",7,0]': 1 } })).toBe(9); // + getLOG(99999) = 4.99
   });
@@ -123,9 +132,112 @@ describe("the TomeQTY event on a synthetic envelope (runs in CI)", () => {
     expect(q(40, { Refinery: [[], [], [], [0, 1], [0, 2], [0, 3], [0, 4], [0, 5], [0, 6], [0, 100]] })).toBe(21));
   it("[41] the Atoms @5753272", () => expect(q(41, { Atoms: [1, 2, 3] })).toBe(6));
 
+  it("[42] the stamp actor's GenINFO[111], TowerInfo[0..26] @9087150", () =>
+    expect(q(42, { Tower: [1, 2, ...Array<number>(24).fill(0), 3, 100] })).toBe(6));
+  it("[43] the Critter11A of the storage, ChestQuantity at its ChestOrder index, else 0 @5753730", () => {
+    expect(q(43, { ChestOrder: ["Critter1", "Critter11A"], ChestQuantity: [5, 9] })).toBe(9);
+    expect(q(43, { ChestOrder: ["Critter1"], ChestQuantity: [5] })).toBe(0);
+  });
+  it("[44] OptionsListAccount[224] raised to DNSM.LabMFbonuses.GrStk first (@5740254, in memory): the GreenStacks, with mainframe 11 above 0", () => {
+    const d = { GreenStacks: ["a", "b", "c"], OptLacc: OLA({ 224: 2 }) };
+    expect(q(44, d, { seeds: { "MainframeBonus[11]": 5 } })).toBe(3);
+    expect(q(44, d)).toBe(2);
+    expect(q(44, { ...d, OptLacc: OLA({ 224: 7 }) }, { seeds: { "MainframeBonus[11]": 5 } })).toBe(7);
+  });
+  it("[45] Rift[0] @5753897", () => expect(q(45, { Rift: [37] })).toBe(37));
+  it("[46] the best Pets[g][2] and PetsStored[g][2] @5754429", () =>
+    expect(q(46, { Pets: [["a", 0, 5], ["b", 0, 12]], PetsStored: [["c", 0, 30], ["d", 0, "7"]] })).toBe(30));
+  it("[47] [56] 1000 - OptionsListAccount[220] and [218] @5754495", () => {
+    const d = { OptLacc: OLA({ 220: 120, 218: 40 }) };
+    expect([q(47, d), q(56, d)]).toEqual([880, 960]);
+  });
+  it("[48] Cooking[g][6] + [7] + [8] of the ten kitchens @5754837", () =>
+    expect(q(48, { Cooking: Array.from({ length: 10 }, (_, g) => [0, 0, 0, 0, 0, 0, g, 1, 2, 100]) })).toBe(75));
+  it("[49] [51] per pet of the breeding actor's GenINFO[76], its shiny level and min(9, floor((2ndMulti - 1)^0.8) + 1) @5756149", () => {
+    const groups = PetStats as unknown as unknown[][][];
+    const names = groups.slice(0, 5).flatMap((g) => g.map((p) => p[0]).filter((n) => "_" != n));
+    const k = names.filter((n) => n == groups[0][0][0]).length; // the pets found at (0, 0)
+    const breeding: unknown[][] = Array.from({ length: 27 }, () => []);
+    breeding[22] = [4]; // a shiny count past the first step (3): level 2
+    breeding[2] = [0, 0, 0, 1]; // the breedability multi unlocked (GenINFO[53][0])
+    breeding[13] = [99]; // 1 + ln(100^0.725): floor(3.339^0.8) + 1 = 3
+    const o = { real: ["Breeding"] };
+    expect([q(49, { Breeding: breeding }, o), q(51, { Breeding: breeding }, o)]).toEqual([names.length + k, names.length + 2 * k]);
+    breeding[2] = [0, 0, 0, 0]; // locked: 2ndMulti is 1, each pet 1
+    expect(q(51, { Breeding: breeding }, o)).toBe(names.length);
+  });
+  it("[50] Meals[0] @5756439", () => expect(q(50, { Meals: [[1, 2, 3]] })).toBe(6));
+  it("[52] Lab[15], each at least 0 @5756671", () => expect(q(52, { Lab: [...Array.from({ length: 15 }, () => []), [1, -1, 3]] })).toBe(4));
+  it("[53] FamilyValuesMap.ColosseumHighscores (FamValColosseumHighscores) @5756952", () =>
+    expect(q(53, { FamValColosseumHighscores: [10, "5", 0] })).toBe(15));
+  it("[54] [78] [79] OptionsListAccount[217], [221], [222]", () => {
+    const c = ctxOf({ OptLacc: OLA({ 217: 1, 221: 2, 222: 3 }) });
+    expect([tomeQty(c, 54), tomeQty(c, 78), tomeQty(c, 79)]).toEqual([1, 2, 3]);
+  });
+  it('[55] ArbitraryCode("StatueOnyxOwned") @5757119', () => expect(q(55, {}, { seeds: { 'ArbitraryCode["StatueOnyxOwned"]': 7 } })).toBe(7));
+  it("[57] Boats[g][3] + [5] @5757539", () => expect(q(57, { Boats: [[0, 0, 0, 1, 0, 2], [0, 0, 0, 3, 0, 4]] })).toBe(10));
+  it("[58] max(0, Divinity[25] - 10) @5757605", () => {
+    const div = (v: number) => Object.assign(Array<number>(40).fill(0), { 25: v });
+    expect([q(58, { Divinity: div(14) }), q(58, { Divinity: div(3) })]).toEqual([4, 0]);
+  });
+  it("[59] [63] GamingSprout[28][1], max(GamingSprout[32][1], OptionsListAccount[210])", () => {
+    const gs = Array.from({ length: 33 }, (_, i) => (28 == i ? [0, 77] : 32 == i ? [0, 9] : [0, 0]));
+    const at = (o: number) => ({ GamingSprout: gs, OptLacc: OLA({ 210: o }) });
+    expect([q(59, at(0)), q(63, at(4)), q(63, at(40))]).toEqual([77, 9, 40]);
+  });
+  it("[60] [61] Sailing[3], Sailing[1][0]", () => {
+    const d = { Sailing: [[], [6, 1], [], [1, 2, 2]] };
+    expect([q(60, d), q(61, d)]).toEqual([5, 6]);
+  });
+  it("[62] the best Captains[g][3] of the first 20", () =>
+    expect(q(62, { Captains: Array.from({ length: 21 }, (_, g) => [0, 0, 0, 19 == g ? 25 : 20 == g ? 99 : g]) })).toBe(25));
+  it("[64] [66] Gaming[8], Gaming[0]", () => {
+    const d = { Gaming: [5, 0, 0, 0, 0, 0, 0, 0, 3] };
+    expect([q(64, d), q(66, d)]).toEqual([3, 5]);
+  });
+  it("[65] Cards[1].length", () => expect(q(65, { Cards1: ["a", "b", "c"] })).toBe(3));
+  it("[67] 2^OptionsListAccount[219]", () => expect(q(67, { OptLacc: OLA({ 219: 5 }) })).toBe(32));
+  it("[68] the FarmCrop keys (D.mapCount)", () => expect(q(68, { FarmCrop: { 0: 1, 3: 0, 7: 2 } })).toBe(3));
+  it("[69] [74] Ninja[104], the length of Ninja[102][9]", () => {
+    const ninja = Object.assign(NINJA(), { 104: [1, 2, 3], 102: [0, 0, 0, 0, 0, 0, 0, 0, 0, "abcd"] });
+    expect([q(69, { Ninja: ninja }), q(74, { Ninja: ninja })]).toEqual([6, 4]);
+  });
+  it("[70] [73] Summon[0], Summon[4][g] times 1, 3, 12, 60... (x (g + 3) each step)", () => {
+    const d = { Summon: [[1, 2], [], [], [], [1, 1, 1, 1, 0, 0, 0, 0, 2, 7]] };
+    expect([q(70, d), q(73, d)]).toEqual([3, 1 + 3 + 12 + 60 + 2 * 1814400]);
+  });
+  it("[71] the Summoning actor's GenINFO[143][9] @11662944: the Pet wins, the wins per DeathNoteMobs list, + OptionsListAccount[319]", () => {
+    const mobs = DeathNoteMobs as unknown as unknown[][];
+    const m = mobs[2][1];
+    const lists = mobs.filter((l) => l.includes(m)).length;
+    expect(q(71, { Summon: [[], ["Pet1", "Pet4", m, "Nothing"], [], [], []], OptLacc: OLA({ 319: 5 }) })).toBe(2 + lists + 5);
+  });
+  it('[72] 12 x OptionsListAccount[232] when above 0, else Ninja("FloorsUnlocked"), min(12, the summon actor\'s GenINFO[87]) @11705691', () => {
+    const ninja = Object.assign(NINJA(), { 100: [1, 150, 800] }); // the first three doors down: floor 4
+    expect(q(72, { Ninja: ninja }, { real: ["Ninja"] })).toBe(4);
+    expect(q(72, { Ninja: ninja, OptLacc: OLA({ 232: 3 }) }, { real: ["Ninja"] })).toBe(36);
+    // DoorMaxHP is 0 while OptionsListAccount[231] < [232]: every door is down, floor min(12, 13)
+    expect(Ninja(ctxOf({ OptLacc: OLA({ 232: 1 }) }, { real: ["Ninja"] }), "FloorsUnlocked", 0, 0)).toBe(12);
+  });
+  it("[75] FamilyValuesMap.MinigameHiscores[0..3] + OptionsListAccount[99]", () =>
+    expect(q(75, { FamValMinigameHiscores: [1, 2, 3, 4, 100], OptLacc: OLA({ 99: 10 }) })).toBe(20));
+  it("[76] PrayersUnlocked (PrayOwned)", () => expect(q(76, { PrayOwned: [1, 2, 3] })).toBe(6));
+  it("[77] FarmRank[0]", () => expect(q(77, { FarmRank: [[1, 2, 3]] })).toBe(6));
+  it("[80] ArcadeUpg", () => expect(q(80, { ArcadeUpg: [1, 2, 3] })).toBe(6));
+  it('[81] min(1500, Summoning("VaultUpgBonus", 57))', () => {
+    expect(q(81, {}, { seeds: { 'Summoning["VaultUpgBonus",57,0]': 2000 } })).toBe(1500);
+    expect(q(81, {}, { seeds: { 'Summoning["VaultUpgBonus",57,0]': 800 } })).toBe(800);
+  });
+  it("[82] [83] Holes[11][65..70], ceil(getLOG(Holes[9][g]))", () => {
+    const holes: unknown[] = Array.from({ length: 12 }, () => []);
+    holes[11] = Object.assign(Array<number>(71).fill(0), { 64: 100, 65: 1, 66: 2, 67: 3, 68: 4, 69: 5, 70: 6 });
+    holes[9] = [12345, 5, 0]; // ceil 4.09 + ceil 0.70 + 0
+    expect([q(82, { Holes: holes }), q(83, { Holes: holes }, { real: ["getLOG"] })]).toEqual([21, 6]);
+  });
+
   it("a quantity not ported yet throws NotPorted; the event's array is built once per state and character", () => {
     const pending = [...PENDING_QTY][0];
-    expect(PENDING_QTY.size).toBe(Tome.length - 43);
+    expect(PENDING_QTY.size).toBe(Tome.length - 85);
     const c = ctxOf({});
     expect(() => tomeQty(c, pending)).toThrow(NotPorted);
     expect(TomeQTY(c)).toBe(TomeQTY({ ...c, cache: new Map() }));
