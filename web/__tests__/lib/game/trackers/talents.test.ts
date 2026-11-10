@@ -21,7 +21,11 @@ import { getbonus2 } from "@/lib/game/njs/getbonus2";
 import { capBoosterRow } from "@/lib/talentsLevel/explain/capBoosters";
 import { plainTalent } from "@/lib/talentsLevel/explain/plain";
 import { applyWrap, readCounter, TALENT_WRAPS, WRAP_COUNTER_PENDING } from "@/lib/talentsLevel/wraps";
-import { talentCurveAt } from "@/lib/game/njs/GetTalentNumber";
+import { GetTalentNumber, talentCurveAt } from "@/lib/game/njs/GetTalentNumber";
+import { DNSM_CalcTalentMAP, TalentCalc } from "@/lib/game/njs/TalentCalc";
+import { ReturnClasses } from "@/lib/game/njs/ReturnClasses";
+import { MapDetails } from "@/lib/game/data";
+import type { Ctx } from "@/lib/game/ctx";
 import type { TraceNode } from "@/lib/game/trace";
 
 const SPELUNK = Array.from({ length: 60 }, (_, i) => (18 === i || 45 === i ? Array<number>(10).fill(0) : []));
@@ -258,12 +262,11 @@ describe("the final-bonus wraps on a synthetic envelope (runs in CI)", () => {
     expect(find(c.trace!, (n) => /^assumed: /.test(n.note ?? "") && n.value === 1500)).toBeDefined();
   });
 
-  it("a wrap whose counter lib/game does not have yet keeps the plain shape, and reading its counter says so", () => {
-    for (const id of [31, 202, 643]) expect(WRAP_COUNTER_PENDING.has(id)).toBe(true);
-    const t = plainTalent(wrapCtx({ SL_0: { 31: 5 } }), 31);
+  it("a wrap whose counter lib/game does not have yet keeps the plain shape, and reading its counter says so: only 202 (SkillStats FishingEfficiency)", () => {
+    expect([...WRAP_COUNTER_PENDING]).toEqual([202]);
+    const t = plainTalent(wrapCtx({ SL_0: { 202: 5 } }), 202);
     expect(t.children!.map((k) => k.name)).toEqual(["Active", "Effective Level"]);
     expect(t.note).toMatch(/^[A-Za-z0-9_]+\(/);
-    expect(() => readCounter(wrapCtx({}), TALENT_WRAPS[31].counterSource)).toThrow(/not ported/);
     expect(() => readCounter(wrapCtx({}), TALENT_WRAPS[202].counterSource)).toThrow(/not ported/);
   });
 
@@ -332,6 +335,121 @@ describe("the final-bonus wraps on a synthetic envelope (runs in CI)", () => {
     const c = wrapCtx({ SL_0: { 638: 5 }, OptLacc: ola({ 71: 1000 }) });
     const spec = { ...TALENT_WRAPS[638], wrap: () => NaN };
     expect(() => applyWrap(c, spec, "x", 1, [], 0)).toThrow(/returned NaN/);
+  });
+});
+
+describe("the TalentCalc counters and their wraps on a synthetic envelope (runs in CI)", () => {
+  const REAL = ["GetTalentNumber", "getbonus2", "ArbitraryCode5Inputs", "TalentCalc", "DNSM.CalcTalentMAP"];
+  const ctxOf = (data: Record<string, unknown>, o: { chars?: number; seeds?: Record<string, number>; real?: string[] } = {}) =>
+    synth({ Spelunk: SPELUNK, PlayerStuff_0: [0, 0], PlayerStuff_1: [0, 0], SL_0: {}, SM_0: {}, SL_1: {}, SM_1: {}, CurrentMap_1: -1, ...data }, { map: 0, chars: o.chars, seeds: o.seeds, real: [...REAL, ...(o.real ?? [])] });
+  /** KillsLeft2Advance with `kills` done on map g (MapDetails[g][0][0] minus what is left), none elsewhere. */
+  const kla = (kills: Record<number, number>) => (MapDetails as unknown as number[][][]).map((m, g) => [asNumber(m[0][0]) - (kills[g] ?? 0)]);
+  const lv0 = (m: Record<number, number>) => Object.assign(Array<number>(20).fill(0), { 0: 100 }, m);
+
+  it("57 @4515534: getbonus2(1,57,-1) x CalcTalentMAP[57], max(0, the best Lv0[7] + Lv0[9] of the class < 6 characters - 100) (@4472707)", () => {
+    const c = ctxOf({ SL_1: { 57: 5 }, CharacterClass_0: 3, Lv0_0: lv0({ 7: 80, 9: 60 }), CharacterClass_1: 7, Lv0_1: lv0({ 7: 300, 9: 300 }) }, { chars: 2 });
+    expect(DNSM_CalcTalentMAP(c, "57")).toBe(40); // character 1 is class 7: not counted
+    const best = getbonus2(c, 1, 57, -1);
+    expect(best).toBeGreaterThan(0);
+    expect(TalentCalc(c, 57)).toBeCloseTo(best * 40, 12);
+    expect(DNSM_CalcTalentMAP(ctxOf({ CharacterClass_0: 3, Lv0_0: lv0({ 7: 50, 9: 40 }) }), "57")).toBe(0);
+  });
+
+  it("59 @4515654: pow(min(1.012, 1 + t/100), Σ Meals[0]) with t the character's own GetTalentNumber(1,59) when above 0, else getbonus2(1,59,-1) (@4473137)", () => {
+    const data = { SL_0: { 59: 1 }, SL_1: { 59: 40 }, Meals: [[3, 4, 5]] };
+    const c = ctxOf(data, { chars: 2 });
+    expect(DNSM_CalcTalentMAP(c, "59")).toBe(12);
+    const own = GetTalentNumber(c, 1, 59);
+    expect(own).toBeLessThan(getbonus2(c, 1, 59, -1));
+    expect(TalentCalc(c, 59)).toBeCloseTo(Math.pow(Math.min(1.012, 1 + own / 100), 12), 12);
+    const none = ctxOf({ ...data, SL_0: {} }, { chars: 2 });
+    expect(TalentCalc(none, 59)).toBeCloseTo(Math.pow(Math.min(1.012, 1 + getbonus2(none, 1, 59, -1) / 100), 12), 12);
+    // the page's root follows TalentCalc's pick (the character's own), the what-if keeps the forced curve of the best character's chain
+    const t = plainTalent(c, 59);
+    expect(t.val).toBeCloseTo(TalentCalc(c, 59), 12);
+    expect(kid(t, "Talent Value").val).toBe(own);
+    expect(kid(plainTalent(c, 59, { forceSuper: true }), "Talent Value").val).toBeGreaterThan(own);
+    expect(plainTalent(none, 59).val).toBeCloseTo(TalentCalc(none, 59), 12);
+  });
+
+  it("146 @4516605: GetTalentNumber(1,146) x min(the FIGHTING maps with 1e6 kills of the character, GetTalentNumber(2,146)) (@4476138)", () => {
+    const c = ctxOf({ SL_0: { 146: 5, 110: 5 }, CharacterClass_0: 3, KLA_0: kla({ 1: 2e6, 2: 3e6, 8: 5e5 }) });
+    expect(DNSM_CalcTalentMAP(c, "146")).toBe(Math.min(2, GetTalentNumber(c, 2, 146)));
+    expect(DNSM_CalcTalentMAP(c, "110")).toBe(Math.min(3, GetTalentNumber(c, 2, 110))); // 1e5 still counts the third map
+    expect(TalentCalc(c, 146)).toBeCloseTo(GetTalentNumber(c, 1, 146) * DNSM_CalcTalentMAP(c, "146"), 12);
+  });
+
+  it("209 @4516732: GetTalentNumber(1,209) x the FIGHTING maps with 1e9 kills of the last character whose fourth class step is 10", () => {
+    expect(ReturnClasses(14)[3]).toBe(10);
+    const c = ctxOf({ SL_0: { 209: 5 }, CharacterClass_0: 3, KLA_0: kla({}), CharacterClass_1: 14, KLA_1: kla({ 1: 2e9, 2: 5e8 }) }, { chars: 2, real: ["ReturnClasses"] });
+    expect(DNSM_CalcTalentMAP(c, "209")).toBe(1);
+    expect(TalentCalc(c, 209)).toBeCloseTo(GetTalentNumber(c, 1, 209), 12);
+  });
+
+  it("430 @4516984: the character's own GetTalentNumber(1,430) (else getbonus2(1,430,-1)) x floor(Σ Ninja[103] / 10) (@4478091)", () => {
+    const ninja = Array.from({ length: 105 }, (_, i) => (103 === i ? [5, 7, 13] : []));
+    const c = ctxOf({ SL_0: { 430: 2 }, SL_1: { 430: 30 }, Ninja: ninja }, { chars: 2 });
+    expect(DNSM_CalcTalentMAP(c, "430")).toBe(25);
+    expect(TalentCalc(c, 430)).toBeCloseTo(GetTalentNumber(c, 1, 430) * 2, 12);
+    const none = ctxOf({ SL_1: { 430: 30 }, Ninja: ninja }, { chars: 2 });
+    expect(TalentCalc(none, 430)).toBeCloseTo(getbonus2(none, 1, 430, -1) * 2, 12);
+    expect(plainTalent(c, 430).val).toBeCloseTo(TalentCalc(c, 430), 12);
+    expect(plainTalent(none, 430).val).toBeCloseTo(TalentCalc(none, 430), 12);
+  });
+
+  it("595 has no TalentCalc case: CalcTalentMAP[595] is Σ Summon[0] (@4479559), read by Summoning(\"UpgCost\") @10923070", () => {
+    expect(DNSM_CalcTalentMAP(ctxOf({ Summon: [[60, 90, 100], []] }), "595")).toBe(250);
+  });
+
+  // the headline of each wrap is the term its consumer adds or multiplies: the counter seeded, the talent learned, the root against the consumer's own arithmetic
+  const CONSUMER: Record<number, (c: Ctx) => number> = {
+    31: (c) => TalentCalc(c, 31), // Damage sum @4113350
+    57: (c) => TalentCalc(c, 57), // 1 + TalentCalc(57)/100 @7767819, @7777168
+    59: (c) => TalentCalc(c, 59), // 10 x (1 + TalentCalc(59)/100) @7893630
+    110: (c) => TalentCalc(c, 110), // @4113380
+    125: (c) => GetTalentNumber(c, 1, 125) * TalentCalc(c, 125), // @4113380
+    146: (c) => TalentCalc(c, 146), // 1 + (TalentCalc(146) + ...)/100 @4245830, @4246949
+    209: (c) => getbonus2(c, 1, 209, -1) * DNSM_CalcTalentMAP(c, "209"), // @5057606
+    305: (c) => TalentCalc(c, 305) / 50, // @4113449
+    430: (c) => TalentCalc(c, 430), // 1 + TalentCalc(430)/100 @10853056
+    470: (c) => TalentCalc(c, 470) / 10, // @4113480
+    485: (c) => TalentCalc(c, 485), // @4113380
+    595: (c) => 1 + (getbonus2(c, 1, 595, -1) * Math.max(0, Math.floor(DNSM_CalcTalentMAP(c, "595") / 100))) / 100, // the divisor of Summoning("UpgCost") @10923070
+    616: (c) => TalentCalc(c, 616), // @4186963
+    620: (c) => TalentCalc(c, 620), // @4177260
+    643: (c) => TalentCalc(c, 643), // @4049671
+    644: (c) => TalentCalc(c, 644), // @4049703
+    650: (c) => TalentCalc(c, 650), // @4445380
+    656: (c) => TalentCalc(c, 656), // @4113722
+  };
+  for (const [id, consumer] of Object.entries(CONSUMER)) {
+    it(`${id}: the root is its consumer's term, the counter row is the game's counter`, () => {
+      const seeds = { [`DNSM.CalcTalentMAP["${id}"]`]: 1234, "TalentCalc[125]": 7 };
+      const c = ctxOf({ SL_0: { [id]: 5 }, CurrentMap_0: 0 }, { seeds });
+      const t = plainTalent(c, +id);
+      const counter = TALENT_WRAPS[+id].counterLabel;
+      expect(kid(t, counter).val).toBe(125 === +id ? 7 : 1234);
+      expect(consumer(c)).toBeGreaterThan(0);
+      expect(t.val).toBeCloseTo(consumer(c), 9);
+    });
+  }
+
+  it("125's gate and 643's tier are read on the map the save says the character is on, not the page's map 0", () => {
+    const c = ctxOf({ SL_0: { 125: 5, 643: 5 }, CurrentMap_0: 5 });
+    c.cache.set('0|5|TalentCalc[125]', 7);
+    c.cache.set('0|5|DNSM.CalcTalentMAP["643"]', 3);
+    c.cache.set('0|0|TalentCalc[125]', 100);
+    c.cache.set('0|0|DNSM.CalcTalentMAP["643"]', 100);
+    expect(kid(plainTalent(c, 125), "Refinery Ranks (acc-gated)").val).toBe(7);
+    const tier = kid(plainTalent(c, 643), "Multikill Damage Tier");
+    expect(tier.val).toBe(3);
+    expect(tier.note).toMatch(/ — assumed: /); // a session value (Review Focus 4): the row says so, no page error
+  });
+
+  it("59's root is the % the cooking speed adds (\"+\"), not a multiplier", () => {
+    const t = plainTalent(ctxOf({ SL_0: { 59: 5 }, Meals: [[100]] }), 59);
+    expect(t.fmt).toBe("+");
+    expect(t.note).toBe(`pow(min(1.012, 1 + ${kid(t, "Talent Value").val.toFixed(2)}/100), 100) % cooking spd`);
   });
 });
 

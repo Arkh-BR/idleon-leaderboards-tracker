@@ -43,10 +43,10 @@ export function plainTalent(c: Ctx, id: number, o: PlainOpts = {}): ArkhNode {
   if (bestOf(id)) {
     const effective = rows.find((r) => r.name === "Effective Level");
     const val = o.forceSuper ? (effective ? talentCurveAt(c, 1, id, effective.val) : 0) : getbonus2(c, 1, id, -1);
-    return wrapRow(c, id, name, val, rows, effective?.val ?? 0) ?? { name, val, fmt: "+", children: rows };
+    return wrapRow(c, id, name, val, rows, effective?.val ?? 0, o.forceSuper) ?? { name, val, fmt: "+", children: rows };
   }
   const level = skillLevel(c, id);
   const effective = rows.find((r) => r.name === "Effective Level")?.val ?? level; // a star talent has none: its level is its points
   const val = 0 >= level ? 0 : o.forceSuper ? talentCurveAt(c, 1, id, effective) : GetTalentNumber(c, 1, id);
-  return wrapRow(c, id, name, val, rows, effective) ?? { name, val, fmt: "+", note: `${formula}(${x1},${x2},${effective})`, children: rows };
+  return wrapRow(c, id, name, val, rows, effective, o.forceSuper) ?? { name, val, fmt: "+", note: `${formula}(${x1},${x2},${effective})`, children: rows };
 }

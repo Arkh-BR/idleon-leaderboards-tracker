@@ -3,7 +3,7 @@
 // lib/arkh is the comparison target only: where it is wrong the tree follows N.js and the path goes in TALENT_KNOWN with the evidence.
 import "./arkhOracle"; // first: it sets the `window` shim lib/arkh reads
 import { computeTalentEffective } from "@/lib/talentsLevel/compute";
-import { WRAP_COUNTER_PENDING } from "@/lib/talentsLevel/wraps";
+import { ASSUMED_643, WRAP_COUNTER_PENDING } from "@/lib/talentsLevel/wraps";
 import { talentCurveAt } from "@/lib/game/njs/GetTalentNumber";
 import { makeCtx } from "@/lib/game/ctx";
 import { stateOf } from "@/lib/game/trackers/page";
@@ -11,14 +11,20 @@ import { computeGameTalent, presetState, type TalentOpts } from "@/lib/game/trac
 import type { ArkhNode } from "@/lib/dropRate/node";
 import { near, rowsOf, type V1Diff } from "./v1Compare";
 
-/** The 18 CalcTalent ids plus 202 (SkillStats FishingEfficiency, not on lib/game), which keep the plain shape: the comparer skips them. All for Task 4, which empties WRAP_COUNTER_PENDING. */
+/** 202 (SkillStats FishingEfficiency, not on lib/game), which keeps the plain shape: the comparer skips it. */
 export const PENDING_WRAPS = WRAP_COUNTER_PENDING;
 /** The cap boosters are built (Task 2): nothing is pending. */
 export const PENDING_BOOSTERS = new Set<number>();
 
 /** A path where lib/arkh is wrong, with its N.js evidence (RAW offset). */
-/** `kind`: which difference the row excuses (default every one); `when`: only where this holds for the game's and lib/arkh's values at the path. */
-export const TALENT_KNOWN: { path: RegExp; why: string; kind?: "note" | "value"; when?: (game: number, arkh: number) => boolean }[] = [
+/** `kind`: which difference the row excuses (default every one); `when`: only where this holds for the game's and lib/arkh's values at the path; `noteWhen`: the same for their notes. */
+export const TALENT_KNOWN: {
+  path: RegExp;
+  why: string;
+  kind?: "note" | "value" | "fmt";
+  when?: (game: number, arkh: number) => boolean;
+  noteWhen?: (game: string | undefined, arkh: string | undefined) => boolean;
+}[] = [
   {
     path: / \/ Family Guy Multi \(×\) — potential buff( \/ Super Levels)?$/,
     why: "N.js TalentCalc(-3) reads GetTalentNumber(1,144) @4498035, whose AllTalentLV @4085148 gives the super levels only when Spelunk[20 + player + 12 x preset] lists 144; lib/arkh forces the super levels on for it (talent.ts forceSuperActive, the family bonus 68 term), for characters that do not have it listed (Family Guy Multi 1.3556 vs the game's 1.3484 on ARKHE's characters without 144 listed), so its row is above the game's and has a Super Levels row the game has no levels for. Same ruling as V1_KNOWN",
@@ -58,7 +64,31 @@ export const TALENT_KNOWN: { path: RegExp; why: string; kind?: "note" | "value";
   {
     path: /\(Talent 653\)$/,
     kind: "note",
+    noteWhen: (game, arkh) => undefined !== arkh && game === `${arkh} (max 15)`,
     why: "N.js TotalStats @4062188 adds Math.min(15, getLOG(OptionsListAccount[172]) x GetTalentNumber(1,653)); the row's note says \"(max 15)\", lib/arkh's does not",
+  },
+  {
+    path: /\(Talent 59\)$/,
+    kind: "fmt",
+    why: "N.js multiplies the cooking speed by 10 x (1 + TalentCalc(59) / 100) @7893630, TalentCalc(59) being pow(min(1.012, 1 + t / 100), CalcTalentMAP[59]) @4515654: that pow is a % the speed adds (the tooltip @7242819 draws it with \"%_Cooking_Spd\"), not a multiplier. lib/arkh's root is \"x\", the game's \"+\"; the value is the same",
+  },
+  {
+    path: /\(Talent 59\)$/,
+    kind: "note",
+    noteWhen: (game, arkh) => undefined !== arkh && game === arkh.replace(/ meal spd$/, " % cooking spd"),
+    why: "Same as the fmt row: the active note ends \"% cooking spd\" (the tooltip's %_Cooking_Spd @7242819) where lib/arkh's ends \"meal spd\"; the expression before it is the same",
+  },
+  {
+    path: /\(Talent 643\) \/ Multikill Damage Tier$/,
+    kind: "note",
+    noteWhen: (game, arkh) => undefined !== arkh && game === `${arkh}${ASSUMED_643}`,
+    why: "N.js TalentCalc(643) @4519205 stores OverkillStuffs(\"2\") in DNSM.CalcTalentMAP[\"643\"] when it finds the -11 every rebuild leaves (@4480462), and the tier stays until the next rebuild: a session value the save does not hold. The counter row says the tier is worked out now (assumed:); lib/arkh's note does not",
+  },
+  {
+    path: /\(Talent 470\) \/ Stamps In Collection$/,
+    kind: "note",
+    noteWhen: (game, arkh) => game === "CalcTalentMAP[470] — count StampLevelMAX[0..2][*] > 0.5" && undefined !== arkh && /\[PROXY\]/.test(arkh),
+    why: "N.js CalcTalentMAP[\"470\"] @4478721 counts StampLevelMAX[0..2][a] > .5, which lib/game reads from the save; lib/arkh counts StampLv > 0 and says so in its note ([PROXY]). Only the note: the counts are compared",
   },
   {
     path: /\(Talent 653\)$/,
@@ -113,8 +143,8 @@ export function compareTalent(save: unknown, ci: number, id: number, opts: Talen
   }
   const a = rowsOf(mine);
   const b = rowsOf(theirs);
-  const explained = (path: string, kind?: "note" | "value", game = NaN, arkh = NaN): boolean => {
-    const k = TALENT_KNOWN.find((row) => row.path.test(path) && (!row.kind || row.kind === kind) && (!row.when || row.when(game, arkh)));
+  const explained = (path: string, kind?: "note" | "value" | "fmt", game = NaN, arkh = NaN, gameNote?: string, arkhNote?: string): boolean => {
+    const k = TALENT_KNOWN.find((row) => row.path.test(path) && (!row.kind || row.kind === kind) && (!row.when || row.when(game, arkh)) && (!row.noteWhen || row.noteWhen(gameNote, arkhNote)));
     if (k) hits.add(k.path);
     return !!k;
   };
@@ -125,8 +155,8 @@ export function compareTalent(save: unknown, ci: number, id: number, opts: Talen
     const t = b.get(path);
     if (!t) continue;
     if (!near(r.node.val, t.node.val) && !explained(path, "value", r.node.val, t.node.val)) out.value.push(`${path}: game ${r.node.val}, arkh ${t.node.val}`);
-    if (r.node.fmt !== t.node.fmt && !explained(path)) out.meta.push(`${path}: fmt ${r.node.fmt} vs ${t.node.fmt}`);
-    if (floats(r.node.note) !== floats(t.node.note) && !explained(path, "note")) out.meta.push(`${path}: note ${JSON.stringify(r.node.note)} vs ${JSON.stringify(t.node.note)}`);
+    if (r.node.fmt !== t.node.fmt && !explained(path, "fmt")) out.meta.push(`${path}: fmt ${r.node.fmt} vs ${t.node.fmt}`);
+    if (floats(r.node.note) !== floats(t.node.note) && !explained(path, "note", NaN, NaN, r.node.note, t.node.note)) out.meta.push(`${path}: note ${JSON.stringify(r.node.note)} vs ${JSON.stringify(t.node.note)}`);
   }
   return out;
 }

@@ -9,7 +9,8 @@
 //
 // Names, order, formats and notes are the page's (lib/arkh's table was the reference for them), because the Hypothetical tab compares by path. Every counter reads lib/game. Where the game's arithmetic is not what
 // lib/arkh had, the table follows the game and the difference is listed in the comparer's TALENT_KNOWN (__tests__/lib/game/support/talentCompare.ts).
-import { asNum } from "@/lib/game/attr";
+import { asNum, asNumber } from "@/lib/game/attr";
+import { charKey, opt } from "@/lib/game/state";
 import type { Ctx } from "@/lib/game/ctx";
 import { ArcaneUpg, CompassUpg, GrimoireUpg } from "@/lib/game/data";
 import { NonFiniteResult, NotPorted } from "@/lib/game/errors";
@@ -22,6 +23,7 @@ import { talentCurveAt } from "@/lib/game/njs/GetTalentNumber";
 import { PlayerHPmax } from "@/lib/game/njs/PlayerHPmax";
 import { PlayerMPmax } from "@/lib/game/njs/PlayerMPmax";
 import { PlayerSpeedBonus } from "@/lib/game/njs/PlayerSpeedBonus";
+import { DNSM_CalcTalentMAP, TalentCalc } from "@/lib/game/njs/TalentCalc";
 import { TotalStats } from "@/lib/game/njs/TotalStats";
 import { Windwalker } from "@/lib/game/njs/Windwalker";
 import { itemsAndStorageOwned } from "@/lib/game/njs/WorkbenchStuff";
@@ -48,8 +50,11 @@ export type CounterSource =
   | { kind: "InvStorageOwned"; item: string } // the character's inventory and the storage, as the game counts them
   | { kind: "PlayerSpeedBonus" };
 
-/** The 18 CalcTalent ids plus 202 (SkillStats("FishingEfficiency"), not on lib/game): they keep the plain talent shape and their counter throws NotPorted if read. All of them are Task 4's. */
-export const WRAP_COUNTER_PENDING = new Set<number>([31, 57, 59, 110, 125, 146, 202, 209, 305, 430, 470, 485, 595, 616, 620, 643, 644, 650, 656]);
+/**
+ * 202, whose counter is SkillStats("FishingEfficiency") (consumer @7235759), not on lib/game: it keeps the plain talent shape and its counter throws NotPorted if read. That sub-case reaches the
+ * SkillStats preamble (the fishing tool's power, FishingToolkit, TotalStats("Fishing_Power")), AllEfficiencies, AllBaseSkillEff, CalcTalentMAP["43"] and a dozen unported sub-cases of other blocks.
+ */
+export const WRAP_COUNTER_PENDING = new Set<number>([202]);
 
 /** Spec for a talent whose final bonus = wrap(the talent's curve value, counter). */
 export type TalentWrapSpec = {
@@ -75,6 +80,8 @@ export type TalentWrapSpec = {
   inactiveNote: (rawTalentVal: number, counter: number) => string;
   /** Rows beside the talent's own and the counter (the coefficient, the Atom term). */
   extraBaseKids?: (rawTalentVal: number, c: Ctx) => ArkhNode[];
+  /** The game's TalentCalc reads the character's own GetTalentNumber(1,id) when it is above 0 and the best character's getbonus2(1,id,-1) only otherwise (59 @4515654, 430 @4516984): the wrap does too, outside the what-if. */
+  ownFirst?: true;
 };
 
 const logMul = (tv: number, n: number, c: Ctx) => 1 + (tv * getLOG(c, n)) / 100;
@@ -108,7 +115,9 @@ const grimoire = (what: string): TalentWrapSpec =>
   linear({ label: "Grimoire Upgrade Total", source: { kind: "GrimoireUpgTotal" }, note: "Σ Grimoire[] — total grimoire upgrade levels", what: "no Grimoire upgrades", shape: (n) => n / 100, show: (tv, n) => `${two(tv)} × (${n}/100) % ${what}` });
 const compass = (what: string): TalentWrapSpec =>
   linear({ label: "Compass Upgrade Total", source: { kind: "CompassUpgTotal" }, note: "Σ Compass[] — total compass upgrade levels", what: "no Compass upgrades", shape: (n) => n / 100, show: (tv, n) => `${two(tv)} × (${n}/100) % ${what}` });
-/** A CalcTalentMAP counter: Task 4 supplies it; the wrap is the game's. */
+/** 643's tier is a session value the game keeps from its last stat rebuild (DNSM_CalcTalentMAP "643"): the row says it is worked out now. */
+export const ASSUMED_643 = " — assumed: the tier worked out now (the game keeps the one it found at its last stat rebuild)";
+/** A CalcTalentMAP counter: `shape` is what the game's TalentCalc does to it (the consumer of each is cited on its row). */
 const calc = (id: number, label: string, note: string, what: string, shape: (n: number) => number, show: (tv: number, n: number) => string, extra?: TalentWrapSpec["extraBaseKids"]): TalentWrapSpec =>
   linear({ label, source: { kind: "CalcTalent", talentId: id }, note, what, shape, show, extra });
 /** An item count in the inventory and storage: coefficient × (log10(count) + the Atom 1 bonus). */
@@ -211,29 +220,42 @@ export const TALENT_WRAPS: Record<number, TalentWrapSpec> = {
   // N.js @11089284 (Arcane_DMG): x (1 + GetTalentNumber(1,590) x (ArcaneUpgTotal / 100) / 100), so the talent's % is tv x (total / 100); lib/arkh divided that % by 100 again
   590: linear({ label: "Arcane Upgrade Total", source: { kind: "ArcaneUpgTotal" }, note: "Σ Arcane[] — total arcane upgrade levels (×pow(1.04,ACzWepAtk) omitted)", what: "no Arcane upgrades", shape: (n) => n / 100, show: (tv, n) => `${two(tv)} × (${n}/100) % arcanist dmg (×ACzWepAtk pow omitted)` }),
 
-  // ===== CalcTalentMAP-scaled talents: the wrap shape is the game's, the counter is Task 4's (WRAP_COUNTER_PENDING) =====
+  // ===== CalcTalentMAP-scaled talents (lib/game/njs/TalentCalc.ts): the root is the term the game's consumer adds, or puts in a 1 + x / 100 =====
+  // Damage sum @4113350: + TalentCalc(31) = GetTalentNumber(1,31) x floor(CalcTalentMAP[31] / 5)
   31: calc(31, "Lowest Skill LV", "CalcTalentMAP[31] — min(Lv0[1..9]) lowest skill level", "lowest skill LV is 0", (n) => Math.floor(n / 5), (tv, n) => `${two(tv)} × floor(${n}/5) % dmg`),
+  // the critters @7777168 and the souls @7767819: x (1 + TalentCalc(57) / 100), TalentCalc(57) = getbonus2(1,57,-1) x CalcTalentMAP[57]
   57: calc(57, "Trapping+Worship LV over 100", "CalcTalentMAP[57] — max(0, best(Lv0[7]+Lv0[9]) - 100) across chars", "combined Trapping+Worship <= 100", (n) => n, (tv, n) => `${two(tv)} × ${n} % critters & souls`),
+  // the cooking speed @7893630: 10 x (1 + TalentCalc(59) / 100) x ..., so the talent's % is TalentCalc(59) = pow(min(1.012, 1 + t / 100), CalcTalentMAP[59]) (@4515654); lib/arkh shows the pow as a multiplier
   59: {
     counterLabel: "Total Meal LV",
     counterSource: { kind: "CalcTalent", talentId: 59 },
     counterNote: "CalcTalentMAP[59] — Σ Meals[0][*] (all meal upgrade levels)",
     wrap: (tv, n) => Math.pow(Math.min(1.012, 1 + tv / 100), n),
-    fmt: "x",
-    noteForActive: (tv, n) => `pow(min(1.012, 1 + ${two(tv)}/100), ${n}) meal spd`,
+    fmt: "+",
+    noteForActive: (tv, n) => `pow(min(1.012, 1 + ${two(tv)}/100), ${n}) % cooking spd`,
     inactiveVal: 1,
     inactiveNote: (_tv, n) => (n <= 0 ? "Inactive — no Meal LV (Σ = 0) → pow(..,0) = 1" : "Inactive — talent 0"),
     extraBaseKids: tvKid(),
+    ownFirst: true,
   },
+  // Damage sum @4113380: + TalentCalc(110) = GetTalentNumber(1,110) x CalcTalentMAP[110]
   110: calc(110, "Mob Types Killed >100k", "CalcTalentMAP[110] — fighting maps with >100k lifetime kills (capped by talent)", "no maps with >100k kills", (n) => n, (tv, n) => `${two(tv)} × ${n} % dmg`),
+  // Damage sum @4113380: + GetTalentNumber(1,125) x TalentCalc(125), the counter being TalentCalc(125) itself (@4516114)
   125: calc(125, "Refinery Ranks (acc-gated)", "CalcTalentMAP[125] — Σ Refinery ranks when accuracy >= 2.25× AFK-target defence, else 0", "accuracy below 2.25× AFK-target defence (or no refinery ranks)", (n) => n, (tv, n) => `${two(tv)} × ${n} % dmg`),
+  // the efficiencies @4245830 and the cooking @4246949: x (1 + (TalentCalc(146) + ...) / 100), TalentCalc(146) = GetTalentNumber(1,146) x CalcTalentMAP[146]
   146: calc(146, "Mob Types Killed >1m", "CalcTalentMAP[146] — fighting maps with >1m lifetime kills (capped by talent)", "no maps with >1m kills", (n) => n, (tv, n) => `${two(tv)} × ${n} % cooking exp & eff`),
+  // the gold food sum @5057606: + getbonus2(1,209,-1) x CalcTalentMAP[209] (TalentCalc(209) is only the tooltip's)
   209: calc(209, "Mob Types Killed >1b", "CalcTalentMAP[209] — the Death Bringer's fighting maps with >1b lifetime kills", "no maps with >1b kills", (n) => n, (tv, n) => `${two(tv)} × ${n} % gold food effect`),
+  // Damage sum @4113449: + TalentCalc(305) / 50
   305: calc(305, "Items Ever Found", "CalcTalentMAP[305] — count of Cards[1] entries (excl. Gem*/Cards*)", "no items found", (n) => n / 50, (tv, n) => `${two(tv)} × ${n} / 50 % damage`),
-  // the game's tooltip (@7249170) is 1 + .01 x GetTalentNumber(1,430) x floor(n/10) "x_Cheaper_Upgrades"; lib/arkh's wrap is the plain product. Task 4 decides.
-  430: calc(430, "Total Ninja Upgrades", "CalcTalentMAP[430] — Σ Ninja[103][*] (Ninja Knowledge upg)", "no Ninja upgrades", (n) => Math.floor(n / 10), (tv, n) => `${two(tv)} × floor(${n}/10) % cheaper`),
-  470: calc(470, "Stamps In Collection", "CalcTalentMAP[470] — [PROXY] count StampLv>0 (StampLevelMAX unported)", "no stamps", (n) => n / 10, (tv, n) => `${two(tv)} × ${n} / 10 % damage`),
+  // the Ninja upgrade costs @10853056 (and the six after it) divide by (1 + TalentCalc(430) / 100), so the talent's % is TalentCalc(430) = t x floor(CalcTalentMAP[430] / 10) (@4516984); the tooltip's
+  // "1 + .01 x ... x_Cheaper_Upgrades" (@7249170) is that divisor
+  430: { ...calc(430, "Total Ninja Upgrades", "CalcTalentMAP[430] — Σ Ninja[103][*] (Ninja Knowledge upg)", "no Ninja upgrades", (n) => Math.floor(n / 10), (tv, n) => `${two(tv)} × floor(${n}/10) % cheaper`), ownFirst: true },
+  // Damage sum @4113480: + TalentCalc(470) / 10
+  470: calc(470, "Stamps In Collection", "CalcTalentMAP[470] — count StampLevelMAX[0..2][*] > 0.5", "no stamps", (n) => n / 10, (tv, n) => `${two(tv)} × ${n} / 10 % damage`),
+  // Damage sum @4113380: + TalentCalc(485)
   485: calc(485, "Vials >= Green LV", "CalcTalentMAP[485] — count CauldronInfo[4][*] > 3", "no Green+ vials", (n) => n, (tv, n) => `${two(tv)} × ${n} % damage`),
+  // Summoning("UpgCost") @10923070: x 1 / (1 + getbonus2(1,595,-1) x max(0, floor(CalcTalentMAP[595] / 100)) / 100); the root is that divisor, the "x cheaper" of the tooltip (@7252776)
   595: {
     counterLabel: "Total Summoning Upgrades",
     counterSource: { kind: "CalcTalent", talentId: 595 },
@@ -245,6 +267,7 @@ export const TALENT_WRAPS: Record<number, TalentWrapSpec> = {
     inactiveNote: (_tv, n) => (n < 100 ? "Inactive — < 100 Summoning upgrades (floor = 0)" : "Inactive — talent 0"),
     extraBaseKids: tvKid(),
   },
+  // weapon power @4186963: + TalentCalc(616) = min(GetTalentNumber(1,616), floor(CalcTalentMAP[616] / 10))
   616: {
     ...calc(616, "Best Beginner Lv", "CalcTalentMAP[616] — best Lv0[0] across class<6 chars", "", (n) => n, () => ""),
     wrap: (tv, n) => Math.min(tv, Math.floor(n / 10)),
@@ -252,6 +275,7 @@ export const TALENT_WRAPS: Record<number, TalentWrapSpec> = {
     inactiveNote: (_tv, n) => (n < 10 ? "Inactive — best Beginner < Lv 10 (floor = 0)" : "Inactive — talent 0"),
     extraBaseKids: tvKid("formula(effective_lv) — the +N cap coefficient"),
   },
+  // the stats @4177260 (STR; AGI, WIS, LUK after it): + TalentCalc(620) = min(GetTalentNumber(1,620), floor(CalcTalentMAP[620] / 10))
   620: {
     ...calc(620, "Highest Char Lv", "CalcTalentMAP[620] — best Lv0[0] across all chars", "", (n) => n, () => ""),
     wrap: (tv, n) => Math.min(tv, Math.floor(n / 10)),
@@ -259,8 +283,10 @@ export const TALENT_WRAPS: Record<number, TalentWrapSpec> = {
     inactiveNote: (_tv, n) => (n < 10 ? "Inactive — highest char < Lv 10 (floor = 0)" : "Inactive — talent 0"),
     extraBaseKids: tvKid("formula(effective_lv) — the +N cap coefficient"),
   },
-  643: { ...calc(643, "Multikill Damage Tier", 'CalcTalentMAP[643] — OverkillStuffs("2"): max damage vs AFKtarget_N\'s HP, saved map', "", (n) => n, (tv, n) => `${two(tv)} × ${n} % cash per tier`), inactiveNote: () => "Inactive — talent 0" },
+  // the coins @4049671: + TalentCalc(643) + TalentCalc(644) + ..., 643 = GetTalentNumber(1,643) x the multikill tier (assumed: see DNSM_CalcTalentMAP "643"), 644 = GetTalentNumber(1,644) x Lv0[10] / 10
+  643: { ...calc(643, "Multikill Damage Tier", `CalcTalentMAP[643] — OverkillStuffs("2"): max damage vs AFKtarget_N's HP, saved map${ASSUMED_643}`, "", (n) => n, (tv, n) => `${two(tv)} × ${n} % cash per tier`), inactiveNote: () => "Inactive — talent 0" },
   644: calc(644, "Cooking LV / 10", "CalcTalentMAP[644] — Lv0[10]/10 (active char cooking / 10)", "Cooking LV 0", (n) => n, (tv, n) => `${two(tv)} × ${n} % cash`),
+  // the AFK gains @4445380: + TalentCalc(650); the Damage sum @4113722: + TalentCalc(656)
   650: calc(650, "Random Event Rare Items", "CalcTalentMAP[650] — Cards[1] matches of RANDOlist[82..86]", "no Random Event rares found", (n) => n, (tv, n) => `${two(tv)} × ${n} % AFK gains rate`),
   656: calc(656, "Dream Clouds Completed", "CalcTalentMAP[656] — count DreamChallenge with WeeklyBoss[d_g]===-1", "no Dream clouds completed", (n) => n, (tv, n) => `${two(tv)} × ${n} % damage`),
 
@@ -361,7 +387,16 @@ function totBreedzWWz(c: Ctx): number {
   return total;
 }
 
-/** The counter's value for the character of `c`. A pending counter throws NotPorted: nothing reads it (see WRAP_COUNTER_PENDING). */
+/**
+ * The character of `c` on the map its save says it is on (CurrentMap_<i>). The page has no map of its own (its Ctx is on map 0), but 125's accuracy gate and 643's multikill tier are against the
+ * monster of the AFK target, which the game takes from the map the character stands on (lib/game/afkTarget.ts).
+ */
+function onSavedMap(c: Ctx): Ctx {
+  const saved = opt(c.state, charKey("CurrentMap", c.player));
+  return undefined === saved || null === saved ? c : { ...c, map: asNumber(saved) };
+}
+
+/** The counter's value for the character of `c`. The pending counter throws NotPorted: nothing reads it (see WRAP_COUNTER_PENDING). */
 export function readCounter(c: Ctx, src: CounterSource): number {
   switch (src.kind) {
     case "OLA":
@@ -395,7 +430,9 @@ export function readCounter(c: Ctx, src: CounterSource): number {
     case "PlayerSpeedBonus":
       return Math.min(1000, 100 * Math.max(0, PlayerSpeedBonus(c) - 1));
     case "CalcTalent":
-      throw new NotPorted("TalentWrap", `CalcTalent:${src.talentId}`);
+      // 125 keeps no CalcTalentMAP key: its counter is TalentCalc(125), the refinery ranks behind the accuracy gate
+      if (125 === src.talentId) return TalentCalc(onSavedMap(c), 125);
+      return DNSM_CalcTalentMAP(643 === src.talentId ? onSavedMap(c) : c, `${src.talentId}`);
     case "SkillStats":
       throw new NotPorted("TalentWrap", `SkillStats:${src.stat}`);
   }
