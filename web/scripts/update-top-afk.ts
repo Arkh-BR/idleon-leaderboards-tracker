@@ -81,7 +81,7 @@ export const AFK_COLLECTOR: StatCollectorConfig = {
   scriptName: "scripts/update-top-afk.ts",
 };
 
-// Imported by the tests and compare-top-ref without running the collector.
+// Imported by the tests without running the collector.
 if (require.main === module) runTopCollector(AFK_COLLECTOR).catch((e) => {
   console.error(e);
   process.exit(1);

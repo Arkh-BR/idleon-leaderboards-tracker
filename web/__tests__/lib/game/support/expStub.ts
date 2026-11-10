@@ -27,13 +27,13 @@ export const BASE: Data = {
 };
 
 /** A character 0 (and, with `chars` 2, a second one) on `map`, `seeds` over all-0 blocks, the blocks in `real` left to their code. */
-export function synth(data: Data, o: { map?: number; chars?: number; seeds?: Seeds; real?: string[]; player?: number; trace?: boolean; serverVars?: unknown } = {}): Ctx {
+export function synth(data: Data, o: { map?: number; chars?: number; seeds?: Seeds; real?: string[]; player?: number; trace?: boolean; serverVars?: unknown; companion?: unknown } = {}): Ctx {
   const map = o.map ?? 251;
   const chars = o.chars ?? 1;
   const c = makeCtx(
     buildGameState({
       data: { ...BASE, CurrentMap_0: -1, AFKtarget_0: "Mush", ...data },
-      charNames: Array.from({ length: chars }, (_, i) => `c${i}`), companion: null, guildData: {}, serverVars: o.serverVars ?? null, tournament: {}, accountCreateTime: 1, lastUpdated: 1,
+      charNames: Array.from({ length: chars }, (_, i) => `c${i}`), companion: o.companion ?? null, guildData: {}, serverVars: o.serverVars ?? null, tournament: {}, accountCreateTime: 1, lastUpdated: 1,
     } as unknown as GameEnvelope),
     { player: o.player ?? 0, map, trace: o.trace }
   );

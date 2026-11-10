@@ -45,7 +45,7 @@ export const DR2_COLLECTOR: StatCollectorConfig = {
   scriptName: "scripts/update-top-dr2.ts",
 };
 
-// Imported by the round-trip test and compare-top-ref without running the collector.
+// Imported by the round-trip test without running the collector.
 if (require.main === module) runTopCollector(DR2_COLLECTOR).catch((e) => {
   console.error(e);
   process.exit(1);

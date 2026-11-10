@@ -11,6 +11,11 @@ não prova nada.
 Todos os scripts rodam de dentro de `web/`:
 `npx tsx --tsconfig tsconfig.json scripts/dr-debug/<script>.ts …`
 
+Os scripts `.ts` calculam o DR do site com o engine do site, `lib/game`
+(`computeGameDropRateV1`, o mesmo número e a mesma árvore da página
+`/drop-rate`). Para outro stat, troque pela função `computeGame*` dele em
+`lib/game/trackers/`.
+
 ---
 
 ## 1. Reproduza o valor do site EXATO, no MESMO estado do print
@@ -39,11 +44,16 @@ valor real está em `[leitura, leitura+1)`.
 
 ## 2. Descarte regressão antes de caçar no update
 
-Se "antes do update batia", rode os testes de save real
-(`__tests__/lib/arkh/family-guy-dr.test.ts`: setembro, 363.893,46). Os saves
-privados ficam em `scripts/updater/golden/.cache/` (gitignored). Sem eles os
-testes são **pulados** e o verde é falso; procure cópias em
+Se "antes do update batia", rode as leituras do jogo já gravadas
+(`__tests__/readings/readings.save.test.ts`: cada leitura em
+`scripts/updater/golden/.cache/readings` contra o `lib/game`, no formato do
+jogo) e os testes do tracker (`__tests__/lib/game/trackers/dropRate.test.ts`).
+Os saves privados ficam em `scripts/updater/golden/.cache/` (gitignored). Sem
+eles os testes são **pulados** e o verde é falso; procure cópias em
 `.claude/worktrees/*/web/scripts/updater/golden/.cache/`.
+`npx tsx scripts/characterize.ts dropRateV2 --recent 5 --map <mapa>` mostra,
+por par (save, personagem), o valor do `lib/game`, as folhas `runtime:` /
+`assumed:` (valores que o save não dá) e as recusas.
 Se o save antigo ainda bate, o erro está numa mecânica nova que o save atual
 exercita.
 
@@ -86,7 +96,8 @@ o nível do talento 328 (que inclui o super talent).
 ## 5. Diff de árvore entre dois saves
 
 `tree-diff.ts <saveA> <saveB> <charA> <mapA> <charB> <mapB>` mostra cada folha
-que mudou. Folhas que mudaram por mecânica nova são os suspeitos. O caso de
+que mudou, pelos caminhos da página (`flattenTree`, os mesmos do snapshot e do
+Compare). Folhas que mudaram por mecânica nova são os suspeitos. O caso de
 2026-10 apareceu assim: a refeição do Golden Food tinha dobrado
 (BonusMultiCook) e o Corsair trocado.
 
@@ -104,7 +115,7 @@ que mudou. Folhas que mudaram por mecânica nova são os suspeitos. O caso de
 
 - **getbonus2 / AllTalentLVz("t|g")**: o super talent conta se `t` estiver em
   *qualquer* preset do jogador `g`. Os outros caminhos olham só o preset
-  atual (`talent.ts → superTalentListed`).
+  atual (`allTalentLV` em `lib/game/njs/RunCodeOfTypeXforThingY.ts`).
 - Leitura do jogo = `floor` (> 9999). Golden Food = **atribuição** (vale a última
   comida dourada do mesmo efeito, não soma).
 - Galeria: nametag `n` = item `EquipmentNametag{n}` (6 → `6b`), troféu =

@@ -1,10 +1,8 @@
-import { computeArkhDropRate } from "../../../lib/arkh/computeDR";
 import { computeTome } from "../../../lib/tome/compute";
 import { computeTalentTreesForChars } from "../../../lib/talentsLevel/compute";
-import { loadSaveData } from "../../../lib/arkh/save/loader";
-import { saveData } from "../../../lib/arkh/state";
 import { expRateTree } from "../../../lib/cookingMastery/tree";
 import { makeCtx } from "../../../lib/game/ctx";
+import { computeGameDropRateV1 } from "../../../lib/game/trackers/dropRateV1";
 import { stateOf } from "../../../lib/game/trackers/page";
 import type { EngineSummary } from "./checks";
 
@@ -35,14 +33,14 @@ export function summarize(save: any): EngineSummary {
     tomeByTask[i] = r.pts ?? 0;
   }
 
-  // DR: max over all chars (the game/IT dropRate ground-truth is the best
+  // DR (the /drop-rate page's, lib/game): max over all chars (the game/IT dropRate ground-truth is the best
   // char, not char 0). mapIdx=0 (no map bonus), so ground-truth must use a
   // loose tolerance — the reference value includes the active char's map.
   let drTotal = 0;
   const nChars = Array.isArray(save.charNames) ? save.charNames.length : 1;
   for (let c = 0; c < nChars; c++) {
     try {
-      drTotal = Math.max(drTotal, computeArkhDropRate(save, c, 0).total);
+      drTotal = Math.max(drTotal, computeGameDropRateV1(save, c, 0).total);
     } catch {
       /* skip chars that error in this context */
     }

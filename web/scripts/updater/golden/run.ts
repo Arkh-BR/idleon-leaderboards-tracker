@@ -8,8 +8,9 @@
 // within ±1 to absorb rounding boundaries → FATAL on larger gaps. DR is a loose
 // cross-check only: summarize() takes max-over-chars at mapIdx=0, which
 // structurally differs from IT's active-char/active-map dropRate, so large gaps
-// are EXPECTED and NOT validated here (a real DR golden via computeArkhDRPools /
-// mergeBest is future work) → INFORMATIONAL. Synthetic cases → FATAL.
+// are EXPECTED and NOT validated here (a real DR golden on the active char and
+// map is future work) → INFORMATIONAL. Synthetic cases → FATAL.
+// Every engine here is lib/game's (engines.ts), and so are the synthetic cases.
 // Regression-vs-baseline is intentionally omitted (fetched saves change as
 // players play).
 // The embedded reference is computed by idleontoolbox.com's parser at the
@@ -45,9 +46,6 @@ function referenceParsedAt(save: any): number {
 }
 
 async function main(): Promise<void> {
-  const g = globalThis as any;
-  if (!g.window) g.window = g;
-
   let fatal = 0;
   let checked = 0;
   for (const name of await referenceProfiles()) {

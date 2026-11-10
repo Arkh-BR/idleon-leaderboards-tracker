@@ -66,11 +66,21 @@ describe("lib/game imports no lib/arkh at runtime (Ruling KK)", () => {
 });
 
 describe("the Observed Max collectors import no lib/arkh at runtime", () => {
-  it("scripts/_shared/*.ts and scripts/update-top-*.ts (compare-top-ref.ts is the temporary oracle, excluded)", () => {
+  it("scripts/_shared/*.ts and scripts/update-top-*.ts", () => {
     const dir = join(ROOT, "scripts");
     const files = [...tsIn(join(dir, "_shared")), ...tsIn(dir).filter((f) => /update-top-[^\\/]*\.ts$/.test(f))];
     expect(files.length).toBeGreaterThan(8);
-    const { bad } = walk(files); // compare-top-ref.ts never matches the pattern: excluded by name
+    const { bad } = walk(files);
+    expect(bad).toEqual([]);
+  });
+});
+
+describe("the diagnostic tools import no lib/arkh at runtime", () => {
+  it("characterize, lib/diagnose, scripts/dr-debug and the updater's golden harness", () => {
+    const dir = join(ROOT, "scripts");
+    const files = [join(dir, "characterize.ts"), ...tsIn(join(ROOT, "lib/diagnose")), ...tsIn(join(dir, "dr-debug")), ...tsIn(join(dir, "updater/golden"))];
+    expect(files.length).toBeGreaterThan(12);
+    const { bad } = walk(files);
     expect(bad).toEqual([]);
   });
 });

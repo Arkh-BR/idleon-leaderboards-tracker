@@ -4,7 +4,7 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { decodeFirestoreFields } from "@/lib/gameAuth/firebase";
 import { computeTome } from "@/lib/tome/compute";
-import { computeArkhDropRate } from "@/lib/arkh/computeDR";
+import { computeGameDropRateV1 } from "@/lib/game/trackers/dropRateV1";
 
 const [bundlePath, outPath, ci = "0", map = "0"] = process.argv.slice(2);
 const b = JSON.parse(readFileSync(bundlePath, "utf8"));
@@ -27,5 +27,5 @@ const env: any = {
 // Same Tome stamp the site applies to a signed-in save (envelope.ts tomePoints).
 env.extraData = { totalTomePoints: computeTome({ ...env, data: { ...env.data } }).totalPts };
 writeFileSync(outPath, JSON.stringify(env));
-const dr = computeArkhDropRate(env, Number(ci), Number(map)).total;
+const dr = computeGameDropRateV1(env, Number(ci), Number(map)).total;
 console.log(`saved ${save.updateTime} · tome ${env.extraData.totalTomePoints} · char ${ci} map ${map} → DR ${dr} (site shows ${Math.round(100 * dr) / 100})`);

@@ -76,7 +76,7 @@ export const MK_COLLECTOR: StatCollectorConfig = {
   scriptName: "scripts/update-top-multikill.ts",
 };
 
-// Imported by the tests and compare-top-ref without running the collector.
+// Imported by the tests without running the collector.
 if (require.main === module) runTopCollector(MK_COLLECTOR).catch((e) => {
   console.error(e);
   process.exit(1);

@@ -1,228 +1,153 @@
-// Synthetic golden cases: inject minimal state and assert an engine reacts the
-// expected way. Catches term-level regressions that no real save covers yet.
-import { galleryBonusMulti, hatrackBonusMulti } from "../../../lib/arkh/stats/systems/w7/gallery";
-import { companions, compMulti } from "../../../lib/arkh/stats/systems/common/companions";
-import { familyBonusValue } from "../../../lib/arkh/stats/systems/common/familyBonus";
-import {
-  royalStatueBon,
-  totalResourceGrade,
-} from "../../../lib/arkh/stats/data/w7/royalG";
-import { computeArcaneMapMultiBon } from "../../../lib/arkh/stats/systems/mc/tesseract";
-import { getPrismaBonusMult } from "../../../lib/arkh/stats/systems/w2/alchemy";
-import { arcadeMaxedMulti, comp27Multi } from "../../../lib/arkh/stats/systems/w2/arcade";
-import { MENAGERIE_BOOST_PER_LV, menagerieBoostQTY } from "../../../lib/arkh/stats/data/w7/menagerie";
-import { exoticBonusQTY } from "../../../lib/arkh/stats/data/w5/farming";
-import { podiumsOwnedLv2 } from "../../../lib/arkh/stats/systems/w7/gallery";
-import { cookingMealMulti } from "../../../lib/arkh/stats/systems/common/cooking";
-import {
-  externalExpMulti,
-  purpleTotal,
-  readMasteryInputs,
-  yellowTotal,
-} from "../../../lib/arkh/stats/systems/common/cookingMastery";
-import { jellyRoGBonus } from "../../../lib/arkh/stats/data/w7/jelly";
-import { rogDropMulti } from "../../../lib/arkh/stats/systems/w7/jelly";
-import { rogBonusQTY } from "../../../lib/arkh/stats/systems/w7/sushi";
-import { computeEmperorBon } from "../../../lib/arkh/stats/systems/w6/emperor";
-import { emperorBonType, emperorBonVal } from "../../../lib/arkh/stats/data/common/emperor";
-import { computeStampDoublerSources } from "../../../lib/arkh/stats/systems/w1/stamp";
-import { ribbonBonusAt } from "../../../lib/arkh/game-helpers";
+// Synthetic golden cases: a minimal synthetic envelope and one lib/game block (or the lib/game helper the page uses) asserting the
+// game's formula reacts the expected way. Catches term-level regressions that no real save covers yet.
+//
+// Each case runs on support/expStub's `synth`: every block not listed in `real` (key prefixes, as the Ctx cache writes them) answers 0
+// unless the case seeds it, so only the term under test computes. The expected numbers are literals from the game's tables (CompanionDB,
+// Research, ArmoryUpg...): a changed table or formula turns the case red, which is the point.
+import { synth, WB, type Data, type Seeds } from "../../../__tests__/lib/game/support/expStub";
+import type { Ctx } from "../../../lib/game/ctx";
+import { ArcadeShopInfo } from "../../../lib/game/data";
+import { hString } from "../../../lib/game/hstring";
+import { ArbitraryCode5Inputs } from "../../../lib/game/njs/ArbitraryCode5Inputs";
+import { ArcadeBonus } from "../../../lib/game/njs/ArcadeBonus";
+import { ArcaneType } from "../../../lib/game/njs/ArcaneType";
+import { Companions } from "../../../lib/game/njs/Companions";
+import { CookingR } from "../../../lib/game/njs/CookingR";
+import { FamilyBonsuesREAL } from "../../../lib/game/njs/FamilyBonsuesREAL";
+import { FarmingStuffs } from "../../../lib/game/njs/FarmingStuffs";
+import { Gallery } from "../../../lib/game/njs/Gallery";
+import { JellyOperation } from "../../../lib/game/njs/JellyOperation";
+import { MenagerieStuff } from "../../../lib/game/njs/MenagerieStuff";
+import { RoyalG } from "../../../lib/game/njs/RoyalG";
+import { RunCodeOfTypeXforThingY } from "../../../lib/game/njs/RunCodeOfTypeXforThingY";
+import { Summoning } from "../../../lib/game/njs/Summoning";
+import { emperorBonTable, Thingies } from "../../../lib/game/njs/Thingies";
+import { TotalStats } from "../../../lib/game/njs/TotalStats";
+import { stampDoublerTerms } from "../../../lib/game/njs/Windwalker";
+import { forceTrophyChip } from "../../../lib/game/trackers/dropRateV1";
+import { externalExpMulti, purpleTotal, readMasteryInputs, yellowTotal, type MasteryInputs } from "../../../lib/cookingMastery/mastery";
 import { NEI32, TOME_BONUSES, TOME_TASKS } from "../../../lib/tome/tasks";
-import { talent } from "../../../lib/arkh/stats/systems/common/talent";
-import { armoryUpgBonus } from "../../../lib/arkh/stats/data/w7/royalG";
-import type { ArkhNode } from "../../../lib/arkh/node";
-import { formulaEval } from "../../../lib/arkh/formulas";
-import { assignSaveData } from "../../../lib/arkh/save/data";
-import { saveData } from "../../../lib/arkh/state";
-import { loadSaveData } from "../../../lib/arkh/save/loader";
 
 export type GoldenCase = { name: string; run: () => boolean; note: string };
 
 const near = (a: number, b: number, eps = 1e-9) => Math.abs(a - b) < eps;
 
+/** `n` empty lists, then `at` written over them (a save list the block indexes directly). */
+const lists = (n: number, at: Record<number, unknown> = {}): unknown[] => Object.assign(Array.from({ length: n }, () => [] as unknown[]), at);
+/** `n` zeros, then `at` (a save row of levels). */
+const zeros = (n: number, at: Record<number, number> = {}): number[] => Object.assign(Array<number>(n).fill(0), at);
+/** The companion list (`envelope.companion.l`): one "id,x,x,x,stage2" entry each. */
+const owns = (...entries: string[]) => ({ l: entries });
+/** Research[7][9] (the Jelly obstructions cleared) at `n`: JellyOperation RoG b is on for b < n. */
+const jelly = (n: number): Data => ({ Research: lists(8, { 7: zeros(10, { 9: n }) }) });
+const ctx = (real: string[], data: Data = {}, o: { seeds?: Seeds; companion?: unknown; chars?: number; player?: number; map?: number } = {}): Ctx => synth(data, { ...o, real });
+/** TotalStats("Drop_Rarity") over all-0 blocks with the Workbench at 1 (njs/dropRateEdges.test.ts' setup), `real` left to their code. */
+const dr = (real: string[], data: Data = {}, o: { seeds?: Seeds; companion?: unknown } = {}): number =>
+  TotalStats(synth({ Dream: zeros(20), ...data }, { companion: o.companion, seeds: { ...WB, ...o.seeds }, real: ['TotalStats["Drop_Rarity"]', "Dungon[", ...real] }), "Drop_Rarity");
+
 export const CASES: GoldenCase[] = [
   {
     name: "Pet2 (companion 31) adds +15 to hat-rack multi",
-    note: "guards the 2026-06 hat-rack term",
+    note: "guards the 2026-06 hat-rack term: Gallery(\"HatrackBonusMulti\") = 1 + (hats + Companions(31) + …)/100",
     run: () => {
-      // Minimal state so hatrackBonusMulti reads zeros for everything except
-      // the companion-31 term: hatCount(0) + Companions(31) + evShop30(0) +
-      // minehead21(0) + sushiRoG36(0).
-      //
-      // hatrackBonusMulti reads:
-      //   sp[46].length → hatCount         (spelunkData[46] absent → 0)
-      //   stateR7[4]    → mineFloor        (stateR7 empty → 0)
-      //   cachedEventShopStr               → evShop30 = 0
-      //   cachedUniqueSushi                → sushiRoG36 = 0
-      //   companionIds.has(31)             → comp31 = 0 before, 15 after
-      //
-      // Baseline: 1 + (0 + 0 + 0 + 0 + 0) / 100 = 1.0
-      // After:    1 + (0 + 15 + 0 + 0 + 0) / 100 = 1.15
-      saveData.spelunkData = [];
-      saveData.stateR7 = [];
-      saveData.cachedEventShopStr = "";
-      saveData.cachedUniqueSushi = 0;
-      saveData.companionIds = new Set<number>();
-
-      const before = hatrackBonusMulti(saveData).val;
-      saveData.companionIds.add(31);
-      const after = hatrackBonusMulti(saveData).val;
-      return Math.abs(after - before - 0.15) < 1e-9;
+      const at = (companion: unknown) => Gallery(ctx(['Gallery["HatrackBonusMulti"', "Companions["], { Spelunk: lists(60) }, { companion }), "HatrackBonusMulti", 0, 0);
+      return near(at(owns()), 1) && near(at(owns("31,0,0,0,0")), 1.15);
     },
   },
   {
     name: "Royal Statue 1 (Drop Rate) = (1 + Reverence/100) · (50 + 5·(lv−1))",
     note: "guards the 2026-08 StatueBon term (Research[41]/[42] + Armory 45)",
     run: () => {
-      // Statue 1 at lv 3, no armory → 50 + 5·2 = 60. Then Royal Reverence
-      // (Armory 45, +1%/lv) at lv 10 → ×1.10 = 66.
-      saveData.royalGData = [[0, 3, 0, 0, 0, 0, 0, 0], [], []];
-      const bare = royalStatueBon(1, saveData);
-      const armory = new Array(60).fill(0);
-      armory[45] = 10;
-      saveData.royalGData[2] = armory;
-      const boosted = royalStatueBon(1, saveData);
-      const unbuilt = royalStatueBon(2, saveData); // lv 0 → 0
-      return near(bare, 60) && near(boosted, 66) && unbuilt === 0;
+      // Statue 1 at lv 3, no armory → 50 + 5·2 = 60. Then Royal Reverence (Armory 45, +1%/lv) at lv 10 → ×1.10 = 66; statue 2 unbuilt → 0.
+      const statue = (b: number, armory: number[]) => RoyalG(ctx(["RoyalG["], { RoyalG: [zeros(8, { 1: 3 }), [], armory] }), "StatueBon", b, 0);
+      return near(statue(1, zeros(60)), 60) && near(statue(1, zeros(60, { 45: 10 })), 66) && statue(2, zeros(60)) === 0;
     },
   },
   {
     name: "Total Resource Grade = Σ RoyalG[5]",
     note: "guards TotalStatz(0), the multiplier of talent 239",
+    run: () => RoyalG(ctx(["RoyalG["], { RoyalG: [[], [], [], [], [], [1, 2, 3, 0, 4]] }), "TotalStatz", 0, 0) === 10,
+  },
+  {
+    name: "Companion stage 2 reads CompanionDB[id][11] (Crystal Glunko 1.3x → 1.45x DR)",
+    note: "guards the 2026-08 CompanionLVz / CompanionBon switch, through Drop_Rarity's ×(1 + .3·Companions(168))",
     run: () => {
-      saveData.royalGData = [[], [], [], [], [], [1, 2, 3, 0, 4]];
-      return totalResourceGrade(saveData) === 10;
+      const at = (companion: unknown) => dr(["Companions[", "CompLV2["], {}, { companion });
+      return near(at(owns()), 1) && near(at(owns("168,0,0,0,0")), 1.3) && near(at(owns("168,0,0,0,1")), 1.45);
     },
   },
   {
-    name: "Companion stage 2 reads CompanionDB[id][11] (Crystal Glunko 1.3x → 1.45x)",
-    note: "guards the 2026-08 CompanionLVz / CompanionBon switch",
+    name: "Mama Troll (132) stage 2 adds +0.2 outside the 0.5 cap",
+    note: "guards Drop_Rarity's ×(1 + min(.5, Companions(132)) + .2·CompLV2(132)); Companions(132) is also a Σ term (100, 300 at stage 2)",
     run: () => {
-      saveData.companionIds = new Set<number>([168]);
-      saveData.companionLv2Ids = new Set<number>();
-      const ctx = { saveData } as any;
-      const base = compMulti.resolve(168, ctx, [Infinity, 1, 0.3]).val;
-      saveData.companionLv2Ids = new Set<number>([168]);
-      const lv2 = compMulti.resolve(168, ctx, [Infinity, 1, 0.3]).val;
-      return near(Number(base), 1.3) && near(Number(lv2), 1.45);
-    },
-  },
-  {
-    name: "Mama Troll (132) stage 2 adds +0.2 outside the 1.5 cap",
-    note: "guards 1 + (min(.5, comp132) + .2·CompLV2(132))",
-    run: () => {
-      saveData.companionIds = new Set<number>([132]);
-      saveData.companionLv2Ids = new Set<number>();
-      const ctx = { saveData } as any;
-      const a = compMulti.resolve(132, ctx, [1.5, 1, 1, 0.2]).val;
-      saveData.companionLv2Ids = new Set<number>([132]);
-      const b = compMulti.resolve(132, ctx, [1.5, 1, 1, 0.2]).val;
-      return near(Number(a), 1.5) && near(Number(b), 1.7);
+      const at = (companion: unknown) => dr(["Companions[", "CompLV2["], {}, { companion });
+      return near(at(owns("132,0,0,0,0")), (1 + 100 / 100) * 1.5) && near(at(owns("132,0,0,0,1")), (1 + 300 / 100) * 1.7);
     },
   },
   {
     name: "Arcane Map cap never goes negative on an account without talent 589",
-    note: "N.js: 100·(decayMulti(589) − 1) is 0 at lv 0, not −100 (which zeroed DR)",
-    run: () => {
-      // No character owns talent 589 → getbonus2 → 0 in our port; the cap must
-      // clamp at the curve floor (1) so min(cap, raw) is 0, never −100.
-      assignSaveData({ numCharacters: 1, charClassData: [34], skillLvData: [{}] });
-      saveData.arcaneData = [];
-      saveData.spelunkData = [];
-      saveData.lv0AllData = [[100]];
-      const v = computeArcaneMapMultiBon(0, {
-        saveData,
-        charIdx: 0,
-        mapBon: [[100000, 0, 0]],
-        mapIdx: 0,
-      });
-      return v >= 0;
-    },
+    note: "N.js: 100·(getbonus2(1, 589, −1) − 1) is 0 at lv 0, not −100 (which zeroed DR)",
+    run: () => ArcaneType(ctx(['ArcaneType["ArcaneMapMulti_bonMAX"', "getbonus2[", "ArbitraryCode5Inputs["], { SL_0: {}, CharacterClass_0: 34 }), "ArcaneMapMulti_bonMAX", 0, 0) === 0,
   },
   {
-    name: "Royal Guardian family bonus (class 16) = decay(10, 800, bestLv − 129)",
-    note: "guards FamBonusQTYs[\"32\"], the new ×(1 + FB/100) DR term",
+    name: "Royal Guardian family bonus (class 16) = decay(10, 800, lv − 129)",
+    note: "guards FamilyBonsuesREAL(16, 0, lv), the class curve behind FamBonusQTYs[\"32\"], the ×(1 + FB/100) DR term",
     run: () => {
-      assignSaveData({ numCharacters: 2, charClassData: [34, 16] });
-      saveData.lv0AllData = [[999], [929]]; // RG at 929 → 929 − 129 = 800
-      const v = familyBonusValue(16, saveData);
-      const expected = formulaEval("decay", 10, 800, 800); // half-point → 5
-      const noRg = (() => {
-        assignSaveData({ numCharacters: 1, charClassData: [34] });
-        return familyBonusValue(16, saveData);
-      })();
-      return v > 0 && near(v, expected) && noRg === 0;
+      const c = ctx(["FamilyBonsuesREAL[", "ArbitraryCode5Inputs["]);
+      return near(FamilyBonsuesREAL(c, 16, 0, 929), 5) && FamilyBonsuesREAL(c, 16, 0, 129) === 0; // 929 − 129 = 800: the half point, 10·800/1600
     },
   },
-  // 2026-09-14: readers that used a literal instead of CompanionDB ignored
-  // stage 2. Each case flips companionLv2Ids and checks the CompanionBon value.
+  // 2026-09-14: readers that used a literal instead of CompanionDB ignored stage 2. Each case moves the companion to stage 2.
   {
     name: "Rift4 (88) stage 2: prisma bubble multi term 50 → 75",
-    note: "N.js 50·Companions(88) reads CompanionBon, not a 0/1 flag",
+    note: "N.js PrismaBonusMult: 2 + (… + 50·Companions(88))/100, Companions(88) 1 → 1.5",
     run: () => {
-      saveData.companionIds = new Set<number>([88]);
-      saveData.companionLv2Ids = new Set<number>();
-      const a = getPrismaBonusMult(saveData);
-      saveData.companionLv2Ids = new Set<number>([88]);
-      const b = getPrismaBonusMult(saveData);
-      return near(b - a, 0.25);
+      const at = (companion: unknown) => ArcaneType(ctx(['ArcaneType["PrismaBonusMult"', "Companions["], {}, { companion }), "PrismaBonusMult", 0, 0);
+      return near(at(owns()), 2) && near(at(owns("88,0,0,0,0")), 2.5) && near(at(owns("88,0,0,0,1")), 2.75);
     },
   },
   {
     name: "w7a3 (42) counts 2 Lv2 showcases (3 at stage 2)",
     note: "N.js PodiumsOwned_Lv2 adds Companions(42) itself — was a +1 flag",
     run: () => {
-      saveData.companionIds = new Set<number>();
-      saveData.companionLv2Ids = new Set<number>();
-      const none = podiumsOwnedLv2(saveData);
-      saveData.companionIds = new Set<number>([42]);
-      const base = podiumsOwnedLv2(saveData);
-      saveData.companionLv2Ids = new Set<number>([42]);
-      const lv2 = podiumsOwnedLv2(saveData);
-      return base - none === 2 && lv2 - none === 3;
+      const at = (companion: unknown) =>
+        Gallery(ctx(['Gallery["PodiumsOwned_Lv', "Companions[", "CompLV2["], { GemItemsPurchased: zeros(50), Sailing: lists(4, { 3: zeros(40) }) }, { companion }), "PodiumsOwned_Lv2", 0, 0);
+      const none = at(owns());
+      return at(owns("42,0,0,0,0")) - none === 2 && at(owns("42,0,0,0,1")) - none === 3;
     },
   },
   {
-    name: "Reindeer (27) doubles arcade bonuses only at stage 1",
-    note: "N.js `1 == Companions(27)`: stage 2 (1.5) loses the ×2 — mirrored",
+    name: "Reindeer (27) doubles arcade bonuses only at stage 1; Arcade Omega: level 102 = ×6 (Super 101 = ×2)",
+    note: "N.js ArcadeBonus: 101==ArcadeUpg[d] ? ×2 : 102==ArcadeUpg[d] && ×6, then `1 == Companions(27)` ×2 (stage 2, 1.5, loses it)",
     run: () => {
-      saveData.companionIds = new Set<number>();
-      saveData.companionLv2Ids = new Set<number>();
-      const none = comp27Multi(saveData);
-      saveData.companionIds = new Set<number>([27]);
-      const base = comp27Multi(saveData);
-      saveData.companionLv2Ids = new Set<number>([27]);
-      const lv2 = comp27Multi(saveData);
-      return none === 1 && base === 2 && lv2 === 1;
+      // ArcadeBonus(0) over the bare curve ArcadeShopInfo[0] at the same level: the multiplier alone
+      const info = ArcadeShopInfo[0] as unknown as readonly unknown[];
+      const multi = (level: number, companion: unknown = owns()) => {
+        const c = ctx(["ArcadeBonus[", "ArbitraryCode5Inputs[", "Companions["], { ArcadeUpg: zeros(60, { 0: level }) }, { companion });
+        return ArcadeBonus(c, 0) / ArbitraryCode5Inputs(c, hString(info[3]), Number(info[1]), Number(info[2]), level, 0, 0);
+      };
+      return (
+        near(multi(100), 1) && near(multi(101), 2) && near(multi(102), 6) &&
+        near(multi(100, owns("27,0,0,0,0")), 2) && near(multi(100, owns("27,0,0,0,1")), 1)
+      );
     },
   },
   {
     name: "w6b2b (162) meal multi 25% → 40% at stage 2",
-    note: "N.js (1 + 25·Companions(162)/100), CompanionBon 1 → 1.6",
+    note: "N.js CookingMealBonusMultioo: …×(1 + 25·Companions(162)/100), CompanionBon 1 → 1.6",
     run: () => {
-      saveData.companionIds = new Set<number>([162]);
-      saveData.companionLv2Ids = new Set<number>();
-      const a = cookingMealMulti(saveData).comp162;
-      saveData.companionLv2Ids = new Set<number>([162]);
-      const b = cookingMealMulti(saveData).comp162;
-      return near(a, 25) && near(b, 40);
+      const at = (companion: unknown) => CookingR(ctx(['CookingR["CookingMealBonusMultioo"', "Companions["], {}, { companion }), "CookingMealBonusMultioo", 0, 0);
+      return near(at(owns()), 1) && near(at(owns("162,0,0,0,0")), 1.25) && near(at(owns("162,0,0,0,1")), 1.4);
     },
   },
   {
     name: "Rift1 (87) stage 2: Cooking Mastery +7.5 pts (pool rounded) and ×4 Exp/h",
     note: "N.js 5·Companions(87) and (1 + 2·Companions(87)) with CompanionBon 1.5",
     run: () => {
-      saveData.companionIds = new Set<number>([87]);
-      saveData.companionLv2Ids = new Set<number>([87]);
-      const inp = readMasteryInputs(saveData);
-      const ext = externalExpMulti(saveData);
-      const stage1 = { ...inp, comp87: 1 };
-      return (
-        near(inp.comp87, 1.5) &&
-        purpleTotal(stage1) === inp.rank + 6 &&
-        purpleTotal(inp) === inp.rank + 9 && // round(rank + 8.5)
-        near(ext.comp87, 1.5)
-      );
+      const c = ctx(["Companions["], { CookMaster: [[], zeros(4), zeros(6)], Meals: [zeros(80)], Ribbon: zeros(130), Lv0_0: zeros(20) }, { companion: owns("87,0,0,0,1") });
+      const inp = readMasteryInputs(c);
+      const stage1: MasteryInputs = { ...inp, comp87: 1 };
+      return near(inp.comp87, 1.5) && purpleTotal(stage1) === inp.rank + 6 && purpleTotal(inp) === inp.rank + 9 && near(externalExpMulti(c).val, 1 + 2 * 1.5); // round(rank + 8.5)
     },
   },
   // 2026-09-18 Jelly Operator: obstruction b is active once Research[7][9] > b.
@@ -230,71 +155,50 @@ export const CASES: GoldenCase[] = [
     name: "Jelly Operator RoG 14 (Drop Rate) unlocks once MORE than 14 obstructions are down",
     note: "guards JellyOperation(\"RoG_BonusQTY\", b) = Research[7][9] > b ? Research[47][b] : 0",
     run: () => {
-      saveData.stateR7 = [];
-      const none = jellyRoGBonus(14, saveData);
-      saveData.stateR7 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 14];
-      const exact = jellyRoGBonus(14, saveData);
-      saveData.stateR7 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 15];
-      const on = jellyRoGBonus(14, saveData);
-      return none === 0 && exact === 0 && on === 5;
+      const at = (n: number) => JellyOperation(ctx(["JellyOperation["], jelly(n)), "RoG_BonusQTY", 14, 0);
+      return at(0) === 0 && at(14) === 0 && at(15) === 5;
     },
   },
   {
     name: "Drop Rate RoG factor sums Sushi 48 and Jelly 14 inside ONE (1 + x/100)",
     note: "N.js: ×(1 + (SushiStuff RoG 48 + JellyOperation RoG 14)/100)",
-    run: () => {
-      saveData.cachedUniqueSushi = 64;
-      saveData.stateR7 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 72];
-      const n = rogDropMulti.resolve(0, { saveData } as any);
-      const expected = rogBonusQTY(48, 64) + 5;
-      return n.fmt === "+" && near(Number(n.val), expected) && (n.children?.length ?? 0) === 2;
-    },
+    run: () => near(dr([], {}, { seeds: { 'SushiStuff["RoG_BonusQTY",48,0]': 30, 'JellyOperation["RoG_BonusQTY",14,0]': 20 } }), 1.5),
   },
   {
     name: "Emperor bonus multi gains Jelly 28 (+2%) next to Arcane 48 and Arcade 51",
     note: "N.js EmperorBon: floor(sum × (1 + (Arcane48 + Arcade51 + Jelly28)/100))",
     run: () => {
-      saveData.arcaneData = [];
-      saveData.arcadeUpgData = [];
-      saveData.olaData = [];
-      (saveData.olaData as any)[369] = 48; // one pass over the 48 emperor slots
-      let sum = 0;
-      for (let r = 0; r < 48; r++) if (emperorBonType(r) === 11) sum += emperorBonVal(11);
-      saveData.stateR7 = [];
-      const before = computeEmperorBon(11, saveData);
-      saveData.stateR7 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 72];
-      const after = computeEmperorBon(11, saveData);
-      return sum > 0 && before === Math.floor(sum) && after === Math.floor(sum * 1.02);
+      const at = (n: number) => {
+        const c = ctx(['Thingies["EmperorBon"', "JellyOperation["], { ...jelly(n), OptLacc: zeros(700, { 369: 48 }) }); // one pass over the 48 emperor slots
+        return { sum: emperorBonTable(c)[11], v: Thingies(c, "EmperorBon", 11, 0) };
+      };
+      const before = at(0);
+      const after = at(72);
+      return before.sum > 0 && before.v === Math.floor(before.sum) && after.v === Math.floor(after.sum * 1.02);
     },
   },
   {
     name: "Stamp Doubler adds Jelly 50 ÷ 100 (+0.01) next to Sushi RoG 17",
     note: "N.js StampDoubler: … + (SushiRoG17 + JellyRoG50/100)",
     run: () => {
-      saveData.stateR7 = [];
-      const a = computeStampDoublerSources(saveData).total;
-      saveData.stateR7 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 72];
-      const b = computeStampDoublerSources(saveData).total;
-      return near(b - a, 0.01);
+      const at = (n: number) => stampDoublerTerms(ctx(["JellyOperation["], { ...jelly(n), Spelunk: lists(5, { 4: zeros(4) }) })).total;
+      return near(at(72) - at(0), 0.01);
     },
   },
   {
     name: "Ribbon bonus: tier-20+ ribbons gain floor(t/20) × Jelly 60",
     note: "N.js RibbonBonus: … + floor(b/20) × JellyOperation RoG 60",
     run: () => {
-      const rib = [20];
-      const plain = ribbonBonusAt(0, rib, "", {});
-      const jelly = ribbonBonusAt(0, rib, "", {}, 5);
-      const low = ribbonBonusAt(0, [19], "", {}, 5) - ribbonBonusAt(0, [19], "", {});
-      return near(jelly - plain, 0.05) && near(low, 0);
+      const at = (tier: number, n: number) => Summoning(ctx(['Summoning["RibbonBonus"', "JellyOperation["], jelly(n)), "RibbonBonus", tier, 0);
+      return near(at(20, 72) - at(20, 0), 0.05) && near(at(19, 72) - at(19, 0), 0);
     },
   },
   {
     name: "Golden Food multi: Jelly 10 (+100%) and 51 (+200%) are additive % sources",
     note: "N.js GoldFoodBonuses rest-sum: … + Vault86 + Jelly10 + Jelly51",
     run: () => {
-      saveData.stateR7 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 72];
-      return jellyRoGBonus(10, saveData) === 100 && jellyRoGBonus(51, saveData) === 200;
+      const c = ctx(["JellyOperation["], jelly(72));
+      return JellyOperation(c, "RoG_BonusQTY", 10, 0) === 100 && JellyOperation(c, "RoG_BonusQTY", 51, 0) === 200;
     },
   },
   {
@@ -314,67 +218,36 @@ export const CASES: GoldenCase[] = [
     name: "Royal Guardian talents get All-Talent-LV bonus levels only up to Armory 55",
     note: "N.js AllTalMaxCapFR = ArmoryUpgBonus(55) for talents 225–239 (9999 otherwise)",
     run: () => {
-      // Talent 149 (Symbols of Beyond) at 100 → 1 + floor(100/20) = 6 bonus
-      // levels; whatever else the (possibly real-save) state contributes is
-      // measured with the cap lifted, then checked against Armory 55.
-      assignSaveData({
-        numCharacters: 1,
-        charClassData: [16],
-        skillLvData: [{ 239: 10, 149: 100 }],
-      });
-      saveData.charNames = ["RG"];
-      saveData.companionIds = new Set<number>();
-      saveData.companionLv2Ids = new Set<number>();
-      saveData.royalGData = [[], [], new Array(99).fill(0), [], [], []];
-      const bonusOf = (id: number): number => {
-        const tree = talent.resolve(id, { saveData, charIdx: 0 } as any);
-        let found: number | null = null;
-        const walk = (n: ArkhNode | undefined) => {
-          if (!n || found !== null) return;
-          if (n.name === "Bonus Levels") { found = Number(n.val) || 0; return; }
-          for (const c of n.children || []) walk(c);
-        };
-        walk(tree);
-        return found ?? -1;
-      };
-      const capped = bonusOf(239); // Armory 55 lv 0 → cap 0
-      saveData.royalGData[2][55] = 9999;
-      const uncapped = bonusOf(239);
-      saveData.royalGData[2][55] = 20;
-      const cap = Math.floor(armoryUpgBonus(55, saveData));
-      const lifted = bonusOf(239);
-      return capped === 0 && uncapped >= 6 && cap > 0 && lifted === Math.min(uncapped, cap);
+      // Talent 149 (Symbols of Beyond) seeded at 6 bonus levels; Armory 55 (1 per level) caps them for talent 239, not for 149.
+      const at = (t: number, armory55: number) =>
+        RunCodeOfTypeXforThingY(
+          ctx(['RunCodeOfTypeXforThingY["AllTalentLV"', "RoyalG["], { SL_0: { 239: 10, 149: 100 }, RoyalG: [[], [], zeros(99, { 55: armory55 })], PlayerStuff_0: [0, 0], Spelunk: lists(40), Dream: zeros(20) }, { seeds: { "GetTalentNumber[1,149]": 6 } }),
+          "AllTalentLV",
+          `${t}`
+        );
+      return at(239, 0) === 0 && at(239, 9999) === 6 && at(239, 4) === 4 && at(149, 0) === 6;
     },
   },
   {
-    name: "Gallery Bonus Multi counts chip 16 per character (the game's chipBonuses(\"troph\"))",
-    note: "verified against the live game 2026-09-18: 2.27× with the chip, 2.17× without",
+    name: "Gallery Bonus Multi counts chip 16 per character (the game's chipBonuses(\"troph\")), and the page's chip toggle overrides it",
+    note: "verified against the live game 2026-09-18: 2.27× with the chip, 2.17× without; forceTrophyChip is the /drop-rate toggle",
     run: () => {
       // char 0 wears Silkrode Motherboard (chip 16), char 1 does not.
-      assignSaveData({ numCharacters: 2, labData: [[], [16, 0, 0], [10, 0, 0]] });
-      saveData.spelunkData = [];
-      saveData.cachedUniqueSushi = 0;
-      saveData.companionIds = new Set<number>();
-      const withChip = galleryBonusMulti(saveData, { charIdx: 0 }).val;
-      const without = galleryBonusMulti(saveData, { charIdx: 1 }).val;
-      const forcedOff = galleryBonusMulti(saveData, { charIdx: 0, chipGalleryActive: false }).val;
-      return near(withChip - without, 0.1) && near(forcedOff, without);
+      const data = { Lab: [[], [16, -1, -1, -1, -1, -1, -1], [10, -1, -1, -1, -1, -1, -1]], Spelunk: lists(14, { 13: zeros(5) }) };
+      const multi = (player: number, force?: boolean) => {
+        const c = ctx(['Gallery["GalleryBonusMulti"', "chipBonuses["], data, { chars: 2, player });
+        forceTrophyChip(c, force);
+        return Gallery(c, "GalleryBonusMulti", 0, 0);
+      };
+      return near(multi(0) - multi(1), 0.1) && near(multi(0, false), multi(1)) && near(multi(1, true), multi(0));
     },
   },
   {
     name: "Tome: Flying Worm (20) 30 → 40 talent pts, Rift Slug (1) 25 → 35 at stage 2",
-    note: "the Tome star tab reads Companions(20) through the engine (CompanionDB, stage 2 = companion.l field [4])",
+    note: "the Tome star tab reads Companions(20) (CompanionDB, stage 2 = companion.l field [4])",
     run: () => {
-      const val = (l: string[], id: number) => {
-        loadSaveData({ data: {}, companion: { l } } as any);
-        return companions(id, saveData);
-      };
-      return (
-        val(["20,1,0,0,0"], 20) === 30 &&
-        val(["20,1,0,0,1"], 20) === 40 &&
-        val(["1,0,0,0,0", "1,0,0,0,1"], 1) === 35 &&
-        val([], 1) === 0
-      );
+      const val = (id: number, ...l: string[]) => Companions(ctx(["Companions["], {}, { companion: owns(...l) }), id);
+      return val(20, "20,1,0,0,0") === 30 && val(20, "20,1,0,0,1") === 40 && val(1, "1,0,0,0,0", "1,0,0,0,1") === 35 && val(1) === 0;
     },
   },
   // 2026-10-16 Luminous Menagerie.
@@ -397,24 +270,15 @@ export const CASES: GoldenCase[] = [
     name: "Cooking Mastery Exp/h ×(1 + Menagerie Boost 21/100)",
     note: "N.js ExpRateCook: …*(1+MenagerieStuff(\"BoostQTY\",21,0)/100)*… (1%/level)",
     run: () => {
-      const prev = saveData.menagerieData;
-      try {
-        saveData.menagerieData = [];
-        const a = externalExpMulti(saveData).val;
-        const m3 = new Array(25).fill(0);
-        m3[21] = 30;
-        saveData.menagerieData = [[], [], [], m3];
-        return near(externalExpMulti(saveData).val / a, 1.3, 1e-9);
-      } finally {
-        saveData.menagerieData = prev;
-      }
+      const at = (lv: number) => externalExpMulti(ctx(["MenagerieStuff["], { Menagerie: [[], [], [], zeros(25, { 21: lv })] })).val;
+      return near(at(30) / at(0), 1.3);
     },
   },
   {
     name: "Cooking Mastery Yellow PTS use Jelly RoG 5, Purple PTS Jelly RoG 13",
     note: "N.js PtsLeftCook_Y …+JellyOperation(\"RoG_BonusQTY\",5)… vs PtsLeftCook_P …(\"RoG_BonusQTY\",13)…",
     run: () => {
-      const inp: any = { rank: 10, comp87: 0, evShop54: false, jelly13: 0, jelly5: 1, researchGridYellow: 0 };
+      const inp = { rank: 10, comp87: 0, evShop54: false, jelly13: 0, jelly5: 1, researchGridYellow: 0 } as MasteryInputs;
       return yellowTotal(inp) === 12 && purpleTotal(inp) === 11;
     },
   },
@@ -422,44 +286,17 @@ export const CASES: GoldenCase[] = [
     name: "Exotic Market doubler: Spelunk[50] lists the exotic → ×2 (Land Rank DR reads exotic 14)",
     note: "N.js ExoticBonusQTY: D.contains(Spelunk[50],e) && ExoticFarmBon[e] *= 2; LankRankUpgBonus ×(1+ExoticBonusQTY(14)/100)",
     run: () => {
-      const prevFarm = saveData.farmUpgData;
-      const prevSpel = saveData.spelunkData;
-      try {
-        const farm = new Array(80).fill(0);
-        farm[34] = 1000; // exotic 14 at Lv 1000 → 60 × 1000/2000 = 30
-        saveData.farmUpgData = farm;
-        saveData.spelunkData = [];
-        const plain = exoticBonusQTY(14, saveData);
-        const spel = [] as any[];
-        spel[50] = [14];
-        saveData.spelunkData = spel;
-        return near(plain, 30) && near(exoticBonusQTY(14, saveData), 60);
-      } finally {
-        saveData.farmUpgData = prevFarm;
-        saveData.spelunkData = prevSpel;
-      }
+      // exotic 14 at Lv 1000 → 60 × 1000/2000 = 30
+      const at = (spel50: number[]) => FarmingStuffs(ctx(['FarmingStuffs["ExoticBonusQTY"'], { FarmUpg: zeros(80, { 34: 1000 }), Spelunk: lists(51, { 50: spel50 }) }), "ExoticBonusQTY", 14, 0);
+      return near(at([]), 30) && near(at([14]), 60);
     },
-  },
-  {
-    name: "Arcade Omega: level 102 = ×6 (Super 101 = ×2)",
-    note: "N.js ArcadeBonus: 101==ArcadeUpg[d] ? ×2 : 102==ArcadeUpg[d] && ×6",
-    run: () => arcadeMaxedMulti(100) === 1 && arcadeMaxedMulti(101) === 2 && arcadeMaxedMulti(102) === 6,
   },
   {
     name: "DR: Menagerie Boost 24 = Research[58][24] × Menagerie[3][24]",
     note: "N.js Drop_Rarity …*(1+RoyalG(\"StatueBon\",1)/100)*(1+MenagerieStuff(\"BoostQTY\",24)/100)*…",
     run: () => {
-      const prev = saveData.menagerieData;
-      try {
-        const m3 = new Array(25).fill(0);
-        m3[24] = 7;
-        saveData.menagerieData = [[], [], [], m3];
-        const v = menagerieBoostQTY(24, saveData);
-        saveData.menagerieData = [];
-        return near(v, 7 * MENAGERIE_BOOST_PER_LV[24]) && menagerieBoostQTY(24, saveData) === 0;
-      } finally {
-        saveData.menagerieData = prev;
-      }
+      const at = (lv: number) => dr(["MenagerieStuff["], { Menagerie: [[], [], [], zeros(25, { 24: lv })] });
+      return near(at(7), 1.07) && near(at(0), 1); // 1% a level
     },
   },
 ];
