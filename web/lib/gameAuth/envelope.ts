@@ -93,7 +93,8 @@ export async function fetchSaveEnvelope(uid: string, idToken: string): Promise<S
 async function tomePoints(env: Omit<SaveEnvelope, "extraData">): Promise<number> {
   try {
     const { computeTome } = await import("@/lib/tome/compute");
-    return computeTome(env as Parameters<typeof computeTome>[0]).totalPts;
+    const result = computeTome(env as Parameters<typeof computeTome>[0]);
+    return result.error ? 0 : result.totalPts; // a refused save would give a partial sum
   } catch {
     return 0; // same fallback the DR loader uses for a save without tome points
   }
