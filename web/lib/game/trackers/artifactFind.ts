@@ -3,13 +3,13 @@
 // The number is TRACKERS.artifactFind (Sailing BoatArtiMulti, njs/Sailing.ts). The tree is read out of that call's trace: each source
 // finds the call it stands for among BoatArtiMulti's direct calls (by block and leading arguments), takes its value, and carries the
 // call's own N.js trace as children. The grouping and the names are display (lib/artifactFind/groups.ts and the table below, the names
-// lib/arkh's tree has: the page's Biggest Gains and the Observed Max data are keyed by them); a group's value is only the factor it
+// lib/arkh's tree had: the page's Biggest Gains and the Observed Max data are keyed by them); a group's value is only the factor it
 // shows, so the total never comes from the tree.
 //
 // The trace below a source is trimmed (Ruling L, trackers/page.ts). The whole trace is still there for debugging: run
 // Sailing(ctx, "BoatArtiMulti", 0, 0) on a Ctx made with `trace: true` (gameArtifactFind does exactly that and trims what it hands the page).
 //
-// The type of the result is the page's own (lib/statTracker/config StatResult: type-only). lib/game imports no lib/arkh and reaches none:
+// The type of the result is the page's own (lib/statTracker/config StatResult: type-only). lib/game imports no lib/tome:
 // DNSM.TomeQTYtot, the Tome score (Ruling K), is lib/game's own sum of the Tome's points (njs/TomeQTY.ts, Summoning TomePTS).
 //
 // Performance, user decision 2026-11-04: the page switched to this engine at warm-character-switch parity with lib/arkh (about 2 ms).
@@ -31,7 +31,7 @@ type Node = StatResult["tree"];
 type Leaf = (name: string, val: number, note: string) => number;
 
 /**
- * One source of the tree. `of` is the term as lib/arkh's tree has it, which is the term as BoatArtiMulti writes it: before the `/100`
+ * One source of the tree. `of` is the term as lib/arkh's tree had it, which is the term as BoatArtiMulti writes it: before the `/100`
  * of a `pct` group, the factor itself for a `mult` group, but before the `max(1, …)` of a `max1` group and without the `1 +` of a
  * `raw` one (the group applies those). Boat 0 is the boat the Skill Info shows.
  */
@@ -78,7 +78,7 @@ const SOURCES: Record<string, Source> = {
   spelunkBit26: { name: "Artifacto Discoveries (Super Bit 26)", fmt: "x", note: "1.02 ^ Spelunk discoveries × Super Bit 26", of: (t, ctx, leaf) => Math.pow(1.02, leaf("Spelunk[6].length", listAt(ctx, "Spelunk", 6).length, "a plain read of the save, not an N.js call")) * t("GamingStatType", "SuperBitType", 26, 0) },
 };
 
-/** What a group shows: the factor of its sources and the shape note (lib/arkh's, which the page's tooltip prints). */
+/** What a group shows: the factor of its sources and the shape note (lib/arkh's, kept: the page's tooltip prints it). */
 function groupOf(g: (typeof ARTI_GROUPS)[number], vals: readonly number[]): { val: number; note: string } {
   const sum = vals.reduce((a, v) => a + v, 0);
   if (g.kind === "pct") return { val: 1 + sum / 100, note: "× (1 + Σ/100)" };

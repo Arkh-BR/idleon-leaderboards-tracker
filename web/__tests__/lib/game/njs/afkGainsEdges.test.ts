@@ -117,7 +117,7 @@ describe("afkFightRate: 0 when the map's AFK target has nothing to fight (synthe
     expect(afkFightRate(synth({}, { seeds, map: 33 }))).toBe(0);
   });
 
-  it("a skill target (map 6, mining) shows the Fighting rate, as lib/arkh's page does", () => {
+  it("a skill target (map 6, mining) shows the Fighting rate, as lib/arkh's page did", () => {
     expect(afkFightRate(synth({}, { seeds, map: 6 }))).toBeCloseTo(1, 12);
   });
 

@@ -1,6 +1,6 @@
 // ===== TALENT TABS GENERATOR =====
 // One-shot script: reads the game's talent lists (N.js-derived
-// web/lib/arkh/stats/data/game/customlists.js: ClassNames, TalentOrder,
+// web/lib/game/data/generated/customlists.js: ClassNames, TalentOrder,
 // TalentIconNames, TalentDescriptions) and emits a strongly-typed lookup
 // table `talentTabsByClass` that the /talents-level page uses to build the
 // visual picker.
@@ -177,7 +177,7 @@ async function main(): Promise<void> {
 // Shape: for each class promotion (Beginner → Voidwalker, etc), the ordered
 // list of talent tabs the in-game UI shows, with the talents inside each
 // tab. Every class also gets the 4 Special Talent (star talent) tabs at the
-// end. The id field IS the numeric talent index our arkh resolvers use.
+// end. The id field IS the game's numeric talent index.
 
 export type TalentEntry = {
   id: number;

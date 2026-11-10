@@ -12,6 +12,7 @@ import type { Ported } from "../ported";
  * (`-1 != slot`, loose), `ChipBbonusz[ChipDesc[slot][10]] += ChipDesc[slot][11]`. Here it is built each time, for the key asked.
  * The Lab and the chip kinds are the account's, so the key and the slots are all there is to read.
  */
+// @njs RecalcChipBonuses
 export const chipBonuses = block("chipBonuses", (ctx, d: string) => {
   const slots = 1 + ctx.player;
   listAt(ctx, "Lab", slots); // the game indexes Lab[1 + player][slot] directly

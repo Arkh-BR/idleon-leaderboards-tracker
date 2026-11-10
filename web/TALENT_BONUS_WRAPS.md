@@ -3,6 +3,10 @@
 Reference doc for the talent "final bonus" system on `/talents-level` and
 `/drop-rate`. Written 2026-05-28. Branch: `drop-rate-max-values`.
 
+> **Historical.** This describes the `lib/arkh` engine, deleted on 2026-11-10.
+> The wraps now live in `lib/talentsLevel/wraps.ts`, on the game's own blocks
+> (`lib/game/njs/`); the file paths in §2 no longer exist.
+
 This started as "are there account-wide talents we're missing?" and grew into
 a full port of the in-game stat/damage/accuracy engines so that **every talent
 shows its true final in-game bonus** on its headline row, with the inputs

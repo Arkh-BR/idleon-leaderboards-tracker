@@ -7,8 +7,8 @@
 //   |- Talent Value                  the coefficient
 //   '- <Counter>                     the value the coefficient is applied to
 //
-// Names, order, formats and notes are the page's (lib/arkh's table was the reference for them), because the Hypothetical tab compares by path. Every counter reads lib/game. Where the game's arithmetic is not what
-// lib/arkh had, the table follows the game and the difference is listed in the comparer's TALENT_KNOWN (__tests__/lib/game/support/talentCompare.ts).
+// Names, order, formats and notes are the page's (the deleted lib/arkh's table was the reference for them), because the Hypothetical tab compares by path. Every counter reads lib/game. Where the game's
+// arithmetic is not what lib/arkh had, the table follows the game (the notes below say where).
 import { asNum, asNumber } from "@/lib/game/attr";
 import { charKey, opt } from "@/lib/game/state";
 import type { Ctx } from "@/lib/game/ctx";

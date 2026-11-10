@@ -4,9 +4,9 @@
 // locals, so the tree is read out of the trace, as the AFK and Damage trackers do (trackers/afkGains.ts, damage.ts): each source finds the
 // call(s) it stands for among ExpMulti's direct calls (by block and arguments, each call once, in call order), takes their values and carries the
 // calls' own N.js trace as children. A number ExpMulti reads from the save itself (the bun_q bundle, the weekly boss, the level ladders) is a leaf.
-// The source's value is the term as lib/arkh's tree has it and the game writes it: the FACTOR in a `mult` group, the % points in a `pct` group
-// (the TERMS table of __tests__/lib/game/njs/expTerms.test.ts validates every one against lib/arkh over every real save). The groups, ids and
-// names are display (lib/expMulti/layers.ts and the table below: the names lib/arkh's tree has, which the page's Biggest Gains and the Observed
+// The source's value is the term as lib/arkh's tree had it and the game writes it: the FACTOR in a `mult` group, the % points in a `pct` group
+// (the TERMS table of __tests__/lib/game/njs/expTerms.test.ts writes every one as its N.js sub-expression). The groups, ids and
+// names are display (lib/expMulti/layers.ts and the table below: the names lib/arkh's tree had, which the page's Biggest Gains and the Observed
 // Max data are keyed by); a node's value is only what it shows, and the total never comes from the tree.
 //
 // The trace below a source is trimmed (Ruling L, trackers/page.ts). The reads that are no source but lead to a `runtime:` / `assumed:` note stay
@@ -53,7 +53,7 @@ type Ops = {
   leaf: (name: string, val: number, note?: string) => number;
   c: Ctx;
 };
-/** One source of the tree: its name and note as lib/arkh's tree has them, and `of`, the term as ExpMulti uses it (see the header). */
+/** One source of the tree: its name and note as lib/arkh's tree had them, and `of`, the term as ExpMulti uses it (see the header). */
 type Source = { name: string; note?: string | ((c: Ctx) => string); of: (o: Ops) => number };
 
 /** The newbie ladder: an exclusive `Lv0 < 10 ? 150 : Lv0 < 30 ? 100 : Lv0 < 50 ? 50 : 0`. */

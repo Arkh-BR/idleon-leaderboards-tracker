@@ -87,7 +87,7 @@ Cada rank dá +1 de cada cor; Companion 87 (rift1) dá +5 de cada; Research Grid
 ```js
 "BonusMultiCook"==d) return 1 + 100*CookMaster[0][b]/(CookMaster[0][b]+5)/100;  // = 1 + Y_g/(Y_g+5)
 ```
-Multiplica o bônus da meal g (range 1→~2). Já portado em `lib/arkh/stats/systems/common/cooking.ts:35`.
+Multiplica o bônus da meal g (range 1→~2). Portado em `lib/game/njs/Summoning2.ts` (`BonusMultiCook`).
 
 ## Implicações para o otimizador (Exp/h)
 

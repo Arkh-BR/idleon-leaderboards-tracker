@@ -234,7 +234,7 @@ function valColor(val: number, fmt: string | undefined): string {
 
 // -----------------------------------------------------------------------------
 // Classification used to live here as a flat "By System" view. That layout
-// was removed — the tree's buckets (built by lib/arkh/stats/categorize.ts)
+// was removed — the tree's buckets (built by lib/dropRate/systems.ts)
 // already group every source by its game system, so the parallel
 // classifier was redundant and out-of-date relative to the descriptor
 // renames. Search across the tree handles the "find a source quickly"

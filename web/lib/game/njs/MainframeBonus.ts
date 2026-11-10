@@ -29,7 +29,7 @@ function labMainBonus(ctx: Ctx): Row[] {
  * Lab page's live state (`_customEvent_Lab` with the "d" trigger @10069277, setting 1 @10073751): the characters standing in the
  * lab (AFK target "Laboratory", or a Divinity link), where each is (Lab[0]), the width of each one's line (meals, chips, cards,
  * pets, jewels) and the distance to the node. The save has all of that, but replaying it is the lab's whole connection walk, which
- * this engine does not port. Until it does, the node is counted as connected, as lib/arkh does ("assume the lab is built"), by a
+ * this engine does not port. Until it does, the node is counted as connected, as lib/arkh did ("assume the lab is built"), by a
  * declared `assumed()` (Ruling J): the trace says so, this is an assumption, not a read. For an account whose lab does not reach the
  * node the game's bonus is the inactive value (LabMainBonus[d][4]) instead.
  */

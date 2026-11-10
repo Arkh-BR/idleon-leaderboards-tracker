@@ -6,8 +6,8 @@ const empty: MapDiff = { added: [], removed: [], changed: [] };
 
 describe("buildImpactReport", () => {
   const registry = {
-    FriendBonusQTY: ["lib/arkh/stats/systems/common/friend.ts"],
-    "RandoListo2[8]": ["lib/arkh/stats/systems/common/cookingMastery.ts"],
+    FriendBonusQTY: ["lib/game/njs/friend.ts"],
+    "RandoListo2[8]": ["lib/game/njs/cookingMastery.ts"],
   };
 
   it("points a mapped formula change at its ported file", () => {

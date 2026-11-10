@@ -1,5 +1,5 @@
-// The damage math over the display config (lib/damage/layers): the soft caps, one layer's run, Max and Mastery. Both the page's
-// Biggest Gains what-if (gains.ts) and lib/arkh's descriptor call these.
+// The damage math over the display config (lib/damage/layers): the soft caps, one layer's run, Max and Mastery. The page's
+// Biggest Gains what-if (gains.ts) calls these.
 
 import { applyGroupStep, groupVal } from "@/lib/statTracker/groups";
 import { DMG_LAYERS, DMG_MASTERY, DMG_RAT, type DmgLayer } from "./layers";

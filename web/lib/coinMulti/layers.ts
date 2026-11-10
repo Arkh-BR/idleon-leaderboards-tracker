@@ -1,6 +1,6 @@
 // The Coin Multi page's display config: the root, the weekly vote's node and the groups (ids = the coin system's cases, N.js order).
-// Both engines (lib/arkh's descriptor and lib/game's tracker adapter, lib/game/trackers/coinMulti.ts) and the page's Biggest Gains model
-// (pageConfig.ts) read this, so it lives here, not in either engine (Ruling B, as lib/dropRateV2/layers).
+// The engine (lib/game's tracker adapter, lib/game/trackers/coinMulti.ts) and the page's Biggest Gains model
+// (pageConfig.ts) read this, so it lives here, not in the engine (Ruling B, as lib/dropRateV2/layers).
 //   N.js ArbitraryCode("MonsterCash"): 22 multiplicative factors and one additive group, in game order. A group's shape:
 //   pct -> 1 + sum/100      raw -> 1 + sum      min4 -> 1 + min(4, sum)
 

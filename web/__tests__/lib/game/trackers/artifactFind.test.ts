@@ -2,7 +2,7 @@
 //
 // BoatArtiMulti is one expression of the ported blocks; the adapter turns the ONE traced call into the page's tree. The file tests:
 // - the expression: N.js's text token for token, its calls, the boat argument, the strict Boats row, the tracker registry;
-// - the display config in lib/artifactFind/groups, and that no file under lib/game imports lib/arkh or lib/tome;
+// - the display config in lib/artifactFind/groups, and that no file under lib/game imports lib/tome;
 // - over every real save and character: the groups recombining to the total (display and value agree), and the pinned Ruling E refusals
 //   (pre-migration saves throw);
 // - the page's tree keeps every runtime:/assumed: note of the full trace (Ruling L);
@@ -156,25 +156,8 @@ describe("the display config", () => {
     expect(IDS).toHaveLength(35);
   });
 
-  // lib/game must be able to outlive lib/arkh: no file under it imports lib/arkh (by alias or by a relative path). The transitive reach is
-  // the next test's (and noArkhImports.test.ts walks the whole graph).
-  it("no file under lib/game imports lib/arkh", () => {
-    const files = readdirSync("lib/game", { recursive: true })
-      .map((f) => `lib/game/${String(f).replace(/\\/g, "/")}`)
-      .filter((f) => /\.tsx?$/.test(f));
-    const imports: string[] = [];
-    for (const f of files) {
-      for (const m of readFileSync(f, "utf8").matchAll(/(?:\bfrom|\bimport)\s*\(?\s*["']([^"']+)["']/g)) {
-        const spec = m[1];
-        if (/^@\/lib\/arkh(\/|$)/.test(spec) || (spec.startsWith(".") && /(^|\/)arkh(\/|$)/.test(spec))) imports.push(`${f}: ${spec}`);
-      }
-    }
-    expect(files.length).toBeGreaterThan(40); // the scan found the engine
-    expect(imports).toEqual([]);
-  });
-
-  // The transitive reach had one known exception, lib/tome: DNSM.TomeQTYtot called its computeTome (Ruling K), which imports lib/arkh. The
-  // Tome score is lib/game's own now (njs/TomeQTY.ts, Summoning TomePTS), so no file under lib/game imports lib/tome either.
+  // DNSM.TomeQTYtot once called lib/tome's computeTome (Ruling K). The Tome score is lib/game's own now (njs/TomeQTY.ts, Summoning TomePTS),
+  // so no file under lib/game imports lib/tome. (No file anywhere imports lib/arkh, which is deleted: noArkhImports.test.ts.)
   it("no file under lib/game imports lib/tome (the Tome score is lib/game's own)", () => {
     const files = readdirSync("lib/game", { recursive: true })
       .map((f) => `lib/game/${String(f).replace(/\\/g, "/")}`)

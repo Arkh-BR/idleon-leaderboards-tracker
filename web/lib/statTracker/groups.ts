@@ -1,6 +1,5 @@
 // The group folds of the "product of groups" stat pages (Coin Multi, EXP Multi, Damage, AFK, Artifact Find, ...): the shape of a group and what a
-// group makes of its sources' values. lib/game's tracker adapters and the page's Biggest Gains model read this (Ruling KK: no lib/arkh import
-// at runtime in lib/game); lib/arkh's grouped descriptor re-exports it.
+// group makes of its sources' values. lib/game's tracker adapters and the page's Biggest Gains model read this.
 //
 // A group turns its source values into one number and the stat is the running product of the groups in order:
 //   pct 1 + S/100 | raw 1 + S | min4 1 + min(4, S) | mult the product of the values (max1: at least 1)

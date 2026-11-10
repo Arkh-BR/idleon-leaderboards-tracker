@@ -1,6 +1,6 @@
 // The EXP Multi page's display config: the root, the weekly vote's node, the circumstantial sources' names and the groups (ids = the exp
-// system's cases, N.js order). Both engines (lib/arkh's descriptor and lib/game's tracker adapter, lib/game/trackers/expMulti.ts) and the
-// page's Biggest Gains model (pageConfig.ts) read this, so it lives here, not in either engine (Ruling B, as lib/afkGains/layers).
+// system's cases, N.js order). The engine (lib/game's tracker adapter, lib/game/trackers/expMulti.ts) and the
+// page's Biggest Gains model (pageConfig.ts) read this, so it lives here, not in the engine (Ruling B, as lib/afkGains/layers).
 //   EXP = Workbench x (1 + LUK3/100) x LUK5 x (1 + Etc78/100)
 //         x (1 + LUKcurve*(1 + T35/100)/1.8 + S/100)
 // LUK5 is split into G3-G8. G10 carries the LUK curve as two % sources (luk + talent35) so class gating can zero Lucky Charms alone.

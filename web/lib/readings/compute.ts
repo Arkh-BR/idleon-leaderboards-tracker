@@ -1,7 +1,6 @@
 // The site's value for one recorded in-game reading. Artifact Find, Damage, AFK Gains, EXP Multi, Drop Rate V2, Coin Multi and Multikill go through their page configs (all compute on lib/game),
 // the Player Info stats Damage readings carry (HP, MP, Accuracy, STR/AGI/WIS/LUK) through lib/game's TRACKERS, the Tome through lib/tome,
 // the other kit stats through their page configs; later plans swap each one to lib/game behind this same function.
-// lib/arkh keeps module-level state (saveData): call this sequentially, never in parallel — the save is reloaded on every call.
 
 import { AFK_PAGE } from "@/lib/afkGains/pageConfig";
 import { ARTIFACT_PAGE } from "@/lib/artifactFind/pageConfig";
@@ -17,10 +16,6 @@ import { MULTIKILL_PAGE } from "@/lib/multikill/pageConfig";
 import type { StatPageConfig } from "@/lib/statTracker/config";
 import { computeTome } from "@/lib/tome/compute";
 import type { Reading, StatKey } from "./types";
-
-// lib/arkh (and lib/tome, which imports it) reads `window` at module scope in places (the tests set the same shim).
-const g = globalThis as unknown as { window?: unknown };
-if (!g.window) g.window = g;
 
 export const KIT_PAGES: Partial<Record<StatKey, StatPageConfig>> = {
   dropRateV2: DR2_PAGE,

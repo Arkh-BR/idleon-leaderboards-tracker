@@ -10,5 +10,5 @@ import { WORLD67_EXPLAINERS } from "./world67";
 /** The rows under a source: `value` is the source's own number, as the row shows it. */
 export type Explainer = (ctx: Ctx, value: number) => ArkhNode[];
 
-/** By V1 source id. A source with no entry is a leaf (__tests__/lib/game/support/v1Compare.ts lists those still PENDING). */
+/** By V1 source id. A source with no entry is a leaf. */
 export const EXPLAINERS: Record<string, Explainer> = { ...TALENT_EXPLAINERS, ...EQUIPMENT_EXPLAINERS, ...WORLD67_EXPLAINERS, ...COLLECTION_EXPLAINERS, ...SIMPLE_EXPLAINERS };

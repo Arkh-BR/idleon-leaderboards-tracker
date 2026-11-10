@@ -1,8 +1,8 @@
 // The Artifact Find page's display config: the root node, the group list and the vote's node
 // name. N.js Sailing("BoatArtiMulti", 0) is one additive group (A1–A11) and 23 multiplicative
-// factors (M1–M23), in game order; each source id is one term of it. Both engines (lib/arkh's
-// descriptor and lib/game's tracker adapter) and the page's Biggest Gains model read this list, so
-// it lives here, not in either engine.
+// factors (M1–M23), in game order; each source id is one term of it. The engine (lib/game's
+// tracker adapter) and the page's Biggest Gains model read this list, so
+// it lives here, not in the engine.
 //   pct → 1 + Σ/100      raw → 1 + Σ      mult → Π (max1: Math.max(1, Π))
 
 import type { StatGroup } from "@/lib/statTracker/groups";

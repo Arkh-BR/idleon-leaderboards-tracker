@@ -15,7 +15,7 @@ import ts from "typescript";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 export const WEB_ROOT = join(__dirname, "../../..");
-const ROOTS = ["lib/arkh", "lib/tome", "lib/cookingMastery", "lib/talentsLevel", "lib/dropRate", "lib/coinMulti", "lib/multikill", "lib/damage"];
+const ROOTS = ["lib/tome", "lib/cookingMastery", "lib/talentsLevel", "lib/dropRate", "lib/coinMulti", "lib/multikill", "lib/damage"];
 const GAME_ROOT = "lib/game/njs";
 // First char may be "_": the snapshot keys N.js functions as _customBlock_*.
 const ANNOT = /\/\/\s*@njs\s+([A-Za-z_][A-Za-z0-9_]*(?:\[[0-9]+\])?)/g;

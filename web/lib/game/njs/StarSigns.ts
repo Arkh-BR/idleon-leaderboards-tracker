@@ -36,6 +36,7 @@ export function equippedSignsText(ctx: Ctx): string {
  * A sign that is not active adds nothing; a key no sign gave is absent (the game reads it as 0). The `PersonalValuesMap == null` branch
  * (a new map, no signs) does not happen on a loaded character, whose map the load always fills.
  */
+// @njs _customBlock_StarSigns
 export function StarSignsMap(ctx: Ctx): Map<string, number> {
   const unlocked = unlockedSigns(ctx);
   const worn = () => equippedSignsText(ctx).split(",");

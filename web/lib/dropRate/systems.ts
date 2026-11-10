@@ -1,5 +1,5 @@
 // The game systems a Drop Rate V1 row belongs to, and the buckets (🎯 Talents, 🃏 Cards...) the page groups the rows in. Used by the V1 tree (lib/game/trackers/dropRateV1.ts) and the
-// page's Per World view (components/dropRate/DeepView.tsx); lib/arkh/stats/categorize re-exports it (Ruling B). A row's system is read from its name, so a name is part of the page's contract.
+// page's Per World view (components/dropRate/DeepView.tsx). A row's system is read from its name, so a name is part of the page's contract.
 import type { ArkhNode } from "./node";
 
 export type WorldKey = "Global" | "Character" | "World 1" | "World 2" | "World 3" | "World 4" | "World 5" | "World 6" | "World 7" | "Other";

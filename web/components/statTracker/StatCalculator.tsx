@@ -8,7 +8,7 @@ import ProfileNameLoader from "@/components/ProfileNameLoader";
 import RecordReading from "./RecordReading";
 import { accountAutoLoads } from "@/lib/gameAuth/session";
 import { buildStatMapOptions, defaultMapIndex, type StatMapOption } from "@/lib/statTracker/mapOptions";
-import type { ArkhNode } from "@/lib/arkh/node";
+import type { ArkhNode } from "@/lib/dropRate/node";
 import type { FlatTree } from "@/lib/dropRate/treeFlatten";
 import type { StatPageConfig } from "@/lib/statTracker/config";
 

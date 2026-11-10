@@ -94,7 +94,7 @@ jobs:
           REPORT="web/data/njs-snapshot/reports/report-$DATE.md"
 
           # Nothing structural to commit? (e.g. only a minified rename) → no PR.
-          git add web/data/njs-snapshot web/lib/arkh/stats/data/game
+          git add web/data/njs-snapshot web/lib/game/data
           if git diff --cached --quiet; then
             echo "No structural changes to commit — skipping PR."
             exit 0
