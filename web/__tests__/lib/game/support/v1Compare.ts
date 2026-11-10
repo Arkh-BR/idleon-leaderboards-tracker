@@ -43,8 +43,8 @@ const hits = new Set<RegExp>();
 /** The V1_KNOWN rows no comparison needed so far: a stale row is one lib/arkh no longer gets wrong. */
 export const knownUnused = (): string[] => V1_KNOWN.filter((k) => !hits.has(k.path)).map((k) => k.path.source);
 
-type Row = { path: string; node: ArkhNode; trail: readonly string[] };
-function rowsOf(root: ArkhNode): Map<string, Row> {
+export type Row = { path: string; node: ArkhNode; trail: readonly string[] };
+export function rowsOf(root: ArkhNode): Map<string, Row> {
   const out = new Map<string, Row>();
   const walk = (node: ArkhNode, parent: string, trail: readonly string[], siblings: ArkhNode[], i: number) => {
     const path = nodePath(parent, node, siblings, i);
@@ -56,7 +56,7 @@ function rowsOf(root: ArkhNode): Map<string, Row> {
   return out;
 }
 
-const near = (a: number, b: number) => Math.abs(a - b) <= 1e-9 * Math.max(1, Math.abs(b));
+export const near = (a: number, b: number) => Math.abs(a - b) <= 1e-9 * Math.max(1, Math.abs(b));
 
 const ALT_NAMES: Record<string, string[]> = { glimbo: ["Glimbo DR Multi", "Glimbo Insider Trading Secrets (Grid 168)"] };
 const POOLS_AT: Record<string, readonly V1Pool[]> = { "Additive Pool": ["addMain", "addLUK2"], "Post-Processing": ["postFlat", "postMult"], "Chip Cap-Break": ["chipDR"] };

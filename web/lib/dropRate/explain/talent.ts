@@ -155,14 +155,17 @@ function maxBookLvRow(c: Ctx, notes = false): ArkhNode {
   ]);
 }
 
+/** The cap of every talent below 615 (`maxBookLvRow`'s value), for the star talents 641-647 and the scans that need only the number. */
+export const maxBookLv = (c: Ctx): number => maxBookLvRow(c).val;
+
 const cappedRow = (c: Ctx, notes?: boolean): ArkhNode => guarded("Max Book Lv Cap", () => maxBookLvRow(c, notes))!;
 /** min(invested, cap); with no cap read there is nothing to apply. */
 const capped = (level: number, cap: ArkhNode): number => (cap.note?.startsWith(NOT_READ) ? level : Math.min(level, cap.val));
 
-/** `Base Level`: the talent's points, stopped at the cap. `reference`: the row that says whose they are, on a talent read as the best character's. */
-function baseLevelRow(c: Ctx, level: number, who: number, reference?: string): ArkhNode {
+/** `Base Level`: the talent's points, stopped at the cap. `reference`: the row that says whose they are, on a talent read as the best character's. `capRow`: the talent's own cap row, in place of the Max Book Lv Cap. */
+function baseLevelRow(c: Ctx, level: number, who: number, reference?: string, capRow?: ArkhNode): ArkhNode {
   const name = ownerName(c, who);
-  const cap = cappedRow(c);
+  const cap = capRow ?? cappedRow(c);
   return raw("Base Level", capped(level, cap), `min(invested, cap) — owner: ${name}`, [
     ...(reference ? [raw(reference, level, "supplies the raw lv used as Points Invested AND the bonus levels (its own Symbols of Beyond, super-talent preset, Family Guy…) — N.js keeps the best player's whole chain")] : []),
     raw("Points Invested", level, `actual save — owner: ${name}`),
@@ -178,8 +181,8 @@ function superListed(c: Ctx, id: number, who: number, anyPreset: boolean): boole
   return 0 <= (anyPreset ? Math.max(at(20 + who), at(20 + who + 12)) : at(20 + who + 12 * asNum(c, "PlayerStuff", 1)));
 }
 
-function superTalentRow(c: Ctx, id: number, who: number, anyPreset: boolean): ArkhNode | null {
-  if (!superListed(c, id, who, anyPreset)) return null;
+function superTalentRow(c: Ctx, id: number, who: number, anyPreset: boolean, force = false): ArkhNode | null {
+  if (!force && !superListed(c, id, who, anyPreset)) return null;
   return raw("Spelunk Super Talent", Thingies(c, "SuperTalentPTS_LVgiven", 0, 0), undefined, [
     raw("Base", 50),
     raw("Super Duper Talents (Yellow 2)", Thingies(c, "LegendPTS_bonus", 7, 0), "+10 super levels per level", [raw("Base", asNumber(cell(LegendTalents, 7, 2))), raw("Level", asNum(c, "Spelunk", 18, 7), "Zenith Market — Spelunk[18][7] (max 5)")]),
@@ -268,10 +271,30 @@ function equinoxRow(c: Ctx): ArkhNode | null {
   });
 }
 
+type SuperOpts = {
+  /** The super levels are a row of their own (`superLevelsRow`), not a term of the Bonus Levels. */
+  split?: boolean;
+  /** The talent counts as a super talent whatever the preset lists (the Hypothetical tab). */
+  forceSuper?: boolean;
+};
+
+const banned = (c: Ctx, id: number): boolean => 1 == RunCodeOfTypeXforThingY(c, "TalentBannedforAllLV", `${id}`);
+
+/** `Super Levels`: the Spelunk super talent's levels as a row of their own; 0 with `Active` 0 and what it would give while the talent is not listed. Null for a talent that takes no bonus levels. */
+function superLevelsRow(c: Ctx, id: number, who: number, anyPreset: boolean, force: boolean): ArkhNode | null {
+  if (banned(c, id)) return null;
+  return guarded("Super Levels", () => {
+    const on = force || superListed(c, id, who, anyPreset);
+    const potential = Thingies(c, "SuperTalentPTS_LVgiven", 0, 0);
+    const note = on ? "Spelunk Super Talent — active on this preset" : `Spelunk Super Talent — inactive (would give +${potential} if super-talented on this preset)`;
+    return row("Super Levels", on ? potential : 0, "+", note, [raw("Active", on ? 1 : 0), ...(on ? superTalentRow(c, id, who, anyPreset, true)!.children! : [])]);
+  });
+}
+
 /** `Bonus Levels`: the terms N.js AllTalentLV sums, in the rows' order, then floor(min(cap, sum) + the super levels). The terms all read the current player's; only the super talent reads `who`. */
-function bonusLevelsRow(c: Ctx, id: number, who: number, anyPreset: boolean): ArkhNode {
-  if (1 == RunCodeOfTypeXforThingY(c, "TalentBannedforAllLV", `${id}`)) return row("Bonus Levels", 0, "+");
-  const sup = guarded("Spelunk Super Talent", () => superTalentRow(c, id, who, anyPreset));
+function bonusLevelsRow(c: Ctx, id: number, who: number, anyPreset: boolean, o: SuperOpts = {}): ArkhNode {
+  if (banned(c, id)) return row("Bonus Levels", 0, "+");
+  const sup = o.split ? null : guarded("Spelunk Super Talent", () => superTalentRow(c, id, who, anyPreset, o.forceSuper));
   const terms = present([
     ...[149, 374, 539].map((t) => guarded(SYMBOLS[t], () => symbolsRow(c, t))),
     guarded("Maroon Warship (Achievement 291)", () => when(AchieveStatus(c, 291), (v) => raw("Maroon Warship (Achievement 291)", v))),
@@ -299,18 +322,21 @@ function bonusLevelsRow(c: Ctx, id: number, who: number, anyPreset: boolean): Ar
 /** `decay(40,65,268)`: a talent's first curve at the level the current character reads it, its points plus the bonus levels (the game's `AllTalentLV` when the character has a point; the rows say what it would read when not). */
 export const talentNote = (c: Ctx, id: number): string => curveNote(id, skillLevel(c, id) + bonusLevelsRow(c, id, c.player, false).val);
 
-export type TalentRowsOpts = {
+export type TalentRowsOpts = SuperOpts & {
+  /** The cap row of a talent that has its own, in place of the Max Book Lv Cap (the cap boosters); null: the talent has none. */
+  capOf?: (c: Ctx, id: number, who: number) => ArkhNode | null;
   /** The talent as `getbonus2(1, id, -1)` reads it: the best character's whole chain (N.js @7987852). Default: the current character's, as `GetTalentNumber` reads it. */
   best?: boolean;
 };
 
-/** The character `getbonus2(1, id, -1)` takes its value from: the first with the highest (-1: none above 0). */
-function bestCharacter(c: Ctx, id: number): number {
+/** The character `getbonus2(1, id, -1)` takes its value from: the first with the highest (-1: none above 0). `force`: the talent counts as a super talent for each of them (the levels it has not got yet are added). */
+function bestCharacter(c: Ctx, id: number, force = false): number {
   let best = 0;
   let who = -1;
   for (let g = 0, n = playerCount(c); g < n; g++) {
     const level = skillLevel(c, id, g);
-    const value = talentCurveAt(c, 1, id, 100 <= id && 0 < level ? level + RunCodeOfTypeXforThingY(c, "AllTalentLVz", `${id}|${g}`) : level);
+    const forced = force && 100 <= id && 0 < level && !banned(c, id) && !superListed(c, id, g, true) ? Thingies(c, "SuperTalentPTS_LVgiven", 0, 0) : 0;
+    const value = talentCurveAt(c, 1, id, 100 <= id && 0 < level ? level + forced + RunCodeOfTypeXforThingY(c, "AllTalentLVz", `${id}|${g}`) : level);
     if (value > best) {
       best = value;
       who = g;
@@ -319,13 +345,19 @@ function bestCharacter(c: Ctx, id: number): number {
   return who;
 }
 
+/** The stars whose cap is K x (the task shop's level + 1) of a world's Tasks[2]: id -> [K, world]. The game rewrites SkillLevelsMAX only on a purchase, so the saved cap lags the live level. */
+const STAR_TASK_MAX: Record<number, readonly [number, number]> = { 627: [5, 0], 630: [5, 1], 634: [5, 2], 651: [20, 3], 652: [30, 4] };
+
 function starRows(c: Ctx, id: number): ArkhNode[] {
   const level = skillLevel(c, id);
-  // the game syncs SkillLevelsMAX over the account: the row is the highest of them
+  // the game syncs SkillLevelsMAX over the account: the row is the highest of them, raised to the live cap of the stars that have one (641-647: the book cap, which the saved one lags as it grows)
   const top = present([
     guarded("Max Level", () => {
       let max = 0;
       for (let g = 0, n = playerCount(c); g < n; g++) max = Math.max(max, asNumber(opt(c.state, charKey("SM", g), id)));
+      const task = STAR_TASK_MAX[id];
+      if (task) max = Math.max(max, task[0] * (asNum(c, "Tasks", 2, task[1], 3) + 1));
+      else if (641 <= id && 647 >= id) max = Math.max(max, maxBookLv(c));
       return when(max, (v) => raw("Max Level", v, "star talent cap (account SkillLevelsMAX)"));
     }),
   ]);
@@ -337,18 +369,22 @@ function starRows(c: Ctx, id: number): ArkhNode[] {
  * instead; `best` shows the best character's chain, under a `Reference Character` row. The row carrying the talent's name, value and note is the caller's.
  */
 export function talentLevelRows(c: Ctx, id: number, o: TalentRowsOpts = {}): ArkhNode[] {
+  const note = o.split ? "Base + Bonus + Super" : "Base + Bonus";
+  /** The Bonus Levels row and, when split, the Super Levels row after it. */
+  const bonus = (who: number, anyPreset: boolean): ArkhNode[] => present([bonusLevelsRow(c, id, who, anyPreset, o), o.split ? superLevelsRow(c, id, who, anyPreset, !!o.forceSuper) : null]);
+  const sum = (rows: ArkhNode[]) => rows.reduce((a, r) => a + r.val, 0);
   if (o.best) {
-    const who = bestCharacter(c, id);
+    const who = bestCharacter(c, id, o.forceSuper);
     const reference = `Reference Character: ${ownerName(c, who)}`;
     if (0 > who) return [raw(reference, 0)];
     const level = skillLevel(c, id, who);
-    const bonus = 100 <= id ? bonusLevelsRow(c, id, who, true) : row("Bonus Levels", 0, "+");
-    return [raw("Effective Level", level + bonus.val, undefined, [baseLevelRow(c, level, who, reference), bonus])];
+    const bonuses = 100 <= id ? bonus(who, true) : [row("Bonus Levels", 0, "+")];
+    return [raw("Effective Level", level + sum(bonuses), undefined, [baseLevelRow(c, level, who, reference, o.capOf?.(c, id, who) ?? undefined), ...bonuses])];
   }
   if (615 <= id) return starRows(c, id);
   const level = skillLevel(c, id);
-  const bonus = bonusLevelsRow(c, id, c.player, false);
-  return [raw("Active", 0 < level ? 1 : 0), raw("Effective Level", level + bonus.val, "Base + Bonus", [baseLevelRow(c, level, c.player), bonus])];
+  const bonuses = bonus(c.player, false);
+  return [raw("Active", 0 < level ? 1 : 0), raw("Effective Level", level + sum(bonuses), note, [baseLevelRow(c, level, c.player, undefined, o.capOf?.(c, id, c.player) ?? undefined), ...bonuses])];
 }
 
 // ===== The sources =====

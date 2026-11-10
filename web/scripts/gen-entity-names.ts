@@ -3,7 +3,7 @@
 // lists (the N.js-derived game data in web/lib/arkh/stats/data/game/, kept
 // current by the updater) into a compact id → display-name map. Output:
 //
-//   web/lib/arkh/stats/data/entity-names.gen.ts
+//   web/lib/game/data/generated/entity-names.gen.ts
 //
 // The game lists are a few MB; the DeepView only needs the names, so the
 // script does the cherry-picking once and the generated file is committed.
@@ -27,9 +27,9 @@ const OUTPUT_PATH = resolve(
   __dirname,
   "..",
   "lib",
-  "arkh",
-  "stats",
+  "game",
   "data",
+  "generated",
   "entity-names.gen.ts"
 );
 
