@@ -13,6 +13,11 @@ import type { StatGroup } from "@/lib/statTracker/groups";
 
 export const DR2_ROOT = "Drop Rate";
 
+/** The GetTalentNumber(1, …) talents of the formula: they read the viewed character's own talents, so the Observed Max collector gates them
+ *  per class (by the "(Talent n)" suffix of their node names). Workbench's 328 is getbonus2(1, 328, -1) — the best over every character — so
+ *  it isn't one. */
+export const DR2_CLASS_TALENTS = [24, 239, 279, 655] as const;
+
 /** The weekly vote's node. The vote is server-wide and changes every week, so
  *  Biggest Gains leaves it out: it isn't something a player raises. */
 export const DR2_VOTE_NAME = "Drop Rate (Weekly Vote 27)";

@@ -6,7 +6,7 @@ import { MapAFKtarget, MONSTERS } from "../../lib/game/data";
 import { contains } from "../../lib/game/lists";
 import { ArcaneType } from "../../lib/game/njs/ArcaneType";
 import { getbonus2 } from "../../lib/game/njs/getbonus2";
-import type { GameState } from "../../lib/game/state";
+import { charKey, opt, type GameState } from "../../lib/game/state";
 import { stateOf } from "../../lib/game/trackers/page";
 import { flattenTree, nodePath } from "../../lib/dropRate/treeFlatten";
 import type { GainsModel, StatResult } from "../../lib/statTracker/config";
@@ -33,6 +33,9 @@ export function poolsOf(tree: Node, parents: Record<string, string>): Record<str
   return out;
 }
 
+/** poolsOf's parents for a grouped page: each group's key -> its node under the root. */
+export const groupParents = (root: string, groups: readonly StatGroup[]): Record<string, string> => Object.fromEntries(groups.map((g) => [g.key, `${root} / ${g.name}`]));
+
 /** The combine of a grouped page (pools keyed by group key): each group's node holds its items at groupVal, the root the page model's total. */
 export function groupedCombine(root: string, groups: readonly StatGroup[], model: Pick<GainsModel, "totalFromFlat">): (pools: Record<string, Pool>) => StatResult {
   return (pools) => {
@@ -46,10 +49,15 @@ export function groupedCombine(root: string, groups: readonly StatGroup[], model
   };
 }
 
-type MapPick = { score: (c: Ctx) => number; accept: (map: number) => boolean };
+type MapPick = {
+  score: (c: Ctx) => number;
+  accept: (map: number) => boolean;
+  /** The map when no accepted map scores above 0, from the character's own map (CurrentMap_<ci>) and the lowest accepted one. */
+  fallback?: (own: number, lowest: number) => number;
+};
 
-/** The accepted map with the highest score for character `ci` (ties: the lowest index). No accepted map throws. */
-export function bestMap(save: unknown, ci: number, score: MapPick["score"], accept: MapPick["accept"]): number {
+/** The accepted map with the highest score for character `ci` (ties: the lowest index); every score 0 and a `fallback`: its pick. No accepted map throws. */
+export function bestMap(save: unknown, ci: number, score: MapPick["score"], accept: MapPick["accept"], fallback?: MapPick["fallback"]): number {
   const state = stateOf(save);
   let best = -1;
   let top = -Infinity;
@@ -58,10 +66,14 @@ export function bestMap(save: unknown, ci: number, score: MapPick["score"], acce
     const s = score(makeCtx(state, { player: ci, map: m }));
     if (s > top) [best, top] = [m, s];
   }
-  // ponytail: lib/arkh's DR/AFK pickers fell back to the character's own map when every score was 0 (no kills anywhere); here that is the lowest accepted map.
   if (best < 0) throw new Error(`bestMap: no map passes the filter for character ${ci}`);
-  return best;
+  // every score 0 (no kills anywhere): `best` is the lowest accepted map, the first one scored; the page's fallback picks, as lib/arkh's
+  // bestDrMapIdx / bestAfkMapIdx did
+  return top <= 0 && fallback ? fallback(Number(opt(state, charKey("CurrentMap", ci))) || 0, best) : best;
 }
+
+/** bestMap with one of MAP_PICKS' rules. */
+export const pickMap = (save: unknown, ci: number, p: MapPick): number => bestMap(save, ci, p.score, p.accept, p.fallback);
 
 const targets = MapAFKtarget as unknown as readonly string[];
 /** The map's default AFK target is a monster to fight (MonsterDefinitions AFKtype). */
@@ -86,12 +98,15 @@ const arcane = (slot: number) => (c: Ctx) => (seedCap(c), ArcaneType(c, "ArcaneM
 /** max(1, getbonus2(1, 429, -1)), the Shiny Medallion talent, account-wide. */
 const shiny = (c: Ctx) => (mapFree(c, "getbonus2", [1, 429, -1], (c0) => getbonus2(c0, 1, 429, -1)), Math.max(1, getbonus2(c, 1, 429, -1)));
 
+const drMap = (m: number) => m !== 216 && isFight(m);
+const afkMap = (m: number) => drMap(m) && m !== 306;
+
 /** Each page's map rule for bestMap: the map terms its stat reads, on the maps the page measures. */
 export const MAP_PICKS: Record<"dr2" | "afk" | "exp", MapPick> = {
   // Drop Rate: the Cove (216) replaces the total, so it is left out
-  dr2: { score: arcane(0), accept: (m) => m !== 216 && isFight(m) },
+  dr2: { score: arcane(0), accept: drMap, fallback: (own, lowest) => (drMap(own) ? own : lowest) },
   // AFK: also Clamworks (306), which takes the rate x0.2
-  afk: { score: arcane(2), accept: (m) => m !== 216 && m !== 306 && isFight(m) },
+  afk: { score: arcane(2), accept: afkMap, fallback: (own) => (afkMap(own) ? own : 301) },
   // EXP: slot 1 times the Shiny Medallion gate (GenINFO[17]: Compass[3] holds the map's MapAFKtarget, then x max(1, getbonus2(1, 429, -1)))
   exp: {
     score: (c) => (1 + arcane(1)(c) / 100) * (contains(attr(c, "Compass", 3), targets[c.map]) ? shiny(c) : 1),

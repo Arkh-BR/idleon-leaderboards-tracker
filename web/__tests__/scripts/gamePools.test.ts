@@ -71,6 +71,14 @@ describe("bestMap", () => {
   it("refuses a character no map passes for, saying so", () => {
     expect(() => bestMap(SAVE, 0, score, () => false)).toThrow(/no map/);
   });
+  it("every score 0: the fallback gets the character's own map (CurrentMap_<ci>) and the lowest accepted one", () => {
+    const seen: number[][] = [];
+    expect(bestMap(SAVE, 0, () => 0, (m) => m >= 3, (own, lowest) => (seen.push([own, lowest]), 42))).toBe(42);
+    expect(seen).toEqual([[1, 3]]);
+  });
+  it("a score above 0 never asks the fallback", () => {
+    expect(bestMap(SAVE, 0, score, () => true, () => 42)).toBe(2);
+  });
 });
 
 describe("MAP_PICKS", () => {
@@ -78,5 +86,12 @@ describe("MAP_PICKS", () => {
     expect([216, 1, 6, 301].map(MAP_PICKS.dr2.accept)).toEqual([false, true, false, true]);
     expect([216, 306, 1, 6, 301].map(MAP_PICKS.afk.accept)).toEqual([false, false, true, false, true]);
     expect([0, 6, 216].map(MAP_PICKS.exp.accept)).toEqual([true, true, true]);
+  });
+  it("no map scores (lib/arkh's bestDrMapIdx / bestAfkMapIdx): the own map when accepted, else the lowest accepted (DR V2) or 301 (AFK); EXP never falls back", () => {
+    const { dr2, afk, exp } = MAP_PICKS;
+    expect([dr2.fallback!(1, 2), dr2.fallback!(6, 2), dr2.fallback!(216, 2)]).toEqual([1, 2, 2]);
+    expect([afk.fallback!(1, 2), afk.fallback!(6, 2), afk.fallback!(306, 2)]).toEqual([1, 301, 301]);
+    expect(exp.fallback).toBeUndefined();
+    expect(bestMap(SAVE, 0, () => 0, dr2.accept, dr2.fallback)).toBe(1);
   });
 });

@@ -69,9 +69,7 @@ import { saltLick, saltLickLevel } from "./saltLick";
 import { msaClassExp, msaTotalWaves } from "./msa";
 import { petArenaCrucBonus, arenaCrucTier, arenaCrucWave } from "./petArenaCruc";
 
-/** Class talents in the EXP formula (read from the active character).
- *  55/328/429/434 are account-wide (getbonus2), 632 is a star talent. */
-export const EXP_CLASS_TALENTS = [35] as const;
+export { EXP_CLASS_TALENTS } from "@/lib/expMulti/layers";
 
 // Node names of the six circumstantial EXP sources: lib/expMulti/layers has the one list (Ruling B), re-exported below.
 const CARD_SET_0_NOTE = "Only below level 50";

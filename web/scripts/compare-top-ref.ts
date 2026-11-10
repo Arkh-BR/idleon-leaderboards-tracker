@@ -17,10 +17,23 @@ import { newestSaves } from "../lib/diagnose/characterize";
 import { listCharacters } from "../lib/dropRate/extract";
 import { bestDrMapIdx } from "../lib/arkh/stats/systems/dr2/maps";
 import { bestAfkMapIdx } from "../lib/arkh/computeAfk";
-import { bestExpMapIdx } from "../lib/arkh/computeExp";
+import { bestExpMapIdx, combineExpPools, computeArkhExpPools } from "../lib/arkh/computeExp";
+import { combineCoinPools, computeArkhCoinPools } from "../lib/arkh/computeCoin";
+import { combineDropRateV2Pools, computeArkhDropRateV2Pools } from "../lib/arkh/computeDropRateV2";
+import { combineArtifactPools, computeArkhArtifactPools } from "../lib/arkh/computeArtifactFind";
+import { COIN_COLLECTOR } from "./update-top-coin";
+import { EXP_COLLECTOR } from "./update-top-exp";
+import { DR2_COLLECTOR } from "./update-top-dr2";
+import { ARTIFACT_COLLECTOR } from "./update-top-artifact";
 
-/** stat -> its collector config on each engine. The old configs are rebuilt here: the old update-top-* scripts run at import. Tasks 3-5 fill it. */
-const STATS: Record<string, { old: StatCollectorConfig; neu: StatCollectorConfig }> = {};
+/** stat -> its collector config on each engine: the new one is the collector's own, the old one the same config with lib/arkh's pools and combine
+ *  (what the update-top-* scripts ran before). Tasks 4-5 add theirs. */
+const STATS: Record<string, { old: StatCollectorConfig; neu: StatCollectorConfig }> = {
+  coin: { neu: COIN_COLLECTOR, old: { ...COIN_COLLECTOR, computePools: (s, ci) => computeArkhCoinPools(s, ci, 301), combine: combineCoinPools } },
+  exp: { neu: EXP_COLLECTOR, old: { ...EXP_COLLECTOR, computePools: (s, ci) => computeArkhExpPools(s, ci, bestExpMapIdx(s, ci)), combine: combineExpPools } },
+  dr2: { neu: DR2_COLLECTOR, old: { ...DR2_COLLECTOR, computePools: (s, ci) => computeArkhDropRateV2Pools(s, ci, bestDrMapIdx(s, ci)), combine: combineDropRateV2Pools } },
+  artifact: { neu: ARTIFACT_COLLECTOR, old: { ...ARTIFACT_COLLECTOR, computePools: computeArkhArtifactPools, combine: combineArtifactPools } },
+};
 
 const argv = process.argv.slice(2);
 const flag = (f: string) => {
