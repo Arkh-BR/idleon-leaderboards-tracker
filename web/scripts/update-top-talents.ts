@@ -35,7 +35,7 @@ import { join } from "node:path";
 const g = globalThis as any;
 if (!g.window) g.window = g;
 
-import { gatherCandidates, fetchProfileSave } from "./_shared/itProfiles";
+import { gatherCandidates, fetchProfileSave, readProfileSave, savedPlayers } from "./_shared/itProfiles";
 import { computeTalentTreesForChars } from "../lib/talentsLevel/compute";
 import { flattenTree, nodePath } from "../lib/dropRate/treeFlatten";
 import { listCharacters } from "../lib/dropRate/extract";
@@ -47,6 +47,11 @@ const HEALTH_BOOSTER = 0; // plain simple talent, no cap-booster
 const ES_CLASS_KEY = "Elemental_Sorcerer";
 
 const argv = process.argv.slice(2);
+// --saves-dir <dir>: read the profiles scripts/fetch-top-profiles.ts downloaded once for the whole run, instead of fetching.
+const SAVES_DIR = (() => {
+  const k = process.argv.indexOf("--saves-dir");
+  return k >= 0 ? process.argv[k + 1] : null;
+})();
 const SLOW = argv.includes("--slow");
 const THROTTLE_MS = SLOW ? 1500 : 400;
 const LIMIT = (() => {
@@ -171,7 +176,7 @@ function buildESEff(defaultEff: ArkhNode, esPool: Pool): ArkhNode | null {
 
 async function main() {
   console.log("→ Gathering candidates from leaderboards…");
-  const candidates = await gatherCandidates({ limit: LIMIT ?? undefined });
+  const candidates = SAVES_DIR ? savedPlayers(SAVES_DIR).slice(0, LIMIT ?? undefined) : await gatherCandidates({ limit: LIMIT ?? undefined });
   console.log(`  ✓ ${candidates.length} candidates`);
 
   const nonES = newPool(); // DEFAULT pool — every non-Elemental-Sorcerer class
@@ -189,11 +194,11 @@ async function main() {
     const name = candidates[i];
     const tag = `[${i + 1}/${candidates.length}]`;
     process.stdout.write(`  ${tag} ${name.padEnd(20)}`);
-    const save = await fetchProfileSave(name);
+    const save = SAVES_DIR ? readProfileSave(SAVES_DIR, name) : await fetchProfileSave(name);
     if (!save) {
       console.log("  · skipped (no save)");
       skipped++;
-      if (i < candidates.length - 1) await sleep(THROTTLE_MS);
+      if (!SAVES_DIR && i < candidates.length - 1) await sleep(THROTTLE_MS);
       continue;
     }
     let chars: { charIndex: number }[] = [];
@@ -202,7 +207,7 @@ async function main() {
     } catch {
       console.log("  · skipped (parse)");
       skipped++;
-      if (i < candidates.length - 1) await sleep(THROTTLE_MS);
+      if (!SAVES_DIR && i < candidates.length - 1) await sleep(THROTTLE_MS);
       continue;
     }
     // Health Booster exists on every class's base tab, so compute it on
@@ -230,7 +235,7 @@ async function main() {
     for (const [id, v] of Object.entries(caps)) if (v > (starCeiling[+id] || 0)) starCeiling[+id] = v;
     scanned++;
     console.log(`  ✓ ${touched} chars`);
-    if (i < candidates.length - 1) await sleep(THROTTLE_MS);
+    if (!SAVES_DIR && i < candidates.length - 1) await sleep(THROTTLE_MS);
   }
 
   const defaultEff = finalizePool(nonES, "non-ES");

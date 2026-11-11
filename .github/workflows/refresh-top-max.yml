@@ -1,4 +1,4 @@
-name: Refresh top DR, DR V2, coin, EXP, AFK, multikill, damage, artifact find & talent max
+name: Refresh top DR, DR V2, coin, EXP, AFK, multikill, damage, artifact find, talent max & Tome top players
 
 # Rebuilds the bundled "hypothetical max" reference datasets the Drop Rate,
 # Drop Rate V2, Coin Multi, EXP Multi, AFK Gains, Multikill, Damage, Artifact Find and Talents pages compare against:
@@ -11,14 +11,17 @@ name: Refresh top DR, DR V2, coin, EXP, AFK, multikill, damage, artifact find & 
 #   • web/lib/damage/topDamage.ts            (+ .meta.ts)
 #   • web/lib/artifactFind/topArtifactFind.ts (+ .meta.ts)
 #   • web/lib/talentsLevel/topTalents.ts
-# All nine collectors fetch every top player's raw save straight from the IT
-# profiles endpoint (no browser needed — unlike the Tome refresh), run the same
-# lib/game engine as the pages, and keep the best value of every source across players.
+#   • web/lib/tome/topPlayers.ts            (the Tome's top players, formerly its own workflow)
+# The first step downloads every top player's public profile ONCE from Idleon Toolbox's
+# profiles API into the runner's temp dir; every collector then reads them with --saves-dir,
+# runs the same lib/game engine as the pages, and keeps the best value of every source.
+# Access agreed with Idleon Toolbox's owner (2026-11-11): Origin https://arkh-idleon-trackers.vercel.app,
+# our User-Agent, one fetch per profile per run (~100 requests every 3 days). Ask before it
+# grows past ~2,000 requests a day.
 
 on:
   schedule:
-    # Every 3 days at 04:00 UTC — offset an hour from refresh-top-players
-    # (03:00) so the two don't hammer the IT endpoint at the same time.
+    # Every 3 days at 04:00 UTC.
     - cron: "0 4 */3 * *"
   workflow_dispatch:
 
@@ -32,11 +35,11 @@ concurrency:
 jobs:
   refresh:
     runs-on: ubuntu-latest
-    # 114: eight capped steps (DR + Coin + EXP + AFK + Multikill + Damage + Artifact Find + DR V2,
-    # 12 min each = 96, continue-on-error) plus the uncapped Talent step and checkout/npm ci
-    # (~106 min worst case) must all fit before "Commit refreshed snapshots" runs: a job
-    # timeout skips that step and loses every reference of the run.
-    timeout-minutes: 114
+    # 140: the profile fetch (10 min) plus ten capped steps (DR + Coin + EXP + AFK + Multikill + Damage +
+    # Artifact Find + DR V2 + Talents + Tome, 12 min each = 120, continue-on-error) plus checkout/npm ci
+    # (~135 min worst case) must all fit before "Commit refreshed snapshots" runs: a job timeout skips
+    # that step and loses every reference of the run. With the saves on disk each step takes a few minutes.
+    timeout-minutes: 140
     env:
       # the collectors keep every player's save (and its lib/game state) until the reference is built: ~1-1.5 GB for ~90 players
       NODE_OPTIONS: --max-old-space-size=4096
@@ -53,57 +56,72 @@ jobs:
         working-directory: web
         run: npm ci
 
+      # One fetch per profile per run, shared by every step below. Fails the job when fewer than
+      # 20 profiles came back: every collector would refuse to publish anyway.
+      - name: Fetch top-player profiles
+        working-directory: web
+        timeout-minutes: 10
+        run: npx tsx scripts/fetch-top-profiles.ts --out "$RUNNER_TEMP/top-profiles"
+
       - name: Refresh top-player Drop Rate max
         working-directory: web
         continue-on-error: true
         timeout-minutes: 12
-        run: npx tsx scripts/update-top-dr.ts
+        run: npx tsx scripts/update-top-dr.ts --saves-dir "$RUNNER_TEMP/top-profiles"
 
       - name: Refresh top-player Coin Multi max
         working-directory: web
         continue-on-error: true
         timeout-minutes: 12
-        run: npx tsx scripts/update-top-coin.ts
+        run: npx tsx scripts/update-top-coin.ts --saves-dir "$RUNNER_TEMP/top-profiles"
 
       - name: Refresh top-player EXP Multi max
         working-directory: web
         continue-on-error: true
         timeout-minutes: 12
-        run: npx tsx scripts/update-top-exp.ts
+        run: npx tsx scripts/update-top-exp.ts --saves-dir "$RUNNER_TEMP/top-profiles"
 
       - name: Refresh top-player AFK Gains max
         working-directory: web
         continue-on-error: true
         timeout-minutes: 12
-        run: npx tsx scripts/update-top-afk.ts
+        run: npx tsx scripts/update-top-afk.ts --saves-dir "$RUNNER_TEMP/top-profiles"
 
       - name: Refresh top-player Multikill max
         working-directory: web
         continue-on-error: true
         timeout-minutes: 12
-        run: npx tsx scripts/update-top-multikill.ts
+        run: npx tsx scripts/update-top-multikill.ts --saves-dir "$RUNNER_TEMP/top-profiles"
 
       - name: Refresh top-player Damage max
         working-directory: web
         continue-on-error: true
         timeout-minutes: 12
-        run: npx tsx scripts/update-top-damage.ts
+        run: npx tsx scripts/update-top-damage.ts --saves-dir "$RUNNER_TEMP/top-profiles"
 
       - name: Refresh top-player Artifact Find max
         working-directory: web
         continue-on-error: true
         timeout-minutes: 12
-        run: npx tsx scripts/update-top-artifact.ts
+        run: npx tsx scripts/update-top-artifact.ts --saves-dir "$RUNNER_TEMP/top-profiles"
 
       - name: Refresh top-player Drop Rate V2 max
         working-directory: web
         continue-on-error: true
         timeout-minutes: 12
-        run: npx tsx scripts/update-top-dr2.ts
+        run: npx tsx scripts/update-top-dr2.ts --saves-dir "$RUNNER_TEMP/top-profiles"
 
       - name: Refresh top-player Talent max
         working-directory: web
-        run: npx tsx scripts/update-top-talents.ts
+        continue-on-error: true
+        timeout-minutes: 12
+        run: npx tsx scripts/update-top-talents.ts --saves-dir "$RUNNER_TEMP/top-profiles"
+
+      - name: Refresh Tome top players
+        working-directory: web
+        continue-on-error: true
+        timeout-minutes: 12
+        run: npx tsx scripts/update-top-players.ts --saves-dir "$RUNNER_TEMP/top-profiles"
 
       - name: Commit refreshed snapshots
         env:
@@ -112,11 +130,11 @@ jobs:
           GIT_COMMITTER_NAME: github-actions[bot]
           GIT_COMMITTER_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
         run: |
-          files="web/lib/dropRate/topDropRate.ts web/lib/dropRate/topDropRate.meta.ts web/lib/coinMulti/topCoinMulti.ts web/lib/coinMulti/topCoinMulti.meta.ts web/lib/expMulti/topExpMulti.ts web/lib/expMulti/topExpMulti.meta.ts web/lib/afkGains/topAfkGains.ts web/lib/afkGains/topAfkGains.meta.ts web/lib/multikill/topMultikill.ts web/lib/multikill/topMultikill.meta.ts web/lib/damage/topDamage.ts web/lib/damage/topDamage.meta.ts web/lib/artifactFind/topArtifactFind.ts web/lib/artifactFind/topArtifactFind.meta.ts web/lib/dropRateV2/topDropRateV2.ts web/lib/dropRateV2/topDropRateV2.meta.ts web/lib/talentsLevel/topTalents.ts"
+          files="web/lib/dropRate/topDropRate.ts web/lib/dropRate/topDropRate.meta.ts web/lib/coinMulti/topCoinMulti.ts web/lib/coinMulti/topCoinMulti.meta.ts web/lib/expMulti/topExpMulti.ts web/lib/expMulti/topExpMulti.meta.ts web/lib/afkGains/topAfkGains.ts web/lib/afkGains/topAfkGains.meta.ts web/lib/multikill/topMultikill.ts web/lib/multikill/topMultikill.meta.ts web/lib/damage/topDamage.ts web/lib/damage/topDamage.meta.ts web/lib/artifactFind/topArtifactFind.ts web/lib/artifactFind/topArtifactFind.meta.ts web/lib/dropRateV2/topDropRateV2.ts web/lib/dropRateV2/topDropRateV2.meta.ts web/lib/talentsLevel/topTalents.ts web/lib/tome/topPlayers.ts"
           git add $files
           if git diff --cached --quiet; then
             echo "Snapshots unchanged, nothing to commit."
             exit 0
           fi
-          git commit -m "chore: auto-refresh top DR + DR V2 + coin + EXP + AFK + multikill + damage + artifact find + talent max snapshots"
+          git commit -m "chore: auto-refresh top DR + DR V2 + coin + EXP + AFK + multikill + damage + artifact find + talent max + Tome top-player snapshots"
           git push

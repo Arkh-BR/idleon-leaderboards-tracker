@@ -26,7 +26,7 @@
 //        --dry       compute + report, do not write the file
 import { writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { gatherCandidates, fetchProfileSave } from "./_shared/itProfiles";
+import { gatherCandidates, fetchProfileSave, readProfileSave, savedPlayers } from "./_shared/itProfiles";
 import { computeTome } from "../lib/tome/compute";
 import { TOME_TASKS } from "../lib/tome/tasks";
 import { TOP_PLAYERS } from "../lib/tome/topPlayers";
@@ -37,6 +37,11 @@ if (!g.window) g.window = g;
 const OUTPUT_FILE = join(__dirname, "..", "lib", "tome", "topPlayers.ts");
 
 const args = new Set(process.argv.slice(2));
+// --saves-dir <dir>: read the profiles scripts/fetch-top-profiles.ts downloaded once for the whole run, instead of fetching.
+const SAVES_DIR = (() => {
+  const k = process.argv.indexOf("--saves-dir");
+  return k >= 0 ? process.argv[k + 1] : null;
+})();
 const SLOW = args.has("--slow");
 const DRY = args.has("--dry");
 const THROTTLE_MS = SLOW ? 1500 : 500;
@@ -187,10 +192,12 @@ async function sleep(ms: number) {
 
 async function main() {
   console.log("\n→ Fetching top players across the leaderboard categories…");
-  const candidates = await gatherCandidates({
-    focusBoard: "totalTomePoints",
-    limit: LIMIT ?? undefined,
-  });
+  const candidates = SAVES_DIR
+    ? savedPlayers(SAVES_DIR).slice(0, LIMIT ?? undefined)
+    : await gatherCandidates({
+        focusBoard: "totalTomePoints",
+        limit: LIMIT ?? undefined,
+      });
   console.log(`  ✓ ${candidates.length} unique candidates`);
   if (candidates.length === 0) {
     console.error("× no candidates found, aborting");
@@ -204,7 +211,7 @@ async function main() {
     const tag = `[${i + 1}/${candidates.length}]`;
     process.stdout.write(`  ${tag} ${name.padEnd(20)}`);
     try {
-      const save = await fetchProfileSave(name);
+      const save = SAVES_DIR ? readProfileSave(SAVES_DIR, name) : await fetchProfileSave(name);
       if (!save) {
         console.log("  · skipped (private/not found)");
         skipped++;
@@ -222,7 +229,7 @@ async function main() {
       console.log(`  × error: ${(e as Error).message}`);
       skipped++;
     }
-    if (i < candidates.length - 1) await sleep(THROTTLE_MS);
+    if (!SAVES_DIR && i < candidates.length - 1) await sleep(THROTTLE_MS);
   }
 
   console.log(`\n✓ Computed ${results.length} / ${candidates.length} players (${skipped} skipped)`);
