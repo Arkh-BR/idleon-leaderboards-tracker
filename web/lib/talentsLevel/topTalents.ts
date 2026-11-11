@@ -13,31 +13,37 @@
 // default tree (they would all resolve to identical numbers anyway).
 // Auto-refreshed by scripts/update-top-talents.ts.
 //
-// Snapshot generated: 2026-10-31T10:48:06.849Z
-// Players scanned: 84
+// Snapshot generated: 2026-11-11T23:09:42.869Z
+// Players scanned: 98
 
 import type { ArkhNode } from "../dropRate/node";
 
-export const HYPO_TALENTS_GENERATED_AT = "2026-10-31T10:48:06.849Z";
-export const HYPO_TALENTS_PLAYERS_SCANNED = 84;
+export const HYPO_TALENTS_GENERATED_AT = "2026-11-11T23:09:42.869Z";
+export const HYPO_TALENTS_PLAYERS_SCANNED = 98;
 
 export const HYPO_DEFAULT_TREE: ArkhNode = {
   "name": "Effective Level",
-  "val": 844,
+  "val": 858,
+  "fmt": "raw",
+  "note": "Base + Bonus + Super",
   "children": [
     {
       "name": "Base Level",
       "val": 441,
+      "fmt": "raw",
+      "note": "min(invested, cap) — owner: owo_owouwu",
       "children": [
         {
           "name": "Points Invested",
           "val": 441,
           "fmt": "raw",
-          "note": "actual save — owner: GoddessFreia"
+          "note": "actual save — owner: owo_owouwu"
         },
         {
           "name": "Max Book Lv Cap",
           "val": 441,
+          "fmt": "raw",
+          "note": "N.js maxBookLv",
           "children": [
             {
               "name": "Base Level (N.js literal)",
@@ -52,6 +58,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
             {
               "name": "Salt Lick 4",
               "val": 20,
+              "fmt": "+",
               "children": [
                 {
                   "name": "Salt Lick 4 Lv",
@@ -63,12 +70,12 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                   "val": 2,
                   "fmt": "raw"
                 }
-              ],
-              "fmt": "+"
+              ]
             },
             {
               "name": "W3 Merit Shop Unlock",
               "val": 10,
+              "fmt": "+",
               "children": [
                 {
                   "name": "W3 Merit Points Spent",
@@ -80,8 +87,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                   "val": 2,
                   "fmt": "raw"
                 }
-              ],
-              "fmt": "+"
+              ]
             },
             {
               "name": "Checkout Takeout Achievement",
@@ -91,18 +97,19 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
             {
               "name": "Lv 1 Oxygen Atom",
               "val": 10,
+              "fmt": "+",
               "children": [
                 {
                   "name": "Atom 7 Lv",
                   "val": 72,
                   "fmt": "raw"
                 }
-              ],
-              "fmt": "+"
+              ]
             },
             {
               "name": "Sovereign Fury Relic",
               "val": 175,
+              "fmt": "+",
               "children": [
                 {
                   "name": "Artifact 21 Base",
@@ -114,20 +121,24 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                   "val": 7,
                   "fmt": "raw"
                 }
-              ],
-              "fmt": "+"
+              ]
             },
             {
               "name": "Summoning Winner Bonus 19",
-              "val": 96.09599999999999,
+              "val": 96.09600000000002,
+              "fmt": "+",
               "children": [
                 {
                   "name": "Summoning Battles",
                   "val": 14,
+                  "fmt": "raw",
+                  "note": "4 raw × 3.5× Base = 14.00  →  then × 1.95× Higher Bonus × 3.52× Winner = 96.10",
                   "children": [
                     {
                       "name": "Cyan",
                       "val": 10.5,
+                      "fmt": "+",
+                      "note": "Σ Cyan (W6) battles (post-Base Multi)",
                       "children": [
                         {
                           "name": "Battle 14",
@@ -135,13 +146,13 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                           "fmt": "raw",
                           "note": "1 kill × 3 per kill × 3.5 base = 10.5"
                         }
-                      ],
-                      "fmt": "+",
-                      "note": "Σ Cyan (W6) battles (post-Base Multi)"
+                      ]
                     },
                     {
                       "name": "Teal",
                       "val": 3.5,
+                      "fmt": "+",
+                      "note": "Σ Teal (W7) battles (post-Base Multi)",
                       "children": [
                         {
                           "name": "Battle 9",
@@ -149,55 +160,54 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                           "fmt": "raw",
                           "note": "1 kill × 1 per kill × 3.5 base = 3.5"
                         }
-                      ],
-                      "fmt": "+",
-                      "note": "Σ Teal (W7) battles (post-Base Multi)"
+                      ]
                     }
-                  ],
-                  "fmt": "raw",
-                  "note": "4 raw × 3.5× Base = 14.00  →  then × 1.95× Higher Bonus × 3.52× Winner = 96.10"
+                  ]
                 },
                 {
                   "name": "Higher Bonus Multi",
                   "val": 1.9500000000000002,
+                  "fmt": "x",
+                  "note": "Pristine × Gem — the upgrade-lane multi",
                   "children": [
                     {
                       "name": "Crystal Comb Pristine Charm",
                       "val": 1.3,
+                      "fmt": "x",
+                      "note": "1 + lv/100",
                       "children": [
                         {
                           "name": "Pristine 8 Bonus",
                           "val": 30,
                           "fmt": "raw"
                         }
-                      ],
-                      "fmt": "x",
-                      "note": "1 + lv/100"
+                      ]
                     },
                     {
                       "name": "Gem Shop Multi",
                       "val": 1.5,
+                      "fmt": "x",
+                      "note": "1 + 10×lv/100",
                       "children": [
                         {
                           "name": "Gem Items 11",
                           "val": 5,
                           "fmt": "raw"
                         }
-                      ],
-                      "fmt": "x",
-                      "note": "1 + 10×lv/100"
+                      ]
                     }
-                  ],
-                  "fmt": "x",
-                  "note": "Pristine × Gem — the upgrade-lane multi"
+                  ]
                 },
                 {
                   "name": "Winner Multi (combined)",
                   "val": 3.52,
+                  "fmt": "x",
+                  "note": "1 + Σ winner sources / 100",
                   "children": [
                     {
                       "name": "Sovereign Winz Lantern",
                       "val": 175,
+                      "fmt": "+",
                       "children": [
                         {
                           "name": "Artifact 32 Base",
@@ -209,8 +219,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                           "val": 7,
                           "fmt": "raw"
                         }
-                      ],
-                      "fmt": "+"
+                      ]
                     },
                     {
                       "name": "W6 Merit Shop (Task)",
@@ -231,43 +240,48 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                       "name": "Godshard Set",
                       "val": 15,
                       "fmt": "+"
+                    },
+                    {
+                      "name": "Bundle ban_i",
+                      "val": 50,
+                      "fmt": "raw"
                     }
-                  ],
-                  "fmt": "x",
-                  "note": "1 + Σ winner sources / 100"
+                  ]
                 }
-              ],
-              "fmt": "+"
+              ]
             }
-          ],
-          "fmt": "raw",
-          "note": "N.js maxBookLv"
+          ]
         }
-      ],
-      "fmt": "raw",
-      "note": "min(invested, cap) — owner: GoddessFreia"
+      ]
     },
     {
       "name": "Bonus Levels",
-      "val": 278,
+      "val": 292,
+      "fmt": "+",
       "children": [
         {
-          "name": "Symbols Of Beyond ~g (Talent 374)",
+          "name": "Symbols of Beyond ~R (Talent 149)",
           "val": 23,
+          "fmt": "raw",
+          "note": "intervalAdd(1,20,441)",
           "children": [
             {
               "name": "Base Level",
               "val": 441,
+              "fmt": "raw",
+              "note": "min(invested, cap) — owner: owo_owouwu",
               "children": [
                 {
                   "name": "Points Invested",
                   "val": 441,
                   "fmt": "raw",
-                  "note": "actual save — owner: GoddessFreia"
+                  "note": "actual save — owner: owo_owouwu"
                 },
                 {
                   "name": "Max Book Lv Cap",
                   "val": 441,
+                  "fmt": "raw",
+                  "note": "N.js maxBookLv",
                   "children": [
                     {
                       "name": "Base Level (N.js literal)",
@@ -282,6 +296,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                     {
                       "name": "Salt Lick 4",
                       "val": 20,
+                      "fmt": "+",
                       "children": [
                         {
                           "name": "Salt Lick 4 Lv",
@@ -293,12 +308,12 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                           "val": 2,
                           "fmt": "raw"
                         }
-                      ],
-                      "fmt": "+"
+                      ]
                     },
                     {
                       "name": "W3 Merit Shop Unlock",
                       "val": 10,
+                      "fmt": "+",
                       "children": [
                         {
                           "name": "W3 Merit Points Spent",
@@ -310,8 +325,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                           "val": 2,
                           "fmt": "raw"
                         }
-                      ],
-                      "fmt": "+"
+                      ]
                     },
                     {
                       "name": "Checkout Takeout Achievement",
@@ -321,18 +335,19 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                     {
                       "name": "Lv 1 Oxygen Atom",
                       "val": 10,
+                      "fmt": "+",
                       "children": [
                         {
                           "name": "Atom 7 Lv",
                           "val": 72,
                           "fmt": "raw"
                         }
-                      ],
-                      "fmt": "+"
+                      ]
                     },
                     {
                       "name": "Sovereign Fury Relic",
                       "val": 175,
+                      "fmt": "+",
                       "children": [
                         {
                           "name": "Artifact 21 Base",
@@ -344,20 +359,24 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                           "val": 7,
                           "fmt": "raw"
                         }
-                      ],
-                      "fmt": "+"
+                      ]
                     },
                     {
                       "name": "Summoning Winner Bonus 19",
-                      "val": 96.09599999999999,
+                      "val": 96.09600000000002,
+                      "fmt": "+",
                       "children": [
                         {
                           "name": "Summoning Battles",
                           "val": 14,
+                          "fmt": "raw",
+                          "note": "4 raw × 3.5× Base = 14.00  →  then × 1.95× Higher Bonus × 3.52× Winner = 96.10",
                           "children": [
                             {
                               "name": "Cyan",
                               "val": 10.5,
+                              "fmt": "+",
+                              "note": "Σ Cyan (W6) battles (post-Base Multi)",
                               "children": [
                                 {
                                   "name": "Battle 14",
@@ -365,13 +384,13 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                                   "fmt": "raw",
                                   "note": "1 kill × 3 per kill × 3.5 base = 10.5"
                                 }
-                              ],
-                              "fmt": "+",
-                              "note": "Σ Cyan (W6) battles (post-Base Multi)"
+                              ]
                             },
                             {
                               "name": "Teal",
                               "val": 3.5,
+                              "fmt": "+",
+                              "note": "Σ Teal (W7) battles (post-Base Multi)",
                               "children": [
                                 {
                                   "name": "Battle 9",
@@ -379,55 +398,54 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                                   "fmt": "raw",
                                   "note": "1 kill × 1 per kill × 3.5 base = 3.5"
                                 }
-                              ],
-                              "fmt": "+",
-                              "note": "Σ Teal (W7) battles (post-Base Multi)"
+                              ]
                             }
-                          ],
-                          "fmt": "raw",
-                          "note": "4 raw × 3.5× Base = 14.00  →  then × 1.95× Higher Bonus × 3.52× Winner = 96.10"
+                          ]
                         },
                         {
                           "name": "Higher Bonus Multi",
                           "val": 1.9500000000000002,
+                          "fmt": "x",
+                          "note": "Pristine × Gem — the upgrade-lane multi",
                           "children": [
                             {
                               "name": "Crystal Comb Pristine Charm",
                               "val": 1.3,
+                              "fmt": "x",
+                              "note": "1 + lv/100",
                               "children": [
                                 {
                                   "name": "Pristine 8 Bonus",
                                   "val": 30,
                                   "fmt": "raw"
                                 }
-                              ],
-                              "fmt": "x",
-                              "note": "1 + lv/100"
+                              ]
                             },
                             {
                               "name": "Gem Shop Multi",
                               "val": 1.5,
+                              "fmt": "x",
+                              "note": "1 + 10×lv/100",
                               "children": [
                                 {
                                   "name": "Gem Items 11",
                                   "val": 5,
                                   "fmt": "raw"
                                 }
-                              ],
-                              "fmt": "x",
-                              "note": "1 + 10×lv/100"
+                              ]
                             }
-                          ],
-                          "fmt": "x",
-                          "note": "Pristine × Gem — the upgrade-lane multi"
+                          ]
                         },
                         {
                           "name": "Winner Multi (combined)",
                           "val": 3.52,
+                          "fmt": "x",
+                          "note": "1 + Σ winner sources / 100",
                           "children": [
                             {
                               "name": "Sovereign Winz Lantern",
                               "val": 175,
+                              "fmt": "+",
                               "children": [
                                 {
                                   "name": "Artifact 32 Base",
@@ -439,8 +457,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                                   "val": 7,
                                   "fmt": "raw"
                                 }
-                              ],
-                              "fmt": "+"
+                              ]
                             },
                             {
                               "name": "W6 Merit Shop (Task)",
@@ -461,25 +478,21 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                               "name": "Godshard Set",
                               "val": 15,
                               "fmt": "+"
+                            },
+                            {
+                              "name": "Bundle ban_i",
+                              "val": 50,
+                              "fmt": "raw"
                             }
-                          ],
-                          "fmt": "x",
-                          "note": "1 + Σ winner sources / 100"
+                          ]
                         }
-                      ],
-                      "fmt": "+"
+                      ]
                     }
-                  ],
-                  "fmt": "raw",
-                  "note": "N.js maxBookLv"
+                  ]
                 }
-              ],
-              "fmt": "raw",
-              "note": "min(invested, cap) — owner: GoddessFreia"
+              ]
             }
-          ],
-          "fmt": "raw",
-          "note": "intervalAdd(1,20,441)"
+          ]
         },
         {
           "name": "Maroon Warship (Achievement 291)",
@@ -489,34 +502,40 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
         {
           "name": "Family Bonus 68 (Mage)",
           "val": 16,
+          "fmt": "raw",
+          "note": "floor(decay × Family Guy Multi if active)",
           "children": [
             {
               "name": "Best Mage Lv",
-              "val": 1969,
+              "val": 1985,
+              "fmt": "raw",
+              "note": "max across account — 2 mage chars",
               "children": [
                 {
                   "name": "Char 4 Lv",
-                  "val": 1965,
+                  "val": 1978,
                   "fmt": "raw",
                   "note": "llasoaola — elemental sorcerer (cls 34)"
                 },
                 {
                   "name": "Char 7 Lv",
-                  "val": 1923,
+                  "val": 1927,
                   "fmt": "raw",
                   "note": "Stanflandala — elemental sorcerer (cls 34)"
                 }
-              ],
-              "fmt": "raw",
-              "note": "max across account — 2 mage chars"
+              ]
             },
             {
               "name": "Family Guy Multi (×) — potential buff",
-              "val": 1.3575821845174973,
+              "val": 1.3580272822665267,
+              "fmt": "raw",
+              "note": "1 + decay(x1, x2, Base+Bonus)/100",
               "children": [
                 {
                   "name": "Base Level",
                   "val": 441,
+                  "fmt": "raw",
+                  "note": "min(invested, cap)",
                   "children": [
                     {
                       "name": "Points Invested",
@@ -527,6 +546,8 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                     {
                       "name": "Max Book Lv Cap",
                       "val": 441,
+                      "fmt": "raw",
+                      "note": "N.js maxBookLv",
                       "children": [
                         {
                           "name": "Base Level (N.js literal)",
@@ -541,6 +562,8 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                         {
                           "name": "Salt Lick 4",
                           "val": 20,
+                          "fmt": "+",
+                          "note": "Lv × Per Lv",
                           "children": [
                             {
                               "name": "Salt Lick 4 Lv",
@@ -552,13 +575,13 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                               "val": 2,
                               "fmt": "raw"
                             }
-                          ],
-                          "fmt": "+",
-                          "note": "Lv × Per Lv"
+                          ]
                         },
                         {
                           "name": "W3 Merit Shop Unlock",
                           "val": 10,
+                          "fmt": "+",
+                          "note": "Pts × Per Point",
                           "children": [
                             {
                               "name": "W3 Merit Points Spent",
@@ -570,9 +593,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                               "val": 2,
                               "fmt": "raw"
                             }
-                          ],
-                          "fmt": "+",
-                          "note": "Pts × Per Point"
+                          ]
                         },
                         {
                           "name": "Checkout Takeout Achievement",
@@ -582,19 +603,21 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                         {
                           "name": "Lv 1 Oxygen Atom",
                           "val": 10,
+                          "fmt": "+",
+                          "note": "10 × min(Lv, 1)",
                           "children": [
                             {
                               "name": "Atom 7 Lv",
                               "val": 72,
                               "fmt": "raw"
                             }
-                          ],
-                          "fmt": "+",
-                          "note": "10 × min(Lv, 1)"
+                          ]
                         },
                         {
                           "name": "Sovereign Fury Relic",
                           "val": 175,
+                          "fmt": "+",
+                          "note": "Base × Tier",
                           "children": [
                             {
                               "name": "Artifact 21 Base",
@@ -606,21 +629,25 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                               "val": 7,
                               "fmt": "raw"
                             }
-                          ],
-                          "fmt": "+",
-                          "note": "Base × Tier"
+                          ]
                         },
                         {
                           "name": "Summoning Winner Bonus 19",
-                          "val": 96.09599999999999,
+                          "val": 96.09600000000002,
+                          "fmt": "+",
+                          "note": "Raw × Higher Bonus × Winner Multi",
                           "children": [
                             {
                               "name": "Summoning Battles",
                               "val": 14,
+                              "fmt": "raw",
+                              "note": "4 raw × 3.5× Base = 14.00  →  then × 1.95× Higher Bonus × 3.52× Winner = 96.10",
                               "children": [
                                 {
                                   "name": "Cyan",
                                   "val": 10.5,
+                                  "fmt": "+",
+                                  "note": "Σ Cyan (W6) battles (post-Base Multi)",
                                   "children": [
                                     {
                                       "name": "Battle 14",
@@ -628,13 +655,13 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                                       "fmt": "raw",
                                       "note": "1 kill × 3 per kill × 3.5 base = 10.5"
                                     }
-                                  ],
-                                  "fmt": "+",
-                                  "note": "Σ Cyan (W6) battles (post-Base Multi)"
+                                  ]
                                 },
                                 {
                                   "name": "Teal",
                                   "val": 3.5,
+                                  "fmt": "+",
+                                  "note": "Σ Teal (W7) battles (post-Base Multi)",
                                   "children": [
                                     {
                                       "name": "Battle 9",
@@ -642,55 +669,54 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                                       "fmt": "raw",
                                       "note": "1 kill × 1 per kill × 3.5 base = 3.5"
                                     }
-                                  ],
-                                  "fmt": "+",
-                                  "note": "Σ Teal (W7) battles (post-Base Multi)"
+                                  ]
                                 }
-                              ],
-                              "fmt": "raw",
-                              "note": "4 raw × 3.5× Base = 14.00  →  then × 1.95× Higher Bonus × 3.52× Winner = 96.10"
+                              ]
                             },
                             {
                               "name": "Higher Bonus Multi",
                               "val": 1.9500000000000002,
+                              "fmt": "x",
+                              "note": "Pristine × Gem — the upgrade-lane multi",
                               "children": [
                                 {
                                   "name": "Crystal Comb Pristine Charm",
                                   "val": 1.3,
+                                  "fmt": "x",
+                                  "note": "1 + lv/100",
                                   "children": [
                                     {
                                       "name": "Pristine 8 Bonus",
                                       "val": 30,
                                       "fmt": "raw"
                                     }
-                                  ],
-                                  "fmt": "x",
-                                  "note": "1 + lv/100"
+                                  ]
                                 },
                                 {
                                   "name": "Gem Shop Multi",
                                   "val": 1.5,
+                                  "fmt": "x",
+                                  "note": "1 + 10×lv/100",
                                   "children": [
                                     {
                                       "name": "Gem Items 11",
                                       "val": 5,
                                       "fmt": "raw"
                                     }
-                                  ],
-                                  "fmt": "x",
-                                  "note": "1 + 10×lv/100"
+                                  ]
                                 }
-                              ],
-                              "fmt": "x",
-                              "note": "Pristine × Gem — the upgrade-lane multi"
+                              ]
                             },
                             {
                               "name": "Winner Multi (combined)",
                               "val": 3.52,
+                              "fmt": "x",
+                              "note": "1 + Σ winner sources / 100",
                               "children": [
                                 {
                                   "name": "Sovereign Winz Lantern",
                                   "val": 175,
+                                  "fmt": "+",
                                   "children": [
                                     {
                                       "name": "Artifact 32 Base",
@@ -702,8 +728,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                                       "val": 7,
                                       "fmt": "raw"
                                     }
-                                  ],
-                                  "fmt": "+"
+                                  ]
                                 },
                                 {
                                   "name": "W6 Merit Shop (Task)",
@@ -724,46 +749,34 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                                   "name": "Godshard Set",
                                   "val": 15,
                                   "fmt": "+"
+                                },
+                                {
+                                  "name": "Bundle ban_i",
+                                  "val": 50,
+                                  "fmt": "raw"
                                 }
-                              ],
-                              "fmt": "x",
-                              "note": "1 + Σ winner sources / 100"
+                              ]
                             }
-                          ],
-                          "fmt": "+",
-                          "note": "Raw × Higher Bonus × Winner Multi"
+                          ]
                         }
-                      ],
-                      "fmt": "raw",
-                      "note": "N.js maxBookLv"
+                      ]
                     }
-                  ],
-                  "fmt": "raw",
-                  "note": "min(invested, cap)"
+                  ]
                 },
                 {
                   "name": "Bonus Levels",
-                  "val": 277,
+                  "val": 288,
                   "fmt": "+",
                   "note": "Σ ATL (unbuffed FB68, excl. super)"
-                },
-                {
-                  "name": "Super Levels",
-                  "val": 125,
-                  "fmt": "+",
-                  "note": "Spelunk super talent (separated)"
                 }
-              ],
-              "fmt": "raw",
-              "note": "1 + decay(x1, x2, Base+Bonus)/100"
+              ]
             }
-          ],
-          "fmt": "raw",
-          "note": "floor(decay × Family Guy Multi if active)"
+          ]
         },
         {
           "name": "Rift Slug (Companion 1)",
-          "val": 25,
+          "val": 35,
+          "fmt": "raw",
           "children": [
             {
               "name": "Owned",
@@ -772,19 +785,19 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
             },
             {
               "name": "Bonus",
-              "val": 25,
+              "val": 35,
               "fmt": "raw"
             }
-          ],
-          "fmt": "raw"
+          ]
         },
         {
           "name": "Divinity Minor 2 (Arctis)",
-          "val": 84,
+          "val": 87,
+          "fmt": "raw",
           "children": [
             {
               "name": "Divinity Lv",
-              "val": 1023,
+              "val": 1050,
               "fmt": "raw"
             },
             {
@@ -795,7 +808,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
             },
             {
               "name": "Coral Kid 3",
-              "val": 293,
+              "val": 308,
               "fmt": "raw",
               "note": "OLA[430]"
             },
@@ -805,12 +818,12 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
               "fmt": "raw",
               "note": "GodsInfo[2][3] constant"
             }
-          ],
-          "fmt": "raw"
+          ]
         },
         {
           "name": "Equinox Symbols (Dream 10)",
-          "val": 69,
+          "val": 70,
+          "fmt": "raw",
           "children": [
             {
               "name": "Base Max",
@@ -821,6 +834,8 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
             {
               "name": "Summoning WinBonus 24",
               "val": 51,
+              "fmt": "raw",
+              "note": "slot 24 is RAW (no multiplicative chain)",
               "children": [
                 {
                   "name": "Normal Wins Bonus",
@@ -831,6 +846,8 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                 {
                   "name": "Endless Wins Bonus",
                   "val": 51,
+                  "fmt": "raw",
+                  "note": "floor(wins/40) × perCycle + partial cycle",
                   "children": [
                     {
                       "name": "Endless Wins Count",
@@ -844,13 +861,9 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                       "fmt": "raw",
                       "note": "slot-24 contribution per 40-win cycle (game constant)"
                     }
-                  ],
-                  "fmt": "raw",
-                  "note": "floor(wins/40) × perCycle + partial cycle"
+                  ]
                 }
-              ],
-              "fmt": "raw",
-              "note": "slot 24 is RAW (no multiplicative chain)"
+              ]
             },
             {
               "name": "SuperBit 35 (×10)",
@@ -864,14 +877,13 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
               "fmt": "raw",
               "note": "Dream Challenge 30 completed? × 4"
             }
-          ],
-          "fmt": "raw"
+          ]
         },
         {
           "name": "Sneaking Completions",
           "val": 5,
           "fmt": "raw",
-          "note": "raw=8"
+          "note": "raw=9"
         },
         {
           "name": "Skull of Major Talent (Grimoire 39)",
@@ -892,23 +904,24 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
         {
           "name": "Super Bit 47 Lv Bonus",
           "val": 15,
+          "fmt": "raw",
+          "note": "max(0, floor((Lv − 500)/100))",
           "children": [
             {
               "name": "Player Lv",
-              "val": 2055,
+              "val": 2056,
               "fmt": "raw",
               "note": "Lv0[0]"
             }
-          ],
-          "fmt": "raw",
-          "note": "max(0, floor((Lv − 500)/100))"
+          ]
         }
-      ],
-      "fmt": "+"
+      ]
     },
     {
       "name": "Super Levels",
       "val": 125,
+      "fmt": "+",
+      "note": "Spelunk Super Talent — active on this preset",
       "children": [
         {
           "name": "Active",
@@ -923,6 +936,8 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
         {
           "name": "Super Duper Talents (Yellow 2)",
           "val": 50,
+          "fmt": "raw",
+          "note": "+10 super levels per level",
           "children": [
             {
               "name": "Base",
@@ -935,13 +950,13 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
               "fmt": "raw",
               "note": "Zenith Market — Spelunk[18][7] (max 5)"
             }
-          ],
-          "fmt": "raw",
-          "note": "+10 super levels per level"
+          ]
         },
         {
           "name": "Zenith Super Dupers",
           "val": 25,
+          "fmt": "raw",
+          "note": "+1 super level per level",
           "children": [
             {
               "name": "Level",
@@ -954,37 +969,37 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
               "val": 1,
               "fmt": "raw"
             }
-          ],
-          "fmt": "raw",
-          "note": "+1 super level per level"
+          ]
         }
-      ],
-      "fmt": "+",
-      "note": "Spelunk Super Talent — active on this preset"
+      ]
     }
-  ],
-  "fmt": "raw",
-  "note": "Base + Bonus + Super"
+  ]
 };
 
 export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
   "Elemental_Sorcerer": {
     "name": "Effective Level",
-    "val": 850,
+    "val": 864,
+    "fmt": "raw",
+    "note": "Base + Bonus + Super",
     "children": [
       {
         "name": "Base Level",
         "val": 441,
+        "fmt": "raw",
+        "note": "min(invested, cap) — owner: owo_owouwu",
         "children": [
           {
             "name": "Points Invested",
             "val": 441,
             "fmt": "raw",
-            "note": "actual save — owner: GoddessFreia"
+            "note": "actual save — owner: owo_owouwu"
           },
           {
             "name": "Max Book Lv Cap",
             "val": 441,
+            "fmt": "raw",
+            "note": "N.js maxBookLv",
             "children": [
               {
                 "name": "Base Level (N.js literal)",
@@ -999,6 +1014,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
               {
                 "name": "Salt Lick 4",
                 "val": 20,
+                "fmt": "+",
                 "children": [
                   {
                     "name": "Salt Lick 4 Lv",
@@ -1010,12 +1026,12 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                     "val": 2,
                     "fmt": "raw"
                   }
-                ],
-                "fmt": "+"
+                ]
               },
               {
                 "name": "W3 Merit Shop Unlock",
                 "val": 10,
+                "fmt": "+",
                 "children": [
                   {
                     "name": "W3 Merit Points Spent",
@@ -1027,8 +1043,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                     "val": 2,
                     "fmt": "raw"
                   }
-                ],
-                "fmt": "+"
+                ]
               },
               {
                 "name": "Checkout Takeout Achievement",
@@ -1038,18 +1053,19 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
               {
                 "name": "Lv 1 Oxygen Atom",
                 "val": 10,
+                "fmt": "+",
                 "children": [
                   {
                     "name": "Atom 7 Lv",
                     "val": 72,
                     "fmt": "raw"
                   }
-                ],
-                "fmt": "+"
+                ]
               },
               {
                 "name": "Sovereign Fury Relic",
                 "val": 175,
+                "fmt": "+",
                 "children": [
                   {
                     "name": "Artifact 21 Base",
@@ -1061,20 +1077,24 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                     "val": 7,
                     "fmt": "raw"
                   }
-                ],
-                "fmt": "+"
+                ]
               },
               {
                 "name": "Summoning Winner Bonus 19",
-                "val": 96.09599999999999,
+                "val": 96.09600000000002,
+                "fmt": "+",
                 "children": [
                   {
                     "name": "Summoning Battles",
                     "val": 14,
+                    "fmt": "raw",
+                    "note": "4 raw × 3.5× Base = 14.00  →  then × 1.95× Higher Bonus × 3.52× Winner = 96.10",
                     "children": [
                       {
                         "name": "Cyan",
                         "val": 10.5,
+                        "fmt": "+",
+                        "note": "Σ Cyan (W6) battles (post-Base Multi)",
                         "children": [
                           {
                             "name": "Battle 14",
@@ -1082,13 +1102,13 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                             "fmt": "raw",
                             "note": "1 kill × 3 per kill × 3.5 base = 10.5"
                           }
-                        ],
-                        "fmt": "+",
-                        "note": "Σ Cyan (W6) battles (post-Base Multi)"
+                        ]
                       },
                       {
                         "name": "Teal",
                         "val": 3.5,
+                        "fmt": "+",
+                        "note": "Σ Teal (W7) battles (post-Base Multi)",
                         "children": [
                           {
                             "name": "Battle 9",
@@ -1096,55 +1116,54 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                             "fmt": "raw",
                             "note": "1 kill × 1 per kill × 3.5 base = 3.5"
                           }
-                        ],
-                        "fmt": "+",
-                        "note": "Σ Teal (W7) battles (post-Base Multi)"
+                        ]
                       }
-                    ],
-                    "fmt": "raw",
-                    "note": "4 raw × 3.5× Base = 14.00  →  then × 1.95× Higher Bonus × 3.52× Winner = 96.10"
+                    ]
                   },
                   {
                     "name": "Higher Bonus Multi",
                     "val": 1.9500000000000002,
+                    "fmt": "x",
+                    "note": "Pristine × Gem — the upgrade-lane multi",
                     "children": [
                       {
                         "name": "Crystal Comb Pristine Charm",
                         "val": 1.3,
+                        "fmt": "x",
+                        "note": "1 + lv/100",
                         "children": [
                           {
                             "name": "Pristine 8 Bonus",
                             "val": 30,
                             "fmt": "raw"
                           }
-                        ],
-                        "fmt": "x",
-                        "note": "1 + lv/100"
+                        ]
                       },
                       {
                         "name": "Gem Shop Multi",
                         "val": 1.5,
+                        "fmt": "x",
+                        "note": "1 + 10×lv/100",
                         "children": [
                           {
                             "name": "Gem Items 11",
                             "val": 5,
                             "fmt": "raw"
                           }
-                        ],
-                        "fmt": "x",
-                        "note": "1 + 10×lv/100"
+                        ]
                       }
-                    ],
-                    "fmt": "x",
-                    "note": "Pristine × Gem — the upgrade-lane multi"
+                    ]
                   },
                   {
                     "name": "Winner Multi (combined)",
                     "val": 3.52,
+                    "fmt": "x",
+                    "note": "1 + Σ winner sources / 100",
                     "children": [
                       {
                         "name": "Sovereign Winz Lantern",
                         "val": 175,
+                        "fmt": "+",
                         "children": [
                           {
                             "name": "Artifact 32 Base",
@@ -1156,8 +1175,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                             "val": 7,
                             "fmt": "raw"
                           }
-                        ],
-                        "fmt": "+"
+                        ]
                       },
                       {
                         "name": "W6 Merit Shop (Task)",
@@ -1178,43 +1196,48 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                         "name": "Godshard Set",
                         "val": 15,
                         "fmt": "+"
+                      },
+                      {
+                        "name": "Bundle ban_i",
+                        "val": 50,
+                        "fmt": "raw"
                       }
-                    ],
-                    "fmt": "x",
-                    "note": "1 + Σ winner sources / 100"
+                    ]
                   }
-                ],
-                "fmt": "+"
+                ]
               }
-            ],
-            "fmt": "raw",
-            "note": "N.js maxBookLv"
+            ]
           }
-        ],
-        "fmt": "raw",
-        "note": "min(invested, cap) — owner: GoddessFreia"
+        ]
       },
       {
         "name": "Bonus Levels",
-        "val": 284,
+        "val": 298,
+        "fmt": "+",
         "children": [
           {
-            "name": "Symbols Of Beyond ~g (Talent 374)",
+            "name": "Symbols of Beyond ~R (Talent 149)",
             "val": 23,
+            "fmt": "raw",
+            "note": "intervalAdd(1,20,441)",
             "children": [
               {
                 "name": "Base Level",
                 "val": 441,
+                "fmt": "raw",
+                "note": "min(invested, cap) — owner: owo_owouwu",
                 "children": [
                   {
                     "name": "Points Invested",
                     "val": 441,
                     "fmt": "raw",
-                    "note": "actual save — owner: GoddessFreia"
+                    "note": "actual save — owner: owo_owouwu"
                   },
                   {
                     "name": "Max Book Lv Cap",
                     "val": 441,
+                    "fmt": "raw",
+                    "note": "N.js maxBookLv",
                     "children": [
                       {
                         "name": "Base Level (N.js literal)",
@@ -1229,6 +1252,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                       {
                         "name": "Salt Lick 4",
                         "val": 20,
+                        "fmt": "+",
                         "children": [
                           {
                             "name": "Salt Lick 4 Lv",
@@ -1240,12 +1264,12 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                             "val": 2,
                             "fmt": "raw"
                           }
-                        ],
-                        "fmt": "+"
+                        ]
                       },
                       {
                         "name": "W3 Merit Shop Unlock",
                         "val": 10,
+                        "fmt": "+",
                         "children": [
                           {
                             "name": "W3 Merit Points Spent",
@@ -1257,8 +1281,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                             "val": 2,
                             "fmt": "raw"
                           }
-                        ],
-                        "fmt": "+"
+                        ]
                       },
                       {
                         "name": "Checkout Takeout Achievement",
@@ -1268,18 +1291,19 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                       {
                         "name": "Lv 1 Oxygen Atom",
                         "val": 10,
+                        "fmt": "+",
                         "children": [
                           {
                             "name": "Atom 7 Lv",
                             "val": 72,
                             "fmt": "raw"
                           }
-                        ],
-                        "fmt": "+"
+                        ]
                       },
                       {
                         "name": "Sovereign Fury Relic",
                         "val": 175,
+                        "fmt": "+",
                         "children": [
                           {
                             "name": "Artifact 21 Base",
@@ -1291,20 +1315,24 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                             "val": 7,
                             "fmt": "raw"
                           }
-                        ],
-                        "fmt": "+"
+                        ]
                       },
                       {
                         "name": "Summoning Winner Bonus 19",
-                        "val": 96.09599999999999,
+                        "val": 96.09600000000002,
+                        "fmt": "+",
                         "children": [
                           {
                             "name": "Summoning Battles",
                             "val": 14,
+                            "fmt": "raw",
+                            "note": "4 raw × 3.5× Base = 14.00  →  then × 1.95× Higher Bonus × 3.52× Winner = 96.10",
                             "children": [
                               {
                                 "name": "Cyan",
                                 "val": 10.5,
+                                "fmt": "+",
+                                "note": "Σ Cyan (W6) battles (post-Base Multi)",
                                 "children": [
                                   {
                                     "name": "Battle 14",
@@ -1312,13 +1340,13 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                                     "fmt": "raw",
                                     "note": "1 kill × 3 per kill × 3.5 base = 10.5"
                                   }
-                                ],
-                                "fmt": "+",
-                                "note": "Σ Cyan (W6) battles (post-Base Multi)"
+                                ]
                               },
                               {
                                 "name": "Teal",
                                 "val": 3.5,
+                                "fmt": "+",
+                                "note": "Σ Teal (W7) battles (post-Base Multi)",
                                 "children": [
                                   {
                                     "name": "Battle 9",
@@ -1326,55 +1354,54 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                                     "fmt": "raw",
                                     "note": "1 kill × 1 per kill × 3.5 base = 3.5"
                                   }
-                                ],
-                                "fmt": "+",
-                                "note": "Σ Teal (W7) battles (post-Base Multi)"
+                                ]
                               }
-                            ],
-                            "fmt": "raw",
-                            "note": "4 raw × 3.5× Base = 14.00  →  then × 1.95× Higher Bonus × 3.52× Winner = 96.10"
+                            ]
                           },
                           {
                             "name": "Higher Bonus Multi",
                             "val": 1.9500000000000002,
+                            "fmt": "x",
+                            "note": "Pristine × Gem — the upgrade-lane multi",
                             "children": [
                               {
                                 "name": "Crystal Comb Pristine Charm",
                                 "val": 1.3,
+                                "fmt": "x",
+                                "note": "1 + lv/100",
                                 "children": [
                                   {
                                     "name": "Pristine 8 Bonus",
                                     "val": 30,
                                     "fmt": "raw"
                                   }
-                                ],
-                                "fmt": "x",
-                                "note": "1 + lv/100"
+                                ]
                               },
                               {
                                 "name": "Gem Shop Multi",
                                 "val": 1.5,
+                                "fmt": "x",
+                                "note": "1 + 10×lv/100",
                                 "children": [
                                   {
                                     "name": "Gem Items 11",
                                     "val": 5,
                                     "fmt": "raw"
                                   }
-                                ],
-                                "fmt": "x",
-                                "note": "1 + 10×lv/100"
+                                ]
                               }
-                            ],
-                            "fmt": "x",
-                            "note": "Pristine × Gem — the upgrade-lane multi"
+                            ]
                           },
                           {
                             "name": "Winner Multi (combined)",
                             "val": 3.52,
+                            "fmt": "x",
+                            "note": "1 + Σ winner sources / 100",
                             "children": [
                               {
                                 "name": "Sovereign Winz Lantern",
                                 "val": 175,
+                                "fmt": "+",
                                 "children": [
                                   {
                                     "name": "Artifact 32 Base",
@@ -1386,8 +1413,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                                     "val": 7,
                                     "fmt": "raw"
                                   }
-                                ],
-                                "fmt": "+"
+                                ]
                               },
                               {
                                 "name": "W6 Merit Shop (Task)",
@@ -1408,25 +1434,21 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                                 "name": "Godshard Set",
                                 "val": 15,
                                 "fmt": "+"
+                              },
+                              {
+                                "name": "Bundle ban_i",
+                                "val": 50,
+                                "fmt": "raw"
                               }
-                            ],
-                            "fmt": "x",
-                            "note": "1 + Σ winner sources / 100"
+                            ]
                           }
-                        ],
-                        "fmt": "+"
+                        ]
                       }
-                    ],
-                    "fmt": "raw",
-                    "note": "N.js maxBookLv"
+                    ]
                   }
-                ],
-                "fmt": "raw",
-                "note": "min(invested, cap) — owner: GoddessFreia"
+                ]
               }
-            ],
-            "fmt": "raw",
-            "note": "intervalAdd(1,20,441)"
+            ]
           },
           {
             "name": "Maroon Warship (Achievement 291)",
@@ -1436,34 +1458,40 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
           {
             "name": "Family Bonus 68 (Mage)",
             "val": 22,
+            "fmt": "raw",
+            "note": "floor(decay × Family Guy Multi if active) — buffed by The Family Guy (Talent 144)",
             "children": [
               {
                 "name": "Best Mage Lv",
-                "val": 1969,
+                "val": 1985,
+                "fmt": "raw",
+                "note": "max across account — 2 mage chars",
                 "children": [
                   {
                     "name": "Char 4 Lv",
-                    "val": 1965,
+                    "val": 1978,
                     "fmt": "raw",
-                    "note": "sm4rtb0i — elemental sorcerer (cls 34) — ACTIVE char (gets Family Guy buff if it wins the slot)"
+                    "note": "llasoaola — elemental sorcerer (cls 34) — ACTIVE char (gets Family Guy buff if it wins the slot)"
                   },
                   {
-                    "name": "Char 9 Lv",
-                    "val": 1904,
+                    "name": "Char 7 Lv",
+                    "val": 1927,
                     "fmt": "raw",
-                    "note": "Sastery — elemental sorcerer (cls 34)"
+                    "note": "Stanflandala — elemental sorcerer (cls 34)"
                   }
-                ],
-                "fmt": "raw",
-                "note": "max across account — 2 mage chars"
+                ]
               },
               {
                 "name": "Family Guy Multi (×) — potential buff",
-                "val": 1.3575821845174973,
+                "val": 1.3580272822665267,
+                "fmt": "raw",
+                "note": "1 + decay(x1, x2, Base+Bonus)/100",
                 "children": [
                   {
                     "name": "Base Level",
                     "val": 441,
+                    "fmt": "raw",
+                    "note": "min(invested, cap)",
                     "children": [
                       {
                         "name": "Points Invested",
@@ -1474,6 +1502,8 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                       {
                         "name": "Max Book Lv Cap",
                         "val": 441,
+                        "fmt": "raw",
+                        "note": "N.js maxBookLv",
                         "children": [
                           {
                             "name": "Base Level (N.js literal)",
@@ -1488,6 +1518,8 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                           {
                             "name": "Salt Lick 4",
                             "val": 20,
+                            "fmt": "+",
+                            "note": "Lv × Per Lv",
                             "children": [
                               {
                                 "name": "Salt Lick 4 Lv",
@@ -1499,13 +1531,13 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                                 "val": 2,
                                 "fmt": "raw"
                               }
-                            ],
-                            "fmt": "+",
-                            "note": "Lv × Per Lv"
+                            ]
                           },
                           {
                             "name": "W3 Merit Shop Unlock",
                             "val": 10,
+                            "fmt": "+",
+                            "note": "Pts × Per Point",
                             "children": [
                               {
                                 "name": "W3 Merit Points Spent",
@@ -1517,9 +1549,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                                 "val": 2,
                                 "fmt": "raw"
                               }
-                            ],
-                            "fmt": "+",
-                            "note": "Pts × Per Point"
+                            ]
                           },
                           {
                             "name": "Checkout Takeout Achievement",
@@ -1529,19 +1559,21 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                           {
                             "name": "Lv 1 Oxygen Atom",
                             "val": 10,
+                            "fmt": "+",
+                            "note": "10 × min(Lv, 1)",
                             "children": [
                               {
                                 "name": "Atom 7 Lv",
                                 "val": 72,
                                 "fmt": "raw"
                               }
-                            ],
-                            "fmt": "+",
-                            "note": "10 × min(Lv, 1)"
+                            ]
                           },
                           {
                             "name": "Sovereign Fury Relic",
                             "val": 175,
+                            "fmt": "+",
+                            "note": "Base × Tier",
                             "children": [
                               {
                                 "name": "Artifact 21 Base",
@@ -1553,21 +1585,25 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                                 "val": 7,
                                 "fmt": "raw"
                               }
-                            ],
-                            "fmt": "+",
-                            "note": "Base × Tier"
+                            ]
                           },
                           {
                             "name": "Summoning Winner Bonus 19",
-                            "val": 96.09599999999999,
+                            "val": 96.09600000000002,
+                            "fmt": "+",
+                            "note": "Raw × Higher Bonus × Winner Multi",
                             "children": [
                               {
                                 "name": "Summoning Battles",
                                 "val": 14,
+                                "fmt": "raw",
+                                "note": "4 raw × 3.5× Base = 14.00  →  then × 1.95× Higher Bonus × 3.52× Winner = 96.10",
                                 "children": [
                                   {
                                     "name": "Cyan",
                                     "val": 10.5,
+                                    "fmt": "+",
+                                    "note": "Σ Cyan (W6) battles (post-Base Multi)",
                                     "children": [
                                       {
                                         "name": "Battle 14",
@@ -1575,13 +1611,13 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                                         "fmt": "raw",
                                         "note": "1 kill × 3 per kill × 3.5 base = 10.5"
                                       }
-                                    ],
-                                    "fmt": "+",
-                                    "note": "Σ Cyan (W6) battles (post-Base Multi)"
+                                    ]
                                   },
                                   {
                                     "name": "Teal",
                                     "val": 3.5,
+                                    "fmt": "+",
+                                    "note": "Σ Teal (W7) battles (post-Base Multi)",
                                     "children": [
                                       {
                                         "name": "Battle 9",
@@ -1589,55 +1625,54 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                                         "fmt": "raw",
                                         "note": "1 kill × 1 per kill × 3.5 base = 3.5"
                                       }
-                                    ],
-                                    "fmt": "+",
-                                    "note": "Σ Teal (W7) battles (post-Base Multi)"
+                                    ]
                                   }
-                                ],
-                                "fmt": "raw",
-                                "note": "4 raw × 3.5× Base = 14.00  →  then × 1.95× Higher Bonus × 3.02× Winner = 82.45"
+                                ]
                               },
                               {
                                 "name": "Higher Bonus Multi",
                                 "val": 1.9500000000000002,
+                                "fmt": "x",
+                                "note": "Pristine × Gem — the upgrade-lane multi",
                                 "children": [
                                   {
                                     "name": "Crystal Comb Pristine Charm",
                                     "val": 1.3,
+                                    "fmt": "x",
+                                    "note": "1 + lv/100",
                                     "children": [
                                       {
                                         "name": "Pristine 8 Bonus",
                                         "val": 30,
                                         "fmt": "raw"
                                       }
-                                    ],
-                                    "fmt": "x",
-                                    "note": "1 + lv/100"
+                                    ]
                                   },
                                   {
                                     "name": "Gem Shop Multi",
                                     "val": 1.5,
+                                    "fmt": "x",
+                                    "note": "1 + 10×lv/100",
                                     "children": [
                                       {
                                         "name": "Gem Items 11",
                                         "val": 5,
                                         "fmt": "raw"
                                       }
-                                    ],
-                                    "fmt": "x",
-                                    "note": "1 + 10×lv/100"
+                                    ]
                                   }
-                                ],
-                                "fmt": "x",
-                                "note": "Pristine × Gem — the upgrade-lane multi"
+                                ]
                               },
                               {
                                 "name": "Winner Multi (combined)",
                                 "val": 3.52,
+                                "fmt": "x",
+                                "note": "1 + Σ winner sources / 100",
                                 "children": [
                                   {
                                     "name": "Sovereign Winz Lantern",
                                     "val": 175,
+                                    "fmt": "+",
                                     "children": [
                                       {
                                         "name": "Artifact 32 Base",
@@ -1649,8 +1684,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                                         "val": 7,
                                         "fmt": "raw"
                                       }
-                                    ],
-                                    "fmt": "+"
+                                    ]
                                   },
                                   {
                                     "name": "W6 Merit Shop (Task)",
@@ -1671,26 +1705,23 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                                     "name": "Godshard Set",
                                     "val": 15,
                                     "fmt": "+"
+                                  },
+                                  {
+                                    "name": "Bundle ban_i",
+                                    "val": 50,
+                                    "fmt": "raw"
                                   }
-                                ],
-                                "fmt": "x",
-                                "note": "1 + Σ winner sources / 100"
+                                ]
                               }
-                            ],
-                            "fmt": "+",
-                            "note": "Raw × Higher Bonus × Winner Multi"
+                            ]
                           }
-                        ],
-                        "fmt": "raw",
-                        "note": "N.js maxBookLv"
+                        ]
                       }
-                    ],
-                    "fmt": "raw",
-                    "note": "min(invested, cap)"
+                    ]
                   },
                   {
                     "name": "Bonus Levels",
-                    "val": 277,
+                    "val": 287,
                     "fmt": "+",
                     "note": "Σ ATL (unbuffed FB68, excl. super)"
                   },
@@ -1700,17 +1731,14 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                     "fmt": "+",
                     "note": "Spelunk super talent (separated)"
                   }
-                ],
-                "fmt": "raw",
-                "note": "1 + decay(x1, x2, Base+Bonus)/100"
+                ]
               }
-            ],
-            "fmt": "raw",
-            "note": "floor(decay × Family Guy Multi if active) — buffed by The Family Guy (Talent 144)"
+            ]
           },
           {
             "name": "Rift Slug (Companion 1)",
-            "val": 25,
+            "val": 35,
+            "fmt": "raw",
             "children": [
               {
                 "name": "Owned",
@@ -1719,19 +1747,19 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
               },
               {
                 "name": "Bonus",
-                "val": 25,
+                "val": 35,
                 "fmt": "raw"
               }
-            ],
-            "fmt": "raw"
+            ]
           },
           {
             "name": "Divinity Minor 2 (Arctis)",
-            "val": 84,
+            "val": 87,
+            "fmt": "raw",
             "children": [
               {
                 "name": "Divinity Lv",
-                "val": 1023,
+                "val": 1050,
                 "fmt": "raw"
               },
               {
@@ -1742,7 +1770,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
               },
               {
                 "name": "Coral Kid 3",
-                "val": 293,
+                "val": 308,
                 "fmt": "raw",
                 "note": "OLA[430]"
               },
@@ -1752,12 +1780,12 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                 "fmt": "raw",
                 "note": "GodsInfo[2][3] constant"
               }
-            ],
-            "fmt": "raw"
+            ]
           },
           {
             "name": "Equinox Symbols (Dream 10)",
-            "val": 69,
+            "val": 70,
+            "fmt": "raw",
             "children": [
               {
                 "name": "Base Max",
@@ -1768,6 +1796,8 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
               {
                 "name": "Summoning WinBonus 24",
                 "val": 51,
+                "fmt": "raw",
+                "note": "slot 24 is RAW (no multiplicative chain)",
                 "children": [
                   {
                     "name": "Normal Wins Bonus",
@@ -1778,6 +1808,8 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                   {
                     "name": "Endless Wins Bonus",
                     "val": 51,
+                    "fmt": "raw",
+                    "note": "floor(wins/40) × perCycle + partial cycle",
                     "children": [
                       {
                         "name": "Endless Wins Count",
@@ -1791,13 +1823,9 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                         "fmt": "raw",
                         "note": "slot-24 contribution per 40-win cycle (game constant)"
                       }
-                    ],
-                    "fmt": "raw",
-                    "note": "floor(wins/40) × perCycle + partial cycle"
+                    ]
                   }
-                ],
-                "fmt": "raw",
-                "note": "slot 24 is RAW (no multiplicative chain)"
+                ]
               },
               {
                 "name": "SuperBit 35 (×10)",
@@ -1811,14 +1839,13 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                 "fmt": "raw",
                 "note": "Dream Challenge 30 completed? × 4"
               }
-            ],
-            "fmt": "raw"
+            ]
           },
           {
             "name": "Sneaking Completions",
             "val": 5,
             "fmt": "raw",
-            "note": "raw=8"
+            "note": "raw=9"
           },
           {
             "name": "Skull of Major Talent (Grimoire 39)",
@@ -1839,23 +1866,24 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
           {
             "name": "Super Bit 47 Lv Bonus",
             "val": 15,
+            "fmt": "raw",
+            "note": "max(0, floor((Lv − 500)/100))",
             "children": [
               {
                 "name": "Player Lv",
-                "val": 2055,
+                "val": 2056,
                 "fmt": "raw",
                 "note": "Lv0[0]"
               }
-            ],
-            "fmt": "raw",
-            "note": "max(0, floor((Lv − 500)/100))"
+            ]
           }
-        ],
-        "fmt": "+"
+        ]
       },
       {
         "name": "Super Levels",
         "val": 125,
+        "fmt": "+",
+        "note": "Spelunk Super Talent — active on this preset",
         "children": [
           {
             "name": "Active",
@@ -1870,6 +1898,8 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
           {
             "name": "Super Duper Talents (Yellow 2)",
             "val": 50,
+            "fmt": "raw",
+            "note": "+10 super levels per level",
             "children": [
               {
                 "name": "Base",
@@ -1882,13 +1912,13 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                 "fmt": "raw",
                 "note": "Zenith Market — Spelunk[18][7] (max 5)"
               }
-            ],
-            "fmt": "raw",
-            "note": "+10 super levels per level"
+            ]
           },
           {
             "name": "Zenith Super Dupers",
             "val": 25,
+            "fmt": "raw",
+            "note": "+1 super level per level",
             "children": [
               {
                 "name": "Level",
@@ -1901,17 +1931,11 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                 "val": 1,
                 "fmt": "raw"
               }
-            ],
-            "fmt": "raw",
-            "note": "+1 super level per level"
+            ]
           }
-        ],
-        "fmt": "+",
-        "note": "Spelunk Super Talent — active on this preset"
+        ]
       }
-    ],
-    "fmt": "raw",
-    "note": "Base + Bonus + Super"
+    ]
   }
 };
 
@@ -1946,7 +1970,7 @@ export const STAR_TALENT_CEILING: Readonly<Record<number, number>> = {
   "630": 50,
   "631": 100,
   "632": 100,
-  "633": 100,
+  "633": 101,
   "634": 50,
   "635": 100,
   "636": 101,
@@ -1954,13 +1978,13 @@ export const STAR_TALENT_CEILING: Readonly<Record<number, number>> = {
   "638": 101,
   "639": 100,
   "640": 101,
-  "641": 409,
-  "642": 434,
-  "643": 426,
-  "644": 407,
-  "645": 409,
-  "646": 436,
-  "647": 433,
+  "641": 439,
+  "642": 441,
+  "643": 439,
+  "644": 440,
+  "645": 439,
+  "646": 441,
+  "647": 439,
   "649": 200,
   "650": 200,
   "651": 100,
