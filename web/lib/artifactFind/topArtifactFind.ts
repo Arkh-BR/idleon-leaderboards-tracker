@@ -2,7 +2,7 @@
 // best-of-each-source pools of every char run through ONE combine() pass
 // (the same math a real save uses), no class talents gated. Use topArtifactFlatForClass(classKey).
 // Large file: lazy-load it, don't import statically.
-// Generated 2026-11-11T22:56:43.586Z · 98 players. Refresh: scripts/update-top-artifact.ts.
+// Generated 2026-11-12T01:17:52.487Z · 98 players. Refresh: scripts/update-top-artifact.ts.
 
 type FlatMap = Readonly<Record<string, number>>;
 

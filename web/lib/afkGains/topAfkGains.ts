@@ -4,7 +4,7 @@
 // pass (the same math a real save uses), gated PER CLASS for the formula's
 // class talents. Use topAfkFlatForClass(classKey).
 // Large file: lazy-load it, don't import statically.
-// Generated 2026-11-11T22:26:40.198Z · 98 players. Refresh: scripts/update-top-afk.ts.
+// Generated 2026-11-12T01:14:07.786Z · 98 players. Refresh: scripts/update-top-afk.ts.
 
 type FlatMap = Readonly<Record<string, number>>;
 

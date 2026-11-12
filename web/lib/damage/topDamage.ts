@@ -4,7 +4,7 @@
 // pass (the same math a real save uses), gated PER CLASS for the formula's
 // class talents. Use topDamageFlatForClass(classKey).
 // Large file: lazy-load it, don't import statically.
-// Generated 2026-11-11T22:59:39.576Z · 98 players. Refresh: scripts/update-top-damage.ts.
+// Generated 2026-11-12T01:17:17.983Z · 98 players. Refresh: scripts/update-top-damage.ts.
 
 type FlatMap = Readonly<Record<string, number>>;
 
@@ -481,9 +481,9 @@ export const TOP_DAMAGE_FAMILY_FLAT: Readonly<Record<string, FlatMap>> = {
     "Damage / Royal Guardian arena (map 43) / Rat Damage (Royal Guardian arena)": 0,
   },
   "beginner": {
-    "Damage": 2.8905302364553955e+39,
-    "Damage / Base Damage": 106101533581.0578,
-    "Damage / Base Damage / Base Damage soft cap": 0.000400693734724012,
+    "Damage": 2.890530236455397e+39,
+    "Damage / Base Damage": 106101533581.05782,
+    "Damage / Base Damage / Base Damage soft cap": 0.0004006937347240121,
     "Damage / Base Damage / Base Damage sources": 262604294577003.56,
     "Damage / Base Damage / Base Damage sources / Base Damage (Equipment)": 544,
     "Damage / Base Damage / Base Damage sources / Base Damage (Equipment) / EtcBonuses(\"16\")": 544,
@@ -658,7 +658,7 @@ export const TOP_DAMAGE_FAMILY_FLAT: Readonly<Record<string, FlatMap>> = {
     "Damage / Damage % / Talents & skills / The Hole B_UPG 57": 580,
     "Damage / Damage % / Talents & skills / The Hole B_UPG 57 / Holes(\"B_UPG\", 57, 0)": 580,
     "Damage / Damage % / Talents & skills / Virile Vials (Talent 485)": 0,
-    "Damage / Damage Multipliers": 137099934800256810000,
+    "Damage / Damage Multipliers": 137099934800256830000,
     "Damage / Damage Multipliers / Account bonuses I": 411905.018760137,
     "Damage / Damage Multipliers / Account bonuses I / Artifact 25": 17264170,
     "Damage / Damage Multipliers / Account bonuses I / Artifact 25 / Sailing(\"ArtifactBonus\", 25, 0)": 17264170,
@@ -895,7 +895,7 @@ export const TOP_DAMAGE_FAMILY_FLAT: Readonly<Record<string, FlatMap>> = {
     "Damage / Damage Multipliers / Companions, Crystal & Sigils / Eclectic Sigils (Research Grid 127) / ResearchStuff(\"Grid_Bonus\", 127, 0)": 1.6605,
     "Damage / Damage Multipliers / Companions, Crystal & Sigils / Meritocracy 5": 1,
     "Damage / Damage Multipliers / Companions, Crystal & Sigils / Meritocracy 5 / Summoning2(\"MeritocBonusz\", 5, 0)": 0,
-    "Damage / Damage Multipliers / Damage Multipliers soft cap": 1.4566518683517562e-13,
+    "Damage / Damage Multipliers / Damage Multipliers soft cap": 1.4566518683517564e-13,
     "Damage / Damage Multipliers / Late multipliers": 44.10090194400001,
     "Damage / Damage Multipliers / Late multipliers / Cactolyte quest (Elderly Peanut)": 1,
     "Damage / Damage Multipliers / Late multipliers / Coral Kid 11": 1,
@@ -954,7 +954,7 @@ export const TOP_DAMAGE_FAMILY_FLAT: Readonly<Record<string, FlatMap>> = {
     "Damage / Royal Guardian arena (map 43) / Rat Damage (Royal Guardian arena)": 0,
   },
   "mage": {
-    "Damage": 3.3285029720031626e+40,
+    "Damage": 3.3306373448228748e+40,
     "Damage / Base Damage": 951447698962.8657,
     "Damage / Base Damage / Base Damage soft cap": 0.00020332862122834377,
     "Damage / Base Damage / Base Damage sources": 4675043066676359,
@@ -1072,7 +1072,7 @@ export const TOP_DAMAGE_FAMILY_FLAT: Readonly<Record<string, FlatMap>> = {
     "Damage / Damage % / Damage % sources / Overclocked Energy (Talent 446)": 0,
     "Damage / Damage % / Damage % sources / Owl 2": 11880,
     "Damage / Damage % / Damage % sources / Owl 2 / Summoning(\"OwlBonuses\", 2, 0)": 11880,
-    "Damage / Damage % / Damage % sources / Primary Stat^0.7": 3806291.0523804557,
+    "Damage / Damage % / Damage % sources / Primary Stat^0.7": 3806291.052380456,
     "Damage / Damage % / Damage % sources / Primary Stat^0.7 / Primary Stat": 2516037642.702602,
     "Damage / Damage % / Damage % sources / Roo Bonus 4": 6138,
     "Damage / Damage % / Damage % sources / Roo Bonus 4 / Summoning(\"RooBonuses\", 4, 0)": 6138,
@@ -1129,7 +1129,7 @@ export const TOP_DAMAGE_FAMILY_FLAT: Readonly<Record<string, FlatMap>> = {
     "Damage / Damage % / Talents & skills / The Hole B_UPG 57": 580,
     "Damage / Damage % / Talents & skills / The Hole B_UPG 57 / Holes(\"B_UPG\", 57, 0)": 580,
     "Damage / Damage % / Talents & skills / Virile Vials (Talent 485)": 0,
-    "Damage / Damage Multipliers": 171347024269454900000,
+    "Damage / Damage Multipliers": 171456899019279500000,
     "Damage / Damage Multipliers / Account bonuses I": 411905.018760137,
     "Damage / Damage Multipliers / Account bonuses I / Artifact 25": 17264170,
     "Damage / Damage Multipliers / Account bonuses I / Artifact 25 / Sailing(\"ArtifactBonus\", 25, 0)": 17264170,
@@ -1168,7 +1168,7 @@ export const TOP_DAMAGE_FAMILY_FLAT: Readonly<Record<string, FlatMap>> = {
     "Damage / Damage Multipliers / Account bonuses I / Vault 41 / getLOG(42310348722772640000)": 19.62640477926141,
     "Damage / Damage Multipliers / Account bonuses I / Woodular Shrine (Shrine 0)": 174.15,
     "Damage / Damage Multipliers / Account bonuses I / Woodular Shrine (Shrine 0) / Shrine(0)": 174.15,
-    "Damage / Damage Multipliers / Account bonuses II": 4750242.38252234,
+    "Damage / Damage Multipliers / Account bonuses II": 4795996.099501304,
     "Damage / Damage Multipliers / Account bonuses II / Artifact 2": 2600.2340000000004,
     "Damage / Damage Multipliers / Account bonuses II / Artifact 2 / Sailing(\"ArtifactBonus\", 2, 0)": 2600.2340000000004,
     "Damage / Damage Multipliers / Account bonuses II / Artifact 2 / Sailing(\"ArtifactBonus\", 2, 0) / MainframeBonus(15)": 57,
@@ -1217,9 +1217,9 @@ export const TOP_DAMAGE_FAMILY_FLAT: Readonly<Record<string, FlatMap>> = {
     "Damage / Damage Multipliers / Account bonuses II / Power Trione (Bubble W5) / DNSM.AlchBubbles(\"W5\")": 0,
     "Damage / Damage Multipliers / Account bonuses II / Power Trione (Bubble W5) / TotalStats(\"LUK\")": 2265088,
     "Damage / Damage Multipliers / Account bonuses II / Power Trione (Bubble W5) / TotalStats(\"STR\")": 3141675,
-    "Damage / Damage Multipliers / Account bonuses II / Power Trithree (Bubble M5)": 474999742.27495944,
+    "Damage / Damage Multipliers / Account bonuses II / Power Trithree (Bubble M5)": 479575113.9728559,
     "Damage / Damage Multipliers / Account bonuses II / Power Trithree (Bubble M5) / DNSM.AlchBubbles(\"M5\")": 1153.9398985867495,
-    "Damage / Damage Multipliers / Account bonuses II / Power Trithree (Bubble M5) / TotalStats(\"WIS\")": 102908445,
+    "Damage / Damage Multipliers / Account bonuses II / Power Trithree (Bubble M5) / TotalStats(\"WIS\")": 103899598,
     "Damage / Damage Multipliers / Account bonuses II / Power Tritwo (Bubble A5)": 0,
     "Damage / Damage Multipliers / Account bonuses II / Power Tritwo (Bubble A5) / DNSM.AlchBubbles(\"A5\")": 0,
     "Damage / Damage Multipliers / Account bonuses II / Power Tritwo (Bubble A5) / TotalStats(\"AGI\")": 3086180,
@@ -1366,7 +1366,7 @@ export const TOP_DAMAGE_FAMILY_FLAT: Readonly<Record<string, FlatMap>> = {
     "Damage / Damage Multipliers / Companions, Crystal & Sigils / Eclectic Sigils (Research Grid 127) / ResearchStuff(\"Grid_Bonus\", 127, 0)": 1.6605,
     "Damage / Damage Multipliers / Companions, Crystal & Sigils / Meritocracy 5": 1,
     "Damage / Damage Multipliers / Companions, Crystal & Sigils / Meritocracy 5 / Summoning2(\"MeritocBonusz\", 5, 0)": 0,
-    "Damage / Damage Multipliers / Damage Multipliers soft cap": 6.487841035438452e-15,
+    "Damage / Damage Multipliers / Damage Multipliers soft cap": 6.4300677292902504e-15,
     "Damage / Damage Multipliers / Late multipliers": 44.10090194400001,
     "Damage / Damage Multipliers / Late multipliers / Cactolyte quest (Elderly Peanut)": 1,
     "Damage / Damage Multipliers / Late multipliers / Coral Kid 11": 1,
@@ -1900,9 +1900,9 @@ export const TOP_DAMAGE_FAMILY_FLAT: Readonly<Record<string, FlatMap>> = {
 // Keyed "family:profile" — the class talents a profile adds back.
 export const TOP_DAMAGE_PROFILE_OVERRIDES: Readonly<Record<string, FlatMap>> = {
   "archer:t277_284": {
-    "Damage": 1.4293438265907887e+40,
-    "Damage / Damage %": 245742909.62032315,
-    "Damage / Damage % / Damage % soft cap": 0.0000012179359013612417,
+    "Damage": 1.4293438265907885e+40,
+    "Damage / Damage %": 245742909.6203231,
+    "Damage / Damage % / Damage % soft cap": 0.0000012179359013612415,
     "Damage / Damage % / Smithing level": 4.305986696230599,
     "Damage / Damage % / Smithing level / Veins Of The Infernal (Talent 284)": 330.5986696230599,
     "Damage / Damage % / Smithing level / Veins Of The Infernal (Talent 284) / GetTalentNumber(1, 284)": 33.05986696230599,
@@ -1936,7 +1936,7 @@ export const TOP_DAMAGE_PROFILE_OVERRIDES: Readonly<Record<string, FlatMap>> = {
   "beginner:t20_24": {
   },
   "beginner:t20_24_31": {
-    "Damage": 2.907080287296865e+39,
+    "Damage": 2.907080287296866e+39,
     "Damage / Damage %": 199847222.5002767,
     "Damage / Damage % / Damage % soft cap": 0.000004918502150305275,
     "Damage / Damage % / Talents & skills": 533.2386838987587,
@@ -1944,7 +1944,7 @@ export const TOP_DAMAGE_PROFILE_OVERRIDES: Readonly<Record<string, FlatMap>> = {
     "Damage / Damage % / Talents & skills / Skillage Damage (Talent 31) / TalentCalc(31)": 2308.545034642032,
   },
   "mage:t446_455_457_463": {
-    "Damage": 3.3291377051967977e+40,
+    "Damage": 3.331272485033505e+40,
     "Damage / Damage %": 204206834.32590777,
     "Damage / Damage % / Damage % soft cap": 0.000004251602454741957,
     "Damage / Damage % / Damage % sources": 158849.33771807796,
@@ -1958,7 +1958,7 @@ export const TOP_DAMAGE_PROFILE_OVERRIDES: Readonly<Record<string, FlatMap>> = {
     "Damage / Damage % / Talents & skills / Choppin It Up Ez (Talent 463) / GetTalentNumber(2, 463)": 4.723972602739726,
   },
   "mage:t446_455_457_463_470": {
-    "Damage": 3.335518168134966e+40,
+    "Damage": 3.337657039386578e+40,
     "Damage / Damage %": 204598207.18384126,
     "Damage / Damage % / Damage % soft cap": 0.000004196991292815451,
     "Damage / Damage % / Damage % sources": 158849.33771807796,
@@ -1974,7 +1974,7 @@ export const TOP_DAMAGE_PROFILE_OVERRIDES: Readonly<Record<string, FlatMap>> = {
     "Damage / Damage % / Talents & skills / Paperwork, Great... (Talent 470) / TalentCalc(470)": 7639.15611814346,
   },
   "mage:t446_455_457_463_485": {
-    "Damage": 3.3367384284802953e+40,
+    "Damage": 3.3388780822129618e+40,
     "Damage / Damage %": 204673057.04715097,
     "Damage / Damage % / Damage % soft cap": 0.000004186638915288736,
     "Damage / Damage % / Damage % sources": 158849.33771807796,
@@ -2013,19 +2013,19 @@ export const TOP_DAMAGE_PROFILE_OVERRIDES: Readonly<Record<string, FlatMap>> = {
     "Damage / Damage % / Talents & skills / Apocalypse Zow (Talent 110) / TalentCalc(110)": 2860,
   },
   "warrior:t86_95_97_123_125": {
-    "Damage": 1.6888140972252167e+40,
-    "Damage / Damage %": 286028507.8983612,
-    "Damage / Damage % / Damage % soft cap": 4.369990309919645e-7,
+    "Damage": 1.6890289324085464e+40,
+    "Damage / Damage %": 286064893.7782712,
+    "Damage / Damage % / Damage % soft cap": 4.366238693989026e-7,
     "Damage / Damage % / Damage % sources": 159755.9805242458,
     "Damage / Damage % / Damage % sources / Meat Shank (Talent 86)": 1477.455005445421,
     "Damage / Damage % / Damage % sources / Meat Shank (Talent 86) / GetTalentNumber(1, 86)": 93.15068493150685,
     "Damage / Damage % / Damage % sources / Meat Shank (Talent 86) / PlayerHPmax": 7260187385883269,
     "Damage / Damage % / Damage % sources / Meat Shank (Talent 86) / getLOG(7260187385883269)": 15.860914029046432,
-    "Damage / Damage % / Talents & skills": 6922.181153351837,
-    "Damage / Damage % / Talents & skills / Precision Power (Talent 125)": 641202.7919799498,
+    "Damage / Damage % / Talents & skills": 6929.010251096199,
+    "Damage / Damage % / Talents & skills / Precision Power (Talent 125)": 641885.701754386,
     "Damage / Damage % / Talents & skills / Precision Power (Talent 125) / GetTalentNumber(1, 125)": 9.897243107769423,
-    "Damage / Damage % / Talents & skills / Precision Power (Talent 125) / TalentCalc(125)": 64786,
-    "Damage / Damage % / Talents & skills / Precision Power (Talent 125) / TalentCalc(125) / PlayerAccTot": 4.4255596604204073e+33,
+    "Damage / Damage % / Talents & skills / Precision Power (Talent 125) / TalentCalc(125)": 64855,
+    "Damage / Damage % / Talents & skills / Precision Power (Talent 125) / TalentCalc(125) / PlayerAccTot": 4.810304062132368e+33,
     "Damage / Damage % / Talents & skills / Precision Power (Talent 125) / TalentCalc(125) / PlayerAccTot / GetBuffBonuses(124, 1)": 0,
     "Damage / Damage % / Talents & skills / Precision Power (Talent 125) / TalentCalc(125) / PlayerAccTot / GetBuffBonuses(124, 1) / GetBuffBonuses(124)": 0,
     "Damage / Mastery (Min) / Mastery Up (Talent 123)": 16.84467265725289,

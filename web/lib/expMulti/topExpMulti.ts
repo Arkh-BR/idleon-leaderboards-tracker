@@ -4,7 +4,7 @@
 // pass (the same math a real save uses), gated PER CLASS for the formula's
 // class talents. Use topExpFlatForClass(classKey).
 // Large file: lazy-load it, don't import statically.
-// Generated 2026-11-11T22:16:23.320Z · 98 players. Refresh: scripts/update-top-exp.ts.
+// Generated 2026-11-12T01:12:54.560Z · 98 players. Refresh: scripts/update-top-exp.ts.
 
 type FlatMap = Readonly<Record<string, number>>;
 

@@ -4,7 +4,7 @@
 // pass (the same math a real save uses), gated PER CLASS for the formula's
 // class talents. Use topMultikillFlatForClass(classKey).
 // Large file: lazy-load it, don't import statically.
-// Generated 2026-11-11T22:47:47.824Z · 98 players. Refresh: scripts/update-top-multikill.ts.
+// Generated 2026-11-12T01:15:44.179Z · 98 players. Refresh: scripts/update-top-multikill.ts.
 
 type FlatMap = Readonly<Record<string, number>>;
 
@@ -112,7 +112,7 @@ export const TOP_MULTIKILL_FAMILY_FLAT: Readonly<Record<string, FlatMap>> = {
     "Multikill / Damage Tier / Max Damage / DamageDealed(\"Max\") / Sailing(\"ArtifactBonus\", 8, 0) / WorkbenchStuff(\"PlayerBuildSpd\", 4, 0) / _ItemsAndStorageOWNED.Refinery1": 182412629,
     "Multikill / Damage Tier / Max Damage / DamageDealed(\"Max\") / Sailing(\"ArtifactBonus\", 8, 0) / WorkbenchStuff(\"PlayerBuildSpd\", 5, 0)": 19697051517266.26,
     "Multikill / Damage Tier / Max Damage / DamageDealed(\"Max\") / Sailing(\"ArtifactBonus\", 8, 0) / WorkbenchStuff(\"PlayerBuildSpd\", 5, 0) / _ItemsAndStorageOWNED.Refinery1": 182412629,
-    "Multikill / Damage Tier / Max Damage / DamageDealed(\"Max\") / Sailing(\"ArtifactBonus\", 8, 0) / WorkbenchStuff(\"PlayerBuildSpd\", 6, 0)": 28899582917150.656,
+    "Multikill / Damage Tier / Max Damage / DamageDealed(\"Max\") / Sailing(\"ArtifactBonus\", 8, 0) / WorkbenchStuff(\"PlayerBuildSpd\", 6, 0)": 28899582917150.652,
     "Multikill / Damage Tier / Max Damage / DamageDealed(\"Max\") / Sailing(\"ArtifactBonus\", 8, 0) / WorkbenchStuff(\"PlayerBuildSpd\", 6, 0) / _ItemsAndStorageOWNED.Refinery1": 182412629,
     "Multikill / Damage Tier / Max Damage / DamageDealed(\"Max\") / Sailing(\"ArtifactBonus\", 8, 0) / WorkbenchStuff(\"PlayerBuildSpd\", 7, 0)": 28122554808557.117,
     "Multikill / Damage Tier / Max Damage / DamageDealed(\"Max\") / Sailing(\"ArtifactBonus\", 8, 0) / WorkbenchStuff(\"PlayerBuildSpd\", 7, 0) / _ItemsAndStorageOWNED.Refinery1": 182412629,
@@ -297,7 +297,7 @@ export const TOP_MULTIKILL_FAMILY_FLAT: Readonly<Record<string, FlatMap>> = {
     "Multikill / Damage Tier / Max Damage / DamageDealed(\"Max\") / Sailing(\"ArtifactBonus\", 8, 0) / WorkbenchStuff(\"PlayerBuildSpd\", 4, 0) / _ItemsAndStorageOWNED.Refinery1": 182412629,
     "Multikill / Damage Tier / Max Damage / DamageDealed(\"Max\") / Sailing(\"ArtifactBonus\", 8, 0) / WorkbenchStuff(\"PlayerBuildSpd\", 5, 0)": 19697051517266.26,
     "Multikill / Damage Tier / Max Damage / DamageDealed(\"Max\") / Sailing(\"ArtifactBonus\", 8, 0) / WorkbenchStuff(\"PlayerBuildSpd\", 5, 0) / _ItemsAndStorageOWNED.Refinery1": 182412629,
-    "Multikill / Damage Tier / Max Damage / DamageDealed(\"Max\") / Sailing(\"ArtifactBonus\", 8, 0) / WorkbenchStuff(\"PlayerBuildSpd\", 6, 0)": 28899582917150.656,
+    "Multikill / Damage Tier / Max Damage / DamageDealed(\"Max\") / Sailing(\"ArtifactBonus\", 8, 0) / WorkbenchStuff(\"PlayerBuildSpd\", 6, 0)": 28899582917150.652,
     "Multikill / Damage Tier / Max Damage / DamageDealed(\"Max\") / Sailing(\"ArtifactBonus\", 8, 0) / WorkbenchStuff(\"PlayerBuildSpd\", 6, 0) / _ItemsAndStorageOWNED.Refinery1": 182412629,
     "Multikill / Damage Tier / Max Damage / DamageDealed(\"Max\") / Sailing(\"ArtifactBonus\", 8, 0) / WorkbenchStuff(\"PlayerBuildSpd\", 7, 0)": 28122554808557.117,
     "Multikill / Damage Tier / Max Damage / DamageDealed(\"Max\") / Sailing(\"ArtifactBonus\", 8, 0) / WorkbenchStuff(\"PlayerBuildSpd\", 7, 0) / _ItemsAndStorageOWNED.Refinery1": 182412629,
@@ -482,7 +482,7 @@ export const TOP_MULTIKILL_FAMILY_FLAT: Readonly<Record<string, FlatMap>> = {
     "Multikill / Damage Tier / Max Damage / DamageDealed(\"Max\") / Sailing(\"ArtifactBonus\", 8, 0) / WorkbenchStuff(\"PlayerBuildSpd\", 4, 0) / _ItemsAndStorageOWNED.Refinery1": 182412629,
     "Multikill / Damage Tier / Max Damage / DamageDealed(\"Max\") / Sailing(\"ArtifactBonus\", 8, 0) / WorkbenchStuff(\"PlayerBuildSpd\", 5, 0)": 19697051517266.26,
     "Multikill / Damage Tier / Max Damage / DamageDealed(\"Max\") / Sailing(\"ArtifactBonus\", 8, 0) / WorkbenchStuff(\"PlayerBuildSpd\", 5, 0) / _ItemsAndStorageOWNED.Refinery1": 182412629,
-    "Multikill / Damage Tier / Max Damage / DamageDealed(\"Max\") / Sailing(\"ArtifactBonus\", 8, 0) / WorkbenchStuff(\"PlayerBuildSpd\", 6, 0)": 28899582917150.656,
+    "Multikill / Damage Tier / Max Damage / DamageDealed(\"Max\") / Sailing(\"ArtifactBonus\", 8, 0) / WorkbenchStuff(\"PlayerBuildSpd\", 6, 0)": 28899582917150.652,
     "Multikill / Damage Tier / Max Damage / DamageDealed(\"Max\") / Sailing(\"ArtifactBonus\", 8, 0) / WorkbenchStuff(\"PlayerBuildSpd\", 6, 0) / _ItemsAndStorageOWNED.Refinery1": 182412629,
     "Multikill / Damage Tier / Max Damage / DamageDealed(\"Max\") / Sailing(\"ArtifactBonus\", 8, 0) / WorkbenchStuff(\"PlayerBuildSpd\", 7, 0)": 28122554808557.117,
     "Multikill / Damage Tier / Max Damage / DamageDealed(\"Max\") / Sailing(\"ArtifactBonus\", 8, 0) / WorkbenchStuff(\"PlayerBuildSpd\", 7, 0) / _ItemsAndStorageOWNED.Refinery1": 182412629,
@@ -667,7 +667,7 @@ export const TOP_MULTIKILL_FAMILY_FLAT: Readonly<Record<string, FlatMap>> = {
     "Multikill / Damage Tier / Max Damage / DamageDealed(\"Max\") / Sailing(\"ArtifactBonus\", 8, 0) / WorkbenchStuff(\"PlayerBuildSpd\", 4, 0) / _ItemsAndStorageOWNED.Refinery1": 182412629,
     "Multikill / Damage Tier / Max Damage / DamageDealed(\"Max\") / Sailing(\"ArtifactBonus\", 8, 0) / WorkbenchStuff(\"PlayerBuildSpd\", 5, 0)": 19697051517266.26,
     "Multikill / Damage Tier / Max Damage / DamageDealed(\"Max\") / Sailing(\"ArtifactBonus\", 8, 0) / WorkbenchStuff(\"PlayerBuildSpd\", 5, 0) / _ItemsAndStorageOWNED.Refinery1": 182412629,
-    "Multikill / Damage Tier / Max Damage / DamageDealed(\"Max\") / Sailing(\"ArtifactBonus\", 8, 0) / WorkbenchStuff(\"PlayerBuildSpd\", 6, 0)": 28899582917150.656,
+    "Multikill / Damage Tier / Max Damage / DamageDealed(\"Max\") / Sailing(\"ArtifactBonus\", 8, 0) / WorkbenchStuff(\"PlayerBuildSpd\", 6, 0)": 28899582917150.652,
     "Multikill / Damage Tier / Max Damage / DamageDealed(\"Max\") / Sailing(\"ArtifactBonus\", 8, 0) / WorkbenchStuff(\"PlayerBuildSpd\", 6, 0) / _ItemsAndStorageOWNED.Refinery1": 182412629,
     "Multikill / Damage Tier / Max Damage / DamageDealed(\"Max\") / Sailing(\"ArtifactBonus\", 8, 0) / WorkbenchStuff(\"PlayerBuildSpd\", 7, 0)": 28122554808557.117,
     "Multikill / Damage Tier / Max Damage / DamageDealed(\"Max\") / Sailing(\"ArtifactBonus\", 8, 0) / WorkbenchStuff(\"PlayerBuildSpd\", 7, 0) / _ItemsAndStorageOWNED.Refinery1": 182412629,
