@@ -363,7 +363,7 @@ export function collectReference(cfg: StatCollectorConfig, saves: Iterable<{ nam
 }
 
 /** The candidates' saves, from the leaderboards (throttled) or --saves-dir's envelopes (--newest N of them), and the player floor below which a collector publishes nothing. */
-export async function loadPlayers(argv: string[], focusBoard: string): Promise<{ loaded: { name: string; save: unknown }[]; minPlayers: number }> {
+export async function loadPlayers(argv: string[], focusBoard: string): Promise<{ loaded: Iterable<{ name: string; save: unknown }>; minPlayers: number }> {
   const THROTTLE_MS = argv.includes("--slow") ? 1500 : 400;
   const num = (flag: string) => {
     const k = argv.indexOf(flag);
@@ -383,12 +383,10 @@ export async function loadPlayers(argv: string[], focusBoard: string): Promise<{
     console.error("× --newest needs --saves-dir");
     process.exit(1);
   }
-  const loadSave = savesDir
-    ? async (name: string) => {
-        const j = JSON.parse(readFileSync(join(savesDir, `${name}.json`), "utf8").replace(/^﻿/, ""));
-        return j?.data && Array.isArray(j.charNames) && !hackedSaveReason(j) ? j : null;
-      }
-    : fetchProfileSave;
+  const readSave = (dir: string, name: string) => {
+    const j = JSON.parse(readFileSync(join(dir, `${name}.json`), "utf8").replace(/^﻿/, ""));
+    return j?.data && Array.isArray(j.charNames) && !hackedSaveReason(j) ? j : null;
+  };
 
   console.log(savesDir ? `→ Reading saves from ${savesDir}…` : "→ Gathering candidates from leaderboards…");
   let candidates: string[];
@@ -400,12 +398,27 @@ export async function loadPlayers(argv: string[], focusBoard: string): Promise<{
   }
   console.log(`  ✓ ${candidates.length} candidates`);
 
-  // collectReference is synchronous, so the (throttled) loads come first.
+  if (savesDir) {
+    // Read each save only when the collector reaches it, and let it go after: one lib/game state alive at a time. Loading all ~100
+    // first kept every save's state (and its caches) in memory: 1.35 GB peak heap, against ~0.4 GB this way.
+    const names = candidates;
+    const loaded: Iterable<{ name: string; save: unknown }> = {
+      *[Symbol.iterator]() {
+        for (let k = 0; k < names.length; k++) {
+          process.stdout.write(`  [${k + 1}/${names.length}] ${names[k]}\n`);
+          yield { name: names[k], save: readSave(savesDir, names[k]) };
+        }
+      },
+    };
+    return { loaded, minPlayers: MIN_PLAYERS };
+  }
+
+  // From the network: collectReference is synchronous, so the (throttled) loads come first.
   const loaded: { name: string; save: unknown }[] = [];
   for (let k = 0; k < candidates.length; k++) {
     process.stdout.write(`  [${k + 1}/${candidates.length}] ${candidates[k]}\n`);
-    loaded.push({ name: candidates[k], save: await loadSave(candidates[k]) });
-    if (!savesDir && k < candidates.length - 1) await sleep(THROTTLE_MS);
+    loaded.push({ name: candidates[k], save: await fetchProfileSave(candidates[k]) });
+    if (k < candidates.length - 1) await sleep(THROTTLE_MS);
   }
   return { loaded, minPlayers: MIN_PLAYERS };
 }
