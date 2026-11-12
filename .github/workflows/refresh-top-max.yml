@@ -35,20 +35,23 @@ concurrency:
 jobs:
   refresh:
     runs-on: ubuntu-latest
-    # 140: the profile fetch (10 min) plus ten capped steps (DR + Coin + EXP + AFK + Multikill + Damage +
-    # Artifact Find + DR V2 + Talents + Tome, 12 min each = 120, continue-on-error) plus checkout/npm ci
-    # (~135 min worst case) must all fit before "Commit refreshed snapshots" runs: a job timeout skips
-    # that step and loses every reference of the run. With the saves on disk each step takes a few minutes.
-    timeout-minutes: 140
+    # 230: the profile fetch (10 min) plus ten capped steps (20 min each = 200, continue-on-error) plus
+    # checkout/npm ci must all fit before "Commit refreshed snapshots" runs: a job timeout skips that
+    # step and loses every reference of the run. Each step takes a couple of minutes on Node 24.
+    # A step's own timeout-minutes does NOT stop its process (it kept running and overlapped the next
+    # steps on 2026-11-11), so each command also runs under `timeout -s KILL`, which kills the whole
+    # process group (npx, tsx and node) a minute before.
+    timeout-minutes: 230
     env:
-      # the collectors keep every player's save (and its lib/game state) until the reference is built: ~1-1.5 GB for ~90 players
+      # headroom: the --saves-dir collectors read one save at a time (~0.4 GB peak)
       NODE_OPTIONS: --max-old-space-size=4096
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          # 24, as used locally: on Node 20 the collectors ran ~10x slower than local runs (2026-11-11)
+          node-version: 24
           cache: npm
           cache-dependency-path: web/package-lock.json
 
@@ -66,62 +69,62 @@ jobs:
       - name: Refresh top-player Drop Rate max
         working-directory: web
         continue-on-error: true
-        timeout-minutes: 12
-        run: npx tsx scripts/update-top-dr.ts --saves-dir "$RUNNER_TEMP/top-profiles"
+        timeout-minutes: 20
+        run: timeout -s KILL 19m npx tsx scripts/update-top-dr.ts --saves-dir "$RUNNER_TEMP/top-profiles"
 
       - name: Refresh top-player Coin Multi max
         working-directory: web
         continue-on-error: true
-        timeout-minutes: 12
-        run: npx tsx scripts/update-top-coin.ts --saves-dir "$RUNNER_TEMP/top-profiles"
+        timeout-minutes: 20
+        run: timeout -s KILL 19m npx tsx scripts/update-top-coin.ts --saves-dir "$RUNNER_TEMP/top-profiles"
 
       - name: Refresh top-player EXP Multi max
         working-directory: web
         continue-on-error: true
-        timeout-minutes: 12
-        run: npx tsx scripts/update-top-exp.ts --saves-dir "$RUNNER_TEMP/top-profiles"
+        timeout-minutes: 20
+        run: timeout -s KILL 19m npx tsx scripts/update-top-exp.ts --saves-dir "$RUNNER_TEMP/top-profiles"
 
       - name: Refresh top-player AFK Gains max
         working-directory: web
         continue-on-error: true
-        timeout-minutes: 12
-        run: npx tsx scripts/update-top-afk.ts --saves-dir "$RUNNER_TEMP/top-profiles"
+        timeout-minutes: 20
+        run: timeout -s KILL 19m npx tsx scripts/update-top-afk.ts --saves-dir "$RUNNER_TEMP/top-profiles"
 
       - name: Refresh top-player Multikill max
         working-directory: web
         continue-on-error: true
-        timeout-minutes: 12
-        run: npx tsx scripts/update-top-multikill.ts --saves-dir "$RUNNER_TEMP/top-profiles"
+        timeout-minutes: 20
+        run: timeout -s KILL 19m npx tsx scripts/update-top-multikill.ts --saves-dir "$RUNNER_TEMP/top-profiles"
 
       - name: Refresh top-player Damage max
         working-directory: web
         continue-on-error: true
-        timeout-minutes: 12
-        run: npx tsx scripts/update-top-damage.ts --saves-dir "$RUNNER_TEMP/top-profiles"
+        timeout-minutes: 20
+        run: timeout -s KILL 19m npx tsx scripts/update-top-damage.ts --saves-dir "$RUNNER_TEMP/top-profiles"
 
       - name: Refresh top-player Artifact Find max
         working-directory: web
         continue-on-error: true
-        timeout-minutes: 12
-        run: npx tsx scripts/update-top-artifact.ts --saves-dir "$RUNNER_TEMP/top-profiles"
+        timeout-minutes: 20
+        run: timeout -s KILL 19m npx tsx scripts/update-top-artifact.ts --saves-dir "$RUNNER_TEMP/top-profiles"
 
       - name: Refresh top-player Drop Rate V2 max
         working-directory: web
         continue-on-error: true
-        timeout-minutes: 12
-        run: npx tsx scripts/update-top-dr2.ts --saves-dir "$RUNNER_TEMP/top-profiles"
+        timeout-minutes: 20
+        run: timeout -s KILL 19m npx tsx scripts/update-top-dr2.ts --saves-dir "$RUNNER_TEMP/top-profiles"
 
       - name: Refresh top-player Talent max
         working-directory: web
         continue-on-error: true
-        timeout-minutes: 12
-        run: npx tsx scripts/update-top-talents.ts --saves-dir "$RUNNER_TEMP/top-profiles"
+        timeout-minutes: 20
+        run: timeout -s KILL 19m npx tsx scripts/update-top-talents.ts --saves-dir "$RUNNER_TEMP/top-profiles"
 
       - name: Refresh Tome top players
         working-directory: web
         continue-on-error: true
-        timeout-minutes: 12
-        run: npx tsx scripts/update-top-players.ts --saves-dir "$RUNNER_TEMP/top-profiles"
+        timeout-minutes: 20
+        run: timeout -s KILL 19m npx tsx scripts/update-top-players.ts --saves-dir "$RUNNER_TEMP/top-profiles"
 
       - name: Commit refreshed snapshots
         env:
