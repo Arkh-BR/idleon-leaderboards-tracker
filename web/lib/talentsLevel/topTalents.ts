@@ -13,17 +13,17 @@
 // default tree (they would all resolve to identical numbers anyway).
 // Auto-refreshed by scripts/update-top-talents.ts.
 //
-// Snapshot generated: 2026-11-12T01:19:51.865Z
-// Players scanned: 98
+// Snapshot generated: 2026-11-13T12:01:40.556Z
+// Players scanned: 97
 
 import type { ArkhNode } from "../dropRate/node";
 
-export const HYPO_TALENTS_GENERATED_AT = "2026-11-12T01:19:51.865Z";
-export const HYPO_TALENTS_PLAYERS_SCANNED = 98;
+export const HYPO_TALENTS_GENERATED_AT = "2026-11-13T12:01:40.556Z";
+export const HYPO_TALENTS_PLAYERS_SCANNED = 97;
 
 export const HYPO_DEFAULT_TREE: ArkhNode = {
   "name": "Effective Level",
-  "val": 858,
+  "val": 859,
   "fmt": "raw",
   "note": "Base + Bonus + Super",
   "children": [
@@ -31,13 +31,13 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
       "name": "Base Level",
       "val": 441,
       "fmt": "raw",
-      "note": "min(invested, cap) — owner: owo_owouwu",
+      "note": "min(invested, cap) — owner: Marakki",
       "children": [
         {
           "name": "Points Invested",
           "val": 441,
           "fmt": "raw",
-          "note": "actual save — owner: owo_owouwu"
+          "note": "actual save — owner: Marakki"
         },
         {
           "name": "Max Book Lv Cap",
@@ -132,7 +132,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                   "name": "Summoning Battles",
                   "val": 14,
                   "fmt": "raw",
-                  "note": "4 raw × 3.5× Base = 14.00  →  then × 1.95× Higher Bonus × 3.52× Winner = 96.10",
+                  "note": "4 raw × 3.5× Base = 14.00  →  then × 1.95× Higher Bonus × 3.02× Winner = 82.45",
                   "children": [
                     {
                       "name": "Cyan",
@@ -240,11 +240,6 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                       "name": "Godshard Set",
                       "val": 15,
                       "fmt": "+"
-                    },
-                    {
-                      "name": "Bundle ban_i",
-                      "val": 50,
-                      "fmt": "raw"
                     }
                   ]
                 }
@@ -256,7 +251,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
     },
     {
       "name": "Bonus Levels",
-      "val": 292,
+      "val": 293,
       "fmt": "+",
       "children": [
         {
@@ -269,13 +264,13 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
               "name": "Base Level",
               "val": 441,
               "fmt": "raw",
-              "note": "min(invested, cap) — owner: owo_owouwu",
+              "note": "min(invested, cap) — owner: Marakki",
               "children": [
                 {
                   "name": "Points Invested",
                   "val": 441,
                   "fmt": "raw",
-                  "note": "actual save — owner: owo_owouwu"
+                  "note": "actual save — owner: Marakki"
                 },
                 {
                   "name": "Max Book Lv Cap",
@@ -370,7 +365,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                           "name": "Summoning Battles",
                           "val": 14,
                           "fmt": "raw",
-                          "note": "4 raw × 3.5× Base = 14.00  →  then × 1.95× Higher Bonus × 3.52× Winner = 96.10",
+                          "note": "4 raw × 3.5× Base = 14.00  →  then × 1.95× Higher Bonus × 3.02× Winner = 82.45",
                           "children": [
                             {
                               "name": "Cyan",
@@ -478,11 +473,6 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                               "name": "Godshard Set",
                               "val": 15,
                               "fmt": "+"
-                            },
-                            {
-                              "name": "Bundle ban_i",
-                              "val": 50,
-                              "fmt": "raw"
                             }
                           ]
                         }
@@ -509,19 +499,13 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
               "name": "Best Mage Lv",
               "val": 1985,
               "fmt": "raw",
-              "note": "max across account — 2 mage chars",
+              "note": "max across account — 1 mage char",
               "children": [
                 {
-                  "name": "Char 4 Lv",
-                  "val": 1978,
+                  "name": "Char 1 Lv",
+                  "val": 1920,
                   "fmt": "raw",
-                  "note": "llasoaola — elemental sorcerer (cls 34)"
-                },
-                {
-                  "name": "Char 7 Lv",
-                  "val": 1927,
-                  "fmt": "raw",
-                  "note": "Stanflandala — elemental sorcerer (cls 34)"
+                  "note": "Mirakki — elemental sorcerer (cls 34)"
                 }
               ]
             },
@@ -641,7 +625,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                               "name": "Summoning Battles",
                               "val": 14,
                               "fmt": "raw",
-                              "note": "4 raw × 3.5× Base = 14.00  →  then × 1.95× Higher Bonus × 3.52× Winner = 96.10",
+                              "note": "4 raw × 3.5× Base = 14.00  →  then × 1.95× Higher Bonus × 3.02× Winner = 82.45",
                               "children": [
                                 {
                                   "name": "Cyan",
@@ -749,11 +733,6 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                                   "name": "Godshard Set",
                                   "val": 15,
                                   "fmt": "+"
-                                },
-                                {
-                                  "name": "Bundle ban_i",
-                                  "val": 50,
-                                  "fmt": "raw"
                                 }
                               ]
                             }
@@ -765,7 +744,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
                 },
                 {
                   "name": "Bonus Levels",
-                  "val": 288,
+                  "val": 290,
                   "fmt": "+",
                   "note": "Σ ATL (unbuffed FB68, excl. super)"
                 }
@@ -792,7 +771,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
         },
         {
           "name": "Divinity Minor 2 (Arctis)",
-          "val": 87,
+          "val": 88,
           "fmt": "raw",
           "children": [
             {
@@ -808,7 +787,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
             },
             {
               "name": "Coral Kid 3",
-              "val": 308,
+              "val": 310,
               "fmt": "raw",
               "note": "OLA[430]"
             },
@@ -979,7 +958,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
 export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
   "Elemental_Sorcerer": {
     "name": "Effective Level",
-    "val": 864,
+    "val": 865,
     "fmt": "raw",
     "note": "Base + Bonus + Super",
     "children": [
@@ -987,13 +966,13 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
         "name": "Base Level",
         "val": 441,
         "fmt": "raw",
-        "note": "min(invested, cap) — owner: owo_owouwu",
+        "note": "min(invested, cap) — owner: Marakki",
         "children": [
           {
             "name": "Points Invested",
             "val": 441,
             "fmt": "raw",
-            "note": "actual save — owner: owo_owouwu"
+            "note": "actual save — owner: Marakki"
           },
           {
             "name": "Max Book Lv Cap",
@@ -1088,7 +1067,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                     "name": "Summoning Battles",
                     "val": 14,
                     "fmt": "raw",
-                    "note": "4 raw × 3.5× Base = 14.00  →  then × 1.95× Higher Bonus × 3.52× Winner = 96.10",
+                    "note": "4 raw × 3.5× Base = 14.00  →  then × 1.95× Higher Bonus × 3.02× Winner = 82.45",
                     "children": [
                       {
                         "name": "Cyan",
@@ -1196,11 +1175,6 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                         "name": "Godshard Set",
                         "val": 15,
                         "fmt": "+"
-                      },
-                      {
-                        "name": "Bundle ban_i",
-                        "val": 50,
-                        "fmt": "raw"
                       }
                     ]
                   }
@@ -1212,7 +1186,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
       },
       {
         "name": "Bonus Levels",
-        "val": 298,
+        "val": 299,
         "fmt": "+",
         "children": [
           {
@@ -1225,13 +1199,13 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                 "name": "Base Level",
                 "val": 441,
                 "fmt": "raw",
-                "note": "min(invested, cap) — owner: owo_owouwu",
+                "note": "min(invested, cap) — owner: Marakki",
                 "children": [
                   {
                     "name": "Points Invested",
                     "val": 441,
                     "fmt": "raw",
-                    "note": "actual save — owner: owo_owouwu"
+                    "note": "actual save — owner: Marakki"
                   },
                   {
                     "name": "Max Book Lv Cap",
@@ -1326,7 +1300,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                             "name": "Summoning Battles",
                             "val": 14,
                             "fmt": "raw",
-                            "note": "4 raw × 3.5× Base = 14.00  →  then × 1.95× Higher Bonus × 3.52× Winner = 96.10",
+                            "note": "4 raw × 3.5× Base = 14.00  →  then × 1.95× Higher Bonus × 3.02× Winner = 82.45",
                             "children": [
                               {
                                 "name": "Cyan",
@@ -1434,11 +1408,6 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                                 "name": "Godshard Set",
                                 "val": 15,
                                 "fmt": "+"
-                              },
-                              {
-                                "name": "Bundle ban_i",
-                                "val": 50,
-                                "fmt": "raw"
                               }
                             ]
                           }
@@ -1465,25 +1434,19 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                 "name": "Best Mage Lv",
                 "val": 1985,
                 "fmt": "raw",
-                "note": "max across account — 2 mage chars",
+                "note": "max across account — 1 mage char",
                 "children": [
                   {
-                    "name": "Char 4 Lv",
-                    "val": 1978,
+                    "name": "Char 1 Lv",
+                    "val": 1920,
                     "fmt": "raw",
-                    "note": "llasoaola — elemental sorcerer (cls 34) — ACTIVE char (gets Family Guy buff if it wins the slot)"
-                  },
-                  {
-                    "name": "Char 7 Lv",
-                    "val": 1927,
-                    "fmt": "raw",
-                    "note": "Stanflandala — elemental sorcerer (cls 34)"
+                    "note": "Mirakki — elemental sorcerer (cls 34) — ACTIVE char (gets Family Guy buff if it wins the slot)"
                   }
                 ]
               },
               {
                 "name": "Family Guy Multi (×) — potential buff",
-                "val": 1.3580272822665267,
+                "val": 1.3581151832460732,
                 "fmt": "raw",
                 "note": "1 + decay(x1, x2, Base+Bonus)/100",
                 "children": [
@@ -1597,7 +1560,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                                 "name": "Summoning Battles",
                                 "val": 14,
                                 "fmt": "raw",
-                                "note": "4 raw × 3.5× Base = 14.00  →  then × 1.95× Higher Bonus × 3.52× Winner = 96.10",
+                                "note": "4 raw × 3.5× Base = 14.00  →  then × 1.95× Higher Bonus × 3.02× Winner = 82.45",
                                 "children": [
                                   {
                                     "name": "Cyan",
@@ -1705,11 +1668,6 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                                     "name": "Godshard Set",
                                     "val": 15,
                                     "fmt": "+"
-                                  },
-                                  {
-                                    "name": "Bundle ban_i",
-                                    "val": 50,
-                                    "fmt": "raw"
                                   }
                                 ]
                               }
@@ -1721,7 +1679,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                   },
                   {
                     "name": "Bonus Levels",
-                    "val": 287,
+                    "val": 289,
                     "fmt": "+",
                     "note": "Σ ATL (unbuffed FB68, excl. super)"
                   },
@@ -1754,7 +1712,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
           },
           {
             "name": "Divinity Minor 2 (Arctis)",
-            "val": 87,
+            "val": 88,
             "fmt": "raw",
             "children": [
               {
@@ -1770,7 +1728,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
               },
               {
                 "name": "Coral Kid 3",
-                "val": 308,
+                "val": 310,
                 "fmt": "raw",
                 "note": "OLA[430]"
               },
@@ -1978,7 +1936,7 @@ export const STAR_TALENT_CEILING: Readonly<Record<number, number>> = {
   "638": 101,
   "639": 100,
   "640": 101,
-  "641": 439,
+  "641": 440,
   "642": 441,
   "643": 439,
   "644": 440,

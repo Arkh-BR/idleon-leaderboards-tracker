@@ -2,13 +2,13 @@
 // best-of-each-source pools of every char run through ONE combine() pass
 // (the same math a real save uses), no class talents gated. Use topArtifactFlatForClass(classKey).
 // Large file: lazy-load it, don't import statically.
-// Generated 2026-11-12T01:17:52.487Z · 98 players. Refresh: scripts/update-top-artifact.ts.
+// Generated 2026-11-13T11:59:14.579Z · 97 players. Refresh: scripts/update-top-artifact.ts.
 
 type FlatMap = Readonly<Record<string, number>>;
 
 export const TOP_ARTI_FAMILY_FLAT: Readonly<Record<string, FlatMap>> = {
   "all": {
-    "Artifact Find": 3231023132075686000,
+    "Artifact Find": 3239789793583923700,
     "Artifact Find / ☠️ Davey Jones": 16.799999999999997,
     "Artifact Find / ☠️ Davey Jones / Davey Jones": 16.799999999999997,
     "Artifact Find / ☠️ Davey Jones / Davey Jones / Sailing(\"DaveyJonesBonus\", 0, 0)": 16.799999999999997,
@@ -16,7 +16,7 @@ export const TOP_ARTI_FAMILY_FLAT: Readonly<Record<string, FlatMap>> = {
     "Artifact Find / ⛏️ Artifacto Discoveries (Super Bit 26) / Artifacto Discoveries (Super Bit 26)": 7.998674705139815,
     "Artifact Find / ⛏️ Artifacto Discoveries (Super Bit 26) / Artifacto Discoveries (Super Bit 26) / GamingStatType(\"SuperBitType\", 26, 0)": 1,
     "Artifact Find / ⛏️ Artifacto Discoveries (Super Bit 26) / Artifacto Discoveries (Super Bit 26) / Spelunk[6].length": 105,
-    "Artifact Find / ➕ Additive Pool": 83.99082231955077,
+    "Artifact Find / ➕ Additive Pool": 84.20082231955077,
     "Artifact Find / ➕ Additive Pool / Artifact Find Arcade Bonus (Arcade 32)": 302.970297029703,
     "Artifact Find / ➕ Additive Pool / Artifact Find Arcade Bonus (Arcade 32) / ArcadeBonus(32)": 302.970297029703,
     "Artifact Find / ➕ Additive Pool / Artifact Find Arcade Bonus (Arcade 66)": 120.59701492537313,
@@ -31,8 +31,8 @@ export const TOP_ARTI_FAMILY_FLAT: Readonly<Record<string, FlatMap>> = {
     "Artifact Find / ➕ Additive Pool / Captains of type 6 / NONdummies.60": 20,
     "Artifact Find / ➕ Additive Pool / Chocotastic Muffin Sticker (Sticker 2)": 1135.3399200000001,
     "Artifact Find / ➕ Additive Pool / Chocotastic Muffin Sticker (Sticker 2) / FarmingStuffs(\"StickerBonus\", 2, 99)": 1135.3399200000001,
-    "Artifact Find / ➕ Additive Pool / Fauxory Tusk (Artifact 3)": 2590,
-    "Artifact Find / ➕ Additive Pool / Fauxory Tusk (Artifact 3) / Sailing(\"ArtifactBonus\", 3, 0)": 2590,
+    "Artifact Find / ➕ Additive Pool / Fauxory Tusk (Artifact 3)": 2611,
+    "Artifact Find / ➕ Additive Pool / Fauxory Tusk (Artifact 3) / Sailing(\"ArtifactBonus\", 3, 0)": 2611,
     "Artifact Find / ➕ Additive Pool / Higher Artifact Find Chance Shiny Pet (Breeding 21)": 180,
     "Artifact Find / ➕ Additive Pool / Higher Artifact Find Chance Shiny Pet (Breeding 21) / Breeding(\"ShinyBonusS\", \"Nah\", 21, -1)": 180,
     "Artifact Find / ➕ Additive Pool / Sailing Artifact Chance (Fractal Island 3)": 20,
@@ -82,10 +82,10 @@ export const TOP_ARTI_FAMILY_FLAT: Readonly<Record<string, FlatMap>> = {
     "Artifact Find / 💻 Artifact Attraction (Mainframe 14) / Artifact Attraction (Mainframe 14)": 50,
     "Artifact Find / 💻 Artifact Attraction (Mainframe 14) / Artifact Attraction (Mainframe 14) / MainframeBonus(14)": 50,
     "Artifact Find / 💻 Artifact Attraction (Mainframe 14) / Artifact Attraction (Mainframe 14) / MainframeBonus(14) / GenINFO[92][14]": 1,
-    "Artifact Find / 📜 Artifact Find (Lore Episode 3)": 3.0983960332304594,
-    "Artifact Find / 📜 Artifact Find (Lore Episode 3) / Artifact Find (Lore Episode 3)": 209.83960332304596,
-    "Artifact Find / 📜 Artifact Find (Lore Episode 3) / Artifact Find (Lore Episode 3) / Thingies(\"LoreEpiBon\", 3, 0)": 209.83960332304596,
-    "Artifact Find / 📜 Artifact Find (Lore Episode 3) / Artifact Find (Lore Episode 3) / Thingies(\"LoreEpiBon\", 3, 0) / DNSM.TomeQTYtot": 55830,
+    "Artifact Find / 📜 Artifact Find (Lore Episode 3)": 3.0990543581708256,
+    "Artifact Find / 📜 Artifact Find (Lore Episode 3) / Artifact Find (Lore Episode 3)": 209.90543581708255,
+    "Artifact Find / 📜 Artifact Find (Lore Episode 3) / Artifact Find (Lore Episode 3) / Thingies(\"LoreEpiBon\", 3, 0)": 209.90543581708255,
+    "Artifact Find / 📜 Artifact Find (Lore Episode 3) / Artifact Find (Lore Episode 3) / Thingies(\"LoreEpiBon\", 3, 0) / DNSM.TomeQTYtot": 55915,
     "Artifact Find / 📜 Artifact Find (Lore Episode 3) / Artifact Find (Lore Episode 3) / Thingies(\"LoreEpiBon\", 3, 0) / DNSM.TomeQTYtot / GenINFO[92][10]": 1,
     "Artifact Find / 📜 Artifact Find (Lore Episode 3) / Artifact Find (Lore Episode 3) / Thingies(\"LoreEpiBon\", 3, 0) / DNSM.TomeQTYtot / GenINFO[92][11]": 1,
     "Artifact Find / 📜 Artifact Find (Lore Episode 3) / Artifact Find (Lore Episode 3) / Thingies(\"LoreEpiBon\", 3, 0) / DNSM.TomeQTYtot / GenINFO[92][17]": 1,
@@ -96,8 +96,8 @@ export const TOP_ARTI_FAMILY_FLAT: Readonly<Record<string, FlatMap>> = {
     "Artifact Find / 📜 Artifact Find (Lore Episode 3) / Artifact Find (Lore Episode 3) / Thingies(\"LoreEpiBon\", 3, 0) / DNSM.TomeQTYtot / GenINFO[92][38]": 1,
     "Artifact Find / 📜 Artifact Find (Lore Episode 3) / Artifact Find (Lore Episode 3) / Thingies(\"LoreEpiBon\", 3, 0) / DNSM.TomeQTYtot / GenINFO[92][7]": 1,
     "Artifact Find / 📜 Artifact Find (Lore Episode 3) / Artifact Find (Lore Episode 3) / Thingies(\"LoreEpiBon\", 3, 0) / DNSM.TomeQTYtot / GenINFO[92][8]": 1,
-    "Artifact Find / 📜 Artifact Find (Lore Episode 3) / Artifact Find (Lore Episode 3) / Thingies(\"LoreEpiBon\", 3, 0) / DNSM.TomeQTYtot / Tome.dropRateMap": 1967869.7231606226,
-    "Artifact Find / 📜 Artifact Find (Lore Episode 3) / Artifact Find (Lore Episode 3) / Thingies(\"LoreEpiBon\", 3, 0) / DNSM.TomeQTYtot / Tome.totalPoints": 55830,
+    "Artifact Find / 📜 Artifact Find (Lore Episode 3) / Artifact Find (Lore Episode 3) / Thingies(\"LoreEpiBon\", 3, 0) / DNSM.TomeQTYtot / Tome.dropRateMap": 2755770.0827783076,
+    "Artifact Find / 📜 Artifact Find (Lore Episode 3) / Artifact Find (Lore Episode 3) / Thingies(\"LoreEpiBon\", 3, 0) / DNSM.TomeQTYtot / Tome.totalPoints": 55915,
     "Artifact Find / 📜 Artifact Find (Lore Episode 3) / Artifact Find (Lore Episode 3) / Thingies(\"LoreEpiBon\", 3, 0) / DNSM.TomeQTYtot / TotalQuestsComplete": 322,
     "Artifact Find / 🔘 Artifact Odds (Minehead Button 3)": 2.6613437500000003,
     "Artifact Find / 🔘 Artifact Odds (Minehead Button 3) / Artifact Odds (Minehead Button 3)": 166.13437500000006,

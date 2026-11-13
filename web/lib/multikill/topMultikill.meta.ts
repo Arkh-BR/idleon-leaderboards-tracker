@@ -2,9 +2,9 @@
 // imported). The path table lives in topMultikill.ts and is lazy-loaded.
 // Both auto-refreshed by scripts/update-top-multikill.ts.
 
-export const TOP_MULTIKILL_GENERATED_AT = "2026-11-12T01:15:44.179Z";
-export const TOP_MULTIKILL_PLAYERS_SCANNED = 98;
+export const TOP_MULTIKILL_GENERATED_AT = "2026-11-13T11:56:37.441Z";
+export const TOP_MULTIKILL_PLAYERS_SCANNED = 97;
 // Best Multikill a single CLASS's best-of-each-source build reaches.
-export const TOP_MULTIKILL_HYPOTHETICAL_TOTAL = 135446;
+export const TOP_MULTIKILL_HYPOTHETICAL_TOTAL = 134307;
 // Highest Multikill of a single real player, for context.
-export const TOP_MULTIKILL_BEST = {"player":"ChaoticGungnir","char":"Maestroglug","total":119495};
+export const TOP_MULTIKILL_BEST = {"player":"ChaoticGungnir","char":"Maestroglug","total":119498};
