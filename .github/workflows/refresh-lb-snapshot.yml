@@ -1,0 +1,55 @@
+name: Refresh leaderboards snapshot
+
+# Snapshots every Idleon Toolbox leaderboard's #10/#100 cutoffs and the tab/section structure into
+# web/lib/leaderboards/snapshot.ts (the "points to reach the top 100" data and the /meta fallback).
+# Makes 221 requests a day (1 meta + 1 per board), under the access agreed with Idleon Toolbox's owner:
+# Origin https://arkh-idleon-trackers.vercel.app plus our scraper User-Agent. Ask before going past ~2,000 a day.
+
+on:
+  schedule:
+    - cron: "30 5 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: refresh-lb-snapshot
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install npm dependencies
+        working-directory: web
+        run: npm ci
+
+      - name: Snapshot leaderboards
+        working-directory: web
+        timeout-minutes: 15
+        run: timeout -s KILL 14m npx tsx scripts/update-lb-snapshot.ts
+
+      - name: Commit snapshot
+        env:
+          GIT_AUTHOR_NAME: github-actions[bot]
+          GIT_AUTHOR_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+          GIT_COMMITTER_NAME: github-actions[bot]
+          GIT_COMMITTER_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+        run: |
+          git add web/lib/leaderboards/snapshot.ts
+          if git diff --cached --quiet; then
+            echo "Snapshots unchanged, nothing to commit."
+            exit 0
+          fi
+          git commit -m "chore: auto-refresh leaderboards snapshot"
+          git push
