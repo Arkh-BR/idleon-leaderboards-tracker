@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { climbOne, gapToCutoff } from "@/lib/leaderboards/metrics";
-import { formatMetric, formatDelta } from "@/lib/leaderboards/format";
+import { formatMetric, formatDelta, formatGap } from "@/lib/leaderboards/format";
 import { formatIdleon } from "@/lib/format";
 
 describe("climbOne", () => {
@@ -13,7 +13,6 @@ describe("climbOne", () => {
     expect(c.kind).toBe("gap");
     if (c.kind === "gap") {
       expect(c.delta).toBeCloseTo(0.4);
-      expect(formatDelta(c.delta, "seconds", true)).toBe("−0.400s");
     }
   });
   it("top and tied-top", () => {
@@ -40,12 +39,18 @@ describe("format", () => {
   it("formatMetric", () => {
     expect(formatMetric(4.6622, "multiplier")).toBe("4.6622x");
     expect(formatMetric(12.5, "multiplier")).toBe("12.50x");
-    expect(formatMetric(2.5, "seconds")).toBe("2.500s");
-    expect(formatMetric(12.34, "seconds")).toBe("12.3s");
+    expect(formatMetric(289.5, "seconds")).toBe("12.4s");
+    expect(formatMetric(3600, "seconds")).toBe("1.000s");
+    expect(formatMetric(0, "seconds")).toBe("—");
     expect(formatMetric(22424, "default")).toBe(formatIdleon(22424));
     expect(formatMetric(22424, "bits")).toBe(formatIdleon(22424));
   });
   it("formatDelta", () => {
     expect(formatDelta(35, "default", false)).toBe(`+${formatIdleon(35)}`);
+  });
+  it("formatGap", () => {
+    expect(formatGap(240, 300, "seconds")).toBe("−3.000s");
+    expect(formatGap(22424, 22459, "default")).toBe("+35");
+    expect(formatGap(4.5, 4.6622, "multiplier")).toBe("+0.1622x");
   });
 });
