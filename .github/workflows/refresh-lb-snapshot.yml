@@ -2,7 +2,7 @@ name: Refresh leaderboards snapshot
 
 # Snapshots every Idleon Toolbox leaderboard's #10/#100 cutoffs and the tab/section structure into
 # web/lib/leaderboards/snapshot.ts (the "points to reach the top 100" data and the /meta fallback).
-# Makes 221 requests a day (1 meta + 1 per board), under the access agreed with Idleon Toolbox's owner:
+# A run takes ~12 min (serial, 500 ms apart). Makes 221 requests a day (1 meta + 1 per board), under the access agreed with Idleon Toolbox's owner:
 # Origin https://arkh-idleon-trackers.vercel.app plus our scraper User-Agent. Ask before going past ~2,000 a day.
 
 on:
@@ -20,7 +20,7 @@ concurrency:
 jobs:
   refresh:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 32
     steps:
       - uses: actions/checkout@v4
 
@@ -36,8 +36,8 @@ jobs:
 
       - name: Snapshot leaderboards
         working-directory: web
-        timeout-minutes: 15
-        run: timeout -s KILL 14m npx tsx scripts/update-lb-snapshot.ts
+        timeout-minutes: 30
+        run: timeout -s KILL 28m npx tsx scripts/update-lb-snapshot.ts
 
       - name: Commit snapshot
         env:

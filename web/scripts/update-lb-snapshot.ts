@@ -25,23 +25,42 @@ export async function buildSnapshot(
   const meta = (await fetchJson(`${BASE}/leaderboards/meta`)) as LbMeta;
   const keys = meta.tabs.flatMap((t) => t.sections.flatMap((s) => s.metrics.map((m) => m.key)));
   const boards: Record<string, BoardCutoffs> = {};
+  let fetched = 0;
+  let carried = 0;
+  let missing = 0;
   for (const key of keys) {
     if (delayMs) await sleep(delayMs);
-    try {
-      const { top } = (await fetchJson(`${BASE}/leaderboards/board?metric=${encodeURIComponent(key)}&limit=100`)) as LbBoard;
-      if (!top?.length) continue;
+    let top: LbBoard["top"] | undefined;
+    let err: unknown;
+    // one retry after 2 s (4 x the spacing; 0 in tests)
+    for (let attempt = 0; attempt < 2 && !top?.length; attempt++) {
+      if (attempt && delayMs) await sleep(delayMs * 4);
+      try {
+        top = ((await fetchJson(`${BASE}/leaderboards/board?metric=${encodeURIComponent(key)}&limit=100`)) as LbBoard).top;
+        if (!top?.length) err = new Error("empty board");
+      } catch (e) {
+        err = e;
+      }
+    }
+    if (top?.length) {
+      fetched++;
       boards[key] = {
         top10: top[9]?.value,
         top100: top[99]?.value,
         lowerIsBetter: top[0].value < top[top.length - 1].value,
         firstSeen: previous?.boards[key]?.firstSeen ?? today,
       };
-    } catch {
-      // skipped; counted below
+      continue;
     }
+    console.warn(`· ${key}: ${err instanceof Error ? err.message : String(err)}`);
+    const old = previous?.boards[key];
+    if (old) {
+      boards[key] = old;
+      carried++;
+    } else missing++;
   }
-  const n = Object.keys(boards).length;
-  if (n < MIN_BOARDS) throw new Error(`only ${n} boards fetched`);
+  console.log(`fetched ${fetched}, carried forward ${carried}, missing ${missing}`);
+  if (fetched < MIN_BOARDS) throw new Error(`only ${fetched} boards fetched`);
   return { meta, boards };
 }
 
@@ -55,7 +74,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
 }
 
 async function fetchJson(url: string): Promise<unknown> {
-  const r = await fetch(url, { headers: SCRAPER_HEADERS });
+  const r = await fetch(url, { headers: SCRAPER_HEADERS, signal: AbortSignal.timeout(20_000) });
   if (!r.ok) throw new Error(`HTTP ${r.status} ${url}`);
   return r.json();
 }

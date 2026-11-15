@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { buildSnapshot, renderSnapshot } from "../../scripts/update-lb-snapshot";
 import type { LbMeta } from "../../lib/leaderboards/types";
 
@@ -29,6 +29,9 @@ function fake(meta: LbMeta, opts: { failFrom?: number; asc?: string } = {}) {
 }
 
 describe("buildSnapshot", () => {
+  beforeEach(() => void vi.spyOn(console, "log").mockImplementation(() => {}));
+  afterEach(() => void vi.restoreAllMocks());
+
   it("computes cutoffs, lowerIsBetter and firstSeen", async () => {
     const meta = makeMeta(220);
     const previous = { generatedAt: "x", meta, boards: { m0: { top10: 1, top100: 1, lowerIsBetter: false, firstSeen: "2026-01-01" } } };
@@ -43,7 +46,48 @@ describe("buildSnapshot", () => {
 
   it("throws when fewer than 200 boards come back", async () => {
     const meta = makeMeta(220);
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    vi.spyOn(console, "log").mockImplementation(() => {});
     await expect(buildSnapshot(fake(meta, { failFrom: 150 }), null, "2026-11-15", 0)).rejects.toThrow("only 150 boards fetched");
+    vi.restoreAllMocks();
+  });
+});
+
+describe("retry and carry-forward", () => {
+  afterEach(() => void vi.restoreAllMocks());
+  it("retries a failed metric once", async () => {
+    vi.spyOn(console, "log").mockImplementation(() => {});
+    const meta = makeMeta(220);
+    const base = fake(meta);
+    const calls: Record<string, number> = {};
+    const f = async (url: string) => {
+      const key = new URL(url).searchParams.get("metric");
+      if (key) calls[key] = (calls[key] ?? 0) + 1;
+      if (key === "m5" && calls[key] === 1) throw new Error("flaky");
+      return base(url);
+    };
+    const s = await buildSnapshot(f, null, "2026-11-15", 0);
+    expect(calls.m5).toBe(2);
+    expect(s.boards.m5.top10).toBe(991);
+  });
+
+  it("carries a twice-failing metric forward and warns", async () => {
+    const meta = makeMeta(220);
+    const old = { top10: 7, top100: 3, lowerIsBetter: false, firstSeen: "2026-01-01" };
+    const previous = { generatedAt: "x", meta, boards: { m9: old } };
+    const base = fake(meta);
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const log = vi.spyOn(console, "log").mockImplementation(() => {});
+    const f = async (url: string) => {
+      if (url.includes("metric=m9&")) throw new Error("down");
+      return base(url);
+    };
+    const s = await buildSnapshot(f, previous, "2026-11-15", 0);
+    expect(s.boards.m9).toEqual(old);
+    expect(warn).toHaveBeenCalledWith("· m9: down");
+    expect(log).toHaveBeenCalledWith("fetched 219, carried forward 1, missing 0");
+    warn.mockRestore();
+    log.mockRestore();
   });
 });
 
