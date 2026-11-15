@@ -29,9 +29,9 @@ export function __resetItFetchForTests(): void {
 
 export async function itFetchJson<T>(
   url: string,
-  opts: { cacheKey: string; ttlMs: number; budget: Budget; force?: boolean },
+  opts: { cacheKey: string; ttlMs: number; budget: Budget; force?: boolean; accept?: (data: T) => boolean },
 ): Promise<ItResult<T>> {
-  const { cacheKey, ttlMs, budget, force } = opts;
+  const { cacheKey, ttlMs, budget, force, accept } = opts;
   const cached = CACHE.get(cacheKey);
   if (!force && cached && Date.now() - cached.at < ttlMs) {
     return { ok: true, data: cached.data as T, cache: "hit" };
@@ -49,7 +49,7 @@ export async function itFetchJson<T>(
     if (r.status === 404) return { ok: false, status: 404, error: "HTTP 404" };
     if (!r.ok) return { ok: false, status: 502, error: `HTTP ${r.status}` };
     const data = (await r.json()) as T;
-    CACHE.set(cacheKey, { at: Date.now(), data });
+    if (!accept || accept(data)) CACHE.set(cacheKey, { at: Date.now(), data });
     return { ok: true, data, cache: "miss" };
   } catch (e) {
     return { ok: false, status: 502, error: e instanceof Error ? e.message : String(e) };

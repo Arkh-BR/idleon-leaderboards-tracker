@@ -54,3 +54,14 @@ describe("itFetchJson", () => {
     expect(await itFetchJson("u", opts("k"))).toEqual({ ok: false, status: 502, error: "HTTP 500" });
   });
 });
+
+describe("itFetchJson accept", () => {
+  it("does not cache a body that accept rejects", async () => {
+    const f = vi.fn(async () => ok(null));
+    vi.stubGlobal("fetch", f);
+    const o = { ...opts("k"), accept: (d: unknown) => d !== null };
+    expect(await itFetchJson("u", o)).toMatchObject({ ok: true, data: null, cache: "miss" });
+    await itFetchJson("u", o);
+    expect(f).toHaveBeenCalledTimes(2);
+  });
+});

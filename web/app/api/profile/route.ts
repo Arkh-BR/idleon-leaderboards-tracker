@@ -17,6 +17,14 @@ const PROFILES_BASE =
 // The save is large (~1.3 MB) and the three pages may re-fetch the same player
 // on open, so cache per lowercased name. The IT data only refreshes ~once a
 // day, so 15 min is plenty. Headers, cache and the 200/day cap live in itFetch.
+// Private / anonymous / unknown profiles come back as `null` (or without the
+// save envelope); those are not cached so a fixed privacy setting works at once.
+const isSave = (save: unknown) =>
+  !!save &&
+  typeof save === "object" &&
+  !!(save as { data?: unknown }).data &&
+  Array.isArray((save as { charNames?: unknown }).charNames);
+
 const CACHE_TTL_MS = 15 * 60 * 1000;
 
 export async function GET(req: NextRequest) {
@@ -29,7 +37,7 @@ export async function GET(req: NextRequest) {
 
   const r = await itFetchJson<unknown>(
     `${PROFILES_BASE}?profile=${encodeURIComponent(player)}`,
-    { cacheKey: `profile:${key}`, ttlMs: CACHE_TTL_MS, budget: { name: "profile", cap: 200 }, force },
+    { cacheKey: `profile:${key}`, ttlMs: CACHE_TTL_MS, budget: { name: "profile", cap: 200 }, force, accept: isSave },
   );
   if (!r.ok && r.status === 429) {
     return NextResponse.json(
@@ -42,14 +50,8 @@ export async function GET(req: NextRequest) {
   }
   const save = r.ok ? r.data : null;
 
-  // Private / anonymous / unknown profiles come back as `null` (or without the
-  // save envelope). Surface a clear 404 the client can show.
-  const ok =
-    save &&
-    typeof save === "object" &&
-    (save as { data?: unknown }).data &&
-    Array.isArray((save as { charNames?: unknown }).charNames);
-  if (!ok) {
+  // Surface a clear 404 the client can show.
+  if (!isSave(save)) {
     return NextResponse.json(
       {
         error:
