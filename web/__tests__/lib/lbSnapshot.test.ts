@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect } from "vitest";
 import {
   loadSnapshot,
   saveSnapshot,
@@ -7,27 +7,6 @@ import {
   type LbSnapshot,
   type BoardDelta,
 } from "@/lib/lbSnapshot";
-import type { BoardResult } from "@/app/api/leaderboards/route";
-
-// Helper to create a minimal BoardResult
-try {
-  vi.useFakeTimers();
-} catch {}
-
-function createBoardResult(
-  overrides: Partial<BoardResult> = {}
-): BoardResult {
-  return {
-    category: "general",
-    categoryLabel: "General",
-    apiKey: "test",
-    label: "Test",
-    myRank: null,
-    myScore: null,
-    top10: [],
-    ...overrides,
-  };
-}
 
 describe("loadSnapshot", () => {
   it("returns null for empty player", () => {
@@ -84,20 +63,14 @@ describe("loadSnapshot", () => {
 
 describe("saveSnapshot", () => {
   it("stores snapshot per player", () => {
-    const boards = [
-      createBoardResult({ apiKey: "b1", myRank: 10, myScore: 500 }),
-      createBoardResult({ apiKey: "b2", myRank: 50, myScore: 100 }),
-    ];
-    const snap = saveSnapshot("Arkh", boards);
+    const snap = saveSnapshot("Arkh", { b1: { rank: 10, value: 500 }, b2: { rank: 50, value: 100 } });
     expect(snap.player).toBe("Arkh");
     expect(Object.keys(snap.boards)).toEqual(["b1", "b2"]);
     expect(snap.boards["b1"]).toEqual({ rank: 10, score: 500 });
   });
 
-  it("writes to localStorage", () => {
-    saveSnapshot("Arkh", [
-      createBoardResult({ apiKey: "only", myRank: 1, myScore: 9_999 }),
-    ]);
+  it("writes to localStorage in the stored shape (rank + score)", () => {
+    saveSnapshot("Arkh", { only: { rank: 1, value: 9_999 } });
     const raw = localStorage.getItem("idleon-leaderboards.lb.ptsSnapshot.arkh");
     expect(raw).toBeTruthy();
     const parsed = JSON.parse(raw!);
@@ -106,71 +79,31 @@ describe("saveSnapshot", () => {
 });
 
 describe("computeDelta", () => {
-  it("returns nodata when snapshot is undefined", () => {
-    const result = computeDelta(
-      { myRank: 10, myScore: 100 },
-      undefined
-    );
-    expect(result.status).toBe("nodata");
-    expect(result.rankDelta).toBeNull();
-    expect(result.scoreDelta).toBeNull();
+  const snap = (boards: LbSnapshot["boards"]): LbSnapshot => ({ savedAt: "2024-01-01T00:00:00Z", player: "Arkh", boards });
+
+  it("nodata for every board when there is no snapshot", () => {
+    expect(computeDelta({ a: { rank: 10, value: 100 } }, null)).toEqual({ a: { status: "nodata", rankDelta: null, scoreDelta: null } });
   });
 
-  it("returns nodata when snapshot rank is null", () => {
-    const result = computeDelta(
-      { myRank: 10, myScore: 100 },
-      { rank: null, score: 100 }
-    );
-    expect(result.status).toBe("nodata");
+  it("nodata when the board is missing from the snapshot or its rank is null", () => {
+    const d = computeDelta({ a: { rank: 10, value: 100 }, b: { rank: 10, value: 100 } }, snap({ b: { rank: null, score: 100 } }));
+    expect(d.a.status).toBe("nodata");
+    expect(d.b.status).toBe("nodata");
   });
 
-  it("returns nodata when current rank is null", () => {
-    const result = computeDelta(
-      { myRank: null, myScore: 100 },
-      { rank: 10, score: 100 }
+  it("positive rankDelta when climbing, negative when dropping, zero when unchanged", () => {
+    const d = computeDelta(
+      { up: { rank: 30, value: 200 }, down: { rank: 50, value: 100 }, same: { rank: 10, value: 500 } },
+      snap({ up: { rank: 50, score: 100 }, down: { rank: 30, score: 200 }, same: { rank: 10, score: 500 } }),
     );
-    expect(result.status).toBe("nodata");
+    expect(d.up).toEqual({ status: "changed", rankDelta: 20, scoreDelta: 100 });
+    expect(d.down).toEqual({ status: "changed", rankDelta: -20, scoreDelta: -100 });
+    expect(d.same).toEqual({ status: "changed", rankDelta: 0, scoreDelta: 0 });
   });
 
-  it("calculates positive rankDelta when climbing (rank number decreases)", () => {
-    // Was rank 50, now rank 30 → climbed 20 positions
-    const result = computeDelta(
-      { myRank: 30, myScore: 200 },
-      { rank: 50, score: 100 }
-    );
-    expect(result.status).toBe("changed");
-    expect(result.rankDelta).toBe(20);
-    expect(result.scoreDelta).toBe(100);
-  });
-
-  it("calculates negative rankDelta when dropping", () => {
-    // Was rank 30, now rank 50 → dropped 20 positions
-    const result = computeDelta(
-      { myRank: 50, myScore: 100 },
-      { rank: 30, score: 200 }
-    );
-    expect(result.status).toBe("changed");
-    expect(result.rankDelta).toBe(-20);
-    expect(result.scoreDelta).toBe(-100);
-  });
-
-  it("returns zero deltas when unchanged", () => {
-    const result = computeDelta(
-      { myRank: 10, myScore: 500 },
-      { rank: 10, score: 500 }
-    );
-    expect(result.status).toBe("changed");
-    expect(result.rankDelta).toBe(0);
-    expect(result.scoreDelta).toBe(0);
-  });
-
-  it("returns null scoreDelta when snapshot score is null", () => {
-    const result = computeDelta(
-      { myRank: 10, myScore: 100 },
-      { rank: 20, score: null }
-    );
-    expect(result.status).toBe("changed");
-    expect(result.scoreDelta).toBeNull();
+  it("null scoreDelta when snapshot score is null", () => {
+    const d = computeDelta({ a: { rank: 10, value: 100 } }, snap({ a: { rank: 20, score: null } }));
+    expect(d.a).toEqual({ status: "changed", rankDelta: 10, scoreDelta: null });
   });
 });
 

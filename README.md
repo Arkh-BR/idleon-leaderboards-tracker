@@ -2,7 +2,7 @@
 
 A full-stack [Next.js](https://nextjs.org) web app that tracks any
 [Legends of Idleon](https://www.legendsofidleon.com) player's standing across
-all **178 [IdleonToolbox](https://idleontoolbox.com) leaderboards** — plus
+all **220 [IdleonToolbox](https://idleontoolbox.com) leaderboards** — plus
 game-faithful calculators for Drop Rate, Tome score, and Talents. No login, no
 database, free to host.
 
@@ -16,8 +16,8 @@ database, free to host.
 
 | Tool | What it does |
 |---|---|
-| **Leaderboards Tracker** | Your rank and score across all 178 IT boards, with search, category filters, sortable columns, and an expandable top-10 per board. |
-| **Dashboard** | Tier summary, heatmap by category, worst positions, quick wins, and your best 30 — computed from the live data. |
+| **Leaderboards Tracker** | Boards come from Idleon Toolbox's leaderboards API, grouped in IT's own tabs. For all 220 boards: your rank, top %, and the gap to the next rank and to the top 100. |
+| **Dashboard** | Progress since your saved snapshot, tier summary, strength by section (filters the lists below), worst positions, cheapest climbs, points to reach the top 100 / top 10, maxed boards you're missing, your best positions, global rivals with head-to-head, and your rank history — computed from the live data. |
 | **Snapshot / Delta** | Save a snapshot per player (browser `localStorage`) and see net rank movement on the next visit. |
 | **Drop Rate Tracker** | Game-code-faithful Drop Rate breakdown, ported from the in-game formulas. |
 | **Tome Score Tracker** | Local Best-Tome calculator — paste your save JSON, no upload. |
@@ -25,8 +25,11 @@ database, free to host.
 | **Sheets & Tools hub** | Curated links to community spreadsheets and tools. |
 
 Data comes from the public IdleonToolbox API — no authentication required.
-A server-side route proxies and caches it (15-minute TTL) because IT blocks
-direct cross-origin calls from the browser.
+Server-side `/api/lb/*` routes proxy it (IT blocks direct cross-origin calls from
+the browser) and cache it in memory: meta 30 min, player 15 min, board 30 min,
+name search 10 min, under a daily cap of upstream fetches. A daily GitHub Action
+snapshots every board's #10 / #100 cutoffs and IT's tab structure into
+`web/lib/leaderboards/snapshot.ts`.
 
 ## Stack
 

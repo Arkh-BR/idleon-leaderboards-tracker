@@ -1,10 +1,10 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { flatBoards } from "@/lib/registry";
+import { boardCount } from "@/lib/leaderboards/meta";
 import { TOME_TASKS } from "@/lib/tome/tasks";
 
 // Derived from the catalogs so the landing copy never drifts.
-const BOARD_COUNT = flatBoards().length;
+const BOARD_COUNT = boardCount();
 const TOME_TASK_COUNT = TOME_TASKS.length;
 
 export const metadata: Metadata = {

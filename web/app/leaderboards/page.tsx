@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
-import LeaderboardsPageClient from "./LeaderboardsPageClient";
-import { flatBoards } from "@/lib/registry";
+import LbPage from "@/components/leaderboards/LbPage";
+import { boardCount } from "@/lib/leaderboards/meta";
 
 export const metadata: Metadata = {
   title: "IT Leaderboards Tracker",
-  description: `Track your position across all ${flatBoards().length} IdleonToolbox leaderboards — live data, no spreadsheet.`,
+  description: `Track your position across all ${boardCount()} Idleon Toolbox leaderboards — live data, no spreadsheet.`,
 };
 
 export default function LeaderboardsPage() {
-  return <LeaderboardsPageClient />;
+  return <LbPage />;
 }

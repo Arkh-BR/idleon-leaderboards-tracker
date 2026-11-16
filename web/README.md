@@ -1,22 +1,24 @@
 # Idleon Leaderboards — Web version
 
 Web app counterpart to the `Idleon_Leaderboards.xlsx` spreadsheet. Shows any
-player's position across all 178 [IdleonToolbox](https://idleontoolbox.com)
-leaderboards, with:
+player's position across all 220 [IdleonToolbox](https://idleontoolbox.com)
+leaderboards (the count follows IT's `/meta`), with:
 
-- Search, category filter, and column sorting
-- Expandable top 10 per leaderboard
-- Dashboard with tier summary, heatmap by category, worst positions,
-  quick wins, and your best 30
-- Works for any player (input field)
-- Server-side cache (15 minutes per player; the IT API only updates ~once a
-  day anyway)
+- IT's own tabs and sections, a jump-to-board search, and sorting
+- Expandable top 100 per leaderboard, around your rank
+- Overview (global top 10) and a Dashboard: progress since your snapshot, tier
+  summary, strength by section, worst positions, cheapest climbs, points to
+  reach the top 100 / top 10, maxed boards you're missing, your best positions,
+  global rivals with head-to-head, and your rank history
+- Works for any player (input field with name autocomplete)
+- Server-side cache (meta 30 min, player 15 min, board 30 min, names 10 min;
+  the IT API only updates ~once a day anyway)
 
 ## Stack
 
 - **Next.js 16** (App Router) + **React 19** + **TypeScript**
 - **Tailwind CSS** for styling
-- The `/api/leaderboards` route acts as a server-side proxy
+- The `/api/lb/*` routes act as a server-side proxy
   (required because IT blocks direct cross-origin CORS calls from the browser)
 
 ## Run locally
@@ -53,15 +55,19 @@ No env vars. No database. Nothing besides Node.
 ```
 web/
 ├── app/
-│   ├── api/leaderboards/route.ts   # Server-side proxy for the IT API
+│   ├── api/lb/{meta,player,board,names}/route.ts  # Server-side proxy for the IT leaderboards API
+│   ├── leaderboards/page.tsx       # The tracker page
 │   ├── layout.tsx
-│   ├── page.tsx                    # Main UI (tabs + player input)
 │   └── globals.css
-├── components/
-│   ├── LeaderboardsTable.tsx       # Filterable table of all 178 leaderboards
-│   └── Dashboard.tsx               # 5 analytical sections
+├── components/leaderboards/
+│   ├── LbPage.tsx                  # Page shell: player input, cards, tabs
+│   ├── BoardTable.tsx              # One IT tab's boards, with expandable top 100
+│   ├── LbOverview.tsx              # Global top 10 + tab cards
+│   └── LbDashboard.tsx             # Dashboard sections
+├── scripts/update-lb-snapshot.ts   # Daily cutoffs + meta snapshot (GitHub Action)
 └── lib/
-    ├── registry.ts                 # The 178 leaderboards (ported from Code.gs, synced with IT's API)
+    ├── leaderboards/               # IT fetch + budgets, snapshot, metrics, history
+    ├── registry.ts                 # Legacy board list (used by the collector scripts)
     ├── format.ts                   # Idleon notation (M/B/T/Q/QQ/QQQ)
     └── rank.ts                     # Rank colors and tiers
 ```
@@ -71,12 +77,12 @@ web/
 The `profiles.idleontoolbox.workers.dev` API responds 200 server-side, but
 the OPTIONS preflight **does not return `Access-Control-Allow-Origin`**, so
 the browser blocks direct calls (`net::ERR_FAILED`). The Next.js API route
-makes the call server-side, builds a combined payload of top10 + the
-player's rank/score, and returns it to the frontend with implicit CORS
-(same origin).
+makes the call server-side (with the Origin and User-Agent agreed with IT's
+owner) and returns it to the frontend with implicit CORS (same origin).
 
-The in-memory cache lasts 15 minutes per player (the IT API only updates
-~once a day, so refetching more often is pointless).
+The in-memory cache lasts 30 min for meta and boards, 15 min per player and
+10 min per name search (the IT API only updates ~once a day). Upstream fetches
+are capped at 500 a day, name search at 150 of those.
 
 ## Known limitations
 
