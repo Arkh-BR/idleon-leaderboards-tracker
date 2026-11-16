@@ -2350,1321 +2350,1321 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
    "top10": 4.708518471261936e+63,
    "top100": 1.1612143178048387e+60,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "totalLevels": {
    "top10": 21509,
    "top100": 20612,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "totalCards": {
    "top10": 128764673019358860,
    "top100": 23170872839199372,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "totalGreenStacks": {
    "top10": 436,
    "top100": 414,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "slab": {
    "top10": 1900,
    "top100": 1875,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "totalTomePoints": {
    "top10": 55862,
    "top100": 54782,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "afkTime": {
    "top10": 721623.7758333385,
    "top100": 534882.73527778,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "totalAchievements": {
    "top10": 265,
    "top100": 247,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-11-13"
   },
   "totalUniqueQuests": {
    "top10": 327,
    "top100": 313,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-11-13"
   },
   "totalTasksCompleted": {
    "top10": 492,
    "top100": 467,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-11-13"
   },
   "totalUpgradeVaultLevels": {
    "top10": 19626,
    "top100": 15291,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-11-13"
   },
   "totalEventShopUpgrades": {
    "top10": 67,
    "top100": 64,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-11-13"
   },
   "totalCardLevels": {
    "top10": 1751,
    "top100": 1523,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-11-13"
   },
   "goldenFoodBonus": {
    "top10": 259773.88751396321,
    "top100": 72290.09382926529,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-11-13"
   },
   "choppingMinigame": {
    "top10": 231,
    "top100": 161,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "fishingMinigame": {
    "top10": 264,
    "top100": 120,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "catchingMinigame": {
    "top10": 282,
    "top100": 161,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "miningMinigame": {
    "top10": 227,
    "top100": 133,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "penpalMinigame": {
    "top10": 199,
    "top100": 161,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "hoopsMinigame": {
    "top10": 52,
    "top100": 39,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "dartsMinigame": {
    "top10": 827,
    "top100": 542,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "highestMegafeather": {
    "top10": 42,
    "top100": 41,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "highestMegaFish": {
    "top10": 29,
    "top100": 27,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "highestMegaFlesh": {
    "top10": 23,
    "top100": 20,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "strength": {
    "top10": 112632857,
    "top100": 72798593,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "agility": {
    "top10": 88004805,
    "top100": 55713647,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "wisdom": {
    "top10": 97871188,
    "top100": 57823614,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "luck": {
    "top10": 38905013,
    "top100": 23273442,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "level": {
    "top10": 2032,
    "top100": 1952,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "dropRate": {
    "top10": 3073951.3386002863,
    "top100": 1318682.7199043748,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "cashMulti": {
    "top10": 2.468939438475839e+38,
    "top100": 1.457080870256995e+36,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "defence": {
    "top10": 515987904823.6366,
    "top100": 112779525878.34576,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "accuracy": {
    "top10": 7.730678756146078e+38,
    "top100": 5.682044576626227e+35,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "hp": {
    "top10": 1770440942951459,
    "top100": 355229798544712.25,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "mp": {
    "top10": 10557919483.863956,
    "top100": 4459640054.453375,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "totalGrimoireUpgrades": {
    "top10": 16657,
    "top100": 15375,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "totalBonesCollected": {
    "top10": 32352874623028736000,
    "top100": 6824932787916870000,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "totalCompassUpgrades": {
    "top10": 48707,
    "top100": 44536,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "totalDustCollected": {
    "top10": 3.1705268442984743e+21,
    "top100": 162025937198453750000,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "totalMedallions": {
    "top10": 131,
    "top100": 128,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "totalArcanistUpgrades": {
    "top10": 10523,
    "top100": 9867,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "totalTachyonsCollected": {
    "top10": 422810635183516550000,
    "top100": 50834487126075930000,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "highestArcaneMapMulti": {
    "top10": 1.5636283448334232,
    "top100": 1.4813223740885053,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "totalRoyalArmoryUpgrades": {
    "top10": 3605,
    "top100": 3371,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "totalRoyalResourceGrades": {
    "top10": 4402,
    "top100": 4018,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "totalRoyalStatueLevels": {
    "top10": 69,
    "top100": 26,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "totalOutposts": {
    "top10": 61,
    "top100": 59,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "highestOutpostResourceRate": {
    "top10": 71817852219079190000,
    "top100": 2454936883209450000,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "totalSkillsLevels": {
    "top10": 163762,
    "top100": 148544,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "mining": {
    "top10": 310,
    "top100": 275,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "smithing": {
    "top10": 274,
    "top100": 234,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "choppin": {
    "top10": 335,
    "top100": 301,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "fishing": {
    "top10": 326,
    "top100": 280,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "alchemy": {
    "top10": 285,
    "top100": 262,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "catching": {
    "top10": 340,
    "top100": 301,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "trapping": {
    "top10": 234,
    "top100": 214,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "construction": {
    "top10": 7288,
    "top100": 6700,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "worship": {
    "top10": 264,
    "top100": 241,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "cooking": {
    "top10": 302,
    "top100": 270,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "breeding": {
    "top10": 226,
    "top100": 200,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "laboratory": {
    "top10": 1112,
    "top100": 1019,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "sailing": {
    "top10": 365,
    "top100": 339,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "divinity": {
    "top10": 1026,
    "top100": 927,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "gaming": {
    "top10": 601,
    "top100": 573,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "farming": {
    "top10": 722,
    "top100": 692,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "sneaking": {
    "top10": 1625,
    "top100": 1451,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "summoning": {
    "top10": 328,
    "top100": 304,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "spelunking": {
    "top10": 787,
    "top100": 731,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "research": {
    "top10": 106,
    "top100": 103,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "highestDamage": {
    "top10": 1.5605391343911496e+47,
    "top100": 1.5027886344189562e+45,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "monstersKilled": {
    "top10": 20950802831530170000,
    "top100": 2147421201480763000,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "greenMushroomKills": {
    "top10": 20907652364381377000,
    "top100": 2004406381210811100,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "totalPrimeKills": {
    "top10": 390992,
    "top100": 279437,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "mostGiantsKilled": {
    "top10": 79,
    "top100": 71,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "highestShowdownLevel": {
    "top10": 200,
    "top100": 186,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "totalDeathNoteDigits": {
    "top10": 1652,
    "top100": 1278,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-11-13"
   },
   "gravestoneBestDamage": {
    "top10": 10101867,
    "top100": 9542146,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-11-13"
   },
   "dkOrbKills": {
    "top10": 215479521,
    "top100": 134635468,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "orbOfRemembranceLevel": {
    "top10": 855,
    "top100": 705,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-11-13"
   },
   "sbPlunderousKills": {
    "top10": 1440487,
    "top100": 1060690,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "esWormholeKills": {
    "top10": 37785209,
    "top100": 19200898,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "vwPortals": {
    "top10": 117,
    "top100": 112,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "w1Colo": {
    "top10": 540790.5666666664,
    "top100": 524783.61,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "w2Colo": {
    "top10": 1889471.232,
    "top100": 1591043.61,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "w3Colo": {
    "top10": 12330183.336,
    "top100": 11625223.801333334,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "w4Colo": {
    "top10": 135580843.65,
    "top100": 96967958.3666667,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "w5Colo": {
    "top10": 34702799.246619254,
    "top100": 32336530.79120595,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "w6Colo": {
    "top10": 350091217.37847096,
    "top100": 329719119.0404548,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "dungeonCredits": {
    "top10": 12055743717,
    "top100": 742530767,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "dungeonFlurbos": {
    "top10": 3353429848,
    "top100": 143453915,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "dungeonRank": {
    "top10": 77,
    "top100": 69,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-11-13"
   },
   "totalStatues": {
    "top10": 24016,
    "top100": 21747,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "totalStamps": {
    "top10": 40129,
    "top100": 34942,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "exaltedStampMulti": {
    "top10": 4.622940622707073,
    "top100": 3.7963829787234045,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-11-13"
   },
   "totalVials": {
    "top10": 1099,
    "top100": 1092,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "fractalHours": {
    "top10": 105467,
    "top100": 60071,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "totalBubbles": {
    "top10": 24024082,
    "top100": 12748736,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "highestCallMeBob": {
    "top10": 2671229,
    "top100": 1421145,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "highestCallMeAsh": {
    "top10": 2596684,
    "top100": 1408517,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "highestHammerHammer": {
    "top10": 2614650,
    "top100": 1407544,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "highestBigP": {
    "top10": 285038,
    "top100": 44447,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "totalArcadeUpgradeLevels": {
    "top10": 7408,
    "top100": 5563,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-11-13"
   },
   "totalLiquidCauldronLevels": {
    "top10": 26316,
    "top100": 5577,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-11-13"
   },
   "prismaBubbleMulti": {
    "top10": 4.118947945864759,
    "top100": 3.4182759680592687,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-11-13"
   },
   "meritocracyMulti": {
    "top10": 5.021990049751244,
    "top100": 4.101990049751244,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-11-13"
   },
   "totalBuildings": {
    "top10": 5513,
    "top100": 5371,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "totalShrines": {
    "top10": 349,
    "top100": 333,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "totalWaves": {
    "top10": 1770,
    "top100": 1648,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "totalEquinoxUpgrades": {
    "top10": 517,
    "top100": 472,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "logSample": {
    "top10": 238504894443647100000,
    "top100": 36395817388375327000,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "copperSample": {
    "top10": 1.0155746957748087e+22,
    "top100": 1.2105533877473958e+21,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "fliesSample": {
    "top10": 17311872468948503000,
    "top100": 2012970084256391700,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "sporeSample": {
    "top10": 135255699209.03041,
    "top100": 45099335083.01364,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "goldFishSample": {
    "top10": 11776582755126907000,
    "top100": 1698405098187630000,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "trashedCogs": {
    "top10": 177437,
    "top100": 42681,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "postOfficeOrders": {
    "top10": 137675,
    "top100": 45620,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "refinedSalts": {
    "top10": 32003607170,
    "top100": 11212651895,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "totalMaterialPrinted": {
    "top10": 6.163128464574854e+25,
    "top100": 4.796894265251006e+24,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "highestCogExp": {
    "top10": 599,
    "top100": 554,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "highestConstructExp/hr": {
    "top10": 6.483303918907262e+23,
    "top100": 6.463403807088945e+22,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "redoxSaltRank": {
    "top10": 12485,
    "top100": 4374,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "explosiveSaltRank": {
    "top10": 8383,
    "top100": 2586,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "spontaneitySaltRank": {
    "top10": 7427,
    "top100": 1857,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "dioxideSaltRank": {
    "top10": 4055,
    "top100": 1378,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "purpleSaltRank": {
    "top10": 3651,
    "top100": 1065,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "nulloSaltRank": {
    "top10": 2448,
    "top100": 679,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "crosslinkSaltRank": {
    "top10": 48,
    "top100": 29,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "propagatedSaltRank": {
    "top10": 29,
    "top100": 21,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "anionicSaltRank": {
    "top10": 1,
    "top100": 1,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "totalAtomLevels": {
    "top10": 1139,
    "top100": 920,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-11-13"
   },
   "hatRackMulti": {
    "top10": 2.1100000000000003,
    "top100": 1.75,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-11-13"
   },
   "totalMeals": {
    "top10": 11753,
    "top100": 11352,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "cookingMasteryLevel": {
    "top10": 33,
    "top100": 31,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "totalShinyLevels": {
    "top10": 2040,
    "top100": 1614,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "totalBreedabilityLevels": {
    "top10": 612,
    "top100": 612,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "highestPowerPet": {
    "top10": 6895481.465122961,
    "top100": 4714610.28050984,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "arenaWaves": {
    "top10": 2332,
    "top100": 375,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "bestCrucibleRound": {
    "top10": 2843,
    "top100": 1503,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "totalKitchenLevels": {
    "top10": 22626,
    "top100": 18270,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-11-13"
   },
   "totalRibbonRanks": {
    "top10": 1397,
    "top100": 865,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-11-13"
   },
   "totalBreedingUpgrades": {
    "top10": 469,
    "top100": 222,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-11-13"
   },
   "fastestEggTime": {
    "top10": 118.83191774707268,
    "top100": 24.64153568529799,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-11-13"
   },
   "totalPetPower": {
    "top10": 14636,
    "top100": 10442,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-11-13"
   },
   "fastestArenaRound100": {
    "top10": 128.57142857142858,
    "top100": 104.34782608695652,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-11-13"
   },
   "totalBoats": {
    "top10": 21298,
    "top100": 18965,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "godRank": {
    "top10": 30,
    "top100": 27,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "totalDivinityBlessingLevels": {
    "top10": 3460,
    "top100": 3191,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "bits": {
    "top10": 1.743464606502817e+120,
    "top100": 4.378679028034555e+114,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "logBook": {
    "top10": 100,
    "top100": 100,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "totalPaletteLevels": {
    "top10": 2765,
    "top100": 2566,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "plantsPicked": {
    "top10": 61285502,
    "top100": 26393247,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "sproutSpeed": {
    "top10": 10384949.596338358,
    "top100": 2211636.5479527754,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-11-13"
   },
   "highestNugget": {
    "top10": 1049501226392.9248,
    "top100": 212462610704.57477,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "totalGamingCrowns": {
    "top10": 100,
    "top100": 98,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "highestLogFlipperRound": {
    "top10": 13,
    "top100": 11,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-11-13"
   },
   "highestPoingScore": {
    "top10": 62220,
    "top100": 30396,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-11-13"
   },
   "totalMeasurementLevels": {
    "top10": 8779,
    "top100": 8008,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "totalOpals": {
    "top10": 729,
    "top100": 656,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "totalLayersDestroyed": {
    "top10": 185,
    "top100": 169,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "totalBarExpansions": {
    "top10": 1320,
    "top100": 1237,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "bestDenScore": {
    "top10": 12567363418.30044,
    "top100": 7258788161.995402,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "totalBraveryLevels": {
    "top10": 3436356,
    "top100": 2227051,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "totalJusticeLevels": {
    "top10": 4028208,
    "top100": 1892918,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "highestJusticeRound": {
    "top10": 365,
    "top100": 250,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "bellRings": {
    "top10": 800,
    "top100": 746,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "bellPings": {
    "top10": 61,
    "top100": 55,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "totalStringLevels": {
    "top10": 1204,
    "top100": 1149,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "brokenJars": {
    "top10": 31677165,
    "top100": 15215898,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "totalCollectibleLevels": {
    "top10": 229,
    "top100": 208,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "totalGambitTime": {
    "top10": 11067.19999999651,
    "top100": 10082.19999999741,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "highestVillagerExp/hr": {
    "top10": 1.6157304453829972e+21,
    "top100": 68139404601200574000,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "totalVillagerExp/hr": {
    "top10": 2.1265466378811144e+21,
    "top100": 99183326549466870000,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "highestColonyLevel": {
    "top10": 23,
    "top100": 21,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "highestSanctumLevel": {
    "top10": 47,
    "top100": 39,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "totalFountainUpgrades": {
    "top10": 22608,
    "top100": 20597,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "totalCavernResourceDigits": {
    "top10": 1084,
    "top100": 1024,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-11-13"
   },
   "crystalGlunkoCoveDropRate": {
    "top10": 1901414473.8985698,
    "top100": 14650259.901916798,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-11-13"
   },
   "monumentAfkGain": {
    "top10": 8656.108270737914,
    "top100": 2812.0162986784144,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-11-13"
   },
   "highestCropOg": {
    "top10": 4294967296,
    "top100": 1073741824,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "totalPlotRanks": {
    "top10": 11654,
    "top100": 10371,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "totalDayMarketLevels": {
    "top10": 2018,
    "top100": 1875,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "totalNightMarketLevels": {
    "top10": 1818,
    "top100": 1617,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "jadeCoins": {
    "top10": 2.7965861300077503e+110,
    "top100": 1.2159560893180936e+104,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "whiteEssence": {
    "top10": 5.010749080040774e+41,
    "top100": 3.5959673127442276e+39,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "totalSummoningUpgrades": {
    "top10": 39948,
    "top100": 36896,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "endlessSummoningWins": {
    "top10": 403,
    "top100": 383,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "totalFamiliars": {
    "top10": 48614,
    "top100": 38591,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-11-13"
   },
   "totalExoticMarketLevels": {
    "top10": 394408,
    "top100": 270679,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-11-13"
   },
   "totalFarmingStickers": {
    "top10": 121,
    "top100": 114,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-11-13"
   },
   "cropEvolutionMulti": {
    "top10": 5.913269350837973e+253,
    "top100": 1.2716953735996407e+189,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-11-13"
   },
   "totalSpelunkingUpgrades": {
    "top10": 16026,
    "top100": 14697,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "totalZenithMarketUpgrades": {
    "top10": 835,
    "top100": 787,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "totalCoralKidUpgrades": {
    "top10": 1814,
    "top100": 1589,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "totalSushiStationUpgrades": {
    "top10": 12180,
    "top100": 11595,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "totalSushiKnowledgeLevels": {
    "top10": 1573,
    "top100": 1310,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "totalSushiPerfectos": {
    "top10": 61,
    "top100": 57,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "bestSushiCombo": {
    "top10": 55397,
    "top100": 38883,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "totalButtonPresses": {
    "top10": 371,
    "top100": 340,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "totalAdviceFishUpgrades": {
    "top10": 3202,
    "top100": 2615,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "bestJellyDps": {
    "top10": 429867112656.9661,
    "top100": 135171307989.57881,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "totalJellyCellLevels": {
    "top10": 286,
    "top100": 258,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "totalJellyUpgrades": {
    "top10": 1543,
    "top100": 1447,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "biggestHaulSpelunking": {
    "top10": 1.1182898279318083e+50,
    "top100": 1.9778465161451846e+47,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "highestSpelunkingPower": {
    "top10": 7.6571136798262165e+40,
    "top100": 4.797022270600865e+38,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "totalSpelunkingDepths": {
    "top10": 4209,
    "top100": 3734,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "totalManicSpelunkingDepths": {
    "top10": 3486,
    "top100": 2754,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "mineheadOpponentsDefeated": {
    "top10": 26,
    "top100": 24,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "totalGrandDiscoveries": {
    "top10": 100,
    "top100": 90,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "glimboTotalTrades": {
    "top10": 2343,
    "top100": 2000,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "menagerieRank": {
    "top10": 36,
    "top100": 33,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "totalMenagerieBoostLevels": {
    "top10": 307,
    "top100": 256,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-01-01"
   },
   "totalCoralReefUpgrades": {
    "top10": 57,
    "top100": 57,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-11-13"
   },
   "clamworkLevel": {
    "top10": 12,
    "top100": 11,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-11-13"
   },
   "reliquariumDeliveries": {
    "top10": 16,
    "top100": 8,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-11-13"
   },
   "totalYellowJellyLevels": {
    "top10": 41,
    "top100": 38,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-11-13"
   },
   "totalBlueJellyLadles": {
    "top10": 9332075806,
    "top100": 1413752968,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-11-13"
   },
   "totalSpelunkingLoreLevels": {
    "top10": 118750,
    "top100": 68171,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-11-13"
   },
   "galleryMulti": {
    "top10": 2.3051076320939337,
    "top100": 1.9453709228706297,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-11-13"
   },
   "legendNametags": {
    "top10": 14,
    "top100": 5,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-11-13"
   },
   "lumiPerHour": {
    "top10": 1900211.0904140722,
    "top100": 45858.04444832914,
    "lowerIsBetter": false,
-   "firstSeen": "2026-11-15"
+   "firstSeen": "2026-11-13"
   }
  }
 };
