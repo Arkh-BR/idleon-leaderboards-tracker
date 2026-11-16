@@ -84,11 +84,22 @@ describe("LbPage", () => {
     expect(screen.getByText("Alpha")).toBeInTheDocument();
   });
 
-  it("Overview and Dashboard are placeholders", async () => {
+  it("Overview is a placeholder; Dashboard asks for a player", async () => {
     render(<LbPage />);
     expect(screen.getByText(/Coming soon/)).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Dashboard" }));
-    expect(screen.getByText(/Coming soon/)).toBeInTheDocument();
+    expect(screen.getByText("Load a player to see your dashboard")).toBeInTheDocument();
     await screen.findByRole("button", { name: "Account (2)" });
+  });
+
+  it("the dashboard's Save button stores the manual snapshot", async () => {
+    render(<LbPage />);
+    fireEvent.click(screen.getByRole("button", { name: "Dashboard" }));
+    load("Good");
+    fireEvent.click(await screen.findByRole("button", { name: /Save snapshot/ }));
+    const saved = JSON.parse(localStorage.getItem("idleon-leaderboards.lb.ptsSnapshot.good")!);
+    expect(saved.boards.alpha).toEqual({ rank: 50, score: 22424 });
+    expect(await screen.findByRole("button", { name: /Update snapshot/ })).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: /^Progress since / })).toBeInTheDocument();
   });
 });

@@ -1,4 +1,4 @@
-import type { RankEntry } from "./types";
+import type { MetaMetric, RankEntry } from "./types";
 
 export type Climb =
   | { kind: "top" }
@@ -27,3 +27,7 @@ export function gapToCutoff(
   const delta = lowerIsBetter ? value - cutoff : cutoff - value;
   return { kind: "gap", delta, pct: pctOf(delta, value) };
 }
+
+// A gap is printable only when positive (cutoffs come from yesterday's snapshot while rank/value are live)
+// and, for seconds boards, when the stored per-hour rate is positive (3600/0 = Infinity).
+export const printable = (delta: number, m: MetaMetric, e: RankEntry) => delta > 0 && (m.notation !== "seconds" || e.v > 0);

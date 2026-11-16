@@ -2,8 +2,11 @@
 
 import { useEffect, useMemo, useState } from "react";
 import BoardTable, { type BoardSort } from "./BoardTable";
+import LbDashboard from "./LbDashboard";
 import { useLbData } from "./useLbData";
 import type { LbPlayer } from "@/lib/leaderboards/types";
+import { standingsOf } from "@/lib/leaderboards/dashboard";
+import { loadSnapshot, saveSnapshot, type LbSnapshot } from "@/lib/lbSnapshot";
 
 // Task 9 swaps this for the autocomplete picker; keep it self-contained.
 function PlayerInput({ name, loading, onLoad }: { name: string; loading: boolean; onLoad(name: string): void }) {
@@ -97,6 +100,10 @@ export default function LbPage() {
   const [tab, setTab] = useState("overview");
   const [sort, setSort] = useState<BoardSort>("it");
   const [jumpTo, setJumpTo] = useState<string | null>(null);
+  // Manual per-player baseline for "Progress since"; re-read whenever the player changes.
+  const [snapshot, setSnapshot] = useState<LbSnapshot | null>(null);
+  useEffect(() => setSnapshot(loadSnapshot(d.name)), [d.name]);
+  const saveCurrent = () => d.player && setSnapshot(saveSnapshot(d.name, standingsOf(d.player)));
 
   const boards = useMemo(
     () => d.meta.tabs.flatMap((t) => t.sections.flatMap((s) => s.metrics.map((m) => ({ m, tab: t.key })))),
@@ -175,7 +182,16 @@ export default function LbPage() {
       </div>
 
       {tab === "overview" && <ComingSoon what="Overview" />}
-      {tab === "dashboard" && <ComingSoon what="Dashboard" />}
+      {tab === "dashboard" && (
+        <LbDashboard
+          meta={d.meta}
+          player={d.player}
+          moves={d.moves}
+          snapshot={snapshot}
+          onSaveSnapshot={saveCurrent}
+          history={d.history}
+        />
+      )}
       {metaTab && (
         <>
           <div className="mb-3 flex justify-end">

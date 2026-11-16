@@ -16,3 +16,6 @@ const DAY = 86_400_000;
 export function isNewBoard(firstSeen: string | undefined, today: Date): boolean {
   return !!firstSeen && (today.getTime() - Date.parse(firstSeen)) / DAY < 15;
 }
+
+/** Direction comes from the daily snapshot; boards it hasn't seen yet count as higher-is-better. */
+export const lowerIsBetter = (key: string): boolean => LB_SNAPSHOT.boards[key]?.lowerIsBetter ?? false;

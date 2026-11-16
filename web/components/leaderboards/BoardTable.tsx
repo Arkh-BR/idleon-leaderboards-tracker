@@ -4,9 +4,9 @@ import { Fragment, useState } from "react";
 import BoardExpand from "./BoardExpand";
 import type { LbPlayer, MetaMetric, MetaTab, RankEntry } from "@/lib/leaderboards/types";
 import { LB_SNAPSHOT } from "@/lib/leaderboards/snapshot";
-import { climbOne, gapToCutoff } from "@/lib/leaderboards/metrics";
+import { climbOne, gapToCutoff, printable } from "@/lib/leaderboards/metrics";
 import { formatGap, formatMetric } from "@/lib/leaderboards/format";
-import { isNewBoard } from "@/lib/leaderboards/meta";
+import { isNewBoard, lowerIsBetter } from "@/lib/leaderboards/meta";
 
 export type BoardSort = "it" | "closest" | "worst";
 
@@ -18,12 +18,7 @@ type Props = {
   hideAnon: boolean;
 };
 
-const lowerIsBetter = (key: string) => LB_SNAPSHOT.boards[key]?.lowerIsBetter ?? false;
 const sectionId = (tab: string, name: string) => `section-${tab}-${name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
-
-// A gap is printable only when positive (cutoffs come from yesterday's snapshot while rank/value are live)
-// and, for seconds boards, when the stored per-hour rate is positive (3600/0 = Infinity).
-const printable = (delta: number, m: MetaMetric, e: RankEntry) => delta > 0 && (m.notation !== "seconds" || e.v > 0);
 
 function climbText(m: MetaMetric, e: RankEntry): string {
   const c = climbOne(e, lowerIsBetter(m.key));
@@ -33,7 +28,7 @@ function climbText(m: MetaMetric, e: RankEntry): string {
   return "—";
 }
 
-function Top100({ m, e }: { m: MetaMetric; e: RankEntry }) {
+export function Top100({ m, e }: { m: MetaMetric; e: RankEntry }) {
   const cutoff = LB_SNAPSHOT.boards[m.key]?.top100;
   const g = gapToCutoff(e.v, e.r, cutoff, 100, lowerIsBetter(m.key));
   if (g.kind === "inside") return <span className="text-emerald-400">in top 100</span>;
