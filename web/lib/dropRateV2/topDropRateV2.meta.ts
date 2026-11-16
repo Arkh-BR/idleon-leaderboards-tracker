@@ -2,9 +2,9 @@
 // imported). The path table lives in topDropRateV2.ts and is lazy-loaded.
 // Both auto-refreshed by scripts/update-top-dr2.ts.
 
-export const TOP_DR2_GENERATED_AT = "2026-11-13T12:00:57.891Z";
-export const TOP_DR2_PLAYERS_SCANNED = 97;
+export const TOP_DR2_GENERATED_AT = "2026-11-16T12:32:41.704Z";
+export const TOP_DR2_PLAYERS_SCANNED = 86;
 // Best Drop Rate V2 a single CLASS's best-of-each-source build reaches.
-export const TOP_DR2_HYPOTHETICAL_TOTAL = 9533782.97669573;
+export const TOP_DR2_HYPOTHETICAL_TOTAL = 12025697.297572518;
 // Highest Drop Rate V2 of a single real player, for context.
-export const TOP_DR2_BEST = {"player":"Exrom","char":"S_Exrom","total":5971166.140907377};
+export const TOP_DR2_BEST = {"player":"Exrom","char":"S_Exrom","total":8015144.442933344};

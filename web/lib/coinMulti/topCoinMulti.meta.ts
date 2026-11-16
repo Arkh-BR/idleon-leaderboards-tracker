@@ -2,9 +2,9 @@
 // imported). The path table lives in topCoinMulti.ts and is lazy-loaded.
 // Both auto-refreshed by scripts/update-top-coin.ts.
 
-export const TOP_COIN_GENERATED_AT = "2026-11-13T11:51:17.573Z";
-export const TOP_COIN_PLAYERS_SCANNED = 97;
+export const TOP_COIN_GENERATED_AT = "2026-11-16T12:24:07.810Z";
+export const TOP_COIN_PLAYERS_SCANNED = 86;
 // Best Coin Multi a single CLASS's best-of-each-source build reaches.
-export const TOP_COIN_HYPOTHETICAL_TOTAL = 1.7716733253824056e+41;
+export const TOP_COIN_HYPOTHETICAL_TOTAL = 1.4327733810493303e+41;
 // Highest Coin Multi of a single real player, for context.
-export const TOP_COIN_BEST = {"player":"Scotchz","char":"SScotchz","total":8.747594078205066e+39};
+export const TOP_COIN_BEST = {"player":"gooseMMO","char":"goose3MMO","total":5.613894367983654e+39};
