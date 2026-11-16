@@ -24,6 +24,7 @@ export function useLbData() {
   const [meta, setMeta] = useState<LbMeta>(() => liveOrSnapshotMeta(null));
   const [name, setName] = useState("");
   const [player, setPlayer] = useState<LbPlayer | null>(null);
+  const [loadedName, setLoadedName] = useState(""); // name `player` was loaded under; `name` is the in-flight input
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [hideAnon, setHideAnonState] = useState(false);
@@ -46,12 +47,14 @@ export function useLbData() {
       const p = body as LbPlayer;
       const { moves, globalMove } = sinceLastVisit(n, p);
       setPlayer(p);
+      setLoadedName(n);
       setSince({ moves, globalMove });
       setHistory(appendHistory(n, p));
       store(PLAYER_KEY, n);
     } catch (e) {
       if (id !== seq.current) return;
       setPlayer(null);
+      setLoadedName("");
       setSince(NO_SINCE);
       setHistory([]);
       setError(e instanceof Error ? e.message : String(e));
@@ -80,5 +83,5 @@ export function useLbData() {
     if (saved) load(saved);
   }, [load]);
 
-  return { meta, name, player, error, loading, load, hideAnon, setHideAnon, moves: since.moves, globalMove: since.globalMove, history };
+  return { meta, name, loadedName, player, error, loading, load, hideAnon, setHideAnon, moves: since.moves, globalMove: since.globalMove, history };
 }

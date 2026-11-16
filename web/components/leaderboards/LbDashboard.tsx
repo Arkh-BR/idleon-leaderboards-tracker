@@ -28,6 +28,7 @@ type Props = {
   moves: Record<string, number>; // Task 9/10 sections
   snapshot: LbSnapshot | null;
   onSaveSnapshot(): void;
+  saveDisabled?: boolean; // a new player is loading
   history: HistoryPoint[]; // Task 10 history chart
 };
 
@@ -36,7 +37,7 @@ const BAND_COLORS = [TIER_COLORS.top10, TIER_COLORS.top11_50, TIER_COLORS.top51_
 
 const pct = (p: number) => `${p.toFixed(2)}%`;
 
-export default function LbDashboard({ meta, player, snapshot, onSaveSnapshot }: Props) {
+export default function LbDashboard({ meta, player, snapshot, onSaveSnapshot, saveDisabled }: Props) {
   const [filter, setFilter] = useState<SectionKey | null>(null);
   const [cutoffRank, setCutoffRank] = useState<10 | 100>(100);
   const rows = useMemo(() => (player ? boardRows(meta, player.ranks) : []), [meta, player]);
@@ -50,7 +51,7 @@ export default function LbDashboard({ meta, player, snapshot, onSaveSnapshot }: 
 
   return (
     <div className="space-y-8">
-      <ProgressCard player={player} snapshot={snapshot} onSave={onSaveSnapshot} />
+      <ProgressCard player={player} snapshot={snapshot} onSave={onSaveSnapshot} disabled={saveDisabled} />
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Panel title="Tier summary">

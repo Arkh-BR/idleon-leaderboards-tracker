@@ -35,17 +35,28 @@ function SmallKpi({ label, value, red }: { label: string; value: number; red?: b
 }
 
 /** The manual snapshot (lib/lbSnapshot): net movement since it was saved, plus the button that (re)saves it. */
-export default function ProgressCard({ player, snapshot, onSave }: { player: LbPlayer; snapshot: LbSnapshot | null; onSave(): void }) {
+export default function ProgressCard({
+  player,
+  snapshot,
+  onSave,
+  disabled,
+}: {
+  player: LbPlayer;
+  snapshot: LbSnapshot | null;
+  onSave(): void;
+  disabled?: boolean;
+}) {
   const save = (
     <button
       type="button"
       onClick={onSave}
+      disabled={disabled}
       title={
         snapshot
           ? `Last saved ${new Date(snapshot.savedAt).toLocaleString("en-US")}. Click to overwrite with your current standings.`
           : "Save your current ranks and values as a baseline to track how they move."
       }
-      className="rounded-md border border-emerald-700/40 bg-emerald-900/20 px-3 py-1.5 text-sm font-medium text-emerald-300 hover:bg-emerald-900/40"
+      className="rounded-md border border-emerald-700/40 bg-emerald-900/20 px-3 py-1.5 text-sm font-medium text-emerald-300 hover:bg-emerald-900/40 disabled:opacity-50"
     >
       {snapshot ? "Update snapshot" : "Save snapshot"}
     </button>

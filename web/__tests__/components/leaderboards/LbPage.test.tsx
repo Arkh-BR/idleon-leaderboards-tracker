@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, within } from "@testing-library/react";
 import LbPage from "@/components/leaderboards/LbPage";
 import type { LbMeta, LbPlayer } from "@/lib/leaderboards/types";
 
@@ -101,5 +101,35 @@ describe("LbPage", () => {
     expect(saved.boards.alpha).toEqual({ rank: 50, score: 22424 });
     expect(await screen.findByRole("button", { name: /Update snapshot/ })).toBeInTheDocument();
     expect(screen.getByRole("region", { name: /^Progress since / })).toBeInTheDocument();
+  });
+
+  it("keys the snapshot on the loaded player, not the in-flight name", async () => {
+    const OTHER: LbPlayer = { ...PLAYER, player: { ...PLAYER.player, mainChar: "Other" }, ranks: { ...PLAYER.ranks, alpha: { ...PLAYER.ranks.alpha, r: 40 } } };
+    const otherSnap = JSON.stringify({ savedAt: "2026-10-01T12:00:00Z", player: "Other", boards: { alpha: { rank: 70, score: 1 } } });
+    localStorage.setItem("idleon-leaderboards.lb.ptsSnapshot.other", otherSnap);
+    let resolveOther!: (r: Response) => void;
+    vi.stubGlobal("fetch", vi.fn(async (url: string) => {
+      if (url.startsWith("/api/lb/meta")) return json(META);
+      if (url.includes("name=Other")) return new Promise<Response>((r) => (resolveOther = r));
+      return json(PLAYER);
+    }));
+    render(<LbPage />);
+    fireEvent.click(screen.getByRole("button", { name: "Dashboard" }));
+    load("Good");
+    fireEvent.click(await screen.findByRole("button", { name: /Save snapshot/ }));
+    const goodTitle = screen.getByRole("region", { name: /^Progress since / }).getAttribute("aria-labelledby");
+
+    load("Other"); // pending: Good is still on screen
+    const save = screen.getByRole("button", { name: /Update snapshot/ });
+    expect(save).toBeDisabled();
+    fireEvent.click(save);
+    expect(localStorage.getItem("idleon-leaderboards.lb.ptsSnapshot.other")).toBe(otherSnap);
+    expect(screen.queryByRole("region", { name: "Progress since 10/1/2026" })).toBeNull(); // no Good-vs-Other diff
+    expect(screen.getByRole("region", { name: /^Progress since / }).getAttribute("aria-labelledby")).toBe(goodTitle);
+
+    resolveOther(json(OTHER));
+    const card = await screen.findByRole("region", { name: "Progress since 10/1/2026" });
+    expect(within(card).getByText("+30")).toBeInTheDocument(); // Other's alpha 70 → 40
+    expect(within(card).getByRole("button", { name: /Update snapshot/ })).toBeEnabled();
   });
 });
