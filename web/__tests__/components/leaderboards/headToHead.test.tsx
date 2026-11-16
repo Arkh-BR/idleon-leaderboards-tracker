@@ -57,10 +57,13 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
+// IT's /leaderboards/names answers { players: [{ mainChar, rank }] } (live-checked 2026-11-16).
+const P = (...names: string[]) => names.map((mainChar, i) => ({ mainChar, rank: i + 1 }));
+
 describe("PlayerPicker", () => {
   it("looks up names once, 300 ms after the last keystroke, and only from 2 characters", async () => {
     vi.useFakeTimers();
-    const f = stubFetch((u) => (u.startsWith("/api/lb/names") ? json({ players: ["Dragami", "Dragon"] }) : undefined));
+    const f = stubFetch((u) => (u.startsWith("/api/lb/names") ? json({ players: P("Dragami", "Dragon") }) : undefined));
     render(<PlayerPicker value="" onPick={() => {}} />);
     const input = screen.getByLabelText("Player name");
     fireEvent.change(input, { target: { value: "d" } });
@@ -74,12 +77,14 @@ describe("PlayerPicker", () => {
     await wait(1);
     expect(urls(f)).toEqual(["/api/lb/names?q=dra"]);
     await flush();
-    expect(screen.getAllByRole("option").map((o) => o.textContent)).toEqual(["Dragami", "Dragon"]);
+    const opts = screen.getAllByRole("option");
+    expect(opts.map((o) => o.querySelector("[data-name]")?.textContent)).toEqual(["Dragami", "Dragon"]);
+    expect(opts[0]).toHaveTextContent("global #1");
   });
 
   it("↑/↓/Enter picks a suggestion; Enter with none highlighted submits the typed text; Escape closes", async () => {
     vi.useFakeTimers();
-    stubFetch(() => json({ players: ["Dragami", "Dragon"] }));
+    stubFetch(() => json({ players: P("Dragami", "Dragon") }));
     const onPick = vi.fn();
     render(<PlayerPicker value="" onPick={onPick} />);
     const input = screen.getByLabelText("Player name");
@@ -108,7 +113,7 @@ describe("PlayerPicker", () => {
   it("ignores a stale response once the query has changed", async () => {
     vi.useFakeTimers();
     let slow!: (r: Response) => void;
-    stubFetch((u) => (u.endsWith("q=dra") ? new Promise<Response>((r) => (slow = r)) : json({ players: ["Draco"] })));
+    stubFetch((u) => (u.endsWith("q=dra") ? new Promise<Response>((r) => (slow = r)) : json({ players: P("Draco") })));
     render(<PlayerPicker value="" onPick={() => {}} />);
     const input = screen.getByLabelText("Player name");
     fireEvent.change(input, { target: { value: "dra" } });
@@ -116,14 +121,14 @@ describe("PlayerPicker", () => {
     fireEvent.change(input, { target: { value: "drac" } });
     await wait(300);
     await flush();
-    slow(json({ players: ["Dragami"] }));
+    slow(json({ players: P("Dragami") }));
     await flush();
-    expect(screen.getAllByRole("option").map((o) => o.textContent)).toEqual(["Draco"]);
+    expect(screen.getAllByRole("option").map((o) => o.querySelector("[data-name]")?.textContent)).toEqual(["Draco"]);
   });
 
   it("while busy, Enter, a suggestion click and a chip don't pick", async () => {
     vi.useFakeTimers();
-    stubFetch(() => json({ players: ["Dragami"] }));
+    stubFetch(() => json({ players: P("Dragami") }));
     const onPick = vi.fn();
     render(<PlayerPicker value="" onPick={onPick} busy chips={[{ label: "#8 Dragami", name: "Dragami" }]} />);
     const input = screen.getByLabelText("Player name");
@@ -150,7 +155,7 @@ describe("HeadToHead", () => {
   it("choosing a suggestion fetches that player and shows W/L/T and the board table", async () => {
     vi.useFakeTimers();
     const f = stubFetch((u) =>
-      u.startsWith("/api/lb/names") ? json({ players: ["Dragami"] }) : u === "/api/lb/player?name=Dragami" ? json(DRAGAMI) : undefined,
+      u.startsWith("/api/lb/names") ? json({ players: P("Dragami") }) : u === "/api/lb/player?name=Dragami" ? json(DRAGAMI) : undefined,
     );
     render(<HeadToHead me={ME} meta={META} />);
     fireEvent.change(screen.getByLabelText("Compare with"), { target: { value: "dra" } });

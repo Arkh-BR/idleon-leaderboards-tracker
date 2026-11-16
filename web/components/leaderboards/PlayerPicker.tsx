@@ -11,11 +11,18 @@ type Props = {
   busy?: boolean; // disables submit and shows "Loading…"
 };
 
+type Suggestion = { name: string; rank?: number };
+// IT's /leaderboards/names answers { players: [{ mainChar, rank }] }; keep only well-formed names.
+const toSuggestions = (players: unknown): Suggestion[] =>
+  Array.isArray(players)
+    ? players.flatMap((p) => (p && typeof p.mainChar === "string" ? [{ name: p.mainChar, rank: typeof p.rank === "number" ? p.rank : undefined }] : []))
+    : [];
+
 /** Name input with a 300 ms debounced `/api/lb/names` autocomplete (2+ chars), keyboard listbox, and optional chips. */
 export default function PlayerPicker({ value, onPick, chips, label = "Player name", button = "Load", busy = false }: Props) {
   const id = useId();
   const [text, setText] = useState(value);
-  const [list, setList] = useState<string[]>([]);
+  const [list, setList] = useState<Suggestion[]>([]);
   const [hi, setHi] = useState(-1);
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const latest = useRef<string | null>(null); // the query whose answer may still land
@@ -49,7 +56,7 @@ export default function PlayerPicker({ value, onPick, chips, label = "Player nam
         const r = await fetch(`/api/lb/names?q=${encodeURIComponent(q)}`);
         const body = await r.json();
         if (latest.current !== q) return; // stale: the user kept typing or picked
-        setList(r.ok && Array.isArray(body?.players) ? body.players.slice(0, 10) : []);
+        setList(r.ok ? toSuggestions(body?.players).slice(0, 10) : []);
         setHi(-1);
       } catch {
         /* no suggestions: typing still works */
@@ -66,7 +73,7 @@ export default function PlayerPicker({ value, onPick, chips, label = "Player nam
       setHi((i) => (i <= 0 ? list.length - 1 : i - 1));
     } else if (e.key === "Enter") {
       e.preventDefault();
-      pick(hi >= 0 ? list[hi] : text);
+      pick(hi >= 0 ? list[hi].name : text);
     } else if (e.key === "Escape") {
       close();
     }
@@ -108,17 +115,18 @@ export default function PlayerPicker({ value, onPick, chips, label = "Player nam
               aria-label={`${label} suggestions`}
               className="absolute left-0 right-0 top-full z-20 mt-1 max-h-64 overflow-auto rounded border border-zinc-700 bg-zinc-900 py-1 text-sm shadow-lg"
             >
-              {list.map((n, i) => (
+              {list.map((s, i) => (
                 <li
-                  key={n}
+                  key={s.name}
                   id={`${id}-o${i}`}
                   role="option"
                   aria-selected={i === hi}
                   onMouseDown={(e) => e.preventDefault()} // keep focus so onBlur doesn't close before the click
-                  onClick={() => pick(n)}
+                  onClick={() => pick(s.name)}
                   className={`cursor-pointer px-3 py-1 font-mono ${i === hi ? "bg-emerald-900/50 text-emerald-200" : "text-zinc-300 hover:bg-zinc-800"}`}
                 >
-                  {n}
+                  <span data-name>{s.name}</span>
+                  {s.rank != null && <span aria-hidden className="ml-2 text-xs text-zinc-500">global #{s.rank}</span>}
                 </li>
               ))}
             </ul>
