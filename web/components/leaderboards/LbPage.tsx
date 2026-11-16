@@ -120,7 +120,7 @@ export default function LbPage() {
         <h1 className="mb-1 text-2xl font-bold text-emerald-300">Idleon Toolbox Leaderboards Tracker</h1>
         <p className="text-sm text-zinc-400" suppressHydrationWarning>
           {d.meta.totalPlayers.toLocaleString("en-US")} players · updated{" "}
-          {new Date(d.meta.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+          {new Date(d.meta.createdAt).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false })}
         </p>
       </header>
 

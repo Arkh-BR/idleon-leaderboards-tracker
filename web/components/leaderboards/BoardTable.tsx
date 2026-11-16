@@ -19,11 +19,15 @@ type Props = {
 const lowerIsBetter = (key: string) => LB_SNAPSHOT.boards[key]?.lowerIsBetter ?? false;
 const sectionId = (tab: string, name: string) => `section-${tab}-${name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
 
+// A gap is printable only when positive (cutoffs come from yesterday's snapshot while rank/value are live)
+// and, for seconds boards, when the stored per-hour rate is positive (3600/0 = Infinity).
+const printable = (delta: number, m: MetaMetric, e: RankEntry) => delta > 0 && (m.notation !== "seconds" || e.v > 0);
+
 function climbText(m: MetaMetric, e: RankEntry): string {
   const c = climbOne(e, lowerIsBetter(m.key));
   if (c.kind === "top") return "#1";
   if (c.kind === "tied-top") return `tied #1 (${c.ties})`;
-  if (c.kind === "gap") return `${formatGap(e.v, e.nv!, m.notation)} passes #${c.toRank}`;
+  if (c.kind === "gap" && printable(c.delta, m, e)) return `${formatGap(e.v, e.nv!, m.notation)} passes #${c.toRank}`;
   return "—";
 }
 
@@ -31,7 +35,7 @@ function Top100({ m, e }: { m: MetaMetric; e: RankEntry }) {
   const cutoff = LB_SNAPSHOT.boards[m.key]?.top100;
   const g = gapToCutoff(e.v, e.r, cutoff, 100, lowerIsBetter(m.key));
   if (g.kind === "inside") return <span className="text-emerald-400">in top 100</span>;
-  if (g.kind === "unknown") return <span title="available after the next daily refresh">—</span>;
+  if (g.kind === "unknown" || !printable(g.delta, m, e)) return <span title="available after the next daily refresh">—</span>;
   return <>{formatGap(e.v, cutoff!, m.notation)}</>;
 }
 
@@ -40,7 +44,8 @@ function sortKey(sort: BoardSort, m: MetaMetric, e: RankEntry | undefined): [num
   if (!e) return [3, 0];
   if (sort === "worst") return [0, -e.p];
   const c = climbOne(e, lowerIsBetter(m.key));
-  return c.kind === "gap" ? [0, c.pct] : c.kind === "unknown" ? [1, 0] : [2, 0];
+  if (c.kind === "gap") return printable(c.delta, m, e) ? [0, c.pct] : [1, 0];
+  return c.kind === "unknown" ? [1, 0] : [2, 0];
 }
 
 function sorted(metrics: MetaMetric[], ranks: Record<string, RankEntry>, sort: BoardSort): MetaMetric[] {

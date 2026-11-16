@@ -13,6 +13,8 @@ vi.mock("@/lib/leaderboards/snapshot", () => ({
       beta: { lowerIsBetter: false, firstSeen: "2026-01-01" },
       gamma: { lowerIsBetter: false, firstSeen: "2026-01-01" },
       delta: { top100: 9880, lowerIsBetter: false, firstSeen: "2026-01-01" },
+      stale: { top100: 9880, lowerIsBetter: false, firstSeen: "2026-01-01" },
+      secs: { top100: 20, lowerIsBetter: false, firstSeen: "2026-01-01" },
     },
   },
 }));
@@ -82,6 +84,31 @@ describe("BoardTable", () => {
     const { container } = render(<BoardTable tab={TAB} player={PLAYER} moves={{}} sort="worst" onExpand={() => {}} />);
     const ids = [...container.querySelectorAll("tr[id^='board-']")].map((r) => r.id);
     expect(ids).toEqual(["board-gamma", "board-delta", "board-alpha", "board-beta"]);
+  });
+});
+
+describe("BoardTable guards", () => {
+  const tab: MetaTab = {
+    key: "x",
+    label: "X",
+    sections: [{ name: "S", metrics: [m("stale", "Stale"), { ...m("secs", "Secs"), notation: "seconds" }] }],
+  };
+  const player: LbPlayer = {
+    ...PLAYER,
+    ranks: {
+      // #105 live, but already above yesterday's #100 value (9880): the snapshot cutoff is stale.
+      stale: { r: 105, v: 10000, p: 3.7, t: 1, nr: 104, nv: 10000 },
+      secs: { r: 105, v: 0, p: 3.7, t: 1, nr: 104, nv: 10 },
+    },
+  };
+
+  it("stale cutoff, zero gap and a zero seconds rate render — instead of a bogus gap", () => {
+    render(<BoardTable tab={tab} player={player} moves={{}} sort="it" onExpand={() => {}} />);
+    for (const key of ["stale", "secs"]) {
+      const r = within(row(key));
+      expect(r.getByTitle("available after the next daily refresh")).toHaveTextContent("—");
+      expect(r.queryByText(/passes|Infinity|\+-|\+0/)).toBeNull();
+    }
   });
 });
 
