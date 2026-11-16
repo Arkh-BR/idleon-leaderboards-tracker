@@ -50,7 +50,7 @@ describe("BoardTable", () => {
   afterEach(() => vi.useRealTimers());
 
   it("renders to-climb, to-top-100 and the badges", () => {
-    render(<BoardTable tab={TAB} player={PLAYER} moves={{ alpha: 3, gamma: -2 }} sort="it" onExpand={() => {}} />);
+    render(<BoardTable tab={TAB} player={PLAYER} moves={{ alpha: 3, gamma: -2 }} sort="it" hideAnon={false} />);
     expect(within(row("alpha")).getByText("+35 passes #49")).toBeInTheDocument();
     expect(within(row("alpha")).getByText("in top 100")).toBeInTheDocument();
     expect(within(row("beta")).getByText("tied #1 (58)")).toBeInTheDocument();
@@ -68,20 +68,20 @@ describe("BoardTable", () => {
   });
 
   it("leaves player columns empty without a player", () => {
-    render(<BoardTable tab={TAB} player={null} moves={{}} sort="it" onExpand={() => {}} />);
+    render(<BoardTable tab={TAB} player={null} moves={{}} sort="it" hideAnon={false} />);
     expect(screen.getByText("Alpha")).toBeInTheDocument();
     expect(screen.queryByText(/passes/)).toBeNull();
     expect(screen.queryByText("in top 100")).toBeNull();
   });
 
   it("closest sort: smallest gap % first, #1 boards last", () => {
-    const { container } = render(<BoardTable tab={TAB} player={PLAYER} moves={{}} sort="closest" onExpand={() => {}} />);
+    const { container } = render(<BoardTable tab={TAB} player={PLAYER} moves={{}} sort="closest" hideAnon={false} />);
     const ids = [...container.querySelectorAll("tr[id^='board-']")].map((r) => r.id);
     expect(ids).toEqual(["board-delta", "board-alpha", "board-gamma", "board-beta"]);
   });
 
   it("worst sort: highest top % first", () => {
-    const { container } = render(<BoardTable tab={TAB} player={PLAYER} moves={{}} sort="worst" onExpand={() => {}} />);
+    const { container } = render(<BoardTable tab={TAB} player={PLAYER} moves={{}} sort="worst" hideAnon={false} />);
     const ids = [...container.querySelectorAll("tr[id^='board-']")].map((r) => r.id);
     expect(ids).toEqual(["board-gamma", "board-delta", "board-alpha", "board-beta"]);
   });
@@ -103,7 +103,7 @@ describe("BoardTable guards", () => {
   };
 
   it("stale cutoff, zero gap and a zero seconds rate render — instead of a bogus gap", () => {
-    render(<BoardTable tab={tab} player={player} moves={{}} sort="it" onExpand={() => {}} />);
+    render(<BoardTable tab={tab} player={player} moves={{}} sort="it" hideAnon={false} />);
     for (const key of ["stale", "secs"]) {
       const r = within(row(key));
       expect(r.getByTitle("available after the next daily refresh")).toHaveTextContent("—");

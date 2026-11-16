@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import BoardTable, { type BoardSort } from "./BoardTable";
 import { useLbData } from "./useLbData";
-import type { LbPlayer, MetaMetric } from "@/lib/leaderboards/types";
+import type { LbPlayer } from "@/lib/leaderboards/types";
 
 // Task 9 swaps this for the autocomplete picker; keep it self-contained.
 function PlayerInput({ name, loading, onLoad }: { name: string; loading: boolean; onLoad(name: string): void }) {
@@ -112,7 +112,6 @@ export default function LbPage() {
 
   const metaTab = d.meta.tabs.find((t) => t.key === tab);
   const count = (t: (typeof d.meta.tabs)[number]) => t.sections.reduce((n, s) => n + s.metrics.length, 0);
-  const onExpand = (_m: MetaMetric) => {}; // ponytail: row expansion lands in Task 7
 
   return (
     <main className="mx-auto max-w-7xl px-4 py-6">
@@ -191,7 +190,7 @@ export default function LbPage() {
               <option value="worst">Worst top %</option>
             </select>
           </div>
-          <BoardTable tab={metaTab} player={d.player} moves={d.moves} sort={sort} onExpand={onExpand} />
+          <BoardTable tab={metaTab} player={d.player} moves={d.moves} sort={sort} hideAnon={d.hideAnon} />
         </>
       )}
 
