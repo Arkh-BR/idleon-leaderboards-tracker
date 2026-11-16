@@ -22,11 +22,20 @@ function write(k: string, v: unknown): void {
   }
 }
 
+// Stored per player: the last two IT windows seen. Moves are always current vs `prev`, so a reload in the
+// same window shows the same arrows. The pre-{prev,cur} shape was a single Baseline: read it as `cur`.
+type Stored = { prev?: Baseline; cur?: Baseline };
+
 export function sinceLastVisit(player: string, current: LbPlayer): { baseline: Baseline | null; moves: Record<string, number>; globalMove: number } {
   const k = key("baseline", player);
-  const baseline = read<Baseline>(k);
-  if (!baseline || current.createdAt > baseline.createdAt)
-    write(k, { createdAt: current.createdAt, ranks: Object.fromEntries(Object.entries(current.ranks).map(([m, e]) => [m, e.r])), globalRank: current.player.rank } satisfies Baseline);
+  const raw = read<Stored | Baseline>(k);
+  let stored: Stored = raw && typeof raw === "object" ? ("createdAt" in raw ? { cur: raw } : raw) : {};
+  if (!stored.cur || current.createdAt > stored.cur.createdAt) {
+    const snap: Baseline = { createdAt: current.createdAt, ranks: Object.fromEntries(Object.entries(current.ranks).map(([m, e]) => [m, e.r])), globalRank: current.player.rank };
+    stored = { prev: stored.cur, cur: snap };
+    write(k, stored);
+  }
+  const baseline = stored.prev;
   if (!baseline) return { baseline: null, moves: {}, globalMove: 0 };
   const moves: Record<string, number> = {};
   for (const [m, e] of Object.entries(current.ranks)) if (m in baseline.ranks) moves[m] = baseline.ranks[m] - e.r;

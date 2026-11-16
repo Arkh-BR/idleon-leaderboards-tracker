@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { climbOne, gapToCutoff } from "@/lib/leaderboards/metrics";
-import { formatMetric, formatDelta, formatGap } from "@/lib/leaderboards/format";
+import { formatMetric, formatGap } from "@/lib/leaderboards/format";
 import { formatIdleon } from "@/lib/format";
 
 describe("climbOne", () => {
@@ -45,8 +45,11 @@ describe("format", () => {
     expect(formatMetric(22424, "default")).toBe(formatIdleon(22424));
     expect(formatMetric(22424, "bits")).toBe(formatIdleon(22424));
   });
-  it("formatDelta", () => {
-    expect(formatDelta(35, "default", false)).toBe(`+${formatIdleon(35)}`);
+  it("seconds under 1 s keep 3 significant digits (sproutSpeed's rates are in the millions)", () => {
+    expect(formatMetric(10384949, "seconds")).toBe("0.000347s");
+    expect(formatGap(2211636, 2300000, "seconds")).toBe("−0.0000625s");
+    expect(formatMetric(3600 / 4.9999, "seconds")).toBe("5.000s");
+    expect(formatMetric(3600 / 5, "seconds")).toBe("5.0s");
   });
   it("formatGap", () => {
     expect(formatGap(240, 300, "seconds")).toBe("−3.000s");

@@ -29,20 +29,25 @@ export function __resetItFetchForTests(): void {
 
 export async function itFetchJson<T>(
   url: string,
-  opts: { cacheKey: string; ttlMs: number; budget: Budget; force?: boolean; accept?: (data: T) => boolean },
+  // Several budgets: the fetch counts against each (e.g. names' own sub-cap plus the shared lb cap).
+  opts: { cacheKey: string; ttlMs: number; budget: Budget | Budget[]; force?: boolean; accept?: (data: T) => boolean },
 ): Promise<ItResult<T>> {
-  const { cacheKey, ttlMs, budget, force, accept } = opts;
+  const { cacheKey, ttlMs, force, accept } = opts;
   const cached = CACHE.get(cacheKey);
   if (!force && cached && Date.now() - cached.at < ttlMs) {
     return { ok: true, data: cached.data as T, cache: "hit" };
   }
 
   const day = new Date().toISOString().slice(0, 10);
-  let c = COUNTERS.get(budget.name);
-  if (!c || c.day !== day) COUNTERS.set(budget.name, (c = { day, n: 0 }));
-  if (c.n >= budget.cap) return { ok: false, status: 429, error: "daily cap reached" };
-  c.n++;
-  console.log(`[api/${budget.name}] Idleon Toolbox fetch ${c.n}/${budget.cap} on ${day}`);
+  const budgets = Array.isArray(opts.budget) ? opts.budget : [opts.budget];
+  const counters = budgets.map((b) => {
+    let c = COUNTERS.get(b.name);
+    if (!c || c.day !== day) COUNTERS.set(b.name, (c = { day, n: 0 }));
+    return c;
+  });
+  const over = budgets.find((b, i) => counters[i].n >= b.cap);
+  if (over) return { ok: false, status: 429, error: `daily cap reached (${over.name})` };
+  budgets.forEach((b, i) => console.log(`[api/${b.name}] Idleon Toolbox fetch ${++counters[i].n}/${b.cap} on ${day}`));
 
   try {
     const r = await fetch(url, { headers: SITE_HEADERS });

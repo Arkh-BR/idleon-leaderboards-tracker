@@ -6,8 +6,10 @@ const BUDGET: Budget = { name: "lb", cap: 500 };
 const MIN = 60 * 1000;
 
 // Shared by the four /api/lb/* routes: one budget, JSON out, `{error}` with the upstream status.
-export async function lbProxy<T>(path: string, cacheKey: string, ttlMin: number, notFound?: string) {
-  const r = await itFetchJson<T>(`${LB_BASE}/${path}`, { cacheKey: `lb:${cacheKey}`, ttlMs: ttlMin * MIN, budget: BUDGET });
+// `subBudget`: a route's own daily cap, counted on top of the shared one.
+export async function lbProxy<T>(path: string, cacheKey: string, ttlMin: number, notFound?: string, subBudget?: Budget) {
+  const budget = subBudget ? [subBudget, BUDGET] : BUDGET;
+  const r = await itFetchJson<T>(`${LB_BASE}/${path}`, { cacheKey: `lb:${cacheKey}`, ttlMs: ttlMin * MIN, budget });
   if (r.ok) return NextResponse.json(r.data, { headers: { "x-cache": r.cache } });
   const error =
     r.status === 429 ? "Too many lookups today. Try again tomorrow."

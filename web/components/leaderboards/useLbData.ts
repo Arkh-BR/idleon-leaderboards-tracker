@@ -11,6 +11,12 @@ const HIDE_ANON_KEY = "idleon-leaderboards.hideAnon";
 type Since = { moves: Record<string, number>; globalMove: number };
 const NO_SINCE: Since = { moves: {}, globalMove: 0 };
 
+const UNREACHABLE = "Couldn't reach Idleon Toolbox.";
+// `retry`: a transient failure (IT down or the network), worth a Retry button.
+const fail = (message: string, retry = false) => Object.assign(new Error(message), { retry });
+const isObj = (x: unknown): x is Record<string, unknown> => !!x && typeof x === "object" && !Array.isArray(x);
+const isPlayer = (x: unknown): x is LbPlayer => isObj(x) && isObj(x.ranks) && isObj(x.player);
+
 function store(key: string, value: string) {
   try {
     localStorage.setItem(key, value);
@@ -26,6 +32,7 @@ export function useLbData() {
   const [player, setPlayer] = useState<LbPlayer | null>(null);
   const [loadedName, setLoadedName] = useState(""); // name `player` was loaded under; `name` is the in-flight input
   const [error, setError] = useState<string | null>(null);
+  const [canRetry, setCanRetry] = useState(false);
   const [loading, setLoading] = useState(false);
   const [hideAnon, setHideAnonState] = useState(false);
   const [since, setSince] = useState<Since>(NO_SINCE);
@@ -39,12 +46,15 @@ export function useLbData() {
     setName(n);
     setLoading(true);
     setError(null);
+    setCanRetry(false);
     try {
-      const r = await fetch(`/api/lb/player?name=${encodeURIComponent(n)}`);
-      const body = await r.json().catch(() => ({}));
+      const r = await fetch(`/api/lb/player?name=${encodeURIComponent(n)}`).catch(() => null);
+      const body: unknown = r ? await r.json().catch(() => ({})) : null;
       if (id !== seq.current) return;
-      if (!r.ok) throw new Error(body.error || `HTTP ${r.status}`);
-      const p = body as LbPlayer;
+      if (!r || r.status === 502) throw fail(UNREACHABLE, true);
+      if (!r.ok) throw fail((isObj(body) && typeof body.error === "string" && body.error) || `HTTP ${r.status}`); // 404/429: the route's text
+      if (!isPlayer(body)) throw fail("Unexpected response from Idleon Toolbox.");
+      const p = body;
       const { moves, globalMove } = sinceLastVisit(n, p);
       setPlayer(p);
       setLoadedName(n);
@@ -58,6 +68,7 @@ export function useLbData() {
       setSince(NO_SINCE);
       setHistory([]);
       setError(e instanceof Error ? e.message : String(e));
+      setCanRetry(!!(e as { retry?: boolean }).retry);
     } finally {
       if (id === seq.current) setLoading(false);
     }
@@ -83,5 +94,5 @@ export function useLbData() {
     if (saved) load(saved);
   }, [load]);
 
-  return { meta, name, loadedName, player, error, loading, load, hideAnon, setHideAnon, moves: since.moves, globalMove: since.globalMove, history };
+  return { meta, name, loadedName, player, error, canRetry, loading, load, hideAnon, setHideAnon, moves: since.moves, globalMove: since.globalMove, history };
 }

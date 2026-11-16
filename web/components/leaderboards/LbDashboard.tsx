@@ -29,11 +29,10 @@ import {
 type Props = {
   meta: LbMeta;
   player: LbPlayer | null;
-  moves: Record<string, number>; // Task 9/10 sections
   snapshot: LbSnapshot | null;
   onSaveSnapshot(): void;
   saveDisabled?: boolean; // a new player is loading
-  history: HistoryPoint[]; // Task 10 history chart
+  history: HistoryPoint[];
 };
 
 // Old dashboard's tier colors, one per band of TIER_BANDS.
@@ -136,7 +135,7 @@ export default function LbDashboard({ meta, player, snapshot, onSaveSnapshot, sa
         </Panel>
 
         <Panel
-          title="Points to reach the top 100"
+          title={`Points to reach the top ${cutoffRank}`}
           action={
             <div className="flex rounded border border-zinc-700 text-xs">
               {([100, 10] as const).map((c) => (
@@ -169,7 +168,7 @@ export default function LbDashboard({ meta, player, snapshot, onSaveSnapshot, sa
           <Table
             headers={["Board", "You", "Cap", "At cap"]}
             empty="You're at the cap on every maxed board."
-            rows={maxedMissing(rows).map(({ m, e }) => ({
+            rows={maxedMissing(filtered).map(({ m, e }) => ({
               key: m.key,
               cells: [m.label, formatMetric(e.v, m.notation), formatMetric(m.top, m.notation), m.topTies.toLocaleString("en-US")],
             }))}
@@ -180,7 +179,7 @@ export default function LbDashboard({ meta, player, snapshot, onSaveSnapshot, sa
           <Table
             headers={["Board", "Rank", "Top %"]}
             empty="No ranked boards."
-            rows={bestPositions(rows).map(({ m, e }) => ({
+            rows={bestPositions(filtered).map(({ m, e }) => ({
               key: m.key,
               cells: [m.label, <span key="r" className={`inline-block min-w-[2.5rem] rounded px-2 py-0.5 text-center text-xs ${rankBgClass(e.r)}`}>#{e.r}</span>, pct(e.p)],
             }))}

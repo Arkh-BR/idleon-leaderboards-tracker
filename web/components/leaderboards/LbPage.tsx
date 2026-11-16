@@ -98,7 +98,7 @@ export default function LbPage() {
         <h1 className="mb-1 text-2xl font-bold text-emerald-300">Idleon Toolbox Leaderboards Tracker</h1>
         <p className="text-sm text-zinc-400" suppressHydrationWarning>
           {d.meta.totalPlayers.toLocaleString("en-US")} players · updated{" "}
-          {new Date(d.meta.createdAt).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false })}
+          {new Date(d.meta.createdAt).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hourCycle: "h23" })}
         </p>
       </header>
 
@@ -132,8 +132,20 @@ export default function LbPage() {
       </div>
 
       {d.error && (
-        <div className="mb-4 rounded border border-red-800 bg-red-950/50 p-3 text-sm">
-          <strong className="text-red-400">Error:</strong> {d.error}
+        <div role="alert" className="mb-4 flex flex-wrap items-center gap-3 rounded border border-red-800 bg-red-950/50 p-3 text-sm">
+          <span>
+            <strong className="text-red-400">Error:</strong> {d.error}
+          </span>
+          {d.canRetry && (
+            <button
+              type="button"
+              onClick={() => d.load(d.name)}
+              disabled={d.loading}
+              className="rounded border border-red-700 px-2 py-0.5 text-xs text-red-200 hover:bg-red-900/40 disabled:opacity-50"
+            >
+              Retry
+            </button>
+          )}
         </div>
       )}
 
@@ -158,7 +170,6 @@ export default function LbPage() {
         <LbDashboard
           meta={d.meta}
           player={d.player}
-          moves={d.moves}
           snapshot={snapshot}
           onSaveSnapshot={saveCurrent}
           saveDisabled={d.loading}

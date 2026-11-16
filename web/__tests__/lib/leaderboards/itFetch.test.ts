@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { __resetItFetchForTests, itFetchJson } from "@/lib/leaderboards/itFetch";
+import { __resetItFetchForTests, itFetchJson, type Budget } from "@/lib/leaderboards/itFetch";
 
 const ok = (body: unknown) => new Response(JSON.stringify(body));
 const opts = (cacheKey: string, cap = 100) => ({ cacheKey, ttlMs: 60_000, budget: { name: "t", cap } });
@@ -39,6 +39,20 @@ describe("itFetchJson", () => {
     const r = await itFetchJson("u", opts("c", 2));
     expect(r).toMatchObject({ ok: false, status: 429 });
     expect(f).toHaveBeenCalledTimes(2);
+  });
+
+  it("a list of budgets: each counts, and the first one full gives 429", async () => {
+    const f = vi.fn(async () => ok({}));
+    vi.stubGlobal("fetch", f);
+    const sub = { name: "sub", cap: 1 };
+    const shared = { name: "shared", cap: 3 };
+    const o = (k: string, budget: Budget | Budget[]) => ({ cacheKey: k, ttlMs: 60_000, budget });
+    expect(await itFetchJson("u", o("a", [sub, shared]))).toMatchObject({ ok: true });
+    expect(await itFetchJson("u", o("b", [sub, shared]))).toEqual({ ok: false, status: 429, error: "daily cap reached (sub)" });
+    await itFetchJson("u", o("c", shared));
+    await itFetchJson("u", o("d", shared));
+    expect(await itFetchJson("u", o("e", shared))).toMatchObject({ ok: false, status: 429 });
+    expect(f).toHaveBeenCalledTimes(3);
   });
 
   it("404 passes through and is not cached", async () => {

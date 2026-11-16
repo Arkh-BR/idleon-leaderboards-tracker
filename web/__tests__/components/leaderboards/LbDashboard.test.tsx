@@ -63,7 +63,7 @@ const SNAP: LbSnapshot = {
   boards: { a: { rank: 900, score: 900 }, b: { rank: 40, score: 5000 } },
 };
 
-const props = { meta: META, player: PLAYER, moves: {}, snapshot: null, onSaveSnapshot: () => {}, history: [] };
+const props = { meta: META, player: PLAYER, snapshot: null, onSaveSnapshot: () => {}, history: [] };
 
 const region = (name: string) => screen.getByRole("region", { name });
 // First cell of each body row = the board label.
@@ -94,11 +94,16 @@ describe("LbDashboard", () => {
     expect(boards("Worst positions")).toEqual(["Delta", "Echo", "Fox"]);
     expect(boards("Cheapest climbs")).toEqual(["Delta", "Echo"]);
     expect(boards("Points to reach the top 100")).toEqual(["Delta"]);
-    // Best positions ignore the filter.
-    expect(boards("Your best positions")).toEqual(["Fox", "Echo", "Beta", "Gamma", "Alpha", "Delta"]);
+    expect(boards("Your best positions")).toEqual(["Fox", "Echo", "Delta"]);
+    expect(boards("Maxed boards you're missing")).toEqual(["Echo"]);
 
-    fireEvent.click(mining);
+    fireEvent.click(within(region("Strength by section")).getByRole("button", { name: /^Totals/ }));
+    expect(boards("Your best positions")).toEqual(["Beta", "Gamma", "Alpha"]);
+    expect(within(region("Maxed boards you're missing")).getByText("You're at the cap on every maxed board.")).toBeInTheDocument();
+
+    fireEvent.click(within(region("Strength by section")).getByRole("button", { name: /^Totals/ }));
     expect(boards("Worst positions")).toHaveLength(6);
+    expect(boards("Your best positions")).toEqual(["Fox", "Echo", "Beta", "Gamma", "Alpha", "Delta"]);
   });
 
   it("cheapest climbs are ordered by the smallest relative gap", () => {
@@ -119,9 +124,11 @@ describe("LbDashboard", () => {
     expect(within(alpha).getByText("1,100")).toBeInTheDocument();
 
     fireEvent.click(within(r).getByRole("button", { name: "Top 10" }));
-    expect(boards("Points to reach the top 100")).toEqual(["Beta", "Alpha", "Gamma", "Delta"]);
-    expect(within(r).getByRole("columnheader", { name: "#10 has" })).toBeInTheDocument();
-    expect(within(r).queryByRole("columnheader", { name: "#100 has" })).toBeNull();
+    expect(screen.queryByRole("region", { name: "Points to reach the top 100" })).toBeNull();
+    const r10 = region("Points to reach the top 10");
+    expect(boards("Points to reach the top 10")).toEqual(["Beta", "Alpha", "Gamma", "Delta"]);
+    expect(within(r10).getByRole("columnheader", { name: "#10 has" })).toBeInTheDocument();
+    expect(within(r10).queryByRole("columnheader", { name: "#100 has" })).toBeNull();
   });
 
   it("maxed boards you're missing skip the ones where you're #1", () => {

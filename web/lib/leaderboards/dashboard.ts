@@ -30,7 +30,7 @@ export function cheapestClimbs(rows: BoardRow[], n = 15) {
   return rows
     .flatMap((row) => {
       const c = climbOne(row.e, lowerIsBetter(row.m.key));
-      return c.kind === "gap" && printable(c.delta, row.m, row.e) ? [{ row, pct: c.pct, toRank: c.toRank }] : [];
+      return c.kind === "gap" && printable(c.delta, row.m, row.e, row.e.nv!) ? [{ row, pct: c.pct, toRank: c.toRank }] : [];
     })
     .sort((a, b) => a.pct - b.pct)
     .slice(0, n);
@@ -43,7 +43,7 @@ export function cutoffGaps(rows: BoardRow[], cutoffRank: 10 | 100) {
       const b = LB_SNAPSHOT.boards[row.m.key];
       const cutoff = cutoffRank === 10 ? b?.top10 : b?.top100;
       const g = gapToCutoff(row.e.v, row.e.r, cutoff, cutoffRank, lowerIsBetter(row.m.key));
-      return g.kind === "gap" && printable(g.delta, row.m, row.e) ? [{ row, pct: g.pct, cutoff: cutoff! }] : [];
+      return g.kind === "gap" && printable(g.delta, row.m, row.e, cutoff!) ? [{ row, pct: g.pct, cutoff: cutoff! }] : [];
     })
     .sort((a, b) => a.pct - b.pct);
 }

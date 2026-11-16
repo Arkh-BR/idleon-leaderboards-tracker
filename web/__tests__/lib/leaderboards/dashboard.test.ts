@@ -22,8 +22,16 @@ describe("dashboard helpers", () => {
 
   it("printable rejects non-positive gaps and zero-rate seconds boards", () => {
     const e = (v: number): RankEntry => ({ r: 5, v, p: 1, t: 1 });
-    expect(printable(1, metric(), e(0))).toBe(true);
-    expect(printable(0, metric(), e(1))).toBe(false);
-    expect(printable(1, metric("seconds"), e(0))).toBe(false);
+    expect(printable(1, metric(), e(0), 1)).toBe(true);
+    expect(printable(0, metric(), e(1), 1)).toBe(false);
+    expect(printable(1, metric("seconds"), e(0), 1)).toBe(false);
+  });
+
+  it("printable rejects a gap whose rendered magnitude rounds to zero", () => {
+    const e = (v: number): RankEntry => ({ r: 5, v, p: 1, t: 1 });
+    expect(printable(0.4, metric(), e(100), 100.4)).toBe(false); // "+0"
+    expect(printable(0.00001, metric("multiplier"), e(4.5), 4.50001)).toBe(false); // "+0.0000x"
+    expect(printable(1, metric(), e(100), 101)).toBe(true);
+    expect(printable(88364, metric("seconds"), e(2211636), 2300000)).toBe(true); // "−0.0000625s"
   });
 });

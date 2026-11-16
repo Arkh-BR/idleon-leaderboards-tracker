@@ -196,7 +196,7 @@ describe("Dashboard: global rivals → head-to-head", () => {
     const f = stubFetch((u) =>
       u === "/api/lb/board?metric=globalRanking&around=Foo" ? json(BOARD) : u === "/api/lb/player?name=Dragami" ? json(DRAGAMI) : undefined,
     );
-    render(<LbDashboard meta={META} player={ME} moves={{}} snapshot={null} onSaveSnapshot={() => {}} history={[]} />);
+    render(<LbDashboard meta={META} player={ME} snapshot={null} onSaveSnapshot={() => {}} history={[]} />);
     const rivals = await screen.findByRole("region", { name: "Global rivals" });
     const dragami = await within(rivals).findByRole("button", { name: /Dragami/ });
     expect(dragami).toHaveTextContent("#8");

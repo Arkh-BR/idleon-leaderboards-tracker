@@ -53,7 +53,7 @@ export default function LbOverview({ meta, onOpenTab, player }: Props) {
             {state.board.top.slice(0, 10).map((r) => {
               const me = !!player && r.mainChar.toLowerCase() === player.toLowerCase();
               return (
-                <li key={r.rank} aria-current={me || undefined} className={`flex justify-between gap-3 px-3 py-1.5 text-sm ${me ? "bg-emerald-900/30" : ""}`}>
+                <li key={`${r.rank}:${r.mainChar}`} aria-current={me || undefined} className={`flex justify-between gap-3 px-3 py-1.5 text-sm ${me ? "bg-emerald-900/30" : ""}`}>
                   <span className="truncate text-zinc-200">
                     <span className="mr-2 font-mono text-zinc-500">#{r.rank}</span>
                     <span>{r.mainChar}</span>

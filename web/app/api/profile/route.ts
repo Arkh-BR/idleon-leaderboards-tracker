@@ -5,7 +5,7 @@ import { itFetchJson } from "@/lib/leaderboards/itFetch";
 // a public profile's raw save (the same "Copy for Support" envelope our
 // engines consume — { data, charNames, companion, parsedData, … }). A proxy is
 // needed because the IT API blocks direct cross-origin calls from the browser
-// (same reason as /api/leaderboards). Lets the Tome / Drop Rate / Talents
+// (same reason as /api/lb/*). Lets the Tome / Drop Rate / Talents
 // pages load a save by player name instead of pasting the ~1.3 MB JSON.
 
 export const runtime = "nodejs";

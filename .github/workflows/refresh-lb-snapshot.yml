@@ -52,4 +52,5 @@ jobs:
             exit 0
           fi
           git commit -m "chore: auto-refresh leaderboards snapshot"
+          git pull --rebase
           git push

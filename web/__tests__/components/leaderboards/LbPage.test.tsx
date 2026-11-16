@@ -84,6 +84,56 @@ describe("LbPage", () => {
     expect(screen.getByText("Alpha")).toBeInTheDocument();
   });
 
+  it("a 502 or a network error says IT is unreachable, with a Retry that reloads the same name", async () => {
+    let calls = 0;
+    vi.stubGlobal("fetch", vi.fn(async (url: string) => {
+      if (url.startsWith("/api/lb/meta")) return json(META);
+      if (!url.startsWith("/api/lb/player")) return json({ players: [] });
+      calls++;
+      if (calls === 1) return json({ error: "Failed to reach IdleonToolbox: HTTP 500" }, 502);
+      if (calls === 2) throw new TypeError("Failed to fetch");
+      return json(PLAYER);
+    }));
+    render(<LbPage />);
+    load("Good");
+    const alert = await screen.findByRole("alert");
+    expect(alert).toHaveTextContent("Couldn't reach Idleon Toolbox.");
+    fireEvent.click(within(alert).getByRole("button", { name: "Retry" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("Couldn't reach Idleon Toolbox."); // network error
+    fireEvent.click(within(screen.getByRole("alert")).getByRole("button", { name: "Retry" }));
+    expect(await screen.findByText("#123")).toBeInTheDocument();
+    expect(screen.queryByRole("alert")).toBeNull();
+    const playerCalls = (fetch as unknown as { mock: { calls: [string][] } }).mock.calls.map((c) => c[0]).filter((u) => u.startsWith("/api/lb/player"));
+    expect(playerCalls).toEqual(Array(3).fill("/api/lb/player?name=Good"));
+  });
+
+  it("404 and 429 keep the route's text and offer no Retry", async () => {
+    vi.stubGlobal("fetch", vi.fn(async (url: string) => {
+      if (url.startsWith("/api/lb/meta")) return json(META);
+      return json({ error: "Too many lookups today. Try again tomorrow." }, 429);
+    }));
+    render(<LbPage />);
+    load("Good");
+    const alert = await screen.findByRole("alert");
+    expect(alert).toHaveTextContent("Too many lookups today. Try again tomorrow.");
+    expect(within(alert).queryByRole("button", { name: "Retry" })).toBeNull();
+  });
+
+  it("an unexpected body is an error and clears the player", async () => {
+    let bad = false;
+    vi.stubGlobal("fetch", vi.fn(async (url: string) => {
+      if (url.startsWith("/api/lb/meta")) return json(META);
+      return bad ? json({ ranks: [], player: "x" }) : json(PLAYER);
+    }));
+    render(<LbPage />);
+    load("Good");
+    expect(await screen.findByText("#123")).toBeInTheDocument();
+    bad = true;
+    load("Good");
+    expect(await screen.findByRole("alert")).toHaveTextContent("Unexpected response from Idleon Toolbox.");
+    expect(screen.queryByText("#123")).toBeNull();
+  });
+
   it("Overview is the default tab; Dashboard asks for a player", async () => {
     render(<LbPage />);
     expect(screen.getByText(/Loading/)).toBeInTheDocument();

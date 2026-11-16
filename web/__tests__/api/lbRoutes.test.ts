@@ -92,14 +92,41 @@ describe("/api/lb routes", () => {
   });
 
   it("shared lb budget: 501st distinct fetch is 429", async () => {
+    const f = mockFetch({ ranks: {} });
+    const { __resetItFetchForTests } = await import("@/lib/leaderboards/itFetch");
+    __resetItFetchForTests();
+    const { GET } = await import("@/app/api/lb/player/route");
+    for (let k = 0; k < 500; k++) expect((await GET(req(`player?name=p${k}`))).status).toBe(200);
+    const r = await GET(req("player?name=zzz"));
+    expect(r.status).toBe(429);
+    expect(await r.json()).toEqual({ error: "Too many lookups today. Try again tomorrow." });
+    expect(f).toHaveBeenCalledTimes(500);
+  });
+
+  it("names sub-cap: the 151st is a quiet 200 with no players, and player lookups keep working", async () => {
+    const f = mockFetch({ players: ["x"] });
+    const { __resetItFetchForTests } = await import("@/lib/leaderboards/itFetch");
+    __resetItFetchForTests();
+    const names = (await import("@/app/api/lb/names/route")).GET;
+    const player = (await import("@/app/api/lb/player/route")).GET;
+    for (let k = 0; k < 150; k++) expect((await names(req(`names?q=aa${k}`))).status).toBe(200);
+    const r = await names(req("names?q=zzz"));
+    expect(r.status).toBe(200);
+    expect(await r.json()).toEqual({ players: [] });
+    expect(f).toHaveBeenCalledTimes(150);
+    expect((await player(req("player?name=ARKHE"))).status).toBe(200);
+    expect(f).toHaveBeenCalledTimes(151);
+  });
+
+  it("names count against the shared budget", async () => {
     const f = mockFetch({ players: [] });
     const { __resetItFetchForTests } = await import("@/lib/leaderboards/itFetch");
     __resetItFetchForTests();
-    const { GET } = await import("@/app/api/lb/names/route");
-    for (let k = 0; k < 500; k++) expect((await GET(req(`names?q=aa${k}`))).status).toBe(200);
-    const r = await GET(req("names?q=zzz"));
-    expect(r.status).toBe(429);
-    expect(await r.json()).toEqual({ error: "Too many lookups today. Try again tomorrow." });
+    const names = (await import("@/app/api/lb/names/route")).GET;
+    const player = (await import("@/app/api/lb/player/route")).GET;
+    for (let k = 0; k < 150; k++) await names(req(`names?q=aa${k}`));
+    for (let k = 0; k < 350; k++) expect((await player(req(`player?name=p${k}`))).status).toBe(200);
+    expect((await player(req("player?name=zzz"))).status).toBe(429);
     expect(f).toHaveBeenCalledTimes(500);
   });
 });

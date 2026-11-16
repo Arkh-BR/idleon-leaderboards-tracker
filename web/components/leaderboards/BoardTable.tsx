@@ -24,7 +24,7 @@ function climbText(m: MetaMetric, e: RankEntry): string {
   const c = climbOne(e, lowerIsBetter(m.key));
   if (c.kind === "top") return "#1";
   if (c.kind === "tied-top") return `tied #1 (${c.ties})`;
-  if (c.kind === "gap" && printable(c.delta, m, e)) return `${formatGap(e.v, e.nv!, m.notation)} passes #${c.toRank}`;
+  if (c.kind === "gap" && printable(c.delta, m, e, e.nv!)) return `${formatGap(e.v, e.nv!, m.notation)} passes #${c.toRank}`;
   return "—";
 }
 
@@ -32,7 +32,7 @@ export function Top100({ m, e }: { m: MetaMetric; e: RankEntry }) {
   const cutoff = LB_SNAPSHOT.boards[m.key]?.top100;
   const g = gapToCutoff(e.v, e.r, cutoff, 100, lowerIsBetter(m.key));
   if (g.kind === "inside") return <span className="text-emerald-400">in top 100</span>;
-  if (g.kind === "unknown" || !printable(g.delta, m, e)) return <span title="available after the next daily refresh">—</span>;
+  if (g.kind === "unknown" || !printable(g.delta, m, e, cutoff!)) return <span title="available after the next daily refresh">—</span>;
   return <>{formatGap(e.v, cutoff!, m.notation)}</>;
 }
 
@@ -41,7 +41,7 @@ function sortKey(sort: BoardSort, m: MetaMetric, e: RankEntry | undefined): [num
   if (!e) return [3, 0];
   if (sort === "worst") return [0, -e.p];
   const c = climbOne(e, lowerIsBetter(m.key));
-  if (c.kind === "gap") return printable(c.delta, m, e) ? [0, c.pct] : [1, 0];
+  if (c.kind === "gap") return printable(c.delta, m, e, e.nv!) ? [0, c.pct] : [1, 0];
   return c.kind === "unknown" ? [1, 0] : [2, 0];
 }
 

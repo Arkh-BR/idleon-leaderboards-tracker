@@ -36,31 +36,49 @@ describe("sectionStrength", () => {
 });
 
 describe("sinceLastVisit", () => {
-  it("first visit: null baseline, stored", () => {
+  const K = "idleon-leaderboards.v4.baseline.foo";
+  const stored = () => JSON.parse(localStorage.getItem(K)!);
+  it("first visit: no prev, no moves, stored as cur", () => {
     const cur = pl(10, 50, { a: e(5) });
     expect(sinceLastVisit("Foo", cur)).toEqual({ baseline: null, moves: {}, globalMove: 0 });
-    expect(JSON.parse(localStorage.getItem("idleon-leaderboards.v4.baseline.foo")!)).toEqual({ createdAt: 10, ranks: { a: 5 }, globalRank: 50 });
+    expect(stored()).toEqual({ cur: { createdAt: 10, ranks: { a: 5 }, globalRank: 50 } });
   });
-  it("same createdAt: same moves, store untouched", () => {
-    sinceLastVisit("Foo", pl(10, 50, { a: e(5) }));
-    const raw = localStorage.getItem("idleon-leaderboards.v4.baseline.foo");
-    const cur = pl(10, 40, { a: e(3) });
-    const r1 = sinceLastVisit("Foo", cur);
-    expect(r1.moves).toEqual({ a: 2 });
-    expect(r1.globalMove).toBe(10);
-    expect(sinceLastVisit("Foo", cur)).toEqual(r1);
-    expect(localStorage.getItem("idleon-leaderboards.v4.baseline.foo")).toBe(raw);
-  });
-  it("newer createdAt: moves vs old baseline, then replaces it", () => {
+  it("newer createdAt: moves vs the old window, which becomes prev", () => {
     sinceLastVisit("Foo", pl(10, 50, { a: e(5) }));
     const r = sinceLastVisit("Foo", pl(20, 60, { a: e(8) }));
     expect(r.moves).toEqual({ a: -3 });
     expect(r.globalMove).toBe(-10);
     expect(r.baseline?.createdAt).toBe(10);
-    expect(JSON.parse(localStorage.getItem("idleon-leaderboards.v4.baseline.foo")!).createdAt).toBe(20);
+    expect(stored().prev.createdAt).toBe(10);
+    expect(stored().cur.createdAt).toBe(20);
+  });
+  it("reload in the same window (same createdAt, same object) keeps the moves and the store", () => {
+    sinceLastVisit("Foo", pl(10, 50, { a: e(5) }));
+    const now = pl(20, 40, { a: e(3) });
+    const first = sinceLastVisit("Foo", now);
+    const raw = localStorage.getItem(K);
+    const reload = sinceLastVisit("Foo", now);
+    expect(first.moves).toEqual({ a: 2 });
+    expect(reload).toEqual(first);
+    expect(reload.globalMove).toBe(10);
+    expect(localStorage.getItem(K)).toBe(raw);
+  });
+  it("an older createdAt does not overwrite the store", () => {
+    sinceLastVisit("Foo", pl(10, 50, { a: e(5) }));
+    sinceLastVisit("Foo", pl(20, 40, { a: e(3) }));
+    const raw = localStorage.getItem(K);
+    expect(sinceLastVisit("Foo", pl(15, 45, { a: e(4) })).moves).toEqual({ a: 1 });
+    expect(localStorage.getItem(K)).toBe(raw);
+  });
+  it("old single-baseline shape is read as cur", () => {
+    localStorage.setItem(K, JSON.stringify({ createdAt: 10, ranks: { a: 5 }, globalRank: 50 }));
+    expect(sinceLastVisit("Foo", pl(10, 50, { a: e(5) })).moves).toEqual({});
+    const r = sinceLastVisit("Foo", pl(20, 45, { a: e(4) }));
+    expect(r.moves).toEqual({ a: 1 });
+    expect(r.globalMove).toBe(5);
   });
   it("corrupt storage is treated as absent", () => {
-    localStorage.setItem("idleon-leaderboards.v4.baseline.foo", "{nope");
+    localStorage.setItem(K, "{nope");
     expect(sinceLastVisit("Foo", pl(10, 50, {})).baseline).toBeNull();
   });
 });

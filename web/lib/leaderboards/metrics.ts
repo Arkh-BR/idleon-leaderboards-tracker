@@ -1,3 +1,4 @@
+import { formatGap } from "./format";
 import type { MetaMetric, RankEntry } from "./types";
 
 export type Climb =
@@ -28,6 +29,8 @@ export function gapToCutoff(
   return { kind: "gap", delta, pct: pctOf(delta, value) };
 }
 
-// A gap is printable only when positive (cutoffs come from yesterday's snapshot while rank/value are live)
-// and, for seconds boards, when the stored per-hour rate is positive (3600/0 = Infinity).
-export const printable = (delta: number, m: MetaMetric, e: RankEntry) => delta > 0 && (m.notation !== "seconds" || e.v > 0);
+// A gap is printable only when positive (cutoffs come from yesterday's snapshot while rank/value are live),
+// for seconds boards when the stored per-hour rate is positive (3600/0 = Infinity), and when its rendered
+// magnitude has a non-zero digit (a "+0" or "+0.0000x" gap says nothing). `to` is the target's stored value.
+export const printable = (delta: number, m: MetaMetric, e: RankEntry, to: number) =>
+  delta > 0 && (m.notation !== "seconds" || e.v > 0) && /[1-9]/.test(formatGap(e.v, to, m.notation));
