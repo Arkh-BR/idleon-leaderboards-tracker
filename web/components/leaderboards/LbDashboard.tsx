@@ -2,6 +2,7 @@
 
 import { useCallback, useMemo, useState } from "react";
 import { Top100 } from "./BoardTable";
+import HistoryChart from "./HistoryChart";
 import HeadToHead from "./HeadToHead";
 import Rivals from "./Rivals";
 import ProgressCard from "./dashboard/ProgressCard";
@@ -40,7 +41,7 @@ const BAND_COLORS = [TIER_COLORS.top10, TIER_COLORS.top11_50, TIER_COLORS.top51_
 
 const pct = (p: number) => `${p.toFixed(2)}%`;
 
-export default function LbDashboard({ meta, player, snapshot, onSaveSnapshot, saveDisabled }: Props) {
+export default function LbDashboard({ meta, player, snapshot, onSaveSnapshot, saveDisabled, history }: Props) {
   const [filter, setFilter] = useState<SectionKey | null>(null);
   const [cutoffRank, setCutoffRank] = useState<10 | 100>(100);
   const rows = useMemo(() => (player ? boardRows(meta, player.ranks) : []), [meta, player]);
@@ -200,7 +201,9 @@ export default function LbDashboard({ meta, player, snapshot, onSaveSnapshot, sa
           <HeadToHead key={compare?.n ?? 0} me={player} meta={meta} initial={compare?.name} board={globalBoard} onCompared={onCompared} />
         </div>
       </div>
-      {/* Task 10 (Your history) appends here. */}
+      <Panel title="Your history">
+        <HistoryChart points={history} />
+      </Panel>
     </div>
   );
 }

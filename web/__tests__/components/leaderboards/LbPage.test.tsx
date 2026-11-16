@@ -84,9 +84,9 @@ describe("LbPage", () => {
     expect(screen.getByText("Alpha")).toBeInTheDocument();
   });
 
-  it("Overview is a placeholder; Dashboard asks for a player", async () => {
+  it("Overview is the default tab; Dashboard asks for a player", async () => {
     render(<LbPage />);
-    expect(screen.getByText(/Coming soon/)).toBeInTheDocument();
+    expect(screen.getByText(/Loading/)).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Dashboard" }));
     expect(screen.getByText("Load a player to see your dashboard")).toBeInTheDocument();
     await screen.findByRole("button", { name: "Account (2)" });

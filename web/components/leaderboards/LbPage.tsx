@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import BoardTable, { type BoardSort } from "./BoardTable";
 import LbDashboard from "./LbDashboard";
+import LbOverview from "./LbOverview";
 import PlayerPicker from "./PlayerPicker";
 import { useLbData } from "./useLbData";
 import type { LbPlayer } from "@/lib/leaderboards/types";
@@ -46,8 +47,6 @@ function Cards({ player, moves, globalMove }: { player: LbPlayer; moves: Record<
     </div>
   );
 }
-
-const ComingSoon = ({ what }: { what: string }) => <div className="py-10 text-center text-sm text-zinc-500">{what}: Coming soon.</div>;
 
 function TabButton({ active, onClick, children }: { active: boolean; onClick(): void; children: React.ReactNode }) {
   return (
@@ -154,7 +153,7 @@ export default function LbPage() {
         ))}
       </div>
 
-      {tab === "overview" && <ComingSoon what="Overview" />}
+      {tab === "overview" && <LbOverview meta={d.meta} onOpenTab={setTab} player={d.player?.player.mainChar} />}
       {tab === "dashboard" && (
         <LbDashboard
           meta={d.meta}
