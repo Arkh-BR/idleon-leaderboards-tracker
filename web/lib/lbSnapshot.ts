@@ -7,9 +7,10 @@
 // per-player (rather than one global blob) means the user can track several
 // alts without snapshots leaking across player names.
 
-import type { BoardResult } from "@/app/api/leaderboards/route";
-
 const KEY_PREFIX = "idleon-leaderboards.lb.ptsSnapshot.";
+
+/** Current standings per board key, built from `LbPlayer.ranks` (`{rank: e.r, value: e.v}`). */
+export type Standings = Record<string, { rank: number; value: number }>;
 
 export type LbSnapshot = {
   savedAt: string; // ISO timestamp
@@ -34,14 +35,14 @@ export function loadSnapshot(player: string): LbSnapshot | null {
   }
 }
 
-export function saveSnapshot(player: string, boards: BoardResult[]): LbSnapshot {
+export function saveSnapshot(player: string, boards: Standings): LbSnapshot {
   const snap: LbSnapshot = {
     savedAt: new Date().toISOString(),
     player,
     boards: {},
   };
-  for (const b of boards) {
-    snap.boards[b.apiKey] = { rank: b.myRank, score: b.myScore };
+  for (const [key, b] of Object.entries(boards)) {
+    snap.boards[key] = { rank: b.rank, score: b.value };
   }
   try {
     localStorage.setItem(keyFor(player), JSON.stringify(snap));
@@ -49,7 +50,7 @@ export function saveSnapshot(player: string, boards: BoardResult[]): LbSnapshot 
   return snap;
 }
 
-// Delta semantics for a single board:
+// Delta semantics per board (computeDelta returns one per key of `current`):
 //   rankDelta > 0  → climbed (rank went DOWN numerically, e.g. 50 → 30 = +20)
 //   rankDelta < 0  → dropped
 //   rankDelta === 0 → unchanged
@@ -58,7 +59,7 @@ export function saveSnapshot(player: string, boards: BoardResult[]): LbSnapshot 
 //
 //   status:
 //     "changed" → both ranks present, deltas valid
-//     "nodata"  → no snapshot for this board (or missing rank on either side)
+//     "nodata"  → no snapshot for this board (or its stored rank is null)
 export type BoardDeltaStatus = "changed" | "nodata";
 
 export type BoardDelta = {
@@ -67,19 +68,16 @@ export type BoardDelta = {
   scoreDelta: number | null;
 };
 
-export function computeDelta(
-  current: { myRank: number | null; myScore: number | null },
-  snap: { rank: number | null; score: number | null } | undefined
-): BoardDelta {
-  if (!snap || snap.rank === null || current.myRank === null) {
-    return { status: "nodata", rankDelta: null, scoreDelta: null };
+export function computeDelta(current: Standings, snap: LbSnapshot | null): Record<string, BoardDelta> {
+  const out: Record<string, BoardDelta> = {};
+  for (const [key, cur] of Object.entries(current)) {
+    const old = snap?.boards[key];
+    out[key] =
+      !old || old.rank === null
+        ? { status: "nodata", rankDelta: null, scoreDelta: null }
+        : { status: "changed", rankDelta: old.rank - cur.rank, scoreDelta: old.score === null ? null : cur.value - old.score };
   }
-  const rankDelta = snap.rank - current.myRank;
-  const scoreDelta =
-    current.myScore !== null && snap.score !== null
-      ? current.myScore - snap.score
-      : null;
-  return { status: "changed", rankDelta, scoreDelta };
+  return out;
 }
 
 // Aggregate "ranks gained / lost" across every board. Used by the Dashboard

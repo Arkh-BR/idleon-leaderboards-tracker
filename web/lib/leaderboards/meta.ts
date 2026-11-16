@@ -9,3 +9,10 @@ export function liveOrSnapshotMeta(live: LbMeta | null): LbMeta {
 export function boardCount(): number {
   return LB_SNAPSHOT.meta.tabs.reduce((n, t) => n + t.sections.reduce((m, s) => m + s.metrics.length, 0), 0);
 }
+
+const DAY = 86_400_000;
+
+/** "New" badge: the daily snapshot first saw the board within the last 14 days. */
+export function isNewBoard(firstSeen: string | undefined, today: Date): boolean {
+  return !!firstSeen && (today.getTime() - Date.parse(firstSeen)) / DAY < 15;
+}
