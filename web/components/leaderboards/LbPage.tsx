@@ -3,43 +3,11 @@
 import { useEffect, useMemo, useState } from "react";
 import BoardTable, { type BoardSort } from "./BoardTable";
 import LbDashboard from "./LbDashboard";
+import PlayerPicker from "./PlayerPicker";
 import { useLbData } from "./useLbData";
 import type { LbPlayer } from "@/lib/leaderboards/types";
 import { standingsOf } from "@/lib/leaderboards/dashboard";
 import { loadSnapshot, saveSnapshot } from "@/lib/lbSnapshot";
-
-// Task 9 swaps this for the autocomplete picker; keep it self-contained.
-function PlayerInput({ name, loading, onLoad }: { name: string; loading: boolean; onLoad(name: string): void }) {
-  const [value, setValue] = useState(name);
-  useEffect(() => setValue(name), [name]);
-  return (
-    <form
-      onSubmit={(e) => {
-        e.preventDefault();
-        onLoad(value);
-      }}
-      className="flex flex-1 min-w-[240px] gap-2"
-    >
-      <label htmlFor="lb-player" className="sr-only">
-        Player name
-      </label>
-      <input
-        id="lb-player"
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
-        placeholder="Player name"
-        className="flex-1 min-w-0 rounded border border-zinc-700 bg-zinc-950 px-3 py-2 font-mono text-sm"
-      />
-      <button
-        type="submit"
-        disabled={loading || !value.trim()}
-        className="rounded bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-500 disabled:opacity-50"
-      >
-        {loading ? "Loading…" : "Load"}
-      </button>
-    </form>
-  );
-}
 
 function Card({ label, value, sub }: { label: string; value: React.ReactNode; sub?: React.ReactNode }) {
   return (
@@ -136,7 +104,7 @@ export default function LbPage() {
       </header>
 
       <div className="mb-4 flex flex-wrap items-center gap-3 rounded-lg border border-zinc-800 bg-zinc-900/50 p-3">
-        <PlayerInput name={d.name} loading={d.loading} onLoad={d.load} />
+        <PlayerPicker value={d.name} onPick={d.load} busy={d.loading} />
         <input
           list="lb-boards"
           aria-label={`Jump to a board (${boards.length})`}

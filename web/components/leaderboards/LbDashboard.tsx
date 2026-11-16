@@ -1,12 +1,15 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Top100 } from "./BoardTable";
+import HeadToHead from "./HeadToHead";
+import Rivals from "./Rivals";
 import ProgressCard from "./dashboard/ProgressCard";
 import { Panel, Table } from "./dashboard/ui";
 import type { LbSnapshot } from "@/lib/lbSnapshot";
 import type { HistoryPoint } from "@/lib/leaderboards/history";
-import type { LbMeta, LbPlayer } from "@/lib/leaderboards/types";
+import type { LbBoard, LbMeta, LbPlayer } from "@/lib/leaderboards/types";
+import { headToHead } from "@/lib/leaderboards/headToHead";
 import { formatGap, formatMetric } from "@/lib/leaderboards/format";
 import { sectionStrength } from "@/lib/leaderboards/sections";
 import { rankBgClass, TIER_COLORS } from "@/lib/rank";
@@ -42,6 +45,15 @@ export default function LbDashboard({ meta, player, snapshot, onSaveSnapshot, sa
   const [cutoffRank, setCutoffRank] = useState<10 | 100>(100);
   const rows = useMemo(() => (player ? boardRows(meta, player.ranks) : []), [meta, player]);
   const strength = useMemo(() => (player ? sectionStrength(player.ranks, meta) : []), [meta, player]);
+  const [globalBoard, setGlobalBoard] = useState<LbBoard | null>(null); // Rivals' response, reused for H2H chips
+  const [compare, setCompare] = useState<{ name: string; n: number } | null>(null); // n remounts H2H on every rival click
+  const [compared, setCompared] = useState<Record<string, LbPlayer>>({}); // lowercased name → their ranks
+  const onCompared = useCallback((name: string, them: LbPlayer) => setCompared((c) => ({ ...c, [name.toLowerCase()]: them })), []);
+  // "beats you on N": only rivals already compared (no request per rival); recomputed against the current player.
+  const beats = useMemo(
+    () => (player ? Object.fromEntries(Object.entries(compared).map(([k, them]) => [k, headToHead(player, them).losses])) : {}),
+    [player, compared],
+  );
 
   if (!player) return <div className="py-10 text-center text-sm text-zinc-500">Load a player to see your dashboard</div>;
 
@@ -174,7 +186,21 @@ export default function LbDashboard({ meta, player, snapshot, onSaveSnapshot, sa
           />
         </Panel>
       </div>
-      {/* Task 9 (Global rivals, Head-to-head) and Task 10 (Your history) append here. */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Rivals
+          player={player.player.mainChar}
+          onBoard={setGlobalBoard}
+          beats={beats}
+          onCompare={(name) => {
+            setCompare((c) => ({ name, n: (c?.n ?? 0) + 1 }));
+            document.getElementById("lb-h2h")?.scrollIntoView?.({ block: "start", behavior: "smooth" });
+          }}
+        />
+        <div id="lb-h2h" className="min-w-0">
+          <HeadToHead key={compare?.n ?? 0} me={player} meta={meta} initial={compare?.name} board={globalBoard} onCompared={onCompared} />
+        </div>
+      </div>
+      {/* Task 10 (Your history) appends here. */}
     </div>
   );
 }
