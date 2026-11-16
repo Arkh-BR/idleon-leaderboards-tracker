@@ -39,7 +39,7 @@ export function Top100({ m, e }: { m: MetaMetric; e: RankEntry }) {
 // Sort key as [group, value]; lower sorts first. Boards without a player entry go last.
 function sortKey(sort: BoardSort, m: MetaMetric, e: RankEntry | undefined): [number, number] {
   if (!e) return [3, 0];
-  if (sort === "worst") return [0, -e.p];
+  if (sort === "worst") return [0, -e.r]; // by rank: IT's p counts the whole tie group (tied #1 can read "top 29%")
   const c = climbOne(e, lowerIsBetter(m.key));
   if (c.kind === "gap") return printable(c.delta, m, e, e.nv!) ? [0, c.pct] : [1, 0];
   return c.kind === "unknown" ? [1, 0] : [2, 0];

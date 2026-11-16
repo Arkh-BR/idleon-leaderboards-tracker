@@ -80,8 +80,9 @@ describe("BoardTable", () => {
     expect(ids).toEqual(["board-delta", "board-alpha", "board-gamma", "board-beta"]);
   });
 
-  it("worst sort: highest top % first", () => {
-    const { container } = render(<BoardTable tab={TAB} player={PLAYER} moves={{}} sort="worst" hideAnon={false} />);
+  it("worst sort: highest rank first, so a tied #1 (IT's p counts the tie group) sorts last", () => {
+    const tied = { ...PLAYER, ranks: { ...PLAYER.ranks, beta: { r: 1, v: 5, p: 29.3, t: 824 } } };
+    const { container } = render(<BoardTable tab={TAB} player={tied} moves={{}} sort="worst" hideAnon={false} />);
     const ids = [...container.querySelectorAll("tr[id^='board-']")].map((r) => r.id);
     expect(ids).toEqual(["board-gamma", "board-delta", "board-alpha", "board-beta"]);
   });

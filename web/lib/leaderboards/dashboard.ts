@@ -22,7 +22,8 @@ export function standingsOf(player: LbPlayer): Standings {
   return Object.fromEntries(Object.entries(player.ranks).map(([k, e]) => [k, { rank: e.r, value: e.v }]));
 }
 
-export const worstPositions = (rows: BoardRow[], n = 40) => [...rows].sort((a, b) => b.e.p - a.e.p).slice(0, n);
+// By rank, not IT's p: p counts the whole tie group, so a #1 tied with 824 players reads "top 29%" (user's call, 2026-11-16).
+export const worstPositions = (rows: BoardRow[], n = 40) => [...rows].sort((a, b) => b.e.r - a.e.r).slice(0, n);
 
 export const bestPositions = (rows: BoardRow[], n = 30) => [...rows].sort((a, b) => a.e.r - b.e.r).slice(0, n);
 

@@ -89,7 +89,7 @@ Segue o mockup 1.
 - **Linha de board**:
   - colunas: Board, Rank (`#50 ▲3`, com o total `/ players` no tooltip), Value, Top %, To climb (`+35 passes #49`, ou "tied #1"), To top 100 (só quando o jogador está fora; senão aparece "in top 100");
   - selos "Maxed" (`metric.maxed`) e "New" (`firstSeen` há 14 dias ou menos).
-- **Ordenação**: a ordem do IT (padrão), "closest to next rank" (`gapPct`) e "worst top %".
+- **Ordenação**: a ordem do IT (padrão), "closest to next rank" (`gapPct`) e "worst rank" (pelo rank: o `p` do IT conta o grupo de empatados inteiro, então um #1 empatado lê "top 29%"; decisão do usuário em 16/11).
 - **Linha expandida**: os ±5 vizinhos (`lb/board?around=`) e um botão "Full top 100" que lista o top 100 inline.
 - **Overview**: o top 10 global (`globalRanking`) e um cartão por aba com a contagem de boards.
 - **Sem jogador carregado**: Overview e listas funcionam; as colunas do jogador ficam vazias.
@@ -100,7 +100,7 @@ Segue o mockup 2, de cima para baixo.
 1. **Os cartões**.
 2. **"Progress since <data>"**: o snapshot manual atual (`lib/lbSnapshot.ts`), mantido como está.
 3. **"Tier summary"**: mantido. Ao lado entra "Strength by section", e clicar numa seção filtra as listas de baixo.
-4. **"Worst positions"**: 40 boards ordenados por top %, do pior para o melhor, com as colunas Board, Section, Rank `#812 / 2,790`, Top % e To top 100, mais um filtro por seção.
+4. **"Worst positions"**: 40 boards ordenados pelo rank, do maior para o menor (decisão de 16/11, pelo mesmo motivo), com as colunas Board, Section, Rank `#812 / 2,790`, Top % e To top 100, mais um filtro por seção.
 5. **"Cheapest climbs"**: subir 1 rank, ordenado por `gapPct`. Ao lado, "Points to reach the top 100", com toggle Top 100 / Top 10, só com os boards em que o jogador está fora, do menor esforço para o maior.
 6. **"Maxed boards you're missing"**: `maxed` verdadeiro e o jogador fora do teto. Mostra o valor dele, o teto e quantos já estão lá. Ao lado, "Your best positions": mantido, agora com o top %.
 7. **"Global rivals"**: `globalRanking` com `around`. Mostra rank, pontos e a diferença; cada rival abre o head-to-head. A contagem "beats you on N" só aparece depois de comparar, para não gastar 10 requests.

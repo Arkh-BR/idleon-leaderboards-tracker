@@ -79,7 +79,14 @@ describe("LbDashboard", () => {
     expect(screen.getByText("Load a player to see your dashboard")).toBeInTheDocument();
   });
 
-  it("worst positions are sorted by top % and the section filter narrows them", () => {
+  it("worst positions are sorted by rank, so a tied #1 never shows up as a worst spot", () => {
+    // IT's p counts the whole tie group: #1 tied with 824 players reads "top 29.3%" (Log Book, 2026-11-16).
+    const tied = { ...PLAYER, ranks: { ...PLAYER.ranks, f: { r: 1, v: 500, p: 29.3, t: 824 }, b: { r: 50, v: 5000, p: 75, t: 1, nr: 49, nv: 5005 } } };
+    render(<LbDashboard {...props} player={tied} />);
+    expect(boards("Worst positions")).toEqual(["Delta", "Alpha", "Gamma", "Beta", "Echo", "Fox"]);
+  });
+
+  it("worst positions show rank / players, section, top % and the top-100 gap; the section filter narrows them", () => {
     render(<LbDashboard {...props} />);
     expect(boards("Worst positions")).toEqual(["Delta", "Alpha", "Gamma", "Beta", "Echo", "Fox"]);
     const alpha = within(region("Worst positions")).getAllByRole("row")[2];

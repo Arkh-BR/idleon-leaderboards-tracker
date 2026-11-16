@@ -187,7 +187,7 @@ export default function LbPage() {
             >
               <option value="it">IT order</option>
               <option value="closest">Closest to next rank</option>
-              <option value="worst">Worst top %</option>
+              <option value="worst">Worst rank</option>
             </select>
           </div>
           <BoardTable tab={metaTab} player={d.player} moves={d.moves} sort={sort} hideAnon={d.hideAnon} />
