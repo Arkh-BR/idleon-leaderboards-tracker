@@ -10,38 +10,39 @@ type Props = {
   notation: Notation;
   player: string | null;
   hideAnon: boolean;
+  open?: boolean;
 };
 
-export default function BoardExpand({ metric, notation, player, hideAnon }: Props) {
+export default function BoardExpand({ metric, notation, player, hideAnon, open = true }: Props) {
   const key = `${metric}|${player ?? ""}|${hideAnon}`;
   const cache = useRef(new Map<string, LbBoard>());
-  const [data, setData] = useState<LbBoard | null>(cache.current.get(key) ?? null);
+  const [loaded, setLoaded] = useState<{ k: string; b: LbBoard } | null>(null);
+  const data = loaded?.k === key ? loaded.b : (cache.current.get(key) ?? null);
   const [failed, setFailed] = useState(false);
-  const [full, setFull] = useState(false);
+  const [fullKey, setFullKey] = useState<string | null>(null);
+  const full = fullKey === key;
   const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
-    const hit = cache.current.get(key);
-    setData(hit ?? null);
     setFailed(false);
-    if (hit) return;
+    if (!open || cache.current.has(key)) return;
     let live = true;
     const qs = `metric=${encodeURIComponent(metric)}${player ? `&around=${encodeURIComponent(player)}` : ""}${hideAnon ? "&public=1" : ""}`;
     fetch(`/api/lb/board?${qs}`)
       .then(async (r) => {
         const b = await r.json();
         if (!r.ok || !b || !Array.isArray(b.top)) throw new Error("bad board");
-        return b as LbBoard;
+        return { ...b, around: Array.isArray(b.around) ? b.around : [] } as LbBoard;
       })
       .then((b) => {
         cache.current.set(key, b);
-        if (live) setData(b);
+        if (live) setLoaded({ k: key, b });
       })
       .catch(() => live && setFailed(true));
     return () => {
       live = false;
     };
-  }, [key, metric, player, hideAnon, attempt]);
+  }, [key, metric, player, hideAnon, open, attempt]);
 
   const cell = "px-3 py-1";
   if (failed)
@@ -99,7 +100,7 @@ export default function BoardExpand({ metric, notation, player, hideAnon }: Prop
         {!full && data.top.length > shown.length && (
           <button
             type="button"
-            onClick={() => setFull(true)}
+            onClick={() => setFullKey(key)}
             className="mt-2 rounded border border-zinc-700 px-2 py-1 text-xs text-emerald-300 hover:bg-zinc-800"
           >
             Full top 100

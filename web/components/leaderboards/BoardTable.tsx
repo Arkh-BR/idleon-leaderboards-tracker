@@ -138,7 +138,13 @@ export default function BoardTable({ tab, player, moves, sort, hideAnon }: Props
                     </tbody>
                     {opened[m.key] && (
                       <tbody hidden={!open[m.key]}>
-                        <BoardExpand metric={m.key} notation={m.notation} player={player?.player.mainChar ?? null} hideAnon={hideAnon} />
+                        <BoardExpand
+                          metric={m.key}
+                          notation={m.notation}
+                          player={player?.player.mainChar ?? null}
+                          hideAnon={hideAnon}
+                          open={!!open[m.key]}
+                        />
                       </tbody>
                     )}
                   </Fragment>
