@@ -32,7 +32,7 @@ export default function PlayerPicker({ value, onPick, chips, label = "Player nam
 
   const pick = (raw: string) => {
     const n = raw.trim();
-    if (!n) return;
+    if (!n || busy) return; // a load is in flight: Enter/suggestion/chip must not refire it (shared IT budget)
     close();
     setText(n);
     onPick(n);

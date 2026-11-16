@@ -121,6 +121,23 @@ describe("PlayerPicker", () => {
     expect(screen.getAllByRole("option").map((o) => o.textContent)).toEqual(["Draco"]);
   });
 
+  it("while busy, Enter, a suggestion click and a chip don't pick", async () => {
+    vi.useFakeTimers();
+    stubFetch(() => json({ players: ["Dragami"] }));
+    const onPick = vi.fn();
+    render(<PlayerPicker value="" onPick={onPick} busy chips={[{ label: "#8 Dragami", name: "Dragami" }]} />);
+    const input = screen.getByLabelText("Player name");
+    fireEvent.change(input, { target: { value: "dra" } });
+    await wait(300);
+    await flush();
+    fireEvent.keyDown(input, { key: "Enter" });
+    expect(onPick).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("option", { name: "Dragami" }));
+    fireEvent.click(screen.getByRole("button", { name: "#8 Dragami" }));
+    expect(onPick).not.toHaveBeenCalled();
+    expect(screen.getByRole("button", { name: "Loading…" })).toBeDisabled();
+  });
+
   it("chips pick their name", () => {
     const onPick = vi.fn();
     render(<PlayerPicker value="" onPick={onPick} chips={[{ label: "#8 Dragami", name: "Dragami" }]} />);
