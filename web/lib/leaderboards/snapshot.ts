@@ -3,10 +3,10 @@ import type { LbMeta } from "./types";
 
 export type BoardCutoffs = { top10?: number; top100?: number; lowerIsBetter: boolean; firstSeen: string };
 export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<string, BoardCutoffs> } = {
- "generatedAt": "2026-11-16T14:02:49.092Z",
+ "generatedAt": "2026-11-17T14:55:59.667Z",
  "meta": {
-  "createdAt": 1794835856371,
-  "totalPlayers": 2810,
+  "createdAt": 1794925856865,
+  "totalPlayers": 2808,
   "tabs": [
    {
     "key": "account",
@@ -19,9 +19,9 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "key": "totalMoney",
         "label": "Total Money",
         "notation": "default",
-        "top": 3.031056521357065e+68,
+        "top": 3.0310565801729653e+68,
         "topTies": 1,
-        "players": 2810,
+        "players": 2808,
         "maxed": false,
         "section": "Totals"
        },
@@ -31,7 +31,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 21877,
         "topTies": 1,
-        "players": 2810,
+        "players": 2808,
         "maxed": false,
         "section": "Totals"
        },
@@ -39,9 +39,9 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "key": "totalCards",
         "label": "Total Cards",
         "notation": "default",
-        "top": 10436176934616230000,
+        "top": 10436176950553635000,
         "topTies": 1,
-        "players": 2809,
+        "players": 2807,
         "maxed": false,
         "section": "Totals"
        },
@@ -49,9 +49,9 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "key": "totalGreenStacks",
         "label": "Total Green Stacks",
         "notation": "default",
-        "top": 447,
+        "top": 453,
         "topTies": 1,
-        "players": 2714,
+        "players": 2712,
         "maxed": false,
         "section": "Totals"
        },
@@ -59,9 +59,9 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "key": "slab",
         "label": "Slab",
         "notation": "default",
-        "top": 1957,
+        "top": 1910,
         "topTies": 1,
-        "players": 2809,
+        "players": 2807,
         "maxed": false,
         "section": "Totals"
        },
@@ -69,9 +69,9 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "key": "totalTomePoints",
         "label": "Total Tome Points",
         "notation": "default",
-        "top": 56088,
+        "top": 56022,
         "topTies": 1,
-        "players": 2788,
+        "players": 2786,
         "maxed": false,
         "section": "Totals"
        },
@@ -79,9 +79,9 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "key": "afkTime",
         "label": "AFK Time",
         "notation": "default",
-        "top": 1060006.5761111113,
+        "top": 1060021.5530555556,
         "topTies": 1,
-        "players": 2809,
+        "players": 2807,
         "maxed": false,
         "section": "Totals"
        },
@@ -91,7 +91,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 268,
         "topTies": 1,
-        "players": 250,
+        "players": 324,
         "maxed": false,
         "section": "Totals"
        },
@@ -100,8 +100,8 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "label": "Total Unique Quests",
         "notation": "default",
         "top": 328,
-        "topTies": 8,
-        "players": 250,
+        "topTies": 10,
+        "players": 324,
         "maxed": false,
         "section": "Totals"
        },
@@ -111,7 +111,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 500,
         "topTies": 1,
-        "players": 250,
+        "players": 324,
         "maxed": false,
         "section": "Totals"
        },
@@ -121,7 +121,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 20228,
         "topTies": 1,
-        "players": 250,
+        "players": 324,
         "maxed": false,
         "section": "Totals"
        },
@@ -131,7 +131,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 68,
         "topTies": 2,
-        "players": 2746,
+        "players": 2744,
         "maxed": false,
         "section": "Totals"
        },
@@ -141,7 +141,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 1855,
         "topTies": 1,
-        "players": 221,
+        "players": 293,
         "maxed": false,
         "section": "Totals"
        },
@@ -151,7 +151,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 271924.77528351,
         "topTies": 1,
-        "players": 221,
+        "players": 293,
         "maxed": false,
         "section": "Totals"
        }
@@ -166,7 +166,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 383,
         "topTies": 1,
-        "players": 2797,
+        "players": 2795,
         "maxed": false,
         "section": "High Scores"
        },
@@ -176,7 +176,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 657,
         "topTies": 1,
-        "players": 2780,
+        "players": 2778,
         "maxed": false,
         "section": "High Scores"
        },
@@ -186,7 +186,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 1236,
         "topTies": 1,
-        "players": 2767,
+        "players": 2765,
         "maxed": false,
         "section": "High Scores"
        },
@@ -196,7 +196,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 806,
         "topTies": 1,
-        "players": 2773,
+        "players": 2771,
         "maxed": false,
         "section": "High Scores"
        },
@@ -206,7 +206,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 258,
         "topTies": 1,
-        "players": 2720,
+        "players": 2717,
         "maxed": false,
         "section": "High Scores"
        },
@@ -216,7 +216,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 175,
         "topTies": 1,
-        "players": 2801,
+        "players": 2799,
         "maxed": false,
         "section": "High Scores"
        },
@@ -226,7 +226,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 2008,
         "topTies": 1,
-        "players": 2784,
+        "players": 2783,
         "maxed": false,
         "section": "High Scores"
        }
@@ -241,7 +241,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 43,
         "topTies": 7,
-        "players": 2792,
+        "players": 2791,
         "maxed": false,
         "section": "Clickers"
        },
@@ -261,7 +261,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 23,
         "topTies": 11,
-        "players": 2773,
+        "players": 2772,
         "maxed": false,
         "section": "Clickers"
        }
@@ -282,7 +282,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 137894036,
         "topTies": 1,
-        "players": 2810,
+        "players": 2808,
         "maxed": false,
         "section": "Stats"
        },
@@ -292,7 +292,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 127748534,
         "topTies": 1,
-        "players": 2810,
+        "players": 2808,
         "maxed": false,
         "section": "Stats"
        },
@@ -302,7 +302,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 109946350,
         "topTies": 1,
-        "players": 2810,
+        "players": 2808,
         "maxed": false,
         "section": "Stats"
        },
@@ -312,7 +312,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 59021210,
         "topTies": 1,
-        "players": 2810,
+        "players": 2808,
         "maxed": false,
         "section": "Stats"
        },
@@ -322,7 +322,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 2060,
         "topTies": 1,
-        "players": 2810,
+        "players": 2808,
         "maxed": false,
         "section": "Stats"
        },
@@ -332,7 +332,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "multiplier",
         "top": 6570000,
         "topTies": 1,
-        "players": 2810,
+        "players": 2808,
         "maxed": false,
         "section": "Stats"
        },
@@ -342,7 +342,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 1.3250414962853614e+40,
         "topTies": 1,
-        "players": 2810,
+        "players": 2808,
         "maxed": false,
         "section": "Stats"
        },
@@ -352,7 +352,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 7013773389908.072,
         "topTies": 1,
-        "players": 2809,
+        "players": 2807,
         "maxed": false,
         "section": "Stats"
        },
@@ -362,7 +362,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 8.508806784041879e+39,
         "topTies": 1,
-        "players": 2759,
+        "players": 2757,
         "maxed": false,
         "section": "Stats"
        },
@@ -372,7 +372,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 7627459765607362,
         "topTies": 1,
-        "players": 2810,
+        "players": 2808,
         "maxed": false,
         "section": "Stats"
        },
@@ -382,7 +382,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 17511144389.760468,
         "topTies": 1,
-        "players": 2810,
+        "players": 2808,
         "maxed": false,
         "section": "Stats"
        }
@@ -467,7 +467,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 1.2558320790492015e+21,
         "topTies": 1,
-        "players": 2555,
+        "players": 2554,
         "maxed": false,
         "section": "Arcane Cultist"
        },
@@ -477,7 +477,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "multiplier",
         "top": 1.6641171813143312,
         "topTies": 1,
-        "players": 1474,
+        "players": 1491,
         "maxed": false,
         "section": "Arcane Cultist"
        }
@@ -492,7 +492,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 6030,
         "topTies": 1,
-        "players": 2052,
+        "players": 2067,
         "maxed": false,
         "section": "Royal Guardian"
        },
@@ -500,9 +500,9 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "key": "totalRoyalResourceGrades",
         "label": "Total Royal Resource Grades",
         "notation": "default",
-        "top": 5201,
+        "top": 5269,
         "topTies": 1,
-        "players": 1762,
+        "players": 1773,
         "maxed": false,
         "section": "Royal Guardian"
        },
@@ -512,7 +512,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 100,
         "topTies": 1,
-        "players": 1989,
+        "players": 2004,
         "maxed": false,
         "section": "Royal Guardian"
        },
@@ -522,7 +522,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 62,
         "topTies": 2,
-        "players": 1621,
+        "players": 1639,
         "maxed": false,
         "section": "Royal Guardian"
        },
@@ -532,7 +532,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 3.1672293977160947e+21,
         "topTies": 1,
-        "players": 1621,
+        "players": 1639,
         "maxed": false,
         "section": "Royal Guardian"
        }
@@ -553,7 +553,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 169124,
         "topTies": 1,
-        "players": 2809,
+        "players": 2807,
         "maxed": false,
         "section": "Skills"
        },
@@ -561,9 +561,9 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "key": "mining",
         "label": "Mining",
         "notation": "default",
-        "top": 332,
-        "topTies": 2,
-        "players": 2810,
+        "top": 333,
+        "topTies": 1,
+        "players": 2808,
         "maxed": false,
         "section": "Skills"
        },
@@ -571,9 +571,9 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "key": "smithing",
         "label": "Smithing",
         "notation": "default",
-        "top": 292,
+        "top": 293,
         "topTies": 1,
-        "players": 2810,
+        "players": 2808,
         "maxed": false,
         "section": "Skills"
        },
@@ -581,9 +581,9 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "key": "choppin",
         "label": "Choppin",
         "notation": "default",
-        "top": 361,
+        "top": 362,
         "topTies": 1,
-        "players": 2810,
+        "players": 2808,
         "maxed": false,
         "section": "Skills"
        },
@@ -591,9 +591,9 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "key": "fishing",
         "label": "Fishing",
         "notation": "default",
-        "top": 351,
+        "top": 352,
         "topTies": 1,
-        "players": 2805,
+        "players": 2803,
         "maxed": false,
         "section": "Skills"
        },
@@ -602,8 +602,8 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "label": "Alchemy",
         "notation": "default",
         "top": 301,
-        "topTies": 1,
-        "players": 2805,
+        "topTies": 2,
+        "players": 2803,
         "maxed": false,
         "section": "Skills"
        },
@@ -612,8 +612,8 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "label": "Catching",
         "notation": "default",
         "top": 372,
-        "topTies": 2,
-        "players": 2805,
+        "topTies": 3,
+        "players": 2803,
         "maxed": false,
         "section": "Skills"
        },
@@ -623,7 +623,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 250,
         "topTies": 1,
-        "players": 2792,
+        "players": 2790,
         "maxed": false,
         "section": "Skills"
        },
@@ -631,9 +631,9 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "key": "construction",
         "label": "Construction",
         "notation": "default",
-        "top": 7570,
+        "top": 7571,
         "topTies": 1,
-        "players": 2792,
+        "players": 2790,
         "maxed": false,
         "section": "Skills"
        },
@@ -642,8 +642,8 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "label": "Worship",
         "notation": "default",
         "top": 293,
-        "topTies": 1,
-        "players": 2792,
+        "topTies": 2,
+        "players": 2790,
         "maxed": false,
         "section": "Skills"
        },
@@ -653,7 +653,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 313,
         "topTies": 1,
-        "players": 2767,
+        "players": 2766,
         "maxed": false,
         "section": "Skills"
        },
@@ -661,9 +661,9 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "key": "breeding",
         "label": "Breeding",
         "notation": "default",
-        "top": 250,
+        "top": 251,
         "topTies": 1,
-        "players": 2769,
+        "players": 2768,
         "maxed": false,
         "section": "Skills"
        },
@@ -671,9 +671,9 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "key": "laboratory",
         "label": "Laboratory",
         "notation": "default",
-        "top": 1159,
+        "top": 1160,
         "topTies": 1,
-        "players": 2767,
+        "players": 2766,
         "maxed": false,
         "section": "Skills"
        },
@@ -682,8 +682,8 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "label": "Sailing",
         "notation": "default",
         "top": 374,
-        "topTies": 1,
-        "players": 2731,
+        "topTies": 2,
+        "players": 2730,
         "maxed": false,
         "section": "Skills"
        },
@@ -691,9 +691,9 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "key": "divinity",
         "label": "Divinity",
         "notation": "default",
-        "top": 1107,
+        "top": 1108,
         "topTies": 1,
-        "players": 2731,
+        "players": 2730,
         "maxed": false,
         "section": "Skills"
        },
@@ -701,9 +701,9 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "key": "gaming",
         "label": "Gaming",
         "notation": "default",
-        "top": 609,
+        "top": 610,
         "topTies": 1,
-        "players": 2731,
+        "players": 2730,
         "maxed": false,
         "section": "Skills"
        },
@@ -712,8 +712,8 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "label": "Farming",
         "notation": "default",
         "top": 730,
-        "topTies": 1,
-        "players": 2700,
+        "topTies": 2,
+        "players": 2699,
         "maxed": false,
         "section": "Skills"
        },
@@ -721,9 +721,9 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "key": "sneaking",
         "label": "Sneaking",
         "notation": "default",
-        "top": 1635,
+        "top": 1636,
         "topTies": 1,
-        "players": 2700,
+        "players": 2699,
         "maxed": false,
         "section": "Skills"
        },
@@ -731,9 +731,9 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "key": "summoning",
         "label": "Summoning",
         "notation": "default",
-        "top": 342,
+        "top": 343,
         "topTies": 1,
-        "players": 2700,
+        "players": 2699,
         "maxed": false,
         "section": "Skills"
        },
@@ -741,9 +741,9 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "key": "spelunking",
         "label": "Spelunking",
         "notation": "default",
-        "top": 832,
+        "top": 833,
         "topTies": 1,
-        "players": 2570,
+        "players": 2567,
         "maxed": false,
         "section": "Skills"
        },
@@ -753,7 +753,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 120,
         "topTies": 1,
-        "players": 2714,
+        "players": 2712,
         "maxed": false,
         "section": "Skills"
        }
@@ -774,7 +774,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 2.3662204943534934e+48,
         "topTies": 1,
-        "players": 2810,
+        "players": 2808,
         "maxed": false,
         "section": "Damage & Kills"
        },
@@ -784,7 +784,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 66113487838830280000,
         "topTies": 1,
-        "players": 2810,
+        "players": 2808,
         "maxed": false,
         "section": "Damage & Kills"
        },
@@ -794,7 +794,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 65018780138819080000,
         "topTies": 1,
-        "players": 2810,
+        "players": 2808,
         "maxed": false,
         "section": "Damage & Kills"
        },
@@ -804,7 +804,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 754352,
         "topTies": 1,
-        "players": 2771,
+        "players": 2769,
         "maxed": false,
         "section": "Damage & Kills"
        },
@@ -824,7 +824,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 209,
         "topTies": 1,
-        "players": 2465,
+        "players": 2463,
         "maxed": false,
         "section": "Damage & Kills"
        },
@@ -832,9 +832,9 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "key": "totalDeathNoteDigits",
         "label": "Total Death Note Kill Digits",
         "notation": "default",
-        "top": 1801,
+        "top": 1802,
         "topTies": 1,
-        "players": 221,
+        "players": 293,
         "maxed": false,
         "section": "Damage & Kills"
        },
@@ -859,7 +859,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 362558067,
         "topTies": 1,
-        "players": 2741,
+        "players": 2740,
         "maxed": false,
         "section": "Class Kills"
        },
@@ -869,7 +869,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 862,
         "topTies": 1,
-        "players": 209,
+        "players": 277,
         "maxed": false,
         "section": "Class Kills"
        },
@@ -879,7 +879,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 5645441,
         "topTies": 1,
-        "players": 2721,
+        "players": 2719,
         "maxed": false,
         "section": "Class Kills"
        },
@@ -889,7 +889,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 56691122,
         "topTies": 1,
-        "players": 2734,
+        "players": 2733,
         "maxed": false,
         "section": "Class Kills"
        },
@@ -899,7 +899,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 122,
         "topTies": 1,
-        "players": 2647,
+        "players": 2646,
         "maxed": false,
         "section": "Class Kills"
        }
@@ -914,7 +914,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 573752.470666667,
         "topTies": 1,
-        "players": 2795,
+        "players": 2793,
         "maxed": false,
         "section": "Colosseum"
        },
@@ -924,7 +924,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 1953769.064,
         "topTies": 1,
-        "players": 2768,
+        "players": 2766,
         "maxed": false,
         "section": "Colosseum"
        },
@@ -934,7 +934,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 13390520.38133333,
         "topTies": 1,
-        "players": 2741,
+        "players": 2739,
         "maxed": false,
         "section": "Colosseum"
        },
@@ -944,7 +944,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 203878698.16,
         "topTies": 1,
-        "players": 2698,
+        "players": 2697,
         "maxed": false,
         "section": "Colosseum"
        },
@@ -954,7 +954,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 35879409.89718669,
         "topTies": 1,
-        "players": 2654,
+        "players": 2653,
         "maxed": false,
         "section": "Colosseum"
        },
@@ -964,7 +964,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 354791181.54793394,
         "topTies": 1,
-        "players": 2517,
+        "players": 2518,
         "maxed": false,
         "section": "Colosseum"
        }
@@ -977,9 +977,9 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "key": "dungeonCredits",
         "label": "Dungeon Credits",
         "notation": "default",
-        "top": 620563393986,
+        "top": 901976633432,
         "topTies": 1,
-        "players": 2801,
+        "players": 2799,
         "maxed": false,
         "section": "Dungeons"
        },
@@ -987,9 +987,9 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "key": "dungeonFlurbos",
         "label": "Dungeon Flurbos",
         "notation": "default",
-        "top": 112499321013,
+        "top": 162767295701,
         "topTies": 1,
-        "players": 2798,
+        "players": 2796,
         "maxed": false,
         "section": "Dungeons"
        },
@@ -997,9 +997,9 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "key": "dungeonRank",
         "label": "Dungeon Rank",
         "notation": "default",
-        "top": 81,
+        "top": 82,
         "topTies": 1,
-        "players": 2801,
+        "players": 2799,
         "maxed": false,
         "section": "Dungeons"
        }
@@ -1020,7 +1020,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 25016,
         "topTies": 1,
-        "players": 2803,
+        "players": 2801,
         "maxed": false,
         "section": "World 1"
        },
@@ -1030,7 +1030,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 45077,
         "topTies": 1,
-        "players": 2807,
+        "players": 2805,
         "maxed": false,
         "section": "World 1"
        },
@@ -1040,7 +1040,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "multiplier",
         "top": 4.662175365074576,
         "topTies": 1,
-        "players": 212,
+        "players": 281,
         "maxed": false,
         "section": "World 1"
        }
@@ -1055,7 +1055,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 1103,
         "topTies": 1,
-        "players": 2794,
+        "players": 2792,
         "maxed": false,
         "section": "World 2"
        },
@@ -1063,9 +1063,9 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "key": "fractalHours",
         "label": "Fractal Hours",
         "notation": "default",
-        "top": 263010,
+        "top": 263012,
         "topTies": 1,
-        "players": 2168,
+        "players": 2167,
         "maxed": false,
         "section": "World 2"
        },
@@ -1073,9 +1073,9 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "key": "totalBubbles",
         "label": "Total Bubbles",
         "notation": "default",
-        "top": 7001949449786,
+        "top": 40402653,
         "topTies": 1,
-        "players": 2803,
+        "players": 2801,
         "maxed": false,
         "section": "World 2"
        },
@@ -1085,7 +1085,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 4897573,
         "topTies": 1,
-        "players": 2762,
+        "players": 2761,
         "maxed": false,
         "section": "World 2"
        },
@@ -1095,7 +1095,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 4889573,
         "topTies": 1,
-        "players": 2762,
+        "players": 2761,
         "maxed": false,
         "section": "World 2"
        },
@@ -1105,7 +1105,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 4887573,
         "topTies": 1,
-        "players": 2798,
+        "players": 2796,
         "maxed": false,
         "section": "World 2"
        },
@@ -1115,7 +1115,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 419999,
         "topTies": 2,
-        "players": 2602,
+        "players": 2601,
         "maxed": false,
         "section": "World 2"
        },
@@ -1123,9 +1123,9 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "key": "totalArcadeUpgradeLevels",
         "label": "Total Arcade Upgrade Levels",
         "notation": "default",
-        "top": 7489,
+        "top": 7490,
         "topTies": 1,
-        "players": 250,
+        "players": 324,
         "maxed": false,
         "section": "World 2"
        },
@@ -1133,9 +1133,9 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "key": "totalLiquidCauldronLevels",
         "label": "Total Liquid Cauldron Levels",
         "notation": "default",
-        "top": 39415,
+        "top": 49442,
         "topTies": 1,
-        "players": 245,
+        "players": 317,
         "maxed": false,
         "section": "World 2"
        },
@@ -1145,7 +1145,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "multiplier",
         "top": 4.128216314057555,
         "topTies": 1,
-        "players": 207,
+        "players": 276,
         "maxed": false,
         "section": "World 2"
        },
@@ -1154,8 +1154,8 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "label": "Meritocracy Multi",
         "notation": "multiplier",
         "top": 5.021990049751244,
-        "topTies": 74,
-        "players": 204,
+        "topTies": 100,
+        "players": 270,
         "maxed": true,
         "section": "World 2"
        }
@@ -1168,9 +1168,9 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "key": "totalBuildings",
         "label": "Total Buildings",
         "notation": "default",
-        "top": 5744,
+        "top": 5747,
         "topTies": 1,
-        "players": 2790,
+        "players": 2789,
         "maxed": false,
         "section": "World 3"
        },
@@ -1180,7 +1180,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 356,
         "topTies": 1,
-        "players": 2784,
+        "players": 2783,
         "maxed": false,
         "section": "World 3"
        },
@@ -1190,7 +1190,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 1836,
         "topTies": 1,
-        "players": 2779,
+        "players": 2777,
         "maxed": false,
         "section": "World 3"
        },
@@ -1198,9 +1198,9 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "key": "totalEquinoxUpgrades",
         "label": "Total Equinox Upgrades",
         "notation": "default",
-        "top": 526,
-        "topTies": 2,
-        "players": 2121,
+        "top": 528,
+        "topTies": 1,
+        "players": 2136,
         "maxed": false,
         "section": "World 3"
        },
@@ -1210,7 +1210,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 409017455152586360000,
         "topTies": 1,
-        "players": 2627,
+        "players": 2626,
         "maxed": false,
         "section": "World 3"
        },
@@ -1220,7 +1220,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 1.4355324154978427e+22,
         "topTies": 1,
-        "players": 2738,
+        "players": 2739,
         "maxed": false,
         "section": "World 3"
        },
@@ -1230,7 +1230,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 965000000000000000000,
         "topTies": 1,
-        "players": 2671,
+        "players": 2670,
         "maxed": false,
         "section": "World 3"
        },
@@ -1250,7 +1250,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 16730000000000000000,
         "topTies": 1,
-        "players": 2582,
+        "players": 2581,
         "maxed": false,
         "section": "World 3"
        },
@@ -1260,7 +1260,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 1104609,
         "topTies": 1,
-        "players": 2772,
+        "players": 2771,
         "maxed": false,
         "section": "World 3"
        },
@@ -1270,7 +1270,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 1104769,
         "topTies": 1,
-        "players": 2763,
+        "players": 2761,
         "maxed": false,
         "section": "World 3"
        },
@@ -1280,7 +1280,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 65534983809,
         "topTies": 1,
-        "players": 2785,
+        "players": 2784,
         "maxed": false,
         "section": "World 3"
        },
@@ -1290,7 +1290,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 1.1614547620191664e+26,
         "topTies": 1,
-        "players": 2785,
+        "players": 2784,
         "maxed": false,
         "section": "World 3"
        },
@@ -1300,7 +1300,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 656,
         "topTies": 1,
-        "players": 2789,
+        "players": 2788,
         "maxed": false,
         "section": "World 3"
        },
@@ -1308,9 +1308,9 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "key": "highestConstructExp/hr",
         "label": "Highest Construct Exp/hr",
         "notation": "default",
-        "top": 2.515075664076969e+24,
+        "top": 2.5776496866153504e+24,
         "topTies": 1,
-        "players": 2810,
+        "players": 2808,
         "maxed": false,
         "section": "World 3"
        },
@@ -1320,7 +1320,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 232070,
         "topTies": 1,
-        "players": 2810,
+        "players": 2808,
         "maxed": false,
         "section": "World 3"
        },
@@ -1330,7 +1330,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 16129,
         "topTies": 1,
-        "players": 2780,
+        "players": 2779,
         "maxed": false,
         "section": "World 3"
        },
@@ -1340,7 +1340,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 12116,
         "topTies": 1,
-        "players": 2758,
+        "players": 2757,
         "maxed": false,
         "section": "World 3"
        },
@@ -1350,7 +1350,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 8575,
         "topTies": 2,
-        "players": 2725,
+        "players": 2724,
         "maxed": false,
         "section": "World 3"
        },
@@ -1360,7 +1360,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 7271,
         "topTies": 2,
-        "players": 2677,
+        "players": 2676,
         "maxed": false,
         "section": "World 3"
        },
@@ -1368,9 +1368,9 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "key": "nulloSaltRank",
         "label": "Nullo Salt Rank",
         "notation": "default",
-        "top": 4384,
-        "topTies": 2,
-        "players": 2641,
+        "top": 4440,
+        "topTies": 1,
+        "players": 2639,
         "maxed": false,
         "section": "World 3"
        },
@@ -1380,7 +1380,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 61,
         "topTies": 1,
-        "players": 2191,
+        "players": 2192,
         "maxed": false,
         "section": "World 3"
        },
@@ -1399,8 +1399,8 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "label": "Anionic Salt Rank",
         "notation": "default",
         "top": 1,
-        "topTies": 497,
-        "players": 497,
+        "topTies": 499,
+        "players": 499,
         "maxed": true,
         "section": "World 3"
        },
@@ -1410,7 +1410,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 1157,
         "topTies": 1,
-        "players": 239,
+        "players": 310,
         "maxed": false,
         "section": "World 3"
        },
@@ -1420,7 +1420,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "multiplier",
         "top": 2.17,
         "topTies": 1,
-        "players": 221,
+        "players": 293,
         "maxed": false,
         "section": "World 3"
        }
@@ -1435,7 +1435,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 11926,
         "topTies": 1,
-        "players": 2766,
+        "players": 2765,
         "maxed": false,
         "section": "World 4"
        },
@@ -1443,9 +1443,9 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "key": "cookingMasteryLevel",
         "label": "Cooking Mastery Level",
         "notation": "default",
-        "top": 37,
-        "topTies": 1,
-        "players": 2171,
+        "top": 35,
+        "topTies": 2,
+        "players": 2186,
         "maxed": false,
         "section": "World 4"
        },
@@ -1454,8 +1454,8 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "label": "Total Shiny Levels",
         "notation": "default",
         "top": 2040,
-        "topTies": 19,
-        "players": 2810,
+        "topTies": 20,
+        "players": 2808,
         "maxed": false,
         "section": "World 4"
        },
@@ -1465,7 +1465,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 612,
         "topTies": 112,
-        "players": 2810,
+        "players": 2808,
         "maxed": false,
         "section": "World 4"
        },
@@ -1475,7 +1475,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 9405498.032147137,
         "topTies": 1,
-        "players": 2766,
+        "players": 2765,
         "maxed": false,
         "section": "World 4"
        },
@@ -1485,7 +1485,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 4292,
         "topTies": 1,
-        "players": 2753,
+        "players": 2752,
         "maxed": false,
         "section": "World 4"
        },
@@ -1495,7 +1495,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 2939,
         "topTies": 1,
-        "players": 962,
+        "players": 973,
         "maxed": false,
         "section": "World 4"
        },
@@ -1505,7 +1505,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 23732,
         "topTies": 1,
-        "players": 243,
+        "players": 318,
         "maxed": false,
         "section": "World 4"
        },
@@ -1513,9 +1513,9 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "key": "totalRibbonRanks",
         "label": "Total Ribbon Ranks",
         "notation": "default",
-        "top": 1443,
+        "top": 1500,
         "topTies": 1,
-        "players": 237,
+        "players": 309,
         "maxed": false,
         "section": "World 4"
        },
@@ -1523,9 +1523,9 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "key": "totalBreedingUpgrades",
         "label": "Total Breeding Upgrades",
         "notation": "default",
-        "top": 665,
+        "top": 602,
         "topTies": 1,
-        "players": 242,
+        "players": 317,
         "maxed": false,
         "section": "World 4"
        },
@@ -1535,7 +1535,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "seconds",
         "top": 289.50057820750504,
         "topTies": 1,
-        "players": 216,
+        "players": 289,
         "maxed": false,
         "section": "World 4"
        },
@@ -1543,9 +1543,9 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "key": "totalPetPower",
         "label": "Total Pet Power",
         "notation": "default",
-        "top": 14646,
-        "topTies": 3,
-        "players": 221,
+        "top": 14666,
+        "topTies": 1,
+        "players": 293,
         "maxed": false,
         "section": "World 4"
        },
@@ -1555,7 +1555,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "seconds",
         "top": 221.53846153846155,
         "topTies": 1,
-        "players": 2407,
+        "players": 2409,
         "maxed": false,
         "section": "World 4"
        }
@@ -1570,7 +1570,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 22337,
         "topTies": 1,
-        "players": 2810,
+        "players": 2808,
         "maxed": false,
         "section": "World 5"
        },
@@ -1580,7 +1580,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 32,
         "topTies": 3,
-        "players": 2392,
+        "players": 2390,
         "maxed": false,
         "section": "World 5"
        },
@@ -1590,7 +1590,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 3527,
         "topTies": 1,
-        "players": 2713,
+        "players": 2712,
         "maxed": false,
         "section": "World 5"
        },
@@ -1600,7 +1600,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "bits",
         "top": 5.97e+121,
         "topTies": 1,
-        "players": 2731,
+        "players": 2730,
         "maxed": false,
         "section": "World 5"
        },
@@ -1609,8 +1609,8 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "label": "Log Book",
         "notation": "default",
         "top": 100,
-        "topTies": 824,
-        "players": 2731,
+        "topTies": 827,
+        "players": 2730,
         "maxed": true,
         "section": "World 5"
        },
@@ -1620,7 +1620,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 2909,
         "topTies": 1,
-        "players": 2808,
+        "players": 2806,
         "maxed": false,
         "section": "World 5"
        },
@@ -1628,9 +1628,9 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "key": "plantsPicked",
         "label": "Plants Picked",
         "notation": "default",
-        "top": 138493287,
+        "top": 138522503,
         "topTies": 1,
-        "players": 2731,
+        "players": 2730,
         "maxed": false,
         "section": "World 5"
        },
@@ -1640,7 +1640,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "seconds",
         "top": 74640112.1499578,
         "topTies": 1,
-        "players": 375,
+        "players": 427,
         "maxed": false,
         "section": "World 5"
        },
@@ -1650,7 +1650,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 2726819908448.6797,
         "topTies": 1,
-        "players": 2684,
+        "players": 2682,
         "maxed": false,
         "section": "World 5"
        },
@@ -1659,8 +1659,8 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "label": "Total Gaming Crowns",
         "notation": "default",
         "top": 100,
-        "topTies": 32,
-        "players": 2232,
+        "topTies": 31,
+        "players": 2231,
         "maxed": false,
         "section": "World 5"
        },
@@ -1670,7 +1670,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 20,
         "topTies": 2,
-        "players": 1685,
+        "players": 1684,
         "maxed": false,
         "section": "World 5"
        },
@@ -1680,7 +1680,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 1e+54,
         "topTies": 1,
-        "players": 2547,
+        "players": 2546,
         "maxed": false,
         "section": "World 5"
        }
@@ -1695,7 +1695,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 9193,
         "topTies": 1,
-        "players": 2618,
+        "players": 2617,
         "maxed": false,
         "section": "Caverns"
        },
@@ -1705,7 +1705,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 766,
         "topTies": 1,
-        "players": 2720,
+        "players": 2719,
         "maxed": false,
         "section": "Caverns"
        },
@@ -1715,7 +1715,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 190,
         "topTies": 1,
-        "players": 2683,
+        "players": 2681,
         "maxed": false,
         "section": "Caverns"
        },
@@ -1725,7 +1725,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 1383,
         "topTies": 1,
-        "players": 2675,
+        "players": 2674,
         "maxed": false,
         "section": "Caverns"
        },
@@ -1735,7 +1735,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 14264311139.470566,
         "topTies": 1,
-        "players": 2703,
+        "players": 2702,
         "maxed": false,
         "section": "Caverns"
        },
@@ -1755,7 +1755,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 5919906,
         "topTies": 1,
-        "players": 2449,
+        "players": 2446,
         "maxed": false,
         "section": "Caverns"
        },
@@ -1765,7 +1765,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 595,
         "topTies": 1,
-        "players": 2451,
+        "players": 2448,
         "maxed": false,
         "section": "Caverns"
        },
@@ -1775,7 +1775,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 826,
         "topTies": 1,
-        "players": 2671,
+        "players": 2670,
         "maxed": false,
         "section": "Caverns"
        },
@@ -1785,7 +1785,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 63,
         "topTies": 1,
-        "players": 2654,
+        "players": 2652,
         "maxed": false,
         "section": "Caverns"
        },
@@ -1795,7 +1795,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 1258,
         "topTies": 1,
-        "players": 2809,
+        "players": 2807,
         "maxed": false,
         "section": "Caverns"
        },
@@ -1805,7 +1805,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 35888491,
         "topTies": 1,
-        "players": 2290,
+        "players": 2289,
         "maxed": false,
         "section": "Caverns"
        },
@@ -1815,7 +1815,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 11542,
         "topTies": 1,
-        "players": 2277,
+        "players": 2275,
         "maxed": false,
         "section": "Caverns"
        },
@@ -1823,9 +1823,9 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "key": "totalGambitTime",
         "label": "Total Gambit Time",
         "notation": "default",
-        "top": 11851.499999995785,
+        "top": 11948.799999995706,
         "topTies": 1,
-        "players": 2256,
+        "players": 2253,
         "maxed": false,
         "section": "Caverns"
        },
@@ -1835,7 +1835,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 3.938283963223913e+22,
         "topTies": 1,
-        "players": 2720,
+        "players": 2719,
         "maxed": false,
         "section": "Caverns"
        },
@@ -1845,7 +1845,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 4.000999307247327e+22,
         "topTies": 1,
-        "players": 2405,
+        "players": 2419,
         "maxed": false,
         "section": "Caverns"
        },
@@ -1855,7 +1855,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 27,
         "topTies": 1,
-        "players": 2810,
+        "players": 2808,
         "maxed": false,
         "section": "Caverns"
        },
@@ -1865,7 +1865,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 50,
         "topTies": 2,
-        "players": 2810,
+        "players": 2808,
         "maxed": false,
         "section": "Caverns"
        },
@@ -1875,7 +1875,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 24040,
         "topTies": 1,
-        "players": 2125,
+        "players": 2122,
         "maxed": false,
         "section": "Caverns"
        },
@@ -1885,7 +1885,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 1126,
         "topTies": 1,
-        "players": 2726,
+        "players": 2725,
         "maxed": false,
         "section": "Caverns"
        },
@@ -1895,7 +1895,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "multiplier",
         "top": 3727812020.1653757,
         "topTies": 1,
-        "players": 182,
+        "players": 239,
         "maxed": false,
         "section": "Caverns"
        },
@@ -1905,7 +1905,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 9437.41267839952,
         "topTies": 1,
-        "players": 207,
+        "players": 274,
         "maxed": false,
         "section": "Caverns"
        }
@@ -1920,7 +1920,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 17179869184,
         "topTies": 1,
-        "players": 2809,
+        "players": 2807,
         "maxed": false,
         "section": "World 6"
        },
@@ -1928,9 +1928,9 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "key": "totalPlotRanks",
         "label": "Total Plot Ranks",
         "notation": "default",
-        "top": 11961,
+        "top": 11981,
         "topTies": 1,
-        "players": 2338,
+        "players": 2335,
         "maxed": false,
         "section": "World 6"
        },
@@ -1940,7 +1940,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 3520,
         "topTies": 1,
-        "players": 1744,
+        "players": 1761,
         "maxed": false,
         "section": "World 6"
        },
@@ -1950,7 +1950,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 1936,
         "topTies": 1,
-        "players": 1671,
+        "players": 1687,
         "maxed": false,
         "section": "World 6"
        },
@@ -1960,7 +1960,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 2.1358409504565657e+116,
         "topTies": 1,
-        "players": 2701,
+        "players": 2700,
         "maxed": false,
         "section": "World 6"
        },
@@ -1968,9 +1968,9 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "key": "whiteEssence",
         "label": "White Essence",
         "notation": "default",
-        "top": 6.401974391857024e+42,
+        "top": 6.575584683841267e+42,
         "topTies": 1,
-        "players": 2700,
+        "players": 2699,
         "maxed": false,
         "section": "World 6"
        },
@@ -1980,7 +1980,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 41914,
         "topTies": 1,
-        "players": 2699,
+        "players": 2698,
         "maxed": false,
         "section": "World 6"
        },
@@ -1990,7 +1990,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 407,
         "topTies": 1,
-        "players": 2481,
+        "players": 2479,
         "maxed": false,
         "section": "World 6"
        },
@@ -2000,7 +2000,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 52860,
         "topTies": 1,
-        "players": 2693,
+        "players": 2692,
         "maxed": false,
         "section": "World 6"
        },
@@ -2010,7 +2010,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 470950,
         "topTies": 1,
-        "players": 1555,
+        "players": 1568,
         "maxed": false,
         "section": "World 6"
        },
@@ -2020,7 +2020,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 128,
         "topTies": 1,
-        "players": 2295,
+        "players": 2294,
         "maxed": false,
         "section": "World 6"
        },
@@ -2028,9 +2028,9 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "key": "cropEvolutionMulti",
         "label": "Crop Evolution Multi",
         "notation": "multiplier",
-        "top": 6.351256520724323e+261,
+        "top": 6.414076957830008e+261,
         "topTies": 1,
-        "players": 213,
+        "players": 284,
         "maxed": false,
         "section": "World 6"
        }
@@ -2045,7 +2045,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 16457,
         "topTies": 1,
-        "players": 2366,
+        "players": 2364,
         "maxed": false,
         "section": "World 7"
        },
@@ -2055,7 +2055,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 857,
         "topTies": 1,
-        "players": 2187,
+        "players": 2186,
         "maxed": false,
         "section": "World 7"
        },
@@ -2065,7 +2065,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 1936,
         "topTies": 1,
-        "players": 2332,
+        "players": 2330,
         "maxed": false,
         "section": "World 7"
        },
@@ -2075,7 +2075,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 12660,
         "topTies": 1,
-        "players": 2327,
+        "players": 2325,
         "maxed": false,
         "section": "World 7"
        },
@@ -2083,9 +2083,9 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "key": "totalSushiKnowledgeLevels",
         "label": "Total Sushi Knowledge Levels",
         "notation": "default",
-        "top": 1907,
+        "top": 1938,
         "topTies": 1,
-        "players": 2289,
+        "players": 2288,
         "maxed": false,
         "section": "World 7"
        },
@@ -2095,7 +2095,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 64,
         "topTies": 1,
-        "players": 2069,
+        "players": 2068,
         "maxed": false,
         "section": "World 7"
        },
@@ -2105,7 +2105,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 76850,
         "topTies": 1,
-        "players": 1727,
+        "players": 1737,
         "maxed": false,
         "section": "World 7"
        },
@@ -2115,7 +2115,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 386,
         "topTies": 2,
-        "players": 1937,
+        "players": 1935,
         "maxed": false,
         "section": "World 7"
        },
@@ -2125,7 +2125,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 3369,
         "topTies": 1,
-        "players": 2202,
+        "players": 2203,
         "maxed": false,
         "section": "World 7"
        },
@@ -2135,7 +2135,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 84528642026912770,
         "topTies": 1,
-        "players": 1747,
+        "players": 1758,
         "maxed": false,
         "section": "World 7"
        },
@@ -2143,9 +2143,9 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "key": "totalJellyCellLevels",
         "label": "Total Jelly Cell Levels",
         "notation": "default",
-        "top": 298,
+        "top": 304,
         "topTies": 1,
-        "players": 1734,
+        "players": 1746,
         "maxed": false,
         "section": "World 7"
        },
@@ -2153,9 +2153,9 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "key": "totalJellyUpgrades",
         "label": "Total Jelly Upgrades",
         "notation": "default",
-        "top": 1586,
+        "top": 1594,
         "topTies": 1,
-        "players": 1757,
+        "players": 1768,
         "maxed": false,
         "section": "World 7"
        },
@@ -2165,7 +2165,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 3.725726865900606e+51,
         "topTies": 1,
-        "players": 2462,
+        "players": 2460,
         "maxed": false,
         "section": "World 7"
        },
@@ -2175,7 +2175,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 8.12108522260514e+41,
         "topTies": 1,
-        "players": 2810,
+        "players": 2808,
         "maxed": false,
         "section": "World 7"
        },
@@ -2185,7 +2185,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 4527,
         "topTies": 1,
-        "players": 2462,
+        "players": 2460,
         "maxed": false,
         "section": "World 7"
        },
@@ -2195,7 +2195,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 4042,
         "topTies": 1,
-        "players": 1731,
+        "players": 1737,
         "maxed": false,
         "section": "World 7"
        },
@@ -2204,7 +2204,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "label": "Minehead Opponents Defeated",
         "notation": "default",
         "top": 28,
-        "topTies": 2,
+        "topTies": 3,
         "players": 2420,
         "maxed": false,
         "section": "World 7"
@@ -2215,7 +2215,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 100,
         "topTies": 49,
-        "players": 2000,
+        "players": 1998,
         "maxed": false,
         "section": "World 7"
        },
@@ -2225,7 +2225,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 2737,
         "topTies": 1,
-        "players": 2246,
+        "players": 2245,
         "maxed": false,
         "section": "World 7"
        },
@@ -2235,7 +2235,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 38,
         "topTies": 1,
-        "players": 1391,
+        "players": 1406,
         "maxed": false,
         "section": "World 7"
        },
@@ -2245,7 +2245,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 326,
         "topTies": 1,
-        "players": 1385,
+        "players": 1401,
         "maxed": false,
         "section": "World 7"
        },
@@ -2255,7 +2255,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 58,
         "topTies": 9,
-        "players": 2400,
+        "players": 2398,
         "maxed": false,
         "section": "World 7"
        },
@@ -2264,8 +2264,8 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "label": "Clamwork Worker Class",
         "notation": "default",
         "top": 12,
-        "topTies": 48,
-        "players": 2316,
+        "topTies": 50,
+        "players": 2315,
         "maxed": false,
         "section": "World 7"
        },
@@ -2275,7 +2275,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 70,
         "topTies": 1,
-        "players": 1789,
+        "players": 1788,
         "maxed": false,
         "section": "World 7"
        },
@@ -2284,8 +2284,8 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "label": "Total Yellow Jelly Levels",
         "notation": "default",
         "top": 42,
-        "topTies": 3,
-        "players": 743,
+        "topTies": 4,
+        "players": 755,
         "maxed": false,
         "section": "World 7"
        },
@@ -2295,7 +2295,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 110030516344,
         "topTies": 1,
-        "players": 1037,
+        "players": 1048,
         "maxed": false,
         "section": "World 7"
        },
@@ -2305,7 +2305,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 184621,
         "topTies": 1,
-        "players": 2425,
+        "players": 2423,
         "maxed": false,
         "section": "World 7"
        },
@@ -2315,7 +2315,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "multiplier",
         "top": 2.308821935559875,
         "topTies": 1,
-        "players": 204,
+        "players": 269,
         "maxed": false,
         "section": "World 7"
        },
@@ -2325,7 +2325,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 15,
         "topTies": 1,
-        "players": 1913,
+        "players": 1917,
         "maxed": false,
         "section": "World 7"
        },
@@ -2335,7 +2335,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
         "notation": "default",
         "top": 2279730.1447725263,
         "topTies": 1,
-        "players": 204,
+        "players": 270,
         "maxed": false,
         "section": "World 7"
        }
@@ -2347,14 +2347,14 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
  },
  "boards": {
   "totalMoney": {
-   "top10": 4.589063339113308e+63,
+   "top10": 4.5930324361505415e+63,
    "top100": 1.236587998978128e+60,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
   "totalLevels": {
-   "top10": 21509,
-   "top100": 20620,
+   "top10": 21531,
+   "top100": 20623,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
@@ -2377,8 +2377,8 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
    "firstSeen": "2026-01-01"
   },
   "totalTomePoints": {
-   "top10": 55865,
-   "top100": 54804,
+   "top10": 55862,
+   "top100": 54827,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
@@ -2389,26 +2389,26 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
    "firstSeen": "2026-01-01"
   },
   "totalAchievements": {
-   "top10": 265,
-   "top100": 250,
+   "top10": 266,
+   "top100": 253,
    "lowerIsBetter": false,
    "firstSeen": "2026-11-13"
   },
   "totalUniqueQuests": {
-   "top10": 327,
-   "top100": 316,
+   "top10": 328,
+   "top100": 317,
    "lowerIsBetter": false,
    "firstSeen": "2026-11-13"
   },
   "totalTasksCompleted": {
-   "top10": 492,
-   "top100": 472,
+   "top10": 493,
+   "top100": 478,
    "lowerIsBetter": false,
    "firstSeen": "2026-11-13"
   },
   "totalUpgradeVaultLevels": {
    "top10": 19632,
-   "top100": 16614,
+   "top100": 17327,
    "lowerIsBetter": false,
    "firstSeen": "2026-11-13"
   },
@@ -2419,14 +2419,14 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
    "firstSeen": "2026-11-13"
   },
   "totalCardLevels": {
-   "top10": 1751,
-   "top100": 1604,
+   "top10": 1757,
+   "top100": 1634,
    "lowerIsBetter": false,
    "firstSeen": "2026-11-13"
   },
   "goldenFoodBonus": {
-   "top10": 259779.36319183695,
-   "top100": 138441.97679103242,
+   "top10": 259768.42802054802,
+   "top100": 169709.0702865612,
    "lowerIsBetter": false,
    "firstSeen": "2026-11-13"
   },
@@ -2450,7 +2450,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
   },
   "miningMinigame": {
    "top10": 227,
-   "top100": 133,
+   "top100": 134,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
@@ -2492,25 +2492,25 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
   },
   "strength": {
    "top10": 112632857,
-   "top100": 72880759,
+   "top100": 73798067,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
   "agility": {
-   "top10": 88004805,
-   "top100": 56101089,
+   "top10": 89277414,
+   "top100": 56755081,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
   "wisdom": {
-   "top10": 97871188,
-   "top100": 57992016,
+   "top10": 97525497,
+   "top100": 57823614,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
   "luck": {
-   "top10": 39337495,
-   "top100": 23406569,
+   "top10": 39924476,
+   "top100": 23431330,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
@@ -2522,7 +2522,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
   },
   "dropRate": {
    "top10": 3053955.4303311524,
-   "top100": 1361168.7099042286,
+   "top100": 1431250.1319335168,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
@@ -2534,25 +2534,25 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
   },
   "defence": {
    "top10": 515987904823.6366,
-   "top100": 110405909865.16849,
+   "top100": 91981571607.65471,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
   "accuracy": {
    "top10": 7.931800200483073e+38,
-   "top100": 4.828345466730718e+35,
+   "top100": 4.304790705079186e+35,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
   "hp": {
    "top10": 1547047418899248.5,
-   "top100": 359506905230923.56,
+   "top100": 361282061258241.75,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
   "mp": {
    "top10": 10557919483.863956,
-   "top100": 4505862634.86491,
+   "top100": 4512230316.992063,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
@@ -2576,7 +2576,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
   },
   "totalDustCollected": {
    "top10": 3.369111448723784e+21,
-   "top100": 168272866273133500000,
+   "top100": 168276558762909100000,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
@@ -2594,31 +2594,31 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
   },
   "totalTachyonsCollected": {
    "top10": 422810635183516550000,
-   "top100": 51585146493575910000,
+   "top100": 50834487126075930000,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
   "highestArcaneMapMulti": {
    "top10": 1.5636283448334232,
-   "top100": 1.4800206790966515,
+   "top100": 1.4813223740885053,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
   "totalRoyalArmoryUpgrades": {
-   "top10": 3634,
-   "top100": 3393,
+   "top10": 3662,
+   "top100": 3418,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
   "totalRoyalResourceGrades": {
-   "top10": 4447,
-   "top100": 4092,
+   "top10": 4499,
+   "top100": 4164,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
   "totalRoyalStatueLevels": {
-   "top10": 69,
-   "top100": 27,
+   "top10": 70,
+   "top100": 28,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
@@ -2629,14 +2629,14 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
    "firstSeen": "2026-01-01"
   },
   "highestOutpostResourceRate": {
-   "top10": 75609177589685290000,
-   "top100": 3020311436979256300,
+   "top10": 81573635461875470000,
+   "top100": 3959835111419577300,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
   "totalSkillsLevels": {
    "top10": 163762,
-   "top100": 148547,
+   "top100": 148842,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
@@ -2653,8 +2653,8 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
    "firstSeen": "2026-01-01"
   },
   "choppin": {
-   "top10": 335,
-   "top100": 301,
+   "top10": 336,
+   "top100": 302,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
@@ -2665,31 +2665,31 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
    "firstSeen": "2026-01-01"
   },
   "alchemy": {
-   "top10": 285,
+   "top10": 286,
    "top100": 262,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
   "catching": {
-   "top10": 340,
+   "top10": 341,
    "top100": 301,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
   "trapping": {
    "top10": 234,
-   "top100": 214,
+   "top100": 215,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
   "construction": {
-   "top10": 7319,
-   "top100": 6708,
+   "top10": 7345,
+   "top100": 6709,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
   "worship": {
-   "top10": 264,
+   "top10": 265,
    "top100": 241,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
@@ -2707,43 +2707,43 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
    "firstSeen": "2026-01-01"
   },
   "laboratory": {
-   "top10": 1112,
+   "top10": 1115,
    "top100": 1019,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
   "sailing": {
    "top10": 365,
-   "top100": 339,
+   "top100": 340,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
   "divinity": {
-   "top10": 1027,
-   "top100": 927,
+   "top10": 1028,
+   "top100": 929,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
   "gaming": {
-   "top10": 601,
+   "top10": 602,
    "top100": 573,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
   "farming": {
    "top10": 722,
-   "top100": 692,
+   "top100": 693,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
   "sneaking": {
-   "top10": 1625,
-   "top100": 1451,
+   "top10": 1626,
+   "top100": 1452,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
   "summoning": {
-   "top10": 328,
+   "top10": 330,
    "top100": 304,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
@@ -2768,19 +2768,19 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
   },
   "monstersKilled": {
    "top10": 20950802831530170000,
-   "top100": 2178164369398668500,
+   "top100": 2280656050016759000,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
   "greenMushroomKills": {
    "top10": 20907652364381377000,
-   "top100": 2015993992689236700,
+   "top100": 2049191274184166000,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
   "totalPrimeKills": {
    "top10": 390992,
-   "top100": 279437,
+   "top100": 278089,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
@@ -2797,8 +2797,8 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
    "firstSeen": "2026-01-01"
   },
   "totalDeathNoteDigits": {
-   "top10": 1655,
-   "top100": 1377,
+   "top10": 1662,
+   "top100": 1415,
    "lowerIsBetter": false,
    "firstSeen": "2026-11-13"
   },
@@ -2810,13 +2810,13 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
   },
   "dkOrbKills": {
    "top10": 215479521,
-   "top100": 134635468,
+   "top100": 135251262,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
   "orbOfRemembranceLevel": {
-   "top10": 855,
-   "top100": 783,
+   "top10": 856,
+   "top100": 795,
    "lowerIsBetter": false,
    "firstSeen": "2026-11-13"
   },
@@ -2840,13 +2840,13 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
   },
   "w1Colo": {
    "top10": 540790.5666666664,
-   "top100": 524783.61,
+   "top100": 524542.1959999999,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
   "w2Colo": {
    "top10": 1889471.232,
-   "top100": 1591962.06,
+   "top100": 1592190.776,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
@@ -2875,20 +2875,20 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
    "firstSeen": "2026-01-01"
   },
   "dungeonCredits": {
-   "top10": 12055743717,
-   "top100": 746358031,
+   "top10": 12109298759,
+   "top100": 790592766,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
   "dungeonFlurbos": {
    "top10": 3353429848,
-   "top100": 145519374,
+   "top100": 153090879,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
   "dungeonRank": {
    "top10": 77,
-   "top100": 69,
+   "top100": 70,
    "lowerIsBetter": false,
    "firstSeen": "2026-11-13"
   },
@@ -2906,7 +2906,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
   },
   "exaltedStampMulti": {
    "top10": 4.623499107774505,
-   "top100": 4.230046716973005,
+   "top100": 4.420505043870175,
    "lowerIsBetter": false,
    "firstSeen": "2026-11-13"
   },
@@ -2924,13 +2924,13 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
   },
   "totalBubbles": {
    "top10": 24024082,
-   "top100": 12862657,
+   "top100": 12923954,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
   "highestCallMeBob": {
    "top10": 2671229,
-   "top100": 1425866,
+   "top100": 1440310,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
@@ -2953,32 +2953,32 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
    "firstSeen": "2026-01-01"
   },
   "totalArcadeUpgradeLevels": {
-   "top10": 7417,
-   "top100": 6627,
+   "top10": 7463,
+   "top100": 6930,
    "lowerIsBetter": false,
    "firstSeen": "2026-11-13"
   },
   "totalLiquidCauldronLevels": {
-   "top10": 26316,
-   "top100": 8352,
+   "top10": 26767,
+   "top100": 10700,
    "lowerIsBetter": false,
    "firstSeen": "2026-11-13"
   },
   "prismaBubbleMulti": {
-   "top10": 4.118947945864759,
-   "top100": 3.8773665475439705,
+   "top10": 4.119889878304693,
+   "top100": 3.963808975348849,
    "lowerIsBetter": false,
    "firstSeen": "2026-11-13"
   },
   "meritocracyMulti": {
    "top10": 5.021990049751244,
-   "top100": 4.521990049751244,
+   "top100": 5.021990049751244,
    "lowerIsBetter": false,
    "firstSeen": "2026-11-13"
   },
   "totalBuildings": {
    "top10": 5513,
-   "top100": 5373,
+   "top100": 5376,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
@@ -2995,7 +2995,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
    "firstSeen": "2026-01-01"
   },
   "totalEquinoxUpgrades": {
-   "top10": 517,
+   "top10": 519,
    "top100": 472,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
@@ -3014,25 +3014,25 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
   },
   "fliesSample": {
    "top10": 17311872468948503000,
-   "top100": 1989729490891824000,
+   "top100": 1975161404711861200,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
   "sporeSample": {
    "top10": 135255699209.03041,
-   "top100": 45444835797.66901,
+   "top100": 45099335083.01364,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
   "goldFishSample": {
    "top10": 11776582755126907000,
-   "top100": 1601776453523457000,
+   "top100": 1590064227484764000,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
   "trashedCogs": {
    "top10": 177437,
-   "top100": 42681,
+   "top100": 43053,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
@@ -3043,32 +3043,32 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
    "firstSeen": "2026-01-01"
   },
   "refinedSalts": {
-   "top10": 32003607170,
+   "top10": 32157607170,
    "top100": 11212651895,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
   "totalMaterialPrinted": {
-   "top10": 6.276842651276134e+25,
-   "top100": 5.27316085187802e+24,
+   "top10": 6.647728659090489e+25,
+   "top100": 5.734058055033582e+24,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
   "highestCogExp": {
    "top10": 599,
-   "top100": 554,
+   "top100": 556,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
   "highestConstructExp/hr": {
-   "top10": 6.739209559616678e+23,
-   "top100": 6.2622340911624234e+22,
+   "top10": 8.697204102342127e+23,
+   "top100": 6.266676560972904e+22,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
   "redoxSaltRank": {
    "top10": 12485,
-   "top100": 4374,
+   "top100": 4415,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
@@ -3086,18 +3086,18 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
   },
   "dioxideSaltRank": {
    "top10": 4055,
-   "top100": 1378,
+   "top100": 1382,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
   "purpleSaltRank": {
-   "top10": 3651,
+   "top10": 3688,
    "top100": 1067,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
   "nulloSaltRank": {
-   "top10": 2486,
+   "top10": 2493,
    "top100": 679,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
@@ -3109,8 +3109,8 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
    "firstSeen": "2026-01-01"
   },
   "propagatedSaltRank": {
-   "top10": 29,
-   "top100": 21,
+   "top10": 30,
+   "top100": 22,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
@@ -3122,19 +3122,19 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
   },
   "totalAtomLevels": {
    "top10": 1139,
-   "top100": 1070,
+   "top100": 1097,
    "lowerIsBetter": false,
    "firstSeen": "2026-11-13"
   },
   "hatRackMulti": {
-   "top10": 2.12,
-   "top100": 1.94,
+   "top10": 2.13,
+   "top100": 2,
    "lowerIsBetter": false,
    "firstSeen": "2026-11-13"
   },
   "totalMeals": {
    "top10": 11753,
-   "top100": 11362,
+   "top100": 11363,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
@@ -3146,7 +3146,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
   },
   "totalShinyLevels": {
    "top10": 2040,
-   "top100": 1626,
+   "top100": 1630,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
@@ -3158,49 +3158,49 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
   },
   "highestPowerPet": {
    "top10": 6895481.465122961,
-   "top100": 4714610.28050984,
+   "top100": 4791533.349783329,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
   "arenaWaves": {
    "top10": 2332,
-   "top100": 392,
+   "top100": 400,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
   "bestCrucibleRound": {
    "top10": 2843,
-   "top100": 1503,
+   "top100": 1508,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
   "totalKitchenLevels": {
-   "top10": 22670,
-   "top100": 19086,
+   "top10": 22878,
+   "top100": 19878,
    "lowerIsBetter": false,
    "firstSeen": "2026-11-13"
   },
   "totalRibbonRanks": {
-   "top10": 1397,
-   "top100": 1051,
+   "top10": 1404,
+   "top100": 1148,
    "lowerIsBetter": false,
    "firstSeen": "2026-11-13"
   },
   "totalBreedingUpgrades": {
    "top10": 469,
-   "top100": 250,
+   "top100": 264,
    "lowerIsBetter": false,
    "firstSeen": "2026-11-13"
   },
   "fastestEggTime": {
-   "top10": 118.83191774707268,
-   "top100": 47.08293096379154,
+   "top10": 123.62477874207174,
+   "top100": 64.85438403665884,
    "lowerIsBetter": false,
    "firstSeen": "2026-11-13"
   },
   "totalPetPower": {
    "top10": 14636,
-   "top100": 12547,
+   "top100": 12962,
    "lowerIsBetter": false,
    "firstSeen": "2026-11-13"
   },
@@ -3211,25 +3211,25 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
    "firstSeen": "2026-11-13"
   },
   "totalBoats": {
-   "top10": 21298,
-   "top100": 19034,
+   "top10": 21370,
+   "top100": 19059,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
   "godRank": {
    "top10": 30,
-   "top100": 27,
+   "top100": 28,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
   "totalDivinityBlessingLevels": {
    "top10": 3460,
-   "top100": 3194,
+   "top100": 3201,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
   "bits": {
-   "top10": 1.4863975656948389e+120,
+   "top10": 1.743464606502817e+120,
    "top100": 4.150441531699428e+114,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
@@ -3247,20 +3247,20 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
    "firstSeen": "2026-01-01"
   },
   "plantsPicked": {
-   "top10": 61285502,
-   "top100": 26323185,
+   "top10": 58777290,
+   "top100": 26171316,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
   "sproutSpeed": {
    "top10": 10384949.596338358,
-   "top100": 2338723.0155310216,
+   "top100": 2509037.930213846,
    "lowerIsBetter": false,
    "firstSeen": "2026-11-13"
   },
   "highestNugget": {
    "top10": 1041788666561.7896,
-   "top100": 212232521735.4693,
+   "top100": 211151606284.23456,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
@@ -3284,7 +3284,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
   },
   "totalMeasurementLevels": {
    "top10": 8779,
-   "top100": 8008,
+   "top100": 8019,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
@@ -3314,7 +3314,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
   },
   "totalBraveryLevels": {
    "top10": 3441356,
-   "top100": 2227849,
+   "top100": 2235027,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
@@ -3332,7 +3332,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
   },
   "bellRings": {
    "top10": 800,
-   "top100": 747,
+   "top100": 748,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
@@ -3344,7 +3344,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
   },
   "totalStringLevels": {
    "top10": 1204,
-   "top100": 1149,
+   "top100": 1150,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
@@ -3362,19 +3362,19 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
   },
   "totalGambitTime": {
    "top10": 11082.599999996493,
-   "top100": 10082.19999999741,
+   "top100": 10089.79999999728,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
   "highestVillagerExp/hr": {
-   "top10": 1.6157304453829972e+21,
-   "top100": 66307614608045920000,
+   "top10": 1.5498591227428442e+21,
+   "top100": 64710053841230930000,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
   "totalVillagerExp/hr": {
-   "top10": 2.1265466378811144e+21,
-   "top100": 93897799787275470000,
+   "top10": 1.9938438912561033e+21,
+   "top100": 90557904709044800000,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
@@ -3392,7 +3392,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
   },
   "totalFountainUpgrades": {
    "top10": 22608,
-   "top100": 20592,
+   "top100": 20597,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
@@ -3403,14 +3403,14 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
    "firstSeen": "2026-11-13"
   },
   "crystalGlunkoCoveDropRate": {
-   "top10": 1967951044.1104522,
-   "top100": 249872517.91072962,
+   "top10": 2529066143.2640247,
+   "top100": 500303854.97671103,
    "lowerIsBetter": false,
    "firstSeen": "2026-11-13"
   },
   "monumentAfkGain": {
    "top10": 8712.782131600956,
-   "top100": 4674.637820877944,
+   "top100": 6214.48958427673,
    "lowerIsBetter": false,
    "firstSeen": "2026-11-13"
   },
@@ -3421,14 +3421,14 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
    "firstSeen": "2026-01-01"
   },
   "totalPlotRanks": {
-   "top10": 11689,
-   "top100": 10413,
+   "top10": 11739,
+   "top100": 10450,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
   "totalDayMarketLevels": {
-   "top10": 2024,
-   "top100": 1877,
+   "top10": 2026,
+   "top100": 1878,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
@@ -3446,13 +3446,13 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
   },
   "whiteEssence": {
    "top10": 2.9000285692113816e+41,
-   "top100": 3.178634670808861e+39,
+   "top100": 3.3555272141751566e+39,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
   "totalSummoningUpgrades": {
-   "top10": 40083,
-   "top100": 37142,
+   "top10": 40234,
+   "top100": 37323,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
@@ -3463,14 +3463,14 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
    "firstSeen": "2026-01-01"
   },
   "totalFamiliars": {
-   "top10": 48614,
-   "top100": 38591,
+   "top10": 49455,
+   "top100": 38913,
    "lowerIsBetter": false,
    "firstSeen": "2026-11-13"
   },
   "totalExoticMarketLevels": {
    "top10": 394408,
-   "top100": 270679,
+   "top100": 271300,
    "lowerIsBetter": false,
    "firstSeen": "2026-11-13"
   },
@@ -3481,14 +3481,14 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
    "firstSeen": "2026-11-13"
   },
   "cropEvolutionMulti": {
-   "top10": 4.187105709799994e+254,
-   "top100": 9.239761841637882e+220,
+   "top10": 1.1508616700468963e+255,
+   "top100": 2.773808659913301e+234,
    "lowerIsBetter": false,
    "firstSeen": "2026-11-13"
   },
   "totalSpelunkingUpgrades": {
    "top10": 16026,
-   "top100": 14714,
+   "top100": 14716,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
@@ -3499,20 +3499,20 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
    "firstSeen": "2026-01-01"
   },
   "totalCoralKidUpgrades": {
-   "top10": 1814,
-   "top100": 1615,
+   "top10": 1826,
+   "top100": 1640,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
   "totalSushiStationUpgrades": {
    "top10": 12231,
-   "top100": 11602,
+   "top100": 11607,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
   "totalSushiKnowledgeLevels": {
    "top10": 1573,
-   "top100": 1310,
+   "top100": 1311,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
@@ -3542,7 +3542,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
   },
   "bestJellyDps": {
    "top10": 429867112656.9661,
-   "top100": 138913793012.77856,
+   "top100": 142314152165.576,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
@@ -3553,32 +3553,32 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
    "firstSeen": "2026-01-01"
   },
   "totalJellyUpgrades": {
-   "top10": 1546,
-   "top100": 1451,
+   "top10": 1547,
+   "top100": 1453,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
   "biggestHaulSpelunking": {
    "top10": 1.1182898279318083e+50,
-   "top100": 2.7250218347573095e+47,
+   "top100": 2.7429060275438956e+47,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
   "highestSpelunkingPower": {
    "top10": 7.6571136798262165e+40,
-   "top100": 5.3680299794452375e+38,
+   "top100": 6.3458157729901724e+38,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
   "totalSpelunkingDepths": {
    "top10": 4209,
-   "top100": 3739,
+   "top100": 3742,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
   "totalManicSpelunkingDepths": {
    "top10": 3486,
-   "top100": 2757,
+   "top100": 2762,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
@@ -3596,7 +3596,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
   },
   "glimboTotalTrades": {
    "top10": 2354,
-   "top100": 2001,
+   "top100": 2002,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
@@ -3608,7 +3608,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
   },
   "totalMenagerieBoostLevels": {
    "top10": 310,
-   "top100": 258,
+   "top100": 261,
    "lowerIsBetter": false,
    "firstSeen": "2026-01-01"
   },
@@ -3638,19 +3638,19 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
   },
   "totalBlueJellyLadles": {
    "top10": 9332075806,
-   "top100": 1463343665,
+   "top100": 1472243323,
    "lowerIsBetter": false,
    "firstSeen": "2026-11-13"
   },
   "totalSpelunkingLoreLevels": {
    "top10": 118750,
-   "top100": 68171,
+   "top100": 68441,
    "lowerIsBetter": false,
    "firstSeen": "2026-11-13"
   },
   "galleryMulti": {
-   "top10": 2.3052403617325083,
-   "top100": 2.0998682918752523,
+   "top10": 2.3053150620754277,
+   "top100": 2.2473958695430616,
    "lowerIsBetter": false,
    "firstSeen": "2026-11-13"
   },
@@ -3662,7 +3662,7 @@ export const LB_SNAPSHOT: { generatedAt: string; meta: LbMeta; boards: Record<st
   },
   "lumiPerHour": {
    "top10": 1950605.4674123845,
-   "top100": 835963.9519627834,
+   "top100": 1222439.3700432181,
    "lowerIsBetter": false,
    "firstSeen": "2026-11-13"
   }
