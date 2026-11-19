@@ -2,13 +2,13 @@
 // best-of-each-source pools of every char run through ONE combine() pass
 // (the same math a real save uses), no class talents gated. Use topArtifactFlatForClass(classKey).
 // Large file: lazy-load it, don't import statically.
-// Generated 2026-11-16T12:31:08.815Z · 86 players. Refresh: scripts/update-top-artifact.ts.
+// Generated 2026-11-19T12:31:05.706Z · 93 players. Refresh: scripts/update-top-artifact.ts.
 
 type FlatMap = Readonly<Record<string, number>>;
 
 export const TOP_ARTI_FAMILY_FLAT: Readonly<Record<string, FlatMap>> = {
   "all": {
-    "Artifact Find": 38478939889558364000,
+    "Artifact Find": 3264094398352345600,
     "Artifact Find / ☠️ Davey Jones": 16.799999999999997,
     "Artifact Find / ☠️ Davey Jones / Davey Jones": 16.799999999999997,
     "Artifact Find / ☠️ Davey Jones / Davey Jones / Sailing(\"DaveyJonesBonus\", 0, 0)": 16.799999999999997,
@@ -16,7 +16,7 @@ export const TOP_ARTI_FAMILY_FLAT: Readonly<Record<string, FlatMap>> = {
     "Artifact Find / ⛏️ Artifacto Discoveries (Super Bit 26) / Artifacto Discoveries (Super Bit 26)": 7.998674705139815,
     "Artifact Find / ⛏️ Artifacto Discoveries (Super Bit 26) / Artifacto Discoveries (Super Bit 26) / GamingStatType(\"SuperBitType\", 26, 0)": 1,
     "Artifact Find / ⛏️ Artifacto Discoveries (Super Bit 26) / Artifacto Discoveries (Super Bit 26) / Spelunk[6].length": 105,
-    "Artifact Find / ➕ Additive Pool": 84.27082231955077,
+    "Artifact Find / ➕ Additive Pool": 84.40414271955076,
     "Artifact Find / ➕ Additive Pool / Artifact Find Arcade Bonus (Arcade 32)": 302.970297029703,
     "Artifact Find / ➕ Additive Pool / Artifact Find Arcade Bonus (Arcade 32) / ArcadeBonus(32)": 302.970297029703,
     "Artifact Find / ➕ Additive Pool / Artifact Find Arcade Bonus (Arcade 66)": 120.59701492537313,
@@ -29,10 +29,10 @@ export const TOP_ARTI_FAMILY_FLAT: Readonly<Record<string, FlatMap>> = {
     "Artifact Find / ➕ Additive Pool / Boat Captain (Artifact Find Chance) / CaptBonusCalc(3, 1)": 2135,
     "Artifact Find / ➕ Additive Pool / Captains of type 6": 500,
     "Artifact Find / ➕ Additive Pool / Captains of type 6 / NONdummies.60": 20,
-    "Artifact Find / ➕ Additive Pool / Chocotastic Muffin Sticker (Sticker 2)": 1135.3399200000001,
-    "Artifact Find / ➕ Additive Pool / Chocotastic Muffin Sticker (Sticker 2) / FarmingStuffs(\"StickerBonus\", 2, 99)": 1135.3399200000001,
-    "Artifact Find / ➕ Additive Pool / Fauxory Tusk (Artifact 3)": 2618,
-    "Artifact Find / ➕ Additive Pool / Fauxory Tusk (Artifact 3) / Sailing(\"ArtifactBonus\", 3, 0)": 2618,
+    "Artifact Find / ➕ Additive Pool / Chocotastic Muffin Sticker (Sticker 2)": 1141.6719599999997,
+    "Artifact Find / ➕ Additive Pool / Chocotastic Muffin Sticker (Sticker 2) / FarmingStuffs(\"StickerBonus\", 2, 99)": 1141.6719599999997,
+    "Artifact Find / ➕ Additive Pool / Fauxory Tusk (Artifact 3)": 2625,
+    "Artifact Find / ➕ Additive Pool / Fauxory Tusk (Artifact 3) / Sailing(\"ArtifactBonus\", 3, 0)": 2625,
     "Artifact Find / ➕ Additive Pool / Higher Artifact Find Chance Shiny Pet (Breeding 21)": 180,
     "Artifact Find / ➕ Additive Pool / Higher Artifact Find Chance Shiny Pet (Breeding 21) / Breeding(\"ShinyBonusS\", \"Nah\", 21, -1)": 180,
     "Artifact Find / ➕ Additive Pool / Sailing Artifact Chance (Fractal Island 3)": 20,
@@ -62,9 +62,9 @@ export const TOP_ARTI_FAMILY_FLAT: Readonly<Record<string, FlatMap>> = {
     "Artifact Find / 🏆 Artifact Find (Winner Bonus 3)": 55.46350000000001,
     "Artifact Find / 🏆 Artifact Find (Winner Bonus 3) / Artifact Find (Winner Bonus 3)": 5446.350000000001,
     "Artifact Find / 🏆 Artifact Find (Winner Bonus 3) / Artifact Find (Winner Bonus 3) / Summoning(\"WinBonus\", 3, 0)": 5446.350000000001,
-    "Artifact Find / 🏷️ Chocotastic Muffin Sticker (Sticker 2)": 11.8072,
-    "Artifact Find / 🏷️ Chocotastic Muffin Sticker (Sticker 2) / Chocotastic Muffin Sticker (Sticker 2)": 1080.72,
-    "Artifact Find / 🏷️ Chocotastic Muffin Sticker (Sticker 2) / Chocotastic Muffin Sticker (Sticker 2) / FarmingStuffs(\"StickerBonus\", 2, 100)": 1080.72,
+    "Artifact Find / 🏷️ Chocotastic Muffin Sticker (Sticker 2)": 1,
+    "Artifact Find / 🏷️ Chocotastic Muffin Sticker (Sticker 2) / Chocotastic Muffin Sticker (Sticker 2)": 0,
+    "Artifact Find / 🏷️ Chocotastic Muffin Sticker (Sticker 2) / Chocotastic Muffin Sticker (Sticker 2) / FarmingStuffs(\"StickerBonus\", 2, 100)": 0,
     "Artifact Find / 🐌 Noble Sluggo (Event Shop 48)": 1.5,
     "Artifact Find / 🐌 Noble Sluggo (Event Shop 48) / Noble Sluggo (Event Shop 48)": 1.5,
     "Artifact Find / 🐌 Noble Sluggo (Event Shop 48) / Noble Sluggo (Event Shop 48) / Stuff2(\"PurpleChestSlugsOwned\", 0, 0)": 1,

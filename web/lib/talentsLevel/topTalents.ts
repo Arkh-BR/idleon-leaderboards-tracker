@@ -13,13 +13,13 @@
 // default tree (they would all resolve to identical numbers anyway).
 // Auto-refreshed by scripts/update-top-talents.ts.
 //
-// Snapshot generated: 2026-11-16T12:33:19.685Z
-// Players scanned: 86
+// Snapshot generated: 2026-11-19T12:32:46.904Z
+// Players scanned: 93
 
 import type { ArkhNode } from "../dropRate/node";
 
-export const HYPO_TALENTS_GENERATED_AT = "2026-11-16T12:33:19.685Z";
-export const HYPO_TALENTS_PLAYERS_SCANNED = 86;
+export const HYPO_TALENTS_GENERATED_AT = "2026-11-19T12:32:46.904Z";
+export const HYPO_TALENTS_PLAYERS_SCANNED = 93;
 
 export const HYPO_DEFAULT_TREE: ArkhNode = {
   "name": "Effective Level",
@@ -497,7 +497,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
           "children": [
             {
               "name": "Best Mage Lv",
-              "val": 2002,
+              "val": 1985,
               "fmt": "raw",
               "note": "max across account — 1 mage char",
               "children": [
@@ -888,7 +888,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
           "children": [
             {
               "name": "Player Lv",
-              "val": 2060,
+              "val": 2056,
               "fmt": "raw",
               "note": "Lv0[0]"
             }
@@ -1432,7 +1432,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
             "children": [
               {
                 "name": "Best Mage Lv",
-                "val": 2002,
+                "val": 1985,
                 "fmt": "raw",
                 "note": "max across account — 1 mage char",
                 "children": [
@@ -1446,7 +1446,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
               },
               {
                 "name": "Family Guy Multi (×) — potential buff",
-                "val": 1.3581589958158995,
+                "val": 1.3582027168234065,
                 "fmt": "raw",
                 "note": "1 + decay(x1, x2, Base+Bonus)/100",
                 "children": [
@@ -1823,7 +1823,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
             "children": [
               {
                 "name": "Player Lv",
-                "val": 2060,
+                "val": 2056,
                 "fmt": "raw",
                 "note": "Lv0[0]"
               }
