@@ -13,12 +13,12 @@
 // default tree (they would all resolve to identical numbers anyway).
 // Auto-refreshed by scripts/update-top-talents.ts.
 //
-// Snapshot generated: 2026-11-19T12:32:46.904Z
+// Snapshot generated: 2026-11-22T12:22:21.112Z
 // Players scanned: 93
 
 import type { ArkhNode } from "../dropRate/node";
 
-export const HYPO_TALENTS_GENERATED_AT = "2026-11-19T12:32:46.904Z";
+export const HYPO_TALENTS_GENERATED_AT = "2026-11-22T12:22:21.112Z";
 export const HYPO_TALENTS_PLAYERS_SCANNED = 93;
 
 export const HYPO_DEFAULT_TREE: ArkhNode = {
@@ -497,7 +497,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
           "children": [
             {
               "name": "Best Mage Lv",
-              "val": 1985,
+              "val": 2007,
               "fmt": "raw",
               "note": "max across account — 1 mage char",
               "children": [
@@ -888,7 +888,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
           "children": [
             {
               "name": "Player Lv",
-              "val": 2056,
+              "val": 2058,
               "fmt": "raw",
               "note": "Lv0[0]"
             }
@@ -958,7 +958,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
 export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
   "Elemental_Sorcerer": {
     "name": "Effective Level",
-    "val": 870,
+    "val": 871,
     "fmt": "raw",
     "note": "Base + Bonus + Super",
     "children": [
@@ -1186,7 +1186,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
       },
       {
         "name": "Bonus Levels",
-        "val": 304,
+        "val": 305,
         "fmt": "+",
         "children": [
           {
@@ -1426,13 +1426,13 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
           },
           {
             "name": "Family Bonus 68 (Mage)",
-            "val": 22,
+            "val": 23,
             "fmt": "raw",
             "note": "floor(decay × Family Guy Multi if active) — buffed by The Family Guy (Talent 144)",
             "children": [
               {
                 "name": "Best Mage Lv",
-                "val": 1985,
+                "val": 2007,
                 "fmt": "raw",
                 "note": "max across account — 1 mage char",
                 "children": [
@@ -1446,7 +1446,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
               },
               {
                 "name": "Family Guy Multi (×) — potential buff",
-                "val": 1.3582027168234065,
+                "val": 1.3582463465553236,
                 "fmt": "raw",
                 "note": "1 + decay(x1, x2, Base+Bonus)/100",
                 "children": [
@@ -1823,7 +1823,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
             "children": [
               {
                 "name": "Player Lv",
-                "val": 2056,
+                "val": 2058,
                 "fmt": "raw",
                 "note": "Lv0[0]"
               }
@@ -1932,7 +1932,7 @@ export const STAR_TALENT_CEILING: Readonly<Record<number, number>> = {
   "640": 101,
   "641": 440,
   "642": 441,
-  "643": 439,
+  "643": 440,
   "644": 440,
   "645": 439,
   "646": 441,
