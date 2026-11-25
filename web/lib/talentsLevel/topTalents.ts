@@ -13,13 +13,13 @@
 // default tree (they would all resolve to identical numbers anyway).
 // Auto-refreshed by scripts/update-top-talents.ts.
 //
-// Snapshot generated: 2026-11-22T12:22:21.112Z
-// Players scanned: 93
+// Snapshot generated: 2026-11-25T14:02:29.309Z
+// Players scanned: 95
 
 import type { ArkhNode } from "../dropRate/node";
 
-export const HYPO_TALENTS_GENERATED_AT = "2026-11-22T12:22:21.112Z";
-export const HYPO_TALENTS_PLAYERS_SCANNED = 93;
+export const HYPO_TALENTS_GENERATED_AT = "2026-11-25T14:02:29.309Z";
+export const HYPO_TALENTS_PLAYERS_SCANNED = 95;
 
 export const HYPO_DEFAULT_TREE: ArkhNode = {
   "name": "Effective Level",
@@ -31,13 +31,13 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
       "name": "Base Level",
       "val": 441,
       "fmt": "raw",
-      "note": "min(invested, cap) — owner: Dragami",
+      "note": "min(invested, cap) — owner: Morakki",
       "children": [
         {
           "name": "Points Invested",
           "val": 441,
           "fmt": "raw",
-          "note": "actual save — owner: Dragami"
+          "note": "actual save — owner: Morakki"
         },
         {
           "name": "Max Book Lv Cap",
@@ -264,13 +264,13 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
               "name": "Base Level",
               "val": 441,
               "fmt": "raw",
-              "note": "min(invested, cap) — owner: Dragami",
+              "note": "min(invested, cap) — owner: Morakki",
               "children": [
                 {
                   "name": "Points Invested",
                   "val": 441,
                   "fmt": "raw",
-                  "note": "actual save — owner: Dragami"
+                  "note": "actual save — owner: Morakki"
                 },
                 {
                   "name": "Max Book Lv Cap",
@@ -502,10 +502,10 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
               "note": "max across account — 1 mage char",
               "children": [
                 {
-                  "name": "Char 5 Lv",
-                  "val": 1956,
+                  "name": "Char 1 Lv",
+                  "val": 2001,
                   "fmt": "raw",
-                  "note": "Dragamino — elemental sorcerer (cls 34)"
+                  "note": "Mirakki — elemental sorcerer (cls 34)"
                 }
               ]
             },
@@ -781,7 +781,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
             },
             {
               "name": "Bubble Y2 Active",
-              "val": 1.4999285814611758,
+              "val": 1.4999305619850014,
               "fmt": "raw",
               "note": "0 unless BIG_P is equipped or Sheepie owned; Prisma included"
             },
@@ -888,7 +888,7 @@ export const HYPO_DEFAULT_TREE: ArkhNode = {
           "children": [
             {
               "name": "Player Lv",
-              "val": 2058,
+              "val": 2072,
               "fmt": "raw",
               "note": "Lv0[0]"
             }
@@ -966,13 +966,13 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
         "name": "Base Level",
         "val": 441,
         "fmt": "raw",
-        "note": "min(invested, cap) — owner: Dragami",
+        "note": "min(invested, cap) — owner: Morakki",
         "children": [
           {
             "name": "Points Invested",
             "val": 441,
             "fmt": "raw",
-            "note": "actual save — owner: Dragami"
+            "note": "actual save — owner: Morakki"
           },
           {
             "name": "Max Book Lv Cap",
@@ -1199,13 +1199,13 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                 "name": "Base Level",
                 "val": 441,
                 "fmt": "raw",
-                "note": "min(invested, cap) — owner: Dragami",
+                "note": "min(invested, cap) — owner: Morakki",
                 "children": [
                   {
                     "name": "Points Invested",
                     "val": 441,
                     "fmt": "raw",
-                    "note": "actual save — owner: Dragami"
+                    "note": "actual save — owner: Morakki"
                   },
                   {
                     "name": "Max Book Lv Cap",
@@ -1437,10 +1437,10 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
                 "note": "max across account — 1 mage char",
                 "children": [
                   {
-                    "name": "Char 5 Lv",
-                    "val": 1956,
+                    "name": "Char 1 Lv",
+                    "val": 2001,
                     "fmt": "raw",
-                    "note": "Dragamino — elemental sorcerer (cls 34) — ACTIVE char (gets Family Guy buff if it wins the slot)"
+                    "note": "Mirakki — elemental sorcerer (cls 34) — ACTIVE char (gets Family Guy buff if it wins the slot)"
                   }
                 ]
               },
@@ -1716,7 +1716,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
               },
               {
                 "name": "Bubble Y2 Active",
-                "val": 1.4999285814611758,
+                "val": 1.4999305619850014,
                 "fmt": "raw",
                 "note": "0 unless BIG_P is equipped or Sheepie owned; Prisma included"
               },
@@ -1823,7 +1823,7 @@ export const HYPO_TREE_OVERRIDES: Record<string, ArkhNode> = {
             "children": [
               {
                 "name": "Player Lv",
-                "val": 2058,
+                "val": 2072,
                 "fmt": "raw",
                 "note": "Lv0[0]"
               }
@@ -1932,9 +1932,9 @@ export const STAR_TALENT_CEILING: Readonly<Record<number, number>> = {
   "640": 101,
   "641": 440,
   "642": 441,
-  "643": 440,
-  "644": 440,
-  "645": 439,
+  "643": 441,
+  "644": 441,
+  "645": 440,
   "646": 441,
   "647": 439,
   "649": 200,

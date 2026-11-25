@@ -4,7 +4,7 @@
 // pass (the same math a real save uses), gated PER CLASS for the formula's
 // class talents. Use topAfkFlatForClass(classKey).
 // Large file: lazy-load it, don't import statically.
-// Generated 2026-11-22T12:17:32.653Z · 93 players. Refresh: scripts/update-top-afk.ts.
+// Generated 2026-11-25T13:55:33.353Z · 95 players. Refresh: scripts/update-top-afk.ts.
 
 type FlatMap = Readonly<Record<string, number>>;
 
@@ -464,10 +464,10 @@ export const TOP_AFK_PROFILE_OVERRIDES: Readonly<Record<string, FlatMap>> = {
     "AFK Gains Rate / ⚔️ Fighting AFK pool / Idle Shooting (Talent 268) / GetTalentNumber(1, 268)": 18.878923766816143,
   },
   "beginner:t79": {
-    "AFK Gains Rate": 3031.9800994130824,
-    "AFK Gains Rate / ⚔️ Fighting AFK pool": 342.05760280124815,
-    "AFK Gains Rate / ⚔️ Fighting AFK pool / Sleepin' On The Job (Talent 79)": 20.236363636363638,
-    "AFK Gains Rate / ⚔️ Fighting AFK pool / Sleepin' On The Job (Talent 79) / GetTalentNumber(1, 79)": 20.236363636363638,
+    "AFK Gains Rate": 3031.9804909579234,
+    "AFK Gains Rate / ⚔️ Fighting AFK pool": 342.0576469739951,
+    "AFK Gains Rate / ⚔️ Fighting AFK pool / Sleepin' On The Job (Talent 79)": 20.240780911062906,
+    "AFK Gains Rate / ⚔️ Fighting AFK pool / Sleepin' On The Job (Talent 79) / GetTalentNumber(1, 79)": 20.240780911062906,
   },
   "mage:t448": {
     "AFK Gains Rate": 3031.86216855326,
